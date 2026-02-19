@@ -10,7 +10,7 @@ export function decodeRouteParam(value = '') {
 }
 
 export function fullSyncHomeHref() {
-	return resolve('/(app)/admin/fs');
+	return resolve('/(app)/admin/fullsync');
 }
 
 function encodeRouteSegment(value = '') {
@@ -22,7 +22,7 @@ export function fullSyncDbHref(database) {
 	if (!db) {
 		return fullSyncHomeHref();
 	}
-	return resolve('/(app)/admin/fs/[database]', { database: db });
+	return resolve('/(app)/admin/fullsync/[database]', { database: db });
 }
 
 export function fullSyncDbAllDocsHref(database) {
@@ -34,7 +34,7 @@ export function fullSyncDbMangoHref(database) {
 	if (!db) {
 		return fullSyncHomeHref();
 	}
-	return resolve('/(app)/admin/fs/[database]/_find', { database: db });
+	return resolve('/(app)/admin/fullsync/[database]/_find', { database: db });
 }
 
 export function fullSyncDbIndexHref(database) {
@@ -42,7 +42,7 @@ export function fullSyncDbIndexHref(database) {
 	if (!db) {
 		return fullSyncHomeHref();
 	}
-	return resolve('/(app)/admin/fs/[database]/_index', { database: db });
+	return resolve('/(app)/admin/fullsync/[database]/_index', { database: db });
 }
 
 export function fullSyncDbTabHref(database, tab = 'all') {
@@ -64,7 +64,7 @@ export function fullSyncDbViewHref(database, designDocId, viewName) {
 	if (!db || !design || !view) {
 		return fullSyncDbAllDocsHref(database);
 	}
-	return resolve('/(app)/admin/fs/[database]/_design/[design]/_view/[view]', {
+	return resolve('/(app)/admin/fullsync/[database]/_design/[design]/_view/[view]', {
 		database: db,
 		design,
 		view
@@ -80,7 +80,7 @@ export function fullSyncDbViewEditHref(database, designDocId, viewName) {
 	if (!db || !design || !view) {
 		return fullSyncDbAllDocsHref(database);
 	}
-	return resolve('/(app)/admin/fs/[database]/_design/[design]/_view/[view]/edit', {
+	return resolve('/(app)/admin/fullsync/[database]/_design/[design]/_view/[view]/edit', {
 		database: db,
 		design,
 		view

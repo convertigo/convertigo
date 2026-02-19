@@ -5,7 +5,7 @@
 Suivre la parite **feature / look / URL** entre:
 
 - mode iframe: `/admin/fullsync/` + URL interne Fauxton dans l'iframe
-- mode natif: `/admin/fs/...`
+- mode natif: `/admin/fullsync/...`
 
 Mise a jour iterative: **une page a 100% avant de passer a la suivante**.
 
@@ -23,7 +23,7 @@ Effets de cette injection:
 
 1. Ouvrir la page iframe de reference.
 2. Noter l'URL **host** (`/admin/fullsync/...`) et l'URL **interne iframe** (`/convertigo/admin_/_utils/#...`).
-3. Ouvrir la page native correspondante (`/admin/fs/...`).
+3. Ouvrir la page native correspondante (`/admin/fullsync/...`).
 4. Valider 3 axes sur la page:
    - URL: format, segments, navigation (back/forward, refresh, liens internes)
    - Look: structure, densite, tailles, alignements, etats (hover/active/disabled)
@@ -53,27 +53,27 @@ Une page est `DONE` quand:
 
 ## Matrice de correspondance
 
-| ID     | Page / Ecran                         | URL host iframe    | URL interne iframe (reference)                                              | URL native FS cible                               | URL parity       | Look parity            | Feature parity     | Statut | Sorties vers pages non traitees | Notes                                                                                                                                                      |
-| ------ | ------------------------------------ | ------------------ | --------------------------------------------------------------------------- | ------------------------------------------------- | ---------------- | ---------------------- | ------------------ | ------ | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FS-001 | Liste des bases                      | `/admin/fullsync/` | `/convertigo/admin_/_utils/#`                                               | `/admin/fs/`                                      | OK               | DELTA (intentionnelle) | OK (scope convenu) | DONE   | FS-002                          | Deltas valides: pas de colonne Partitioned, pas d'action lock/permissions, ajout Search + Size + Seq; fallback `Size = N/A` si info absente (mode PouchDB) |
-| FS-002 | Base: All Docs (`{db}`)              | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_all_docs`                        | `/admin/fs/{db}`                                  | OK (segment URL) | OK                     | OK                 | DONE   | FS-003, FS-005, FS-007, FS-008  | Parite validee: sidebar/toolbar/options/selection + pagination (avec/sans limit) + ouverture doc (ligne/toolbar)                                           |
-| FS-003 | Mango Query (`_find`)                | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_find`                            | `/admin/fs/{db}/_find`                            | OK               | OK                     | OK                 | DONE   | FS-004, FS-008                  | Run/Explain + history + modes de rendu + navigation `Manage Indexes` validees                                                                              |
-| FS-004 | Mango Indexes (`_index`)             | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_index`                           | `/admin/fs/{db}/_index`                           | OK               | OK                     | OK                 | DONE   | FS-003, FS-008                  | Create index + selection + delete valides; pagination alignee iframe (sans option `None`)                                                                  |
-| FS-005 | Query d'une vue (`_design/_view`)    | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/_design/{ddoc}/_view/{view}`     | `/admin/fs/{db}/_design/{ddoc}/_view/{view}`      | OK               | OK                     | OK                 | DONE   | FS-006, FS-007, FS-008          | URL segmentee obligatoire; robustesse ajoutee sur 401/403 initiaux (retry auth)                                                                            |
-| FS-006 | Edition d'une vue                    | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_design/{ddoc}/_view/{view}/edit` | `/admin/fs/{db}/_design/{ddoc}/_view/{view}/edit` | OK               | OK                     | OK                 | DONE   | FS-005                          | Deep-link `/edit` valide; `Cancel` + `Save` redirigent vers la view query                                                                                  |
-| FS-007 | Edition document (`{docid}`)         | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/{docid}`                         | `/admin/fs/{db}/{docid}`                          | OK               | OK                     | OK                 | DONE   | -                               | Validation UI complete en session admin: save persistant + delete (No/Yes) + suppression effective (404 apres delete)                                      |
-| FS-008 | Nouveau document (`_new`)            | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/_new`                            | `/admin/fs/{db}/_new`                             | OK               | OK                     | OK                 | DONE   | FS-007                          | Route dediee + titre `New Document` + bouton `Create Document`                                                                                             |
-| FS-009 | Dialogue Upload Attachment           | `/admin/fullsync/` | Depuis ecran doc (`Upload Attachment`)                                      | Depuis ecran doc (`Upload Attachment`)            | N/A              | OK                     | OK                 | DONE   | -                               | Dialogue valide (`Esc`, clic externe), upload API valide, acceptation fichier 0 octet alignee Fauxton                                                      |
-| FS-010 | Action Clone Document                | `/admin/fullsync/` | Depuis ecran doc (`Clone Document`)                                         | Depuis ecran doc (`Clone Document`)               | N/A              | OK                     | OK                 | DONE   | FS-007                          | Flux UI valide en session admin (`modal -> clone -> redirection clone -> save`); comportement `missing_stub` aligne Fauxton                                |
-| FS-011 | View Attachments (liste + ouverture) | `/admin/fullsync/` | Depuis ecran doc (`View Attachments`)                                       | Depuis ecran doc (`View attachments`)             | N/A              | OK                     | OK                 | DONE   | -                               | Menu visible si pieces jointes, masque sinon; fermeture menu `Esc`/clic externe; ouverture nouvel onglet OK                                                |
-| FS-012 | Permissions DB                       | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_security`                        | `/admin/fs/{db}/_security`                        | N/A              | N/A                    | N/A                | N/A    | -                               | Hors scope: lien retire par l'injection iframe (`.nav-list li a` contenant `Permissions`)                                                                  |
-| FS-013 | Changes feed                         | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_changes`                         | `/admin/fs/{db}/_changes`                         | N/A              | N/A                    | N/A                | N/A    | -                               | Hors scope: lien retire par l'injection iframe (`.nav-list li a` contenant `Changes`)                                                                      |
-| FS-014 | Design Doc Metadata (`_info`)        | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_design/{ddoc}/_info`             | `/admin/fs/{db}/_design/{ddoc}/_info`             | N/A              | N/A                    | N/A                | N/A    | -                               | Hors scope: lien retire par l'injection iframe (`.design-doc-body li a` contenant `Metadata`)                                                              |
+| ID     | Page / Ecran                         | URL host iframe    | URL interne iframe (reference)                                              | URL native FS cible                                     | URL parity       | Look parity            | Feature parity     | Statut | Sorties vers pages non traitees | Notes                                                                                                                                                      |
+| ------ | ------------------------------------ | ------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------- | ---------------------- | ------------------ | ------ | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FS-001 | Liste des bases                      | `/admin/fullsync/` | `/convertigo/admin_/_utils/#`                                               | `/admin/fullsync/`                                      | OK               | DELTA (intentionnelle) | OK (scope convenu) | DONE   | FS-002                          | Deltas valides: pas de colonne Partitioned, pas d'action lock/permissions, ajout Search + Size + Seq; fallback `Size = N/A` si info absente (mode PouchDB) |
+| FS-002 | Base: All Docs (`{db}`)              | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_all_docs`                        | `/admin/fullsync/{db}`                                  | OK (segment URL) | OK                     | OK                 | DONE   | FS-003, FS-005, FS-007, FS-008  | Parite validee: sidebar/toolbar/options/selection + pagination (avec/sans limit) + ouverture doc (ligne/toolbar)                                           |
+| FS-003 | Mango Query (`_find`)                | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_find`                            | `/admin/fullsync/{db}/_find`                            | OK               | OK                     | OK                 | DONE   | FS-004, FS-008                  | Run/Explain + history + modes de rendu + navigation `Manage Indexes` validees                                                                              |
+| FS-004 | Mango Indexes (`_index`)             | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_index`                           | `/admin/fullsync/{db}/_index`                           | OK               | OK                     | OK                 | DONE   | FS-003, FS-008                  | Create index + selection + delete valides; pagination alignee iframe (sans option `None`)                                                                  |
+| FS-005 | Query d'une vue (`_design/_view`)    | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/_design/{ddoc}/_view/{view}`     | `/admin/fullsync/{db}/_design/{ddoc}/_view/{view}`      | OK               | OK                     | OK                 | DONE   | FS-006, FS-007, FS-008          | URL segmentee obligatoire; robustesse ajoutee sur 401/403 initiaux (retry auth)                                                                            |
+| FS-006 | Edition d'une vue                    | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_design/{ddoc}/_view/{view}/edit` | `/admin/fullsync/{db}/_design/{ddoc}/_view/{view}/edit` | OK               | OK                     | OK                 | DONE   | FS-005                          | Deep-link `/edit` valide; `Cancel` + `Save` redirigent vers la view query                                                                                  |
+| FS-007 | Edition document (`{docid}`)         | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/{docid}`                         | `/admin/fullsync/{db}/{docid}`                          | OK               | OK                     | OK                 | DONE   | -                               | Validation UI complete en session admin: save persistant + delete (No/Yes) + suppression effective (404 apres delete)                                      |
+| FS-008 | Nouveau document (`_new`)            | `/admin/fullsync/` | `/convertigo/admin_/_utils/#/database/{db}/_new`                            | `/admin/fullsync/{db}/_new`                             | OK               | OK                     | OK                 | DONE   | FS-007                          | Route dediee + titre `New Document` + bouton `Create Document`                                                                                             |
+| FS-009 | Dialogue Upload Attachment           | `/admin/fullsync/` | Depuis ecran doc (`Upload Attachment`)                                      | Depuis ecran doc (`Upload Attachment`)                  | N/A              | OK                     | OK                 | DONE   | -                               | Dialogue valide (`Esc`, clic externe), upload API valide, acceptation fichier 0 octet alignee Fauxton                                                      |
+| FS-010 | Action Clone Document                | `/admin/fullsync/` | Depuis ecran doc (`Clone Document`)                                         | Depuis ecran doc (`Clone Document`)                     | N/A              | OK                     | OK                 | DONE   | FS-007                          | Flux UI valide en session admin (`modal -> clone -> redirection clone -> save`); comportement `missing_stub` aligne Fauxton                                |
+| FS-011 | View Attachments (liste + ouverture) | `/admin/fullsync/` | Depuis ecran doc (`View Attachments`)                                       | Depuis ecran doc (`View attachments`)                   | N/A              | OK                     | OK                 | DONE   | -                               | Menu visible si pieces jointes, masque sinon; fermeture menu `Esc`/clic externe; ouverture nouvel onglet OK                                                |
+| FS-012 | Permissions DB                       | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_security`                        | `/admin/fullsync/{db}/_security`                        | N/A              | N/A                    | N/A                | N/A    | -                               | Hors scope: lien retire par l'injection iframe (`.nav-list li a` contenant `Permissions`)                                                                  |
+| FS-013 | Changes feed                         | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_changes`                         | `/admin/fullsync/{db}/_changes`                         | N/A              | N/A                    | N/A                | N/A    | -                               | Hors scope: lien retire par l'injection iframe (`.nav-list li a` contenant `Changes`)                                                                      |
+| FS-014 | Design Doc Metadata (`_info`)        | `/admin/fullsync/` | `/convertigo/admin_/_utils/#database/{db}/_design/{ddoc}/_info`             | `/admin/fullsync/{db}/_design/{ddoc}/_info`             | N/A              | N/A                    | N/A                | N/A    | -                               | Hors scope: lien retire par l'injection iframe (`.design-doc-body li a` contenant `Metadata`)                                                              |
 
 ## Validation detaillee FS-001 (DONE)
 
-- Navigation row click: `offchat_fullsync` ouvre `http://localhost:5173/admin/fs/offchat_fullsync/`.
-- Navigation via recherche: valeur `alerts` + action Open ouvre `http://localhost:5173/admin/fs/alerts/`.
+- Navigation row click: `offchat_fullsync` ouvre `http://localhost:5173/admin/fullsync/offchat_fullsync/`.
+- Navigation via recherche: valeur `alerts` + action Open ouvre `http://localhost:5173/admin/fullsync/alerts/`.
 - Pagination: page 2 OK (`Showing 21–29 of 29 databases`), next/previous operants.
 - Delete row: dialogue Yes/No present; `No` annule sans suppression.
 - Liens header: `JSON` pointe `.../convertigo/fullsync/_all_dbs` (new tab), doc pointe la doc CouchDB (new tab).
@@ -83,7 +83,7 @@ Une page est `DONE` quand:
 
 - URL map validee:
   - iframe interne: `#/database/offchat_fullsync/_all_docs`
-  - natif: `/admin/fs/offchat_fullsync/`
+  - natif: `/admin/fullsync/offchat_fullsync/`
 - Sidebar:
   - clic sur design doc ouvre/ferme bien l'accordion.
   - liens de vues presents (`.../_design/{ddoc}/_view/{view}`) + actions edit/clone/delete visibles.
@@ -142,14 +142,14 @@ Une page est `DONE` quand:
 
 - Validation comparee iframe vs natif sur `offchat_fullsync`:
   - iframe: `#/database/offchat_fullsync/_find`
-  - natif: `/admin/fs/offchat_fullsync/_find/`
-- Desktop (`http://localhost:18080/convertigo/admin/fs/offchat_fullsync/_find/`):
+  - natif: `/admin/fullsync/offchat_fullsync/_find/`
+- Desktop (`http://localhost:18080/convertigo/admin/fullsync/offchat_fullsync/_find/`):
   - `Run Query` -> affichage table, colonnes selectionnables, pagination et selection multi-docs OK.
   - bascule `Table`/`JSON` validee apres run; cards JSON avec action `Open document` OK.
   - `Explain` affiche le JSON explain et masque la toolbar/result footer de resultats (alignement iframe).
 - Navigation:
-  - bouton `Manage Indexes` -> `/admin/fs/offchat_fullsync/_index/` OK.
-  - retour `Edit Query` depuis `_index` -> `/admin/fs/offchat_fullsync/_find/` OK.
+  - bouton `Manage Indexes` -> `/admin/fullsync/offchat_fullsync/_index/` OK.
+  - retour `Edit Query` depuis `_index` -> `/admin/fullsync/offchat_fullsync/_find/` OK.
 - Mobile (viewport 390px):
   - header/actions/editor/toolbar/resultats restent utilisables sans blocage.
   - controle `Documents per page` + navigation pagination restent accessibles.
@@ -158,8 +158,8 @@ Une page est `DONE` quand:
 
 - URL/Navigation verifiees:
   - iframe: `#/database/{db}/_index`
-  - natif: `/admin/fs/{db}/_index`
-  - `Edit Query` retourne bien vers `/admin/fs/{db}/_find`.
+  - natif: `/admin/fullsync/{db}/_index`
+  - `Edit Query` retourne bien vers `/admin/fullsync/{db}/_find`.
 - Fonctionnel verifie:
   - `Create Index` cree bien un index json.
   - listage indexes recharge apres creation.
@@ -178,7 +178,7 @@ Une page est `DONE` quand:
 
 - Validation comparee iframe vs natif sur `offchat_fullsync`:
   - iframe: `#/database/offchat_fullsync/_index`
-  - natif: `/admin/fs/offchat_fullsync/_index/`
+  - natif: `/admin/fullsync/offchat_fullsync/_index/`
 - Desktop:
   - `Create Index` avec exemple `message index` cree bien un index `json: message-idx`.
   - selection de l'index creee + action `Delete selected...` + confirmation `Yes` fonctionnent.
@@ -192,7 +192,7 @@ Une page est `DONE` quand:
 
 - URL verifiee au clic sidebar:
   - iframe: `#/database/offchat_fullsync/_design/OffChat/_view/getChat`
-  - natif: `/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/`
+  - natif: `/admin/fullsync/offchat_fullsync/_design/OffChat/_view/getChat/`
 - Navigation sidebar verifiee:
   - clic design doc ouvre l'accordion.
   - liens de vues naviguent bien vers URL segmentee (sans query string d'etat).
@@ -238,7 +238,7 @@ Une page est `DONE` quand:
     `Reduce is invalid for map-only views.`.
   - les `403` observes precedemment sur `_view` ne sont pas reproduits dans cette session de validation.
 - Validation interactions (session courante):
-  - clic sur une ligne resultats ouvre bien `/admin/fs/{db}/{docid}/` puis retour navigateur OK vers la route `_view`.
+  - clic sur une ligne resultats ouvre bien `/admin/fullsync/{db}/{docid}/` puis retour navigateur OK vers la route `_view`.
   - avec `Include Docs=false`, la selection globale est desactivee et l'action
     `Delete {n} selected document(s)` disparait.
   - `Copy row` affiche bien la notification `Row copied`.
@@ -256,7 +256,7 @@ Une page est `DONE` quand:
   - alignee Fauxton: page 1 `Showing document 1 - 5`, page 2 `Showing document 6 - 10`, `Next` desactive.
   - correctif applique: suppression de la ligne sentinelle `docsPerPage+1` quand la limite de query est atteinte.
 - Ouverture document validee:
-  - clic sur ligne -> ouverture `/admin/fs/{db}/{docid}/`;
+  - clic sur ligne -> ouverture `/admin/fullsync/{db}/{docid}/`;
   - toolbar `Document ID` + bouton `Open document` -> meme redirection.
 - Check mobile rapide (viewport 390px):
   - sidebar/tables/actions restent accessibles, sans rupture bloquante.
@@ -267,7 +267,7 @@ Une page est `DONE` quand:
 - URL edit capturee en iframe au clic sur l'action view (wrench):
   - `#/database/offchat_fullsync/_design/OffChat/_view/checkUsername/edit`
 - URL edit native correspondante:
-  - `/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/edit/`
+  - `/admin/fullsync/offchat_fullsync/_design/OffChat/_view/getChat/edit/`
 - Comportement compare:
   - le formulaire `Design Document / Index name / Map / Reduce` est present des 2 cotes.
   - `Cancel` retourne bien sur la page de query de la view dans les deux versions.
@@ -275,11 +275,11 @@ Une page est `DONE` quand:
 ### Validation FS-006 complementaire (session courante)
 
 - Correctif applique sur le composant Monaco partage pour eviter les rendus "editor ecrase" lors de transitions de page/layout.
-- Recontrole visuel sur `/admin/fs/offchat_fullsync/_design/c8o/_view/hash/edit/` et
-  `/admin/fs/offchat_fullsync/_design/c8o/_view/checkAcl/edit/`: hauteur editeur stable.
+- Recontrole visuel sur `/admin/fullsync/offchat_fullsync/_design/c8o/_view/hash/edit/` et
+  `/admin/fullsync/offchat_fullsync/_design/c8o/_view/checkAcl/edit/`: hauteur editeur stable.
 - Validation fonctionnelle finale en session admin (base `alerts`):
-  - deep-link `/admin/fs/alerts/_design/codex_fs006_1771415892887/_view/v1/edit/`:
-    `Cancel` renvoie vers `/admin/fs/alerts/_design/codex_fs006_1771415892887/_view/v1/`.
+  - deep-link `/admin/fullsync/alerts/_design/codex_fs006_1771415892887/_view/v1/edit/`:
+    `Cancel` renvoie vers `/admin/fullsync/alerts/_design/codex_fs006_1771415892887/_view/v1/`.
   - `Save Document and then Build Index` depuis `/edit`: `PUT .../_design/codex_fs006_1771415892887` retourne `201`,
     toast `View saved`, puis redirection sur la route query de la view.
 
@@ -287,7 +287,7 @@ Une page est `DONE` quand:
 
 - URL de doc existant verifiee:
   - iframe: `#/database/offchat_fullsync/56226c43-f189-4979-82fd-aef13f6de8c5_copy`
-  - natif: `/admin/fs/offchat_fullsync/56226c43-f189-4979-82fd-aef13f6de8c5_copy/`
+  - natif: `/admin/fullsync/offchat_fullsync/56226c43-f189-4979-82fd-aef13f6de8c5_copy/`
 - Controles presents et compares:
   - `Save Changes`, `Cancel`, `View attachments`, `Upload Attachment`, `Clone Document`, `Delete`.
   - editeur JSON Monaco present.
@@ -310,15 +310,15 @@ Une page est `DONE` quand:
   - titre: `New Document`
   - payload initial avec `_id` auto-genere (32 hex), bouton `Create Document`.
 - Native corrige:
-  - route dediee: `/admin/fs/[database]/_new/+page.svelte`.
-  - URL chargee: `/admin/fs/offchat_fullsync/_new/`.
+  - route dediee: `/admin/fullsync/[database]/_new/+page.svelte`.
+  - URL chargee: `/admin/fullsync/offchat_fullsync/_new/`.
   - header aligne: `offchat_fullsync > New Document`.
   - action principale alignee: bouton `Create Document`.
   - actions non pertinentes masquees en mode creation (`View attachments`, `Upload`, `Clone`, `Delete`).
   - generation `_id` initial via `_uuids` avec fallback local hex 32 caracteres.
 - Validation E2E completee:
-  - `Create Document` cree bien le document et redirige vers `/admin/fs/{db}/{docid}/`.
-  - `Cancel` depuis `/_new` retourne bien vers `/admin/fs/{db}/`.
+  - `Create Document` cree bien le document et redirige vers `/admin/fullsync/{db}/{docid}/`.
+  - `Cancel` depuis `/_new` retourne bien vers `/admin/fullsync/{db}/`.
   - nettoyage de test effectue (doc cree puis supprime dans `alerts`).
 
 ## Avancement FS-009 / FS-010 / FS-011 (iteration en cours)
@@ -368,11 +368,11 @@ Une page est `DONE` quand:
 - Iframe view edit (exemple): `http://localhost:5173/convertigo/admin_/_utils/#database/offchat_fullsync/_design/OffChat/_view/checkUsername/edit`
 - Iframe doc link (exemple): `http://localhost:5173/convertigo/admin_/_utils/#/database/offchat_fullsync/13608b61-7ca0-40a6-beb8-dcac14d5b958`
 - Iframe new doc: `http://localhost:5173/convertigo/admin_/_utils/#/database/offchat_fullsync/_new`
-- Native view (exemple): `http://localhost:5173/admin/fs/offchat_fullsync/_design/c8o/_view/checkAcl/`
-- Native view (exemple 2): `http://localhost:5173/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/`
-- Native view edit (exemple): `http://localhost:5173/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/edit/`
-- Native doc link (exemple): `http://localhost:5173/admin/fs/offchat_fullsync/56226c43-f189-4979-82fd-aef13f6de8c5_copy/`
-- Native new doc: `http://localhost:5173/admin/fs/offchat_fullsync/_new/`
+- Native view (exemple): `http://localhost:5173/admin/fullsync/offchat_fullsync/_design/c8o/_view/checkAcl/`
+- Native view (exemple 2): `http://localhost:5173/admin/fullsync/offchat_fullsync/_design/OffChat/_view/getChat/`
+- Native view edit (exemple): `http://localhost:5173/admin/fullsync/offchat_fullsync/_design/OffChat/_view/getChat/edit/`
+- Native doc link (exemple): `http://localhost:5173/admin/fullsync/offchat_fullsync/56226c43-f189-4979-82fd-aef13f6de8c5_copy/`
+- Native new doc: `http://localhost:5173/admin/fullsync/offchat_fullsync/_new/`
 
 ## Refactor interne KISS (session courante)
 
@@ -399,8 +399,8 @@ Une page est `DONE` quand:
   - `npm run check:admin`: OK (`0 errors, 0 warnings`)
   - `npm run build`: OK (warnings non bloquants hors scope FS)
 - Validation live reexecutee avec DevTools:
-  - URL native `_view` testee: `/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/`
-  - URL native `_view` testee: `/admin/fs/offchat_fullsync/_design/c8o/_view/checkAcl/`
+  - URL native `_view` testee: `/admin/fullsync/offchat_fullsync/_design/OffChat/_view/getChat/`
+  - URL native `_view` testee: `/admin/fullsync/offchat_fullsync/_design/c8o/_view/checkAcl/`
   - requetes observees:
     - `GET /convertigo/fullsync/offchat_fullsync/_design/OffChat/_view/getChat?limit=21&skip=0&reduce=false`
     - `GET /convertigo/fullsync/offchat_fullsync/_design/c8o/_view/checkAcl?limit=21&skip=0&reduce=false`
@@ -416,9 +416,9 @@ Une page est `DONE` quand:
 ## Session update (2026-02-17, passe Mango)
 
 - Verification live (DevTools) relancee sur:
-  - `/admin/fs/offchat_fullsync/_find`
-  - `/admin/fs/offchat_fullsync/_index`
-  - `/admin/fs/offchat_fullsync/_design/OffChat/_view/getChat/`
+  - `/admin/fullsync/offchat_fullsync/_find`
+  - `/admin/fullsync/offchat_fullsync/_index`
+  - `/admin/fullsync/offchat_fullsync/_design/OffChat/_view/getChat/`
 - Resultats:
   - `_find` et `_index` ne presentent plus d'ecran "vide" intermittent apres navigation.
   - `_find` sans resultats: panneau central sans toolbar resultat parasite + footer conserve.
@@ -516,7 +516,7 @@ Une page est `DONE` quand:
 ## Session update (2026-02-18, cancel navigation parity)
 
 - Alignement bouton `Cancel` sur l'editeur document:
-  - retour direct vers `/admin/fs/{db}` (liste all docs), au lieu d'un `history.back()` contextuel.
+  - retour direct vers `/admin/fullsync/{db}` (liste all docs), au lieu d'un `history.back()` contextuel.
   - comportement aligne avec le flux Fauxton (retour deterministic vers la liste).
 
 ## Session update (2026-02-18, clone UI final)
@@ -525,7 +525,7 @@ Une page est `DONE` quand:
   - ouverture modal `Clone Document`,
   - edition ID cible,
   - soumission clone,
-  - redirection automatique vers `/admin/fs/{db}/{newId}/`,
+  - redirection automatique vers `/admin/fullsync/{db}/{newId}/`,
   - sauvegarde du clone via `Save Changes` (nouvelle revision visible).
 - Nettoyage effectue:
   - suppression des documents de test `codex_clone_src_*` et `codex_clone_ui_*` dans `alerts`.
@@ -563,7 +563,7 @@ Une page est `DONE` quand:
 
 ## Session update (2026-02-18, prerender static Tomcat)
 
-- Suppression de `src/routes/(app)/admin/fs/+layout.js` (`prerender = false`) pour ne plus exclure FS du build statique.
+- Suppression de `src/routes/(app)/admin/fullsync/+layout.js` (`prerender = false`) pour ne plus exclure FS du build statique.
 - Ajout de `entries()` sur les routes dynamiques FS avec segments sentinelles `_`
   (meme pattern que dashboard) pour generer les pages statiques placeholders:
   - `[database]`, `[database]/[docid]`, `[database]/_new`, `[database]/_find`, `[database]/_index`,
@@ -588,7 +588,7 @@ Une page est `DONE` quand:
 
 ## Session update (2026-02-18, FS-005 query options stabilisees)
 
-- Verification live relancee sur `/admin/fs/offchat_fullsync/_design/c8o/_view/hash/` apres correctif `queryScope`.
+- Verification live relancee sur `/admin/fullsync/offchat_fullsync/_design/c8o/_view/hash/` apres correctif `queryScope`.
 - Requetes observees:
   - `GET .../_view/hash?limit=21&skip=0&reduce=false` apres desactivation `Include Docs` (pas de requete de reset).
   - `GET .../_view/hash?limit=21&skip=1&reduce=false` apres `Skip=1` (pas de requete de reset vers `skip=0`).
@@ -604,13 +604,13 @@ Une page est `DONE` quand:
   - confinement horizontal du panel (`overflow-x: hidden`),
   - garde-fou largeur sur les wrappers Monaco.
 - Validation runtime:
-  - URL testee: `/admin/fs/offchat_fullsync/_design/Design_document/_view/alertView/edit/`
+  - URL testee: `/admin/fullsync/offchat_fullsync/_design/Design_document/_view/alertView/edit/`
   - resultat: `scrollWidth == clientWidth` (pas de scroll horizontal global).
 
 ## Session update (2026-02-18, FS factorisation helpers feedback)
 
 - Factorisation transversale FS:
-  - nouveau module partage `src/routes/(app)/admin/fs/fullsync-feedback.js`.
+  - nouveau module partage `src/routes/(app)/admin/fullsync/fullsync-feedback.js`.
   - centralise `fullSyncErrorMessage`, `showFullSyncError`, `showFullSyncSuccess`.
 - Pages branchees sur ce helper:
   - `FullSyncDatabasesPage.svelte`,
@@ -623,7 +623,7 @@ Une page est `DONE` quand:
 ## Session update (2026-02-18, FS factorisation helpers JSON)
 
 - Factorisation transversale FS:
-  - nouveau module partage `src/routes/(app)/admin/fs/fullsync-json.js`.
+  - nouveau module partage `src/routes/(app)/admin/fullsync/fullsync-json.js`.
   - centralise `parseFullSyncJson`, `parseFullSyncJsonSilent`, `fullSyncPretty`.
 - Pages branchees sur ce helper:
   - `FullSyncDatabasePage.svelte`,
@@ -635,7 +635,7 @@ Une page est `DONE` quand:
 ## Session update (2026-02-18, FS factorisation helpers liens externes)
 
 - Factorisation transversale FS:
-  - nouveau module partage `src/routes/(app)/admin/fs/fullsync-links.js`.
+  - nouveau module partage `src/routes/(app)/admin/fullsync/fullsync-links.js`.
   - centralise:
     - URLs documentation CouchDB (`document`, `mango`, `_all_dbs`),
     - ouverture externe securisee (`openFullSyncLink`),
@@ -651,7 +651,7 @@ Une page est `DONE` quand:
 ## Session update (2026-02-18, FS factorisation modal confirmation)
 
 - Factorisation transversale FS:
-  - nouveau module partage `src/routes/(app)/admin/fs/fullsync-modal.js`.
+  - nouveau module partage `src/routes/(app)/admin/fullsync/fullsync-modal.js`.
   - centralise:
     - recuperation optionnelle du context `modalYesNo` (`getFullSyncConfirmModal`),
     - confirmation unifiee (`openFullSyncConfirmation`) avec fallback `window.confirm`.
@@ -666,7 +666,7 @@ Une page est `DONE` quand:
 ## Session update (2026-02-18, FS factorisation path encoders)
 
 - Factorisation transversale FS:
-  - encodeurs de chemins exportes depuis `src/routes/(app)/admin/fs/fullsync-api.js`:
+  - encodeurs de chemins exportes depuis `src/routes/(app)/admin/fullsync/fullsync-api.js`:
     - `encodeFullSyncDocPath`,
     - `encodeFullSyncDesignDocPath`.
 - Pages recablees:
@@ -687,8 +687,8 @@ Une page est `DONE` quand:
 - Correctif robustesse SSR/prerender:
   - deplacement des helpers JSON (`parseJsonSilent`, `pretty`, `parseJson`) avant leur premiere utilisation runtime,
   - evite l'erreur `ReferenceError: Cannot access 'parseJsonSilent' before initialization` observee au build sur:
-    - `/admin/fs/_/_new/`,
-    - `/admin/fs/_/_/`.
+    - `/admin/fullsync/_/_new/`,
+    - `/admin/fullsync/_/_/`.
 - Validation:
   - `npm run check:admin` OK (0 error, 0 warning).
   - `npm run build` OK (plus d'erreur `parseJsonSilent` en prerender).
@@ -701,6 +701,33 @@ Une page est `DONE` quand:
 - Nettoyage associe:
   - suppression des fichiers route `_edit/+page.js` et `_edit/+page.svelte`,
   - matrice mise a jour pour ne plus annoncer `/_edit`.
+- Validation:
+  - `npm run check:admin` OK.
+  - `npm run build` OK.
+
+## Session update (2026-02-19, takeover FullSync -> FS natif)
+
+- Remplacement de la page `admin/fullsync` (iframe Fauxton) par la page native FS.
+  - fichier modifie: `src/routes/(app)/admin/fullsync/+page.svelte`.
+- Navigation admin:
+  - suppression du doublon (`Full Sync` + `FS`),
+  - conservation d'une seule entree `Full Sync`.
+  - fichier modifie: `src/lib/admin/PagesRail.svelte.js`.
+- Validation:
+  - `npm run check:admin` OK (0 erreur, 0 warning).
+  - `npm run build` OK.
+
+## Session update (2026-02-19, move routes fs -> fullsync sans retro-compat)
+
+- Changement de structure:
+  - suppression du dossier `src/routes/(app)/admin/fs`,
+  - deplacement de tout son contenu vers `src/routes/(app)/admin/fullsync`.
+- Changement de navigation:
+  - toutes les routes internes UI pointent maintenant vers `/admin/fullsync/...` uniquement,
+  - aucune route `/admin/fs/...` conservee.
+- Fichiers recables:
+  - `src/routes/(app)/admin/fullsync/fullsync-route.js`,
+  - `src/lib/admin/PagesRail.svelte.js`.
 - Validation:
   - `npm run check:admin` OK.
   - `npm run build` OK.

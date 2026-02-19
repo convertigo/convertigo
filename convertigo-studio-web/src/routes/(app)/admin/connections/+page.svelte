@@ -177,7 +177,7 @@
 				{ name: 'User', key: 'authenticatedUser' },
 				{ name: 'Contexts', key: 'contexts' },
 				{ name: 'Roles', key: 'adminRoles' },
-				{ name: 'FS', custom: true, key: 'isFullSyncActive' },
+				{ name: 'Full Sync', custom: true, key: 'isFullSyncActive' },
 				{ name: 'UUID', key: 'deviceUUID' },
 				{ name: 'Access', custom: true, key: 'lastSessionAccessDateSort', sortable: true },
 				{ name: 'Activity', key: 'sessionInactivityTime' },
@@ -198,7 +198,7 @@
 								icon: 'mdi:file-document-box-outline',
 								title: 'Open logs for this session',
 								cls: 'button-ico-primary',
-								onclick: () => openLogsWithServerFilter(`sessionid == '${sessionID}'`)
+								onclick: () => openLogsWithServerFilter(`contextid.startsWith('${sessionID}')`)
 							},
 							{
 								icon: 'mdi:filter',
@@ -230,7 +230,7 @@
 					{#if isCurrentSession == 'true'}
 						<span class="current"></span>
 					{/if}
-				{:else if def.name == 'FS'}
+				{:else if def.name == 'Full Sync'}
 					<Ico
 						icon="mdi:sync"
 						title={isFullSyncActive == 'true' ? 'FullSync active' : 'FullSync inactive'}

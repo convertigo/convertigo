@@ -219,7 +219,7 @@
 					required
 				/>
 				<ActionBar>
-					<Button label="Import" icon="mdi:import" type="submit" class="button-secondary w-fit!" />
+					<Button label="Import" icon="mdi:import" type="submit" class="button-primary w-fit!" />
 					<Button
 						label="Cancel"
 						icon="mdi:close-circle-outline"

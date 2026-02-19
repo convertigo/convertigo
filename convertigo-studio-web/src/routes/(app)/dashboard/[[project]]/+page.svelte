@@ -1,5 +1,5 @@
 <script>
-	import { SegmentedControl } from '@skeletonlabs/skeleton-svelte';
+	import { Portal, SegmentedControl, Tooltip } from '@skeletonlabs/skeleton-svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Authentication from '$lib/common/Authentication.svelte';
@@ -63,6 +63,20 @@
 			Authentication.hasRole('PROJECT_DBO_CONFIG')
 	);
 
+	const filterScopeTooltip = (value) =>
+		value == 2
+			? 'Show backend projects only'
+			: value == 1
+				? 'Show frontend projects only'
+				: 'Show both backend and frontend projects';
+
+	const filterTypeTooltip = (value) =>
+		value == 1
+			? 'Show library projects only'
+			: value == 2
+				? 'Show regular projects only'
+				: 'Show both library and regular projects';
+
 	onDestroy(Projects.stop);
 </script>
 
@@ -98,31 +112,51 @@
 					/>
 					{#each [2, 0, 1] as value (value)}
 						<SegmentedControl.Item value={`${value}`} class="relative h-full">
-							<SegmentedControl.ItemText
-								class={[
-									filters[0].count == value ? 'text-primary-contrast-500' : 'text-surface-950-50',
-									'flex h-full items-center px-2 text-[13px] leading-none font-medium'
-								]}
-							>
-								{#if value == 2}
-									<span class="layout-x-none gap-1">
-										<Ico icon="mdi:cog" size="nav" />
-										Backend
-									</span>
-								{:else if value == 0}
-									<span class="layout-x-none gap-1">
-										<span aria-hidden="true" class="text-base leading-none font-semibold"
-											>&harr;</span
+							<Tooltip positioning={{ placement: 'top' }}>
+								<Tooltip.Trigger>
+									<SegmentedControl.ItemText
+										class={[
+											filters[0].count == value
+												? 'text-primary-contrast-500'
+												: 'text-surface-950-50',
+											'flex h-full items-center px-2 text-[13px] leading-none font-medium'
+										]}
+									>
+										{#if value == 2}
+											<span class="layout-x-none gap-1">
+												<Ico icon="mdi:cog" size="nav" />
+												Backend
+											</span>
+										{:else if value == 0}
+											<span class="layout-x-none gap-1">
+												<span aria-hidden="true" class="text-base leading-none font-semibold"
+													>&harr;</span
+												>
+												<span class="sr-only">Both</span>
+											</span>
+										{:else}
+											<span class="layout-x-none gap-1">
+												Frontend
+												<Ico icon="mdi:smartphone-link" size="nav" />
+											</span>
+										{/if}
+									</SegmentedControl.ItemText>
+								</Tooltip.Trigger>
+								<Portal>
+									<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+										<Tooltip.Content
+											class="card preset-filled-surface-950-50 p-2 text-xs leading-none"
 										>
-										<span class="sr-only">Both</span>
-									</span>
-								{:else}
-									<span class="layout-x-none gap-1">
-										Frontend
-										<Ico icon="mdi:smartphone-link" size="nav" />
-									</span>
-								{/if}
-							</SegmentedControl.ItemText>
+											<span>{filterScopeTooltip(value)}</span>
+											<Tooltip.Arrow
+												class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+											>
+												<Tooltip.ArrowTip />
+											</Tooltip.Arrow>
+										</Tooltip.Content>
+									</Tooltip.Positioner>
+								</Portal>
+							</Tooltip>
 							<SegmentedControl.ItemHiddenInput />
 						</SegmentedControl.Item>
 					{/each}
@@ -143,31 +177,51 @@
 					/>
 					{#each [1, 0, 2] as value (value)}
 						<SegmentedControl.Item value={`${value}`} class="relative h-full">
-							<SegmentedControl.ItemText
-								class={[
-									filters[1].count == value ? 'text-primary-contrast-500' : 'text-surface-950-50',
-									'flex h-full items-center px-2 text-[13px] leading-none font-medium'
-								]}
-							>
-								{#if value == 1}
-									<span class="layout-x-none gap-1">
-										<Ico icon="mdi:book-open-variant" size="nav" />
-										Library
-									</span>
-								{:else if value == 0}
-									<span class="layout-x-none gap-1">
-										<span aria-hidden="true" class="text-base leading-none font-semibold"
-											>&harr;</span
+							<Tooltip positioning={{ placement: 'top' }}>
+								<Tooltip.Trigger>
+									<SegmentedControl.ItemText
+										class={[
+											filters[1].count == value
+												? 'text-primary-contrast-500'
+												: 'text-surface-950-50',
+											'flex h-full items-center px-2 text-[13px] leading-none font-medium'
+										]}
+									>
+										{#if value == 1}
+											<span class="layout-x-none gap-1">
+												<Ico icon="mdi:book-open-variant" size="nav" />
+												Library
+											</span>
+										{:else if value == 0}
+											<span class="layout-x-none gap-1">
+												<span aria-hidden="true" class="text-base leading-none font-semibold"
+													>&harr;</span
+												>
+												<span class="sr-only">Both</span>
+											</span>
+										{:else}
+											<span class="layout-x-none gap-1">
+												Project
+												<Ico icon="mdi:folder-outline" size="nav" />
+											</span>
+										{/if}
+									</SegmentedControl.ItemText>
+								</Tooltip.Trigger>
+								<Portal>
+									<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+										<Tooltip.Content
+											class="card preset-filled-surface-950-50 p-2 text-xs leading-none"
 										>
-										<span class="sr-only">Both</span>
-									</span>
-								{:else}
-									<span class="layout-x-none gap-1">
-										Project
-										<Ico icon="mdi:folder-outline" size="nav" />
-									</span>
-								{/if}
-							</SegmentedControl.ItemText>
+											<span>{filterTypeTooltip(value)}</span>
+											<Tooltip.Arrow
+												class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+											>
+												<Tooltip.ArrowTip />
+											</Tooltip.Arrow>
+										</Tooltip.Content>
+									</Tooltip.Positioner>
+								</Portal>
+							</Tooltip>
 							<SegmentedControl.ItemHiddenInput />
 						</SegmentedControl.Item>
 					{/each}

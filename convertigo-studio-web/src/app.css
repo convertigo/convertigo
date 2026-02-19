@@ -274,6 +274,10 @@
 	@apply flex items-center gap-2 rounded-sm p-1 text-nowrap select-none;
 }
 
+@utility mini-card-neutral {
+	@apply preset-filled-surface-200-800 text-surface-contrast-200-800;
+}
+
 @utility chip {
 	@apply button border-surface-200 bg-surface-100 text-surface-700 shadow-none;
 

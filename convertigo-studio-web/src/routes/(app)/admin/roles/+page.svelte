@@ -95,8 +95,7 @@
 			class:motif-primary={hasView && !hasConfig}
 			class:preset-filled-warning-500={!hasView && hasConfig}
 			class:motif-warning={!hasView && hasConfig}
-			class:preset-filled-surface-600-400={!hasView && !hasConfig}
-			class:motif-surface={!hasView && !hasConfig}
+			class:mini-card-neutral={!hasView && !hasConfig}
 		>
 			{#if part}<Ico icon={part.icon} />{/if}
 			{formatRoleName(n)}
@@ -124,8 +123,7 @@
 			class:preset-filled-primary-500={hasTpHidden && !hasTpPrivate}
 			class:motif-primary={hasTpHidden && !hasTpPrivate}
 			class:preset-filled-success-500={hasTpPrivate}
-			class:preset-filled-surface-600-400={!hasTp}
-			class:motif-surface={!hasTp}
+			class:mini-card-neutral={!hasTp}
 		>
 			<Ico {icon} />{formatRoleName(role)}
 		</div>
@@ -323,6 +321,7 @@
 				{
 					label: 'Add User',
 					icon: 'mdi:plus',
+					tooltip: 'Add a new user and assign roles',
 					cls: 'button-primary',
 					hidden: exporting,
 					onclick: (event) => openRoleModal({ event, mode: 'addRoles' })
@@ -330,6 +329,7 @@
 				{
 					label: 'Import',
 					icon: 'mdi:import',
+					tooltip: 'Import users and roles from a .json file',
 					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: modalImport?.open
@@ -337,6 +337,7 @@
 				{
 					label: 'Select All',
 					icon: 'mdi:check-all',
+					tooltip: 'Select all users for export',
 					cls: 'button-secondary',
 					hidden: !exporting || users.every((user) => user.export),
 					onclick: () => users.forEach((user) => (user.export = true))
@@ -344,6 +345,7 @@
 				{
 					label: 'Unselect All',
 					icon: 'mdi:check-all',
+					tooltip: 'Clear user selection for export',
 					cls: 'button-secondary',
 					hidden: !exporting || users.every((user) => !user.export),
 					onclick: () => users.forEach((user) => (user.export = false))
@@ -351,6 +353,7 @@
 				{
 					label: 'Export',
 					icon: 'mdi:export',
+					tooltip: 'Enable export mode to choose users',
 					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: () => {
@@ -360,6 +363,7 @@
 				{
 					label: `Export [${users.filter((user) => user.export).length}]`,
 					icon: 'mdi:export',
+					tooltip: 'Export selected users and roles',
 					cls: 'button-primary',
 					hidden: !exporting,
 					disabled: users.every((user) => !user.export),
@@ -368,6 +372,7 @@
 				{
 					label: 'Cancel',
 					icon: 'mdi:close-circle-outline',
+					tooltip: 'Exit export mode without exporting',
 					cls: 'button-secondary',
 					hidden: !exporting,
 					onclick: () => {
@@ -377,6 +382,7 @@
 				{
 					label: 'Delete All',
 					icon: 'mdi:delete-outline',
+					tooltip: 'Delete all users and roles',
 					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: async () => {

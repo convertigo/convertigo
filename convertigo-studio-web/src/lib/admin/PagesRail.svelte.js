@@ -41,11 +41,6 @@ const parts = $derived([
 			page: '/(app)/admin/fullsync'
 		},
 		{
-			title: 'FS',
-			icon: 'mdi:database',
-			page: '/(app)/admin/fs'
-		},
-		{
 			title: 'Cache',
 			icon: 'mdi:database-clock-outline',
 			page: '/(app)/admin/cache'

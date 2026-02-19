@@ -177,6 +177,7 @@
 				{
 					label: 'Add',
 					icon: 'mdi:plus',
+					tooltip: 'Add a new global symbol',
 					cls: 'button-primary',
 					hidden: exporting,
 					onclick: (event) => modalOpen({ event })
@@ -184,6 +185,7 @@
 				{
 					label: 'Add Secret',
 					icon: 'mdi:key-outline',
+					tooltip: 'Add a new secret global symbol (masked value)',
 					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: (event) => modalOpen({ event, secret: true })
@@ -191,6 +193,7 @@
 				{
 					label: 'Import',
 					icon: 'mdi:import',
+					tooltip: 'Import global symbols from a .properties file',
 					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: modalImport?.open
@@ -198,6 +201,7 @@
 				{
 					label: 'Select All',
 					icon: 'mdi:check-all',
+					tooltip: 'Select all symbols for export',
 					cls: 'button-secondary',
 					hidden: !exporting || fsymbols.every((user) => user.export),
 					onclick: () => fsymbols.forEach((user) => (user.export = true))
@@ -205,6 +209,7 @@
 				{
 					label: 'Unselect All',
 					icon: 'mdi:check-all',
+					tooltip: 'Clear symbol selection for export',
 					cls: 'button-secondary',
 					hidden: !exporting || fsymbols.every((user) => !user.export),
 					onclick: () => fsymbols.forEach((user) => (user.export = false))
@@ -212,6 +217,7 @@
 				{
 					label: 'Export',
 					icon: 'mdi:export',
+					tooltip: 'Enable export mode to choose symbols',
 					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: () => {
@@ -221,6 +227,7 @@
 				{
 					label: `Export [${fsymbols.filter((user) => user.export).length}]`,
 					icon: 'mdi:export',
+					tooltip: 'Export selected global symbols',
 					cls: 'button-primary',
 					hidden: !exporting,
 					disabled: fsymbols.every((user) => !user.export),
@@ -229,6 +236,7 @@
 				{
 					label: 'Cancel',
 					icon: 'mdi:close-circle-outline',
+					tooltip: 'Exit export mode without exporting',
 					cls: 'button-secondary',
 					hidden: !exporting,
 					onclick: () => {
@@ -238,6 +246,7 @@
 				{
 					label: 'Delete All',
 					icon: 'mdi:delete-outline',
+					tooltip: 'Delete all global symbols',
 					cls: 'button-secondary',
 					hidden: exporting,
 					onclick: async () => {

@@ -22,6 +22,7 @@
 	import TimePicker from './TimePicker.svelte';
 
 	const duration = 400;
+	const LOG_COLUMNS_GAP_PX = 1;
 	let lineHeight = $state(14.1); // px
 	let headerHeight = $state(16); // px
 	let messagePaddingY = $state(8); // px
@@ -1200,7 +1201,7 @@
 					{/if}
 				{/if}
 			</div>
-			<div class="log-filter-chip mini-card preset-filled-tertiary-500 motif-tertiary">
+			<div class="log-filter-chip mini-card mini-card-neutral">
 				<span>Message</span>
 				<Button
 					{size}
@@ -1222,10 +1223,10 @@
 					transition:slide={{ axis: 'x', duration }}
 				>
 					{#if idx != 0 && index == 0}
-						<div class="log-filter-chip mini-card preset-filled-surface-600-400">AND</div>
+						<div class="log-filter-chip mini-card mini-card-neutral">AND</div>
 					{/if}
 					{#if index > 0}
-						<div class="log-filter-chip mini-card preset-filled-surface-600-400">OR</div>
+						<div class="log-filter-chip mini-card mini-card-neutral">OR</div>
 					{/if}
 					<div
 						class="log-filter-chip mini-card"
@@ -1299,7 +1300,8 @@
 		</div>
 		<div
 			class="layout-x-wrap content-start overflow-y-hidden rounded-sm rounded-b-none border-t border-surface-200-800"
-			style="height: {2 + extraLines * headerHeight}px; column-gap: 1px; row-gap: 0;"
+			style="height: {2 +
+				extraLines * headerHeight}px; column-gap: {LOG_COLUMNS_GAP_PX}px; row-gap: 0;"
 		>
 			{#each columns as { name, cls, style } (name)}
 				<div
@@ -1360,13 +1362,14 @@
 										'log-meta',
 										log[log.length - 1] > 1 && 'sticky'
 									]}
-									style="height: {extraLines * headerHeight}px; column-gap: 2px; row-gap: 0;"
+									style="height: {extraLines *
+										headerHeight}px; column-gap: {LOG_COLUMNS_GAP_PX}px; row-gap: 0;"
 								>
 									{#each columns as { name, cls, style } (name)}
 										{@const value = getValue(name, log, index)}
 										<button
 											{style}
-											class="px-[2px] {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none text-nowrap"
+											class="px-px {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none text-nowrap"
 											animate:grabFlip={{ duration }}
 											onclick={(event) =>
 												addFilter({ event, category: name, value, logDateTime: log[1] })}
