@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.beans.BeanInfo;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,11 +35,12 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
+import com.twinsoft.convertigo.beans.core.IDynamicBean;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboFolderType(type = FolderType.SHARED_ACTION)
-public class UIActionStack extends UIComponent implements IShared, IExposeAble {
+public class UIActionStack extends UIComponent implements IShared, IExposeAble, IDynamicBean {
 
 	private static final long serialVersionUID = -5668525501858865747L;
 
@@ -47,6 +49,30 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 	
 	public UIActionStack() {
 		super();
+	}
+
+	@Override
+	public String getDynamicIconName(int iconType) {
+		File iconFile = new File(getProject().getDirPath(), getIconFileName(getName(), iconType));
+		return iconFile.getAbsolutePath();
+	}
+
+	public String getIconFileName() {
+		return getIconFileName(getName(), BeanInfo.ICON_COLOR_32x32);
+	}
+
+	public String getIconFileName(String name) {
+		return getIconFileName(name, BeanInfo.ICON_COLOR_32x32);
+	}
+
+	public String getIconFileName(String name, int iconType) {
+		if (iconType == BeanInfo.ICON_COLOR_16x16) {
+			return (name + "_sa_icon_16x16.png").toLowerCase();
+		}
+		if (iconType == BeanInfo.ICON_COLOR_32x32) {
+			return (name + "_sa_icon_32x32.png").toLowerCase();
+		}
+		return (name + "_sa_icon.png").toLowerCase();
 	}
 
 	@Override

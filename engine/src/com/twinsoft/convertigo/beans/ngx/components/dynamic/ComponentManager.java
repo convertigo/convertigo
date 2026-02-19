@@ -1125,10 +1125,17 @@ public class ComponentManager {
 											return "";
 										}
 	
-										@Override
-										public String getImagePath() {
-											return null;
-										}
+											@Override
+											public String getImagePath() {
+												String defaultImagePath = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionstack_color_32x32.png";
+												try {
+													File f = new File(action.getDynamicIconName(BeanInfo.ICON_COLOR_32x32));
+													if (f.exists()) {
+														return f.getAbsolutePath();
+													}
+												} catch (Exception e) {}
+												return defaultImagePath;
+											}
 	
 										@Override
 										public String getPropertiesDescription() {

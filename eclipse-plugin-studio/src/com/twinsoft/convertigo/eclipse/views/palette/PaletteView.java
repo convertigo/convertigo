@@ -120,6 +120,9 @@ import com.twinsoft.convertigo.engine.util.DocumentationHelper;
 public class PaletteView extends ViewPart implements IPartListener2, ISelectionListener, TreeObjectListener {
 	private static final int MAX_USED_HISTORY = 50;
 	private static final int MAX_USED_VISIBLE = 8;
+	private static final int PALETTE_ITEM_WIDTH = 160;
+	private static final int PALETTE_ITEM_TEXT_WRAP_AT = 14;
+	private static final int PALETTE_ITEM_TEXT_MIN_SPLIT = 5;
 
 	private Composite parent, topBag, bag;
 	private Control lastUsedlabel, favoriteslabel;
@@ -227,6 +230,38 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	public PaletteView() {
 	}
 
+	private void clearImageCache() {
+		for (Image image: imageCache.values()) {
+			if (image != null && !image.isDisposed()) {
+				image.dispose();
+			}
+		}
+		imageCache.clear();
+	}
+
+	// Keep the label compact so SWT doesn't clip/hide the icon for long names.
+	private static String formatPaletteItemText(String text) {
+		text = StringUtils.trimToEmpty(text);
+		if (text.length() <= PALETTE_ITEM_TEXT_WRAP_AT) {
+			return text;
+		}
+
+		int split = text.substring(0, PALETTE_ITEM_TEXT_WRAP_AT).lastIndexOf(' ');
+		if (split > PALETTE_ITEM_TEXT_MIN_SPLIT) {
+			String firstLine = text.substring(0, split).trim();
+			String secondLine = StringUtils.abbreviate(text.substring(split + 1).trim(), PALETTE_ITEM_TEXT_WRAP_AT);
+			return firstLine + '\n' + secondLine;
+		}
+
+		split = Math.min(PALETTE_ITEM_TEXT_WRAP_AT, text.length() / 2);
+		if (split <= 0 || split >= text.length()) {
+			return StringUtils.abbreviate(text, PALETTE_ITEM_TEXT_WRAP_AT);
+		}
+		String firstLine = text.substring(0, split).trim();
+		String secondLine = StringUtils.abbreviate(text.substring(split).trim(), PALETTE_ITEM_TEXT_WRAP_AT);
+		return firstLine + '\n' + secondLine;
+	}
+
 	@Override
 	public void dispose() {
 		getSite().getPage().removeSelectionListener(this);
@@ -237,10 +272,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		}
 
 		handCursor.dispose();
-		for (Image image: imageCache.values()) {
-			image.dispose();
-		}
-		imageCache.clear();
+		clearImageCache();
 		super.dispose();
 	}
 
@@ -1123,20 +1155,11 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		Transfer[] types = new Transfer[] { PaletteSourceTransfer.getInstance(), TextTransfer.getInstance() };
 
 		makeItem = (p, item) -> {
-			String text = item.name();
-			if (text.length() > 18) {
-				int id = text.substring(0, 18).lastIndexOf(' ');
-				if (id > 5) {
-					text = text.substring(0, id) + '\n' + text.substring(id + 1);
-				} else {
-					id = Math.min(18, text.length() / 2);
-					text = text.substring(0, id) + '\n' + text.substring(id);
-				}
-			}
+			String text = formatPaletteItemText(item.name());
 			CLabel clabel = new CLabel(p, SWT.NONE);
 			RowData rowData = new RowData();
 			clabel.setLayoutData(rowData);
-			rowData.width = 160;
+			rowData.width = PALETTE_ITEM_WIDTH;
 			rowData.exclude = true;
 			clabel.setVisible(false);
 			clabel.setImage(item.image());
@@ -1268,6 +1291,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					}
 					String txt = searchText != null ? searchText.getText() : "";
 					if (needUpdate[0]) {
+						clearImageCache();
 						updateBags();
 					}
 					if (txt != null && searchText != null) {

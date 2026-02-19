@@ -125,19 +125,23 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 						resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), reset);
 					}
 					
-					if (deletedTreeObject.isChildOf(this)) {
-						// an shared object of this app has been deleted
-						if (deletedObject instanceof UIActionStack || deletedObject instanceof UISharedRegularComponent) {
-							for (String useQName: ComponentRefManager.getCompConsumersUsedBy(deletedobjectQName, projectName)) {
-								ComponentRefManager.get(Mode.use).removeConsumer(deletedobjectQName, useQName);
+						if (deletedTreeObject.isChildOf(this)) {
+							// an shared object of this app has been deleted
+							if (deletedObject instanceof UIActionStack || deletedObject instanceof UISharedRegularComponent) {
+								for (String useQName: ComponentRefManager.getCompConsumersUsedBy(deletedobjectQName, projectName)) {
+									ComponentRefManager.get(Mode.use).removeConsumer(deletedobjectQName, useQName);
+								}
+
+								// delete shared object icon file
+								if (deletedObject instanceof UISharedRegularComponent) {
+									File iconFile = new File(getObject().getProject().getDirPath(), ((UISharedRegularComponent)deletedObject).getIconFileName());
+									FileUtils.deleteQuietly(iconFile);
+								}
+								if (deletedObject instanceof UIActionStack) {
+									File iconFile = new File(getObject().getProject().getDirPath(), ((UIActionStack)deletedObject).getIconFileName());
+									FileUtils.deleteQuietly(iconFile);
+								}
 							}
-							
-							// delete shared component icon file
-							if (deletedObject instanceof UISharedRegularComponent) {
-								File iconFile = new File(getObject().getProject().getDirPath(), ((UISharedRegularComponent)deletedObject).getIconFileName());
-								FileUtils.deleteQuietly(iconFile);
-							}
-						}
 						// a UIUseShared has been deleted
 						if (deletedObject instanceof UIUseShared) {
 							UIUseShared uius = (UIUseShared)deletedObject;
@@ -216,21 +220,27 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 			try {
 				String projectName = getObject().getProject().getName();
 				boolean doUpdate = false;
-				if (dbo.bNew) {
-					if (dbo instanceof UIComponent) {
-						if (doto.isChildOf(this)) {
-							// a shared component has been added to this app
-							if (dbo instanceof UISharedRegularComponent) {
-								File iconFile = new File(getObject().getProject().getDirPath(), ((UISharedRegularComponent)dbo).getIconFileName());
-								if (!iconFile.exists()) {
-									Image image = ConvertigoPlugin.getDefault().getBeanIcon(dbo, BeanInfo.ICON_COLOR_32x32);
-									ImageLoader saver = new ImageLoader();
-									saver.data = new ImageData[] { image.getImageData() };
-									saver.save(iconFile.getCanonicalPath(), SWT.IMAGE_PNG);
+					if (dbo.bNew) {
+						if (dbo instanceof UIComponent) {
+							if (doto.isChildOf(this)) {
+								// a shared object has been added to this app
+								if (dbo instanceof UISharedRegularComponent || dbo instanceof UIActionStack) {
+									File iconFile = null;
+									if (dbo instanceof UISharedRegularComponent) {
+										iconFile = new File(getObject().getProject().getDirPath(), ((UISharedRegularComponent)dbo).getIconFileName());
+									}
+									if (dbo instanceof UIActionStack) {
+										iconFile = new File(getObject().getProject().getDirPath(), ((UIActionStack)dbo).getIconFileName());
+									}
+									if (iconFile != null && !iconFile.exists()) {
+										Image image = ConvertigoPlugin.getDefault().getBeanIcon(dbo, BeanInfo.ICON_COLOR_32x32);
+										ImageLoader saver = new ImageLoader();
+										saver.data = new ImageData[] { image.getImageData() };
+										saver.save(iconFile.getCanonicalPath(), SWT.IMAGE_PNG);
+									}
 								}
-							}
-							// a UIDynamicInvoke has been added to this app
-							if (dbo instanceof UIDynamicInvoke) {
+								// a UIDynamicInvoke has been added to this app
+								if (dbo instanceof UIDynamicInvoke) {
 								UIDynamicInvoke uidi = (UIDynamicInvoke)dbo;
 								String compQName = uidi.getSharedActionQName();
 								if (!compQName.isEmpty()) {
@@ -334,22 +344,32 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 								String oldName = (String)oldValue;
 								String newName = (String)newValue;
 								
-								// modify consumers
-								ComponentRefManager.get(Mode.use).copyKey(oldName, newName);
-								
-								// rename shared component icon file
-								if (dbo instanceof UISharedRegularComponent) {
-									UISharedRegularComponent uisc = (UISharedRegularComponent)dbo;
-									try {
-										File oldIconFile = new File(getObject().getProject().getDirPath(), uisc.getIconFileName(oldName));
-										File newIconFile = new File(getObject().getProject().getDirPath(), uisc.getIconFileName(newName));
-										if (oldIconFile.exists() && !newIconFile.exists()) {
-											oldIconFile.renameTo(newIconFile);
-										}
-									} catch (Exception e) {}
+									// modify consumers
+									ComponentRefManager.get(Mode.use).copyKey(oldName, newName);
+
+									// rename shared object icon file
+									if (dbo instanceof UISharedRegularComponent) {
+										UISharedRegularComponent uisc = (UISharedRegularComponent)dbo;
+										try {
+											File oldIconFile = new File(getObject().getProject().getDirPath(), uisc.getIconFileName(oldName));
+											File newIconFile = new File(getObject().getProject().getDirPath(), uisc.getIconFileName(newName));
+											if (oldIconFile.exists() && !newIconFile.exists()) {
+												oldIconFile.renameTo(newIconFile);
+											}
+										} catch (Exception e) {}
+									}
+									if (dbo instanceof UIActionStack) {
+										UIActionStack uias = (UIActionStack)dbo;
+										try {
+											File oldIconFile = new File(getObject().getProject().getDirPath(), uias.getIconFileName(oldName));
+											File newIconFile = new File(getObject().getProject().getDirPath(), uias.getIconFileName(newName));
+											if (oldIconFile.exists() && !newIconFile.exists()) {
+												oldIconFile.renameTo(newIconFile);
+											}
+										} catch (Exception e) {}
+									}
 								}
 							}
-						}
 						
 						if (dbo instanceof UIDynamicInvoke) {
 							UIDynamicInvoke uidi = (UIDynamicInvoke)dbo;

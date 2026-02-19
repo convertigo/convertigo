@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class BuilderUtils {
 
@@ -218,33 +219,46 @@ public class BuilderUtils {
 					return;
 				}
 			}
-			if (dbo instanceof UIComponent) {
-				if (isChildOf) {
-					if (dbo instanceof UISharedRegularComponent || dbo instanceof UIActionStack) {
-						// a shared component or shared action of this app changed its name
-						if (propertyName.equals("name")) {
-							String oldName = (String) oldValue;
-							String newName = (String) newValue;
+				if (dbo instanceof UIComponent) {
+					if (isChildOf) {
+						if (dbo instanceof UISharedRegularComponent || dbo instanceof UIActionStack) {
+							// a shared component or shared action of this app changed its name
+							if (propertyName.equals("name")) {
+								String oldName = (String) oldValue;
+								String newName = (String) newValue;
 
-							// modify consumers
-							ComponentRefManager.get(Mode.use).copyKey(oldName, newName);
+								// modify consumers
+								ComponentRefManager.get(Mode.use).copyKey(oldName, newName);
 
-							// rename shared component icon file
-							if (dbo instanceof UISharedRegularComponent) {
-								UISharedRegularComponent uisc = (UISharedRegularComponent) dbo;
-								try {
-									File oldIconFile = new File(app.getProject().getDirPath(),
-											uisc.getIconFileName(oldName));
-									File newIconFile = new File(app.getProject().getDirPath(),
-											uisc.getIconFileName(newName));
-									if (oldIconFile.exists() && !newIconFile.exists()) {
-										oldIconFile.renameTo(newIconFile);
+								// rename shared object icon file
+								if (dbo instanceof UISharedRegularComponent) {
+									UISharedRegularComponent uisc = (UISharedRegularComponent) dbo;
+									try {
+										File oldIconFile = new File(app.getProject().getDirPath(),
+												uisc.getIconFileName(oldName));
+										File newIconFile = new File(app.getProject().getDirPath(),
+												uisc.getIconFileName(newName));
+										if (oldIconFile.exists() && !newIconFile.exists()) {
+											oldIconFile.renameTo(newIconFile);
+										}
+									} catch (Exception e) {
 									}
-								} catch (Exception e) {
+								}
+								if (dbo instanceof UIActionStack) {
+									UIActionStack uias = (UIActionStack) dbo;
+									try {
+										File oldIconFile = new File(app.getProject().getDirPath(),
+												uias.getIconFileName(oldName));
+										File newIconFile = new File(app.getProject().getDirPath(),
+												uias.getIconFileName(newName));
+										if (oldIconFile.exists() && !newIconFile.exists()) {
+											oldIconFile.renameTo(newIconFile);
+										}
+									} catch (Exception e) {
+									}
 								}
 							}
 						}
-					}
 
 					if (dbo instanceof UIDynamicInvoke) {
 						UIDynamicInvoke uidi = (UIDynamicInvoke) dbo;
@@ -348,22 +362,26 @@ public class BuilderUtils {
 					resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), reset);
 				}
 
-				if (isChildOf) {
-					// an shared object of this app has been deleted
-					if (deletedObject instanceof UIActionStack || deletedObject instanceof UISharedRegularComponent) {
-						for (String useQName : ComponentRefManager.getCompConsumersUsedBy(deletedobjectQName,
-								projectName)) {
-							ComponentRefManager.get(Mode.use).removeConsumer(deletedobjectQName, useQName);
-						}
+					if (isChildOf) {
+						// an shared object of this app has been deleted
+						if (deletedObject instanceof UIActionStack || deletedObject instanceof UISharedRegularComponent) {
+							for (String useQName : ComponentRefManager.getCompConsumersUsedBy(deletedobjectQName,
+									projectName)) {
+								ComponentRefManager.get(Mode.use).removeConsumer(deletedobjectQName, useQName);
+							}
 
-						// delete shared component icon file
-						if (deletedObject instanceof UISharedRegularComponent) {
-							// TODO
-							// File iconFile = new File(app.getProject().getDirPath(),
-							// ((UISharedRegularComponent)deletedObject).getIconFileName());
-							// FileUtils.deleteQuietly(iconFile);
+							// delete shared object icon file
+							if (deletedObject instanceof UISharedRegularComponent) {
+								File iconFile = new File(app.getProject().getDirPath(),
+										((UISharedRegularComponent) deletedObject).getIconFileName());
+								FileUtils.deleteQuietly(iconFile);
+							}
+							if (deletedObject instanceof UIActionStack) {
+								File iconFile = new File(app.getProject().getDirPath(),
+										((UIActionStack) deletedObject).getIconFileName());
+								FileUtils.deleteQuietly(iconFile);
+							}
 						}
-					}
 					// a UIUseShared has been deleted
 					if (deletedObject instanceof UIUseShared) {
 						UIUseShared uius = (UIUseShared) deletedObject;
