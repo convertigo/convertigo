@@ -352,11 +352,11 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		THROW_HTTP_500_SOAP_FAULT ("throw_http_500.soap_fault", "true", "Throw HTTP 500 in case of SOAP fault", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide all error informations", PropertyCategory.Main),
+		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide all error information", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SHOW_ERROR_REQUESTABLE_INFORMATION ("show_error_requestable_information", "true", "Show error requestable informations", PropertyCategory.Main),
+		SHOW_ERROR_REQUESTABLE_INFORMATION ("show_error_requestable_information", "true", "Show error requestable information", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SHOW_ERROR_CONTEXT_INFORMATION ("show_error_context_information", "false", "Show error context informations", PropertyCategory.Main),
+		SHOW_ERROR_CONTEXT_INFORMATION ("show_error_context_information", "false", "Show error context information", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		SHOW_ERROR_TYPE ("show_error_type", "true", "Show error type", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)

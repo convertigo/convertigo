@@ -86,7 +86,7 @@ class SharedComponentWizardPage2Composite extends Composite {
 		
 		TableColumn columnVar = new TableColumn(table, SWT.NONE);
 		columnVar.setWidth(500);
-		columnVar.setText("Informations");
+		columnVar.setText("Information");
 		
 		TableColumn columnInfos = new TableColumn(table, SWT.NONE);
 		columnInfos.setWidth(100);

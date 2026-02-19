@@ -103,7 +103,7 @@ public abstract class BlockFactory extends DatabaseObject {
     public abstract int mergeBlocks(Block first, Block second, Block third);
     
     /**
-     * Names a block using the block informations.
+     * Names a block using the block information.
      *
      * @param block the block to be named.
      */

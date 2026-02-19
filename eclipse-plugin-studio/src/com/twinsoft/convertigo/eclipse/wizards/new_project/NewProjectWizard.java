@@ -541,7 +541,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			// Delete everything
 			try {
 				Engine.logBeans
-						.error("An error occured while creating project, everything will be deleted. Please see Studio logs for more informations.",
+						.error("An error occured while creating project, everything will be deleted. Please see Studio logs for more information.",
 								null);
 				// TODO : see if we can delete oldProjectName : a real project
 				// could exist with this oldProjectName ?
@@ -583,7 +583,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 				// Delete everything
 				try {
 					Engine.logBeans
-					.error("An error occured while creating project, everything will be deleted. Please see Studio logs for more informations.",
+					.error("An error occured while creating project, everything will be deleted. Please see Studio logs for more information.",
 							null);
 					Engine.theApp.databaseObjectsManager.deleteProject(projectName, false, false);
 				} catch (Exception ex) {

@@ -64,7 +64,7 @@ class ComponentInfoWizardPage extends WizardPage {
 	ComponentInfoWizardPage(Object parentObject) {
 		super("ComponentInfoWizardPage");
 		this.parentObject = parentObject;
-		setTitle("Informations");
+		setTitle("Information");
 		setDescription("Please enter a name for object.");
 	}
 

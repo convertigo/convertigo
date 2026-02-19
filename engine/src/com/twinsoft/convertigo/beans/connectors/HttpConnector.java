@@ -1387,7 +1387,7 @@ public class HttpConnector extends Connector {
 				httpStatusElement.setAttribute("text", method.getStatusText());
 				httpInfoElement.appendChild(httpStatusElement);
 
-				//We add headers informations
+				//We add headers information
 
 				List<Header> headers = Arrays.asList(requestHeaders);
 				if (!headers.isEmpty()) {

@@ -1092,7 +1092,7 @@ public class ComponentManager {
 												description += " | ";
 											}
 											if (!readmeUrl.isEmpty()) {
-												description += "<br>For more informations: <a href=\""+readmeUrl+"\">readme</a>";
+												description += "<br>For more information: <a href=\""+readmeUrl+"\">readme</a>";
 											}
 											return description;
 										}
@@ -1286,7 +1286,7 @@ public class ComponentManager {
 												description += " | ";
 											}
 											if (!readmeUrl.isEmpty()) {
-												description += "<br>For more informations: <a href=\""+readmeUrl+"\">readme</a>";
+												description += "<br>For more information: <a href=\""+readmeUrl+"\">readme</a>";
 											}
 											return description;
 										}

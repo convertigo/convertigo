@@ -433,7 +433,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				cartridge += " * and are accessed using the var() function, e.g.: color: var(--main-color);\n";
 				cartridge += " * You can find below your component's properties you can customize within the page.\n";
 				cartridge += " * If you'd like to make some customizations for whole app, please see your app Style & Theme components.\n";
-				cartridge += " * For more informations see https://ionicframework.com/docs/theming.\n";
+				cartridge += " * For more information see https://ionicframework.com/docs/theming.\n";
 				cartridge += "**/\n";
 				
 				scss = cartridge + scss;
