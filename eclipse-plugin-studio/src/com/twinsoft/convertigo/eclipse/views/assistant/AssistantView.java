@@ -122,8 +122,8 @@ public class AssistantView extends ViewPart {
 			}
 		} catch (Exception e) {
 		}
-		
-		browser.addToolItemNavigation(tb);
+
+		browser.addToolItemOpenExternal(tb);
 		new ToolItem(tb, SWT.SEPARATOR);
 
 		var ti = new ToolItem(tb, SWT.NONE);
@@ -140,9 +140,9 @@ public class AssistantView extends ViewPart {
 			}
 
 		});
-
+		
 		new ToolItem(tb, SWT.SEPARATOR);
-		browser.addToolItemOpenExternal(tb);
+		browser.addToolItemNavigation(tb);
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(true);

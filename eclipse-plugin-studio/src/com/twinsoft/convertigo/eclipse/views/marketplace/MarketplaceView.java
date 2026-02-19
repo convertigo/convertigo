@@ -93,15 +93,15 @@ public class MarketplaceView extends ViewPart {
 		} catch (Exception e) {
 		}
 
-		browser.addToolItemNavigation(tb);
+		browser.addToolItemOpenExternal(tb);
 		new ToolItem(tb, SWT.SEPARATOR);
 
 		var ti = new ToolItem(tb, SWT.NONE);
+		ti.setText("Home");
 		try {
-			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/png/mdi/store-outline_16x16.png"));
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/retail_store_color_16x16.png"));
 		} catch (IOException e1) {
 		}
-		ti.setText("Home");
 		ti.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -110,9 +110,9 @@ public class MarketplaceView extends ViewPart {
 			}
 
 		});
-
+		
 		new ToolItem(tb, SWT.SEPARATOR);
-		browser.addToolItemOpenExternal(tb);
+		browser.addToolItemNavigation(tb);
 
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(false);
