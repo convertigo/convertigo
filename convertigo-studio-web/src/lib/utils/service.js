@@ -8,7 +8,6 @@ import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 
 export const toaster = createToaster();
 
-let currentCalls = 0;
 let offlineUntil = 0;
 let offlineBackoff = 1000;
 let offlineToastAt = 0;
@@ -48,8 +47,8 @@ export async function call(service, data = {}) {
 		Instances.apply(headers);
 		if (data instanceof FormData) {
 			let files = new FormData();
-			for (let [key, value] of data.entries()) {
-				key = /** @type {string} */ (key);
+			for (const [entryKey, value] of data.entries()) {
+				const key = String(entryKey);
 				if (value instanceof File) {
 					files.append(key, value);
 					data.delete(key);
@@ -75,7 +74,6 @@ export async function call(service, data = {}) {
 			headers['Content-Type'] = 'application/x-www-form-urlencoded';
 		}
 
-		currentCalls++;
 		let res = await fetch(url, {
 			method: 'POST',
 			headers,
@@ -130,8 +128,6 @@ export async function call(service, data = {}) {
 		} else {
 			dataContent = { error: message };
 		}
-	} finally {
-		currentCalls--;
 	}
 
 	handleStateMessage(dataContent, service);
@@ -148,8 +144,8 @@ export async function callRequestable(mode, project, data = {}) {
 	Instances.apply(headers);
 	if (data instanceof FormData) {
 		let files = new FormData();
-		for (let [key, value] of data.entries()) {
-			key = /** @type {string} */ (key);
+		for (const [entryKey, value] of data.entries()) {
+			const key = String(entryKey);
 			if (value instanceof File) {
 				files.append(key, value);
 				data.delete(key);
@@ -184,32 +180,6 @@ export async function callRequestable(mode, project, data = {}) {
 	Instances.update(res);
 
 	return res;
-}
-
-/**
- * Handles the display and hide of the loading modal based on the service call status.
- * @param {boolean} isLoading - Flag indicating if the service is loading or not.
- * @param {string} serviceName - Optional. The name of the service being called, if exclusion is needed.
- */
-function handleServiceLoading(isLoading, serviceName = '') {
-	// if (serviceName === 'engine.JsonMonitor') {
-	// 	return;
-	// }
-	// if (isLoading) {
-	// 	loading.set(cpt + 1);
-	// 	if (modalLoading) {
-	// 		modalLoading.trigger({
-	// 			type: 'component',
-	// 			component: 'modalLoading',
-	// 			meta: { mode: 'Loading' }
-	// 		});
-	// 	}
-	// } else {
-	// 	loading.set(cpt - 1);
-	// 	if (modalLoading) {
-	// 		modalLoading.close();
-	// 	}
-	// }
 }
 
 function findDeepKeys(obj, keys, depth = 3) {
@@ -378,7 +348,7 @@ export function getThumbnailUrl(projectName) {
 
 // $lib/utils/xmlConverter.js
 
-export function toXml(data) {
+export function toXml() {
 	let xml = '<?xml version="1.0" encoding="UTF-8"?>';
 	xml += '<configurations>';
 	xml += '</configurations>';
@@ -550,7 +520,9 @@ export function deepObject(obj) {
 				for (let item of Object.values(obj[key])) {
 					deepObject(item);
 				}
-			} catch (e) {}
+			} catch {
+				// keep original shape when properties are not list-like
+			}
 		}
 	}
 	return obj;

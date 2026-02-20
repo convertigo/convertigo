@@ -76,7 +76,7 @@
 			<SkeletonTreeView.BranchContent class={childrenClass}>
 				{#if Array.isArray(node.children) && node.children.length}
 					<div transition:slide={animationConfig}>
-						{#each node.children as child, index}
+						{#each node.children as child, index (`${child?.id ?? child?.name ?? 'node'}-${index}`)}
 							<TreeNode
 								{treeView}
 								{animationConfig}

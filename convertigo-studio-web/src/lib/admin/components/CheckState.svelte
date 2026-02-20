@@ -20,6 +20,8 @@
 	let hasTooltip = $derived(tooltipText.length > 0);
 	let nativeTitle = $derived(title);
 	let computedAriaLabel = $derived(ariaLabel ?? rest?.['aria-label'] ?? title ?? tooltipText);
+	/** @param {any} value */
+	const asAny = (value) => value;
 </script>
 
 {#snippet switchElement(attributes = {})}
@@ -55,8 +57,8 @@
 	<Tooltip positioning={{ placement: tooltipPlacement }}>
 		<Tooltip.Trigger>
 			{#snippet element(attributes)}
-				{@const spanAttributes = /** @type {any} */ (attributes)}
-				<span {...spanAttributes} class="inline-flex">
+				{@const triggerAttributes = asAny(attributes)}
+				<span {...triggerAttributes} class="inline-flex">
 					{@render switchElement()}
 				</span>
 			{/snippet}

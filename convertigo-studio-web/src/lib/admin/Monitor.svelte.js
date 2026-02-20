@@ -36,7 +36,7 @@ export default ServiceHelper({
 		const res = await call('engine.JsonMonitor');
 		if ('engineState' in res) {
 			const max = maxSaved;
-			res.labels = new Date().getTime();
+			res.labels = Date.now();
 			Object.keys(values).forEach((key) => {
 				if (key in res && Array.isArray(values[key])) {
 					while (values[key].length + 1 > max) {

@@ -9,7 +9,7 @@
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { getQuery, getUrl } from '$lib/utils/service';
-	import { getContext, onMount } from 'svelte';
+	import { getContext } from 'svelte';
 
 	let modalAlert = getContext('modalAlert');
 	let project = $state(TestPlatform(page.params.project));

@@ -64,17 +64,18 @@
 		const devices = Object.values(Bezels)
 			.filter(Boolean)
 			.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
-		const remaining = new Map(devices.map((device) => [device.id, device]));
+		const remaining = [...devices];
 		const orderedGroups = [];
 		for (const family of familyDefinitions) {
 			const bucket = [];
-			for (const device of devices) {
-				if (!remaining.has(device.id)) continue;
+			for (let index = remaining.length - 1; index >= 0; index -= 1) {
+				const device = remaining[index];
 				if (!family.match(device)) continue;
 				bucket.push(device);
-				remaining.delete(device.id);
+				remaining.splice(index, 1);
 			}
 			if (bucket.length) {
+				bucket.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
 				orderedGroups.push({ id: family.id, title: family.title, devices: bucket });
 			}
 		}
@@ -85,10 +86,10 @@
 		groupedDevices.filter(({ id }) => id !== 'no-frame')
 	);
 	let deviceGroupMap = $derived.by(() => {
-		const map = new Map();
+		const map = {};
 		for (const group of accordionDeviceGroups) {
 			for (const device of group.devices) {
-				map.set(device.id, group.id);
+				map[device.id] = group.id;
 			}
 		}
 		return map;
@@ -97,7 +98,7 @@
 	let lastDeviceId = $state();
 
 	$effect(() => {
-		const targetGroup = deviceGroupMap.get(selectedDevice.id);
+		const targetGroup = deviceGroupMap[selectedDevice.id];
 		if (!targetGroup) return;
 
 		if (selectedDevice.id !== lastDeviceId) {

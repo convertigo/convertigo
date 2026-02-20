@@ -28,6 +28,8 @@
 	let useSkeletonTooltip = $derived(hasTooltip);
 	let nativeTitle = $derived(useSkeletonTooltip ? undefined : (title ?? label));
 	let computedAriaLabel = $derived(ariaLabel ?? (tooltipText || title || label));
+	/** @param {any} value */
+	const asAny = (value) => value;
 </script>
 
 {#if !hidden}
@@ -35,10 +37,10 @@
 		<Tooltip positioning={{ placement: tooltipPlacement }}>
 			<Tooltip.Trigger {...rest}>
 				{#snippet element(attributes)}
+					{@const triggerAttributes = asAny(attributes)}
 					{#if isLink}
-						{@const linkAttributes = /** @type {any} */ (attributes)}
 						<a
-							{...linkAttributes}
+							{...triggerAttributes}
 							{href}
 							class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
 							aria-label={computedAriaLabel}
@@ -48,7 +50,7 @@
 						>
 					{:else}
 						<button
-							{...attributes}
+							{...triggerAttributes}
 							{disabled}
 							class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
 							{type}

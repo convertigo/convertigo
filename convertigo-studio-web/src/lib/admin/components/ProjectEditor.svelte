@@ -197,7 +197,7 @@
 		childrenClass="border-l border-color pl-3"
 		controlClass="layout-x-low w-full items-center gap-2 rounded-base px-2 py-1 text-sm font-medium text-strong transition-surface hover:bg-primary-100/60 dark:hover:bg-primary-500/15"
 	>
-		{#snippet nodeIcon({ api, node, nodeState, indexPath })}
+		{#snippet nodeIcon({ node })}
 			{#if node.icon?.includes('?')}
 				<AutoSvg class="h-6 w-6 p-1" fill="currentColor" src="{getUrl()}{node.icon}" alt="ico" />
 			{:else if node.icon == 'file'}

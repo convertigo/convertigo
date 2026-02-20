@@ -17,13 +17,13 @@
 	<div
 		class="grid grid-cols-4 gap-4 p-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 2xl:grid-cols-12"
 	>
-		{#each Object.keys(data) as pkg}
+		{#each Object.keys(data) as pkg (pkg)}
 			<div
 				class="col-span-full card border border-surface-300-700 preset-filled-surface-200-800 p-2"
 			>
 				{pkg}
 			</div>
-			{#each data[pkg] as name}
+			{#each data[pkg] as name (`${pkg}:${name}`)}
 				<div
 					class="layout-y-low items-center card border border-surface-300-700 preset-filled-surface-200-800 p-2"
 				>

@@ -116,9 +116,9 @@
 							]
 						}
 					]}
-					{#each sections as { title, fields }}
+					{#each sections as { title, fields } (title)}
 						<Card {title}>
-							{#each fields as field}
+							{#each fields as field (field.name)}
 								<PropertyType
 									{...field}
 									{loading}

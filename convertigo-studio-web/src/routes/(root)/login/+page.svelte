@@ -24,8 +24,8 @@
 			} else {
 				error = Authentication.error;
 			}
-		} catch (error) {
-			error = '' + error;
+		} catch (err) {
+			error = '' + err;
 		} finally {
 			doAuthenticate = false;
 		}

@@ -19,7 +19,7 @@
 	let element = $state();
 	const attachElement = $derived(fromAction(bindElement));
 
-	async function updateHeight(e) {
+	async function updateHeight() {
 		if (element) {
 			const rect = element.getBoundingClientRect();
 			height = Math.floor(window.innerHeight - rect.top);

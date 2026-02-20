@@ -21,7 +21,6 @@
 		thead
 	} = $props();
 
-	const duration = 50;
 	const overflowThreshold = 8;
 	let isCardView = $state(false);
 	let tableMinWidth = $state(0);

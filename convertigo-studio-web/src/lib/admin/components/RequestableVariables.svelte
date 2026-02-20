@@ -20,7 +20,7 @@
 	function parse(row, key = 'value') {
 		try {
 			multiples[row.name] = JSON.parse(row[key]).map((val) => ({ val }));
-		} catch (e) {
+		} catch {
 			multiples[row.name] = [];
 		}
 	}

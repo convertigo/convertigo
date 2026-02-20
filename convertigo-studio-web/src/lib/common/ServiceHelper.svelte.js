@@ -18,7 +18,7 @@ export default function ({
 	let interval;
 	let _delay = $state(-1);
 	let _values = $state({ ...defValues });
-	let _needRefresh = $state(true && service);
+	let _needRefresh = $state(Boolean(service));
 	let _calling = $state(false);
 
 	values.reset = () => {

@@ -180,7 +180,7 @@ function generateLayoutCss() {
 let lastUtilitiesHash = '';
 let lastMonacoHash = '';
 
-export default function GenerateLayoutCssPlugin(options = {}) {
+export default function GenerateLayoutCssPlugin() {
 	let generate = true;
 	const cwd = process.cwd();
 

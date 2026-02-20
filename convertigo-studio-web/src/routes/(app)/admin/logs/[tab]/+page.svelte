@@ -109,8 +109,6 @@
 	let filters = $derived(filtersState.current);
 	let presetOpened = $state(false);
 
-	const tzOffset = new Date().getTimezoneOffset() * 60000;
-
 	const tabs = {
 		view: { name: 'Viewer', icon: 'mdi:file-document-box-outline', viewer: true },
 		purge: { name: 'Purge', icon: 'mdi:delete-outline' },
@@ -270,7 +268,7 @@
 	function copyFilters() {
 		let rangeFilter = /** @type {{ start?: string, end?: string } | null} */ (null);
 		let filterString = Object.entries(filters)
-			.filter(([_, array]) => array.length > 0)
+			.filter(([, array]) => array.length > 0)
 			.map(([name, array]) => {
 				const field = name.toLowerCase();
 				return array

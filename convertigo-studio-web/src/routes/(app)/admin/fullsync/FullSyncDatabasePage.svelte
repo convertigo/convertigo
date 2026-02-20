@@ -458,7 +458,7 @@
 			return { isSet: false };
 		}
 		const looksJson =
-			/^[\[{"]/.test(input) || /^-?\d/.test(input) || /^(true|false|null)\b/.test(input);
+			/^[[{"]/.test(input) || /^-?\d/.test(input) || /^(true|false|null)\b/.test(input);
 		if (!looksJson) {
 			return { isSet: true, value: input };
 		}
@@ -517,16 +517,16 @@
 	}
 
 	function getPrioritizedFields(docs = [], max = 5) {
-		const counts = new Map();
+		const counts = {};
 		for (const doc of docs) {
 			if (!doc || typeof doc != 'object') continue;
 			for (const key of Object.keys(doc)) {
-				counts.set(key, (counts.get(key) ?? 0) + 1);
+				counts[key] = (counts[key] ?? 0) + 1;
 			}
 		}
-		counts.delete('id');
-		counts.delete('_rev');
-		return Array.from(counts.entries())
+		delete counts.id;
+		delete counts._rev;
+		return Object.entries(counts)
 			.sort((a, b) => {
 				if (a[1] != b[1]) return b[1] - a[1];
 				if (a[0] == b[0]) return 0;
@@ -542,19 +542,19 @@
 			safeAvailable.includes(column)
 		);
 		const safeSelected = Array.isArray(selected) ? selected : [];
-		const used = new Set();
+		const used = [];
 		const columns = [];
 		for (let index = 0; index < Math.max(0, Number(visibleCount) || 0); index += 1) {
 			let next = safeSelected[index];
-			if (!next || !safeAvailable.includes(next) || used.has(next)) {
+			if (!next || !safeAvailable.includes(next) || used.includes(next)) {
 				next =
-					safePreferred.find((column) => !used.has(column)) ??
-					safeAvailable.find((column) => !used.has(column)) ??
+					safePreferred.find((column) => !used.includes(column)) ??
+					safeAvailable.find((column) => !used.includes(column)) ??
 					'';
 			}
 			if (!next) break;
 			columns.push(next);
-			used.add(next);
+			used.push(next);
 		}
 		return columns;
 	}

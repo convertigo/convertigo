@@ -1,4 +1,6 @@
-let browser = $state(new Date());
+import { SvelteDate } from 'svelte/reactivity';
+
+let browser = new SvelteDate();
 let serverDiff = $state(0);
 let serverTimezone = $state('');
 let server = $derived(new Date(browser.getTime() - serverDiff));
@@ -9,7 +11,7 @@ let isSameTime = $derived(
 );
 
 setInterval(() => {
-	browser = new Date();
+	browser.setTime(Date.now());
 }, 1000);
 
 export default {
@@ -26,7 +28,7 @@ export default {
 		return server.toLocaleTimeString(undefined, { timeZone: serverTimezone });
 	},
 	set serverTimestamp(timestamp) {
-		const diff = new Date().getTime() - timestamp;
+		const diff = Date.now() - timestamp;
 		serverDiff = diff > 2000 ? diff : 0;
 	},
 	get serverTimezone() {
