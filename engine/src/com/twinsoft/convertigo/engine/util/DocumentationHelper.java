@@ -55,6 +55,13 @@ public final class DocumentationHelper {
             html {
               padding: 0; margin: 0; border-left: lightgrey solid 2px;
             }
+            :root {
+              --doc-code-bg: #cfe8f7;
+              --doc-code-fg: #121212;
+              --doc-note-bg: #275d78;
+              --doc-note-fg: #ffffff;
+              --doc-note-border: #00aeea;
+            }
             body {
               font-family: 'Inter', sans-serif;
               font-size: 14px;
@@ -67,10 +74,10 @@ public final class DocumentationHelper {
             a:hover { text-decoration: underline; }
             code {
               font-family: 'JetBrains Mono','Courier New',monospace;
-              background: rgba(0,183,245,.4);
-              border: 1px solid #00b7f5;
-              padding: 0 4px;
-              border-radius: 4px;
+              color: var(--doc-code-fg);
+              background: var(--doc-code-bg);
+              padding: .2em .42em;
+              border-radius: 3px;
               font-size: .95em;
             }
             strong { font-weight: 800; }
@@ -85,12 +92,16 @@ public final class DocumentationHelper {
             ul { margin: 0 0 .6em 1.2em; padding-left: 1.2em; }
             li { margin-bottom: .35em; }
             blockquote.doc-note {
-              border-left: 4px solid #00b7f5;
-              background: rgba(0,183,245,.4);
+              border-left: 4px solid var(--doc-note-border);
+              background: var(--doc-note-bg);
               padding: .55em .85em;
               margin: 0 0 .85em 0;
               border-radius: 4px;
-              color: inherit;
+              color: var(--doc-note-fg);
+            }
+            blockquote.doc-note code {
+              color: var(--doc-code-fg);
+              background: var(--doc-code-bg);
             }
             blockquote.doc-note p { margin: 0 0 .4em 0; }
             blockquote.doc-note p:last-child { margin-bottom: 0; }
