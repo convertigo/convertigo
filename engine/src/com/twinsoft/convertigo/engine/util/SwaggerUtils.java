@@ -75,7 +75,6 @@ import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 
 import io.swagger.models.Contact;
-import io.swagger.models.ExternalDocs;
 import io.swagger.models.Info;
 import io.swagger.models.Model;
 import io.swagger.models.Operation;
@@ -160,15 +159,15 @@ public class SwaggerUtils {
 		swagger.setConsumes(Arrays.asList("multipart/form-data", MimeType.WwwForm.value(), MimeType.Json.value(), MimeType.Xml.value()));
 		swagger.setProduces(Arrays.asList(MimeType.Json.value(), MimeType.Xml.value()));
 
-		String oas3Url = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + "/swagger/dist/index.html?" +
-				URLUtils.encodePart("url",requestUrl.replace(servletMappingPath, OpenApiUtils.servletMappingPath) 
-						+ "?YAML"+ (project != null ? "&__project=" + project.getName():""))
-		+ (Engine.isStudioMode() ? "&showErrors" : "");
-
-		ExternalDocs externalDocs = new ExternalDocs();
-		externalDocs.setDescription("Switch to Open Api definition (oas3)");
-		externalDocs.setUrl(oas3Url);
-		swagger.setExternalDocs(externalDocs);
+//		String oas3Url = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + "/swagger/dist/index.html?" +
+//				URLUtils.encodePart("url",requestUrl.replace(servletMappingPath, OpenApiUtils.servletMappingPath) 
+//						+ "?YAML"+ (project != null ? "&__project=" + project.getName():""))
+//		+ (Engine.isStudioMode() ? "&showErrors" : "");
+//
+//		ExternalDocs externalDocs = new ExternalDocs();
+//		externalDocs.setDescription("Switch to Open Api definition (oas3)");
+//		externalDocs.setUrl(oas3Url);
+//		swagger.setExternalDocs(externalDocs);
 
 		return swagger;
 	}

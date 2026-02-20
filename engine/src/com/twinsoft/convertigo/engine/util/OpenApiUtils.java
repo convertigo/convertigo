@@ -334,15 +334,15 @@ public class OpenApiUtils {
 		servers.add(server1);
 		openAPI.setServers(servers);
 
-		String oas2Url = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + "/swagger/dist/index.html?" + 
-				URLUtils.encodePart("url",requestUrl.replace(servletMappingPath, SwaggerUtils.servletMappingPath) 
-						+ "?YAML"+ (project != null ? "&__project=" + project.getName():""))
-		+ (Engine.isStudioMode() ? "&showErrors" : "");
-
-		ExternalDocumentation externalDocumentation = new ExternalDocumentation();
-		externalDocumentation.setDescription("Switch to Swagger definition (oas2)");
-		externalDocumentation.setUrl(oas2Url);
-		openAPI.setExternalDocs(externalDocumentation);
+//		String oas2Url = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + "/swagger/dist/index.html?" + 
+//				URLUtils.encodePart("url",requestUrl.replace(servletMappingPath, SwaggerUtils.servletMappingPath) 
+//						+ "?YAML"+ (project != null ? "&__project=" + project.getName():""))
+//		+ (Engine.isStudioMode() ? "&showErrors" : "");
+//
+//		ExternalDocumentation externalDocumentation = new ExternalDocumentation();
+//		externalDocumentation.setDescription("Switch to Swagger definition (oas2)");
+//		externalDocumentation.setUrl(oas2Url);
+//		openAPI.setExternalDocs(externalDocumentation);
 
 		return openAPI;
 	}
