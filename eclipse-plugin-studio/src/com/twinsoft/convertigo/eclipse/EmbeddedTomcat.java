@@ -91,6 +91,19 @@ public class EmbeddedTomcat implements Runnable {
 				httpConnectorPort = Integer.parseInt(convertigoServer.substring(i + 1, j));
 			}
 			
+			if (!NetworkUtils.available(httpConnectorPort)) {
+				long waitUntil = System.currentTimeMillis() + 5000;
+				System.out.println("(EmbeddedTomcat) Waiting for configured port " + httpConnectorPort + " to be released");
+				while (!NetworkUtils.available(httpConnectorPort) && System.currentTimeMillis() < waitUntil) {
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						break;
+					}
+				}
+			}
+			
 			int tryPort = httpConnectorPort;
 			while (!NetworkUtils.available(tryPort)) {
 				tryPort++;
@@ -176,6 +189,8 @@ public class EmbeddedTomcat implements Runnable {
 			// Stop the embedded server
 			if (embedded != null) {
 				embedded.stop();
+				embedded.destroy();
+				embedded = null;
 			}
 		}
 		catch(Throwable e) {

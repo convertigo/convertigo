@@ -564,6 +564,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	private EmbeddedTomcat embeddedTomcat = null;
+	private final Object embeddedTomcatLock = new Object();
 	
 	private Runnable afterPscOk = null;
 	public void runSetup() {
@@ -1090,9 +1091,20 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		} catch (Exception e) {
 		}
 
-		if (embeddedTomcat != null) {
-			Engine.isStarted = false;
-			embeddedTomcat.stop();
+		stopEmbeddedTomcat();
+	}
+
+	void stopEmbeddedTomcat() {
+		EmbeddedTomcat tomcatToStop = null;
+		synchronized (embeddedTomcatLock) {
+			if (embeddedTomcat != null) {
+				Engine.isStarted = false;
+				tomcatToStop = embeddedTomcat;
+				embeddedTomcat = null;
+			}
+		}
+		if (tomcatToStop != null) {
+			tomcatToStop.stop();
 		}
 	}
 
