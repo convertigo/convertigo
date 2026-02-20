@@ -23,8 +23,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -50,7 +53,8 @@ public class ServletUtils {
 	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/(?:mobile|pwas/.*?)/)(.*)");
 	private static final Pattern p_base = Pattern.compile("(<base\\s+[^>]*href\\s*=\\s*)(['\"])([^'\"]*)(\\2)([^>]*>)", Pattern.CASE_INSENSITIVE);
 	private static final String ATTR_BASE_DEPTH = ServletUtils.class.getName() + ".baseDepth";
-	private static final Pattern RANGE_PATTERN = Pattern.compile("bytes=(\\d*)-(\\d*)");
+	private static final Pattern RANGE_PATTERN = Pattern.compile("bytes\\s*=\\s*(.+)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern RANGE_ITEM_PATTERN = Pattern.compile("(\\d*)-(\\d*)");
 	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
@@ -217,6 +221,9 @@ private static Integer computeDepth(HttpServletRequest request) {
 		// Only honor If-Modified-Since when not a range request.
 		var rangeHeader = HeaderName.Range.getHeader(request);
 		boolean hasRange = rangeHeader != null && !rangeHeader.isBlank();
+		ByteRange singleRange = null;
+		List<ByteRange> ranges = null;
+		String multipartBoundary = null;
 
 		if (!hasRange) {
 			long clientDate = request.getDateHeader("If-Modified-Since") / 1000;
@@ -227,7 +234,28 @@ private static Integer computeDepth(HttpServletRequest request) {
 			}
 		}
 
-		if (mimeType != null) {
+		if (hasRange) {
+			if (fileLength <= 0) {
+				response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+				HeaderName.ContentRange.setHeader(response, "bytes */" + fileLength);
+				return;
+			}
+			ranges = parseRanges(rangeHeader, fileLength);
+			if (ranges == null || ranges.isEmpty()) {
+				response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+				HeaderName.ContentRange.setHeader(response, "bytes */" + fileLength);
+				return;
+			}
+			if (ranges.size() == 1) {
+				singleRange = ranges.get(0);
+			} else {
+				multipartBoundary = "C8O-" + Long.toHexString(System.nanoTime());
+			}
+		}
+
+		if (multipartBoundary != null) {
+			HeaderName.ContentType.setHeader(response, "multipart/byteranges; boundary=" + multipartBoundary);
+		} else if (mimeType != null) {
 			HeaderName.ContentType.setHeader(response, mimeType);
 		}
 		long maxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
@@ -235,49 +263,29 @@ private static Integer computeDepth(HttpServletRequest request) {
 		response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
 		HeaderName.AcceptRanges.setHeader(response, "bytes");
 
-		long start = 0;
-		long end = fileLength - 1;
-		if (hasRange) {
-			var m = RANGE_PATTERN.matcher(rangeHeader);
-			if (!m.matches()) {
-				response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
-				HeaderName.ContentRange.setHeader(response, "bytes */" + fileLength);
-				return;
-			}
-			var startGroup = m.group(1);
-			var endGroup = m.group(2);
-			try {
-				if (!startGroup.isEmpty()) {
-					start = Long.parseLong(startGroup);
-				}
-				if (!endGroup.isEmpty()) {
-					end = Long.parseLong(endGroup);
-				} else {
-					end = fileLength - 1;
-				}
-			} catch (NumberFormatException e) {
-				response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
-				HeaderName.ContentRange.setHeader(response, "bytes */" + fileLength);
-				return;
-			}
-			if (start < 0 || end < start || end >= fileLength) {
-				response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
-				HeaderName.ContentRange.setHeader(response, "bytes */" + fileLength);
-				return;
-			}
-			var rangeLength = end - start + 1;
+		if (singleRange != null) {
+			long rangeLength = singleRange.length();
 			response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-			HeaderName.ContentRange.setHeader(response, "bytes " + start + "-" + end + "/" + fileLength);
+			HeaderName.ContentRange.setHeader(response, "bytes " + singleRange.start + "-" + singleRange.end + "/" + fileLength);
 			HeaderName.ContentLength.setHeader(response, Long.toString(rangeLength));
+		} else if (multipartBoundary != null) {
+			response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+			long bodyLength = computeMultipartBodyLength(ranges, multipartBoundary, mimeType, fileLength);
+			HeaderName.ContentLength.setHeader(response, Long.toString(bodyLength));
 		} else {
 			HeaderName.ContentLength.setHeader(response, Long.toString(fileLength));
 		}
 
 		OutputStream output = response.getOutputStream();
+		if (multipartBoundary != null) {
+			writeMultipartBody(output, file, rewritten, ranges, multipartBoundary, mimeType, fileLength);
+			return;
+		}
+
 		if (rewritten != null) {
-			if (hasRange) {
-				int offset = (int) start;
-				int len = (int) (end - start + 1);
+			if (singleRange != null) {
+				int offset = (int) singleRange.start;
+				int len = (int) singleRange.length();
 				output.write(rewritten, offset, len);
 			} else {
 				output.write(rewritten);
@@ -286,16 +294,161 @@ private static Integer computeDepth(HttpServletRequest request) {
 		}
 
 		try (var fis = new FileInputStream(file)) {
-			if (hasRange && start > 0) {
-				fis.skip(start);
+			if (singleRange != null && singleRange.start > 0) {
+				long skipped = 0;
+				while (skipped < singleRange.start) {
+					long justSkipped = fis.skip(singleRange.start - skipped);
+					if (justSkipped <= 0) {
+						break;
+					}
+					skipped += justSkipped;
+				}
 			}
 			byte[] buffer = new byte[8192];
-			long remaining = hasRange ? (end - start + 1) : Long.MAX_VALUE;
+			long remaining = singleRange != null ? singleRange.length() : Long.MAX_VALUE;
 			int read;
 			while (remaining > 0 && (read = fis.read(buffer, 0, (int) Math.min(buffer.length, remaining))) != -1) {
 				output.write(buffer, 0, read);
 				remaining -= read;
 			}
+		}
+	}
+
+	private static List<ByteRange> parseRanges(String rangeHeader, long fileLength) {
+		var matcher = RANGE_PATTERN.matcher(rangeHeader);
+		if (!matcher.matches()) {
+			return null;
+		}
+
+		var parsed = new ArrayList<ByteRange>();
+		var rangeSet = matcher.group(1);
+		for (var rawItem: rangeSet.split(",")) {
+			var item = rawItem.trim();
+			if (item.isEmpty()) {
+				return null;
+			}
+			var itemMatcher = RANGE_ITEM_PATTERN.matcher(item);
+			if (!itemMatcher.matches()) {
+				return null;
+			}
+
+			var startGroup = itemMatcher.group(1);
+			var endGroup = itemMatcher.group(2);
+			long start;
+			long end;
+			try {
+				if (startGroup.isEmpty()) {
+					if (endGroup.isEmpty()) {
+						return null;
+					}
+					long suffixLength = Long.parseLong(endGroup);
+					if (suffixLength <= 0) {
+						return null;
+					}
+					start = Math.max(fileLength - suffixLength, 0);
+					end = fileLength - 1;
+				} else {
+					start = Long.parseLong(startGroup);
+					if (endGroup.isEmpty()) {
+						end = fileLength - 1;
+					} else {
+						end = Long.parseLong(endGroup);
+					}
+				}
+			} catch (NumberFormatException e) {
+				return null;
+			}
+
+			if (start < 0 || end < 0 || end < start) {
+				return null;
+			}
+			if (start >= fileLength) {
+				continue;
+			}
+			if (end >= fileLength) {
+				end = fileLength - 1;
+			}
+
+			parsed.add(new ByteRange(start, end));
+		}
+
+		return parsed;
+	}
+
+	private static long computeMultipartBodyLength(List<ByteRange> ranges, String boundary, String mimeType, long fileLength) {
+		long total = 0;
+		for (var range: ranges) {
+			total += boundaryLine(boundary).getBytes(StandardCharsets.ISO_8859_1).length;
+			if (mimeType != null) {
+				total += contentTypeLine(mimeType).getBytes(StandardCharsets.ISO_8859_1).length;
+			}
+			total += contentRangeLine(range, fileLength).getBytes(StandardCharsets.ISO_8859_1).length;
+			total += 2; // CRLF before body
+			total += range.length();
+			total += 2; // CRLF after body
+		}
+		total += closingBoundaryLine(boundary).getBytes(StandardCharsets.ISO_8859_1).length;
+		return total;
+	}
+
+	private static void writeMultipartBody(OutputStream output, File file, byte[] rewritten, List<ByteRange> ranges, String boundary, String mimeType, long fileLength) throws IOException {
+		byte[] buffer = new byte[8192];
+		try (var raf = rewritten == null ? new RandomAccessFile(file, "r") : null) {
+			for (var range: ranges) {
+				output.write(boundaryLine(boundary).getBytes(StandardCharsets.ISO_8859_1));
+				if (mimeType != null) {
+					output.write(contentTypeLine(mimeType).getBytes(StandardCharsets.ISO_8859_1));
+				}
+				output.write(contentRangeLine(range, fileLength).getBytes(StandardCharsets.ISO_8859_1));
+				output.write("\r\n".getBytes(StandardCharsets.ISO_8859_1));
+
+				if (rewritten != null) {
+					output.write(rewritten, (int) range.start, (int) range.length());
+				} else if (raf != null) {
+					raf.seek(range.start);
+					long remaining = range.length();
+					while (remaining > 0) {
+						int read = raf.read(buffer, 0, (int) Math.min(buffer.length, remaining));
+						if (read == -1) {
+							break;
+						}
+						output.write(buffer, 0, read);
+						remaining -= read;
+					}
+				}
+				output.write("\r\n".getBytes(StandardCharsets.ISO_8859_1));
+			}
+		}
+		output.write(closingBoundaryLine(boundary).getBytes(StandardCharsets.ISO_8859_1));
+	}
+
+	private static String boundaryLine(String boundary) {
+		return "--" + boundary + "\r\n";
+	}
+
+	private static String closingBoundaryLine(String boundary) {
+		return "--" + boundary + "--\r\n";
+	}
+
+	private static String contentTypeLine(String mimeType) {
+		return "Content-Type: " + mimeType + "\r\n";
+	}
+
+	private static String contentRangeLine(ByteRange range, long fileLength) {
+		return "Content-Range: bytes " + range.start + "-" + range.end + "/" + fileLength + "\r\n";
+	}
+
+	private static class ByteRange {
+		private final long start;
+		private final long end;
+
+		private ByteRange(long start, long end) {
+			this.start = start;
+			this.end = end;
+		}
+
+		private long length() {
+			return end - start + 1;
 		}
 	}
 }
