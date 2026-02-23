@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -296,8 +297,10 @@ public class ComponentRefManager implements DatabaseObjectListener {
 			done.add(compQName);
 	    	for (String keyQName: getKeys()) {
 	    		if (!keyQName.equals(compQName)) {
+	    			Pattern p = Pattern.compile("^" + Pattern.quote(keyQName) + "\\b.*");
 		    		for (String useQName: getConsumers(compQName)) {
-		    			if (useQName.startsWith(keyQName)) {
+		    			//if (useQName.startsWith(keyQName)) {
+		    			if (p.matcher(useQName).find()) {
 		    				if (!done.contains(keyQName)) {
 		    					getDependencies(done, keyQName);
 		    				}
