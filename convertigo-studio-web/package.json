@@ -22,7 +22,7 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.53.0"
+			"svelte": "^5.53.3"
 		}
 	},
 	"devDependencies": {
@@ -36,7 +36,7 @@
 		"@skeletonlabs/skeleton-svelte": "^4.12.0",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.52.2",
+		"@sveltejs/kit": "^2.53.0",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@tailwindcss/forms": "0.5.11",
 		"@tailwindcss/typography": "0.5.19",
@@ -51,8 +51,8 @@
 		"prettier-plugin-svelte": "^3.5.0",
 		"prettier-plugin-tailwindcss": "^0.7.2",
 		"sharp": "^0.34.5",
-		"svelte": "^5.53.0",
-		"svelte-check": "^4.4.1",
+		"svelte": "^5.53.3",
+		"svelte-check": "^4.4.3",
 		"svelte-eslint-parser": "^1.4.1",
 		"tailwindcss": "^4.2.0",
 		"typescript": "^5.9.3",
@@ -67,10 +67,10 @@
 		"@internationalized/date": "^3.11.0",
 		"@tailwindcss/vite": "^4.2.0",
 		"@xyflow/svelte": "^1.5.1",
-		"@zag-js/tree-view": "^1.34.0",
+		"@zag-js/tree-view": "^1.34.1",
 		"apexcharts": "^5.6.0",
-		"bits-ui": "^2.16.1",
-		"caniuse-lite": "^1.0.30001770",
+		"bits-ui": "^2.16.2",
+		"caniuse-lite": "^1.0.30001774",
 		"chart.js": "^4.5.1",
 		"elkjs": "^0.11.0",
 		"fast-xml-parser": "^5.3.7",
