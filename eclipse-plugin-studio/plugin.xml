@@ -168,6 +168,16 @@
 		<!-- Mobile projects -->
 		<wizard
 			category="com.twinsoft.convertigo.eclipse.convertigofrontend"
+			class="com.twinsoft.convertigo.eclipse.wizards.marketplace.MarketplaceWizard"
+			icon="icons/studio/retail_store_color_32x32.png"
+			id="com.twinsoft.convertigo.eclipse.wizards.MarketplaceStartersWizard"
+			name="Convertigo App Starters from Marketplace"
+			preferredPerspectives="convertigo"
+			project="true">
+			<description>Opens the Convertigo Marketplace and shows starter projects.</description>
+			{ "tag": "starter" } </wizard>
+		<wizard
+			category="com.twinsoft.convertigo.eclipse.convertigofrontend"
 			class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
 			icon="icons/studio/web_color_32x32.png"
 			id="com.twinsoft.convertigo.eclipse.wizards.NewNgxBuilderWizard"
@@ -179,19 +189,9 @@
 			"template_ngxBuilderIonic=https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.4.0.zip",
 			"doPage1": true } </wizard>
 		<primaryWizard
-			id="com.twinsoft.convertigo.eclipse.wizards.NewNgxBuilderWizard"></primaryWizard>
-		<primaryWizard
 			id="com.twinsoft.convertigo.eclipse.wizards.MarketplaceStartersWizard"></primaryWizard>
-		<wizard
-			category="com.twinsoft.convertigo.eclipse.convertigofrontend"
-			class="com.twinsoft.convertigo.eclipse.wizards.marketplace.MarketplaceWizard"
-			icon="icons/studio/retail_store_color_32x32.png"
-			id="com.twinsoft.convertigo.eclipse.wizards.MarketplaceStartersWizard"
-			name="Convertigo Starters from Marketplace"
-			preferredPerspectives="convertigo"
-			project="true">
-			<description>Opens the Convertigo Marketplace and shows starter projects.</description>
-			{ "tag": "starter" } </wizard>
+		<primaryWizard
+			id="com.twinsoft.convertigo.eclipse.wizards.NewNgxBuilderWizard"></primaryWizard>
 		<!-- Sequencer projects -->
 		<wizard
 			category="com.twinsoft.convertigo.eclipse.convertigobackend"

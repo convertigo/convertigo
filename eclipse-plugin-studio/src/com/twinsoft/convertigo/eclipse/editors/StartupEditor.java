@@ -42,6 +42,8 @@ import org.eclipse.ui.part.EditorPart;
 
 import com.teamdev.jxbrowser.dom.Element;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.actions.OpenAssistant;
+import com.twinsoft.convertigo.eclipse.actions.OpenMarketplace;
 import com.twinsoft.convertigo.eclipse.actions.OpenTutorialView;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
@@ -53,7 +55,7 @@ import com.twinsoft.convertigo.engine.util.URLUtils;
 public class StartupEditor extends EditorPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.editors.StartupEditor";
-	private static final String STARTUP_URL = "https://www.convertigo.com/convertigo-startup-page-8-3/";
+	private static final String STARTUP_URL = "https://www.convertigo.com/start-up-page-8-4";
 
 	private C8oBrowser browser = null;
 	
@@ -109,13 +111,26 @@ public class StartupEditor extends EditorPart {
 					elt = (Element) elt.parent().get();
 				}
 				String href = elt.attributes().get("href");
-				if (href.equals("#opentutorialview")) {
+				String id = elt.attributes().get("id");
+				if ("#opentutorialview".equals(href) || (href != null && href.endsWith("/tutorials"))) {
 					ConvertigoPlugin.asyncExec(() -> {
 						new OpenTutorialView().run(null);
 					});
 					ev.preventDefault();
 					return true;
-				} else if (href.startsWith("#") || elt.attributes().get("id").startsWith("weglot")) {
+				} else if (href != null && href.startsWith("https://marketplace.convertigo.com")) {
+					ConvertigoPlugin.asyncExec(() -> {
+						new OpenMarketplace().run(null);
+					});
+					ev.preventDefault();
+					return true;
+				} else if (href != null && href.startsWith("https://assistant.convertigo.com")) {
+					ConvertigoPlugin.asyncExec(() -> {
+						new OpenAssistant().run(null);
+					});
+					ev.preventDefault();
+					return true;
+				} else if ((href != null && href.startsWith("#")) || (id != null && id.startsWith("weglot"))) {
 					return true;
 				}
 			} catch (Exception e) {
@@ -180,6 +195,9 @@ public class StartupEditor extends EditorPart {
 		url += "?" + URLUtils.encodePart("user", si.user);
 		url += "&" + URLUtils.encodePart("site", si.site);
 		url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
+		if (SwtUtils.isDark()) {
+			url += "&dark";
+		}
 
 		browser.addProgressListener(new ProgressAdapter() {
 			
