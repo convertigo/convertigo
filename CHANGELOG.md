@@ -10,7 +10,8 @@
 - [#944](https://github.com/convertigo/convertigo/issues/944) [NGX] Introduction of the **Convertigo Assistant** project to create Shared Components using AI-assisted generation
 - [#945](https://github.com/convertigo/convertigo/issues/945) [Studio] A new **Marketplace** view allows easy discovery and import of library projects directly into Studio
 - [#959](https://github.com/convertigo/convertigo/issues/959) [Studio] Studio can now generate thumbnails and screenshots of NGX applications
-- [#997](https://github.com/convertigo/convertigo/issues/997) [Engine] Support for stateless session mode backed by Redis, enabling horizontal scalability without HTTP session affinity
+- [#1022](https://github.com/convertigo/convertigo/issues/1022) [Studio] New bean actions are available for Page authorization, language management (Get/SetLanguage) and theme management (Get/SetTheme)
+- [#1023](https://github.com/convertigo/convertigo/issues/1023) [NGX] New 8.4 projects now include a default Tailwind theme configuration out of the box
 
 #### Improvements:
 
@@ -27,6 +28,7 @@
 - [#1002](https://github.com/convertigo/convertigo/issues/1002) [Engine] Static file serving has been consolidated and now supports HTTP Range requests
 - [#1013](https://github.com/convertigo/convertigo/issues/1013) [Studio] Studio now displays a dedicated task and improved status line while the Mobile Builder runs, including NGX standalone builds
 - [#1015](https://github.com/convertigo/convertigo/issues/1015) [Engine] Requests using `__nocache=true` no longer trigger deletion of previous cached results
+- [#1029](https://github.com/convertigo/convertigo/issues/1029) [Swagger] Removed obsolete OpenAPI 2 (OAS2) link from generated YAML definitions
 
 #### Bug Fixes:
 
@@ -39,6 +41,11 @@
 - [#1014](https://github.com/convertigo/convertigo/issues/1014) [Studio] Fixed, the Source Picker modal height no longer prevents access to the end of long objects
 - [#1016](https://github.com/convertigo/convertigo/issues/1016) Fixed, the Deploy wizard now remembers the previously used deployment URL
 - [#1019](https://github.com/convertigo/convertigo/issues/1019) [Engine] Fixed, XSRF checks on admin services no longer create sessions during Helm readiness and liveness probes
+- [#1021](https://github.com/convertigo/convertigo/issues/1021) [Studio] Fixed, Studio now restarts correctly after workspace switch and binds again to the expected port (18080)
+- [#1024](https://github.com/convertigo/convertigo/issues/1024) [Studio] Fixed, drag & drop from local variables in the NGX Source Picker is now correctly accepted
+- [#1025](https://github.com/convertigo/convertigo/issues/1025) [Admin] Fixed, the FullSync proxy no longer corrupts Fauxton attachment PUT payloads when using non-multipart requests
+- [#1027](https://github.com/convertigo/convertigo/issues/1027) [NGX] Fixed, shared component icons in the Palette are no longer hidden when the component name is long
+- [#1028](https://github.com/convertigo/convertigo/issues/1028) [NGX] Fixed, exposed shared actions in the Palette now correctly load project custom icons
 
 ---
 
