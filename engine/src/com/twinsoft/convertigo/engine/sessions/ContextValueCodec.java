@@ -35,6 +35,7 @@ final class ContextValueCodec {
 	private static final String KIND_DOM = "dom";
 	private static final String KIND_FILE = "file";
 	private static final String KIND_SET = "set";
+	private static final String KIND_TYPED = "typed";
 
 	String serialize(Object value) throws Exception {
 		if (value == null) {
@@ -53,7 +54,7 @@ final class ContextValueCodec {
 	}
 
 	private static Object encode(Object value) {
-		value = unwrap(value);
+		value = ValueCodecHelper.unwrapRhino(value);
 		if (value == null) {
 			return null;
 		}
@@ -116,7 +117,22 @@ final class ContextValueCodec {
 			obj.put("items", arr);
 			return obj;
 		}
-		return null;
+		try {
+			var typed = ValueCodecHelper.encodeTypedValue(value);
+			if (typed == null) {
+				return null;
+			}
+			var obj = new LinkedHashMap<String, Object>();
+			obj.put(MARKER, KIND_TYPED);
+			obj.put("clazz", typed.clazz);
+			obj.put("value", typed.value);
+			if (typed.format != null) {
+				obj.put("format", typed.format);
+			}
+			return obj;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	private static Object decode(JsonNode node) {
@@ -174,6 +190,17 @@ final class ContextValueCodec {
 				}
 				return set;
 			}
+			if (KIND_TYPED.equals(kind)) {
+				var className = node.path("clazz").asText(null);
+				var valueNode = node.get("value");
+				var formatNode = node.get("format");
+				var format = formatNode != null ? formatNode.asText(null) : null;
+				try {
+					return ValueCodecHelper.decodeTypedValue(className, valueNode, format);
+				} catch (Exception e) {
+					return null;
+				}
+			}
 		}
 
 		var obj = new LinkedHashMap<String, Object>();
@@ -186,48 +213,5 @@ final class ContextValueCodec {
 			obj.put(name, decode(node.get(name)));
 		}
 		return obj;
-	}
-
-	private static Object unwrap(Object value) {
-		while (value != null) {
-			if (value instanceof org.mozilla.javascript.ScriptableObject scriptable) {
-				String className;
-				try {
-					className = scriptable.getClassName();
-				} catch (Exception e) {
-					className = null;
-				}
-				if ("String".equals(className)) {
-					try {
-						return org.mozilla.javascript.Context.toString(value);
-					} catch (Exception e) {
-						return value.toString();
-					}
-				}
-				if ("Number".equals(className)) {
-					try {
-						return org.mozilla.javascript.Context.toNumber(value);
-					} catch (Exception e) {
-						return null;
-					}
-				}
-				if ("Boolean".equals(className)) {
-					try {
-						return org.mozilla.javascript.Context.toBoolean(value);
-					} catch (Exception e) {
-						return null;
-					}
-				}
-			}
-			if (value instanceof org.mozilla.javascript.Wrapper wrapper) {
-				value = wrapper.unwrap();
-				continue;
-			}
-			if (value instanceof org.mozilla.javascript.Undefined || value instanceof org.mozilla.javascript.UniqueTag) {
-				return null;
-			}
-			break;
-		}
-		return value;
 	}
 }

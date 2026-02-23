@@ -20,30 +20,13 @@
 package com.twinsoft.convertigo.engine.sessions;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 final class SessionValueCodec {
-	private static final String FORMAT_POJO = "pojo";
-	private static final ObjectMapper POJO_MAPPER = createPojoMapper();
-
-	private static ObjectMapper createPojoMapper() {
-		var mapper = JsonCodec.MAPPER.copy();
-		mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
-		mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-		return mapper;
-	}
-
 	String serialize(String name, Object value) throws Exception {
-		value = unwrap(value);
+		value = ValueCodecHelper.unwrapRhino(value);
 		if (value == null) {
 			return null;
 		}
@@ -55,12 +38,8 @@ final class SessionValueCodec {
 				|| value instanceof List) {
 			return JsonCodec.MAPPER.writeValueAsString(value);
 		}
-		var typed = new TypedValue(value, null);
-		try {
-			return JsonCodec.MAPPER.writeValueAsString(typed);
-		} catch (Exception e) {
-			return POJO_MAPPER.writeValueAsString(new TypedValue(value, FORMAT_POJO));
-		}
+		var typed = ValueCodecHelper.encodeTypedValue(value);
+		return JsonCodec.MAPPER.writeValueAsString(new TypedValue(typed.clazz, typed.value, typed.format));
 	}
 
 	Object deserialize(String name, String raw) throws Exception {
@@ -78,22 +57,9 @@ final class SessionValueCodec {
 		if (isWrapped) {
 			var formatNode = node.get("format");
 			var format = formatNode != null ? formatNode.asText(null) : null;
-			var mapper = FORMAT_POJO.equals(format) ? POJO_MAPPER : JsonCodec.MAPPER;
 			var clazzNode = node.get("clazz");
-			if (clazzNode != null) {
-				var className = clazzNode.asText();
-				try {
-					var cls = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
-					if (Set.class.isAssignableFrom(cls)) {
-						var list = mapper.<List<Object>>convertValue(valueNode,
-								mapper.getTypeFactory().constructCollectionType(ArrayList.class, Object.class));
-						return new HashSet<>(list);
-					}
-					return mapper.convertValue(valueNode, mapper.getTypeFactory().constructType((Type) cls));
-				} catch (ClassNotFoundException e) {
-					// fall through
-				}
-			}
+			var className = clazzNode != null ? clazzNode.asText(null) : null;
+			return ValueCodecHelper.decodeTypedValue(className, valueNode, format);
 		}
 		return JsonCodec.MAPPER.convertValue(valueNode, Object.class);
 	}
@@ -107,49 +73,6 @@ final class SessionValueCodec {
 		}
 	}
 
-	private static Object unwrap(Object value) {
-		while (value != null) {
-			if (value instanceof org.mozilla.javascript.ScriptableObject scriptable) {
-				String className;
-				try {
-					className = scriptable.getClassName();
-				} catch (Exception e) {
-					className = null;
-				}
-				if ("String".equals(className)) {
-					try {
-						return org.mozilla.javascript.Context.toString(value);
-					} catch (Exception e) {
-						return value.toString();
-					}
-				}
-				if ("Number".equals(className)) {
-					try {
-						return org.mozilla.javascript.Context.toNumber(value);
-					} catch (Exception e) {
-						return null;
-					}
-				}
-				if ("Boolean".equals(className)) {
-					try {
-						return org.mozilla.javascript.Context.toBoolean(value);
-					} catch (Exception e) {
-						return null;
-					}
-				}
-			}
-			if (value instanceof org.mozilla.javascript.Wrapper wrapper) {
-				value = wrapper.unwrap();
-				continue;
-			}
-			if (value instanceof org.mozilla.javascript.Undefined || value instanceof org.mozilla.javascript.UniqueTag) {
-				return null;
-			}
-			break;
-		}
-		return value;
-	}
-
 	private static final class TypedValue {
 		@SuppressWarnings("unused")
 		public final String clazz;
@@ -158,9 +81,9 @@ final class SessionValueCodec {
 		@SuppressWarnings("unused")
 		public final String format;
 
-		TypedValue(Object value, String format) {
+		TypedValue(String clazz, Object value, String format) {
+			this.clazz = clazz;
 			this.value = value;
-			this.clazz = value != null ? value.getClass().getName() : null;
 			this.format = format;
 		}
 	}
