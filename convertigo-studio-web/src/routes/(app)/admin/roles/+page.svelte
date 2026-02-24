@@ -1,4 +1,5 @@
 <script>
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
@@ -26,6 +27,7 @@
 		waiting,
 		init
 	} = $derived(Roles);
+	const rolesDocHref = getAdminPageDocHref('/admin/roles');
 
 	let modalYesNo = getContext('modalYesNo');
 	let modalImport = $state();
@@ -313,7 +315,7 @@
 	</Card>
 </ModalDynamic>
 
-<Card title="Roles">
+<Card title="Roles" docHref={rolesDocHref}>
 	{#snippet cornerOption()}
 		<ResponsiveButtons
 			class="max-w-4xl"

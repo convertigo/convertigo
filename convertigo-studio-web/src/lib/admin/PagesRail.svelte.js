@@ -1,3 +1,4 @@
+import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 import Status from '$lib/common/Status.svelte';
 import { getUrl } from '$lib/utils/service';
 
@@ -109,7 +110,7 @@ const parts = $derived([
 		{
 			title: 'Documentation',
 			icon: 'mdi:file-question-outline',
-			url: 'https://doc.convertigo.com'
+			url: getAdminPageDocHref('/admin')
 		}
 	]
 ]);

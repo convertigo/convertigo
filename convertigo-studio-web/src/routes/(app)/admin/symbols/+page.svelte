@@ -1,4 +1,5 @@
 <script>
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
@@ -24,6 +25,7 @@
 		waiting,
 		init
 	} = $derived(Symbols);
+	const symbolsDocHref = getAdminPageDocHref('/admin/symbols');
 
 	let modalYesNo = getContext('modalYesNo');
 	let filterState = persistedState('admin.symbols.filter', '', { syncTabs: false });
@@ -169,7 +171,7 @@
 	</Card>
 </ModalDynamic>
 
-<Card title="Global Symbols">
+<Card title="Global Symbols" docHref={symbolsDocHref}>
 	{#snippet cornerOption()}
 		<ResponsiveButtons
 			class="max-w-4xl"

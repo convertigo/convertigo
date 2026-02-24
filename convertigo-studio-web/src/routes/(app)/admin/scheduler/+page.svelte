@@ -1,4 +1,5 @@
 <script>
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
@@ -18,6 +19,7 @@
 
 	let { jobs, schedules, scheduled, configure, remove, init } = $derived(Scheduler);
 	let { projects } = $derived(Project);
+	const schedulerDocHref = getAdminPageDocHref('/admin/scheduler');
 
 	onDestroy(() => {
 		Scheduler.stop();
@@ -342,8 +344,8 @@
 </ModalDynamic>
 
 <div class="layout-y-stretch">
-	{#each cards as { title, range, next, data, size = "6" } (title)}
-		<Card {title}>
+	{#each cards as { title, range, next, data, size = "6" }, i (title)}
+		<Card {title} docHref={i == 0 ? schedulerDocHref : undefined}>
 			{#snippet cornerOption()}
 				<ResponsiveButtons
 					class="max-w-2xl"

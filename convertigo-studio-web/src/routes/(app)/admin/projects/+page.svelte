@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
@@ -32,6 +33,7 @@
 		waiting,
 		init
 	} = $derived(Projects);
+	const projectsDocHref = getAdminPageDocHref('/admin/projects');
 	let exportChoices = $state({});
 
 	onDestroy(Projects.stop);
@@ -259,7 +261,7 @@
 	{/snippet}
 </ModalDynamic>
 
-<Card title="Projects">
+<Card title="Projects" docHref={projectsDocHref}>
 	{#snippet cornerOption()}
 		<ResponsiveButtons
 			buttons={[

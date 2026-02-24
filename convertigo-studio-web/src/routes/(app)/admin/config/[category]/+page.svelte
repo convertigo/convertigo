@@ -1,6 +1,7 @@
 <script>
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { getAdminConfigDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
@@ -23,6 +24,7 @@
 		)
 	);
 	let category = $derived(categories[selectedIndex] ?? {});
+	let categoryDocHref = $derived(getAdminConfigDocHref(category?.name));
 
 	RightPart.snippet = rightPart;
 	onDestroy(() => {
@@ -109,7 +111,7 @@
 
 {#key selectedIndex}
 	<div class="layout-y-stretch" in:fade>
-		<Card title={category.displayName}>
+		<Card title={category.displayName} docHref={categoryDocHref}>
 			{#snippet cornerOption()}
 				<SaveCancelButtons
 					onSave={saveChanges}

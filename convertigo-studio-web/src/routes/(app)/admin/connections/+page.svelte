@@ -1,6 +1,7 @@
 <script>
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -25,6 +26,7 @@
 		stop,
 		init
 	} = $derived(Connections);
+	const connectionsDocHref = getAdminPageDocHref('/admin/connections');
 
 	let data = $derived([
 		{
@@ -134,7 +136,7 @@
 </script>
 
 <div class="layout-y-stretch">
-	<Card title="Connections">
+	<Card title="Connections" docHref={connectionsDocHref}>
 		{#snippet cornerOption()}
 			<ResponsiveButtons
 				buttons={[

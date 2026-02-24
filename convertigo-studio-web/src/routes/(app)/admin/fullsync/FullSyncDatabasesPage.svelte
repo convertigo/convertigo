@@ -1,6 +1,7 @@
 <script>
 	import { building } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
@@ -17,6 +18,7 @@
 	import { FULLSYNC_DB_LIST_PAGE_OPTIONS, fullSyncOptionLabel } from './fullsync-ui';
 
 	const modalYesNo = getFullSyncConfirmModal();
+	const fullSyncDocHref = getAdminPageDocHref('/admin/fullsync');
 
 	let loadingDatabases = $state(true);
 	let working = $state(false);
@@ -184,7 +186,7 @@
 </script>
 
 <div class="layout-y-stretch">
-	<Card title="Databases" cornerOptionClass="w-full md:w-auto">
+	<Card title="Databases" cornerOptionClass="w-full md:w-auto" docHref={fullSyncDocHref}>
 		{#snippet cornerOption()}
 			<ActionBar full={false} wrap={false} class="db-card-actions">
 				<Button

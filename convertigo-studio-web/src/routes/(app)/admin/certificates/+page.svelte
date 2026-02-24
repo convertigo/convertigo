@@ -1,4 +1,5 @@
 <script>
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import Certificates from '$lib/admin/Certificates.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -28,6 +29,7 @@
 		init
 	} = $derived(Certificates);
 	let { projects } = $derived(Projects);
+	const certificatesDocHref = getAdminPageDocHref('/admin/certificates');
 
 	onDestroy(() => {
 		Projects.stop();
@@ -244,7 +246,7 @@
 {/snippet}
 
 <div class="layout-y-stretch">
-	<Card title="Certificates">
+	<Card title="Certificates" docHref={certificatesDocHref}>
 		{#snippet cornerOption()}
 			<ResponsiveButtons
 				class="max-w-lg"

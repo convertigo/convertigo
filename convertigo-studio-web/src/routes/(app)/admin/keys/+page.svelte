@@ -1,4 +1,5 @@
 <script>
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -20,6 +21,7 @@
 		loading,
 		calling
 	} = $derived(Keys);
+	const keysDocHref = getAdminPageDocHref('/admin/keys');
 
 	const keyCellClass = ({ expired }, { name }) => {
 		const tone = expired == 'true' ? 'text-error-900-100 font-semibold ' : '';
@@ -30,7 +32,7 @@
 	};
 </script>
 
-<Card title="Keys">
+<Card title="Keys" docHref={keysDocHref}>
 	{#snippet cornerOption()}
 		<form
 			onsubmit={async (/** @type {any} */ e) => {

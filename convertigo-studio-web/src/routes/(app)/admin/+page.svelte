@@ -1,5 +1,6 @@
 <script>
 	import { SegmentedControl } from '@skeletonlabs/skeleton-svelte';
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import ApexChartLineAdmin from '$lib/admin/components/ApexChartLineAdmin.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -53,6 +54,7 @@
 	onDestroy(Status.stop);
 
 	const varsMode = persistedState('admin.status.variablesMode', 'env', { syncTabs: false });
+	const homeDocHref = getAdminPageDocHref('/admin');
 	const varsTabs = [
 		{ value: 'props', label: 'Java Props', icon: 'mdi:language-java' },
 		{ value: 'env', label: 'Env Vars', icon: 'mdi:code-block-braces' }
@@ -305,8 +307,8 @@
 	<div
 		class="grid w-full grid-cols-1 gap sm:grid-cols-2 md:max-w-[400px] md:min-w-[350px] md:auto-rows-min md:grid-cols-1"
 	>
-		{#each tables as { title, buttons, data } (title)}
-			<Card {title} class="statusTable">
+		{#each tables as { title, buttons, data }, i (title)}
+			<Card {title} class="statusTable" docHref={i == 0 ? homeDocHref : undefined}>
 				{#snippet cornerOption()}
 					<ActionBar full={false} wrap={false} class="ml-auto" disabled={!init}>
 						{#each buttons as button (button.label)}

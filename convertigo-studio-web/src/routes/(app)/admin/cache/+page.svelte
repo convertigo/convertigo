@@ -1,4 +1,5 @@
 <script>
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import Cache from '$lib/admin/Cache.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -8,13 +9,14 @@
 
 	let { clear, cancel, configure, conf, confDefault, confOriginal, loading, hasChanged } =
 		$derived(Cache);
+	const cacheDocHref = getAdminPageDocHref('/admin/cache');
 
 	onDestroy(Cache.stop);
 </script>
 
 <form onsubmit={configure}>
 	<fieldset disabled={loading} class="layout-y-stretch">
-		<Card title="Cache Type">
+		<Card title="Cache Type" docHref={cacheDocHref}>
 			{#snippet cornerOption()}
 				<ResponsiveButtons
 					buttons={[

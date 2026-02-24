@@ -11,6 +11,7 @@
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import LogViewer from '$lib/admin/components/LogViewer.svelte';
@@ -34,6 +35,7 @@
 	import Last from '../Last.svelte';
 
 	let logViewer = $state();
+	const logsDocHref = getAdminPageDocHref('/admin/logs');
 	let currentInstance = $state('');
 	onMount(() => {
 		currentInstance = Instances.current;
@@ -328,7 +330,11 @@
 </script>
 
 <MaxRectangle delay={200} enabled={tabs[tabSet].viewer ?? false}>
-	<Card title="Logs {timezone}" class="h-full gap-low! overflow-hidden pt-low!">
+	<Card
+		title="Logs {timezone}"
+		class="h-full gap-low! overflow-hidden pt-low!"
+		docHref={logsDocHref}
+	>
 		{#snippet cornerOption()}
 			<div class="layout-x-wrap w-full items-center gap">
 				<PropertyType
