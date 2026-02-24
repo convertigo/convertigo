@@ -3,7 +3,7 @@
 </script>
 
 <script>
-	import { SegmentedControl, Switch } from '@skeletonlabs/skeleton-svelte';
+	import { Portal, SegmentedControl, Switch, Tooltip } from '@skeletonlabs/skeleton-svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { checkArray } from '$lib/utils/service';
 	import Button from './Button.svelte';
@@ -25,10 +25,15 @@
 		fit = false,
 		buttons = [],
 		actionsHorizontal = false,
+		title,
+		tooltip,
+		tooltipPlacement = 'top',
 		...rest
 	} = $props();
 	let label = $derived(description ?? _label);
 	let labelLines = $derived.by(() => (label ? String(label).split('\n') : []));
+	let tooltipText = $derived((tooltip ?? title ?? '').trim());
+	let hasTooltip = $derived(tooltipText.length > 0);
 	let isMultiSelect = $derived.by(() => Boolean(rest.multiple) || Number(rest.size) > 1);
 	let rawType = $derived((_type ?? 'text').toLocaleLowerCase());
 	let isPasswordType = $derived(rawType.startsWith('password'));
@@ -53,6 +58,8 @@
 	});
 	let isVerticalSegment = $derived(rest?.orientation == 'vertical');
 	let id = `property-input-${cpt++}`;
+	/** @param {any} value */
+	const asAny = (value) => value;
 
 	function handleMultiple(e) {
 		e.preventDefault();
@@ -74,25 +81,58 @@
 <div class="layout-y-low sm:layout-x-low" class:w-fit={fit} class:w-full={!fit}>
 	<div class="max-sm:self-stretch sm:grow">
 		{#if type == 'boolean'}
-			<CheckState {name} {...rest} bind:value>{label}</CheckState>
-		{:else if type == 'check'}
-			<Switch
-				{...rest}
-				{name}
-				{value}
-				{checked}
-				onCheckedChange={(e) => {
-					checked = e.checked;
-					rest.onCheckedChange?.(e);
-				}}
-				class="inline-flex min-w-10 items-center gap-low"
+			<CheckState {name} {...rest} bind:value tooltip={tooltipText} {tooltipPlacement}
+				>{label}</CheckState
 			>
-				<Switch.Control class="c8o-switch transition-surface {rest?.class ?? ''}">
-					<Switch.Thumb />
-				</Switch.Control>
-				<Switch.Label class="text-sm leading-tight font-medium text-current">{label}</Switch.Label>
-				<Switch.HiddenInput />
-			</Switch>
+		{:else if type == 'check'}
+			{#snippet switchControl()}
+				<Switch
+					{...rest}
+					{name}
+					{value}
+					{checked}
+					onCheckedChange={(e) => {
+						checked = e.checked;
+						rest.onCheckedChange?.(e);
+					}}
+					class="inline-flex min-w-10 items-center gap-low"
+				>
+					<Switch.Control class="c8o-switch transition-surface {rest?.class ?? ''}">
+						<Switch.Thumb />
+					</Switch.Control>
+					<Switch.Label class="text-sm leading-tight font-medium text-current">{label}</Switch.Label
+					>
+					<Switch.HiddenInput />
+				</Switch>
+			{/snippet}
+			{#if hasTooltip}
+				<Tooltip positioning={{ placement: tooltipPlacement }}>
+					<Tooltip.Trigger>
+						{#snippet element(attributes)}
+							{@const triggerAttributes = asAny(attributes)}
+							<span {...triggerAttributes} class="inline-flex">
+								{@render switchControl()}
+							</span>
+						{/snippet}
+					</Tooltip.Trigger>
+					<Portal>
+						<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+							<Tooltip.Content
+								class="card preset-filled-surface-950-50 p-2 text-xs leading-none break-all whitespace-pre-line"
+							>
+								<span>{tooltipText}</span>
+								<Tooltip.Arrow
+									class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+								>
+									<Tooltip.ArrowTip />
+								</Tooltip.Arrow>
+							</Tooltip.Content>
+						</Tooltip.Positioner>
+					</Portal>
+				</Tooltip>
+			{:else}
+				{@render switchControl()}
+			{/if}
 		{:else}
 			{@const autocomplete = 'one-time-code'}
 			<div class="layout-y-stretch-none gap-1">
@@ -106,95 +146,125 @@
 						</label>
 					</AutoPlaceholder>
 				{/if}
-				{#if type == 'segment'}
-					<SegmentedControl
-						{...rest}
-						name={name ?? []}
-						{value}
-						onValueChange={(event) => {
-							value = event.value ?? '';
-							rest.onValueChange?.(event);
-						}}
-						class={fit ? 'w-fit' : 'w-full'}
-					>
-						<SegmentedControl.Control
-							class={[
-								'relative',
-								'input-common',
-								isVerticalSegment ? 'h-auto' : 'h-9',
-								'gap-0.5',
-								'p-[1px]',
-								'shadow-none',
-								'overflow-hidden',
-								isVerticalSegment ? 'flex-col' : 'flex-row'
-							]}
+				{#snippet fieldControl()}
+					{#if type == 'segment'}
+						<SegmentedControl
+							{...rest}
+							name={name ?? []}
+							{value}
+							onValueChange={(event) => {
+								value = event.value ?? '';
+								rest.onValueChange?.(event);
+							}}
+							class={fit ? 'w-fit' : 'w-full'}
 						>
-							<SegmentedControl.Indicator class="rounded-base bg-primary-500 shadow-none" />
+							<SegmentedControl.Control
+								class={[
+									'relative',
+									'input-common',
+									isVerticalSegment ? 'h-auto' : 'h-9',
+									'gap-0.5',
+									'p-[1px]',
+									'shadow-none',
+									'overflow-hidden',
+									isVerticalSegment ? 'flex-col' : 'flex-row'
+								]}
+							>
+								<SegmentedControl.Indicator class="rounded-base bg-primary-500 shadow-none" />
+								{#each item as option (option.value ?? option)}
+									{@const val = option.value ?? option}
+									{@const txt = option.text ?? option['#text'] ?? val}
+									<SegmentedControl.Item
+										value={val}
+										class={['relative', isVerticalSegment ? 'w-full flex-none' : 'flex-1']}
+									>
+										<SegmentedControl.ItemText
+											class={[
+												value == val ? 'text-white' : 'text-surface-700-300',
+												'flex items-center px-3 py-1 text-[14px] leading-none font-medium',
+												!isVerticalSegment && 'h-full'
+											]}
+										>
+											{txt}
+										</SegmentedControl.ItemText>
+										<SegmentedControl.ItemHiddenInput />
+									</SegmentedControl.Item>
+								{/each}
+							</SegmentedControl.Control>
+						</SegmentedControl>
+					{:else if type == 'combo'}
+						<select
+							{...rest}
+							{name}
+							class={`select input-common overflow-auto px-3 text-sm ${
+								isMultiSelect ? 'h-auto min-h-24 py-2' : 'h-9'
+							} ${rest?.class ?? ''}`}
+							{id}
+							bind:value
+						>
 							{#each item as option (option.value ?? option)}
 								{@const val = option.value ?? option}
 								{@const txt = option.text ?? option['#text'] ?? val}
-								<SegmentedControl.Item
-									value={val}
-									class={['relative', isVerticalSegment ? 'w-full flex-none' : 'flex-1']}
-								>
-									<SegmentedControl.ItemText
-										class={[
-											value == val ? 'text-white' : 'text-surface-700-300',
-											'flex items-center px-3 py-1 text-[14px] leading-none font-medium',
-											!isVerticalSegment && 'h-full'
-										]}
-									>
-										{txt}
-									</SegmentedControl.ItemText>
-									<SegmentedControl.ItemHiddenInput />
-								</SegmentedControl.Item>
+								{#if rest.multiple ?? true}
+									<option class="ig-select" value={val} onmousedown={handleMultiple}>{txt}</option>
+								{:else}
+									<option class="ig-select" value={val}>{txt}</option>
+								{/if}
 							{/each}
-						</SegmentedControl.Control>
-					</SegmentedControl>
-				{:else if type == 'combo'}
-					<select
-						{...rest}
-						{name}
-						class={`select input-common overflow-auto px-3 text-sm ${
-							isMultiSelect ? 'h-auto min-h-24 py-2' : 'h-9'
-						} ${rest?.class ?? ''}`}
-						{id}
-						bind:value
-					>
-						{#each item as option (option.value ?? option)}
-							{@const val = option.value ?? option}
-							{@const txt = option.text ?? option['#text'] ?? val}
-							{#if rest.multiple ?? true}
-								<option class="ig-select" value={val} onmousedown={handleMultiple}>{txt}</option>
-							{:else}
-								<option class="ig-select" value={val}>{txt}</option>
-							{/if}
-						{/each}
-					</select>
-				{:else if type == 'array' || type == 'textarea'}
-					<textarea
-						{id}
-						{name}
-						{autocomplete}
-						{placeholder}
-						{...rest}
-						class="min-h-24 input-common px-3 py-2 text-sm {rest?.class ?? ''}"
-						bind:value
-					></textarea>
+						</select>
+					{:else if type == 'array' || type == 'textarea'}
+						<textarea
+							{id}
+							{name}
+							{autocomplete}
+							{placeholder}
+							{...rest}
+							class="min-h-24 input-common px-3 py-2 text-sm {rest?.class ?? ''}"
+							bind:value
+						></textarea>
+					{:else}
+						<input
+							{...rest}
+							{id}
+							{name}
+							{autocomplete}
+							{placeholder}
+							{type}
+							disabled={loading}
+							class:animate-pulse={loading}
+							class="h-9 input-common px-3 text-sm placeholder:text-surface-600-400 {rest?.class ??
+								''}"
+							bind:value
+						/>
+					{/if}
+				{/snippet}
+				{#if hasTooltip}
+					<Tooltip positioning={{ placement: tooltipPlacement }}>
+						<Tooltip.Trigger>
+							{#snippet element(attributes)}
+								{@const triggerAttributes = asAny(attributes)}
+								<span {...triggerAttributes} class="inline-flex w-full">
+									{@render fieldControl()}
+								</span>
+							{/snippet}
+						</Tooltip.Trigger>
+						<Portal>
+							<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+								<Tooltip.Content
+									class="card preset-filled-surface-950-50 p-2 text-xs leading-none break-all whitespace-pre-line"
+								>
+									<span>{tooltipText}</span>
+									<Tooltip.Arrow
+										class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+									>
+										<Tooltip.ArrowTip />
+									</Tooltip.Arrow>
+								</Tooltip.Content>
+							</Tooltip.Positioner>
+						</Portal>
+					</Tooltip>
 				{:else}
-					<input
-						{...rest}
-						{id}
-						{name}
-						{autocomplete}
-						{placeholder}
-						{type}
-						disabled={loading}
-						class:animate-pulse={loading}
-						class="h-9 input-common px-3 text-sm placeholder:text-surface-600-400 {rest?.class ??
-							''}"
-						bind:value
-					/>
+					{@render fieldControl()}
 				{/if}
 			</div>
 		{/if}

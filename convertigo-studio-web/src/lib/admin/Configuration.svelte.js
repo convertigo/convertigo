@@ -1,6 +1,19 @@
 import ServiceHelper from '$lib/common/ServiceHelper.svelte';
 import { call, checkArray } from '$lib/utils/service';
 
+const SYMBOL_TOKEN = /\$\{[^}]+\}/;
+
+function normalizeProperty(property) {
+	if (!SYMBOL_TOKEN.test(property?.originalValue) || !property?.value) {
+		return { ...property };
+	}
+	return {
+		...property,
+		value: property?.originalValue,
+		title: `Resolved value\n${property?.value}`
+	};
+}
+
 /** @type {any} */
 let defValues = {
 	categories: new Array(15).fill({
@@ -30,7 +43,7 @@ export default ServiceHelper({
 		...data,
 		categories: checkArray(data.categories).map((category) => ({
 			...category,
-			property: checkArray(category.property)
+			property: checkArray(category.property).map(normalizeProperty)
 		}))
 	})
 });

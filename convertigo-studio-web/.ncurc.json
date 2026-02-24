@@ -1,4 +1,5 @@
 {
 	"upgrade": true,
+	"peer": true,
 	"reject": ["eslint", "@eslint/js"]
 }
