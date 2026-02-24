@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.views.marketplace;
 
 import java.io.IOException;
+import java.net.URI;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
@@ -30,6 +31,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -37,7 +39,6 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.dom.Element;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.actions.OpenTutorialView;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
@@ -128,14 +129,23 @@ public class MarketplaceView extends ViewPart {
 					elt = (Element) elt.parent().get();
 				}
 				String href = elt.attributes().get("href");
-				if (href.equals("#opentutorialview")) {
-					ConvertigoPlugin.asyncExec(() -> {
-						new OpenTutorialView().run(null);
-					});
-					ev.preventDefault();
+				String id = elt.attributes().get("id");
+				if ((href != null && href.startsWith("#")) || (id != null && id.startsWith("weglot"))) {
 					return true;
-				} else if (href.startsWith("#") || elt.attributes().get("id").startsWith("weglot")) {
-					return true;
+				}
+				if (StringUtils.isNotBlank(href)) {
+					var marketplaceHost = new URI(startup_url).getHost();
+					var baseUri = StringUtils.defaultIfBlank(elt.document().baseUri(), startup_url);
+					var target = new URI(baseUri).resolve(href.trim());
+					var scheme = target.getScheme();
+					var targetHost = target.getHost();
+					boolean nonHttpScheme = scheme != null && !"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme);
+					boolean externalHost = targetHost != null && marketplaceHost != null && !targetHost.equalsIgnoreCase(marketplaceHost);
+					if (nonHttpScheme || externalHost) {
+						Program.launch(target.toString());
+						ev.preventDefault();
+						return true;
+					}
 				}
 			} catch (Exception e) {
 			}
