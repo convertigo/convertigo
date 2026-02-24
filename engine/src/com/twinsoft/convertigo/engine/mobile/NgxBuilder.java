@@ -417,6 +417,7 @@ public class NgxBuilder extends MobileBuilder {
 
 			// Clean directories
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
+			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/src"));
 
 			existingFiles.set(FileUtils.indexExistingFiles(new File(projectDir,"_private/ionic/src")));
 
