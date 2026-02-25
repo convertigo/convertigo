@@ -1,13 +1,11 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { untrack } from 'svelte';
 	import { flip } from 'svelte/animate';
 	import { fly } from 'svelte/transition';
+	import Button from './Button.svelte';
 	import PropertyType from './PropertyType.svelte';
 	import TableAutoCard from './TableAutoCard.svelte';
 
 	let { requestable = $bindable(), trClass = undefined } = $props();
-	let multiples = $state({});
 	let testcase = $derived(
 		requestable.tc
 			? requestable.tc.variable.reduce((acc, val) => {
@@ -16,17 +14,19 @@
 				}, {})
 			: {}
 	);
+	let hasComments = $derived.by(() =>
+		requestable.variable?.some(({ comment }) => String(comment ?? '').trim().length > 0)
+	);
 
 	function parse(row, key = 'value') {
 		try {
-			multiples[row.name] = JSON.parse(row[key]).map((val) => ({ val }));
+			row.multipleValues = JSON.parse(row[key]).map((val) => ({ val }));
 		} catch {
-			multiples[row.name] = [];
+			row.multipleValues = [];
 		}
 	}
 
 	$effect(() => {
-		multiples = {};
 		for (const variable of requestable.variable) {
 			if (variable.name in testcase) {
 				variable.val = testcase[variable.name];
@@ -35,7 +35,11 @@
 				variable.val = variable.value;
 			}
 			if (variable.isMultivalued == 'true') {
-				untrack(() => parse(variable, 'val'));
+				try {
+					variable.multipleValues = JSON.parse(variable.val).map((val) => ({ val }));
+				} catch {
+					variable.multipleValues = [];
+				}
 			}
 		}
 	});
@@ -47,6 +51,7 @@
 		bind:value={() => obj.val ?? '', (v) => (obj.val = v)}
 		{defaultValue}
 		name={row.name}
+		actionsHorizontal={true}
 		onfocus={() => (row.send = 'true')}
 	/>
 {/snippet}
@@ -55,9 +60,9 @@
 	showHeaders={false}
 	definition={[
 		{ name: 'Variable', custom: true, class: 'w-0' },
-		{ name: 'Value', custom: true, class: 'min-w-40' },
+		{ name: 'Value', custom: true, class: hasComments ? 'min-w-40' : 'w-full min-w-40' },
 		{ name: 'Comment', custom: true, class: 'max-w-40' }
-	]}
+	].filter(({ name }) => hasComments || name != 'Comment')}
 	{trClass}
 	data={requestable.variable}
 >
@@ -68,33 +73,45 @@
 				bind:value={row.send}
 				fit={true}
 				label={row.name}
+				tooltip="Send value"
 				class="font-medium"
 			/>
 		{:else if def.name == 'Value'}
 			<div class:opacity-50={row.send == 'false'}>
 				{#if row.isMultivalued == 'true'}
 					<div class="layout-x-low">
-						<button
+						<Button
+							full={false}
 							type="button"
-							class="btn w-fit! bg-surface-200-800 btn-sm"
-							onclick={() => multiples[row.name].push({ val: '' })}><Ico icon="mdi:plus" /></button
-						><button type="button" onclick={() => parse(row)} class="btn bg-surface-200-800 btn-sm">
-							<Ico icon="mdi:backup-restore" />
-						</button>
+							icon="mdi:plus"
+							title="Add value"
+							class="button-ico-primary h-7 w-7 min-w-7 justify-center p-0!"
+							onclick={() => row.multipleValues?.push({ val: '' })}
+						/>
+						<Button
+							full={false}
+							type="button"
+							icon="mdi:backup-restore"
+							title="Restore list"
+							class="button-ico-primary h-7 w-7 min-w-7 justify-center p-0!"
+							onclick={() => parse(row)}
+						/>
 					</div>
-					{#each multiples[row.name] as obj, i (obj)}
+					{#each row.multipleValues ?? [] as obj, i (obj)}
 						<div
 							class="layout-x-low"
 							animate:flip={{ duration: 200 }}
 							transition:fly={{ duration: 200, y: -50 }}
 						>
 							{@render property({ row, obj })}
-							<button
+							<Button
+								full={false}
 								type="button"
-								class="btn w-fit! bg-surface-200-800 btn-sm"
-								onclick={() => multiples[row.name].splice(i, 1)}
-								><Ico icon="mdi:delete-outline" /></button
-							>
+								icon="mdi:delete-outline"
+								title="Delete value"
+								class="button-ico-primary h-7 w-7 min-w-7 justify-center p-0!"
+								onclick={() => row.multipleValues?.splice(i, 1)}
+							/>
 						</div>
 					{/each}
 				{:else}

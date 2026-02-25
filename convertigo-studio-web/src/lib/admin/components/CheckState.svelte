@@ -24,6 +24,27 @@
 	const asAny = (value) => value;
 </script>
 
+{#snippet tooltipPanel()}
+	<Portal>
+		<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+			<Tooltip.Content class="card preset-filled-surface-950-50 p-2 text-xs leading-none">
+				<span>{tooltipText}</span>
+				<Tooltip.Arrow
+					class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+				>
+					<Tooltip.ArrowTip />
+				</Tooltip.Arrow>
+			</Tooltip.Content>
+		</Tooltip.Positioner>
+	</Portal>
+{/snippet}
+
+{#snippet switchControl()}
+	<Switch.Control class="c8o-switch min-w-10 transition-surface">
+		<Switch.Thumb />
+	</Switch.Control>
+{/snippet}
+
 {#snippet switchElement(attributes = {})}
 	<Switch
 		{...attributes}
@@ -40,9 +61,21 @@
 			rest.onCheckedChange?.(e);
 		}}
 	>
-		<Switch.Control class="c8o-switch min-w-10 transition-surface">
-			<Switch.Thumb />
-		</Switch.Control>
+		{#if hasTooltip}
+			<Tooltip positioning={{ placement: tooltipPlacement }}>
+				<Tooltip.Trigger>
+					{#snippet element(attributes)}
+						{@const triggerAttributes = asAny(attributes)}
+						<span {...triggerAttributes} class="inline-flex">
+							{@render switchControl()}
+						</span>
+					{/snippet}
+				</Tooltip.Trigger>
+				{@render tooltipPanel()}
+			</Tooltip>
+		{:else}
+			{@render switchControl()}
+		{/if}
 		<Switch.Label class="text-sm leading-tight font-medium text-current"
 			>{@render children?.()}</Switch.Label
 		>
@@ -53,29 +86,4 @@
 	</Switch>
 {/snippet}
 
-{#if hasTooltip}
-	<Tooltip positioning={{ placement: tooltipPlacement }}>
-		<Tooltip.Trigger>
-			{#snippet element(attributes)}
-				{@const triggerAttributes = asAny(attributes)}
-				<span {...triggerAttributes} class="inline-flex">
-					{@render switchElement()}
-				</span>
-			{/snippet}
-		</Tooltip.Trigger>
-		<Portal>
-			<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
-				<Tooltip.Content class="card preset-filled-surface-950-50 p-2 text-xs leading-none">
-					<span>{tooltipText}</span>
-					<Tooltip.Arrow
-						class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
-					>
-						<Tooltip.ArrowTip />
-					</Tooltip.Arrow>
-				</Tooltip.Content>
-			</Tooltip.Positioner>
-		</Portal>
-	</Tooltip>
-{:else}
-	{@render switchElement()}
-{/if}
+{@render switchElement()}
