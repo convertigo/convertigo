@@ -51,6 +51,7 @@ public class CompressionFilter implements Filter {
 	Pattern pOK = Pattern.compile(
 		"^/fullsync/|^/api/|^/openapi/|^/(?:admin/services|services)/|\\.js$|\\.xml$|\\.pxml$|\\.cxml$|\\.css$|\\.html$|"
 		+ "\\.json$|\\.jsonp$|\\.txt$|\\.csv$|\\.htm$|\\.map$|/$");
+	Pattern pDisplayObjectsSpa = Pattern.compile("^/(?:system/)?projects/[^/]+/DisplayObjects/(?:mobile|pwas/[^/]+)(?:/.*)?$");
 	
 	@Override
 	public void destroy() {
@@ -73,6 +74,9 @@ public class CompressionFilter implements Filter {
 					uri = uri.replaceFirst("^/(?:system/)?projects/[^/]+/\\.fullsync(?:/|$)", "/fullsync/");
 					boolean isKO = pKO.matcher(uri).find();
 					boolean isOK = pOK.matcher(uri).find();
+					if (!isOK && isDisplayObjectsSpaRoute(uri)) {
+						isOK = true;
+					}
 					doGZip = !isKO && isOK;
 				} else {
 					doGZip = false;
@@ -93,6 +97,14 @@ public class CompressionFilter implements Filter {
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
+	}
+
+	private boolean isDisplayObjectsSpaRoute(String uri) {
+		if (!pDisplayObjectsSpa.matcher(uri).matches() || uri.endsWith("/")) {
+			return false;
+		}
+		String lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
+		return !lastSegment.contains(".");
 	}
 
 	class GZipServletResponseWrapper extends HttpServletResponseWrapper {

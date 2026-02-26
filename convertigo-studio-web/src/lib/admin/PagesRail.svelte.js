@@ -1,6 +1,9 @@
 import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
+import Authentication from '$lib/common/Authentication.svelte';
 import Status from '$lib/common/Status.svelte';
 import { getUrl } from '$lib/utils/service';
+
+const cloud = $derived(Authentication.canAccessAdmin ? Status.cloud : null);
 
 const parts = $derived([
 	[
@@ -65,14 +68,14 @@ const parts = $derived([
 			title: 'Keys',
 			icon: 'mdi:key-outline',
 			page: '/(app)/admin/keys',
-			loading: Status.cloud == null
+			loading: Authentication.canAccessAdmin && cloud == null
 		},
 		{
 			title: 'Assistant',
 			icon: 'mdi:robot-outline',
 			page: '/(app)/admin/assistant'
 		}
-	].filter(({ title }) => title != 'Keys' || Status.cloud != true),
+	].filter(({ title }) => title != 'Keys' || cloud != true),
 	[
 		{
 			title: 'Dashboard',

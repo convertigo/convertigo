@@ -7,6 +7,10 @@ let result = $state({});
 const parseRole = (role) =>
 	typeof role == 'string' ? role : (role?.name ?? role?.['@_name'] ?? role?.['#text'] ?? '');
 
+function setResult(next) {
+	result = next ?? {};
+}
+
 export default {
 	get authenticated() {
 		return result.authenticated ?? false;
@@ -30,9 +34,11 @@ export default {
 		return result.error;
 	},
 	checkAuthentication: async () => {
-		result = (await call('engine.CheckAuthentication')).admin ?? {
-			error: 'Error checking authentication'
-		};
+		setResult(
+			(await call('engine.CheckAuthentication')).admin ?? {
+				error: 'Error checking authentication'
+			}
+		);
 		if (result.ts) {
 			Time.serverTimestamp = 1 * result.ts;
 		}
@@ -42,14 +48,18 @@ export default {
 	},
 	authenticate: async (event) => {
 		event.preventDefault?.();
-		result = (await call('engine.Authenticate', event.target ? new FormData(event.target) : event))
-			.admin ?? {
-			error: 'Error authenticating'
-		};
+		setResult(
+			(await call('engine.Authenticate', event.target ? new FormData(event.target) : event))
+				.admin ?? {
+				error: 'Error authenticating'
+			}
+		);
 	},
 	logout: async () => {
-		result = (await call('engine.Authenticate', { authType: 'logout' })).admin ?? {
-			error: 'Error logging out'
-		};
+		setResult(
+			(await call('engine.Authenticate', { authType: 'logout' })).admin ?? {
+				error: 'Error logging out'
+			}
+		);
 	}
 };

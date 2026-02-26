@@ -175,12 +175,18 @@
 		colors: [...resolvedColors]
 	});
 
-	const options = $derived.by(() => {
-		const nextOptions = buildOptions();
-		if (chart && normalizedSeries.length > 0 && normalizedCategories.length > 0) {
-			chart.updateOptions(nextOptions, true, true);
+	const options = $derived.by(() => buildOptions());
+
+	$effect(() => {
+		const nextOptions = options;
+		if (!chart || !chartEl?.isConnected) {
+			return;
 		}
-		return nextOptions;
+		try {
+			chart.updateOptions(nextOptions, true, true);
+		} catch (error) {
+			void error;
+		}
 	});
 
 	const attachChart = (node) => {
@@ -195,6 +201,7 @@
 	};
 
 	onMount(() => {
+		let disposed = false;
 		let styles = window.getComputedStyle(chartEl);
 		const palette = [
 			styles.getPropertyValue('--color-primary-500').trim(),
@@ -225,11 +232,23 @@
 		};
 
 		import('apexcharts').then(({ default: ApexCharts }) => {
+			if (disposed || !chartEl?.isConnected) {
+				return;
+			}
 			chart = new ApexCharts(chartEl, options);
-			chart.render();
+			try {
+				chart.render();
+			} catch (error) {
+				void error;
+			}
 		});
 		return () => {
-			chart?.destroy();
+			disposed = true;
+			try {
+				chart?.destroy();
+			} catch (error) {
+				void error;
+			}
 			chart = undefined;
 		};
 	});

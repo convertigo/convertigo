@@ -84,6 +84,7 @@ export default function (projectName) {
 								version: null,
 								error: null
 							},
+							needAuth: false,
 							service: 'mobiles.GetBuildStatus',
 							params: { project: projectName, platform: mobileplatform.name },
 							mapping: { '': 'admin.build' },

@@ -1,9 +1,10 @@
 import { browser } from '$app/environment';
+import Authentication from '$lib/common/Authentication.svelte';
 import { call, checkArray, getNestedProperty, setNestedProperty } from '$lib/utils/service';
 import { untrack } from 'svelte';
 
 /**
- * @param {{values?: any, defValues?: any, service?: any, params?: any, delay?: number, arrays?: any[], mapping?: any, beforeUpdate?: (data: any) => any}} param0
+ * @param {{values?: any, defValues?: any, service?: any, params?: any, delay?: number, arrays?: any[], mapping?: any, beforeUpdate?: (data: any) => any, needAuth?: boolean | (() => boolean)}} param0
  */
 export default function ({
 	values = {},
@@ -13,13 +14,34 @@ export default function ({
 	delay = -1,
 	arrays = [],
 	mapping = {},
-	beforeUpdate = (data) => data
+	beforeUpdate = (data) => data,
+	needAuth = true
 }) {
 	let interval;
+	let stopAuthEffect;
 	let _delay = $state(-1);
 	let _values = $state({ ...defValues });
 	let _needRefresh = $state(Boolean(service));
 	let _calling = $state(false);
+	const hasRequiredAuth = () => {
+		if (typeof needAuth == 'function') {
+			return needAuth();
+		}
+		return !needAuth || Authentication.authenticated;
+	};
+
+	const ensureAuthEffect = () => {
+		if (!needAuth || !browser || stopAuthEffect) {
+			return;
+		}
+		stopAuthEffect = $effect.root(() => {
+			$effect(() => {
+				if (hasRequiredAuth() && _needRefresh && !_calling) {
+					untrack(values.refresh);
+				}
+			});
+		});
+	};
 
 	values.reset = () => {
 		Object.assign(_values, { ...defValues });
@@ -36,6 +58,10 @@ export default function ({
 	});
 	values.refresh = async () => {
 		if (!browser || _calling || !service) {
+			return;
+		}
+		ensureAuthEffect();
+		if (!hasRequiredAuth()) {
 			return;
 		}
 		_calling = true;
@@ -122,6 +148,8 @@ export default function ({
 		if (service) {
 			_needRefresh = true;
 		}
+		stopAuthEffect?.();
+		stopAuthEffect = undefined;
 	};
 	return values;
 }

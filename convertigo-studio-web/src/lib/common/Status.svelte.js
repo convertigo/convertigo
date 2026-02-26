@@ -27,4 +27,7 @@ if (browser) {
 	defValues.cloud = location.hostname.endsWith('convertigo.net');
 }
 
-export default ServiceHelper({ service: 'engine.JsonStatus', defValues });
+export default ServiceHelper({
+	service: 'engine.JsonStatus',
+	defValues
+});
