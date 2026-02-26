@@ -417,7 +417,7 @@ public class NgxBuilder extends MobileBuilder {
 
 			// Clean directories
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
-
+			
 			existingFiles.set(FileUtils.indexExistingFiles(new File(projectDir,"_private/ionic/src")));
 
 			// Copy template directory to working directory
@@ -580,7 +580,7 @@ public class NgxBuilder extends MobileBuilder {
 								Engine.logEngine.debug("["+project.getName()+"] MB copying " + src + " to " + dest);
 								FileUtils.copyFileIfNeeded(src, dest, existingFiles.get());
 							}
-						}					
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -590,6 +590,7 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	static private boolean shouldUpdate(File srcFile, File destFile) {
+		var ret = false;
 		if (srcFile.isDirectory()) {
 			for (final File src : srcFile.listFiles()) {
 				if (src.isFile()) {
@@ -606,6 +607,9 @@ public class NgxBuilder extends MobileBuilder {
 					}
 				}
 			}
+			if (destFile.isDirectory()) {
+				ret = srcFile.list().length != destFile.list().length;
+			}
 		} else if (srcFile.isFile()) {
 			try {
 				if (!FileUtils.checkSameFiles(srcFile, destFile, true)) {
@@ -615,7 +619,6 @@ public class NgxBuilder extends MobileBuilder {
 				return true;
 			}
 		}
-		var ret = dirSrc.list().length != dirDest.list().length;
 		return ret;
 	}
 
