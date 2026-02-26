@@ -46,11 +46,11 @@ public class CompressionFilter implements Filter {
 
 	Pattern pKO = Pattern.compile(
 		"^/qrcode|^/webclipper|^/rproxy/|\\.proxy$|\\.siteclipper/|^/fullsync/.+?/.+?/.+?|"
-		+ "^/admin/services/(?:.*GetIcon|logs.Download|mobiles.GetPackage|"
+		+ "^/(?:admin/services|services)/(?:.*GetIcon|logs.Download|mobiles.GetPackage|"
 		+ "mobiles.GetSourcePackage|projects.Export|store.DownloadStoreFolder)");
 	Pattern pOK = Pattern.compile(
-		"^/fullsync/|^/api/|^/openapi/|^/admin/services/|\\.js$|\\.xml$|\\.pxml$|\\.cxml$|\\.css$|\\.html$|"
-		+ "\\.json$|\\.jsonp$|\\.txt$|\\.csv$|\\.htm$|\\.map$");
+		"^/fullsync/|^/api/|^/openapi/|^/(?:admin/services|services)/|\\.js$|\\.xml$|\\.pxml$|\\.cxml$|\\.css$|\\.html$|"
+		+ "\\.json$|\\.jsonp$|\\.txt$|\\.csv$|\\.htm$|\\.map$|/$");
 	
 	@Override
 	public void destroy() {
@@ -69,6 +69,8 @@ public class CompressionFilter implements Filter {
 				if (acceptEncoding != null && acceptEncoding.contains("gzip")) {
 					String uri = request.getRequestURI();
 					uri = uri.substring(request.getContextPath().length());
+					uri = uri.replaceFirst("^/(?:system/)?projects/[^/]+/\\.services(?:/|$)", "/services/");
+					uri = uri.replaceFirst("^/(?:system/)?projects/[^/]+/\\.fullsync(?:/|$)", "/fullsync/");
 					boolean isKO = pKO.matcher(uri).find();
 					boolean isOK = pOK.matcher(uri).find();
 					doGZip = !isKO && isOK;

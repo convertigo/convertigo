@@ -47,7 +47,7 @@
 					icon="mdi:file-question-outline"
 					title={docLabel}
 					ariaLabel={docLabel}
-					class="button-ico-primary h-8 w-8 min-w-8 justify-center p-0!"
+					class="button-ico-primary h-auto! min-h-0! w-8 min-w-8 justify-center p-0!"
 				/>
 			{/if}
 			{#if cornerOption}
