@@ -365,7 +365,6 @@ public class NgxBuilder extends MobileBuilder {
 
 			// Clean directories
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
-			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/src"));
 
 			existingFiles.set(FileUtils.indexExistingFiles(new File(projectDir,"_private/ionic/src")));
 
@@ -500,7 +499,8 @@ public class NgxBuilder extends MobileBuilder {
 				}
 			}
 		}
-		return false;
+		var ret = dirSrc.list().length != dirDest.list().length;
+		return ret;
 	}
 
 	@Override
