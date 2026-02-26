@@ -43,6 +43,8 @@
 	}));
 
 	let isLoading = $derived(!normalizedSeries?.[0]?.data?.length);
+	let isBooting = $state(true);
+	const showPlaceholder = $derived(isBooting || isLoading);
 
 	const baseOptions = $derived.by(() => ({
 		theme: {
@@ -202,6 +204,8 @@
 
 	onMount(() => {
 		let disposed = false;
+		let idleId;
+		let timeoutId;
 		let styles = window.getComputedStyle(chartEl);
 		const palette = [
 			styles.getPropertyValue('--color-primary-500').trim(),
@@ -231,19 +235,44 @@
 			}
 		};
 
-		import('apexcharts').then(({ default: ApexCharts }) => {
-			if (disposed || !chartEl?.isConnected) {
-				return;
-			}
-			chart = new ApexCharts(chartEl, options);
+		const start = async () => {
 			try {
-				chart.render();
+				const { default: ApexCharts } = await import('apexcharts');
+				if (disposed || !chartEl?.isConnected) {
+					return;
+				}
+				chart = new ApexCharts(chartEl, options);
+				await chart.render();
 			} catch (error) {
 				void error;
+			} finally {
+				if (!disposed) {
+					isBooting = false;
+				}
 			}
-		});
+		};
+
+		if (window.requestIdleCallback) {
+			idleId = window.requestIdleCallback(
+				() => {
+					void start();
+				},
+				{ timeout: 1500 }
+			);
+		} else {
+			timeoutId = window.setTimeout(() => {
+				void start();
+			}, 250);
+		}
+
 		return () => {
 			disposed = true;
+			if (idleId != null && window.cancelIdleCallback) {
+				window.cancelIdleCallback(idleId);
+			}
+			if (timeoutId != null) {
+				window.clearTimeout(timeoutId);
+			}
 			try {
 				chart?.destroy();
 			} catch (error) {
@@ -257,8 +286,8 @@
 <div
 	{@attach attachChart}
 	data-options={options ? 'ready' : ''}
-	class:placeholder={isLoading}
-	class:animate-pulse={isLoading}
+	class:placeholder={showPlaceholder}
+	class:animate-pulse={showPlaceholder}
 	class="h-[315px]"
 ></div>
 
