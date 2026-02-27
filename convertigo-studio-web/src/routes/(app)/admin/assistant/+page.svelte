@@ -1,7 +1,13 @@
 <script>
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
+	import Light from '$lib/common/Light.svelte';
 
-	const assistantUrl = 'https://assistant.convertigo.com/';
+	const assistantBaseUrl = 'https://assistant.convertigo.com/';
+	const assistantUrl = $derived.by(() => {
+		const url = new URL(assistantBaseUrl);
+		url.searchParams.set('dark-theme', String(Light.dark));
+		return url.toString();
+	});
 </script>
 
 <MaxRectangle>

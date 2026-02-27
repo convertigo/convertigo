@@ -122,6 +122,7 @@ public class AssistantView extends ViewPart {
 			}
 		} catch (Exception e) {
 		}
+		url[0] += "?dark-theme=" + SwtUtils.isDark();
 
 		browser.addToolItemOpenExternal(tb);
 		new ToolItem(tb, SWT.SEPARATOR);

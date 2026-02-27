@@ -65,6 +65,7 @@ public class C8oBrowser extends Composite {
 	private static Thread threadSwt = null;
 	private static Map<String, Engine> browserContexts = new HashMap<>();
 	private static boolean render_offscreen = "offscreen".equals(System.getProperty("jxbrowser.render"));
+	private static final String ABOUT_BLANK = "about:blank";
 	
 	private String debugUrl;
 	private BrowserView browserView;
@@ -119,6 +120,7 @@ public class C8oBrowser extends Composite {
 				// can fail on img
 			}
 		});
+		getBrowser().navigation().on(NavigationFinished.class, event -> removePreviousAboutBlankEntry());
 	}
 	
 	public C8oBrowser(Composite parent, int style) {
@@ -255,7 +257,7 @@ public class C8oBrowser extends Composite {
 	}
 
 	public void setUrl(String url) {
-		getBrowser().navigation().loadUrl(url);
+		loadUrlWithRevalidation(url);
 	}
 	
 	public void reset() {
@@ -311,7 +313,7 @@ public class C8oBrowser extends Composite {
 	}
 	
 	public void loadURL(String url) {
-		getBrowser().navigation().loadUrl(url);
+		loadUrlWithRevalidation(url);
 	}
 	
 	public void setZoomEnabled(boolean enable) {
@@ -427,5 +429,39 @@ public class C8oBrowser extends Composite {
 			}
 			
 		});
+	}
+
+	private void loadUrlWithRevalidation(String url) {
+		if (url != null && url.matches("(?i)^https?://.*")) {
+			var params = com.teamdev.jxbrowser.navigation.LoadUrlParams.newBuilder(url)
+					.addExtraHeader(com.teamdev.jxbrowser.net.HttpHeader.of("Cache-Control", "no-cache"))
+					.addExtraHeader(com.teamdev.jxbrowser.net.HttpHeader.of("Pragma", "no-cache"))
+					.build();
+			getBrowser().navigation().loadUrl(params);
+		} else {
+			getBrowser().navigation().loadUrl(url);
+		}
+	}
+
+	private void removePreviousAboutBlankEntry() {
+		try {
+			var navigation = getBrowser().navigation();
+			int currentIndex = navigation.currentEntryIndex();
+			if (currentIndex <= 0) {
+				return;
+			}
+			var currentEntry = navigation.entryAtIndex(currentIndex);
+			if (currentEntry == null || ABOUT_BLANK.equalsIgnoreCase(currentEntry.url())) {
+				return;
+			}
+			for (int index = currentIndex - 1; index >= 0; index--) {
+				var entry = navigation.entryAtIndex(index);
+				if (entry == null || !ABOUT_BLANK.equalsIgnoreCase(entry.url())) {
+					break;
+				}
+				navigation.removeEntryAtIndex(index);
+			}
+		} catch (Exception e) {
+		}
 	}
 }
