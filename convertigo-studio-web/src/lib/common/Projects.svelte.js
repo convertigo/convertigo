@@ -23,8 +23,15 @@ async function doCall(action, param) {
 	try {
 		waiting = true;
 		param?.preventDefault?.();
-		await call(`projects.${action}`, param?.target ? new FormData(param?.target) : param);
-		await values.refresh();
+		const res = await call(
+			`projects.${action}`,
+			param?.target ? new FormData(param?.target) : param
+		);
+		if (!res?.isError) {
+			await values.refresh();
+			return true;
+		}
+		return false;
 	} finally {
 		waiting = false;
 	}

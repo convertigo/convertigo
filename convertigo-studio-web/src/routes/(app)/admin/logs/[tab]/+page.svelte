@@ -28,6 +28,7 @@
 	import Time from '$lib/common/Time.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { call } from '$lib/utils/service';
 	import { splitDateTime } from '$lib/utils/time';
 	import { getContext, onMount } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
@@ -137,10 +138,34 @@
 	let endDate = $derived(dates[1] ? dates[1].toString() + ' ' + times[1] : '');
 	let autoScroll = $state(true);
 	let live = $state(false);
+	let downloadingLogs = $state(false);
+	const LIVE_DOWNLOAD_END_DATE = '2999-12-31 23:59:59,999';
 
 	async function refreshLogs() {
 		if (logViewer?.list) {
 			await logViewer.list(true);
+		}
+	}
+
+	async function downloadLogs() {
+		if (downloadingLogs) {
+			return;
+		}
+		downloadingLogs = true;
+		try {
+			await call(
+				'logs.Download',
+				{
+					filter: serverFilter,
+					startDate,
+					endDate: live ? LIVE_DOWNLOAD_END_DATE : endDate
+				},
+				{
+					adminInstance: `logs-download-${Date.now()}`
+				}
+			);
+		} finally {
+			downloadingLogs = false;
 		}
 	}
 
@@ -445,6 +470,15 @@
 								icon="mdi:receipt-text-send-outline"
 								class="button-primary h-9! w-fit!"
 								onclick={refreshLogs}
+							/>
+							<Button
+								label={downloadingLogs ? 'Downloading...' : 'Download'}
+								size={4}
+								icon={downloadingLogs ? 'mdi:sync' : 'mdi:export'}
+								title="Download server-filtered logs as zip archive"
+								class="{downloadingLogs ? 'button-primary' : 'button-secondary'} h-9! w-fit!"
+								disabled={downloadingLogs}
+								onclick={downloadLogs}
 							/>
 							{#if serverFilterVisible}
 								<InputGroup

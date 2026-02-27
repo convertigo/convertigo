@@ -28,8 +28,9 @@ export function setModalAlert(alert) {
 /**
  * @param {string} service
  * @param {any} data
+ * @param {{adminInstance?: string}} options
  */
-export async function call(service, data = {}) {
+export async function call(service, data = {}, options = {}) {
 	if (!browser) {
 		return {};
 	}
@@ -41,7 +42,7 @@ export async function call(service, data = {}) {
 		let url = getUrl() + service;
 		let body;
 		let headers = {
-			'Admin-Instance': adminInstance,
+			'Admin-Instance': options.adminInstance ?? adminInstance,
 			'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 		};
 		Instances.apply(headers);

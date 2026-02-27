@@ -130,32 +130,36 @@
 <ModalDynamic bind:this={modalExport}>
 	{#snippet children({ close, params: { options, project } })}
 		<Card title="Exporting {project}">
-			{#each options as { name, display } (name)}
-				<CheckState {name} bind:value={exportChoices[name]}>{display}</CheckState>
-			{/each}
-			<ActionBar>
-				<Button
-					icon="mdi:export"
-					label="Export"
-					class="button-primary w-fit!"
-					onclick={async () => {
-						if (
-							await exportProject({
-								projectName: project,
-								exportOptions: JSON.stringify(exportChoices)
-							})
-						) {
-							close();
-						}
-					}}
-				/>
-				<Button
-					icon="mdi:close-circle-outline"
-					label="Cancel"
-					class="button-secondary w-fit!"
-					onclick={close}
-				/>
-			</ActionBar>
+			<fieldset disabled={waiting} class="layout-y-stretch">
+				{#each options as { name, display } (name)}
+					<CheckState {name} bind:value={exportChoices[name]}>{display}</CheckState>
+				{/each}
+				<ActionBar>
+					<Button
+						icon={waiting ? 'mdi:sync' : 'mdi:export'}
+						label={waiting ? 'Exporting...' : 'Export'}
+						class="button-primary w-fit!"
+						disabled={waiting}
+						onclick={async () => {
+							if (
+								await exportProject({
+									projectName: project,
+									exportOptions: JSON.stringify(exportChoices)
+								})
+							) {
+								close();
+							}
+						}}
+					/>
+					<Button
+						icon="mdi:close-circle-outline"
+						label="Cancel"
+						class="button-secondary w-fit!"
+						disabled={waiting}
+						onclick={close}
+					/>
+				</ActionBar>
+			</fieldset>
 		</Card>
 	{/snippet}
 </ModalDynamic>
@@ -417,5 +421,9 @@
 
 	:global(.projects-table tbody tr:has(> td[colspan]):hover) {
 		background-color: transparent !important;
+	}
+
+	:global(.projects-table.autocard td[data-label='Actions'] > div) {
+		min-width: 0 !important;
 	}
 </style>
