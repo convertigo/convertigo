@@ -49,6 +49,15 @@
 
 ---
 
+## 8.3.12
+
+#### Bug Fixes:
+
+- [#1030](https://github.com/convertigo/convertigo/issues/1030) [NGX] Fixed, external shared component sources are no longer copied into local projects that do not actually use them
+- [#1031](https://github.com/convertigo/convertigo/issues/1031) [NGX] Fixed, application source code generation now cleans orphan module files to prevent stale modules from being kept between builds
+
+---
+
 ## 8.3.11
 
 #### Improvements:
