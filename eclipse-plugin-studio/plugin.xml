@@ -491,6 +491,7 @@
 			</view>
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
+				visible="false"
 				relationship="right"
 				relative="org.eclipse.ui.editorss" />
 			<view
