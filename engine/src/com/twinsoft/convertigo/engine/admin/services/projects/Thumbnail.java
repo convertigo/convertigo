@@ -59,20 +59,25 @@ public class Thumbnail extends DownloadService {
 
 	@Override
 	protected void writeResponseResult(HttpServletRequest request,HttpServletResponse response) throws IOException, EngineException {
-		var projectName = request.getParameter("projectName");
-		var dir = Engine.projectDir(projectName);
-		var file = new File(dir, "thumbnail.png");
-		if (!file.exists()) {
-			file = new File(dir, "thumbnail.jpg");
+		File file = null;
+		try {
+			var projectName = request.getParameter("projectName");
+			var dir = Engine.projectDir(projectName);
+			file = new File(dir, "thumbnail.png");
+			if (!file.exists()) {
+				file = new File(dir, "thumbnail.jpg");
+			}
+			if (!file.exists()) {
+				file = new File(dir, "thumbnail.auto.jpg");
+			}
+		} catch (Exception e) {
 		}
-		if (!file.exists()) {
-			file = new File(dir, "thumbnail.auto.jpg");
-		}
-		response.setContentType(file.getName().endsWith("png") ? MimeType.Png.value() : MimeType.Jpeg.value());
-		if (!file.exists()) {
+		if (file == null || !file.exists()) {
+			response.setContentType(MimeType.Png.value());
 			response.setContentLength(imageBytes.length);
 			response.getOutputStream().write(imageBytes);
 		} else {
+			response.setContentType(file.getName().endsWith("png") ? MimeType.Png.value() : MimeType.Jpeg.value());
 			response.setContentLength((int) file.length());
 			try (var fis = new FileInputStream(file)) {
 				IOUtils.copyLarge(fis, response.getOutputStream());
@@ -80,7 +85,7 @@ public class Thumbnail extends DownloadService {
 		}
 		response.flushBuffer();
 	}
-	
+
 	@Override
 	public boolean isXsrfCheck() {
 		return false;

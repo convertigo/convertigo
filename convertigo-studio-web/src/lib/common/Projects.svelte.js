@@ -72,6 +72,7 @@ let values = {
 export default ServiceHelper({
 	defValues,
 	values,
+	needAuth: false,
 	service: 'projects.List',
 	arrays: ['admin.projects.project'],
 	mapping: { projects: 'admin.projects.project' },

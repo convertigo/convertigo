@@ -51,6 +51,7 @@ export default function (projectName) {
 	if (!projects[projectName]) {
 		projects[projectName] = ServiceHelper({
 			defValues,
+			needAuth: false,
 			service: 'projects.GetTestPlatform',
 			params: { projectName },
 			mapping: { '': 'admin.project' },
@@ -65,6 +66,7 @@ export default function (projectName) {
 					for (const mobileplatform of res.mobileapplication.mobileplatform) {
 						mobileplatform.local = ServiceHelper({
 							defValues: { revision: null },
+							needAuth: false,
 							service: 'mobiles.GetLocalRevision',
 							params: { project: projectName, platform: mobileplatform.name },
 							mapping: { '': 'admin' }
