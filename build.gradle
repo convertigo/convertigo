@@ -29,10 +29,10 @@ apply plugin: 'maven-publish'
 
 ext.nvdApiKey = findProperty('nvdApiKey') ?: System.getenv('NVD_API_KEY')
 
-ext.convertigoVersion = '8.4.1'
+ext.convertigoVersion = '8.5.0'
 ext.convertigoTag = 'beta'
-ext.convertigoCodename = 'polonium'
-ext.convertigoCode = 'Po'
+ext.convertigoCodename = 'astatine'
+ext.convertigoCode = 'At'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '8.17.1'
