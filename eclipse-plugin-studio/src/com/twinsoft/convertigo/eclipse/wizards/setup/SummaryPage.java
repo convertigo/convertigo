@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 
@@ -55,7 +56,7 @@ class SummaryPage extends WizardPage {
 		
 		Link details2 = new Link(container, SWT.WRAP);
 		details2.setText("For support:\n\n" +
-				"- Here are all the resources you may need: <a href=\"https://www.convertigo.com/convertigo-startup-page-8-3\">https://www.convertigo.com/convertigo-startup-page-8-3</a>\n\n" +
+				"- Here are all the resources you may need: <a href=\"" + StartupEditor.STARTUP_URL + "\">" + StartupEditor.STARTUP_URL + "</a>\n\n" +
 				"- The Convertigo Community Support: <a href=\"https://convertigo.atlassian.net/wiki/spaces/CK/overview\">https://convertigo.atlassian.net/wiki/spaces/CK/overview</a>\n\n" +
 				"- Get a free 30-minute \"onboarding\" session with one of our engineers.\n" +
 				"The session schedule link will be included in the email containing your PSC."
