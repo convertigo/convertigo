@@ -5,7 +5,7 @@
 #### New Features:
 
 - [#882](https://github.com/convertigo/convertigo/issues/882) [NGX] Support for direct import syntax, simplifying generated imports and improving compatibility with modern Angular patterns
-- [#884](https://github.com/convertigo/convertigo/issues/884) [Engine][SDK] New admin servlets are now available directly under the project path, easing integration and automation
+- [#884](https://github.com/convertigo/convertigo/issues/884) [Engine/SDK] New admin servlets are now available directly under the project path, easing integration and automation
 - [#914](https://github.com/convertigo/convertigo/issues/914) [Studio/NGX] Shared Components can now be generated and consumed through a dedicated shared Angular module
 - [#944](https://github.com/convertigo/convertigo/issues/944) [NGX] Introduction of the **Convertigo Assistant** project to create Shared Components using AI-assisted generation
 - [#945](https://github.com/convertigo/convertigo/issues/945) [Studio] A new **Marketplace** view allows easy discovery and import of library projects directly into Studio
