@@ -17,12 +17,14 @@ const parts = $derived([
 		{
 			title: 'Documentation',
 			icon: 'mdi:file-question-outline',
-			url: 'https://doc.convertigo.com/'
+			url: 'https://doc.convertigo.com/',
+			external: true
 		},
 		{
 			title: 'Convertigo',
 			icon: 'convertigo:logo',
-			url: 'https://www.convertigo.com'
+			url: 'https://www.convertigo.com',
+			external: true
 		}
 	]
 ]);

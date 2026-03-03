@@ -71,8 +71,7 @@
 				title: 'Swagger',
 				icon: 'mdi:swagger',
 				url: getSwaggerProjectUrl(project),
-				external: true,
-				targetBlank: true
+				external: true
 			});
 		}
 		PagesRail.extras = extras;

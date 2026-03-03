@@ -103,17 +103,20 @@ const parts = $derived([
 		{
 			title: 'Convertigo',
 			icon: 'convertigo:logo',
-			url: 'https://www.convertigo.com'
+			url: 'https://www.convertigo.com',
+			external: true
 		},
 		{
 			title: 'Knowledge',
 			icon: 'mdi:hub',
-			url: 'https://convertigo.atlassian.net/wiki/spaces/CK/'
+			url: 'https://convertigo.atlassian.net/wiki/spaces/CK/',
+			external: true
 		},
 		{
 			title: 'Documentation',
 			icon: 'mdi:file-question-outline',
-			url: getAdminPageDocHref('/admin')
+			url: getAdminPageDocHref('/admin'),
+			external: true
 		}
 	]
 ]);

@@ -50,19 +50,13 @@
 
 <nav class="layout-y-stretch-none h-full w-40 border-r border-color bg-surface-100-900">
 	{#each parts as tiles, i (i)}
-		{#each tiles as { title, subtitle, subtitleTooltip, icon, url, page, params, loading, external, targetBlank }, j (page ?? url ?? title ?? j)}
+		{#each tiles as { title, subtitle, subtitleTooltip, icon, url, page, params, loading, external }, j (page ?? url ?? title ?? j)}
 			{@const href = loading ? undefined : page ? resolve(page, params) : url}
 			{@const isSelected = i == 0 && j == activeIndex}
 			<a
 				{href}
-				rel={targetBlank
-					? external
-						? 'external noopener noreferrer'
-						: 'noopener noreferrer'
-					: external
-						? 'external'
-						: undefined}
-				target={targetBlank ? '_blank' : undefined}
+				rel={external ? 'external noopener noreferrer' : undefined}
+				target={external ? '_blank' : undefined}
 				aria-current={isSelected ? 'page' : undefined}
 				class="rail-link {loading ? 'blur-sm' : ''}"
 				transition:slide={{ axis: 'y' }}
