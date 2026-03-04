@@ -31,6 +31,7 @@
 		Private: {
 			accent: 'preset-filled-success-200-800',
 			chip: 'preset-filled-success-50-950 odd:preset-filled-success-100-900',
+			filterChip: 'preset-filled-success-100-900',
 			soft: 'preset-outlined-success-50-950',
 			tone: 'text-success-600-400',
 			icon: 'mdi:lock',
@@ -39,6 +40,7 @@
 		Hidden: {
 			accent: 'preset-filled-warning-200-800',
 			chip: 'preset-filled-warning-50-950 odd:preset-filled-warning-100-900',
+			filterChip: 'preset-filled-warning-100-900',
 			soft: 'preset-outlined-warning-50-950',
 			tone: 'text-warning-600-400',
 			icon: 'mdi:eye-off',
@@ -47,6 +49,7 @@
 		Public: {
 			accent: 'preset-filled-error-200-800',
 			chip: 'preset-filled-error-50-950 odd:preset-filled-error-100-900',
+			filterChip: 'preset-filled-error-100-900',
 			soft: 'preset-outlined-error-50-950',
 			tone: 'text-error-600-400',
 			icon: 'mdi:lock-open-variant',
@@ -134,7 +137,7 @@
 						type="button"
 						size={3}
 						icon={accessibility.icon}
-						class={`layout-x h-full gap-none rounded-none p-2 text-[11px] font-semibold tracking-wide uppercase transition-all duration-200 ${accessibility.chip} ${accessibility.tone} ${
+						class={`layout-x h-full gap-none rounded-none p-2 text-[11px] font-semibold tracking-wide uppercase transition-all duration-200 ${accessibility.filterChip} ${accessibility.tone} ${
 							idx === 0 ? 'rounded-l' : ''
 						} ${idx === 2 ? 'rounded-r' : ''} ${!accessibility.enabled ? 'opacity-50' : ''}`}
 						title={`${accessibility.enabled ? 'Hide' : 'Show'} ${name} requestables`}

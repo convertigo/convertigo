@@ -216,6 +216,24 @@ export async function listDocuments(
 	});
 }
 
+export async function listDocumentIdSuggestions(dbName, { prefix = '', limit = 30 } = {}) {
+	const queryPrefix = String(prefix ?? '').trim();
+	const pageSize = Math.max(1, Math.min(100, Number(limit) || 30));
+	const response = await listDocuments(dbName, {
+		limit: pageSize,
+		includeDocs: false,
+		startkey: queryPrefix || undefined,
+		endkey: queryPrefix ? `${queryPrefix}\ufff0` : undefined,
+		omitSkip: true
+	});
+	const rows = Array.isArray(response?.rows) ? response.rows : [];
+	return Array.from(
+		new Set(
+			rows.map((row) => (typeof row?.id == 'string' ? row.id : '')).filter((id) => id.length > 0)
+		)
+	);
+}
+
 /**
  * @param {string} dbName
  * @param {string} designDocId

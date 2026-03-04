@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -52,6 +53,7 @@ import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 public class ServletUtils {
 	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/(?:mobile|pwas/.*?)/)(.*)");
 	private static final Pattern p_base = Pattern.compile("(<base\\s+[^>]*href\\s*=\\s*)(['\"])([^'\"]*)(\\2)([^>]*>)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern APP_TEMPLATE_VERSION_PATTERN = Pattern.compile("\\s*(\\d+)(?:\\.(\\d+))?.*");
 	private static final String ATTR_BASE_DEPTH = ServletUtils.class.getName() + ".baseDepth";
 	private static final Pattern RANGE_PATTERN = Pattern.compile("bytes\\s*=\\s*(.+)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern RANGE_ITEM_PATTERN = Pattern.compile("(\\d*)-(\\d*)");
@@ -84,24 +86,24 @@ public class ServletUtils {
 				long maxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
 
 				// Serve static files if they exist in the projects repository.
-			if ("index.html".equalsIgnoreCase(file.getName()) && matcher.matches()) {
-				var depth = depthOverride != null ? depthOverride : computeDepth(request);
-				if (depth != null) {
-					var baseHref = buildBaseHref(depth);
-					var content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-					var baseMatcher = p_base.matcher(content);
-					if (baseMatcher.find()) {
-						var buffer = new StringBuffer();
-						var attrs = baseMatcher.group(5);
-						if (!attrs.contains("data-c8o-mode")) {
-							attrs = attrs.replaceFirst("/?>", " data-c8o-mode=\"web\"$0");
+				if ("index.html".equalsIgnoreCase(file.getName()) && matcher.matches() && isBaseHrefRewriteSupported(file)) {
+					var depth = depthOverride != null ? depthOverride : computeDepth(request);
+					if (depth != null) {
+						var baseHref = buildBaseHref(depth);
+						var content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+						var baseMatcher = p_base.matcher(content);
+						if (baseMatcher.find()) {
+							var buffer = new StringBuffer();
+							var attrs = baseMatcher.group(5);
+							if (!attrs.contains("data-c8o-mode")) {
+								attrs = attrs.replaceFirst("/?>", " data-c8o-mode=\"web\"$0");
+							}
+							baseMatcher.appendReplacement(buffer, baseMatcher.group(1) + baseMatcher.group(2) + Matcher.quoteReplacement(baseHref) + baseMatcher.group(4) + attrs);
+							baseMatcher.appendTail(buffer);
+							rewritten = buffer.toString().getBytes(StandardCharsets.UTF_8);
 						}
-						baseMatcher.appendReplacement(buffer, baseMatcher.group(1) + baseMatcher.group(2) + Matcher.quoteReplacement(baseHref) + baseMatcher.group(4) + attrs);
-						baseMatcher.appendTail(buffer);
-						rewritten = buffer.toString().getBytes(StandardCharsets.UTF_8);
 					}
 				}
-			}
 
 				String mimeType = filterConfig.getServletContext().getMimeType(file.getName());
 				Engine.logContext.debug("Found MIME type: " + mimeType);
@@ -213,6 +215,35 @@ private static Integer computeDepth(HttpServletRequest request) {
 			builder.append("../");
 		}
 		return builder.toString();
+	}
+
+	private static boolean isBaseHrefRewriteSupported(File indexFile) {
+		var envFile = new File(indexFile.getParentFile(), "env.json");
+		if (!envFile.isFile()) {
+			return false;
+		}
+		try {
+			var content = Files.readString(envFile.toPath(), StandardCharsets.UTF_8);
+			var version = new JSONObject(content).optString("appTemplateVersion");
+			return isAppTemplateVersionAtLeast84(version);
+		} catch (Exception e) {
+			Engine.logContext.debug("Unable to read appTemplateVersion from " + envFile.getAbsolutePath(), e);
+			return false;
+		}
+	}
+
+	private static boolean isAppTemplateVersionAtLeast84(String version) {
+		var matcher = APP_TEMPLATE_VERSION_PATTERN.matcher(version == null ? "" : version);
+		if (!matcher.matches()) {
+			return false;
+		}
+		try {
+			var major = Integer.parseInt(matcher.group(1));
+			var minor = matcher.group(2) == null ? 0 : Integer.parseInt(matcher.group(2));
+			return major > 8 || major == 8 && minor >= 4;
+		} catch (NumberFormatException e) {
+			return false;
+		}
 	}
 
 	private static void writeFile(HttpServletRequest request, HttpServletResponse response, File file, byte[] rewritten, String mimeType) throws IOException {
