@@ -19,6 +19,7 @@
 		fullSyncBaseUrl,
 		getDesignDocument,
 		listDesignDocuments,
+		listDocumentIdSuggestions,
 		listDocuments,
 		listMangoIndexes,
 		removeDesignDocument,
@@ -91,6 +92,9 @@
 	let queryOptionsOpen = $state(false);
 
 	let quickDocId = $state('');
+	let quickDocLiveSuggestions = $state(/** @type {string[]} */ ([]));
+	let quickDocSuggestRequestId = 0;
+	let quickDocSuggestTimer = /** @type {ReturnType<typeof setTimeout> | undefined} */ (undefined);
 	let currentLayout = $state('metadata');
 	let selectedDocIds = $state(/** @type {Record<string, boolean>} */ ({}));
 	let loadedDatabase = $state('');
@@ -417,6 +421,20 @@
 				: 3
 	);
 	let quickDocDatalistId = $derived(`fullsync-doc-ids-${database.replace(/[^a-zA-Z0-9_-]/g, '-')}`);
+	let quickDocCandidates = $derived.by(() => {
+		const prefix = quickDocId.trim().toLowerCase();
+		const visibleIds = documents
+			.map((row) => (typeof row?.id == 'string' ? row.id : ''))
+			.filter((id) => id.length > 0);
+		const sourceIds = quickDocLiveSuggestions.length > 0 ? quickDocLiveSuggestions : visibleIds;
+		const unique = [];
+		for (const id of sourceIds) {
+			if (prefix && !id.toLowerCase().startsWith(prefix)) continue;
+			if (unique.includes(id)) continue;
+			unique.push(id);
+		}
+		return unique.slice(0, 24);
+	});
 	let editorTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
 	let mangoHistoryStorageKey = $derived(
 		`fullsync:mango:${database.replace(/[^a-zA-Z0-9_-]/g, '_') || '_'}`
@@ -775,6 +793,25 @@
 		const docId = quickDocId.trim();
 		if (!docId) return;
 		await openDocument(docId);
+	}
+
+	function clearQuickDocSuggestTimer() {
+		if (quickDocSuggestTimer !== undefined) {
+			clearTimeout(quickDocSuggestTimer);
+			quickDocSuggestTimer = undefined;
+		}
+	}
+
+	async function refreshQuickDocSuggestions(prefix, requestId) {
+		if (!database) return;
+		try {
+			const ids = await listDocumentIdSuggestions(database, { prefix, limit: 24 });
+			if (requestId != quickDocSuggestRequestId) return;
+			quickDocLiveSuggestions = ids;
+		} catch {
+			if (requestId != quickDocSuggestRequestId) return;
+			quickDocLiveSuggestions = [];
+		}
 	}
 
 	function openRawJson() {
@@ -1704,6 +1741,29 @@
 	});
 
 	$effect(() => {
+		if (!database || currentTab != 'all' || isViewEditor) {
+			clearQuickDocSuggestTimer();
+			quickDocSuggestRequestId += 1;
+			quickDocLiveSuggestions = [];
+			return;
+		}
+
+		const prefix = quickDocId.trim();
+		clearQuickDocSuggestTimer();
+		quickDocSuggestRequestId += 1;
+		const requestId = quickDocSuggestRequestId;
+
+		if (!prefix) {
+			quickDocLiveSuggestions = [];
+			return;
+		}
+
+		quickDocSuggestTimer = setTimeout(() => {
+			void refreshQuickDocSuggestions(prefix, requestId);
+		}, 140);
+	});
+
+	$effect(() => {
 		if (!database || currentTab != 'all' || isViewEditor) return;
 		const queryScope = `${database}|${selectedDesignDocId}|${selectedViewName}|${currentLayout}`;
 		if (queryScope == loadedQueryScope) return;
@@ -1767,6 +1827,8 @@
 		loadMangoHistory();
 	});
 	onDestroy(() => {
+		clearQuickDocSuggestTimer();
+		quickDocSuggestRequestId += 1;
 		RightPart.release(rightPartOwner);
 	});
 </script>
@@ -2110,6 +2172,7 @@
 						class="doc-open-form h-9 min-w-0"
 						type="text"
 						placeholder="Document ID"
+						autocomplete="off"
 						icon="mdi:file-document-box-outline"
 						list={quickDocDatalistId}
 						bind:value={quickDocId}
@@ -2134,10 +2197,8 @@
 						{/snippet}
 					</InputGroup>
 					<datalist id={quickDocDatalistId}>
-						{#each documents as row, rowIndex (`${row?.id ?? row?.key ?? 'doc'}-${rowIndex}`)}
-							{#if row?.id}
-								<option value={row.id}></option>
-							{/if}
+						{#each quickDocCandidates as docId (docId)}
+							<option value={docId}></option>
 						{/each}
 					</datalist>
 					<div class="fullsync-toolbar-actions">
