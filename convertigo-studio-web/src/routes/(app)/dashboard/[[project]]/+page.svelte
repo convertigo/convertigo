@@ -77,6 +77,9 @@
 				? 'Show regular projects only'
 				: 'Show both library and regular projects';
 
+	/** @param {any} value */
+	const asAny = (value) => value;
+
 	onDestroy(Projects.stop);
 </script>
 
@@ -114,33 +117,43 @@
 						<SegmentedControl.Item value={`${value}`} class="relative h-full">
 							<Tooltip positioning={{ placement: 'top' }}>
 								<Tooltip.Trigger>
-									<SegmentedControl.ItemText
-										class={[
-											filters[0].count == value
-												? 'text-primary-contrast-500'
-												: 'text-surface-950-50',
-											'flex h-full items-center px-2 text-[13px] leading-none font-medium'
-										]}
-									>
-										{#if value == 2}
-											<span class="layout-x-none gap-1">
-												<Ico icon="mdi:cog" size="nav" />
-												Backend
-											</span>
-										{:else if value == 0}
-											<span class="layout-x-none gap-1">
-												<span aria-hidden="true" class="text-base leading-none font-semibold"
-													>&harr;</span
-												>
-												<span class="sr-only">Both</span>
-											</span>
-										{:else}
-											<span class="layout-x-none gap-1">
-												Frontend
-												<Ico icon="mdi:smartphone-link" size="nav" />
-											</span>
-										{/if}
-									</SegmentedControl.ItemText>
+									{#snippet element(attributes)}
+										{@const triggerAttributes = asAny(attributes)}
+										<span
+											{...triggerAttributes}
+											class={['inline-flex h-full', triggerAttributes.class]
+												.filter(Boolean)
+												.join(' ')}
+										>
+											<SegmentedControl.ItemText
+												class={[
+													filters[0].count == value
+														? 'text-primary-contrast-500'
+														: 'text-surface-950-50',
+													'flex h-full items-center px-2 text-[13px] leading-none font-medium'
+												]}
+											>
+												{#if value == 2}
+													<span class="layout-x-none gap-1">
+														<Ico icon="mdi:cog" size="nav" />
+														Backend
+													</span>
+												{:else if value == 0}
+													<span class="layout-x-none gap-1">
+														<span aria-hidden="true" class="text-base leading-none font-semibold"
+															>&harr;</span
+														>
+														<span class="sr-only">Both</span>
+													</span>
+												{:else}
+													<span class="layout-x-none gap-1">
+														Frontend
+														<Ico icon="mdi:smartphone-link" size="nav" />
+													</span>
+												{/if}
+											</SegmentedControl.ItemText>
+										</span>
+									{/snippet}
 								</Tooltip.Trigger>
 								<Portal>
 									<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
@@ -179,33 +192,43 @@
 						<SegmentedControl.Item value={`${value}`} class="relative h-full">
 							<Tooltip positioning={{ placement: 'top' }}>
 								<Tooltip.Trigger>
-									<SegmentedControl.ItemText
-										class={[
-											filters[1].count == value
-												? 'text-primary-contrast-500'
-												: 'text-surface-950-50',
-											'flex h-full items-center px-2 text-[13px] leading-none font-medium'
-										]}
-									>
-										{#if value == 1}
-											<span class="layout-x-none gap-1">
-												<Ico icon="mdi:book-open-variant" size="nav" />
-												Library
-											</span>
-										{:else if value == 0}
-											<span class="layout-x-none gap-1">
-												<span aria-hidden="true" class="text-base leading-none font-semibold"
-													>&harr;</span
-												>
-												<span class="sr-only">Both</span>
-											</span>
-										{:else}
-											<span class="layout-x-none gap-1">
-												Project
-												<Ico icon="mdi:folder-outline" size="nav" />
-											</span>
-										{/if}
-									</SegmentedControl.ItemText>
+									{#snippet element(attributes)}
+										{@const triggerAttributes = asAny(attributes)}
+										<span
+											{...triggerAttributes}
+											class={['inline-flex h-full', triggerAttributes.class]
+												.filter(Boolean)
+												.join(' ')}
+										>
+											<SegmentedControl.ItemText
+												class={[
+													filters[1].count == value
+														? 'text-primary-contrast-500'
+														: 'text-surface-950-50',
+													'flex h-full items-center px-2 text-[13px] leading-none font-medium'
+												]}
+											>
+												{#if value == 1}
+													<span class="layout-x-none gap-1">
+														<Ico icon="mdi:book-open-variant" size="nav" />
+														Library
+													</span>
+												{:else if value == 0}
+													<span class="layout-x-none gap-1">
+														<span aria-hidden="true" class="text-base leading-none font-semibold"
+															>&harr;</span
+														>
+														<span class="sr-only">Both</span>
+													</span>
+												{:else}
+													<span class="layout-x-none gap-1">
+														Project
+														<Ico icon="mdi:folder-outline" size="nav" />
+													</span>
+												{/if}
+											</SegmentedControl.ItemText>
+										</span>
+									{/snippet}
 								</Tooltip.Trigger>
 								<Portal>
 									<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
