@@ -65,6 +65,13 @@ public class TableEditorComposite extends AbstractDialogComposite {
 		
 		rowList = new TableEditorRowList(tableData);
 		tableViewer.setInput(rowList);
+		if (MacInlineEditorsSupport.isEnabled()) {
+			TableEditor tableEditor = (TableEditor) cellEditor;
+			new MacInlineEditorsSupport<>(this, tableViewer, tableEditor.columnNames, this::getSelectedRow,
+					(row, columnIndex) -> row.getValue(columnIndex),
+					(row, columnIndex, value) -> row.setValue(value, columnIndex),
+					row -> rowList.rowChanged(row));
+		}
 	}
 
 	/**
@@ -169,8 +176,8 @@ public class TableEditorComposite extends AbstractDialogComposite {
 	 *
 	 */
 	private void createTable() {
-		int style = SWT.SINGLE | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | 
-		SWT.FULL_SELECTION | SWT.HIDE_SELECTION;
+		int style = SWT.SINGLE | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL |
+		SWT.FULL_SELECTION;
 		
 		table = new Table(this, style);
 		
@@ -193,18 +200,28 @@ public class TableEditorComposite extends AbstractDialogComposite {
 		tableViewer.setUseHashlookup(true);
 		tableViewer.setColumnProperties(tableEditor.columnNames);
 
-		// Assign the cell editors to the viewer
-		CellEditor[] editors = tableEditor.getColumnEditors(table);
-		tableViewer.setCellEditors(editors);
+		if (!MacInlineEditorsSupport.isEnabled()) {
+			// Assign the cell editors to the viewer
+			CellEditor[] editors = tableEditor.getColumnEditors(table);
+			tableViewer.setCellEditors(editors);
 
-		// Set the cell modifier for the viewer
-		tableViewer.setCellModifier(new TableEditorCellModifier(this, tableViewer));
+			// Set the cell modifier for the viewer
+			tableViewer.setCellModifier(new TableEditorCellModifier(this, tableViewer));
+		}
 		
 		// Set the label provider for the viewer
 		tableViewer.setLabelProvider(new TableEditorLabelProvider());
 		
 		// Set the content provider
 		tableViewer.setContentProvider(new TableEditorContentProvider());
+	}
+
+	private TableEditorRow getSelectedRow() {
+		ISelection selection = tableViewer.getSelection();
+		if (selection instanceof IStructuredSelection) {
+			return (TableEditorRow) ((IStructuredSelection) selection).getFirstElement();
+		}
+		return null;
 	}
 	
 	/**

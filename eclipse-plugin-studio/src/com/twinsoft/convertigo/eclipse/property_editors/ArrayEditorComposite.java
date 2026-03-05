@@ -65,6 +65,13 @@ public class ArrayEditorComposite extends AbstractDialogComposite {
 		
 		rowList = new ArrayEditorRowList(tableData);
 		tableViewer.setInput(rowList);
+		if (MacInlineEditorsSupport.isEnabled()) {
+			ArrayEditor arrayEditor = (ArrayEditor) cellEditor;
+			new MacInlineEditorsSupport<>(this, tableViewer, arrayEditor.columnNames, this::getSelectedRow,
+					(row, columnIndex) -> row.getValue(columnIndex),
+					(row, columnIndex, value) -> row.setValue(value, columnIndex),
+					row -> rowList.rowChanged(row));
+		}
 	}
 
 	/**
@@ -169,8 +176,8 @@ public class ArrayEditorComposite extends AbstractDialogComposite {
 	 *
 	 */
 	private void createTable() {
-		int style = SWT.SINGLE | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | 
-		SWT.FULL_SELECTION | SWT.HIDE_SELECTION;
+		int style = SWT.SINGLE | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL |
+		SWT.FULL_SELECTION;
 		
 		table = new Table(this, style);
 		
@@ -191,18 +198,28 @@ public class ArrayEditorComposite extends AbstractDialogComposite {
 		tableViewer.setUseHashlookup(true);
 		tableViewer.setColumnProperties(arrayEditor.columnNames);
 
-		// Assign the cell editors to the viewer
-		CellEditor[] editors = arrayEditor.getColumnEditors(table);
-		tableViewer.setCellEditors(editors);
+		if (!MacInlineEditorsSupport.isEnabled()) {
+			// Assign the cell editors to the viewer
+			CellEditor[] editors = arrayEditor.getColumnEditors(table);
+			tableViewer.setCellEditors(editors);
 
-		// Set the cell modifier for the viewer
-		tableViewer.setCellModifier(new ArrayEditorCellModifier(this, tableViewer));
+			// Set the cell modifier for the viewer
+			tableViewer.setCellModifier(new ArrayEditorCellModifier(this, tableViewer));
+		}
 		
 		// Set the label provider for the viewer
 		tableViewer.setLabelProvider(new ArrayEditorLabelProvider(cellEditor.getStyle()));
 		
 		// Set the content provider
 		tableViewer.setContentProvider(new ArrayEditorContentProvider());
+	}
+
+	private ArrayEditorRow getSelectedRow() {
+		ISelection selection = tableViewer.getSelection();
+		if (selection instanceof IStructuredSelection) {
+			return (ArrayEditorRow) ((IStructuredSelection) selection).getFirstElement();
+		}
+		return null;
 	}
 	
 	/**
