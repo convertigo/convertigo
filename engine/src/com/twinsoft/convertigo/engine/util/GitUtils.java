@@ -32,6 +32,8 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.TagOpt;
+import org.eclipse.jgit.transport.UrlConfig;
+import org.eclipse.jgit.util.SystemReader;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -122,11 +124,35 @@ public class GitUtils {
 			StoredConfig conf = repo.getConfig();
 			for (String name: repo.getRemoteNames()) {
 				String rUrl = conf.getString(ConfigConstants.CONFIG_REMOTE_SECTION, name, "url");
-				if (url.equals(rUrl)) {
+				if (sameRemote(url, rUrl)) {
 					return true;
 				}
 			}
 			return false;
+		}
+	}
+
+	private static boolean sameRemote(String left, String right) {
+		if (left == null || right == null) {
+			return left == right;
+		}
+		if (left.equals(right)) {
+			return true;
+		}
+		String normalizedLeft = resolveRemote(left);
+		String normalizedRight = resolveRemote(right);
+		return normalizedLeft.equals(normalizedRight);
+	}
+
+	private static String resolveRemote(String url) {
+		if (url == null) {
+			return null;
+		}
+		try {
+			String resolved = new UrlConfig(SystemReader.getInstance().getUserConfig()).replace(url);
+			return resolved != null ? resolved : url;
+		} catch (Exception e) {
+			return url;
 		}
 	}
 	
@@ -136,7 +162,8 @@ public class GitUtils {
 	
 	public static void clone(String url, String branch, File dir) throws Exception {
 		Engine.logEngine.info("(ReferencedProjectManager) clone " + url + " to " + dir);
-		try (Git git = Git.cloneRepository().setDirectory(dir).setURI(url).setBranch(branch).setProgressMonitor(new ProgressMonitor() {
+		String transportUrl = resolveRemote(url);
+		try (Git git = Git.cloneRepository().setDirectory(dir).setURI(transportUrl).setBranch(branch).setProgressMonitor(new ProgressMonitor() {
 
 			@Override
 			public void update(int completed) {
@@ -166,6 +193,11 @@ public class GitUtils {
 			public void showDuration(boolean enabled) {
 			}
 		}).call()) {
+			if (!url.equals(transportUrl)) {
+				StoredConfig conf = git.getRepository().getConfig();
+				conf.setString(ConfigConstants.CONFIG_REMOTE_SECTION, Constants.DEFAULT_REMOTE_NAME, "url", url);
+				conf.save();
+			}
 			Engine.logEngine.info("(ReferencedProjectManager) Clone done !");
 		} catch (Exception e) {
 			Engine.logEngine.warn("(ReferencedProjectManager) clone " + url + " to " + dir + " failed: [" + e.getClass() + "] " + e.getMessage());
