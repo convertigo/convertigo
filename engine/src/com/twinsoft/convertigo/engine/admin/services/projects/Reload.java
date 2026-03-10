@@ -19,7 +19,7 @@
 
 package com.twinsoft.convertigo.engine.admin.services.projects;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
 

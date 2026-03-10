@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.engine.admin.services.global_symbols;
 import java.io.IOException;
 import java.util.Properties;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.FileItem;
 import org.w3c.dom.Document;

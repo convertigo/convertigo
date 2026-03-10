@@ -25,22 +25,22 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.websocket.ClientEndpointConfig;
-import javax.websocket.CloseReason;
-import javax.websocket.ContainerProvider;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.websocket.ClientEndpointConfig;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.Endpoint;
+import jakarta.websocket.EndpointConfig;
+import jakarta.websocket.MessageHandler;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.ServerEndpointConfig;
 
 import org.apache.http.HttpHost;
 import org.apache.tomcat.websocket.server.WsServerContainer;
@@ -101,7 +101,7 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 		if ("websocket".equals(HeaderName.Upgrade.getHeader(servletRequest))) {
 			try {
 				var wsContainer = (WsServerContainer) getServletContext()
-						.getAttribute("javax.websocket.server.ServerContainer");
+						.getAttribute("jakarta.websocket.server.ServerContainer");
 				var config = ServerEndpointConfig.Builder.create(WsProxy.class, uri);
 				var subprotocols = HeaderName.SecWebSocketProtocol.getHeader(servletRequest);
 				var map = new HashMap<String, String>();

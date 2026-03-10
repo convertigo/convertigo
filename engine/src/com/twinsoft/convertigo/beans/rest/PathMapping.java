@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;

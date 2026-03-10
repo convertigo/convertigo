@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.engine;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public abstract class Plugin {
 

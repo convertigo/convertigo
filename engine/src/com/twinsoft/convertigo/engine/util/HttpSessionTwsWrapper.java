@@ -22,9 +22,8 @@ package com.twinsoft.convertigo.engine.util;
 import java.util.Collections;
 import java.util.Enumeration;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionContext;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpSession;
 
 import com.twinsoft.convertigo.engine.Engine;
 
@@ -103,36 +102,6 @@ class HttpSessionTwsWrapper implements HttpSession {
 	}
 
 	@Override
-	public HttpSessionContext getSessionContext() {
-		try {
-			return session.getSessionContext();
-		} catch (Exception e) {
-			onException(e);
-			return null;
-		}
-	}
-
-	@Override
-	public Object getValue(String arg0) {
-		try {
-			return session.getValue(arg0);
-		} catch (Exception e) {
-			onException(e);
-			return null;
-		}
-	}
-
-	@Override
-	public String[] getValueNames() {
-		try {
-			return session.getValueNames();
-		} catch (Exception e) {
-			onException(e);
-			return new String[0];
-		}
-	}
-
-	@Override
 	public void invalidate() {
 		try {
 			session.invalidate();
@@ -152,16 +121,6 @@ class HttpSessionTwsWrapper implements HttpSession {
 	}
 
 	@Override
-	public void putValue(String arg0, Object arg1) {
-		try {
-			session.putValue(arg0, arg1);
-		} catch (Exception e) {
-			onException(e);
-		}
-
-	}
-
-	@Override
 	public void removeAttribute(String arg0) {
 		try {
 			session.removeAttribute(arg0);
@@ -169,15 +128,6 @@ class HttpSessionTwsWrapper implements HttpSession {
 			onException(e);
 		}
 
-	}
-
-	@Override
-	public void removeValue(String arg0) {
-		try {
-			session.removeValue(arg0);
-		} catch (Exception e) {
-			onException(e);
-		}
 	}
 
 	@Override

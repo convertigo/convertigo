@@ -19,8 +19,8 @@
 
 package com.twinsoft.convertigo.engine.admin.services;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface Service {
 

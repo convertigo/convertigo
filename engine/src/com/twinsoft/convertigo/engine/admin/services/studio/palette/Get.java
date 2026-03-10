@@ -23,7 +23,7 @@ import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;

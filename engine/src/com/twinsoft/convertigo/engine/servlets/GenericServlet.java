@@ -28,11 +28,11 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.fileupload.FileItem;
@@ -61,6 +61,7 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.JakartaServletFileUploadSupport;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -467,7 +468,7 @@ public abstract class GenericServlet extends HttpServlet {
 
 		try {
 			// Check multipart request
-			if (ServletFileUpload.isMultipartContent(request)) {
+			if (JakartaServletFileUploadSupport.isMultipartContent(request)) {
 				Engine.logContext.debug("(ServletRequester.initContext) Multipart resquest");
 
 				// Create a factory for disk-based file items
@@ -491,7 +492,7 @@ public abstract class GenericServlet extends HttpServlet {
 				upload.setFileSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE));
 
 				// Parse the request
-				List<FileItem> items = GenericUtils.cast(upload.parseRequest(request));
+				List<FileItem> items = JakartaServletFileUploadSupport.parseRequest(upload, request);
 
 				for (FileItem fileItem : items) {
 					String parameterName = fileItem.getFieldName();

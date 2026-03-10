@@ -26,7 +26,7 @@ dependencies {
 		exclude group: 'convertigo', module: 'placeholders'
 	}
 	implementation "com.convertigo:dependencies:$version"
-	runtimeOnly    'javax.servlet:servlet-api:2.5'
+	runtimeOnly    'jakarta.servlet:jakarta.servlet-api:6.1.0'
 }
 
 gradlePlugin {

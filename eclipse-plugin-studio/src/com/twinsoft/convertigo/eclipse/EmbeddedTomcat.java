@@ -29,6 +29,7 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.valves.ErrorReportValve;
 import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory;
 import org.apache.tomcat.util.net.SSLHostConfig;
+import org.apache.tomcat.util.net.SSLHostConfigCertificate;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -132,10 +133,12 @@ public class EmbeddedTomcat implements Runnable {
 			connector.setSecure(true);
 			connector.setScheme("https");
 			SSLHostConfig sslHostconfig = new SSLHostConfig();
+			SSLHostConfigCertificate certificate = new SSLHostConfigCertificate(sslHostconfig, SSLHostConfigCertificate.Type.RSA);
 			// openssl req -x509 -days 3650 -out localhost.crt -keyout localhost.key   -newkey rsa:2048 -nodes -sha256   -subj '/CN=localhost' -extensions EXT -config <( \
 			// printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
-			sslHostconfig.setCertificateFile(tomcatHome + "/conf/localhost.crt");
-			sslHostconfig.setCertificateKeyFile(tomcatHome + "/conf/localhost.key");
+			certificate.setCertificateFile(tomcatHome + "/conf/localhost.crt");
+			certificate.setCertificateKeyFile(tomcatHome + "/conf/localhost.key");
+			sslHostconfig.addCertificate(certificate);
 			connector.addSslHostConfig(sslHostconfig);
 			connector.setProperty("clientAuth", "false");
 			connector.setProperty("sslProtocol", "TLS");

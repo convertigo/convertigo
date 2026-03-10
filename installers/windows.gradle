@@ -12,7 +12,7 @@ task unzipWin64ServerTomcat {
 	
 	doLast {
 		file('build/tmp').mkdirs()
-		new URL("https://archive.apache.org/dist/tomcat/tomcat-9/v${tomcatVersion}/bin/apache-tomcat-${tomcatVersion}-windows-x64.zip").withInputStream{ i -> zip.withOutputStream{ it << i }}
+		new URL("https://archive.apache.org/dist/tomcat/tomcat-11/v${tomcatVersion}/bin/apache-tomcat-${tomcatVersion}-windows-x64.zip").withInputStream{ i -> zip.withOutputStream{ it << i }}
 		project.delete(dist)
 		copy {
 			from zipTree(zip)
@@ -22,7 +22,7 @@ task unzipWin64ServerTomcat {
 			eachFile { f ->
 				f.path = f.path.replaceFirst('.*?/', '')
 			}
-			rename('tomcat9(w?\\.exe)', 'ConvertigoServer$1')
+			rename('tomcat11(w?\\.exe)', 'ConvertigoServer$1')
 		}
 		def server = file("${dist}/conf/server.xml")
 		server.text = server.text.replaceFirst('.*protocol="AJP.*', '')
@@ -35,7 +35,7 @@ task unzipWin64ServerTomcat {
 		context.text = context.text.replaceFirst('<Context>', '<Context sessionCookiePath="/">')
 						.replaceFirst('</Context>','<Manager pathname="" /><CookieProcessor sameSiteCookies="unset" /></Context>')
 		def service = file("${dist}/bin/service.bat")
-		service.text = service.text.replaceAll('(?i)Tomcat9', 'ConvertigoServer')
+		service.text = service.text.replaceAll('(?i)Tomcat11', 'ConvertigoServer')
 						.replaceFirst('(.*--Description).*', '$1 "Convertigo Server (https://www.convertigo.com)" ^')
 						.replaceFirst('(.*--DisplayName).*','$1 "Convertigo Server" ^')
 		zip.delete()

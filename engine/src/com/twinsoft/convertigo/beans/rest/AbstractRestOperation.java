@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -61,6 +61,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.JakartaServletFileUploadSupport;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class AbstractRestOperation extends UrlMappingOperation {
@@ -167,7 +168,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			try {
 				
 				// Check multipart request
-				if (ServletFileUpload.isMultipartContent(request)) {
+				if (JakartaServletFileUploadSupport.isMultipartContent(request)) {
 					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" Multipart resquest");
 		
 					// Create a factory for disk-based file items
@@ -191,7 +192,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					upload.setFileSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE));
 		
 					// Parse the request
-					List<FileItem> items = GenericUtils.cast(upload.parseRequest(request));
+					List<FileItem> items = JakartaServletFileUploadSupport.parseRequest(upload, request);
 					for (FileItem fileItem : items) {
 						String parameterName = fileItem.getFieldName();
 						String parameterValue;
@@ -431,8 +432,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 	        			}
 	        		}
         		}
-        		if (statusText.isEmpty()) response.setStatus(statusCode);
-        		else response.setStatus(statusCode, statusText);
+	        		response.setStatus(statusCode);
         		
         		// Transform XML data
         		if (dataOutput.equals(DataContent.toJson)) {

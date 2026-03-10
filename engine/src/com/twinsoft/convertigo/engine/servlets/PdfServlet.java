@@ -19,8 +19,8 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.fop.apps.FopFactory;
 

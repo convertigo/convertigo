@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.engine.admin.services.engine;
 import java.util.Properties;
 import java.util.TreeSet;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;

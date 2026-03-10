@@ -23,7 +23,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;

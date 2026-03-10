@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.engine.admin.services.engine;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;

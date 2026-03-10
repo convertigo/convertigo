@@ -23,7 +23,7 @@ import java.io.File;
 import java.text.DateFormat;
 import java.util.Date;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;

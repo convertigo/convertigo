@@ -37,7 +37,7 @@ ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision 
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '8.17.1'
 ext.swaggerUiVersion = '5.31.0'
-ext.tomcatVersion = '9.0.115'
+ext.tomcatVersion = '11.0.18'
 ext.eclipseVersion = '2025-12'
 ext.eclipseBase = '4.37'
 ext.studioWebNodeVersion = '22'
@@ -243,7 +243,7 @@ publishing {
 						'com.fasterxml.jackson.core:jackson-core:2.15.0',
 						'commons-io:commons-io:' + commonsIo,
 						'javax.mail:mail:1.4.7',
-						'javax.servlet:servlet-api:2.5',
+						'jakarta.servlet:jakarta.servlet-api:6.1.0',
 						'org.apache.commons:commons-lang3:' + commonsLang3,
 						'org.apache.httpcomponents:httpclient:4.5.14',
 						'org.codehaus.jettison:jettison:1.5.4'
@@ -685,14 +685,6 @@ tasks.named("dependencyUpdates").configure {
 				case 'org.apache.ws.commons.axiom:axiom-impl':
 					return !version.startsWith('1.')
 			}
-
-		// Tomcat is constrained to major 9.x.
-		if (it.candidate.group in ['org.apache.tomcat', 'org.apache.tomcat.embed']) {
-			def matcher = (version =~ /^(\d+)/)
-			if (matcher) {
-				return (matcher[0][1] as int) > 9
-			}
-		}
 
 		return false
 	}

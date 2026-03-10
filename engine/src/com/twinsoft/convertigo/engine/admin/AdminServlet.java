@@ -21,10 +21,10 @@ package com.twinsoft.convertigo.engine.admin;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;

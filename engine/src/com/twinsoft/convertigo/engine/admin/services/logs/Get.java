@@ -21,7 +21,7 @@ package com.twinsoft.convertigo.engine.admin.services.logs;
 
 import java.util.Date;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
