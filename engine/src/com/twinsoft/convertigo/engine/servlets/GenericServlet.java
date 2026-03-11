@@ -28,11 +28,6 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.fileupload.FileItem;
@@ -58,13 +53,18 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.util.FileUtils;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.JakartaServletFileUploadSupport;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 public abstract class GenericServlet extends HttpServlet {
 
@@ -289,10 +289,11 @@ public abstract class GenericServlet extends HttpServlet {
 
 							applyCustomHeaders(request, response);
 
-							OutputStream out = response.getOutputStream();
-							out.write(data);
-							out.flush();
-						} else if (result instanceof byte[]) {
+								try (OutputStream out = response.getOutputStream()) {
+									out.write(data);
+									out.flush();
+								}
+							} else if (result instanceof byte[]) {
 							if (requested_content_type != null) {
 								response.setContentType(requested_content_type);
 							} else {
@@ -303,10 +304,11 @@ public abstract class GenericServlet extends HttpServlet {
 
 							applyCustomHeaders(request, response);
 
-							OutputStream out = response.getOutputStream();
-							out.write((byte[]) result);
-							out.flush();
-						} else {
+								try (OutputStream out = response.getOutputStream()) {
+									out.write((byte[]) result);
+									out.flush();
+								}
+							} else {
 							String sResult = "";
 							if (result instanceof String) {
 								sResult = (String) result;
@@ -318,10 +320,11 @@ public abstract class GenericServlet extends HttpServlet {
 
 							applyCustomHeaders(request, response);
 
-							Writer writer = response.getWriter();
-							writer.write(sResult);
-							writer.flush();
-						}
+								try (Writer writer = response.getWriter()) {
+									writer.write(sResult);
+									writer.flush();
+								}
+							}
 					} else {
 						applyCustomHeaders(request, response);
 
@@ -450,9 +453,10 @@ public abstract class GenericServlet extends HttpServlet {
 			try {
 				HeaderName.XConvertigoException.addHeader(response, hide_error ? "" : e.getClass().getName());
 				response.setContentType(MimeType.Plain.value());
-				PrintWriter out = response.getWriter();
-				out.println("Convertigo error:" + (hide_error ? "" : e.getMessage()));
-			} catch (IOException e1) {
+					try (PrintWriter out = response.getWriter()) {
+						out.println("Convertigo error:" + (hide_error ? "" : e.getMessage()));
+					}
+				} catch (IOException e1) {
 				Engine.logEngine.error("Unexpected exception", e1);
 				if (hide_error) 
 					throw new ServletException();
