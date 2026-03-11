@@ -240,7 +240,7 @@ publishing {
 						'com.convertigo.twinsoft:api:2017.12.29',
 						'com.convertigo.twinsoft:tas:2019.10.16',
 						'com.convertigo.twinsoft:util:2017.12.29',
-						'com.fasterxml.jackson.core:jackson-core:2.15.0',
+						'com.fasterxml.jackson.core:jackson-core:2.21.1',
 						'commons-io:commons-io:' + commonsIo,
 						'javax.mail:mail:1.4.7',
 						'jakarta.servlet:jakarta.servlet-api:6.1.0',
@@ -568,12 +568,6 @@ task checkLicenseDate {
 	}
 }
 
-wrapper {
-	group = 'convertigo'
-	
-	gradleVersion = '9.3.1'
-}
-
 tasks.register('checkStudioJdkUpToDate') {
 	group = 'convertigo'
 	description = 'Checks whether installers/nsis/download-jdk.sh uses the latest Temurin LTS patch release.'
@@ -688,4 +682,10 @@ tasks.named("dependencyUpdates").configure {
 
 		return false
 	}
+}
+
+wrapper {
+	group = 'convertigo'
+	
+	gradleVersion = '9.3.1'
 }

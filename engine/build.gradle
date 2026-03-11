@@ -79,13 +79,6 @@ tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
 configurations {
 	compileFlat
 	sapjco3
-	couchdbProviderArtifact {
-		transitive = false
-	}
-	qrcodeArtifact {
-		transitive = false
-	}
-	jakartaMigrationTool
 }
 
 jar {
@@ -95,10 +88,6 @@ jar {
 }
 
 def dependenciesIndex = layout.buildDirectory.file("tmp/allJars.txt")
-def couchDbProviderVersion = '8.3.11'
-def migratedCouchDbProvider = layout.buildDirectory.file("tmp/convertigo-provider-couchdb-${couchDbProviderVersion}-jakarta.jar")
-def qrcodeVersion = '2011.05.19'
-def migratedQrcodeJar = layout.buildDirectory.file("tmp/qrcode-${qrcodeVersion}-jakarta.jar")
 
 tasks.register("generateDependenciesIndex") {
 	group = 'convertigo'
@@ -259,15 +248,11 @@ dependencies {
 	compileFlat    'org.apache.logging.log4j:log4j-api:' + log4jVersion
 	compileFlat    'org.apache.logging.log4j:log4j-jcl:' + log4jVersion
 	compileFlat    'ca.juliusdavies:not-yet-commons-ssl:0.3.17'
-	couchdbProviderArtifact "com.convertigo.provider:convertigo-provider-couchdb:${couchDbProviderVersion}"
-	qrcodeArtifact "com.convertigo.lib:qrcode:${qrcodeVersion}"
-	jakartaMigrationTool   'org.apache.tomcat:jakartaee-migration:1.0.10:shaded@jar'
 	compileFlat    'com.convertigo.lib:ctgclient:2010.06.14'
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
-		compileFlat    'com.smartbear.soapui:soapui-light:' + soapuiVersion
-		implementation "com.convertigo.provider:convertigo-provider-couchdb:${couchDbProviderVersion}@pom"
-		implementation(files(migratedCouchDbProvider).builtBy('migrateCouchDbProvider'))
-		implementation('com.convertigo.provider:convertigo-provider-plugins:8.3.11') {
+	compileFlat    'com.smartbear.soapui:soapui-light:' + soapuiVersion
+	implementation "com.convertigo.provider:convertigo-provider-couchdb:8.5.0"
+	implementation('com.convertigo.provider:convertigo-provider-plugins:8.5.0') {
 		exclude group: 'xml-apis', module: 'xml-apis'
 		exclude group: 'xalan', module: 'xalan'
 		exclude group: 'xalan', module: 'serializer'
@@ -341,7 +326,7 @@ dependencies {
 	compileFlat    'xerces:xercesImpl:2.12.2'
 	compileFlat    'xml-resolver:xml-resolver:1.2'
 	// runtime dependencies from here
-	compileFlat    files(migratedQrcodeJar).builtBy('migrateQrcodeLib')
+	compileFlat    'com.convertigo.lib:qrcode:2011.05.19-jakarta'
 	compileFlat    'net.sf.jt400:jt400:11.2'
 	compileFlat    'net.sourceforge.jtds:jtds:1.3.1'
 	compileFlat    'org.hsqldb:hsqldb:2.7.4'
@@ -396,52 +381,6 @@ task dependenciesSourceJar(type: Jar) {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-def migrateCouchDbProvider = tasks.register('migrateCouchDbProvider', JavaExec) {
-	group = 'convertigo'
-	description = 'Migrates the CouchDB provider jar from javax.servlet to jakarta.servlet for Tomcat 11.'
-
-	inputs.files(configurations.couchdbProviderArtifact)
-		.withPropertyName("couchDbProviderArtifact")
-		.withPathSensitivity(PathSensitivity.RELATIVE)
-	outputs.file(migratedCouchDbProvider)
-		.withPropertyName("migratedCouchDbProvider")
-
-	classpath = configurations.jakartaMigrationTool
-	mainClass = 'org.apache.tomcat.jakartaee.MigrationCLI'
-
-	doFirst {
-		migratedCouchDbProvider.get().asFile.parentFile.mkdirs()
-		args = [
-			'-profile=SERVLET',
-			configurations.couchdbProviderArtifact.singleFile.absolutePath,
-			migratedCouchDbProvider.get().asFile.absolutePath
-		]
-	}
-}
-
-def migrateQrcodeLib = tasks.register('migrateQrcodeLib', JavaExec) {
-	group = 'convertigo'
-	description = 'Migrates the QRCode servlet jar from javax.servlet to jakarta.servlet for Tomcat 11.'
-
-	inputs.files(configurations.qrcodeArtifact)
-		.withPropertyName("qrcodeArtifact")
-		.withPathSensitivity(PathSensitivity.RELATIVE)
-	outputs.file(migratedQrcodeJar)
-		.withPropertyName("migratedQrcodeJar")
-
-	classpath = configurations.jakartaMigrationTool
-	mainClass = 'org.apache.tomcat.jakartaee.MigrationCLI'
-
-	doFirst {
-		migratedQrcodeJar.get().asFile.parentFile.mkdirs()
-		args = [
-			'-profile=SERVLET',
-			configurations.qrcodeArtifact.singleFile.absolutePath,
-			migratedQrcodeJar.get().asFile.absolutePath
-		]
-	}
-}
-
 task updateProductVersion {
 	group = 'convertigo'
 	
@@ -467,7 +406,7 @@ task engineApiJar(type: Jar) {
 	group = 'build'
 	
 	archiveBaseName = 'convertigo-engine-api'
-	from 'bin/main'
+	from sourceSets.main.output
 	include '**/*.class'
 	exclude 'com/twinsoft/convertigo/engine/parsers/**'
 	exclude 'com/twinsoft/convertigo/engine/plugins/**'
@@ -582,9 +521,5 @@ task generateDocumentationMd(type: JavaExec, dependsOn: [engineDependenciesClass
 
 processResources.dependsOn('copyFlashUpdateDependencies')
 compileJava.dependsOn(['copyLicense', 'copyFlashUpdateDependencies', 'updateProductVersion'])
-compileJava.dependsOn(migrateCouchDbProvider)
-compileJava.dependsOn(migrateQrcodeLib)
-dependenciesJar.dependsOn(migrateQrcodeLib)
-generateDependenciesIndex.dependsOn(migrateQrcodeLib)
 processResources.dependsOn(':convertigo-svg-icons:run')
 jar.dependsOn('updateBeansDefaultValues')
