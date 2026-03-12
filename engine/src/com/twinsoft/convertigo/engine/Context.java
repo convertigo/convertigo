@@ -48,7 +48,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.Vector;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;

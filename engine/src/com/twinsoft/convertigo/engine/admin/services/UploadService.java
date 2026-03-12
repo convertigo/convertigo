@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.engine.admin.services;
 import java.io.File;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
@@ -31,12 +31,13 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.JakartaServletFileUploadSupport;
 
 public abstract class UploadService extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		// Check that we have a file upload request
-		boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+		boolean isMultipart = JakartaServletFileUploadSupport.isMultipartContent(request);
 
 		if (!isMultipart)
 			throw new IllegalArgumentException("Not multipart content!");
@@ -47,7 +48,7 @@ public abstract class UploadService extends XmlService {
 		ServletFileUpload upload = new ServletFileUpload(factory);
 
 		// Parse the request
-		List<FileItem> items = GenericUtils.cast(upload.parseRequest(request));
+		List<FileItem> items = JakartaServletFileUploadSupport.parseRequest(upload, request);
 
 		// Process the uploaded items
 		handleFormFields(request);

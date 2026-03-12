@@ -33,7 +33,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.redisson.api.RMapCache;
 import org.redisson.client.codec.StringCodec;
@@ -190,17 +190,17 @@ public final class RedisInstanceDiscovery {
 			if (request == null) {
 				return false;
 			}
-			Object cipher = request.getAttribute("javax.servlet.request.cipher_suite");
+			Object cipher = request.getAttribute("jakarta.servlet.request.cipher_suite");
 			if (cipher instanceof String s && !s.isBlank()) {
 				return true;
 			}
-			if (request.getAttribute("javax.servlet.request.ssl_session") != null) {
+			if (request.getAttribute("jakarta.servlet.request.ssl_session") != null) {
 				return true;
 			}
-			if (request.getAttribute("javax.servlet.request.ssl_session_id") != null) {
+			if (request.getAttribute("jakarta.servlet.request.ssl_session_id") != null) {
 				return true;
 			}
-			if (request.getAttribute("javax.servlet.request.key_size") != null) {
+			if (request.getAttribute("jakarta.servlet.request.key_size") != null) {
 				return true;
 			}
 		} catch (Exception ignore) {

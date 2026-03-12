@@ -23,7 +23,7 @@ import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import java.util.HashSet;
 import java.util.List;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public enum SessionAttribute {

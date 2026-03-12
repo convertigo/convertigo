@@ -29,9 +29,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionContext;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpSession;
 
 import com.twinsoft.convertigo.engine.Engine;
 
@@ -212,11 +211,6 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	}
 
 	@Override
-	public HttpSessionContext getSessionContext() {
-		return null;
-	}
-
-	@Override
 	public Object getAttribute(String name) {
 		synchronized (mutex) {
 			ensureValid();
@@ -254,11 +248,6 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	}
 
 	@Override
-	public Object getValue(String name) {
-		return getAttribute(name);
-	}
-
-	@Override
 	public Enumeration<String> getAttributeNames() {
 		synchronized (mutex) {
 			ensureValid();
@@ -281,11 +270,6 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	}
 
 	@Override
-	public String[] getValueNames() {
-		return Collections.list(getAttributeNames()).toArray(String[]::new);
-	}
-
-	@Override
 	public void setAttribute(String name, Object value) {
 		synchronized (mutex) {
 			ensureValid();
@@ -302,11 +286,6 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	}
 
 	@Override
-	public void putValue(String name, Object value) {
-		setAttribute(name, value);
-	}
-
-	@Override
 	public void removeAttribute(String name) {
 		synchronized (mutex) {
 			ensureValid();
@@ -320,11 +299,6 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			lastAccessedTime = System.currentTimeMillis();
 			dirtyLastAccess = true;
 		}
-	}
-
-	@Override
-	public void removeValue(String name) {
-		removeAttribute(name);
 	}
 
 	@Override

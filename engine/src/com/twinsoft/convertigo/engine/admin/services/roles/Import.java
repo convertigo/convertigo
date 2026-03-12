@@ -21,7 +21,7 @@ package com.twinsoft.convertigo.engine.admin.services.roles;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.IOUtils;

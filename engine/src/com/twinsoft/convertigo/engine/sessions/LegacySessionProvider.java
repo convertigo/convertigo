@@ -19,8 +19,8 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 

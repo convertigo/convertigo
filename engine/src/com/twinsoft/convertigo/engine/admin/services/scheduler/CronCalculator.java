@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.engine.admin.services.scheduler;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.quartz.CronExpression;
 import org.w3c.dom.Document;

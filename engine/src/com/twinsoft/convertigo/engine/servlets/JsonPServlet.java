@@ -19,7 +19,7 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.JsonPServletRequester;

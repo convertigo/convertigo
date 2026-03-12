@@ -26,17 +26,17 @@ import java.io.PrintWriter;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -111,20 +111,26 @@ public class CompressionFilter implements Filter {
 
 		private GZipServletOutputStream gzipOutputStream = null;
 		private PrintWriter             printWriter      = null;
+		private boolean                 closed           = false;
 
 		private GZipServletResponseWrapper(HttpServletResponse response) throws IOException {
 			super(response);
 		}
 
 		private void close() throws IOException {
-			//PrintWriter.close does not throw exceptions.
-			//Hence no try-catch block.
+			if (closed) {
+				return;
+			}
+			closed = true;
+			if (printWriter != null) {
+				printWriter.flush();
+			}
+			if (gzipOutputStream != null) {
+				gzipOutputStream.finish();
+				gzipOutputStream.close();
+			}
 			if (printWriter != null) {
 				printWriter.close();
-			}
-
-			if (gzipOutputStream != null) {
-				gzipOutputStream.close();
 			}
 		}
 
@@ -143,27 +149,8 @@ public class CompressionFilter implements Filter {
 				printWriter.flush();
 			}
 
-			IOException exception1 = null;
-			try {
-				if (gzipOutputStream != null) {
-					gzipOutputStream.flush();
-				}
-			} catch(IOException e) {
-				exception1 = e;
-			}
-
-			IOException exception2 = null;
-			try {
-				super.flushBuffer();
-			} catch(IOException e){
-				exception2 = e;
-			}
-
-			if (exception1 != null) {
-				throw exception1;
-			}
-			if (exception2 != null) {
-				throw exception2;
+			if (gzipOutputStream != null) {
+				gzipOutputStream.flush();
 			}
 		}
 
@@ -173,7 +160,7 @@ public class CompressionFilter implements Filter {
 				throw new IllegalStateException("PrintWriter obtained already - cannot get OutputStream");
 			}
 			if (gzipOutputStream == null) {
-				HeaderName.ContentEncoding.addHeader(this, "gzip");
+				HeaderName.ContentEncoding.setHeader(this, "gzip");
 				gzipOutputStream = new GZipServletOutputStream(getResponse().getOutputStream());
 			}
 			return this.gzipOutputStream;
@@ -186,7 +173,7 @@ public class CompressionFilter implements Filter {
 			}
 
 			if (printWriter == null) {
-				HeaderName.ContentEncoding.addHeader(this, "gzip");
+				HeaderName.ContentEncoding.setHeader(this, "gzip");
 				gzipOutputStream = new GZipServletOutputStream(getResponse().getOutputStream());
 				printWriter = new PrintWriter(new OutputStreamWriter(gzipOutputStream, getResponse().getCharacterEncoding()));
 			}
@@ -198,6 +185,12 @@ public class CompressionFilter implements Filter {
 			//ignore, since content length of zipped content
 			//does not match content length of unzipped content.
 		}		
+
+		@Override
+		public void setContentLengthLong(long len) {
+			// ignore, since content length of zipped content does not match
+			// content length of unzipped content.
+		}
 
 		@Override
 		public void addHeader(String name, String value) {
@@ -231,16 +224,27 @@ public class CompressionFilter implements Filter {
 	}
 
 	class GZipServletOutputStream extends ServletOutputStream {
-		private GZIPOutputStream gzipOutputStream = null;
+		private final ServletOutputStream output;
+		private final GZIPOutputStream gzipOutputStream;
 
 		private GZipServletOutputStream(OutputStream output) throws IOException {
 			super();
-			gzipOutputStream = new GZIPOutputStream(output);
+			this.output = (ServletOutputStream) output;
+			/*
+			 * Tomcat 11 flushes dynamic responses earlier than previous versions.
+			 * Keep pending deflate data visible on flush to avoid sending only the
+			 * gzip header before the response is committed.
+			 */
+			gzipOutputStream = new GZIPOutputStream(output, true);
 		}
 
 		@Override
 		public void close() throws IOException {
 			gzipOutputStream.close();
+		}
+
+		private void finish() throws IOException {
+			gzipOutputStream.finish();
 		}
 
 		@Override
@@ -265,14 +269,12 @@ public class CompressionFilter implements Filter {
 
 		@Override
 		public boolean isReady() {
-			// TODO Auto-generated method stub
-			return false;
+			return output.isReady();
 		}
 
 		@Override
 		public void setWriteListener(WriteListener listener) {
-			// TODO Auto-generated method stub
-			
+			output.setWriteListener(listener);
 		}
 	}
 }

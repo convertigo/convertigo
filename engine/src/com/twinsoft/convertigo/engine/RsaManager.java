@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.crypto.Cipher;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 public class RsaManager implements AbstractManager {
 	private final static Pattern findTimestamp = Pattern.compile("^ts=(\\d+)&(.*$)");

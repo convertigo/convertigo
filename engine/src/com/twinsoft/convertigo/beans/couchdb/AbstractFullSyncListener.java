@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.xpath.XPathAPI;
 import org.codehaus.jettison.json.JSONArray;

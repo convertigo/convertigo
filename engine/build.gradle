@@ -251,8 +251,8 @@ dependencies {
 	compileFlat    'com.convertigo.lib:ctgclient:2010.06.14'
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 	compileFlat    'com.smartbear.soapui:soapui-light:' + soapuiVersion
-	implementation 'com.convertigo.provider:convertigo-provider-couchdb:8.3.11'
-	implementation('com.convertigo.provider:convertigo-provider-plugins:8.3.11') {
+	implementation "com.convertigo.provider:convertigo-provider-couchdb:8.5.0"
+	implementation('com.convertigo.provider:convertigo-provider-plugins:8.5.0') {
 		exclude group: 'xml-apis', module: 'xml-apis'
 		exclude group: 'xalan', module: 'xalan'
 		exclude group: 'xalan', module: 'serializer'
@@ -315,7 +315,7 @@ dependencies {
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.5.0.202512021534-r'
 	compileFlat    'org.hibernate.orm:hibernate-core:7.2.5.Final'
-	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0:javax'
+	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0'
 	compileFlat    'org.mozilla:rhino:1.9.1'
 	compileFlat    'org.mozilla:rhino-tools:1.9.1'
 	compileFlat    'org.quartz-scheduler:quartz:2.5.2'
@@ -326,7 +326,7 @@ dependencies {
 	compileFlat    'xerces:xercesImpl:2.12.2'
 	compileFlat    'xml-resolver:xml-resolver:1.2'
 	// runtime dependencies from here
-	compileFlat    'com.convertigo.lib:qrcode:2011.05.19'
+	compileFlat    'com.convertigo.lib:qrcode:2011.05.19-jakarta'
 	compileFlat    'net.sf.jt400:jt400:11.2'
 	compileFlat    'net.sourceforge.jtds:jtds:1.3.1'
 	compileFlat    'org.hsqldb:hsqldb:2.7.4'
@@ -406,7 +406,7 @@ task engineApiJar(type: Jar) {
 	group = 'build'
 	
 	archiveBaseName = 'convertigo-engine-api'
-	from 'bin/main'
+	from sourceSets.main.output
 	include '**/*.class'
 	exclude 'com/twinsoft/convertigo/engine/parsers/**'
 	exclude 'com/twinsoft/convertigo/engine/plugins/**'

@@ -19,7 +19,7 @@
 
 package com.twinsoft.convertigo.engine.enums;
 
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 public enum RequestAttribute {
 	debug,

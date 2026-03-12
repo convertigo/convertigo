@@ -19,7 +19,7 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 public final class StatefulSessionAttributes {
 	private StatefulSessionAttributes() {

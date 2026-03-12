@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:9-jdk25-temurin-noble
+FROM tomcat:11-jdk25-temurin-noble
 
 ## force SWT to use GTK2 instead of GTK3 (no Xulrunner support)
 ENV SWT_GTK3=0
@@ -82,7 +82,7 @@ RUN sed -i.bak \
  errorCode.0="webapps/convertigo/error.html"\
  showReport="false" showServerInfo="false" />\n\
       </Host>,' \
-        -e 's,</Service>,<!--SSL<Connector port="28443" protocol="org.apache.coyote.http11.Http11AprProtocol" SSLEnabled="true" maxThreads="64000" relaxedQueryChars="{}[]|">\n\
+        -e 's,</Service>,<!--SSL<Connector port="28443" protocol="org.apache.coyote.http11.Http11NioProtocol" SSLEnabled="true" maxThreads="64000" relaxedQueryChars="{}[]|">\n\
       <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />\n\
       <SSLHostConfig>\n\
         <Certificate certificateKeyFile="/certs/key.pem"\n\

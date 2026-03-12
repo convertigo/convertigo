@@ -33,11 +33,11 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -172,7 +172,6 @@ public class ServletUtils {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	public static void applyCustomStatus(HttpServletRequest request, HttpServletResponse response) {
 		Map<Integer, String> status = RequestAttribute.responseStatus.get(request);
 		if (status != null) {
@@ -180,8 +179,8 @@ public class ServletUtils {
 			if (!status.isEmpty()) {
 				Entry<Integer, String> entry = status.entrySet().iterator().next();
 				Engine.logContext.debug("Setting custom response status: " + entry.getKey() + "=" + entry.getValue());
-				response.setStatus(entry.getKey(), entry.getValue());
-				//response.setStatus(entry.getKey());
+				// Reason phrases were removed from the Servlet API in Jakarta Servlet 6.
+				response.setStatus(entry.getKey());
 			}
 		}
 	}

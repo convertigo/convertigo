@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.engine.requesters;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;

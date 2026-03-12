@@ -23,14 +23,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.ServerEndpointConfig;
 
 import org.apache.tomcat.websocket.server.WsServerContainer;
 
@@ -50,7 +50,7 @@ public abstract class WebSocketService implements Service {
 			var uri = request.getRequestURI();
 			try {
 				var wsContainer = (WsServerContainer) request.getServletContext()
-						.getAttribute("javax.websocket.server.ServerContainer");
+						.getAttribute("jakarta.websocket.server.ServerContainer");
 				var config = ServerEndpointConfig.Builder.create(WsProxy.class, uri);
 				var id = "" + cID++;
 				var map = new HashMap<String, String>();

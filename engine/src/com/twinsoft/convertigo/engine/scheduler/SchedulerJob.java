@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.quartz.Job;
 import org.quartz.JobDetail;

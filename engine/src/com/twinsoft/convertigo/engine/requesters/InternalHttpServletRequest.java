@@ -37,23 +37,23 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.AsyncContext;
-import javax.servlet.DispatcherType;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionBindingEvent;
-import javax.servlet.http.HttpSessionBindingListener;
-import javax.servlet.http.HttpSessionContext;
-import javax.servlet.http.HttpUpgradeHandler;
-import javax.servlet.http.Part;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletConnection;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSessionBindingEvent;
+import jakarta.servlet.http.HttpSessionBindingListener;
+import jakarta.servlet.http.HttpUpgradeHandler;
+import jakarta.servlet.http.Part;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -73,6 +73,7 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 	private HttpSession session = null;
 
 	private String characterEncoding;
+	private final String requestId = Long.toUnsignedString(System.nanoTime(), Character.MAX_RADIX).toUpperCase();
 	private String localAddr = "127.0.0.1";
 	private String localName = "localhost";
 	private int localPort = 18080;
@@ -305,12 +306,6 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public String getRealPath(String path) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public String getRemoteAddr() {
 		return remoteAddr;
 	}
@@ -442,7 +437,7 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 	@Override
 	public Enumeration<String> getHeaderNames() {
 		if (headers != null) {
-			Collections.enumeration(headers.keySet());
+			return Collections.enumeration(headers.keySet());
 		}
 		return Collections.enumeration(Collections.<String>emptyList());
 	}
@@ -573,12 +568,6 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public boolean isRequestedSessionIdFromUrl() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public boolean isRequestedSessionIdValid() {
 		// TODO Auto-generated method stub
 		return false;
@@ -670,30 +659,6 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 		}
 
 		@Override
-		public HttpSessionContext getSessionContext() {
-			return null;
-		}
-
-		@Override
-		public Object getValue(String key) {
-			tick();
-			Object o = null;
-			if (values != null) {
-				o = values.get(key);
-			}
-			return o;
-		}
-
-		@Override
-		public String[] getValueNames() {
-			if (values != null) {
-				Collection<String> names = values.keySet();
-				return names.toArray(new String[names.size()]);
-			}
-			return new String[0];
-		}
-
-		@Override
 		public void invalidate() {
 			setMaxInactiveInterval(1);
 		}
@@ -704,21 +669,9 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 		}
 
 		@Override
-		public void putValue(String key, Object value) {
-			getValues().put(key, value);
-		}
-
-		@Override
 		public void removeAttribute(String attribute) {
 			if (attributes != null) {
 				attributes.remove(attribute);
-			}
-		}
-
-		@Override
-		public void removeValue(String key) {
-			if (values != null) {
-				values.remove(key);
 			}
 		}
 
@@ -766,6 +719,41 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 	public String changeSessionId() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public String getRequestId() {
+		return requestId;
+	}
+
+	@Override
+	public String getProtocolRequestId() {
+		return requestId;
+	}
+
+	@Override
+	public ServletConnection getServletConnection() {
+		return new ServletConnection() {
+			@Override
+			public String getConnectionId() {
+				return requestId;
+			}
+
+			@Override
+			public String getProtocol() {
+				return InternalHttpServletRequest.this.getProtocol();
+			}
+
+			@Override
+			public String getProtocolConnectionId() {
+				return requestId;
+			}
+
+			@Override
+			public boolean isSecure() {
+				return InternalHttpServletRequest.this.isSecure();
+			}
+		};
 	}
 
 	@Override
