@@ -57,6 +57,12 @@ public class ServletUtils {
 	private static final String ATTR_BASE_DEPTH = ServletUtils.class.getName() + ".baseDepth";
 	private static final Pattern RANGE_PATTERN = Pattern.compile("bytes\\s*=\\s*(.+)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern RANGE_ITEM_PATTERN = Pattern.compile("(\\d*)-(\\d*)");
+	private static final Pattern P_DISPLAY_OBJECTS_SPA = Pattern.compile("^/(?:system/)?projects/[^/]+/DisplayObjects/(?:mobile|pwas/[^/]+)(?:/.*)?$");
+	private static final Pattern HASHED_DISPLAY_OBJECTS_FILE = Pattern.compile(
+			".*-[A-Za-z0-9_-]{8,}\\.(?:css|js|mjs|map|png|apng|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf|eot|wasm)$",
+			Pattern.CASE_INSENSITIVE);
+	private static final String CACHE_CONTROL_IMMUTABLE = "public, max-age=31536000, immutable";
+	private static final String CACHE_CONTROL_REVALIDATE = "no-cache, must-revalidate";
 	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
@@ -108,7 +114,13 @@ public class ServletUtils {
 				String mimeType = filterConfig.getServletContext().getMimeType(file.getName());
 				Engine.logContext.debug("Found MIME type: " + mimeType);
 				HeaderName.ContentType.setHeader(response, mimeType);
-				HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge	);
+				var staticCacheControl = getStaticCacheControl(request, file);
+				if (staticCacheControl != null) {
+					HeaderName.CacheControl.setHeader(response, staticCacheControl);
+				}
+				if (!HeaderName.CacheControl.has(response)) {
+					HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge);
+				}
 				writeFile(request, response, file, rewritten, mimeType);
 			}
 		} else {
@@ -183,6 +195,20 @@ public class ServletUtils {
 				response.setStatus(entry.getKey());
 			}
 		}
+	}
+
+	private static String getStaticCacheControl(HttpServletRequest request, File file) {
+		var path = request.getRequestURI().substring(request.getContextPath().length());
+		if (!P_DISPLAY_OBJECTS_SPA.matcher(path).matches()) {
+			return null;
+		}
+		if ("index.html".equalsIgnoreCase(file.getName())) {
+			return CACHE_CONTROL_REVALIDATE;
+		}
+		if (HASHED_DISPLAY_OBJECTS_FILE.matcher(file.getName()).matches()) {
+			return CACHE_CONTROL_IMMUTABLE;
+		}
+		return null;
 	}
 
 private static Integer computeDepth(HttpServletRequest request) {
