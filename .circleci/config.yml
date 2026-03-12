@@ -13,34 +13,12 @@ version: 2.1
 orbs:
   aws-cli: circleci/aws-cli@5.4.0
 jobs:
-  build_engine_jar:
+  prepare_build:
     <<: *defaults
-    
+
     steps:
-    
-#     - restore_cache:
-#         keys:
-#         - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-{{ .Revision }}
-#         - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-
-        
     - checkout
-    
-#     - save_cache:
-#         paths:
-#         - .git
-#         key: v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-{{ .Revision }}
-        
-    - restore_cache:
-        keys:
-        - v4-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v4-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v4-dependencies-
-        
-    - restore_cache:
-        keys:
-        - v4-build-cache-{{ .Revision }}
-        - v4-build-cache-
-        
+
     - run:
         name: Prepare build.env
         command: |
@@ -79,11 +57,47 @@ jobs:
           
           echo "/tmp/build.env: "
           cat /tmp/build.env
-          
+
     - save_cache:
         paths:
         - /tmp/build.env
         key: v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+
+    - store_artifacts:
+        path: /home/circleci/s3
+        destination: env
+
+  build_engine_jar:
+    <<: *defaults
+    
+    steps:
+    
+#     - restore_cache:
+#         keys:
+#         - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-{{ .Revision }}
+#         - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-
+        
+    - checkout
+    
+#     - save_cache:
+#         paths:
+#         - .git
+#         key: v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-{{ .Revision }}
+        
+    - restore_cache:
+        keys:
+        - v5-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-
+        
+    - restore_cache:
+        keys:
+        - v5-build-cache-{{ .Revision }}
+        - v5-build-cache-
+        
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
     - add_ssh_keys:
         fingerprints:
@@ -108,13 +122,10 @@ jobs:
         command: |
           source /tmp/build.env
           test -d ~/.gradle/caches && find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rf {} +
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           if [ "$CIRCLE_BRANCH" == "" ] ; then
-            sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :ciFirstStep
+            sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:jar :gradle-plugin:publish
           else
-            sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME -PdocumentationPath=$PWD/convertigo-doc :engine:generateDocumentationMd :ciFirstStep
+            sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME -PdocumentationPath=$PWD/convertigo-doc :engine:generateDocumentationMd :engine:jar :gradle-plugin:publish
           fi
         
     - run:
@@ -136,38 +147,89 @@ jobs:
         paths:
           - ~/.gradle
           - .gradle
-        key: v4-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - save_cache:
         paths:
         - ~/.gradle/caches/build-cache-1
-        key: v4-build-cache-{{ .Revision }}
-    
+        key: v5-build-cache-{{ .Revision }}
+
+  build_web_admin:
+    <<: *defaults
+
+    steps:
+    - checkout
+
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+
+    - restore_cache:
+        keys:
+        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-
+
+    - restore_cache:
+        keys:
+        - v2-studio-web-tooling-{{ checksum "build.gradle" }}-{{ checksum "convertigo-studio-web/package-lock.json" }}
+        - v2-studio-web-tooling-
+
     - run:
-        name: Clean workspace before saving
-        command: rm -rf .git convertigo-doc
-    
-    - store_artifacts:
-        path: /home/circleci/s3
-        destination: env
-    
-    - persist_to_workspace:
-        root: ..
+        name: Build web administration
+        command: |
+          source /tmp/build.env
+          export NVM_DIR="$HOME/.nvm"
+          if [ ! -s "$NVM_DIR/nvm.sh" ] ; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+          fi
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :buildStudioWebNpmInstall :buildStudioWebBuild
+
+    - save_cache:
         paths:
-        - .
-        
+          - ~/.gradle
+          - .gradle
+        key: v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+
+    - save_cache:
+        paths:
+        - ~/.nvm
+        - ~/.npm
+        key: v2-studio-web-tooling-{{ checksum "build.gradle" }}-{{ checksum "convertigo-studio-web/package-lock.json" }}
+
+    - persist_to_workspace:
+        root: .
+        paths:
+        - eclipse-plugin-studio/tomcat/webapps/convertigo
+  
   build_engine_war:
     <<: *defaults
     
     steps:
     - aws-cli/setup
-    
+    - checkout
     - attach_workspace:
-        at: ..
+        at: /home/circleci/repo
         
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - run:
+        name: Prepare dist directory
+        command: |
+          source /tmp/build.env
+          mkdir -p $CONVERTIGO_DIST
+    
+    - restore_cache:
+        keys:
+        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-
+        
+    - restore_cache:
+        keys:
+        - v5-build-cache-{{ .Revision }}
+        - v5-build-cache-
         
     - restore_cache:
         keys:
@@ -185,11 +247,6 @@ jobs:
         paths:
         - resources
         key: v1-resources-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        
-    - save_cache:
-        paths:
-        - docker
-        key: v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
     - run:
         name: Sign WARs with GPG
@@ -214,13 +271,27 @@ jobs:
     
     steps:
     - aws-cli/setup
-    
-    - attach_workspace:
-        at: ..
+    - checkout
         
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - run:
+        name: Prepare dist directory
+        command: |
+          source /tmp/build.env
+          mkdir -p $CONVERTIGO_DIST
+    
+    - restore_cache:
+        keys:
+        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-
+        
+    - restore_cache:
+        keys:
+        - v5-build-cache-{{ .Revision }}
+        - v5-build-cache-
         
     - restore_cache:
         keys:
@@ -262,14 +333,11 @@ jobs:
     - image: docker:latest
     
     steps:
-    
-    - restore_cache:
-        keys:
-        - v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-        
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        
+    - checkout
         
     - setup_remote_docker:
         version: default
@@ -306,14 +374,11 @@ jobs:
     - image: docker:latest
     
     steps:
-    
-    - restore_cache:
-        keys:
-        - v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-        
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        
+    - checkout
         
     - setup_remote_docker:
         version: default
@@ -363,7 +428,7 @@ jobs:
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
           echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 8.3.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
+          git clone --depth 1 -b 8.5.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
           
     - run:
         name: Pull the docker aks image
@@ -493,18 +558,36 @@ jobs:
           7z x 7z1604-x64.msi _7zCon.sfx -so | sudo tee /usr/lib/p7zip/7zConWin64.sfx >/dev/null
           sudo chmod +x /usr/lib/p7zip/7zConWin64.sfx
           rm *.msi
-          
+    
+    - checkout
     - attach_workspace:
-        at: ..
+        at: /home/circleci/repo
         
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - run:
+        name: Prepare dist directory
+        command: |
+          source /tmp/build.env
+          mkdir -p $CONVERTIGO_DIST
         
     - restore_cache:
         keys:
-        - v4-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v4-m2-
+        - v5-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-
+        
+    - restore_cache:
+        keys:
+        - v5-build-cache-{{ .Revision }}
+        - v5-build-cache-
+        
+    - restore_cache:
+        keys:
+        - v5-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-m2-
         
     - run:
         name: Build Studio
@@ -515,13 +598,13 @@ jobs:
     - save_cache:
         paths:
         - ~/.m2
-        key: v4-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v5-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - save_cache:
         paths:
           - ~/.gradle
           - .gradle
-        key: v4-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v5-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - restore_cache:
         keys:
@@ -586,7 +669,7 @@ jobs:
               dir_mac_web=$(dirname ${dir_mac}/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
               echo "build.version=${convertigoRevision}" > ${dir_mac_web}/build.txt
               echo "build.date=$(date)" >> ${dir_mac_web}/build.txt
-              echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-macosx.pkg" >> ${dir_mac_web}/build.txt
+              echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-macosx-x86_64.pkg" >> ${dir_mac_web}/build.txt
               mv ${dir_mac} for_mac/convertigo-studio-$CONVERTIGO_VERSION-macosx
           fi
           if [ -d ${dir_mac_arm} ]; then
@@ -688,12 +771,6 @@ jobs:
           xcrun notarytool submit ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm.pkg --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}"
           xcrun notarytool submit ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}"
           
-          #brew install gnupg
-          
-          #mkdir -p ~/.gnupg
-          #tar -xvf for_mac/convertigo.gpg -C ~/.gnupg
-          #find ${OUTPUT_DIR} -type f -exec gpg -ab {} \;
-          
           echo "prepare s3 upload, aws client version"
           aws --version
           
@@ -723,7 +800,8 @@ jobs:
           source /tmp/build.env
           mkdir dist
           for f in "convertigo-studio-$CONVERTIGO_VERSION-win64.exe" \
-                   "convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz" \
+                   "convertigo-studio-$CONVERTIGO_VERSION-macosx-arm.pkg" \
+                   "convertigo-studio-$CONVERTIGO_VERSION-macosx-x86_64.pkg" \
                    "convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz" \
                    "convertigo-server-$CONVERTIGO_VERSION-win64.zip" \
                    "convertigo-$CONVERTIGO_VERSION.war"  ; do
@@ -743,22 +821,37 @@ workflows:
   version: 2
   all:
     jobs:
-    - build_engine_jar:
+    - prepare_build:
         filters:
           branches:
             ignore:
             - 7.5.x
           tags:
             only: /^\d+\..*$/
+    - build_engine_jar:
+        requires:
+        - prepare_build
+        filters:
+          branches:
+            ignore:
+            - 7.5.x
+          tags:
+            only: /^\d+\..*$/
+    - build_web_admin:
+        requires:
+        - prepare_build
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - build_engine_war:
         requires:
-        - build_engine_jar
+        - build_web_admin
         filters:
           tags:
             only: /^\d+\..*$/
     - build_studio:
         requires:
-        - build_engine_jar
+        - build_web_admin
         filters:
           tags:
             only: /^\d+\..*$/
@@ -809,6 +902,7 @@ workflows:
         - build_docker_default
         - build_docker_aks
         - build_studio
+        - build_studio_mac
         - build_windows_server
         filters:
           branches:
