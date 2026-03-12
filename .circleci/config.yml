@@ -32,14 +32,14 @@ jobs:
         
     - restore_cache:
         keys:
-        - v4-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v4-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v4-dependencies-
+        - v5-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-
         
     - restore_cache:
         keys:
-        - v4-build-cache-{{ .Revision }}
-        - v4-build-cache-
+        - v5-build-cache-{{ .Revision }}
+        - v5-build-cache-
         
     - run:
         name: Prepare build.env
@@ -136,38 +136,43 @@ jobs:
         paths:
           - ~/.gradle
           - .gradle
-        key: v4-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - save_cache:
         paths:
         - ~/.gradle/caches/build-cache-1
-        key: v4-build-cache-{{ .Revision }}
-    
-    - run:
-        name: Clean workspace before saving
-        command: rm -rf .git convertigo-doc
+        key: v5-build-cache-{{ .Revision }}
     
     - store_artifacts:
         path: /home/circleci/s3
         destination: env
     
-    - persist_to_workspace:
-        root: ..
-        paths:
-        - .
-        
   build_engine_war:
     <<: *defaults
     
     steps:
     - aws-cli/setup
-    
-    - attach_workspace:
-        at: ..
+    - checkout
         
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - run:
+        name: Prepare dist directory
+        command: |
+          source /tmp/build.env
+          mkdir -p $CONVERTIGO_DIST
+    
+    - restore_cache:
+        keys:
+        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-
+        
+    - restore_cache:
+        keys:
+        - v5-build-cache-{{ .Revision }}
+        - v5-build-cache-
         
     - restore_cache:
         keys:
@@ -185,11 +190,6 @@ jobs:
         paths:
         - resources
         key: v1-resources-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        
-    - save_cache:
-        paths:
-        - docker
-        key: v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
     - run:
         name: Sign WARs with GPG
@@ -214,13 +214,27 @@ jobs:
     
     steps:
     - aws-cli/setup
-    
-    - attach_workspace:
-        at: ..
+    - checkout
         
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - run:
+        name: Prepare dist directory
+        command: |
+          source /tmp/build.env
+          mkdir -p $CONVERTIGO_DIST
+    
+    - restore_cache:
+        keys:
+        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-
+        
+    - restore_cache:
+        keys:
+        - v5-build-cache-{{ .Revision }}
+        - v5-build-cache-
         
     - restore_cache:
         keys:
@@ -262,14 +276,11 @@ jobs:
     - image: docker:latest
     
     steps:
-    
-    - restore_cache:
-        keys:
-        - v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-        
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        
+    - checkout
         
     - setup_remote_docker:
         version: default
@@ -306,14 +317,11 @@ jobs:
     - image: docker:latest
     
     steps:
-    
-    - restore_cache:
-        keys:
-        - v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-        
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        
+    - checkout
         
     - setup_remote_docker:
         version: default
@@ -493,18 +501,34 @@ jobs:
           7z x 7z1604-x64.msi _7zCon.sfx -so | sudo tee /usr/lib/p7zip/7zConWin64.sfx >/dev/null
           sudo chmod +x /usr/lib/p7zip/7zConWin64.sfx
           rm *.msi
-          
-    - attach_workspace:
-        at: ..
+    
+    - checkout
         
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - run:
+        name: Prepare dist directory
+        command: |
+          source /tmp/build.env
+          mkdir -p $CONVERTIGO_DIST
         
     - restore_cache:
         keys:
-        - v4-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v4-m2-
+        - v5-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-dependencies-
+        
+    - restore_cache:
+        keys:
+        - v5-build-cache-{{ .Revision }}
+        - v5-build-cache-
+        
+    - restore_cache:
+        keys:
+        - v5-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v5-m2-
         
     - run:
         name: Build Studio
@@ -515,13 +539,13 @@ jobs:
     - save_cache:
         paths:
         - ~/.m2
-        key: v4-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v5-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - save_cache:
         paths:
           - ~/.gradle
           - .gradle
-        key: v4-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v5-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - restore_cache:
         keys:
