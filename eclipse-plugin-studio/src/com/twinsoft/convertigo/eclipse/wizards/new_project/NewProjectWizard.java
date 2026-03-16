@@ -26,7 +26,6 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
@@ -39,7 +38,6 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
@@ -57,6 +55,7 @@ import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ProjectGitHelper;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.ImportWsReference;
@@ -263,30 +262,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			}
 			
 			if (project != null) {
-				String autoCreate = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_AUTO_CREATE_PROJECT_GIT_REPOSITORY);;
-				if (!"true".equalsIgnoreCase(autoCreate)) {
-					return;
-				}
-				try (Git git = Git.init().setDirectory(project.getDirFile()).call()) {
-					git.add().addFilepattern(".").call();
-					git.commit().setMessage("Initial commit").call();
-
-					@SuppressWarnings("restriction")
-					boolean ok = org.eclipse.egit.core.RepositoryUtil.INSTANCE.addConfiguredRepository(git.getRepository().getDirectory());
-					if (ok) {
-						ConvertigoPlugin.getDisplay().asyncExec(() -> {
-							try {
-								IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-								iproject.close(null);
-								iproject.open(null);
-							} catch (Exception e) {
-								ConvertigoPlugin.logException(e, "An error occured while refreshing git state for the project", false);
-							}
-						});
-					}
-				} catch (Exception e) {
-					ConvertigoPlugin.logException(e, "An error occured while create git repository for the project", false);
-				}
+				ProjectGitHelper.ensureGitRepository(project);
 			}
 			
 		} catch (Exception e) {

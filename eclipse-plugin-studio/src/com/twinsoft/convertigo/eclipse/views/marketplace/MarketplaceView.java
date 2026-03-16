@@ -39,6 +39,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.dom.Element;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ProjectGitHelper;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
@@ -158,12 +159,16 @@ public class MarketplaceView extends ViewPart {
 			try {
 				if ("install".equals(json.getString("type"))) {
 					var importUrl = json.getString("url");
+					var starter = json.has("starter") && json.getBoolean("starter");
 					var parser = new ProjectUrlParser(importUrl);
 					if (parser.isValid()) {
 						Job.create("Import project " + parser.getProjectName(), (mon) -> {
 							try {
 								mon.beginTask("Loading " + parser.getProjectName(), IProgressMonitor.UNKNOWN);
 								var project = Engine.theApp.referencedProjectManager.importProject(parser, true);
+								if (project != null && starter) {
+									ProjectGitHelper.ensureGitRepository(project);
+								}
 								try {
 									var msg = new JSONObject();
 									msg.put("type", "postInstall");
