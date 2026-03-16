@@ -167,15 +167,17 @@
 		}
 	}));
 
-	const buildOptions = () => ({
-		...baseOptions,
-		series: normalizedSeries.map(({ name, data }) => ({ name, data: [...data] })),
-		xaxis: {
-			...baseOptions.xaxis,
-			categories: [...normalizedCategories]
-		},
-		colors: [...resolvedColors]
-	});
+	/** @returns {import('apexcharts').ApexOptions} */
+	const buildOptions = () =>
+		/** @type {import('apexcharts').ApexOptions} */ ({
+			...baseOptions,
+			series: normalizedSeries.map(({ name, data }) => ({ name, data: [...data] })),
+			xaxis: {
+				...baseOptions.xaxis,
+				categories: [...normalizedCategories]
+			},
+			colors: [...resolvedColors]
+		});
 
 	const options = $derived.by(() => buildOptions());
 
