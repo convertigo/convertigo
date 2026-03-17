@@ -55,11 +55,13 @@ import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective.AttrDirective;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.ngx.components.UIForm;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent;
+import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.Engine;
@@ -762,6 +764,28 @@ class NgxPickerContentProvider implements ITreeContentProvider {
 			list.addAll(((PageComponent)object).getAllChildren());
 		} else if (object instanceof UIComponent) {
 			list.addAll(((UIComponent)object).getAllChildren());
+			if (object instanceof UIUseShared) {
+				UIUseShared uius = (UIUseShared)object;
+				if (!uius.getSharedComponentQName().isEmpty()) {
+					UISharedComponent uisc = uius.getTargetSharedComponent();
+					if (uisc != null && uisc.isEnabled()) {
+						if (!uius.isRecursive()) {
+							list.addAll(uisc.getAllChildren());
+						}
+					}
+				}
+			}
+			if (object instanceof UIDynamicInvoke) {
+				UIDynamicInvoke uidi = (UIDynamicInvoke)object;
+				if (!uidi.getSharedActionQName().isEmpty()) {
+					UIActionStack uias = uidi.getTargetSharedAction();
+					if (uias != null && uias.isEnabled()) {
+						if (!uidi.isRecursive()) {
+							list.addAll(uias.getAllChildren());
+						}
+					}
+				}
+			}
 		}
 		
 		for (DatabaseObject dbo : list) {
@@ -816,6 +840,28 @@ class NgxPickerContentProvider implements ITreeContentProvider {
 			list.addAll(((PageComponent)object).getAllChildren());
 		} else if (object instanceof UIComponent) {
 			list.addAll(((UIComponent)object).getAllChildren());
+			if (object instanceof UIUseShared) {
+				UIUseShared uius = (UIUseShared)object;
+				if (!uius.getSharedComponentQName().isEmpty()) {
+					UISharedComponent uisc = uius.getTargetSharedComponent();
+					if (uisc != null && uisc.isEnabled()) {
+						if (!uius.isRecursive()) {
+							list.addAll(uisc.getAllChildren());
+						}
+					}
+				}
+			}
+			if (object instanceof UIDynamicInvoke) {
+				UIDynamicInvoke uidi = (UIDynamicInvoke)object;
+				if (!uidi.getSharedActionQName().isEmpty()) {
+					UIActionStack uias = uidi.getTargetSharedAction();
+					if (uias != null && uias.isEnabled()) {
+						if (!uidi.isRecursive()) {
+							list.addAll(uias.getAllChildren());
+						}
+					}
+				}
+			}
 		}
 		
 		for (DatabaseObject dbo : list) {
