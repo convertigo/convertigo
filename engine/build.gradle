@@ -286,11 +286,11 @@ dependencies {
 	compileFlat    'commons-jxpath:commons-jxpath:1.4.0'
 	compileFlat    'io.swagger:swagger-models:1.6.16'
 	compileFlat    'io.swagger:swagger-parser:1.0.75'
-	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.43'
-	compileFlat    'io.swagger.core.v3:swagger-models:2.2.43'
-	compileFlat    'io.swagger.core.v3:swagger-core:2.2.43'
-	compileFlat    'io.swagger.parser.v3:swagger-parser-core:2.1.38'
-	compileFlat    'io.swagger.parser.v3:swagger-parser-v3:2.1.38'
+	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.45'
+	compileFlat    'io.swagger.core.v3:swagger-models:2.2.45'
+	compileFlat    'io.swagger.core.v3:swagger-core:2.2.45'
+	compileFlat    'io.swagger.parser.v3:swagger-parser-core:2.1.39'
+	compileFlat    'io.swagger.parser.v3:swagger-parser-v3:2.1.39'
 	compileFlat    'javax.activation:activation:1.1.1'
 	compileFlat    'javax.mail:mail:1.4.7'
 	compileFlat    'org.slf4j:slf4j-ext:2.0.17'
@@ -302,7 +302,7 @@ dependencies {
 	compileFlat    'org.apache.commons:commons-lang3:' + commonsLang3
 	compileFlat    'org.apache.httpcomponents:httpclient:4.5.14'
 	compileFlat    'org.apache.james:apache-mime4j-core:0.8.13'
-	compileFlat    'org.apache.pdfbox:pdfbox:3.0.6'
+	compileFlat    'org.apache.pdfbox:pdfbox:3.0.7'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-api:1.4.0'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-dom:1.4.0'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-impl:1.4.0'
@@ -332,7 +332,7 @@ dependencies {
 	compileFlat    'org.hsqldb:hsqldb:2.7.4'
 	compileFlat    'org.mariadb.jdbc:mariadb-java-client:3.5.7'
 	compileFlat    'org.postgresql:postgresql:42.7.10'
-	compileFlat    'org.redisson:redisson:4.2.0'
+	compileFlat    'org.redisson:redisson:4.3.0'
 	// end runtime dependencies
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-websocket:' + tomcatVersion
