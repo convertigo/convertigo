@@ -38,8 +38,8 @@ ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '8.18.0'
 ext.swaggerUiVersion = '5.31.0'
 ext.tomcatVersion = '11.0.18'
-ext.eclipseVersion = '2025-12'
-ext.eclipseBase = '4.37'
+ext.eclipseVersion = '2026-03'
+ext.eclipseBase = '4.39'
 ext.studioWebNodeVersion = '22'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 ext.soapuiVersion = '5.9.1'
@@ -687,5 +687,5 @@ tasks.named("dependencyUpdates").configure {
 wrapper {
 	group = 'convertigo'
 	
-	gradleVersion = '9.3.1'
+	gradleVersion = '9.4.0'
 }
