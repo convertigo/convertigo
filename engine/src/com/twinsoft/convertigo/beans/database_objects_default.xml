@@ -12499,7 +12499,7 @@
         </property>
         <property name="statusCode">
             <xmlizable classname="com.twinsoft.convertigo.beans.steps.SmartType">
-                <SmartType mode="PLAIN">200</SmartType>
+                <SmartType mode="PLAIN"/>
             </xmlizable>
         </property>
         <property name="statusText">

@@ -55,7 +55,7 @@ public class HttpPropertyUtils {
 
 	public static boolean isBeanNameBasedHeader(String headerName, String beanName) {
 		if (headerName == null || headerName.isEmpty()) {
-			return false;
+			return true;
 		}
 
 		String normalizedBeanName = StringUtils.normalize(beanName);
@@ -75,7 +75,7 @@ public class HttpPropertyUtils {
 
 	public static boolean isBeanNameBasedStatusCode(String statusCode, String beanName) {
 		if (statusCode == null || statusCode.isEmpty()) {
-			return false;
+			return true;
 		}
 
 		String normalizedBeanName = StringUtils.normalize(beanName);

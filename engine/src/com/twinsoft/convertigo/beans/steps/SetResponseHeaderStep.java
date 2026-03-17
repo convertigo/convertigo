@@ -50,7 +50,6 @@ public class SetResponseHeaderStep extends Step implements IStepSmartTypeContain
 		super();
 		setOutput(false);
 		this.xml = true;
-		headerName.setExpression(HttpPropertyUtils.toHttpHeaderName(getName()));
 	}
 
 	@Override
@@ -179,5 +178,13 @@ public class SetResponseHeaderStep extends Step implements IStepSmartTypeContain
 	@Override
 	protected String defaultBeanName(String displayName) {
 		return "header-name";
+	}
+
+	@Override
+	public void setName(String name) throws EngineException {
+		super.setName(name);
+		if (parent == null) {
+			onBeanNameChanged("", getName());
+		}
 	}
 }

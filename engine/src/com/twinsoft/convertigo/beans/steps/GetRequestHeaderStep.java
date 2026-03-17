@@ -5,7 +5,7 @@
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
- * version.
+ * version.<xml/>
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
@@ -51,7 +51,6 @@ public class GetRequestHeaderStep extends Step implements IStepSmartTypeContaine
 		super();
 		setOutput(false);
 		this.xml = true;
-		headerName.setExpression(HttpPropertyUtils.toHttpHeaderName(getName()));
 	}
 
 	@Override
@@ -167,5 +166,13 @@ public class GetRequestHeaderStep extends Step implements IStepSmartTypeContaine
 	@Override
 	protected String defaultBeanName(String displayName) {
 		return "header-name";
+	}
+
+	@Override
+	public void setName(String name) throws EngineException {
+		super.setName(name);
+		if (parent == null) {
+			onBeanNameChanged("", getName());
+		}
 	}
 }

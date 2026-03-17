@@ -50,7 +50,6 @@ public class SetResponseStatusStep extends Step implements IStepSmartTypeContain
 		super();
 		setOutput(false);
 		this.xml = true;
-		statusCode.setExpression(HttpPropertyUtils.toHttpStatusCode(getName()));
 	}
 
 	@Override
@@ -191,5 +190,12 @@ public class SetResponseStatusStep extends Step implements IStepSmartTypeContain
 	protected String defaultBeanName(String displayName) {
 		return "200";
 	}
-	
+
+	@Override
+	public void setName(String name) throws EngineException {
+		super.setName(name);
+		if (parent == null) {
+			onBeanNameChanged("", getName());
+		}
+	}
 }
