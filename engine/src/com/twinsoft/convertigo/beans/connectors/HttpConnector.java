@@ -1027,7 +1027,7 @@ public class HttpConnector extends Connector {
 				HeaderName.UserAgent.setRequestHeader(method, getUserAgent(context));
 			}
 			
-			if (!hasConnection && ((AbstractHttpTransaction) context.transaction).getHttpPool() == HttpPool.no) {
+			if (!hasConnection && ((AbstractHttpTransaction) context.transaction).getHttpPool() == HttpPool.no && authenticationType != AuthenticationMode.NTLM) {
 				HeaderName.Connection.setRequestHeader(method, "close");
 			}
 

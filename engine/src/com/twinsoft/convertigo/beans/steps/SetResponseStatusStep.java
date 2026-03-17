@@ -39,7 +39,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
-import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.HttpPropertyUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class SetResponseStatusStep extends Step implements IStepSmartTypeContainer, IComplexTypeAffectation {
@@ -175,10 +175,14 @@ public class SetResponseStatusStep extends Step implements IStepSmartTypeContain
 
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (statusCode != null && statusCode.getMode() == Mode.PLAIN
-				&& oldName.startsWith(StringUtils.normalize(statusCode.getExpression()))) {
-			statusCode.setExpression(newName);
-			hasChanged = true;
+		if (statusCode != null
+				&& statusCode.getMode() == Mode.PLAIN
+				&& HttpPropertyUtils.isBeanNameBasedStatusCode(statusCode.getExpression(), oldName)) {
+			String reflectedStatusCode = HttpPropertyUtils.toHttpStatusCode(newName);
+			if (!reflectedStatusCode.isEmpty()) {
+				statusCode.setExpression(reflectedStatusCode);
+				hasChanged = true;
+			}
 		}
 	}
 
@@ -186,5 +190,12 @@ public class SetResponseStatusStep extends Step implements IStepSmartTypeContain
 	protected String defaultBeanName(String displayName) {
 		return "200";
 	}
-	
+
+	@Override
+	public void setName(String name) throws EngineException {
+		super.setName(name);
+		if (parent == null) {
+			onBeanNameChanged("", getName());
+		}
+	}
 }

@@ -5,7 +5,7 @@
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
- * version.
+ * version.<xml/>
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
@@ -40,7 +40,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
-import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.HttpPropertyUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class GetRequestHeaderStep extends Step implements IStepSmartTypeContainer, IComplexTypeAffectation {
@@ -155,9 +155,10 @@ public class GetRequestHeaderStep extends Step implements IStepSmartTypeContaine
 
 	@Override
 	protected void onBeanNameChanged(String oldName, String newName) {
-		if (headerName != null && headerName.getMode() == Mode.PLAIN
-				&& oldName.startsWith(StringUtils.normalize(headerName.getExpression()))) {
-			headerName.setExpression(newName);
+		if (headerName != null
+				&& headerName.getMode() == Mode.PLAIN
+				&& HttpPropertyUtils.isBeanNameBasedHeader(headerName.getExpression(), oldName)) {
+			headerName.setExpression(HttpPropertyUtils.toHttpHeaderName(newName));
 			hasChanged = true;
 		}
 	}
@@ -165,5 +166,13 @@ public class GetRequestHeaderStep extends Step implements IStepSmartTypeContaine
 	@Override
 	protected String defaultBeanName(String displayName) {
 		return "header-name";
+	}
+
+	@Override
+	public void setName(String name) throws EngineException {
+		super.setName(name);
+		if (parent == null) {
+			onBeanNameChanged("", getName());
+		}
 	}
 }

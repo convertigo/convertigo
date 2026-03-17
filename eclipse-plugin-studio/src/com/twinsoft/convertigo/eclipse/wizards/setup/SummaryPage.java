@@ -35,6 +35,8 @@ import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 
 class SummaryPage extends WizardPage {
+
+	private static final String COMMUNITY_SUPPORT_URL = "https://kb.convertigo.com/ck/";
 	
 	private Composite container;
 	
@@ -57,7 +59,7 @@ class SummaryPage extends WizardPage {
 		Link details2 = new Link(container, SWT.WRAP);
 		details2.setText("For support:\n\n" +
 				"- Here are all the resources you may need: <a href=\"" + StartupEditor.STARTUP_URL + "\">" + StartupEditor.STARTUP_URL + "</a>\n\n" +
-				"- The Convertigo Community Support: <a href=\"https://convertigo.atlassian.net/wiki/spaces/CK/overview\">https://convertigo.atlassian.net/wiki/spaces/CK/overview</a>\n\n" +
+				"- The Convertigo Community Support: <a href=\"" + COMMUNITY_SUPPORT_URL + "\">" + COMMUNITY_SUPPORT_URL + "</a>\n\n" +
 				"- Get a free 30-minute \"onboarding\" session with one of our engineers.\n" +
 				"The session schedule link will be included in the email containing your PSC."
 		);
