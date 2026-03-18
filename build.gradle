@@ -30,7 +30,7 @@ apply plugin: 'maven-publish'
 ext.nvdApiKey = findProperty('nvdApiKey') ?: System.getenv('NVD_API_KEY')
 
 ext.convertigoVersion = '8.4.1'
-ext.convertigoTag = 'beta'
+ext.convertigoTag = ''
 ext.convertigoCodename = 'polonium'
 ext.convertigoCode = 'Po'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''

@@ -1,5 +1,27 @@
 # Changelog
 
+## 8.4.1
+
+#### Improvements:
+
+- [#873](https://github.com/convertigo/convertigo/issues/873) [NGX] Global and Local variables defined in Shared Actions are now visible in the Source Picker
+- [#1040](https://github.com/convertigo/convertigo/issues/1040) [Studio] Starter projects imported from the Marketplace are now automatically initialized with Git
+- [#1050](https://github.com/convertigo/convertigo/issues/1050) [Studio] Dropping a Shared Component between projects no longer generates excessive warning logs about missing cached models
+
+#### Bug Fixes:
+
+- [#1034](https://github.com/convertigo/convertigo/issues/1034) [Studio] Fixed, editing text in a cell editor within a dialog on macOS no longer causes UI deadlocks
+- [#1035](https://github.com/convertigo/convertigo/issues/1035) [Studio] Fixed, the “after registration” link has been updated
+- [#1036](https://github.com/convertigo/convertigo/issues/1036) [Admin] Fixed, external links in the sidebar now open in a new browser tab
+- [#1037](https://github.com/convertigo/convertigo/issues/1037) [FullSync] Fixed, DocumentId search autocomplete now suggests results from all pages instead of only the first one
+- [#1038](https://github.com/convertigo/convertigo/issues/1038) [Engine] Fixed, `<base href>` is no longer rewritten for projects using templates prior to 8.4.0
+- [#1042](https://github.com/convertigo/convertigo/issues/1042) [Studio] Fixed, the “Set response header” Step property label is now properly translated in the Properties panel
+- [#1043](https://github.com/convertigo/convertigo/issues/1043) [NGX] Fixed, the CallSequenceAction component now correctly displays its target in parentheses
+- [#1046](https://github.com/convertigo/convertigo/issues/1046) [Studio] Fixed, “Set response header” and “Get response header” Steps now use distinct default names to prevent unintended renaming and property conflicts
+- [#1047](https://github.com/convertigo/convertigo/issues/1047) [HTTP] Fixed, NTLM HTTP transactions now correctly perform the authentication challenge instead of closing the connection
+
+---
+
 ## 8.4.0
 
 #### New Features:
