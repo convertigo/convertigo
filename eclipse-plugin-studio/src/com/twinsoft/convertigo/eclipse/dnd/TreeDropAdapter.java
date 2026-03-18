@@ -409,10 +409,17 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 	}
 
-	private DatabaseObject paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
+	private DatabaseObject paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName, Object cm) throws EngineException {
 		Object object = ConvertigoPlugin.clipboardManagerDND.read(node);
 		if (object instanceof DatabaseObject) {
 			DatabaseObject databaseObject = (DatabaseObject)object;
+			
+			if (cm != null) {
+				if (cm instanceof com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager) {
+					((com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager)cm)
+						.reload((com.twinsoft.convertigo.beans.ngx.components.MobileComponent)databaseObject);
+				}
+			}
 			paste(databaseObject, parentDatabaseObject, bChangeName);
 
 			NodeList childNodes = node.getChildNodes();
@@ -434,7 +441,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						!(childNodeName.equalsIgnoreCase("docdata")) &&
 						!(childNodeName.equalsIgnoreCase("beandata")) &&
 						!(childNodeName.equalsIgnoreCase("dnd"))) {
-					paste(childNode, databaseObject, bChangeName);
+					paste(childNode, databaseObject, bChangeName, cm);
 				}
 			}
 
@@ -449,7 +456,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject parent = ((DatabaseObjectTreeObject) targetTreeObject).getObject();
 
-			DatabaseObject databaseObject = paste(node, null, true);
+			Object cm = null;
+			if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+				cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(parent);
+			}
+			
+			DatabaseObject databaseObject = paste(node, null, true, cm);
 			Element element = (Element)((Element)node).getElementsByTagName("dnd").item(0);
 
 			// SEQUENCER
@@ -996,7 +1008,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject parent = ((DatabaseObjectTreeObject) targetTreeObject).getObject();
 
-			DatabaseObject databaseObject = paste(node, null, true);
+			Object cm = null;
+			if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+				cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(parent);
+			}
+			
+			DatabaseObject databaseObject = paste(node, null, true, cm);
 			Element element = (Element)((Element)node).getElementsByTagName("dnd").item(0);
 
 			// SEQUENCER

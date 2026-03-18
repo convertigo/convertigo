@@ -681,10 +681,12 @@ public class ComponentManager {
 						!UICompVariable.class.isAssignableFrom(dboClass) &&
 						!UIAppEvent.class.isAssignableFrom(dboClass) &&
 						!UIPageEvent.class.isAssignableFrom(dboClass) &&
+						!UISharedComponent.class.isAssignableFrom(dboClass) &&
 						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&
 						!UIActionEvent.class.isAssignableFrom(dboClass) &&
 						!UITheme.class.isAssignableFrom(dboClass) &&
-						!IAction.class.isAssignableFrom(dboClass)) {
+						!IAction.class.isAssignableFrom(dboClass) &&
+						!UIActionStack.class.isAssignableFrom(dboClass)) {
 							return true;
 					}
 				} else if (dboParent instanceof UICustom) {
