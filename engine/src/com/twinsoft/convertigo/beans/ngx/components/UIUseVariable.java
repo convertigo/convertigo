@@ -66,14 +66,18 @@ public class UIUseVariable extends UIControlVariable {
 	
 	@Override
 	public String toString() {
-		String label = super.toString();
+		String label = getVarName();
+		String value = getVarLabel();
+		if (value.isEmpty()) {
+			return label;
+		}
 		if (BindingType.oneWayBinding.equals(binding)) {
-			label = label.replace("=", "=>");
+			return label + "=>" + value;
 		}
 		if (BindingType.twoWayBinding.equals(binding)) {
-			label = label.replace("=", "<=>");
+			return label + "<=>" + value;
 		}
-		return label;
+		return label + "=" + value;
 	}
 	
 	@Override
