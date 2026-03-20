@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 
 @ServiceDefinition(
 		name = "DeleteAll",
@@ -43,6 +44,7 @@ public class DeleteAll extends XmlService {
 
 		try {
 			Engine.authenticatedSessionManager.deleteUsers();
+			SharedWorkspaceSyncManager.markRolesChanged();
 			response.setAttribute("state", "success");
 			response.setAttribute("message","All users have been successfully deleted!");
 		} catch (Exception e) {

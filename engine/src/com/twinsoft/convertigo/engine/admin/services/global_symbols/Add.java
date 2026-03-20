@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 
 @ServiceDefinition(
 		name = "Add",
@@ -46,6 +47,7 @@ public class Add extends XmlService {
 
 		try {
 			Engine.theApp.databaseObjectsManager.symbolsAdd(symbolName, symbolValue);
+			SharedWorkspaceSyncManager.markSymbolsChanged();
 			response.setAttribute("state", "success");
 			response.setAttribute("message","Global symbol '" + symbolName + "' have been successfully declared!");
 		} catch (Exception e) {

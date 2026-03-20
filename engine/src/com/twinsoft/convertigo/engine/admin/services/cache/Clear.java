@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 
 @ServiceDefinition(
 		name = "Clear",
@@ -39,12 +40,10 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 public class Clear extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		
 		Element root = document.getDocumentElement();
 		Engine.theApp.cacheManager.clearCacheEntries();
+		SharedWorkspaceSyncManager.markCacheCleared();
 		ServiceUtils.addMessage(document,root,"Cache manager succesfully clear cache entries.","message");
-       
 	}
-	
-	
-}	
+
+}

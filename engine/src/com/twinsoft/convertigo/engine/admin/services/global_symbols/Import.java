@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.UploadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 @ServiceDefinition(
@@ -67,6 +68,7 @@ public class Import extends UploadService {
 		}
 		
 		Engine.theApp.databaseObjectsManager.symbolsUpdate(prop, actionImport);	
+		SharedWorkspaceSyncManager.markSymbolsChanged();
 		
 		String message = "The global symbols file has been successfully imported.";
 		Engine.logAdmin.info(message);

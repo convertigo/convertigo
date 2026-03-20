@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.engine.admin.services.UploadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 
 @ServiceDefinition(name = "Deploy", roles = { Role.WEB_ADMIN, Role.TRIAL, Role.PROJECTS_CONFIG }, parameters = {
 		@ServiceParameterDefinition(name = "bAssembleXsl", description = "assembling xsl") }, returnValue = "")
@@ -87,6 +88,7 @@ public class Deploy extends UploadService {
 		String projectName = project.getName();
 		Engine.theApp.schemaManager.clearCache(projectName);
 		Project.executeAutoStartSequences(projectName);
+		SharedWorkspaceSyncManager.markProjectReload(projectName);
 
 		if (Boolean.parseBoolean(
 				EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_NOTIFY_PROJECT_DEPLOYMENT))) {

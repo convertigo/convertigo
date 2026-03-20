@@ -115,6 +115,12 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 		
 		Engine.logCacheManager.debug("Destroying cache manager...");
 	}
+
+	public static CacheManager createConfigured() throws Exception {
+		var cacheManagerClassName = EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_CLASS);
+		Engine.logEngine.debug("Cache manager class: " + cacheManagerClassName);
+		return (CacheManager) Class.forName(cacheManagerClassName).getConstructor().newInstance();
+	}
 	
 	public Document getDocument(Requester requester, Context context) throws EngineException {
 		Document response = null;

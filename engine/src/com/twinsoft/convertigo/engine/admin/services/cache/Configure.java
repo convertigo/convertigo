@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefiniti
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.cache.DatabaseCacheManager;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.SqlRequester;
@@ -109,6 +110,7 @@ public class Configure extends XmlService {
 			
 		this.document = document;
 		root = document.getDocumentElement();		
+		boolean propertiesChanged = false;
 		
 		cacheType = request.getParameter("cacheType");
 		if( cacheManagerDatabaseType.equals(cacheType) || "database".equals(cacheType)) {
@@ -121,7 +123,7 @@ public class Configure extends XmlService {
 		PropertiesUtils.load(dbCacheProp, dbCachePropFileName);
 
 		try {
-			saveProps(request);
+			propertiesChanged = saveProps(request);
 		} catch(Exception e) {			
 			throw new ServiceException("Unable to save the cache manager properties.",e.getCause());
 		}
@@ -209,16 +211,20 @@ public class Configure extends XmlService {
 			}
 		}	
 		restartCacheManager();
+		if (propertiesChanged) {
+			SharedWorkspaceSyncManager.markPropertiesChanged();
+		}
+		SharedWorkspaceSyncManager.markCacheConfigChanged();
 	}
 				
 	
 	private void restartCacheManager() throws ServiceException {
 	
 		try {
-			Engine.theApp.cacheManager.destroy();	
-			String cacheManagerClassName = EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_CLASS);
-			Engine.logAdmin.debug("Cache manager class: " + cacheManagerClassName);
-			Engine.theApp.cacheManager = (CacheManager) Class.forName(cacheManagerClassName).getConstructor().newInstance();
+			if (Engine.theApp.cacheManager != null) {
+				Engine.theApp.cacheManager.destroy();
+			}
+			Engine.theApp.cacheManager = CacheManager.createConfigured();
 			Engine.theApp.cacheManager.init();
 		}
 		catch(Exception e) {
@@ -230,11 +236,13 @@ public class Configure extends XmlService {
 	}
 
 
-	private void saveProps(HttpServletRequest request) throws Exception {
+	private boolean saveProps(HttpServletRequest request) throws Exception {
+		boolean propertiesChanged = false;
 	
-		if (EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_CLASS) != cacheType ) {
+		if (!EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_CLASS).equals(cacheType)) {
 			EnginePropertiesManager.setProperty(PropertyName.CACHE_MANAGER_CLASS, cacheType);						
 			EnginePropertiesManager.saveProperties();
+			propertiesChanged = true;
 		}
 		
 		if (cacheManagerDatabaseType.equals(cacheType)) {
@@ -306,7 +314,7 @@ public class Configure extends XmlService {
 			PropertiesUtils.store(dbCacheProp, dbCachePropFileName);
 		} 	
 		ServiceUtils.addMessage(document,root,"Cache manager properties succesfully saved.","message");
+		return propertiesChanged;
 	}
 
-	
-}	
+}

@@ -493,6 +493,8 @@ public class EnginePropertiesManager {
 		/** SESSION */
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = SessionStoreMode.class)
 		SESSION_STORE_MODE("session.store.mode", SessionStoreMode.tomcat.name(), "Server-side store for session data (tomcat, redis)", PropertyCategory.Session),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SESSION_SHARED_WORKSPACE_SYNC_ENABLED("session.shared_workspace.sync.enabled", "false", "Enable runtime synchronization between instances sharing the same workspace", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
 		SESSION_REDIS_HOST("session.redis.host", "localhost", "Redis hostname used by the session manager", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
@@ -846,9 +848,15 @@ public class EnginePropertiesManager {
 	}
 
 	public static void setProperty(PropertyName property, String value) {
+		setProperty(property, value, false);
+	}
+
+	private static void setProperty(PropertyName property, String value, boolean alreadyStoredValue) {
 		String exvalue;
 
-		value = encodeValue(property.getType(), value);
+		if (!alreadyStoredValue) {
+			value = encodeValue(property.getType(), value);
+		}
 
 		if (system_properties.containsKey(SYSTEM_PROP_PREFIX + property.getKey())) {
 			exvalue = (String) system_properties.put(SYSTEM_PROP_PREFIX + property.getKey(), value);
@@ -869,6 +877,10 @@ public class EnginePropertiesManager {
 			}
 			Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, value), PropertyChangeEventListener.class);
 		}
+	}
+
+	private static boolean hasSystemPropertyOverride(PropertyName property) {
+		return System.getProperty(SYSTEM_PROP_PREFIX + property.getKey()) != null;
 	}
 
 	static <E extends ComboEnum> E getPropertyAsEnum(PropertyName property) {
@@ -1025,6 +1037,55 @@ public class EnginePropertiesManager {
 				propsOutputStream.close();
 			}
 		}
+	}
+
+	public static synchronized List<PropertyName> syncPropertiesFromFile() throws IOException {
+		if (properties == null) {
+			throw new IllegalStateException("Not initialized EnginePropertiesManager");
+		}
+
+		Properties reloadedProperties = new Properties();
+		String enginePropertiesFile = Engine.CONFIGURATION_PATH + PROPERTIES_FILE_NAME;
+		try {
+			PropertiesUtils.load(reloadedProperties, enginePropertiesFile);
+		} catch (FileNotFoundException e) {
+			// Missing file means defaults apply.
+		}
+
+		for (PropertyName property : PropertyName.values()) {
+			String key = property.getKey();
+			if (property.isCiphered() && reloadedProperties.containsKey(key)) {
+				String value = reloadedProperties.getProperty(key);
+				String decipheredValue = Crypto2.decodeFromHexString3(value);
+				if (decipheredValue == null) {
+					throw new IOException("Unable to decode value for property '" + key + "'");
+				}
+				reloadedProperties.setProperty(key, decipheredValue);
+			}
+		}
+
+		List<PropertyName> changedProperties = new ArrayList<>();
+		boolean shouldReconfigureLog4J = false;
+
+		for (PropertyName property : PropertyName.values()) {
+			if (hasSystemPropertyOverride(property)) {
+				continue;
+			}
+
+			String desiredValue = reloadedProperties.getProperty(property.getKey(), property.getDefaultValue());
+			String currentValue = getOriginalProperty(property);
+			if (!desiredValue.equals(currentValue)) {
+				setProperty(property, desiredValue, true);
+				changedProperties.add(property);
+				shouldReconfigureLog4J |= property.getKey().startsWith("log4j.");
+			}
+		}
+
+		if (shouldReconfigureLog4J) {
+			configureLog4J();
+		}
+
+		return changedProperties;
 	}
 
 	private static void saveProperties(OutputStream outputStream, String comments) throws IOException, EngineException {

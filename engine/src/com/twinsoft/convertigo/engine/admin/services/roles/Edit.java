@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 
 @ServiceDefinition(
 		name = "Edit",
@@ -81,6 +82,7 @@ public class Edit extends XmlService {
 			} else {
 				Engine.authenticatedSessionManager.setUser(username, password, set);
 			}
+			SharedWorkspaceSyncManager.markRolesChanged();
 			response.setAttribute("state", "success");
 			response.setAttribute("message","User '" + username + "' have been successfully edited!");
 		} catch (Exception e) {

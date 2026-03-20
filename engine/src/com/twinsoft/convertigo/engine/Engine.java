@@ -75,6 +75,7 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
 import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.DirClassLoader;
@@ -201,6 +202,11 @@ public class Engine {
 	 * The cache manager.
 	 */
 	public CacheManager cacheManager;
+
+	/**
+	 * Shared workspace sync manager.
+	 */
+	public SharedWorkspaceSyncManager sharedWorkspaceSyncManager;
 
 	/**
 	 * The usage monitor.
@@ -667,11 +673,7 @@ public class Engine {
 
 				// Launch the cache manager
 				try {
-					String cacheManagerClassName = EnginePropertiesManager
-							.getProperty(PropertyName.CACHE_MANAGER_CLASS);
-					Engine.logEngine.debug("Cache manager class: " + cacheManagerClassName);
-					Engine.theApp.cacheManager = (CacheManager) Class.forName(cacheManagerClassName)
-							.getConstructor().newInstance();
+					Engine.theApp.cacheManager = CacheManager.createConfigured();
 					Engine.theApp.cacheManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to launch the cache manager.", e);
@@ -766,6 +768,16 @@ public class Engine {
 					});
 				}
 
+				if (SharedWorkspaceSyncManager.isEnabled()) {
+					try {
+						Engine.theApp.sharedWorkspaceSyncManager = new SharedWorkspaceSyncManager();
+						Engine.theApp.sharedWorkspaceSyncManager.init();
+					} catch (Exception e) {
+						Engine.theApp.sharedWorkspaceSyncManager = null;
+						Engine.logEngine.error("Unable to launch the shared workspace sync manager.", e);
+					}
+				}
+
 				if (DelegateServlet.canDelegate()) {
 					execute(() -> {
 						try {
@@ -800,6 +812,11 @@ public class Engine {
 				// Temporary reset the start/stop date in order to unlink the requestable's
 				// running thread engine ID.
 				Engine.startStopDate = 0;
+
+				if (Engine.theApp.sharedWorkspaceSyncManager != null) {
+					Engine.logEngine.info("Removing the shared workspace sync manager");
+					Engine.theApp.sharedWorkspaceSyncManager.destroy();
+				}
 
 				if (Engine.theApp.contextManager != null) {
 					Engine.logEngine.info("Removing all contexts");

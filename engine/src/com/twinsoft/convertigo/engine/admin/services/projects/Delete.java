@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 
 @ServiceDefinition(
 		name = "Delete",
@@ -41,6 +42,7 @@ public class Delete extends XmlService {
             String projectName = request.getParameter("projectName");
             Engine.theApp.databaseObjectsManager.deleteProjectAndCar(projectName);
             Engine.theApp.schemaManager.clearCache(projectName);
+            SharedWorkspaceSyncManager.markProjectDelete(projectName);
     		Engine.logAdmin.info("The project '" + projectName + "' has been deleted");
     		ServiceUtils.addMessage(document, "The project '" + projectName + "' has been deleted", "success");
 	}

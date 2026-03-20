@@ -873,16 +873,20 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 
 		try {
-			File xmlFile = new File(projectDirPath + "/" + archiveProjectName + ".xml");
+			var projectFile = new File(projectDirPath, "c8oProject.yaml");
+			if (!projectFile.exists()) {
+				projectFile = new File(projectDirPath, archiveProjectName + ".xml");
+			}
+			Engine.logDatabaseObjectManager.debug("Deploy project source selected: " + projectFile);
 			
 			// Rename project and files if necessary
 			if (!targetProjectName.equals(archiveProjectName)) {
-				xmlFile = ProjectUtils.renameProjectFile(xmlFile, targetProjectName, keepOldReferences);
+				projectFile = ProjectUtils.renameProjectFile(projectFile, targetProjectName, keepOldReferences);
 				
 				// change project priorities if needed
 				if (newPriorities) {
 					try {
-						xmlFile = ProjectUtils.changePiorities(xmlFile);
+						projectFile = ProjectUtils.changePiorities(projectFile);
 						Engine.logDatabaseObjectManager.debug("Successully changed project's priorities.");
 					} catch (Exception e) {
 						Engine.logDatabaseObjectManager.warn("Could not change project's priorities: "+ e.getMessage());
@@ -895,7 +899,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 
 			// Import project (will perform the migration)
-			Project project = importProject(xmlFile, true);
+			Project project = importProject(projectFile, true);
 
 			// Rename connector's directory under traces directory if needed
 			// (name should be normalized since 4.6)
@@ -1774,14 +1778,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 				return;
 			}
 
-			symbolsLoad(prop);
+			symbolsLoad(prop, false);
 
 			Engine.logEngine
 			.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded! [" + symbolsProperties.size() + "]");
 		}
 	}
 
-	private void symbolsLoad(Properties map) {
+	private void symbolsLoad(Properties map, boolean store) {
 		// Enumeration of the properties
 		Enumeration<String> propsEnum = GenericUtils.cast(map.propertyNames());
 		boolean needUpdate = false;
@@ -1795,7 +1799,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 		}
 		if (needUpdate) {
-			symbolsUpdated();
+			if (store) {
+				symbolsUpdated();
+			} else {
+				symbolsCheck();
+			}
+		} else if (!store) {
+			symbolsCheck();
 		}
 	}
 
@@ -1830,7 +1840,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			// Remove all symbols & import symbols from file
 			if (importAction.equals("clear-import")) {
 				symbolsProperties.clear();
-				symbolsLoad(map);
+				symbolsLoad(map, true);
 			}
 			// Add symbols from imported file and merge with existing symbols from server
 			// (priority to server if same key)
@@ -1929,6 +1939,23 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 			project.undefinedGlobalSymbols = data.undefinedGlobalSymbol;
 			project.defaultSymbols = data.defaultSymbols;
+		}
+	}
+
+	public void reloadSymbolsFromFile() throws IOException {
+		synchronized (symbolsMutex) {
+			Properties prop = new Properties();
+			try {
+				PropertiesUtils.load(prop, globalSymbolsFilePath);
+			} catch (FileNotFoundException e) {
+				Engine.logDatabaseObjectManager.warn("Symbols file '" + globalSymbolsFilePath + "' is missing during shared workspace sync, using an empty symbol set.");
+			}
+
+			synchronized (symbolsProperties) {
+				symbolsProperties.clear();
+			}
+			symbolsLoad(prop, false);
+			Engine.logDatabaseObjectManager.info("Reloaded symbols from \"" + globalSymbolsFilePath + "\" [" + symbolsProperties.size() + "]");
 		}
 	}
 
