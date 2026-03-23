@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 
 @ServiceDefinition(
 		name = "Delete",
@@ -45,6 +46,7 @@ public class Delete extends XmlService {
 
 		try {
 			Engine.theApp.databaseObjectsManager.symbolsDelete(symbolName);
+			SharedWorkspaceSyncManager.markSymbolsChanged();
 			response.setAttribute("state", "success");
 			response.setAttribute("message","Global symbol '" + symbolName + "' have been successfully deleted!");
 		} catch (Exception e) {

@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.util.InstanceIdentity;
 
 /**
  * Lightweight Redis-based instance discovery for clustered admin usage.
@@ -149,7 +150,6 @@ public final class RedisInstanceDiscovery {
 				addrForUrl = hostName;
 			}
 
-			var instanceId = computeInstanceId(hostName, port);
 			var baseUrl = normalizeUrl(
 					scheme + "://" + hostForUrl(addrForUrl) + ":" + port + (contextPath == null ? "" : contextPath));
 
@@ -157,10 +157,6 @@ public final class RedisInstanceDiscovery {
 			synchronized (MUTEX) {
 				if (startedAt <= 0) {
 					startedAt = System.currentTimeMillis();
-				}
-				if (!instanceId.equals(localInstanceId)) {
-					localInstanceId = instanceId;
-					changed = true;
 				}
 				if (baseUrl != null && !baseUrl.equals(localBaseUrl)) {
 					localBaseUrl = baseUrl;
@@ -299,10 +295,10 @@ public final class RedisInstanceDiscovery {
 			var configuredUrl = normalizeUrl(EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL));
 			var defaultUrl = normalizeUrl(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue());
 			var hasExplicitUrl = configuredUrl != null && !configuredUrl.equals(defaultUrl);
+			localInstanceId = InstanceIdentity.getLocalInstanceId();
 
 			if (hasExplicitUrl) {
 				localBaseUrl = configuredUrl;
-				localInstanceId = computeInstanceIdFromBaseUrl(localBaseUrl);
 				return;
 			}
 
@@ -351,8 +347,6 @@ public final class RedisInstanceDiscovery {
 				port = DEFAULT_PORT;
 			}
 
-			var resolvedHost = hostName != null ? hostName : "instance";
-			localInstanceId = computeInstanceId(resolvedHost, port);
 			localBaseUrl = normalizeUrl(scheme + "://" + hostForUrl(localAddr) + ":" + port + contextPath);
 		}
 	}
@@ -416,14 +410,6 @@ public final class RedisInstanceDiscovery {
 		return env;
 	}
 
-	private static String computeInstanceId(String host, int port) {
-		var safeHost = sanitizeInstanceId(trimToNull(host));
-		if (safeHost == null) {
-			safeHost = "instance";
-		}
-		return port == DEFAULT_PORT ? safeHost : safeHost + ":" + port;
-	}
-
 	private static boolean isLoopbackOrUnspecified(String host) {
 		host = trimToNull(host);
 		if (host == null) {
@@ -443,26 +429,6 @@ public final class RedisInstanceDiscovery {
 			return true;
 		}
 		return "127.0.0.1".equals(host) || host.startsWith("127.");
-	}
-
-	private static String computeInstanceIdFromBaseUrl(String baseUrl) {
-		if (baseUrl == null || baseUrl.isBlank()) {
-			return null;
-		}
-		try {
-			var uri = URI.create(baseUrl);
-			var host = uri.getHost();
-			var port = uri.getPort();
-			if (host == null || host.isBlank()) {
-				return sanitizeInstanceId(baseUrl);
-			}
-			if (port <= 0 || port == DEFAULT_PORT) {
-				return host;
-			}
-			return host + ":" + port;
-		} catch (Exception e) {
-			return sanitizeInstanceId(baseUrl);
-		}
 	}
 
 	private static String sanitizeInstanceId(String raw) {

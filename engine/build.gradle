@@ -269,7 +269,7 @@ dependencies {
 	compileFlat    'com.convertigo.twinsoft:twinj:2016.05.09'
 	compileFlat    'com.convertigo.twinsoft:ui:2009.06.15'
 	implementation 'com.convertigo.twinsoft:util:2017.12.29'
-	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.21.1'
+	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.21.2'
 	compileFlat    'com.fasterxml.woodstox:woodstox-core:6.7.0'
 	compileFlat    ('com.google.gcm:gcm-server:1.0.0') {
 		exclude group: 'junit', module: 'junit'
@@ -310,7 +310,7 @@ dependencies {
 	compileFlat    'org.bouncycastle:bcprov-jdk18on:1.83'
 	compileFlat    'org.apache.xmlbeans:xmlbeans:3.1.1-sb-fixed'
 	compileFlat    'org.apache.xmlgraphics:fop:2.11', { exclude module: 'batik-js'}
-	compileFlat    'org.codehaus.jettison:jettison:1.5.4'
+	compileFlat    'org.codehaus.jettison:jettison:1.5.5'
 	compileFlat    'org.codehaus.woodstox:stax2-api:4.2.2'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.6.0.202603022253-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.6.0.202603022253-r'

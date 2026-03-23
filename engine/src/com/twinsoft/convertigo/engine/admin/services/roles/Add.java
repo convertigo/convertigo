@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 
 @ServiceDefinition(
 		name = "Add",
@@ -79,6 +80,7 @@ public class Add extends XmlService {
 			}
 			AuthenticatedSessionManager.validatePassword(password);
 			Engine.authenticatedSessionManager.setUser(username, DigestUtils.sha512Hex(password), set);
+			SharedWorkspaceSyncManager.markRolesChanged();
 			response.setAttribute("state", "success");
 			response.setAttribute("message","User '" + username + "' have been successfully declared!");
 		} catch (Exception e) {

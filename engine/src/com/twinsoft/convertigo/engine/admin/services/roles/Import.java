@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.UploadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 
 @ServiceDefinition(
 		name = "Import",
@@ -62,6 +63,7 @@ public class Import extends UploadService {
 			String json = new String(data, "UTF-8");
 			JSONObject users = new JSONObject(json);
 			Engine.authenticatedSessionManager.updateUsers(users, actionImport);
+			SharedWorkspaceSyncManager.markRolesChanged();
 			
 		} catch (IOException ioe) {
 			String message = "Unable to load the db file:\n" + ioe.getMessage();

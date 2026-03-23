@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 @ServiceDefinition(
@@ -53,6 +54,7 @@ public class ImportURL extends XmlService {
 					projectName = project.getName();
 					Engine.theApp.schemaManager.clearCache(projectName);
 					Project.executeAutoStartSequences(projectName);
+					SharedWorkspaceSyncManager.markProjectReload(projectName);
 				}
 			} else {
 				error = "The format is invalid";

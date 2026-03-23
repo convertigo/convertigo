@@ -35,7 +35,7 @@ ext.convertigoCodename = 'astatine'
 ext.convertigoCode = 'At'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
-ext.jxBrowserVersion = '8.18.0'
+ext.jxBrowserVersion = '8.18.1'
 ext.swaggerUiVersion = '5.31.0'
 ext.tomcatVersion = '11.0.18'
 ext.eclipseVersion = '2026-03'
@@ -246,7 +246,7 @@ publishing {
 						'jakarta.servlet:jakarta.servlet-api:6.1.0',
 						'org.apache.commons:commons-lang3:' + commonsLang3,
 						'org.apache.httpcomponents:httpclient:4.5.14',
-						'org.codehaus.jettison:jettison:1.5.4'
+						'org.codehaus.jettison:jettison:1.5.5'
 					].each {
 						def values = it.split(':')
 						def dependency = dependencies.appendNode('dependency')

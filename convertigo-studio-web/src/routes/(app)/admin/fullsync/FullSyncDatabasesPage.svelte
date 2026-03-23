@@ -1,6 +1,7 @@
 <script>
 	import { building } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -19,6 +20,7 @@
 
 	const modalYesNo = getFullSyncConfirmModal();
 	const fullSyncDocHref = getAdminPageDocHref('/admin/fullsync');
+	const fullSyncConfigHref = resolve('/(app)/admin/config/[category]', { category: 'FullSync' });
 
 	let loadingDatabases = $state(true);
 	let working = $state(false);
@@ -35,6 +37,13 @@
 	let dbInfoRequestCounter = 0;
 	let dbSearchListId = $state('fullsync-db-search-list');
 	let allDbsJsonHref = $derived(building ? '#' : `${fullSyncBaseUrl()}_all_dbs`);
+	let shouldShowConfigHint = $derived(
+		!loadingDatabases &&
+			!working &&
+			!lastError &&
+			databases.length == 0 &&
+			databaseFilter.trim().length == 0
+	);
 
 	let filteredDatabases = $derived(
 		databases.filter((db) => db.toLowerCase().includes(databaseFilter.trim().toLowerCase()))
@@ -257,7 +266,29 @@
 			<div
 				class="mb-2 rounded-base border border-error-300-700 bg-error-100-900 px-3 py-2 text-sm text-error-900-100"
 			>
-				{lastError}
+				<p>{lastError}</p>
+				<p class="mt-2">
+					Check the
+					<a
+						href={fullSyncConfigHref}
+						class="font-semibold underline underline-offset-2 transition-surface hover:no-underline"
+					>
+						FullSync configuration
+					</a>
+					if the CouchDB server URL or credentials need to be updated.
+				</p>
+			</div>
+		{:else if shouldShowConfigHint}
+			<div
+				class="mb-2 rounded-base border border-surface-300-700 bg-surface-100-900 px-3 py-2 text-sm text-strong"
+			>
+				No database was returned. If this is unexpected, check the
+				<a
+					href={fullSyncConfigHref}
+					class="font-medium text-primary-500 transition-surface hover:underline"
+				>
+					FullSync configuration
+				</a>.
 			</div>
 		{/if}
 

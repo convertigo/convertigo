@@ -235,7 +235,11 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	private synchronized JSONObject loadSync() throws IOException, JSONException {
 		return load();
 	}
-	
+
+	public synchronized void invalidateUsersCache() {
+		cache = null;
+	}
+
 	private void save(JSONObject db) throws IOException {
 		String json = db.toString();
 		cache = db;

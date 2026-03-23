@@ -22,17 +22,47 @@ You can access the Server admin console on `http://[dockerhost]:28080/convertigo
 
 The Server can also be accessed by HTTPS on `https://[dockerhost]:28443/convertigo` if SSL is configured (see the **HTTPS** section below).
 
-## Link Convertigo to a CouchDB database for FullSync (Convertigo EE only)
+## Connect Convertigo to a CouchDB database for FullSync (Convertigo EE only)
 
-Convertigo FullSync module uses Apache CouchDB 3.2.2 as NoSQL repository. You can use the **[couchdb](https://hub.docker.com/_/couchdb/)** docker image and link to it convertigo this way
+Convertigo FullSync uses Apache CouchDB 3.2.2 as its NoSQL repository.
 
-Launch CouchDB container and name it 'fullsync'
+For modern Docker setups, prefer one of these approaches:
 
-    docker run -d --name fullsync couchdb:3.2.2
+- another container on the same Docker network
+- a service running directly on the Docker host
 
-Then launch Convertigo and link it to the running 'fullsync' container. Convertigo Low Code sever will automatically use it as its fullsync repository.
+### CouchDB running on the Docker host
 
-    docker run -d --name C8O --link fullsync:couchdb -p 28080:28080 convertigo
+With Docker Desktop, `host.docker.internal` is available by default:
+
+    docker run -d --name C8O \
+        -e JAVA_OPTS="-Dconvertigo.engine.fullsync.couch.url=http://host.docker.internal:5984" \
+        -p 28080:28080 convertigo
+
+On Docker Engine for Linux, add:
+
+    --add-host host.docker.internal:host-gateway
+
+Example:
+
+    docker run -d --name C8O \
+        --add-host host.docker.internal:host-gateway \
+        -e JAVA_OPTS="-Dconvertigo.engine.fullsync.couch.url=http://host.docker.internal:5984" \
+        -p 28080:28080 convertigo
+
+### CouchDB running in another container
+
+Create a user-defined Docker network and run both containers on it:
+
+    docker network create c8o-net
+
+    docker run -d --name fullsync --network c8o-net couchdb:3.2.2
+
+    docker run -d --name C8O --network c8o-net \
+        -e JAVA_OPTS="-Dconvertigo.engine.fullsync.couch.url=http://fullsync:5984" \
+        -p 28080:28080 convertigo
+
+The legacy `--link` option may still work, but it is no longer the recommended Docker approach.
 
 ## Use embedded PouchDB as FullSync engine (not for production)
 
@@ -42,18 +72,23 @@ It can be enabled directly at startup:
 
    docker run -d --name C8O -e JAVA_OPTS="-Dconvertigo.engine.fullsync.pouchdb=true" -p 28080:28080 convertigo
 
-## Link Convertigo Low Code Server to a Billing & Analytics database
+## Connect Convertigo Low Code Server to a Billing & Analytics database
 
 ### MySQL
 
-MySQL is the recommended database for holding Convertigo Low Code server analytics. You can use this command to run convertigo and link it to a running MySQL container. Change `[mysql-container]` to the container name, and `[username for the c8oAnalytics db]`, `[password for specified db user]` with the values for your MySQL configuration.
+MySQL is the recommended database for holding Convertigo analytics data.
 
-    docker run -d --name C8O --link [mysql-container]:mysql -p 28080:28080                               \
-        -e JAVA_OPTS="-Dconvertigo.engine.billing.enabled=true                                           \ 
-                -Dconvertigo.engine.billing.persistence.jdbc.username=[username for the c8oAnalytics db] \
-                -Dconvertigo.engine.billing.persistence.jdbc.password=[password for specified db user]   \
-                -Dconvertigo.engine.billing.persistence.jdbc.url=jdbc:mysql://mysql:3306/c8oAnalytics"   \
-    convertigo
+If the database runs on the Docker host, use `host.docker.internal`:
+
+    docker run -d --name C8O \
+        --add-host host.docker.internal:host-gateway \
+        -e JAVA_OPTS="-Dconvertigo.engine.billing.enabled=true \
+                      -Dconvertigo.engine.billing.persistence.jdbc.username=[username for the c8oAnalytics db] \
+                      -Dconvertigo.engine.billing.persistence.jdbc.password=[password for specified db user] \
+                      -Dconvertigo.engine.billing.persistence.jdbc.url=jdbc:mysql://host.docker.internal:3306/c8oAnalytics" \
+        -p 28080:28080 convertigo
+
+If the database runs in another container, connect both containers to the same user-defined Docker network and use the container name in the JDBC URL.
 
 ## Where is Convertigo Low Code server storing deployed projects
 
@@ -65,10 +100,44 @@ You can share the same workspace by all Convertigo containers. In this case, whe
 
 **Be sure to have a really fast file sharing between instances !!! We have experienced that Azure File Share is not fast enough**
 
-To avoid log and cache mixing, you have to add 2 variables for instance specific paths:
+Shared-workspace deployments can also propagate a subset of administration changes at runtime without restarting every instance. This synchronization is disabled by default and must only be enabled when all instances really share the same Convertigo workspace (for example via NFS or another RWX volume).
+
+Enable it with:
+
+    -Dconvertigo.engine.session.shared_workspace.sync.enabled=true
+
+Current runtime synchronization scope:
+
+-	project deploy / import URL / delete
+-	global symbols
+-	`engine.properties` runtime replay, including logger levels
+-	users / roles definitions (`user_roles.db`) for future logins
+-	cache configure / cache clear
+
+This shared-workspace sync does **not** cover separate workspaces per pod, Redis-specific notifications, certificates, scheduler, or broader clustered admin forwarding.
+
+The shared workspace is intended for projects, configuration, and runtime sync markers. Logs and file cache must not be shared between instances.
+
+For plain Docker multi-instance setups sharing the same `/workspace` mount, use instance-specific paths:
 
     -Dconvertigo.engine.cache_manager.filecache.directory=/workspace/cache/[instance name]
-    -Dconvertigo.engine.log4j.appender.CemsAppender.File=/workspace/logs/[instance name]/engine.log
+    -Dlog.directory=/workspace/logs/[instance name]
+
+For Kubernetes and Helm deployments, prefer pod-local paths such as `/tmp/convertigo-cache` and `/tmp/convertigo-logs` instead of shared-workspace subdirectories.
+
+Recommended multi-instance example:
+
+    docker run --name C8O1 -v /my-shared-workspace:/workspace -d -p 28081:28080 \
+        -e JAVA_OPTS="-Dconvertigo.engine.session.shared_workspace.sync.enabled=true \
+                      -Dconvertigo.engine.cache_manager.filecache.directory=/workspace/cache/server1 \
+                      -Dlog.directory=/workspace/logs/server1" \
+        convertigo
+
+    docker run --name C8O2 -v /my-shared-workspace:/workspace -d -p 28082:28080 \
+        -e JAVA_OPTS="-Dconvertigo.engine.session.shared_workspace.sync.enabled=true \
+                      -Dconvertigo.engine.cache_manager.filecache.directory=/workspace/cache/server2 \
+                      -Dlog.directory=/workspace/logs/server2" \
+        convertigo
 
 ## Make image with pre-deployed projects
 
