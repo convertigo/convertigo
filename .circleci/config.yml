@@ -50,9 +50,8 @@ jobs:
           mkdir -p ~/s3/convertigo-$CONVERTIGO_BUILD_NAME
           export CONVERTIGO_DIST=$(cd ~/s3/convertigo-$CONVERTIGO_BUILD_NAME; pwd)
           
-          export echo DATE=$(date)
+          export DATE="$(date)"
           
-          env | grep -e "^CIRCLE" -e "^CONVERTIGO_" -e "^DATE=" | sort > $CONVERTIGO_DIST/env.txt
           env | grep -e "^CONVERTIGO_" -e "^DATE=" | sed -e "s, ,\\\\ ,g" > /tmp/build.env
           
           echo "/tmp/build.env: "
@@ -242,6 +241,12 @@ jobs:
           source /tmp/build.env
           sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:war
           mv engine/build/libs/*.war $CONVERTIGO_DIST/
+          printf '%s\n' \
+            "build.version=$CONVERTIGO_BUILD_NAME" \
+            "build.date=$DATE" \
+            "build.filename=convertigo-$CONVERTIGO_VERSION.war" \
+            "build.commit=$CIRCLE_SHA1" \
+            > $CONVERTIGO_DIST/build.txt
           
     - save_cache:
         paths:
