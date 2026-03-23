@@ -10,7 +10,7 @@
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { getContext, onDestroy, onMount } from 'svelte';
+	import { getContext, onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import RightPart from '../../RightPart.svelte';
 	import Last from '../Last.svelte';
@@ -30,10 +30,6 @@
 	onDestroy(() => {
 		RightPart.snippet = undefined;
 		Configuration.stop();
-	});
-
-	onMount(() => {
-		page.params.category = Last.category ?? '_';
 	});
 
 	beforeNavigate(async (nav) => {
