@@ -23,6 +23,9 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.jface.viewers.TreeViewer;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -32,9 +35,35 @@ class CommentEditingSupport extends EditingSupport {
 
 	private CellEditor cellEditor;
 	
-	CommentEditingSupport(TreeViewer viewer) {
+	CommentEditingSupport(ProjectExplorerView explorerView, TreeViewer viewer) {
 		super(viewer);
-		cellEditor = new TextCellEditor(viewer.getTree());
+		cellEditor = new TextCellEditor(viewer.getTree()) {
+			@Override
+			protected Control createControl(Composite parent) {
+				var control = super.createControl(parent);
+				if (control instanceof Text text) {
+					explorerView.setInlineEditingTextCtrl(text);
+					control.addDisposeListener(event -> explorerView.clearInlineEditingTextCtrl(text));
+				}
+				return control;
+			}
+
+			@Override
+			public void activate() {
+				super.activate();
+				if (getControl() instanceof Text text && !text.isDisposed()) {
+					explorerView.setInlineEditingTextCtrl(text);
+				}
+			}
+
+			@Override
+			public void deactivate() {
+				if (getControl() instanceof Text text) {
+					explorerView.clearInlineEditingTextCtrl(text);
+				}
+				super.deactivate();
+			}
+		};
 	}
 
 	@Override
