@@ -37,7 +37,7 @@ ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision 
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '8.18.1'
 ext.swaggerUiVersion = '5.31.0'
-ext.tomcatVersion = '11.0.18'
+ext.tomcatVersion = '11.0.20'
 ext.eclipseVersion = '2026-03'
 ext.eclipseBase = '4.39'
 ext.studioWebNodeVersion = '22'
@@ -687,5 +687,5 @@ tasks.named("dependencyUpdates").configure {
 wrapper {
 	group = 'convertigo'
 	
-	gradleVersion = '9.4.0'
+	gradleVersion = '9.4.1'
 }
