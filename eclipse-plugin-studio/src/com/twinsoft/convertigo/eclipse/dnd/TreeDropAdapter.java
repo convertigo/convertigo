@@ -411,14 +411,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 
 	private DatabaseObject paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName, Object cm) throws EngineException {
 		Object object = ConvertigoPlugin.clipboardManagerDND.read(node);
-		if (object instanceof DatabaseObject) {
-			DatabaseObject databaseObject = (DatabaseObject)object;
-			
-			if (cm != null) {
-				if (cm instanceof com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager) {
-					((com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager)cm)
-						.reload((com.twinsoft.convertigo.beans.ngx.components.MobileComponent)databaseObject);
-				}
+		if (object instanceof DatabaseObject databaseObject) {
+			if (cm instanceof com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager ngxCm &&
+					databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent mobileComponent) {
+				ngxCm.reload(mobileComponent);
 			}
 			paste(databaseObject, parentDatabaseObject, bChangeName);
 
