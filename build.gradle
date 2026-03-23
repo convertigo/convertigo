@@ -35,9 +35,9 @@ ext.convertigoCodename = 'polonium'
 ext.convertigoCode = 'Po'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
-ext.jxBrowserVersion = '8.18.0'
+ext.jxBrowserVersion = '8.18.1'
 ext.swaggerUiVersion = '5.31.0'
-ext.tomcatVersion = '9.0.115'
+ext.tomcatVersion = '9.0.116'
 ext.eclipseVersion = '2025-12'
 ext.eclipseBase = '4.37'
 ext.studioWebNodeVersion = '22'
@@ -240,13 +240,13 @@ publishing {
 						'com.convertigo.twinsoft:api:2017.12.29',
 						'com.convertigo.twinsoft:tas:2019.10.16',
 						'com.convertigo.twinsoft:util:2017.12.29',
-						'com.fasterxml.jackson.core:jackson-core:2.15.0',
+						'com.fasterxml.jackson.core:jackson-core:2.21.2',
 						'commons-io:commons-io:' + commonsIo,
 						'javax.mail:mail:1.4.7',
 						'javax.servlet:servlet-api:2.5',
 						'org.apache.commons:commons-lang3:' + commonsLang3,
 						'org.apache.httpcomponents:httpclient:4.5.14',
-						'org.codehaus.jettison:jettison:1.5.4'
+						'org.codehaus.jettison:jettison:1.5.5'
 					].each {
 						def values = it.split(':')
 						def dependency = dependencies.appendNode('dependency')
