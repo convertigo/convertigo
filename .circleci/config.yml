@@ -162,6 +162,13 @@ jobs:
     - checkout
 
     - run:
+        name: Generate web admin Node version fingerprint
+        command: |
+          mkdir -p .circleci/cache
+          sed -n "s/^ext.studioWebNodeVersion = '\\(.*\\)'$/\\1/p" build.gradle > .circleci/cache/webadmin.nodeversion
+          test -s .circleci/cache/webadmin.nodeversion
+
+    - run:
         name: Generate web admin cache fingerprint
         command: ./.circleci/cache_fingerprint.sh webadmin .circleci/cache/webadmin.fingerprint
 
@@ -171,11 +178,11 @@ jobs:
 
     - restore_cache:
         keys:
-        - v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+        - v1-studio-web-nvm-{{ checksum ".circleci/cache/webadmin.nodeversion" }}
 
     - restore_cache:
         keys:
-        - v3-studio-web-tooling-{{ checksum ".circleci/cache/webadmin.fingerprint" }}
+        - v4-studio-web-npm-{{ checksum ".circleci/cache/webadmin.fingerprint" }}
 
     - run:
         name: Build web administration
@@ -186,18 +193,21 @@ jobs:
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
           fi
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :buildStudioWebNpmInstall :buildStudioWebBuild
-
-    - save_cache:
-        paths:
-        - ~/.gradle/wrapper
-        key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+          export NODE_VERSION=$(cat .circleci/cache/webadmin.nodeversion)
+          nvm install "$NODE_VERSION"
+          cd convertigo-studio-web
+          nvm exec "$NODE_VERSION" npm ci --force
+          nvm exec "$NODE_VERSION" npm run build
 
     - save_cache:
         paths:
         - ~/.nvm
+        key: v1-studio-web-nvm-{{ checksum ".circleci/cache/webadmin.nodeversion" }}
+
+    - save_cache:
+        paths:
         - ~/.npm
-        key: v3-studio-web-tooling-{{ checksum ".circleci/cache/webadmin.fingerprint" }}
+        key: v4-studio-web-npm-{{ checksum ".circleci/cache/webadmin.fingerprint" }}
 
     - persist_to_workspace:
         root: .
@@ -712,6 +722,11 @@ jobs:
           mkdir -p ~/.gnupg
           tar -xvf installers/convertigo.gpg -C ~/.gnupg
           find $CONVERTIGO_DIST -type f -exec gpg -ab {} \;
+
+    - run:
+        name: Archive mac workspace payload
+        command: |
+          tar -cf for_mac.tar -C for_mac .
           
     - run:
         name: Sync builds to S3
@@ -743,9 +758,9 @@ jobs:
           fi
           
     - persist_to_workspace:
-        root: for_mac
+        root: .
         paths:
-        - .
+        - for_mac.tar
           
   build_studio_mac:
     macos:
@@ -755,7 +770,12 @@ jobs:
     - aws-cli/setup:
         use_brew: true
     - attach_workspace:
-        at: for_mac
+        at: /tmp/workspace
+    - run:
+        name: Extract mac workspace payload
+        command: |
+          mkdir -p for_mac
+          tar -xf /tmp/workspace/for_mac.tar -C for_mac
     - run:
         name: Sign Studio
         command: |

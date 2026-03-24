@@ -63,3 +63,4 @@ META-INF
 /engine/src/com/twinsoft/convertigo/engine/admin/services/mobiles/res
 /resources
 /workspace
+.circleci/cache/
