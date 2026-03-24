@@ -30,7 +30,6 @@ add_glob() {
 }
 
 add_common_gradle_inputs() {
-	add_path .circleci/config.yml
 	add_path build.gradle
 	add_path settings.gradle
 	add_path gradle.properties

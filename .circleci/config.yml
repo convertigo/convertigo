@@ -52,7 +52,7 @@ jobs:
           
           export DATE="$(date)"
           
-          env | grep -e "^CONVERTIGO_" -e "^DATE=" | sed -e "s, ,\\\\ ,g" > /tmp/build.env
+          env | grep -e "^CONVERTIGO_" -e "^DATE=" | sed -e "s, ,\\\\ ,g" -e "s,^,export ," > /tmp/build.env
           
           echo "/tmp/build.env: "
           cat /tmp/build.env
@@ -220,7 +220,11 @@ jobs:
     - checkout
 
     - attach_workspace:
-        at: /tmp
+        at: /home/circleci/repo
+
+    - run:
+        name: Expose build.env
+        command: cp build.env /tmp/build.env
 
     - run:
         name: Generate engine cache fingerprint
@@ -598,7 +602,11 @@ jobs:
     - checkout
 
     - attach_workspace:
-        at: /tmp
+        at: /home/circleci/repo
+
+    - run:
+        name: Expose build.env
+        command: cp build.env /tmp/build.env
 
     - run:
         name: Generate studio cache fingerprint
