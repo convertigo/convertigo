@@ -107,7 +107,15 @@ export async function call(service, data = {}, options = {}) {
 				const parser = new XMLParser({
 					ignoreAttributes: false,
 					attributeNamePrefix: '',
-					processEntities: true
+					// Admin services return same-origin XML payloads with encoded descriptions.
+					processEntities: {
+						enabled: true,
+						maxEntitySize: Infinity,
+						maxExpansionDepth: Infinity,
+						maxTotalExpansions: Infinity,
+						maxExpandedLength: Infinity,
+						maxEntityCount: Infinity
+					}
 				});
 				parser.addEntity('#10', '\n');
 				dataContent = parser.parse(await res.text());

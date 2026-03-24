@@ -50,9 +50,8 @@ jobs:
           mkdir -p ~/s3/convertigo-$CONVERTIGO_BUILD_NAME
           export CONVERTIGO_DIST=$(cd ~/s3/convertigo-$CONVERTIGO_BUILD_NAME; pwd)
           
-          export echo DATE=$(date)
+          export DATE="$(date)"
           
-          env | grep -e "^CIRCLE" -e "^CONVERTIGO_" -e "^DATE=" | sort > $CONVERTIGO_DIST/env.txt
           env | grep -e "^CONVERTIGO_" -e "^DATE=" | sed -e "s, ,\\\\ ,g" > /tmp/build.env
           
           echo "/tmp/build.env: "
@@ -78,6 +77,10 @@ jobs:
 #         - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-
         
     - checkout
+
+    - run:
+        name: Generate engine cache fingerprint
+        command: ./.circleci/cache_fingerprint.sh engine .circleci/cache/engine.fingerprint
     
 #     - save_cache:
 #         paths:
@@ -86,14 +89,12 @@ jobs:
         
     - restore_cache:
         keys:
-        - v5-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v5-dependencies-
-        
+        - v6-engine-dependencies-{{ checksum ".circleci/cache/engine.fingerprint" }}
+
     - restore_cache:
         keys:
-        - v5-build-cache-{{ .Revision }}
-        - v5-build-cache-
+        - v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-{{ .Revision }}
+        - v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-
         
     - restore_cache:
         keys:
@@ -147,12 +148,12 @@ jobs:
         paths:
           - ~/.gradle
           - .gradle
-        key: v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        
+        key: v6-engine-dependencies-{{ checksum ".circleci/cache/engine.fingerprint" }}
+
     - save_cache:
         paths:
         - ~/.gradle/caches/build-cache-1
-        key: v5-build-cache-{{ .Revision }}
+        key: v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-{{ .Revision }}
 
   build_web_admin:
     <<: *defaults
@@ -160,19 +161,21 @@ jobs:
     steps:
     - checkout
 
+    - run:
+        name: Generate web admin cache fingerprint
+        command: ./.circleci/cache_fingerprint.sh webadmin .circleci/cache/webadmin.fingerprint
+
     - restore_cache:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
 
     - restore_cache:
         keys:
-        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v5-dependencies-
+        - v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
 
     - restore_cache:
         keys:
-        - v2-studio-web-tooling-{{ checksum "build.gradle" }}-{{ checksum "convertigo-studio-web/package-lock.json" }}
-        - v2-studio-web-tooling-
+        - v3-studio-web-tooling-{{ checksum ".circleci/cache/webadmin.fingerprint" }}
 
     - run:
         name: Build web administration
@@ -187,15 +190,14 @@ jobs:
 
     - save_cache:
         paths:
-          - ~/.gradle
-          - .gradle
-        key: v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - ~/.gradle/wrapper
+        key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
 
     - save_cache:
         paths:
         - ~/.nvm
         - ~/.npm
-        key: v2-studio-web-tooling-{{ checksum "build.gradle" }}-{{ checksum "convertigo-studio-web/package-lock.json" }}
+        key: v3-studio-web-tooling-{{ checksum ".circleci/cache/webadmin.fingerprint" }}
 
     - persist_to_workspace:
         root: .
@@ -208,6 +210,10 @@ jobs:
     steps:
     - aws-cli/setup
     - checkout
+
+    - run:
+        name: Generate engine cache fingerprint
+        command: ./.circleci/cache_fingerprint.sh engine .circleci/cache/engine.fingerprint
     - attach_workspace:
         at: /home/circleci/repo
         
@@ -223,18 +229,16 @@ jobs:
     
     - restore_cache:
         keys:
-        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v5-dependencies-
-        
+        - v6-engine-dependencies-{{ checksum ".circleci/cache/engine.fingerprint" }}
+
     - restore_cache:
         keys:
-        - v5-build-cache-{{ .Revision }}
-        - v5-build-cache-
-        
+        - v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-{{ .Revision }}
+        - v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-
+
     - restore_cache:
         keys:
-        - v1-resources-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v1-resources-
+        - v2-engine-resources-{{ checksum ".circleci/cache/engine.fingerprint" }}
         
     - run:
         name: Make WARs
@@ -242,11 +246,17 @@ jobs:
           source /tmp/build.env
           sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:war
           mv engine/build/libs/*.war $CONVERTIGO_DIST/
+          printf '%s\n' \
+            "build.version=$CONVERTIGO_BUILD_NAME" \
+            "build.date=$DATE" \
+            "build.filename=convertigo-$CONVERTIGO_VERSION.war" \
+            "build.commit=$CIRCLE_SHA1" \
+            > $CONVERTIGO_DIST/build.txt
           
     - save_cache:
         paths:
         - resources
-        key: v1-resources-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v2-engine-resources-{{ checksum ".circleci/cache/engine.fingerprint" }}
         
     - run:
         name: Sign WARs with GPG
@@ -272,6 +282,10 @@ jobs:
     steps:
     - aws-cli/setup
     - checkout
+
+    - run:
+        name: Generate engine cache fingerprint
+        command: ./.circleci/cache_fingerprint.sh engine .circleci/cache/engine.fingerprint
         
     - restore_cache:
         keys:
@@ -285,18 +299,16 @@ jobs:
     
     - restore_cache:
         keys:
-        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v5-dependencies-
-        
+        - v6-engine-dependencies-{{ checksum ".circleci/cache/engine.fingerprint" }}
+
     - restore_cache:
         keys:
-        - v5-build-cache-{{ .Revision }}
-        - v5-build-cache-
-        
+        - v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-{{ .Revision }}
+        - v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-
+
     - restore_cache:
         keys:
-        - v1-resources-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v1-resources-
+        - v2-engine-resources-{{ checksum ".circleci/cache/engine.fingerprint" }}
         
     - run:
         name: Make ZIP
@@ -309,7 +321,7 @@ jobs:
     - save_cache:
         paths:
         - resources
-        key: v1-resources-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v2-engine-resources-{{ checksum ".circleci/cache/engine.fingerprint" }}
         
     - run:
         name: Sign ZIP with GPG
@@ -560,6 +572,10 @@ jobs:
           rm *.msi
     
     - checkout
+
+    - run:
+        name: Generate studio cache fingerprint
+        command: ./.circleci/cache_fingerprint.sh studio .circleci/cache/studio.fingerprint
     - attach_workspace:
         at: /home/circleci/repo
         
@@ -575,19 +591,16 @@ jobs:
         
     - restore_cache:
         keys:
-        - v5-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v5-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v5-dependencies-
-        
+        - v6-studio-dependencies-{{ checksum ".circleci/cache/studio.fingerprint" }}
+
     - restore_cache:
         keys:
-        - v5-build-cache-{{ .Revision }}
-        - v5-build-cache-
-        
+        - v6-studio-build-cache-{{ checksum ".circleci/cache/studio.fingerprint" }}-{{ .Revision }}
+        - v6-studio-build-cache-{{ checksum ".circleci/cache/studio.fingerprint" }}-
+
     - restore_cache:
         keys:
-        - v5-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v5-m2-
+        - v6-studio-m2-{{ checksum ".circleci/cache/studio.fingerprint" }}
         
     - run:
         name: Build Studio
@@ -598,14 +611,19 @@ jobs:
     - save_cache:
         paths:
         - ~/.m2
-        key: v5-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        
+        key: v6-studio-m2-{{ checksum ".circleci/cache/studio.fingerprint" }}
+
     - save_cache:
         paths:
           - ~/.gradle
           - .gradle
-        key: v5-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        
+        key: v6-studio-dependencies-{{ checksum ".circleci/cache/studio.fingerprint" }}
+
+    - save_cache:
+        paths:
+        - ~/.gradle/caches/build-cache-1
+        key: v6-studio-build-cache-{{ checksum ".circleci/cache/studio.fingerprint" }}-{{ .Revision }}
+
     - restore_cache:
         keys:
         - v1-jre-{{ checksum "installers/nsis/download-jdk.sh" }}

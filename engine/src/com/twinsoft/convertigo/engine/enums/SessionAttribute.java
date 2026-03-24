@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.enums;
 
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager.FullSyncAuthentication;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +29,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public enum SessionAttribute {
     authenticatedUser(String.class),
-    authenticatedUserGrp(String.class),
+    authenticatedUserGrp(FullSyncAuthentication.class),
     authenticatedUserGrpCheck(String.class),
     clientIP(String.class, KeepMode.NEVER),
     contexts(List.class, KeepMode.NEVER),

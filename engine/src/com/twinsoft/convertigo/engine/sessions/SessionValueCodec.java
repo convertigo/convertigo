@@ -20,9 +20,11 @@
 package com.twinsoft.convertigo.engine.sessions;
 
 import java.lang.reflect.Type;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.Engine;
 
 final class SessionValueCodec {
 	String serialize(String name, Object value) throws Exception {
@@ -52,7 +54,7 @@ final class SessionValueCodec {
 		var valueNode = isWrapped ? node.get("value") : node;
 
 		if (hint != null && hint.expectedClass() != null) {
-			return JsonCodec.MAPPER.convertValue(valueNode, JsonCodec.MAPPER.getTypeFactory().constructType((Type) hint.expectedClass()));
+			return deserializeExpectedValue(hint.expectedClass(), valueNode);
 		}
 		if (isWrapped) {
 			var formatNode = node.get("format");
@@ -62,6 +64,36 @@ final class SessionValueCodec {
 			return ValueCodecHelper.decodeTypedValue(className, valueNode, format);
 		}
 		return JsonCodec.MAPPER.convertValue(valueNode, Object.class);
+	}
+
+	private Object deserializeExpectedValue(Class<?> expectedClass, com.fasterxml.jackson.databind.JsonNode valueNode)
+			throws Exception {
+		try {
+			return JsonCodec.MAPPER.convertValue(valueNode,
+					JsonCodec.MAPPER.getTypeFactory().constructType((Type) expectedClass));
+		} catch (IllegalArgumentException e) {
+			if (expectedClass.isMemberClass() && !Modifier.isStatic(expectedClass.getModifiers())) {
+				var enclosingClass = expectedClass.getEnclosingClass();
+				var outerInstance = resolveEnclosingInstance(enclosingClass);
+				if (outerInstance != null) {
+					var constructor = expectedClass.getDeclaredConstructor(enclosingClass);
+					constructor.setAccessible(true);
+					var instance = constructor.newInstance(outerInstance);
+					var parser = valueNode.traverse(JsonCodec.MAPPER);
+					parser.nextToken();
+					return JsonCodec.MAPPER.readerForUpdating(instance).readValue(parser);
+				}
+			}
+			throw e;
+		}
+	}
+
+	private Object resolveEnclosingInstance(Class<?> enclosingClass) {
+		if (enclosingClass != null && Engine.theApp != null && Engine.theApp.couchDbManager != null
+				&& enclosingClass.isInstance(Engine.theApp.couchDbManager)) {
+			return Engine.theApp.couchDbManager;
+		}
+		return null;
 	}
 
 	boolean canSerialize(String name, Object value) {

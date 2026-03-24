@@ -51,17 +51,44 @@ function normalizePath(path) {
 	return String(path ?? '').replace(/^\/+/, '');
 }
 
-function getErrorMessage(payload, status) {
+function getErrorMessage(payload, status = null, fallback = null) {
 	if (typeof payload == 'string' && payload.length) {
 		return payload;
+	}
+	if (payload?.message) {
+		return payload.message;
 	}
 	if (payload?.reason) {
 		return payload.reason;
 	}
 	if (payload?.error) {
-		return payload.error;
+		return typeof payload.error == 'string'
+			? payload.error
+			: (payload.error.message ?? fallback ?? 'Error');
 	}
-	return `HTTP ${status}`;
+	if (fallback != null) {
+		return fallback;
+	}
+	return status == null ? 'Unexpected response' : `HTTP ${status}`;
+}
+
+function isExplicitFullSyncConfigError(error) {
+	const message = String(error?.message ?? '')
+		.trim()
+		.toLowerCase();
+	return (
+		error?.status === 401 ||
+		error?.status === 403 ||
+		message.includes('name or password is incorrect') ||
+		message.includes('you are not a server admin')
+	);
+}
+
+function getDatabasesError(error = null) {
+	if (isExplicitFullSyncConfigError(error)) {
+		return error;
+	}
+	return new Error('Unable to retrieve databases from the configured CouchDB server.');
 }
 
 function buildHeaders(accept = 'application/json') {
@@ -156,8 +183,15 @@ export function fullSyncBaseUrl() {
 }
 
 export async function listDatabases() {
-	const data = await request('_all_dbs');
-	return Array.isArray(data) ? data : [];
+	try {
+		const data = await request('_all_dbs');
+		if (Array.isArray(data)) {
+			return data;
+		}
+		throw getDatabasesError();
+	} catch (error) {
+		throw getDatabasesError(error);
+	}
 }
 
 export async function getUuids(count = 1) {

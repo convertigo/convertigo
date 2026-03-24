@@ -102,6 +102,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -604,7 +605,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		treeViewerColumn = new TreeViewerColumn(viewer, SWT.LEFT);
 		var cp = new CommentColumnLabelProvider();
 		treeViewerColumn.setLabelProvider(cp);
-		treeViewerColumn.setEditingSupport(new CommentEditingSupport(viewer));
+		treeViewerColumn.setEditingSupport(new CommentEditingSupport(this, viewer));
 		
 		treeViewerColumn.getColumn().addDisposeListener(e -> cp.dispose());
 
@@ -1120,27 +1121,69 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private Text editingTextCtrl = null;
+	private Text inlineEditingTextCtrl = null;
+
+	private Text resolveEditingTextCtrl() {
+		if (editingTextCtrl != null && !editingTextCtrl.isDisposed()) {
+			return editingTextCtrl;
+		}
+		if (inlineEditingTextCtrl != null && !inlineEditingTextCtrl.isDisposed()) {
+			return inlineEditingTextCtrl;
+		}
+		var control = viewer == null ? null : viewer.getControl();
+		if (control == null || control.isDisposed()) {
+			return null;
+		}
+		var focusControl = control.getDisplay().getFocusControl();
+		if (focusControl instanceof Text text && isViewerEditorControl(control, text)) {
+			return text;
+		}
+		return null;
+	}
+
+	private boolean isViewerEditorControl(Control treeControl, Control control) {
+		var current = control;
+		while (current != null && !current.isDisposed()) {
+			if (current == treeControl) {
+				return true;
+			}
+			current = current.getParent();
+		}
+		return false;
+	}
+
+	void setInlineEditingTextCtrl(Text textCtrl) {
+		inlineEditingTextCtrl = textCtrl != null && !textCtrl.isDisposed() ? textCtrl : null;
+	}
+
+	void clearInlineEditingTextCtrl(Text textCtrl) {
+		if (textCtrl == null || inlineEditingTextCtrl == textCtrl) {
+			inlineEditingTextCtrl = null;
+		}
+	}
 
 	public boolean isEditing() {
-		return editingTextCtrl != null;
+		return resolveEditingTextCtrl() != null;
 	}
 
 	public String getEditingText() {
-		if (editingTextCtrl != null) {
-			return editingTextCtrl.getText();
+		var textCtrl = resolveEditingTextCtrl();
+		if (textCtrl != null) {
+			return textCtrl.getText();
 		}
 		return null;
 	}
 
 	public void setEditingText(String text) {
-		if ((editingTextCtrl != null) && (text != null)) {
-			String selection = editingTextCtrl.getSelectionText();
-			String oldText = editingTextCtrl.getText();
+		var textCtrl = resolveEditingTextCtrl();
+		if ((textCtrl != null) && (text != null)) {
+			String selection = textCtrl.getSelectionText();
+			String oldText = textCtrl.getText();
 			String newText = "";
-			int caret = editingTextCtrl.getCaretPosition();
+			int caret = textCtrl.getCaretPosition();
 
 			if (selection.equals(oldText)) {
-				editingTextCtrl.setText(text);
+				textCtrl.setText(text);
 			} else {
 				if (caret == 0) {
 					newText = text + oldText;
@@ -1151,7 +1194,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					String part2 = oldText.substring(caret, oldText.length());
 					newText = part1 + text + part2;
 				}
-				editingTextCtrl.setText(newText);
+				textCtrl.setText(newText);
 			}
 		}
 	}
