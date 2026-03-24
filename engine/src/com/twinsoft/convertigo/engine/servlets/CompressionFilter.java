@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
@@ -107,14 +108,67 @@ public class CompressionFilter implements Filter {
 		return !lastSegment.contains(".");
 	}
 
-	class GZipServletResponseWrapper extends HttpServletResponseWrapper {
+	private boolean isCompressibleContentType(String contentType) {
+		if (contentType == null || contentType.isBlank()) {
+			return true;
+		}
+		String mimeType = contentType.split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
+		return mimeType.startsWith("text/")
+			|| mimeType.contains("json")
+			|| mimeType.contains("xml")
+			|| mimeType.contains("javascript")
+			|| mimeType.contains("ecmascript")
+			|| mimeType.contains("css")
+			|| mimeType.contains("html")
+			|| mimeType.contains("yaml")
+			|| mimeType.contains("csv")
+			|| "image/svg+xml".equals(mimeType);
+	}
 
+	class GZipServletResponseWrapper extends HttpServletResponseWrapper {
+		private enum Mode {
+			undecided,
+			gzip,
+			identity
+		}
+
+		private ServletOutputStream     outputStream      = null;
 		private GZipServletOutputStream gzipOutputStream = null;
 		private PrintWriter             printWriter      = null;
 		private boolean                 closed           = false;
+		private Mode                    mode             = Mode.undecided;
+		private String                  pendingContentLength = null;
 
 		private GZipServletResponseWrapper(HttpServletResponse response) throws IOException {
 			super(response);
+		}
+
+		private void applyPendingContentLength() {
+			if (pendingContentLength != null) {
+				super.setHeader(HeaderName.ContentLength.value(), pendingContentLength);
+				pendingContentLength = null;
+			}
+		}
+
+		private Mode decideMode() {
+			if (mode != Mode.undecided) {
+				return mode;
+			}
+			if (HeaderName.ContentDisposition.has(this)) {
+				mode = Mode.identity;
+				applyPendingContentLength();
+				return mode;
+			}
+			String contentType = HeaderName.ContentType.getHeader(this);
+			if (contentType != null && !isCompressibleContentType(contentType)) {
+				mode = Mode.identity;
+				applyPendingContentLength();
+				return mode;
+			}
+			mode = Mode.gzip;
+			pendingContentLength = null;
+			HeaderName.ContentEncoding.setHeader(this, "gzip");
+			return mode;
 		}
 
 		private void close() throws IOException {
@@ -122,15 +176,23 @@ public class CompressionFilter implements Filter {
 				return;
 			}
 			closed = true;
+			if (mode == Mode.undecided) {
+				mode = Mode.identity;
+				applyPendingContentLength();
+			}
 			if (printWriter != null) {
 				printWriter.flush();
 			}
-			if (gzipOutputStream != null) {
+			if (mode == Mode.gzip && gzipOutputStream != null) {
 				gzipOutputStream.finish();
 				gzipOutputStream.close();
-			}
-			if (printWriter != null) {
+				if (printWriter != null) {
+					printWriter.close();
+				}
+			} else if (printWriter != null) {
 				printWriter.close();
+			} else if (outputStream != null) {
+				outputStream.close();
 			}
 		}
 
@@ -149,8 +211,10 @@ public class CompressionFilter implements Filter {
 				printWriter.flush();
 			}
 
-			if (gzipOutputStream != null) {
-				gzipOutputStream.flush();
+			if (outputStream != null) {
+				outputStream.flush();
+			} else {
+				super.flushBuffer();
 			}
 		}
 
@@ -159,63 +223,118 @@ public class CompressionFilter implements Filter {
 			if (printWriter != null) {
 				throw new IllegalStateException("PrintWriter obtained already - cannot get OutputStream");
 			}
-			if (gzipOutputStream == null) {
-				HeaderName.ContentEncoding.setHeader(this, "gzip");
-				gzipOutputStream = new GZipServletOutputStream(getResponse().getOutputStream());
+			if (outputStream == null) {
+				if (decideMode() == Mode.gzip) {
+					gzipOutputStream = new GZipServletOutputStream(getResponse().getOutputStream());
+					outputStream = gzipOutputStream;
+				} else {
+					outputStream = getResponse().getOutputStream();
+				}
 			}
-			return this.gzipOutputStream;
+			return outputStream;
 		}
 
 		@Override
 		public PrintWriter getWriter() throws IOException {
-			if (printWriter == null && gzipOutputStream != null) {
+			if (printWriter == null && outputStream != null) {
 				throw new IllegalStateException("OutputStream obtained already - cannot get PrintWriter");
 			}
 
 			if (printWriter == null) {
-				HeaderName.ContentEncoding.setHeader(this, "gzip");
-				gzipOutputStream = new GZipServletOutputStream(getResponse().getOutputStream());
-				printWriter = new PrintWriter(new OutputStreamWriter(gzipOutputStream, getResponse().getCharacterEncoding()));
+				outputStream = getOutputStream();
+				String characterEncoding = getResponse().getCharacterEncoding();
+				if (characterEncoding == null || characterEncoding.isBlank()) {
+					characterEncoding = "UTF-8";
+				}
+				printWriter = new PrintWriter(new OutputStreamWriter(outputStream, characterEncoding));
 			}
 			return this.printWriter;
 		}
 
 		@Override
 		public void setContentLength(int len) {
-			//ignore, since content length of zipped content
-			//does not match content length of unzipped content.
+			if (mode == Mode.gzip) {
+				return;
+			}
+			if (mode == Mode.identity) {
+				super.setContentLength(len);
+			} else {
+				pendingContentLength = String.valueOf(len);
+			}
 		}		
 
 		@Override
 		public void setContentLengthLong(long len) {
-			// ignore, since content length of zipped content does not match
-			// content length of unzipped content.
+			if (mode == Mode.gzip) {
+				return;
+			}
+			if (mode == Mode.identity) {
+				super.setContentLengthLong(len);
+			} else {
+				pendingContentLength = String.valueOf(len);
+			}
 		}
 
 		@Override
 		public void addHeader(String name, String value) {
-			if (!HeaderName.ContentLength.is(name)) {
+			if (HeaderName.ContentLength.is(name)) {
+				if (mode == Mode.gzip) {
+					return;
+				}
+				if (mode == Mode.identity) {
+					super.addHeader(name, value);
+				} else {
+					pendingContentLength = value;
+				}
+			} else {
 				super.addHeader(name, value);
 			}
 		}
 
 		@Override
 		public void addIntHeader(String name, int value) {
-			if (!HeaderName.ContentLength.is(name)) {
+			if (HeaderName.ContentLength.is(name)) {
+				if (mode == Mode.gzip) {
+					return;
+				}
+				if (mode == Mode.identity) {
+					super.addIntHeader(name, value);
+				} else {
+					pendingContentLength = String.valueOf(value);
+				}
+			} else {
 				super.addIntHeader(name, value);
 			}
 		}
 
 		@Override
 		public void setHeader(String name, String value) {
-			if (!HeaderName.ContentLength.is(name)) {
+			if (HeaderName.ContentLength.is(name)) {
+				if (mode == Mode.gzip) {
+					return;
+				}
+				if (mode == Mode.identity) {
+					super.setHeader(name, value);
+				} else {
+					pendingContentLength = value;
+				}
+			} else {
 				super.setHeader(name, value);
 			}
 		}
 
 		@Override
 		public void setIntHeader(String name, int value) {
-			if (!HeaderName.ContentLength.is(name)) {
+			if (HeaderName.ContentLength.is(name)) {
+				if (mode == Mode.gzip) {
+					return;
+				}
+				if (mode == Mode.identity) {
+					super.setIntHeader(name, value);
+				} else {
+					pendingContentLength = String.valueOf(value);
+				}
+			} else {
 				super.setIntHeader(name, value);
 			}
 		}

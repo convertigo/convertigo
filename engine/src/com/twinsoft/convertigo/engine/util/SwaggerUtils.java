@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.rest.AbstractRestOperation;
+import com.twinsoft.convertigo.beans.rest.AbstractRestOperation.OutputContent;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
@@ -110,6 +111,23 @@ public class SwaggerUtils {
 	public static String servletMappingPath = "api";
 	public static String jsonSchemaDirectory = "oas2";
 	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?"+servletMappingPath+")");
+
+	private static List<String> getProduces(AbstractRestOperation aro) {
+		OutputContent dataOutput = aro.getOutputContent();
+		if (dataOutput == OutputContent.toJson) {
+			return Arrays.asList(MimeType.Json.value());
+		}
+		if (dataOutput == OutputContent.toXml) {
+			return Arrays.asList(MimeType.Xml.value());
+		}
+		if (dataOutput == OutputContent.toBinary) {
+			return Arrays.asList(MimeType.OctetStream.value());
+		}
+		if (dataOutput == OutputContent.toCxml) {
+			return Arrays.asList(MimeType.Html.value());
+		}
+		return Arrays.asList(MimeType.Json.value(), MimeType.Xml.value());
+	}
 
 	public static Swagger read(String url) {
 		return new SwaggerParser().read(url);
@@ -330,16 +348,7 @@ public class SwaggerUtils {
 
 					// Operation produces
 					if (umo instanceof AbstractRestOperation) {
-						DataContent dataOutput = ((AbstractRestOperation)umo).getOutputContent();
-						if (dataOutput.equals(DataContent.toJson)) {
-							s_operation.setProduces(Arrays.asList(MimeType.Json.value()));
-						}
-						else if (dataOutput.equals(DataContent.toXml)) {
-							s_operation.setProduces(Arrays.asList(MimeType.Xml.value()));
-						}
-						else {
-							s_operation.setProduces(Arrays.asList(MimeType.Json.value(), MimeType.Xml.value()));
-						}
+						s_operation.setProduces(getProduces((AbstractRestOperation) umo));
 					}
 
 					// Operation tags
@@ -649,6 +658,9 @@ public class SwaggerUtils {
 								else if (produceList.contains(MimeType.Xml.value())) {
 									h_Accept = MimeType.Xml.value();
 								}
+								else if (!produceList.isEmpty()) {
+									h_Accept = produceList.get(0);
+								}
 							}
 
 							if (consumeList == null && h_Accept != null) {
@@ -890,6 +902,9 @@ public class SwaggerUtils {
 						}
 						else if (produceList.contains(MimeType.Json.value())) {
 							h_Accept = MimeType.Json.value();
+						}
+						else if (!produceList.isEmpty()) {
+							h_Accept = produceList.get(0);
 						}
 					}
 

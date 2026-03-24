@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.beans.rest;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
-import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
+import com.twinsoft.convertigo.beans.rest.AbstractRestOperation.OutputContent;
 
 public class AbstractRestOperationBeanInfo extends MySimpleBeanInfo {
 
@@ -44,7 +44,7 @@ public class AbstractRestOperationBeanInfo extends MySimpleBeanInfo {
             properties[0] = new PropertyDescriptor("outputContent", beanClass, "getOutputContent", "setOutputContent");
             properties[0].setDisplayName(getExternalizedString("property.outputContent.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.outputContent.short_description"));
-            properties[0].setPropertyEditorClass(DataContent.class);
+            properties[0].setPropertyEditorClass(OutputContent.class);
 			
             properties[1] = new PropertyDescriptor("terminateSession", beanClass, "isTerminateSession", "setTerminateSession");
             properties[1].setDisplayName(getExternalizedString("property.terminateSession.display_name"));

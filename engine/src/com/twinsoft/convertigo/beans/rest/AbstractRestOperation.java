@@ -27,9 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -46,7 +43,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
-import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
+import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -55,18 +52,40 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
-import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
-import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.engine.requesters.UrlMapperRequester;
+import com.twinsoft.convertigo.engine.requesters.UrlMapperRequester.ResponseMode;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.JakartaServletFileUploadSupport;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 public abstract class AbstractRestOperation extends UrlMappingOperation {
 
 	private static final long serialVersionUID = 895538076484401562L;
+
+	public enum OutputContent {
+		useHeader("Use header specific"),
+		toJson("Json"),
+		toXml("Xml"),
+		toBinary("Binary"),
+		toCxml("Convertigo Xml (XSL)");
+
+		private final String label;
+
+		OutputContent(String label) {
+			this.label = label;
+		}
+
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
 
 	private transient boolean hasBodyParameter = false;
 	
@@ -134,19 +153,71 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		}
 	}
 
-	private DataContent outputContent = DataContent.toJson;
+	private OutputContent outputContent = OutputContent.toJson;
 	
-	public DataContent getOutputContent() {
+	public OutputContent getOutputContent() {
 		return outputContent;
 	}
 
-	public void setOutputContent(DataContent outputContent) {
+	public void setOutputContent(OutputContent outputContent) {
 		this.outputContent = outputContent;
 	}
-	
+
+	private OutputContent resolveOutputContent(HttpServletRequest request) {
+		var resolvedOutput = getOutputContent();
+		if (resolvedOutput == OutputContent.useHeader) {
+			var accept = HeaderName.Accept.getHeader(request);
+			if (MimeType.Xml.is(accept)) {
+				resolvedOutput = OutputContent.toXml;
+			} else if (accept == null || MimeType.Json.is(accept)) {
+				resolvedOutput = OutputContent.toJson;
+			}
+		}
+		return resolvedOutput;
+	}
+
+	private static void setRequestAttributeIfAbsent(HttpServletRequest request, String name, Object value) {
+		if (value != null && request.getAttribute(name) == null) {
+			request.setAttribute(name, value);
+		}
+	}
+
+	private static void propagateRequesterResponseMetadata(HttpServletRequest request, Map<String, Object> map, String contentType, String encoding) {
+		setRequestAttributeIfAbsent(request, "convertigo.contentType", contentType);
+		setRequestAttributeIfAbsent(request, "convertigo.charset", encoding);
+		setRequestAttributeIfAbsent(request, "convertigo.cacheControl", GenericUtils.cast(map.get("convertigo.cacheControl")));
+		setRequestAttributeIfAbsent(request, "sequence.transaction.sessionid", GenericUtils.cast(map.get("sequence.transaction.sessionid")));
+	}
+
+	private UrlMapperRequester createUrlMapperRequester(Map<String, Object> map, HttpServletRequest request, OutputContent outputContent) throws EngineException {
+		var responseMode = switch (outputContent) {
+			case toBinary -> ResponseMode.binary;
+			case toCxml -> ResponseMode.cxml;
+			default -> ResponseMode.defaultContent;
+		};
+		return new UrlMapperRequester(map, request, responseMode);
+	}
+
+	private void applyResponseStatus(HttpServletRequest request, HttpServletResponse response, Document xmlHttpDocument) {
+		var statusCode = HttpServletResponse.SC_OK;
+		if (RequestAttribute.responseStatus.get(request) == null) {
+			for (var umr : getResponseList()) {
+				if (umr instanceof OperationResponse) {
+					var or = (OperationResponse) umr;
+					if (or.isMatching(xmlHttpDocument)) {
+						try {
+							statusCode = Integer.valueOf(or.getStatusCode(), 10);
+						} catch (Exception e) {}
+						break;
+					}
+				}
+			}
+			response.setStatus(statusCode);
+		}
+	}
+
 	@Override
-	@SuppressWarnings("deprecation")
-	public String handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
+	public Object handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
 		String targetRequestableQName = getTargetRequestable();
 		if (targetRequestableQName.isEmpty()) {
 			throw new EngineException("Mapping operation \""+ getName() +"\" has no target requestable defined");
@@ -163,7 +234,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			
 			Map<String, Object> map = new HashMap<String, Object>();
 			String responseContentType = null;
-			String content = null;
+			String encoding = "UTF-8";
+			Object content = null;
 			
 			try {
 				
@@ -383,90 +455,90 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			
 			// Execute requestable
 			Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" executing requestable \""+ targetRequestableQName +"\"");
-        	InternalRequester internalRequester = new InternalRequester(map, request);
-			request.setAttribute("convertigo.requester", internalRequester);
-    		Object result = internalRequester.processRequest();
-    		String encoding = "UTF-8";
-    		if (result != null) {
-        		Document xmlHttpDocument = (Document) result;
-        		ConvertigoError.cleanDocument(internalRequester.context.getXpathApi(), xmlHttpDocument);
-        		
-				// Extract the encoding Char Set from PI
-    			Node firstChild = xmlHttpDocument.getFirstChild();
-    			if ((firstChild.getNodeType() == Document.PROCESSING_INSTRUCTION_NODE)
-    					&& (firstChild.getNodeName().equals("xml"))) {
-    				String piValue = firstChild.getNodeValue();
-    				int encodingOffset = piValue.indexOf("encoding=\"");
-    				if (encodingOffset != -1) {
-    					encoding = piValue.substring(encodingOffset + 10);
-    					encoding = encoding.substring(0, encoding.length() - 1);
-    				}
-    			}
-        		
-        		// Get output content type
-        		DataContent dataOutput = getOutputContent();
-        		if (dataOutput.equals(DataContent.useHeader)) {
-            		String h_Accept = HeaderName.Accept.getHeader(request);
-            		if (MimeType.Xml.is(h_Accept)) {
-            			dataOutput = DataContent.toXml;
-        			} else if (h_Accept == null || MimeType.Json.is(h_Accept)) {
-        				dataOutput = DataContent.toJson;
-        			}
-        		}
-        		
-        		// Modify status according to XPath condition of Response beans        		
-        		int statusCode = HttpServletResponse.SC_OK;
-        		String statusText = "";
-        		if (RequestAttribute.responseStatus.get(request) == null) {
-	        		for (UrlMappingResponse umr : getResponseList()) {
-	        			if (umr instanceof OperationResponse) {
-	        				OperationResponse or = (OperationResponse)umr;
-	        				if (or.isMatching(xmlHttpDocument)) {
-	        					try {
-	        						statusCode = Integer.valueOf(or.getStatusCode(),10);
-	        						statusText = or.getStatusText();
-	        					}
-	        					catch (Exception e) {}
-	        					break;
-	        				}
+			var outputContent = resolveOutputContent(request);
+			var requester = createUrlMapperRequester(map, request, outputContent);
+			request.setAttribute("convertigo.requester", requester);
+	    		var result = requester.processRequest();
+	    		var xmlHttpDocument = requester.context != null ? requester.context.outputDocument : null;
+	    		if (xmlHttpDocument != null) {
+	        		ConvertigoError.cleanDocument(requester.context.getXpathApi(), xmlHttpDocument);
+	        		var firstChild = xmlHttpDocument.getFirstChild();
+	        		if ((firstChild != null) && (firstChild.getNodeType() == Document.PROCESSING_INSTRUCTION_NODE)
+	        				&& (firstChild.getNodeName().equals("xml"))) {
+	        			var piValue = firstChild.getNodeValue();
+	        			var encodingOffset = piValue.indexOf("encoding=\"");
+	        			if (encodingOffset != -1) {
+	        				encoding = piValue.substring(encodingOffset + 10);
+	        				encoding = encoding.substring(0, encoding.length() - 1);
 	        			}
 	        		}
-        		}
-	        		response.setStatus(statusCode);
-        		
-        		// Transform XML data
-        		if (dataOutput.equals(DataContent.toJson)) {
-        			JsonRoot jsonRoot = getProject().getJsonRoot();
-        			boolean useType = getProject().getJsonOutput() == JsonOutput.useType;
-        			boolean makeCompliant = useType && "/openapi".equals(request.getServletPath());
-        			Document document = makeCompliant ? Engine.theApp.schemaManager.makeXmlRestCompliant(xmlHttpDocument) : xmlHttpDocument;
-    				XMLUtils.logXml(document, Engine.logContext, "Generated Rest XML (useType="+ useType +")");
-       				content = XMLUtils.XmlToJson(document.getDocumentElement(), true, useType, jsonRoot);
-            		responseContentType = MimeType.Json.value();
-        		}
-        		else {
-        			content = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
-            		responseContentType = MimeType.Xml.value();
-        		}
-        	}
-        	else {
-        		response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-        	}
+	        		applyResponseStatus(request, response, xmlHttpDocument);
+	    		}
+	    		if (result != null) {
+	    			switch (outputContent) {
+	    				case toBinary:
+	    					if (result instanceof AttachmentDetails attachment) {
+	    						content = attachment;
+	    					} else {
+	    						throw new EngineException("REST operation \"" + getName() + "\" is configured for binary output but target requestable \"" + targetRequestableQName + "\" produced no top-level attachment");
+	    					}
+	    					break;
+	    				case toCxml:
+	    					content = result;
+	    					responseContentType = GenericUtils.cast(map.get("convertigo.contentType"));
+	    					if (responseContentType == null || responseContentType.isBlank()) {
+	    						responseContentType = MimeType.Html.value();
+	    					}
+	    					String contextEncoding = GenericUtils.cast(map.get("convertigo.charset"));
+	    					if (contextEncoding != null && !contextEncoding.isBlank()) {
+	    						encoding = contextEncoding;
+	    					}
+	    					break;
+	    				case toXml:
+	    				case toJson:
+	    				case useHeader:
+	    				default:
+	    					if (xmlHttpDocument == null) {
+	    						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+	    						break;
+	    					}
+	    					if (outputContent == OutputContent.toJson) {
+	        					var jsonRoot = getProject().getJsonRoot();
+	        					var useType = getProject().getJsonOutput() == JsonOutput.useType;
+	        					var makeCompliant = useType && "/openapi".equals(request.getServletPath());
+	        					var document = makeCompliant ? Engine.theApp.schemaManager.makeXmlRestCompliant(xmlHttpDocument) : xmlHttpDocument;
+	    						XMLUtils.logXml(document, Engine.logContext, "Generated Rest XML (useType="+ useType +")");
+	       						content = XMLUtils.XmlToJson(document.getDocumentElement(), true, useType, jsonRoot);
+	            					responseContentType = MimeType.Json.value();
+	        					}
+	        					else {
+	        						content = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
+	            					responseContentType = MimeType.Xml.value();
+	        					}
+	    					break;
+	    			}
+	        	} else {
+	        		response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+	        	}
 			
 			// Set response content-type header
-			if (responseContentType != null) {
+			if (outputContent == OutputContent.toCxml) {
+				propagateRequesterResponseMetadata(request, map, responseContentType, encoding);
+			} else if (responseContentType != null) {
 				HeaderName.ContentType.addHeader(response, responseContentType);
 			}
 			
 			// Set response content
-			if (content != null) {
-				response.setCharacterEncoding(encoding);
-				if (Engine.logContext.isInfoEnabled()) {
+			if (content != null && !(content instanceof AttachmentDetails) && !(content instanceof byte[])) {
+				if (outputContent != OutputContent.toCxml) {
+					response.setCharacterEncoding(encoding);
+				}
+				if (content instanceof String && responseContentType != null && MimeType.Json.is(responseContentType) && Engine.logContext.isInfoEnabled()) {
 					try {
-						String json = new JSONObject(content).toString(1);
-						int len = json.length();
+						var json = new JSONObject((String) content).toString(1);
+						var len = json.length();
 						if (len > 5000) {
-							String txt = json.substring(0, 5000) + "\n... (see the complete message in DEBUG log level)";
+							var txt = json.substring(0, 5000) + "\n... (see the complete message in DEBUG log level)";
 							Engine.logContext.info("Generated REST Json:\n"+ txt);
 							Engine.logContext.debug("Generated REST Json:\n"+ json);
 						} else {

@@ -199,13 +199,6 @@ public abstract class GenericServlet extends HttpServlet {
 
 				Object result = processRequest(request);
 
-				response.addHeader("Expires", "-1");
-
-				if (getCacheControl(request).equals("false")) {
-					HeaderName.CacheControl.addHeader(response,
-							"no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
-				}
-
 				HttpUtils.applyCorsHeaders(request, response);
 
 				/**
@@ -223,27 +216,7 @@ public abstract class GenericServlet extends HttpServlet {
 				 * sCookie); }
 				 */
 
-				String trSessionId = (String) request.getAttribute("sequence.transaction.sessionid");
-				if ((trSessionId != null) && (!trSessionId.equals(""))) {
-					response.setHeader("Transaction-JSessionId", trSessionId);
-				}
-
-				String requested_content_type = request.getParameter(Parameter.ContentType.getName());
-				String content_type = getContentType(request);
-				if (requested_content_type != null && !requested_content_type.equals(content_type)) {
-					Engine.logEngine.debug("(GenericServlet) Override Content-Type requested to change : " + content_type + " to " + requested_content_type);
-					content_type = requested_content_type;
-				} else {
-					requested_content_type = null;
-				}
-
-				response.setContentType(content_type);
-				if (content_type.startsWith("text")) {
-					String charset = (String) request.getAttribute("convertigo.charset");
-					if (charset != null && charset.length() > 0) {
-						response.setCharacterEncoding(charset);
-					}
-				}
+				String requested_content_type = prepareTextRequesterResponse(request, response);
 
 				try {
 
@@ -628,6 +601,39 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	public abstract String getDocumentExtension();
+
+	protected String prepareTextRequesterResponse(HttpServletRequest request, HttpServletResponse response) {
+		response.addHeader("Expires", "-1");
+
+		if (getCacheControl(request).equals("false")) {
+			HeaderName.CacheControl.addHeader(response,
+					"no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
+		}
+
+		var trSessionId = (String) request.getAttribute("sequence.transaction.sessionid");
+		if ((trSessionId != null) && (!trSessionId.equals(""))) {
+			response.setHeader("Transaction-JSessionId", trSessionId);
+		}
+
+		var requestedContentType = request.getParameter(Parameter.ContentType.getName());
+		var contentType = getContentType(request);
+		if (requestedContentType != null && !requestedContentType.equals(contentType)) {
+			Engine.logEngine.debug("(GenericServlet) Override Content-Type requested to change : " + contentType + " to " + requestedContentType);
+			contentType = requestedContentType;
+		} else {
+			requestedContentType = null;
+		}
+
+		response.setContentType(contentType);
+		if (contentType.startsWith("text")) {
+			var charset = (String) request.getAttribute("convertigo.charset");
+			if (charset != null && charset.length() > 0) {
+				response.setCharacterEncoding(charset);
+			}
+		}
+
+		return requestedContentType;
+	}
 
 	private void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {
 		ServletUtils.applyCustomHeaders(request, response);

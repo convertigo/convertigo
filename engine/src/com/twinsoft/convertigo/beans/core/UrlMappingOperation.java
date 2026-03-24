@@ -65,7 +65,7 @@ public abstract class UrlMappingOperation extends DatabaseObject implements ICon
 
 	abstract public String getMethod();
 	abstract protected boolean canAddParameter(UrlMappingParameter parameter);
-	abstract public String handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException;
+	abstract public Object handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException;
 
 	protected transient boolean isChangeTo = false;
 	

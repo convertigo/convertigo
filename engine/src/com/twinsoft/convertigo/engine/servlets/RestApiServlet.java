@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.servlets;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,6 +42,7 @@ import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.core.UrlAuthentication;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -56,6 +58,7 @@ import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.requesters.UrlMapperRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -64,8 +67,10 @@ import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.convertigo.engine.util.OpenApiUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.TASException;
+import org.w3c.dom.Document;
 
 public class RestApiServlet extends GenericServlet {
 
@@ -303,7 +308,7 @@ public class RestApiServlet extends GenericServlet {
 													Collections.list(request.getParameterNames()));
 						}
 						
-						String content = null; // The response content
+						Object content = null; // The response content
 						
 						// Check for authentication
 						if (urlMappingOperation.isTargetAuthenticationContextRequired()) {
@@ -353,19 +358,6 @@ public class RestApiServlet extends GenericServlet {
 		                // Set response status
 		                ServletUtils.applyCustomStatus(request, response);
 		                Engine.logEngine.debug("(RestApiServlet) Response status code: "+ response.getStatus());
-		                
-						// Set response headers
-		                ServletUtils.applyCustomHeaders(request, response);
-						if (Engine.logEngine.isDebugEnabled()) {
-			    			buf = new StringBuffer();
-			    			buf.append("(RestApiServlet) Response headers:\n");
-			    			Collection<String> headerNames = response.getHeaderNames();
-			    			for (String headerName: headerNames) {
-			    				String headerValue = response.getHeader(headerName);
-		    					buf.append(" " + headerName + "=" + headerValue + "\n");
-			    			}
-			    			Engine.logEngine.debug(buf.toString());
-						}
 						
 						// terminate session to avoid max session exceeded (case new session initiated for authentication)
 						if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
@@ -379,9 +371,16 @@ public class RestApiServlet extends GenericServlet {
 							}
 						}
 						
-						if (content != null) {
-							Writer writer = response.getWriter();
-				            writer.write(content);
+						writeResponseContent(request, response, content);
+						if (Engine.logEngine.isDebugEnabled()) {
+			    			buf = new StringBuffer();
+			    			buf.append("(RestApiServlet) Response headers:\n");
+			    			Collection<String> headerNames = response.getHeaderNames();
+			    			for (String headerName: headerNames) {
+			    				String headerValue = response.getHeader(headerName);
+		    					buf.append(" " + headerName + "=" + headerValue + "\n");
+			    			}
+			    			Engine.logEngine.debug(buf.toString());
 						}
 						
 						Engine.logEngine.debug("(RestApiServlet) Request successfully handled");
@@ -426,5 +425,64 @@ public class RestApiServlet extends GenericServlet {
 	public String getDocumentExtension() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	private boolean isCxmlResponse(HttpServletRequest request) {
+		var requester = request.getAttribute("convertigo.requester");
+		return requester instanceof UrlMapperRequester urlMapperRequester && urlMapperRequester.isCxmlResponse();
+	}
+
+	private void writeResponseContent(HttpServletRequest request, HttpServletResponse response, Object content) throws IOException {
+		if (content == null) {
+			ServletUtils.applyCustomHeaders(request, response);
+			return;
+		}
+
+		var requestedContentType = request.getParameter(Parameter.ContentType.getName());
+		if (content instanceof AttachmentDetails attachment) {
+			var data = attachment.getData();
+			var contentType = requestedContentType != null ? requestedContentType : attachment.getContentType();
+			if (contentType != null && !contentType.isBlank()) {
+				HeaderName.ContentType.setHeader(response, contentType);
+			}
+			HeaderName.ContentLength.setHeader(response, "" + data.length);
+			HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + attachment.getName() + "\"");
+			ServletUtils.applyCustomHeaders(request, response);
+			try (OutputStream out = response.getOutputStream()) {
+				out.write(data);
+				out.flush();
+			}
+			return;
+		}
+
+		if (content instanceof byte[] data) {
+			if (isCxmlResponse(request)) {
+				prepareTextRequesterResponse(request, response);
+			} else if (requestedContentType != null) {
+				response.setContentType(requestedContentType);
+			} else if (response.getContentType() == null) {
+				response.setContentType(MimeType.OctetStream.value());
+			}
+			HeaderName.ContentLength.setHeader(response, "" + data.length);
+			ServletUtils.applyCustomHeaders(request, response);
+			try (OutputStream out = response.getOutputStream()) {
+				out.write(data);
+				out.flush();
+			}
+			return;
+		}
+
+		if (isCxmlResponse(request)) {
+			prepareTextRequesterResponse(request, response);
+		} else if (requestedContentType != null) {
+			response.setContentType(requestedContentType);
+		}
+
+		var text = content instanceof Document ? XMLUtils.prettyPrintDOM((Document) content) : String.valueOf(content);
+		ServletUtils.applyCustomHeaders(request, response);
+		try (Writer writer = response.getWriter()) {
+			writer.write(text);
+			writer.flush();
+		}
 	}
 }

@@ -75,6 +75,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.rest.AbstractRestOperation;
+import com.twinsoft.convertigo.beans.rest.AbstractRestOperation.OutputContent;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
@@ -154,6 +155,73 @@ public class OpenApiUtils {
 	public static String servletMappingPath = "openapi";
 	public static String jsonSchemaDirectory = "oas3";
 	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?"+servletMappingPath+")");
+
+	private static List<String> getProduces(AbstractRestOperation aro) {
+		OutputContent dataOutput = aro.getOutputContent();
+		if (dataOutput == OutputContent.toJson) {
+			return Arrays.asList(MimeType.Json.value());
+		}
+		if (dataOutput == OutputContent.toXml) {
+			return Arrays.asList(MimeType.Xml.value());
+		}
+		if (dataOutput == OutputContent.toBinary) {
+			return Arrays.asList(MimeType.OctetStream.value());
+		}
+		if (dataOutput == OutputContent.toCxml) {
+			return Arrays.asList(MimeType.Html.value());
+		}
+		return Arrays.asList(MimeType.Json.value(), MimeType.Xml.value());
+	}
+
+	private static void addBinaryResponseContent(ApiResponse response) {
+		Content content = response.getContent();
+		if (content == null) {
+			content = new Content();
+			response.setContent(content);
+		}
+		MediaType mediaType = new MediaType();
+		StringSchema schema = new StringSchema();
+		schema.setFormat("binary");
+		mediaType.setSchema(schema);
+		content.addMediaType(MimeType.OctetStream.value(), mediaType);
+	}
+
+	private static void addHtmlResponseContent(ApiResponse response) {
+		Content content = response.getContent();
+		if (content == null) {
+			content = new Content();
+			response.setContent(content);
+		}
+		MediaType mediaType = new MediaType();
+		mediaType.setSchema(new StringSchema());
+		content.addMediaType(MimeType.Html.value(), mediaType);
+	}
+
+	private static void addModelResponseContent(ApiResponse response, List<String> produces, String modelReference, List<String> refList, String oasDirUrl, boolean useExternalRef) {
+		if (modelReference.isEmpty() || produces.isEmpty()) {
+			return;
+		}
+		if (modelReference.indexOf(".jsonschema") != -1) {
+			modelReference = modelReference.replace(".jsonschema#/definitions/", ".json#/components/schemas/");
+			modelReference = oasDirUrl + modelReference;
+		}
+		Content content = new Content();
+		response.setContent(content);
+		for (String mt: produces) {
+			MediaType mediaType = new MediaType();
+			content.addMediaType(mt, mediaType);
+			ObjectSchema schema = new ObjectSchema();
+			if (!refList.contains(modelReference)) {
+				refList.add(modelReference);
+			}
+			String schemaRef = modelReference;
+			if (!useExternalRef  && schemaRef.indexOf('#') != -1) {
+				schemaRef = schemaRef.substring(schemaRef.indexOf('#'));
+			}
+			schema.set$ref(schemaRef);
+			mediaType.setSchema(schema);
+		}
+	}
 
 	public static OpenAPI read(String url) {
 		return new OpenAPIV3Parser().read(url);
@@ -626,17 +694,11 @@ public class OpenApiUtils {
 
 						// Responses
 						List<String> produces = new ArrayList<String>();
+						OutputContent outputContent = null;
 						if (umo instanceof AbstractRestOperation) {
-							DataContent dataOutput = ((AbstractRestOperation)umo).getOutputContent();
-							if (dataOutput.equals(DataContent.toJson)) {
-								produces = Arrays.asList(MimeType.Json.value());
-							}
-							else if (dataOutput.equals(DataContent.toXml)) {
-								produces = Arrays.asList(MimeType.Xml.value());
-							}
-							else {
-								produces = Arrays.asList(MimeType.Json.value(), MimeType.Xml.value());
-							}
+							AbstractRestOperation aro = (AbstractRestOperation) umo;
+							outputContent = aro.getOutputContent();
+							produces = getProduces(aro);
 						}
 
 						ApiResponses responses = new ApiResponses();
@@ -650,29 +712,25 @@ public class OpenApiUtils {
 									responses.addApiResponse(statusCode, response);
 
 									String modelReference = ((IMappingRefModel)umr).getModelReference();
-									if (!modelReference.isEmpty() && !produces.isEmpty()) {
-										if (modelReference.indexOf(".jsonschema") != -1) {
-											modelReference = modelReference.replace(".jsonschema#/definitions/", ".json#/components/schemas/");
-											modelReference = oasDirUrl + modelReference;
-										}
-										Content content = new Content();
-										response.setContent(content);
-										for (String mt: produces) {
-											MediaType mediaType = new MediaType();
-											content.addMediaType(mt, mediaType);
-											ObjectSchema schema = new ObjectSchema();
-											if (!refList.contains(modelReference)) {
-												refList.add(modelReference);
-											}
-											if (!useExternalRef  && modelReference.indexOf('#') != -1) {
-												modelReference = modelReference.substring(modelReference.indexOf('#'));
-											}
-											schema.set$ref(modelReference);
-											mediaType.setSchema(schema);
-										}
+									if (outputContent == OutputContent.toBinary) {
+										addBinaryResponseContent(response);
+									} else if (outputContent == OutputContent.toCxml) {
+										addHtmlResponseContent(response);
+									} else {
+										addModelResponseContent(response, produces, modelReference, refList, oasDirUrl, useExternalRef);
 									}
 								}
 							}
+						}
+						if (responses.isEmpty()) {
+							ApiResponse response = new ApiResponse();
+							response.setDescription("successful operation");
+							if (outputContent == OutputContent.toBinary) {
+								addBinaryResponseContent(response);
+							} else if (outputContent == OutputContent.toCxml) {
+								addHtmlResponseContent(response);
+							}
+							responses.addApiResponse("200", response);
 						}
 
 						if (umo.getMethod().equals(HttpMethodType.DELETE.name())) {
