@@ -1,4 +1,4 @@
-import { resolve } from '$app/paths';
+import { ensureTrailingSlash, resolve } from '$lib/utils/route';
 
 export function decodeRouteParam(value = '') {
 	const normalize = (input) => (input == '_' ? '' : input);
@@ -93,5 +93,5 @@ export function fullSyncDocHref(database, docId) {
 	if (!db || !id) {
 		return fullSyncDbHref(database);
 	}
-	return `${fullSyncDbHref(db)}/${encodeRouteSegment(id)}`;
+	return ensureTrailingSlash(`${fullSyncDbHref(db)}${encodeRouteSegment(id)}`);
 }

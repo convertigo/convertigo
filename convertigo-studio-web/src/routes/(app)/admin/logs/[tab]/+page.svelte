@@ -9,7 +9,6 @@
 	} from '@internationalized/date';
 	import { Popover, Slider } from '@skeletonlabs/skeleton-svelte';
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -23,6 +22,7 @@
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import Instances from '$lib/admin/Instances.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
+	import { resolve } from '$lib/utils/route';
 	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Time from '$lib/common/Time.svelte';

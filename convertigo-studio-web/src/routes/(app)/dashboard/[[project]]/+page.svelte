@@ -1,12 +1,12 @@
 <script>
 	import { Portal, SegmentedControl, Tooltip } from '@skeletonlabs/skeleton-svelte';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Authentication from '$lib/common/Authentication.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Projects from '$lib/common/Projects.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { resolve } from '$lib/utils/route';
 	import { getFrontendUrl, getThumbnailUrl } from '$lib/utils/service';
 	import { onDestroy } from 'svelte';
 	import { flip } from 'svelte/animate';
