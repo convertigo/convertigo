@@ -564,6 +564,33 @@ jobs:
         command: |
           source /tmp/build.env
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+
+  qualif_summary:
+    <<: *defaults
+    steps:
+    - aws-cli/setup
+    - checkout
+
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+
+    - run:
+        name: Generate qualif summary
+        command: |
+          source /tmp/build.env
+          sh ./.circleci/qualif_summary.sh "$CONVERTIGO_DIST/qualif"
+
+    - run:
+        name: Sync summary to S3
+        command: |
+          source /tmp/build.env
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/qualif/qualif-summary.txt s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.txt
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/qualif/qualif-summary.json s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.json
+
+    - store_artifacts:
+        path: /home/circleci/s3
+        destination: qualif-summary
           
   build_studio:
     <<: *defaults
@@ -724,11 +751,6 @@ jobs:
           find $CONVERTIGO_DIST -type f -exec gpg -ab {} \;
 
     - run:
-        name: Archive mac workspace payload
-        command: |
-          tar -cf for_mac.tar -C for_mac .
-          
-    - run:
         name: Sync builds to S3
         command: |
           source /tmp/build.env
@@ -758,9 +780,9 @@ jobs:
           fi
           
     - persist_to_workspace:
-        root: .
+        root: for_mac
         paths:
-        - for_mac.tar
+        - .
           
   build_studio_mac:
     macos:
@@ -770,12 +792,7 @@ jobs:
     - aws-cli/setup:
         use_brew: true
     - attach_workspace:
-        at: /tmp/workspace
-    - run:
-        name: Extract mac workspace payload
-        command: |
-          mkdir -p for_mac
-          tar -xf /tmp/workspace/for_mac.tar -C for_mac
+        at: for_mac
     - run:
         name: Sign Studio
         command: |
@@ -932,6 +949,14 @@ workflows:
     - qualif_jmx_3:
         requires:
         - build_docker_default
+        filters:
+          tags:
+            only: /^\d+\..*$/
+    - qualif_summary:
+        requires:
+        - qualif_jmx_1
+        - qualif_jmx_2
+        - qualif_jmx_3
         filters:
           tags:
             only: /^\d+\..*$/
