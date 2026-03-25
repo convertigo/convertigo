@@ -42,7 +42,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,6 +55,11 @@ import com.twinsoft.convertigo.engine.Engine;
 public class FileUtils extends org.apache.commons.io.FileUtils {
 	private static final int BUFFER_SIZE = 4096;
 	public static final boolean isCaseSensitive = !Engine.isWindows();
+	private static final int ASYNC_DELETE_RETRY_DELAY = 2000;
+	private static final int ASYNC_DELETE_MAX_RETRIES = 5;
+	private static final Object asyncDeleteMutex = new Object();
+	private static final Queue<File> asyncDeleteQueue = new ConcurrentLinkedQueue<>();
+	private static Thread asyncDeleteThread;
 
 	private static Pattern CrlfPattern = Pattern.compile("\\r\\n");
 	public static final String UTF8_BOM = new String(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF}, StandardCharsets.UTF_8);
@@ -213,6 +220,93 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		return org.apache.commons.io.FileUtils.deleteQuietly(f);
 	}
 
+	public static void deleteAsync(File file) {
+		if (file == null) {
+			return;
+		}
+
+		try {
+			file = file.getCanonicalFile();
+		} catch (IOException e) {
+			file = file.getAbsoluteFile();
+		}
+
+		asyncDeleteQueue.offer(file);
+		Engine.logEngine.info("Queued asynchronous deletion for \"" + file.getAbsolutePath() + "\"");
+		checkAsyncDelete();
+	}
+
+	public static void destroyDeleteAsync() {
+		synchronized (asyncDeleteMutex) {
+			asyncDeleteQueue.clear();
+			if (asyncDeleteThread != null) {
+				asyncDeleteThread.interrupt();
+				asyncDeleteThread = null;
+			}
+		}
+	}
+
+	private static void checkAsyncDelete() {
+		synchronized (asyncDeleteMutex) {
+			if (asyncDeleteThread != null) {
+				return;
+			}
+			asyncDeleteThread = new Thread(FileUtils::runAsyncDelete);
+			asyncDeleteThread.setName("ConvertigoAsyncDelete");
+			asyncDeleteThread.setDaemon(true);
+			asyncDeleteThread.start();
+		}
+	}
+
+	private static void runAsyncDelete() {
+		var retry = ASYNC_DELETE_MAX_RETRIES;
+		var exhausted = false;
+		try {
+			File file;
+			while ((file = asyncDeleteQueue.peek()) != null) {
+				try {
+					hardDelete(file);
+					asyncDeleteQueue.poll();
+					retry = ASYNC_DELETE_MAX_RETRIES;
+				} catch (Exception e) {
+					asyncDeleteQueue.poll();
+					asyncDeleteQueue.offer(file);
+					if (--retry <= 0) {
+						exhausted = true;
+						Engine.logEngine.warn("Asynchronous deletion exhausted retries for \"" + file.getAbsolutePath() + "\"", e);
+						return;
+					}
+					Engine.logEngine.debug("Retrying asynchronous deletion for \"" + file.getAbsolutePath() + "\" (" + retry + " retries left)", e);
+					Thread.sleep(ASYNC_DELETE_RETRY_DELAY);
+				}
+			}
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		} finally {
+			synchronized (asyncDeleteMutex) {
+				asyncDeleteThread = null;
+			}
+			if (!exhausted && !asyncDeleteQueue.isEmpty()) {
+				checkAsyncDelete();
+			}
+		}
+	}
+
+	private static void hardDelete(File file) throws IOException {
+		if (file == null || !file.exists()) {
+			return;
+		}
+		if (file.isDirectory()) {
+			deleteDirectory(file);
+			if (file.exists()) {
+				throw new IOException("Unable to delete the directory \"" + file.getAbsolutePath() + "\".");
+			}
+			return;
+		}
+		if (!file.delete() && file.exists()) {
+			throw new IOException("Unable to delete the file \"" + file.getAbsolutePath() + "\".");
+		}
+	}
 
 	private static final Pattern incrementFilenamePattern = Pattern.compile("(.*?)(?:(_)(\\d+))?(?:(\\.\\w*?)(\\d+)?)?$");
 	public static File incrementFilename(File file) {

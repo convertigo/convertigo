@@ -818,6 +818,9 @@ public class Engine {
 					Engine.theApp.sharedWorkspaceSyncManager.destroy();
 				}
 
+				Engine.logEngine.info("Stopping asynchronous file deletions");
+				FileUtils.destroyDeleteAsync();
+
 				if (Engine.theApp.contextManager != null) {
 					Engine.logEngine.info("Removing all contexts");
 					Engine.theApp.contextManager.destroy();
