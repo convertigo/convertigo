@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2026 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -34,6 +34,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,22 +62,24 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MobileResourceHelper {
+	private static final ConcurrentHashMap<String, Object> prepareFilesMutex = new ConcurrentHashMap<>();
+
 	enum Keys {
 		project,
 		platform,
 		uuid,
 		flashUpdateEnabled,
 		requireUserConfirmation;
-		
+
 		String value(HttpServletRequest request) {
 			return request.getParameter(name());
 		}
 	};
-	
+
 	final Pattern pScript = Pattern.compile("(?:(?:<script .*?src)|(?:<link .*?href))=\"(.*?)\"");
-	
+
 	public static final IOFileFilter defaultFilter = new IOFileFilter() {
-		
+
 		public boolean accept(File file) {
 			String filename = file.getName();
 			return !filename.startsWith(".") && !filename.equalsIgnoreCase("thumbs.db");
@@ -85,9 +88,9 @@ public class MobileResourceHelper {
 		public boolean accept(File file, String path) {
 			return accept(new File(file, path));
 		}
-		
+
 	};
-	
+
 	private final Project project;
 	final MobileApplication mobileApplication;
 	final MobilePlatform mobilePlatform;
@@ -96,42 +99,46 @@ public class MobileResourceHelper {
 	final File destDir;
 	private File currentMobileDir;
 	private String endpoint;
-	
-	MobileResourceHelper(HttpServletRequest request, String buildFolder) throws EngineException, ServiceException {		
+
+	MobileResourceHelper(HttpServletRequest request, String buildFolder) throws EngineException, ServiceException {
 		this(request, buildFolder, Keys.project.value(request), Keys.platform.value(request));
 	}
-	
-	public MobileResourceHelper(HttpServletRequest request, String buildFolder, String project, String platform) throws EngineException, ServiceException {		
+
+	public MobileResourceHelper(HttpServletRequest request, String buildFolder, String project, String platform) throws EngineException, ServiceException {
 		this(getMobilePlatform(project, platform), "_private/" + buildFolder + "_" + platform);
 		endpoint = mobileApplication.getComputedEndpoint(request);
 	}
-	
+
 	public MobileResourceHelper(MobilePlatform mobilePlatform, String destSubDir) throws EngineException, ServiceException {
 		this.mobilePlatform = mobilePlatform;
 		mobileApplication = mobilePlatform.getParent();
 		project = mobileApplication.getProject();
-		
+
 		endpoint = mobileApplication.getComputedEndpoint();
-		
+
 		projectDir = new File(project.getDirPath());
 		File destDir = new File(destSubDir);
 		this.destDir = destDir.exists() ? destDir : new File(projectDir, destSubDir);
 		mobileDir = Arrays.asList(mobileApplication.getResourceFolder(), mobilePlatform.getResourceFolder());
 	}
-	
+
+	private Object getPrepareFilesMutex() {
+		return prepareFilesMutex.computeIfAbsent(destDir.getAbsolutePath(), key -> new Object());
+	}
+
 	private void prepareFiles() throws ServiceException {
 		prepareFiles(defaultFilter);
 	}
-	
+
 	private void prepareFiles(FileFilter fileFilterForCopy) throws ServiceException {
 		try {
 			String endPoint = this.endpoint + "/projects/" + project.getName();
 			String applicationID = mobileApplication.getComputedApplicationId();
-			
+
 			if (!endPoint.endsWith("/")) {
 				endPoint += "/";
 			}
-			
+
 			// Check forbidden characters in application ID (a-zA-Z0-9.-)
 			if (!Pattern.matches("[\\.\\w]*", applicationID)) {
 				throw new ServiceException("The application ID is not valid: '" + applicationID
@@ -308,12 +315,12 @@ public class MobileResourceHelper {
 			throw new ServiceException(e.getClass().getName(), e);
 		}
 	}
-	
+
 	public void listFiles(JSONObject response) throws JSONException, IOException {
 		File canonicalDir = destDir.getCanonicalFile();
 		int uriDirectoryLength = canonicalDir.toURI().toString().length();
 		JSONArray jArray = new JSONArray();
-		
+
 		for (File f : FileUtils.listFiles(canonicalDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
 			File canonnicalF = f.getCanonicalFile();
 			String uri = URLDecoder.decode(canonnicalF.toURI().toString().substring(uriDirectoryLength), StandardCharsets.UTF_8);
@@ -328,190 +335,195 @@ public class MobileResourceHelper {
 		response.put("files", jArray);
 		response.put("date", destDir.lastModified());
 	}
-	
+
 	private void writeStringToFile(File file, String content) throws IOException {
 		long lastModified = file.exists() ? file.lastModified() : System.currentTimeMillis();
 		FileUtils.writeStringToFile(file, content, StandardCharsets.UTF_8);
 		file.setLastModified(lastModified);
 	}
-	
+
 	public File preparePackage() throws Exception {
-		
-		FlashUpdateBuildMode buildMode = mobileApplication.getBuildMode();
-		
-		String finalApplicationName = mobileApplication.getComputedApplicationName();
-		
-		JSONObject json = new JSONObject();
-		
-		if (buildMode == FlashUpdateBuildMode.full) {
-			fixMobileBuilderTimes();
-			prepareFiles();
-		} else if (buildMode == FlashUpdateBuildMode.light) {
-			fixMobileBuilderTimes();
-			prepareFiles(new FileFilter() {
-				
-				public boolean accept(File pathname) {
-					try {
-						File dir;
-						boolean ok = MobileResourceHelper.defaultFilter.accept(pathname) && (
-							new File(currentMobileDir, "index.html").equals(pathname) ||
-							new File(currentMobileDir, "config.xml").equals(pathname) ||
-							new File(currentMobileDir, "icon.png").equals(pathname) ||
-							(dir = new File(currentMobileDir, "res")).equals(pathname) ||
-							(dir.exists() && FileUtils.directoryContains(dir, pathname)) ||
-							(dir = new File(currentMobileDir, "flashupdate")).equals(pathname) ||
-							(dir.exists() && FileUtils.directoryContains(dir, pathname)));
-						return ok;
-					} catch(Exception e) {
-						return false;
+		synchronized (getPrepareFilesMutex()) {
+			FlashUpdateBuildMode buildMode = mobileApplication.getBuildMode();
+
+			String finalApplicationName = mobileApplication.getComputedApplicationName();
+
+			JSONObject json = new JSONObject();
+
+			if (buildMode == FlashUpdateBuildMode.full) {
+				fixMobileBuilderTimes();
+				prepareFiles();
+			} else if (buildMode == FlashUpdateBuildMode.light) {
+				fixMobileBuilderTimes();
+				prepareFiles(new FileFilter() {
+
+					public boolean accept(File pathname) {
+						try {
+							File dir;
+							boolean ok = MobileResourceHelper.defaultFilter.accept(pathname) && (
+								new File(currentMobileDir, "index.html").equals(pathname) ||
+								new File(currentMobileDir, "config.xml").equals(pathname) ||
+								new File(currentMobileDir, "icon.png").equals(pathname) ||
+								(dir = new File(currentMobileDir, "res")).equals(pathname) ||
+								(dir.exists() && FileUtils.directoryContains(dir, pathname)) ||
+								(dir = new File(currentMobileDir, "flashupdate")).equals(pathname) ||
+								(dir.exists() && FileUtils.directoryContains(dir, pathname)));
+							return ok;
+						} catch(Exception e) {
+							return false;
+						}
 					}
-				}
-				
-			});
-			json.put("lightBuild", true);
-		} else {
-			throw new ServiceException("Unknow build mode: " + buildMode);
-		}
-		
-		var endpointMatcher = Pattern.compile("(.*?)://([^:/]+).*").matcher(endpoint);
-		if (!endpointMatcher.matches()) {
-			throw new ServiceException("Invalid endpoint: " + endpoint);
-		}
-		var endpointScheme = endpointMatcher.group(1);
-		var endpointHostname = endpointMatcher.group(2);
-		
-		// Update config.xml
-		File configFile = new File(destDir, "config.xml");
-		String configText = FileUtils.readFileToString(configFile, StandardCharsets.UTF_8);
-		long revision = destDir.lastModified();
-		configText = configText
-				.replace("$(ApplicationID)$", mobileApplication.getComputedApplicationId())
-				.replace("$(ApplicationVersion)$", mobileApplication.getComputedApplicationVersion())
-				.replace("$(ApplicationName)$", StringEscapeUtils.escapeXml11(finalApplicationName))
-				.replace("$(ApplicationDescription)$", StringEscapeUtils.escapeXml11(mobileApplication.getApplicationDescription()))
-				.replace("$(ApplicationAuthorName)$", StringEscapeUtils.escapeXml11(mobileApplication.getApplicationAuthorName()))
-				.replace("$(ApplicationAuthorEmail)$", mobileApplication.getApplicationAuthorEmail())
-				.replace("$(ApplicationAuthorWebsite)$", mobileApplication.getApplicationAuthorSite())
-				.replace("$(ApplicationBackgroundColor)$", mobileApplication.getApplicationBgColor())
-				.replace("$(ApplicationThemeColor)$", mobileApplication.getApplicationThemeColor())
-				.replace("$(PlatformName)$", mobilePlatform.getName())
-				.replace("$(PlatformType)$", mobilePlatform.getType())
-				.replace("$(CordovaPlatform)$", mobilePlatform.getCordovaPlatform())
-				.replace("$(EndpointScheme)$", endpointScheme)
-				.replace("$(EndpointHostname)$", endpointHostname);
 
-		File pluginsFile = new File(destDir, "plugins.txt");
-		if (pluginsFile.exists()) {
-			String mandatoryPlugins = FileUtils.readFileToString(pluginsFile, StandardCharsets.UTF_8);
-			if (!mandatoryPlugins.isEmpty()) {
-				mandatoryPlugins = "<!-- Application mandatory plugins -->"+ System.lineSeparator() + mandatoryPlugins;
-				configText = configText.replace("<!-- Application mandatory plugins -->", mandatoryPlugins);
+				});
+				json.put("lightBuild", true);
+			} else {
+				throw new ServiceException("Unknow build mode: " + buildMode);
 			}
-			FileUtils.deleteQuietly(pluginsFile);
-		}
-		
-		FileUtils.write(configFile, configText, StandardCharsets.UTF_8);
-		configFile.setLastModified(revision);
-		destDir.setLastModified(revision);
-		
-		listFiles(json);
-		write("files.json", json.toString());
-		
-		String remoteBase = endpoint + "/projects/" + project.getName() + "/_private/mobile/flashupdate_" + this.mobilePlatform.getName();
-		
-		String env = read("env.json");
-		try {
-			json = new JSONObject(env);
-		} catch (Exception e) {
-			json = new JSONObject();
-		}
-		json.put("applicationAuthorName", mobileApplication.getApplicationAuthorName());
-		json.put("applicationAuthorEmail", mobileApplication.getApplicationAuthorEmail());
-		json.put("applicationAuthorWebsite", mobileApplication.getApplicationAuthorSite());
-		json.put("applicationDescription", mobileApplication.getApplicationDescription());
-		json.put("applicationId", mobileApplication.getComputedApplicationId());
-		json.put("applicationName", finalApplicationName);
-		json.put("builtRevision", revision);
-		json.put("builtVersion", mobileApplication.getComputedApplicationVersion());
-		json.put("currentRevision", revision);
-		json.put("currentVersion", mobileApplication.getComputedApplicationVersion());
-		json.put("endPoint", endpoint);
-		json.put("platform", mobilePlatform.getCordovaPlatform());
-		json.put("platformName", mobilePlatform.getName());
-		json.put("projectName", project.getName());
-		json.put("remoteBase", remoteBase);
-		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
-		json.put("splashRemoveMode", mobileApplication.getSplashRemoveMode().name());
-		
-		write("env.json", json.toString(4));
-		
-		destDir.setLastModified(revision);
-		
-		return destDir;
-	}
-	
-	File makeZipPackage() throws Exception {
-		preparePackage();
 
-		// Build the ZIP file for the mobile device
-		File mobileArchiveFile = new File(destDir.getParentFile(), project.getName() + "_" + mobilePlatform.getName() + "_SourcePackage.zip");
-		ZipUtils.makeZip(mobileArchiveFile.getPath(), destDir.getPath(), null);
-		
-		return mobileArchiveFile;
+			var endpointMatcher = Pattern.compile("(.*?)://([^:/]+).*").matcher(endpoint);
+			if (!endpointMatcher.matches()) {
+				throw new ServiceException("Invalid endpoint: " + endpoint);
+			}
+			var endpointScheme = endpointMatcher.group(1);
+			var endpointHostname = endpointMatcher.group(2);
+
+			// Update config.xml
+			File configFile = new File(destDir, "config.xml");
+			String configText = FileUtils.readFileToString(configFile, StandardCharsets.UTF_8);
+			long revision = destDir.lastModified();
+			configText = configText
+					.replace("$(ApplicationID)$", mobileApplication.getComputedApplicationId())
+					.replace("$(ApplicationVersion)$", mobileApplication.getComputedApplicationVersion())
+					.replace("$(ApplicationName)$", StringEscapeUtils.escapeXml11(finalApplicationName))
+					.replace("$(ApplicationDescription)$", StringEscapeUtils.escapeXml11(mobileApplication.getApplicationDescription()))
+					.replace("$(ApplicationAuthorName)$", StringEscapeUtils.escapeXml11(mobileApplication.getApplicationAuthorName()))
+					.replace("$(ApplicationAuthorEmail)$", mobileApplication.getApplicationAuthorEmail())
+					.replace("$(ApplicationAuthorWebsite)$", mobileApplication.getApplicationAuthorSite())
+					.replace("$(ApplicationBackgroundColor)$", mobileApplication.getApplicationBgColor())
+					.replace("$(ApplicationThemeColor)$", mobileApplication.getApplicationThemeColor())
+					.replace("$(PlatformName)$", mobilePlatform.getName())
+					.replace("$(PlatformType)$", mobilePlatform.getType())
+					.replace("$(CordovaPlatform)$", mobilePlatform.getCordovaPlatform())
+					.replace("$(EndpointScheme)$", endpointScheme)
+					.replace("$(EndpointHostname)$", endpointHostname);
+
+			File pluginsFile = new File(destDir, "plugins.txt");
+			if (pluginsFile.exists()) {
+				String mandatoryPlugins = FileUtils.readFileToString(pluginsFile, StandardCharsets.UTF_8);
+				if (!mandatoryPlugins.isEmpty()) {
+					mandatoryPlugins = "<!-- Application mandatory plugins -->"+ System.lineSeparator() + mandatoryPlugins;
+					configText = configText.replace("<!-- Application mandatory plugins -->", mandatoryPlugins);
+				}
+				FileUtils.deleteQuietly(pluginsFile);
+			}
+
+			FileUtils.write(configFile, configText, StandardCharsets.UTF_8);
+			configFile.setLastModified(revision);
+			destDir.setLastModified(revision);
+
+			listFiles(json);
+			write("files.json", json.toString());
+
+			String remoteBase = endpoint + "/projects/" + project.getName() + "/_private/mobile/flashupdate_" + this.mobilePlatform.getName();
+
+			String env = read("env.json");
+			try {
+				json = new JSONObject(env);
+			} catch (Exception e) {
+				json = new JSONObject();
+			}
+			json.put("applicationAuthorName", mobileApplication.getApplicationAuthorName());
+			json.put("applicationAuthorEmail", mobileApplication.getApplicationAuthorEmail());
+			json.put("applicationAuthorWebsite", mobileApplication.getApplicationAuthorSite());
+			json.put("applicationDescription", mobileApplication.getApplicationDescription());
+			json.put("applicationId", mobileApplication.getComputedApplicationId());
+			json.put("applicationName", finalApplicationName);
+			json.put("builtRevision", revision);
+			json.put("builtVersion", mobileApplication.getComputedApplicationVersion());
+			json.put("currentRevision", revision);
+			json.put("currentVersion", mobileApplication.getComputedApplicationVersion());
+			json.put("endPoint", endpoint);
+			json.put("platform", mobilePlatform.getCordovaPlatform());
+			json.put("platformName", mobilePlatform.getName());
+			json.put("projectName", project.getName());
+			json.put("remoteBase", remoteBase);
+			json.put("timeout", mobileApplication.getFlashUpdateTimeout());
+			json.put("splashRemoveMode", mobileApplication.getSplashRemoveMode().name());
+
+			write("env.json", json.toString(4));
+
+			destDir.setLastModified(revision);
+
+			return destDir;
+		}
+	}
+
+	File makeZipPackage() throws Exception {
+		synchronized (getPrepareFilesMutex()) {
+			preparePackage();
+
+			// Build the ZIP file for the mobile device
+			File mobileArchiveFile = new File(destDir.getParentFile(), project.getName() + "_" + mobilePlatform.getName() + "_SourcePackage.zip");
+			ZipUtils.makeZip(mobileArchiveFile.getPath(), destDir.getPath(), null);
+
+			return mobileArchiveFile;
+		}
 	}
 
 	void prepareFilesForFlashupdate() throws ServiceException {
-		boolean changed = false;
-		final File lastEndpoint = new File(destDir, ".endpoint");
-		fixMobileBuilderTimes();
-		if (Engine.isStudioMode() && destDir.exists()) {
-			try {
-				for (File directory: mobileDir) {
-					FileUtils.listFiles(directory, new IOFileFilter() {
+		synchronized (getPrepareFilesMutex()) {
+			boolean changed = false;
+			final File lastEndpoint = new File(destDir, ".endpoint");
+			fixMobileBuilderTimes();
+			if (Engine.isStudioMode() && destDir.exists()) {
+				try {
+					for (File directory: mobileDir) {
+						FileUtils.listFiles(directory, new IOFileFilter() {
 
-						public boolean accept(File file) {
-							if (MobileResourceHelper.defaultFilter.accept(file)) {
-								if (FileUtils.isFileNewer(file, destDir)) {
-									Engine.logEngine.info("(MobileResourceHelper) prepareFilesForFlashupdate, '" + file.lastModified() + "' newer than '" + destDir.lastModified() + "' for: " + file);
-									throw new RuntimeException();
+							public boolean accept(File file) {
+								if (MobileResourceHelper.defaultFilter.accept(file)) {
+									if (FileUtils.isFileNewer(file, destDir)) {
+										Engine.logEngine.info("(MobileResourceHelper) prepareFilesForFlashupdate, '" + file.lastModified() + "' newer than '" + destDir.lastModified() + "' for: " + file);
+										throw new RuntimeException();
+									}
+									return true;
+								} else {
+									return false;
 								}
-								return true;
-							} else {
-								return false;
 							}
-						}
 
-						public boolean accept(File file, String path) {
-							return accept(new File(file, path));
-						}
-						
-					}, MobileResourceHelper.defaultFilter);
+							public boolean accept(File file, String path) {
+								return accept(new File(file, path));
+							}
+
+						}, MobileResourceHelper.defaultFilter);
+					}
+
+					changed = !endpoint.equals(FileUtils.readFileToString(lastEndpoint, StandardCharsets.UTF_8));
+				} catch (Exception e) {
+					changed = true;
 				}
-				
-				changed = !endpoint.equals(FileUtils.readFileToString(lastEndpoint, StandardCharsets.UTF_8));
-			} catch (Exception e) {
-				changed = true;
 			}
-		}
 
-		if (!destDir.exists() || changed) {
-			prepareFiles(new FileFilter() {
-				
-				public boolean accept(File pathname) {
-					boolean ok = MobileResourceHelper.defaultFilter.accept(pathname) &&
-						! new File(currentMobileDir, "plugins.txt").equals(pathname) &&
-						! new File(currentMobileDir, "config.xml").equals(pathname) &&
-						! new File(currentMobileDir, "res").equals(pathname) &&
-						! lastEndpoint.equals(pathname);
-					return ok;
+			if (!destDir.exists() || changed) {
+				prepareFiles(new FileFilter() {
+
+					public boolean accept(File pathname) {
+						boolean ok = MobileResourceHelper.defaultFilter.accept(pathname) &&
+							! new File(currentMobileDir, "plugins.txt").equals(pathname) &&
+							! new File(currentMobileDir, "config.xml").equals(pathname) &&
+							! new File(currentMobileDir, "res").equals(pathname) &&
+							! lastEndpoint.equals(pathname);
+						return ok;
+					}
+
+				});
+
+				try {
+					write(lastEndpoint, endpoint);
+				} catch (IOException e) {
+					throw new ServiceException("Failed to write last endpoint", e);
 				}
-				
-			});
-			
-			try {
-				write(lastEndpoint, endpoint);
-			} catch (IOException e) {
-				throw new ServiceException("Failed to write last endpoint", e);
 			}
 		}
 	}
@@ -519,7 +531,7 @@ public class MobileResourceHelper {
 	public String getRevision() {
 		return Long.toString(destDir.lastModified());
 	}
-	
+
 	private static boolean handleJQMcssFolder(File inFile, File outFile) throws IOException {
 		if (inFile.getName().matches("jquery\\.mobile\\.(?:min\\.)?css")) {
 			File inImages = new File(inFile.getParentFile(), "images");
@@ -529,24 +541,24 @@ public class MobileResourceHelper {
 		}
 		return false;
 	}
-	
+
 	private static MobilePlatform getMobilePlatform(String projectName, String platform) throws ServiceException, EngineException {
 		if (!Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
 			throw new ServiceException("Unable to get resources of the application '" + projectName
 					+ "'; reason: the project does not exist");
 		}
-		
+
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-		
+
 		MobileApplication mobileApplication = project.getMobileApplication();
-		
+
 		if (mobileApplication == null) {
 			throw new ServiceException("The application " + project.getName() + " doesn't contain a mobileApplication object.");
 		}
-		
+
 		return mobileApplication.getMobilePlatformByName(platform);
 	}
-	
+
 	private String read(String filename) {
 		try {
 			return FileUtils.readFileToString(new File(destDir, filename), StandardCharsets.UTF_8);
@@ -554,17 +566,17 @@ public class MobileResourceHelper {
 			return null;
 		}
 	}
-	
+
 	private void write(String filename, String content) throws IOException {
 		write(new File(destDir, filename), content);
 	}
-	
+
 	private void write(File file, String content) throws IOException {
 		long lastModified = destDir.lastModified();
 		FileUtils.write(file, content, StandardCharsets.UTF_8);
 		destDir.setLastModified(lastModified);
 	}
-	
+
 	private void fixMobileBuilderTimes() {
 		try {
 			Path resourcePath = mobileApplication.getResourceFolder().toPath();
@@ -586,13 +598,13 @@ public class MobileResourceHelper {
 					// TODO: handle exception
 				}
 			}
-			
+
 			if (jsonMD5[0] == null) {
 				jsonMD5[0] = new JSONObject();
 			}
-			
+
 			long[] latest = {0};
-			
+
 			Files.walk(resourcePath).filter(p ->
 				!p.endsWith("md5.json"))
 			.forEach(p -> {
@@ -626,7 +638,7 @@ public class MobileResourceHelper {
 					latest[0] = Math.max(latest[0], f.lastModified());
 				}
 			});
-			
+
 			if (latest[0] > 0) {
 				Files.walk(resourcePath).forEach(p -> {
 					File f = p.toFile();
@@ -635,7 +647,7 @@ public class MobileResourceHelper {
 					}
 				});
 			}
-			
+
 			FileUtils.write(pathMD5.toFile(), jsonMD5[0].toString(2), StandardCharsets.UTF_8);
 		} catch (Exception e) {
 			Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed : " + e, e);
