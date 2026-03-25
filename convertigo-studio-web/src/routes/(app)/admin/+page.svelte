@@ -7,6 +7,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
+	import Instances from '$lib/admin/Instances.svelte';
 	import Monitor from '$lib/admin/Monitor.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Status from '$lib/common/Status.svelte';
@@ -52,6 +53,17 @@
 	} = $derived(Monitor);
 
 	onDestroy(Status.stop);
+
+	let statusInstance = $state(Instances.current);
+
+	$effect(() => {
+		const current = Instances.current;
+		if (current === statusInstance) {
+			return;
+		}
+		statusInstance = current;
+		Status.refresh();
+	});
 
 	const varsMode = persistedState('admin.status.variablesMode', 'env', { syncTabs: false });
 	const homeDocHref = getAdminPageDocHref('/admin');

@@ -22,12 +22,12 @@
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import Instances from '$lib/admin/Instances.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
-	import { resolve } from '$lib/utils/route';
 	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { resolve } from '$lib/utils/route';
 	import { call } from '$lib/utils/service';
 	import { splitDateTime } from '$lib/utils/time';
 	import { getContext, onMount } from 'svelte';

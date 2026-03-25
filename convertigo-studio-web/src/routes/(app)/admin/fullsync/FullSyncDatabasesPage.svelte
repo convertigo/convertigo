@@ -9,6 +9,7 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { resolve } from '$lib/utils/route';
 	import { onMount } from 'svelte';
 	import { fullSyncBaseUrl, getDatabaseInfo, listDatabases, removeDatabase } from './fullsync-api';
 	import { createFullSyncFeedback } from './fullsync-feedback';
@@ -16,7 +17,6 @@
 	import { getFullSyncConfirmModal, openFullSyncConfirmation } from './fullsync-modal';
 	import { fullSyncDbHref } from './fullsync-route';
 	import { FULLSYNC_DB_LIST_PAGE_OPTIONS, fullSyncOptionLabel } from './fullsync-ui';
-	import { resolve } from '$lib/utils/route';
 
 	const modalYesNo = getFullSyncConfirmModal();
 	const fullSyncDocHref = getAdminPageDocHref('/admin/fullsync');
