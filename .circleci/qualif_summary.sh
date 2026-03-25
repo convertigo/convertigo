@@ -124,8 +124,10 @@ ${json_reports}
 EOF
 
 if [ -n "${QUALIF_NOTIFY_SNS_TOPIC_ARN:-}" ]; then
-	aws sns publish \
+	if ! aws sns publish \
 		--topic-arn "$QUALIF_NOTIFY_SNS_TOPIC_ARN" \
 		--subject "$subject" \
-		--message "$(cat "$summary_txt")"
+		--message "$(cat "$summary_txt")"; then
+		echo "Warning: failed to publish qualif summary notification" >&2
+	fi
 fi
