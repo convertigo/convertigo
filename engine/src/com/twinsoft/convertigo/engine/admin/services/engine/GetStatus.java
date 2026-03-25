@@ -42,7 +42,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
@@ -125,7 +125,7 @@ public class GetStatus extends XmlService {
 								(licenceMismatch ? "(! license mismatch !)": "Convertigo Standard Edition") ) ) 
 						: "Convertigo Community Edition");
 		versionElement.setAttribute("licence-number", iCategory == 15 ? (990000000 + iStations) + "" : "n/a");
-		int snb = KeyManager.getMaxCV(Session.EmulIDSE) - HttpSessionListener.countSessions();
+		int snb = KeyManager.getMaxCV(Session.EmulIDSE) - ConvertigoHttpSessionManager.getInstance().countLicensedSessions();
 		versionElement.setAttribute("licence-sessions", Integer.toString(snb));
 		String licenceEnd = (iNumberOfDays != 0) ? (iNumberOfDays < 0 ? "n/a" : endDate) : "unlimited";
 		versionElement.setAttribute("licence-end", licenceEnd);

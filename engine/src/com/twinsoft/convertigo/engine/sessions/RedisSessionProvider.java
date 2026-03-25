@@ -161,4 +161,14 @@ final class RedisSessionProvider implements SessionProvider {
 		}
 		return count;
 	}
+
+	@Override
+	public int estimateLicensedSessions() {
+		return store instanceof RedisSessionStore redisStore ? redisStore.estimateLicensedSessions() : 0;
+	}
+
+	@Override
+	public int countLicensedSessions() {
+		return store instanceof RedisSessionStore redisStore ? redisStore.countLicensedSessions() : 0;
+	}
 }

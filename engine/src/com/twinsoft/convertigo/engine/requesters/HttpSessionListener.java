@@ -90,27 +90,9 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 			if (Engine.isEngineMode() && !devices.contains(httpSessionID)) {
 				int maxCV = KeyManager.getMaxCV(Session.EmulIDSE);
 				int currentCV = countSessions();
-				if (currentCV > maxCV) {
-					if (KeyManager.hasExpired(Session.EmulIDSE)) {
-						Engine.logEngine.warn("The Standard Edition key is expired");
-					} else if (KeyManager.isOverflow(Session.EmulIDSE)) {
-						String line = dateFormat.format(new Date()) + "\t" + maxCV + "\t" + currentCV + "\n";
-						try {
-							FileUtils.write(new File(Engine.LOG_PATH + "/Session License exceeded.log"), line, "UTF-8", true);
-						} catch (IOException e1) {
-							Engine.logEngine.error("Failed to write the 'Session License exceeded.log' file", e1);
-						}
-						return;
-					}
-					Engine.logEngine.error("No more HTTP session available for this Standard Edition.");
-					if (DelegateServlet.canDelegate()) {
-						JSONObject json = new JSONObject();
-						json.put("action", "maxSessionExceeded");
-						json.put("currentCV", currentCV);
-						json.put("maxCV", maxCV);
-						DelegateServlet.delegate(json);
-					}
-					SessionAttribute.exception.set(event.getSession(), new TASException("Max number of sessions exceeded for " + KeyManager.getEmulatorName(Session.EmulIDSE), false, currentCV, maxCV));
+				TASException exception = checkSessionLicense(currentCV, maxCV);
+				if (exception != null) {
+					SessionAttribute.exception.set(event.getSession(), exception);
 					HttpUtils.terminateSession(event.getSession());
 				}
 			}
@@ -217,6 +199,9 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 					devices.add(httpSession.getId());
 				}
 			}
+			if (ConvertigoHttpSessionManager.isRedisMode()) {
+				checkRedisLicensedSession(httpSession);
+			}
 			if (!SessionAttribute.sessionListener.has(httpSession)) {
 				Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
 				SessionAttribute.sessionListener.set(httpSession, new HttpSessionListener());
@@ -245,5 +230,68 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 
 	static public int countSessions() {
 		return httpSessions.size() - devices.size();
+	}
+
+	private static void checkRedisLicensedSession(HttpSession httpSession) throws TASException {
+		if (SessionAttribute.licensedSession.get(httpSession, false)) {
+			return;
+		}
+		if (!Engine.isEngineMode()) {
+			SessionAttribute.licensedSession.set(httpSession, true);
+			return;
+		}
+		if (!httpSession.isNew()) {
+			SessionAttribute.licensedSession.set(httpSession, true);
+			return;
+		}
+
+		int maxCV = KeyManager.getMaxCV(Session.EmulIDSE);
+		int currentCV = ConvertigoHttpSessionManager.getInstance().estimateLicensedSessions() + 1;
+		if (currentCV >= maxCV) {
+			currentCV = ConvertigoHttpSessionManager.getInstance().countLicensedSessions() + 1;
+		}
+
+		TASException exception = checkSessionLicense(currentCV, maxCV);
+		if (exception != null) {
+			SessionAttribute.exception.set(httpSession, exception);
+			try {
+				httpSession.invalidate();
+			} catch (Exception e) {
+				terminateSession(httpSession.getId());
+			}
+			throw exception;
+		}
+		SessionAttribute.licensedSession.set(httpSession, true);
+	}
+
+	private static TASException checkSessionLicense(int currentCV, int maxCV) {
+		if (currentCV <= maxCV) {
+			return null;
+		}
+		if (KeyManager.hasExpired(Session.EmulIDSE)) {
+			Engine.logEngine.warn("The Standard Edition key is expired");
+		} else if (KeyManager.isOverflow(Session.EmulIDSE)) {
+			String line = dateFormat.format(new Date()) + "\t" + maxCV + "\t" + currentCV + "\n";
+			try {
+				FileUtils.write(new File(Engine.LOG_PATH + "/Session License exceeded.log"), line, "UTF-8", true);
+			} catch (IOException e) {
+				Engine.logEngine.error("Failed to write the 'Session License exceeded.log' file", e);
+			}
+			return null;
+		}
+		Engine.logEngine.error("No more HTTP session available for this Standard Edition.");
+		if (DelegateServlet.canDelegate()) {
+			try {
+				JSONObject json = new JSONObject();
+				json.put("action", "maxSessionExceeded");
+				json.put("currentCV", currentCV);
+				json.put("maxCV", maxCV);
+				DelegateServlet.delegate(json);
+			} catch (Exception e) {
+				Engine.logEngine.debug("Failed to delegate maxSessionExceeded", e);
+			}
+		}
+		return new TASException("Max number of sessions exceeded for " + KeyManager.getEmulatorName(Session.EmulIDSE), false,
+				currentCV, maxCV);
 	}
 }

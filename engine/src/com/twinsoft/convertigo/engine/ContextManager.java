@@ -38,18 +38,18 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
-import org.redisson.api.RMapCache;
 import org.redisson.api.RLock;
 import org.redisson.api.RMap;
+import org.redisson.api.RMapCache;
 import org.redisson.api.RTopic;
 import org.redisson.client.codec.StringCodec;
 
@@ -1498,7 +1498,7 @@ public class ContextManager extends AbstractRunnableManager {
 				int maxNbCurrentWorkerThreads = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] [Worker threads] In use", com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads + " (" + 100 * com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads / maxNbCurrentWorkerThreads + "%)");
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] [Worker threads] Max", maxNbCurrentWorkerThreads);
-				int sessionCount = HttpSessionListener.countSessions();
+				int sessionCount = ConvertigoHttpSessionManager.getInstance().countLicensedSessions();
 				int maxSessions = KeyManager.getMaxCV(com.twinsoft.api.Session.EmulIDSE);
 				Engine.theApp.usageMonitor.setUsageCounter("[Sessions] Number", sessionCount);
 				Engine.theApp.usageMonitor.setUsageCounter("[Sessions] Available", Math.max(0, maxSessions - sessionCount));

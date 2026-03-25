@@ -49,4 +49,14 @@ final class LegacySessionProvider implements SessionProvider {
 		HttpSessionListener.removeAllSession();
 		return count;
 	}
+
+	@Override
+	public int estimateLicensedSessions() {
+		return HttpSessionListener.countSessions();
+	}
+
+	@Override
+	public int countLicensedSessions() {
+		return HttpSessionListener.countSessions();
+	}
 }

@@ -68,7 +68,7 @@ public class Delete extends XmlService {
 
 		if ("true".equals(request.getParameter("removeAll"))) {
 			Engine.theApp.contextManager.removeAll();
-			int sessionsRemoved = ConvertigoHttpSessionManager.getInstance().terminateAllSessions();
+			int sessionsRemoved = ConvertigoHttpSessionManager.getInstance().terminateAllSessions(request.getSession().getId());
 			ServiceUtils.addMessage(document,
 					"All contexts removed, sessions removed: " + sessionsRemoved,
 					"success");
