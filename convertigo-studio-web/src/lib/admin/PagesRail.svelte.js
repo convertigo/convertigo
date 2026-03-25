@@ -109,7 +109,7 @@ const parts = $derived([
 		{
 			title: 'Knowledge',
 			icon: 'mdi:hub',
-			url: 'https://convertigo.atlassian.net/wiki/spaces/CK/',
+			url: 'https://kb.convertigo.com/ck/',
 			external: true
 		},
 		{
