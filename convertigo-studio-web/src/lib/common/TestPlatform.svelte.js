@@ -48,12 +48,17 @@ const defValues = {
 const projects = {};
 
 export default function (projectName) {
+	const lang =
+		typeof navigator == 'undefined'
+			? 'en'
+			: (navigator.languages?.[0] ?? navigator.language ?? 'en');
+
 	if (!projects[projectName]) {
 		projects[projectName] = ServiceHelper({
 			defValues,
 			needAuth: false,
 			service: 'projects.GetTestPlatform',
-			params: { projectName },
+			params: { projectName, lang },
 			mapping: { '': 'admin.project' },
 			beforeUpdate: (res) => {
 				res.connector = checkArray(res.connector);
