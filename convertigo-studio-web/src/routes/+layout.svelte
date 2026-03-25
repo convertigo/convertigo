@@ -8,6 +8,7 @@
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
+	import AuthenticationProgress from '$lib/common/components/AuthenticationProgress.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Light from '$lib/common/Light.svelte';
@@ -19,6 +20,8 @@
 	let { children } = $props();
 
 	let modalYesNo = $state();
+	let authBootstrapped = $state(false);
+	let authRun = 0;
 
 	setContext('modalYesNo', {
 		open: async (...props) => await modalYesNo.open(...props)
@@ -33,8 +36,10 @@
 	});
 	setModalAlert(getContext('modalAlert'));
 
-	afterNavigate(async () => {
+	async function syncAuthentication() {
+		const run = ++authRun;
 		if (page.route.id == '/(root)/logout') {
+			authBootstrapped = true;
 			return;
 		}
 		var authToken = page.url.hash.match(new RegExp('#authToken=(.*)'));
@@ -73,7 +78,16 @@
 		}
 		if (isLoginRoute && Authentication.canAccessAdmin) {
 			goto(resolve('/admin/'));
+			return;
 		}
+
+		if (run == authRun) {
+			authBootstrapped = true;
+		}
+	}
+
+	afterNavigate(() => {
+		void syncAuthentication();
 	});
 
 	Light.light;
@@ -125,4 +139,10 @@
 		{@render toastItem(toast)}
 	{/snippet}
 </Toast.Group>
-{@render children?.()}
+{#if authBootstrapped}
+	{@render children?.()}
+{:else}
+	<div class="grid min-h-screen place-items-center">
+		<AuthenticationProgress />
+	</div>
+{/if}

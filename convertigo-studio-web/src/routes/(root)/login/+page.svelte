@@ -1,8 +1,8 @@
 <script>
-	import { Progress } from '@skeletonlabs/skeleton-svelte';
 	import { goto } from '$app/navigation';
 	import Card from '$lib/admin/components/Card.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
+	import AuthenticationProgress from '$lib/common/components/AuthenticationProgress.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 
@@ -33,15 +33,7 @@
 </script>
 
 {#if doAuthenticate}
-	<div class="preset-glass-primary relative grid place-items-center rounded-full p-low">
-		<Progress value={null} class="relative grid place-items-center">
-			<Progress.Circle style="--size: 18rem; --thickness: 10px;">
-				<Progress.CircleTrack class="stroke-surface-200-800/50" />
-				<Progress.CircleRange class="stroke-primary-500" />
-			</Progress.Circle>
-			<span class="absolute animate-pulse text-sm font-medium">Authenticating …</span>
-		</Progress>
-	</div>
+	<AuthenticationProgress label="Authenticating …" />
 {:else}
 	<Card class="preset-filled-surface-100-900 max-md:w-[95%]" bg="">
 		<form onsubmit={handleSubmit} class="layout-y-m-center">
