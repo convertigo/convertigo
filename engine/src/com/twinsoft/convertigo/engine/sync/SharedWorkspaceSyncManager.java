@@ -46,12 +46,14 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.util.InstanceIdentity;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
+import com.twinsoft.tas.KeyManager;
 
 public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 	private enum MarkerKind {
 		properties("properties", "properties.marker"),
 		roles("roles", "roles.marker"),
 		symbols("symbols", "symbols.marker"),
+		keys("keys", "keys.marker"),
 		cacheConfig("cache-config", "cache-config.marker"),
 		cacheClear("cache-clear", "cache-clear.marker"),
 		project("project", null);
@@ -134,6 +136,10 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 		writeMarker(MarkerKind.symbols, null, null);
 	}
 
+	public static void markKeysChanged() {
+		writeMarker(MarkerKind.keys, null, null);
+	}
+
 	public static void markCacheConfigChanged() {
 		writeMarker(MarkerKind.cacheConfig, null, null);
 	}
@@ -187,6 +193,7 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 		processMarker(readMarker(markerPath(MarkerKind.properties)));
 		processMarker(readMarker(markerPath(MarkerKind.roles)));
 		processMarker(readMarker(markerPath(MarkerKind.symbols)));
+		processMarker(readMarker(markerPath(MarkerKind.keys)));
 		processMarker(readMarker(markerPath(MarkerKind.cacheConfig)));
 		processMarker(readMarker(markerPath(MarkerKind.cacheClear)));
 
@@ -233,6 +240,10 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 			Engine.theApp.databaseObjectsManager.reloadSymbolsFromFile();
 			Engine.logEngine.info("Shared workspace sync reloaded symbols");
 			break;
+		case keys:
+			KeyManager.init(EnginePropertiesManager.getProperty(PropertyName.CARIOCA_URL));
+			Engine.logEngine.info("Shared workspace sync reloaded keys");
+			break;
 		case cacheConfig:
 			if (Engine.theApp.cacheManager != null) {
 				Engine.theApp.cacheManager.destroy();
@@ -274,7 +285,7 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 
 	private List<Marker> listMarkers() {
 		var markers = new ArrayList<Marker>();
-		for (var kind : new MarkerKind[] { MarkerKind.properties, MarkerKind.roles, MarkerKind.symbols, MarkerKind.cacheConfig, MarkerKind.cacheClear }) {
+		for (var kind : new MarkerKind[] { MarkerKind.properties, MarkerKind.roles, MarkerKind.symbols, MarkerKind.keys, MarkerKind.cacheConfig, MarkerKind.cacheClear }) {
 			var marker = readMarker(markerPath(kind));
 			if (marker != null) {
 				markers.add(marker);

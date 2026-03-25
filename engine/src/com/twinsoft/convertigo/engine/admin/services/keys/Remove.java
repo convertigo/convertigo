@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -76,6 +77,7 @@ public class Remove extends XmlService{
 		});
 
 		Properties keysProperties = PropertiesUtils.load(tasRoot + "/Java/keys.txt");
+		boolean keysChanged = false;
 		
 		for (int i = 0; i < nl.getLength(); i++) {
 			String oldKey = ((Element) nl.item(i)).getAttribute("text");
@@ -98,6 +100,7 @@ public class Remove extends XmlService{
 				keyElement.setAttribute("text", oldKey);
 				keyElement.setAttribute("success", "The key '" + oldKey + "' has been successfully removed!");
 				keysListElement.appendChild(keyElement);
+				keysChanged = true;
 				/* The keys have been updated */
 				Engine.logAdmin.info("The key '" + oldKey + "' has been successfully removed!");
 			} else {
@@ -111,5 +114,8 @@ public class Remove extends XmlService{
 		}
 		
 		PropertiesUtils.store(keysProperties, tasRoot + "/Java/keys.txt");
+		if (keysChanged) {
+			SharedWorkspaceSyncManager.markKeysChanged();
+		}
 	}
 }
