@@ -115,7 +115,7 @@ public class ServletUtils {
 			}
 		} else {
 			Matcher m = p_mobile.matcher(file.getPath().replace('\\', '/'));
-			if (m.matches() && shouldFallbackToMobileIndex(request, m.group(2))) {
+			if (m.matches() && shouldFallbackToMobileIndex(m.group(2))) {
 				var depth = computeDepth(request);
 				if (depth != null) {
 					request.setAttribute(ATTR_BASE_DEPTH, depth);
@@ -208,28 +208,8 @@ public class ServletUtils {
 		return Math.max(segments.length - 1, 0);
 	}
 
-	private static boolean shouldFallbackToMobileIndex(HttpServletRequest request, String relativePath) {
-		var method = request.getMethod();
-		if (!"GET".equalsIgnoreCase(method) && !"HEAD".equalsIgnoreCase(method)) {
-			return false;
-		}
-		if (isKnownMobileStaticResource(relativePath)) {
-			return false;
-		}
-		var fetchDest = request.getHeader("Sec-Fetch-Dest");
-		if (fetchDest != null && !fetchDest.isBlank()) {
-			return "document".equalsIgnoreCase(fetchDest) || "iframe".equalsIgnoreCase(fetchDest);
-		}
-		var fetchMode = request.getHeader("Sec-Fetch-Mode");
-		if (fetchMode != null && !fetchMode.isBlank()) {
-			return "navigate".equalsIgnoreCase(fetchMode);
-		}
-		var accept = request.getHeader(HeaderName.Accept.value());
-		if (accept != null) {
-			accept = accept.toLowerCase();
-			return accept.contains("text/html") || accept.contains("application/xhtml+xml");
-		}
-		return false;
+	private static boolean shouldFallbackToMobileIndex(String relativePath) {
+		return !isKnownMobileStaticResource(relativePath);
 	}
 
 	private static boolean isKnownMobileStaticResource(String relativePath) {
