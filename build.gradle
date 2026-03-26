@@ -19,6 +19,7 @@ plugins {
 }
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import groovy.json.JsonSlurper
 import org.apache.tools.ant.filters.ReplaceTokens
 import groovy.xml.XmlSlurper
@@ -57,6 +58,19 @@ apply from: 'headers.gradle'
 apply from: 'changelog.gradle'
 apply from: 'installers/windows.gradle'
 
+def isDependencyUpdatesTaskRequested = gradle.startParameter.taskNames.any { taskName ->
+	taskName == 'dependencyUpdates' ||
+	taskName == 'dependencyUpdatesMinor' ||
+	taskName == 'dependencyUpdatesPatch' ||
+	taskName.endsWith(':dependencyUpdates') ||
+	taskName.endsWith(':dependencyUpdatesMinor') ||
+	taskName.endsWith(':dependencyUpdatesPatch')
+}
+
+if (isDependencyUpdatesTaskRequested) {
+	gradle.startParameter.parallelProjectExecutionEnabled = false
+}
+
 task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest', 'generateDockerfile']) {
 	group = 'convertigo'
 	description = 'Run this task after a Convertigo version change.'
@@ -74,6 +88,7 @@ eclipse {
 }
 
 allprojects {
+	apply plugin: 'com.github.ben-manes.versions'
 	apply plugin: 'org.owasp.dependencycheck'
 	dependencyCheck {
 		nvd {
@@ -653,47 +668,90 @@ tasks.register('checkStudioJdkUpToDate') {
 	}
 }
 
-// https://github.com/ben-manes/gradle-versions-plugin
-tasks.named("dependencyUpdates").configure {
-	finalizedBy("checkStudioJdkUpToDate")
-	revision = 'release'
-	gradleReleaseChannel = 'current'
+def extractVersionLine = { String version ->
+	def components = ((version ?: '') =~ /\d+/).collect { it.toString() }
+	if (components.isEmpty()) {
+		return null
+	}
+	while (components.size() < 3) {
+		components.add('0')
+	}
+	return components.take(3)
+}
 
-	rejectVersionIf {
-		def version = it.candidate.version ?: ''
-		def lcVersion = version.toLowerCase()
-		def module = "${it.candidate.group}:${it.candidate.module}"
+def shouldRejectDependencyUpdate = { selection, boolean samePatchLineOnly ->
+	def version = selection.candidate.version ?: ''
+	def lcVersion = version.toLowerCase()
+	def module = "${selection.candidate.group}:${selection.candidate.module}"
 
-		// Reject all pre-releases consistently (case-insensitive).
-		if (lcVersion.matches('.*(alpha|beta|rc|cr|m[0-9]+|ea|preview|snapshot|-b).*')) {
+	// Reject all pre-releases consistently (case-insensitive).
+	if (lcVersion.matches('.*(alpha|beta|rc|cr|m[0-9]+|ea|preview|snapshot|-b).*')) {
+		return true
+	}
+
+	// Keep legacy major lines for risky dependencies.
+	switch (module) {
+		case 'commons-collections:commons-collections':
+			return !version.startsWith('3.')
+		case 'net.sf.jt400:jt400':
+			return !version.startsWith('11.')
+		case 'org.apache.axis2:axis2-saaj':
+			return !version.startsWith('1.8.')
+		case 'org.apache.xmlbeans:xmlbeans':
+			// Internal patched flavor (e.g. 3.1.1-sb-fixed), keep only the exact current version.
+			return version != selection.currentVersion
+		case 'org.apache.ws.commons.axiom:axiom-api':
+		case 'org.apache.ws.commons.axiom:axiom-dom':
+		case 'org.apache.ws.commons.axiom:axiom-impl':
+			return !version.startsWith('1.')
+	}
+
+	// Tomcat is constrained to major 9.x.
+	if (selection.candidate.group in ['org.apache.tomcat', 'org.apache.tomcat.embed']) {
+		def candidateLine = extractVersionLine(version)
+		def candidateMajor = candidateLine == null ? null : new BigInteger(candidateLine[0])
+		if (candidateMajor != null && candidateMajor > BigInteger.valueOf(9)) {
 			return true
 		}
+	}
 
-		// Keep legacy major lines for risky dependencies.
-			switch (module) {
-				case 'commons-collections:commons-collections':
-					return !version.startsWith('3.')
-				case 'net.sf.jt400:jt400':
-					return !version.startsWith('11.')
-				case 'org.apache.axis2:axis2-saaj':
-					return !version.startsWith('1.8.')
-				case 'org.apache.xmlbeans:xmlbeans':
-					// Internal patched flavor (e.g. 3.1.1-sb-fixed), keep only the exact current version.
-					return version != it.currentVersion
-				case 'org.apache.ws.commons.axiom:axiom-api':
-				case 'org.apache.ws.commons.axiom:axiom-dom':
-				case 'org.apache.ws.commons.axiom:axiom-impl':
-					return !version.startsWith('1.')
-			}
-
-		// Tomcat is constrained to major 9.x.
-		if (it.candidate.group in ['org.apache.tomcat', 'org.apache.tomcat.embed']) {
-			def matcher = (version =~ /^(\d+)/)
-			if (matcher) {
-				return (matcher[0][1] as int) > 9
-			}
+	if (samePatchLineOnly) {
+		def currentLine = extractVersionLine(selection.currentVersion)
+		def candidateLine = extractVersionLine(version)
+		if (currentLine != null && candidateLine != null && currentLine.take(2) != candidateLine.take(2)) {
+			return true
 		}
+	}
 
-		return false
+	return false
+}
+
+def configureDependencyUpdatesReport = { DependencyUpdatesTask task, boolean samePatchLineOnly ->
+	if (task.project == rootProject) {
+		task.finalizedBy(rootProject.tasks.named("checkStudioJdkUpToDate"))
+	}
+	task.revision = 'release'
+	task.gradleReleaseChannel = 'current'
+	task.rejectVersionIf {
+		shouldRejectDependencyUpdate(it, samePatchLineOnly)
+	}
+}
+
+// https://github.com/ben-manes/gradle-versions-plugin
+allprojects {
+	tasks.named("dependencyUpdates", DependencyUpdatesTask).configure { task ->
+		configureDependencyUpdatesReport(task, false)
+	}
+
+	tasks.register("dependencyUpdatesPatch", DependencyUpdatesTask) { task ->
+		group = "help"
+		description = "Displays dependency updates limited to the current patch line."
+		configureDependencyUpdatesReport(task, true)
+	}
+
+	tasks.register("dependencyUpdatesMinor", DependencyUpdatesTask) { task ->
+		group = "help"
+		description = "Legacy alias for dependencyUpdatesPatch."
+		configureDependencyUpdatesReport(task, true)
 	}
 }

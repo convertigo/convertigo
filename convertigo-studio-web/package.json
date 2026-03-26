@@ -69,7 +69,7 @@
 		"@internationalized/date": "^3.12.0",
 		"@tailwindcss/vite": "^4.2.2",
 		"@xyflow/svelte": "^1.5.1",
-		"@zag-js/tree-view": "^1.38.0",
+		"@zag-js/tree-view": "^1.38.2",
 		"apexcharts": "^5.10.4",
 		"bits-ui": "^2.16.3",
 		"caniuse-lite": "^1.0.30001781",
