@@ -81,6 +81,7 @@ public enum HeaderName {
 	TransferEncoding("Transfer-Encoding"),
 	Upgrade("Upgrade"),
 	UserAgent("User-Agent"),
+	Vary("Vary"),
 	XConvertigoAuthenticated("X-Convertigo-Authenticated"),
 	XConvertigoException("X-Convertigo-Exception"),
 	XConvertigoFrontal("X-Convertigo-Frontal"),

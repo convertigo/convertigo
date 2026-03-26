@@ -338,6 +338,14 @@ dependencies {
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-websocket:' + tomcatVersion
 	compileFlat    'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	//compileFlat    'org.apache.tomcat:tomcat-websocket:' + tomcatVersion
+	implementation "com.github.luben:zstd-jni:${zstdJniVersion}"
+	implementation "com.aayushatharva.brotli4j:brotli4j:${brotli4jVersion}"
+	runtimeOnly    "com.aayushatharva.brotli4j:native-linux-x86_64:${brotli4jVersion}"
+	runtimeOnly    "com.aayushatharva.brotli4j:native-linux-aarch64:${brotli4jVersion}"
+	runtimeOnly    "com.aayushatharva.brotli4j:native-osx-x86_64:${brotli4jVersion}"
+	runtimeOnly    "com.aayushatharva.brotli4j:native-osx-aarch64:${brotli4jVersion}"
+	runtimeOnly    "com.aayushatharva.brotli4j:native-windows-x86_64:${brotli4jVersion}"
+	runtimeOnly    "com.aayushatharva.brotli4j:native-windows-aarch64:${brotli4jVersion}"
 	implementation project.property('sapjco3Version')
 	sapjco3        project.property('sapjco3Version')
 	implementation files(dependenciesJar.archiveFile)

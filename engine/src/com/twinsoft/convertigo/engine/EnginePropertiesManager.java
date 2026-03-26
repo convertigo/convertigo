@@ -519,7 +519,7 @@ public class EnginePropertiesManager {
 
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
-		NET_GZIP ("net.gzip", "true", "Enable GZip response for most text responses (need the header Accept-Encoding: gzip)", PropertyCategory.Network),
+		NET_GZIP ("net.gzip", "true", "Enable negotiated HTTP compression for most text responses (gzip, br, zstd depending on Accept-Encoding)", PropertyCategory.Network),
 		NET_MAX_AGE ("net.max-age", "10", "Set the Cache-Control: max-age value in seconds, for static resources", PropertyCategory.Network),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
