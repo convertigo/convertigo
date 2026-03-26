@@ -21,26 +21,16 @@ package com.twinsoft.convertigo.eclipse.views.mobile;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
 
-import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.Viewer;
 
-import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
-import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileComponent;
@@ -62,182 +52,29 @@ import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.picker.DatabaseObjectPickerProjectOrder;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-class MobilePickerContentProvider implements ITreeContentProvider {
-	
-	private static Pattern INVALID_CHARACTERS = Pattern.compile("[~:\\-\\s]+");
-	
-	class TVObject {
-		private String name;
-		private Object object;
-		private TVObject parent;
-		private SourceData data;
-		private JSONObject infos;
-		private List<TVObject> children = new ArrayList<TVObject>();
-		
-		private TVObject(String name) {
-			this(name, null, null);
-		}
-		
-		private TVObject (String name, Object object, SourceData sd) {
-			this(name, object, sd, null);
-		}
-		
-		private TVObject (String name, Object object, SourceData data, JSONObject infos) {
-			this.name = name;
-			this.object = object;
-			this.data = data;
-			this.infos = infos == null ? new JSONObject(): infos;
-		}
+class MobilePickerContentProvider extends AbstractRequestablePickerContentProvider {
 
-		public String toString() {
-			return name;
-		}
-		
-		public String getPath() {
-			String path = INVALID_CHARACTERS.matcher(name).find() ?  "['"+name+"']":name;
-			if (parent != null) {
-				path = parent.getPath() + (path.startsWith("[") ? "":"?.") + path;
-			}
-			return path;
-		}
-		
-		public SourceData getSourceData() {
-			return data;
-		}
-		
-		public String getSource() {
-			String param = "";
-			if (object != null) {
-				// New code
-				if (data != null) {
-					String source = data.getSource();
-					if (source != null) {
-						return source;
-					}
-				}
-				
-				// Old code
-				if (object instanceof Sequence) {
-					String marker = "";
-					try {
-						marker = infos.has("marker") ? infos.getString("marker"):"";
-					} catch (JSONException e) {}
-					Sequence sequence = (Sequence)object;
-					param = "'"+ sequence.getQName() + (!marker.isEmpty() ? "#":"") + marker + "'";
-				} else if (object instanceof DesignDocument) {
-					DesignDocument dd = (DesignDocument)object;
-					String db = dd.getParent().getQName();//parent.parent.parent.getName();
-					String ddoc = dd.getName();
-					String dview = parent.getName();
-					String vm = name;
-					String include_docs = "false";
-					try {
-						include_docs = infos.has("include_docs") ? infos.getString("include_docs"):"false";
-					} catch (JSONException e) {}
-					param = "'fs://"+ db +"."+ vm +", {ddoc='"+ddoc+"', view='"+dview+"', include_docs='"+include_docs+"'}'";
-				} else if (object instanceof UIControlDirective) {
-					UIControlDirective directive = (UIControlDirective)object;
-					param = "item"+ directive.priority;
-				} else if (object instanceof UIForm) {
-					UIForm form = (UIForm)object;
-					param = "form"+ form.priority;
-				} else if (object instanceof ApplicationComponent) {
-					param = "router.sharedObject";
-				}
-			} else {
-				if (infos != null) {
-					
-				}
-			}
-			return param;
-		}
-		
-		public TVObject getParent() {
-			return parent;
-		}
-		
-		public Object getObject() {
-			return object;
-		}
-		
-		public JSONObject getInfos() {
-			return infos;
-		}
-		
-		public String getName() {
-			return name;
-		}
-		
-		private TVObject add(TVObject child) {
-			if (child != null) {
-				child.parent = this;
-				if (!children.contains(child)) {
-					children.add(child);
-				}
-			}
-			return child;
-		}
-		
-		private boolean remove(TVObject child) {
-			if (child != null) {
-				if (children.contains(child)) {
-					boolean removed = children.remove(child);
-					if (removed) {
-						child.parent = null;
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-		
-		public boolean isEmpty() {
-			return children.isEmpty();
-		}
-	}
-	
 	private Filter filter = Filter.Sequence;
-	private Object selected = null;
-	
-	public MobilePickerContentProvider() {
-		
-	}
-
-	@Override
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		ITreeContentProvider.super.inputChanged(viewer, oldInput, newInput);
-	}
-
-	@Override
-	public Object[] getElements(Object inputElement) {
-		return getChildren(inputElement);
-	}
 
 	public void setFilterBy(Filter filter) {
 		this.filter = filter;
 	}
 	
-	public void setSelectedDbo(Object object) {
-		this.selected = object;
-	}
-	
 	@Override
 	public Object[] getChildren(Object parentElement) {
 		if (parentElement instanceof TVObject) {
-			return ((TVObject) parentElement).children.toArray();
-		} else if (parentElement instanceof MobileComponent) {
+			return ((TVObject) parentElement).getChildren().toArray();
+		}
+		if (parentElement instanceof MobileComponent) {
 			MobileComponent mobileComponent = (MobileComponent)parentElement;
 			Project project = mobileComponent.getProject();
 			
 			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-			projectNames.remove(project.getName());
-			projectNames.add(0, project.getName());
+			List<String> projectNames = DatabaseObjectPickerProjectOrder.getOrderedProjectNames(project);
 
 			Map<String, Set<String>> map = mobileComponent.getApplication().getInfoMap();
 			
@@ -262,14 +99,13 @@ class MobilePickerContentProvider implements ITreeContentProvider {
 				addSharedComponents(tvi, mobileComponent);
 			}
 			if (filter.equals(Filter.Sequence)) {
-				TVObject tvs = root.add(new TVObject("sequences"));
 				for (String projectName : projectNames) {
 					try {
 						Project p = projectExplorerView.getProject(projectName);
 						if (!p.getSequencesList().isEmpty()) {
-							var tvp = tvs.add(new TVObject(projectName));
+							var tvp = root.add(new TVObject(projectName, p, null));
 							boolean isReferenced = !p.getName().equals(project.getName());
-							addSequences(map, tvp, isReferenced ? p:project, isReferenced);
+							addSequences(map, tvp, p, isReferenced);
 						}
 					} catch (Exception e) {
 					}
@@ -281,7 +117,7 @@ class MobilePickerContentProvider implements ITreeContentProvider {
 					try {
 						Project p = projectExplorerView.getProject(projectName);
 						boolean isReferenced = !p.getName().equals(project.getName());
-						addFsObjects(map, tvd, isReferenced ? p:project, isReferenced);
+						addFsObjects(map, tvd, p, isReferenced);
 					} catch (Exception e) {
 					}
 				}
@@ -298,196 +134,17 @@ class MobilePickerContentProvider implements ITreeContentProvider {
 				TVObject tvi = root.add(new TVObject("globals"));
 				addGlobals(tvi, mobileComponent.getApplication());
 			}
-			return root.children.toArray();
-		} else if (parentElement instanceof JSONObject) {
+			return root.getChildren().toArray();
+		}
+		if (parentElement instanceof JSONObject) {
 			JSONObject jsonObject = (JSONObject)parentElement;
 			
 			TVObject root = new TVObject("root", jsonObject, null);
 			addJsonObjects(root);
 			
-			return root.children.toArray();
+			return root.getChildren().toArray();
 		}
 		return new Object[0];
-	}
-	
-	@Override
-	public Object getParent(Object element) {
-		if (element instanceof TVObject) {
-			return ((TVObject)element).parent;
-		}
-		return null;
-	}
-
-	@Override
-	public boolean hasChildren(Object element) {
-		return getChildren(element).length > 0;
-	}
-
-	private void addSequences(Map<String, Set<String>> map, TVObject tvs, Object object, boolean isReferenced) {
-		if (object != null) {
-			if (object instanceof Project) {
-				Project project = (Project)object;
-				for (Sequence s : project.getSequencesList()) {
-					String label = isReferenced ? s.getQName():s.getName();
-					
-					SourceData sd = null;
-					try {
-						sd = Filter.Sequence.toSourceData(new JSONObject()
-								.put("sequence", s.getQName()));
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-					tvs.add(new TVObject(s.getName(), s, sd));
-					
-					Set<String> infos = map.get(s.getQName());
-					if (infos != null) {
-						for (String info: infos) {
-							try {
-								JSONObject jsonInfo = new JSONObject(info);
-								if (jsonInfo.has("marker")) {
-									String marker = jsonInfo.getString("marker");
-									if (!marker.isEmpty()) {
-										sd = Filter.Sequence.toSourceData(new JSONObject()
-												.put("sequence", s.getQName())
-												.put("marker", marker));
-										tvs.add(new TVObject(label + "#" + marker, s, sd, jsonInfo));
-									}
-								}
-							} catch (JSONException e) {
-								e.printStackTrace();
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	private void addFsObjects(Map<String, Set<String>> map, TVObject tvd, Object object, boolean isReferenced) {
-		if (object != null) {
-			if (object instanceof Project) {
-				Project project = (Project)object;
-				for (Connector c : project.getConnectorsList()) {
-					if (c instanceof FullSyncConnector) {
-						String label = isReferenced ? c.getQName():c.getName();
-						
-						TVObject tvc = tvd.add(new TVObject(label));
-						
-						for (Document d : c.getDocumentsList()) {
-							if (d instanceof DesignDocument) {
-								
-								TVObject tdd = tvc.add(new TVObject(d.getName()));
-								JSONObject views = CouchKey.views.JSONObject(((DesignDocument)d).getJSONObject());
-								if (views != null) {
-									for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {
-										try {
-											Set<String> infos = null;
-											String view = it.next();
-											
-											String key = c.getQName() + "." + d.getName() + "." + view;
-											
-											TVObject tvv = tdd.add(new TVObject(view));
-											
-											SourceData sd = null;
-											try {
-												sd = Filter.Database.toSourceData(new JSONObject()
-														.put("connector", c.getQName())
-														.put("document", d.getQName())
-														.put("queryview", view)
-														.put("verb", "get"));
-											} catch (JSONException e) {
-												e.printStackTrace();
-											}
-											
-											tvv.add(new TVObject("get", d, sd));
-											infos = map.get(key+ ".get");
-											if (infos == null) {
-												infos = map.get(c.getQName() + ".get");
-											}
-											if (infos != null) {
-												for (String info: infos) {
-													try {
-														JSONObject jsonInfo = new JSONObject(info);
-														boolean includeDocs = false;
-														if (jsonInfo.has("include_docs")) {
-															includeDocs = Boolean.valueOf(jsonInfo
-																	.getString("include_docs")).booleanValue();
-														}
-														if (jsonInfo.has("marker")) {
-															String marker = jsonInfo.getString("marker");
-															if (!marker.isEmpty()) {
-																String name = "get" + "#" + marker;
-																
-																sd = Filter.Database.toSourceData(new JSONObject()
-																		.put("connector", c.getQName())
-																		.put("document", d.getQName())
-																		.put("queryview", view)
-																		.put("verb", "get")
-																		.put("marker", marker)
-																		.put("includeDocs", includeDocs));
-																tvv.add(new TVObject(name, d, sd, jsonInfo));
-															}
-														}
-													} catch (JSONException e) {
-														e.printStackTrace();
-													}
-												}
-											}
-											
-											try {
-												sd = Filter.Database.toSourceData(new JSONObject()
-														.put("connector", c.getQName())
-														.put("document", d.getQName())
-														.put("queryview", view)
-														.put("verb", "view"));
-											} catch (JSONException e) {
-												e.printStackTrace();
-											}
-											tvv.add(new TVObject("view", d, sd));
-											
-											infos = map.get(key+ ".view");
-											if (infos != null) {
-												for (String info: infos) {
-													try {
-														JSONObject jsonInfo = new JSONObject(info);
-														boolean includeDocs = false;
-														if (jsonInfo.has("include_docs")) {
-															includeDocs = Boolean.valueOf(jsonInfo
-																	.getString("include_docs")).booleanValue();
-														}
-														if (jsonInfo.has("marker")) {
-															String marker = jsonInfo.getString("marker");
-															if (!marker.isEmpty()) {
-																String name = "view" + "#" + marker;
-																
-																sd = Filter.Database.toSourceData(new JSONObject()
-																		.put("connector", c.getQName())
-																		.put("document", d.getQName())
-																		.put("queryview", view)
-																		.put("verb", "view")
-																		.put("marker", marker)
-																		.put("includeDocs", includeDocs));
-																tvv.add(new TVObject(name, d, sd, jsonInfo));
-															}
-														}
-													} catch (JSONException e) {
-														e.printStackTrace();
-													}
-												}
-											}
-											
-										} catch (Exception e) {
-											e.printStackTrace();
-										}
-									}
-								}
-							}
-						}
-						
-					}
-				}
-			}
-		}
 	}
 	
 	private void addIterations(TVObject tvi, Object object) {
@@ -563,8 +220,8 @@ class MobilePickerContentProvider implements ITreeContentProvider {
 			if (list != null) {
 				TVObject tvEvents = null, tvControls = null;
 				if (tvi != null && "actions".equals(tvi.getName())) {
-					tvEvents = tvi.children.get(0);
-					tvControls = tvi.children.get(1);
+					tvEvents = (TVObject) tvi.getChildren().get(0);
+					tvControls = (TVObject) tvi.getChildren().get(1);
 				}
 				for (UIComponent uic : list) {
 					// do not add to prevent selection on itself or children
@@ -794,37 +451,78 @@ class MobilePickerContentProvider implements ITreeContentProvider {
 		}
 	}
 	
-	private void addJsonObjects(TVObject tvp) {
-		try {
-			if (tvp != null) {
-				Object object = tvp.getObject();
-				
-				if (object instanceof JSONObject) {
-					JSONObject jsonObject = (JSONObject)object;
-					for (Iterator<String> it = GenericUtils.cast(jsonObject.keys()); it.hasNext();) {
-						String key = it.next();
-						TVObject tvo = new TVObject(key, jsonObject.get(key), null);
-						addJsonObjects(tvo);
-						tvp.add(tvo);
-					}
-				} else if (object instanceof JSONArray) {
-					JSONArray jsonArray = (JSONArray)object;
-					for (int i = 0; i < jsonArray.length(); i++) {
-						TVObject tvo = new TVObject("["+i+"]", jsonArray.get(i), null);
-						addJsonObjects(tvo);
-						tvp.add(tvo);
-					}
-				} else {
-					String key = object.toString();
-					if (!key.isEmpty()) {
-						TVObject tvo = new TVObject(key, object, null);
-						tvp.add(tvo);
-					}
-				}
-			}
+	@Override
+	protected boolean omitOptionalAccessorBeforeBracket() {
+		return true;
+	}
+
+	@Override
+	protected String getExplicitSource(Object sourceData) {
+		if (sourceData instanceof SourceData data) {
+			return data.getSource();
 		}
-		catch (Exception e) {
+		return null;
+	}
+
+	@Override
+	protected String computeLegacySource(TVObject node) {
+		Object object = node.getObject();
+		if (object instanceof com.twinsoft.convertigo.beans.core.Sequence sequence) {
+			String marker = node.getInfos().optString("marker");
+			return "'" + sequence.getQName() + (!marker.isEmpty() ? "#" : "") + marker + "'";
+		}
+		if (object instanceof com.twinsoft.convertigo.beans.couchdb.DesignDocument dd) {
+			String db = dd.getParent().getQName();
+			String ddoc = dd.getName();
+			TVObject parent = node.getParent();
+			String dview = parent == null ? "" : parent.getName();
+			String includeDocs = node.getInfos().optString("include_docs", "false");
+			return "'fs://" + db + "." + node.getName() + ", {ddoc='" + ddoc + "', view='" + dview + "', include_docs='" + includeDocs + "'}'";
+		}
+		if (object instanceof UIControlDirective directive) {
+			return "item" + directive.priority;
+		}
+		if (object instanceof UIForm form) {
+			return "form" + form.priority;
+		}
+		if (object instanceof ApplicationComponent) {
+			return "router.sharedObject";
+		}
+		return "";
+	}
+
+	@Override
+	protected SourceData createSequenceSourceData(String sequenceQName, String marker) {
+		try {
+			JSONObject json = new JSONObject().put("sequence", sequenceQName);
+			if (marker != null && !marker.isEmpty()) {
+				json.put("marker", marker);
+			}
+			return Filter.Sequence.toSourceData(json);
+		} catch (JSONException e) {
 			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@Override
+	protected SourceData createDatabaseSourceData(String connectorQName, String documentQName, String queryView, String verb, String marker, boolean includeDocs) {
+		try {
+			JSONObject json = new JSONObject()
+				.put("connector", connectorQName)
+				.put("document", documentQName)
+				.put("queryview", queryView)
+				.put("verb", verb);
+			if (marker != null && !marker.isEmpty()) {
+				json.put("marker", marker);
+			}
+			if (includeDocs) {
+				json.put("includeDocs", true);
+			}
+			return Filter.Database.toSourceData(json);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return null;
 		}
 	}
 

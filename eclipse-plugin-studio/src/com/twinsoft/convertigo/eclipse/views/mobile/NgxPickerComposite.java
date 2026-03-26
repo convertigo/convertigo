@@ -159,7 +159,10 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
-import com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerContentProvider.TVObject;
+import com.twinsoft.convertigo.eclipse.views.picker.DatabaseObjectPickerFilter;
+import com.twinsoft.convertigo.eclipse.views.picker.DatabaseObjectPickerFilterSupport;
+import com.twinsoft.convertigo.eclipse.views.picker.DatabaseObjectPickerLabelProvider;
+import com.twinsoft.convertigo.eclipse.views.mobile.AbstractRequestablePickerContentProvider.TVObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicationComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject;
@@ -188,6 +191,7 @@ public class NgxPickerComposite extends Composite {
 	private Filter currentFilter = Filter.Sequence;
 	private String currentSource = null;
 	private MobileObject currentMC = null;
+	private final DatabaseObjectPickerFilter pickerFilter = new DatabaseObjectPickerFilter();
 	private Object firstSelected, lastSelected;
 	private List<TVObject> checkedList = new ArrayList<TVObject>();
 	private boolean isParentDialog = false;
@@ -633,8 +637,15 @@ public class NgxPickerComposite extends Composite {
 
 		stackLayout.topControl = treesSashForm;
 
-		checkboxTreeViewer = new CheckboxTreeViewer(treesSashForm, SWT.BORDER | SWT.SINGLE);
+		Composite checkboxComposite = new Composite(treesSashForm, SWT.NONE);
+		checkboxComposite.setLayout(new GridLayout(1, false));
+
+		Text filterText = DatabaseObjectPickerFilterSupport.createFilterText(checkboxComposite);
+		checkboxTreeViewer = new CheckboxTreeViewer(checkboxComposite, SWT.BORDER | SWT.SINGLE);
+		checkboxTreeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		checkboxTreeViewer.setContentProvider(new NgxPickerContentProvider());
+		checkboxTreeViewer.setLabelProvider(new DatabaseObjectPickerLabelProvider());
+		checkboxTreeViewer.addFilter(pickerFilter);
 		checkboxTreeViewer.addCheckStateListener(new ICheckStateListener() {
 			@Override
 			public void checkStateChanged(CheckStateChangedEvent event) {
@@ -678,6 +689,7 @@ public class NgxPickerComposite extends Composite {
 
 		modelTreeViewer = new TreeViewer(treesSashForm, SWT.BORDER);
 		modelTreeViewer.setContentProvider(new NgxPickerContentProvider());
+		modelTreeViewer.setLabelProvider(new LabelProvider());
 		modelTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
@@ -688,6 +700,8 @@ public class NgxPickerComposite extends Composite {
 			}
 
 		});
+
+		DatabaseObjectPickerFilterSupport.bind(filterText, pickerFilter, this::refreshCheckboxTreeViewer);
 
 		treesSashForm.setWeights(1, 1);
 
@@ -1343,6 +1357,16 @@ public class NgxPickerComposite extends Composite {
 					checkboxTreeViewer.setGrayed(ob, false);
 				}
 			}
+		}
+	}
+
+	private void refreshCheckboxTreeViewer() {
+		Object selection = checkboxTreeViewer.getStructuredSelection().getFirstElement();
+		checkboxTreeViewer.refresh();
+		checkboxTreeViewer.expandAll();
+		updateGrayChecked();
+		if (selection != null) {
+			checkboxTreeViewer.setSelection(new StructuredSelection(selection), true);
 		}
 	}
 
