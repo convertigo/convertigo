@@ -19,13 +19,10 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import org.codehaus.jettison.json.JSONObject;
-import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -33,11 +30,11 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -52,6 +49,11 @@ import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncFilterListener;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.picker.DatabaseObjectPickerFilter;
+import com.twinsoft.convertigo.eclipse.views.picker.DatabaseObjectPickerFilterSupport;
+import com.twinsoft.convertigo.eclipse.views.picker.DatabaseObjectPickerLabelProvider;
+import com.twinsoft.convertigo.eclipse.views.picker.DatabaseObjectPickerNode;
+import com.twinsoft.convertigo.eclipse.views.picker.DatabaseObjectPickerProjectOrder;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -63,314 +65,345 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite implements ITreeContentProvider, ILabelProvider, ISelectionChangedListener {
+public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite implements ISelectionChangedListener {
 
-	private class TVObject {
-		private String name;
-		private String label;
-		private boolean isSelectable = false;
-		private TVObject parent;
-		private List<Object> children = new ArrayList<Object>();
-		
+	private class TVObject extends DatabaseObjectPickerNode {
+
 		public TVObject(String name) {
 			this(name, false);
 		}
-		
-		public TVObject (String name, boolean isSelectable) {
-			this(name, name, isSelectable);
+
+		public TVObject(String name, boolean selectable) {
+			this(name, name, null, selectable);
 		}
-		
-		public TVObject (String name, String label, boolean isSelectable) {
-			this.name = name;
-			this.label = label;
-			this.isSelectable = isSelectable;
+
+		public TVObject(String name, String label, Object object, boolean selectable) {
+			super(name, label, object, selectable, null, null);
 		}
-		
+
 		public boolean isRoot() {
-			return name.equals("root");
+			return "root".equals(getName());
 		}
-		
+
 		public String getTargetName() {
-			String targetName = name;
-			if (parent != null && !parent.isRoot()) {
+			String targetName = getName();
+			if (getParent() instanceof TVObject parent && !parent.isRoot()) {
 				targetName = parent.getTargetName() + "." + targetName;
 			}
 			return targetName;
 		}
-		
-		public TVObject add(TVObject child) {
-			if (child != null) {
-				child.parent = this;
-				if (child.isSelectable) {
-					if (!children.contains(child)) {
-						children.add(child);
-						if (child.getTargetName().equals(sourcedObjectName)) {
-							selectedTVObject = child;
-						}
-						if (parent != null) {
-							parent.showInParent(this);
-						}
-					}
-				}
-			}
-			return child;
+
+		@Override
+		public String getTechnicalText() {
+			return getTargetName();
 		}
-		
-		private void showInParent(TVObject child) {
-			if (child != null) {
-				if (!children.contains(child)) {
-					children.add(child);
-					if (parent != null) {
+
+		public TVObject add(TVObject child) {
+			if (child != null && (child.isSelectable() || !child.isEmpty())) {
+				if (!getChildren().contains(child)) {
+					super.add(child);
+					if (child.getTargetName().equals(sourcedObjectName)) {
+						selectedTVObject = child;
+					}
+					if (getParent() instanceof TVObject parent) {
 						parent.showInParent(this);
 					}
 				}
+				return child;
+			}
+			return null;
+		}
+
+		private void showInParent(TVObject child) {
+			if (child != null && !getChildren().contains(child)) {
+				super.add(child);
+				if (getParent() instanceof TVObject parent) {
+					parent.showInParent(this);
+				}
 			}
 		}
-		
+
 		public void addObject(Object object) {
-			if (object != null) {
-				if (object instanceof DatabaseObject) {
-					DatabaseObject dbo = (DatabaseObject)object;
-					
-					boolean isSelectable = isSelectable(dbo);
-					TVObject tvObject = add(new TVObject(dbo.getName(), dbo.toString(), isSelectable));
-					
-					if (object instanceof Project) {
-						MobileApplication mba = ((Project)object).getMobileApplication();
-						if (mba != null) {
-							tvObject.addObject(mba);
-						}
-						for (Connector connector : ((Project)object).getConnectorsList()) {
-							tvObject.addObject(connector);
-						}
-						for (Sequence sequence : ((Project)object).getSequencesList()) {
-							tvObject.addObject(sequence);
+			if (!(object instanceof DatabaseObject dbo)) {
+				return;
+			}
+
+			boolean selectable = NamedSourceSelectorEditorComposite.this.isSelectable(dbo);
+			TVObject tvObject = new TVObject(dbo.getName(), dbo.toString(), dbo, selectable);
+			super.add(tvObject);
+
+			if (dbo instanceof Project project) {
+				if (project.getName().equals(currentProjectName)) {
+					currentProjectTVObject = tvObject;
+				}
+				MobileApplication mobileApplication = project.getMobileApplication();
+				if (mobileApplication != null) {
+					tvObject.addObject(mobileApplication);
+				}
+				for (Connector connector : project.getConnectorsList()) {
+					tvObject.addObject(connector);
+				}
+				for (Sequence sequence : project.getSequencesList()) {
+					tvObject.addObject(sequence);
+				}
+			} else if (dbo instanceof MobileApplication mobileApplication) {
+				IApplicationComponent applicationComponent = mobileApplication.getApplicationComponent();
+				if (applicationComponent != null) {
+					tvObject.addObject(applicationComponent);
+				}
+			}
+			// MOBILE COMPONENTS
+			else if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent mobileDbo) {
+				if (mobileDbo instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent mobileApp) {
+					for (com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu menu : mobileApp.getMenuComponentList()) {
+						tvObject.addObject(menu);
+					}
+					for (com.twinsoft.convertigo.beans.mobile.components.PageComponent page : mobileApp.getPageComponentList()) {
+						tvObject.addObject(page);
+					}
+					for (com.twinsoft.convertigo.beans.mobile.components.UIActionStack stack : mobileApp.getSharedActionList()) {
+						tvObject.addObject(stack);
+					}
+					for (com.twinsoft.convertigo.beans.mobile.components.UISharedComponent shared : mobileApp.getSharedComponentList()) {
+						tvObject.addObject(shared);
+					}
+				} else if (mobileDbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu menu) {
+					for (com.twinsoft.convertigo.beans.mobile.components.UIComponent component : menu.getUIComponentList()) {
+						tvObject.addObject(component);
+					}
+				} else if (mobileDbo instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent page) {
+					for (com.twinsoft.convertigo.beans.mobile.components.UIComponent component : page.getUIComponentList()) {
+						tvObject.addObject(component);
+					}
+				} else if (mobileDbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent component) {
+					for (com.twinsoft.convertigo.beans.mobile.components.UIComponent child : component.getUIComponentList()) {
+						tvObject.addObject(child);
+					}
+				}
+			}
+			// NGX COMPONENTS
+			else if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent ngxDbo) {
+				if (ngxDbo instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent ngxApp) {
+					for (com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu menu : ngxApp.getMenuComponentList()) {
+						tvObject.addObject(menu);
+					}
+					for (com.twinsoft.convertigo.beans.ngx.components.PageComponent page : ngxApp.getPageComponentList()) {
+						tvObject.addObject(page);
+					}
+					for (com.twinsoft.convertigo.beans.ngx.components.UIActionStack stack : ngxApp.getSharedActionList()) {
+						tvObject.addObject(stack);
+					}
+					for (com.twinsoft.convertigo.beans.ngx.components.UISharedComponent shared : ngxApp.getSharedComponentList()) {
+						tvObject.addObject(shared);
+					}
+				} else if (ngxDbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu menu) {
+					for (com.twinsoft.convertigo.beans.ngx.components.UIComponent component : menu.getUIComponentList()) {
+						tvObject.addObject(component);
+					}
+				} else if (ngxDbo instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent page) {
+					for (com.twinsoft.convertigo.beans.ngx.components.UIComponent component : page.getUIComponentList()) {
+						tvObject.addObject(component);
+					}
+				} else if (ngxDbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent component) {
+					for (com.twinsoft.convertigo.beans.ngx.components.UIComponent child : component.getUIComponentList()) {
+						tvObject.addObject(child);
+					}
+				}
+			} else if (dbo instanceof Connector connector) {
+				for (Transaction transaction : connector.getTransactionsList()) {
+					tvObject.addObject(transaction);
+				}
+				for (Document document : connector.getDocumentsList()) {
+					tvObject.addObject(document);
+				}
+				for (Listener listener : connector.getListenersList()) {
+					tvObject.addObject(listener);
+				}
+			} else if (dbo instanceof Document document && document instanceof DesignDocument designDocument) {
+				JSONObject json = designDocument.getJSONObject();
+				DatabaseObject currentObject = dboto.getObject();
+				if (currentObject instanceof AbstractFullSyncViewListener
+						|| currentObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement
+						|| currentObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
+					JSONObject views = CouchKey.views.JSONObject(json);
+					if (views != null) {
+						for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext();) {
+							String key = it.next();
+							String viewName = tvObject.getTargetName() + "." + key;
+								tvObject.add(new TVObject(key, NamedSourceSelectorEditorComposite.this.isSelectable(viewName)));
 						}
 					}
-					else if (object instanceof MobileApplication) {
-						IApplicationComponent ac = ((MobileApplication)object).getApplicationComponent();
-						if (ac != null) {
-							tvObject.addObject(ac);
-						}
-					}
-					// MOBILE COMPONENTS
-					else if (object instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
-						if (object instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
-							com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent app = GenericUtils.cast(object);
-							for (com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu menu: app.getMenuComponentList()) {
-								tvObject.addObject(menu);
-							}
-							for (com.twinsoft.convertigo.beans.mobile.components.PageComponent page: app.getPageComponentList()) {
-								tvObject.addObject(page);
-							}
-							for (com.twinsoft.convertigo.beans.mobile.components.UIActionStack uisa: app.getSharedActionList()) {
-								tvObject.addObject(uisa);
-							}
-							for (com.twinsoft.convertigo.beans.mobile.components.UISharedComponent uisc: app.getSharedComponentList()) {
-								tvObject.addObject(uisc);
-							}
-						}
-						else if (object instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu) {
-							com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu menu = GenericUtils.cast(object);
-							for (com.twinsoft.convertigo.beans.mobile.components.UIComponent uic: menu.getUIComponentList()) {
-								tvObject.addObject(uic);
-							}
-						}
-						else if (object instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
-							com.twinsoft.convertigo.beans.mobile.components.PageComponent page = GenericUtils.cast(object);
-							for (com.twinsoft.convertigo.beans.mobile.components.UIComponent uic: page.getUIComponentList()) {
-								tvObject.addObject(uic);
-							}
-						}
-						else if (object instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
-							com.twinsoft.convertigo.beans.mobile.components.UIComponent comp = GenericUtils.cast(object);
-							for (com.twinsoft.convertigo.beans.mobile.components.UIComponent uic: comp.getUIComponentList()) {
-								tvObject.addObject(uic);
-							}
-						}
-					}
-					// NGX COMPONENTS
-					else if (object instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
-						if (object instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
-							com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent app = GenericUtils.cast(object);
-							for (com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu menu: app.getMenuComponentList()) {
-								tvObject.addObject(menu);
-							}
-							for (com.twinsoft.convertigo.beans.ngx.components.PageComponent page: app.getPageComponentList()) {
-								tvObject.addObject(page);
-							}
-							for (com.twinsoft.convertigo.beans.ngx.components.UIActionStack uisa: app.getSharedActionList()) {
-								tvObject.addObject(uisa);
-							}
-							for (com.twinsoft.convertigo.beans.ngx.components.UISharedComponent uisc: app.getSharedComponentList()) {
-								tvObject.addObject(uisc);
-							}
-						}
-						else if (object instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu) {
-							com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu menu = GenericUtils.cast(object);
-							for (com.twinsoft.convertigo.beans.ngx.components.UIComponent uic: menu.getUIComponentList()) {
-								tvObject.addObject(uic);
-							}
-						}
-						else if (object instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
-							com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(object);
-							for (com.twinsoft.convertigo.beans.ngx.components.UIComponent uic: page.getUIComponentList()) {
-								tvObject.addObject(uic);
-							}
-						}
-						else if (object instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
-							com.twinsoft.convertigo.beans.ngx.components.UIComponent comp = GenericUtils.cast(object);
-							for (com.twinsoft.convertigo.beans.ngx.components.UIComponent uic: comp.getUIComponentList()) {
-								tvObject.addObject(uic);
-							}
-						}
-					}
-					else if (object instanceof Connector) {
-						for (Transaction transaction : ((Connector)object).getTransactionsList()) {
-							tvObject.addObject(transaction);
-						}
-						for (Document document : ((Connector)object).getDocumentsList()) {
-							tvObject.addObject(document);
-						}
-						for (Listener listener : ((Connector)object).getListenersList()) {
-							tvObject.addObject(listener);
-						}
-					}
-					else if (object instanceof Transaction) {
-						//
-					}
-					else if (object instanceof Sequence) {
-						//
-					}
-					else if (object instanceof Listener) {
-						//
-					}
-					else if (object instanceof Document) {
-						if (object instanceof DesignDocument) {
-							JSONObject json = ((DesignDocument)object).getJSONObject();
-							DatabaseObject dboo = dboto.getObject();
-							if (dboo instanceof AbstractFullSyncViewListener || 
-									dboo instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement || 
-									dboo instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
-								JSONObject views = CouchKey.views.JSONObject(json);
-								if (views != null) {
-									for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {
-										String key = it.next();
-										String viewName = tvObject.getTargetName() + "." + key;
-										tvObject.add(new TVObject(key, isSelectable(viewName)));
-									}
-								}
-							}
-							if (dboo instanceof AbstractFullSyncFilterListener) {
-								JSONObject filters = CouchKey.filters.JSONObject(json);
-								if (filters != null) {
-									for (Iterator<String> it = GenericUtils.cast(filters.keys()); it.hasNext(); ) {
-										String key = it.next();
-										String filterName = tvObject.getTargetName() + "." + key;
-										tvObject.add(new TVObject(key, isSelectable(filterName)));
-									}
-								}
-							}
+				}
+				if (currentObject instanceof AbstractFullSyncFilterListener) {
+					JSONObject filters = CouchKey.filters.JSONObject(json);
+					if (filters != null) {
+						for (Iterator<String> it = GenericUtils.cast(filters.keys()); it.hasNext();) {
+							String key = it.next();
+							String filterName = tvObject.getTargetName() + "." + key;
+								tvObject.add(new TVObject(key, NamedSourceSelectorEditorComposite.this.isSelectable(filterName)));
 						}
 					}
 				}
 			}
+
+			if (tvObject.getTargetName().equals(sourcedObjectName)) {
+				selectedTVObject = tvObject;
+			}
+			if (!(tvObject.isSelectable() || !tvObject.isEmpty())) {
+				super.remove(tvObject);
+				return;
+			}
+			if (getParent() instanceof TVObject parent) {
+				parent.showInParent(this);
+			}
 		}
 	}
-	
+
 	private class TVRoot extends TVObject {
+
 		public TVRoot() {
 			super("root");
 		}
-		
+
 		@Override
 		public void addObject(Object object) {
-			if (object == null) {
-				List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-				ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-				for (String projectName : projectNames) {
-					Project project = null;
-					try {
-						TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
-								.getContentProvider()).getProjectRootObject(projectName);
-						if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-							project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-						} else if (projectTreeObject != null) { 
-							project = projectExplorerView.getProject(projectName);
-						}
+			if (object != null) {
+				super.addObject(object);
+				return;
+			}
+
+			List<String> projectNames = DatabaseObjectPickerProjectOrder.getOrderedProjectNames(getCurrentProject());
+			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			for (String projectName : projectNames) {
+				Project project = null;
+				try {
+					TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer.getContentProvider()).getProjectRootObject(projectName);
+					if (projectTreeObject instanceof UnloadedProjectTreeObject) {
+						project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+					} else if (projectTreeObject != null) {
+						project = projectExplorerView.getProject(projectName);
 					}
-					catch (EngineException e) {
-						ConvertigoPlugin.logError("Project \""+projectName+"\" could not be loaded yet", true);
-					}
-					
-					if (project == null) {
-						continue;
-					}
-					
+				} catch (EngineException e) {
+					ConvertigoPlugin.logError("Project \"" + projectName + "\" could not be loaded yet", true);
+				}
+				if (project != null) {
 					super.addObject(project);
 				}
 			}
-			else {
-				super.addObject(object);
-			}
 		}
-		
 	}
 
+	private final DatabaseObjectTreeObject dboto;
+	private final String propertyName;
+	private final String currentProjectName;
+	private final DatabaseObjectPickerFilter pickerFilter = new DatabaseObjectPickerFilter();
 	private TreeViewer viewer;
+	private Text filterText;
 	private String sourcedObjectName;
 	private TVObject selectedTVObject;
-	private DatabaseObjectTreeObject dboto;
-	private String propertyName;
-	
+	private TVObject currentProjectTVObject;
+
 	public NamedSourceSelectorEditorComposite(Composite parent, int style, AbstractDialogCellEditor cellEditor) {
 		super(parent, style, cellEditor);
-		
-		dboto =  cellEditor.databaseObjectTreeObject;
+
+		dboto = cellEditor.databaseObjectTreeObject;
 		propertyName = (String) cellEditor.propertyDescriptor.getId();
 		Object pValue = dboto.getPropertyValue(propertyName);
-		if (pValue instanceof com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType) {
-			sourcedObjectName = ((com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType)pValue).getSmartValue();
-		} else if (pValue instanceof com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType) {
-			sourcedObjectName = ((com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType)pValue).getSmartValue();
+			if (pValue instanceof com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType mobileSmartSourceType) {
+				sourcedObjectName = mobileSmartSourceType.getSmartValue();
+			} else if (pValue instanceof com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType ngxSmartSourceType) {
+				sourcedObjectName = ngxSmartSourceType.getSmartValue();
 		} else {
-			sourcedObjectName = (String)pValue;
+			sourcedObjectName = (String) pValue;
 		}
-		
+
+		Project currentProject = getCurrentProject();
+		currentProjectName = currentProject == null ? null : currentProject.getName();
+
 		initialize();
 	}
 
+	private Project getCurrentProject() {
+		DatabaseObject dbo = dboto.getObject();
+		if (dbo instanceof Project project) {
+			return project;
+		}
+		return dbo == null ? null : dbo.getProject();
+	}
+
 	private boolean isSelectable(Object object) {
-		if (dboto instanceof INamedSourceSelectorTreeObject) {
-			return ((INamedSourceSelectorTreeObject)dboto).getNamedSourceSelector().isSelectable(propertyName, object);
+		if (dboto instanceof INamedSourceSelectorTreeObject selectorTreeObject) {
+			return selectorTreeObject.getNamedSourceSelector().isSelectable(propertyName, object);
 		}
 		return false;
 	}
-	
+
 	private void initialize() {
-		setLayout(new FillLayout());
-		viewer = new TreeViewer(this);
-		viewer.setContentProvider(this);
-		viewer.setLabelProvider(this);
+		setLayout(new GridLayout(1, false));
+
+		filterText = DatabaseObjectPickerFilterSupport.createFilterText(this);
+
+		viewer = new TreeViewer(this, SWT.BORDER | SWT.SINGLE);
+		viewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		viewer.setContentProvider(new ITreeContentProvider() {
+
+			@Override
+			public void inputChanged(org.eclipse.jface.viewers.Viewer viewer, Object oldInput, Object newInput) {
+			}
+
+			@Override
+			public void dispose() {
+			}
+
+			@Override
+			public Object[] getElements(Object inputElement) {
+				return getChildren(inputElement);
+			}
+
+			@Override
+			public Object[] getChildren(Object parentElement) {
+				if (parentElement instanceof DatabaseObjectPickerNode node) {
+					return node.getChildren().toArray();
+				}
+				return new Object[0];
+			}
+
+			@Override
+			public Object getParent(Object element) {
+				if (element instanceof DatabaseObjectPickerNode node) {
+					return node.getParent();
+				}
+				return null;
+			}
+
+			@Override
+			public boolean hasChildren(Object element) {
+				return element instanceof DatabaseObjectPickerNode node && !node.isEmpty();
+			}
+		});
+		viewer.setLabelProvider(new DatabaseObjectPickerLabelProvider());
+		viewer.addFilter(pickerFilter);
 		viewer.setInput(getInitalInput());
-		viewer.expandAll();
 		viewer.addSelectionChangedListener(this);
+
+		applyDefaultExpansion();
+		DatabaseObjectPickerFilterSupport.bind(filterText, pickerFilter, this::refreshViewer);
 	}
-	
+
 	@Override
 	public void performPostDialogCreation() {
 		if (selectedTVObject != null) {
 			ISelection selection = new StructuredSelection(selectedTVObject);
 			viewer.setSelection(selection, true);
+			expandAncestors(selectedTVObject);
 		} else {
 			if (sourcedObjectName != null && !sourcedObjectName.isEmpty()) {
-				ConvertigoPlugin.logError("Source not found ('" + sourcedObjectName + "'). "
-						+ "Please verify and choose another source.", true);
+				ConvertigoPlugin.logError("Source not found ('" + sourcedObjectName + "'). Please verify and choose another source.", true);
 			}
 			parentDialog.enableOK(false);
 		}
 	}
-	
+
 	private Object getInitalInput() {
 		TVRoot tvRoot = new TVRoot();
 		try {
@@ -383,13 +416,42 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 		}
 		return tvRoot;
 	}
-	
+
+	private void refreshViewer() {
+		Object currentSelection = ((IStructuredSelection) viewer.getSelection()).getFirstElement();
+		viewer.refresh();
+		if (pickerFilter.isActive()) {
+			viewer.expandAll();
+		} else {
+			applyDefaultExpansion();
+		}
+		if (currentSelection != null) {
+			viewer.setSelection(new StructuredSelection(currentSelection), true);
+		} else if (selectedTVObject != null) {
+			viewer.setSelection(new StructuredSelection(selectedTVObject), true);
+		}
+	}
+
+	private void applyDefaultExpansion() {
+		viewer.collapseAll();
+		if (currentProjectTVObject != null) {
+			viewer.setExpandedState(currentProjectTVObject, true);
+		}
+		expandAncestors(selectedTVObject);
+	}
+
+	private void expandAncestors(TVObject tvObject) {
+		while (tvObject != null) {
+			viewer.setExpandedState(tvObject, true);
+			tvObject = tvObject.getParent() instanceof TVObject parent ? parent : null;
+		}
+	}
+
 	public Object getValue() {
 		TVObject tvSelected = (TVObject) ((IStructuredSelection) viewer.getSelection()).getFirstElement();
 		if (tvSelected != null) {
 			sourcedObjectName = tvSelected.getTargetName();
-		}
-		else if (selectedTVObject != null) {
+		} else if (selectedTVObject != null) {
 			if (SWT.YES == ConvertigoPlugin.questionMessageBox(parentDialog.getShell(), "Do you want to clear the previously sourced object ?")) {
 				sourcedObjectName = "";
 			}
@@ -398,70 +460,14 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 	}
 
 	@Override
-	public void inputChanged(Viewer arg0, Object arg1, Object arg2) {
-	}
-
-	@Override
-	public Object[] getChildren(Object parentElement) {
-		if (parentElement instanceof TVObject) {
-			return ((TVObject) parentElement).children.toArray();
-		}
-		return new Object[0];
-	}
-
-	@Override
-	public Object[] getElements(Object inputElement) {
-		return getChildren(inputElement);
-	}
-
-	@Override
-	public Object getParent(Object parentElement) {
-		return null;
-	}
-
-	@Override
-	public boolean hasChildren(Object element) {
-		return getChildren(element).length > 0;
-	}
-
-	@Override
-	public void addListener(ILabelProviderListener listener) {
-	}
-
-	@Override
-	public void removeListener(ILabelProviderListener listener) {
-	}
-
-	@Override
-	public boolean isLabelProperty(Object element, String property) {
-		return false;
-	}
-
-	@Override
-	public Image getImage(Object element) {
-		return null;
-	}
-
-	@Override
-	public String getText(Object element) {
-		if (element instanceof TVObject) {
-			return ((TVObject) element).label;
-		}
-		return null;
-	}
-	
-
-	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
 		try {
-			if (event.getSelection() instanceof IStructuredSelection) {
-				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-				parentDialog.enableOK(selection.isEmpty() || ((TVObject) selection.getFirstElement()).isSelectable);
+			if (event.getSelection() instanceof IStructuredSelection selection) {
+				Object selected = selection.getFirstElement();
+				parentDialog.enableOK(selection.isEmpty() || (selected instanceof TVObject tvObject && tvObject.isSelectable()));
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			parentDialog.enableOK(false);
 		}
 	}
-
 }

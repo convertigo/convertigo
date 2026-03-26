@@ -45,6 +45,10 @@ class ConvertigoWorkbenchListener implements IWorkbenchListener {
 		ConvertigoPlugin.logDebug2("Workbench preShutdown");
 		ConvertigoPlugin plugin = ConvertigoPlugin.getDefault();
 		plugin.setShuttingDown(true);
+		var projectExplorerView = plugin.getProjectExplorerView();
+		if (projectExplorerView != null) {
+			projectExplorerView.close();
+		}
 		plugin.stopEmbeddedTomcat();
 		return true;
 	}

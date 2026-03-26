@@ -297,7 +297,7 @@ function handleStateMessage(res, service) {
 		}
 
 		if (
-			/(CheckAuthentication|Monitor|Status|List|Options|CronCalculator|ShowProperties|ListInstances|\.Get.*)$/.exec(
+			/(^engine\.Authenticate$|CheckAuthentication|Monitor|Status|List|Options|CronCalculator|ShowProperties|ListInstances|\.Get.*)$/.exec(
 				service
 			)
 		) {

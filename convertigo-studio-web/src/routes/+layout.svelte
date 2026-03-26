@@ -93,6 +93,11 @@
 	Light.light;
 </script>
 
+<svelte:head>
+	<link rel="icon" href={resolve('/favicon.png')} />
+	<link rel="manifest" href={resolve('/manifest.webmanifest')} />
+</svelte:head>
+
 <ModalYesNo bind:this={modalYesNo} />
 <ModalDynamic bind:this={modalAlert}>
 	{#snippet children({ close, params: { message, exception, stacktrace } })}

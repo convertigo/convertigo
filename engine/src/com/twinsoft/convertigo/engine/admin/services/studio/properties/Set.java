@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 @ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -150,6 +151,7 @@ public class Set extends JSonService {
 			}
 			if (save != null && save.equals("true")) {
 				Engine.theApp.databaseObjectsManager.exportProject(dbo.getProject());
+				SharedWorkspaceSyncManager.markProjectReload(dbo.getProject().getName());
 			}
 		}
 
