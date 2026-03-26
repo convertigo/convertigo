@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -57,6 +58,7 @@ public class ServletUtils {
 	private static final String ATTR_BASE_DEPTH = ServletUtils.class.getName() + ".baseDepth";
 	private static final Pattern RANGE_PATTERN = Pattern.compile("bytes\\s*=\\s*(.+)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern RANGE_ITEM_PATTERN = Pattern.compile("(\\d*)-(\\d*)");
+	private static final Set<String> MOBILE_STATIC_EXTENSIONS = Set.of("js", "mjs", "css", "map", "json", "webmanifest", "png", "jpg", "jpeg", "gif", "svg", "ico", "webp", "avif", "woff", "woff2", "ttf", "eot", "otf", "wasm");
 	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
@@ -113,7 +115,7 @@ public class ServletUtils {
 			}
 		} else {
 			Matcher m = p_mobile.matcher(file.getPath().replace('\\', '/'));
-			if (m.matches()) {
+			if (m.matches() && shouldFallbackToMobileIndex(request, m.group(2))) {
 				var depth = computeDepth(request);
 				if (depth != null) {
 					request.setAttribute(ATTR_BASE_DEPTH, depth);
@@ -186,7 +188,7 @@ public class ServletUtils {
 		}
 	}
 
-private static Integer computeDepth(HttpServletRequest request) {
+	private static Integer computeDepth(HttpServletRequest request) {
 		var uri = request.getRequestURI();
 		var matcher = p_mobile.matcher(uri);
 		if (!matcher.matches()) {
@@ -204,6 +206,50 @@ private static Integer computeDepth(HttpServletRequest request) {
 		}
 		var segments = suffix.split("/");
 		return Math.max(segments.length - 1, 0);
+	}
+
+	private static boolean shouldFallbackToMobileIndex(HttpServletRequest request, String relativePath) {
+		var method = request.getMethod();
+		if (!"GET".equalsIgnoreCase(method) && !"HEAD".equalsIgnoreCase(method)) {
+			return false;
+		}
+		if (isKnownMobileStaticResource(relativePath)) {
+			return false;
+		}
+		var fetchDest = request.getHeader("Sec-Fetch-Dest");
+		if (fetchDest != null && !fetchDest.isBlank()) {
+			return "document".equalsIgnoreCase(fetchDest) || "iframe".equalsIgnoreCase(fetchDest);
+		}
+		var fetchMode = request.getHeader("Sec-Fetch-Mode");
+		if (fetchMode != null && !fetchMode.isBlank()) {
+			return "navigate".equalsIgnoreCase(fetchMode);
+		}
+		var accept = request.getHeader(HeaderName.Accept.value());
+		if (accept != null) {
+			accept = accept.toLowerCase();
+			return accept.contains("text/html") || accept.contains("application/xhtml+xml");
+		}
+		return false;
+	}
+
+	private static boolean isKnownMobileStaticResource(String relativePath) {
+		if (relativePath == null || relativePath.isEmpty()) {
+			return false;
+		}
+		if (relativePath.endsWith("/")) {
+			relativePath = relativePath.substring(0, relativePath.length() - 1);
+		}
+		if (relativePath.isEmpty()) {
+			return false;
+		}
+		var lastSlash = relativePath.lastIndexOf('/');
+		var lastSegment = lastSlash >= 0 ? relativePath.substring(lastSlash + 1) : relativePath;
+		var lastDot = lastSegment.lastIndexOf('.');
+		if (lastDot <= 0 || lastDot == lastSegment.length() - 1) {
+			return false;
+		}
+		var extension = lastSegment.substring(lastDot + 1).toLowerCase();
+		return MOBILE_STATIC_EXTENSIONS.contains(extension);
 	}
 
 	private static String buildBaseHref(int depth) {
