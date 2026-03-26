@@ -30,7 +30,6 @@ import java.util.zip.GZIPOutputStream;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.ServletRequest;
@@ -63,6 +62,12 @@ public class CompressionFilter implements Filter {
 	public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain filterChain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) _request;
 		HttpServletResponse response = (HttpServletResponse) _response;
+
+		if (response instanceof GZipServletResponseWrapper gzipResponse) {
+			request.setAttribute("response", gzipResponse);
+			filterChain.doFilter(request, gzipResponse);
+			return;
+		}
 		
 		boolean doGZip = false;
 		try {
@@ -88,7 +93,7 @@ public class CompressionFilter implements Filter {
 		}
 		
 		if (doGZip) {
-			GZipServletResponseWrapper gzipResponse = new GZipServletResponseWrapper(request, response);
+			GZipServletResponseWrapper gzipResponse = new GZipServletResponseWrapper(response);
 			request.setAttribute("response", gzipResponse);
 			filterChain.doFilter(request, gzipResponse);
 			gzipResponse.close();
@@ -133,7 +138,6 @@ public class CompressionFilter implements Filter {
 			identity
 		}
 
-		private final HttpServletRequest request;
 		private ServletOutputStream     outputStream      = null;
 		private GZipServletOutputStream gzipOutputStream = null;
 		private PrintWriter             printWriter      = null;
@@ -141,9 +145,8 @@ public class CompressionFilter implements Filter {
 		private Mode                    mode             = Mode.undecided;
 		private String                  pendingContentLength = null;
 
-		private GZipServletResponseWrapper(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		private GZipServletResponseWrapper(HttpServletResponse response) throws IOException {
 			super(response);
-			this.request = request;
 		}
 
 		private void applyPendingContentLength() {
@@ -155,11 +158,6 @@ public class CompressionFilter implements Filter {
 
 		private Mode decideMode() {
 			if (mode != Mode.undecided) {
-				return mode;
-			}
-			if (request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI) != null) {
-				mode = Mode.identity;
-				applyPendingContentLength();
 				return mode;
 			}
 			if (HeaderName.ContentDisposition.has(this)) {
