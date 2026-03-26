@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -66,6 +67,7 @@ public class Update extends XmlService {
 		NodeList nl = post.getElementsByTagName("key");
 
 		String tasRoot = EnginePropertiesManager.getProperty(PropertyName.CARIOCA_URL);
+		boolean keysChanged = false;
 
 		for (int i = 0; i < nl.getLength(); i++) {
 			String newKey = ((Element) nl.item(i)).getAttribute("text");
@@ -121,6 +123,7 @@ public class Update extends XmlService {
 									keyElement.setAttribute("text", newKey);
 									keyElement.setAttribute("success", "The key '" + newKey + "' has been added");
 									keysListElement.appendChild(keyElement);
+									keysChanged = true;
 									/* The keys have been updated */
 									Engine.logAdmin.info("The key '" + newKey + "' has been added");
 
@@ -138,6 +141,10 @@ public class Update extends XmlService {
 					}
 				}
 			}
+		}
+
+		if (keysChanged) {
+			SharedWorkspaceSyncManager.markKeysChanged();
 		}
 	}
 	

@@ -35,9 +35,11 @@ import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 final class RedisSessionStore implements SessionStore {
 	private static final String INDEX_SESSIONS = "index:sessions";
+	private static final String INDEX_LICENSED_SESSIONS = "index:licensedSessions";
 	private static final String TOMBSTONE_SESSION_PREFIX = "tombstone:session:";
 	private static final String LUA_HSET_DEL_AND_TOUCH = ""
 			+ "local key=KEYS[1]; local tomb=KEYS[2];\n"
@@ -53,11 +55,14 @@ final class RedisSessionStore implements SessionStore {
 	private final RedissonClient client;
 	private final RedisSessionConfiguration configuration;
 	private final RSet<String> sessionsIndex;
+	private final RSet<String> licensedSessionsIndex;
 
 	RedisSessionStore(RedisSessionConfiguration configuration) {
 		this.configuration = configuration;
 		this.client = this.createClient(configuration);
 		this.sessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_SESSIONS, StringCodec.INSTANCE);
+		this.licensedSessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_LICENSED_SESSIONS,
+				StringCodec.INSTANCE);
 	}
 
 	private RedissonClient createClient(RedisSessionConfiguration cfg) {
@@ -80,6 +85,45 @@ final class RedisSessionStore implements SessionStore {
 	Set<String> readSessionIds() {
 		try {
 			return sessionsIndex.readAll();
+		} catch (Exception e) {
+			return Set.of();
+		}
+	}
+
+	int estimateLicensedSessions() {
+		try {
+			return licensedSessionsIndex.size();
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+
+	int countLicensedSessions() {
+		var staleSessionIds = new ArrayList<String>();
+		int count = 0;
+		for (var sessionId : readLicensedSessionIds()) {
+			if (sessionId == null || sessionId.isBlank()) {
+				continue;
+			}
+			if (readMeta(sessionId) == null) {
+				staleSessionIds.add(sessionId);
+				continue;
+			}
+			count++;
+		}
+		if (!staleSessionIds.isEmpty()) {
+			try {
+				licensedSessionsIndex.removeAll(staleSessionIds);
+			} catch (Exception e) {
+				debug("Failed to cleanup licensed sessions index: " + e.getMessage());
+			}
+		}
+		return count;
+	}
+
+	private Set<String> readLicensedSessionIds() {
+		try {
+			return licensedSessionsIndex.readAll();
 		} catch (Exception e) {
 			return Set.of();
 		}
@@ -147,6 +191,8 @@ final class RedisSessionStore implements SessionStore {
 	@Override
 	public void writeDelta(String sessionId, Map<String, String> hset, Set<String> hdel, long ttlMillis) {
 		try {
+			boolean keepLicensedSession = hset != null && hset.containsKey(SessionAttribute.licensedSession.value());
+			boolean dropLicensedSession = hdel != null && hdel.contains(SessionAttribute.licensedSession.value());
 			var setCount = hset != null ? hset.size() : 0;
 			var delCount = hdel != null ? hdel.size() : 0;
 			var args = new ArrayList<Object>(2 + setCount * 2 + 1 + delCount);
@@ -170,6 +216,11 @@ final class RedisSessionStore implements SessionStore {
 			try {
 				if (written != null && written.longValue() == 1L) {
 					sessionsIndex.add(sessionId);
+					if (keepLicensedSession) {
+						licensedSessionsIndex.add(sessionId);
+					} else if (dropLicensedSession) {
+						licensedSessionsIndex.remove(sessionId);
+					}
 				}
 			} catch (Exception e) {
 				debug("Failed to update sessions index for " + sessionId + ": " + e.getMessage());
@@ -205,6 +256,7 @@ final class RedisSessionStore implements SessionStore {
 			map(sessionId).delete();
 			try {
 				sessionsIndex.remove(sessionId);
+				licensedSessionsIndex.remove(sessionId);
 			} catch (Exception e) {
 				debug("Failed to remove " + sessionId + " from sessions index: " + e.getMessage());
 			}

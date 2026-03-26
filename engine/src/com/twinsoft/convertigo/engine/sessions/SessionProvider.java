@@ -45,4 +45,12 @@ public interface SessionProvider {
 	default int terminateAllSessions() {
 		return 0;
 	}
+
+	default int estimateLicensedSessions() {
+		return 0;
+	}
+
+	default int countLicensedSessions() {
+		return 0;
+	}
 }

@@ -9,7 +9,6 @@
 	} from '@internationalized/date';
 	import { Popover, Slider } from '@skeletonlabs/skeleton-svelte';
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -28,6 +27,7 @@
 	import Time from '$lib/common/Time.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { resolve } from '$lib/utils/route';
 	import { call } from '$lib/utils/service';
 	import { splitDateTime } from '$lib/utils/time';
 	import { getContext, onMount } from 'svelte';

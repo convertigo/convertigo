@@ -52,15 +52,15 @@ jobs:
           
           export DATE="$(date)"
           
-          env | grep -e "^CONVERTIGO_" -e "^DATE=" | sed -e "s, ,\\\\ ,g" > /tmp/build.env
+          env | grep -e "^CONVERTIGO_" -e "^DATE=" | sed -e "s, ,\\\\ ,g" -e "s,^,export ," > /tmp/build.env
           
           echo "/tmp/build.env: "
           cat /tmp/build.env
 
-    - save_cache:
+    - persist_to_workspace:
+        root: /tmp
         paths:
-        - /tmp/build.env
-        key: v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        - build.env
 
     - store_artifacts:
         path: /home/circleci/s3
@@ -77,6 +77,9 @@ jobs:
 #         - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-
         
     - checkout
+
+    - attach_workspace:
+        at: /tmp
 
     - run:
         name: Generate engine cache fingerprint
@@ -95,10 +98,6 @@ jobs:
         keys:
         - v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-{{ .Revision }}
         - v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-
-        
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
     - add_ssh_keys:
         fingerprints:
@@ -161,21 +160,27 @@ jobs:
     steps:
     - checkout
 
+    - attach_workspace:
+        at: /tmp
+
+    - run:
+        name: Generate web admin Node version fingerprint
+        command: |
+          mkdir -p .circleci/cache
+          sed -n "s/^ext.studioWebNodeVersion = '\\(.*\\)'$/\\1/p" build.gradle > .circleci/cache/webadmin.nodeversion
+          test -s .circleci/cache/webadmin.nodeversion
+
     - run:
         name: Generate web admin cache fingerprint
         command: ./.circleci/cache_fingerprint.sh webadmin .circleci/cache/webadmin.fingerprint
 
     - restore_cache:
         keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        - v1-studio-web-nvm-{{ checksum ".circleci/cache/webadmin.nodeversion" }}
 
     - restore_cache:
         keys:
-        - v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
-
-    - restore_cache:
-        keys:
-        - v3-studio-web-tooling-{{ checksum ".circleci/cache/webadmin.fingerprint" }}
+        - v4-studio-web-npm-{{ checksum ".circleci/cache/webadmin.fingerprint" }}
 
     - run:
         name: Build web administration
@@ -186,18 +191,21 @@ jobs:
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
           fi
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :buildStudioWebNpmInstall :buildStudioWebBuild
-
-    - save_cache:
-        paths:
-        - ~/.gradle/wrapper
-        key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+          export NODE_VERSION=$(cat .circleci/cache/webadmin.nodeversion)
+          nvm install "$NODE_VERSION"
+          cd convertigo-studio-web
+          nvm exec "$NODE_VERSION" npm ci --force
+          nvm exec "$NODE_VERSION" npm run build
 
     - save_cache:
         paths:
         - ~/.nvm
+        key: v1-studio-web-nvm-{{ checksum ".circleci/cache/webadmin.nodeversion" }}
+
+    - save_cache:
+        paths:
         - ~/.npm
-        key: v3-studio-web-tooling-{{ checksum ".circleci/cache/webadmin.fingerprint" }}
+        key: v4-studio-web-npm-{{ checksum ".circleci/cache/webadmin.fingerprint" }}
 
     - persist_to_workspace:
         root: .
@@ -211,15 +219,16 @@ jobs:
     - aws-cli/setup
     - checkout
 
+    - attach_workspace:
+        at: /home/circleci/repo
+
+    - run:
+        name: Expose build.env
+        command: cp build.env /tmp/build.env
+
     - run:
         name: Generate engine cache fingerprint
         command: ./.circleci/cache_fingerprint.sh engine .circleci/cache/engine.fingerprint
-    - attach_workspace:
-        at: /home/circleci/repo
-        
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
     
     - run:
         name: Prepare dist directory
@@ -283,13 +292,12 @@ jobs:
     - aws-cli/setup
     - checkout
 
+    - attach_workspace:
+        at: /tmp
+
     - run:
         name: Generate engine cache fingerprint
         command: ./.circleci/cache_fingerprint.sh engine .circleci/cache/engine.fingerprint
-        
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
     
     - run:
         name: Prepare dist directory
@@ -345,11 +353,10 @@ jobs:
     - image: docker:latest
     
     steps:
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-        
     - checkout
+
+    - attach_workspace:
+        at: /tmp
         
     - setup_remote_docker:
         version: default
@@ -386,11 +393,10 @@ jobs:
     - image: docker:latest
     
     steps:
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-        
     - checkout
+
+    - attach_workspace:
+        at: /tmp
         
     - setup_remote_docker:
         version: default
@@ -427,10 +433,9 @@ jobs:
     <<: *defaults
     steps:
     - aws-cli/setup
-    
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+
+    - attach_workspace:
+        at: /tmp
         
     - setup_remote_docker:
         version: default
@@ -471,10 +476,9 @@ jobs:
     <<: *defaults
     steps:
     - aws-cli/setup
-    
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+
+    - attach_workspace:
+        at: /tmp
     
     - setup_remote_docker:
         version: default
@@ -515,10 +519,9 @@ jobs:
     <<: *defaults
     steps:
     - aws-cli/setup
-    
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+
+    - attach_workspace:
+        at: /tmp
     
     - setup_remote_docker:
         version: default
@@ -554,6 +557,31 @@ jobs:
         command: |
           source /tmp/build.env
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+
+  qualif_summary:
+    <<: *defaults
+    steps:
+    - aws-cli/setup
+    - checkout
+    - attach_workspace:
+        at: /tmp
+
+    - run:
+        name: Generate qualif summary
+        command: |
+          source /tmp/build.env
+          sh ./.circleci/qualif_summary.sh "$CONVERTIGO_DIST/qualif"
+
+    - run:
+        name: Sync summary to S3
+        command: |
+          source /tmp/build.env
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/qualif/qualif-summary.txt s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.txt
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/qualif/qualif-summary.json s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.json
+
+    - store_artifacts:
+        path: /home/circleci/s3
+        destination: qualif-summary
           
   build_studio:
     <<: *defaults
@@ -573,15 +601,16 @@ jobs:
     
     - checkout
 
+    - attach_workspace:
+        at: /home/circleci/repo
+
+    - run:
+        name: Expose build.env
+        command: cp build.env /tmp/build.env
+
     - run:
         name: Generate studio cache fingerprint
         command: ./.circleci/cache_fingerprint.sh studio .circleci/cache/studio.fingerprint
-    - attach_workspace:
-        at: /home/circleci/repo
-        
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
     
     - run:
         name: Prepare dist directory
@@ -712,7 +741,7 @@ jobs:
           mkdir -p ~/.gnupg
           tar -xvf installers/convertigo.gpg -C ~/.gnupg
           find $CONVERTIGO_DIST -type f -exec gpg -ab {} \;
-          
+
     - run:
         name: Sync builds to S3
         command: |
@@ -808,9 +837,8 @@ jobs:
     - image: cibuilds/github:latest
     
     steps:
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    - attach_workspace:
+        at: /tmp
         
     - run:
         name: Sync builds to GitHub
@@ -912,6 +940,23 @@ workflows:
     - qualif_jmx_3:
         requires:
         - build_docker_default
+        filters:
+          tags:
+            only: /^\d+\..*$/
+    - qualif_summary:
+        requires:
+        - qualif_jmx_1:
+          - success
+          - failed
+          - canceled
+        - qualif_jmx_2:
+          - success
+          - failed
+          - canceled
+        - qualif_jmx_3:
+          - success
+          - failed
+          - canceled
         filters:
           tags:
             only: /^\d+\..*$/

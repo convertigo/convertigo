@@ -30,7 +30,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.tas.KeyManager;
 
 @ServiceDefinition(
@@ -46,7 +46,7 @@ public class JsonMonitor extends JSonService {
 		final long mb = 1024 * 1024;
 		Runtime runtime = Runtime.getRuntime();
 		long memoryTotal = runtime.totalMemory();
-		int sessionCount = HttpSessionListener.countSessions();
+		int sessionCount = ConvertigoHttpSessionManager.getInstance().countLicensedSessions();
 		int sessionMaxCV = KeyManager.getMaxCV(Session.EmulIDSE);
 		response.put("memoryMaximal", runtime.maxMemory() / mb);
 		response.put("memoryTotal", memoryTotal / mb);

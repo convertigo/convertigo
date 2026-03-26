@@ -88,6 +88,10 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 	}
 
 	public int terminateAllSessions() {
+		return terminateAllSessions(null);
+	}
+
+	public int terminateAllSessions(String sessionIdToKeep) {
 		try {
 			if (provider == null) {
 				return 0;
@@ -144,6 +148,9 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 				if (sessionId == null || sessionId.isBlank()) {
 					continue;
 				}
+				if (sessionId.equals(sessionIdToKeep)) {
+					continue;
+				}
 				if (sessionsToSkip.contains(sessionId)) {
 					continue;
 				}
@@ -180,6 +187,24 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			}
 		} catch (Exception e) {
 			debug("flushBuffers failed: " + e.getMessage());
+		}
+	}
+
+	public int estimateLicensedSessions() {
+		try {
+			return provider != null ? provider.estimateLicensedSessions() : 0;
+		} catch (Exception e) {
+			debug("estimateLicensedSessions failed: " + e.getMessage());
+			return 0;
+		}
+	}
+
+	public int countLicensedSessions() {
+		try {
+			return provider != null ? provider.countLicensedSessions() : 0;
+		} catch (Exception e) {
+			debug("countLicensedSessions failed: " + e.getMessage());
+			return 0;
 		}
 	}
 

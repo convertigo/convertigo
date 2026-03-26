@@ -1,7 +1,6 @@
 <script>
 	import { building } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -10,6 +9,7 @@
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { resolve } from '$lib/utils/route';
 	import { onMount } from 'svelte';
 	import { fullSyncBaseUrl, getDatabaseInfo, listDatabases, removeDatabase } from './fullsync-api';
 	import { createFullSyncFeedback } from './fullsync-feedback';
@@ -20,7 +20,9 @@
 
 	const modalYesNo = getFullSyncConfirmModal();
 	const fullSyncDocHref = getAdminPageDocHref('/admin/fullsync');
-	const fullSyncConfigHref = resolve('/(app)/admin/config/[category]', { category: 'FullSync' });
+	const fullSyncConfigHref = resolve('/(app)/admin/config/[category]', {
+		category: 'FullSync'
+	});
 
 	let loadingDatabases = $state(true);
 	let working = $state(false);

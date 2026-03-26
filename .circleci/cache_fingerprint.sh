@@ -30,7 +30,6 @@ add_glob() {
 }
 
 add_common_gradle_inputs() {
-	add_path .circleci/config.yml
 	add_path build.gradle
 	add_path settings.gradle
 	add_path gradle.properties
@@ -55,9 +54,6 @@ case "$mode" in
 		add_glob 'eclipse-repository/pom.xml'
 		;;
 	webadmin)
-		add_path .circleci/config.yml
-		add_path build.gradle
-		add_path gradle/wrapper/gradle-wrapper.properties
 		add_path convertigo-studio-web/package.json
 		add_path convertigo-studio-web/package-lock.json
 		;;

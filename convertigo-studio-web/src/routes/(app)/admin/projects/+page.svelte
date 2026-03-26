@@ -1,7 +1,6 @@
 <script>
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
@@ -16,6 +15,7 @@
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Projects from '$lib/common/Projects.svelte';
+	import { resolve } from '$lib/utils/route';
 	import { getContext, onDestroy, tick } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 

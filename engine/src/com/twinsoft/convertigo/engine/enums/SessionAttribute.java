@@ -37,6 +37,7 @@ public enum SessionAttribute {
     exception(Throwable.class),
     fullSyncRequests(HashSet.class),
     isNew(Boolean.class, KeepMode.NEVER),
+    licensedSession(Boolean.class),
     httpClient3("__httpClient3__", null),
     httpClient4("__httpClient4__", null),
     sessionListener(HttpSessionListener.class, KeepMode.NEVER),

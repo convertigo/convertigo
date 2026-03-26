@@ -35,6 +35,34 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class FallbackFilter implements Filter {
+
+	private static String resolveFallbackPath(String servletPath) {
+		if (!servletPath.endsWith("/index.html")) {
+			return null;
+		}
+
+		if (new File(Engine.WEBAPP_PATH, servletPath).exists()) {
+			return servletPath;
+		}
+
+		var segments = servletPath.split("/");
+		var currentPath = new StringBuilder();
+
+		for (var i = 1; i < segments.length; i++) { // skip the first empty "/"
+			currentPath.append("/");
+
+			if (new File(Engine.WEBAPP_PATH, currentPath.toString() + segments[i]).exists()) {
+				currentPath.append(segments[i]);
+			} else if (new File(Engine.WEBAPP_PATH, currentPath.toString() + "_").exists()) {
+				currentPath.append("_");
+			} else {
+				return null;
+			}
+		}
+
+		var fallbackPath = currentPath.toString();
+		return new File(Engine.WEBAPP_PATH, fallbackPath).exists() ? fallbackPath : null;
+	}
 	
 	@Override
 	public void destroy() {
@@ -46,31 +74,28 @@ public class FallbackFilter implements Filter {
 	    HttpServletResponse response = (HttpServletResponse) _response;
 		Log4jHelper.mdcClear();
 	    var servletPath = request.getServletPath();
-	    if (servletPath.endsWith("/")) {
-	        servletPath += "index.html";
-	    }
-	    if (servletPath.endsWith("/index.html") && !new File(Engine.WEBAPP_PATH, servletPath).exists()) {
-	        var segments = servletPath.split("/");
-	        var currentPath = new StringBuilder();
 
-	        for (var i = 1; i < segments.length; i++) { // skip the first empty "/"
-	            currentPath.append("/");
-	            
-	            if (new File(Engine.WEBAPP_PATH, currentPath.toString() + segments[i]).exists()) {
-	            	currentPath.append(segments[i]);
-	            } else if (new File(Engine.WEBAPP_PATH, currentPath.toString() + "_").exists()) {
-					currentPath.append("_");
-				} else {
-					currentPath = null;
-					break;
-	            }
-	        }
-	        
-	        if (currentPath != null && new File(Engine.WEBAPP_PATH, currentPath.toString()).exists()) {
-	            request.getRequestDispatcher(currentPath.toString()).forward(request, response);
-	            return;
-	        }
-	    }
+		if (!servletPath.endsWith("/") && ("GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod()))) {
+			var slashServletPath = servletPath + "/";
+			if (resolveFallbackPath(slashServletPath + "index.html") != null) {
+				var location = new StringBuilder(request.getContextPath()).append(slashServletPath);
+				if (request.getQueryString() != null) {
+					location.append("?").append(request.getQueryString());
+				}
+				response.sendRedirect(response.encodeRedirectURL(location.toString()));
+				return;
+			}
+		}
+
+		if (servletPath.endsWith("/")) {
+			servletPath += "index.html";
+		}
+
+		var fallbackPath = resolveFallbackPath(servletPath);
+		if (fallbackPath != null && !fallbackPath.equals(servletPath)) {
+			request.getRequestDispatcher(fallbackPath).forward(request, response);
+			return;
+		}
 	    
 	    filterChain.doFilter(request, response);
 	}

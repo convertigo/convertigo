@@ -119,7 +119,23 @@
 				{/if}
 			</div>
 		{:else if def.name == 'Comment'}
-			<div class="max-h-12 overflow-hidden">{row.comment}</div>
+			<button
+				type="button"
+				class="w-full cursor-pointer text-left"
+				title={row.commentExpanded ? 'Click to collapse' : 'Click to expand'}
+				aria-expanded={row.commentExpanded}
+				onclick={() => (row.commentExpanded = !row.commentExpanded)}
+			>
+				<div
+					class="overflow-hidden text-xs break-words whitespace-pre-wrap text-surface-600-400 transition-[max-height] duration-180 ease-out"
+					style:max-height={row.commentExpanded
+						? `${Math.max(row.commentElement?.scrollHeight ?? 0, 48)}px`
+						: '3rem'}
+					bind:this={row.commentElement}
+				>
+					{row.comment}
+				</div>
+			</button>
 		{/if}
 	{/snippet}
 </TableAutoCard>

@@ -1,9 +1,9 @@
 <script>
 	import { Portal, Tooltip } from '@skeletonlabs/skeleton-svelte';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Authentication from '$lib/common/Authentication.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { resolve } from '$lib/utils/route';
 	import { slide } from 'svelte/transition';
 
 	/** @type {{parts: any}} */

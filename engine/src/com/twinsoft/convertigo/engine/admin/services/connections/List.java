@@ -19,11 +19,11 @@
 
 package com.twinsoft.convertigo.engine.admin.services.connections;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -32,8 +32,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
-import org.redisson.api.RMapCache;
 import org.redisson.api.RMap;
+import org.redisson.api.RMapCache;
 import org.redisson.api.RSet;
 import org.redisson.client.codec.StringCodec;
 import org.w3c.dom.Document;
@@ -143,15 +143,16 @@ public class List extends XmlService{
         Element httpTimeoutElement = document.createElement("httpTimeout");
         httpTimeoutElement.setTextContent(formatTime(currentSession.getMaxInactiveInterval()));
         rootElement.appendChild(httpTimeoutElement);
-        
-        long now = System.currentTimeMillis();
+
+		long now = System.currentTimeMillis();
+		int licensedSessions = ConvertigoHttpSessionManager.getInstance().countLicensedSessions();
 		if (ConvertigoHttpSessionManager.isRedisMode()) {
 			var counts = listFromRedis(request, document, currentSession, connectionsListElement, sessionsListElement, now);
 			contextsInUseElement.setTextContent(Integer.toString(Math.max(0, counts.contexts)));
-			sessionsInUseElement.setTextContent(Integer.toString(Math.max(0, counts.sessions)));
+			sessionsInUseElement.setTextContent(Integer.toString(Math.max(0, licensedSessions)));
 		} else {
 			contextsInUseElement.setTextContent("" + Math.max(0, Engine.theApp.contextManager.getNumberOfContexts()));
-			sessionsInUseElement.setTextContent("" + HttpSessionListener.countSessions());
+			sessionsInUseElement.setTextContent(Integer.toString(Math.max(0, licensedSessions)));
 
 			Collection<Context> contexts = null;
 
@@ -243,11 +244,9 @@ public class List extends XmlService{
 	}
 
 	private static final class RedisCounts {
-		final int sessions;
 		final int contexts;
 
-		private RedisCounts(int sessions, int contexts) {
-			this.sessions = sessions;
+		private RedisCounts(int contexts) {
 			this.contexts = contexts;
 		}
 	}
@@ -589,10 +588,10 @@ public class List extends XmlService{
 				}
 			}
 
-			return new RedisCounts(sessionIds.size(), contextIds.size());
+			return new RedisCounts(contextIds.size());
 		} catch (Exception e) {
 			Engine.logAdmin.warn("[connections.List] redis list failure: " + e, e);
-			return new RedisCounts(0, 0);
+			return new RedisCounts(0);
 		}
 	}
 

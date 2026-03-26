@@ -28,6 +28,7 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -123,6 +124,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private static final Pattern pYamlProjectVersion = Pattern.compile("↑(?:(convertigo)|.*?): (.*)");
 	private static final Pattern pYamlProjectName = Pattern.compile("(?:↑.*?:.*)|(?:↓(.*?) \\[core\\.Project\\]: )");
 	private static final Pattern pProjectName = Pattern.compile("(.*)\\.(?:xml|car)");
+	private static final String removePrefix = "_remove_";
 	private static final Random lockWait = new Random(System.currentTimeMillis());
 	private static final ThreadLocal<Set<Lock>> acquiredLocks = ThreadLocal.withInitial(HashSet::new);
 
@@ -208,6 +210,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		projects = new HashMap<>();
 		importLocks = new ConcurrentHashMap<>();
 		symbolsInit();
+		resumePendingRemovals();
 	}
 
 	public void destroy() throws EngineException {
@@ -549,11 +552,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void deleteProject(String projectName, DeleteProjectOption... options) throws EngineException {
-		boolean bCreateBackup = DeleteProjectOption.createBackup.as(options);
-		boolean bDataOnly = DeleteProjectOption.dataOnly.as(options);
-		boolean bPreserveEclipe = DeleteProjectOption.preserveEclipse.as(options);
-		boolean bPreserveVCS = DeleteProjectOption.preserveVCS.as(options);
-		boolean bUnloadOnly = DeleteProjectOption.unloadOnly.as(options);
+		var bCreateBackup = DeleteProjectOption.createBackup.as(options);
+		var bDataOnly = DeleteProjectOption.dataOnly.as(options);
+		var bPreserveEclipe = DeleteProjectOption.preserveEclipse.as(options);
+		var bPreserveVCS = DeleteProjectOption.preserveVCS.as(options);
+		var bUnloadOnly = DeleteProjectOption.unloadOnly.as(options);
 		try {
 			// Remove all pooled related contexts in server mode
 			if (Engine.isEngineMode() && !Engine.isCliMode()) {
@@ -575,17 +578,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 				return;
 			}
 
-			File projectDir = new File(Engine.projectDir(projectName));
-			File removeDir = projectDir;
+			var projectDir = new File(Engine.projectDir(projectName));
+			var removeDir = projectDir;
 
-			if (!bDataOnly && !bPreserveEclipe && !bPreserveVCS) {
-				StringBuilder sb = new StringBuilder("_remove_" + projectName);
-				while ((removeDir = new File(projectDir.getParentFile(), sb.toString())).exists()) {
-					sb.append('_');
-				}
-				if (!projectDir.renameTo(removeDir)) {
-					throw new EngineException("Unable to rename project's directory. It may be locked.");
-				}
+			if (!bDataOnly) {
+				removeDir = renameForRemoval(projectDir);
 			}
 
 			if (bCreateBackup && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ZIP_BACKUP_OLD_PROJECT)
@@ -596,34 +593,40 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			if (bDataOnly) {
 				Engine.logDatabaseObjectManager.info("Deleting _data for project \"" + projectName + "\"");
-				File dataDir = new File(removeDir, "_data");
+				var dataDir = new File(removeDir, "_data");
 				deleteDir(dataDir);
 
 				Engine.logDatabaseObjectManager.info("Deleting _private for project \"" + projectName + "\"");
-				File privateDir = new File(removeDir, "/_private");
+				var privateDir = new File(removeDir, "/_private");
 				deleteDir(privateDir);
 			} else {
 				Engine.logDatabaseObjectManager.info("Deleting  project \"" + projectName + "\"");
-				if (!bPreserveEclipe && !bPreserveVCS) {
-					deleteDir(removeDir);
-					File f = new File(Engine.PROJECTS_PATH, projectName);
-					if (f.exists() && f.isFile()) {
-						f.delete();
+				if (bPreserveEclipe || bPreserveVCS) {
+					if (!projectDir.exists() && !projectDir.mkdirs()) {
+						throw new IOException("Unable to recreate the directory \"" + projectDir.getAbsolutePath() + "\".");
+					}
+					for (var child : new String[] { ".project", ".settings", ".git", ".svn" }) {
+						var preserve = switch (child) {
+						case ".project", ".settings" -> bPreserveEclipe;
+						case ".git", ".svn" -> bPreserveVCS;
+						default -> false;
+						};
+						if (!preserve) {
+							continue;
+						}
+						var source = new File(removeDir, child);
+						if (!source.exists()) {
+							continue;
+						}
+						Files.move(source.toPath(), new File(projectDir, child).toPath());
 					}
 				} else {
-					for (File f : removeDir.listFiles((dir, name) -> {
-						if (bPreserveEclipe && (name.equals(".project") || name.equals(".settings"))) {
-							return false;
-						}
-						if (bPreserveVCS && (name.equals(".git") || name.equals(".svn"))) {
-							return false;
-						}
-						return true;
-					})) {
-						deleteDir(f);
+					var link = new File(Engine.PROJECTS_PATH, projectName);
+					if (link.exists() && link.isFile()) {
+						link.delete();
 					}
-					;
 				}
+				FileUtils.deleteAsync(removeDir);
 			}
 
 			clearCache(projectName);
@@ -635,39 +638,89 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public void deleteProjectAndCar(String projectName, DeleteProjectOption... options) throws EngineException {
 		try {
+			var projectArchive = new File(Engine.projectDir(projectName) + ".car");
 			deleteProject(projectName, options);
 
-			String projectArchive = Engine.projectDir(projectName) + ".car";
-			deleteDir(new File(projectArchive));
+			if (projectArchive.exists()) {
+				FileUtils.deleteAsync(renameForRemoval(projectArchive));
+			}
 		} catch (Exception e) {
 			throw new EngineException("Unable to delete the project \"" + projectName + "\".", e);
 		}
 	}
 
 	public static void deleteDir(File dir) throws IOException {
+		if (dir == null) {
+			return;
+		}
 		Engine.logDatabaseObjectManager.trace("Deleting the directory \"" + dir.getAbsolutePath() + "\"");
-		if (dir.exists()) {
-			if (dir.isDirectory()) {
-				boolean deleted = FileUtils.deleteQuietly(dir);
-				if (deleted) {
-					Engine.logDatabaseObjectManager
-					.debug("Deleting the file \"" + dir.getAbsolutePath() + "\" by a native command.");
-					return;
-				}
-
-				String[] children = dir.list();
-				File subdir;
-				for (int i = 0; i < children.length; i++) {
-					subdir = new File(dir, children[i]);
-					deleteDir(subdir);
-				}
-				if (!dir.delete())
-					throw new IOException("Unable to delete the directory \"" + dir.getAbsolutePath() + "\".");
-			} else {
-				Engine.logDatabaseObjectManager.trace("Deleting the file \"" + dir.getAbsolutePath() + "\"");
-				if (!dir.delete())
-					throw new IOException("Unable to delete the file \"" + dir.getAbsolutePath() + "\".");
+		if (!dir.exists()) {
+			return;
+		}
+		if (dir.isDirectory()) {
+			var deleted = FileUtils.deleteQuietly(dir);
+			if (deleted || !dir.exists()) {
+				Engine.logDatabaseObjectManager
+				.debug("Deleting the file \"" + dir.getAbsolutePath() + "\" by a native command.");
+				return;
 			}
+
+			var children = dir.listFiles();
+			if (children != null) {
+				for (var child : children) {
+					deleteDir(child);
+				}
+			}
+			if (!dir.delete() && dir.exists()) {
+				throw new IOException("Unable to delete the directory \"" + dir.getAbsolutePath() + "\".");
+			}
+		} else {
+			Engine.logDatabaseObjectManager.trace("Deleting the file \"" + dir.getAbsolutePath() + "\"");
+			if (!dir.delete() && dir.exists()) {
+				throw new IOException("Unable to delete the file \"" + dir.getAbsolutePath() + "\".");
+			}
+		}
+	}
+
+	private File renameForRemoval(File file) throws EngineException {
+		if (!file.exists()) {
+			throw new EngineException("Unable to rename \"" + file.getAbsolutePath() + "\". It may be locked.");
+		}
+
+		var removeFile = nextRemovalFile(file);
+		if (!file.renameTo(removeFile)) {
+			throw new EngineException("Unable to rename \"" + file.getAbsolutePath() + "\". It may be locked.");
+		}
+		return removeFile;
+	}
+
+	private File nextRemovalFile(File file) {
+		var name = file.getName();
+		var suffix = "";
+		var base = name;
+		var i = name.lastIndexOf('.');
+		if (i > 0) {
+			base = name.substring(0, i);
+			suffix = name.substring(i);
+		}
+
+		var candidateBase = removePrefix + base;
+		var candidate = new File(file.getParentFile(), candidateBase + suffix);
+		while (candidate.exists()) {
+			candidateBase += "_";
+			candidate = new File(file.getParentFile(), candidateBase + suffix);
+		}
+		return candidate;
+	}
+
+	private void resumePendingRemovals() {
+		var projectsDir = new File(Engine.PROJECTS_PATH);
+		var entries = projectsDir.listFiles((dir, name) -> name.startsWith(removePrefix));
+		if (entries == null) {
+			return;
+		}
+		for (var entry : entries) {
+			FileUtils.deleteAsync(entry);
 		}
 	}
 
@@ -858,8 +911,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 					}
 				}
 
-				new File(projectDirPath).mkdir();
-				Engine.logDatabaseObjectManager.debug("Project directory created: " + projectDirPath);
+				var projectDir = new File(projectDirPath);
+				if (!projectDir.exists() && !projectDir.mkdirs()) {
+					throw new EngineException("Unable to create the project directory \"" + projectDirPath + "\".");
+				}
+				Engine.logDatabaseObjectManager.debug("Project directory ready: " + projectDirPath);
 			} catch (Exception e) {
 				throw new EngineException("Unable to create the project directory \"" + projectDirPath + "\".", e);
 			}
