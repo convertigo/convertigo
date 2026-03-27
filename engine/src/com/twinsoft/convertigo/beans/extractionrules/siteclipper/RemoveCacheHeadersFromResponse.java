@@ -31,7 +31,8 @@ public class RemoveCacheHeadersFromResponse extends RemoveCacheHeaders implement
 	private static final Collection<HeaderName> responseCacheHeaders = Collections.unmodifiableList(Arrays.asList(
 		HeaderName.LastModified,
 		HeaderName.CacheControl,
-		HeaderName.ETag
+		HeaderName.ETag,
+		HeaderName.Vary
 	));
 	
 	public RemoveCacheHeadersFromResponse() {
