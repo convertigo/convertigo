@@ -62,10 +62,8 @@ apply from: 'installers/windows.gradle'
 
 def isDependencyUpdatesTaskRequested = gradle.startParameter.taskNames.any { taskName ->
 	taskName == 'dependencyUpdates' ||
-	taskName == 'dependencyUpdatesMinor' ||
 	taskName == 'dependencyUpdatesPatch' ||
 	taskName.endsWith(':dependencyUpdates') ||
-	taskName.endsWith(':dependencyUpdatesMinor') ||
 	taskName.endsWith(':dependencyUpdatesPatch')
 }
 
@@ -752,7 +750,7 @@ wrapper {
 	gradleVersion = '9.3.1'
 }
 
-['dependencyUpdates', 'dependencyUpdatesPatch', 'dependencyUpdatesMinor'].each { taskName ->
+['dependencyUpdates', 'dependencyUpdatesPatch'].each { taskName ->
 	tasks.named(taskName, DependencyUpdatesTask).configure { task ->
 		task.dependsOn(subprojects.collect { it.tasks.named(taskName) })
 	}
