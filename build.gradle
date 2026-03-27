@@ -744,12 +744,12 @@ allprojects {
 		description = "Displays dependency updates limited to the current patch line."
 		configureDependencyUpdatesReport(task, true)
 	}
+}
 
-	tasks.register("dependencyUpdatesMinor", DependencyUpdatesTask) { task ->
-		group = "help"
-		description = "Legacy alias for dependencyUpdatesPatch."
-		configureDependencyUpdatesReport(task, true)
-	}
+wrapper {
+	group = 'convertigo'
+
+	gradleVersion = '9.3.1'
 }
 
 ['dependencyUpdates', 'dependencyUpdatesPatch', 'dependencyUpdatesMinor'].each { taskName ->
