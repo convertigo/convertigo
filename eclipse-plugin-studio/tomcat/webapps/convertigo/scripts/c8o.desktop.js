@@ -298,7 +298,7 @@ $.extend(true, C8O, {
                 if ("false" == testplatform || ("auto" == testplatform && !$.isEmptyObject(params))) {
                     C8O._init.check(params);
                 } else {
-                    loc.href = base + "/project.html#" + C8O._define.project;
+                    loc.href = base + "/dashboard/" + C8O._define.project + "/backend/";
                 }
             } else {
                 loc.href = base;

@@ -56,6 +56,18 @@ class ProjectDeployResultWizardPage extends WizardPage {
 	private String convertigoUserName;
 	private String convertigoUserPassword;
 	private boolean bAssembleXsl;
+
+	private String getBaseUrl() {
+		return (isHttps ? "https" : "http") + "://" + convertigoServer;
+	}
+
+	private String getProjectDashboardBackendUrl(String projectName) {
+		return getBaseUrl() + "/dashboard/" + projectName + "/backend/";
+	}
+
+	private String getProjectMobileUrl(String projectName) {
+		return getBaseUrl() + "/projects/" + projectName + "/DisplayObjects/mobile/";
+	}
 	
 	ProjectDeployResultWizardPage(Project project) {
 		super("ProjectDeployResultWizardPage", "Deployment result", null);
@@ -178,8 +190,17 @@ class ProjectDeployResultWizardPage extends WizardPage {
 				monitor.worked(1);
 				
 				String projectName = ConvertigoPlugin.projectManager.currentProject.getName();
-				String projectURL = (isHttps ? "https" : "http") + "://" + convertigoServer + "/projects/" + projectName;
-				updateLinkText("Your project has been successfully deployed.\n\nYou can try it with this URL:\n<a href=\""+ projectURL + "\">" + projectURL + "</a>");
+				String dashboardBackendUrl = getProjectDashboardBackendUrl(projectName);
+				StringBuilder links = new StringBuilder();
+				links.append("Your project has been successfully deployed.\n\n");
+				links.append("Backend dashboard:\n");
+				links.append("<a href=\"").append(dashboardBackendUrl).append("\">").append(dashboardBackendUrl).append("</a>");
+				if (new File(project.getDirFile(), "DisplayObjects/mobile/index.html").isFile()) {
+					String mobileUrl = getProjectMobileUrl(projectName);
+					links.append("\n\nFrontend application:\n");
+					links.append("<a href=\"").append(mobileUrl).append("\">").append(mobileUrl).append("</a>");
+				}
+				updateLinkText(links.toString());
 				
 				setDeployDone(true);
 				ConvertigoPlugin.logDebug("Deployment successfull!");
