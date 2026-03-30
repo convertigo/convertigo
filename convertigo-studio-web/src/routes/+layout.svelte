@@ -2,11 +2,12 @@
 	import '../app.css';
 	import { Toast } from '@skeletonlabs/skeleton-svelte';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
+	import { asset, resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
+	import Instances from '$lib/admin/Instances.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
 	import AuthenticationProgress from '$lib/common/components/AuthenticationProgress.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
@@ -94,8 +95,8 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={resolve('/favicon.png')} />
-	<link rel="manifest" href={resolve('/manifest.webmanifest')} />
+	<link rel="icon" href={asset('/favicon.png')} />
+	<link rel="manifest" href={asset('/manifest.webmanifest')} />
 </svelte:head>
 
 <ModalYesNo bind:this={modalYesNo} />
@@ -145,7 +146,9 @@
 	{/snippet}
 </Toast.Group>
 {#if authBootstrapped}
-	{@render children?.()}
+	{#key Instances.revision}
+		{@render children?.()}
+	{/key}
 {:else}
 	<div class="grid min-h-screen place-items-center">
 		<AuthenticationProgress />

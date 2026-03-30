@@ -17,9 +17,19 @@ const defValues = {
 	startTime: 0,
 	time: 0
 };
-const values = { ...defValues };
+const history = { ...defValues };
 
 let maxSaved = 100;
+
+function resetHistory() {
+	for (const key of Object.keys(history)) {
+		if (Array.isArray(history[key])) {
+			history[key].length = 0;
+		} else {
+			history[key] = defValues[key];
+		}
+	}
+}
 
 export default ServiceHelper({
 	values: {
@@ -32,18 +42,19 @@ export default ServiceHelper({
 	},
 	defValues,
 	delay: 2000,
+	onInstanceChange: resetHistory,
 	service: async () => {
 		const res = await call('engine.JsonMonitor');
 		if ('engineState' in res) {
 			const max = maxSaved;
 			res.labels = Date.now();
-			Object.keys(values).forEach((key) => {
-				if (key in res && Array.isArray(values[key])) {
-					while (values[key].length + 1 > max) {
-						values[key].shift();
+			Object.keys(history).forEach((key) => {
+				if (key in res && Array.isArray(history[key])) {
+					while (history[key].length + 1 > max) {
+						history[key].shift();
 					}
-					values[key].push(res[key]);
-					res[key] = values[key];
+					history[key].push(res[key]);
+					res[key] = history[key];
 				}
 			});
 			Time.serverTimestamp = res.time;

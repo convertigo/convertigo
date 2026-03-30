@@ -1,10 +1,11 @@
 import { browser } from '$app/environment';
+import Instances from '$lib/admin/Instances.svelte';
 import Authentication from '$lib/common/Authentication.svelte';
 import { call, checkArray, getNestedProperty, setNestedProperty } from '$lib/utils/service';
 import { untrack } from 'svelte';
 
 /**
- * @param {{values?: any, defValues?: any, service?: any, params?: any, delay?: number, arrays?: any[], mapping?: any, beforeUpdate?: (data: any) => any, needAuth?: boolean | (() => boolean)}} param0
+ * @param {{values?: any, defValues?: any, service?: any, params?: any, delay?: number, arrays?: any[], mapping?: any, beforeUpdate?: (data: any) => any, needAuth?: boolean | (() => boolean), onInstanceChange?: () => void}} param0
  */
 export default function ({
 	values = {},
@@ -15,36 +16,64 @@ export default function ({
 	arrays = [],
 	mapping = {},
 	beforeUpdate = (data) => data,
-	needAuth = true
+	needAuth = true,
+	onInstanceChange = () => {}
 }) {
 	let interval;
-	let stopAuthEffect;
 	let _delay = $state(-1);
 	let _values = $state({ ...defValues });
 	let _needRefresh = $state(Boolean(service));
 	let _calling = $state(false);
+	let _instanceRevision = $state(Instances.revision);
+	let _callSerial = 0;
+	const resetValues = (next = defValues) => {
+		_values = { ...next };
+	};
 	const hasRequiredAuth = () => {
 		if (typeof needAuth == 'function') {
 			return needAuth();
 		}
 		return !needAuth || Authentication.authenticated;
 	};
-
-	const ensureAuthEffect = () => {
-		if (!needAuth || !browser || stopAuthEffect) {
-			return;
+	const stopInterval = () => {
+		if (browser) {
+			window.clearInterval(interval);
 		}
-		stopAuthEffect = $effect.root(() => {
+		_delay = -1;
+	};
+	const resetForInstanceChange = () => {
+		stopInterval();
+		resetValues();
+		_calling = false;
+		_needRefresh = Boolean(service);
+		_callSerial += 1;
+		onInstanceChange();
+	};
+
+	if (browser && needAuth) {
+		$effect.root(() => {
 			$effect(() => {
 				if (hasRequiredAuth() && _needRefresh && !_calling) {
 					untrack(values.refresh);
 				}
 			});
 		});
-	};
+	}
+	if (browser) {
+		$effect.root(() => {
+			$effect(() => {
+				const revision = Instances.revision;
+				if (revision === _instanceRevision) {
+					return;
+				}
+				_instanceRevision = revision;
+				resetForInstanceChange();
+			});
+		});
+	}
 
 	values.reset = () => {
-		Object.assign(_values, { ...defValues });
+		resetValues();
 	};
 	Object.defineProperty(values, 'loading', {
 		get() {
@@ -60,14 +89,18 @@ export default function ({
 		if (!browser || _calling || !service) {
 			return;
 		}
-		ensureAuthEffect();
 		if (!hasRequiredAuth()) {
 			return;
 		}
 		_calling = true;
+		const callSerial = ++_callSerial;
+		const callInstanceRevision = _instanceRevision;
 		let res = {};
 		try {
 			res = await (typeof service == 'string' ? call(service, params) : service(params));
+			if (callSerial != _callSerial || callInstanceRevision != _instanceRevision) {
+				return;
+			}
 			if (res?.offline) {
 				if (_needRefresh) {
 					values.delay = delay;
@@ -104,11 +137,14 @@ export default function ({
 				}
 			}
 		} catch (error) {
+			if (callSerial != _callSerial || callInstanceRevision != _instanceRevision) {
+				return;
+			}
 			if (error != res) {
 				console.error('ServiceHelper error', error);
 			}
 			values.stop();
-			Object.assign(_values, { ...defValues, res });
+			resetValues({ ...defValues, res });
 			_needRefresh = false;
 			window.setTimeout(() => (_needRefresh = true), 10000);
 		}
@@ -132,24 +168,18 @@ export default function ({
 			return _delay;
 		},
 		set(value) {
-			if (browser) {
-				window.clearInterval(interval);
-				if (value > 0) {
-					_delay = value;
-					interval = window.setInterval(values.refresh, value);
-				}
+			stopInterval();
+			if (browser && value > 0) {
+				_delay = value;
+				interval = window.setInterval(values.refresh, value);
 			}
 		}
 	});
 	values.stop = () => {
-		if (browser) {
-			window.clearInterval(interval);
-		}
+		stopInterval();
 		if (service) {
 			_needRefresh = true;
 		}
-		stopAuthEffect?.();
-		stopAuthEffect = undefined;
 	};
 	return values;
 }

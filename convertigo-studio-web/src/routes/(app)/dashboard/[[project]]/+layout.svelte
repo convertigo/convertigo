@@ -83,7 +83,10 @@
 	});
 	if (browser) {
 		onDestroy(() => {
-			TestPlatform(page.params?.project).stop();
+			const project = page.params?.project;
+			if (project) {
+				TestPlatform(project).stop();
+			}
 		});
 	}
 </script>

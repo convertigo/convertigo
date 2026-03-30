@@ -334,6 +334,8 @@ public class FullSyncServlet extends HttpServlet {
 				if (!(HeaderName.TransferEncoding.is(headerName)
 						|| HeaderName.ContentLength.is(headerName)
 						|| HeaderName.UserAgent.is(headerName)
+						|| HeaderName.Authorization.is(headerName)
+						|| HeaderName.ProxyAuthorization.is(headerName)
 						|| HeaderName.Expect.is(headerName)
 						|| HeaderName.Connection.is(headerName)
 						|| HeaderName.Host.is(headerName)
@@ -578,7 +580,9 @@ public class FullSyncServlet extends HttpServlet {
 						debug.append("response Header: Server=Couchbase Sync Gateway/0.81\n");
 					} else if (!(HeaderName.TransferEncoding.is(header)
 							|| HeaderName.ContentLength.is(header)
+							|| HeaderName.Authenticate.is(header)
 							|| HeaderName.AccessControlAllowOrigin.is(header)
+							|| HeaderName.ProxyAuthenticate.is(header)
 							|| (isChanges && (HeaderName.ETag.is(header)
 									|| HeaderName.LastModified.is(header)
 									|| HeaderName.CacheControl.is(header)
