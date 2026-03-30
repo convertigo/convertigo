@@ -20,7 +20,6 @@ export default function ({
 	onInstanceChange = () => {}
 }) {
 	let interval;
-	let stopAuthEffect;
 	let _delay = $state(-1);
 	let _values = $state({ ...defValues });
 	let _needRefresh = $state(Boolean(service));
@@ -44,8 +43,6 @@ export default function ({
 	};
 	const resetForInstanceChange = () => {
 		stopInterval();
-		stopAuthEffect?.();
-		stopAuthEffect = undefined;
 		resetValues();
 		_calling = false;
 		_needRefresh = Boolean(service);
@@ -53,18 +50,15 @@ export default function ({
 		onInstanceChange();
 	};
 
-	const ensureAuthEffect = () => {
-		if (!needAuth || !browser || stopAuthEffect) {
-			return;
-		}
-		stopAuthEffect = $effect.root(() => {
+	if (browser && needAuth) {
+		$effect.root(() => {
 			$effect(() => {
 				if (hasRequiredAuth() && _needRefresh && !_calling) {
 					untrack(values.refresh);
 				}
 			});
 		});
-	};
+	}
 	if (browser) {
 		$effect.root(() => {
 			$effect(() => {
@@ -95,7 +89,6 @@ export default function ({
 		if (!browser || _calling || !service) {
 			return;
 		}
-		ensureAuthEffect();
 		if (!hasRequiredAuth()) {
 			return;
 		}
@@ -187,8 +180,6 @@ export default function ({
 		if (service) {
 			_needRefresh = true;
 		}
-		stopAuthEffect?.();
-		stopAuthEffect = undefined;
 	};
 	return values;
 }
