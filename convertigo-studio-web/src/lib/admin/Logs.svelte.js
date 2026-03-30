@@ -14,16 +14,18 @@ let calling = $state(false);
 let lastCall = 0;
 let instanceRevision = $state(Instances.revision);
 
-$effect(() => {
-	const revision = Instances.revision;
-	if (revision === instanceRevision) {
-		return;
-	}
-	instanceRevision = revision;
-	logs = [];
-	moreResults = false;
-	calling = false;
-	lastCall += 1;
+$effect.root(() => {
+	$effect(() => {
+		const revision = Instances.revision;
+		if (revision === instanceRevision) {
+			return;
+		}
+		instanceRevision = revision;
+		logs = [];
+		moreResults = false;
+		calling = false;
+		lastCall += 1;
+	});
 });
 
 async function list(clear = false) {
