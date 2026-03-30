@@ -223,37 +223,19 @@
 							bind:value
 						></textarea>
 					{:else}
-						{#if isPasswordType}
-							<form class="contents" onsubmit={(event) => event.preventDefault()}>
-								<input
-									{...rest}
-									{id}
-									{name}
-									{autocomplete}
-									{placeholder}
-									{type}
-									disabled={loading}
-									class:animate-pulse={loading}
-									class="h-9 input-common px-3 text-sm placeholder:text-surface-600-400 {rest?.class ??
-										''}"
-									bind:value
-								/>
-							</form>
-						{:else}
-							<input
-								{...rest}
-								{id}
-								{name}
-								{autocomplete}
-								{placeholder}
-								{type}
-								disabled={loading}
-								class:animate-pulse={loading}
-								class="h-9 input-common px-3 text-sm placeholder:text-surface-600-400 {rest?.class ??
-									''}"
-								bind:value
-							/>
-						{/if}
+						<input
+							{...rest}
+							{id}
+							{name}
+							{autocomplete}
+							{placeholder}
+							{type}
+							disabled={loading}
+							class:animate-pulse={loading}
+							class="h-9 input-common px-3 text-sm placeholder:text-surface-600-400 {rest?.class ??
+								''}"
+							bind:value
+						/>
 					{/if}
 				{/snippet}
 				{#if hasTooltip}
