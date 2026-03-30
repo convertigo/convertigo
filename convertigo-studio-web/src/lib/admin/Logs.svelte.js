@@ -1,5 +1,5 @@
-import { call, checkArray } from '$lib/utils/service';
 import Instances from '$lib/admin/Instances.svelte';
+import { call, checkArray } from '$lib/utils/service';
 import { formatDate, formatTime } from '$lib/utils/time';
 
 let logs = $state([]);

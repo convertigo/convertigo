@@ -2,7 +2,7 @@
 	import '../app.css';
 	import { Toast } from '@skeletonlabs/skeleton-svelte';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
+	import { asset, resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -95,8 +95,8 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={resolve('/favicon.png')} />
-	<link rel="manifest" href={resolve('/manifest.webmanifest')} />
+	<link rel="icon" href={asset('/favicon.png')} />
+	<link rel="manifest" href={asset('/manifest.webmanifest')} />
 </svelte:head>
 
 <ModalYesNo bind:this={modalYesNo} />
