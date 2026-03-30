@@ -1,4 +1,5 @@
 import { call, checkArray } from '$lib/utils/service';
+import Instances from '$lib/admin/Instances.svelte';
 import { formatDate, formatTime } from '$lib/utils/time';
 
 let logs = $state([]);
@@ -11,6 +12,19 @@ let moreResults = $state(false);
 let calling = $state(false);
 
 let lastCall = 0;
+let instanceRevision = $state(Instances.revision);
+
+$effect(() => {
+	const revision = Instances.revision;
+	if (revision === instanceRevision) {
+		return;
+	}
+	instanceRevision = revision;
+	logs = [];
+	moreResults = false;
+	calling = false;
+	lastCall += 1;
+});
 
 async function list(clear = false) {
 	if (!clear && live && calling) {

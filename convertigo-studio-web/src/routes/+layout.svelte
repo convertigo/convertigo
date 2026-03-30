@@ -7,6 +7,7 @@
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
+	import Instances from '$lib/admin/Instances.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
 	import AuthenticationProgress from '$lib/common/components/AuthenticationProgress.svelte';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
@@ -145,7 +146,9 @@
 	{/snippet}
 </Toast.Group>
 {#if authBootstrapped}
-	{@render children?.()}
+	{#key Instances.revision}
+		{@render children?.()}
+	{/key}
 {:else}
 	<div class="grid min-h-screen place-items-center">
 		<AuthenticationProgress />

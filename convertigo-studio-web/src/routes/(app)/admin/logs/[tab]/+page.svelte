@@ -20,7 +20,6 @@
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
-	import Instances from '$lib/admin/Instances.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
 	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
@@ -37,10 +36,7 @@
 
 	let logViewer = $state();
 	const logsDocHref = getAdminPageDocHref('/admin/logs');
-	let currentInstance = $state('');
 	onMount(() => {
-		currentInstance = Instances.current;
-
 		let timezoneInitialized = false;
 		const syncTimezonePreset = () => {
 			if (timezoneInitialized || !Time.serverTimezone) return false;
@@ -56,15 +52,7 @@
 			}
 		}, 200);
 
-		const instanceInterval = setInterval(() => {
-			if (Instances.current != currentInstance) {
-				currentInstance = Instances.current;
-				refreshLogs();
-			}
-		}, 500);
-
 		return () => {
-			clearInterval(instanceInterval);
 			clearInterval(timezoneInterval);
 			Configuration.stop();
 			LogsPurge.stop();

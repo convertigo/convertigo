@@ -9,7 +9,8 @@ let state = $state({
 	/** @type {InstanceInfo[]} */
 	instances: [],
 	loading: false,
-	current: ''
+	current: '',
+	revision: 0
 });
 
 function normalizeInstance(value) {
@@ -17,6 +18,13 @@ function normalizeInstance(value) {
 	const trimmed = value.trim();
 	if (!trimmed || trimmed.toLowerCase() === 'auto') return '';
 	return trimmed;
+}
+
+function setCurrent(value) {
+	const current = normalizeInstance(value);
+	if (current === state.current) return;
+	state.current = current;
+	state.revision += 1;
 }
 
 export default {
@@ -33,7 +41,10 @@ export default {
 		return state.current;
 	},
 	set current(value) {
-		state.current = normalizeInstance(value);
+		setCurrent(value);
+	},
+	get revision() {
+		return state.revision;
 	},
 
 	apply(headers) {
@@ -42,7 +53,7 @@ export default {
 	update(response) {
 		const header = response?.headers?.get?.(INSTANCE_HEADER);
 		const normalized = normalizeInstance(header);
-		if (normalized) state.current = normalized;
+		if (normalized) setCurrent(normalized);
 	},
 	async refresh(force = false) {
 		if (state.loading) return;
