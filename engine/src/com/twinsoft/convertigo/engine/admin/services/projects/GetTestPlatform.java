@@ -82,10 +82,7 @@ public class GetTestPlatform extends XmlService {
 
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		
-		Element e_project = createDatabaseObjectElement(document, project, lang);		
-		Connector defaultConnector = project.getDefaultConnector();
-		e_project.setAttribute("defaultConnector", defaultConnector.getName());	
-		e_project.setAttribute("defaultTransaction", defaultConnector.getDefaultTransaction().getName());
+		Element e_project = createDatabaseObjectElement(document, project, lang);
 		
 		boolean bTpHiddenRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.TEST_PLATFORM_HIDDEN);
 		boolean bTpPrivateRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.TEST_PLATFORM_PRIVATE);

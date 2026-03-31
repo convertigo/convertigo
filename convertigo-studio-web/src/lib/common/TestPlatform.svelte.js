@@ -6,7 +6,7 @@ function checkRequestables(parent, key) {
 	for (const requestable of parent[key]) {
 		requestable.variable = checkArray(requestable.variable);
 		for (const variable of requestable.variable) {
-			variable.send = false;
+			variable.send = 'false';
 		}
 		if (key != 'testcase') {
 			checkRequestables(requestable, 'testcase');
@@ -27,7 +27,7 @@ const defValues = {
 			variable: Array(10).fill({
 				name: null,
 				value: null,
-				send: false,
+				send: 'false',
 				comment: null
 			})
 		})
@@ -39,13 +39,17 @@ const defValues = {
 		variable: Array(10).fill({
 			name: null,
 			value: null,
-			send: false,
+			send: 'false',
 			comment: null
 		})
 	}),
 	mobileapplication: null
 };
 const projects = {};
+
+export function stopTestPlatform(projectName) {
+	projects[projectName]?.stop();
+}
 
 export default function (projectName) {
 	const lang =

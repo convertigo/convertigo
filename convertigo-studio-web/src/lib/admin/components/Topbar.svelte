@@ -1,4 +1,5 @@
 <script>
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Button from '$lib/admin/components/Button.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -52,6 +53,11 @@
 	});
 
 	const instanceOptions = $derived(Instances.instances.map(({ instanceId }) => instanceId));
+	const isDashboardRoute = $derived(page.route.id?.includes('dashboard') ?? false);
+	const dashboardLoginHref = $derived.by(() => {
+		const redirect = encodeURIComponent(page.url.pathname + page.url.search + page.url.hash);
+		return `${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`;
+	});
 </script>
 
 <header
@@ -93,6 +99,16 @@
 				<p class="font-medium">Star us on</p>
 				<Ico icon="mdi:github" size={8} />
 			</a>
+			{#if isDashboardRoute && !Authentication.authenticated}
+				<Button
+					href={dashboardLoginHref}
+					icon="mdi:login-variant"
+					label="Log in"
+					full={false}
+					class="button-secondary text-sm"
+					title="Authenticate to access hidden and private objects"
+				/>
+			{/if}
 			{#if Authentication.authenticated && Instances.storeMode === 'redis' && ((Instances.current ?? '').trim() || Instances.instances.length)}
 				<div class="layout-x-low max-md:hidden">
 					<span class="text-xs font-medium opacity-70">Instance</span>

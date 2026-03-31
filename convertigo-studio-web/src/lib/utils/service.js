@@ -258,8 +258,11 @@ function handleStateMessage(res, service) {
 					}
 					const isLoginRoute = location.pathname.includes('/login');
 					const isAdminRoute = location.pathname.startsWith(resolve('/admin/'));
+					const isDashboardRoute = location.pathname.startsWith(resolve('/dashboard/'));
 					const mustRedirectToLogin =
-						!Authentication.canAccessDashboard || (isAdminRoute && !Authentication.canAccessAdmin);
+						!Authentication.canAccessDashboard ||
+						(isAdminRoute && !Authentication.canAccessAdmin) ||
+						(isDashboardRoute && !Authentication.authenticated);
 
 					if (!isLoginRoute && mustRedirectToLogin) {
 						const redirect = encodeURIComponent(location.pathname + location.search);
