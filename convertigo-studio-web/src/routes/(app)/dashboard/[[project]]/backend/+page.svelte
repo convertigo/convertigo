@@ -246,36 +246,34 @@
 													{#if requestable.testcase.length > 0}
 														<AccordionGroup
 															collapsible
-															base="rounded-lg border border-surface-200-800/40 bg-surface-50-950/50"
+															value={requestable.testCasesOpened ? [`${requestableIdx}`] : []}
+															onValueChange={({ value }) => {
+																requestable.testCasesOpened = (value ?? []).includes(
+																	`${requestableIdx}`
+																);
+															}}
+															class="rounded-md border border-surface-200-800/40 bg-surface-50-950/45"
 														>
 															<AccordionSection
 																value={`${requestableIdx}`}
-																class="rounded-lg"
-																triggerClass="group layout-x-low w-full justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide text-surface-600-400"
-																panelClass="px-3 pb-3 pt-0 bg-transparent"
+																class="rounded-md"
+																title={`Test cases (${requestable.testcase.length})`}
+																triggerClass="group w-full rounded-md px-2.5 py-2"
+																titleClass="text-sm font-semibold"
+																panelClass="bg-transparent px-2.5 pb-2 pt-0"
 															>
-																{#snippet control()}
-																	<div class="layout-x-wrap-low w-full justify-between">
-																		<div class="layout-x-low">
-																			<span
-																				aria-hidden="true"
-																				class={`h-2 w-2 rounded-full ${accessibilities[accessibility].accent}`}
-																			></span>
-																			<span>
-																				{requestable.testcase.length} Test Case{requestable.testcase
-																					.length > 1
-																					? 's'
-																					: ''} available
-																			</span>
-																		</div>
-																	</div>
-																{/snippet}
 																{#snippet panel()}
-																	<div class="layout-grid-[240px] sm:layout-grid-[280px]">
+																	<div class="layout-grid-[220px] gap-2 sm:layout-grid-[260px]">
 																		{#each requestable.testcase as testcase (testcase.name)}
-																			<Card title={testcase.name} bg="bg-surface-50-950/70">
+																			{@const testcaseValuesOpen = testcase.valuesOpened ?? false}
+																			<Card
+																				title={testcase.name}
+																				bg="bg-surface-50-950/70"
+																				class="gap-2 p-low"
+																			>
 																				{#snippet cornerOption()}
 																					<ResponsiveButtons
+																						class="max-w-none"
 																						buttons={[
 																							{
 																								label: 'Execute',
@@ -295,14 +293,42 @@
 																						]}
 																					/>
 																				{/snippet}
-																				<TableAutoCard
-																					showHeaders={false}
-																					definition={[
-																						{ key: 'name', class: 'font-medium' },
-																						{ key: 'value' }
-																					]}
-																					data={testcase.variable}
-																				/>
+																				<AccordionGroup
+																					collapsible
+																					value={testcaseValuesOpen ? ['values'] : []}
+																					onValueChange={({ value }) => {
+																						testcase.valuesOpened = (value ?? []).includes(
+																							'values'
+																						);
+																					}}
+																					class="rounded-md border border-surface-200-800/40 bg-surface-100-900/25"
+																				>
+																					<AccordionSection
+																						value="values"
+																						class="rounded-md"
+																						title={`Preset values (${testcase.variable.length})`}
+																						triggerClass="w-full rounded-md px-2.5 py-2"
+																						titleClass="text-sm font-semibold text-strong"
+																						panelClass="bg-transparent px-2 pb-2 pt-0"
+																					>
+																						{#snippet panel()}
+																							{#each testcase.variable as variable (variable.name)}
+																								<div
+																									class="border-b border-surface-200-800/30 pb-2 last:border-b-0 last:pb-0"
+																								>
+																									<div class="text-sm font-medium text-strong">
+																										{variable.name}
+																									</div>
+																									<div
+																										class="text-xs break-words whitespace-pre-wrap text-surface-600-400"
+																									>
+																										{variable.value}
+																									</div>
+																								</div>
+																							{/each}
+																						{/snippet}
+																					</AccordionSection>
+																				</AccordionGroup>
 																			</Card>
 																		{/each}
 																	</div>
@@ -311,7 +337,7 @@
 														</AccordionGroup>
 													{/if}
 													<div
-														class="layout-y-low rounded-lg border border-dashed border-surface-200-800/60 bg-surface-50-950/60 p-3 md:layout-x-low md:items-center md:justify-between"
+														class="sticky bottom-3 z-10 layout-y-low rounded-lg border border-dashed border-surface-200-800/60 bg-surface-50-950/88 p-3 shadow-lg shadow-surface-900/10 backdrop-blur-sm md:layout-x-low md:items-center md:justify-between"
 													>
 														<PropertyType
 															type="segment"
