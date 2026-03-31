@@ -80,6 +80,7 @@
 	import MdiLock from '~icons/mdi/lock';
 	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant';
 	import MdiLockOutline from '~icons/mdi/lock-outline';
+	import MdiLoginVariant from '~icons/mdi/login-variant';
 	import MdiMagnify from '~icons/mdi/magnify';
 	import MdiMagnifyMinusOutline from '~icons/mdi/magnify-minus-outline';
 	import MdiMagnifyPlusOutline from '~icons/mdi/magnify-plus-outline';
@@ -199,6 +200,7 @@
 		'mdi:language-java': MdiLanguageJava,
 		'mdi:language-ruby': MdiLanguageRuby,
 		'mdi:layers-outline': MdiLayersOutline,
+		'mdi:login-variant': MdiLoginVariant,
 		'mdi:lock-open-variant': MdiLockOpenVariant,
 		'mdi:lock-outline': MdiLockOutline,
 		'mdi:lock': MdiLock,
