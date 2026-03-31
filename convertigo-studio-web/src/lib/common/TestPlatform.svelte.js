@@ -47,6 +47,10 @@ const defValues = {
 };
 const projects = {};
 
+export function stopTestPlatform(projectName) {
+	projects[projectName]?.stop();
+}
+
 export default function (projectName) {
 	const lang =
 		typeof navigator == 'undefined'
