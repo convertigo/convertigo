@@ -260,10 +260,6 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 			SessionAttribute.markCounted(httpSession);
 			return 0;
 		}
-		if (!httpSession.isNew()) {
-			SessionAttribute.markCounted(httpSession);
-			return 0;
-		}
 
 		int maxCV = KeyManager.getMaxCV(Session.EmulIDSE);
 		int currentCV = ConvertigoHttpSessionManager.getInstance().estimateCountedSessions() + 1;
