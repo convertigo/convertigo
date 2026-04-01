@@ -39,7 +39,8 @@ import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 final class RedisSessionStore implements SessionStore {
 	private static final String INDEX_SESSIONS = "index:sessions";
-	private static final String INDEX_LICENSED_SESSIONS = "index:licensedSessions";
+	private static final String INDEX_COUNTED_SESSIONS = "index:countedSessions";
+	private static final String INDEX_LEGACY_LICENSED_SESSIONS = "index:licensedSessions";
 	private static final String TOMBSTONE_SESSION_PREFIX = "tombstone:session:";
 	private static final String LUA_HSET_DEL_AND_TOUCH = ""
 			+ "local key=KEYS[1]; local tomb=KEYS[2];\n"
@@ -55,13 +56,17 @@ final class RedisSessionStore implements SessionStore {
 	private final RedissonClient client;
 	private final RedisSessionConfiguration configuration;
 	private final RSet<String> sessionsIndex;
-	private final RSet<String> licensedSessionsIndex;
+	private final RSet<String> countedSessionsIndex;
+	private final RSet<String> legacyLicensedSessionsIndex;
 
 	RedisSessionStore(RedisSessionConfiguration configuration) {
 		this.configuration = configuration;
 		this.client = this.createClient(configuration);
 		this.sessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_SESSIONS, StringCodec.INSTANCE);
-		this.licensedSessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_LICENSED_SESSIONS,
+		this.countedSessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_COUNTED_SESSIONS,
+				StringCodec.INSTANCE);
+		this.legacyLicensedSessionsIndex = this.client
+				.getSet(configuration.getContextKeyPrefix() + INDEX_LEGACY_LICENSED_SESSIONS,
 				StringCodec.INSTANCE);
 	}
 
@@ -90,18 +95,22 @@ final class RedisSessionStore implements SessionStore {
 		}
 	}
 
-	int estimateLicensedSessions() {
-		try {
-			return licensedSessionsIndex.size();
-		} catch (Exception e) {
-			return 0;
-		}
+	int estimateCountedSessions() {
+		return readCountedSessionIds().size();
 	}
 
-	int countLicensedSessions() {
+	int countCountedSessions() {
+		return collectCountedSessionIds().size();
+	}
+
+	Set<String> readCountedSessionIds() {
+		return collectCountedSessionIds();
+	}
+
+	private Set<String> collectCountedSessionIds() {
 		var staleSessionIds = new ArrayList<String>();
-		int count = 0;
-		for (var sessionId : readLicensedSessionIds()) {
+		var validSessionIds = new HashSet<String>();
+		for (var sessionId : readCountedSessionIdsIndex()) {
 			if (sessionId == null || sessionId.isBlank()) {
 				continue;
 			}
@@ -109,23 +118,30 @@ final class RedisSessionStore implements SessionStore {
 				staleSessionIds.add(sessionId);
 				continue;
 			}
-			count++;
+			validSessionIds.add(sessionId);
 		}
 		if (!staleSessionIds.isEmpty()) {
 			try {
-				licensedSessionsIndex.removeAll(staleSessionIds);
+				countedSessionsIndex.removeAll(staleSessionIds);
+				legacyLicensedSessionsIndex.removeAll(staleSessionIds);
 			} catch (Exception e) {
-				debug("Failed to cleanup licensed sessions index: " + e.getMessage());
+				debug("Failed to cleanup counted sessions index: " + e.getMessage());
 			}
 		}
-		return count;
+		return validSessionIds;
 	}
 
-	private Set<String> readLicensedSessionIds() {
+	private Set<String> readCountedSessionIdsIndex() {
 		try {
-			return licensedSessionsIndex.readAll();
+			var sessionIds = new HashSet<String>(countedSessionsIndex.readAll());
+			sessionIds.addAll(legacyLicensedSessionsIndex.readAll());
+			return sessionIds;
 		} catch (Exception e) {
-			return Set.of();
+			try {
+				return legacyLicensedSessionsIndex.readAll();
+			} catch (Exception ignore) {
+				return Set.of();
+			}
 		}
 	}
 
@@ -191,8 +207,10 @@ final class RedisSessionStore implements SessionStore {
 	@Override
 	public void writeDelta(String sessionId, Map<String, String> hset, Set<String> hdel, long ttlMillis) {
 		try {
-			boolean keepLicensedSession = hset != null && hset.containsKey(SessionAttribute.licensedSession.value());
-			boolean dropLicensedSession = hdel != null && hdel.contains(SessionAttribute.licensedSession.value());
+			boolean keepCountedSession = hset != null && hset.containsKey(SessionAttribute.countedSession.value());
+			boolean dropCountedSession = hdel != null
+					&& (hdel.contains(SessionAttribute.countedSession.value())
+							|| hdel.contains(SessionAttribute.legacyLicensedSession.value()));
 			var setCount = hset != null ? hset.size() : 0;
 			var delCount = hdel != null ? hdel.size() : 0;
 			var args = new ArrayList<Object>(2 + setCount * 2 + 1 + delCount);
@@ -216,10 +234,12 @@ final class RedisSessionStore implements SessionStore {
 			try {
 				if (written != null && written.longValue() == 1L) {
 					sessionsIndex.add(sessionId);
-					if (keepLicensedSession) {
-						licensedSessionsIndex.add(sessionId);
-					} else if (dropLicensedSession) {
-						licensedSessionsIndex.remove(sessionId);
+					if (keepCountedSession) {
+						countedSessionsIndex.add(sessionId);
+						legacyLicensedSessionsIndex.remove(sessionId);
+					} else if (dropCountedSession) {
+						countedSessionsIndex.remove(sessionId);
+						legacyLicensedSessionsIndex.remove(sessionId);
 					}
 				}
 			} catch (Exception e) {
@@ -256,7 +276,8 @@ final class RedisSessionStore implements SessionStore {
 			map(sessionId).delete();
 			try {
 				sessionsIndex.remove(sessionId);
-				licensedSessionsIndex.remove(sessionId);
+				countedSessionsIndex.remove(sessionId);
+				legacyLicensedSessionsIndex.remove(sessionId);
 			} catch (Exception e) {
 				debug("Failed to remove " + sessionId + " from sessions index: " + e.getMessage());
 			}

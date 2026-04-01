@@ -2,6 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
+	import ActionBar from '$lib/admin/components/ActionBar.svelte';
+	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
@@ -17,7 +19,9 @@
 		sessionsInUse,
 		sessionsNumber,
 		httpTimeout,
+		redisMode,
 		deleteAll,
+		purgeRedisAll,
 		sessions,
 		selectedSession,
 		deleteSession,
@@ -133,32 +137,52 @@
 		[base, isRunning(row) ? 'border-l-2 border-success-500 pl-2' : ''].filter(Boolean).join(' ');
 
 	let modalYesNo = getContext('modalYesNo');
+	let isRedisMode = $derived(redisMode === true || redisMode === 'true');
 </script>
 
 <div class="layout-y-stretch">
 	<Card title="Connections" docHref={connectionsDocHref}>
 		{#snippet cornerOption()}
-			<ResponsiveButtons
-				buttons={[
-					{
-						label: 'Delete all Sessions and Contexts',
-						icon: 'mdi:delete-outline',
-						cls: 'button-primary',
-						onclick: async (event) => {
+			<ActionBar full={false} wrap={false} class="ml-auto" disabled={!init}>
+				<Button
+					label="Delete all Sessions and Contexts"
+					icon="mdi:delete-outline"
+					class="button-primary w-fit!"
+					disabled={!init}
+					onclick={async (event) => {
+						if (
+							await modalYesNo.open({
+								event,
+								title: 'Do you confirm to delete',
+								message: `${sessionsInUse} sessions and ${contextsInUse} contexts?`
+							})
+						) {
+							deleteAll();
+						}
+					}}
+				/>
+				{#if isRedisMode}
+					<Button
+						label="Purge all Redis sessions"
+						icon="mdi:delete-outline"
+						class="button-secondary w-fit! border-warning-500! text-warning-500! hover:border-warning-600! hover:text-warning-600!"
+						disabled={!init}
+						onclick={async (event) => {
 							if (
 								await modalYesNo.open({
 									event,
-									title: 'Do you confirm to delete',
-									message: `${sessionsInUse} sessions and ${contextsInUse} contexts?`
+									title: 'Purge all Redis sessions',
+									message:
+										`This removes technical and requestable Redis sessions, except your current session. ` +
+										`${contextsInUse} contexts will also be removed.`
 								})
 							) {
-								deleteAll();
+								purgeRedisAll();
 							}
-						}
-					}
-				]}
-				disabled={!init}
-			/>
+						}}
+					/>
+				{/if}
+			</ActionBar>
 		{/snippet}
 		<TableAutoCard
 			class="text-left"

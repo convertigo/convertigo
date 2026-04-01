@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -51,12 +54,23 @@ final class LegacySessionProvider implements SessionProvider {
 	}
 
 	@Override
-	public int estimateLicensedSessions() {
+	public int estimateCountedSessions() {
 		return HttpSessionListener.countSessions();
 	}
 
 	@Override
-	public int countLicensedSessions() {
+	public int countCountedSessions() {
 		return HttpSessionListener.countSessions();
+	}
+
+	@Override
+	public Set<String> readCountedSessionIds() {
+		var sessionIds = new HashSet<String>();
+		for (var session : HttpSessionListener.getSessions()) {
+			if (session != null) {
+				sessionIds.add(session.getId());
+			}
+		}
+		return sessionIds;
 	}
 }

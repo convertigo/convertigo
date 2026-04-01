@@ -1498,7 +1498,7 @@ public class ContextManager extends AbstractRunnableManager {
 				int maxNbCurrentWorkerThreads = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] [Worker threads] In use", com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads + " (" + 100 * com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads / maxNbCurrentWorkerThreads + "%)");
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] [Worker threads] Max", maxNbCurrentWorkerThreads);
-				int sessionCount = ConvertigoHttpSessionManager.getInstance().countLicensedSessions();
+				int sessionCount = ConvertigoHttpSessionManager.getInstance().countCountedSessions();
 				int maxSessions = KeyManager.getMaxCV(com.twinsoft.api.Session.EmulIDSE);
 				Engine.theApp.usageMonitor.setUsageCounter("[Sessions] Number", sessionCount);
 				Engine.theApp.usageMonitor.setUsageCounter("[Sessions] Available", Math.max(0, maxSessions - sessionCount));

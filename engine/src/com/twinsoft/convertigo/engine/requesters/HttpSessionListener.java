@@ -200,7 +200,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 				}
 			}
 			if (ConvertigoHttpSessionManager.isRedisMode()) {
-				checkRedisLicensedSession(httpSession);
+				checkRedisCountedSession(httpSession);
 			}
 			if (!SessionAttribute.sessionListener.has(httpSession)) {
 				Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
@@ -232,23 +232,24 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		return httpSessions.size() - devices.size();
 	}
 
-	private static void checkRedisLicensedSession(HttpSession httpSession) throws TASException {
-		if (SessionAttribute.licensedSession.get(httpSession, false)) {
+	private static void checkRedisCountedSession(HttpSession httpSession) throws TASException {
+		if (SessionAttribute.isCounted(httpSession)) {
+			SessionAttribute.markCounted(httpSession);
 			return;
 		}
 		if (!Engine.isEngineMode()) {
-			SessionAttribute.licensedSession.set(httpSession, true);
+			SessionAttribute.markCounted(httpSession);
 			return;
 		}
 		if (!httpSession.isNew()) {
-			SessionAttribute.licensedSession.set(httpSession, true);
+			SessionAttribute.markCounted(httpSession);
 			return;
 		}
 
 		int maxCV = KeyManager.getMaxCV(Session.EmulIDSE);
-		int currentCV = ConvertigoHttpSessionManager.getInstance().estimateLicensedSessions() + 1;
+		int currentCV = ConvertigoHttpSessionManager.getInstance().estimateCountedSessions() + 1;
 		if (currentCV >= maxCV) {
-			currentCV = ConvertigoHttpSessionManager.getInstance().countLicensedSessions() + 1;
+			currentCV = ConvertigoHttpSessionManager.getInstance().countCountedSessions() + 1;
 		}
 
 		TASException exception = checkSessionLicense(currentCV, maxCV);
@@ -261,7 +262,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 			}
 			throw exception;
 		}
-		SessionAttribute.licensedSession.set(httpSession, true);
+		SessionAttribute.markCounted(httpSession);
 	}
 
 	private static TASException checkSessionLicense(int currentCV, int maxCV) {

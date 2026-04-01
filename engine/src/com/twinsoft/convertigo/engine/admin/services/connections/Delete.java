@@ -75,6 +75,15 @@ public class Delete extends XmlService {
 			return;
 		}
 
+		if ("true".equals(request.getParameter("purgeRedisAll"))) {
+			Engine.theApp.contextManager.removeAll();
+			int sessionsRemoved = ConvertigoHttpSessionManager.getInstance().purgeAllSessions(request.getSession().getId());
+			ServiceUtils.addMessage(document,
+					"All Redis sessions purged, sessions removed: " + sessionsRemoved,
+					"success");
+			return;
+		}
+
 		throw new IllegalArgumentException();
 	}
 }

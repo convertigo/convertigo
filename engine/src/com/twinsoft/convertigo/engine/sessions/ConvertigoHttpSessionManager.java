@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
+import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpSession;
@@ -101,10 +103,7 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			}
 			var cfg = RedisClients.getConfiguration();
 			var client = RedisClients.getClient();
-			var sessionsIndexKey = cfg.getContextKeyPrefix() + "index:sessions";
 			var contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-			org.redisson.api.RSet<String> sessionsIndex = client.getSet(sessionsIndexKey,
-					org.redisson.client.codec.StringCodec.INSTANCE);
 			org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey,
 					org.redisson.client.codec.StringCodec.INSTANCE);
 
@@ -144,7 +143,7 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			}
 
 			var removed = 0;
-			for (var sessionId : sessionsIndex.readAll()) {
+			for (var sessionId : readCountedSessionIds()) {
 				if (sessionId == null || sessionId.isBlank()) {
 					continue;
 				}
@@ -165,6 +164,21 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			return removed;
 		} catch (Exception e) {
 			debug("terminateAllSessions failed: " + e.getMessage());
+			return 0;
+		}
+	}
+
+	public int purgeAllSessions(String sessionIdToKeep) {
+		try {
+			if (provider == null) {
+				return 0;
+			}
+			if (storeMode != SessionStoreMode.redis) {
+				return terminateAllSessions(sessionIdToKeep);
+			}
+			return provider.purgeAllSessions(sessionIdToKeep);
+		} catch (Exception e) {
+			debug("purgeAllSessions failed: " + e.getMessage());
 			return 0;
 		}
 	}
@@ -190,21 +204,30 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		}
 	}
 
-	public int estimateLicensedSessions() {
+	public int estimateCountedSessions() {
 		try {
-			return provider != null ? provider.estimateLicensedSessions() : 0;
+			return provider != null ? provider.estimateCountedSessions() : 0;
 		} catch (Exception e) {
-			debug("estimateLicensedSessions failed: " + e.getMessage());
+			debug("estimateCountedSessions failed: " + e.getMessage());
 			return 0;
 		}
 	}
 
-	public int countLicensedSessions() {
+	public int countCountedSessions() {
 		try {
-			return provider != null ? provider.countLicensedSessions() : 0;
+			return provider != null ? provider.countCountedSessions() : 0;
 		} catch (Exception e) {
-			debug("countLicensedSessions failed: " + e.getMessage());
+			debug("countCountedSessions failed: " + e.getMessage());
 			return 0;
+		}
+	}
+
+	public Set<String> readCountedSessionIds() {
+		try {
+			return provider != null ? provider.readCountedSessionIds() : Set.of();
+		} catch (Exception e) {
+			debug("readCountedSessionIds failed: " + e.getMessage());
+			return Set.of();
 		}
 	}
 

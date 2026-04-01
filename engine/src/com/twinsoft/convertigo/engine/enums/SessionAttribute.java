@@ -37,7 +37,8 @@ public enum SessionAttribute {
     exception(Throwable.class),
     fullSyncRequests(HashSet.class),
     isNew(Boolean.class, KeepMode.NEVER),
-    licensedSession(Boolean.class),
+    countedSession(Boolean.class),
+    legacyLicensedSession("__c8o:licensedSession__", Boolean.class),
     httpClient3("__httpClient3__", null),
     httpClient4("__httpClient4__", null),
     sessionListener(HttpSessionListener.class, KeepMode.NEVER),
@@ -129,6 +130,20 @@ public enum SessionAttribute {
     public String string(HttpSession session, String defaultValue) {
         Object res = session == null ? null : session.getAttribute(this.value());
         return res == null ? defaultValue : res.toString();
+    }
+
+    public static boolean isCounted(HttpSession session) {
+        return countedSession.get(session, false) || legacyLicensedSession.get(session, false);
+    }
+
+    public static void markCounted(HttpSession session) {
+        countedSession.set(session, true);
+        legacyLicensedSession.remove(session);
+    }
+
+    public static void clearCounted(HttpSession session) {
+        countedSession.remove(session);
+        legacyLicensedSession.remove(session);
     }
 
     public static SessionAttribute fromValue(String value) {

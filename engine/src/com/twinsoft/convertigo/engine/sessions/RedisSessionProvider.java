@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.sessions;
 
 import java.util.HashMap;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -163,12 +164,41 @@ final class RedisSessionProvider implements SessionProvider {
 	}
 
 	@Override
-	public int estimateLicensedSessions() {
-		return store instanceof RedisSessionStore redisStore ? redisStore.estimateLicensedSessions() : 0;
+	public int purgeAllSessions(String sessionIdToKeep) {
+		if (!(store instanceof RedisSessionStore redisStore)) {
+			return 0;
+		}
+		int count = 0;
+		try {
+			for (var sessionId : redisStore.readSessionIds()) {
+				if (sessionId == null || sessionId.isBlank() || sessionId.equals(sessionIdToKeep)) {
+					continue;
+				}
+				try {
+					store.delete(sessionId);
+					count++;
+				} catch (Exception e) {
+					debug("purgeAllSessions delete failed: " + e.getMessage());
+				}
+			}
+		} catch (Exception e) {
+			debug("purgeAllSessions failed: " + e.getMessage());
+		}
+		return count;
 	}
 
 	@Override
-	public int countLicensedSessions() {
-		return store instanceof RedisSessionStore redisStore ? redisStore.countLicensedSessions() : 0;
+	public int estimateCountedSessions() {
+		return store instanceof RedisSessionStore redisStore ? redisStore.estimateCountedSessions() : 0;
+	}
+
+	@Override
+	public int countCountedSessions() {
+		return store instanceof RedisSessionStore redisStore ? redisStore.countCountedSessions() : 0;
+	}
+
+	@Override
+	public Set<String> readCountedSessionIds() {
+		return store instanceof RedisSessionStore redisStore ? redisStore.readCountedSessionIds() : Set.of();
 	}
 }
