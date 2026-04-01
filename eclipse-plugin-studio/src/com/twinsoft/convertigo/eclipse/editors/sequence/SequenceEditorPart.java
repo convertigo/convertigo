@@ -117,8 +117,11 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	}
 
 	public void close() {
-		// Remove Studio context
-		Engine.theApp.contextManager.remove(context);
+		// Remove Studio context if it still exists.
+		var studioContext = Engine.theApp.contextManager.get(contextID);
+		if (studioContext != null) {
+			Engine.theApp.contextManager.remove(studioContext);
+		}
 
 		// Deregister as Engine listener
 		Engine.theApp.removeEngineListener(this);
