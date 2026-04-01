@@ -201,4 +201,19 @@ final class RedisSessionProvider implements SessionProvider {
 	public Set<String> readCountedSessionIds() {
 		return store instanceof RedisSessionStore redisStore ? redisStore.readCountedSessionIds() : Set.of();
 	}
+
+	@Override
+	public boolean upsertCountedSessionBillingSnapshot(HttpSession session) {
+		if (store instanceof RedisSessionStore redisStore) {
+			return redisStore.upsertCountedSessionBillingSnapshot(session);
+		}
+		return false;
+	}
+
+	@Override
+	public void syncCountedSessionBillingAuthenticatedUser(HttpSession session) {
+		if (store instanceof RedisSessionStore redisStore) {
+			redisStore.syncCountedSessionBillingAuthenticatedUser(session);
+		}
+	}
 }

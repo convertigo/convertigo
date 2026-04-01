@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 
 public class BillingManager implements AbstractManager, PropertyChangeEventListener {
@@ -120,6 +121,10 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		renewManager(true);
 	}
 
+	public boolean hasActiveManagers() {
+		return !isDestroying && !managers.isEmpty();
+	}
+
 	void insertBilling(Context context) throws EngineException {
 		insertBilling(context, null, null);
 	}
@@ -181,6 +186,16 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 
 	public synchronized void insertBilling(HttpSessionListener sessionListener, String operation)
 			throws EngineException {
+		int score = ConvertigoHttpSessionManager.isRedisMode()
+				? ConvertigoHttpSessionManager.getInstance().countCountedSessions()
+				: HttpSessionListener.countSessions();
+		insertBillingSession(operation, sessionListener.getCreationTime(), sessionListener.getSessionID(),
+				sessionListener.getClientIP(), sessionListener.getUserAgent(), sessionListener.getAuthenticatedUser(),
+				sessionListener.getUuid(), score);
+	}
+
+	public synchronized void insertBillingSession(String operation, long creationTime, String sessionId, String clientIp,
+			String userAgent, String authenticatedUser, String deviceUUID, int score) throws EngineException {
 		if (isDestroying) {
 			return;
 		}
@@ -190,19 +205,19 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 
 		try {
 			long now = System.currentTimeMillis();
-			long time = now - sessionListener.getCreationTime();
+			long time = now - creationTime;
 			Ticket ticket = new Ticket();
 			ticket.setCreationDate(now);
-			ticket.setClientIp(sessionListener.getClientIP());
+			ticket.setClientIp(clientIp);
 			ticket.setCustomerName(customer_name);
-			ticket.setUserName(sessionListener.getAuthenticatedUser());
+			ticket.setUserName(authenticatedUser);
 			ticket.setConnectorType("session");
 			ticket.setConnectorName(operation);
 			ticket.setResponseTime(time);
-			ticket.setScore(HttpSessionListener.countSessions());
-			ticket.setSessionID(sessionListener.getSessionID());
-			ticket.setUserAgent(sessionListener.getUserAgent());
-			ticket.setDeviceUUID(sessionListener.getUuid());
+			ticket.setScore(score);
+			ticket.setSessionID(sessionId);
+			ticket.setUserAgent(userAgent);
+			ticket.setDeviceUUID(deviceUUID);
 
 			synchronized (tickets) {
 				tickets.add(ticket);

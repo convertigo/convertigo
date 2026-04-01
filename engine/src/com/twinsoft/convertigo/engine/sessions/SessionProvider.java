@@ -63,4 +63,12 @@ public interface SessionProvider {
 	default Set<String> readCountedSessionIds() {
 		return Set.of();
 	}
+
+	default boolean upsertCountedSessionBillingSnapshot(HttpSession session) {
+		return false;
+	}
+
+	default void syncCountedSessionBillingAuthenticatedUser(HttpSession session) {
+		// no-op
+	}
 }

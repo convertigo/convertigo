@@ -231,6 +231,27 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		}
 	}
 
+	public boolean upsertCountedSessionBillingSnapshot(HttpSession session) {
+		try {
+			if (provider != null) {
+				return provider.upsertCountedSessionBillingSnapshot(session);
+			}
+		} catch (Exception e) {
+			debug("upsertCountedSessionBillingSnapshot failed: " + e.getMessage());
+		}
+		return false;
+	}
+
+	public void syncCountedSessionBillingAuthenticatedUser(HttpSession session) {
+		try {
+			if (provider != null) {
+				provider.syncCountedSessionBillingAuthenticatedUser(session);
+			}
+		} catch (Exception e) {
+			debug("syncCountedSessionBillingAuthenticatedUser failed: " + e.getMessage());
+		}
+	}
+
 	private SessionStoreMode computeStoreMode() {
 		var raw = EnginePropertiesManager.getProperty(PropertyName.SESSION_STORE_MODE);
 		var result = SessionStoreMode.fromProperty(raw);

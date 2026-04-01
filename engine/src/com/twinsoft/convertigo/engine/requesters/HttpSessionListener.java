@@ -190,6 +190,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		var lock = LockRegistry.lock(httpSession.getId());
 		try {
 			lock.lock();
+			int redisStartScore = 0;
 			SessionAttribute.clientIP.set(httpSession, request.getRemoteAddr());
 			SessionAttribute.userAgent.set(httpSession, HeaderName.UserAgent.getHeader(request));
 			String uuid = request.getParameter(Parameter.DeviceUUID.getName());
@@ -200,7 +201,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 				}
 			}
 			if (ConvertigoHttpSessionManager.isRedisMode()) {
-				checkRedisCountedSession(httpSession);
+				redisStartScore = checkRedisCountedSession(httpSession);
 			}
 			if (!SessionAttribute.sessionListener.has(httpSession)) {
 				Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
@@ -219,6 +220,28 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 				HttpSessionListener listener = SessionAttribute.sessionListener.get(httpSession);
 				listener.authenticatedUser = SessionAttribute.authenticatedUser.get(httpSession, "");
 			}
+			boolean redisBillingEnabled = ConvertigoHttpSessionManager.isRedisMode() && Engine.theApp != null
+					&& Engine.theApp.billingManager != null && Engine.theApp.billingManager.hasActiveManagers();
+			if (redisBillingEnabled && SessionAttribute.isCounted(httpSession)) {
+				boolean billingStartOwner = false;
+				if (redisStartScore > 0) {
+					billingStartOwner = ConvertigoHttpSessionManager.getInstance()
+							.upsertCountedSessionBillingSnapshot(httpSession);
+				} else {
+					ConvertigoHttpSessionManager.getInstance().syncCountedSessionBillingAuthenticatedUser(httpSession);
+				}
+				if (billingStartOwner && Engine.theApp != null && Engine.theApp.billingManager != null) {
+					try {
+						Engine.theApp.billingManager.insertBillingSession("start", httpSession.getCreationTime(),
+								httpSession.getId(), SessionAttribute.clientIP.get(httpSession, ""),
+								SessionAttribute.userAgent.get(httpSession, ""),
+								SessionAttribute.authenticatedUser.get(httpSession, ""),
+								SessionAttribute.deviceUUID.get(httpSession, ""), redisStartScore);
+					} catch (Exception e) {
+						Engine.logEngine.warn("Unable to insert Redis session start billing ticket", e);
+					}
+				}
+			}
 		} finally {
 			lock.release();
 		}
@@ -232,37 +255,36 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		return httpSessions.size() - devices.size();
 	}
 
-	private static void checkRedisCountedSession(HttpSession httpSession) throws TASException {
+	private static int checkRedisCountedSession(HttpSession httpSession) throws TASException {
 		if (SessionAttribute.isCounted(httpSession)) {
 			SessionAttribute.markCounted(httpSession);
-			return;
-		}
-		if (!Engine.isEngineMode()) {
-			SessionAttribute.markCounted(httpSession);
-			return;
+			return 0;
 		}
 		if (!httpSession.isNew()) {
 			SessionAttribute.markCounted(httpSession);
-			return;
+			return 0;
 		}
 
 		int maxCV = KeyManager.getMaxCV(Session.EmulIDSE);
 		int currentCV = ConvertigoHttpSessionManager.getInstance().estimateCountedSessions() + 1;
-		if (currentCV >= maxCV) {
+		if (Engine.isEngineMode() && currentCV >= maxCV) {
 			currentCV = ConvertigoHttpSessionManager.getInstance().countCountedSessions() + 1;
 		}
 
-		TASException exception = checkSessionLicense(currentCV, maxCV);
-		if (exception != null) {
-			SessionAttribute.exception.set(httpSession, exception);
-			try {
-				httpSession.invalidate();
-			} catch (Exception e) {
-				terminateSession(httpSession.getId());
+		if (Engine.isEngineMode()) {
+			TASException exception = checkSessionLicense(currentCV, maxCV);
+			if (exception != null) {
+				SessionAttribute.exception.set(httpSession, exception);
+				try {
+					httpSession.invalidate();
+				} catch (Exception e) {
+					terminateSession(httpSession.getId());
+				}
+				throw exception;
 			}
-			throw exception;
 		}
 		SessionAttribute.markCounted(httpSession);
+		return currentCV;
 	}
 
 	private static TASException checkSessionLicense(int currentCV, int maxCV) {

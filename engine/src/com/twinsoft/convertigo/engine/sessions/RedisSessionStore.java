@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpSession;
+
 import org.redisson.Redisson;
 import org.redisson.api.RBucket;
 import org.redisson.api.RMap;
@@ -33,6 +35,7 @@ import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
@@ -41,6 +44,7 @@ final class RedisSessionStore implements SessionStore {
 	private static final String INDEX_SESSIONS = "index:sessions";
 	private static final String INDEX_COUNTED_SESSIONS = "index:countedSessions";
 	private static final String INDEX_LEGACY_LICENSED_SESSIONS = "index:licensedSessions";
+	private static final String INDEX_COUNTED_SESSIONS_BILLING = "index:countedSessionsBilling";
 	private static final String TOMBSTONE_SESSION_PREFIX = "tombstone:session:";
 	private static final String LUA_HSET_DEL_AND_TOUCH = ""
 			+ "local key=KEYS[1]; local tomb=KEYS[2];\n"
@@ -58,6 +62,7 @@ final class RedisSessionStore implements SessionStore {
 	private final RSet<String> sessionsIndex;
 	private final RSet<String> countedSessionsIndex;
 	private final RSet<String> legacyLicensedSessionsIndex;
+	private final RMap<String, String> countedSessionsBillingIndex;
 
 	RedisSessionStore(RedisSessionConfiguration configuration) {
 		this.configuration = configuration;
@@ -68,6 +73,8 @@ final class RedisSessionStore implements SessionStore {
 		this.legacyLicensedSessionsIndex = this.client
 				.getSet(configuration.getContextKeyPrefix() + INDEX_LEGACY_LICENSED_SESSIONS,
 				StringCodec.INSTANCE);
+		this.countedSessionsBillingIndex = this.client
+				.getMap(configuration.getContextKeyPrefix() + INDEX_COUNTED_SESSIONS_BILLING, StringCodec.INSTANCE);
 	}
 
 	private RedissonClient createClient(RedisSessionConfiguration cfg) {
@@ -121,6 +128,10 @@ final class RedisSessionStore implements SessionStore {
 			validSessionIds.add(sessionId);
 		}
 		if (!staleSessionIds.isEmpty()) {
+			int score = validSessionIds.size() + staleSessionIds.size();
+			for (var sessionId : staleSessionIds) {
+				emitStopBilling(sessionId, score--);
+			}
 			try {
 				countedSessionsIndex.removeAll(staleSessionIds);
 				legacyLicensedSessionsIndex.removeAll(staleSessionIds);
@@ -129,6 +140,83 @@ final class RedisSessionStore implements SessionStore {
 			}
 		}
 		return validSessionIds;
+	}
+
+	boolean upsertCountedSessionBillingSnapshot(HttpSession session) {
+		if (session == null || !SessionAttribute.isCounted(session)) {
+			return false;
+		}
+		if (Engine.theApp == null || Engine.theApp.billingManager == null || !Engine.theApp.billingManager.hasActiveManagers()) {
+			return false;
+		}
+		try {
+			String raw = buildBillingSnapshot(session);
+			String previous = countedSessionsBillingIndex.putIfAbsent(session.getId(), raw);
+			if (previous == null) {
+				return true;
+			}
+			countedSessionsBillingIndex.fastPut(session.getId(), raw);
+		} catch (Exception e) {
+			debug("Failed to update counted session billing snapshot for " + session.getId() + ": " + e.getMessage());
+		}
+		return false;
+	}
+
+	void syncCountedSessionBillingAuthenticatedUser(HttpSession session) {
+		if (session == null || !SessionAttribute.isCounted(session)) {
+			return;
+		}
+		if (Engine.theApp == null || Engine.theApp.billingManager == null || !Engine.theApp.billingManager.hasActiveManagers()) {
+			return;
+		}
+		try {
+			String authenticatedUser = SessionAttribute.authenticatedUser.get(session, "");
+			if (authenticatedUser == null || authenticatedUser.isBlank()) {
+				return;
+			}
+			String raw = countedSessionsBillingIndex.get(session.getId());
+			if (raw == null || raw.isBlank()) {
+				return;
+			}
+			var json = new JSONObject(raw);
+			if (!authenticatedUser.equals(json.optString("authenticatedUser"))) {
+				json.put("authenticatedUser", authenticatedUser);
+				countedSessionsBillingIndex.fastPut(session.getId(), json.toString());
+			}
+		} catch (Exception e) {
+			debug("Failed to sync counted session billing authenticated user for " + session.getId() + ": " + e.getMessage());
+		}
+	}
+
+	private String buildBillingSnapshot(HttpSession session) throws Exception {
+		var json = new JSONObject();
+		json.put("creationTime", session.getCreationTime());
+		json.put("clientIP", SessionAttribute.clientIP.get(session, ""));
+		json.put("userAgent", SessionAttribute.userAgent.get(session, ""));
+		json.put("authenticatedUser", SessionAttribute.authenticatedUser.get(session, ""));
+		json.put("deviceUUID", SessionAttribute.deviceUUID.get(session, ""));
+		return json.toString();
+	}
+
+	private void emitStopBilling(String sessionId, int score) {
+		try {
+			if (sessionId == null || sessionId.isBlank()) {
+				return;
+			}
+			String raw = countedSessionsBillingIndex.remove(sessionId);
+			if (raw == null || raw.isBlank()) {
+				return;
+			}
+			if (Engine.theApp == null || Engine.theApp.billingManager == null || !Engine.theApp.billingManager.hasActiveManagers()) {
+				return;
+			}
+			var json = new JSONObject(raw);
+			Engine.theApp.billingManager.insertBillingSession("stop", json.optLong("creationTime"),
+					sessionId, json.optString("clientIP"), json.optString("userAgent"),
+					json.optString("authenticatedUser"), json.optString("deviceUUID"), Math.max(score, 0));
+		} catch (Exception e) {
+			debug("Failed to emit stop billing for " + sessionId + ": " + e.getMessage());
+		}
 	}
 
 	private Set<String> readCountedSessionIdsIndex() {
@@ -256,6 +344,22 @@ final class RedisSessionStore implements SessionStore {
 	@Override
 	public void delete(String sessionId) {
 		try {
+			int countedScore = 0;
+			try {
+				var counted = map(sessionId).getAll(Set.of(SessionAttribute.countedSession.value(),
+						SessionAttribute.legacyLicensedSession.value()));
+				if ("true".equals(counted.get(SessionAttribute.countedSession.value()))
+						|| "true".equals(counted.get(SessionAttribute.legacyLicensedSession.value()))) {
+					countedScore = countCountedSessions();
+				}
+			} catch (Exception ignore) {
+				// ignore billing pre-read failures
+			}
+			if (countedScore > 0) {
+				emitStopBilling(sessionId, countedScore);
+			} else {
+				countedSessionsBillingIndex.remove(sessionId);
+			}
 			try {
 				int ttlSeconds = configuration.getDefaultTtlSeconds();
 				try {
@@ -278,6 +382,7 @@ final class RedisSessionStore implements SessionStore {
 				sessionsIndex.remove(sessionId);
 				countedSessionsIndex.remove(sessionId);
 				legacyLicensedSessionsIndex.remove(sessionId);
+				countedSessionsBillingIndex.remove(sessionId);
 			} catch (Exception e) {
 				debug("Failed to remove " + sessionId + " from sessions index: " + e.getMessage());
 			}
