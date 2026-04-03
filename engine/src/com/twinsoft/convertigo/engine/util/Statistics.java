@@ -216,6 +216,16 @@ public class Statistics {
         id = 0;
         System.gc();
     }
+
+    /**
+     * Resets aggregated statistics for a specific task.
+     *
+     * @param taskID the task identifier to reset
+     */
+    public static synchronized void reset(String taskID) {
+        sums.remove(taskID);
+        dividers.remove(taskID);
+    }
     
     /**
      * Resets the statistics object.
