@@ -72,7 +72,7 @@ import com.twinsoft.convertigo.engine.sessions.ContextStore;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.sessions.RedisClients;
 import com.twinsoft.convertigo.engine.sessions.RedisContextStore;
-import com.twinsoft.convertigo.engine.sessions.RedisSessionConfiguration;
+import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
 import com.twinsoft.convertigo.engine.sessions.StoreIgnore;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -86,8 +86,14 @@ public class ContextManager extends AbstractRunnableManager {
 
 	private class MyPropertyChangeEventListener implements PropertyChangeEventListener{
 		public void onEvent(PropertyChangeEvent event) {
-			if (event.getKey() == PropertyName.POOL_MANAGER_TIMEOUT)
+			if (event.getKey() == PropertyName.POOL_MANAGER_TIMEOUT) {
 				loadParameters();
+			} else if (event.getKey() == PropertyName.SESSION_STORE_MODE) {
+				reconfigureRedisRuntime(SessionStoreMode.fromProperty(EnginePropertiesManager.getProperty(PropertyName.SESSION_STORE_MODE)));
+			} else if (isRedisRuntimeProperty(event.getKey()) && ConvertigoHttpSessionManager.isRedisMode()) {
+				RedisClients.reload();
+				reconfigureRedisRuntime(SessionStoreMode.redis);
+			}
 		}
 	};
 	private MyPropertyChangeEventListener myPropertyChangeEventListener;
@@ -208,10 +214,7 @@ public class ContextManager extends AbstractRunnableManager {
 			contexts = new ConcurrentHashMap<String, Context>();
 			currentContextNum = 0;
 			if (ConvertigoHttpSessionManager.isRedisMode()) {
-				contextStore = new RedisContextStore(RedisSessionConfiguration.fromProperties());
-				Engine.logContextManager.info("(ContextManager) Using Redis context store");
-				initAbortListener();
-				initInflightIndex();
+				reconfigureRedisRuntime(SessionStoreMode.redis);
 			}
 
 			devicePools = new HashMap<String, DevicePool>();
@@ -259,6 +262,49 @@ public class ContextManager extends AbstractRunnableManager {
 		} catch (Exception e) {
 			Engine.logContextManager.warn("(ContextManager) Failed to initialize inflight index", e);
 		}
+	}
+
+	private static boolean isRedisRuntimeProperty(PropertyName propertyName) {
+		if (propertyName == null) {
+			return false;
+		}
+		switch (propertyName) {
+		case SESSION_REDIS_HOST:
+		case SESSION_REDIS_PORT:
+		case SESSION_REDIS_USERNAME:
+		case SESSION_REDIS_PASSWORD:
+		case SESSION_REDIS_DATABASE:
+		case SESSION_REDIS_SSL:
+		case SESSION_REDIS_TIMEOUT:
+		case SESSION_REDIS_CONNECTION_POOL_SIZE:
+		case SESSION_REDIS_CONNECTION_MINIMUM_IDLE_SIZE:
+		case SESSION_REDIS_PREFIX:
+		case SESSION_REDIS_DEFAULT_TTL:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	private synchronized void reconfigureRedisRuntime(SessionStoreMode targetMode) {
+		shutdownAbortListener();
+		shutdownInflightIndex();
+		if (contextStore != null) {
+			try {
+				contextStore.shutdown();
+			} catch (Exception e) {
+				Engine.logContextManager.warn("(ContextManager) Failed to shutdown previous context store", e);
+			} finally {
+				contextStore = null;
+			}
+		}
+		if (targetMode != SessionStoreMode.redis) {
+			return;
+		}
+		contextStore = new RedisContextStore(RedisClients.getConfiguration());
+		Engine.logContextManager.info("(ContextManager) Using Redis context store");
+		initAbortListener();
+		initInflightIndex();
 	}
 
 	private void shutdownInflightIndex() {

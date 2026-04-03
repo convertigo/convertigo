@@ -510,6 +510,10 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		SESSION_REDIS_TIMEOUT("session.redis.timeout", "5000", "Redis command timeout in milliseconds", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
+		SESSION_REDIS_CONNECTION_POOL_SIZE("session.redis.connection.pool.size", "128", "Redis data connection pool size", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
+		SESSION_REDIS_CONNECTION_MINIMUM_IDLE_SIZE("session.redis.connection.minimum.idle.size", "32", "Redis data connection minimum idle size", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
 		SESSION_REDIS_PREFIX("session.redis.prefix", "convertigo:session", "Redis key prefix for stored sessions", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
 		SESSION_COOKIE_NAME("session.cookie.name", "JSESSIONID", "Name of the HTTP cookie carrying the session token", PropertyCategory.Session),

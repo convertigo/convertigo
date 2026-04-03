@@ -32,21 +32,41 @@ public final class RedisClients {
 	private static final Object MUTEX = new Object();
 	private static volatile RedisSessionConfiguration configuration;
 	private static volatile RedissonClient client;
+	private static volatile boolean shutdownHookRegistered;
 
 	private RedisClients() {
 	}
 
 	public static RedisSessionConfiguration getConfiguration() {
-		ensureInitialized();
+		ensureInitialized(null);
 		return configuration;
 	}
 
 	public static RedissonClient getClient() {
-		ensureInitialized();
+		ensureInitialized(null);
 		return client;
 	}
 
-	private static void ensureInitialized() {
+	static RedissonClient getClient(RedisSessionConfiguration initialConfiguration) {
+		ensureInitialized(initialConfiguration);
+		return client;
+	}
+
+	public static void reload() {
+		synchronized (MUTEX) {
+			var newConfiguration = RedisSessionConfiguration.fromProperties();
+			if (newConfiguration.equals(configuration) && client != null) {
+				return;
+			}
+			var previousClient = client;
+			configuration = newConfiguration;
+			client = createClient(newConfiguration);
+			registerShutdownHook();
+			shutdownQuietly(previousClient);
+		}
+	}
+
+	private static void ensureInitialized(RedisSessionConfiguration initialConfiguration) {
 		if (client != null && configuration != null) {
 			return;
 		}
@@ -54,7 +74,7 @@ public final class RedisClients {
 			if (client != null && configuration != null) {
 				return;
 			}
-			configuration = RedisSessionConfiguration.fromProperties();
+			configuration = initialConfiguration != null ? initialConfiguration : RedisSessionConfiguration.fromProperties();
 			client = createClient(configuration);
 			registerShutdownHook();
 		}
@@ -68,12 +88,19 @@ public final class RedisClients {
 		if (cfg.getPassword() != null) {
 			config.setPassword(cfg.getPassword());
 		}
-		config.useSingleServer().setAddress(cfg.getAddress())
-				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
+		config.useSingleServer()
+				.setAddress(cfg.getAddress())
+				.setDatabase(cfg.getDatabase())
+				.setTimeout(cfg.getTimeoutMillis())
+				.setConnectionPoolSize(cfg.getConnectionPoolSize())
+				.setConnectionMinimumIdleSize(cfg.getConnectionMinimumIdleSize());
 		return Redisson.create(config);
 	}
 
 	private static void registerShutdownHook() {
+		if (shutdownHookRegistered) {
+			return;
+		}
 		try {
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				try {
@@ -86,8 +113,22 @@ public final class RedisClients {
 					}
 				}
 			}, "convertigo-redis-clients-shutdown"));
+			shutdownHookRegistered = true;
 		} catch (Exception ignore) {
 			// ignore hook failures
+		}
+	}
+
+	private static void shutdownQuietly(RedissonClient clientToShutdown) {
+		if (clientToShutdown == null || clientToShutdown == client) {
+			return;
+		}
+		try {
+			clientToShutdown.shutdown();
+		} catch (Exception e) {
+			if (Engine.logEngine != null) {
+				Engine.logEngine.debug("(RedisClients) Failed to shutdown previous shared Redis client", e);
+			}
 		}
 	}
 }

@@ -27,14 +27,12 @@ import java.util.Set;
 
 import javax.servlet.http.HttpSession;
 
-import org.redisson.Redisson;
 import org.redisson.api.RBucket;
 import org.redisson.api.RMap;
 import org.redisson.api.RScript;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
-import org.redisson.config.Config;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
@@ -66,7 +64,7 @@ final class RedisSessionStore implements SessionStore {
 
 	RedisSessionStore(RedisSessionConfiguration configuration) {
 		this.configuration = configuration;
-		this.client = this.createClient(configuration);
+		this.client = RedisClients.getClient(configuration);
 		this.sessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_SESSIONS, StringCodec.INSTANCE);
 		this.countedSessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_COUNTED_SESSIONS,
 				StringCodec.INSTANCE);
@@ -75,19 +73,6 @@ final class RedisSessionStore implements SessionStore {
 				StringCodec.INSTANCE);
 		this.countedSessionsBillingIndex = this.client
 				.getMap(configuration.getContextKeyPrefix() + INDEX_COUNTED_SESSIONS_BILLING, StringCodec.INSTANCE);
-	}
-
-	private RedissonClient createClient(RedisSessionConfiguration cfg) {
-		var config = new Config();
-		if (cfg.getUsername() != null) {
-			config.setUsername(cfg.getUsername());
-		}
-		if (cfg.getPassword() != null) {
-			config.setPassword(cfg.getPassword());
-		}
-		config.useSingleServer().setAddress(cfg.getAddress())
-				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
-		return Redisson.create(config);
 	}
 
 	private RMap<String, String> map(String sessionId) {
@@ -394,11 +379,7 @@ final class RedisSessionStore implements SessionStore {
 
 	@Override
 	public void shutdown() {
-		try {
-			this.client.shutdown();
-		} catch (Exception e) {
-			this.log("(RedisSessionStore) Failed to shutdown Redis client", e);
-		}
+		// Shared JVM-wide Redis client is shut down by RedisClients.
 	}
 
 	private void log(String message, Exception e) {

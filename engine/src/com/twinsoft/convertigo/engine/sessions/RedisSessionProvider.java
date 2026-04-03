@@ -36,9 +36,8 @@ final class RedisSessionProvider implements SessionProvider {
 	private final ThreadLocal<HashMap<String, RedisHttpSession>> threadSessions = ThreadLocal.withInitial(HashMap::new);
 
 	RedisSessionProvider() {
-		configuration = RedisSessionConfiguration.fromProperties();
+		configuration = RedisClients.getConfiguration();
 		store = new RedisSessionStore(configuration);
-		registerShutdownHook();
 	}
 
 	public HttpSession getSession(HttpServletRequest request, boolean create) {
@@ -82,18 +81,6 @@ final class RedisSessionProvider implements SessionProvider {
 		cookieHelper.ensureCookie(request, response, sessionId, configuration.getCookieName());
 		request.setAttribute(REQUEST_SESSION_OBJECT_ATTR, session);
 		return session;
-	}
-
-	private void registerShutdownHook() {
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			try {
-				store.shutdown();
-			} catch (Exception e) {
-				if (Engine.logEngine != null) {
-					Engine.logEngine.error("(RedisSessionProvider) Failed to shutdown cleanly", e);
-				}
-			}
-		}, "convertigo-redis-session-shutdown"));
 	}
 
 	private void debug(String message) {

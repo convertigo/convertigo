@@ -24,14 +24,12 @@ import java.util.HashSet;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
-import org.redisson.Redisson;
 import org.redisson.api.RMap;
 import org.redisson.api.RScript;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.api.options.KeysScanOptions;
 import org.redisson.client.codec.StringCodec;
-import org.redisson.config.Config;
 
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -56,7 +54,7 @@ public final class RedisContextStore implements ContextStore {
 
 	public RedisContextStore(RedisSessionConfiguration configuration) {
 		this.configuration = configuration;
-		this.client = createClient(configuration);
+		this.client = RedisClients.getClient(configuration);
 		this.contextsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_CONTEXTS, StringCodec.INSTANCE);
 	}
 
@@ -64,19 +62,6 @@ public final class RedisContextStore implements ContextStore {
 		return this.client.getMap(this.configuration.contextKey(contextId), StringCodec.INSTANCE);
 	}
 
-	private static RedissonClient createClient(RedisSessionConfiguration cfg) {
-		var config = new Config();
-		if (cfg.getUsername() != null) {
-			config.setUsername(cfg.getUsername());
-		}
-		if (cfg.getPassword() != null) {
-			config.setPassword(cfg.getPassword());
-		}
-		config.useSingleServer().setAddress(cfg.getAddress())
-				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
-		return Redisson.create(config);
-	}
-	
 	@SuppressWarnings("deprecation")
 	@Override
 	public Context read(String contextId) {
@@ -310,11 +295,7 @@ public final class RedisContextStore implements ContextStore {
 
 	@Override
 	public void shutdown() {
-		try {
-			this.client.shutdown();
-		} catch (Exception e) {
-			log("(RedisContextStore) Failed to shutdown", e);
-		}
+		// Shared JVM-wide Redis client is shut down by RedisClients.
 	}
 
 	private void restoreContextData(Context context, java.util.Map<String, String> snapshot) {

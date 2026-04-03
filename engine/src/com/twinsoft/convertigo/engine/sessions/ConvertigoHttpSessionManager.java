@@ -321,7 +321,29 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		switch (event.getKey()) {
 		case SESSION_STORE_MODE:
 			debug("Detected property change for " + event.getKey().name() + ", recomputing session mode");
-			reload(computeStoreMode());
+			var targetMode = computeStoreMode();
+			if (targetMode == SessionStoreMode.redis) {
+				RedisClients.reload();
+			}
+			reload(targetMode);
+			break;
+		case SESSION_REDIS_HOST:
+		case SESSION_REDIS_PORT:
+		case SESSION_REDIS_USERNAME:
+		case SESSION_REDIS_PASSWORD:
+		case SESSION_REDIS_DATABASE:
+		case SESSION_REDIS_SSL:
+		case SESSION_REDIS_TIMEOUT:
+		case SESSION_REDIS_CONNECTION_POOL_SIZE:
+		case SESSION_REDIS_CONNECTION_MINIMUM_IDLE_SIZE:
+		case SESSION_REDIS_PREFIX:
+		case SESSION_REDIS_DEFAULT_TTL:
+		case SESSION_COOKIE_NAME:
+			if (storeMode == SessionStoreMode.redis) {
+				debug("Detected Redis session property change for " + event.getKey().name() + ", reloading Redis session provider");
+				RedisClients.reload();
+				reload(SessionStoreMode.redis);
+			}
 			break;
 		default:
 			break;
