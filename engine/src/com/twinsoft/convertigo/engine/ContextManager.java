@@ -76,6 +76,7 @@ import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
 import com.twinsoft.convertigo.engine.sessions.StoreIgnore;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.InstanceIdentity;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.twinj.iJavelin;
@@ -107,7 +108,9 @@ public class ContextManager extends AbstractRunnableManager {
 	private static final String REQUEST_CONTEXT_CACHE_ATTRIBUTE = ContextManager.class.getName() + ".requestContextCache";
 	private static final String REDIS_CONTEXT_LOCK_PREFIX = "lock:context:";
 	private static final String REDIS_CONTEXT_ABORT_TOPIC = "topic:context:abort";
+	private static final String REDIS_CONTEXT_REMOVE_ALL_TOPIC = "topic:context:remove-all";
 	private static final String REDIS_CONTEXT_INFLIGHT_KEY = "inflight:contexts";
+	private static final String LOCAL_INSTANCE_ID = InstanceIdentity.getLocalInstanceId();
 
 
 	private Map<String, Context> contexts;
@@ -121,6 +124,8 @@ public class ContextManager extends AbstractRunnableManager {
 	private final ConcurrentHashMap<String, ContextLockEntry> contextLocks = new ConcurrentHashMap<>();
 	private transient RTopic abortTopic;
 	private transient int abortTopicListenerId = -1;
+	private transient RTopic removeAllTopic;
+	private transient int removeAllTopicListenerId = -1;
 	private transient RMapCache<String, String> inflightContexts;
 
 	private static final class ContextLockEntry {
@@ -232,6 +237,7 @@ public class ContextManager extends AbstractRunnableManager {
 
 		super.destroy();
 		shutdownAbortListener();
+		shutdownRemoveAllListener();
 		shutdownInflightIndex();
 
 		if (contextStore != null) {
@@ -288,6 +294,7 @@ public class ContextManager extends AbstractRunnableManager {
 
 	private synchronized void reconfigureRedisRuntime(SessionStoreMode targetMode) {
 		shutdownAbortListener();
+		shutdownRemoveAllListener();
 		shutdownInflightIndex();
 		if (contextStore != null) {
 			try {
@@ -304,6 +311,7 @@ public class ContextManager extends AbstractRunnableManager {
 		contextStore = new RedisContextStore(RedisClients.getConfiguration());
 		Engine.logContextManager.info("(ContextManager) Using Redis context store");
 		initAbortListener();
+		initRemoveAllListener();
 		initInflightIndex();
 	}
 
@@ -442,6 +450,32 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 	}
 
+	private void initRemoveAllListener() {
+		try {
+			var cfg = RedisClients.getConfiguration();
+			String topicKey = cfg.getContextKeyPrefix() + REDIS_CONTEXT_REMOVE_ALL_TOPIC;
+			removeAllTopic = RedisClients.getClient().getTopic(topicKey, StringCodec.INSTANCE);
+			removeAllTopicListenerId = removeAllTopic.addListener(String.class, (channel, instanceId) -> {
+				handleRemoveAllRequest(instanceId);
+			});
+			Engine.logContextManager.info("(ContextManager) Listening Redis context remove-all topic: " + topicKey);
+		} catch (Exception e) {
+			Engine.logContextManager.warn("(ContextManager) Failed to subscribe Redis remove-all topic", e);
+		}
+	}
+
+	private void shutdownRemoveAllListener() {
+		try {
+			if (removeAllTopic != null && removeAllTopicListenerId != -1) {
+				removeAllTopic.removeListener(removeAllTopicListenerId);
+			}
+		} catch (Exception ignore) {
+		} finally {
+			removeAllTopic = null;
+			removeAllTopicListenerId = -1;
+		}
+	}
+
 	private void handleAbortRequest(String contextID) {
 		if (contextID == null || contextID.isBlank() || contexts == null) {
 			return;
@@ -457,6 +491,16 @@ public class ContextManager extends AbstractRunnableManager {
 		} catch (Exception e) {
 			Engine.logContextManager.warn("(ContextManager) Failed to abort context " + contextID, e);
 		}
+	}
+
+	private void handleRemoveAllRequest(String instanceId) {
+		if (contexts == null) {
+			return;
+		}
+		if (instanceId != null && instanceId.equals(LOCAL_INSTANCE_ID)) {
+			return;
+		}
+		abortAndRemoveLocalContextsBestEffort();
 	}
 
 	public boolean requestAbort(String contextID) {
@@ -543,6 +587,46 @@ public class ContextManager extends AbstractRunnableManager {
 			ok = requestAbort(cid) && ok;
 		}
 		return ok;
+	}
+
+	public boolean requestAbortAllContexts() {
+		if (!ConvertigoHttpSessionManager.isRedisMode()) {
+			return false;
+		}
+		try {
+			if (removeAllTopic == null) {
+				var cfg = RedisClients.getConfiguration();
+				String topicKey = cfg.getContextKeyPrefix() + REDIS_CONTEXT_REMOVE_ALL_TOPIC;
+				removeAllTopic = RedisClients.getClient().getTopic(topicKey, StringCodec.INSTANCE);
+			}
+			removeAllTopic.publish(LOCAL_INSTANCE_ID);
+			return true;
+		} catch (Exception e) {
+			Engine.logContextManager.warn("(ContextManager) Failed to publish remove-all contexts command", e);
+			return false;
+		}
+	}
+
+	public void removeAllClusterWide() {
+		if (ConvertigoHttpSessionManager.isRedisMode()) {
+			requestAbortAllContexts();
+		}
+		removeAll();
+	}
+
+	private void abortAndRemoveLocalContextsBestEffort() {
+		if (contexts == null) {
+			return;
+		}
+		var contextIds = new ArrayList<String>(contexts.keySet());
+		Collections.sort(contextIds);
+		for (String contextID : contextIds) {
+			if (contextID == null || contextID.isBlank()) {
+				continue;
+			}
+			handleAbortRequest(contextID);
+			tryRemove(contextID, 0L);
+		}
 	}
 
 	private void loadParameters() {

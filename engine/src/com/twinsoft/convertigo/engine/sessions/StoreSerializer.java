@@ -66,7 +66,7 @@ final class StoreSerializer {
 			try {
 				snapshot.put(name, JsonCodec.MAPPER.writeValueAsString(value));
 			} catch (Exception e) {
-				debug("(StoreSerializer) Skip field '" + name + "' (" + field.getType().getName() + "): " + e);
+				Engine.logRedis.debug("(StoreSerializer) Skip field '" + name + "' (" + field.getType().getName() + "): " + e);
 			}
 		}
 		return snapshot;
@@ -77,7 +77,7 @@ final class StoreSerializer {
 			JsonCodec.MAPPER.writeValueAsString(value);
 			return true;
 		} catch (Exception e) {
-			debug("(StoreSerializer) value not serializable: " + e.getMessage());
+			Engine.logRedis.debug("(StoreSerializer) value not serializable: " + e.getMessage());
 			return false;
 		}
 	}
@@ -111,7 +111,7 @@ final class StoreSerializer {
 				field.setAccessible(true);
 				field.set(target, value);
 			} catch (Exception e) {
-				debug("(StoreSerializer) Failed to set field '" + name + "': " + e.getMessage());
+				Engine.logRedis.debug("(StoreSerializer) Failed to set field '" + name + "': " + e.getMessage());
 			}
 		}
 	}
@@ -143,18 +143,8 @@ final class StoreSerializer {
 			field.setAccessible(true);
 			return field.get(bean);
 		} catch (Exception e) {
-			debug("(StoreSerializer) Failed to read field '" + field.getName() + "': " + e.getMessage());
+			Engine.logRedis.debug("(StoreSerializer) Failed to read field '" + field.getName() + "': " + e.getMessage());
 			return null;
-		}
-	}
-
-	private static void debug(String message) {
-		try {
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug(message);
-			}
-		} catch (Exception ignore) {
-			// ignore logging failures
 		}
 	}
 }

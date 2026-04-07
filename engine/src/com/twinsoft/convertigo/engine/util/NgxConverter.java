@@ -1786,6 +1786,7 @@ public class NgxConverter {
 		Engine.logCertificateManager = Logger.getLogger("cems.CertificateManager");
 		Engine.logDatabaseObjectManager = Logger.getLogger("cems.DatabaseObjectManager");
 		Engine.logProxyManager = Logger.getLogger("cems.ProxyManager");
+		Engine.logRedis = Logger.getLogger("cems.Redis");
 		Engine.logDevices = Logger.getLogger("cems.Devices");
 		Engine.logCouchDbManager = Logger.getLogger("cems.CouchDbManager");
 		Engine.logSecurityTokenManager = Logger.getLogger("cems.SecurityTokenManager");

@@ -247,7 +247,7 @@ public class RemoteAdministration {
 		try {
 			Engine.logEngine.debug("[RemoteAdministration] syncProperties() Received properties:\n"
 					+ sProperties);
-			EnginePropertiesManager.load(sProperties);
+			EnginePropertiesManager.syncProperties(sProperties);
 			EnginePropertiesManager.saveProperties();
 		} catch (Exception e) {
 			Engine.logEngine.error("[RemoteAdministration] syncProperties() Unable to synchronize properties",

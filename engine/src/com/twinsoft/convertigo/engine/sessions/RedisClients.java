@@ -108,9 +108,7 @@ public final class RedisClients {
 						client.shutdown();
 					}
 				} catch (Exception e) {
-					if (Engine.logEngine != null) {
-						Engine.logEngine.debug("(RedisClients) Failed to shutdown shared Redis client", e);
-					}
+					Engine.logRedis.debug("(RedisClients) Failed to shutdown shared Redis client", e);
 				}
 			}, "convertigo-redis-clients-shutdown"));
 			shutdownHookRegistered = true;
@@ -126,9 +124,7 @@ public final class RedisClients {
 		try {
 			clientToShutdown.shutdown();
 		} catch (Exception e) {
-			if (Engine.logEngine != null) {
-				Engine.logEngine.debug("(RedisClients) Failed to shutdown previous shared Redis client", e);
-			}
+			Engine.logRedis.debug("(RedisClients) Failed to shutdown previous shared Redis client", e);
 		}
 	}
 }

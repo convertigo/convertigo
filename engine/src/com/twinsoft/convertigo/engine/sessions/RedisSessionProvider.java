@@ -57,11 +57,12 @@ final class RedisSessionProvider implements SessionProvider {
 		var response = (HttpServletResponse) request.getAttribute("response");
 		// Reuse session created earlier in the same request to avoid double-creation.
 		var sessionId = cookieHelper.resolveSessionId(request, configuration.getCookieName());
-		debug("Incoming sessionId=" + sessionId + ", create=" + create);
+		Engine.logRedis.debug("(RedisSessionProvider) Incoming sessionId=" + sessionId + ", create=" + create);
 		SessionStoreMeta meta = null;
 		if (sessionId != null) {
 			meta = store.readMeta(sessionId);
-			debug("Read session meta " + sessionId + ": " + (meta != null ? "hit" : "miss"));
+			Engine.logRedis.debug("(RedisSessionProvider) Read session meta " + sessionId + ": "
+					+ (meta != null ? "hit" : "miss"));
 		}
 		RedisHttpSession session = null;
 		if (meta != null) {
@@ -69,28 +70,18 @@ final class RedisSessionProvider implements SessionProvider {
 		}
 		if (session == null) {
 			if (!create) {
-				debug("No existing session and create=false");
+				Engine.logRedis.debug("(RedisSessionProvider) No existing session and create=false");
 				return null;
 			}
 			sessionId = cookieHelper.generateSessionId();
 			session = RedisHttpSession.newSession(store, request.getServletContext(), configuration, sessionId);
-			debug("Created new session " + sessionId + " [redis-hash]");
+			Engine.logRedis.debug("(RedisSessionProvider) Created new session " + sessionId + " [redis-hash]");
 		}
 		session.markAccessed();
 		threadSessions.get().put(session.getId(), session);
 		cookieHelper.ensureCookie(request, response, sessionId, configuration.getCookieName());
 		request.setAttribute(REQUEST_SESSION_OBJECT_ATTR, session);
 		return session;
-	}
-
-	private void debug(String message) {
-		try {
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug("(RedisSessionProvider) " + message);
-			}
-		} catch (Exception ignore) {
-			// ignore logging failures
-		}
 	}
 
 	@Override
@@ -104,7 +95,7 @@ final class RedisSessionProvider implements SessionProvider {
 				try {
 					session.flush();
 				} catch (Exception e) {
-					debug("flush session failed: " + e.getMessage());
+					Engine.logRedis.debug("(RedisSessionProvider) flush session failed: " + e.getMessage());
 				}
 			}
 		} finally {
@@ -121,7 +112,7 @@ final class RedisSessionProvider implements SessionProvider {
 			store.delete(sessionId);
 			return true;
 		} catch (Exception e) {
-			debug("terminateSession failed: " + e.getMessage());
+			Engine.logRedis.debug("(RedisSessionProvider) terminateSession failed: " + e.getMessage());
 			return false;
 		}
 	}
@@ -141,11 +132,11 @@ final class RedisSessionProvider implements SessionProvider {
 					store.delete(sessionId);
 					count++;
 				} catch (Exception e) {
-					debug("terminateAllSessions delete failed: " + e.getMessage());
+					Engine.logRedis.debug("(RedisSessionProvider) terminateAllSessions delete failed: " + e.getMessage());
 				}
 			}
 		} catch (Exception e) {
-			debug("terminateAllSessions failed: " + e.getMessage());
+			Engine.logRedis.debug("(RedisSessionProvider) terminateAllSessions failed: " + e.getMessage());
 		}
 		return count;
 	}
@@ -165,11 +156,11 @@ final class RedisSessionProvider implements SessionProvider {
 					store.delete(sessionId);
 					count++;
 				} catch (Exception e) {
-					debug("purgeAllSessions delete failed: " + e.getMessage());
+					Engine.logRedis.debug("(RedisSessionProvider) purgeAllSessions delete failed: " + e.getMessage());
 				}
 			}
 		} catch (Exception e) {
-			debug("purgeAllSessions failed: " + e.getMessage());
+			Engine.logRedis.debug("(RedisSessionProvider) purgeAllSessions failed: " + e.getMessage());
 		}
 		return count;
 	}

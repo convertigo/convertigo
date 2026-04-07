@@ -121,7 +121,7 @@ final class RedisSessionStore implements SessionStore {
 				countedSessionsIndex.removeAll(staleSessionIds);
 				legacyLicensedSessionsIndex.removeAll(staleSessionIds);
 			} catch (Exception e) {
-				debug("Failed to cleanup counted sessions index: " + e.getMessage());
+				Engine.logRedis.debug("(RedisSessionStore) Failed to cleanup counted sessions index: " + e.getMessage());
 			}
 		}
 		return validSessionIds;
@@ -142,7 +142,8 @@ final class RedisSessionStore implements SessionStore {
 			}
 			countedSessionsBillingIndex.fastPut(session.getId(), raw);
 		} catch (Exception e) {
-			debug("Failed to update counted session billing snapshot for " + session.getId() + ": " + e.getMessage());
+			Engine.logRedis.debug("(RedisSessionStore) Failed to update counted session billing snapshot for "
+					+ session.getId() + ": " + e.getMessage());
 		}
 		return false;
 	}
@@ -169,7 +170,8 @@ final class RedisSessionStore implements SessionStore {
 				countedSessionsBillingIndex.fastPut(session.getId(), json.toString());
 			}
 		} catch (Exception e) {
-			debug("Failed to sync counted session billing authenticated user for " + session.getId() + ": " + e.getMessage());
+			Engine.logRedis.debug("(RedisSessionStore) Failed to sync counted session billing authenticated user for "
+					+ session.getId() + ": " + e.getMessage());
 		}
 	}
 
@@ -200,7 +202,8 @@ final class RedisSessionStore implements SessionStore {
 					sessionId, json.optString("clientIP"), json.optString("userAgent"),
 					json.optString("authenticatedUser"), json.optString("deviceUUID"), Math.max(score, 0));
 		} catch (Exception e) {
-			debug("Failed to emit stop billing for " + sessionId + ": " + e.getMessage());
+			Engine.logRedis.debug("(RedisSessionStore) Failed to emit stop billing for " + sessionId + ": "
+					+ e.getMessage());
 		}
 	}
 
@@ -223,23 +226,23 @@ final class RedisSessionStore implements SessionStore {
 		try {
 			var rmap = map(sessionId);
 			if (!rmap.isExists()) {
-				debug("MISS " + sessionId);
+				Engine.logRedis.debug("(RedisSessionStore) MISS " + sessionId);
 				return null;
 			}
 			var meta = rmap.getAll(Set.of(SessionStoreKeys.META_CREATION, SessionStoreKeys.META_LAST_ACCESS,
 					SessionStoreKeys.META_MAX_INACTIVE));
 			if (meta == null || meta.isEmpty()) {
-				debug("MISS(meta) " + sessionId);
+				Engine.logRedis.debug("(RedisSessionStore) MISS(meta) " + sessionId);
 				return null;
 			}
 			var now = System.currentTimeMillis();
 			var creationTime = parseLong(meta.get(SessionStoreKeys.META_CREATION), now);
 			var lastAccessedTime = parseLong(meta.get(SessionStoreKeys.META_LAST_ACCESS), creationTime);
 			var maxInactive = parseInt(meta.get(SessionStoreKeys.META_MAX_INACTIVE), configuration.getDefaultTtlSeconds());
-			debug("HIT(meta) " + sessionId);
+			Engine.logRedis.debug("(RedisSessionStore) HIT(meta) " + sessionId);
 			return new SessionStoreMeta(creationTime, lastAccessedTime, maxInactive);
 		} catch (Exception e) {
-			log("(RedisSessionStore) Failed to read session meta " + sessionId, e);
+			Engine.logRedis.warn("(RedisSessionStore) Failed to read session meta " + sessionId, e);
 			return null;
 		}
 	}
@@ -252,7 +255,7 @@ final class RedisSessionStore implements SessionStore {
 		try {
 			return map(sessionId).get(name);
 		} catch (Exception e) {
-			log("(RedisSessionStore) Failed to read attribute '" + name + "' for session " + sessionId, e);
+			Engine.logRedis.warn("(RedisSessionStore) Failed to read attribute '" + name + "' for session " + sessionId, e);
 			return null;
 		}
 	}
@@ -272,7 +275,7 @@ final class RedisSessionStore implements SessionStore {
 			}
 			return names;
 		} catch (Exception e) {
-			log("(RedisSessionStore) Failed to read attribute names for session " + sessionId, e);
+			Engine.logRedis.warn("(RedisSessionStore) Failed to read attribute names for session " + sessionId, e);
 			return Set.of();
 		}
 	}
@@ -316,13 +319,13 @@ final class RedisSessionStore implements SessionStore {
 					}
 				}
 			} catch (Exception e) {
-				debug("Failed to update sessions index for " + sessionId + ": " + e.getMessage());
+				Engine.logRedis.debug("(RedisSessionStore) Failed to update sessions index for " + sessionId + ": "
+						+ e.getMessage());
 			}
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				debug("FLUSH " + sessionId + " set=" + setCount + " del=" + delCount + " ttlMillis=" + ttlMillis);
-			}
+			Engine.logRedis.debug("(RedisSessionStore) FLUSH " + sessionId + " set=" + setCount + " del="
+					+ delCount + " ttlMillis=" + ttlMillis);
 		} catch (Exception e) {
-			log("(RedisSessionStore) Failed to flush delta for session " + sessionId, e);
+			Engine.logRedis.warn("(RedisSessionStore) Failed to flush delta for session " + sessionId, e);
 		}
 	}
 
@@ -369,37 +372,18 @@ final class RedisSessionStore implements SessionStore {
 				legacyLicensedSessionsIndex.remove(sessionId);
 				countedSessionsBillingIndex.remove(sessionId);
 			} catch (Exception e) {
-				debug("Failed to remove " + sessionId + " from sessions index: " + e.getMessage());
+				Engine.logRedis.debug("(RedisSessionStore) Failed to remove " + sessionId + " from sessions index: "
+						+ e.getMessage());
 			}
-			debug("DEL(hash) " + sessionId);
+			Engine.logRedis.debug("(RedisSessionStore) DEL(hash) " + sessionId);
 		} catch (Exception e) {
-			log("(RedisSessionStore) Failed to delete session " + sessionId, e);
+			Engine.logRedis.warn("(RedisSessionStore) Failed to delete session " + sessionId, e);
 		}
 	}
 
 	@Override
 	public void shutdown() {
 		// Shared JVM-wide Redis client is shut down by RedisClients.
-	}
-
-	private void log(String message, Exception e) {
-		try {
-			if (Engine.logEngine != null) {
-				Engine.logEngine.warn(message, e);
-			}
-		} catch (Exception ignore) {
-			// ignore
-		}
-	}
-
-	private void debug(String message) {
-		try {
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug("(RedisSessionStore) " + message);
-			}
-		} catch (Exception ignore) {
-			// ignore
-		}
 	}
 
 	private static long parseLong(String value, long defaultValue) {

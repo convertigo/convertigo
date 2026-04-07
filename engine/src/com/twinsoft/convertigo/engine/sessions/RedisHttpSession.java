@@ -142,7 +142,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				try {
 					hset.put(name, codec.serialize(name, value));
 				} catch (Exception e) {
-					log("(RedisHttpSession) Skip attribute '" + name + "' serialization failure", e);
+					Engine.logRedis.warn("(RedisHttpSession) Skip attribute '" + name + "' serialization failure", e);
 					hdel.add(name);
 					cache.put(name, NULL);
 				}
@@ -244,7 +244,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				cache.put(name, value != null ? value : NULL);
 				return value;
 			} catch (Exception e) {
-				log("(RedisHttpSession) Failed to deserialize attribute '" + name + "'", e);
+				Engine.logRedis.warn("(RedisHttpSession) Failed to deserialize attribute '" + name + "'", e);
 				removedAttributes.add(name);
 				dirtyAttributes.remove(name);
 				cache.put(name, NULL);
@@ -333,7 +333,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			try {
 				store.delete(id);
 			} catch (Exception e) {
-				log("(RedisHttpSession) Failed to invalidate session", e);
+				Engine.logRedis.warn("(RedisHttpSession) Failed to invalidate session", e);
 			} finally {
 				LOCAL_STORE.invalidate(id);
 				synchronized (mutex) {
@@ -408,20 +408,6 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	private void ensureValid() {
 		if (invalidated.get()) {
 			throw new IllegalStateException("Session has been invalidated");
-		}
-	}
-
-	private void log(String message, Exception e) {
-		try {
-			if (Engine.logEngine != null) {
-				if (e == null) {
-					Engine.logEngine.warn(message);
-				} else {
-					Engine.logEngine.warn(message, e);
-				}
-			}
-		} catch (Exception ignore) {
-			// ignore
 		}
 	}
 
@@ -582,9 +568,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				try {
 					closeable.close();
 				} catch (Exception e) {
-					if (Engine.logEngine != null) {
-						Engine.logEngine.warn("(RedisHttpSession) Failed to close local session attribute", e);
-					}
+					Engine.logRedis.warn("(RedisHttpSession) Failed to close local session attribute", e);
 				}
 			}
 		}

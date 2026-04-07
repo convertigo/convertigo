@@ -149,12 +149,12 @@ public final class RedisContextStore implements ContextStore {
 						ctx.httpState = httpState;
 					}
 				} catch (Exception e) {
-					Engine.logEngine.debug("(RedisContextStore) Failed to restore httpState for context " + contextId, e);
+					Engine.logRedis.debug("(RedisContextStore) Failed to restore httpState for context " + contextId, e);
 				}
 			}
 			return ctx;
 		} catch (Exception e) {
-			log("(RedisContextStore) Failed to read context " + contextId, e);
+			Engine.logRedis.warn("(RedisContextStore) Failed to read context " + contextId, e);
 			return null;
 		}
 	}
@@ -219,7 +219,7 @@ public final class RedisContextStore implements ContextStore {
 						snapshot.put("__meta:httpState", JsonCodec.MAPPER.writeValueAsString(stateMap));
 					}
 				} catch (Exception e) {
-					Engine.logEngine.debug("(RedisContextStore) Failed to serialize httpState for context " + context.contextID, e);
+					Engine.logRedis.debug("(RedisContextStore) Failed to serialize httpState for context " + context.contextID, e);
 				}
 			}
 			var rmap = map(context.contextID);
@@ -251,10 +251,10 @@ public final class RedisContextStore implements ContextStore {
 			try {
 				contextsIndex.add(context.contextID);
 			} catch (Exception e) {
-				Engine.logEngine.debug("(RedisContextStore) Failed to update contexts index for " + context.contextID, e);
+				Engine.logRedis.debug("(RedisContextStore) Failed to update contexts index for " + context.contextID, e);
 			}
 		} catch (Exception e) {
-			log("(RedisContextStore) Failed to save context " + context.contextID, e);
+			Engine.logRedis.warn("(RedisContextStore) Failed to save context " + context.contextID, e);
 		}
 	}
 
@@ -265,10 +265,10 @@ public final class RedisContextStore implements ContextStore {
 			try {
 				contextsIndex.remove(contextId);
 			} catch (Exception e) {
-				Engine.logEngine.debug("(RedisContextStore) Failed to remove " + contextId + " from contexts index", e);
+				Engine.logRedis.debug("(RedisContextStore) Failed to remove " + contextId + " from contexts index", e);
 			}
 		} catch (Exception e) {
-			log("(RedisContextStore) Failed to delete context " + contextId, e);
+			Engine.logRedis.warn("(RedisContextStore) Failed to delete context " + contextId, e);
 		}
 	}
 
@@ -289,7 +289,7 @@ public final class RedisContextStore implements ContextStore {
 				}
 			}
 		} catch (Exception e) {
-			log("(RedisContextStore) Failed to delete contexts by prefix " + sessionIdPrefix, e);
+			Engine.logRedis.warn("(RedisContextStore) Failed to delete contexts by prefix " + sessionIdPrefix, e);
 		}
 	}
 
@@ -318,7 +318,7 @@ public final class RedisContextStore implements ContextStore {
 					context.set(ctxKey, value);
 				}
 			} catch (Exception e) {
-				Engine.logEngine.debug("(RedisContextStore) Failed to deserialize context value '" + ctxKey + "' for context " + context.contextID, e);
+				Engine.logRedis.debug("(RedisContextStore) Failed to deserialize context value '" + ctxKey + "' for context " + context.contextID, e);
 			}
 		}
 	}
@@ -351,7 +351,7 @@ public final class RedisContextStore implements ContextStore {
 					snapshot.put(DATA_PREFIX + key, raw);
 				}
 			} catch (Exception e) {
-				Engine.logEngine.debug("(RedisContextStore) Skip context value '" + key + "' (serialization failure) for context " + context.contextID, e);
+				Engine.logRedis.debug("(RedisContextStore) Skip context value '" + key + "' (serialization failure) for context " + context.contextID, e);
 			}
 		}
 	}
@@ -383,17 +383,4 @@ public final class RedisContextStore implements ContextStore {
 		snapshot.put("__meta:" + name, JsonCodec.MAPPER.writeValueAsString(value));
 	}
 
-	private void log(String message, Exception e) {
-		try {
-			if (Engine.logEngine != null) {
-				if (e == null) {
-					Engine.logEngine.warn(message);
-				} else {
-					Engine.logEngine.warn(message, e);
-				}
-			}
-		} catch (Exception ignore) {
-			// ignore
-		}
-	}
 }

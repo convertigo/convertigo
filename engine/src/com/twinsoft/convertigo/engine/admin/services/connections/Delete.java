@@ -67,7 +67,7 @@ public class Delete extends XmlService {
 		}
 
 		if ("true".equals(request.getParameter("removeAll"))) {
-			Engine.theApp.contextManager.removeAll();
+			Engine.theApp.contextManager.removeAllClusterWide();
 			int sessionsRemoved = ConvertigoHttpSessionManager.getInstance().terminateAllSessions(request.getSession().getId());
 			ServiceUtils.addMessage(document,
 					"All contexts removed, sessions removed: " + sessionsRemoved,
@@ -76,7 +76,7 @@ public class Delete extends XmlService {
 		}
 
 		if ("true".equals(request.getParameter("purgeRedisAll"))) {
-			Engine.theApp.contextManager.removeAll();
+			Engine.theApp.contextManager.removeAllClusterWide();
 			int sessionsRemoved = ConvertigoHttpSessionManager.getInstance().purgeAllSessions(request.getSession().getId());
 			ServiceUtils.addMessage(document,
 					"All Redis sessions purged, sessions removed: " + sessionsRemoved,

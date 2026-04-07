@@ -111,7 +111,7 @@ public final class RedisInstanceDiscovery {
 			try {
 				scheduler.scheduleAtFixedRate(RedisInstanceDiscovery::heartbeat, 0L, HEARTBEAT_SECONDS, TimeUnit.SECONDS);
 			} catch (Exception e) {
-				safeLogWarn("(RedisInstanceDiscovery) Failed to schedule heartbeat", e);
+				Engine.logRedis.warn("(RedisInstanceDiscovery) Failed to schedule heartbeat", e);
 			}
 		}
 	}
@@ -530,7 +530,7 @@ public final class RedisInstanceDiscovery {
 			String json = JSON.writeValueAsString(payload);
 			map.fastPut(id, json, TTL_SECONDS, TimeUnit.SECONDS);
 		} catch (Exception e) {
-			safeLogDebug("(RedisInstanceDiscovery) heartbeat failed", e);
+			Engine.logRedis.debug("(RedisInstanceDiscovery) heartbeat failed", e);
 		}
 	}
 
@@ -578,21 +578,4 @@ public final class RedisInstanceDiscovery {
 		return s.isEmpty() ? null : s;
 	}
 
-	private static void safeLogWarn(String message, Exception e) {
-		try {
-			if (Engine.logEngine != null) {
-				Engine.logEngine.warn(message, e);
-			}
-		} catch (Exception ignore) {
-		}
-	}
-
-	private static void safeLogDebug(String message, Exception e) {
-		try {
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug(message, e);
-			}
-		} catch (Exception ignore) {
-		}
-	}
 }
