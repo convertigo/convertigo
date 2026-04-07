@@ -1,8 +1,10 @@
+import Authentication from '$lib/common/Authentication.svelte';
 import { call, checkArray } from '$lib/utils/service';
 import { decode } from 'html-entities';
 import ServiceHelper from './ServiceHelper.svelte';
 
 const defValues = {
+	accessDenied: false,
 	projects: new Array(10).fill({
 		name: null,
 		comment: null,
@@ -73,9 +75,25 @@ export default ServiceHelper({
 	defValues,
 	values,
 	needAuth: false,
-	service: 'projects.List',
+	service: async () => {
+		const res = await call('projects.List');
+		if (
+			res?.isError &&
+			Authentication.authenticated &&
+			!Authentication.canAccessDashboard &&
+			/authentication failure/i.test(
+				String(res?.error?.message ?? res?.message ?? res?.error ?? '')
+			)
+		) {
+			return {
+				accessDenied: true,
+				admin: { projects: { project: [] } }
+			};
+		}
+		return res;
+	},
 	arrays: ['admin.projects.project'],
-	mapping: { projects: 'admin.projects.project' },
+	mapping: { projects: 'admin.projects.project', accessDenied: 'accessDenied' },
 	beforeUpdate: (res) => {
 		for (const project of res.projects) {
 			project.comment = decode(project.comment);

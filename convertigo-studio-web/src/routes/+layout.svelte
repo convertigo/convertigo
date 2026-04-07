@@ -2,7 +2,7 @@
 	import '../app.css';
 	import { Toast } from '@skeletonlabs/skeleton-svelte';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { asset, resolve } from '$app/paths';
+	import { asset } from '$app/paths';
 	import { page } from '$app/state';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -13,6 +13,7 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Light from '$lib/common/Light.svelte';
+	import { resolve } from '$lib/utils/route';
 	import { setModalAlert, toaster } from '$lib/utils/service';
 	import { getContext, setContext } from 'svelte';
 	import { slide } from 'svelte/transition';
@@ -54,9 +55,12 @@
 		const isLoginRoute = routeId == '/(root)/login';
 		const isRootRoute = routeId == null || routeId == '/(root)';
 		const isAdminRoute = page.url.pathname.startsWith(resolve('/admin/'));
+		const defaultAdminPage = Authentication.defaultAdminPage
+			? resolve(/** @type {any} */ (Authentication.defaultAdminPage))
+			: null;
 		if (isRootRoute) {
-			if (Authentication.canAccessAdmin) {
-				goto(resolve('/admin/'));
+			if (Authentication.canAccessAdmin && defaultAdminPage) {
+				goto(defaultAdminPage);
 			} else if (Authentication.canAccessDashboard) {
 				goto(resolve('/dashboard/'));
 			} else {
@@ -66,10 +70,26 @@
 		}
 		if (isAdminRoute && !Authentication.canAccessAdmin) {
 			const redirect = encodeURIComponent(page.url.pathname + page.url.search);
-			goto(`${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`);
+			if (!Authentication.authenticated) {
+				goto(`${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`);
+			} else if (Authentication.canAccessDashboard) {
+				goto(resolve('/dashboard/'));
+			} else {
+				goto(`${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`);
+			}
 			return;
 		}
-		if (!Authentication.canAccessDashboard && !isLoginRoute) {
+		if (isAdminRoute && routeId && !Authentication.canAccessAdminRoute(routeId)) {
+			if (defaultAdminPage) {
+				goto(defaultAdminPage);
+			} else if (Authentication.canAccessDashboard) {
+				goto(resolve('/dashboard/'));
+			} else {
+				goto(resolve('/login/'));
+			}
+			return;
+		}
+		if (!Authentication.canAccessDashboard && !Authentication.canAccessAdmin && !isLoginRoute) {
 			if (page.url.pathname.endsWith('.html/') || page.error) {
 				goto(resolve('/login/'));
 			} else {
@@ -77,8 +97,17 @@
 			}
 			return;
 		}
-		if (isLoginRoute && Authentication.canAccessAdmin) {
-			goto(resolve('/admin/'));
+		if (
+			isLoginRoute &&
+			Authentication.authenticated &&
+			Authentication.canAccessAdmin &&
+			defaultAdminPage
+		) {
+			goto(defaultAdminPage);
+			return;
+		}
+		if (isLoginRoute && Authentication.authenticated && Authentication.canAccessDashboard) {
+			goto(resolve('/dashboard/'));
 			return;
 		}
 

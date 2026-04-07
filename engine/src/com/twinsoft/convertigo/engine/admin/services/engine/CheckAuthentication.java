@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.engine.admin.services.engine;
 
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,18 +49,45 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 public class CheckAuthentication extends XmlService {
 	static String timezone = Calendar.getInstance().getTimeZone().getDisplayName(false, TimeZone.SHORT);
 
+	private static void setPublicDashboardAccess(HttpSession httpSession, Role[] roles) {
+		if (roles == null) {
+			roles = new Role[0];
+		}
+		Set<Role> merged = new LinkedHashSet<>(Arrays.asList(roles));
+		merged.add(Role.TEST_PLATFORM);
+		Engine.authenticatedSessionManager.addAuthenticatedSession(httpSession, merged.toArray(new Role[0]));
+		httpSession.setAttribute(SessionKey.ADMIN_PUBLIC_DASHBOARD.toString(), Boolean.TRUE);
+	}
+
+	private static void clearPublicDashboardAccess(HttpSession httpSession, Role[] roles) {
+		httpSession.removeAttribute(SessionKey.ADMIN_PUBLIC_DASHBOARD.toString());
+		if (roles == null || !Engine.authenticatedSessionManager.isAuthenticated(httpSession)) {
+			Engine.authenticatedSessionManager.removeAuthenticatedSession(httpSession);
+			return;
+		}
+		Set<Role> retained = new LinkedHashSet<>(Arrays.asList(roles));
+		retained.remove(Role.TEST_PLATFORM);
+		Engine.authenticatedSessionManager.addAuthenticatedSession(httpSession, retained.toArray(new Role[0]));
+	}
+
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		HttpSession httpSession = request.getSession(false);
 		
-		// Handle anonymous access for dashboard
-		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANONYMOUS_DASHBOARD)) {
+		boolean anonymousDashboard = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANONYMOUS_DASHBOARD);
+		if (anonymousDashboard) {
 			if (httpSession == null) {
 				httpSession = request.getSession(true);
 			}
-			if (!Engine.authenticatedSessionManager.isAuthenticated(httpSession)) {
-				Engine.authenticatedSessionManager.addAuthenticatedSession(httpSession, new Role[] { Role.TEST_PLATFORM });
+			Role[] roles = Engine.authenticatedSessionManager.getRoles(httpSession);
+			if (!Engine.authenticatedSessionManager.hasRole(httpSession, Role.TEST_PLATFORM)) {
+				setPublicDashboardAccess(httpSession, roles);
 			}
+		} else if (
+			httpSession != null &&
+			Boolean.TRUE.equals(httpSession.getAttribute(SessionKey.ADMIN_PUBLIC_DASHBOARD.toString()))
+		) {
+			clearPublicDashboardAccess(httpSession, Engine.authenticatedSessionManager.getRoles(httpSession));
 		}
 		
 		boolean bAuthenticated = Engine.authenticatedSessionManager.isAuthenticated(httpSession);

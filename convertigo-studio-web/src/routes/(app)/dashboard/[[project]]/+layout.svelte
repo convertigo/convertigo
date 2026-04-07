@@ -23,9 +23,7 @@
 	});
 
 	let canEditInAdmin = $derived(
-		Authentication.canAccessAdmin ||
-			Authentication.hasRole('PROJECT_DBO_VIEW') ||
-			Authentication.hasRole('PROJECT_DBO_CONFIG')
+		Authentication.canAccessAdminRoute('/(app)/admin/projects/[project]')
 	);
 	let projectName = $derived(page.params?.project);
 	let currentProject = $derived.by(() =>
