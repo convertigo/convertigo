@@ -43,7 +43,7 @@ public class LogStep extends Step implements ITagsProperty {
 	private static final long serialVersionUID = -700241502764617513L;
 	private String level = Level.INFO.toString();
 	private String logger = "cems.Context"; //Engine.logContext.getName();
-	private String expression = defaultBeanName("");
+	private String expression = "\"\"";
 	
 	public LogStep() {
 		super();
@@ -193,6 +193,6 @@ public class LogStep extends Step implements ITagsProperty {
 	
 	@Override
 	protected String defaultBeanName(String displayName) {
-		return "//todo";
+		return displayName;
 	}
 }
