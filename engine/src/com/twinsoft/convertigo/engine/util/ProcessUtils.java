@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
+import com.twinsoft.convertigo.engine.proxy.ntlm.NtlmConnectProxyBridge;
 
 public class ProcessUtils {
 	private static String defaultNodeVersion = "v22.16.0";
@@ -241,28 +242,33 @@ public class ProcessUtils {
 		if (proxyMode.equals(ProxyMode.manual.getValue())) {
 			String proxyAuthMethod = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_METHOD);
 
-			if (proxyAuthMethod.equals(ProxyMethod.anonymous.getValue()) || proxyAuthMethod.equals(ProxyMethod.basic.getValue())) {
+			if (proxyAuthMethod.equals(ProxyMethod.anonymous.getValue()) || proxyAuthMethod.equals(ProxyMethod.basic.getValue()) || proxyAuthMethod.equals(ProxyMethod.ntlm.getValue())) {
 				Map<String, String> pbEnv = pb.environment();
-				String proxyHost = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_HOST);
-				String proxyPort = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PORT);
+				String npmProxy = null;
 
-				String npmProxy = proxyHost + ":" + proxyPort;
+				if (proxyAuthMethod.equals(ProxyMethod.ntlm.getValue())) {
+					npmProxy = NtlmConnectProxyBridge.getLocalProxyUrl();
+					Engine.logProxyManager.info("(ProcessUtils) Use local NTLM npm proxy " + npmProxy + " for " + String.join(" ", command));
+				} else {
+					String proxyHost = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_HOST);
+					String proxyPort = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PORT);
+					npmProxy = "http://" + proxyHost + ":" + proxyPort;
+				}
 
 				if (proxyAuthMethod.equals(ProxyMethod.basic.getValue())) {
 					String proxyUser = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_USER);
 					String proxyPassword = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PASSWORD);
-
-					npmProxy = proxyUser + ":" + proxyPassword + "@" + npmProxy;
+					npmProxy = npmProxy.replace("http://", "http://" + proxyUser + ":" + proxyPassword + "@");
 				}
 
 				String noProxy = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS);
 
-				pbEnv.put("http-proxy", "http://" + npmProxy);
-				pbEnv.put("https-proxy", "http://" + npmProxy);
+				pbEnv.put("http-proxy", npmProxy);
+				pbEnv.put("https-proxy", npmProxy);
 				pbEnv.put("no-proxy", noProxy);
 
-				pbEnv.put("HTTP_PROXY", "http://" + npmProxy);
-				pbEnv.put("HTTPS_PROXY", "http://" + npmProxy);
+				pbEnv.put("HTTP_PROXY", npmProxy);
+				pbEnv.put("HTTPS_PROXY", npmProxy);
 				pbEnv.put("NO_PROXY", noProxy);
 			}
 		}
