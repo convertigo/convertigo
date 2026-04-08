@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.engine.servlets;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Enumeration;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -29,13 +31,14 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class FallbackFilter implements Filter {
-
 	private static String resolveFallbackPath(String servletPath) {
 		if (!servletPath.endsWith("/index.html")) {
 			return null;
@@ -62,6 +65,35 @@ public class FallbackFilter implements Filter {
 
 		var fallbackPath = currentPath.toString();
 		return new File(Engine.WEBAPP_PATH, fallbackPath).exists() ? fallbackPath : null;
+	}
+
+	private static HttpServletRequest withoutConditionalCaching(HttpServletRequest request) {
+		return new HttpServletRequestWrapper(request) {
+			@Override
+			public String getHeader(String name) {
+				return isConditionalCacheHeader(name) ? null : super.getHeader(name);
+			}
+
+			@Override
+			public Enumeration<String> getHeaders(String name) {
+				return isConditionalCacheHeader(name) ? Collections.emptyEnumeration() : super.getHeaders(name);
+			}
+
+			@Override
+			public long getDateHeader(String name) {
+				return isConditionalCacheHeader(name) ? -1 : super.getDateHeader(name);
+			}
+		};
+	}
+
+	private static boolean isConditionalCacheHeader(String name) {
+		return HeaderName.IfNoneMatch.is(name) || HeaderName.IfModifiedSince.is(name);
+	}
+
+	private static void applyNoStore(HttpServletResponse response) {
+		HeaderName.CacheControl.setHeader(response, "no-store, no-cache, must-revalidate");
+		HeaderName.Pragma.setHeader(response, "no-cache");
+		HeaderName.Expires.setHeader(response, "0");
 	}
 	
 	@Override
@@ -92,6 +124,10 @@ public class FallbackFilter implements Filter {
 		}
 
 		var fallbackPath = resolveFallbackPath(servletPath);
+		if (fallbackPath != null) {
+			request = withoutConditionalCaching(request);
+			applyNoStore(response);
+		}
 		if (fallbackPath != null && !fallbackPath.equals(servletPath)) {
 			request.getRequestDispatcher(fallbackPath).forward(request, response);
 			return;
