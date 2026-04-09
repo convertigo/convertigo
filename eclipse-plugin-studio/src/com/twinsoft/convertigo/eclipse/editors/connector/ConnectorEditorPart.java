@@ -1079,8 +1079,11 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 			((SapJcoConnectorDesignComposite) compositeDesign).close();
 		}
 
-		// Remove Studio context
-		Engine.theApp.contextManager.remove(context);
+		// Remove Studio context if it still exists.
+		var studioContext = Engine.theApp.contextManager.get(contextID);
+		if (studioContext != null) {
+			Engine.theApp.contextManager.remove(studioContext);
+		}
 		connector.release();
 
 		// Deregister as Engine listener

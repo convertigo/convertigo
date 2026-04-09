@@ -125,7 +125,7 @@ public class GetStatus extends XmlService {
 								(licenceMismatch ? "(! license mismatch !)": "Convertigo Standard Edition") ) ) 
 						: "Convertigo Community Edition");
 		versionElement.setAttribute("licence-number", iCategory == 15 ? (990000000 + iStations) + "" : "n/a");
-		int snb = KeyManager.getMaxCV(Session.EmulIDSE) - ConvertigoHttpSessionManager.getInstance().countLicensedSessions();
+		int snb = KeyManager.getMaxCV(Session.EmulIDSE) - ConvertigoHttpSessionManager.getInstance().countCountedSessions();
 		versionElement.setAttribute("licence-sessions", Integer.toString(snb));
 		String licenceEnd = (iNumberOfDays != 0) ? (iNumberOfDays < 0 ? "n/a" : endDate) : "unlimited";
 		versionElement.setAttribute("licence-end", licenceEnd);

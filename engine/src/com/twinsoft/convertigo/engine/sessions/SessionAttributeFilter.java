@@ -62,11 +62,9 @@ final class SessionAttributeFilter {
 	private static void persistContexts(RedisHttpSession session, List<?> list) {
 		try {
 			int ttl = resolveContextTtl(session, list);
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug(
-						"(SessionAttributeFilter) Persist contexts separately, ttl=" + ttl + ", sessionTtl="
-								+ session.getMaxInactiveInterval());
-			}
+			Engine.logRedis.debug(
+					"(SessionAttributeFilter) Persist contexts separately, ttl=" + ttl + ", sessionTtl="
+							+ session.getMaxInactiveInterval());
 				var contexts = new ArrayList<Context>(list.size());
 				for (var item : list) {
 					if (item instanceof Context ctx) {
@@ -83,9 +81,7 @@ final class SessionAttributeFilter {
 				Engine.theApp.contextManager.saveContexts(contexts, ttl);
 			}
 		} catch (Exception e) {
-			if (Engine.logEngine != null) {
-				Engine.logEngine.warn("(SessionAttributeFilter) Failed to persist contexts for redis store", e);
-			}
+			Engine.logRedis.warn("(SessionAttributeFilter) Failed to persist contexts for redis store", e);
 		}
 	}
 

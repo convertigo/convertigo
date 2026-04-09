@@ -1,6 +1,8 @@
 <script>
 	import { Portal, SegmentedControl, Tooltip } from '@skeletonlabs/skeleton-svelte';
 	import { page } from '$app/state';
+	import Button from '$lib/admin/components/Button.svelte';
+	import Card from '$lib/admin/components/Card.svelte';
 	import Authentication from '$lib/common/Authentication.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Projects from '$lib/common/Projects.svelte';
@@ -12,7 +14,7 @@
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 
-	let { projects } = $derived(Projects);
+	let { projects, accessDenied } = $derived(Projects);
 	let searchQuery = $state('');
 	let rootProject = $derived(projects.find(({ name }) => name == page.params.project));
 
@@ -58,10 +60,9 @@
 		)}`;
 
 	let canEditInAdmin = $derived(
-		Authentication.canAccessAdmin ||
-			Authentication.hasRole('PROJECT_DBO_VIEW') ||
-			Authentication.hasRole('PROJECT_DBO_CONFIG')
+		Authentication.canAccessAdminRoute('/(app)/admin/projects/[project]')
 	);
+	let defaultAdminPage = $derived(resolve(Authentication.defaultAdminPage ?? '/(app)/admin'));
 
 	const filterScopeTooltip = (value) =>
 		value == 2
@@ -83,213 +84,252 @@
 	onDestroy(Projects.stop);
 </script>
 
-<div class="layout-y-stretch">
-	<div class="flex flex-wrap items-center gap-2">
-		<InputGroup
-			id="search"
-			type="search"
-			placeholder="Search projects..."
-			class="min-w-[240px] grow !bg-surface-100-900 md:flex-1"
-			inputClass="text-strong placeholder:text-surface-600-400"
-			iconClass="text-surface-700-300"
-			icon="mdi:magnify"
-			disabled={rootProject}
-			autofocus
-			bind:value={searchQuery}
-		/>
-		<div
-			class="flex w-full flex-wrap items-center justify-center gap-2 md:ml-auto md:w-auto md:justify-end"
-		>
-			<SegmentedControl
-				value={`${filters[0].count}`}
-				onValueChange={(event) => {
-					filters[0].count = Number(event.value);
-				}}
-				class="w-fit"
-			>
-				<SegmentedControl.Control
-					class="relative flex h-9 items-stretch gap-px field-shell p-[1px] shadow-none focus-within:outline focus-within:outline-1 focus-within:outline-offset-[-1px] focus-within:outline-primary-500"
-				>
-					<SegmentedControl.Indicator
-						class="rounded-[0.3rem] bg-primary-500 opacity-100 shadow-none"
-					/>
-					{#each [2, 0, 1] as value (value)}
-						<SegmentedControl.Item value={`${value}`} class="relative h-full">
-							<Tooltip positioning={{ placement: 'top' }}>
-								<Tooltip.Trigger>
-									{#snippet element(attributes)}
-										{@const triggerAttributes = asAny(attributes)}
-										<span
-											{...triggerAttributes}
-											class={['inline-flex h-full', triggerAttributes.class]
-												.filter(Boolean)
-												.join(' ')}
-										>
-											<SegmentedControl.ItemText
-												class={[
-													filters[0].count == value
-														? 'text-primary-contrast-500'
-														: 'text-surface-950-50',
-													'flex h-full items-center px-2 text-[13px] leading-none font-medium'
-												]}
-											>
-												{#if value == 2}
-													<span class="layout-x-none gap-1">
-														<Ico icon="mdi:cog" size="nav" />
-														Backend
-													</span>
-												{:else if value == 0}
-													<span class="layout-x-none gap-1">
-														<span aria-hidden="true" class="text-base leading-none font-semibold"
-															>&harr;</span
-														>
-														<span class="sr-only">Both</span>
-													</span>
-												{:else}
-													<span class="layout-x-none gap-1">
-														Frontend
-														<Ico icon="mdi:smartphone-link" size="nav" />
-													</span>
-												{/if}
-											</SegmentedControl.ItemText>
-										</span>
-									{/snippet}
-								</Tooltip.Trigger>
-								<Portal>
-									<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
-										<Tooltip.Content
-											class="card preset-filled-surface-950-50 p-2 text-xs leading-none"
-										>
-											<span>{filterScopeTooltip(value)}</span>
-											<Tooltip.Arrow
-												class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
-											>
-												<Tooltip.ArrowTip />
-											</Tooltip.Arrow>
-										</Tooltip.Content>
-									</Tooltip.Positioner>
-								</Portal>
-							</Tooltip>
-							<SegmentedControl.ItemHiddenInput />
-						</SegmentedControl.Item>
-					{/each}
-				</SegmentedControl.Control>
-			</SegmentedControl>
-			<SegmentedControl
-				value={`${filters[1].count}`}
-				onValueChange={(event) => {
-					filters[1].count = Number(event.value);
-				}}
-				class="w-fit"
-			>
-				<SegmentedControl.Control
-					class="relative flex h-9 items-stretch gap-px field-shell p-[1px] shadow-none focus-within:outline focus-within:outline-1 focus-within:outline-offset-[-1px] focus-within:outline-primary-500"
-				>
-					<SegmentedControl.Indicator
-						class="rounded-[0.3rem] bg-primary-500 opacity-100 shadow-none"
-					/>
-					{#each [1, 0, 2] as value (value)}
-						<SegmentedControl.Item value={`${value}`} class="relative h-full">
-							<Tooltip positioning={{ placement: 'top' }}>
-								<Tooltip.Trigger>
-									{#snippet element(attributes)}
-										{@const triggerAttributes = asAny(attributes)}
-										<span
-											{...triggerAttributes}
-											class={['inline-flex h-full', triggerAttributes.class]
-												.filter(Boolean)
-												.join(' ')}
-										>
-											<SegmentedControl.ItemText
-												class={[
-													filters[1].count == value
-														? 'text-primary-contrast-500'
-														: 'text-surface-950-50',
-													'flex h-full items-center px-2 text-[13px] leading-none font-medium'
-												]}
-											>
-												{#if value == 1}
-													<span class="layout-x-none gap-1">
-														<Ico icon="mdi:book-open-variant" size="nav" />
-														Library
-													</span>
-												{:else if value == 0}
-													<span class="layout-x-none gap-1">
-														<span aria-hidden="true" class="text-base leading-none font-semibold"
-															>&harr;</span
-														>
-														<span class="sr-only">Both</span>
-													</span>
-												{:else}
-													<span class="layout-x-none gap-1">
-														Project
-														<Ico icon="mdi:folder-outline" size="nav" />
-													</span>
-												{/if}
-											</SegmentedControl.ItemText>
-										</span>
-									{/snippet}
-								</Tooltip.Trigger>
-								<Portal>
-									<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
-										<Tooltip.Content
-											class="card preset-filled-surface-950-50 p-2 text-xs leading-none"
-										>
-											<span>{filterTypeTooltip(value)}</span>
-											<Tooltip.Arrow
-												class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
-											>
-												<Tooltip.ArrowTip />
-											</Tooltip.Arrow>
-										</Tooltip.Content>
-									</Tooltip.Positioner>
-								</Portal>
-							</Tooltip>
-							<SegmentedControl.ItemHiddenInput />
-						</SegmentedControl.Item>
-					{/each}
-				</SegmentedControl.Control>
-			</SegmentedControl>
-		</div>
+{#if accessDenied}
+	<div class="grid min-h-[40vh] place-items-center">
+		<Card title="Dashboard access denied" class="max-w-xl">
+			<p class="text-sm text-surface-700-300">
+				Your account does not have permission to access the dashboard.
+			</p>
+			<div class="mt-4 layout-x justify-end">
+				<Button
+					href={defaultAdminPage}
+					class="button-primary"
+					label="Back to Admin"
+					icon="mdi:arrow-left"
+					full={false}
+				/>
+			</div>
+		</Card>
 	</div>
-	<div
-		class="grid grid-cols-1 justify-start gap sm:grid-cols-[repeat(auto-fill,minmax(19rem,19rem))]"
-	>
-		{#each filteredProjects as project, i (project.name ?? i)}
-			{@const { name, version, comment, hasFrontend, hasPlatform, ref } = project}
-			{@const loading = name == null}
-			{@const params = { project: name ? name : '_' }}
-			{@const hasFrontendProject = hasFrontend == 'true'}
-			{@const cardHref = hasFrontendProject
-				? getFrontendUrl(name)
-				: resolve('/(app)/dashboard/[[project]]/backend', params)}
-			{@const cardShade = getPrimaryShade(name ?? `_${i}`)}
-			{@const cardShadeInverse = 1000 - cardShade}
+{:else}
+	<div class="layout-y-stretch">
+		<div class="flex flex-wrap items-center gap-2">
+			<InputGroup
+				id="search"
+				type="search"
+				placeholder="Search projects..."
+				class="min-w-[240px] grow !bg-surface-100-900 md:flex-1"
+				inputClass="text-strong placeholder:text-surface-600-400"
+				iconClass="text-surface-700-300"
+				icon="mdi:magnify"
+				disabled={rootProject}
+				autofocus
+				bind:value={searchQuery}
+			/>
 			<div
-				class="layout-y-stretch-none surface-card-shell bg-surface-100-900 p-low"
-				animate:flip={loading ? undefined : { duration: 400 }}
-				transition:fade
+				class="flex w-full flex-wrap items-center justify-center gap-2 md:ml-auto md:w-auto md:justify-end"
 			>
-				<div class="layout-x-p-low justify-between! py-1!">
-					<span class="text-md truncate font-semibold"
-						><AutoPlaceholder {loading}>{name}</AutoPlaceholder></span
+				<SegmentedControl
+					value={`${filters[0].count}`}
+					onValueChange={(event) => {
+						filters[0].count = Number(event.value);
+					}}
+					class="w-fit"
+				>
+					<SegmentedControl.Control
+						class="relative flex h-9 items-stretch gap-px field-shell p-[1px] shadow-none focus-within:outline focus-within:outline-1 focus-within:outline-offset-[-1px] focus-within:outline-primary-500"
 					>
-					<span class="truncate text-sm opacity-50"
-						><AutoPlaceholder {loading}>{version}</AutoPlaceholder></span
+						<SegmentedControl.Indicator
+							class="rounded-[0.3rem] bg-primary-500 opacity-100 shadow-none"
+						/>
+						{#each [2, 0, 1] as value (value)}
+							<SegmentedControl.Item value={`${value}`} class="relative h-full">
+								<Tooltip positioning={{ placement: 'top' }}>
+									<Tooltip.Trigger>
+										{#snippet element(attributes)}
+											{@const triggerAttributes = asAny(attributes)}
+											<span
+												{...triggerAttributes}
+												class={['inline-flex h-full', triggerAttributes.class]
+													.filter(Boolean)
+													.join(' ')}
+											>
+												<SegmentedControl.ItemText
+													class={[
+														filters[0].count == value
+															? 'text-primary-contrast-500'
+															: 'text-surface-950-50',
+														'flex h-full items-center px-2 text-[13px] leading-none font-medium'
+													]}
+												>
+													{#if value == 2}
+														<span class="layout-x-none gap-1">
+															<Ico icon="mdi:cog" size="nav" />
+															Backend
+														</span>
+													{:else if value == 0}
+														<span class="layout-x-none gap-1">
+															<span aria-hidden="true" class="text-base leading-none font-semibold"
+																>&harr;</span
+															>
+															<span class="sr-only">Both</span>
+														</span>
+													{:else}
+														<span class="layout-x-none gap-1">
+															Frontend
+															<Ico icon="mdi:smartphone-link" size="nav" />
+														</span>
+													{/if}
+												</SegmentedControl.ItemText>
+											</span>
+										{/snippet}
+									</Tooltip.Trigger>
+									<Portal>
+										<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+											<Tooltip.Content
+												class="card preset-filled-surface-950-50 p-2 text-xs leading-none"
+											>
+												<span>{filterScopeTooltip(value)}</span>
+												<Tooltip.Arrow
+													class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+												>
+													<Tooltip.ArrowTip />
+												</Tooltip.Arrow>
+											</Tooltip.Content>
+										</Tooltip.Positioner>
+									</Portal>
+								</Tooltip>
+								<SegmentedControl.ItemHiddenInput />
+							</SegmentedControl.Item>
+						{/each}
+					</SegmentedControl.Control>
+				</SegmentedControl>
+				<SegmentedControl
+					value={`${filters[1].count}`}
+					onValueChange={(event) => {
+						filters[1].count = Number(event.value);
+					}}
+					class="w-fit"
+				>
+					<SegmentedControl.Control
+						class="relative flex h-9 items-stretch gap-px field-shell p-[1px] shadow-none focus-within:outline focus-within:outline-1 focus-within:outline-offset-[-1px] focus-within:outline-primary-500"
 					>
-				</div>
-				<div class="relative">
-					{#if name}
-						<a
-							href={cardHref}
-							target={hasFrontendProject ? '_blank' : undefined}
-							rel={hasFrontendProject ? 'noopener noreferrer' : undefined}
-							class="block"
-							title={hasFrontendProject ? 'Open frontend in new tab' : 'Open backend'}
-							aria-label={hasFrontendProject
-								? `Open ${name} frontend in new tab`
-								: `Open ${name} backend`}
+						<SegmentedControl.Indicator
+							class="rounded-[0.3rem] bg-primary-500 opacity-100 shadow-none"
+						/>
+						{#each [1, 0, 2] as value (value)}
+							<SegmentedControl.Item value={`${value}`} class="relative h-full">
+								<Tooltip positioning={{ placement: 'top' }}>
+									<Tooltip.Trigger>
+										{#snippet element(attributes)}
+											{@const triggerAttributes = asAny(attributes)}
+											<span
+												{...triggerAttributes}
+												class={['inline-flex h-full', triggerAttributes.class]
+													.filter(Boolean)
+													.join(' ')}
+											>
+												<SegmentedControl.ItemText
+													class={[
+														filters[1].count == value
+															? 'text-primary-contrast-500'
+															: 'text-surface-950-50',
+														'flex h-full items-center px-2 text-[13px] leading-none font-medium'
+													]}
+												>
+													{#if value == 1}
+														<span class="layout-x-none gap-1">
+															<Ico icon="mdi:book-open-variant" size="nav" />
+															Library
+														</span>
+													{:else if value == 0}
+														<span class="layout-x-none gap-1">
+															<span aria-hidden="true" class="text-base leading-none font-semibold"
+																>&harr;</span
+															>
+															<span class="sr-only">Both</span>
+														</span>
+													{:else}
+														<span class="layout-x-none gap-1">
+															Project
+															<Ico icon="mdi:folder-outline" size="nav" />
+														</span>
+													{/if}
+												</SegmentedControl.ItemText>
+											</span>
+										{/snippet}
+									</Tooltip.Trigger>
+									<Portal>
+										<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+											<Tooltip.Content
+												class="card preset-filled-surface-950-50 p-2 text-xs leading-none"
+											>
+												<span>{filterTypeTooltip(value)}</span>
+												<Tooltip.Arrow
+													class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+												>
+													<Tooltip.ArrowTip />
+												</Tooltip.Arrow>
+											</Tooltip.Content>
+										</Tooltip.Positioner>
+									</Portal>
+								</Tooltip>
+								<SegmentedControl.ItemHiddenInput />
+							</SegmentedControl.Item>
+						{/each}
+					</SegmentedControl.Control>
+				</SegmentedControl>
+			</div>
+		</div>
+		<div
+			class="grid grid-cols-1 justify-start gap sm:grid-cols-[repeat(auto-fill,minmax(19rem,19rem))]"
+		>
+			{#each filteredProjects as project, i (project.name ?? i)}
+				{@const { name, version, comment, hasFrontend, hasPlatform, ref } = project}
+				{@const loading = name == null}
+				{@const params = { project: name ? name : '_' }}
+				{@const hasFrontendProject = hasFrontend == 'true'}
+				{@const cardHref = hasFrontendProject
+					? getFrontendUrl(name)
+					: resolve('/(app)/dashboard/[[project]]/backend', params)}
+				{@const cardShade = getPrimaryShade(name ?? `_${i}`)}
+				{@const cardShadeInverse = 1000 - cardShade}
+				<div
+					class="layout-y-stretch-none surface-card-shell bg-surface-100-900 p-low"
+					animate:flip={loading ? undefined : { duration: 400 }}
+					transition:fade
+				>
+					<div class="layout-x-p-low justify-between! py-1!">
+						<span class="text-md truncate font-semibold"
+							><AutoPlaceholder {loading}>{name}</AutoPlaceholder></span
 						>
+						<span class="truncate text-sm opacity-50"
+							><AutoPlaceholder {loading}>{version}</AutoPlaceholder></span
+						>
+					</div>
+					<div class="relative">
+						{#if name}
+							<a
+								href={cardHref}
+								target={hasFrontendProject ? '_blank' : undefined}
+								rel={hasFrontendProject ? 'noopener noreferrer' : undefined}
+								class="block"
+								title={hasFrontendProject ? 'Open frontend in new tab' : 'Open backend'}
+								aria-label={hasFrontendProject
+									? `Open ${name} frontend in new tab`
+									: `Open ${name} backend`}
+							>
+								<div
+									class="img-hover-zoom project-media layout-x-none justify-center rounded-lg dark:opacity-70"
+									style="--card-tint: var(--color-primary-{cardShade}); --card-tint-contrast: var(--color-primary-{cardShadeInverse});"
+								>
+									<Ico icon="convertigo:logo" class="max-h-full object-cover" size={128} />
+									<img
+										src={getThumbnailUrl(name)}
+										onload={(/** @type {any} */ e) => {
+											if (e.target.naturalWidth <= 1 && e.target.naturalHeight <= 1) {
+												e.target.remove();
+											} else {
+												e.target.previousElementSibling.remove();
+											}
+										}}
+										onerror={(/** @type {any} */ e) => e.target.remove()}
+										class="object-cover"
+										alt=""
+									/>
+								</div>
+							</a>
+						{:else}
 							<div
 								class="img-hover-zoom project-media layout-x-none justify-center rounded-lg dark:opacity-70"
 								style="--card-tint: var(--color-primary-{cardShade}); --card-tint-contrast: var(--color-primary-{cardShadeInverse});"
@@ -304,93 +344,81 @@
 											e.target.previousElementSibling.remove();
 										}
 									}}
+									onerror={(/** @type {any} */ e) => e.target.remove()}
 									class="object-cover"
-									alt="project"
+									alt=""
 								/>
 							</div>
-						</a>
-					{:else}
-						<div
-							class="img-hover-zoom project-media layout-x-none justify-center rounded-lg dark:opacity-70"
-							style="--card-tint: var(--color-primary-{cardShade}); --card-tint-contrast: var(--color-primary-{cardShadeInverse});"
-						>
-							<Ico icon="convertigo:logo" class="max-h-full object-cover" size={128} />
-							<img
-								src={getThumbnailUrl(name)}
-								onload={(/** @type {any} */ e) => {
-									if (e.target.naturalWidth <= 1 && e.target.naturalHeight <= 1) {
-										e.target.remove();
-									} else {
-										e.target.previousElementSibling.remove();
-									}
-								}}
-								class="object-cover"
-								alt="project"
-							/>
-						</div>
-					{/if}
-					<div class="project-actions absolute top-0 bottom-0 left-0 layout-y-start-none">
-						<a href={resolve('/(app)/dashboard/[[project]]/backend', params)} class="icon-link">
-							<Ico icon="mdi:cog" size="nav" />
-							<span class="icon-link-text">Backend</span>
-						</a>
-						{#if hasFrontend == 'true'}
-							<a href={resolve('/(app)/dashboard/[[project]]/frontend', params)} class="icon-link">
-								<Ico icon="mdi:smartphone-link" size="nav" />
-								<span class="icon-link-text">Frontend</span>
-							</a>
 						{/if}
-						{#if canEditInAdmin && name}
-							<a
-								href={resolve('/(app)/admin/projects/[project]', { project: name })}
-								class="icon-link"
-							>
-								<Ico icon="mdi:edit-outline" size="nav" />
-								<span class="icon-link-text">Edit</span>
+						<div class="project-actions absolute top-0 bottom-0 left-0 layout-y-start-none">
+							<a href={resolve('/(app)/dashboard/[[project]]/backend', params)} class="icon-link">
+								<Ico icon="mdi:cog" size="nav" />
+								<span class="icon-link-text">Backend</span>
 							</a>
-						{/if}
+							{#if hasFrontend == 'true'}
+								<a
+									href={resolve('/(app)/dashboard/[[project]]/frontend', params)}
+									class="icon-link"
+								>
+									<Ico icon="mdi:smartphone-link" size="nav" />
+									<span class="icon-link-text">Frontend</span>
+								</a>
+							{/if}
+							{#if canEditInAdmin && name}
+								<a
+									href={resolve('/(app)/admin/projects/[project]', { project: name })}
+									class="icon-link"
+								>
+									<Ico icon="mdi:edit-outline" size="nav" />
+									<span class="icon-link-text">Edit</span>
+								</a>
+							{/if}
 
-						{#if ref?.length > 0}
+							{#if ref?.length > 0}
+								<a
+									href={rootProject == project
+										? resolve('/(app)/dashboard')
+										: resolve('/(app)/dashboard/[[project]]', params)}
+									class="icon-link"
+								>
+									<Ico icon="mdi:power-plug" size="nav" />
+									<span class="icon-link-text">References</span>
+								</a>
+							{/if}
+							{#if hasPlatform == 'true'}
+								<a
+									href={resolve('/(app)/dashboard/[[project]]/platforms', params)}
+									class="icon-link"
+								>
+									<Ico icon="mdi:package-variant-closed" size="nav" />
+									<span class="icon-link-text">Platforms</span>
+								</a>
+							{/if}
 							<a
-								href={rootProject == project
-									? resolve('/(app)/dashboard')
-									: resolve('/(app)/dashboard/[[project]]', params)}
+								href={getSwaggerProjectUrl(name)}
+								target="_blank"
+								rel="external noopener noreferrer"
 								class="icon-link"
 							>
-								<Ico icon="mdi:power-plug" size="nav" />
-								<span class="icon-link-text">References</span>
+								<Ico icon="mdi:swagger" size="nav" />
+								<span class="icon-link-text">Swagger</span>
 							</a>
-						{/if}
-						{#if hasPlatform == 'true'}
-							<a href={resolve('/(app)/dashboard/[[project]]/platforms', params)} class="icon-link">
-								<Ico icon="mdi:package-variant-closed" size="nav" />
-								<span class="icon-link-text">Platforms</span>
-							</a>
-						{/if}
-						<a
-							href={getSwaggerProjectUrl(name)}
-							target="_blank"
-							rel="external noopener noreferrer"
-							class="icon-link"
-						>
-							<Ico icon="mdi:swagger" size="nav" />
-							<span class="icon-link-text">Swagger</span>
-						</a>
+						</div>
 					</div>
+					<button
+						class="cursor-help truncate px-2 text-start opacity-70"
+						onclick={(e) => {
+							e?.target?.['classList']?.toggle('truncate');
+							e?.target?.['classList']?.toggle('opacity-70');
+						}}
+					>
+						<AutoPlaceholder {loading}>{comment}</AutoPlaceholder>
+					</button>
 				</div>
-				<button
-					class="cursor-help truncate px-2 text-start opacity-70"
-					onclick={(e) => {
-						e?.target?.['classList']?.toggle('truncate');
-						e?.target?.['classList']?.toggle('opacity-70');
-					}}
-				>
-					<AutoPlaceholder {loading}>{comment}</AutoPlaceholder>
-				</button>
-			</div>
-		{/each}
+			{/each}
+		</div>
 	</div>
-</div>
+{/if}
 
 <style>
 	.img-hover-zoom {

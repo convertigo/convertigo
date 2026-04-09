@@ -230,12 +230,14 @@ public class SetupWizard extends Wizard {
 			}
 		}
 
-		File pscFile = new File(Engine.USER_WORKSPACE_PATH, "studio/psc.txt");
-		try {
-			FileUtils.writeStringToFile(pscFile, psc, "utf-8");
-		} catch (IOException e) {
-			ConvertigoPlugin.logError("Failed to write the PSC file: "
-					+ e.getMessage());
+		if (!psc.isEmpty()) {
+			File pscFile = new File(Engine.USER_WORKSPACE_PATH, "studio/psc.txt");
+			try {
+				FileUtils.writeStringToFile(pscFile, psc, "utf-8");
+			} catch (IOException e) {
+				ConvertigoPlugin.logError("Failed to write the PSC file: "
+						+ e.getMessage());
+			}
 		}
 
 		if (!Engine.isStarted) {
@@ -381,8 +383,18 @@ public class SetupWizard extends Wizard {
 		return uniqueID;
 	}
 
+	private boolean hasRegisteredPsc() {
+		try {
+			ConvertigoPlugin.decodePsc();
+			return true;
+		} catch (ConvertigoPlugin.PscException e) {
+			return false;
+		}
+	}
+
 	@Override
 	public boolean canFinish() {
-		return getContainer().getCurrentPage().getNextPage() == null;
+		var currentPage = getContainer().getCurrentPage();
+		return currentPage.getNextPage() == null || currentPage == configureProxyPage && hasRegisteredPsc();
 	}
 }

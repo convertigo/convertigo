@@ -13332,7 +13332,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="expression">
-            <java.lang.String value="//todo"/>
+            <java.lang.String value="&quot;&quot;"/>
         </property>
         <property name="isEnabled">
             <java.lang.Boolean value="true"/>

@@ -286,9 +286,9 @@ dependencies {
 	compileFlat    'commons-jxpath:commons-jxpath:1.4.0'
 	compileFlat    'io.swagger:swagger-models:1.6.16'
 	compileFlat    'io.swagger:swagger-parser:1.0.75'
-	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.45'
-	compileFlat    'io.swagger.core.v3:swagger-models:2.2.45'
-	compileFlat    'io.swagger.core.v3:swagger-core:2.2.45'
+	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.46'
+	compileFlat    'io.swagger.core.v3:swagger-models:2.2.46'
+	compileFlat    'io.swagger.core.v3:swagger-core:2.2.46'
 	compileFlat    'io.swagger.parser.v3:swagger-parser-core:2.1.39'
 	compileFlat    'io.swagger.parser.v3:swagger-parser-v3:2.1.39'
 	compileFlat    'javax.activation:activation:1.1.1'
@@ -311,7 +311,7 @@ dependencies {
 	compileFlat    'org.apache.xmlbeans:xmlbeans:3.1.1-sb-fixed'
 	compileFlat    'org.apache.xmlgraphics:fop:2.11', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:1.5.5'
-	compileFlat    'org.codehaus.woodstox:stax2-api:4.2.2'
+	compileFlat    'org.codehaus.woodstox:stax2-api:4.3.0'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.6.0.202603022253-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.6.0.202603022253-r'
 	compileFlat    'org.hibernate.orm:hibernate-core:7.3.0.Final'
@@ -330,9 +330,9 @@ dependencies {
 	compileFlat    'net.sf.jt400:jt400:11.2'
 	compileFlat    'net.sourceforge.jtds:jtds:1.3.1'
 	compileFlat    'org.hsqldb:hsqldb:2.7.4'
-	compileFlat    'org.mariadb.jdbc:mariadb-java-client:3.5.7'
+	compileFlat    'org.mariadb.jdbc:mariadb-java-client:3.5.8'
 	compileFlat    'org.postgresql:postgresql:42.7.10'
-	compileFlat    'org.redisson:redisson:4.3.0'
+	compileFlat    'org.redisson:redisson:4.3.1'
 	// end runtime dependencies
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-websocket:' + tomcatVersion

@@ -7,6 +7,7 @@ const defValues = {
 	contextsInUse: null,
 	contextsNumber: null,
 	httpTimeout: null,
+	redisMode: false,
 	sessionsInUse: null,
 	sessionsIsOverFlow: null,
 	sessionsNumber: null,
@@ -24,6 +25,9 @@ let values = {
 	},
 	async deleteAll() {
 		await callDelete({ removeAll: true });
+	},
+	async purgeRedisAll() {
+		await callDelete({ purgeRedisAll: true });
 	},
 	get selectedSession() {
 		return selectedSession;

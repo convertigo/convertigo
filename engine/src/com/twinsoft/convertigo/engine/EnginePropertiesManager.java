@@ -436,6 +436,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_PROXYMANAGER ("log4j.logger.cems.ProxyManager", LogLevels.INFO.getValue(), "Proxy manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
+		LOG4J_LOGGER_CEMS_REDIS ("log4j.logger.cems.Redis", LogLevels.WARN.getValue(), "Redis session/store logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_SCHEDULER ("log4j.logger.cems.Scheduler", LogLevels.INFO.getValue(), "Scheduler output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_SECURITYFILTER ("log4j.logger.cems.SecurityFilter", LogLevels.WARN.getValue(), "Security filter output logger", PropertyCategory.Logs),
@@ -509,6 +511,10 @@ public class EnginePropertiesManager {
 		SESSION_REDIS_SSL("session.redis.ssl", "false", "Enable SSL/TLS for the Redis connection", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
 		SESSION_REDIS_TIMEOUT("session.redis.timeout", "5000", "Redis command timeout in milliseconds", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
+		SESSION_REDIS_CONNECTION_POOL_SIZE("session.redis.connection.pool.size", "128", "Redis data connection pool size", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
+		SESSION_REDIS_CONNECTION_MINIMUM_IDLE_SIZE("session.redis.connection.minimum.idle.size", "32", "Redis data connection minimum idle size", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
 		SESSION_REDIS_PREFIX("session.redis.prefix", "convertigo:session", "Redis key prefix for stored sessions", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
@@ -1040,10 +1046,6 @@ public class EnginePropertiesManager {
 	}
 
 	public static synchronized List<PropertyName> syncPropertiesFromFile() throws IOException {
-		if (properties == null) {
-			throw new IllegalStateException("Not initialized EnginePropertiesManager");
-		}
-
 		Properties reloadedProperties = new Properties();
 		String enginePropertiesFile = Engine.CONFIGURATION_PATH + PROPERTIES_FILE_NAME;
 		try {
@@ -1051,7 +1053,55 @@ public class EnginePropertiesManager {
 		} catch (FileNotFoundException e) {
 			// Missing file means defaults apply.
 		}
+		return syncProperties(reloadedProperties);
+	}
 
+	static synchronized List<PropertyName> syncProperties(String sProperties) throws IOException {
+		Properties reloadedProperties = new Properties();
+		if (sProperties != null && !sProperties.isBlank()) {
+			PropertiesUtils.load(reloadedProperties, new StringReader(sProperties));
+		}
+		return syncProperties(reloadedProperties);
+	}
+
+	private static List<PropertyName> syncProperties(Properties reloadedProperties) throws IOException {
+		if (properties == null) {
+			throw new IllegalStateException("Not initialized EnginePropertiesManager");
+		}
+
+		decodeCipheredProperties(reloadedProperties);
+
+		List<PropertyName> changedProperties = new ArrayList<>();
+		boolean shouldReconfigureLog4J = false;
+
+		for (PropertyName property : PropertyName.values()) {
+			if (hasSystemPropertyOverride(property)) {
+				continue;
+			}
+
+			String desiredValue = reloadedProperties.getProperty(property.getKey());
+			boolean changed;
+			if (desiredValue != null) {
+				String currentValue = getOriginalProperty(property);
+				changed = !desiredValue.equals(currentValue);
+				setProperty(property, desiredValue, true);
+			} else {
+				changed = clearProperty(property);
+			}
+			if (changed) {
+				changedProperties.add(property);
+				shouldReconfigureLog4J |= property.getKey().startsWith("log4j.");
+			}
+		}
+
+		if (shouldReconfigureLog4J) {
+			configureLog4J();
+		}
+
+		return changedProperties;
+	}
+
+	private static void decodeCipheredProperties(Properties reloadedProperties) throws IOException {
 		for (PropertyName property : PropertyName.values()) {
 			String key = property.getKey();
 			if (property.isCiphered() && reloadedProperties.containsKey(key)) {
@@ -1063,29 +1113,19 @@ public class EnginePropertiesManager {
 				reloadedProperties.setProperty(key, decipheredValue);
 			}
 		}
+	}
 
-		List<PropertyName> changedProperties = new ArrayList<>();
-		boolean shouldReconfigureLog4J = false;
-
-		for (PropertyName property : PropertyName.values()) {
-			if (hasSystemPropertyOverride(property)) {
-				continue;
-			}
-
-			String desiredValue = reloadedProperties.getProperty(property.getKey(), property.getDefaultValue());
-			String currentValue = getOriginalProperty(property);
-			if (!desiredValue.equals(currentValue)) {
-				setProperty(property, desiredValue, true);
-				changedProperties.add(property);
-				shouldReconfigureLog4J |= property.getKey().startsWith("log4j.");
-			}
+	private static boolean clearProperty(PropertyName property) {
+		if (properties == null) {
+			throw new IllegalStateException("Not initialized EnginePropertiesManager");
 		}
-
-		if (shouldReconfigureLog4J) {
-			configureLog4J();
+		String defaultValue = property.getDefaultValue();
+		String exvalue = (String) properties.remove(property.getKey());
+		boolean changed = exvalue != null && !defaultValue.equals(exvalue);
+		if (changed && Engine.isStarted) {
+			Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, defaultValue), PropertyChangeEventListener.class);
 		}
-
-		return changedProperties;
+		return changed;
 	}
 
 	private static void saveProperties(OutputStream outputStream, String comments) throws IOException, EngineException {
@@ -1395,13 +1435,6 @@ public class EnginePropertiesManager {
 
 	public static void unload() {
 		properties = null;
-	}
-
-	static void load(String sProperties) throws IOException {
-		if (properties == null) {
-			throw new IllegalStateException("Not initialized EnginePropertiesManager");
-		}
-		PropertiesUtils.load(properties, new StringReader(sProperties));
 	}
 
 	private static String encodeValue(PropertyType propertyType, String value) {

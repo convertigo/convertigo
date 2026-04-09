@@ -46,7 +46,7 @@ public class JsonMonitor extends JSonService {
 		final long mb = 1024 * 1024;
 		Runtime runtime = Runtime.getRuntime();
 		long memoryTotal = runtime.totalMemory();
-		int sessionCount = ConvertigoHttpSessionManager.getInstance().countLicensedSessions();
+		int sessionCount = ConvertigoHttpSessionManager.getInstance().countCountedSessions();
 		int sessionMaxCV = KeyManager.getMaxCV(Session.EmulIDSE);
 		response.put("memoryMaximal", runtime.maxMemory() / mb);
 		response.put("memoryTotal", memoryTotal / mb);

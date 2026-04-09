@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
+import java.util.Set;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
@@ -46,11 +48,27 @@ public interface SessionProvider {
 		return 0;
 	}
 
-	default int estimateLicensedSessions() {
+	default int purgeAllSessions(String sessionIdToKeep) {
 		return 0;
 	}
 
-	default int countLicensedSessions() {
+	default int estimateCountedSessions() {
 		return 0;
+	}
+
+	default int countCountedSessions() {
+		return 0;
+	}
+
+	default Set<String> readCountedSessionIds() {
+		return Set.of();
+	}
+
+	default boolean upsertCountedSessionBillingSnapshot(HttpSession session) {
+		return false;
+	}
+
+	default void syncCountedSessionBillingAuthenticatedUser(HttpSession session) {
+		// no-op
 	}
 }

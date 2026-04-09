@@ -93,6 +93,10 @@
 		modalRestart.open({ event });
 	}
 
+	async function resetRequestsDuration() {
+		await call('engine.ResetRequestsDuration');
+	}
+
 	const tables = $derived([
 		{
 			title: 'Status',
@@ -186,7 +190,14 @@
 		{ title: 'Contexts', series: [{ name: 'Contexts', data: contexts }] },
 		{
 			title: 'Requests Duration',
-			series: [{ name: 'Requests Duration', data: requests }]
+			series: [{ name: 'Requests Duration', data: requests }],
+			action: {
+				label: 'Reset',
+				title: 'Reset Requests Duration statistics',
+				icon: 'mdi:cached',
+				cls: 'button-secondary w-fit',
+				onclick: resetRequestsDuration
+			}
 		},
 		{
 			title: 'Sessions',
@@ -360,8 +371,13 @@
 
 	<div class="grid w-full grid-cols-1 gap sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
 		{#each charts as chart (chart.title)}
-			<Card class="p-none!">
-				<ApexChartLineAdmin {...chart} {categories} />
+			<Card class="relative p-none!">
+				{#if chart.action}
+					<div class="absolute top-3 right-3 z-10">
+						<Button {...chart.action} full={false} />
+					</div>
+				{/if}
+				<ApexChartLineAdmin {...chart} categories={chart.categories ?? categories} />
 			</Card>
 		{/each}
 	</div>

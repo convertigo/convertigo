@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
+import java.util.Set;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpSession;
@@ -82,7 +84,7 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			}
 			return provider.terminateSession(sessionId);
 		} catch (Exception e) {
-			debug("tryTerminateSession failed: " + e.getMessage());
+			Engine.logRedis.debug("(ConvertigoSessionManager) tryTerminateSession failed: " + e.getMessage());
 			return false;
 		}
 	}
@@ -101,10 +103,7 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			}
 			var cfg = RedisClients.getConfiguration();
 			var client = RedisClients.getClient();
-			var sessionsIndexKey = cfg.getContextKeyPrefix() + "index:sessions";
 			var contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-			org.redisson.api.RSet<String> sessionsIndex = client.getSet(sessionsIndexKey,
-					org.redisson.client.codec.StringCodec.INSTANCE);
 			org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey,
 					org.redisson.client.codec.StringCodec.INSTANCE);
 
@@ -144,7 +143,7 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			}
 
 			var removed = 0;
-			for (var sessionId : sessionsIndex.readAll()) {
+			for (var sessionId : readCountedSessionIds()) {
 				if (sessionId == null || sessionId.isBlank()) {
 					continue;
 				}
@@ -164,7 +163,22 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			}
 			return removed;
 		} catch (Exception e) {
-			debug("terminateAllSessions failed: " + e.getMessage());
+			Engine.logRedis.debug("(ConvertigoSessionManager) terminateAllSessions failed: " + e.getMessage());
+			return 0;
+		}
+	}
+
+	public int purgeAllSessions(String sessionIdToKeep) {
+		try {
+			if (provider == null) {
+				return 0;
+			}
+			if (storeMode != SessionStoreMode.redis) {
+				return terminateAllSessions(sessionIdToKeep);
+			}
+			return provider.purgeAllSessions(sessionIdToKeep);
+		} catch (Exception e) {
+			Engine.logRedis.debug("(ConvertigoSessionManager) purgeAllSessions failed: " + e.getMessage());
 			return 0;
 		}
 	}
@@ -186,38 +200,71 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 				provider.flushBuffers();
 			}
 		} catch (Exception e) {
-			debug("flushBuffers failed: " + e.getMessage());
+			Engine.logRedis.debug("(ConvertigoSessionManager) flushBuffers failed: " + e.getMessage());
 		}
 	}
 
-	public int estimateLicensedSessions() {
+	public int estimateCountedSessions() {
 		try {
-			return provider != null ? provider.estimateLicensedSessions() : 0;
+			return provider != null ? provider.estimateCountedSessions() : 0;
 		} catch (Exception e) {
-			debug("estimateLicensedSessions failed: " + e.getMessage());
+			Engine.logRedis.debug("(ConvertigoSessionManager) estimateCountedSessions failed: " + e.getMessage());
 			return 0;
 		}
 	}
 
-	public int countLicensedSessions() {
+	public int countCountedSessions() {
 		try {
-			return provider != null ? provider.countLicensedSessions() : 0;
+			return provider != null ? provider.countCountedSessions() : 0;
 		} catch (Exception e) {
-			debug("countLicensedSessions failed: " + e.getMessage());
+			Engine.logRedis.debug("(ConvertigoSessionManager) countCountedSessions failed: " + e.getMessage());
 			return 0;
+		}
+	}
+
+	public Set<String> readCountedSessionIds() {
+		try {
+			return provider != null ? provider.readCountedSessionIds() : Set.of();
+		} catch (Exception e) {
+			Engine.logRedis.debug("(ConvertigoSessionManager) readCountedSessionIds failed: " + e.getMessage());
+			return Set.of();
+		}
+	}
+
+	public boolean upsertCountedSessionBillingSnapshot(HttpSession session) {
+		try {
+			if (provider != null) {
+				return provider.upsertCountedSessionBillingSnapshot(session);
+			}
+		} catch (Exception e) {
+			Engine.logRedis.debug("(ConvertigoSessionManager) upsertCountedSessionBillingSnapshot failed: "
+					+ e.getMessage());
+		}
+		return false;
+	}
+
+	public void syncCountedSessionBillingAuthenticatedUser(HttpSession session) {
+		try {
+			if (provider != null) {
+				provider.syncCountedSessionBillingAuthenticatedUser(session);
+			}
+		} catch (Exception e) {
+			Engine.logRedis.debug("(ConvertigoSessionManager) syncCountedSessionBillingAuthenticatedUser failed: "
+					+ e.getMessage());
 		}
 	}
 
 	private SessionStoreMode computeStoreMode() {
 		var raw = EnginePropertiesManager.getProperty(PropertyName.SESSION_STORE_MODE);
 		var result = SessionStoreMode.fromProperty(raw);
-		debug("Resolved SESSION_STORE_MODE='" + raw + "' => store=" + result.name());
+		Engine.logRedis.debug("(ConvertigoSessionManager) Resolved SESSION_STORE_MODE='" + raw + "' => store="
+				+ result.name());
 		return result;
 	}
 
 	private SessionProvider buildProvider(SessionStoreMode storeMode) {
 		try {
-			debug("Building session provider for store=" + storeMode.name());
+			Engine.logRedis.debug("(ConvertigoSessionManager) Building session provider for store=" + storeMode.name());
 			return switch (storeMode) {
 				case tomcat -> new LegacySessionProvider();
 				case redis -> new RedisSessionProvider();
@@ -231,7 +278,7 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 
 	private void reload(SessionStoreMode storeMode) {
 		synchronized (mutex) {
-			debug("Reload requested with store=" + storeMode.name());
+			Engine.logRedis.debug("(ConvertigoSessionManager) Reload requested with store=" + storeMode.name());
 			this.storeMode = storeMode;
 			provider = buildProvider(storeMode);
 			logSelectedMode();
@@ -248,25 +295,13 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 	}
 
 	private void logSelectedMode() {
-		try {
-			if (Engine.logEngine != null && Engine.logEngine.isInfoEnabled()) {
-				Engine.logEngine.info("(ConvertigoSessionManager) store=" + storeMode.name() + ", provider="
-						+ provider.getClass().getSimpleName());
-			}
-		} catch (Exception ignore) {
-			// ignore logging failures
-		}
+		Engine.logEngine.info("(ConvertigoSessionManager) store=" + storeMode.name() + ", provider="
+				+ provider.getClass().getSimpleName());
 	}
 
 	private void logStartupFailure(String mode, Exception e) {
-		try {
-			if (Engine.logEngine != null) {
-				Engine.logEngine.error("(ConvertigoSessionManager) Failed to initialize session store '" + mode
-						+ "'. Falling back to legacy mode.", e);
-			}
-		} catch (Exception ignore) {
-			// ignore logging failures
-		}
+		Engine.logEngine.error("(ConvertigoSessionManager) Failed to initialize session store '" + mode
+				+ "'. Falling back to legacy mode.", e);
 	}
 
 	@Override
@@ -276,21 +311,35 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		}
 		switch (event.getKey()) {
 		case SESSION_STORE_MODE:
-			debug("Detected property change for " + event.getKey().name() + ", recomputing session mode");
-			reload(computeStoreMode());
+			Engine.logRedis.debug("(ConvertigoSessionManager) Detected property change for " + event.getKey().name()
+					+ ", recomputing session mode");
+			var targetMode = computeStoreMode();
+			if (targetMode == SessionStoreMode.redis) {
+				RedisClients.reload();
+			}
+			reload(targetMode);
+			break;
+		case SESSION_REDIS_HOST:
+		case SESSION_REDIS_PORT:
+		case SESSION_REDIS_USERNAME:
+		case SESSION_REDIS_PASSWORD:
+		case SESSION_REDIS_DATABASE:
+		case SESSION_REDIS_SSL:
+		case SESSION_REDIS_TIMEOUT:
+		case SESSION_REDIS_CONNECTION_POOL_SIZE:
+		case SESSION_REDIS_CONNECTION_MINIMUM_IDLE_SIZE:
+		case SESSION_REDIS_PREFIX:
+		case SESSION_REDIS_DEFAULT_TTL:
+		case SESSION_COOKIE_NAME:
+			if (storeMode == SessionStoreMode.redis) {
+				Engine.logRedis.debug("(ConvertigoSessionManager) Detected Redis session property change for "
+						+ event.getKey().name() + ", reloading Redis session provider");
+				RedisClients.reload();
+				reload(SessionStoreMode.redis);
+			}
 			break;
 		default:
 			break;
-		}
-	}
-
-	private void debug(String message) {
-		try {
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug("(ConvertigoSessionManager) " + message);
-			}
-		} catch (Exception ignore) {
-			// ignore logging failures
 		}
 	}
 

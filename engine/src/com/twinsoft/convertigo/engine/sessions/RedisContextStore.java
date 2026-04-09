@@ -24,14 +24,12 @@ import java.util.HashSet;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
-import org.redisson.Redisson;
 import org.redisson.api.RMap;
 import org.redisson.api.RScript;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.api.options.KeysScanOptions;
 import org.redisson.client.codec.StringCodec;
-import org.redisson.config.Config;
 
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -56,7 +54,7 @@ public final class RedisContextStore implements ContextStore {
 
 	public RedisContextStore(RedisSessionConfiguration configuration) {
 		this.configuration = configuration;
-		this.client = createClient(configuration);
+		this.client = RedisClients.getClient(configuration);
 		this.contextsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_CONTEXTS, StringCodec.INSTANCE);
 	}
 
@@ -64,19 +62,6 @@ public final class RedisContextStore implements ContextStore {
 		return this.client.getMap(this.configuration.contextKey(contextId), StringCodec.INSTANCE);
 	}
 
-	private static RedissonClient createClient(RedisSessionConfiguration cfg) {
-		var config = new Config();
-		if (cfg.getUsername() != null) {
-			config.setUsername(cfg.getUsername());
-		}
-		if (cfg.getPassword() != null) {
-			config.setPassword(cfg.getPassword());
-		}
-		config.useSingleServer().setAddress(cfg.getAddress())
-				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
-		return Redisson.create(config);
-	}
-	
 	@SuppressWarnings("deprecation")
 	@Override
 	public Context read(String contextId) {
@@ -164,12 +149,12 @@ public final class RedisContextStore implements ContextStore {
 						ctx.httpState = httpState;
 					}
 				} catch (Exception e) {
-					Engine.logEngine.debug("(RedisContextStore) Failed to restore httpState for context " + contextId, e);
+					Engine.logRedis.debug("(RedisContextStore) Failed to restore httpState for context " + contextId, e);
 				}
 			}
 			return ctx;
 		} catch (Exception e) {
-			log("(RedisContextStore) Failed to read context " + contextId, e);
+			Engine.logRedis.warn("(RedisContextStore) Failed to read context " + contextId, e);
 			return null;
 		}
 	}
@@ -234,7 +219,7 @@ public final class RedisContextStore implements ContextStore {
 						snapshot.put("__meta:httpState", JsonCodec.MAPPER.writeValueAsString(stateMap));
 					}
 				} catch (Exception e) {
-					Engine.logEngine.debug("(RedisContextStore) Failed to serialize httpState for context " + context.contextID, e);
+					Engine.logRedis.debug("(RedisContextStore) Failed to serialize httpState for context " + context.contextID, e);
 				}
 			}
 			var rmap = map(context.contextID);
@@ -266,10 +251,10 @@ public final class RedisContextStore implements ContextStore {
 			try {
 				contextsIndex.add(context.contextID);
 			} catch (Exception e) {
-				Engine.logEngine.debug("(RedisContextStore) Failed to update contexts index for " + context.contextID, e);
+				Engine.logRedis.debug("(RedisContextStore) Failed to update contexts index for " + context.contextID, e);
 			}
 		} catch (Exception e) {
-			log("(RedisContextStore) Failed to save context " + context.contextID, e);
+			Engine.logRedis.warn("(RedisContextStore) Failed to save context " + context.contextID, e);
 		}
 	}
 
@@ -280,10 +265,10 @@ public final class RedisContextStore implements ContextStore {
 			try {
 				contextsIndex.remove(contextId);
 			} catch (Exception e) {
-				Engine.logEngine.debug("(RedisContextStore) Failed to remove " + contextId + " from contexts index", e);
+				Engine.logRedis.debug("(RedisContextStore) Failed to remove " + contextId + " from contexts index", e);
 			}
 		} catch (Exception e) {
-			log("(RedisContextStore) Failed to delete context " + contextId, e);
+			Engine.logRedis.warn("(RedisContextStore) Failed to delete context " + contextId, e);
 		}
 	}
 
@@ -304,17 +289,13 @@ public final class RedisContextStore implements ContextStore {
 				}
 			}
 		} catch (Exception e) {
-			log("(RedisContextStore) Failed to delete contexts by prefix " + sessionIdPrefix, e);
+			Engine.logRedis.warn("(RedisContextStore) Failed to delete contexts by prefix " + sessionIdPrefix, e);
 		}
 	}
 
 	@Override
 	public void shutdown() {
-		try {
-			this.client.shutdown();
-		} catch (Exception e) {
-			log("(RedisContextStore) Failed to shutdown", e);
-		}
+		// Shared JVM-wide Redis client is shut down by RedisClients.
 	}
 
 	private void restoreContextData(Context context, java.util.Map<String, String> snapshot) {
@@ -337,7 +318,7 @@ public final class RedisContextStore implements ContextStore {
 					context.set(ctxKey, value);
 				}
 			} catch (Exception e) {
-				Engine.logEngine.debug("(RedisContextStore) Failed to deserialize context value '" + ctxKey + "' for context " + context.contextID, e);
+				Engine.logRedis.debug("(RedisContextStore) Failed to deserialize context value '" + ctxKey + "' for context " + context.contextID, e);
 			}
 		}
 	}
@@ -370,7 +351,7 @@ public final class RedisContextStore implements ContextStore {
 					snapshot.put(DATA_PREFIX + key, raw);
 				}
 			} catch (Exception e) {
-				Engine.logEngine.debug("(RedisContextStore) Skip context value '" + key + "' (serialization failure) for context " + context.contextID, e);
+				Engine.logRedis.debug("(RedisContextStore) Skip context value '" + key + "' (serialization failure) for context " + context.contextID, e);
 			}
 		}
 	}
@@ -402,17 +383,4 @@ public final class RedisContextStore implements ContextStore {
 		snapshot.put("__meta:" + name, JsonCodec.MAPPER.writeValueAsString(value));
 	}
 
-	private void log(String message, Exception e) {
-		try {
-			if (Engine.logEngine != null) {
-				if (e == null) {
-					Engine.logEngine.warn(message);
-				} else {
-					Engine.logEngine.warn(message, e);
-				}
-			}
-		} catch (Exception ignore) {
-			// ignore
-		}
-	}
 }

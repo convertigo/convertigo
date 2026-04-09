@@ -49,7 +49,7 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class AuthenticatedSessionManager implements AbstractManager {
-	public static enum SessionKey {ADMIN_ROLES, ADMIN_USER};
+	public static enum SessionKey {ADMIN_ROLES, ADMIN_USER, ADMIN_PUBLIC_DASHBOARD};
 	public static enum Role {
 		ANONYMOUS,
 		AUTHENTICATED,

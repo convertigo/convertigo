@@ -65,7 +65,6 @@ import com.twinsoft.tas.KeyManager;
 	)
 public class List extends XmlService{
 	private static final ObjectMapper JSON = new ObjectMapper();
-	private static final String INDEX_SESSIONS = "index:sessions";
 	private static final String INDEX_CONTEXTS = "index:contexts";
 	private static final String INFLIGHT_CONTEXTS = "inflight:contexts";
 	private static final String SESSION_META_CREATION = "__meta:creationTime";
@@ -131,6 +130,10 @@ public class List extends XmlService{
         Element sessionsNumberElement = document.createElement("sessionsNumber");
         sessionsNumberElement.setTextContent("" + Math.max(0, KeyManager.getMaxCV(Session.EmulIDSE)));
         rootElement.appendChild(sessionsNumberElement);
+
+		Element redisModeElement = document.createElement("redisMode");
+		redisModeElement.setTextContent(Boolean.toString(ConvertigoHttpSessionManager.isRedisMode()));
+		rootElement.appendChild(redisModeElement);
         
         Element threadsInUseElement = document.createElement("threadsInUse");
         threadsInUseElement.setTextContent("" + Math.max(0, com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads));
@@ -145,14 +148,14 @@ public class List extends XmlService{
         rootElement.appendChild(httpTimeoutElement);
 
 		long now = System.currentTimeMillis();
-		int licensedSessions = ConvertigoHttpSessionManager.getInstance().countLicensedSessions();
+		int countedSessions = ConvertigoHttpSessionManager.getInstance().countCountedSessions();
 		if (ConvertigoHttpSessionManager.isRedisMode()) {
 			var counts = listFromRedis(request, document, currentSession, connectionsListElement, sessionsListElement, now);
 			contextsInUseElement.setTextContent(Integer.toString(Math.max(0, counts.contexts)));
-			sessionsInUseElement.setTextContent(Integer.toString(Math.max(0, licensedSessions)));
+			sessionsInUseElement.setTextContent(Integer.toString(Math.max(0, countedSessions)));
 		} else {
 			contextsInUseElement.setTextContent("" + Math.max(0, Engine.theApp.contextManager.getNumberOfContexts()));
-			sessionsInUseElement.setTextContent(Integer.toString(Math.max(0, licensedSessions)));
+			sessionsInUseElement.setTextContent(Integer.toString(Math.max(0, countedSessions)));
 
 			Collection<Context> contexts = null;
 
@@ -257,12 +260,10 @@ public class List extends XmlService{
 			var cfg = RedisClients.getConfiguration();
 			var client = RedisClients.getClient();
 
-			String sessionsIndexKey = cfg.getContextKeyPrefix() + INDEX_SESSIONS;
 			String contextsIndexKey = cfg.getContextKeyPrefix() + INDEX_CONTEXTS;
-			RSet<String> sessionsIndex = client.getSet(sessionsIndexKey, StringCodec.INSTANCE);
 			RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
 
-			var persistedSessionIds = new HashSet<>(sessionsIndex.readAll());
+			var persistedSessionIds = new HashSet<>(ConvertigoHttpSessionManager.getInstance().readCountedSessionIds());
 			var persistedContextIds = new HashSet<>(contextsIndex.readAll());
 			var sessionIds = new HashSet<>(persistedSessionIds);
 			var contextIds = new HashSet<>(persistedContextIds);
@@ -293,7 +294,8 @@ public class List extends XmlService{
 			var localSessionIds = new HashSet<String>();
 			try {
 				for (var session : HttpSessionListener.getSessions()) {
-					if (session != null) {
+					if (session != null && SessionAttribute.isCounted(session)) {
+						sessionIds.add(session.getId());
 						localSessionIds.add(session.getId());
 					}
 				}
@@ -495,7 +497,6 @@ public class List extends XmlService{
 				}
 
 				String currentSessionId = currentSession != null ? currentSession.getId() : null;
-				var staleSessions = new ArrayList<String>();
 				var requiredSessionFields = Set.of(SESSION_META_CREATION, SESSION_META_LAST_ACCESS, SESSION_META_MAX_INACTIVE,
 						SessionAttribute.authenticatedUser.value(), SessionAttribute.clientIP.value(), SessionAttribute.deviceUUID.value(),
 						SessionKey.ADMIN_ROLES.toString());
@@ -503,7 +504,6 @@ public class List extends XmlService{
 					if (sessionId == null || sessionId.isBlank()) {
 						continue;
 					}
-					boolean isPersisted = persistedSessionIds.contains(sessionId);
 					String sessionKey = cfg.getKeyPrefix() + sessionId;
 					RMap<String, String> sessionMap = client.getMap(sessionKey, StringCodec.INSTANCE);
 					Map<String, String> snapshot;
@@ -513,10 +513,6 @@ public class List extends XmlService{
 						snapshot = null;
 					}
 					if (snapshot == null || snapshot.isEmpty()) {
-						if (isPersisted) {
-							staleSessions.add(sessionId);
-							continue;
-						}
 						int contextsCount = contextsBySession.getOrDefault(sessionId, 0);
 						if (contextsCount == 0) {
 							continue;
@@ -575,16 +571,6 @@ public class List extends XmlService{
 						sessionElement.setAttribute("isFullSyncActive", Boolean.toString(false));
 					}
 					sessionsListElement.appendChild(sessionElement);
-				}
-				if (!staleSessions.isEmpty()) {
-					try {
-						sessionsIndex.removeAll(staleSessions);
-						for (var sid : staleSessions) {
-							sessionIds.remove(sid);
-						}
-					} catch (Exception ignore) {
-						// ignore
-					}
 				}
 			}
 

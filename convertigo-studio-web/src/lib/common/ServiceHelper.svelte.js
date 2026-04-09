@@ -4,6 +4,13 @@ import Authentication from '$lib/common/Authentication.svelte';
 import { call, checkArray, getNestedProperty, setNestedProperty } from '$lib/utils/service';
 import { untrack } from 'svelte';
 
+const getErrorText = (error) => {
+	const raw = error?.error?.message ?? error?.message ?? error?.error ?? error?.errorMessage ?? '';
+	return typeof raw == 'string' ? raw : JSON.stringify(raw);
+};
+
+const isAuthFailure = (error) => /authentication failure/i.test(getErrorText(error));
+
 /**
  * @param {{values?: any, defValues?: any, service?: any, params?: any, delay?: number, arrays?: any[], mapping?: any, beforeUpdate?: (data: any) => any, needAuth?: boolean | (() => boolean), onInstanceChange?: () => void}} param0
  */
@@ -25,6 +32,7 @@ export default function ({
 	let _needRefresh = $state(Boolean(service));
 	let _calling = $state(false);
 	let _instanceRevision = $state(Instances.revision);
+	let _authRevision = $state(Authentication.revision);
 	let _callSerial = 0;
 	const resetValues = (next = defValues) => {
 		_values = { ...next };
@@ -49,16 +57,14 @@ export default function ({
 		_callSerial += 1;
 		onInstanceChange();
 	};
+	const resetForAuthenticationChange = () => {
+		stopInterval();
+		resetValues();
+		_calling = false;
+		_needRefresh = Boolean(service);
+		_callSerial += 1;
+	};
 
-	if (browser && needAuth) {
-		$effect.root(() => {
-			$effect(() => {
-				if (hasRequiredAuth() && _needRefresh && !_calling) {
-					untrack(values.refresh);
-				}
-			});
-		});
-	}
 	if (browser) {
 		$effect.root(() => {
 			$effect(() => {
@@ -68,6 +74,18 @@ export default function ({
 				}
 				_instanceRevision = revision;
 				resetForInstanceChange();
+			});
+		});
+	}
+	if (browser) {
+		$effect.root(() => {
+			$effect(() => {
+				const revision = Authentication.revision;
+				if (revision === _authRevision) {
+					return;
+				}
+				_authRevision = revision;
+				resetForAuthenticationChange();
 			});
 		});
 	}
@@ -95,10 +113,18 @@ export default function ({
 		_calling = true;
 		const callSerial = ++_callSerial;
 		const callInstanceRevision = _instanceRevision;
+		const callAuthRevision = _authRevision;
 		let res = {};
 		try {
 			res = await (typeof service == 'string' ? call(service, params) : service(params));
-			if (callSerial != _callSerial || callInstanceRevision != _instanceRevision) {
+			if (res?.aborted) {
+				return;
+			}
+			if (
+				callSerial != _callSerial ||
+				callInstanceRevision != _instanceRevision ||
+				callAuthRevision != _authRevision
+			) {
 				return;
 			}
 			if (res?.offline) {
@@ -137,7 +163,11 @@ export default function ({
 				}
 			}
 		} catch (error) {
-			if (callSerial != _callSerial || callInstanceRevision != _instanceRevision) {
+			if (
+				callSerial != _callSerial ||
+				callInstanceRevision != _instanceRevision ||
+				callAuthRevision != _authRevision
+			) {
 				return;
 			}
 			if (error != res) {
@@ -146,7 +176,9 @@ export default function ({
 			values.stop();
 			resetValues({ ...defValues, res });
 			_needRefresh = false;
-			window.setTimeout(() => (_needRefresh = true), 10000);
+			if (!isAuthFailure(error)) {
+				window.setTimeout(() => (_needRefresh = true), 10000);
+			}
 		}
 		_calling = false;
 	};

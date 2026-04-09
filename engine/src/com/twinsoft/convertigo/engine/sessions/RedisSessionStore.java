@@ -25,21 +25,24 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.redisson.Redisson;
+import jakarta.servlet.http.HttpSession;
+
 import org.redisson.api.RBucket;
 import org.redisson.api.RMap;
 import org.redisson.api.RScript;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
-import org.redisson.config.Config;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 final class RedisSessionStore implements SessionStore {
 	private static final String INDEX_SESSIONS = "index:sessions";
-	private static final String INDEX_LICENSED_SESSIONS = "index:licensedSessions";
+	private static final String INDEX_COUNTED_SESSIONS = "index:countedSessions";
+	private static final String INDEX_LEGACY_LICENSED_SESSIONS = "index:licensedSessions";
+	private static final String INDEX_COUNTED_SESSIONS_BILLING = "index:countedSessionsBilling";
 	private static final String TOMBSTONE_SESSION_PREFIX = "tombstone:session:";
 	private static final String LUA_HSET_DEL_AND_TOUCH = ""
 			+ "local key=KEYS[1]; local tomb=KEYS[2];\n"
@@ -55,27 +58,21 @@ final class RedisSessionStore implements SessionStore {
 	private final RedissonClient client;
 	private final RedisSessionConfiguration configuration;
 	private final RSet<String> sessionsIndex;
-	private final RSet<String> licensedSessionsIndex;
+	private final RSet<String> countedSessionsIndex;
+	private final RSet<String> legacyLicensedSessionsIndex;
+	private final RMap<String, String> countedSessionsBillingIndex;
 
 	RedisSessionStore(RedisSessionConfiguration configuration) {
 		this.configuration = configuration;
-		this.client = this.createClient(configuration);
+		this.client = RedisClients.getClient(configuration);
 		this.sessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_SESSIONS, StringCodec.INSTANCE);
-		this.licensedSessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_LICENSED_SESSIONS,
+		this.countedSessionsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_COUNTED_SESSIONS,
 				StringCodec.INSTANCE);
-	}
-
-	private RedissonClient createClient(RedisSessionConfiguration cfg) {
-		var config = new Config();
-		if (cfg.getUsername() != null) {
-			config.setUsername(cfg.getUsername());
-		}
-		if (cfg.getPassword() != null) {
-			config.setPassword(cfg.getPassword());
-		}
-		config.useSingleServer().setAddress(cfg.getAddress())
-				.setDatabase(cfg.getDatabase()).setTimeout(cfg.getTimeoutMillis());
-		return Redisson.create(config);
+		this.legacyLicensedSessionsIndex = this.client
+				.getSet(configuration.getContextKeyPrefix() + INDEX_LEGACY_LICENSED_SESSIONS,
+				StringCodec.INSTANCE);
+		this.countedSessionsBillingIndex = this.client
+				.getMap(configuration.getContextKeyPrefix() + INDEX_COUNTED_SESSIONS_BILLING, StringCodec.INSTANCE);
 	}
 
 	private RMap<String, String> map(String sessionId) {
@@ -90,18 +87,22 @@ final class RedisSessionStore implements SessionStore {
 		}
 	}
 
-	int estimateLicensedSessions() {
-		try {
-			return licensedSessionsIndex.size();
-		} catch (Exception e) {
-			return 0;
-		}
+	int estimateCountedSessions() {
+		return readCountedSessionIds().size();
 	}
 
-	int countLicensedSessions() {
+	int countCountedSessions() {
+		return collectCountedSessionIds().size();
+	}
+
+	Set<String> readCountedSessionIds() {
+		return collectCountedSessionIds();
+	}
+
+	private Set<String> collectCountedSessionIds() {
 		var staleSessionIds = new ArrayList<String>();
-		int count = 0;
-		for (var sessionId : readLicensedSessionIds()) {
+		var validSessionIds = new HashSet<String>();
+		for (var sessionId : readCountedSessionIdsIndex()) {
 			if (sessionId == null || sessionId.isBlank()) {
 				continue;
 			}
@@ -109,23 +110,114 @@ final class RedisSessionStore implements SessionStore {
 				staleSessionIds.add(sessionId);
 				continue;
 			}
-			count++;
+			validSessionIds.add(sessionId);
 		}
 		if (!staleSessionIds.isEmpty()) {
+			int score = validSessionIds.size() + staleSessionIds.size();
+			for (var sessionId : staleSessionIds) {
+				emitStopBilling(sessionId, score--);
+			}
 			try {
-				licensedSessionsIndex.removeAll(staleSessionIds);
+				countedSessionsIndex.removeAll(staleSessionIds);
+				legacyLicensedSessionsIndex.removeAll(staleSessionIds);
 			} catch (Exception e) {
-				debug("Failed to cleanup licensed sessions index: " + e.getMessage());
+				Engine.logRedis.debug("(RedisSessionStore) Failed to cleanup counted sessions index: " + e.getMessage());
 			}
 		}
-		return count;
+		return validSessionIds;
 	}
 
-	private Set<String> readLicensedSessionIds() {
+	boolean upsertCountedSessionBillingSnapshot(HttpSession session) {
+		if (session == null || !SessionAttribute.isCounted(session)) {
+			return false;
+		}
+		if (Engine.theApp == null || Engine.theApp.billingManager == null || !Engine.theApp.billingManager.hasActiveManagers()) {
+			return false;
+		}
 		try {
-			return licensedSessionsIndex.readAll();
+			String raw = buildBillingSnapshot(session);
+			String previous = countedSessionsBillingIndex.putIfAbsent(session.getId(), raw);
+			if (previous == null) {
+				return true;
+			}
+			countedSessionsBillingIndex.fastPut(session.getId(), raw);
 		} catch (Exception e) {
-			return Set.of();
+			Engine.logRedis.debug("(RedisSessionStore) Failed to update counted session billing snapshot for "
+					+ session.getId() + ": " + e.getMessage());
+		}
+		return false;
+	}
+
+	void syncCountedSessionBillingAuthenticatedUser(HttpSession session) {
+		if (session == null || !SessionAttribute.isCounted(session)) {
+			return;
+		}
+		if (Engine.theApp == null || Engine.theApp.billingManager == null || !Engine.theApp.billingManager.hasActiveManagers()) {
+			return;
+		}
+		try {
+			String authenticatedUser = SessionAttribute.authenticatedUser.get(session, "");
+			if (authenticatedUser == null || authenticatedUser.isBlank()) {
+				return;
+			}
+			String raw = countedSessionsBillingIndex.get(session.getId());
+			if (raw == null || raw.isBlank()) {
+				return;
+			}
+			var json = new JSONObject(raw);
+			if (!authenticatedUser.equals(json.optString("authenticatedUser"))) {
+				json.put("authenticatedUser", authenticatedUser);
+				countedSessionsBillingIndex.fastPut(session.getId(), json.toString());
+			}
+		} catch (Exception e) {
+			Engine.logRedis.debug("(RedisSessionStore) Failed to sync counted session billing authenticated user for "
+					+ session.getId() + ": " + e.getMessage());
+		}
+	}
+
+	private String buildBillingSnapshot(HttpSession session) throws Exception {
+		var json = new JSONObject();
+		json.put("creationTime", session.getCreationTime());
+		json.put("clientIP", SessionAttribute.clientIP.get(session, ""));
+		json.put("userAgent", SessionAttribute.userAgent.get(session, ""));
+		json.put("authenticatedUser", SessionAttribute.authenticatedUser.get(session, ""));
+		json.put("deviceUUID", SessionAttribute.deviceUUID.get(session, ""));
+		return json.toString();
+	}
+
+	private void emitStopBilling(String sessionId, int score) {
+		try {
+			if (sessionId == null || sessionId.isBlank()) {
+				return;
+			}
+			String raw = countedSessionsBillingIndex.remove(sessionId);
+			if (raw == null || raw.isBlank()) {
+				return;
+			}
+			if (Engine.theApp == null || Engine.theApp.billingManager == null || !Engine.theApp.billingManager.hasActiveManagers()) {
+				return;
+			}
+			var json = new JSONObject(raw);
+			Engine.theApp.billingManager.insertBillingSession("stop", json.optLong("creationTime"),
+					sessionId, json.optString("clientIP"), json.optString("userAgent"),
+					json.optString("authenticatedUser"), json.optString("deviceUUID"), Math.max(score, 0));
+		} catch (Exception e) {
+			Engine.logRedis.debug("(RedisSessionStore) Failed to emit stop billing for " + sessionId + ": "
+					+ e.getMessage());
+		}
+	}
+
+	private Set<String> readCountedSessionIdsIndex() {
+		try {
+			var sessionIds = new HashSet<String>(countedSessionsIndex.readAll());
+			sessionIds.addAll(legacyLicensedSessionsIndex.readAll());
+			return sessionIds;
+		} catch (Exception e) {
+			try {
+				return legacyLicensedSessionsIndex.readAll();
+			} catch (Exception ignore) {
+				return Set.of();
+			}
 		}
 	}
 
@@ -134,23 +226,23 @@ final class RedisSessionStore implements SessionStore {
 		try {
 			var rmap = map(sessionId);
 			if (!rmap.isExists()) {
-				debug("MISS " + sessionId);
+				Engine.logRedis.debug("(RedisSessionStore) MISS " + sessionId);
 				return null;
 			}
 			var meta = rmap.getAll(Set.of(SessionStoreKeys.META_CREATION, SessionStoreKeys.META_LAST_ACCESS,
 					SessionStoreKeys.META_MAX_INACTIVE));
 			if (meta == null || meta.isEmpty()) {
-				debug("MISS(meta) " + sessionId);
+				Engine.logRedis.debug("(RedisSessionStore) MISS(meta) " + sessionId);
 				return null;
 			}
 			var now = System.currentTimeMillis();
 			var creationTime = parseLong(meta.get(SessionStoreKeys.META_CREATION), now);
 			var lastAccessedTime = parseLong(meta.get(SessionStoreKeys.META_LAST_ACCESS), creationTime);
 			var maxInactive = parseInt(meta.get(SessionStoreKeys.META_MAX_INACTIVE), configuration.getDefaultTtlSeconds());
-			debug("HIT(meta) " + sessionId);
+			Engine.logRedis.debug("(RedisSessionStore) HIT(meta) " + sessionId);
 			return new SessionStoreMeta(creationTime, lastAccessedTime, maxInactive);
 		} catch (Exception e) {
-			log("(RedisSessionStore) Failed to read session meta " + sessionId, e);
+			Engine.logRedis.warn("(RedisSessionStore) Failed to read session meta " + sessionId, e);
 			return null;
 		}
 	}
@@ -163,7 +255,7 @@ final class RedisSessionStore implements SessionStore {
 		try {
 			return map(sessionId).get(name);
 		} catch (Exception e) {
-			log("(RedisSessionStore) Failed to read attribute '" + name + "' for session " + sessionId, e);
+			Engine.logRedis.warn("(RedisSessionStore) Failed to read attribute '" + name + "' for session " + sessionId, e);
 			return null;
 		}
 	}
@@ -183,7 +275,7 @@ final class RedisSessionStore implements SessionStore {
 			}
 			return names;
 		} catch (Exception e) {
-			log("(RedisSessionStore) Failed to read attribute names for session " + sessionId, e);
+			Engine.logRedis.warn("(RedisSessionStore) Failed to read attribute names for session " + sessionId, e);
 			return Set.of();
 		}
 	}
@@ -191,8 +283,10 @@ final class RedisSessionStore implements SessionStore {
 	@Override
 	public void writeDelta(String sessionId, Map<String, String> hset, Set<String> hdel, long ttlMillis) {
 		try {
-			boolean keepLicensedSession = hset != null && hset.containsKey(SessionAttribute.licensedSession.value());
-			boolean dropLicensedSession = hdel != null && hdel.contains(SessionAttribute.licensedSession.value());
+			boolean keepCountedSession = hset != null && hset.containsKey(SessionAttribute.countedSession.value());
+			boolean dropCountedSession = hdel != null
+					&& (hdel.contains(SessionAttribute.countedSession.value())
+							|| hdel.contains(SessionAttribute.legacyLicensedSession.value()));
 			var setCount = hset != null ? hset.size() : 0;
 			var delCount = hdel != null ? hdel.size() : 0;
 			var args = new ArrayList<Object>(2 + setCount * 2 + 1 + delCount);
@@ -216,26 +310,44 @@ final class RedisSessionStore implements SessionStore {
 			try {
 				if (written != null && written.longValue() == 1L) {
 					sessionsIndex.add(sessionId);
-					if (keepLicensedSession) {
-						licensedSessionsIndex.add(sessionId);
-					} else if (dropLicensedSession) {
-						licensedSessionsIndex.remove(sessionId);
+					if (keepCountedSession) {
+						countedSessionsIndex.add(sessionId);
+						legacyLicensedSessionsIndex.remove(sessionId);
+					} else if (dropCountedSession) {
+						countedSessionsIndex.remove(sessionId);
+						legacyLicensedSessionsIndex.remove(sessionId);
 					}
 				}
 			} catch (Exception e) {
-				debug("Failed to update sessions index for " + sessionId + ": " + e.getMessage());
+				Engine.logRedis.debug("(RedisSessionStore) Failed to update sessions index for " + sessionId + ": "
+						+ e.getMessage());
 			}
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				debug("FLUSH " + sessionId + " set=" + setCount + " del=" + delCount + " ttlMillis=" + ttlMillis);
-			}
+			Engine.logRedis.debug("(RedisSessionStore) FLUSH " + sessionId + " set=" + setCount + " del="
+					+ delCount + " ttlMillis=" + ttlMillis);
 		} catch (Exception e) {
-			log("(RedisSessionStore) Failed to flush delta for session " + sessionId, e);
+			Engine.logRedis.warn("(RedisSessionStore) Failed to flush delta for session " + sessionId, e);
 		}
 	}
 
 	@Override
 	public void delete(String sessionId) {
 		try {
+			int countedScore = 0;
+			try {
+				var counted = map(sessionId).getAll(Set.of(SessionAttribute.countedSession.value(),
+						SessionAttribute.legacyLicensedSession.value()));
+				if ("true".equals(counted.get(SessionAttribute.countedSession.value()))
+						|| "true".equals(counted.get(SessionAttribute.legacyLicensedSession.value()))) {
+					countedScore = countCountedSessions();
+				}
+			} catch (Exception ignore) {
+				// ignore billing pre-read failures
+			}
+			if (countedScore > 0) {
+				emitStopBilling(sessionId, countedScore);
+			} else {
+				countedSessionsBillingIndex.remove(sessionId);
+			}
 			try {
 				int ttlSeconds = configuration.getDefaultTtlSeconds();
 				try {
@@ -256,43 +368,22 @@ final class RedisSessionStore implements SessionStore {
 			map(sessionId).delete();
 			try {
 				sessionsIndex.remove(sessionId);
-				licensedSessionsIndex.remove(sessionId);
+				countedSessionsIndex.remove(sessionId);
+				legacyLicensedSessionsIndex.remove(sessionId);
+				countedSessionsBillingIndex.remove(sessionId);
 			} catch (Exception e) {
-				debug("Failed to remove " + sessionId + " from sessions index: " + e.getMessage());
+				Engine.logRedis.debug("(RedisSessionStore) Failed to remove " + sessionId + " from sessions index: "
+						+ e.getMessage());
 			}
-			debug("DEL(hash) " + sessionId);
+			Engine.logRedis.debug("(RedisSessionStore) DEL(hash) " + sessionId);
 		} catch (Exception e) {
-			log("(RedisSessionStore) Failed to delete session " + sessionId, e);
+			Engine.logRedis.warn("(RedisSessionStore) Failed to delete session " + sessionId, e);
 		}
 	}
 
 	@Override
 	public void shutdown() {
-		try {
-			this.client.shutdown();
-		} catch (Exception e) {
-			this.log("(RedisSessionStore) Failed to shutdown Redis client", e);
-		}
-	}
-
-	private void log(String message, Exception e) {
-		try {
-			if (Engine.logEngine != null) {
-				Engine.logEngine.warn(message, e);
-			}
-		} catch (Exception ignore) {
-			// ignore
-		}
-	}
-
-	private void debug(String message) {
-		try {
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug("(RedisSessionStore) " + message);
-			}
-		} catch (Exception ignore) {
-			// ignore
-		}
+		// Shared JVM-wide Redis client is shut down by RedisClients.
 	}
 
 	private static long parseLong(String value, long defaultValue) {

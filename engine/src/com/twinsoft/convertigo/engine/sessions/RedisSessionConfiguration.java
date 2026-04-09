@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
+import java.util.Objects;
+
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 
 public final class RedisSessionConfiguration {
@@ -29,12 +31,16 @@ public final class RedisSessionConfiguration {
     private final int database;
     private final boolean ssl;
     private final int timeoutMillis;
+    private final int connectionPoolSize;
+    private final int connectionMinimumIdleSize;
     private final String keyPrefix;
     private final int defaultTtlSeconds;
     private final String cookieName;
     private final String contextKeyPrefix;
 
-    private RedisSessionConfiguration(String host, int port, String username, String password, int database, boolean ssl, int timeoutMillis, String keyPrefix, int defaultTtlSeconds) {
+    private RedisSessionConfiguration(String host, int port, String username, String password, int database, boolean ssl,
+            int timeoutMillis, int connectionPoolSize, int connectionMinimumIdleSize, String keyPrefix,
+            int defaultTtlSeconds) {
         this.host = host;
         this.port = port;
         this.username = username;
@@ -42,6 +48,8 @@ public final class RedisSessionConfiguration {
         this.database = database;
         this.ssl = ssl;
         this.timeoutMillis = timeoutMillis;
+        this.connectionPoolSize = Math.max(1, connectionPoolSize);
+        this.connectionMinimumIdleSize = Math.max(0, Math.min(connectionMinimumIdleSize, this.connectionPoolSize));
         var normalized = keyPrefix == null ? "" : keyPrefix.replaceAll(":+$", "");
         var ctxPrefix = this.keyPrefix = normalized.isEmpty() ? "" : normalized + ":";
         if (ctxPrefix.endsWith("session:")) {
@@ -63,9 +71,12 @@ public final class RedisSessionConfiguration {
         var database = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_DATABASE, 0);
         var ssl = EnginePropertiesManager.getPropertyAsBoolean((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_SSL);
         var timeoutMillis = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_TIMEOUT, 5000);
+        var connectionPoolSize = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_CONNECTION_POOL_SIZE, 64);
+        var connectionMinimumIdleSize = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_CONNECTION_MINIMUM_IDLE_SIZE, 24);
         var prefix = EnginePropertiesManager.getProperty((EnginePropertiesManager.PropertyName)EnginePropertiesManager.PropertyName.SESSION_REDIS_PREFIX);
         var ttl = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_DEFAULT_TTL, 1800);
-        return new RedisSessionConfiguration(host, port, username, password, database, ssl, timeoutMillis, prefix, ttl);
+        return new RedisSessionConfiguration(host, port, username, password, database, ssl, timeoutMillis,
+                connectionPoolSize, connectionMinimumIdleSize, prefix, ttl);
     }
 
     private static int parseInt(EnginePropertiesManager.PropertyName property, int defaultValue) {
@@ -98,6 +109,14 @@ public final class RedisSessionConfiguration {
         return this.timeoutMillis;
     }
 
+    int getConnectionPoolSize() {
+        return this.connectionPoolSize;
+    }
+
+    int getConnectionMinimumIdleSize() {
+        return this.connectionMinimumIdleSize;
+    }
+
     String key(String sessionId) {
         return this.keyPrefix + sessionId;
     }
@@ -120,5 +139,34 @@ public final class RedisSessionConfiguration {
 
     String getCookieName() {
         return this.cookieName;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof RedisSessionConfiguration other)) {
+            return false;
+        }
+        return port == other.port
+                && database == other.database
+                && ssl == other.ssl
+                && timeoutMillis == other.timeoutMillis
+                && connectionPoolSize == other.connectionPoolSize
+                && connectionMinimumIdleSize == other.connectionMinimumIdleSize
+                && defaultTtlSeconds == other.defaultTtlSeconds
+                && Objects.equals(host, other.host)
+                && Objects.equals(username, other.username)
+                && Objects.equals(password, other.password)
+                && Objects.equals(keyPrefix, other.keyPrefix)
+                && Objects.equals(cookieName, other.cookieName)
+                && Objects.equals(contextKeyPrefix, other.contextKeyPrefix);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(host, port, username, password, database, ssl, timeoutMillis, connectionPoolSize,
+                connectionMinimumIdleSize, keyPrefix, defaultTtlSeconds, cookieName, contextKeyPrefix);
     }
 }

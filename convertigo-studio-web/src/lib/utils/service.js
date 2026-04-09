@@ -15,6 +15,7 @@ let authToastAt = 0;
 const OFFLINE_BACKOFF_MAX = 30000;
 const OFFLINE_TOAST_COOLDOWN = 10000;
 const AUTH_TOAST_COOLDOWN = 10000;
+const pendingCalls = new Set();
 const adminInstance = browser
 	? // @ts-ignore
 		(globalThis.__c8oAdminInstance ??= `${Date.now()}-${Math.random().toString(16).slice(2)}`)
@@ -23,6 +24,13 @@ const adminInstance = browser
 let modalAlert;
 export function setModalAlert(alert) {
 	modalAlert = alert;
+}
+
+export function abortPendingCalls() {
+	for (const controller of pendingCalls) {
+		controller.abort();
+	}
+	pendingCalls.clear();
 }
 
 /**
@@ -38,6 +46,8 @@ export async function call(service, data = {}, options = {}) {
 		return { error: 'Server unreachable', offline: true };
 	}
 	let dataContent;
+	const controller = new AbortController();
+	pendingCalls.add(controller);
 	try {
 		let url = getUrl() + service;
 		let body;
@@ -79,7 +89,8 @@ export async function call(service, data = {}, options = {}) {
 			method: 'POST',
 			headers,
 			body,
-			credentials: 'include'
+			credentials: 'include',
+			signal: controller.signal
 		});
 		offlineUntil = 0;
 		offlineBackoff = 1000;
@@ -125,6 +136,9 @@ export async function call(service, data = {}, options = {}) {
 		}
 	} catch (err) {
 		const message = String(err?.['message'] ?? err ?? '');
+		if (err?.name === 'AbortError' || /aborted/i.test(message)) {
+			return { aborted: true };
+		}
 		if (
 			message.includes('Failed to fetch') ||
 			message.includes('NetworkError') ||
@@ -137,8 +151,13 @@ export async function call(service, data = {}, options = {}) {
 		} else {
 			dataContent = { error: message };
 		}
+	} finally {
+		pendingCalls.delete(controller);
 	}
 
+	if (dataContent?.aborted) {
+		return dataContent;
+	}
 	handleStateMessage(dataContent, service);
 	return dataContent;
 }
@@ -252,15 +271,28 @@ function handleStateMessage(res, service) {
 			res.isError = true;
 			const errorText = stringilight(error);
 			if (/authentication failure/i.test(errorText)) {
+				if (Authentication.loggingOut) {
+					return;
+				}
 				Authentication.checkAuthentication().finally(() => {
 					if (!browser) {
+						return;
+					}
+					if (Authentication.loggingOut) {
 						return;
 					}
 					const isLoginRoute = location.pathname.includes('/login');
 					const isAdminRoute = location.pathname.startsWith(resolve('/admin/'));
 					const isDashboardRoute = location.pathname.startsWith(resolve('/dashboard/'));
+					if (!Authentication.authenticated) {
+						if (!isLoginRoute) {
+							const redirect = encodeURIComponent(location.pathname + location.search);
+							goto(`${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`);
+						}
+						return;
+					}
 					const mustRedirectToLogin =
-						!Authentication.canAccessDashboard ||
+						(!Authentication.canAccessDashboard && !Authentication.canAccessAdmin) ||
 						(isAdminRoute && !Authentication.canAccessAdmin) ||
 						(isDashboardRoute && !Authentication.authenticated);
 

@@ -75,7 +75,9 @@ const parts = $derived([
 			icon: 'mdi:robot-outline',
 			page: '/(app)/admin/assistant'
 		}
-	].filter(({ title }) => title != 'Keys' || cloud != true),
+	]
+		.filter(({ title }) => title != 'Keys' || cloud != true)
+		.filter(({ page, id }) => Authentication.canAccessAdminRoute(id ?? page)),
 	[
 		{
 			title: 'Dashboard',

@@ -281,6 +281,7 @@ public class Engine {
 	public static Logger logEngine;
 	public static Logger logJobManager;
 	public static Logger logProxyManager;
+	public static Logger logRedis;
 	public static Logger logScheduler;
 	public static Logger logSecurityFilter;
 	public static Logger logSecurityTokenManager;
@@ -444,6 +445,7 @@ public class Engine {
 			Engine.logCertificateManager = Logger.getLogger("cems.CertificateManager");
 			Engine.logDatabaseObjectManager = Logger.getLogger("cems.DatabaseObjectManager");
 			Engine.logProxyManager = Logger.getLogger("cems.ProxyManager");
+			Engine.logRedis = Logger.getLogger("cems.Redis");
 			Engine.logDevices = Logger.getLogger("cems.Devices");
 			Engine.logCouchDbManager = Logger.getLogger("cems.CouchDbManager");
 			Engine.logSecurityTokenManager = Logger.getLogger("cems.SecurityTokenManager");
