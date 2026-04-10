@@ -282,18 +282,28 @@ public class EnginePropertiesManager {
 
 		public Role[] viewRoles() {
 			CategoryOptions categoryOptions = GenericUtils.getAnnotation(CategoryOptions.class, this);
-			if (categoryOptions != null) {
-				return categoryOptions.viewRoles();
-			}
-			return null;
+			Role[] roles = categoryOptions == null ? new Role[0] : categoryOptions.viewRoles();
+			return joinRoles(new Role[] {Role.CONFIG_VIEW, Role.CONFIG_CONFIG}, roles);
 		}
 
 		public Role[] configRoles() {
 			CategoryOptions categoryOptions = GenericUtils.getAnnotation(CategoryOptions.class, this);
-			if (categoryOptions != null) {
-				return categoryOptions.configRoles();
+			Role[] roles = categoryOptions == null ? new Role[0] : categoryOptions.configRoles();
+			return joinRoles(new Role[] {Role.CONFIG_CONFIG}, roles);
+		}
+
+		private static Role[] joinRoles(Role[]... roleArrays) {
+			int size = 0;
+			for (Role[] roles : roleArrays) {
+				size += roles.length;
 			}
-			return null;
+			Role[] joined = Arrays.copyOf(roleArrays[0], size);
+			int offset = roleArrays[0].length;
+			for (int i = 1; i < roleArrays.length; i++) {
+				System.arraycopy(roleArrays[i], 0, joined, offset, roleArrays[i].length);
+				offset += roleArrays[i].length;
+			}
+			return joined;
 		}
 
 		public static PropertyCategory[] getSortedValues() {

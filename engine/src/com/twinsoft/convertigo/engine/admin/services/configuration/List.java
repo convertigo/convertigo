@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		name = "List",
 		roles = {
 			Role.WEB_ADMIN,
+			Role.CONFIG_VIEW, Role.CONFIG_CONFIG,
 			Role.LOGS_VIEW, Role.LOGS_CONFIG,
 			Role.CACHE_VIEW, Role.CACHE_CONFIG,
 			Role.CERTIFICATE_VIEW, Role.CERTIFICATE_CONFIG
