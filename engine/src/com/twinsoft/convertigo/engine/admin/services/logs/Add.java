@@ -64,12 +64,16 @@ public class Add extends JSonService {
 			}
 
 			HttpSession httpSession = request.getSession();
-			
-			Map<String, LogParameters> logParametersMap = GenericUtils.cast(httpSession.getAttribute(Add.class.getCanonicalName()));
-
-			if (logParametersMap == null) {
-				httpSession.setAttribute(Add.class.getCanonicalName(), logParametersMap = new HashMap<String, LogParameters>());
+			Map<String, LogParameters> logParametersMap = new HashMap<String, LogParameters>();
+			var stored = httpSession.getAttribute(Add.class.getCanonicalName());
+			if (stored instanceof Map<?, ?> storedMap) {
+				for (var entry : storedMap.entrySet()) {
+					if (entry.getKey() != null) {
+						logParametersMap.put(entry.getKey().toString(), toLogParameters(entry.getValue()));
+					}
+				}
 			}
+			httpSession.setAttribute(Add.class.getCanonicalName(), logParametersMap);
 
 			LogParameters logParameters = logParametersMap.get(uid);
 
@@ -112,5 +116,20 @@ public class Add extends JSonService {
 		} finally {
 			Log4jHelper.mdcClear();
 		}
-	}	 
+	}
+
+	private LogParameters toLogParameters(Object value) {
+		if (value instanceof LogParameters logParameters) {
+			return logParameters;
+		}
+		var logParameters = new LogParameters();
+		if (value instanceof Map<?, ?> map) {
+			for (var entry : map.entrySet()) {
+				if (entry.getKey() != null) {
+					logParameters.put(entry.getKey().toString(), entry.getValue());
+				}
+			}
+		}
+		return logParameters;
+	}
 }
