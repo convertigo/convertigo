@@ -154,6 +154,7 @@ public class FullSyncServlet extends HttpServlet {
 		try {
 			FullSyncClient fsClient = Engine.theApp.couchDbManager.getFullSyncClient();
 			RequestParser requestParser = new RequestParser(request, fsClient.getPrefix());
+			var isRootRequest = requestParser.isRootRequest();
 			
 			var isUtilsSession = "true".equals(httpSession.getAttribute("__isUtilsSession"));
 			var hasWebAdminRole = Engine.authenticatedSessionManager.hasRole(httpSession, Role.WEB_ADMIN);
@@ -167,8 +168,11 @@ public class FullSyncServlet extends HttpServlet {
 				Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG, Role.FULLSYNC_VIEW);
 				httpSession.setAttribute("__isUtilsSession", "true");
 				isUtilsRequest = !"_all_dbs".equals(requestParser.getSpecial());
-			} else {
+			} else if (!isRootRequest) {
 				Engine.theApp.couchDbManager.checkRequest(requestParser.getPath(), requestParser.getSpecial(), requestParser.getDocId());
+			}
+			if (isRootRequest && method != HttpMethodType.GET && method != HttpMethodType.HEAD) {
+				throw new SecurityException("FullSync root endpoint restriction.");
 			}
 			
 			synchronized (httpSession) {
@@ -198,15 +202,15 @@ public class FullSyncServlet extends HttpServlet {
 			
 			FullSyncAuthentication fsAuth = Engine.theApp.couchDbManager.getFullSyncAuthentication(request.getSession());
 			FullSyncConnector fullSyncConnector = null;
-			if (!hasWebAdminRole && isFullSyncAdminSession) {
+			if (!isRootRequest && !hasWebAdminRole && isFullSyncAdminSession) {
 				checkFullSyncAdminRequest(requestParser, method, isFullSyncWriteSession);
-			} else if (!hasWebAdminRole) {
+			} else if (!isRootRequest && !hasWebAdminRole) {
 				fullSyncConnector = getPublicReplicationConnector(requestParser, method);
 			}
 			if (fsAuth == null) {
 				Log4jHelper.mdcPut(mdcKeys.User, "(anonymous)");
 				debug.append("Anonymous user\n");
-				if (!isFullSyncAdminSession && fullSyncConnector.getAnonymousReplication() != FullSyncAnonymousReplication.allow) {
+				if (!isRootRequest && !isFullSyncAdminSession && fullSyncConnector.getAnonymousReplication() != FullSyncAnonymousReplication.allow) {
 					throw new SecurityException("The '" + dbName + "' database deny pull synchronization for an anonymous session");
 				}
 			} else {
@@ -675,6 +679,15 @@ public class FullSyncServlet extends HttpServlet {
 						byte[] b = sb.toString().getBytes("UTF-8");
 						HeaderName.ContentLength.addHeader(response, Integer.toString(b.length));
 						os.write(b);
+					} else if (isRootRequest && contentType.mimeType().in(MimeType.Plain, MimeType.Json)) {
+						var charset = contentType.getCharset("UTF-8");
+						var content = IOUtils.toString(is, charset);
+						var filteredContent = isUtilsRequest ? content : filterRootResponse(content);
+						var bytes = filteredContent.getBytes(charset);
+						HeaderName.ContentLength.addHeader(response, Integer.toString(bytes.length));
+						debug.append("response Header: " + HeaderName.ContentLength.value() + "=" + bytes.length + "\n");
+						Engine.logCouchDbManager.info("(FullSyncServlet) Filter root response:\n" + debug);
+						os.write(bytes);
 					} else if (requestParser.docId == null && requestParser.special == null && !fsClient.getPrefix().isEmpty()) {
 						String content = IOUtils.toString(is, "UTF-8");
 						content = content.replace("\"db_name\":\"" + fsClient.getPrefix(), "\"db_name\":\"");
@@ -723,6 +736,21 @@ public class FullSyncServlet extends HttpServlet {
 					set.remove(request);
 				}
 			}
+		}
+	}
+
+	private String filterRootResponse(String content) {
+		try {
+			var root = new JSONObject(content);
+			var filtered = new JSONObject();
+			for (var key : List.of("couchdb", "features", "uuid", "vendor", "version")) {
+				if (root.has(key)) {
+					filtered.put(key, root.get(key));
+				}
+			}
+			return filtered.length() == 0 ? content : filtered.toString();
+		} catch (Exception e) {
+			return content;
 		}
 	}
 
@@ -879,6 +907,10 @@ public class FullSyncServlet extends HttpServlet {
 
 		public String getDocId() {
 			return docId;
+		}
+
+		private boolean isRootRequest() {
+			return special == null && docId == null && StringUtils.isBlank(dbName);
 		}
 		
 		private boolean hasAttachment() {
