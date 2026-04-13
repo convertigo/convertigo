@@ -5,7 +5,6 @@
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';

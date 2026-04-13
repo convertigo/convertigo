@@ -38,6 +38,13 @@
 	let rawType = $derived((_type ?? 'text').toLocaleLowerCase());
 	let isPasswordType = $derived(rawType.startsWith('password'));
 	let type = $derived(isPasswordType ? 'password' : rawType);
+	let inputType = $derived(isPasswordType ? 'text' : type);
+	let inputAutocomplete = $derived(rest.autocomplete ?? 'off');
+	let inputStyle = $derived(
+		[rest.style, isPasswordType ? '-webkit-text-security: disc' : undefined]
+			.filter(Boolean)
+			.join('; ')
+	);
 	let restores = $derived.by(() => {
 		const r = [];
 		if (originalValue != null) {
@@ -134,7 +141,6 @@
 				{@render switchControl()}
 			{/if}
 		{:else}
-			{@const autocomplete = 'one-time-code'}
 			<div class="layout-y-stretch-none gap-1">
 				{#if label}
 					<AutoPlaceholder {loading}>
@@ -216,7 +222,7 @@
 						<textarea
 							{id}
 							{name}
-							{autocomplete}
+							autocomplete={inputAutocomplete}
 							{placeholder}
 							{...rest}
 							class="min-h-24 input-common px-3 py-2 text-sm {rest?.class ?? ''}"
@@ -227,9 +233,12 @@
 							{...rest}
 							{id}
 							{name}
-							{autocomplete}
+							autocomplete={inputAutocomplete}
 							{placeholder}
-							{type}
+							type={inputType}
+							style={inputStyle}
+							autocapitalize={isPasswordType ? 'none' : rest.autocapitalize}
+							spellcheck={isPasswordType ? false : rest.spellcheck}
 							disabled={loading}
 							class:animate-pulse={loading}
 							class="h-9 input-common px-3 text-sm placeholder:text-surface-600-400 {rest?.class ??
