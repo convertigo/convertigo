@@ -79,8 +79,8 @@ const pageRules = [
 	{
 		page: '/(app)/admin/config',
 		id: '/(app)/admin/config/[category]',
-		viewRoles: ['LOGS_VIEW', 'CACHE_VIEW', 'CERTIFICATE_VIEW'],
-		configRoles: ['LOGS_CONFIG', 'CACHE_CONFIG', 'CERTIFICATE_CONFIG']
+		viewRoles: ['CONFIG_VIEW', 'LOGS_VIEW', 'CACHE_VIEW', 'CERTIFICATE_VIEW'],
+		configRoles: ['CONFIG_CONFIG', 'LOGS_CONFIG', 'CACHE_CONFIG', 'CERTIFICATE_CONFIG']
 	},
 	{
 		page: '/(app)/admin/roles'

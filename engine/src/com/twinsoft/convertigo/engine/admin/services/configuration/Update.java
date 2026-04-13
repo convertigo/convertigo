@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		name = "Update",
 		roles = {
 			Role.WEB_ADMIN,
+			Role.CONFIG_CONFIG,
 			Role.LOGS_CONFIG,
 			Role.CACHE_CONFIG,
 			Role.CERTIFICATE_CONFIG
@@ -71,6 +72,9 @@ public class Update extends XmlService {
 				if (!AuthenticatedSessionManager.hasRole(roles, Role.WEB_ADMIN)
 					&& !AuthenticatedSessionManager.hasRole(roles, property.getCategory().configRoles())) {
 					throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
+				}
+				if (property == PropertyName.ADMIN_PASSWORD && !AuthenticatedSessionManager.hasRole(roles, Role.WEB_ADMIN)) {
+					throw new AuthenticationException("Authentication failure: only WEB_ADMIN can update the admin password!");
 				}
 			}
 			if (property == PropertyName.SECURITY_FILTER) {

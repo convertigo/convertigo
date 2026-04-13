@@ -2123,8 +2123,9 @@ public class NgxPickerComposite extends Composite {
 				TVObject tvo = (TVObject) treeItem.getData();
 				if (tvo != null) {
 					String tvoPath = tvo.getPath().replaceAll("\\?\\.", ".");
-					if (modelPath.startsWith(tvoPath.replaceFirst("root", ""))) {
-						if (modelPath.equals(tvoPath.replaceFirst("root", ""))) {
+					String itemPath = tvoPath.replaceFirst("root", "");
+					if (isSameModelPathOrAncestor(modelPath, itemPath)) {
+						if (modelPath.equals(itemPath)) {
 							return tvo;
 						}
 						return findModelItem(items[i], modelPath);
@@ -2133,6 +2134,17 @@ public class NgxPickerComposite extends Composite {
 			}
 		}
 		return null;
+	}
+
+	private boolean isSameModelPathOrAncestor(String modelPath, String itemPath) {
+		if (itemPath.isEmpty() || modelPath.equals(itemPath)) {
+			return true;
+		}
+		if (!modelPath.startsWith(itemPath)) {
+			return false;
+		}
+		char next = modelPath.charAt(itemPath.length());
+		return next == '.' || next == '[';
 	}
 
 	@Override

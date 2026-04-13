@@ -76,8 +76,6 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
-import com.twinsoft.convertigo.beans.core.Connector;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncListener;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
@@ -107,6 +105,16 @@ public class FullSyncServlet extends HttpServlet {
 	private static final long serialVersionUID = -5147185931965387561L;
 	
 	private static final Pattern replace2F = Pattern.compile("(/_design)%2[fF]");
+	private static final Set<String> PUBLIC_REPLICATION_SPECIALS = Set.of(
+			"_all_docs",
+			"_bulk_docs",
+			"_bulk_get",
+			"_changes",
+			"_ensure_full_commit",
+			"_local",
+			"_revs_diff"
+	);
+	private static final Set<String> FULLSYNC_ADMIN_SERVER_READ_SPECIALS = Set.of("_all_dbs", "_uuids");
 	
 	transient private final static ThreadLocal<HttpClientInterface> httpClient = new ThreadLocal<HttpClientInterface>() {
 		@Override
@@ -146,16 +154,25 @@ public class FullSyncServlet extends HttpServlet {
 		try {
 			FullSyncClient fsClient = Engine.theApp.couchDbManager.getFullSyncClient();
 			RequestParser requestParser = new RequestParser(request, fsClient.getPrefix());
+			var isRootRequest = requestParser.isRootRequest();
 			
-			boolean isUtilsSession = "true".equals(httpSession.getAttribute("__isUtilsSession"));
-			boolean isUtilsRequest = false;
+			var isUtilsSession = "true".equals(httpSession.getAttribute("__isUtilsSession"));
+			var hasWebAdminRole = Engine.authenticatedSessionManager.hasRole(httpSession, Role.WEB_ADMIN);
+			var hasFullSyncConfigRole = Engine.authenticatedSessionManager.hasRole(httpSession, Role.FULLSYNC_CONFIG);
+			var hasFullSyncViewRole = Engine.authenticatedSessionManager.hasRole(httpSession, Role.FULLSYNC_VIEW);
+			var isFullSyncAdminSession = hasWebAdminRole || hasFullSyncConfigRole || hasFullSyncViewRole;
+			var isFullSyncWriteSession = hasWebAdminRole || hasFullSyncConfigRole;
+			var isUtilsRequest = false;
 			String referer = request.getHeader("Referer");
-			if (isUtilsSession || (referer != null &&  (referer.endsWith("/admin/fs/") || referer.endsWith("/admin/fullsync/") || referer.endsWith("/admin/_utils/") || referer.endsWith("/admin_/_utils/")))) {
+			if (isFullSyncAdminSession || isUtilsSession || (referer != null &&  (referer.endsWith("/admin/fs/") || referer.endsWith("/admin/fullsync/") || referer.endsWith("/admin/_utils/") || referer.endsWith("/admin_/_utils/")))) {
 				Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG, Role.FULLSYNC_VIEW);
 				httpSession.setAttribute("__isUtilsSession", "true");
 				isUtilsRequest = !"_all_dbs".equals(requestParser.getSpecial());
-			} else {
+			} else if (!isRootRequest) {
 				Engine.theApp.couchDbManager.checkRequest(requestParser.getPath(), requestParser.getSpecial(), requestParser.getDocId());
+			}
+			if (isRootRequest && method != HttpMethodType.GET && method != HttpMethodType.HEAD) {
+				throw new SecurityException("FullSync root endpoint restriction.");
 			}
 			
 			synchronized (httpSession) {
@@ -184,30 +201,16 @@ public class FullSyncServlet extends HttpServlet {
 			String dbName = requestParser.getDbName();
 			
 			FullSyncAuthentication fsAuth = Engine.theApp.couchDbManager.getFullSyncAuthentication(request.getSession());
+			FullSyncConnector fullSyncConnector = null;
+			if (!isRootRequest && !hasWebAdminRole && isFullSyncAdminSession) {
+				checkFullSyncAdminRequest(requestParser, method, isFullSyncWriteSession);
+			} else if (!isRootRequest && !hasWebAdminRole) {
+				fullSyncConnector = getPublicReplicationConnector(requestParser, method);
+			}
 			if (fsAuth == null) {
 				Log4jHelper.mdcPut(mdcKeys.User, "(anonymous)");
 				debug.append("Anonymous user\n");
-				Boolean allowAnonymous = null;
-				for (String projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
-					try {
-		    			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-		    			for (Connector connector : project.getConnectorsList()) {
-		    				if (connector instanceof FullSyncConnector) {
-		    					FullSyncConnector fullSyncConnector = (FullSyncConnector) connector;
-		    					if (fullSyncConnector.getDatabaseName().equals(dbName)) {
-		    						allowAnonymous = fullSyncConnector.getAnonymousReplication() == FullSyncAnonymousReplication.allow;
-		    						break;
-		    					}
-		    				}
-		    			}
-		    			if (allowAnonymous != null) {
-		    				break;
-		    			}
-					} catch (Exception e) {
-						// TODO: handle exception
-					}
-				}
-				if (allowAnonymous == Boolean.FALSE) {
+				if (!isRootRequest && !isFullSyncAdminSession && fullSyncConnector.getAnonymousReplication() != FullSyncAnonymousReplication.allow) {
 					throw new SecurityException("The '" + dbName + "' database deny pull synchronization for an anonymous session");
 				}
 			} else {
@@ -285,7 +288,7 @@ public class FullSyncServlet extends HttpServlet {
 			case HEAD: newRequest = new HttpHead(); break;
 			case OPTIONS: newRequest = new HttpOptions(); break;
 			case POST:
-				if (isUtilsRequest) {
+				if (isUtilsRequest && !isFullSyncAdminReadRequest(requestParser, method)) {
 					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
 				}
 				newRequest = new HttpPost();
@@ -676,6 +679,15 @@ public class FullSyncServlet extends HttpServlet {
 						byte[] b = sb.toString().getBytes("UTF-8");
 						HeaderName.ContentLength.addHeader(response, Integer.toString(b.length));
 						os.write(b);
+					} else if (isRootRequest && contentType.mimeType().in(MimeType.Plain, MimeType.Json)) {
+						var charset = contentType.getCharset("UTF-8");
+						var content = IOUtils.toString(is, charset);
+						var filteredContent = isUtilsRequest ? content : filterRootResponse(content);
+						var bytes = filteredContent.getBytes(charset);
+						HeaderName.ContentLength.addHeader(response, Integer.toString(bytes.length));
+						debug.append("response Header: " + HeaderName.ContentLength.value() + "=" + bytes.length + "\n");
+						Engine.logCouchDbManager.info("(FullSyncServlet) Filter root response:\n" + debug);
+						os.write(bytes);
 					} else if (requestParser.docId == null && requestParser.special == null && !fsClient.getPrefix().isEmpty()) {
 						String content = IOUtils.toString(is, "UTF-8");
 						content = content.replace("\"db_name\":\"" + fsClient.getPrefix(), "\"db_name\":\"");
@@ -725,6 +737,125 @@ public class FullSyncServlet extends HttpServlet {
 				}
 			}
 		}
+	}
+
+	private String filterRootResponse(String content) {
+		try {
+			var root = new JSONObject(content);
+			var filtered = new JSONObject();
+			for (var key : List.of("couchdb", "features", "uuid", "vendor", "version")) {
+				if (root.has(key)) {
+					filtered.put(key, root.get(key));
+				}
+			}
+			return filtered.length() == 0 ? content : filtered.toString();
+		} catch (Exception e) {
+			return content;
+		}
+	}
+
+	private FullSyncConnector getFullSyncConnector(String dbName) {
+		if (StringUtils.isBlank(dbName)) {
+			return null;
+		}
+		for (var projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
+			try {
+				var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+				for (var connector : project.getConnectorsList()) {
+					if (connector instanceof FullSyncConnector) {
+						var fullSyncConnector = (FullSyncConnector) connector;
+						if (fullSyncConnector.getDatabaseName().equals(dbName)) {
+							return fullSyncConnector;
+						}
+					}
+				}
+			} catch (Exception e) {
+				Engine.logCouchDbManager.warn("(FullSyncServlet) Failed to inspect project '" + projectName + "' for a FullSync connector", e);
+			}
+		}
+		return null;
+	}
+
+	private void checkFullSyncAdminRequest(RequestParser requestParser, HttpMethodType method, boolean canWrite) {
+		if (isFullSyncAdminReadRequest(requestParser, method) || (canWrite && isFullSyncAdminWriteRequest(requestParser, method))) {
+			return;
+		}
+		throw new SecurityException("FullSync admin endpoint restriction.");
+	}
+
+	private boolean isFullSyncAdminReadRequest(RequestParser requestParser, HttpMethodType method) {
+		var special = requestParser.getSpecial();
+		if (StringUtils.isBlank(requestParser.getDbName())) {
+			return FULLSYNC_ADMIN_SERVER_READ_SPECIALS.contains(special)
+					&& (method == HttpMethodType.GET || method == HttpMethodType.HEAD);
+		}
+		if (special == null) {
+			return method == HttpMethodType.GET || method == HttpMethodType.HEAD;
+		}
+		if ("_all_docs".equals(special) || "_bulk_get".equals(special) || "_changes".equals(special)) {
+			return method == HttpMethodType.GET || method == HttpMethodType.HEAD || method == HttpMethodType.POST;
+		}
+		if ("_find".equals(special) || "_explain".equals(special) || "_revs_diff".equals(special)) {
+			return method == HttpMethodType.POST;
+		}
+		if ("_index".equals(special) || "_local".equals(special)) {
+			return method == HttpMethodType.GET || method == HttpMethodType.HEAD;
+		}
+		if ("_design".equals(special)) {
+			return method == HttpMethodType.GET || method == HttpMethodType.HEAD || (method == HttpMethodType.POST && requestParser.getPath().contains("/_view/"));
+		}
+		return false;
+	}
+
+	private boolean isFullSyncAdminWriteRequest(RequestParser requestParser, HttpMethodType method) {
+		if (StringUtils.isBlank(requestParser.getDbName())) {
+			return false;
+		}
+		var special = requestParser.getSpecial();
+		if (special == null) {
+			return method == HttpMethodType.POST || method == HttpMethodType.PUT || method == HttpMethodType.DELETE;
+		}
+		if ("_bulk_docs".equals(special) || "_index".equals(special)) {
+			return method == HttpMethodType.POST;
+		}
+		if ("_design".equals(special) || "_local".equals(special)) {
+			return method == HttpMethodType.PUT || method == HttpMethodType.DELETE;
+		}
+		return "_ensure_full_commit".equals(special) && method == HttpMethodType.POST;
+	}
+
+	private FullSyncConnector getPublicReplicationConnector(RequestParser requestParser, HttpMethodType method) {
+		var dbName = requestParser.getDbName();
+		if (!isPublicReplicationRequest(requestParser, method)) {
+			throw new SecurityException("FullSync public endpoint restriction.");
+		}
+		var fullSyncConnector = getFullSyncConnector(dbName);
+		if (fullSyncConnector == null) {
+			throw new SecurityException(StringUtils.isBlank(dbName) ? "FullSync public endpoint restriction." : "The '" + dbName + "' database is not exposed by a FullSync connector");
+		}
+		return fullSyncConnector;
+	}
+
+	private boolean isPublicReplicationRequest(RequestParser requestParser, HttpMethodType method) {
+		var special = requestParser.getSpecial();
+		if (special == null) {
+			// Existing apps can address attachments directly through /db/docid/attachment.
+			return method == HttpMethodType.GET || method == HttpMethodType.HEAD;
+		}
+		if (!PUBLIC_REPLICATION_SPECIALS.contains(special)) {
+			return false;
+		}
+		if ("_bulk_docs".equals(special) || "_revs_diff".equals(special) || "_ensure_full_commit".equals(special)) {
+			return method == HttpMethodType.POST;
+		}
+		if ("_all_docs".equals(special) || "_bulk_get".equals(special) || "_changes".equals(special)) {
+			return method == HttpMethodType.GET || method == HttpMethodType.HEAD || method == HttpMethodType.POST;
+		}
+		if ("_local".equals(special)) {
+			return !requestParser.hasAttachment() && requestParser.getDocId() != null
+					&& (method == HttpMethodType.GET || method == HttpMethodType.HEAD || method == HttpMethodType.PUT || method == HttpMethodType.DELETE);
+		}
+		return false;
 	}
 	
 	static class RequestParser {
@@ -776,6 +907,10 @@ public class FullSyncServlet extends HttpServlet {
 
 		public String getDocId() {
 			return docId;
+		}
+
+		private boolean isRootRequest() {
+			return special == null && docId == null && StringUtils.isBlank(dbName);
 		}
 		
 		private boolean hasAttachment() {

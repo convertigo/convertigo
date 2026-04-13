@@ -202,19 +202,22 @@ class ConfigureProxyPage extends WizardPage implements SummaryGenerator,CheckCon
 		proxyPassword.addModifyListener(e -> {
 			EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_PASSWORD, proxyPassword.getText());
 		});
-		statusConnection = new Label(container, SWT.NORMAL);
-		statusConnection.setLayoutData(layoutData);
-		
 		Button checkConnection = new Button(container, SWT.BUTTON1);
-		checkConnection.setLayoutData(layoutData);
+		checkConnection.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 2, 1));
 		checkConnection.setText("Check connection");
 		final SetupWizard wizard = (SetupWizard) super.getWizard();
 		final CheckConnectedCallback callback = this;
 		checkConnection.addSelectionListener((SelectionListener) e -> {
 			statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLUE));
 			statusConnection.setText("Checking connection ...");
+			container.layout(true, true);
 			wizard.checkConnected(callback);
 		});
+
+		statusConnection = new Label(container, SWT.WRAP);
+		GridData statusLayoutData = new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1);
+		statusLayoutData.verticalIndent = 5;
+		statusConnection.setLayoutData(statusLayoutData);
 		enableComponents(proxyManager.proxyMode);
 		enableComponents(proxyManager.proxyMethod);
 		
@@ -310,16 +313,17 @@ class ConfigureProxyPage extends WizardPage implements SummaryGenerator,CheckCon
 	public void onCheckConnected(final boolean isConnected, final String message) {
 		Display.getDefault().asyncExec(() -> {
 			ConfigureProxyPage.this.setConnected(isConnected);
-			String msg = message;
+			String msg = message == null ? "" : message.trim();
 
 			if (!isConnected) {
-				msg = "Connection error : " + message;
+				msg = "Connection error : " + msg;
 				statusConnection.setForeground(Display.getDefault().getSystemColor(SwtUtils.isDark() ?SWT.COLOR_MAGENTA : SWT.COLOR_RED)); 
 			} else {
 				msg = "The connection test was successful!";
 				statusConnection.setForeground(Display.getDefault().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN)); 
 			}
 			statusConnection.setText(msg);
+			container.layout(true, true);
 		});
 	}
 

@@ -19,6 +19,18 @@
 	let hasComments = $derived.by(() =>
 		requestable.variable?.some(({ comment }) => String(comment ?? '').trim().length > 0)
 	);
+	let initializationKey = $derived.by(() =>
+		JSON.stringify({
+			testcase: requestable.tc?.variable?.map(({ name, value }) => [name, value]) ?? [],
+			variables:
+				requestable.variable?.map(({ name, value, isMultivalued }) => [
+					name,
+					value,
+					isMultivalued
+				]) ?? []
+		})
+	);
+	let appliedInitializationKey = '';
 	let selectedCount = $derived.by(
 		() => requestable.variable?.filter(({ send }) => send == 'true').length ?? 0
 	);
@@ -46,7 +58,11 @@
 		if (requestable.variablesOpened == null) {
 			requestable.variablesOpened = (requestable.variable?.length ?? 0) <= 6;
 		}
-		for (const variable of requestable.variable) {
+		if (initializationKey == appliedInitializationKey) {
+			return;
+		}
+		appliedInitializationKey = initializationKey;
+		for (const variable of requestable.variable ?? []) {
 			if (variable.send != 'true' && variable.send != 'false') {
 				variable.send = variable.send ? 'true' : 'false';
 			}
