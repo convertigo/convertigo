@@ -1,5 +1,49 @@
 # Changelog
 
+## 8.4.2
+
+#### New Features:
+
+- [#1052](https://github.com/convertigo/convertigo/issues/1052) [Engine] Shared-workspace clustered deployments now apply project, symbol and configuration changes across instances without restart
+
+#### Improvements:
+
+- [#1055](https://github.com/convertigo/convertigo/issues/1055) [Admin] The FullSync databases page now guides you to the FullSync configuration when CouchDB settings are invalid or unreachable
+- [#1063](https://github.com/convertigo/convertigo/issues/1063) [Dashboard] Backend requestable pages now expand long comments and localize multilingual descriptions automatically
+- [#1069](https://github.com/convertigo/convertigo/issues/1069) [Studio] Database object pickers now share a consistent project order, filtering behavior and requestable selection
+- [#1074](https://github.com/convertigo/convertigo/issues/1074) [Dashboard] Public dashboard pages now provide a direct login shortcut to reveal hidden and private objects
+- [#1075](https://github.com/convertigo/convertigo/issues/1075) [Dashboard] Backend requestable forms now keep the Execute action readily available and offer a faster way to send all variables
+- [#1077](https://github.com/convertigo/convertigo/issues/1077) [Admin] The home page now includes a reset action for Requests Duration statistics
+- [#1081](https://github.com/convertigo/convertigo/issues/1081) [Studio] Proxy settings can now be saved directly from the setup wizard even when Studio is already registered
+- [#1082](https://github.com/convertigo/convertigo/issues/1082) [Proxy] npm-based frontend builds can now run through NTLM corporate proxies without requiring CNTLM
+- [#1085](https://github.com/convertigo/convertigo/issues/1085) [Admin] Dedicated Config roles now control access to the configuration page and related services more precisely
+- [#1087](https://github.com/convertigo/convertigo/issues/1087) [Admin] Account role tooltips in the sidebar now wrap correctly and remain readable
+
+#### Bug Fixes:
+
+- [#1051](https://github.com/convertigo/convertigo/issues/1051) [Studio] Fixed, TypeScript expressions containing operators such as `=` are now displayed correctly in shared component variable labels
+- [#1057](https://github.com/convertigo/convertigo/issues/1057) [Admin] Fixed, large XML admin responses no longer fail to load because of entity expansion limits in the frontend parser
+- [#1058](https://github.com/convertigo/convertigo/issues/1058) [Studio] Fixed, you can now paste text into the treeview comment placeholder
+- [#1059](https://github.com/convertigo/convertigo/issues/1059) [FullSync] Fixed, authenticated FullSync users and groups are now restored correctly from Redis-backed HTTP sessions
+- [#1060](https://github.com/convertigo/convertigo/issues/1060) [Studio] Fixed, Ctrl+dragging a Sequence onto an NGX event now creates the expected Call Sequence action
+- [#1061](https://github.com/convertigo/convertigo/issues/1061) [Admin] Fixed, direct admin and dashboard URLs now work whether or not the trailing slash is present
+- [#1062](https://github.com/convertigo/convertigo/issues/1062) [Engine] Fixed, project deletion and forced redeploy are now more reliable on slow shared NFS workspaces
+- [#1064](https://github.com/convertigo/convertigo/issues/1064) [Redis] Fixed, Redis-backed sessions now behave consistently for counting, billing, cleanup and clustered administration
+- [#1066](https://github.com/convertigo/convertigo/issues/1066) [Dashboard] Fixed, public dashboard deep links now open correctly on first load when anonymous access is enabled
+- [#1067](https://github.com/convertigo/convertigo/issues/1067) [FlashUpdate] Fixed, concurrent preparation of the same mobile flash update no longer causes random platform build failures
+- [#1071](https://github.com/convertigo/convertigo/issues/1071) [Mobile] Fixed, missing frontend assets now return `404` instead of the application shell while SPA deep links continue to work
+- [#1072](https://github.com/convertigo/convertigo/issues/1072) [Studio] Fixed, deployment confirmation links now open the new dashboard/backend instead of the legacy Administration Console
+- [#1073](https://github.com/convertigo/convertigo/issues/1073) [FullSync] Fixed, invalid CouchDB settings no longer trigger browser authentication popups through the FullSync proxy
+- [#1076](https://github.com/convertigo/convertigo/issues/1076) [Studio] Fixed, closing a requestable editor after execution no longer logs a false context removal warning
+- [#1078](https://github.com/convertigo/convertigo/issues/1078) [Admin] Fixed, role-limited users now land on the correct pages and no longer trigger unauthorized console service loops
+- [#1079](https://github.com/convertigo/convertigo/issues/1079) [Studio] Fixed, new Log steps now start with the correct default name and expression values
+- [#1083](https://github.com/convertigo/convertigo/issues/1083) [Studio] Fixed, NTLM proxy test errors are now fully visible in the proxy configuration dialog
+- [#1084](https://github.com/convertigo/convertigo/issues/1084) [Studio] Fixed, reopening the NGX source picker now reselects the correct local model even when names share a common prefix
+- [#1086](https://github.com/convertigo/convertigo/issues/1086) [FullSync] Fixed, the public FullSync root now answers like CouchDB for SDK discovery while server-level administration endpoints remain protected
+- [#1088](https://github.com/convertigo/convertigo/issues/1088) [Dashboard] Fixed, backend requestable values no longer reset while editing, and secret fields no longer trigger browser credential autofill
+
+---
+
 ## 8.4.1
 
 #### Improvements:
