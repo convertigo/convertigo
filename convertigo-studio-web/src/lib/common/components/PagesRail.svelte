@@ -86,9 +86,9 @@
 								<Portal>
 									<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
 										<Tooltip.Content
-											class="card preset-filled-surface-950-50 p-2 text-xs leading-tight whitespace-pre-line"
+											class="max-w-sm card preset-filled-surface-950-50 p-2 text-xs leading-tight break-words whitespace-pre-line"
 										>
-											<span>{subtitleTooltip}</span>
+											<span class="block">{subtitleTooltip}</span>
 											<Tooltip.Arrow
 												class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
 											>
