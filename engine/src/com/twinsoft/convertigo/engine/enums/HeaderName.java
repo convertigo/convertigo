@@ -71,6 +71,8 @@ public enum HeaderName {
 	OAuthTokenSecret("oAuthTokenSecret"),
 	Origin("Origin"),
 	Pragma("Pragma"),
+	ProxyAuthenticate("Proxy-Authenticate"),
+	ProxyAuthorization("Proxy-Authorization"),
 	Referer("Referer"),
 	SecWebSocketProtocol("Sec-WebSocket-Protocol"),
 	Server("Server"),
