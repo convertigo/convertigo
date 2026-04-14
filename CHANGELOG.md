@@ -1,5 +1,14 @@
 # Changelog
 
+## 8.3.13
+
+#### Bug Fixes:
+
+- [#1073](https://github.com/convertigo/convertigo/issues/1073) [FullSync] Fixed, FullSync no longer forwards authentication headers to CouchDB
+- [#1086](https://github.com/convertigo/convertigo/issues/1086) [FullSync] Fixed, FullSync now preserves replication client compatibility while keeping CouchDB server endpoints protected
+
+---
+
 ## 8.3.12
 
 #### Bug Fixes:
