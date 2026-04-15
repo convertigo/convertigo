@@ -178,6 +178,9 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);

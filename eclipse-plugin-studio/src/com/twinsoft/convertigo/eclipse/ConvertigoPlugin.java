@@ -40,6 +40,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpSession;
 
@@ -115,6 +116,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.eclipse.actions.ProjectExplorerReloadFromIonicHelper;
 import com.twinsoft.convertigo.eclipse.actions.SetupAction;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
@@ -142,6 +144,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.events.ProgressEventListener;
 import com.twinsoft.convertigo.engine.events.StudioEvent;
 import com.twinsoft.convertigo.engine.events.StudioEventListener;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
@@ -149,6 +152,7 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
+import com.twinsoft.convertigo.engine.util.NgxIonicRoundTripConverter.ImportReport;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
@@ -196,6 +200,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_MARKETPLACE_URL = "marketplace.url";
 	
 	private static final QualifiedName qnInit = new QualifiedName(PLUGIN_UNIQUE_ID + ".init", "done");
+	private static final AtomicInteger preserveIonicTreeReloadDepth = new AtomicInteger(0);
 	
 	private StudioEventListener studioEventListener = (var event) -> {
 		if (StudioEvent.ERROR_MESSAGE.equals(event.type())) {
@@ -2031,10 +2036,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	@Override
 	public void reloadProject(String name) throws EngineException {
 		EngineException[] ex = {null};
+		Job[] reloadJob = {null};
 		syncExec(() -> {
 			try {
 				var pev = getProjectExplorerView();
-				pev.reloadProject(pev.getProjectRootObject(name));
+				reloadJob[0] = pev.reloadProject(pev.getProjectRootObject(name));
 			} catch (EngineException e) {
 				ex[0] = e;
 			}
@@ -2042,6 +2048,92 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (ex[0] != null) {
 			throw ex[0];
 		}
+		waitForProjectReload(name, reloadJob[0]);
+	}
+
+	private void waitForProjectReload(String name, Job reloadJob) throws EngineException {
+		if (reloadJob == null || Display.getCurrent() != null) {
+			return;
+		}
+		try {
+			reloadJob.join();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new EngineException("Interrupted while waiting for project reload: " + name, e);
+		}
+		IStatus status = reloadJob.getResult();
+		if (status != null && status.matches(IStatus.ERROR | IStatus.CANCEL)) {
+			Throwable exception = status.getException();
+			throw exception == null
+				? new EngineException(status.getMessage())
+				: new EngineException(status.getMessage(), exception);
+		}
+	}
+
+	public Project reloadProjectPreservingIonic(String name) throws Exception {
+		File importFile = Engine.projectFile(name);
+		if (importFile == null || !importFile.exists()) {
+			throw new EngineException("Project file not found: " + name);
+		}
+
+		try {
+			MobileBuilder.beginPreserveAuthoring();
+			var loadingData = DatabaseObjectsManager.getProjectLoadingData();
+			boolean previousSkipBuilder = loadingData.skipMobileBuilderInit;
+			Project project;
+			try {
+				loadingData.skipMobileBuilderInit = true;
+				project = Engine.theApp.databaseObjectsManager.importProject(importFile, true);
+			} finally {
+				loadingData.skipMobileBuilderInit = previousSkipBuilder;
+			}
+
+			if (project == null) {
+				throw new EngineException("Project not loaded: " + name);
+			}
+
+			Exception[] ex = {null};
+			Project loadedProject = project;
+			preserveIonicTreeReloadDepth.incrementAndGet();
+			try {
+				syncExec(() -> {
+					try {
+						var pev = getProjectExplorerView();
+						if (pev == null) {
+							return;
+						}
+						var root = pev.getProjectRootObject(name);
+						if (root instanceof ProjectTreeObject projectTreeObject) {
+							projectTreeObject.setObject(loadedProject);
+							pev.reloadTreeObject(projectTreeObject);
+						}
+					} catch (Exception e) {
+						ex[0] = e;
+					}
+				});
+			} finally {
+				preserveIonicTreeReloadDepth.decrementAndGet();
+			}
+			if (ex[0] != null) {
+				throw ex[0];
+			}
+
+			return project;
+		} finally {
+			MobileBuilder.endPreserveAuthoring();
+		}
+	}
+
+	public static boolean isPreservingIonicTreeReload() {
+		return preserveIonicTreeReloadDepth.get() > 0;
+	}
+
+	public ImportReport reloadProjectFromIonic(String name) throws Exception {
+		return ProjectExplorerReloadFromIonicHelper.reloadProjectFromIonic(name);
+	}
+
+	public ImportReport importProjectFromIonic(String name, String ionicTargetPath) throws Exception {
+		return ProjectExplorerReloadFromIonicHelper.importProjectFromIonic(name, ionicTargetPath);
 	}
 
 	@Override

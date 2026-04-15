@@ -604,11 +604,12 @@ public class ComponentManager {
 			if (hasChanged) {
 				//TODO
 			}
-			if (templateImageFolder != null) {
-				ionBean.setImageFolder(templateImageFolder);
+				if (templateImageFolder != null) {
+					ionBean.setImageFolder(templateImageFolder);
+				}
+				ionBean.preserveBeanData(jsonString);
+				return ionBean;
 			}
-			return ionBean;
-		}
 		// The model doesn't exist (anymore)
 		else {
 			System.out.println("(ComponentManager@"+ templateProjectName +") Model \""+modelName+"\" does not exist anymore in cache ("+jsonString+").");
@@ -621,6 +622,7 @@ public class ComponentManager {
 			if (templateImageFolder != null) {
 				ionBean.setImageFolder(templateImageFolder);
 			}
+			ionBean.preserveBeanData(jsonString);
 			return ionBean;
 		}
 	}

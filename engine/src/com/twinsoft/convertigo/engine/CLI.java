@@ -70,6 +70,8 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.NgxIonicRoundTripConverter;
+import com.twinsoft.convertigo.engine.util.NgxIonicRoundTripConverter.ImportReport;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 import com.twinsoft.convertigo.engine.util.RemoteAdmin;
 
@@ -254,6 +256,10 @@ public class CLI {
 			Engine.logConvertigo.warn("Failed to export the project from '" + project.getDirFile() + "' (" + e.getMessage() + ") trying again...");
 			Engine.theApp.databaseObjectsManager.exportProject(project);
 		}
+	}
+
+	public ImportReport importFromIonic(Project project) throws Exception {
+		return NgxIonicRoundTripConverter.importFromIonic(project);
 	}
 	
 	public File exportToCar(Project project, File dest, boolean includeTestCases, boolean includeStubs,
@@ -631,6 +637,7 @@ public class CLI {
 		Options opts = new Options()
 			.addOption(Option.builder("p").longOpt("project").optionalArg(false).argName("dir").hasArg().desc("<dir> set the directory to load as project (default current folder).").get())
 			.addOption(Option.builder("gc").longOpt("gitContainer").optionalArg(true).argName("path").hasArg().desc("git dependencies can be extrated to the <gitContainer> folder instead of defaults.").get())
+			.addOption(Option.builder("ifi").longOpt("importFromIonic").desc("reimport HTML/SCSS/TS round-trip changes from _private/ionic using .c8o-map.json sidecars.").get())
 			.addOption(Option.builder("g").longOpt("generate").optionalArg(true).argName("mode").hasArg().desc("generate mobilebuilder code into _private/ionic: <mode> can be production (default) or debugplus, debug, fast. If omitted, build mode is used.").get())
 			.addOption(Option.builder("b").longOpt("build").optionalArg(true).argName("mode").hasArg().desc("build generated mobilebuilder code with NPM into DisplayObject/mobile: <mode> can be production (default) or debug. If omitted, generate mode is used.").get())
 			.addOption(Option.builder("c").longOpt("car").desc("export as <projectName>.car file").get())
@@ -685,6 +692,10 @@ public class CLI {
 			String version = cmd.getOptionValue("version", (String) null);
 			String mobileApplicationEndpoint = cmd.getOptionValue("mobileApplicationEndpoint", (String) null);
 			Project project = cli.loadProject(projectDir, version, mobileApplicationEndpoint, cmd.getOptionValue("gitContainer"));
+
+			if (cmd.hasOption("importFromIonic")) {
+				logImportFromIonicReport(cli.importFromIonic(project));
+			}
 			
 			String gMode = cmd.getOptionValue("generate", (String) null);
 			String bMode = cmd.getOptionValue("build", (String) null);
@@ -777,6 +788,24 @@ public class CLI {
 			
 			Engine.logConvertigo.info("Operations terminated!");
 		} finally {
+		}
+	}
+
+	private static void logImportFromIonicReport(ImportReport report) {
+		if (report == null) {
+			return;
+		}
+		Engine.logConvertigo.info("Ionic round-trip report for " + report.projectName
+			+ ": processed=" + report.processed
+			+ ", pagesUpdated=" + report.pagesUpdated
+			+ ", sharedComponentsUpdated=" + report.sharedComponentsUpdated
+			+ ", templatesUpdated=" + report.templatesUpdated
+			+ ", stylesUpdated=" + report.stylesUpdated
+			+ ", scriptsUpdated=" + report.scriptsUpdated
+			+ ", skipped=" + report.skipped
+			+ ", changed=" + report.hasChanges());
+		for (String warning : report.warnings) {
+			Engine.logConvertigo.warn(warning);
 		}
 	}
 }

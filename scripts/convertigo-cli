@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENGINE_BUILD_DIR="$ROOT_DIR/engine/build"
+RUNTIME_CP="${CONVERTIGO_CLI_CLASSPATH:-$("$ROOT_DIR"/gradlew -q --console=plain --warning-mode=none :engine:printRuntimeClasspath)}"
+
+if [[ -z "$RUNTIME_CP" ]]; then
+	echo "Missing engine runtime classpath." >&2
+	echo "Build it first with: ./gradlew :engine:compileJava" >&2
+	exit 1
+fi
+
+exec java -cp "$RUNTIME_CP" com.twinsoft.convertigo.engine.CLI "$@"

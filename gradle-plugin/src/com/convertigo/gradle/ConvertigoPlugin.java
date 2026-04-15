@@ -30,6 +30,7 @@ public class ConvertigoPlugin implements Plugin<Project> {
 	ProjectExport export;
 	GenerateMobileBuilder generateMobileBuilder;
 	CompileMobileBuilder compileMobileBuilder;
+	ImportFromIonic importFromIonic;
 	ProjectCar car;
 	ProjectDeploy deploy;
 	RemoteBuild remoteBuild;
@@ -70,6 +71,13 @@ public class ConvertigoPlugin implements Plugin<Project> {
 			task.setGroup("build");
 			task.dependsOn(generateMobileBuilder);
 			task.setDescription("Compile the Ionic application with NPM into DisplayObject/mobile.");
+		});
+
+		importFromIonic = tasks.create("importFromIonic", ImportFromIonic.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(load);
+			task.setDescription("Reimport HTML/SCSS/TS round-trip changes from _private/ionic into the Convertigo project.");
 		});
 		
 		car = tasks.create("car", ProjectCar.class, (task) -> {

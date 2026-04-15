@@ -306,6 +306,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 		private String projectName;
 		public boolean undefinedGlobalSymbol = false;
+		public boolean skipMobileBuilderInit = false;
 		public Set<Pair<String, String>> defaultSymbols = null;
 		public List<Runnable> afterLoaded = null;
 
@@ -1313,7 +1314,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Engine.logDatabaseObjectManager
 			.info("[importProject] Start initializing: " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().putUrlMapper(project);
-			MobileBuilder.initBuilder(project);
+			if (getProjectLoadingData().skipMobileBuilderInit) {
+				Engine.logDatabaseObjectManager.info("[importProject] Skip mobile builder init: " + Project.formatNameWithHash(project));
+			} else {
+				MobileBuilder.initBuilder(project);
+			}
 			if (getProjectLoadingData().afterLoaded != null) {
 				for (var run: getProjectLoadingData().afterLoaded) {
 					run.run();

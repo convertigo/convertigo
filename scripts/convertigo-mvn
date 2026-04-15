@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+TOOLS_DIR="${CONVERTIGO_TOOLS_DIR:-$ROOT_DIR/.codex-tools}"
+MAVEN_VERSION="${CONVERTIGO_MAVEN_VERSION:-3.9.9}"
+MAVEN_BASE="apache-maven-${MAVEN_VERSION}"
+MAVEN_DIR="$TOOLS_DIR/$MAVEN_BASE"
+MAVEN_BIN="$MAVEN_DIR/bin/mvn"
+ARCHIVE="$TOOLS_DIR/${MAVEN_BASE}-bin.tar.gz"
+URLS=(
+	"https://downloads.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/${MAVEN_BASE}-bin.tar.gz"
+	"https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/${MAVEN_BASE}-bin.tar.gz"
+)
+
+if [[ -n "${CONVERTIGO_MVN_CMD:-}" ]]; then
+	exec "${CONVERTIGO_MVN_CMD}" "$@"
+fi
+
+current_java_major() {
+	local version_line version
+	version_line="$("$1" -version 2>&1 | sed -n '1p')" || return 1
+	version="$(printf '%s' "$version_line" | sed -E 's/.*version "([0-9]+)(\.[^"]*)?".*/\1/')"
+	[[ "$version" =~ ^[0-9]+$ ]] || return 1
+	printf '%s\n' "$version"
+}
+
+prefer_java_home_21_plus() {
+	local java_home_candidate current_major="${1:-0}"
+	if [[ -x /usr/libexec/java_home && "$current_major" -lt 21 ]]; then
+		java_home_candidate="$(/usr/libexec/java_home -v 21 2>/dev/null || true)"
+		if [[ -n "$java_home_candidate" ]]; then
+			export JAVA_HOME="$java_home_candidate"
+			export PATH="$JAVA_HOME/bin:$PATH"
+		fi
+	fi
+}
+
+if [[ -n "${JAVA_HOME:-}" && -x "$JAVA_HOME/bin/java" ]]; then
+	current_major="$(current_java_major "$JAVA_HOME/bin/java" || echo 0)"
+	prefer_java_home_21_plus "$current_major"
+elif command -v java >/dev/null 2>&1; then
+	current_major="$(current_java_major "$(command -v java)" || echo 0)"
+	prefer_java_home_21_plus "$current_major"
+else
+	prefer_java_home_21_plus 0
+fi
+
+if command -v mvn >/dev/null 2>&1; then
+	exec mvn "$@"
+fi
+
+mkdir -p "$TOOLS_DIR"
+
+if [[ ! -x "$MAVEN_BIN" ]]; then
+	rm -rf "$MAVEN_DIR"
+	rm -f "$ARCHIVE"
+	for url in "${URLS[@]}"; do
+		if curl -fsSL "$url" -o "$ARCHIVE"; then
+			break
+		fi
+	done
+	[[ -f "$ARCHIVE" ]] || {
+		echo "Unable to download Maven ${MAVEN_VERSION}" >&2
+		exit 1
+	}
+	tar -xzf "$ARCHIVE" -C "$TOOLS_DIR"
+	chmod +x "$MAVEN_BIN"
+fi
+
+exec "$MAVEN_BIN" "$@"

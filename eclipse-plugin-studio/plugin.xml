@@ -3751,6 +3751,22 @@
 					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject" />
 			</action>
 			<action
+				class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerReloadFromIonicAction"
+				disabledIcon="icons/studio/project_open.d.gif"
+				enablesFor="*"
+				icon="icons/studio/project_open.gif"
+				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.reloadFromIonic"
+				label="Reload from Ionic"
+				menubarPath="additions"
+				style="push"
+				toolbarPath="additions"
+				tooltip="Reimport _private/ionic into the selected project(s), then reload">
+				<selection
+					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject" />
+				<selection
+					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject" />
+			</action>
+			<action
 				class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerSaveAllAction"
 				disabledIcon="icons/studio/project_save.d.gif"
 				enablesFor="1"

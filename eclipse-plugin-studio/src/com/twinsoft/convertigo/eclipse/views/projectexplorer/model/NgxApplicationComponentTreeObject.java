@@ -97,6 +97,9 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 	@Override
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectRemoved(treeObjectEvent);
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
@@ -205,6 +208,9 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
@@ -292,6 +298,9 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);

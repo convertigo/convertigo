@@ -123,6 +123,16 @@ tasks.register('soapuiSmokeTest', JavaExec) {
 	dependsOn rootProject.tasks.named('publishSoapuiLightPublicationToMavenLocal')
 }
 
+tasks.register('printRuntimeClasspath') {
+	group = 'help'
+	description = 'Prints the engine runtime classpath for external launchers.'
+	dependsOn tasks.named('classes')
+
+	doLast {
+		println sourceSets.main.runtimeClasspath.asPath
+	}
+}
+
 def patchesJarFileProvider = providers.provider {
 	project(':patches').tasks.named('jar').get().archiveFile.get().asFile
 }
@@ -293,6 +303,7 @@ dependencies {
 	compileFlat    'io.swagger.parser.v3:swagger-parser-v3:2.1.39'
 	compileFlat    'javax.activation:activation:1.1.1'
 	compileFlat    'javax.mail:mail:1.4.7'
+	implementation 'org.jsoup:jsoup:1.22.1'
 	compileFlat    'org.slf4j:slf4j-ext:2.0.17'
 	compileFlat    'org.slf4j:slf4j-simple:2.0.17'
 	compileFlat    'oauth.signpost:signpost-core:2.1.1'

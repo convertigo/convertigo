@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,6 +57,7 @@ public abstract class MobileBuilder {
 
 	protected static Pattern LsPattern = Pattern.compile("\\R");
 	protected static Pattern CacheVersion = Pattern.compile("const\\sCACHE_VERSION\\s\\=\\s\\d+");
+	private static final AtomicInteger preserveAuthoringDepth = new AtomicInteger(0);
 
 	protected Project project = null;
 	protected Object buildMutex = null;
@@ -81,11 +83,29 @@ public abstract class MobileBuilder {
 
 	protected MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
 
+	public static void beginPreserveAuthoring() {
+		preserveAuthoringDepth.incrementAndGet();
+	}
+
+	public static void endPreserveAuthoring() {
+		if (preserveAuthoringDepth.get() > 0) {
+			preserveAuthoringDepth.decrementAndGet();
+		}
+	}
+
+	public static boolean isPreserveAuthoring() {
+		return preserveAuthoringDepth.get() > 0;
+	}
+
 	static public void initBuilder(Project project) {
 		initBuilder(project, false);
 	}
 
 	static public void initBuilder(Project project, boolean force) {
+		if (isPreserveAuthoring()) {
+			Engine.logEngine.debug("(MobileBuilder) Skip initBuilder while preserving Ionic authoring");
+			return;
+		}
 		if ((Engine.isStudioMode() || force) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
 				project.getMobileBuilder().init();
@@ -222,10 +242,13 @@ public abstract class MobileBuilder {
 	static protected Map<String,String> initTplImports(File file) {
 		Map<String, String> map = new HashMap<String, String>(10);
 		try {
+			if (file == null || !file.exists()) {
+				return map;
+			}
 			String tsContent = FileUtils.readFileToString(file, "UTF-8");
 			initMapImports(map, tsContent);
 		} catch (Exception e) {
-			e.printStackTrace();
+			Engine.logEngine.debug("(MobileBuilder) Unable to initialize template imports from " + file, e);
 		}
 		return map;
 	}

@@ -89,6 +89,9 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		
@@ -114,6 +117,9 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);

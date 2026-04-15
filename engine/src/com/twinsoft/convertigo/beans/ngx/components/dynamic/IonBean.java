@@ -109,6 +109,10 @@ public class IonBean {
 			}
 		}
 	}
+
+	public synchronized void preserveBeanData(String beanData) {
+		this.beanData = beanData;
+	}
 	
 	public void setImageFolder(String imageFolder) {
 		this.imageFolder = imageFolder;
@@ -196,6 +200,7 @@ public class IonBean {
 	protected void setName(String name) {
 		try {
 			jsonBean.put(Key.name.name(), name);
+			beanData = null;
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -475,9 +480,9 @@ public class IonBean {
 			
 			dbo.setName(StringUtils.normalize(getDisplayName()));//dbo.setName(getName());
 			dbo.setSelfClose(isSelfClose());
-			dbo.setBeanData(getJSONObject().toString());			
-			dbo.bNew = true;
-			dbo.hasChanged = true;
+				dbo.setBeanData(toBeanData());
+				dbo.bNew = true;
+				dbo.hasChanged = true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			dbo = null;

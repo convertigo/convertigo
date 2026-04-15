@@ -127,7 +127,8 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	}
 
 	protected boolean isThrottleEvent(String attr) {
-		return getApplication().isThrottleEvent(attr);
+		ApplicationComponent application = getApplication();
+		return application != null && application.isThrottleEvent(attr);
 	}
 	
 	protected String getThrottleType(String attr) {
@@ -145,7 +146,8 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	}
 
 	protected String getThrottleTime(String attr) {
-		long time = getApplication().getThrottleTime(attr);
+		ApplicationComponent application = getApplication();
+		long time = application == null ? 0L : application.getThrottleTime(attr);
 		if (!throttleTime.isBlank()) {
 			try {
 				time = Long.valueOf(throttleTime);

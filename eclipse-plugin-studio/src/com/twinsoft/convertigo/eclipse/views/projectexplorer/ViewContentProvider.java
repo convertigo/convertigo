@@ -27,6 +27,7 @@ import java.util.List;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -189,13 +190,13 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 		return invisibleRoot;
 	}
 	
-	void reloadProject(TreeObject projectTreeObject) {
-		reloadProject(projectTreeObject, false, null);
+	Job reloadProject(TreeObject projectTreeObject) {
+		return reloadProject(projectTreeObject, false, null);
 	}
 	
-	private void reloadProject(TreeObject projectTreeObject, boolean isCopy, String originalName) {
+	private Job reloadProject(TreeObject projectTreeObject, boolean isCopy, String originalName) {
 		if (!Engine.isStarted)
-			return;
+			return null;
 		
 		synchronized (this) {
 			String projectName = projectTreeObject.toString();
@@ -210,6 +211,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 						ProjectLoadingJob job = new ProjectLoadingJob(projectExplorerView.viewer, (UnloadedProjectTreeObject) projectTreeObject, true);
 						job.setUser(true);
 						job.schedule();
+						return job;
 					}
 					else {
 						UnloadedProjectTreeObject treeObject = projectExplorerView.unloadProjectTreeObject((ProjectTreeObject) projectTreeObject);
@@ -217,6 +219,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 							ProjectLoadingJob job = new ProjectLoadingJob(projectExplorerView.viewer, treeObject, true, isCopy, originalName);
 							job.setUser(true);
 							job.schedule();
+							return job;
 						}
 					}
 				}
@@ -226,6 +229,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 				}
 			}
 		}
+		return null;
 	}
 
 	Project getProject(String projectName) throws EngineException {

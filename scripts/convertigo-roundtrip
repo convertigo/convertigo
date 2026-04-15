@@ -1,0 +1,674 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+STATE_DIR="${CONVERTIGO_ROUNDTRIP_STATE_DIR:-$ROOT_DIR/.codex-roundtrip}"
+PID_FILE="$STATE_DIR/studio.pid"
+LOG_FILE="$STATE_DIR/studio.log"
+DEFAULT_STUDIO_TIMEOUT=600
+DEFAULT_PROJECT_TIMEOUT=180
+
+log() {
+	printf '[convertigo-roundtrip] %s\n' "$*"
+}
+
+warn() {
+	printf '[convertigo-roundtrip] warning: %s\n' "$*" >&2
+}
+
+die() {
+	printf '[convertigo-roundtrip] error: %s\n' "$*" >&2
+	exit 1
+}
+
+ensure_state_dir() {
+	mkdir -p "$STATE_DIR"
+}
+
+trim() {
+	local value="$1"
+	value="${value#"${value%%[![:space:]]*}"}"
+	value="${value%"${value##*[![:space:]]}"}"
+	printf '%s' "$value"
+}
+
+fill_parsed_lines() {
+	local target_name="$1"
+	shift
+	local line
+	eval "$target_name=()"
+	while IFS= read -r line; do
+		eval "$target_name+=(\"\$line\")"
+	done
+}
+
+parse_spec3() {
+	local spec="$1"
+	local prefix="${spec%%:::*}"
+	[[ "$prefix" != "$spec" ]] || return 1
+	local rest="${spec#*:::}"
+	local middle="${rest%%:::*}"
+	[[ "$middle" != "$rest" ]] || return 1
+	local suffix="${rest#*:::}"
+	printf '%s\n%s\n%s\n' "$prefix" "$middle" "$suffix"
+}
+
+parse_spec2() {
+	local spec="$1"
+	local prefix="${spec%%:::*}"
+	[[ "$prefix" != "$spec" ]] || return 1
+	local suffix="${spec#*:::}"
+	printf '%s\n%s\n' "$prefix" "$suffix"
+}
+
+find_studio_binary() {
+	local candidates=()
+	while IFS= read -r candidate; do
+		candidates+=("$candidate")
+	done < <(
+		find "$ROOT_DIR/eclipse-repository/target/products" \
+			\( -path '*/ConvertigoStudio.app/Contents/MacOS/ConvertigoStudio' -o -path '*/ConvertigoStudio' -o -path '*/convertigostudio' -o -path '*/ConvertigoStudio.exe' \) \
+			-type f 2>/dev/null | sort
+	)
+
+	local selected=""
+	for candidate in "${candidates[@]}"; do
+		case "$candidate" in
+			*.app/*) selected="$candidate" ;;
+			*/ConvertigoStudio.exe) [[ -z "$selected" ]] && selected="$candidate" ;;
+			*/ConvertigoStudio|*/convertigostudio) [[ -z "$selected" ]] && selected="$candidate" ;;
+		esac
+		[[ -n "$selected" ]] && break
+	done
+
+	[[ -n "$selected" ]] || return 1
+	printf '%s\n' "$selected"
+}
+
+studio_pid() {
+	[[ -f "$PID_FILE" ]] || return 1
+	local pid
+	pid="$(<"$PID_FILE")"
+	[[ -n "$pid" ]] || return 1
+	if kill -0 "$pid" 2>/dev/null; then
+		printf '%s\n' "$pid"
+		return 0
+	fi
+	return 1
+}
+
+build_studio() {
+	log "building Studio product"
+	(
+		cd "$ROOT_DIR"
+		./gradlew generateEclipseConfigurationWithManifest buildStudioWebNpmInstall buildStudioWebBuild buildStudio
+	)
+}
+
+stop_studio() {
+	local pid
+	if ! pid="$(studio_pid)"; then
+		rm -f "$PID_FILE"
+		log "no running Studio tracked in $PID_FILE"
+		return 0
+	fi
+
+	log "stopping Studio pid=$pid"
+	kill "$pid" 2>/dev/null || true
+
+	local waited=0
+	while kill -0 "$pid" 2>/dev/null; do
+		sleep 1
+		waited=$((waited + 1))
+		if (( waited >= 20 )); then
+			warn "Studio pid=$pid did not stop gracefully, sending SIGKILL"
+			kill -9 "$pid" 2>/dev/null || true
+			break
+		fi
+	done
+
+	rm -f "$PID_FILE"
+}
+
+launch_studio() {
+	local workspace="$1"
+	local studio_bin="${2:-}"
+	local timeout="${3:-$DEFAULT_STUDIO_TIMEOUT}"
+	local project_name="${4:-}"
+	local project_timeout="${5:-$DEFAULT_PROJECT_TIMEOUT}"
+
+	[[ -n "$workspace" ]] || die "workspace is required"
+	ensure_state_dir
+	stop_studio >/dev/null 2>&1 || true
+
+	if [[ -z "$studio_bin" ]]; then
+		studio_bin="$(find_studio_binary)" || die "unable to locate a built Studio binary under $ROOT_DIR/eclipse-repository/target/products. Run buildStudio first."
+	fi
+	[[ -x "$studio_bin" ]] || die "Studio binary is not executable: $studio_bin"
+
+	: >"$LOG_FILE"
+	log "launching Studio: $studio_bin"
+	log "workspace: $workspace"
+	"$studio_bin" -clean -consoleLog -data "$workspace" >"$LOG_FILE" 2>&1 &
+	local pid=$!
+	echo "$pid" >"$PID_FILE"
+
+	wait_studio "$timeout"
+	if [[ -n "$project_name" ]]; then
+		wait_project_log "$project_name" "$project_timeout" || true
+		if ! has_project_log "$project_name"; then
+			warn "did not observe an explicit project-load log for $project_name; Studio is ready but project-load confirmation is not guaranteed in logs"
+		fi
+	fi
+}
+
+wait_studio() {
+	local timeout="${1:-$DEFAULT_STUDIO_TIMEOUT}"
+	local pid
+	pid="$(studio_pid)" || die "no running Studio tracked in $PID_FILE"
+	log "waiting for Studio readiness (timeout=${timeout}s)"
+
+	local elapsed=0
+	while (( elapsed < timeout )); do
+		if ! kill -0 "$pid" 2>/dev/null; then
+			tail -n 200 "$LOG_FILE" >&2 || true
+			die "Studio process exited before readiness"
+		fi
+		if grep -Fq "Convertigo studio started" "$LOG_FILE"; then
+			log "Studio is ready"
+			return 0
+		fi
+		sleep 2
+		elapsed=$((elapsed + 2))
+	done
+
+	tail -n 200 "$LOG_FILE" >&2 || true
+	die "timed out waiting for Studio readiness"
+}
+
+has_project_log() {
+	local project_name="$1"
+	grep -Eq "(Opening project ${project_name}\\b|\\[projectLoaded\\].*${project_name}|${project_name}.*needs to be loaded or reloaded in TreeView)" "$LOG_FILE"
+}
+
+wait_project_log() {
+	local project_name="$1"
+	local timeout="${2:-$DEFAULT_PROJECT_TIMEOUT}"
+	local pid
+	pid="$(studio_pid)" || die "no running Studio tracked in $PID_FILE"
+	log "waiting for project-load log: $project_name (timeout=${timeout}s)"
+
+	local elapsed=0
+	while (( elapsed < timeout )); do
+		if ! kill -0 "$pid" 2>/dev/null; then
+			tail -n 200 "$LOG_FILE" >&2 || true
+			die "Studio process exited while waiting for project-load log"
+		fi
+		if has_project_log "$project_name"; then
+			log "observed project-load log for $project_name"
+			return 0
+		fi
+		sleep 2
+		elapsed=$((elapsed + 2))
+	done
+
+	return 1
+}
+
+reset_repo() {
+	local repo="$1"
+	local git_clean="${2:-false}"
+	[[ -d "$repo/.git" ]] || die "not a git repository: $repo"
+	log "resetting repository: $repo"
+	git -C "$repo" reset --hard
+	if [[ "$git_clean" == "true" ]]; then
+		log "cleaning untracked files: $repo"
+		git -C "$repo" clean -fd
+	fi
+}
+
+replace_once() {
+	local file="$1"
+	local from="$2"
+	local to="$3"
+	FROM="$from" TO="$to" perl -0pi -e '
+		my $from = $ENV{FROM};
+		my $to = $ENV{TO};
+		my $count = s/\Q$from\E/$to/s;
+		die "pattern not found\n" unless $count;
+	' "$file"
+}
+
+insert_after_once() {
+	local file="$1"
+	local anchor="$2"
+	local text="$3"
+	ANCHOR="$anchor" TEXT="$text" perl -0pi -e '
+		my $anchor = $ENV{ANCHOR};
+		my $text = $ENV{TEXT};
+		my $count = s/\Q$anchor\E/$anchor$text/s;
+		die "anchor not found\n" unless $count;
+	' "$file"
+}
+
+insert_before_once() {
+	local file="$1"
+	local anchor="$2"
+	local text="$3"
+	ANCHOR="$anchor" TEXT="$text" perl -0pi -e '
+		my $anchor = $ENV{ANCHOR};
+		my $text = $ENV{TEXT};
+		my $count = s/\Q$anchor\E/$text$anchor/s;
+		die "anchor not found\n" unless $count;
+	' "$file"
+}
+
+remove_once() {
+	local file="$1"
+	local text="$2"
+	TEXT="$text" perl -0pi -e '
+		my $text = $ENV{TEXT};
+		my $count = s/\Q$text\E//s;
+		die "text not found\n" unless $count;
+	' "$file"
+}
+
+append_text() {
+	local file="$1"
+	local text="$2"
+	printf '%s' "$text" >>"$file"
+}
+
+apply_mutations() {
+	local repo="$1"
+	shift
+	local -a operations=("$@")
+	local entry kind spec src dest file from to anchor text parsed
+
+	for entry in "${operations[@]}"; do
+		kind="${entry%%|*}"
+		spec="${entry#*|}"
+		case "$kind" in
+			copy)
+				src="${spec%%:*}"
+				dest="${spec#*:}"
+				[[ -n "$src" && -n "$dest" && "$src" != "$dest" ]] || die "invalid --copy spec: $spec"
+				[[ -f "$src" ]] || die "copy source not found: $src"
+				mkdir -p "$(dirname "$dest")"
+				log "copying $src -> $dest"
+				cp "$src" "$dest"
+				;;
+			replace)
+				fill_parsed_lines parsed < <(parse_spec3 "$spec") || die "invalid --replace spec: $spec"
+				(( ${#parsed[@]} == 3 )) || die "invalid --replace spec: $spec"
+				file="${parsed[0]}"
+				from="${parsed[1]}"
+				to="${parsed[2]}"
+				[[ -f "$file" ]] || die "replace target not found: $file"
+				log "replacing text in $file"
+				replace_once "$file" "$from" "$to"
+				;;
+			insert-after)
+				fill_parsed_lines parsed < <(parse_spec3 "$spec") || die "invalid --insert-after spec: $spec"
+				(( ${#parsed[@]} == 3 )) || die "invalid --insert-after spec: $spec"
+				file="${parsed[0]}"
+				anchor="${parsed[1]}"
+				text="${parsed[2]}"
+				[[ -f "$file" ]] || die "insert-after target not found: $file"
+				log "inserting after anchor in $file"
+				insert_after_once "$file" "$anchor" "$text"
+				;;
+			insert-before)
+				fill_parsed_lines parsed < <(parse_spec3 "$spec") || die "invalid --insert-before spec: $spec"
+				(( ${#parsed[@]} == 3 )) || die "invalid --insert-before spec: $spec"
+				file="${parsed[0]}"
+				anchor="${parsed[1]}"
+				text="${parsed[2]}"
+				[[ -f "$file" ]] || die "insert-before target not found: $file"
+				log "inserting before anchor in $file"
+				insert_before_once "$file" "$anchor" "$text"
+				;;
+			remove)
+				fill_parsed_lines parsed < <(parse_spec2 "$spec") || die "invalid --remove spec: $spec"
+				(( ${#parsed[@]} == 2 )) || die "invalid --remove spec: $spec"
+				file="${parsed[0]}"
+				text="${parsed[1]}"
+				[[ -f "$file" ]] || die "remove target not found: $file"
+				log "removing text from $file"
+				remove_once "$file" "$text"
+				;;
+			append)
+				fill_parsed_lines parsed < <(parse_spec2 "$spec") || die "invalid --append spec: $spec"
+				(( ${#parsed[@]} == 2 )) || die "invalid --append spec: $spec"
+				file="${parsed[0]}"
+				text="${parsed[1]}"
+				[[ -f "$file" ]] || die "append target not found: $file"
+				log "appending text to $file"
+				append_text "$file" "$text"
+				;;
+			*)
+				die "unsupported mutation kind: $kind"
+				;;
+		esac
+	done
+}
+
+read_ops_file() {
+	local file="$1"
+	[[ -f "$file" ]] || die "ops file not found: $file"
+	local line
+	while IFS= read -r line || [[ -n "$line" ]]; do
+		line="$(trim "$line")"
+		[[ -n "$line" ]] || continue
+		[[ "$line" == \#* ]] && continue
+		printf '%s\n' "$line"
+	done < "$file"
+}
+
+import_from_ionic() {
+	local project_dir="$1"
+	log "running CLI round-trip import for $project_dir"
+	"$ROOT_DIR/scripts/convertigo-cli" --project "$project_dir" --importFromIonic --log info
+}
+
+generate_mobile_builder() {
+	local project_dir="$1"
+	local mode="${2:-production}"
+	log "generating _private/ionic for $project_dir (mode=$mode)"
+	"$ROOT_DIR/scripts/convertigo-cli" --project "$project_dir" --generate "$mode" --log warn
+}
+
+prepare_roundtrip_surface() {
+	local project_dir="$1"
+	local mode="${2:-production}"
+	local ionic_dir="$project_dir/_private/ionic"
+
+	if [[ -d "$ionic_dir" ]]; then
+		log "removing generated Ionic bundle: $ionic_dir"
+		rm -rf "$ionic_dir"
+	fi
+
+	generate_mobile_builder "$project_dir" "$mode"
+}
+
+collect_changed_files() {
+	local repo="$1"
+	git -C "$repo" diff --name-only --relative
+}
+
+show_diff_summary() {
+	local repo="$1"
+	log "git status --short for $repo"
+	git -C "$repo" status --short
+	log "git diff --stat for $repo"
+	git -C "$repo" diff --stat
+}
+
+check_allow_changed() {
+	local repo="$1"
+	shift
+	local -a allow_changed=("$@")
+	(( ${#allow_changed[@]} > 0 )) || return 0
+
+	local file allowed
+	while IFS= read -r file; do
+		[[ -n "$file" ]] || continue
+		allowed=false
+		for prefix in "${allow_changed[@]}"; do
+			if [[ "$file" == "$prefix" || "$file" == "$prefix/"* ]]; then
+				allowed=true
+				break
+			fi
+		done
+		if [[ "$allowed" != "true" ]]; then
+			die "unexpected changed file outside allowlist: $file"
+		fi
+	done < <(collect_changed_files "$repo")
+}
+
+check_require_changed() {
+	local repo="$1"
+	shift
+	local -a require_changed=("$@")
+	(( ${#require_changed[@]} > 0 )) || return 0
+
+	mapfile -t changed < <(collect_changed_files "$repo")
+	local required file matched
+	for required in "${require_changed[@]}"; do
+		matched=false
+		for file in "${changed[@]}"; do
+			if [[ "$file" == "$required" || "$file" == "$required/"* ]]; then
+				matched=true
+				break
+			fi
+		done
+		[[ "$matched" == "true" ]] || die "expected changed path not found: $required"
+	done
+}
+
+check_expect_no_diff() {
+	local repo="$1"
+	if git -C "$repo" diff --quiet --exit-code; then
+		log "no diff detected"
+		return 0
+	fi
+	die "expected no diff, but changes were produced"
+}
+
+cmd_help() {
+	cat <<'EOF'
+Usage:
+  scripts/convertigo-roundtrip <command> [options]
+
+Commands:
+  build-studio
+  launch-studio --workspace <dir> [--studio-binary <path>] [--timeout <sec>] [--project-name <name>] [--project-timeout <sec>]
+  wait-studio [--timeout <sec>]
+  stop-studio
+  import --project-dir <dir>
+  cycle --project-dir <dir> [options]
+
+Cycle options:
+  --workspace <dir>                 launch Studio with this workspace
+  --project-name <name>             logical project name to watch in Studio logs
+  --studio-binary <path>            override the built Studio executable
+  --timeout <sec>                   Studio readiness timeout
+  --project-timeout <sec>           project-log wait timeout
+  --skip-build                      do not rebuild the Studio product
+  --skip-launch                     do not relaunch the Studio
+  --prepare-generate                purge _private/ionic and regenerate it before mutations/import
+  --generate-mode <mode>            mobile builder generate mode (production by default)
+  --git-clean                       run git clean -fd after git reset --hard
+  --copy <src:dest>                 overwrite dest with src before import
+  --replace <file:::from:::to>      replace one exact text block
+  --insert-after <file:::anchor:::text>
+  --insert-before <file:::anchor:::text>
+  --remove <file:::text>            remove one exact text block
+  --append <file:::text>            append text to file
+  --ops-file <path>                 read mutations from a file, one operation per line
+  --expect-no-diff                  fail if the repo is dirty after import
+  --allow-changed <path>            allow changed path/prefix; repeatable
+  --require-changed <path>          require changed path/prefix; repeatable
+
+Examples:
+  scripts/convertigo-roundtrip build-studio
+
+  scripts/convertigo-roundtrip launch-studio \
+    --workspace /Users/charlesg/runtime-New_configuration1 \
+    --project-name C8Oforms
+
+  scripts/convertigo-roundtrip cycle \
+    --project-dir /Users/charlesg/git/C8Oforms_test \
+    --workspace /Users/charlesg/runtime-New_configuration1 \
+    --project-name C8Oforms \
+    --ops-file /tmp/c8o-roundtrip.ops \
+    --replace '/Users/charlesg/git/C8Oforms_test/_private/ionic/src/app/pages/loginpage/loginpage.html:::{{this.loginTitle}}:::{{this.loginTitle}} salut man' \
+    --require-changed _c8oProject/mobilePages/loginPage.yaml \
+    --allow-changed _c8oProject/mobilePages/loginPage.yaml
+EOF
+}
+
+cmd_build_studio() {
+	build_studio
+}
+
+cmd_launch_studio() {
+	local workspace=""
+	local studio_binary=""
+	local timeout="$DEFAULT_STUDIO_TIMEOUT"
+	local project_name=""
+	local project_timeout="$DEFAULT_PROJECT_TIMEOUT"
+
+	while (( $# > 0 )); do
+		case "$1" in
+			--workspace) workspace="$2"; shift 2 ;;
+			--studio-binary) studio_binary="$2"; shift 2 ;;
+			--timeout) timeout="$2"; shift 2 ;;
+			--project-name) project_name="$2"; shift 2 ;;
+			--project-timeout) project_timeout="$2"; shift 2 ;;
+			-h|--help) cmd_help; return 0 ;;
+			*) die "unknown launch-studio option: $1" ;;
+		esac
+	done
+
+	[[ -n "$workspace" ]] || die "--workspace is required"
+	launch_studio "$workspace" "$studio_binary" "$timeout" "$project_name" "$project_timeout"
+}
+
+cmd_wait_studio() {
+	local timeout="$DEFAULT_STUDIO_TIMEOUT"
+	while (( $# > 0 )); do
+		case "$1" in
+			--timeout) timeout="$2"; shift 2 ;;
+			-h|--help) cmd_help; return 0 ;;
+			*) die "unknown wait-studio option: $1" ;;
+		esac
+	done
+	wait_studio "$timeout"
+}
+
+cmd_stop_studio() {
+	stop_studio
+}
+
+cmd_import() {
+	local project_dir=""
+	while (( $# > 0 )); do
+		case "$1" in
+			--project-dir) project_dir="$2"; shift 2 ;;
+			-h|--help) cmd_help; return 0 ;;
+			*) die "unknown import option: $1" ;;
+		esac
+	done
+	[[ -n "$project_dir" ]] || die "--project-dir is required"
+	import_from_ionic "$project_dir"
+}
+
+cmd_cycle() {
+	local project_dir=""
+	local workspace=""
+	local project_name=""
+	local studio_binary=""
+	local timeout="$DEFAULT_STUDIO_TIMEOUT"
+	local project_timeout="$DEFAULT_PROJECT_TIMEOUT"
+	local skip_build=false
+	local skip_launch=false
+	local prepare_generate=false
+	local generate_mode="production"
+	local git_clean=false
+	local expect_no_diff=false
+	local -a mutations=()
+	local -a allow_changed=()
+	local -a require_changed=()
+
+	while (( $# > 0 )); do
+		case "$1" in
+			--project-dir) project_dir="$2"; shift 2 ;;
+			--workspace) workspace="$2"; shift 2 ;;
+			--project-name) project_name="$2"; shift 2 ;;
+			--studio-binary) studio_binary="$2"; shift 2 ;;
+			--timeout) timeout="$2"; shift 2 ;;
+			--project-timeout) project_timeout="$2"; shift 2 ;;
+			--skip-build) skip_build=true; shift ;;
+			--skip-launch) skip_launch=true; shift ;;
+			--prepare-generate) prepare_generate=true; shift ;;
+			--generate-mode) generate_mode="$2"; shift 2 ;;
+			--git-clean) git_clean=true; shift ;;
+			--copy) mutations+=("copy|$2"); shift 2 ;;
+			--replace) mutations+=("replace|$2"); shift 2 ;;
+			--insert-after) mutations+=("insert-after|$2"); shift 2 ;;
+			--insert-before) mutations+=("insert-before|$2"); shift 2 ;;
+			--remove) mutations+=("remove|$2"); shift 2 ;;
+			--append) mutations+=("append|$2"); shift 2 ;;
+			--ops-file)
+				while IFS= read -r operation; do
+					mutations+=("$operation")
+				done < <(read_ops_file "$2")
+				shift 2
+				;;
+			--expect-no-diff) expect_no_diff=true; shift ;;
+			--allow-changed) allow_changed+=("$(trim "$2")"); shift 2 ;;
+			--require-changed) require_changed+=("$(trim "$2")"); shift 2 ;;
+			-h|--help) cmd_help; return 0 ;;
+			*) die "unknown cycle option: $1" ;;
+		esac
+	done
+
+	[[ -n "$project_dir" ]] || die "--project-dir is required"
+	[[ -d "$project_dir" ]] || die "project dir not found: $project_dir"
+
+	reset_repo "$project_dir" "$git_clean"
+
+	if [[ "$prepare_generate" == "true" ]]; then
+		prepare_roundtrip_surface "$project_dir" "$generate_mode"
+	fi
+
+	if [[ "$skip_build" != "true" ]]; then
+		build_studio
+	fi
+
+	if [[ "$skip_launch" != "true" ]]; then
+		[[ -n "$workspace" ]] || die "--workspace is required unless --skip-launch is set"
+		launch_studio "$workspace" "$studio_binary" "$timeout" "$project_name" "$project_timeout"
+	fi
+
+	if (( ${#mutations[@]} > 0 )); then
+		apply_mutations "$project_dir" "${mutations[@]}"
+	else
+		log "no file mutations requested"
+	fi
+
+	import_from_ionic "$project_dir"
+	show_diff_summary "$project_dir"
+	if (( ${#allow_changed[@]} > 0 )); then
+		check_allow_changed "$project_dir" "${allow_changed[@]}"
+	fi
+	if (( ${#require_changed[@]} > 0 )); then
+		check_require_changed "$project_dir" "${require_changed[@]}"
+	fi
+	if [[ "$expect_no_diff" == "true" ]]; then
+		check_expect_no_diff "$project_dir"
+	fi
+}
+
+main() {
+	local command="${1:-}"
+	if [[ -z "$command" || "$command" == "-h" || "$command" == "--help" ]]; then
+		cmd_help
+		return 0
+	fi
+	shift || true
+
+	case "$command" in
+		build-studio) cmd_build_studio "$@" ;;
+		launch-studio) cmd_launch_studio "$@" ;;
+		wait-studio) cmd_wait_studio "$@" ;;
+		stop-studio) cmd_stop_studio "$@" ;;
+		import) cmd_import "$@" ;;
+		cycle) cmd_cycle "$@" ;;
+		*) die "unknown command: $command" ;;
+	esac
+}
+
+main "$@"

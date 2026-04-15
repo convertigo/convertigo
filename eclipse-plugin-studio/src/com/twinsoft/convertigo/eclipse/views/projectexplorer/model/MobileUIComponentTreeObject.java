@@ -876,6 +876,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
@@ -915,6 +918,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	@Override
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectRemoved(treeObjectEvent);
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
@@ -943,6 +949,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
@@ -1042,6 +1051,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	}
 
 	private void markMainAsDirty(UIComponent uic, Set<Object> done) throws EngineException {
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 		if (uic != null) {
 			IScriptComponent main = uic.getMainScriptComponent();
 			if (main != null) {

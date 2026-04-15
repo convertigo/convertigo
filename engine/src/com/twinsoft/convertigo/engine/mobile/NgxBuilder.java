@@ -68,6 +68,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.NgxIonicRoundTripConverter;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class NgxBuilder extends MobileBuilder {
@@ -1624,16 +1625,25 @@ public class NgxBuilder extends MobileBuilder {
 
 	private Map<String,String> getTplPageModuleTsImports() {
 		if (tpl_pageModuleTsImports == null) {
-			tpl_pageModuleTsImports = initTplImports(new File(ionicTplDir, "src/page.module.tpl"));
+			tpl_pageModuleTsImports = initTplImports(getPageModuleTplFile());
 		}
 		return tpl_pageModuleTsImports;
 	}
 
 	private Map<String,String> getTplCompModuleTsImports() {
 		if (tpl_compModuleTsImports == null) {
-			tpl_compModuleTsImports = initTplImports(new File(ionicTplDir, "src/comp.module.tpl"));
+			tpl_compModuleTsImports = initTplImports(getCompModuleTplFile());
 		}
 		return tpl_compModuleTsImports;
+	}
+
+	private File getPageModuleTplFile() {
+		return new File(ionicTplDir, "src/page.module.tpl");
+	}
+
+	private File getCompModuleTplFile() {
+		File file = new File(ionicTplDir, "src/comp.module.tpl");
+		return file.exists() ? file : getPageModuleTplFile();
 	}
 
 	private String getTplAppModuleNgImports() {
@@ -1661,7 +1671,7 @@ public class NgxBuilder extends MobileBuilder {
 	private String getTplPageModuleNgImports() {
 		if (tpl_pageModuleNgImports == null) {
 			try {
-				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/page.module.tpl"), "UTF-8");
+				String tsContent = FileUtils.readFileToString(getPageModuleTplFile(), "UTF-8");
 				tpl_pageModuleNgImports = getMarker(tsContent, "NgModules")
 						.replaceAll("/\\*Begin_c8o_NgModules\\*/","")
 						.replaceAll("/\\*End_c8o_NgModules\\*/","")
@@ -1679,7 +1689,7 @@ public class NgxBuilder extends MobileBuilder {
 	private String getTplCompModuleNgImports() {
 		if (tpl_compModuleNgImports == null) {
 			try {
-				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/comp.module.tpl"), "UTF-8");
+				String tsContent = FileUtils.readFileToString(getCompModuleTplFile(), "UTF-8");
 				tpl_compModuleNgImports = getMarker(tsContent, "NgModules")
 						.replaceAll("/\\*Begin_c8o_NgModules\\*/","")
 						.replaceAll("/\\*End_c8o_NgModules\\*/","")
@@ -1719,7 +1729,7 @@ public class NgxBuilder extends MobileBuilder {
 	private String getTplPageModuleNgProviders() {
 		if (tpl_pageModuleNgProviders == null) {
 			try {
-				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/page.module.tpl"), "UTF-8");
+				String tsContent = FileUtils.readFileToString(getPageModuleTplFile(), "UTF-8");
 				tpl_pageModuleNgProviders = getMarker(tsContent, "NgProviders")
 						.replaceAll("/\\*Begin_c8o_NgProviders\\*/","")
 						.replaceAll("/\\*End_c8o_NgProviders\\*/","")
@@ -1737,7 +1747,7 @@ public class NgxBuilder extends MobileBuilder {
 	private String getTplCompModuleNgProviders() {
 		if (tpl_compModuleNgProviders == null) {
 			try {
-				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/comp.module.tpl"), "UTF-8");
+				String tsContent = FileUtils.readFileToString(getCompModuleTplFile(), "UTF-8");
 				tpl_compModuleNgProviders = getMarker(tsContent, "NgProviders")
 						.replaceAll("/\\*Begin_c8o_NgProviders\\*/","")
 						.replaceAll("/\\*End_c8o_NgProviders\\*/","")
@@ -1773,7 +1783,7 @@ public class NgxBuilder extends MobileBuilder {
 	private String getTplPageModuleNgDeclarations() {
 		if (tpl_pageModuleNgDeclarations == null) {
 			try {
-				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/page.module.tpl"), "UTF-8");
+				String tsContent = FileUtils.readFileToString(getPageModuleTplFile(), "UTF-8");
 				tpl_pageModuleNgDeclarations = getMarker(tsContent, "NgDeclarations")
 						.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/","")
 						.replaceAll("/\\*End_c8o_NgDeclarations\\*/","")
@@ -1791,7 +1801,7 @@ public class NgxBuilder extends MobileBuilder {
 	private String getTplCompModuleNgDeclarations() {
 		if (tpl_compModuleNgDeclarations == null) {
 			try {
-				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/comp.module.tpl"), "UTF-8");
+				String tsContent = FileUtils.readFileToString(getCompModuleTplFile(), "UTF-8");
 				tpl_compModuleNgDeclarations = getMarker(tsContent, "NgDeclarations")
 						.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/","")
 						.replaceAll("/\\*End_c8o_NgDeclarations\\*/","")
@@ -1827,7 +1837,7 @@ public class NgxBuilder extends MobileBuilder {
 	private String getTplPageModuleNgComponents() {
 		if (tpl_pageModuleNgComponents == null) {
 			try {
-				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/page.module.tpl"), "UTF-8");
+				String tsContent = FileUtils.readFileToString(getPageModuleTplFile(), "UTF-8");
 				tpl_pageModuleNgComponents = getMarker(tsContent, "NgComponents")
 						.replaceAll("/\\*Begin_c8o_NgComponents\\*/","")
 						.replaceAll("/\\*End_c8o_NgComponents\\*/","")
@@ -1845,7 +1855,7 @@ public class NgxBuilder extends MobileBuilder {
 	private String getTplCompModuleNgComponents() {
 		if (tpl_compModuleNgComponents == null) {
 			try {
-				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/comp.module.tpl"), "UTF-8");
+				String tsContent = FileUtils.readFileToString(getCompModuleTplFile(), "UTF-8");
 				tpl_compModuleNgComponents = getMarker(tsContent, "NgComponents")
 						.replaceAll("/\\*Begin_c8o_NgComponents\\*/","")
 						.replaceAll("/\\*End_c8o_NgComponents\\*/","")
@@ -2288,7 +2298,7 @@ public class NgxBuilder extends MobileBuilder {
 		c8o_PageImport += "import { "+pageName+" } from \"./"+pageName.toLowerCase()+"\";" + System.lineSeparator();
 		c8o_PageImport += "import { "+pageName+"RoutingModule } from \"./"+pageName.toLowerCase()+"-routing.module\";" + System.lineSeparator();
 
-		File pageTplTs = new File(ionicTplDir, "src/page.module.tpl");
+		File pageTplTs = getPageModuleTplFile();
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageName\\*/",c8o_PageName);
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_PageModuleName\\*/",c8o_PageModuleName);
@@ -2446,7 +2456,7 @@ public class NgxBuilder extends MobileBuilder {
 
 		c8o_CompImport += "import { "+compName(comp)+" } from \"./"+compFileName(comp)+"\";" + System.lineSeparator();
 
-		File pageTplTs = new File(ionicTplDir, "src/comp.module.tpl");
+		File pageTplTs = getCompModuleTplFile();
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompName\\*/",c8o_CompName);
 		tsContent = replaceAll(tsContent, "/\\*\\=c8o_CompModuleName\\*/",c8o_CompModuleName);
@@ -2595,7 +2605,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 
-		File pageTplTs = new File(ionicTplDir, "src/comp.module.tpl");
+		File pageTplTs = getCompModuleTplFile();
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompName\\*/",c8o_CompName);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompModuleName\\*/",c8o_CompModuleName);
@@ -3637,8 +3647,9 @@ public class NgxBuilder extends MobileBuilder {
 			if (app != null) {
 				String appName = app.getName();
 				File appScssFile = new File(appDir, "app.component.scss");
-				String computedScss = app.getComputedStyle();
+				String computedScss = NgxIonicRoundTripConverter.computeApplicationStyle(app);
 				writeFile(appScssFile, computedScss, "UTF-8");
+				NgxIonicRoundTripConverter.writeApplicationStyleMap(project, projectDir, app, appScssFile);
 
 				if (initDone) {
 					Engine.logEngine.trace("("+ builderType +") Ionic scss file generated for app '"+appName+"'");
@@ -3764,6 +3775,10 @@ public class NgxBuilder extends MobileBuilder {
 			writePageRoutingTs(page);
 			writePageStyle(page);
 			writePageTemplate(page);
+			NgxIonicRoundTripConverter.writePageMap(project, projectDir, page,
+					new File(pageDir, pageName.toLowerCase() + ".html"),
+					new File(pageDir, pageName.toLowerCase() + ".scss"),
+					new File(pageDir, pageName.toLowerCase() + ".ts"));
 
 			if (initDone) {
 				Engine.logEngine.trace("("+ builderType +") Ionic source files generated for page '"+pageName+"'");
@@ -3804,6 +3819,11 @@ public class NgxBuilder extends MobileBuilder {
 			writeCompModuleTs(comp);
 			writeCompStyle(comp);
 			writeCompTemplate(comp);
+			String compFileName = compFileName(comp);
+			NgxIonicRoundTripConverter.writeComponentMap(project, projectDir, comp,
+					new File(compDir, compFileName + ".html"),
+					new File(compDir, compFileName + ".scss"),
+					new File(compDir, compFileName + ".ts"));
 
 			if (initDone) {
 				Engine.logEngine.trace("("+ builderType +") Ionic source files generated for component '"+compName+"'");
@@ -3877,6 +3897,13 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		} catch (Exception e) {
 			;
+		}
+	}
+
+	public static void keepGeneratedFile(File file) {
+		var existingFiles = NgxBuilder.existingFiles.get();
+		if (existingFiles != null && file != null) {
+			existingFiles.remove(file);
 		}
 	}
 

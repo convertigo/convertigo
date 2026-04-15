@@ -62,7 +62,15 @@ public class BeansDefaultValues {
 	private static final Pattern patternBeanName = Pattern.compile("(.*) \\[(.*?)(?:-(.*))?\\]");
 
 	private static final String TPL_JSONPATH = "ionicTpl/ion/ion_objects.json";
-	
+
+	private static JSONObject normalizeIonPropertyForComparison(JSONObject property, String keyProp) throws Exception {
+		JSONObject normalized = new JSONObject();
+		normalized.put("name", property.has("name") ? property.get("name") : keyProp);
+		normalized.put("mode", property.has("mode") ? property.get("mode") : "plain");
+		normalized.put("value", property.has("value") ? property.get("value") : Boolean.FALSE);
+		return normalized;
+	}
+
 	private static Element nextElement(Node node, boolean checkParameter) {
 		if (node == null || (checkParameter && node instanceof Element)) {
 			return (Element) node;
@@ -370,17 +378,18 @@ public class BeansDefaultValues {
 									}
 									
 									JSONObject ionProps = (JSONObject) ion.remove("properties");
-									for (Iterator<?> i = ionProps.keys(); i.hasNext();) {
-										String keyProp = (String) i.next();
-										JSONObject ionProp = ionProps.getJSONObject(keyProp);
-										String mode = ionProp.has("mode") ? ionProp.getString("mode") : "plain";
-										Object value = ionProp.has("value") ? ionProp.get("value") : Boolean.FALSE;
-										if (dIonProps.has(keyProp)) {
-											JSONObject dIonProp = dIonProps.getJSONObject(keyProp);
-											if (!dIonProp.equals(ionProp)) {
-												if (Boolean.FALSE.equals(value)) {
-													// <not set> case
-													ion.put(keyProp, mode);
+										for (Iterator<?> i = ionProps.keys(); i.hasNext();) {
+											String keyProp = (String) i.next();
+											JSONObject ionProp = ionProps.getJSONObject(keyProp);
+											String mode = ionProp.has("mode") ? ionProp.getString("mode") : "plain";
+											Object value = ionProp.has("value") ? ionProp.get("value") : Boolean.FALSE;
+											if (dIonProps.has(keyProp)) {
+												JSONObject dIonProp = normalizeIonPropertyForComparison(dIonProps.getJSONObject(keyProp), keyProp);
+												JSONObject cIonProp = normalizeIonPropertyForComparison(ionProp, keyProp);
+												if (!dIonProp.equals(cIonProp)) {
+													if (Boolean.FALSE.equals(value)) {
+														// <not set> case
+														ion.put(keyProp, mode);
 												} else {
 													ion.put(keyProp, mode + ":" + value);
 												}

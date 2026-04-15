@@ -409,10 +409,108 @@ task buildStudio(type: Exec, dependsOn: ['writeManifest', 'downloadSystemLibrari
 	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
 		commandLine 'cmd', '/c', 'mvn'
 	} else {
-		commandLine 'mvn'
+		commandLine "${rootDir}/scripts/convertigo-mvn"
 	}
 	
 	args 'install'
+}
+
+def roundtripProperty = { String key, Object defaultValue = null ->
+	project.hasProperty(key) ? project.property(key)?.toString() : defaultValue
+}
+
+def roundtripFlag = { String key ->
+	(project.hasProperty(key) ? project.property(key)?.toString() : 'false').toBoolean()
+}
+
+def addRoundtripOption = { List<String> args, String option, String value ->
+	if (value != null && !value.isBlank()) {
+		args.add(option)
+		args.add(value)
+	}
+}
+
+def configureRoundtripExec = { Exec task, String command, boolean includeCycleOptions = false ->
+	task.group = 'convertigo'
+	task.workingDir = rootDir
+	task.executable = "${rootDir}/scripts/convertigo-roundtrip"
+
+	task.doFirst {
+		def args = [command]
+		addRoundtripOption(args, '--project-dir', roundtripProperty('roundtrip.projectDir'))
+		addRoundtripOption(args, '--workspace', roundtripProperty('roundtrip.workspace'))
+		addRoundtripOption(args, '--project-name', roundtripProperty('roundtrip.projectName'))
+		addRoundtripOption(args, '--studio-binary', roundtripProperty('roundtrip.studioBinary'))
+		addRoundtripOption(args, '--timeout', roundtripProperty('roundtrip.timeout'))
+		addRoundtripOption(args, '--project-timeout', roundtripProperty('roundtrip.projectTimeout'))
+		if (includeCycleOptions) {
+			if (roundtripFlag('roundtrip.skipBuild')) {
+				args.add('--skip-build')
+			}
+			if (roundtripFlag('roundtrip.skipLaunch')) {
+				args.add('--skip-launch')
+			}
+			if (roundtripFlag('roundtrip.prepareGenerate')) {
+				args.add('--prepare-generate')
+			}
+			if (roundtripFlag('roundtrip.gitClean')) {
+				args.add('--git-clean')
+			}
+			if (roundtripFlag('roundtrip.expectNoDiff')) {
+				args.add('--expect-no-diff')
+			}
+			addRoundtripOption(args, '--generate-mode', roundtripProperty('roundtrip.generateMode'))
+			addRoundtripOption(args, '--ops-file', roundtripProperty('roundtrip.opsFile'))
+			['copy', 'replace', 'insertAfter', 'insertBefore', 'remove', 'append', 'allowChanged', 'requireChanged'].each { suffix ->
+				def propertyName = "roundtrip.${suffix}"
+				def value = roundtripProperty(propertyName)
+				if (value != null && !value.isBlank()) {
+					def option = '--' + suffix.replaceAll('([A-Z])', '-$1').toLowerCase(Locale.ROOT)
+					value.split('\n').collect { it.trim() }.findAll { !it.isBlank() }.each {
+						args.add(option)
+						args.add(it)
+					}
+				}
+			}
+		}
+		task.setArgs(args)
+	}
+}
+
+tasks.register('roundtripBuildStudio') {
+	group = 'convertigo'
+	description = 'Build the Studio product used by the round-trip workflow.'
+	dependsOn 'generateEclipseConfigurationWithManifest', 'buildStudioWebNpmInstall', 'buildStudioWebBuild', 'buildStudio'
+}
+
+tasks.register('roundtripLaunchStudio', Exec) {
+	description = 'Launch the built Studio product and wait until it is ready.'
+	Exec task = delegate as Exec
+	configureRoundtripExec(task, 'launch-studio')
+}
+
+tasks.register('roundtripWaitStudio', Exec) {
+	description = 'Wait for the tracked Studio process to become ready.'
+	Exec task = delegate as Exec
+	configureRoundtripExec(task, 'wait-studio')
+}
+
+tasks.register('roundtripStopStudio', Exec) {
+	description = 'Stop the tracked Studio process.'
+	Exec task = delegate as Exec
+	configureRoundtripExec(task, 'stop-studio')
+}
+
+tasks.register('roundtripImport', Exec) {
+	description = 'Run the CLI HTML/SCSS/TS round-trip import on a project directory.'
+	Exec task = delegate as Exec
+	configureRoundtripExec(task, 'import')
+}
+
+tasks.register('roundtripCycle', Exec) {
+	description = 'Reset a test repo, optionally rebuild/relaunch Studio, apply mutations, run importFromIonic, and inspect the git diff.'
+	Exec task = delegate as Exec
+	configureRoundtripExec(task, 'cycle', true)
 }
 
 task updateEclipseProduct(type: Copy, dependsOn: [':checkLicenseDate', 'updateEclipseCategory', ':eclipse-plugin-product:writePluginXml', ':eclipse-plugin-product:writeAboutIni']) {

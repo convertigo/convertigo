@@ -67,6 +67,9 @@ public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implem
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
+		if (ConvertigoPlugin.isPreservingIonicTreeReload()) {
+			return;
+		}
 		
 		if (treeObjectEvent.getSource() instanceof DatabaseObjectTreeObject doto) {
 			try {

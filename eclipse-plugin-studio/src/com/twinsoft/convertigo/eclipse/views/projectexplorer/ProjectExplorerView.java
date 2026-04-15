@@ -51,6 +51,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IMenuListener;
@@ -2509,10 +2510,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		((ViewContentProvider) viewer.getContentProvider()).refreshProjects();
 	}
 
-	public void reloadProject(TreeObject projectTreeObject) {
+	public Job reloadProject(TreeObject projectTreeObject) {
+		final Job[] job = {null};
 		ConvertigoPlugin.syncExec(() -> {
-			((ViewContentProvider) viewer.getContentProvider()).reloadProject(projectTreeObject);
+			job[0] = ((ViewContentProvider) viewer.getContentProvider()).reloadProject(projectTreeObject);
 		});
+		return job[0];
 	}
 
 	public void reloadProjectAndDeleteNodeModules(ProjectTreeObject projectTreeObject) {
