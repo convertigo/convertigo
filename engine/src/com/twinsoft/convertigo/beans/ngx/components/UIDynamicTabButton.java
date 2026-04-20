@@ -77,6 +77,8 @@ public class UIDynamicTabButton extends UIDynamicElement {
 	
 	@Override
 	protected Contributor getContributor() {
+		final boolean tplIsStandalone = UIDynamicTabButton.this.isTplStandalone();
+				
 		Contributor contributor = super.getContributor();
 		return new Contributor() {
 
@@ -147,8 +149,8 @@ public class UIDynamicTabButton extends UIDynamicElement {
 				String tabName = getTabName();
 				if (!tabName.isEmpty()) {
 					String tabLower = tabName.toLowerCase();
-					String tabModulePath = "../"+ tabLower +"/"+ tabLower +".module";
-					String tabModuleName = tabName +"Module";
+					String tabModulePath = "../"+ tabLower +"/"+ tabLower + (tplIsStandalone ? ".routes" : ".module");
+					String tabModuleName = tabName + (tplIsStandalone ? "Route" : "Module");
 					set.add("{path: '', redirectTo: '/"+ pageSegment +"/"+tabName+"', pathMatch: 'full'}");
 					set.add("{path: '"+ tabName +"', children: [{path: '', loadChildren: () => import('"+tabModulePath+"').then( m => m."+ tabModuleName +")}]}");
 				}
