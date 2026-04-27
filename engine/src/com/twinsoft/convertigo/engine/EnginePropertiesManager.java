@@ -348,6 +348,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		CONVERTIGO_PRODUCT_VERSION_CHECK ("convertigo.product_version_check", "true", "Product version check", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		HIDE_PRODUCT_VERSION_IN_API_SPECS ("hide_product_version_in_api_specs", "false", "Hide product version in generated API specifications", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		DOCUMENT_THREADING_USE_STOP_METHOD ("document.threading.use_stop_method", "false", "Use the Java Thread.stop() method in order to finish threads", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
 		POOL_MANAGER_TIMEOUT ("pool.manager.timeout", "-1", "Time allowed for pool management task in seconds (-1 for disable)", PropertyCategory.Main),
