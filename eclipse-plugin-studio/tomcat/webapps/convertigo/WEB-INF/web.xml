@@ -53,6 +53,34 @@
 	</filter-mapping>
 
 	<filter>
+		<filter-name>SecurityHeadersFilter</filter-name>
+		<filter-class>com.twinsoft.convertigo.engine.servlets.SecurityHeadersFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>SecurityHeadersFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- Anti-framing is intentionally limited to admin surfaces, not project endpoints. -->
+	<filter>
+		<filter-name>AdminFrameHeadersFilter</filter-name>
+		<filter-class>com.twinsoft.convertigo.engine.servlets.AdminFrameHeadersFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>AdminFrameHeadersFilter</filter-name>
+		<url-pattern>/admin</url-pattern>
+		<url-pattern>/admin/*</url-pattern>
+		<url-pattern>/admin_</url-pattern>
+		<url-pattern>/admin_/*</url-pattern>
+		<url-pattern>/login</url-pattern>
+		<url-pattern>/login/*</url-pattern>
+		<url-pattern>/logout</url-pattern>
+		<url-pattern>/logout/*</url-pattern>
+		<url-pattern>/services/*</url-pattern>
+		<url-pattern>/system/admin/services/*</url-pattern>
+	</filter-mapping>
+
+	<filter>
 		<filter-name>AdminInstanceForwardFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.AdminInstanceForwardFilter</filter-class>
 	</filter>
