@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.fileupload.FileItem;
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
@@ -51,6 +52,22 @@ import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 public class Deploy extends UploadService {
 
 	boolean bAssembleXsl = false;
+
+	private static String getNotificationSubject(String projectName, String user) {
+		var prefix = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SUBJECT_PREFIX);
+		return (prefix == null || prefix.isBlank() ? "" : prefix + " ") + "deployment of " + projectName + " by " + user;
+	}
+
+	private static String getProjectUrl(String projectName) {
+		var urlPrefix = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_PROJECT_URL_PREFIX);
+		if (urlPrefix == null || urlPrefix.isBlank()) {
+			urlPrefix = MobileApplication.getDefaultServerEnpoint();
+		}
+		if (urlPrefix.endsWith("/")) {
+			urlPrefix = urlPrefix.substring(0, urlPrefix.length() - 1);
+		}
+		return urlPrefix + "/projects/" + projectName;
+	}
 
 	@Override
 	protected String getRepository() {
@@ -120,13 +137,13 @@ public class Deploy extends UploadService {
 							}
 						});
 						MimeMessage message = new MimeMessage(mailSession);
-						message.setFrom(new InternetAddress("noreply@convertigo.com"));
-						message.setSender(new InternetAddress("noreply@convertigo.com"));
+						var sender = new InternetAddress(EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SENDER_EMAIL));
+						message.setFrom(sender);
+						message.setSender(sender);
 						message.addRecipient(Message.RecipientType.TO, new InternetAddress(
 								EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_TARGET_EMAIL)));
-						message.setSubject("[trial] deployment of " + fProjectName + " by " + fUser);
-						message.setText(message.getSubject() + "\n"
-								+ "https://trial.convertigo.net/convertigo/projects/" + fProjectName);
+						message.setSubject(getNotificationSubject(fProjectName, fUser));
+						message.setText(message.getSubject() + "\n" + getProjectUrl(fProjectName));
 						Transport transport = mailSession.getTransport("smtps");
 						transport.connect(smtpServer, Integer.parseInt(smtpPort), smtpUsername, smtpPassword);
 						transport.sendMessage(message, message.getAllRecipients());

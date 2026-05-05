@@ -38,6 +38,7 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
@@ -50,6 +51,22 @@ public class RemoteAdministration {
 
 	private boolean bAuthenticated = false;
 	private String trial_username = null;
+
+	private static String getNotificationSubject(String projectName, String user) {
+		var prefix = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SUBJECT_PREFIX);
+		return (prefix == null || prefix.isBlank() ? "" : prefix + " ") + "deployment of " + projectName + " by " + user;
+	}
+
+	private static String getProjectUrl(String projectName) {
+		var urlPrefix = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_PROJECT_URL_PREFIX);
+		if (urlPrefix == null || urlPrefix.isBlank()) {
+			urlPrefix = MobileApplication.getDefaultServerEnpoint();
+		}
+		if (urlPrefix.endsWith("/")) {
+			urlPrefix = urlPrefix.substring(0, urlPrefix.length() - 1);
+		}
+		return urlPrefix + "/projects/" + projectName;
+	}
 
 	public RemoteAdministration() {
 	}
@@ -170,12 +187,13 @@ public class RemoteAdministration {
 						});
 						MimeMessage message = new MimeMessage(mailSession);
 
+						var sender = new InternetAddress(EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SENDER_EMAIL));
+						message.setFrom(sender);
+						message.setSender(sender);
 						message.addRecipient(Message.RecipientType.TO, new InternetAddress(EnginePropertiesManager
 								.getProperty(PropertyName.NOTIFICATIONS_TARGET_EMAIL)));
-						message.setSubject("[trial] deployment of " + projectName + " by " + trial_username);
-						message.setText(message.getSubject() + "\n"
-								+ "http://trial.convertigo.net/cems/projects/" + projectName + "\n"
-								+ "https://trial.convertigo.net/cems/projects/" + projectName);
+						message.setSubject(getNotificationSubject(projectName, trial_username));
+						message.setText(message.getSubject() + "\n" + getProjectUrl(projectName));
 						Transport.send(message);
 					} catch (MessagingException e1) {
 					}

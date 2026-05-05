@@ -635,6 +635,12 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		NOTIFICATIONS_TARGET_EMAIL ("notifications.target_email", "", "Target email", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true)
+		NOTIFICATIONS_SENDER_EMAIL ("notifications.sender_email", "noreply@convertigo.com", "Sender email", PropertyCategory.Notifications),
+		@PropertyOptions(advance = true)
+		NOTIFICATIONS_SUBJECT_PREFIX ("notifications.subject_prefix", "[convertigo]", "Subject prefix", PropertyCategory.Notifications),
+		@PropertyOptions(advance = true)
+		NOTIFICATIONS_PROJECT_URL_PREFIX ("notifications.project_url_prefix", "", "Project URL prefix", PropertyCategory.Notifications),
+		@PropertyOptions(advance = true)
 		NOTIFICATIONS_SMTP_HOST ("notifications.smtp.host", "", "SMTP host", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true)
 		NOTIFICATIONS_SMTP_PORT ("notifications.smtp.port", "465", "SMTP port", PropertyCategory.Notifications),
