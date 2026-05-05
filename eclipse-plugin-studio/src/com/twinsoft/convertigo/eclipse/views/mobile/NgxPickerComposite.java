@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -196,6 +197,8 @@ public class NgxPickerComposite extends Composite {
 	private List<TVObject> checkedList = new ArrayList<TVObject>();
 	private boolean isParentDialog = false;
 	private boolean isUpdating = false;
+	private static final String ICON_SEARCH_CSS = readResource("NgxIconSearch.css");
+	private static final String ICON_SEARCH_JS = readResource("NgxIconSearch.js");
 
 	private static void set(Widget widget, Object o) {
 		Class<?> cls = o.getClass();
@@ -215,6 +218,15 @@ public class NgxPickerComposite extends Composite {
 	@SuppressWarnings("unchecked")
 	private static <E> E get(Widget widget, Class<E> cls) {
 		return (E) widget.getData(cls.toString());
+	}
+
+	private static String readResource(String resourceName) {
+		try (var is = NgxPickerComposite.class.getResourceAsStream(resourceName)) {
+			return IOUtils.toString(is, "UTF-8");
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to read " + resourceName);
+			return "";
+		}
 	}
 	
 	private interface DownloadAction {
@@ -813,10 +825,12 @@ public class NgxPickerComposite extends Composite {
 			}
 			browser.getBrowser().set(InjectCssCallback.class, event -> {
 				return InjectCssCallback.Response.inject("h1, h3 { display: none }\n"
-						+ ".selected { border-style: outset; border-color: red; border-radius: 10px }\n");
+						+ ".selected { border-style: outset; border-color: red; border-radius: 10px }\n"
+						+ ICON_SEARCH_CSS + "\n");
 			});
 			browser.getBrowser().navigation().on(FrameLoadFinished.class, event -> {
 				com.teamdev.jxbrowser.dom.Document doc = event.frame().document().get();
+				event.frame().executeJavaScript(ICON_SEARCH_JS);
 
 				doc.addEventListener(EventType.MOUSE_DOWN, c -> {
 					com.teamdev.jxbrowser.dom.Element elt = (com.teamdev.jxbrowser.dom.Element) c.target().get();
@@ -833,7 +847,10 @@ public class NgxPickerComposite extends Composite {
 				}, false);
 
 				doc.addEventListener(EventType.CLICK, c -> {
-					c.preventDefault();
+					com.teamdev.jxbrowser.dom.Element elt = (com.teamdev.jxbrowser.dom.Element) c.target().get();
+					if (!"input".equalsIgnoreCase(elt.nodeName())) {
+						c.preventDefault();
+					}
 				}, false);
 
 				try {
@@ -851,7 +868,7 @@ public class NgxPickerComposite extends Composite {
 							if (selected.equals(elt.attributes().get("href"))) {
 								((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).attributes().put("class", "selected");
 								Rect rect = ((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).boundingClientRect();
-								event.frame().executeJavaScript("window.scrollTo(0, " + (rect.y() - 40) + ");");
+								event.frame().executeJavaScript("window.scrollTo(0, " + (rect.y() - 80) + ");");
 								break;
 							}
 						}

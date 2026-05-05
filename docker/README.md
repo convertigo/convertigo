@@ -172,11 +172,31 @@ You can change the default administration account :
 
     docker run -d --name C8O -e CONVERTIGO_ADMIN_USER=administrator -e CONVERTIGO_ADMIN_PASSWORD=s3cret -p 28080:28080 convertigo
 
+These variables are startup conveniences. If `/workspace/configuration/engine.properties`
+already defines `admin.username` or `admin.password`, the matching environment variable is
+ignored to preserve the persisted configuration.
+
 ### `CONVERTIGO_ANONYMOUS_DASHBOARD` Environment variable
 
 You can allow anonymous access to `/convertigo/dashboard/` by setting:
 
     docker run -d --name C8O -e CONVERTIGO_ANONYMOUS_DASHBOARD=true -p 28080:28080 convertigo
+
+If `/workspace/configuration/engine.properties` already defines `anonymous.dashboard`,
+`CONVERTIGO_ANONYMOUS_DASHBOARD` is ignored.
+
+### `PUBLIC_DOMAINS` Environment variable
+
+For production CORS configuration, you can replace the default `cors.policy = =Origin`
+behavior with an explicit list of public origins:
+
+    docker run -d --name C8O -e PUBLIC_DOMAINS="https://app.example.com#https://admin.example.com" -p 28080:28080 convertigo
+
+Values must match the full browser `Origin` header, including scheme and optional port.
+Multiple origins are separated with `#`.
+If `/workspace/configuration/engine.properties` already defines `cors.policy`, `PUBLIC_DOMAINS`
+is ignored. Use `JAVA_OPTS=-Dconvertigo.engine.cors.policy=...` only when you need an explicit
+JVM-level override.
 
 ## HTTPS / SSL Configuration
 

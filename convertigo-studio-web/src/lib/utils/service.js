@@ -36,7 +36,7 @@ export function abortPendingCalls() {
 /**
  * @param {string} service
  * @param {any} data
- * @param {{adminInstance?: string}} options
+ * @param {{adminInstance?: string, silentStatuses?: number[], silentNetworkAfterMs?: number, silentError?: (error: string, response: any) => boolean}} options
  */
 export async function call(service, data = {}, options = {}) {
 	if (!browser) {
@@ -46,6 +46,9 @@ export async function call(service, data = {}, options = {}) {
 		return { error: 'Server unreachable', offline: true };
 	}
 	let dataContent;
+	let responseStatus;
+	let responseStatusText;
+	const startedAt = Date.now();
 	const controller = new AbortController();
 	pendingCalls.add(controller);
 	try {
@@ -92,8 +95,18 @@ export async function call(service, data = {}, options = {}) {
 			credentials: 'include',
 			signal: controller.signal
 		});
+		responseStatus = res.status;
+		responseStatusText = res.statusText;
 		offlineUntil = 0;
 		offlineBackoff = 1000;
+		if (options.silentStatuses?.includes(res.status)) {
+			return {
+				status: res.status,
+				statusText: res.statusText,
+				silentStatus: true,
+				elapsed: Date.now() - startedAt
+			};
+		}
 		var xsrf = res.headers.get('x-xsrf-token');
 		if (xsrf != null) {
 			localStorage.setItem('x-xsrf-token', xsrf);
@@ -144,12 +157,21 @@ export async function call(service, data = {}, options = {}) {
 			message.includes('NetworkError') ||
 			message.includes('Load failed')
 		) {
+			const elapsed = Date.now() - startedAt;
+			if (options.silentNetworkAfterMs && elapsed >= options.silentNetworkAfterMs) {
+				return { transportError: true, elapsed };
+			}
 			const now = Date.now();
 			offlineBackoff = Math.min(OFFLINE_BACKOFF_MAX, Math.round(offlineBackoff * 1.5 + 250));
 			offlineUntil = now + offlineBackoff;
-			dataContent = { error: 'Server unreachable', offline: true };
+			dataContent = {
+				error: 'Server unreachable',
+				offline: true,
+				status: responseStatus,
+				statusText: responseStatusText
+			};
 		} else {
-			dataContent = { error: message };
+			dataContent = { error: message, status: responseStatus, statusText: responseStatusText };
 		}
 	} finally {
 		pendingCalls.delete(controller);
@@ -157,6 +179,10 @@ export async function call(service, data = {}, options = {}) {
 
 	if (dataContent?.aborted) {
 		return dataContent;
+	}
+	const error = options.silentError ? findDeepKeys(dataContent, ['error', 'errorMessage']) : null;
+	if (error && options.silentError(stringilight(error), dataContent)) {
+		return { ...dataContent, silentError: true, elapsed: Date.now() - startedAt };
 	}
 	handleStateMessage(dataContent, service);
 	return dataContent;

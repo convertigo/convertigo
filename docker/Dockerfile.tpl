@@ -1,4 +1,5 @@
 # Copyright (c) 2001-2026 Convertigo SA.
+# Source file for docker/*/Dockerfile, regenerated with ./gradlew generateDockerfile.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Affero General Public License

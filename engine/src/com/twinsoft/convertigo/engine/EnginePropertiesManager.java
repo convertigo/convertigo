@@ -348,6 +348,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		CONVERTIGO_PRODUCT_VERSION_CHECK ("convertigo.product_version_check", "true", "Product version check", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		HIDE_PRODUCT_VERSION_IN_API_SPECS ("hide_product_version_in_api_specs", "false", "Hide product version in generated API specifications", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		DOCUMENT_THREADING_USE_STOP_METHOD ("document.threading.use_stop_method", "false", "Use the Java Thread.stop() method in order to finish threads", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
 		POOL_MANAGER_TIMEOUT ("pool.manager.timeout", "-1", "Time allowed for pool management task in seconds (-1 for disable)", PropertyCategory.Main),
@@ -633,13 +635,19 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		NOTIFICATIONS_TARGET_EMAIL ("notifications.target_email", "", "Target email", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true)
-		NOTIFICATIONS_SMTP_HOST ("notifications.smtp.host", "", "STMP host", PropertyCategory.Notifications),
+		NOTIFICATIONS_SENDER_EMAIL ("notifications.sender_email", "noreply@convertigo.com", "Sender email", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true)
-		NOTIFICATIONS_SMTP_PORT ("notifications.smtp.port", "465", "STMP port", PropertyCategory.Notifications),
+		NOTIFICATIONS_SUBJECT_PREFIX ("notifications.subject_prefix", "[convertigo]", "Subject prefix", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true)
-		NOTIFICATIONS_SMTP_USER ("notifications.smtp.user", "", "STMP user", PropertyCategory.Notifications),
+		NOTIFICATIONS_PROJECT_URL_PREFIX ("notifications.project_url_prefix", "", "Project URL prefix", PropertyCategory.Notifications),
+		@PropertyOptions(advance = true)
+		NOTIFICATIONS_SMTP_HOST ("notifications.smtp.host", "", "SMTP host", PropertyCategory.Notifications),
+		@PropertyOptions(advance = true)
+		NOTIFICATIONS_SMTP_PORT ("notifications.smtp.port", "465", "SMTP port", PropertyCategory.Notifications),
+		@PropertyOptions(advance = true)
+		NOTIFICATIONS_SMTP_USER ("notifications.smtp.user", "", "SMTP user", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
-		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "STMP password", PropertyCategory.Notifications),
+		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "SMTP password", PropertyCategory.Notifications),
 
 		/** MOBILE BUILDER */
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)

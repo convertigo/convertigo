@@ -48,6 +48,9 @@ import com.twinsoft.convertigo.engine.sessions.StatefulSessionAttributes;
 public class Get extends JSonService {
 	static private final String attr_start = Get.class.getCanonicalName()+".start";
 	static private final String attr_appender = Get.class.getCanonicalName()+".appender.";
+	static private final long livePollDefaultTimeout = 55000;
+	static private final long livePollWaitSlice = 2000;
+	static private final long liveLogReadTimeout = 500;
 
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		var session = request.getSession();
@@ -73,9 +76,11 @@ public class Get extends JSonService {
 			} catch (Exception e) {}
 
 			if (realtime || live) {
+				var timeout = live ? getLiveTimeout(request) : -1;
 				if (live) {
-					LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.filter, LogManagerParameter.timeout, LogManagerParameter.nbLines, LogManagerParameter.startDate);
+					LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.filter, LogManagerParameter.nbLines, LogManagerParameter.startDate);
 					logmanager.setContinue(!clear);
+					logmanager.setTimeout(liveLogReadTimeout);
 				} else {
 					LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.filter, LogManagerParameter.timeout, LogManagerParameter.nbLines);
 					logmanager.setContinue(true);
@@ -120,11 +125,14 @@ public class Get extends JSonService {
 
 					boolean interrupted = false;
 					JSONArray lines = logmanager.getLines();
+					var end = timeout < 0 ? Long.MAX_VALUE : System.currentTimeMillis() + timeout;
 					while (lines.length() == 0 && !interrupted
-							&& StatefulSessionAttributes.getStatefulAttribute(session, attr_start) == start) {
+							&& StatefulSessionAttributes.getStatefulAttribute(session, attr_start) == start
+							&& System.currentTimeMillis() < end) {
 						synchronized (appender) {
 							try {
-								appender.wait(2000);
+								appender.wait(Math.min(livePollWaitSlice,
+										Math.max(1, end - System.currentTimeMillis())));
 							} catch (InterruptedException e) {
 								interrupted = true;
 							}
@@ -151,6 +159,15 @@ public class Get extends JSonService {
 				response.put("lines", lines);
 				response.put("hasMoreResults", logmanager.hasMoreResults());
 			}
+		}
+	}
+
+	private long getLiveTimeout(HttpServletRequest request) {
+		try {
+			var timeout = Long.parseLong(request.getParameter(LogManagerParameter.timeout.name()));
+			return timeout == 0 ? livePollDefaultTimeout : timeout;
+		} catch (Exception e) {
+			return livePollDefaultTimeout;
 		}
 	}
 }

@@ -606,19 +606,75 @@
 			id="convertigo.launchMobileApplicationProjectContribution"
 			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject">
 			<action
-				class="com.twinsoft.convertigo.eclipse.popup.actions.LaunchMobileApplicationProjectAction"
+				class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectFrontendDashboardAction"
 				enablesFor="1"
 				icon="icons/studio/launch_test_platform_16x16.png"
-				id="convertigo.action.launchMobileApplicationProject"
-				label="Launch in test platform"
-				menubarPath="run" />
+				id="convertigo.action.openMobileApplicationFrontendDashboard"
+				label="Open Frontend Dashboard"
+				menubarPath="run">
+				<enablement>
+					<objectState
+						name="isApplicationProject"
+						value="true">
+					</objectState>
+				</enablement>
+			</action>
 			<action
-				class="com.twinsoft.convertigo.eclipse.popup.actions.LaunchMobileApplicationFullScreenProjectAction"
+				class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectBuiltApplicationAction"
 				enablesFor="1"
 				icon="icons/studio/launch_fullscreen_16x16.png"
-				id="convertigo.action.launchMobileApplicationFullScreenProject"
-				label="Launch Fullscreen"
-				menubarPath="run" />
+				id="convertigo.action.openMobileApplicationBuiltApplication"
+				label="Open Built Application"
+				menubarPath="run">
+				<enablement>
+					<objectState
+						name="isApplicationProject"
+						value="true">
+					</objectState>
+				</enablement>
+			</action>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderReInstallClassAction"
+				enablesFor="1"
+				id="convertigo.action.openMobileApplicationBuilderReIntall"
+				label="Re-install packages and Execute"
+				icon="icons/studio/transaction_execute_selected.gif"
+				menubarPath="execute">
+				<enablement>
+					<objectState
+						name="isApplicationProject"
+						value="true">
+					</objectState>
+				</enablement>
+			</action>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderUpdateClassAction"
+				enablesFor="1"
+				id="convertigo.action.openMobileApplicationBuilderUpdate"
+				label="Update packages and Execute"
+				icon="icons/studio/transaction_execute_selected.gif"
+				menubarPath="execute">
+				<enablement>
+					<objectState
+						name="isApplicationProject"
+						value="true">
+					</objectState>
+				</enablement>
+			</action>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderClassAction"
+				enablesFor="1"
+				id="convertigo.action.openMobileApplicationBuilder"
+				label="Execute"
+				icon="icons/studio/transaction_execute_selected.gif"
+				menubarPath="execute">
+				<enablement>
+					<objectState
+						name="isApplicationProject"
+						value="true">
+					</objectState>
+				</enablement>
+			</action>
 		</objectContribution>
 		<objectContribution
 			id="convertigo.mobileApplicationContribution"
@@ -690,6 +746,22 @@
 				menubarPath="translate">
 			</action>
 			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectFrontendDashboardAction"
+				enablesFor="1"
+				icon="icons/studio/launch_test_platform_16x16.png"
+				id="convertigo.action.openMobileApplicationComponentFrontendDashboard"
+				label="Open Frontend Dashboard"
+				menubarPath="run">
+			</action>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectBuiltApplicationAction"
+				enablesFor="1"
+				icon="icons/studio/launch_fullscreen_16x16.png"
+				id="convertigo.action.openMobileApplicationComponentBuiltApplication"
+				label="Open Built Application"
+				menubarPath="run">
+			</action>
+			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderReInstallClassAction"
 				enablesFor="1"
 				id="convertigo.action.openMobileBuilderReIntall"
@@ -738,6 +810,22 @@
 				id="convertigo.action.createNgxApplicationTranslationsFile"
 				label="Create or update translations file"
 				menubarPath="translate">
+			</action>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectFrontendDashboardAction"
+				enablesFor="1"
+				icon="icons/studio/launch_test_platform_16x16.png"
+				id="convertigo.action.openNgxApplicationComponentFrontendDashboard"
+				label="Open Frontend Dashboard"
+				menubarPath="run">
+			</action>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectBuiltApplicationAction"
+				enablesFor="1"
+				icon="icons/studio/launch_fullscreen_16x16.png"
+				id="convertigo.action.openNgxApplicationComponentBuiltApplication"
+				label="Open Built Application"
+				menubarPath="run">
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderReInstallClassAction"
@@ -1679,6 +1767,88 @@
 				id="convertigo.action.openProjectSwaggerConsole"
 				label="Open Swagger Console"
 				menubarPath="tools">
+			</action>
+		</objectContribution>
+		<objectContribution
+			id="convertigo.openProjectFrontendDashboardContribution"
+			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectFrontendDashboardAction"
+				enablesFor="1"
+				icon="icons/studio/launch_test_platform_16x16.png"
+				id="convertigo.action.openProjectFrontendDashboard"
+				label="Open Frontend Dashboard"
+				menubarPath="tools">
+				<enablement>
+					<objectState
+						name="isApplicationProject"
+						value="true">
+					</objectState>
+				</enablement>
+			</action>
+		</objectContribution>
+		<objectContribution
+			id="convertigo.openProjectBuiltApplicationContribution"
+			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectBuiltApplicationAction"
+				enablesFor="1"
+				icon="icons/studio/launch_fullscreen_16x16.png"
+				id="convertigo.action.openProjectBuiltApplication"
+				label="Open Built Application"
+				menubarPath="tools">
+				<enablement>
+					<objectState
+						name="isApplicationProject"
+						value="true">
+					</objectState>
+				</enablement>
+			</action>
+		</objectContribution>
+		<objectContribution
+			id="convertigo.projectMobileBuilderContribution"
+			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderReInstallClassAction"
+				enablesFor="1"
+				id="convertigo.action.openProjectMobileBuilderReIntall"
+				label="Re-install packages and Execute"
+				icon="icons/studio/transaction_execute_selected.gif"
+				menubarPath="execute">
+				<enablement>
+					<objectState
+						name="isApplicationProject"
+						value="true">
+					</objectState>
+				</enablement>
+			</action>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderUpdateClassAction"
+				enablesFor="1"
+				id="convertigo.action.openProjectMobileBuilderUpdate"
+				label="Update packages and Execute"
+				icon="icons/studio/transaction_execute_selected.gif"
+				menubarPath="execute">
+				<enablement>
+					<objectState
+						name="isApplicationProject"
+						value="true">
+					</objectState>
+				</enablement>
+			</action>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderClassAction"
+				enablesFor="1"
+				id="convertigo.action.openProjectMobileBuilder"
+				label="Execute"
+				icon="icons/studio/transaction_execute_selected.gif"
+				menubarPath="execute">
+				<enablement>
+					<objectState
+						name="isApplicationProject"
+						value="true">
+					</objectState>
+				</enablement>
 			</action>
 		</objectContribution>
 		<objectContribution

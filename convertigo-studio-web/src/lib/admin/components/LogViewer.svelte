@@ -787,8 +787,10 @@
 	// Avoid recursive synchronous loop when server returns no new lines.
 	// We keep only one pending retry via a single timeout reference.
 	let retryTimer;
+	let destroyed = false;
 
 	onDestroy(() => {
+		destroyed = true;
 		if (retryTimer) clearTimeout(retryTimer);
 	});
 
@@ -802,17 +804,20 @@
 			_scrollToIndex = undefined;
 		}
 		let len = renew ? 0 : Logs.logs.length;
-		await Logs.list(renew);
+		const result = await Logs.list(renew);
+		if (destroyed || result?.canceled) {
+			return;
+		}
 		scheduleFiltering();
 		// If no new lines arrived but we are in tailing mode (live) or server says moreResults,
 		// schedule a delayed retry instead of immediate recursion to prevent UI freeze.
 		if (Logs.logs.length == len && (live || Logs.moreResults)) {
 			if (retryTimer) clearTimeout(retryTimer);
 			retryTimer = setTimeout(async () => {
-				if (live || Logs.moreResults) {
+				if (!destroyed && (live || Logs.moreResults)) {
 					await list(false);
 				}
-			}, 200);
+			}, result?.retryDelay ?? 200);
 		}
 	}
 </script>

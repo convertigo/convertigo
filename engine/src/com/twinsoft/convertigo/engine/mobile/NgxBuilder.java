@@ -2099,7 +2099,7 @@ public class NgxBuilder extends MobileBuilder {
 			
 			
 			Map<String, String> tpl_ts_imports = new HashMap<String, String>();
-			tpl_ts_imports.putAll(getTplPageModuleTsImports());
+			tpl_ts_imports.putAll(getTplCompModuleTsImports());
 			if (!module_ts_imports.isEmpty()) {
 				for (String comps : module_ts_imports.keySet()) {
 					String from = module_ts_imports.get(comps);
@@ -2113,8 +2113,8 @@ public class NgxBuilder extends MobileBuilder {
 				}
 			}
 			
-			//String tpl_ng_imports = getTplPageModuleNgImports();
-			List<String> tpl_ng_imports = asCleanList(getTplPageModuleNgImports());
+			//String tpl_ng_imports = getTplCompModuleNgImports();
+			List<String> tpl_ng_imports = asCleanList(getTplCompModuleNgImports());
 			if (!module_ng_imports.isEmpty()) {
 				for (String module: module_ng_imports) {
 					try {
@@ -2129,8 +2129,8 @@ public class NgxBuilder extends MobileBuilder {
 				}
 			}
 			
-			//String tpl_ng_providers = getTplPageModuleNgProviders();
-			List<String> tpl_ng_providers = asCleanList(getTplPageModuleNgProviders());
+			//String tpl_ng_providers = getTplCompModuleNgProviders();
+			List<String> tpl_ng_providers = asCleanList(getTplCompModuleNgProviders());
 			if (!module_ng_providers.isEmpty()) {
 				for (String provider: module_ng_providers) {
 					if (!tpl_ng_providers.contains(asCleanString(provider))) {

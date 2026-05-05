@@ -145,7 +145,8 @@ public class SwaggerUtils {
 		info.setContact(contact);
 		info.setTitle("Convertigo OAS2 REST API");
 		info.setDescription("Find here all deployed projects");
-		info.setVersion(ProductVersion.productVersion);
+		var version = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.HIDE_PRODUCT_VERSION_IN_API_SPECS) ? "" : ProductVersion.productVersion;
+		info.setVersion(version);
 		if (project != null) {
 			info.setTitle(project.getName() + " OAS2 REST API");
 			info.setDescription(project.getComment());

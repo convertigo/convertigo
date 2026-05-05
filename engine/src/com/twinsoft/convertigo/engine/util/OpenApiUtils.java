@@ -376,7 +376,8 @@ public class OpenApiUtils {
 		info.setContact(new Contact());
 		info.setTitle("Convertigo OAS3 REST API");
 		info.setDescription("Find here all deployed projects");
-		info.setVersion(ProductVersion.productVersion);
+		var version = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.HIDE_PRODUCT_VERSION_IN_API_SPECS) ? "" : ProductVersion.productVersion;
+		info.setVersion(version);
 		if (project != null) {
 			info.setTitle(project.getName() + " OAS3 REST API");
 			info.setDescription(project.getComment());

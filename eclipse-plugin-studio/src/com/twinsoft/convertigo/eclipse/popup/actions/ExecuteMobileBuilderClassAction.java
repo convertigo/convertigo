@@ -24,6 +24,10 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject;
@@ -41,6 +45,30 @@ public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
 		super();
 	}
 
+	private TreeObject getApplicationComponentTreeObject(ProjectExplorerView explorerView, TreeObject treeObject) {
+		if (treeObject instanceof MobileApplicationComponentTreeObject || treeObject instanceof NgxApplicationComponentTreeObject) {
+			return treeObject;
+		}
+
+		Object databaseObject = treeObject == null ? null : treeObject.getObject();
+		Project project = null;
+
+		if (databaseObject instanceof Project) {
+			project = (Project) databaseObject;
+		} else if (databaseObject instanceof MobileApplication) {
+			project = ((MobileApplication) databaseObject).getProject();
+		}
+
+		if (project != null && project.getMobileApplication() != null) {
+			IApplicationComponent application = project.getMobileApplication().getApplicationComponent();
+			if (application instanceof DatabaseObject) {
+				return explorerView.findTreeObjectByUserObject((DatabaseObject) application);
+			}
+		}
+
+		return null;
+	}
+
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
@@ -53,6 +81,7 @@ public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
 			ProjectExplorerView explorerView = getProjectExplorerView();
 			if (explorerView != null) {
 				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				treeObject = getApplicationComponentTreeObject(explorerView, treeObject);
 				if (treeObject instanceof MobileComponentTreeObject) {
 					if (treeObject instanceof MobileApplicationComponentTreeObject) {
 						MobileApplicationComponentTreeObject mpcto = (MobileApplicationComponentTreeObject) treeObject;

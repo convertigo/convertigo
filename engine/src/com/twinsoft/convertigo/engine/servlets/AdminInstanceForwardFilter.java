@@ -126,6 +126,11 @@ public class AdminInstanceForwardFilter implements Filter {
 			return;
 		}
 
+		if (!Engine.authenticatedSessionManager.isAuthenticated(request.getSession(false))) {
+			chain.doFilter(request, response);
+			return;
+		}
+
 		RedisInstanceDiscovery.updateFromRequest(request);
 		var localInstance = RedisInstanceDiscovery.getLocalInstanceId();
 		if (localInstance != null && !localInstance.isBlank()) {
