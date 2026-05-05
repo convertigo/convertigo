@@ -4,7 +4,7 @@
 set -eu
 
 # Keep this single value up to date with the bundled Studio JDK release.
-JDK_RELEASE=25.0.2+10
+JDK_RELEASE=25.0.3+9
 JDK_VERSION=${JDK_RELEASE%%+*}
 JDK_BUILD=${JDK_RELEASE#*+}
 JDK_MAJOR=${JDK_VERSION%%.*}
