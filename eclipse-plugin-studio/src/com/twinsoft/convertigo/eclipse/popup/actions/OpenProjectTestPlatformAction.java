@@ -25,6 +25,8 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -38,6 +40,32 @@ public class OpenProjectTestPlatformAction extends MyAbstractAction {
 		super();
 	}
 
+	protected Project getSelectedProject(ProjectExplorerView explorerView) {
+		if (explorerView != null) {
+			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+			Object databaseObject = treeObject == null ? null : treeObject.getObject();
+
+			if (databaseObject instanceof Project) {
+				return (Project) databaseObject;
+			}
+			if (databaseObject instanceof MobileApplication) {
+				return ((MobileApplication) databaseObject).getProject();
+			}
+			if (databaseObject instanceof DatabaseObject) {
+				return ((DatabaseObject) databaseObject).getProject();
+			}
+		}
+		return null;
+	}
+
+	protected String getProjectUrl(Project project) {
+		return EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/dashboard/" + project.getName() + "/backend/";
+	}
+
+	protected String getUnableMessage() {
+		return "Unable to open the selected project!";
+	}
+
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
@@ -47,20 +75,14 @@ public class OpenProjectTestPlatformAction extends MyAbstractAction {
 
 		try {
 			ProjectExplorerView explorerView = getProjectExplorerView();
-			if (explorerView != null) {
-				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-				Object databaseObject = treeObject.getObject();
-
-				if ((databaseObject != null) && (databaseObject instanceof Project)) {
-					Project project = (Project)treeObject.getObject();
-					Program.launch(
-							EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/dashboard/" + project.getName() + "/backend/");
-				}
+			Project project = getSelectedProject(explorerView);
+			if (project != null) {
+				Program.launch(getProjectUrl(project));
 			}
 
 		}
 		catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Unable to open the selected project!");
+			ConvertigoPlugin.logException(e, getUnableMessage());
 		}
 		finally {
 			shell.setCursor(null);
