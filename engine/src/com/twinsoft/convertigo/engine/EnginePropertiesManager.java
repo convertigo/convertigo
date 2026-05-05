@@ -635,13 +635,13 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		NOTIFICATIONS_TARGET_EMAIL ("notifications.target_email", "", "Target email", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true)
-		NOTIFICATIONS_SMTP_HOST ("notifications.smtp.host", "", "STMP host", PropertyCategory.Notifications),
+		NOTIFICATIONS_SMTP_HOST ("notifications.smtp.host", "", "SMTP host", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true)
-		NOTIFICATIONS_SMTP_PORT ("notifications.smtp.port", "465", "STMP port", PropertyCategory.Notifications),
+		NOTIFICATIONS_SMTP_PORT ("notifications.smtp.port", "465", "SMTP port", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true)
-		NOTIFICATIONS_SMTP_USER ("notifications.smtp.user", "", "STMP user", PropertyCategory.Notifications),
+		NOTIFICATIONS_SMTP_USER ("notifications.smtp.user", "", "SMTP user", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
-		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "STMP password", PropertyCategory.Notifications),
+		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "SMTP password", PropertyCategory.Notifications),
 
 		/** MOBILE BUILDER */
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
