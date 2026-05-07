@@ -6,6 +6,7 @@
 	import CheckState from '$lib/admin/components/CheckState.svelte';
 	import CronWizard from '$lib/admin/components/CronWizard.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
+	import RequestableParameters from '$lib/admin/components/RequestableParameters.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import Scheduler from '$lib/admin/Scheduler.svelte';
@@ -14,7 +15,7 @@
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { capitalize } from '$lib/utils/service';
+	import { capitalize, checkArray } from '$lib/utils/service';
 	import { getContext, onDestroy } from 'svelte';
 
 	let { jobs, schedules, scheduled, configure, remove, init } = $derived(Scheduler);
@@ -70,34 +71,49 @@
 
 	let modal, nextCron;
 	/*** @type {any} */
-	let selected = $state({});
-	/*** @type {any} */
 	let rowSelected = $state(null);
 	/*** @type {any} */
 	let project = $state({});
 
 	let modalYesNo = getContext('modalYesNo');
 
-	let sequence = $derived(
-		project?.sequence?.find((s) => s.name == rowSelected.sequence) || project?.sequence?.[0]
-	);
-	let connector = $derived(
-		project?.connector?.find((c) => c.name == rowSelected.connector) || project?.connector?.[0]
-	);
-	let transaction = $derived(
-		connector?.transaction?.find((t) => t.name == rowSelected.transaction) ||
-			connector?.transaction?.[0]
-	);
+	function selectByName(values, name) {
+		const list = checkArray(values);
+		return list.find((item) => item.name == name) || (!name ? list[0] : undefined);
+	}
+
+	function comboItems(values) {
+		return checkArray(values)
+			.filter(({ name }) => name != null)
+			.map(({ name }) => ({ value: name, text: name }));
+	}
+
+	function resetChildren(name, value) {
+		rowSelected[name] = value;
+		if (name == 'project') {
+			rowSelected.connector = '';
+			rowSelected.transaction = '';
+			rowSelected.sequence = '';
+		} else if (name == 'connector') {
+			rowSelected.transaction = '';
+		}
+	}
+
+	let sequence = $derived(selectByName(project?.sequence, rowSelected?.sequence));
+	let connector = $derived(selectByName(project?.connector, rowSelected?.connector));
+	let transaction = $derived(selectByName(connector?.transaction, rowSelected?.transaction));
 
 	let requestable = $derived({ project, connector, transaction, sequence });
 
 	$effect(() => {
-		if (rowSelected) {
-			const prj = projects?.find((p) => p.name == rowSelected.project) || projects?.[0];
-			project = prj?.name ? TestPlatform(prj?.name) : {};
-			if (rowSelected?.jobName || rowSelected?.scheduleName) {
-				rowSelected.name = `${rowSelected.jobName}@${rowSelected.scheduleName}`;
-			}
+		if (!rowSelected) {
+			return;
+		}
+
+		const prj = selectByName(projects, rowSelected.project);
+		project = prj?.name ? TestPlatform(prj?.name) : {};
+		if (rowSelected?.jobName || rowSelected?.scheduleName) {
+			rowSelected.name = `${rowSelected.jobName}@${rowSelected.scheduleName}`;
 		}
 		for (const k of Object.keys(requestable)) {
 			if (requestable[k]?.name) {
@@ -209,14 +225,16 @@
 									starts: 'Se'
 								}
 							].filter((type) => !type.starts || mode.startsWith(type.starts))}
-							{#each types as { name, values = [] } (name)}
+							{#each types as type (type.name)}
 								<PropertyType
 									type="combo"
-									{name}
-									description={capitalize(name)}
-									bind:value={rowSelected[name]}
-									originalValue={row?.[name]}
-									item={values.map(({ name }) => ({ value: name, text: name }))}
+									name={type.name}
+									description={capitalize(type.name)}
+									bind:value={rowSelected[type.name]}
+									originalValue={row?.[type.name]}
+									item={comboItems(type.values)}
+									multiple={false}
+									onchange={(event) => resetChildren(type.name, event.target.value)}
 								/>
 							{/each}
 							<PropertyType
@@ -276,22 +294,13 @@
 						{/if}
 					</div>
 					{#if mode.endsWith('ConvertigoJob')}
-						{@const requestable = mode.startsWith('Tr') ? selected.transaction : selected.sequence}
-						{#if requestable?.variable}
-							<div class="layout-y">
-								<p class="font-medium">Variables</p>
-								{#each Object.keys(requestable?.variable) as name (name)}
-									<label class="border-common">
-										<p class="label-common">{name}</p>
-										<input
-											class="input-common"
-											type="text"
-											{name}
-											value={row.parameter[name]?.value ?? ''}
-										/>
-									</label>
-								{/each}
-							</div>
+						{@const selectedRequestable = mode.startsWith('Tr') ? transaction : sequence}
+						{#if selectedRequestable}
+							<RequestableParameters
+								requestable={selectedRequestable}
+								savedParameters={rowSelected.parameterMap ?? {}}
+								class="min-w-80 flex-1"
+							/>
 						{/if}
 					{/if}
 				</div>
