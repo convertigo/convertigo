@@ -81,6 +81,19 @@ configurations {
 	sapjco3
 }
 
+configurations.compileFlat {
+	resolutionStrategy.eachDependency { details ->
+		if (details.requested.group == 'org.apache.neethi' && details.requested.name == 'neethi') {
+			// Force Axis2 transitive dependency to the security-fixed Neethi version.
+			details.useVersion '3.2.2'
+		}
+		if (details.requested.group == 'io.netty' && details.requested.name.startsWith('netty-')) {
+			// Force Redisson transitive dependencies to the security-fixed Netty version.
+			details.useVersion '4.2.13.Final'
+		}
+	}
+}
+
 jar {
 	archiveBaseName = 'convertigo-engine'
 	include 'com/twinsoft/**'
