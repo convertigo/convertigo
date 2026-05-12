@@ -3708,7 +3708,8 @@ public class NgxBuilder extends MobileBuilder {
 				if (!compDirectories.contains(dir.getAbsolutePath())) {
 					try {
 						String compDirName = dir.getName();
-						if (compDirName.startsWith(prefix) || !existTargetComp(compDirName)) {
+						boolean isUsed = ComponentRefManager.isCompUsedBy(compQName(compDirName), project.getName());
+						if (compDirName.startsWith(prefix) || !existTargetComp(compDirName) || !isUsed) {
 							deleteSourceDir(dir);
 						}
 					}
