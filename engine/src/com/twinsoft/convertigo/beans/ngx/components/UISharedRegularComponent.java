@@ -935,7 +935,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 				Map<String, String> imports = new HashMap<String, String>();
 				if (accept()) {
 					if (tplIsStandalone) {
-						if (!isContainer(UISharedRegularComponent.this)) {
+						if (!isMainTs() && !isContainer(UISharedRegularComponent.this)) {
 							if (isCircularWithContainer()) {
 								imports.put("{ forwardRef }", "@angular/core");
 							}
@@ -956,7 +956,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IDyna
 				Set<String> ngImports = new HashSet<String>();
 				if (accept()) {
 					if (tplIsStandalone) {
-						if (!isContainer(UISharedRegularComponent.this)) {
+						if (!isMainTs() && !isContainer(UISharedRegularComponent.this)) {
 							if (isCircularWithContainer()) {
 								ngImports.add("forwardRef(() => " + getCompName() + ")");
 							} else {

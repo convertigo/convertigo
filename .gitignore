@@ -64,3 +64,4 @@ META-INF
 /resources
 /workspace
 .circleci/cache/
+/.playwright-mcp/

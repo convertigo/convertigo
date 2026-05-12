@@ -3309,7 +3309,7 @@ public class NgxBuilder extends MobileBuilder {
 					String entry = cleanImport(app, tpl_ts_imports, comp, from, false);
 					if (!entry.isBlank()) {
 						if (from.startsWith("/components") || from.startsWith("/pages")) {
-							from = "." + from;
+							from = "./app" + from;
 						}
 						c8o_ModuleTsImports += "import "+ entry +" from '"+ from +"';" + System.lineSeparator();
 					}
@@ -3708,7 +3708,8 @@ public class NgxBuilder extends MobileBuilder {
 				if (!compDirectories.contains(dir.getAbsolutePath())) {
 					try {
 						String compDirName = dir.getName();
-						if (compDirName.startsWith(prefix) || !existTargetComp(compDirName)) {
+						boolean isUsed = ComponentRefManager.isCompUsedBy(compQName(compDirName), project.getName());
+						if (compDirName.startsWith(prefix) || !existTargetComp(compDirName) || !isUsed) {
 							deleteSourceDir(dir);
 						}
 					}

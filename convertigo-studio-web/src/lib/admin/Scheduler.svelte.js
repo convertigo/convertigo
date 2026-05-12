@@ -34,6 +34,16 @@ const defValues = {
 	})
 };
 
+function normalizeParameters(parameter) {
+	return checkArray(parameter).reduce((parameters, parameter) => {
+		const { name, value } = parameter ?? {};
+		if (name) {
+			parameters[name] = checkArray(value);
+		}
+		return parameters;
+	}, {});
+}
+
 let values = {
 	async configure(e) {
 		e.preventDefault?.();
@@ -58,6 +68,9 @@ export default ServiceHelper({
 	service: 'scheduler.List',
 	mapping: { element: 'admin.element' },
 	beforeUpdate: ({ element }) => {
+		for (const job of element.filter(({ type }) => String(type ?? '').endsWith('ConvertigoJob'))) {
+			job.parameterMap = normalizeParameters(job.parameter);
+		}
 		for (const job of element.filter(({ type }) => type == 'JobGroupJob')) {
 			job.jobsname = checkArray(job.job_group_member);
 			delete job.job_group_member;

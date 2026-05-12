@@ -81,6 +81,19 @@ configurations {
 	sapjco3
 }
 
+configurations.compileFlat {
+	resolutionStrategy.eachDependency { details ->
+		if (details.requested.group == 'org.apache.neethi' && details.requested.name == 'neethi') {
+			// Force Axis2 transitive dependency to the security-fixed Neethi version.
+			details.useVersion '3.2.2'
+		}
+		if (details.requested.group == 'io.netty' && details.requested.name.startsWith('netty-')) {
+			// Force Redisson transitive dependencies to the security-fixed Netty version.
+			details.useVersion '4.2.13.Final'
+		}
+	}
+}
+
 jar {
 	archiveBaseName = 'convertigo-engine'
 	include 'com/twinsoft/**'
@@ -286,11 +299,11 @@ dependencies {
 	compileFlat    'commons-jxpath:commons-jxpath:1.4.0'
 	compileFlat    'io.swagger:swagger-models:1.6.16'
 	compileFlat    'io.swagger:swagger-parser:1.0.76'
-	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.49'
-	compileFlat    'io.swagger.core.v3:swagger-models:2.2.49'
-	compileFlat    'io.swagger.core.v3:swagger-core:2.2.49'
-	compileFlat    'io.swagger.parser.v3:swagger-parser-core:2.1.41'
-	compileFlat    'io.swagger.parser.v3:swagger-parser-v3:2.1.41'
+	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.50'
+	compileFlat    'io.swagger.core.v3:swagger-models:2.2.50'
+	compileFlat    'io.swagger.core.v3:swagger-core:2.2.50'
+	compileFlat    'io.swagger.parser.v3:swagger-parser-core:2.1.42'
+	compileFlat    'io.swagger.parser.v3:swagger-parser-v3:2.1.42'
 	compileFlat    'javax.activation:activation:1.1.1'
 	compileFlat    'javax.mail:mail:1.4.7'
 	compileFlat    'org.slf4j:slf4j-ext:2.0.17'
@@ -314,7 +327,7 @@ dependencies {
 	compileFlat    'org.codehaus.woodstox:stax2-api:4.3.0'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.6.0.202603022253-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.6.0.202603022253-r'
-	compileFlat    'org.hibernate.orm:hibernate-core:7.3.3.Final'
+	compileFlat    'org.hibernate.orm:hibernate-core:7.3.4.Final'
 	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0'
 	compileFlat    'org.mozilla:rhino:1.9.1'
 	compileFlat    'org.mozilla:rhino-tools:1.9.1'
@@ -332,7 +345,7 @@ dependencies {
 	compileFlat    'org.hsqldb:hsqldb:2.7.4'
 	compileFlat    'org.mariadb.jdbc:mariadb-java-client:3.5.8'
 	compileFlat    'org.postgresql:postgresql:42.7.11'
-	compileFlat    'org.redisson:redisson:4.3.1'
+	compileFlat    'org.redisson:redisson:4.4.0'
 	// end runtime dependencies
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-websocket:' + tomcatVersion

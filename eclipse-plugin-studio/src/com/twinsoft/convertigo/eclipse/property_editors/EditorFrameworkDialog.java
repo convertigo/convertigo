@@ -24,6 +24,8 @@ import java.lang.reflect.Constructor;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -55,7 +57,7 @@ public class EditorFrameworkDialog extends Dialog {
 			Constructor<? extends Composite> constructor = dialogAreaClass.getConstructor(new Class[] {
 					Composite.class, int.class, AbstractDialogCellEditor.class });
 
-			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_BOTH);
+			GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 
 			dialogComposite = (AbstractDialogComposite) constructor.newInstance(new Object[] { composite,
 					Integer.valueOf(SWT.NONE), cellEditor });
@@ -72,8 +74,15 @@ public class EditorFrameworkDialog extends Dialog {
 	@Override
 	protected Control createContents(Composite parent) {
 		Control composite = super.createContents(parent);
-		dialogComposite.performPostDialogCreation();
+		if (dialogComposite != null) {
+			dialogComposite.performPostDialogCreation();
+		}
 		return composite;
+	}
+
+	@Override
+	protected Point getInitialSize() {
+		return fitToMonitor(super.getInitialSize());
 	}
 	
 	@Override
@@ -81,6 +90,12 @@ public class EditorFrameworkDialog extends Dialog {
 		super.configureShell(newShell);
 
 		newShell.setText(cellEditor.dialogTitle);
+		newShell.addListener(SWT.Show, event -> newShell.getDisplay().asyncExec(() -> {
+			if (!newShell.isDisposed()) {
+				newShell.layout(true, true);
+				fitShellToMonitor();
+			}
+		}));
 
 		/*
 		 *	Display display = newShell.getDisplay();
@@ -117,6 +132,35 @@ public class EditorFrameworkDialog extends Dialog {
 	@Override
 	protected int getShellStyle() {
 		return SWT.TITLE | SWT.BORDER | SWT.RESIZE | SWT.APPLICATION_MODAL;
+	}
+
+	private Point fitToMonitor(Point size) {
+		Rectangle clientArea = getClientArea();
+		int margin = 40;
+		int maxWidth = Math.max(320, clientArea.width - 2 * margin);
+		int maxHeight = Math.max(240, clientArea.height - 2 * margin);
+		return new Point(Math.min(size.x, maxWidth), Math.min(size.y, maxHeight));
+	}
+
+	private void fitShellToMonitor() {
+		Point size = fitToMonitor(getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT, true));
+		getShell().setSize(size);
+		constrainShellSize();
+	}
+
+	private Rectangle getClientArea() {
+		Shell parentShell = getParentShell();
+		Point reference = parentShell == null || parentShell.isDisposed()
+				? getShell().getDisplay().getCursorLocation()
+				: new Point(parentShell.getBounds().x + parentShell.getBounds().width / 2,
+						parentShell.getBounds().y + parentShell.getBounds().height / 2);
+		for (var monitor : getShell().getDisplay().getMonitors()) {
+			Rectangle clientArea = monitor.getClientArea();
+			if (clientArea.contains(reference)) {
+				return clientArea;
+			}
+		}
+		return getShell().getDisplay().getPrimaryMonitor().getClientArea();
 	}
 
 	@Override

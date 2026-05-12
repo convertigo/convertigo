@@ -135,11 +135,14 @@ public class CreateScheduledElements extends XmlService {
 						JobGroupJob jgj = (JobGroupJob) aj;
 						jgj.setParallelJob(Integer.parseInt(ServiceUtils.getRequiredParameter(request, "parallelJob")));
 						jgj.delAllJobs();
-						
-						for (String jobname : request.getParameterValues("jobsname")) {
-							AbstractJob jobToAdd = schedulerXML.getJob(jobname);
-							if (jobToAdd != null) {
-								jgj.addJob(jobToAdd);
+
+						String[] jobsName = request.getParameterValues("jobsname");
+						if (jobsName != null) {
+							for (String jobname : jobsName) {
+								AbstractJob jobToAdd = schedulerXML.getJob(jobname);
+								if (jobToAdd != null) {
+									jgj.addJob(jobToAdd);
+								}
 							}
 						}
 					} else if (AbstractConvertigoJob.class.isAssignableFrom(type.c)) {
