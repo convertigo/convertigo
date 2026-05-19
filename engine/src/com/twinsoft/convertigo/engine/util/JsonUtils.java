@@ -150,7 +150,7 @@ public class JsonUtils {
 		}
 	}
 
-	private static Object copyValue(Object source) throws JSONException {
+	public static Object copy(Object source) throws JSONException {
 		if (source instanceof JSONObject) {
 			return copy((JSONObject) source);
 		} else if (source instanceof JSONArray) {
@@ -165,7 +165,7 @@ public class JsonUtils {
 		for (Iterator<String> i = GenericUtils.cast(source.keys()); i.hasNext();) {
 			String key = i.next();
 			Object value = source.opt(key);
-			copy.put(key, value == null ? JSONObject.NULL : copyValue(value));
+			copy.put(key, value == null ? JSONObject.NULL : copy(value));
 		}
 		return copy;
 	}
@@ -175,7 +175,7 @@ public class JsonUtils {
 		copy.setEscapeForwardSlashAlways(source.isEscapeForwardSlashAlways());
 		for (int i = 0; i < source.length(); i++) {
 			Object value = source.opt(i);
-			copy.put(value == null ? JSONObject.NULL : copyValue(value));
+			copy.put(value == null ? JSONObject.NULL : copy(value));
 		}
 		return copy;
 	}

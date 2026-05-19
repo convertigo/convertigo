@@ -98,12 +98,20 @@ public class IonBean {
 	}
 
 	public IonBean(String jsonString) throws JSONException {
+		this(new JSONObject(jsonString), false);
+	}
+
+	public IonBean(JSONObject jsonOb) throws JSONException {
+		this(jsonOb, true);
+	}
+
+	private IonBean(JSONObject jsonOb, boolean copyValues) throws JSONException {
 		this();
-		JSONObject jsonOb = new JSONObject(jsonString);
 		for (Key k: Key.values()) {
 			if (jsonOb.has(k.name())) {
 				try {
-					jsonBean.put(k.name(), jsonOb.get(k.name()));
+					Object value = jsonOb.get(k.name());
+					jsonBean.put(k.name(), copyValues ? JsonUtils.copy(value) : value);
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}

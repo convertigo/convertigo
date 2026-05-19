@@ -577,12 +577,13 @@ public class ComponentManager {
 		// The model exists
 		if (model != null) {
 			boolean hasChanged = false;
-			IonBean dboBean = new IonBean(jsonString);
-			
-			IonBean ionBean = new IonBean(model.toString());
+			IonBean dboBean = new IonBean(jsonBean);
+			Map<String, IonProperty> dboProperties = dboBean.getProperties();
+
+			IonBean ionBean = new IonBean(model.getJSONObject());
 			for (IonProperty ionProperty: ionBean.getProperties().values()) {
-				String propertyName = ionProperty.getName(); 
-				IonProperty dboProperty = dboBean.getProperty(propertyName);
+				String propertyName = ionProperty.getName();
+				IonProperty dboProperty = dboProperties.get(propertyName);
 				if (dboProperty != null) {
 					MobileSmartSourceType msst = dboProperty.getSmartType();
 					if (msst != null) {
@@ -614,7 +615,7 @@ public class ComponentManager {
 			}
 			//return new IonBean(jsonString);
 			String deprecatedTplVersion = ProductVersion.productVersion + ".0";
-			IonBean ionBean = new IonBean(new JSONObject(jsonString).put("deprecatedTplVersion", deprecatedTplVersion).toString());
+			IonBean ionBean = new IonBean(jsonBean.put("deprecatedTplVersion", deprecatedTplVersion));
 			if (templateImageFolder != null) {
 				ionBean.setImageFolder(templateImageFolder);
 			}
