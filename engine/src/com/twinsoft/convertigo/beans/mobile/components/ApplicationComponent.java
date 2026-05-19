@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @DboCategoryInfo(
@@ -1167,12 +1168,12 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 				try {
 					//System.out.println("---markApplicationAsDirty...");
 					JSONObject oldComputedContent = computedContents == null ? 
-							null :new JSONObject(computedContents.toString());
+							null :JsonUtils.copy(computedContents);
 					
 					doComputeContents();
 					
 					JSONObject newComputedContent = computedContents == null ? 
-							null :new JSONObject(computedContents.toString());
+							null :JsonUtils.copy(computedContents);
 					
 					if (oldComputedContent != null && newComputedContent != null) {
 						if (!(newComputedContent.getJSONObject("scripts").toString()

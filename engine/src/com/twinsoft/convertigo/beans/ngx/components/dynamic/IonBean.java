@@ -32,6 +32,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
+import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class IonBean {
@@ -488,7 +489,7 @@ public class IonBean {
 	public JSONObject getHint() {
 		try {
 			JSONObject jsonHint = jsonBean.getJSONObject(Key.hint.name());
-			return new JSONObject(jsonHint.toString()); // copy
+			return JsonUtils.copy(jsonHint);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

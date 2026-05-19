@@ -116,6 +116,7 @@ import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -1674,7 +1675,7 @@ public class ComponentManager {
 					JSONObject jsonOb = getC8oBeans().get(dboClass.getSimpleName());
 					if (jsonOb != null && jsonOb.has("hint")) {
 						JSONObject jsonHint =  jsonOb.getJSONObject("hint");
-						return new JSONObject(jsonHint.toString()); // copy
+						return JsonUtils.copy(jsonHint);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -51,6 +51,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -131,6 +132,19 @@ public class BeansDefaultValues {
 		}
 
 		return true;
+	}
+
+	private static JSONObject copyTplIonProperty(JSONObject ionObjects, String keyProp, Object propertyDefinition) throws Exception {
+		JSONObject property;
+		if (propertyDefinition instanceof JSONObject) {
+			property = JsonUtils.copy((JSONObject) propertyDefinition);
+		} else {
+			JSONObject props = ionObjects.getJSONObject("Props");
+			property = props.has(keyProp) ? JsonUtils.copy(props.getJSONObject(keyProp)) : new JSONObject();
+			property.put("mode", property.has("mode") ? property.get("mode") : "plain");
+			property.put("value", propertyDefinition);
+		}
+		return property;
 	}
 
 	static private JSONObject getIonObjectsFromFiles(String templateProjectName) throws Exception {
@@ -320,22 +334,9 @@ public class BeansDefaultValues {
 										JSONObject properties = new JSONObject();
 										try {
 											dIonProps = ionObjects.getJSONObject("Beans").getJSONObject(ionName).getJSONObject("properties");
-											dIonProps = new JSONObject(dIonProps.toString()); // make deep clone !
 											for (Iterator<?> i = dIonProps.keys(); i.hasNext();) {
 												String keyProp = (String) i.next();
-												Object ob = dIonProps.get(keyProp);
-												
-												JSONObject dIonProp;
-												if (ob instanceof JSONObject) {
-													dIonProp = dIonProps.getJSONObject(keyProp);
-												} else {
-													dIonProp = new JSONObject();
-													if (ionObjects.getJSONObject("Props").has(keyProp)) {
-														dIonProp = ionObjects.getJSONObject("Props").getJSONObject(keyProp);
-													}
-													dIonProp.put("mode", dIonProp.has("mode") ? dIonProp.get("mode"): "plain");
-													dIonProp.put("value", ob);
-												}
+												JSONObject dIonProp = copyTplIonProperty(ionObjects, keyProp, dIonProps.get(keyProp));
 												
 												JSONObject property = new JSONObject();
 												property.put("name", keyProp);
@@ -606,28 +607,13 @@ public class BeansDefaultValues {
 								if (ionObjects.has("Beans")) {
 									if (ionObjects.getJSONObject("Beans").getJSONObject(ionName).has("properties")) {
 										JSONObject dIonProps = ionObjects.getJSONObject("Beans").getJSONObject(ionName).getJSONObject("properties");
-										dIonProps = new JSONObject(dIonProps.toString()); // make deep clone !
 										
 										JSONObject ionProps = new JSONObject();
 										ion.put("properties", ionProps);
 
 										for (Iterator<?> iProp = dIonProps.keys(); iProp.hasNext();) {
 											String keyProp = (String) iProp.next();
-											Object ob = dIonProps.get(keyProp);
-											
-											JSONObject dIonProp;
-											if (ob instanceof JSONObject) {
-												dIonProp = dIonProps.getJSONObject(keyProp);
-											} else {
-												dIonProp = new JSONObject();
-												if (ionObjects.getJSONObject("Props").has(keyProp)) {
-													dIonProp = ionObjects.getJSONObject("Props").getJSONObject(keyProp);
-												}
-												dIonProp.put("mode", dIonProp.has("mode") ? dIonProp.get("mode"): "plain");
-												dIonProp.put("value", ob);
-											}
-											
-											JSONObject jsonObject = new JSONObject(dIonProp.toString());
+											JSONObject jsonObject = copyTplIonProperty(ionObjects, keyProp, dIonProps.get(keyProp));
 											jsonObject.put("name", keyProp);
 											if (ion.has(keyProp)) {
 												String[] smart = ((String) ion.remove(keyProp)).split(":", 2);

@@ -191,7 +191,7 @@ public class OpenApiUtils {
 
 	private static JSONObject makeCopy(JSONObject jsonOb) throws JSONException {
 		if (jsonOb != null) {
-			return new JSONObject(jsonOb.toString());
+			return JsonUtils.copy(jsonOb);
 		}
 		return null;
 	}
