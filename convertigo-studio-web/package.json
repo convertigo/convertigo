@@ -24,7 +24,7 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.55.8"
+			"svelte": "^5.55.9"
 		}
 	},
 	"devDependencies": {
@@ -42,7 +42,7 @@
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@tailwindcss/forms": "0.5.11",
 		"@tailwindcss/typography": "0.5.19",
-		"@types/node": "^25.9.0",
+		"@types/node": "^25.9.1",
 		"@typescript-eslint/parser": "^8.59.4",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
@@ -53,14 +53,14 @@
 		"prettier-plugin-svelte": "^3.5.2",
 		"prettier-plugin-tailwindcss": "^0.8.0",
 		"sharp": "^0.34.5",
-		"svelte": "^5.55.8",
+		"svelte": "^5.55.9",
 		"svelte-check": "^4.4.8",
 		"svelte-eslint-parser": "^1.6.1",
 		"tailwindcss": "^4.3.0",
 		"typescript": "^5.9.3",
 		"unplugin-icons": "^23.0.1",
 		"vite": "^7.3.3",
-		"vitest": "^4.1.6"
+		"vitest": "^4.1.7"
 	},
 	"type": "module",
 	"dependencies": {
