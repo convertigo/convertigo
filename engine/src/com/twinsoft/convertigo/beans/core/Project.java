@@ -997,15 +997,27 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		this.xpathEngine = xpathEngine;
 	}
 
+	private Set<String> getDeclaredProjectReferenceNames() {
+		var project = (Project) getOriginal();
+		var referencedProjects = new HashSet<String>();
+		for (var reference : project.getReferenceList()) {
+			if (reference instanceof ProjectSchemaReference ref) {
+				var targetProjectName = ref.getParser().getProjectName();
+				if (!targetProjectName.isBlank() && !targetProjectName.equals(project.getName())) {
+					referencedProjects.add(targetProjectName);
+				}
+			}
+		}
+		return referencedProjects;
+	}
+
 	private List<File> addClassPathDirs(List<File> dirs) {
 		File dir = new File(getDirPath(), "libs");
 		if (!dirs.contains(dir)) {
 			dirs.add(dir);
-			Map<String, Boolean> missingProjects = getNeededProjects();
-			for (Entry<String, Boolean> project : new HashMap<>(missingProjects).entrySet()) {
+			for (String projectName : getDeclaredProjectReferenceNames()) {
 				try {
-					Project prj = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project.getKey(),
-							project.getValue());
+					Project prj = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 					if (prj != null) {
 						prj.addClassPathDirs(dirs);
 					}
