@@ -1102,7 +1102,7 @@
 							doSearch();
 						}
 					}}
-					positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}
+					positioning={{ placement: 'bottom-end' }}
 				>
 					<Tooltip positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}>
 						<Tooltip.Trigger>
@@ -1129,13 +1129,17 @@
 							</Tooltip.Positioner>
 						</Portal>
 					</Tooltip>
-					<Popover.Positioner class="log-search-positioner" style="z-index: 20;">
-						<Popover.Content class="border-none bg-transparent p-0 shadow-none">
-							<Card bg="bg-surface-50-950 text-black dark:text-white" class="p-low!">
+					<Popover.Positioner
+						class="log-search-positioner"
+						style="--log-search-top: {fullscreen ? '0.75rem' : '4rem'}; z-index: 130;"
+					>
+						<Popover.Content class="log-search-content">
+							<div class="rounded-lg bg-surface-50-950 p-low text-black dark:text-white">
 								<div class="layout-x-center-low">
 									<input
 										type="text"
 										class="rounded-md border-none bg-transparent"
+										aria-label="Search in loaded logs"
 										bind:value={searched}
 										onkeyup={doSearch}
 										{@attach attachSearchInput}
@@ -1175,8 +1179,7 @@
 										onclick={doSearchClear}
 									/>
 								</div>
-							</Card>
-							<Popover.Arrow class="fill-surface-50-950 dark:fill-surface-900" />
+							</div>
 						</Popover.Content>
 					</Popover.Positioner>
 				</Popover>
@@ -1537,7 +1540,24 @@
 	}
 
 	:global(.log-search-positioner) {
-		z-index: 20;
+		position: fixed !important;
+		top: var(--log-search-top) !important;
+		right: 1rem !important;
+		left: auto !important;
+		transform: none !important;
+		z-index: 130 !important;
+		max-width: calc(100vw - 2rem);
+	}
+
+	:global(.log-search-content) {
+		@apply border-none bg-transparent p-0 shadow-none;
+	}
+
+	@media (max-width: 640px) {
+		:global(.log-search-positioner) {
+			right: 0.5rem !important;
+			max-width: calc(100vw - 1rem);
+		}
 	}
 
 	.log-meta {
