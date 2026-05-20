@@ -191,7 +191,7 @@
 
 	async function doAutoScroll() {
 		if (autoScroll && logs.length > 1) {
-			founds = [];
+			resetSearchResults();
 			_scrollToIndex = undefined;
 			await tick();
 			_scrollToIndex = logs.length - 1;
@@ -493,48 +493,93 @@
 
 	let searched = $state('');
 	let founds = $state.raw([]);
+	let foundsByLine = $state.raw([]);
 	let foundsIndex = $state(0);
+	let searchPending = $state(false);
+	let searchResultsVersion = $state(0);
+	let searchRunId = 0;
+	const searchCounter = $derived(
+		`${founds.length ? Math.min(foundsIndex + 1, founds.length) : 0} / ${searchPending ? '~' : ''}${founds.length}`
+	);
+	const SEARCH_CHUNK_BUDGET_MS = 8;
 
 	function getCenterLine() {
 		return Math.round(showedLines.start + (showedLines.end - showedLines.start) / 2);
 	}
 
-	let searchAbortController;
+	const yieldToBrowser = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-	let asyncSearch = debounce(async (s, centerLine) => {
-		const batchSize = 100;
-		let acc = [];
+	function publishSearchResults(nextFounds, nextFoundsByLine) {
+		founds = nextFounds;
+		foundsByLine = nextFoundsByLine;
+		searchResultsVersion += 1;
+		if (foundsIndex >= founds.length) {
+			foundsIndex = founds.length ? founds.length - 1 : 0;
+		}
+	}
+
+	function resetSearchResults() {
+		searchPending = false;
+		publishSearchResults([], []);
+	}
+
+	function getLineFounds(index) {
+		// foundsByLine is updated in chunks; this counter refreshes visible rows after each publish.
+		searchResultsVersion;
+		return foundsByLine[index] ?? [];
+	}
+
+	let asyncSearch = debounce(async (s, centerLine, runId) => {
+		const snapshot = logs;
+		const acc = [];
+		const byLine = [];
 		let nearest = -1;
+		let firstMatchCentered = false;
+		let lastYield = performance.now();
 
-		for (let i = 0; i < logs.length; i += batchSize) {
-			if (searchAbortController?.aborted) return;
+		for (let index = 0; index < snapshot.length; index++) {
+			if (runId !== searchRunId) return;
 
-			const batch = logs.slice(i, i + batchSize);
-			for (let j = 0; j < batch.length; j++) {
-				const index = i + j;
-				const l = batch[j][4].toLowerCase();
-				let start = l.indexOf(s, 0);
+			const line = String(snapshot[index]?.[4] ?? '').toLowerCase();
+			let start = line.indexOf(s, 0);
 
-				if (start !== -1) {
-					if (
-						nearest === -1 ||
-						Math.abs(centerLine - acc[nearest].index) > Math.abs(centerLine - index)
-					) {
-						nearest = acc.length;
-					}
+			if (start !== -1) {
+				if (
+					nearest === -1 ||
+					Math.abs(centerLine - acc[nearest].index) > Math.abs(centerLine - index)
+				) {
+					nearest = acc.length;
 				}
+				const lineFounds = [];
+				byLine[index] = lineFounds;
 
 				while (start !== -1) {
 					const end = start + s.length;
-					acc.push({ index, start, end });
-					start = l.indexOf(s, end);
+					const found = { index, start, end };
+					acc.push(found);
+					lineFounds.push(found);
+					start = line.indexOf(s, end);
 				}
 			}
-			founds = acc;
-			if (founds.length > 0) {
-				_scrollToIndex = founds[(foundsIndex = nearest)].index;
+
+			if (performance.now() - lastYield >= SEARCH_CHUNK_BUDGET_MS) {
+				publishSearchResults(acc, byLine);
+				if (!firstMatchCentered && nearest !== -1) {
+					foundsIndex = nearest;
+					_scrollToIndex = acc[nearest].index;
+					firstMatchCentered = true;
+				}
+				await yieldToBrowser();
+				lastYield = performance.now();
 			}
-			await tick();
+		}
+
+		if (runId !== searchRunId) return;
+		searchPending = false;
+		publishSearchResults(acc, byLine);
+		if (nearest !== -1) {
+			foundsIndex = nearest;
+			_scrollToIndex = acc[nearest].index;
 		}
 	}, 200);
 
@@ -542,14 +587,17 @@
 		if (e?.key === 'Enter') {
 			doSearchNext();
 		} else if (searched) {
-			if (searchAbortController) searchAbortController.abort();
-			searchAbortController = new AbortController();
-
+			const runId = ++searchRunId;
 			const s = searched.toLowerCase();
 			const centerLine = getCenterLine();
-			asyncSearch(s, centerLine);
+			autoScroll = false;
+			searchPending = true;
+			foundsIndex = 0;
+			publishSearchResults([], []);
+			asyncSearch(s, centerLine, runId);
 		} else {
-			founds = [];
+			searchRunId += 1;
+			resetSearchResults();
 		}
 	}
 
@@ -572,10 +620,39 @@
 		doSearch();
 	}
 
+	function getScrollableParent(e) {
+		for (let parent = e.parentElement; parent; parent = parent.parentElement) {
+			if (parent.scrollHeight > parent.clientHeight) return parent;
+		}
+	}
+
 	function scrollIntoView(e) {
-		let { left, width } = e.getBoundingClientRect();
-		left = Math.max(0, left - (e.parentElement.getBoundingClientRect().width + width) / 2);
-		e.parentElement.scrollTo({ left, behavior: 'smooth' });
+		requestAnimationFrame(() => {
+			const matchRect = e.getBoundingClientRect();
+			const scrollableParent = getScrollableParent(e);
+
+			if (scrollableParent) {
+				const parentRect = scrollableParent.getBoundingClientRect();
+				const top =
+					scrollableParent.scrollTop +
+					matchRect.top -
+					parentRect.top -
+					(parentRect.height - matchRect.height) / 2;
+				scrollableParent.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+			} else {
+				e.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+			}
+
+			const message = e.parentElement;
+			if (!message) return;
+			const messageRect = message.getBoundingClientRect();
+			const left =
+				message.scrollLeft +
+				matchRect.left -
+				messageRect.left -
+				(messageRect.width - matchRect.width) / 2;
+			message.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+		});
 	}
 
 	let searchInput = $state();
@@ -1149,7 +1226,7 @@
 										class="rounded-md border-none bg-transparent"
 										style="field-sizing: content;"
 										readonly={true}
-										value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
+										value={searchCounter}
 									/>
 									<Button
 										full={false}
@@ -1391,23 +1468,19 @@
 									style="scrollbar-width: none; --tw-ring-opacity: 0.3;"
 									{@attach dragscroll}
 								>
-									{#if founds.length > 0}
-										{@const _founds = founds.filter((f) => f.index == index)}
-										{#if _founds.length > 0}
-											{#each _founds as found, idx (found.start)}
-												{@const { start, end } = found}
-												{#if idx == 0}
-													{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
-														{@attach attachScrollIntoView}
-														class="searchedCurrent">{log[4].substring(start, end)}</span
-													>{:else}<span class="searched">{log[4].substring(start, end)}</span
-													>{/if}{#if idx < _founds.length - 1}{log[4].substring(
-														end,
-														_founds[idx + 1].start
-													)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
-											{log[4]}
-										{/if}
-									{:else}
+									{#if getLineFounds(index).length > 0}
+										{@const _founds = getLineFounds(index)}
+										{#each _founds as found, idx (found.start)}
+											{@const { start, end } = found}
+											{#if idx == 0}
+												{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
+													{@attach attachScrollIntoView}
+													class="searchedCurrent">{log[4].substring(start, end)}</span
+												>{:else}<span class="searched">{log[4].substring(start, end)}</span
+												>{/if}{#if idx < _founds.length - 1}{log[4].substring(
+													end,
+													_founds[idx + 1].start
+												)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
 										{log[4]}
 									{/if}
 								</div>
