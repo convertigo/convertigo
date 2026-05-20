@@ -111,7 +111,7 @@ import com.twinsoft.convertigo.engine.enums.JsonFieldType;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class BaserowView extends ViewPart {
-	private final static String LIB_BASEROW_URL = "lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/releases/download/1.1.31/lib_BaseRow.car";
+	private final static String LIB_BASEROW_URL = "lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/releases/download/v1.3.0/lib_BaseRow.car";
 	private final static String BASEROW_CUSTOMIZER_RESOURCE = "baserow-customizer.js";
 	
 	private Cursor handCursor;
