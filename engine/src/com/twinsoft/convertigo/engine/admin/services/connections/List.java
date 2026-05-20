@@ -19,10 +19,9 @@
 
 package com.twinsoft.convertigo.engine.admin.services.connections;
 
-import java.text.DateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -100,6 +99,10 @@ public class List extends XmlService{
 		if (minutes != 0) s += minutes + "min";
 		if (seconds != 0) s += seconds + "s";
 		return s.isEmpty() ? "0" : s;
+	}
+
+	private static String formatDateTime(long time) {
+		return time > 0 ? Instant.ofEpochMilli(time).toString() : "";
 	}
 	
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -195,10 +198,8 @@ public class List extends XmlService{
 									+ ")");
 					connectionElement.setAttribute("running", "true");
 					connectionElement.setAttribute("user", authenticatedUser == null ? "" : authenticatedUser);
-					connectionElement.setAttribute("contextCreationDate",
-							DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.creationTime)));
-					connectionElement.setAttribute("lastContextAccessDate",
-							DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.lastAccessTime)));
+					connectionElement.setAttribute("contextCreationDate", formatDateTime(context.creationTime));
+					connectionElement.setAttribute("lastContextAccessDate", formatDateTime(context.lastAccessTime));
 					try {
 						connectionElement.setAttribute("contextInactivityTime",
 								formatTime((now - context.lastAccessTime) / 1000) + " / "
@@ -225,8 +226,7 @@ public class List extends XmlService{
 						sessionElement.setAttribute("contexts", Integer.toString(ctxs == null ? 0 : ctxs.size()));
 						sessionElement.setAttribute("clientIP", SessionAttribute.clientIP.string(session));
 						sessionElement.setAttribute("deviceUUID", SessionAttribute.deviceUUID.string(session));
-						sessionElement.setAttribute("lastSessionAccessDate",
-								DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(session.getLastAccessedTime())));
+						sessionElement.setAttribute("lastSessionAccessDate", formatDateTime(session.getLastAccessedTime()));
 						sessionElement.setAttribute("sessionInactivityTime",
 								formatTime((now - session.getLastAccessedTime()) / 1000) + " / " + formatTime(session.getMaxInactiveInterval()));
 						Role[] r = (Role[]) session.getAttribute(SessionKey.ADMIN_ROLES.toString());
@@ -356,10 +356,8 @@ public class List extends XmlService{
 									+ ")");
 					connectionElement.setAttribute("running", "true");
 					connectionElement.setAttribute("user", authenticatedUser == null ? "" : authenticatedUser);
-					connectionElement.setAttribute("contextCreationDate",
-							DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(localContext.creationTime)));
-					connectionElement.setAttribute("lastContextAccessDate",
-							DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(localContext.lastAccessTime)));
+					connectionElement.setAttribute("contextCreationDate", formatDateTime(localContext.creationTime));
+					connectionElement.setAttribute("lastContextAccessDate", formatDateTime(localContext.lastAccessTime));
 					try {
 						connectionElement.setAttribute("contextInactivityTime",
 								formatTime((now - localContext.lastAccessTime) / 1000) + " / "
@@ -433,14 +431,12 @@ public class List extends XmlService{
 				connectionElement.setAttribute("running", "false");
 				connectionElement.setAttribute("user", authenticatedUser != null ? authenticatedUser : "");
 				if (creationTime > 0) {
-					connectionElement.setAttribute("contextCreationDate",
-							DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(creationTime)));
+					connectionElement.setAttribute("contextCreationDate", formatDateTime(creationTime));
 				} else {
 					connectionElement.setAttribute("contextCreationDate", "");
 				}
 				if (lastAccessTime > 0) {
-					connectionElement.setAttribute("lastContextAccessDate",
-							DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(lastAccessTime)));
+					connectionElement.setAttribute("lastContextAccessDate", formatDateTime(lastAccessTime));
 				} else {
 					connectionElement.setAttribute("lastContextAccessDate", "");
 				}
@@ -553,8 +549,7 @@ public class List extends XmlService{
 					sessionElement.setAttribute("clientIP", clientIP != null ? clientIP : "");
 					sessionElement.setAttribute("deviceUUID", deviceUUID != null ? deviceUUID : "");
 					if (lastAccessedTime > 0) {
-						sessionElement.setAttribute("lastSessionAccessDate",
-								DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(lastAccessedTime)));
+						sessionElement.setAttribute("lastSessionAccessDate", formatDateTime(lastAccessedTime));
 						sessionElement.setAttribute("sessionInactivityTime",
 								formatTime((now - lastAccessedTime) / 1000) + " / " + formatTime(maxInactive));
 					} else {
