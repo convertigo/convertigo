@@ -305,6 +305,7 @@
 
 	let logs = $state.raw([]);
 	let filterRunId = 0;
+	let visibleFilterKey = '';
 
 	const scheduleScrollTo = (index) => {
 		if (index == null || index < 0) return;
@@ -334,11 +335,21 @@
 		return bestIndex;
 	};
 
-	function scheduleFiltering(keepAnchor = false) {
+	function getFiltersKey(filtersSnapshot) {
+		return filtersSnapshot.length ? JSON.stringify(filtersSnapshot) : '';
+	}
+
+	function scheduleFiltering(keepAnchor = false, forceReset = false) {
 		const baseLogs = Logs.logs;
 		const filtersSnapshot = buildActiveFilters();
+		const filterKey = getFiltersKey(filtersSnapshot);
 		const runId = ++filterRunId;
 		const total = baseLogs.length;
+		const done = (rows) => ({
+			active: filtersSnapshot.length > 0,
+			canceled: runId !== filterRunId,
+			filteredRows: rows.length
+		});
 		const anchorLog = keepAnchor && !autoScroll ? (logs?.[getCenterLine()] ?? null) : null;
 		const anchorMs = anchorLog ? parseDateTimeMs(anchorLog[1]) : null;
 		const applyAnchor = (rows) => {
@@ -352,64 +363,114 @@
 
 		if (filtersSnapshot.length === 0) {
 			logs = baseLogs;
+			visibleFilterKey = '';
 			applyAnchor(baseLogs);
-			return;
+			return Promise.resolve(done(baseLogs));
 		}
 
-		let index = 0;
-		const results = [];
-		const isLevelOnly = filtersSnapshot.length === 1 && filtersSnapshot[0].category === 'Level';
-		const chunkSize = isLevelOnly ? total : 1000;
-		const schedule = (cb) => (browser ? requestAnimationFrame(cb) : setTimeout(cb, 0));
-
-		const processChunk = () => {
-			if (runId !== filterRunId) return;
-
-			const end = Math.min(index + chunkSize, total);
-			for (; index < end; index++) {
-				const log = baseLogs[index];
-				const matches = filtersSnapshot.every(({ category, active }) => {
-					return active.some(
-						({ mode, value, valueLower, not, sensitive, levels, startMs, endMs }) => {
-							let logValue = getValue(category, log, index);
-							if (mode === 'range' || category === dateTimeCategory) {
-								const logMs = parseDateTimeMs(log[1]);
-								if (logMs == null) return false;
-								if (startMs != null && logMs < startMs) return false;
-								if (endMs != null && logMs > endMs) return false;
-								return true;
-							}
-							if (category === 'Level' || mode === 'level' || (levels?.length ?? 0) > 0) {
-								const selected = normalizeLevels(levels?.length ? levels : value ? [value] : []);
-								if (selected.length === 0) return false;
-								return selected.includes(normalizeLevel(logValue));
-							}
-							let _value = value;
-							if (!sensitive) {
-								logValue = logValue.toLowerCase();
-								_value = valueLower ?? _value.toLowerCase();
-							}
-							let ret = mode == 'equals' ? logValue == _value : logValue[mode](_value);
-							return not ? !ret : ret;
-						}
-					);
-				});
-				if (matches) {
-					results.push(log);
+		return new Promise((resolve) => {
+			let index = 0;
+			const results = [];
+			const isLevelOnly = filtersSnapshot.length === 1 && filtersSnapshot[0].category === 'Level';
+			const chunkSize = isLevelOnly ? total : 1000;
+			const schedule = (cb) => (browser ? requestAnimationFrame(cb) : setTimeout(cb, 0));
+			const resetVisibleLogs = autoScroll && (forceReset || visibleFilterKey !== filterKey);
+			const publishResults = (final = false) => {
+				if (!final && !resetVisibleLogs && results.length < logs.length) return;
+				visibleFilterKey = filterKey;
+				logs = [...results];
+				if (autoScroll && logs.length > 0) {
+					scheduleScrollTo(logs.length - 1);
 				}
+			};
+
+			if (resetVisibleLogs) {
+				visibleFilterKey = filterKey;
+				logs = [];
 			}
 
-			if (runId !== filterRunId) return;
+			const processChunk = () => {
+				if (runId !== filterRunId) {
+					resolve(done(results));
+					return;
+				}
 
-			if (index < total) {
-				schedule(processChunk);
-			} else if (runId === filterRunId) {
-				logs = results;
-				applyAnchor(results);
+				const end = Math.min(index + chunkSize, total);
+				for (; index < end; index++) {
+					const log = baseLogs[index];
+					const matches = filtersSnapshot.every(({ category, active }) => {
+						return active.some(
+							({ mode, value, valueLower, not, sensitive, levels, startMs, endMs }) => {
+								let logValue = getValue(category, log, index);
+								if (mode === 'range' || category === dateTimeCategory) {
+									const logMs = parseDateTimeMs(log[1]);
+									if (logMs == null) return false;
+									if (startMs != null && logMs < startMs) return false;
+									if (endMs != null && logMs > endMs) return false;
+									return true;
+								}
+								if (category === 'Level' || mode === 'level' || (levels?.length ?? 0) > 0) {
+									const selected = normalizeLevels(levels?.length ? levels : value ? [value] : []);
+									if (selected.length === 0) return false;
+									return selected.includes(normalizeLevel(logValue));
+								}
+								let _value = value;
+								if (!sensitive) {
+									logValue = logValue.toLowerCase();
+									_value = valueLower ?? _value.toLowerCase();
+								}
+								let ret = mode == 'equals' ? logValue == _value : logValue[mode](_value);
+								return not ? !ret : ret;
+							}
+						);
+					});
+					if (matches) {
+						results.push(log);
+					}
+				}
+
+				if (runId !== filterRunId) {
+					if (autoScroll) {
+						publishResults();
+					}
+					resolve(done(results));
+					return;
+				}
+
+				if (index < total) {
+					if (autoScroll) {
+						publishResults();
+					}
+					schedule(processChunk);
+				} else {
+					publishResults(true);
+					applyAnchor(results);
+					resolve(done(results));
+				}
+			};
+
+			processChunk();
+		});
+	}
+
+	function scheduleRetry(delay) {
+		if (retryTimer) clearTimeout(retryTimer);
+		retryTimer = setTimeout(async () => {
+			retryTimer = undefined;
+			if (!destroyed && (live || Logs.moreResults)) {
+				await list(false);
 			}
-		};
+		}, delay);
+	}
 
-		processChunk();
+	function shouldContinueLoadingFilteredLogs(filterResult) {
+		return (
+			filterResult?.active &&
+			!filterResult.canceled &&
+			filterResult.filteredRows === 0 &&
+			autoScroll &&
+			(live || Logs.moreResults)
+		);
 	}
 
 	function addFilter({
@@ -872,6 +933,10 @@
 	});
 
 	export async function list(renew = false) {
+		if (retryTimer) {
+			clearTimeout(retryTimer);
+			retryTimer = undefined;
+		}
 		Logs.live = live;
 		Logs.autoScroll = autoScroll;
 		Logs.filter = serverFilter;
@@ -882,19 +947,20 @@
 		}
 		let len = renew ? 0 : Logs.logs.length;
 		const result = await Logs.list(renew);
-		if (destroyed || result?.canceled) {
+		if (destroyed || result?.canceled || result?.skipped) {
 			return;
 		}
-		scheduleFiltering();
-		// If no new lines arrived but we are in tailing mode (live) or server says moreResults,
+		const filterResult = await scheduleFiltering(false, renew);
+		if (destroyed || filterResult?.canceled) {
+			return;
+		}
+		// If no raw lines arrived, or client filters hide all rows while tailing,
 		// schedule a delayed retry instead of immediate recursion to prevent UI freeze.
-		if (Logs.logs.length == len && (live || Logs.moreResults)) {
-			if (retryTimer) clearTimeout(retryTimer);
-			retryTimer = setTimeout(async () => {
-				if (!destroyed && (live || Logs.moreResults)) {
-					await list(false);
-				}
-			}, result?.retryDelay ?? 200);
+		if (
+			(Logs.logs.length == len && (live || Logs.moreResults)) ||
+			shouldContinueLoadingFilteredLogs(filterResult)
+		) {
+			scheduleRetry(result?.retryDelay ?? 200);
 		}
 	}
 </script>
@@ -1495,7 +1561,9 @@
 		class="layout-x-p-none items-center justify-between rounded-sm rounded-t-none preset-filled-surface-100-900 py-1! px!"
 	>
 		<span class="h-fit"
-			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
+			>Lines {logs.length ? Math.min(showedLines.start + 1, logs.length) : 0}-{logs.length
+				? Math.min(showedLines.end + 1, logs.length)
+				: 0} of {logs.length}
 			{#if Object.entries(filters).length > 0}[{Logs.logs.length} w/o filter]{/if}
 			{#if !Logs.live}({Logs.moreResults ? 'More' : 'No more'} on server){/if}
 			{#if Logs.calling}Calling…{/if}</span
