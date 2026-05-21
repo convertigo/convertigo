@@ -1,5 +1,5 @@
 <script>
-	import { Popover, Portal, Tooltip } from '@skeletonlabs/skeleton-svelte';
+	import { Popover, Portal, Tooltip, useTooltip } from '@skeletonlabs/skeleton-svelte';
 	import { browser } from '$app/environment';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
@@ -113,6 +113,11 @@
 	const attachHeaderMetrics = $derived(fromAction(measureHeaderMetrics));
 	const attachMessageMetrics = $derived(fromAction(measureMessageMetrics));
 	const attachScrollIntoView = $derived(fromAction(scrollIntoView));
+	const logMetaTooltip = useTooltip(() => ({
+		id: 'log-meta-tooltip',
+		positioning: { placement: 'top-start' }
+	}));
+	let logMetaTooltipText = $state('');
 
 	/** @param {HTMLDivElement} node */
 	function measureHeaderMetrics(node) {
@@ -306,6 +311,29 @@
 	let logs = $state.raw([]);
 	let filterRunId = 0;
 	let visibleFilterKey = '';
+
+	function getLogMetaTooltipTriggerProps(index, name, text) {
+		const props = logMetaTooltip().getTriggerProps({ value: `${index}-${name}` });
+		const setText = () => {
+			logMetaTooltipText = text;
+		};
+
+		return {
+			...props,
+			onpointerover(event) {
+				setText();
+				props.onpointerover?.(event);
+			},
+			onpointermove(event) {
+				setText();
+				props.onpointermove?.(event);
+			},
+			onfocusin(event) {
+				setText();
+				props.onfocusin?.(event);
+			}
+		};
+	}
 
 	const scheduleScrollTo = (index) => {
 		if (index == null || index < 0) return;
@@ -501,13 +529,15 @@
 		const startParts = splitDateTime(baseRange?.start);
 		const endParts = splitDateTime(baseRange?.end);
 		const editing = Boolean(mode) || (isDateTime && !!existingRange);
+		const defaultMode = effectiveCategory === 'Message' ? 'includes' : 'equals';
+		const defaultSensitive = editing ? sensitive : value !== '';
 		modalFilterParams = {
 			category: effectiveCategory,
 			value,
-			mode: isDateTime ? 'range' : isLevel ? 'level' : mode || 'equals',
+			mode: isDateTime ? 'range' : isLevel ? 'level' : mode || defaultMode,
 			ts,
 			not: isLevel || isDateTime ? false : not,
-			sensitive,
+			sensitive: defaultSensitive,
 			disabled,
 			editing,
 			levels: isLevel
@@ -1517,8 +1547,9 @@
 										headerHeight}px; column-gap: {LOG_COLUMNS_GAP_PX}px; row-gap: 0;"
 								>
 									{#each columns as { name, cls, style } (name)}
-										{@const value = getValue(name, log, index)}
+										{@const value = String(getValue(name, log, index) ?? '')}
 										<button
+											{...getLogMetaTooltipTriggerProps(index, name, value)}
 											{style}
 											class="px-px {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none text-nowrap"
 											animate:grabFlip={{ duration }}
@@ -1556,6 +1587,22 @@
 				</VirtualList>
 			</div>
 		</MaxRectangle>
+		<Portal>
+			<div {...logMetaTooltip().getPositionerProps()} class="z-[120]">
+				<div
+					{...logMetaTooltip().getContentProps()}
+					class="max-w-[min(80vw,60rem)] overflow-hidden card preset-filled-surface-950-50 p-2 text-xs leading-tight break-words whitespace-pre-wrap"
+				>
+					{logMetaTooltipText}
+					<div
+						{...logMetaTooltip().getArrowProps()}
+						class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+					>
+						<div {...logMetaTooltip().getArrowTipProps()}></div>
+					</div>
+				</div>
+			</div>
+		</Portal>
 	</div>
 	<div
 		class="layout-x-p-none items-center justify-between rounded-sm rounded-t-none preset-filled-surface-100-900 py-1! px!"

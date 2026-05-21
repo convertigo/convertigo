@@ -218,14 +218,18 @@
 	let isNarrowViewport = $state(false);
 	let isDeviceRailCollapsed = $state(false);
 
+	function clearInlineStyle(element) {
+		element.style.cssText = '';
+	}
+
 	$effect(() => {
 		if (!bezel || !iframe) return;
 		// Ensure the frameless preview fills the available viewport.
 		if (selectedDevice.id === 'none' && clientWidth && clientHeight) {
 			const autoSize = `${clientWidth}px`;
 			const autoHeight = `${clientHeight}px`;
-			bezel.setAttribute('style', '');
-			iframe.setAttribute('style', '');
+			clearInlineStyle(bezel);
+			clearInlineStyle(iframe);
 			bezel.style.position = 'relative';
 			iframe.style.position = 'relative';
 			for (const [prop, value] of [
@@ -241,7 +245,7 @@
 		}
 		const previousScale = bezel.style.scale;
 		for (const elt of [iframe, bezel]) {
-			elt.attributeStyleMap.clear();
+			clearInlineStyle(elt);
 			for (let [key, value] of Object.entries(
 				elt == iframe ? selectedDevice.iframe : selectedDevice.bezel
 			)) {
