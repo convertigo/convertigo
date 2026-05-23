@@ -48,6 +48,7 @@ class TemporalInputStream extends InputStream {
 	private final Matcher is_ts;
 	private final Matcher is_ori;
 	private final List<File> files;
+	private final List<Long> fileLengths;
 	private final static int BUF_SIZE = 60;
 	private final byte [] b = new byte[BUF_SIZE];
 	private String encoding;
@@ -64,6 +65,7 @@ class TemporalInputStream extends InputStream {
 
 		this.date_offset = date_offset;
 		files = new LinkedList<File>();
+		fileLengths = new LinkedList<Long>();
 		boolean end_finded = false;
 
 		{
@@ -83,6 +85,7 @@ class TemporalInputStream extends InputStream {
 			if (is_ts.matches() && is_ts.groupCount() == 2) {
 				Date file_date_end = new Date(Long.parseLong(is_ts.group(2), Character.MAX_RADIX));
 				File file = new File(directory, filename);
+				long fileLength = file.length();
 				if (position_start == -1) {
 					if (date_start.compareTo(file_date_end) <= 0) {
 						position_start = findPosition(file, date_start);
@@ -92,12 +95,13 @@ class TemporalInputStream extends InputStream {
 					Date file_date_start = new Date(Long.parseLong(is_ts.group(1), Character.MAX_RADIX));
 					if (date_end.compareTo(file_date_start) >= 0) {
 						files.add(file);
+						fileLengths.add(fileLength);
 						if (date_end.compareTo(file_date_end) <= 0) {
 							position_end += findPosition(file, date_end);
 							end_finded = true;
 							break;
 						} else {
-							position_end += file.length();
+							position_end += fileLength;
 						}
 					}
 				}
@@ -114,6 +118,7 @@ class TemporalInputStream extends InputStream {
 		}
 		if (!end_finded) {
 			files.add(basefile);
+			fileLengths.add(basefile.length());
 			try {
 				position_end += findPosition(basefile, date_end);
 			} catch(Exception e) {
@@ -121,17 +126,15 @@ class TemporalInputStream extends InputStream {
 			}
 		}
 
-		is = new UnifiedInputStream(files, basefile);
+		is = new UnifiedInputStream(files, fileLengths, basefile);
 		is.skip(position_start);
 	}
 
 	@Override
 	public int read() throws IOException {
-		int n = is.read();
-		if (position_end != -1 && is.getPointer() > position_end) {
-			n = -1;
-		}
-		return n;
+		byte[] b = new byte[1];
+		int n = read(b, 0, 1);
+		return n == -1 ? -1 : b[0] & 0xff;
 	}
 
 	@Override
@@ -155,14 +158,14 @@ class TemporalInputStream extends InputStream {
 
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
-		int available = available();
+		long available = position_end == -1 ? available() : position_end - is.getPointer();
 		if (len > available) {
-			len = available;
+			len = (int) Math.min(Integer.MAX_VALUE, available);
 		}
 		if (len <= 0) {
 			return -1;
 		} else {
-			return is.read(b, off, len);
+			return is.read(b, off, len, position_end);
 		}
 	}
 
@@ -174,7 +177,10 @@ class TemporalInputStream extends InputStream {
 	@Override
 	public synchronized void reset() throws IOException {
 		is.reset();
-		is.skip(position_start);
+		long toSkip = position_start - is.getPointer();
+		if (toSkip > 0) {
+			is.skip(toSkip);
+		}
 	}
 
 	public SortedMap<Date, File> getTimedFiles() {

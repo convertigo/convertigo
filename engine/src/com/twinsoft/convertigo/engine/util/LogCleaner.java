@@ -20,7 +20,8 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,6 +34,9 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class LogCleaner extends AppenderSkeleton {
+	private record DatedLogFile(File file, long end) {
+	}
+
 	static private LogCleaner singleton;
 	
 	private long nextCheck = 0;
@@ -61,20 +65,29 @@ public class LogCleaner extends AppenderSkeleton {
 		if (evt.timeStamp > nextCheck) {
 			nextCheck = evt.timeStamp + 10000;
 			long count = 0;
-			List<File> c8oLogFiles = new LinkedList<File>();
-			for (File file: logDir.listFiles()) {
+			List<DatedLogFile> c8oLogFiles = new ArrayList<DatedLogFile>();
+			File[] logFiles = logDir.listFiles();
+			if (logFiles == null || isC8oLogFile == null) {
+				return;
+			}
+			for (File file: logFiles) {
 				if (file.getName().startsWith(Engine.LOG_ENGINE_NAME)) {
 					count++;
 				}
 				if (isC8oLogFile.reset(file.getName()).matches()) {
 					count++;
-					c8oLogFiles.add(file);
+					try {
+						c8oLogFiles.add(new DatedLogFile(file, Long.parseLong(isC8oLogFile.group(2), Character.MAX_RADIX)));
+					} catch (NumberFormatException e) {
+						c8oLogFiles.add(new DatedLogFile(file, file.lastModified()));
+					}
 				}
 			}
+			c8oLogFiles.sort(Comparator.comparingLong(DatedLogFile::end).thenComparing(entry -> entry.file().getName()));
 			
 			count -= EnginePropertiesManager.getPropertyAsLong(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX);
 			while (count-- > 0 && !c8oLogFiles.isEmpty()) {
-				c8oLogFiles.remove(0).delete();
+				c8oLogFiles.remove(0).file().delete();
 			}
 		}
 	}
