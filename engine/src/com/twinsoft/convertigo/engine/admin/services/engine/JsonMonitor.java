@@ -19,8 +19,11 @@
 
 package com.twinsoft.convertigo.engine.admin.services.engine;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -28,11 +31,17 @@ import com.twinsoft.convertigo.engine.MonitorMetrics;
 import com.twinsoft.convertigo.engine.MonitorMetrics.Sample;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 
 @ServiceDefinition(
 		name = "Monitor",
 		roles = { Role.WEB_ADMIN, Role.MONITOR_AGENT, Role.HOME_VIEW, Role.HOME_CONFIG },
-		parameters = {},
+		parameters = {
+			@ServiceParameterDefinition(
+				name = "init",
+				description = "if true, includes the rolling server-side monitoring history"
+			)
+		},
 		returnValue = "the monitoring data"
 	)
 public class JsonMonitor extends JSonService {
@@ -40,6 +49,9 @@ public class JsonMonitor extends JSonService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		putSample(response, MonitorMetrics.current());
+		if ("true".equalsIgnoreCase(request.getParameter("init"))) {
+			response.put("history", getHistory());
+		}
 	}
 
 	private static void putSample(JSONObject json, Sample sample) throws Exception {
@@ -55,6 +67,46 @@ public class JsonMonitor extends JSonService {
 		json.put("engineState", sample.engineState);
 		json.put("startTime", sample.startTime);
 		json.put("time", sample.time);
+	}
+
+	private static JSONObject getHistory() throws Exception {
+		List<Sample> samples = MonitorMetrics.getHistory();
+		JSONObject json = new JSONObject();
+		JSONArray labels = new JSONArray();
+		JSONArray memoryMaximal = new JSONArray();
+		JSONArray memoryTotal = new JSONArray();
+		JSONArray memoryUsed = new JSONArray();
+		JSONArray threads = new JSONArray();
+		JSONArray contexts = new JSONArray();
+		JSONArray sessions = new JSONArray();
+		JSONArray sessionMaxCV = new JSONArray();
+		JSONArray availableSessions = new JSONArray();
+		JSONArray requests = new JSONArray();
+
+		for (Sample sample : samples) {
+			labels.put(sample.time);
+			memoryMaximal.put(sample.memoryMaximal);
+			memoryTotal.put(sample.memoryTotal);
+			memoryUsed.put(sample.memoryUsed);
+			threads.put(sample.threads);
+			contexts.put(sample.contexts);
+			sessions.put(sample.sessions);
+			sessionMaxCV.put(sample.sessionMaxCV);
+			availableSessions.put(sample.availableSessions);
+			requests.put(sample.requests);
+		}
+
+		json.put("labels", labels);
+		json.put("memoryMaximal", memoryMaximal);
+		json.put("memoryTotal", memoryTotal);
+		json.put("memoryUsed", memoryUsed);
+		json.put("threads", threads);
+		json.put("contexts", contexts);
+		json.put("sessions", sessions);
+		json.put("sessionMaxCV", sessionMaxCV);
+		json.put("availableSessions", availableSessions);
+		json.put("requests", requests);
+		return json;
 	}
 
 }

@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.engine;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
@@ -26,6 +29,9 @@ import com.twinsoft.tas.KeyManager;
 
 public class MonitorMetrics {
 	private static final long MB = 1024 * 1024;
+	private static final long HISTORY_DURATION = 15 * 60 * 1000L;
+	private static final int HISTORY_MAX_SAMPLES = 60;
+	private static final List<Sample> history = new ArrayList<Sample>();
 
 	public static class Sample {
 		public final long memoryMaximal;
@@ -92,6 +98,21 @@ public class MonitorMetrics {
 		);
 	}
 
+	public static synchronized void captureCurrent() {
+		Sample sample = current();
+		history.add(sample);
+		prune(sample.time);
+	}
+
+	public static synchronized List<Sample> getHistory() {
+		prune(System.currentTimeMillis());
+		return new ArrayList<Sample>(history);
+	}
+
+	public static synchronized void clearHistory() {
+		history.clear();
+	}
+
 	private static int getContextCount() {
 		try {
 			return Engine.isStarted && Engine.theApp != null && Engine.theApp.contextManager != null
@@ -115,6 +136,13 @@ public class MonitorMetrics {
 			return KeyManager.getMaxCV(Session.EmulIDSE);
 		} catch (Exception e) {
 			return 0;
+		}
+	}
+
+	private static void prune(long now) {
+		long minimumTime = now - HISTORY_DURATION;
+		while (!history.isEmpty() && (history.get(0).time < minimumTime || history.size() > HISTORY_MAX_SAMPLES)) {
+			history.remove(0);
 		}
 	}
 }
