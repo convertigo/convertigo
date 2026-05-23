@@ -23,15 +23,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.codehaus.jettison.json.JSONObject;
 
-import com.twinsoft.api.Session;
-import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.MonitorMetrics;
+import com.twinsoft.convertigo.engine.MonitorMetrics.Sample;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
-import com.twinsoft.tas.KeyManager;
 
 @ServiceDefinition(
 		name = "Monitor",
@@ -43,27 +39,22 @@ public class JsonMonitor extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
-		final long mb = 1024 * 1024;
-		Runtime runtime = Runtime.getRuntime();
-		long memoryTotal = runtime.totalMemory();
-		int sessionCount = ConvertigoHttpSessionManager.getInstance().countCountedSessions();
-		int sessionMaxCV = KeyManager.getMaxCV(Session.EmulIDSE);
-		response.put("memoryMaximal", runtime.maxMemory() / mb);
-		response.put("memoryTotal", memoryTotal / mb);
-		response.put("memoryUsed", (memoryTotal - runtime.freeMemory()) / mb);
-		response.put("threads", RequestableObject.nbCurrentWorkerThreads);
-		response.put("sessions", sessionCount);
-		response.put("sessionMaxCV", sessionMaxCV);
-		response.put("availableSessions", sessionMaxCV - sessionCount);
-		try {
-			response.put("contexts", Engine.isStarted ? Engine.theApp.contextManager.getNumberOfContexts() : 0);
-		} catch (Exception e) {
-			response.put("contexts", 0);
-		}
-		response.put("requests", Math.max(EngineStatistics.getAverage(EngineStatistics.REQUEST), 0));
-		response.put("engineState", Engine.isStarted);
-		response.put("startTime", Engine.startStopDate);
-		response.put("time", System.currentTimeMillis());
+		putSample(response, MonitorMetrics.current());
+	}
+
+	private static void putSample(JSONObject json, Sample sample) throws Exception {
+		json.put("memoryMaximal", sample.memoryMaximal);
+		json.put("memoryTotal", sample.memoryTotal);
+		json.put("memoryUsed", sample.memoryUsed);
+		json.put("threads", sample.threads);
+		json.put("contexts", sample.contexts);
+		json.put("sessions", sample.sessions);
+		json.put("sessionMaxCV", sample.sessionMaxCV);
+		json.put("availableSessions", sample.availableSessions);
+		json.put("requests", sample.requests);
+		json.put("engineState", sample.engineState);
+		json.put("startTime", sample.startTime);
+		json.put("time", sample.time);
 	}
 
 }
