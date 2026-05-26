@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.baserow;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.codehaus.jettison.json.JSONArray;
@@ -60,8 +62,6 @@ import com.teamdev.jxbrowser.browser.callback.InjectJsCallback;
 import com.teamdev.jxbrowser.browser.callback.InjectJsCallback.Response;
 import com.teamdev.jxbrowser.cookie.Cookie;
 import com.teamdev.jxbrowser.cookie.CookieStore;
-import com.teamdev.jxbrowser.dom.Document;
-import com.teamdev.jxbrowser.dom.Element;
 import com.teamdev.jxbrowser.frame.Frame;
 import com.teamdev.jxbrowser.js.JsAccessible;
 import com.teamdev.jxbrowser.js.JsFunction;
@@ -111,7 +111,8 @@ import com.twinsoft.convertigo.engine.enums.JsonFieldType;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class BaserowView extends ViewPart {
-	private final static String LIB_BASEROW_URL = "lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/releases/download/1.1.31/lib_BaseRow.car";
+	private final static String LIB_BASEROW_URL = "lib_BaseRow=https://github.com/convertigo/c8oprj-lib-baserow/releases/download/v1.3.0/lib_BaseRow.car";
+	private final static String BASEROW_CUSTOMIZER_RESOURCE = "baserow-customizer.js";
 	
 	private Cursor handCursor;
 	private Composite main;
@@ -129,6 +130,7 @@ public class BaserowView extends ViewPart {
 	private String database_name;
 	private String view_id;
 	private String view_name;
+	private String baserowCustomizerScript;
 	private CompletableFuture<Object> wait_reload;
 
 	public class StudioAPI {
@@ -190,6 +192,7 @@ public class BaserowView extends ViewPart {
 
 	@Override
 	public void createPartControl(Composite parent) {
+		baserowCustomizerScript = loadBaserowCustomizerScript();
 		handCursor = new Cursor(parent.getDisplay(), SWT.CURSOR_HAND);
 		GridLayout gl;
 		main = new Composite(parent, SWT.NONE);
@@ -336,7 +339,7 @@ public class BaserowView extends ViewPart {
 			
 			String url = StringUtils.isBlank(server) || server.equals("baserow-backend.convertigo.net") ?
 				"https://c8ocloud.convertigo.net/convertigo/projects/C8oCloudBaserow/DisplayObjects/mobile/"
-				: "http" + ("false".equals(https) ? "" : "s") + "://" + server + (StringUtils.isBlank(port) ? "" : ":" + port);
+				: "http" + ("false".equals(https) ? "" : "s") + "://" + server + (StringUtils.isBlank(port) ? "" : ":" + port + "/login");
 
 			browser.getBrowser().set(InjectJsCallback.class, params -> {
 				try {
@@ -356,31 +359,9 @@ public class BaserowView extends ViewPart {
 
 			browser.getBrowser().navigation().on(FrameDocumentLoadFinished.class, event -> {
 				try {
-					Frame frame = event.frame();
-					Document doc = frame.document().get();
-					Element style = doc.createElement("style");
-					style.innerText("""
-.auth__logo,
-.dashboard__footer,
-.dashboard__help,
-.sidebar__foot,
-.context__menu-item:has(.iconoir-settings, .iconoir-lock),
-.tree__item:has(.baserow-icon-application, .iconoir-lock),
-li:has(.choice-items__link .iconoir-lock),
-.dashboard__sidebar-group:has(.fa-sign-out-alt),
-.dashboard__resources,
-.context__menu-item:has(.baserow-icon-application),
-.tabs__item:has(.iconoir-lock),
-li.select__item:has(.iconoir-lock),
-.alert:has(.baserow-icon-gitlab),
-li.header__filter-item:has(.iconoir-palette),
-.select__footer-create-link:has(.iconoir-lock),
-.view-sharing__option:has(.iconoir-lock),
-div.radio:has(.iconoir-lock)
-{ display: none}""");
-					doc.findElementByTagName("head").get().appendChild(style);
+					injectBaserowCustomizer(event.frame(), url);
 				} catch (Exception e) {
-					e.printStackTrace();
+					Engine.logStudio.info("(NoCode Databases) failed to inject Baserow customizer", e);
 				}
 			});
 			browser.getBrowser().navigation().on(NavigationStarted.class, event -> {
@@ -478,6 +459,44 @@ div.radio:has(.iconoir-lock)
 			}
 		});
 		ConvertigoPlugin.asyncExec(initPev);
+	}
+
+	private String loadBaserowCustomizerScript() {
+		try (InputStream is = getClass().getResourceAsStream(BASEROW_CUSTOMIZER_RESOURCE)) {
+			if (is == null) {
+				throw new IllegalStateException("Missing resource " + BASEROW_CUSTOMIZER_RESOURCE);
+			}
+			return IOUtils.toString(is, "UTF-8");
+		} catch (Exception e) {
+			Engine.logStudio.warn("(NoCode Databases) failed to load Baserow customizer", e);
+			return "";
+		}
+	}
+
+	private boolean shouldInjectBaserowCustomizer(String frameUrl, String entryUrl) {
+		if (StringUtils.isBlank(frameUrl) || frameUrl.startsWith("about:") || frameUrl.startsWith("devtools:")) {
+			return false;
+		}
+		if (StringUtils.isNotBlank(entryUrl) && frameUrl.startsWith(entryUrl)) {
+			return !entryUrl.contains("/convertigo/projects/");
+		}
+		return frameUrl.contains("/dashboard")
+				|| frameUrl.contains("/workspace/")
+				|| frameUrl.contains("/database/")
+				|| frameUrl.contains("/login")
+				|| frameUrl.contains("baserow");
+	}
+
+	private void injectBaserowCustomizer(Frame frame, String entryUrl) {
+		if (StringUtils.isBlank(baserowCustomizerScript)) {
+			return;
+		}
+		Object frameLocation = frame.executeJavaScript("location.href");
+		String frameUrl = frameLocation == null ? "" : frameLocation.toString();
+		if (shouldInjectBaserowCustomizer(frameUrl, entryUrl)) {
+			frame.executeJavaScript(baserowCustomizerScript);
+			Engine.logStudio.debug("(NoCode Databases) Baserow customizer injected in " + frameUrl);
+		}
 	}
 
 	private String postMessage(String message) {

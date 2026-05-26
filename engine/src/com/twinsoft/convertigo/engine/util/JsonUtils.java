@@ -150,6 +150,36 @@ public class JsonUtils {
 		}
 	}
 
+	public static Object copy(Object source) throws JSONException {
+		if (source instanceof JSONObject) {
+			return copy((JSONObject) source);
+		} else if (source instanceof JSONArray) {
+			return copy((JSONArray) source);
+		}
+		return source;
+	}
+
+	public static JSONObject copy(JSONObject source) throws JSONException {
+		JSONObject copy = new JSONObject();
+		copy.setEscapeForwardSlashAlways(source.isEscapeForwardSlashAlways());
+		for (Iterator<String> i = GenericUtils.cast(source.keys()); i.hasNext();) {
+			String key = i.next();
+			Object value = source.opt(key);
+			copy.put(key, value == null ? JSONObject.NULL : copy(value));
+		}
+		return copy;
+	}
+
+	public static JSONArray copy(JSONArray source) throws JSONException {
+		JSONArray copy = new JSONArray(source.length());
+		copy.setEscapeForwardSlashAlways(source.isEscapeForwardSlashAlways());
+		for (int i = 0; i < source.length(); i++) {
+			Object value = source.opt(i);
+			copy.put(value == null ? JSONObject.NULL : copy(value));
+		}
+		return copy;
+	}
+
 	public static Object get(Object object, String key) throws NoSuchElementException {
 		try {
 			if (object instanceof JSONObject) {

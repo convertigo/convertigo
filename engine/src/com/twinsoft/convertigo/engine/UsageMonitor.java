@@ -50,6 +50,11 @@ public class UsageMonitor implements Runnable, AbstractManager {
 		        setUsageCounter("[Memory] Heap memory usage", memoryUsageHeap);
 		        setUsageCounter("[Memory] Non heap memory usage", memoryUsageNonHeap);
 		        setUsageCounter("[Memory] Total used", (memoryUsageHeap.getUsed() + memoryUsageNonHeap.getUsed()) / 1024 + "K");
+		        try {
+		            MonitorMetrics.captureCurrent();
+		        } catch (Exception e) {
+		            Engine.logUsageMonitor.debug("Unable to capture monitor metrics history", e);
+		        }
 		        
 		        java.lang.management.OperatingSystemMXBean osMxBean = ManagementFactory.getOperatingSystemMXBean();
 		        double loadAvg = osMxBean.getSystemLoadAverage();
@@ -103,6 +108,7 @@ public class UsageMonitor implements Runnable, AbstractManager {
 
 	public void init() throws EngineException {
 		usageCounters = new HashMap<String, Object>();
+		MonitorMetrics.clearHistory();
 	}
 
 	private static String formatPercent(double value) {

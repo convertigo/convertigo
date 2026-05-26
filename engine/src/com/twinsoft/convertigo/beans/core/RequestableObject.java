@@ -71,7 +71,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		connector, context, contextId, fromStub, fromcache, generated, project, screenclass, sequence, signature, transaction, userReference, version
 	};
 
-	public static int nbCurrentWorkerThreads = 0;
+	public static volatile int nbCurrentWorkerThreads = 0;
 	
     public static final String EVENT_REQUESTABLE_STARTED = "RequestableStarted";
     public static final String EVENT_REQUESTABLE_FINISHED = "RequestableFinished";

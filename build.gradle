@@ -36,7 +36,7 @@ ext.convertigoCodename = 'astatine'
 ext.convertigoCode = 'At'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
-ext.jxBrowserVersion = '9.0.2'
+ext.jxBrowserVersion = '9.1.0'
 ext.swaggerUiVersion = '5.31.0'
 ext.tomcatVersion = '11.0.22'
 ext.eclipseVersion = '2026-03'
@@ -47,7 +47,7 @@ ext.soapuiVersion = '5.9.1'
 ext.log4jVersion = '2.26.0'
 ext.commonsIo = '2.22.0'
 ext.commonsLang3 = '3.20.0'
-ext.zstdJniVersion = '1.5.7-8'
+ext.zstdJniVersion = '1.5.7-9'
 ext.brotli4jVersion = '1.23.0'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
@@ -765,5 +765,5 @@ allprojects {
 wrapper {
 	group = 'convertigo'
 	
-	gradleVersion = '9.5.0'
+	gradleVersion = '9.5.1'
 }

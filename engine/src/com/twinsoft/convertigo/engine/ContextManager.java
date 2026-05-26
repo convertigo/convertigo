@@ -133,6 +133,40 @@ public class ContextManager extends AbstractRunnableManager {
 		final AtomicInteger refs = new AtomicInteger();
 	}
 
+	private record RetainedContextLock(ContextLockEntry entry, boolean firstReference) {
+	}
+
+	// Keep the reference count update atomic with the map update so one contextID
+	// cannot briefly get two different lock entries under concurrent acquire/release.
+	private RetainedContextLock retainContextLock(String contextID) {
+		RetainedContextLock[] retained = new RetainedContextLock[1];
+		contextLocks.compute(contextID, (key, entry) -> {
+			if (entry == null) {
+				entry = new ContextLockEntry();
+			}
+			boolean firstReference = entry.refs.incrementAndGet() == 1;
+			retained[0] = new RetainedContextLock(entry, firstReference);
+			return entry;
+		});
+		return retained[0];
+	}
+
+	private boolean releaseContextLock(String contextID, ContextLockEntry entry) {
+		boolean[] lastReference = new boolean[1];
+		contextLocks.computeIfPresent(contextID, (key, currentEntry) -> {
+			if (currentEntry != entry) {
+				return currentEntry;
+			}
+			int refs = currentEntry.refs.decrementAndGet();
+			if (refs <= 0) {
+				lastReference[0] = true;
+				return null;
+			}
+			return currentEntry;
+		});
+		return lastReference[0];
+	}
+
 	public static boolean isContainerContextName(String name) {
 		return name != null && name.startsWith(CONTAINER_CONTEXT_PREFIX);
 	}
@@ -664,8 +698,8 @@ public class ContextManager extends AbstractRunnableManager {
 			return NOOP_LOCK;
 		}
 
-		var entry = contextLocks.computeIfAbsent(contextID, k -> new ContextLockEntry());
-		int refs = entry.refs.incrementAndGet();
+		var retained = retainContextLock(contextID);
+		var entry = retained.entry();
 		entry.lock.lock();
 
 		RLock redisLock = null;
@@ -681,7 +715,7 @@ public class ContextManager extends AbstractRunnableManager {
 			}
 		}
 
-		if (refs == 1 && !isContainer) {
+		if (retained.firstReference() && !isContainer) {
 			markInflight(contextID);
 		}
 
@@ -698,11 +732,10 @@ public class ContextManager extends AbstractRunnableManager {
 				} catch (Exception ignore) {
 				}
 				try {
-					if (entry.refs.decrementAndGet() == 0) {
+					if (releaseContextLock(contextID, entry)) {
 						if (!isContainer) {
 							unmarkInflight(contextID);
 						}
-						contextLocks.remove(contextID, entry);
 					}
 				} catch (Exception ignore) {
 				}
@@ -734,8 +767,8 @@ public class ContextManager extends AbstractRunnableManager {
 			return NOOP_LOCK;
 		}
 
-		var entry = contextLocks.computeIfAbsent(contextID, k -> new ContextLockEntry());
-		int refs = entry.refs.incrementAndGet();
+		var retained = retainContextLock(contextID);
+		var entry = retained.entry();
 
 		boolean localLocked = false;
 		try {
@@ -750,9 +783,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 		if (!localLocked) {
 			try {
-				if (entry.refs.decrementAndGet() == 0) {
-					contextLocks.remove(contextID, entry);
-				}
+				releaseContextLock(contextID, entry);
 			} catch (Exception ignore) {
 			}
 			return null;
@@ -773,9 +804,7 @@ public class ContextManager extends AbstractRunnableManager {
 				if (!ok) {
 					entry.lock.unlock();
 					try {
-						if (entry.refs.decrementAndGet() == 0) {
-							contextLocks.remove(contextID, entry);
-						}
+						releaseContextLock(contextID, entry);
 					} catch (Exception ignore) {
 					}
 					return null;
@@ -787,9 +816,7 @@ public class ContextManager extends AbstractRunnableManager {
 				} catch (Exception ignore) {
 				}
 				try {
-					if (entry.refs.decrementAndGet() == 0) {
-						contextLocks.remove(contextID, entry);
-					}
+					releaseContextLock(contextID, entry);
 				} catch (Exception ignore) {
 				}
 				return null;
@@ -800,16 +827,14 @@ public class ContextManager extends AbstractRunnableManager {
 				} catch (Exception ignore) {
 				}
 				try {
-					if (entry.refs.decrementAndGet() == 0) {
-						contextLocks.remove(contextID, entry);
-					}
+					releaseContextLock(contextID, entry);
 				} catch (Exception ignore) {
 				}
 				return null;
 			}
 		}
 
-		if (refs == 1 && !isContainer) {
+		if (retained.firstReference() && !isContainer) {
 			markInflight(contextID);
 		}
 
@@ -826,11 +851,10 @@ public class ContextManager extends AbstractRunnableManager {
 				} catch (Exception ignore) {
 				}
 				try {
-					if (entry.refs.decrementAndGet() == 0) {
+					if (releaseContextLock(contextID, entry)) {
 						if (!isContainer) {
 							unmarkInflight(contextID);
 						}
-						contextLocks.remove(contextID, entry);
 					}
 				} catch (Exception ignore) {
 				}

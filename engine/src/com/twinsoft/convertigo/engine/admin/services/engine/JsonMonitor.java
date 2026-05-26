@@ -19,51 +19,94 @@
 
 package com.twinsoft.convertigo.engine.admin.services.engine;
 
+import java.util.List;
+
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
-import com.twinsoft.api.Session;
-import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.MonitorMetrics;
+import com.twinsoft.convertigo.engine.MonitorMetrics.Sample;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
-import com.twinsoft.tas.KeyManager;
+import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 
 @ServiceDefinition(
 		name = "Monitor",
 		roles = { Role.WEB_ADMIN, Role.MONITOR_AGENT, Role.HOME_VIEW, Role.HOME_CONFIG },
-		parameters = {},
+		parameters = {
+			@ServiceParameterDefinition(
+				name = "init",
+				description = "if true, includes the rolling server-side monitoring history"
+			)
+		},
 		returnValue = "the monitoring data"
 	)
 public class JsonMonitor extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
-		final long mb = 1024 * 1024;
-		Runtime runtime = Runtime.getRuntime();
-		long memoryTotal = runtime.totalMemory();
-		int sessionCount = ConvertigoHttpSessionManager.getInstance().countCountedSessions();
-		int sessionMaxCV = KeyManager.getMaxCV(Session.EmulIDSE);
-		response.put("memoryMaximal", runtime.maxMemory() / mb);
-		response.put("memoryTotal", memoryTotal / mb);
-		response.put("memoryUsed", (memoryTotal - runtime.freeMemory()) / mb);
-		response.put("threads", RequestableObject.nbCurrentWorkerThreads);
-		response.put("sessions", sessionCount);
-		response.put("sessionMaxCV", sessionMaxCV);
-		response.put("availableSessions", sessionMaxCV - sessionCount);
-		try {
-			response.put("contexts", Engine.isStarted ? Engine.theApp.contextManager.getNumberOfContexts() : 0);
-		} catch (Exception e) {
-			response.put("contexts", 0);
+		putSample(response, MonitorMetrics.current());
+		if ("true".equalsIgnoreCase(request.getParameter("init"))) {
+			response.put("history", getHistory());
 		}
-		response.put("requests", Math.max(EngineStatistics.getAverage(EngineStatistics.REQUEST), 0));
-		response.put("engineState", Engine.isStarted);
-		response.put("startTime", Engine.startStopDate);
-		response.put("time", System.currentTimeMillis());
+	}
+
+	private static void putSample(JSONObject json, Sample sample) throws Exception {
+		json.put("memoryMaximal", sample.memoryMaximal);
+		json.put("memoryTotal", sample.memoryTotal);
+		json.put("memoryUsed", sample.memoryUsed);
+		json.put("threads", sample.threads);
+		json.put("contexts", sample.contexts);
+		json.put("sessions", sample.sessions);
+		json.put("sessionMaxCV", sample.sessionMaxCV);
+		json.put("availableSessions", sample.availableSessions);
+		json.put("requests", sample.requests);
+		json.put("engineState", sample.engineState);
+		json.put("startTime", sample.startTime);
+		json.put("time", sample.time);
+	}
+
+	private static JSONObject getHistory() throws Exception {
+		List<Sample> samples = MonitorMetrics.getHistory();
+		JSONObject json = new JSONObject();
+		JSONArray labels = new JSONArray();
+		JSONArray memoryMaximal = new JSONArray();
+		JSONArray memoryTotal = new JSONArray();
+		JSONArray memoryUsed = new JSONArray();
+		JSONArray threads = new JSONArray();
+		JSONArray contexts = new JSONArray();
+		JSONArray sessions = new JSONArray();
+		JSONArray sessionMaxCV = new JSONArray();
+		JSONArray availableSessions = new JSONArray();
+		JSONArray requests = new JSONArray();
+
+		for (Sample sample : samples) {
+			labels.put(sample.time);
+			memoryMaximal.put(sample.memoryMaximal);
+			memoryTotal.put(sample.memoryTotal);
+			memoryUsed.put(sample.memoryUsed);
+			threads.put(sample.threads);
+			contexts.put(sample.contexts);
+			sessions.put(sample.sessions);
+			sessionMaxCV.put(sample.sessionMaxCV);
+			availableSessions.put(sample.availableSessions);
+			requests.put(sample.requests);
+		}
+
+		json.put("labels", labels);
+		json.put("memoryMaximal", memoryMaximal);
+		json.put("memoryTotal", memoryTotal);
+		json.put("memoryUsed", memoryUsed);
+		json.put("threads", threads);
+		json.put("contexts", contexts);
+		json.put("sessions", sessions);
+		json.put("sessionMaxCV", sessionMaxCV);
+		json.put("availableSessions", availableSessions);
+		json.put("requests", requests);
+		return json;
 	}
 
 }

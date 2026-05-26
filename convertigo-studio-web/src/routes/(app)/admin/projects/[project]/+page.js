@@ -1,1 +1,3 @@
-export const prerender = false;
+export function entries() {
+	return [{ project: '_' }];
+}

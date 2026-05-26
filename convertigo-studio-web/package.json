@@ -24,7 +24,7 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.55.5"
+			"svelte": "^5.55.9"
 		}
 	},
 	"devDependencies": {
@@ -38,29 +38,29 @@
 		"@skeletonlabs/skeleton-svelte": "^4.15.2",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.59.1",
+		"@sveltejs/kit": "^2.61.1",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/forms": "0.5.11",
 		"@tailwindcss/typography": "0.5.19",
-		"@types/node": "^25.7.0",
-		"@typescript-eslint/parser": "^8.59.3",
+		"@types/node": "^25.9.1",
+		"@typescript-eslint/parser": "^8.60.0",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.17.1",
 		"globals": "^17.6.0",
 		"postcss-nesting": "^14.0.0",
 		"prettier": "^3.8.3",
-		"prettier-plugin-svelte": "^3.5.2",
+		"prettier-plugin-svelte": "^4.0.1",
 		"prettier-plugin-tailwindcss": "^0.8.0",
 		"sharp": "^0.34.5",
-		"svelte": "^5.55.5",
+		"svelte": "^5.55.9",
 		"svelte-check": "^4.4.8",
 		"svelte-eslint-parser": "^1.6.1",
 		"tailwindcss": "^4.3.0",
 		"typescript": "^6.0.3",
 		"unplugin-icons": "^23.0.1",
-		"vite": "^8.0.12",
-		"vitest": "^4.1.6"
+		"vite": "^8.0.14",
+		"vitest": "^4.1.7"
 	},
 	"type": "module",
 	"dependencies": {
@@ -69,18 +69,18 @@
 		"@internationalized/date": "^3.12.1",
 		"@tailwindcss/vite": "^4.3.0",
 		"@xyflow/svelte": "^1.5.2",
-		"@zag-js/tree-view": "^1.40.0",
-		"apexcharts": "^5.11.0",
+		"@zag-js/tree-view": "^1.41.0",
+		"apexcharts": "^5.13.0",
 		"bits-ui": "^2.18.1",
-		"caniuse-lite": "^1.0.30001792",
+		"caniuse-lite": "^1.0.30001793",
 		"chart.js": "^4.5.1",
 		"elkjs": "^0.11.1",
 		"fast-xml-parser": "^5.8.0",
 		"fs-extra": "^11.3.5",
 		"html-entities": "^2.6.0",
-		"marked": "^18.0.3",
+		"marked": "^18.0.4",
 		"monaco-editor": "^0.55.1",
-		"svelte-persisted-state": "^1.4.0",
+		"svelte-persisted-state": "^1.4.1",
 		"svelte-persisted-store": "^0.12.0",
 		"svelte-tiny-virtual-list": "^3.0.1"
 	}

@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
+import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -95,31 +96,29 @@ public class Get extends JSonService {
 
 			String depth = Integer.toString(dbo instanceof ScreenClass ? ((ScreenClass) dbo).getDepth()
 					: org.apache.commons.lang3.StringUtils.countMatches(dbo.getQName(), '.'));
-			props.put("Depth", new JSONObject(info.toString()).put("name", "P_Depth").put("value", depth));
+			props.put("Depth", makeInfoProperty(info, "P_Depth", depth));
 
 			String exported = dbo.getProject().getInfoForProperty("exported");
-			props.put("Exported", new JSONObject(info.toString()).put("name", "P_Exported").put("value", exported));
+			props.put("Exported", makeInfoProperty(info, "P_Exported", exported));
 
 			String javaClass = dbo.getClass().getName();
-			props.put("Java class", new JSONObject(info.toString()).put("name", "P_JavaClass").put("value", javaClass));
+			props.put("Java class", makeInfoProperty(info, "P_JavaClass", javaClass));
 
 			String minVersion = (String) dbo.getProject().getMinVersion();
-			props.put("Min version",
-					new JSONObject(info.toString()).put("name", "P_MinVersion").put("value", minVersion));
+			props.put("Min version", makeInfoProperty(info, "P_MinVersion", minVersion));
 
 			String name = dbo.getName();
-			props.put("Name", new JSONObject(info.toString()).put("name", "P_Name").put("value", name));
+			props.put("Name", makeInfoProperty(info, "P_Name", name));
 
 			String priority = Long.toString(dbo.priority);
-			props.put("Priority", new JSONObject(info.toString()).put("name", "P_Priority").put("value", priority));
+			props.put("Priority", makeInfoProperty(info, "P_Priority", priority));
 
 			String qname = dbo.getQName();
-			props.put("QName", new JSONObject(info.toString()).put("name", "P_QName").put("value", qname));
+			props.put("QName", makeInfoProperty(info, "P_QName", qname));
 
 			if (dbo instanceof ApplicationComponent) {
 				String tplVersion = ((ApplicationComponent) dbo).getTplProjectVersion();
-				props.put("Template version",
-						new JSONObject(info.toString()).put("name", "P_TemplateVersion").put("value", tplVersion));
+				props.put("Template version", makeInfoProperty(info, "P_TemplateVersion", tplVersion));
 			}
 
 			String type = null;
@@ -136,10 +135,14 @@ public class Get extends JSonService {
 			} catch (Exception e) {
 				type = "n/a";
 			}
-			props.put("Type", new JSONObject(info.toString()).put("name", "P_Type").put("value", type));
+			props.put("Type", makeInfoProperty(info, "P_Type", type));
 
 		} catch (Exception e) {
 		}
+	}
+
+	private JSONObject makeInfoProperty(JSONObject info, String name, Object value) throws Exception {
+		return JsonUtils.copy(info).put("name", name).put("value", value);
 	}
 
 	protected void addFolderTypeProperties(JSONObject props, String name) throws Exception {

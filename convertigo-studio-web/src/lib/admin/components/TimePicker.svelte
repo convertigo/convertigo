@@ -123,12 +123,12 @@
 			)
 			.join('');
 		await tick();
-		input.setSelectionRange(selectedUnit * 3, selectedUnit * 3 + (selectedUnit == 3 ? 3 : 2));
+		input?.setSelectionRange(selectedUnit * 3, selectedUnit * 3 + (selectedUnit == 3 ? 3 : 2));
 		updateHandPosition();
 	}
 
-	function updateTimeValue() {
-		const split = inputValue.split(/[:,.]/);
+	function updateTimeValue(value = inputValue) {
+		const split = String(value ?? '').split(/[:,.]/);
 		if (split.length == 4) {
 			split.forEach((v, i) => {
 				const n = parseInt(v, 10);
@@ -142,6 +142,7 @@
 
 	async function inputClick() {
 		let idx = input.selectionStart;
+		updateTimeValue();
 		selectedUnit = Math.min(3, Math.floor(idx / 3));
 		showClock = true;
 		updateInputValue();
@@ -158,6 +159,7 @@
 			);
 			inputClick();
 		} else if (e.key == 'ArrowUp' || e.key == 'ArrowDown') {
+			updateTimeValue();
 			time[units[selectedUnit].name] =
 				(time[units[selectedUnit].name] +
 					units[selectedUnit].count +
@@ -247,7 +249,7 @@
 		onkeydown={inputKeyDown}
 		onkeyup={inputKeyUp}
 		onblur={close}
-		onchange={updateTimeValue}
+		onchange={() => updateTimeValue()}
 	/>
 
 	{#if showClock}

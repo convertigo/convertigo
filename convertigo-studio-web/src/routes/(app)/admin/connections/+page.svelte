@@ -41,18 +41,15 @@
 		}
 	]);
 
+	const adminDateTimeFormat =
+		/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+
 	const parseAdminDateTime = (value) => {
 		const raw = String(value ?? '').trim();
 		if (!raw) return undefined;
-		const match = raw.match(
-			/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/
-		);
-		if (!match) return undefined;
-		let [, dd, mm, yyyy, hh = '0', mi = '0', ss = '0'] = match;
-		let year = Number(yyyy);
-		if (year < 100) year += 2000;
-		const date = new Date(year, Number(mm) - 1, Number(dd), Number(hh), Number(mi), Number(ss));
-		return Number.isNaN(date.getTime()) ? undefined : date.getTime();
+		if (!adminDateTimeFormat.test(raw)) return undefined;
+		const timestamp = Date.parse(raw);
+		return Number.isNaN(timestamp) ? undefined : timestamp;
 	};
 
 	const compactDateTime = (value) => {

@@ -51,6 +51,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
+import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @DboCategoryInfo(
@@ -715,12 +716,12 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 				try {
 					//System.out.println("---markPageAsDirty...");
 					JSONObject oldComputedContent = computedContents == null ? 
-							null :new JSONObject(computedContents.toString());
+							null :JsonUtils.copy(computedContents);
 					
 					doComputeContents();
 					
 					JSONObject newComputedContent = computedContents == null ? 
-							null :new JSONObject(computedContents.toString());
+							null :JsonUtils.copy(computedContents);
 					
 					if (oldComputedContent != null && newComputedContent != null) {
 						if (!(newComputedContent.getJSONObject("scripts").toString()

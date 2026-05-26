@@ -116,6 +116,7 @@ import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -125,6 +126,9 @@ public class ComponentManager {
 	private static final String TPL_IONACTIONS_DIRPATH = "ionicTpl/ion/actionbeans";
 	private static final String TPL_IONCOMPS_DIRPATH = "ionicTpl/ion/compbeans";
 	
+	private static final Object fontMapLock = new Object();
+	private static volatile Map<String, JSONObject> fontMap;
+
 	private static String JAVA_NGX = "Java@Ngx";
 	private static ComponentManager instance = new ComponentManager();
 	
@@ -134,7 +138,6 @@ public class ComponentManager {
 	
 	private Map<String, List<Component>> map = new TreeMap<>();
 	private Map<String, JSONObject> c8oBeans = new HashMap<String, JSONObject>();
-	private Map<String, JSONObject> fontMap = new HashMap<String, JSONObject>();
 	
 	private List<String> groups;
 	private List<Component> orderedComponents;
@@ -236,7 +239,6 @@ public class ComponentManager {
 		this.templateProjectDir = templateProjectDir;
 		getTemplateProjectVersion();
 		loadModels();
-		loadFonts();
 	}
 	
 	public String getTemplateProjectName() {
@@ -435,11 +437,6 @@ public class ComponentManager {
 			ionicTemplateProjects.clear();
 		}
 		clearModels();
-		clearFonts();
-	}
-	
-	private void clearFonts() {
-		fontMap.clear();		
 	}
 	
 	private void clearModels() {
@@ -580,12 +577,13 @@ public class ComponentManager {
 		// The model exists
 		if (model != null) {
 			boolean hasChanged = false;
-			IonBean dboBean = new IonBean(jsonString);
-			
-			IonBean ionBean = new IonBean(model.toString());
+			IonBean dboBean = new IonBean(jsonBean);
+			Map<String, IonProperty> dboProperties = dboBean.getProperties();
+
+			IonBean ionBean = new IonBean(model.getJSONObject());
 			for (IonProperty ionProperty: ionBean.getProperties().values()) {
-				String propertyName = ionProperty.getName(); 
-				IonProperty dboProperty = dboBean.getProperty(propertyName);
+				String propertyName = ionProperty.getName();
+				IonProperty dboProperty = dboProperties.get(propertyName);
 				if (dboProperty != null) {
 					MobileSmartSourceType msst = dboProperty.getSmartType();
 					if (msst != null) {
@@ -617,7 +615,7 @@ public class ComponentManager {
 			}
 			//return new IonBean(jsonString);
 			String deprecatedTplVersion = ProductVersion.productVersion + ".0";
-			IonBean ionBean = new IonBean(new JSONObject(jsonString).put("deprecatedTplVersion", deprecatedTplVersion).toString());
+			IonBean ionBean = new IonBean(jsonBean.put("deprecatedTplVersion", deprecatedTplVersion));
 			if (templateImageFolder != null) {
 				ionBean.setImageFolder(templateImageFolder);
 			}
@@ -1678,7 +1676,7 @@ public class ComponentManager {
 					JSONObject jsonOb = getC8oBeans().get(dboClass.getSimpleName());
 					if (jsonOb != null && jsonOb.has("hint")) {
 						JSONObject jsonHint =  jsonOb.getJSONObject("hint");
-						return new JSONObject(jsonHint.toString()); // copy
+						return JsonUtils.copy(jsonHint);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -1870,7 +1868,9 @@ public class ComponentManager {
 	private JSONObject loadFontFromApi(String fontId) {
 		JSONObject jsonFont = null;
 		if (fontId != null && !fontId.isBlank()) {
-			if (fontMap.get(fontId) == null || !fontMap.get(fontId).has("variants")) {
+			Map<String, JSONObject> fonts = loadFonts();
+			jsonFont = fonts.get(fontId);
+			if (jsonFont == null || !jsonFont.has("variants")) {
 				try {
 					String url = "https://api.fontsource.org/v1/fonts/"+ fontId;
 					HttpGet get = new HttpGet(url);
@@ -1880,83 +1880,111 @@ public class ComponentManager {
 							throw new EngineException("Code " + code + " for " + url);
 						}
 						String sContent = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-						fontMap.put(fontId, new JSONObject(sContent));
+						jsonFont = new JSONObject(sContent);
+						synchronized (fontMapLock) {
+							fonts = loadFonts();
+							Map<String, JSONObject> newFontMap = new HashMap<String, JSONObject>(fonts);
+							newFontMap.put(fontId, jsonFont);
+							fontMap = newFontMap;
+						}
 					}
 				} catch (Exception e) {
 					Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Unabled to get font with id "+ fontId + " : " + e.getMessage());
 				}
 			}
-			jsonFont = fontMap.get(fontId);
 		}
 		return jsonFont;
 	}
 	
 	private Map<String, JSONObject> loadFonts() {
-		return loadFontsFromFile();
+		Map<String, JSONObject> fonts = fontMap;
+		if (fonts == null) {
+			synchronized (fontMapLock) {
+				fonts = fontMap;
+				if (fonts == null) {
+					fonts = loadFontsFromFile();
+					if (!fonts.isEmpty()) {
+						fontMap = fonts;
+					}
+				}
+			}
+		}
+		return fonts == null ? Collections.emptyMap() : fonts;
 	}
 	
 	@SuppressWarnings("unused")
 	private Map<String, JSONObject> loadFontsFromApi() {
-		if (fontMap.isEmpty()) {
-			JSONArray jsonFonts = null;
-			try {
-				String url = "https://api.fontsource.org/v1/fonts";
-				HttpGet get = new HttpGet(url);
-				try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
-					int code = response.getStatusLine().getStatusCode();
-					if (code != 200) {
-						throw new EngineException("Code " + code + " for " + url);
+		Map<String, JSONObject> fonts = fontMap;
+		if (fonts == null) {
+			synchronized (fontMapLock) {
+				fonts = fontMap;
+				if (fonts == null) {
+					JSONArray jsonFonts = null;
+					Map<String, JSONObject> newFontMap = new HashMap<String, JSONObject>();
+					try {
+						String url = "https://api.fontsource.org/v1/fonts";
+						HttpGet get = new HttpGet(url);
+						try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+							int code = response.getStatusLine().getStatusCode();
+							if (code != 200) {
+								throw new EngineException("Code " + code + " for " + url);
+							}
+							String sContent = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+							jsonFonts = new JSONArray(sContent);
+						}
+
+						if (jsonFonts != null) {
+							for (int i = 0; i < jsonFonts.length(); i++) {
+								JSONObject jsonFont = jsonFonts.getJSONObject(i);
+								String fontId = jsonFont.getString("id");
+								newFontMap.put(fontId, jsonFont);
+							}
+						}
+						fonts = newFontMap;
+						fontMap = fonts;
+					} catch (Exception e) {
+						if (Engine.isStarted) {
+							Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Unabled to load fonts : " + e.getMessage());
+						} else {
+							System.out.println("(ComponentManager@"+ templateProjectName +") Unabled to load fonts : " + e.getMessage());
+						}
 					}
-					String sContent = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-					jsonFonts = new JSONArray(sContent);
 				}
-				
-				if (jsonFonts != null) {
-					for (int i = 0; i < jsonFonts.length(); i++) {
-						JSONObject jsonFont = jsonFonts.getJSONObject(i);
-						String fontId = jsonFont.getString("id");
-						fontMap.put(fontId, jsonFont);
-					}
-				}
-			} catch (Exception e) {
-				if (Engine.isStarted) {
-					Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Unabled to load fonts : " + e.getMessage());
-				} else {
-					System.out.println("(ComponentManager@"+ templateProjectName +") Unabled to load fonts : " + e.getMessage());
-				}
-				fontMap.clear();
 			}
 		}
-		return fontMap;
+		return fonts == null ? Collections.emptyMap() : fonts;
 	}
 	
 	private Map<String, JSONObject> loadFontsFromFile() {
-		if (fontMap.isEmpty()) {
-			try (InputStream inputstream = getClass().getResourceAsStream("font-sources.json")) {
-				String json = IOUtils.toString(inputstream, "UTF-8");
-				
-				JSONArray jsonFonts = new JSONArray(json);
-				for (int i = 0; i < jsonFonts.length(); i++) {
-					JSONObject jsonFont = jsonFonts.getJSONObject(i);
-					String fontId = jsonFont.getString("id");
-					fontMap.put(fontId, jsonFont);
-				}
-				
-				if (Engine.isStarted) {
-					Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") Font sources loaded from file");
-				} else {
-					System.out.println("(ComponentManager@"+ templateProjectName +") Font sources loaded from file");
-				}
-			} catch (Exception e) {
-				if (Engine.isStarted) {
-					Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Unabled to load fonts from file: " + e.getMessage());
-				} else {
-					System.out.println("(ComponentManager@"+ templateProjectName +") Unabled to load fonts from file: " + e.getMessage());
-					e.printStackTrace();
-				}
+		Map<String, JSONObject> fonts = new HashMap<String, JSONObject>();
+		try (InputStream inputstream = getClass().getResourceAsStream("font-sources.json")) {
+			if (inputstream == null) {
+				throw new IOException("font-sources.json not found");
+			}
+			String json = IOUtils.toString(inputstream, StandardCharsets.UTF_8);
+
+			JSONArray jsonFonts = new JSONArray(json);
+			for (int i = 0; i < jsonFonts.length(); i++) {
+				JSONObject jsonFont = jsonFonts.getJSONObject(i);
+				String fontId = jsonFont.getString("id");
+				fonts.put(fontId, jsonFont);
+			}
+
+			if (Engine.isStarted) {
+				Engine.logEngine.info("(ComponentManager@"+ templateProjectName +") Font sources loaded from file");
+			} else {
+				System.out.println("(ComponentManager@"+ templateProjectName +") Font sources loaded from file");
+			}
+		} catch (Exception e) {
+			fonts.clear();
+			if (Engine.isStarted) {
+				Engine.logEngine.warn("(ComponentManager@"+ templateProjectName +") Unabled to load fonts from file: " + e.getMessage());
+			} else {
+				System.out.println("(ComponentManager@"+ templateProjectName +") Unabled to load fonts from file: " + e.getMessage());
+				e.printStackTrace();
 			}
 		}
-		return fontMap;
+		return fonts;
 	}
 	
 	@SuppressWarnings("unused")

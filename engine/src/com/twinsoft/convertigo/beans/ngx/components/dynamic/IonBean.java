@@ -32,6 +32,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
+import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class IonBean {
@@ -97,12 +98,20 @@ public class IonBean {
 	}
 
 	public IonBean(String jsonString) throws JSONException {
+		this(new JSONObject(jsonString), false);
+	}
+
+	public IonBean(JSONObject jsonOb) throws JSONException {
+		this(jsonOb, true);
+	}
+
+	private IonBean(JSONObject jsonOb, boolean copyValues) throws JSONException {
 		this();
-		JSONObject jsonOb = new JSONObject(jsonString);
 		for (Key k: Key.values()) {
 			if (jsonOb.has(k.name())) {
 				try {
-					jsonBean.put(k.name(), jsonOb.get(k.name()));
+					Object value = jsonOb.get(k.name());
+					jsonBean.put(k.name(), copyValues ? JsonUtils.copy(value) : value);
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
@@ -488,7 +497,7 @@ public class IonBean {
 	public JSONObject getHint() {
 		try {
 			JSONObject jsonHint = jsonBean.getJSONObject(Key.hint.name());
-			return new JSONObject(jsonHint.toString()); // copy
+			return JsonUtils.copy(jsonHint);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

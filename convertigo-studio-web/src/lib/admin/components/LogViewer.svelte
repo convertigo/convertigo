@@ -1,5 +1,5 @@
 <script>
-	import { Popover, Portal, Tooltip } from '@skeletonlabs/skeleton-svelte';
+	import { Popover, Portal, Tooltip, useTooltip } from '@skeletonlabs/skeleton-svelte';
 	import { browser } from '$app/environment';
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
@@ -113,6 +113,11 @@
 	const attachHeaderMetrics = $derived(fromAction(measureHeaderMetrics));
 	const attachMessageMetrics = $derived(fromAction(measureMessageMetrics));
 	const attachScrollIntoView = $derived(fromAction(scrollIntoView));
+	const logMetaTooltip = useTooltip(() => ({
+		id: 'log-meta-tooltip',
+		positioning: { placement: 'top-start' }
+	}));
+	let logMetaTooltipText = $state('');
 
 	/** @param {HTMLDivElement} node */
 	function measureHeaderMetrics(node) {
@@ -191,7 +196,7 @@
 
 	async function doAutoScroll() {
 		if (autoScroll && logs.length > 1) {
-			founds = [];
+			resetSearchResults();
 			_scrollToIndex = undefined;
 			await tick();
 			_scrollToIndex = logs.length - 1;
@@ -305,6 +310,30 @@
 
 	let logs = $state.raw([]);
 	let filterRunId = 0;
+	let visibleFilterKey = '';
+
+	function getLogMetaTooltipTriggerProps(index, name, text) {
+		const props = logMetaTooltip().getTriggerProps({ value: `${index}-${name}` });
+		const setText = () => {
+			logMetaTooltipText = text;
+		};
+
+		return {
+			...props,
+			onpointerover(event) {
+				setText();
+				props.onpointerover?.(event);
+			},
+			onpointermove(event) {
+				setText();
+				props.onpointermove?.(event);
+			},
+			onfocusin(event) {
+				setText();
+				props.onfocusin?.(event);
+			}
+		};
+	}
 
 	const scheduleScrollTo = (index) => {
 		if (index == null || index < 0) return;
@@ -334,11 +363,21 @@
 		return bestIndex;
 	};
 
-	function scheduleFiltering(keepAnchor = false) {
+	function getFiltersKey(filtersSnapshot) {
+		return filtersSnapshot.length ? JSON.stringify(filtersSnapshot) : '';
+	}
+
+	function scheduleFiltering(keepAnchor = false, forceReset = false) {
 		const baseLogs = Logs.logs;
 		const filtersSnapshot = buildActiveFilters();
+		const filterKey = getFiltersKey(filtersSnapshot);
 		const runId = ++filterRunId;
 		const total = baseLogs.length;
+		const done = (rows) => ({
+			active: filtersSnapshot.length > 0,
+			canceled: runId !== filterRunId,
+			filteredRows: rows.length
+		});
 		const anchorLog = keepAnchor && !autoScroll ? (logs?.[getCenterLine()] ?? null) : null;
 		const anchorMs = anchorLog ? parseDateTimeMs(anchorLog[1]) : null;
 		const applyAnchor = (rows) => {
@@ -352,64 +391,114 @@
 
 		if (filtersSnapshot.length === 0) {
 			logs = baseLogs;
+			visibleFilterKey = '';
 			applyAnchor(baseLogs);
-			return;
+			return Promise.resolve(done(baseLogs));
 		}
 
-		let index = 0;
-		const results = [];
-		const isLevelOnly = filtersSnapshot.length === 1 && filtersSnapshot[0].category === 'Level';
-		const chunkSize = isLevelOnly ? total : 1000;
-		const schedule = (cb) => (browser ? requestAnimationFrame(cb) : setTimeout(cb, 0));
-
-		const processChunk = () => {
-			if (runId !== filterRunId) return;
-
-			const end = Math.min(index + chunkSize, total);
-			for (; index < end; index++) {
-				const log = baseLogs[index];
-				const matches = filtersSnapshot.every(({ category, active }) => {
-					return active.some(
-						({ mode, value, valueLower, not, sensitive, levels, startMs, endMs }) => {
-							let logValue = getValue(category, log, index);
-							if (mode === 'range' || category === dateTimeCategory) {
-								const logMs = parseDateTimeMs(log[1]);
-								if (logMs == null) return false;
-								if (startMs != null && logMs < startMs) return false;
-								if (endMs != null && logMs > endMs) return false;
-								return true;
-							}
-							if (category === 'Level' || mode === 'level' || (levels?.length ?? 0) > 0) {
-								const selected = normalizeLevels(levels?.length ? levels : value ? [value] : []);
-								if (selected.length === 0) return false;
-								return selected.includes(normalizeLevel(logValue));
-							}
-							let _value = value;
-							if (!sensitive) {
-								logValue = logValue.toLowerCase();
-								_value = valueLower ?? _value.toLowerCase();
-							}
-							let ret = mode == 'equals' ? logValue == _value : logValue[mode](_value);
-							return not ? !ret : ret;
-						}
-					);
-				});
-				if (matches) {
-					results.push(log);
+		return new Promise((resolve) => {
+			let index = 0;
+			const results = [];
+			const isLevelOnly = filtersSnapshot.length === 1 && filtersSnapshot[0].category === 'Level';
+			const chunkSize = isLevelOnly ? total : 1000;
+			const schedule = (cb) => (browser ? requestAnimationFrame(cb) : setTimeout(cb, 0));
+			const resetVisibleLogs = autoScroll && (forceReset || visibleFilterKey !== filterKey);
+			const publishResults = (final = false) => {
+				if (!final && !resetVisibleLogs && results.length < logs.length) return;
+				visibleFilterKey = filterKey;
+				logs = [...results];
+				if (autoScroll && logs.length > 0) {
+					scheduleScrollTo(logs.length - 1);
 				}
+			};
+
+			if (resetVisibleLogs) {
+				visibleFilterKey = filterKey;
+				logs = [];
 			}
 
-			if (runId !== filterRunId) return;
+			const processChunk = () => {
+				if (runId !== filterRunId) {
+					resolve(done(results));
+					return;
+				}
 
-			if (index < total) {
-				schedule(processChunk);
-			} else if (runId === filterRunId) {
-				logs = results;
-				applyAnchor(results);
+				const end = Math.min(index + chunkSize, total);
+				for (; index < end; index++) {
+					const log = baseLogs[index];
+					const matches = filtersSnapshot.every(({ category, active }) => {
+						return active.some(
+							({ mode, value, valueLower, not, sensitive, levels, startMs, endMs }) => {
+								let logValue = getValue(category, log, index);
+								if (mode === 'range' || category === dateTimeCategory) {
+									const logMs = parseDateTimeMs(log[1]);
+									if (logMs == null) return false;
+									if (startMs != null && logMs < startMs) return false;
+									if (endMs != null && logMs > endMs) return false;
+									return true;
+								}
+								if (category === 'Level' || mode === 'level' || (levels?.length ?? 0) > 0) {
+									const selected = normalizeLevels(levels?.length ? levels : value ? [value] : []);
+									if (selected.length === 0) return false;
+									return selected.includes(normalizeLevel(logValue));
+								}
+								let _value = value;
+								if (!sensitive) {
+									logValue = logValue.toLowerCase();
+									_value = valueLower ?? _value.toLowerCase();
+								}
+								let ret = mode == 'equals' ? logValue == _value : logValue[mode](_value);
+								return not ? !ret : ret;
+							}
+						);
+					});
+					if (matches) {
+						results.push(log);
+					}
+				}
+
+				if (runId !== filterRunId) {
+					if (autoScroll) {
+						publishResults();
+					}
+					resolve(done(results));
+					return;
+				}
+
+				if (index < total) {
+					if (autoScroll) {
+						publishResults();
+					}
+					schedule(processChunk);
+				} else {
+					publishResults(true);
+					applyAnchor(results);
+					resolve(done(results));
+				}
+			};
+
+			processChunk();
+		});
+	}
+
+	function scheduleRetry(delay) {
+		if (retryTimer) clearTimeout(retryTimer);
+		retryTimer = setTimeout(async () => {
+			retryTimer = undefined;
+			if (!destroyed && (live || Logs.moreResults)) {
+				await list(false);
 			}
-		};
+		}, delay);
+	}
 
-		processChunk();
+	function shouldContinueLoadingFilteredLogs(filterResult) {
+		return (
+			filterResult?.active &&
+			!filterResult.canceled &&
+			filterResult.filteredRows === 0 &&
+			autoScroll &&
+			(live || Logs.moreResults)
+		);
 	}
 
 	function addFilter({
@@ -440,13 +529,15 @@
 		const startParts = splitDateTime(baseRange?.start);
 		const endParts = splitDateTime(baseRange?.end);
 		const editing = Boolean(mode) || (isDateTime && !!existingRange);
+		const defaultMode = effectiveCategory === 'Message' ? 'includes' : 'equals';
+		const defaultSensitive = editing ? sensitive : value !== '';
 		modalFilterParams = {
 			category: effectiveCategory,
 			value,
-			mode: isDateTime ? 'range' : isLevel ? 'level' : mode || 'equals',
+			mode: isDateTime ? 'range' : isLevel ? 'level' : mode || defaultMode,
 			ts,
 			not: isLevel || isDateTime ? false : not,
-			sensitive,
+			sensitive: defaultSensitive,
 			disabled,
 			editing,
 			levels: isLevel
@@ -493,48 +584,93 @@
 
 	let searched = $state('');
 	let founds = $state.raw([]);
+	let foundsByLine = $state.raw([]);
 	let foundsIndex = $state(0);
+	let searchPending = $state(false);
+	let searchResultsVersion = $state(0);
+	let searchRunId = 0;
+	const searchCounter = $derived(
+		`${founds.length ? Math.min(foundsIndex + 1, founds.length) : 0} / ${searchPending ? '~' : ''}${founds.length}`
+	);
+	const SEARCH_CHUNK_BUDGET_MS = 8;
 
 	function getCenterLine() {
 		return Math.round(showedLines.start + (showedLines.end - showedLines.start) / 2);
 	}
 
-	let searchAbortController;
+	const yieldToBrowser = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-	let asyncSearch = debounce(async (s, centerLine) => {
-		const batchSize = 100;
-		let acc = [];
+	function publishSearchResults(nextFounds, nextFoundsByLine) {
+		founds = nextFounds;
+		foundsByLine = nextFoundsByLine;
+		searchResultsVersion += 1;
+		if (foundsIndex >= founds.length) {
+			foundsIndex = founds.length ? founds.length - 1 : 0;
+		}
+	}
+
+	function resetSearchResults() {
+		searchPending = false;
+		publishSearchResults([], []);
+	}
+
+	function getLineFounds(index) {
+		// foundsByLine is updated in chunks; this counter refreshes visible rows after each publish.
+		searchResultsVersion;
+		return foundsByLine[index] ?? [];
+	}
+
+	let asyncSearch = debounce(async (s, centerLine, runId) => {
+		const snapshot = logs;
+		const acc = [];
+		const byLine = [];
 		let nearest = -1;
+		let firstMatchCentered = false;
+		let lastYield = performance.now();
 
-		for (let i = 0; i < logs.length; i += batchSize) {
-			if (searchAbortController?.aborted) return;
+		for (let index = 0; index < snapshot.length; index++) {
+			if (runId !== searchRunId) return;
 
-			const batch = logs.slice(i, i + batchSize);
-			for (let j = 0; j < batch.length; j++) {
-				const index = i + j;
-				const l = batch[j][4].toLowerCase();
-				let start = l.indexOf(s, 0);
+			const line = String(snapshot[index]?.[4] ?? '').toLowerCase();
+			let start = line.indexOf(s, 0);
 
-				if (start !== -1) {
-					if (
-						nearest === -1 ||
-						Math.abs(centerLine - acc[nearest].index) > Math.abs(centerLine - index)
-					) {
-						nearest = acc.length;
-					}
+			if (start !== -1) {
+				if (
+					nearest === -1 ||
+					Math.abs(centerLine - acc[nearest].index) > Math.abs(centerLine - index)
+				) {
+					nearest = acc.length;
 				}
+				const lineFounds = [];
+				byLine[index] = lineFounds;
 
 				while (start !== -1) {
 					const end = start + s.length;
-					acc.push({ index, start, end });
-					start = l.indexOf(s, end);
+					const found = { index, start, end };
+					acc.push(found);
+					lineFounds.push(found);
+					start = line.indexOf(s, end);
 				}
 			}
-			founds = acc;
-			if (founds.length > 0) {
-				_scrollToIndex = founds[(foundsIndex = nearest)].index;
+
+			if (performance.now() - lastYield >= SEARCH_CHUNK_BUDGET_MS) {
+				publishSearchResults(acc, byLine);
+				if (!firstMatchCentered && nearest !== -1) {
+					foundsIndex = nearest;
+					_scrollToIndex = acc[nearest].index;
+					firstMatchCentered = true;
+				}
+				await yieldToBrowser();
+				lastYield = performance.now();
 			}
-			await tick();
+		}
+
+		if (runId !== searchRunId) return;
+		searchPending = false;
+		publishSearchResults(acc, byLine);
+		if (nearest !== -1) {
+			foundsIndex = nearest;
+			_scrollToIndex = acc[nearest].index;
 		}
 	}, 200);
 
@@ -542,14 +678,17 @@
 		if (e?.key === 'Enter') {
 			doSearchNext();
 		} else if (searched) {
-			if (searchAbortController) searchAbortController.abort();
-			searchAbortController = new AbortController();
-
+			const runId = ++searchRunId;
 			const s = searched.toLowerCase();
 			const centerLine = getCenterLine();
-			asyncSearch(s, centerLine);
+			autoScroll = false;
+			searchPending = true;
+			foundsIndex = 0;
+			publishSearchResults([], []);
+			asyncSearch(s, centerLine, runId);
 		} else {
-			founds = [];
+			searchRunId += 1;
+			resetSearchResults();
 		}
 	}
 
@@ -572,10 +711,39 @@
 		doSearch();
 	}
 
+	function getScrollableParent(e) {
+		for (let parent = e.parentElement; parent; parent = parent.parentElement) {
+			if (parent.scrollHeight > parent.clientHeight) return parent;
+		}
+	}
+
 	function scrollIntoView(e) {
-		let { left, width } = e.getBoundingClientRect();
-		left = Math.max(0, left - (e.parentElement.getBoundingClientRect().width + width) / 2);
-		e.parentElement.scrollTo({ left, behavior: 'smooth' });
+		requestAnimationFrame(() => {
+			const matchRect = e.getBoundingClientRect();
+			const scrollableParent = getScrollableParent(e);
+
+			if (scrollableParent) {
+				const parentRect = scrollableParent.getBoundingClientRect();
+				const top =
+					scrollableParent.scrollTop +
+					matchRect.top -
+					parentRect.top -
+					(parentRect.height - matchRect.height) / 2;
+				scrollableParent.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+			} else {
+				e.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+			}
+
+			const message = e.parentElement;
+			if (!message) return;
+			const messageRect = message.getBoundingClientRect();
+			const left =
+				message.scrollLeft +
+				matchRect.left -
+				messageRect.left -
+				(messageRect.width - matchRect.width) / 2;
+			message.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+		});
 	}
 
 	let searchInput = $state();
@@ -795,6 +963,10 @@
 	});
 
 	export async function list(renew = false) {
+		if (retryTimer) {
+			clearTimeout(retryTimer);
+			retryTimer = undefined;
+		}
 		Logs.live = live;
 		Logs.autoScroll = autoScroll;
 		Logs.filter = serverFilter;
@@ -805,19 +977,20 @@
 		}
 		let len = renew ? 0 : Logs.logs.length;
 		const result = await Logs.list(renew);
-		if (destroyed || result?.canceled) {
+		if (destroyed || result?.canceled || result?.skipped) {
 			return;
 		}
-		scheduleFiltering();
-		// If no new lines arrived but we are in tailing mode (live) or server says moreResults,
+		const filterResult = await scheduleFiltering(false, renew);
+		if (destroyed || filterResult?.canceled) {
+			return;
+		}
+		// If no raw lines arrived, or client filters hide all rows while tailing,
 		// schedule a delayed retry instead of immediate recursion to prevent UI freeze.
-		if (Logs.logs.length == len && (live || Logs.moreResults)) {
-			if (retryTimer) clearTimeout(retryTimer);
-			retryTimer = setTimeout(async () => {
-				if (!destroyed && (live || Logs.moreResults)) {
-					await list(false);
-				}
-			}, result?.retryDelay ?? 200);
+		if (
+			(Logs.logs.length == len && (live || Logs.moreResults)) ||
+			shouldContinueLoadingFilteredLogs(filterResult)
+		) {
+			scheduleRetry(result?.retryDelay ?? 200);
 		}
 	}
 </script>
@@ -1102,7 +1275,7 @@
 							doSearch();
 						}
 					}}
-					positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}
+					positioning={{ placement: 'bottom-end' }}
 				>
 					<Tooltip positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}>
 						<Tooltip.Trigger>
@@ -1129,13 +1302,17 @@
 							</Tooltip.Positioner>
 						</Portal>
 					</Tooltip>
-					<Popover.Positioner class="log-search-positioner" style="z-index: 20;">
-						<Popover.Content class="border-none bg-transparent p-0 shadow-none">
-							<Card bg="bg-surface-50-950 text-black dark:text-white" class="p-low!">
+					<Popover.Positioner
+						class="log-search-positioner"
+						style="--log-search-top: {fullscreen ? '0.75rem' : '4rem'}; z-index: 130;"
+					>
+						<Popover.Content class="log-search-content">
+							<div class="rounded-lg bg-surface-50-950 p-low text-black dark:text-white">
 								<div class="layout-x-center-low">
 									<input
 										type="text"
 										class="rounded-md border-none bg-transparent"
+										aria-label="Search in loaded logs"
 										bind:value={searched}
 										onkeyup={doSearch}
 										{@attach attachSearchInput}
@@ -1145,7 +1322,7 @@
 										class="rounded-md border-none bg-transparent"
 										style="field-sizing: content;"
 										readonly={true}
-										value="{Math.min(foundsIndex + 1, founds.length)}/{founds.length}"
+										value={searchCounter}
 									/>
 									<Button
 										full={false}
@@ -1175,8 +1352,7 @@
 										onclick={doSearchClear}
 									/>
 								</div>
-							</Card>
-							<Popover.Arrow class="fill-surface-50-950 dark:fill-surface-900" />
+							</div>
 						</Popover.Content>
 					</Popover.Positioner>
 				</Popover>
@@ -1371,8 +1547,9 @@
 										headerHeight}px; column-gap: {LOG_COLUMNS_GAP_PX}px; row-gap: 0;"
 								>
 									{#each columns as { name, cls, style } (name)}
-										{@const value = getValue(name, log, index)}
+										{@const value = String(getValue(name, log, index) ?? '')}
 										<button
+											{...getLogMetaTooltipTriggerProps(index, name, value)}
 											{style}
 											class="px-px {cls} cursor-cell overflow-hidden pt-[3px] text-left leading-none text-nowrap"
 											animate:grabFlip={{ duration }}
@@ -1388,23 +1565,19 @@
 									style="scrollbar-width: none; --tw-ring-opacity: 0.3;"
 									{@attach dragscroll}
 								>
-									{#if founds.length > 0}
-										{@const _founds = founds.filter((f) => f.index == index)}
-										{#if _founds.length > 0}
-											{#each _founds as found, idx (found.start)}
-												{@const { start, end } = found}
-												{#if idx == 0}
-													{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
-														{@attach attachScrollIntoView}
-														class="searchedCurrent">{log[4].substring(start, end)}</span
-													>{:else}<span class="searched">{log[4].substring(start, end)}</span
-													>{/if}{#if idx < _founds.length - 1}{log[4].substring(
-														end,
-														_founds[idx + 1].start
-													)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
-											{log[4]}
-										{/if}
-									{:else}
+									{#if getLineFounds(index).length > 0}
+										{@const _founds = getLineFounds(index)}
+										{#each _founds as found, idx (found.start)}
+											{@const { start, end } = found}
+											{#if idx == 0}
+												{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
+													{@attach attachScrollIntoView}
+													class="searchedCurrent">{log[4].substring(start, end)}</span
+												>{:else}<span class="searched">{log[4].substring(start, end)}</span
+												>{/if}{#if idx < _founds.length - 1}{log[4].substring(
+													end,
+													_founds[idx + 1].start
+												)}{:else}{log[4].substring(end)}{/if}{/each}{:else}
 										{log[4]}
 									{/if}
 								</div>
@@ -1414,12 +1587,30 @@
 				</VirtualList>
 			</div>
 		</MaxRectangle>
+		<Portal>
+			<div {...logMetaTooltip().getPositionerProps()} class="z-[120]">
+				<div
+					{...logMetaTooltip().getContentProps()}
+					class="max-w-[min(80vw,60rem)] overflow-hidden card preset-filled-surface-950-50 p-2 text-xs leading-tight break-words whitespace-pre-wrap"
+				>
+					{logMetaTooltipText}
+					<div
+						{...logMetaTooltip().getArrowProps()}
+						class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+					>
+						<div {...logMetaTooltip().getArrowTipProps()}></div>
+					</div>
+				</div>
+			</div>
+		</Portal>
 	</div>
 	<div
 		class="layout-x-p-none items-center justify-between rounded-sm rounded-t-none preset-filled-surface-100-900 py-1! px!"
 	>
 		<span class="h-fit"
-			>Lines {showedLines.start + 1}-{showedLines.end + 1} of {logs.length}
+			>Lines {logs.length ? Math.min(showedLines.start + 1, logs.length) : 0}-{logs.length
+				? Math.min(showedLines.end + 1, logs.length)
+				: 0} of {logs.length}
 			{#if Object.entries(filters).length > 0}[{Logs.logs.length} w/o filter]{/if}
 			{#if !Logs.live}({Logs.moreResults ? 'More' : 'No more'} on server){/if}
 			{#if Logs.calling}Calling…{/if}</span
@@ -1537,7 +1728,24 @@
 	}
 
 	:global(.log-search-positioner) {
-		z-index: 20;
+		position: fixed !important;
+		top: var(--log-search-top) !important;
+		right: 1rem !important;
+		left: auto !important;
+		transform: none !important;
+		z-index: 130 !important;
+		max-width: calc(100vw - 2rem);
+	}
+
+	:global(.log-search-content) {
+		@apply border-none bg-transparent p-0 shadow-none;
+	}
+
+	@media (max-width: 640px) {
+		:global(.log-search-positioner) {
+			right: 0.5rem !important;
+			max-width: calc(100vw - 1rem);
+		}
 	}
 
 	.log-meta {
