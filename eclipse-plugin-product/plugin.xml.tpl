@@ -32,11 +32,11 @@
          </property>
          <property
                name="startupMessageRect"
-               value="40,265,220,35">
+               value="45,297,250,35">
          </property>
          <property
                name="startupProgressRect"
-               value="0,316,500,16">
+               value="0,354,560,16">
          </property>
          <property
                name="windowImages"

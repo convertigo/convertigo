@@ -37,8 +37,8 @@
 
    <splash
       location="com.twinsoft.convertigo.studio.product"
-      startupProgressRect="0,316,500,16"
-      startupMessageRect="40,265,220,35"
+      startupProgressRect="0,354,560,16"
+      startupMessageRect="45,297,250,35"
       startupForegroundColor="FFFFFF" />
    <launcher name="ConvertigoStudio">
       <linux icon="images/convertigo_256x256_8.xpm"/>

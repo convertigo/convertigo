@@ -20,23 +20,31 @@ public class MakeSplash {
 	private static Font font;
 	private static Graphics2D g;
 	private static FontRenderContext frc;
-	private static Color colorBorder = Color.WHITE;//new Color(172, 234, 255);
+	private static Color colorShadow = new Color(0, 18, 55, 190);
+	private static Color colorBorder = new Color(175, 225, 255, 210);
 	private static Color colorFill = Color.WHITE;
 
 	private static void write(String text, int x, int y, float size, boolean border) {
 		GlyphVector gv = font.deriveFont(Font.BOLD, size).createGlyphVector(frc, text);
 		Rectangle2D box = gv.getVisualBounds();
 		Shape shape = gv.getOutline(x - (int) box.getX(), y - (int) box.getY());
+		g.translate(2, 2);
+		g.setColor(colorShadow);
+		g.fill(shape);
+		g.translate(-2, -2);
 		if (border) {
 			g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 			g.setColor(colorBorder);
 			g.draw(shape);
-//			g.setColor(colorFill);
-//			g.fill(shape);
-		} else {
-			g.setColor(colorFill);
-			g.fill(shape);
 		}
+		g.setColor(colorFill);
+		g.fill(shape);
+	}
+
+	private static void writeCentered(String text, int centerX, int y, float size, boolean border) {
+		GlyphVector gv = font.deriveFont(Font.BOLD, size).createGlyphVector(frc, text);
+		Rectangle2D box = gv.getVisualBounds();
+		write(text, centerX - (int) Math.round(box.getWidth() / 2), y, size, border);
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -65,26 +73,34 @@ public class MakeSplash {
 				RenderingHints.KEY_ANTIALIASING,
 				RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setRenderingHint(
+				RenderingHints.KEY_TEXT_ANTIALIASING,
+				RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		g.setRenderingHint(
 				RenderingHints.KEY_INTERPOLATION,
 				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		g.setRenderingHint(
 				RenderingHints.KEY_RENDERING,
 				RenderingHints.VALUE_RENDER_QUALITY);
 
+		int width = background.getWidth();
+		int height = background.getHeight();
+		float scale = width / 500f;
+		int bottomBandCenterY = Math.round(height - 54 * scale);
+		int studioWidth = Math.round(320 * scale);
+		int studioHeight = Math.round(137 * scale);
+		int logoWidth = Math.round(132 * scale);
+		int logoHeight = Math.round(48 * scale);
 		g.drawImage(background, 0, 0, null);
-		g.drawImage(convertigo, 25, 30, null);
-		g.drawImage(logo, 347, 240, 132, 48, null);
+		g.drawImage(convertigo, (width - studioWidth) / 2, Math.round(92 * scale), studioWidth, studioHeight, null);
+		g.drawImage(logo, width - Math.round(145 * scale), bottomBandCenterY - logoHeight / 2, logoWidth, logoHeight, null);
 		
 		try (FileInputStream fis = new FileInputStream("Interstate Light.ttf")) {
 			font = Font.createFont(Font.TRUETYPE_FONT, fis);
 		}
 		
-		int dx = -55;
-		int dy = 58;
-		write(codename, 80 + dx, 175 + dy, 42f, true);
-		write(code, 90 + dx, 225 + dy, 25f, true);
-		write(version, 150 + dx, 230 + dy, 16f, false);
-		write(copyright, 285, 295, 11f, false);
+		writeCentered(codename, width / 2, Math.round(bottomBandCenterY - 24 * scale), 34f * scale, true);
+		writeCentered(code + "   " + version, width / 2, Math.round(bottomBandCenterY + 7 * scale), 17f * scale, false);
+		writeCentered(copyright, width / 2, Math.round(height - 27 * scale), 11f * scale, false);
 		
 		for (String output: outputs.split(":")) {
 			File output_file = new File(output);

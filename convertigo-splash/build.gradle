@@ -26,7 +26,7 @@ run.systemProperties(
 )
 
 run {
-	inputs.files 'convertigo-splash/convertigo_background.png', 'convertigo-splash/eclipse_builton.png'
+	inputs.files 'background.png', 'convertigo_studio.png', 'eclipse_builton.png', 'Interstate Light.ttf'
 	inputs.properties run.systemProperties
 	outputs.files '../eclipse-plugin-product/splash.bmp', '../eclipse-plugin-product/content/convertigoBox.png'
 }
