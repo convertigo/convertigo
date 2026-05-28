@@ -183,6 +183,52 @@ public class EnginePropertiesManager {
 		}
 	}
 
+	private enum RedisSslVerificationMode implements ComboEnum {
+		DEFAULT("", "Default (STRICT - certificate and hostname)"),
+		STRICT("STRICT", "STRICT - certificate and hostname"),
+		CA_ONLY("CA_ONLY", "CA_ONLY - certificate only, ignore hostname"),
+		NONE("NONE", "NONE - no certificate verification");
+
+		final String display;
+		final String value;
+
+		RedisSslVerificationMode(String value, String display) {
+			this.display = display;
+			this.value = value;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+
+	private enum RedisSslStoreType implements ComboEnum {
+		DEFAULT("", "Default"),
+		PKCS12("PKCS12", "PKCS12 - PKCS#12 store"),
+		JKS("JKS", "JKS - Java KeyStore"),
+		PEM("PEM", "PEM - certificate/key files");
+
+		final String display;
+		final String value;
+
+		RedisSslStoreType(String value, String display) {
+			this.display = display;
+			this.value = value;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+
 	public enum ProxyMode implements ComboEnum {
 		off ("disabled"),
 		auto ("automatic"),
@@ -515,12 +561,26 @@ public class EnginePropertiesManager {
 		SESSION_REDIS_PORT("session.redis.port", "6379", "Redis port used by the session manager", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
 		SESSION_REDIS_USERNAME("session.redis.username", "", "Redis username (optional)", PropertyCategory.Session),
-		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain)
+		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
 		SESSION_REDIS_PASSWORD("session.redis.password", "", "Redis password (optional)", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
 		SESSION_REDIS_DATABASE("session.redis.database", "0", "Redis logical database index", PropertyCategory.Session),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		SESSION_REDIS_SSL("session.redis.ssl", "false", "Enable SSL/TLS for the Redis connection", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
+		SESSION_REDIS_SSL_TRUSTSTORE("session.redis.ssl.truststore", "", "Redis SSL server truststore path", PropertyCategory.Session),
+		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
+		SESSION_REDIS_SSL_TRUSTSTORE_PASSWORD("session.redis.ssl.truststore.password", "", "Redis SSL server truststore password", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
+		SESSION_REDIS_SSL_KEYSTORE("session.redis.ssl.keystore", "", "Redis SSL client keystore path", PropertyCategory.Session),
+		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
+		SESSION_REDIS_SSL_KEYSTORE_PASSWORD("session.redis.ssl.keystore.password", "", "Redis SSL client keystore password", PropertyCategory.Session),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = RedisSslStoreType.class)
+		SESSION_REDIS_SSL_KEYSTORE_TYPE("session.redis.ssl.keystore.type", "", "Redis SSL client keystore type", PropertyCategory.Session),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = RedisSslVerificationMode.class)
+		SESSION_REDIS_SSL_VERIFICATION_MODE("session.redis.ssl.verification.mode", "", "Redis SSL server certificate verification mode", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
+		SESSION_REDIS_SSL_PROTOCOLS("session.redis.ssl.protocols", "", "Redis SSL/TLS protocol versions (for example: TLSv1.3,TLSv1.2)", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
 		SESSION_REDIS_TIMEOUT("session.redis.timeout", "5000", "Redis command timeout in milliseconds", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
