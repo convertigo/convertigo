@@ -96,11 +96,14 @@ public class List extends XmlService{
 	        		Element propertyElement = document.createElement("property");
 	        		propertyElement.setAttribute("name", property.name());
 	        		propertyElement.setAttribute("type", property.getType().name());
-	        		propertyElement.setAttribute("description", property.getDescription());
+					boolean systemPropertyOverride = EnginePropertiesManager.hasSystemPropertyOverride(property);
+					propertyElement.setAttribute("description", property.getDescription()
+							+ (systemPropertyOverride ? " *" : ""));
 	        		propertyElement.setAttribute("value", value);
 	        		propertyElement.setAttribute("originalValue", originalValue);
 	        		propertyElement.setAttribute("defaultValue", property.getDefaultValue());
 	        		propertyElement.setAttribute("isAdvanced", Boolean.toString(property.isAdvance()));
+					propertyElement.setAttribute("systemPropertyOverride", Boolean.toString(systemPropertyOverride));
 	
 	
 	        		categoryElement.appendChild(propertyElement);

@@ -963,7 +963,7 @@ public class EnginePropertiesManager {
 		}
 	}
 
-	private static boolean hasSystemPropertyOverride(PropertyName property) {
+	public static boolean hasSystemPropertyOverride(PropertyName property) {
 		return System.getProperty(SYSTEM_PROP_PREFIX + property.getKey()) != null;
 	}
 
