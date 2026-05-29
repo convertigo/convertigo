@@ -553,6 +553,218 @@ task generateDockerfile {
 	}
 }
 
+def dockerDocsOfficialDir = {
+	file(findProperty('dockerDocsDir') ?: '../docker-docs')
+}
+
+def runDockerDocsOfficialCommand = { File workingDir, List<String> command, Map<String, String> environment = [:] ->
+	def normalizedCommand = command.collect { it.toString() }
+	println "\$ ${normalizedCommand.collect { it.contains(' ') ? '"' + it + '"' : it }.join(' ')}"
+	def processBuilder = new ProcessBuilder(normalizedCommand)
+		.directory(workingDir)
+		.redirectErrorStream(true)
+	processBuilder.environment().putAll(environment)
+	def process = processBuilder.start()
+	def output = process.inputStream.getText('UTF-8')
+	def exitCode = process.waitFor()
+	if (output) {
+		print output
+	}
+	if (exitCode != 0) {
+		throw new GradleException("Command failed with exit code ${exitCode}: ${command.join(' ')}")
+	}
+	return output
+}
+
+def renderDockerDocsOfficialContent = {
+	def content = []
+	def inCodeBlock = false
+	def dockerRunCodeBlock = false
+
+	def stripCodeIndent = { String line ->
+		return line.startsWith('\t') ? line.substring(1) : line.startsWith('    ') ? line.substring(4) : line.substring(3)
+	}
+
+	def normalizeCodeLine = { String line, boolean canReplaceImage ->
+		def code = stripCodeIndent(line)
+		if (code == 'FROM convertigo') {
+			code = 'FROM %%IMAGE%%'
+		} else if (canReplaceImage || code.trim().replaceFirst(/^\$ /, '').startsWith('docker run ')) {
+			code = code.replaceFirst(/(^|\s)convertigo(\s*\\?)$/, '$1%%IMAGE%%$2')
+		}
+		return code
+	}
+
+	file('docker/README.md').readLines('UTF-8').each { String line ->
+		if (line ==~ /^( {3,}|\t).*/) {
+			if (!inCodeBlock) {
+				content << '```console'
+				inCodeBlock = true
+				dockerRunCodeBlock = stripCodeIndent(line).trim().replaceFirst(/^\$ /, '').startsWith('docker run ')
+			}
+			content << normalizeCodeLine(line, dockerRunCodeBlock)
+		} else {
+			if (inCodeBlock) {
+				content << '```'
+				inCodeBlock = false
+				dockerRunCodeBlock = false
+			}
+			content << line
+			if (line == '> [www.convertigo.com](https://www.convertigo.com)') {
+				content << ''
+				content << '%%LOGO%%'
+			}
+		}
+	}
+	if (inCodeBlock) {
+		content << '```'
+	}
+	return content.collect { it.replaceFirst(/[ \t]+$/, '') }.join('\n') + '\n'
+}
+
+task generateDockerDocsOfficialContent {
+	group = 'convertigo'
+	description = 'Generates the Docker Official Images documentation content from docker/README.md.'
+
+	def output = layout.buildDirectory.file('docker-docs/convertigo/content.md')
+	inputs.file 'docker/README.md'
+	outputs.file output
+	outputs.upToDateWhen { false }
+
+	doLast {
+		def outputFile = output.get().asFile
+		outputFile.parentFile.mkdirs()
+		outputFile.setText(renderDockerDocsOfficialContent(), 'UTF-8')
+	}
+}
+
+task checkDockerDocsOfficial(dependsOn: 'generateDockerDocsOfficialContent') {
+	group = 'convertigo'
+	description = 'Checks that the sibling docker-docs repository is synchronized with docker/README.md.'
+
+	doLast {
+		def target = new File(dockerDocsOfficialDir(), 'convertigo/content.md')
+		if (!target.isFile()) {
+			throw new GradleException("Docker docs target not found: ${target}. Use -PdockerDocsDir=path/to/docker-docs if repositories are not siblings.")
+		}
+		def generated = layout.buildDirectory.file('docker-docs/convertigo/content.md').get().asFile
+		if (target.getText('UTF-8') != generated.getText('UTF-8')) {
+			throw new GradleException("Docker official docs are not synchronized. Run ./gradlew updateDockerDocsOfficial or inspect ${generated}.")
+		}
+	}
+}
+
+task updateDockerDocsOfficial(dependsOn: 'generateDockerDocsOfficialContent') {
+	group = 'convertigo'
+	description = 'Updates ../docker-docs/convertigo/content.md from docker/README.md. Override with -PdockerDocsDir=path.'
+
+	doLast {
+		def docsDir = dockerDocsOfficialDir()
+		def target = new File(docsDir, 'convertigo/content.md')
+		if (!new File(docsDir, '.git').directory) {
+			throw new GradleException("Docker docs repository not found: ${docsDir}. Use -PdockerDocsDir=path/to/docker-docs if repositories are not siblings.")
+		}
+		if (!target.isFile()) {
+			throw new GradleException("Docker docs target not found: ${target}.")
+		}
+
+		def generated = layout.buildDirectory.file('docker-docs/convertigo/content.md').get().asFile
+		def generatedText = generated.getText('UTF-8')
+		if (target.getText('UTF-8') != generatedText) {
+			def statusProcess = new ProcessBuilder('git', 'status', '--porcelain', '--', 'convertigo/content.md')
+				.directory(docsDir)
+				.redirectErrorStream(true)
+				.start()
+			def statusOutput = statusProcess.inputStream.getText('UTF-8')
+			def statusExitCode = statusProcess.waitFor()
+			if (statusExitCode != 0) {
+				throw new GradleException("Unable to inspect Docker docs git status in ${docsDir}: ${statusOutput.trim()}")
+			}
+			if (!statusOutput.trim().isEmpty() && !project.hasProperty('dockerDocsOverwrite')) {
+				throw new GradleException("Refusing to overwrite locally modified Docker docs file: ${target}. Use -PdockerDocsOverwrite=true to regenerate it anyway.")
+			}
+			target.setText(generatedText, 'UTF-8')
+		}
+	}
+}
+
+task validateDockerDocsOfficial(dependsOn: 'checkDockerDocsOfficial') {
+	group = 'convertigo'
+	description = 'Runs Docker official docs validations for the sibling docker-docs repository.'
+
+	doLast {
+		def docsDir = dockerDocsOfficialDir()
+		if (!new File(docsDir, '.git').directory) {
+			throw new GradleException("Docker docs repository not found: ${docsDir}. Use -PdockerDocsDir=path/to/docker-docs if repositories are not siblings.")
+		}
+
+		runDockerDocsOfficialCommand(docsDir, ['/usr/bin/env', 'bash', '-c', '''
+			files="$(
+				find . \\( -name '*.md' -not -name 'README.md' \\) -exec test -s '{}' ';' -print0 \
+					| xargs -0 ./markdownfmt.sh -l
+			)"
+			if [ -n "$files" ]; then
+				echo >&2 'Need markdownfmt:'
+				echo >&2 "$files"
+				echo >&2
+				echo "$files" | xargs ./markdownfmt.sh -d >&2
+				exit 1
+			fi
+		'''.stripIndent().trim()])
+
+		runDockerDocsOfficialCommand(docsDir, ['/usr/bin/env', 'bash', '-c', './.ci/check-required-files.sh && ./.ci/check-short.sh && ./.ci/check-pr-no-readme.sh'])
+
+		runDockerDocsOfficialCommand(docsDir, ['/usr/bin/env', 'bash', '-c', '''
+			needdiff=
+			need=()
+			while IFS= read -r f; do
+				fdiff="$(./ymlfmt.sh -d "$f")"
+				if [ -n "$fdiff" ]; then
+					need+=( "$f" )
+					needdiff+="$fdiff"$'\\n'
+				fi
+			done < <(find . \\( -name '*.yml' -o -name '*.yaml' \\) -not -path './.github/*')
+			if [ -n "$needdiff" ]; then
+				echo >&2 'Need ymlfmt:'
+				printf '%s\\n' "${need[@]}" >&2
+				echo >&2
+				printf '%s' "$needdiff" >&2
+				exit 1
+			fi
+		'''.stripIndent().trim()], ['DOCKER_DEFAULT_PLATFORM': findProperty('dockerDocsYmlPlatform') ?: 'linux/amd64'])
+
+		runDockerDocsOfficialCommand(docsDir, ['docker', 'run', '--rm',
+			'-v', "${docsDir.absolutePath}:/src:ro",
+			'debian:trixie-slim',
+			'bash', '-c', '''
+				set -Eeuo pipefail
+				export DEBIAN_FRONTEND=noninteractive
+				apt-get update >/dev/null
+				apt-get install -y --no-install-recommends ca-certificates curl git jq util-linux coreutils diffutils findutils >/dev/null
+
+				arch="$(dpkg --print-architecture)"
+				case "$arch" in
+					amd64) bashbrew_asset='bashbrew-amd64' ;;
+					arm64) bashbrew_asset='bashbrew-arm64v8' ;;
+					*) echo >&2 "Unsupported bashbrew validation architecture: $arch"; exit 1 ;;
+				esac
+				curl -fsSL -o /usr/local/bin/bashbrew "https://github.com/docker-library/bashbrew/releases/download/v0.1.14/$bashbrew_asset"
+				chmod +x /usr/local/bin/bashbrew
+
+				mkdir /work
+				cp -a /src/. /work/
+				cd /work
+				.ci/check-metadata.sh
+				if ! ./update.sh convertigo >/tmp/update.log 2>&1; then
+					cat /tmp/update.log >&2
+					exit 1
+				fi
+				tail -80 /tmp/update.log
+			'''.stripIndent().trim()
+		])
+	}
+}
+
 task downloadSystemLibFlowViewer(type: Sync) {
 	group = 'convertigo'
 	
