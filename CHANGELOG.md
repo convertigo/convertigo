@@ -1,5 +1,40 @@
 # Changelog
 
+## 8.4.3
+
+#### Improvements:
+
+- [#1091](https://github.com/convertigo/convertigo/issues/1091) [Studio] The NGX icon picker now includes a search field for faster icon selection
+- [#1093](https://github.com/convertigo/convertigo/issues/1093) [Engine] Docker deployments can now declare explicit public CORS origins, and administration responses include safer default security headers
+- [#1094](https://github.com/convertigo/convertigo/issues/1094) [Engine] Hardened deployments can now hide more public engine details from unauthenticated responses and API specifications
+- [#1100](https://github.com/convertigo/convertigo/issues/1100) [Studio] Mobile application launch actions now use consistent labels and availability from project and application nodes
+- [#1104](https://github.com/convertigo/convertigo/issues/1104) [Studio] Unused external shared component sources are now cleaned immediately after deletion, avoiding rebuild errors before project reload
+- [#1106](https://github.com/convertigo/convertigo/issues/1106) [Engine] Large project deploy, reload and startup now use less transient memory and avoid unnecessary project model parsing
+- [#1107](https://github.com/convertigo/convertigo/issues/1107) [Studio] The NoCode Database embedded view remains compatible with newer server versions and hides unsupported actions
+- [#1115](https://github.com/convertigo/convertigo/issues/1115) [Admin] Monitor charts now open with recent server-side history instead of starting empty after page load
+- [#1116](https://github.com/convertigo/convertigo/issues/1116) [Redis] Redis mode can now connect with TLS or mutual TLS, including truststore and client certificate configuration
+- [#1117](https://github.com/convertigo/convertigo/issues/1117) [Admin] Engine properties overridden from JVM system properties now show a restart hint in the configuration page
+
+#### Bug Fixes:
+
+- [#1089](https://github.com/convertigo/convertigo/issues/1089) [NGX] Fixed, standalone shared components now keep their required local module imports even when the same modules are already used by page templates
+- [#1090](https://github.com/convertigo/convertigo/issues/1090) [NGX] Fixed, Ionic tabs now generate working standalone routes, and obsolete manual tab-selection properties are no longer exposed in Studio
+- [#1096](https://github.com/convertigo/convertigo/issues/1096) [Admin] Fixed, the live log viewer now recovers from reverse-proxy long-poll timeouts without showing spurious errors
+- [#1097](https://github.com/convertigo/convertigo/issues/1097) [Admin] Fixed, the Notifications configuration now displays the correct SMTP label
+- [#1098](https://github.com/convertigo/convertigo/issues/1098) [Engine] Fixed, deployment notification emails now use configurable server information instead of trial-environment defaults
+- [#1099](https://github.com/convertigo/convertigo/issues/1099) [Studio] Fixed, Source Picker dialogs now keep their cancel and confirm buttons visible without requiring a window resize
+- [#1101](https://github.com/convertigo/convertigo/issues/1101) [NGX] Fixed, standalone applications now build and route correctly when menus use shared components or pages target a specific menu
+- [#1102](https://github.com/convertigo/convertigo/issues/1102) [Admin] Fixed, scheduler job groups can be saved without selected jobs, and scheduled requestables now expose their variables and test cases again
+- [#1108](https://github.com/convertigo/convertigo/issues/1108) [Admin] Fixed, project edition pages can now be opened directly or refreshed from the browser
+- [#1109](https://github.com/convertigo/convertigo/issues/1109) [AuthStarter] Fixed, the AuthStarter template now uses the correct page authorization, sign-out and authenticated user bindings
+- [#1110](https://github.com/convertigo/convertigo/issues/1110) [Admin] Fixed, connection access dates now display consistently across server and browser locales
+- [#1111](https://github.com/convertigo/convertigo/issues/1111) [Admin] Fixed, log search and filtering now remain stable while live logs are updating
+- [#1112](https://github.com/convertigo/convertigo/issues/1112) [Admin] Fixed, the log time picker now keeps server-timezone values stable, and dashboard frontend previews render correctly in Firefox
+- [#1113](https://github.com/convertigo/convertigo/issues/1113) [Engine] Fixed, requests sharing the same context can no longer execute concurrently during a local context lock race
+- [#1114](https://github.com/convertigo/convertigo/issues/1114) [Admin] Fixed, monitor and log viewer polling now keep returning available data when runtime counters or rotated log files are temporarily unavailable
+
+---
+
 ## 8.4.2
 
 #### New Features:
