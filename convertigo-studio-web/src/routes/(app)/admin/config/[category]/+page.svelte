@@ -25,6 +25,14 @@
 	);
 	let category = $derived(categories[selectedIndex] ?? {});
 	let categoryDocHref = $derived(getAdminConfigDocHref(category?.name));
+	let normalProperties = $derived(
+		category.property?.filter(({ isAdvanced }) => isAdvanced != 'true') ?? []
+	);
+	let advancedProperties = $derived(
+		category.property?.filter(({ isAdvanced }) => isAdvanced == 'true') ?? []
+	);
+	let hasNormalSystemOverride = $derived(normalProperties.some(hasSystemOverride));
+	let hasAdvancedSystemOverride = $derived(advancedProperties.some(hasSystemOverride));
 
 	RightPart.snippet = rightPart;
 	onDestroy(() => {
@@ -77,6 +85,10 @@
 	);
 
 	let modalYesNo = getContext('modalYesNo');
+
+	function hasSystemOverride(property) {
+		return property?.systemPropertyOverride === true || property?.systemPropertyOverride == 'true';
+	}
 </script>
 
 {#snippet rightPart()}
@@ -118,19 +130,20 @@
 			{/snippet}
 
 			<div class="config-properties layout-cols-2 w-full">
-				{#each category.property as property (property.name ?? property.key ?? property)}
-					{#if property.isAdvanced != 'true'}
-						<PropertyType
-							{...property}
-							bind:value={property.value}
-							loading={property.description == null}
-						/>
-					{/if}
+				{#each normalProperties as property (property.name ?? property.key ?? property)}
+					<PropertyType
+						{...property}
+						bind:value={property.value}
+						loading={property.description == null}
+					/>
 				{/each}
 			</div>
+			{#if hasNormalSystemOverride}
+				<p class="config-legend">* will be reset at JVM restart</p>
+			{/if}
 		</Card>
 
-		{#if category.property?.filter(({ isAdvanced }) => isAdvanced == 'true').length > 0}
+		{#if advancedProperties.length > 0}
 			<AccordionGroup
 				collapsible
 				bind:value={
@@ -152,16 +165,17 @@
 					{/snippet}
 					{#snippet panel()}
 						<div class="config-properties layout-cols-2 w-full">
-							{#each category.property as property (property.name ?? property.key ?? property)}
-								{#if property.isAdvanced == 'true'}
-									<PropertyType
-										{...property}
-										bind:value={property.value}
-										loading={property.description == null}
-									/>
-								{/if}
+							{#each advancedProperties as property (property.name ?? property.key ?? property)}
+								<PropertyType
+									{...property}
+									bind:value={property.value}
+									loading={property.description == null}
+								/>
 							{/each}
 						</div>
+						{#if hasAdvancedSystemOverride}
+							<p class="config-legend">* will be reset at JVM restart</p>
+						{/if}
 					{/snippet}
 				</AccordionSection>
 			</AccordionGroup>
@@ -175,6 +189,13 @@
 	.config-properties {
 		position: relative;
 		--config-separator-color: light-dark(var(--color-surface-400), var(--color-surface-600));
+	}
+
+	.config-legend {
+		margin-top: calc(var(--spacing) * 2);
+		font-size: 0.75rem;
+		line-height: 1rem;
+		color: light-dark(var(--color-surface-600), var(--color-surface-400));
 	}
 
 	@media (min-width: 1024px) {

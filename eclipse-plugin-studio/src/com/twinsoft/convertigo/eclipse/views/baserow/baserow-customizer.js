@@ -1,5 +1,5 @@
 (() => {
-    const CUSTOMIZER_VERSION = '2026.05.19';
+    const CUSTOMIZER_VERSION = '2026.05.28';
     if (window.ConvertigoBaserowCustomizer?.started) {
         window.ConvertigoBaserowCustomizer.clean?.();
         return;
@@ -173,6 +173,8 @@
             '.select__footer-create-link:has(.baserow-icon-gallery)',
             '.select__item:has(.baserow-icon-form)',
             '.select__item:has(.baserow-icon-gallery)',
+            '.select__item:has(.fa-sign-out-alt, .iconoir-log-out, .iconoir-log-out-solid)',
+            '.context__menu-item:has(.fa-sign-out-alt, .iconoir-log-out, .iconoir-log-out-solid)',
             '.header__filter-item:has(.baserow-icon-form)',
             '.header__filter-item:has(.baserow-icon-gallery)',
             '.form-view'
@@ -206,7 +208,12 @@
                 text.includes('galerie') ||
                 text.includes('gallery') ||
                 text.includes('share form') ||
-                text.includes('share the form')
+                text.includes('share the form') ||
+                text.includes('se deconnecter') ||
+                text.includes('deconnexion') ||
+                text.includes('logout') ||
+                text.includes('log out') ||
+                text.includes('sign out')
             ) {
                 it.remove();
             }
@@ -256,6 +263,8 @@
             '.tree__item:has(.baserow-icon-application, .iconoir-lock)',
             'li:has(.choice-items__link .iconoir-lock)',
             '.dashboard__sidebar-group:has(.fa-sign-out-alt)',
+            '.context__menu-item:has(.fa-sign-out-alt, .iconoir-log-out, .iconoir-log-out-solid)',
+            '.select__item:has(.fa-sign-out-alt, .iconoir-log-out, .iconoir-log-out-solid)',
             '.dashboard__resources',
             '.context__menu-item:has(.baserow-icon-dashboard)',
             '.context__menu-item:has(.baserow-icon-application)',

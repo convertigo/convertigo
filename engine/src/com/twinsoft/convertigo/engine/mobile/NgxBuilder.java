@@ -2700,95 +2700,98 @@ public class NgxBuilder extends MobileBuilder {
 					}
 				}
 
-				boolean hasSettings = !build_assets.isEmpty() || !build_scripts.isEmpty() || !build_styles.isEmpty();
-				if (hasSettings) {
-					File tplAngularJson = new File(ionicTplDir, "angular.json");
-					if (tplAngularJson.exists()) {
-						String content = FileUtils.readFileToString(tplAngularJson, "UTF-8");
-						JSONObject jsonObject = new JSONObject(content);
+				File tplAngularJson = new File(ionicTplDir, "angular.json");
+				if (tplAngularJson.exists()) {
+					String content = FileUtils.readFileToString(tplAngularJson, "UTF-8");
+					JSONObject jsonObject = new JSONObject(content);
 
-						JSONArray jsonArray = null;
-						try {
-							JSONObject jsonOptions = jsonObject
-									.getJSONObject("projects")
-									.getJSONObject("app")
-									.getJSONObject("architect")
-									.getJSONObject("build")
-									.getJSONObject("options");
+					JSONArray jsonArray = null;
+					try {
+						JSONObject jsonOptions = jsonObject
+								.getJSONObject("projects")
+								.getJSONObject("app")
+								.getJSONObject("architect")
+								.getJSONObject("build")
+								.getJSONObject("options");
 
-							// Assets
-							jsonArray = jsonOptions.getJSONArray("assets");
-							for (String asset: build_assets) {
-								if (jsonArrayContains(jsonArray, asset)) {
-									continue;
-								}
-								try {
-									JSONObject jsonAsset = new JSONObject(asset);
-									jsonArray.put(jsonAsset);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
+						// Assets
+						jsonArray = jsonOptions.getJSONArray("assets");
+						for (String asset: build_assets) {
+							if (jsonArrayContains(jsonArray, asset)) {
+								continue;
 							}
-							// Scripts
-							jsonArray = jsonOptions.getJSONArray("scripts");
-							for (String script: build_scripts) {
-								if (jsonArrayContains(jsonArray, script)) {
-									continue;
-								}
-								try {
-									jsonArray.put(script);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
+							try {
+								JSONObject jsonAsset = new JSONObject(asset);
+								jsonArray.put(jsonAsset);
+							} catch (Exception e) {
+								e.printStackTrace();
 							}
-							// Styles
-							jsonArray = jsonOptions.getJSONArray("styles");
-							for (String style: build_styles) {
-								if (jsonArrayContains(jsonArray, style)) {
-									continue;
-								}
-								try {
-									jsonArray.put(style);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-						} catch (Exception e) {
-							Engine.logEngine.warn("("+ builderType +") For App angular build options: "+ e.getMessage());
 						}
-
-						try {
-							JSONObject jsonServe = jsonObject
-									.getJSONObject("projects")
-									.getJSONObject("app")
-									.getJSONObject("architect")
-									.getJSONObject("build")
-									.getJSONObject("configurations")
-									.getJSONObject("serve");
-							
-							// Assets
-							jsonArray = jsonServe.getJSONArray("assets");
-							for (String asset: build_assets) {
-								if (jsonArrayContains(jsonArray, asset)) {
-									continue;
-								}
-								try {
-									JSONObject jsonAsset = new JSONObject(asset);
-									jsonArray.put(jsonAsset);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
+						// Scripts
+						jsonArray = jsonOptions.getJSONArray("scripts");
+						for (String script: build_scripts) {
+							if (jsonArrayContains(jsonArray, script)) {
+								continue;
 							}
-						} catch (Exception e) {
-							Engine.logEngine.warn("("+ builderType +") For App angular build configurations: "+ e.getMessage());
+							try {
+								jsonArray.put(script);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
-						
-						setNeedPkgUpdate(true);
-
-						File angularJson = new File(ionicWorkDir, "angular.json");
-						String aContent = jsonObject.toString(1);
-						writeFile(angularJson, aContent, "UTF-8");
+						// Styles
+						jsonArray = jsonOptions.getJSONArray("styles");
+						for (String style: build_styles) {
+							if (jsonArrayContains(jsonArray, style)) {
+								continue;
+							}
+							try {
+								jsonArray.put(style);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					} catch (Exception e) {
+						Engine.logEngine.warn("("+ builderType +") For App angular build options: "+ e.getMessage());
 					}
+
+					try {
+						JSONObject jsonServe = jsonObject
+								.getJSONObject("projects")
+								.getJSONObject("app")
+								.getJSONObject("architect")
+								.getJSONObject("build")
+								.getJSONObject("configurations")
+								.getJSONObject("serve");
+						
+						// Assets
+						jsonArray = jsonServe.getJSONArray("assets");
+						for (String asset: build_assets) {
+							if (jsonArrayContains(jsonArray, asset)) {
+								continue;
+							}
+							try {
+								JSONObject jsonAsset = new JSONObject(asset);
+								jsonArray.put(jsonAsset);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					} catch (Exception e) {
+						Engine.logEngine.warn("("+ builderType +") For App angular build configurations: "+ e.getMessage());
+					}
+					
+					File angularJson = new File(ionicWorkDir, "angular.json");
+					String wContent = FileUtils.readFileToString(angularJson, "UTF-8");
+					JSONObject wJsonObject = new JSONObject(wContent);
+					
+					boolean needUpdate = !jsonObject.toString().equals(wJsonObject.toString());
+					if (needUpdate) {
+						setNeedPkgUpdate(true);
+					}
+					
+					String aContent = jsonObject.toString(1);
+					writeFile(angularJson, aContent, "UTF-8");
 				}
 
 				if (initDone) {

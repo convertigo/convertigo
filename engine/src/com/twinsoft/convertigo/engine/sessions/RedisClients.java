@@ -19,9 +19,16 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.util.Locale;
+
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
+import org.redisson.config.SslVerificationMode;
 
 import com.twinsoft.convertigo.engine.Engine;
 
@@ -94,7 +101,64 @@ public final class RedisClients {
 				.setTimeout(cfg.getTimeoutMillis())
 				.setConnectionPoolSize(cfg.getConnectionPoolSize())
 				.setConnectionMinimumIdleSize(cfg.getConnectionMinimumIdleSize());
+		configureSsl(cfg, config);
 		return Redisson.create(config);
+	}
+
+	private static void configureSsl(RedisSessionConfiguration cfg, Config config) {
+		if (!cfg.isSsl()) {
+			return;
+		}
+		try {
+			if (cfg.getSslTruststore() != null) {
+				config.setSslTruststore(toUrl(cfg.getSslTruststore()));
+			}
+			if (cfg.getSslTruststorePassword() != null) {
+				config.setSslTruststorePassword(cfg.getSslTruststorePassword());
+			}
+			if (cfg.getSslKeystore() != null) {
+				config.setSslKeystore(toUrl(cfg.getSslKeystore()));
+			}
+			if (cfg.getSslKeystorePassword() != null) {
+				config.setSslKeystorePassword(cfg.getSslKeystorePassword());
+			}
+			if (cfg.getSslKeystoreType() != null) {
+				config.setSslKeystoreType(cfg.getSslKeystoreType());
+			}
+			var verificationMode = parseSslVerificationMode(cfg.getSslVerificationMode());
+			if (verificationMode != null) {
+				config.setSslVerificationMode(verificationMode);
+			}
+			var protocols = cfg.getSslProtocols();
+			if (protocols.length > 0) {
+				config.setSslProtocols(protocols);
+			}
+		} catch (MalformedURLException e) {
+			throw new IllegalArgumentException("Invalid Redis SSL configuration", e);
+		}
+	}
+
+	private static URL toUrl(String location) throws MalformedURLException {
+		try {
+			var uri = URI.create(location);
+			if (uri.getScheme() != null) {
+				return uri.toURL();
+			}
+		} catch (IllegalArgumentException e) {
+			// Fall back to a local filesystem path.
+		}
+		return new File(location).toURI().toURL();
+	}
+
+	private static SslVerificationMode parseSslVerificationMode(String value) {
+		if (value == null) {
+			return null;
+		}
+		try {
+			return SslVerificationMode.valueOf(value.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("Invalid Redis SSL verification mode: " + value, e);
+		}
 	}
 
 	private static void registerShutdownHook() {
