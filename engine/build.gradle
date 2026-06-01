@@ -282,7 +282,7 @@ dependencies {
 	compileFlat    'com.convertigo.twinsoft:twinj:2016.05.09'
 	compileFlat    'com.convertigo.twinsoft:ui:2009.06.15'
 	implementation 'com.convertigo.twinsoft:util:2017.12.29'
-	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.21.3'
+	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.21.4'
 	compileFlat    'com.fasterxml.woodstox:woodstox-core:6.7.0'
 	compileFlat    ('com.google.gcm:gcm-server:1.0.0') {
 		exclude group: 'junit', module: 'junit'
@@ -327,7 +327,7 @@ dependencies {
 	compileFlat    'org.codehaus.woodstox:stax2-api:4.3.0'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.6.0.202603022253-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.6.0.202603022253-r'
-	compileFlat    'org.hibernate.orm:hibernate-core:7.3.6.Final'
+	compileFlat    'org.hibernate.orm:hibernate-core:7.4.0.Final'
 	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0'
 	compileFlat    'org.mozilla:rhino:1.9.1'
 	compileFlat    'org.mozilla:rhino-tools:1.9.1'

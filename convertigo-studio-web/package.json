@@ -24,7 +24,7 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.55.9"
+			"svelte": "^5.56.0"
 		}
 	},
 	"devDependencies": {
@@ -46,30 +46,30 @@
 		"@typescript-eslint/parser": "^8.60.0",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
-		"eslint-plugin-svelte": "^3.17.1",
+		"eslint-plugin-svelte": "^3.19.0",
 		"globals": "^17.6.0",
 		"postcss-nesting": "^14.0.0",
 		"prettier": "^3.8.3",
-		"prettier-plugin-svelte": "^4.0.1",
+		"prettier-plugin-svelte": "^4.1.0",
 		"prettier-plugin-tailwindcss": "^0.8.0",
 		"sharp": "^0.34.5",
-		"svelte": "^5.55.9",
-		"svelte-check": "^4.4.8",
-		"svelte-eslint-parser": "^1.6.1",
+		"svelte": "^5.56.0",
+		"svelte-check": "^4.5.0",
+		"svelte-eslint-parser": "^1.7.0",
 		"tailwindcss": "^4.3.0",
 		"typescript": "^6.0.3",
 		"unplugin-icons": "^23.0.1",
-		"vite": "^8.0.14",
-		"vitest": "^4.1.7"
+		"vite": "^8.0.16",
+		"vitest": "^4.1.8"
 	},
 	"type": "module",
 	"dependencies": {
 		"@flaticon/flaticon-uicons": "^3.3.1",
 		"@floating-ui/dom": "^1.7.6",
-		"@internationalized/date": "^3.12.1",
+		"@internationalized/date": "^3.12.2",
 		"@tailwindcss/vite": "^4.3.0",
 		"@xyflow/svelte": "^1.5.2",
-		"@zag-js/tree-view": "^1.41.0",
+		"@zag-js/tree-view": "^1.41.1",
 		"apexcharts": "^5.13.0",
 		"bits-ui": "^2.18.1",
 		"caniuse-lite": "^1.0.30001793",
