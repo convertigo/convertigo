@@ -10,7 +10,7 @@
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import LightSvelte from '$lib/common/Light.svelte';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import Editor from '$lib/studio/editor/Editor.svelte';
+	import RequestableResponseEditor from '$lib/dashboard/RequestableResponseEditor.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { callRequestable } from '$lib/utils/service';
@@ -336,7 +336,7 @@
 														</AccordionGroup>
 													{/if}
 													<div
-														class="sticky bottom-3 z-10 layout-y-low rounded-lg border border-dashed border-surface-200-800/60 bg-surface-50-950/88 p-3 shadow-lg shadow-surface-900/10 backdrop-blur-sm md:layout-x-low md:items-center md:justify-between"
+														class="sticky bottom-3 z-10 layout-x-wrap-low items-center justify-between rounded-lg border border-dashed border-surface-200-800/60 bg-surface-50-950/88 p-3 shadow-lg shadow-surface-900/10 backdrop-blur-sm"
 													>
 														<PropertyType
 															type="segment"
@@ -347,6 +347,7 @@
 														<ActionBar wrap full={false}>
 															<Button
 																label="Execute"
+																full={false}
 																type="submit"
 																class="button-primary"
 																icon="mdi:play-circle-outline"
@@ -354,6 +355,7 @@
 															{#if requestable.response?.length > 0}
 																<Button
 																	label="Clear"
+																	full={false}
 																	type="submit"
 																	class="button-secondary"
 																	icon="mdi:broom"
@@ -362,15 +364,12 @@
 														</ActionBar>
 													</div>
 													{#if requestable.response?.length > 0}
-														<div
-															class="h-[480px] overflow-hidden rounded-lg border border-surface-200-800/60 bg-surface-50-950 shadow-inner"
-															class:animate-pulse={requestable.loading}
-															transition:fly={{ duration, y }}
-														>
-															<Editor
+														<div transition:fly={{ duration, y }}>
+															<RequestableResponseEditor
 																content={requestable.response}
 																language={requestable.language}
 																theme={LightSvelte.light ? '' : 'vs-dark'}
+																loading={requestable.loading}
 															/>
 														</div>
 													{/if}
