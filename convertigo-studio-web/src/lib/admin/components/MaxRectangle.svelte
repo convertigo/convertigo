@@ -11,30 +11,80 @@
 		children,
 		...rest
 	} = $props();
-	let calc = $state(false);
+	let calc = $state(true);
 	let div = $state();
+	let resizeObserver;
+	let mutationObserver;
+	let calcFrame;
 
 	const marginBottom = 8;
 	function toInt(val) {
-		return Math.floor(val.replace('px', ''));
+		return Math.floor(Number.parseFloat(val) || 0);
+	}
+
+	function requestCalc() {
+		if (calc) {
+			return;
+		}
+		if (calcFrame) {
+			return;
+		}
+		calcFrame = requestAnimationFrame(() => {
+			calcFrame = undefined;
+			calc = true;
+		});
+	}
+
+	function observeLayoutSources() {
+		if (!div || !resizeObserver) {
+			return;
+		}
+
+		resizeObserver.disconnect();
+		mutationObserver?.disconnect();
+		resizeObserver.observe(window.document.body);
+
+		const parents = new Set();
+		let node = div;
+		while (node?.parentElement && node !== window.document.body) {
+			const parent = node.parentElement;
+			parents.add(parent);
+			resizeObserver.observe(parent);
+			for (const child of parent.children) {
+				if (child !== node) {
+					resizeObserver.observe(child);
+				}
+			}
+			node = parent;
+		}
+
+		for (const parent of parents) {
+			mutationObserver?.observe(parent, { childList: true });
+		}
 	}
 
 	const doCalc = $derived(
 		debounce(() => {
-			if (!div) {
+			if (!div?.parentElement) {
 				return;
 			}
 			tick().then(() => {
-				const { paddingTop, paddingBottom, paddingLeft, paddingRight, height, width } =
-					getComputedStyle(div.parentElement);
-				const parentHeight = toInt(height) - toInt(paddingTop) - toInt(paddingBottom);
-				const parentWidth = toInt(width) - toInt(paddingLeft) - toInt(paddingRight);
+				if (!div?.parentElement) {
+					return;
+				}
+				const { paddingTop, paddingBottom, paddingLeft, paddingRight } = getComputedStyle(
+					div.parentElement
+				);
+				const parentHeight =
+					div.parentElement.clientHeight - toInt(paddingTop) - toInt(paddingBottom);
+				const parentWidth =
+					div.parentElement.clientWidth - toInt(paddingLeft) - toInt(paddingRight);
 
 				const rect = div.getBoundingClientRect();
 				const viewportAvail = Math.max(0, Math.floor(window.innerHeight - rect.top - marginBottom));
 				const nHeight = Math.min(parentHeight, viewportAvail || parentHeight);
-				clientHeight = nHeight < clientHeight ? minHeight : nHeight;
-				clientWidth = parentWidth;
+				clientHeight = Math.max(minHeight, nHeight);
+				clientWidth = Math.max(0, parentWidth);
 				calc = false;
 			});
 		}, delay)
@@ -45,10 +95,11 @@
 			return;
 		}
 		if (!enabled) {
-			div.style.height = div.style.maxHeight = div.style.width = div.style.maxWidth = null;
+			div.style.height = div.style.maxHeight = div.style.width = div.style.maxWidth = '';
+			calc = true;
 			return;
 		}
-		if (calc) {
+		if (calc || clientHeight == null || clientWidth == null) {
 			doCalc();
 		} else {
 			div.style.height = `${clientHeight}px`;
@@ -59,11 +110,19 @@
 	});
 
 	onMount(() => {
-		const observer = new ResizeObserver(() => (calc = true));
-		observer.observe(div.parentElement);
-		observer.observe(window.document.body);
+		resizeObserver = new ResizeObserver(requestCalc);
+		mutationObserver = new MutationObserver(() => {
+			observeLayoutSources();
+			requestCalc();
+		});
+		observeLayoutSources();
+		requestCalc();
 		return () => {
-			observer.disconnect();
+			resizeObserver?.disconnect();
+			mutationObserver?.disconnect();
+			if (calcFrame) {
+				cancelAnimationFrame(calcFrame);
+			}
 		};
 	});
 </script>

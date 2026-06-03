@@ -105,6 +105,13 @@ async function list(clear = false) {
 	}
 }
 
+function clear() {
+	lastCall += 1;
+	logs = [];
+	moreResults = false;
+	calling = false;
+}
+
 export default {
 	get logs() {
 		return logs;
@@ -144,5 +151,6 @@ export default {
 	},
 	formatDate,
 	formatTime,
+	clear,
 	list
 };
