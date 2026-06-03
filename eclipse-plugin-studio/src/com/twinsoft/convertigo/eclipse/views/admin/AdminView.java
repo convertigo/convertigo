@@ -21,7 +21,9 @@ package com.twinsoft.convertigo.eclipse.views.admin;
 
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -50,8 +52,8 @@ public class AdminView extends ViewPart {
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.admin.AdminView";
 
 	
-	private static String lastAuthToken;
-	private static long lastAuthTokenExpiration;
+	private static final Map<String, Long> authTokens = new ConcurrentHashMap<>();
+	private static final long AUTH_TOKEN_TTL = 30000;
 
 	private C8oBrowser browser = null;
 		
@@ -135,19 +137,28 @@ public class AdminView extends ViewPart {
 	}
 	
 	public static void checkAuthToken(String authToken) throws InvalidParameterException {
-		boolean isAuth = authToken != null && authToken.equals(lastAuthToken) && System.currentTimeMillis() < lastAuthTokenExpiration;
-		lastAuthToken = null;
-		lastAuthTokenExpiration = 0;
+		long now = System.currentTimeMillis();
+		Long expiration = authToken == null ? null : authTokens.remove(authToken);
+		boolean isAuth = expiration != null && now < expiration;
 		if (!isAuth) {
 			throw new InvalidParameterException("authToken not valid");
 		}
 	}
 
+	public static String getAuthenticatedUrl(String path) {
+		long now = System.currentTimeMillis();
+		authTokens.entrySet().removeIf(entry -> entry.getValue() < now);
+		String authToken = UUID.randomUUID().toString();
+		authTokens.put(authToken, now + AUTH_TOKEN_TTL);
+
+		String baseUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+		path = path == null || path.isBlank() ? "/" : path;
+		path = path.startsWith("/") ? path : "/" + path;
+		return baseUrl.replaceFirst("/+$", "") + path + "#authToken=" + authToken;
+	}
+
 	private String getUrl() {
-		lastAuthToken = UUID.randomUUID().toString();
-		lastAuthTokenExpiration = System.currentTimeMillis() + 30000;
-		
-		return EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/#authToken=" + lastAuthToken;
+		return getAuthenticatedUrl("/");
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {

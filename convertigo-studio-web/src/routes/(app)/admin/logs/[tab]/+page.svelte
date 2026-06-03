@@ -395,10 +395,10 @@
 				</div>
 			</div>
 		{/snippet}
-		<div class="h-full">
+		<div class="min-h-0 flex-1">
 			{#if tabSet == 'view'}
-				<div class="layout-y-stretch-low h-full" transition:slide={{ axis: 'y' }}>
-					<div transition:slide={{ axis: 'y' }}>
+				<div class="layout-y-stretch-low h-full min-h-0" transition:slide={{ axis: 'y' }}>
+					<div class="shrink-0" transition:slide={{ axis: 'y' }}>
 						<div class="relative z-10 layout-x-end-low flex-wrap items-center">
 							<div class="layout-x-end-low flex-wrap items-center">
 								<Popover open={presetOpened} onOpenChange={(e) => (presetOpened = e.open)}>
@@ -483,7 +483,7 @@
 							{/if}
 						</div>
 					</div>
-					<div class="-mx -mb h-full">
+					<div class="-mx -mb min-h-0 flex-1">
 						<LogViewer
 							bind:this={logViewer}
 							{autoScroll}

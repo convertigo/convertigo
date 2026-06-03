@@ -31,6 +31,12 @@ const pageRules = [
 		configRoles: 'LOGS_CONFIG'
 	},
 	{
+		page: '/(embedded)/admin/eclipse/logs',
+		viewRoles: 'LOGS_VIEW',
+		configRoles: 'LOGS_CONFIG',
+		navigable: false
+	},
+	{
 		page: '/(app)/admin/cache',
 		viewRoles: 'CACHE_VIEW',
 		configRoles: 'CACHE_CONFIG'

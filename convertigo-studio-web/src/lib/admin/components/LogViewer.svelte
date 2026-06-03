@@ -88,17 +88,26 @@
 			includes: 'Includes',
 			endsWith: 'Ends With'
 		})[value] ?? value;
+	const clearPresets = [
+		{ label: 'Now', minutes: 0 },
+		{ label: 'Last minute', minutes: 1 },
+		{ label: 'Last 5 min', minutes: 5 },
+		{ label: 'Last hour', minutes: 60 },
+		{ label: 'Today', today: true }
+	];
 
 	let modalYesNo = getContext('modalYesNo');
 
-	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, live?: boolean}} */
+	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, live?: boolean, studioMode?: boolean, onConfigureLevels?: (event?: any) => any}} */
 	let {
 		autoScroll = $bindable(false),
 		filters = $bindable({}),
 		serverFilter = $bindable(''),
 		startDate = $bindable(''),
 		endDate = $bindable(''),
-		live = $bindable(false)
+		live = $bindable(false),
+		studioMode = false,
+		onConfigureLevels
 	} = $props();
 	const extraLinesState = persistedState('admin.logs.extraLines', 1, { syncTabs: false });
 	let extraLines = $derived(extraLinesState.current);
@@ -109,7 +118,8 @@
 	let pulsedCategoryTimeout;
 	let showedLines = $state({ start: 0, end: 0 });
 	let clientHeight = $state(200);
-	let fullscreen = $state(false);
+	let fullscreenRequested = $state(false);
+	let fullscreen = $derived(studioMode || fullscreenRequested);
 	const attachHeaderMetrics = $derived(fromAction(measureHeaderMetrics));
 	const attachMessageMetrics = $derived(fromAction(measureMessageMetrics));
 	const attachScrollIntoView = $derived(fromAction(scrollIntoView));
@@ -205,14 +215,10 @@
 
 	async function itemsUpdated({ detail }) {
 		showedLines = detail;
-		if (recenter) {
-			recenter();
-		} else {
-			if (detail.end >= logs.length - 1 && !Logs.calling) {
-				await list();
-			}
-			await doAutoScroll();
+		if (detail.end >= logs.length - 1 && !Logs.calling) {
+			await list();
 		}
+		await doAutoScroll();
 	}
 
 	async function afterScroll({ detail }) {
@@ -711,6 +717,41 @@
 		doSearch();
 	}
 
+	function formatLogDateTime(date = new Date()) {
+		const pad = (value, length = 2) => String(value).padStart(length, '0');
+		return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
+			date.getHours()
+		)}:${pad(date.getMinutes())}:${pad(date.getSeconds())},${pad(date.getMilliseconds(), 3)}`;
+	}
+
+	function getClearStartDate(preset, current) {
+		if (preset?.today) {
+			return new Date(current.getFullYear(), current.getMonth(), current.getDate());
+		}
+		return new Date(current.getTime() - (preset?.minutes ?? 0) * 60000);
+	}
+
+	async function clearLoadedLogs(preset = clearPresets[0]) {
+		if (retryTimer) {
+			clearTimeout(retryTimer);
+			retryTimer = undefined;
+		}
+		const current = new Date();
+		startDate = formatLogDateTime(getClearStartDate(preset, current));
+		endDate = formatLogDateTime(current);
+		live = true;
+		Logs.clear();
+		logs = [];
+		visibleFilterKey = '';
+		showedLines = { start: 0, end: 0 };
+		_scrollToIndex = undefined;
+		autoScroll = true;
+		autoScrollSuspendedByScroll = false;
+		resetSearchResults();
+		clearPresetsOpened = false;
+		await list(true);
+	}
+
 	function getScrollableParent(e) {
 		for (let parent = e.parentElement; parent; parent = parent.parentElement) {
 			if (parent.scrollHeight > parent.clientHeight) return parent;
@@ -748,6 +789,7 @@
 
 	let searchInput = $state();
 	let searchBoxOpened = $state(false);
+	let clearPresetsOpened = $state(false);
 	let lastScrollOffset = 0;
 	let autoScrollSuspendedByScroll = false;
 	const attachSearchInput = $derived(fromAction(setSearchInput));
@@ -762,18 +804,29 @@
 		};
 	}
 
-	let recenter;
+	let extraLinesRunId = 0;
 
-	function addExtraLines(inc) {
-		const centerLine = getCenterLine();
-		extraLines += inc;
-		virtualList.recomputeSizes(0);
-		recenter = debounce(async () => {
-			_scrollToIndex = undefined;
-			recenter = undefined;
-			await tick();
-			_scrollToIndex = centerLine;
-		}, 333);
+	async function addExtraLines(inc) {
+		const current = Number(extraLinesState.current) || 0;
+		const next = Math.max(0, current + inc);
+		if (next === current) return;
+
+		const runId = ++extraLinesRunId;
+		const targetLine = autoScroll ? logs.length - 1 : getCenterLine();
+		extraLinesState.current = next;
+		_scrollToIndex = undefined;
+
+		await tick();
+		if (runId !== extraLinesRunId) return;
+		virtualList?.recomputeSizes?.(0);
+
+		await tick();
+		if (runId !== extraLinesRunId) return;
+		if (autoScroll) {
+			await doAutoScroll();
+		} else {
+			scheduleScrollTo(targetLine);
+		}
 	}
 
 	let modalFilter = $state();
@@ -1188,7 +1241,11 @@
 		</Card>
 	{/snippet}
 </ModalDynamic>
-<div class="layout-y-stretch-none h-full w-full text-xs" class:fullscreen>
+<div
+	class="layout-y-stretch-none h-full min-h-0 w-full text-xs {fullscreen ? 'overflow-hidden' : ''}"
+	class:fullscreen
+	class:studio-mode={studioMode}
+>
 	<div
 		aria-hidden="true"
 		style="position: absolute; left: -9999px; top: -9999px; visibility: hidden;"
@@ -1200,10 +1257,10 @@
 			<div class="p-1 font-mono leading-4 whitespace-pre" {@attach attachMessageMetrics}>Ag</div>
 		</div>
 	</div>
-	<div class="layout-y-stretch-low">
+	<div class="layout-y-stretch-low shrink-0">
 		{#if showFilters.current}
 			<div
-				class="mx-low layout-x-wrap-none gap-1 rounded-sm border border-surface-200-800 bg-surface-100-900 p-1"
+				class="log-columns-panel mx-low layout-x-wrap-none gap-1 rounded-sm border border-surface-200-800 bg-surface-100-900 p-1"
 				transition:slide={{ axis: 'y' }}
 			>
 				{#each columnsOrder as conf, index (conf.name)}
@@ -1259,13 +1316,15 @@
 			class="log-toolbar-row mx-low rounded-sm border border-surface-200-800 bg-surface-100-900 p-1"
 		>
 			<div class="log-toolbar-group">
-				<Button
-					{size}
-					icon="mdi:fullscreen{!browser && fullscreen ? '-exit' : ''}"
-					title={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-					cls="log-toolbar-button"
-					onmousedown={() => (fullscreen = !fullscreen)}
-				/>
+				{#if !studioMode}
+					<Button
+						{size}
+						icon="mdi:fullscreen{!browser && fullscreen ? '-exit' : ''}"
+						title={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+						cls="log-toolbar-button"
+						onmousedown={() => (fullscreenRequested = !fullscreenRequested)}
+					/>
+				{/if}
 				<Popover
 					open={searchBoxOpened}
 					onOpenChange={(e) => {
@@ -1363,23 +1422,85 @@
 					cls={showFilters.current ? 'log-toolbar-button-active' : 'log-toolbar-button'}
 					onmousedown={() => (showFilters.current = !showFilters.current)}
 				/>
-				{#if showFilters.current}
+				{#if onConfigureLevels}
 					<Button
 						{size}
-						icon="mdi:plus"
-						title="Increase message lines"
+						icon="mdi:cog-outline"
+						title="Configure log levels"
+						ariaLabel="Configure log levels"
 						cls="log-toolbar-button"
-						onclick={() => addExtraLines(1)}
+						onclick={onConfigureLevels}
 					/>
-					{#if extraLines > 0}
-						<Button
-							{size}
-							icon="mdi:minus"
-							title="Decrease message lines"
-							cls="log-toolbar-button"
-							onclick={() => addExtraLines(-1)}
-						/>
-					{/if}
+				{/if}
+				<Button
+					{size}
+					icon="mdi:plus"
+					title={`Show one more metadata line above each message (${extraLines})`}
+					ariaLabel="Increase message lines"
+					cls="log-toolbar-button"
+					onclick={() => addExtraLines(1)}
+				/>
+				<Button
+					{size}
+					icon="mdi:minus"
+					title={`Show one less metadata line above each message (${extraLines})`}
+					ariaLabel="Decrease message lines"
+					disabled={extraLines <= 0}
+					cls="log-toolbar-button"
+					onclick={() => addExtraLines(-1)}
+				/>
+				{#if studioMode}
+					<Popover
+						open={clearPresetsOpened}
+						onOpenChange={(event) => (clearPresetsOpened = event.open)}
+						positioning={{ placement: 'bottom-start' }}
+					>
+						<Tooltip positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}>
+							<Tooltip.Trigger>
+								{#snippet element(attributes)}
+									<Popover.Trigger
+										{...attributes}
+										class="log-toolbar-button"
+										aria-label="Clear loaded logs"
+									>
+										<Ico icon="mdi:broom" />
+									</Popover.Trigger>
+								{/snippet}
+							</Tooltip.Trigger>
+							<Portal>
+								<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
+									<Tooltip.Content
+										class="card preset-filled-surface-950-50 p-2 text-xs leading-none"
+									>
+										<span>Clear loaded logs and restart live tail</span>
+										<Tooltip.Arrow
+											class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
+										>
+											<Tooltip.ArrowTip />
+										</Tooltip.Arrow>
+									</Tooltip.Content>
+								</Tooltip.Positioner>
+							</Portal>
+						</Tooltip>
+						<Popover.Positioner class="z-[130]" style="z-index: 130;">
+							<Popover.Content class="log-search-content">
+								<div
+									class="rounded-sm bg-surface-50-950 p-1 text-black shadow-follow dark:text-white"
+								>
+									<div class="layout-y-stretch-none gap-0.5">
+										{#each clearPresets as preset (preset.label)}
+											<Button
+												full={false}
+												label={preset.label}
+												class="button-secondary h-7! justify-start px-2! text-xs"
+												onclick={() => clearLoadedLogs(preset)}
+											/>
+										{/each}
+									</div>
+								</div>
+							</Popover.Content>
+						</Popover.Positioner>
+					</Popover>
 				{/if}
 			</div>
 			<div class="log-filter-chip mini-card mini-card-neutral">
@@ -1502,8 +1623,12 @@
 			{/each}
 		</div>
 	</div>
-	<div class="grow">
-		<MaxRectangle bind:clientHeight delay={300}>
+	<div class="min-h-0 flex-1 overflow-hidden">
+		<MaxRectangle
+			bind:clientHeight
+			delay={fullscreen ? -1 : 300}
+			class="h-full min-h-0 w-full overflow-hidden"
+		>
 			<div
 				class="h-full w-full"
 				onwheel={(event) => {
@@ -1605,22 +1730,34 @@
 		</Portal>
 	</div>
 	<div
-		class="layout-x-p-none items-center justify-between rounded-sm rounded-t-none preset-filled-surface-100-900 py-1! px!"
+		class="log-status-row layout-x-p-none shrink-0 items-center justify-between rounded-sm rounded-t-none preset-filled-surface-100-900 px! py-1!"
 	>
-		<span class="h-fit"
-			>Lines {logs.length ? Math.min(showedLines.start + 1, logs.length) : 0}-{logs.length
-				? Math.min(showedLines.end + 1, logs.length)
-				: 0} of {logs.length}
-			{#if Object.entries(filters).length > 0}[{Logs.logs.length} w/o filter]{/if}
-			{#if !Logs.live}({Logs.moreResults ? 'More' : 'No more'} on server){/if}
-			{#if Logs.calling}Calling…{/if}</span
-		>
-		<div class="layout-x items-center gap-2">
+		<span class="h-fit truncate">
+			{#if studioMode}
+				{logs.length ? Math.min(showedLines.start + 1, logs.length) : 0}-{logs.length
+					? Math.min(showedLines.end + 1, logs.length)
+					: 0}/{logs.length}
+				{#if Object.entries(filters).length > 0}
+					raw:{Logs.logs.length}{/if}
+				{#if !Logs.live}
+					{Logs.moreResults ? 'more' : 'end'}{/if}
+				{#if Logs.calling}
+					loading{/if}
+			{:else}
+				Lines {logs.length ? Math.min(showedLines.start + 1, logs.length) : 0}-{logs.length
+					? Math.min(showedLines.end + 1, logs.length)
+					: 0} of {logs.length}
+				{#if Object.entries(filters).length > 0}[{Logs.logs.length} w/o filter]{/if}
+				{#if !Logs.live}({Logs.moreResults ? 'More' : 'No more'} on server){/if}
+				{#if Logs.calling}Calling…{/if}
+			{/if}
+		</span>
+		<div class="layout-x items-center {studioMode ? 'gap-1' : 'gap-2'}">
 			<Button
 				full={false}
 				size={4}
 				icon="mdi:arrow-up-bold-outline"
-				class="button-ico-primary h-7 w-7 justify-center p-0!"
+				class="button-ico-primary {studioMode ? 'h-6 w-6' : 'h-7 w-7'} justify-center p-0!"
 				title="Scroll to top"
 				ariaLabel="Scroll to top"
 				onclick={() => {
@@ -1633,7 +1770,7 @@
 				full={false}
 				size={4}
 				icon="mdi:arrow-down-bold-outline"
-				class="button-ico-primary h-7 w-7 justify-center p-0!"
+				class="button-ico-primary {studioMode ? 'h-6 w-6' : 'h-7 w-7'} justify-center p-0!"
 				title="Scroll to bottom"
 				ariaLabel="Scroll to bottom"
 				onclick={() => {
@@ -1644,14 +1781,19 @@
 			/>
 			<Button
 				full={false}
-				class="mini-card flex-row-reverse {autoScroll
-					? 'preset-filled-primary-500'
-					: 'preset-outlined-primary-50-950 border-primary-500 text-primary-500'}"
+				size={4}
+				class={studioMode
+					? `button-ico-primary ${autoScroll ? 'preset-filled-primary-500' : ''} h-6 w-6 justify-center p-0!`
+					: `mini-card flex-row-reverse ${
+							autoScroll
+								? 'preset-filled-primary-500'
+								: 'preset-outlined-primary-50-950 border-primary-500 text-primary-500'
+						}`}
 				title={autoScroll
 					? 'Auto tail enabled: the viewer follows incoming logs and stays on the newest entries.'
 					: 'Auto tail disabled: the viewer keeps your current scroll position.'}
 				ariaLabel={autoScroll ? 'Disable auto tail' : 'Enable auto tail'}
-				label={`${autoScroll ? 'Enabled' : 'Disabled'} auto tail`}
+				label={studioMode ? undefined : `${autoScroll ? 'Enabled' : 'Disabled'} auto tail`}
 				icon={`mdi:download-${autoScroll ? 'lock' : 'off'}-outline`}
 				onclick={async () => {
 					_scrollToIndex = undefined;
@@ -1689,6 +1831,44 @@
 
 	.log-columns-chip {
 		@apply border border-surface-200-800 shadow-sm/10 shadow-surface-900-100;
+	}
+
+	.studio-mode {
+		font-size: 11px;
+	}
+
+	.studio-mode > .layout-y-stretch-low {
+		gap: 0;
+	}
+
+	.studio-mode .log-columns-panel,
+	.studio-mode .log-toolbar-row {
+		@apply mx-0 rounded-none border-x-0 p-0.5;
+	}
+
+	.studio-mode .log-toolbar-row {
+		@apply border-t-0;
+	}
+
+	.studio-mode .log-toolbar-group,
+	.studio-mode .log-filter-group {
+		@apply gap-0.5;
+	}
+
+	.studio-mode .log-columns-chip,
+	.studio-mode .log-filter-chip {
+		@apply gap-1 p-0.5;
+	}
+
+	.studio-mode .log-status-row {
+		@apply px-1! py-0.5!;
+		min-height: 1.5rem;
+	}
+
+	.studio-mode :global(.log-toolbar-button),
+	.studio-mode :global(.log-toolbar-button-active),
+	.studio-mode :global(.log-toolbar-button-error) {
+		@apply h-6 w-6;
 	}
 
 	.log-toolbar-row {
