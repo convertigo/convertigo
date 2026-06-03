@@ -103,7 +103,7 @@
 				class="com.twinsoft.convertigo.eclipse.actions.OpenLogViewerViewAction"
 				icon="icons/consoles/engine.gif"
 				id="com.twinsoft.convertigo.OpenLogViewerView"
-				label="&amp;Open web log viewer preview"
+				label="&amp;Open engine log viewer"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.OpenSwaggerConsoleAction"
@@ -3768,7 +3768,7 @@
 		</view>
 		<view
 			category="convertigo"
-			class="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
+			class="com.twinsoft.convertigo.eclipse.views.loggers.LogViewerView"
 			icon="icons/consoles/engine.gif"
 			id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
 			name="Engine Log"
@@ -3776,10 +3776,10 @@
 		</view>
 		<view
 			category="convertigo"
-			class="com.twinsoft.convertigo.eclipse.views.loggers.LogViewerView"
+			class="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
 			icon="icons/consoles/engine.gif"
-			id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView_preview"
-			name="Engine Log (web preview)"
+			id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView_legacy"
+			name="Engine Log (SWT legacy)"
 			restorable="true">
 		</view>
 		<view

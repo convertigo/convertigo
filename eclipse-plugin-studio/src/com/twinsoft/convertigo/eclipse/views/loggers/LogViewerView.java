@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.eclipse.views.admin.AdminView;
 
 public class LogViewerView extends ViewPart {
 
-	public static final String ID = "com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView_preview";
+	public static final String ID = "com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView";
 	private static final String LOG_VIEWER_PATH = "/admin/eclipse/logs";
 	private static final String EMBEDDED_LOG_VIEWER_PATH = LOG_VIEWER_PATH + "?studioMode=true";
 
