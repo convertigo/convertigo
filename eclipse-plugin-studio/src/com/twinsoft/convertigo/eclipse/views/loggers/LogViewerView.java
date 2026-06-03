@@ -30,6 +30,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.views.admin.AuthenticatedBrowser;
 import com.twinsoft.convertigo.eclipse.views.admin.AdminView;
 
 public class LogViewerView extends ViewPart {
@@ -39,9 +40,13 @@ public class LogViewerView extends ViewPart {
 	private static final String EMBEDDED_LOG_VIEWER_PATH = LOG_VIEWER_PATH + "?studioMode=true";
 
 	private C8oBrowser browser = null;
+	private AuthenticatedBrowser authenticatedBrowser = null;
 
 	@Override
 	public void dispose() {
+		if (authenticatedBrowser != null) {
+			authenticatedBrowser.dispose();
+		}
 		if (browser != null) {
 			browser.dispose();
 		}
@@ -76,7 +81,8 @@ public class LogViewerView extends ViewPart {
 		});
 
 		new C8oBrowserPostMessageHelper(browser);
-		browser.setUrl(getEmbeddedUrl());
+		authenticatedBrowser = new AuthenticatedBrowser(browser, this::getEmbeddedUrl);
+		authenticatedBrowser.load();
 	}
 
 	@Override

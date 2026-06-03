@@ -56,9 +56,13 @@ public class AdminView extends ViewPart {
 	private static final long AUTH_TOKEN_TTL = 30000;
 
 	private C8oBrowser browser = null;
-		
+	private AuthenticatedBrowser authenticatedBrowser = null;
+
 	@Override
 	public void dispose() {
+		if (authenticatedBrowser != null) {
+			authenticatedBrowser.dispose();
+		}
 		if (browser != null) {
 			browser.dispose();
 		}
@@ -88,11 +92,11 @@ public class AdminView extends ViewPart {
 			public void widgetSelected(SelectionEvent e) {
 				Program.launch(getUrl());
 			}
-			
+
 		});
-		
+
 		new ToolItem(tb, SWT.SEPARATOR);
-		
+
 		ti = new ToolItem(tb, SWT.NONE);
 		try {
 			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/administration_16x16.gif"));
@@ -103,11 +107,11 @@ public class AdminView extends ViewPart {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				browser.setUrl(getUrl());
+				authenticatedBrowser.load();
 			}
-			
+
 		});
-		
+
 		browser.onClick(ev -> {
 			try {
 				Element elt = (Element) ev.target().get();
@@ -124,12 +128,11 @@ public class AdminView extends ViewPart {
 			}
 			return true;
 		});
-		
-		new C8oBrowserPostMessageHelper(browser);
-		
-		String url = getUrl();
 
-		browser.setUrl(url);
+		new C8oBrowserPostMessageHelper(browser);
+
+		authenticatedBrowser = new AuthenticatedBrowser(browser, this::getUrl);
+		authenticatedBrowser.load();
 	}
 
 	@Override
