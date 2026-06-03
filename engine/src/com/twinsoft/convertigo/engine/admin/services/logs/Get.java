@@ -78,7 +78,14 @@ public class Get extends JSonService {
 			if (realtime || live) {
 				var timeout = live ? getLiveTimeout(request) : -1;
 				if (live) {
-					LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.filter, LogManagerParameter.nbLines, LogManagerParameter.startDate);
+					var startingLiveStream = clear || !logmanager.hasStream();
+					LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.filter, LogManagerParameter.nbLines);
+					if (startingLiveStream) {
+						LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.startDate);
+						if (clear) {
+							logmanager.renewOnNextRead();
+						}
+					}
 					logmanager.setContinue(!clear);
 					logmanager.setTimeout(liveLogReadTimeout);
 				} else {

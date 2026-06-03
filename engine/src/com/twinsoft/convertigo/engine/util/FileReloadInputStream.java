@@ -22,130 +22,135 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public class FileReloadInputStream extends InputStream {
+	private record FileIdentity(Object fileKey, long creationTime) {
+	}
 
-	private Path path;
+	private final Object lock = new Object();
+	private final Path path;
 	private InputStream is;
-	private WatchService ws;
+	private FileIdentity fileIdentity;
 	private boolean close = false;
 
 	public FileReloadInputStream(File file) throws IOException {
 		path = file.toPath();
-		is = Files.newInputStream(path, StandardOpenOption.READ);
-
-		Thread th = new Thread(() -> {
-			try {
-				Path ppath = path.getParent();
-				ws = ppath.getFileSystem().newWatchService();
-				WatchKey wk = ppath.register(ws, StandardWatchEventKinds.ENTRY_CREATE);
-				while (!close) {
-					wk = ws.take();
-					if (close) {
-						break;
-					}
-					for (final WatchEvent<?> event: wk.pollEvents()) {
-						Path ctx = (Path) event.context();
-						if (!close && path.endsWith(ctx)) {
-							synchronized (path) {
-								is.close();
-								is = Files.newInputStream(path, StandardOpenOption.READ);
-							}
-						}
-					}
-					if (!wk.reset() || close) {
-						wk.cancel();
-						ws.close();
-						break;
-					}
-				}
-			} catch (Exception e) {
-			} finally {
-				if (ws != null) {
-					try {
-						ws.close();
-					} catch (IOException e) {
-					}
-				}
-			}
-		});
-		th.setName("FileReloadInputStream:" + file.getName());
-		th.setDaemon(true);
-		th.start();
+		openCurrentFile();
 	}
 
 	@Override
 	public int read() throws IOException {
-		synchronized (path) {
-			return is.read();
+		synchronized (lock) {
+			int n = is.read();
+			if (n == -1 && reloadIfCurrentFileChanged()) {
+				n = is.read();
+			}
+			return n;
 		}
 	}
 
 	@Override
 	public int read(byte[] b) throws IOException {
-		synchronized (path) {
-			return is.read(b);
+		synchronized (lock) {
+			int n = is.read(b);
+			if (n == -1 && reloadIfCurrentFileChanged()) {
+				n = is.read(b);
+			}
+			return n;
 		}
 	}
 
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
-		synchronized (path) {
-			return is.read(b, off, len);
+		synchronized (lock) {
+			int n = is.read(b, off, len);
+			if (n == -1 && reloadIfCurrentFileChanged()) {
+				n = is.read(b, off, len);
+			}
+			return n;
 		}
 	}
 
 	@Override
 	public long skip(long n) throws IOException {
-		synchronized (path) {
+		synchronized (lock) {
 			return is.skip(n);
 		}
 	}
 
 	@Override
 	public int available() throws IOException {
-		synchronized (path) {
-			return is.available();
+		synchronized (lock) {
+			int available = is.available();
+			if (available == 0 && reloadIfCurrentFileChanged()) {
+				available = is.available();
+			}
+			return available;
 		}
 	}
 
 	@Override
 	public void close() throws IOException {
-		synchronized (path) {
+		synchronized (lock) {
 			close = true;
-			try {
-				ws.close();
-			} catch (Exception e) {
-			}
 			is.close();
 		}
 	}
 
 	@Override
 	public synchronized void mark(int readlimit) {
-		synchronized (path) {
+		synchronized (lock) {
 			is.mark(readlimit);
 		}
 	}
 
 	@Override
 	public synchronized void reset() throws IOException {
-		synchronized (path) {
+		synchronized (lock) {
 			is.reset();
 		}
 	}
 
 	@Override
 	public boolean markSupported() {
-		synchronized (path) {
+		synchronized (lock) {
 			return is.markSupported();
 		}
+	}
+
+	private void openCurrentFile() throws IOException {
+		fileIdentity = getFileIdentity();
+		is = Files.newInputStream(path, StandardOpenOption.READ);
+	}
+
+	private boolean reloadIfCurrentFileChanged() throws IOException {
+		if (close) {
+			return false;
+		}
+
+		FileIdentity currentFileIdentity;
+		try {
+			currentFileIdentity = getFileIdentity();
+		} catch (NoSuchFileException e) {
+			return false;
+		}
+
+		if (fileIdentity.equals(currentFileIdentity)) {
+			return false;
+		}
+
+		is.close();
+		openCurrentFile();
+		return true;
+	}
+
+	private FileIdentity getFileIdentity() throws IOException {
+		BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
+		return new FileIdentity(attributes.fileKey(), attributes.creationTime().toMillis());
 	}
 }
