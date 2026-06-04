@@ -190,6 +190,14 @@ public class LogManager implements Closeable {
 	public boolean hasMoreResults() {
 		return has_more_results || need_renew || !bContinue;
 	}
+
+	public boolean hasStream() {
+		return is != null;
+	}
+
+	public void renewOnNextRead() {
+		need_renew = true;
+	}
 	
 	public void setContinue(boolean bContinue) {
 		this.bContinue = bContinue;
