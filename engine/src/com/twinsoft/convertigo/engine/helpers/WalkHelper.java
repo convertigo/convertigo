@@ -99,7 +99,7 @@ public class WalkHelper {
 			}
 
 			if (before(databaseObject, FlowEngine.class)) {
-				FlowEngine flowEngine = project.getFlowEngine();
+				var flowEngine = project.getFlowEngine();
 				if (flowEngine != null) {
 					walk(flowEngine);
 				}
@@ -344,51 +344,48 @@ public class WalkHelper {
 					walk(response);
 				}
 			}
-		} else if (databaseObject instanceof Flow) {
-			Flow flow = (Flow) databaseObject;
+		} else if (databaseObject instanceof Flow flow) {
 
 			if (before(databaseObject, Step.class)) {
-				for (Step step : flow.getSteps()) {
+				for (var step : flow.getSteps()) {
 					walk(step);
 				}
 			}
 
 			if (before(databaseObject, Sheet.class)) {
-				for (Sheet sheet : flow.getSheetsList()) {
+				for (var sheet : flow.getSheetsList()) {
 					walk(sheet);
 				}
 			}
 
 			if (before(databaseObject, RequestableVariable.class)) {
-				for (RequestableVariable variable : flow.getVariablesList()) {
+				for (var variable : flow.getVariablesList()) {
 					walk(variable);
 				}
 			}
 
 			if (before(databaseObject, TestCase.class)) {
-				for (TestCase testCase : flow.getTestCasesList()) {
+				for (var testCase : flow.getTestCasesList()) {
 					walk(testCase);
 				}
 			}
 
 			if (walkFlowVirtualObjects && before(databaseObject, FlowVirtualObject.class)) {
-				for (DatabaseObject child : flow.getFlowVirtualChildren()) {
+				for (var child : flow.getFlowVirtualChildren()) {
 					walk(child);
 				}
 			}
-		} else if (databaseObject instanceof FlowEngine) {
-			FlowEngine flowEngine = (FlowEngine) databaseObject;
+		} else if (databaseObject instanceof FlowEngine flowEngine) {
 
 			if (walkFlowVirtualObjects && before(databaseObject, FlowVirtualObject.class)) {
-				for (DatabaseObject child : flowEngine.getFlowVirtualChildren()) {
+				for (var child : flowEngine.getFlowVirtualChildren()) {
 					walk(child);
 				}
 			}
-		} else if (databaseObject instanceof FlowVirtualObject) {
-			FlowVirtualObject flowVirtualObject = (FlowVirtualObject) databaseObject;
+		} else if (databaseObject instanceof FlowVirtualObject flowVirtualObject) {
 
 			if (before(databaseObject, FlowVirtualObject.class)) {
-				for (DatabaseObject child : flowVirtualObject.getDatabaseObjectChildren()) {
+				for (var child : flowVirtualObject.getDatabaseObjectChildren()) {
 					walk(child);
 				}
 			}

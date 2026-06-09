@@ -30,6 +30,7 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(name = "Accept", roles = { Role.WEB_ADMIN,
 		Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -66,6 +67,10 @@ public class Accept extends JSonService {
 		DatabaseObject dbo = null;
 
 		JSONObject jsonData = new JSONObject(data);
+		if (FlowStudioSupport.isFlowPaletteData(jsonData)) {
+			response.put("accept", FlowStudioSupport.canAddFromPalette(targetDbo, position, jsonData));
+			return;
+		}
 		var type = jsonData.has("type") ? jsonData.getString("type") : "";
 		if (type.equals("paletteData")) {
 			dbo = DboUtils.createDbo(jsonData, targetDbo);

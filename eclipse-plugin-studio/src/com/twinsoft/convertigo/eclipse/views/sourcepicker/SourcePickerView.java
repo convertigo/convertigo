@@ -38,6 +38,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobilePickerComposite;
@@ -46,6 +47,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepSourceEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepSourceListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class SourcePickerView extends ViewPart implements StepSourceListener, ISelectionListener, IPartListener2 {
@@ -54,6 +56,7 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 	private SourcePickerComposite spc;
 	private NgxPickerComposite npc;
 	private MobilePickerComposite mpc;
+	private FlowPickerComposite fpc;
 	private ISelection lastSelection;
 	private boolean isVisible = true;
 
@@ -66,6 +69,7 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 		spc = new SourcePickerComposite(parent, SWT.NONE);
 		npc = new NgxPickerComposite(parent, false);
 		mpc = new MobilePickerComposite(parent, false);
+		fpc = new FlowPickerComposite(parent, SWT.NONE);
 
 		SelectionAdapter selectionListener = new SelectionAdapter() {
 			@Override
@@ -78,7 +82,7 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 			}
 		};
 
-		for (ToolItem tiLink: Arrays.asList(spc.getTiLink(), npc.getTiLink(), mpc.getTiLink())) {
+		for (ToolItem tiLink: Arrays.asList(spc.getTiLink(), npc.getTiLink(), mpc.getTiLink(), fpc.getTiLink())) {
 			tiLink.setToolTipText("Link with the 'Projects tree' selection");
 			try {
 				tiLink.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/resize_connector.gif"));
@@ -134,14 +138,17 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 			getSite().getPage().removePartListener(this);
 		}
 		catch (Exception e) {};
-		if (spc == null) {
+		if (spc != null) {
 			spc.dispose();
 		}
-		if (npc == null) {
+		if (npc != null) {
 			npc.dispose();
 		}
-		if (mpc == null) {
+		if (mpc != null) {
 			mpc.dispose();
+		}
+		if (fpc != null) {
+			fpc.dispose();
 		}
 		super.dispose();
 	}
@@ -174,6 +181,13 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 				}
 				spc.getTiLink().setSelection(true);
 				spc.sourceSelected(new StepSourceEvent(dbo));
+			} else if (selected instanceof FlowVirtualObjectTreeObject || dbo instanceof FlowVirtualObject) {
+				if (stack.topControl != fpc) {
+					stack.topControl = fpc;
+					stack.topControl.getParent().layout(true);
+				}
+				fpc.getTiLink().setSelection(true);
+				fpc.setCurrentInput(selected);
 			} else if (dbo.getClass().getName().contains(".ngx.")) {
 				if (stack.topControl != npc) {
 					stack.topControl = npc;

@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjec
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDeclarationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
@@ -183,6 +184,13 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 				
 				image = ViewImageProvider.getImageFromCache(iconName, variableTreeObject);
 			}
+			else if (obj instanceof FlowVirtualObjectTreeObject flowVirtualObjectTreeObject) {
+				iconName = flowVirtualObjectTreeObject.getIconImagePath();
+				if (iconName.isBlank()) {
+					iconName = MySimpleBeanInfo.getIconName(flowVirtualObjectTreeObject.getObject(), BeanInfo.ICON_COLOR_16x16);
+				}
+				image = ViewImageProvider.getImageFromCache(iconName, flowVirtualObjectTreeObject);
+			}
 			else if (obj instanceof DatabaseObjectTreeObject) {
 				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) obj;
 				
@@ -246,6 +254,8 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) element;
 			
 			if (!databaseObjectTreeObject.isEnabled()) return colorDisabledDatabaseObject;
+			if (databaseObjectTreeObject instanceof FlowVirtualObjectTreeObject flowVirtualObjectTreeObject
+					&& flowVirtualObjectTreeObject.isReadOnlyReference()) return colorInheritedDatabaseObject;
 			if (databaseObjectTreeObject.isInherited) return colorInheritedDatabaseObject;
 			if (databaseObjectTreeObject.hasAncestorDisabled()) return colorUnreachableDatabaseObject;
 		}

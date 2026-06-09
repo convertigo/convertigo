@@ -56,7 +56,7 @@ public class Add extends JSonService {
 			throw new ServiceException("missing data parameter");
 		}
 
-		DatabaseObject targetDbo = DboUtils.findDbo(target);
+		var targetDbo = DboUtils.findDbo(target);
 		if (targetDbo != null) {
 			var jsonData = new JSONObject(data);
 			if (FlowStudioSupport.isFlowPaletteData(jsonData)) {
@@ -81,7 +81,7 @@ public class Add extends JSonService {
 				}
 			}
 
-			DatabaseObject dbo = DboUtils.createDbo(jsonData, parentDbo);
+			var dbo = DboUtils.createDbo(jsonData, parentDbo);
 			if (dbo != null && !dbo.equals(parentDbo)) {
 				if (parentDbo instanceof IContainerOrdered) {
 					((IContainerOrdered) parentDbo).add(dbo, after);

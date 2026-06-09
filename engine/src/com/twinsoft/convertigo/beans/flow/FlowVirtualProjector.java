@@ -50,22 +50,22 @@ class FlowVirtualProjector {
 	}
 
 	private static List<DatabaseObject> childrenFromResponse(DatabaseObject parent, JSONObject response) {
-		List<DatabaseObject> children = new ArrayList<>();
+		var children = new ArrayList<DatabaseObject>();
 		if (response == null) {
 			return children;
 		}
 		if (!response.optBoolean("ok", false)) {
-			JSONObject error = response.optJSONObject("error");
-			String message = error == null ? response.toString() : error.optString("message", error.toString());
+			var error = response.optJSONObject("error");
+			var message = error == null ? response.toString() : error.optString("message", error.toString());
 			children.add(new FlowVirtualObject(parent, "error", "error", "error", "error", "Flow tree error", message));
 			return children;
 		}
-		JSONArray array = response.optJSONArray("children");
+		var array = response.optJSONArray("children");
 		if (array == null) {
 			return children;
 		}
-		for (int i = 0; i < array.length(); i++) {
-			JSONObject child = array.optJSONObject(i);
+		for (var i = 0; i < array.length(); i++) {
+			var child = array.optJSONObject(i);
 			if (child != null) {
 				children.add(toVirtualObject(parent, child, i));
 			}
@@ -74,7 +74,7 @@ class FlowVirtualProjector {
 	}
 
 	private static FlowVirtualObject toVirtualObject(DatabaseObject parent, JSONObject source, int order) {
-		FlowVirtualObject object = new FlowVirtualObject(parent,
+		var object = new FlowVirtualObject(parent,
 				source.optString("name", "item"),
 				source.optString("kind", ""),
 				source.optString("type", ""),
@@ -83,10 +83,10 @@ class FlowVirtualProjector {
 				source.optString("definition", ""));
 		object.setVirtualOrder(order);
 		object.setVirtualInfo(source.optString("info", ""));
-		JSONArray children = source.optJSONArray("children");
+		var children = source.optJSONArray("children");
 		if (children != null) {
-			for (int i = 0; i < children.length(); i++) {
-				JSONObject child = children.optJSONObject(i);
+			for (var i = 0; i < children.length(); i++) {
+				var child = children.optJSONObject(i);
 				if (child != null) {
 					object.addVirtualChild(toVirtualObject(object, child, i));
 				}
@@ -96,7 +96,7 @@ class FlowVirtualProjector {
 	}
 
 	private static List<DatabaseObject> errorChildren(DatabaseObject parent, String target, Exception e) {
-		List<DatabaseObject> children = new ArrayList<>();
+		var children = new ArrayList<DatabaseObject>();
 		children.add(new FlowVirtualObject(parent, "error", "error", target, target + ".error",
 				"Unable to describe " + target + " tree", e.getMessage()));
 		return children;

@@ -68,6 +68,9 @@ import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.flow.Flow;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
 import com.twinsoft.convertigo.beans.rest.QueryParameter;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
@@ -106,6 +109,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.InvalidOperationException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -266,6 +270,16 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					try {
 						Shell shell = Display.getDefault().getActiveShell();
 						try {
+							boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
+							boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
+							TreeObject sourceObject = (TreeObject) getSelectedObject();
+							if (handleFlowVirtualMove(sourceObject, targetTreeObject, explorerView, insertBefore, insertAfter)) {
+								return true;
+							}
+							if (isFlowVirtualMove(sourceObject, targetTreeObject)) {
+								return false;
+							}
+
 							// Try to parse text data into an XML document
 							String source = data.toString();
 							document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(source)));
@@ -274,9 +288,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							}
 							BatchOperationHelper.start();
 
-							boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
-							boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
-							TreeObject sourceObject = (TreeObject) getSelectedObject();
 							if (insertBefore || insertAfter) {
 								TreeParent targetTreeParent = ((TreeObject)targetObject).getParent();
 								if (sourceObject.getParent() != targetTreeParent) {
@@ -1055,6 +1066,34 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		return false;
 	}
 
+	private boolean handleFlowVirtualMove(TreeObject sourceObject, TreeObject targetTreeObject,
+			ProjectExplorerView explorerView, boolean insertBefore, boolean insertAfter) throws Exception {
+		if (!insertBefore && !insertAfter || !isFlowVirtualMove(sourceObject, targetTreeObject)) {
+			return false;
+		}
+		var sourceDbot = (DatabaseObjectTreeObject) sourceObject;
+		var targetDbot = (DatabaseObjectTreeObject) targetTreeObject;
+		var response = FlowStudioSupport.moveNode(sourceDbot.getObject(), targetDbot.getObject(), insertBefore);
+		if (!response.optBoolean("done", false)) {
+			var error = response.opt("error");
+			throw new EngineException(error == null ? "Unable to move Flow node." : error.toString());
+		}
+		reloadTreeObject(explorerView, flowTreeObject(targetDbot));
+		return true;
+	}
+
+	private boolean isFlowVirtualMove(TreeObject sourceObject, TreeObject targetTreeObject) {
+		if (!(sourceObject instanceof DatabaseObjectTreeObject sourceDbot)
+				|| !(targetTreeObject instanceof DatabaseObjectTreeObject targetDbot)
+				|| !(sourceDbot.getObject() instanceof FlowVirtualObject source)
+				|| !(targetDbot.getObject() instanceof FlowVirtualObject target)) {
+			return false;
+		}
+		return "node".equals(source.getVirtualKind())
+				&& "node".equals(target.getVirtualKind())
+				&& source.getParent() == target.getParent();
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ViewerDropAdapter#validateDrop(java.lang.Object, int, org.eclipse.swt.dnd.TransferData)
 	 */
@@ -1116,7 +1155,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							var obj = TextTransfer.getInstance().nativeToJava(transferType);
 							DatabaseObject databaseObject = null;
 							
-							if (obj != null) {
+							if (sourceObject instanceof DatabaseObjectTreeObject sourceDbot
+									&& sourceDbot.getObject() instanceof FlowVirtualObject) {
+								databaseObject = sourceDbot.getObject();
+							} else if (obj != null) {
 								String xmlData = obj.toString();
 								List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
 								databaseObject = (DatabaseObject) list.get(0);
@@ -1125,6 +1167,15 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							}
 							
 							var targetDatabaseObject = targetDbot.getObject();
+							if (databaseObject instanceof FlowVirtualObject sourceFlowObject
+									&& targetDatabaseObject instanceof FlowVirtualObject targetFlowObject) {
+								var currentLocation = getCurrentLocation();
+								var siblingMove = currentLocation == LOCATION_BEFORE || currentLocation == LOCATION_AFTER;
+								return siblingMove
+										&& "node".equals(sourceFlowObject.getVirtualKind())
+										&& "node".equals(targetFlowObject.getVirtualKind())
+										&& sourceFlowObject.getParent() == targetFlowObject.getParent();
+							}
 							if (DatabaseObjectsManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
 								return true;
 							}
@@ -1175,6 +1226,45 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
 				if (paletteSource != null) {
 					try {
+						if (paletteSource.isFlowBlock()) {
+							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
+								targetTreeObject = folderTreeObject.getParent();
+							}
+							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
+								var position = getCurrentLocation() == LOCATION_BEFORE ? "before"
+										: getCurrentLocation() == LOCATION_AFTER ? "after"
+												: "inside";
+								return FlowStudioSupport.canAddBlock(dbot.getObject(), position, paletteSource.getFlowBlockName());
+							}
+							return false;
+						}
+						if (paletteSource.isFlowBlockDefinition()) {
+							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
+								targetTreeObject = folderTreeObject.getParent();
+							}
+							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
+								return FlowStudioSupport.canAddBlockDefinition(dbot.getObject(), paletteSource.getFlowRuntime());
+							}
+							return false;
+						}
+						if (paletteSource.isFlowTypeDefinition()) {
+							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
+								targetTreeObject = folderTreeObject.getParent();
+							}
+							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
+								return FlowStudioSupport.canAddTypeDefinition(dbot.getObject());
+							}
+							return false;
+						}
+						if (paletteSource.isFlowPropertyDefinition()) {
+							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
+								targetTreeObject = folderTreeObject.getParent();
+							}
+							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
+								return FlowStudioSupport.canAddPropertyDefinition(dbot.getObject());
+							}
+							return false;
+						}
 						DatabaseObject databaseObject = paletteSource.getDatabaseObject();
 
 						if (targetTreeObject instanceof ObjectsFolderTreeObject) {
@@ -1438,7 +1528,58 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					boolean needNgxPaletteReload = false;
 					// Special objects move from palette
 					if (detail == DND.DROP_MOVE || detail == DND.DROP_COPY) {
-						DatabaseObject dbop = ((PaletteSource) data).getDatabaseObject();
+						PaletteSource paletteSource = (PaletteSource) data;
+						if (paletteSource.isFlowBlock()) {
+							var position = insertBefore ? "before" : insertAfter ? "after" : "inside";
+							var response = FlowStudioSupport.addBlock(dbotree.getObject(), position, paletteSource.getFlowBlockName());
+							if (!response.optBoolean("done", false)) {
+								var error = response.opt("error");
+								throw new EngineException(error == null ? "Unable to add Flow block." : error.toString());
+							}
+							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							return;
+						}
+						if (paletteSource.isFlowBlockDefinition()) {
+							var transfer = new org.codehaus.jettison.json.JSONObject()
+									.put("type", "paletteData")
+									.put("data", new org.codehaus.jettison.json.JSONObject()
+											.put("type", "FlowBlockDefinition")
+											.put("runtime", paletteSource.getFlowRuntime()));
+							var response = FlowStudioSupport.addFromPalette(dbotree.getObject(), "inside", transfer);
+							if (!response.optBoolean("done", false)) {
+								var error = response.opt("error");
+								throw new EngineException(error == null ? "Unable to add Flow block definition." : error.toString());
+							}
+							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							return;
+						}
+						if (paletteSource.isFlowTypeDefinition()) {
+							var transfer = new org.codehaus.jettison.json.JSONObject()
+									.put("type", "paletteData")
+									.put("data", new org.codehaus.jettison.json.JSONObject()
+											.put("type", "FlowTypeDefinition"));
+							var response = FlowStudioSupport.addFromPalette(dbotree.getObject(), "inside", transfer);
+							if (!response.optBoolean("done", false)) {
+								var error = response.opt("error");
+								throw new EngineException(error == null ? "Unable to add Flow type definition." : error.toString());
+							}
+							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							return;
+						}
+						if (paletteSource.isFlowPropertyDefinition()) {
+							var transfer = new org.codehaus.jettison.json.JSONObject()
+									.put("type", "paletteData")
+									.put("data", new org.codehaus.jettison.json.JSONObject()
+											.put("type", "FlowPropertyDefinition"));
+							var response = FlowStudioSupport.addFromPalette(dbotree.getObject(), "inside", transfer);
+							if (!response.optBoolean("done", false)) {
+								var error = response.opt("error");
+								throw new EngineException(error == null ? "Unable to add Flow block property." : error.toString());
+							}
+							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							return;
+						}
+						DatabaseObject dbop = paletteSource.getDatabaseObject();
 						if (dbop instanceof FullSyncConnector) {
 							dbop.setName(parent.getProject().getName().toLowerCase() + "_fullsync");
 						}
@@ -1594,6 +1735,21 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 
 		// Properties view needs to be refreshed
 		refreshPropertiesView(explorerView, treeObject);
+	}
+
+	private TreeObject flowTreeObject(DatabaseObjectTreeObject treeObject) {
+		var current = treeObject;
+		while (current != null) {
+			var dbo = current.getObject();
+			if (dbo instanceof Flow || dbo instanceof FlowEngine) {
+				return current;
+			}
+			if (!(dbo instanceof FlowVirtualObject)) {
+				break;
+			}
+			current = current.getParentDatabaseObjectTreeObject();
+		}
+		return treeObject;
 	}
 
 	private void refreshPropertiesView(ProjectExplorerView explorerView, TreeObject treeObject) {

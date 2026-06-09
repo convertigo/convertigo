@@ -1374,6 +1374,8 @@
 						<objectClass
 							name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject" />
 						<objectClass
+							name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject" />
+						<objectClass
 							name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject" />
 						<objectClass
 							name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject" />
@@ -3975,6 +3977,8 @@
 				<selection
 					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject" />
 				<selection
+					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject" />
+				<selection
 					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2" />
 				<selection
 					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject" />
@@ -4015,6 +4019,8 @@
 					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject" />
 				<selection
 					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject" />
+				<selection
+					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject" />
 				<selection
 					class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2" />
 				<selection

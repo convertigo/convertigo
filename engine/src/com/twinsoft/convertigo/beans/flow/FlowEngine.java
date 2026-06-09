@@ -68,17 +68,17 @@ public class FlowEngine extends DatabaseObject {
 
 	@Override
 	public List<DatabaseObject> getDatabaseObjectChildren() {
-		return new ArrayList<>();
+		return new ArrayList<>(getFlowVirtualChildren());
 	}
 
 	@Override
 	public List<DatabaseObject> getAllChildren() {
-		return new ArrayList<>();
+		return getDatabaseObjectChildren();
 	}
 
 	@Override
 	public boolean hasDatabaseObjectChildren() {
-		return false;
+		return !getFlowVirtualChildren().isEmpty();
 	}
 
 	public List<DatabaseObject> getFlowVirtualChildren() {
@@ -87,8 +87,9 @@ public class FlowEngine extends DatabaseObject {
 
 	@Override
 	public Element toXml(Document document) throws EngineException {
+		ensureEngineProjectReference();
 		writeEngineSourceFile();
-		Element element = super.toXml(document);
+		var element = super.toXml(document);
 		removeSerializedProperty(element, "engineSource");
 		return element;
 	}
@@ -104,6 +105,7 @@ public class FlowEngine extends DatabaseObject {
 		if (!this.engineQName.equals(engineQName)) {
 			this.engineQName = engineQName;
 			changed();
+			ensureEngineProjectReference();
 		}
 	}
 
@@ -136,15 +138,35 @@ public class FlowEngine extends DatabaseObject {
 		return new File(new File(project.getDirFile(), "libs/flow"), "engine.yaml");
 	}
 
+	private void ensureEngineProjectReference() {
+		var project = getProject();
+		var engineProjectName = engineProjectName();
+		if (project == null || engineProjectName.isBlank() || project.getName().equals(engineProjectName)
+				|| Engine.theApp == null || Engine.theApp.referencedProjectManager == null) {
+			return;
+		}
+		try {
+			Engine.theApp.referencedProjectManager.getReferenceFromProject(project, engineProjectName);
+		} catch (Exception e) {
+			Engine.logBeans.warn("Unable to ensure FlowEngine project reference to \"" + engineProjectName + "\".", e);
+		}
+	}
+
+	private String engineProjectName() {
+		var qname = engineQName == null || engineQName.isBlank() ? FlowEngineBridge.DEFAULT_ENGINE_QNAME : engineQName.trim();
+		var dot = qname.indexOf('.');
+		return dot == -1 ? "" : qname.substring(0, dot);
+	}
+
 	private void loadEngineSourceFile() {
 		if (engineSourceDirty) {
 			return;
 		}
-		File file = getEngineSourceFile();
+		var file = getEngineSourceFile();
 		if (file == null || !file.isFile()) {
 			return;
 		}
-		long lastModified = file.lastModified();
+		var lastModified = file.lastModified();
 		if (lastModified == engineSourceFileLastModified) {
 			return;
 		}
@@ -157,7 +179,7 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	private void writeEngineSourceFile() throws EngineException {
-		File file = getEngineSourceFile();
+		var file = getEngineSourceFile();
 		if (file == null) {
 			return;
 		}
@@ -172,9 +194,9 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	private static void removeSerializedProperty(Element element, String propertyName) {
-		NodeList properties = element.getChildNodes();
-		for (int i = properties.getLength() - 1; i >= 0; i--) {
-			Node node = properties.item(i);
+		var properties = element.getChildNodes();
+		for (var i = properties.getLength() - 1; i >= 0; i--) {
+			var node = properties.item(i);
 			if (node instanceof Element property
 					&& "property".equals(property.getTagName())
 					&& propertyName.equals(property.getAttribute("name"))) {

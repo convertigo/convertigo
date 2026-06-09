@@ -33,6 +33,9 @@ import org.eclipse.ui.IViewPart;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.flow.Flow;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -43,7 +46,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTable
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
-import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 public class DatabaseObjectDecreasePriorityAction extends MyAbstractAction implements IViewActionDelegate {
 
@@ -115,10 +118,20 @@ public class DatabaseObjectDecreasePriorityAction extends MyAbstractAction imple
 		}
 	}
 
-	private void decreasePriority(TreeObject treeObject) throws EngineException {
+	private void decreasePriority(TreeObject treeObject) throws Exception {
 		int count = counter;
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
+			if (databaseObject instanceof FlowVirtualObject) {
+				var response = FlowStudioSupport.moveNode(databaseObject, false, count);
+				if (response.optBoolean("done", false)) {
+					var parentTreeObject = flowTreeObject((DatabaseObjectTreeObject) treeObject);
+					if (parentTreeObject != null && !treeNodesToUpdate.contains(parentTreeObject)) {
+						treeNodesToUpdate.add(parentTreeObject);
+					}
+				}
+				return;
+			}
 			DatabaseObject parent = databaseObject.getParent();
 
 			if (parent != null && parent instanceof IContainerOrdered) {
@@ -179,6 +192,21 @@ public class DatabaseObjectDecreasePriorityAction extends MyAbstractAction imple
 				}
 			}
 		}
+	}
+
+	private TreeParent flowTreeObject(DatabaseObjectTreeObject treeObject) {
+		var current = treeObject;
+		while (current != null) {
+			var dbo = current.getObject();
+			if (dbo instanceof Flow || dbo instanceof FlowEngine) {
+				return current;
+			}
+			if (!(dbo instanceof FlowVirtualObject)) {
+				break;
+			}
+			current = current.getParentDatabaseObjectTreeObject();
+		}
+		return treeObject.getParent();
 	}
 
 	public void init(IViewPart view) {

@@ -68,18 +68,18 @@ public class Set extends JSonService {
 			throw new ServiceException("missing prop or props parameter");
 		}
 
-		boolean done = false;
-		DatabaseObject dbo = Utils.getDbo(id);
+		var done = false;
+		var dbo = Utils.getDbo(id);
 		if (dbo != null) {
 			var jsonArray = new JSONArray(props);
-			for (int i = 0; i < jsonArray.length(); i++) {
+			for (var i = 0; i < jsonArray.length(); i++) {
 				Object oldValue = null, newValue = null;
-				JSONObject jsonObject = jsonArray.getJSONObject(i);
+				var jsonObject = jsonArray.getJSONObject(i);
 				var pname = jsonObject.getString("name");
 				var pvalue = jsonObject.getString("value");
 				var mode = jsonObject.has("mode") ? jsonObject.getString("mode") : "plain";
 
-				MobileSmartSourceType msst = new MobileSmartSourceType(pvalue);
+				var msst = new MobileSmartSourceType(pvalue);
 				if ("script".equals(mode)) {
 					msst = new MobileSmartSourceType();
 					msst.setMode(Mode.SCRIPT);
@@ -98,28 +98,28 @@ public class Set extends JSonService {
 					continue;
 				}
 
-				BeanInfo beanInfo = Introspector.getBeanInfo(dbo.getClass());
-				PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
-				for (PropertyDescriptor pd : propertyDescriptors) {
+				var beanInfo = Introspector.getBeanInfo(dbo.getClass());
+				var propertyDescriptors = beanInfo.getPropertyDescriptors();
+				for (var pd : propertyDescriptors) {
 					if (pd.getName().equals(pname)) {
-						Method setter = pd.getWriteMethod();
-						Method getter = pd.getReadMethod();
-						Class<?> pdc = pd.getPropertyEditorClass();
-						Class<?> ptc = pd.getPropertyType();
+						var setter = pd.getWriteMethod();
+						var getter = pd.getReadMethod();
+						var pdc = pd.getPropertyEditorClass();
+						var ptc = pd.getPropertyType();
 
 						oldValue = getter.invoke(dbo);
 
 						if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")) {
 							setter.invoke(dbo, new Object[] { msst });
 						} else if (pname.equals("actionValue")) {// CustomAction
-							FormatedContent fc = new FormatedContent(pvalue);
+							var fc = new FormatedContent(pvalue);
 							setter.invoke(dbo, new Object[] { fc });
 						} else {
-							String propertyValue = dbo.compileProperty(pname, pvalue).toString();
-							Object oPropertyValue = createObject(ptc, propertyValue);
+							var propertyValue = dbo.compileProperty(pname, pvalue).toString();
+							var oPropertyValue = createObject(ptc, propertyValue);
 
 							if (dbo.isCipheredProperty(pname)) {
-								String initialValue = (String) getter.invoke(dbo, (Object[]) null);
+								var initialValue = (String) getter.invoke(dbo, (Object[]) null);
 
 								if (oPropertyValue.equals(initialValue)
 										|| DatabaseObject.encryptPropertyValue(initialValue).equals(oPropertyValue)) {
@@ -130,7 +130,7 @@ public class Set extends JSonService {
 							}
 
 							if (oPropertyValue != null) {
-								Object args[] = { oPropertyValue };
+								var args = new Object[] { oPropertyValue };
 								setter.invoke(dbo, args);
 							}
 						}

@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.flow;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +80,7 @@ public class Flow extends Sequence {
 	@Override
 	public Element toXml(Document document) throws EngineException {
 		writeFlowSourceFile();
-		Element element = super.toXml(document);
+		var element = super.toXml(document);
 		removeSerializedProperty(element, "flowSource");
 		return element;
 	}
@@ -88,15 +89,15 @@ public class Flow extends Sequence {
 	public void runCore() throws EngineException {
 		try {
 			var response = new FlowEngineBridge().run(this, context, runningThread.javascriptContext, scope);
-			Element root = context.outputDocument.getDocumentElement();
+			var root = context.outputDocument.getDocumentElement();
 			if (response.optBoolean("ok", false)) {
-				Object result = response.has("result") ? response.get("result") : new JSONObject();
+				var result = response.has("result") ? response.get("result") : new JSONObject();
 				if (JSONObject.NULL.equals(result)) {
 					result = new JSONObject();
 				}
 				XMLUtils.jsonToXml(result, root);
 			} else {
-				JSONObject errorResponse = new JSONObject();
+				var errorResponse = new JSONObject();
 				errorResponse.put("error", response.has("error") ? response.get("error") : response);
 				XMLUtils.jsonToXml(errorResponse, root);
 			}
@@ -113,17 +114,21 @@ public class Flow extends Sequence {
 
 	@Override
 	public List<DatabaseObject> getDatabaseObjectChildren() throws Exception {
-		return super.getDatabaseObjectChildren();
+		var children = new ArrayList<DatabaseObject>(super.getDatabaseObjectChildren());
+		children.addAll(getFlowVirtualChildren());
+		return children;
 	}
 
 	@Override
 	public List<DatabaseObject> getAllChildren() {
-		return super.getAllChildren();
+		var children = new ArrayList<DatabaseObject>(super.getAllChildren());
+		children.addAll(getFlowVirtualChildren());
+		return children;
 	}
 
 	@Override
 	public boolean hasDatabaseObjectChildren() throws Exception {
-		return super.hasDatabaseObjectChildren();
+		return super.hasDatabaseObjectChildren() || !getFlowVirtualChildren().isEmpty();
 	}
 
 	public List<DatabaseObject> getFlowVirtualChildren() {
@@ -189,7 +194,7 @@ public class Flow extends Sequence {
 
 	private File getFlowSourceFile() {
 		var project = getProject();
-		String name = getName();
+		var name = getName();
 		if (project == null || name == null || name.isBlank()) {
 			return null;
 		}
@@ -200,11 +205,11 @@ public class Flow extends Sequence {
 		if (flowSourceDirty) {
 			return;
 		}
-		File file = getFlowSourceFile();
+		var file = getFlowSourceFile();
 		if (file == null || !file.isFile()) {
 			return;
 		}
-		long lastModified = file.lastModified();
+		var lastModified = file.lastModified();
 		if (lastModified == flowSourceFileLastModified) {
 			return;
 		}
@@ -217,7 +222,7 @@ public class Flow extends Sequence {
 	}
 
 	private void writeFlowSourceFile() throws EngineException {
-		File file = getFlowSourceFile();
+		var file = getFlowSourceFile();
 		if (file == null) {
 			return;
 		}
@@ -232,9 +237,9 @@ public class Flow extends Sequence {
 	}
 
 	private static void removeSerializedProperty(Element element, String propertyName) {
-		NodeList properties = element.getChildNodes();
-		for (int i = properties.getLength() - 1; i >= 0; i--) {
-			Node node = properties.item(i);
+		var properties = element.getChildNodes();
+		for (var i = properties.getLength() - 1; i >= 0; i--) {
+			var node = properties.item(i);
 			if (node instanceof Element property
 					&& "property".equals(property.getTagName())
 					&& propertyName.equals(property.getAttribute("name"))) {

@@ -163,6 +163,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.FunctionStep;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
@@ -208,6 +209,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumen
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DocumentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FullSyncListenerTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDeclarationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IClosableTreeObject;
@@ -812,6 +814,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					if (treeObject.getObject() instanceof StepVariable) {
 						showStepInPickerAction.run();
 					}
+				} else if (treeObject instanceof FlowVirtualObjectTreeObject flowTreeObject && flowTreeObject.canLaunchEditor()) {
+					flowTreeObject.launchEditor(null);
 				} else if (treeObject instanceof IEditableTreeObject) {
 					((IEditableTreeObject) treeObject).launchEditor(null);
 				} else if (treeObject instanceof TraceTreeObject) {
@@ -1738,6 +1742,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					this.projectLoadingJob = projectLoadingJob;
 
 					walkInheritance = true;
+					walkFlowVirtualObjects = true;
 					super.init(databaseObject);
 				}
 
@@ -1779,7 +1784,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					// recursive call case, the tree object doesn't exist and must be added to the parent tree object
 					else {
 						int folderType = Integer.MIN_VALUE;
-						if (databaseObject instanceof Connector) {
+						if (databaseObject instanceof FlowVirtualObject) {
+							databaseObjectTreeObject = new FlowVirtualObjectTreeObject(viewer, (FlowVirtualObject) databaseObject, false);
+
+						} else if (databaseObject instanceof Connector) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_CONNECTORS;
 							databaseObjectTreeObject = new ConnectorTreeObject(viewer, (Connector) databaseObject, false);
 

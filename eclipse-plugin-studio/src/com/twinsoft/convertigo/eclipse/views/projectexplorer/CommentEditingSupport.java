@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.jface.viewers.TreeViewer;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 class CommentEditingSupport extends EditingSupport {
@@ -103,6 +104,9 @@ class CommentEditingSupport extends EditingSupport {
 		if (element instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) element;
 			DatabaseObject dbo = databaseObjectTreeObject.getObject();
+			if (dbo instanceof FlowVirtualObject fvo && (!"node".equals(fvo.getVirtualKind()) || !fvo.isDefinitionWritable())) {
+				return false;
+			}
 			IFolder folder = databaseObjectTreeObject.getProjectTreeObject().getFolder(
 					"_private/editor/" + dbo.getShortQName() + "-comment");
 			return !folder.exists();

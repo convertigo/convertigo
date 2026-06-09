@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.e4.ui.css.swt.dom.CompositeElement;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -87,6 +89,8 @@ import org.eclipse.ui.part.ViewPart;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.flow.Flow;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IExposeAble;
 import com.twinsoft.convertigo.beans.ngx.components.IShared;
@@ -114,6 +118,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.DocumentationHelper;
 
@@ -131,7 +136,11 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	private Map<String, Image> imageCache = new HashMap<>();
 	private HashMap<String, Item> all = new HashMap<>();
 	private HashMap<String, Item> commons = new HashMap<>();
+	private Set<String> flowItemIds = new HashSet<>();
 	private Project selectedProject = null;
+	private DatabaseObject selectedPaletteTarget = null;
+	private String latestFlowPaletteKey = "";
+	private String loadedFlowPaletteKey = "";
 	private boolean isVisible = true, isCtrl = false, isType = false;
 	private ISelectionChangedListener selectionListener;
 	private Set<String> hiddenCategories;
@@ -194,7 +203,11 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		}
 
 		private boolean allowedIn(int folderType) {
-			return folderType == ProjectExplorerView.getDatabaseObjectType(databaseObject());
+			try {
+				return folderType == ProjectExplorerView.getDatabaseObjectType(databaseObject());
+			} catch (UnsupportedOperationException e) {
+				return false;
+			}
 		}
 
 		protected boolean builtIn() {
@@ -203,6 +216,12 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 
 		private DatabaseObject databaseObject() {
 			return dbo == null ? dbo = newDatabaseObject() : dbo; 
+		}
+
+		PaletteSource newPaletteSource() {
+			DatabaseObject dbo = newDatabaseObject();
+			dbo.priority = dbo.getNewOrderValue();
+			return new PaletteSource(dbo);
 		}
 
 		abstract Image image();
@@ -277,24 +296,165 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	}
 
 	private Image getImage(String imagePath) {
+		return getImage(imagePath, false);
+	}
+
+	private Image getImage(String imagePath, boolean force32) {
 		Image image = null;
+		var cacheKey = force32 ? imagePath + "#32" : imagePath;
 		if (imagePath == null) {
 		} else if (imagePath.startsWith("/com/twinsoft/convertigo/")) {
 			try {
 				image = ConvertigoPlugin.getDefault().getIconFromPath(imagePath, BeanInfo.ICON_COLOR_32x32);
 			} catch (IOException e) {
 			}
-		} else if (imageCache.containsKey(imagePath)) {
-			image = imageCache.get(imagePath);
+		} else if (imageCache.containsKey(cacheKey)) {
+			image = imageCache.get(cacheKey);
 		} else {
 			try {
 				image = new Image(handCursor.getDevice(), imagePath);
-				imageCache.put(imagePath, image);
+				if (force32) {
+					var bounds = image.getBounds();
+					if (bounds.width != 32 || bounds.height != 32) {
+						var resized = new Image(handCursor.getDevice(), image.getImageData().scaledTo(32, 32));
+						image.dispose();
+						image = resized;
+					}
+				}
+				imageCache.put(cacheKey, image);
 			} catch (Exception e) {
 				System.out.println("Cannot load image " + imagePath);
 			}
 		}
 		return image;
+	}
+
+	private static String flowPaletteKey(DatabaseObject target) {
+		if (target == null || !FlowStudioSupport.isFlowPaletteTarget(target)) {
+			return "";
+		}
+		var key = FlowStudioSupport.paletteKey(target);
+		if (target instanceof FlowVirtualObject fvo) {
+			return key + "|" + fvo.getVirtualKind() + "|" + fvo.getVirtualPath();
+		}
+		return key + "|" + target.getClass().getName();
+	}
+
+	private void syncFlowItems(DatabaseObject target) {
+		for (String id: flowItemIds) {
+			all.remove(id);
+		}
+		flowItemIds.clear();
+		if (target == null || !FlowStudioSupport.isFlowPaletteTarget(target)) {
+			return;
+		}
+		try {
+			var categories = FlowStudioSupport.paletteCategories(target);
+			for (var i = 0; i < categories.length(); i++) {
+				var category = categories.optJSONObject(i);
+				if (category == null) {
+					continue;
+				}
+				var categoryName = category.optString("name", "Flow blocks");
+				var items = category.optJSONArray("items");
+				if (items == null) {
+					continue;
+				}
+				for (var j = 0; j < items.length(); j++) {
+					var flowItem = items.optJSONObject(j);
+					if (flowItem == null) {
+						continue;
+					}
+					addFlowItem(categoryName, flowItem);
+				}
+			}
+		} catch (Exception e) {
+			Engine.logStudio.debug("(PaletteView) Unable to load Flow palette", e);
+		}
+	}
+
+	private void addFlowItem(String categoryName, JSONObject flowItem) {
+		var itemType = flowItem.optString("type", "FlowBlock");
+		var blockName = flowItem.optString("block", flowItem.optString("classname", flowItem.optString("name", "")));
+		var runtime = flowItem.optString("runtime", "");
+		if (blockName.isBlank() && !"FlowBlockDefinition".equals(itemType) && !"FlowTypeDefinition".equals(itemType)) {
+			return;
+		}
+		var id = "flow " + flowItem.optString("id", blockName.isBlank() ? runtime : blockName);
+		flowItemIds.add(id);
+		all.put(id, new Item() {
+			@Override
+			public String category() {
+				return categoryName;
+			}
+
+			@Override
+			public String name() {
+				return flowItem.optString("name", blockName);
+			}
+
+			@Override
+			String description() {
+				return flowItem.optString("description", "");
+			}
+
+			@Override
+			Image image() {
+				var icon = flowItem.optString("iconFile32",
+						flowItem.optString("iconFile", flowItem.optString("iconFile16", flowItem.optString("icon", null))));
+				return getImage(icon, true);
+			}
+
+			@Override
+			PaletteSource newPaletteSource() {
+				if ("FlowBlockDefinition".equals(itemType)) {
+					return PaletteSource.flowBlockDefinition(runtime, flowItem.optString("description", ""));
+				}
+				if ("FlowTypeDefinition".equals(itemType)) {
+					return PaletteSource.flowTypeDefinition(flowItem.optString("description", ""));
+				}
+				if ("FlowPropertyDefinition".equals(itemType)) {
+					return PaletteSource.flowPropertyDefinition(flowItem.optString("description", ""));
+				}
+				return PaletteSource.flowBlock(blockName, flowItem.optString("description", ""));
+			}
+
+			@Override
+			DatabaseObject newDatabaseObject() {
+				throw new UnsupportedOperationException("Flow blocks are virtual palette items.");
+			}
+
+			@Override
+			boolean allowedIn(DatabaseObject parent) {
+				if ("FlowBlockDefinition".equals(itemType)) {
+					return FlowStudioSupport.canAddBlockDefinition(parent, runtime);
+				}
+				if ("FlowTypeDefinition".equals(itemType)) {
+					return FlowStudioSupport.canAddTypeDefinition(parent);
+				}
+				if ("FlowPropertyDefinition".equals(itemType)) {
+					return FlowStudioSupport.canAddPropertyDefinition(parent);
+				}
+				return FlowStudioSupport.canAddBlock(parent, "inside", blockName)
+						|| FlowStudioSupport.canAddBlock(parent, "before", blockName)
+						|| FlowStudioSupport.canAddBlock(parent, "after", blockName);
+			}
+
+			@Override
+			String propertiesDescription() {
+				return flowItem.optString("propertiesDescriptionHtml", "");
+			}
+
+			@Override
+			String id() {
+				return id;
+			}
+
+			@Override
+			protected boolean builtIn() {
+				return flowItem.optBoolean("builtin", true);
+			}
+		});
 	}
 
 	@Override
@@ -411,6 +571,12 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 							PaletteView.this.parent.setData("FolderType", folderType);
 							PaletteView.this.parent.setData("Selected", selected);
 							PaletteView.this.parent.setData("Parent", parent);
+							selectedPaletteTarget = selected != null ? selected : parent instanceof DatabaseObject dbo ? dbo : null;
+							var flowPaletteKey = flowPaletteKey(selectedPaletteTarget);
+							if (!flowPaletteKey.equals(latestFlowPaletteKey)) {
+								latestFlowPaletteKey = flowPaletteKey;
+								refresh();
+							}
 							if (selected != null || parent instanceof DatabaseObject) {
 								var project = (selected != null ? selected : (DatabaseObject) parent).getProject();
 								if (project != selectedProject) {
@@ -711,7 +877,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 											boolean force = false;
 											if (isType) {
 												String cls = b.getClassName();
-												if (parent instanceof Sequence) {
+												if (parent instanceof Sequence && !(parent instanceof Flow)) {
 													force = cls.startsWith("com.twinsoft.convertigo.beans.steps.")
 															|| cls.startsWith("com.twinsoft.convertigo.beans.variables.Step");
 												} else if (parent instanceof ApplicationComponent) {
@@ -824,10 +990,8 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 				public void dragStart(DragSourceEvent event) {
 					try {
 						Item item = (Item) ((DragSource) event.widget).getControl().getData("Item");
-						DatabaseObject dbo = item.newDatabaseObject();
-						dbo.priority = dbo.getNewOrderValue();
 						event.doit = true;
-						PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(dbo));
+						PaletteSourceTransfer.getInstance().setPaletteSource(item.newPaletteSource());
 						dragSetData(event);
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Cannot drag");
@@ -913,9 +1077,12 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					DatabaseObject selected = (DatabaseObject) PaletteView.this.parent.getData("Selected");
 					DatabaseObject parent = (DatabaseObject) PaletteView.this.parent.getData("Parent");
 					Integer folderType = (Integer) PaletteView.this.parent.getData("FolderType");
+					var paletteTarget = selected != null ? selected : parent;
+					var flowOnly = FlowStudioSupport.isFlowPaletteTarget(paletteTarget);
 
 					var skipKey = text + ":"
 							+ (selected != null ? selected.getClass().getCanonicalName() : folderType != null ? folderType.toString() : "null") + ":"
+							+ (selected != null ? selected.getFullQName() : parent != null ? parent.getFullQName() : "null") + ":"
 							+ (selectedProject != null ? selectedProject.getName() : "null") + ":"
 							+ hiddenCategories + ":"
 							+ favorites.stream().map(i -> i.name()).collect( Collectors.joining( "," )) + ":"
@@ -936,11 +1103,15 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 						Item item = (Item) c.getData("Item");
 						boolean ok = false;
 						if (item != null) {
-							ok = (tiInternal.getSelection() && item.builtIn()) || (tiShared.getSelection() && !item.builtIn());
-							if (selected != null) {
-								ok = ok && item.allowedIn(selected);
-							} else {
-								ok = ok && folderType != null && item.allowedIn(folderType) && item.allowedIn(parent);
+							var flowItem = flowItemIds.contains(item.id());
+							ok = flowOnly ? flowItem : !flowItem;
+							if (ok) {
+								ok = (tiInternal.getSelection() && item.builtIn()) || (tiShared.getSelection() && !item.builtIn());
+								if (selected != null) {
+									ok = ok && item.allowedIn(selected);
+								} else {
+									ok = ok && folderType != null && item.allowedIn(folderType) && item.allowedIn(parent);
+								}
 							}
 							if (empty && ok) {
 								empty = false;
@@ -1042,7 +1213,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 						((RowData) lastUsedlabel.getLayoutData()).exclude = !found;
 					}
 
-					if (empty && selected != null && parent != null) {
+					if (empty && !flowOnly && selected != null && parent != null) {
 						PaletteView.this.parent.setData("Selected", parent);
 						PaletteView.this.parent.setData("Parent", parent.getParent());
 						modifyText(e);
@@ -1224,6 +1395,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					cm.reloadComponents();
 					all.clear();
 					all.putAll(commons);
+					loadedFlowPaletteKey = "";
 					for (Component comp: cm.getComponentsByGroup()) {
 						String id = "ngx [" + comp.getGroup() + "] " + comp.getName();
 						all.put(id, new Item() {
@@ -1283,6 +1455,11 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 						});
 					}
 				}
+			}
+			if (!latestFlowPaletteKey.equals(loadedFlowPaletteKey)) {
+				syncFlowItems(selectedPaletteTarget);
+				loadedFlowPaletteKey = latestFlowPaletteKey;
+				needUpdate[0] = true;
 			}
 			parent.getDisplay().asyncExec(() -> {
 				try {
