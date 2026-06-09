@@ -27,19 +27,9 @@ const PRESERVE = new Set([
 	'scripts'
 ]);
 
-const REMOVE_STALE = ['studio-beta'];
-
 async function main() {
 	if (!fs.existsSync(tmpDir)) {
 		throw new Error(`Temporary build directory missing: ${tmpDir}`);
-	}
-
-	for (const entry of REMOVE_STALE) {
-		const stale = path.join(targetDir, entry);
-		if (await fsExtra.pathExists(stale)) {
-			await fsExtra.remove(stale);
-			console.log(`🧹 Removed stale: ${entry}`);
-		}
 	}
 
 	const entries = await fs.promises.readdir(tmpDir);

@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import Button from '$lib/admin/components/Button.svelte';
 	import LogViewer from '$lib/admin/components/LogViewer.svelte';
+	import LogViewerConfiguration from '$lib/admin/components/LogViewerConfiguration.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
@@ -178,6 +179,7 @@
 				/>
 			</div>
 			<div class="log-levels-grid min-h-0 grow overflow-auto p-1">
+				<LogViewerConfiguration />
 				{#each logLevelProperties as property (property.name)}
 					<div class="log-level-property">
 						<PropertyType {...property} bind:value={property.value} />

@@ -4,6 +4,10 @@
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
 	import Logs from '$lib/admin/Logs.svelte';
+	import {
+		maxLoadedLogLinesState,
+		normalizeMaxLoadedLogLines
+	} from '$lib/admin/LogViewerSettings.svelte.js';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray, debounce } from '$lib/utils/service';
@@ -95,8 +99,6 @@
 		{ label: 'Last hour', minutes: 60 },
 		{ label: 'Today', today: true }
 	];
-	const STUDIO_MAX_LOADED_LOGS = 20000;
-
 	let modalYesNo = getContext('modalYesNo');
 
 	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, live?: boolean, studioMode?: boolean, onConfigureLevels?: (event?: any) => any, onReloadViewer?: () => void}} */
@@ -113,6 +115,7 @@
 	} = $props();
 	const extraLinesState = persistedState('admin.logs.extraLines', 1, { syncTabs: false });
 	let extraLines = $derived(extraLinesState.current);
+	let maxLoadedLines = $derived(normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current));
 
 	let isDragging = $state(false);
 	let virtualList = $state();
@@ -1034,6 +1037,10 @@
 		if (retryTimer) clearTimeout(retryTimer);
 	});
 
+	$effect(() => {
+		Logs.maxLines = maxLoadedLines;
+	});
+
 	export async function list(renew = false) {
 		if (retryTimer) {
 			clearTimeout(retryTimer);
@@ -1044,7 +1051,7 @@
 		Logs.filter = serverFilter;
 		Logs.startDate = startDate;
 		Logs.endDate = endDate;
-		Logs.maxLines = studioMode && live ? STUDIO_MAX_LOADED_LOGS : 0;
+		Logs.maxLines = maxLoadedLines;
 		if (renew) {
 			_scrollToIndex = undefined;
 		}
@@ -1758,7 +1765,7 @@
 		</Portal>
 	</div>
 	<div
-		class="log-status-row layout-x-p-none shrink-0 items-center justify-between rounded-sm rounded-t-none preset-filled-surface-100-900 px! py-1!"
+		class="log-status-row layout-x-p-none shrink-0 items-center justify-between rounded-sm rounded-t-none preset-filled-surface-100-900 py-1! px!"
 	>
 		<span class="h-fit truncate">
 			{#if studioMode}
