@@ -22,6 +22,7 @@
 	}
 
 	html[data-theme='convertigo']:not(.dark) body {
+		color-scheme: light;
 		background-color: var(--body-background-color);
 		background-image: none;
 		background-attachment: fixed;
@@ -30,6 +31,7 @@
 	}
 
 	html[data-theme='convertigo'].dark body {
+		color-scheme: dark;
 		background-color: var(--body-background-color-dark);
 		background-image: none;
 		background-attachment: fixed;

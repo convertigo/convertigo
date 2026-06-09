@@ -36,7 +36,7 @@ const config = {
 			handleHttpError: 'ignore',
 			handleMissingId: 'ignore',
 			handleEntryGeneratorMismatch: 'ignore',
-			entries: ['*', '/dashboard/_/frontend', '/dashboard/_/platforms']
+			entries: ['*', '/dashboard/_/frontend', '/dashboard/_/platforms', '/studio/_']
 		}
 	},
 

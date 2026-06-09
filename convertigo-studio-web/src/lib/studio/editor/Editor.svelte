@@ -30,13 +30,17 @@
 	/** @type {Promise<any> | null} */
 	let monacoLoader = null;
 
+	/**
+	 * @param {string} src
+	 * @returns {Promise<void>}
+	 */
 	function loadScript(src) {
 		return new Promise((resolve, reject) => {
 			const existing = document.querySelector(`script[data-monaco="${src}"]`);
 			if (existing) {
-				existing.addEventListener('load', resolve, { once: true });
+				existing.addEventListener('load', () => resolve(), { once: true });
 				existing.addEventListener('error', reject, { once: true });
-				if (existing.dataset.loaded === 'true') {
+				if (existing instanceof HTMLScriptElement && existing.dataset.loaded === 'true') {
 					resolve();
 				}
 				return;
@@ -54,6 +58,9 @@
 		});
 	}
 
+	/**
+	 * @returns {Promise<any>}
+	 */
 	function loadMonaco() {
 		if (globalThis.monaco) {
 			return Promise.resolve(globalThis.monaco);
@@ -65,8 +72,10 @@
 					if (!require) {
 						throw new Error('Monaco loader not available');
 					}
+					// @ts-ignore Monaco's AMD loader extends the browser require global at runtime.
 					require.config({ paths: { vs: monacoBase } });
 					return new Promise((resolve, reject) => {
+						// @ts-ignore Monaco's AMD loader accepts dependency arrays.
 						require(['vs/editor/editor.main'], () => {
 							if (globalThis.monaco) {
 								resolve(globalThis.monaco);
@@ -104,16 +113,59 @@
 		let editor;
 		/** @type {ResizeObserver | undefined} */
 		let resizeObserver;
+		/** @type {IntersectionObserver | undefined} */
+		let intersectionObserver;
+		/** @type {MutationObserver | undefined} */
+		let visibilityObserver;
 		/** @type {{ dispose: () => void } | undefined} */
 		let changeSubscription;
 		let disposed = false;
 		let pending = normalizeOptions(value);
 		let applyingContent = false;
+		let layoutFrame = 0;
+		/** @type {number[]} */
+		let layoutTimers = [];
 
 		function layout() {
 			if (!editor) return;
 			const rect = node.getBoundingClientRect();
 			editor.layout({ width: rect.width, height: rect.height });
+		}
+
+		function clearScheduledLayout() {
+			if (layoutFrame) {
+				cancelAnimationFrame(layoutFrame);
+				layoutFrame = 0;
+			}
+			for (const timer of layoutTimers) clearTimeout(timer);
+			layoutTimers = [];
+		}
+
+		function scheduleLayout() {
+			if (disposed) return;
+			layout();
+			clearScheduledLayout();
+			layoutFrame = requestAnimationFrame(() => {
+				layoutFrame = 0;
+				layout();
+			});
+			for (const delay of [0, 120]) {
+				layoutTimers.push(window.setTimeout(() => layout(), delay));
+			}
+		}
+
+		function watchVisibilityChanges() {
+			intersectionObserver = new IntersectionObserver(() => scheduleLayout());
+			intersectionObserver.observe(node);
+			visibilityObserver = new MutationObserver(() => scheduleLayout());
+			let current = /** @type {HTMLElement | null} */ (node);
+			while (current) {
+				visibilityObserver.observe(current, {
+					attributeFilter: ['class', 'hidden', 'style'],
+					attributes: true
+				});
+				current = current.parentElement;
+			}
 		}
 
 		function apply(nextValue) {
@@ -130,7 +182,7 @@
 			if (model && model.getLanguageId() !== pending.language) {
 				globalThis.monaco?.editor?.setModelLanguage(model, pending.language);
 			}
-			layout();
+			scheduleLayout();
 		}
 
 		loadMonaco()
@@ -154,13 +206,11 @@
 
 				resizeObserver = new ResizeObserver(() => layout());
 				resizeObserver.observe(node);
+				watchVisibilityChanges();
 				apply(pending);
 				// Monaco can render with a stale tiny viewport when mounted during route/layout transitions.
 				// Trigger a few deferred layouts to stabilize height/width in dynamic containers.
-				layout();
-				requestAnimationFrame(() => layout());
-				setTimeout(() => layout(), 0);
-				setTimeout(() => layout(), 120);
+				scheduleLayout();
 			})
 			.catch(() => {});
 
@@ -170,7 +220,10 @@
 			},
 			destroy() {
 				disposed = true;
+				clearScheduledLayout();
 				resizeObserver?.disconnect();
+				intersectionObserver?.disconnect();
+				visibilityObserver?.disconnect();
 				changeSubscription?.dispose();
 				editor?.dispose();
 			}

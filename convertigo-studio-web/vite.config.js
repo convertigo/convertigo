@@ -6,6 +6,8 @@ import convertigo from './src/convertigo.plugin.js';
 
 function determineProxy() {
 	const c8oPort =
+		process.env.C8O_PORT ??
+		process.env.npm_config_c8oPort ??
 		process.argv.filter((s) => s.startsWith('--c8oPort=')).map((s) => s.substring(10))[0] ??
 		'18080';
 	let convertigoUrl = `http://localhost:${c8oPort}`;

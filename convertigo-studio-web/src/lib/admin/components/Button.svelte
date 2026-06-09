@@ -35,12 +35,13 @@
 {#if !hidden}
 	{#if useSkeletonTooltip}
 		<Tooltip positioning={{ placement: tooltipPlacement }}>
-			<Tooltip.Trigger {...rest}>
+			<Tooltip.Trigger>
 				{#snippet element(attributes)}
 					{@const triggerAttributes = asAny(attributes)}
 					{#if isLink}
 						<a
 							{...triggerAttributes}
+							{...rest}
 							{href}
 							class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
 							aria-label={computedAriaLabel}
@@ -51,6 +52,7 @@
 					{:else}
 						<button
 							{...triggerAttributes}
+							{...rest}
 							{disabled}
 							class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
 							{type}

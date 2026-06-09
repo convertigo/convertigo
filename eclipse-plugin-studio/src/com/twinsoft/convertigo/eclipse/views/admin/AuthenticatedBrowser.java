@@ -51,7 +51,9 @@ public class AuthenticatedBrowser {
 	public AuthenticatedBrowser(C8oBrowser browser, Supplier<String> urlSupplier) {
 		this.browser = browser;
 		this.urlSupplier = urlSupplier;
-		browser.getBrowser().navigation().on(NavigationFinished.class, event -> ConvertigoPlugin.asyncExec(this::reconnectIfNeeded));
+		browser.setRestoreHandler(this::load);
+		browser.onBrowserReady(() -> browser.getBrowser().navigation().on(NavigationFinished.class,
+				event -> ConvertigoPlugin.asyncExec(() -> reconnectIfNeeded(event))));
 		scheduleReconnectCheck();
 	}
 
@@ -102,6 +104,17 @@ public class AuthenticatedBrowser {
 		if (waiting || isDisconnectedUrl(browser.getURL())) {
 			reconnect();
 		}
+	}
+
+	private void reconnectIfNeeded(NavigationFinished event) {
+		if (!canUseBrowser()) {
+			return;
+		}
+		if (event.isInMainFrame() && event.isErrorPage()) {
+			reconnect();
+			return;
+		}
+		reconnectIfNeeded();
 	}
 
 	private void reconnect() {

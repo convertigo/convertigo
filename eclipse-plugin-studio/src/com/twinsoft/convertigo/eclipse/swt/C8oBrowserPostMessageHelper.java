@@ -38,14 +38,18 @@ public class C8oBrowserPostMessageHelper {
 
 	public C8oBrowserPostMessageHelper(C8oBrowser browser) {
 		this.browser = browser;
-		var bro = browser.getBrowser(); 
+		browser.onBrowserReady(this::install);
+	}
+
+	private void install() {
+		var bro = browser.getBrowser();
 		bro.set(InjectJsCallback.class, event -> {
 			var frame = event.frame();
 			JsObject window = frame.executeJavaScript("window");
 			window.putProperty("java", new BrowserInterface());
 			return Response.proceed();
 		});
-		
+
 		bro.navigation().on(FrameLoadFinished.class, event -> {
 			if (onLoad != null) {
 				onLoad.on(event);

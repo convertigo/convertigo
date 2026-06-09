@@ -4,6 +4,29 @@ import { getUrl } from '$lib/utils/service';
 
 const FULLSYNC_BASE = getUrl('fullsync/');
 
+/**
+ * @typedef {Record<string, any>} FullSyncQuery
+ * @typedef {{ method?: string, query?: FullSyncQuery | null | undefined, body?: any }} FullSyncRequestOptions
+ * @typedef {Error & { status?: number, payload?: any }} FullSyncError
+ * @typedef {{
+ * 	limit?: number,
+ * 	skip?: number,
+ * 	includeDocs?: boolean,
+ * 	descending?: boolean,
+ * 	stable?: boolean,
+ * 	update?: string,
+ * 	startkey?: any,
+ * 	endkey?: any,
+ * 	conflicts?: boolean,
+ * 	omitSkip?: boolean
+ * }} FullSyncListDocumentsOptions
+ */
+
+/**
+ * @param {string} path
+ * @param {FullSyncQuery} query
+ * @returns {string}
+ */
 function withQuery(path, query = {}) {
 	const params = new URLSearchParams();
 	for (const [key, value] of Object.entries(query)) {
@@ -47,10 +70,20 @@ async function parseResponse(response) {
 	return await response.text();
 }
 
+/**
+ * @param {string} path
+ * @returns {string}
+ */
 function normalizePath(path) {
 	return String(path ?? '').replace(/^\/+/, '');
 }
 
+/**
+ * @param {any} payload
+ * @param {number | null} status
+ * @param {string | null} fallback
+ * @returns {string}
+ */
 function getErrorMessage(payload, status = null, fallback = null) {
 	if (typeof payload == 'string' && payload.length) {
 		return payload;
@@ -72,6 +105,10 @@ function getErrorMessage(payload, status = null, fallback = null) {
 	return status == null ? 'Unexpected response' : `HTTP ${status}`;
 }
 
+/**
+ * @param {any} error
+ * @returns {boolean}
+ */
 function isExplicitFullSyncConfigError(error) {
 	const message = String(error?.message ?? '')
 		.trim()
@@ -84,6 +121,10 @@ function isExplicitFullSyncConfigError(error) {
 	);
 }
 
+/**
+ * @param {any} error
+ * @returns {Error}
+ */
 function getDatabasesError(error = null) {
 	if (isExplicitFullSyncConfigError(error)) {
 		return error;
@@ -120,6 +161,11 @@ function applyResponseMetadata(response) {
 	Instances.update(response);
 }
 
+/**
+ * @param {string} path
+ * @param {FullSyncRequestOptions} options
+ * @returns {Promise<any>}
+ */
 async function request(path = '', { method = 'GET', query = null, body = undefined } = {}) {
 	if (!browser) {
 		return {};
@@ -166,7 +212,9 @@ async function request(path = '', { method = 'GET', query = null, body = undefin
 
 	const data = await parseResponse(resolvedResponse);
 	if (!resolvedResponse.ok) {
-		const error = new Error(getErrorMessage(data, resolvedResponse.status));
+		const error = /** @type {FullSyncError} */ (
+			new Error(getErrorMessage(data, resolvedResponse.status))
+		);
 		error.status = resolvedResponse.status;
 		error.payload = data;
 		throw error;
@@ -215,6 +263,11 @@ export async function getDatabaseInfo(dbName) {
 	return request(dbPath(dbName));
 }
 
+/**
+ * @param {string} dbName
+ * @param {FullSyncListDocumentsOptions} [options]
+ * @returns {Promise<any>}
+ */
 export async function listDocuments(
 	dbName,
 	{
@@ -284,7 +337,7 @@ export async function listDocumentIdSuggestions(dbName, { prefix = '', limit = 3
  * 	startkey?: any,
  * 	endkey?: any,
  * 	conflicts?: boolean,
- * 	reduce?: boolean,
+ * 	reduce?: boolean | string,
  * 	group?: boolean,
  * 	groupLevel?: number
  * }} [options]
@@ -396,7 +449,7 @@ export async function removeDocument(dbName, docId, rev) {
 			return first;
 		}
 		const message = first?.reason || first?.error || 'Unable to delete document';
-		const error = new Error(message);
+		const error = /** @type {FullSyncError} */ (new Error(message));
 		error.payload = first;
 		throw error;
 	}
@@ -427,7 +480,7 @@ export async function uploadAttachment(dbName, docId, rev, file) {
 
 	const data = await parseResponse(response);
 	if (!response.ok) {
-		const error = new Error(getErrorMessage(data, response.status));
+		const error = /** @type {FullSyncError} */ (new Error(getErrorMessage(data, response.status)));
 		error.status = response.status;
 		error.payload = data;
 		throw error;

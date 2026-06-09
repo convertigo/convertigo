@@ -40,6 +40,7 @@
 	import MdiCogOutline from '~icons/mdi/cog-outline';
 	import MdiContentCopy from '~icons/mdi/content-copy';
 	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline';
+	import MdiCubeOutline from '~icons/mdi/cube-outline';
 	import MdiDatabase from '~icons/mdi/database';
 	import MdiDatabaseClockOutline from '~icons/mdi/database-clock-outline';
 	import MdiDatabaseSyncOutline from '~icons/mdi/database-sync-outline';
@@ -65,6 +66,7 @@
 	import MdiFitToPageOutline from '~icons/mdi/fit-to-page-outline';
 	import MdiFolderOutline from '~icons/mdi/folder-outline';
 	import MdiFullscreen from '~icons/mdi/fullscreen';
+	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit';
 	import MdiGithub from '~icons/mdi/github';
 	import MdiHomeAlertOutline from '~icons/mdi/home-alert-outline';
 	import MdiHomeOutline from '~icons/mdi/home-outline';
@@ -77,6 +79,7 @@
 	import MdiLanguageJava from '~icons/mdi/language-java';
 	import MdiLanguageRuby from '~icons/mdi/language-ruby';
 	import MdiLayersOutline from '~icons/mdi/layers-outline';
+	import MdiLightningBolt from '~icons/mdi/lightning-bolt';
 	import MdiLock from '~icons/mdi/lock';
 	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant';
 	import MdiLockOutline from '~icons/mdi/lock-outline';
@@ -105,6 +108,7 @@
 	import MdiRobotOutline from '~icons/mdi/robot-outline';
 	import MdiSearch from '~icons/mdi/search';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
+	import MdiSourceBranch from '~icons/mdi/source-branch';
 	import MdiStarOutline from '~icons/mdi/star-outline';
 	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline';
 	import MdiSync from '~icons/mdi/sync';
@@ -164,6 +168,7 @@
 		'mdi:cog': MdiCog,
 		'mdi:content-save-edit-outline': MdiContentSaveEditOutline,
 		'mdi:content-copy': MdiContentCopy,
+		'mdi:cube-outline': MdiCubeOutline,
 		'mdi:database-clock-outline': MdiDatabaseClockOutline,
 		'mdi:database-sync-outline': MdiDatabaseSyncOutline,
 		'mdi:database': MdiDatabase,
@@ -188,6 +193,7 @@
 		'mdi:filter': MdiFilter,
 		'mdi:folder-outline': MdiFolderOutline,
 		'mdi:fullscreen': MdiFullscreen,
+		'mdi:fullscreen-exit': MdiFullscreenExit,
 		'mdi:github': MdiGithub,
 		'mdi:home-alert-outline': MdiHomeAlertOutline,
 		'mdi:home-outline': MdiHomeOutline,
@@ -200,6 +206,7 @@
 		'mdi:language-java': MdiLanguageJava,
 		'mdi:language-ruby': MdiLanguageRuby,
 		'mdi:layers-outline': MdiLayersOutline,
+		'mdi:lightning-bolt': MdiLightningBolt,
 		'mdi:login-variant': MdiLoginVariant,
 		'mdi:lock-open-variant': MdiLockOpenVariant,
 		'mdi:lock-outline': MdiLockOutline,
@@ -232,6 +239,7 @@
 		'mdi:robot-outline': MdiRobotOutline,
 		'mdi:search': MdiSearch,
 		'mdi:smartphone-link': MdiSmartphoneLink,
+		'mdi:source-branch': MdiSourceBranch,
 		'mdi:star-outline': MdiStarOutline,
 		'mdi:star-three-points-outline': MdiStarThreePointsOutline,
 		'mdi:sync': MdiSync,

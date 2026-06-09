@@ -19,6 +19,26 @@ const metricKeys = [
 ];
 const historyKeys = ['labels', ...metricKeys];
 
+/**
+ * @typedef {Object} MonitorHistory
+ * @property {number[]} labels
+ * @property {number[]} memoryMaximal
+ * @property {number[]} memoryTotal
+ * @property {number[]} memoryUsed
+ * @property {number[]} threads
+ * @property {number[]} contexts
+ * @property {number[]} sessions
+ * @property {number[]} sessionMaxCV
+ * @property {number[]} availableSessions
+ * @property {number[]} requests
+ * @property {any} engineState
+ * @property {number} startTime
+ * @property {number} time
+ */
+
+/**
+ * @returns {MonitorHistory}
+ */
 function createValues() {
 	return {
 		labels: [],

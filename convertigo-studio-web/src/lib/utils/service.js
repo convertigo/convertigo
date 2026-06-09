@@ -21,6 +21,15 @@ const adminInstance = browser
 		(globalThis.__c8oAdminInstance ??= `${Date.now()}-${Math.random().toString(16).slice(2)}`)
 	: '';
 
+/**
+ * @typedef {{
+ * 	adminInstance?: string,
+ * 	silentStatuses?: number[],
+ * 	silentNetworkAfterMs?: number,
+ * 	silentError?: (error: string, response: any) => boolean
+ * }} CallOptions
+ */
+
 let modalAlert;
 export function setModalAlert(alert) {
 	modalAlert = alert;
@@ -36,7 +45,7 @@ export function abortPendingCalls() {
 /**
  * @param {string} service
  * @param {any} data
- * @param {{adminInstance?: string, silentStatuses?: number[], silentNetworkAfterMs?: number, silentError?: (error: string, response: any) => boolean}} options
+ * @param {CallOptions} options
  */
 export async function call(service, data = {}, options = {}) {
 	if (!browser) {
@@ -148,8 +157,9 @@ export async function call(service, data = {}, options = {}) {
 			}
 		}
 	} catch (err) {
-		const message = String(err?.['message'] ?? err ?? '');
-		if (err?.name === 'AbortError' || /aborted/i.test(message)) {
+		const message = String(err instanceof Error ? err.message : (err ?? ''));
+		const errorName = err instanceof Error ? err.name : '';
+		if (errorName === 'AbortError' || /aborted/i.test(message)) {
 			return { aborted: true };
 		}
 		if (
@@ -180,9 +190,12 @@ export async function call(service, data = {}, options = {}) {
 	if (dataContent?.aborted) {
 		return dataContent;
 	}
-	const error = options.silentError ? findDeepKeys(dataContent, ['error', 'errorMessage']) : null;
-	if (error && options.silentError(stringilight(error), dataContent)) {
-		return { ...dataContent, silentError: true, elapsed: Date.now() - startedAt };
+	const silentError = options.silentError;
+	if (typeof silentError === 'function') {
+		const error = findDeepKeys(dataContent, ['error', 'errorMessage']);
+		if (error && silentError(stringilight(error), dataContent)) {
+			return { ...dataContent, silentError: true, elapsed: Date.now() - startedAt };
+		}
 	}
 	handleStateMessage(dataContent, service);
 	return dataContent;
@@ -429,36 +442,102 @@ export function toXml() {
 
 /**
  * @param {string} target - the id of the parent dbo in tree
- * @param {string} position - the position relative to target inside|first|after
+ * @param {string} position - the position relative to target inside|first|before|after
  * @param {any} data - the json data object
+ * @param {Parameters<typeof call>[2]=} options
  */
 export async function addDbo(
 	target = '',
 	position = 'inside',
-	data = { kind: '', data: { id: '' } }
+	data = { kind: '', data: { id: '' } },
+	options = {}
 ) {
-	let result = await call('studio.dbo.Add', { target, position, data: JSON.stringify(data) });
+	let result = await call(
+		'studio.dbo.Add',
+		{ target, position, data: JSON.stringify(data) },
+		options
+	);
 	return result;
 }
 
 /**
  * @param {string} target - the id of the parent dbo in tree
- * @param {string} position - the position relative to target inside|first|after
+ * @param {string} position - the position relative to target inside|first|before|after
  * @param {any} data - the json data object
+ * @param {Parameters<typeof call>[2]=} options
  */
 export async function moveDbo(
 	target = '',
 	position = 'inside',
-	data = { kind: '', data: { id: '' } }
+	data = { kind: '', data: { id: '' } },
+	options = {}
 ) {
-	let result = await call('studio.dbo.Move', { target, position, data: JSON.stringify(data) });
+	let result = await call(
+		'studio.dbo.Move',
+		{ target, position, data: JSON.stringify(data) },
+		options
+	);
 	return result;
+}
+
+/**
+ * @param {string} projectName - the project to export to disk
+ * @param {string=} id - a selected dbo id used as fallback by older engines
+ * @param {Parameters<typeof call>[2]=} options
+ */
+export async function saveDboProject(projectName = '', id = '', options = {}) {
+	let result = await call(
+		'studio.dbo.Save',
+		{ projectName, id },
+		{
+			...options,
+			silentError: (error, response) =>
+				isUnknownStudioSaveService(error) || Boolean(options.silentError?.(error, response))
+		}
+	);
+	if (isUnknownStudioSaveService(JSON.stringify(result))) {
+		const fallbackId = normalizeSaveDboId(id);
+		if (fallbackId) {
+			result = await call(
+				'database_objects.Set',
+				{ '@_xml': true, object: { '@_qname': fallbackId } },
+				options
+			);
+		}
+	}
+	return result;
+}
+
+/**
+ * @param {string} error
+ * @returns {boolean}
+ */
+function isUnknownStudioSaveService(error) {
+	return /Unknown admin service 'studio\.dbo\.Save/i.test(error);
+}
+
+/**
+ * @param {string} id
+ * @returns {string}
+ */
+function normalizeSaveDboId(id = '') {
+	if (!id || !id.includes('.')) {
+		return '';
+	}
+	const match = id.match(/^(.*):([a-z]{2,4})$/);
+	if (
+		match?.[1] &&
+		['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url', 'app', 'mob'].includes(match[2])
+	) {
+		return match[1];
+	}
+	return id;
 }
 
 /**
  * @param {string} action - the drag action (move|copy)
  * @param {string} target - the id of the parent dbo in tree
- * @param {string} position - the position relative to target inside|first|after
+ * @param {string} position - the position relative to target inside|first|before|after
  * @param {any} data - the json data object
  */
 export async function acceptDbo(
@@ -513,9 +592,10 @@ export async function pasteDbo(target = '', xml = '') {
  * @param {string} id - the id of the target dbo in tree
  * @param {string} name - the dbo new name
  * @param {string} update - UPDATE_ALL | UPDATE_LOCAL | UPDATE_NONE
+ * @param {Parameters<typeof call>[2]=} options
  */
-export async function renameDbo(id = '', name = '', update = 'UPDATE_NONE') {
-	let result = await call('studio.dbo.Rename', { id, name, update });
+export async function renameDbo(id = '', name = '', update = 'UPDATE_NONE', options = {}) {
+	let result = await call('studio.dbo.Rename', { id, name, update }, options);
 	return result;
 }
 

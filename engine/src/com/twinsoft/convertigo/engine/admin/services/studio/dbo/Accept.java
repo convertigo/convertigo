@@ -50,7 +50,7 @@ public class Accept extends JSonService {
 			throw new ServiceException("missing target parameter");
 		}
 
-		// position: the position where to add, relative to target (inside|first|after)
+		// position: the position where to add, relative to target (inside|first|before|after)
 		var position = request.getParameter("position");
 		if (position == null) {
 			position = "inside";
@@ -83,11 +83,13 @@ public class Accept extends JSonService {
 			FolderType folderType = position.equals("inside") ? Utils.getFolderType(target) : targetDbo.getFolderType();
 			DatabaseObject parentDbo = position.equals("inside") ? targetDbo : targetDbo.getParent();
 			if (parentDbo != null) {
-				accept = dbo.getParent() != null && action.equals("move") ? DboUtils.canCut(dbo) : true;
-				if (accept) {
+				boolean isMove = dbo.getParent() != null && action.equals("move");
+				boolean isOrdering = isMove && !position.equals("inside") && parentDbo.equals(dbo.getParent());
+				accept = isOrdering || (isMove ? DboUtils.canCut(dbo) : true);
+				if (accept && !isOrdering) {
 					accept = DboUtils.acceptDbo(parentDbo, dbo, action.equals("copy"));
 					if (accept && action.equals("move")) {
-						if (folderType != null) {
+						if (folderType != null && folderType != FolderType.NONE) {
 							accept = DatabaseObject.getFolderType(dbo.getClass()) == folderType;
 						}
 						if (accept && position.equals("inside")) {
