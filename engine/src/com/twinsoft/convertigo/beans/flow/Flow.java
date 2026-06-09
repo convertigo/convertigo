@@ -60,8 +60,9 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 public class Flow extends Sequence {
 
 	private static final long serialVersionUID = 1258757999474893551L;
-	private static final String DEFAULT_FLOW_SOURCE = "version: 1\n"
-			+ "nodes: []\n";
+	private static final String DEFAULT_FLOW_SOURCE = "function Flow({ input, config, result }) {\n"
+			+ "  return result\n"
+			+ "}\n";
 
 	private String flowSource = DEFAULT_FLOW_SOURCE;
 	private boolean includeTrace = true;
@@ -198,7 +199,7 @@ public class Flow extends Sequence {
 		if (project == null || name == null || name.isBlank()) {
 			return null;
 		}
-		return new File(new File(project.getDirFile(), "libs/flows"), name + ".flow.yaml");
+		return new File(new File(project.getDirFile(), "libs/flows"), name + ".flow.js");
 	}
 
 	private void loadFlowSourceFile() {
@@ -231,6 +232,10 @@ public class Flow extends Sequence {
 			FileUtils.writeStringToFile(file, getFlowSource(), StandardCharsets.UTF_8);
 			flowSourceDirty = false;
 			flowSourceFileLastModified = file.lastModified();
+			var legacyFile = new File(file.getParentFile(), getName() + ".flow.yaml");
+			if (legacyFile != null && legacyFile.isFile()) {
+				legacyFile.delete();
+			}
 		} catch (Exception e) {
 			throw new EngineException("Unable to write Flow source file \"" + file.getAbsolutePath() + "\".", e);
 		}

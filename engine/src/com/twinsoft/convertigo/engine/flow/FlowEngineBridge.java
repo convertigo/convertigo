@@ -106,6 +106,17 @@ public class FlowEngineBridge {
 		}
 	}
 
+	public JSONObject writeCodeMirror(Flow flow, File sourceFile) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flow);
+			return writeCodeMirror(engineQName, flow == null ? "" : flow.getQName(),
+					flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath(),
+					flow == null ? "" : flow.getFlowSource(), flow == null ? "" : flow.getName(), sourceFile);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build FlowScript mirror request.", e);
+		}
+	}
+
 	public JSONObject context(Flow flow, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flow);
@@ -297,6 +308,7 @@ public class FlowEngineBridge {
 	public JSONObject applySourceMutation(FlowEngine flowEngine, String sourcePath, JSONObject mutation) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
+			var projectDir = flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath();
 			var sourceFile = new File(sourcePath == null ? "" : sourcePath);
 			if (!sourceFile.isFile()) {
 				throw new EngineException("Flow source file not found: " + sourcePath);
@@ -305,11 +317,20 @@ public class FlowEngineBridge {
 			var request = baseRequest(engineQName, source, flowEngine == null ? "" : flowEngine.getQName(), null)
 					.put("target", "flow")
 					.put("flowSource", source)
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+					.put("projectDir", projectDir)
 					.put("mutation", mutation == null ? new JSONObject() : mutation);
 			var response = invoke(engineQName, "applyMutation", request, null, null, null);
 			if (response.optBoolean("ok", false) && response.has("source")) {
-				FileUtils.writeStringToFile(sourceFile, response.optString("source", source), "UTF-8");
+				var newSource = response.optString("source", source);
+				FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
+				if (sourceFile.getName().endsWith(".flow.yaml")) {
+					try {
+						writeCodeMirror(engineQName, flowEngine == null ? "" : flowEngine.getQName(), projectDir,
+								newSource, flowNameFromSourceFile(sourceFile), sourceFile);
+					} catch (Exception e) {
+						Engine.logBeans.warn("Unable to write FlowScript mirror for \"" + sourceFile.getAbsolutePath() + "\".", e);
+					}
+				}
 			}
 			return response;
 		} catch (JSONException e) {
@@ -319,6 +340,26 @@ public class FlowEngineBridge {
 		} catch (Exception e) {
 			throw new EngineException("Unable to apply Flow source mutation.", e);
 		}
+	}
+
+	private JSONObject writeCodeMirror(String engineQName, String flowQName, String projectDir, String source, String name, File sourceFile)
+			throws EngineException, JSONException {
+		var request = baseRequest(engineQName, source, flowQName, null)
+				.put("flowName", name == null ? "" : name)
+				.put("name", name == null ? "" : name)
+				.put("projectDir", projectDir == null ? "" : projectDir);
+		if (sourceFile != null) {
+			request.put("sourceFile", sourceFile.getAbsolutePath());
+		}
+		return invoke(engineQName, "writeCodeMirror", request, null, null, null);
+	}
+
+	private static String flowNameFromSourceFile(File sourceFile) {
+		if (sourceFile == null) {
+			return "";
+		}
+		var name = sourceFile.getName();
+		return name.endsWith(".flow.yaml") ? name.substring(0, name.length() - ".flow.yaml".length()) : name;
 	}
 
 	public JSONObject setBlockProperty(FlowEngine flowEngine, String blockName, String propertyName, Object value) throws EngineException {
