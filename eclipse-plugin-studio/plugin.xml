@@ -1622,6 +1622,13 @@
 				label="Update Gradle only"
 				menubarPath="convertigo.menu.ci/content" />
 			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
+				enablesFor="1"
+				icon="icons/studio/hide.gif"
+				id="convertigo.action.upgradeCI.httpignore"
+				label="Update .httpignore"
+				menubarPath="convertigo.menu.ci/content" />
+			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"
 				enablesFor="1"
 				icon="icons/studio/project_export.gif"
