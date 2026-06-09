@@ -20,6 +20,9 @@
 package com.twinsoft.convertigo.engine.flow;
 
 import java.io.File;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONArray;
@@ -46,6 +49,28 @@ public class FlowEngineBridge {
 	public static final String DEFAULT_ENGINE_QNAME = "lib_flow_engine.Engine";
 
 	private static final String ENGINE_BASE_PATH = "libs/flow/";
+	private static final Map<String, CachedEngineSource> engineSourceCache = new ConcurrentHashMap<>();
+	private static final Map<String, CachedEngineRuntime> engineRuntimeCache = new ConcurrentHashMap<>();
+	private static final AtomicLong cacheGeneration = new AtomicLong();
+
+	private record CachedEngineSource(File file, String source, long lastModified, long length) {
+		String sourceName() {
+			return file.getAbsolutePath() + "#" + lastModified + ":" + length;
+		}
+	}
+
+	private record CachedEngineRuntime(String sourceName, long generation, Scriptable scope, Scriptable engineObject) {
+	}
+
+	private record CachedEngineRuntimeLookup(CachedEngineRuntime runtime, boolean hit, String key, long generation, int size) {
+	}
+
+	public static void clearCaches() {
+		cacheGeneration.incrementAndGet();
+		engineSourceCache.clear();
+		engineRuntimeCache.clear();
+		RhinoUtils.clearCachedJavascript();
+	}
 
 	public JSONObject run(Flow flow, Context convertigoContext, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		try {
@@ -216,6 +241,29 @@ public class FlowEngineBridge {
 			return invoke(engineQName, "icons", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build FlowEngine icon catalog request.", e);
+		}
+	}
+
+	public JSONObject cacheInfo(FlowEngine flowEngine) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flowEngine);
+			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+			return invoke(engineQName, "cacheInfo", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build FlowEngine cache info request.", e);
+		}
+	}
+
+	public JSONObject cacheClear(FlowEngine flowEngine) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flowEngine);
+			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+			clearCaches();
+			return invoke(engineQName, "cacheClear", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build FlowEngine cache clear request.", e);
 		}
 	}
 
@@ -645,45 +693,37 @@ public class FlowEngineBridge {
 			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		var engineRef = EngineRef.parse(normalizeEngineQName(engineQName));
 		var engineFile = resolveEngineFile(engineRef);
+		var engineSource = cachedEngineSource(engineFile);
+		var useThreadRuntime = javascriptContext == null && scope == null;
 		var cx = javascriptContext;
 		var engineScope = scope;
+		Scriptable engineObject = null;
+		CachedEngineRuntimeLookup runtimeLookup = null;
 		var entered = false;
 
 		if (cx == null) {
 			cx = org.mozilla.javascript.Context.enter();
-			engineScope = cx.initStandardObjects();
 			entered = true;
+			if (useThreadRuntime) {
+				runtimeLookup = cachedEngineRuntime(engineRef, engineFile, engineSource, cx);
+				engineScope = runtimeLookup.runtime().scope();
+				engineObject = runtimeLookup.runtime().engineObject();
+			} else {
+				engineScope = cx.initStandardObjects();
+			}
 		} else if (engineScope == null) {
 			engineScope = cx.initStandardObjects();
 		}
 
 		try {
-			if (convertigoContext != null) {
-				var jsContext = org.mozilla.javascript.Context.toObject(convertigoContext, engineScope);
-				engineScope.put("context", engineScope, jsContext);
+			if (runtimeLookup != null) {
+				synchronized (runtimeLookup.runtime()) {
+					return invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
+							engineObject, runtimeLookup);
+				}
 			}
-
-			var source = FileUtils.readFileToString(engineFile, "UTF-8");
-			engineScope.put("__flowEngineDir", engineScope, engineFile.getParentFile().getAbsolutePath());
-			var projectDir = request.optString("projectDir", "");
-			engineScope.put("__flowProjectDir", engineScope, projectDir);
-			var engine = RhinoUtils.evalInterpretedJavascript(cx, engineScope, source,
-					engineFile.getAbsolutePath() + "#" + engineFile.lastModified(), 1, null);
-			if (engine == null || Undefined.isUndefined(engine)) {
-				engine = ScriptableObject.getProperty(engineScope, engineRef.objectName);
-			}
-			if (!(engine instanceof Scriptable)) {
-				throw new EngineException("Flow engine \"" + engineRef.qname + "\" must evaluate to a JavaScript object.");
-			}
-
-			var engineObject = (Scriptable) engine;
-			var function = ScriptableObject.getProperty(engineObject, method);
-			if (!(function instanceof Function)) {
-				throw new EngineException("Flow engine \"" + engineRef.qname + "\" does not expose method \"" + method + "\".");
-			}
-
-			var result = ((Function) function).call(cx, engineScope, engineObject, new Object[] { request.toString() });
-			return toJsonObject(result, engineRef.qname, method);
+			return invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
+					engineObject, null);
 		} catch (EngineException e) {
 			throw e;
 		} catch (Exception e) {
@@ -692,6 +732,120 @@ public class FlowEngineBridge {
 			if (entered) {
 				org.mozilla.javascript.Context.exit();
 			}
+		}
+	}
+
+	private JSONObject invokePrepared(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
+			JSONObject request, Context convertigoContext, org.mozilla.javascript.Context cx, Scriptable engineScope,
+			Scriptable engineObject, CachedEngineRuntimeLookup runtimeLookup) throws EngineException {
+		if (convertigoContext != null) {
+			var jsContext = org.mozilla.javascript.Context.toObject(convertigoContext, engineScope);
+			engineScope.put("context", engineScope, jsContext);
+		} else {
+			engineScope.delete("context");
+		}
+
+		engineScope.put("__flowEngineDir", engineScope, engineFile.getParentFile().getAbsolutePath());
+		var projectDir = request.optString("projectDir", "");
+		engineScope.put("__flowProjectDir", engineScope, projectDir);
+		engineScope.put("__flowBridgeClassSource", engineScope, bridgeClassSource());
+		engineScope.put("__flowBridgeClassResource", engineScope, bridgeClassResource());
+		if (runtimeLookup == null) {
+			engineScope.put("__flowBridgeRuntimeCacheEnabled", engineScope, false);
+			engineScope.delete("__flowBridgeRuntimeCacheHit");
+			engineScope.delete("__flowBridgeRuntimeCacheKey");
+			engineScope.delete("__flowBridgeRuntimeCacheGeneration");
+			engineScope.delete("__flowBridgeRuntimeCacheSize");
+		} else {
+			engineScope.put("__flowBridgeRuntimeCacheEnabled", engineScope, true);
+			engineScope.put("__flowBridgeRuntimeCacheHit", engineScope, runtimeLookup.hit());
+			engineScope.put("__flowBridgeRuntimeCacheKey", engineScope, runtimeLookup.key());
+			engineScope.put("__flowBridgeRuntimeCacheGeneration", engineScope, runtimeLookup.generation());
+			engineScope.put("__flowBridgeRuntimeCacheSize", engineScope, runtimeLookup.size());
+		}
+		if (engineObject == null) {
+			var engine = RhinoUtils.evalCachedJavascript(cx, engineScope, engineSource.source(), engineSource.sourceName(), 1, null);
+			if (engine == null || Undefined.isUndefined(engine)) {
+				engine = ScriptableObject.getProperty(engineScope, engineRef.objectName);
+			}
+			if (!(engine instanceof Scriptable)) {
+				throw new EngineException("Flow engine \"" + engineRef.qname + "\" must evaluate to a JavaScript object.");
+			}
+			engineObject = (Scriptable) engine;
+		}
+
+		var function = ScriptableObject.getProperty(engineObject, method);
+		if (!(function instanceof Function)) {
+			throw new EngineException("Flow engine \"" + engineRef.qname + "\" does not expose method \"" + method + "\".");
+		}
+
+		var result = ((Function) function).call(cx, engineScope, engineObject, new Object[] { request.toString() });
+		return toJsonObject(result, engineRef.qname, method);
+	}
+
+	private static CachedEngineRuntimeLookup cachedEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
+			org.mozilla.javascript.Context cx) throws EngineException {
+		var key = engineRef.qname + "|" + engineSource.sourceName();
+		var generation = cacheGeneration.get();
+		var cached = engineRuntimeCache.get(key);
+		if (cached != null && cached.generation() == generation && cached.sourceName().equals(engineSource.sourceName())) {
+			return new CachedEngineRuntimeLookup(cached, true, key, generation, engineRuntimeCache.size());
+		}
+		engineRuntimeCache.entrySet().removeIf(entry -> entry.getKey().startsWith(engineRef.qname + "|")
+				&& (entry.getValue().generation() != generation || !entry.getKey().equals(key)));
+		try {
+			var scope = cx.initStandardObjects();
+			scope.put("__flowEngineDir", scope, engineFile.getParentFile().getAbsolutePath());
+			var engine = RhinoUtils.evalCachedJavascript(cx, scope, engineSource.source(), engineSource.sourceName(), 1, null);
+			if (engine == null || Undefined.isUndefined(engine)) {
+				engine = ScriptableObject.getProperty(scope, engineRef.objectName);
+			}
+			if (!(engine instanceof Scriptable engineObject)) {
+				throw new EngineException("Flow engine \"" + engineRef.qname + "\" must evaluate to a JavaScript object.");
+			}
+			var fresh = new CachedEngineRuntime(engineSource.sourceName(), generation, scope, engineObject);
+			engineRuntimeCache.put(key, fresh);
+			return new CachedEngineRuntimeLookup(fresh, false, key, generation, engineRuntimeCache.size());
+		} catch (EngineException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EngineException("Unable to initialize Flow engine runtime \"" + engineRef.qname + "\".", e);
+		}
+	}
+
+	private static CachedEngineSource cachedEngineSource(File engineFile) throws EngineException {
+		try {
+			var key = engineFile.getCanonicalPath();
+			var lastModified = engineFile.lastModified();
+			var length = engineFile.length();
+			var cached = engineSourceCache.get(key);
+			if (cached != null && cached.lastModified() == lastModified && cached.length() == length) {
+				return cached;
+			}
+			var fresh = new CachedEngineSource(engineFile, FileUtils.readFileToString(engineFile, "UTF-8"), lastModified, length);
+			engineSourceCache.put(key, fresh);
+			return fresh;
+		} catch (Exception e) {
+			throw new EngineException("Unable to read Flow engine file \"" + engineFile.getAbsolutePath() + "\".", e);
+		}
+	}
+
+	private static String bridgeClassSource() {
+		try {
+			var codeSource = FlowEngineBridge.class.getProtectionDomain().getCodeSource();
+			var location = codeSource == null ? null : codeSource.getLocation();
+			return location == null ? "" : location.toString();
+		} catch (Exception e) {
+			return "";
+		}
+	}
+
+	private static String bridgeClassResource() {
+		try {
+			var resource = FlowEngineBridge.class.getResource("FlowEngineBridge.class");
+			return resource == null ? "" : resource.toString();
+		} catch (Exception e) {
+			return "";
 		}
 	}
 

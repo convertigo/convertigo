@@ -72,6 +72,10 @@ public class RhinoUtils {
 		return result;
 	}
 
+	static public void clearCachedJavascript() {
+		compiledScript.clear();
+	}
+
 	static public Object evalInterpretedJavascript(Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
 		cx.setInterpretedMode(true);
 		Object result = cx.evaluateString(scope, source, sourceName, lineno, securityDomain);

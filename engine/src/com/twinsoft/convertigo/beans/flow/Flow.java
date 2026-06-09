@@ -89,7 +89,7 @@ public class Flow extends Sequence {
 	@Override
 	public void runCore() throws EngineException {
 		try {
-			var response = new FlowEngineBridge().run(this, context, runningThread.javascriptContext, scope);
+			var response = new FlowEngineBridge().run(this, context, null, null);
 			var root = context.outputDocument.getDocumentElement();
 			if (response.optBoolean("ok", false)) {
 				var result = response.has("result") ? response.get("result") : new JSONObject();
