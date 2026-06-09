@@ -290,9 +290,12 @@ public class InternalRequester extends GenericRequester {
 
 		if (!bConnectorGivenByUser) {
 			if (context.project != null && context.project.getName().equals(context.projectName)) {
-				String defaultConnectorName = context.project.getDefaultConnector().getName();
-				if (!defaultConnectorName.equals(context.connectorName)) {
-					context.connectorName = defaultConnectorName;
+				var defaultConnector = context.project.getDefaultConnector();
+				if (defaultConnector != null) {
+					var defaultConnectorName = defaultConnector.getName();
+					if (!defaultConnectorName.equals(context.connectorName)) {
+						context.connectorName = defaultConnectorName;
+					}
 				}
 			}
 		}

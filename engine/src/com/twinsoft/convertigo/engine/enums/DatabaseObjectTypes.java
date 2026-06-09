@@ -25,6 +25,7 @@ public enum DatabaseObjectTypes {
 	Criteria,
 	Document,
 	ExtractionRule,
+	FlowEngine,
 	Index,
 	Listener,
 	MobileApplication,

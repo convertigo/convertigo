@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine.admin.services.studio.dbo;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +31,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.Version;
@@ -41,7 +43,7 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 @ServiceDefinition(name = "GetIcon", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG,
 		Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class GetIcon extends DownloadService {
-	static final Pattern pIsImage = Pattern.compile("(?:(.*)_32x32\\.png|\\.(ico|gif|jpe?g|svg))$");
+	static final Pattern pIsImage = Pattern.compile("(?:(.*)_32x32\\.png|\\.(ico|gif|png|jpe?g|svg))$");
 
 	@Override
 	public boolean isNoCache() {
@@ -96,13 +98,9 @@ public class GetIcon extends DownloadService {
 				type = "svg+xml";
 			}
 			HeaderName.ContentType.setHeader(response, "image/" + type);
-			InputStream iconStream;
-			if (iconPath.startsWith("projects:")) {
-				iconStream = new FileInputStream(Engine.PROJECTS_PATH + iconPath.substring("projects:".length()));
-			} else if (iconPath.startsWith("workspace:")) {
-				iconStream = new FileInputStream(Engine.USER_WORKSPACE_PATH + iconPath.substring("workspace:".length()));
-			} else {
-				iconStream = GetIcon.class.getResourceAsStream(iconPath);
+			var iconStream = openIconStream(iconPath);
+			if (iconStream == null) {
+				throw new IOException("Icon stream is null");
 			}
 			try (var is = iconStream) {
 				IOUtils.copy(iconStream, response.getOutputStream());
@@ -112,5 +110,33 @@ public class GetIcon extends DownloadService {
 		} catch (Exception e) {
 		}
 		throw new ServiceException("Icon unreachable: " + iconPath);
+	}
+
+	private InputStream openIconStream(String iconPath) throws Exception {
+		if (iconPath.startsWith("projects:")) {
+			return new FileInputStream(Engine.PROJECTS_PATH + iconPath.substring("projects:".length()));
+		}
+		if (iconPath.startsWith("workspace:")) {
+			return new FileInputStream(Engine.USER_WORKSPACE_PATH + iconPath.substring("workspace:".length()));
+		}
+		var iconFile = new File(iconPath);
+		if (iconFile.isAbsolute() && isInLoadedProject(iconFile)) {
+			return new FileInputStream(iconFile);
+		}
+		return GetIcon.class.getResourceAsStream(iconPath);
+	}
+
+	private boolean isInLoadedProject(File iconFile) throws Exception {
+		var iconPath = iconFile.getCanonicalPath();
+		for (var projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true)) {
+			var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(projectName);
+			if (dbo instanceof Project project) {
+				var projectPath = new File(project.getDirPath()).getCanonicalPath();
+				if (iconPath.equals(projectPath) || iconPath.startsWith(projectPath + File.separator)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

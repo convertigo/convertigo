@@ -31,6 +31,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -41,6 +42,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.util.DocumentationHelper;
 
 @ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -62,6 +64,12 @@ public class Get extends JSonService {
 		var folderType = Utils.getFolderType(id);
 
 		JSONArray categories = new JSONArray();
+		if (folderType == null && FlowStudioSupport.isFlowPaletteTarget(parentDbo)) {
+			var flowCategories = FlowStudioSupport.paletteCategories(parentDbo);
+			for (int i = 0; i < flowCategories.length(); i++) {
+				categories.put(flowCategories.get(i));
+			}
+		}
 
 		for (DboGroup g : Engine.theApp.getDboExplorerManager().getGroups()) {
 			String groupName = g.getName();
@@ -90,7 +98,7 @@ public class Get extends JSonService {
 							boolean force = false;
 							if (parentDbo != null /* isType[0] */) {
 								String cls = b.getClassName();
-								if (parentDbo instanceof Sequence) {
+								if (parentDbo instanceof Sequence && !(parentDbo instanceof Flow)) {
 									force = cls.startsWith("com.twinsoft.convertigo.beans.steps.")
 											|| cls.startsWith("com.twinsoft.convertigo.beans.variables.Step");
 								} else if (parentDbo instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {

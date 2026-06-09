@@ -50,12 +50,16 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.flow.Flow;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class WalkHelper {
 	protected boolean walkInheritance = false;
+	protected boolean walkFlowVirtualObjects = false;
 
 	public void init(DatabaseObject databaseObject) throws Exception {
 		walk(databaseObject);
@@ -91,6 +95,13 @@ public class WalkHelper {
 				UrlMapper urlMapper = project.getUrlMapper();
 				if (urlMapper != null) {
 					walk(urlMapper);
+				}
+			}
+
+			if (before(databaseObject, FlowEngine.class)) {
+				FlowEngine flowEngine = project.getFlowEngine();
+				if (flowEngine != null) {
+					walk(flowEngine);
 				}
 			}
 
@@ -331,6 +342,54 @@ public class WalkHelper {
 			if (before(databaseObject, UrlMappingResponse.class)) {
 				for (UrlMappingResponse response : urlMappingOperation.getResponseList()) {
 					walk(response);
+				}
+			}
+		} else if (databaseObject instanceof Flow) {
+			Flow flow = (Flow) databaseObject;
+
+			if (before(databaseObject, Step.class)) {
+				for (Step step : flow.getSteps()) {
+					walk(step);
+				}
+			}
+
+			if (before(databaseObject, Sheet.class)) {
+				for (Sheet sheet : flow.getSheetsList()) {
+					walk(sheet);
+				}
+			}
+
+			if (before(databaseObject, RequestableVariable.class)) {
+				for (RequestableVariable variable : flow.getVariablesList()) {
+					walk(variable);
+				}
+			}
+
+			if (before(databaseObject, TestCase.class)) {
+				for (TestCase testCase : flow.getTestCasesList()) {
+					walk(testCase);
+				}
+			}
+
+			if (walkFlowVirtualObjects && before(databaseObject, FlowVirtualObject.class)) {
+				for (DatabaseObject child : flow.getFlowVirtualChildren()) {
+					walk(child);
+				}
+			}
+		} else if (databaseObject instanceof FlowEngine) {
+			FlowEngine flowEngine = (FlowEngine) databaseObject;
+
+			if (walkFlowVirtualObjects && before(databaseObject, FlowVirtualObject.class)) {
+				for (DatabaseObject child : flowEngine.getFlowVirtualChildren()) {
+					walk(child);
+				}
+			}
+		} else if (databaseObject instanceof FlowVirtualObject) {
+			FlowVirtualObject flowVirtualObject = (FlowVirtualObject) databaseObject;
+
+			if (before(databaseObject, FlowVirtualObject.class)) {
+				for (DatabaseObject child : flowVirtualObject.getDatabaseObjectChildren()) {
+					walk(child);
 				}
 			}
 		} else if (databaseObject instanceof Sequence) {

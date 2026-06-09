@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.steps.LoopStep;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
@@ -94,13 +95,7 @@ public class Get extends JSonService {
 		var obj = new JSONObject();
 		obj.put("label", dbo.toString());
 		obj.put("name", dbo.toString());
-		var iconPath = MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_32x32);
-		if (iconPath.startsWith(Engine.PROJECTS_PATH)) {
-			iconPath = "projects:" + iconPath.substring(Engine.PROJECTS_PATH.length());
-		} else if (iconPath.startsWith(Engine.USER_WORKSPACE_PATH)) {
-			iconPath = "workspace:" + iconPath.substring(Engine.USER_WORKSPACE_PATH.length());
-		}
-		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + iconPath);
+		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + iconPath(dbo));
 		obj.put("id", qname);
 		if (flow) {
 			obj.put("classname", dbo.getClass().getSimpleName());
@@ -124,6 +119,43 @@ public class Get extends JSonService {
 			}
 		}
 		return obj;
+	}
+
+	private String iconPath(DatabaseObject dbo) {
+		var iconPath = "";
+		if (dbo instanceof FlowVirtualObject flowVirtualObject) {
+			iconPath = firstNonBlank(flowVirtualObject.getVirtualInfoObject(), "iconFile16", "iconFile", "iconFile32", "iconSvg");
+			if (iconPath.isBlank()) {
+				iconPath = firstNonBlank(flowVirtualObject.getDefinitionObject(), "iconFile16", "iconFile", "iconFile32", "iconSvg", "icon");
+			}
+		}
+		if (iconPath.isBlank() || isIconifyIcon(iconPath)) {
+			iconPath = MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_32x32);
+		}
+		if (iconPath.startsWith(Engine.PROJECTS_PATH)) {
+			return "projects:" + iconPath.substring(Engine.PROJECTS_PATH.length());
+		}
+		if (iconPath.startsWith(Engine.USER_WORKSPACE_PATH)) {
+			return "workspace:" + iconPath.substring(Engine.USER_WORKSPACE_PATH.length());
+		}
+		return iconPath;
+	}
+
+	private static String firstNonBlank(JSONObject object, String... keys) {
+		if (object == null) {
+			return "";
+		}
+		for (var key : keys) {
+			var value = object.optString(key, "");
+			if (!value.isBlank()) {
+				return value;
+			}
+		}
+		return "";
+	}
+
+	private static boolean isIconifyIcon(String icon) {
+		return icon != null && icon.matches("[A-Za-z][A-Za-z0-9_-]*:[A-Za-z0-9_.-]+");
 	}
 
 	private JSONArray getChildren(DatabaseObject dbo, FolderType ft, boolean full, boolean flow) throws Exception {

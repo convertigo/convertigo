@@ -68,7 +68,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
 	private static final long serialVersionUID = -8343815173166853025L;
 	protected enum DOC_ATTR {
-		connector, context, contextId, fromStub, fromcache, generated, project, screenclass, sequence, signature, transaction, userReference, version
+		connector, context, contextId, fromStub, fromcache, generated, project, screenclass, sequence, signature, transaction, type, userReference, version
 	};
 
 	public static volatile int nbCurrentWorkerThreads = 0;

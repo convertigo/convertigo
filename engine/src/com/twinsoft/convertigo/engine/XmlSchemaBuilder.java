@@ -69,6 +69,7 @@ import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
@@ -485,6 +486,10 @@ public class XmlSchemaBuilder {
 							}
 						}
 						particleChildren.clear();
+
+						if (sequence instanceof Flow flow) {
+							flow.addFlowOutputSchema(schema, xmlSeq);
+						}
 						
 						// add child attributes
 						for (XmlSchemaAttribute attribute : attributeChildren) {
@@ -895,4 +900,3 @@ public class XmlSchemaBuilder {
 	}
 	
 }
-

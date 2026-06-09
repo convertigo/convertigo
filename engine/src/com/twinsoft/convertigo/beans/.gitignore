@@ -1,3 +1,9 @@
+flow/images/flow_color_16x16.png
+flow/images/flow_color_32x32.png
+flow/images/flowengine_color_16x16.png
+flow/images/flowengine_color_32x32.png
+flow/images/flowvirtualobject_color_16x16.png
+flow/images/flowvirtualobject_color_32x32.png
 mobileplatforms/images/web_color_16x16.png
 mobileplatforms/images/web_color_32x32.png
 ngx/components/dynamic/images/accordion_16x16.png

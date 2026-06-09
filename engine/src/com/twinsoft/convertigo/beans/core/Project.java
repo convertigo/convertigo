@@ -38,6 +38,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -389,6 +390,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			addMobileApplication((MobileApplication) databaseObject);
 		} else if (databaseObject instanceof UrlMapper) {
 			addUrlMapper((UrlMapper) databaseObject);
+		} else if (databaseObject instanceof FlowEngine) {
+			addFlowEngine((FlowEngine) databaseObject);
 		} else if (databaseObject instanceof Reference) {
 			addReference((Reference) databaseObject);
 		} else {
@@ -407,6 +410,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			removeMobileApplication((MobileApplication) databaseObject);
 		} else if (databaseObject instanceof UrlMapper) {
 			removeUrlMapper((UrlMapper) databaseObject);
+		} else if (databaseObject instanceof FlowEngine) {
+			removeFlowEngine((FlowEngine) databaseObject);
 		} else if (databaseObject instanceof Reference) {
 			removeReference((Reference) databaseObject);
 		} else {
@@ -556,6 +561,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		clonedObject.vSequences = new LinkedList<Sequence>();
 		clonedObject.mobileApplication = null;
 		clonedObject.urlMapper = null;
+		clonedObject.flowEngine = null;
 		clonedObject.mobileBuilder = null;
 		return clonedObject;
 	}
@@ -713,6 +719,30 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 	}
 
+	private transient FlowEngine flowEngine = null;
+
+	public FlowEngine getFlowEngine() {
+		checkSubLoaded();
+		return flowEngine;
+	}
+
+	public void addFlowEngine(FlowEngine flowEngine) throws EngineException {
+		checkSubLoaded();
+		if (this.flowEngine != null) {
+			throw new EngineException(
+					"The project \"" + getName() + "\" already contains a Flow engine! Please delete it first.");
+		}
+		this.flowEngine = flowEngine;
+		super.add(flowEngine);
+	}
+
+	public void removeFlowEngine(FlowEngine flowEngine) {
+		checkSubLoaded();
+		if (flowEngine != null && flowEngine.equals(this.flowEngine)) {
+			this.flowEngine = null;
+		}
+	}
+
 	@Override
 	public List<DatabaseObject> getAllChildren() {
 		List<DatabaseObject> rep = super.getAllChildren();
@@ -723,6 +753,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			rep.add(mobileApplication);
 		if (urlMapper != null)
 			rep.add(urlMapper);
+		if (flowEngine != null)
+			rep.add(flowEngine);
 		return rep;
 	}
 

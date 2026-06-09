@@ -30,6 +30,7 @@ import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(name = "Add", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Add extends JSonService {
@@ -57,6 +58,17 @@ public class Add extends JSonService {
 
 		DatabaseObject targetDbo = DboUtils.findDbo(target);
 		if (targetDbo != null) {
+			var jsonData = new JSONObject(data);
+			if (FlowStudioSupport.isFlowPaletteData(jsonData)) {
+				var result = FlowStudioSupport.addFromPalette(targetDbo, position, jsonData);
+				response.put("done", result.optBoolean("done", false));
+				response.put("id", result.optString("id", targetDbo.getFullQName()));
+				if (result.has("error") && !result.isNull("error")) {
+					response.put("error", result.get("error"));
+				}
+				return;
+			}
+
 			Long after = null;
 			DatabaseObject parentDbo;
 			if (position.equals("inside")) {
@@ -69,7 +81,7 @@ public class Add extends JSonService {
 				}
 			}
 
-			DatabaseObject dbo = DboUtils.createDbo(new JSONObject(data), parentDbo);
+			DatabaseObject dbo = DboUtils.createDbo(jsonData, parentDbo);
 			if (dbo != null && !dbo.equals(parentDbo)) {
 				if (parentDbo instanceof IContainerOrdered) {
 					((IContainerOrdered) parentDbo).add(dbo, after);

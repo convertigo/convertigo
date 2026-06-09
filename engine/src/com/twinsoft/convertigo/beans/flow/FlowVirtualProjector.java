@@ -1,0 +1,104 @@
+/*
+ * Copyright (c) 2001-2026 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
+ */
+
+package com.twinsoft.convertigo.beans.flow;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
+
+class FlowVirtualProjector {
+
+	private FlowVirtualProjector() {
+	}
+
+	static List<DatabaseObject> childrenOf(Flow flow) {
+		try {
+			return childrenFromResponse(flow, new FlowEngineBridge().describeTree(flow));
+		} catch (Exception e) {
+			return errorChildren(flow, "flow", e);
+		}
+	}
+
+	static List<DatabaseObject> childrenOf(FlowEngine flowEngine) {
+		try {
+			return childrenFromResponse(flowEngine, new FlowEngineBridge().describeTree(flowEngine));
+		} catch (Exception e) {
+			return errorChildren(flowEngine, "engine", e);
+		}
+	}
+
+	private static List<DatabaseObject> childrenFromResponse(DatabaseObject parent, JSONObject response) {
+		List<DatabaseObject> children = new ArrayList<>();
+		if (response == null) {
+			return children;
+		}
+		if (!response.optBoolean("ok", false)) {
+			JSONObject error = response.optJSONObject("error");
+			String message = error == null ? response.toString() : error.optString("message", error.toString());
+			children.add(new FlowVirtualObject(parent, "error", "error", "error", "error", "Flow tree error", message));
+			return children;
+		}
+		JSONArray array = response.optJSONArray("children");
+		if (array == null) {
+			return children;
+		}
+		for (int i = 0; i < array.length(); i++) {
+			JSONObject child = array.optJSONObject(i);
+			if (child != null) {
+				children.add(toVirtualObject(parent, child, i));
+			}
+		}
+		return children;
+	}
+
+	private static FlowVirtualObject toVirtualObject(DatabaseObject parent, JSONObject source, int order) {
+		FlowVirtualObject object = new FlowVirtualObject(parent,
+				source.optString("name", "item"),
+				source.optString("kind", ""),
+				source.optString("type", ""),
+				source.optString("path", ""),
+				source.optString("summary", ""),
+				source.optString("definition", ""));
+		object.setVirtualOrder(order);
+		object.setVirtualInfo(source.optString("info", ""));
+		JSONArray children = source.optJSONArray("children");
+		if (children != null) {
+			for (int i = 0; i < children.length(); i++) {
+				JSONObject child = children.optJSONObject(i);
+				if (child != null) {
+					object.addVirtualChild(toVirtualObject(object, child, i));
+				}
+			}
+		}
+		return object;
+	}
+
+	private static List<DatabaseObject> errorChildren(DatabaseObject parent, String target, Exception e) {
+		List<DatabaseObject> children = new ArrayList<>();
+		children.add(new FlowVirtualObject(parent, "error", "error", target, target + ".error",
+				"Unable to describe " + target + " tree", e.getMessage()));
+		return children;
+	}
+}

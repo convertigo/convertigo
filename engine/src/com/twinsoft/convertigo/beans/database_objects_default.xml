@@ -1,4 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <flowengine classname="com.twinsoft.convertigo.beans.flow.FlowEngine" priority="0" version="   8   5   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="engineQName">
+            <java.lang.String value="lib_flow_engine.Engine"/>
+        </property>
+        <property name="engineSource">
+            <java.lang.String value="version: 1&#10;engineQName: lib_flow_engine.Engine&#10;bindings: {}&#10;config: {}&#10;"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+    </flowengine>
+
+
+
+    <sequence classname="com.twinsoft.convertigo.beans.flow.Flow" priority="0" version="   8   5   0">
+        <property name="accessibility">
+            <java.lang.String value="Public"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="autoStart">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="flowSource">
+            <java.lang.String value="version: 1&#10;nodes: []&#10;"/>
+        </property>
+        <property name="includeResponseElement">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="includeTrace">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <wsdltype/>
+    </sequence>
+
+
+
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent" priority="0" version="   8   4   0">
         <property name="attrName">
             <java.lang.String value="(click)"/>

@@ -251,7 +251,7 @@ public class BeansDefaultValues {
 
 				if (cls.startsWith("connectors.")) {
 					nCopy.setAttribute("yaml_file", "connectors/" + pName + ".yaml");
-				} else if (cls.startsWith("sequences.")) {
+				} else if (cls.startsWith("sequences.") || cls.equals("flow.Flow")) {
 					nCopy.setAttribute("yaml_file", "sequences/" + pName + ".yaml");
 				} else if (cls.equals("mobile.components.PageComponent") || cls.equals("ngx.components.PageComponent")) {
 					nCopy.setAttribute("yaml_file", "mobilePages/" + pName + ".yaml");
@@ -265,6 +265,8 @@ public class BeansDefaultValues {
 					nCopy.setAttribute("yaml_file", "mobile" + pName + ".yaml");
 				} else if (cls.equals("core.UrlMapper")) {
 					nCopy.setAttribute("yaml_file", "urlMapper.yaml");
+				} else if (cls.equals("flow.FlowEngine")) {
+					nCopy.setAttribute("yaml_file", "flowEngine.yaml");
 				} else if (cls.equals("rest.PathMapping")) {
 					nCopy.setAttribute("yaml_file", "urlMapper/" + pName + ".yaml");
 				}

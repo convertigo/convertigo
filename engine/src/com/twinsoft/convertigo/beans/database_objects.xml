@@ -7,6 +7,8 @@
 				<bean enable="true" documented="true"
 					classname="com.twinsoft.convertigo.beans.core.TestCase">
 					<parent allowInheritance="true"
+						classname="com.twinsoft.convertigo.beans.flow.Flow" />
+					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" />
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction" />
@@ -62,6 +64,8 @@
 				<bean enable="true" documented="true" default="true"
 					classname="com.twinsoft.convertigo.beans.variables.RequestableVariable">
 					<parent allowInheritance="true"
+						classname="com.twinsoft.convertigo.beans.flow.Flow" />
+					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" />
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction" />
@@ -76,6 +80,8 @@
 				</bean>
 				<bean enable="true" documented="true"
 					classname="com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable">
+					<parent allowInheritance="true"
+						classname="com.twinsoft.convertigo.beans.flow.Flow" />
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" />
 					<parent allowInheritance="true"
@@ -1515,6 +1521,16 @@
 	<group name="Sequencer">
 		<category>
 			<beans>
+				<bean enable="true" documented="true"
+					classname="com.twinsoft.convertigo.beans.flow.FlowEngine">
+					<parent allowInheritance="true"
+						classname="com.twinsoft.convertigo.beans.core.Project" />
+				</bean>
+				<bean enable="true" documented="true"
+					classname="com.twinsoft.convertigo.beans.flow.Flow">
+					<parent allowInheritance="true"
+						classname="com.twinsoft.convertigo.beans.core.Project" />
+				</bean>
 				<bean enable="true" documented="true"
 					classname="com.twinsoft.convertigo.beans.sequences.GenericSequence">
 					<parent allowInheritance="true"
@@ -4197,4 +4213,3 @@
 		</category>
 	</group>
 </database_objects>
-

@@ -27,6 +27,7 @@ public class MakeIcons {
 		for (String path: args) {
 			new MakeIcons(Paths.get(path)).run();
 		}
+		System.exit(0);
 	}
 	
 	public MakeIcons(Path rootPath) {
@@ -34,11 +35,12 @@ public class MakeIcons {
 	}
 
 	void run() throws Exception {
-		Files.walk(rootPath)
-		.filter(Files::isRegularFile)
-		.filter(p -> p.toString().endsWith(".svg") && !p.toString().endsWith("_web.svg"))
-		.parallel()
-		.forEach(this::convert);
+		try (var paths = Files.walk(rootPath)) {
+			paths.filter(Files::isRegularFile)
+			.filter(p -> p.toString().endsWith(".svg") && !p.toString().endsWith("_web.svg"))
+			.parallel()
+			.forEach(this::convert);
+		}
 		
 		try (PrintWriter writer = new PrintWriter(rootPath.resolve(".gitignore").toFile(), StandardCharsets.UTF_8)) {
 			toIgnore.forEach(writer::println);

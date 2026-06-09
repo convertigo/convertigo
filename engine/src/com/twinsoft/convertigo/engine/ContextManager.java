@@ -1021,8 +1021,11 @@ public class ContextManager extends AbstractRunnableManager {
 					contextName = computeStudioContextName(CONTEXT_TYPE_TRANSACTION, projectName, connectorName);
 				} else {
 					try {
-						Project project = Engine.objectsProvider.getProject(projectName);
-						contextName = computeStudioContextName(CONTEXT_TYPE_TRANSACTION, projectName, project.getDefaultConnector().getName());
+						var project = Engine.objectsProvider.getProject(projectName);
+						var defaultConnector = project.getDefaultConnector();
+						contextName = defaultConnector == null
+							? computeStudioContextName(CONTEXT_TYPE_UNKNOWN, projectName,"")
+							: computeStudioContextName(CONTEXT_TYPE_TRANSACTION, projectName, defaultConnector.getName());
 					} catch (EngineException ee) { // project not opened in studio
 						contextName = computeStudioContextName(CONTEXT_TYPE_UNKNOWN, projectName,"");
 					}
@@ -1958,6 +1961,10 @@ public class ContextManager extends AbstractRunnableManager {
 		Connector connector;
 		if (connectorName == null) {
 			connector = project.getDefaultConnector();
+			if (connector == null) {
+				Engine.logContextManager.debug("No default connector for project '" + projectName + "'; aborting pool management");
+				return null;
+			}
 			connectorName = connector.getName();
 		} else connector = project.getConnectorByName(connectorName);
 

@@ -31,6 +31,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IDynamicPropertyContainer;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
@@ -87,6 +88,14 @@ public class Set extends JSonService {
 					msst = new MobileSmartSourceType();
 					msst.setMode(Mode.SOURCE);
 					msst.setSmartValue(pvalue);
+				}
+
+				if (dbo instanceof IDynamicPropertyContainer dynamicPropertyContainer
+						&& dynamicPropertyContainer.setDynamicProperty(pname, pvalue)) {
+					done = true;
+					dbo.hasChanged = true;
+					BuilderUtils.dboChanged(dbo, pname, jsonObject.has("originalValue") ? jsonObject.opt("originalValue") : "", pvalue);
+					continue;
 				}
 
 				BeanInfo beanInfo = Introspector.getBeanInfo(dbo.getClass());
