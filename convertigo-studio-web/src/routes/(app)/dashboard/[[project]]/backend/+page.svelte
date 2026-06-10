@@ -1,19 +1,13 @@
 <script lang="ts">
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import RequestableExecution from '$lib/admin/components/RequestableExecution.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import LightSvelte from '$lib/common/Light.svelte';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import RequestableResponseEditor from '$lib/dashboard/RequestableResponseEditor.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { callRequestable } from '$lib/utils/service';
 	import { flip } from 'svelte/animate';
 	import { fly } from 'svelte/transition';
 	import type { PageProps } from './$types';
@@ -55,36 +49,6 @@
 			enabled: true
 		}
 	});
-
-	async function run(requestable, event) {
-		event.preventDefault?.();
-
-		if (event.submitter.textContent == 'Clear') {
-			requestable.response = '';
-			return;
-		}
-		requestable.loading = true;
-		requestable.response = 'Loading …';
-		const fd = new FormData(event.target);
-		if (event.submitter.value) {
-			fd.append('__testcase', event.submitter.value);
-			for (const key of [...fd.keys()]) {
-				if (!key.startsWith('__')) {
-					fd.delete(key);
-				}
-			}
-		} else {
-			for (const variable of requestable.variable) {
-				if (variable.send == 'false') {
-					fd.delete(variable.name);
-				}
-			}
-		}
-		const data = await callRequestable(mode, project.name, fd);
-		requestable.response = await data.text();
-		requestable.language = data.headers.get('Content-Type')?.includes('json') ? 'json' : 'xml';
-		requestable.loading = false;
-	}
 
 	let parts = $derived.by(() => {
 		if (!project) {
@@ -218,162 +182,18 @@
 												</div>
 											{/snippet}
 											{#snippet panel()}
-												<form
-													onsubmit={(e) => {
-														run(requestable, e);
-													}}
+												<RequestableExecution
+													projectName={project.name}
+													requestable={parts[partIdx].requestables[requestableIdx]}
+													kind={part.name == 'Sequences' ? 'sequence' : 'transaction'}
+													connectorName={part.name == 'Sequences' ? '' : part.name}
+													bind:mode
+													{modes}
+													showComment={true}
+													testcaseValue={`${part.name}.${requestableIdx}.testcases`}
+													stickyActions={true}
 													class="layout-y-stretch px-3 pt-3 pb-4"
-												>
-													{#if part.name == 'Sequences'}
-														<input type="hidden" name="__sequence" value={name} />
-													{:else}
-														<input type="hidden" name="__connector" value={part.name} />
-														<input type="hidden" name="__transaction" value={name} />
-													{/if}
-													{#if comment.length}
-														<p
-															class="rounded-md border border-dashed border-surface-200-800/60 bg-surface-50-950/70 px-3 py-2 text-sm text-surface-600-400"
-														>
-															{comment}
-														</p>
-													{/if}
-													{#if requestable.variable?.length > 0}
-														<RequestableVariables
-															bind:requestable={parts[partIdx].requestables[requestableIdx]}
-														/>
-													{/if}
-													{#if requestable.testcase.length > 0}
-														<AccordionGroup
-															collapsible
-															value={requestable.testCasesOpened ? [`${requestableIdx}`] : []}
-															onValueChange={({ value }) => {
-																requestable.testCasesOpened = (value ?? []).includes(
-																	`${requestableIdx}`
-																);
-															}}
-															class="rounded-md border border-surface-200-800/40 bg-surface-50-950/45"
-														>
-															<AccordionSection
-																value={`${requestableIdx}`}
-																class="rounded-md"
-																title={`Test cases (${requestable.testcase.length})`}
-																triggerClass="group w-full rounded-md px-2.5 py-2"
-																titleClass="text-sm font-semibold"
-																panelClass="bg-transparent px-2.5 pb-2 pt-0"
-															>
-																{#snippet panel()}
-																	<div class="layout-grid-[220px] gap-2 sm:layout-grid-[260px]">
-																		{#each requestable.testcase as testcase (testcase.name)}
-																			{@const testcaseValuesOpen = testcase.valuesOpened ?? false}
-																			<Card
-																				title={testcase.name}
-																				bg="bg-surface-50-950/70"
-																				class="gap-2 p-low"
-																			>
-																				{#snippet cornerOption()}
-																					<ResponsiveButtons
-																						class="max-w-none"
-																						buttons={[
-																							{
-																								label: 'Execute',
-																								type: 'submit',
-																								value: testcase.name,
-																								class: 'button-primary',
-																								icon: 'mdi:play-circle-outline'
-																							},
-																							{
-																								label: 'Edit',
-																								class: 'button-secondary',
-																								icon: 'mdi:edit-outline',
-																								onclick: () => {
-																									requestable.tc = { ...testcase };
-																								}
-																							}
-																						]}
-																					/>
-																				{/snippet}
-																				<AccordionGroup
-																					collapsible
-																					value={testcaseValuesOpen ? ['values'] : []}
-																					onValueChange={({ value }) => {
-																						testcase.valuesOpened = (value ?? []).includes(
-																							'values'
-																						);
-																					}}
-																					class="rounded-md border border-surface-200-800/40 bg-surface-100-900/25"
-																				>
-																					<AccordionSection
-																						value="values"
-																						class="rounded-md"
-																						title={`Preset values (${testcase.variable.length})`}
-																						triggerClass="w-full rounded-md px-2.5 py-2"
-																						titleClass="text-sm font-semibold text-strong"
-																						panelClass="bg-transparent px-2 pb-2 pt-0"
-																					>
-																						{#snippet panel()}
-																							{#each testcase.variable as variable (variable.name)}
-																								<div
-																									class="border-b border-surface-200-800/30 pb-2 last:border-b-0 last:pb-0"
-																								>
-																									<div class="text-sm font-medium text-strong">
-																										{variable.name}
-																									</div>
-																									<div
-																										class="text-xs break-words whitespace-pre-wrap text-surface-600-400"
-																									>
-																										{variable.value}
-																									</div>
-																								</div>
-																							{/each}
-																						{/snippet}
-																					</AccordionSection>
-																				</AccordionGroup>
-																			</Card>
-																		{/each}
-																	</div>
-																{/snippet}
-															</AccordionSection>
-														</AccordionGroup>
-													{/if}
-													<div
-														class="sticky bottom-3 z-10 layout-x-wrap-low items-center justify-between rounded-lg border border-dashed border-surface-200-800/60 bg-surface-50-950/88 p-3 shadow-lg shadow-surface-900/10 backdrop-blur-sm"
-													>
-														<PropertyType
-															type="segment"
-															bind:value={mode}
-															item={modes}
-															fit={true}
-														/>
-														<ActionBar wrap full={false}>
-															<Button
-																label="Execute"
-																full={false}
-																type="submit"
-																class="button-primary"
-																icon="mdi:play-circle-outline"
-															/>
-															{#if requestable.response?.length > 0}
-																<Button
-																	label="Clear"
-																	full={false}
-																	type="submit"
-																	class="button-secondary"
-																	icon="mdi:broom"
-																/>
-															{/if}
-														</ActionBar>
-													</div>
-													{#if requestable.response?.length > 0}
-														<div transition:fly={{ duration, y }}>
-															<RequestableResponseEditor
-																content={requestable.response}
-																language={requestable.language}
-																theme={LightSvelte.light ? '' : 'vs-dark'}
-																loading={requestable.loading}
-															/>
-														</div>
-													{/if}
-												</form>
+												/>
 											{/snippet}
 										</AccordionSection>
 									</div>

@@ -4,6 +4,10 @@
 	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
 	import MovableContent from '$lib/admin/components/MovableContent.svelte';
 	import Logs from '$lib/admin/Logs.svelte';
+	import {
+		maxLoadedLogLinesState,
+		normalizeMaxLoadedLogLines
+	} from '$lib/admin/LogViewerSettings.svelte.js';
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { checkArray, debounce } from '$lib/utils/service';
@@ -95,10 +99,9 @@
 		{ label: 'Last hour', minutes: 60 },
 		{ label: 'Today', today: true }
 	];
-
 	let modalYesNo = getContext('modalYesNo');
 
-	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, live?: boolean, studioMode?: boolean, onConfigureLevels?: (event?: any) => any}} */
+	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, live?: boolean, studioMode?: boolean, onConfigureLevels?: (event?: any) => any, onReloadViewer?: () => void}} */
 	let {
 		autoScroll = $bindable(false),
 		filters = $bindable({}),
@@ -107,10 +110,12 @@
 		endDate = $bindable(''),
 		live = $bindable(false),
 		studioMode = false,
-		onConfigureLevels
+		onConfigureLevels,
+		onReloadViewer
 	} = $props();
 	const extraLinesState = persistedState('admin.logs.extraLines', 1, { syncTabs: false });
 	let extraLines = $derived(extraLinesState.current);
+	let maxLoadedLines = $derived(normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current));
 
 	let isDragging = $state(false);
 	let virtualList = $state();
@@ -119,7 +124,7 @@
 	let showedLines = $state({ start: 0, end: 0 });
 	let clientHeight = $state(200);
 	let fullscreenRequested = $state(false);
-	let fullscreen = $derived(studioMode || fullscreenRequested);
+	let fullscreen = $derived(fullscreenRequested);
 	const attachHeaderMetrics = $derived(fromAction(measureHeaderMetrics));
 	const attachMessageMetrics = $derived(fromAction(measureMessageMetrics));
 	const attachScrollIntoView = $derived(fromAction(scrollIntoView));
@@ -752,6 +757,23 @@
 		await list(true);
 	}
 
+	function reloadViewer() {
+		if (onReloadViewer) {
+			onReloadViewer();
+			return;
+		}
+		try {
+			const win = /** @type {any} */ (window);
+			if (studioMode && win.java?.receiveFromJS) {
+				win.java.receiveFromJS(JSON.stringify({ type: 'reloadEngineLogView' }));
+				return;
+			}
+		} catch (e) {
+			console.error('Unable to ask Studio to reload the log viewer:', e);
+		}
+		window.location.reload();
+	}
+
 	function getScrollableParent(e) {
 		for (let parent = e.parentElement; parent; parent = parent.parentElement) {
 			if (parent.scrollHeight > parent.clientHeight) return parent;
@@ -1015,6 +1037,10 @@
 		if (retryTimer) clearTimeout(retryTimer);
 	});
 
+	$effect(() => {
+		Logs.maxLines = maxLoadedLines;
+	});
+
 	export async function list(renew = false) {
 		if (retryTimer) {
 			clearTimeout(retryTimer);
@@ -1025,6 +1051,7 @@
 		Logs.filter = serverFilter;
 		Logs.startDate = startDate;
 		Logs.endDate = endDate;
+		Logs.maxLines = maxLoadedLines;
 		if (renew) {
 			_scrollToIndex = undefined;
 		}
@@ -1450,6 +1477,14 @@
 					onclick={() => addExtraLines(-1)}
 				/>
 				{#if studioMode}
+					<Button
+						{size}
+						icon="mdi:reload"
+						title="Reload Engine Log view"
+						ariaLabel="Reload Engine Log view"
+						cls="log-toolbar-button"
+						onclick={reloadViewer}
+					/>
 					<Popover
 						open={clearPresetsOpened}
 						onOpenChange={(event) => (clearPresetsOpened = event.open)}
@@ -1730,7 +1765,7 @@
 		</Portal>
 	</div>
 	<div
-		class="log-status-row layout-x-p-none shrink-0 items-center justify-between rounded-sm rounded-t-none preset-filled-surface-100-900 px! py-1!"
+		class="log-status-row layout-x-p-none shrink-0 items-center justify-between rounded-sm rounded-t-none preset-filled-surface-100-900 py-1! px!"
 	>
 		<span class="h-fit truncate">
 			{#if studioMode}

@@ -5,6 +5,8 @@ const _categories = ['Base properties', 'Expert', 'Information'];
 export function createDatabaseObjectProperties() {
 	let id = $state('');
 	let properties = $state([]);
+	let loading = $state(false);
+	let selectionLoadSerial = 0;
 	let categories = $derived(
 		_categories.map((c) => ({
 			category: c,
@@ -14,15 +16,27 @@ export function createDatabaseObjectProperties() {
 	let hasChanges = $derived(properties.some((p) => p.value != p.originalValue));
 
 	async function onSelectionChange(e) {
-		id = e.selectedValue[0];
-		const res = await call('studio.properties.Get', {
-			id
-		});
-		properties = Object.entries(res?.properties ?? {}).map(([k, p]) => ({
-			displayName: k,
-			originalValue: p.value,
-			...p
-		}));
+		const nextId = e.selectedValue[0];
+		const serial = ++selectionLoadSerial;
+		id = nextId;
+		loading = true;
+		try {
+			const res = await call('studio.properties.Get', {
+				id: nextId
+			});
+			if (serial !== selectionLoadSerial || id !== nextId) {
+				return;
+			}
+			properties = Object.entries(res?.properties ?? {}).map(([k, p]) => ({
+				displayName: k,
+				originalValue: p.value,
+				...p
+			}));
+		} finally {
+			if (serial === selectionLoadSerial && id === nextId) {
+				loading = false;
+			}
+		}
 	}
 
 	function cancel() {
@@ -37,20 +51,25 @@ export function createDatabaseObjectProperties() {
 
 	async function save() {
 		const changes = getChanges();
-		if (changes.length > 0) {
-			const res = await call('studio.properties.Set', {
-				id,
-				props: JSON.stringify(changes),
-				save: true
-			});
-			if (res?.done) {
-				changes.forEach((p) => {
-					p.originalValue = p.value;
-				});
-			} else {
-				onSelectionChange({ selectedValue: [id] });
-			}
+		if (changes.length === 0) {
+			return true;
 		}
+		const saveId = id;
+		const res = await call('studio.properties.Set', {
+			id: saveId,
+			props: JSON.stringify(changes),
+			save: true
+		});
+		if (res?.done) {
+			changes.forEach((p) => {
+				p.originalValue = p.value;
+			});
+			return true;
+		}
+		if (id === saveId) {
+			onSelectionChange({ selectedValue: [saveId] });
+		}
+		return false;
 	}
 
 	return {
@@ -65,6 +84,9 @@ export function createDatabaseObjectProperties() {
 		},
 		get hasChanges() {
 			return hasChanges;
+		},
+		get loading() {
+			return loading;
 		},
 		onSelectionChange,
 		cancel,

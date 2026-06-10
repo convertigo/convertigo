@@ -44,7 +44,7 @@ public class Add extends JSonService {
 			throw new ServiceException("missing target parameter");
 		}
 
-		// position: the position where to add, relative to target (inside|first|after)
+		// position: the position where to add, relative to target (inside|first|before|after)
 		var position = request.getParameter("position");
 		if (position == null) {
 			position = "inside";
@@ -56,7 +56,8 @@ public class Add extends JSonService {
 			throw new ServiceException("missing data parameter");
 		}
 
-		var targetDbo = DboUtils.findDbo(target);
+		boolean done = false;
+		DatabaseObject targetDbo = DboUtils.findDbo(target);
 		if (targetDbo != null) {
 			var jsonData = new JSONObject(data);
 			if (FlowStudioSupport.isFlowPaletteData(jsonData)) {
@@ -75,28 +76,36 @@ public class Add extends JSonService {
 				parentDbo = targetDbo;
 			} else {
 				parentDbo = targetDbo.getParent();
-				after = targetDbo.priority;
-				if (position.equals("first")) {
-					after = 0L;
-				}
+				after = getAfter(targetDbo, position);
 			}
+			if (parentDbo != null) {
+				DatabaseObject dbo = DboUtils.createDbo(jsonData, parentDbo);
+				if (dbo != null && !dbo.equals(parentDbo)) {
+					if (parentDbo instanceof IContainerOrdered) {
+						((IContainerOrdered) parentDbo).add(dbo, after);
+					} else {
+						parentDbo.add(dbo);
+					}
+					done = true;
+					response.put("id", dbo.getFullQName());
+					response.put("parentId", parentDbo.getFullQName());
 
-			var dbo = DboUtils.createDbo(jsonData, parentDbo);
-			if (dbo != null && !dbo.equals(parentDbo)) {
-				if (parentDbo instanceof IContainerOrdered) {
-					((IContainerOrdered) parentDbo).add(dbo, after);
-				} else {
-					parentDbo.add(dbo);
+					// notify for app generation
+					BuilderUtils.dboAdded(dbo);
 				}
-				
-				// notify for app generation
-				BuilderUtils.dboAdded(dbo);
 			}
-			
-			response.put("done", true);
-			response.put("id", dbo.getFullQName());
-		} else {
-			response.put("done", false);
 		}
+		response.put("done", done);
+	}
+
+	private Long getAfter(DatabaseObject targetDbo, String position) {
+		if (position.equals("first")) {
+			return 0L;
+		}
+		if (position.equals("before")) {
+			DatabaseObject previousSibling = targetDbo.getPreviousSiblingInFolder();
+			return previousSibling == null ? 0L : previousSibling.priority;
+		}
+		return targetDbo.priority;
 	}
 }

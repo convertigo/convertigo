@@ -54,7 +54,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ProductVersion;
 
 public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
-	final static private String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/" + ProductVersion.majorProductVersion + "." + ProductVersion.minorProductVersion + ".0/";
+	final static private String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/" + ProductVersion.productVersion + "/";
 
 	private Set<String> backupFiles = new TreeSet<String>();
 	private File dest;

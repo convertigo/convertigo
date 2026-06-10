@@ -8,6 +8,7 @@ let endDate = $state('');
 let filter = $state('');
 let live = $state(false);
 let nbLines = $state(1000);
+let maxLines = $state(0);
 let moreResults = $state(false);
 let calling = $state(false);
 
@@ -93,6 +94,7 @@ async function list(clear = false) {
 				line.push(line[4].trim().split('\n').length);
 			}
 			logs.push(...lines);
+			trimLoadedLogs();
 		}
 		return { retryDelay: DEFAULT_RETRY_DELAY };
 	} catch (error) {
@@ -102,6 +104,12 @@ async function list(clear = false) {
 		if (currentCall == lastCall) {
 			calling = false;
 		}
+	}
+}
+
+function trimLoadedLogs() {
+	if (maxLines > 0 && logs.length > maxLines) {
+		logs = logs.slice(-maxLines);
 	}
 }
 
@@ -142,6 +150,13 @@ export default {
 	},
 	get nbLines() {
 		return nbLines;
+	},
+	get maxLines() {
+		return maxLines;
+	},
+	set maxLines(value) {
+		maxLines = Math.max(0, Number(value) || 0);
+		trimLoadedLogs();
 	},
 	get moreResults() {
 		return moreResults;

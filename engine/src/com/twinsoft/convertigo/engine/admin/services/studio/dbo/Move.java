@@ -29,7 +29,9 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @ServiceDefinition(name = "Move", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Move extends JSonService {
@@ -43,7 +45,7 @@ public class Move extends JSonService {
 			throw new ServiceException("missing target parameter");
 		}
 
-		// position: the position where to add, relative to target (inside|first|after)
+		// position: the position where to add, relative to target (inside|first|before|after)
 		var position = request.getParameter("position");
 		if (position == null) {
 			position = "inside";
@@ -71,39 +73,47 @@ public class Move extends JSonService {
 						parentDbo = targetDbo;
 					} else {
 						parentDbo = targetDbo.getParent();
-						after = targetDbo.priority;
-						if (position.equals("first")) {
-							after = 0L;
-						}
+						after = getAfter(dbo, targetDbo, position);
 					}
 					if (!dbo.equals(parentDbo)) {
 						boolean isOrdering = parentDbo.equals(dbo.getParent());
-						boolean isMoving = !isOrdering && DboUtils.canCut(dbo);
-						if (isOrdering || isMoving) {
-							DatabaseObject previousParent = dbo.getParent();
-							DatabaseObject previousSibling = dbo.getPreviousSiblingInFolder();
-							try {
-								dbo.delete();
-								if (parentDbo instanceof IContainerOrdered) {
-									((IContainerOrdered) parentDbo).add(dbo, after);
-								} else {
-									parentDbo.add(dbo);
-								}
+						boolean isNoopOrdering = isOrdering && isNoopOrdering(dbo, targetDbo, position);
+						if (canMoveDbo(dbo, parentDbo, targetDbo, target, position, isOrdering)) {
+							if (isNoopOrdering) {
 								done = true;
-								
-								// notify for app generation
-								if (isOrdering) {
-									BuilderUtils.dboUpdated(parentDbo);
-								} else {
-									BuilderUtils.dboMoved(previousParent, parentDbo, dbo);
-								}
-							} catch (Exception e) {
-								if (dbo.getParent() == null && previousParent != null) {
-									after = previousSibling == null ? 0L : previousSibling.priority;
-									if (previousParent instanceof IContainerOrdered) {
-										((IContainerOrdered) previousParent).add(dbo, after);
+								response.put("id", dbo.getFullQName());
+								response.put("parentId", parentDbo.getFullQName());
+								response.put("previousParentId", parentDbo.getFullQName());
+							} else {
+								DatabaseObject previousParent = dbo.getParent();
+								DatabaseObject previousSibling = dbo.getPreviousSiblingInFolder();
+								try {
+									dbo.delete();
+									if (parentDbo instanceof IContainerOrdered) {
+										((IContainerOrdered) parentDbo).add(dbo, after);
 									} else {
-										previousParent.add(dbo);
+										parentDbo.add(dbo);
+									}
+									done = true;
+									response.put("id", dbo.getFullQName());
+									response.put("parentId", parentDbo.getFullQName());
+									response.put("previousParentId",
+											previousParent == null ? "" : previousParent.getFullQName());
+
+									// notify for app generation
+									if (isOrdering) {
+										BuilderUtils.dboUpdated(parentDbo);
+									} else {
+										BuilderUtils.dboMoved(previousParent, parentDbo, dbo);
+									}
+								} catch (Exception e) {
+									if (dbo.getParent() == null && previousParent != null) {
+										after = previousSibling == null ? 0L : previousSibling.priority;
+										if (previousParent instanceof IContainerOrdered) {
+											((IContainerOrdered) previousParent).add(dbo, after);
+										} else {
+											previousParent.add(dbo);
+										}
 									}
 								}
 							}
@@ -113,5 +123,50 @@ public class Move extends JSonService {
 			}
 		}
 		response.put("done", done);
+	}
+
+	private boolean canMoveDbo(DatabaseObject dbo, DatabaseObject parentDbo, DatabaseObject targetDbo, String target,
+			String position, boolean isOrdering) throws Exception {
+		if (isOrdering) {
+			return !position.equals("inside");
+		}
+		if (!DboUtils.canCut(dbo) || !DboUtils.acceptDbo(parentDbo, dbo, false)) {
+			return false;
+		}
+		FolderType folderType = position.equals("inside") ? Utils.getFolderType(target) : targetDbo.getFolderType();
+		if (folderType != null && folderType != FolderType.NONE) {
+			return DatabaseObject.getFolderType(dbo.getClass()) == folderType;
+		}
+		return true;
+	}
+
+	private Long getAfter(DatabaseObject dbo, DatabaseObject targetDbo, String position) {
+		if (position.equals("first")) {
+			return 0L;
+		}
+		if (position.equals("before")) {
+			DatabaseObject previousSibling = targetDbo.getPreviousSiblingInFolder();
+			if (dbo.equals(previousSibling)) {
+				previousSibling = dbo.getPreviousSiblingInFolder();
+			}
+			return previousSibling == null ? 0L : previousSibling.priority;
+		}
+		return targetDbo.priority;
+	}
+
+	private boolean isNoopOrdering(DatabaseObject dbo, DatabaseObject targetDbo, String position) {
+		if (dbo.equals(targetDbo)) {
+			return true;
+		}
+		if (position.equals("before")) {
+			return dbo.equals(targetDbo.getPreviousSiblingInFolder());
+		}
+		if (position.equals("after")) {
+			return dbo.equals(targetDbo.getNextSiblingInFolder());
+		}
+		if (position.equals("first")) {
+			return dbo.getPreviousSiblingInFolder() == null;
+		}
+		return false;
 	}
 }

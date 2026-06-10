@@ -4,12 +4,14 @@
 	import { page } from '$app/state';
 	import Button from '$lib/admin/components/Button.svelte';
 	import LogViewer from '$lib/admin/components/LogViewer.svelte';
+	import LogViewerConfiguration from '$lib/admin/components/LogViewerConfiguration.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import { getContext, onMount, tick } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
+	import { SvelteURL } from 'svelte/reactivity';
 
 	let logViewer = $state();
 	let autoScroll = $state(true);
@@ -109,7 +111,7 @@
 			}
 			await Configuration.refresh();
 		}
-		const url = new URL(page.url);
+		const url = new SvelteURL(page.url);
 		if (nextPanel == 'config') {
 			url.searchParams.set('panel', 'config');
 		} else {
@@ -178,6 +180,7 @@
 				/>
 			</div>
 			<div class="log-levels-grid min-h-0 grow overflow-auto p-1">
+				<LogViewerConfiguration />
 				{#each logLevelProperties as property (property.name)}
 					<div class="log-level-property">
 						<PropertyType {...property} bind:value={property.value} />

@@ -1,6 +1,7 @@
 <script>
 	import { debounce } from '$lib/utils/service';
 	import { onMount, tick } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	let {
 		clientHeight = $bindable(),
@@ -44,7 +45,7 @@
 		mutationObserver?.disconnect();
 		resizeObserver.observe(window.document.body);
 
-		const parents = new Set();
+		const parents = new SvelteSet();
 		let node = div;
 		while (node?.parentElement && node !== window.document.body) {
 			const parent = node.parentElement;

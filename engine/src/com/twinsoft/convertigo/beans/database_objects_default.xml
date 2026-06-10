@@ -6,16 +6,10 @@
         <property name="engineQName">
             <java.lang.String value="lib_flow_engine.Engine"/>
         </property>
-        <property name="engineSource">
-            <java.lang.String value="version: 1&#10;engineQName: lib_flow_engine.Engine&#10;bindings: {}&#10;config: {}&#10;"/>
-        </property>
         <property name="name">
             <java.lang.String value=""/>
         </property>
     </flowengine>
-
-
-
     <sequence classname="com.twinsoft.convertigo.beans.flow.Flow" priority="0" version="   8   5   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
@@ -44,9 +38,6 @@
         <property name="encodingCharSet">
             <java.lang.String value="UTF-8"/>
         </property>
-        <property name="flowSource">
-            <java.lang.String value="version: 1&#10;nodes: []&#10;"/>
-        </property>
         <property name="includeResponseElement">
             <java.lang.Boolean value="true"/>
         </property>
@@ -70,6 +61,11 @@
         </property>
         <wsdltype/>
     </sequence>
+    
+
+
+
+    
 
 
 

@@ -14,6 +14,7 @@
 	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
 	import LogViewer from '$lib/admin/components/LogViewer.svelte';
+	import LogViewerConfiguration from '$lib/admin/components/LogViewerConfiguration.svelte';
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
@@ -536,6 +537,7 @@
 				</div>
 			{:else}
 				<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
+					<LogViewerConfiguration />
 					{#each logsCategory?.property ?? [] as property (property.name)}
 						{#if property.name?.startsWith('LOG4J')}
 							<PropertyType {...property} bind:value={property.value} />

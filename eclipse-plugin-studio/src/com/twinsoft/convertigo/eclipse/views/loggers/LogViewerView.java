@@ -40,15 +40,19 @@ public class LogViewerView extends ViewPart {
 	private static final String EMBEDDED_LOG_VIEWER_PATH = LOG_VIEWER_PATH + "?studioMode=true";
 
 	private C8oBrowser browser = null;
+	private C8oBrowserPostMessageHelper postMessageHelper = null;
 	private AuthenticatedBrowser authenticatedBrowser = null;
 
 	@Override
 	public void dispose() {
 		if (authenticatedBrowser != null) {
 			authenticatedBrowser.dispose();
+			authenticatedBrowser = null;
 		}
+		postMessageHelper = null;
 		if (browser != null) {
 			browser.dispose();
+			browser = null;
 		}
 		super.dispose();
 	}
@@ -58,7 +62,6 @@ public class LogViewerView extends ViewPart {
 		SwtUtils.refreshTheme();
 
 		parent.setLayout(new FillLayout());
-
 		browser = new C8oBrowser(parent, SWT.NONE);
 		browser.setUseExternalBrowser(false);
 		ConvertigoPlugin.logDebug("Log viewer debug : " + browser.getDebugUrl());
@@ -80,15 +83,28 @@ public class LogViewerView extends ViewPart {
 			return true;
 		});
 
-		new C8oBrowserPostMessageHelper(browser);
+		postMessageHelper = new C8oBrowserPostMessageHelper(browser);
+		postMessageHelper.onMessage(message -> {
+			if ("reloadEngineLogView".equals(message.optString("type"))) {
+				ConvertigoPlugin.asyncExec(this::reloadBrowser);
+			}
+		});
+
 		authenticatedBrowser = new AuthenticatedBrowser(browser, this::getEmbeddedUrl);
 		authenticatedBrowser.load();
+		parent.layout(true, true);
 	}
 
 	@Override
 	public void setFocus() {
 		if (browser != null) {
 			browser.setFocus();
+		}
+	}
+
+	private void reloadBrowser() {
+		if (authenticatedBrowser != null) {
+			authenticatedBrowser.load();
 		}
 	}
 

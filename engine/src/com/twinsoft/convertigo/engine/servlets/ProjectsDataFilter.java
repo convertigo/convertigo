@@ -94,9 +94,16 @@ public class ProjectsDataFilter implements Filter {
 		String pathInfo = m_projects.find() ? m_projects.group(2) : "";
 
 		String requestedObject;
+		File projectDir = null;
+		String projectRelativePath = null;
 		if (m_projects.group(1) == null) {
 			requestedObject = Engine.PROJECTS_PATH + pathInfo;
 			requestedObject = Engine.resolveProjectPath(requestedObject);
+			String projectName = getProjectName(pathInfo);
+			if (projectName != null) {
+				projectDir = new File(Engine.projectDir(projectName));
+				projectRelativePath = getProjectRelativePath(pathInfo);
+			}
 		} else {
 			requestedObject = Engine.WEBAPP_PATH + "/system/projects/" + pathInfo;
 		}
@@ -127,6 +134,9 @@ public class ProjectsDataFilter implements Filter {
 		}
 
 		File file = new File(requestedObject);
+		if (sendNotFoundIfIgnored(projectDir, projectRelativePath, file.isDirectory(), pathInfo, response)) {
+			return;
+		}
 
 		String s = file.getCanonicalPath();
 
@@ -148,12 +158,20 @@ public class ProjectsDataFilter implements Filter {
 				if (requestURI.endsWith("/"))
 					file = new File(requestedObject + "/index.html");
 				else {
+					File index = new File(requestedObject + "/index.html");
+					if (sendNotFoundIfIgnored(projectDir, ProjectHttpIgnore.getRelativePath(projectDir, index), index.isDirectory(), pathInfo, response)) {
+						return;
+					}
 					String redirect = requestURI + "/index.html";
 					Engine.logContext.debug("Send redirect to: '" + redirect + "'");
 					response.sendRedirect(redirect);
 					return;
 				}
 			}
+		}
+
+		if (sendNotFoundIfIgnored(projectDir, ProjectHttpIgnore.getRelativePath(projectDir, file), file.isDirectory(), pathInfo, response)) {
+			return;
 		}
 
 		if (!file.exists() && Engine.theApp != null && Engine.theApp.minificationManager != null) {
@@ -186,5 +204,30 @@ public class ProjectsDataFilter implements Filter {
 	public void init(FilterConfig filterConfig) throws ServletException {
 		this.filterConfig = filterConfig;
 		System.out.println("Projects data filter has been initialized");
+	}
+
+	private static String getProjectName(String pathInfo) {
+		if (pathInfo == null || pathInfo.length() < 2 || pathInfo.charAt(0) != '/') {
+			return null;
+		}
+		int slash = pathInfo.indexOf('/', 1);
+		return slash == -1 ? pathInfo.substring(1) : pathInfo.substring(1, slash);
+	}
+
+	private static String getProjectRelativePath(String pathInfo) {
+		if (pathInfo == null || pathInfo.length() < 2 || pathInfo.charAt(0) != '/') {
+			return "";
+		}
+		int slash = pathInfo.indexOf('/', 1);
+		return slash == -1 ? "" : pathInfo.substring(slash + 1);
+	}
+
+	private static boolean sendNotFoundIfIgnored(File projectDir, String relativePath, boolean isDirectory, String pathInfo, HttpServletResponse response) throws IOException {
+		if (ProjectHttpIgnore.isIgnored(projectDir, relativePath, isDirectory)) {
+			Engine.logContext.debug("Project static resource hidden by .httpignore: " + pathInfo);
+			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			return true;
+		}
+		return false;
 	}
 }

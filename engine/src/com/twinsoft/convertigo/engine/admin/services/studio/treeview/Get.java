@@ -85,7 +85,9 @@ public class Get extends JSonService {
 			var ft = FolderType.parse(reg.group(2));
 			var qname = ft == null ? id : reg.group(1);
 			var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
-			children = getChildren(dbo, ft, true, flow);
+			if (dbo != null) {
+				children = getChildren(dbo, ft, true, flow);
+			}
 		}
 		return children;
 	}
@@ -159,6 +161,9 @@ public class Get extends JSonService {
 	}
 
 	private JSONArray getChildren(DatabaseObject dbo, FolderType ft, boolean full, boolean flow) throws Exception {
+		if (dbo == null) {
+			return new JSONArray();
+		}
 		var qname = dbo.getFullQName();
 		var children = dbo.getDatabaseObjectChildren();
 		var jChildren = new JSONArray();
