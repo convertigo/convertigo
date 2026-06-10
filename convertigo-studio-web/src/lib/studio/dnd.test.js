@@ -8,8 +8,8 @@ import {
 	dboTreeFolderIds,
 	equivalentDboObjectIds,
 	expandableDboAncestorIds,
-	inferMovedObjectId,
 	getDboDropAction,
+	inferMovedObjectId,
 	isDescendantObjectId,
 	isNoopSiblingMove,
 	mutationDboContextIds,
@@ -55,14 +55,11 @@ describe('Studio DBO drag and drop qnames', () => {
 		};
 
 		expect(
-			getDboDropAction(
-				/** @type {DragEvent} */ (event),
-				{
-					type: 'treeData',
-					data: { id: 'Project.sq:Sequence.st:field' },
-					options: {}
-				}
-			)
+			getDboDropAction(/** @type {DragEvent} */ (event), {
+				type: 'treeData',
+				data: { id: 'Project.sq:Sequence.st:field' },
+				options: {}
+			})
 		).toBe('move');
 		expect(writtenDropEffect).toBe('move');
 	});

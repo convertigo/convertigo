@@ -91,10 +91,7 @@ test('studio applies and executes requestable test cases from the execution pane
 	expect(executionRequests[0]).toContain('__sequence=TestSequence');
 	expect(executionRequests[0]).toContain('input=from-testcase');
 
-	await page
-		.locator('.requestable-testcases__grid button')
-		.filter({ hasText: 'Execute' })
-		.click();
+	await page.locator('.requestable-testcases__grid button').filter({ hasText: 'Execute' }).click();
 	await expect.poll(() => executionRequests.length).toBe(2);
 	expect(executionRequests[1]).toContain('__sequence=TestSequence');
 	expect(executionRequests[1]).toContain('__testcase=PresetInput');
@@ -336,10 +333,9 @@ test('studio reorders structured child steps without collapsing their parent', a
 		}
 	});
 
-	await expect.poll(() => state.steps[0].children?.map((step) => step.name)).toEqual([
-		'field2',
-		'field1'
-	]);
+	await expect
+		.poll(() => state.steps[0].children?.map((step) => step.name))
+		.toEqual(['field2', 'field1']);
 	await expectTreeChildOrder(page, objectId, ['field2', 'field1']);
 	await expectFlowChildOrder(page, objectId, ['field2', 'field1']);
 	await expectTreeNodeExpanded(page, objectId);
@@ -398,10 +394,9 @@ test('studio moves a structured flow child before a sibling and keeps tree and u
 		}
 	});
 
-	await expect.poll(() => state.steps[0].children?.map((step) => step.name)).toEqual([
-		'field2',
-		'field1'
-	]);
+	await expect
+		.poll(() => state.steps[0].children?.map((step) => step.name))
+		.toEqual(['field2', 'field1']);
 	await expectTreeChildOrder(page, objectId, ['field2', 'field1']);
 	await expectTreeNodeExpanded(page, objectId);
 	await expect(flowNodeName(page, 'field2')).toBeVisible();
@@ -933,8 +928,7 @@ function createStudioState(overrides = {}) {
  * @param {ReturnType<typeof createStudioState>} state
  */
 function testPlatformResponse(state) {
-	const executionState =
-		/** @type {{ variables?: any[], testcases?: any[] }} */ (state);
+	const executionState = /** @type {{ variables?: any[], testcases?: any[] }} */ (state);
 	return {
 		admin: {
 			project: {

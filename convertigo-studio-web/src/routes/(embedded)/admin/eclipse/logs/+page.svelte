@@ -11,6 +11,7 @@
 	import Time from '$lib/common/Time.svelte';
 	import { getContext, onMount, tick } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
+	import { SvelteURL } from 'svelte/reactivity';
 
 	let logViewer = $state();
 	let autoScroll = $state(true);
@@ -110,7 +111,7 @@
 			}
 			await Configuration.refresh();
 		}
-		const url = new URL(page.url);
+		const url = new SvelteURL(page.url);
 		if (nextPanel == 'config') {
 			url.searchParams.set('panel', 'config');
 		} else {

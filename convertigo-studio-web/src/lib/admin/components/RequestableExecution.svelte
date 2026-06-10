@@ -182,11 +182,7 @@
 		{/if}
 
 		{#if hasTestcases}
-			<RequestableTestCases
-				bind:requestable
-				value={testcaseValue}
-				showEdit={showTestcaseEdit}
-			/>
+			<RequestableTestCases bind:requestable value={testcaseValue} showEdit={showTestcaseEdit} />
 		{/if}
 
 		<div

@@ -184,7 +184,7 @@
 											{#snippet panel()}
 												<RequestableExecution
 													projectName={project.name}
-													bind:requestable={parts[partIdx].requestables[requestableIdx]}
+													requestable={parts[partIdx].requestables[requestableIdx]}
 													kind={part.name == 'Sequences' ? 'sequence' : 'transaction'}
 													connectorName={part.name == 'Sequences' ? '' : part.name}
 													bind:mode
