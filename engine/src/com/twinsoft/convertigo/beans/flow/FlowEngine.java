@@ -27,8 +27,6 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
@@ -86,8 +84,13 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	@Override
-	public Element toXml(Document document) throws EngineException {
+	public void setParent(DatabaseObject databaseObject) {
+		super.setParent(databaseObject);
 		ensureEngineProjectReference();
+	}
+
+	@Override
+	public Element toXml(Document document) throws EngineException {
 		writeEngineSourceFile();
 		var element = super.toXml(document);
 		removeSerializedProperty(element, "engineSource");

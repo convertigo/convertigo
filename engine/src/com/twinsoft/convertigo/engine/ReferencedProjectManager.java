@@ -128,7 +128,9 @@ public class ReferencedProjectManager {
 			prjRef = new ProjectSchemaReference();
 			if (projectName.startsWith("mobilebuilder_tpl_")) {
 				prjRef.setProjectName(projectName + "=" + getTemplateUrl(projectName));
-			} else {
+			} else if (projectName.equals("lib_flow_engine")) {
+				prjRef.setProjectName("lib_flow_engine=https://github.com/convertigo/c8oprj-lib-flow-engine/archive/main.zip");
+			} else{
 				prjRef.setProjectName(projectName);
 			}
 			project.add(prjRef);
