@@ -1,7 +1,5 @@
 <script>
 	import { Background, Controls, getViewportForBounds, MiniMap, SvelteFlow } from '@xyflow/svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import {
 		areEquivalentDboObjectIds,
 		canDropDbo,
@@ -19,17 +17,16 @@
 	} from '$lib/studio/dnd';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { draggedData } from '$lib/utils/dndStore';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { removeDbo, renameDbo } from '$lib/utils/service';
 	import { untrack } from 'svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { findFlowLaneDropTarget as resolveFlowLaneDropTarget } from './flowDropTargets';
 	import { flowEdgeDistanceToPoint } from './flowGeometry';
-	import FlowPalette from './FlowPalette.svelte';
 	import FlowStepNode from './FlowStepNode.svelte';
 	import { loadSequenceFlow } from './sequenceLoader';
 	import { toXyFlow } from './xyflow';
 	import '@xyflow/svelte/dist/style.css';
+	import Button from '$lib/admin/components/Button.svelte';
 
 	/**
 	 * @typedef {Object} SequenceLike
@@ -44,9 +41,6 @@
 	 *  projectName: string,
 	 *  sequences?: SequenceLike[],
 	 *  selectedSequenceName?: string,
-	 *  showSequences?: boolean,
-	 *  showPalette?: boolean,
-	 *  showInspector?: boolean,
 	 *  autoSelectFirst?: boolean,
 	 *  selectedObjectId?: string,
 	 *  refreshSerial?: number,
@@ -60,9 +54,6 @@
 		projectName,
 		sequences = [],
 		selectedSequenceName = $bindable(''),
-		showSequences = true,
-		showPalette = true,
-		showInspector = true,
 		autoSelectFirst = true,
 		selectedObjectId = '',
 		refreshSerial = 0,
@@ -77,9 +68,6 @@
 	const flowDropBeforeRatio = 0.34;
 	const flowDropAfterRatio = 0.66;
 
-	let sequenceQuery = $state('');
-	/** @type {{ id: string, data: import('./types').FlowStepNodeData } | null} */
-	let selectedNode = $state(null);
 	/** @type {import('./types').Flow | null} */
 	let flow = $state(null);
 	/** @type {import('@xyflow/svelte').Node[]} */
@@ -112,13 +100,6 @@
 	let pendingExpandedSubstepParents = $state.raw(new SvelteSet());
 	/** @type {Set<string>} */
 	let pendingViewportFocusObjectIds = $state.raw(new SvelteSet());
-
-	let filteredSequences = $derived.by(() => {
-		const query = sequenceQuery.trim().toLowerCase();
-		return (sequences ?? []).filter((sequence) =>
-			query ? sequence.name?.toLowerCase().includes(query) : true
-		);
-	});
 
 	let selectedSequence = $derived(
 		(sequences ?? []).find((sequence) => sequence.name === selectedSequenceName) ?? null
@@ -221,7 +202,6 @@
 		const shouldPreserveCollapseState = loadedFlowKey === flowKey;
 		loading = true;
 		error = '';
-		selectedNode = null;
 		try {
 			const nextFlow = await loadSequenceFlow(project, sequenceName);
 			if (serial !== loadSerial) {
@@ -265,14 +245,7 @@
 		if (nextNode.data.isFlowTerminal) {
 			return;
 		}
-		selectedNode = nextNode;
 		onSelectNode?.(nextNode);
-	}
-
-	function handlePaneClick() {
-		if (!selectedObjectId) {
-			selectedNode = null;
-		}
 	}
 
 	function refresh() {
@@ -959,9 +932,6 @@
 		});
 		nodes = next.nodes;
 		edges = next.edges;
-		if (selectedNode && hiddenNodeIds.has(selectedNode.id)) {
-			selectedNode = null;
-		}
 		if (options.fit === 'all') {
 			scheduleViewportFit();
 		} else if (options.focusNodeIds?.size) {
@@ -1006,9 +976,6 @@
 	 */
 	function applySelectedObjectId(objectId) {
 		if (!nodes.length) {
-			if (!objectId) {
-				selectedNode = null;
-			}
 			return;
 		}
 		let changed = false;
@@ -1029,16 +996,6 @@
 		});
 		if (changed) {
 			nodes = nextNodes;
-		}
-		const matchedNode = nextNodes.find((node) => isXyNodeSelected(node, objectId));
-		const nextSelectedNode = matchedNode
-			? /** @type {{ id: string, data: import('./types').FlowStepNodeData }} */ (
-					/** @type {unknown} */ (matchedNode)
-				)
-			: null;
-		const nextSelectedNodeId = nextSelectedNode?.id;
-		if (selectedNode?.id !== nextSelectedNodeId) {
-			selectedNode = nextSelectedNode;
 		}
 	}
 
@@ -1479,77 +1436,9 @@
 			nodeIds?.size ? 0.24 : 0.18
 		);
 	}
-
-	/**
-	 * @param {string | undefined} accessibility
-	 * @returns {string}
-	 */
-	function accessibilityIcon(accessibility) {
-		const normalized = (accessibility ?? 'Public').toLowerCase();
-		if (normalized === 'private') {
-			return 'mdi:lock';
-		}
-		if (normalized === 'hidden') {
-			return 'mdi:eye-off';
-		}
-		return 'mdi:lock-open-variant';
-	}
 </script>
 
-<div
-	class="flow-dashboard"
-	class:flow-dashboard--no-left={!showSequences && !showPalette}
-	class:flow-dashboard--no-inspector={!showInspector}
->
-	{#if showSequences || showPalette}
-		<aside class="flow-dashboard__sequences">
-			{#if showSequences}
-				<section class="flow-dashboard__sequence-panel">
-					<div class="flow-dashboard__panel-header">
-						<span>Sequences</span>
-						<span class="flow-dashboard__count">{filteredSequences.length}</span>
-					</div>
-					<InputGroup
-						id="flow-sequence-search"
-						type="search"
-						placeholder="Search sequence..."
-						class="w-full"
-						icon="mdi:magnify"
-						bind:value={sequenceQuery}
-					/>
-					<div class="flow-dashboard__sequence-list">
-						{#each filteredSequences as sequence (sequence.name)}
-							<button
-								type="button"
-								class:flow-dashboard__sequence--selected={sequence.name === selectedSequenceName}
-								class="flow-dashboard__sequence"
-								onclick={() => (selectedSequenceName = sequence.name)}
-							>
-								<span class="flow-dashboard__sequence-icon">
-									<Ico icon={accessibilityIcon(sequence.accessibility)} size={4} />
-								</span>
-								<span class="flow-dashboard__sequence-main">
-									<span class="flow-dashboard__sequence-name">{sequence.name}</span>
-									{#if sequence.comment}
-										<span class="flow-dashboard__sequence-comment">{sequence.comment}</span>
-									{/if}
-								</span>
-								{#if sequence.autostart}
-									<span class="flow-dashboard__sequence-flag">
-										<Ico icon="mdi:lightning-bolt" size={3} />
-									</span>
-								{/if}
-							</button>
-						{/each}
-					</div>
-				</section>
-			{/if}
-			{#if showPalette}
-				<FlowPalette parentId={selectedSequenceId} />
-			{/if}
-		</aside>
-	{/if}
-
+<div class="flow-dashboard">
 	<section class="flow-dashboard__viewer">
 		<div class="flow-dashboard__toolbar">
 			<div class="flow-dashboard__title">
@@ -1604,7 +1493,6 @@
 					defaultEdgeOptions={{ type: 'smoothstep', zIndex: 0 }}
 					fitViewOptions={{ padding: 0.18, maxZoom: 0.92 }}
 					onnodeclick={handleNodeClick}
-					onpaneclick={handlePaneClick}
 				>
 					<Background />
 					<Controls />
@@ -1615,48 +1503,6 @@
 			{/if}
 		</div>
 	</section>
-
-	{#if showInspector}
-		<aside class="flow-dashboard__inspector">
-			<div class="flow-dashboard__panel-header">
-				<span>Step</span>
-			</div>
-			{#if selectedNode}
-				<div class="flow-dashboard__inspector-stack">
-					<div>
-						<div class="flow-dashboard__inspector-label">Name</div>
-						<div class="flow-dashboard__inspector-value">{selectedNode.data.name}</div>
-					</div>
-					<div>
-						<div class="flow-dashboard__inspector-label">Type</div>
-						<div class="flow-dashboard__inspector-value">
-							{selectedNode.data.type.split('.').pop()}
-						</div>
-					</div>
-					{#if selectedNode.data.classname}
-						<div>
-							<div class="flow-dashboard__inspector-label">Class</div>
-							<div class="flow-dashboard__inspector-value">{selectedNode.data.classname}</div>
-						</div>
-					{/if}
-					{#if selectedNode.data.originalId}
-						<div>
-							<div class="flow-dashboard__inspector-label">QName</div>
-							<div class="flow-dashboard__inspector-value flow-dashboard__mono">
-								{selectedNode.data.originalId}
-							</div>
-						</div>
-					{/if}
-					<div class="flow-dashboard__ports">
-						<span>{selectedNode.data.inputs} inputs</span>
-						<span>{selectedNode.data.outputs} outputs</span>
-					</div>
-				</div>
-			{:else}
-				<div class="flow-dashboard__empty">Select a step</div>
-			{/if}
-		</aside>
-	{/if}
 </div>
 
 <style>
@@ -1732,7 +1578,6 @@
 		--xy-minimap-node-background-color: var(--flow-minimap-node-bg);
 		--xy-minimap-node-stroke-color: var(--flow-minimap-node-border);
 		display: grid;
-		grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr) minmax(13rem, 18rem);
 		min-height: min(72vh, 760px);
 		height: calc(100vh - 12rem);
 		border: 1px solid var(--color-surface-200-800);
@@ -1740,47 +1585,6 @@
 		background: var(--color-surface-50-950);
 		overflow: hidden;
 	}
-
-	.flow-dashboard--no-left {
-		grid-template-columns: minmax(0, 1fr) minmax(13rem, 18rem);
-	}
-
-	.flow-dashboard--no-inspector {
-		grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr);
-	}
-
-	.flow-dashboard--no-left.flow-dashboard--no-inspector {
-		grid-template-columns: minmax(0, 1fr);
-	}
-
-	.flow-dashboard__sequences,
-	.flow-dashboard__inspector {
-		display: flex;
-		min-height: 0;
-		flex-direction: column;
-		gap: 0.65rem;
-		padding: 0.75rem;
-		background: color-mix(in oklab, var(--color-surface-100-900) 82%, transparent);
-	}
-
-	.flow-dashboard__sequences {
-		border-right: 1px solid var(--color-surface-200-800);
-		overflow: hidden;
-	}
-
-	.flow-dashboard__sequence-panel {
-		display: flex;
-		min-height: 0;
-		flex: 0 0 clamp(12rem, 38%, 18rem);
-		flex-direction: column;
-		gap: 0.65rem;
-	}
-
-	.flow-dashboard__inspector {
-		border-left: 1px solid var(--color-surface-200-800);
-	}
-
-	.flow-dashboard__panel-header,
 	.flow-dashboard__toolbar {
 		display: flex;
 		align-items: center;
@@ -1788,17 +1592,7 @@
 		gap: 0.75rem;
 	}
 
-	.flow-dashboard__panel-header {
-		font-size: 0.8rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		color: var(--color-surface-700-300);
-	}
-
-	.flow-dashboard__count,
-	.flow-dashboard__metrics,
-	.flow-dashboard__sequence-flag,
-	.flow-dashboard__ports span {
+	.flow-dashboard__metrics {
 		border: 1px solid var(--color-surface-200-800);
 		border-radius: 999px;
 		background: var(--color-surface-50-950);
@@ -1807,74 +1601,6 @@
 		font-weight: 650;
 		line-height: 1;
 		padding: 0.25rem 0.45rem;
-	}
-
-	.flow-dashboard__sequence-list {
-		display: flex;
-		min-height: 0;
-		flex: 1;
-		flex-direction: column;
-		gap: 0.35rem;
-		overflow: auto;
-		padding-right: 0.15rem;
-	}
-
-	.flow-dashboard__sequence {
-		display: grid;
-		flex: 0 0 auto;
-		grid-template-columns: auto minmax(0, 1fr) auto;
-		align-items: center;
-		gap: 0.55rem;
-		width: 100%;
-		border: 1px solid transparent;
-		border-radius: 0.45rem;
-		background: transparent;
-		color: var(--color-surface-900-100);
-		padding: 0.55rem;
-		text-align: left;
-		transition:
-			background 0.16s ease,
-			border-color 0.16s ease,
-			color 0.16s ease;
-	}
-
-	.flow-dashboard__sequence:hover,
-	.flow-dashboard__sequence--selected {
-		border-color: color-mix(in oklab, var(--color-primary-500) 38%, transparent);
-		background: color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-	}
-
-	.flow-dashboard__sequence-icon {
-		display: grid;
-		place-items: center;
-		width: 1.85rem;
-		height: 1.85rem;
-		border-radius: 0.4rem;
-		background: var(--color-surface-50-950);
-		color: var(--color-surface-700-300);
-	}
-
-	.flow-dashboard__sequence-main {
-		min-width: 0;
-	}
-
-	.flow-dashboard__sequence-name,
-	.flow-dashboard__sequence-comment {
-		display: block;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.flow-dashboard__sequence-name {
-		font-size: 0.82rem;
-		font-weight: 650;
-	}
-
-	.flow-dashboard__sequence-comment {
-		margin-top: 0.12rem;
-		color: var(--color-surface-600-400);
-		font-size: 0.72rem;
 	}
 
 	.flow-dashboard__viewer {
@@ -1927,44 +1653,6 @@
 	.flow-dashboard__error {
 		padding: 1.5rem;
 		color: var(--color-error-600-400);
-	}
-
-	.flow-dashboard__inspector-stack {
-		display: flex;
-		flex-direction: column;
-		gap: 0.8rem;
-		overflow: auto;
-		font-size: 0.82rem;
-	}
-
-	.flow-dashboard__inspector-label {
-		margin-bottom: 0.2rem;
-		color: var(--color-surface-600-400);
-		font-size: 0.68rem;
-		font-weight: 700;
-		text-transform: uppercase;
-	}
-
-	.flow-dashboard__inspector-value {
-		overflow-wrap: anywhere;
-		color: var(--color-surface-950-50);
-	}
-
-	.flow-dashboard__mono {
-		font-family:
-			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
-		font-size: 0.72rem;
-	}
-
-	.flow-dashboard__ports {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.4rem;
-	}
-
-	.flow-dashboard__empty {
-		color: var(--color-surface-600-400);
-		font-size: 0.82rem;
 	}
 
 	:global(.flow-dashboard .svelte-flow__node.selected .flow-step-node) {
@@ -2025,33 +1713,12 @@
 		background: var(--flow-minimap-bg);
 	}
 
-	@media (max-width: 980px) {
-		.flow-dashboard {
-			grid-template-columns: minmax(11rem, 15rem) minmax(0, 1fr);
-		}
-
-		.flow-dashboard__inspector {
-			display: none;
-		}
-	}
-
 	@media (max-width: 720px) {
 		.flow-dashboard {
 			grid-template-columns: 1fr;
 			height: auto;
 			min-height: 78vh;
 		}
-
-		.flow-dashboard__sequences {
-			max-height: 32rem;
-			border-right: 0;
-			border-bottom: 1px solid var(--color-surface-200-800);
-		}
-
-		.flow-dashboard__sequence-panel {
-			flex: 0 0 12rem;
-		}
-
 		.flow-dashboard__canvas {
 			min-height: 34rem;
 		}

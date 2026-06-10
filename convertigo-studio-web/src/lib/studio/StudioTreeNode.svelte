@@ -1,5 +1,5 @@
 <script>
-	import { dropLabel, isIfStep } from '$lib/dashboard/flow/flowStepLabels';
+	import { dropLabel, isIfStep } from '$lib/studio/flow/flowStepLabels';
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';

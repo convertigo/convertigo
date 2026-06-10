@@ -51,12 +51,6 @@
 				id: '/(app)/dashboard/[[project]]/backend/[sequence]',
 				params: { project }
 			});
-			extras.push({
-				title: 'Flow',
-				icon: 'mdi:source-branch',
-				page: '/(app)/dashboard/[[project]]/flow',
-				params: { project }
-			});
 			if (canEditInAdmin) {
 				extras.push({
 					title: 'Edit',

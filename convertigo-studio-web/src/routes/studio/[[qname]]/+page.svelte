@@ -6,7 +6,7 @@
 	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
 	import Projects from '$lib/common/Projects.svelte.js';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import FlowViewer from '$lib/dashboard/flow/FlowViewer.svelte';
+	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
 	import { findPrimaryEditorProperty, isCodeEditorProperty } from '$lib/studio/propertyEditors';
 	import { decodeStudioSelectionId, studioSelectionUrl } from '$lib/studio/routeSelection';
 	import StudioDevicePanel from '$lib/studio/StudioDevicePanel.svelte';
@@ -1126,9 +1126,6 @@
 										projectName={selectedProjectName}
 										{sequences}
 										selectedSequenceName={selectedFlowSequenceName}
-										showSequences={false}
-										showPalette={false}
-										showInspector={false}
 										autoSelectFirst={false}
 										selectedObjectId={selectedId}
 										refreshSerial={flowRefreshSerial}
