@@ -385,14 +385,6 @@ public class FlowEngineBridge {
 			if (response.optBoolean("ok", false) && response.has("source")) {
 				var newSource = response.optString("source", source);
 				FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
-				if (sourceFile.getName().endsWith(".flow.yaml")) {
-					try {
-						writeCodeMirror(engineQName, flowEngine == null ? "" : flowEngine.getQName(), projectDir,
-								newSource, flowNameFromSourceFile(sourceFile), sourceFile);
-					} catch (Exception e) {
-						Engine.logBeans.warn("Unable to write FlowScript mirror for \"" + sourceFile.getAbsolutePath() + "\".", e);
-					}
-				}
 			}
 			return response;
 		} catch (JSONException e) {
@@ -421,7 +413,7 @@ public class FlowEngineBridge {
 			return "";
 		}
 		var name = sourceFile.getName();
-		return name.endsWith(".flow.yaml") ? name.substring(0, name.length() - ".flow.yaml".length()) : name;
+		return name.endsWith(".flow.js") ? name.substring(0, name.length() - ".flow.js".length()) : name;
 	}
 
 	public JSONObject setBlockProperty(FlowEngine flowEngine, String blockName, String propertyName, Object value) throws EngineException {
@@ -440,7 +432,7 @@ public class FlowEngineBridge {
 				throw new EngineException("Flow block descriptor not returned for " + blockName);
 			}
 			if ("name".equals(propertyName)) {
-				throw new EngineException("Flow block name is defined by its *.block.yaml file and cannot be edited as a property.");
+				throw new EngineException("Flow block name is defined by its *.block.js file and cannot be edited as a property.");
 			}
 			descriptor.put(propertyName, value == null ? JSONObject.NULL : value);
 			var editRequest = new JSONObject()
@@ -471,7 +463,7 @@ public class FlowEngineBridge {
 					.put("hooks", new JSONObject().put("file", localName + ".hooks.js"))
 					.put("implementation", new JSONObject()
 							.put("runtime", runtime)
-							.put("file", runtime.equals("flow") ? localName + ".flow.yaml" : localName + ".js"));
+							.put("file", runtime.equals("flow") ? localName + ".flow.js" : localName + ".js"));
 			var request = new JSONObject()
 					.put("name", blockName)
 					.put("projectDir", projectDir)
