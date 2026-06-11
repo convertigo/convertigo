@@ -297,8 +297,8 @@ describe('Studio flow xyflow terminals', () => {
 		);
 	});
 
-	it('connects return steps to the response terminal', () => {
-		const { edges } = toXyFlow({
+	it('connects return steps to the response terminal with a dashed exit edge', () => {
+		const { edges, nodes } = toXyFlow({
 			id: 'Project.sq:Sequence',
 			name: 'Sequence',
 			nodes: [
@@ -319,7 +319,7 @@ describe('Studio flow xyflow terminals', () => {
 					x: 180,
 					y: 0,
 					inputs: 1,
-					outputs: 1,
+					outputs: 0,
 					data: {
 						classname: 'com.twinsoft.convertigo.beans.steps.ReturnStep',
 						originalId: 'Project.sq:Sequence.st:return'
@@ -335,12 +335,15 @@ describe('Studio flow xyflow terminals', () => {
 			]
 		});
 
+		const returnNode = nodes.find((node) => node.id === 'Project.sq:Sequence.st:return');
+		expect(returnNode?.data.outputs).toBe(1);
 		expect(edges).toContainEqual(
 			expect.objectContaining({
 				source: 'Project.sq:Sequence.st:return',
 				target: 'Project.sq:Sequence.__response',
 				sourceHandle: outputHandleId(0),
-				targetHandle: inputHandleId(0)
+				targetHandle: inputHandleId(0),
+				class: expect.stringContaining('flow-terminal-edge--return')
 			})
 		);
 	});

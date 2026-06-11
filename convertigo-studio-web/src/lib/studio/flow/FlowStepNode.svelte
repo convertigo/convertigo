@@ -118,6 +118,23 @@
 	 * @param {number} index
 	 * @returns {string}
 	 */
+	function outputTop(index) {
+		const labelTone = branchTone(outputLabel(index));
+		if (isIfStep(data) && !data.hasElseBranch && sideOutputCount === 2) {
+			if (labelTone === 'then') {
+				return sideTop(1, sideOutputCount);
+			}
+			if (labelTone === 'next') {
+				return sideTop(0, sideOutputCount);
+			}
+		}
+		return sideTop(index, sideOutputCount);
+	}
+
+	/**
+	 * @param {number} index
+	 * @returns {string}
+	 */
 	function bottomOutputLabel(index) {
 		return branchLabelForStep(data.outputLabels?.[sideOutputCount + index] ?? '', data);
 	}
@@ -492,7 +509,7 @@
 			type="source"
 			position={Position.Right}
 			class={portHandleClass(label)}
-			style={`top: ${sideTop(index, sideOutputCount)};`}
+			style={`top: ${outputTop(index)};`}
 		/>
 		{#if label}
 			<span
@@ -501,7 +518,7 @@
 					'flow-step-node__port-label--out',
 					portLabelClass(label)
 				)}
-				style={`top: ${sideTop(index, sideOutputCount)};`}
+				style={`top: ${outputTop(index)};`}
 			>
 				{label}
 			</span>

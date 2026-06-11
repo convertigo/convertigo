@@ -1265,6 +1265,15 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							}
 							return false;
 						}
+						if (paletteSource.isFlowHelperDefinition()) {
+							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
+								targetTreeObject = folderTreeObject.getParent();
+							}
+							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
+								return FlowStudioSupport.canAddHelperDefinition(dbot.getObject());
+							}
+							return false;
+						}
 						DatabaseObject databaseObject = paletteSource.getDatabaseObject();
 
 						if (targetTreeObject instanceof ObjectsFolderTreeObject) {
@@ -1575,6 +1584,19 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							if (!response.optBoolean("done", false)) {
 								var error = response.opt("error");
 								throw new EngineException(error == null ? "Unable to add Flow block property." : error.toString());
+							}
+							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							return;
+						}
+						if (paletteSource.isFlowHelperDefinition()) {
+							var transfer = new org.codehaus.jettison.json.JSONObject()
+									.put("type", "paletteData")
+									.put("data", new org.codehaus.jettison.json.JSONObject()
+											.put("type", "FlowHelperDefinition"));
+							var response = FlowStudioSupport.addFromPalette(dbotree.getObject(), "inside", transfer);
+							if (!response.optBoolean("done", false)) {
+								var error = response.opt("error");
+								throw new EngineException(error == null ? "Unable to add Flow helper function." : error.toString());
 							}
 							reloadTreeObject(explorerView, flowTreeObject(dbotree));
 							return;

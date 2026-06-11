@@ -42,10 +42,12 @@ public class FlowStudioSupport {
 	private static final String FLOW_BLOCK_DEFINITION_TYPE = "FlowBlockDefinition";
 	private static final String FLOW_TYPE_DEFINITION_TYPE = "FlowTypeDefinition";
 	private static final String FLOW_PROPERTY_DEFINITION_TYPE = "FlowPropertyDefinition";
+	private static final String FLOW_HELPER_DEFINITION_TYPE = "FlowHelperDefinition";
 	private static final String FLOW_BLOCK_ID_PREFIX = "flowblock:";
 	private static final String FLOW_BLOCK_DEFINITION_ID_PREFIX = "flowblockdef:";
 	private static final String FLOW_TYPE_DEFINITION_ID = "flowtypedef:property";
 	private static final String FLOW_PROPERTY_DEFINITION_ID = "flowpropdef:property";
+	private static final String FLOW_HELPER_DEFINITION_ID = "flowhelperdef:function";
 	private static final String FLOW_ICON = "/com/twinsoft/convertigo/beans/flow/images/flow_color_32x32.png";
 	private static final String FLOW_VIRTUAL_ICON = "/com/twinsoft/convertigo/beans/flow/images/flowvirtualobject_color_32x32.png";
 	private static final String FLOW_SCRIPT_ICON = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_script_color_32x32.png";
@@ -69,10 +71,19 @@ public class FlowStudioSupport {
 		var engineQName = flowEngine == null || flowEngine.getEngineQName() == null || flowEngine.getEngineQName().isBlank()
 				? FlowEngineBridge.DEFAULT_ENGINE_QNAME
 				: flowEngine.getEngineQName();
+		if (root instanceof Flow flow) {
+			return project.getName() + "|" + engineQName + "|" + flow.getFullQName() + "|" + Integer.toHexString(flow.getFlowSource().hashCode());
+		}
 		return project.getName() + "|" + engineQName;
 	}
 
 	public static void clearCatalogCache(DatabaseObject dbo) {
+		var root = flowAuthoringRoot(dbo);
+		if (root instanceof Flow flow && flow.getProject() != null) {
+			var flowPrefix = flow.getProject().getName() + "|" + effectiveEngineQName(flow) + "|" + flow.getFullQName() + "|";
+			catalogCache.keySet().removeIf(key -> key.startsWith(flowPrefix));
+			return;
+		}
 		var key = paletteKey(dbo);
 		if (key.isBlank()) {
 			catalogCache.clear();
@@ -105,6 +116,10 @@ public class FlowStudioSupport {
 		return propertyDefinitionTarget(targetDbo) != null;
 	}
 
+	public static boolean canAddHelperDefinition(DatabaseObject targetDbo) {
+		return helperDefinitionTarget(targetDbo) != null;
+	}
+
 	public static boolean canAddFromPalette(DatabaseObject targetDbo, String position, JSONObject transfer) {
 		var data = transfer == null ? null : transfer.optJSONObject("data");
 		var type = data == null ? "" : data.optString("type", "");
@@ -119,6 +134,9 @@ public class FlowStudioSupport {
 		}
 		if (FLOW_PROPERTY_DEFINITION_TYPE.equals(type)) {
 			return canAddPropertyDefinition(targetDbo);
+		}
+		if (FLOW_HELPER_DEFINITION_TYPE.equals(type)) {
+			return canAddHelperDefinition(targetDbo);
 		}
 		return false;
 	}
@@ -142,6 +160,12 @@ public class FlowStudioSupport {
 		}
 		if (categories.length() > 0) {
 			return categories;
+		}
+		if (isHelperDefinitionPaletteTarget(targetDbo)) {
+			categories.put(helperDefinitionCategory(targetDbo));
+			if (!isWritablePaletteTarget(targetDbo)) {
+				return categories;
+			}
 		}
 		if (!isWritablePaletteTarget(targetDbo)) {
 			return categories;
@@ -191,7 +215,8 @@ public class FlowStudioSupport {
 				&& (FLOW_BLOCK_TYPE.equals(data == null ? "" : data.optString("type"))
 						|| FLOW_BLOCK_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
 						|| FLOW_TYPE_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
-						|| FLOW_PROPERTY_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type")));
+						|| FLOW_PROPERTY_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
+						|| FLOW_HELPER_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type")));
 	}
 
 	public static JSONObject addBlock(DatabaseObject targetDbo, String position, String blockName) throws Exception {
@@ -219,6 +244,9 @@ public class FlowStudioSupport {
 		}
 		if (FLOW_PROPERTY_DEFINITION_TYPE.equals(data.optString("type", ""))) {
 			return addPropertyDefinition(targetDbo);
+		}
+		if (FLOW_HELPER_DEFINITION_TYPE.equals(data.optString("type", ""))) {
+			return addHelperDefinition(targetDbo);
 		}
 
 		var blockName = data.optString("block", data.optString("classname", ""));
@@ -300,6 +328,35 @@ public class FlowStudioSupport {
 		return new JSONObject()
 				.put("done", done)
 				.put("id", done ? flowEngine.getFullQName() : "")
+				.put("error", done ? JSONObject.NULL : response.opt("error"));
+	}
+
+	private static JSONObject addHelperDefinition(DatabaseObject targetDbo) throws Exception {
+		var target = helperDefinitionTarget(targetDbo);
+		var root = flowAuthoringRoot(target);
+		if (!(root instanceof Flow flow) || target == null) {
+			return new JSONObject().put("done", false);
+		}
+		var name = nextHelperName(flow);
+		var helper = new JSONObject()
+				.put("name", name)
+				.put("params", new JSONArray().put("value"))
+				.put("nodes", new JSONArray()
+						.put(new JSONObject()
+								.put("id", "returnValue")
+								.put("block", "return")
+								.put("value", "{{ value }}")));
+		var response = applyMutation(flow, target, new JSONObject()
+				.put("op", "append")
+				.put("path", "helpers")
+				.put("value", helper));
+		var done = response.optBoolean("ok", false);
+		if (done) {
+			clearCatalogCache(flow);
+		}
+		return new JSONObject()
+				.put("done", done)
+				.put("id", done ? flow.getFullQName() : "")
 				.put("error", done ? JSONObject.NULL : response.opt("error"));
 	}
 
@@ -484,6 +541,30 @@ public class FlowStudioSupport {
 								.put("additional", true)));
 	}
 
+	private static JSONObject helperDefinitionCategory(DatabaseObject targetDbo) throws Exception {
+		var icon = cachedIconPath(targetDbo, "mdi:function-variant", FLOW_VIRTUAL_ICON);
+		return new JSONObject()
+				.put("type", "Category")
+				.put("name", "Flow helper definitions")
+				.put("items", new JSONArray()
+						.put(new JSONObject()
+								.put("type", FLOW_HELPER_DEFINITION_TYPE)
+								.put("id", FLOW_HELPER_DEFINITION_ID)
+								.put("name", "Helper function")
+								.put("classname", "Helper function")
+								.put("description", "Flow-local helper callable from this Flow.")
+								.put("shortDescriptionHtml", html("Flow-local helper callable from this Flow."))
+								.put("shortDescriptionText", "Flow-local helper callable from this Flow.")
+								.put("longDescriptionHtml", "")
+								.put("longDescriptionText", "")
+								.put("propertiesDescriptionHtml", "")
+								.put("icon", icon)
+								.put("iconFile32", icon)
+								.put("iconify", "mdi:function-variant")
+								.put("builtin", false)
+								.put("additional", true)));
+	}
+
 	private static String cachedIconPath(DatabaseObject targetDbo, String iconify, String fallback) {
 		if (!isIconifyIcon(iconify)) {
 			return fallback;
@@ -626,7 +707,10 @@ public class FlowStudioSupport {
 						|| "slot".equals(kind)
 						|| "node".equals(kind);
 			}
-			return "folder".equals(kind) || "slot".equals(kind) || "node".equals(kind);
+			if ("folder".equals(kind)) {
+				return "flow".equals(fvo.getVirtualType());
+			}
+			return "slot".equals(kind) || "node".equals(kind);
 		}
 		return false;
 	}
@@ -667,6 +751,10 @@ public class FlowStudioSupport {
 		return propertyDefinitionTarget(targetDbo) != null;
 	}
 
+	private static boolean isHelperDefinitionPaletteTarget(DatabaseObject targetDbo) {
+		return helperDefinitionTarget(targetDbo) != null;
+	}
+
 	private static FlowVirtualObject propertyDefinitionTarget(DatabaseObject targetDbo) {
 		if (!(flowAuthoringRoot(targetDbo) instanceof FlowEngine)) {
 			return null;
@@ -677,6 +765,26 @@ public class FlowStudioSupport {
 				return parent instanceof FlowVirtualObject parentFvo ? propertyDefinitionTarget(parentFvo) : null;
 			}
 			if ("folder".equals(fvo.getVirtualKind()) && "blockProperties".equals(fvo.getVirtualType()) && isSourceBackedTarget(fvo)) {
+				return fvo;
+			}
+		}
+		return null;
+	}
+
+	private static DatabaseObject helperDefinitionTarget(DatabaseObject targetDbo) {
+		var root = flowAuthoringRoot(targetDbo);
+		if (!(root instanceof Flow)) {
+			return null;
+		}
+		if (targetDbo instanceof Flow) {
+			return targetDbo;
+		}
+		if (targetDbo instanceof FlowVirtualObject fvo) {
+			if ("helper".equals(fvo.getVirtualKind())) {
+				var parent = fvo.getParent();
+				return parent instanceof FlowVirtualObject parentFvo ? helperDefinitionTarget(parentFvo) : null;
+			}
+			if ("folder".equals(fvo.getVirtualKind()) && "helpers".equals(fvo.getVirtualType())) {
 				return fvo;
 			}
 		}
@@ -942,6 +1050,35 @@ public class FlowStudioSupport {
 			candidate = base + i;
 		}
 		return candidate;
+	}
+
+	private static String nextHelperName(DatabaseObject root) {
+		var used = new HashSet<String>();
+		try {
+			collectHelperNames(root.getDatabaseObjectChildren(), used);
+		} catch (Exception e) {
+		}
+		var base = "helper";
+		var candidate = base;
+		for (int i = 2; used.contains(candidate); i++) {
+			candidate = base + i;
+		}
+		return candidate;
+	}
+
+	private static void collectHelperNames(Iterable<DatabaseObject> children, Set<String> used) {
+		for (var child : children) {
+			if (child instanceof FlowVirtualObject fvo && "helper".equals(fvo.getVirtualKind())) {
+				var type = fvo.getVirtualType();
+				if (type != null && !type.isBlank()) {
+					used.add(type);
+				}
+			}
+			try {
+				collectHelperNames(child.getDatabaseObjectChildren(), used);
+			} catch (Exception e) {
+			}
+		}
 	}
 
 	private static void collectNodeIds(Iterable<DatabaseObject> children, Set<String> used) {

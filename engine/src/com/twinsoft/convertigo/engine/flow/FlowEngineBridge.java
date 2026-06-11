@@ -94,6 +94,10 @@ public class FlowEngineBridge {
 					.put("flowName", flow.getName())
 					.put("projectDir", flow.getProject() == null ? "" : flow.getProject().getDirPath())
 					.put("allowRequestableSchema", false);
+			var sourceFile = flow.getFlowSourceFile();
+			if (sourceFile != null) {
+				request.put("sourceFile", sourceFile.getAbsolutePath());
+			}
 			return invoke(engineQName, "describeTree", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow tree request.", e);
@@ -339,6 +343,10 @@ public class FlowEngineBridge {
 					.put("flowName", flow.getName())
 					.put("projectDir", flow.getProject() == null ? "" : flow.getProject().getDirPath())
 					.put("mutation", mutation == null ? new JSONObject() : mutation);
+			var sourceFile = flow.getFlowSourceFile();
+			if (sourceFile != null) {
+				request.put("sourceFile", sourceFile.getAbsolutePath());
+			}
 			var response = invoke(engineQName, "applyMutation", request, null, null, null);
 			if (response.optBoolean("ok", false) && response.has("source")) {
 				flow.setFlowSource(response.optString("source", flow.getFlowSource()));
@@ -379,6 +387,7 @@ public class FlowEngineBridge {
 			var request = baseRequest(engineQName, source, flowEngine == null ? "" : flowEngine.getQName(), null)
 					.put("target", "flow")
 					.put("flowSource", source)
+					.put("sourceFile", sourceFile.getAbsolutePath())
 					.put("projectDir", projectDir)
 					.put("mutation", mutation == null ? new JSONObject() : mutation);
 			var response = invoke(engineQName, "applyMutation", request, null, null, null);

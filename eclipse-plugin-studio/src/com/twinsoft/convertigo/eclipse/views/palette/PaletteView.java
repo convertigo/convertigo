@@ -89,6 +89,7 @@ import org.eclipse.ui.part.ViewPart;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
@@ -97,6 +98,7 @@ import com.twinsoft.convertigo.beans.ngx.components.IShared;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.Component;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
@@ -329,6 +331,18 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		return image;
 	}
 
+	private boolean isFlowRequestableDboItem(Item item, DatabaseObject target) {
+		if (!(target instanceof Flow)) {
+			return false;
+		}
+		try {
+			var dbo = item.databaseObject();
+			return dbo instanceof RequestableVariable || dbo instanceof TestCase;
+		} catch (UnsupportedOperationException e) {
+			return false;
+		}
+	}
+
 	private static String flowPaletteKey(DatabaseObject target) {
 		if (target == null || !FlowStudioSupport.isFlowPaletteTarget(target)) {
 			return "";
@@ -377,7 +391,8 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		var itemType = flowItem.optString("type", "FlowBlock");
 		var blockName = flowItem.optString("block", flowItem.optString("classname", flowItem.optString("name", "")));
 		var runtime = flowItem.optString("runtime", "");
-		if (blockName.isBlank() && !"FlowBlockDefinition".equals(itemType) && !"FlowTypeDefinition".equals(itemType)) {
+		if (blockName.isBlank() && !"FlowBlockDefinition".equals(itemType) && !"FlowTypeDefinition".equals(itemType)
+				&& !"FlowPropertyDefinition".equals(itemType) && !"FlowHelperDefinition".equals(itemType)) {
 			return;
 		}
 		var id = "flow " + flowItem.optString("id", blockName.isBlank() ? runtime : blockName);
@@ -416,6 +431,9 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 				if ("FlowPropertyDefinition".equals(itemType)) {
 					return PaletteSource.flowPropertyDefinition(flowItem.optString("description", ""));
 				}
+				if ("FlowHelperDefinition".equals(itemType)) {
+					return PaletteSource.flowHelperDefinition(flowItem.optString("description", ""));
+				}
 				return PaletteSource.flowBlock(blockName, flowItem.optString("description", ""));
 			}
 
@@ -434,6 +452,9 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 				}
 				if ("FlowPropertyDefinition".equals(itemType)) {
 					return FlowStudioSupport.canAddPropertyDefinition(parent);
+				}
+				if ("FlowHelperDefinition".equals(itemType)) {
+					return FlowStudioSupport.canAddHelperDefinition(parent);
 				}
 				return FlowStudioSupport.canAddBlock(parent, "inside", blockName)
 						|| FlowStudioSupport.canAddBlock(parent, "before", blockName)
@@ -1104,7 +1125,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 						boolean ok = false;
 						if (item != null) {
 							var flowItem = flowItemIds.contains(item.id());
-							ok = flowOnly ? flowItem : !flowItem;
+							ok = flowOnly ? flowItem || isFlowRequestableDboItem(item, paletteTarget) : !flowItem;
 							if (ok) {
 								ok = (tiInternal.getSelection() && item.builtIn()) || (tiShared.getSelection() && !item.builtIn());
 								if (selected != null) {

@@ -61,6 +61,10 @@ public class PaletteSource {
 	public static PaletteSource flowPropertyDefinition(String description) {
 		return new PaletteSource("propertyDefinition", "", "", description);
 	}
+
+	public static PaletteSource flowHelperDefinition(String description) {
+		return new PaletteSource("helperDefinition", "", "", description);
+	}
 	
 	public String getXmlData() {
 		if (xmlData == null) {
@@ -87,6 +91,10 @@ public class PaletteSource {
 
 	public boolean isFlowPropertyDefinition() {
 		return "propertyDefinition".equals(flowItemType);
+	}
+
+	public boolean isFlowHelperDefinition() {
+		return "helperDefinition".equals(flowItemType);
 	}
 
 	public String getFlowBlockName() {

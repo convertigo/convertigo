@@ -66,7 +66,7 @@ public class Flow extends Sequence {
 
 	private String flowSource = DEFAULT_FLOW_SOURCE;
 	private boolean includeTrace = true;
-	private transient boolean flowSourceDirty = false;
+	private transient String flowSourceDraft = null;
 	private transient long flowSourceFileLastModified = -1;
 
 	public Flow() {
@@ -162,6 +162,9 @@ public class Flow extends Sequence {
 	}
 
 	public String getFlowSource() {
+		if (flowSourceDraft != null) {
+			return flowSourceDraft.isBlank() ? DEFAULT_FLOW_SOURCE : flowSourceDraft;
+		}
 		loadFlowSourceFile();
 		return flowSource == null || flowSource.isBlank() ? DEFAULT_FLOW_SOURCE : flowSource;
 	}
@@ -170,11 +173,39 @@ public class Flow extends Sequence {
 		if (flowSource == null || flowSource.isBlank()) {
 			flowSource = DEFAULT_FLOW_SOURCE;
 		}
-		if (!this.flowSource.equals(flowSource)) {
-			this.flowSource = flowSource;
-			flowSourceDirty = true;
+		var savedSource = getSavedFlowSource();
+		if (savedSource.equals(flowSource)) {
+			if (flowSourceDraft != null) {
+				flowSourceDraft = null;
+				changed();
+			}
+			return;
+		}
+		if (!getFlowSource().equals(flowSource)) {
+			flowSourceDraft = flowSource;
 			changed();
 		}
+	}
+
+	public boolean isFlowSourceDirty() {
+		return flowSourceDraft != null;
+	}
+
+	public String getSavedFlowSource() {
+		loadFlowSourceFile();
+		return flowSource == null || flowSource.isBlank() ? DEFAULT_FLOW_SOURCE : flowSource;
+	}
+
+	public void discardFlowSource() {
+		if (flowSourceDraft != null) {
+			flowSourceDraft = null;
+			loadFlowSourceFile();
+			changed();
+		}
+	}
+
+	public void saveFlowSourceFile() throws EngineException {
+		writeFlowSourceFile();
 	}
 
 	public boolean isIncludeTrace() {
@@ -193,7 +224,7 @@ public class Flow extends Sequence {
 		return "flow";
 	}
 
-	private File getFlowSourceFile() {
+	public File getFlowSourceFile() {
 		var project = getProject();
 		var name = getName();
 		if (project == null || name == null || name.isBlank()) {
@@ -203,9 +234,6 @@ public class Flow extends Sequence {
 	}
 
 	private void loadFlowSourceFile() {
-		if (flowSourceDirty) {
-			return;
-		}
 		var file = getFlowSourceFile();
 		if (file == null || !file.isFile()) {
 			return;
@@ -229,8 +257,10 @@ public class Flow extends Sequence {
 		}
 		try {
 			file.getParentFile().mkdirs();
-			FileUtils.writeStringToFile(file, getFlowSource(), StandardCharsets.UTF_8);
-			flowSourceDirty = false;
+			var source = getFlowSource();
+			FileUtils.writeStringToFile(file, source, StandardCharsets.UTF_8);
+			flowSource = source;
+			flowSourceDraft = null;
 			flowSourceFileLastModified = file.lastModified();
 			var legacyFile = new File(file.getParentFile(), getName() + ".flow.yaml");
 			if (legacyFile != null && legacyFile.isFile()) {

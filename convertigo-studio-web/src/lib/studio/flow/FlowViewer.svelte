@@ -1512,8 +1512,9 @@
 		--flow-toolbar-text: light-dark(var(--color-surface-950), var(--color-surface-50));
 		--flow-toolbar-border: light-dark(var(--color-surface-200), var(--color-surface-800));
 		--flow-edge-stroke: light-dark(var(--color-primary-600), var(--color-primary-400));
-		--flow-edge-label-bg: light-dark(var(--color-surface-100), var(--color-surface-900));
-		--flow-edge-label-text: light-dark(var(--color-primary-800), var(--color-primary-300));
+		--flow-edge-label-bg: var(--color-surface-50-950);
+		--flow-edge-label-border: var(--color-surface-300-700);
+		--flow-edge-label-text: var(--color-primary-700-300);
 		--flow-node-bg-start: light-dark(var(--color-surface-100), var(--color-surface-900));
 		--flow-node-bg-end: light-dark(var(--color-surface-50), var(--color-surface-950));
 		--flow-node-border-base: light-dark(var(--color-surface-300), var(--color-surface-700));
@@ -1553,9 +1554,9 @@
 		--flow-drop-badge-text: light-dark(var(--color-success-800), #bbf7d0);
 		--flow-drop-denied-badge-bg: light-dark(var(--color-warning-50), #431407);
 		--flow-drop-denied-badge-text: light-dark(var(--color-warning-800), #fed7aa);
-		--flow-node-port-label-bg: light-dark(rgb(255 255 255 / 0.95), rgb(15 23 42 / 0.92));
-		--flow-node-port-label-border: light-dark(rgb(112 117 120 / 0.38), rgb(148 163 184 / 0.5));
-		--flow-node-port-label-text: light-dark(var(--color-surface-950), var(--color-surface-100));
+		--flow-node-port-label-bg: var(--color-surface-50-950);
+		--flow-node-port-label-border: var(--color-surface-300-700);
+		--flow-node-port-label-text: var(--color-surface-900-100);
 		--flow-controls-bg: light-dark(var(--color-surface-100), var(--color-surface-900));
 		--flow-controls-text: light-dark(var(--color-surface-900), var(--color-surface-100));
 		--flow-controls-border: light-dark(rgb(112 117 120 / 0.28), rgb(148 163 184 / 0.22));
@@ -1680,14 +1681,33 @@
 		stroke-width: 2;
 	}
 
+	:global(.flow-dashboard .flow-terminal-edge--return .svelte-flow__edge-path) {
+		stroke-dasharray: 7 5;
+		stroke-width: 2.4;
+		opacity: 0.88;
+	}
+
 	:global(.flow-dashboard .svelte-flow__edge-textbg) {
-		fill: var(--flow-edge-label-bg);
+		fill: var(--flow-edge-label-bg) !important;
+		stroke: var(--flow-edge-label-border);
+		stroke-width: 1;
 	}
 
 	:global(.flow-dashboard .svelte-flow__edge-text) {
-		fill: var(--flow-edge-label-text);
+		fill: var(--flow-edge-label-text) !important;
 		font-size: 0.62rem;
 		font-weight: 700;
+	}
+
+	:global(.flow-dashboard .svelte-flow__edge-label) {
+		border: 1px solid var(--flow-edge-label-border) !important;
+		border-radius: 0.18rem;
+		background: var(--flow-edge-label-bg) !important;
+		color: var(--flow-edge-label-text) !important;
+		padding: 0.04rem 0.24rem;
+		font-size: 0.62rem;
+		font-weight: 800;
+		line-height: 1.1;
 	}
 
 	:global(.flow-dashboard .svelte-flow__background) {

@@ -189,7 +189,12 @@ function createTerminalFlow(flow, visibleNodes, visibleLinks, positions) {
 				node.id,
 				responseId,
 				responseOutputHandle(node),
-				inputHandleId(0)
+				inputHandleId(0),
+				{
+					className: isReturnNode(node)
+						? 'flow-terminal-edge flow-terminal-edge--return'
+						: 'flow-terminal-edge flow-terminal-edge--response'
+				}
 			)
 		)
 	];
@@ -236,9 +241,10 @@ function createTerminalNode(id, kind, position, inputs, outputs) {
  * @param {string} target
  * @param {string | undefined} sourceHandle
  * @param {string | undefined} targetHandle
+ * @param {{ className?: string, style?: string }} [options]
  * @returns {import('@xyflow/svelte').Edge}
  */
-function createTerminalEdge(id, source, target, sourceHandle, targetHandle) {
+function createTerminalEdge(id, source, target, sourceHandle, targetHandle, options = {}) {
 	/** @type {import('@xyflow/svelte').Edge} */
 	const edge = {
 		id,
@@ -247,7 +253,8 @@ function createTerminalEdge(id, source, target, sourceHandle, targetHandle) {
 		type: 'smoothstep',
 		animated: false,
 		selectable: false,
-		style: 'stroke-dasharray: 7 5; opacity: 0.8;',
+		style: options.style ?? 'stroke-dasharray: 7 5; opacity: 0.8;',
+		class: options.className,
 		zIndex: 0
 	};
 	if (sourceHandle) {
@@ -386,6 +393,9 @@ function isBottomOutputPort(node, portIndex) {
  * @returns {string | undefined}
  */
 function responseOutputHandle(node) {
+	if (isReturnNode(node)) {
+		return outputHandleId(0);
+	}
 	return lastSideOutputHandle(node) ?? lastOutputHandle(node);
 }
 
@@ -589,7 +599,8 @@ function isSelectedFlowNode(node, selectedObjectId) {
 function toStepNodeData(node, options) {
 	const data = node.data ?? {};
 	const inputs = node.inputs ?? 0;
-	const outputs = node.outputs ?? 0;
+	const isReturn = isReturnNode(node);
+	const outputs = isReturn && !(node.outputs ?? 0) ? 1 : (node.outputs ?? 0);
 	const substepDescendantCount = options.descendantCountByNodeId?.get(node.id) ?? 0;
 	return {
 		id: node.id,
@@ -601,7 +612,7 @@ function toStepNodeData(node, options) {
 		classname: typeof data.classname === 'string' ? data.classname : void 0,
 		group: node.group,
 		isLoop: Boolean(data.isLoop),
-		isReturn: Boolean(data.isReturn),
+		isReturn,
 		isBreak: Boolean(data.isBreak),
 		isXml: Boolean(data.isXml),
 		isSourceContainer: Boolean(data.isSourceContainer),
