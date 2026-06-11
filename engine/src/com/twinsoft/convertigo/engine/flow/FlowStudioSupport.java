@@ -784,8 +784,8 @@ public class FlowStudioSupport {
 			return cached;
 		}
 		var catalog = root instanceof Flow flow
-				? new FlowEngineBridge().catalog(flow, true)
-				: new FlowEngineBridge().catalog((FlowEngine) root, true);
+				? new FlowEngineBridge().catalog(flow, false, false)
+				: new FlowEngineBridge().catalog((FlowEngine) root, false, false);
 		catalogCache.put(key, catalog);
 		return catalog;
 	}

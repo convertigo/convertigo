@@ -105,12 +105,19 @@ public class FlowEngineBridge {
 	}
 
 	public JSONObject catalog(Flow flow, boolean includePrivate) throws EngineException {
+		return catalog(flow, includePrivate, false);
+	}
+
+	public JSONObject catalog(Flow flow, boolean includePrivate, boolean includeInternal) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flow);
 			var request = baseRequest(engineQName, flow == null ? "" : flow.getFlowSource(), flow == null ? "" : flow.getQName(), null)
 					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath());
 			if (includePrivate) {
 				request.put("includePrivate", true);
+			}
+			if (includeInternal) {
+				request.put("includeInternal", true);
 			}
 			return invoke(engineQName, "catalog", request, null, null, null);
 		} catch (JSONException e) {
@@ -304,12 +311,19 @@ public class FlowEngineBridge {
 	}
 
 	public JSONObject catalog(FlowEngine flowEngine, boolean includePrivate) throws EngineException {
+		return catalog(flowEngine, includePrivate, false);
+	}
+
+	public JSONObject catalog(FlowEngine flowEngine, boolean includePrivate, boolean includeInternal) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
 			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
 					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
 			if (includePrivate) {
 				request.put("includePrivate", true);
+			}
+			if (includeInternal) {
+				request.put("includeInternal", true);
 			}
 			return invoke(engineQName, "catalog", request, null, null, null);
 		} catch (JSONException e) {
