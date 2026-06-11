@@ -20,9 +20,13 @@
 	import { removeDbo, renameDbo } from '$lib/utils/service';
 	import { untrack } from 'svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+	import FlowBranchEdge from './FlowBranchEdge.svelte';
 	import { findFlowLaneDropTarget as resolveFlowLaneDropTarget } from './flowDropTargets';
 	import { flowEdgeDistanceToPoint } from './flowGeometry';
+	import FlowLoopBodyEdge from './FlowLoopBodyEdge.svelte';
+	import FlowLoopReturnEdge from './FlowLoopReturnEdge.svelte';
 	import FlowStepNode from './FlowStepNode.svelte';
+	import FlowTerminalReturnEdge from './FlowTerminalReturnEdge.svelte';
 	import { loadSequenceFlow } from './sequenceLoader';
 	import { toXyFlow } from './xyflow';
 	import '@xyflow/svelte/dist/style.css';
@@ -64,7 +68,14 @@
 	} = $props();
 
 	const nodeTypes = { 'flow-step': FlowStepNode };
+	const edgeTypes = {
+		branch: FlowBranchEdge,
+		'loop-body': FlowLoopBodyEdge,
+		'loop-return': FlowLoopReturnEdge,
+		'terminal-return': FlowTerminalReturnEdge
+	};
 	const flowNodeSize = { width: 150, height: 72 };
+	const flowMinimapReserve = { width: 230, height: 160 };
 	const flowDropBeforeRatio = 0.34;
 	const flowDropAfterRatio = 0.66;
 
@@ -1414,6 +1425,8 @@
 		if (!width || !height) {
 			return;
 		}
+		const fitWidth = Math.max(320, width - Math.min(flowMinimapReserve.width, width * 0.28));
+		const fitHeight = Math.max(240, height - Math.min(flowMinimapReserve.height, height * 0.32));
 		const targetNodes = nodeIds?.size ? nodes.filter((node) => nodeIds.has(node.id)) : nodes;
 		const nodesToFit = targetNodes.length ? targetNodes : nodes;
 		const xs = nodesToFit.map((node) => node.position.x);
@@ -1429,8 +1442,8 @@
 				width: maxX - minX + flowNodeSize.width,
 				height: maxY - minY + flowNodeSize.height
 			},
-			width,
-			height,
+			fitWidth,
+			fitHeight,
 			0.15,
 			nodeIds?.size ? 0.82 : 0.92,
 			nodeIds?.size ? 0.24 : 0.18
@@ -1484,6 +1497,7 @@
 					bind:edges
 					bind:viewport={flowViewport}
 					{nodeTypes}
+					{edgeTypes}
 					initialViewport={flowViewport}
 					minZoom={0.15}
 					maxZoom={1.6}
@@ -1512,8 +1526,9 @@
 		--flow-toolbar-text: light-dark(var(--color-surface-950), var(--color-surface-50));
 		--flow-toolbar-border: light-dark(var(--color-surface-200), var(--color-surface-800));
 		--flow-edge-stroke: light-dark(var(--color-primary-600), var(--color-primary-400));
-		--flow-edge-label-bg: light-dark(var(--color-surface-100), var(--color-surface-900));
-		--flow-edge-label-text: light-dark(var(--color-primary-800), var(--color-primary-300));
+		--flow-edge-label-bg: var(--color-surface-50-950);
+		--flow-edge-label-border: var(--color-surface-300-700);
+		--flow-edge-label-text: var(--color-primary-700-300);
 		--flow-node-bg-start: light-dark(var(--color-surface-100), var(--color-surface-900));
 		--flow-node-bg-end: light-dark(var(--color-surface-50), var(--color-surface-950));
 		--flow-node-border-base: light-dark(var(--color-surface-300), var(--color-surface-700));
@@ -1553,9 +1568,9 @@
 		--flow-drop-badge-text: light-dark(var(--color-success-800), #bbf7d0);
 		--flow-drop-denied-badge-bg: light-dark(var(--color-warning-50), #431407);
 		--flow-drop-denied-badge-text: light-dark(var(--color-warning-800), #fed7aa);
-		--flow-node-port-label-bg: light-dark(rgb(255 255 255 / 0.95), rgb(15 23 42 / 0.92));
-		--flow-node-port-label-border: light-dark(rgb(112 117 120 / 0.38), rgb(148 163 184 / 0.5));
-		--flow-node-port-label-text: light-dark(var(--color-surface-950), var(--color-surface-100));
+		--flow-node-port-label-bg: var(--color-surface-50-950);
+		--flow-node-port-label-border: var(--color-surface-300-700);
+		--flow-node-port-label-text: var(--color-surface-900-100);
 		--flow-controls-bg: light-dark(var(--color-surface-100), var(--color-surface-900));
 		--flow-controls-text: light-dark(var(--color-surface-900), var(--color-surface-100));
 		--flow-controls-border: light-dark(rgb(112 117 120 / 0.28), rgb(148 163 184 / 0.22));
@@ -1688,6 +1703,18 @@
 		fill: var(--flow-edge-label-text);
 		font-size: 0.62rem;
 		font-weight: 700;
+	}
+
+	:global(.flow-dashboard .svelte-flow__edge-label) {
+		border: 1px solid var(--flow-edge-label-border);
+		border-radius: 0.18rem;
+		background: var(--flow-edge-label-bg);
+		color: var(--flow-edge-label-text);
+		padding: 0.04rem 0.24rem;
+		font-size: 0.62rem;
+		font-weight: 700;
+		line-height: 1.1;
+		text-transform: uppercase;
 	}
 
 	:global(.flow-dashboard .svelte-flow__background) {

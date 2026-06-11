@@ -23,25 +23,14 @@
 	let sideOutputCount = $derived(Math.max(0, data.outputs - data.bottomOutputs));
 	let draggableObjectId = $derived(data.originalId ?? '');
 	let renameValue = $state('');
-	let renameFocusId = '';
-
-	$effect(() => {
-		const objectId = draggableObjectId;
-		if (!data.isRenaming) {
-			renameFocusId = '';
-			return;
-		}
-		if (!data.isRenaming || !objectId || renameFocusId === objectId) {
-			return;
-		}
-		renameFocusId = objectId;
-		renameValue = objectNameFromId(objectId);
-	});
 
 	/**
 	 * @param {HTMLInputElement} node
 	 */
 	function focusRenameInput(node) {
+		if (draggableObjectId) {
+			renameValue = objectNameFromId(draggableObjectId);
+		}
 		/** @type {number | undefined} */
 		let frame;
 		/** @type {ReturnType<typeof setTimeout> | undefined} */
@@ -93,6 +82,42 @@
 	}
 
 	/**
+	 * Keep conditional labels on the same visual lane as the branch layout:
+	 * continuation/else stays high, then goes down.
+	 * @param {number} index
+	 * @returns {string}
+	 */
+	function outputTop(index) {
+		if (isIfStep(data) && sideOutputCount === 2) {
+			const tone = branchTone(outputLabel(index));
+			if (!data.hasElseBranch) {
+				if (tone === 'then') {
+					return sideTop(1, sideOutputCount);
+				}
+				if (tone === 'next') {
+					return sideTop(0, sideOutputCount);
+				}
+			}
+			if (tone === 'then') {
+				return sideTop(1, sideOutputCount);
+			}
+			if (tone === 'else' || tone === 'next') {
+				return sideTop(0, sideOutputCount);
+			}
+		}
+		if (data.isLoop && sideOutputCount === 2) {
+			const tone = branchTone(outputLabel(index));
+			if (tone === 'loop') {
+				return sideTop(1, sideOutputCount);
+			}
+			if (tone === 'done') {
+				return sideTop(0, sideOutputCount);
+			}
+		}
+		return sideTop(index, sideOutputCount);
+	}
+
+	/**
 	 * @param {'out' | 'in'} kind
 	 * @param {number} index
 	 * @returns {string}
@@ -128,6 +153,14 @@
 	 */
 	function bottomInputLabel(index) {
 		return branchLabel(data.inputLabels?.[sideInputCount + index] ?? '');
+	}
+
+	/**
+	 * @param {number} index
+	 * @returns {boolean}
+	 */
+	function isLoopReturnInput(index) {
+		return data.loopReturnInputIndex === index;
 	}
 
 	/**
@@ -417,6 +450,7 @@
 			id={inputHandleId(index)}
 			type="target"
 			position={Position.Left}
+			class={isLoopReturnInput(index) ? 'flow-step-node__handle--loop-return-in' : ''}
 			style={`top: ${sideTop(index, sideInputCount)};`}
 		/>
 	{/each}
@@ -426,7 +460,11 @@
 			id={inputHandleId(sideInputCount + index)}
 			type="target"
 			position={Position.Bottom}
-			class={classNames('flow-step-node__handle--bottom-in', portHandleClass(label))}
+			class={classNames(
+				'flow-step-node__handle--bottom-in',
+				isLoopReturnInput(sideInputCount + index) ? 'flow-step-node__handle--loop-return-in' : '',
+				portHandleClass(label)
+			)}
 			style={`left: ${bottomLeft('in', index)}; bottom: -7px;`}
 		/>
 		{#if label}
@@ -492,7 +530,7 @@
 			type="source"
 			position={Position.Right}
 			class={portHandleClass(label)}
-			style={`top: ${sideTop(index, sideOutputCount)};`}
+			style={`top: ${outputTop(index)};`}
 		/>
 		{#if label}
 			<span
@@ -501,7 +539,7 @@
 					'flow-step-node__port-label--out',
 					portLabelClass(label)
 				)}
-				style={`top: ${sideTop(index, sideOutputCount)};`}
+				style={`top: ${outputTop(index)};`}
 			>
 				{label}
 			</span>
@@ -532,11 +570,12 @@
 	{#if data.substepDescendantCount && data.onToggleSubsteps}
 		<button
 			type="button"
-			class="flow-step-node__substep-toggle"
+			class="flow-step-node__substep-toggle nopan nowheel"
 			class:flow-step-node__substep-toggle--collapsed={data.isSubstepCollapsed}
 			title={`${data.isSubstepCollapsed ? 'Expand' : 'Collapse'} substeps (${data.substepDescendantCount})`}
 			aria-label={`${data.isSubstepCollapsed ? 'Expand' : 'Collapse'} substeps (${data.substepDescendantCount})`}
 			onpointerdown={(event) => event.stopPropagation()}
+			onmousedown={(event) => event.stopPropagation()}
 			onclick={toggleSubsteps}
 		>
 			{data.isSubstepCollapsed ? '+' : '-'}
@@ -1015,6 +1054,13 @@
 		background: var(--flow-node-bottom-input, #111827);
 	}
 
+	:global(.flow-step-node__handle--loop-return-in) {
+		width: 0.56rem;
+		height: 0.56rem;
+		border-color: color-mix(in oklab, #f59e0b 46%, var(--flow-handle-border, #f8fafc));
+		background: #f59e0b;
+	}
+
 	:global(.flow-step-node__handle--bottom-out) {
 		background: var(--flow-node-bottom-output, #f8fafc);
 	}
@@ -1127,14 +1173,13 @@
 
 	.flow-step-node__substep-toggle {
 		position: absolute;
-		left: 50%;
-		bottom: -1.25rem;
+		top: 0.28rem;
+		right: 0.28rem;
 		z-index: 2;
 		display: grid;
 		place-items: center;
 		width: 1rem;
 		height: 1rem;
-		transform: translateX(-50%);
 		border: 1px solid var(--flow-node-toggle-border, rgb(203 213 225 / 0.8));
 		border-radius: 999px;
 		background: var(--flow-node-toggle-bg, #1f2937);

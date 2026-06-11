@@ -28,7 +28,7 @@
  * @property {string} id
  * @property {{ nodeId: string, portIndex: number }} from
  * @property {{ nodeId: string, portIndex: number }} to
- * @property {'bezier' | 'orthogonal'=} routing
+ * @property {'bezier' | 'orthogonal' | 'loop-return'=} routing
  */
 
 /**
@@ -121,6 +121,7 @@
  * @property {string[]} outputLabels
  * @property {number} bottomInputs
  * @property {number} bottomOutputs
+ * @property {number=} loopReturnInputIndex
  * @property {boolean=} isSubstepCollapsed
  * @property {number=} substepDescendantCount
  * @property {(function(string, boolean): void)=} onToggleSubsteps

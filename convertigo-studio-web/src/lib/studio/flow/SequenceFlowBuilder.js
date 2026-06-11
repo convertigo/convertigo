@@ -430,7 +430,20 @@ class SequenceFlowBuilder {
 					if (canTargetParentBottom) {
 						let retargetedTrue = false;
 						let retargetedFalse = false;
-						if (childResult.trueTailId) {
+						if (childPendingTrue.length) {
+							childPendingTrue.forEach((tail) => {
+								const tailNode = tail.node;
+								if (!tailNode) {
+									return;
+								}
+								this.pushLink(links, linkKeys, tailNode, flowNode, {
+									fromPortIndex: tail.fromPortIndex,
+									targetBottom: true,
+									loopContext: this.isLoopNode(tailNode) ? 'done' : void 0
+								});
+							});
+							retargetedTrue = true;
+						} else if (childResult.trueTailId) {
 							const trueTailNode = nodeMap.get(childResult.trueTailId);
 							if (trueTailNode) {
 								let fromPortIndex = this.rightmostSideOutputPortIndex(trueTailNode);
@@ -448,7 +461,20 @@ class SequenceFlowBuilder {
 								retargetedTrue = true;
 							}
 						}
-						if (childResult.falseTailId) {
+						if (childPendingFalse.length) {
+							childPendingFalse.forEach((tail) => {
+								const tailNode = tail.node;
+								if (!tailNode) {
+									return;
+								}
+								this.pushLink(links, linkKeys, tailNode, flowNode, {
+									fromPortIndex: tail.fromPortIndex,
+									targetBottom: true,
+									loopContext: this.isLoopNode(tailNode) ? 'done' : void 0
+								});
+							});
+							retargetedFalse = true;
+						} else if (childResult.falseTailId) {
 							const falseTailNode = nodeMap.get(childResult.falseTailId);
 							if (falseTailNode) {
 								if (this.isConditionalNode(falseTailNode)) {
@@ -473,8 +499,14 @@ class SequenceFlowBuilder {
 								}
 							}
 						}
-						if (retargetedTrue) nodeTrueTailId = void 0;
-						if (retargetedFalse) nodeFalseTailId = void 0;
+						if (retargetedTrue) {
+							nodeTrueTailId = void 0;
+							childPendingTrue = [];
+						}
+						if (retargetedFalse) {
+							nodeFalseTailId = void 0;
+							childPendingFalse = [];
+						}
 					}
 					if (childResult.rootNodes.length) {
 						const normalizedRootRefs = hasImplicitTrueBranch
@@ -666,7 +698,8 @@ class SequenceFlowBuilder {
 							? this.rightmostSideOutputPortIndex(flowNode)
 							: void 0;
 					this.pushLink(links, linkKeys, flowNode, parentNode, {
-						fromPortIndex: loopFromPort
+						fromPortIndex: loopFromPort,
+						routing: 'orthogonal'
 					});
 					addAlignmentTail(parentNode, flowNode, branch);
 				}
@@ -675,6 +708,8 @@ class SequenceFlowBuilder {
 					(isBreakNode && parentIsLoop) ||
 					handledLoopTrue
 				);
+				const propagatesThroughBranchTails =
+					isConditionalNode && conditionalNodesWithBranches.has(flowNode.id);
 				if (this.isLoopNode(flowNode)) {
 					const donePortIndex = this.loopDonePortIndex(flowNode);
 					const hasQueuedDone =
@@ -692,8 +727,8 @@ class SequenceFlowBuilder {
 						});
 					}
 				}
-				previousId = shouldPropagateTail ? flowNode.id : void 0;
-				if (shouldPropagateTail) {
+				previousId = shouldPropagateTail && !propagatesThroughBranchTails ? flowNode.id : void 0;
+				if (shouldPropagateTail && !propagatesThroughBranchTails) {
 					const candidateTailId = branchTailId ?? flowNode.id;
 					if (branch === 'true') {
 						trueTailId = candidateTailId;
@@ -1216,7 +1251,7 @@ class SequenceFlowBuilder {
 		const baseY = 160;
 		const spacingX = 260;
 		const spacingY = 200;
-		const nodeWidth = 120;
+		const nodeWidth = 170;
 		const canvasWidth = 4096;
 		const rightMargin = 240;
 		const maxX = canvasWidth - rightMargin;
@@ -1343,10 +1378,18 @@ class SequenceFlowBuilder {
 				if (!targetNode) {
 					return;
 				}
-				const preferredTailIds = Array.from(entry.tailIds).filter(
+				const usableTailIds = Array.from(entry.tailIds).filter((id) => {
+					const tailNode = nodeMap.get(id);
+					return !(
+						this.isLoopNode(targetNode) &&
+						tailNode &&
+						this.isNodeContainedBy(targetNode, tailNode)
+					);
+				});
+				const preferredTailIds = usableTailIds.filter(
 					(id) => entry.branchByTailId.get(id) === 'true'
 				);
-				const tailIdsToUse = preferredTailIds.length ? preferredTailIds : Array.from(entry.tailIds);
+				const tailIdsToUse = preferredTailIds.length ? preferredTailIds : usableTailIds;
 				const alignNodes = tailIdsToUse
 					.map((id) => nodeMap.get(id))
 					.filter((n) => !!n && typeof n.x === 'number');
@@ -1356,7 +1399,14 @@ class SequenceFlowBuilder {
 				const alignX = Math.max(...alignNodes.map((n) => n.x));
 				const desiredX = alignX + spacingX;
 				const currentX = typeof targetNode.x === 'number' ? targetNode.x : 0;
-				targetNode.x = Math.max(currentX, desiredX);
+				const nextX = Math.max(currentX, desiredX);
+				if (nextX > currentX + 1e-3) {
+					const shift = nextX - currentX;
+					targetNode.x = nextX;
+					this.shiftContainedDescendants(targetNode.id, shift, nodeMap, new Set());
+				} else {
+					targetNode.x = nextX;
+				}
 			});
 		}
 		if (bottomOutputChildren.size) {
@@ -1400,7 +1450,9 @@ class SequenceFlowBuilder {
 		}
 		this.resolveRowCollisions(nodeMap, spacingY);
 		this.alignLoopLanes(nodeMap, links, spacingY);
+		this.spreadLoopBodyLanes(nodeMap, spacingY, nodeWidth);
 		this.spreadRowOverlaps(nodeMap, bottomOutputChildren, nodeWidth);
+		this.markLoopReturnLinks(nodeMap, links);
 	}
 	/**
 	 * Places child nodes beneath a parent while respecting branch metadata.
@@ -1489,27 +1541,27 @@ class SequenceFlowBuilder {
 				}
 			}
 			const maxAttempts = 64;
-			const loopBaseY = parentNode.y;
-			if (loopChildren.length) {
+			const loopBaseY = parentNode.y + childRowOffset;
+			const bodyChildIds = new Set([...loopChildren, ...neutralChildren].map((child) => child.id));
+			const bodyChildren = orderedChildInfos
+				.map((info) => info.node)
+				.filter((child) => bodyChildIds.has(child.id));
+			if (bodyChildren.length) {
 				const baseX = parentNode.x + spacingX;
-				loopChildren.forEach((child, index) => {
+				bodyChildren.forEach((child, index) => {
 					child.y = loopBaseY;
 					child.x = baseX + index * spacingX;
 					positioned.add(child.id);
 				});
 			}
-			const doneBaseY = loopBaseY + childRowOffset;
-			const downwardChildren = [
-				...doneChildren,
-				...neutralChildren.filter((child) => !positioned.has(child.id))
-			];
-			if (downwardChildren.length) {
-				const ignoreIds = new Set(downwardChildren.map((n) => n.id));
+			const doneBaseY = parentNode.y;
+			if (doneChildren.length) {
+				const ignoreIds = new Set(doneChildren.map((n) => n.id));
 				const rowY2 = doneBaseY;
 				let baseX = parentNode.x;
 				let attempts = 0;
 				while (attempts < maxAttempts) {
-					const collision = downwardChildren.some((child, index) => {
+					const collision = doneChildren.some((child, index) => {
 						const candidateX = baseX + index * spacingX;
 						return this.rowHasCollision(
 							nodeMap,
@@ -1526,7 +1578,7 @@ class SequenceFlowBuilder {
 					baseX += spacingX;
 					attempts += 1;
 				}
-				downwardChildren.forEach((child, index) => {
+				doneChildren.forEach((child, index) => {
 					child.y = rowY2;
 					child.x = baseX + index * spacingX;
 					positioned.add(child.id);
@@ -1551,7 +1603,6 @@ class SequenceFlowBuilder {
 		if (isConditionalParent) {
 			const branchSpacing = spacingX;
 			const branchOriginX = parentNode.x + branchSpacing;
-			const falseBranchY = parentNode.y + childRowOffset;
 			const trueBranch = orderedChildInfos.filter((info) => info.branch === 'true');
 			const falseBranch = orderedChildInfos.filter((info) => info.branch === 'false');
 			const neutralInfos = orderedChildInfos.filter(
@@ -1563,8 +1614,9 @@ class SequenceFlowBuilder {
 			const regularNeutral = bottomChildIds
 				? neutralInfos.filter((info) => !bottomChildIds.has(info.node.id))
 				: neutralInfos;
-			const trueBranchY =
-				trueBranch.length && !falseBranch.length ? parentNode.y + childRowOffset : parentNode.y;
+			const trueBranchY = trueBranch.length ? parentNode.y + childRowOffset : parentNode.y;
+			const falseBranchY =
+				trueBranch.length && falseBranch.length ? parentNode.y : parentNode.y + childRowOffset;
 			trueBranch.forEach((info, index) => {
 				info.node.y = trueBranchY;
 				info.node.x = branchOriginX + index * branchSpacing;
@@ -1766,6 +1818,7 @@ class SequenceFlowBuilder {
 			return;
 		}
 		const linksBySource = new Map();
+		const linksByTarget = new Map();
 		for (const link of links) {
 			let list = linksBySource.get(link.from.nodeId);
 			if (!list) {
@@ -1773,11 +1826,18 @@ class SequenceFlowBuilder {
 				linksBySource.set(link.from.nodeId, list);
 			}
 			list.push(link);
+			let targetList = linksByTarget.get(link.to.nodeId);
+			if (!targetList) {
+				targetList = [];
+				linksByTarget.set(link.to.nodeId, targetList);
+			}
+			targetList.push(link);
 		}
 		const queue = [];
 		const assigned = new Map();
 		const loopPortByNode = new Map();
 		const donePortByNode = new Map();
+		const loopBodyBaseYByNode = new Map();
 		const laneKey = (nodeId, kind) => `${nodeId}:${kind}`;
 		const enqueue = (nodeId, kind, baseY) => {
 			const key = laneKey(nodeId, kind);
@@ -1791,24 +1851,58 @@ class SequenceFlowBuilder {
 			}
 			queue.push({ nodeId, kind, baseY: assigned.get(key).baseY });
 		};
+		const loopSeeds = [];
 		for (const node of nodeMap.values()) {
 			if (!this.isLoopNode(node)) {
 				continue;
 			}
-			const existing = assigned.get(laneKey(node.id, 'loop'));
-			const baseY = existing?.baseY ?? node.y ?? 0;
-			enqueue(node.id, 'loop', baseY);
+			const existing = assigned.get(laneKey(node.id, 'done'));
+			const incomingBaseNode = (linksByTarget.get(node.id) || [])
+				.map((link) => nodeMap.get(link.from.nodeId))
+				.filter(
+					(source) =>
+						!!source &&
+						source.id !== node.id &&
+						!this.isNodeContainedBy(node, source) &&
+						typeof source.x === 'number' &&
+						typeof node.x === 'number' &&
+						source.x < node.x
+				)
+				.sort((a, b) => (b.x ?? 0) - (a.x ?? 0))[0];
+			const baseY = existing?.baseY ?? incomingBaseNode?.y ?? node.y ?? 0;
 			const loopPort = this.loopPortIndex(node);
 			const donePortRaw = this.loopDonePortIndex(node);
 			loopPortByNode.set(node.id, loopPort);
 			donePortByNode.set(node.id, donePortRaw);
+			loopSeeds.push({ node, baseY, loopPort, donePortRaw });
+		}
+		const laneCountByDoneRow = new Map();
+		const rowKeyForY = (value) => String(Math.round(value / 0.5) * 0.5);
+		loopSeeds
+			.sort((a, b) => {
+				if (Math.abs(a.baseY - b.baseY) > 1e-3) {
+					return a.baseY - b.baseY;
+				}
+				return (a.node.x ?? 0) - (b.node.x ?? 0);
+			})
+			.forEach((seed) => {
+				const key = rowKeyForY(seed.baseY);
+				const index = laneCountByDoneRow.get(key) ?? 0;
+				laneCountByDoneRow.set(key, index + 1);
+				loopBodyBaseYByNode.set(seed.node.id, seed.baseY + laneSpacing * (index + 1));
+			});
+		for (const seed of loopSeeds) {
+			const node = seed.node;
+			const baseY = seed.baseY;
+			enqueue(node.id, 'done', baseY);
 			const totalOutputs = node.outputs ?? 0;
 			const bottomOutputs = node.bottomOutputs ?? 0;
 			const sideOutputs = Math.max(0, totalOutputs - bottomOutputs);
-			const resolvedLoopPort = loopPort !== void 0 ? loopPort : sideOutputs > 0 ? 0 : void 0;
+			const resolvedLoopPort =
+				seed.loopPort !== void 0 ? seed.loopPort : sideOutputs > 0 ? 0 : void 0;
 			const resolvedDonePort =
-				donePortRaw !== void 0
-					? donePortRaw
+				seed.donePortRaw !== void 0
+					? seed.donePortRaw
 					: sideOutputs >= 2
 						? sideOutputs - 1
 						: totalOutputs >= 2
@@ -1816,13 +1910,10 @@ class SequenceFlowBuilder {
 							: void 0;
 			const outgoing = linksBySource.get(node.id) || [];
 			for (const link of outgoing) {
-				const targetNode = nodeMap.get(link.to.nodeId);
-				const targetIsLoop = this.isLoopNode(targetNode);
 				if (resolvedLoopPort !== void 0 && link.from.portIndex === resolvedLoopPort) {
-					enqueue(link.to.nodeId, 'loop', baseY);
+					enqueue(link.to.nodeId, 'loop', loopBodyBaseYByNode.get(node.id) ?? baseY + laneSpacing);
 				} else if (resolvedDonePort !== void 0 && link.from.portIndex === resolvedDonePort) {
-					const nextKind = targetIsLoop ? 'loop' : 'done';
-					enqueue(link.to.nodeId, nextKind, baseY + laneSpacing);
+					enqueue(link.to.nodeId, 'done', baseY);
 				}
 			}
 		}
@@ -1830,13 +1921,18 @@ class SequenceFlowBuilder {
 		while (queue.length) {
 			const task = queue.shift();
 			const key = `${task.nodeId}:${task.kind}`;
+			const latest = assigned.get(key);
+			if (latest && Math.abs(latest.baseY - task.baseY) > 1) {
+				continue;
+			}
 			if (visited.has(key)) {
 				continue;
 			}
 			visited.add(key);
+			const baseY = latest?.baseY ?? task.baseY;
 			const node = nodeMap.get(task.nodeId);
 			if (node) {
-				node.y = task.baseY;
+				node.y = baseY;
 			}
 			const outgoing = linksBySource.get(task.nodeId);
 			if (!outgoing || !outgoing.length) {
@@ -1854,20 +1950,116 @@ class SequenceFlowBuilder {
 					const loopPort = loopPortByNode.get(sourceNode.id);
 					const donePort = donePortByNode.get(sourceNode.id);
 					if (loopPort !== void 0 && link.from.portIndex === loopPort) {
-						enqueue(link.to.nodeId, 'loop', task.baseY);
+						enqueue(
+							link.to.nodeId,
+							'loop',
+							loopBodyBaseYByNode.get(sourceNode.id) ?? baseY + laneSpacing
+						);
 						continue;
 					}
 					if (donePort !== void 0 && link.from.portIndex === donePort) {
-						const targetNode2 = nodeMap.get(link.to.nodeId);
-						const nextKindForDone = this.isLoopNode(targetNode2) ? 'loop' : 'done';
-						enqueue(link.to.nodeId, nextKindForDone, task.baseY + laneSpacing);
+						enqueue(link.to.nodeId, 'done', baseY);
 						continue;
 					}
 				}
 				const targetNode = nodeMap.get(link.to.nodeId);
-				const nextKind = this.isLoopNode(targetNode) ? 'loop' : task.kind;
-				enqueue(link.to.nodeId, nextKind, task.baseY);
+				if (
+					sourceNode &&
+					targetNode &&
+					this.isConditionalNode(sourceNode) &&
+					targetNode.data?.parentId === sourceNode.id
+				) {
+					const truePort = this.conditionalTruePortIndex(sourceNode);
+					const falsePort = this.conditionalFalsePortIndex(sourceNode);
+					if (truePort !== void 0 && link.from.portIndex === truePort) {
+						enqueue(link.to.nodeId, task.kind, baseY + laneSpacing);
+						continue;
+					}
+					if (falsePort !== void 0 && link.from.portIndex === falsePort) {
+						enqueue(link.to.nodeId, task.kind, baseY);
+						continue;
+					}
+				}
+				if (targetNode && this.isLoopNode(targetNode)) {
+					const sourceX = typeof sourceNode?.x === 'number' ? sourceNode.x : 0;
+					const targetX = typeof targetNode.x === 'number' ? targetNode.x : 0;
+					if (task.kind === 'loop' && targetX <= sourceX) {
+						continue;
+					}
+					enqueue(link.to.nodeId, 'done', baseY);
+					continue;
+				}
+				enqueue(link.to.nodeId, task.kind, baseY);
 			}
+		}
+	}
+	/**
+	 * Keeps loop body lanes from visually running through the previous loop body
+	 * when several loops sit on the same completion row.
+	 * @param {Map<string, FlowNode>} nodeMap Lookup map of all nodes.
+	 * @param {number} laneSpacing Horizontal gap to reserve between loop bodies.
+	 * @param {number} nodeWidth Standard node width used as occupied bounds.
+	 */
+	spreadLoopBodyLanes(nodeMap, laneSpacing, nodeWidth) {
+		const loopsByDoneRow = new Map();
+		for (const node of nodeMap.values()) {
+			if (!this.isLoopNode(node) || typeof node.x !== 'number' || typeof node.y !== 'number') {
+				continue;
+			}
+			const rowKey = String(Math.round(node.y / 0.5) * 0.5);
+			const list = loopsByDoneRow.get(rowKey) ?? [];
+			list.push(node);
+			loopsByDoneRow.set(rowKey, list);
+		}
+		for (const loops of loopsByDoneRow.values()) {
+			if (loops.length < 2) {
+				continue;
+			}
+			loops.sort((left, right) => (left.x ?? 0) - (right.x ?? 0));
+			let reservedEnd = -Infinity;
+			for (const loopNode of loops) {
+				const bodyNodes = Array.from(nodeMap.values()).filter(
+					(node) =>
+						node.id !== loopNode.id &&
+						this.isNodeContainedBy(loopNode, node) &&
+						typeof node.x === 'number' &&
+						typeof node.y === 'number' &&
+						node.y > (loopNode.y ?? 0) + 1
+				);
+				if (!bodyNodes.length) {
+					continue;
+				}
+				const minX = Math.min(...bodyNodes.map((node) => node.x ?? 0));
+				const maxX = Math.max(...bodyNodes.map((node) => (node.x ?? 0) + nodeWidth));
+				const desiredMinX = Math.max(minX, reservedEnd + laneSpacing);
+				if (desiredMinX > minX + 1e-3) {
+					const shift = desiredMinX - minX;
+					bodyNodes.forEach((node) => {
+						node.x = (node.x ?? 0) + shift;
+					});
+					reservedEnd = Math.max(reservedEnd, maxX + shift);
+				} else {
+					reservedEnd = Math.max(reservedEnd, maxX);
+				}
+			}
+		}
+	}
+	/**
+	 * Routes loop-back links below the loop body instead of through the body lane.
+	 * @param {Map<string, FlowNode>} nodeMap Lookup map of all nodes.
+	 * @param {FlowLink[]} links Links to update.
+	 */
+	markLoopReturnLinks(nodeMap, links) {
+		for (const link of links) {
+			const sourceNode = nodeMap.get(link.from.nodeId);
+			const targetNode = nodeMap.get(link.to.nodeId);
+			if (!sourceNode || !targetNode) {
+				continue;
+			}
+			if (!this.isLoopNode(targetNode) || !this.isNodeContainedBy(targetNode, sourceNode)) {
+				continue;
+			}
+			link.routing = 'loop-return';
 		}
 	}
 	/**
@@ -2013,6 +2205,35 @@ class SequenceFlowBuilder {
 			}
 			this.shiftBottomDescendants(childId, deltaX, nodeMap, bottomOutputChildren, visited);
 		});
+	}
+	/**
+	 * Keeps all already positioned visual descendants aligned when a container is shifted.
+	 * @param {string} nodeId Parent node id.
+	 * @param {number} deltaX Horizontal shift to apply.
+	 * @param {Map<string, FlowNode>} nodeMap Lookup map of nodes.
+	 * @param {Set<string>} visited Descendants already shifted.
+	 */
+	shiftContainedDescendants(nodeId, deltaX, nodeMap, visited) {
+		if (!deltaX || visited.has(nodeId)) {
+			return;
+		}
+		const parentNode = nodeMap.get(nodeId);
+		if (!parentNode) {
+			return;
+		}
+		visited.add(nodeId);
+		for (const node of nodeMap.values()) {
+			if (!node || node.id === nodeId || visited.has(node.id)) {
+				continue;
+			}
+			if (!this.isNodeContainedBy(parentNode, node)) {
+				continue;
+			}
+			if (typeof node.x === 'number') {
+				node.x += deltaX;
+			}
+			visited.add(node.id);
+		}
 	}
 	/**
 	 * Resolves overlapping nodes that share the same coordinates.

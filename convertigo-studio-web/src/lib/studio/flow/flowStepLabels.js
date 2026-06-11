@@ -51,8 +51,14 @@ function branchTone(label) {
  * @returns {boolean}
  */
 function isIfStep(data) {
-	const type = `${data.type ?? ''} ${data.classname ?? ''}`.toLowerCase();
-	return type.includes('ifstep') || type.includes('thenelsestep');
+	const type = `${data.type ?? ''}`.toLowerCase();
+	const classname = `${data.classname ?? ''}`.toLowerCase();
+	return (
+		type.startsWith('if') ||
+		classname.includes('.beans.steps.if') ||
+		type.includes('thenelsestep') ||
+		classname.includes('thenelsestep')
+	);
 }
 
 /**
