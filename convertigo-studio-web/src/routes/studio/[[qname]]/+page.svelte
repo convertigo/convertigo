@@ -913,6 +913,24 @@
 	/>
 {/snippet}
 
+{#snippet logsToolbarLead()}
+	<span class="studio__logs-toolbar-title">
+		<Ico icon="mdi:file-document-box-outline" size={4} />Logs
+	</span>
+{/snippet}
+
+{#snippet logsToolbarTrail()}
+	<button
+		type="button"
+		class="studio__logs-toolbar-collapse"
+		title="Collapse logs"
+		aria-label="Collapse logs"
+		onclick={() => setLogsPanelOpen(false)}
+	>
+		<Ico icon="mdi:chevron-down" size={4} />
+	</button>
+{/snippet}
+
 <section
 	class={`studio studio--${profile}`}
 	class:studio--tree-hidden={collapsedPanels.tree}
@@ -1237,19 +1255,8 @@
 				onpointerdown={(event) => startResize(event, 'logs')}
 				onkeydown={(event) => resizeWithKeyboard(event, 'logs')}
 			></button>
-			<header class="studio__logs-panel-header">
-				<strong><Ico icon="mdi:file-document-box-outline" size={4} />Logs</strong>
-				<Button
-					full={false}
-					icon="mdi:chevron-down"
-					class="button-ico-secondary h-8! w-8! justify-center p-0!"
-					title="Collapse logs"
-					ariaLabel="Collapse logs"
-					onclick={() => setLogsPanelOpen(false)}
-				/>
-			</header>
 			<div class="studio__logs-panel-body">
-				<StudioLogsPanel />
+				<StudioLogsPanel toolbarLead={logsToolbarLead} toolbarTrail={logsToolbarTrail} />
 			</div>
 		</section>
 	{/if}
@@ -1785,7 +1792,7 @@
 		height: min(var(--studio-logs-height), calc(100vh - 10rem));
 		min-width: 0;
 		min-height: 0;
-		grid-template-rows: auto minmax(0, 1fr);
+		grid-template-rows: minmax(0, 1fr);
 		overflow: hidden;
 		margin: 0 0.55rem 0.45rem;
 		border: 1px solid var(--color-surface-200-800);
@@ -1794,30 +1801,39 @@
 		box-shadow: 0 -0.75rem 1.75rem color-mix(in oklab, var(--color-surface-950) 8%, transparent);
 	}
 
-	.studio__logs-panel-header {
-		display: flex;
-		min-height: 2.45rem;
-		min-width: 0;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: var(--studio-panel-header-bg);
-		color: var(--color-surface-800-200);
-		padding: 0.45rem 0.65rem;
-	}
-
-	.studio__logs-panel-header strong {
+	.studio__logs-toolbar-title {
 		display: flex;
 		min-width: 0;
 		align-items: center;
 		gap: 0.45rem;
 		overflow: hidden;
+		padding-right: 0.25rem;
+		color: var(--color-surface-800-200);
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		font-size: 0.78rem;
+		font-weight: 700;
 		line-height: 1.1;
 		text-transform: uppercase;
+	}
+
+	.studio__logs-toolbar-collapse {
+		display: grid;
+		width: 1.65rem;
+		height: 1.65rem;
+		flex: 0 0 auto;
+		place-items: center;
+		border: 0;
+		border-radius: 0.25rem;
+		background: transparent;
+		color: var(--color-surface-800-200);
+		padding: 0;
+	}
+
+	.studio__logs-toolbar-collapse:hover,
+	.studio__logs-toolbar-collapse:focus-visible {
+		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
+		color: var(--color-surface-950-50);
 	}
 
 	.studio__logs-panel-body {
