@@ -11,6 +11,8 @@
 	let endDate = $state('');
 	let serverFilter = $state('');
 	let filters = $state({});
+	/** @type {{ toolbarLead?: import('svelte').Snippet, toolbarTrail?: import('svelte').Snippet }} */
+	let { toolbarLead, toolbarTrail } = $props();
 
 	const timezone = $derived(Time.serverTimezone ? Time.serverTimezone : getLocalTimeZone());
 
@@ -48,6 +50,8 @@
 		{serverFilter}
 		bind:filters
 		studioMode={true}
+		{toolbarLead}
+		{toolbarTrail}
 	/>
 </div>
 

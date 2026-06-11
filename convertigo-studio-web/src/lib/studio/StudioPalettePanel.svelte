@@ -5,7 +5,6 @@
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl } from '$lib/utils/service';
-	import { objectNameFromId } from './dnd';
 	import { loadPaletteContext } from './paletteContext';
 
 	/**
@@ -145,12 +144,6 @@
 		{:else if filteredCategories.length === 0}
 			<div class="studio-palette__empty">No component available</div>
 		{:else}
-			{#if paletteContext.fallbackFrom}
-				<div class="studio-palette__fallback">
-					<Ico icon="mdi:subdirectory-arrow-left" size={3.2} />
-					<span>Palette from {objectNameFromId(paletteContext.id)}</span>
-				</div>
-			{/if}
 			{#each filteredCategories as category, index (`${category.name ?? ''}:${index}`)}
 				<details class="studio-palette__category" open={index < 3 || Boolean(query)}>
 					<summary class="studio-palette__category-title">
@@ -212,27 +205,6 @@
 		border-radius: 0.4rem;
 		background: color-mix(in oklab, var(--color-surface-100-900) 55%, transparent);
 		overflow: hidden;
-	}
-
-	.studio-palette__fallback {
-		display: flex;
-		align-items: center;
-		gap: 0.35rem;
-		margin-bottom: 0.45rem;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.35rem;
-		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
-		color: var(--color-surface-700-300);
-		padding: 0.34rem 0.45rem;
-		font-size: 0.68rem;
-		font-weight: 650;
-	}
-
-	.studio-palette__fallback span {
-		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
 	.studio-palette__category + .studio-palette__category {

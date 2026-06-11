@@ -22,7 +22,9 @@ describe('Studio flow step labels', () => {
 
 	it('labels simple IfStep false outputs as continuation paths', () => {
 		expect(branchLabelForStep('false', { type: 'IfStep' })).toBe('Next');
+		expect(branchLabelForStep('false', { type: 'IfExistStep' })).toBe('Next');
 		expect(branchLabelForStep('false', { type: 'IfStep', hasElseBranch: true })).toBe('Else');
+		expect(branchLabelForStep('false', { type: 'IfExistStep', hasElseBranch: true })).toBe('Else');
 		expect(branchLabelForStep('false', { type: 'IfThenElseStep' })).toBe('Else');
 	});
 
@@ -76,11 +78,14 @@ describe('Studio flow step labels', () => {
 
 	it('detects if steps from type or classname metadata', () => {
 		expect(isIfStep({ type: 'IfStep' })).toBe(true);
+		expect(isIfStep({ type: 'IfExistStep' })).toBe(true);
 		expect(isIfStep({ type: 'IfThenElseStep' })).toBe(true);
 		expect(isIfStep({ classname: 'com.twinsoft.convertigo.beans.steps.IfStep' })).toBe(true);
+		expect(isIfStep({ classname: 'com.twinsoft.convertigo.beans.steps.IfExistStep' })).toBe(true);
 		expect(isIfStep({ type: 'SimpleStep' })).toBe(false);
 		expect(isThenElseStep({ type: 'IfThenElseStep' })).toBe(true);
 		expect(isSimpleIfStep({ type: 'IfStep' })).toBe(true);
+		expect(isSimpleIfStep({ type: 'IfExistStep' })).toBe(true);
 		expect(isSimpleIfStep({ type: 'IfThenElseStep' })).toBe(false);
 	});
 });

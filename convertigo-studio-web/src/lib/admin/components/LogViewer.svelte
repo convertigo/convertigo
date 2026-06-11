@@ -101,7 +101,7 @@
 	];
 	let modalYesNo = getContext('modalYesNo');
 
-	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, live?: boolean, studioMode?: boolean, onConfigureLevels?: (event?: any) => any, onReloadViewer?: () => void}} */
+	/** @type {{autoScroll?: boolean, filters?: any, serverFilter?: string, startDate?: string, endDate?: string, live?: boolean, studioMode?: boolean, onConfigureLevels?: (event?: any) => any, onReloadViewer?: () => void, toolbarLead?: import('svelte').Snippet, toolbarTrail?: import('svelte').Snippet}} */
 	let {
 		autoScroll = $bindable(false),
 		filters = $bindable({}),
@@ -111,7 +111,9 @@
 		live = $bindable(false),
 		studioMode = false,
 		onConfigureLevels,
-		onReloadViewer
+		onReloadViewer,
+		toolbarLead,
+		toolbarTrail
 	} = $props();
 	const extraLinesState = persistedState('admin.logs.extraLines', 1, { syncTabs: false });
 	let extraLines = $derived(extraLinesState.current);
@@ -1342,6 +1344,11 @@
 		<div
 			class="log-toolbar-row mx-low rounded-sm border border-surface-200-800 bg-surface-100-900 p-1"
 		>
+			{#if toolbarLead}
+				<div class="log-toolbar-lead">
+					{@render toolbarLead()}
+				</div>
+			{/if}
 			<div class="log-toolbar-group">
 				{#if !studioMode}
 					<Button
@@ -1634,6 +1641,11 @@
 					</div>
 				</div>
 			{/each}
+			{#if toolbarTrail}
+				<div class="log-toolbar-trail">
+					{@render toolbarTrail()}
+				</div>
+			{/if}
 		</div>
 		<div
 			class="layout-x-wrap content-start overflow-y-hidden rounded-sm rounded-b-none border-t border-surface-200-800"
@@ -1883,6 +1895,10 @@
 
 	.studio-mode .log-toolbar-row {
 		@apply border-t-0;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overflow-y: hidden;
+		scrollbar-width: thin;
 	}
 
 	.studio-mode .log-toolbar-group,
@@ -1908,6 +1924,17 @@
 
 	.log-toolbar-row {
 		@apply flex flex-wrap items-center gap-1;
+	}
+
+	.log-toolbar-lead,
+	.log-toolbar-trail {
+		@apply flex shrink-0 items-center gap-1;
+	}
+
+	.log-toolbar-trail {
+		@apply ml-auto;
+		position: sticky;
+		right: 0;
 	}
 
 	.log-filter-group {

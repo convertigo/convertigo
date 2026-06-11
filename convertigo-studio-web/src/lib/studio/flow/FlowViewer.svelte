@@ -20,9 +20,13 @@
 	import { removeDbo, renameDbo } from '$lib/utils/service';
 	import { untrack } from 'svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+	import FlowBranchEdge from './FlowBranchEdge.svelte';
 	import { findFlowLaneDropTarget as resolveFlowLaneDropTarget } from './flowDropTargets';
 	import { flowEdgeDistanceToPoint } from './flowGeometry';
+	import FlowLoopBodyEdge from './FlowLoopBodyEdge.svelte';
+	import FlowLoopReturnEdge from './FlowLoopReturnEdge.svelte';
 	import FlowStepNode from './FlowStepNode.svelte';
+	import FlowTerminalReturnEdge from './FlowTerminalReturnEdge.svelte';
 	import { loadSequenceFlow } from './sequenceLoader';
 	import { toXyFlow } from './xyflow';
 	import '@xyflow/svelte/dist/style.css';
@@ -64,7 +68,14 @@
 	} = $props();
 
 	const nodeTypes = { 'flow-step': FlowStepNode };
+	const edgeTypes = {
+		branch: FlowBranchEdge,
+		'loop-body': FlowLoopBodyEdge,
+		'loop-return': FlowLoopReturnEdge,
+		'terminal-return': FlowTerminalReturnEdge
+	};
 	const flowNodeSize = { width: 150, height: 72 };
+	const flowMinimapReserve = { width: 230, height: 160 };
 	const flowDropBeforeRatio = 0.34;
 	const flowDropAfterRatio = 0.66;
 
@@ -1414,6 +1425,8 @@
 		if (!width || !height) {
 			return;
 		}
+		const fitWidth = Math.max(320, width - Math.min(flowMinimapReserve.width, width * 0.28));
+		const fitHeight = Math.max(240, height - Math.min(flowMinimapReserve.height, height * 0.32));
 		const targetNodes = nodeIds?.size ? nodes.filter((node) => nodeIds.has(node.id)) : nodes;
 		const nodesToFit = targetNodes.length ? targetNodes : nodes;
 		const xs = nodesToFit.map((node) => node.position.x);
@@ -1429,8 +1442,8 @@
 				width: maxX - minX + flowNodeSize.width,
 				height: maxY - minY + flowNodeSize.height
 			},
-			width,
-			height,
+			fitWidth,
+			fitHeight,
 			0.15,
 			nodeIds?.size ? 0.82 : 0.92,
 			nodeIds?.size ? 0.24 : 0.18
@@ -1484,6 +1497,7 @@
 					bind:edges
 					bind:viewport={flowViewport}
 					{nodeTypes}
+					{edgeTypes}
 					initialViewport={flowViewport}
 					minZoom={0.15}
 					maxZoom={1.6}
@@ -1706,8 +1720,9 @@
 		color: var(--flow-edge-label-text) !important;
 		padding: 0.04rem 0.24rem;
 		font-size: 0.62rem;
-		font-weight: 800;
+		font-weight: 700;
 		line-height: 1.1;
+		text-transform: uppercase;
 	}
 
 	:global(.flow-dashboard .svelte-flow__background) {

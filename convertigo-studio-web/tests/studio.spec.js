@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+/**
+ * @typedef {Window & typeof globalThis & {
+ *   __studioFlowDragContext?: {
+ *     sourceNodeId: string,
+ *     targetNodeId: string,
+ *     xRatio: number,
+ *     yRatio: number,
+ *     dataTransfer: DataTransfer
+ *   }
+ * }} StudioFlowTestWindow
+ */
+
 const projectName = 'StudioProject';
 const sequenceName = 'TestSequence';
 const sequenceId = `${projectName}.sq:${sequenceName}`;
@@ -622,7 +634,8 @@ async function dragFlowNodeToFlowNode(page, sourceNodeId, targetNodeId, options 
 			);
 			targetNode.dispatchEvent(new DragEvent('dragenter', eventOptions));
 			targetNode.dispatchEvent(new DragEvent('dragover', eventOptions));
-			window.__studioFlowDragContext = {
+			const studioWindow = /** @type {StudioFlowTestWindow} */ (window);
+			studioWindow.__studioFlowDragContext = {
 				sourceNodeId,
 				targetNodeId,
 				xRatio,
@@ -639,7 +652,8 @@ async function dragFlowNodeToFlowNode(page, sourceNodeId, targetNodeId, options 
 	);
 	await options.beforeDrop?.();
 	await page.evaluate(() => {
-		const context = window.__studioFlowDragContext;
+		const studioWindow = /** @type {StudioFlowTestWindow} */ (window);
+		const context = studioWindow.__studioFlowDragContext;
 		if (!context) {
 			throw new Error('Missing flow DnD context');
 		}
@@ -669,7 +683,7 @@ async function dragFlowNodeToFlowNode(page, sourceNodeId, targetNodeId, options 
 		};
 		targetNode.dispatchEvent(new DragEvent('drop', eventOptions));
 		source.dispatchEvent(new DragEvent('dragend', eventOptions));
-		delete window.__studioFlowDragContext;
+		delete studioWindow.__studioFlowDragContext;
 	});
 }
 
