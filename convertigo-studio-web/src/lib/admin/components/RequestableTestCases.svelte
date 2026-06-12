@@ -1,6 +1,6 @@
 <script>
+	import Button from '$lib/admin/components/Button.svelte';
 	import Card from '$lib/admin/components/Card.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 
@@ -8,10 +8,11 @@
 	 * @type {{
 	 *  requestable?: any,
 	 *  value?: string,
-	 *  showEdit?: boolean
+	 *  showEdit?: boolean,
+	 *  copyAs?: import('svelte').Snippet<[any]>
 	 * }}
 	 */
-	let { requestable = $bindable(), value = 'testcases', showEdit = true } = $props();
+	let { requestable = $bindable(), value = 'testcases', showEdit = true, copyAs } = $props();
 
 	let testcases = $derived(requestable?.testcase ?? []);
 
@@ -54,28 +55,26 @@
 						{@const testcaseValuesOpen = testcase.valuesOpened ?? false}
 						<Card title={testcase.name} bg="bg-surface-50-950/70" class="gap-2 p-low">
 							{#snippet cornerOption()}
-								<ResponsiveButtons
-									class="max-w-none"
-									buttons={[
-										{
-											label: 'Execute',
-											type: 'submit',
-											value: testcase.name,
-											class: 'button-primary',
-											icon: 'mdi:play-circle-outline'
-										},
-										...(showEdit
-											? [
-													{
-														label: 'Edit',
-														class: 'button-secondary',
-														icon: 'mdi:edit-outline',
-														onclick: () => applyTestcase(testcase)
-													}
-												]
-											: [])
-									]}
-								/>
+								<div class="requestable-testcases__actions">
+									<Button
+										label="Execute"
+										type="submit"
+										value={testcase.name}
+										class="button-primary"
+										icon="mdi:play-circle-outline"
+										full={false}
+									/>
+									{@render copyAs?.(testcase)}
+									{#if showEdit}
+										<Button
+											label="Edit"
+											class="button-secondary"
+											icon="mdi:edit-outline"
+											onclick={() => applyTestcase(testcase)}
+											full={false}
+										/>
+									{/if}
+								</div>
 							{/snippet}
 							<AccordionGroup
 								collapsible
@@ -120,6 +119,13 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
 		gap: 0.5rem;
+	}
+
+	.requestable-testcases__actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		gap: 0.45rem;
 	}
 
 	.requestable-testcases__values {

@@ -11,7 +11,7 @@ defaults: &defaults
   
 version: 2.1
 orbs:
-  aws-cli: circleci/aws-cli@5.4.0
+  aws-cli: circleci/aws-cli@5.4.1
 jobs:
   prepare_build:
     <<: *defaults
@@ -781,8 +781,17 @@ jobs:
       xcode: 26.2.0
     resource_class: m4pro.medium
     steps:
+    - run:
+        name: Install AWS CLI
+        command: |
+          if ! command -v aws >/dev/null 2>&1 || ! aws --version 2>&1 | grep -q "aws-cli/2"; then
+            curl -fsSL "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "/tmp/AWSCLIV2.pkg"
+            sudo installer -pkg "/tmp/AWSCLIV2.pkg" -target /
+          fi
+          aws --version
+          echo 'export AWS_PAGER=""' >> "$BASH_ENV"
     - aws-cli/setup:
-        use_brew: true
+        disable_aws_install: true
     - attach_workspace:
         at: for_mac
     - run:

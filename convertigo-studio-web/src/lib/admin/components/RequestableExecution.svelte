@@ -1,4 +1,5 @@
 <script>
+	import { Popover } from '@skeletonlabs/skeleton-svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
@@ -6,7 +7,8 @@
 	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
 	import LightSvelte from '$lib/common/Light.svelte';
 	import RequestableResponseEditor from '$lib/dashboard/RequestableResponseEditor.svelte';
-	import { callRequestable } from '$lib/utils/service';
+	import Ico from '$lib/utils/Ico.svelte';
+	import { callRequestable, getUrl, toaster } from '$lib/utils/service';
 	import { fly } from 'svelte/transition';
 
 	/**
@@ -64,8 +66,15 @@
 	let responseLanguage = $state('json');
 	let responseLoading = $state(false);
 	let responseRevision = $state(0);
+	let copyAsSource = $state('');
 	let hasVariables = $derived((requestable?.variable?.length ?? 0) > 0);
 	let hasTestcases = $derived((requestable?.testcase?.length ?? 0) > 0);
+	const copyFormats = [
+		{ value: 'url', label: 'URL', icon: 'mdi:open-in-new-variant' },
+		{ value: 'curl', label: 'cURL', icon: 'mdi:code-block-braces' },
+		{ value: 'fetch', label: 'fetch', icon: 'mdi:code-tags' },
+		{ value: 'body', label: 'POST body', icon: 'mdi:content-copy' }
+	];
 	let responseView = $derived.by(() => {
 		if (responseKey === requestableKey) {
 			return {
@@ -105,6 +114,243 @@
 	}
 
 	/**
+	 * @param {{ send?: any }} variable
+	 * @returns {boolean}
+	 */
+	function shouldSendVariable(variable) {
+		return variable?.send === true || variable?.send == 'true';
+	}
+
+	/**
+	 * @param {string} value
+	 * @returns {string}
+	 */
+	function testcaseNameFromSource(value) {
+		return value.startsWith('testcase:') ? value.slice('testcase:'.length) : '';
+	}
+
+	/**
+	 * @param {any} value
+	 * @returns {string}
+	 */
+	function parameterValue(value) {
+		if (value == null) {
+			return '';
+		}
+		if (typeof File != 'undefined' && value instanceof File) {
+			return value.name;
+		}
+		return String(value);
+	}
+
+	/**
+	 * @param {any} variable
+	 * @returns {string[]}
+	 */
+	function variableValues(variable) {
+		if (variable?.isMultivalued == 'true') {
+			if (Array.isArray(variable.multipleValues)) {
+				return variable.multipleValues.map(({ val }) => parameterValue(val));
+			}
+			try {
+				const parsed = JSON.parse(variable.val ?? variable.value ?? '[]');
+				return Array.isArray(parsed) ? parsed.map(parameterValue) : [];
+			} catch {
+				return [];
+			}
+		}
+		return [parameterValue(variable?.val ?? variable?.value)];
+	}
+
+	/**
+	 * @param {string} source
+	 * @returns {[string, string][]}
+	 */
+	function requestEntries(source = 'current') {
+		if (!requestable) {
+			return [];
+		}
+		/** @type {[string, string][]} */
+		const entries =
+			kind === 'transaction'
+				? [
+						['__connector', connectorName],
+						['__transaction', requestable.name ?? '']
+					]
+				: [['__sequence', requestable.name ?? '']];
+		const testcaseName = testcaseNameFromSource(source);
+		if (testcaseName) {
+			entries.push(['__testcase', testcaseName]);
+			return entries;
+		}
+		for (const variable of requestable.variable ?? []) {
+			if (!shouldSendVariable(variable)) {
+				continue;
+			}
+			for (const value of variableValues(variable)) {
+				entries.push([variable.name, value]);
+			}
+		}
+		return entries;
+	}
+
+	/**
+	 * @returns {string}
+	 */
+	function endpointUrl() {
+		const path = getUrl(`projects/${projectName}/.${String(mode).toLowerCase()}`);
+		if (typeof location == 'undefined') {
+			return path;
+		}
+		return new URL(path, location.href).toString();
+	}
+
+	/**
+	 * @param {string} source
+	 * @returns {string}
+	 */
+	function urlPreset(source) {
+		const base = endpointUrl();
+		if (typeof location == 'undefined') {
+			const query = new URLSearchParams(requestEntries(source)).toString();
+			return query ? `${base}?${query}` : base;
+		}
+		const url = new URL(base);
+		for (const [key, value] of requestEntries(source)) {
+			url.searchParams.append(key, value);
+		}
+		return url.toString();
+	}
+
+	/**
+	 * @param {string} value
+	 * @returns {string}
+	 */
+	function shellQuote(value) {
+		return `'${String(value).replaceAll("'", "'\\''")}'`;
+	}
+
+	/**
+	 * @returns {string}
+	 */
+	function xsrfTokenExpression() {
+		return 'localStorage.getItem("x-xsrf-token") ?? "Fetch"';
+	}
+
+	/**
+	 * @param {string} source
+	 * @returns {string}
+	 */
+	function bodyPreset(source) {
+		return new URLSearchParams(requestEntries(source)).toString();
+	}
+
+	/**
+	 * @param {string} source
+	 * @returns {string}
+	 */
+	function curlPreset(source) {
+		const lines = [
+			`curl -X POST ${shellQuote(endpointUrl())}`,
+			`  -H ${shellQuote('Content-Type: application/x-www-form-urlencoded')}`
+		];
+		const jsessionid = cookieValue('JSESSIONID');
+		if (jsessionid) {
+			lines.push(`  -H ${shellQuote(`Cookie: JSESSIONID=${jsessionid}`)}`);
+		}
+		lines.push(`  --data-raw ${shellQuote(bodyPreset(source))}`);
+		return lines.join(' \\\n');
+	}
+
+	/**
+	 * @param {string} name
+	 * @returns {string}
+	 */
+	function cookieValue(name) {
+		if (typeof document == 'undefined' || !document.cookie) {
+			return '';
+		}
+		return (
+			document.cookie
+				.split(';')
+				.map((part) => part.trim())
+				.find((part) => part.startsWith(`${name}=`))
+				?.slice(name.length + 1) ?? ''
+		);
+	}
+
+	/**
+	 * @param {string} source
+	 * @returns {string}
+	 */
+	function fetchPreset(source) {
+		const entries = JSON.stringify(requestEntries(source), null, 2);
+		return `const response = await fetch(${JSON.stringify(endpointUrl())}, {
+  method: "POST",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/x-www-form-urlencoded",
+    "x-xsrf-token": ${xsrfTokenExpression()}
+  },
+  body: new URLSearchParams(${entries})
+});
+
+console.log(await response.text());`;
+	}
+
+	/**
+	 * @param {string} format
+	 * @param {string} source
+	 * @returns {string}
+	 */
+	function buildCopyPreset(format, source = 'current') {
+		if (!requestable || !projectName) {
+			return '';
+		}
+		if (format === 'curl') {
+			return curlPreset(source);
+		}
+		if (format === 'fetch') {
+			return fetchPreset(source);
+		}
+		if (format === 'body') {
+			return bodyPreset(source);
+		}
+		return urlPreset(source);
+	}
+
+	/**
+	 * @param {string} format
+	 */
+	async function copyAs(format, source = 'current') {
+		const content = buildCopyPreset(format, source);
+		if (!content) {
+			return;
+		}
+		try {
+			await navigator.clipboard.writeText(content);
+			toaster.success({
+				description: `Copied ${copyFormats.find(({ value }) => value === format)?.label ?? 'preset'}`,
+				duration: 2000
+			});
+			copyAsSource = '';
+		} catch (err) {
+			toaster.error({
+				description: String(err instanceof Error ? err.message : err),
+				duration: 4200
+			});
+		}
+	}
+
+	/**
+	 * @param {{ open: boolean }} event
+	 * @param {string} source
+	 */
+	function handleCopyOpenChange(event, source) {
+		copyAsSource = event.open ? source : '';
+	}
+
+	/**
 	 * @param {SubmitEvent & { currentTarget: HTMLFormElement }} event
 	 */
 	async function run(event) {
@@ -128,7 +374,7 @@
 			}
 		} else {
 			for (const variable of requestable.variable ?? []) {
-				if (variable.send == 'false') {
+				if (!shouldSendVariable(variable)) {
 					fd.delete(variable.name);
 				}
 			}
@@ -149,6 +395,50 @@
 		}
 	}
 </script>
+
+{#snippet copyAsButton(source)}
+	<Popover
+		open={copyAsSource === source}
+		onOpenChange={(event) => handleCopyOpenChange(event, source)}
+	>
+		<Popover.Trigger
+			type="button"
+			class="button-secondary layout-x-low h-full min-h-fit text-wrap"
+			disabled={disabled || !projectName}
+			title="Copy request"
+			aria-label="Copy request"
+		>
+			<span>Copy</span>
+			<Ico icon="mdi:content-copy" size="btn" />
+		</Popover.Trigger>
+		<Popover.Positioner class="z-[160]" style="z-index: 160;">
+			<Popover.Content class="border-none bg-transparent p-0 shadow-none">
+				<div class="requestable-copy-as">
+					<div class="layout-y-stretch-low">
+						<div class="requestable-copy-as__formats">
+							{#each copyFormats as format (format.value)}
+								<Button
+									label={format.label}
+									full={false}
+									class="button-primary"
+									icon={format.icon}
+									onclick={() => copyAs(format.value, source)}
+								/>
+							{/each}
+						</div>
+						<a
+							class="requestable-copy-as__preview requestable-copy-as__preview--link"
+							href={buildCopyPreset('url', source)}
+							target="_blank"
+							rel="noreferrer noopener">{buildCopyPreset('url', source)}</a
+						>
+					</div>
+				</div>
+				<Popover.Arrow class="fill-primary-100-900" />
+			</Popover.Content>
+		</Popover.Positioner>
+	</Popover>
+{/snippet}
 
 {#if requestable}
 	<form class={['requestable-execution', cls]} onsubmit={run}>
@@ -182,7 +472,11 @@
 		{/if}
 
 		{#if hasTestcases}
-			<RequestableTestCases bind:requestable value={testcaseValue} showEdit={showTestcaseEdit} />
+			<RequestableTestCases bind:requestable value={testcaseValue} showEdit={showTestcaseEdit}>
+				{#snippet copyAs(testcase)}
+					{@render copyAsButton(`testcase:${testcase.name}`)}
+				{/snippet}
+			</RequestableTestCases>
 		{/if}
 
 		<div
@@ -203,6 +497,7 @@
 					icon="mdi:play-circle-outline"
 					disabled={disabled || responseView.loading}
 				/>
+				{@render copyAsButton('current')}
 				{#if hasResponse}
 					<Button
 						label="Clear"
@@ -299,5 +594,44 @@
 		z-index: 10;
 		box-shadow: 0 18px 36px -28px var(--color-surface-900);
 		backdrop-filter: blur(8px);
+	}
+
+	.requestable-copy-as {
+		width: min(34rem, calc(100vw - 2rem));
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.55rem;
+		background: color-mix(in oklab, var(--color-surface-50-950) 94%, transparent);
+		padding: 0.75rem;
+		box-shadow: 0 18px 42px -24px var(--color-surface-900);
+	}
+
+	.requestable-copy-as__formats {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+	}
+
+	.requestable-copy-as__preview {
+		max-height: 12rem;
+		overflow: auto;
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.45rem;
+		background: color-mix(in oklab, var(--color-surface-100-900) 72%, transparent);
+		padding: 0.65rem;
+		color: var(--color-surface-700-300);
+		font-size: 0.72rem;
+		line-height: 1.35;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	.requestable-copy-as__preview--link {
+		display: block;
+		text-decoration: none;
+	}
+
+	.requestable-copy-as__preview--link:hover {
+		color: var(--color-primary-600-400);
+		text-decoration: underline;
 	}
 </style>

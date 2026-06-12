@@ -79,6 +79,16 @@
 	});
 	let partsOpened = $state(['Sequences']);
 	const [duration, y] = [200, -50];
+	const selectableTitleClass = 'text-sm font-semibold text-strong';
+	const selectableSubtitleClass = 'text-xs text-surface-600-400';
+	const selectableTextEvents = {
+		onclick: stopSelectableTextToggle,
+		ondblclick: stopSelectableTextToggle
+	};
+
+	function stopSelectableTextToggle(event: Event) {
+		event.stopPropagation();
+	}
 </script>
 
 <Card title={project?.name ?? null} cornerOptionClass="flex-1 min-w-[18rem] max-w-[72rem]">
@@ -138,6 +148,9 @@
 					title={name}
 					subtitle={comment}
 					count={requestables.length}
+					titleClass={selectableTitleClass}
+					subtitleClass={selectableSubtitleClass}
+					selectableHeaderText
 				>
 					{#snippet panel()}
 						<div class="space-y-3">
@@ -148,8 +161,9 @@
 										<AccordionSection
 											value={`${part.name}.${name}`}
 											class="relative overflow-hidden rounded-xl border border-surface-200-800/40 bg-surface-50-950/60 shadow-sm shadow-surface-900/5 transition-surface data-[state=open]:border-surface-300-700"
-											triggerClass="w-full rounded-xl text-left px-0 py-0"
+											triggerClass="w-full rounded-xl px-0 py-0 text-left"
 											panelClass="px-0 py-0 bg-transparent"
+											selectableHeaderText
 										>
 											{#snippet control()}
 												<div
@@ -169,13 +183,14 @@
 														/>
 													</span>
 													<div class="layout-y-start-low min-w-0 flex-1 justify-center text-left">
-														<span class="text-sm leading-tight font-semibold text-strong"
-															>{name}</span
+														<span
+															class="cursor-text text-sm leading-tight font-semibold text-strong select-text"
+															{...selectableTextEvents}>{name}</span
 														>
 														{#if comment?.length}
 															<span
-																class="truncate text-xs text-surface-600-400 transition-opacity duration-150 group-data-[state=open]:opacity-70"
-																>{comment}</span
+																class="cursor-text truncate text-xs text-surface-600-400 transition-opacity duration-150 select-text group-data-[state=open]:opacity-70"
+																{...selectableTextEvents}>{comment}</span
 															>
 														{/if}
 													</div>
