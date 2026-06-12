@@ -28,6 +28,7 @@
 	metaClass?: string;
 	trailingText?: string;
 	trailingTextClass?: string;
+	selectableHeaderText?: boolean;
 } & Record<string, any>} */
 	let {
 		value,
@@ -54,6 +55,7 @@
 		metaClass = 'text-xs text-surface-600-400',
 		trailingText,
 		trailingTextClass = 'text-xs text-muted',
+		selectableHeaderText = false,
 		...rest
 	} = $props();
 
@@ -70,7 +72,13 @@
 	);
 
 	const triggerClasses = $derived(
-		['layout-x-between w-full text-left transition-surface', triggerClass].filter(Boolean).join(' ')
+		[
+			'layout-x-between w-full text-left transition-surface',
+			selectableHeaderText && 'select-text',
+			triggerClass
+		]
+			.filter(Boolean)
+			.join(' ')
 	);
 
 	const panelClasses = $derived(['transition-surface', panelClass].filter(Boolean).join(' '));
@@ -79,6 +87,27 @@
 	const resolvedLead = $derived(lead ?? (leadingIcon ? defaultLead : undefined));
 	const resolvedTrail = $derived(trail ?? defaultTrail);
 	const hasTrailContent = $derived(Boolean(countText || trailingText));
+	const headerTitleClass = $derived(
+		[titleClass, selectableHeaderText && 'cursor-text select-text'].filter(Boolean).join(' ')
+	);
+	const headerSubtitleClass = $derived(
+		[subtitleClass, selectableHeaderText && 'cursor-text select-text'].filter(Boolean).join(' ')
+	);
+	const headerMetaClass = $derived(
+		[metaClass, selectableHeaderText && 'cursor-text select-text'].filter(Boolean).join(' ')
+	);
+	const headerTextEvents = $derived(
+		selectableHeaderText
+			? {
+					onclick: stopHeaderTextToggle,
+					ondblclick: stopHeaderTextToggle
+				}
+			: {}
+	);
+
+	function stopHeaderTextToggle(event) {
+		event.stopPropagation();
+	}
 </script>
 
 {#snippet indicator(attrs)}
@@ -144,15 +173,15 @@
 					})}
 					<div class="layout-y-start-low min-w-0">
 						{#if title}
-							<span class={titleClass}>
+							<span class={headerTitleClass} {...headerTextEvents}>
 								{title}
 							</span>
 						{/if}
 						{#if subtitle}
-							<span class={subtitleClass}>{subtitle}</span>
+							<span class={headerSubtitleClass} {...headerTextEvents}>{subtitle}</span>
 						{/if}
 						{#if meta}
-							<span class={metaClass}>{meta}</span>
+							<span class={headerMetaClass} {...headerTextEvents}>{meta}</span>
 						{/if}
 					</div>
 				</div>
