@@ -784,15 +784,9 @@ jobs:
     - run:
         name: Install AWS CLI
         command: |
-          export HOMEBREW_NO_AUTO_UPDATE=1
-          export HOMEBREW_NO_ENV_HINTS=1
-          export HOMEBREW_NO_ASK=1
-          if ! command -v aws >/dev/null 2>&1; then
-            if brew install --help 2>/dev/null | grep -q -- "--no-ask"; then
-              brew install --no-ask awscli
-            else
-              printf 'y\n' | brew install awscli
-            fi
+          if ! command -v aws >/dev/null 2>&1 || ! aws --version 2>&1 | grep -q "aws-cli/2"; then
+            curl -fsSL "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "/tmp/AWSCLIV2.pkg"
+            sudo installer -pkg "/tmp/AWSCLIV2.pkg" -target /
           fi
           aws --version
           echo 'export AWS_PAGER=""' >> "$BASH_ENV"
