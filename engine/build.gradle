@@ -325,8 +325,8 @@ dependencies {
 	compileFlat    'org.apache.xmlgraphics:fop:2.11', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:1.5.5'
 	compileFlat    'org.codehaus.woodstox:stax2-api:4.3.0'
-	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.6.0.202603022253-r'
-	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.6.0.202603022253-r'
+	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r'
+	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.7.0.202606012155-r'
 	compileFlat    'org.hibernate.orm:hibernate-core:7.4.1.Final'
 	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0'
 	compileFlat    'org.mozilla:rhino:1.9.1'
