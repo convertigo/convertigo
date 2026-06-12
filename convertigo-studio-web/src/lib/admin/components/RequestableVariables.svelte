@@ -32,13 +32,46 @@
 	);
 	let appliedInitializationKey = '';
 	let selectedCount = $derived.by(
-		() => requestable.variable?.filter(({ send }) => send == 'true').length ?? 0
+		() => requestable.variable?.filter((variable) => isVariableSelected(variable)).length ?? 0
 	);
 	let allSelected = $derived.by(
 		() =>
 			Boolean(requestable.variable?.length) &&
-			requestable.variable.every(({ send }) => send == 'true')
+			requestable.variable.every((variable) => isVariableSelected(variable))
 	);
+
+	/**
+	 * @param {{ send?: any }} variable
+	 * @returns {boolean}
+	 */
+	function isVariableSelected(variable) {
+		return variable?.send === true || variable?.send == 'true';
+	}
+
+	/**
+	 * @param {{ send?: any }} variable
+	 * @param {boolean} selected
+	 */
+	function setVariableSelected(variable, selected) {
+		variable.send = selected ? 'true' : 'false';
+	}
+
+	/**
+	 * @param {{ send?: any }} variable
+	 */
+	function enableVariable(variable) {
+		setVariableSelected(variable, true);
+	}
+
+	/**
+	 * @param {{ send?: any }} variable
+	 * @param {{ val?: any }} obj
+	 * @param {any} value
+	 */
+	function setVariableValue(variable, obj, value) {
+		obj.val = value;
+		enableVariable(variable);
+	}
 
 	function parse(row, key = 'value') {
 		try {
@@ -50,7 +83,7 @@
 
 	function setAll(checked) {
 		for (const variable of requestable.variable ?? []) {
-			variable.send = checked ? 'true' : 'false';
+			setVariableSelected(variable, checked);
 		}
 	}
 
@@ -64,7 +97,7 @@
 		appliedInitializationKey = initializationKey;
 		for (const variable of requestable.variable ?? []) {
 			if (variable.send != 'true' && variable.send != 'false') {
-				variable.send = variable.send ? 'true' : 'false';
+				variable.send = variable.send === true || variable.send == 'true' ? 'true' : 'false';
 			}
 			if (variable.name in testcase) {
 				variable.val = testcase[variable.name];
@@ -84,14 +117,15 @@
 </script>
 
 {#snippet property({ row, obj, defaultValue = undefined })}
-	<PropertyType
-		type={row.isFileUpload == 'true' ? 'file' : row.isMasked == 'true' ? 'password' : 'text'}
-		bind:value={() => obj.val ?? '', (v) => (obj.val = v)}
-		{defaultValue}
-		name={row.name}
-		actionsHorizontal={true}
-		onfocus={() => (row.send = 'true')}
-	/>
+	<div class="min-w-0 flex-1" onfocusin={() => enableVariable(row)}>
+		<PropertyType
+			type={row.isFileUpload == 'true' ? 'file' : row.isMasked == 'true' ? 'password' : 'text'}
+			bind:value={() => obj.val ?? '', (value) => setVariableValue(row, obj, value)}
+			{defaultValue}
+			name={row.name}
+			actionsHorizontal={true}
+		/>
+	</div>
 {/snippet}
 
 <AccordionGroup
@@ -143,9 +177,10 @@
 								label={row.name}
 								tooltip="Send value"
 								class="font-medium"
+								onCheckedChange={(event) => setVariableSelected(row, event.checked)}
 							/>
 						{:else if def.name == 'Value'}
-							<div class:opacity-50={row.send == 'false'}>
+							<div class:opacity-50={!isVariableSelected(row)}>
 								{#if row.isMultivalued == 'true'}
 									<div class="layout-x-low">
 										<Button

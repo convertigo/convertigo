@@ -105,6 +105,14 @@
 	}
 
 	/**
+	 * @param {{ send?: any }} variable
+	 * @returns {boolean}
+	 */
+	function shouldSendVariable(variable) {
+		return variable?.send === true || variable?.send == 'true';
+	}
+
+	/**
 	 * @param {SubmitEvent & { currentTarget: HTMLFormElement }} event
 	 */
 	async function run(event) {
@@ -128,7 +136,7 @@
 			}
 		} else {
 			for (const variable of requestable.variable ?? []) {
-				if (variable.send == 'false') {
+				if (!shouldSendVariable(variable)) {
 					fd.delete(variable.name);
 				}
 			}
