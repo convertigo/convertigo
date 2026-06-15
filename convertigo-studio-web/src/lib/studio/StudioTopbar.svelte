@@ -237,9 +237,38 @@
 	}
 
 	@media (max-width: 720px) {
+		.studio-topbar {
+			grid-template-columns: auto minmax(0, 1fr);
+		}
+
+		.studio-topbar__actions {
+			justify-content: flex-end;
+		}
+
+		.studio-topbar__profiles,
+		.studio-topbar__button-group {
+			min-width: 0;
+		}
+
 		.studio-topbar__profile span,
 		.studio-topbar__title {
 			display: none;
+		}
+	}
+
+	@media (max-width: 420px) {
+		.studio-topbar__profile {
+			padding: 0 0.5rem;
+		}
+
+		.studio-topbar__logo,
+		.studio-topbar__theme-switch {
+			width: 2rem;
+			height: 2rem;
+		}
+
+		:global(.studio-action-button) {
+			--studio-action-size: 2rem !important;
 		}
 	}
 </style>

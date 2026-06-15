@@ -1,4 +1,5 @@
 <script>
+	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl } from '$lib/utils/service';
 	import StudioEmptyState from './StudioEmptyState.svelte';
@@ -38,7 +39,6 @@
 	let technicalName = $derived(paletteItem?.classname ?? paletteItem?.id ?? '');
 	let documentationBlocks = $derived(itemDocumentationBlocks(paletteItem));
 	let iconUrl = $derived(iconSource(paletteItem?.icon));
-	let iconMaskUrl = $derived(cssUrl(iconUrl));
 
 	/**
 	 * @param {PaletteItem | null | undefined} item
@@ -94,14 +94,6 @@
 			return '';
 		}
 		return `${getUrl()}studio.dbo.GetIcon?iconPath=${encodeURIComponent(icon)}`;
-	}
-
-	/**
-	 * @param {string} value
-	 * @returns {string}
-	 */
-	function cssUrl(value) {
-		return value ? `url("${value.replaceAll('"', '%22')}")` : 'none';
 	}
 
 	/**
@@ -253,7 +245,7 @@
 	 * @param {string} html
 	 */
 	function addTextSegment(segments, html) {
-		const text = plainText(html);
+		const text = plainInlineText(html);
 		if (text) {
 			segments.push({ type: 'text', text });
 		}
@@ -297,6 +289,19 @@
 				.replace(/[ \t]+\n/g, '\n')
 				.replace(/\n{3,}/g, '\n\n')
 				.trim()
+		);
+	}
+
+	/**
+	 * @param {string} html
+	 * @returns {string}
+	 */
+	function plainInlineText(html) {
+		return decodeHtmlEntities(
+			String(html ?? '')
+				.replace(/<br\s*\/?>/gi, '\n')
+				.replace(/<[^>]+>/g, '')
+				.replace(/\s+/g, ' ')
 		);
 	}
 
@@ -380,11 +385,7 @@
 		<header class="studio-doc__header layout-x-low">
 			<span class="studio-doc__icon studio-icon-tile">
 				{#if iconUrl}
-					<span
-						class="studio-doc__icon-mask"
-						style:--studio-doc-icon-url={iconMaskUrl}
-						aria-hidden="true"
-					></span>
+					<AutoSvg class="studio-doc__icon-image" fill="currentColor" src={iconUrl} alt="" />
 				{:else}
 					<Ico icon="mdi:cube-outline" size={5} />
 				{/if}
@@ -437,16 +438,13 @@
 		width: 2.35rem;
 		height: 2.35rem;
 		background: var(--studio-panel-header-bg, var(--color-surface-100-900));
-		color: light-dark(var(--color-primary-600), var(--color-primary-400));
 	}
 
-	.studio-doc__icon-mask {
+	.studio-doc__icon-image {
 		display: block;
 		width: 1.55rem;
 		height: 1.55rem;
-		background: currentcolor;
-		mask: var(--studio-doc-icon-url) center / contain no-repeat;
-		-webkit-mask: var(--studio-doc-icon-url) center / contain no-repeat;
+		object-fit: contain;
 	}
 
 	.studio-doc__title {

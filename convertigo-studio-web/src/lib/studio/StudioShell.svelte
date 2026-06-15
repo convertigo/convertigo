@@ -274,28 +274,100 @@
 		.studio-shell {
 			height: auto;
 			min-height: 100vh;
+			min-height: 100dvh;
+			grid-template-rows: auto auto auto;
 		}
 
-		.studio-shell__workspace {
+		.studio-shell--backend .studio-shell__workspace,
+		.studio-shell--frontend .studio-shell__workspace {
 			grid-template-columns: minmax(0, 1fr) !important;
 			grid-template-areas:
 				'tree'
 				'tools'
 				'main';
+			grid-template-rows: auto auto auto;
+			align-content: start;
+			gap: var(--studio-shell-gap);
 		}
 
 		.studio-shell__tree,
 		.studio-shell__tools,
 		.studio-shell__main {
+			width: 100%;
+			min-width: 0;
+			min-height: 0;
+		}
+
+		.studio-shell__tree {
+			height: min(22rem, 42vh);
+			height: min(22rem, 42dvh);
+			min-height: 12rem;
+		}
+
+		.studio-shell__tools {
+			height: min(30rem, 55vh);
+			height: min(30rem, 55dvh);
 			min-height: 16rem;
+		}
+
+		.studio-shell__main {
+			height: min(44rem, 78vh);
+			height: min(44rem, 78dvh);
+			min-height: 22rem;
 		}
 
 		.studio-resizer {
 			display: none;
 		}
 
+		.studio-shell--backend.studio-shell--tree-hidden .studio-shell__workspace,
+		.studio-shell--frontend.studio-shell--tree-hidden .studio-shell__workspace {
+			grid-template-areas:
+				'tools'
+				'main';
+			grid-template-rows: auto auto;
+		}
+
+		.studio-shell--backend.studio-shell--tools-hidden .studio-shell__workspace,
+		.studio-shell--frontend.studio-shell--tools-hidden .studio-shell__workspace {
+			grid-template-areas:
+				'tree'
+				'main';
+			grid-template-rows: auto auto;
+		}
+
+		.studio-shell--backend.studio-shell--tree-hidden.studio-shell--tools-hidden
+			.studio-shell__workspace,
+		.studio-shell--frontend.studio-shell--tree-hidden.studio-shell--tools-hidden
+			.studio-shell__workspace {
+			grid-template-areas: 'main';
+			grid-template-rows: auto;
+		}
+
 		.studio-shell__logs-panel {
-			height: min(var(--studio-logs-height), 70vh);
+			height: min(var(--studio-logs-height), 60vh);
+			height: min(var(--studio-logs-height), 60dvh);
+		}
+	}
+
+	@media (max-width: 520px) {
+		.studio-shell__workspace {
+			gap: var(--studio-shell-gap);
+		}
+
+		.studio-shell__tree {
+			height: min(20rem, 40vh);
+			height: min(20rem, 40dvh);
+		}
+
+		.studio-shell__tools {
+			height: min(28rem, 54vh);
+			height: min(28rem, 54dvh);
+		}
+
+		.studio-shell__main {
+			height: min(42rem, 76vh);
+			height: min(42rem, 76dvh);
 		}
 	}
 </style>
