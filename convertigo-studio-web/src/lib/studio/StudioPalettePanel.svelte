@@ -1,13 +1,13 @@
 <script>
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
-	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl } from '$lib/utils/service';
 	import { loadPaletteContext } from './paletteContext';
+	import StudioEmptyState from './StudioEmptyState.svelte';
+	import StudioSection from './StudioSection.svelte';
 
 	/**
 	 * @typedef {Object} PaletteItem
@@ -220,8 +220,8 @@
 	}
 </script>
 
-<div class="studio-palette">
-	<div class="studio-palette__search">
+<div class="studio-palette layout-y-stretch">
+	<div class="studio-palette__search studio-panel-toolbar">
 		<InputGroup
 			id="studio-palette-search"
 			type="search"
@@ -234,16 +234,13 @@
 
 	<div class="studio-palette__content">
 		{#if paletteLoading && paletteContext.categories.length === 0}
-			<AutoPlaceholder loading={true} />
-			<AutoPlaceholder loading={true} class="h-4 w-32" />
+			<StudioEmptyState message="Loading palette" loading />
 		{:else if paletteError}
-			<div class="studio-palette__empty">
-				{paletteError}
-			</div>
+			<StudioEmptyState message={paletteError} />
 		{:else if !selectedId}
-			<div class="studio-palette__empty">No object selected</div>
+			<StudioEmptyState message="No object selected" />
 		{:else if filteredCategories.length === 0}
-			<div class="studio-palette__empty">No component available</div>
+			<StudioEmptyState message="No component available" />
 		{:else}
 			<AccordionGroup
 				class="studio-palette__categories"
@@ -255,24 +252,19 @@
 				multiple
 			>
 				{#each filteredCategories as category, index (categoryKey(category, index))}
-					<AccordionSection
+					<StudioSection
 						value={categoryKey(category, index)}
-						class="studio-palette__category"
-						triggerClass="studio-palette__category-title"
-						panelClass="studio-palette__category-panel"
 						title={category.name}
 						count={category.items?.length ?? 0}
 						countVariant="number"
-						titleClass="studio-palette__category-name"
-						indicatorSize={4}
 					>
 						{#snippet panel()}
-							<div class="studio-palette__items">
+							<div class="studio-palette__items layout-grid-none-[8.2rem]">
 								{#each category.items ?? [] as item (itemKey(item))}
 									{@const selected = itemKey(item) === selectedPaletteItemKey}
 									<button
 										type="button"
-										class="studio-palette__item"
+										class="studio-palette__item layout-x-start-low"
 										class:studio-palette__item--selected={selected}
 										aria-label={itemDisplayName(item)}
 										aria-pressed={selected}
@@ -294,13 +286,15 @@
 											{/if}
 										</span>
 										<span class="studio-palette__item-main">
-											<span class="studio-palette__item-name">{itemDisplayName(item)}</span>
+											<span class="studio-palette__item-name studio-ellipsis"
+												>{itemDisplayName(item)}</span
+											>
 										</span>
 									</button>
 								{/each}
 							</div>
 						{/snippet}
-					</AccordionSection>
+					</StudioSection>
 				{/each}
 			</AccordionGroup>
 		{/if}
@@ -309,16 +303,8 @@
 
 <style>
 	.studio-palette {
-		display: flex;
 		height: 100%;
 		min-height: 0;
-		flex-direction: column;
-	}
-
-	.studio-palette__search {
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: color-mix(in oklab, var(--color-surface-50-950) 94%, transparent);
-		padding: 0.5rem;
 	}
 
 	.studio-palette__content {
@@ -332,71 +318,12 @@
 		width: 100%;
 	}
 
-	:global(.studio-palette__category) {
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: var(--studio-panel-bg, var(--color-surface-50-950));
-	}
-
-	:global(.studio-palette__category:first-child) {
-		border-top: 0;
-	}
-
-	:global(.studio-palette__category-title) {
-		min-height: 2.45rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: var(
-			--studio-panel-header-bg,
-			color-mix(in oklab, var(--color-surface-100-900) 88%, transparent)
-		);
-		color: var(--color-surface-800-200);
-		padding: 0.45rem 0.65rem;
-		font-size: 0.78rem;
-		font-weight: 700;
-		text-transform: uppercase;
-	}
-
-	:global(.studio-palette__category-title:hover:not(:disabled)) {
-		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
-		color: var(--color-surface-950-50);
-	}
-
-	:global(.studio-palette__category-title [data-state]) {
-		color: var(--color-surface-700-300);
-	}
-
-	:global(.studio-palette__category-title:hover:not(:disabled) [data-state]) {
-		color: var(--color-surface-950-50);
-	}
-
-	:global(.studio-palette__category-title svg) {
-		width: 1rem;
-		height: 1rem;
-	}
-
-	:global(.studio-palette__category-name) {
-		overflow: hidden;
-		color: currentcolor;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	:global(.studio-palette__category-panel) {
-		background: color-mix(in oklab, var(--color-surface-50-950) 78%, transparent);
-		padding: 0;
-	}
-
 	.studio-palette__items {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(8.2rem, 1fr));
 		gap: 0.18rem;
 		padding: 0.35rem;
 	}
 
 	.studio-palette__item {
-		display: grid;
-		grid-template-columns: 1.35rem minmax(0, 1fr);
-		align-items: center;
-		gap: 0.35rem;
 		width: 100%;
 		min-height: 2.25rem;
 		border: 1px solid transparent;
@@ -431,22 +358,7 @@
 
 	.studio-palette__item-name {
 		display: block;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.studio-palette__item-name {
 		font-size: 0.72rem;
 		font-weight: 650;
-	}
-
-	.studio-palette__empty {
-		display: grid;
-		min-height: 7rem;
-		place-items: center;
-		color: var(--color-surface-600-400);
-		font-size: 0.82rem;
-		text-align: center;
 	}
 </style>

@@ -138,6 +138,64 @@
 	@apply m-0 -mt-px px-0 pt-0 pb-0;
 }
 
+@utility studio-panel-toolbar {
+	border-bottom: 1px solid var(--color-surface-200-800);
+	background: color-mix(in oklab, var(--color-surface-50-950) 94%, transparent);
+	padding: 0.5rem;
+}
+
+@utility studio-surface {
+	border: 1px solid var(--color-surface-200-800);
+	border-radius: 0.45rem;
+	background: color-mix(in oklab, var(--color-surface-100-900) 55%, transparent);
+}
+
+@utility studio-icon-tile {
+	display: grid;
+	flex: 0 0 auto;
+	place-items: center;
+	border: 1px solid var(--color-surface-200-800);
+	border-radius: 0.45rem;
+	background: var(--color-surface-50-950);
+	color: var(--color-primary-600-400);
+}
+
+@utility studio-label {
+	color: var(--color-surface-600-400);
+	font-size: 0.66rem;
+	font-weight: 750;
+	text-transform: uppercase;
+}
+
+@utility studio-caption {
+	color: var(--color-surface-700-300);
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+@utility studio-ellipsis {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+@utility studio-pill {
+	display: inline-flex;
+	max-width: 100%;
+	min-width: 0;
+	align-items: center;
+	gap: 0.28rem;
+	border: 1px solid var(--color-surface-200-800);
+	border-radius: 999px;
+	background: var(--color-surface-50-950);
+	color: var(--color-surface-700-300);
+	padding: 0.18rem 0.45rem;
+	font-size: 0.68rem;
+	font-weight: 650;
+}
+
 @utility table-frame {
 	border: 0;
 	border-radius: var(--radius-base);

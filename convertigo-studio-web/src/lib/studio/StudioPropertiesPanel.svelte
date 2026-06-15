@@ -2,7 +2,6 @@
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
-	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import { createDatabaseObjectProperties } from '$lib/common/DatabaseObjectProperties.svelte.js';
 	import LightSvelte from '$lib/common/Light.svelte';
 	import Editor from '$lib/studio/editor/Editor.svelte';
@@ -12,6 +11,8 @@
 		isMonacoProperty
 	} from '$lib/studio/propertyEditors';
 	import { untrack } from 'svelte';
+	import StudioEmptyState from './StudioEmptyState.svelte';
+	import StudioSection from './StudioSection.svelte';
 
 	/**
 	 * @type {{
@@ -128,8 +129,8 @@
 	}
 </script>
 
-<div class="studio-properties">
-	<div class="studio-properties__actions">
+<div class="studio-properties layout-y-stretch">
+	<div class="studio-properties__actions studio-panel-toolbar">
 		<SaveCancelButtons
 			class="w-full"
 			saveLabel="Save"
@@ -143,7 +144,7 @@
 
 	<div class="studio-properties__body" class:studio-properties__body--loading={loading}>
 		{#if !selectedId}
-			<div class="studio-properties__empty">No object selected</div>
+			<StudioEmptyState message="No object selected" />
 		{:else}
 			<AccordionGroup
 				class="studio-properties__sections"
@@ -156,23 +157,18 @@
 			>
 				{#each categories as { category, properties: rows } (category)}
 					{@const total = rows.length}
-					<AccordionSection
+					<StudioSection
 						value={category}
-						class="studio-properties__section"
-						triggerClass="studio-properties__section-trigger"
-						panelClass="studio-properties__section-panel"
 						disabled={total == 0}
 						title={category}
 						count={total}
 						countVariant="number"
-						titleClass="studio-properties__section-title"
-						indicatorSize={4}
 					>
 						{#snippet panel()}
 							{#if total === 0}
-								<div class="studio-properties__empty studio-properties__empty--small">Empty</div>
+								<StudioEmptyState message="Empty" small />
 							{:else}
-								<div class="studio-properties__fields">
+								<div class="studio-properties__fields layout-y-none">
 									{#each rows as row (row.name ?? row.displayName)}
 										{@const { class: cls, value, originalValue, values } = row}
 										{@const label = row.displayName ?? row.name ?? ''}
@@ -181,7 +177,7 @@
 											class="studio-properties__field"
 											class:studio-properties__field--changed={changed}
 										>
-											<div class="studio-properties__field-header">
+											<div class="studio-properties__field-header layout-x-between-none">
 												<span class="studio-properties__field-label" title={label}>
 													{label}
 												</span>
@@ -219,11 +215,12 @@
 								</div>
 							{/if}
 						{/snippet}
-					</AccordionSection>
+					</StudioSection>
 				{/each}
 			</AccordionGroup>
 			{#if loading}
-				<span class="studio-properties__loading" aria-label="Loading properties"></span>
+				<span class="studio-properties__loading studio-spinner" aria-label="Loading properties"
+				></span>
 			{/if}
 		{/if}
 	</div>
@@ -256,16 +253,8 @@
 
 <style>
 	.studio-properties {
-		display: flex;
 		height: 100%;
 		min-height: 0;
-		flex-direction: column;
-	}
-
-	.studio-properties__actions {
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: color-mix(in oklab, var(--color-surface-50-950) 94%, transparent);
-		padding: 0.45rem 0.5rem;
 	}
 
 	.studio-properties__body {
@@ -286,90 +275,14 @@
 		right: 0.5rem;
 		bottom: 0.5rem;
 		display: block;
-		width: 1.35rem;
-		height: 1.35rem;
 		margin-left: auto;
-		border: 2px solid color-mix(in oklab, var(--color-primary-500) 20%, transparent);
-		border-top-color: var(--color-primary-500);
-		border-radius: 999px;
 		background: color-mix(in oklab, var(--color-surface-50-950) 92%, transparent);
 		box-shadow: 0 0.5rem 1.4rem color-mix(in oklab, black 18%, transparent);
-		animation: studio-properties-loading 0.75s linear infinite;
 		pointer-events: none;
-	}
-
-	.studio-properties__empty {
-		display: grid;
-		min-height: 8rem;
-		place-items: center;
-		color: var(--color-surface-600-400);
-		font-size: 0.82rem;
-	}
-
-	.studio-properties__empty--small {
-		min-height: 3rem;
-		border-top: 1px dashed var(--color-surface-200-800);
 	}
 
 	:global(.studio-properties__sections) {
 		width: 100%;
-	}
-
-	:global(.studio-properties__section) {
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: var(--studio-panel-bg, var(--color-surface-50-950));
-	}
-
-	:global(.studio-properties__section:first-child) {
-		border-top: 0;
-	}
-
-	:global(.studio-properties__section-trigger) {
-		min-height: 2.45rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: var(
-			--studio-panel-header-bg,
-			color-mix(in oklab, var(--color-surface-100-900) 88%, transparent)
-		);
-		color: var(--color-surface-800-200);
-		padding: 0.45rem 0.65rem;
-		font-size: 0.78rem;
-		font-weight: 700;
-		text-transform: uppercase;
-	}
-
-	:global(.studio-properties__section-trigger:hover:not(:disabled)) {
-		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
-		color: var(--color-surface-950-50);
-	}
-
-	:global(.studio-properties__section-trigger [data-state]) {
-		color: var(--color-surface-700-300);
-	}
-
-	:global(.studio-properties__section-trigger:hover:not(:disabled) [data-state]) {
-		color: var(--color-surface-950-50);
-	}
-
-	:global(.studio-properties__section-trigger svg) {
-		width: 1rem;
-		height: 1rem;
-	}
-
-	:global(.studio-properties__section-title) {
-		overflow: hidden;
-		color: currentcolor;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	:global(.studio-properties__section-panel) {
-		background: color-mix(in oklab, var(--color-surface-50-950) 78%, transparent);
-		padding: 0;
-	}
-
-	.studio-properties__fields {
-		display: grid;
 	}
 
 	.studio-properties__field {
@@ -388,10 +301,7 @@
 	}
 
 	.studio-properties__field-header {
-		display: flex;
 		min-width: 0;
-		align-items: center;
-		justify-content: space-between;
 		gap: 0.4rem;
 	}
 
@@ -518,12 +428,6 @@
 	@media (max-width: 760px) {
 		.studio-properties__editor {
 			inset: 0.5rem;
-		}
-	}
-
-	@keyframes studio-properties-loading {
-		to {
-			transform: rotate(360deg);
 		}
 	}
 </style>

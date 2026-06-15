@@ -2,8 +2,6 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import Button from '$lib/admin/components/Button.svelte';
-	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
 	import Projects from '$lib/common/Projects.svelte.js';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
@@ -13,13 +11,18 @@
 	import StudioDevicePanel from '$lib/studio/StudioDevicePanel.svelte';
 	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
+	import StudioEmptyState from '$lib/studio/StudioEmptyState.svelte';
 	import StudioExecutionPanel from '$lib/studio/StudioExecutionPanel.svelte';
+	import StudioIconButton from '$lib/studio/StudioIconButton.svelte';
 	import StudioLogsPanel from '$lib/studio/StudioLogsPanel.svelte';
 	import StudioPalettePanel from '$lib/studio/StudioPalettePanel.svelte';
 	import StudioPanel from '$lib/studio/StudioPanel.svelte';
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
 	import StudioPropertiesPanel from '$lib/studio/StudioPropertiesPanel.svelte';
+	import StudioShell from '$lib/studio/StudioShell.svelte';
 	import StudioSourcePickerPanel from '$lib/studio/StudioSourcePickerPanel.svelte';
+	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
+	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { resolve } from '$lib/utils/route';
@@ -182,8 +185,8 @@
 		[
 			`--studio-tree-track:${collapsedPanels.tree ? '0px' : `${layoutSizes.treeWidth}px`}`,
 			`--studio-tools-track:${collapsedPanels.tools ? '0px' : `${layoutSizes.toolsWidth}px`}`,
-			`--studio-tree-resizer-track:${collapsedPanels.tree ? '0px' : '0.45rem'}`,
-			`--studio-tools-resizer-track:${collapsedPanels.tools ? '0px' : '0.45rem'}`,
+			`--studio-tree-resizer-track:${collapsedPanels.tree ? '0px' : 'var(--studio-shell-gap, 1.5rem)'}`,
+			`--studio-tools-resizer-track:${collapsedPanels.tools ? '0px' : 'var(--studio-shell-gap, 1.5rem)'}`,
 			`--studio-tree-row:${collapsedPanels.tree ? '2.65rem' : 'minmax(12rem, 18rem)'}`,
 			`--studio-tools-row:minmax(18rem, 24rem)`,
 			`--studio-logs-height:${layoutSizes.logsHeight}px`
@@ -1048,21 +1051,16 @@
 </svelte:head>
 
 {#snippet projectActions()}
-	<Button
-		full={false}
+	<StudioIconButton
 		icon={projectActionBusy === 'save' ? 'mdi:sync' : 'mdi:content-save-edit-outline'}
-		class={`studio__panel-action button-ico-secondary h-8! w-8! justify-center p-0! ${
-			selectedProjectDirty ? 'studio__panel-action--dirty' : ''
-		}`}
+		dirty={selectedProjectDirty}
 		title={selectedProjectDirty ? 'Save project - unsaved changes' : 'Save project'}
 		ariaLabel={selectedProjectDirty ? 'Save project - unsaved changes' : 'Save project'}
 		disabled={!selectedProjectName || Boolean(projectActionBusy)}
 		onclick={saveSelectedProject}
 	/>
-	<Button
-		full={false}
+	<StudioIconButton
 		icon={projectActionBusy === 'reload' ? 'mdi:sync' : 'mdi:reload'}
-		class="studio__panel-action button-ico-secondary h-8! w-8! justify-center p-0!"
 		title="Reload project"
 		ariaLabel="Reload project"
 		disabled={!selectedProjectName || Boolean(projectActionBusy)}
@@ -1071,975 +1069,222 @@
 {/snippet}
 
 {#snippet logsToolbarLead()}
-	<span class="studio__logs-toolbar-title">
+	<span class="studio__logs-toolbar-title layout-x-low studio-ellipsis studio-caption">
 		<Ico icon="mdi:file-document-box-outline" size={4} />Logs
 	</span>
 {/snippet}
 
 {#snippet logsToolbarTrail()}
-	<button
-		type="button"
-		class="studio__logs-toolbar-collapse"
+	<StudioIconButton
+		icon="mdi:chevron-down"
 		title="Collapse logs"
-		aria-label="Collapse logs"
+		ariaLabel="Collapse logs"
+		size="xs"
 		onclick={() => setLogsPanelOpen(false)}
-	>
-		<Ico icon="mdi:chevron-down" size={4} />
-	</button>
+	/>
 {/snippet}
 
-<section
-	class={`studio studio--${profile}`}
-	class:studio--tree-hidden={collapsedPanels.tree}
-	class:studio--tools-hidden={collapsedPanels.tools}
-	style={workspaceStyle}
->
-	<header class="studio__topbar">
-		<div class="studio__brand">
-			<span class="studio__logo">
-				<Ico icon="convertigo:logo" size={5} />
-			</span>
-			<div class="studio__title">
-				<strong>Convertigo Studio</strong>
-			</div>
-			<div class="studio__view-toggles" aria-label="Studio views">
-				<button
-					type="button"
-					aria-label={collapsedPanels.tree ? 'Show projects' : 'Hide projects'}
-					aria-pressed={!collapsedPanels.tree}
-					title={collapsedPanels.tree ? 'Show projects' : 'Hide projects'}
-					class:studio__view-toggle--active={!collapsedPanels.tree}
-					class="studio__view-toggle"
-					onclick={() => toggleCollapsedPanel('tree')}
-				>
-					<Ico icon="mdi:folder-outline" size={4} />
-				</button>
-				<button
-					type="button"
-					aria-label={collapsedPanels.tools
-						? 'Show palette and properties'
-						: 'Hide palette and properties'}
-					aria-pressed={!collapsedPanels.tools}
-					title={collapsedPanels.tools
-						? 'Show palette and properties'
-						: 'Hide palette and properties'}
-					class:studio__view-toggle--active={!collapsedPanels.tools}
-					class="studio__view-toggle"
-					onclick={() => toggleCollapsedPanel('tools')}
-				>
-					<Ico icon="mdi:tune-vertical-variant" size={4} />
-				</button>
-			</div>
-		</div>
+{#snippet topbar()}
+	<StudioTopbar
+		{profile}
+		{profiles}
+		{collapsedPanels}
+		{breadcrumbs}
+		{showFlowOverview}
+		onSelectBreadcrumb={selectObject}
+		onSetProfile={setProfile}
+		onTogglePanel={toggleCollapsedPanel}
+		onShowFlow={() => setWorkPanel('flow')}
+	/>
+{/snippet}
 
-		<nav class="studio__breadcrumb" aria-label="Selection path">
-			{#if breadcrumbs.length}
-				{#each breadcrumbs as item, index (item.id)}
-					{#if index > 0}
-						<Ico icon="mdi:chevron-right" size={3} />
-					{/if}
-					<button type="button" title={item.title} onclick={() => selectObject(item.id)}>
-						{item.label}
-					</button>
-				{/each}
-			{:else}
-				<span>Projects</span>
-			{/if}
-		</nav>
+{#snippet tree()}
+	<StudioPanel
+		title="Projects"
+		icon="mdi:folder-outline"
+		class="studio__tree-panel"
+		actions={projectActions}
+	>
+		<StudioTreePanel
+			bind:selectedId
+			bind:renameTargetId
+			refreshSerial={treeRefreshSerial}
+			refreshMutation={lastStudioMutation}
+			refreshMutationSerial={studioMutationSerial}
+			onMutation={onStudioMutation}
+		/>
+	</StudioPanel>
+{/snippet}
 
-		<div class="studio__actions">
-			<div class="studio__profiles" role="radiogroup" aria-label="Studio profile">
-				{#each profiles as item (item.id)}
-					<button
-						type="button"
-						role="radio"
-						aria-checked={profile === item.id}
-						class:studio__profile--active={profile === item.id}
-						class="studio__profile"
-						title={item.description}
-						onclick={() => setProfile(item.id)}
-					>
-						<Ico icon={item.icon} size={4} />
-						<span>{item.label}</span>
-					</button>
-				{/each}
-			</div>
-			<span class="studio__theme-switch">
-				<LightSwitch />
-			</span>
-			{#if showFlowOverview}
-				<button
-					type="button"
-					class="studio__flow-button"
-					title="Show flow"
-					aria-label="Show flow"
-					onclick={() => setWorkPanel('flow')}
-				>
-					<Ico icon="mdi:source-branch" size={4} />
-				</button>
-			{/if}
-			<Button
-				full={false}
-				href={resolve('/admin/')}
-				icon="mdi:lock-outline"
-				class="button-ico-secondary h-9! w-9! justify-center p-0!"
-				title="Admin console"
-				ariaLabel="Admin console"
-			/>
-		</div>
-	</header>
+{#snippet executionPane()}
+	<StudioExecutionPanel
+		projectName={selectedProjectName}
+		requestable={executionTarget?.requestable ?? null}
+		requestableKind={executionTarget?.kind ?? ''}
+		connectorName={executionTarget?.connectorName ?? ''}
+	/>
+{/snippet}
 
-	<div class="studio__workspace">
-		<div class="studio__tree" class:studio__tree--hidden={collapsedPanels.tree}>
-			<StudioPanel
-				title="Projects"
-				icon="mdi:folder-outline"
-				class="studio__tree-panel"
-				actions={projectActions}
-			>
-				<StudioTreePanel
-					bind:selectedId
-					bind:renameTargetId
-					refreshSerial={treeRefreshSerial}
-					refreshMutation={lastStudioMutation}
-					refreshMutationSerial={studioMutationSerial}
-					onMutation={onStudioMutation}
-				/>
-			</StudioPanel>
-		</div>
-		<button
-			type="button"
-			class={`studio-resizer studio-resizer--vertical studio-resizer--tree ${
-				collapsedPanels.tree ? 'studio-resizer--hidden' : ''
-			}`}
-			aria-label="Resize projects panel"
-			title="Resize projects panel"
-			onpointerdown={(event) => startResize(event, 'tree')}
-			onkeydown={(event) => resizeWithKeyboard(event, 'tree')}
-		></button>
+{#snippet codePane()}
+	<StudioEditorPanel
+		{selectedId}
+		{editorTarget}
+		active={activeWorkPanel === 'code'}
+		onSave={refreshAfterPropertySave}
+		onSelectObject={selectObject}
+	/>
+{/snippet}
 
-		<main class="studio__main">
-			{#if showStudioWork}
-				<div class="studio-workbench studio-work">
-					<div class="studio-workbench__tabs" role="tablist" aria-label="Studio workspace views">
-						{#each WORK_VIEWS as view (view.id)}
-							<button
-								type="button"
-								role="tab"
-								class="studio-workbench__tab"
-								class:studio-workbench__tab--active={activeWorkPanel === view.id}
-								aria-selected={activeWorkPanel === view.id}
-								disabled={isWorkPanelDisabled(view.id)}
-								title={view.label}
-								onclick={() => setWorkPanel(view.id)}
-							>
-								<Ico icon={view.icon} size={4} />
-								<span>{view.label}</span>
-							</button>
-						{/each}
-					</div>
-
-					<div class="studio-workbench__content">
-						<div
-							class="studio-workbench__pane"
-							role="tabpanel"
-							aria-label="Execution"
-							hidden={activeWorkPanel !== 'execution'}
-						>
-							<StudioExecutionPanel
-								projectName={selectedProjectName}
-								requestable={executionTarget?.requestable ?? null}
-								requestableKind={executionTarget?.kind ?? ''}
-								connectorName={executionTarget?.connectorName ?? ''}
-							/>
-						</div>
-
-						<div
-							class="studio-workbench__pane studio-workbench__pane--fill"
-							role="tabpanel"
-							aria-label="Code"
-							hidden={activeWorkPanel !== 'code'}
-						>
-							<StudioEditorPanel
-								{selectedId}
-								{editorTarget}
-								active={activeWorkPanel === 'code'}
-								onSave={refreshAfterPropertySave}
-								onSelectObject={selectObject}
-							/>
-						</div>
-
-						{#if activeWorkPanel === 'flow'}
-							<div
-								class="studio-workbench__pane studio-workbench__pane--fill"
-								role="tabpanel"
-								aria-label="Flow"
-							>
-								{#if showFlowOverview}
-									<FlowViewer
-										projectName={selectedProjectName}
-										{sequences}
-										selectedSequenceName={selectedFlowSequenceName}
-										autoSelectFirst={false}
-										selectedObjectId={selectedId}
-										refreshSerial={flowRefreshSerial}
-										refreshMutation={lastStudioMutation}
-										refreshMutationSerial={studioMutationSerial}
-										onSelectNode={onFlowNodeSelected}
-										onMutation={onStudioMutation}
-									/>
-								{:else}
-									<div class="studio__empty">No sequence selected</div>
-								{/if}
-							</div>
-						{/if}
-
-						<div
-							class="studio-workbench__pane studio-workbench__pane--fill"
-							role="tabpanel"
-							aria-label="Documentation"
-							hidden={activeWorkPanel !== 'doc'}
-						>
-							<StudioDocPanel
-								paletteItem={selectedDocItem}
-								loading={selectedDocLoading}
-								error={selectedDocError}
-								emptyMessage="No documentation available for the current selection."
-							/>
-						</div>
-					</div>
-				</div>
-			{:else}
-				<StudioPanel
-					title="Frontend"
-					icon="mdi:smartphone-link"
-					class="studio__primary-panel"
-					contentClass="studio__panel-fill"
-				>
-					<StudioPreviewPanel
-						projectName={selectedProjectName}
-						bind:selectedDeviceId={frontendDeviceId}
-						bind:landscape={frontendLandscape}
-						showDeviceSelector={false}
-					/>
-				</StudioPanel>
-			{/if}
-		</main>
-
-		<aside class="studio__tools" class:studio__tools--hidden={collapsedPanels.tools}>
-			<div class="studio-side-stack">
-				<div class="studio-view-picker" role="tablist" aria-label="Studio side views">
-					{#each sideViews as view (view.id)}
-						<button
-							type="button"
-							role="tab"
-							class="studio-view-picker__item"
-							class:studio-view-picker__item--active={effectiveSidePanel === view.id}
-							aria-selected={effectiveSidePanel === view.id}
-							title={view.label}
-							onclick={() => setSidePanel(view.id)}
-						>
-							<Ico icon={view.icon} size={4} />
-							<span>{view.label}</span>
-						</button>
-					{/each}
-				</div>
-
-				<div
-					class="studio-side-stack__body"
-					role="tabpanel"
-					aria-label={activeSideView?.label ?? 'Side view'}
-				>
-					{#if showPalette}
-						<div class="studio-side-stack__pane" hidden={effectiveSidePanel !== 'palette'}>
-							<StudioPalettePanel
-								{selectedId}
-								active={effectiveSidePanel === 'palette'}
-								{selectedPaletteItem}
-								onPaletteItemSelect={selectPaletteItem}
-							/>
-						</div>
-					{/if}
-					{#if showDevicePicker}
-						<div class="studio-side-stack__pane" hidden={effectiveSidePanel !== 'devices'}>
-							<StudioDevicePanel
-								bind:selectedDeviceId={frontendDeviceId}
-								bind:landscape={frontendLandscape}
-							/>
-						</div>
-					{/if}
-					{#if showSourcePicker}
-						<div class="studio-side-stack__pane" hidden={effectiveSidePanel !== 'picker'}>
-							<StudioSourcePickerPanel
-								{selectedId}
-								active={effectiveSidePanel === 'picker'}
-								onSelectObject={selectObject}
-							/>
-						</div>
-					{/if}
-					<div class="studio-side-stack__pane" hidden={effectiveSidePanel !== 'properties'}>
-						<StudioPropertiesPanel
-							{selectedId}
-							active={effectiveSidePanel === 'properties'}
-							onSave={refreshAfterPropertySave}
-							onOpenPropertyEditor={openPropertyEditor}
-						/>
-					</div>
-				</div>
-			</div>
-		</aside>
-		<button
-			type="button"
-			class={`studio-resizer studio-resizer--vertical studio-resizer--tools ${
-				collapsedPanels.tools ? 'studio-resizer--hidden' : ''
-			}`}
-			aria-label="Resize tools panel"
-			title="Resize tools panel"
-			onpointerdown={(event) => startResize(event, 'tools')}
-			onkeydown={(event) => resizeWithKeyboard(event, 'tools')}
-		></button>
-	</div>
-
-	{#if logsPanelOpen}
-		<section class="studio__logs-panel" aria-label="Logs">
-			<button
-				type="button"
-				class="studio-resizer studio-resizer--logs"
-				aria-label="Resize logs panel"
-				title="Resize logs panel"
-				onpointerdown={(event) => startResize(event, 'logs')}
-				onkeydown={(event) => resizeWithKeyboard(event, 'logs')}
-			></button>
-			<div class="studio__logs-panel-body">
-				<StudioLogsPanel toolbarLead={logsToolbarLead} toolbarTrail={logsToolbarTrail} />
-			</div>
-		</section>
+{#snippet flowPane()}
+	{#if showFlowOverview}
+		<FlowViewer
+			projectName={selectedProjectName}
+			{sequences}
+			selectedSequenceName={selectedFlowSequenceName}
+			autoSelectFirst={false}
+			selectedObjectId={selectedId}
+			refreshSerial={flowRefreshSerial}
+			refreshMutation={lastStudioMutation}
+			refreshMutationSerial={studioMutationSerial}
+			onSelectNode={onFlowNodeSelected}
+			onMutation={onStudioMutation}
+		/>
+	{:else}
+		<StudioEmptyState message="No sequence selected" full />
 	{/if}
+{/snippet}
 
-	{#if !logsPanelOpen}
-		<button
-			type="button"
-			class="studio__logs-bar"
-			aria-expanded={logsPanelOpen}
-			onclick={() => setLogsPanelOpen(true)}
+{#snippet docPane()}
+	<StudioDocPanel
+		paletteItem={selectedDocItem}
+		loading={selectedDocLoading}
+		error={selectedDocError}
+		emptyMessage="No documentation available for the current selection."
+	/>
+{/snippet}
+
+{#snippet main()}
+	{#if showStudioWork}
+		<StudioTabbedFrame
+			items={WORK_VIEWS}
+			active={activeWorkPanel}
+			ariaLabel="Studio workspace views"
+			class="studio-work"
+			fillIds={['code', 'flow', 'doc']}
+			lazyIds={['flow']}
+			isDisabled={(id) => isWorkPanelDisabled(/** @type {WorkPanel} */ (id))}
+			onSelect={(id) => setWorkPanel(/** @type {WorkPanel} */ (id))}
+			panes={{
+				execution: executionPane,
+				code: codePane,
+				flow: flowPane,
+				doc: docPane
+			}}
+		/>
+	{:else}
+		<StudioPanel
+			title="Frontend"
+			icon="mdi:smartphone-link"
+			class="studio__primary-panel"
+			contentClass="studio__panel-fill"
 		>
-			<span><Ico icon="mdi:file-document-box-outline" size={4} />Logs</span>
-			<Ico icon="mdi:chevron-up" size={4} />
-		</button>
+			<StudioPreviewPanel
+				projectName={selectedProjectName}
+				bind:selectedDeviceId={frontendDeviceId}
+				bind:landscape={frontendLandscape}
+				showDeviceSelector={false}
+			/>
+		</StudioPanel>
 	{/if}
-</section>
+{/snippet}
+
+{#snippet palettePane()}
+	<StudioPalettePanel
+		{selectedId}
+		active={effectiveSidePanel === 'palette'}
+		{selectedPaletteItem}
+		onPaletteItemSelect={selectPaletteItem}
+	/>
+{/snippet}
+
+{#snippet devicesPane()}
+	<StudioDevicePanel bind:selectedDeviceId={frontendDeviceId} bind:landscape={frontendLandscape} />
+{/snippet}
+
+{#snippet pickerPane()}
+	<StudioSourcePickerPanel
+		{selectedId}
+		active={effectiveSidePanel === 'picker'}
+		onSelectObject={selectObject}
+	/>
+{/snippet}
+
+{#snippet propertiesPane()}
+	<StudioPropertiesPanel
+		{selectedId}
+		active={effectiveSidePanel === 'properties'}
+		onSave={refreshAfterPropertySave}
+		onOpenPropertyEditor={openPropertyEditor}
+	/>
+{/snippet}
+
+{#snippet tools()}
+	<StudioTabbedFrame
+		items={sideViews}
+		active={effectiveSidePanel}
+		ariaLabel="Studio side views"
+		panelLabel={activeSideView?.label ?? 'Side view'}
+		fillIds={SIDE_PANEL_IDS}
+		onSelect={(id) => setSidePanel(id)}
+		panes={{
+			devices: devicesPane,
+			palette: palettePane,
+			picker: pickerPane,
+			properties: propertiesPane
+		}}
+	/>
+{/snippet}
+
+{#snippet logs()}
+	<StudioLogsPanel toolbarLead={logsToolbarLead} toolbarTrail={logsToolbarTrail} />
+{/snippet}
+
+<StudioShell
+	{profile}
+	{collapsedPanels}
+	{workspaceStyle}
+	{logsPanelOpen}
+	onResizeStart={startResize}
+	onResizeKey={resizeWithKeyboard}
+	onOpenLogs={() => setLogsPanelOpen(true)}
+	{topbar}
+	{tree}
+	{main}
+	{tools}
+	{logs}
+/>
 
 <style>
-	.studio {
-		--studio-shell-bg: color-mix(
-			in oklab,
-			var(--color-surface-100-900) 82%,
-			var(--color-surface-200-800)
-		);
-		--studio-panel-bg: var(--color-surface-50-950);
-		--studio-panel-header-bg: color-mix(in oklab, var(--color-surface-100-900) 88%, transparent);
-		display: grid;
-		width: 100%;
-		height: 100vh;
-		min-width: 0;
-		min-height: 0;
-		grid-template-rows: auto minmax(0, 1fr) auto;
-		background: var(--studio-shell-bg);
-		color: var(--color-surface-950-50);
-	}
-
-	.studio__topbar {
-		display: grid;
-		grid-template-columns: minmax(11rem, auto) minmax(0, 1fr) auto;
-		align-items: center;
-		gap: 0.75rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: color-mix(in oklab, var(--studio-panel-bg) 92%, transparent);
-		padding: 0.55rem 0.75rem;
-	}
-
-	.studio__brand,
-	.studio__actions,
-	.studio__profiles,
-	.studio__profile,
-	.studio__breadcrumb {
-		display: flex;
-		align-items: center;
-	}
-
-	.studio__brand {
-		min-width: 0;
-		gap: 0.65rem;
-	}
-
-	.studio__logo {
-		display: grid;
-		width: 2rem;
-		height: 2rem;
-		flex: 0 0 auto;
-		place-items: center;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
-		background: var(--color-surface-50-950);
-		color: var(--color-primary-600-400);
-	}
-
-	.studio__title {
-		display: grid;
-		min-width: 0;
-		gap: 0.08rem;
-	}
-
-	.studio__view-toggles {
-		display: flex;
-		flex: 0 0 auto;
-		align-items: center;
-		gap: 0.18rem;
-		margin-left: 0.15rem;
-	}
-
-	.studio__view-toggle {
-		display: grid;
-		width: 2rem;
-		height: 2rem;
-		place-items: center;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.38rem;
-		background: var(--studio-shell-bg);
-		color: var(--color-surface-600-400);
-		padding: 0;
-	}
-
-	.studio__view-toggle:hover,
-	.studio__view-toggle--active {
-		border-color: color-mix(in oklab, var(--color-primary-500) 38%, transparent);
-		background: color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-		color: var(--color-primary-600-400);
-	}
-
-	.studio__title strong,
-	.studio__breadcrumb button,
-	.studio__breadcrumb span {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.studio__title strong {
-		font-size: 0.9rem;
-		line-height: 1.1;
-	}
-
-	.studio__profiles {
-		flex: 0 0 auto;
-		gap: 0.12rem;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
-		background: var(--studio-shell-bg);
-		padding: 0.16rem;
-	}
-
-	.studio__profile {
-		gap: 0.35rem;
-		height: 2rem;
-		border: 0;
-		border-radius: 0.3rem;
-		background: transparent;
-		color: var(--color-surface-700-300);
-		padding: 0 0.65rem;
-		font-size: 0.78rem;
-		font-weight: 700;
-	}
-
-	.studio__profile:hover {
-		color: var(--color-surface-950-50);
-		background: color-mix(in oklab, var(--color-surface-300-700) 40%, transparent);
-	}
-
-	.studio__profile--active {
-		background: var(--color-primary-500);
-		color: var(--color-primary-contrast-500);
-	}
-
-	.studio__actions {
-		min-width: 0;
-		justify-content: flex-end;
-		gap: 0.5rem;
-	}
-
-	.studio__breadcrumb {
-		min-width: 0;
-		justify-self: stretch;
-		gap: 0.18rem;
-		color: var(--color-surface-600-400);
-		font-size: 0.76rem;
-	}
-
-	.studio__breadcrumb button,
-	.studio__breadcrumb span {
-		max-width: 14rem;
-		border: 0;
-		border-radius: 0.3rem;
-		background: transparent;
-		color: inherit;
-		padding: 0.28rem 0.32rem;
-		font-size: inherit;
-		font-weight: 650;
-		text-align: left;
-	}
-
-	.studio__breadcrumb button:hover {
-		background: color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-		color: var(--color-primary-700-300);
-	}
-
-	.studio__theme-switch {
-		display: flex;
-		flex: 0 0 auto;
-		align-items: center;
-	}
-
-	.studio__flow-button {
-		display: grid;
-		width: 2.25rem;
-		height: 2.25rem;
-		place-items: center;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.4rem;
-		background: var(--studio-panel-bg);
-		color: var(--color-surface-700-300);
-		padding: 0;
-	}
-
-	.studio__flow-button:hover {
-		background: color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-		color: var(--color-primary-600-400);
-	}
-
-	:global(.studio__panel-action--dirty) {
-		position: relative;
-		border-color: color-mix(in oklab, var(--color-primary-500) 55%, transparent);
-		color: var(--color-primary-600-400);
-	}
-
-	:global(.studio__panel-action--dirty)::after {
-		position: absolute;
-		top: 0.28rem;
-		right: 0.28rem;
-		width: 0.42rem;
-		height: 0.42rem;
-		border: 1px solid var(--studio-panel-bg);
-		border-radius: 999px;
-		background: var(--color-primary-500);
-		content: '';
-	}
-
-	.studio__workspace {
-		display: grid;
-		min-width: 0;
-		min-height: 0;
-		column-gap: 0.28rem;
-		row-gap: 0.55rem;
-		padding: 0.55rem;
-	}
-
-	.studio--backend .studio__workspace,
-	.studio--frontend .studio__workspace {
-		grid-template-columns:
-			var(--studio-tree-track) var(--studio-tree-resizer-track) var(--studio-tools-track)
-			var(--studio-tools-resizer-track)
-			minmax(0, 1fr);
-		grid-template-areas: 'tree tree-resizer tools tools-resizer main';
-	}
-
-	.studio__tree--hidden,
-	.studio__tools--hidden,
-	.studio-resizer--hidden {
-		display: none;
-	}
-
-	.studio__tree {
-		grid-area: tree;
-		min-width: 0;
-		min-height: 0;
-	}
-
-	.studio__tree :global(.studio__tree-panel) {
-		height: 100%;
-	}
-
-	.studio__main {
-		grid-area: main;
-		min-width: 0;
-		min-height: 0;
-		overflow: hidden;
-	}
-
-	.studio__tools {
-		grid-area: tools;
-		min-width: 0;
-		min-height: 0;
-	}
-
-	.studio-resizer {
-		position: relative;
-		min-width: 0;
-		min-height: 0;
-		border: 0;
-		background: transparent;
-		padding: 0;
-	}
-
-	.studio-resizer::before {
-		position: absolute;
-		border-radius: 999px;
-		background: transparent;
-		content: '';
-		transition:
-			background 0.14s ease,
-			inset 0.14s ease;
-	}
-
-	.studio-resizer:hover::before,
-	.studio-resizer:focus-visible::before {
-		background: color-mix(in oklab, var(--color-primary-500) 42%, transparent);
-	}
-
-	.studio-resizer--vertical {
-		cursor: col-resize;
-	}
-
-	.studio-resizer--vertical::before {
-		inset: 0.35rem 0.16rem;
-	}
-
-	.studio-resizer--vertical:hover::before,
-	.studio-resizer--vertical:focus-visible::before {
-		inset: 0.15rem 0.08rem;
-	}
-
-	.studio-resizer--tree {
-		grid-area: tree-resizer;
-	}
-
-	.studio-resizer--tools {
-		grid-area: tools-resizer;
-	}
-
-	.studio-resizer--logs {
-		position: absolute;
-		z-index: 2;
-		top: -0.28rem;
-		right: 0;
-		left: 0;
-		height: 0.55rem;
-		cursor: row-resize;
-	}
-
-	.studio-resizer--logs::before {
-		inset: 0.2rem 48%;
-	}
-
-	.studio-resizer--logs:hover::before,
-	.studio-resizer--logs:focus-visible::before {
-		inset: 0.12rem 44%;
-	}
-
-	.studio__primary-panel {
+	:global(.studio__primary-panel) {
 		height: 100%;
 		min-width: 0;
 		min-height: 0;
-	}
-
-	.studio-side-stack {
-		display: grid;
-		height: 100%;
-		min-width: 0;
-		min-height: 0;
-		grid-template-rows: auto minmax(0, 1fr);
-		overflow: hidden;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
-		background: var(--studio-panel-bg);
-	}
-
-	.studio-view-picker {
-		display: grid;
-		grid-auto-columns: minmax(0, 1fr);
-		grid-auto-flow: column;
-		gap: 0.18rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: var(--studio-panel-header-bg);
-		padding: 0.22rem;
-	}
-
-	.studio-view-picker__item {
-		display: flex;
-		min-width: 0;
-		height: 2.15rem;
-		align-items: center;
-		justify-content: center;
-		gap: 0.35rem;
-		border: 1px solid transparent;
-		border-radius: 0.3rem;
-		background: transparent;
-		color: var(--color-surface-700-300);
-		padding: 0 0.45rem;
-		font-size: 0.72rem;
-		font-weight: 750;
-		text-transform: uppercase;
-	}
-
-	.studio-view-picker__item:hover,
-	.studio-view-picker__item--active {
-		border-color: color-mix(in oklab, var(--color-primary-500) 38%, transparent);
-		background: color-mix(in oklab, var(--color-primary-500) 11%, transparent);
-		color: var(--color-primary-600-400);
-	}
-
-	.studio-view-picker__item span {
-		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.studio-side-stack__body {
-		min-width: 0;
-		min-height: 0;
-		overflow: hidden;
-	}
-
-	.studio-side-stack__pane {
-		height: 100%;
-		min-width: 0;
-		min-height: 0;
-	}
-
-	.studio-side-stack__pane[hidden] {
-		display: none;
-	}
-
-	.studio-workbench {
-		display: grid;
-		height: 100%;
-		min-width: 0;
-		min-height: 0;
-		grid-template-rows: auto minmax(0, 1fr);
-		overflow: hidden;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
-		background: var(--studio-panel-bg);
-	}
-
-	.studio-workbench__tabs {
-		display: grid;
-		grid-auto-columns: minmax(0, 1fr);
-		grid-auto-flow: column;
-		gap: 0.18rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: var(--studio-panel-header-bg);
-		padding: 0.22rem;
-	}
-
-	.studio-workbench__tab {
-		display: flex;
-		min-width: 0;
-		height: 2.15rem;
-		align-items: center;
-		justify-content: center;
-		gap: 0.35rem;
-		border: 1px solid transparent;
-		border-radius: 0.3rem;
-		background: transparent;
-		color: var(--color-surface-700-300);
-		padding: 0 0.45rem;
-		font-size: 0.72rem;
-		font-weight: 750;
-		text-transform: uppercase;
-	}
-
-	.studio-workbench__tab:hover:not(:disabled),
-	.studio-workbench__tab--active {
-		border-color: color-mix(in oklab, var(--color-primary-500) 38%, transparent);
-		background: color-mix(in oklab, var(--color-primary-500) 11%, transparent);
-		color: var(--color-primary-600-400);
-	}
-
-	.studio-workbench__tab:disabled {
-		color: var(--color-surface-500);
-		cursor: not-allowed;
-	}
-
-	.studio-workbench__tab span {
-		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.studio-workbench__content {
-		min-width: 0;
-		min-height: 0;
-		overflow: hidden;
-	}
-
-	.studio-workbench__pane {
-		height: 100%;
-		min-width: 0;
-		min-height: 0;
-		overflow: auto;
-	}
-
-	.studio-workbench__pane--fill {
-		overflow: hidden;
-	}
-
-	.studio-workbench__pane[hidden] {
-		display: none;
-	}
-
-	.studio-workbench :global(.flow-dashboard) {
-		height: 100%;
-		min-height: 0;
-		border: 0;
-		border-radius: 0;
 	}
 
 	:global(.studio__panel-fill) {
 		overflow: hidden;
 	}
 
-	.studio__empty {
-		display: grid;
+	:global(.studio-work .flow-dashboard) {
 		height: 100%;
-		place-items: center;
-		color: var(--color-surface-600-400);
-		font-size: 0.86rem;
-	}
-
-	.studio__logs-bar {
-		display: flex;
-		min-height: 2.45rem;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-		margin: 0 0.55rem 0.55rem;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
-		background: var(--studio-panel-header-bg);
-		color: var(--color-surface-800-200);
-		padding: 0.45rem 0.65rem;
-		font-size: 0.78rem;
-		font-weight: 700;
-		text-transform: uppercase;
-	}
-
-	.studio__logs-bar:hover {
-		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
-		color: var(--color-surface-950-50);
-	}
-
-	.studio__logs-bar span {
-		display: flex;
-		align-items: center;
-		gap: 0.45rem;
-	}
-
-	.studio__logs-panel {
-		position: relative;
-		display: grid;
-		height: min(var(--studio-logs-height), calc(100vh - 10rem));
-		min-width: 0;
 		min-height: 0;
-		grid-template-rows: minmax(0, 1fr);
-		overflow: hidden;
-		margin: 0 0.55rem 0.45rem;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
-		background: var(--studio-panel-bg);
-		box-shadow: 0 -0.75rem 1.75rem color-mix(in oklab, var(--color-surface-950) 8%, transparent);
+		border: 0;
+		border-radius: 0;
 	}
 
 	.studio__logs-toolbar-title {
-		display: flex;
-		min-width: 0;
-		align-items: center;
-		gap: 0.45rem;
-		overflow: hidden;
 		padding-right: 0.25rem;
 		color: var(--color-surface-800-200);
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		font-size: 0.78rem;
-		font-weight: 700;
 		line-height: 1.1;
-		text-transform: uppercase;
-	}
-
-	.studio__logs-toolbar-collapse {
-		display: grid;
-		width: 1.65rem;
-		height: 1.65rem;
-		flex: 0 0 auto;
-		place-items: center;
-		border: 0;
-		border-radius: 0.25rem;
-		background: transparent;
-		color: var(--color-surface-800-200);
-		padding: 0;
-	}
-
-	.studio__logs-toolbar-collapse:hover,
-	.studio__logs-toolbar-collapse:focus-visible {
-		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
-		color: var(--color-surface-950-50);
-	}
-
-	.studio__logs-panel-body {
-		min-width: 0;
-		min-height: 0;
-		overflow: hidden;
-	}
-
-	@media (max-width: 1180px) {
-		.studio__topbar {
-			grid-template-columns: 1fr;
-			align-items: stretch;
-		}
-
-		.studio__breadcrumb {
-			overflow-x: auto;
-		}
-
-		.studio__profiles {
-			justify-self: stretch;
-			overflow-x: auto;
-		}
-
-		.studio__profile {
-			flex: 1 0 auto;
-			justify-content: center;
-		}
-
-		.studio__actions {
-			justify-content: space-between;
-		}
-
-		.studio__workspace,
-		.studio--backend .studio__workspace,
-		.studio--frontend .studio__workspace {
-			grid-template-columns: minmax(0, 1fr);
-			grid-template-rows: var(--studio-tree-row) var(--studio-tools-row) minmax(24rem, 1fr);
-			grid-template-areas:
-				'tree'
-				'tools'
-				'main';
-			overflow: auto;
-		}
-
-		.studio-resizer--vertical {
-			display: none;
-		}
 	}
 </style>

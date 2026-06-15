@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { areEquivalentDboObjectIds, equivalentDboObjectIds, mutationDboContextIds } from './dnd';
+	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioTreeNode from './StudioTreeNode.svelte';
 
 	/**
@@ -223,9 +224,9 @@
 
 <div class="studio-tree" role="tree" aria-label="Projects">
 	{#if loading}
-		<div class="studio-tree__empty">Loading</div>
+		<StudioEmptyState message="Loading" loading small />
 	{:else if rootChildren.length === 0}
-		<div class="studio-tree__empty">No project available</div>
+		<StudioEmptyState message="No project available" small />
 	{:else}
 		{#each rootChildren as node (node.id ?? node.name)}
 			<StudioTreeNode
@@ -252,14 +253,5 @@
 		min-width: 100%;
 		gap: 0.08rem;
 		padding: 0.35rem;
-	}
-
-	.studio-tree__empty {
-		display: grid;
-		min-height: 6rem;
-		place-items: center;
-		color: var(--color-surface-600-400);
-		font-size: 0.82rem;
-		text-align: center;
 	}
 </style>

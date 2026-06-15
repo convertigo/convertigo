@@ -5,6 +5,7 @@
 	import Bezels from '$lib/dashboard/Bezels';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getFrontendUrl } from '$lib/utils/service';
+	import StudioEmptyState from './StudioEmptyState.svelte';
 
 	const familyDefinitions = [
 		{
@@ -265,7 +266,7 @@
 				applyAddressBar();
 			}}
 		>
-			<div class="studio-preview__nav">
+			<div class="studio-preview__nav layout-x-none">
 				<Button
 					full={false}
 					icon="mdi:arrow-left"
@@ -300,7 +301,7 @@
 				class="studio-preview__address"
 			/>
 
-			<div class="studio-preview__actions">
+			<div class="studio-preview__actions layout-x-end-none">
 				<Button
 					full={false}
 					label="Go"
@@ -309,7 +310,7 @@
 					onclick={applyAddressBar}
 				/>
 				{#if showDeviceSelector}
-					<label class="studio-preview__device-select">
+					<label class="studio-preview__device-select layout-x-low">
 						{#if isResponsivePreview}
 							<Ico icon="mdi:devices" size={4} />
 						{:else}
@@ -333,7 +334,7 @@
 						</select>
 					</label>
 				{/if}
-				<span class="studio-preview__size">{viewportLabel}</span>
+				<span class="studio-preview__size studio-ellipsis">{viewportLabel}</span>
 				<Button
 					full={false}
 					icon="mdi:magnify-minus-outline"
@@ -414,7 +415,7 @@
 			</div>
 		</MaxRectangle>
 	{:else}
-		<div class="studio-preview__empty">No project selected</div>
+		<StudioEmptyState message="No project selected" class="studio-preview__empty" />
 	{/if}
 </div>
 
@@ -439,22 +440,12 @@
 
 	.studio-preview__nav,
 	.studio-preview__actions {
-		display: flex;
 		min-width: 0;
-		align-items: center;
-		gap: 0.12rem;
-	}
-
-	.studio-preview__actions {
-		justify-content: flex-end;
 	}
 
 	.studio-preview__device-select {
-		display: inline-flex;
 		min-width: 10rem;
 		height: 2rem;
-		align-items: center;
-		gap: 0.35rem;
 		border: 1px solid var(--color-surface-200-800);
 		border-radius: 0.3rem;
 		background: color-mix(in oklab, var(--color-surface-100-900) 78%, transparent);
@@ -507,13 +498,10 @@
 	.studio-preview__size {
 		max-width: 15rem;
 		min-width: 5rem;
-		overflow: hidden;
 		color: var(--color-surface-600-400);
 		font-size: 0.7rem;
 		font-weight: 700;
 		text-align: center;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
 	:global(.studio-preview__viewport) {
@@ -625,12 +613,8 @@
 		height: 100%;
 	}
 
-	.studio-preview__empty {
-		display: grid;
+	.studio-preview :global(.studio-preview__empty) {
 		min-height: 16rem;
-		place-items: center;
-		color: var(--color-surface-600-400);
-		font-size: 0.85rem;
 	}
 
 	@media (max-width: 900px) {

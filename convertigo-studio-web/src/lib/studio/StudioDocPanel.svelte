@@ -1,6 +1,7 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl } from '$lib/utils/service';
+	import StudioEmptyState from './StudioEmptyState.svelte';
 
 	/**
 	 * @typedef {Object} PaletteItem
@@ -376,8 +377,8 @@
 
 <section class="studio-doc">
 	{#if paletteItem}
-		<header class="studio-doc__header">
-			<span class="studio-doc__icon">
+		<header class="studio-doc__header layout-x-low">
+			<span class="studio-doc__icon studio-icon-tile">
 				{#if iconUrl}
 					<span
 						class="studio-doc__icon-mask"
@@ -389,9 +390,9 @@
 				{/if}
 			</span>
 			<div class="studio-doc__title">
-				<h2>{displayName}</h2>
+				<h2 class="studio-ellipsis">{displayName}</h2>
 				{#if technicalName}
-					<p>{technicalName}</p>
+					<p class="studio-ellipsis">{technicalName}</p>
 				{/if}
 			</div>
 		</header>
@@ -403,23 +404,14 @@
 				{/each}
 			</article>
 		{:else}
-			<div class="studio-doc__empty">No documentation available for this component.</div>
+			<StudioEmptyState message="No documentation available for this component." />
 		{/if}
 	{:else if loading}
-		<div class="studio-doc__empty studio-doc__empty--full">
-			<span class="studio-doc__loading" aria-label="Loading documentation"></span>
-			<span>Loading documentation...</span>
-		</div>
+		<StudioEmptyState message="Loading documentation..." loading full />
 	{:else if error}
-		<div class="studio-doc__empty studio-doc__empty--full">
-			<Ico icon="mdi:warning-outline" size={8} />
-			<span>{error}</span>
-		</div>
+		<StudioEmptyState message={error} icon="mdi:warning-outline" full />
 	{:else}
-		<div class="studio-doc__empty studio-doc__empty--full">
-			<Ico icon="mdi:book-open-variant" size={8} />
-			<span>{emptyMessage}</span>
-		</div>
+		<StudioEmptyState message={emptyMessage} icon="mdi:book-open-variant" full />
 	{/if}
 </section>
 
@@ -435,23 +427,15 @@
 	}
 
 	.studio-doc__header {
-		display: flex;
 		min-width: 0;
-		align-items: center;
-		gap: 0.65rem;
 		border-bottom: 1px solid var(--color-surface-200-800);
 		background: color-mix(in oklab, var(--color-surface-50-950) 94%, transparent);
 		padding: 0.75rem 0.9rem;
 	}
 
 	.studio-doc__icon {
-		display: grid;
 		width: 2.35rem;
 		height: 2.35rem;
-		flex: 0 0 auto;
-		place-items: center;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
 		background: var(--studio-panel-header-bg, var(--color-surface-100-900));
 		color: light-dark(var(--color-primary-600), var(--color-primary-400));
 	}
@@ -467,13 +451,6 @@
 
 	.studio-doc__title {
 		min-width: 0;
-	}
-
-	.studio-doc__title h2,
-	.studio-doc__title p {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
 	.studio-doc__title h2 {
@@ -563,37 +540,5 @@
 
 	.studio-doc__content :global(blockquote.doc-note p:last-child) {
 		margin-bottom: 0;
-	}
-
-	.studio-doc__empty {
-		display: grid;
-		min-height: 7rem;
-		place-items: center;
-		color: var(--color-surface-600-400);
-		padding: 1rem;
-		font-size: 0.86rem;
-		text-align: center;
-	}
-
-	.studio-doc__empty--full {
-		height: 100%;
-		gap: 0.65rem;
-		align-content: center;
-		color: var(--color-surface-500);
-	}
-
-	.studio-doc__loading {
-		width: 1.45rem;
-		height: 1.45rem;
-		border: 2px solid color-mix(in oklab, var(--color-primary-500) 22%, transparent);
-		border-top-color: var(--color-primary-500);
-		border-radius: 999px;
-		animation: studio-doc-spin 0.8s linear infinite;
-	}
-
-	@keyframes studio-doc-spin {
-		to {
-			transform: rotate(360deg);
-		}
 	}
 </style>
