@@ -7,9 +7,11 @@
 	import Projects from '$lib/common/Projects.svelte.js';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
+	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
 	import { findPrimaryEditorProperty, isCodeEditorProperty } from '$lib/studio/propertyEditors';
 	import { decodeStudioSelectionId, studioSelectionUrl } from '$lib/studio/routeSelection';
 	import StudioDevicePanel from '$lib/studio/StudioDevicePanel.svelte';
+	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
 	import StudioExecutionPanel from '$lib/studio/StudioExecutionPanel.svelte';
 	import StudioLogsPanel from '$lib/studio/StudioLogsPanel.svelte';
@@ -24,6 +26,23 @@
 	import { call, checkArray, saveDboProject } from '$lib/utils/service';
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+
+	/** @typedef {'execution' | 'code' | 'flow' | 'doc'} WorkPanel */
+	/**
+	 * @typedef {Object} PaletteItem
+	 * @property {string=} id
+	 * @property {string=} name
+	 * @property {string=} classname
+	 * @property {string=} description
+	 * @property {string=} shortDescriptionHtml
+	 * @property {string=} longDescriptionText
+	 * @property {string=} longDescriptionHtml
+	 * @property {string=} shortDescriptionText
+	 * @property {string=} propertiesDescriptionHtml
+	 * @property {string=} icon
+	 * @property {boolean=} builtin
+	 * @property {boolean=} additional
+	 */
 
 	const STUDIO_BASE = resolve('/studio/');
 	const STUDIO_LAYOUT_STORAGE_KEY = 'convertigo.studio.layout.v1';
@@ -44,7 +63,15 @@
 		tools: false
 	};
 	const SIDE_PANEL_IDS = ['devices', 'palette', 'picker', 'properties'];
-	const WORK_PANEL_IDS = ['execution', 'code', 'flow'];
+	/** @type {WorkPanel[]} */
+	const WORK_PANEL_IDS = ['execution', 'code', 'flow', 'doc'];
+	/** @type {{ id: WorkPanel, label: string, icon: string }[]} */
+	const WORK_VIEWS = [
+		{ id: 'execution', label: 'Execution', icon: 'mdi:play-circle-outline' },
+		{ id: 'code', label: 'Code', icon: 'mdi:code-tags' },
+		{ id: 'flow', label: 'Flow', icon: 'mdi:source-branch' },
+		{ id: 'doc', label: 'Doc', icon: 'mdi:book-open-variant' }
+	];
 
 	/**
 	 * @typedef {Object} EditorTarget
@@ -74,20 +101,29 @@
 	let profile = $state('backend');
 	let selectedId = $state(initialSelectedId);
 	let activeSidePanel = $state('properties');
-	let activeWorkPanel = $state(workPanelFromHash(page.url.hash) || 'execution');
+	/** @type {WorkPanel} */
+	let activeWorkPanel = $state('execution');
 	let frontendDeviceId = $state('none');
 	let frontendLandscape = $state(false);
 	let logsPanelOpen = $state(false);
 	/** @type {EditorTarget | null} */
 	let editorTarget = $state(null);
+	/** @type {PaletteItem | null} */
+	let selectedPaletteItem = $state(null);
+	/** @type {PaletteItem | null} */
+	let selectedTreeDocItem = $state(null);
+	let selectedTreeDocLoading = $state(false);
+	let selectedTreeDocError = $state('');
+	let selectedTreeDocRequestKey = '';
+	let selectedTreeDocSerial = 0;
 	let selectionMetaSerial = 0;
 	let urlSyncReady = $state(false);
 	let lastRouteSelectionId = initialSelectedId;
-	let lastRouteWorkPanelHash = page.url.hash;
 	let pendingRouteSelectionId = '';
 	let treeRefreshSerial = $state(0);
 	let flowRefreshSerial = $state(0);
 	let renameTargetId = $state('');
+	let paletteSelectionContext = initialSelectedId;
 	let mutationRefreshSerial = 0;
 	let studioMutationSerial = $state(0);
 	/** @type {import('$lib/studio/dnd').DboDropResult | null} */
@@ -138,6 +174,9 @@
 	let activeSideView = $derived(
 		sideViews.find((item) => item.id === effectiveSidePanel) ?? sideViews.at(-1)
 	);
+	let selectedDocItem = $derived(selectedPaletteItem ?? selectedTreeDocItem);
+	let selectedDocLoading = $derived(!selectedPaletteItem && selectedTreeDocLoading);
+	let selectedDocError = $derived(!selectedPaletteItem ? selectedTreeDocError : '');
 	let breadcrumbs = $derived(buildBreadcrumb(selectedId));
 	let workspaceStyle = $derived(
 		[
@@ -189,6 +228,7 @@
 	onMount(() => {
 		restoreStudioLayoutPreferences();
 		urlSyncReady = true;
+		clearStudioRouteHash();
 	});
 
 	$effect(() => {
@@ -204,23 +244,6 @@
 			pendingRouteSelectionId = '';
 		}
 		selectedId = routeId;
-	});
-
-	$effect(() => {
-		if (!urlSyncReady) {
-			return;
-		}
-		const hash = page.url.hash;
-		if (hash === lastRouteWorkPanelHash) {
-			return;
-		}
-		lastRouteWorkPanelHash = hash;
-		const routePanel = workPanelFromHash(hash);
-		if (!routePanel || routePanel === activeWorkPanel) {
-			return;
-		}
-		activeWorkPanel = routePanel;
-		persistStudioLayoutPreferences();
 	});
 
 	$effect(() => {
@@ -249,6 +272,33 @@
 		});
 	});
 
+	$effect(() => {
+		const currentSelection = selectedId;
+		if (currentSelection === paletteSelectionContext) {
+			return;
+		}
+		paletteSelectionContext = currentSelection;
+		selectedPaletteItem = null;
+		clearSelectedTreeDocumentation();
+	});
+
+	$effect(() => {
+		const id = selectedId;
+		if (activeWorkPanel !== 'doc' || selectedPaletteItem) {
+			return;
+		}
+		if (!id || id === 'ROOT') {
+			clearSelectedTreeDocumentation();
+			return;
+		}
+		if (selectedTreeDocRequestKey === id) {
+			return;
+		}
+		selectedTreeDocRequestKey = id;
+		const serial = ++selectedTreeDocSerial;
+		void loadSelectedTreeDocumentation(id, serial);
+	});
+
 	/**
 	 * @returns {string}
 	 */
@@ -260,27 +310,8 @@
 	 * @param {string} id
 	 * @returns {string}
 	 */
-	function selectionUrl(id, hash = page.url.hash) {
-		return studioSelectionUrl(STUDIO_BASE, id, page.url, hash);
-	}
-
-	/**
-	 * @param {string} hash
-	 * @returns {'execution' | 'code' | 'flow' | ''}
-	 */
-	function workPanelFromHash(hash) {
-		const panel = String(hash ?? '').replace(/^#/, '');
-		return /** @type {'execution' | 'code' | 'flow' | ''} */ (
-			WORK_PANEL_IDS.includes(panel) ? panel : ''
-		);
-	}
-
-	/**
-	 * @param {'execution' | 'code' | 'flow'} panel
-	 * @returns {string}
-	 */
-	function workPanelHash(panel) {
-		return WORK_PANEL_IDS.includes(panel) ? `#${panel}` : '';
+	function selectionUrl(id) {
+		return studioSelectionUrl(STUDIO_BASE, id, page.url);
 	}
 
 	/**
@@ -508,11 +539,9 @@
 		}
 		profile = storedChoice(preferences.profile, PROFILE_IDS, profile);
 		activeSidePanel = storedChoice(preferences.activeSidePanel, SIDE_PANEL_IDS, activeSidePanel);
-		activeWorkPanel =
-			workPanelFromHash(page.url.hash) ||
-			/** @type {'execution' | 'code' | 'flow'} */ (
-				storedChoice(preferences.activeWorkPanel, WORK_PANEL_IDS, activeWorkPanel)
-			);
+		activeWorkPanel = /** @type {WorkPanel} */ (
+			storedChoice(preferences.activeWorkPanel, WORK_PANEL_IDS, activeWorkPanel)
+		);
 		logsPanelOpen = Boolean(preferences.logsPanelOpen);
 		collapsedPanels = {
 			...DEFAULT_COLLAPSED_PANELS,
@@ -540,6 +569,17 @@
 			)
 		};
 		normalizeLayoutPanels();
+	}
+
+	function clearStudioRouteHash() {
+		if (!browser || !page.url.hash) {
+			return;
+		}
+		void goto(selectionUrl(selectedId), {
+			replaceState: true,
+			noScroll: true,
+			keepFocus: true
+		});
 	}
 
 	function normalizeLayoutPanels() {
@@ -689,6 +729,122 @@
 		};
 		selectedId = target.id;
 		setWorkPanel('code');
+	}
+
+	/**
+	 * @param {PaletteItem} item
+	 */
+	function selectPaletteItem(item) {
+		selectedPaletteItem = item;
+	}
+
+	function clearSelectedTreeDocumentation() {
+		selectedTreeDocSerial += 1;
+		selectedTreeDocRequestKey = '';
+		selectedTreeDocItem = null;
+		selectedTreeDocLoading = false;
+		selectedTreeDocError = '';
+	}
+
+	/**
+	 * @param {string} id
+	 * @param {number} serial
+	 */
+	async function loadSelectedTreeDocumentation(id, serial) {
+		selectedTreeDocLoading = true;
+		selectedTreeDocError = '';
+		try {
+			const item = await resolveSelectedTreeDocumentation(id);
+			if (serial === selectedTreeDocSerial) {
+				selectedTreeDocItem = item;
+			}
+		} catch (error) {
+			if (serial === selectedTreeDocSerial) {
+				selectedTreeDocItem = null;
+				selectedTreeDocError = String(error instanceof Error ? error.message : error);
+			}
+		} finally {
+			if (serial === selectedTreeDocSerial) {
+				selectedTreeDocLoading = false;
+			}
+		}
+	}
+
+	/**
+	 * @param {string} id
+	 * @returns {Promise<PaletteItem | null>}
+	 */
+	async function resolveSelectedTreeDocumentation(id) {
+		const response = await call('studio.properties.Get', { id });
+		const properties = response?.properties ?? {};
+		const javaClass = propertyValue(properties, 'Java class');
+		if (javaClass) {
+			const paletteItem = await findPaletteItemByClass(id, javaClass);
+			if (paletteItem) {
+				return paletteItem;
+			}
+		}
+		return selectedObjectDocFallback(id, properties);
+	}
+
+	/**
+	 * @param {string} id
+	 * @param {string} className
+	 * @returns {Promise<PaletteItem | null>}
+	 */
+	async function findPaletteItemByClass(id, className) {
+		const parentId = parentPaletteId(id);
+		if (!parentId) {
+			return null;
+		}
+		const context = await loadPaletteContext(parentId);
+		for (const category of context.categories) {
+			const item = (category.items ?? []).find((entry) => entry?.classname === className);
+			if (item) {
+				return item;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * @param {string} id
+	 * @param {Record<string, any>} properties
+	 * @returns {PaletteItem | null}
+	 */
+	function selectedObjectDocFallback(id, properties) {
+		const name =
+			propertyValue(properties, 'Type') || propertyValue(properties, 'Name') || selectionLabel(id);
+		const classname = propertyValue(properties, 'Java class');
+		if (!name && !classname) {
+			return null;
+		}
+		return {
+			id,
+			name,
+			classname
+		};
+	}
+
+	/**
+	 * @param {Record<string, any>} properties
+	 * @param {string} name
+	 * @returns {string}
+	 */
+	function propertyValue(properties, name) {
+		return String(properties?.[name]?.value ?? '').trim();
+	}
+
+	/**
+	 * @param {string} id
+	 * @returns {string}
+	 */
+	function selectionLabel(id) {
+		if (id.includes('/')) {
+			return id.split('/').filter(Boolean).at(-1) || 'Files';
+		}
+		const segment = id.split('.').at(-1) ?? id;
+		return segment.replace(/^[^:]+:/, '') || id;
 	}
 
 	/**
@@ -860,21 +1016,22 @@
 	}
 
 	/**
-	 * @param {'execution' | 'code' | 'flow'} panel
+	 * @param {WorkPanel} panel
 	 */
 	function setWorkPanel(panel) {
-		activeWorkPanel = panel;
-		persistStudioLayoutPreferences();
-		if (!browser) {
+		if (isWorkPanelDisabled(panel)) {
 			return;
 		}
-		const hash = workPanelHash(panel);
-		lastRouteWorkPanelHash = hash;
-		void goto(selectionUrl(selectedId, hash), {
-			replaceState: true,
-			noScroll: true,
-			keepFocus: true
-		});
+		activeWorkPanel = panel;
+		persistStudioLayoutPreferences();
+	}
+
+	/**
+	 * @param {WorkPanel} panel
+	 * @returns {boolean}
+	 */
+	function isWorkPanelDisabled(panel) {
+		return panel === 'flow' && !showFlowOverview && activeWorkPanel !== 'flow';
 	}
 
 	/**
@@ -1063,24 +1220,32 @@
 
 		<main class="studio__main">
 			{#if showStudioWork}
-				<div class="studio-accordion studio-work">
-					<section
-						class="studio-accordion__section"
-						class:studio-accordion__section--active={activeWorkPanel === 'execution'}
-					>
-						<button
-							type="button"
-							class="studio-accordion__trigger"
-							aria-expanded={activeWorkPanel === 'execution'}
-							onclick={() => setWorkPanel('execution')}
+				<div class="studio-workbench studio-work">
+					<div class="studio-workbench__tabs" role="tablist" aria-label="Studio workspace views">
+						{#each WORK_VIEWS as view (view.id)}
+							<button
+								type="button"
+								role="tab"
+								class="studio-workbench__tab"
+								class:studio-workbench__tab--active={activeWorkPanel === view.id}
+								aria-selected={activeWorkPanel === view.id}
+								disabled={isWorkPanelDisabled(view.id)}
+								title={view.label}
+								onclick={() => setWorkPanel(view.id)}
+							>
+								<Ico icon={view.icon} size={4} />
+								<span>{view.label}</span>
+							</button>
+						{/each}
+					</div>
+
+					<div class="studio-workbench__content">
+						<div
+							class="studio-workbench__pane"
+							role="tabpanel"
+							aria-label="Execution"
+							hidden={activeWorkPanel !== 'execution'}
 						>
-							<span><Ico icon="mdi:play-circle-outline" size={4} />Execution</span>
-							<Ico
-								icon={activeWorkPanel === 'execution' ? 'mdi:chevron-down' : 'mdi:chevron-right'}
-								size={4}
-							/>
-						</button>
-						<div class="studio-accordion__content" hidden={activeWorkPanel !== 'execution'}>
 							<StudioExecutionPanel
 								projectName={selectedProjectName}
 								requestable={executionTarget?.requestable ?? null}
@@ -1088,26 +1253,11 @@
 								connectorName={executionTarget?.connectorName ?? ''}
 							/>
 						</div>
-					</section>
 
-					<section
-						class="studio-accordion__section"
-						class:studio-accordion__section--active={activeWorkPanel === 'code'}
-					>
-						<button
-							type="button"
-							class="studio-accordion__trigger"
-							aria-expanded={activeWorkPanel === 'code'}
-							onclick={() => setWorkPanel('code')}
-						>
-							<span><Ico icon="mdi:code-tags" size={4} />Code</span>
-							<Ico
-								icon={activeWorkPanel === 'code' ? 'mdi:chevron-down' : 'mdi:chevron-right'}
-								size={4}
-							/>
-						</button>
 						<div
-							class="studio-accordion__content studio-accordion__content--fill"
+							class="studio-workbench__pane studio-workbench__pane--fill"
+							role="tabpanel"
+							aria-label="Code"
 							hidden={activeWorkPanel !== 'code'}
 						>
 							<StudioEditorPanel
@@ -1118,27 +1268,13 @@
 								onSelectObject={selectObject}
 							/>
 						</div>
-					</section>
 
-					<section
-						class="studio-accordion__section"
-						class:studio-accordion__section--active={activeWorkPanel === 'flow'}
-					>
-						<button
-							type="button"
-							class="studio-accordion__trigger"
-							aria-expanded={activeWorkPanel === 'flow'}
-							disabled={!showFlowOverview}
-							onclick={() => setWorkPanel('flow')}
-						>
-							<span><Ico icon="mdi:source-branch" size={4} />Flow</span>
-							<Ico
-								icon={activeWorkPanel === 'flow' ? 'mdi:chevron-down' : 'mdi:chevron-right'}
-								size={4}
-							/>
-						</button>
 						{#if activeWorkPanel === 'flow'}
-							<div class="studio-accordion__content studio-accordion__content--fill">
+							<div
+								class="studio-workbench__pane studio-workbench__pane--fill"
+								role="tabpanel"
+								aria-label="Flow"
+							>
 								{#if showFlowOverview}
 									<FlowViewer
 										projectName={selectedProjectName}
@@ -1157,7 +1293,21 @@
 								{/if}
 							</div>
 						{/if}
-					</section>
+
+						<div
+							class="studio-workbench__pane studio-workbench__pane--fill"
+							role="tabpanel"
+							aria-label="Documentation"
+							hidden={activeWorkPanel !== 'doc'}
+						>
+							<StudioDocPanel
+								paletteItem={selectedDocItem}
+								loading={selectedDocLoading}
+								error={selectedDocError}
+								emptyMessage="No documentation available for the current selection."
+							/>
+						</div>
+					</div>
 				</div>
 			{:else}
 				<StudioPanel
@@ -1202,7 +1352,12 @@
 				>
 					{#if showPalette}
 						<div class="studio-side-stack__pane" hidden={effectiveSidePanel !== 'palette'}>
-							<StudioPalettePanel {selectedId} active={effectiveSidePanel === 'palette'} />
+							<StudioPalettePanel
+								{selectedId}
+								active={effectiveSidePanel === 'palette'}
+								{selectedPaletteItem}
+								onPaletteItemSelect={selectPaletteItem}
+							/>
 						</div>
 					{/if}
 					{#if showDevicePicker}
@@ -1665,81 +1820,86 @@
 		display: none;
 	}
 
-	.studio-accordion {
-		display: flex;
+	.studio-workbench {
+		display: grid;
 		height: 100%;
 		min-width: 0;
 		min-height: 0;
-		flex-direction: column;
-		gap: 0.45rem;
-	}
-
-	.studio-accordion__section {
-		display: flex;
-		min-width: 0;
-		min-height: 0;
-		flex: 0 0 auto;
-		flex-direction: column;
+		grid-template-rows: auto minmax(0, 1fr);
 		overflow: hidden;
 		border: 1px solid var(--color-surface-200-800);
 		border-radius: 0.45rem;
 		background: var(--studio-panel-bg);
 	}
 
-	.studio-accordion__section--active {
-		flex: 1 1 0;
-	}
-
-	.studio-accordion__trigger {
-		display: flex;
-		min-height: 2.45rem;
-		width: 100%;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-		border: 0;
+	.studio-workbench__tabs {
+		display: grid;
+		grid-auto-columns: minmax(0, 1fr);
+		grid-auto-flow: column;
+		gap: 0.18rem;
 		border-bottom: 1px solid var(--color-surface-200-800);
 		background: var(--studio-panel-header-bg);
-		color: var(--color-surface-800-200);
-		padding: 0.45rem 0.65rem;
-		font-size: 0.78rem;
-		font-weight: 700;
-		text-align: left;
+		padding: 0.22rem;
+	}
+
+	.studio-workbench__tab {
+		display: flex;
+		min-width: 0;
+		height: 2.15rem;
+		align-items: center;
+		justify-content: center;
+		gap: 0.35rem;
+		border: 1px solid transparent;
+		border-radius: 0.3rem;
+		background: transparent;
+		color: var(--color-surface-700-300);
+		padding: 0 0.45rem;
+		font-size: 0.72rem;
+		font-weight: 750;
 		text-transform: uppercase;
 	}
 
-	.studio-accordion__trigger:hover:not(:disabled) {
-		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
-		color: var(--color-surface-950-50);
+	.studio-workbench__tab:hover:not(:disabled),
+	.studio-workbench__tab--active {
+		border-color: color-mix(in oklab, var(--color-primary-500) 38%, transparent);
+		background: color-mix(in oklab, var(--color-primary-500) 11%, transparent);
+		color: var(--color-primary-600-400);
 	}
 
-	.studio-accordion__trigger:disabled {
+	.studio-workbench__tab:disabled {
 		color: var(--color-surface-500);
 		cursor: not-allowed;
 	}
 
-	.studio-accordion__trigger span {
-		display: flex;
+	.studio-workbench__tab span {
 		min-width: 0;
-		align-items: center;
-		gap: 0.45rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
-	.studio-accordion__content {
+	.studio-workbench__content {
+		min-width: 0;
 		min-height: 0;
-		flex: 1;
-		overflow: auto;
-	}
-
-	.studio-accordion__content--fill {
 		overflow: hidden;
 	}
 
-	.studio-accordion__content[hidden] {
+	.studio-workbench__pane {
+		height: 100%;
+		min-width: 0;
+		min-height: 0;
+		overflow: auto;
+	}
+
+	.studio-workbench__pane--fill {
+		overflow: hidden;
+	}
+
+	.studio-workbench__pane[hidden] {
 		display: none;
 	}
 
-	.studio-accordion :global(.flow-dashboard) {
+	.studio-workbench :global(.flow-dashboard) {
 		height: 100%;
 		min-height: 0;
 		border: 0;

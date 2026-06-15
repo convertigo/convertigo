@@ -21,10 +21,14 @@ package com.twinsoft.convertigo.engine.admin.services.studio.palette;
 
 import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
+import java.beans.PropertyDescriptor;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -128,6 +132,7 @@ public class Get extends JSonService {
 						jsonItem.put("shortDescriptionText", documentation.getShortText());
 						jsonItem.put("longDescriptionHtml", documentation.getLongHtml());
 						jsonItem.put("longDescriptionText", documentation.getLongText());
+						jsonItem.put("propertiesDescriptionHtml", getPropertiesDescription(bi));
 						jsonItem.put("icon", MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_32x32));
 						jsonItem.put("builtin", true);
 						jsonItem.put("additional", false);
@@ -181,6 +186,7 @@ public class Get extends JSonService {
 					jsonItem.put("shortDescriptionText", componentDoc.getShortText());
 					jsonItem.put("longDescriptionHtml", componentDoc.getLongHtml());
 					jsonItem.put("longDescriptionText", componentDoc.getLongText());
+					jsonItem.put("propertiesDescriptionHtml", component.getPropertiesDescription());
 					jsonItem.put("icon", component.getImagePath());
 					jsonItem.put("builtin", component.isBuiltIn());
 					jsonItem.put("additional", component.isAdditional());
@@ -193,6 +199,34 @@ public class Get extends JSonService {
 		}
 
 		return categories;
+	}
+
+	private String getPropertiesDescription(BeanInfo beanInfo) {
+		PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors().clone();
+		Arrays.sort(propertyDescriptors, (o1, o2) -> {
+			if (o1.isExpert() == o2.isExpert()) {
+				return o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName());
+			} else if (o1.isExpert()) {
+				return 1;
+			} else {
+				return -1;
+			}
+		});
+
+		StringBuilder propertiesDescription = new StringBuilder();
+		for (PropertyDescriptor dbopd : propertyDescriptors) {
+			if (!dbopd.isHidden() && !Boolean.TRUE.equals(dbopd.getValue(MySimpleBeanInfo.DISABLE))) {
+				String doc = DocumentationHelper.fullDescription(dbopd.getShortDescription(), true);
+				propertiesDescription.append("<li><i>")
+						.append(StringEscapeUtils.escapeHtml4(dbopd.getDisplayName()))
+						.append("</i>");
+				if (StringUtils.isNotBlank(doc)) {
+					propertiesDescription.append("<br/>").append(doc);
+				}
+				propertiesDescription.append("</li>");
+			}
+		}
+		return propertiesDescription.isEmpty() ? "" : "<ul>" + propertiesDescription + "</ul>";
 	}
 
 }

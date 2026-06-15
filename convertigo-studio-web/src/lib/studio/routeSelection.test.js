@@ -29,19 +29,11 @@ describe('Studio route selection helpers', () => {
 		);
 	});
 
-	it('preserves the current query string and hash when updating the selection', () => {
+	it('preserves the current query string when updating the selection', () => {
 		const url = new URL('http://localhost/convertigo/studio/?theme=dark&tab=flow#logs');
 
 		expect(studioSelectionUrl('/convertigo/studio/', 'Project.sq:Sequence', url)).toBe(
-			'/convertigo/studio/Project.sq~Sequence/?theme=dark&tab=flow#logs'
-		);
-	});
-
-	it('can replace the current hash while keeping the selection and query string', () => {
-		const url = new URL('http://localhost/convertigo/studio/Project.sq~Old/?theme=dark#flow');
-
-		expect(studioSelectionUrl('/convertigo/studio/', 'Project.sq:Sequence', url, '#code')).toBe(
-			'/convertigo/studio/Project.sq~Sequence/?theme=dark#code'
+			'/convertigo/studio/Project.sq~Sequence/?theme=dark&tab=flow'
 		);
 	});
 });

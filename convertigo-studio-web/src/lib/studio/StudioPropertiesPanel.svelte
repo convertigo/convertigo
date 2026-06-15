@@ -1,7 +1,6 @@
 <script>
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import { createDatabaseObjectProperties } from '$lib/common/DatabaseObjectProperties.svelte.js';
@@ -43,15 +42,6 @@
 	let monacoLanguage = $derived(getPropertyLanguage(monacoRow, selectedId));
 	let monacoTitle = $derived(monacoRow?.displayName ?? monacoRow?.name ?? 'Editor');
 	let monacoTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
-
-	const propertyTableDefinition = [
-		{
-			key: 'displayName',
-			name: 'Name',
-			class: 'studio-properties__name'
-		},
-		{ key: 'value', name: 'Value', custom: true, class: 'studio-properties__value' }
-	];
 
 	$effect(() => {
 		const nextId = selectedId;
@@ -142,6 +132,8 @@
 	<div class="studio-properties__actions">
 		<SaveCancelButtons
 			class="w-full"
+			saveLabel="Save"
+			cancelLabel="Cancel"
 			onSave={saveChanges}
 			onCancel={cancel}
 			changesPending={hasChanges}
@@ -154,7 +146,7 @@
 			<div class="studio-properties__empty">No object selected</div>
 		{:else}
 			<AccordionGroup
-				class="w-full space-y-2"
+				class="studio-properties__sections"
 				value={openedCategories.length ? openedCategories : getDefaultOpenedCategories()}
 				onValueChange={({ value }) => {
 					openedCategories = value;
@@ -166,52 +158,65 @@
 					{@const total = rows.length}
 					<AccordionSection
 						value={category}
-						class="accordion-item"
-						triggerClass="accordion-trigger"
-						panelClass="accordion-panel"
+						class="studio-properties__section"
+						triggerClass="studio-properties__section-trigger"
+						panelClass="studio-properties__section-panel"
 						disabled={total == 0}
 						title={category}
 						count={total}
+						countVariant="number"
+						titleClass="studio-properties__section-title"
+						indicatorSize={4}
 					>
 						{#snippet panel()}
 							{#if total === 0}
 								<div class="studio-properties__empty studio-properties__empty--small">Empty</div>
 							{:else}
-								<TableAutoCard
-									showHeaders={false}
-									showNothing={false}
-									definition={propertyTableDefinition}
-									animationProps={{ duration: 120 }}
-									data={rows}
-									class="studio-properties__table"
-								>
-									{#snippet children({ row })}
+								<div class="studio-properties__fields">
+									{#each rows as row (row.name ?? row.displayName)}
 										{@const { class: cls, value, originalValue, values } = row}
-										{#if category == 'Information'}
-											<span class="studio-properties__static">{value}</span>
-										{:else if cls?.startsWith('java.lang.')}
-											{@const type = getType(row)}
-											<PropertyType
-												{type}
-												bind:value={() => value, (nextValue) => (row.value = nextValue)}
-												item={values}
-												{originalValue}
-												actionsHorizontal={true}
-												buttons={isMonacoProperty(row, selectedId)
-													? [
-															{
-																icon: 'mdi:open-in-new-variant',
-																title: 'Open text editor',
-																onclick: () => openMonaco(row)
-															}
-														]
-													: []}
-											/>
-										{:else}
-											<span class="studio-properties__static">{row.value}</span>
-										{/if}
-									{/snippet}
-								</TableAutoCard>
+										{@const label = row.displayName ?? row.name ?? ''}
+										{@const changed = category != 'Information' && value != originalValue}
+										<div
+											class="studio-properties__field"
+											class:studio-properties__field--changed={changed}
+										>
+											<div class="studio-properties__field-header">
+												<span class="studio-properties__field-label" title={label}>
+													{label}
+												</span>
+												{#if changed}
+													<span class="studio-properties__field-dirty" aria-label="Modified"></span>
+												{/if}
+											</div>
+											<div class="studio-properties__field-control">
+												{#if category == 'Information'}
+													<span class="studio-properties__static">{value}</span>
+												{:else if cls?.startsWith('java.lang.')}
+													{@const type = getType(row)}
+													<PropertyType
+														{type}
+														bind:value={() => value, (nextValue) => (row.value = nextValue)}
+														item={values}
+														{originalValue}
+														actionsHorizontal={true}
+														buttons={isMonacoProperty(row, selectedId)
+															? [
+																	{
+																		icon: 'mdi:open-in-new-variant',
+																		title: 'Open text editor',
+																		onclick: () => openMonaco(row)
+																	}
+																]
+															: []}
+													/>
+												{:else}
+													<span class="studio-properties__static">{row.value}</span>
+												{/if}
+											</div>
+										</div>
+									{/each}
+								</div>
 							{/if}
 						{/snippet}
 					</AccordionSection>
@@ -259,7 +264,8 @@
 
 	.studio-properties__actions {
 		border-bottom: 1px solid var(--color-surface-200-800);
-		padding: 0.55rem;
+		background: color-mix(in oklab, var(--color-surface-50-950) 94%, transparent);
+		padding: 0.45rem 0.5rem;
 	}
 
 	.studio-properties__body {
@@ -267,7 +273,7 @@
 		min-height: 0;
 		flex: 1;
 		overflow: auto;
-		padding: 0.55rem;
+		padding: 0;
 	}
 
 	.studio-properties__body--loading {
@@ -302,57 +308,144 @@
 
 	.studio-properties__empty--small {
 		min-height: 3rem;
-		border: 1px dashed var(--color-surface-200-800);
-		border-radius: 0.35rem;
+		border-top: 1px dashed var(--color-surface-200-800);
 	}
 
-	:global(.studio-properties__name) {
-		width: 5.2rem;
-		min-width: 5.2rem;
-		color: var(--color-surface-600-400);
-		font-size: 0.68rem;
+	:global(.studio-properties__sections) {
+		width: 100%;
+	}
+
+	:global(.studio-properties__section) {
+		border-bottom: 1px solid var(--color-surface-200-800);
+		background: var(--studio-panel-bg, var(--color-surface-50-950));
+	}
+
+	:global(.studio-properties__section:first-child) {
+		border-top: 0;
+	}
+
+	:global(.studio-properties__section-trigger) {
+		min-height: 2.45rem;
+		border-bottom: 1px solid var(--color-surface-200-800);
+		background: var(
+			--studio-panel-header-bg,
+			color-mix(in oklab, var(--color-surface-100-900) 88%, transparent)
+		);
+		color: var(--color-surface-800-200);
+		padding: 0.45rem 0.65rem;
+		font-size: 0.78rem;
 		font-weight: 700;
 		text-transform: uppercase;
 	}
 
-	:global(.studio-properties__value) {
+	:global(.studio-properties__section-trigger:hover:not(:disabled)) {
+		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
+		color: var(--color-surface-950-50);
+	}
+
+	:global(.studio-properties__section-trigger [data-state]) {
+		color: var(--color-surface-700-300);
+	}
+
+	:global(.studio-properties__section-trigger:hover:not(:disabled) [data-state]) {
+		color: var(--color-surface-950-50);
+	}
+
+	:global(.studio-properties__section-trigger svg) {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	:global(.studio-properties__section-title) {
+		overflow: hidden;
+		color: currentcolor;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	:global(.studio-properties__section-panel) {
+		background: color-mix(in oklab, var(--color-surface-50-950) 78%, transparent);
+		padding: 0;
+	}
+
+	.studio-properties__fields {
+		display: grid;
+	}
+
+	.studio-properties__field {
+		display: grid;
+		gap: 0.32rem;
+		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-200-800) 62%, transparent);
+		padding: 0.58rem 0.65rem 0.65rem;
+	}
+
+	.studio-properties__field:last-child {
+		border-bottom: 0;
+	}
+
+	.studio-properties__field--changed {
+		background: color-mix(in oklab, var(--color-primary-500) 5%, transparent);
+	}
+
+	.studio-properties__field-header {
+		display: flex;
+		min-width: 0;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.4rem;
+	}
+
+	.studio-properties__field-label {
+		min-width: 0;
+		overflow: hidden;
+		color: var(--color-surface-600-400);
+		font-size: 0.67rem;
+		font-weight: 750;
+		letter-spacing: 0;
+		line-height: 1.2;
+		text-overflow: ellipsis;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.studio-properties__field-dirty {
+		width: 0.45rem;
+		height: 0.45rem;
+		flex: 0 0 auto;
+		border-radius: 999px;
+		background: var(--color-primary-500);
+	}
+
+	.studio-properties__field-control {
+		min-width: 0;
+	}
+
+	.studio-properties__field-control :global(.layout-y-low.sm\:layout-x-low) {
+		width: 100%;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0.32rem;
+	}
+
+	.studio-properties__field-control :global(.sm\:grow) {
 		width: 100%;
 		min-width: 0;
 	}
 
-	:global(.studio-properties__value .sm\:grow) {
-		min-width: min(14rem, 100%);
-	}
-
-	:global(.studio-properties__value > div) {
-		flex-direction: column;
-		align-items: stretch;
-		gap: 0.35rem;
-	}
-
-	:global(.studio-properties__value > div > .sm\:grow) {
-		width: 100%;
-	}
-
-	:global(.studio-properties__value > div > .layout-x-low.h-fit) {
+	.studio-properties__field-control :global(.layout-x-low.h-fit) {
 		align-self: flex-end;
 	}
 
-	:global(.studio-properties__value .input-common),
-	:global(.studio-properties__value input),
-	:global(.studio-properties__value textarea),
-	:global(.studio-properties__value select) {
+	.studio-properties__field-control :global(.input-common),
+	.studio-properties__field-control :global(input),
+	.studio-properties__field-control :global(textarea),
+	.studio-properties__field-control :global(select) {
 		width: 100%;
 		min-width: 0;
 	}
 
-	:global(.studio-properties__value textarea) {
+	.studio-properties__field-control :global(textarea) {
 		resize: vertical;
-	}
-
-	:global(.studio-properties__table .table-frame) {
-		border: 0;
-		border-radius: 0;
 	}
 
 	.studio-properties__static {

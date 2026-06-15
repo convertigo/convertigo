@@ -11,7 +11,7 @@
 	onMount(() => {
 		if (!src) return;
 		fetch(src).then(async (r) => {
-			if ('image/svg+xml' == r.headers.get('content-type')) {
+			if (r.headers.get('content-type')?.toLowerCase().startsWith('image/svg+xml')) {
 				let t = await r.text();
 				viewBox = t.match(/viewBox="(.*?)"/)?.[1] ?? '0 0 24 24';
 				svg = t.replace(/^<svg.*?>/, '').replace(/<\/svg>$/, '');
