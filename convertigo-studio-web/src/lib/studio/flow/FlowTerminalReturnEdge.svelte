@@ -51,11 +51,13 @@
 		const path = [
 			`M ${sourceX} ${sourceY}`,
 			`L ${sourceLeadX} ${sourceY}`,
-			`L ${sourceLeadX} ${laneY}`
+			`L ${sourceLeadX} ${laneY}`,
+			`L ${joinX} ${laneY}`
 		];
 		if (connectToResponse) {
+			const busStart = Math.min(busStartX, sourceLeadX) - 8;
 			path.push(
-				`M ${Math.min(busStartX, sourceLeadX)} ${laneY}`,
+				`M ${busStart} ${laneY}`,
 				`L ${joinX} ${laneY}`,
 				`L ${targetLeadX} ${laneY}`,
 				`L ${targetLeadX} ${targetY}`,

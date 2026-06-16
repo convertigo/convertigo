@@ -304,6 +304,76 @@ describe('SequenceFlowBuilder bottom container links', () => {
 		);
 	});
 
+	it('keeps a loop child of a bottom container on the child lane', () => {
+		const iteratorId = `${objectId}.st:jIterator`;
+		const fieldId = `${objectId}.st:field1`;
+		const flow = new SequenceFlowBuilder().buildFlowFromTree(
+			'Project',
+			'Sequence',
+			[
+				step('JsonObjectStep', objectId, '"object": {...}', [
+					loopStep('IteratorStep', iteratorId, 'jIterator'),
+					step('JsonFieldStep', fieldId, '"field1": ""')
+				])
+			],
+			palette()
+		);
+
+		const nodes = nodeById(flow);
+		const object = nodes.get(objectId);
+		const iterator = nodes.get(iteratorId);
+		const field = nodes.get(fieldId);
+
+		expect(iterator?.y).toBeGreaterThan(object?.y ?? Infinity);
+		expect(field?.y).toBe(iterator?.y);
+		expect(iterator?.x).toBe(object?.x);
+		expect(field?.x).toBeGreaterThan(iterator?.x ?? Infinity);
+		expect(flow.links).toContainEqual(
+			expect.objectContaining({
+				from: { nodeId: fieldId, portIndex: 0 },
+				to: { nodeId: objectId, portIndex: 1 }
+			})
+		);
+	});
+
+	it('keeps a bottom container above a nested loop and the loop body', () => {
+		const iteratorId = `${objectId}.st:jIterator`;
+		const fieldId = `${iteratorId}.st:field1`;
+		const flow = new SequenceFlowBuilder().buildFlowFromTree(
+			'Project',
+			'Sequence',
+			[
+				step('JsonObjectStep', objectId, '"object": {...}', [
+					loopStep('IteratorStep', iteratorId, 'jIterator', [
+						step('JsonFieldStep', fieldId, '"field1": ""')
+					])
+				])
+			],
+			palette()
+		);
+
+		const nodes = nodeById(flow);
+		const object = nodes.get(objectId);
+		const iterator = nodes.get(iteratorId);
+		const field = nodes.get(fieldId);
+
+		expect(iterator?.y).toBeGreaterThan(object?.y ?? Infinity);
+		expect(field?.y).toBeGreaterThan(iterator?.y ?? Infinity);
+		expect(flow.links).toContainEqual(
+			expect.objectContaining({
+				from: { nodeId: iteratorId, portIndex: 1 },
+				to: { nodeId: objectId, portIndex: 1 }
+			})
+		);
+		expect(flow.links).toContainEqual(
+			expect.objectContaining({
+				from: { nodeId: fieldId, portIndex: 0 },
+				to: { nodeId: iteratorId, portIndex: 0 },
+				routing: 'loop-return'
+			})
+		);
+	});
+
 	it('marks explicit then and else branch lanes on conditional steps', () => {
 		const thenFieldId = `${ifId}.st:thenField`;
 		const elseFieldId = `${ifId}.st:elseField`;
@@ -649,6 +719,103 @@ describe('SequenceFlowBuilder bottom container links', () => {
 		expect(iterator.x).toBeGreaterThan(attribute.x);
 		expect(iterator.y).toBe(attribute.y);
 	});
+
+	it('keeps same-lane nodes far enough apart for branch ports and labels', () => {
+		const builder = new SequenceFlowBuilder();
+		const firstId = `${sequenceId}.st:first`;
+		const secondId = `${sequenceId}.st:second`;
+		const first = flowNode('IfExistStep', firstId, 'IfExist', {
+			outputs: 2,
+			outputLabels: ['true', 'false']
+		});
+		const second = flowNode('XMLErrorStep', secondId, '<error>');
+		first.x = 340;
+		first.y = 240;
+		second.x = 510;
+		second.y = 240;
+		const nodeMap = new Map([
+			[first.id, first],
+			[second.id, second]
+		]);
+
+		builder.spreadRowOverlaps(nodeMap, new Map(), 170);
+
+		expect(second.x).toBeGreaterThanOrEqual(first.x + 230);
+	});
+
+	it('renders step variables behind a requestable step vars port', () => {
+		const callId = `${sequenceId}.st:Call_Sequence`;
+		const variablesFolderId = `${callId}.variables`;
+		const simpleVariableId = `${callId}.v:group`;
+		const multiVariableId = `${callId}.v:returnedAttributes`;
+		const nextId = `${sequenceId}.st:next`;
+		const flow = new SequenceFlowBuilder().buildFlowFromTree(
+			'Project',
+			'Sequence',
+			[
+				step('SequenceStep', callId, 'Call_Sequence', [
+					folder(variablesFolderId, 'Variables', [
+						variable('StepVariable', simpleVariableId, 'group'),
+						variable('StepMultiValuedVariable', multiVariableId, 'returnedAttributes')
+					])
+				]),
+				step('XMLElementStep', nextId, '<next>')
+			],
+			palette()
+		);
+		const callNode = flow.nodes.find((node) => node.id === callId);
+		const simpleVariableNode = flow.nodes.find((node) => node.id === simpleVariableId);
+		const multiVariableNode = flow.nodes.find((node) => node.id === multiVariableId);
+
+		expect(callNode).toEqual(
+			expect.objectContaining({
+				bottomOutputs: 1,
+				bottomOutputLabels: ['vars']
+			})
+		);
+		expect(simpleVariableNode).toEqual(
+			expect.objectContaining({
+				inputs: 1,
+				outputs: 0,
+				data: expect.objectContaining({ isVariable: true })
+			})
+		);
+		expect(multiVariableNode).toEqual(
+			expect.objectContaining({
+				inputs: 1,
+				outputs: 0,
+				data: expect.objectContaining({ isVariable: true })
+			})
+		);
+		expect(flow.links).toContainEqual(
+			expect.objectContaining({
+				from: { nodeId: callId, portIndex: 1 },
+				to: { nodeId: simpleVariableId, portIndex: 0 }
+			})
+		);
+		expect(flow.links).toContainEqual(
+			expect.objectContaining({
+				from: { nodeId: callId, portIndex: 1 },
+				to: { nodeId: multiVariableId, portIndex: 0 }
+			})
+		);
+		expect(flow.links).toContainEqual(
+			expect.objectContaining({
+				from: { nodeId: callId, portIndex: 0 },
+				to: { nodeId: nextId, portIndex: 0 }
+			})
+		);
+		expect(flow.links).not.toContainEqual(
+			expect.objectContaining({
+				from: expect.objectContaining({ nodeId: simpleVariableId })
+			})
+		);
+		expect(flow.links).not.toContainEqual(
+			expect.objectContaining({
+				from: expect.objectContaining({ nodeId: multiVariableId })
+			})
+		);
+	});
 });
 
 /**
@@ -661,6 +828,7 @@ function palette() {
 		paletteEntry('IfStep', { outputs: 2, outputLabels: ['true', 'false'] }),
 		paletteEntry('IfThenElseStep', { outputs: 2, outputLabels: ['true', 'false'] }),
 		paletteEntry('IteratorStep', { outputs: 2, outputLabels: ['loop', 'done'] }),
+		paletteEntry('SequenceStep', { bottomOutputs: 1, bottomOutputLabels: ['vars'] }),
 		paletteEntry('SimpleSourceStep'),
 		paletteEntry('SimpleStep')
 	]);
@@ -668,7 +836,7 @@ function palette() {
 
 /**
  * @param {string} type
- * @param {{ outputs?: number, outputLabels?: string[], bottomInputs?: number, bottomOutputs?: number }} [options]
+ * @param {{ outputs?: number, outputLabels?: string[], bottomInputs?: number, bottomOutputs?: number, bottomOutputLabels?: string[] }} [options]
  * @returns {[string, import('./types').PaletteItem]}
  */
 function paletteEntry(type, options = {}) {
@@ -682,7 +850,8 @@ function paletteEntry(type, options = {}) {
 			outputs: options.outputs ?? 1,
 			outputLabels: options.outputLabels,
 			bottomInputs: options.bottomInputs ?? 0,
-			bottomOutputs: options.bottomOutputs ?? 0
+			bottomOutputs: options.bottomOutputs ?? 0,
+			bottomOutputLabels: options.bottomOutputLabels
 		}
 	];
 }
@@ -754,6 +923,48 @@ function loopStep(simpleType, id, label, children = []) {
 	return {
 		...step(simpleType, id, label, children),
 		isLoop: true
+	};
+}
+
+/**
+ * @param {string} id
+ * @param {string} label
+ * @param {import('./types').SequenceTreeNode[]} [children]
+ * @returns {import('./types').SequenceTreeNode}
+ */
+function folder(id, label, children = []) {
+	return {
+		id,
+		label,
+		name: label,
+		classname: '',
+		icon: 'folder',
+		isLoop: false,
+		isXml: false,
+		isSourceContainer: false,
+		hasChildren: children.length > 0,
+		children
+	};
+}
+
+/**
+ * @param {string} simpleType
+ * @param {string} id
+ * @param {string} label
+ * @returns {import('./types').SequenceTreeNode}
+ */
+function variable(simpleType, id, label) {
+	return {
+		id,
+		label,
+		name: label,
+		classname: `com.twinsoft.convertigo.beans.variables.${simpleType}`,
+		icon: '',
+		isLoop: false,
+		isXml: false,
+		isSourceContainer: false,
+		hasChildren: false,
+		children: []
 	};
 }
 

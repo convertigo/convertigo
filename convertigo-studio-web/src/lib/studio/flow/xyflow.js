@@ -56,12 +56,19 @@ function toXyFlow(flow, options = {}) {
 	const visibleNodes = flow.nodes.filter((node) => visibleNodeIds.has(node.id));
 	const visibleLinks = collectVisibleLinks(flow, visibleNodeIds, hiddenNodeIds);
 	const positions = layoutVisibleFlow(visibleNodes, hiddenNodeIds.size > 0);
+	const visibleNodeById = new Map(visibleNodes.map((node) => [node.id, node]));
+	const outputVisualIndicesByNodeId = createOutputVisualIndicesByNodeId(
+		visibleNodes,
+		visibleLinks,
+		visibleNodeById,
+		positions
+	);
 	/** @type {import('@xyflow/svelte').Node<FlowStepNodeData, 'flow-step'>[]} */
 	const nodes = visibleNodes.map((node) => ({
 		id: node.id,
 		type: 'flow-step',
 		position: positions.get(node.id) ?? { x: node.x, y: node.y },
-		data: toStepNodeData(node, options),
+		data: toStepNodeData(node, options, outputVisualIndicesByNodeId.get(node.id)),
 		draggable: false,
 		dragHandle: '.flow-step-node__drag-handle',
 		selectable: true,
@@ -71,13 +78,13 @@ function toXyFlow(flow, options = {}) {
 	const terminalFlow = createTerminalFlow(flow, visibleNodes, visibleLinks, positions);
 	nodes.unshift(...terminalFlow.nodes.filter((node) => node.data.terminalKind === 'request'));
 	nodes.push(...terminalFlow.nodes.filter((node) => node.data.terminalKind === 'response'));
-	const visibleNodeById = new Map(visibleNodes.map((node) => [node.id, node]));
 	const routePlanner = createRoutePlanner(visibleNodes, positions);
 	const edgeDataByLinkId = createLoopReturnEdgeData(
 		visibleLinks,
 		visibleNodeById,
 		positions,
-		routePlanner
+		routePlanner,
+		outputVisualIndicesByNodeId
 	);
 	createLoopReturnBusSegments(
 		visibleLinks,
@@ -98,12 +105,24 @@ function toXyFlow(flow, options = {}) {
 		visibleLinks,
 		visibleNodeById,
 		positions,
-		routePlanner
+		routePlanner,
+		outputVisualIndicesByNodeId
 	)) {
 		edgeDataByLinkId.set(linkId, { ...(edgeDataByLinkId.get(linkId) ?? {}), ...data });
 	}
+	for (const [linkId, data] of createObstacleDetourEdgeData(
+		visibleLinks,
+		visibleNodeById,
+		positions,
+		routePlanner,
+		outputVisualIndicesByNodeId,
+		edgeDataByLinkId
+	)) {
+		edgeDataByLinkId.set(linkId, { ...(edgeDataByLinkId.get(linkId) ?? {}), ...data });
+	}
+	const renderedLinks = collapseVariablePortLinks(visibleLinks, visibleNodeById, positions);
 	/** @type {import('@xyflow/svelte').Edge[]} */
-	const edges = visibleLinks.map((link) =>
+	const edges = renderedLinks.map((link) =>
 		toXyEdge(link, visibleNodeById, edgeDataByLinkId.get(link.id))
 	);
 	edges.unshift(...terminalFlow.edges.filter((edge) => edge.source.includes('__request')));
@@ -202,7 +221,9 @@ function createRoutePlanner(nodes, positions) {
 	 *  preferredOffset?: number,
 	 *  step?: number,
 	 *  maxOffset?: number,
-	 *  ignoredNodeIds?: Set<string>
+	 *  ignoredNodeIds?: Set<string>,
+	 *  direction?: number,
+	 *  reserve?: boolean
 	 * }} options
 	 * @returns {number}
 	 */
@@ -213,7 +234,9 @@ function createRoutePlanner(nodes, positions) {
 		preferredOffset = 44,
 		step = 34,
 		maxOffset = Number.POSITIVE_INFINITY,
-		ignoredNodeIds = new Set()
+		ignoredNodeIds = new Set(),
+		direction = 1,
+		reserve = true
 	}) => {
 		const span = normalizeVerticalSpan(startY, endY);
 		let offset = preferredOffset;
@@ -221,17 +244,21 @@ function createRoutePlanner(nodes, positions) {
 			? Math.max(preferredOffset, maxOffset)
 			: Number.POSITIVE_INFINITY;
 		while (offset <= limit) {
-			const x = handleX + offset;
+			const x = handleX + direction * offset;
 			if (
 				!isVerticalSegmentOccupied(verticalSegments, x, span.start, span.end) &&
 				!isVerticalBlocked(x, span.start, span.end, ignoredNodeIds)
 			) {
-				reserveVertical(x, span.start, span.end);
+				if (reserve) {
+					reserveVertical(x, span.start, span.end);
+				}
 				return offset;
 			}
 			offset += step;
 		}
-		reserveVertical(handleX + preferredOffset, span.start, span.end);
+		if (reserve) {
+			reserveVertical(handleX + direction * preferredOffset, span.start, span.end);
+		}
 		return preferredOffset;
 	};
 	return {
@@ -250,9 +277,16 @@ function createRoutePlanner(nodes, positions) {
  * @param {Map<string, FlowNode>} nodeById
  * @param {Map<string, { x: number, y: number }>} positions
  * @param {RoutePlanner} routePlanner
+ * @param {Map<string, number[]>} outputVisualIndicesByNodeId
  * @returns {Map<string, Record<string, unknown>>}
  */
-function createLoopReturnEdgeData(links, nodeById, positions, routePlanner) {
+function createLoopReturnEdgeData(
+	links,
+	nodeById,
+	positions,
+	routePlanner,
+	outputVisualIndicesByNodeId
+) {
 	const groups = new Map();
 	for (const link of links) {
 		if (link.routing !== 'loop-return') {
@@ -326,7 +360,8 @@ function createLoopReturnEdgeData(links, nodeById, positions, routePlanner) {
 				link,
 				positions,
 				laneY,
-				routePlanner
+				routePlanner,
+				outputVisualIndicesByNodeId
 			);
 			dataByLinkId.set(link.id, {
 				connectToLoop: link.id === busLinkId,
@@ -426,9 +461,16 @@ function createLoopBodyEdgeData(links, nodeById, positions, routePlanner) {
  * @param {Map<string, FlowNode>} nodeById
  * @param {Map<string, { x: number, y: number }>} positions
  * @param {RoutePlanner} routePlanner
+ * @param {Map<string, number[]>} outputVisualIndicesByNodeId
  * @returns {Map<string, Record<string, unknown>>}
  */
-function createBranchEdgeData(links, nodeById, positions, routePlanner) {
+function createBranchEdgeData(
+	links,
+	nodeById,
+	positions,
+	routePlanner,
+	outputVisualIndicesByNodeId
+) {
 	const groups = new Map();
 	for (const link of links) {
 		if (!isBranchRouteCandidate(link, nodeById)) {
@@ -450,13 +492,25 @@ function createBranchEdgeData(links, nodeById, positions, routePlanner) {
 		}
 		group.sort(
 			(left, right) =>
-				branchOutputVisualIndex(left.sourceNode, left.link.from.portIndex) -
-					branchOutputVisualIndex(right.sourceNode, right.link.from.portIndex) ||
-				compareNodePosition(left.targetNode, right.targetNode, positions)
+				branchOutputVisualIndex(
+					left.sourceNode,
+					left.link.from.portIndex,
+					outputVisualIndicesByNodeId
+				) -
+					branchOutputVisualIndex(
+						right.sourceNode,
+						right.link.from.portIndex,
+						outputVisualIndicesByNodeId
+					) || compareNodePosition(left.targetNode, right.targetNode, positions)
 		);
 		for (const { link, sourceNode, targetNode } of group) {
 			const sourceHandleX = outputHandleX(sourceNode, link.from.portIndex, positions);
-			const sourceHandleY = outputHandleY(sourceNode, link.from.portIndex, positions);
+			const sourceHandleY = outputHandleY(
+				sourceNode,
+				link.from.portIndex,
+				positions,
+				outputVisualIndicesByNodeId
+			);
 			const targetHandleIndex = targetPortIndex(link, targetNode);
 			const targetHandleX = inputHandleX(targetNode, targetHandleIndex, positions);
 			const targetHandleY = inputHandleY(targetNode, targetHandleIndex, positions);
@@ -465,7 +519,12 @@ function createBranchEdgeData(links, nodeById, positions, routePlanner) {
 				startY: sourceHandleY,
 				endY: targetHandleY,
 				preferredOffset:
-					36 + Math.min(3, branchOutputVisualIndex(sourceNode, link.from.portIndex)) * 34,
+					36 +
+					Math.min(
+						3,
+						branchOutputVisualIndex(sourceNode, link.from.portIndex, outputVisualIndicesByNodeId)
+					) *
+						34,
 				step: 34,
 				maxOffset: Math.max(36, targetHandleX - sourceHandleX - 30),
 				ignoredNodeIds: new Set([sourceNode.id, targetNode.id])
@@ -480,6 +539,413 @@ function createBranchEdgeData(links, nodeById, positions, routePlanner) {
 		}
 	}
 	return dataByLinkId;
+}
+
+/**
+ * Routes ordinary links around visible nodes when the XYFlow default step path
+ * would put a horizontal or vertical segment through a block.
+ * @param {VisibleFlowLink[]} links
+ * @param {Map<string, FlowNode>} nodeById
+ * @param {Map<string, { x: number, y: number }>} positions
+ * @param {RoutePlanner} routePlanner
+ * @param {Map<string, number[]>} outputVisualIndicesByNodeId
+ * @param {Map<string, Record<string, unknown>>} edgeDataByLinkId
+ * @returns {Map<string, Record<string, unknown>>}
+ */
+function createObstacleDetourEdgeData(
+	links,
+	nodeById,
+	positions,
+	routePlanner,
+	outputVisualIndicesByNodeId,
+	edgeDataByLinkId
+) {
+	const dataByLinkId = new Map();
+	const nodes = Array.from(nodeById.values());
+	for (const link of links) {
+		if (!isObstacleDetourCandidate(link, nodeById, edgeDataByLinkId)) {
+			continue;
+		}
+		const sourceNode = nodeById.get(link.from.nodeId);
+		const targetNode = nodeById.get(link.to.nodeId);
+		if (!sourceNode || !targetNode) {
+			continue;
+		}
+		const geometry = linkHandleGeometry(
+			link,
+			sourceNode,
+			targetNode,
+			positions,
+			outputVisualIndicesByNodeId
+		);
+		const ignoredNodeIds = new Set([sourceNode.id, targetNode.id]);
+		const blockers = defaultStepRouteBlockers(nodes, positions, geometry, ignoredNodeIds);
+		if (!blockers.length) {
+			continue;
+		}
+		const detour = findObstacleDetour(
+			nodes,
+			positions,
+			geometry,
+			blockers,
+			ignoredNodeIds,
+			routePlanner
+		);
+		if (!detour) {
+			continue;
+		}
+		const sourceLeadX = geometry.sourceX + detour.sourceLeadOffset;
+		const targetLeadX = geometry.targetX - detour.targetLeadOffset;
+		routePlanner.reserveVertical(sourceLeadX, geometry.sourceY, detour.laneY);
+		routePlanner.reserveVertical(targetLeadX, detour.laneY, geometry.targetY);
+		routePlanner.reserveHorizontal(geometry.sourceX, sourceLeadX, geometry.sourceY);
+		routePlanner.reserveHorizontal(sourceLeadX, targetLeadX, detour.laneY);
+		routePlanner.reserveHorizontal(targetLeadX, geometry.targetX, geometry.targetY);
+		dataByLinkId.set(link.id, {
+			routeKind: 'detour',
+			laneY: detour.laneY,
+			sourceLeadOffset: detour.sourceLeadOffset,
+			targetLeadOffset: detour.targetLeadOffset
+		});
+	}
+	return dataByLinkId;
+}
+
+/**
+ * @param {VisibleFlowLink} link
+ * @param {Map<string, FlowNode>} nodeById
+ * @param {Map<string, Record<string, unknown>>} edgeDataByLinkId
+ * @returns {boolean}
+ */
+function isObstacleDetourCandidate(link, nodeById, edgeDataByLinkId) {
+	const targetNode = nodeById.get(link.to.nodeId);
+	if (
+		edgeDataByLinkId.has(link.id) ||
+		link.routing === 'loop-return' ||
+		isLoopBodyLink(link, nodeById) ||
+		targetNode?.data?.isVariable === true
+	) {
+		return false;
+	}
+	return link.from.nodeId !== link.to.nodeId;
+}
+
+/**
+ * @param {VisibleFlowLink} link
+ * @param {FlowNode} sourceNode
+ * @param {FlowNode} targetNode
+ * @param {Map<string, { x: number, y: number }>} positions
+ * @param {Map<string, number[]>} outputVisualIndicesByNodeId
+ * @returns {{ sourceX: number, sourceY: number, targetX: number, targetY: number }}
+ */
+function linkHandleGeometry(link, sourceNode, targetNode, positions, outputVisualIndicesByNodeId) {
+	const targetHandleIndex = targetPortIndex(link, targetNode);
+	return {
+		sourceX: outputHandleX(sourceNode, link.from.portIndex, positions),
+		sourceY: outputHandleY(sourceNode, link.from.portIndex, positions, outputVisualIndicesByNodeId),
+		targetX: inputHandleX(targetNode, targetHandleIndex, positions),
+		targetY: inputHandleY(targetNode, targetHandleIndex, positions)
+	};
+}
+
+/**
+ * @param {FlowNode[]} nodes
+ * @param {Map<string, { x: number, y: number }>} positions
+ * @param {{ sourceX: number, sourceY: number, targetX: number, targetY: number }} geometry
+ * @param {Set<string>} ignoredNodeIds
+ * @returns {FlowNode[]}
+ */
+function defaultStepRouteBlockers(nodes, positions, geometry, ignoredNodeIds) {
+	const midX = geometry.sourceX + (geometry.targetX - geometry.sourceX) / 2;
+	const blockers = new Set();
+	for (const node of nodes) {
+		if (
+			isHorizontalSegmentBlocked(
+				node,
+				positions,
+				geometry.sourceX,
+				midX,
+				geometry.sourceY,
+				ignoredNodeIds
+			) ||
+			isVerticalSegmentBlocked(
+				node,
+				positions,
+				midX,
+				geometry.sourceY,
+				geometry.targetY,
+				ignoredNodeIds
+			) ||
+			isHorizontalSegmentBlocked(
+				node,
+				positions,
+				midX,
+				geometry.targetX,
+				geometry.targetY,
+				ignoredNodeIds
+			)
+		) {
+			blockers.add(node);
+		}
+	}
+	return [...blockers];
+}
+
+/**
+ * @param {FlowNode[]} nodes
+ * @param {Map<string, { x: number, y: number }>} positions
+ * @param {{ sourceX: number, sourceY: number, targetX: number, targetY: number }} geometry
+ * @param {FlowNode[]} blockers
+ * @param {Set<string>} ignoredNodeIds
+ * @param {RoutePlanner} routePlanner
+ * @returns {{ laneY: number, sourceLeadOffset: number, targetLeadOffset: number } | undefined}
+ */
+function findObstacleDetour(nodes, positions, geometry, blockers, ignoredNodeIds, routePlanner) {
+	for (const laneY of detourLaneCandidates(blockers, positions, geometry, nodes)) {
+		const sourceLeadOffset = routePlanner.nextVerticalLeadOffset({
+			handleX: geometry.sourceX,
+			startY: geometry.sourceY,
+			endY: laneY,
+			preferredOffset: 36,
+			step: 34,
+			ignoredNodeIds,
+			reserve: false
+		});
+		const targetLeadOffset = routePlanner.nextVerticalLeadOffset({
+			handleX: geometry.targetX,
+			startY: laneY,
+			endY: geometry.targetY,
+			preferredOffset: 28,
+			step: 34,
+			ignoredNodeIds,
+			direction: -1,
+			reserve: false
+		});
+		const sourceLeadX = geometry.sourceX + sourceLeadOffset;
+		const targetLeadX = geometry.targetX - targetLeadOffset;
+		if (
+			isLoopBodyLaneFree(
+				nodes,
+				positions,
+				sourceLeadX,
+				targetLeadX,
+				laneY,
+				ignoredNodeIds,
+				routePlanner
+			) &&
+			!nodes.some((node) =>
+				isHorizontalSegmentBlocked(
+					node,
+					positions,
+					geometry.sourceX,
+					sourceLeadX,
+					geometry.sourceY,
+					ignoredNodeIds
+				)
+			) &&
+			!nodes.some((node) =>
+				isHorizontalSegmentBlocked(
+					node,
+					positions,
+					targetLeadX,
+					geometry.targetX,
+					geometry.targetY,
+					ignoredNodeIds
+				)
+			)
+		) {
+			return { laneY, sourceLeadOffset, targetLeadOffset };
+		}
+	}
+	return undefined;
+}
+
+/**
+ * @param {FlowNode[]} blockers
+ * @param {Map<string, { x: number, y: number }>} positions
+ * @param {{ sourceY: number, targetY: number }} geometry
+ * @param {FlowNode[]} nodes
+ * @returns {number[]}
+ */
+function detourLaneCandidates(blockers, positions, geometry, nodes) {
+	/** @type {number[]} */
+	const candidates = [];
+	const blockerTops = blockers.map((node) => positions.get(node.id)?.y ?? node.y ?? 0);
+	const blockerBottoms = blockers.map((node) => {
+		const position = positions.get(node.id) ?? { x: node.x ?? 0, y: node.y ?? 0 };
+		return position.y + NODE_HEIGHT;
+	});
+	if (blockerTops.length) {
+		addLaneCandidate(candidates, Math.min(...blockerTops) - 34);
+		addLaneCandidate(candidates, Math.max(...blockerBottoms) + 34);
+	}
+	const minHandleY = Math.min(geometry.sourceY, geometry.targetY);
+	const maxHandleY = Math.max(geometry.sourceY, geometry.targetY);
+	addLaneCandidate(candidates, minHandleY - 54);
+	addLaneCandidate(candidates, maxHandleY + 54);
+	const nodeTops = nodes.map((node) => positions.get(node.id)?.y ?? node.y ?? 0);
+	const nodeBottoms = nodes.map((node) => {
+		const position = positions.get(node.id) ?? { x: node.x ?? 0, y: node.y ?? 0 };
+		return position.y + NODE_HEIGHT;
+	});
+	const minCanvasY = Math.min(...nodeTops, minHandleY) - 110;
+	const maxCanvasY = Math.max(...nodeBottoms, maxHandleY) + 110;
+	for (let y = minCanvasY; y <= maxCanvasY; y += 36) {
+		addLaneCandidate(candidates, y);
+	}
+	return candidates.sort(
+		(left, right) =>
+			detourLaneScore(left, geometry) - detourLaneScore(right, geometry) || left - right
+	);
+}
+
+/**
+ * @param {number[]} candidates
+ * @param {number} laneY
+ */
+function addLaneCandidate(candidates, laneY) {
+	if (Number.isFinite(laneY) && !candidates.some((candidate) => Math.abs(candidate - laneY) < 1)) {
+		candidates.push(laneY);
+	}
+}
+
+/**
+ * @param {number} laneY
+ * @param {{ sourceY: number, targetY: number }} geometry
+ * @returns {number}
+ */
+function detourLaneScore(laneY, geometry) {
+	const middleY = (geometry.sourceY + geometry.targetY) / 2;
+	return Math.abs(laneY - middleY) + (laneY < 0 ? 1000 : 0);
+}
+
+/**
+ * Aligns conditional output handles with the vertical order of their visible
+ * routes. Loop returns are considered low because they descend to the return
+ * bus before joining the loop again.
+ * @param {FlowNode[]} nodes
+ * @param {VisibleFlowLink[]} links
+ * @param {Map<string, FlowNode>} nodeById
+ * @param {Map<string, { x: number, y: number }>} positions
+ * @returns {Map<string, number[]>}
+ */
+function createOutputVisualIndicesByNodeId(nodes, links, nodeById, positions) {
+	const nodeIds = new Set(nodes.map((node) => node.id));
+	const routeGroups = new Map();
+	for (const link of links) {
+		if (!nodeIds.has(link.from.nodeId)) {
+			continue;
+		}
+		const sourceNode = nodeById.get(link.from.nodeId);
+		const targetNode = nodeById.get(link.to.nodeId);
+		if (
+			!sourceNode ||
+			!targetNode ||
+			!usesDynamicConditionalOutputOrder(sourceNode) ||
+			isBottomOutputPort(sourceNode, link.from.portIndex)
+		) {
+			continue;
+		}
+		const label = branchPortLabel(sourceNode, link.from.portIndex);
+		if (!isConditionalOrderLabel(label)) {
+			continue;
+		}
+		const group = routeGroups.get(sourceNode.id) ?? [];
+		group.push({
+			link,
+			sourceNode,
+			targetNode,
+			targetY: branchOrderTargetY(link, sourceNode, targetNode, nodeById, positions)
+		});
+		routeGroups.set(sourceNode.id, group);
+	}
+
+	const outputVisualIndicesByNodeId = new Map();
+	for (const routes of routeGroups.values()) {
+		const sourceNode = routes[0]?.sourceNode;
+		if (!sourceNode) {
+			continue;
+		}
+		const sideOutputs = Math.max(0, (sourceNode.outputs ?? 0) - (sourceNode.bottomOutputs ?? 0));
+		const portScores = new Map();
+		for (const route of routes) {
+			const portIndex = route.link.from.portIndex;
+			if (portIndex >= sideOutputs) {
+				continue;
+			}
+			const score = portScores.get(portIndex) ?? { portIndex, totalY: 0, count: 0 };
+			score.totalY += route.targetY;
+			score.count += 1;
+			portScores.set(portIndex, score);
+		}
+		if (portScores.size < Math.min(2, sideOutputs)) {
+			continue;
+		}
+		const order = Array.from({ length: sideOutputs }, (_, portIndex) =>
+			defaultBranchOutputVisualIndex(sourceNode, portIndex)
+		);
+		[...portScores.values()]
+			.map((score) => ({
+				portIndex: score.portIndex,
+				targetY: score.totalY / score.count
+			}))
+			.sort(
+				(left, right) =>
+					left.targetY - right.targetY ||
+					defaultBranchOutputVisualIndex(sourceNode, left.portIndex) -
+						defaultBranchOutputVisualIndex(sourceNode, right.portIndex) ||
+					left.portIndex - right.portIndex
+			)
+			.forEach((score, visualIndex) => {
+				order[score.portIndex] = visualIndex;
+			});
+		outputVisualIndicesByNodeId.set(sourceNode.id, order);
+	}
+	return outputVisualIndicesByNodeId;
+}
+
+/**
+ * @param {FlowNode} node
+ * @returns {boolean}
+ */
+function usesDynamicConditionalOutputOrder(node) {
+	const sideOutputs = Math.max(0, (node.outputs ?? 0) - (node.bottomOutputs ?? 0));
+	if (sideOutputs !== 2) {
+		return false;
+	}
+	const labels = [0, 1].map((portIndex) => branchPortLabel(node, portIndex));
+	return labels.includes('Then') && (labels.includes('Next') || labels.includes('Else'));
+}
+
+/**
+ * @param {string} label
+ * @returns {boolean}
+ */
+function isConditionalOrderLabel(label) {
+	return label === 'Then' || label === 'Next' || label === 'Else';
+}
+
+/**
+ * @param {VisibleFlowLink} link
+ * @param {FlowNode} sourceNode
+ * @param {FlowNode} targetNode
+ * @param {Map<string, FlowNode>} nodeById
+ * @param {Map<string, { x: number, y: number }>} positions
+ * @returns {number}
+ */
+function branchOrderTargetY(link, sourceNode, targetNode, nodeById, positions) {
+	if (link.routing === 'loop-return') {
+		const sourcePosition = positions.get(sourceNode.id) ?? {
+			x: sourceNode.x ?? 0,
+			y: sourceNode.y ?? 0
+		};
+		return (
+			Math.max(loopSubtreeBottom(targetNode, nodeById, positions), sourcePosition.y + NODE_HEIGHT) +
+			74
+		);
+	}
+	const targetHandleIndex = targetPortIndex(link, targetNode);
+	return inputHandleY(targetNode, targetHandleIndex, positions);
 }
 
 /**
@@ -528,11 +994,24 @@ function createLoopReturnBusSegments(links, nodeById, positions, edgeDataByLinkI
  * @param {Map<string, { x: number, y: number }>} positions Node positions.
  * @param {number} laneY Shared return bus lane.
  * @param {RoutePlanner} routePlanner Shared route planner.
+ * @param {Map<string, number[]>} outputVisualIndicesByNodeId
  * @returns {number}
  */
-function nextLoopReturnSourceLeadOffset(sourceNode, link, positions, laneY, routePlanner) {
+function nextLoopReturnSourceLeadOffset(
+	sourceNode,
+	link,
+	positions,
+	laneY,
+	routePlanner,
+	outputVisualIndicesByNodeId
+) {
 	const sourceHandleX = loopReturnSourceHandleX(sourceNode, link, positions);
-	const sourceHandleY = loopReturnSourceHandleY(sourceNode, link, positions);
+	const sourceHandleY = loopReturnSourceHandleY(
+		sourceNode,
+		link,
+		positions,
+		outputVisualIndicesByNodeId
+	);
 	return routePlanner.nextVerticalLeadOffset({
 		handleX: sourceHandleX,
 		startY: sourceHandleY,
@@ -566,9 +1045,10 @@ function loopReturnSourceHandleX(node, link, positions) {
  * @param {FlowNode} node
  * @param {VisibleFlowLink} link
  * @param {Map<string, { x: number, y: number }>} positions
+ * @param {Map<string, number[]>} outputVisualIndicesByNodeId
  * @returns {number}
  */
-function loopReturnSourceHandleY(node, link, positions) {
+function loopReturnSourceHandleY(node, link, positions, outputVisualIndicesByNodeId) {
 	const position = positions.get(node.id) ?? { x: node.x ?? 0, y: node.y ?? 0 };
 	if (isBottomOutputPort(node, link.from.portIndex)) {
 		return position.y + NODE_HEIGHT + 4;
@@ -577,8 +1057,12 @@ function loopReturnSourceHandleY(node, link, positions) {
 	if (sideOutputs <= 1) {
 		return position.y + NODE_HEIGHT / 2;
 	}
-	const sideIndex = Math.min(link.from.portIndex, sideOutputs - 1);
-	return position.y + ((sideIndex + 1) / (sideOutputs + 1)) * NODE_HEIGHT;
+	const visualIndex = branchOutputVisualIndex(
+		node,
+		link.from.portIndex,
+		outputVisualIndicesByNodeId
+	);
+	return position.y + ((visualIndex + 1) / (sideOutputs + 1)) * NODE_HEIGHT;
 }
 
 /**
@@ -604,9 +1088,10 @@ function outputHandleX(node, portIndex, positions) {
  * @param {FlowNode} node
  * @param {number} portIndex
  * @param {Map<string, { x: number, y: number }>} positions
+ * @param {Map<string, number[]>} outputVisualIndicesByNodeId
  * @returns {number}
  */
-function outputHandleY(node, portIndex, positions) {
+function outputHandleY(node, portIndex, positions, outputVisualIndicesByNodeId) {
 	const position = positions.get(node.id) ?? { x: node.x ?? 0, y: node.y ?? 0 };
 	if (isBottomOutputPort(node, portIndex)) {
 		return position.y + NODE_HEIGHT + 4;
@@ -615,7 +1100,7 @@ function outputHandleY(node, portIndex, positions) {
 	if (sideOutputs <= 1) {
 		return position.y + NODE_HEIGHT / 2;
 	}
-	const visualIndex = branchOutputVisualIndex(node, portIndex);
+	const visualIndex = branchOutputVisualIndex(node, portIndex, outputVisualIndicesByNodeId);
 	return position.y + ((visualIndex + 1) / (sideOutputs + 1)) * NODE_HEIGHT;
 }
 
@@ -897,6 +1382,9 @@ function edgeType(link, nodeById, data) {
 	if (data?.routeKind === 'branch') {
 		return 'branch';
 	}
+	if (data?.routeKind === 'detour') {
+		return 'loop-body';
+	}
 	if (link.routing === 'orthogonal') {
 		return 'step';
 	}
@@ -941,17 +1429,32 @@ function isBranchRouteCandidate(link, nodeById) {
 /**
  * @param {FlowNode} node
  * @param {number} portIndex
+ * @param {Map<string, number[]>} [outputVisualIndicesByNodeId]
  * @returns {number}
  */
-function branchOutputVisualIndex(node, portIndex) {
+function branchOutputVisualIndex(node, portIndex, outputVisualIndicesByNodeId) {
+	const visualIndices = outputVisualIndicesByNodeId?.get(node.id);
+	const visualIndex = visualIndices?.[portIndex];
+	if (typeof visualIndex === 'number' && Number.isInteger(visualIndex)) {
+		return visualIndex;
+	}
+	return defaultBranchOutputVisualIndex(node, portIndex);
+}
+
+/**
+ * @param {FlowNode} node
+ * @param {number} portIndex
+ * @returns {number}
+ */
+function defaultBranchOutputVisualIndex(node, portIndex) {
 	const sideOutputs = Math.max(0, (node.outputs ?? 0) - (node.bottomOutputs ?? 0));
 	const sideIndex = Math.min(Math.max(0, portIndex), Math.max(0, sideOutputs - 1));
 	const label = branchPortLabel(node, portIndex);
 	if (sideOutputs === 2) {
-		if (label === 'Then') {
+		if (label === 'Then' || label === 'Loop') {
 			return 1;
 		}
-		if (label === 'Else' || label === 'Next') {
+		if (label === 'Else' || label === 'Next' || label === 'Done') {
 			return 0;
 		}
 	}
@@ -1363,7 +1866,7 @@ function lastSideOutputHandle(node) {
  * @returns {number}
  */
 function loopReturnInputPortIndex(node) {
-	return Math.max(0, (node.inputs ?? 0) - (node.bottomInputs ?? 0));
+	return Math.max(0, node.inputs ?? 0);
 }
 
 /**
@@ -1524,6 +2027,85 @@ function collectVisibleLinks(flow, visibleNodeIds, hiddenNodeIds) {
 }
 
 /**
+ * Collapses several links from one bottom port to variable nodes into a single
+ * visual bus edge. The underlying flow still keeps every link so layout and
+ * substep accounting remain unchanged.
+ * @param {VisibleFlowLink[]} links
+ * @param {Map<string, FlowNode>} nodeById
+ * @param {Map<string, { x: number, y: number }>} positions
+ * @returns {VisibleFlowLink[]}
+ */
+function collapseVariablePortLinks(links, nodeById, positions) {
+	const variableGroups = new Map();
+	const groupedLinkIds = new Set();
+	for (const link of links) {
+		const sourceNode = nodeById.get(link.from.nodeId);
+		const targetNode = nodeById.get(link.to.nodeId);
+		if (
+			!sourceNode ||
+			!targetNode ||
+			targetNode.data?.isVariable !== true ||
+			!isBottomOutputPort(sourceNode, link.from.portIndex)
+		) {
+			continue;
+		}
+		const key = `${link.from.nodeId}:${link.from.portIndex}`;
+		const group = variableGroups.get(key) ?? [];
+		group.push({ link, targetNode });
+		variableGroups.set(key, group);
+		groupedLinkIds.add(link.id);
+	}
+	if (![...variableGroups.values()].some((group) => group.length > 1)) {
+		return links;
+	}
+	const representativeByGroup = new Map();
+	for (const [key, group] of variableGroups.entries()) {
+		if (group.length <= 1) {
+			groupedLinkIds.delete(group[0]?.link.id);
+			continue;
+		}
+		representativeByGroup.set(key, rightmostTargetVariableLink(group, positions)?.link);
+	}
+	const representatives = new Set(
+		[...representativeByGroup.values()].filter((link) => !!link).map((link) => link.id)
+	);
+	return links.filter((link) => !groupedLinkIds.has(link.id) || representatives.has(link.id));
+}
+
+/**
+ * @param {{ link: VisibleFlowLink, targetNode: FlowNode }[]} group
+ * @param {Map<string, { x: number, y: number }>} positions
+ * @returns {{ link: VisibleFlowLink, targetNode: FlowNode } | undefined}
+ */
+function rightmostTargetVariableLink(group, positions) {
+	/** @type {{ link: VisibleFlowLink, targetNode: FlowNode } | undefined} */
+	let rightmost;
+	for (const current of group) {
+		if (!rightmost) {
+			rightmost = current;
+			continue;
+		}
+		const currentPosition = positions.get(current.targetNode.id) ?? {
+			x: current.targetNode.x ?? 0,
+			y: current.targetNode.y ?? 0
+		};
+		const rightmostPosition = positions.get(rightmost.targetNode.id) ?? {
+			x: rightmost.targetNode.x ?? 0,
+			y: rightmost.targetNode.y ?? 0
+		};
+		if (currentPosition.x !== rightmostPosition.x) {
+			rightmost = currentPosition.x > rightmostPosition.x ? current : rightmost;
+			continue;
+		}
+		rightmost =
+			compareNodePosition(current.targetNode, rightmost.targetNode, positions) > 0
+				? current
+				: rightmost;
+	}
+	return rightmost;
+}
+
+/**
  * @param {FlowNode[]} nodes
  * @param {boolean} [compactGaps]
  * @returns {Map<string, { x: number, y: number }>}
@@ -1604,9 +2186,10 @@ function isSelectedFlowNode(node, selectedObjectId) {
 /**
  * @param {FlowNode} node
  * @param {ToXyFlowOptions} options
+ * @param {number[]=} outputVisualOrder
  * @returns {FlowStepNodeData}
  */
-function toStepNodeData(node, options) {
+function toStepNodeData(node, options, outputVisualOrder) {
 	const data = node.data ?? {};
 	const inputs = node.inputs ?? 0;
 	const outputs = node.outputs ?? 0;
@@ -1614,7 +2197,7 @@ function toStepNodeData(node, options) {
 	const loopReturnInputIndex = loopReturnInputPortIndex(node);
 	const renderedInputs = inputs + (hasLoopReturnInput ? 1 : 0);
 	const renderedOutputs = isReturnNode(node) && outputs === 0 ? 1 : outputs;
-	const bottomInputs = node.bottomInputs ?? 0;
+	const bottomInputs = (node.bottomInputs ?? 0) + (hasLoopReturnInput ? 1 : 0);
 	const inputLabels = [...(node.inputLabels ?? [])];
 	if (hasLoopReturnInput) {
 		inputLabels.splice(loopReturnInputIndex, 0, '');
@@ -1632,6 +2215,7 @@ function toStepNodeData(node, options) {
 		isLoop: Boolean(data.isLoop),
 		isReturn: Boolean(data.isReturn),
 		isBreak: Boolean(data.isBreak),
+		isVariable: Boolean(data.isVariable),
 		isXml: Boolean(data.isXml),
 		isSourceContainer: Boolean(data.isSourceContainer),
 		hasChildren: Boolean(data.hasChildren),
@@ -1643,6 +2227,7 @@ function toStepNodeData(node, options) {
 		outputLabels: node.outputLabels ?? [],
 		bottomInputs,
 		bottomOutputs: node.bottomOutputs ?? 0,
+		outputVisualOrder,
 		loopReturnInputIndex: hasLoopReturnInput ? loopReturnInputIndex : void 0,
 		isSubstepCollapsed: options.collapsedNodeIds?.has(node.id) ?? false,
 		substepDescendantCount,
