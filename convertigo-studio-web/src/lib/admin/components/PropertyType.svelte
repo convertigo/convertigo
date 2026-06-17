@@ -219,8 +219,7 @@
 											'min-h-9 input-common resize-y px-3 py-2 text-sm leading-tight',
 											rest?.class
 										]}
-										bind:value
-									></textarea>
+										bind:value></textarea>
 								{:else}
 									<input
 										{...rest}
@@ -367,8 +366,7 @@
 								'input-common px-3 py-2 text-sm',
 								rest?.class
 							]}
-							bind:value
-						></textarea>
+							bind:value></textarea>
 					{:else}
 						<input
 							{...rest}

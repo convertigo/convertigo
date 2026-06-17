@@ -47,7 +47,7 @@ ext.soapuiVersion = '5.9.1'
 ext.log4jVersion = '2.26.0'
 ext.commonsIo = '2.22.0'
 ext.commonsLang3 = '3.20.0'
-ext.zstdJniVersion = '1.5.7-10'
+ext.zstdJniVersion = '1.5.7-11'
 ext.brotli4jVersion = '1.23.0'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')

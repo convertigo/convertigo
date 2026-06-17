@@ -1109,8 +1109,7 @@
 						class="min-h-[120px] input-common resize-y overflow-auto"
 						bind:value={modalFilterParams.value}
 						wrap={null}
-						rows={Math.min(10, value.split('\n').length)}
-					></textarea>
+						rows={Math.min(10, value.split('\n').length)}></textarea>
 				{:else if category == dateTimeCategory}
 					{#if modalFilterParams.clickedValue}
 						<div class="layout-x-wrap items-center gap-2 text-sm">
