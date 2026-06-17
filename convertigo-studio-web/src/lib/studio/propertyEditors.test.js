@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
-	SMART_TYPE_MODES,
 	canOpenCodeProperty,
 	getPropertyLanguage,
 	isCodeEditorProperty,
-	isMonacoProperty
+	isMonacoProperty,
+	SMART_TYPE_MODES
 } from './propertyEditors';
 
 describe('Studio property editor language detection', () => {

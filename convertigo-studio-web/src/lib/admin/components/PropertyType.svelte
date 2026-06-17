@@ -322,7 +322,7 @@
 												segmentCompact
 													? isTinySegment
 														? 'h-7 !w-8 !min-w-8 overflow-hidden px-0 text-xs text-ellipsis whitespace-nowrap'
-														: 'h-7 min-w-8 max-w-full overflow-hidden px-1 text-xs text-ellipsis whitespace-nowrap'
+														: 'h-7 max-w-full min-w-8 overflow-hidden px-1 text-xs text-ellipsis whitespace-nowrap'
 													: 'px-3 py-1 text-[14px]',
 												!segmentCompact && !isVerticalSegment && 'h-full'
 											]}

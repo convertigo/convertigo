@@ -2526,8 +2526,7 @@ class SequenceFlowBuilder {
 	 */
 	isRequestableStepNode(node) {
 		const simpleType = this.simpleTypeName(node.type ?? '').toLowerCase();
-		const className =
-			typeof node.data?.classname === 'string' ? node.data.classname : '';
+		const className = typeof node.data?.classname === 'string' ? node.data.classname : '';
 		const simpleClass = this.simpleTypeName(className).toLowerCase();
 		return (
 			simpleType === 'sequencestep' ||

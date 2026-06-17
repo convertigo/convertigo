@@ -6,11 +6,11 @@
 	import LightSvelte from '$lib/common/Light.svelte';
 	import Editor from '$lib/studio/editor/Editor.svelte';
 	import {
-		SMART_TYPE_MODES,
 		asEditorValue,
 		canOpenCodeProperty,
 		getPropertyLanguage,
-		isSmartTypeProperty
+		isSmartTypeProperty,
+		SMART_TYPE_MODES
 	} from '$lib/studio/propertyEditors';
 	import { untrack } from 'svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
