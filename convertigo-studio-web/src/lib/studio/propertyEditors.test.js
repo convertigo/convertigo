@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { getPropertyLanguage, isCodeEditorProperty, isMonacoProperty } from './propertyEditors';
+import {
+	SMART_TYPE_MODES,
+	canOpenCodeProperty,
+	getPropertyLanguage,
+	isCodeEditorProperty,
+	isMonacoProperty
+} from './propertyEditors';
 
 describe('Studio property editor language detection', () => {
 	it('opens Convertigo expressions as JavaScript even before they contain code', () => {
@@ -51,5 +57,36 @@ describe('Studio property editor language detection', () => {
 				value: '{}'
 			})
 		).toBe('json');
+	});
+
+	it('allows explicit code actions for non-java textual values without auto-selecting code', () => {
+		const row = {
+			name: 'sourceDefinition',
+			displayName: 'Source definition',
+			class: 'xmlizable',
+			value: ['Project.sq:Sequence.st:Step', './document/item']
+		};
+
+		expect(isMonacoProperty(row, 'Project.sq:Sequence.st:Step')).toBe(false);
+		expect(isCodeEditorProperty(row, 'Project.sq:Sequence.st:Step')).toBe(false);
+		expect(canOpenCodeProperty(row, 'Project.sq:Sequence.st:Step')).toBe(true);
+	});
+
+	it('opens step SmartType script values as JavaScript', () => {
+		const row = {
+			name: 'value',
+			displayName: 'Value',
+			class: 'xmlizable',
+			smartType: true,
+			mode: 'script',
+			value: 'context.getAuthenticatedUser()'
+		};
+
+		expect(getPropertyLanguage(row, 'Project.sq:Sequence.st:field')).toBe('javascript');
+		expect(canOpenCodeProperty(row, 'Project.sq:Sequence.st:field')).toBe(true);
+	});
+
+	it('uses the Convertigo SmartType mode labels', () => {
+		expect(SMART_TYPE_MODES.map((mode) => mode.text)).toEqual(['TX', 'JS', 'SC']);
 	});
 });

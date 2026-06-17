@@ -3,6 +3,12 @@ const CODE_HINT_RE =
 const JAVASCRIPT_HINT_RE = /(javascript|sequencejs|typescript|\.js\b|\bjs\b)/i;
 const EXPRESSION_HINT_RE = /\b(expression|condition|script|sequencejs)\b/i;
 
+export const SMART_TYPE_MODES = [
+	{ value: 'plain', text: 'TX' },
+	{ value: 'script', text: 'JS' },
+	{ value: 'source', text: 'SC' }
+];
+
 /**
  * @param {any} value
  * @returns {string}
@@ -43,6 +49,29 @@ function isTextProperty(row) {
 }
 
 /**
+ * @param {any} row
+ * @returns {boolean}
+ */
+export function isSmartTypeProperty(row) {
+	return row?.smartType === true;
+}
+
+/**
+ * @param {any} value
+ * @returns {boolean}
+ */
+function isTextEditorValue(value) {
+	return (
+		value == null ||
+		typeof value === 'string' ||
+		typeof value === 'number' ||
+		typeof value === 'boolean' ||
+		Array.isArray(value) ||
+		typeof value === 'object'
+	);
+}
+
+/**
  * @param {string} value
  * @returns {boolean}
  */
@@ -80,6 +109,30 @@ export function isCodeEditorProperty(row, selectedId = '') {
 }
 
 /**
+ * Indicates whether a property can be opened explicitly in the Studio code editor.
+ * This is broader than isMonacoProperty because it is only used for user-triggered actions,
+ * not for automatic tab selection.
+ *
+ * @param {any} row
+ * @param {string} selectedId
+ * @returns {boolean}
+ */
+export function canOpenCodeProperty(row, selectedId = '') {
+	if (!row || row.category === 'Information' || !isTextEditorValue(row.value)) {
+		return false;
+	}
+	if (isSmartTypeProperty(row) && row.mode === 'script') {
+		return true;
+	}
+	if (isMonacoProperty(row, selectedId)) {
+		return true;
+	}
+	const value = asEditorValue(row.value);
+	const hints = `${selectedId} ${rowHints(row)}`;
+	return value.includes('\n') || value.length > 140 || CODE_HINT_RE.test(hints);
+}
+
+/**
  * @param {any[]} properties
  * @param {string} selectedId
  * @returns {any}
@@ -106,6 +159,9 @@ export function findPrimaryEditorProperty(properties, selectedId = '') {
  * @returns {string}
  */
 export function getPropertyLanguage(row, selectedId = '') {
+	if (isSmartTypeProperty(row) && row?.mode === 'script') {
+		return 'javascript';
+	}
 	const hints = `${selectedId} ${rowHints(row)}`.toLowerCase();
 	const value = asEditorValue(row?.value).trim();
 	const expressionLike = EXPRESSION_HINT_RE.test(hints);

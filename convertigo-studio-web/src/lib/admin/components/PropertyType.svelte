@@ -9,9 +9,10 @@
 	import Button from './Button.svelte';
 	import CheckState from './CheckState.svelte';
 
-	/** @type {{value: string, checked?: boolean, label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, loading?:boolean, placeholder?: string, multiple?: boolean}|any} */
+	/** @type {{value: string, mode?: string, checked?: boolean, label?: string, description?: string, name?: string, item?: any, type?: string, defaultValue?:string, originalValue?:string, defaultMode?: string, originalMode?: string, loading?:boolean, placeholder?: string, multiple?: boolean, rows?: number, adaptiveTextarea?: boolean, segmentCompact?: boolean}|any} */
 	let {
 		value = $bindable(''),
+		mode = $bindable('plain'),
 		checked = $bindable(false),
 		label: _label,
 		description,
@@ -20,9 +21,14 @@
 		type: _type = 'text',
 		defaultValue,
 		originalValue,
+		defaultMode,
+		originalMode,
 		loading = false,
 		placeholder = 'Enter value …',
 		fit = false,
+		rows = undefined,
+		adaptiveTextarea = false,
+		segmentCompact = false,
 		buttons = [],
 		actionsHorizontal = false,
 		title,
@@ -45,28 +51,67 @@
 			.filter(Boolean)
 			.join('; ')
 	);
+	let isSmartType = $derived(type === 'smarttype');
+	let smartMode = $derived(['plain', 'script', 'source'].includes(mode) ? mode : 'plain');
+	let smartValue = $derived(stringifyValue(value));
+	let smartRows = $derived.by(() => {
+		if (rows) {
+			return rows;
+		}
+		const lines = smartValue ? smartValue.split(/\r\n|\r|\n/).length : 1;
+		return Math.min(Math.max(lines, 1), 3);
+	});
 	let restores = $derived.by(() => {
 		const r = [];
-		if (originalValue != null) {
+		if (originalValue != null || (isSmartType && originalMode != null)) {
 			r.push({
 				icon: 'mdi:arrow-u-left-top',
 				val: originalValue,
+				modeVal: originalMode,
 				title: 'Reset to original value'
 			});
 		}
-		if (!isPasswordType && defaultValue != null) {
+		if (!isPasswordType && (defaultValue != null || (isSmartType && defaultMode != null))) {
 			r.push({
 				icon: 'mdi:backup-restore',
 				val: defaultValue,
+				modeVal: defaultMode,
 				title: 'Restore default value'
 			});
 		}
 		return r;
 	});
 	let isVerticalSegment = $derived(rest?.orientation == 'vertical');
+	let isTinySegment = $derived.by(() => {
+		if (!segmentCompact || !Array.isArray(item)) {
+			return false;
+		}
+		return item.every((option) => {
+			const val = option?.value ?? option;
+			const txt = option?.text ?? option?.['#text'] ?? val;
+			return String(txt).length <= 3;
+		});
+	});
 	let id = `property-input-${cpt++}`;
 	/** @param {any} value */
 	const asAny = (value) => value;
+
+	/**
+	 * @param {any} value
+	 * @returns {string}
+	 */
+	function stringifyValue(value) {
+		if (value == null) {
+			return '';
+		}
+		if (Array.isArray(value)) {
+			return value.join('\n');
+		}
+		if (typeof value === 'object') {
+			return JSON.stringify(value, null, 2);
+		}
+		return String(value);
+	}
 
 	function handleMultiple(e) {
 		e.preventDefault();
@@ -153,7 +198,82 @@
 					</AutoPlaceholder>
 				{/if}
 				{#snippet fieldControl()}
-					{#if type == 'segment'}
+					{#if type == 'smarttype'}
+						<div class="layout-x-wrap-low w-full">
+							<div class="min-w-0 flex-1">
+								{#if smartMode == 'source'}
+									<code
+										{id}
+										class="flex h-9 input-common min-w-0 items-center overflow-hidden px-3 text-sm text-ellipsis whitespace-nowrap"
+										title={smartValue}>{smartValue || placeholder}</code
+									>
+								{:else if smartMode == 'script'}
+									<textarea
+										{id}
+										{name}
+										autocomplete={inputAutocomplete}
+										{placeholder}
+										rows={smartRows}
+										{...rest}
+										class={[
+											'min-h-9 input-common resize-y px-3 py-2 text-sm leading-tight',
+											rest?.class
+										]}
+										bind:value
+									></textarea>
+								{:else}
+									<input
+										{...rest}
+										{id}
+										{name}
+										autocomplete={inputAutocomplete}
+										{placeholder}
+										type="text"
+										disabled={loading}
+										class:animate-pulse={loading}
+										class="h-9 input-common px-3 text-sm placeholder:text-surface-600-400 {rest?.class ??
+											''}"
+										bind:value
+									/>
+								{/if}
+							</div>
+							<div class="min-w-fit flex-none">
+								<SegmentedControl
+									name={name ? `${name}-mode` : undefined}
+									value={smartMode}
+									onValueChange={(event) => {
+										mode = event.value ?? 'plain';
+										rest.onModeChange?.(event);
+									}}
+									class="w-fit max-w-full"
+								>
+									<SegmentedControl.Control
+										class="relative min-h-7 input-common w-fit max-w-full flex-row flex-wrap gap-0.5 overflow-hidden p-[1px] shadow-none"
+									>
+										<SegmentedControl.Indicator class="rounded-base bg-primary-500 shadow-none" />
+										{#each item ?? [] as option (option.value ?? option)}
+											{@const val = option.value ?? option}
+											{@const txt = option.text ?? option['#text'] ?? val}
+											<SegmentedControl.Item
+												value={val}
+												class="relative w-8 flex-none !gap-0 !px-0 !py-0"
+											>
+												<SegmentedControl.ItemText
+													class={[
+														smartMode == val ? 'text-white' : 'text-surface-700-300',
+														'flex h-7 !w-8 !min-w-8 items-center justify-center overflow-hidden px-0 text-xs leading-none font-medium text-ellipsis whitespace-nowrap'
+													]}
+												>
+													{txt}
+												</SegmentedControl.ItemText>
+												<SegmentedControl.ItemHiddenInput />
+											</SegmentedControl.Item>
+										{/each}
+									</SegmentedControl.Control>
+								</SegmentedControl>
+							</div>
+						</div>
+					{:else if type == 'segment'}
 						<SegmentedControl
 							{...rest}
 							name={name ?? []}
@@ -162,17 +282,18 @@
 								value = event.value ?? '';
 								rest.onValueChange?.(event);
 							}}
-							class={fit ? 'w-fit' : 'w-full'}
+							class={fit || segmentCompact ? 'w-fit max-w-full' : 'w-full'}
 						>
 							<SegmentedControl.Control
 								class={[
 									'relative',
 									'input-common',
-									isVerticalSegment ? 'h-auto' : 'h-9',
+									segmentCompact ? 'min-h-7' : isVerticalSegment ? 'h-auto' : 'h-9',
 									'gap-0.5',
 									'p-[1px]',
 									'shadow-none',
 									'overflow-hidden',
+									segmentCompact ? 'w-fit max-w-full flex-wrap' : undefined,
 									isVerticalSegment ? 'flex-col' : 'flex-row'
 								]}
 							>
@@ -182,13 +303,28 @@
 									{@const txt = option.text ?? option['#text'] ?? val}
 									<SegmentedControl.Item
 										value={val}
-										class={['relative', isVerticalSegment ? 'w-full flex-none' : 'flex-1']}
+										class={[
+											'relative',
+											segmentCompact ? '!gap-0 !px-0 !py-0' : undefined,
+											segmentCompact
+												? isTinySegment
+													? 'w-8 flex-none'
+													: 'min-w-0 flex-[1_1_0]'
+												: isVerticalSegment
+													? 'w-full flex-none'
+													: 'flex-1'
+										]}
 									>
 										<SegmentedControl.ItemText
 											class={[
 												value == val ? 'text-white' : 'text-surface-700-300',
-												'flex items-center px-3 py-1 text-[14px] leading-none font-medium',
-												!isVerticalSegment && 'h-full'
+												'flex items-center justify-center leading-none font-medium',
+												segmentCompact
+													? isTinySegment
+														? 'h-7 !w-8 !min-w-8 overflow-hidden px-0 text-xs text-ellipsis whitespace-nowrap'
+														: 'h-7 min-w-8 max-w-full overflow-hidden px-1 text-xs text-ellipsis whitespace-nowrap'
+													: 'px-3 py-1 text-[14px]',
+												!segmentCompact && !isVerticalSegment && 'h-full'
 											]}
 										>
 											{txt}
@@ -224,8 +360,13 @@
 							{name}
 							autocomplete={inputAutocomplete}
 							{placeholder}
+							{rows}
 							{...rest}
-							class="min-h-24 input-common px-3 py-2 text-sm {rest?.class ?? ''}"
+							class={[
+								adaptiveTextarea ? 'min-h-9 resize-y leading-tight' : 'min-h-24',
+								'input-common px-3 py-2 text-sm',
+								rest?.class
+							]}
 							bind:value
 						></textarea>
 					{:else}
@@ -284,17 +425,22 @@
 				? 'layout-x-low h-fit items-center justify-start'
 				: 'layout-x-low justify-around! sm:layout-y-low sm:h-full'}
 		>
-			{#each restores as { icon, val, title }, idx (idx)}
+			{#each restores as { icon, val, modeVal, title }, idx (idx)}
 				{@const displayVal = val == null ? '' : String(val)}
 				{@const label = displayVal.length ? `${title}: ${displayVal}` : title}
 				<Button
 					full={false}
 					size={4}
-					disabled={value == val}
+					disabled={value == val && (!isSmartType || modeVal == null || mode == modeVal)}
 					{icon}
 					title={label}
 					ariaLabel={label}
-					onclick={() => (value = val)}
+					onclick={() => {
+						if (isSmartType && modeVal != null) {
+							mode = modeVal;
+						}
+						value = val;
+					}}
 					class="inline-flex h-7 w-7 items-center justify-center rounded-base p-0! text-primary-500 transition-surface hover:text-primary-600 disabled:pointer-events-none disabled:text-surface-600-400"
 				/>
 			{/each}

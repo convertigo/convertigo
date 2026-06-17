@@ -735,6 +735,17 @@
 	}
 
 	/**
+	 * @param {EditorTarget} target
+	 */
+	function openPropertyPicker(target) {
+		if (!target?.id) {
+			return;
+		}
+		selectedId = target.id;
+		setSidePanel('picker');
+	}
+
+	/**
 	 * @param {PaletteItem} item
 	 */
 	function selectPaletteItem(item) {
@@ -1225,6 +1236,7 @@
 		active={effectiveSidePanel === 'properties'}
 		onSave={refreshAfterPropertySave}
 		onOpenPropertyEditor={openPropertyEditor}
+		onOpenPropertyPicker={openPropertyPicker}
 	/>
 {/snippet}
 

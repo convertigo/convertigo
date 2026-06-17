@@ -6,12 +6,15 @@
 	import LightSvelte from '$lib/common/Light.svelte';
 	import Editor from '$lib/studio/editor/Editor.svelte';
 	import {
+		SMART_TYPE_MODES,
 		asEditorValue,
+		canOpenCodeProperty,
 		getPropertyLanguage,
-		isMonacoProperty
+		isSmartTypeProperty
 	} from '$lib/studio/propertyEditors';
 	import { untrack } from 'svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+	import StudioIconButton from './StudioIconButton.svelte';
 	import StudioSection from './StudioSection.svelte';
 
 	/**
@@ -19,10 +22,17 @@
 	 *  selectedId?: string,
 	 *  active?: boolean,
 	 *  onSave?: (id: string) => void | Promise<void>,
-	 *  onOpenPropertyEditor?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void
+	 *  onOpenPropertyEditor?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void,
+	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void
 	 * }}
 	 */
-	let { selectedId = '', active = true, onSave, onOpenPropertyEditor } = $props();
+	let {
+		selectedId = '',
+		active = true,
+		onSave,
+		onOpenPropertyEditor,
+		onOpenPropertyPicker
+	} = $props();
 
 	let openedCategories = $state(/** @type {string[]} */ ([]));
 	let clickedCategories = $state(/** @type {string[]} */ ([]));
@@ -76,6 +86,9 @@
 	}
 
 	function getType(row) {
+		if (isSmartTypeProperty(row)) {
+			return 'smarttype';
+		}
 		let { class: cls, value, values } = row;
 		if (row.symbols && value != row.originalValue) {
 			return 'text';
@@ -87,15 +100,139 @@
 			return values.length < 4 ? 'segment' : 'combo';
 		}
 		if (row.isMultiline) {
-			return 'array';
+			return 'textarea';
 		}
 		if (cls?.endsWith('Boolean')) {
 			return 'boolean';
 		}
-		if (cls?.endsWith('Integer') || cls?.endsWith('Long')) {
+		if (
+			cls?.endsWith('Integer') ||
+			cls?.endsWith('Long') ||
+			cls?.endsWith('Double') ||
+			cls?.endsWith('Float') ||
+			cls?.endsWith('Short') ||
+			cls?.endsWith('Byte')
+		) {
 			return 'number';
 		}
 		return 'text';
+	}
+
+	/**
+	 * @param {any} row
+	 * @returns {boolean}
+	 */
+	function isInlineEditable(row) {
+		return String(row?.class ?? '').startsWith('java.lang.');
+	}
+
+	/**
+	 * @param {any} row
+	 * @returns {string}
+	 */
+	function smartMode(row) {
+		return ['plain', 'script', 'source'].includes(row?.mode) ? row.mode : 'plain';
+	}
+
+	/**
+	 * @param {any} row
+	 * @param {string} mode
+	 */
+	function setSmartMode(row, mode) {
+		row.mode = mode;
+		if (mode === 'source' && row.value == null) {
+			row.value = [];
+		} else if (mode !== 'source' && Array.isArray(row.value)) {
+			row.value = row.value.join('\n');
+		}
+	}
+
+	/**
+	 * @param {any} row
+	 * @returns {string}
+	 */
+	function previewValue(row) {
+		const value = asEditorValue(row?.value);
+		return value === '' ? 'empty' : value;
+	}
+
+	/**
+	 * @param {any} row
+	 * @returns {{ icon: string, title: string, onclick: () => void }[]}
+	 */
+	function smartTypeButtons(row) {
+		if (smartMode(row) === 'source') {
+			return [
+				{
+					icon: 'mdi:hub',
+					title: 'Open source picker',
+					onclick: () => openPicker(row)
+				}
+			];
+		}
+		if (smartMode(row) === 'script') {
+			return [
+				{
+					icon: 'mdi:open-in-new-variant',
+					title: 'Open code editor',
+					onclick: () => openMonaco(row)
+				}
+			];
+		}
+		return [];
+	}
+
+	/**
+	 * @param {any} row
+	 * @returns {boolean}
+	 */
+	function hasSmartTypeSideActions(row) {
+		return smartMode(row) === 'source' || smartMode(row) === 'script';
+	}
+
+	/**
+	 * @param {any} row
+	 * @returns {number}
+	 */
+	function textareaRows(row) {
+		const value = asEditorValue(row?.value);
+		const lines = value ? value.split(/\r\n|\r|\n/).length : 1;
+		return Math.min(Math.max(lines, 1), 3);
+	}
+
+	/**
+	 * @param {any} row
+	 * @param {string} category
+	 * @param {string} type
+	 * @returns {boolean}
+	 */
+	function isWideField(row, category, type) {
+		if (category === 'Information') {
+			return false;
+		}
+		if (type === 'textarea') {
+			return textareaRows(row) > 1;
+		}
+		if (isSmartTypeProperty(row)) {
+			return true;
+		}
+		if (!isInlineEditable(row)) {
+			const value = previewValue(row);
+			return value.includes('\n') || value.length > 96;
+		}
+		return false;
+	}
+
+	/**
+	 * @param {any} row
+	 * @param {string} category
+	 * @returns {boolean}
+	 */
+	function isChanged(row, category) {
+		return (
+			category !== 'Information' &&
+			(row.value != row.originalValue || ('mode' in row && row.mode != row.originalMode))
+		);
 	}
 
 	async function saveChanges() {
@@ -119,6 +256,15 @@
 		}
 		monacoRow = row;
 		monacoValue = asEditorValue(row?.value);
+	}
+
+	function openPicker(row) {
+		onOpenPropertyPicker?.({
+			id: selectedId,
+			propertyName: row?.name,
+			displayName: row?.displayName,
+			value: row?.value
+		});
 	}
 
 	function applyMonaco() {
@@ -168,13 +314,19 @@
 							{#if total === 0}
 								<StudioEmptyState message="Empty" small />
 							{:else}
-								<div class="studio-properties__fields layout-y-none">
+								<div class="studio-properties__fields layout-y-start-none">
 									{#each rows as row (row.name ?? row.displayName)}
-										{@const { class: cls, value, originalValue, values } = row}
+										{@const { value, originalValue, values } = row}
 										{@const label = row.displayName ?? row.name ?? ''}
-										{@const changed = category != 'Information' && value != originalValue}
+										{@const type = getType(row)}
+										{@const changed = isChanged(row, category)}
+										{@const inlineEditable = isInlineEditable(row)}
+										{@const smartType = isSmartTypeProperty(row)}
+										{@const wideField = isWideField(row, category, type)}
 										<div
 											class="studio-properties__field"
+											class:studio-properties__field--wide={wideField}
+											class:studio-properties__field--textarea={type === 'textarea' || smartType}
 											class:studio-properties__field--changed={changed}
 										>
 											<div class="studio-properties__field-header layout-x-between-none">
@@ -188,26 +340,64 @@
 											<div class="studio-properties__field-control">
 												{#if category == 'Information'}
 													<span class="studio-properties__static">{value}</span>
-												{:else if cls?.startsWith('java.lang.')}
-													{@const type = getType(row)}
+												{:else if smartType}
+													<PropertyType
+														type="smarttype"
+														bind:value={() => value, (nextValue) => (row.value = nextValue)}
+														bind:mode={() => smartMode(row), (mode) => setSmartMode(row, mode)}
+														item={SMART_TYPE_MODES}
+														{originalValue}
+														originalMode={row.originalMode}
+														rows={smartMode(row) === 'script' ? textareaRows(row) : undefined}
+														actionsHorizontal={!hasSmartTypeSideActions(row)}
+														buttons={smartTypeButtons(row)}
+													/>
+												{:else if inlineEditable}
 													<PropertyType
 														{type}
 														bind:value={() => value, (nextValue) => (row.value = nextValue)}
 														item={values}
 														{originalValue}
-														actionsHorizontal={true}
-														buttons={isMonacoProperty(row, selectedId)
+														rows={type === 'textarea' ? textareaRows(row) : undefined}
+														adaptiveTextarea={type === 'textarea'}
+														segmentCompact={type === 'segment'}
+														actionsHorizontal={type !== 'textarea'}
+														buttons={canOpenCodeProperty(row, selectedId)
 															? [
 																	{
 																		icon: 'mdi:open-in-new-variant',
-																		title: 'Open text editor',
+																		title: 'Open code editor',
 																		onclick: () => openMonaco(row)
 																	}
 																]
 															: []}
 													/>
 												{:else}
-													<span class="studio-properties__static">{row.value}</span>
+													<div class="studio-properties__fallback layout-x-low">
+														<code
+															class="studio-properties__fallback-value"
+															class:studio-properties__fallback-value--compact={!wideField}
+															>{previewValue(row)}</code
+														>
+														<div class="studio-properties__fallback-actions layout-x-low">
+															{#if canOpenCodeProperty(row, selectedId)}
+																<StudioIconButton
+																	icon="mdi:code-tags"
+																	size="xs"
+																	title="Open code editor"
+																	ariaLabel="Open code editor"
+																	onclick={() => openMonaco(row)}
+																/>
+															{/if}
+															<StudioIconButton
+																icon="mdi:hub"
+																size="xs"
+																title="Open picker"
+																ariaLabel="Open picker"
+																onclick={() => openPicker(row)}
+															/>
+														</div>
+													</div>
 												{/if}
 											</div>
 										</div>
@@ -285,15 +475,29 @@
 		width: 100%;
 	}
 
+	.studio-properties__fields {
+		width: 100%;
+	}
+
 	.studio-properties__field {
 		display: grid;
-		gap: 0.32rem;
+		width: 100%;
+		grid-template-columns: minmax(5.8rem, 34%) minmax(0, 1fr);
+		align-items: center;
+		column-gap: 0.55rem;
+		row-gap: 0.32rem;
 		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-200-800) 62%, transparent);
-		padding: 0.58rem 0.65rem 0.65rem;
+		padding: 0.46rem 0.65rem;
 	}
 
 	.studio-properties__field:last-child {
 		border-bottom: 0;
+	}
+
+	.studio-properties__field--wide {
+		grid-template-columns: minmax(0, 1fr);
+		align-items: stretch;
+		padding-block: 0.58rem 0.65rem;
 	}
 
 	.studio-properties__field--changed {
@@ -330,11 +534,34 @@
 		min-width: 0;
 	}
 
-	.studio-properties__field-control :global(.layout-y-low.sm\:layout-x-low) {
+	.studio-properties__field-control :global(.layout-y-low.sm\:layout-x-low > div:first-child) {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.studio-properties__field:not(.studio-properties__field--wide)
+		.studio-properties__field-control
+		:global(.layout-y-low.sm\:layout-x-low) {
+		width: 100%;
+		flex-direction: row;
+		align-items: center;
+		gap: 0.32rem;
+	}
+
+	.studio-properties__field--wide
+		.studio-properties__field-control
+		:global(.layout-y-low.sm\:layout-x-low) {
 		width: 100%;
 		flex-direction: column;
 		align-items: stretch;
 		gap: 0.32rem;
+	}
+
+	.studio-properties__field--wide.studio-properties__field--textarea
+		.studio-properties__field-control
+		:global(.layout-y-low.sm\:layout-x-low) {
+		flex-direction: row;
+		align-items: flex-start;
 	}
 
 	.studio-properties__field-control :global(.sm\:grow) {
@@ -342,7 +569,14 @@
 		min-width: 0;
 	}
 
-	.studio-properties__field-control :global(.layout-x-low.h-fit) {
+	.studio-properties__field:not(.studio-properties__field--wide)
+		.studio-properties__field-control
+		:global(.layout-x-low.h-fit) {
+		flex: 0 0 auto;
+		align-self: center;
+	}
+
+	.studio-properties__field--wide .studio-properties__field-control :global(.layout-x-low.h-fit) {
 		align-self: flex-end;
 	}
 
@@ -363,6 +597,44 @@
 		max-width: 100%;
 		overflow-wrap: anywhere;
 		font-size: 0.76rem;
+	}
+
+	.studio-properties__fallback {
+		min-width: 0;
+		align-items: center;
+	}
+
+	.studio-properties__fallback-value {
+		display: block;
+		flex: 1 1 auto;
+		max-height: 7.5rem;
+		min-height: 2rem;
+		overflow: auto;
+		margin: 0;
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.35rem;
+		background: color-mix(in oklab, var(--color-surface-100-900) 72%, transparent);
+		color: var(--color-surface-800-200);
+		padding: 0.45rem 0.55rem;
+		font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+		font-size: 0.7rem;
+		line-height: 1.35;
+		overflow-wrap: anywhere;
+		white-space: pre-wrap;
+	}
+
+	.studio-properties__fallback-value--compact {
+		min-height: 1.75rem;
+		max-height: 1.75rem;
+		overflow: hidden;
+		padding-block: 0.34rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-properties__fallback-actions {
+		flex: 0 0 auto;
+		justify-content: flex-end;
 	}
 
 	.studio-properties__editor {
