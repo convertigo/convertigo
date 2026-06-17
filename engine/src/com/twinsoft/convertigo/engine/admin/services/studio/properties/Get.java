@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
@@ -223,6 +224,33 @@ public class Get extends JSonService {
 					}
 				}
 				property.put("mode", mode);
+				property.put("originalMode", mode);
+				property.put("value", value);
+			} else if ("com.twinsoft.convertigo.beans.steps.SmartType".equals(classname)) {
+				var smartType = new SmartType();
+				Node smartNode = c.getFirstChild();
+				while (smartNode != null && !(smartNode instanceof Element)) {
+					smartNode = smartNode.getNextSibling();
+				}
+				if (smartNode != null) {
+					smartType.readXml(smartNode);
+				}
+				var mode = switch (smartType.getMode()) {
+				case JS -> "script";
+				case SOURCE -> "source";
+				default -> "plain";
+				};
+				Object value = smartType.getExpression();
+				if (smartType.isUseSource()) {
+					var source = new JSONArray();
+					for (String part : smartType.getSourceDefinition()) {
+						source.put(part);
+					}
+					value = source;
+				}
+				property.put("smartType", true);
+				property.put("mode", mode);
+				property.put("originalMode", mode);
 				property.put("value", value);
 			} else {
 				property.put("value", "n/a");

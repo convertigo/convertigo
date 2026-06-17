@@ -28,6 +28,7 @@
 	metaClass?: string;
 	trailingText?: string;
 	trailingTextClass?: string;
+	indicatorSize?: number;
 	selectableHeaderText?: boolean;
 } & Record<string, any>} */
 	let {
@@ -55,6 +56,7 @@
 		metaClass = 'text-xs text-surface-600-400',
 		trailingText,
 		trailingTextClass = 'text-xs text-muted',
+		indicatorSize = 3,
 		selectableHeaderText = false,
 		...rest
 	} = $props();
@@ -122,7 +124,7 @@
 		.filter(Boolean)
 		.join(' ')}
 	<span {...merged} aria-hidden="true">
-		<Ico icon="mdi:chevron-right" size={3} class={iconClasses} />
+		<Ico icon="mdi:chevron-right" size={indicatorSize} class={iconClasses} />
 	</span>
 {/snippet}
 

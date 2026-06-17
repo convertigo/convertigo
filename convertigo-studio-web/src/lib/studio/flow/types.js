@@ -108,6 +108,7 @@
  * @property {boolean=} isLoop
  * @property {boolean=} isReturn
  * @property {boolean=} isBreak
+ * @property {boolean=} isVariable
  * @property {boolean=} isXml
  * @property {boolean=} isSourceContainer
  * @property {boolean=} hasChildren
@@ -121,6 +122,7 @@
  * @property {string[]} outputLabels
  * @property {number} bottomInputs
  * @property {number} bottomOutputs
+ * @property {number[]=} outputVisualOrder
  * @property {number=} loopReturnInputIndex
  * @property {boolean=} isSubstepCollapsed
  * @property {number=} substepDescendantCount

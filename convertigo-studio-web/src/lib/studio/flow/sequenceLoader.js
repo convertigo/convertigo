@@ -117,7 +117,7 @@ function normalizeTreeItem(item) {
  */
 function shouldSkipTreeviewItem(item) {
 	const classname = item.classname?.toLowerCase() || '';
-	if (classname.includes('stepvariable') || classname.includes('testcase')) {
+	if (classname.includes('testcase')) {
 		return true;
 	}
 	return (item.id || '').includes(':tc');

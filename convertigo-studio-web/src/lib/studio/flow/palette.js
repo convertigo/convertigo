@@ -20,6 +20,7 @@ const bottomPortContainers = new Set([
 	'XMLElementStep',
 	'XMLErrorStep'
 ]);
+const requestableStepContainers = new Set(['SequenceStep', 'TransactionStep']);
 
 /**
  * @param {string} parentId
@@ -140,6 +141,7 @@ function toPaletteItem(studioItem, classname, group, color) {
 	const isWhileLike = simpleLower.includes('while');
 	const isIfClass = simple.startsWith('If') || classname.includes('.steps.If');
 	const hasBottomPorts = bottomPortContainers.has(simple);
+	const hasVariablePort = requestableStepContainers.has(simple);
 	const outputs = isIteratorLike || isWhileLike || isIfClass ? 2 : 1;
 	const outputLabels = isIfClass
 		? ['true', 'false']
@@ -157,8 +159,8 @@ function toPaletteItem(studioItem, classname, group, color) {
 		classname,
 		icon: studioItem.icon,
 		outputLabels,
-		bottomOutputs: hasBottomPorts ? 1 : 0,
-		bottomOutputLabels: hasBottomPorts ? ['children'] : void 0,
+		bottomOutputs: hasBottomPorts || hasVariablePort ? 1 : 0,
+		bottomOutputLabels: hasVariablePort ? ['vars'] : hasBottomPorts ? ['children'] : void 0,
 		bottomInputs: hasBottomPorts ? 1 : 0,
 		bottomInputLabels: hasBottomPorts ? ['next'] : void 0
 	};

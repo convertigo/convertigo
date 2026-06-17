@@ -98,11 +98,11 @@
 	}
 </script>
 
-<section class="studio-device-panel" aria-label="Frontend devices">
-	<header class="studio-device-panel__summary">
-		<div>
-			<span>Current device</span>
-			<strong>{selectedDeviceTitle}</strong>
+<section class="studio-device-panel layout-y-stretch-low" aria-label="Frontend devices">
+	<header class="studio-device-panel__summary layout-x-between-low studio-surface">
+		<div class="studio-device-panel__summary-text layout-y-none">
+			<span class="studio-label">Current device</span>
+			<strong class="studio-ellipsis">{selectedDeviceTitle}</strong>
 		</div>
 		{#if selectedDevice.id === 'none'}
 			<Ico icon="mdi:devices" size={6} />
@@ -116,9 +116,10 @@
 		{/if}
 	</header>
 
-	<div class="studio-device-panel__orientation" aria-label="Preview orientation">
+	<div class="studio-device-panel__orientation studio-surface" aria-label="Preview orientation">
 		<button
 			type="button"
+			class="layout-x-center-low"
 			class:studio-device-panel__orientation-button--active={!landscape}
 			disabled={selectedDeviceType !== 'phone' && selectedDeviceType !== 'tablet'}
 			aria-label="Portrait orientation"
@@ -129,6 +130,7 @@
 		</button>
 		<button
 			type="button"
+			class="layout-x-center-low"
 			class:studio-device-panel__orientation-button--active={landscape}
 			disabled={selectedDeviceType !== 'phone' && selectedDeviceType !== 'tablet'}
 			aria-label="Landscape orientation"
@@ -143,7 +145,7 @@
 		{#each deviceGroups as group (group.id)}
 			<AccordionSection
 				value={group.id}
-				class="studio-device-panel__group"
+				class="studio-device-panel__group studio-surface"
 				triggerClass="studio-device-panel__group-trigger"
 				panelClass="studio-device-panel__group-panel"
 				title={group.title}
@@ -152,13 +154,13 @@
 				countVariant="number"
 			>
 				{#snippet panel()}
-					<div class="studio-device-panel__device-list">
+					<div class="studio-device-panel__device-list layout-y-none">
 						{#each group.devices as device (device.id)}
 							{@const isResponsive = device.id === 'none'}
 							{@const isSelected = selectedDeviceId === device.id}
 							<button
 								type="button"
-								class="studio-device-panel__device"
+								class="studio-device-panel__device layout-x-low"
 								class:studio-device-panel__device--active={isSelected}
 								aria-pressed={isSelected}
 								aria-label={`Select device ${isResponsive ? 'Responsive' : device.title}`}
@@ -176,9 +178,13 @@
 										loading="lazy"
 									/>
 								{/if}
-								<span class="studio-device-panel__device-text">
-									<strong>{isResponsive ? 'Responsive' : device.title}</strong>
-									<small>{device.iframe?.width ?? '-'} x {device.iframe?.height ?? '-'}</small>
+								<span class="studio-device-panel__device-text layout-y-none">
+									<strong class="studio-ellipsis"
+										>{isResponsive ? 'Responsive' : device.title}</strong
+									>
+									<small class="studio-ellipsis"
+										>{device.iframe?.width ?? '-'} x {device.iframe?.height ?? '-'}</small
+									>
 								</span>
 							</button>
 						{/each}
@@ -191,49 +197,28 @@
 
 <style>
 	.studio-device-panel {
-		display: grid;
 		height: 100%;
 		min-width: 0;
 		min-height: 0;
-		grid-template-rows: auto auto minmax(0, 1fr);
-		gap: 0.5rem;
 		overflow: hidden;
 		padding: 0.55rem;
 	}
 
 	.studio-device-panel__summary {
-		display: flex;
 		min-width: 0;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
 		background: color-mix(in oklab, var(--color-surface-100-900) 66%, transparent);
 		color: var(--color-surface-700-300);
 		padding: 0.65rem;
 	}
 
-	.studio-device-panel__summary div {
-		display: grid;
+	.studio-device-panel__summary-text {
 		min-width: 0;
-		gap: 0.18rem;
-	}
-
-	.studio-device-panel__summary span {
-		color: var(--color-surface-600-400);
-		font-size: 0.66rem;
-		font-weight: 780;
-		text-transform: uppercase;
 	}
 
 	.studio-device-panel__summary strong {
-		overflow: hidden;
 		color: var(--color-surface-950-50);
 		font-size: 0.88rem;
 		line-height: 1.2;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
 	.studio-device-panel__summary-thumb {
@@ -247,19 +232,13 @@
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 0.25rem;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
 		background: color-mix(in oklab, var(--color-surface-100-900) 70%, transparent);
 		padding: 0.25rem;
 	}
 
 	.studio-device-panel__orientation button {
-		display: flex;
 		min-width: 0;
 		height: 2rem;
-		align-items: center;
-		justify-content: center;
-		gap: 0.32rem;
 		border: 1px solid transparent;
 		border-radius: 0.32rem;
 		background: transparent;
@@ -282,15 +261,13 @@
 	}
 
 	:global(.studio-device-panel__groups) {
+		flex: 1 1 auto;
 		min-height: 0;
 		overflow: auto;
 	}
 
 	:global(.studio-device-panel__group) {
 		overflow: hidden;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
-		background: color-mix(in oklab, var(--color-surface-100-900) 55%, transparent);
 	}
 
 	:global(.studio-device-panel__group + .studio-device-panel__group) {
@@ -314,15 +291,11 @@
 	}
 
 	.studio-device-panel__device-list {
-		display: grid;
 		min-width: 0;
 	}
 
 	.studio-device-panel__device {
-		display: flex;
 		min-width: 0;
-		align-items: center;
-		gap: 0.55rem;
 		border: 0;
 		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-200-800) 72%, transparent);
 		background: transparent;
@@ -358,16 +331,7 @@
 	}
 
 	.studio-device-panel__device-text {
-		display: grid;
 		min-width: 0;
-		gap: 0.12rem;
-	}
-
-	.studio-device-panel__device-text strong,
-	.studio-device-panel__device-text small {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
 	.studio-device-panel__device-text strong {

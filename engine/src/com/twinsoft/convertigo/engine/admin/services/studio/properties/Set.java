@@ -30,12 +30,14 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IDynamicPropertyContainer;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
@@ -76,7 +78,8 @@ public class Set extends JSonService {
 				Object oldValue = null, newValue = null;
 				var jsonObject = jsonArray.getJSONObject(i);
 				var pname = jsonObject.getString("name");
-				var pvalue = jsonObject.getString("value");
+				Object rawValue = jsonObject.get("value");
+				var pvalue = rawValue instanceof JSONArray ? rawValue.toString() : jsonObject.getString("value");
 				var mode = jsonObject.has("mode") ? jsonObject.getString("mode") : "plain";
 
 				var msst = new MobileSmartSourceType(pvalue);
@@ -111,6 +114,8 @@ public class Set extends JSonService {
 
 						if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")) {
 							setter.invoke(dbo, new Object[] { msst });
+						} else if (SmartType.class.equals(ptc)) {
+							setter.invoke(dbo, new Object[] { makeSmartType(mode, rawValue, pvalue) });
 						} else if (pname.equals("actionValue")) {// CustomAction
 							var fc = new FormatedContent(pvalue);
 							setter.invoke(dbo, new Object[] { fc });
@@ -172,6 +177,38 @@ public class Set extends JSonService {
 		} else {
 			response.put("done", false);
 		}
+	}
+
+	private static SmartType makeSmartType(String mode, Object rawValue, String pvalue) throws Exception {
+		var smartType = new SmartType();
+		if ("script".equals(mode)) {
+			smartType.setMode(SmartType.Mode.JS);
+			smartType.setExpression(pvalue);
+		} else if ("source".equals(mode)) {
+			smartType.setMode(SmartType.Mode.SOURCE);
+			var source = new XMLVector<String>();
+			if (rawValue instanceof JSONArray array) {
+				for (int i = 0; i < array.length(); i++) {
+					source.add(array.getString(i));
+				}
+			} else if (pvalue != null && !pvalue.isBlank()) {
+				var value = pvalue.trim();
+				if (value.startsWith("[")) {
+					var array = new JSONArray(value);
+					for (int i = 0; i < array.length(); i++) {
+						source.add(array.getString(i));
+					}
+				} else {
+					source.add(value);
+				}
+			}
+			smartType.setSourceDefinition(source);
+		} else {
+			smartType.setMode(SmartType.Mode.PLAIN);
+			smartType.setExpression(pvalue);
+		}
+		smartType.pack();
+		return smartType;
 	}
 
 	public static Object createObject(Class<?> propertyClass, String value) throws ServiceException {

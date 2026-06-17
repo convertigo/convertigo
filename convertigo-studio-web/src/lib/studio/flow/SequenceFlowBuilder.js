@@ -288,6 +288,12 @@ class SequenceFlowBuilder {
 					}
 					continue;
 				}
+				if (this.isStepVariableTreeNode(item)) {
+					const parentNode = parentId ? nodeMap.get(parentId) : void 0;
+					if (!parentNode || !this.isRequestableStepNode(parentNode)) {
+						continue;
+					}
+				}
 				const flowNode = this.toFlowNode(item, orderIndex, palette, logicalParentId, branch);
 				orderIndex += 1;
 				nodes.push(flowNode);
@@ -306,6 +312,7 @@ class SequenceFlowBuilder {
 				let hasFalseBranchChildren = false;
 				let hasImplicitTrueBranch = false;
 				const isConditionalNode = this.isConditionalNode(flowNode);
+				const isVariableNode = this.isVariableNode(flowNode);
 				const hasBranchContainers = Array.isArray(item.children)
 					? item.children.some((child) => {
 							const kind = this.branchContainerKind(child.classname);
@@ -521,7 +528,8 @@ class SequenceFlowBuilder {
 						if (!isConditionalNode && tailNode) {
 							const tailIsBreak = this.isBreakNode(tailNode);
 							const tailIsReturn = this.isReturnNode(tailNode);
-							if (!(tailIsBreak || tailIsReturn)) {
+							const tailCanContinue = !this.isVariableNode(tailNode) && (tailNode.outputs ?? 0) > 0;
+							if (!(tailIsBreak || tailIsReturn) && tailCanContinue) {
 								const loopContext = this.isLoopNode(tailNode) ? 'done' : void 0;
 								const fromPortIndexOverride = this.isLoopNode(tailNode)
 									? this.loopDonePortIndex(tailNode)
@@ -706,6 +714,7 @@ class SequenceFlowBuilder {
 				const shouldPropagateTail = !(
 					isReturnNode ||
 					(isBreakNode && parentIsLoop) ||
+					isVariableNode ||
 					handledLoopTrue
 				);
 				const propagatesThroughBranchTails =
@@ -832,11 +841,15 @@ class SequenceFlowBuilder {
 		const label = item.label || type;
 		const isReturnStep = this.isReturnTreeNode(item);
 		const isBreakStep = this.isBreakTreeNode(item);
+		const isVariable = this.isStepVariableTreeNode(item);
 		const baseInputs = paletteItem?.inputs ?? (paletteItem ? 0 : 1);
 		let baseOutputs = paletteItem?.outputs ?? 1;
 		let bottomOutputs = paletteItem?.bottomOutputs ?? 0;
 		const bottomInputs = paletteItem?.bottomInputs ?? 0;
-		if (isReturnStep) {
+		if (isVariable) {
+			baseOutputs = 0;
+			bottomOutputs = 0;
+		} else if (isReturnStep) {
 			baseOutputs = 0;
 			bottomOutputs = 0;
 		} else if (isBreakStep) {
@@ -883,6 +896,7 @@ class SequenceFlowBuilder {
 				isLoop: isLoopStep,
 				isReturn: isReturnStep,
 				isBreak: isBreakStep,
+				isVariable,
 				isXml: item.isXml,
 				isSourceContainer: item.isSourceContainer,
 				hasChildren: item.hasChildren
@@ -1451,6 +1465,7 @@ class SequenceFlowBuilder {
 		this.resolveRowCollisions(nodeMap, spacingY);
 		this.alignLoopLanes(nodeMap, links, spacingY);
 		this.spreadLoopBodyLanes(nodeMap, spacingY, nodeWidth);
+		this.keepBottomParentsAboveChildren(nodeMap, bottomOutputChildren, spacingY);
 		this.spreadRowOverlaps(nodeMap, bottomOutputChildren, nodeWidth);
 		this.markLoopReturnLinks(nodeMap, links);
 	}
@@ -1946,6 +1961,10 @@ class SequenceFlowBuilder {
 				if (sourceNode && link.from.portIndex >= sideOutputs) {
 					continue;
 				}
+				const targetNode = nodeMap.get(link.to.nodeId);
+				if (sourceNode && targetNode && this.isNodeContainedBy(targetNode, sourceNode)) {
+					continue;
+				}
 				if (sourceNode && this.isLoopNode(sourceNode)) {
 					const loopPort = loopPortByNode.get(sourceNode.id);
 					const donePort = donePortByNode.get(sourceNode.id);
@@ -1962,7 +1981,6 @@ class SequenceFlowBuilder {
 						continue;
 					}
 				}
-				const targetNode = nodeMap.get(link.to.nodeId);
 				if (
 					sourceNode &&
 					targetNode &&
@@ -2045,6 +2063,31 @@ class SequenceFlowBuilder {
 		}
 	}
 	/**
+	 * Keeps bottom-output containers on the lane above their child lane after
+	 * loop alignment has adjusted nested loop rows.
+	 * @param {Map<string, FlowNode>} nodeMap Lookup map of all nodes.
+	 * @param {Map<string, Set<string>>} bottomOutputChildren Bottom-output mappings.
+	 * @param {number} laneSpacing Vertical distance between parent and child lanes.
+	 */
+	keepBottomParentsAboveChildren(nodeMap, bottomOutputChildren, laneSpacing) {
+		for (const [parentId, childIds] of bottomOutputChildren.entries()) {
+			const parentNode = nodeMap.get(parentId);
+			if (!parentNode || typeof parentNode.y !== 'number') {
+				continue;
+			}
+			const childYValues = Array.from(childIds)
+				.map((childId) => nodeMap.get(childId)?.y)
+				.filter((y) => typeof y === 'number');
+			if (!childYValues.length) {
+				continue;
+			}
+			const minChildY = Math.min(...childYValues);
+			if (parentNode.y >= minChildY - 1e-3) {
+				parentNode.y = minChildY - laneSpacing;
+			}
+		}
+	}
+	/**
 	 * Routes loop-back links below the loop body instead of through the body lane.
 	 * @param {Map<string, FlowNode>} nodeMap Lookup map of all nodes.
 	 * @param {FlowLink[]} links Links to update.
@@ -2073,6 +2116,7 @@ class SequenceFlowBuilder {
 			return;
 		}
 		const toleranceY = 0.5;
+		const rowFootprint = nodeWidth + 60;
 		const rows = new Map();
 		nodeMap.forEach((node) => {
 			if (typeof node.x !== 'number' || typeof node.y !== 'number') {
@@ -2105,7 +2149,7 @@ class SequenceFlowBuilder {
 				}
 				const nodeStart = node.x;
 				if (lastEnd === void 0) {
-					lastEnd = nodeStart + nodeWidth;
+					lastEnd = nodeStart + rowFootprint;
 					return;
 				}
 				if (nodeStart < lastEnd - 1e-3) {
@@ -2113,7 +2157,7 @@ class SequenceFlowBuilder {
 					node.x = nodeStart + shift;
 					this.shiftBottomDescendants(node.id, shift, nodeMap, bottomOutputChildren, new Set());
 				}
-				lastEnd = (node.x ?? nodeStart) + nodeWidth;
+				lastEnd = (node.x ?? nodeStart) + rowFootprint;
 			});
 		});
 	}
@@ -2406,7 +2450,7 @@ class SequenceFlowBuilder {
 	 */
 	shouldSkipTreeviewItem(item) {
 		const classname = item.classname?.toLowerCase() || '';
-		if (classname.includes('stepvariable') || classname.includes('testcase')) {
+		if (classname.includes('testcase')) {
 			return true;
 		}
 		const id = item.id || '';
@@ -2422,7 +2466,7 @@ class SequenceFlowBuilder {
 	 */
 	shouldSkipSequenceNode(node) {
 		const classname = node.classname?.toLowerCase() || '';
-		if (classname.includes('stepvariable') || classname.includes('testcase')) {
+		if (this.isRequestableVariableTreeNode(node) || classname.includes('testcase')) {
 			return true;
 		}
 		const id = node.id || '';
@@ -2430,6 +2474,66 @@ class SequenceFlowBuilder {
 			return true;
 		}
 		return false;
+	}
+	/**
+	 * Requestable variables belong to the requestable input model and are not
+	 * part of the executable step flow.
+	 * @param node Sequence node to inspect.
+	 * @returns True when the node represents a requestable variable database object.
+	 */
+	isRequestableVariableTreeNode(node) {
+		const classname = node.classname || '';
+		const classLower = classname.toLowerCase();
+		const simpleLower = this.simpleTypeName(classname).toLowerCase();
+		const knownRequestableVariableTypes = new Set([
+			'requestablevariable',
+			'requestablemultivaluedvariable',
+			'requestablehttpvariable',
+			'requestablehttpmultivaluedvariable',
+			'testcasevariable',
+			'testcasemultivaluedvariable'
+		]);
+		return (
+			classLower.includes('.beans.variables.requestable') ||
+			classLower.includes('.beans.variables.testcase') ||
+			knownRequestableVariableTypes.has(simpleLower)
+		);
+	}
+	/**
+	 * @param node Sequence node to inspect.
+	 * @returns True when the node represents a variable attached to a requestable step.
+	 */
+	isStepVariableTreeNode(node) {
+		const classname = node.classname || '';
+		const classLower = classname.toLowerCase();
+		const simpleLower = this.simpleTypeName(classname).toLowerCase();
+		return (
+			classLower.includes('.beans.variables.step') ||
+			simpleLower === 'stepvariable' ||
+			simpleLower === 'stepmultivaluedvariable'
+		);
+	}
+	/**
+	 * @param {FlowNode} node Flow node to inspect.
+	 * @returns True when the node represents a non-executable step variable.
+	 */
+	isVariableNode(node) {
+		return node.data?.isVariable === true;
+	}
+	/**
+	 * @param {FlowNode} node Flow node to inspect.
+	 * @returns True when the node can own step variables.
+	 */
+	isRequestableStepNode(node) {
+		const simpleType = this.simpleTypeName(node.type ?? '').toLowerCase();
+		const className = typeof node.data?.classname === 'string' ? node.data.classname : '';
+		const simpleClass = this.simpleTypeName(className).toLowerCase();
+		return (
+			simpleType === 'sequencestep' ||
+			simpleType === 'transactionstep' ||
+			simpleClass === 'sequencestep' ||
+			simpleClass === 'transactionstep'
+		);
 	}
 	/**
 	 * Detects whether the provided flow node behaves like a conditional.

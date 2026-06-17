@@ -1,5 +1,4 @@
 <script>
-	import Button from '$lib/admin/components/Button.svelte';
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import { createDatabaseObjectProperties } from '$lib/common/DatabaseObjectProperties.svelte.js';
 	import LightSvelte from '$lib/common/Light.svelte';
@@ -11,6 +10,8 @@
 	} from '$lib/studio/propertyEditors';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { untrack } from 'svelte';
+	import StudioEmptyState from './StudioEmptyState.svelte';
+	import StudioIconButton from './StudioIconButton.svelte';
 
 	/**
 	 * @typedef {Object} EditorTab
@@ -330,7 +331,7 @@
 
 <div class="studio-editor" class:studio-editor--fullscreen={fullscreen}>
 	{#if editorTabs.length > 0}
-		<div class="studio-editor__tabs" role="tablist" aria-label="Open editors">
+		<div class="studio-editor__tabs layout-x-none" role="tablist" aria-label="Open editors">
 			{#each editorTabs as tab (tab.key)}
 				<div class="studio-editor__tab" class:studio-editor__tab--active={tab.key === activeTabKey}>
 					<button
@@ -344,7 +345,7 @@
 						<span class="studio-editor__tab-dirty"
 							>{tab.content !== tab.originalValue ? '*' : ''}</span
 						>
-						<span class="studio-editor__tab-label">{tab.displayName}</span>
+						<span class="studio-editor__tab-label studio-ellipsis">{tab.displayName}</span>
 					</button>
 					<button
 						type="button"
@@ -363,12 +364,12 @@
 	{/if}
 
 	{#if activeTab}
-		<div class="studio-editor__toolbar">
+		<div class="studio-editor__toolbar layout-x-between-low">
 			<div class="studio-editor__title">
-				<strong>{activeTab.displayName}</strong>
-				<span>{activeTab.id}</span>
+				<strong class="studio-ellipsis">{activeTab.displayName}</strong>
+				<span class="studio-ellipsis">{activeTab.id}</span>
 			</div>
-			<div class="studio-editor__actions">
+			<div class="studio-editor__actions layout-x-low">
 				<SaveCancelButtons
 					class="w-fit"
 					saveLabel="Save"
@@ -378,10 +379,9 @@
 					changesPending={activeTabDirty}
 					disabled={!canSave}
 				/>
-				<Button
-					full={false}
+				<StudioIconButton
 					icon={fullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen'}
-					class="button-ico-secondary h-9! w-9! justify-center p-0!"
+					size="md"
 					title={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
 					ariaLabel={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
 					onclick={() => (fullscreen = !fullscreen)}
@@ -397,23 +397,18 @@
 			/>
 		</div>
 	{:else if loading}
-		<div class="studio-editor__empty">Loading</div>
+		<StudioEmptyState message="Loading" loading full class="studio-editor__empty" />
 	{:else if error}
-		<div class="studio-editor__empty">{error}</div>
+		<StudioEmptyState message={error} full class="studio-editor__empty" />
 	{:else if !selectedId}
-		<div class="studio-editor__empty">No object selected</div>
+		<StudioEmptyState message="No object selected" full class="studio-editor__empty" />
 	{:else}
-		<div class="studio-editor__empty">
-			<div>
-				<Button
-					full={false}
-					icon="mdi:code-braces"
-					class="mx-auto mb-2 button-ico-secondary h-9! w-9! justify-center p-0!"
-					disabled
-				/>
-				<span>No text editor for this selection</span>
-			</div>
-		</div>
+		<StudioEmptyState
+			message="No text editor for this selection"
+			icon="mdi:code-braces"
+			full
+			class="studio-editor__empty"
+		/>
 	{/if}
 </div>
 
@@ -444,9 +439,7 @@
 	}
 
 	.studio-editor__tabs {
-		display: flex;
 		min-width: 0;
-		gap: 0.2rem;
 		overflow-x: auto;
 		border-bottom: 1px solid var(--color-surface-200-800);
 		background: var(--studio-editor-tabs-bg);
@@ -496,11 +489,8 @@
 	}
 
 	.studio-editor__tab-label {
-		overflow: hidden;
 		font-size: 0.74rem;
 		font-weight: 700;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
 	.studio-editor__tab-close {
@@ -516,10 +506,6 @@
 	}
 
 	.studio-editor__toolbar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
 		border-bottom: 1px solid var(--color-surface-200-800);
 		background: color-mix(in oklab, var(--studio-editor-bg) 92%, var(--color-primary-500));
 		padding: 0.45rem 0.55rem;
@@ -532,13 +518,6 @@
 		color: var(--studio-editor-text);
 	}
 
-	.studio-editor__title strong,
-	.studio-editor__title span {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
 	.studio-editor__title strong {
 		font-size: 0.82rem;
 	}
@@ -549,23 +528,15 @@
 	}
 
 	.studio-editor__actions {
-		display: flex;
 		flex: 0 0 auto;
-		align-items: center;
-		gap: 0.35rem;
 	}
 
 	.studio-editor__monaco {
 		min-height: 0;
 	}
 
-	.studio-editor__empty {
-		display: grid;
+	.studio-editor :global(.studio-editor__empty) {
 		grid-row: 1 / -1;
-		place-items: center;
 		background: var(--color-surface-50-950);
-		color: var(--color-surface-600-400);
-		font-size: 0.86rem;
-		text-align: center;
 	}
 </style>

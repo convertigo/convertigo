@@ -238,6 +238,130 @@ describe('Studio flow xyflow terminals', () => {
 		);
 	});
 
+	it('detours single continuation links around intermediate blocks', () => {
+		const groupsId = 'Project.sq:Sequence.st:groups';
+		const iteratorId = 'Project.sq:Sequence.st:Iterator';
+		const totalId = 'Project.sq:Sequence.st:total';
+		const { edges } = toXyFlow({
+			id: 'Project.sq:Sequence',
+			name: 'Sequence',
+			nodes: [
+				{
+					id: groupsId,
+					type: 'XMLComplexStep',
+					label: '<groups>',
+					x: 0,
+					y: 0,
+					inputs: 1,
+					outputs: 2,
+					outputLabels: ['children', 'done'],
+					data: { originalId: groupsId }
+				},
+				{
+					id: iteratorId,
+					type: 'IteratorStep',
+					label: 'Iterator',
+					x: 390,
+					y: 250,
+					inputs: 1,
+					outputs: 2,
+					outputLabels: ['loop', 'done'],
+					data: { originalId: iteratorId, isLoop: true }
+				},
+				{
+					id: totalId,
+					type: 'ElementStep',
+					label: '<total_users>',
+					x: 780,
+					y: 300,
+					inputs: 1,
+					outputs: 1,
+					data: { originalId: totalId }
+				}
+			],
+			links: [
+				{
+					id: 'groups-total',
+					from: { nodeId: groupsId, portIndex: 1 },
+					to: { nodeId: totalId, portIndex: 0 }
+				}
+			]
+		});
+
+		const doneEdge = edges.find((edge) => edge.id === 'groups-total');
+		expect(doneEdge).toEqual(
+			expect.objectContaining({
+				type: 'loop-body',
+				label: 'DONE',
+				data: expect.objectContaining({
+					routeKind: 'detour',
+					laneY: expect.any(Number),
+					sourceLeadOffset: expect.any(Number),
+					targetLeadOffset: expect.any(Number)
+				})
+			})
+		);
+		expect(Number(doneEdge?.data?.laneY)).toBeLessThan(250 - 10);
+	});
+
+	it('renders one bus edge for several variables on the same vars port', () => {
+		const callId = 'Project.sq:Sequence.st:Call_Sequence';
+		const firstVariableId = `${callId}.vr:first`;
+		const secondVariableId = `${callId}.vr:second`;
+		const thirdVariableId = `${callId}.vr:third`;
+		const { edges } = toXyFlow({
+			id: 'Project.sq:Sequence',
+			name: 'Sequence',
+			nodes: [
+				{
+					id: callId,
+					type: 'SequenceStep',
+					label: 'Call_Sequence',
+					x: 0,
+					y: 0,
+					inputs: 1,
+					outputs: 2,
+					outputLabels: ['next', 'vars'],
+					bottomOutputs: 1,
+					data: { originalId: callId }
+				},
+				variableNode(firstVariableId, 0),
+				variableNode(secondVariableId, 260),
+				variableNode(thirdVariableId, 520)
+			],
+			links: [
+				{
+					id: 'call-first',
+					from: { nodeId: callId, portIndex: 1 },
+					to: { nodeId: firstVariableId, portIndex: 0 }
+				},
+				{
+					id: 'call-second',
+					from: { nodeId: callId, portIndex: 1 },
+					to: { nodeId: secondVariableId, portIndex: 0 }
+				},
+				{
+					id: 'call-third',
+					from: { nodeId: callId, portIndex: 1 },
+					to: { nodeId: thirdVariableId, portIndex: 0 }
+				}
+			]
+		});
+
+		const varsEdges = edges.filter(
+			(edge) => edge.source === callId && edge.sourceHandle === outputHandleId(1)
+		);
+
+		expect(varsEdges).toHaveLength(1);
+		expect(varsEdges[0]).toEqual(
+			expect.objectContaining({
+				target: thirdVariableId,
+				type: 'smoothstep'
+			})
+		);
+		expect(varsEdges[0]?.data?.routeKind).not.toBe('detour');
+	});
+
 	it('routes visible split branches with separated vertical leads', () => {
 		const { edges } = toXyFlow({
 			id: 'Project.sq:Sequence',
@@ -314,6 +438,75 @@ describe('Studio flow xyflow terminals', () => {
 			})
 		);
 		expect(thenEdge?.data?.sourceLeadOffset).not.toBe(nextEdge?.data?.sourceLeadOffset);
+	});
+
+	it('orders simple if outputs by visible branch route height', () => {
+		const ifId = 'Project.sq:Sequence.st:if';
+		const thenId = 'Project.sq:Sequence.st:then';
+		const loopId = 'Project.sq:Sequence.st:Iterator';
+		const { nodes, edges } = toXyFlow({
+			id: 'Project.sq:Sequence',
+			name: 'Sequence',
+			nodes: [
+				{
+					id: ifId,
+					type: 'IfStep',
+					label: 'if(??)',
+					x: 0,
+					y: 120,
+					inputs: 1,
+					outputs: 2,
+					outputLabels: ['true', 'false'],
+					data: { originalId: ifId }
+				},
+				{
+					id: thenId,
+					type: 'SimpleStep',
+					label: 'Then step',
+					x: 260,
+					y: 0,
+					inputs: 1,
+					outputs: 1,
+					data: { originalId: thenId }
+				},
+				{
+					id: loopId,
+					type: 'IteratorStep',
+					label: 'Iterator',
+					x: 260,
+					y: 260,
+					inputs: 1,
+					outputs: 2,
+					outputLabels: ['loop', 'done'],
+					data: { originalId: loopId, isLoop: true }
+				}
+			],
+			links: [
+				{
+					id: 'if-then',
+					from: { nodeId: ifId, portIndex: 0 },
+					to: { nodeId: thenId, portIndex: 0 },
+					routing: 'orthogonal'
+				},
+				{
+					id: 'if-next',
+					from: { nodeId: ifId, portIndex: 1 },
+					to: { nodeId: loopId, portIndex: 0 },
+					routing: 'loop-return'
+				}
+			]
+		});
+
+		const ifNode = nodes.find((node) => node.id === ifId);
+		const nextEdge = edges.find((edge) => edge.id === 'if-next');
+		expect(ifNode?.data.outputVisualOrder).toEqual([0, 1]);
+		expect(nextEdge).toEqual(
+			expect.objectContaining({
+				sourceHandle: outputHandleId(1),
+				targetHandle: inputHandleId(1),
+				type: 'loop-return'
+			})
+		);
 	});
 
 	it('compacts visible node positions when substeps are collapsed', () => {
@@ -450,7 +643,7 @@ describe('Studio flow xyflow terminals', () => {
 		);
 	});
 
-	it('adds a left input port to loop nodes for loop return links', () => {
+	it('adds a bottom input port to loop nodes for loop return links', () => {
 		const { nodes } = toXyFlow({
 			id: 'Project.sq:Sequence',
 			name: 'Sequence',
@@ -474,7 +667,7 @@ describe('Studio flow xyflow terminals', () => {
 		expect(iterator?.data).toEqual(
 			expect.objectContaining({
 				inputs: 2,
-				bottomInputs: 0,
+				bottomInputs: 1,
 				loopReturnInputIndex: 1
 			})
 		);
@@ -1190,3 +1383,21 @@ describe('Studio flow xyflow terminals', () => {
 		expect(field?.data.isSelected).toBe(true);
 	});
 });
+
+/**
+ * @param {string} id
+ * @param {number} x
+ * @returns {import('./types').FlowNode}
+ */
+function variableNode(id, x) {
+	return {
+		id,
+		type: 'StepVariable',
+		label: id.split(':').pop() ?? id,
+		x,
+		y: 200,
+		inputs: 1,
+		outputs: 0,
+		data: { isVariable: true, originalId: id }
+	};
+}

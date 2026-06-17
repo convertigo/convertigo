@@ -39,11 +39,10 @@ function studioSelectionPath(base, id = '') {
  * @param {string} base
  * @param {string} id
  * @param {URL} url
- * @param {string=} hash
  * @returns {string}
  */
-function studioSelectionUrl(base, id, url, hash = url.hash) {
-	return `${studioSelectionPath(base, id)}${url.search}${hash}`;
+function studioSelectionUrl(base, id, url) {
+	return `${studioSelectionPath(base, id)}${url.search}`;
 }
 
 export {

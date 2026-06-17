@@ -18,7 +18,15 @@
 	} = $props();
 
 	let laneY = $derived(typeof data?.laneY === 'number' ? data.laneY : targetY);
-	let geometry = $derived(loopBodyGeometry(sourceX, sourceY, targetX, targetY, laneY));
+	let sourceLeadOffset = $derived(
+		typeof data?.sourceLeadOffset === 'number' ? data.sourceLeadOffset : 36
+	);
+	let targetLeadOffset = $derived(
+		typeof data?.targetLeadOffset === 'number' ? data.targetLeadOffset : 28
+	);
+	let geometry = $derived(
+		loopBodyGeometry(sourceX, sourceY, targetX, targetY, laneY, sourceLeadOffset, targetLeadOffset)
+	);
 
 	/**
 	 * @param {number} sourceX
@@ -26,11 +34,21 @@
 	 * @param {number} targetX
 	 * @param {number} targetY
 	 * @param {number} laneY
+	 * @param {number} sourceLeadOffset
+	 * @param {number} targetLeadOffset
 	 * @returns {{ path: string, labelX: number, labelY: number }}
 	 */
-	function loopBodyGeometry(sourceX, sourceY, targetX, targetY, laneY) {
-		const sourceLeadX = sourceX + 36;
-		const targetLeadX = targetX - 28;
+	function loopBodyGeometry(
+		sourceX,
+		sourceY,
+		targetX,
+		targetY,
+		laneY,
+		sourceLeadOffset,
+		targetLeadOffset
+	) {
+		const sourceLeadX = sourceX + sourceLeadOffset;
+		const targetLeadX = targetX - targetLeadOffset;
 		const labelX = sourceLeadX + 8;
 		const labelY = sourceY + (laneY - sourceY) * 0.48;
 		return {

@@ -1,6 +1,8 @@
 <script>
 	import { createDatabaseObjectProperties } from '$lib/common/DatabaseObjectProperties.svelte.js';
 	import Ico from '$lib/utils/Ico.svelte';
+	import StudioEmptyState from './StudioEmptyState.svelte';
+	import StudioIconButton from './StudioIconButton.svelte';
 
 	/** @type {{ selectedId?: string, active?: boolean, onSelectObject?: (id: string) => void }} */
 	let { selectedId = '', active = true, onSelectObject = () => {} } = $props();
@@ -182,61 +184,54 @@
 	}
 </script>
 
-<div class="studio-picker">
-	<div class="studio-picker__toolbar">
-		<button
-			type="button"
-			class="studio-picker__tool"
-			class:studio-picker__tool--active={linked}
+<div class="studio-picker layout-y-stretch">
+	<div class="studio-picker__toolbar layout-x-low studio-panel-toolbar">
+		<StudioIconButton
+			icon="mdi:smartphone-link"
+			active={linked}
 			aria-pressed={linked}
 			title="Link with the projects tree selection"
 			onclick={() => (linked = !linked)}
-		>
-			<Ico icon="mdi:smartphone-link" size={4} />
-		</button>
-		<button
-			type="button"
-			class="studio-picker__tool"
+		/>
+		<StudioIconButton
+			icon="mdi:search"
 			disabled={!sourceDefinition.target}
 			title="Select source object"
 			onclick={() => selectPickerObject(sourceDefinition.target)}
-		>
-			<Ico icon="mdi:search" size={4} />
-		</button>
-		<button type="button" class="studio-picker__tool" disabled={true} title="Remove source">
-			<Ico icon="mdi:delete-outline" size={4} />
-		</button>
-		<span class="studio-picker__mode">
+		/>
+		<StudioIconButton icon="mdi:delete-outline" disabled={true} title="Remove source" />
+		<span class="studio-picker__mode layout-x-low studio-ellipsis studio-caption">
 			<Ico icon={pickerMode.icon} size={4} />
 			{pickerMode.label}
 		</span>
 	</div>
 
-	<div class="studio-picker__body">
+	<div class="studio-picker__body layout-y-low">
 		{#if !selectedId}
-			<div class="studio-picker__empty">No object selected</div>
+			<StudioEmptyState message="No object selected" />
 		{:else if loading}
-			<div class="studio-picker__empty">Loading</div>
+			<StudioEmptyState message="Loading" loading />
 		{:else if error}
-			<div class="studio-picker__empty">{error}</div>
+			<StudioEmptyState message={error} />
 		{:else}
-			<section class="studio-picker__summary">
-				<span>{pickerMode.label}</span>
-				<strong title={selectedId}>{selectedName}</strong>
-				<code title={selectedId}>{selectedId}</code>
+			<section class="studio-picker__summary layout-y-low studio-surface">
+				<span class="studio-label">{pickerMode.label}</span>
+				<strong class="studio-ellipsis" title={selectedId}>{selectedName}</strong>
+				<code class="studio-ellipsis" title={selectedId}>{selectedId}</code>
 				{#if selectionTrail.length > 1}
-					<nav class="studio-picker__trail" aria-label="Selection parents">
+					<nav class="studio-picker__trail layout-x-wrap-none" aria-label="Selection parents">
 						{#each selectionTrail as item, index (item.id)}
 							{#if index > 0}
 								<Ico icon="mdi:chevron-right" size={3} />
 							{/if}
 							<button
 								type="button"
+								class="studio-picker__trail-button studio-pill"
 								title={item.id}
 								disabled={item.id === selectedId}
 								onclick={() => selectPickerObject(item.id)}
 							>
-								<span>{item.type}</span>
+								<span class="studio-ellipsis">{item.type}</span>
 								{item.label}
 							</button>
 						{/each}
@@ -245,25 +240,33 @@
 			</section>
 
 			{#if pickerMode.kind === 'step'}
-				<section class="studio-picker__section">
-					<header>
-						<span>Source</span>
-						<strong>{sourceDefinition.empty ? 'empty' : 'defined'}</strong>
+				<section class="studio-picker__section studio-surface">
+					<header class="layout-x-between-low">
+						<span class="studio-label">Source</span>
+						<strong class="studio-ellipsis">{sourceDefinition.empty ? 'empty' : 'defined'}</strong>
 					</header>
 					<div class="studio-picker__source-grid">
-						<span>Object</span>
-						<code>{sourceDefinition.target || '-'}</code>
-						<span>XPath</span>
-						<code>{sourceDefinition.xpath || '-'}</code>
+						<span class="studio-label">Object</span>
+						<code class="studio-ellipsis">{sourceDefinition.target || '-'}</code>
+						<span class="studio-label">XPath</span>
+						<code class="studio-ellipsis">{sourceDefinition.xpath || '-'}</code>
 					</div>
 					{#if sourceTrail.length > 0}
-						<nav class="studio-picker__trail studio-picker__trail--source" aria-label="Source path">
+						<nav
+							class="studio-picker__trail studio-picker__trail--source layout-x-wrap-none"
+							aria-label="Source path"
+						>
 							{#each sourceTrail as item, index (item.id)}
 								{#if index > 0}
 									<Ico icon="mdi:chevron-right" size={3} />
 								{/if}
-								<button type="button" title={item.id} onclick={() => selectPickerObject(item.id)}>
-									<span>{item.type}</span>
+								<button
+									type="button"
+									class="studio-picker__trail-button studio-pill"
+									title={item.id}
+									onclick={() => selectPickerObject(item.id)}
+								>
+									<span class="studio-ellipsis">{item.type}</span>
 									{item.label}
 								</button>
 							{/each}
@@ -271,33 +274,37 @@
 					{/if}
 				</section>
 
-				<section class="studio-picker__section studio-picker__section--grow">
-					<header>
-						<span>Preview</span>
-						<strong>{sourceProperty?.displayName ?? 'sourceDefinition'}</strong>
+				<section class="studio-picker__section studio-picker__section--grow studio-surface">
+					<header class="layout-x-between-low">
+						<span class="studio-label">Preview</span>
+						<strong class="studio-ellipsis"
+							>{sourceProperty?.displayName ?? 'sourceDefinition'}</strong
+						>
 					</header>
 					<pre>{sourceDefinition.raw || selectedId}</pre>
 				</section>
 			{:else}
-				<section class="studio-picker__section">
-					<header>
-						<span>Filters</span>
-						<strong>{pickerMode.kind === 'smart' ? 'mobile' : 'database'}</strong>
+				<section class="studio-picker__section studio-surface">
+					<header class="layout-x-between-low">
+						<span class="studio-label">Filters</span>
+						<strong class="studio-ellipsis"
+							>{pickerMode.kind === 'smart' ? 'mobile' : 'database'}</strong
+						>
 					</header>
-					<div class="studio-picker__chips">
-						<span>Sequence</span>
-						<span>Database</span>
-						<span>Iteration</span>
-						<span>Form</span>
-						<span>Global</span>
-						<span>Local</span>
+					<div class="studio-picker__chips layout-x-wrap-low">
+						<span class="studio-pill">Sequence</span>
+						<span class="studio-pill">Database</span>
+						<span class="studio-pill">Iteration</span>
+						<span class="studio-pill">Form</span>
+						<span class="studio-pill">Global</span>
+						<span class="studio-pill">Local</span>
 					</div>
 				</section>
 
-				<section class="studio-picker__section studio-picker__section--grow">
-					<header>
-						<span>Selection</span>
-						<strong>{objectClass || 'object'}</strong>
+				<section class="studio-picker__section studio-picker__section--grow studio-surface">
+					<header class="layout-x-between-low">
+						<span class="studio-label">Selection</span>
+						<strong class="studio-ellipsis">{objectClass || 'object'}</strong>
 					</header>
 					<pre>{selectedId}</pre>
 				</section>
@@ -308,108 +315,28 @@
 
 <style>
 	.studio-picker {
-		display: flex;
 		height: 100%;
 		min-height: 0;
-		flex-direction: column;
 	}
 
 	.studio-picker__toolbar {
-		display: flex;
 		min-width: 0;
 		align-items: center;
-		gap: 0.35rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: color-mix(in oklab, var(--color-surface-100-900) 82%, transparent);
-		padding: 0.45rem;
-	}
-
-	.studio-picker__tool {
-		display: grid;
-		width: 1.85rem;
-		height: 1.85rem;
-		flex: 0 0 auto;
-		place-items: center;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.3rem;
-		background: var(--color-surface-50-950);
-		color: var(--color-surface-700-300);
-	}
-
-	.studio-picker__tool:hover:not(:disabled),
-	.studio-picker__tool--active {
-		border-color: color-mix(in oklab, var(--color-primary-500) 45%, transparent);
-		background: color-mix(in oklab, var(--color-primary-500) 12%, transparent);
-		color: var(--color-primary-600-400);
-	}
-
-	.studio-picker__tool:disabled {
-		color: var(--color-surface-400-600);
-		cursor: not-allowed;
-		opacity: 0.6;
 	}
 
 	.studio-picker__mode {
-		display: flex;
-		min-width: 0;
-		align-items: center;
-		gap: 0.35rem;
 		margin-left: auto;
-		overflow: hidden;
-		color: var(--color-surface-700-300);
-		font-size: 0.72rem;
-		font-weight: 700;
-		text-overflow: ellipsis;
-		text-transform: uppercase;
-		white-space: nowrap;
 	}
 
 	.studio-picker__body {
-		display: flex;
 		min-height: 0;
 		flex: 1;
-		flex-direction: column;
-		gap: 0.5rem;
 		overflow: auto;
 		padding: 0.55rem;
 	}
 
-	.studio-picker__empty {
-		display: grid;
-		min-height: 8rem;
-		place-items: center;
-		color: var(--color-surface-600-400);
-		font-size: 0.82rem;
-	}
-
-	.studio-picker__summary,
-	.studio-picker__section {
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.4rem;
-		background: color-mix(in oklab, var(--color-surface-100-900) 55%, transparent);
-	}
-
 	.studio-picker__summary {
-		display: grid;
-		gap: 0.2rem;
 		padding: 0.55rem;
-	}
-
-	.studio-picker__summary span,
-	.studio-picker__section header span,
-	.studio-picker__source-grid span {
-		color: var(--color-surface-600-400);
-		font-size: 0.66rem;
-		font-weight: 750;
-		text-transform: uppercase;
-	}
-
-	.studio-picker__summary strong,
-	.studio-picker__summary code {
-		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
 	.studio-picker__summary strong {
@@ -428,11 +355,6 @@
 	}
 
 	.studio-picker__trail {
-		display: flex;
-		min-width: 0;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.18rem;
 		padding-top: 0.25rem;
 	}
 
@@ -441,39 +363,21 @@
 		padding: 0.45rem 0.55rem;
 	}
 
-	.studio-picker__trail button {
-		display: inline-flex;
-		max-width: 100%;
-		min-width: 0;
-		align-items: center;
-		gap: 0.28rem;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 999px;
-		background: var(--color-surface-50-950);
-		color: var(--color-surface-800-200);
-		padding: 0.18rem 0.45rem;
-		font-size: 0.68rem;
-		font-weight: 650;
-	}
-
-	.studio-picker__trail button:hover:not(:disabled) {
+	.studio-picker__trail-button:hover:not(:disabled) {
 		border-color: color-mix(in oklab, var(--color-primary-500) 45%, transparent);
 		background: color-mix(in oklab, var(--color-primary-500) 12%, transparent);
 		color: var(--color-primary-600-400);
 	}
 
-	.studio-picker__trail button:disabled {
+	.studio-picker__trail-button:disabled {
 		cursor: default;
 		opacity: 0.72;
 	}
 
-	.studio-picker__trail button span {
+	.studio-picker__trail-button span {
 		max-width: 3.5rem;
-		overflow: hidden;
 		color: var(--color-surface-500-500);
-		text-overflow: ellipsis;
 		text-transform: uppercase;
-		white-space: nowrap;
 	}
 
 	.studio-picker__section {
@@ -487,22 +391,14 @@
 	}
 
 	.studio-picker__section header {
-		display: flex;
 		min-width: 0;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem;
 		border-bottom: 1px solid var(--color-surface-200-800);
 		padding: 0.45rem 0.55rem;
 	}
 
 	.studio-picker__section header strong {
-		min-width: 0;
-		overflow: hidden;
 		color: var(--color-surface-700-300);
 		font-size: 0.68rem;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
 	.studio-picker__source-grid {
@@ -512,28 +408,8 @@
 		padding: 0.55rem;
 	}
 
-	.studio-picker__source-grid code {
-		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
 	.studio-picker__chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.35rem;
 		padding: 0.55rem;
-	}
-
-	.studio-picker__chips span {
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 999px;
-		background: var(--color-surface-50-950);
-		color: var(--color-surface-700-300);
-		padding: 0.18rem 0.45rem;
-		font-size: 0.68rem;
-		font-weight: 650;
 	}
 
 	.studio-picker__section pre {

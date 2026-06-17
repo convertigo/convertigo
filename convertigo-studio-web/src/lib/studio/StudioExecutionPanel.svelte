@@ -1,6 +1,7 @@
 <script>
 	import RequestableExecution from '$lib/admin/components/RequestableExecution.svelte';
 	import { checkArray } from '$lib/utils/service';
+	import StudioEmptyState from './StudioEmptyState.svelte';
 
 	/**
 	 * @typedef {Object} SequenceRequestable
@@ -32,7 +33,7 @@
 	const modes = ['JSON', 'XML', 'BIN', 'CXML'];
 	let mode = $state('JSON');
 	let executionKind = $derived(selectedRequestable ? requestableKind : 'sequence');
-	let requestable = $state(null);
+	let requestable = $state(/** @type {SequenceRequestable | null} */ (null));
 	let requestableSourceKey = $derived.by(() =>
 		buildRequestableSourceKey(projectName, selectedRequestable, executionKind, connectorName)
 	);
@@ -129,9 +130,9 @@
 
 <div class="studio-execution">
 	{#if !projectName}
-		<div class="studio-execution__empty">No project selected</div>
+		<StudioEmptyState message="No project selected" full />
 	{:else if !requestable}
-		<div class="studio-execution__empty">No requestable selected</div>
+		<StudioEmptyState message="No requestable selected" full />
 	{:else}
 		<RequestableExecution
 			{projectName}
@@ -154,13 +155,5 @@
 		min-height: 0;
 		overflow: auto;
 		padding: 0.75rem;
-	}
-
-	.studio-execution__empty {
-		display: grid;
-		height: 100%;
-		place-items: center;
-		color: var(--color-surface-600-400);
-		font-size: 0.86rem;
 	}
 </style>

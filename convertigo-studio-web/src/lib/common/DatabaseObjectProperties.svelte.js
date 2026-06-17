@@ -13,7 +13,14 @@ export function createDatabaseObjectProperties() {
 			properties: properties.filter((p) => p.category == c)
 		}))
 	);
-	let hasChanges = $derived(properties.some((p) => p.value != p.originalValue));
+	let hasChanges = $derived(properties.some(propertyChanged));
+
+	function propertyChanged(property) {
+		return (
+			property.value != property.originalValue ||
+			('mode' in property && property.mode != property.originalMode)
+		);
+	}
 
 	async function onSelectionChange(e) {
 		const nextId = e.selectedValue[0];
@@ -30,6 +37,7 @@ export function createDatabaseObjectProperties() {
 			properties = Object.entries(res?.properties ?? {}).map(([k, p]) => ({
 				displayName: k,
 				originalValue: p.value,
+				originalMode: p.mode,
 				...p
 			}));
 		} finally {
@@ -42,11 +50,14 @@ export function createDatabaseObjectProperties() {
 	function cancel() {
 		properties.forEach((p) => {
 			p.value = p.originalValue;
+			if ('mode' in p) {
+				p.mode = p.originalMode;
+			}
 		});
 	}
 
 	function getChanges() {
-		return properties.filter((p) => p.value != p.originalValue);
+		return properties.filter(propertyChanged);
 	}
 
 	async function save() {
@@ -63,6 +74,9 @@ export function createDatabaseObjectProperties() {
 		if (res?.done) {
 			changes.forEach((p) => {
 				p.originalValue = p.value;
+				if ('mode' in p) {
+					p.originalMode = p.mode;
+				}
 			});
 			return true;
 		}

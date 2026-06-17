@@ -88,6 +88,10 @@
 	 * @returns {string}
 	 */
 	function outputTop(index) {
+		const visualIndex = data.outputVisualOrder?.[index];
+		if (typeof visualIndex === 'number' && Number.isInteger(visualIndex)) {
+			return sideTop(visualIndex, sideOutputCount);
+		}
 		if (isIfStep(data) && sideOutputCount === 2) {
 			const tone = branchTone(outputLabel(index));
 			if (!data.hasElseBranch) {

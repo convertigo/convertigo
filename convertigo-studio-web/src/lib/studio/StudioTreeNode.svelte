@@ -18,6 +18,7 @@
 		performDboDrop,
 		renameObjectId
 	} from './dnd';
+	import StudioIconButton from './StudioIconButton.svelte';
 	import StudioTreeNode from './StudioTreeNode.svelte';
 
 	const folderTypeIds = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url', 'app', 'mob']);
@@ -808,25 +809,22 @@
 		{/if}
 		{#if showSelectedActions}
 			<div class="studio-tree-node__actions" aria-label="Selected object actions">
-				<button
-					type="button"
-					class="studio-tree-node__action"
+				<StudioIconButton
+					icon="mdi:pencil-outline"
 					title="Rename object"
-					aria-label="Rename object"
+					ariaLabel="Rename object"
+					size="xs"
 					onclick={requestRename}
-				>
-					<Ico icon="mdi:pencil-outline" size={3.2} />
-				</button>
-				<button
-					type="button"
-					class="studio-tree-node__action studio-tree-node__action--danger"
+				/>
+				<StudioIconButton
+					icon={deletingBusy ? 'mdi:sync' : 'mdi:delete-outline'}
 					title="Delete object"
-					aria-label="Delete object"
+					ariaLabel="Delete object"
+					size="xs"
+					danger
 					disabled={deletingBusy}
 					onclick={deleteSelectedNode}
-				>
-					<Ico icon={deletingBusy ? 'mdi:sync' : 'mdi:delete-outline'} size={3.2} />
-				</button>
+				/>
 			</div>
 		{/if}
 		{#if dropOver}
@@ -995,32 +993,6 @@
 		align-items: center;
 		gap: 0.12rem;
 		margin-left: 0.26rem;
-	}
-
-	.studio-tree-node__action {
-		display: grid;
-		width: 1.35rem;
-		height: 1.35rem;
-		place-items: center;
-		border: 1px solid color-mix(in oklab, var(--color-surface-300-700) 82%, transparent);
-		border-radius: 0.28rem;
-		background: var(--color-surface-50-950);
-		color: var(--color-surface-700-300);
-		padding: 0;
-	}
-
-	.studio-tree-node__action:hover:not(:disabled) {
-		border-color: color-mix(in oklab, var(--color-primary-500) 52%, transparent);
-		color: var(--color-primary-600-400);
-	}
-
-	.studio-tree-node__action--danger:hover:not(:disabled) {
-		border-color: color-mix(in oklab, var(--color-error-500) 55%, transparent);
-		color: var(--color-error-600-400);
-	}
-
-	.studio-tree-node__action:disabled {
-		opacity: 0.58;
 	}
 
 	.studio-tree-node__drop-label {
