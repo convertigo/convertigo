@@ -248,6 +248,23 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	}
 
 	@Override
+	public void delete() throws EngineException {
+		if (isDefinitionWritable() && isDeletableVirtualKind()) {
+			applyDeleteMutation(virtualPath);
+		} else if (!virtualKind.isBlank()) {
+			throw new EngineException("Cannot delete Flow virtual " + virtualKind + " object from the tree.");
+		}
+		super.delete();
+	}
+
+	private boolean isDeletableVirtualKind() {
+		return switch (virtualKind) {
+		case "node", "field", "binding" -> true;
+		default -> false;
+		};
+	}
+
+	@Override
 	public boolean isHiddenProperty(String propertyName) {
 		return switch (propertyName) {
 		case "comment", "definition", "summary", "virtualInfo", "virtualKind", "virtualPath", "virtualType" -> true;
@@ -542,6 +559,35 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			throw e;
 		} catch (Exception e) {
 			throw new EngineException("Unable to apply Flow virtual mutation.", e);
+		}
+	}
+
+	private void applyDeleteMutation(String path) throws EngineException {
+		var target = mutableSourceRoot();
+		if (target == null || path.isBlank()) {
+			return;
+		}
+		if (!isWritablePath(target, path)) {
+			throw new EngineException("Flow virtual path \"" + path + "\" is read-only.");
+		}
+		try {
+			var mutation = new JSONObject()
+					.put("op", "delete")
+					.put("path", path);
+			var response = target instanceof Flow flow
+					? new FlowEngineBridge().applyMutation(flow, mutation)
+					: new FlowEngineBridge().applyMutation((FlowEngine) target, mutation);
+			if (!response.optBoolean("ok", false)) {
+				var error = response.optJSONObject("error");
+				var message = error == null ? response.toString() : error.optString("message", error.toString());
+				throw new EngineException("Flow virtual delete failed: " + message);
+			}
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build Flow virtual delete mutation.", e);
+		} catch (EngineException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EngineException("Unable to delete Flow virtual object.", e);
 		}
 	}
 
