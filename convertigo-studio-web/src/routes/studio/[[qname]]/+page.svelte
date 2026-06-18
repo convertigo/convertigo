@@ -8,6 +8,7 @@
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
 	import { findPrimaryEditorProperty, isCodeEditorProperty } from '$lib/studio/propertyEditors';
 	import { decodeStudioSelectionId, studioSelectionUrl } from '$lib/studio/routeSelection';
+	import { applySourcePickerDrop, sourceDefinitionFromPayload } from '$lib/studio/sourcePickerDnd';
 	import StudioDevicePanel from '$lib/studio/StudioDevicePanel.svelte';
 	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
@@ -84,6 +85,20 @@
 	 * @property {any=} value
 	 * @property {number=} serial
 	 */
+	/**
+	 * @typedef {Object} SourcePropertyCandidate
+	 * @property {string=} name
+	 * @property {string=} displayName
+	 * @property {string=} kind
+	 */
+	/**
+	 * @typedef {Object} SourceChoice
+	 * @property {string} targetId
+	 * @property {import('$lib/studio/sourcePickerDnd').SourcePickerDragPayload} payload
+	 * @property {SourcePropertyCandidate[]} candidates
+	 * @property {boolean} busy
+	 * @property {string=} error
+	 */
 
 	const profiles = [
 		{
@@ -111,6 +126,10 @@
 	let logsPanelOpen = $state(false);
 	/** @type {EditorTarget | null} */
 	let editorTarget = $state(null);
+	/** @type {EditorTarget | null} */
+	let pickerTarget = $state(null);
+	/** @type {SourceChoice | null} */
+	let sourceChoice = $state(null);
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
 	/** @type {PaletteItem | null} */
@@ -125,6 +144,7 @@
 	let pendingRouteSelectionId = '';
 	let treeRefreshSerial = $state(0);
 	let flowRefreshSerial = $state(0);
+	let propertiesRefreshSerial = $state(0);
 	let renameTargetId = $state('');
 	let paletteSelectionContext = initialSelectedId;
 	let mutationRefreshSerial = 0;
@@ -741,6 +761,10 @@
 		if (!target?.id) {
 			return;
 		}
+		pickerTarget = {
+			...target,
+			serial: Date.now()
+		};
 		selectedId = target.id;
 		setSidePanel('picker');
 	}
@@ -920,7 +944,115 @@
 		}
 		await refreshStudioProject(id);
 		markProjectDirty(id);
-		refreshStudioViews();
+		propertiesRefreshSerial += 1;
+		refreshTreeContext(id, 'properties');
+		refreshStudioViews({ tree: false, flow: true });
+	}
+
+	/**
+	 * @param {string} id
+	 * @param {string} source
+	 */
+	function refreshTreeContext(id, source) {
+		if (!id) {
+			return;
+		}
+		lastStudioMutation = {
+			done: true,
+			id,
+			selectedId: id,
+			target: id,
+			source,
+			payload: {
+				type: 'propertyData',
+				data: { id }
+			}
+		};
+		studioMutationSerial += 1;
+	}
+
+	/**
+	 * @param {string} id
+	 * @param {any[]=} sourceDefinition
+	 */
+	async function refreshAfterPickerApply(id, sourceDefinition) {
+		if (pickerTarget?.id === id && sourceDefinition) {
+			pickerTarget = {
+				...pickerTarget,
+				value: sourceDefinition,
+				serial: Date.now()
+			};
+		}
+		selectedId = id;
+		await refreshAfterPropertySave(id);
+	}
+
+	/**
+	 * @param {string} targetId
+	 * @param {import('$lib/studio/sourcePickerDnd').SourcePickerDragPayload} payload
+	 * @param {string=} propertyName
+	 */
+	async function applySourceDrop(targetId, payload, propertyName = '') {
+		if (!targetId || !payload) {
+			return;
+		}
+		selectedId = targetId;
+		let response;
+		try {
+			response = await applySourcePickerDrop(targetId, payload, propertyName);
+		} catch (error) {
+			sourceChoice = {
+				targetId,
+				payload,
+				candidates: [],
+				busy: false,
+				error: String(error instanceof Error ? error.message : error)
+			};
+			return;
+		}
+		const candidates = checkArray(response?.candidates);
+		if (response?.state === 'choice' && candidates.length) {
+			sourceChoice = {
+				targetId,
+				payload,
+				candidates,
+				busy: false,
+				error: ''
+			};
+			return;
+		}
+		if (response?.done) {
+			sourceChoice = null;
+			const sourceDefinition = checkArray(response.sourceDefinition);
+			await refreshAfterPickerApply(
+				response.id || targetId,
+				sourceDefinition.length ? sourceDefinition : sourceDefinitionFromPayload(payload)
+			);
+			return;
+		}
+		sourceChoice = {
+			targetId,
+			payload,
+			candidates: [],
+			busy: false,
+			error: response?.message || 'Unable to apply source on this object'
+		};
+	}
+
+	/**
+	 * @param {SourcePropertyCandidate} candidate
+	 */
+	async function chooseSourceProperty(candidate) {
+		if (!sourceChoice || !candidate?.name) {
+			return;
+		}
+		const choice = sourceChoice;
+		sourceChoice = { ...choice, busy: true, error: '' };
+		await applySourceDrop(choice.targetId, choice.payload, candidate.name);
+	}
+
+	function cancelSourceChoice() {
+		sourceChoice = null;
 	}
 
 	async function saveSelectedProject() {
@@ -1123,6 +1255,7 @@
 			refreshMutation={lastStudioMutation}
 			refreshMutationSerial={studioMutationSerial}
 			onMutation={onStudioMutation}
+			onSourceDrop={applySourceDrop}
 		/>
 	</StudioPanel>
 {/snippet}
@@ -1159,6 +1292,7 @@
 			refreshMutationSerial={studioMutationSerial}
 			onSelectNode={onFlowNodeSelected}
 			onMutation={onStudioMutation}
+			onSourceDrop={applySourceDrop}
 		/>
 	{:else}
 		<StudioEmptyState message="No sequence selected" full />
@@ -1226,7 +1360,9 @@
 	<StudioSourcePickerPanel
 		{selectedId}
 		active={effectiveSidePanel === 'picker'}
+		{pickerTarget}
 		onSelectObject={selectObject}
+		onApply={refreshAfterPickerApply}
 	/>
 {/snippet}
 
@@ -1234,6 +1370,7 @@
 	<StudioPropertiesPanel
 		{selectedId}
 		active={effectiveSidePanel === 'properties'}
+		refreshSerial={propertiesRefreshSerial}
 		onSave={refreshAfterPropertySave}
 		onOpenPropertyEditor={openPropertyEditor}
 		onOpenPropertyPicker={openPropertyPicker}
@@ -1276,6 +1413,65 @@
 	{logs}
 />
 
+{#if sourceChoice}
+	<div class="studio-source-choice" role="presentation" onclick={cancelSourceChoice}>
+		<div
+			class="studio-source-choice__dialog layout-y-stretch-low"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="studio-source-choice-title"
+			tabindex="-1"
+			onclick={(event) => event.stopPropagation()}
+			onkeydown={(event) => event.stopPropagation()}
+		>
+			<header class="studio-source-choice__header layout-x-between-low">
+				<div class="layout-y-none">
+					<strong id="studio-source-choice-title">Choose source property</strong>
+					<span class="studio-source-choice__target studio-ellipsis">
+						{selectionLabel(sourceChoice.targetId)}
+					</span>
+				</div>
+				<StudioIconButton
+					icon="mdi:close"
+					size="xs"
+					title="Close"
+					ariaLabel="Close source property choice"
+					onclick={cancelSourceChoice}
+				/>
+			</header>
+			{#if sourceChoice.error}
+				<p class="studio-source-choice__error">{sourceChoice.error}</p>
+			{/if}
+			{#if sourceChoice.candidates.length}
+				<div class="studio-source-choice__list layout-y-stretch-low">
+					{#each sourceChoice.candidates as candidate (candidate.name)}
+						<button
+							type="button"
+							class="studio-source-choice__option"
+							disabled={sourceChoice.busy}
+							onclick={() => chooseSourceProperty(candidate)}
+						>
+							<span class="studio-source-choice__option-label studio-ellipsis">
+								{candidate.displayName || candidate.name}
+							</span>
+							<span class="studio-pill">{candidate.kind}</span>
+						</button>
+					{/each}
+				</div>
+			{:else}
+				<button
+					type="button"
+					class="button-secondary"
+					disabled={sourceChoice.busy}
+					onclick={cancelSourceChoice}
+				>
+					Close
+				</button>
+			{/if}
+		</div>
+	</div>
+{/if}
+
 <style>
 	:global(.studio__primary-panel) {
 		height: 100%;
@@ -1298,5 +1494,70 @@
 		padding-right: 0.25rem;
 		color: var(--color-surface-800-200);
 		line-height: 1.1;
+	}
+
+	.studio-source-choice {
+		position: fixed;
+		inset: 0;
+		z-index: 80;
+		display: grid;
+		place-items: center;
+		background: color-mix(in oklab, var(--color-surface-950-50) 22%, transparent);
+		padding: var(--spacing);
+	}
+
+	.studio-source-choice__dialog {
+		width: min(24rem, 100%);
+		max-height: min(30rem, 90vh);
+		overflow: auto;
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: var(--radius-base);
+		background: var(--color-surface-50-950);
+		box-shadow: var(--shadow-follow);
+		padding: var(--spacing);
+	}
+
+	.studio-source-choice__header {
+		align-items: start;
+		color: var(--color-surface-900-100);
+	}
+
+	.studio-source-choice__target {
+		max-width: 18rem;
+		color: var(--color-surface-500-400);
+		font-size: 0.72rem;
+	}
+
+	.studio-source-choice__error {
+		margin: 0;
+		border-radius: var(--radius-base);
+		background: color-mix(in oklab, var(--color-error-500) 12%, transparent);
+		color: var(--color-error-700-300);
+		padding: 0.5rem 0.65rem;
+		font-size: 0.78rem;
+	}
+
+	.studio-source-choice__option {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		gap: var(--spacing);
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: var(--radius-base);
+		background: var(--color-surface-100-900);
+		color: var(--color-surface-900-100);
+		padding: 0.5rem 0.65rem;
+		text-align: start;
+	}
+
+	.studio-source-choice__option:hover:not(:disabled) {
+		border-color: var(--color-primary-500);
+		background: color-mix(in oklab, var(--color-primary-500) 12%, transparent);
+		color: var(--color-primary-700-300);
+	}
+
+	.studio-source-choice__option:disabled {
+		cursor: wait;
+		opacity: 0.68;
 	}
 </style>

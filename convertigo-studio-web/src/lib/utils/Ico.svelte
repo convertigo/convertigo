@@ -1,6 +1,7 @@
 <script module>
 	import MdiAccountOutline from '~icons/mdi/account-outline';
 	import MdiAccountSupervisorCircleOutline from '~icons/mdi/account-supervisor-circle-outline';
+	import MdiAlertCircleOutline from '~icons/mdi/alert-circle-outline';
 	import MdiApi from '~icons/mdi/api';
 	import MdiApplicationOutline from '~icons/mdi/application-outline';
 	import MdiArrowDownBoldOutline from '~icons/mdi/arrow-down-bold-outline';
@@ -27,6 +28,7 @@
 	import MdiChevronLeft from '~icons/mdi/chevron-left';
 	import MdiChevronRight from '~icons/mdi/chevron-right';
 	import MdiChevronUp from '~icons/mdi/chevron-up';
+	import MdiCircleSmall from '~icons/mdi/circle-small';
 	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline';
 	import MdiClose from '~icons/mdi/close';
 	import MdiCloseCircleOutline from '~icons/mdi/close-circle-outline';
@@ -60,11 +62,13 @@
 	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline';
 	import MdiFileOutline from '~icons/mdi/file-outline';
 	import MdiFileQuestionOutline from '~icons/mdi/file-question-outline';
+	import MdiFileTreeOutline from '~icons/mdi/file-tree-outline';
 	import MdiFilter from '~icons/mdi/filter';
 	import MdiFilterCog from '~icons/mdi/filter-cog';
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline';
 	import MdiFitToPageOutline from '~icons/mdi/fit-to-page-outline';
 	import MdiFolderOutline from '~icons/mdi/folder-outline';
+	import MdiFormatText from '~icons/mdi/format-text';
 	import MdiFullscreen from '~icons/mdi/fullscreen';
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit';
 	import MdiGithub from '~icons/mdi/github';
@@ -80,6 +84,7 @@
 	import MdiLanguageRuby from '~icons/mdi/language-ruby';
 	import MdiLayersOutline from '~icons/mdi/layers-outline';
 	import MdiLightningBolt from '~icons/mdi/lightning-bolt';
+	import MdiLinkVariant from '~icons/mdi/link-variant';
 	import MdiLock from '~icons/mdi/lock';
 	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant';
 	import MdiLockOutline from '~icons/mdi/lock-outline';
@@ -97,6 +102,7 @@
 	import MdiPaperclip from '~icons/mdi/paperclip';
 	import MdiPencilOutline from '~icons/mdi/pencil-outline';
 	import MdiPhoneRotateLandscape from '~icons/mdi/phone-rotate-landscape';
+	import MdiPlay from '~icons/mdi/play';
 	import MdiPlayCircleOutline from '~icons/mdi/play-circle-outline';
 	import MdiPlus from '~icons/mdi/plus';
 	import MdiPowerPlug from '~icons/mdi/power-plug';
@@ -107,12 +113,14 @@
 	import MdiRestartAlert from '~icons/mdi/restart-alert';
 	import MdiRobotOutline from '~icons/mdi/robot-outline';
 	import MdiSearch from '~icons/mdi/search';
+	import MdiShapeSquareRoundedPlus from '~icons/mdi/shape-square-rounded-plus';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
 	import MdiSourceBranch from '~icons/mdi/source-branch';
 	import MdiStarOutline from '~icons/mdi/star-outline';
 	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline';
 	import MdiSync from '~icons/mdi/sync';
 	import MdiTable from '~icons/mdi/table';
+	import MdiTarget from '~icons/mdi/target';
 	import MdiToggleSwitch from '~icons/mdi/toggle-switch';
 	import MdiToggleSwitchOffOutline from '~icons/mdi/toggle-switch-off-outline';
 	import MdiTuneVerticalVariant from '~icons/mdi/tune-vertical-variant';
@@ -129,6 +137,7 @@
 		'convertigo:logo': ConvertigoLogo,
 		'mdi:account-outline': MdiAccountOutline,
 		'mdi:account-supervisor-circle-outline': MdiAccountSupervisorCircleOutline,
+		'mdi:alert-circle-outline': MdiAlertCircleOutline,
 		'mdi:api': MdiApi,
 		'mdi:application-outline': MdiApplicationOutline,
 		'mdi:arrow-down-bold-outline': MdiArrowDownBoldOutline,
@@ -154,6 +163,7 @@
 		'mdi:check-all': MdiCheckAll,
 		'mdi:chevron-left': MdiChevronLeft,
 		'mdi:chevron-down': MdiChevronDown,
+		'mdi:circle-small': MdiCircleSmall,
 		'mdi:clock-star-four-points-outline': MdiClockStarFourPointsOutline,
 		'mdi:close': MdiClose,
 		'mdi:close-circle-outline': MdiCloseCircleOutline,
@@ -188,10 +198,12 @@
 		'mdi:file-document-box-outline': MdiFileDocumentBoxOutline,
 		'mdi:file-outline': MdiFileOutline,
 		'mdi:file-question-outline': MdiFileQuestionOutline,
+		'mdi:file-tree-outline': MdiFileTreeOutline,
 		'mdi:filter-cog-outline': MdiFilterCogOutline,
 		'mdi:filter-cog': MdiFilterCog,
 		'mdi:filter': MdiFilter,
 		'mdi:folder-outline': MdiFolderOutline,
+		'mdi:format-text': MdiFormatText,
 		'mdi:fullscreen': MdiFullscreen,
 		'mdi:fullscreen-exit': MdiFullscreenExit,
 		'mdi:github': MdiGithub,
@@ -207,6 +219,7 @@
 		'mdi:language-ruby': MdiLanguageRuby,
 		'mdi:layers-outline': MdiLayersOutline,
 		'mdi:lightning-bolt': MdiLightningBolt,
+		'mdi:link-variant': MdiLinkVariant,
 		'mdi:login-variant': MdiLoginVariant,
 		'mdi:lock-open-variant': MdiLockOpenVariant,
 		'mdi:lock-outline': MdiLockOutline,
@@ -228,6 +241,7 @@
 		'mdi:camera-rotate-outline': MdiPhoneRotateLandscape,
 		'mdi:toggle-switch': MdiToggleSwitch,
 		'mdi:toggle-switch-off-outline': MdiToggleSwitchOffOutline,
+		'mdi:play': MdiPlay,
 		'mdi:play-circle-outline': MdiPlayCircleOutline,
 		'mdi:plus': MdiPlus,
 		'mdi:power-plug': MdiPowerPlug,
@@ -238,12 +252,14 @@
 		'mdi:resize-horizontal': MdiResizeHorizontal,
 		'mdi:robot-outline': MdiRobotOutline,
 		'mdi:search': MdiSearch,
+		'mdi:shape-square-rounded-plus': MdiShapeSquareRoundedPlus,
 		'mdi:smartphone-link': MdiSmartphoneLink,
 		'mdi:source-branch': MdiSourceBranch,
 		'mdi:star-outline': MdiStarOutline,
 		'mdi:star-three-points-outline': MdiStarThreePointsOutline,
 		'mdi:sync': MdiSync,
 		'mdi:table': MdiTable,
+		'mdi:target': MdiTarget,
 		'mdi:tune-vertical-variant': MdiTuneVerticalVariant,
 		'mdi:unfold-more-horizontal': MdiUnfoldMoreHorizontal,
 		'mdi:update': MdiUpdate,

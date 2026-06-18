@@ -9,7 +9,8 @@
 		asEditorValue,
 		canOpenCodeProperty,
 		getPropertyLanguage,
-		isSmartTypeProperty,
+		isIonProperty,
+		isSmartSourceProperty,
 		SMART_TYPE_MODES
 	} from '$lib/studio/propertyEditors';
 	import { untrack } from 'svelte';
@@ -21,6 +22,7 @@
 	 * @type {{
 	 *  selectedId?: string,
 	 *  active?: boolean,
+	 *  refreshSerial?: number,
 	 *  onSave?: (id: string) => void | Promise<void>,
 	 *  onOpenPropertyEditor?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void,
 	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void
@@ -29,6 +31,7 @@
 	let {
 		selectedId = '',
 		active = true,
+		refreshSerial = 0,
 		onSave,
 		onOpenPropertyEditor,
 		onOpenPropertyPicker
@@ -39,6 +42,7 @@
 	let monacoRow = $state();
 	let monacoValue = $state('');
 	let requestedSelectionId = '';
+	let lastRefreshSerial = 0;
 	let {
 		id,
 		properties,
@@ -56,6 +60,7 @@
 
 	$effect(() => {
 		const nextId = selectedId;
+		const nextRefreshSerial = refreshSerial;
 		if (!active) {
 			return;
 		}
@@ -63,9 +68,11 @@
 			requestedSelectionId = '';
 			return;
 		}
-		if (nextId === id || nextId === requestedSelectionId) {
+		const forceRefresh = nextRefreshSerial !== lastRefreshSerial;
+		if (!forceRefresh && (nextId === id || nextId === requestedSelectionId)) {
 			return;
 		}
+		lastRefreshSerial = nextRefreshSerial;
 		requestedSelectionId = nextId;
 		void onSelectionChange({ selectedValue: [nextId] }).finally(() => {
 			if (requestedSelectionId === nextId) {
@@ -86,21 +93,32 @@
 	}
 
 	function getType(row) {
-		if (isSmartTypeProperty(row)) {
+		if (isSmartSourceProperty(row)) {
 			return 'smarttype';
 		}
-		let { class: cls, value, values } = row;
+		let { class: cls, type: ionType, value, values } = row;
 		if (row.symbols && value != row.originalValue) {
 			return 'text';
 		}
 		untrack(() => {
 			row.symbols = false;
 		});
-		if (values && values.includes(value)) {
+		if (hasPossibleValues(row)) {
 			return values.length < 4 ? 'segment' : 'combo';
 		}
 		if (row.isMultiline) {
 			return 'textarea';
+		}
+		if (isIonProperty(row)) {
+			if (ionType === 'boolean') {
+				return 'boolean';
+			}
+			if (ionType === 'number') {
+				return 'number';
+			}
+			if (ionType === 'object' || ionType === 'array') {
+				return 'textarea';
+			}
 		}
 		if (cls?.endsWith('Boolean')) {
 			return 'boolean';
@@ -122,8 +140,19 @@
 	 * @param {any} row
 	 * @returns {boolean}
 	 */
+	function hasPossibleValues(row) {
+		if (!Array.isArray(row?.values) || row.values.length === 0) {
+			return false;
+		}
+		return row.values.some((option) => String(option?.value ?? option) === String(row.value));
+	}
+
+	/**
+	 * @param {any} row
+	 * @returns {boolean}
+	 */
 	function isInlineEditable(row) {
-		return String(row?.class ?? '').startsWith('java.lang.');
+		return isIonProperty(row) || String(row?.class ?? '').startsWith('java.lang.');
 	}
 
 	/**
@@ -213,7 +242,7 @@
 		if (type === 'textarea') {
 			return textareaRows(row) > 1;
 		}
-		if (isSmartTypeProperty(row)) {
+		if (isSmartSourceProperty(row)) {
 			return true;
 		}
 		if (!isInlineEditable(row)) {
@@ -321,7 +350,7 @@
 										{@const type = getType(row)}
 										{@const changed = isChanged(row, category)}
 										{@const inlineEditable = isInlineEditable(row)}
-										{@const smartType = isSmartTypeProperty(row)}
+										{@const smartType = isSmartSourceProperty(row)}
 										{@const wideField = isWideField(row, category, type)}
 										<div
 											class="studio-properties__field"

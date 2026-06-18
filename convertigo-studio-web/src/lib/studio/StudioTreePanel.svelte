@@ -15,7 +15,8 @@
 	 *  refreshSerial?: number,
 	 *  refreshMutation?: import('./dnd').DboDropResult | null,
 	 *  refreshMutationSerial?: number,
-	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>
+	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>,
+	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
 	 * }}
 	 */
 	let {
@@ -25,7 +26,8 @@
 		refreshSerial = 0,
 		refreshMutation = null,
 		refreshMutationSerial = 0,
-		onMutation
+		onMutation,
+		onSourceDrop
 	} = $props();
 
 	const { checkChildren, checkNodes } = createProjectTree({
@@ -177,7 +179,7 @@
 			}
 			visited.add(id);
 			const node = findNodeById(id);
-			if (node?.children) {
+			if (node?.id) {
 				nodes.push(node);
 			}
 		}
@@ -241,6 +243,7 @@
 				onKeepExpanded={keepExpanded}
 				onLoadChildren={loadChildren}
 				onMutation={handleMutation}
+				{onSourceDrop}
 			/>
 		{/each}
 	{/if}

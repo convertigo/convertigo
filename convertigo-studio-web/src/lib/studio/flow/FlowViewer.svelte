@@ -15,6 +15,7 @@
 		performDboDrop,
 		renameObjectId
 	} from '$lib/studio/dnd';
+	import { getSourcePickerDragPayload } from '$lib/studio/sourcePickerDnd';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { draggedData } from '$lib/utils/dndStore';
 	import { removeDbo, renameDbo } from '$lib/utils/service';
@@ -51,7 +52,8 @@
 	 *  refreshMutation?: import('$lib/studio/dnd').DboDropResult | null,
 	 *  refreshMutationSerial?: number,
 	 *  onSelectNode?: (node: { id: string, data: import('./types').FlowStepNodeData }) => void,
-	 *  onMutation?: (mutation: import('$lib/studio/dnd').DboDropResult) => void | Promise<void>
+	 *  onMutation?: (mutation: import('$lib/studio/dnd').DboDropResult) => void | Promise<void>,
+	 *  onSourceDrop?: (targetId: string, payload: import('$lib/studio/sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
 	 * }}
 	 */
 	let {
@@ -64,7 +66,8 @@
 		refreshMutation = null,
 		refreshMutationSerial = 0,
 		onSelectNode,
-		onMutation
+		onMutation,
+		onSourceDrop
 	} = $props();
 
 	const nodeTypes = { 'flow-step': FlowStepNode };
@@ -270,6 +273,29 @@
 	 * @param {DragEvent} event
 	 */
 	async function handleFlowDragOver(event) {
+		const sourcePayload = getSourcePickerDragPayload(event, $draggedData);
+		if (sourcePayload) {
+			const hostNode = findFlowNodeAtEvent(event);
+			const targetId = hostNode ? flowObjectId(hostNode) : '';
+			if (!targetId) {
+				resetFlowDrop();
+				return;
+			}
+			event.preventDefault();
+			event.stopPropagation();
+			flowDropTargetNodeId = hostNode.id;
+			flowDropPosition = 'inside';
+			flowDropBranch = '';
+			flowDropHostLabel = 'Source';
+			flowDropAllowed = true;
+			flowDropDenied = false;
+			flowDropCheckKey = `source:${targetId}`;
+			if (event.dataTransfer) {
+				event.dataTransfer.dropEffect = 'copy';
+			}
+			syncXyFlow();
+			return;
+		}
 		const payload = getDboDragPayload(event, $draggedData);
 		const target = resolveFlowDropTarget(event, payload);
 		if (!payload || !target?.target) {
@@ -345,6 +371,19 @@
 	 * @param {DragEvent} event
 	 */
 	async function handleFlowDrop(event) {
+		const sourcePayload = getSourcePickerDragPayload(event, $draggedData);
+		if (sourcePayload) {
+			event.preventDefault();
+			event.stopPropagation();
+			const hostNode = findFlowNodeAtEvent(event);
+			const targetId = hostNode ? flowObjectId(hostNode) : '';
+			resetFlowDrop();
+			if (targetId) {
+				await onSourceDrop?.(targetId, sourcePayload);
+			}
+			$draggedData = undefined;
+			return;
+		}
 		const payload = getDboDragPayload(event, $draggedData);
 		const target = resolveFlowDropTarget(event, payload);
 		const action = getDboDropAction(event, payload);

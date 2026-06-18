@@ -3,7 +3,9 @@ import {
 	canOpenCodeProperty,
 	getPropertyLanguage,
 	isCodeEditorProperty,
+	isIonProperty,
 	isMonacoProperty,
+	isSmartSourceProperty,
 	SMART_TYPE_MODES
 } from './propertyEditors';
 
@@ -84,6 +86,32 @@ describe('Studio property editor language detection', () => {
 
 		expect(getPropertyLanguage(row, 'Project.sq:Sequence.st:field')).toBe('javascript');
 		expect(canOpenCodeProperty(row, 'Project.sq:Sequence.st:field')).toBe(true);
+	});
+
+	it('treats NGX smart sources and scripted Ion properties as smart source values', () => {
+		expect(
+			isSmartSourceProperty({
+				editorClass: 'NgxSmartSourcePropertyDescriptor',
+				mode: 'script'
+			})
+		).toBe(true);
+		expect(
+			isSmartSourceProperty({
+				kind: 'ion',
+				mode: 'source'
+			})
+		).toBe(true);
+		expect(
+			isSmartSourceProperty({
+				kind: 'ion',
+				mode: 'plain'
+			})
+		).toBe(false);
+	});
+
+	it('detects Ion properties', () => {
+		expect(isIonProperty({ kind: 'ion' })).toBe(true);
+		expect(isIonProperty({ kind: 'dbo' })).toBe(false);
 	});
 
 	it('uses the Convertigo SmartType mode labels', () => {

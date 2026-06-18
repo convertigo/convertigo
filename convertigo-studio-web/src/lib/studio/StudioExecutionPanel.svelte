@@ -136,7 +136,7 @@
 	{:else}
 		<RequestableExecution
 			{projectName}
-			{requestable}
+			bind:requestable
 			kind={executionKind}
 			{connectorName}
 			bind:mode
