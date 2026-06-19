@@ -1,4 +1,5 @@
 import { call } from '$lib/utils/service';
+import { SvelteSet } from 'svelte/reactivity';
 
 const _categories = ['Base properties', 'Properties', 'Expert', 'Information'];
 
@@ -19,7 +20,9 @@ export function createDatabaseObjectProperties() {
 	let loading = $state(false);
 	let selectionLoadSerial = 0;
 	let categories = $derived.by(() => {
-		const propertyCategories = [...new Set(properties.map((p) => p.category).filter(Boolean))];
+		const propertyCategories = [
+			...new SvelteSet(properties.map((p) => p.category).filter(Boolean))
+		];
 		const extraCategories = propertyCategories.filter(
 			(category) => !_categories.includes(category)
 		);
