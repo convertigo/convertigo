@@ -74,8 +74,12 @@ public class Get extends JSonService {
 		var children = new JSONArray();
 		if (id == null) {
 			for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true)) {
-				var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(projectName);
-				children.put(getNode(dbo, true, flow));
+				if (flow) {
+					children.put(getProjectNode(projectName, flow));
+				} else {
+					var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(projectName);
+					children.put(getNode(dbo, true, flow));
+				}
 			}
 		} else if (id.contains("/")) {
 			children = getFileChildren(id);
@@ -90,6 +94,22 @@ public class Get extends JSonService {
 			}
 		}
 		return children;
+	}
+
+	private JSONObject getProjectNode(String projectName, boolean flow) throws Exception {
+		var obj = new JSONObject();
+		obj.put("label", projectName);
+		obj.put("name", projectName);
+		obj.put("icon", "studio.dbo.GetIcon?iconPath=/com/twinsoft/convertigo/beans/core/images/project_color_32x32.png");
+		obj.put("id", projectName);
+		obj.put("children", true);
+		if (flow) {
+			obj.put("classname", Project.class.getSimpleName());
+			obj.put("isLoop", false);
+			obj.put("isXml", false);
+			obj.put("isSourceContainer", false);
+		}
+		return obj;
 	}
 
 	private JSONObject getNode(DatabaseObject dbo, boolean full, boolean flow) throws Exception {
