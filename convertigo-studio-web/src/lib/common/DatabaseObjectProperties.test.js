@@ -73,4 +73,42 @@ describe('createDatabaseObjectProperties', () => {
 			})
 		]);
 	});
+
+	it('keeps engine property categories and normalizes studio category labels', async () => {
+		vi.mocked(call).mockResolvedValue({
+			properties: {
+				Visible: {
+					category: '@Properties',
+					kind: 'ion',
+					name: 'visible',
+					value: 'true'
+				},
+				Custom: {
+					category: 'Mobile',
+					name: 'custom',
+					value: 'x'
+				}
+			}
+		});
+		const dboProperties = createDatabaseObjectProperties();
+
+		await dboProperties.onSelectionChange({
+			selectedValue: ['Project.MobileApplication.Application']
+		});
+
+		expect(dboProperties.properties).toEqual([
+			expect.objectContaining({ displayName: 'Visible', category: 'Properties' }),
+			expect.objectContaining({ displayName: 'Custom', category: 'Mobile' })
+		]);
+		expect(dboProperties.categories.map(({ category }) => category)).toEqual([
+			'Base properties',
+			'Properties',
+			'Expert',
+			'Information',
+			'Mobile'
+		]);
+		expect(
+			dboProperties.categories.find(({ category }) => category === 'Properties')?.properties
+		).toEqual([expect.objectContaining({ displayName: 'Visible' })]);
+	});
 });

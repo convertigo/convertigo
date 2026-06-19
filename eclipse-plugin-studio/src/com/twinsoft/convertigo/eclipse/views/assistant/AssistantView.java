@@ -246,9 +246,13 @@ public class AssistantView extends ViewPart {
 						TreeObject to = (TreeObject) selection.getFirstElement();
 						ProjectTreeObject prjtree = to.getProjectTreeObject();
 						p = prjtree != null ? prjtree.getObject() : null;
-						app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
 					} catch (Exception ex) {
 						p = null;
+					}
+					try {
+						app = p != null ? (ApplicationComponent) p.getMobileApplication().getApplicationComponent() : null;
+					} catch (Exception ex) {
+						app = null;
 					}
 					try {
 						String pname = p != null ? p.getName() : "";

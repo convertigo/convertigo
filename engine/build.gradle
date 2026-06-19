@@ -323,7 +323,7 @@ dependencies {
 	compileFlat    'org.bouncycastle:bcprov-jdk18on:1.84'
 	compileFlat    'org.apache.xmlbeans:xmlbeans:3.1.1-sb-fixed'
 	compileFlat    'org.apache.xmlgraphics:fop:2.11', { exclude module: 'batik-js'}
-	compileFlat    'org.codehaus.jettison:jettison:1.5.5'
+	compileFlat    'org.codehaus.jettison:jettison:1.5.6'
 	compileFlat    'org.codehaus.woodstox:stax2-api:4.3.0'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.7.0.202606012155-r'

@@ -18,6 +18,7 @@
 		performDboDrop,
 		renameObjectId
 	} from './dnd';
+	import { getSourcePickerDragPayload } from './sourcePickerDnd';
 	import StudioIconButton from './StudioIconButton.svelte';
 	import StudioTreeNode from './StudioTreeNode.svelte';
 
@@ -36,7 +37,8 @@
 	 *  onSetExpanded?: (id: string, expanded: boolean) => void,
 	 *  onKeepExpanded?: (ids: string[]) => void,
 	 *  onLoadChildren?: (node: any, force?: boolean) => Promise<void>,
-	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>
+	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>,
+	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
 	 * }}
 	 */
 	let {
@@ -51,13 +53,15 @@
 		onSetExpanded,
 		onKeepExpanded,
 		onLoadChildren = async () => {},
-		onMutation
+		onMutation,
+		onSourceDrop
 	} = $props();
 
 	let localExpanded = $state(false);
 	let loading = $state(false);
 	let dropOver = $state(false);
 	let dropAllowed = $state(false);
+	let sourceDropOver = $state(false);
 	let dropIndicator = $state('inside');
 	/** @type {import('./dnd').DropAction} */
 	let dropAction = $state('none');
@@ -74,7 +78,11 @@
 	/** @type {HTMLInputElement | undefined} */
 	let renameInput = $state();
 
-	let isBranch = $derived(Boolean(node?.children));
+	let isBranch = $derived.by(() => {
+		dataSerial;
+		revision;
+		return hasExpandableChildren(node?.children);
+	});
 	let expanded = $derived(
 		Boolean(node?.id && expandedNodeIds ? hasExpandedNodeId(node.id) : localExpanded)
 	);
@@ -84,7 +92,11 @@
 		return Array.isArray(node?.children) ? node.children : [];
 	});
 	let selected = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, selectedId)));
-	let label = $derived(node?.label ?? node?.name ?? 'Unnamed');
+	let label = $derived.by(() => {
+		dataSerial;
+		revision;
+		return node?.label ?? node?.name ?? 'Unnamed';
+	});
 	let paddingLeft = $derived(`${depth * 0.34 + 0.14}rem`);
 	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
 	let renaming = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, renameTargetId)));
@@ -231,6 +243,14 @@
 			return true;
 		}
 		return equivalentDboObjectIds(nodeId).some((id) => expandedNodeIds?.has(id));
+	}
+
+	/**
+	 * @param {unknown} children
+	 * @returns {boolean}
+	 */
+	function hasExpandableChildren(children) {
+		return children === true || (Array.isArray(children) && children.length > 0);
 	}
 
 	/**
@@ -427,6 +447,20 @@
 	 * @param {DragEvent} event
 	 */
 	async function checkDrop(event) {
+		const sourcePayload = getSourcePickerDragPayload(event, $draggedData);
+		if (sourcePayload && node?.id) {
+			event.preventDefault();
+			event.stopPropagation();
+			dropOver = true;
+			sourceDropOver = true;
+			dropAllowed = true;
+			dropAction = 'copy';
+			dropIndicator = 'inside';
+			if (event.dataTransfer) {
+				event.dataTransfer.dropEffect = 'copy';
+			}
+			return;
+		}
 		const payload = getDboDragPayload(event, $draggedData);
 		const target = getTreeDropTarget(event);
 		if (
@@ -492,6 +526,7 @@
 	function resetDrop() {
 		dropOver = false;
 		dropAllowed = false;
+		sourceDropOver = false;
 		dropIndicator = 'inside';
 		dropCheckKey = '';
 	}
@@ -502,6 +537,14 @@
 	async function handleDrop(event) {
 		event.preventDefault();
 		event.stopPropagation();
+		const sourcePayload = getSourcePickerDragPayload(event, $draggedData);
+		if (sourcePayload && node?.id) {
+			resetDrop();
+			selectedId = node.id;
+			await onSourceDrop?.(node.id, sourcePayload);
+			$draggedData = undefined;
+			return;
+		}
 		const payload = getDboDragPayload(event, $draggedData);
 		const target = getTreeDropTarget(event);
 		const action = /** @type {import('./dnd').DropAction} */ (
@@ -588,6 +631,9 @@
 	 * @returns {string}
 	 */
 	function currentDropLabel() {
+		if (sourceDropOver) {
+			return `Use source for ${label}`;
+		}
 		const action = dropAction === 'copy' ? 'Copy' : dropAction === 'move' ? 'Move' : 'Drop';
 		if (!isIfStep(node) || dropIndicator === 'before') {
 			return `${action} ${dropIndicator} ${label}`;
@@ -854,6 +900,7 @@
 					{onSetExpanded}
 					{onKeepExpanded}
 					{onMutation}
+					{onSourceDrop}
 				/>
 			{/each}
 		</div>

@@ -261,7 +261,7 @@ publishing {
 						'jakarta.servlet:jakarta.servlet-api:6.1.0',
 						'org.apache.commons:commons-lang3:' + commonsLang3,
 						'org.apache.httpcomponents:httpclient:4.5.14',
-						'org.codehaus.jettison:jettison:1.5.5'
+						'org.codehaus.jettison:jettison:1.5.6'
 					].each {
 						def values = it.split(':')
 						def dependency = dependencies.appendNode('dependency')

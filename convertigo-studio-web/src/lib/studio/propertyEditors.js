@@ -57,6 +57,34 @@ export function isSmartTypeProperty(row) {
 }
 
 /**
+ * @param {any} row
+ * @returns {boolean}
+ */
+export function isIonProperty(row) {
+	return row?.kind === 'ion';
+}
+
+/**
+ * @param {any} row
+ * @returns {boolean}
+ */
+export function isNgxSmartSourceProperty(row) {
+	return row?.editorClass === 'NgxSmartSourcePropertyDescriptor';
+}
+
+/**
+ * @param {any} row
+ * @returns {boolean}
+ */
+export function isSmartSourceProperty(row) {
+	return (
+		isSmartTypeProperty(row) ||
+		isNgxSmartSourceProperty(row) ||
+		(isIonProperty(row) && ['script', 'source'].includes(row?.mode))
+	);
+}
+
+/**
  * @param {any} value
  * @returns {boolean}
  */
@@ -121,7 +149,7 @@ export function canOpenCodeProperty(row, selectedId = '') {
 	if (!row || row.category === 'Information' || !isTextEditorValue(row.value)) {
 		return false;
 	}
-	if (isSmartTypeProperty(row) && row.mode === 'script') {
+	if (isSmartSourceProperty(row) && row.mode === 'script') {
 		return true;
 	}
 	if (isMonacoProperty(row, selectedId)) {
@@ -159,7 +187,7 @@ export function findPrimaryEditorProperty(properties, selectedId = '') {
  * @returns {string}
  */
 export function getPropertyLanguage(row, selectedId = '') {
-	if (isSmartTypeProperty(row) && row?.mode === 'script') {
+	if (isSmartSourceProperty(row) && row?.mode === 'script') {
 		return 'javascript';
 	}
 	const hints = `${selectedId} ${rowHints(row)}`.toLowerCase();
