@@ -124,6 +124,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && (cd webapps/convertigo \
         && unzip -q /tmp/convertigo.war \
         && chmod 777 WEB-INF/web.xml WEB-INF/lib WEB-INF/classes \
+        && chmod -R a+rX WEB-INF/lib WEB-INF/classes \
         && rm -rf /tmp/*)
 
 ## copy the ROOT index that redirect to the 'convertigo' webapp
