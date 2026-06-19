@@ -1152,8 +1152,7 @@
 							rows="2"
 							value={ngxCustom}
 							oninput={(event) => (ngxCustom = event.currentTarget.value)}
-							onchange={() => reloadNgxPreview({ custom: ngxCustom })}
-						></textarea>
+							onchange={() => reloadNgxPreview({ custom: ngxCustom })}></textarea>
 					{/if}
 					<code class="studio-source-picker__preview">{ngxModel?.computedValue || 'empty'}</code>
 				</section>
