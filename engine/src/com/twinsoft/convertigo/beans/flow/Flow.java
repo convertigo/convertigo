@@ -48,6 +48,8 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -68,6 +70,8 @@ public class Flow extends Sequence {
 	private boolean includeTrace = true;
 	private transient String flowSourceDraft = null;
 	private transient long flowSourceFileLastModified = -1;
+	private transient String flowInputSyncSource = null;
+	private transient boolean flowInputSyncing = false;
 
 	public Flow() {
 		super();
@@ -115,6 +119,7 @@ public class Flow extends Sequence {
 
 	@Override
 	public List<DatabaseObject> getDatabaseObjectChildren() throws Exception {
+		synchronizeFlowInputs();
 		var children = new ArrayList<DatabaseObject>(super.getDatabaseObjectChildren());
 		children.addAll(getFlowVirtualChildren());
 		return children;
@@ -122,6 +127,7 @@ public class Flow extends Sequence {
 
 	@Override
 	public List<DatabaseObject> getAllChildren() {
+		synchronizeFlowInputs();
 		var children = new ArrayList<DatabaseObject>(super.getAllChildren());
 		children.addAll(getFlowVirtualChildren());
 		return children;
@@ -129,7 +135,38 @@ public class Flow extends Sequence {
 
 	@Override
 	public boolean hasDatabaseObjectChildren() throws Exception {
+		synchronizeFlowInputs();
 		return super.hasDatabaseObjectChildren() || !getFlowVirtualChildren().isEmpty();
+	}
+
+	@Override
+	public List<RequestableVariable> getVariablesList() {
+		synchronizeFlowInputs();
+		return super.getVariablesList();
+	}
+
+	@Override
+	public Variable getVariable(int index) {
+		synchronizeFlowInputs();
+		return super.getVariable(index);
+	}
+
+	@Override
+	public Variable getVariable(String variableName) {
+		synchronizeFlowInputs();
+		return super.getVariable(variableName);
+	}
+
+	@Override
+	public boolean hasVariables() {
+		synchronizeFlowInputs();
+		return super.hasVariables();
+	}
+
+	@Override
+	public int numberOfVariables() {
+		synchronizeFlowInputs();
+		return super.numberOfVariables();
 	}
 
 	public List<DatabaseObject> getFlowVirtualChildren() {
@@ -138,6 +175,7 @@ public class Flow extends Sequence {
 
 	public JSONObject getFlowInput() throws EngineException {
 		try {
+			synchronizeFlowInputs();
 			var input = new JSONObject();
 			mergeBodyInput(input, variables.get("__body"));
 			for (var entry : variables.entrySet()) {
@@ -159,6 +197,130 @@ public class Flow extends Sequence {
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow input.", e);
 		}
+	}
+
+	private void synchronizeFlowInputs() {
+		var source = getFlowSource();
+		if (flowInputSyncing || source.equals(flowInputSyncSource)) {
+			return;
+		}
+		if (!source.contains("_flow")) {
+			flowInputSyncSource = source;
+			return;
+		}
+		flowInputSyncing = true;
+		try {
+			var response = new FlowEngineBridge().syncInputs(this);
+			if (response.optBoolean("ok", false)) {
+				var inputDefinitions = response.optJSONObject("inputDefinitions");
+				var hasInputs = inputDefinitions != null && inputDefinitions.length() > 0;
+				if (hasInputs) {
+					syncFlowInputDefinitions(inputDefinitions);
+				}
+				flowInputSyncSource = source;
+			} else {
+				var error = response.optJSONObject("error");
+				var message = error == null ? response.toString() : error.optString("message", error.toString());
+				Engine.logBeans.warn("(Flow) Unable to synchronize Flow inputs for \"" + getQName() + "\": " + message);
+				flowInputSyncSource = source;
+			}
+		} catch (Exception e) {
+			Engine.logBeans.warn("(Flow) Unable to synchronize Flow inputs for \"" + getQName() + "\".", e);
+			flowInputSyncSource = source;
+		} finally {
+			flowInputSyncing = false;
+		}
+	}
+
+	private void syncFlowInputDefinitions(JSONObject inputDefinitions) throws EngineException, JSONException {
+		var changed = false;
+		for (var keys = inputDefinitions.keys(); keys.hasNext();) {
+			var key = String.valueOf(keys.next());
+			if (!key.matches("[A-Za-z_$][\\w$]*") || key.startsWith("__")) {
+				continue;
+			}
+			var definition = inputDefinitions.optJSONObject(key);
+			if (definition == null) {
+				definition = new JSONObject();
+			}
+			var type = definition.optString("type", definition.optString("kind", "string")).toLowerCase();
+			var existing = super.getVariable(key);
+			var variable = existing instanceof RequestableVariable requestable ? requestable : null;
+			var variableChanged = false;
+			if (variable == null) {
+				variable = isFlowInputMultiValued(type, definition) ? new RequestableMultiValuedVariable() : new RequestableVariable();
+				variable.setName(key);
+				variableChanged = true;
+			}
+			if (definition.has("description") && !definition.optString("description").isBlank()) {
+				variableChanged |= setStringIfChanged(variable.getDescription(), definition.optString("description"), variable::setDescription);
+			} else if (existing == null) {
+				variable.setDescription("Flow input " + key);
+			}
+			if (definition.has("default")) {
+				variableChanged |= setValueIfChanged(variable.getValueOrNull(), definition.opt("default"), variable::setValueOrNull);
+			}
+			if (definition.has("required")) {
+				variableChanged |= setBooleanIfChanged(variable.isRequired(), definition.optBoolean("required"), variable::setRequired);
+			}
+			variableChanged |= setStringIfChanged(variable.getSchemaType(), flowInputSchemaType(type), variable::setSchemaType);
+			if (existing == null) {
+				addVariable(variable);
+				changed = true;
+			} else {
+				changed |= variableChanged;
+			}
+		}
+		if (changed) {
+			changed();
+		}
+	}
+
+	private boolean isFlowInputMultiValued(String type, JSONObject definition) {
+		return "array".equals(type) || definition.optBoolean("multi", false) || definition.optBoolean("multiValued", false);
+	}
+
+	private String flowInputSchemaType(String type) {
+		return switch (type == null ? "" : type.toLowerCase()) {
+		case "boolean", "bool" -> "xsd:boolean";
+		case "integer", "int" -> "xsd:integer";
+		case "number", "double", "float" -> "xsd:double";
+		default -> "xsd:string";
+		};
+	}
+
+	private boolean setStringIfChanged(String current, String next, java.util.function.Consumer<String> setter) {
+		if (next == null || sameValue(current, next)) {
+			return false;
+		}
+		setter.accept(next);
+		return true;
+	}
+
+	private boolean setBooleanIfChanged(Boolean current, boolean next, java.util.function.Consumer<Boolean> setter) {
+		if (Boolean.valueOf(next).equals(current)) {
+			return false;
+		}
+		setter.accept(next);
+		return true;
+	}
+
+	private boolean setValueIfChanged(Object current, Object next, java.util.function.Consumer<Object> setter) {
+		if (sameValue(current, next)) {
+			return false;
+		}
+		setter.accept(next);
+		return true;
+	}
+
+	private boolean sameValue(Object current, Object next) {
+		if (current == next) {
+			return true;
+		}
+		if (current == null || next == null) {
+			return false;
+		}
+		return String.valueOf(current).equals(String.valueOf(next));
 	}
 
 	public String getFlowSource() {

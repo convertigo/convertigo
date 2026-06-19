@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONArray;
@@ -51,7 +52,13 @@ public class FlowEngineBridge {
 	private static final String ENGINE_BASE_PATH = "libs/flow/";
 	private static final Map<String, CachedEngineSource> engineSourceCache = new ConcurrentHashMap<>();
 	private static final Map<String, CachedEngineRuntime> engineRuntimeCache = new ConcurrentHashMap<>();
+	private static final Map<String, CachedMethodResponse> methodResponseCache = new ConcurrentHashMap<>();
+	private static final Map<String, InvocationStats> invocationStats = new ConcurrentHashMap<>();
 	private static final AtomicLong cacheGeneration = new AtomicLong();
+	private static final LongAdder methodResponseCacheHits = new LongAdder();
+	private static final LongAdder methodResponseCacheMisses = new LongAdder();
+	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
+	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
 
 	private record CachedEngineSource(File file, String source, long lastModified, long length) {
 		String sourceName() {
@@ -65,10 +72,15 @@ public class FlowEngineBridge {
 	private record CachedEngineRuntimeLookup(CachedEngineRuntime runtime, boolean hit, String key, long generation, int size) {
 	}
 
+	private record CachedMethodResponse(String response, long generation) {
+	}
+
 	public static void clearCaches() {
 		cacheGeneration.incrementAndGet();
 		engineSourceCache.clear();
 		engineRuntimeCache.clear();
+		methodResponseCache.clear();
+		methodResponseCacheInvalidations.increment();
 		RhinoUtils.clearCachedJavascript();
 	}
 
@@ -101,6 +113,19 @@ public class FlowEngineBridge {
 			return invoke(engineQName, "describeTree", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow tree request.", e);
+		}
+	}
+
+	public JSONObject syncInputs(Flow flow) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flow);
+			var request = baseRequest(engineQName, flow == null ? "" : flow.getFlowSource(), flow == null ? "" : flow.getQName(), null)
+					.put("flowName", flow == null ? "" : flow.getName())
+					.put("project", flow == null || flow.getProject() == null ? "" : flow.getProject().getName())
+					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath());
+			return invoke(engineQName, "syncInputs", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build Flow input synchronization request.", e);
 		}
 	}
 
@@ -260,7 +285,9 @@ public class FlowEngineBridge {
 			var engineQName = effectiveEngineQName(flowEngine);
 			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
 					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
-			return invoke(engineQName, "cacheInfo", request, null, null, null);
+			var response = invoke(engineQName, "cacheInfo", request, null, null, null);
+			response.put("bridge", bridgeCacheInfo(engineQName));
+			return response;
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build FlowEngine cache info request.", e);
 		}
@@ -707,46 +734,104 @@ public class FlowEngineBridge {
 	private JSONObject invoke(String engineQName, String method, JSONObject request, Context convertigoContext,
 			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		var engineRef = EngineRef.parse(normalizeEngineQName(engineQName));
-		var engineFile = resolveEngineFile(engineRef);
-		var engineSource = cachedEngineSource(engineFile);
 		var useThreadRuntime = javascriptContext == null && scope == null;
 		var cx = javascriptContext;
 		var engineScope = scope;
+		File engineFile = null;
+		CachedEngineSource engineSource = null;
 		Scriptable engineObject = null;
 		CachedEngineRuntimeLookup runtimeLookup = null;
 		var entered = false;
-
-		if (cx == null) {
-			cx = org.mozilla.javascript.Context.enter();
-			entered = true;
-			if (useThreadRuntime) {
-				runtimeLookup = cachedEngineRuntime(engineRef, engineFile, engineSource, cx);
-				engineScope = runtimeLookup.runtime().scope();
-				engineObject = runtimeLookup.runtime().engineObject();
-			} else {
-				engineScope = cx.initStandardObjects();
-			}
-		} else if (engineScope == null) {
-			engineScope = cx.initStandardObjects();
-		}
+		var started = System.nanoTime();
+		var failed = false;
+		var methodCacheHit = false;
 
 		try {
-			if (runtimeLookup != null) {
-				synchronized (runtimeLookup.runtime()) {
-					return invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
-							engineObject, runtimeLookup);
+			engineFile = resolveEngineFile(engineRef);
+			engineSource = cachedEngineSource(engineFile);
+			if (useThreadRuntime) {
+				if (isCacheableMethod(method)) {
+					var cachedResponse = cachedMethodResponse(engineRef, engineSource, method, request);
+					if (cachedResponse != null) {
+						methodCacheHit = true;
+						return new JSONObject(cachedResponse.response());
+					}
+				} else if (invalidatesMethodResponseCache(method)) {
+					clearMethodResponseCache();
 				}
 			}
-			return invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
+			if (cx == null) {
+				cx = org.mozilla.javascript.Context.enter();
+				entered = true;
+				if (useThreadRuntime) {
+					runtimeLookup = cachedEngineRuntime(engineRef, engineFile, engineSource, cx);
+					engineScope = runtimeLookup.runtime().scope();
+					engineObject = runtimeLookup.runtime().engineObject();
+				} else {
+					engineScope = cx.initStandardObjects();
+				}
+			} else if (engineScope == null) {
+				engineScope = cx.initStandardObjects();
+			}
+
+			if (runtimeLookup != null) {
+				synchronized (runtimeLookup.runtime()) {
+					var response = invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
+							engineObject, runtimeLookup);
+					storeMethodResponse(engineRef, engineSource, method, request, response);
+					return response;
+				}
+			}
+			var response = invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
 					engineObject, null);
+			storeMethodResponse(engineRef, engineSource, method, request, response);
+			return response;
 		} catch (EngineException e) {
+			failed = true;
 			throw e;
 		} catch (Exception e) {
+			failed = true;
 			throw new EngineException("Unable to invoke Flow engine \"" + engineRef.qname + "\" method \"" + method + "\".", e);
 		} finally {
+			recordInvocation(engineRef, method, System.nanoTime() - started, runtimeLookup, failed, methodCacheHit);
 			if (entered) {
 				org.mozilla.javascript.Context.exit();
 			}
+		}
+	}
+
+	private static void recordInvocation(EngineRef engineRef, String method, long durationNanos, CachedEngineRuntimeLookup runtimeLookup,
+			boolean error, boolean methodCacheHit) {
+		var key = engineRef.qname + "|" + method;
+		var stats = invocationStats.computeIfAbsent(key, k -> new InvocationStats(engineRef.qname, method));
+		stats.record(durationNanos, runtimeLookup, error, methodCacheHit);
+	}
+
+	private static JSONObject bridgeCacheInfo(String engineQName) throws JSONException {
+		var normalizedEngineQName = normalizeEngineQName(engineQName);
+		var methods = new JSONObject();
+		for (var entry : invocationStats.entrySet()) {
+			var stats = entry.getValue();
+			if (stats.engineQName.equals(normalizedEngineQName)) {
+				methods.put(stats.method, stats.toJson());
+			}
+		}
+		return new JSONObject()
+				.put("generation", cacheGeneration.get())
+				.put("sourceCacheSize", engineSourceCache.size())
+				.put("runtimeCacheSize", engineRuntimeCache.size())
+				.put("methodResponseCacheSize", methodResponseCache.size())
+				.put("methodResponseCacheHits", methodResponseCacheHits.sum())
+				.put("methodResponseCacheMisses", methodResponseCacheMisses.sum())
+				.put("methodResponseCacheInvalidations", methodResponseCacheInvalidations.sum())
+				.put("methods", methods);
+	}
+
+	private static String bridgeCacheInfoString(String engineQName) {
+		try {
+			return bridgeCacheInfo(engineQName).toString();
+		} catch (JSONException e) {
+			return "{}";
 		}
 	}
 
@@ -765,6 +850,7 @@ public class FlowEngineBridge {
 		engineScope.put("__flowProjectDir", engineScope, projectDir);
 		engineScope.put("__flowBridgeClassSource", engineScope, bridgeClassSource());
 		engineScope.put("__flowBridgeClassResource", engineScope, bridgeClassResource());
+		engineScope.put("__flowBridgeInfo", engineScope, bridgeCacheInfoString(engineRef.qname));
 		if (runtimeLookup == null) {
 			engineScope.put("__flowBridgeRuntimeCacheEnabled", engineScope, false);
 			engineScope.delete("__flowBridgeRuntimeCacheHit");
@@ -796,6 +882,57 @@ public class FlowEngineBridge {
 
 		var result = ((Function) function).call(cx, engineScope, engineObject, new Object[] { request.toString() });
 		return toJsonObject(result, engineRef.qname, method);
+	}
+
+	private static CachedMethodResponse cachedMethodResponse(EngineRef engineRef, CachedEngineSource engineSource, String method,
+			JSONObject request) {
+		var key = methodResponseCacheKey(engineRef, engineSource, method, request);
+		var cached = methodResponseCache.get(key);
+		if (cached != null && cached.generation() == cacheGeneration.get()) {
+			methodResponseCacheHits.increment();
+			return cached;
+		}
+		methodResponseCacheMisses.increment();
+		return null;
+	}
+
+	private static void storeMethodResponse(EngineRef engineRef, CachedEngineSource engineSource, String method, JSONObject request,
+			JSONObject response) {
+		if (!isCacheableMethod(method) || response == null) {
+			return;
+		}
+		if (methodResponseCache.size() >= METHOD_RESPONSE_CACHE_LIMIT) {
+			methodResponseCache.clear();
+			methodResponseCacheInvalidations.increment();
+		}
+		methodResponseCache.put(methodResponseCacheKey(engineRef, engineSource, method, request),
+				new CachedMethodResponse(response.toString(), cacheGeneration.get()));
+	}
+
+	private static String methodResponseCacheKey(EngineRef engineRef, CachedEngineSource engineSource, String method, JSONObject request) {
+		return engineRef.qname + "|" + engineSource.sourceName() + "|" + cacheGeneration.get() + "|" + method + "|"
+				+ request.toString();
+	}
+
+	private static boolean isCacheableMethod(String method) {
+		return switch (method) {
+		case "describeTree", "catalog", "context", "propertyEditor", "icons", "syncInputs", "outputSchema", "blockGet", "typeGet" -> true;
+		default -> false;
+		};
+	}
+
+	private static boolean invalidatesMethodResponseCache(String method) {
+		if ("cacheInfo".equals(method)) {
+			return false;
+		}
+		return !isCacheableMethod(method);
+	}
+
+	private static void clearMethodResponseCache() {
+		if (!methodResponseCache.isEmpty()) {
+			methodResponseCache.clear();
+			methodResponseCacheInvalidations.increment();
+		}
 	}
 
 	private static CachedEngineRuntimeLookup cachedEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
@@ -936,5 +1073,68 @@ public class FlowEngineBridge {
 			var scriptPath = objectName.replace('.', File.separatorChar);
 			return new EngineRef(qname, projectName, objectName, scriptPath);
 		}
+	}
+
+	private static final class InvocationStats {
+		private final String engineQName;
+		private final String method;
+		private final LongAdder count = new LongAdder();
+		private final LongAdder errors = new LongAdder();
+		private final LongAdder runtimeHits = new LongAdder();
+		private final LongAdder runtimeMisses = new LongAdder();
+		private final LongAdder runtimeDisabled = new LongAdder();
+		private final LongAdder methodCacheHits = new LongAdder();
+		private final LongAdder totalNanos = new LongAdder();
+		private final AtomicLong maxNanos = new AtomicLong();
+
+		private InvocationStats(String engineQName, String method) {
+			this.engineQName = engineQName;
+			this.method = method;
+		}
+
+		private void record(long durationNanos, CachedEngineRuntimeLookup runtimeLookup, boolean error, boolean methodCacheHit) {
+			count.increment();
+			totalNanos.add(durationNanos);
+			updateMax(durationNanos);
+			if (error) {
+				errors.increment();
+			}
+			if (methodCacheHit) {
+				methodCacheHits.increment();
+			}
+			if (runtimeLookup == null) {
+				runtimeDisabled.increment();
+			} else if (runtimeLookup.hit()) {
+				runtimeHits.increment();
+			} else {
+				runtimeMisses.increment();
+			}
+		}
+
+		private void updateMax(long durationNanos) {
+			var previous = maxNanos.get();
+			while (durationNanos > previous && !maxNanos.compareAndSet(previous, durationNanos)) {
+				previous = maxNanos.get();
+			}
+		}
+
+		private JSONObject toJson() throws JSONException {
+			var calls = count.sum();
+			var total = totalNanos.sum();
+			return new JSONObject()
+					.put("calls", calls)
+					.put("errors", errors.sum())
+					.put("runtimeHits", runtimeHits.sum())
+					.put("runtimeMisses", runtimeMisses.sum())
+					.put("runtimeDisabled", runtimeDisabled.sum())
+					.put("methodCacheHits", methodCacheHits.sum())
+					.put("totalMs", nanosToMillis(total))
+					.put("avgMs", calls == 0 ? 0 : nanosToMillis(total / calls))
+					.put("maxMs", nanosToMillis(maxNanos.get()));
+		}
+	}
+
+	private static double nanosToMillis(long nanos) {
+		return Math.round((nanos / 1_000_000.0) * 100.0) / 100.0;
 	}
 }

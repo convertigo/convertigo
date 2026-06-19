@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,8 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.couchdb.JsonIndex;
+import com.twinsoft.convertigo.beans.flow.Flow;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
@@ -90,6 +93,8 @@ import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ReadmeBuilder;
 import com.twinsoft.convertigo.engine.ReadmeBuilder.MarkdownType;
+import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -357,19 +362,39 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		if (projectDelta == null) {
 			return;
 		}
+
+		var flowSourceNames = new HashSet<String>();
+		var flowEngineSourceChanged = new boolean[] { false };
 		
 		IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
 			public boolean visit(IResourceDelta delta) {
-				//only interested in changed resources (not added or removed)
-				if (delta.getKind() != IResourceDelta.CHANGED) {
+				// only interested in project resource additions, removals or content changes
+				if (delta.getKind() != IResourceDelta.ADDED
+						&& delta.getKind() != IResourceDelta.REMOVED
+						&& delta.getKind() != IResourceDelta.CHANGED) {
 					return true;
 				}
-				//only interested in content changes
-				if ((delta.getFlags() & IResourceDelta.CONTENT) == 0) {
+				// for existing files, ignore metadata-only changes
+				if (delta.getKind() == IResourceDelta.CHANGED && (delta.getFlags() & IResourceDelta.CONTENT) == 0) {
 					return true;
 				}
 				
 				IResource resource = delta.getResource();
+				var projectRelativePath = resource.getProjectRelativePath().toString();
+				if (projectRelativePath.startsWith("libs/flow/icons/")) {
+					return true;
+				}
+				if (projectRelativePath.startsWith("libs/flows/")) {
+					var name = resource.getName();
+					if (resource.getType() == IResource.FILE && name.endsWith(".flow.js")) {
+						flowSourceNames.add(name.substring(0, name.length() - ".flow.js".length()));
+					}
+					return true;
+				}
+				if (projectRelativePath.startsWith("libs/flow/")) {
+					flowEngineSourceChanged[0] = true;
+					return true;
+				}
 				
 				//only interested in files
 				if (resource.getType() == IResource.FILE) {
@@ -390,6 +415,51 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		} catch (CoreException e) {
 			
 		}
+		refreshFlowVirtualTree(flowSourceNames, flowEngineSourceChanged[0]);
+	}
+
+	private void refreshFlowVirtualTree(Set<String> flowSourceNames, boolean flowEngineSourceChanged) {
+		if (!flowEngineSourceChanged && flowSourceNames.isEmpty()) {
+			return;
+		}
+		Engine.execute(() -> {
+			try {
+				var project = getObject();
+				FlowEngineBridge.clearCaches();
+				FlowStudioSupport.clearCatalogCache(project);
+				ConvertigoPlugin.asyncExec(() -> {
+					try {
+						var explorerView = getProjectExplorerView();
+						if (flowEngineSourceChanged) {
+							FlowEngine flowEngine = project.getFlowEngine();
+							if (flowEngine != null) {
+								var treeObject = explorerView.findTreeObjectByUserObject(flowEngine);
+								if (treeObject != null) {
+									explorerView.reloadTreeObject(treeObject);
+								}
+							}
+						}
+						for (var flowName : flowSourceNames) {
+							try {
+								var sequence = project.getSequenceByName(flowName);
+								if (sequence instanceof Flow flow) {
+									FlowStudioSupport.clearCatalogCache(flow);
+									var treeObject = explorerView.findTreeObjectByUserObject(flow);
+									if (treeObject != null) {
+										explorerView.reloadTreeObject(treeObject);
+									}
+								}
+							} catch (Exception e) {
+							}
+						}
+					} catch (Exception e) {
+						ConvertigoPlugin.logException(e, "Unable to refresh Flow virtual tree for project \"" + getName() + "\".");
+					}
+				});
+			} catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Unable to invalidate Flow runtime caches for project \"" + getName() + "\".");
+			}
+		});
 	}
 
 	@Override
