@@ -184,7 +184,7 @@
 	let showDevicePicker = $derived(profile === 'frontend');
 	let showFlowOverview = $derived(showStudioWork && flowReady);
 	let showPalette = $derived(showStudioWork);
-	let showSourcePicker = $derived(showStudioWork);
+	let showSourcePicker = $derived(showStudioWork || showDevicePicker);
 	let sideViews = $derived([
 		...(showDevicePicker ? [{ id: 'devices', label: 'Devices', icon: 'mdi:devices' }] : []),
 		...(showPalette ? [{ id: 'palette', label: 'Palette', icon: 'mdi:palette-outline' }] : []),

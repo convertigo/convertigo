@@ -17,6 +17,9 @@
 	 *  id: string,
 	 *  propertyName?: string,
 	 *  displayName?: string,
+	 *  kind?: string,
+	 *  editorClass?: string,
+	 *  mode?: string,
 	 *  value?: any,
 	 *  serial?: number
 	 * }} PickerTarget
@@ -51,6 +54,42 @@
 	 *  jsonResult?: SourceNode
 	 * }} SourceModel
 	 */
+	/**
+	 * @typedef {{
+	 *  type?: string,
+	 *  label?: string,
+	 *  name?: string,
+	 *  value?: string,
+	 *  path?: string,
+	 *  qname?: string,
+	 *  source?: string,
+	 *  sourceData?: any,
+	 *  selected?: boolean,
+	 *  children?: NgxNode[]
+	 * }} NgxNode
+	 */
+	/**
+	 * @typedef {{
+	 *  ownerId?: string,
+	 *  propertyName?: string,
+	 *  projectName?: string,
+	 *  filter?: string,
+	 *  path?: string,
+	 *  prefix?: string,
+	 *  suffix?: string,
+	 *  custom?: string,
+	 *  input?: string,
+	 *  computedValue?: string,
+	 *  useCustom?: boolean,
+	 *  available?: boolean,
+	 *  message?: string,
+	 *  filters?: { value: string, label: string, supported?: boolean }[],
+	 *  sources?: NgxNode,
+	 *  modelTree?: NgxNode,
+	 *  sourceData?: any,
+	 *  sourceValue?: any
+	 * }} NgxSourceModel
+	 */
 
 	/**
 	 * @type {{
@@ -58,7 +97,7 @@
 	 *  active?: boolean,
 	 *  pickerTarget?: PickerTarget | null,
 	 *  onSelectObject?: (id: string) => void,
-	 *  onApply?: (id: string, sourceDefinition?: string[]) => void | Promise<void>
+	 *  onApply?: (id: string, sourceDefinition?: any) => void | Promise<void>
 	 * }}
 	 */
 	let {
@@ -81,10 +120,35 @@
 	let selectedTreeXPath = $state('');
 	let showJsonPreview = $state(false);
 	let collapsedNodes = $state.raw(new SvelteSet());
+	let ngxLoading = $state(false);
+	let ngxRefreshing = $state(false);
+	let ngxApplying = $state(false);
+	let ngxError = $state('');
+	let ngxLoadSerial = 0;
+	let ngxModel = $state(/** @type {NgxSourceModel | null} */ (null));
+	let ngxFilter = $state('Sequence');
+	let ngxSourceData = $state(/** @type {any} */ (null));
+	let ngxPath = $state('');
+	let ngxPrefix = $state('');
+	let ngxSuffix = $state('');
+	let ngxCustom = $state('');
+	let ngxUseCustom = $state(false);
+	let ngxCollapsedNodes = $state.raw(new SvelteSet());
 
 	let targetSource = $derived(parseSourceDefinition(pickerTarget?.value));
+	let ngxPicker = $derived(isNgxPickerTarget(pickerTarget));
+	let ngxDirectFilter = $derived(ngxFilter === 'Icon' || ngxFilter === 'Asset');
 	let canApply = $derived(
-		Boolean(pickerTarget?.id && pickerTarget?.propertyName && model?.available)
+		Boolean(!ngxPicker && pickerTarget?.id && pickerTarget?.propertyName && model?.available)
+	);
+	let canApplyNgx = $derived(
+		Boolean(
+			ngxPicker &&
+			ngxModel?.available &&
+			pickerTarget?.id &&
+			pickerTarget?.propertyName &&
+			hasNgxSourceData(ngxSourceData)
+		)
 	);
 	let anchor = $derived(model?.anchor ?? '');
 	let activeSourceId = $derived(sourceRequest().id);
@@ -92,9 +156,11 @@
 	let resultTree = $derived(showJsonPreview ? model?.jsonResult : model?.result);
 	let domCount = $derived(countTreeNodes(domTree));
 	let resultCount = $derived(countTreeNodes(resultTree));
+	let ngxSourceCount = $derived(countNgxNodes(ngxModel?.sources));
+	let ngxModelCount = $derived(countNgxNodes(ngxModel?.modelTree));
 
 	$effect(() => {
-		if (!active || !linked) {
+		if (!active || ngxPicker || !linked) {
 			return;
 		}
 		const request = sourceRequest();
@@ -105,6 +171,33 @@
 		const serial = ++loadSerial;
 		void loadSource(request, serial);
 	});
+
+	$effect(() => {
+		const target = pickerTarget;
+		if (!active || !isNgxPickerTarget(target) || !target?.id || !target?.propertyName) {
+			return;
+		}
+		const serial = ++ngxLoadSerial;
+		void loadNgxSource(
+			{
+				id: target.id,
+				propertyName: target.propertyName
+			},
+			serial
+		);
+	});
+
+	/**
+	 * @param {PickerTarget | null} target
+	 * @returns {boolean}
+	 */
+	function isNgxPickerTarget(target) {
+		return Boolean(
+			target?.propertyName &&
+			(target?.editorClass === 'NgxSmartSourcePropertyDescriptor' ||
+				(target?.kind === 'ion' && target?.mode === 'source'))
+		);
+	}
 
 	/**
 	 * @returns {{ id: string, sourcePriority: string, xpath: string }}
@@ -163,6 +256,220 @@
 			jsonTree: response?.jsonTree ?? null,
 			jsonResult: response?.jsonResult ?? null
 		};
+	}
+
+	/**
+	 * @param {Record<string, any>} request
+	 * @param {number} serial
+	 * @param {{ preserveSources?: boolean }=} options
+	 */
+	async function loadNgxSource(request, serial, options = {}) {
+		const preserveSources = options.preserveSources === true;
+		if (preserveSources) {
+			ngxRefreshing = true;
+		} else {
+			ngxLoading = true;
+		}
+		ngxError = '';
+		try {
+			const response = await call('studio.ngxpicker.Get', request);
+			if (serial !== ngxLoadSerial) {
+				return;
+			}
+			applyNgxModel(response, options);
+		} catch (err) {
+			if (serial === ngxLoadSerial) {
+				ngxError = String(err instanceof Error ? err.message : err);
+			}
+		} finally {
+			if (serial === ngxLoadSerial) {
+				if (preserveSources) {
+					ngxRefreshing = false;
+				} else {
+					ngxLoading = false;
+				}
+			}
+		}
+	}
+
+	/**
+	 * @param {NgxSourceModel} response
+	 * @param {{ preserveSources?: boolean }=} options
+	 */
+	function applyNgxModel(response, options = {}) {
+		const preserveSources = options.preserveSources === true;
+		ngxModel = {
+			...response,
+			available: Boolean(response?.available),
+			filters: response?.filters ?? [],
+			sources: preserveSources
+				? (ngxModel?.sources ?? response?.sources ?? null)
+				: (response?.sources ?? null),
+			modelTree: response?.modelTree ?? null
+		};
+		ngxFilter = ngxModel.filter || 'Sequence';
+		ngxSourceData = ngxModel.sourceData ?? null;
+		ngxPath = ngxModel.path ?? '';
+		ngxPrefix = ngxModel.prefix ?? '';
+		ngxSuffix = ngxModel.suffix ?? '';
+		ngxCustom = ngxModel.custom ?? '';
+		ngxUseCustom = Boolean(ngxModel.useCustom);
+		if (!preserveSources) {
+			ngxCollapsedNodes = new SvelteSet();
+		}
+	}
+
+	/**
+	 * @param {Partial<{
+	 *  filter: string,
+	 *  sourceData: any,
+	 *  path: string,
+	 *  prefix: string,
+	 *  suffix: string,
+	 *  custom: string,
+	 *  useCustom: boolean
+	 * }>} overrides
+	 * @param {{ preserveSources?: boolean }=} options
+	 */
+	function reloadNgxPreview(overrides = {}, options = { preserveSources: true }) {
+		if (!pickerTarget?.id || !pickerTarget?.propertyName) {
+			return;
+		}
+		const nextSourceData = 'sourceData' in overrides ? overrides.sourceData : ngxSourceData;
+		const sourceDataRequest =
+			'sourceData' in overrides
+				? { sourceData: hasNgxSourceData(nextSourceData) ? JSON.stringify(nextSourceData) : '{}' }
+				: hasNgxSourceData(nextSourceData)
+					? { sourceData: JSON.stringify(nextSourceData) }
+					: {};
+		const serial = ++ngxLoadSerial;
+		void loadNgxSource(
+			{
+				id: pickerTarget.id,
+				propertyName: pickerTarget.propertyName,
+				filter: overrides.filter ?? ngxFilter,
+				...sourceDataRequest,
+				path: overrides.path ?? ngxPath,
+				prefix: overrides.prefix ?? ngxPrefix,
+				suffix: overrides.suffix ?? ngxSuffix,
+				custom: overrides.custom ?? ngxCustom,
+				useCustom: String(overrides.useCustom ?? ngxUseCustom)
+			},
+			serial,
+			options
+		);
+	}
+
+	/**
+	 * @param {NgxNode} node
+	 */
+	function selectNgxSource(node) {
+		if (!node?.sourceData) {
+			return;
+		}
+		ngxSourceData = node.sourceData;
+		ngxPath = '';
+		if (ngxModel?.sources) {
+			ngxModel = {
+				...ngxModel,
+				sources: markNgxSourceSelection(ngxModel.sources, node.sourceData)
+			};
+		}
+		reloadNgxPreview({ sourceData: node.sourceData, path: '' });
+	}
+
+	/**
+	 * @param {NgxNode} node
+	 */
+	function selectNgxPath(node) {
+		if (!node?.path) {
+			return;
+		}
+		ngxPath = node.path;
+		if (ngxModel?.modelTree) {
+			ngxModel = {
+				...ngxModel,
+				modelTree: markNgxPathSelection(ngxModel.modelTree, node.path)
+			};
+		}
+		reloadNgxPreview({ path: node.path });
+	}
+
+	/**
+	 * @param {NgxNode} node
+	 * @param {any} sourceData
+	 * @returns {NgxNode}
+	 */
+	function markNgxSourceSelection(node, sourceData) {
+		return {
+			...node,
+			selected: sameNgxSourceData(node.sourceData, sourceData),
+			children: (node.children ?? []).map((child) => markNgxSourceSelection(child, sourceData))
+		};
+	}
+
+	/**
+	 * @param {NgxNode} node
+	 * @param {string} path
+	 * @returns {NgxNode}
+	 */
+	function markNgxPathSelection(node, path) {
+		return {
+			...node,
+			selected: Boolean(node.path && node.path === path),
+			children: (node.children ?? []).map((child) => markNgxPathSelection(child, path))
+		};
+	}
+
+	/**
+	 * @param {any} left
+	 * @param {any} right
+	 * @returns {boolean}
+	 */
+	function sameNgxSourceData(left, right) {
+		if (!left || !right) {
+			return false;
+		}
+		try {
+			return JSON.stringify(left) === JSON.stringify(right);
+		} catch {
+			return false;
+		}
+	}
+
+	async function applyNgxSource() {
+		if (!canApplyNgx || !pickerTarget?.propertyName) {
+			return;
+		}
+		ngxApplying = true;
+		ngxError = '';
+		try {
+			const response = await call('studio.ngxpicker.Apply', {
+				id: pickerTarget.id,
+				propertyName: pickerTarget.propertyName,
+				filter: ngxFilter,
+				sourceData: JSON.stringify(ngxSourceData),
+				path: ngxPath,
+				prefix: ngxPrefix,
+				suffix: ngxSuffix,
+				custom: ngxCustom,
+				useCustom: String(ngxUseCustom)
+			});
+			if (response?.done) {
+				ngxModel = {
+					...(ngxModel ?? {}),
+					sourceValue: response.sourceValue,
+					computedValue: response.computedValue
+				};
+				await onApply?.(response.id || pickerTarget.id, response.sourceValue);
+			} else {
+				ngxError = response?.message || 'Unable to apply the selected NGX source';
+			}
+		} catch (err) {
+			ngxError = String(err instanceof Error ? err.message : err);
+		} finally {
+			ngxApplying = false;
+		}
 	}
 
 	/**
@@ -299,6 +606,30 @@
 	}
 
 	/**
+	 * @param {NgxNode | null | undefined} node
+	 * @returns {number}
+	 */
+	function countNgxNodes(node) {
+		if (!node) {
+			return 0;
+		}
+		return 1 + (node.children ?? []).reduce((total, child) => total + countNgxNodes(child), 0);
+	}
+
+	/**
+	 * @param {any} sourceData
+	 * @returns {boolean}
+	 */
+	function hasNgxSourceData(sourceData) {
+		return Boolean(
+			sourceData &&
+			typeof sourceData === 'object' &&
+			!Array.isArray(sourceData) &&
+			Object.keys(sourceData).length > 0
+		);
+	}
+
+	/**
 	 * @param {SourceNode} node
 	 * @returns {{ className: string, label: string }}
 	 */
@@ -307,6 +638,26 @@
 			return { className: 'studio-source-picker__marker--attribute', label: '' };
 		}
 		if (node.type === 'text') {
+			return { className: 'studio-source-picker__marker--text', label: '' };
+		}
+		return { className: 'studio-source-picker__marker--element', label: '' };
+	}
+
+	/**
+	 * @param {NgxNode} node
+	 * @returns {{ className: string, label: string }}
+	 */
+	function ngxNodeMarker(node) {
+		if (node.type === 'project') {
+			return { className: 'studio-source-picker__marker--project', label: '' };
+		}
+		if (node.type === 'source') {
+			return { className: 'studio-source-picker__marker--source', label: '' };
+		}
+		if (node.type === 'array') {
+			return { className: 'studio-source-picker__marker--array', label: '' };
+		}
+		if (node.type === 'value') {
 			return { className: 'studio-source-picker__marker--text', label: '' };
 		}
 		return { className: 'studio-source-picker__marker--element', label: '' };
@@ -323,6 +674,21 @@
 			selectedTreeXPath &&
 				selectedTreeXPath === node.displayXpath &&
 				'studio-source-picker__node--selected'
+		]
+			.filter(Boolean)
+			.join(' ');
+	}
+
+	/**
+	 * @param {NgxNode} node
+	 * @returns {string}
+	 */
+	function ngxNodeClass(node) {
+		return [
+			'studio-source-picker__node',
+			node.type && `studio-source-picker__node--${node.type}`,
+			node.selected && 'studio-source-picker__node--selected',
+			node.path && ngxPath === node.path && 'studio-source-picker__node--selected'
 		]
 			.filter(Boolean)
 			.join(' ');
@@ -452,6 +818,42 @@
 	}
 
 	/**
+	 * @param {string} namespace
+	 * @param {NgxNode} node
+	 * @param {string} path
+	 * @returns {string}
+	 */
+	function ngxNodeKey(namespace, node, path) {
+		return `${namespace}:${node.path || node.qname || node.source || node.name || node.label || path}`;
+	}
+
+	/**
+	 * @param {string} namespace
+	 * @param {NgxNode} node
+	 * @param {string} path
+	 */
+	function toggleNgxNode(namespace, node, path) {
+		const key = ngxNodeKey(namespace, node, path);
+		const next = new SvelteSet(ngxCollapsedNodes);
+		if (next.has(key)) {
+			next.delete(key);
+		} else {
+			next.add(key);
+		}
+		ngxCollapsedNodes = next;
+	}
+
+	/**
+	 * @param {string} namespace
+	 * @param {NgxNode} node
+	 * @param {string} path
+	 * @returns {boolean}
+	 */
+	function isNgxCollapsed(namespace, node, path) {
+		return ngxCollapsedNodes.has(ngxNodeKey(namespace, node, path));
+	}
+
+	/**
 	 * @param {SourceNode} node
 	 * @param {boolean} jsonMode
 	 * @returns {boolean}
@@ -531,41 +933,232 @@
 	</li>
 {/snippet}
 
+{#snippet ngxNode(node, namespace, path, mode)}
+	{@const marker = ngxNodeMarker(node)}
+	{@const hasChildren = Boolean(node.children?.length)}
+	{@const collapsed = isNgxCollapsed(namespace, node, path)}
+	{@const selectable = mode === 'source' ? Boolean(node.sourceData) : Boolean(node.path)}
+	<li>
+		<div class={ngxNodeClass(node)}>
+			<button
+				type="button"
+				class="studio-source-picker__toggle"
+				class:studio-source-picker__toggle--open={!collapsed}
+				disabled={!hasChildren}
+				aria-label={collapsed ? 'Expand' : 'Collapse'}
+				onclick={() => toggleNgxNode(namespace, node, path)}
+			>
+				<Ico icon="mdi:chevron-right" size={3} />
+			</button>
+			<button
+				type="button"
+				class="studio-source-picker__content"
+				disabled={!selectable}
+				title={node.path || node.source || node.qname || node.label}
+				onclick={() => (mode === 'source' ? selectNgxSource(node) : selectNgxPath(node))}
+			>
+				<span class={`studio-source-picker__marker ${marker.className}`}>{marker.label}</span>
+				<span class="studio-source-picker__node-label studio-ellipsis">{node.label}</span>
+				{#if node.value}
+					<span class="studio-source-picker__node-value studio-ellipsis">{node.value}</span>
+				{/if}
+			</button>
+		</div>
+		{#if hasChildren && !collapsed}
+			<ul>
+				{#each node.children as child, index (`${child.path || child.source || child.label}-${index}`)}
+					{@render ngxNode(child, namespace, `${path}/${index}`, mode)}
+				{/each}
+			</ul>
+		{/if}
+	</li>
+{/snippet}
+
 <div class="studio-source-picker layout-y-stretch">
-	<div class="studio-source-picker__toolbar layout-x-low studio-panel-toolbar">
-		<StudioIconButton
-			icon="mdi:link-variant"
-			active={linked}
-			aria-pressed={linked}
-			title="Link with the projects tree selection"
-			onclick={() => (linked = !linked)}
-		/>
-		<StudioIconButton
-			icon="mdi:target"
-			disabled={!model?.sourceId}
-			title="Select displayed source"
-			onclick={() => selectObject(model?.sourceId)}
-		/>
-		<StudioIconButton
-			icon="mdi:code-tags"
-			active={showJsonPreview}
-			aria-pressed={showJsonPreview}
-			title="Toggle JSON tree"
-			onclick={() => (showJsonPreview = !showJsonPreview)}
-		/>
-		<button
-			type="button"
-			class="studio-source-picker__apply button-primary"
-			disabled={!canApply || applying}
-			onclick={applySource}
-		>
-			<Ico icon="mdi:check" size={4} />
-			Apply
-		</button>
+	<div
+		class="studio-source-picker__toolbar layout-x-low studio-panel-toolbar"
+		class:studio-source-picker__toolbar--ngx={ngxPicker}
+	>
+		{#if ngxPicker}
+			<select
+				class="studio-source-picker__filter input"
+				value={ngxFilter}
+				disabled={ngxLoading || ngxApplying || ngxRefreshing}
+				aria-label="NGX source filter"
+				onchange={(event) => {
+					ngxFilter = event.currentTarget.value;
+					ngxSourceData = null;
+					ngxPath = '';
+					reloadNgxPreview(
+						{ filter: ngxFilter, sourceData: null, path: '' },
+						{ preserveSources: false }
+					);
+				}}
+			>
+				{#each ngxModel?.filters ?? [{ value: 'Sequence', label: 'Sequence', supported: true }] as filter (filter.value)}
+					<option value={filter.value} disabled={filter.supported === false}>
+						{filter.label}{filter.supported === false ? ' (soon)' : ''}
+					</option>
+				{/each}
+			</select>
+			<button
+				type="button"
+				class="studio-source-picker__apply button-primary"
+				disabled={!canApplyNgx || ngxApplying || ngxRefreshing}
+				onclick={applyNgxSource}
+			>
+				<Ico icon="mdi:check" size={4} />
+				Apply
+			</button>
+		{:else}
+			<StudioIconButton
+				icon="mdi:link-variant"
+				active={linked}
+				aria-pressed={linked}
+				title="Link with the projects tree selection"
+				onclick={() => (linked = !linked)}
+			/>
+			<StudioIconButton
+				icon="mdi:target"
+				disabled={!model?.sourceId}
+				title="Select displayed source"
+				onclick={() => selectObject(model?.sourceId)}
+			/>
+			<StudioIconButton
+				icon="mdi:code-tags"
+				active={showJsonPreview}
+				aria-pressed={showJsonPreview}
+				title="Toggle JSON tree"
+				onclick={() => (showJsonPreview = !showJsonPreview)}
+			/>
+			<button
+				type="button"
+				class="studio-source-picker__apply button-primary"
+				disabled={!canApply || applying}
+				onclick={applySource}
+			>
+				<Ico icon="mdi:check" size={4} />
+				Apply
+			</button>
+		{/if}
 	</div>
 
-	<div class="studio-source-picker__body layout-y-stretch-low">
-		{#if !activeSourceId}
+	<div
+		class="studio-source-picker__body layout-y-stretch-low"
+		class:studio-source-picker__body--ngx={ngxPicker}
+	>
+		{#if ngxPicker}
+			{#if !pickerTarget?.id}
+				<StudioEmptyState message="No property selected" />
+			{:else if ngxLoading}
+				<StudioEmptyState message="Loading NGX sources" loading />
+			{:else if ngxError && !ngxModel}
+				<StudioEmptyState message={ngxError} icon="mdi:alert-circle-outline" />
+			{:else if !ngxModel?.available}
+				<StudioEmptyState message={ngxModel?.message || 'No NGX source available'} icon="mdi:hub" />
+			{:else}
+				<section class="studio-source-picker__tree">
+					<header class="layout-x-between-low">
+						<span class="studio-label">Sources</span>
+						<span class="studio-pill">{ngxRefreshing ? '...' : ngxSourceCount}</span>
+					</header>
+					<div
+						class="studio-source-picker__tree-scroll studio-source-picker__tree-scroll--sources"
+						class:studio-source-picker__tree-scroll--busy={ngxRefreshing}
+						aria-busy={ngxRefreshing}
+					>
+						{#if ngxModel?.sources?.children?.length}
+							<ul>
+								{#each ngxModel.sources.children as child, index (`${child.qname || child.label}-${index}`)}
+									{@render ngxNode(child, 'ngx-sources', `${index}`, 'source')}
+								{/each}
+							</ul>
+						{:else}
+							<StudioEmptyState message="No source" small />
+						{/if}
+					</div>
+				</section>
+
+				{#if !ngxDirectFilter}
+					<section class="studio-source-picker__tree">
+						<header class="layout-x-between-low">
+							<span class="studio-label">Model</span>
+							<span class="studio-pill">{ngxRefreshing ? '...' : ngxModelCount}</span>
+						</header>
+						<div
+							class="studio-source-picker__tree-scroll studio-source-picker__tree-scroll--model"
+							class:studio-source-picker__tree-scroll--busy={ngxRefreshing}
+							aria-busy={ngxRefreshing}
+						>
+							{#if ngxModel?.modelTree?.children?.length}
+								<ul>
+									{#each ngxModel.modelTree.children as child, index (`${child.path || child.label}-${index}`)}
+										{@render ngxNode(child, 'ngx-model', `${index}`, 'path')}
+									{/each}
+								</ul>
+							{:else}
+								<StudioEmptyState message="Select a source" small />
+							{/if}
+						</div>
+					</section>
+				{/if}
+
+				<section class="studio-source-picker__ngx-expression layout-y-stretch-low">
+					<div class="studio-source-picker__ngx-grid">
+						<label>
+							<span class="studio-label">Prefix</span>
+							<input
+								class="input"
+								value={ngxPrefix}
+								oninput={(event) => (ngxPrefix = event.currentTarget.value)}
+								onchange={() => reloadNgxPreview({ prefix: ngxPrefix })}
+							/>
+						</label>
+						{#if !ngxDirectFilter}
+							<label>
+								<span class="studio-label">Path</span>
+								<input
+									class="input"
+									value={ngxPath}
+									oninput={(event) => (ngxPath = event.currentTarget.value)}
+									onchange={() => reloadNgxPreview({ path: ngxPath })}
+								/>
+							</label>
+						{/if}
+						<label>
+							<span class="studio-label">Suffix</span>
+							<input
+								class="input"
+								value={ngxSuffix}
+								oninput={(event) => (ngxSuffix = event.currentTarget.value)}
+								onchange={() => reloadNgxPreview({ suffix: ngxSuffix })}
+							/>
+						</label>
+					</div>
+					<label class="studio-source-picker__custom layout-x-low">
+						<input
+							type="checkbox"
+							checked={ngxUseCustom}
+							onchange={(event) => {
+								ngxUseCustom = event.currentTarget.checked;
+								reloadNgxPreview({ useCustom: ngxUseCustom });
+							}}
+						/>
+						<span class="studio-label">Custom</span>
+					</label>
+					{#if ngxUseCustom}
+						<textarea
+							class="input"
+							rows="2"
+							value={ngxCustom}
+							oninput={(event) => (ngxCustom = event.currentTarget.value)}
+							onchange={() => reloadNgxPreview({ custom: ngxCustom })}
+						></textarea>
+					{/if}
+					<code class="studio-source-picker__preview">{ngxModel?.computedValue || 'empty'}</code>
+				</section>
+			{/if}
+		{:else if !activeSourceId}
 			<StudioEmptyState message="No object selected" />
 		{:else if loading}
 			<StudioEmptyState message="Loading source" loading />
@@ -664,6 +1257,10 @@
 		align-items: center;
 	}
 
+	.studio-source-picker__toolbar--ngx {
+		padding-block: 0.34rem;
+	}
+
 	.studio-source-picker__apply {
 		margin-inline-start: auto;
 		min-height: 1.75rem;
@@ -677,9 +1274,15 @@
 		padding: 0.35rem;
 	}
 
+	.studio-source-picker__body--ngx {
+		padding: 0;
+	}
+
 	.studio-source-picker__tree,
 	.studio-source-picker__xpath,
-	.studio-source-picker__result {
+	.studio-source-picker__result,
+	.studio-source-picker__ngx-expression {
+		flex: 0 0 auto;
 		min-width: 0;
 		border-block-end: 1px solid var(--color-surface-200-800);
 		padding: 0.38rem;
@@ -687,6 +1290,10 @@
 
 	.studio-source-picker__tree {
 		min-height: 0;
+	}
+
+	.studio-source-picker__body--ngx .studio-source-picker__tree {
+		padding-block: 0.3rem 0.36rem;
 	}
 
 	.studio-source-picker__tree-scroll {
@@ -699,6 +1306,20 @@
 	.studio-source-picker__tree-scroll--result {
 		min-height: 8rem;
 		max-height: 11rem;
+	}
+
+	.studio-source-picker__tree-scroll--sources {
+		min-height: 11rem;
+		max-height: 16rem;
+	}
+
+	.studio-source-picker__tree-scroll--model {
+		min-height: 10rem;
+		max-height: 16rem;
+	}
+
+	.studio-source-picker__tree-scroll--busy {
+		opacity: 0.72;
 	}
 
 	.studio-source-picker__tree-scroll ul {
@@ -815,6 +1436,23 @@
 		content: '';
 	}
 
+	.studio-source-picker__marker--project::before {
+		width: 0.58rem;
+		height: 0.45rem;
+		border: 1px solid var(--color-primary-500);
+		border-radius: 0.12rem;
+		background: color-mix(in oklab, var(--color-primary-500) 18%, transparent);
+		content: '';
+	}
+
+	.studio-source-picker__marker--source::before {
+		width: 0.48rem;
+		height: 0.48rem;
+		border-radius: 999px;
+		background: var(--color-primary-500);
+		content: '';
+	}
+
 	.studio-source-picker__marker--text {
 		color: var(--color-primary-600-400);
 		font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
@@ -880,5 +1518,56 @@
 		background: transparent;
 		font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
 		font-size: 0.72rem;
+	}
+
+	.studio-source-picker__filter {
+		min-width: 8rem;
+		max-width: 11rem;
+		min-height: 1.75rem;
+		padding-block: 0;
+	}
+
+	.studio-source-picker__ngx-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+		gap: 0.35rem;
+	}
+
+	.studio-source-picker__ngx-grid label {
+		min-width: 0;
+	}
+
+	.studio-source-picker__ngx-grid :global(.input) {
+		width: 100%;
+		font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+		font-size: 0.72rem;
+	}
+
+	.studio-source-picker__custom {
+		align-items: center;
+	}
+
+	.studio-source-picker__custom input {
+		margin: 0;
+	}
+
+	.studio-source-picker__ngx-expression > textarea {
+		min-height: 3.5rem;
+		font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+		font-size: 0.72rem;
+	}
+
+	.studio-source-picker__preview {
+		display: block;
+		min-height: 1.75rem;
+		overflow: auto;
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.35rem;
+		background: var(--color-surface-50-950);
+		color: var(--color-surface-900-100);
+		padding: 0.35rem 0.45rem;
+		font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+		font-size: 0.72rem;
+		white-space: pre-wrap;
 	}
 </style>

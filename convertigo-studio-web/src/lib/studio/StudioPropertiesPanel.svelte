@@ -25,7 +25,7 @@
 	 *  refreshSerial?: number,
 	 *  onSave?: (id: string) => void | Promise<void>,
 	 *  onOpenPropertyEditor?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void,
-	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void
+	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string }) => void
 	 * }}
 	 */
 	let {
@@ -292,7 +292,10 @@
 			id: selectedId,
 			propertyName: row?.name,
 			displayName: row?.displayName,
-			value: row?.value
+			value: row?.value,
+			kind: row?.kind,
+			editorClass: row?.editorClass,
+			mode: row?.mode
 		});
 	}
 
