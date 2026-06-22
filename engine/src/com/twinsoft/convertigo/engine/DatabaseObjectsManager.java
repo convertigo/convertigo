@@ -538,6 +538,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
+	public Project getLoadedProjectByName(String projectName) {
+		return getCachedProject(projectName);
+	}
+
 	public boolean existsProject(String projectName) {
 		File file = getStudioProjects().getProject(projectName);
 		if (file == null) {

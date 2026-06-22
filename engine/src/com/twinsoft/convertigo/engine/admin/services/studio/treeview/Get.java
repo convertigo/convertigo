@@ -21,9 +21,16 @@ package com.twinsoft.convertigo.engine.admin.services.studio.treeview;
 
 import java.beans.BeanInfo;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -35,6 +42,8 @@ import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.flow.Flow;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.steps.LoopStep;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -51,6 +60,11 @@ import com.twinsoft.convertigo.engine.enums.FolderType;
 		returnValue = ""
 		)
 public class Get extends JSonService {
+	private static final Pattern FLOW_PROJECT_CHILD = Pattern.compile("^  \\u2193(.+?) \\[([^\\]]+)\\]:.*$");
+	private static final String FLOW_ICON = "studio.dbo.GetIcon?iconPath=/com/twinsoft/convertigo/beans/flow/images/flow_color_32x32.png";
+	private static final String FLOW_ENGINE_ICON = "studio.dbo.GetIcon?iconPath=/com/twinsoft/convertigo/beans/flow/images/flowengine_color_32x32.png";
+	private static final String FLOW_VIRTUAL_ICON = "studio.dbo.GetIcon?iconPath=/com/twinsoft/convertigo/beans/flow/images/flowvirtualobject_color_16x16.png";
+	private static final Set<String> FLOW_PROJECT_WARMUPS = ConcurrentHashMap.newKeySet();
 
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		var flow = "true".equals(request.getParameter("flow"));
@@ -88,12 +102,52 @@ public class Get extends JSonService {
 			reg.matches();
 			var ft = FolderType.parse(reg.group(2));
 			var qname = ft == null ? id : reg.group(1);
+			if (flow && ft == null) {
+				var projectName = projectNameOf(qname);
+				if (isProjectQName(qname)) {
+					var loadedProject = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(projectName);
+					if (loadedProject != null) {
+						return getChildren(loadedProject, ft, true, flow);
+					}
+					var flowProjectChildren = getFlowProjectChildren(qname);
+					if (flowProjectChildren != null) {
+						warmFlowProject(qname);
+						return flowProjectChildren;
+					}
+				} else {
+					var flowVirtualChildren = getLazyFlowChildren(qname);
+					if (flowVirtualChildren == null) {
+						flowVirtualChildren = getLazyFlowVirtualChildren(qname);
+					}
+					if (flowVirtualChildren != null) {
+						warmFlowProject(projectName);
+						return flowVirtualChildren;
+					}
+				}
+			}
 			var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
 			if (dbo != null) {
 				children = getChildren(dbo, ft, true, flow);
 			}
 		}
 		return children;
+	}
+
+	private void warmFlowProject(String projectName) {
+		if (!FLOW_PROJECT_WARMUPS.add(projectName)) {
+			return;
+		}
+		Engine.execute(() -> {
+			try {
+				if (Engine.theApp.databaseObjectsManager.getLoadedProjectByName(projectName) == null) {
+					Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+				}
+			} catch (Exception e) {
+				Engine.logDatabaseObjectManager.debug("Unable to warm Flow project \"" + projectName + "\".", e);
+			} finally {
+				FLOW_PROJECT_WARMUPS.remove(projectName);
+			}
+		});
 	}
 
 	private JSONObject getProjectNode(String projectName, boolean flow) throws Exception {
@@ -126,7 +180,7 @@ public class Get extends JSonService {
 			obj.put("isSourceContainer", dbo instanceof IStepSourceContainer);
 		}
 		if (!full) {
-			obj.put("children", dbo.hasDatabaseObjectChildren());
+			obj.put("children", hasLazyChildren(dbo, flow));
 		} else {
 			var jChildren = getChildren(dbo, null, false, flow);
 			obj.put("children", jChildren);
@@ -141,6 +195,227 @@ public class Get extends JSonService {
 			}
 		}
 		return obj;
+	}
+
+	private boolean isProjectQName(String qname) {
+		return qname != null && qname.indexOf('.') == -1 && qname.indexOf(':') == -1;
+	}
+
+	private String projectNameOf(String qname) {
+		if (qname == null) {
+			return "";
+		}
+		var dot = qname.indexOf('.');
+		var colon = qname.indexOf(':');
+		var end = dot == -1 ? colon : colon == -1 ? dot : Math.min(dot, colon);
+		return end == -1 ? qname : qname.substring(0, end);
+	}
+
+	private JSONArray getLazyFlowChildren(String qname) throws Exception {
+		var projectName = projectNameOf(qname);
+		var yaml = Engine.projectYamlFile(projectName);
+		if (yaml == null || !yaml.isFile()) {
+			return null;
+		}
+
+		for (var line : Files.readAllLines(yaml.toPath(), StandardCharsets.UTF_8)) {
+			var matcher = FLOW_PROJECT_CHILD.matcher(line);
+			if (!matcher.matches()) {
+				continue;
+			}
+
+			var name = matcher.group(1).trim();
+			var type = matcher.group(2).trim();
+			if ("flow.Flow".equals(type)) {
+				if (qname.equals(projectName + ".sq:" + name)) {
+					var children = new JSONArray();
+					children.put(getFlowRootNode(qname));
+					return children;
+				}
+			} else if (!"flow.FlowEngine".equals(type)) {
+				return null;
+			}
+		}
+		return null;
+	}
+
+	private JSONArray getLazyFlowVirtualChildren(String qname) throws Exception {
+		var parts = qname == null ? new String[0] : qname.split("\\.");
+		if (parts.length < 2) {
+			return null;
+		}
+
+		var projectName = parts[0];
+		var flowEngineName = flowEngineName(projectName);
+		if (flowEngineName.isBlank() || !flowEngineName.equals(parts[1])) {
+			return null;
+		}
+
+		if (parts.length == 2) {
+			return getLazyFlowEngineChildren(projectName, flowEngineName);
+		}
+		if (parts.length == 3 && "catalog".equals(parts[2])) {
+			return getLazyFlowCatalogChildren(projectName, flowEngineName);
+		}
+		return null;
+	}
+
+	private String flowEngineName(String projectName) throws Exception {
+		var yaml = Engine.projectYamlFile(projectName);
+		if (yaml == null || !yaml.isFile()) {
+			return "";
+		}
+
+		var flowEngineName = "";
+		for (var line : Files.readAllLines(yaml.toPath(), StandardCharsets.UTF_8)) {
+			var matcher = FLOW_PROJECT_CHILD.matcher(line);
+			if (!matcher.matches()) {
+				continue;
+			}
+
+			var type = matcher.group(2).trim();
+			if ("flow.FlowEngine".equals(type)) {
+				flowEngineName = matcher.group(1).trim();
+			} else if (!"flow.Flow".equals(type)) {
+				return "";
+			}
+		}
+		return flowEngineName;
+	}
+
+	private JSONArray getFlowProjectChildren(String projectName) throws Exception {
+		var yaml = Engine.projectYamlFile(projectName);
+		if (yaml == null || !yaml.isFile()) {
+			return null;
+		}
+
+		var flowNames = new ArrayList<String>();
+		var flowEngineName = "";
+		var hasProjectChild = false;
+		var hasNonFlowChild = false;
+		for (var line : Files.readAllLines(yaml.toPath(), StandardCharsets.UTF_8)) {
+			var matcher = FLOW_PROJECT_CHILD.matcher(line);
+			if (!matcher.matches()) {
+				continue;
+			}
+
+			hasProjectChild = true;
+			var name = matcher.group(1).trim();
+			var type = matcher.group(2).trim();
+			if ("flow.Flow".equals(type)) {
+				flowNames.add(name);
+			} else if ("flow.FlowEngine".equals(type)) {
+				flowEngineName = name;
+			} else {
+				hasNonFlowChild = true;
+				break;
+			}
+		}
+		if (!hasProjectChild || hasNonFlowChild) {
+			return null;
+		}
+
+		var children = new JSONArray();
+		if (!flowNames.isEmpty()) {
+			children.put(getFlowSequenceFolder(projectName, flowNames));
+		}
+		if (!flowEngineName.isBlank()) {
+			children.put(getFlowEngineNode(projectName, flowEngineName));
+		}
+		return children;
+	}
+
+	private JSONArray getLazyFlowEngineChildren(String projectName, String flowEngineName) throws Exception {
+		var children = new JSONArray();
+		children.put(getFlowVirtualNode(projectName, flowEngineName, "engine", projectName + ".Engine", false));
+		children.put(getFlowVirtualNode(projectName, flowEngineName, "catalog", "Catalog", true));
+		return children;
+	}
+
+	private JSONArray getLazyFlowCatalogChildren(String projectName, String flowEngineName) throws Exception {
+		var children = new JSONArray();
+		children.put(getFlowVirtualNode(projectName, flowEngineName, "catalog.blocks", "Blocks", true));
+		children.put(getFlowVirtualNode(projectName, flowEngineName, "catalog.libraries", "Libraries", false));
+		children.put(getFlowVirtualNode(projectName, flowEngineName, "catalog.types", "Types", true));
+		return children;
+	}
+
+	private JSONObject getFlowVirtualNode(String projectName, String flowEngineName, String path, String label, boolean children) throws Exception {
+		var obj = new JSONObject();
+		obj.put("label", label);
+		obj.put("name", label);
+		obj.put("icon", FLOW_VIRTUAL_ICON);
+		obj.put("id", projectName + "." + flowEngineName + "." + path);
+		obj.put("classname", FlowVirtualObject.class.getSimpleName());
+		obj.put("isLoop", false);
+		obj.put("isXml", false);
+		obj.put("isSourceContainer", false);
+		obj.put("children", children);
+		return obj;
+	}
+
+	private JSONObject getFlowSequenceFolder(String projectName, List<String> flowNames) throws Exception {
+		var folder = new JSONObject();
+		folder.put("label", FolderType.SEQUENCE.displayName());
+		folder.put("name", FolderType.SEQUENCE.displayName());
+		folder.put("icon", "folder");
+		folder.put("id", projectName + ':' + FolderType.SEQUENCE.shortName());
+
+		var children = new JSONArray();
+		folder.put("children", children);
+		for (var flowName : flowNames) {
+			children.put(getFlowNode(projectName, flowName));
+		}
+		return folder;
+	}
+
+	private JSONObject getFlowNode(String projectName, String flowName) throws Exception {
+		var obj = new JSONObject();
+		obj.put("label", flowName);
+		obj.put("name", flowName);
+		obj.put("icon", FLOW_ICON);
+		obj.put("id", projectName + ".sq:" + flowName);
+		obj.put("classname", Flow.class.getSimpleName());
+		obj.put("isLoop", false);
+		obj.put("isXml", false);
+		obj.put("isSourceContainer", false);
+		obj.put("children", true);
+		return obj;
+	}
+
+	private JSONObject getFlowRootNode(String flowQName) throws Exception {
+		var obj = new JSONObject();
+		obj.put("label", "Flow");
+		obj.put("name", "Flow");
+		obj.put("icon", FLOW_VIRTUAL_ICON);
+		obj.put("id", flowQName + ".flow");
+		obj.put("classname", FlowVirtualObject.class.getSimpleName());
+		obj.put("isLoop", false);
+		obj.put("isXml", false);
+		obj.put("isSourceContainer", false);
+		obj.put("children", true);
+		return obj;
+	}
+
+	private JSONObject getFlowEngineNode(String projectName, String flowEngineName) throws Exception {
+		var obj = new JSONObject();
+		obj.put("label", flowEngineName);
+		obj.put("name", flowEngineName);
+		obj.put("icon", FLOW_ENGINE_ICON);
+		obj.put("id", projectName + "." + flowEngineName);
+		obj.put("classname", FlowEngine.class.getSimpleName());
+		obj.put("isLoop", false);
+		obj.put("isXml", false);
+		obj.put("isSourceContainer", false);
+		obj.put("children", true);
+		return obj;
+	}
+
+	private boolean hasLazyChildren(DatabaseObject dbo, boolean flow) throws Exception {
+		if (flow && (dbo instanceof Flow || dbo instanceof FlowEngine)) {
+			return true;
+		}
+		return dbo.hasDatabaseObjectChildren();
 	}
 
 	private String iconPath(DatabaseObject dbo) {
