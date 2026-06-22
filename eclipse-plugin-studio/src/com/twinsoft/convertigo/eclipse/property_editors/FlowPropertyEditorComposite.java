@@ -146,6 +146,10 @@ public class FlowPropertyEditorComposite extends Composite {
 	}
 
 	private JSONObject context(Flow flow, FlowVirtualObject object) throws Exception {
+		return context(flow, object, null);
+	}
+
+	private JSONObject context(Flow flow, FlowVirtualObject object, JSONObject options) throws Exception {
 		var include = new JSONArray()
 				.put("input")
 				.put("config")
@@ -158,6 +162,7 @@ public class FlowPropertyEditorComposite extends Composite {
 				.put("include", include)
 				.put("position", "before")
 				.put("detail", "normal");
+		merge(request, options);
 		return new FlowEngineBridge().context(flow, request);
 	}
 
@@ -199,6 +204,16 @@ public class FlowPropertyEditorComposite extends Composite {
 
 	private static JSONObject valueOrObject(JSONObject object) {
 		return object == null ? new JSONObject() : object;
+	}
+
+	private static void merge(JSONObject target, JSONObject source) throws Exception {
+		if (source == null) {
+			return;
+		}
+		for (var keys = source.keys(); keys.hasNext();) {
+			var key = String.valueOf(keys.next());
+			target.put(key, source.opt(key));
+		}
 	}
 
 	private static String fallbackHtml(String message) {
@@ -267,7 +282,9 @@ public class FlowPropertyEditorComposite extends Composite {
 						.toString();
 				case "context" -> new JSONObject()
 						.put("ok", true)
-						.put("context", target.flow() == null ? new JSONObject() : context(target.flow(), object))
+						.put("context", target.flow() == null
+								? new JSONObject()
+								: context(target.flow(), object, json.optJSONObject("payload")))
 						.toString();
 				case "icons" -> icons(target, json.optJSONObject("payload"))
 						.toString();

@@ -138,6 +138,10 @@ class FlowPickerComposite extends Composite {
 	}
 
 	private JSONObject context(PickerTarget target, FlowVirtualObject object) throws Exception {
+		return context(target, object, null);
+	}
+
+	private JSONObject context(PickerTarget target, FlowVirtualObject object, JSONObject options) throws Exception {
 		var include = new JSONArray()
 				.put("input")
 				.put("config")
@@ -150,6 +154,7 @@ class FlowPickerComposite extends Composite {
 				.put("position", "before");
 		if (target.flow() != null && !isFlowImplementationSource(object)) {
 			request.put("path", object.getVirtualPath());
+			merge(request, options);
 			return new FlowEngineBridge().context(target.flow(), request);
 		}
 
@@ -165,6 +170,7 @@ class FlowPickerComposite extends Composite {
 		if (!sourceBlockName.isBlank()) {
 			request.put("sourceBlockName", sourceBlockName);
 		}
+		merge(request, options);
 		return new FlowEngineBridge().context(target.flowEngine(), request);
 	}
 
@@ -218,6 +224,16 @@ class FlowPickerComposite extends Composite {
 
 	private static JSONObject valueOrObject(JSONObject object) {
 		return object == null ? new JSONObject() : object;
+	}
+
+	private static void merge(JSONObject target, JSONObject source) throws Exception {
+		if (source == null) {
+			return;
+		}
+		for (var keys = source.keys(); keys.hasNext();) {
+			var key = String.valueOf(keys.next());
+			target.put(key, source.opt(key));
+		}
 	}
 
 	private static String fallbackHtml(String message) {
@@ -292,7 +308,7 @@ class FlowPickerComposite extends Composite {
 				case "context" -> new JSONObject()
 						.put("ok", true)
 						.put("context", canProvideContext(target, treeObject.getObject())
-								? context(target, treeObject.getObject())
+								? context(target, treeObject.getObject(), json.optJSONObject("payload"))
 								: new JSONObject())
 						.toString();
 				case "icons" -> (target.flow() == null
