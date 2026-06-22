@@ -199,11 +199,45 @@ tasks['publishToMavenLocal'].dependsOn dependenciesJar
 tasks['publish'].dependsOn dependenciesJar
 compileJava.dependsOn dependenciesJar
 
+def warRuntimeClasspathDir = layout.buildDirectory.dir('tmp/warRuntimeClasspath')
+
+tasks.register('prepareWarRuntimeClasspath', Copy) {
+	from configurations.runtimeClasspath
+	into warRuntimeClasspathDir
+	filePermissions {
+		unix('0644')
+	}
+	dirPermissions {
+		unix('0755')
+	}
+}
+
 war {
 	webAppDirectory = file('convertigo')
 	archiveBaseName = 'convertigo'
+	filePermissions {
+		unix('0644')
+	}
+	dirPermissions {
+		unix('0755')
+	}
+	eachFile { f ->
+		if (f.directory) {
+			f.permissions {
+				unix('0755')
+			}
+		} else {
+			f.permissions {
+				unix('0644')
+			}
+		}
+	}
+	outputs.cacheIf { false }
 	
-	classpath = files(configurations.runtimeClasspath, jar)
+	classpath = files(jar)
+	from tasks.named('prepareWarRuntimeClasspath'), {
+		into 'WEB-INF/lib'
+	}
 	
 	doFirst {
 		project.war.webAppDirectory = file('../eclipse-plugin-studio/tomcat/webapps/convertigo')
@@ -225,10 +259,13 @@ war {
 		from configurations.sapjco3[0], {
 			into 'WEB-INF/lib'
 			rename '(.*)', 'sapjco3.jar'
+			filePermissions {
+				unix('0644')
+			}
 		}
 	}
 	
-	dependsOn 'unzipSwaggerUI'
+	dependsOn 'unzipSwaggerUI', 'prepareWarRuntimeClasspath'
 }
 
 sourceSets {
