@@ -552,14 +552,15 @@ public class Flow extends Sequence {
 
 	private XmlSchemaElement schemaElement(XmlSchema schema, String name, Object flowSchema) throws JSONException {
 		var element = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
-		element.setName(xmlName(name));
+		var elementName = xmlName(name);
+		element.setName(elementName);
 		element.setMinOccurs(0);
 
-		applyElementSchema(schema, element, normalizeSchema(flowSchema));
+		applyElementSchema(schema, element, normalizeSchema(flowSchema), originalKeyName(name, elementName));
 		return element;
 	}
 
-	private void applyElementSchema(XmlSchema schema, XmlSchemaElement element, Object flowSchema) throws JSONException {
+	private void applyElementSchema(XmlSchema schema, XmlSchemaElement element, Object flowSchema, String originalKeyName) throws JSONException {
 		var normalized = normalizeSchema(flowSchema);
 		var type = schemaType(normalized);
 		if ("object".equals(type)) {
@@ -567,7 +568,7 @@ public class Flow extends Sequence {
 			var sequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaSequence());
 			complexType.setParticle(sequence);
 			element.setType(complexType);
-			addJsonMetadataAttributes(complexType.getAttributes(), "object", false);
+			addJsonMetadataAttributes(complexType.getAttributes(), "object", false, originalKeyName);
 
 			var properties = schemaProperties(normalized);
 			if (properties != null) {
@@ -583,7 +584,7 @@ public class Flow extends Sequence {
 			var sequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaSequence());
 			complexType.setParticle(sequence);
 			element.setType(complexType);
-			addJsonMetadataAttributes(complexType.getAttributes(), "array", true);
+			addJsonMetadataAttributes(complexType.getAttributes(), "array", true, originalKeyName);
 
 			var item = schemaElement(schema, "item", schemaItems(normalized));
 			item.setMaxOccurs(Long.MAX_VALUE);
@@ -595,15 +596,17 @@ public class Flow extends Sequence {
 		var simpleContent = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaSimpleContent());
 		var extension = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaSimpleContentExtension());
 		extension.setBaseTypeName(schemaTypeName(type));
-		addJsonMetadataAttributes(extension.getAttributes(), type, false);
+		addJsonMetadataAttributes(extension.getAttributes(), type, false, originalKeyName);
 		simpleContent.setContent(extension);
 		complexType.setContentModel(simpleContent);
 		element.setType(complexType);
 	}
 
-	private void addJsonMetadataAttributes(XmlSchemaObjectCollection attributes, String type, boolean array) {
+	private void addJsonMetadataAttributes(XmlSchemaObjectCollection attributes, String type, boolean array, String originalKeyName) {
 		addOptionalAttribute(attributes, "type", type);
-		addOptionalAttribute(attributes, "originalKeyName", null);
+		if (originalKeyName != null && !originalKeyName.isBlank()) {
+			addOptionalAttribute(attributes, "originalKeyName", originalKeyName);
+		}
 		if (array) {
 			addOptionalAttribute(attributes, "length", null);
 		}
@@ -689,5 +692,10 @@ public class Flow extends Sequence {
 	private static String xmlName(String name) {
 		var xmlName = StringUtils.normalize(name == null || name.isBlank() ? "value" : name);
 		return xmlName == null || xmlName.isBlank() ? "value" : xmlName;
+	}
+
+	private static String originalKeyName(String name, String xmlName) {
+		var original = name == null || name.isBlank() ? "value" : name;
+		return original.equals(xmlName) ? null : original;
 	}
 }
