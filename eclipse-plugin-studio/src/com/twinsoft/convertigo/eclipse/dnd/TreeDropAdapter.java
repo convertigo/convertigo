@@ -487,6 +487,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							stepVariable.setComment(variable.getComment());
 							stepVariable.setDescription(variable.getDescription());
 							stepVariable.setRequired(variable.isRequired());
+							Object compilablePropertySourceValue = variable.getCompilablePropertySourceValue("value");
+							if (compilablePropertySourceValue != null) {
+								stepVariable.setCompilablePropertySourceValue("value", compilablePropertySourceValue);
+							}
 							stepVariable.setValueOrNull(variable.getValueOrNull());
 							stepVariable.setVisibility(variable.getVisibility());
 							transactionStep.addVariable(stepVariable);
@@ -510,6 +514,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						stepVariable.setComment(variable.getComment());
 						stepVariable.setDescription(variable.getDescription());
 						stepVariable.setRequired(variable.isRequired());
+						Object compilablePropertySourceValue = variable.getCompilablePropertySourceValue("value");
+						if (compilablePropertySourceValue != null) {
+							stepVariable.setCompilablePropertySourceValue("value", compilablePropertySourceValue);
+						}
 						stepVariable.setValueOrNull(variable.getValueOrNull());
 						stepVariable.setVisibility(variable.getVisibility());
 						sequenceStep.addVariable(stepVariable);

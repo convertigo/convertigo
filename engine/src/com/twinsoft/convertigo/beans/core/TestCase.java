@@ -303,6 +303,10 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 					testCaseVariable.setName(variableName);
 					testCaseVariable.setDescription(variable.getDescription());
 					testCaseVariable.setRequired(variable.isRequired());
+					Object compilablePropertySourceValue = variable.getCompilablePropertySourceValue("value");
+					if (compilablePropertySourceValue != null) {
+						testCaseVariable.setCompilablePropertySourceValue("value", compilablePropertySourceValue);
+					}
 					testCaseVariable.setValueOrNull(variable.getValueOrNull());
 					testCaseVariable.setVisibility(variable.getVisibility());
 					addVariable(testCaseVariable);
