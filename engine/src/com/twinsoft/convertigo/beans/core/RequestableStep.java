@@ -567,12 +567,17 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 					if (!StringUtils.isNormalized(variableName))
 						throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
 					
+				
 					StepVariable stepVariable = variable.isMultiValued() ? new StepMultiValuedVariable():new StepVariable();
 					stepVariable.setName(variableName);
 					stepVariable.setComment(variable.getComment());
 					stepVariable.setDescription(variable.getDescription());
 					stepVariable.setSourceDefinition(new XMLVector<String>());
 					stepVariable.setRequired(variable.isRequired());
+					Object compilablePropertySourceValue = variable.getCompilablePropertySourceValue("value");
+					if (compilablePropertySourceValue != null) {
+						stepVariable.setCompilablePropertySourceValue("value", compilablePropertySourceValue);
+					}
 					stepVariable.setValueOrNull(variable.getValueOrNull());
 					stepVariable.setVisibility(variable.getVisibility());
 					addVariable(stepVariable);
@@ -601,6 +606,10 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	    		requestableVariable.setDescription(stepVariable.getDescription());
 	    		requestableVariable.setComment(stepVariable.getComment());
 	    		requestableVariable.setRequired(stepVariable.isRequired());
+				Object compilablePropertySourceValue = stepVariable.getCompilablePropertySourceValue("value");
+				if (compilablePropertySourceValue != null) {
+					requestableVariable.setCompilablePropertySourceValue("value", compilablePropertySourceValue);
+				}
 	    		requestableVariable.setValueOrNull(stepVariable.getValueOrNull());
 	    		requestableVariable.setVisibility(stepVariable.getVisibility());
 	    		
