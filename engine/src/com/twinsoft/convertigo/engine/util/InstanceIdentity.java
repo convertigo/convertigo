@@ -50,33 +50,15 @@ public class InstanceIdentity {
 	}
 
 	private static String resolveLocalInstanceId() {
-		var configuredUrl = normalizeUrl(EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL));
-		var defaultUrl = normalizeUrl(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue());
-		var hasExplicitUrl = configuredUrl != null && !configuredUrl.equals(defaultUrl);
-
-		if (hasExplicitUrl) {
-			return computeInstanceIdFromBaseUrl(configuredUrl);
-		}
-
 		var hostName = resolveHostName();
-		Integer port = null;
+		var configuredUrl = normalizeUrl(EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL));
+		Integer port = resolveTomcatHttpPort();
 
-		if (configuredUrl != null) {
-			try {
-				var uri = URI.create(configuredUrl);
-				if (hasExplicitUrl && uri.getPort() > 0) {
-					port = uri.getPort();
-				}
-			} catch (Exception ignore) {
-				// ignore
-			}
-		}
-
-		if (port == null) {
+		if (port == null || port <= 0) {
 			port = firstIntEnv("C8O_PORT", "CONVERTIGO_PORT", "SERVER_PORT", "PORT");
 		}
 		if (port == null || port <= 0) {
-			port = resolveTomcatHttpPort();
+			port = resolveConfiguredUrlPort(configuredUrl);
 		}
 		if (port == null || port <= 0) {
 			port = DEFAULT_PORT;
@@ -152,23 +134,16 @@ public class InstanceIdentity {
 		return port == DEFAULT_PORT ? safeHost : safeHost + ":" + port;
 	}
 
-	private static String computeInstanceIdFromBaseUrl(String baseUrl) {
+	private static Integer resolveConfiguredUrlPort(String baseUrl) {
 		if (baseUrl == null || baseUrl.isBlank()) {
 			return null;
 		}
 		try {
 			var uri = URI.create(baseUrl);
-			var host = uri.getHost();
 			var port = uri.getPort();
-			if (host == null || host.isBlank()) {
-				return sanitizeInstanceId(baseUrl);
-			}
-			if (port <= 0 || port == DEFAULT_PORT) {
-				return host;
-			}
-			return host + ":" + port;
+			return port > 0 ? port : null;
 		} catch (Exception e) {
-			return sanitizeInstanceId(baseUrl);
+			return null;
 		}
 	}
 
