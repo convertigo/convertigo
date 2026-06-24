@@ -61,6 +61,10 @@ public class FlowStudioSupport {
 				&& (dbo instanceof Flow || dbo instanceof FlowEngine || dbo instanceof FlowVirtualObject);
 	}
 
+	public static boolean isFlowContextTarget(DatabaseObject dbo) {
+		return isFlowPaletteTarget(dbo);
+	}
+
 	public static String paletteKey(DatabaseObject dbo) {
 		var root = flowAuthoringRoot(dbo);
 		var project = root == null ? null : root.getProject();
@@ -77,6 +81,73 @@ public class FlowStudioSupport {
 		return project.getName() + "|" + engineQName;
 	}
 
+	public static DatabaseObject resolveTreeObject(String id) throws Exception {
+		if (id == null || id.isBlank() || id.contains("/")) {
+			return null;
+		}
+		var direct = resolveRealTreeObject(id);
+		if (direct != null) {
+			return direct;
+		}
+		var rootId = flowRootId(id);
+		if (rootId.isBlank()) {
+			return null;
+		}
+		var root = resolveRealTreeObject(rootId);
+		if (root == null) {
+			return null;
+		}
+		var virtualPath = id.substring(rootId.length() + 1);
+		for (var child : root.getDatabaseObjectChildren()) {
+			var resolved = resolveVirtualTreeObject(child, id, virtualPath);
+			if (resolved != null) {
+				return resolved;
+			}
+		}
+		return null;
+	}
+
+	private static String flowRootId(String id) throws Exception {
+		var cursor = id.lastIndexOf('.');
+		while (cursor > 0) {
+			var candidate = id.substring(0, cursor);
+			var dbo = resolveRealTreeObject(candidate);
+			if (dbo instanceof Flow || dbo instanceof FlowEngine) {
+				return candidate;
+			}
+			cursor = id.lastIndexOf('.', cursor - 1);
+		}
+		return "";
+	}
+
+	private static DatabaseObject resolveRealTreeObject(String id) throws Exception {
+		if (Engine.theApp == null || Engine.theApp.databaseObjectsManager == null) {
+			return null;
+		}
+		try {
+			return Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(id);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private static DatabaseObject resolveVirtualTreeObject(DatabaseObject candidate, String id, String virtualPath) {
+		if (candidate instanceof FlowVirtualObject fvo
+				&& (id.equals(fvo.getFullQName()) || virtualPath.equals(fvo.getVirtualPath()) || virtualPath.equals(fvo.getName()))) {
+			return fvo;
+		}
+		try {
+			for (var child : candidate.getDatabaseObjectChildren()) {
+				var resolved = resolveVirtualTreeObject(child, id, virtualPath);
+				if (resolved != null) {
+					return resolved;
+				}
+			}
+		} catch (Exception e) {
+		}
+		return null;
+	}
+
 	public static void clearCatalogCache(DatabaseObject dbo) {
 		var root = flowAuthoringRoot(dbo);
 		if (root instanceof Flow flow && flow.getProject() != null) {
@@ -90,6 +161,101 @@ public class FlowStudioSupport {
 			return;
 		}
 		catalogCache.remove(key);
+	}
+
+	public static JSONObject contextMenu(DatabaseObject targetDbo) throws Exception {
+		var root = flowAuthoringRoot(targetDbo);
+		if (root == null) {
+			return emptyContextMenu();
+		}
+		var request = contextRequest(root, targetDbo);
+		return root instanceof Flow flow
+				? new FlowEngineBridge().contextMenu(flow, request)
+				: new FlowEngineBridge().contextMenu((FlowEngine) root, request);
+	}
+
+	public static JSONObject outputSchema(DatabaseObject targetDbo) throws Exception {
+		var root = flowAuthoringRoot(targetDbo);
+		if (!(root instanceof Flow flow)) {
+			return new JSONObject()
+					.put("ok", false)
+					.put("message", "No Flow output schema is available for this selection.");
+		}
+		return new FlowEngineBridge().outputSchema(flow, new JSONObject()
+				.put("source", "effective")
+				.put("detail", "full")
+				.put("allowRequestableSchema", false));
+	}
+
+	public static JSONObject contextAction(DatabaseObject targetDbo, JSONObject action) throws Exception {
+		var root = flowAuthoringRoot(targetDbo);
+		if (root == null || action == null) {
+			return new JSONObject()
+					.put("ok", false)
+					.put("message", "No Flow context action is available for this selection.");
+		}
+		if ("flow.cache.clear".equals(action.optString("id", ""))) {
+			FlowEngineBridge.clearCaches();
+		}
+		var request = contextRequest(root, targetDbo).put("action", action);
+		var response = root instanceof Flow flow
+				? new FlowEngineBridge().contextAction(flow, request)
+				: new FlowEngineBridge().contextAction((FlowEngine) root, request);
+		if (response.optBoolean("refreshPalette", false) || response.optBoolean("refresh", false)) {
+			clearCatalogCache(root);
+		}
+		return response;
+	}
+
+	private static JSONObject emptyContextMenu() throws Exception {
+		return new JSONObject()
+				.put("ok", true)
+				.put("protocol", "flow.studio.menu.v1")
+				.put("items", new JSONArray());
+	}
+
+	private static JSONObject contextRequest(DatabaseObject root, DatabaseObject targetDbo) throws Exception {
+		var request = new JSONObject()
+				.put("surface", "studio.treeview")
+				.put("root", contextObject(root))
+				.put("targetObject", contextObject(targetDbo));
+		if (root instanceof Flow flow) {
+			request.put("flowName", flow.getName());
+			request.put("flowQName", flow.getFullQName());
+		}
+		return request;
+	}
+
+	private static JSONObject contextObject(DatabaseObject dbo) throws Exception {
+		var object = new JSONObject();
+		if (dbo == null) {
+			return object;
+		}
+		object.put("name", dbo.getName())
+				.put("qname", dbo.getFullQName())
+				.put("className", dbo.getClass().getName())
+				.put("simpleClassName", dbo.getClass().getSimpleName());
+		if (dbo.getProject() != null) {
+			object.put("project", dbo.getProject().getName())
+					.put("projectDir", dbo.getProject().getDirPath());
+		}
+		if (dbo instanceof Flow) {
+			object.put("kind", "flow");
+		} else if (dbo instanceof FlowEngine) {
+			object.put("kind", "engine");
+		} else if (dbo instanceof FlowVirtualObject fvo) {
+			object.put("kind", fvo.getVirtualKind())
+					.put("type", fvo.getVirtualType())
+					.put("path", fvo.getVirtualPath())
+					.put("summary", fvo.getSummary());
+			var value = fvo.getDefinitionValue();
+			object.put("definition", value == null ? JSONObject.NULL : value);
+			var info = fvo.getVirtualInfoObject();
+			if (info != null) {
+				object.put("info", info);
+			}
+		}
+		return object;
 	}
 
 	public static boolean canAddBlock(DatabaseObject targetDbo, String position, String blockName) {

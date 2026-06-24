@@ -155,15 +155,48 @@ public class FlowEngineBridge {
 	}
 
 	public JSONObject outputSchema(Flow flow) throws EngineException {
+		return outputSchema(flow, null);
+	}
+
+	public JSONObject outputSchema(Flow flow, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flow);
 			var request = baseRequest(engineQName, flow == null ? "" : flow.getFlowSource(), flow == null ? "" : flow.getQName(), null)
 					.put("flowName", flow == null ? "" : flow.getName())
 					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath())
 					.put("allowRequestableSchema", false);
+			merge(request, options);
 			return invoke(engineQName, "outputSchema", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow output schema request.", e);
+		}
+	}
+
+	public JSONObject contextMenu(Flow flow, JSONObject options) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flow);
+			var request = baseRequest(engineQName, flow == null ? "" : flow.getFlowSource(), flow == null ? "" : flow.getQName(), null)
+					.put("target", "flow")
+					.put("flowName", flow == null ? "" : flow.getName())
+					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath());
+			merge(request, options);
+			return invoke(engineQName, "contextMenu", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build Flow context menu request.", e);
+		}
+	}
+
+	public JSONObject contextAction(Flow flow, JSONObject options) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flow);
+			var request = baseRequest(engineQName, flow == null ? "" : flow.getFlowSource(), flow == null ? "" : flow.getQName(), null)
+					.put("target", "flow")
+					.put("flowName", flow == null ? "" : flow.getName())
+					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath());
+			merge(request, options);
+			return invoke(engineQName, "contextAction", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build Flow context action request.", e);
 		}
 	}
 
@@ -302,6 +335,34 @@ public class FlowEngineBridge {
 			return invoke(engineQName, "cacheClear", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build FlowEngine cache clear request.", e);
+		}
+	}
+
+	public JSONObject contextMenu(FlowEngine flowEngine, JSONObject options) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flowEngine);
+			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+					.put("target", "engine")
+					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+			merge(request, options);
+			return invoke(engineQName, "contextMenu", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build FlowEngine context menu request.", e);
+		}
+	}
+
+	public JSONObject contextAction(FlowEngine flowEngine, JSONObject options) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flowEngine);
+			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+					.put("target", "engine")
+					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+			merge(request, options);
+			return invoke(engineQName, "contextAction", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build FlowEngine context action request.", e);
 		}
 	}
 
@@ -916,7 +977,7 @@ public class FlowEngineBridge {
 
 	private static boolean isCacheableMethod(String method) {
 		return switch (method) {
-		case "describeTree", "catalog", "context", "propertyEditor", "icons", "syncInputs", "outputSchema", "blockGet", "typeGet" -> true;
+		case "describeTree", "catalog", "context", "contextMenu", "propertyEditor", "icons", "syncInputs", "outputSchema", "blockGet", "typeGet" -> true;
 		default -> false;
 		};
 	}

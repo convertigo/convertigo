@@ -42,6 +42,7 @@ import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.property_editors.FlowOutputSchemaPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.FlowPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -51,6 +52,7 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	private static final String P_FLOW_PROPERTY = "#flow_property:";
 	private static final String P_FLOW_VALUE = "#flow_value";
 	private static final String P_FLOW_INFO = "#flow_info:";
+	private static final String P_FLOW_SCHEMA = "#flow_schema";
 	private static final String P_COMMENT = "comment";
 	private static final String CATEGORY = "Base properties";
 	private static final String EXPERT_CATEGORY = "Expert";
@@ -177,6 +179,10 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		var descriptors = new ArrayList<PropertyDescriptor>(super.getDynamicPropertyDescriptors());
 		var object = getObject();
 
+		if (isFlowRootVirtualObject(object)) {
+			addFlowOutputSchemaDescriptors(descriptors);
+		}
+
 		var value = object.getDefinitionValue();
 		if (value instanceof JSONObject json) {
 			var info = object.getVirtualInfoObject();
@@ -216,6 +222,17 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		}
 		addDataFlowDescriptors(descriptors, object.getVirtualInfoObject());
 		return descriptors;
+	}
+
+	private static boolean isFlowRootVirtualObject(FlowVirtualObject object) {
+		return object != null && "folder".equals(object.getVirtualKind()) && "flow".equals(object.getVirtualType());
+	}
+
+	private void addFlowOutputSchemaDescriptors(List<PropertyDescriptor> descriptors) {
+		var schema = new FlowOutputSchemaPropertyDescriptor(P_FLOW_SCHEMA, "Output schema", this);
+		schema.setCategory(DATA_CATEGORY);
+		schema.setDescription("Opens the effective Flow result schema used by downstream pickers.");
+		descriptors.add(schema);
 	}
 
 	private void addStructuralNodeDescriptors(List<PropertyDescriptor> descriptors, JSONObject json) {
@@ -377,13 +394,16 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		if (propertyName.startsWith(P_FLOW_INFO)) {
 			return infoValue(propertyName.substring(P_FLOW_INFO.length()));
 		}
+		if (P_FLOW_SCHEMA.equals(propertyName)) {
+			return "";
+		}
 		return super.getPropertyValue(id);
 	}
 
 	@Override
 	public void setPropertyValue(Object id, Object value) {
 		var propertyName = String.valueOf(id);
-		if (propertyName.startsWith(P_FLOW_INFO)) {
+		if (propertyName.startsWith(P_FLOW_INFO) || P_FLOW_SCHEMA.equals(propertyName)) {
 			return;
 		}
 		if ((P_COMMENT.equals(propertyName) || propertyName.startsWith(P_FLOW_PROPERTY) || P_FLOW_VALUE.equals(propertyName))

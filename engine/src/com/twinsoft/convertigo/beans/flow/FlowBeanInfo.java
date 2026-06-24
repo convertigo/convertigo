@@ -45,6 +45,7 @@ public class FlowBeanInfo extends MySimpleBeanInfo {
 			properties[0].setShortDescription(getExternalizedString("property.flowSource.short_description"));
 			properties[0].setValue(MULTILINE, Boolean.TRUE);
 			properties[0].setValue(GENERIC_EDITOR_EXTENSION, "yaml");
+			properties[0].setHidden(true);
 
 			properties[1] = new PropertyDescriptor("includeTrace", beanClass, "isIncludeTrace", "setIncludeTrace");
 			properties[1].setDisplayName(getExternalizedString("property.includeTrace.display_name"));

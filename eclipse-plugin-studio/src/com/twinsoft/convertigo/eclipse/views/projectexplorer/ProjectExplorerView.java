@@ -32,14 +32,17 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.undo.UndoManager;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.IFile;
@@ -48,9 +51,12 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IMenuListener;
@@ -59,11 +65,13 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.operation.ModalContext;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILabelDecorator;
@@ -262,6 +270,7 @@ import com.twinsoft.convertigo.engine.MigrationListener;
 import com.twinsoft.convertigo.engine.MigrationManager;
 import com.twinsoft.convertigo.engine.ObjectsProvider;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -379,6 +388,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private ViewContentProvider viewContentProvider = null;
 
 	private Map<DatabaseObject, DatabaseObjectTreeObject> databaseObjectTreeObjectCache = new WeakHashMap<DatabaseObject, DatabaseObjectTreeObject>();
+	private final Map<String, JSONObject> flowContextMenuCache = new ConcurrentHashMap<String, JSONObject>();
+	private final Set<String> flowContextMenuLoading = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The constructor.
@@ -785,8 +796,191 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
+		addFlowContextMenu(manager);
 		// Other plug-ins can contribute there actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+	}
+
+	private void addFlowContextMenu(IMenuManager manager) {
+		var treeObject = getFirstSelectedTreeObject();
+		if (!(treeObject instanceof DatabaseObjectTreeObject databaseObjectTreeObject)) {
+			return;
+		}
+		var targetDbo = databaseObjectTreeObject.getObject();
+		if (targetDbo == null || !FlowStudioSupport.isFlowContextTarget(targetDbo)) {
+			return;
+		}
+		var key = flowContextMenuKey(targetDbo);
+		var menu = flowContextMenuCache.get(key);
+		if (menu == null) {
+			scheduleFlowContextMenuLoad(key, targetDbo);
+			var flowMenu = new MenuManager("Flow");
+			flowMenu.add(new Action("Loading Flow actions...") {
+				{
+					setEnabled(false);
+				}
+			});
+			manager.add(flowMenu);
+			return;
+		}
+		try {
+			if (!menu.optBoolean("ok", false)) {
+				return;
+			}
+			var items = menu.optJSONArray("items");
+			if (items == null || items.length() == 0) {
+				return;
+			}
+			var flowMenu = new MenuManager(menu.optString("label", "Flow"));
+			var groups = new LinkedHashMap<String, MenuManager>();
+			for (int i = 0; i < items.length(); i++) {
+				var item = items.optJSONObject(i);
+				if (item == null) {
+					continue;
+				}
+				var targetMenu = flowMenu;
+				var group = item.optString("group", "");
+				if (!group.isBlank()) {
+					targetMenu = groups.computeIfAbsent(group, MenuManager::new);
+				}
+				if (item.optBoolean("separator", false)) {
+					targetMenu.add(new Separator());
+				} else {
+					targetMenu.add(new Action(item.optString("label", item.optString("id", "Flow action"))) {
+						{
+							setEnabled(item.optBoolean("enabled", true));
+							var description = item.optString("description", "");
+							if (!description.isBlank()) {
+								setToolTipText(description);
+							}
+							var icon = item.optString("icon", "");
+							if (!icon.isBlank()) {
+								try {
+									var image = ConvertigoPlugin.getDefault().getIconFromPath(icon, BeanInfo.ICON_COLOR_16x16);
+									setImageDescriptor(ImageDescriptor.createFromImage(image));
+								} catch (Exception e) {
+								}
+							}
+						}
+
+						@Override
+						public void run() {
+							runFlowContextAction(targetDbo, item);
+						}
+					});
+				}
+			}
+			for (var groupMenu : groups.values()) {
+				if (!groupMenu.isEmpty()) {
+					flowMenu.add(groupMenu);
+				}
+			}
+			if (!flowMenu.isEmpty()) {
+				manager.add(flowMenu);
+			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to build Flow context menu.");
+		}
+	}
+
+	private String flowContextMenuKey(DatabaseObject targetDbo) {
+		try {
+			return targetDbo.getClass().getName() + "|" + targetDbo.getFullQName();
+		} catch (Exception e) {
+			return targetDbo == null ? "" : targetDbo.getClass().getName() + "|" + targetDbo.getName();
+		}
+	}
+
+	private void scheduleFlowContextMenuLoad(String key, DatabaseObject targetDbo) {
+		if (key == null || key.isBlank() || !flowContextMenuLoading.add(key)) {
+			return;
+		}
+		var job = new Job("Load Flow context menu") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				try {
+					monitor.beginTask("Loading Flow context menu...", IProgressMonitor.UNKNOWN);
+					flowContextMenuCache.put(key, FlowStudioSupport.contextMenu(targetDbo));
+				} catch (Exception e) {
+					ConvertigoPlugin.logException(e, "Unable to load Flow context menu.");
+				} finally {
+					flowContextMenuLoading.remove(key);
+					monitor.done();
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.setSystem(true);
+		job.schedule();
+	}
+
+	private void runFlowContextAction(DatabaseObject targetDbo, JSONObject item) {
+		try {
+			var confirm = item.optString("confirm", "");
+			if (!confirm.isBlank() && !MessageDialog.openConfirm(viewer.getControl().getShell(), "Flow", confirm)) {
+				return;
+			}
+			var actionResult = new JSONObject[1];
+			new ProgressMonitorDialog(viewer.getControl().getShell()).run(true, false, monitor -> {
+				try {
+					monitor.beginTask("Running Flow action...", IProgressMonitor.UNKNOWN);
+					actionResult[0] = FlowStudioSupport.contextAction(targetDbo, item);
+				} catch (Exception e) {
+					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+			});
+			flowContextMenuCache.clear();
+			var result = actionResult[0] == null ? new JSONObject() : actionResult[0];
+			if (result.optBoolean("refreshTree", false)) {
+				refreshTree();
+			} else if (result.optBoolean("refresh", false)) {
+				refreshFirstSelectedTreeObject(true);
+			}
+			var message = flowContextActionMessage(result);
+			if (!message.isBlank()) {
+				if (result.optBoolean("ok", false)) {
+					MessageDialog.openInformation(viewer.getControl().getShell(), result.optString("title", "Flow"), message);
+				} else {
+					MessageDialog.openError(viewer.getControl().getShell(), result.optString("title", "Flow"), message);
+				}
+			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to execute Flow context action.");
+			MessageDialog.openError(viewer.getControl().getShell(), "Flow", e.getMessage());
+		}
+	}
+
+	private String flowContextActionMessage(JSONObject result) {
+		if (result == null) {
+			return "";
+		}
+		var builder = new StringBuilder();
+		var message = result.optString("message", "");
+		if (!message.isBlank()) {
+			builder.append(message);
+		}
+		var error = result.optJSONObject("error");
+		if (error != null) {
+			return error.optString("message", error.toString());
+		}
+		try {
+			if (result.has("schema")) {
+				if (builder.length() > 0) {
+					builder.append("\n\n");
+				}
+				builder.append(result.optString("title", "Schema")).append("\n\n").append(result.get("schema"));
+			}
+			if (result.has("details")) {
+				if (builder.length() > 0) {
+					builder.append("\n\n");
+				}
+				builder.append(result.get("details"));
+			}
+		} catch (Exception e) {
+		}
+		return builder.toString();
 	}
 
 	public TracePlayerThread tracePlayerThread = null;
