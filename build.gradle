@@ -36,9 +36,9 @@ ext.convertigoCodename = 'astatine'
 ext.convertigoCode = 'At'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
-ext.jxBrowserVersion = '9.1.2'
+ext.jxBrowserVersion = '9.2.0'
 ext.swaggerUiVersion = '5.31.0'
-ext.tomcatVersion = '11.0.22'
+ext.tomcatVersion = '11.0.23'
 ext.eclipseVersion = '2026-06'
 ext.eclipseBase = '4.40'
 ext.studioWebNodeVersion = '22'
@@ -705,6 +705,9 @@ def shouldRejectDependencyUpdate = { selection, boolean samePatchLineOnly ->
 		case 'org.apache.xmlbeans:xmlbeans':
 			// Internal patched flavor (e.g. 3.1.1-sb-fixed), keep only the exact current version.
 			return version != selection.currentVersion
+		case 'com.convertigo.lib:qrcode':
+			// Internal Jakarta build, do not report the upstream non-Jakarta artifact as an update.
+			return !version.endsWith('-jakarta')
 		case 'org.apache.ws.commons.axiom:axiom-api':
 		case 'org.apache.ws.commons.axiom:axiom-dom':
 		case 'org.apache.ws.commons.axiom:axiom-impl':

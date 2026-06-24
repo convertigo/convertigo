@@ -364,7 +364,7 @@ dependencies {
 	compileFlat    'org.codehaus.woodstox:stax2-api:4.3.0'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.7.0.202606012155-r'
-	compileFlat    'org.hibernate.orm:hibernate-core:7.4.1.Final'
+	compileFlat    'org.hibernate.orm:hibernate-core:7.4.2.Final'
 	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0'
 	compileFlat    'org.mozilla:rhino:1.9.1'
 	compileFlat    'org.mozilla:rhino-tools:1.9.1'
@@ -382,7 +382,7 @@ dependencies {
 	compileFlat    'org.hsqldb:hsqldb:2.7.4'
 	compileFlat    'org.mariadb.jdbc:mariadb-java-client:3.5.9'
 	compileFlat    'org.postgresql:postgresql:42.7.11'
-	compileFlat    'org.redisson:redisson:4.5.0'
+	compileFlat    'org.redisson:redisson:4.6.1'
 	// end runtime dependencies
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-websocket:' + tomcatVersion
