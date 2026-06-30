@@ -67,11 +67,13 @@ public class Flow extends Sequence {
 			+ "}\n";
 
 	private String flowSource = DEFAULT_FLOW_SOURCE;
-	private boolean includeTrace = true;
+	private boolean includeTrace = false;
 	private transient String flowSourceDraft = null;
 	private transient long flowSourceFileLastModified = -1;
 	private transient String flowInputSyncSource = null;
 	private transient boolean flowInputSyncing = false;
+	private transient String flowVirtualChildrenCacheKey = "";
+	private transient List<DatabaseObject> flowVirtualChildrenCache = null;
 
 	public Flow() {
 		super();
@@ -79,7 +81,9 @@ public class Flow extends Sequence {
 
 	@Override
 	public Flow clone() throws CloneNotSupportedException {
-		return (Flow) super.clone();
+		var clone = (Flow) super.clone();
+		clone.clearFlowVirtualChildrenCache();
+		return clone;
 	}
 
 	@Override
@@ -170,7 +174,15 @@ public class Flow extends Sequence {
 	}
 
 	public List<DatabaseObject> getFlowVirtualChildren() {
-		return FlowVirtualProjector.childrenOf(this);
+		var source = getFlowSource();
+		var key = FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + source;
+		if (flowVirtualChildrenCache != null && key.equals(flowVirtualChildrenCacheKey)) {
+			return new ArrayList<>(flowVirtualChildrenCache);
+		}
+		var children = FlowVirtualProjector.childrenOf(this);
+		flowVirtualChildrenCacheKey = key;
+		flowVirtualChildrenCache = children;
+		return new ArrayList<>(children);
 	}
 
 	public JSONObject getFlowInput() throws EngineException {
@@ -339,12 +351,14 @@ public class Flow extends Sequence {
 		if (savedSource.equals(flowSource)) {
 			if (flowSourceDraft != null) {
 				flowSourceDraft = null;
+				clearFlowVirtualChildrenCache();
 				changed();
 			}
 			return;
 		}
 		if (!getFlowSource().equals(flowSource)) {
 			flowSourceDraft = flowSource;
+			clearFlowVirtualChildrenCache();
 			changed();
 		}
 	}
@@ -362,6 +376,7 @@ public class Flow extends Sequence {
 		if (flowSourceDraft != null) {
 			flowSourceDraft = null;
 			loadFlowSourceFile();
+			clearFlowVirtualChildrenCache();
 			changed();
 		}
 	}
@@ -407,6 +422,7 @@ public class Flow extends Sequence {
 		try {
 			flowSource = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
 			flowSourceFileLastModified = lastModified;
+			clearFlowVirtualChildrenCache();
 		} catch (Exception e) {
 			Engine.logBeans.warn("Unable to read Flow source file \"" + file.getAbsolutePath() + "\".", e);
 		}
@@ -424,6 +440,7 @@ public class Flow extends Sequence {
 			flowSource = source;
 			flowSourceDraft = null;
 			flowSourceFileLastModified = file.lastModified();
+			clearFlowVirtualChildrenCache();
 			var legacyFile = new File(file.getParentFile(), getName() + ".flow.yaml");
 			if (legacyFile != null && legacyFile.isFile()) {
 				legacyFile.delete();
@@ -431,6 +448,11 @@ public class Flow extends Sequence {
 		} catch (Exception e) {
 			throw new EngineException("Unable to write Flow source file \"" + file.getAbsolutePath() + "\".", e);
 		}
+	}
+
+	private void clearFlowVirtualChildrenCache() {
+		flowVirtualChildrenCacheKey = "";
+		flowVirtualChildrenCache = null;
 	}
 
 	private static void removeSerializedProperty(Element element, String propertyName) {

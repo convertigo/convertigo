@@ -53,6 +53,8 @@ public class FlowEngine extends DatabaseObject {
 	private String engineSource = DEFAULT_ENGINE_SOURCE;
 	private transient boolean engineSourceDirty = false;
 	private transient long engineSourceFileLastModified = -1;
+	private transient String flowVirtualChildrenCacheKey = "";
+	private transient List<DatabaseObject> flowVirtualChildrenCache = null;
 
 	public FlowEngine() {
 		super();
@@ -61,7 +63,9 @@ public class FlowEngine extends DatabaseObject {
 
 	@Override
 	public FlowEngine clone() throws CloneNotSupportedException {
-		return (FlowEngine) super.clone();
+		var clone = (FlowEngine) super.clone();
+		clone.clearFlowVirtualChildrenCache();
+		return clone;
 	}
 
 	@Override
@@ -80,7 +84,15 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	public List<DatabaseObject> getFlowVirtualChildren() {
-		return FlowVirtualProjector.childrenOf(this);
+		var source = getEngineSource();
+		var key = FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + engineQName + "\n" + source;
+		if (flowVirtualChildrenCache != null && key.equals(flowVirtualChildrenCacheKey)) {
+			return new ArrayList<>(flowVirtualChildrenCache);
+		}
+		var children = FlowVirtualProjector.childrenOf(this);
+		flowVirtualChildrenCacheKey = key;
+		flowVirtualChildrenCache = children;
+		return new ArrayList<>(children);
 	}
 
 	@Override
@@ -107,6 +119,7 @@ public class FlowEngine extends DatabaseObject {
 		}
 		if (!this.engineQName.equals(engineQName)) {
 			this.engineQName = engineQName;
+			clearFlowVirtualChildrenCache();
 			changed();
 			ensureEngineProjectReference();
 		}
@@ -124,6 +137,7 @@ public class FlowEngine extends DatabaseObject {
 		if (!this.engineSource.equals(engineSource)) {
 			this.engineSource = engineSource;
 			engineSourceDirty = true;
+			clearFlowVirtualChildrenCache();
 			changed();
 		}
 	}
@@ -176,6 +190,7 @@ public class FlowEngine extends DatabaseObject {
 		try {
 			engineSource = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
 			engineSourceFileLastModified = lastModified;
+			clearFlowVirtualChildrenCache();
 		} catch (Exception e) {
 			Engine.logBeans.warn("Unable to read FlowEngine source file \"" + file.getAbsolutePath() + "\".", e);
 		}
@@ -191,9 +206,15 @@ public class FlowEngine extends DatabaseObject {
 			FileUtils.writeStringToFile(file, getEngineSource(), StandardCharsets.UTF_8);
 			engineSourceDirty = false;
 			engineSourceFileLastModified = file.lastModified();
+			clearFlowVirtualChildrenCache();
 		} catch (Exception e) {
 			throw new EngineException("Unable to write FlowEngine source file \"" + file.getAbsolutePath() + "\".", e);
 		}
+	}
+
+	private void clearFlowVirtualChildrenCache() {
+		flowVirtualChildrenCacheKey = "";
+		flowVirtualChildrenCache = null;
 	}
 
 	private static void removeSerializedProperty(Element element, String propertyName) {

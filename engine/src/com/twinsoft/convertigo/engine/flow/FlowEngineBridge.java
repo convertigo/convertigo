@@ -84,6 +84,10 @@ public class FlowEngineBridge {
 		RhinoUtils.clearCachedJavascript();
 	}
 
+	public static long cacheGeneration() {
+		return cacheGeneration.get();
+	}
+
 	public JSONObject run(Flow flow, Context convertigoContext, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flow);
@@ -811,13 +815,13 @@ public class FlowEngineBridge {
 			engineFile = resolveEngineFile(engineRef);
 			engineSource = cachedEngineSource(engineFile);
 			if (useThreadRuntime) {
-				if (isCacheableMethod(method)) {
+				if (isCacheableMethod(method, request)) {
 					var cachedResponse = cachedMethodResponse(engineRef, engineSource, method, request);
 					if (cachedResponse != null) {
 						methodCacheHit = true;
 						return new JSONObject(cachedResponse.response());
 					}
-				} else if (invalidatesMethodResponseCache(method)) {
+				} else if (invalidatesMethodResponseCache(method, request)) {
 					clearMethodResponseCache();
 				}
 			}
@@ -959,7 +963,7 @@ public class FlowEngineBridge {
 
 	private static void storeMethodResponse(EngineRef engineRef, CachedEngineSource engineSource, String method, JSONObject request,
 			JSONObject response) {
-		if (!isCacheableMethod(method) || response == null) {
+		if (!isCacheableMethod(method, request) || response == null) {
 			return;
 		}
 		if (methodResponseCache.size() >= METHOD_RESPONSE_CACHE_LIMIT) {
@@ -975,18 +979,78 @@ public class FlowEngineBridge {
 				+ request.toString();
 	}
 
-	private static boolean isCacheableMethod(String method) {
+	private static boolean isCacheableMethod(String method, JSONObject request) {
+		if ("nodeOutputSchema".equals(method)) {
+			return isReadOnlySchemaRequest(request);
+		}
+		if ("outputSchema".equals(method)) {
+			return isReadOnlySchemaRequest(request);
+		}
 		return switch (method) {
-		case "describeTree", "catalog", "context", "contextMenu", "propertyEditor", "icons", "syncInputs", "outputSchema", "blockGet", "typeGet" -> true;
+		case "describeTree", "catalog", "context", "contextMenu", "propertyEditor", "icons", "syncInputs", "blockGet", "typeGet" -> true;
 		default -> false;
 		};
 	}
 
-	private static boolean invalidatesMethodResponseCache(String method) {
+	private static boolean invalidatesMethodResponseCache(String method, JSONObject request) {
 		if ("cacheInfo".equals(method)) {
 			return false;
 		}
-		return !isCacheableMethod(method);
+		if (isCacheableMethod(method, request) || isReadOnlyMethod(method, request)) {
+			return false;
+		}
+		return switch (method) {
+		case "cacheClear", "applyMutation", "writeCodeMirror", "contextAction", "schemaReset", "resourcePatch", "flowSourcePatch",
+				"flowCodeDiscard", "flowCodeSet", "flowCodePatch", "flowCodePromote", "blockCodeSet", "blockCodePatch",
+				"blockCreate", "blockDuplicate", "blockEdit", "typeCreate" -> true;
+		default -> true;
+		};
+	}
+
+	private static boolean isReadOnlyMethod(String method, JSONObject request) {
+		if (isReadOnlyContextAction(method, request)) {
+			return true;
+		}
+		return switch (method) {
+		case "run", "analyze", "search", "resourceSearch", "resourceList", "resourceGet", "flowSourceGet", "flowSourceValidate",
+				"flowCodeGet", "flowCodeStatus", "flowCodeCheck", "flowCodeRg", "flowCodeRun", "flowCodeAnalyze", "blockCodeGet",
+				"blockCodeRg", "requestableList", "requestableSchema", "types" -> true;
+		default -> false;
+		};
+	}
+
+	private static boolean isReadOnlyContextAction(String method, JSONObject request) {
+		if (!"contextAction".equals(method)) {
+			return false;
+		}
+		return switch (actionId(request)) {
+		case "flow.outputSchema.inspect", "flow.nodeOutputSchema.inspect" -> true;
+		default -> false;
+		};
+	}
+
+	private static boolean isReadOnlySchemaRequest(JSONObject request) {
+		if (request == null) {
+			return true;
+		}
+		if (request.optBoolean("adopt", false) || request.optBoolean("remove", false) || request.optBoolean("reset", false)
+				|| request.optBoolean("delete", false)) {
+			return false;
+		}
+		var action = request.opt("action");
+		var text = action == null || JSONObject.NULL.equals(action) ? "" : String.valueOf(action).trim().toLowerCase();
+		return text.isEmpty() || "read".equals(text) || "get".equals(text) || "inspect".equals(text);
+	}
+
+	private static String actionId(JSONObject request) {
+		if (request == null) {
+			return "";
+		}
+		var action = request.optJSONObject("action");
+		if (action != null) {
+			return action.optString("id", "");
+		}
+		return request.optString("actionId", "");
 	}
 
 	private static void clearMethodResponseCache() {
@@ -998,14 +1062,16 @@ public class FlowEngineBridge {
 
 	private static CachedEngineRuntimeLookup cachedEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
 			org.mozilla.javascript.Context cx) throws EngineException {
-		var key = engineRef.qname + "|" + engineSource.sourceName();
+		var baseKey = engineRef.qname + "|" + engineSource.sourceName();
+		var thread = Thread.currentThread();
+		var key = baseKey + "|thread:" + thread.getName();
 		var generation = cacheGeneration.get();
 		var cached = engineRuntimeCache.get(key);
 		if (cached != null && cached.generation() == generation && cached.sourceName().equals(engineSource.sourceName())) {
 			return new CachedEngineRuntimeLookup(cached, true, key, generation, engineRuntimeCache.size());
 		}
 		engineRuntimeCache.entrySet().removeIf(entry -> entry.getKey().startsWith(engineRef.qname + "|")
-				&& (entry.getValue().generation() != generation || !entry.getKey().equals(key)));
+				&& (entry.getValue().generation() != generation || !entry.getKey().startsWith(baseKey + "|thread:")));
 		try {
 			var scope = cx.initStandardObjects();
 			scope.put("__flowEngineDir", scope, engineFile.getParentFile().getAbsolutePath());
