@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPage;
@@ -190,6 +191,11 @@ public class AssistantView extends ViewPart {
 				else if ("capture".equals(json.getString("type"))) {
 					ConvertigoPlugin.asyncExec(() -> {
 						capture();
+					});
+				}
+				else if ("ConvertigoAssistant.context.request".equals(json.getString("type"))) {
+					ConvertigoPlugin.asyncExec(() -> {
+						postAssistantContext();
 					});
 				}
 			} catch (Exception e1) {
@@ -454,10 +460,41 @@ public class AssistantView extends ViewPart {
 			String pname = p != null ? p.getName() : "";
 			jsonMessage.put("type", "select");
 			jsonMessage.put("projectName", pname);
+			addViewerDebugContext(jsonMessage, p);
 			ConvertigoPlugin.logStudioInfo("[Assistant] set json message: " + jsonMessage.toString());
 		} catch (Exception e) {
 			ConvertigoPlugin.logStudioWarn("[Assistant] could not set json message: " + e.getMessage());
 			e.printStackTrace();
+		}
+	}
+
+	private void postAssistantContext() {
+		try {
+			if (browser == null || browser.isDisposed() || handler == null) {
+				return;
+			}
+			JSONObject payload = new JSONObject();
+			payload.put("assistantSurface", "studio");
+			payload.put("assistantContext", "studio");
+			payload.put("agentBridgeAvailable", true);
+			try {
+				if (jsonMessage.has("projectName")) {
+					payload.put("projectName", jsonMessage.getString("projectName"));
+					payload.put("defaultProject", jsonMessage.getString("projectName"));
+				}
+				if (jsonMessage.has("threadQname")) {
+					payload.put("threadQname", jsonMessage.getString("threadQname"));
+				}
+			} catch (Exception e) {
+			}
+			addViewerDebugContext(payload, null);
+			JSONObject message = new JSONObject();
+			message.put("type", "ConvertigoAssistant.context");
+			message.put("payload", payload);
+			handler.postMessage(message);
+			ConvertigoPlugin.logStudioDebug("[Assistant] context: " + message.toString());
+		} catch (Exception e) {
+			ConvertigoPlugin.logStudioWarn("[Assistant] could not post context: " + e.getMessage());
 		}
 	}
 	
@@ -466,11 +503,96 @@ public class AssistantView extends ViewPart {
 			jsonMessage.put("type", "select");
 			jsonMessage.put("threadQname", qname);
 			jsonMessage.put("projectName", qname.substring(0, qname.indexOf('.')));
+			addViewerDebugContext(jsonMessage, null);
 			ConvertigoPlugin.logStudioInfo("[Assistant] set json message: " + jsonMessage.toString());
 		} catch (Exception e) {
 			ConvertigoPlugin.logStudioWarn("[Assistant] could not set json message: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+
+	private void addViewerDebugContext(JSONObject json, Project project) {
+		try {
+			String projectName = project != null ? project.getName() : "";
+			try {
+				if (StringUtils.isBlank(projectName) && json.has("projectName")) {
+					projectName = json.getString("projectName");
+				}
+			} catch (Exception e) {
+			}
+			String debugUrl = getViewerDebugUrl(project, projectName);
+			if (StringUtils.isNotBlank(debugUrl)) {
+				json.put("browserDebugUrl", debugUrl);
+				json.put("browserDevToolsJsonUrl", debugUrl + "/json");
+				json.put("playwrightCdpEndpoint", debugUrl);
+				json.put("viewerCdpEndpoint", debugUrl);
+			} else {
+				json.put("browserDebugUrl", "");
+				json.put("browserDevToolsJsonUrl", "");
+				json.put("playwrightCdpEndpoint", "");
+				json.put("viewerCdpEndpoint", "");
+			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logStudioWarn("[Assistant] could not add viewer debug context: " + e.getMessage());
+		}
+	}
+
+	private String getViewerDebugUrl(Project project) {
+		return getViewerDebugUrl(project, project != null ? project.getName() : "");
+	}
+
+	private String getViewerDebugUrl(Project project, String projectName) {
+		projectName = StringUtils.defaultString(projectName);
+		try {
+			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			if (activePage == null) {
+				return "";
+			}
+			String activeDebugUrl = getViewerDebugUrl(activePage.getActiveEditor(), projectName);
+			if (StringUtils.isNotBlank(activeDebugUrl)) {
+				return activeDebugUrl;
+			}
+			for (IEditorReference editorRef: activePage.getEditorReferences()) {
+				try {
+					IEditorInput editorInput = editorRef.getEditorInput();
+					if (editorInput instanceof ApplicationComponentEditorInput) {
+						ApplicationComponentEditorInput input = (ApplicationComponentEditorInput) editorInput;
+						if (StringUtils.isBlank(projectName) || input.getApplication().getProject().getName().equals(projectName)) {
+							IEditorPart editorPart = editorRef.getEditor(false);
+							String debugUrl = getViewerDebugUrl(editorPart, projectName);
+							if (StringUtils.isNotBlank(debugUrl)) {
+								return debugUrl;
+							}
+						}
+					} else if (editorInput instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
+						com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput input =
+								(com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) editorInput;
+						if (StringUtils.isBlank(projectName) || input.getApplication().getProject().getName().equals(projectName)) {
+							IEditorPart editorPart = editorRef.getEditor(false);
+							String debugUrl = getViewerDebugUrl(editorPart, projectName);
+							if (StringUtils.isNotBlank(debugUrl)) {
+								return debugUrl;
+							}
+						}
+					}
+				} catch (Exception e) {
+				}
+			}
+		} catch (Exception e) {
+		}
+		return "";
+	}
+
+	private String getViewerDebugUrl(IEditorPart editorPart, String projectName) {
+		try {
+			if (editorPart instanceof ApplicationComponentEditor) {
+				return ((ApplicationComponentEditor) editorPart).getDebugUrl();
+			} else if (editorPart instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor) {
+				return ((com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor) editorPart).getDebugUrl();
+			}
+		} catch (Exception e) {
+		}
+		return "";
 	}
 	
 	public void changeThread(String qname, String threadId) {

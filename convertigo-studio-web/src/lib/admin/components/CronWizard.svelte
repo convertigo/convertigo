@@ -6,7 +6,7 @@
 
 	function createRange(aRange) {
 		const newRange = [];
-		for (let i = 0; i < aRange.length; ) {
+		for (let i = 0; i < aRange.length;) {
 			let deb = aRange[i];
 			let fin = aRange[i];
 			let inc = 1;
