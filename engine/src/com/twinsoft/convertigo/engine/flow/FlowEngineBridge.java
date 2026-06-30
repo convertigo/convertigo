@@ -20,10 +20,14 @@
 package com.twinsoft.convertigo.engine.flow;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONArray;
@@ -509,14 +513,6 @@ public class FlowEngineBridge {
 		return invoke(engineQName, "writeCodeMirror", request, null, null, null);
 	}
 
-	private static String flowNameFromSourceFile(File sourceFile) {
-		if (sourceFile == null) {
-			return "";
-		}
-		var name = sourceFile.getName();
-		return name.endsWith(".flow.js") ? name.substring(0, name.length() - ".flow.js".length()) : name;
-	}
-
 	public JSONObject setBlockProperty(FlowEngine flowEngine, String blockName, String propertyName, Object value) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
@@ -816,7 +812,7 @@ public class FlowEngineBridge {
 			engineSource = cachedEngineSource(engineFile);
 			if (useThreadRuntime) {
 				if (isCacheableMethod(method, request)) {
-					var cachedResponse = cachedMethodResponse(engineRef, engineSource, method, request);
+					var cachedResponse = cachedMethodResponse(engineRef, engineFile, engineSource, method, request);
 					if (cachedResponse != null) {
 						methodCacheHit = true;
 						return new JSONObject(cachedResponse.response());
@@ -843,13 +839,13 @@ public class FlowEngineBridge {
 				synchronized (runtimeLookup.runtime()) {
 					var response = invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
 							engineObject, runtimeLookup);
-					storeMethodResponse(engineRef, engineSource, method, request, response);
+					storeMethodResponse(engineRef, engineFile, engineSource, method, request, response);
 					return response;
 				}
 			}
 			var response = invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
 					engineObject, null);
-			storeMethodResponse(engineRef, engineSource, method, request, response);
+			storeMethodResponse(engineRef, engineFile, engineSource, method, request, response);
 			return response;
 		} catch (EngineException e) {
 			failed = true;
@@ -949,9 +945,9 @@ public class FlowEngineBridge {
 		return toJsonObject(result, engineRef.qname, method);
 	}
 
-	private static CachedMethodResponse cachedMethodResponse(EngineRef engineRef, CachedEngineSource engineSource, String method,
-			JSONObject request) {
-		var key = methodResponseCacheKey(engineRef, engineSource, method, request);
+	private static CachedMethodResponse cachedMethodResponse(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
+			String method, JSONObject request) {
+		var key = methodResponseCacheKey(engineRef, engineFile, engineSource, method, request);
 		var cached = methodResponseCache.get(key);
 		if (cached != null && cached.generation() == cacheGeneration.get()) {
 			methodResponseCacheHits.increment();
@@ -961,8 +957,8 @@ public class FlowEngineBridge {
 		return null;
 	}
 
-	private static void storeMethodResponse(EngineRef engineRef, CachedEngineSource engineSource, String method, JSONObject request,
-			JSONObject response) {
+	private static void storeMethodResponse(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
+			JSONObject request, JSONObject response) {
 		if (!isCacheableMethod(method, request) || response == null) {
 			return;
 		}
@@ -970,13 +966,168 @@ public class FlowEngineBridge {
 			methodResponseCache.clear();
 			methodResponseCacheInvalidations.increment();
 		}
-		methodResponseCache.put(methodResponseCacheKey(engineRef, engineSource, method, request),
+		methodResponseCache.put(methodResponseCacheKey(engineRef, engineFile, engineSource, method, request),
 				new CachedMethodResponse(response.toString(), cacheGeneration.get()));
 	}
 
-	private static String methodResponseCacheKey(EngineRef engineRef, CachedEngineSource engineSource, String method, JSONObject request) {
-		return engineRef.qname + "|" + engineSource.sourceName() + "|" + cacheGeneration.get() + "|" + method + "|"
+	private static String methodResponseCacheKey(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
+			JSONObject request) {
+		return engineRef.qname + "|" + engineSource.sourceName() + "|"
+				+ methodResponseDependencyFingerprint(engineFile, request) + "|" + cacheGeneration.get() + "|" + method + "|"
 				+ request.toString();
+	}
+
+	private static String methodResponseDependencyFingerprint(File engineFile, JSONObject request) {
+		var source = new StringBuilder();
+		appendFlowRootFingerprint(source, "engine", engineFile == null ? null : engineFile.getParentFile());
+		var projectDir = request == null ? "" : request.optString("projectDir", "");
+		if (projectDir != null && !projectDir.isBlank()) {
+			var projectRoot = new File(projectDir);
+			appendProjectFingerprint(source, "project", projectRoot);
+			appendReferencedProjectFingerprints(source, projectRoot);
+		}
+		appendRequestFileFingerprint(source, "sourceFile", request == null ? "" : request.optString("sourceFile", ""));
+		appendRequestFileFingerprint(source, "sourcePath", request == null ? "" : request.optString("sourcePath", ""));
+		return sha256Hex(source.toString());
+	}
+
+	private static void appendProjectFingerprint(StringBuilder source, String label, File projectRoot) {
+		if (projectRoot == null) {
+			source.append(label).append(":null\n");
+			return;
+		}
+		source.append(label).append(":").append(canonicalPath(projectRoot)).append("\n");
+		appendFileFingerprint(source, new File(projectRoot, "c8oProject.yaml"));
+		var flowRoot = new File(projectRoot, ENGINE_BASE_PATH);
+		appendFlowRootFingerprint(source, label + ".flow", flowRoot);
+		appendDirectoryFingerprint(source, new File(projectRoot, "libs/flows"));
+	}
+
+	private static void appendReferencedProjectFingerprints(StringBuilder source, File projectRoot) {
+		var descriptor = new File(projectRoot, "c8oProject.yaml");
+		if (!descriptor.isFile()) {
+			return;
+		}
+		try {
+			var text = FileUtils.readFileToString(descriptor, "UTF-8");
+			var matcher = Pattern.compile("projectName:\\s*([A-Za-z0-9_.-]+)").matcher(text);
+			var parent = projectRoot.getParentFile();
+			var seen = ConcurrentHashMap.<String>newKeySet();
+			while (matcher.find()) {
+				var name = matcher.group(1);
+				if (name == null || name.isBlank() || !seen.add(name)) {
+					continue;
+				}
+				var root = referencedProjectRoot(parent, name);
+				if (root != null) {
+					appendProjectFingerprint(source, "reference:" + name, root);
+				}
+			}
+		} catch (Exception e) {
+			source.append("references:error:").append(e.getClass().getName()).append("\n");
+		}
+	}
+
+	private static File referencedProjectRoot(File parent, String name) {
+		if (parent == null) {
+			return null;
+		}
+		var slug = name.replace("_", "-");
+		var candidates = new File[] {
+				new File(parent, name),
+				new File(parent, "c8oprj-" + name),
+				new File(parent, slug),
+				new File(parent, "c8oprj-" + slug)
+		};
+		for (var candidate : candidates) {
+			if (new File(candidate, ENGINE_BASE_PATH).isDirectory()) {
+				return candidate;
+			}
+		}
+		return null;
+	}
+
+	private static void appendFlowRootFingerprint(StringBuilder source, String label, File flowRoot) {
+		source.append(label).append(":").append(canonicalPath(flowRoot)).append("\n");
+		appendFileFingerprint(source, new File(flowRoot, "Engine.js"));
+		appendFileFingerprint(source, new File(flowRoot, "engine.yaml"));
+		appendDirectoryFingerprint(source, new File(flowRoot, "modules"));
+		appendDirectoryFingerprint(source, new File(flowRoot, "blocks"));
+		appendDirectoryFingerprint(source, new File(flowRoot, "types"));
+		appendDirectoryFingerprint(source, new File(flowRoot, "lib"));
+		appendDirectoryFingerprint(source, new File(flowRoot, "resources"));
+		appendDirectoryFingerprint(source, new File(flowRoot, "schemas"));
+	}
+
+	private static void appendRequestFileFingerprint(StringBuilder source, String label, String path) {
+		if (path == null || path.isBlank()) {
+			return;
+		}
+		source.append(label).append(":");
+		appendFileFingerprint(source, new File(path));
+	}
+
+	private static void appendFileFingerprint(StringBuilder source, File file) {
+		if (file == null) {
+			source.append("f:null\n");
+			return;
+		}
+		source.append("f:").append(canonicalPath(file));
+		if (file.isFile()) {
+			source.append(":").append(file.lastModified()).append(":").append(file.length());
+		} else {
+			source.append(":missing");
+		}
+		source.append("\n");
+	}
+
+	private static void appendDirectoryFingerprint(StringBuilder source, File dir) {
+		if (dir == null) {
+			source.append("d:null\n");
+			return;
+		}
+		source.append("d:").append(canonicalPath(dir));
+		if (!dir.isDirectory()) {
+			source.append(":missing\n");
+			return;
+		}
+		source.append(":").append(dir.lastModified()).append("\n");
+		var files = dir.listFiles();
+		if (files == null) {
+			return;
+		}
+		Arrays.sort(files, (a, b) -> a.getName().compareTo(b.getName()));
+		for (var file : files) {
+			if (file.isDirectory()) {
+				appendDirectoryFingerprint(source, file);
+			} else {
+				appendFileFingerprint(source, file);
+			}
+		}
+	}
+
+	private static String canonicalPath(File file) {
+		if (file == null) {
+			return "";
+		}
+		try {
+			return file.getCanonicalPath();
+		} catch (Exception e) {
+			return file.getAbsolutePath();
+		}
+	}
+
+	private static String sha256Hex(String text) {
+		try {
+			var digest = MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8));
+			var out = new StringBuilder(digest.length * 2);
+			for (var b : digest) {
+				out.append(String.format("%02x", b & 0xff));
+			}
+			return out.toString();
+		} catch (Exception e) {
+			return Integer.toHexString(String.valueOf(text).hashCode());
+		}
 	}
 
 	private static boolean isCacheableMethod(String method, JSONObject request) {
