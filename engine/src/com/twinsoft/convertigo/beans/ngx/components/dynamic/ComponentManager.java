@@ -289,6 +289,17 @@ public class ComponentManager {
 		return tplVersion;
 	}
 	
+	public JSONObject getTemplateProjectFileAsJson(String relpath) {
+		if (relpath != null && !isInstance()) {
+			try {
+				File f = new File(templateProjectDir, relpath);
+				String content = FileUtils.readFileToString(f, "UTF-8");
+				return new JSONObject(content);
+			} catch (Exception e) {}
+		}
+		return null;
+	}
+	
 	private JSONObject ionObjectsAsJsonFromFiles() throws Exception {
 		if (!isInstance()) {
 			File ion_objects = new File(templateProjectDir, TPL_IONOBJECTS_JSONPATH);
