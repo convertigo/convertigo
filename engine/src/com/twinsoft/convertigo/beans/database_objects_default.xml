@@ -263,7 +263,7 @@
                 <com.twinsoft.convertigo.beans.common.FormatedContent><![CDATA[		try {
 			page.c8o.log.debug('[MB] '+ props.actionFunction +': '+ props.actionName);
 		} catch (e) {
-
+		
 		} finally {
 			return;
 		}
