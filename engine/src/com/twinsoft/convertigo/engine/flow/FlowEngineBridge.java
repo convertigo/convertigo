@@ -22,7 +22,9 @@ package com.twinsoft.convertigo.engine.flow;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -236,6 +238,7 @@ public class FlowEngineBridge {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
 			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
 					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
 			merge(request, options);
 			return invoke(engineQName, "context", request, null, null, null);
@@ -352,7 +355,8 @@ public class FlowEngineBridge {
 			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
 					.put("target", "engine")
 					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
 			merge(request, options);
 			return invoke(engineQName, "contextMenu", request, null, null, null);
 		} catch (JSONException e) {
@@ -366,7 +370,8 @@ public class FlowEngineBridge {
 			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
 					.put("target", "engine")
 					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
 			merge(request, options);
 			return invoke(engineQName, "contextAction", request, null, null, null);
 		} catch (JSONException e) {
@@ -399,7 +404,8 @@ public class FlowEngineBridge {
 			var request = baseRequest(engineQName, "", flowEngine.getQName(), null)
 					.put("target", "engine")
 					.put("engineSource", flowEngine.getEngineSource())
-					.put("projectDir", flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+					.put("projectDir", flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
 			return invoke(engineQName, "describeTree", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build FlowEngine tree request.", e);
@@ -479,6 +485,12 @@ public class FlowEngineBridge {
 			if (!sourceFile.isFile()) {
 				throw new EngineException("Flow source file not found: " + sourcePath);
 			}
+			if (sourceFile.getName().endsWith(".front.json")) {
+				return applyJsonSourceMutation(flowEngine, sourceFile, mutation);
+			}
+			if (sourceFile.getName().endsWith(".flow.svelte")) {
+				return applyFlowSvelteSourceMutation(flowEngine, sourceFile, mutation);
+			}
 			var source = FileUtils.readFileToString(sourceFile, "UTF-8");
 			var request = baseRequest(engineQName, source, flowEngine == null ? "" : flowEngine.getQName(), null)
 					.put("target", "flow")
@@ -499,6 +511,193 @@ public class FlowEngineBridge {
 		} catch (Exception e) {
 			throw new EngineException("Unable to apply Flow source mutation.", e);
 		}
+	}
+
+	private JSONObject applyFlowSvelteSourceMutation(FlowEngine flowEngine, File sourceFile, JSONObject mutation) throws Exception {
+		var engineQName = effectiveEngineQName(flowEngine);
+		var projectDir = flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath();
+		var sourcePath = sourceFile.getAbsolutePath();
+		var source = flowEngine == null
+				? FileUtils.readFileToString(sourceFile, "UTF-8")
+				: flowEngine.getFrontendSource(sourcePath);
+		var request = baseRequest(engineQName, source, flowEngine == null ? "" : flowEngine.getQName(), null)
+				.put("target", "frontendSource")
+				.put("source", source)
+				.put("sourceFile", sourcePath)
+				.put("sourcePath", sourcePath)
+				.put("projectDir", projectDir)
+				.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
+				.put("mutation", mutation == null ? new JSONObject() : mutation);
+		var response = invoke(engineQName, "applySourceMutation", request, null, null, null);
+		if (response.optBoolean("ok", false) && response.has("source")) {
+			var newSource = response.optString("source", source);
+			if (flowEngine == null) {
+				FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
+			} else {
+				flowEngine.setFrontendSource(sourcePath, newSource);
+			}
+		}
+		return response;
+	}
+
+	private static JSONObject applyJsonSourceMutation(FlowEngine flowEngine, File sourceFile, JSONObject mutation) throws Exception {
+		var source = flowEngine == null
+				? FileUtils.readFileToString(sourceFile, "UTF-8")
+				: flowEngine.getFrontendSource(sourceFile.getAbsolutePath());
+		var root = new JSONObject(source);
+		var op = mutation == null ? "" : mutation.optString("op", "");
+		var path = mutation == null ? "" : mutation.optString("path", "");
+		var value = mutation == null ? JSONObject.NULL : mutation.opt("value");
+		if ("replace".equals(op) || "set".equals(op)) {
+			jsonSet(root, jsonPathTokens(path), value);
+		} else if ("append".equals(op)) {
+			var target = jsonGet(root, jsonPathTokens(path));
+			if (!(target instanceof JSONArray array)) {
+				throw new EngineException("Flow JSON mutation target is not an array: " + path);
+			}
+			array.put(value == null ? JSONObject.NULL : value);
+		} else if ("insert".equals(op)) {
+			var tokens = jsonPathTokens(path);
+			var target = jsonGet(root, tokens);
+			if (!(target instanceof JSONArray array)) {
+				throw new EngineException("Flow JSON mutation target is not an array: " + path);
+			}
+			var index = Math.max(0, Math.min(mutation.optInt("index", array.length()), array.length()));
+			var copy = new JSONArray();
+			for (int i = 0; i < index; i++) {
+				copy.put(array.get(i));
+			}
+			copy.put(value == null ? JSONObject.NULL : value);
+			for (int i = index; i < array.length(); i++) {
+				copy.put(array.get(i));
+			}
+			jsonSet(root, tokens, copy);
+		} else if ("delete".equals(op) || "remove".equals(op)) {
+			jsonRemove(root, jsonPathTokens(path));
+		} else {
+			throw new EngineException("Unsupported Flow JSON mutation operation: " + op);
+		}
+		var newSource = root.toString(2) + "\n";
+		if (flowEngine == null) {
+			FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
+		} else {
+			flowEngine.setFrontendSource(sourceFile.getAbsolutePath(), newSource);
+		}
+		return new JSONObject()
+				.put("ok", true)
+				.put("target", "json")
+				.put("source", newSource)
+				.put("sourceFile", sourceFile.getAbsolutePath());
+	}
+
+	private static JSONObject frontendSourceDrafts(FlowEngine flowEngine) throws JSONException {
+		var drafts = new JSONObject();
+		if (flowEngine != null) {
+			for (var entry : flowEngine.getFrontendSourceDrafts().entrySet()) {
+				drafts.put(entry.getKey(), entry.getValue());
+			}
+		}
+		return drafts;
+	}
+
+	private static List<Object> jsonPathTokens(String path) throws EngineException {
+		var tokens = new ArrayList<Object>();
+		var key = new StringBuilder();
+		for (int i = 0; i < path.length(); i++) {
+			var ch = path.charAt(i);
+			if (ch == '.') {
+				if (key.length() > 0) {
+					tokens.add(key.toString());
+					key.setLength(0);
+				}
+			} else if (ch == '[') {
+				if (key.length() > 0) {
+					tokens.add(key.toString());
+					key.setLength(0);
+				}
+				var end = path.indexOf(']', i);
+				if (end == -1) {
+					throw new EngineException("Invalid Flow JSON mutation path: " + path);
+				}
+				tokens.add(Integer.valueOf(path.substring(i + 1, end)));
+				i = end;
+			} else {
+				key.append(ch);
+			}
+		}
+		if (key.length() > 0) {
+			tokens.add(key.toString());
+		}
+		if (tokens.isEmpty()) {
+			throw new EngineException("Empty Flow JSON mutation path.");
+		}
+		return tokens;
+	}
+
+	private static Object jsonGet(Object root, List<Object> tokens) throws Exception {
+		var current = root;
+		for (var token : tokens) {
+			current = jsonChild(current, token);
+		}
+		return current;
+	}
+
+	private static Object jsonChild(Object current, Object token) throws Exception {
+		if (token instanceof Integer index && current instanceof JSONArray array) {
+			return array.get(index);
+		}
+		if (token instanceof String key && current instanceof JSONObject object) {
+			return object.get(key);
+		}
+		throw new EngineException("Invalid Flow JSON mutation path segment: " + token);
+	}
+
+	private static void jsonSet(Object root, List<Object> tokens, Object value) throws Exception {
+		var parent = root;
+		for (int i = 0; i < tokens.size() - 1; i++) {
+			parent = jsonChild(parent, tokens.get(i));
+		}
+		var last = tokens.get(tokens.size() - 1);
+		if (last instanceof Integer index && parent instanceof JSONArray array) {
+			array.put(index, value == null ? JSONObject.NULL : value);
+			return;
+		}
+		if (last instanceof String key && parent instanceof JSONObject object) {
+			object.put(key, value == null ? JSONObject.NULL : value);
+			return;
+		}
+		throw new EngineException("Invalid Flow JSON mutation target: " + last);
+	}
+
+	private static void jsonRemove(Object root, List<Object> tokens) throws Exception {
+		var last = tokens.get(tokens.size() - 1);
+		if (tokens.size() == 1) {
+			if (last instanceof String key && root instanceof JSONObject object) {
+				object.remove(key);
+				return;
+			}
+			throw new EngineException("Invalid Flow JSON mutation delete target: " + last);
+		}
+		var parentTokens = tokens.subList(0, tokens.size() - 1);
+		var parent = jsonGet(root, parentTokens);
+		if (last instanceof String key && parent instanceof JSONObject object) {
+			object.remove(key);
+			return;
+		}
+		if (last instanceof Integer index && parent instanceof JSONArray array) {
+			if (index < 0 || index >= array.length()) {
+				throw new EngineException("Flow JSON mutation delete index out of range: " + index);
+			}
+			var copy = new JSONArray();
+			for (int i = 0; i < array.length(); i++) {
+				if (i != index) {
+					copy.put(array.get(i));
+				}
+			}
+			jsonSet(root, parentTokens, copy);
+			return;
+		}
+		throw new EngineException("Invalid Flow JSON mutation delete target: " + last);
 	}
 
 	private JSONObject writeCodeMirror(String engineQName, String flowQName, String projectDir, String source, String name, File sourceFile)

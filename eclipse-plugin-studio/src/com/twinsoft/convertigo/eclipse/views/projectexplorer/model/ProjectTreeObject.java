@@ -50,7 +50,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
@@ -159,15 +159,17 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 
 	private void clearSourcePickerView() {
 		try {
+			if (ConvertigoPlugin.getDefault().isShuttingDown()) {
+				return;
+			}
 			IWorkbenchPage activePage = PlatformUI
 					.getWorkbench()
 					.getActiveWorkbenchWindow()
 					.getActivePage();
 			
 			if (activePage != null) {
-				IViewPart viewPart = activePage.findView("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
-				if (viewPart != null) {
-					SourcePickerView spv = (SourcePickerView)viewPart;
+				IViewReference viewReference = activePage.findViewReference("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
+				if (viewReference != null && viewReference.getPart(false) instanceof SourcePickerView spv) {
 					DatabaseObject dbo = (DatabaseObject)spv.getObject();
 					boolean bClose = true;
 					try {

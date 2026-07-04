@@ -810,17 +810,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (targetDbo == null || !FlowStudioSupport.isFlowContextTarget(targetDbo)) {
 			return;
 		}
-		var key = flowContextMenuKey(targetDbo);
-		var menu = flowContextMenuCache.get(key);
-		if (menu == null) {
-			scheduleFlowContextMenuLoad(key, targetDbo);
-			var flowMenu = new MenuManager("Flow");
-			flowMenu.add(new Action("Loading Flow actions...") {
-				{
-					setEnabled(false);
-				}
-			});
-			manager.add(flowMenu);
+		JSONObject menu;
+		try {
+			menu = FlowStudioSupport.contextMenu(targetDbo);
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to load Flow context menu.");
 			return;
 		}
 		try {
@@ -920,35 +914,75 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			if (!confirm.isBlank() && !MessageDialog.openConfirm(viewer.getControl().getShell(), "Flow", confirm)) {
 				return;
 			}
-			var actionResult = new JSONObject[1];
-			new ProgressMonitorDialog(viewer.getControl().getShell()).run(true, false, monitor -> {
-				try {
-					monitor.beginTask("Running Flow action...", IProgressMonitor.UNKNOWN);
-					actionResult[0] = FlowStudioSupport.contextAction(targetDbo, item);
-				} catch (Exception e) {
-					throw new InvocationTargetException(e);
-				} finally {
-					monitor.done();
+			var label = item.optString("label", item.optString("id", "Flow action"));
+			var job = new Job(label) {
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+					var actionResult = new JSONObject[1];
+					var actionError = new Exception[1];
+					try {
+						monitor.beginTask(label, IProgressMonitor.UNKNOWN);
+						actionResult[0] = FlowStudioSupport.contextAction(targetDbo, item);
+					} catch (Exception e) {
+						actionError[0] = e;
+						ConvertigoPlugin.logException(e, "Unable to execute Flow context action.");
+					} finally {
+						monitor.done();
+					}
+					Display.getDefault().asyncExec(() -> handleFlowContextActionResult(actionResult[0], actionError[0]));
+					return actionError[0] == null
+							? Status.OK_STATUS
+							: new Status(IStatus.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, actionError[0].getMessage(), actionError[0]);
 				}
-			});
-			flowContextMenuCache.clear();
-			var result = actionResult[0] == null ? new JSONObject() : actionResult[0];
-			if (result.optBoolean("refreshTree", false)) {
-				refreshTree();
-			} else if (result.optBoolean("refresh", false)) {
-				refreshFirstSelectedTreeObject(true);
-			}
-			var message = flowContextActionMessage(result);
-			if (!message.isBlank()) {
-				if (result.optBoolean("ok", false)) {
-					MessageDialog.openInformation(viewer.getControl().getShell(), result.optString("title", "Flow"), message);
-				} else {
-					MessageDialog.openError(viewer.getControl().getShell(), result.optString("title", "Flow"), message);
-				}
-			}
+			};
+			job.setUser(true);
+			job.schedule();
+			setFlowStatusMessage(label + "...");
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to execute Flow context action.");
 			MessageDialog.openError(viewer.getControl().getShell(), "Flow", e.getMessage());
+		}
+	}
+
+	private void handleFlowContextActionResult(JSONObject actionResult, Exception actionError) {
+		if (viewer == null || viewer.getControl() == null || viewer.getControl().isDisposed()) {
+			return;
+		}
+		if (actionError != null) {
+			MessageDialog.openError(viewer.getControl().getShell(), "Flow", actionError.getMessage());
+			return;
+		}
+		flowContextMenuCache.clear();
+		var result = actionResult == null ? new JSONObject() : actionResult;
+		if (result.optBoolean("refreshTree", false)) {
+			refreshTree();
+		} else if (result.optBoolean("refresh", false)) {
+			refreshFirstSelectedTreeObject(true);
+		}
+		var openUrl = result.optString("openUrl", "");
+		if (!openUrl.isBlank()) {
+			Program.launch(openUrl);
+		}
+		var dialog = result.optBoolean("dialog", false) || result.has("schema");
+		var message = result.optBoolean("ok", false) && !dialog
+				? result.optString("message", "")
+				: flowContextActionMessage(result);
+		if (!message.isBlank()) {
+			if (!result.optBoolean("ok", false)) {
+				MessageDialog.openError(viewer.getControl().getShell(), result.optString("title", "Flow"), message);
+			} else if (dialog) {
+				MessageDialog.openInformation(viewer.getControl().getShell(), result.optString("title", "Flow"), message);
+			} else {
+				setFlowStatusMessage(message);
+			}
+		}
+	}
+
+	private void setFlowStatusMessage(String message) {
+		try {
+			getViewSite().getActionBars().getStatusLineManager().setMessage(message);
+		} catch (Exception e) {
+			ConvertigoPlugin.logInfo(message);
 		}
 	}
 
@@ -963,7 +997,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 		var error = result.optJSONObject("error");
 		if (error != null) {
-			return error.optString("message", error.toString());
+			return flowContextErrorMessage(error);
 		}
 		try {
 			if (result.has("schema")) {
@@ -976,11 +1010,43 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				if (builder.length() > 0) {
 					builder.append("\n\n");
 				}
-				builder.append(result.get("details"));
+				builder.append(compactFlowMessage(result.get("details"), 6000));
 			}
 		} catch (Exception e) {
 		}
 		return builder.toString();
+	}
+
+	private String flowContextErrorMessage(JSONObject error) {
+		var message = error.optString("message", "");
+		if (message.isBlank()) {
+			message = error.optString("code", "Flow action failed.");
+		}
+		var builder = new StringBuilder(message);
+		var details = error.optJSONObject("details");
+		if (details != null) {
+			var logFile = details.optString("logFile", "");
+			if (!logFile.isBlank()) {
+				builder.append("\n\nLog: ").append(logFile);
+			}
+			var logTail = details.optString("logTail", "");
+			if (!logTail.isBlank()) {
+				builder.append("\n\n").append(logTail);
+			} else {
+				builder.append("\n\n").append(compactFlowMessage(details, 4000));
+			}
+		} else if (error.has("details")) {
+			builder.append("\n\n").append(compactFlowMessage(error.opt("details"), 4000));
+		}
+		return builder.toString();
+	}
+
+	private String compactFlowMessage(Object value, int maxLength) {
+		var text = String.valueOf(value);
+		if (text.length() <= maxLength) {
+			return text;
+		}
+		return text.substring(0, maxLength) + "\n...";
 	}
 
 	public TracePlayerThread tracePlayerThread = null;
@@ -1957,6 +2023,19 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					return ofto;
 				}
 
+				private void removeExistingFlowVirtualChild(TreeParent treeParent, FlowVirtualObject flowVirtualObject) {
+					for (TreeObject child: new ArrayList<>(treeParent.getChildren())) {
+						if (child instanceof FlowVirtualObjectTreeObject flowTreeObject) {
+							var existing = flowTreeObject.getObject();
+							if (existing.getVirtualPath().equals(flowVirtualObject.getVirtualPath())
+									&& existing.getVirtualKind().equals(flowVirtualObject.getVirtualKind())
+									&& existing.getVirtualType().equals(flowVirtualObject.getVirtualType())) {
+								treeParent.removeChild(child);
+							}
+						}
+					}
+				}
+
 				@Override
 				protected void walk(DatabaseObject databaseObject) throws Exception {
 					// retrieve recursion parameters
@@ -2228,6 +2307,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 						// no virtual folder
 						if (folderType == Integer.MIN_VALUE) {
+							if (databaseObject instanceof FlowVirtualObject flowVirtualObject) {
+								removeExistingFlowVirtualChild(parentTreeObject, flowVirtualObject);
+							}
 							parentTreeObject.addChild(databaseObjectTreeObject);
 						}
 						// virtual folder creation or reuse

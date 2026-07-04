@@ -366,6 +366,12 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		if ("blockHooks".equals(kind) || "typeResource".equals(kind)) {
 			return true;
 		}
+		if ("frontendBlockImplementation".equals(kind)) {
+			return true;
+		}
+		if ("frontendBlock".equals(kind)) {
+			return true;
+		}
 		if ("blockImplementation".equals(kind) || "fragmentImplementation".equals(kind)) {
 			return !"flow".equals(getObject().getVirtualType());
 		}

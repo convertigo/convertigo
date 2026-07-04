@@ -1417,9 +1417,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		SourcePickerView sourcePickerView = null;
 		IWorkbenchPage activePage = getActivePage();
 		if (activePage != null) {
-			IViewPart viewPart =  activePage.findView("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
-			if (viewPart != null)
-				sourcePickerView = (SourcePickerView)viewPart;
+			IViewReference viewReference = activePage.findViewReference("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
+			if (viewReference != null && viewReference.getPart(false) instanceof SourcePickerView viewPart) {
+				sourcePickerView = viewPart;
+			}
 		}
 		return sourcePickerView;
 	}

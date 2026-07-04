@@ -1076,8 +1076,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 
 	private boolean handleFlowVirtualMove(TreeObject sourceObject, TreeObject targetTreeObject,
 			ProjectExplorerView explorerView, boolean insertBefore, boolean insertAfter) throws Exception {
-		if (!insertBefore && !insertAfter || !isFlowVirtualMove(sourceObject, targetTreeObject)) {
+		if (!isFlowVirtualMove(sourceObject, targetTreeObject)) {
 			return false;
+		}
+		if (!insertBefore && !insertAfter) {
+			insertAfter = true;
 		}
 		var sourceDbot = (DatabaseObjectTreeObject) sourceObject;
 		var targetDbot = (DatabaseObjectTreeObject) targetTreeObject;
@@ -1097,9 +1100,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				|| !(targetDbot.getObject() instanceof FlowVirtualObject target)) {
 			return false;
 		}
-		return "node".equals(source.getVirtualKind())
-				&& "node".equals(target.getVirtualKind())
-				&& source.getParent() == target.getParent();
+		return FlowStudioSupport.canMoveNode(source, target);
 	}
 
 	/* (non-Javadoc)
@@ -1177,12 +1178,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							var targetDatabaseObject = targetDbot.getObject();
 							if (databaseObject instanceof FlowVirtualObject sourceFlowObject
 									&& targetDatabaseObject instanceof FlowVirtualObject targetFlowObject) {
-								var currentLocation = getCurrentLocation();
-								var siblingMove = currentLocation == LOCATION_BEFORE || currentLocation == LOCATION_AFTER;
-								return siblingMove
-										&& "node".equals(sourceFlowObject.getVirtualKind())
-										&& "node".equals(targetFlowObject.getVirtualKind())
-										&& sourceFlowObject.getParent() == targetFlowObject.getParent();
+								return FlowStudioSupport.canMoveNode(sourceFlowObject, targetFlowObject);
 							}
 							if (DatabaseObjectsManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
 								return true;
@@ -1279,6 +1275,25 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							}
 							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
 								return FlowStudioSupport.canAddHelperDefinition(dbot.getObject());
+							}
+							return false;
+						}
+						if (paletteSource.isFrontendBlock() || paletteSource.isFrontendBlockDefinition()) {
+							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
+								targetTreeObject = folderTreeObject.getParent();
+							}
+							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
+								if (paletteSource.getFlowItemData().isBlank()) {
+									return false;
+								}
+								var position = getCurrentLocation() == LOCATION_BEFORE ? "before"
+										: getCurrentLocation() == LOCATION_AFTER ? "after"
+												: "inside";
+								var transfer = new org.codehaus.jettison.json.JSONObject()
+										.put("type", "paletteData")
+										.put("data", new org.codehaus.jettison.json.JSONObject(paletteSource.getFlowItemData())
+												.put("type", "FrontendBlock"));
+								return FlowStudioSupport.canAddFromPalette(dbot.getObject(), position, transfer);
 							}
 							return false;
 						}
@@ -1607,6 +1622,24 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								throw new EngineException(error == null ? "Unable to add Flow helper function." : error.toString());
 							}
 							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							return;
+						}
+						if (paletteSource.isFrontendBlock() || paletteSource.isFrontendBlockDefinition()) {
+							if (paletteSource.getFlowItemData().isBlank()) {
+								throw new EngineException("Unable to add frontend block without catalog data.");
+							}
+							var position = insertBefore ? "before" : insertAfter ? "after" : "inside";
+							var transfer = new org.codehaus.jettison.json.JSONObject()
+									.put("type", "paletteData")
+									.put("data", new org.codehaus.jettison.json.JSONObject(paletteSource.getFlowItemData())
+											.put("type", "FrontendBlock"));
+							var response = FlowStudioSupport.addFromPalette(dbotree.getObject(), position, transfer);
+							if (!response.optBoolean("done", false)) {
+								var error = response.opt("error");
+								throw new EngineException(error == null ? "Unable to add frontend block." : error.toString());
+							}
+							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							explorerView.refreshTree();
 							return;
 						}
 						DatabaseObject dbop = paletteSource.getDatabaseObject();

@@ -22,7 +22,9 @@ package com.twinsoft.convertigo.beans.flow;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
@@ -53,6 +55,7 @@ public class FlowEngine extends DatabaseObject {
 	private String engineSource = DEFAULT_ENGINE_SOURCE;
 	private transient boolean engineSourceDirty = false;
 	private transient long engineSourceFileLastModified = -1;
+	private transient Map<String, String> frontendSourceDrafts = new LinkedHashMap<>();
 	private transient String flowVirtualChildrenCacheKey = "";
 	private transient List<DatabaseObject> flowVirtualChildrenCache = null;
 
@@ -64,6 +67,7 @@ public class FlowEngine extends DatabaseObject {
 	@Override
 	public FlowEngine clone() throws CloneNotSupportedException {
 		var clone = (FlowEngine) super.clone();
+		clone.frontendSourceDrafts = new LinkedHashMap<>();
 		clone.clearFlowVirtualChildrenCache();
 		return clone;
 	}
@@ -85,7 +89,8 @@ public class FlowEngine extends DatabaseObject {
 
 	public List<DatabaseObject> getFlowVirtualChildren() {
 		var source = getEngineSource();
-		var key = FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + engineQName + "\n" + source;
+		var key = FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + engineQName + "\n"
+				+ source + "\n" + frontendSourceDrafts().hashCode();
 		if (flowVirtualChildrenCache != null && key.equals(flowVirtualChildrenCacheKey)) {
 			return new ArrayList<>(flowVirtualChildrenCache);
 		}
@@ -104,6 +109,7 @@ public class FlowEngine extends DatabaseObject {
 	@Override
 	public Element toXml(Document document) throws EngineException {
 		writeEngineSourceFile();
+		writeFrontendSourceFiles();
 		var element = super.toXml(document);
 		removeSerializedProperty(element, "engineSource");
 		return element;
@@ -140,6 +146,53 @@ public class FlowEngine extends DatabaseObject {
 			clearFlowVirtualChildrenCache();
 			changed();
 		}
+	}
+
+	public Map<String, String> getFrontendSourceDrafts() {
+		return new LinkedHashMap<>(frontendSourceDrafts());
+	}
+
+	public String getFrontendSource(String sourcePath) throws EngineException {
+		var key = canonicalFrontendSourcePath(sourcePath);
+		if (frontendSourceDrafts().containsKey(key)) {
+			return frontendSourceDrafts().get(key);
+		}
+		try {
+			return FileUtils.readFileToString(new File(key), StandardCharsets.UTF_8);
+		} catch (Exception e) {
+			throw new EngineException("Unable to read frontend source file \"" + key + "\".", e);
+		}
+	}
+
+	public void setFrontendSource(String sourcePath, String source) throws EngineException {
+		var key = canonicalFrontendSourcePath(sourcePath);
+		source = source == null ? "" : source;
+		var saved = "";
+		try {
+			var file = new File(key);
+			if (file.isFile()) {
+				saved = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+			}
+		} catch (Exception e) {
+			throw new EngineException("Unable to read saved frontend source file \"" + key + "\".", e);
+		}
+		var drafts = frontendSourceDrafts();
+		if (saved.equals(source)) {
+			if (drafts.remove(key) != null) {
+				clearFlowVirtualChildrenCache();
+				changed();
+			}
+			return;
+		}
+		if (!source.equals(drafts.get(key))) {
+			drafts.put(key, source);
+			clearFlowVirtualChildrenCache();
+			changed();
+		}
+	}
+
+	public boolean isFrontendSourceDirty(String sourcePath) throws EngineException {
+		return frontendSourceDrafts().containsKey(canonicalFrontendSourcePath(sourcePath));
 	}
 
 	@Override
@@ -209,6 +262,56 @@ public class FlowEngine extends DatabaseObject {
 			clearFlowVirtualChildrenCache();
 		} catch (Exception e) {
 			throw new EngineException("Unable to write FlowEngine source file \"" + file.getAbsolutePath() + "\".", e);
+		}
+	}
+
+	private void writeFrontendSourceFiles() throws EngineException {
+		var drafts = frontendSourceDrafts();
+		if (drafts.isEmpty()) {
+			return;
+		}
+		try {
+			for (var entry : new LinkedHashMap<>(drafts).entrySet()) {
+				var file = new File(entry.getKey());
+				file.getParentFile().mkdirs();
+				FileUtils.writeStringToFile(file, entry.getValue(), StandardCharsets.UTF_8);
+			}
+			drafts.clear();
+			clearFlowVirtualChildrenCache();
+		} catch (Exception e) {
+			throw new EngineException("Unable to write frontend source draft files.", e);
+		}
+	}
+
+	private Map<String, String> frontendSourceDrafts() {
+		if (frontendSourceDrafts == null) {
+			frontendSourceDrafts = new LinkedHashMap<>();
+		}
+		return frontendSourceDrafts;
+	}
+
+	private String canonicalFrontendSourcePath(String sourcePath) throws EngineException {
+		try {
+			if (sourcePath == null || sourcePath.isBlank()) {
+				throw new EngineException("Frontend source path is empty.");
+			}
+			var file = new File(sourcePath).getCanonicalFile();
+			if (!file.getName().endsWith(".front.json") && !file.getName().endsWith(".flow.svelte")) {
+				throw new EngineException("Unsupported frontend source file: " + sourcePath);
+			}
+			var project = getProject();
+			if (project != null) {
+				var rootPath = project.getDirFile().getCanonicalPath();
+				var filePath = file.getCanonicalPath();
+				if (!filePath.equals(rootPath) && !filePath.startsWith(rootPath + File.separator)) {
+					throw new EngineException("Frontend source file is outside the project: " + sourcePath);
+				}
+			}
+			return file.getAbsolutePath();
+		} catch (EngineException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EngineException("Unable to resolve frontend source file \"" + sourcePath + "\".", e);
 		}
 	}
 

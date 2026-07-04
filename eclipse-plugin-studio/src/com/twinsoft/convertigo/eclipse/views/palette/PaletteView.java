@@ -391,7 +391,8 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		var itemType = flowItem.optString("type", "FlowBlock");
 		var blockName = flowItem.optString("block", flowItem.optString("classname", flowItem.optString("name", "")));
 		var runtime = flowItem.optString("runtime", "");
-		if (blockName.isBlank() && !"FlowBlockDefinition".equals(itemType) && !"FlowTypeDefinition".equals(itemType)
+		if (blockName.isBlank() && !"FrontendBlock".equals(itemType) && !"FrontendBlockDefinition".equals(itemType)
+				&& !"FlowBlockDefinition".equals(itemType) && !"FlowTypeDefinition".equals(itemType)
 				&& !"FlowPropertyDefinition".equals(itemType) && !"FlowHelperDefinition".equals(itemType)) {
 			return;
 		}
@@ -434,6 +435,9 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 				if ("FlowHelperDefinition".equals(itemType)) {
 					return PaletteSource.flowHelperDefinition(flowItem.optString("description", ""));
 				}
+				if ("FrontendBlock".equals(itemType) || "FrontendBlockDefinition".equals(itemType)) {
+					return PaletteSource.frontendBlock(flowItem.toString(), flowItem.optString("description", ""));
+				}
 				return PaletteSource.flowBlock(blockName, flowItem.optString("description", ""));
 			}
 
@@ -455,6 +459,19 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 				}
 				if ("FlowHelperDefinition".equals(itemType)) {
 					return FlowStudioSupport.canAddHelperDefinition(parent);
+				}
+				if ("FrontendBlock".equals(itemType) || "FrontendBlockDefinition".equals(itemType)) {
+					try {
+						var frontendItem = new JSONObject(flowItem.toString()).put("type", "FrontendBlock");
+						var transfer = new JSONObject()
+								.put("type", "paletteData")
+								.put("data", frontendItem);
+						return FlowStudioSupport.canAddFromPalette(parent, "inside", transfer)
+								|| FlowStudioSupport.canAddFromPalette(parent, "before", transfer)
+								|| FlowStudioSupport.canAddFromPalette(parent, "after", transfer);
+					} catch (Exception e) {
+						return false;
+					}
 				}
 				return FlowStudioSupport.canAddBlock(parent, "inside", blockName)
 						|| FlowStudioSupport.canAddBlock(parent, "before", blockName)

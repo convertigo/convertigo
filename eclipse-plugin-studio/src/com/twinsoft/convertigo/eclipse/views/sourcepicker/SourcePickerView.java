@@ -119,7 +119,9 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 
 
 	public void close() {
-		spc.close();
+		if (spc != null) {
+			spc.close();
+		}
 	}
 
 	@Override

@@ -20,12 +20,18 @@
 package com.twinsoft.convertigo.engine.flow;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
@@ -43,8 +49,10 @@ public class FlowStudioSupport {
 	private static final String FLOW_TYPE_DEFINITION_TYPE = "FlowTypeDefinition";
 	private static final String FLOW_PROPERTY_DEFINITION_TYPE = "FlowPropertyDefinition";
 	private static final String FLOW_HELPER_DEFINITION_TYPE = "FlowHelperDefinition";
+	private static final String FRONTEND_BLOCK_TYPE = "FrontendBlock";
 	private static final String FLOW_BLOCK_ID_PREFIX = "flowblock:";
 	private static final String FLOW_BLOCK_DEFINITION_ID_PREFIX = "flowblockdef:";
+	private static final String FRONTEND_BLOCK_ID_PREFIX = "frontendblock:";
 	private static final String FLOW_TYPE_DEFINITION_ID = "flowtypedef:property";
 	private static final String FLOW_PROPERTY_DEFINITION_ID = "flowpropdef:property";
 	private static final String FLOW_HELPER_DEFINITION_ID = "flowhelperdef:function";
@@ -52,6 +60,12 @@ public class FlowStudioSupport {
 	private static final String FLOW_VIRTUAL_ICON = "/com/twinsoft/convertigo/beans/flow/images/flowvirtualobject_color_32x32.png";
 	private static final String FLOW_SCRIPT_ICON = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_script_color_32x32.png";
 	private static final Map<String, JSONObject> catalogCache = new ConcurrentHashMap<>();
+	private static final Map<String, ScheduledFuture<?>> frontendGenerationTasks = new ConcurrentHashMap<>();
+	private static final ScheduledExecutorService frontendGenerationExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+		var thread = new Thread(r, "Flow frontend generator");
+		thread.setDaemon(true);
+		return thread;
+	});
 
 	private FlowStudioSupport() {
 	}
@@ -286,6 +300,24 @@ public class FlowStudioSupport {
 		return helperDefinitionTarget(targetDbo) != null;
 	}
 
+	public static boolean canAddFrontendBlock(DatabaseObject targetDbo, String position, JSONObject data) {
+		try {
+			if (!frontendTargetKindsMatch(data, targetDbo)) {
+				return false;
+			}
+			var insert = frontendInsertValue(data);
+			return frontendSourceCreationSpec(targetDbo, insert) != null
+					|| frontendEngineMutationFor(targetDbo, insert) != null
+					|| frontendMutationFor(targetDbo, position, insert) != null;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	public static boolean canShowFrontendBlocks(DatabaseObject targetDbo) {
+		return isFrontendPaletteTarget(targetDbo);
+	}
+
 	public static boolean canAddFromPalette(DatabaseObject targetDbo, String position, JSONObject transfer) {
 		var data = transfer == null ? null : transfer.optJSONObject("data");
 		var type = data == null ? "" : data.optString("type", "");
@@ -304,6 +336,9 @@ public class FlowStudioSupport {
 		if (FLOW_HELPER_DEFINITION_TYPE.equals(type)) {
 			return canAddHelperDefinition(targetDbo);
 		}
+		if (FRONTEND_BLOCK_TYPE.equals(type)) {
+			return canAddFrontendBlock(targetDbo, position, data);
+		}
 		return false;
 	}
 
@@ -312,6 +347,15 @@ public class FlowStudioSupport {
 		var categories = new JSONArray();
 		if (root == null) {
 			return categories;
+		}
+		if (isFrontendPaletteTarget(targetDbo)) {
+			var frontendCategories = frontendBlockCategories(root, targetDbo);
+			for (int i = 0; i < frontendCategories.length(); i++) {
+				categories.put(frontendCategories.get(i));
+			}
+			if (!(targetDbo instanceof FlowEngine)) {
+				return categories;
+			}
 		}
 
 		var grouped = new LinkedHashMap<String, JSONObject>();
@@ -375,6 +419,128 @@ public class FlowStudioSupport {
 				: "Flow blocks - " + provider + " / " + namespace;
 	}
 
+	private static JSONArray frontendBlockCategories(DatabaseObject root, DatabaseObject targetDbo) throws Exception {
+		var categories = new JSONArray();
+		var grouped = new LinkedHashMap<String, JSONObject>();
+		var blocks = frontendPaletteDescriptors(root);
+		if (blocks == null) {
+			return categories;
+		}
+		for (int i = 0; i < blocks.length(); i++) {
+			var block = blocks.optJSONObject(i);
+			if (block == null || !frontendBlockSupportsTarget(block, targetDbo)) {
+				continue;
+			}
+			var categoryName = frontendBlockCategoryName(block);
+			var category = grouped.computeIfAbsent(categoryName, name -> {
+				try {
+					return new JSONObject()
+							.put("type", "Category")
+							.put("name", name)
+							.put("items", new JSONArray());
+				} catch (Exception e) {
+					return new JSONObject();
+				}
+			});
+			category.getJSONArray("items").put(frontendPaletteItem(block));
+		}
+		for (var category : grouped.values()) {
+			if (category.optJSONArray("items") != null && category.getJSONArray("items").length() > 0) {
+				categories.put(category);
+			}
+		}
+		return categories;
+	}
+
+	private static String frontendBlockCategoryName(JSONObject block) {
+		if (block.optBoolean("createAction", false) || "create".equals(firstNonBlank(block, "descriptorKind"))) {
+			var category = firstNonBlank(block, "category");
+			return category.isBlank()
+					? "Frontend create actions"
+					: "Frontend create actions - " + category;
+		}
+		var provider = firstNonBlank(block, "provider");
+		var namespace = firstNonBlank(block, "namespace");
+		var category = firstNonBlank(block, "category");
+		if (provider.isBlank()) {
+			provider = "unknown";
+		}
+		var prefix = namespace.isBlank()
+				? "Frontend blocks - " + provider
+				: "Frontend blocks - " + provider + " / " + namespace;
+		return category.isBlank() ? prefix : prefix + " / " + category;
+	}
+
+	private static JSONArray frontendPaletteDescriptors(DatabaseObject root) throws Exception {
+		var catalog = catalog(root);
+		var descriptors = new JSONArray();
+		appendObjects(descriptors, catalog.optJSONArray("frontendBlocks"));
+		appendObjects(descriptors, catalog.optJSONArray("frontendCreateDescriptors"));
+		return descriptors;
+	}
+
+	private static void appendObjects(JSONArray target, JSONArray source) {
+		if (source == null) {
+			return;
+		}
+		for (int i = 0; i < source.length(); i++) {
+			var object = source.optJSONObject(i);
+			if (object != null) {
+				target.put(object);
+			}
+		}
+	}
+
+	private static boolean frontendBlockSupportsTarget(JSONObject block, DatabaseObject targetDbo) {
+		if (!frontendTargetKindsMatch(block, targetDbo)) {
+			return false;
+		}
+		return canAddFrontendBlock(targetDbo, "inside", block)
+				|| canAddFrontendBlock(targetDbo, "before", block)
+				|| canAddFrontendBlock(targetDbo, "after", block);
+	}
+
+	private static JSONObject frontendPaletteItem(JSONObject block) throws Exception {
+		var blockId = firstNonBlank(block, "id", "name");
+		var label = firstNonBlank(block, "label", "name", "id");
+		var description = firstNonBlank(block, "description");
+		var icon = studioIcon(block);
+		var item = new JSONObject()
+				.put("type", FRONTEND_BLOCK_TYPE)
+				.put("id", FRONTEND_BLOCK_ID_PREFIX + blockId)
+				.put("name", label)
+				.put("classname", blockId)
+				.put("block", blockId)
+				.put("description", description)
+				.put("shortDescriptionHtml", html(description))
+				.put("shortDescriptionText", description)
+				.put("longDescriptionHtml", "")
+					.put("longDescriptionText", "")
+					.put("propertiesDescriptionHtml", propertiesDescription(block.optJSONObject("properties")))
+					.put("icon", icon)
+					.put("tooltip", blockId)
+					.put("builtin", false)
+					.put("additional", true)
+					.put("insert", block.optJSONObject("insert") == null ? new JSONObject() : block.getJSONObject("insert"));
+		if (block.optBoolean("createAction", false) || "create".equals(firstNonBlank(block, "descriptorKind"))) {
+			item.put("createAction", true);
+		}
+		if (block.optJSONArray("targetKinds") != null) {
+			item.put("targetKinds", block.getJSONArray("targetKinds"));
+		}
+		for (var key : new String[] { "iconFile32", "iconFile16", "iconFile" }) {
+			var value = firstNonBlank(block, key);
+			if (!value.isBlank()) {
+				item.put(key, value);
+			}
+		}
+		var iconify = firstNonBlank(block, "iconify", "icon");
+		if (!iconify.isBlank()) {
+			item.put("iconify", iconify);
+		}
+		return item;
+	}
+
 	public static boolean isFlowPaletteData(JSONObject transfer) {
 		var data = transfer == null ? null : transfer.optJSONObject("data");
 		return "paletteData".equals(transfer == null ? "" : transfer.optString("type"))
@@ -382,7 +548,8 @@ public class FlowStudioSupport {
 						|| FLOW_BLOCK_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
 						|| FLOW_TYPE_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
 						|| FLOW_PROPERTY_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
-						|| FLOW_HELPER_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type")));
+						|| FLOW_HELPER_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
+						|| FRONTEND_BLOCK_TYPE.equals(data == null ? "" : data.optString("type")));
 	}
 
 	public static JSONObject addBlock(DatabaseObject targetDbo, String position, String blockName) throws Exception {
@@ -413,6 +580,9 @@ public class FlowStudioSupport {
 		}
 		if (FLOW_HELPER_DEFINITION_TYPE.equals(data.optString("type", ""))) {
 			return addHelperDefinition(targetDbo);
+		}
+		if (FRONTEND_BLOCK_TYPE.equals(data.optString("type", ""))) {
+			return addFrontendBlock(targetDbo, position, data);
 		}
 
 		var blockName = data.optString("block", data.optString("classname", ""));
@@ -526,8 +696,521 @@ public class FlowStudioSupport {
 				.put("error", done ? JSONObject.NULL : response.opt("error"));
 	}
 
+	private static JSONObject addFrontendBlock(DatabaseObject targetDbo, String position, JSONObject data) throws Exception {
+		var root = flowAuthoringRoot(targetDbo);
+		if (!(root instanceof FlowEngine flowEngine)) {
+			return new JSONObject().put("done", false);
+		}
+		var insert = frontendInsertValue(data);
+		var sourceCreation = frontendSourceCreationSpec(targetDbo, insert);
+		if (sourceCreation != null) {
+			return createFrontendSource(flowEngine, targetDbo, sourceCreation);
+		}
+		var engineMutation = frontendEngineMutationFor(targetDbo, insert);
+		if (engineMutation != null) {
+			var response = new FlowEngineBridge().applyMutation(flowEngine, engineMutation);
+			var done = isSuccessResponse(response);
+			if (done) {
+				clearCatalogCache(flowEngine);
+			}
+			return new JSONObject()
+					.put("done", done)
+					.put("id", done ? flowEngine.getFullQName() : "")
+					.put("error", done ? JSONObject.NULL : response.opt("error"));
+		}
+		var mutation = frontendMutationFor(targetDbo, position, insert);
+		if (mutation == null) {
+			return new JSONObject().put("done", false);
+		}
+		var response = applyFrontendMutation(flowEngine, targetDbo, mutation);
+		var done = response.optBoolean("ok", false);
+		return new JSONObject()
+				.put("done", done)
+				.put("id", done ? flowEngine.getFullQName() : "")
+				.put("error", done ? JSONObject.NULL : response.opt("error"));
+	}
+
+	private static JSONObject frontendInsertValue(JSONObject data) throws Exception {
+		var insert = data == null ? null : data.optJSONObject("insert");
+		if (insert == null) {
+			insert = new JSONObject()
+					.put("id", "widget")
+					.put("kind", "text")
+					.put("text", data == null ? "Widget" : data.optString("name", "Widget"));
+		}
+		return new JSONObject(insert.toString());
+	}
+
+	private static JSONObject frontendEngineMutationFor(DatabaseObject targetDbo, JSONObject insert) throws Exception {
+		if (!(flowAuthoringRoot(targetDbo) instanceof FlowEngine)) {
+			return null;
+		}
+		if (!(targetDbo instanceof FlowEngine)
+				&& !(targetDbo instanceof FlowVirtualObject fvo && "frontends".equals(fvo.getVirtualType()))) {
+			return null;
+		}
+		var path = firstNonBlank(insert, "__engineMutationPath");
+		if (path.isBlank()) {
+			return null;
+		}
+		var op = firstNonBlank(insert, "__engineMutationOp");
+		if (op.isBlank()) {
+			op = "merge";
+		}
+		return new JSONObject()
+				.put("op", op)
+				.put("path", path)
+				.put("value", cleanFrontendInsertValue(insert));
+	}
+
+	private static JSONObject frontendSourceCreationSpec(DatabaseObject targetDbo, JSONObject insert) throws Exception {
+		if (!(flowAuthoringRoot(targetDbo) instanceof FlowEngine)) {
+			return null;
+		}
+		if (!frontendSourceCreationWritableTarget(targetDbo)) {
+			return null;
+		}
+		var create = insert == null ? null : insert.optJSONObject("__frontendCreateSource");
+		if (create == null) {
+			return null;
+		}
+		var baseId = firstNonBlank(create, "baseId");
+		var directory = firstNonBlank(create, "directory");
+		var fileName = firstNonBlank(create, "fileName");
+		var source = create.optString("source", "");
+		if (baseId.isBlank() || directory.isBlank() || fileName.isBlank() || source.isBlank()) {
+			return null;
+		}
+		var spec = new JSONObject(create.toString());
+		var namespace = frontendSourceTargetNamespace(targetDbo);
+		if (!namespace.isBlank()) {
+			spec.put("__targetNamespace", namespace);
+		}
+		return spec;
+	}
+
+	private static JSONObject createFrontendSource(FlowEngine flowEngine, DatabaseObject targetDbo, JSONObject create) throws Exception {
+		var builderName = firstNonBlank(create, "builder");
+		if (builderName.isBlank()) {
+			builderName = frontendBuilderName(targetDbo);
+		}
+		var baseId = firstNonBlank(create, "baseId");
+		var targetNamespace = firstNonBlank(create, "__targetNamespace");
+		if (!targetNamespace.isBlank()) {
+			baseId = targetNamespace + "." + frontendSourceLocalName(baseId);
+		}
+		var blockId = uniqueFrontendSourceId(flowEngine, baseId);
+		var values = frontendSourceTemplateValues(builderName, blockId);
+		var directory = applyTemplate(firstNonBlank(create, "directory"), values);
+		var fileName = applyTemplate(firstNonBlank(create, "fileName"), values);
+		values.put("fileName", fileName);
+		var source = applyTemplate(create.optString("source", ""), values);
+		var project = flowEngine.getProject();
+		var projectDir = project == null ? new File(".") : project.getDirFile();
+		var rootDir = new File(projectDir, "libs/flow/frontbuilder/" + safeFileName(builderName));
+		var dir = new File(rootDir, directory);
+		var file = new File(dir, fileName);
+		var rootPath = rootDir.getCanonicalPath();
+		var filePath = file.getCanonicalPath();
+		if (!filePath.startsWith(rootPath + File.separator)) {
+			return new JSONObject()
+					.put("done", false)
+					.put("error", "Frontend source path escapes builder root: " + filePath);
+		}
+		if (file.isFile()) {
+			return new JSONObject()
+					.put("done", false)
+					.put("error", "Frontend source already exists: " + file.getAbsolutePath());
+		}
+		file.getParentFile().mkdirs();
+		FileUtils.writeStringToFile(file, source, "UTF-8");
+		FlowEngineBridge.clearCaches();
+		clearCatalogCache(flowEngine);
+		return new JSONObject()
+				.put("done", true)
+				.put("id", flowEngine.getFullQName())
+				.put("file", file.getAbsolutePath())
+				.put("sourceId", blockId);
+	}
+
+	private static boolean frontendSourceCreationWritableTarget(DatabaseObject targetDbo) {
+		if (targetDbo instanceof FlowEngine) {
+			return true;
+		}
+		DatabaseObject cursor = targetDbo;
+		while (cursor instanceof FlowVirtualObject fvo) {
+			var sourceWritable = sourceFlagValue(fvo, "sourceWritable");
+			if (sourceWritable != null) {
+				return sourceWritable;
+			}
+			cursor = fvo.getParent();
+		}
+		return false;
+	}
+
+	private static String frontendSourceTargetNamespace(DatabaseObject targetDbo) {
+		DatabaseObject cursor = targetDbo;
+		while (cursor instanceof FlowVirtualObject fvo) {
+			var definition = fvo.getDefinitionObject();
+			if (definition != null && definition.has("namespace")) {
+				return definition.optString("namespace", "");
+			}
+			cursor = fvo.getParent();
+		}
+		return "";
+	}
+
+	private static String frontendSourceLocalName(String blockId) {
+		blockId = blockId == null || blockId.isBlank() ? "item" : blockId;
+		var lastDot = blockId.lastIndexOf('.');
+		return lastDot < 0 ? blockId : blockId.substring(lastDot + 1);
+	}
+
+	private static String uniqueFrontendSourceId(DatabaseObject root, String baseId) throws Exception {
+		baseId = baseId == null || baseId.isBlank() ? "project.item" : baseId;
+		var used = new HashSet<String>();
+		var blocks = catalog(root).optJSONArray("frontendBlocks");
+		if (blocks != null) {
+			for (int i = 0; i < blocks.length(); i++) {
+				var block = blocks.optJSONObject(i);
+				if (block != null) {
+					var id = firstNonBlank(block, "id", "name");
+					if (!id.isBlank()) {
+						used.add(id);
+					}
+				}
+			}
+		}
+		var candidate = baseId;
+		for (int i = 2; used.contains(candidate); i++) {
+			candidate = baseId + i;
+		}
+		return candidate;
+	}
+
+	private static Map<String, String> frontendSourceTemplateValues(String builderName, String blockId) {
+		var values = new LinkedHashMap<String, String>();
+		var lastDot = blockId.lastIndexOf('.');
+		var namespace = lastDot < 0 ? "" : blockId.substring(0, lastDot);
+		var localName = lastDot < 0 ? blockId : blockId.substring(lastDot + 1);
+		var tag = frontendComponentTag(localName);
+		values.put("builder", builderName);
+		values.put("id", blockId);
+		values.put("namespace", namespace);
+		values.put("namespacePath", namespace.replace('.', '/'));
+		values.put("localName", localName);
+		values.put("LocalName", tag);
+		values.put("tag", tag);
+		values.put("actionName", lowerFirst(tag));
+		return values;
+	}
+
+	private static String applyTemplate(String template, Map<String, String> values) {
+		var out = template == null ? "" : template;
+		for (var entry : values.entrySet()) {
+			out = out.replace("${" + entry.getKey() + "}", entry.getValue());
+		}
+		return out;
+	}
+
+	private static JSONObject frontendMutationFor(DatabaseObject targetDbo, String position, JSONObject insert) throws Exception {
+		if (!(targetDbo instanceof FlowVirtualObject fvo) || sourcePath(fvo).isBlank() || !sourceFlag(fvo, "sourceWritable")) {
+			return null;
+		}
+		position = position == null || position.isBlank() ? "inside" : position;
+		var insertValue = uniqueFrontendInsertValue(fvo, cleanFrontendInsertValue(insert));
+		var insertSourcePath = firstNonBlank(insert, "__frontendSourcePath");
+		if (insertSourcePath.isBlank()) {
+			insertSourcePath = sourceValue(fvo, "frontendInsertSourcePath");
+		}
+		if (insertSourcePath.isBlank()) {
+			insertSourcePath = sourcePath(fvo);
+		}
+		var insertMutationPath = firstNonBlank(insert, "__frontendMutationPath");
+		if (insertMutationPath.isBlank()) {
+			insertMutationPath = sourceValue(fvo, "frontendInsertMutationPath");
+		}
+		if (!insertSourcePath.isBlank() && !insertMutationPath.isBlank()) {
+			return new JSONObject()
+					.put("op", firstNonBlank(insert, "__frontendMutationOp").isBlank() ? "append" : firstNonBlank(insert, "__frontendMutationOp"))
+					.put("path", insertMutationPath)
+					.put("value", insertValue)
+					.put("__sourcePath", insertSourcePath);
+		}
+		var referencedComponent = frontendReferencedComponent(fvo);
+		if (referencedComponent != null && isSourceBackedTarget(referencedComponent)) {
+			return new JSONObject()
+					.put("op", "append")
+					.put("path", mutationPath(referencedComponent) + ".widgets")
+					.put("value", insertValue)
+					.put("__sourcePath", sourcePath(referencedComponent));
+		}
+		if ("frontendComponent".equals(fvo.getVirtualKind()) && isSourceBackedTarget(fvo)) {
+			return new JSONObject()
+					.put("op", "append")
+					.put("path", mutationPath(fvo) + ".widgets")
+					.put("value", insertValue);
+		}
+		if ("frontendWidget".equals(fvo.getVirtualKind()) && isSourceBackedTarget(fvo)) {
+			var arrayPath = parentArrayPath(mutationPath(fvo));
+			if (arrayPath == null) {
+				return null;
+			}
+			if ("inside".equals(position)) {
+				position = "after";
+			}
+			var index = "before".equals(position) ? arrayIndex(mutationPath(fvo)) : arrayIndex(mutationPath(fvo)) + 1;
+			return new JSONObject()
+					.put("op", "insert")
+					.put("path", arrayPath)
+					.put("index", index)
+					.put("value", insertValue);
+		}
+		var widgetsPath = frontendReferencedComponentWidgetsPath(fvo);
+		if (widgetsPath != null) {
+			return new JSONObject()
+					.put("op", "append")
+					.put("path", widgetsPath)
+					.put("value", insertValue);
+		}
+		return null;
+	}
+
+	private static JSONObject cleanFrontendInsertValue(JSONObject insert) throws Exception {
+		var value = new JSONObject(insert == null ? "{}" : insert.toString());
+		var keys = new ArrayList<String>();
+		for (var iterator = value.keys(); iterator.hasNext();) {
+			keys.add(String.valueOf(iterator.next()));
+		}
+		for (var key : keys) {
+			if (key.startsWith("__")) {
+				value.remove(key);
+			}
+		}
+		return value;
+	}
+
+	private static boolean frontendTargetKindsMatch(JSONObject data, DatabaseObject targetDbo) {
+		var targetKinds = data == null ? null : data.optJSONArray("targetKinds");
+		if (targetKinds == null || targetKinds.length() == 0) {
+			return true;
+		}
+		var targetKind = "";
+		var targetType = "";
+		var acceptedKinds = new HashSet<String>();
+		if (targetDbo instanceof FlowEngine) {
+			targetKind = "flowEngine";
+		} else if (targetDbo instanceof FlowVirtualObject fvo) {
+			targetKind = fvo.getVirtualKind();
+			targetType = fvo.getVirtualType();
+			if ("frontendBlockImplementation".equals(targetKind)) {
+				acceptedKinds.add("frontendComponent");
+				acceptedKinds.add("frontendWidget");
+			}
+		}
+		if (!targetKind.isBlank()) {
+			acceptedKinds.add(targetKind);
+		}
+		if (!targetType.isBlank()) {
+			acceptedKinds.add(targetType);
+		}
+		for (int i = 0; i < targetKinds.length(); i++) {
+			var expected = targetKinds.optString(i);
+			if (acceptedKinds.contains(expected)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static FlowVirtualObject frontendReferencedComponent(FlowVirtualObject target) throws Exception {
+		var componentId = frontendReferencedComponentId(target);
+		if (componentId == null || componentId.isBlank()) {
+			return null;
+		}
+		DatabaseObject cursor = target;
+		while (cursor != null) {
+			var found = findFrontendComponent(cursor, componentId);
+			if (found != null) {
+				return found;
+			}
+			cursor = cursor.getParent();
+		}
+		return findFrontendComponent(flowAuthoringRoot(target), componentId);
+	}
+
+	private static FlowVirtualObject findFrontendComponent(DatabaseObject candidate, String componentId) throws Exception {
+		if (candidate == null) {
+			return null;
+		}
+		if (candidate instanceof FlowVirtualObject fvo && "frontendComponent".equals(fvo.getVirtualKind())) {
+			var definition = fvo.getDefinitionObject();
+			var id = definition == null ? "" : definition.optString("id", "");
+			if (componentId.equals(id) || componentId.equals(fvo.getName()) || componentId.equals(fvo.getSummary())) {
+				return fvo;
+			}
+		}
+		for (var child : candidate.getDatabaseObjectChildren()) {
+			var found = findFrontendComponent(child, componentId);
+			if (found != null) {
+				return found;
+			}
+		}
+		return null;
+	}
+
+	private static String frontendReferencedComponentWidgetsPath(FlowVirtualObject target) throws Exception {
+		var componentId = frontendReferencedComponentId(target);
+		if (componentId == null || componentId.isBlank()) {
+			return null;
+		}
+		var model = new JSONObject(frontendSource(target));
+		var components = model.optJSONArray("components");
+		if (components == null) {
+			return null;
+		}
+		for (int i = 0; i < components.length(); i++) {
+			var component = components.optJSONObject(i);
+			if (component != null && componentId.equals(component.optString("id", ""))) {
+				return "components[" + i + "].widgets";
+			}
+		}
+		return null;
+	}
+
+	private static String frontendReferencedComponentId(FlowVirtualObject target) {
+		var definition = target.getDefinitionObject();
+		if (definition == null) {
+			return "";
+		}
+		return switch (target.getVirtualKind()) {
+		case "frontendComponentRef" -> definition.optString("component", "");
+		case "frontendRegion" -> firstString(definition.optJSONArray("components"));
+		case "frontendPage" -> firstPageComponent(definition);
+		default -> "";
+		};
+	}
+
+	private static String firstPageComponent(JSONObject page) {
+		var regions = page.optJSONObject("regions");
+		if (regions != null) {
+			var content = firstString(regions.optJSONArray("content"));
+			if (!content.isBlank()) {
+				return content;
+			}
+			var keys = regions.keys();
+			while (keys.hasNext()) {
+				var value = regions.opt(String.valueOf(keys.next()));
+				if (value instanceof JSONArray array) {
+					var first = firstString(array);
+					if (!first.isBlank()) {
+						return first;
+					}
+				}
+			}
+		}
+		return firstString(page.optJSONArray("components"));
+	}
+
+	private static String firstString(JSONArray array) {
+		return array == null || array.length() == 0 ? "" : array.optString(0, "");
+	}
+
+	private static JSONObject uniqueFrontendInsertValue(FlowVirtualObject target, JSONObject insert) throws Exception {
+		var value = new JSONObject(insert.toString());
+		var base = value.optString("id", value.optString("kind", "widget"));
+		base = base.replaceAll("[^A-Za-z0-9_]", "_").replaceAll("_+", "_").replaceAll("^_+|_+$", "");
+		if (base.isBlank()) {
+			base = "widget";
+		}
+		var used = new HashSet<String>();
+		var component = "frontendComponent".equals(target.getVirtualKind()) ? target : target.getParent();
+		if (component instanceof FlowVirtualObject componentFvo) {
+			for (var child : componentFvo.getDatabaseObjectChildren()) {
+				if (child instanceof FlowVirtualObject childFvo && "frontendWidget".equals(childFvo.getVirtualKind())) {
+					var childDefinition = childFvo.getDefinitionObject();
+					if (childDefinition != null) {
+						var id = childDefinition.optString("id", "");
+						if (!id.isBlank()) {
+							used.add(id);
+						}
+					}
+				}
+			}
+		}
+		var referencedComponent = frontendReferencedComponent(target);
+		if (referencedComponent != null && referencedComponent != component) {
+			for (var child : referencedComponent.getDatabaseObjectChildren()) {
+				if (child instanceof FlowVirtualObject childFvo && "frontendWidget".equals(childFvo.getVirtualKind())) {
+					var childDefinition = childFvo.getDefinitionObject();
+					if (childDefinition != null) {
+						var id = childDefinition.optString("id", "");
+						if (!id.isBlank()) {
+							used.add(id);
+						}
+					}
+				}
+			}
+		}
+		used.addAll(frontendReferencedComponentWidgetIds(target));
+		var candidate = base;
+		for (int i = 2; used.contains(candidate); i++) {
+			candidate = base + i;
+		}
+		value.put("id", candidate);
+		return value;
+	}
+
+	private static Set<String> frontendReferencedComponentWidgetIds(FlowVirtualObject target) {
+		var used = new HashSet<String>();
+		try {
+			if (!sourcePath(target).endsWith(".front.json")) {
+				return used;
+			}
+			var componentId = frontendReferencedComponentId(target);
+			if (componentId == null || componentId.isBlank()) {
+				return used;
+			}
+			var model = new JSONObject(frontendSource(target));
+			var components = model.optJSONArray("components");
+			if (components == null) {
+				return used;
+			}
+			for (int i = 0; i < components.length(); i++) {
+				var component = components.optJSONObject(i);
+				if (component == null || !componentId.equals(component.optString("id", ""))) {
+					continue;
+				}
+				var widgets = component.optJSONArray("widgets");
+				if (widgets == null) {
+					return used;
+				}
+				for (int j = 0; j < widgets.length(); j++) {
+					var widget = widgets.optJSONObject(j);
+					var id = widget == null ? "" : widget.optString("id", "");
+					if (!id.isBlank()) {
+						used.add(id);
+					}
+				}
+				return used;
+			}
+		} catch (Exception e) {
+			Engine.logStudio.debug("Unable to collect frontend widget ids", e);
+		}
+		return used;
+	}
+
 	private static boolean isSuccessResponse(JSONObject response) {
 		return response != null && !response.has("error") && (!response.has("ok") || response.optBoolean("ok", false));
+	}
+
+	private static String frontendSource(FlowVirtualObject target) throws Exception {
+		var sourcePath = sourcePath(target);
+		var root = flowAuthoringRoot(target);
+		if (root instanceof FlowEngine flowEngine) {
+			return flowEngine.getFrontendSource(sourcePath);
+		}
+		return FileUtils.readFileToString(new File(sourcePath), "UTF-8");
 	}
 
 	public static JSONObject moveNode(DatabaseObject targetDbo, boolean up, int count) throws Exception {
@@ -541,20 +1224,11 @@ public class FlowStudioSupport {
 
 	public static JSONObject moveNode(DatabaseObject sourceDbo, DatabaseObject targetDbo, boolean insertBefore) throws Exception {
 		if (!(sourceDbo instanceof FlowVirtualObject source) || !(targetDbo instanceof FlowVirtualObject target)
-				|| !"node".equals(source.getVirtualKind()) || !"node".equals(target.getVirtualKind())) {
-			return new JSONObject().put("done", false);
-		}
-		if (isSourceBackedTarget(source) != isSourceBackedTarget(target)) {
-			return new JSONObject().put("done", false);
-		}
-		if (isSourceBackedTarget(source) && !sourcePath(source).equals(sourcePath(target))) {
+				|| !canMoveNode(sourceDbo, targetDbo)) {
 			return new JSONObject().put("done", false);
 		}
 		var sourceArrayPath = parentArrayPath(mutationPath(source));
 		var targetArrayPath = parentArrayPath(mutationPath(target));
-		if (sourceArrayPath == null || !sourceArrayPath.equals(targetArrayPath)) {
-			return new JSONObject().put("done", false);
-		}
 		var sourceIndex = arrayIndex(mutationPath(source));
 		var targetIndex = arrayIndex(mutationPath(target));
 		if (sourceIndex == targetIndex) {
@@ -565,6 +1239,44 @@ public class FlowStudioSupport {
 			insertIndex--;
 		}
 		return moveNodeToIndex(source, insertIndex);
+	}
+
+	public static boolean canMoveNode(DatabaseObject sourceDbo, DatabaseObject targetDbo) {
+		if (!(sourceDbo instanceof FlowVirtualObject source) || !(targetDbo instanceof FlowVirtualObject target)
+				|| !sameVirtualParent(source, target)
+				|| !source.getVirtualKind().equals(target.getVirtualKind())) {
+			return false;
+		}
+		var sourceArrayPath = parentArrayPath(mutationPath(source));
+		var targetArrayPath = parentArrayPath(mutationPath(target));
+		if (sourceArrayPath == null || !sourceArrayPath.equals(targetArrayPath)) {
+			return false;
+		}
+		if ("node".equals(source.getVirtualKind()) && !isSourceBackedTarget(source) && !isSourceBackedTarget(target)) {
+			return true;
+		}
+		return isSourceBackedTarget(source)
+				&& isSourceBackedTarget(target)
+				&& sourcePath(source).equals(sourcePath(target));
+	}
+
+	private static boolean sameVirtualParent(FlowVirtualObject source, FlowVirtualObject target) {
+		var sourceParent = source.getParent();
+		var targetParent = target.getParent();
+		if (sourceParent == targetParent) {
+			return true;
+		}
+		if (!(sourceParent instanceof FlowVirtualObject sourceFvo)
+				|| !(targetParent instanceof FlowVirtualObject targetFvo)
+				|| !sourceFvo.getVirtualKind().equals(targetFvo.getVirtualKind())
+				|| !sourceFvo.getVirtualPath().equals(targetFvo.getVirtualPath())) {
+			return false;
+		}
+		var sourceParentPath = sourcePath(sourceFvo);
+		var targetParentPath = sourcePath(targetFvo);
+		return sourceParentPath.isBlank()
+				? targetParentPath.isBlank()
+				: sourceParentPath.equals(targetParentPath);
 	}
 
 	private static JSONObject moveNodeToIndex(FlowVirtualObject fvo, int targetIndex) throws Exception {
@@ -881,6 +1593,39 @@ public class FlowStudioSupport {
 		return false;
 	}
 
+	private static boolean isFrontendPaletteTarget(DatabaseObject targetDbo) {
+		var root = flowAuthoringRoot(targetDbo);
+		if (!(root instanceof FlowEngine)) {
+			return false;
+		}
+		if (targetDbo instanceof FlowEngine) {
+			return true;
+		}
+		if (targetDbo instanceof FlowVirtualObject fvo) {
+			var path = fvo.getVirtualPath();
+			return "frontends".equals(path) || path.startsWith("frontends.");
+		}
+		return false;
+	}
+
+	private static String frontendBuilderName(DatabaseObject targetDbo) {
+		if (targetDbo instanceof FlowVirtualObject fvo) {
+			var path = fvo.getVirtualPath();
+			var parts = path.split("\\.");
+			if (parts.length >= 2 && "frontends".equals(parts[0]) && !parts[1].isBlank()) {
+				return parts[1];
+			}
+			var info = fvo.getVirtualInfoObject();
+			if (info != null) {
+				var builder = info.optString("frontendBuilder", "");
+				if (!builder.isBlank()) {
+					return builder;
+				}
+			}
+		}
+		return "svelte";
+	}
+
 	private static boolean isBlockDefinitionPaletteTarget(DatabaseObject targetDbo) {
 		var root = flowAuthoringRoot(targetDbo);
 		if (!(root instanceof FlowEngine)) {
@@ -1067,11 +1812,99 @@ public class FlowStudioSupport {
 	private static JSONObject applyMutation(DatabaseObject root, DatabaseObject targetDbo, JSONObject mutation) throws Exception {
 		if (targetDbo instanceof FlowVirtualObject fvo && isSourceBackedTarget(fvo)) {
 			var flowEngine = root instanceof FlowEngine engine ? engine : root.getProject().getFlowEngine();
-			return new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath(fvo), mutation);
+			var sourcePath = sourcePath(fvo);
+			var response = new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath, mutation);
+			if (response.optBoolean("ok", false)) {
+				afterSourceMutation(flowEngine, sourcePath);
+			}
+			return response;
 		}
 		return root instanceof Flow flow
 				? new FlowEngineBridge().applyMutation(flow, mutation)
 				: new FlowEngineBridge().applyMutation((FlowEngine) root, mutation);
+	}
+
+	private static JSONObject applyFrontendMutation(FlowEngine flowEngine, DatabaseObject targetDbo, JSONObject mutation) throws Exception {
+		var overrideSourcePath = mutation == null ? "" : mutation.optString("__sourcePath", "");
+		if (!overrideSourcePath.isBlank()) {
+			var response = new FlowEngineBridge().applySourceMutation(flowEngine, overrideSourcePath, cleanFrontendMutation(mutation));
+			if (response.optBoolean("ok", false)) {
+				afterSourceMutation(flowEngine, overrideSourcePath);
+			}
+			return response;
+		}
+		if (targetDbo instanceof FlowVirtualObject fvo) {
+			var sourcePath = sourcePath(fvo);
+			if (!sourcePath.isBlank() && sourceFlag(fvo, "sourceWritable")) {
+				var response = new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath, mutation);
+				if (response.optBoolean("ok", false)) {
+					afterSourceMutation(flowEngine, sourcePath);
+				}
+				return response;
+			}
+		}
+		return applyMutation(flowEngine, targetDbo, mutation);
+	}
+
+	private static JSONObject cleanFrontendMutation(JSONObject mutation) throws Exception {
+		var clean = new JSONObject(mutation.toString());
+		clean.remove("__sourcePath");
+		return clean;
+	}
+
+	public static void afterSourceMutation(FlowEngine flowEngine, String sourcePath) {
+		if (flowEngine == null || sourcePath == null
+				|| !(sourcePath.endsWith(".front.json") || sourcePath.endsWith(".flow.svelte"))) {
+			return;
+		}
+		var key = flowEngine.getQName() + "|" + sourcePath;
+		var previous = frontendGenerationTasks.get(key);
+		if (previous != null) {
+			previous.cancel(false);
+		}
+		var task = frontendGenerationExecutor.schedule(() -> {
+			try {
+				var response = new FlowEngineBridge().contextAction(flowEngine, new JSONObject()
+						.put("action", new JSONObject()
+								.put("id", "frontbuilder.svelte.generate")
+								.put("payload", new JSONObject()
+										.put("changedSourcePath", sourcePath))));
+				if (response.optBoolean("ok", false)) {
+					flowStudioInfo("Regenerated frontend source after Flow mutation: " + sourcePath);
+				} else {
+					flowStudioWarn("Unable to regenerate frontend source after Flow mutation: " + flowErrorMessage(response));
+				}
+			} catch (Exception e) {
+				flowStudioWarn("Unable to regenerate frontend source after Flow mutation.", e);
+			} finally {
+				frontendGenerationTasks.remove(key);
+			}
+		}, 350, TimeUnit.MILLISECONDS);
+		frontendGenerationTasks.put(key, task);
+	}
+
+	private static void flowStudioInfo(String message) {
+		var log = Engine.logStudio == null ? Engine.logBeans : Engine.logStudio;
+		log.info(message);
+	}
+
+	private static void flowStudioWarn(String message) {
+		var log = Engine.logStudio == null ? Engine.logBeans : Engine.logStudio;
+		log.warn(message);
+	}
+
+	private static void flowStudioWarn(String message, Throwable e) {
+		var log = Engine.logStudio == null ? Engine.logBeans : Engine.logStudio;
+		log.warn(message, e);
+	}
+
+	private static String flowErrorMessage(JSONObject response) {
+		var error = response == null ? null : response.optJSONObject("error");
+		if (error == null) {
+			return response == null ? "" : response.optString("message", response.optString("code", "Unknown error"));
+		}
+		var message = error.optString("message", "");
+		return message.isBlank() ? error.optString("code", "Unknown error") : message;
 	}
 
 	private static boolean isSourceBackedTarget(FlowVirtualObject fvo) {
@@ -1094,10 +1927,20 @@ public class FlowStudioSupport {
 	}
 
 	private static boolean sourceFlag(FlowVirtualObject fvo, String key) {
+		var value = sourceFlagValue(fvo, key);
+		return value != null && value;
+	}
+
+	private static Boolean sourceFlagValue(FlowVirtualObject fvo, String key) {
 		var info = fvo.getVirtualInfoObject();
 		var definition = fvo.getDefinitionObject();
-		return info != null && info.optBoolean(key, false)
-				|| definition != null && definition.optBoolean(key, false);
+		if (info != null && info.has(key)) {
+			return info.optBoolean(key, false);
+		}
+		if (definition != null && definition.has(key)) {
+			return definition.optBoolean(key, false);
+		}
+		return null;
 	}
 
 	private static String sourceValue(FlowVirtualObject fvo, String key) {
@@ -1176,6 +2019,33 @@ public class FlowStudioSupport {
 			candidate = base + i;
 		}
 		return candidate;
+	}
+
+	private static String frontendComponentTag(String value) {
+		var builder = new StringBuilder();
+		for (var part : value.split("[^A-Za-z0-9]+")) {
+			if (part.isBlank()) {
+				continue;
+			}
+			builder.append(Character.toUpperCase(part.charAt(0)));
+			if (part.length() > 1) {
+				builder.append(part.substring(1));
+			}
+		}
+		var tag = builder.toString();
+		return tag.isBlank() ? "Component" : tag;
+	}
+
+	private static String lowerFirst(String value) {
+		return value == null || value.isBlank()
+				? "component"
+				: Character.toLowerCase(value.charAt(0)) + value.substring(1);
+	}
+
+	private static String safeFileName(String value) {
+		var safe = value == null ? "" : value.replaceAll("[^A-Za-z0-9_-]+", "_").replaceAll("_+", "_");
+		safe = safe.replaceAll("^_+|_+$", "");
+		return safe.isBlank() ? "project" : safe;
 	}
 
 	private static String nextTypeName(DatabaseObject root) throws Exception {

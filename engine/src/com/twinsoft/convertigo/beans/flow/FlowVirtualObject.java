@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.flow;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +36,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.codehaus.jettison.json.JSONTokener;
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -79,6 +81,12 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 
 	void addVirtualChild(FlowVirtualObject child) {
 		children.add(child);
+	}
+
+	@Override
+	public void remove(DatabaseObject databaseObject) throws EngineException {
+		children.remove(databaseObject);
+		super.remove(databaseObject);
 	}
 
 	public String getVirtualKind() {
@@ -202,6 +210,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 					}
 				}
 				definition = object.toString();
+				refreshSummaryFromDefinition(object);
 			}
 		} catch (JSONException e) {
 			throw new EngineException("Unable to update Flow virtual property cache.", e);
@@ -249,7 +258,11 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 
 	@Override
 	public void delete() throws EngineException {
-		if (isDefinitionWritable() && isDeletableVirtualKind()) {
+		if (isSourceBackedDeletable()) {
+			applySourceDeleteMutation((FlowEngine) mutableSourceRoot(), sourceValue("sourcePath"), sourceValue("sourceMutationPath"));
+		} else if (isSourceBackedFileDeletable()) {
+			deleteSourceFile((FlowEngine) mutableSourceRoot(), sourceValue("sourcePath"));
+		} else if (isDefinitionWritable() && isDeletableVirtualKind()) {
 			applyDeleteMutation(virtualPath);
 		} else if (!virtualKind.isBlank()) {
 			throw new EngineException("Cannot delete Flow virtual " + virtualKind + " object from the tree.");
@@ -550,7 +563,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 					: new FlowEngineBridge().applyMutation((FlowEngine) target, mutation);
 			if (!response.optBoolean("ok", false)) {
 				var error = response.optJSONObject("error");
-				var message = error == null ? response.toString() : error.optString("message", error.toString());
+				var message = error == null ? response.optString("message", "Flow mutation failed.") : flowErrorMessage(error);
 				throw new EngineException("Flow virtual mutation failed: " + message);
 			}
 		} catch (JSONException e) {
@@ -579,7 +592,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 					: new FlowEngineBridge().applyMutation((FlowEngine) target, mutation);
 			if (!response.optBoolean("ok", false)) {
 				var error = response.optJSONObject("error");
-				var message = error == null ? response.toString() : error.optString("message", error.toString());
+				var message = error == null ? response.optString("message", "Flow delete failed.") : flowErrorMessage(error);
 				throw new EngineException("Flow virtual delete failed: " + message);
 			}
 		} catch (JSONException e) {
@@ -630,11 +643,72 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 					.put("value", value == null ? JSONObject.NULL : value));
 			if (!response.optBoolean("ok", false)) {
 				var error = response.optJSONObject("error");
-				var message = error == null ? response.toString() : error.optString("message", error.toString());
+				var message = error == null ? response.optString("message", "Flow source mutation failed.") : flowErrorMessage(error);
 				throw new EngineException("Flow source mutation failed: " + message);
 			}
+			FlowStudioSupport.afterSourceMutation(flowEngine, sourcePath);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow source property mutation.", e);
+		}
+	}
+
+	private void applySourceDeleteMutation(FlowEngine flowEngine, String sourcePath, String path) throws EngineException {
+		try {
+			var response = new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath, new JSONObject()
+					.put("op", "delete")
+					.put("path", path));
+			if (!response.optBoolean("ok", false)) {
+				var error = response.optJSONObject("error");
+				var message = error == null ? response.optString("message", "Flow source delete failed.") : flowErrorMessage(error);
+				throw new EngineException("Flow source delete failed: " + message);
+			}
+			FlowStudioSupport.afterSourceMutation(flowEngine, sourcePath);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build Flow source delete mutation.", e);
+		}
+	}
+
+	private boolean isSourceBackedDeletable() {
+		var target = mutableSourceRoot();
+		var sourcePath = sourceValue("sourcePath");
+		var sourceMutationPath = sourceValue("sourceMutationPath");
+		return target instanceof FlowEngine
+				&& isWritableSourceObject()
+				&& (sourcePath.endsWith(".front.json") || sourcePath.endsWith(".flow.svelte"))
+				&& !sourceMutationPath.isBlank();
+	}
+
+	private boolean isSourceBackedFileDeletable() {
+		var target = mutableSourceRoot();
+		var sourcePath = sourceValue("sourcePath");
+		return target instanceof FlowEngine
+				&& "frontendBlock".equals(virtualKind)
+				&& isWritableSourceObject()
+				&& isFrontendSourceFile(sourcePath);
+	}
+
+	private static boolean isFrontendSourceFile(String sourcePath) {
+		return sourcePath.endsWith(".flow.svelte")
+				|| sourcePath.endsWith(".svelte")
+				|| sourcePath.endsWith(".svelte.js")
+				|| sourcePath.endsWith(".svelte.ts")
+				|| sourcePath.endsWith(".uiblock.json");
+	}
+
+	private void deleteSourceFile(FlowEngine flowEngine, String sourcePath) throws EngineException {
+		try {
+			var file = new File(sourcePath);
+			if (!file.isFile()) {
+				throw new EngineException("Flow virtual source file does not exist: " + sourcePath);
+			}
+			FileUtils.forceDelete(file);
+			FlowEngineBridge.clearCaches();
+			FlowStudioSupport.clearCatalogCache(flowEngine);
+			FlowStudioSupport.afterSourceMutation(flowEngine, sourcePath);
+		} catch (EngineException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EngineException("Unable to delete Flow virtual source file \"" + sourcePath + "\".", e);
 		}
 	}
 
@@ -656,8 +730,41 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		return definition == null ? "" : definition.optString(key, "");
 	}
 
+	private static String flowErrorMessage(JSONObject error) {
+		var message = error.optString("message", "");
+		return message.isBlank() ? error.optString("code", "Flow error.") : message;
+	}
+
 	private static boolean jsonFlag(JSONObject object, String key) {
 		return object != null && object.optBoolean(key, false);
+	}
+
+	private void refreshSummaryFromDefinition(JSONObject object) {
+		if (object == null) {
+			return;
+		}
+		var next = firstNonBlank(
+				object.optString("label", ""),
+				object.optString("title", ""),
+				object.optString("text", ""),
+				object.optString("name", ""),
+				object.optString("id", ""),
+				object.optString("kind", ""));
+		if (!next.isBlank()) {
+			summary = next;
+		}
+	}
+
+	private static String firstNonBlank(String... values) {
+		if (values != null) {
+			for (var value : values) {
+				value = valueOrEmpty(value);
+				if (!value.isBlank()) {
+					return value;
+				}
+			}
+		}
+		return "";
 	}
 
 	private boolean hasDeclaredProperty(String key) {

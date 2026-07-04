@@ -28,6 +28,7 @@ public class PaletteSource {
 	private String flowBlockName = null;
 	private String flowRuntime = null;
 	private String flowBlockDescription = null;
+	private String flowItemData = null;
 	
 	public PaletteSource(DatabaseObject dbo) {
 		this.dbo = dbo;
@@ -43,6 +44,12 @@ public class PaletteSource {
 		this.flowItemType = flowItemType;
 		this.flowBlockName = flowBlockName;
 		this.flowRuntime = flowRuntime;
+		this.flowBlockDescription = flowBlockDescription;
+	}
+
+	private PaletteSource(String flowItemType, String flowItemData, String flowBlockDescription) {
+		this.flowItemType = flowItemType;
+		this.flowItemData = flowItemData;
 		this.flowBlockDescription = flowBlockDescription;
 	}
 
@@ -64,6 +71,14 @@ public class PaletteSource {
 
 	public static PaletteSource flowHelperDefinition(String description) {
 		return new PaletteSource("helperDefinition", "", "", description);
+	}
+
+	public static PaletteSource frontendBlock(String itemData, String description) {
+		return new PaletteSource("frontendBlock", itemData, description);
+	}
+
+	public static PaletteSource frontendBlockDefinition(String runtime, String description) {
+		return new PaletteSource("frontendBlockDefinition", "", runtime, description);
 	}
 	
 	public String getXmlData() {
@@ -97,6 +112,14 @@ public class PaletteSource {
 		return "helperDefinition".equals(flowItemType);
 	}
 
+	public boolean isFrontendBlock() {
+		return "frontendBlock".equals(flowItemType);
+	}
+
+	public boolean isFrontendBlockDefinition() {
+		return "frontendBlockDefinition".equals(flowItemType);
+	}
+
 	public String getFlowBlockName() {
 		return flowBlockName;
 	}
@@ -107,5 +130,9 @@ public class PaletteSource {
 
 	public String getFlowRuntime() {
 		return flowRuntime;
+	}
+
+	public String getFlowItemData() {
+		return flowItemData;
 	}
 }

@@ -20,12 +20,14 @@
 package com.twinsoft.convertigo.beans.flow;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
 
 class FlowVirtualProjector {
@@ -37,6 +39,7 @@ class FlowVirtualProjector {
 		try {
 			return childrenFromResponse(flow, new FlowEngineBridge().describeTree(flow));
 		} catch (Exception e) {
+			Engine.logBeans.warn("Unable to describe Flow tree for " + flow.getQName(), e);
 			return errorChildren(flow, "flow", e);
 		}
 	}
@@ -45,6 +48,7 @@ class FlowVirtualProjector {
 		try {
 			return childrenFromResponse(flowEngine, new FlowEngineBridge().describeTree(flowEngine));
 		} catch (Exception e) {
+			Engine.logBeans.warn("Unable to describe FlowEngine tree for " + flowEngine.getQName(), e);
 			return errorChildren(flowEngine, "engine", e);
 		}
 	}
@@ -57,6 +61,7 @@ class FlowVirtualProjector {
 		if (!response.optBoolean("ok", false)) {
 			var error = response.optJSONObject("error");
 			var message = error == null ? response.toString() : error.optString("message", error.toString());
+			Engine.logBeans.warn("Flow virtual tree response failed for " + parent.getQName() + ": " + message);
 			children.add(new FlowVirtualObject(parent, "error", "error", "error", "error", "Flow tree error", message));
 			return children;
 		}
@@ -64,9 +69,10 @@ class FlowVirtualProjector {
 		if (array == null) {
 			return children;
 		}
+		var seen = new HashSet<String>();
 		for (var i = 0; i < array.length(); i++) {
 			var child = array.optJSONObject(i);
-			if (child != null) {
+			if (child != null && seen.add(virtualObjectKey(child))) {
 				children.add(toVirtualObject(parent, child, i));
 			}
 		}
@@ -85,14 +91,21 @@ class FlowVirtualProjector {
 		object.setVirtualInfo(source.optString("info", ""));
 		var children = source.optJSONArray("children");
 		if (children != null) {
+			var seen = new HashSet<String>();
 			for (var i = 0; i < children.length(); i++) {
 				var child = children.optJSONObject(i);
-				if (child != null) {
+				if (child != null && seen.add(virtualObjectKey(child))) {
 					object.addVirtualChild(toVirtualObject(object, child, i));
 				}
 			}
 		}
 		return object;
+	}
+
+	private static String virtualObjectKey(JSONObject source) {
+		return source.optString("path", "") + "\u0000"
+				+ source.optString("kind", "") + "\u0000"
+				+ source.optString("type", "");
 	}
 
 	private static List<DatabaseObject> errorChildren(DatabaseObject parent, String target, Exception e) {
