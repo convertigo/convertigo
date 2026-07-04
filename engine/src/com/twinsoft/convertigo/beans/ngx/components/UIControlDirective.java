@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.beans.ngx.components;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
@@ -31,26 +30,35 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	private static final long serialVersionUID = 2750008565134796761L;
 
 	public enum AttrDirective {
-		CdkVirtualFor("*cdkVirtualFor"),
-		ForEach("*ngFor"),
-		If("*ngIf"),
-		Switch("[ngSwitch]"),
-		SwitchCase("*ngSwitchCase"),
-		SwitchDefault("*ngSwitchDefault"),
-		NewFor("@for"),
-		NewIf("@if"),
-		NewElseIf("@else if"),
-		NewElse("@else"),
-		NewSwitch("@switch"),
-		NewSwitchCase("@case");
+		CdkVirtualFor("*cdkVirtualFor", "CdkVirtualFor"),
+		ForEach("*ngFor","ForEach"),
+		If("*ngIf","If"),
+		Switch("[ngSwitch]","Switch"),
+		SwitchCase("*ngSwitchCase","SwitchCase"),
+		SwitchDefault("*ngSwitchDefault","SwitchDefault"),
+		NewFor("@for","@for"),
+		NewForEmpty("@empty", "@empty"),
+		NewIf("@if","@if"),
+		NewElseIf("@else if","@else if"),
+		NewElse("@else","@else"),
+		NewSwitch("@switch","@switch"),
+		NewSwitchCase("@case","@case"),
+		NewSwitchDefault("@default","@default");
 		
 		String directive;
-		AttrDirective(String directive) {
+		String displayName;
+		
+		AttrDirective(String directive, String displayName) {
 			this.directive = directive;
+			this.displayName = displayName;
 		}
 		
 		String directive() {
 			return directive;
+		}
+		
+		String displayName() {
+			return displayName;
 		}
 		
 		public static AttrDirective getDirective(String directiveName) {
@@ -59,6 +67,11 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 				bindDirective = AttrDirective.valueOf(directiveName);
 			} catch (Exception e) {};
 			return bindDirective;
+		}
+		
+		public static String getDisplayName(String directiveName) {
+			AttrDirective bindDirective = getDirective(directiveName);
+			return bindDirective != null ? bindDirective.displayName():directiveName;
 		}
 		
 		public static String getDirectiveAttr(String directiveName) {
@@ -205,7 +218,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 
 	@Override
 	public String toString() {
-		String label = getDirectiveName();
+		String label = AttrDirective.getDisplayName(getDirectiveName());
 		return label = (label.isEmpty() ? "?":label) + " " 
 							+ directiveSource.getLabel()
 							+ (directiveExpression.trim().startsWith(";") ? "":";")
@@ -243,14 +256,24 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		}
 		return updated;
 	}
+	
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			if (AttrDirective.getDirective(getDirectiveName()) == AttrDirective.NewFor) {
-				return computeTemplateForNewFor();
+			AttrDirective attrDirective = AttrDirective.getDirective(getDirectiveName());
+			if (attrDirective == AttrDirective.NewFor || 
+					attrDirective == AttrDirective.NewForEmpty) {
+				return computeTemplateForNewFor(attrDirective);
 			}
-			else if(AttrDirective.getDirective(getDirectiveName()) == AttrDirective.NewIf || AttrDirective.getDirective(getDirectiveName()) == AttrDirective.NewElseIf || AttrDirective.getDirective(getDirectiveName()) == AttrDirective.NewElse){
-				return computeTemplateForNewIf(AttrDirective.getDirective(getDirectiveName()));
+			else if (attrDirective == AttrDirective.NewIf || 
+					attrDirective == AttrDirective.NewElseIf || 
+					attrDirective == AttrDirective.NewElse) {
+				return computeTemplateForNewIf(attrDirective);
+			}
+			else if (attrDirective == AttrDirective.NewSwitch || 
+					attrDirective == AttrDirective.NewSwitchCase || 
+					attrDirective == AttrDirective.NewSwitchDefault) {
+				return computeTemplateForNewSwitch(attrDirective);
 			}
 			else {
 				return super.computeTemplate();
@@ -258,11 +281,12 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		}
 		return "";
 	}
-	private String computeTemplateForNewFor() {
+	
+	private String computeTemplateForNewFor(AttrDirective directive) {
 		StringBuilder sb = new StringBuilder();
 		String signature = getNewForSignature();
 		String childrenHtml = computeChildrenTemplate();
-		sb.append(AttrDirective.NewFor.directive()).append(signature).append(" {\n")
+		sb.append(directive.directive()).append(directive != AttrDirective.NewForEmpty ? " " + signature : "").append(" {\n")
 		  .append(childrenHtml)
 		  .append("\n}\n");
 		
@@ -278,6 +302,34 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		
 		return sb.toString();
 	}
+	
+	private String computeTemplateForNewSwitch(AttrDirective directive) {
+		StringBuilder sb = new StringBuilder();
+		String signature = getNewSwitchSignature();
+		String childrenHtml = computeChildrenTemplate();
+		
+		boolean supportConsecutiveCases = false; // TPL dependent: needs Angular 21.1.0 - angular-eslint 21.2.0
+/* Commented out until Angular 21 */
+//		ComponentManager cm = ComponentManager.of(this);
+//		if (cm != null && !cm.isInstance()) {
+//			JSONObject jsonOb = cm.getTemplateProjectFileAsJson("ionicTpl/package.json");
+//			if (jsonOb != null) {
+//				try {
+//					String v1 = jsonOb.getJSONObject("dependencies").getString("@angular/core");
+//					String v2 = jsonOb.getJSONObject("devDependencies").getString("@angular-eslint/builder");
+//					supportConsecutiveCases = v1.compareTo("21.1.0") >= 0 && v2.compareTo("21.2.0") >= 0;
+//				} catch (JSONException e) {}
+//			}
+//		}
+		
+		sb.append(directive.directive()).append(directive != AttrDirective.NewSwitchDefault ? " " + signature : "")
+		  .append(supportConsecutiveCases && childrenHtml.isBlank() ? "" : " {").append("\n")
+		  .append(childrenHtml)
+		  .append(supportConsecutiveCases && childrenHtml.isBlank() ? "" : "\n}").append("\n");
+		
+		return sb.toString();
+	}
+	
 	private String getNewForSignature() {
 		String itemName = (getDirectiveItemName().isEmpty()) ? "item"+priority : getDirectiveItemName();
 		String src      = getSourceSmartType().getValue(); // ex : "items"
@@ -297,6 +349,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		
 		return sb.toString();
 	}
+	
 	private String getNewIfSignature() {
 		String src      = getSourceSmartType().getValue(); // ex : "items"
 		String expr     = getDirectiveExpression();        // ex : "track item.name"
@@ -315,6 +368,26 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		
 		return sb.toString();
 	}
+	
+	private String getNewSwitchSignature() {
+		String src      = getSourceSmartType().getValue(); // ex : "items"
+		String expr     = getDirectiveExpression();        // ex : "track item.name"
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("(")
+		  .append(src);
+		
+		if (!expr.trim().isEmpty()) {
+			if (!expr.trim().startsWith(";")) {
+				sb.append("; ");
+			}
+			sb.append(expr.trim());
+		}
+		sb.append(")");
+		
+		return sb.toString();
+	}
+	
 	private String computeChildrenTemplate() {
 		StringBuilder sb = new StringBuilder();
 		if(!getDirectiveItemName().isEmpty() && AttrDirective.getDirective(getDirectiveName()) == AttrDirective.NewFor) {
