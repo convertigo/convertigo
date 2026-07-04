@@ -19,7 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.swt;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.Objects;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -71,10 +72,10 @@ public class ProjectReferenceComposite extends Composite {
 			try {
 				userEvent = false;
 				parser.setUrl(completGitUrl.getText());
-				projectName.setText(StringUtils.defaultString(parser.getProjectName()));
-				gitUrl.setText(StringUtils.defaultString(parser.getGitUrl()));
-				projectPath.setText(StringUtils.defaultString(parser.getProjectPath()));
-				gitBranch.setText(StringUtils.defaultString(parser.getGitBranch()));
+				projectName.setText(Objects.toString(parser.getProjectName(), ""));
+				gitUrl.setText(Objects.toString(parser.getGitUrl(), ""));
+				projectPath.setText(Objects.toString(parser.getProjectPath(), ""));
+				gitBranch.setText(Objects.toString(parser.getGitBranch(), ""));
 				autoPull.setSelection(parser.isAutoPull());
 				if (onChange != null) {
 					onChange.run();

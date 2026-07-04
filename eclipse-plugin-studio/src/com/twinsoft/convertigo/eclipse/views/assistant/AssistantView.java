@@ -20,12 +20,17 @@
 package com.twinsoft.convertigo.eclipse.views.assistant;
 
 import java.io.File;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Base64;
+import java.util.Objects;
 
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeSelection;
@@ -34,6 +39,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -68,13 +74,20 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjec
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.Clipboard;
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class AssistantView extends ViewPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.assistant.AssistantView";
 	public static final String STARTUP_URL = "https://assistant.convertigo.com/";
+	private static final String LOCAL_ASSISTANT_PATH = "/projects/ConvertigoAssistant/DisplayObjects/mobile/";
+	private static final String AGENT_ONBOARDING_FEATURE_VERSION = "2026-07-02.agent-onboarding-v1";
+	private static final String AGENT_DOWNLOAD_URL = "https://www.convertigo.com/developers/download-low-code-studio";
 	private static final String WAITING_HTML = "<!doctype html><html><head><meta charset=\"utf-8\">"
 			+ "<style>"
 			+ "html,body{height:100%;margin:0;}"
@@ -93,6 +106,7 @@ public class AssistantView extends ViewPart {
 	private C8oBrowserPostMessageHelper handler = null;
 	private JSONObject jsonMessage = new JSONObject();
 	private int counter = 1;
+	private String startupUrl = STARTUP_URL;
 	
 	@Override
 	public void dispose() {
@@ -115,15 +129,7 @@ public class AssistantView extends ViewPart {
 		
 		browser.getBrowser().engine().setTheme(Theme.LIGHT);
 
-		String[] url = {STARTUP_URL};
-		try {
-			var u = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_ASSISTANT_URL);
-			if (StringUtils.isNotBlank(u)) {
-				url[0] = u;
-			}
-		} catch (Exception e) {
-		}
-		url[0] += "?dark-theme=" + SwtUtils.isDark();
+		startupUrl = resolveAssistantStartupUrl();
 
 		browser.addToolItemOpenExternal(tb);
 		new ToolItem(tb, SWT.SEPARATOR);
@@ -138,7 +144,7 @@ public class AssistantView extends ViewPart {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				browser.setUrl(url[0]);
+				browser.setUrl(startupUrl);
 			}
 
 		});
@@ -198,6 +204,12 @@ public class AssistantView extends ViewPart {
 						postAssistantContext();
 					});
 				}
+				else if ("ConvertigoAssistant.activateLocalAgent".equals(json.getString("type"))) {
+					activateLocalAgentStack(json);
+				}
+				else if ("ConvertigoAssistant.openExternal".equals(json.getString("type"))) {
+					openExternal(json);
+				}
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -227,8 +239,9 @@ public class AssistantView extends ViewPart {
 			if (browser == null || browser.isDisposed()) {
 				return;
 			}
+			startupUrl = resolveAssistantStartupUrl();
 			setToolbarEnabled(tb, true);
-			browser.setUrl(url[0]);
+			browser.setUrl(startupUrl);
 		});
 		
 		Runnable initPev = () -> {
@@ -473,10 +486,30 @@ public class AssistantView extends ViewPart {
 			if (browser == null || browser.isDisposed() || handler == null) {
 				return;
 			}
+			String assistantUrl = Objects.toString(browser.getURL(), startupUrl);
+			String localConvertigoUrl = getLocalConvertigoUrl();
+			boolean assistantLocal = isLocalConvertigoUrl(assistantUrl, localConvertigoUrl);
+			boolean assistantInstalled = isProjectInstalled("ConvertigoAssistant");
+			boolean mcpInstalled = isProjectInstalled("ConvertigoMCP");
+			boolean bridgeInstalled = isProjectInstalled("ConvertigoAgentBridge");
+			boolean localStackAvailable = assistantInstalled && mcpInstalled && bridgeInstalled;
 			JSONObject payload = new JSONObject();
 			payload.put("assistantSurface", "studio");
 			payload.put("assistantContext", "studio");
-			payload.put("agentBridgeAvailable", true);
+			payload.put("agentOnboardingFeatureVersion", AGENT_ONBOARDING_FEATURE_VERSION);
+			payload.put("studioVersion", ProductVersion.fullProductVersion);
+			payload.put("assistantUrl", assistantUrl);
+			payload.put("assistantRuntime", assistantLocal ? "local" : "remote");
+			payload.put("localConvertigoUrl", localConvertigoUrl);
+			payload.put("localAssistantUrl", getLocalAssistantUrl());
+			payload.put("downloadUrl", AGENT_DOWNLOAD_URL);
+			payload.put("canActivateLocalAgent", true);
+			payload.put("localAssistantInstalled", assistantInstalled);
+			payload.put("localMcpInstalled", mcpInstalled);
+			payload.put("localAgentBridgeInstalled", bridgeInstalled);
+			payload.put("localAgentStackAvailable", localStackAvailable);
+			payload.put("localAgentBridgeAvailable", assistantLocal && localStackAvailable);
+			payload.put("agentBridgeAvailable", assistantLocal && localStackAvailable);
 			try {
 				if (jsonMessage.has("projectName")) {
 					payload.put("projectName", jsonMessage.getString("projectName"));
@@ -496,6 +529,195 @@ public class AssistantView extends ViewPart {
 		} catch (Exception e) {
 			ConvertigoPlugin.logStudioWarn("[Assistant] could not post context: " + e.getMessage());
 		}
+	}
+
+	private static String addDarkThemeParameter(String url) {
+		url = StringUtils.defaultIfBlank(url, STARTUP_URL);
+		return url + (url.contains("?") ? "&" : "?") + "dark-theme=" + SwtUtils.isDark();
+	}
+
+	private static String resolveAssistantStartupUrl() {
+		String url = STARTUP_URL;
+		try {
+			var u = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_ASSISTANT_URL);
+			if (StringUtils.isNotBlank(u)) {
+				url = ConvertigoPlugin.resolveStudioUrl(u);
+			}
+		} catch (Exception e) {
+		}
+		return addDarkThemeParameter(url);
+	}
+
+	private static String getLocalConvertigoUrl() {
+		try {
+			return Strings.CS.removeEnd(EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL), "/");
+		} catch (Exception e) {
+			return "http://localhost:18080/convertigo";
+		}
+	}
+
+	private static String getLocalAssistantUrl() {
+		return ConvertigoPlugin.resolveStudioUrl(LOCAL_ASSISTANT_PATH);
+	}
+
+	private static boolean isProjectInstalled(String projectName) {
+		try {
+			return Engine.theApp != null
+					&& Engine.theApp.databaseObjectsManager != null
+					&& Engine.theApp.databaseObjectsManager.existsProject(projectName);
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private static boolean isLocalHost(String host) {
+		host = Objects.toString(host, "").toLowerCase();
+		return "localhost".equals(host) || "127.0.0.1".equals(host) || "::1".equals(host) || "[::1]".equals(host);
+	}
+
+	private static boolean isLocalConvertigoUrl(String candidateUrl, String localConvertigoUrl) {
+		try {
+			URI candidate = new URI(Objects.toString(candidateUrl, ""));
+			URI local = new URI(Objects.toString(localConvertigoUrl, ""));
+			if (candidate.getHost() == null || local.getHost() == null) {
+				return false;
+			}
+			boolean sameHost = candidate.getHost().equalsIgnoreCase(local.getHost())
+					|| (isLocalHost(candidate.getHost()) && isLocalHost(local.getHost()));
+			return sameHost && candidate.getPort() == local.getPort()
+					&& Objects.toString(candidate.getPath(), "").startsWith(Objects.toString(local.getPath(), ""));
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private void activateLocalAgentStack(JSONObject message) {
+		JSONObject payload = new JSONObject();
+		try {
+			if (message.has("payload")) {
+				payload = message.getJSONObject("payload");
+			}
+		} catch (Exception e) {
+		}
+		final JSONObject activationPayload = payload;
+		Job.create("Activate local Convertigo Assistant agent", monitor -> {
+			monitor.beginTask("Activating local Assistant agent", IProgressMonitor.UNKNOWN);
+			try {
+				postActivationStatus("running", "Activation de l'assistant local...", "", false);
+				JSONArray projects = getActivationProjects(activationPayload);
+				if (projects.length() == 0) {
+					throw new IllegalArgumentException("No project import URL provided by the Assistant");
+				}
+				for (int i = 0; i < projects.length(); i++) {
+					JSONObject item = projects.getJSONObject(i);
+					String projectName = item.getString("name");
+					String importUrl = item.getString("importUrl");
+					if (isProjectInstalled(projectName)) {
+						postActivationStatus("running", projectName + " est déjà installé.", projectName, false);
+						continue;
+					}
+					postActivationStatus("running", "Import de " + projectName + "...", projectName, false);
+					ProjectUrlParser parser = new ProjectUrlParser(importUrl);
+					var project = Engine.theApp.referencedProjectManager.importProject(parser, true);
+					if (project == null) {
+						throw new IllegalStateException("Unable to import " + projectName);
+					}
+				}
+				String preferenceUrl = getActivationAssistantPreferenceUrl(activationPayload);
+				ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_ASSISTANT_URL, preferenceUrl);
+				var localUrl = ConvertigoPlugin.resolveStudioUrl(preferenceUrl);
+				startupUrl = addDarkThemeParameter(localUrl);
+				postActivationStatus("success", "Assistant local activé.", "", true);
+				ConvertigoPlugin.asyncExec(() -> {
+					try {
+						if (browser != null && !browser.isDisposed()) {
+							browser.setUrl(startupUrl);
+						}
+					} catch (Exception e) {
+						ConvertigoPlugin.logStudioWarn("[Assistant] unable to reload local Assistant: " + e.getMessage());
+					}
+				});
+			} catch (Exception e) {
+				ConvertigoPlugin.logStudioError("[Assistant] unable to activate local Assistant agent", e);
+				postActivationStatus("error", "Activation impossible : " + e.getMessage(), "", true);
+			} finally {
+				monitor.done();
+			}
+		}).schedule();
+	}
+
+	private void openExternal(JSONObject message) {
+		try {
+			String url = "";
+			if (message.has("url")) {
+				url = message.getString("url");
+			} else if (message.has("payload")) {
+				JSONObject payload = message.getJSONObject("payload");
+				if (payload.has("url")) {
+					url = payload.getString("url");
+				}
+			}
+			final String target = StringUtils.trimToEmpty(url);
+			if (target.startsWith("http://") || target.startsWith("https://")) {
+				ConvertigoPlugin.asyncExec(() -> Program.launch(target));
+			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logStudioWarn("[Assistant] unable to open external URL: " + e.getMessage());
+		}
+	}
+
+	private JSONArray getActivationProjects(JSONObject payload) {
+		try {
+			if (payload.has("projects")) {
+				return payload.getJSONArray("projects");
+			}
+		} catch (Exception e) {
+		}
+		JSONArray projects = new JSONArray();
+		return projects;
+	}
+
+	private static String getActivationAssistantPreferenceUrl(JSONObject payload) {
+		String value = getPayloadString(payload, "assistantUrl");
+		if (StringUtils.isBlank(value)) {
+			value = getPayloadString(payload, "assistantPreferenceUrl");
+		}
+		if (StringUtils.isBlank(value)) {
+			value = getPayloadString(payload, "localAssistantPath");
+		}
+		return StringUtils.defaultIfBlank(value, LOCAL_ASSISTANT_PATH);
+	}
+
+	private static String getPayloadString(JSONObject payload, String key) {
+		try {
+			if (payload != null && payload.has(key)) {
+				return StringUtils.trimToEmpty(payload.getString(key));
+			}
+		} catch (Exception e) {
+		}
+		return "";
+	}
+
+	private void postActivationStatus(String status, String message, String projectName, boolean done) {
+		ConvertigoPlugin.asyncExec(() -> {
+			try {
+				if (handler == null || browser == null || browser.isDisposed()) {
+					return;
+				}
+				JSONObject payload = new JSONObject();
+				payload.put("status", status);
+				payload.put("message", message);
+				payload.put("projectName", Objects.toString(projectName, ""));
+				payload.put("done", done);
+				payload.put("localAssistantUrl", getLocalAssistantUrl());
+				JSONObject msg = new JSONObject();
+				msg.put("type", "ConvertigoAssistant.activateLocalAgent.status");
+				msg.put("payload", payload);
+				handler.postMessage(msg);
+			} catch (Exception e) {
+				ConvertigoPlugin.logStudioWarn("[Assistant] unable to post activation status: " + e.getMessage());
+			}
+		});
 	}
 	
 	protected void setSelectMessage(String qname) {
@@ -542,7 +764,7 @@ public class AssistantView extends ViewPart {
 	}
 
 	private String getViewerDebugUrl(Project project, String projectName) {
-		projectName = StringUtils.defaultString(projectName);
+		projectName = Objects.toString(projectName, "");
 		try {
 			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			if (activePage == null) {

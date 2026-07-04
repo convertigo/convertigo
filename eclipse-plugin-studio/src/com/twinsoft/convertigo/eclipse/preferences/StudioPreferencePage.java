@@ -203,7 +203,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		
 		assistantUrl = new StringFieldEditor(
 				ConvertigoPlugin.PREFERENCE_ASSISTANT_URL,
-				"Assistant View URL (save empty to restore the default value)", groupLocalBuild);
+				"Assistant View URL (absolute or relative to Convertigo URL; save empty to restore the default value)", groupLocalBuild);
 		assistantUrl.setPage(this);
 		assistantUrl.setPreferenceStore(getPreferenceStore());
 		assistantUrl.load();
@@ -213,7 +213,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 
 		marketplaceUrl = new StringFieldEditor(
 				ConvertigoPlugin.PREFERENCE_MARKETPLACE_URL,
-				"Marketplace View URL (save empty to restore the default value)", groupLocalBuild);
+				"Marketplace View URL (absolute or relative to Convertigo URL; save empty to restore the default value)", groupLocalBuild);
 		marketplaceUrl.setPage(this);
 		marketplaceUrl.setPreferenceStore(getPreferenceStore());
 		marketplaceUrl.load();

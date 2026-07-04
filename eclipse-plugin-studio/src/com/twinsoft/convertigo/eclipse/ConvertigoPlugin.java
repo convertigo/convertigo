@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -44,6 +45,8 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.FileInfoMatcherDescription;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -137,6 +140,8 @@ import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager.StudioProjects;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.ReferencedProjectManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.events.ProgressEventListener;
@@ -292,6 +297,29 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static void setProperty(String key, String value) {
 		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
 		preferenceStore.setValue(key, value);
+	}
+
+	public static String resolveStudioUrl(String url) {
+		String target = StringUtils.trimToEmpty(url);
+		if (target.isEmpty()) {
+			return target;
+		}
+		try {
+			if (new URI(target).isAbsolute()) {
+				return target;
+			}
+		} catch (Exception e) {
+			return target;
+		}
+		try {
+			String base = Strings.CS.removeEnd(EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL), "/");
+			if (StringUtils.isBlank(base)) {
+				return target;
+			}
+			return base + (target.startsWith("/") ? target : "/" + target);
+		} catch (Exception e) {
+			return target;
+		}
 	}
 
 	static {

@@ -87,13 +87,7 @@ public class MarketplaceView extends ViewPart {
 
 		browser = new C8oBrowser(parent, SWT.NONE);
 
-		try {
-			var u = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_MARKETPLACE_URL);
-			if (StringUtils.isNotBlank(u)) {
-				startup_url = u;
-			}
-		} catch (Exception e) {
-		}
+		startup_url = resolveMarketplaceStartupUrl();
 
 		browser.addToolItemOpenExternal(tb);
 		new ToolItem(tb, SWT.SEPARATOR);
@@ -232,6 +226,7 @@ public class MarketplaceView extends ViewPart {
 			if (browser == null || browser.isDisposed()) {
 				return;
 			}
+			startup_url = resolveMarketplaceStartupUrl();
 			setToolbarEnabled(tb, true);
 			browser.setUrl(startup_url);
 		});
@@ -246,6 +241,18 @@ public class MarketplaceView extends ViewPart {
 			return;
 		}
 		browser.setUrl(startup_url + "?topics=" + tag + "#results");
+	}
+
+	private static String resolveMarketplaceStartupUrl() {
+		String url = STARTUP_URL;
+		try {
+			var u = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_MARKETPLACE_URL);
+			if (StringUtils.isNotBlank(u)) {
+				url = ConvertigoPlugin.resolveStudioUrl(u);
+			}
+		} catch (Exception e) {
+		}
+		return url;
 	}
 
 	private static void setToolbarEnabled(ToolBar toolbar, boolean enabled) {
