@@ -319,7 +319,7 @@ dependencies {
 	compileFlat    'com.convertigo.twinsoft:twinj:2016.05.09'
 	compileFlat    'com.convertigo.twinsoft:ui:2009.06.15'
 	implementation 'com.convertigo.twinsoft:util:2017.12.29'
-	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.21.4'
+	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.21.5'
 	compileFlat    'com.fasterxml.woodstox:woodstox-core:6.7.0'
 	compileFlat    ('com.google.gcm:gcm-server:1.0.0') {
 		exclude group: 'junit', module: 'junit'
@@ -364,7 +364,7 @@ dependencies {
 	compileFlat    'org.codehaus.woodstox:stax2-api:4.2.2'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.5.0.202512021534-r'
-	compileFlat    'org.hibernate.orm:hibernate-core:7.2.21.Final'
+	compileFlat    'org.hibernate.orm:hibernate-core:7.2.22.Final'
 	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0:javax'
 	compileFlat    'org.mozilla:rhino:1.9.1'
 	compileFlat    'org.mozilla:rhino-tools:1.9.1'
@@ -381,7 +381,7 @@ dependencies {
 	compileFlat    'net.sourceforge.jtds:jtds:1.3.1'
 	compileFlat    'org.hsqldb:hsqldb:2.7.4'
 	compileFlat    'org.mariadb.jdbc:mariadb-java-client:3.5.9'
-	compileFlat    'org.postgresql:postgresql:42.7.12'
+	compileFlat    'org.postgresql:postgresql:42.7.13'
 	compileFlat    'org.redisson:redisson:4.3.1'
 	// end runtime dependencies
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
