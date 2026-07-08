@@ -143,6 +143,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	private DatabaseObject selectedPaletteTarget = null;
 	private String latestFlowPaletteKey = "";
 	private String loadedFlowPaletteKey = "";
+	private volatile boolean flowPaletteRefreshPending = false;
 	private boolean isVisible = true, isCtrl = false, isType = false;
 	private ISelectionChangedListener selectionListener;
 	private Set<String> hiddenCategories;
@@ -613,6 +614,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 							var flowPaletteKey = flowPaletteKey(selectedPaletteTarget);
 							if (!flowPaletteKey.equals(latestFlowPaletteKey)) {
 								latestFlowPaletteKey = flowPaletteKey;
+								flowPaletteRefreshPending = true;
 								refresh();
 							}
 							if (selected != null || parent instanceof DatabaseObject) {
@@ -1117,6 +1119,13 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					Integer folderType = (Integer) PaletteView.this.parent.getData("FolderType");
 					var paletteTarget = selected != null ? selected : parent;
 					var flowOnly = FlowStudioSupport.isFlowPaletteTarget(paletteTarget);
+					if (flowOnly && !latestFlowPaletteKey.equals(loadedFlowPaletteKey)) {
+						if (!flowPaletteRefreshPending) {
+							flowPaletteRefreshPending = true;
+							refresh(0);
+						}
+						return;
+					}
 
 					var skipKey = text + ":"
 							+ (selected != null ? selected.getClass().getCanonicalName() : folderType != null ? folderType.toString() : "null") + ":"
@@ -1251,9 +1260,20 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 						((RowData) lastUsedlabel.getLayoutData()).exclude = !found;
 					}
 
-					if (empty && !flowOnly && selected != null && parent != null) {
+					if (empty && selected != null && parent != null) {
 						PaletteView.this.parent.setData("Selected", parent);
 						PaletteView.this.parent.setData("Parent", parent.getParent());
+						if (flowOnly) {
+							selectedPaletteTarget = parent;
+							latestFlowPaletteKey = flowPaletteKey(parent);
+							if (!latestFlowPaletteKey.equals(loadedFlowPaletteKey)) {
+								if (!flowPaletteRefreshPending) {
+									flowPaletteRefreshPending = true;
+									refresh(0);
+								}
+								return;
+							}
+						}
 						modifyText(e);
 						return;
 					}
@@ -1502,17 +1522,23 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			parent.getDisplay().asyncExec(() -> {
 				try {
 					if (bag != null) {
-						bag.setData("LastSkipKey", null); 
+						bag.setData("LastSkipKey", null);
 					}
 					String txt = searchText != null ? searchText.getText() : "";
 					if (needUpdate[0]) {
 						clearImageCache();
 						updateBags();
 					}
+					flowPaletteRefreshPending = false;
 					if (txt != null && searchText != null) {
-						searchText.setText(txt);
+						if (txt.equals(searchText.getText())) {
+							searchText.notifyListeners(SWT.Modify, new Event());
+						} else {
+							searchText.setText(txt);
+						}
 					}
 				} catch (Exception e) {
+					flowPaletteRefreshPending = false;
 					Engine.logStudio.debug("(PaletteView) Palette init failed, retrying [" + e.getClass() + ": " + e.getMessage() + "]");
 					refresh(1000);
 				}

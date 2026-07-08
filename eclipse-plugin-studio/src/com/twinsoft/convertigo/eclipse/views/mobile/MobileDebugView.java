@@ -36,6 +36,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -98,6 +99,9 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 			return editorPart.getDebugUrl();
 		} else if (part instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor) {
 			com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor editorPart = GenericUtils.cast(part);
+			return editorPart.getDebugUrl();
+		} else if (part instanceof FlowEngineEditor) {
+			FlowEngineEditor editorPart = GenericUtils.cast(part);
 			return editorPart.getDebugUrl();
 		}
 		return null;

@@ -109,9 +109,8 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	}
 
 	public boolean isReadOnlyReference() {
-		return jsonFlag(getObject().getVirtualInfoObject(), "readOnly")
-				|| jsonFlag(getObject().getVirtualInfoObject(), "readOnlyReference")
-				|| jsonFlag(getObject().getDefinitionObject(), "readOnly");
+		return jsonFlag(getObject().getVirtualInfoObject(), "readOnlyReference")
+				|| jsonFlag(getObject().getDefinitionObject(), "readOnlyReference");
 	}
 
 	private static boolean jsonFlag(JSONObject object, String key) {

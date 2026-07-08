@@ -628,7 +628,9 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			var sourcePath = sourceValue("sourcePath");
 			var sourceMutationPath = sourceValue("sourceMutationPath");
 			if (!sourcePath.isBlank() && !sourceMutationPath.isBlank()) {
-				applySourcePropertyMutation(flowEngine, sourcePath, sourceMutationPath + "." + key, value);
+				var propertyPath = sourcePropertyMutationPath(key);
+				applySourcePropertyMutation(flowEngine, sourcePath,
+						propertyPath.isBlank() ? sourceMutationPath + "." + key : propertyPath, value);
 				return;
 			}
 		}
@@ -728,6 +730,19 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		}
 		var definition = getDefinitionObject();
 		return definition == null ? "" : definition.optString(key, "");
+	}
+
+	private String sourcePropertyMutationPath(String key) {
+		var value = sourcePropertyMutationPath(getVirtualInfoObject(), key);
+		if (!value.isBlank()) {
+			return value;
+		}
+		return sourcePropertyMutationPath(getDefinitionObject(), key);
+	}
+
+	private static String sourcePropertyMutationPath(JSONObject object, String key) {
+		var paths = object == null ? null : object.optJSONObject("sourcePropertyMutationPaths");
+		return paths == null ? "" : paths.optString(key, "");
 	}
 
 	private static String flowErrorMessage(JSONObject error) {

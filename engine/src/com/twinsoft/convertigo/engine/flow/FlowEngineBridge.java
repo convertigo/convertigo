@@ -263,7 +263,8 @@ public class FlowEngineBridge {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
 			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
 			return invoke(engineQName, "propertyEditor", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build FlowEngine property editor request.", e);
@@ -379,6 +380,21 @@ public class FlowEngineBridge {
 		}
 	}
 
+	public JSONObject authoringPalette(FlowEngine flowEngine, JSONObject options) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flowEngine);
+			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+					.put("target", "engine")
+					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
+			merge(request, options);
+			return invoke(engineQName, "authoringPalette", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build FlowEngine authoring palette request.", e);
+		}
+	}
+
 	private static Iterable<String> requestableProjectNames(String currentProjectName) {
 		var projectNames = new java.util.TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 		if (Engine.isStudioMode()) {
@@ -491,17 +507,27 @@ public class FlowEngineBridge {
 			if (sourceFile.getName().endsWith(".flow.svelte")) {
 				return applyFlowSvelteSourceMutation(flowEngine, sourceFile, mutation);
 			}
-			var source = FileUtils.readFileToString(sourceFile, "UTF-8");
+			var source = flowEngine == null
+					? FileUtils.readFileToString(sourceFile, "UTF-8")
+					: flowEngine.getSource(sourceFile.getAbsolutePath());
 			var request = baseRequest(engineQName, source, flowEngine == null ? "" : flowEngine.getQName(), null)
 					.put("target", "flow")
 					.put("flowSource", source)
 					.put("sourceFile", sourceFile.getAbsolutePath())
+					.put("sourcePath", sourceFile.getAbsolutePath())
 					.put("projectDir", projectDir)
+					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine))
 					.put("mutation", mutation == null ? new JSONObject() : mutation);
-			var response = invoke(engineQName, "applyMutation", request, null, null, null);
+			var response = invoke(engineQName, "applySourceMutation", request, null, null, null);
 			if (response.optBoolean("ok", false) && response.has("source")) {
 				var newSource = response.optString("source", source);
-				FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
+				var changed = !newSource.equals(source);
+				response.put("changed", changed);
+				if (changed && flowEngine == null) {
+					FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
+				} else if (flowEngine != null) {
+					flowEngine.setSource(sourceFile.getAbsolutePath(), newSource);
+				}
 			}
 			return response;
 		} catch (JSONException e) {
@@ -527,12 +553,17 @@ public class FlowEngineBridge {
 				.put("sourcePath", sourcePath)
 				.put("projectDir", projectDir)
 				.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
+				.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine))
 				.put("mutation", mutation == null ? new JSONObject() : mutation);
 		var response = invoke(engineQName, "applySourceMutation", request, null, null, null);
 		if (response.optBoolean("ok", false) && response.has("source")) {
 			var newSource = response.optString("source", source);
+			var changed = !newSource.equals(source);
+			response.put("changed", changed);
 			if (flowEngine == null) {
-				FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
+				if (changed) {
+					FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
+				}
 			} else {
 				flowEngine.setFrontendSource(sourcePath, newSource);
 			}
@@ -578,22 +609,26 @@ public class FlowEngineBridge {
 			throw new EngineException("Unsupported Flow JSON mutation operation: " + op);
 		}
 		var newSource = root.toString(2) + "\n";
-		if (flowEngine == null) {
-			FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
-		} else {
-			flowEngine.setFrontendSource(sourceFile.getAbsolutePath(), newSource);
+		var changed = !newSource.equals(source);
+		if (changed) {
+			if (flowEngine == null) {
+				FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
+			} else {
+				flowEngine.setFrontendSource(sourceFile.getAbsolutePath(), newSource);
+			}
 		}
 		return new JSONObject()
 				.put("ok", true)
 				.put("target", "json")
 				.put("source", newSource)
-				.put("sourceFile", sourceFile.getAbsolutePath());
+				.put("sourceFile", sourceFile.getAbsolutePath())
+				.put("changed", changed);
 	}
 
 	private static JSONObject frontendSourceDrafts(FlowEngine flowEngine) throws JSONException {
 		var drafts = new JSONObject();
 		if (flowEngine != null) {
-			for (var entry : flowEngine.getFrontendSourceDrafts().entrySet()) {
+			for (var entry : flowEngine.getSourceDrafts().entrySet()) {
 				drafts.put(entry.getKey(), entry.getValue());
 			}
 		}
@@ -750,16 +785,23 @@ public class FlowEngineBridge {
 			var engineQName = effectiveEngineQName(flowEngine);
 			var projectDir = flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath();
 			var localName = blockName == null ? "" : blockName.substring(blockName.lastIndexOf('.') + 1);
+			if (runtime.equals("flow")) {
+				var request = new JSONObject()
+						.put("name", blockName)
+						.put("projectDir", projectDir)
+						.put("code", defaultFlowBlockCode(blockName, localName));
+				return invoke(engineQName, "blockCreate", request, null, null, null);
+			}
 			var descriptor = new JSONObject()
 					.put("version", 1)
-					.put("icon", runtime.equals("flow") ? "mdi:source-branch" : "mdi:language-javascript")
-					.put("description", runtime.equals("flow") ? "New composite Flow block." : "New JavaScript Flow block.")
-					.put("tags", new JSONArray().put(runtime.equals("flow") ? "composite" : "javascript"))
+					.put("icon", "mdi:language-javascript")
+					.put("description", "New JavaScript Flow block.")
+					.put("tags", new JSONArray().put("javascript"))
 					.put("props", new JSONObject())
 					.put("hooks", new JSONObject().put("file", localName + ".hooks.js"))
 					.put("implementation", new JSONObject()
 							.put("runtime", runtime)
-							.put("file", runtime.equals("flow") ? localName + ".flow.js" : localName + ".js"));
+							.put("file", localName + ".js"));
 			var request = new JSONObject()
 					.put("name", blockName)
 					.put("projectDir", projectDir)
@@ -868,6 +910,31 @@ public class FlowEngineBridge {
 
 	private static String defaultFlowImplementationSource() {
 		return "version: 1\nnodes: []\n";
+	}
+
+	private static String defaultFlowBlockCode(String blockName, String localName) {
+		var functionName = localName == null || localName.isBlank() ? "flowBlock" : localName;
+		functionName = functionName.replaceAll("[^A-Za-z0-9_$]", "_");
+		if (functionName.isBlank() || !Character.isJavaIdentifierStart(functionName.charAt(0))) {
+			functionName = "flowBlock";
+		}
+		return """
+				const _meta = {
+				  "version": 1,
+				  "runtime": "flow",
+				  "icon": "mdi:source-branch",
+				  "description": "New composite Flow block.",
+				  "tags": ["composite"],
+				  "properties": {},
+				  "outputs": {
+				    "out": { "type": "unknown" }
+				  }
+				}
+
+				function %s({ input, config, result }) {
+				  return result
+				}
+				""".formatted(functionName);
 	}
 
 	private static String defaultRhinoImplementationSource() {
@@ -1336,10 +1403,26 @@ public class FlowEngineBridge {
 		if ("outputSchema".equals(method)) {
 			return isReadOnlySchemaRequest(request);
 		}
+		if ("contextMenu".equals(method) && isFrontendContextRequest(request)) {
+			return false;
+		}
 		return switch (method) {
 		case "describeTree", "catalog", "context", "contextMenu", "propertyEditor", "icons", "syncInputs", "blockGet", "typeGet" -> true;
 		default -> false;
 		};
+	}
+
+	private static boolean isFrontendContextRequest(JSONObject request) {
+		if (request == null) {
+			return false;
+		}
+		var target = request.optJSONObject("targetObject");
+		if (target == null) {
+			return false;
+		}
+		var kind = target.optString("kind", "");
+		var path = target.optString("path", "");
+		return kind.startsWith("frontend") || path.equals("frontends") || path.startsWith("frontends.");
 	}
 
 	private static boolean invalidatesMethodResponseCache(String method, JSONObject request) {

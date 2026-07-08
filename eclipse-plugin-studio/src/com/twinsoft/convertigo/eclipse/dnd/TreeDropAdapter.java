@@ -270,14 +270,24 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					try {
 						Shell shell = Display.getDefault().getActiveShell();
 						try {
+							if (data instanceof PaletteSource) {
+								if (mb != null) {
+									mb.prepareBatchBuild();
+								}
+								BatchOperationHelper.start();
+								try {
+									performDrop(data, explorerView, targetTreeObject);
+								} finally {
+									BatchOperationHelper.stop();
+								}
+								return true;
+							}
+
 							boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
 							boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
 							TreeObject sourceObject = (TreeObject) getSelectedObject();
 							if (handleFlowVirtualMove(sourceObject, targetTreeObject, explorerView, insertBefore, insertAfter)) {
 								return true;
-							}
-							if (isFlowVirtualMove(sourceObject, targetTreeObject)) {
-								return false;
 							}
 
 							// Try to parse text data into an XML document
@@ -1079,17 +1089,28 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		if (!isFlowVirtualMove(sourceObject, targetTreeObject)) {
 			return false;
 		}
-		if (!insertBefore && !insertAfter) {
-			insertAfter = true;
-		}
 		var sourceDbot = (DatabaseObjectTreeObject) sourceObject;
 		var targetDbot = (DatabaseObjectTreeObject) targetTreeObject;
-		var response = FlowStudioSupport.moveNode(sourceDbot.getObject(), targetDbot.getObject(), insertBefore);
+		var sourceVirtualObject = (FlowVirtualObject) sourceDbot.getObject();
+		var position = flowVirtualDropPosition(sourceDbot, targetDbot, insertBefore, insertAfter);
+		var selectionKey = flowVirtualSelectionKey(sourceVirtualObject);
+		var selectionPath = sourceDbot.getPath();
+		var fallbackKey = flowVirtualSelectionKey((FlowVirtualObject) targetDbot.getObject());
+		var fallbackPath = targetDbot.getPath();
+		Engine.logStudio.info("Flow frontend DnD UI move: source=" + flowVirtualTreeSummary(sourceDbot)
+				+ " target=" + flowVirtualTreeSummary(targetDbot)
+				+ " insertBefore=" + insertBefore + " insertAfter=" + insertAfter
+				+ " position=" + position
+				+ " selectionPath=" + selectionPath);
+		var response = FlowStudioSupport.moveNode(sourceDbot.getObject(), targetDbot.getObject(), position);
+		Engine.logStudio.info("Flow frontend DnD UI move response: " + response);
 		if (!response.optBoolean("done", false)) {
 			var error = response.opt("error");
 			throw new EngineException(error == null ? "Unable to move Flow node." : error.toString());
 		}
-		reloadTreeObject(explorerView, flowTreeObject(targetDbot));
+		reloadFlowTreeObjectAndSelectAsync(explorerView, targetDbot, selectionKey, selectionPath,
+				response.optString("selectionMutationPath", ""), flowVirtualSourcePath(sourceDbot),
+				sourceVirtualObject.getVirtualKind(), sourceVirtualObject.getVirtualType(), fallbackKey, fallbackPath);
 		return true;
 	}
 
@@ -1101,6 +1122,19 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			return false;
 		}
 		return FlowStudioSupport.canMoveNode(source, target);
+	}
+
+	private String flowVirtualDropPosition(DatabaseObjectTreeObject sourceDbot, DatabaseObjectTreeObject targetDbot,
+			boolean insertBefore, boolean insertAfter) {
+		if (insertBefore) {
+			return "before";
+		}
+		if (insertAfter) {
+			return "after";
+		}
+		return FlowStudioSupport.canMoveNode(sourceDbot.getObject(), targetDbot.getObject(), "inside")
+				? "inside"
+				: "after";
 	}
 
 	/* (non-Javadoc)
@@ -1568,7 +1602,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								var error = response.opt("error");
 								throw new EngineException(error == null ? "Unable to add Flow block." : error.toString());
 							}
-							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							reloadFlowTreeObject(explorerView, dbotree);
 							return;
 						}
 						if (paletteSource.isFlowBlockDefinition()) {
@@ -1582,7 +1616,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								var error = response.opt("error");
 								throw new EngineException(error == null ? "Unable to add Flow block definition." : error.toString());
 							}
-							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							reloadFlowTreeObject(explorerView, dbotree);
 							return;
 						}
 						if (paletteSource.isFlowTypeDefinition()) {
@@ -1595,7 +1629,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								var error = response.opt("error");
 								throw new EngineException(error == null ? "Unable to add Flow type definition." : error.toString());
 							}
-							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							reloadFlowTreeObject(explorerView, dbotree);
 							return;
 						}
 						if (paletteSource.isFlowPropertyDefinition()) {
@@ -1608,7 +1642,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								var error = response.opt("error");
 								throw new EngineException(error == null ? "Unable to add Flow block property." : error.toString());
 							}
-							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							reloadFlowTreeObject(explorerView, dbotree);
 							return;
 						}
 						if (paletteSource.isFlowHelperDefinition()) {
@@ -1621,7 +1655,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								var error = response.opt("error");
 								throw new EngineException(error == null ? "Unable to add Flow helper function." : error.toString());
 							}
-							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							reloadFlowTreeObject(explorerView, dbotree);
 							return;
 						}
 						if (paletteSource.isFrontendBlock() || paletteSource.isFrontendBlockDefinition()) {
@@ -1629,16 +1663,20 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								throw new EngineException("Unable to add frontend block without catalog data.");
 							}
 							var position = insertBefore ? "before" : insertAfter ? "after" : "inside";
+							Engine.logStudio.info("Flow frontend DnD UI palette insert: target="
+									+ flowVirtualTreeSummary(dbotree) + " position=" + position
+									+ " item=" + paletteSource.getFlowItemData());
 							var transfer = new org.codehaus.jettison.json.JSONObject()
 									.put("type", "paletteData")
 									.put("data", new org.codehaus.jettison.json.JSONObject(paletteSource.getFlowItemData())
 											.put("type", "FrontendBlock"));
 							var response = FlowStudioSupport.addFromPalette(dbotree.getObject(), position, transfer);
+							Engine.logStudio.info("Flow frontend DnD UI palette insert response: " + response);
 							if (!response.optBoolean("done", false)) {
 								var error = response.opt("error");
 								throw new EngineException(error == null ? "Unable to add frontend block." : error.toString());
 							}
-							reloadTreeObject(explorerView, flowTreeObject(dbotree));
+							reloadFlowTreeObject(explorerView, dbotree);
 							explorerView.refreshTree();
 							return;
 						}
@@ -1689,7 +1727,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					throw new Exception();
 				}
 			} catch (Exception ex) {
-				ConvertigoPlugin.logError("failed to add from palette");
+				ConvertigoPlugin.logException(ex, "Failed to add from palette", false);
 			}
 		}
 		else if (data instanceof MobileSource) {
@@ -1798,6 +1836,320 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 
 		// Properties view needs to be refreshed
 		refreshPropertiesView(explorerView, treeObject);
+	}
+
+	private void reloadFlowTreeObject(ProjectExplorerView explorerView, DatabaseObjectTreeObject targetTreeObject) throws EngineException, IOException {
+		var root = flowTreeObject(targetTreeObject);
+		Engine.logStudio.info("Flow frontend DnD UI reload: root=" + treePath(root)
+				+ " target=" + treePath(targetTreeObject));
+		explorerView.forceReloadTreeObject(root);
+		if (root != null) {
+			explorerView.refreshTreeObject(root, true);
+		}
+		Engine.logStudio.info("Flow frontend DnD UI reload order: "
+				+ flowVirtualSourceOrder(root, flowVirtualSourcePath(targetTreeObject)));
+		refreshPropertiesView(explorerView, targetTreeObject);
+	}
+
+	private void reloadFlowTreeObjectAndSelectAsync(ProjectExplorerView explorerView, DatabaseObjectTreeObject targetTreeObject,
+			String selectedFlowKey, String selectedPath, String selectedMutationPath, String selectedSourcePath,
+			String selectedKind, String selectedType, String fallbackFlowKey, String fallbackPath) {
+		ConvertigoPlugin.asyncExec(() -> {
+			try {
+				reloadFlowTreeObjectAndSelect(explorerView, targetTreeObject, selectedFlowKey, selectedPath,
+						selectedMutationPath, selectedSourcePath, selectedKind, selectedType, fallbackFlowKey, fallbackPath);
+			} catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Failed to reload Flow tree after move", false);
+			}
+		});
+	}
+
+	private void reloadFlowTreeObjectAndSelect(ProjectExplorerView explorerView, DatabaseObjectTreeObject targetTreeObject,
+			String selectedFlowKey, String selectedPath, String selectedMutationPath, String selectedSourcePath,
+			String selectedKind, String selectedType, String fallbackFlowKey, String fallbackPath) throws EngineException, IOException {
+		var root = flowTreeObject(targetTreeObject);
+		Engine.logStudio.info("Flow frontend DnD UI reload/select: root=" + treePath(root)
+				+ " target=" + treePath(targetTreeObject)
+				+ " selectedKey=" + selectedFlowKey + " selectedPath=" + selectedPath
+				+ " selectedMutationPath=" + selectedMutationPath
+				+ " fallbackKey=" + fallbackFlowKey + " fallbackPath=" + fallbackPath);
+		explorerView.forceReloadTreeObject(root);
+		if (root != null) {
+			explorerView.refreshTreeObject(root, true);
+		}
+		explorerView.refreshTree();
+		String selectedReason = "moved-key";
+		TreeObject selected = root instanceof TreeParent parent
+				? findFlowVirtualObjectByKey(parent, selectedFlowKey)
+				: null;
+		if (selected == null && root instanceof TreeParent parent) {
+			selectedReason = "moved-mutation-path";
+			selected = findFlowVirtualObjectBySourceMutationPath(parent, selectedSourcePath,
+					selectedMutationPath, selectedKind, selectedType);
+		}
+		if (selected == null && root instanceof TreeParent parent) {
+			selectedReason = "target-key";
+			selected = findFlowVirtualObjectByKey(parent, fallbackFlowKey);
+		}
+		if (selected == null && root instanceof TreeParent parent) {
+			selectedReason = "target-path";
+			selected = explorerView.findTreeObjectByPath(parent, fallbackPath);
+		}
+		if (selected == null && root instanceof TreeParent parent) {
+			selectedReason = "moved-path";
+			selected = explorerView.findTreeObjectByPath(parent, selectedPath);
+		}
+		if (selected == null) {
+			selectedReason = "root";
+			selected = root;
+		}
+		Engine.logStudio.info("Flow frontend DnD UI reload/select order: selectedReason=" + selectedReason
+				+ " selected=" + treePath(selected)
+				+ " order=" + flowVirtualSourceOrder(root, flowVirtualSourcePath(targetTreeObject)));
+		explorerView.setSelectedTreeObject(selected);
+		refreshPropertiesView(explorerView, selected);
+	}
+
+	private String treePath(TreeObject treeObject) {
+		return treeObject == null ? "" : treeObject.getPath();
+	}
+
+	private String flowVirtualTreeSummary(DatabaseObjectTreeObject treeObject) {
+		if (treeObject == null) {
+			return "";
+		}
+		var dbo = treeObject.getObject();
+		if (!(dbo instanceof FlowVirtualObject fvo)) {
+			return treeObject.getPath();
+		}
+		var sourcePath = flowVirtualSourcePath(treeObject);
+		return "{treePath=" + treeObject.getPath()
+				+ ", name=" + fvo.getName()
+				+ ", kind=" + fvo.getVirtualKind()
+				+ ", type=" + fvo.getVirtualType()
+				+ ", path=" + fvo.getVirtualPath()
+				+ ", sourcePath=" + sourcePath + "}";
+	}
+
+	private String flowVirtualSourcePath(TreeObject treeObject) {
+		if (!(treeObject instanceof DatabaseObjectTreeObject dbot)
+				|| !(dbot.getObject() instanceof FlowVirtualObject fvo)) {
+			return "";
+		}
+		var info = fvo.getVirtualInfoObject();
+		var definition = fvo.getDefinitionObject();
+		return firstNonBlank(
+				info == null ? "" : info.optString("sourcePath", ""),
+				definition == null ? "" : definition.optString("sourcePath", ""));
+	}
+
+	private String flowVirtualSourceMutationPath(TreeObject treeObject) {
+		if (!(treeObject instanceof DatabaseObjectTreeObject dbot)
+				|| !(dbot.getObject() instanceof FlowVirtualObject fvo)) {
+			return "";
+		}
+		var info = fvo.getVirtualInfoObject();
+		var definition = fvo.getDefinitionObject();
+		return firstNonBlank(
+				info == null ? "" : info.optString("sourceMutationPath", ""),
+				definition == null ? "" : definition.optString("sourceMutationPath", ""));
+	}
+
+	private String flowVirtualSourceOrder(TreeObject root, String sourcePath) {
+		if (!(root instanceof TreeParent parent) || sourcePath == null || sourcePath.isBlank()) {
+			return "";
+		}
+		var order = new StringBuilder();
+		appendFlowVirtualSourceOrder(parent, sourcePath, order, 0);
+		return order.toString();
+	}
+
+	private void appendFlowVirtualSourceOrder(TreeParent parent, String sourcePath, StringBuilder order, int depth) {
+		if (depth > 12 || order.length() > 4000) {
+			return;
+		}
+		for (TreeObject child : parent.getChildren()) {
+			if (child instanceof DatabaseObjectTreeObject dbot
+					&& dbot.getObject() instanceof FlowVirtualObject fvo
+					&& sourcePath.equals(flowVirtualSourcePath(child))
+					&& !"frontendProperty".equals(fvo.getVirtualKind())) {
+				if (order.length() > 0) {
+					order.append(" | ");
+				}
+				order.append(fvo.getVirtualType())
+						.append(":")
+						.append(fvo.getSummary())
+						.append("@")
+						.append(fvo.getVirtualPath());
+			}
+			if (child instanceof TreeParent treeParent) {
+				appendFlowVirtualSourceOrder(treeParent, sourcePath, order, depth + 1);
+			}
+		}
+	}
+
+	private String flowVirtualSelectionKey(FlowVirtualObject object) {
+		if (object == null) {
+			return "";
+		}
+		var definition = object.getDefinitionObject();
+		var id = definition == null ? "" : definition.optString("id", "");
+		var sourcePath = firstNonBlank(
+				definition == null ? "" : definition.optString("sourcePath", ""),
+				object.getVirtualInfoObject() == null ? "" : object.getVirtualInfoObject().optString("sourcePath", ""));
+		if (!id.isBlank()) {
+			return "id\u0000" + sourcePath + "\u0000" + object.getVirtualKind() + "\u0000" + object.getVirtualType()
+					+ "\u0000" + id;
+		}
+		return "path\u0000" + sourcePath + "\u0000" + object.getVirtualPath() + "\u0000"
+				+ object.getVirtualKind() + "\u0000" + object.getVirtualType();
+	}
+
+	private String firstNonBlank(String... values) {
+		for (String value : values) {
+			if (value != null && !value.isBlank()) {
+				return value;
+			}
+		}
+		return "";
+	}
+
+	private TreeObject findFlowVirtualObjectByKey(TreeParent parent, String key) {
+		if (key == null || key.isBlank()) {
+			return null;
+		}
+		var exact = findFlowVirtualObjectByExactKey(parent, key);
+		if (exact != null) {
+			return exact;
+		}
+		var parts = key.split("\u0000", -1);
+		if (parts.length >= 5 && "id".equals(parts[0])) {
+			var sourcePath = parts[1];
+			var kind = parts[2];
+			var type = parts[3];
+			var id = parts[4];
+			var found = findFlowVirtualObjectByIdentity(parent, sourcePath, kind, type, id, true, true);
+			if (found != null) {
+				return found;
+			}
+			found = findFlowVirtualObjectByIdentity(parent, sourcePath, kind, type, id, false, true);
+			if (found != null) {
+				return found;
+			}
+			return findFlowVirtualObjectByIdentity(parent, sourcePath, kind, type, id, false, false);
+		}
+		if (parts.length >= 5 && "path".equals(parts[0])) {
+			var sourcePath = parts[1];
+			var virtualPath = parts[2];
+			var kind = parts[3];
+			var type = parts[4];
+			var found = findFlowVirtualObjectByVirtualPath(parent, sourcePath, virtualPath, kind, type, true, true);
+			if (found != null) {
+				return found;
+			}
+			found = findFlowVirtualObjectByVirtualPath(parent, sourcePath, virtualPath, kind, type, false, true);
+			if (found != null) {
+				return found;
+			}
+			return findFlowVirtualObjectByVirtualPath(parent, sourcePath, virtualPath, kind, type, false, false);
+		}
+		return null;
+	}
+
+	private TreeObject findFlowVirtualObjectByExactKey(TreeParent parent, String key) {
+		for (TreeObject child : parent.getChildren()) {
+			if (child instanceof DatabaseObjectTreeObject dbot
+					&& dbot.getObject() instanceof FlowVirtualObject flowVirtualObject
+					&& key.equals(flowVirtualSelectionKey(flowVirtualObject))) {
+				return child;
+			}
+			if (child instanceof TreeParent treeParent) {
+				var found = findFlowVirtualObjectByExactKey(treeParent, key);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
+	private TreeObject findFlowVirtualObjectBySourceMutationPath(TreeParent parent, String sourcePath,
+			String mutationPath, String kind, String type) {
+		if (mutationPath == null || mutationPath.isBlank()) {
+			return null;
+		}
+		for (TreeObject child : parent.getChildren()) {
+			if (child instanceof DatabaseObjectTreeObject dbot
+					&& dbot.getObject() instanceof FlowVirtualObject fvo
+					&& mutationPath.equals(flowVirtualSourceMutationPath(child))
+					&& (sourcePath == null || sourcePath.isBlank() || sourcePath.equals(flowVirtualSourcePath(child)))
+					&& (kind == null || kind.isBlank() || kind.equals(fvo.getVirtualKind()))
+					&& (type == null || type.isBlank() || type.equals(fvo.getVirtualType()))) {
+				return child;
+			}
+			if (child instanceof TreeParent treeParent) {
+				var found = findFlowVirtualObjectBySourceMutationPath(treeParent, sourcePath, mutationPath, kind, type);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
+	private TreeObject findFlowVirtualObjectByIdentity(TreeParent parent, String sourcePath, String kind, String type, String id,
+			boolean matchSource, boolean matchKindAndType) {
+		if (id == null || id.isBlank()) {
+			return null;
+		}
+		for (TreeObject child : parent.getChildren()) {
+			if (child instanceof DatabaseObjectTreeObject dbot
+					&& dbot.getObject() instanceof FlowVirtualObject fvo
+					&& id.equals(flowVirtualId(fvo))
+					&& (!matchSource || sourcePath == null || sourcePath.isBlank() || sourcePath.equals(flowVirtualSourcePath(child)))
+					&& (!matchKindAndType || kind.equals(fvo.getVirtualKind()) && type.equals(fvo.getVirtualType()))) {
+				return child;
+			}
+			if (child instanceof TreeParent treeParent) {
+				var found = findFlowVirtualObjectByIdentity(treeParent, sourcePath, kind, type, id, matchSource, matchKindAndType);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
+	private TreeObject findFlowVirtualObjectByVirtualPath(TreeParent parent, String sourcePath, String virtualPath, String kind, String type,
+			boolean matchSource, boolean matchKindAndType) {
+		if (virtualPath == null || virtualPath.isBlank()) {
+			return null;
+		}
+		for (TreeObject child : parent.getChildren()) {
+			if (child instanceof DatabaseObjectTreeObject dbot
+					&& dbot.getObject() instanceof FlowVirtualObject fvo
+					&& virtualPath.equals(fvo.getVirtualPath())
+					&& (!matchSource || sourcePath == null || sourcePath.isBlank() || sourcePath.equals(flowVirtualSourcePath(child)))
+					&& (!matchKindAndType || kind.equals(fvo.getVirtualKind()) && type.equals(fvo.getVirtualType()))) {
+				return child;
+			}
+			if (child instanceof TreeParent treeParent) {
+				var found = findFlowVirtualObjectByVirtualPath(treeParent, sourcePath, virtualPath, kind, type,
+						matchSource, matchKindAndType);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
+	private String flowVirtualId(FlowVirtualObject object) {
+		if (object == null) {
+			return "";
+		}
+		var definition = object.getDefinitionObject();
+		return definition == null ? "" : definition.optString("id", "");
 	}
 
 	private TreeObject flowTreeObject(DatabaseObjectTreeObject treeObject) {

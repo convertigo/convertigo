@@ -189,6 +189,8 @@ import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
+import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor;
+import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditorInput;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction;
@@ -960,7 +962,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			refreshFirstSelectedTreeObject(true);
 		}
 		var openUrl = result.optString("openUrl", "");
-		if (!openUrl.isBlank()) {
+		if (!openFlowBrowser(result, openUrl) && !openUrl.isBlank()) {
 			Program.launch(openUrl);
 		}
 		var dialog = result.optBoolean("dialog", false) || result.has("schema");
@@ -983,6 +985,32 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			getViewSite().getActionBars().getStatusLineManager().setMessage(message);
 		} catch (Exception e) {
 			ConvertigoPlugin.logInfo(message);
+		}
+	}
+
+	private boolean openFlowBrowser(JSONObject result, String openUrl) {
+		var browser = result.optJSONObject("browser");
+		if (browser == null && !result.optBoolean("openInStudioBrowser", false)) {
+			return false;
+		}
+		var url = browser == null ? openUrl : browser.optString("url", openUrl);
+		if (url == null || url.isBlank()) {
+			return false;
+		}
+		try {
+			var title = browser == null ? result.optString("title", "Flow") : browser.optString("title", result.optString("title", "Flow"));
+			var id = browser == null ? "" : browser.optString("id", "");
+			var projectName = browser == null ? result.optString("project", "") : browser.optString("project", result.optString("project", ""));
+			var tooltip = browser == null ? url : browser.optString("tooltip", url);
+			var input = new FlowEngineEditorInput(id, title, url, projectName, tooltip);
+			IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().openEditor(input, FlowEngineEditor.ID);
+			if (editor instanceof FlowEngineEditor flowEditor) {
+				flowEditor.updateInput(input);
+			}
+			return true;
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to open Flow browser editor.");
+			return false;
 		}
 	}
 
@@ -1851,7 +1879,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private void reload(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) throws EngineException, IOException {
-		if (!checkReload(parentTreeObject, parentDatabaseObject)) {
+		reload(parentTreeObject, parentDatabaseObject, false);
+	}
+
+	private void reload(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, boolean force) throws EngineException, IOException {
+		if (force || !checkReload(parentTreeObject, parentDatabaseObject)) {
 			try {
 				ModalContext.run(new ReloadWithProgress(viewer, parentTreeObject, parentDatabaseObject), true, new NullProgressMonitor(), ConvertigoPlugin.getDisplay());
 			} catch (InvocationTargetException e) {
@@ -2785,6 +2817,16 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				reload((TreeParent) object, (DatabaseObject) object.getObject());
 			} else {
 				reloadTreeObject(object.getParent());
+			}
+		}
+	}
+
+	public void forceReloadTreeObject(TreeObject object) throws EngineException, IOException {
+		if (object != null) {
+			if (object instanceof DatabaseObjectTreeObject) {
+				reload((TreeParent) object, (DatabaseObject) object.getObject(), true);
+			} else {
+				forceReloadTreeObject(object.getParent());
 			}
 		}
 	}

@@ -38,6 +38,13 @@
 			id="com.twinsoft.convertigo.eclipse.editors.StartupEditor"
 			name="Convertigo Startup">
 		</editor>
+		<editor
+			class="com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor"
+			default="false"
+			icon="icons/studio/web_color_16x16.png"
+			id="com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor"
+			name="Flow Browser">
+		</editor>
 	</extension>
 	<extension
 		point="org.eclipse.ui.actionSets">

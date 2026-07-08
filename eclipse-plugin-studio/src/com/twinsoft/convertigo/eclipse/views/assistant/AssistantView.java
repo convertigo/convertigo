@@ -63,6 +63,8 @@ import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.actions.OpenTutorialView;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
+import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor;
+import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
@@ -796,6 +798,15 @@ public class AssistantView extends ViewPart {
 								return debugUrl;
 							}
 						}
+					} else if (editorInput instanceof FlowEngineEditorInput) {
+						FlowEngineEditorInput input = (FlowEngineEditorInput) editorInput;
+						if (StringUtils.isBlank(projectName) || input.getProjectName().equals(projectName)) {
+							IEditorPart editorPart = editorRef.getEditor(false);
+							String debugUrl = getViewerDebugUrl(editorPart, projectName);
+							if (StringUtils.isNotBlank(debugUrl)) {
+								return debugUrl;
+							}
+						}
 					}
 				} catch (Exception e) {
 				}
@@ -811,6 +822,8 @@ public class AssistantView extends ViewPart {
 				return ((ApplicationComponentEditor) editorPart).getDebugUrl();
 			} else if (editorPart instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor) {
 				return ((com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor) editorPart).getDebugUrl();
+			} else if (editorPart instanceof FlowEngineEditor) {
+				return ((FlowEngineEditor) editorPart).getDebugUrl();
 			}
 		} catch (Exception e) {
 		}
