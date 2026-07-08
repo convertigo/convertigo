@@ -88,6 +88,9 @@ public class AssistantView extends ViewPart {
 	private static final String LOCAL_ASSISTANT_PATH = "/projects/ConvertigoAssistant/DisplayObjects/mobile/";
 	private static final String AGENT_ONBOARDING_FEATURE_VERSION = "2026-07-02.agent-onboarding-v1";
 	private static final String AGENT_DOWNLOAD_URL = "https://www.convertigo.com/developers/download-low-code-studio";
+	private static final String[] LOCAL_AGENT_STACK_PROJECTS = {"ConvertigoAssistant", "ConvertigoMCP", "ConvertigoAgentBridge"};
+	private static final long LOCAL_AGENT_STACK_LOADING_RECHECK_MS = 1000L;
+	private static final long LOCAL_AGENT_STACK_LOADING_TIMEOUT_MS = 90000L;
 	private static final String WAITING_HTML = "<!doctype html><html><head><meta charset=\"utf-8\">"
 			+ "<style>"
 			+ "html,body{height:100%;margin:0;}"
@@ -107,6 +110,8 @@ public class AssistantView extends ViewPart {
 	private JSONObject jsonMessage = new JSONObject();
 	private int counter = 1;
 	private String startupUrl = STARTUP_URL;
+	private long localAgentStackLoadingStartedAt = 0L;
+	private boolean localAgentStackContextRecheckScheduled = false;
 	
 	@Override
 	public void dispose() {
@@ -489,10 +494,11 @@ public class AssistantView extends ViewPart {
 			String assistantUrl = Objects.toString(browser.getURL(), startupUrl);
 			String localConvertigoUrl = getLocalConvertigoUrl();
 			boolean assistantLocal = isLocalConvertigoUrl(assistantUrl, localConvertigoUrl);
-			boolean assistantInstalled = isProjectInstalled("ConvertigoAssistant");
-			boolean mcpInstalled = isProjectInstalled("ConvertigoMCP");
-			boolean bridgeInstalled = isProjectInstalled("ConvertigoAgentBridge");
-			boolean localStackAvailable = assistantInstalled && mcpInstalled && bridgeInstalled;
+			LocalAgentStackState stackState = getLocalAgentStackState();
+			boolean assistantInstalled = stackState.assistantInstalled;
+			boolean mcpInstalled = stackState.mcpInstalled;
+			boolean bridgeInstalled = stackState.bridgeInstalled;
+			boolean localStackAvailable = assistantInstalled && mcpInstalled && bridgeInstalled && !stackState.loading;
 			JSONObject payload = new JSONObject();
 			payload.put("assistantSurface", "studio");
 			payload.put("assistantContext", "studio");
@@ -508,8 +514,10 @@ public class AssistantView extends ViewPart {
 			payload.put("localMcpInstalled", mcpInstalled);
 			payload.put("localAgentBridgeInstalled", bridgeInstalled);
 			payload.put("localAgentStackAvailable", localStackAvailable);
-			payload.put("localAgentBridgeAvailable", assistantLocal && localStackAvailable);
-			payload.put("agentBridgeAvailable", assistantLocal && localStackAvailable);
+			payload.put("localAgentStackState", stackState.state);
+			payload.put("localAgentStackLoading", stackState.loading);
+			payload.put("localAgentBridgeAvailable", assistantLocal && localStackAvailable && !stackState.loading);
+			payload.put("agentBridgeAvailable", assistantLocal && localStackAvailable && !stackState.loading);
 			try {
 				if (jsonMessage.has("projectName")) {
 					payload.put("projectName", jsonMessage.getString("projectName"));
@@ -526,6 +534,7 @@ public class AssistantView extends ViewPart {
 			message.put("payload", payload);
 			handler.postMessage(message);
 			ConvertigoPlugin.logStudioDebug("[Assistant] context: " + message.toString());
+			scheduleLocalAgentStackContextRecheck(stackState);
 		} catch (Exception e) {
 			ConvertigoPlugin.logStudioWarn("[Assistant] could not post context: " + e.getMessage());
 		}
@@ -568,6 +577,98 @@ public class AssistantView extends ViewPart {
 		} catch (Exception e) {
 			return false;
 		}
+	}
+
+	private LocalAgentStackState getLocalAgentStackState() {
+		LocalAgentStackState state = new LocalAgentStackState();
+		state.assistantInstalled = isProjectInstalled("ConvertigoAssistant");
+		state.mcpInstalled = isProjectInstalled("ConvertigoMCP");
+		state.bridgeInstalled = isProjectInstalled("ConvertigoAgentBridge");
+		boolean allInstalled = state.assistantInstalled && state.mcpInstalled && state.bridgeInstalled;
+		boolean opening = false;
+		boolean presentButNotInstalled = false;
+		for (String projectName : LOCAL_AGENT_STACK_PROJECTS) {
+			opening |= isProjectOpening(projectName);
+			presentButNotInstalled |= !isProjectInstalled(projectName) && isProjectPresentInWorkspace(projectName);
+		}
+		boolean shouldWait = opening || presentButNotInstalled;
+		if (allInstalled && !opening) {
+			localAgentStackLoadingStartedAt = 0L;
+			state.state = "ready";
+			state.loading = false;
+			return state;
+		}
+		if (shouldWait) {
+			long now = System.currentTimeMillis();
+			if (localAgentStackLoadingStartedAt == 0L) {
+				localAgentStackLoadingStartedAt = now;
+			}
+			if (now - localAgentStackLoadingStartedAt < LOCAL_AGENT_STACK_LOADING_TIMEOUT_MS) {
+				state.state = "loading";
+				state.loading = true;
+				return state;
+			}
+		}
+		localAgentStackLoadingStartedAt = 0L;
+		state.state = "missing";
+		state.loading = false;
+		return state;
+	}
+
+	private void scheduleLocalAgentStackContextRecheck(LocalAgentStackState state) {
+		if (state == null || !state.loading || localAgentStackContextRecheckScheduled) {
+			return;
+		}
+		localAgentStackContextRecheckScheduled = true;
+		Job.create("Recheck local Assistant agent stack", monitor -> {
+			try {
+				Thread.sleep(LOCAL_AGENT_STACK_LOADING_RECHECK_MS);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			ConvertigoPlugin.asyncExec(() -> {
+				localAgentStackContextRecheckScheduled = false;
+				postAssistantContext();
+			});
+		}).schedule();
+	}
+
+	private static boolean isProjectOpening(String projectName) {
+		String jobName = "Opening project " + projectName;
+		for (Job job : Job.getJobManager().find(null)) {
+			try {
+				if (jobName.equals(job.getName()) && job.getState() != Job.NONE) {
+					return true;
+				}
+			} catch (Exception e) {
+			}
+		}
+		return false;
+	}
+
+	private static boolean isProjectPresentInWorkspace(String projectName) {
+		try {
+			File projectFile = ConvertigoPlugin.getDefault().getProject(projectName);
+			if (projectFile != null && projectFile.exists()) {
+				return true;
+			}
+		} catch (Exception e) {
+		}
+		try {
+			File projectDir = new File(Engine.PROJECTS_PATH, projectName);
+			return new File(projectDir, "c8oProject.yaml").exists()
+					|| new File(projectDir, projectName + ".xml").exists();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private static class LocalAgentStackState {
+		boolean assistantInstalled;
+		boolean mcpInstalled;
+		boolean bridgeInstalled;
+		boolean loading;
+		String state = "missing";
 	}
 
 	private static boolean isLocalHost(String host) {
