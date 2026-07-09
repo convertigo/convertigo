@@ -63,7 +63,16 @@ abstract class MemoryCacheManager extends CacheManager {
 		storeWeakResponse(response, requestString);
 		if (cacheIndex != null) {
 			CacheEntry cacheEntry = storeResponseToRepository(response, requestString, expiryDate);
-			cacheIndex.put(requestString, cacheEntry);
+			CacheEntry previousCacheEntry = cacheIndex.put(requestString, cacheEntry);
+			if (previousCacheEntry != null && previousCacheEntry != cacheEntry) {
+				try {
+					removeStoredResponseImpl(previousCacheEntry);
+				} catch(ClassCastException e) {
+					// Ignore (index case)
+				} catch(Exception e) {
+					Engine.logCacheManager.warn("Unable to remove the replaced cache entry \"" + previousCacheEntry.toString() + "\".", e);
+				}
+			}
 			return cacheEntry;
 		}
 		return null;

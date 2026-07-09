@@ -171,7 +171,7 @@
 		function apply(nextValue) {
 			pending = normalizeOptions(nextValue);
 			if (!editor) return;
-			editor.updateOptions({ readOnly: pending.readOnly });
+			editor.updateOptions({ readOnly: pending.readOnly, domReadOnly: pending.readOnly });
 			globalThis.monaco?.editor?.setTheme(pending.theme || 'vs');
 			if (editor.getValue() !== pending.content) {
 				applyingContent = true;
@@ -194,6 +194,7 @@
 					language: pending.language,
 					theme: pending.theme,
 					readOnly: pending.readOnly,
+					domReadOnly: pending.readOnly,
 					automaticLayout: false
 				});
 				changeSubscription = editor.onDidChangeModelContent(() => {

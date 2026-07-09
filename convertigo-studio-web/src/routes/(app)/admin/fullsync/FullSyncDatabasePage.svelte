@@ -2068,6 +2068,25 @@
 					</ActionBar>
 				</header>
 
+				{#if selectedViewName != 'new-view'}
+					<div
+						class="view-editor-disclaimer preset-tonal-warning motif-warning"
+						role="note"
+						aria-label="Temporary view edit"
+					>
+						<Ico icon="mdi:warning-outline" size={5} aria-hidden="true" />
+						<div class="view-editor-disclaimer-copy">
+							<strong>Temporary edit</strong>
+							<span>
+								This editor updates the CouchDB design document stored in this FullSync database. If
+								this view is defined by a Convertigo project, the next reload of that project will
+								overwrite these changes. Edit the project's Design document to make the view
+								permanent.
+							</span>
+						</div>
+					</div>
+				{/if}
+
 				<form class="view-editor-form layout-y-stretch gap-4" onsubmit={saveViewEditor}>
 					<fieldset
 						class="view-editor-fieldset layout-y-stretch gap-3"
@@ -2104,7 +2123,7 @@
 							/>
 						</div>
 
-						<label class="view-editor-field layout-y-stretch gap-1">
+						<div class="view-editor-field layout-y-stretch gap-1">
 							<span class="label-common">Map function</span>
 							<div class="editor-shell view-editor-map-shell">
 								<Editor
@@ -2114,7 +2133,7 @@
 									theme={editorTheme}
 								/>
 							</div>
-						</label>
+						</div>
 
 						<div class="view-editor-fields">
 							<PropertyType
@@ -2133,7 +2152,7 @@
 						</div>
 
 						{#if viewEditorReduceOption == 'CUSTOM'}
-							<label class="view-editor-field layout-y-stretch gap-1">
+							<div class="view-editor-field layout-y-stretch gap-1">
 								<span class="label-common">Custom reduce function</span>
 								<div class="editor-shell view-editor-reduce-shell">
 									<Editor
@@ -2143,7 +2162,7 @@
 										theme={editorTheme}
 									/>
 								</div>
-							</label>
+							</div>
 						{/if}
 
 						<ActionBar full={false} wrap={true} class="justify-start gap-2">
@@ -3266,6 +3285,24 @@
 		gap: calc(var(--spacing) * 1);
 		padding-bottom: calc(var(--spacing) * 1);
 		border-bottom: 1px solid light-dark(var(--color-surface-300), var(--color-surface-700));
+		min-width: 0;
+	}
+
+	.view-editor-disclaimer {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		align-items: start;
+		gap: calc(var(--spacing) * 0.75);
+		padding: calc(var(--spacing) * 0.875) calc(var(--spacing) * 1);
+		border: 1px solid color-mix(in srgb, var(--color-warning-500) 50%, transparent);
+		border-radius: var(--radius-base);
+		font-size: 0.875rem;
+		line-height: 1.45;
+	}
+
+	.view-editor-disclaimer-copy {
+		display: grid;
+		gap: calc(var(--spacing) * 0.25);
 		min-width: 0;
 	}
 

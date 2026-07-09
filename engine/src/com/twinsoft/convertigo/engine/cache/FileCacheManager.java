@@ -26,6 +26,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.w3c.dom.Document;
@@ -46,6 +48,7 @@ public class FileCacheManager extends MemoryCacheManager {
 	}
 
 	private static final String KEY_INDEX = "Convertigo.FileCacheManager: index";
+	private static final long ORPHAN_FILE_MIN_AGE = 60 * 1000;
 
 	@Override
 	public void init() throws EngineException {
@@ -247,7 +250,45 @@ public class FileCacheManager extends MemoryCacheManager {
 		}
 	}
 
+	@Override
+	protected synchronized void checkRepository() throws EngineException {
+		super.checkRepository();
+		garbageCollectCacheRepository();
+	}
+
 	public void garbageCollectCacheRepository() throws EngineException {
-		// Do nothing for the moment
+		if (cacheIndex == null) {
+			return;
+		}
+		File cacheDirectory = new File(Engine.CACHE_PATH);
+		File[] responseFiles = cacheDirectory.listFiles((dir, name) -> name.endsWith(".xml"));
+		if (responseFiles == null || responseFiles.length == 0) {
+			return;
+		}
+
+		Set<String> indexedFiles = new HashSet<>();
+		for (CacheEntry cacheEntry : cacheIndex.values()) {
+			if (cacheEntry instanceof FileCacheEntry) {
+				String fileName = ((FileCacheEntry) cacheEntry).fileName;
+				if (fileName != null && !fileName.isEmpty()) {
+					indexedFiles.add(new File(fileName).getAbsolutePath());
+				}
+			}
+		}
+
+		long time = System.currentTimeMillis();
+		int removedFiles = 0;
+		for (File responseFile : responseFiles) {
+			if (!indexedFiles.contains(responseFile.getAbsolutePath()) && time - responseFile.lastModified() > ORPHAN_FILE_MIN_AGE) {
+				if (responseFile.delete()) {
+					removedFiles++;
+				} else {
+					Engine.logCacheManager.warn("Unable to remove the orphan cache file: " + responseFile);
+				}
+			}
+		}
+		if (removedFiles > 0) {
+			Engine.logCacheManager.info("Removed " + removedFiles + " orphan cache file(s).");
+		}
 	}
 }
