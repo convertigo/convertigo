@@ -1496,15 +1496,14 @@ public class FlowEngineBridge {
 	private static CachedEngineRuntimeLookup cachedEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
 			org.mozilla.javascript.Context cx) throws EngineException {
 		var baseKey = engineRef.qname + "|" + engineSource.sourceName();
-		var thread = Thread.currentThread();
-		var key = baseKey + "|thread:" + thread.getName();
+		var key = baseKey + "|shared";
 		var generation = cacheGeneration.get();
 		var cached = engineRuntimeCache.get(key);
 		if (cached != null && cached.generation() == generation && cached.sourceName().equals(engineSource.sourceName())) {
 			return new CachedEngineRuntimeLookup(cached, true, key, generation, engineRuntimeCache.size());
 		}
 		engineRuntimeCache.entrySet().removeIf(entry -> entry.getKey().startsWith(engineRef.qname + "|")
-				&& (entry.getValue().generation() != generation || !entry.getKey().startsWith(baseKey + "|thread:")));
+				&& (entry.getValue().generation() != generation || !entry.getKey().equals(key)));
 		try {
 			var scope = cx.initStandardObjects();
 			scope.put("__flowEngineDir", scope, engineFile.getParentFile().getAbsolutePath());

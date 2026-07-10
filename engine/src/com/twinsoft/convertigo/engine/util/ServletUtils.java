@@ -59,6 +59,9 @@ public class ServletUtils {
 	private static final Pattern RANGE_PATTERN = Pattern.compile("bytes\\s*=\\s*(.+)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern RANGE_ITEM_PATTERN = Pattern.compile("(\\d*)-(\\d*)");
 	private static final Pattern P_DISPLAY_OBJECTS_SPA = Pattern.compile("^/(?:system/)?projects/[^/]+/DisplayObjects/(?:mobile|pwas/[^/]+)(?:/.*)?$");
+	private static final Pattern IMMUTABLE_DISPLAY_OBJECTS_PATH = Pattern.compile(
+			"^/(?:system/)?projects/[^/]+/DisplayObjects/(?:mobile|pwas/[^/]+)/_app/immutable/.+",
+			Pattern.CASE_INSENSITIVE);
 	private static final Pattern HASHED_DISPLAY_OBJECTS_FILE = Pattern.compile(
 			".*-[A-Za-z0-9_-]{8,}\\.(?:css|js|mjs|map|png|apng|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf|eot|wasm)$",
 			Pattern.CASE_INSENSITIVE);
@@ -207,6 +210,9 @@ public class ServletUtils {
 		if ("index.html".equalsIgnoreCase(file.getName())) {
 			return CACHE_CONTROL_REVALIDATE;
 		}
+		if (IMMUTABLE_DISPLAY_OBJECTS_PATH.matcher(path).matches()) {
+			return CACHE_CONTROL_IMMUTABLE;
+		}
 		if (HASHED_DISPLAY_OBJECTS_FILE.matcher(file.getName()).matches()) {
 			return CACHE_CONTROL_IMMUTABLE;
 		}
@@ -341,7 +347,9 @@ public class ServletUtils {
 			HeaderName.ContentType.setHeader(response, mimeType);
 		}
 		long maxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
-		HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge);
+		if (!HeaderName.CacheControl.has(response)) {
+			HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge);
+		}
 		response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
 		HeaderName.AcceptRanges.setHeader(response, "bytes");
 
