@@ -1,0 +1,14 @@
+kind,metric,count,median_ms,mean_ms,p95_ms,min_ms,max_ms
+flow_sequence,Convertigo,35,172.0,174.7,182,159,277
+flow_sequence,GetDocument,35,170.0,172.9,181,157,274
+flow_sequence,Host,35,0.0,0.0,0,0,0
+flow_sequence,Total,35,172.0,174.7,182,159,277
+legacy_sequence,Convertigo,35,251.0,263.4,282,223,712
+legacy_sequence,GetDocument,35,249.0,261.1,279,222,710
+legacy_sequence,Host,35,0.0,0.0,0,0,0
+legacy_sequence,Total,35,251.0,263.4,282,223,712
+legacy_transaction,ApplyUserRequest,35,218.0,230.6,232,205,674
+legacy_transaction,Convertigo,35,20.0,20.5,38,8,49
+legacy_transaction,GetDocument,35,225.0,240.3,245,211,685
+legacy_transaction,Host,35,218.0,230.6,232,205,674
+legacy_transaction,Total,35,238.0,251.1,264,215,697

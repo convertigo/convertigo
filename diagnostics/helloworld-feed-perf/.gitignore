@@ -1,0 +1,3 @@
+*.class
+results/c8o-cookie.txt
+results/*.log
