@@ -2,6 +2,79 @@
 
 Date: 2026-07-12
 
+## Public beta exact URL comparison
+
+Compared URLs:
+
+- Legacy:
+  `https://beta.convertigo.net/convertigo/projects/sample_HelloWorld/.json?__sequence=GetFeed`
+- Flow:
+  `https://beta.convertigo.net/convertigo/projects/sample_HelloWorld_flow/.json?__sequence=GetFeed`
+
+Benchmark run:
+
+```bash
+ITERATIONS=12 WARMUP=2 diagnostics/helloworld-feed-perf/bench_beta_urls.sh
+```
+
+Artifacts:
+
+- Raw timings: `results/beta-benchmark-20260712T214008Z.csv`
+- Summary: `results/beta-summary-20260712T214008Z.csv`
+
+The script reuses one cookie jar, uses a dedicated `__context`, alternates call
+order, records curl timing phases, and removes the context/session at the end.
+
+All measured responses were valid and equivalent:
+
+- 24 measured rows out of 24 returned HTTP 200.
+- Every measured body was 7218 bytes.
+- Every measured body had SHA-256
+  `c2dd0fd76f9b1ab622c372d0b7639404a36baa41b9a4228edb4cc8d2d07eae57`.
+
+Cold calls:
+
+| Target | TTFB | Total |
+| --- | ---: | ---: |
+| Legacy | 553.0 ms | 553.1 ms |
+| Flow | 1010.4 ms | 1010.7 ms |
+
+Hot measured medians:
+
+| Target | Connect | TLS | TTFB | Total | Server after TLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Legacy | 38.1 ms | 86.6 ms | 277.3 ms | 277.5 ms | 185.7 ms |
+| Flow | 44.0 ms | 95.4 ms | 441.5 ms | 441.8 ms | 321.2 ms |
+
+In this beta run, Flow is therefore 164.3 ms slower on median total time, or
+1.59x the legacy time. Since `time_total` is effectively equal to
+`time_starttransfer`, and the response body is identical, the difference is in
+server-side time before the first byte rather than in client network transfer or
+download. Subtracting TLS pretransfer time still leaves about 135.5 ms median
+extra server-side time for Flow.
+
+This confirms the reported direction on the exact public beta URLs, although
+the delta in this run is a little smaller than the previous reported roughly
+200 ms.
+
+## Public beta source availability
+
+The exact `sample_HelloWorld_flow` project source was not available from this
+workspace or from public project discovery:
+
+- Public GitHub search under `convertigo` found no `sample_HelloWorld_flow`
+  repository.
+- Public beta admin project export and database object services require
+  authentication.
+- The public project XSD is accessible, but only describes the JSON schema and
+  does not expose Flow internals.
+
+So the beta test isolates the difference to server-side Flow execution time,
+but does not yet split the exact beta Flow requestable into `http.get`, XML
+parsing, `list.map`, serialization, and requestable envelope phases. Doing that
+requires the exact `sample_HelloWorld_flow` project source or authenticated
+access to inspect and instrument it.
+
 ## Runtime
 
 - Runtime container: `c8o-agent-runtime`

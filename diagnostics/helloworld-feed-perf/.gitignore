@@ -1,3 +1,4 @@
 *.class
-results/c8o-cookie.txt
+results/*cookie*.txt
+results/*.body
 results/*.log
