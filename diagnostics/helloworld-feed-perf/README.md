@@ -62,12 +62,24 @@ the delta in this run is a little smaller than the previous reported roughly
 The exact `sample_HelloWorld_flow` project source was not available from this
 workspace or from public project discovery:
 
+- Flow MCP reports `Unknown Convertigo project: sample_HelloWorld_flow` for both
+  `flow-list` and `code-get sample_HelloWorld_flow.GetFeed`.
+- Local Convertigo MCP `project-list` contains `sample_HelloWorld` and
+  `sample_HelloWorldFlowRun4`, but not `sample_HelloWorld_flow`.
+- Marketplace searches on 2026-07-13 for `sample_HelloWorld_flow` and
+  `HelloWorld flow` returned no entries. Searches for `sample_HelloWorld` and
+  `helloworld` returned only the legacy `sample_HelloWorld`
+  (`c8oprj-sample-helloworld`). No exact Flow import was attempted because no
+  exact marketplace entry exists.
 - Public GitHub search under `convertigo` found no `sample_HelloWorld_flow`
   repository.
 - Public beta admin project export and database object services require
   authentication.
 - The public project XSD is accessible, but only describes the JSON schema and
   does not expose Flow internals.
+
+Current source-availability evidence is recorded in
+`results/source-availability-20260712T220609Z.json`.
 
 So the beta test isolates the difference to server-side Flow execution time,
 but does not yet split the exact beta Flow requestable into `http.get`, XML
