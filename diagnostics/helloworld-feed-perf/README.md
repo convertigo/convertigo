@@ -75,6 +75,73 @@ parsing, `list.map`, serialization, and requestable envelope phases. Doing that
 requires the exact `sample_HelloWorld_flow` project source or authenticated
 access to inspect and instrument it.
 
+## Local Flow primitive isolation
+
+Because the beta Flow source is not available, the local
+`sample_HelloWorldFlowRun4.ReadNasaFeed` Flow was used only as a controlled
+primitive benchmark. The script `bench_flow_phases.py` writes temporary
+FlowScript working copies through Flow MCP, runs them with `code-run`, and
+always discards the working copy. A final `code-status` confirmed no dirty
+working copy remained.
+
+The benchmark serves the captured RSS fixture
+`results/nasa-iotd-20260712T195054Z.rss` to the Convertigo container over the
+Docker bridge, so the measured variants avoid external NASA network variance.
+
+Benchmark run:
+
+```bash
+ITERATIONS=12 WARMUP=3 diagnostics/helloworld-feed-perf/bench_flow_phases.py
+```
+
+Artifacts:
+
+- Variant timings: `results/flow-variant-20260712T220153Z.csv`
+- Variant summary: `results/flow-variant-summary-20260712T220153Z.csv`
+- Derived deltas: `results/flow-variant-derived-20260712T220153Z.json`
+- Local HTTP requestable timings: `results/flow-http-20260712T220153Z.csv`
+- Bridge summary: `results/flow-http-summary-20260712T220153Z.json`
+
+FlowScript variant medians under `code-run`:
+
+| Variant | Median |
+| --- | ---: |
+| Empty Flow | 193.3 ms |
+| Local fixture `http.get` | 214.6 ms |
+| `http.get` + `xml.parse` | 238.3 ms |
+| `http.get` + `xml.parse` + `list.sort` | 266.4 ms |
+| `http.get` + `xml.parse` + `list.sort` + `list.map` | 510.0 ms |
+| Full `news` result | 466.5 ms |
+
+Median deltas:
+
+| Delta | Approx. cost |
+| --- | ---: |
+| Local fixture `http.get` over empty | 21.2 ms |
+| XML parse over HTTP | 23.7 ms |
+| Sort over XML | 28.2 ms |
+| Map/expression projection over sort | 243.5 ms |
+
+The `full_result` variant is faster than the count-only `list.map` variant in
+this `code-run` path, so the difference between those two should not be used as
+a serialization estimate. The MCP `code-run` response compacts large results
+and has its own response shaping. The useful signal is the staged delta: in the
+real Flow engine, with a local RSS fixture, raw HTTP and XML parsing are not the
+dominant costs; the expensive step is the Flow expression/list projection path.
+
+The same run also measured the saved local Flow requestable over HTTP:
+
+| Metric | Value |
+| --- | ---: |
+| HTTP median TTFB | 163.2 ms |
+| HTTP median total | 163.3 ms |
+| Estimated `FlowEngineBridge.run` average from cache-info deltas | 173.1 ms |
+
+This supports the beta observation that almost all elapsed time is before the
+first byte and inside Flow server execution. On the local controlled Flow, the
+largest isolated primitive cost is `list.map`/expression evaluation, not the
+network fetch or XML parsing alone.
+
 ## Runtime
 
 - Runtime container: `c8o-agent-runtime`
