@@ -39,7 +39,11 @@ public class XmlPipelineBench {
         List<Double> convert = new ArrayList<>();
         List<Double> sortMap = new ArrayList<>();
         List<Double> total = new ArrayList<>();
+        List<Double> nasaParse = new ArrayList<>();
+        List<Double> nasaExtract = new ArrayList<>();
+        List<Double> nasaTotal = new ArrayList<>();
         int items = 0;
+        int nasaItems = 0;
 
         for (int i = 0; i < ITERATIONS; i++) {
             Timings timings = pipeline(xml);
@@ -48,6 +52,11 @@ public class XmlPipelineBench {
             sortMap.add(timings.sortMapMs);
             total.add(timings.totalMs);
             items = timings.items;
+            NasaTimings exactTimings = nasaImageFeedItems(xml);
+            nasaParse.add(exactTimings.parseMs);
+            nasaExtract.add(exactTimings.extractMs);
+            nasaTotal.add(exactTimings.totalMs);
+            nasaItems = exactTimings.items;
         }
 
         String name = path.getFileName().toString();
@@ -56,6 +65,9 @@ public class XmlPipelineBench {
         print(name, bytes, items, "dom_to_object", convert);
         print(name, bytes, items, "sort_map", sortMap);
         print(name, bytes, items, "total", total);
+        print(name, bytes, nasaItems, "nasa_image_items_jaxp_parse", nasaParse);
+        print(name, bytes, nasaItems, "nasa_image_items_extract_20", nasaExtract);
+        print(name, bytes, nasaItems, "nasa_image_items_total", nasaTotal);
     }
 
     private static Timings pipeline(String xml) throws Exception {
@@ -88,6 +100,72 @@ public class XmlPipelineBench {
         }
         factory.setExpandEntityReferences(false);
         return factory.newDocumentBuilder().parse(new InputSource(new StringReader(text)));
+    }
+
+    private static NasaTimings nasaImageFeedItems(String xml) throws Exception {
+        long start = System.nanoTime();
+        Document document = parseNasaXml(xml);
+        long afterParse = System.nanoTime();
+        List<Map<String, String>> items = extractNasaImageItems(document, 20);
+        long afterExtract = System.nanoTime();
+        return new NasaTimings(
+            millis(afterParse - start),
+            millis(afterExtract - afterParse),
+            millis(afterExtract - start),
+            items.size()
+        );
+    }
+
+    private static Document parseNasaXml(String text) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(false);
+        tryFeature(factory, "http://apache.org/xml/features/disallow-doctype-decl", true);
+        tryFeature(factory, "http://xml.org/sax/features/external-general-entities", false);
+        tryFeature(factory, "http://xml.org/sax/features/external-parameter-entities", false);
+        return factory.newDocumentBuilder().parse(new InputSource(new StringReader(text)));
+    }
+
+    private static List<Map<String, String>> extractNasaImageItems(Document document, int limit) {
+        NodeList nodes = document.getElementsByTagName("item");
+        List<Map<String, String>> items = new ArrayList<>();
+        for (int i = 0; i < nodes.getLength() && items.size() < limit; i++) {
+            Element item = (Element) nodes.item(i);
+            String title = firstText(item, "title");
+            String description = firstText(item, "description");
+            String imageUrl = firstAttribute(item, "enclosure", "url");
+            if (imageUrl.isEmpty()) {
+                imageUrl = firstAttribute(item, "media:content", "url");
+            }
+            if (imageUrl.isEmpty()) {
+                imageUrl = firstAttribute(item, "media:thumbnail", "url");
+            }
+            if (!title.isEmpty() || !description.isEmpty() || !imageUrl.isEmpty()) {
+                Map<String, String> row = new LinkedHashMap<>();
+                row.put("title", title);
+                row.put("description", description);
+                row.put("imageUrl", imageUrl);
+                items.add(row);
+            }
+        }
+        return items;
+    }
+
+    private static String firstText(Element element, String tagName) {
+        NodeList nodes = element.getElementsByTagName(tagName);
+        if (nodes == null || nodes.getLength() == 0) {
+            return "";
+        }
+        String text = nodes.item(0).getTextContent();
+        return text == null ? "" : text.trim();
+    }
+
+    private static String firstAttribute(Element element, String tagName, String attrName) {
+        NodeList nodes = element.getElementsByTagName(tagName);
+        if (nodes == null || nodes.getLength() == 0) {
+            return "";
+        }
+        String value = ((Element) nodes.item(0)).getAttribute(attrName);
+        return value == null ? "" : value.trim();
     }
 
     private static void tryFeature(DocumentBuilderFactory factory, String feature, boolean value) {
@@ -220,5 +298,8 @@ public class XmlPipelineBench {
     }
 
     private record Timings(double parseMs, double convertMs, double sortMapMs, double totalMs, int items) {
+    }
+
+    private record NasaTimings(double parseMs, double extractMs, double totalMs, int items) {
     }
 }
