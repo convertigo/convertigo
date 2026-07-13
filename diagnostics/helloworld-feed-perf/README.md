@@ -379,6 +379,39 @@ so this environment limitation is left explicit.
 
 Artifact: `results/frontend-schema-picker-20260713.json`.
 
+## Flow runtime AutoStart warmup
+
+`lib_flow_engine.Warmup` is a deterministic Flow with `autoStart: true`. It
+filters, sorts and maps three in-memory objects and returns `ready: true`. It
+contains no HTTP, requestable, filesystem or other external-I/O block. Because
+`Flow` extends `Sequence`, Convertigo runs it through the standard AutoStart
+mechanism after all projects are loaded and after deployment.
+
+The warmup initializes the shared `lib_flow_engine.Engine` Rhino runtime,
+engine modules, core block catalogue and representative expression caches. It
+does not compile the project-specific GetFeed plan and does not establish the
+NASA connection. AutoStart is asynchronous, so requests arriving while the
+warmup still owns the shared runtime lock can wait longer; readiness must not
+be inferred from the container health check alone.
+
+A controlled local comparison restarted the same container and waited the same
+amount of time after project migration. With AutoStart disabled, the first
+GetFeed took 4,784 ms. With the warmup completed, two restart runs measured
+1,612 ms and 1,898 ms for the first GetFeed, followed by 63-106 ms warm calls.
+Using the 1,755 ms mean of the two warmed first calls, the warmup removes about
+3,029 ms, or 63%, from the first request. The remaining 1.6-1.9 s is consistent
+with the project-specific plan/custom block and first outbound HTTP connection.
+
+The warmup itself completed 4.68-4.86 s after starting. In an intentionally
+racing run, GetFeed started before completion and took 2,453 ms, confirming
+that AutoStart shifts work to startup but does not provide a readiness barrier.
+After deployment on beta and a six-second delay, the first GetFeed still took
+4,974 ms and the second 449 ms. Beta therefore needs either a completion-aware
+readiness gate or per-pod warmup verification; deployment success alone does
+not prove that the runtime serving the next request is warm.
+
+Artifact: `results/flow-autostart-warmup-20260714.json`.
+
 ## Conclusion
 
 For the exact legacy-versus-Flow comparison, the primary regression is the Flow
