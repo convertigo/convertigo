@@ -139,6 +139,31 @@ Beta deployment artifacts:
   `results/beta-summary-20260713T123700Z-p5.csv`
 - Three deployed requestables: `results/feed-benchmark-20260713T123512Z.csv`
 
+## Frontend SDK startup
+
+Playwright captures with fresh browser contexts showed that the Angular Hello
+World initializes its Convertigo connection before user interaction. It sent
+`POST /convertigo/services/user.Get` 241 ms after navigation. The generated
+Svelte applications previously sent no SDK request during their first five
+seconds; the first backend button paid for `env.json`, `user.Get` and the
+requestable call in sequence.
+
+The Svelte frontbuilder now starts SDK initialization from the root runtime,
+caches one initialization promise per resolved endpoint and caches environment
+loading per project. A backend action started during initialization awaits the
+same promise. With `user.Get` artificially delayed by 700 ms, an immediate
+button click produced one identity request and GetFeed started only after that
+request completed.
+
+Both `sample_HelloWorld_flow` and `sample_HelloWorldFlowRun4` were regenerated,
+checked, built and deployed to beta with `lib_flow_frontbuilder_svelte` commit
+`dda8976`. Fresh beta pages completed `env.json` and `user.Get` before the
+button click and emitted no duplicate initialization. The first backend calls
+immediately after project deployment took 5.8-7.1 seconds because the server
+projects were cold; this is separate from the client bootstrap behavior.
+
+Artifact: `results/frontend-sdk-bootstrap-20260713.json`.
+
 Artifacts:
 
 - Baseline: `results/flow-*-20260713T114000Z.*`
