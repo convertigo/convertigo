@@ -1,0 +1,25 @@
+{
+  "project": "sample_HelloWorldFlowRun4",
+  "qname": "sample_HelloWorldFlowRun4.ReadNasaFeed",
+  "fixtureUrlFromContainer": "http://10.200.9.1:45875/nasa-iotd-20260712T195054Z.rss",
+  "iterations": 20,
+  "warmup": 5,
+  "mediansMs": {
+    "empty": 191.583,
+    "http": 226.223,
+    "http_xml": 258.79600000000005,
+    "http_xml_sort": 268.61199999999997,
+    "http_xml_sort_map": 502.554,
+    "full_result": 475.41499999999996
+  },
+  "deltasMs": {
+    "flow_empty_envelope": 191.583,
+    "http_local_over_empty": 34.640000000000015,
+    "xml_over_http": 32.573000000000036,
+    "sort_over_xml": 9.815999999999917,
+    "map_over_sort": 233.942,
+    "result_news_over_count_only": -27.13900000000001,
+    "full_count_only_over_empty": 310.971,
+    "full_result_over_empty": 283.832
+  }
+}

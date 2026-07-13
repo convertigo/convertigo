@@ -1,237 +1,192 @@
-# sample_HelloWorld feed performance diagnosis
+# sample_HelloWorld GetFeed performance diagnosis
 
-Date: 2026-07-12
+Date: 2026-07-13
 
-## Public beta exact URL comparison
+## Result
 
-Compared URLs:
+The reported legacy-versus-Flow gap is not caused by downloading the response
+body, and raw XML parsing is too small to explain it.
 
-- Legacy:
-  `https://beta.convertigo.net/convertigo/projects/sample_HelloWorld/.json?__sequence=GetFeed`
-- Flow:
-  `https://beta.convertigo.net/convertigo/projects/sample_HelloWorld_flow/.json?__sequence=GetFeed`
+On the public beta URLs, where legacy and Flow return the exact same 7,218-byte
+body, Flow is 164.3 ms slower at median. Nearly all elapsed time is TTFB, and
+subtracting the TLS phase still leaves 135.5 ms more server-side time in Flow.
 
-Benchmark run:
+The imported exact Flow shows two secondary costs over an empty Flow when run
+against a local RSS fixture: 28.2 ms for `http.get`, then 38.9 ms for the
+specialized Rhino block. The same XML parse and extraction implemented directly
+with JAXP takes 1.24 ms. The Rhino delta therefore mostly represents Flow block
+dispatch, template/expression adaptation, Rhino/Java conversion and result
+handling, not the XML parser itself.
 
-```bash
-ITERATIONS=12 WARMUP=2 diagnostics/helloworld-feed-perf/bench_beta_urls.sh
-```
+Flow4 has an additional, implementation-specific problem: its `list.map`
+projection costs 233.9 ms at median. That cost does not exist in the exact Flow,
+which parses and projects in one specialized block.
 
-Artifacts:
+## Three implementations
 
-- Raw timings: `results/beta-benchmark-20260712T214008Z.csv`
-- Summary: `results/beta-summary-20260712T214008Z.csv`
+| Version | HTTP and XML pipeline | Output work |
+| --- | --- | --- |
+| Legacy `sample_HelloWorld.GetFeed` | `XmlHttpTransaction` fetches and parses XML into the Convertigo document | Sequence `Iterator` selects `rss/channel/item`; XPath-backed XML steps emit `title`, `description`, `imageUrl` |
+| Exact Flow `sample_HelloWorld_flow.GetFeed` | `http.get`, then `nasa.imageFeedItems`; the Rhino block uses JAXP DOM directly | One pass over `<item>`, extracts the same three fields, stops at 20 |
+| Flow4 `sample_HelloWorldFlowRun4.ReadNasaFeed` | `http.get`, generic `xml.parse`, then `list.sort` by title | `list.map` evaluates five expressions per item and emits 60 items in the captured fixture |
 
-The script reuses one cookie jar, uses a dedicated `__context`, alternates call
-order, records curl timing phases, and removes the context/session at the end.
+The exact Flow source came from
+`/home/nicolas/Téléchargements/sample_HelloWorld_flow.car`. It was deployed as
+`sample_HelloWorld_flow`, inspected through Flow MCP, executed successfully, and
+left unchanged after the temporary benchmark variants were discarded. Its
+saved FlowScript SHA-256 is
+`ee2e5c7cb531adcedf06ba73c8a1049bea9674856fea137f944c131870ab7bca`.
 
-All measured responses were valid and equivalent:
+## Comparable beta timing
 
-- 24 measured rows out of 24 returned HTTP 200.
-- Every measured body was 7218 bytes.
-- Every measured body had SHA-256
-  `c2dd0fd76f9b1ab622c372d0b7639404a36baa41b9a4228edb4cc8d2d07eae57`.
+URLs:
 
-Cold calls:
+- Legacy: `https://beta.convertigo.net/convertigo/projects/sample_HelloWorld/.json?__sequence=GetFeed`
+- Flow: `https://beta.convertigo.net/convertigo/projects/sample_HelloWorld_flow/.json?__sequence=GetFeed`
 
-| Target | TTFB | Total |
-| --- | ---: | ---: |
-| Legacy | 553.0 ms | 553.1 ms |
-| Flow | 1010.4 ms | 1010.7 ms |
-
-Hot measured medians:
+The benchmark alternated call order and reused one session. All 24 measured
+requests returned HTTP 200 and the same body SHA-256:
+`c2dd0fd76f9b1ab622c372d0b7639404a36baa41b9a4228edb4cc8d2d07eae57`.
 
 | Target | Connect | TLS | TTFB | Total | Server after TLS |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Legacy | 38.1 ms | 86.6 ms | 277.3 ms | 277.5 ms | 185.7 ms |
-| Flow | 44.0 ms | 95.4 ms | 441.5 ms | 441.8 ms | 321.2 ms |
+| Exact Flow | 44.0 ms | 95.4 ms | 441.5 ms | 441.8 ms | 321.2 ms |
 
-In this beta run, Flow is therefore 164.3 ms slower on median total time, or
-1.59x the legacy time. Since `time_total` is effectively equal to
-`time_starttransfer`, and the response body is identical, the difference is in
-server-side time before the first byte rather than in client network transfer or
-download. Subtracting TLS pretransfer time still leaves about 135.5 ms median
-extra server-side time for Flow.
-
-This confirms the reported direction on the exact public beta URLs, although
-the delta in this run is a little smaller than the previous reported roughly
-200 ms.
-
-## Public beta source availability
-
-The exact `sample_HelloWorld_flow` project source was not available from this
-workspace or from public project discovery:
-
-- Flow MCP reports `Unknown Convertigo project: sample_HelloWorld_flow` for both
-  `flow-list` and `code-get sample_HelloWorld_flow.GetFeed`.
-- Local Convertigo MCP `project-list` contains `sample_HelloWorld` and
-  `sample_HelloWorldFlowRun4`, but not `sample_HelloWorld_flow`.
-- Marketplace searches on 2026-07-13 for `sample_HelloWorld_flow` and
-  `HelloWorld flow` returned no entries. Searches for `sample_HelloWorld` and
-  `helloworld` returned only the legacy `sample_HelloWorld`
-  (`c8oprj-sample-helloworld`). No exact Flow import was attempted because no
-  exact marketplace entry exists.
-- Public GitHub search under `convertigo` found no `sample_HelloWorld_flow`
-  repository.
-- Public beta admin project export and database object services require
-  authentication.
-- The public project XSD is accessible, but only describes the JSON schema and
-  does not expose Flow internals.
-
-Current source-availability evidence is recorded in
-`results/source-availability-20260712T220609Z.json`.
-
-So the beta test isolates the difference to server-side Flow execution time,
-but does not yet split the exact beta Flow requestable into `http.get`, XML
-parsing, `list.map`, serialization, and requestable envelope phases. Doing that
-requires the exact `sample_HelloWorld_flow` project source or authenticated
-access to inspect and instrument it.
-
-## Local Flow primitive isolation
-
-Because the beta Flow source is not available, the local
-`sample_HelloWorldFlowRun4.ReadNasaFeed` Flow was used only as a controlled
-primitive benchmark. The script `bench_flow_phases.py` writes temporary
-FlowScript working copies through Flow MCP, runs them with `code-run`, and
-always discards the working copy. A final `code-status` confirmed no dirty
-working copy remained.
-
-The benchmark serves the captured RSS fixture
-`results/nasa-iotd-20260712T195054Z.rss` to the Convertigo container over the
-Docker bridge, so the measured variants avoid external NASA network variance.
-
-Benchmark run:
-
-```bash
-ITERATIONS=12 WARMUP=3 diagnostics/helloworld-feed-perf/bench_flow_phases.py
-```
+Flow is 1.59x slower. Download after first byte is only 0.2-0.3 ms for either
+version, so neither response transfer nor client networking explains the gap.
 
 Artifacts:
 
-- Variant timings: `results/flow-variant-20260712T220153Z.csv`
-- Variant summary: `results/flow-variant-summary-20260712T220153Z.csv`
-- Derived deltas: `results/flow-variant-derived-20260712T220153Z.json`
-- Local HTTP requestable timings: `results/flow-http-20260712T220153Z.csv`
-- Bridge summary: `results/flow-http-summary-20260712T220153Z.json`
+- `results/beta-benchmark-20260712T214008Z.csv`
+- `results/beta-summary-20260712T214008Z.csv`
 
-FlowScript variant medians under `code-run`:
+## Exact Flow phase isolation
 
-| Variant | Median |
+`bench_imported_flow_exact.py` temporarily replaces the working copy with
+staged variants, runs them through `code-run`, and always calls `code-discard`.
+All variants read the same 46,150-byte fixture over the Docker bridge.
+
+Run: 20 measured iterations after 5 warmups.
+
+| Variant | Median | Increment |
+| --- | ---: | ---: |
+| Empty Flow | 184.0 ms | baseline |
+| Local fixture `http.get` | 212.3 ms | +28.2 ms |
+| HTTP + `nasa.imageFeedItems`, count only | 251.1 ms | +38.9 ms |
+| Full 20-item result | 247.5 ms | +63.4 ms over empty |
+
+The negative difference between count-only and full-result variants is normal
+measurement noise in the MCP `code-run` path and must not be interpreted as a
+serialization saving.
+
+The direct Java microbenchmark mirrors the specialized block's parser features
+and extraction logic:
+
+| Exact block phase | Median |
 | --- | ---: |
-| Empty Flow | 193.3 ms |
-| Local fixture `http.get` | 214.6 ms |
-| `http.get` + `xml.parse` | 238.3 ms |
-| `http.get` + `xml.parse` + `list.sort` | 266.4 ms |
-| `http.get` + `xml.parse` + `list.sort` + `list.map` | 510.0 ms |
-| Full `news` result | 466.5 ms |
+| JAXP parse | 0.976 ms |
+| Extract 20 items | 0.215 ms |
+| Total | 1.240 ms |
 
-Median deltas:
+Thus only about 1.2 ms of the 38.9 ms block increment is the XML algorithm
+itself. The rest is the runtime boundary around that algorithm.
 
-| Delta | Approx. cost |
+Artifacts:
+
+- `results/exact-flow-variant-20260713T091500Z.csv`
+- `results/exact-flow-variant-summary-20260713T091500Z.csv`
+- `results/exact-flow-derived-20260713T091500Z.json`
+- `results/xml-pipeline-exact-20260713T091500Z.csv`
+
+## Flow4 phase isolation
+
+The same staged method was run on Flow4 with a 46,091-byte local fixture and 60
+RSS items.
+
+| Variant | Median | Increment |
+| --- | ---: | ---: |
+| Empty Flow | 191.6 ms | baseline |
+| Local fixture `http.get` | 226.2 ms | +34.6 ms |
+| HTTP + `xml.parse` | 258.8 ms | +32.6 ms |
+| HTTP + XML + `list.sort` | 268.6 ms | +9.8 ms |
+| HTTP + XML + sort + `list.map` | 502.6 ms | +233.9 ms |
+| Full 60-item result | 475.4 ms | +283.8 ms over empty |
+
+This confirms that Flow4 is slow for a different reason than the exact Flow:
+the repeated expression projection in `list.map` dominates its useful work.
+The saved HTTP requestable itself had 168.9 ms median total time; the larger
+`code-run` values include the MCP execution path and are useful for deltas, not
+as end-user request latency.
+
+Artifacts:
+
+- `results/flow-variant-20260713T092000Z.csv`
+- `results/flow-variant-summary-20260713T092000Z.csv`
+- `results/flow-variant-derived-20260713T092000Z.json`
+- `results/flow-http-20260713T092000Z.csv`
+- `results/flow-http-summary-20260713T092000Z.json`
+
+## Native local timing
+
+The three saved requestables were also measured over local HTTP, 20 times each:
+
+| Requestable | Median total | Response size |
+| --- | ---: | ---: |
+| Exact Flow `GetFeed` | 79.6 ms | 7,218 bytes |
+| Flow4 `ReadNasaFeed` | 160.4 ms | 30,058 bytes |
+| Legacy `GetFeed` | 267.2 ms | 16,463 bytes |
+
+These numbers are deliberately not an apples-to-apples performance verdict.
+The marketplace legacy project calls `https://apod.com/feed.rss`, Flow4 calls
+NASA IOTD and returns 60 sorted five-field rows, while the exact Flow follows a
+NASA redirect and returns 20 three-field rows. In the same run, direct upstream
+medians were 237.0 ms for APOD, 92.2 ms for NASA IOTD and 108.4 ms for the exact
+Flow's configured NASA URL. The different upstreams dominate the local ranking.
+
+Artifact: `results/feed-benchmark-20260713T091314Z.csv`.
+
+## Legacy breakdown
+
+On the earlier local server-stat run, the legacy transaction median was:
+
+| Phase | Median |
 | --- | ---: |
-| Local fixture `http.get` over empty | 21.2 ms |
-| XML parse over HTTP | 23.7 ms |
-| Sort over XML | 28.2 ms |
-| Map/expression projection over sort | 243.5 ms |
+| Remote Host | 218 ms |
+| Convertigo transaction work | 20 ms |
+| Transaction total | 238 ms |
+| Sequence total | 251 ms |
 
-The `full_result` variant is faster than the count-only `list.map` variant in
-this `code-run` path, so the difference between those two should not be used as
-a serialization estimate. The MCP `code-run` response compacts large results
-and has its own response shaping. The useful signal is the staged delta: in the
-real Flow engine, with a local RSS fixture, raw HTTP and XML parsing are not the
-dominant costs; the expensive step is the Flow expression/list projection path.
-
-The same run also measured the saved local Flow requestable over HTTP:
-
-| Metric | Value |
-| --- | ---: |
-| HTTP median TTFB | 163.2 ms |
-| HTTP median total | 163.3 ms |
-| Estimated `FlowEngineBridge.run` average from cache-info deltas | 173.1 ms |
-
-This supports the beta observation that almost all elapsed time is before the
-first byte and inside Flow server execution. On the local controlled Flow, the
-largest isolated primitive cost is `list.map`/expression evaluation, not the
-network fetch or XML parsing alone.
-
-## Runtime
-
-- Runtime container: `c8o-agent-runtime`
-- Image: `convertigo/convertigo-ci:develop`
-- Local base URL: `http://127.0.0.1:19080/convertigo`
-- Legacy project imported for this run:
-  `sample_HelloWorld=https://github.com/convertigo/c8oprj-sample-helloworld/releases/download/v8.3.0/sample_HelloWorld.car`
-- Flow project already present in the runtime: `sample_HelloWorldFlowRun4`
-
-## Important equivalence gap
-
-The two requestables available in this runtime are not strictly equivalent:
-
-- Legacy `sample_HelloWorld.GetFeed` calls `sample_HelloWorld.RSSConnector.GetFeed`,
-  configured as `https://apod.com/feed.rss`.
-- Flow `sample_HelloWorldFlowRun4.ReadNasaFeed` calls
-  `https://www.nasa.gov/feeds/iotd-feed/`, parses XML, sorts items by title,
-  and maps `title`, `description`, `imageUrl`, `link`, and `pubDate`.
-
-So this run is useful to isolate layers, but not as an exact apples-to-apples
-comparison of one identical feed pipeline.
-
-## Results
-
-Client-side medians from `results/feed-benchmark-20260712T195054Z.csv`:
-
-| Target | Median |
-| --- | ---: |
-| Direct APOD HTTP | 246.0 ms |
-| Direct NASA IOTD HTTP | 80.0 ms |
-| Legacy `GetFeed` | 254.5 ms |
-| Flow `ReadNasaFeed` | 171.1 ms |
-
-Server-side medians from `results/server-summary-20260712T195054Z.csv`:
-
-| Target | Metric | Median |
-| --- | --- | ---: |
-| Legacy transaction | Host | 218 ms |
-| Legacy transaction | Convertigo | 20 ms |
-| Legacy transaction | Total | 238 ms |
-| Legacy sequence | Total | 251 ms |
-| Flow sequence | Total | 172 ms |
-
-XML pipeline microbench from `results/xml-pipeline-20260712T195054Z.csv`:
-
-| Payload | Phase | Median |
-| --- | --- | ---: |
-| NASA IOTD RSS | JAXP parse | 1.226 ms |
-| NASA IOTD RSS | DOM to object | 0.686 ms |
-| NASA IOTD RSS | sort/map | 0.132 ms |
-| NASA IOTD RSS | total | 2.018 ms |
-| APOD RSS | total | 2.184 ms |
+For this local marketplace version, legacy time is overwhelmingly its APOD HTTP
+call. The sequence's XML iteration/projection adds little compared with the
+remote host. This does not contradict beta: beta used equivalent response
+bodies and isolates the extra delay to Flow server execution.
 
 ## Conclusion
 
-On this runtime, the Flow requestable is faster than the legacy requestable
-because it calls a much faster upstream feed. Legacy `GetFeed` is dominated by
-the APOD HTTP call: server stats put 218 ms median in Host time out of a
-238 ms median transaction total.
+For the exact legacy-versus-Flow comparison, the primary regression is the Flow
+server execution envelope before the first byte. HTTP response transfer is
+negligible. Raw XML parsing is around 1 ms and is not the cause. The exact
+Flow's specialized Rhino block contributes about 39 ms including its runtime
+boundary, while the remaining beta delta is consistent with fixed Flow
+requestable/bridge orchestration and result handling.
 
-For Flow itself, direct NASA HTTP is about 80 ms median while the full Flow
-requestable is about 172 ms median. The extra roughly 90 ms is not explained by
-XML parsing, DOM conversion, or sort/map: the same XML pipeline is about 2 ms
-in the Java microbench. The remaining cost is therefore in the Flow execution
-envelope: requestable setup, Rhino/block dispatch, expression evaluation,
-scope/result handling, and response serialization.
-
-If the observed "legacy faster than Flow" result came from another Flow version
-of `sample_HelloWorld.GetFeed`, that exact Flow project was not present here;
-this diagnosis intentionally did not create or invent one.
+Flow4 should be treated separately: its generic XML parse is moderate, but its
+`list.map` expression projection adds about 234 ms and makes it roughly twice as
+expensive as the specialized exact Flow in the staged `code-run` benchmark.
 
 ## Reproduction
 
 ```bash
-ITERATIONS=30 WARMUP=5 diagnostics/helloworld-feed-perf/bench_feed.sh
+ITERATIONS=20 WARMUP=3 diagnostics/helloworld-feed-perf/bench_feed.sh
+
+ITERATIONS=20 WARMUP=5 diagnostics/helloworld-feed-perf/bench_imported_flow_exact.py
+
+STAMP=20260713T092000Z ITERATIONS=20 WARMUP=5 \
+  diagnostics/helloworld-feed-perf/bench_flow_phases.py
 
 javac diagnostics/helloworld-feed-perf/XmlPipelineBench.java
-java -cp diagnostics/helloworld-feed-perf XmlPipelineBench \
-  diagnostics/helloworld-feed-perf/results/nasa-iotd-20260712T195054Z.rss \
-  diagnostics/helloworld-feed-perf/results/apod-20260712T195054Z.rss
+ITERATIONS=200 WARMUP=20 java -cp diagnostics/helloworld-feed-perf \
+  XmlPipelineBench \
+  diagnostics/helloworld-feed-perf/results/nasa-lg-image-20260713T091500Z.rss
 ```

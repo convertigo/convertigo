@@ -51,8 +51,10 @@ echo "# start_utc=$STAMP base_url=$BASE_URL iterations=$ITERATIONS warmup=$WARMU
 
 bench_url "direct_apod" "https://apod.com/feed.rss"
 bench_url "direct_nasa_iotd" "https://www.nasa.gov/feeds/iotd-feed/"
+bench_url "direct_nasa_lg_image" "https://www.nasa.gov/rss/dyn/lg_image_of_the_day.rss"
 bench_url "legacy_getfeed" "$BASE_URL/projects/sample_HelloWorld/.json?__sequence=GetFeed"
 bench_url "flow_readnasafeed" "$BASE_URL/projects/sample_HelloWorldFlowRun4/.json?__sequence=ReadNasaFeed"
+bench_url "flow_exact_getfeed" "$BASE_URL/projects/sample_HelloWorld_flow/.json?__sequence=GetFeed"
 
 python3 - "$OUT" <<'PY'
 import csv

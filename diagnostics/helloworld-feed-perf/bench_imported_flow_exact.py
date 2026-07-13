@@ -284,6 +284,7 @@ def run_variants(fixture_url):
     original = None
     try:
         original = client.tool("code-get", {"project": PROJECT, "qname": QNAME})
+        current_revision = original.get("revision")
         config = {"services": {"nasa": {"feedUrl": fixture_url}}}
         with VARIANT_CSV.open("w", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=[
@@ -291,13 +292,14 @@ def run_variants(fixture_url):
             ])
             writer.writeheader()
             for variant in VARIANT_BODIES:
-                client.tool("code-set", {
+                code_set = client.tool("code-set", {
                     "project": PROJECT,
                     "qname": QNAME,
-                    "revision": original.get("revision"),
+                    "revision": current_revision,
                     "code": flow_code(variant),
                     "maxDiagnostics": 12,
                 })
+                current_revision = code_set.get("revision", current_revision)
                 for i in range(1, WARMUP + ITERATIONS + 1):
                     label = f"warmup-{i}" if i <= WARMUP else str(i - WARMUP)
                     start = time.perf_counter()
