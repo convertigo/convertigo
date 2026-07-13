@@ -1,0 +1,20 @@
+{
+  "label": "p0",
+  "project": "sample_HelloWorldFlowRun4",
+  "sequence": "ReadNasaFeed",
+  "fixture": "/home/nicolas/git/convertigo/diagnostics/helloworld-feed-perf/results/nasa-iotd-20260712T195054Z.rss",
+  "iterations": 30,
+  "warmup": 5,
+  "count": 30,
+  "medianMs": 131.248,
+  "meanMs": 138.77676666666667,
+  "p95Ms": 179.616,
+  "minMs": 120.978,
+  "maxMs": 211.538,
+  "sizes": [
+    30058
+  ],
+  "sha256": [
+    "e8b71f7f84e8107d5908c19761b72908f38d79ddc4e63bf5f2e743979429e4aa"
+  ]
+}

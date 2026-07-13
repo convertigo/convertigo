@@ -24,18 +24,21 @@ which parses and projects in one specialized block.
 
 ## Engine optimization progress
 
-All optimization runs use the same saved `sample_HelloWorldFlowRun4.ReadNasaFeed`
-requestable and preserve its 30,058-byte response. Staged phase measurements use
-the same 46,091-byte local RSS fixture with 60 items. Each row contains 20
-measured requests after 5 warmups.
+The final comparison replays every engine checkpoint against the same saved
+`sample_HelloWorldFlowRun4.ReadNasaFeed` requestable. During each run,
+`engine.yaml` is temporarily pointed to the same 46,091-byte local RSS fixture
+with 60 items, then restored byte for byte. Each row contains 30 measured HTTP
+requests after 5 warmups. All versions returned the same 30,058-byte body with
+SHA-256 `e8b71f7f84e8107d5908c19761b72908f38d79ddc4e63bf5f2e743979429e4aa`.
 
 | Step | Change | Saved HTTP median | Change from previous | Change from baseline |
 | --- | --- | ---: | ---: | ---: |
-| P0 | Unmodified engine baseline | 153.3 ms | - | - |
-| P1 | Cache the validated and expanded Flow execution plan by source revision and active block catalog | 115.7 ms | -37.6 ms (-24.5%) | -37.6 ms (-24.5%) |
-| P2 | Preserve structured `list.map` as one standard block and prepare its projection once | 65.0 ms | -50.7 ms (-43.8%) | -88.3 ms (-57.6%) |
-| P3 | Reuse the hot block catalog before recursive filesystem fingerprinting | 53.9 ms | -11.1 ms (-17.0%) | -99.4 ms (-64.8%) |
-| P4 | Cache parsed `engine.yaml` definitions by file fingerprint | 49.7 ms | -4.2 ms (-7.8%) | -103.6 ms (-67.6%) |
+| P0 | Unmodified engine baseline | 131.2 ms | - | - |
+| P1 | Cache the validated and expanded Flow execution plan by source revision and active block catalog | 98.4 ms | -32.9 ms (-25.1%) | -32.9 ms (-25.1%) |
+| P2 | Preserve structured `list.map` as one standard block and prepare its projection once | 42.2 ms | -56.2 ms (-57.1%) | -89.0 ms (-67.8%) |
+| P3 | Reuse the hot block catalog before recursive filesystem fingerprinting | 35.5 ms | -6.7 ms (-16.0%) | -95.8 ms (-73.0%) |
+| P4 | Cache parsed `engine.yaml` definitions by file fingerprint | 29.6 ms | -5.8 ms (-16.4%) | -101.6 ms (-77.4%) |
+| P5 | Avoid the redundant deep JSON snapshot of the final result | 20.4 ms | -9.2 ms (-31.0%) | -110.8 ms (-84.4%) |
 
 P1 removes FlowScript parsing, validation, FlowScript-to-YAML serialization,
 YAML parsing and graph expansion from warm executions. The cache is bounded to
@@ -64,6 +67,12 @@ runtime cache. Each request performs only a file fingerprint check; disk read,
 Jackson YAML parsing and JavaScript tree conversion occur after an actual file
 change.
 
+P5 returns the already validated result object to the engine response layer.
+Runtime handles are still rejected before this point, and the response layer
+still performs the final sanitization and serialization, so the removed
+sanitize/stringify/parse cycle was a redundant deep copy rather than a safety
+boundary.
+
 Artifacts:
 
 - Baseline: `results/flow-*-20260713T114000Z.*`
@@ -71,6 +80,8 @@ Artifacts:
 - P2 prepared standard `list.map`: `results/flow-*-20260713T124500Z.*`
 - P3 hot block catalog: `results/flow-*-20260713T131500Z.*`
 - P4 cached engine configuration: `results/flow-*-20260713T134500Z.*`
+- P5 single result serialization: `results/flow-*-20260713T141500Z.*`
+- Deterministic P0-P5 replay: `results/saved-local-p*-20260713T1430*.{csv,json}`
 
 ## Three implementations
 
