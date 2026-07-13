@@ -344,6 +344,41 @@ call. The sequence's XML iteration/projection adds little compared with the
 remote host. This does not contradict beta: beta used equivalent response
 bodies and isolates the extra delay to Flow server execution.
 
+## Schema-backed frontend picker
+
+The requestable and lexical iteration binding slice now uses the same schema
+principle as NGX and Flow Code. `lib_flow_engine` resolves the selected
+requestable through `requestable.schema`, attaches typed paths to frontend
+binding candidates, and derives a `ForEach` item schema from the selected array
+schema. The Svelte frontbuilder only consumes these descriptors; it does not
+parse XSD or Flow source itself.
+
+On the exact Hello World authoring tree, `appTitle` sees only the preceding
+`getFeed` requestable. `feedItemTitleEven` sees both `getFeed` and the lexical
+`feedItems` scope. The requestable exposes `news: array` and its typed item
+fields; the iteration exposes `title`, `description` and `imageUrl` as strings.
+The frontbuilder now clones property definitions per node so these lexical
+sources cannot leak to nodes outside the loop.
+
+Checkpoints are `2cc3b79` in `lib_flow_engine` and `b517907` in the private
+Svelte frontbuilder repository. Both are pushed. Their runtime workspaces match
+all tracked files (`missing=0`, `changed=0`). The stale duplicate frontbuilder
+was moved to
+`/home/nicolas/Téléchargements/convertigo-workspace-backups/20260713T192204Z-frontbuilder-reconcile`
+before removal, and only `lib_flow_frontbuilder_svelte` remains loaded.
+
+The rebuilt Hello World passes `svelte-check` with no diagnostics and its
+production build uses a portable sibling-project SDK path. Beta backups are in
+`/home/nicolas/Téléchargements/convertigo-beta-backups/20260713T194435Z-schema-picker`;
+the engine, frontbuilder and sample were redeployed successfully. The beta page
+and GetFeed endpoint return HTTP 200 with 20 items. Beta cannot currently build
+the Studio authoring projection because its runtime image has no `npm`
+executable; the schema-backed tree itself is validated on the local Convertigo
+runtime. Adding an incomplete parser fallback would lose descriptor semantics,
+so this environment limitation is left explicit.
+
+Artifact: `results/frontend-schema-picker-20260713.json`.
+
 ## Conclusion
 
 For the exact legacy-versus-Flow comparison, the primary regression is the Flow
