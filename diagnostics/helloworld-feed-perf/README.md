@@ -96,6 +96,49 @@ discarded rather than committed. Removing the concurrency lock safely requires
 separating immutable compiled artifacts from request-local mutable scope; it is
 not part of the retained P0-P5 series.
 
+## Beta deployment validation
+
+The retained P5 `lib_flow_engine` at commit `1f6958c` was deployed to
+`beta.convertigo.net` on 2026-07-13. The server reported
+`26198-develop-8.5.0-beta`, the same Convertigo build used by the local runtime.
+No production Java file differs from `origin/develop`; all P1-P5 changes are in
+the Flow JavaScript project.
+
+The exact `sample_HelloWorld_flow` archive was not redeployed because its
+extracted content was identical to the beta archive. The standard-block
+`sample_HelloWorldFlowRun4` project was deployed because it was previously
+absent. The first post-deployment requests took 13-16 seconds while the projects
+were loaded and compiled; these cold deployment starts are excluded below.
+
+The before and confirmation runs alternate legacy and exact Flow calls. Every
+measured response returned HTTP 200, 7,218 bytes and SHA-256
+`c2dd0fd76f9b1ab622c372d0b7639404a36baa41b9a4228edb4cc8d2d07eae57`.
+
+| Beta run | Samples per target | Legacy median | Exact Flow median | Flow minus legacy |
+| --- | ---: | ---: | ---: | ---: |
+| Before P5 deployment | 12 | 465.7 ms | 916.3 ms | +450.6 ms (+96.8%) |
+| P5 confirmation | 30 | 277.3 ms | 258.5 ms | -18.8 ms (-6.8%) |
+
+The optimized exact Flow therefore meets the median latency target on the
+deployed beta runtime in the confirmation series. External NASA latency remains
+variable: P95 was 886.5 ms for Flow and 505.6 ms for legacy in that run, while
+legacy had the larger maximum (1,787.6 ms versus 972.4 ms). This tail variation
+cannot be attributed solely to Flow execution without server-side upstream
+timing, and it does not invalidate the deterministic local P0-P5 phase gains.
+
+Flow4 was also validated after deployment: 20/20 HTTP responses succeeded,
+each containing 60 five-field items and the expected 30,058-byte body. Its
+337.8 ms median is recorded as an operational check, not as a direct comparison
+with the 20-item three-field legacy and exact Flow outputs.
+
+Beta deployment artifacts:
+
+- Before deployment: `results/beta-benchmark-20260713T123200Z-p0.csv` and
+  `results/beta-summary-20260713T123200Z-p0.csv`
+- P5 confirmation: `results/beta-benchmark-20260713T123700Z-p5.csv` and
+  `results/beta-summary-20260713T123700Z-p5.csv`
+- Three deployed requestables: `results/feed-benchmark-20260713T123512Z.csv`
+
 Artifacts:
 
 - Baseline: `results/flow-*-20260713T114000Z.*`
