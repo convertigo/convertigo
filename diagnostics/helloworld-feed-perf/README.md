@@ -73,6 +73,29 @@ still performs the final sanitization and serialization, so the removed
 sanitize/stringify/parse cycle was a redundant deep copy rather than a safety
 boundary.
 
+With the retained P5 engine, the exact imported
+`sample_HelloWorld_flow.GetFeed` returns its expected 7,218-byte, 20-item body
+from the same fixture in 19.0 ms median (30 requests after 8 warmups). The more
+demanding standard-block Flow4 pipeline returns 60 sorted five-field items in
+20.4 ms median. Earlier legacy server statistics attributed about 33 ms to
+Convertigo transaction and sequence work after excluding the remote host, so
+the optimized Flow execution envelope is now below that observed legacy work.
+
+### Concurrency limit
+
+The retained P5 engine still owns one mutable Rhino scope protected by a global
+runtime lock. With the same local fixture, 8 concurrent clients and 80 measured
+requests, median latency is 255.6 ms, P95 is 448.2 ms and throughput is 28.0
+requests/s. All responses remain identical.
+
+A runtime-per-request-thread experiment was rejected because Convertigo creates
+a fresh `RequestableThread` for each request, forcing a full engine startup on
+every call. A bounded pool improved concurrent throughput, but added about 10 ms
+to the hot sequential median and produced unstable c8 gains, so it was also
+discarded rather than committed. Removing the concurrency lock safely requires
+separating immutable compiled artifacts from request-local mutable scope; it is
+not part of the retained P0-P5 series.
+
 Artifacts:
 
 - Baseline: `results/flow-*-20260713T114000Z.*`
@@ -82,6 +105,8 @@ Artifacts:
 - P4 cached engine configuration: `results/flow-*-20260713T134500Z.*`
 - P5 single result serialization: `results/flow-*-20260713T141500Z.*`
 - Deterministic P0-P5 replay: `results/saved-local-p*-20260713T1430*.{csv,json}`
+- P5 concurrency baseline: `results/saved-concurrent-p5-c8-20260713T150500Z.json`
+- Exact imported Flow on P5: `results/saved-local-p5-exact-20260713T170000Z.{csv,json}`
 
 ## Three implementations
 

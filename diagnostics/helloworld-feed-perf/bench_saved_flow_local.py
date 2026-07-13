@@ -23,7 +23,7 @@ STAMP = os.environ.get("STAMP", time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()))
 RESULT_DIR = Path(os.environ.get("RESULT_DIR", Path(__file__).resolve().parent / "results"))
 WORKSPACE = Path(os.environ.get("C8O_WORKSPACE", "/home/nicolas/docker/convertigo-agent/workspace"))
 ENGINE_CONFIG = WORKSPACE / "projects" / PROJECT / "libs" / "flow" / "engine.yaml"
-CONFIG_PREFIX = "    nasaImageOfTheDayUrl: "
+CONFIG_KEY = os.environ.get("FLOW_CONFIG_KEY", "nasaImageOfTheDayUrl")
 CONTEXT = "codex_saved_local_" + STAMP
 FLOW_URL = (
     f"{BASE_URL}/projects/{PROJECT}/.json?__sequence={SEQUENCE}"
@@ -41,12 +41,18 @@ def patch_fixture_url(url):
     stat = ENGINE_CONFIG.stat()
     text = original.decode("utf-8")
     lines = text.splitlines(keepends=True)
-    matches = [index for index, line in enumerate(lines) if line.startswith(CONFIG_PREFIX)]
+    matches = [
+        index for index, line in enumerate(lines)
+        if line.lstrip().startswith(CONFIG_KEY + ":")
+    ]
     if len(matches) != 1:
-        raise RuntimeError(f"Expected one {CONFIG_PREFIX.strip()} entry in {ENGINE_CONFIG}")
+        raise RuntimeError(f"Expected one {CONFIG_KEY} entry in {ENGINE_CONFIG}")
     index = matches[0]
+    indent = lines[index][:len(lines[index]) - len(lines[index].lstrip())]
+    original_value = lines[index].split(":", 1)[1].strip()
+    value = json.dumps(url) if original_value.startswith(('"', "'")) else url
     newline = "\n" if lines[index].endswith("\n") else ""
-    lines[index] = CONFIG_PREFIX + url + newline
+    lines[index] = indent + CONFIG_KEY + ": " + value + newline
     ENGINE_CONFIG.write_text("".join(lines), encoding="utf-8")
 
     def restore():
