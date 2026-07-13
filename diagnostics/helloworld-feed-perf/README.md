@@ -22,6 +22,29 @@ Flow4 has an additional, implementation-specific problem: its `list.map`
 projection costs 233.9 ms at median. That cost does not exist in the exact Flow,
 which parses and projects in one specialized block.
 
+## Engine optimization progress
+
+All optimization runs use the same saved `sample_HelloWorldFlowRun4.ReadNasaFeed`
+requestable and preserve its 30,058-byte response. Staged phase measurements use
+the same 46,091-byte local RSS fixture with 60 items. Each row contains 20
+measured requests after 5 warmups.
+
+| Step | Change | Saved HTTP median | Change from previous | Change from baseline |
+| --- | --- | ---: | ---: | ---: |
+| P0 | Unmodified engine baseline | 153.3 ms | - | - |
+| P1 | Cache the validated and expanded Flow execution plan by source revision and active block catalog | 115.7 ms | -37.6 ms (-24.5%) | -37.6 ms (-24.5%) |
+
+P1 removes FlowScript parsing, validation, FlowScript-to-YAML serialization,
+YAML parsing and graph expansion from warm executions. The cache is bounded to
+256 plans, tied to the active block catalog object, reported by `cacheInfo`, and
+cleared with the other runtime caches. The standalone Rhino smoke test verifies
+that a repeated execution hits this cache.
+
+Artifacts:
+
+- Baseline: `results/flow-*-20260713T114000Z.*`
+- P1 compiled-plan cache: `results/flow-*-20260713T115000Z.*`
+
 ## Three implementations
 
 | Version | HTTP and XML pipeline | Output work |
