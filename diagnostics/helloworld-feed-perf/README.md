@@ -35,6 +35,7 @@ measured requests after 5 warmups.
 | P1 | Cache the validated and expanded Flow execution plan by source revision and active block catalog | 115.7 ms | -37.6 ms (-24.5%) | -37.6 ms (-24.5%) |
 | P2 | Preserve structured `list.map` as one standard block and prepare its projection once | 65.0 ms | -50.7 ms (-43.8%) | -88.3 ms (-57.6%) |
 | P3 | Reuse the hot block catalog before recursive filesystem fingerprinting | 53.9 ms | -11.1 ms (-17.0%) | -99.4 ms (-64.8%) |
+| P4 | Cache parsed `engine.yaml` definitions by file fingerprint | 49.7 ms | -4.2 ms (-7.8%) | -103.6 ms (-67.6%) |
 
 P1 removes FlowScript parsing, validation, FlowScript-to-YAML serialization,
 YAML parsing and graph expansion from warm executions. The cache is bounded to
@@ -58,12 +59,18 @@ and compiled plans, and raw external file changes are visible to execution
 after the bounded revalidation interval. This removes the recursive directory
 walk from nearly every request without making Studio block edits stale.
 
+P4 retains the parsed project and engine configuration definitions in the
+runtime cache. Each request performs only a file fingerprint check; disk read,
+Jackson YAML parsing and JavaScript tree conversion occur after an actual file
+change.
+
 Artifacts:
 
 - Baseline: `results/flow-*-20260713T114000Z.*`
 - P1 compiled-plan cache: `results/flow-*-20260713T115000Z.*`
 - P2 prepared standard `list.map`: `results/flow-*-20260713T124500Z.*`
 - P3 hot block catalog: `results/flow-*-20260713T131500Z.*`
+- P4 cached engine configuration: `results/flow-*-20260713T134500Z.*`
 
 ## Three implementations
 
