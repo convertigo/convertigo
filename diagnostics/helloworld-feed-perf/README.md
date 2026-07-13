@@ -33,6 +33,7 @@ measured requests after 5 warmups.
 | --- | --- | ---: | ---: | ---: |
 | P0 | Unmodified engine baseline | 153.3 ms | - | - |
 | P1 | Cache the validated and expanded Flow execution plan by source revision and active block catalog | 115.7 ms | -37.6 ms (-24.5%) | -37.6 ms (-24.5%) |
+| P2 | Preserve structured `list.map` as one standard block and prepare its projection once | 65.0 ms | -50.7 ms (-43.8%) | -88.3 ms (-57.6%) |
 
 P1 removes FlowScript parsing, validation, FlowScript-to-YAML serialization,
 YAML parsing and graph expansion from warm executions. The cache is bounded to
@@ -40,10 +41,20 @@ YAML parsing and graph expansion from warm executions. The cache is bounded to
 cleared with the other runtime caches. The standalone Rhino smoke test verifies
 that a repeated execution hits this cache.
 
+P2 changes no application block and introduces no specialized RSS code. The
+FlowScript compiler now preserves `list.map({ select: { ... } })` as one
+standard `list.map` node instead of expanding every item into
+`forEach`/`json.object`/`json.push`. The expression service prepares the
+structured projector once per block execution and directly reads simple scope
+paths for each item. The isolated map increment fell from 194.2 ms in P1 to
+6.7 ms in P2 (-96.5%). The plan cache fingerprint also includes the compiler
+modules, preventing a parser update from reusing a stale execution plan.
+
 Artifacts:
 
 - Baseline: `results/flow-*-20260713T114000Z.*`
 - P1 compiled-plan cache: `results/flow-*-20260713T115000Z.*`
+- P2 prepared standard `list.map`: `results/flow-*-20260713T124500Z.*`
 
 ## Three implementations
 
