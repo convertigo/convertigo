@@ -164,6 +164,34 @@ projects were cold; this is separate from the client bootstrap behavior.
 
 Artifact: `results/frontend-sdk-bootstrap-20260713.json`.
 
+## Frontend structured bindings
+
+The first SmartType-style Flow binding slice is implemented without a Java
+engine change. The core Flow catalog now exposes a `binding` object type backed
+by a `flow-binding-editor` web component. The editor composes the existing
+literal, path and expression editors and currently limits selectable source
+categories to requestable/action results and lexical iterations.
+
+The Svelte frontbuilder preserves the binding as a structured descriptor with
+an explicit action or scope id and property/index path segments. Generated code
+resolves those segments without parsing a dotted string. Existing string paths
+remain supported for compatibility. The `CallSequence.requestable` property
+continues to use the dedicated requestable picker; response consumers use the
+new binding editor.
+
+`sample_HelloWorld_flow` demonstrates the vertical slice: `ForEach` binds
+`getFeed -> news`, while its `Image` and `Text` children bind the stable
+`feedItems` iteration scope to `imageUrl`, `title` and `description`. Local and
+beta Playwright runs clicked the real button, observed the `GetFeed` POST and
+rendered all 20 feed images with no page error.
+
+Checkpoints are `3e7688f` in `lib_flow_engine` and `040e50a` in the Svelte
+frontbuilder. The engine commit is published on `origin/main`; the local
+frontbuilder repository has no configured remote. Beta backups are under
+`/home/nicolas/Téléchargements/convertigo-beta-backups/20260713T153504Z-flow-binding`.
+
+Artifact: `results/frontend-structured-binding-20260713.json`.
+
 Artifacts:
 
 - Baseline: `results/flow-*-20260713T114000Z.*`
