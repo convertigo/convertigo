@@ -43,6 +43,15 @@
     "c4VsC2Percent": -60.4,
     "c4VsC3Percent": -55.1
   },
+  "betaValidation": {
+    "deployed": true,
+    "firstGetFeedMs": 1140.004,
+    "nextGetFeedMs": [217.324, 173.331],
+    "httpStatus": 200,
+    "responseBytes": 7223,
+    "itemCount": 20,
+    "mobileHttpStatus": 200
+  },
   "notes": [
     "AutoStart is asynchronous; the benchmark waits for both warmups instead of treating process readiness as Flow readiness.",
     "The local legacy project uses a different upstream feed and returns 55 items, so its cold latency is not a valid like-for-like comparison.",

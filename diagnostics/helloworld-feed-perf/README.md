@@ -104,6 +104,14 @@ HTTP/TLS exchange and cannot be labelled as Flow compilation alone.
 
 Artifact: `results/flow-cold-start-20260714.json`.
 
+The final engine and Hello World project were deployed to beta after backing up
+both previous CARs. The exported deployed `Engine.js` hash matches commit
+`38e928d`, and the exported project declares `RuntimeWarmup` as AutoStart. A
+post-deployment beta run returned the expected 7,223-byte, 20-item response in
+1,140 ms, then 217 and 173 ms in the same session. Those internet-facing values
+confirm the deployment and response contract; the local phase timings remain
+the controlled evidence for the optimization gains.
+
 With the retained P5 engine, the exact imported
 `sample_HelloWorld_flow.GetFeed` returns its expected 7,218-byte, 20-item body
 from the same fixture in 19.0 ms median (30 requests after 8 warmups). The more
