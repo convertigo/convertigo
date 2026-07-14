@@ -231,6 +231,33 @@ frontbuilder repository has no configured remote. Beta backups are under
 
 Artifact: `results/frontend-structured-binding-20260713.json`.
 
+### Schema-backed binding authoring P0
+
+The first binding implementation could preserve and execute a structured
+`FlowValueBinding`, but the authoring workflow still encouraged agents to
+translate picker results into strings. P0 closes that gap across the engine,
+Svelte frontbuilder and Flow MCP tools.
+
+`frontend-svelte-tree` inspect responses now expose schema-derived candidates
+under `bindings.<property>.sources[].bindings[]`; every candidate contains the
+exact structured binding and `frontend-svelte-mutate` operation. New mutations
+reject non-empty string paths with `FRONTEND_BINDING_REQUIRED`. Existing string
+bindings remain readable so `flow-app-progress` can report and migrate them.
+Its warnings validate action identity and effective schema paths, and include a
+directly executable fix rather than prose for the agent to reinterpret.
+
+The untouched Run5 reference now reports 89% instead of a false 100%: seven
+legacy bindings remain, eight response-schema paths are proposed, and a
+seven-mutation batch dry-run succeeds without writing the source. The focused
+tree inspector returns an exact `loadNasaNews -> news` mutation. Unit tests also
+prove strict mutation validation, FrontAst round-trip and generated Svelte path
+resolution.
+
+Local checkpoints, deliberately not pushed, are `450ddf4` in
+`lib_flow_engine`, `65c0b64` in `lib_flow_frontbuilder_svelte` and `c49cd86` in
+`lib_flow_mcp`. Artifact:
+`results/frontend-binding-p0-20260714.json`.
+
 Artifacts:
 
 - Baseline: `results/flow-*-20260713T114000Z.*`
