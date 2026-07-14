@@ -563,6 +563,40 @@ Artifacts: `run6-fresh-agent-prompt.md`, `run6-playwright.js`,
 `results/frontend-fresh-agent-run6-20260714.json`,
 `results/run6-desktop.png` and `results/run6-mobile.png`.
 
+## Fresh-agent HelloWorld Flow Run7
+
+Run7 repeated the same isolated authoring request after fixing the FrontAst
+object round-trip, the fallback ForEach descriptor and missing-binding progress
+diagnostics. The intended workflow now completes: the agent selected the
+schema-backed `displayNews` binding and six iteration bindings, then performed
+32 frontend mutations without losing or reapplying any of them. The saved
+source contains seven structured descriptors and no quoted descriptor.
+
+The backend reached 60 live NASA items after 2m04s, used the standard
+`xml.parse` plus `list.map` composition and finished with no schema warning or
+mock. A small Rhino block only annotates rows for the requested alternating
+presentation. Generation and the production build passed. The full run took
+10m55s, 86 MCP calls and 32 frontend mutations, versus Run6's 14m57s, 131 calls
+and 62 mutations.
+
+Independent Playwright found one additional library defect: generic dark cards
+were forced into a horizontal navigation layout and received an implicit menu
+pseudo-element. This produced documents of 1486 px at a 1440 px viewport and
+565 px at a 390 px viewport. The frontbuilder now keeps every Card as a
+vertical, shrinkable surface without hidden decoration. After regeneration,
+the application rendered 60 real images and titles with no browser error and
+exact document widths of 1440 px and 390 px.
+
+`flow-app-progress` independently reports 9/9, zero binding warnings and zero
+mocks. Run7 therefore passes backend, schema, structured binding, production
+build, functional browser, responsive overflow and visual acceptance. The
+remaining infrastructure issue is Playwright MCP transport stability;
+independent Playwright completes the same workflow immediately.
+
+Artifacts: `run7-fresh-agent-prompt.md`, `run7-playwright.js`,
+`results/frontend-fresh-agent-run7-20260714.json`,
+`results/run7-desktop.png` and `results/run7-mobile.png`.
+
 ## Conclusion
 
 For the exact legacy-versus-Flow comparison, the primary regression is the Flow
