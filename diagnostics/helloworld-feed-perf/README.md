@@ -73,6 +73,37 @@ still performs the final sanitization and serialization, so the removed
 sanitize/stringify/parse cycle was a redundant deep copy rather than a safety
 boundary.
 
+### Cold-start optimization
+
+The initial 4.784-second `GetFeed` after a local runtime restart contained two
+independent compilation costs. First, input synchronization saw `_flow.outputs`
+and loaded the complete project block catalog merely to establish that the Flow
+declared no inputs. Commit `38e928d` now reads the top-level `_flow` object
+directly and skips that fallback when metadata is present. This reduced the
+pre-execution phase from 1.483 seconds to 144 ms.
+
+Second, the exact project's FlowScript and project-local NASA block were still
+cold. `sample_HelloWorld_flow.RuntimeWarmup` is an AutoStart Flow using only
+standard Flow blocks: `flow.get` loads and compiles `GetFeed`, then
+`nasa.imageFeedItems` parses one in-memory RSS item. It performs no external
+I/O and does not execute `GetFeed`.
+
+| Cold step after restart | First GetFeed | Prepare | Execute | Change |
+| --- | ---: | ---: | ---: | ---: |
+| No warmup | 4,784 ms | - | - | baseline |
+| Generic engine warmup | 1,612-1,899 ms | - | - | -60% to -66% |
+| Metadata fast path | 1,602 ms | 144 ms | 1,407 ms | preparation isolated |
+| Project block warmup | 1,414 ms | 146 ms | 1,210 ms | -11.7% |
+| Project FlowScript + block warmup | 635 ms | 159 ms | 398 ms | -55.1% |
+
+The final cold result is 86.7% below the original restart result. The next two
+calls took 72 and 64 ms. AutoStart remains asynchronous, so the benchmark waits
+for both warmups to finish; process readiness alone does not guarantee a warm
+Flow runtime. The remaining cold execution phase includes the first external
+HTTP/TLS exchange and cannot be labelled as Flow compilation alone.
+
+Artifact: `results/flow-cold-start-20260714.json`.
+
 With the retained P5 engine, the exact imported
 `sample_HelloWorld_flow.GetFeed` returns its expected 7,218-byte, 20-item body
 from the same fixture in 19.0 ms median (30 requests after 8 warmups). The more
