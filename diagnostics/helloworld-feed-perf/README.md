@@ -451,6 +451,52 @@ not prove that the runtime serving the next request is warm.
 
 Artifact: `results/flow-autostart-warmup-20260714.json`.
 
+## Fresh-agent HelloWorld Flow Run5
+
+Run5 recreated the NASA HelloWorld application from a genuinely fresh Codex
+context. The agent could use only the Flow MCP server and Playwright and could
+not inspect the earlier HelloWorld projects, repositories, session history or
+generated sources. `sample_HelloWorldFlowRun5` was built without modifying
+GetFeed, Flow4 or any Flow library.
+
+The local Standard Edition five-session limit rejected the first attempts
+because the Streamable HTTP client initialized several transports. The
+diagnostic `flow_mcp_session_proxy.py` serializes requests through one backend
+cookie session. Only the successful run through that proxy is included in the
+metrics below; the rejected attempts did not create or modify Run5.
+
+The first valid backend result arrived after 2m40s and the production frontend
+build after 4m43s. The complete agent task took 8m34s because its Playwright MCP
+calls hung. It completed 63 MCP calls with one corrected patch error, compared
+with about 16 minutes and 108 calls for Run2, and 23m52s and 124 calls for Run3.
+Run5 therefore demonstrates a substantial authoring improvement: it reached a
+build-ready application with about half the calls and frontend mutations of
+Run3. Its backend milestone was nevertheless slower than Run3's 2m12s.
+
+Independent Chromium validation against the actual local runtime port returned
+HTTP 200 for both the application and backend, rendered all 60 current feed
+entries, loaded all 60 images and reported no browser error. The visual
+acceptance failed: a 1440 px viewport produced a 1560 px document, the header
+texts collide and card content overflows horizontally.
+
+The schema and binding improvements were not adopted as intended. The agent
+declared and aligned the backend schema, but frontend values remained relative
+string paths such as `news` and `item.imageUrl`, rather than structured binding
+descriptors. `flow-app-progress` still reported binding completion. The agent
+also failed to discover a standard XML/RSS composition and replaced its mock
+with a small project-local Rhino parser. These are catalog/editor guidance and
+validation gaps, not functional runtime failures.
+
+Before using RetailStore as the next benchmark, the Flow tools should make
+structured bindings the natural mutation representation, reject or flag string
+path fallbacks when descriptor types are available, expose the standard XML
+blocks more directly, and validate responsive overflow. The stale port returned
+by `openBuilt` and the hanging Playwright MCP integration also need correction.
+
+Artifacts: `run5-fresh-agent-prompt.md`, `run5-playwright.js`,
+`results/frontend-fresh-agent-run5-20260714.json` and
+`results/run5-desktop.png`.
+
 ## Conclusion
 
 For the exact legacy-versus-Flow comparison, the primary regression is the Flow
