@@ -524,6 +524,45 @@ Artifacts: `run5-fresh-agent-prompt.md`, `run5-playwright.js`,
 `results/frontend-fresh-agent-run5-20260714.json` and
 `results/run5-desktop.png`.
 
+## Fresh-agent HelloWorld Flow Run6
+
+Run6 repeated the same fresh-context requirement after the schema-backed P0
+changes. The intended workflow improvement is confirmed: the agent selected
+the picker-provided `FlowValueBinding` for `loadNasaNews -> news` without
+inventing a descriptor or falling back to a string path. It also refused to
+work around later failures with direct source edits.
+
+The campaign nevertheless exposed a blocking persistence defect. The first
+structured mutation writes valid Svelte object syntax. On a later unrelated
+mutation, the Rhino FrontAst fallback parser reads that object expression as a
+string; the renderer then quotes the JSON. The agent had to reapply the parent
+binding 21 times, and adding bindings for image, title and description caused
+previous bindings to become invalid. It ended with only the row iterator bound
+and placeholder card content.
+
+The backend remained valid: the configured NASA feed returned 60 live items,
+the saved Flow schema had no warning and no mock remained. The production
+Svelte build passed. Independent Playwright validation completed with
+`domcontentloaded`, HTTP 200 and no browser error at 1440 px and 390 px. Both
+viewports had zero horizontal overflow, but the page rendered 60 placeholder
+titles and no image. Header content also collides at both sizes.
+
+`flow-app-progress` reported 100% and no binding warning for this incomplete
+page because missing `source` properties are not considered binding failures.
+The palette also still inserts a legacy `source:"[]"` for its fallback
+`ForEach`, despite the corrected frontbuilder built-in descriptor. These two
+gaps and the FrontAst object-expression parser must be fixed before another
+fresh run. The standard XML/RSS discoverability issue also remains: Run6 built
+private `rss.parseItems` and `list.chunk` Rhino blocks.
+
+Run6 took 14m57s, 131 MCP calls and 62 frontend mutations, versus Run5's 8m34s,
+63 calls and 21 mutations. The regression is caused by repeated serializer
+recovery, not by schema selection. RetailStore remains premature.
+
+Artifacts: `run6-fresh-agent-prompt.md`, `run6-playwright.js`,
+`results/frontend-fresh-agent-run6-20260714.json`,
+`results/run6-desktop.png` and `results/run6-mobile.png`.
+
 ## Conclusion
 
 For the exact legacy-versus-Flow comparison, the primary regression is the Flow
