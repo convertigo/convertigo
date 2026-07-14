@@ -1,0 +1,46 @@
+{
+  "campaign": "retailstore-flow-fresh-agent",
+  "targetProject": "",
+  "startedAt": "",
+  "finishedAt": "",
+  "commits": {
+    "convertigo": "",
+    "flowEngine": "",
+    "flowMcp": "",
+    "svelteFrontbuilder": ""
+  },
+  "metrics": {
+    "mcpCalls": 0,
+    "failedMcpCalls": 0,
+    "correctiveMutations": 0,
+    "projectLocalBlocks": 0,
+    "secondsToScaffold": null,
+    "secondsToSeed": null,
+    "secondsToSync": null,
+    "secondsToLocalView": null,
+    "secondsToLocalGet": null,
+    "secondsToUsefulRender": null,
+    "secondsToFinalValidation": null
+  },
+  "evidence": {
+    "scaffoldDryRun": "",
+    "scaffoldSecondApply": "",
+    "schemaAttachments": [],
+    "playwrightScript": "",
+    "screenshots": [],
+    "browserConsoleErrors": [],
+    "remainingMocks": [],
+    "toolingGaps": []
+  },
+  "acceptance": {
+    "idempotentProvisioning": false,
+    "idempotentSeed": false,
+    "schemaBackedBindings": false,
+    "onlineCatalog": false,
+    "offlineLocalView": false,
+    "offlineLocalGet": false,
+    "productionBuild": false,
+    "desktopNoOverflow": false,
+    "mobile390NoOverflow": false
+  }
+}

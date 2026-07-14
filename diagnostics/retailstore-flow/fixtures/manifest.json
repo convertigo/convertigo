@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "shop": "42",
+  "files": {
+    "categories": {
+      "path": "categories_42.xml",
+      "sha256": "ca8fbb70cbbad559fede9ab336c567c64170f1a452103fe1e91038b202398b61",
+      "recordElement": "document/value",
+      "count": 768,
+      "fields": [
+        "_id",
+        "imageUrl",
+        "leaf",
+        "levelId",
+        "levelIdFather",
+        "name",
+        "nameSource",
+        "position",
+        "shopCode",
+        "sourceBreadcrumb"
+      ]
+    },
+    "products": {
+      "path": "products_42.xml",
+      "sha256": "eec0b08ad7306b4b3d7d4032baedeba3d765e2ed931c646ec6a9443cf7128410",
+      "recordElement": "document/value",
+      "count": 3000,
+      "fields": [
+        "_id",
+        "imageUrl",
+        "levelIdFather",
+        "name",
+        "packaging",
+        "priceOfUnit",
+        "shopCode",
+        "sku",
+        "unitPrice"
+      ]
+    }
+  },
+  "semantics": {
+    "documentId": "_id",
+    "shop": "shopCode",
+    "categoryId": "levelId",
+    "parents": "levelIdFather",
+    "categoryLeaf": "leaf",
+    "productId": "sku",
+    "displayName": "name",
+    "displayImage": "imageUrl",
+    "rootParentTokens": ["Menu", "NEWS", "PROMO"]
+  },
+  "assets": {
+    "categoryFallback": "category.png",
+    "productFallback": "product.png"
+  },
+  "rules": [
+    "Ignore supplied _rev values while creating a fresh database.",
+    "A record can have more than one parent.",
+    "Empty position values are valid.",
+    "Numeric price and position values should remain numeric after import."
+  ]
+}
