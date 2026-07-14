@@ -1,0 +1,4 @@
+label,phase,ordinal,status,total_ms,size,sha256
+global-cache-p1,measured,1,200,4558.718,7218,c2dd0fd76f9b1ab622c372d0b7639404a36baa41b9a4228edb4cc8d2d07eae57
+global-cache-p1,measured,2,200,41.403,7218,c2dd0fd76f9b1ab622c372d0b7639404a36baa41b9a4228edb4cc8d2d07eae57
+global-cache-p1,measured,3,200,34.338,7218,c2dd0fd76f9b1ab622c372d0b7639404a36baa41b9a4228edb4cc8d2d07eae57

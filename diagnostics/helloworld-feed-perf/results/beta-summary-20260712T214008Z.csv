@@ -1,0 +1,11 @@
+target,metric,count,median_ms,mean_ms,p95_ms,min_ms,max_ms
+flow,connect,12,44.0,68.1,148.0,35.4,149.3
+flow,tls,12,95.4,120.1,204.0,76.8,205.5
+flow,ttfb,12,441.5,439.4,501.5,356.4,550.1
+flow,total,12,441.8,439.7,501.7,356.7,550.1
+flow,server_after_tls,12,321.2,319.3,363.0,267.1,372.9
+legacy,connect,12,38.1,46.8,38.9,33.7,147.9
+legacy,tls,12,86.6,97.2,93.3,80.2,205.1
+legacy,ttfb,12,277.3,288.1,367.3,223.1,381.8
+legacy,total,12,277.5,288.5,367.7,223.3,382.0
+legacy,server_after_tls,12,185.7,191.0,242.1,135.3,295.8

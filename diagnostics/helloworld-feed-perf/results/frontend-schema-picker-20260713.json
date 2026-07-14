@@ -1,0 +1,53 @@
+{
+  "date": "2026-07-13",
+  "checkpoints": {
+    "lib_flow_engine": "2cc3b79",
+    "lib_flow_frontbuilder_svelte": "b517907"
+  },
+  "implementation": {
+    "schemaService": "requestable.schema",
+    "javaEngineChanged": false,
+    "requestablePaths": [
+      "news:array",
+      "news[0]:object",
+      "news[0].title:string",
+      "news[0].description:string",
+      "news[0].imageUrl:string"
+    ],
+    "iterationPaths": [
+      "title:string",
+      "description:string",
+      "imageUrl:string"
+    ],
+    "lexicalScopeIsolation": true
+  },
+  "workspace": {
+    "canonicalProject": "lib_flow_frontbuilder_svelte",
+    "duplicateLoaded": false,
+    "engineTrackedMissing": 0,
+    "engineTrackedChanged": 0,
+    "frontbuilderTrackedMissing": 0,
+    "frontbuilderTrackedChanged": 0,
+    "backupDirectory": "/home/nicolas/Téléchargements/convertigo-workspace-backups/20260713T192204Z-frontbuilder-reconcile"
+  },
+  "validation": {
+    "rhinoSmoke": "pass",
+    "frontbuilderTypeScript": "pass",
+    "svelteCheck": { "errors": 0, "warnings": 0 },
+    "productionBuild": "pass",
+    "localAuthoringTree": "pass",
+    "localGetFeedItems": 20,
+    "betaPageStatus": 200,
+    "betaGetFeedStatus": 200,
+    "betaGetFeedItems": 20,
+    "betaAuthoringTree": "unavailable: npm executable absent from beta runtime"
+  },
+  "deployment": {
+    "projects": [
+      "lib_flow_engine",
+      "lib_flow_frontbuilder_svelte",
+      "sample_HelloWorld_flow"
+    ],
+    "backupDirectory": "/home/nicolas/Téléchargements/convertigo-beta-backups/20260713T194435Z-schema-picker"
+  }
+}

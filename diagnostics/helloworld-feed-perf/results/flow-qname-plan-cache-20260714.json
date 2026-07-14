@@ -1,0 +1,50 @@
+{
+  "method": "Restart Convertigo, wait for provider and registered Flow preparation, then call sample_HelloWorld_flow.GetFeed against the same local RSS fixture over plain HTTP.",
+  "externalNetwork": false,
+  "response": {
+    "size": 7218,
+    "sha256": "c2dd0fd76f9b1ab622c372d0b7639404a36baa41b9a4228edb4cc8d2d07eae57"
+  },
+  "steps": [
+    {
+      "id": "P6",
+      "change": "Static no-input Flow metadata fast path",
+      "coldMs": [910.688, 836.442]
+    },
+    {
+      "id": "P7",
+      "change": "Internal phase profile",
+      "coldMs": 782.133,
+      "profileMs": {
+        "loadBlocks": 82.201,
+        "compilePlan": 309.148,
+        "loadConfig": 6.129,
+        "createContext": 12.042,
+        "executeNodes": 131.112,
+        "httpGet": 99.084,
+        "nasaXmlProjection": 23.243
+      }
+    },
+    {
+      "id": "P9",
+      "change": "Generic compiler preparation during provider preload",
+      "coldMs": 616.49,
+      "compilePlanMs": 200.367
+    },
+    {
+      "id": "P10",
+      "change": "Serialized QName plan preparation after provider preload",
+      "coldMs": [391.473, 399.543, 377.988],
+      "warmMs": [28.109, 24.666, 23.175, 19.852],
+      "compilePlanMs": 0.437,
+      "startup": {
+        "providerBlocksMs": 4025,
+        "registeredFlowPlansMsApprox": 4006,
+        "largestPlan": {
+          "qname": "lib_flow_mcp.McpServer",
+          "durationMs": 2820
+        }
+      }
+    }
+  ]
+}

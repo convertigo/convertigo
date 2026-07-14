@@ -32,6 +32,7 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
@@ -104,6 +105,32 @@ public class FlowEngine extends DatabaseObject {
 	public void setParent(DatabaseObject databaseObject) {
 		super.setParent(databaseObject);
 		ensureEngineProjectReference();
+		if (!ownsRuntime()) {
+			return;
+		}
+		if (isImporting) {
+			DatabaseObjectsManager.getProjectLoadingData().addAfterLoaded(this::preloadRuntime);
+		} else {
+			preloadRuntime();
+		}
+	}
+
+	private boolean ownsRuntime() {
+		var project = getProject();
+		var qname = getEngineQName();
+		var separator = qname == null ? -1 : qname.indexOf('.');
+		return project != null && separator > 0 && project.getName().equals(qname.substring(0, separator));
+	}
+
+	private void preloadRuntime() {
+		try {
+			var result = new FlowEngineBridge().preload(this);
+			Engine.logBeans.info("(FlowEngine) Preloaded " + getQName() + " in "
+					+ result.optLong("durationMs") + " ms (" + result.optInt("blockCount") + " blocks)");
+			Flow.runtimePrepared(getEngineQName());
+		} catch (Exception e) {
+			Engine.logBeans.warn("(FlowEngine) Unable to preload " + getQName(), e);
+		}
 	}
 
 	@Override

@@ -1,0 +1,70 @@
+{
+  "capturedAt": "2026-07-13",
+  "angularLocalStartup": {
+    "project": "sample_HelloWorld",
+    "userGetStartMs": 241,
+    "userGetEndMs": 245,
+    "automaticBeforeUserAction": true
+  },
+  "svelteBeforeChange": {
+    "project": "sample_HelloWorldFlowRun4",
+    "automaticSdkRequestsDuringFirstFiveSeconds": 0,
+    "firstClick": {
+      "envJsonStartMs": 189,
+      "envJsonEndMs": 196,
+      "userGetStartMs": 201,
+      "userGetEndMs": 203
+    }
+  },
+  "svelteAfterChangeLocal": {
+    "sample_HelloWorld_flow": {
+      "envJsonStartMs": 144,
+      "envJsonEndMs": 145,
+      "userGetStartMs": 153,
+      "userGetEndMs": 157,
+      "clickMs": 173,
+      "backendStartMs": 258,
+      "backendEndMs": 416
+    },
+    "sample_HelloWorldFlowRun4": {
+      "envJsonStartMs": 146,
+      "envJsonEndMs": 148,
+      "userGetStartMs": 156,
+      "userGetEndMs": 156,
+      "clickMs": 171,
+      "backendStartMs": 257,
+      "backendEndMs": 396
+    },
+    "delayedIdentityRace": {
+      "project": "sample_HelloWorld_flow",
+      "artificialUserGetDelayMs": 700,
+      "clickMs": 180,
+      "userGetEndMs": 875,
+      "backendStartMs": 980,
+      "userGetRequestCount": 1
+    }
+  },
+  "svelteAfterChangeBeta": {
+    "build": "26198-develop-8.5.0-beta",
+    "sample_HelloWorld_flow": {
+      "envJsonStartMs": 547,
+      "envJsonEndMs": 559,
+      "userGetStartMs": 564,
+      "userGetEndMs": 586,
+      "clickMs": 591,
+      "backendStartMs": 688,
+      "backendEndMs": 7739,
+      "postDeployCold": true
+    },
+    "sample_HelloWorldFlowRun4": {
+      "envJsonStartMs": 556,
+      "envJsonEndMs": 568,
+      "userGetStartMs": 572,
+      "userGetEndMs": 597,
+      "clickMs": 602,
+      "backendStartMs": 697,
+      "backendEndMs": 6532,
+      "postDeployCold": true
+    }
+  }
+}

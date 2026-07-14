@@ -1,0 +1,20 @@
+{
+  "label": "global-cache-p2",
+  "project": "sample_HelloWorld_flow",
+  "sequence": "GetFeed",
+  "fixture": "/home/nicolas/git/_codex-worktrees/flow-global-block-cache/diagnostics/helloworld-feed-perf/results/nasa-iotd-20260712T195054Z.rss",
+  "iterations": 3,
+  "warmup": 0,
+  "count": 3,
+  "medianMs": 39.93,
+  "meanMs": 3191.672,
+  "p95Ms": 9499.627,
+  "minMs": 35.459,
+  "maxMs": 9499.627,
+  "sizes": [
+    7218
+  ],
+  "sha256": [
+    "c2dd0fd76f9b1ab622c372d0b7639404a36baa41b9a4228edb4cc8d2d07eae57"
+  ]
+}

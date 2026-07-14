@@ -22,8 +22,11 @@ package com.twinsoft.convertigo.beans.flow;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -41,6 +44,14 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.codehaus.jettison.json.JSONTokener;
+import org.mozilla.javascript.CompilerEnvirons;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Parser;
+import org.mozilla.javascript.ast.Name;
+import org.mozilla.javascript.ast.ObjectLiteral;
+import org.mozilla.javascript.ast.ObjectProperty;
+import org.mozilla.javascript.ast.StringLiteral;
+import org.mozilla.javascript.ast.VariableInitializer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -65,6 +76,8 @@ public class Flow extends Sequence {
 	private static final String DEFAULT_FLOW_SOURCE = "function Flow({ input, config, result }) {\n"
 			+ "  return result\n"
 			+ "}\n";
+	private static final Map<String, Flow> pendingPlanPreparation = new LinkedHashMap<>();
+	private static final Set<String> preparedRuntimes = new HashSet<>();
 
 	private String flowSource = DEFAULT_FLOW_SOURCE;
 	private boolean includeTrace = false;
@@ -77,6 +90,60 @@ public class Flow extends Sequence {
 
 	public Flow() {
 		super();
+	}
+
+	@Override
+	public void setParent(DatabaseObject databaseObject) {
+		super.setParent(databaseObject);
+		var engineQName = effectiveEngineQName();
+		synchronized (pendingPlanPreparation) {
+			pendingPlanPreparation.put(getQName(), this);
+		}
+		if (isImporting) {
+			com.twinsoft.convertigo.engine.DatabaseObjectsManager.getProjectLoadingData()
+					.addAfterLoaded(() -> prepareReadyFlows(engineQName));
+		} else {
+			prepareReadyFlows(engineQName);
+		}
+	}
+
+	public static void runtimePrepared(String engineQName) {
+		synchronized (pendingPlanPreparation) {
+			preparedRuntimes.add(engineQName);
+		}
+		prepareReadyFlows(engineQName);
+	}
+
+	private static void prepareReadyFlows(String engineQName) {
+		synchronized (pendingPlanPreparation) {
+			if (!preparedRuntimes.contains(engineQName)) {
+				return;
+			}
+			var flows = pendingPlanPreparation.values().stream()
+					.filter(flow -> engineQName.equals(flow.effectiveEngineQName()))
+					.toList();
+			for (var flow : flows) {
+				pendingPlanPreparation.remove(flow.getQName());
+				flow.prepareFlowPlan();
+			}
+		}
+	}
+
+	private String effectiveEngineQName() {
+		var project = getProject();
+		var flowEngine = project == null ? null : project.getFlowEngine();
+		var engineQName = flowEngine == null ? null : flowEngine.getEngineQName();
+		return engineQName == null || engineQName.isBlank() ? FlowEngineBridge.DEFAULT_ENGINE_QNAME : engineQName;
+	}
+
+	private void prepareFlowPlan() {
+		try {
+			var result = new FlowEngineBridge().prepare(this);
+			Engine.logBeans.info("(Flow) Prepared " + getQName() + " in "
+					+ Math.round(result.optDouble("durationMs")) + " ms");
+		} catch (Exception e) {
+			Engine.logBeans.warn("(Flow) Unable to prepare " + getQName(), e);
+		}
 	}
 
 	@Override
@@ -96,8 +163,10 @@ public class Flow extends Sequence {
 
 	@Override
 	public void runCore() throws EngineException {
+		var runStarted = System.nanoTime();
 		try {
 			var response = new FlowEngineBridge().run(this, context, null, null);
+			var bridgeFinished = System.nanoTime();
 			var root = context.outputDocument.getDocumentElement();
 			if (response.optBoolean("ok", false)) {
 				var result = response.has("result") ? response.get("result") : new JSONObject();
@@ -110,9 +179,21 @@ public class Flow extends Sequence {
 				errorResponse.put("error", response.has("error") ? response.get("error") : response);
 				XMLUtils.jsonToXml(errorResponse, root);
 			}
+			var profile = response.optJSONObject("profile");
+			if (profile != null) {
+				profile.put("javaRunCore", new JSONObject()
+						.put("bridgeMs", nanosToMillis(bridgeFinished - runStarted))
+						.put("jsonToXmlMs", nanosToMillis(System.nanoTime() - bridgeFinished))
+						.put("totalMs", nanosToMillis(System.nanoTime() - runStarted)));
+				Engine.logBeans.info("(Flow) Profile for " + getQName() + ": " + profile);
+			}
 		} catch (Exception e) {
 			throw new EngineException("Unable to run flow \"" + getName() + "\".", e);
 		}
+	}
+
+	private static double nanosToMillis(long nanos) {
+		return nanos / 1_000_000d;
 	}
 
 	@Override
@@ -220,6 +301,10 @@ public class Flow extends Sequence {
 			flowInputSyncSource = source;
 			return;
 		}
+		if (Boolean.FALSE.equals(hasDeclaredFlowInputs(source))) {
+			flowInputSyncSource = source;
+			return;
+		}
 		flowInputSyncing = true;
 		try {
 			var response = new FlowEngineBridge().syncInputs(this);
@@ -241,6 +326,41 @@ public class Flow extends Sequence {
 			flowInputSyncSource = source;
 		} finally {
 			flowInputSyncing = false;
+		}
+	}
+
+	private static Boolean hasDeclaredFlowInputs(String source) {
+		try {
+			var environs = new CompilerEnvirons();
+			environs.setLanguageVersion(Context.VERSION_ES6);
+			environs.setRecoverFromErrors(false);
+			var root = new Parser(environs).parse(source, "FlowScript", 1);
+			var result = new Boolean[1];
+			root.visit(node -> {
+				if (result[0] != null || !(node instanceof VariableInitializer initializer)
+						|| !(initializer.getTarget() instanceof Name target) || !"_flow".equals(target.getIdentifier())
+						|| !(initializer.getInitializer() instanceof ObjectLiteral metadata)) {
+					return result[0] == null;
+				}
+				result[0] = false;
+				for (var element : metadata.getElements()) {
+					if (!(element instanceof ObjectProperty property)) {
+						result[0] = null;
+						return false;
+					}
+					var key = property.getKey();
+					var name = key instanceof Name identifier ? identifier.getIdentifier()
+							: key instanceof StringLiteral literal ? literal.getValue() : "";
+					if ("input".equals(name) || "inputs".equals(name)) {
+						result[0] = !(property.getValue() instanceof ObjectLiteral inputs) || !inputs.getElements().isEmpty();
+						return false;
+					}
+				}
+				return false;
+			});
+			return result[0];
+		} catch (Exception e) {
+			return null;
 		}
 	}
 

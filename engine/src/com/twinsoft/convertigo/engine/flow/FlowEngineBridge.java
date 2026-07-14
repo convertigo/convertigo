@@ -95,16 +95,52 @@ public class FlowEngineBridge {
 	}
 
 	public JSONObject run(Flow flow, Context convertigoContext, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
+		var started = System.nanoTime();
 		try {
 			var engineQName = effectiveEngineQName(flow);
-			var request = baseRequest(engineQName, flow.getFlowSource(), flow.getQName(), convertigoContext)
+			var flowSource = flow.getFlowSource();
+			var sourceFinished = System.nanoTime();
+			var request = baseRequest(engineQName, flowSource, flow.getQName(), convertigoContext)
 					.put("flowName", flow.getName())
 					.put("projectDir", flow.getProject() == null ? "" : flow.getProject().getDirPath())
-					.put("input", flow.getFlowInput())
 					.put("includeTrace", flow.isIncludeTrace());
-			return invoke(engineQName, "run", request, convertigoContext, javascriptContext, scope);
+			var requestFinished = System.nanoTime();
+			request.put("input", flow.getFlowInput());
+			var inputFinished = System.nanoTime();
+			var profileEnabled = convertigoContext != null && convertigoContext.httpServletRequest != null
+					&& "true".equals(convertigoContext.httpServletRequest.getParameter("__flowProfile"));
+			if (profileEnabled) {
+				request.put("profile", true);
+			}
+			var response = invoke(engineQName, "run", request, convertigoContext, javascriptContext, scope);
+			if (profileEnabled) {
+				var profile = response.optJSONObject("profile");
+				if (profile == null) {
+					profile = new JSONObject();
+					response.put("profile", profile);
+				}
+				profile.put("javaBridge", new JSONObject()
+						.put("sourceMs", nanosToMillis(sourceFinished - started))
+						.put("requestMs", nanosToMillis(requestFinished - sourceFinished))
+						.put("inputMs", nanosToMillis(inputFinished - requestFinished))
+						.put("invokeMs", nanosToMillis(System.nanoTime() - inputFinished))
+						.put("totalMs", nanosToMillis(System.nanoTime() - started)));
+			}
+			return response;
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow engine request.", e);
+		}
+	}
+
+	public JSONObject prepare(Flow flow) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flow);
+			var request = baseRequest(engineQName, flow == null ? "" : flow.getFlowSource(), flow == null ? "" : flow.getQName(), null)
+					.put("flowName", flow == null ? "" : flow.getName())
+					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath());
+			return invoke(engineQName, "prepare", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to prepare Flow plan.", e);
 		}
 	}
 
@@ -244,6 +280,19 @@ public class FlowEngineBridge {
 			return invoke(engineQName, "context", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build FlowEngine context request.", e);
+		}
+	}
+
+	public JSONObject preload(FlowEngine flowEngine) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flowEngine);
+			var project = flowEngine == null ? null : flowEngine.getProject();
+			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+					.put("project", project == null ? "" : project.getName())
+					.put("projectDir", project == null ? "" : project.getDirPath());
+			return invoke(engineQName, "preload", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build FlowEngine preload request.", e);
 		}
 	}
 
@@ -1445,7 +1494,7 @@ public class FlowEngineBridge {
 			return true;
 		}
 		return switch (method) {
-		case "run", "analyze", "search", "resourceSearch", "resourceList", "resourceGet", "flowSourceGet", "flowSourceValidate",
+		case "preload", "run", "analyze", "search", "resourceSearch", "resourceList", "resourceGet", "flowSourceGet", "flowSourceValidate",
 				"flowCodeGet", "flowCodeStatus", "flowCodeCheck", "flowCodeRg", "flowCodeRun", "flowCodeAnalyze", "blockCodeGet",
 				"blockCodeRg", "requestableList", "requestableSchema", "types" -> true;
 		default -> false;

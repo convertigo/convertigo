@@ -1,0 +1,50 @@
+{
+  "date": "2026-07-13",
+  "contract": {
+    "modes": ["literal", "source", "expression"],
+    "sourceCategories": ["requestable", "action", "iteration"],
+    "pathSegments": ["property", "index"],
+    "legacyStringPathsSupported": true,
+    "javaEngineChanged": false
+  },
+  "checkpoints": {
+    "lib_flow_engine": "3e7688f",
+    "lib_flow_frontbuilder_svelte": "040e50a"
+  },
+  "helloWorld": {
+    "project": "sample_HelloWorld_flow",
+    "requestableActionId": "getFeed",
+    "iterationScopeId": "feedItems",
+    "boundPaths": ["news", "imageUrl", "title", "description"]
+  },
+  "validation": {
+    "rhinoSmoke": "pass",
+    "frontbuilderTypeScript": "pass",
+    "svelteCheck": { "errors": 0, "warnings": 0 },
+    "productionBuild": "pass",
+    "webComponentPlaywright": "pass",
+    "localPlaywright": {
+      "request": "POST /convertigo/projects/sample_HelloWorld_flow/.json",
+      "sequence": "GetFeed",
+      "cards": 21,
+      "images": 20,
+      "pageErrors": 0
+    },
+    "betaPlaywright": {
+      "pageLoadMs": 1276,
+      "getFeedStatus": 200,
+      "getFeedElapsedMs": 10386,
+      "cards": 21,
+      "images": 20,
+      "pageErrors": 0
+    }
+  },
+  "deployment": {
+    "projects": [
+      "lib_flow_engine",
+      "lib_flow_frontbuilder_svelte",
+      "sample_HelloWorld_flow"
+    ],
+    "backupDirectory": "/home/nicolas/Téléchargements/convertigo-beta-backups/20260713T153504Z-flow-binding"
+  }
+}

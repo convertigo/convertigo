@@ -1,0 +1,63 @@
+{
+  "project": "sample_HelloWorldFlowRun4",
+  "qname": "sample_HelloWorldFlowRun4.ReadNasaFeed",
+  "iterations": 12,
+  "warmup": 3,
+  "http": {
+    "count": 12,
+    "medianTtfbMs": 163.209,
+    "medianTotalMs": 163.3155,
+    "meanTotalMs": 179.32633333333334,
+    "sizes": [
+      30058
+    ]
+  },
+  "bridgeRunStats": {
+    "s0": {
+      "calls": 117,
+      "errors": 0,
+      "runtimeHits": 117,
+      "runtimeMisses": 0,
+      "runtimeDisabled": 0,
+      "methodCacheHits": 0,
+      "totalMs": 43399.07,
+      "avgMs": 370.93,
+      "maxMs": 7625.48
+    },
+    "s1": {
+      "calls": 118,
+      "errors": 0,
+      "runtimeHits": 118,
+      "runtimeMisses": 0,
+      "runtimeDisabled": 0,
+      "methodCacheHits": 0,
+      "totalMs": 43570.47,
+      "avgMs": 369.24,
+      "maxMs": 7625.48
+    },
+    "s2": {
+      "calls": 131,
+      "errors": 0,
+      "runtimeHits": 131,
+      "runtimeMisses": 0,
+      "runtimeDisabled": 0,
+      "methodCacheHits": 0,
+      "totalMs": 45819.03,
+      "avgMs": 349.76,
+      "maxMs": 7625.48
+    },
+    "cacheInfoDelta": {
+      "calls": 1,
+      "totalMs": 171.40000000000146,
+      "maxMsAfter": 7625.48
+    },
+    "measuredDeltaIncludingFinalCacheInfo": {
+      "calls": 13,
+      "totalMs": 2248.5599999999977,
+      "maxMsAfter": 7625.48
+    },
+    "estimatedAppRunCalls": 12,
+    "estimatedAppRunTotalMs": 2077.16,
+    "estimatedAppRunAvgMs": 173.097
+  }
+}
