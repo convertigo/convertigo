@@ -39,7 +39,10 @@
       ".retailstore.getDocument -> FullSyncGet productDetail"
     ],
     "playwrightScript": "results/run3-playwright.mjs",
-    "screenshots": ["results/run3-offline-mobile.png"],
+    "screenshots": [
+      "results/run3-offline-mobile.png",
+      "results/run3-beta-offline-mobile.png"
+    ],
     "onlinePath": "EPICERIE SUCREE / GOUTERS & BISCUITS / BISCUITS AU CHOCOLAT",
     "onlineProductCount": 22,
     "offlinePath": "BIO & ECOLOGIE / LE MARCHE / VIANDES & POISSONS BIO",
@@ -75,6 +78,33 @@
       "categoriesLevel2",
       "categoriesLevel3",
       "productsLevel3"
+    ]
+  },
+  "betaDeployment": {
+    "deployedAt": "2026-07-15T10:17:00Z",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun3/DisplayObjects/mobile/",
+    "commits": {
+      "convertigoDevelop": "f38ec1930",
+      "flowEngineMain": "7a41e85d",
+      "flowMcpSpike": "5440b12",
+      "svelteFrontbuilderMaster": "f4bbae8"
+    },
+    "freshDatabaseValidation": {
+      "elapsedSeconds": 62,
+      "documents": 3775,
+      "categories": 768,
+      "products": 3000,
+      "rootCategories": 14,
+      "onlineProductCount": 22,
+      "offlineProductCount": 1,
+      "offlineXhrOrFetchRequests": 0,
+      "desktopNoOverflow": true,
+      "mobile390NoOverflow": true
+    },
+    "postRunFixes": [
+      "Allowed read-only FullSync access to design documents in Convertigo develop.",
+      "Assigned backend call configurations by client action id so repeated requestables retain distinct variables.",
+      "Regenerated and redeployed the application with offsets 0, 1000 and 2000."
     ]
   }
 }

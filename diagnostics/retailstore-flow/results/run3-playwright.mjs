@@ -1,6 +1,9 @@
 import { chromium } from "/home/nicolas/.npm/_npx/9833c18b2d85bc59/node_modules/playwright/index.mjs";
 
-const url = "http://127.0.0.1:18080/convertigo/projects/sample_RetailStoreFlowRun3/DisplayObjects/mobile/index.html";
+const url = process.env.RUN3_URL
+  || "http://127.0.0.1:18080/convertigo/projects/sample_RetailStoreFlowRun3/DisplayObjects/mobile/index.html";
+const screenshotPath = process.env.RUN3_SCREENSHOT
+  || "/home/nicolas/git/convertigo/diagnostics/retailstore-flow/results/run3-offline-mobile.png";
 const browser = await chromium.launch({
   headless: true,
   executablePath: "/home/nicolas/.cache/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-linux64/chrome-headless-shell"
@@ -32,7 +35,7 @@ const overflow = () => page.evaluate(() => ({
 await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
 await page.getByRole("button", { name: "Initialize & synchronize" }).click();
 await page.waitForTimeout(15_000);
-await page.getByText('{"ok":true}', { exact: true }).waitFor({ timeout: 120_000 });
+await page.getByText('{"ok":true}', { exact: true }).waitFor({ timeout: 300_000 });
 
 await page.getByRole("button", { name: "Back to shop root / browse" }).click();
 await page.getByRole("button", { name: "Open category" }).first().waitFor({ timeout: 10_000 });
@@ -91,7 +94,7 @@ assert(offlineDetail.includes(offlineCard[0]) && offlineDetail.includes(offlineC
 assert(offlineRequests.length === 0, `Offline browsing attempted requests: ${offlineRequests.join(", ")}`);
 
 await page.screenshot({
-  path: "/home/nicolas/git/convertigo/diagnostics/retailstore-flow/results/run3-offline-mobile.png",
+  path: screenshotPath,
   fullPage: true
 });
 await context.setOffline(false);
