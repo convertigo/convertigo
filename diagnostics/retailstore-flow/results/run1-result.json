@@ -1,0 +1,61 @@
+{
+  "campaign": "retailstore-flow-fresh-agent",
+  "targetProject": "sample_RetailStoreFlowRun1",
+  "startedAt": "2026-07-15T05:57:49.910Z",
+  "finishedAt": "2026-07-15T06:14:27.511Z",
+  "status": "incomplete-diagnostic",
+  "commits": {
+    "convertigo": "177ec98cd",
+    "flowEngine": "034fb07",
+    "flowMcp": "d0a7f98",
+    "svelteFrontbuilder": "031ba93"
+  },
+  "metrics": {
+    "mcpCalls": 77,
+    "failedMcpCalls": 8,
+    "correctiveMutations": 32,
+    "projectLocalBlocks": 0,
+    "secondsToScaffold": 67.1,
+    "secondsToSeed": null,
+    "secondsToSync": null,
+    "secondsToLocalView": null,
+    "secondsToLocalGet": null,
+    "secondsToUsefulRender": null,
+    "secondsToFinalValidation": null
+  },
+  "evidence": {
+    "scaffoldDryRun": "passed",
+    "scaffoldSecondApply": "created=0, updated=0, reused=20",
+    "schemaAttachments": [],
+    "playwrightScript": "results/run1-playwright.mjs",
+    "screenshots": ["results/run1-online.png"],
+    "browserConsoleErrors": [],
+    "remainingMocks": [],
+    "toolingGaps": [
+      "Nested `return result` did not compile as an early return.",
+      "Scaffolded CouchDB read options were not canonicalized to Convertigo `_use_*` variables.",
+      "Learned FullSync XML schemas were not normalized to the client JSON envelope.",
+      "A button containing initialization and synchronization executed only its first action.",
+      "Progress did not reject an empty iterator body."
+    ]
+  },
+  "acceptance": {
+    "idempotentProvisioning": true,
+    "idempotentSeed": false,
+    "schemaBackedBindings": false,
+    "onlineCatalog": false,
+    "offlineLocalView": false,
+    "offlineLocalGet": false,
+    "productionBuild": true,
+    "desktopNoOverflow": false,
+    "mobile390NoOverflow": false
+  },
+  "postRunRecovery": {
+    "seededDocuments": 3768,
+    "firstSeedMilliseconds": 2504,
+    "idempotentSeedMilliseconds": 414,
+    "syncedIndexedDbDocuments": 3771,
+    "desktopNoOverflow": true,
+    "note": "Infrastructure recovery proved the repaired primitives, but does not retroactively satisfy the fresh-agent campaign."
+  }
+}

@@ -38,7 +38,9 @@ the production build and the real browser application are validated.
   server and Playwright for authoring/validation.
 - The campaign harness has already bootstrapped the blank project with Svelte
   enabled and copied the declared fixtures under `resources/retailstore/`.
-  Do not recreate or replace that shell.
+  The unchanged fixtures are also available to typed Flow resource blocks
+  under `libs/flow/resources/retailstore/`; the JSON contract is readable
+  through MCP there. Do not recreate or replace that shell.
 - Provision the FullSync connector, design documents, views and standard
   transactions with `flow-fullsync-scaffold`. Run and inspect `dryRun:true`
   before applying the identical structured request.
@@ -54,6 +56,10 @@ the production build and the real browser application are validated.
   catalogued typed blocks; report a missing primitive instead of inventing
   hidden filesystem or XML code.
 - Finish with no mock blocks.
+- Treat `flow-app-progress` as a guide, not proof of completion. Resolve every
+  warning and verify that each data-bound iterator has visible content.
+- Keep a standalone Playwright script for the final online/offline assertions;
+  do not rely exclusively on an interactive browser transport.
 
 ## Fresh-context restrictions
 

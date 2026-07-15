@@ -22,8 +22,10 @@ NGX component tree, or legacy Smart Source expressions.
 
 The target project must be absent before preparation. The harness creates an
 empty project shell and places the fixture files under
-`resources/retailstore/`, but it must not create any FullSync DBO, application
-Flow, page implementation or generated frontend before the agent starts.
+`resources/retailstore/`. It mirrors the unchanged fixtures under
+`libs/flow/resources/retailstore/` for typed Flow resource access, but it must
+not create any FullSync DBO, application Flow, page implementation or generated
+frontend before the agent starts.
 
 The agent starts from that prepared shell and must use
 `flow-fullsync-scaffold(dryRun:true)` followed by the matching apply request.
