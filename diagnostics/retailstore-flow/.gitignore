@@ -1,4 +1,4 @@
-.run1-codex-home/
-.run1-agent/
+.run*-codex-home/
+.run*-agent/
 results/*.jsonl
 results/*.last-message.txt

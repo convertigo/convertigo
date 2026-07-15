@@ -1,0 +1,68 @@
+{
+  "campaign": "retailstore-flow-fresh-agent",
+  "targetProject": "sample_RetailStoreFlowRun2",
+  "startedAt": "2026-07-15T07:24:00Z",
+  "finishedAt": "2026-07-15T07:43:30Z",
+  "status": "incomplete-diagnostic",
+  "commits": {
+    "convertigo": "1a8129b2fa98fa25e742f6a09e44fd096a61db41",
+    "flowEngine": "fa8afa07942b99b65445af4ba1608fa1188216c4",
+    "flowMcp": "d071b4e5d01d3694e30fa896d7d99593c3b697a2",
+    "svelteFrontbuilder": "f08ad0bb03afce4c4dbf12a6a654b721555a05b2"
+  },
+  "metrics": {
+    "mcpCalls": 128,
+    "failedMcpCalls": 3,
+    "correctiveMutations": 35,
+    "projectLocalBlocks": 2,
+    "secondsToScaffold": null,
+    "secondsToSeed": 308,
+    "secondsToSync": null,
+    "secondsToLocalView": null,
+    "secondsToLocalGet": null,
+    "secondsToUsefulRender": 912,
+    "secondsToFinalValidation": null
+  },
+  "evidence": {
+    "scaffoldDryRun": "passed",
+    "scaffoldSecondApply": "created=0, updated=0, reused=20",
+    "schemaAttachments": [
+      ".retailstore.ReadCatalog -> rootCatalog.outputSchema"
+    ],
+    "playwrightScript": "results/run2-playwright.mjs",
+    "screenshots": ["results/run2-online.png"],
+    "browserConsoleErrors": [
+      "Expected initial 404 reads for PouchDB replication checkpoints."
+    ],
+    "remainingMocks": [],
+    "toolingGaps": [
+      "FullSync schemas did not propagate from a view result into its ForEach item scope.",
+      "A scalar widget bound to the complete iterator object did not prevent 100% progress.",
+      "A Flow block nested in a list.map object projection was serialized as literal text instead of executed.",
+      "The isolated CODEX_HOME did not expose the installed Flow skill catalog entry."
+    ]
+  },
+  "acceptance": {
+    "idempotentProvisioning": true,
+    "idempotentSeed": true,
+    "schemaBackedBindings": false,
+    "onlineCatalog": false,
+    "offlineLocalView": false,
+    "offlineLocalGet": false,
+    "productionBuild": true,
+    "desktopNoOverflow": true,
+    "mobile390NoOverflow": false
+  },
+  "postRunRecovery": {
+    "commits": {
+      "flowEngine": "7a41e85d6f2072d9f6471fa59c97646a379a076d",
+      "flowMcp": "5440b12ee192e3956e69c4571c6ef25d6c8a0aa1"
+    },
+    "reseedMilliseconds": 19078,
+    "syncedIndexedDbDocuments": 3771,
+    "localRootRows": 14,
+    "offlineRenderedRootNames": 14,
+    "desktopNoOverflow": true,
+    "note": "Post-run recovery proves the corrected compiler and picker contracts but does not retroactively satisfy the fresh-agent run."
+  }
+}
