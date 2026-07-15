@@ -110,6 +110,7 @@ public class FullSyncServlet extends HttpServlet {
 			"_bulk_docs",
 			"_bulk_get",
 			"_changes",
+			"_design",
 			"_ensure_full_commit",
 			"_local",
 			"_revs_diff"
@@ -850,6 +851,10 @@ public class FullSyncServlet extends HttpServlet {
 		}
 		if ("_all_docs".equals(special) || "_bulk_get".equals(special) || "_changes".equals(special)) {
 			return method == HttpMethodType.GET || method == HttpMethodType.HEAD || method == HttpMethodType.POST;
+		}
+		if ("_design".equals(special)) {
+			return !requestParser.hasAttachment() && requestParser.getDocId() != null
+					&& (method == HttpMethodType.GET || method == HttpMethodType.HEAD);
 		}
 		if ("_local".equals(special)) {
 			return !requestParser.hasAttachment() && requestParser.getDocId() != null
