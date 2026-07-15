@@ -1,0 +1,80 @@
+{
+  "campaign": "retailstore-flow-fresh-agent",
+  "targetProject": "sample_RetailStoreFlowRun3",
+  "startedAt": "2026-07-15T08:14:36Z",
+  "finishedAt": "2026-07-15T09:28:47Z",
+  "status": "complete-with-diagnostics",
+  "commits": {
+    "convertigo": "df8c9c8fbab9da9dc1a1545c55588117f5913267",
+    "flowEngine": "7a41e85d6f2072d9f6471fa59c97646a379a076d",
+    "flowMcp": "5440b12ee192e3956e69c4571c6ef25d6c8a0aa1",
+    "svelteFrontbuilder": "f08ad0bb03afce4c4dbf12a6a654b721555a05b2"
+  },
+  "metrics": {
+    "mcpCalls": 344,
+    "failedMcpCalls": 13,
+    "frontendMutations": 97,
+    "projectLocalBlocks": 4,
+    "secondsToScaffold": null,
+    "secondsToSeed": null,
+    "secondsToSync": null,
+    "secondsToLocalView": null,
+    "secondsToLocalGet": null,
+    "secondsToUsefulRender": null,
+    "secondsToFinalValidation": 4451,
+    "inputTokens": 55087594,
+    "cachedInputTokens": 54293760,
+    "outputTokens": 84852
+  },
+  "evidence": {
+    "scaffoldDryRun": "passed",
+    "scaffoldSecondApply": "created=0, updated=0, reused=37",
+    "databaseDocuments": 3775,
+    "seededCategories": 768,
+    "seededProducts": 3000,
+    "idempotentInitialization": "initialized=true, seeded=false, categories=768, products=3000",
+    "schemaAttachments": [
+      ".retailstore.categoriesByParent -> FullSyncView categoriesRoot/categoriesLevel2/categoriesLevel3",
+      ".retailstore.productsByParent -> FullSyncView productsLevel3",
+      ".retailstore.getDocument -> FullSyncGet productDetail"
+    ],
+    "playwrightScript": "results/run3-playwright.mjs",
+    "screenshots": ["results/run3-offline-mobile.png"],
+    "onlinePath": "EPICERIE SUCREE / GOUTERS & BISCUITS / BISCUITS AU CHOCOLAT",
+    "onlineProductCount": 22,
+    "offlinePath": "BIO & ECOLOGIE / LE MARCHE / VIANDES & POISSONS BIO",
+    "offlineProductCount": 1,
+    "offlineXhrOrFetchRequests": 0,
+    "browserConsoleErrors": [
+      "Expected PouchDB checkpoint 404 responses during initial replication.",
+      "Expected image/network failures after Playwright explicitly disabled networking."
+    ],
+    "remainingMocks": [],
+    "toolingGaps": [
+      "flow-app-progress does not recursively index client actions nested under iterator event scopes and therefore reports three false unknown-action warnings.",
+      "Adding views to an existing scaffold does not immediately update the CouchDB design document; schema learning returned missing_named_view until established views were reused.",
+      "A dynamic object sent through a project Flow block was serialized as a literal value; direct requestable.call was required for marker documents.",
+      "Large list.map seeds produce 11,540 to 13,020 trace nodes and take tens of seconds per 768 to 1,000 documents.",
+      "Several large MCP responses failed JSON-RPC deserialization, and deep frontend/browser inspection produced excessive response volume."
+    ]
+  },
+  "acceptance": {
+    "idempotentProvisioning": true,
+    "idempotentSeed": true,
+    "schemaBackedBindings": true,
+    "onlineCatalog": true,
+    "offlineLocalView": true,
+    "offlineLocalGet": true,
+    "productionBuild": true,
+    "desktopNoOverflow": true,
+    "mobile390NoOverflow": true
+  },
+  "diagnostics": {
+    "flowAppProgress": "8/9 (89%)",
+    "flowAppProgressFalseWarnings": [
+      "categoriesLevel2",
+      "categoriesLevel3",
+      "productsLevel3"
+    ]
+  }
+}
