@@ -9,7 +9,7 @@
   },
   "projectSourceHashes": {
     "storePage": "903b3e610a1372abe3787218318911c3fb702b4998b6bc8f88cbb2faec361486",
-    "initializeCatalog": "d6e0547023c1d8fcba4d08b350ee119068ae051360ee7a1005d72c272b58ac73",
+    "initializeCatalog": "9ce492297f76c304ce03170babfb451bb68fed88c91d7d77c82125fdacb96fe8",
     "normalizeFixture": "7075b9e5e6624724eb716ebab4d1968f592095109daa45fa6b0eb7a4a1434b66"
   },
   "toolingCorrection": {
@@ -26,7 +26,8 @@
     "products": 3000,
     "total": 3768,
     "secondInitializationSeeded": false,
-    "seedMarker": "seed::retailstore::v4",
+    "seedMarker": "seed::retailstore::v5",
+    "seedAclPolicy": "noOp",
     "assetNormalization": "Fixture img/ placeholders use supplied route-portable category/product fallback resources."
   },
   "acceptance": {
@@ -59,5 +60,20 @@
     "engineSmoke": "passed",
     "mcpSmoke": "stops at pre-existing fixture failure: Unknown requestable .TargetSmoke",
     "playwrightSuite": "results/run4-playwright.spec.js"
+  },
+  "betaDeployment": {
+    "deployedAt": "2026-07-15T16:01:56Z",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/",
+    "carSha256": "2abfd184e014a08e34971ed78799591e5eacde91d9ad0855fa78604bf0ab1176",
+    "anonymousInitialization": {
+      "seeded": true,
+      "ready": true,
+      "categoryCount": 768,
+      "productCount": 3000,
+      "totalCount": 3768
+    },
+    "idempotentInitialization": true,
+    "anonymousReplicationAclVerified": true,
+    "browserSmoke": "1/1 passed in 21.7s"
   }
 }
