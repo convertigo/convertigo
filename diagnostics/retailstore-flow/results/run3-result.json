@@ -72,6 +72,33 @@
     "desktopNoOverflow": true,
     "mobile390NoOverflow": true
   },
+  "workflowCorrection": {
+    "correctedAt": "2026-07-15T11:31:53Z",
+    "reason": "The initial UI exposed all diagnostic stages and required a manual root query; it did not implement the RetailStore browsing workflow.",
+    "commits": {
+      "flowEngine": "eee4cedb18c2b621e80e964da1bd597e57d65524",
+      "svelteFrontbuilder": "a488b2980659b6d076d91ff9d1bacdc9026668ce"
+    },
+    "behavior": [
+      "Initialization and synchronization automatically open the root catalog.",
+      "Root, level 2, level 3, products and detail are mutually exclusive stages.",
+      "Back controls restore the previous stage without repeating a server request.",
+      "All repeated catalog stages use responsive grids.",
+      "Category and product images use portable project resources.",
+      "A second complete branch remains browsable after networking is disabled."
+    ],
+    "localValidation": {
+      "rootCategories": 14,
+      "onlineProductCount": 22,
+      "offlineProductCount": 1,
+      "offlineXhrOrFetchRequests": 0,
+      "imageErrors": 0,
+      "desktopHeight": 900,
+      "desktopNoOverflow": true,
+      "mobile390NoOverflow": true,
+      "pageErrors": 0
+    }
+  },
   "diagnostics": {
     "flowAppProgress": "8/9 (89%)",
     "flowAppProgressFalseWarnings": [
@@ -81,13 +108,13 @@
     ]
   },
   "betaDeployment": {
-    "deployedAt": "2026-07-15T10:17:00Z",
+    "deployedAt": "2026-07-15T11:31:53Z",
     "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun3/DisplayObjects/mobile/",
     "commits": {
       "convertigoDevelop": "f38ec1930",
-      "flowEngineMain": "7a41e85d",
+      "flowEngineMain": "eee4ced",
       "flowMcpSpike": "5440b12",
-      "svelteFrontbuilderMaster": "f4bbae8"
+      "svelteFrontbuilderMaster": "a488b29"
     },
     "freshDatabaseValidation": {
       "elapsedSeconds": 62,
@@ -101,10 +128,18 @@
       "desktopNoOverflow": true,
       "mobile390NoOverflow": true
     },
+    "deployedCarSha256": {
+      "lib_flow_engine": "8a520e9cb0dc19ec94a6c332767038281c32205c16886574ef265dc399850c26",
+      "lib_flow_frontbuilder_svelte": "a9d5f838f37c3f234eef0370defc71bc5b3ce5cf52beb1da4e76fcd22931a123",
+      "sample_RetailStoreFlowRun3": "23a20bd084d345e9c34255a7bc7d14bb3623a3b7a1599cf0ff465a86e872ac16"
+    },
     "postRunFixes": [
       "Allowed read-only FullSync access to design documents in Convertigo develop.",
       "Assigned backend call configurations by client action id so repeated requestables retain distinct variables.",
-      "Regenerated and redeployed the application with offsets 0, 1000 and 2000."
+      "Regenerated and redeployed the application with offsets 0, 1000 and 2000.",
+      "Added schema-backed client state actions and conditional bindings.",
+      "Rebuilt the catalog as a five-stage RetailStore workflow with automatic root loading and Back navigation.",
+      "Replaced broken inherited image URLs with portable project assets."
     ]
   }
 }

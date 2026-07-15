@@ -1,7 +1,7 @@
 import { chromium } from "/home/nicolas/.npm/_npx/9833c18b2d85bc59/node_modules/playwright/index.mjs";
 
 const url = process.env.RUN3_URL
-  || "http://127.0.0.1:18080/convertigo/projects/sample_RetailStoreFlowRun3/DisplayObjects/mobile/index.html";
+  || "http://127.0.0.1:19080/convertigo/projects/sample_RetailStoreFlowRun3/DisplayObjects/mobile/index.html";
 const screenshotPath = process.env.RUN3_SCREENSHOT
   || "/home/nicolas/git/convertigo/diagnostics/retailstore-flow/results/run3-offline-mobile.png";
 const browser = await chromium.launch({
@@ -12,6 +12,7 @@ const context = await browser.newContext({ viewport: { width: 1280, height: 900 
 const page = await context.newPage();
 const consoleErrors = [];
 const pageErrors = [];
+const imageErrors = [];
 
 page.on("console", (message) => {
   if (message.type() === "error" && !message.text().includes("favicon.ico")) {
@@ -19,6 +20,11 @@ page.on("console", (message) => {
   }
 });
 page.on("pageerror", (error) => pageErrors.push(error.message));
+page.on("response", (response) => {
+  if (response.request().resourceType() === "image" && response.status() >= 400) {
+    imageErrors.push(`${response.status()} ${response.url()}`);
+  }
+});
 
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);
@@ -34,14 +40,14 @@ const overflow = () => page.evaluate(() => ({
 
 await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
 await page.getByRole("button", { name: "Initialize & synchronize" }).click();
-await page.waitForTimeout(15_000);
-await page.getByText('{"ok":true}', { exact: true }).waitFor({ timeout: 300_000 });
-
-await page.getByRole("button", { name: "Back to shop root / browse" }).click();
-await page.getByRole("button", { name: "Open category" }).first().waitFor({ timeout: 10_000 });
+await page.getByRole("button", { name: "Open category" }).first().waitFor({ timeout: 300_000 });
 const rootCount = await page.getByRole("button", { name: "Open category" }).count();
 assert(rootCount === 14, `Expected 14 root categories, got ${rootCount}`);
 
+await page.getByText("EPICERIE SUCREE", { exact: true }).locator("xpath=..").getByRole("button", { name: "Open category" }).click();
+await page.getByRole("button", { name: "Back to categories" }).waitFor();
+assert(await page.getByRole("button", { name: "Open category" }).count() === 0, "Root stage remained visible at level 2");
+await page.getByRole("button", { name: "Back to categories" }).click();
 await page.getByText("EPICERIE SUCREE", { exact: true }).locator("xpath=..").getByRole("button", { name: "Open category" }).click();
 await page.getByText("GOUTERS & BISCUITS", { exact: true }).locator("xpath=..").getByRole("button", { name: "Open subcategory" }).click();
 await page.getByText("BISCUITS AU CHOCOLAT", { exact: true }).locator("xpath=..").getByRole("button", { name: "Show products" }).click();
@@ -56,9 +62,12 @@ const detailBox = page.getByText("Selected product details", { exact: true }).lo
 await page.waitForTimeout(300);
 const onlineDetail = (await detailBox.innerText()).split("\n").filter(Boolean);
 assert(onlineDetail.includes(onlineCard[0]) && onlineDetail.includes(onlineCard[1]), "Online local get mismatch");
+assert(imageErrors.length === 0, `Image loading failed: ${imageErrors.join(", ")}`);
 
 const desktop = await overflow();
 assert(desktop.scrollWidth <= desktop.clientWidth, `Desktop overflow: ${JSON.stringify(desktop)}`);
+const desktopHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+assert(desktopHeight < 5000, `Unexpected stacked-stage page height: ${desktopHeight}`);
 await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(200);
 const mobile = await overflow();
@@ -71,7 +80,10 @@ const recordRequest = (request) => {
 page.on("request", recordRequest);
 await context.setOffline(true);
 
-await page.getByRole("button", { name: "Back to shop root / browse" }).click();
+await page.getByRole("button", { name: "Back to products" }).click();
+await page.getByRole("button", { name: "Back to categories" }).click();
+await page.getByRole("button", { name: "Back to subcategories" }).click();
+await page.getByRole("button", { name: "Back to categories" }).click();
 await page.getByText("BIO & ECOLOGIE", { exact: true }).locator("xpath=..").getByRole("button", { name: "Open category" }).click();
 const subcategories = page.getByRole("button", { name: "Open subcategory" });
 await subcategories.first().waitFor();
@@ -103,7 +115,8 @@ console.log(JSON.stringify({
   rootCount,
   online: { productCount: onlineProductCount, card: onlineCard.slice(0, 4), detail: onlineDetail.slice(0, 5) },
   offline: { subcategory, leaf, productCount: offlineProductCount, card: offlineCard.slice(0, 4), detail: offlineDetail.slice(0, 5), requests: offlineRequests },
-  layout: { desktop, mobile },
+  layout: { desktop, mobile, desktopHeight },
+  imageErrors,
   consoleErrors,
   pageErrors
 }, null, 2));
