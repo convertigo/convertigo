@@ -8,6 +8,7 @@
     "svelteFrontbuilder": "16f5d8c"
   },
   "projectSourceHashes": {
+    "rootPage": "bc5579e98d93e5de5c640f83156aaec0f9593a1687b680bf630acbff55a7727d",
     "storePage": "903b3e610a1372abe3787218318911c3fb702b4998b6bc8f88cbb2faec361486",
     "initializeCatalog": "9ce492297f76c304ce03170babfb451bb68fed88c91d7d77c82125fdacb96fe8",
     "normalizeFixture": "7075b9e5e6624724eb716ebab4d1968f592095109daa45fa6b0eb7a4a1434b66"
@@ -74,6 +75,13 @@
     },
     "idempotentInitialization": true,
     "anonymousReplicationAclVerified": true,
-    "browserSmoke": "1/1 passed in 21.7s"
+    "browserSmoke": "1/1 passed in 21.7s",
+    "canonicalRoot": {
+      "deployedAt": "2026-07-15T21:04:18Z",
+      "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/",
+      "carSha256": "2c05e0366c750c10acbf774e104cf114aaf036024fbb115d2d0e8a25571a87f6",
+      "behavior": "OnMount enters /store with replacement navigation and route-unique action ids.",
+      "browserSmoke": "1/1 passed in 15.4s through product detail"
+    }
   }
 }
