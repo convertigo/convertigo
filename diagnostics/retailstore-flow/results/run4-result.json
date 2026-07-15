@@ -3,14 +3,14 @@
   "targetProject": "sample_RetailStoreFlowRun4",
   "status": "functional-pass-with-offline-navigation-gap",
   "toolingCommits": {
-    "flowEngine": "24620f4",
-    "flowMcp": "e3b69dd",
-    "svelteFrontbuilder": "16f5d8c"
+    "flowEngine": "35df47b9a9036b50a08a1c1562bf4c995e7124b3",
+    "flowMcp": "6fbfc8fc268abede9038e99d56ef5879fc7bbd3f",
+    "svelteFrontbuilder": "c9dfeb752ef37ce719f514a1fb6e90e27b267c68"
   },
   "projectSourceHashes": {
     "rootPage": "bc5579e98d93e5de5c640f83156aaec0f9593a1687b680bf630acbff55a7727d",
-    "storePage": "903b3e610a1372abe3787218318911c3fb702b4998b6bc8f88cbb2faec361486",
-    "initializeCatalog": "9ce492297f76c304ce03170babfb451bb68fed88c91d7d77c82125fdacb96fe8",
+    "storePage": "f53b769a17b848a87ac8d6261947ccd99a2a3d7f6e2fbedb03d23d6008cb545a",
+    "initializeCatalog": "eb049e496cf46bfdec51cf8946e90f8a17c2834732cdc019ecabb46a8e568c17",
     "normalizeFixture": "7075b9e5e6624724eb716ebab4d1968f592095109daa45fa6b0eb7a4a1434b66"
   },
   "toolingCorrection": {
@@ -27,7 +27,7 @@
     "products": 3000,
     "total": 3768,
     "secondInitializationSeeded": false,
-    "seedMarker": "seed::retailstore::v5",
+    "seedMarker": "seed::retailstore::v6",
     "seedAclPolicy": "noOp",
     "assetNormalization": "Fixture img/ placeholders use supplied route-portable category/product fallback resources."
   },
@@ -57,7 +57,7 @@
     "next": "Correct generated route navigation or add a SvelteKit-specific safe offline strategy, then rerun the same suite."
   },
   "validation": {
-    "frontbuilderTests": "11/11 passed",
+    "frontbuilderTests": "12/12 passed",
     "engineSmoke": "passed",
     "mcpSmoke": "stops at pre-existing fixture failure: Unknown requestable .TargetSmoke",
     "playwrightSuite": "results/run4-playwright.spec.js"
@@ -82,6 +82,21 @@
       "carSha256": "2c05e0366c750c10acbf774e104cf114aaf036024fbb115d2d0e8a25571a87f6",
       "behavior": "OnMount enters /store with replacement navigation and route-unique action ids.",
       "browserSmoke": "1/1 passed in 15.4s through product detail"
+    },
+    "fullSyncMigration": {
+      "deployedAt": "2026-07-15T21:42:05Z",
+      "cause": "The generated OnMount omitted FullSyncReset and the active CouchDB design document predated the itemsByParent view.",
+      "serverMigration": "seed::retailstore::v6 recreates and reseeds the database with the current design document.",
+      "clientMigration": "retailstore-items-by-parent-v2 resets each persistent browser database once before pull.",
+      "localBrowser": "1/1 passed in 9.5s, including reload",
+      "betaBrowser": "1/1 passed in 19.2s, including reload",
+      "rootCategoryCount": 14,
+      "carSha256": {
+        "lib_flow_engine": "a24f4a080b279c896dca2c8f6dcb5f374e998656857546d854bd8ad7657535da",
+        "lib_flow_frontbuilder_svelte": "1e753ca84bea9537f7a739ced4bb34ce2fbd1bdfd12df7f9d4e5c2dbb3bb3844",
+        "lib_flow_mcp": "8379db4e8925775424dc08f06f610c760e166abfd828a898c02dc9793a5f386f",
+        "sample_RetailStoreFlowRun4": "d97d57a678dd240f7271bfdc956a39b2f6cd4bf9a3a2da6e66444dcd0767648c"
+      }
     }
   }
 }
