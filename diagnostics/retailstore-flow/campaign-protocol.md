@@ -1,5 +1,9 @@
 # Campaign protocol
 
+For Run4 and later, the observable navigation contract is
+[`legacy-ux-spec.md`](legacy-ux-spec.md). Give that contract to the fresh agent
+without exposing the legacy project or previous runs.
+
 ## Prepare outside the fresh context
 
 1. Record the Convertigo, Flow engine, Flow MCP and Svelte frontbuilder commit
