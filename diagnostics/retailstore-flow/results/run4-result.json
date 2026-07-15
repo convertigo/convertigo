@@ -1,0 +1,63 @@
+{
+  "campaign": "retailstore-flow-fresh-agent",
+  "targetProject": "sample_RetailStoreFlowRun4",
+  "status": "functional-pass-with-offline-navigation-gap",
+  "toolingCommits": {
+    "flowEngine": "24620f4",
+    "flowMcp": "e3b69dd",
+    "svelteFrontbuilder": "16f5d8c"
+  },
+  "projectSourceHashes": {
+    "storePage": "903b3e610a1372abe3787218318911c3fb702b4998b6bc8f88cbb2faec361486",
+    "initializeCatalog": "d6e0547023c1d8fcba4d08b350ee119068ae051360ee7a1005d72c272b58ac73",
+    "normalizeFixture": "7075b9e5e6624724eb716ebab4d1968f592095109daa45fa6b0eb7a4a1434b66"
+  },
+  "toolingCorrection": {
+    "problem": "Two FullSync views reused one action id, so the generated model retained only one parameter set.",
+    "contract": "Client action id identifies execution and parameters; optional target identifies shared reactive result state.",
+    "run4Actions": [
+      "loadRootCategories -> catalogItems",
+      "loadChildren -> catalogItems"
+    ],
+    "binding": "picker-backed fullsync catalogItems.rows"
+  },
+  "backend": {
+    "categories": 768,
+    "products": 3000,
+    "total": 3768,
+    "secondInitializationSeeded": false,
+    "seedMarker": "seed::retailstore::v4",
+    "assetNormalization": "Fixture img/ placeholders use supplied route-portable category/product fallback resources."
+  },
+  "acceptance": {
+    "flowProgressPercent": 100,
+    "remainingMocks": 0,
+    "bindingWarnings": 0,
+    "productionBuild": true,
+    "rootCategoryCount": 14,
+    "onlinePath": "EPICERIE SUCREE / GOUTERS & BISCUITS / BISCUITS AU CHOCOLAT",
+    "selectedProduct": "Biscuits Z'animo chocolat lait Cadbury",
+    "realDetailBinding": true,
+    "browserBackForward": true,
+    "visibleBackCommand": true,
+    "desktopNoOverflow": true,
+    "mobile390NoOverflow": true,
+    "visibleImagesLoaded": true,
+    "unexpectedAsset404": false,
+    "offlineFullSyncViewBeforeNavigation": true,
+    "strictPlaywright": false
+  },
+  "remainingGap": {
+    "code": "SVELTEKIT_OFFLINE_NAVIGATION_FETCH",
+    "request": "/convertigo/projects/sample_RetailStoreFlowRun4/.json",
+    "behavior": "Opening the detail route offline renders cached product state but emits one failed fetch and ERR_INTERNET_DISCONNECTED.",
+    "policy": "The strict Playwright suite keeps this as a failure; it is not filtered or hidden by a generic HTTP cache.",
+    "next": "Correct generated route navigation or add a SvelteKit-specific safe offline strategy, then rerun the same suite."
+  },
+  "validation": {
+    "frontbuilderTests": "11/11 passed",
+    "engineSmoke": "passed",
+    "mcpSmoke": "stops at pre-existing fixture failure: Unknown requestable .TargetSmoke",
+    "playwrightSuite": "results/run4-playwright.spec.js"
+  }
+}
