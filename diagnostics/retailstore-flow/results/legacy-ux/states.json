@@ -1,0 +1,267 @@
+[
+  {
+    "name": "00-initial",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Sync",
+    "title": "Retail Store",
+    "text": "SYNCHRONIZATION\n\nSync the database on the client.",
+    "headings": [],
+    "buttons": [],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 2,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Sync",
+    "hash": ""
+  },
+  {
+    "name": "01-transition-optimize",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Optimize",
+    "title": "Retail Store",
+    "text": "OPTIMIZATION\n\nOptimizing the database for the first time.",
+    "headings": [],
+    "buttons": [],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 3,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Optimize",
+    "hash": ""
+  },
+  {
+    "name": "01-transition-store",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "title": "Retail Store",
+    "text": "STORE\nPROMOS\nBOISSONS\nBEBE\nBIO & ECOLOGIE\nHYGIENE BEAUTE\nENTRETIEN & BAZAR\nANIMAUX\nNOUVEAUTÉS\nLE MARCHE\nCREMERIE\nCHARCUTERIE-TRAITEUR\nSURGELES\nEPICERIE SALEE\nEPICERIE SUCREE",
+    "headings": [],
+    "buttons": [],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 4,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "hash": ""
+  },
+  {
+    "name": "02-store-root",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "title": "Retail Store",
+    "text": "STORE\nPROMOS\nBOISSONS\nBEBE\nBIO & ECOLOGIE\nHYGIENE BEAUTE\nENTRETIEN & BAZAR\nANIMAUX\nNOUVEAUTÉS\nLE MARCHE\nCREMERIE\nCHARCUTERIE-TRAITEUR\nSURGELES\nEPICERIE SALEE\nEPICERIE SUCREE",
+    "headings": [],
+    "buttons": [],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 4,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "hash": ""
+  },
+  {
+    "name": "03-store-level-2",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "title": "Retail Store",
+    "text": "STORE\nRAYONS\nGOUTERS & BISCUITS\nBOISSONS CHAUDES\nDIETETIQUE\nCOMPOTES & FRUITS AU SIROP\nPETIT DEJEUNER\nCHOCOLATS & CONFISERIES\nSUCRES, FARINES & PREPARATIONS GATEAUX",
+    "headings": [],
+    "buttons": [
+      {
+        "text": "Rayons",
+        "ariaLabel": "",
+        "title": ""
+      }
+    ],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 4,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "hash": ""
+  },
+  {
+    "name": "04-store-level-3",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "title": "Retail Store",
+    "text": "STORE\nRAYONSEPICERIE SUCREE\nBISCUITS AU CHOCOLAT\nBISCUITS AUX FRUITS\nCOOKIES & BROWNIES\nASSORTIMENTS & BISCUITS FINS\nGOÛTERS DE POCHE\nGALETTES & SABLÉS\nMARBRÉS, MADELEINES & CAKES\nBRIOCHES ET VIENNOISERIE\nBISCUITS PETIT DÉJEUNERS",
+    "headings": [],
+    "buttons": [
+      {
+        "text": "Rayons",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "EPICERIE SUCREE",
+        "ariaLabel": "",
+        "title": ""
+      }
+    ],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 4,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "hash": ""
+  },
+  {
+    "name": "05-store-products",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "title": "Retail Store",
+    "text": "STORE\nRAYONSEPICERIE SUCREEGOUTERS & BISCUITS\nBiscuits Z'animo chocolat lait Cadbury\nBiscuits Finger L'Original Cadbury\nGâteaux chocolat Barquette de LU\nBiscuits gaufrettes cacao Brun\nBiscuits goût chocolat et lait choco Prince de LU\nBiscuits 3 chocolat + 1 tout chocolat Prince de LU\nBiscuits chocolat noir Pépito\nBiscuits chocolat au lait Pépito\nBiscuit céréales complètes goût chocolat BN\nBiscuits chocolat BN\nBiscuits Mini goût chocolat BN\nBiscuits chocolat/vanille BN\nBiscuits Délichoc sticks Delacre\nBiscuits Délichoc chocolat lait Delacre\nBiscuits Délichoc chocolat lait Delacre\nBiscuits Délichoc chocolat noir Delacre\nGaufrettes fourrées au praliné noisettes Quadro\nBiscuits cacaoté s/gluten Gerblé\nBoisson lactée fraise Candia\nBoisson lactée arôme vanille Candia",
+    "headings": [],
+    "buttons": [
+      {
+        "text": "Rayons",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "EPICERIE SUCREE",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "GOUTERS & BISCUITS",
+        "ariaLabel": "",
+        "title": ""
+      }
+    ],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 4,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "hash": ""
+  },
+  {
+    "name": "06-product-detail",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Detail?0=p&1=r&2=o&3=d&4=u&5=c&6=t&7=_&8=4&9=2&10=_&11=0&12=0&13=7&14=2&15=4&16=1&17=7&18=1&19=4&20=6&21=8&22=3&23=1",
+    "title": "Retail Store",
+    "text": "PRODUCT\nRAYONS\nBiscuits Z'animo chocolat lait Cadbury\n5.4 €\nx 1= 5.40 €\nAJOUTER AU PANIER",
+    "headings": [],
+    "buttons": [
+      {
+        "text": "Rayons",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "EPICERIE SUCREE",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "GOUTERS & BISCUITS",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "rayons",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "ajouter au panier",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "",
+        "ariaLabel": "",
+        "title": ""
+      }
+    ],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 5,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Detail",
+    "hash": ""
+  },
+  {
+    "name": "07-browser-back-products",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "title": "Retail Store",
+    "text": "STORE\nRAYONSEPICERIE SUCREEGOUTERS & BISCUITS\nBiscuits Z'animo chocolat lait Cadbury\nBiscuits Finger L'Original Cadbury\nGâteaux chocolat Barquette de LU\nBiscuits gaufrettes cacao Brun\nBiscuits goût chocolat et lait choco Prince de LU\nBiscuits 3 chocolat + 1 tout chocolat Prince de LU\nBiscuits chocolat noir Pépito\nBiscuits chocolat au lait Pépito\nBiscuit céréales complètes goût chocolat BN\nBiscuits chocolat BN\nBiscuits Mini goût chocolat BN\nBiscuits chocolat/vanille BN\nBiscuits Délichoc sticks Delacre\nBiscuits Délichoc chocolat lait Delacre\nBiscuits Délichoc chocolat lait Delacre\nBiscuits Délichoc chocolat noir Delacre\nGaufrettes fourrées au praliné noisettes Quadro\nBiscuits cacaoté s/gluten Gerblé\nBoisson lactée fraise Candia\nBoisson lactée arôme vanille Candia",
+    "headings": [],
+    "buttons": [
+      {
+        "text": "Rayons",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "EPICERIE SUCREE",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "GOUTERS & BISCUITS",
+        "ariaLabel": "",
+        "title": ""
+      }
+    ],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 5,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "hash": ""
+  },
+  {
+    "name": "08-segment-level-3",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "title": "Retail Store",
+    "text": "STORE\nRAYONSEPICERIE SUCREE\nBISCUITS AU CHOCOLAT\nBISCUITS AUX FRUITS\nCOOKIES & BROWNIES\nASSORTIMENTS & BISCUITS FINS\nGOÛTERS DE POCHE\nGALETTES & SABLÉS\nMARBRÉS, MADELEINES & CAKES\nBRIOCHES ET VIENNOISERIE\nBISCUITS PETIT DÉJEUNERS",
+    "headings": [],
+    "buttons": [
+      {
+        "text": "Rayons",
+        "ariaLabel": "",
+        "title": ""
+      },
+      {
+        "text": "EPICERIE SUCREE",
+        "ariaLabel": "",
+        "title": ""
+      }
+    ],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 5,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "hash": ""
+  },
+  {
+    "name": "09-segment-level-2",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "title": "Retail Store",
+    "text": "STORE\nRAYONS\nGOUTERS & BISCUITS\nBOISSONS CHAUDES\nDIETETIQUE\nCOMPOTES & FRUITS AU SIROP\nPETIT DEJEUNER\nCHOCOLATS & CONFISERIES\nSUCRES, FARINES & PREPARATIONS GATEAUX",
+    "headings": [],
+    "buttons": [
+      {
+        "text": "Rayons",
+        "ariaLabel": "",
+        "title": ""
+      }
+    ],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 5,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "hash": ""
+  },
+  {
+    "name": "10-segment-root",
+    "url": "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "title": "Retail Store",
+    "text": "STORE\nPROMOS\nBOISSONS\nBEBE\nBIO & ECOLOGIE\nHYGIENE BEAUTE\nENTRETIEN & BAZAR\nANIMAUX\nNOUVEAUTÉS\nLE MARCHE\nCREMERIE\nCHARCUTERIE-TRAITEUR\nSURGELES\nEPICERIE SALEE\nEPICERIE SUCREE",
+    "headings": [],
+    "buttons": [],
+    "links": [],
+    "selectedSegments": [],
+    "segments": [],
+    "historyLength": 5,
+    "path": "/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/Store",
+    "hash": ""
+  }
+]

@@ -1,4 +1,5 @@
 import { chromium } from "/home/nicolas/.npm/_npx/9833c18b2d85bc59/node_modules/playwright/index.mjs";
+import { mkdir, writeFile } from "node:fs/promises";
 
 const url = process.env.RETAILSTORE_LEGACY_URL
   || "https://beta.convertigo.net/convertigo/projects/sampleMobileRetailStore/DisplayObjects/mobile/";
@@ -11,7 +12,7 @@ const context = await browser.newContext({ viewport: { width: 390, height: 844 }
 const page = await context.newPage();
 const states = [];
 
-await import("node:fs/promises").then(({ mkdir }) => mkdir(outputDir, { recursive: true }));
+await mkdir(outputDir, { recursive: true });
 
 async function capture(name) {
   await page.waitForTimeout(500);
@@ -81,5 +82,6 @@ await clickText("EPICERIE SUCREE", "09-segment-level-2");
 await page.getByRole("button", { name: "RAYONS" }).click();
 await capture("10-segment-root");
 
+await writeFile(`${outputDir}/states.json`, `${JSON.stringify(states, null, 2)}\n`, "utf8");
 console.log(JSON.stringify(states, null, 2));
 await browser.close();

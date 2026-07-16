@@ -1,0 +1,144 @@
+[
+  {
+    "name": "00-initial",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/",
+    "title": "Store",
+    "text": "",
+    "buttons": [],
+    "historyLength": 2,
+    "path": "/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/"
+  },
+  {
+    "name": "01-after-250ms",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/",
+    "title": "Store",
+    "text": "RAYONS\n\nStore",
+    "buttons": [],
+    "historyLength": 3,
+    "path": "/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/"
+  },
+  {
+    "name": "02-store-root",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/",
+    "title": "Store",
+    "text": "RAYONS\n\nEPICERIE SUCREE\n\nOUVRIR\n\nBIO & ECOLOGIE\n\nOUVRIR\n\nENTRETIEN & BAZAR\n\nOUVRIR\n\nCHARCUTERIE-TRAITEUR\n\nOUVRIR\n\nBEBE\n\nOUVRIR\n\nLE MARCHE\n\nOUVRIR\n\nSURGELES\n\nOUVRIR\n\nBOISSONS\n\nOUVRIR\n\nEPICERIE SALEE\n\nOUVRIR\n\nCREMERIE\n\nOUVRIR\n\nHYGIENE BEAUTE\n\nOUVRIR\n\nANIMAUX\n\nOUVRIR\n\nNOUVEAUTÉS\n\nOUVRIR\n\nPROMOS\n\nOUVRIR\nStore",
+    "buttons": [
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR"
+    ],
+    "historyLength": 3,
+    "path": "/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/"
+  },
+  {
+    "name": "03-store-level-2",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/",
+    "title": "Store",
+    "text": "RAYONS\n\nGOUTERS & BISCUITS\n\nOUVRIR\n\nBOISSONS CHAUDES\n\nOUVRIR\n\nDIETETIQUE\n\nOUVRIR\n\nCOMPOTES & FRUITS AU SIROP\n\nOUVRIR\n\nPETIT DEJEUNER\n\nOUVRIR\n\nCHOCOLATS & CONFISERIES\n\nOUVRIR\n\nSUCRES, FARINES & PREPARATIONS GATEAUX\n\nOUVRIR\nStore",
+    "buttons": [
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR"
+    ],
+    "historyLength": 3,
+    "path": "/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/"
+  },
+  {
+    "name": "04-store-level-3",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/",
+    "title": "Store",
+    "text": "RAYONS\n\nBISCUITS AU CHOCOLAT\n\nOUVRIR\n\nBISCUITS AUX FRUITS\n\nOUVRIR\n\nCOOKIES & BROWNIES\n\nOUVRIR\n\nASSORTIMENTS & BISCUITS FINS\n\nOUVRIR\n\nGOÛTERS DE POCHE\n\nOUVRIR\n\nGALETTES & SABLÉS\n\nOUVRIR\n\nMARBRÉS, MADELEINES & CAKES\n\nOUVRIR\n\nBRIOCHES ET VIENNOISERIE\n\nOUVRIR\n\nBISCUITS PETIT DÉJEUNERS\n\nOUVRIR\nStore",
+    "buttons": [
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR",
+      "OUVRIR"
+    ],
+    "historyLength": 3,
+    "path": "/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/"
+  },
+  {
+    "name": "05-store-products",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/",
+    "title": "Store",
+    "text": "RAYONS\n\nBiscuits Z'animo chocolat lait Cadbury\n\nla boite de 200 g\n\n5.4000\n\nVOIR LE PRODUIT\n\nBiscuits Finger L'Original Cadbury\n\nla boite de 138 g\n\n7.6100\n\nVOIR LE PRODUIT\n\nGâteaux chocolat Barquette de LU\n\nles 2 boites de 120 g\n\n6.6700\n\nVOIR LE PRODUIT\n\nBiscuits gaufrettes cacao Brun\n\nle paquet de 14 - 146 g\n\n5.5500\n\nVOIR LE PRODUIT\n\nBiscuits goût chocolat et lait choco Prince de LU\n\nles 4 paquets de 300 g\n\n3.5800\n\nVOIR LE PRODUIT\n\nBiscuits 3 chocolat + 1 tout chocolat Prince de LU\n\nles 4 paquets de 300 g\n\n3.5800\n\nVOIR LE PRODUIT\n\nBiscuits chocolat noir Pépito\n\nles 2 paquets de 200 g\n\n4.0500\n\nVOIR LE PRODUIT\n\nBiscuits chocolat au lait Pépito\n\nles 2 paquets de 200 g\n\n3.9500\n\nVOIR LE PRODUIT\n\nBiscuit céréales complètes goût chocolat BN\n\nles 2 paquets de 295 g\n\n3.4200\n\nVOIR LE PRODUIT\n\nBiscuits Délichoc sticks Delacre\n\nla boite de 120 g\n\n13.8300\n\nVOIR LE PRODUIT\n\nBiscuits Délichoc chocolat lait Delacre\n\nla boite de 150 g\n\n8.3300\n\nVOIR LE PRODUIT\n\nBiscuits Délichoc chocolat lait Delacre\n\nles 3 boites de 150 g\n\n8.3300\n\nVOIR LE PRODUIT\n\nBiscuits Délichoc chocolat noir Delacre\n\nles 3 boites de 150 g\n\n9\n\nVOIR LE PRODUIT\n\nGaufrettes fourrées au praliné noisettes Quadro\n\nle paquet de 9 - 187 g\n\n7.2700\n\nVOIR LE PRODUIT\n\nBiscuits chocolat au lait St Michel\n\nla boite de 6 sachets - 220 g\n\n7.6800\n\nVOIR LE PRODUIT\nStore",
+    "buttons": [
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT"
+    ],
+    "historyLength": 3,
+    "path": "/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/"
+  },
+  {
+    "name": "06-product-detail",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/detail/",
+    "title": "Product",
+    "text": "PRODUCT\n\nRAYONS\n\nBiscuits Z'animo chocolat lait Cadbury\n\nla boite de 200 g\n\n5.4000\n\nQUANTITÉ\n\n−\n\n1\n\n+\n\nTOTAL\n\n5.4000\n\nAJOUTER AU PANIER\nProduct",
+    "buttons": [
+      "RAYONS",
+      "−",
+      "+",
+      "AJOUTER AU PANIER"
+    ],
+    "historyLength": 4,
+    "path": "/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/detail/"
+  },
+  {
+    "name": "07-browser-back-products",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/",
+    "title": "Store",
+    "text": "RAYONS\n\nBiscuits Z'animo chocolat lait Cadbury\n\nla boite de 200 g\n\n5.4000\n\nVOIR LE PRODUIT\n\nBiscuits Finger L'Original Cadbury\n\nla boite de 138 g\n\n7.6100\n\nVOIR LE PRODUIT\n\nGâteaux chocolat Barquette de LU\n\nles 2 boites de 120 g\n\n6.6700\n\nVOIR LE PRODUIT\n\nBiscuits gaufrettes cacao Brun\n\nle paquet de 14 - 146 g\n\n5.5500\n\nVOIR LE PRODUIT\n\nBiscuits goût chocolat et lait choco Prince de LU\n\nles 4 paquets de 300 g\n\n3.5800\n\nVOIR LE PRODUIT\n\nBiscuits 3 chocolat + 1 tout chocolat Prince de LU\n\nles 4 paquets de 300 g\n\n3.5800\n\nVOIR LE PRODUIT\n\nBiscuits chocolat noir Pépito\n\nles 2 paquets de 200 g\n\n4.0500\n\nVOIR LE PRODUIT\n\nBiscuits chocolat au lait Pépito\n\nles 2 paquets de 200 g\n\n3.9500\n\nVOIR LE PRODUIT\n\nBiscuit céréales complètes goût chocolat BN\n\nles 2 paquets de 295 g\n\n3.4200\n\nVOIR LE PRODUIT\n\nBiscuits Délichoc sticks Delacre\n\nla boite de 120 g\n\n13.8300\n\nVOIR LE PRODUIT\n\nBiscuits Délichoc chocolat lait Delacre\n\nla boite de 150 g\n\n8.3300\n\nVOIR LE PRODUIT\n\nBiscuits Délichoc chocolat lait Delacre\n\nles 3 boites de 150 g\n\n8.3300\n\nVOIR LE PRODUIT\n\nBiscuits Délichoc chocolat noir Delacre\n\nles 3 boites de 150 g\n\n9\n\nVOIR LE PRODUIT\n\nGaufrettes fourrées au praliné noisettes Quadro\n\nle paquet de 9 - 187 g\n\n7.2700\n\nVOIR LE PRODUIT\n\nBiscuits chocolat au lait St Michel\n\nla boite de 6 sachets - 220 g\n\n7.6800\n\nVOIR LE PRODUIT\nStore",
+    "buttons": [
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT",
+      "VOIR LE PRODUIT"
+    ],
+    "historyLength": 4,
+    "path": "/convertigo/projects/sample_RetailStoreFlowRun4/DisplayObjects/mobile/store/"
+  }
+]
