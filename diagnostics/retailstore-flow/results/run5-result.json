@@ -3,16 +3,16 @@
   "targetProject": "sample_RetailStoreFlowRun5",
   "startedAt": "2026-07-16T09:27:18+02:00",
   "finishedAt": "2026-07-16T12:26:33+02:00",
-  "status": "functional-pass-with-breadcrumb-authoring-gap",
+  "status": "functional-pass-after-persistent-sync-fix-with-breadcrumb-authoring-gap",
   "commits": {
     "convertigo": "8509c4b79bd216e19cce8c9105d7f78f8082472f",
     "flowEngineDuringRun": "6bac0415a59c30f15f1c7915f1235fbe118ed955",
     "flowEngineAfterGenericFix": "62d38537ea3c80a479148d46bf03240fa51b3013",
     "flowMcp": "ddc999738cfb6b3d96011580dbf4133c81c24a48",
-    "svelteFrontbuilder": "a5d35ec0832325d370e22de2494bb93238c43bf0"
+    "svelteFrontbuilder": "b3c9fb2de559235a5a0d41bdf726b472f14afc1d"
   },
   "projectSourceHashes": {
-    "rootPage": "6e6b2a0de9b9cf8b90b18cad0366d97192f2258e2f3c6570f61d0677f82a326f",
+    "rootPage": "b760276c0a4a8ec2f4549af216fd8e926d952246c50662d5dc4580a04565fa45",
     "storePage": "3baa0aa53bbd8031b4865e9e8fdafdf36b4d411e2bde92bd8e61a468ae4730d5",
     "detailPage": "80c81f473f0e934832e494a06c989c58364d41e0d2f9591fd17b8cefdd055acf",
     "initializeCatalog": "b91c01267c06256c37f536d1b684e465d0380a6fbf3542b4016f0e69f157647c"
@@ -40,6 +40,7 @@
   "evidence": {
     "playwrightScript": "results/run5-playwright.spec.js",
     "independentStateScript": "results/run5-independent-state.spec.js",
+    "persistentStateScript": "results/run5-persistent.spec.js",
     "screenshots": [
       "results/run5-sync-mobile.png",
       "results/run5-root-mobile.png",
@@ -55,7 +56,7 @@
     "idempotentSeed": true,
     "schemaBackedBindings": true,
     "scaffoldWarningsResolved": true,
-    "visibleSyncAndOptimize": false,
+    "visibleSyncAndOptimize": true,
     "productCount22": true,
     "breadcrumbRoundTrip": false,
     "quantityTotalWorkflow": true,
@@ -83,7 +84,14 @@
     "commit": "62d38537ea3c80a479148d46bf03240fa51b3013",
     "problem": "UpdateList kept object values at runtime but did not propagate their schema into an iterator, and a clear action could overwrite a richer schema for the same target.",
     "result": "The live Run5 picker now exposes executable bindings for breadcrumb[0].name, breadcrumb[0].levelId and breadcrumb[0].sourceBreadcrumb after append and clear actions.",
-    "run5Policy": "Run5 was not rewritten after the fix, so it remains an honest fresh-agent benchmark."
+    "run5Policy": "The catalog, breadcrumb and detail authoring remain the fresh-agent output. Only the root startup lifecycle was corrected after the persistent-browser defect was reproduced."
+  },
+  "persistentSyncCorrection": {
+    "problem": "The generated application used a continuous FullSync sync operation. A persistent browser could remain in the active 100/100 state and never execute the following navigation.",
+    "correction": "Use a one-shot pull for the read-only catalog, reset incompatible local checkpoints once with marker retailstore-v4-pull, then query the local view explicitly to build its index before navigating.",
+    "progressUi": "Status now accepts a generic loadingImage property. Run5 uses the original init.gif, sync.gif and optimize.gif assets for the three observable stages.",
+    "frontbuilderCommit": "b3c9fb2de559235a5a0d41bdf726b472f14afc1d",
+    "validation": "Local and beta campaigns both pass the complete online/offline workflow and two consecutive starts with the same persistent FullSync profile."
   },
   "betaDeployment": {
     "deployedAt": "2026-07-16T11:15:38Z",
@@ -114,6 +122,29 @@
     },
     "browserValidation": "1/1 passed in 25.0s, including strict offline navigation with zero fetch/XHR",
     "betaBackups": "20260716T111538Z-retailstore-run5/beta-before"
+  },
+  "betaPersistentSyncDeployment": {
+    "deployedAt": "2026-07-16T22:00:20Z",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun5/DisplayObjects/mobile/",
+    "projects": [
+      "lib_flow_frontbuilder_svelte",
+      "sample_RetailStoreFlowRun5"
+    ],
+    "localCarSha256": {
+      "lib_flow_frontbuilder_svelte": "70d1d5c7fab1ed63c9d7e67019eceaea9d47d3c519346543e2f0caafe16985e0",
+      "sample_RetailStoreFlowRun5": "493d6a566af3df3433933e8a568673645c74a039663c1f1e7c419a4d47e91978"
+    },
+    "exactSourceVerification": {
+      "run5RootPage": "b760276c0a4a8ec2f4549af216fd8e926d952246c50662d5dc4580a04565fa45",
+      "frontbuilderStatus": "e1efda049efb58cf1b58e58806a802fd04a04d65b817377cddf19bbab76add85"
+    },
+    "browserValidation": "2/2 passed in 38.0s: complete online/offline workflow and two starts with one persistent FullSync profile.",
+    "animations": [
+      "init.gif",
+      "sync.gif",
+      "optimize.gif"
+    ],
+    "betaBackups": "20260716T220020Z-retailstore-run5-pull-fix/beta-before"
   },
   "remainingGaps": [
     {
