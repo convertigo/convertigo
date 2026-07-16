@@ -1,6 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
-const base = 'http://127.0.0.1:19080/convertigo/projects/sample_RetailStoreFlowRun5/DisplayObjects/mobile';
+const base = process.env.RUN5_BASE
+  || 'http://127.0.0.1:19080/convertigo/projects/sample_RetailStoreFlowRun5/DisplayObjects/mobile';
 
 test('Run5 RetailStore production online and offline', async ({ page, context }) => {
   test.setTimeout(240_000);

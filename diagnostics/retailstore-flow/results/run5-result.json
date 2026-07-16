@@ -85,6 +85,36 @@
     "result": "The live Run5 picker now exposes executable bindings for breadcrumb[0].name, breadcrumb[0].levelId and breadcrumb[0].sourceBreadcrumb after append and clear actions.",
     "run5Policy": "Run5 was not rewritten after the fix, so it remains an honest fresh-agent benchmark."
   },
+  "betaDeployment": {
+    "deployedAt": "2026-07-16T11:15:38Z",
+    "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun5/DisplayObjects/mobile/",
+    "projects": [
+      "lib_flow_engine",
+      "lib_flow_frontbuilder_svelte",
+      "lib_flow_mcp",
+      "sample_RetailStoreFlowRun5"
+    ],
+    "localCarSha256": {
+      "lib_flow_engine": "a4535d0272faffbd9e3907a5f6807752bab3ffc0076a2b390bd360d9429724ac",
+      "lib_flow_frontbuilder_svelte": "d5f26768cf50aee0cf29c167599710a12737a0b20b1f5fff7edde2cb51689edc",
+      "lib_flow_mcp": "39534154ff05a017c0e5616192aaf631f850ddd52d36ff1e97c04989551745d2",
+      "sample_RetailStoreFlowRun5": "c7021934d673fb40e654c08bc62531d95f6b777d804d3663363e2cd9a2ee3a5f"
+    },
+    "exactSourceVerification": {
+      "engineFrontendCatalogService": "e536a153ae52475925ffbae85759584fab68809311f979ca224b0870b530c43b",
+      "run5RootPage": "6e6b2a0de9b9cf8b90b18cad0366d97192f2258e2f3c6570f61d0677f82a326f"
+    },
+    "anonymousInitialization": {
+      "firstSeeded": true,
+      "secondSeeded": false,
+      "categories": 768,
+      "products": 3000,
+      "documents": 3769,
+      "secondCallSeconds": 1.616
+    },
+    "browserValidation": "1/1 passed in 25.0s, including strict offline navigation with zero fetch/XHR",
+    "betaBackups": "20260716T111538Z-retailstore-run5/beta-before"
+  },
   "remainingGaps": [
     {
       "code": "BREADCRUMB_AUTHORING",
