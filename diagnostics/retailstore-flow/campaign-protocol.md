@@ -1,6 +1,6 @@
 # Campaign protocol
 
-For Run4 and later, the observable navigation contract is
+For Run5 and later, the observable navigation contract is
 [`legacy-ux-spec.md`](legacy-ux-spec.md). Give that contract to the fresh agent
 without exposing the legacy project or previous runs.
 
@@ -43,6 +43,11 @@ schema does not satisfy the campaign.
 binding warning must be resolved, and a data-bound iterator must contain a
 visible child before browser validation starts.
 
+The scaffold dry-run must return no unresolved warning. In particular, fixture
+relations may be scalar or multi-valued; the authored views must preserve every
+relation rather than coercing a list into one key. This is verified from
+observable branch counts, not by giving the agent view code.
+
 ## Validate the final application
 
 Run the production generate/build actions and `svelte-check`. In Playwright,
@@ -55,6 +60,11 @@ Use a standalone Playwright script against the fixed production URL so browser
 validation remains reproducible if an interactive browser transport closes.
 Assert rendered category and product data, not only page availability or an
 empty application shell.
+
+The strict acceptance branch must contain exactly 22 products. Capture the
+visible Sync and Optimize stages, every breadcrumb state, the product quantity
+and computed total, browser Back, breadcrumb Back and the repeated offline
+branch.
 
 Complete the result record, retain the Playwright script/screenshots and leave
 the target project available for review. Do not compare with the legacy project

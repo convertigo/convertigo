@@ -21,6 +21,11 @@ product details from the local database after synchronization.
 - A product detail view reads the selected local document and displays its
   name, packaging, unit price and image.
 - Back navigation preserves an understandable hierarchy.
+- A product can belong to more than one catalog category. Every relationship
+  in the fixture must remain queryable; do not collapse a list of parent ids
+  into one database key.
+- The product detail quantity is bounded to at least one, changes through real
+  client actions, and updates a currency-formatted total.
 - After one successful synchronization, catalog browsing and product detail
   reads continue to work while browser network access is disabled.
 - Empty, loading, progress and error states are visible and do not break the
@@ -60,6 +65,10 @@ the production build and the real browser application are validated.
   warning and verify that each data-bound iterator has visible content.
 - Keep a standalone Playwright script for the final online/offline assertions;
   do not rely exclusively on an interactive browser transport.
+- Treat every warning returned by `flow-fullsync-scaffold` as blocking. Use
+  `Status.actionId`, `UpdateList`, `UpdateNumber`, bindable Button labels and
+  formatted Text from the palette when their generic behavior matches the
+  requirement; do not hand-code equivalent Svelte state.
 
 ## Fresh-context restrictions
 

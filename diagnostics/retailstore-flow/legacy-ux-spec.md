@@ -76,7 +76,7 @@ implementation code.
 
 ## Campaign isolation
 
-- Do not inspect or call the legacy RetailStore project while authoring Run4.
+- Do not inspect or call the legacy RetailStore project while authoring Run5.
 - Do not inspect prior RetailStoreFlow projects or reuse their frontend source.
 - The agent receives this specification, fixture manifest and Flow guides only.
 - All backend, FullSync and frontend authoring uses Convertigo Flow MCP tools.

@@ -1,0 +1,105 @@
+{
+  "campaign": "retailstore-flow-fresh-agent",
+  "targetProject": "sample_RetailStoreFlowRun5",
+  "startedAt": "2026-07-16T09:27:18+02:00",
+  "finishedAt": "2026-07-16T12:26:33+02:00",
+  "status": "functional-pass-with-breadcrumb-authoring-gap",
+  "commits": {
+    "convertigo": "8509c4b79bd216e19cce8c9105d7f78f8082472f",
+    "flowEngineDuringRun": "6bac0415a59c30f15f1c7915f1235fbe118ed955",
+    "flowEngineAfterGenericFix": "62d38537ea3c80a479148d46bf03240fa51b3013",
+    "flowMcp": "ddc999738cfb6b3d96011580dbf4133c81c24a48",
+    "svelteFrontbuilder": "a5d35ec0832325d370e22de2494bb93238c43bf0"
+  },
+  "projectSourceHashes": {
+    "rootPage": "6e6b2a0de9b9cf8b90b18cad0366d97192f2258e2f3c6570f61d0677f82a326f",
+    "storePage": "3baa0aa53bbd8031b4865e9e8fdafdf36b4d411e2bde92bd8e61a468ae4730d5",
+    "detailPage": "80c81f473f0e934832e494a06c989c58364d41e0d2f9591fd17b8cefdd055acf",
+    "initializeCatalog": "b91c01267c06256c37f536d1b684e465d0380a6fbf3542b4016f0e69f157647c"
+  },
+  "metrics": {
+    "mcpCallsCompleted": 623,
+    "failedMcpCalls": 27,
+    "frontendMutations": 311,
+    "commandRuns": 49,
+    "failedCommandRuns": 16,
+    "projectLocalBlocks": 0,
+    "timingNote": "Wall time includes model-capacity interruptions and eleven resumed turns, so authoring duration is not comparable to an uninterrupted run."
+  },
+  "backend": {
+    "seedMarker": "retailstore-seed-v3",
+    "categories": 768,
+    "products": 3000,
+    "documents": 3769,
+    "rootCategories": 14,
+    "strictBranchProducts": 22,
+    "multiParentRelationsPreserved": true,
+    "idempotentProvisioning": true,
+    "idempotentSeed": true
+  },
+  "evidence": {
+    "playwrightScript": "results/run5-playwright.spec.js",
+    "independentStateScript": "results/run5-independent-state.spec.js",
+    "screenshots": [
+      "results/run5-sync-mobile.png",
+      "results/run5-root-mobile.png",
+      "results/run5-22-products-mobile.png",
+      "results/run5-detail-mobile.png",
+      "results/run5-store-desktop.png"
+    ],
+    "remainingMocks": [],
+    "normalOnline404": "PouchDB remote checkpoint probes only"
+  },
+  "acceptance": {
+    "idempotentProvisioning": true,
+    "idempotentSeed": true,
+    "schemaBackedBindings": true,
+    "scaffoldWarningsResolved": true,
+    "visibleSyncAndOptimize": false,
+    "productCount22": true,
+    "breadcrumbRoundTrip": false,
+    "quantityTotalWorkflow": true,
+    "onlineCatalog": true,
+    "offlineLocalView": true,
+    "offlineLocalGet": true,
+    "offlineFetchOrXhrCount": 0,
+    "productionBuild": true,
+    "desktopNoOverflow": true,
+    "mobile390NoOverflow": true,
+    "imagesLoaded": true,
+    "flowProgressPercent": 100,
+    "remainingMocks": 0,
+    "bindingWarnings": 0
+  },
+  "independentValidation": {
+    "onlineCounts": [14, 7, 9, 22],
+    "offlineCounts": [14, 7, 9, 22],
+    "reconnectedProductCount": 22,
+    "breadcrumbTopAtLeafPx": 4970,
+    "leafPageHeightPx": 5094,
+    "finding": "The data workflow is correct online and offline, but RAYONS and the scalar path render after the product grid instead of as top navigation."
+  },
+  "genericCorrection": {
+    "commit": "62d38537ea3c80a479148d46bf03240fa51b3013",
+    "problem": "UpdateList kept object values at runtime but did not propagate their schema into an iterator, and a clear action could overwrite a richer schema for the same target.",
+    "result": "The live Run5 picker now exposes executable bindings for breadcrumb[0].name, breadcrumb[0].levelId and breadcrumb[0].sourceBreadcrumb after append and clear actions.",
+    "run5Policy": "Run5 was not rewritten after the fix, so it remains an honest fresh-agent benchmark."
+  },
+  "remainingGaps": [
+    {
+      "code": "BREADCRUMB_AUTHORING",
+      "behavior": "Run5 displays one RAYONS command and a scalar path after the grids; intermediate segments are not actionable.",
+      "next": "Use the corrected UpdateList schema picker in the next fresh run and place the breadcrumb before catalog content."
+    },
+    {
+      "code": "IMAGE_LITERAL_PICKER",
+      "behavior": "Image.source has no directly executable literal candidate; the agent had to construct the standard literal binding for project fixture URLs.",
+      "next": "Expose literal binding mutations and safe project asset choices through the frontend picker."
+    },
+    {
+      "code": "DUPLICATE_PRESENTATION_IDS",
+      "behavior": "flow-app-progress reports 100 percent while presentation nodes can retain duplicate palette default ids.",
+      "next": "Generate unique ids or report duplicate ids before the next fresh campaign."
+    }
+  ]
+}
