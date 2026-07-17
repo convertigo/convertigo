@@ -1,0 +1,161 @@
+{
+  "timestamp": "2026-07-17T15:06:00Z",
+  "project": "sample_HelloWorldFlowRun8",
+  "protocol": "fresh Codex context with only Convertigo Flow MCP and Playwright",
+  "baseline": "frontend-fresh-agent-run7-20260714.json",
+  "checkpointsUnderTest": {
+    "lib_flow_engine_atStart": "62d38537ea3c80a479148d46bf03240fa51b3013",
+    "lib_flow_engine_afterRegressionTest": "8036bae",
+    "lib_flow_frontbuilder_svelte": "b3c9fb2de559235a5a0d41bdf726b472f14afc1d",
+    "lib_flow_mcp_atStart": "369763630c6ff9cb9bcec6e204b415e66e7e5232",
+    "lib_flow_mcp_afterDraftFix": "c5dd995"
+  },
+  "infrastructure": {
+    "runtime": "c8o-agent-runtime",
+    "runtimePort": 19080,
+    "flowMcpProxyPort": 19081,
+    "proxyRequired": true,
+    "runtimeHealthy": true,
+    "excludedAttempts": [
+      "attempt0: custom Codex config omitted the Flow MCP server",
+      "attempt1: global Codex config exhausted Standard license sessions"
+    ]
+  },
+  "timing": {
+    "endToEndMs": 1574000,
+    "agentActiveMs": 1246040,
+    "toolDiagnosisAndFixMs": 342000,
+    "initialFreshAgentMs": 866420,
+    "postFixContinuationMs": 379620,
+    "firstBackendSidecarCreatedMs": 138000,
+    "productionBuildCompletedMs": 1373000,
+    "independentBrowserProofMs": 1574000,
+    "note": "The end-to-end clock includes diagnosis, implementation and hot validation of the MCP draft bug plus the hanging Playwright MCP transport. The post-fix continuation started with a proven backend and is not a full clean-run benchmark."
+  },
+  "mcp": {
+    "completedCalls": 92,
+    "successfulCalls": 84,
+    "failedCalls": 8,
+    "unitFrontendMutations": 3,
+    "postFixContinuationCalls": 13,
+    "postFixContinuationFailures": 0,
+    "callsByTool": {
+      "frontend-svelte-tree": 12,
+      "frontend-svelte-code-check": 9,
+      "frontend-svelte-code-set": 8,
+      "flow-app-progress": 7,
+      "read_mcp_resource": 6,
+      "frontend-svelte-action": 6,
+      "frontend-svelte-palette": 5,
+      "code-run": 5,
+      "frontend-svelte-code-get": 4,
+      "flow-output-schema": 4,
+      "code-set": 4,
+      "code-patch": 4,
+      "frontend-svelte-mutate": 3
+    },
+    "failedTools": {
+      "frontend-svelte-code-set": 4,
+      "frontend-svelte-mutate": 2,
+      "frontend-svelte-code-patch": 1,
+      "flow-resource-patch": 1
+    }
+  },
+  "backend": {
+    "flow": "GetNews",
+    "source": "https://www.nasa.gov/feeds/iotd-feed/",
+    "resultCount": 60,
+    "fields": ["title", "description", "imageUrl", "link", "pubDate", "alternate"],
+    "httpStatus": 200,
+    "declaredSchemaAligned": true,
+    "schemaWarnings": 0,
+    "remainingMocks": 0,
+    "standardBlocks": ["http.get", "xml.parse", "list.map"],
+    "projectLocalBlocks": ["list.withAlternatingFlag", "list.pairRows"],
+    "avoidableDebt": "list.pairRows and the rows output are left over but unused by the final frontend."
+  },
+  "structuredBinding": {
+    "selectedSpontaneously": true,
+    "retainedBindingCount": 12,
+    "quotedBindingCount": 0,
+    "bindingWarnings": 0,
+    "sourceSha256": "58ccc63ad68c3cf619fa66bf36a9d85969f295e756f2f9fe22907c6ea2d80353"
+  },
+  "frontend": {
+    "generated": true,
+    "productionBuild": true,
+    "applicationHttpStatus": 200,
+    "backendHttpStatus": 200,
+    "browserErrors": 0,
+    "renderedCardCount": 61,
+    "renderedImageCount": 60,
+    "imagesWithSource": 60,
+    "renderedStoryLinks": 60,
+    "renderedDates": 60,
+    "alternatingBackgroundCount": 2,
+    "progress": { "completed": 9, "total": 9, "percent": 100 }
+  },
+  "visual": {
+    "desktop": {
+      "viewportWidth": 1440,
+      "documentWidth": 1440,
+      "screenshot": "results/run8-desktop.png"
+    },
+    "mobile": {
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "screenshot": "results/run8-mobile.png"
+    },
+    "responsiveOverflowAcceptance": true,
+    "visualAcceptance": true
+  },
+  "toolingFindings": [
+    {
+      "severity": "blocking",
+      "finding": "frontend-svelte-code-check/set projected the persisted file instead of the supplied draft because the MCP block sent drafts instead of frontendSourceDrafts.",
+      "impact": "An invalid candidate could be written after the old valid source passed validation; subsequent source tools could not recover.",
+      "resolution": "Fixed and regression-tested in lib_flow_mcp c5dd995."
+    },
+    {
+      "severity": "high",
+      "finding": "The picker does not expose an iteration index binding.",
+      "impact": "The agent created list.withAlternatingFlag to implement alternating cards."
+    },
+    {
+      "severity": "medium",
+      "finding": "Progress does not flag unused project-local blocks or unused backend outputs.",
+      "impact": "list.pairRows and result.rows survived although the final frontend does not consume them."
+    },
+    {
+      "severity": "medium",
+      "finding": "Playwright MCP navigation and follow-up calls hang after a successful production build.",
+      "impact": "Independent Playwright was required for browser proof."
+    }
+  ],
+  "comparison": {
+    "run7": {
+      "agentDurationMs": 655489,
+      "mcpCalls": 86,
+      "frontendMutations": 32,
+      "realDataRendered": true
+    },
+    "run8": {
+      "endToEndMs": 1574000,
+      "mcpCalls": 92,
+      "frontendMutations": 3,
+      "realDataRendered": true
+    },
+    "interpretation": "The intuitive source workflow reduced unit frontend mutations by 91%, but Run8 is not faster overall because it discovered and repaired a blocking draft-validation defect and again hit the Playwright MCP hang. The 13-call post-fix continuation shows the intended low-churn path but is not a clean full-run measurement."
+  },
+  "outcome": {
+    "functionalBackend": true,
+    "productionBuild": true,
+    "schemaBackedStructuredBindingAcceptance": true,
+    "completeDataBindingAcceptance": true,
+    "functionalBrowserRendering": true,
+    "responsiveOverflowAcceptance": true,
+    "visualAcceptance": true,
+    "cleanTimingAcceptance": false,
+    "nextCleanRunRequired": true
+  }
+}

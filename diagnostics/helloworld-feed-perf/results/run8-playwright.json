@@ -1,0 +1,44 @@
+{
+  "ok": true,
+  "status": 200,
+  "title": "NASA Image of the Day",
+  "backendResponses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:19080/convertigo/projects/sample_HelloWorldFlowRun8/.json"
+    }
+  ],
+  "browserErrors": [],
+  "desktop": {
+    "viewportWidth": 1440,
+    "documentWidth": 1440,
+    "cardCount": 61,
+    "imageCount": 60,
+    "imagesWithSource": 60,
+    "imagesLoaded": 31,
+    "storyLinkCount": 60,
+    "dateCount": 60,
+    "cardBackgrounds": [
+      "rgb(33, 33, 33)",
+      "rgb(76, 195, 237)"
+    ]
+  },
+  "mobile": {
+    "viewportWidth": 390,
+    "documentWidth": 390,
+    "cardCount": 61,
+    "imageCount": 60,
+    "imagesWithSource": 60,
+    "imagesLoaded": 44,
+    "storyLinkCount": 60,
+    "dateCount": 60,
+    "cardBackgrounds": [
+      "rgb(33, 33, 33)",
+      "rgb(76, 195, 237)"
+    ]
+  },
+  "responsive": {
+    "desktop": true,
+    "mobile": true
+  }
+}

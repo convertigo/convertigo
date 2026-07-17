@@ -1,0 +1,11 @@
+The backend is complete, but the frontend could not be finalized because of a Flow frontbuilder tooling gap.
+
+- First successful backend milestone: the live NASA RSS feed returned 60 entries. `count` matched, and entries contained `title`, `description`, `imageUrl`, `link`, and `pubDate`.
+- Configuration: the NASA feed URL is stored in project-level Flow configuration.
+- Backend schema: declared and warning-free. No mock blocks remain.
+- First useful browser rendering: none. The production URL did not complete loading in Playwright.
+- Final validation: backend runtime and schema passed; frontend generation and production build failed at the saved `If.test` attribute.
+- Tooling gap: the picker-provided nested binding mutation failed with `Cannot read property "children" from undefined`. Serialization then produced an invalid triple-brace attribute. Both full source replacement and revision-checked patching validate the broken saved model before applying the replacement, preventing recovery through supported tools.
+- Structured bindings: schema-backed descriptors were used without manual string-path workarounds. The array binding succeeded, but nested binding serialization blocked completion.
+- Playwright: production navigation and snapshot attempts hung after the failed build and were terminated.
+- Current state: real backend data, 60 entries, zero mocks; frontend model requires frontbuilder recovery before it can generate or build.
