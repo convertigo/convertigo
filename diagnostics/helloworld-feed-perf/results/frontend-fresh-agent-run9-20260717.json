@@ -1,0 +1,159 @@
+{
+  "timestamp": "2026-07-17T15:30:00+02:00",
+  "project": "sample_HelloWorldFlowRun9",
+  "protocol": "fresh Codex context with only Convertigo Flow MCP and Playwright",
+  "baseline": "frontend-fresh-agent-run8-20260717.json",
+  "checkpointsUnderTest": {
+    "lib_flow_engine_atStart": "034bfe566258e91469559c7048438136e04696fe",
+    "lib_flow_engine_afterRun9Fix": "e07b18a",
+    "lib_flow_frontbuilder_svelte_atStart": "9009791ef18fde2cc46d4dbc17beed5b1e5a75da",
+    "lib_flow_frontbuilder_svelte_afterRun9Fix": "6ec16d0",
+    "lib_flow_mcp_atStart": "4619c976b9625620b6b36c2f41e56e98426f43f0",
+    "lib_flow_mcp_afterRun9Guidance": "653a673"
+  },
+  "timing": {
+    "freshAgentMs": 531270,
+    "firstPromotedBackendMs": 124938,
+    "productionBuildCompletedMs": 358423,
+    "postBuildPlaywrightTransportWaitMs": 172847,
+    "interpretation": "The complete fresh run took 8m51s. The application was built after 5m58s; the remaining 2m53s was dominated by two Playwright MCP extension-mode stalls."
+  },
+  "mcp": {
+    "completedCalls": 54,
+    "successfulCalls": 46,
+    "failedCalls": 8,
+    "failedTools": {
+      "frontend-svelte-mutate": 8
+    },
+    "sourceAuthoringCalls": 5,
+    "unitFrontendMutations": 9,
+    "frontendTreeInspections": 14,
+    "callsByTool": {
+      "read_mcp_resource": 5,
+      "flow-project-bootstrap": 1,
+      "flow-resource-get": 1,
+      "flow-resource-patch": 1,
+      "code-set": 1,
+      "code-patch": 3,
+      "code-run": 3,
+      "code-promote": 1,
+      "flow-output-schema": 1,
+      "flow-app-progress": 4,
+      "flow-block-mock-list": 1,
+      "frontend-svelte-code-get": 2,
+      "frontend-svelte-code-check": 1,
+      "frontend-svelte-code-set": 1,
+      "frontend-svelte-code-patch": 1,
+      "frontend-svelte-palette": 1,
+      "frontend-svelte-tree": 14,
+      "frontend-svelte-mutate": 9,
+      "frontend-svelte-action": 3
+    }
+  },
+  "backend": {
+    "flow": "NasaImageNews",
+    "source": "https://www.nasa.gov/feeds/iotd-feed/",
+    "resultCount": 60,
+    "fields": ["title", "description", "imageUrl", "link", "pubDate"],
+    "declaredSchemaAligned": true,
+    "schemaWarnings": 0,
+    "remainingMocks": 0,
+    "projectLocalBlocks": [],
+    "standardBlocks": ["http.get", "xml.parse", "list.map"]
+  },
+  "structuredBinding": {
+    "selectedSpontaneously": true,
+    "iterationIndexUsed": true,
+    "manualStringPaths": 0,
+    "bindingWarnings": 0,
+    "unusedProjectBlocks": [],
+    "unusedFrontendOutputs": ["count"],
+    "unusedCountIntentional": true
+  },
+  "frontend": {
+    "generated": true,
+    "productionBuild": true,
+    "applicationHttpStatus": 200,
+    "backendHttpStatus": 200,
+    "browserErrors": 0,
+    "renderedCardCount": 61,
+    "renderedImageCount": 60,
+    "imagesWithSource": 60,
+    "alternatingBackgroundCount": 2,
+    "progress": { "completed": 9, "total": 9, "percent": 100 }
+  },
+  "visual": {
+    "desktop": {
+      "viewportWidth": 1440,
+      "documentWidth": 1440,
+      "screenshot": "results/run9-desktop.png"
+    },
+    "mobile": {
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "screenshot": "results/run9-mobile.png"
+    },
+    "responsiveOverflowAcceptance": true,
+    "visualAcceptance": true
+  },
+  "toolingFindings": [
+    {
+      "severity": "high",
+      "finding": "The fast FrontAst mutator resolved ForEach children as Children while canonical Flow Svelte uses Each, so picker mutations below an If branch failed.",
+      "impact": "The agent made 14 tree inspections and 8 failed mutations before applying six bindings through one source patch.",
+      "resolution": "Engine now resolves Each contextually and falls back to the Svelte parser; the frontbuilder preserves Each versus Children while rendering. Fixed in e07b18a and 6ec16d0 and proven through the live MCP."
+    },
+    {
+      "severity": "high",
+      "finding": "Playwright MCP extension mode had no active browser relay and left navigation pending.",
+      "impact": "The fresh agent spent 2m53s after a successful build and could not complete browser proof.",
+      "resolution": "Headless MCP without --extension completed the same navigation in seconds. The autonomous/CI rule is documented in 653a673."
+    },
+    {
+      "severity": "medium",
+      "finding": "flow-app-progress identifies each missing descendant binding but does not return a composed bulk repair.",
+      "impact": "Even with valid mutation paths, six leaf bindings still encourage repeated inspect/mutate calls.",
+      "next": "Return executable fixes for inferred iterator fields and allow one ordered mutation batch for all unambiguous bindings."
+    }
+  ],
+  "comparison": {
+    "run7": {
+      "agentDurationMs": 655489,
+      "mcpCalls": 86,
+      "unitFrontendMutations": 32
+    },
+    "run8": {
+      "endToEndMs": 1574000,
+      "mcpCalls": 92,
+      "unitFrontendMutations": 3,
+      "cleanBenchmark": false
+    },
+    "run9": {
+      "agentDurationMs": 531270,
+      "buildCompletedMs": 358423,
+      "mcpCalls": 54,
+      "unitFrontendMutations": 9,
+      "failedMutations": 8
+    },
+    "improvementVsRun7": {
+      "durationPercent": 18.9,
+      "mcpCallPercent": 37.2,
+      "unitFrontendMutationPercent": 71.9
+    },
+    "projectedAfterObservedFixes": {
+      "usefulMcpCalls": 32,
+      "note": "Removes the 8 failed mutations, repeated leaf inspections and extension-mode browser retries; this projection requires a fresh Run10 for confirmation."
+    }
+  },
+  "outcome": {
+    "functionalBackend": true,
+    "productionBuild": true,
+    "schemaBackedStructuredBindingAcceptance": true,
+    "iterationIndexAcceptance": true,
+    "functionalBrowserRendering": true,
+    "responsiveOverflowAcceptance": true,
+    "visualAcceptance": true,
+    "cleanTimingAcceptance": true,
+    "toolingDefectsFoundAndFixed": true
+  }
+}
