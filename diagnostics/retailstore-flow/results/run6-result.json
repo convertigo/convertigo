@@ -1,0 +1,249 @@
+{
+  "campaign": "retailstore-flow-fresh-agent",
+  "targetProject": "sample_RetailStoreFlowRun6",
+  "startedAt": "2026-07-17T06:12:58.844Z",
+  "authoringFinishedAt": "2026-07-17T07:17:10.258Z",
+  "independentValidationFinishedAt": "2026-07-17T07:25:25Z",
+  "status": "authoring-pass-independent-ux-fail",
+  "commits": {
+    "convertigo": "ad81e33e5de4998d89d59dcb531d46a86ed1e522",
+    "flowEngine": "62d38537ea3c80a479148d46bf03240fa51b3013",
+    "flowMcp": "ddc999738cfb6b3d96011580dbf4133c81c24a48",
+    "svelteFrontbuilder": "b3c9fb2de559235a5a0d41bdf726b472f14afc1d"
+  },
+  "projectSourceHashes": {
+    "rootPage": "3b7fff6ae2c4045edb6d7b1df96a2afa6971f308056310aed0b8d31a19d08935",
+    "initializeCatalog": "15fe8c7b9c5819553524479bcdaf68985ac5467eda0a2eea24f87e53a7b428a3"
+  },
+  "promptHashes": {
+    "actualRun6Prompt": "029458d9961115e0f1c1a92d8ee26ec7c689218e72cdf9652db8de79a0ab5af1",
+    "postRunCorrectedPrompt": "df3df34cccc478da1e45fa279afbd787e4bfaf501fac4d40d1f4e978e2bc77d9",
+    "legacyUxSpec": "f998c389ae5a9b264b4432f7732d5130c19ea3c565ae8081374128c960c55619"
+  },
+  "metrics": {
+    "traceSummary": "results/run6-trace-summary.json",
+    "wallSeconds": 3851.414,
+    "observedActiveSeconds": 3728.517,
+    "interSegmentGapSeconds": 122.897,
+    "segments": 2,
+    "mcpCalls": 298,
+    "failedMcpCalls": 10,
+    "retryCalls": 41,
+    "recoveredFailures": 1,
+    "frontendMutations": 154,
+    "failedFrontendMutations": 1,
+    "commandRuns": 25,
+    "failedCommandRuns": 10,
+    "modelInterruptions": 0,
+    "failedSegments": 0,
+    "secondsToBootstrap": 32.166,
+    "secondsToScaffoldDryRun": 229.111,
+    "secondsToScaffold": 242.977,
+    "secondsToSeed": 369.659,
+    "secondsToFirstSchemaAttachment": 624.536,
+    "secondsToProductionBuild": 3090.792,
+    "secondsToFirstBrowserPass": 3474.812,
+    "secondsToFinalAgentBrowserPass": 3762.802,
+    "browser": {
+      "synchronizationCompletionMs": 488,
+      "firstLocalViewCompletionMs": 4416,
+      "firstUsefulRootRenderMs": 4416,
+      "firstSuccessfulLocalGetMs": 6940,
+      "secondPersistentLaunchCompletionMs": 614
+    },
+    "topToolLatency": [
+      {
+        "tool": "frontend-svelte-tree",
+        "calls": 38,
+        "totalMs": 322568,
+        "medianMs": 9593,
+        "p95Ms": 14758
+      },
+      {
+        "tool": "frontend-svelte-palette",
+        "calls": 35,
+        "totalMs": 290972,
+        "medianMs": 10197,
+        "p95Ms": 13208
+      },
+      {
+        "tool": "flow-app-progress",
+        "calls": 8,
+        "totalMs": 161588,
+        "medianMs": 13148,
+        "p95Ms": 40890
+      }
+    ]
+  },
+  "run5Comparison": {
+    "timingComparable": false,
+    "timingNote": "Run5 traces were not timestamped and included eleven resumed model turns.",
+    "mcpCalls": {
+      "run5": 623,
+      "run6": 298,
+      "reductionPercent": 52.2
+    },
+    "frontendMutations": {
+      "run5": 311,
+      "run6": 154,
+      "reductionPercent": 50.5
+    },
+    "failedMcpCalls": {
+      "run5": 33,
+      "run6": 10,
+      "reductionPercent": 69.7
+    },
+    "retryCalls": {
+      "run5": 102,
+      "run6": 41,
+      "reductionPercent": 59.8
+    },
+    "failedFrontendMutations": {
+      "run5": 12,
+      "run6": 1,
+      "reductionPercent": 91.7
+    },
+    "functionalFinding": "Run6 improved schema-backed authoring and produced an actionable breadcrumb before the grid, but regressed root uniqueness and page-state separation. Run5 had 14 root categories and hid detail until selection; Run6 renders 37 root cards and the detail shell at all times."
+  },
+  "backend": {
+    "seedMarker": "retailstore-seed-v3",
+    "categories": 768,
+    "products": 3000,
+    "multiParentRelationsPreserved": true,
+    "idempotentProvisioning": true,
+    "idempotentSeed": true
+  },
+  "evidence": {
+    "agentPlaywrightScript": "results/run6-agent-acceptance.spec.mjs",
+    "independentPlaywrightScript": "results/run6-independent.spec.mjs",
+    "screenshots": [
+      "results/run6-root-mobile.png",
+      "results/run6-products-mobile.png",
+      "results/run6-detail-mobile.png",
+      "results/run6-detail-desktop.png"
+    ],
+    "agentProgressPercent": 100,
+    "agentBindingWarnings": 0,
+    "remainingMocks": [],
+    "independentState": {
+      "rootCategoryCount": 37,
+      "expectedRootCategoryCount": 14,
+      "epicerieSucreeVisibleCount": 3,
+      "strictBranchProductCount": 22,
+      "productDetailVisibleAtRoot": true,
+      "offlineFetchOrXhr": [
+        "http://127.0.0.1:19080/convertigo/services/logs.Add"
+      ]
+    }
+  },
+  "acceptance": {
+    "idempotentProvisioning": true,
+    "idempotentSeed": true,
+    "schemaBackedBindings": true,
+    "scaffoldWarningsResolved": true,
+    "visibleLifecycleStages": false,
+    "persistentSecondLaunch": true,
+    "referenceShell": false,
+    "compactProductGrid": true,
+    "rootCategoryCount14": false,
+    "rootCategoriesUnique": false,
+    "productCount22": true,
+    "breadcrumbRoundTrip": false,
+    "breadcrumbBeforeGrid": true,
+    "detailHiddenUntilSelection": false,
+    "quantityTotalWorkflow": true,
+    "onlineCatalog": true,
+    "offlineLocalView": true,
+    "offlineLocalGet": true,
+    "offlineFetchOrXhrCount": 1,
+    "productionBuild": true,
+    "desktopNoOverflow": true,
+    "mobile390NoOverflow": true,
+    "imagesLoaded": true,
+    "remainingMocks": 0,
+    "bindingWarnings": 0
+  },
+  "hardPointReview": [
+    {
+      "signature": "campaign-prompt-omitted-reference-acceptance",
+      "classification": "tooling",
+      "occurrences": 1,
+      "recovered": false,
+      "impact": "The harness supplied the reduced fresh-agent prompt but not the complete black-box UX contract, omitting the 14-root count and distinct detail route.",
+      "evidence": "The actual prompt hash differs from the post-run self-contained prompt; campaign-protocol.md said to provide legacy-ux-spec.md but the launch stdin contained only retailstore-fresh-agent-prompt.md.",
+      "nextAction": "Use the corrected self-contained prompt and verify its hash before the next fresh run."
+    },
+    {
+      "signature": "root-multi-key-result-not-deduplicated",
+      "classification": "agent",
+      "occurrences": 1,
+      "recovered": false,
+      "impact": "The root renders 37 cards instead of 14 and repeats EPICERIE SUCREE three times.",
+      "evidence": "Independent Playwright state and run6-root-mobile.png",
+      "nextAction": "Make the canonical root count and uniqueness explicit in progress/acceptance suggestions; require an agent to validate fixed fixture counts."
+    },
+    {
+      "signature": "page-state-separation-missing",
+      "classification": "tooling",
+      "occurrences": 1,
+      "recovered": false,
+      "impact": "The product detail placeholder is visible at root and the complete product grid remains visible above detail.",
+      "evidence": "The generated Flow contains unconditional category, product and detail blocks; flow-app-progress still reports 9/9.",
+      "nextAction": "Add a simple schema-backed conditional/page-state block and make progress flag mutually exclusive catalog/detail states."
+    },
+    {
+      "signature": "agent-browser-acceptance-too-permissive",
+      "classification": "agent",
+      "occurrences": 1,
+      "recovered": false,
+      "impact": "The agent declared success by selecting the last available card without checking root count, uniqueness or hidden detail state.",
+      "evidence": "run6-agent-acceptance.spec.mjs passes while run6-independent.spec.mjs fails.",
+      "nextAction": "Expose exact fixture-derived acceptance assertions in the campaign harness and require them before final reporting."
+    },
+    {
+      "signature": "slow-authoring-inspection-tools",
+      "classification": "tooling",
+      "occurrences": 81,
+      "recovered": true,
+      "impact": "Tree, palette and progress calls consumed 775 seconds, about 21 percent of observed active time.",
+      "evidence": "run6-trace-summary.json",
+      "nextAction": "Cache parsed frontend catalogs/AST indexes and return focused deltas instead of repeatedly rebuilding full trees."
+    },
+    {
+      "signature": "duplicate-iterator-identities",
+      "classification": "tooling",
+      "occurrences": 1,
+      "recovered": true,
+      "impact": "The breadcrumb schema was temporarily interpreted as a product schema.",
+      "evidence": "The agent repaired iterator identities after picker diagnostics.",
+      "nextAction": "Generate unique palette IDs and reject duplicate scope IDs at mutation time."
+    },
+    {
+      "signature": "playwright-module-and-runtime-port-discovery",
+      "classification": "infrastructure",
+      "occurrences": 4,
+      "recovered": true,
+      "impact": "Browser validation was delayed by missing local module resolution and stale MCP preview ports.",
+      "evidence": "Four setup/connection command failures before using the local runner and port 19080.",
+      "nextAction": "Provide one stable built URL and a preinstalled standalone Playwright runtime to fresh agents."
+    },
+    {
+      "signature": "numeric-parsing-primitive-missing",
+      "classification": "tooling",
+      "occurrences": 1,
+      "recovered": true,
+      "impact": "The Flow had to use typed json.parse to normalize numeric fixture fields.",
+      "evidence": "Agent final report and visible InitializeCatalog Flow.",
+      "nextAction": "Consider a small typed number.parse block if the pattern recurs."
+    },
+    {
+      "signature": "offline-sdk-log-request",
+      "classification": "tooling",
+      "occurrences": 1,
+      "recovered": false,
+      "impact": "A services/logs.Add fetch is attempted during strict offline navigation, although catalog data remains local.",
+      "evidence": "Independent Playwright request capture.",
+      "nextAction": "Queue or suppress SDK remote logging while offline without affecting FullSync reads."
+    }
+  ]
+}

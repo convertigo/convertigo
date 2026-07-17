@@ -16,14 +16,19 @@ synchronization.
   one-shot FullSync pull with visible progress, then local index preparation by
   executing and awaiting a real local catalog view. Use the supplied animation
   for each state and never leave synchronization active at 100/100.
-- A catalog screen starts at the shop root and lets the user descend through
-  categories until products are reached.
+- A catalog screen starts at the shop root with exactly 14 unique top-level
+  departments and lets the user descend through categories until products are
+  reached. Do not render the same category more than once when it has several
+  fixture relationships.
 - Category and product cards show a name and image when available. Keep the
   browsing cards compact: packaging and price belong to detail, not the product
   grid.
 - A product detail view reads the selected local document and displays its
-  name, unit price and image.
-- Back navigation preserves an understandable hierarchy.
+  name, unit price and image. Catalog and detail are distinct navigation
+  states: no empty detail shell is visible in the catalog, and the catalog
+  grid is not visible below an open detail.
+- Selecting a product creates one browser-history entry. Browser Back and a
+  visible Back action both restore the exact product grid and category path.
 - The breadcrumb begins with `RAYONS`, renders every selected ancestor as its
   own action before the grid, and restores any earlier level without adding a
   history entry.
@@ -43,6 +48,10 @@ synchronization.
 
 Use the field and fixture contract from `fixtures/manifest.json`. The data
 contains 768 category records and 3000 product records for shop `42`.
+
+The strict acceptance path is `EPICERIE SUCREE` -> `GOUTERS & BISCUITS` ->
+`BISCUITS AU CHOCOLAT`. It must render exactly 22 unique product cards. Open
+`Biscuits Z'animo chocolat lait Cadbury` for the detail and return checks.
 
 ## Authoring constraints
 
@@ -77,6 +86,10 @@ the production build and the real browser application are validated.
   warning and verify that each data-bound iterator has visible content.
 - Keep a standalone Playwright script for the final online/offline assertions;
   do not rely exclusively on an interactive browser transport.
+- In that script, use the strict acceptance labels above. Assert the root count,
+  uniqueness, the 22-product count, mutually exclusive catalog/detail states,
+  every breadcrumb segment, browser Back and visible Back. Do not choose an
+  arbitrary first/last card or infer success from merely finding some data.
 - Run the final acceptance twice with the same persistent browser profile. The
   second launch must reach the catalog and must not remain at active 100/100.
 - In the standalone Playwright output, emit one machine-readable line named

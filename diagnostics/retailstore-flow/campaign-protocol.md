@@ -20,8 +20,10 @@ without exposing the legacy project or previous runs.
    application Flow implementation or generated frontend artifact.
 6. Confirm that the runtime FullSync store is reachable and persistent before
    the timed run. This is infrastructure readiness, not application setup.
-7. Start a new agent context with only the fresh-agent prompt, target project
-   name, fixture contract and supported Flow MCP/Playwright tools.
+7. Start a new agent context with the self-contained fresh-agent prompt, target
+   project name, fixture contract and supported Flow MCP/Playwright tools. The
+   prompt mirrors the observable requirements in `legacy-ux-spec.md`; verify
+   its hash before launch so the reduced prompt cannot silently omit them.
 
 The preparation phase must not choose connector, design-document, view,
 transaction, Flow or component names. It must not precompute CouchDB documents
@@ -93,11 +95,15 @@ first local view, first useful root render, first local get/detail and second
 persistent launch. Treat these as browser milestones; do not substitute MCP
 authoring timestamps for runtime milestones.
 
-The strict acceptance branch must contain exactly 22 products. Capture the
-visible initialization, synchronization and indexing stages, every breadcrumb
-state, the product quantity and computed total, browser Back, breadcrumb Back
-and the repeated offline branch. Repeat startup in the same persistent browser
-profile and reject any run that remains on active 100/100.
+The root must contain exactly 14 unique departments. The strict acceptance
+branch named in the fresh-agent prompt must contain exactly 22 unique products.
+Capture the visible initialization, synchronization and indexing stages, every
+breadcrumb state, the product quantity and computed total, browser Back,
+visible Back, breadcrumb Back and the repeated offline branch. Assert that
+catalog and detail are mutually exclusive states. Repeat startup in the same
+persistent browser profile and reject any run that remains on active 100/100.
+Reject dynamic tests that select an arbitrary first or last card without these
+fixed counts and labels.
 
 After the agent stops, run `campaign-trace.mjs analyze` over every segment. Add
 the generated summary to the result record before inspecting the legacy
