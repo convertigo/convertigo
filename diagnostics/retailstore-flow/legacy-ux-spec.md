@@ -6,23 +6,40 @@ implementation code.
 
 ## Application shell
 
-- Use a compact mobile-first application shell with a persistent store mark and
-  a short uppercase page title.
+- Use a compact mobile-first application shell on a light background with a
+  persistent cart/store mark and a top bar. Its uppercase title is
+  `SYNCHRONIZATION`, `OPTIMIZATION`, `STORE` or `PRODUCT` for the current state.
 - The catalog is the primary experience. Do not expose provisioning controls,
   seed diagnostics, raw JSON, transaction status cards or implementation help
   in the normal browsing UI.
 - Catalog cards form a two-column grid at 390 px and expand to more columns on
-  wider screens. Images and labels are the primary card content.
+  wider screens. Cards are light, compact and visually separated from the page;
+  the image dominates and the name is below it. Product grids do not add
+  packaging or price text that is absent from the reference browsing view.
 
 ## First launch
 
-1. A new browser profile opens a synchronization page automatically.
-2. Synchronization starts without a user click and displays meaningful progress.
-3. A first-run optimization page follows automatically while local query indexes
-   are prepared.
-4. The application then replaces the working view with the catalog page.
-5. A returning profile may skip completed first-run work, but must still reach
-   the catalog without a provisioning button.
+1. A new browser profile starts automatically; no provisioning button or blank
+   shell is shown.
+2. Server initialization, client synchronization and local index preparation
+   are three ordered states. Only the currently active state is visible.
+3. Each state has a concise label, its supplied animated fixture and an error
+   state. Synchronization additionally exposes meaningful transferred/total
+   progress when the SDK provides it.
+4. Synchronization is terminal: `active 100/100` must transition to index
+   preparation and cannot remain displayed indefinitely.
+5. Index preparation executes a real local catalog query and waits for it to
+   complete before navigation. A decorative delay does not satisfy this step.
+6. The application replaces the working view with the catalog page only after
+   all three operations have succeeded.
+7. A returning profile may reuse completed work, but must still reach the
+   catalog. Two consecutive launches in the same persistent browser profile are
+   part of acceptance.
+
+The synchronization title is `SYNCHRONIZATION` with the visible message
+`Sync the database on the client.` The indexing title is `OPTIMIZATION` with
+`Optimizing the database for the first time.` Initialization may use a concise
+localized equivalent while the server fixture is being verified.
 
 ## Catalog navigation
 
@@ -33,6 +50,9 @@ implementation code.
 - Above every non-root grid, show a horizontal breadcrumb made of actionable
   segments. The first segment is `RAYONS`; following segments are selected
   ancestors.
+- The breadcrumb is before the grid in normal document flow and remains visible
+  without scrolling through all cards. It has sufficient contrast against the
+  application background and does not collapse into one concatenated label.
 - Selecting any breadcrumb segment immediately restores that level. It does not
   reload the application and does not create a separate browser-history entry
   for every category level.
@@ -46,7 +66,9 @@ implementation code.
 - The page title is `PRODUCT` and a visible Back control returns to the exact
   product grid and category path.
 - Show product image, name, unit price, quantity control, computed total and an
-  `AJOUTER AU PANIER` command.
+  `AJOUTER AU PANIER` command. The visible back action combines a familiar back
+  icon with `RAYONS`. Money uses a consistent currency format, and the total
+  visibly combines quantity and price (for example `x 1 = 5.40 EUR`).
 - Browser Back and the visible Back control must have equivalent results.
 
 ## Offline behavior
@@ -71,7 +93,9 @@ implementation code.
 6. Use breadcrumb segments to return successively to level 3, level 2 and root.
 7. Disable networking and complete another branch through product detail and
    back navigation with zero fetch/XHR.
-8. Validate at 390 x 844 and 1280 x 900 with no horizontal overflow, overlapping
+8. Repeat the launch in the same persistent profile and verify that it reaches
+   the root catalog again without hanging on synchronization.
+9. Validate at 390 x 844 and 1280 x 900 with no horizontal overflow, overlapping
    controls or stacked inactive stages.
 
 ## Campaign isolation

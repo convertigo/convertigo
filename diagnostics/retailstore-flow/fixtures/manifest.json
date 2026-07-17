@@ -51,7 +51,21 @@
   },
   "assets": {
     "categoryFallback": "category.png",
-    "productFallback": "product.png"
+    "productFallback": "product.png",
+    "progress": {
+      "initialization": {
+        "path": "init.gif",
+        "sha256": "beedac542b084441bf989c4483cbbbe2aedf68168458a934b777ef1caa8a4ffb"
+      },
+      "synchronization": {
+        "path": "sync.gif",
+        "sha256": "6f9c48d38d18bc8cd942837de3be72e3fb0ba461f79f1cff3f3c62f28ba5c839"
+      },
+      "indexing": {
+        "path": "optimize.gif",
+        "sha256": "b6d002419c338c3a48a625926879ce599b99a1aeef64b7bfb5fea317f76a4a44"
+      }
+    }
   },
   "rules": [
     "Ignore supplied _rev values while creating a fresh database.",

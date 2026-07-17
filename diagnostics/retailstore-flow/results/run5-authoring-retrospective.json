@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "source": "results/run5*.jsonl",
+  "extractedWith": "campaign-trace.mjs analyze",
+  "timingAvailable": false,
+  "timingNote": "Run5 JSONL events were not timestamped. Counts are reproducible, but wall time, active time and tool latency cannot be reconstructed.",
+  "counts": {
+    "events": 1538,
+    "mcpCalls": 623,
+    "failedMcpCalls": 33,
+    "retryCalls": 102,
+    "recoveredFailures": 5,
+    "frontendMutations": 311,
+    "failedFrontendMutations": 12,
+    "commandRuns": 49,
+    "failedCommandRuns": 16
+  },
+  "topTools": [
+    { "tool": "frontend-svelte-mutate", "calls": 311, "failures": 12 },
+    { "tool": "frontend-svelte-palette", "calls": 108, "failures": 0 },
+    { "tool": "frontend-svelte-tree", "calls": 68, "failures": 2 },
+    { "tool": "code-run", "calls": 16, "failures": 3 },
+    { "tool": "code-patch", "calls": 15, "failures": 1 },
+    { "tool": "flow-requestable-schema", "calls": 14, "failures": 4 },
+    { "tool": "frontend-svelte-action", "calls": 14, "failures": 0 }
+  ],
+  "repeatedHardPoints": [
+    {
+      "signature": "frontend-svelte-mutate transport/tool failures",
+      "occurrences": 12
+    },
+    {
+      "signature": "retailstore-run5 Playwright test failures",
+      "occurrences": 10
+    },
+    {
+      "signature": "REQUESTABLE_LEARN_FAILED",
+      "occurrences": 3
+    },
+    {
+      "signature": "code-run transport/tool failures",
+      "occurrences": 3
+    },
+    {
+      "signature": "AUTHORING_TREE_FOCUS_NOT_FOUND",
+      "occurrences": 2
+    }
+  ]
+}

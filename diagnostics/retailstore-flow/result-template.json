@@ -10,23 +10,40 @@
     "svelteFrontbuilder": ""
   },
   "metrics": {
+    "traceSummary": "",
+    "wallSeconds": null,
+    "observedActiveSeconds": null,
+    "interSegmentGapSeconds": null,
+    "segments": 0,
     "mcpCalls": 0,
     "failedMcpCalls": 0,
+    "retryCalls": 0,
+    "recoveredFailures": 0,
     "correctiveMutations": 0,
+    "failedFrontendMutations": 0,
+    "commandRuns": 0,
+    "failedCommandRuns": 0,
+    "modelInterruptions": 0,
+    "failedSegments": 0,
     "projectLocalBlocks": 0,
+    "secondsToBootstrap": null,
+    "secondsToScaffoldDryRun": null,
     "secondsToScaffold": null,
     "secondsToSeed": null,
     "secondsToSync": null,
     "secondsToLocalView": null,
     "secondsToLocalGet": null,
     "secondsToUsefulRender": null,
-    "secondsToFinalValidation": null
+    "secondsToFinalValidation": null,
+    "topToolLatency": [],
+    "hardPoints": []
   },
   "evidence": {
     "scaffoldDryRun": "",
     "scaffoldSecondApply": "",
     "schemaAttachments": [],
     "playwrightScript": "",
+    "persistentProfileScript": "",
     "screenshots": [],
     "browserConsoleErrors": [],
     "remainingMocks": [],
@@ -37,9 +54,13 @@
     "idempotentSeed": false,
     "schemaBackedBindings": false,
     "scaffoldWarningsResolved": false,
-    "visibleSyncAndOptimize": false,
+    "visibleLifecycleStages": false,
+    "persistentSecondLaunch": false,
+    "referenceShell": false,
+    "compactProductGrid": false,
     "productCount22": false,
     "breadcrumbRoundTrip": false,
+    "breadcrumbBeforeGrid": false,
     "quantityTotalWorkflow": false,
     "onlineCatalog": false,
     "offlineLocalView": false,
@@ -47,5 +68,16 @@
     "productionBuild": false,
     "desktopNoOverflow": false,
     "mobile390NoOverflow": false
-  }
+  },
+  "hardPointReview": [
+    {
+      "signature": "",
+      "classification": "agent|tooling|infrastructure|model",
+      "occurrences": 0,
+      "recovered": false,
+      "impact": "",
+      "evidence": "",
+      "nextAction": ""
+    }
+  ]
 }

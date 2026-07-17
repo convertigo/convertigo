@@ -13,6 +13,12 @@ legacy reference implementation.
 - `fixtures/manifest.json`: public contract of the supplied seed data/assets.
 - `fixtures/categories_42.xml` and `fixtures/products_42.xml`: input data.
 - `fixtures/category.png` and `fixtures/product.png`: neutral fallback images.
+- `fixtures/init.gif`, `fixtures/sync.gif` and `fixtures/optimize.gif`: declared
+  progress animations used by the black-box UX contract.
+- `campaign-trace.mjs`: timestamps Codex JSONL streams and summarizes tool
+  latency, retries, failures, interruptions and repeated hard points.
+- `run-campaign-segment.sh`: captures one initial or resumed agent segment while
+  preserving its exit status and active duration.
 
 The prompt and acceptance criteria do not disclose connector, transaction,
 design-document or view names, CouchDB map/reduce code, query keys, the legacy
@@ -46,3 +52,7 @@ Record one JSON result under `results/` with:
 - online and post-sync offline Playwright assertions;
 - desktop/mobile overflow and browser-console results;
 - remaining mocks and tooling gaps.
+
+`results/run5-authoring-retrospective.json` is the untimed baseline extracted
+from the old Run5 traces. Run6 must improve on its call/failure counts and, with
+the new stamped traces, add comparable wall, active and per-tool durations.
