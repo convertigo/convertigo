@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-07-17T22:30:00+02:00",
+  "project": "sample_HelloWorldFlowRun11",
+  "protocol": "fresh Codex context with only Convertigo Flow MCP and headless Playwright",
+  "baseline": "frontend-fresh-agent-run10-20260717.json",
+  "checkpointsUnderTest": {
+    "lib_flow_engine": "201507e",
+    "lib_flow_frontbuilder_svelte": "7943fbd",
+    "lib_flow_mcp": "d01c282"
+  },
+  "timing": {
+    "activeAgentTotalMs": 377780,
+    "cleanEndToEnd": true,
+    "excludedAttempt": "run11-attempt1-agent-events.jsonl",
+    "excludedAttemptReason": "The first attempt exposed a generic unknown-property false positive. The validator was fixed and the accepted run restarted from a blank project and context."
+  },
+  "mcp": {
+    "authoringCallsBeforeFirstBuild": 27,
+    "allCompletedCalls": 40,
+    "allFailedCalls": 0,
+    "sourceAuthoringCalls": 5,
+    "unitFrontendMutations": 1,
+    "frontendTreeInspections": 2,
+    "composedBindingPlanCalls": 1,
+    "composedBindingPlanFixes": 7
+  },
+  "backend": {
+    "flow": "GetNews",
+    "source": "https://www.nasa.gov/feeds/iotd-feed/",
+    "resultCount": 60,
+    "fields": ["title", "description", "imageUrl", "link", "pubDate"],
+    "schemaWarnings": 0,
+    "remainingMocks": 0,
+    "projectLocalBlocks": []
+  },
+  "structuredBinding": {
+    "selectedSpontaneously": true,
+    "manualStringPaths": 0,
+    "bindingWarnings": 0,
+    "batchAppliedUnchanged": true,
+    "orderedFixes": [
+      "ForEach.source",
+      "even Image.source",
+      "even title Text.value",
+      "even description Text.value",
+      "odd Image.source",
+      "odd title Text.value",
+      "odd description Text.value"
+    ]
+  },
+  "frontend": {
+    "generated": true,
+    "productionBuild": true,
+    "applicationHttpStatus": 200,
+    "backendHttpStatus": 200,
+    "browserApplicationErrors": 0,
+    "renderedCardCount": 60,
+    "loadedImageCount": 60,
+    "exactResponseDomMatches": 60,
+    "variantCounts": {"sky": 30, "muted": 30},
+    "desktopOverflow": false,
+    "mobile390Overflow": false
+  },
+  "comparison": {
+    "run10AuthoringCallsBeforeBuild": 46,
+    "run11AuthoringCallsBeforeBuild": 27,
+    "authoringCallReductionPercent": 41.3,
+    "run10FrontendTreeInspections": 13,
+    "run11FrontendTreeInspections": 2,
+    "frontendTreeInspectionReductionPercent": 84.6,
+    "run10FrontendMutationCalls": 7,
+    "run11FrontendMutationCalls": 1,
+    "frontendMutationCallReductionPercent": 85.7
+  },
+  "toolingFindings": [
+    {
+      "severity": "fixed",
+      "finding": "Unknown-property validation originally scanned attributes outside the matching block tag.",
+      "recovery": "Scope authored-property extraction to the exact tag and id before emitting FRONTEND_PROPERTY_UNKNOWN."
+    },
+    {
+      "severity": "low",
+      "finding": "The built application requests /favicon.ico and receives 404.",
+      "impact": "No functional or acceptance impact."
+    }
+  ],
+  "outcome": {
+    "functionalBackend": true,
+    "productionBuild": true,
+    "schemaBackedStructuredBindingAcceptance": true,
+    "functionalBrowserRendering": true,
+    "responsiveOverflowAcceptance": true,
+    "cleanTimingAcceptance": true,
+    "authoringCallThreshold": 36,
+    "authoringCallThresholdAcceptance": true,
+    "proceedToRetailStoreRun7": true
+  }
+}
