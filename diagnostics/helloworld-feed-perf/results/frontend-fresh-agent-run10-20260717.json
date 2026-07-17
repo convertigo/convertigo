@@ -1,0 +1,173 @@
+{
+  "timestamp": "2026-07-17T17:55:00+02:00",
+  "project": "sample_HelloWorldFlowRun10",
+  "protocol": "fresh Codex context with only Convertigo Flow MCP and headless Playwright",
+  "baseline": "frontend-fresh-agent-run9-20260717.json",
+  "checkpointsUnderTest": {
+    "lib_flow_engine": "e07b18a",
+    "lib_flow_frontbuilder_svelte": "6ec16d0",
+    "lib_flow_mcp": "653a673"
+  },
+  "timing": {
+    "authoringSegmentMs": 353550,
+    "validationResumeSegmentMs": 267200,
+    "activeAgentTotalMs": 620750,
+    "firstPromotedBackendApproxMs": 183000,
+    "productionBuildActiveApproxMs": 428000,
+    "capacityInterruption": true,
+    "interpretation": "The authoring model hit capacity immediately after starting the build. A measured validation-only resume rebuilt and tested the unchanged project. Active agent time was 10m21s; the interruption and restart make this an honest functional benchmark but not a clean end-to-end timing baseline."
+  },
+  "mcp": {
+    "authoringCallsBeforeBuild": 46,
+    "authoringSuccessfulCalls": 45,
+    "authoringFailedCalls": 1,
+    "validationCalls": 22,
+    "cleanupCalls": 2,
+    "allCompletedCalls": 70,
+    "allSuccessfulCalls": 68,
+    "allFailedCalls": 2,
+    "sourceAuthoringCalls": 3,
+    "unitFrontendMutations": 7,
+    "frontendTreeInspections": 13,
+    "authoringCallsByTool": {
+      "list_mcp_resources": 1,
+      "read_mcp_resource": 3,
+      "flow-project-bootstrap": 1,
+      "flow-resource-get": 1,
+      "flow-resource-patch": 2,
+      "code-set": 1,
+      "code-patch": 2,
+      "code-run": 3,
+      "code-promote": 1,
+      "flow-output-schema": 2,
+      "flow-requestable-schema": 2,
+      "flow-app-progress": 3,
+      "frontend-svelte-code-get": 1,
+      "frontend-svelte-code-check": 1,
+      "frontend-svelte-code-set": 1,
+      "frontend-svelte-tree": 13,
+      "frontend-svelte-mutate": 7,
+      "frontend-svelte-action": 1
+    }
+  },
+  "backend": {
+    "flow": "GetNasaNews",
+    "source": "https://www.nasa.gov/feeds/iotd-feed/",
+    "resultCount": 60,
+    "fields": ["title", "description", "imageUrl", "link", "pubDate"],
+    "schemaWarnings": 0,
+    "remainingMocks": 0,
+    "projectLocalBlocks": [],
+    "standardBlocks": ["http.get", "xml.parse", "list.map"],
+    "officialRevision": "892b1cf6667fc69fe3d7316e1674f6d0a5de4d84dd5ae7ed86f1b75b1b97d746",
+    "dirtyAfterCleanup": false
+  },
+  "structuredBinding": {
+    "selectedSpontaneously": true,
+    "iterationIndexUsed": true,
+    "manualStringPaths": 0,
+    "bindingWarnings": 0,
+    "unusedProjectBlocks": [],
+    "unusedFrontendOutputs": ["count"],
+    "unusedCountIntentional": true
+  },
+  "frontend": {
+    "generated": true,
+    "productionBuild": true,
+    "applicationHttpStatus": 200,
+    "backendHttpStatus": 200,
+    "browserApplicationErrors": 0,
+    "ignoredInfrastructureErrors": ["/favicon.ico returned 404"],
+    "renderedCardCount": 60,
+    "renderedImageCount": 60,
+    "loadedImageCount": 60,
+    "exactResponseDomMatches": 60,
+    "variantCounts": {"sky": 30, "dark": 30},
+    "progress": {"completed": 9, "total": 9, "percent": 100}
+  },
+  "visual": {
+    "desktop": {
+      "viewportWidth": 1440,
+      "documentWidth": 1440,
+      "screenshot": "results/run10-desktop.png"
+    },
+    "mobile": {
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "screenshot": "results/run10-mobile.png"
+    },
+    "responsiveOverflowAcceptance": true,
+    "visualAcceptance": true
+  },
+  "toolingFindings": [
+    {
+      "severity": "high",
+      "finding": "Complete Flow Svelte source authoring still cannot obtain and apply all unambiguous schema-backed bindings in one pass.",
+      "impact": "The structure was written with one source call, but the agent still made 13 tree inspections and 7 leaf mutations for the ForEach and six descendant fields.",
+      "next": "Expose a composed binding plan from code-check or flow-app-progress and accept one ordered mutation batch, while retaining picker-derived descriptors."
+    },
+    {
+      "severity": "medium",
+      "finding": "flow-output-schema adopt executed after code-promote left a new dirty working revision.",
+      "impact": "A later runtime check reported unsaved:true and required a second promotion after validation.",
+      "next": "Make adopt persist atomically or return the new revision and an explicit mandatory promote call."
+    },
+    {
+      "severity": "medium",
+      "finding": "frontend-svelte-code-check accepted unknown Status properties loadingLabel and successLabel.",
+      "impact": "The application built without the intended status labels, so intuitive source can silently lose behavior.",
+      "next": "Validate block properties against the palette schema and return canonical loadingText/successText diagnostics or fixes."
+    },
+    {
+      "severity": "medium",
+      "finding": "The default skill is 683 lines and the fresh agent read it in full, then listed resources and read three guides.",
+      "impact": "The first Flow MCP call occurred about 47 seconds after launch and context volume was unnecessarily high.",
+      "next": "Keep a short executable default workflow in SKILL.md and move detailed reference material behind focused resources."
+    },
+    {
+      "severity": "low",
+      "finding": "The built application requests /favicon.ico and receives 404.",
+      "impact": "Browser validation reports one unrelated console error.",
+      "next": "Generate a default favicon or suppress the request in the frontend template."
+    }
+  ],
+  "comparison": {
+    "run7": {
+      "agentDurationMs": 655489,
+      "mcpCalls": 86,
+      "unitFrontendMutations": 32
+    },
+    "run9": {
+      "agentDurationMs": 531270,
+      "mcpCalls": 54,
+      "unitFrontendMutations": 9,
+      "failedMutations": 8
+    },
+    "run10AuthoringBeforeBuild": {
+      "agentDurationMs": 353550,
+      "mcpCalls": 46,
+      "unitFrontendMutations": 7,
+      "failedMutations": 0
+    },
+    "improvementVsRun9BeforeBuild": {
+      "mcpCallPercent": 14.8,
+      "unitFrontendMutationPercent": 22.2,
+      "failedMutationPercent": 100.0
+    },
+    "projectedUsefulCallsConfirmed": false,
+    "projectedUsefulCalls": 32,
+    "observedAuthoringCalls": 46,
+    "gapCalls": 14
+  },
+  "outcome": {
+    "functionalBackend": true,
+    "productionBuild": true,
+    "schemaBackedStructuredBindingAcceptance": true,
+    "iterationIndexAcceptance": true,
+    "functionalBrowserRendering": true,
+    "responsiveOverflowAcceptance": true,
+    "visualAcceptance": true,
+    "cleanTimingAcceptance": false,
+    "projectedCallCountAcceptance": false
+  }
+}

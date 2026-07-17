@@ -1,0 +1,16 @@
+Validation completed at `http://127.0.0.1:19080/convertigo/projects/sample_HelloWorldFlowRun10/DisplayObjects/mobile/`.
+
+- Production build passed: generate, dependency installation, and build all exited `0`.
+- Clicking “Load NASA News” produced HTTP `200`.
+- Backend returned 60 items; UI rendered 60 cards.
+- Exact response-to-DOM comparison: 60/60 image URLs, titles, and descriptions matched; zero mismatches.
+- All 60 images completed loading with nonzero natural dimensions.
+- Alternation passed: 30 `sky` cards and 30 `dark` cards, alternating exactly. Computed backgrounds were `rgb(76, 195, 237)` and `rgb(33, 33, 33)`.
+- First card: “Young Galaxy Cluster”; last: “A Fresh Look at the Crab Nebula”.
+- Desktop, 1280×720: `scrollWidth = clientWidth = 1280`; zero off-viewport cards.
+- Mobile, 390×844: `scrollWidth = clientWidth = 390`; zero off-viewport cards.
+- No tooling gap: Convertigo Flow MCP and Playwright both completed the required checks.
+
+Strict validation is not fully clean because one browser-console error remains: `/favicon.ico` returns `404`. There were no other console errors or warnings.
+
+Flow MCP also reports `GetNasaNews` as `dirty:true`, `unsaved:true`, and `dboHasChanged:true`, despite the resume note saying it was promoted. I did not promote, discard, or modify it under the inspect-only constraint.
