@@ -1,0 +1,104 @@
+{
+  "timestamp": "2026-07-18T22:02:31+02:00",
+  "project": "sample_HelloWorldFlowRun12",
+  "protocol": "fresh Codex context with only Convertigo Flow MCP and headless Playwright",
+  "baseline": "frontend-fresh-agent-run11-20260717.json",
+  "checkpointsUnderTest": {
+    "lib_flow_engine": "4ca2983",
+    "lib_flow_frontbuilder_svelte": "30b9418",
+    "lib_flow_mcp": "aa455a7"
+  },
+  "postCampaignFixes": {
+    "lib_flow_frontbuilder_svelte": "a47314a",
+    "lib_flow_mcp": "ce9bc67"
+  },
+  "timing": {
+    "activeAgentTotalMs": 521240,
+    "cleanEndToEnd": false,
+    "excludedAttempt": "run12-attempt1-agent-events.jsonl",
+    "excludedAttemptMs": 40430,
+    "excludedAttemptReason": "Convertigo Standard Edition sessions were exhausted before authoring; the accepted attempt used the session-preserving proxy.",
+    "browserValidationMode": "independent after fixing the generic Node compatibility defect"
+  },
+  "mcp": {
+    "callsThroughFirstGeneration": 23,
+    "allCompletedCalls": 38,
+    "allFailedCalls": 2,
+    "sourceAuthoringCalls": 11,
+    "unitFrontendMutations": 1,
+    "frontendTreeInspections": 0,
+    "appProgressCalls": 4,
+    "partialResponses": 0,
+    "cursorContinuations": 0,
+    "installedSkillShellReads": 3
+  },
+  "backend": {
+    "flow": "NasaNews",
+    "source": "https://www.nasa.gov/feeds/iotd-feed/",
+    "resultCount": 60,
+    "fields": ["title", "description", "imageUrl", "link", "pubDate"],
+    "schemaWarnings": 0,
+    "remainingMocks": 0,
+    "projectLocalBlocks": []
+  },
+  "structuredBinding": {
+    "selectedSpontaneously": true,
+    "manualStringPaths": 0,
+    "bindingWarnings": 0,
+    "schemaBackedIterationAndFields": true
+  },
+  "frontend": {
+    "generatedByAgent": true,
+    "productionBuildByAgent": false,
+    "productionBuildAfterFix": true,
+    "applicationHttpStatus": 200,
+    "backendHttpStatus": 200,
+    "browserApplicationErrors": 0,
+    "failedBrowserRequests": 0,
+    "renderedCardCount": 60,
+    "loadedImageCount": 60,
+    "exactResponseDomMatches": 60,
+    "variantCounts": {"sky": 30, "dark": 30},
+    "desktopOverflow": false,
+    "mobile390Overflow": false
+  },
+  "comparison": {
+    "run11CallsThroughFirstGeneration": 27,
+    "run12CallsThroughFirstGeneration": 23,
+    "firstGenerationCallReductionPercent": 14.8,
+    "run11TotalMcpCalls": 40,
+    "run12TotalMcpCalls": 38,
+    "totalMcpCallReductionPercent": 5.0,
+    "run11AgentTotalMs": 377780,
+    "run12AgentTotalMs": 521240,
+    "agentDurationChangePercent": 38.0
+  },
+  "toolingFindings": [
+    {
+      "severity": "fixed",
+      "finding": "Generated Svelte projects pinned Vite 8 and the Svelte Vite plugin 7 while the runtime provides Node 18.",
+      "recovery": "Pin both builder and generated applications to Vite 6.4.3 and plugin 5.1.1, with a regression assertion."
+    },
+    {
+      "severity": "fixed",
+      "finding": "flow-node-output-schema read only canonical sidecars and failed on a valid unpromoted FlowScript working copy.",
+      "recovery": "Compile the working copy for schema inspection when flow-code-status reports one."
+    },
+    {
+      "severity": "medium",
+      "finding": "The agent read the installed skill in three shell chunks and repeated four complete app-progress audits.",
+      "impact": "The response budget avoided no work on this small project; reducing repeated orientation and complete audits is the next time-saving axis."
+    }
+  ],
+  "outcome": {
+    "functionalBackend": true,
+    "productionBuild": true,
+    "schemaBackedStructuredBindingAcceptance": true,
+    "functionalBrowserRendering": true,
+    "responsiveOverflowAcceptance": true,
+    "transparentBudgetNoRegression": true,
+    "cleanTimingAcceptance": false,
+    "proceedToRetailStore": false,
+    "nextAcceptanceRun": "One short fresh Hello World run with the two post-campaign fixes, then RetailStore if it stays below the Run11 duration."
+  }
+}

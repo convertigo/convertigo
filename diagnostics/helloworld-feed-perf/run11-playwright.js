@@ -3,7 +3,10 @@
 const assert = require("node:assert/strict");
 const { chromium } = require("playwright");
 
-const project = "sample_HelloWorldFlowRun11";
+const project = process.env.FLOW_PROJECT || "sample_HelloWorldFlowRun11";
+const outputPrefix = process.env.FLOW_OUTPUT_PREFIX || "run11";
+const oddVariant = process.env.FLOW_ODD_VARIANT || "muted";
+const loadButton = process.env.FLOW_LOAD_BUTTON || "Load NASA images";
 const appUrl =
   `http://127.0.0.1:19080/convertigo/projects/${project}/DisplayObjects/mobile/`;
 
@@ -36,11 +39,11 @@ async function inspect(page, expected) {
         return counts;
       }, {}),
       alternates: rows.every((row, index) =>
-        row.variant === (index % 2 === 0 ? "sky" : "muted")),
+        row.variant === (index % 2 === 0 ? "sky" : payload.oddVariant)),
       exactMatches: rows.length - mismatches.length,
       mismatchCount: mismatches.length
     };
-  }, expected);
+  }, { ...expected, oddVariant });
 }
 
 async function main() {
@@ -50,12 +53,20 @@ async function main() {
   });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const browserErrors = [];
+  const failedResponses = [];
+  const failedRequests = [];
   page.on("console", (message) => {
     if (message.type() === "error" && !message.text().includes("favicon.ico")) {
       browserErrors.push(message.text());
     }
   });
   page.on("pageerror", (error) => browserErrors.push(error.message));
+  page.on("response", (response) => {
+    if (response.status() >= 400) failedResponses.push({ status: response.status(), url: response.url() });
+  });
+  page.on("requestfailed", (request) => {
+    failedRequests.push({ error: request.failure()?.errorText || "", url: request.url() });
+  });
 
   try {
     const responsePromise = page.waitForResponse(
@@ -69,7 +80,7 @@ async function main() {
     assert.equal(navigation.status(), 200);
     await page.waitForTimeout(500);
     if (await page.locator("section.fb-card > img.fb-image").count() === 0) {
-      await page.getByRole("button", { name: "Load NASA images" }).click();
+      await page.getByRole("button", { name: loadButton }).click();
     }
     const response = await responsePromise;
     const payload = await response.json();
@@ -78,22 +89,22 @@ async function main() {
       payload.count,
       { timeout: 30_000 }
     );
-    await page.waitForFunction(
+    const imagesFullyLoaded = await page.waitForFunction(
       () => Array.from(document.querySelectorAll("section.fb-card > img.fb-image"))
         .every((image) => image.complete && image.naturalWidth > 0),
       null,
       { timeout: 60_000 }
-    );
+    ).then(() => true, () => false);
 
     const desktop = await inspect(page, payload);
     await page.screenshot({
-      path: "diagnostics/helloworld-feed-perf/results/run11-desktop.png",
+      path: `diagnostics/helloworld-feed-perf/results/${outputPrefix}-desktop.png`,
       fullPage: false
     });
     await page.setViewportSize({ width: 390, height: 844 });
     const mobile = await inspect(page, payload);
     await page.screenshot({
-      path: "diagnostics/helloworld-feed-perf/results/run11-mobile.png",
+      path: `diagnostics/helloworld-feed-perf/results/${outputPrefix}-mobile.png`,
       fullPage: false
     });
 
@@ -102,7 +113,10 @@ async function main() {
       applicationStatus: navigation.status(),
       backendStatus: response.status(),
       backendCount: payload.count,
+      imagesFullyLoaded,
       browserErrors,
+      failedResponses,
+      failedRequests,
       desktop,
       mobile
     };
@@ -115,7 +129,7 @@ async function main() {
       assert.equal(result.loadedImageCount, payload.count);
       assert.equal(result.exactMatches, payload.count);
       assert.equal(result.mismatchCount, 0);
-      assert.deepEqual(result.variantCounts, { sky: 30, muted: 30 });
+      assert.deepEqual(result.variantCounts, { sky: 30, [oddVariant]: 30 });
       assert.equal(result.alternates, true);
       assert.equal(result.documentWidth <= result.viewportWidth, true);
     }

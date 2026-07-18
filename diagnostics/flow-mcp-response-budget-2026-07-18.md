@@ -71,3 +71,34 @@ set `complete:false`; only the full assessment sets `complete:true`.
   mismatch tests pass under Rhino.
 - `lib_flow_engine/tests/smoke.js`: passes.
 - `lib_flow_mcp/tests/smoke.js`: passes and verifies tools/list schemas.
+
+## Fresh Hello World Run12
+
+Run12 exercised the automatic policy without exposing tuning parameters to the
+agent. The project was small enough that all four `flow-app-progress` calls
+completed inside the default phase budget (`complete:true`, `partial:false`),
+so no cursor continuation was needed. This confirms the normal-case behavior:
+complete answers remain unchanged and carry no budget noise.
+
+The agent reached its first generated frontend after 23 MCP calls, versus 27 in
+Run11, and used no broad frontend-tree inspection. The total campaign was not
+faster: 521.24 s and 38 MCP calls versus 377.78 s and 40 calls in Run11. It lost
+time to two generic defects and never reached Playwright itself:
+
+- generated applications required Node 20 because they pinned Vite 8, while
+  the runtime provides Node 18;
+- `flow-node-output-schema` could not inspect an unpromoted FlowScript working
+  copy.
+
+Both defects were fixed after the campaign. The frontbuilder now generates
+Vite 6.4.3/plugin 5.1.1 applications and builds successfully under Node 18.
+Schema tools now compile a working copy when one exists. Independent
+Playwright validation then passed with 60 exact cards and loaded images on
+desktop and 390 px mobile, no overflow, and no browser or network errors.
+
+The durable result is
+`results/frontend-fresh-agent-run12-20260718.json`. Run12 is a functional and
+no-regression proof for transparent budgets, but not a clean timing acceptance
+run. The next time-saving target is avoiding repeated complete progress audits
+and repeated skill reads; timeout pagination cannot improve calls that already
+finish below their budget.
