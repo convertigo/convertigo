@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-07-18T13:00:00+02:00",
+  "project": "sample_RetailStoreFlowRun7",
+  "operation": "frontend-svelte-tree targeted picker",
+  "request": {
+    "detail": "inspect",
+    "property": "source",
+    "sourceId": "catalogItems",
+    "maxDepth": 0,
+    "focusNode": "openLeafCategory"
+  },
+  "before": {
+    "callsMs": [34350, 32340, 40300],
+    "cliMs": 1590,
+    "cliPayloadBytes": 11006981
+  },
+  "after": {
+    "callsMs": [10300, 2480, 2240],
+    "cliMs": 1260,
+    "cliPayloadBytes": 460207,
+    "responseBytes": 26569,
+    "result": {
+      "children": 1,
+      "sources": 1,
+      "bindingPaths": 18
+    }
+  },
+  "improvement": {
+    "cliPayloadReductionPercent": 95.82,
+    "warmLatencyReductionPercentVsFirstBaselineCall": 93.48,
+    "warmLatencyReductionPercentVsBaselineMedian": 93.06
+  },
+  "implementation": {
+    "lib_flow_engine": "dc073dc",
+    "lib_flow_frontbuilder_svelte": "4d6d7c5",
+    "pushed": false
+  },
+  "validation": {
+    "frontbuilderTests": "17/17 passed",
+    "engineSmoke": "passed",
+    "helloWorldRun11": {
+      "applicationStatus": 200,
+      "backendStatus": 200,
+      "items": 60,
+      "loadedImagesDesktop": 60,
+      "loadedImagesMobile": 60,
+      "browserErrors": 0,
+      "responsiveOverflow": false
+    }
+  },
+  "conclusion": "The engine-only projection removes duplicated descriptors and retains binding sources only for the requested property/source before the document crosses the TypeScript-to-Rhino boundary. The MCP response contract is unchanged."
+}
