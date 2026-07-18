@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-07-18T13:58:29+02:00",
+  "project": "sample_RetailStoreFlowRun7",
+  "operation": "frontend-svelte-code-check unchanged source",
+  "sourceBytes": 34411,
+  "before": {
+    "callsMs": [14400, 12790, 13190],
+    "medianMs": 13190,
+    "enginePayloadBytes": 2559349
+  },
+  "after": {
+    "callsMs": [11950, 2390, 2000],
+    "warmMedianMs": 2195,
+    "enginePayloadBytes": 453152,
+    "codeSetMs": 2050
+  },
+  "improvement": {
+    "enginePayloadReductionPercent": 82.29,
+    "warmMedianLatencyReductionPercent": 83.36,
+    "estimatedRun7CheckAndSetSavingsMinutes": 8.7
+  },
+  "contract": {
+    "kept": [
+      "Svelte parsing",
+      "Flow structure",
+      "property definitions",
+      "accepted properties",
+      "duplicate id diagnostics"
+    ],
+    "skipped": [
+      "binding source candidates",
+      "picker mutations",
+      "requestable schema enrichment"
+    ]
+  },
+  "validation": {
+    "retailStoreUnchanged": {
+      "ok": true,
+      "errors": 0,
+      "warnings": 0
+    },
+    "helloWorldRun11": {
+      "ok": true,
+      "errors": 0,
+      "warnings": 0,
+      "coldAfterRestartMs": 3510
+    },
+    "invalidProperty": {
+      "ok": false,
+      "code": "FRONTEND_PROPERTY_UNKNOWN",
+      "property": "bogus"
+    },
+    "frontbuilderTests": "18/18 passed",
+    "engineSmoke": "passed",
+    "mcpSmoke": "passed"
+  },
+  "implementation": {
+    "lib_flow_engine": "8d3731f",
+    "lib_flow_frontbuilder_svelte": "30b9418",
+    "lib_flow_mcp": "4564ad7",
+    "pushed": false
+  },
+  "conclusion": "Flow Svelte validation now projects property contracts without picker binding data. Picker and flow-app-progress behavior remain unchanged."
+}
