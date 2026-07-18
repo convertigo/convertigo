@@ -15,7 +15,8 @@ synchronization.
 - First use shows three ordered automatic states: server initialization, a
   one-shot FullSync pull with visible progress, then local index preparation by
   executing and awaiting a real local catalog view. Use the supplied animation
-  for each state and never leave synchronization active at 100/100.
+  for each state, never leave synchronization active at 100/100, and remove the
+  complete progress surface once the local index is ready.
 - A catalog screen starts at the shop root with exactly 14 unique top-level
   departments and lets the user descend through categories until products are
   reached. Do not render the same category more than once when it has several
@@ -90,6 +91,9 @@ the production build and the real browser application are validated.
   uniqueness, the 22-product count, mutually exclusive catalog/detail states,
   every breadcrumb segment, browser Back and visible Back. Do not choose an
   arbitrary first/last card or infer success from merely finding some data.
+- Assert that every visible catalog and detail image has `naturalWidth > 0`.
+  Use portable `resources/...` project paths and `Image.fallbackSrc` for
+  fixture-backed fallbacks; a rendered but broken `img` is a failed result.
 - Run the final acceptance twice with the same persistent browser profile. The
   second launch must reach the catalog and must not remain at active 100/100.
 - In the standalone Playwright output, emit one machine-readable line named

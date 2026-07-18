@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "run": "sample_RetailStoreFlowRun7",
+  "status": "functionally_accepted_performance_failed",
+  "commits": {
+    "convertigoBase": "ddd44af37f28de3a3316c600ffe7abae2cf3844f",
+    "flowEngine": "5b52f84bcdf2f16de3afdc597bec3fea6a2235bd",
+    "flowMcp": "c2d00e7eccbc6ff9b6eb18093cdb02633d694d6e",
+    "flowSvelteFrontbuilder": "8ac132aa8af226b780f1c06be7041a54ab756e4f"
+  },
+  "campaign": {
+    "observedActiveMs": 5697746,
+    "observedActiveMinutes": 94.96,
+    "mcpCalls": 262,
+    "failedMcpCalls": 25,
+    "frontendMutations": 10,
+    "traceSummary": "run7-trace-summary.json"
+  },
+  "comparisonToRun6": {
+    "run6ObservedActiveMinutes": 62.14,
+    "activeTimeChangePercent": 52.8,
+    "run6McpCalls": 298,
+    "mcpCallChangePercent": -12.1,
+    "run6FrontendMutations": 154,
+    "frontendMutationChangePercent": -93.5,
+    "run6FailedMcpCalls": 10,
+    "failedMcpCallDelta": 15,
+    "conclusion": "Source-first authoring removed most unit mutations, but repeated full AST/picker work and timeout recovery made the complete run slower."
+  },
+  "browser": {
+    "playwright": "passed",
+    "durationSeconds": 11.1,
+    "firstUsefulRenderMs": 4217,
+    "rootDepartmentCount": 14,
+    "duplicateStrictRootCount": 1,
+    "strictBranchProductCount": 22,
+    "productName": "Biscuit céréales complètes goût chocolat BN",
+    "progressAnimation": "resources/retailstore/init.gif",
+    "progressMessage": "Initializing the server catalog.",
+    "visibleImagesLoaded": true,
+    "startupSurfaceRemovedAfterIndex": true,
+    "offlineFetchOrXhrDuringTraversal": 0,
+    "mobileHorizontalOverflow": false,
+    "desktopHorizontalOverflow": false,
+    "browserErrors": 0
+  },
+  "functionalAssertions": [
+    "The first launch displays a real project-resource progress animation and message.",
+    "The completed progress surface disappears before the catalog is used.",
+    "The root contains 14 unique departments and no duplicate strict-path category.",
+    "The strict branch renders exactly 22 products.",
+    "Category and product names are actionable schema-backed Button labels.",
+    "Product detail, bounded quantity, visible Back and breadcrumb return work.",
+    "The strict catalog and detail traversal works after browser networking is disabled.",
+    "Every visible catalog and detail image has a positive naturalWidth."
+  ],
+  "hardPoints": [
+    {
+      "name": "frontend-svelte-tree",
+      "calls": 57,
+      "medianMs": 23325,
+      "p95Ms": 34926,
+      "totalMs": 1387000,
+      "impact": "23.12 minutes, the largest measured authoring bottleneck."
+    },
+    {
+      "name": "flow-app-progress",
+      "calls": 16,
+      "failures": 3,
+      "medianMs": 17052,
+      "p95Ms": 60031,
+      "impact": "Three timeouts left runtime work in progress and required recovery."
+    },
+    {
+      "name": "large picker responses",
+      "impact": "Targeted source inspections returned complete candidate trees and drove very large cached model contexts."
+    },
+    {
+      "name": "frontend build runtime",
+      "impact": "The Convertigo container uses Node 18 while Vite 8 requires Node 20.19+ or 22.12+; final builds ran on host Node 22."
+    },
+    {
+      "name": "source patch context",
+      "impact": "One valid revisioned frontend-svelte-code-patch failed context matching and required a full source code-set."
+    }
+  ],
+  "appliedToolingImprovements": [
+    "Button descendants of typed iterators now require explicit structured sources in flow-app-progress.",
+    "flow-app-progress recommends compact depth-2 trees instead of broad depth-8 inspections.",
+    "Image supports a portable project-resource fallbackSrc and verifies failed primary media.",
+    "Status and Image resolve resources/... against the current Convertigo project without embedding its name.",
+    "Lifecycle negations such as !prepareIndex.success generate correct Svelte conditions.",
+    "RetailStore campaign acceptance now checks loaded image pixels and removal of completed progress surfaces."
+  ],
+  "nextOptimization": "Cache the parsed frontend document and schema index by source revision, add a compact binding-candidate endpoint that returns only the selected property/source paths, and make code-check/progress cancellation terminate their runtime work."
+}

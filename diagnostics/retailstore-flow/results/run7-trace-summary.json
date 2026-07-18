@@ -1,0 +1,662 @@
+{
+  "schemaVersion": 1,
+  "timing": {
+    "available": true,
+    "firstObservedAt": "2026-07-17T20:04:55.826Z",
+    "lastObservedAt": "2026-07-18T08:03:19.503Z",
+    "wallMs": 43103677,
+    "observedActiveMs": 5697746,
+    "interSegmentGapMs": 37405931,
+    "segments": [
+      {
+        "run": "run7",
+        "segment": "authoring-resume-after-picker-2",
+        "firstObservedAt": "2026-07-18T06:42:43.833Z",
+        "lastObservedAt": "2026-07-18T07:20:50.148Z",
+        "observedDurationMs": 2286315,
+        "events": 170
+      },
+      {
+        "run": "run7",
+        "segment": "authoring-resume-after-picker",
+        "firstObservedAt": "2026-07-18T06:42:06.895Z",
+        "lastObservedAt": "2026-07-18T06:43:59.991Z",
+        "observedDurationMs": 113096,
+        "events": 16
+      },
+      {
+        "run": "run7",
+        "segment": "authoring-resume-after-runtime-restart",
+        "firstObservedAt": "2026-07-18T07:21:44.905Z",
+        "lastObservedAt": "2026-07-18T07:23:11.214Z",
+        "observedDurationMs": 86309,
+        "events": 14
+      },
+      {
+        "run": "run7",
+        "segment": "authoring-resume-ast-fix",
+        "firstObservedAt": "2026-07-17T20:47:51.487Z",
+        "lastObservedAt": "2026-07-17T20:57:34.901Z",
+        "observedDurationMs": 583414,
+        "events": 87
+      },
+      {
+        "run": "run7",
+        "segment": "button-bindings",
+        "firstObservedAt": "2026-07-18T07:36:09.296Z",
+        "lastObservedAt": "2026-07-18T07:40:46.033Z",
+        "observedDurationMs": 276737,
+        "events": 27
+      },
+      {
+        "run": "run7",
+        "segment": "authoring-resume-focused-bindings",
+        "firstObservedAt": "2026-07-17T21:29:22.291Z",
+        "lastObservedAt": "2026-07-17T21:35:45.781Z",
+        "observedDurationMs": 384749,
+        "events": 32
+      },
+      {
+        "run": "run7",
+        "segment": "authoring-resume-frontend",
+        "firstObservedAt": "2026-07-17T20:34:59.985Z",
+        "lastObservedAt": "2026-07-17T20:37:28.282Z",
+        "observedDurationMs": 148297,
+        "events": 53
+      },
+      {
+        "run": "run7",
+        "segment": "authoring-resume-infra",
+        "firstObservedAt": "2026-07-17T20:22:58.716Z",
+        "lastObservedAt": "2026-07-17T20:26:30.386Z",
+        "observedDurationMs": 211670,
+        "events": 24
+      },
+      {
+        "run": "run7",
+        "segment": "media-fallback",
+        "firstObservedAt": "2026-07-18T07:49:49.532Z",
+        "lastObservedAt": "2026-07-18T07:52:43.944Z",
+        "observedDurationMs": 174412,
+        "events": 21
+      },
+      {
+        "run": "run7",
+        "segment": "authoring-resume-projection",
+        "firstObservedAt": "2026-07-17T20:28:52.682Z",
+        "lastObservedAt": "2026-07-17T20:33:41.133Z",
+        "observedDurationMs": 288451,
+        "events": 86
+      },
+      {
+        "run": "run7",
+        "segment": "authoring-resume-source",
+        "firstObservedAt": "2026-07-17T20:37:52.464Z",
+        "lastObservedAt": "2026-07-17T20:42:20.025Z",
+        "observedDurationMs": 267561,
+        "events": 35
+      },
+      {
+        "run": "run7",
+        "segment": "startup-surface",
+        "firstObservedAt": "2026-07-18T08:00:49.191Z",
+        "lastObservedAt": "2026-07-18T08:03:19.503Z",
+        "observedDurationMs": 150312,
+        "events": 22
+      },
+      {
+        "run": "run7",
+        "segment": "authoring",
+        "firstObservedAt": "2026-07-17T20:07:12.435Z",
+        "lastObservedAt": "2026-07-17T20:18:16.619Z",
+        "observedDurationMs": 664184,
+        "events": 108
+      },
+      {
+        "run": "run7",
+        "segment": "prep-retry",
+        "firstObservedAt": "2026-07-17T20:05:41.370Z",
+        "lastObservedAt": "2026-07-17T20:06:20.516Z",
+        "observedDurationMs": 39146,
+        "events": 15
+      },
+      {
+        "run": "run7",
+        "segment": "prep",
+        "firstObservedAt": "2026-07-17T20:04:55.826Z",
+        "lastObservedAt": "2026-07-17T20:05:18.919Z",
+        "observedDurationMs": 23093,
+        "events": 8
+      }
+    ]
+  },
+  "counts": {
+    "events": 718,
+    "mcpCalls": 262,
+    "failedMcpCalls": 25,
+    "retryCalls": 88,
+    "recoveredFailures": 7,
+    "frontendMutations": 10,
+    "failedFrontendMutations": 0,
+    "commandRuns": 22,
+    "failedCommandRuns": 0,
+    "modelInterruptions": 0,
+    "failedSegments": 6
+  },
+  "milestones": {
+    "productionBuild": {
+      "observedAt": "2026-07-18T07:22:58.916Z",
+      "segment": "authoring-resume-after-runtime-restart",
+      "evidence": "build",
+      "elapsedWallMs": 40683090
+    },
+    "firstFullSyncSchema": {
+      "observedAt": "2026-07-17T20:50:08.650Z",
+      "segment": "authoring-resume-ast-fix",
+      "evidence": "frontend-svelte-fullsync-schema",
+      "elapsedWallMs": 2712824
+    },
+    "firstFlowRun": {
+      "observedAt": "2026-07-17T20:29:48.920Z",
+      "segment": "authoring-resume-projection",
+      "evidence": "sample_RetailStoreFlowRun7.InitializeRetailStore",
+      "elapsedWallMs": 1493094
+    },
+    "firstInitializationRun": {
+      "observedAt": "2026-07-17T20:29:48.920Z",
+      "segment": "authoring-resume-projection",
+      "evidence": "sample_RetailStoreFlowRun7.InitializeRetailStore",
+      "elapsedWallMs": 1493094
+    },
+    "scaffoldDryRun": {
+      "observedAt": "2026-07-17T20:32:17.635Z",
+      "segment": "authoring-resume-projection",
+      "evidence": "flow-fullsync-scaffold",
+      "elapsedWallMs": 1641809
+    },
+    "scaffoldApply": {
+      "observedAt": "2026-07-17T20:32:21.207Z",
+      "segment": "authoring-resume-projection",
+      "evidence": "flow-fullsync-scaffold",
+      "elapsedWallMs": 1645381
+    },
+    "bootstrap": {
+      "observedAt": "2026-07-17T20:06:15.008Z",
+      "segment": "prep-retry",
+      "evidence": "flow-project-bootstrap",
+      "elapsedWallMs": 79182
+    }
+  },
+  "browserMetrics": [],
+  "tools": {
+    "frontend-svelte-tree": {
+      "calls": 57,
+      "failures": 1,
+      "latency": {
+        "samples": 57,
+        "totalMs": 1387000,
+        "medianMs": 23325,
+        "p95Ms": 34926,
+        "maxMs": 36900
+      }
+    },
+    "frontend-svelte-code-check": {
+      "calls": 20,
+      "failures": 2,
+      "latency": {
+        "samples": 20,
+        "totalMs": 445266,
+        "medianMs": 13989,
+        "p95Ms": 60037,
+        "maxMs": 60068
+      }
+    },
+    "read_mcp_resource": {
+      "calls": 20,
+      "failures": 0,
+      "latency": {
+        "samples": 20,
+        "totalMs": 6785,
+        "medianMs": 336,
+        "p95Ms": 548,
+        "maxMs": 631
+      }
+    },
+    "code-set": {
+      "calls": 19,
+      "failures": 5,
+      "latency": {
+        "samples": 19,
+        "totalMs": 68937,
+        "medianMs": 496,
+        "p95Ms": 6827,
+        "maxMs": 60031
+      }
+    },
+    "frontend-svelte-code-get": {
+      "calls": 18,
+      "failures": 0,
+      "latency": {
+        "samples": 18,
+        "totalMs": 4812,
+        "medianMs": 235,
+        "p95Ms": 492,
+        "maxMs": 594
+      }
+    },
+    "flow-app-progress": {
+      "calls": 16,
+      "failures": 3,
+      "latency": {
+        "samples": 16,
+        "totalMs": 416100,
+        "medianMs": 17052,
+        "p95Ms": 60031,
+        "maxMs": 60035
+      }
+    },
+    "frontend-svelte-palette": {
+      "calls": 15,
+      "failures": 0,
+      "latency": {
+        "samples": 15,
+        "totalMs": 33561,
+        "medianMs": 1616,
+        "p95Ms": 4590,
+        "maxMs": 4668
+      }
+    },
+    "code-run": {
+      "calls": 13,
+      "failures": 4,
+      "latency": {
+        "samples": 13,
+        "totalMs": 244589,
+        "medianMs": 1176,
+        "p95Ms": 60025,
+        "maxMs": 60027
+      }
+    },
+    "frontend-svelte-mutate": {
+      "calls": 10,
+      "failures": 0,
+      "latency": {
+        "samples": 10,
+        "totalMs": 5289,
+        "medianMs": 493,
+        "p95Ms": 872,
+        "maxMs": 1021
+      }
+    },
+    "code-get": {
+      "calls": 10,
+      "failures": 1,
+      "latency": {
+        "samples": 10,
+        "totalMs": 3960,
+        "medianMs": 264,
+        "p95Ms": 839,
+        "maxMs": 971
+      }
+    },
+    "frontend-svelte-fullsync-schema": {
+      "calls": 9,
+      "failures": 0,
+      "latency": {
+        "samples": 9,
+        "totalMs": 3064,
+        "medianMs": 340,
+        "p95Ms": 417,
+        "maxMs": 436
+      }
+    },
+    "list_mcp_resources": {
+      "calls": 8,
+      "failures": 4,
+      "latency": {
+        "samples": 8,
+        "totalMs": 833,
+        "medianMs": 83,
+        "p95Ms": 257,
+        "maxMs": 294
+      }
+    },
+    "frontend-svelte-code-set": {
+      "calls": 8,
+      "failures": 0,
+      "latency": {
+        "samples": 8,
+        "totalMs": 136632,
+        "medianMs": 12553,
+        "p95Ms": 34439,
+        "maxMs": 34612
+      }
+    },
+    "frontend-svelte-action": {
+      "calls": 8,
+      "failures": 2,
+      "latency": {
+        "samples": 8,
+        "totalMs": 130225,
+        "medianMs": 1711,
+        "p95Ms": 60025,
+        "maxMs": 60025
+      }
+    },
+    "flow-fullsync-scaffold": {
+      "calls": 6,
+      "failures": 0,
+      "latency": {
+        "samples": 6,
+        "totalMs": 1815,
+        "medianMs": 282,
+        "p95Ms": 394,
+        "maxMs": 416
+      }
+    },
+    "flow-resource-get": {
+      "calls": 5,
+      "failures": 0,
+      "latency": {
+        "samples": 5,
+        "totalMs": 1573,
+        "medianMs": 247,
+        "p95Ms": 530,
+        "maxMs": 580
+      }
+    },
+    "flow-block-get": {
+      "calls": 4,
+      "failures": 0,
+      "latency": {
+        "samples": 4,
+        "totalMs": 843,
+        "medianMs": 201,
+        "p95Ms": 239,
+        "maxMs": 245
+      }
+    },
+    "flow-requestable-schema": {
+      "calls": 3,
+      "failures": 0,
+      "latency": {
+        "samples": 3,
+        "totalMs": 986,
+        "medianMs": 335,
+        "p95Ms": 336,
+        "maxMs": 336
+      }
+    },
+    "code-promote": {
+      "calls": 3,
+      "failures": 1,
+      "latency": {
+        "samples": 3,
+        "totalMs": 19745,
+        "medianMs": 955,
+        "p95Ms": 16283,
+        "maxMs": 17986
+      }
+    },
+    "code-discard": {
+      "calls": 2,
+      "failures": 0,
+      "latency": {
+        "samples": 2,
+        "totalMs": 436,
+        "medianMs": 218,
+        "p95Ms": 230,
+        "maxMs": 231
+      }
+    },
+    "flow-resource-delete": {
+      "calls": 2,
+      "failures": 0,
+      "latency": {
+        "samples": 2,
+        "totalMs": 450,
+        "medianMs": 225,
+        "p95Ms": 251,
+        "maxMs": 254
+      }
+    },
+    "flow-project-bootstrap": {
+      "calls": 2,
+      "failures": 1,
+      "latency": {
+        "samples": 2,
+        "totalMs": 929,
+        "medianMs": 465,
+        "p95Ms": 879,
+        "maxMs": 925
+      }
+    },
+    "code-status": {
+      "calls": 1,
+      "failures": 0,
+      "latency": {
+        "samples": 1,
+        "totalMs": 297,
+        "medianMs": 297,
+        "p95Ms": 297,
+        "maxMs": 297
+      }
+    },
+    "frontend-svelte-code-patch": {
+      "calls": 1,
+      "failures": 1,
+      "latency": {
+        "samples": 1,
+        "totalMs": 266,
+        "medianMs": 266,
+        "p95Ms": 266,
+        "maxMs": 266
+      }
+    },
+    "flow-search": {
+      "calls": 1,
+      "failures": 0,
+      "latency": {
+        "samples": 1,
+        "totalMs": 431,
+        "medianMs": 431,
+        "p95Ms": 431,
+        "maxMs": 431
+      }
+    },
+    "list_mcp_resource_templates": {
+      "calls": 1,
+      "failures": 0,
+      "latency": {
+        "samples": 1,
+        "totalMs": 76,
+        "medianMs": 76,
+        "p95Ms": 76,
+        "maxMs": 76
+      }
+    }
+  },
+  "hardPoints": [
+    {
+      "category": "process",
+      "signature": "segment-exit:1",
+      "count": 5,
+      "latency": {
+        "samples": 0,
+        "totalMs": null,
+        "medianMs": null,
+        "p95Ms": null,
+        "maxMs": null
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:resources/list failed: failed to get client: MCP startup failed: handshaking with MCP server failed: Send message error Transport [rmcp::transport::worker::WorkerTransport<rmcp::transport::streamable_http_client::StreamableHttpClientWorker<",
+      "count": 4,
+      "latency": {
+        "samples": 4,
+        "totalMs": 1,
+        "medianMs": 0,
+        "p95Ms": 1,
+        "maxMs": 1
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:tool call error: tool call failed for `convertigo-flow/code-run`",
+      "count": 4,
+      "latency": {
+        "samples": 4,
+        "totalMs": 220389,
+        "medianMs": 60019,
+        "p95Ms": 60026,
+        "maxMs": 60027
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:tool call error: tool call failed for `convertigo-flow/flow-app-progress`",
+      "count": 3,
+      "latency": {
+        "samples": 3,
+        "totalMs": 180090,
+        "medianMs": 60030,
+        "p95Ms": 60035,
+        "maxMs": 60035
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "domain:FLOWSCRIPT_UNBALANCED_SYNTAX",
+      "count": 3,
+      "latency": {
+        "samples": 3,
+        "totalMs": 788,
+        "medianMs": 249,
+        "p95Ms": 300,
+        "maxMs": 306
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:tool call error: tool call failed for `convertigo-flow/frontend-svelte-code-check`",
+      "count": 2,
+      "latency": {
+        "samples": 2,
+        "totalMs": 120103,
+        "medianMs": 60052,
+        "p95Ms": 60066,
+        "maxMs": 60068
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:tool call error: tool call failed for `convertigo-flow/frontend-svelte-action`",
+      "count": 2,
+      "latency": {
+        "samples": 2,
+        "totalMs": 120049,
+        "medianMs": 60025,
+        "p95Ms": 60025,
+        "maxMs": 60025
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "domain:AUTHORING_TREE_FOCUS_NOT_FOUND",
+      "count": 1,
+      "latency": {
+        "samples": 1,
+        "totalMs": 1456,
+        "medianMs": 1456,
+        "p95Ms": 1456,
+        "maxMs": 1456
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:tool call error: tool call failed for `convertigo-flow/code-get`",
+      "count": 1,
+      "latency": {
+        "samples": 1,
+        "totalMs": 441,
+        "medianMs": 441,
+        "p95Ms": 441,
+        "maxMs": 441
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:tool call error: tool call failed for `convertigo-flow/code-set`",
+      "count": 1,
+      "latency": {
+        "samples": 1,
+        "totalMs": 60031,
+        "medianMs": 60031,
+        "p95Ms": 60031,
+        "maxMs": 60031
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:tool call error: tool call failed for `convertigo-flow/frontend-svelte-code-patch`",
+      "count": 1,
+      "latency": {
+        "samples": 1,
+        "totalMs": 266,
+        "medianMs": 266,
+        "p95Ms": 266,
+        "maxMs": 266
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "domain:FLOWSCRIPT_VALIDATION_FAILED",
+      "count": 1,
+      "latency": {
+        "samples": 1,
+        "totalMs": 729,
+        "medianMs": 729,
+        "p95Ms": 729,
+        "maxMs": 729
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:tool call error: tool call failed for `convertigo-flow/code-promote`",
+      "count": 1,
+      "latency": {
+        "samples": 1,
+        "totalMs": 17986,
+        "medianMs": 17986,
+        "p95Ms": 17986,
+        "maxMs": 17986
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:user cancelled MCP tool call",
+      "count": 1,
+      "latency": {
+        "samples": 1,
+        "totalMs": 4,
+        "medianMs": 4,
+        "p95Ms": 4,
+        "maxMs": 4
+      }
+    },
+    {
+      "category": "process",
+      "signature": "segment-exit:101",
+      "count": 1,
+      "latency": {
+        "samples": 0,
+        "totalMs": null,
+        "medianMs": null,
+        "p95Ms": null,
+        "maxMs": null
+      }
+    }
+  ],
+  "modelInterruptions": []
+}

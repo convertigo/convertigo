@@ -30,7 +30,8 @@
 ## Browser behavior
 
 - Initial online sync completes and reports progress or a determinate terminal
-  state. It advances after active 100/100.
+  state. It advances after active 100/100 and leaves no empty progress surface
+  above the catalog once local indexing succeeds.
 - A real local view completes between pull and catalog navigation so first-use
   indexing is observable rather than simulated.
 - The root catalog has at least one category, category navigation reaches at
@@ -40,6 +41,8 @@
 - Reload behavior is documented: offline reload is required only if the static
   application shell is already cached by the deployment/browser strategy.
 - Desktop and 390 px mobile layouts have no horizontal document overflow.
+- Every visible catalog, detail and progress image loads successfully; browser
+  assertions verify `naturalWidth > 0` rather than only checking DOM presence.
 - No uncaught browser exception, failed Svelte hydration or missing binding is
   present.
 - Two launches in one persistent browser profile both reach `/store`; the
