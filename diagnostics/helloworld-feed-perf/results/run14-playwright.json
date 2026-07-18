@@ -1,0 +1,298 @@
+{
+  "ok": true,
+  "applicationStatus": 200,
+  "backendStatus": 200,
+  "backendCount": 60,
+  "imagesFullyLoaded": false,
+  "browserErrors": [
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED"
+  ],
+  "failedResponses": [],
+  "failedRequests": [
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/07/jsc2026e396761orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/07/55374566234-d7c31b6e97-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/gsfc-20260616-swiftboost-001.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/55357496142-295d2a4b87-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/iss074e0760514orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/euclid-s-view-of-our-galaxy-s-bulge.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/55352876103-02b858152c-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/ksc-20260621-ph-ajn01-0166orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/art002e024603orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/sgrc-lg.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/55323265139-3f76fbd65a-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/macs0329-0211-sky-sreg-flat-final.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/iss074e0672727orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/iss074-e-619284-lrg.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/55158722798-9bb0f41f19-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/iss074e0349331.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/ng-06022026-artemis-iii-booster-segment-shipment-to-ksc-1-31large.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/jsc2026e392659.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/x59-first-supersonic-ata-02.png"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/s66-38515orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/pia25729orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/hubble-m88-potm2605a.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/06/55299665361-f70b9ce302-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/55270825152-a1118117db-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/eso490-017-1-flat-final-crop.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/afrc2026-0100-73-48ea27.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/ksc-20260519-ph-jbs01-0032orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/iss074e0543247orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/55252854454-c4ed9aa664-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/hubble-ngc1266-2-4f-flat-final-crop2.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/e2b-pia26775-surface-color-m4kzus7e.png"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/nhq202605180004orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/55255325881-69941927eb-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/pia26724.png"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/55227020012-87ff8b1296-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/nhq202605120023orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/pia26650-watson-take-6-up-small.png"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/jsc2025e078652-altorig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/iss074e0521637orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/art002e023710orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/04/xraydot-illus-1.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/04/s61-01908orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/hubble-ngc3137-potm2604a.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/05/55241093118-d474b58236-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/04/ksc-20260428-ph-geb02-0005orig.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/04/55205768700-7d3f580146-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/04/55228089453-c0d41d11a7-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/04/afrc2026-0077-01.webp"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/04/full-res-for-display.png"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/04/dimming-lg.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/04/art002e023345-o.jpg"
+    },
+    {
+      "error": "net::ERR_NETWORK_CHANGED",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/07/55380623885-a00df544bb-o.jpg"
+    }
+  ],
+  "desktop": {
+    "viewportWidth": 1440,
+    "documentWidth": 1440,
+    "cardCount": 60,
+    "loadedImageCount": 8,
+    "variantCounts": {
+      "dark": 30,
+      "sky": 30
+    },
+    "alternates": true,
+    "exactMatches": 60,
+    "mismatchCount": 0
+  },
+  "mobile": {
+    "viewportWidth": 390,
+    "documentWidth": 390,
+    "cardCount": 60,
+    "loadedImageCount": 8,
+    "variantCounts": {
+      "dark": 30,
+      "sky": 30
+    },
+    "alternates": true,
+    "exactMatches": 60,
+    "mismatchCount": 0
+  }
+}

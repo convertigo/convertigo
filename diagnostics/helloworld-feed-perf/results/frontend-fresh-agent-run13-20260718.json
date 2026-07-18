@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-07-18T23:01:16+02:00",
+  "project": "sample_HelloWorldFlowRun13",
+  "baseline": "frontend-fresh-agent-run12-20260718.json",
+  "checkpointsUnderTest": {
+    "lib_flow_engine": "4ca2983",
+    "lib_flow_frontbuilder_svelte": "a47314a",
+    "lib_flow_mcp": "d24be58"
+  },
+  "timing": {
+    "activeAgentTotalMs": 618240,
+    "cleanEndToEnd": false,
+    "contamination": "Playwright MCP extension transport stalled until its process was terminated."
+  },
+  "mcp": {
+    "callsThroughFirstGeneration": 36,
+    "allTerminalCalls": 41,
+    "failedCalls": 1,
+    "appProgressCalls": 2,
+    "partialResponses": 0,
+    "sampleCodeReads": 5,
+    "frontendTreeInspections": 2
+  },
+  "outcome": {
+    "backendCount": 60,
+    "schemaWarnings": 0,
+    "remainingMocks": 0,
+    "productionBuild": true,
+    "agentBrowserValidation": false,
+    "independentBrowserValidation": true,
+    "exactResponseDomMatches": 60,
+    "loadedImageCount": 60,
+    "desktopOverflow": false,
+    "mobile390Overflow": false,
+    "timingAcceptance": false
+  },
+  "findings": [
+    "The two-audit progress workflow worked as designed.",
+    "flow-node-output-schema successfully inspected the unpromoted working copy.",
+    "The skill still opened five samples mechanically and first sent an invalid compact unified diff.",
+    "Playwright MCP --extension waited for a browser extension that was not connected."
+  ]
+}

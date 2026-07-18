@@ -1,0 +1,95 @@
+{
+  "timestamp": "2026-07-18T23:01:16+02:00",
+  "project": "sample_HelloWorldFlowRun14",
+  "baseline": "frontend-fresh-agent-run11-20260717.json",
+  "checkpointsUnderTest": {
+    "lib_flow_engine": "4ca2983",
+    "lib_flow_frontbuilder_svelte": "a47314a",
+    "lib_flow_mcp": "5d36f11"
+  },
+  "postCampaignFix": {
+    "lib_flow_mcp": "3e0feb4"
+  },
+  "timing": {
+    "activeAgentTotalMs": 299720,
+    "cleanAuthoringAndBuild": true,
+    "browserLaunchFailureIncluded": true
+  },
+  "mcp": {
+    "callsThroughFirstGeneration": 26,
+    "allTerminalCalls": 31,
+    "failedCalls": 1,
+    "failedCall": "browser_navigate",
+    "appProgressCalls": 2,
+    "partialResponses": 0,
+    "sampleCodeReads": 0,
+    "frontendTreeInspections": 0,
+    "unitFrontendMutations": 1
+  },
+  "backend": {
+    "flow": "GetNasaNews",
+    "source": "https://www.nasa.gov/feeds/iotd-feed/",
+    "resultCount": 60,
+    "fields": ["title", "description", "imageUrl", "link", "pubDate"],
+    "schemaWarnings": 0,
+    "remainingMocks": 0
+  },
+  "frontend": {
+    "productionBuild": true,
+    "progressPercent": 100,
+    "bindingWarnings": 0,
+    "schemaBackedBindings": true,
+    "manualStringPaths": 0,
+    "applicationHttpStatus": 200,
+    "renderedCardCount": 60,
+    "exactResponseDomMatches": 60,
+    "variantCounts": {"dark": 30, "sky": 30},
+    "desktopOverflow": false,
+    "mobile390Overflow": false,
+    "remoteImagesFullyLoaded": false,
+    "remoteImageFailure": "ERR_NETWORK_CHANGED while fetching NASA assets"
+  },
+  "comparison": {
+    "run11AgentTotalMs": 377780,
+    "run14AgentTotalMs": 299720,
+    "durationReductionPercent": 20.7,
+    "run11TotalMcpCalls": 40,
+    "run14TotalMcpCalls": 31,
+    "mcpCallReductionPercent": 22.5,
+    "run13CallsThroughFirstGeneration": 36,
+    "run14CallsThroughFirstGeneration": 26,
+    "run13ToRun14FirstGenerationReductionPercent": 27.8
+  },
+  "toolingFindings": [
+    {
+      "severity": "fixed",
+      "finding": "Fresh orientation mechanically opened five samples.",
+      "recovery": "Limit pre-draft sample reads to at most two relevant examples; Run14 used zero."
+    },
+    {
+      "severity": "fixed",
+      "finding": "Agents first sent a compact @@ patch rejected by flow-resource-patch.",
+      "recovery": "Prefer revision-checked full source for small configuration resources; Run14 patched on the first call."
+    },
+    {
+      "severity": "fixed",
+      "finding": "Playwright MCP extension mode stalled without a connected extension.",
+      "recovery": "Use headless isolated MCP with /usr/bin/google-chrome; a post-campaign MCP smoke reached the built app with HTTP 200."
+    },
+    {
+      "severity": "fixed-after-run",
+      "finding": "The agent repeated flow-project-bootstrap after a successful first result.",
+      "recovery": "Bootstrap now returns an explicit next instruction to continue and not call it again."
+    }
+  ],
+  "outcome": {
+    "functionalBackend": true,
+    "productionBuild": true,
+    "schemaBackedStructuredBindingAcceptance": true,
+    "functionalBrowserDomAcceptance": true,
+    "remoteImageNetworkAcceptance": false,
+    "timingAcceptance": true,
+    "callCountAcceptance": true,
+    "proceedToRetailStore": true
+  }
+}

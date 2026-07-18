@@ -5,6 +5,7 @@ const { chromium } = require("playwright");
 
 const project = process.env.FLOW_PROJECT || "sample_HelloWorldFlowRun11";
 const outputPrefix = process.env.FLOW_OUTPUT_PREFIX || "run11";
+const evenVariant = process.env.FLOW_EVEN_VARIANT || "sky";
 const oddVariant = process.env.FLOW_ODD_VARIANT || "muted";
 const loadButton = process.env.FLOW_LOAD_BUTTON || "Load NASA images";
 const appUrl =
@@ -39,11 +40,11 @@ async function inspect(page, expected) {
         return counts;
       }, {}),
       alternates: rows.every((row, index) =>
-        row.variant === (index % 2 === 0 ? "sky" : payload.oddVariant)),
+        row.variant === (index % 2 === 0 ? payload.evenVariant : payload.oddVariant)),
       exactMatches: rows.length - mismatches.length,
       mismatchCount: mismatches.length
     };
-  }, { ...expected, oddVariant });
+  }, { ...expected, evenVariant, oddVariant });
 }
 
 async function main() {
@@ -129,7 +130,7 @@ async function main() {
       assert.equal(result.loadedImageCount, payload.count);
       assert.equal(result.exactMatches, payload.count);
       assert.equal(result.mismatchCount, 0);
-      assert.deepEqual(result.variantCounts, { sky: 30, [oddVariant]: 30 });
+      assert.deepEqual(result.variantCounts, { [evenVariant]: 30, [oddVariant]: 30 });
       assert.equal(result.alternates, true);
       assert.equal(result.documentWidth <= result.viewportWidth, true);
     }

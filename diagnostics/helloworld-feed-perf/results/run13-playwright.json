@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "applicationStatus": 200,
+  "backendStatus": 200,
+  "backendCount": 60,
+  "imagesFullyLoaded": true,
+  "browserErrors": [],
+  "failedResponses": [],
+  "failedRequests": [],
+  "desktop": {
+    "viewportWidth": 1440,
+    "documentWidth": 1440,
+    "cardCount": 60,
+    "loadedImageCount": 60,
+    "variantCounts": {
+      "dark": 30,
+      "sky": 30
+    },
+    "alternates": true,
+    "exactMatches": 60,
+    "mismatchCount": 0
+  },
+  "mobile": {
+    "viewportWidth": 390,
+    "documentWidth": 390,
+    "cardCount": 60,
+    "loadedImageCount": 60,
+    "variantCounts": {
+      "dark": 30,
+      "sky": 30
+    },
+    "alternates": true,
+    "exactMatches": 60,
+    "mismatchCount": 0
+  }
+}

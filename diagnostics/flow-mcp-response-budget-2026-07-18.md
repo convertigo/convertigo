@@ -102,3 +102,38 @@ no-regression proof for transparent budgets, but not a clean timing acceptance
 run. The next time-saving target is avoiding repeated complete progress audits
 and repeated skill reads; timeout pagination cannot improve calls that already
 finish below their budget.
+
+## Run13 and accepted Run14
+
+Run13 verified the two-audit workflow and the working-copy schema fix, but its
+618.24 s duration was invalidated by Playwright MCP extension mode waiting for
+a browser extension that was not connected. Independent Playwright validation
+passed all 60 cards and images on desktop and mobile.
+
+The skill was then tightened in two places: at most two relevant sample reads
+before the first draft, and full revision-checked source instead of an invented
+compact `@@` hunk for small configuration resources. Run14 exercised both:
+
+- zero sample `code-get` calls before authoring;
+- first configuration patch accepted;
+- two `flow-app-progress` calls, both complete and unpaginated;
+- one composed frontend binding mutation;
+- production build successful;
+- 31 terminal MCP calls in 299.72 s.
+
+Compared with accepted Run11 (40 calls, 377.78 s), Run14 reduced MCP calls by
+22.5% and wall time by 20.7%. It therefore meets the timing goal even though the
+included Playwright launch failed quickly because the configured executable was
+resolved to its parent directory. A post-run Playwright MCP smoke using
+headless isolated `/usr/bin/google-chrome` reached the built application with
+HTTP 200 and the expected title.
+
+The strict independent DOM check found all 60 cards, exact response values,
+30/30 dark/sky alternation and no desktop/mobile overflow. NASA image requests
+were affected by the host network changing during the final retries; this is
+recorded separately from application correctness. Finally, bootstrap gained an
+explicit instruction not to call it twice after success.
+
+Run14 is the accepted timing campaign. Its durable result is
+`results/frontend-fresh-agent-run14-20260718.json`; the next complex campaign
+can return to RetailStore.
