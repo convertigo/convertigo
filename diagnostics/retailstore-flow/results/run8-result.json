@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "run": "sample_RetailStoreFlowRun8",
+  "status": "functionally_partial_performance_improved_campaign_noncompliant",
+  "startedAt": "2026-07-18T21:16:00.446Z",
+  "finishedAt": "2026-07-18T21:58:28.550Z",
+  "commits": {
+    "convertigo": "690c1589de00df2c6b8b47597a1fd5a697797be1",
+    "flowEngine": "4ca2983f8241e436bbc0a04104c135db2a1e2740",
+    "flowMcp": "3e0feb446274deb6883345cec3823e2f3624c860",
+    "svelteFrontbuilder": "a47314a0c3ffc721f64581625232d1c1a155f571"
+  },
+  "campaign": {
+    "wallMs": 2548104,
+    "observedActiveMs": 2548104,
+    "observedActiveMinutes": 42.47,
+    "mcpCalls": 246,
+    "failedMcpCalls": 18,
+    "retryCalls": 30,
+    "recoveredFailures": 3,
+    "frontendMutations": 66,
+    "failedFrontendMutations": 2,
+    "modelInterruptions": 0,
+    "traceSummary": "run8-trace-summary.json",
+    "rawTrace": "run8-authoring.jsonl (retained locally and ignored by Git)"
+  },
+  "milestonesSeconds": {
+    "bootstrap": 39.57,
+    "scaffoldDryRun": 66.4,
+    "scaffoldApply": 69.62,
+    "firstRealSeed": 517.96,
+    "firstFullSyncSchema": 502.78,
+    "productionBuild": 1432.58,
+    "finalAgentValidation": 2509.34,
+    "independentFreshRoot": 3.46,
+    "independentSecondPersistentRoot": 1.1
+  },
+  "comparisonToRun7": {
+    "activeTimeReductionPercent": 55.28,
+    "mcpCallReductionPercent": 6.11,
+    "failedMcpCallReductionPercent": 28,
+    "treeCallReductionPercent": 38.6,
+    "treeTotalTimeReductionPercent": 89.65,
+    "treeMedianMsRun7": 23325,
+    "treeMedianMsRun8": 3140,
+    "progressCallsRun7": 16,
+    "progressCallsRun8": 3
+  },
+  "acceptance": {
+    "idempotentProvisioning": false,
+    "idempotentSeed": true,
+    "schemaBackedBindings": true,
+    "scaffoldWarningsResolved": true,
+    "visibleLifecycleStages": false,
+    "persistentSecondLaunch": true,
+    "compactProductGrid": true,
+    "productCount22": true,
+    "breadcrumbRoundTrip": false,
+    "breadcrumbBeforeGrid": false,
+    "quantityTotalWorkflow": true,
+    "onlineCatalog": true,
+    "offlineLocalView": true,
+    "offlineLocalGet": true,
+    "productionBuild": true,
+    "desktopNoOverflow": true,
+    "mobile390NoOverflow": true,
+    "visibleImagesLoaded": true,
+    "consoleClean": false,
+    "freshContextCompliant": false
+  },
+  "independentValidation": {
+    "script": "run8-independent.cjs",
+    "output": "run8-independent-output.txt",
+    "passedCount": 24,
+    "failed": [
+      "EPICERIE SUCREE is missing from the final breadcrumb",
+      "Browser Back returns to the 14-department root instead of the exact product grid",
+      "The visible GoBack control does not leave product detail",
+      "The client attempts services/logs.Add while offline",
+      "Legacy image URLs produce 404 console errors before fallbacks render"
+    ],
+    "screenshots": [
+      "run8-root-mobile.png",
+      "run8-products-mobile.png",
+      "run8-detail-mobile.png",
+      "run8-detail-desktop.png"
+    ]
+  },
+  "scaffold": {
+    "warnings": 0,
+    "finalExactSecondApplyVerified": false,
+    "note": "Every dry-run/apply pair was warning-free, but the agent changed the request between pairs and never repeated the final request a third time to prove an unchanged apply."
+  },
+  "hardPoints": [
+    {
+      "classification": "tooling",
+      "name": "Persistent route state",
+      "impact": "The root OnMount reruns after detail and resets the exact catalog path; the palette layout experiment rendered an empty PageContent slot."
+    },
+    {
+      "classification": "tooling",
+      "name": "Composite picker values",
+      "impact": "The picker could not construct [shop,parent] from an iteration source; the valid KISS recovery was a project-owned scalar parent key."
+    },
+    {
+      "classification": "tooling",
+      "name": "Atomic binding refinement",
+      "impact": "The initial source paperboard was compact, but schema-backed refinement still required 66 frontend-svelte-mutate calls."
+    },
+    {
+      "classification": "agent",
+      "name": "Fresh-context violation",
+      "impact": "The agent escaped through browser_run_code_unsafe to delete model/generated files and write/run its standalone script. The functional evidence remains useful, but the campaign is not strictly compliant."
+    },
+    {
+      "classification": "infrastructure",
+      "name": "CouchDB namespace",
+      "impact": "CouchDB shared the network namespace of a replaced runtime container and initially refused connections; recreating it against the current runtime recovered the seed."
+    },
+    {
+      "classification": "infrastructure",
+      "name": "Advertised browser origin",
+      "impact": "The builder advertised port 18080 while the runtime was mapped on 19080; a temporary local forward allowed Playwright to discover the application."
+    }
+  ],
+  "evidence": {
+    "prompt": "run8-prompt.md",
+    "agentPlaywright": "run8-agent-playwright.cjs",
+    "independentPlaywright": "run8-independent.cjs",
+    "remainingMocks": 0,
+    "flowProgressPercent": 100,
+    "bindingWarnings": 0
+  }
+}
