@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 1,
+  "timing": {
+    "available": true,
+    "firstObservedAt": "2026-07-19T06:28:17.680Z",
+    "lastObservedAt": "2026-07-19T06:58:43.489Z",
+    "wallMs": 1825809,
+    "observedActiveMs": 1494150,
+    "interSegmentGapMs": 331659,
+    "segments": [
+      {
+        "run": "run9",
+        "segment": "authoring-resume-once",
+        "firstObservedAt": "2026-07-19T06:28:17.680Z",
+        "lastObservedAt": "2026-07-19T06:48:21.201Z",
+        "observedDurationMs": 1203521,
+        "events": 232
+      },
+      {
+        "run": "run9",
+        "segment": "authoring-resume-else-fix",
+        "firstObservedAt": "2026-07-19T06:53:59.996Z",
+        "lastObservedAt": "2026-07-19T06:58:43.489Z",
+        "observedDurationMs": 290629,
+        "events": 37
+      }
+    ]
+  },
+  "counts": {
+    "events": 269,
+    "mcpCalls": 126,
+    "failedMcpCalls": 9,
+    "retryCalls": 29,
+    "recoveredFailures": 0,
+    "frontendMutations": 4,
+    "failedFrontendMutations": 0,
+    "commandRuns": 0,
+    "failedCommandRuns": 0,
+    "modelInterruptions": 0,
+    "failedSegments": 1
+  },
+  "milestones": {
+    "scaffoldDryRun": {
+      "observedAt": "2026-07-19T06:29:57.673Z",
+      "segment": "authoring-resume-once",
+      "evidence": "flow-fullsync-scaffold",
+      "elapsedWallMs": 99993
+    },
+    "scaffoldApply": {
+      "observedAt": "2026-07-19T06:30:02.784Z",
+      "segment": "authoring-resume-once",
+      "evidence": "flow-fullsync-scaffold",
+      "elapsedWallMs": 105104
+    },
+    "firstFlowRun": {
+      "observedAt": "2026-07-19T06:30:34.490Z",
+      "segment": "authoring-resume-once",
+      "evidence": "sample_RetailStoreFlowRun9.InitializeStore",
+      "elapsedWallMs": 136810
+    },
+    "firstInitializationRun": {
+      "observedAt": "2026-07-19T06:30:34.490Z",
+      "segment": "authoring-resume-once",
+      "evidence": "sample_RetailStoreFlowRun9.InitializeStore",
+      "elapsedWallMs": 136810
+    },
+    "firstFullSyncSchema": {
+      "observedAt": "2026-07-19T06:31:46.428Z",
+      "segment": "authoring-resume-once",
+      "evidence": "frontend-svelte-fullsync-schema",
+      "elapsedWallMs": 208748
+    },
+    "productionBuild": {
+      "observedAt": "2026-07-19T06:56:38.499Z",
+      "segment": "authoring-resume-else-fix",
+      "evidence": "build",
+      "elapsedWallMs": 1700819
+    }
+  },
+  "browserMetrics": [],
+  "tools": {
+    "frontend-svelte-tree": {
+      "calls": 25,
+      "failures": 0,
+      "latency": {
+        "samples": 25,
+        "totalMs": 87592,
+        "medianMs": 2856,
+        "p95Ms": 5498,
+        "maxMs": 18129
+      }
+    },
+    "code-run": {
+      "calls": 17,
+      "failures": 0,
+      "latency": {
+        "samples": 17,
+        "totalMs": 18197,
+        "medianMs": 324,
+        "p95Ms": 3200,
+        "maxMs": 5176
+      }
+    },
+    "frontend-svelte-code-get": {
+      "calls": 14,
+      "failures": 0,
+      "latency": {
+        "samples": 14,
+        "totalMs": 7366,
+        "medianMs": 242,
+        "p95Ms": 2255,
+        "maxMs": 2280
+      }
+    },
+    "frontend-svelte-code-check": {
+      "calls": 10,
+      "failures": 0,
+      "latency": {
+        "samples": 10,
+        "totalMs": 29248,
+        "medianMs": 2781,
+        "p95Ms": 3564,
+        "maxMs": 3583
+      }
+    },
+    "frontend-svelte-code-set": {
+      "calls": 9,
+      "failures": 1,
+      "latency": {
+        "samples": 9,
+        "totalMs": 14715,
+        "medianMs": 1696,
+        "p95Ms": 2096,
+        "maxMs": 2108
+      }
+    },
+    "flow-app-progress": {
+      "calls": 7,
+      "failures": 0,
+      "latency": {
+        "samples": 7,
+        "totalMs": 107083,
+        "medianMs": 15143,
+        "p95Ms": 23572,
+        "maxMs": 24726
+      }
+    },
+    "browser_navigate": {
+      "calls": 7,
+      "failures": 7,
+      "latency": {
+        "samples": 7,
+        "totalMs": 25629,
+        "medianMs": 53,
+        "p95Ms": 17693,
+        "maxMs": 25147
+      }
+    },
+    "flow-fullsync-scaffold": {
+      "calls": 6,
+      "failures": 0,
+      "latency": {
+        "samples": 6,
+        "totalMs": 1510,
+        "medianMs": 229,
+        "p95Ms": 351,
+        "maxMs": 384
+      }
+    },
+    "code-get": {
+      "calls": 5,
+      "failures": 0,
+      "latency": {
+        "samples": 5,
+        "totalMs": 2243,
+        "medianMs": 435,
+        "p95Ms": 514,
+        "maxMs": 527
+      }
+    },
+    "frontend-svelte-fullsync-schema": {
+      "calls": 5,
+      "failures": 0,
+      "latency": {
+        "samples": 5,
+        "totalMs": 2409,
+        "medianMs": 373,
+        "p95Ms": 831,
+        "maxMs": 905
+      }
+    },
+    "frontend-svelte-mutate": {
+      "calls": 4,
+      "failures": 0,
+      "latency": {
+        "samples": 4,
+        "totalMs": 1214,
+        "medianMs": 294,
+        "p95Ms": 340,
+        "maxMs": 347
+      }
+    },
+    "code-set": {
+      "calls": 4,
+      "failures": 0,
+      "latency": {
+        "samples": 4,
+        "totalMs": 1397,
+        "medianMs": 266,
+        "p95Ms": 579,
+        "maxMs": 630
+      }
+    },
+    "frontend-svelte-action": {
+      "calls": 4,
+      "failures": 0,
+      "latency": {
+        "samples": 4,
+        "totalMs": 19600,
+        "medianMs": 1549,
+        "p95Ms": 13637,
+        "maxMs": 15744
+      }
+    },
+    "code-patch": {
+      "calls": 3,
+      "failures": 1,
+      "latency": {
+        "samples": 3,
+        "totalMs": 1998,
+        "medianMs": 761,
+        "p95Ms": 835,
+        "maxMs": 843
+      }
+    },
+    "code-promote": {
+      "calls": 3,
+      "failures": 0,
+      "latency": {
+        "samples": 3,
+        "totalMs": 2005,
+        "medianMs": 652,
+        "p95Ms": 709,
+        "maxMs": 715
+      }
+    },
+    "code-status": {
+      "calls": 1,
+      "failures": 0,
+      "latency": {
+        "samples": 1,
+        "totalMs": 420,
+        "medianMs": 420,
+        "p95Ms": 420,
+        "maxMs": 420
+      }
+    },
+    "code-discard": {
+      "calls": 1,
+      "failures": 0,
+      "latency": {
+        "samples": 1,
+        "totalMs": 235,
+        "medianMs": 235,
+        "p95Ms": 235,
+        "maxMs": 235
+      }
+    },
+    "browser_tabs": {
+      "calls": 1,
+      "failures": 0,
+      "latency": {
+        "samples": 1,
+        "totalMs": 36,
+        "medianMs": 36,
+        "p95Ms": 36,
+        "maxMs": 36
+      }
+    }
+  },
+  "hardPoints": [
+    {
+      "category": "mcp",
+      "signature": "transport:failed-without-message",
+      "count": 7,
+      "latency": {
+        "samples": 7,
+        "totalMs": 25629,
+        "medianMs": 53,
+        "p95Ms": 17693,
+        "maxMs": 25147
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:tool call error: tool call failed for `convertigo-flow/frontend-svelte-code-set`",
+      "count": 1,
+      "latency": {
+        "samples": 1,
+        "totalMs": 240,
+        "medianMs": 240,
+        "p95Ms": 240,
+        "maxMs": 240
+      }
+    },
+    {
+      "category": "mcp",
+      "signature": "transport:tool call error: tool call failed for `convertigo-flow/code-patch`",
+      "count": 1,
+      "latency": {
+        "samples": 1,
+        "totalMs": 394,
+        "medianMs": 394,
+        "p95Ms": 394,
+        "maxMs": 394
+      }
+    },
+    {
+      "category": "process",
+      "signature": "segment-exit:1",
+      "count": 1,
+      "latency": {
+        "samples": 0,
+        "totalMs": null,
+        "medianMs": null,
+        "p95Ms": null,
+        "maxMs": null
+      }
+    }
+  ],
+  "modelInterruptions": []
+}

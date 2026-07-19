@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "run": "sample_RetailStoreFlowRun9",
+  "status": "functionally_complete_tooling_improved_with_console_debt",
+  "commits": {
+    "convertigo": "61ad2076481f10eb5c0e6eff4cd64faf29691649",
+    "flowEngine": "74416395705ef57483f22f44abe8793324384513",
+    "flowMcp": "369292f4769ade372421a2f2155f524e083ae628",
+    "svelteFrontbuilder": "d11149ec1203b70d957988f42caaaf82ab8674d2"
+  },
+  "campaign": {
+    "fullWallMs": 3965513,
+    "fullMcpCalls": 394,
+    "fullFailedMcpCalls": 47,
+    "fullRetryCalls": 146,
+    "note": "The full wall clock includes repeated runtime, session, CouchDB namespace and browser transport recovery. Productive authoring is reported separately.",
+    "traceSummary": "run9-trace-summary.json"
+  },
+  "productiveAuthoring": {
+    "observedActiveMs": 1494150,
+    "observedActiveMinutes": 24.9,
+    "wallMsIncludingToolFixGap": 1825809,
+    "wallMinutesIncludingToolFixGap": 30.43,
+    "mcpCalls": 126,
+    "failedMcpCalls": 9,
+    "retryCalls": 29,
+    "frontendMutations": 4,
+    "traceSummary": "run9-productive-trace-summary.json",
+    "segments": [
+      "authoring-resume-once",
+      "authoring-resume-else-fix"
+    ]
+  },
+  "comparisonToRun8": {
+    "run8ObservedActiveMinutes": 42.47,
+    "activeTimeReductionPercent": 41.36,
+    "run8McpCalls": 246,
+    "mcpCallReductionPercent": 48.78,
+    "run8FrontendMutations": 66,
+    "frontendMutationReductionPercent": 93.94,
+    "conclusion": "The source-oriented Flow Code workflow materially reduced atomic authoring, but 24.9 active minutes remains above the 15-20 minute target."
+  },
+  "acceptance": {
+    "freshContextCompliant": true,
+    "remainingMocks": 0,
+    "idempotentSeed": true,
+    "schemaBackedBindings": true,
+    "visibleLifecycleStages": true,
+    "persistentSecondLaunch": true,
+    "rootDepartmentCount14": true,
+    "strictBranchProductRows22": true,
+    "multiParentRelationshipsPreserved": true,
+    "breadcrumbRoundTrip": true,
+    "visibleBackRoundTrip": true,
+    "browserBackRoundTrip": true,
+    "breadcrumbDoesNotGrowHistory": true,
+    "quantityTotalWorkflow": true,
+    "offlineLocalView": true,
+    "offlineLocalGet": true,
+    "productionBuild": true,
+    "desktopNoOverflow": true,
+    "mobile390NoOverflow": true,
+    "visibleImagesLoaded": true,
+    "flowProgressPercent": 100,
+    "bindingWarnings": 0,
+    "structureWarnings": 0,
+    "consoleClean": false,
+    "offlineNoFetchXhr": false
+  },
+  "independentValidation": {
+    "script": "run9-independent.cjs",
+    "output": "run9-independent-output.txt",
+    "passedCount": 27,
+    "failedCount": 2,
+    "failed": [
+      "The SDK attempts services/logs.Add after offline errors despite remote logging being disabled.",
+      "Legacy img/... URLs return 404 before the configured portable image fallback renders."
+    ],
+    "firstRootMs": 5447,
+    "secondPersistentRootMs": 1106,
+    "pageErrors": 0,
+    "screenshots": [
+      "run9-root-mobile.png",
+      "run9-products-mobile.png",
+      "run9-detail-mobile.png",
+      "run9-detail-desktop.png"
+    ]
+  },
+  "toolingChanges": [
+    "Persistent frontend mount actions and route state prevent catalog reset after detail navigation.",
+    "The Flow skill now documents safe source-oriented Svelte navigation.",
+    "Flow block lookup accepts documented aliases.",
+    "Named frontend source definitions round-trip correctly.",
+    "flow-app-progress no longer proposes iterator bindings inside a ForEach empty Else branch."
+  ],
+  "hardPoints": [
+    {
+      "classification": "tooling",
+      "name": "Diagnostic cost",
+      "impact": "Productive flow-app-progress calls totalled 107 seconds and frontend-svelte-tree calls totalled 88 seconds; both still rebuild too much state."
+    },
+    {
+      "classification": "tooling",
+      "name": "Response volume",
+      "impact": "Skill, source and picker responses remain large enough to dominate model context even after atomic mutations were removed."
+    },
+    {
+      "classification": "tooling",
+      "name": "Offline SDK logging",
+      "impact": "The generated client disables remote logging, but the SDK still attempts services/logs.Add after a forced offline error."
+    },
+    {
+      "classification": "tooling",
+      "name": "Portable image fallback",
+      "impact": "Fallback images render correctly, but legacy relative sources first generate noisy 404 responses."
+    },
+    {
+      "classification": "infrastructure",
+      "name": "Single Standard Edition session",
+      "impact": "Parallel MCP clients exhausted runtime sessions; the campaign required a serialized cookie-preserving proxy."
+    },
+    {
+      "classification": "infrastructure",
+      "name": "Advertised browser origin",
+      "impact": "openBuilt advertised port 18080 while the runtime was available on port 19080."
+    }
+  ],
+  "evidence": {
+    "prompt": "run9-prompt.md",
+    "rawTrace": "run9-authoring*.jsonl (retained locally and ignored by Git)",
+    "browserTrace": "run9-browser-port-fix.jsonl (retained locally and ignored by Git)"
+  }
+}
