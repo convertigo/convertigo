@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "deployedAt": "2026-07-19T07:54:17Z",
+  "target": "https://beta.convertigo.net/convertigo",
+  "gitPublications": {
+    "flowEngine": {
+      "repository": "convertigo/c8oprj-lib-flow-engine",
+      "branch": "main",
+      "commit": "74416395705ef57483f22f44abe8793324384513"
+    },
+    "flowMcp": {
+      "repository": "convertigo/c8oprj-lib-flow-mcp",
+      "branch": "spike-flowscript",
+      "commit": "369292f4769ade372421a2f2155f524e083ae628"
+    },
+    "svelteFrontbuilder": {
+      "repository": "nicolas-albert/c8oprj-lib-flow-frontbuilder-svelte",
+      "branch": "master",
+      "commit": "d11149ec1203b70d957988f42caaaf82ab8674d2"
+    },
+    "convertigoDevelop": {
+      "repository": "convertigo/convertigo",
+      "branch": "develop",
+      "runtimeOptimizationCommit": "a02664f8c",
+      "fullSyncRuntimeCommit": "f38ec1930"
+    }
+  },
+  "deployedArchives": {
+    "lib_flow_engine": "3be0df1a1bc922dfa19187146dcf7f908710d824fe42d1c5d2aa060ab324d3bb",
+    "lib_flow_frontbuilder_svelte": "b4b729c93c0dc7140ea4b86e06e7926b715692b242267ed79b297bd94c4a26c3",
+    "lib_flow_mcp": "a897e798a4c69ef5b60e753955c3fc3ed353ac913bf11cbcae9e252921a923b9",
+    "sample_HelloWorldFlowRun14": "53bf0231ba352f51b5e79ec6716fccdec3574d1099f4c653b862c8b62acb6f3b",
+    "sample_RetailStoreFlowRun9": "91aa518d6a3f8808a68bd53c7d8ff8f96fc1e3527eae5fbae8fd85be9b01d6bc"
+  },
+  "backup": "/home/nicolas/Téléchargements/convertigo-beta-backups/20260719T075322Z-latest-flow-projects",
+  "validation": {
+    "deployedSourceHashesMatch": {
+      "lib_flow_engine/libs/flow/Engine.js": true,
+      "lib_flow_frontbuilder_svelte/libs/flow/frontbuilder/svelte/src-builder/generateSvelteProject.ts": true,
+      "lib_flow_mcp/libs/flows/McpServer.flow.js": true,
+      "sample_HelloWorldFlowRun14/libs/flows/GetNasaNews.flow.js": true,
+      "sample_RetailStoreFlowRun9/libs/flows/InitializeStore.flow.js": true
+    },
+    "helloWorld": {
+      "url": "https://beta.convertigo.net/convertigo/projects/sample_HelloWorldFlowRun14/DisplayObjects/mobile/",
+      "requestable": "sample_HelloWorldFlowRun14.GetNasaNews",
+      "httpStatus": 200,
+      "newsCount": 60,
+      "responseSeconds": 1.773
+    },
+    "retailStore": {
+      "url": "https://beta.convertigo.net/convertigo/projects/sample_RetailStoreFlowRun9/DisplayObjects/mobile/",
+      "passedAssertions": 27,
+      "failedAssertions": 2,
+      "firstFreshRootMs": 25053,
+      "secondPersistentRootMs": 1702,
+      "rootDepartments": 14,
+      "strictBranchProducts": 22,
+      "offlineLocalViews": true,
+      "offlineLocalGet": true,
+      "navigationRoundTrip": true,
+      "pageErrors": 0
+    }
+  },
+  "knownDebts": [
+    "The client SDK attempts services/logs.Add after a forced offline error.",
+    "Legacy img/... sources return 404 before the portable fallback image renders."
+  ]
+}
