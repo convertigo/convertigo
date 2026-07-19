@@ -1,0 +1,84 @@
+{
+  "timestamp": "2026-07-20T01:23:09+02:00",
+  "project": "sample_HelloWorldFlowRun15",
+  "baseline": "frontend-fresh-agent-run14-20260718.json",
+  "checkpointsUnderTest": {
+    "lib_flow_engine": "760f19a",
+    "lib_flow_frontbuilder_svelte": "4e994a2",
+    "lib_flow_mcp": "622ef69"
+  },
+  "postCampaignFixes": {
+    "lib_flow_engine": "33fc67f",
+    "lib_flow_frontbuilder_svelte": "a10e03d",
+    "lib_flow_mcp": "9f74867"
+  },
+  "timing": {
+    "activeAgentTotalMs": 1028739,
+    "activeAgentTotalSeconds": 1028.739,
+    "run14TotalSeconds": 299.72,
+    "regressionPercent": 243.2
+  },
+  "mcp": {
+    "observedCallsApproximate": 90,
+    "constructionPattern": "Many unit palette/tree/mutate calls before one whole-source pass",
+    "playwrightMcpCompleted": false,
+    "playwrightMcpFailure": "Navigation transport stalled",
+    "postCampaignCodePatchHunks": 1
+  },
+  "backend": {
+    "flow": "GetNasaNews",
+    "requiredSource": "https://www.nasa.gov/feeds/iotd-feed/",
+    "authoredRequestSource": "https://www.nasa.gov/rss/dyn/lg_image_of_the_day.rss",
+    "sourceContractPreserved": false,
+    "resultCount": 60,
+    "schemaWarnings": 0,
+    "remainingMocks": 0,
+    "portableBlocksUsed": ["list.first", "list.count"]
+  },
+  "frontendAtAgentExit": {
+    "schemaBackedBindings": false,
+    "invalidBindingCount": 6,
+    "productionBuild": false,
+    "buildFailure": "Generated asRows([object Object]) from informal action/context binding objects",
+    "browserAcceptance": false
+  },
+  "postCampaignValidation": {
+    "repairTool": "frontend-svelte-code-patch",
+    "embeddedProjectionErrorsBeforeRepair": 6,
+    "errorsAfterRepair": 0,
+    "svelteCheckErrors": 0,
+    "productionBuild": true,
+    "applicationHttpStatus": 200,
+    "renderedItems": 60,
+    "renderedImages": 60,
+    "httpResponsesAtOrAbove400OnRepeat": 0
+  },
+  "toolingFindings": [
+    {
+      "severity": "fixed",
+      "finding": "Whole-source Node validation rejected informal bindings, but the embedded projection used on runtimes without Node did not.",
+      "recovery": "The embedded parser now handles balanced object attributes, traverses Children slots and emits FRONTEND_BINDING_INVALID with migration suggestions."
+    },
+    {
+      "severity": "fixed",
+      "finding": "The skill still allowed unit tree and palette construction before a complete source pass.",
+      "recovery": "The required frontend loop is now code-get, one complete code-check/code-set pass, then focused discovery only for concrete diagnostics."
+    },
+    {
+      "severity": "fixed",
+      "finding": "A transport failure led the agent to substitute a remembered NASA endpoint.",
+      "recovery": "The skill now requires byte-for-byte preservation of supplied service URLs and reporting the exact transport error without endpoint substitution."
+    },
+    {
+      "severity": "open-infrastructure",
+      "finding": "Playwright MCP navigation stalled while direct headless Chromium completed the same page workflow.",
+      "recovery": "Keep direct Chromium as independent validation until the MCP transport is stable."
+    }
+  ],
+  "outcome": {
+    "freshAgentAcceptance": false,
+    "postCampaignToolchainAcceptance": true,
+    "portableBlockWorkflowExercised": true,
+    "readyForAnotherTimedFreshRun": true
+  }
+}

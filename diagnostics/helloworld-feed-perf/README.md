@@ -597,6 +597,38 @@ Artifacts: `run7-fresh-agent-prompt.md`, `run7-playwright.js`,
 `results/frontend-fresh-agent-run7-20260714.json`,
 `results/run7-desktop.png` and `results/run7-mobile.png`.
 
+## Fresh-agent HelloWorld Flow Run15
+
+Run15 exercised the portable block catalog and the target-aware authoring
+workflow, but it is a failed benchmark. It took 1028.739 seconds, around 17m09s,
+versus 299.72 seconds for Run14. The agent made roughly 90 MCP calls and returned
+to unit palette/tree/mutate authoring before writing a complete source pass.
+
+The backend returned 60 live items, adopted its schema, left no mock and used
+the new portable `list.first` and `list.count` blocks. It nevertheless violated
+the black specification after an HTTP protocol error by replacing the supplied
+`https://www.nasa.gov/feeds/iotd-feed/` URL with the remembered legacy NASA RSS
+endpoint. This substitution is now explicitly forbidden by the skill.
+
+The frontend used six informal `{ mode:"action" }` and `{ mode:"context" }`
+objects. Whole-source validation passed on the server only because its optional
+Node authoring service was absent and the embedded projection did not traverse
+`Children` slots. Generation then produced `asRows([object Object])`, and the
+agent exited without a valid build or browser proof.
+
+Post-campaign fixes align both validators. The embedded parser now handles
+balanced object expressions, preserves the real `Children` hierarchy and emits
+`FRONTEND_BINDING_INVALID`; legacy action objects include an exact canonical
+migration. The skill requires `code-get -> code-check -> code-set` as the first
+whole-screen pass and reserves tree/palette/mutate for concrete diagnostics.
+Run15 was then repaired through one revision-checked MCP code patch. The check
+reported zero errors, `svelte-check` and the production build passed, and
+independent Chromium rendered 60 items and 60 images after the backend call.
+
+Artifacts: `run15-fresh-agent-prompt.md`,
+`results/frontend-fresh-agent-run15-20260720.json`,
+`results/run15-start-ms.txt` and `results/run15-elapsed-ms.txt`.
+
 ## Conclusion
 
 For the exact legacy-versus-Flow comparison, the primary regression is the Flow
