@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "auditedAt": "2026-07-19T08:35:00Z",
+  "projects": [
+    "sample_HelloWorldFlowRun14",
+    "sample_RetailStoreFlowRun9"
+  ],
+  "services": [
+    "studio.treeview.Get?flow=true",
+    "studio.properties.Get",
+    "database_objects.Get"
+  ],
+  "verdict": "behavior_visible_but_studio_authoring_not_yet_coherent",
+  "coverage": {
+    "helloWorld": {
+      "flowOperationsInSource": 5,
+      "flowOperationsInTree": 5,
+      "activeSvelteBlocksInSource": 19,
+      "activeSvelteBlocksInTree": 19,
+      "customImperativeSvelteCode": false
+    },
+    "retailStore": {
+      "flowOperationsAndBranchNodesInTree": 24,
+      "flowSourceBehaviorCovered": true,
+      "activeSvelteBlocksInSource": 86,
+      "activeSvelteBlocksInTree": 86,
+      "customImperativeSvelteCode": false
+    }
+  },
+  "healthy": [
+    "Projects use normal Convertigo folders for connectors, sequences and references.",
+    "Flow sequences expose a virtual Flow child whose operation order and nesting match FlowScript.",
+    "FlowEngine exposes engine, config, frontend and catalog branches.",
+    "Svelte pages expose routes, page metadata, structure, actions, events, variables and bindings.",
+    "RetailStore exposes its FullSync connector, six transactions and design document.",
+    "Page titles and root routes from each script-module _flow declaration are visible as page properties.",
+    "There is no project-specific fetch, PouchDB, eval or imperative event code hidden in the .flow.svelte files."
+  ],
+  "blockingFindings": [
+    {
+      "id": "duplicate-virtual-identifiers",
+      "severity": "high",
+      "detail": "HelloWorld has one duplicate Flow node ID. RetailStore has two duplicate Flow node IDs and four groups of three FullSync Variable nodes sharing one ID. The tree renders each occurrence, but selection and properties resolve to only one object.",
+      "requiredFix": "Generate virtual IDs from the stable AST path or sibling index, while preserving the business id as a separate property."
+    },
+    {
+      "id": "missing-binding-editor",
+      "severity": "high",
+      "detail": "Structured bindings, FullSync variable values and output schemas are exposed as multiline JSON strings with editorClass empty. The catalog already declares flow-binding-editor, but FlowVirtualObject hard-codes editorClass to null.",
+      "requiredFix": "Propagate the catalog type editor component into virtual property metadata and let Studio web render the Flow web-component editor."
+    },
+    {
+      "id": "beta-frontend-tree-unavailable",
+      "severity": "high",
+      "detail": "On beta, both frontend branches contain Invalid model: Cannot run program npm. The complete frontend tree is currently available only on a runtime that has npm.",
+      "requiredFix": "Ship a directly executable parser artifact with the frontbuilder or persist a validated authoring index during build so Studio tree inspection does not depend on npm."
+    },
+    {
+      "id": "hidden-flow-contract",
+      "severity": "medium",
+      "detail": "The _flow.outputs contracts are present in FlowScript but no Inputs or Outputs branch exposes them in the sequence tree or properties.",
+      "requiredFix": "Project _flow input/output metadata as typed virtual folders and fields."
+    },
+    {
+      "id": "opaque-design-document",
+      "severity": "medium",
+      "detail": "The FullSync design document appears as one leaf with only _id, _rev and Comment in studio.properties.Get. Its three views and map functions are available only in database_objects.Get docdata.",
+      "requiredFix": "Expose Views, map and reduce as child/property projections, with a JavaScript editor for map/reduce bodies."
+    }
+  ],
+  "qualityFindings": [
+    {
+      "id": "opaque-list-map-labels",
+      "detail": "Three list.map nodes display [object Object] in their labels. Their complete Select value is available in properties, but the tree label is not human-readable."
+    },
+    {
+      "id": "null-property-serialization",
+      "detail": "The full catalog audit makes studio.properties.Get fail for object.get.defaultValue because JSONObject.NULL is not serializable."
+    },
+    {
+      "id": "bootstrap-clutter",
+      "detail": "Both projects retain unused NewSequence and void connector objects from bootstrap, which makes the Convertigo hierarchy look unfinished."
+    },
+    {
+      "id": "weak-business-documentation",
+      "detail": "Flow and FullSync transaction comments are mostly empty; names are understandable, but Studio cannot explain intent without reading the source."
+    }
+  ],
+  "scopedServiceMetrics": {
+    "helloWorld": {
+      "uniqueNodes": 53,
+      "occurrences": 54,
+      "virtualNodes": 42,
+      "duplicateIdGroups": 1,
+      "opaqueLabels": 1
+    },
+    "retailStore": {
+      "uniqueNodes": 185,
+      "occurrences": 195,
+      "virtualNodes": 144,
+      "duplicateIdGroups": 6,
+      "opaqueLabels": 2
+    }
+  },
+  "evidence": {
+    "auditScript": "../studio-tree-audit.mjs",
+    "fullCatalogUniqueNodesHelloWorld": 1820,
+    "fullCatalogUniqueNodesRetailStore": 1952,
+    "deployedSourceHashesMatchLocalAudit": true
+  }
+}
