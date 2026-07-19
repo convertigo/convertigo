@@ -85,9 +85,11 @@ the production build and the real browser application are validated.
 - Finish with no mock blocks.
 - Treat `flow-app-progress` as a guide, not proof of completion. Resolve every
   warning and verify that each data-bound iterator has visible content.
-- Keep a standalone Playwright script for the final online/offline assertions;
-  do not rely exclusively on an interactive browser transport.
-- In that script, use the strict acceptance labels above. Assert the root count,
+- Use Playwright MCP only to validate the rendered browser application. The
+  campaign harness runs the standalone reproducible acceptance after authoring;
+  do not create or execute scripts through shell, browser unsafe evaluation or
+  filesystem access.
+- In browser validation, use the strict acceptance labels above. Assert the root count,
   uniqueness, the 22-product count, mutually exclusive catalog/detail states,
   every breadcrumb segment, browser Back and visible Back. Do not choose an
   arbitrary first/last card or infer success from merely finding some data.
@@ -96,11 +98,9 @@ the production build and the real browser application are validated.
   fixture-backed fallbacks; a rendered but broken `img` is a failed result.
 - Run the final acceptance twice with the same persistent browser profile. The
   second launch must reach the catalog and must not remain at active 100/100.
-- In the standalone Playwright output, emit one machine-readable line named
-  `CAMPAIGN_BROWSER_METRICS=<json>`. Measure navigation start to synchronization
-  completion, first local view completion, first useful root render, first
-  successful local get/detail, and second persistent launch completion. These
-  timings supplement, rather than replace, visible assertions.
+- Report the observed synchronization completion, first local view, first
+  useful root render, first local get/detail and second persistent launch. The
+  independent campaign harness records machine-readable browser timings.
 - Treat every warning returned by `flow-fullsync-scaffold` as blocking. Use
   `Status.actionId`, `UpdateList`, `UpdateNumber`, bindable Button labels and
   formatted Text from the palette when their generic behavior matches the
@@ -112,6 +112,9 @@ the production build and the real browser application are validated.
   any prior RetailStoreFlow attempt.
 - Do not inspect local repositories, prior session history, generated files or
   Convertigo DBO YAML.
+- Do not use shell commands, `browser_run_code_unsafe`, `fs`, `process`,
+  `child_process` or any other filesystem/process escape. A missing Flow MCP
+  operation is a tooling gap to report.
 - Do not use the legacy Convertigo MCP, direct CouchDB APIs, raw PouchDB code,
   hand-written SDK request strings or filesystem YAML edits.
 - Do not modify shared Flow libraries, the frontbuilder or the Java engine.
