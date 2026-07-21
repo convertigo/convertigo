@@ -64,5 +64,6 @@ META-INF
 /resources
 /workspace
 /diagnostics/
+/test-results/
 .circleci/cache/
 /.playwright-mcp/
