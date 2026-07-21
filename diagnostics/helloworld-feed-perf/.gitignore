@@ -1,5 +1,0 @@
-*.class
-__pycache__/
-results/*cookie*.txt
-results/*.body
-results/*.log

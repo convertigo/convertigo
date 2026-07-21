@@ -1,8 +1,0 @@
-file,bytes,items,phase,count,median_ms,mean_ms,p95_ms,min_ms,max_ms
-nasa-lg-image-20260713T091500Z.rss,46150,60,jaxp_parse,200,1.051,1.140,1.801,0.573,4.506
-nasa-lg-image-20260713T091500Z.rss,46150,60,dom_to_object,200,0.384,0.481,0.961,0.187,3.084
-nasa-lg-image-20260713T091500Z.rss,46150,60,sort_map,200,0.091,0.109,0.266,0.047,0.504
-nasa-lg-image-20260713T091500Z.rss,46150,60,total,200,1.542,1.730,2.909,0.810,6.601
-nasa-lg-image-20260713T091500Z.rss,46150,20,nasa_image_items_jaxp_parse,200,0.976,1.134,1.891,0.565,6.880
-nasa-lg-image-20260713T091500Z.rss,46150,20,nasa_image_items_extract_20,200,0.215,0.294,0.628,0.103,3.648
-nasa-lg-image-20260713T091500Z.rss,46150,20,nasa_image_items_total,200,1.240,1.427,2.475,0.681,10.528
