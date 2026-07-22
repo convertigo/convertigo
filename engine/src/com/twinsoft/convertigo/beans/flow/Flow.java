@@ -22,11 +22,9 @@ package com.twinsoft.convertigo.beans.flow;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -76,9 +74,6 @@ public class Flow extends Sequence {
 	private static final String DEFAULT_FLOW_SOURCE = "function Flow({ input, config, result }) {\n"
 			+ "  return result\n"
 			+ "}\n";
-	private static final Map<String, Flow> pendingPlanPreparation = new LinkedHashMap<>();
-	private static final Set<String> preparedRuntimes = new HashSet<>();
-
 	private String flowSource = DEFAULT_FLOW_SOURCE;
 	private boolean includeTrace = false;
 	private transient String flowSourceDraft = null;
@@ -90,60 +85,6 @@ public class Flow extends Sequence {
 
 	public Flow() {
 		super();
-	}
-
-	@Override
-	public void setParent(DatabaseObject databaseObject) {
-		super.setParent(databaseObject);
-		var engineQName = effectiveEngineQName();
-		synchronized (pendingPlanPreparation) {
-			pendingPlanPreparation.put(getQName(), this);
-		}
-		if (isImporting) {
-			com.twinsoft.convertigo.engine.DatabaseObjectsManager.getProjectLoadingData()
-					.addAfterLoaded(() -> prepareReadyFlows(engineQName));
-		} else {
-			prepareReadyFlows(engineQName);
-		}
-	}
-
-	public static void runtimePrepared(String engineQName) {
-		synchronized (pendingPlanPreparation) {
-			preparedRuntimes.add(engineQName);
-		}
-		prepareReadyFlows(engineQName);
-	}
-
-	private static void prepareReadyFlows(String engineQName) {
-		synchronized (pendingPlanPreparation) {
-			if (!preparedRuntimes.contains(engineQName)) {
-				return;
-			}
-			var flows = pendingPlanPreparation.values().stream()
-					.filter(flow -> engineQName.equals(flow.effectiveEngineQName()))
-					.toList();
-			for (var flow : flows) {
-				pendingPlanPreparation.remove(flow.getQName());
-				flow.prepareFlowPlan();
-			}
-		}
-	}
-
-	private String effectiveEngineQName() {
-		var project = getProject();
-		var flowEngine = project == null ? null : project.getFlowEngine();
-		var engineQName = flowEngine == null ? null : flowEngine.getEngineQName();
-		return engineQName == null || engineQName.isBlank() ? FlowEngineBridge.DEFAULT_ENGINE_QNAME : engineQName;
-	}
-
-	private void prepareFlowPlan() {
-		try {
-			var result = new FlowEngineBridge().prepare(this);
-			Engine.logBeans.info("(Flow) Prepared " + getQName() + " in "
-					+ Math.round(result.optDouble("durationMs")) + " ms");
-		} catch (Exception e) {
-			Engine.logBeans.warn("(Flow) Unable to prepare " + getQName(), e);
-		}
 	}
 
 	@Override

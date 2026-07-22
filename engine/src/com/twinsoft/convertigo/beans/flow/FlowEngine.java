@@ -127,7 +127,6 @@ public class FlowEngine extends DatabaseObject {
 			var result = new FlowEngineBridge().preload(this);
 			Engine.logBeans.info("(FlowEngine) Preloaded " + getQName() + " in "
 					+ result.optLong("durationMs") + " ms (" + result.optInt("blockCount") + " blocks)");
-			Flow.runtimePrepared(getEngineQName());
 		} catch (Exception e) {
 			Engine.logBeans.warn("(FlowEngine) Unable to preload " + getQName(), e);
 		}
