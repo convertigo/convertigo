@@ -2434,6 +2434,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		return debugUrl;
 	}
 
+	public void setBrowserDebugPort(int debugPort) {
+		c8oBrowser.setDebugPort(debugPort);
+		browser = c8oBrowser.getBrowser();
+		debugUrl = c8oBrowser.getDebugUrl();
+	}
+
 	public void selectPage(String pagePath) {
 		if (this.pagePath != null && this.pagePath.equals(pagePath)) {
 			return;

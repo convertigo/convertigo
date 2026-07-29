@@ -71,6 +71,7 @@ public class C8oBrowser extends Composite {
 	
 	private static Thread threadSwt = null;
 	private static Map<String, Engine> browserContexts = new HashMap<>();
+	private static Map<String, Integer> preferredDebugPorts = new HashMap<>();
 	private static boolean render_offscreen = "offscreen".equals(System.getProperty("jxbrowser.render"));
 	private static final String ABOUT_BLANK = "about:blank";
 	private static final long BROWSER_RECOVERY_THROTTLE = 5000;
@@ -78,6 +79,8 @@ public class C8oBrowser extends Composite {
 	
 	private String debugUrl;
 	private String browserId;
+	private Project project;
+	private Integer preferredDebugPort;
 	private Engine browserContext;
 	private Engine recoveryEngine;
 	private BrowserView browserView;
@@ -152,9 +155,25 @@ public class C8oBrowser extends Composite {
 	public C8oBrowser(Composite parent, int style, Project project) {
 		this(parent, style, project, "default");
 	}
+
+	public static synchronized void setPreferredDebugPort(Project project, int debugPort) {
+		if (project == null) {
+			throw new IllegalArgumentException("Project is required to select a browser debug port");
+		}
+		if (debugPort < 1024 || debugPort > 65535) {
+			throw new IllegalArgumentException("Invalid browser debug port: " + debugPort);
+		}
+		preferredDebugPorts.put(project.getDirPath(), debugPort);
+	}
+
+	private static synchronized Integer getPreferredDebugPort(Project project) {
+		return project == null ? null : preferredDebugPorts.get(project.getDirPath());
+	}
 	
 	private C8oBrowser(Composite parent, int style, Project project, String browserId) {
 		super(parent, style);
+		this.project = project;
+		this.preferredDebugPort = getPreferredDebugPort(project);
 		this.browserId = browserId;
 		addDisposeListener(e -> {
 			if (!closed) {
@@ -463,14 +482,27 @@ public class C8oBrowser extends Composite {
 		File browserWorks = new File(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH + "/browser-works");
 		browserWorks.mkdirs();
 		Engine browserContext = browserContexts.get(browserId);
+		if (browserContext != null && !browserContext.isClosed() && preferredDebugPort != null
+				&& browserContext.options().remoteDebuggingPort().get() != preferredDebugPort) {
+			throw new IllegalStateException("Browser context already uses debug port "
+					+ browserContext.options().remoteDebuggingPort().get() + " instead of requested port " + preferredDebugPort);
+		}
 		if (browserContext == null || browserContext.isClosed()) {
 			int debugPort;
-			try {
-				debugPort = (int) (Long.parseLong(browserId, Character.MAX_RADIX) % 10000) + 30000;
-			} catch (Exception e) {
-				debugPort = 30000;
+			if (preferredDebugPort != null) {
+				debugPort = preferredDebugPort;
+			} else {
+				try {
+					debugPort = (int) (Long.parseLong(browserId, Character.MAX_RADIX) % 10000) + 30000;
+				} catch (Exception e) {
+					debugPort = 30000;
+				}
 			}
-			debugPort = NetworkUtils.nextAvailable(debugPort);
+			int availableDebugPort = NetworkUtils.nextAvailable(debugPort);
+			if (preferredDebugPort != null && availableDebugPort != debugPort) {
+				throw new IllegalStateException("Requested browser debug port is unavailable: " + debugPort);
+			}
+			debugPort = availableDebugPort;
 			boolean off = render_offscreen || ConvertigoPlugin.getBrowserOffscreen();
 
 			int rt = 2;
@@ -512,6 +544,40 @@ public class C8oBrowser extends Composite {
 		debugUrl = "http://localhost:" + browserContext.options().remoteDebuggingPort().get();
 		this.browserContext = browserContext;
 		return browserContext;
+	}
+
+	public void setDebugPort(int debugPort) {
+		if (debugPort < 1024 || debugPort > 65535) {
+			throw new IllegalArgumentException("Invalid browser debug port: " + debugPort);
+		}
+		if (project != null) {
+			setPreferredDebugPort(project, debugPort);
+		}
+		preferredDebugPort = debugPort;
+		if (browserContext != null && !browserContext.isClosed()
+				&& browserContext.options().remoteDebuggingPort().get() == debugPort) {
+			debugUrl = "http://localhost:" + debugPort;
+			return;
+		}
+		int availableDebugPort = NetworkUtils.nextAvailable(debugPort);
+		if (availableDebugPort != debugPort) {
+			throw new IllegalStateException("Requested browser debug port is unavailable: " + debugPort);
+		}
+
+		Engine previousContext = browserContext;
+		closeCurrentBrowser();
+		if (browserView != null && !browserView.isDisposed()) {
+			browserView.dispose();
+		}
+		browserContexts.remove(browserId);
+		browserContext = null;
+		recoveryEngine = null;
+		if (previousContext != null && !previousContext.isClosed()) {
+			previousContext.close();
+		}
+		init(getOrCreateBrowserContext());
+		layout(true, true);
+		restoreBrowser();
 	}
 
 	private void installRecoveryHandlers() {
