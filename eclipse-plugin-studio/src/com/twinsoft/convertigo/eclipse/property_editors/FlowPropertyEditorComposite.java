@@ -280,6 +280,8 @@ public class FlowPropertyEditorComposite extends Composite {
 						.put("ok", true)
 						.put("requestables", requestables(target))
 						.toString();
+				case "bindingSources" -> bindingSources(target, object, json.optJSONObject("payload"))
+						.toString();
 				case "context" -> new JSONObject()
 						.put("ok", true)
 						.put("context", target.flow() == null
@@ -305,5 +307,42 @@ public class FlowPropertyEditorComposite extends Composite {
 				}
 			}
 		}
+	}
+
+	private JSONObject bindingSources(EditorTarget target, FlowVirtualObject object, JSONObject payload) throws Exception {
+		if (target.flowEngine() == null || object.getVirtualPath().isBlank()) {
+			return new JSONObject().put("ok", true).put("bindingSources", new JSONArray());
+		}
+		var property = payload == null ? propertyName : payload.optString("property", propertyName);
+		var response = new FlowEngineBridge().authoringTree(target.flowEngine(), new JSONObject()
+				.put("surface", "frontend")
+				.put("focusPath", object.getVirtualPath())
+				.put("detail", "full")
+				.put("includeBindings", true)
+				.put("includeFrontendCatalog", false)
+				.put("includeFlowCatalog", false)
+				.put("property", property));
+		var children = response.optJSONArray("children");
+		var node = children == null || children.length() == 0 ? null : children.optJSONObject(0);
+		var info = node == null ? null : jsonObject(node.opt("info"));
+		var definitions = info == null ? null : info.optJSONObject("propertyDefinitions");
+		var definition = definitions == null ? null : definitions.optJSONObject(property);
+		var sources = definition == null ? null : definition.optJSONArray("bindingSources");
+		return new JSONObject()
+				.put("ok", response.optBoolean("ok", true))
+				.put("bindingSources", sources == null ? new JSONArray() : sources);
+	}
+
+	private static JSONObject jsonObject(Object value) {
+		if (value instanceof JSONObject object) {
+			return object;
+		}
+		if (value instanceof String text && !text.isBlank()) {
+			try {
+				return new JSONObject(text);
+			} catch (Exception e) {
+			}
+		}
+		return null;
 	}
 }

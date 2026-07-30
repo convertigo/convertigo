@@ -50,6 +50,11 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	private String summary = "";
 	private String definition = "";
 	private String virtualInfo = "";
+	private transient String parsedDefinitionSource;
+	private transient Object parsedDefinitionValue;
+	private transient String parsedVirtualInfoSource;
+	private transient Object parsedVirtualInfoValue;
+	private transient JSONObject lastSourceMutationResult;
 	private long virtualOrder = -1;
 	private final List<DatabaseObject> children = new ArrayList<>();
 
@@ -130,6 +135,8 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		if (!this.definition.equals(definition)) {
 			applyDefinitionMutation(definition);
 			this.definition = definition;
+			parsedDefinitionSource = null;
+			parsedDefinitionValue = null;
 		}
 	}
 
@@ -139,11 +146,58 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 
 	public void setVirtualInfo(String virtualInfo) {
 		this.virtualInfo = valueOrEmpty(virtualInfo);
+		parsedVirtualInfoSource = null;
+		parsedVirtualInfoValue = null;
 	}
 
 	public JSONObject getVirtualInfoObject() {
-		var value = parseDefinitionValue(virtualInfo);
+		var value = parsedVirtualInfoValue();
 		return value instanceof JSONObject ? (JSONObject) value : null;
+	}
+
+	public String getSourcePath() {
+		return sourceValue("sourcePath");
+	}
+
+	public String getSourceMutationPath() {
+		return sourceValue("sourceMutationPath");
+	}
+
+	public JSONObject consumeLastSourceMutationResult() {
+		var result = lastSourceMutationResult;
+		lastSourceMutationResult = null;
+		return result;
+	}
+
+	public boolean replaceProjectedTree(JSONObject source) {
+		var projected = FlowVirtualProjector.projectedObject(getParent(), source, (int) virtualOrder);
+		if (projected == null || !virtualPath.equals(projected.virtualPath)) {
+			return false;
+		}
+		try {
+			setName(projected.getName());
+		} catch (EngineException e) {
+			return false;
+		}
+		virtualKind = projected.virtualKind;
+		virtualType = projected.virtualType;
+		summary = projected.summary;
+		definition = projected.definition;
+		virtualInfo = projected.virtualInfo;
+		priority = projected.priority;
+		parsedDefinitionSource = null;
+		parsedDefinitionValue = null;
+		parsedVirtualInfoSource = null;
+		parsedVirtualInfoValue = null;
+		for (var child : children) {
+			child.setParent(null);
+		}
+		children.clear();
+		for (var child : projected.children) {
+			child.setParent(this);
+			children.add(child);
+		}
+		return true;
 	}
 
 	void setVirtualOrder(long virtualOrder) {
@@ -153,10 +207,16 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	public void setDefinitionValue(Object value) throws EngineException {
 		applyMutation(virtualPath, value);
 		definition = definitionString(value);
+		parsedDefinitionSource = null;
+		parsedDefinitionValue = null;
 	}
 
 	public Object getDefinitionValue() {
-		return parseDefinitionValue(definition);
+		if (!definition.equals(parsedDefinitionSource)) {
+			parsedDefinitionValue = parseDefinitionValue(definition);
+			parsedDefinitionSource = definition;
+		}
+		return parsedDefinitionValue;
 	}
 
 	public boolean isDefinitionWritable() {
@@ -210,6 +270,8 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 					}
 				}
 				definition = object.toString();
+				parsedDefinitionSource = definition;
+				parsedDefinitionValue = object;
 				refreshSummaryFromDefinition(object);
 			}
 		} catch (JSONException e) {
@@ -368,7 +430,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 				var info = getVirtualInfoObject();
 				var propertyDefinitions = info == null ? null : info.optJSONObject("propertyDefinitions");
 				if ("node".equals(virtualKind)) {
-					appendDynamicProperty(document, root, "comment", "Comment", "Base properties", getComment(), "Flow node comment.", false);
+					appendDynamicProperty(document, root, "comment", "Comment", "Base properties", getComment(), "Flow node comment.", false, null);
 				}
 				if (propertyDefinitions != null) {
 					for (var key : propertyDefinitionKeys(info, propertyDefinitions)) {
@@ -378,19 +440,19 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 									propertyCategory(definition),
 									declaredOrCurrentValue(key),
 									propertyDescription(key, definition),
-									isReadOnlyProperty(definition));
+									isReadOnlyProperty(definition), definition);
 						}
 					}
 				}
 				for (var key : sortedKeys(json)) {
 					if (!"comment".equals(key) && !isInternalDefinitionProperty(key)) {
 						if (propertyDefinitions == null || !propertyDefinitions.has(key)) {
-							appendDynamicProperty(document, root, key, key, "Expert", json.opt(key), "Flow property \"" + key + "\".", false);
+							appendDynamicProperty(document, root, key, key, "Expert", json.opt(key), "Flow property \"" + key + "\".", false, null);
 						}
 					}
 				}
 			} else if (isEditableScalarKind() && !(value instanceof JSONObject) && !(value instanceof JSONArray)) {
-				appendDynamicProperty(document, root, "#flow_value", "Value", "Base properties", value, "Flow value.", false);
+				appendDynamicProperty(document, root, "#flow_value", "Value", "Base properties", value, "Flow value.", false, null);
 			}
 		} catch (Exception e) {
 			throw new EngineException("Unable to append Flow virtual properties.", e);
@@ -402,7 +464,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	}
 
 	private void appendDynamicProperty(Document document, Element root, String name, String displayName, String category,
-			Object value, String description, boolean readOnly) throws Exception {
+			Object value, String description, boolean readOnly, JSONObject definition) throws Exception {
 		var property = document.createElement("property");
 		property.setAttribute("name", name);
 		property.setAttribute("displayName", displayName);
@@ -412,7 +474,22 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		property.setAttribute("isDisabled", readOnly || !isDefinitionWritable() ? "true" : "false");
 		property.setAttribute("category", category == null || category.isBlank() ? "Base properties" : category);
 		property.setAttribute("shortDescription", description);
-		property.setAttribute("editorClass", "null");
+		var editorClass = definition == null ? "" : definition.optString("editorClass", "");
+		property.setAttribute("editorClass", editorClass.isBlank() ? "null" : editorClass);
+		if (definition != null) {
+			var editorResource = definition.optString("editorResource", "");
+			if (!editorResource.isBlank()) {
+				property.setAttribute("editorResource", editorResource);
+			}
+			var kind = definition.optString("kind", "");
+			if (!kind.isBlank()) {
+				property.setAttribute("flowKind", kind);
+			}
+			var type = definition.optString("type", "");
+			if (!type.isBlank()) {
+				property.setAttribute("flowType", type);
+			}
+		}
 		if (isMultilineValue(value)) {
 			property.setAttribute("isMultiline", "true");
 		}
@@ -656,17 +733,22 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 
 	private void applySourceDeleteMutation(FlowEngine flowEngine, String sourcePath, String path) throws EngineException {
 		try {
-			var response = new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath, new JSONObject()
-					.put("op", "delete")
-					.put("path", path));
+			var response = FlowStudioSupport.applyProjectedSourceMutation(flowEngine, this, sourcePath,
+					new JSONObject()
+							.put("op", "delete")
+							.put("path", path));
 			if (!response.optBoolean("ok", false)) {
 				var error = response.optJSONObject("error");
 				var message = error == null ? response.optString("message", "Flow source delete failed.") : flowErrorMessage(error);
 				throw new EngineException("Flow source delete failed: " + message);
 			}
-			FlowStudioSupport.afterSourceMutation(flowEngine, sourcePath);
+			lastSourceMutationResult = response;
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow source delete mutation.", e);
+		} catch (EngineException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EngineException("Unable to delete Flow source object.", e);
 		}
 	}
 
@@ -691,6 +773,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 
 	private static boolean isFrontendSourceFile(String sourcePath) {
 		return sourcePath.endsWith(".flow.svelte")
+				|| sourcePath.endsWith(".flow.css")
 				|| sourcePath.endsWith(".svelte")
 				|| sourcePath.endsWith(".svelte.js")
 				|| sourcePath.endsWith(".svelte.ts")
@@ -850,6 +933,14 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		} catch (Exception e) {
 			return value;
 		}
+	}
+
+	private Object parsedVirtualInfoValue() {
+		if (!virtualInfo.equals(parsedVirtualInfoSource)) {
+			parsedVirtualInfoValue = parseDefinitionValue(virtualInfo);
+			parsedVirtualInfoSource = virtualInfo;
+		}
+		return parsedVirtualInfoValue;
 	}
 
 	private static String definitionString(Object value) {

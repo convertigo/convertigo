@@ -88,6 +88,7 @@ import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.FlowTreeMutationReconciler;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
@@ -1108,6 +1109,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			var error = response.opt("error");
 			throw new EngineException(error == null ? "Unable to move Flow node." : error.toString());
 		}
+		if (FlowTreeMutationReconciler.reconcile(explorerView, targetDbot, response,
+				FlowTreeMutationReconciler.selection(sourceDbot,
+						response.optString("selectionMutationPath", "")))) {
+			return true;
+		}
 		reloadFlowTreeObjectAndSelectAsync(explorerView, targetDbot, selectionKey, selectionPath,
 				response.optString("selectionMutationPath", ""), flowVirtualSourcePath(sourceDbot),
 				sourceVirtualObject.getVirtualKind(), sourceVirtualObject.getVirtualType(), fallbackKey, fallbackPath);
@@ -1676,8 +1682,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								var error = response.opt("error");
 								throw new EngineException(error == null ? "Unable to add frontend block." : error.toString());
 							}
+							if (FlowTreeMutationReconciler.reconcile(explorerView, dbotree, response,
+									FlowTreeMutationReconciler.selection(dbotree))) {
+								return;
+							}
 							reloadFlowTreeObject(explorerView, dbotree);
-							explorerView.refreshTree();
 							return;
 						}
 						DatabaseObject dbop = paletteSource.getDatabaseObject();
@@ -1843,9 +1852,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		Engine.logStudio.info("Flow frontend DnD UI reload: root=" + treePath(root)
 				+ " target=" + treePath(targetTreeObject));
 		explorerView.forceReloadTreeObject(root);
-		if (root != null) {
-			explorerView.refreshTreeObject(root, true);
-		}
 		Engine.logStudio.info("Flow frontend DnD UI reload order: "
 				+ flowVirtualSourceOrder(root, flowVirtualSourcePath(targetTreeObject)));
 		refreshPropertiesView(explorerView, targetTreeObject);
@@ -1874,10 +1880,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				+ " selectedMutationPath=" + selectedMutationPath
 				+ " fallbackKey=" + fallbackFlowKey + " fallbackPath=" + fallbackPath);
 		explorerView.forceReloadTreeObject(root);
-		if (root != null) {
-			explorerView.refreshTreeObject(root, true);
-		}
-		explorerView.refreshTree();
 		String selectedReason = "moved-key";
 		TreeObject selected = root instanceof TreeParent parent
 				? findFlowVirtualObjectByKey(parent, selectedFlowKey)

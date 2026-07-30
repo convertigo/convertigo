@@ -93,6 +93,9 @@
 	}
 
 	function getType(row) {
+		if (isFlowBindingProperty(row)) {
+			return 'flow-binding';
+		}
 		if (isSmartSourceProperty(row)) {
 			return 'smarttype';
 		}
@@ -134,6 +137,42 @@
 			return 'number';
 		}
 		return 'text';
+	}
+
+	/**
+	 * @param {any} row
+	 * @returns {boolean}
+	 */
+	function isFlowBindingProperty(row) {
+		return row?.editorClass === 'flow-binding-editor';
+	}
+
+	/**
+	 * @param {any} row
+	 * @returns {string}
+	 */
+	function flowBindingPreview(row) {
+		try {
+			const binding = typeof row?.value === 'string' ? JSON.parse(row.value) : row?.value;
+			if (!binding || typeof binding !== 'object') {
+				return previewValue(row);
+			}
+			if (binding.mode === 'literal') {
+				return `Literal: ${asEditorValue(binding.value) || 'empty'}`;
+			}
+			const source = binding.source ?? {};
+			const origin =
+				source.label ?? source.actionId ?? source.scopeId ?? source.category ?? 'Source';
+			const path = Array.isArray(binding.path)
+				? binding.path
+						.map((part) => part?.name ?? part?.index)
+						.filter((part) => part != null)
+						.join('.')
+				: '';
+			return path ? `${origin} · ${path}` : String(origin);
+		} catch {
+			return previewValue(row);
+		}
 	}
 
 	/**
@@ -221,6 +260,29 @@
 
 	/**
 	 * @param {any} row
+	 * @returns {{ icon: string, title: string, onclick: () => void }[]}
+	 */
+	function propertyButtons(row) {
+		const buttons = [];
+		if (String(row?.editorClass ?? '').startsWith('flow-')) {
+			buttons.push({
+				icon: 'mdi:hub',
+				title: 'Open Flow picker',
+				onclick: () => openPicker(row)
+			});
+		}
+		if (canOpenCodeProperty(row, selectedId)) {
+			buttons.push({
+				icon: 'mdi:open-in-new-variant',
+				title: 'Open code editor',
+				onclick: () => openMonaco(row)
+			});
+		}
+		return buttons;
+	}
+
+	/**
+	 * @param {any} row
 	 * @returns {number}
 	 */
 	function textareaRows(row) {
@@ -241,6 +303,9 @@
 		}
 		if (type === 'textarea') {
 			return textareaRows(row) > 1;
+		}
+		if (type === 'flow-binding') {
+			return true;
 		}
 		if (isSmartSourceProperty(row)) {
 			return true;
@@ -372,6 +437,19 @@
 											<div class="studio-properties__field-control">
 												{#if category == 'Information'}
 													<span class="studio-properties__static">{value}</span>
+												{:else if type === 'flow-binding'}
+													<div class="studio-properties__fallback layout-x-low">
+														<code class="studio-properties__fallback-value"
+															>{flowBindingPreview(row)}</code
+														>
+														<StudioIconButton
+															icon="mdi:hub"
+															size="xs"
+															title="Edit binding"
+															ariaLabel="Edit binding"
+															onclick={() => openPicker(row)}
+														/>
+													</div>
 												{:else if smartType}
 													<PropertyType
 														type="smarttype"
@@ -394,15 +472,7 @@
 														adaptiveTextarea={type === 'textarea'}
 														segmentCompact={type === 'segment'}
 														actionsHorizontal={type !== 'textarea'}
-														buttons={canOpenCodeProperty(row, selectedId)
-															? [
-																	{
-																		icon: 'mdi:open-in-new-variant',
-																		title: 'Open code editor',
-																		onclick: () => openMonaco(row)
-																	}
-																]
-															: []}
+														buttons={propertyButtons(row)}
 													/>
 												{:else}
 													<div class="studio-properties__fallback layout-x-low">

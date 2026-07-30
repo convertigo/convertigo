@@ -25,6 +25,8 @@ public class StudioEvent implements BaseEvent {
 	public final static String DEPLOYMENT = "deployment";
 	public final static String LINK_OPEN = "linkOpen";
 	public final static String ERROR_MESSAGE = "errorMessage";
+	public final static String FLOW_SOURCE_CHANGED = "flowSourceChanged";
+	public final static String FLOW_BROWSER_OPEN = "flowBrowserOpen";
 	
 	private String type;
 	private Object payload;

@@ -104,6 +104,9 @@ public class FlowEngine extends DatabaseObject {
 	@Override
 	public void setParent(DatabaseObject databaseObject) {
 		super.setParent(databaseObject);
+		if (databaseObject == null || !isOriginal()) {
+			return;
+		}
 		ensureEngineProjectReference();
 		if (!ownsRuntime()) {
 			return;
@@ -127,6 +130,7 @@ public class FlowEngine extends DatabaseObject {
 			var result = new FlowEngineBridge().preload(this);
 			Engine.logBeans.info("(FlowEngine) Preloaded " + getQName() + " in "
 					+ result.optLong("durationMs") + " ms (" + result.optInt("blockCount") + " blocks)");
+			Flow.runtimePrepared(getEngineQName());
 		} catch (Exception e) {
 			Engine.logBeans.warn("(FlowEngine) Unable to preload " + getQName(), e);
 		}
@@ -348,6 +352,7 @@ public class FlowEngine extends DatabaseObject {
 			var file = new File(sourcePath).getCanonicalFile();
 			var name = file.getName();
 			var supported = name.endsWith(".front.json") || name.endsWith(".flow.svelte")
+					|| name.endsWith(".flow.css")
 					|| name.endsWith(".block.js") || name.endsWith(".type.yaml")
 					|| name.endsWith(".schema.json") || name.endsWith(".yaml")
 					|| name.endsWith(".json") || name.endsWith(".js") || name.endsWith(".svelte");

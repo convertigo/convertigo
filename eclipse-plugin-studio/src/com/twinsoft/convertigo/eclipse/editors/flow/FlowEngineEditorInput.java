@@ -32,8 +32,13 @@ public class FlowEngineEditorInput implements IEditorInput {
 	private final String url;
 	private final String projectName;
 	private final String tooltip;
+	private final String authoringProtocol;
 
 	public FlowEngineEditorInput(String id, String title, String url, String projectName, String tooltip) {
+		this(id, title, url, projectName, tooltip, "");
+	}
+
+	public FlowEngineEditorInput(String id, String title, String url, String projectName, String tooltip, String authoringProtocol) {
 		this.url = Objects.toString(url, "");
 		this.projectName = Objects.toString(projectName, "");
 		this.title = Objects.toString(title, "Flow");
@@ -43,6 +48,7 @@ public class FlowEngineEditorInput implements IEditorInput {
 		this.tooltip = Objects.toString(tooltip, "").isBlank()
 				? this.url
 				: tooltip;
+		this.authoringProtocol = Objects.toString(authoringProtocol, "");
 	}
 
 	@Override
@@ -85,6 +91,14 @@ public class FlowEngineEditorInput implements IEditorInput {
 
 	public String getProjectName() {
 		return projectName;
+	}
+
+	public String getAuthoringProtocol() {
+		return authoringProtocol;
+	}
+
+	public boolean supportsAuthoring() {
+		return !authoringProtocol.isBlank();
 	}
 
 	@Override

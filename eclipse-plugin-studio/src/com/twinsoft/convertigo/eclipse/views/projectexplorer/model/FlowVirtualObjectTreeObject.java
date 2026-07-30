@@ -42,10 +42,12 @@ import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.FlowOutputSchemaPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.FlowPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implements IOrderableTreeObject {
 
@@ -65,6 +67,21 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	@Override
 	public FlowVirtualObject getObject() {
 		return (FlowVirtualObject) super.getObject();
+	}
+
+	public void replaceFlowObject(FlowVirtualObject object) {
+		setObject(object);
+		reloadDescriptors();
+	}
+
+	@Override
+	public boolean isEnabled() {
+		var definition = getObject().getDefinitionObject();
+		if (definition != null && definition.optBoolean("disabled", false)) {
+			return false;
+		}
+		var info = getObject().getVirtualInfoObject();
+		return info == null || !info.optBoolean("disabled", false);
 	}
 
 	public String getIconImagePath() {
@@ -105,7 +122,8 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	}
 
 	public boolean canLaunchEditor() {
-		return isEditableSourceKind() && !getSourceFilePath().isBlank();
+		return FlowStudioSupport.authoringReference(getObject()) != null
+				|| (isEditableSourceKind() && !getSourceFilePath().isBlank());
 	}
 
 	public boolean isReadOnlyReference() {
@@ -118,6 +136,14 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	}
 
 	public void launchEditor(String editorType) {
+		if (editorType == null) {
+			var reference = FlowStudioSupport.authoringReference(getObject());
+			var project = getObject().getProject();
+			if (reference != null && project != null
+					&& FlowEngineEditor.highlightAuthoringObject(project.getName(), reference)) {
+				return;
+			}
+		}
 		var filePath = getSourceFilePath();
 		if (filePath.isBlank()) {
 			return;
@@ -366,6 +392,9 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			return true;
 		}
 		if ("frontendBlockImplementation".equals(kind)) {
+			return true;
+		}
+		if ("frontendStyleSource".equals(kind)) {
 			return true;
 		}
 		if ("frontendBlock".equals(kind)) {

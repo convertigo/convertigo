@@ -77,6 +77,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
@@ -499,6 +500,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (project != null) {
 			Engine.logDatabaseObjectManager
 			.info("[clearCache] start releasing for " + Project.formatNameWithHash(project));
+			Flow.projectUnloaded(project);
 			RestApiManager.getInstance().removeUrlMapper(projectName);
 			MobileBuilder.releaseBuilder(project);
 			Engine.logDatabaseObjectManager
@@ -525,6 +527,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (project != null) {
 			Engine.logDatabaseObjectManager
 			.info("[clearCacheIfSymbolError] start releasing for " + Project.formatNameWithHash(project));
+			Flow.projectUnloaded(project);
 			RestApiManager.getInstance().removeUrlMapper(projectName);
 			MobileBuilder.releaseBuilder(project);
 			Engine.logDatabaseObjectManager

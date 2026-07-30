@@ -30,9 +30,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
@@ -107,6 +109,70 @@ public class FlowStudioSupport {
 			if (resolved != null) {
 				return resolved;
 			}
+		}
+		return null;
+	}
+
+	public static JSONObject authoringReference(DatabaseObject databaseObject) {
+		if (!(databaseObject instanceof FlowVirtualObject fvo)) {
+			return null;
+		}
+		if (!isFrontendSourcePath(sourcePath(fvo))) {
+			return null;
+		}
+		var sourceRelativePath = sourceRelativePath(fvo);
+		var sourceMutationPath = sourceMutationPath(fvo);
+		if (sourceRelativePath.isBlank() || sourceMutationPath.isBlank()) {
+			return null;
+		}
+		var nodeId = fvo.getDefinitionProperty("id");
+		try {
+			return new JSONObject()
+					.put("nodeId", nodeId == null ? fvo.getName() : String.valueOf(nodeId))
+					.put("sourceRelativePath", sourceRelativePath)
+					.put("sourceMutationPath", sourceMutationPath);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public static DatabaseObject resolveAuthoringReference(String projectName, JSONObject reference) throws Exception {
+		if (reference == null || projectName == null || projectName.isBlank()) {
+			return null;
+		}
+		var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+		if (project == null || project.getFlowEngine() == null) {
+			return null;
+		}
+		var sourceRelativePath = normalizeSourcePath(reference.optString("sourceRelativePath", ""));
+		var sourceMutationPath = reference.optString("sourceMutationPath", "");
+		if (sourceRelativePath.isBlank() || sourceMutationPath.isBlank()) {
+			return null;
+		}
+		for (var child : project.getFlowEngine().getDatabaseObjectChildren()) {
+			var resolved = resolveAuthoringReference(child, sourceRelativePath, sourceMutationPath);
+			if (resolved != null) {
+				return resolved;
+			}
+		}
+		return null;
+	}
+
+	private static DatabaseObject resolveAuthoringReference(DatabaseObject candidate, String sourceRelativePath,
+			String sourceMutationPath) {
+		if (candidate instanceof FlowVirtualObject fvo
+				&& sourceRelativePath.equals(sourceRelativePath(fvo))
+				&& sourceMutationPath.equals(sourceMutationPath(fvo))) {
+			return fvo;
+		}
+		try {
+			for (var child : candidate.getDatabaseObjectChildren()) {
+				var resolved = resolveAuthoringReference(child, sourceRelativePath, sourceMutationPath);
+				if (resolved != null) {
+					return resolved;
+				}
+			}
+		} catch (Exception e) {
 		}
 		return null;
 	}
@@ -212,6 +278,23 @@ public class FlowStudioSupport {
 		var response = root instanceof Flow flow
 				? new FlowEngineBridge().contextAction(flow, request)
 				: new FlowEngineBridge().contextAction((FlowEngine) root, request);
+		var mutation = response.optJSONObject("mutation");
+		if (response.optBoolean("ok", false) && mutation != null) {
+			var mutationResult = applyMutation(root, targetDbo, mutation);
+			response.put("mutationResult", mutationResult);
+			if (!mutationResult.optBoolean("ok", false)) {
+				response.put("ok", false)
+						.put("refresh", false)
+						.put("message", flowErrorMessage(mutationResult));
+				var error = mutationResult.optJSONObject("error");
+				if (error != null) {
+					response.put("error", error);
+				}
+			} else {
+				response.put("changed", sourceMutationChanged(mutationResult))
+						.put("refresh", true);
+			}
+		}
 		if (response.optBoolean("refreshPalette", false) || response.optBoolean("refresh", false)) {
 			clearCatalogCache(root);
 		}
@@ -784,11 +867,35 @@ public class FlowStudioSupport {
 				+ " changed=" + response.opt("changed")
 				+ " debug=" + response.opt("debug")
 				+ " error=" + response.opt("error"));
-		return new JSONObject()
-				.put("done", done)
-				.put("id", done ? flowEngine.getFullQName() : "")
-				.put("error", done ? JSONObject.NULL : response.has("error") ? response.opt("error")
-						: "Frontend source mutation did not change the source.");
+			return withProjectionMetadata(new JSONObject()
+					.put("done", done)
+					.put("id", done ? flowEngine.getFullQName() : "")
+					.put("selectionSourcePath", done ? frontendMutationSourcePath(targetDbo, mutation) : "")
+					.put("selectionMutationPath", done ? frontendSelectionMutationPath(mutation) : "")
+					.put("selectionId", done ? frontendMutationValueId(mutation) : "")
+					.put("error", done ? JSONObject.NULL : response.has("error") ? response.opt("error")
+							: "Frontend source mutation did not change the source."), response);
+	}
+
+	private static String frontendMutationSourcePath(DatabaseObject targetDbo, JSONObject mutation) {
+		var overrideSourcePath = mutation == null ? "" : mutation.optString("__sourcePath", "");
+		if (!overrideSourcePath.isBlank()) {
+			return overrideSourcePath;
+		}
+		return targetDbo instanceof FlowVirtualObject flowObject ? sourcePath(flowObject) : "";
+	}
+
+	private static String frontendSelectionMutationPath(JSONObject mutation) {
+		if (mutation == null || !"insert".equals(mutation.optString("op", ""))) {
+			return "";
+		}
+		var path = mutation.optString("path", "");
+		return path.isBlank() ? "" : path + "[" + Math.max(0, mutation.optInt("index", 0)) + "]";
+	}
+
+	private static String frontendMutationValueId(JSONObject mutation) {
+		var value = mutation == null ? null : mutation.optJSONObject("value");
+		return value == null ? "" : value.optString("id", "");
 	}
 
 	private static JSONObject frontendInsertValue(JSONObject data) throws Exception {
@@ -1511,11 +1618,11 @@ public class FlowStudioSupport {
 				+ " changed=" + response.opt("changed")
 				+ " debug=" + response.opt("debug")
 				+ " error=" + response.opt("error"));
-		return new JSONObject()
+		return withProjectionMetadata(new JSONObject()
 				.put("done", done)
 				.put("id", done ? root.getFullQName() : "")
 				.put("error", done ? JSONObject.NULL : response.has("error") ? response.opt("error")
-						: "Flow node move did not change the source.");
+						: "Flow node move did not change the source."), response);
 	}
 
 	private static String moveInsideCollectionPath(FlowVirtualObject target) {
@@ -1642,12 +1749,12 @@ public class FlowStudioSupport {
 				+ " changed=" + response.opt("changed")
 				+ " debug=" + response.opt("debug")
 				+ " error=" + response.opt("error"));
-		return new JSONObject()
+		return withProjectionMetadata(new JSONObject()
 				.put("done", done)
 				.put("id", done ? root.getFullQName() : "")
 				.put("selectionMutationPath", done ? collectionPath + "[" + targetIndex + "]" : "")
 				.put("error", done ? JSONObject.NULL : response.has("error") ? response.opt("error")
-						: "Flow node move did not change the source.");
+						: "Flow node move did not change the source."), response);
 	}
 
 	private static String flowVirtualObjectId(FlowVirtualObject fvo) {
@@ -2192,11 +2299,7 @@ public class FlowStudioSupport {
 		if (targetDbo instanceof FlowVirtualObject fvo && isSourceBackedTarget(fvo)) {
 			var flowEngine = root instanceof FlowEngine engine ? engine : root.getProject().getFlowEngine();
 			var sourcePath = sourcePath(fvo);
-			var response = new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath, mutation);
-			if (response.optBoolean("ok", false) && sourceMutationChanged(response)) {
-				afterSourceMutation(flowEngine, sourcePath);
-			}
-			return response;
+			return applyProjectedSourceMutation(flowEngine, targetDbo, sourcePath, mutation);
 		}
 		return root instanceof Flow flow
 				? new FlowEngineBridge().applyMutation(flow, mutation)
@@ -2206,34 +2309,72 @@ public class FlowStudioSupport {
 	private static JSONObject applyFrontendMutation(FlowEngine flowEngine, DatabaseObject targetDbo, JSONObject mutation) throws Exception {
 		var overrideSourcePath = mutation == null ? "" : mutation.optString("__sourcePath", "");
 		if (!overrideSourcePath.isBlank()) {
-			var cleanMutation = cleanFrontendMutation(mutation);
 			flowStudioInfo("Flow frontend DnD apply override mutation: sourcePath=" + overrideSourcePath
-					+ " mutation=" + cleanMutation);
-			var response = new FlowEngineBridge().applySourceMutation(flowEngine, overrideSourcePath, cleanMutation);
-			if (response.optBoolean("ok", false) && sourceMutationChanged(response)) {
-				afterSourceMutation(flowEngine, overrideSourcePath);
-			} else if (response.optBoolean("ok", false)) {
-				flowStudioWarn("Flow frontend DnD mutation made no changes: sourcePath=" + overrideSourcePath
-						+ " mutation=" + cleanMutation + " debug=" + response.opt("debug"));
-			}
-			return response;
+					+ " mutation=" + cleanFrontendMutation(mutation));
+			return applyProjectedSourceMutation(flowEngine, targetDbo, overrideSourcePath, mutation);
 		}
 		if (targetDbo instanceof FlowVirtualObject fvo) {
 			var sourcePath = sourcePath(fvo);
 			if (!sourcePath.isBlank() && sourceFlag(fvo, "sourceWritable")) {
 				flowStudioInfo("Flow frontend DnD apply target mutation: target=" + flowMoveTargetSummary(fvo)
 						+ " mutation=" + mutation);
-				var response = new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath, mutation);
-				if (response.optBoolean("ok", false) && sourceMutationChanged(response)) {
-					afterSourceMutation(flowEngine, sourcePath);
-				} else if (response.optBoolean("ok", false)) {
-					flowStudioWarn("Flow frontend DnD mutation made no changes: sourcePath=" + sourcePath
-							+ " mutation=" + mutation + " debug=" + response.opt("debug"));
-				}
-				return response;
+				return applyProjectedSourceMutation(flowEngine, targetDbo, sourcePath, mutation);
 			}
 		}
 		return applyMutation(flowEngine, targetDbo, mutation);
+	}
+
+	public static JSONObject applyProjectedSourceMutation(FlowEngine flowEngine, DatabaseObject targetDbo,
+			String sourcePath, JSONObject mutation) throws Exception {
+		var cleanMutation = cleanFrontendMutation(mutation);
+		var projectionRoot = frontendProjectionRoot(targetDbo, sourcePath);
+		var response = new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath, cleanMutation,
+				projectionRoot == null ? "" : projectionRoot.getVirtualPath());
+		if (response.optBoolean("ok", false) && sourceMutationChanged(response)) {
+			afterSourceMutation(flowEngine, sourcePath);
+			applyFrontendProjection(projectionRoot, sourcePath, response);
+		} else if (response.optBoolean("ok", false)) {
+			flowStudioWarn("Flow frontend source mutation made no changes: sourcePath=" + sourcePath
+					+ " mutation=" + cleanMutation + " debug=" + response.opt("debug"));
+		}
+		return response;
+	}
+
+	private static FlowVirtualObject frontendProjectionRoot(DatabaseObject targetDbo, String sourcePath) {
+		for (var current = targetDbo; current instanceof FlowVirtualObject fvo; current = current.getParent()) {
+			if (sourcePath.equals(sourcePath(fvo)) && "frontAst".equals(sourceMutationPath(fvo))) {
+				return fvo;
+			}
+		}
+		return null;
+	}
+
+	private static void applyFrontendProjection(FlowVirtualObject projectionRoot, String sourcePath, JSONObject response) {
+		if (projectionRoot == null || response == null) {
+			return;
+		}
+		var tree = response.optJSONObject("authoringTree");
+		var children = tree == null || !tree.optBoolean("ok", false) ? null : tree.optJSONArray("children");
+		var projected = children == null || children.length() != 1 ? null : children.optJSONObject(0);
+		if (projected == null || !projectionRoot.replaceProjectedTree(projected)) {
+			flowStudioWarn("Flow frontend source projection could not replace the in-memory root: sourcePath="
+					+ sourcePath + " rootPath=" + projectionRoot.getVirtualPath());
+			return;
+		}
+		try {
+			response.put("projected", true)
+					.put("projectedRootPath", projectionRoot.getVirtualPath())
+					.put("projectedSourcePath", sourcePath);
+		} catch (JSONException e) {
+			flowStudioWarn("Unable to expose Flow frontend projection metadata.", e);
+		}
+	}
+
+	private static JSONObject withProjectionMetadata(JSONObject result, JSONObject response) throws JSONException {
+		return result
+				.put("projected", response != null && response.optBoolean("projected", false))
+				.put("projectedRootPath", response == null ? "" : response.optString("projectedRootPath", ""))
+				.put("projectedSourcePath", response == null ? "" : response.optString("projectedSourcePath", ""));
 	}
 
 	private static JSONObject cleanFrontendMutation(JSONObject mutation) throws Exception {
@@ -2279,7 +2420,8 @@ public class FlowStudioSupport {
 		}
 		var path = sourcePath.replace('\\', '/');
 		return path.contains("/libs/flow/frontbuilder/")
-				&& (path.endsWith(".flow.svelte") || path.endsWith(".front.json") || path.endsWith(".uiblock.json"));
+				&& (path.endsWith(".flow.svelte") || path.endsWith(".flow.css")
+						|| path.endsWith(".front.json") || path.endsWith(".uiblock.json"));
 	}
 
 	private static void flowStudioInfo(String message) {
@@ -2323,6 +2465,32 @@ public class FlowStudioSupport {
 
 	private static String sourceMutationPath(FlowVirtualObject fvo) {
 		return sourceValue(fvo, "sourceMutationPath");
+	}
+
+	private static String sourceRelativePath(FlowVirtualObject fvo) {
+		var relativePath = sourceValue(fvo, "sourceRelativePath");
+		if (!relativePath.isBlank()) {
+			return normalizeSourcePath(relativePath);
+		}
+		var sourcePath = sourcePath(fvo);
+		Project project = fvo.getProject();
+		if (sourcePath.isBlank() || project == null || project.getDirFile() == null) {
+			return "";
+		}
+		try {
+			return normalizeSourcePath(project.getDirFile().toPath().toAbsolutePath().normalize()
+					.relativize(new File(sourcePath).toPath().toAbsolutePath().normalize()).toString());
+		} catch (Exception e) {
+			return "";
+		}
+	}
+
+	private static String normalizeSourcePath(String path) {
+		var normalized = path == null ? "" : path.replace('\\', '/').trim();
+		while (normalized.startsWith("./")) {
+			normalized = normalized.substring(2);
+		}
+		return normalized;
 	}
 
 	private static boolean sourceFlag(FlowVirtualObject fvo, String key) {

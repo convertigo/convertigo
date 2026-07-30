@@ -125,6 +125,7 @@ import com.twinsoft.convertigo.eclipse.dialogs.GlobalsSymbolsWarnDialog;
 import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.palette.PaletteView;
@@ -207,6 +208,28 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			getDisplay().asyncExec(() -> {
 				ErrorDialog.openError(null, null, null, new Status(IStatus.ERROR, PLUGIN_UNIQUE_ID, event.payload()));
 			});
+		} else if (StudioEvent.FLOW_SOURCE_CHANGED.equals(event.type())) {
+			var payload = (org.codehaus.jettison.json.JSONObject) event.payload();
+			var projectName = payload.optString("projectName", "");
+			var sourcePath = payload.optString("sourcePath", "");
+			getDisplay().asyncExec(() -> {
+				try {
+					var explorer = getProjectExplorerView();
+					var root = explorer == null || projectName.isBlank() ? null : explorer.getProjectRootObject(projectName);
+					if (root instanceof ProjectTreeObject projectTreeObject) {
+						projectTreeObject.refreshFlowVirtualTree(sourcePath);
+					}
+				} catch (Exception e) {
+					logException(e, "Unable to refresh Flow source \"" + sourcePath + "\".");
+				}
+			});
+		} else if (StudioEvent.FLOW_BROWSER_OPEN.equals(event.type())) {
+			var browser = (org.codehaus.jettison.json.JSONObject) event.payload();
+			getDisplay().asyncExec(() -> FlowEngineEditor.open(
+					browser,
+					browser.optString("url", ""),
+					browser.optString("title", "Flow"),
+					browser.optString("project", "")));
 		}
 	};
 	

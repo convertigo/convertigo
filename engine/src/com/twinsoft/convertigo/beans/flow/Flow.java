@@ -20,11 +20,13 @@
 package com.twinsoft.convertigo.beans.flow;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.namespace.QName;
 
@@ -56,6 +58,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable;
@@ -74,6 +77,19 @@ public class Flow extends Sequence {
 	private static final String DEFAULT_FLOW_SOURCE = "function Flow({ input, config, result }) {\n"
 			+ "  return result\n"
 			+ "}\n";
+	private static final Object planPreparationLock = new Object();
+	private static final Map<String, FlowPlanPreparation> flowPlanPreparations = new LinkedHashMap<>();
+	private static final Map<String, Long> preparedRuntimeGenerations = new LinkedHashMap<>();
+	private static final AtomicLong planPreparationGeneration = new AtomicLong();
+
+	private record FlowPlanPreparation(
+			String projectName,
+			String engineQName,
+			WeakReference<Flow> flowReference,
+			boolean ready,
+			long lastPreparedGeneration) {
+	}
+
 	private String flowSource = DEFAULT_FLOW_SOURCE;
 	private boolean includeTrace = false;
 	private transient String flowSourceDraft = null;
@@ -85,6 +101,127 @@ public class Flow extends Sequence {
 
 	public Flow() {
 		super();
+	}
+
+	@Override
+	public void setParent(DatabaseObject databaseObject) {
+		super.setParent(databaseObject);
+		if (databaseObject == null || !isOriginal()) {
+			return;
+		}
+		var project = getProject();
+		if (project == null) {
+			return;
+		}
+		var engineQName = effectiveEngineQName();
+		var flowQName = getQName();
+		synchronized (planPreparationLock) {
+			flowPlanPreparations.put(flowQName, new FlowPlanPreparation(
+					project.getName(), engineQName, new WeakReference<>(this), !isImporting, -1));
+		}
+		if (isImporting) {
+			com.twinsoft.convertigo.engine.DatabaseObjectsManager.getProjectLoadingData()
+					.addAfterLoaded(() -> markPlanPreparationReady(flowQName, this));
+		} else {
+			prepareReadyFlows(engineQName);
+		}
+	}
+
+	public static void runtimePrepared(String engineQName) {
+		synchronized (planPreparationLock) {
+			preparedRuntimeGenerations.put(engineQName, planPreparationGeneration.incrementAndGet());
+		}
+		prepareReadyFlows(engineQName);
+	}
+
+	public static void projectUnloaded(Project project) {
+		if (project == null) {
+			return;
+		}
+		var projectName = project.getName();
+		var flowEngine = project.getFlowEngine();
+		var ownedEngineQName = flowEngine == null ? null : flowEngine.getEngineQName();
+		if (ownedEngineQName != null && !ownedEngineQName.startsWith(projectName + ".")) {
+			ownedEngineQName = null;
+		}
+		synchronized (planPreparationLock) {
+			flowPlanPreparations.values().removeIf(preparation -> projectName.equals(preparation.projectName()));
+			if (ownedEngineQName != null) {
+				preparedRuntimeGenerations.remove(ownedEngineQName);
+			}
+			removeReleasedFlows();
+		}
+	}
+
+	private static void markPlanPreparationReady(String flowQName, Flow flow) {
+		var engineQName = flow.effectiveEngineQName();
+		synchronized (planPreparationLock) {
+			var preparation = flowPlanPreparations.get(flowQName);
+			if (preparation != null && preparation.flowReference().get() == flow) {
+				flowPlanPreparations.put(flowQName, new FlowPlanPreparation(
+						preparation.projectName(), engineQName, preparation.flowReference(), true,
+						preparation.lastPreparedGeneration()));
+			} else {
+				engineQName = null;
+			}
+		}
+		if (engineQName != null) {
+			prepareReadyFlows(engineQName);
+		}
+	}
+
+	private static void prepareReadyFlows(String engineQName) {
+		List<Flow> flows = new ArrayList<>();
+		synchronized (planPreparationLock) {
+			var runtimeGeneration = preparedRuntimeGenerations.get(engineQName);
+			if (runtimeGeneration == null) {
+				return;
+			}
+			var iterator = flowPlanPreparations.entrySet().iterator();
+			while (iterator.hasNext()) {
+				var entry = iterator.next();
+				var preparation = entry.getValue();
+				var flow = preparation.flowReference().get();
+				if (flow == null) {
+					iterator.remove();
+				} else if (preparation.ready() && engineQName.equals(preparation.engineQName())
+						&& preparation.lastPreparedGeneration() < runtimeGeneration) {
+					entry.setValue(new FlowPlanPreparation(
+							preparation.projectName(), engineQName, preparation.flowReference(), true,
+							runtimeGeneration));
+					flows.add(flow);
+				}
+			}
+		}
+		for (var flow : flows) {
+			flow.prepareFlowPlan();
+		}
+	}
+
+	private static void removeReleasedFlows() {
+		var iterator = flowPlanPreparations.values().iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next().flowReference().get() == null) {
+				iterator.remove();
+			}
+		}
+	}
+
+	private String effectiveEngineQName() {
+		var project = getProject();
+		var flowEngine = project == null ? null : project.getFlowEngine();
+		var engineQName = flowEngine == null ? null : flowEngine.getEngineQName();
+		return engineQName == null || engineQName.isBlank() ? FlowEngineBridge.DEFAULT_ENGINE_QNAME : engineQName;
+	}
+
+	private void prepareFlowPlan() {
+		try {
+			var result = new FlowEngineBridge().prepare(this);
+			Engine.logBeans.info("(Flow) Prepared " + getQName() + " in "
+					+ Math.round(result.optDouble("durationMs")) + " ms");
+		} catch (Exception e) {
+			Engine.logBeans.warn("(Flow) Unable to prepare " + getQName(), e);
+		}
 	}
 
 	@Override

@@ -464,6 +464,16 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		});
 	}
 
+	public void refreshFlowVirtualTree(String sourcePath) {
+		var path = sourcePath == null ? "" : sourcePath.replace('\\', '/');
+		var flowSourceNames = new HashSet<String>();
+		if (path.startsWith("libs/flows/") && path.endsWith(".flow.js")) {
+			var name = new File(path).getName();
+			flowSourceNames.add(name.substring(0, name.length() - ".flow.js".length()));
+		}
+		refreshFlowVirtualTree(flowSourceNames, path.startsWith("libs/flow/"));
+	}
+
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);

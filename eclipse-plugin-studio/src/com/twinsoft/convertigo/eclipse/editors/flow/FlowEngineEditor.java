@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.editors.flow;
 
+import org.codehaus.jettison.json.JSONObject;
+import org.codehaus.jettison.json.JSONTokener;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -29,10 +31,13 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
+import com.teamdev.jxbrowser.browser.callback.ShowContextMenuCallback;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
@@ -47,6 +52,7 @@ public class FlowEngineEditor extends EditorPart {
 
 	private FlowEngineEditorInput input;
 	private C8oBrowser browser;
+	private boolean authoringBridgeInstalled;
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
@@ -101,7 +107,115 @@ public class FlowEngineEditor extends EditorPart {
 		browser.addToolItemNavigation(toolbar);
 		browser.addToolItemOpenExternal(toolbar);
 		addToolItemFrontendDebug(toolbar);
+		installAuthoringBridge();
 		browser.setUrl(input.getUrl());
+	}
+
+	private void installAuthoringBridge() {
+		if (authoringBridgeInstalled || browser == null || browser.isDisposed() || input == null || !input.supportsAuthoring()) {
+			return;
+		}
+		authoringBridgeInstalled = true;
+		browser.getBrowser().set(ShowContextMenuCallback.class, (params, tell) -> {
+			try {
+				var location = params.location();
+				revealAuthoringObjectAt(location.x(), location.y());
+			} finally {
+				tell.close();
+			}
+		});
+	}
+
+	private void revealAuthoringObjectAt(int x, int y) {
+		C8oBrowser.run(() -> {
+			try {
+				String json = browser.executeJavaScriptAndReturnValue(
+						"JSON.stringify(window.__c8oFlowAuthoring?.referenceAt(" + x + ", " + y + ") ?? null)");
+				if (json == null || json.isBlank() || "null".equals(json)) {
+					return;
+				}
+				var value = new JSONTokener(json).nextValue();
+				if (!(value instanceof JSONObject reference)) {
+					return;
+				}
+				highlightAuthoringReference(reference);
+				browser.getDisplay().asyncExec(() -> revealAuthoringReference(reference));
+			} catch (Exception e) {
+				Engine.logStudio.debug("Unable to reveal Flow authoring object.", e);
+			}
+		});
+	}
+
+	private void revealAuthoringReference(JSONObject reference) {
+		var explorer = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (explorer != null && !explorer.selectFlowAuthoringReference(getProjectName(), reference)) {
+			Engine.logStudio.warn("Unable to find the Flow authoring object in the project tree: " + reference);
+		}
+	}
+
+	private void highlightAuthoringReference(JSONObject reference) {
+		if (reference == null || browser == null || browser.isDisposed()) {
+			return;
+		}
+		C8oBrowser.run(() -> {
+			try {
+				browser.executeJavaScriptAndReturnValue(
+						"window.__c8oFlowAuthoring?.highlight(" + reference + ") ?? 0");
+			} catch (Exception e) {
+				Engine.logStudio.debug("Unable to highlight Flow authoring object.", e);
+			}
+		});
+	}
+
+	public static boolean highlightAuthoringObject(String projectName, JSONObject reference) {
+		if (projectName == null || projectName.isBlank() || reference == null) {
+			return false;
+		}
+		try {
+			var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			for (IEditorReference editorReference : page.getEditorReferences()) {
+				var editorInput = editorReference.getEditorInput();
+				if (!(editorInput instanceof FlowEngineEditorInput flowInput)
+						|| !flowInput.supportsAuthoring()
+						|| !projectName.equals(flowInput.getProjectName())) {
+					continue;
+				}
+				var editor = editorReference.getEditor(false);
+				if (editor instanceof FlowEngineEditor flowEditor) {
+					page.bringToTop(flowEditor);
+					flowEditor.highlightAuthoringReference(reference);
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			Engine.logStudio.debug("Unable to find the Flow authoring viewer.", e);
+		}
+		return false;
+	}
+
+	public static boolean open(JSONObject browser, String fallbackUrl, String fallbackTitle, String fallbackProject) {
+		var url = browser == null ? fallbackUrl : browser.optString("url", fallbackUrl);
+		if (url == null || url.isBlank()) {
+			return false;
+		}
+		try {
+			var title = browser == null ? fallbackTitle : browser.optString("title", fallbackTitle);
+			var id = browser == null ? "" : browser.optString("id", "");
+			var projectName = browser == null ? fallbackProject : browser.optString("project", fallbackProject);
+			var tooltip = browser == null ? url : browser.optString("tooltip", url);
+			var authoring = browser == null ? null : browser.optJSONObject("authoring");
+			var authoringProtocol = authoring == null ? "" : authoring.optString("protocol", "");
+			var input = new FlowEngineEditorInput(id, title, url, projectName, tooltip, authoringProtocol);
+			var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			var editor = page.openEditor(input, ID);
+			if (editor instanceof FlowEngineEditor flowEditor) {
+				flowEditor.updateInput(input);
+			}
+			return true;
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to open Flow browser editor.");
+			return false;
+		}
 	}
 
 	private Project getProject() {
@@ -144,6 +258,7 @@ public class FlowEngineEditor extends EditorPart {
 		setInput(input);
 		setPartName(input.getName());
 		if (browser != null && !browser.isDisposed()) {
+			installAuthoringBridge();
 			browser.setUrl(input.getUrl());
 		}
 	}

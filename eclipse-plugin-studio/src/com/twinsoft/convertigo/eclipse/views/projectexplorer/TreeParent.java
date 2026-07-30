@@ -72,6 +72,27 @@ public abstract class TreeParent extends TreeObject {
 		}
 	}
 
+	public void replaceChildren(List<? extends TreeObject> replacements) {
+		var previous = getChildren();
+		for (var child : previous) {
+			if (!replacements.contains(child)) {
+				if (child instanceof TreeParent treeParent) {
+					treeParent.removeAllChildren();
+				}
+				child.setParent(null);
+			}
+		}
+		synchronized (children) {
+			children.clear();
+			children.addAll(replacements);
+		}
+		for (var child : replacements) {
+			if (child.getParent() != this) {
+				child.setParent(this);
+			}
+		}
+	}
+
 	public TreeObject getPreviousSibling(TreeObject child) {
 		TreeObject prevChild = null;
 		synchronized (children) {

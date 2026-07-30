@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.undo.UndoManager;
 
@@ -171,6 +172,8 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.flow.Flow;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.FunctionStep;
@@ -190,7 +193,6 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
 import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor;
-import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditorInput;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction;
@@ -282,6 +284,7 @@ import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ProjectExplorerView extends ViewPart implements ObjectsProvider, CompositeListener, EngineListener, MigrationListener {
+	private final AtomicInteger flowTreeReloadDepth = new AtomicInteger();
 
 	static final int TREE_OBJECT_TYPE_UNKNOWN = 0;
 
@@ -834,9 +837,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				if (item == null) {
 					continue;
 				}
-				var targetMenu = flowMenu;
+				var rootPlacement = "root".equals(item.optString("placement", ""));
+				IMenuManager targetMenu = rootPlacement ? manager : flowMenu;
 				var group = item.optString("group", "");
-				if (!group.isBlank()) {
+				if (!rootPlacement && !group.isBlank()) {
 					targetMenu = groups.computeIfAbsent(group, MenuManager::new);
 				}
 				if (item.optBoolean("separator", false)) {
@@ -917,6 +921,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				return;
 			}
 			var label = item.optString("label", item.optString("id", "Flow action"));
+			var targetReference = FlowStudioSupport.authoringReference(targetDbo);
+			var targetTreeObject = findTreeObjectByUserObject(targetDbo);
 			var job = new Job(label) {
 				@Override
 				protected IStatus run(IProgressMonitor monitor) {
@@ -931,7 +937,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					} finally {
 						monitor.done();
 					}
-					Display.getDefault().asyncExec(() -> handleFlowContextActionResult(actionResult[0], actionError[0]));
+					Display.getDefault().asyncExec(() -> handleFlowContextActionResult(
+							actionResult[0], actionError[0], targetDbo, targetTreeObject, targetReference));
 					return actionError[0] == null
 							? Status.OK_STATUS
 							: new Status(IStatus.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, actionError[0].getMessage(), actionError[0]);
@@ -946,7 +953,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 
-	private void handleFlowContextActionResult(JSONObject actionResult, Exception actionError) {
+	private void handleFlowContextActionResult(JSONObject actionResult, Exception actionError,
+			DatabaseObject targetDbo, TreeObject targetTreeObject, JSONObject targetReference) {
 		if (viewer == null || viewer.getControl() == null || viewer.getControl().isDisposed()) {
 			return;
 		}
@@ -956,9 +964,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 		flowContextMenuCache.clear();
 		var result = actionResult == null ? new JSONObject() : actionResult;
-		if (result.optBoolean("refreshTree", false)) {
+		var mutationResult = result.optJSONObject("mutationResult");
+		var mutationApplied = result.optBoolean("ok", false) && mutationResult != null;
+		var mutationReloaded = mutationApplied
+				&& (reconcileFlowContextMutation(targetTreeObject, mutationResult)
+						|| reloadFlowContextMutation(targetDbo, targetReference));
+		if (!mutationReloaded && result.optBoolean("refreshTree", false)) {
 			refreshTree();
-		} else if (result.optBoolean("refresh", false)) {
+		} else if (!mutationReloaded && result.optBoolean("refresh", false)) {
 			refreshFirstSelectedTreeObject(true);
 		}
 		var openUrl = result.optString("openUrl", "");
@@ -980,6 +993,45 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 
+	private boolean reconcileFlowContextMutation(TreeObject targetTreeObject, JSONObject mutationResult) {
+		try {
+			return FlowTreeMutationReconciler.reconcile(this, targetTreeObject, mutationResult,
+					FlowTreeMutationReconciler.selection(targetTreeObject));
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to reconcile Flow tree after context mutation.");
+			return false;
+		}
+	}
+
+	private boolean reloadFlowContextMutation(DatabaseObject targetDbo, JSONObject targetReference) {
+		try {
+			var targetQName = targetDbo == null ? "" : targetDbo.getFullQName();
+			DatabaseObject rootDbo = targetDbo;
+			while (rootDbo instanceof FlowVirtualObject && rootDbo.getParent() != null) {
+				rootDbo = rootDbo.getParent();
+			}
+			var rootTreeObject = findTreeObjectByUserObject(rootDbo);
+			if (rootTreeObject == null) {
+				return false;
+			}
+			forceReloadTreeObject(rootTreeObject);
+			var project = targetDbo == null ? null : targetDbo.getProject();
+			var selected = targetReference != null && project != null
+					&& selectFlowAuthoringReference(project.getName(), targetReference);
+			if (!selected && !targetQName.isBlank()) {
+				var reloadedTarget = FlowStudioSupport.resolveTreeObject(targetQName);
+				var reloadedTreeObject = reloadedTarget == null ? null : findTreeObjectByUserObject(reloadedTarget);
+				if (reloadedTreeObject != null) {
+					setSelectedTreeObject(reloadedTreeObject);
+				}
+			}
+			return true;
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to reload Flow tree after context mutation.");
+			return false;
+		}
+	}
+
 	private void setFlowStatusMessage(String message) {
 		try {
 			getViewSite().getActionBars().getStatusLineManager().setMessage(message);
@@ -993,25 +1045,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (browser == null && !result.optBoolean("openInStudioBrowser", false)) {
 			return false;
 		}
-		var url = browser == null ? openUrl : browser.optString("url", openUrl);
-		if (url == null || url.isBlank()) {
-			return false;
-		}
-		try {
-			var title = browser == null ? result.optString("title", "Flow") : browser.optString("title", result.optString("title", "Flow"));
-			var id = browser == null ? "" : browser.optString("id", "");
-			var projectName = browser == null ? result.optString("project", "") : browser.optString("project", result.optString("project", ""));
-			var tooltip = browser == null ? url : browser.optString("tooltip", url);
-			var input = new FlowEngineEditorInput(id, title, url, projectName, tooltip);
-			IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().openEditor(input, FlowEngineEditor.ID);
-			if (editor instanceof FlowEngineEditor flowEditor) {
-				flowEditor.updateInput(input);
-			}
-			return true;
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Unable to open Flow browser editor.");
-			return false;
-		}
+		return FlowEngineEditor.open(
+				browser,
+				openUrl,
+				result.optString("title", "Flow"),
+				result.optString("project", ""));
 	}
 
 	private String flowContextActionMessage(JSONObject result) {
@@ -1884,12 +1922,26 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	private void reload(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, boolean force) throws EngineException, IOException {
 		if (force || !checkReload(parentTreeObject, parentDatabaseObject)) {
+			var flowReload = parentDatabaseObject instanceof FlowEngine
+					|| parentDatabaseObject instanceof Flow
+					|| parentDatabaseObject instanceof FlowVirtualObject;
+			if (flowReload) {
+				flowTreeReloadDepth.incrementAndGet();
+			}
 			try {
 				ModalContext.run(new ReloadWithProgress(viewer, parentTreeObject, parentDatabaseObject), true, new NullProgressMonitor(), ConvertigoPlugin.getDisplay());
 			} catch (InvocationTargetException e) {
 			} catch (InterruptedException e) {
+			} finally {
+				if (flowReload) {
+					flowTreeReloadDepth.decrementAndGet();
+				}
 			}
 		}
+	}
+
+	public boolean isFlowTreeReloading() {
+		return flowTreeReloadDepth.get() > 0;
 	}
 
 	private class ReloadWithProgress implements IRunnableWithProgress {
@@ -1898,6 +1950,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		private TreeViewer viewer;
 		private Object[] objects = null;
 		private String[] expendedPaths = null;
+		private Object[] selectedObjects = null;
+		private String[] selectedPaths = null;
 
 		public ReloadWithProgress(TreeViewer viewer, TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) {
 			super();
@@ -1925,6 +1979,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							expendedPaths[i] = object.getPath();
 						}
 					}
+					if (viewer.getSelection() instanceof IStructuredSelection selection) {
+						selectedObjects = selection.toArray();
+						selectedPaths = new String[selectedObjects.length];
+						for (int i = 0; i < selectedObjects.length; i++) {
+							selectedPaths[i] = selectedObjects[i] instanceof TreeObject treeObject
+									? treeObject.getPath()
+									: "";
+						}
+					}
 				});
 
 				// First remove all children of object
@@ -1944,28 +2007,60 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				// Updating the tree viewer
 				if (parentTreeObject != null) {
 					ConvertigoPlugin.syncExec(() -> {
-						// Reload is complete, notify now for newly added objects
-						Set<Object> done = new HashSet<Object>();
-						for (TreeObject ob: addedTreeObjects) {
-							fireTreeObjectAdded(new TreeObjectEvent(ob, null, null, null, 0, done));
-						}
-						addedTreeObjects.clear();
-						done.clear();
-						refreshTreeObject(parentTreeObject);
-					});
-
-					if (expendedPaths != null) {
-						ConvertigoPlugin.asyncExec(() -> {
-							for (int i = 0; i < expendedPaths.length; i++) {
-								String previousPath = expendedPaths[i];
-								TreeObject treeObject = findTreeObjectByPath(parentTreeObject, previousPath);
-								if (treeObject != null)
-									objects[i] = treeObject;
+						var control = viewer.getControl();
+						control.setRedraw(false);
+						try {
+							// Reload is complete, notify now for newly added objects
+							Set<Object> done = new HashSet<Object>();
+							for (TreeObject ob: addedTreeObjects) {
+								fireTreeObjectAdded(new TreeObjectEvent(ob, null, null, null, 0, done));
 							}
+							addedTreeObjects.clear();
+							done.clear();
+							refreshTreeObject(parentTreeObject, false);
 
-							viewer.setExpandedElements(objects);
-						});
-					}
+							if (expendedPaths != null) {
+								var expanded = new ArrayList<TreeObject>();
+								String parentPath = parentTreeObject.getPath();
+								String descendantPrefix = parentPath + "/";
+								for (int i = 0; i < expendedPaths.length; i++) {
+									String previousPath = expendedPaths[i];
+									TreeObject treeObject;
+									if (previousPath.equals(parentPath) || previousPath.startsWith(descendantPrefix)) {
+										treeObject = findTreeObjectByPath(parentTreeObject, previousPath);
+									} else {
+										treeObject = objects[i] instanceof TreeObject ? (TreeObject) objects[i] : null;
+									}
+									if (treeObject != null) {
+										expanded.add(treeObject);
+									}
+								}
+								viewer.setExpandedElements(expanded.toArray());
+							}
+							if (selectedPaths != null) {
+								var selected = new ArrayList<TreeObject>();
+								String parentPath = parentTreeObject.getPath();
+								String descendantPrefix = parentPath + "/";
+								for (int i = 0; i < selectedPaths.length; i++) {
+									String previousPath = selectedPaths[i];
+									TreeObject treeObject;
+									if (previousPath.equals(parentPath) || previousPath.startsWith(descendantPrefix)) {
+										treeObject = findTreeObjectByPath(parentTreeObject, previousPath);
+									} else {
+										treeObject = selectedObjects[i] instanceof TreeObject ? (TreeObject) selectedObjects[i] : null;
+									}
+									if (treeObject != null) {
+										selected.add(treeObject);
+									}
+								}
+								if (!selected.isEmpty()) {
+									viewer.setSelection(new StructuredSelection(selected));
+								}
+							}
+						} finally {
+							control.setRedraw(true);
+						}
+					});
 				}
 			}
 		}
@@ -2831,6 +2926,25 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 
+	void refreshProjectedFlowTreeObject(TreeObject object, Set<TreeObject> created) {
+		ConvertigoPlugin.syncExec(() -> {
+			var control = viewer.getControl();
+			control.setRedraw(false);
+			try {
+				var done = new HashSet<Object>();
+				for (var child : created) {
+					if (addedTreeObjects.remove(child)) {
+						fireTreeObjectAdded(new TreeObjectEvent(child, null, null, null, 0, done));
+					}
+				}
+				object.update();
+				viewer.refresh(object, true);
+			} finally {
+				control.setRedraw(true);
+			}
+		});
+	}
+
 	public void refreshProjects() {
 		((ViewContentProvider) viewer.getContentProvider()).refreshProjects();
 	}
@@ -3080,6 +3194,65 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 		}
 		return null;
+	}
+
+	public boolean selectFlowAuthoringReference(String projectName, JSONObject reference) {
+		if (projectName == null || projectName.isBlank() || reference == null) {
+			return false;
+		}
+		var provider = (ViewContentProvider) viewer.getContentProvider();
+		if (provider == null) {
+			return false;
+		}
+		for (var object : provider.getChildren(provider.getTreeRoot())) {
+			if (object instanceof ProjectTreeObject projectTreeObject
+					&& projectName.equals(projectTreeObject.getObject().getName())) {
+				var treeObject = findFlowAuthoringTreeObject(projectTreeObject, reference);
+				if (treeObject == null) {
+					return false;
+				}
+				setFocus();
+				viewer.expandToLevel(treeObject, 0);
+				setSelectedTreeObject(treeObject);
+				var selection = new StructuredSelection(treeObject);
+				ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged(this, selection);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private TreeObject findFlowAuthoringTreeObject(TreeObject candidate, JSONObject reference) {
+		if (candidate instanceof FlowVirtualObjectTreeObject flowTreeObject
+				&& sameFlowAuthoringReference(FlowStudioSupport.authoringReference(flowTreeObject.getObject()), reference)) {
+			return candidate;
+		}
+		if (candidate instanceof TreeParent parent) {
+			for (var child : parent.getChildren()) {
+				var found = findFlowAuthoringTreeObject(child, reference);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
+	private static boolean sameFlowAuthoringReference(JSONObject left, JSONObject right) {
+		if (left == null || right == null) {
+			return false;
+		}
+		return normalizedFlowSourcePath(left.optString("sourceRelativePath"))
+				.equals(normalizedFlowSourcePath(right.optString("sourceRelativePath")))
+				&& left.optString("sourceMutationPath").equals(right.optString("sourceMutationPath"));
+	}
+
+	private static String normalizedFlowSourcePath(String path) {
+		var normalized = path == null ? "" : path.replace('\\', '/').trim();
+		while (normalized.startsWith("./")) {
+			normalized = normalized.substring(2);
+		}
+		return normalized;
 	}
 
 	public static int getTreeObjectType(TreePath path) {

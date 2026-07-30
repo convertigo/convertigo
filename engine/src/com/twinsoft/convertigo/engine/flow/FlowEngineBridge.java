@@ -49,6 +49,8 @@ import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.events.StudioEvent;
+import com.twinsoft.convertigo.engine.events.StudioEventListener;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 public class FlowEngineBridge {
@@ -92,6 +94,57 @@ public class FlowEngineBridge {
 
 	public static long cacheGeneration() {
 		return cacheGeneration.get();
+	}
+
+	public static void notifySourceMutation(String projectDir, String sourcePath) {
+		clearCaches();
+		if (!Engine.isStudioMode() || Engine.theApp == null || Engine.theApp.eventManager == null) {
+			return;
+		}
+		try {
+			var payload = new JSONObject()
+					.put("projectName", projectNameForDir(projectDir))
+					.put("projectDir", projectDir == null ? "" : projectDir)
+					.put("sourcePath", sourcePath == null ? "" : sourcePath);
+			Engine.theApp.eventManager.dispatchEvent(
+					new StudioEvent(StudioEvent.FLOW_SOURCE_CHANGED, payload),
+					StudioEventListener.class);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(FlowEngineBridge) Unable to notify a Flow source mutation.", e);
+		}
+	}
+
+	public static void notifyStudioBrowser(String browserJson) {
+		if (!Engine.isStudioMode() || Engine.theApp == null || Engine.theApp.eventManager == null
+				|| browserJson == null || browserJson.isBlank()) {
+			return;
+		}
+		try {
+			Engine.theApp.eventManager.dispatchEvent(
+					new StudioEvent(StudioEvent.FLOW_BROWSER_OPEN, new JSONObject(browserJson)),
+					StudioEventListener.class);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(FlowEngineBridge) Unable to notify a Flow browser.", e);
+		}
+	}
+
+	private static String projectNameForDir(String projectDir) {
+		if (projectDir == null || projectDir.isBlank()) {
+			return "";
+		}
+		try {
+			var target = new File(projectDir).getCanonicalFile();
+			if (Engine.theApp != null && Engine.theApp.databaseObjectsManager != null && Engine.isStudioMode()) {
+				for (var entry : Engine.theApp.databaseObjectsManager.getStudioProjects().getProjects(false).entrySet()) {
+					if (target.equals(entry.getValue().getCanonicalFile())) {
+						return entry.getKey();
+					}
+				}
+			}
+			return target.getName();
+		} catch (Exception e) {
+			return new File(projectDir).getName();
+		}
 	}
 
 	public JSONObject run(Flow flow, Context convertigoContext, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
@@ -444,6 +497,21 @@ public class FlowEngineBridge {
 		}
 	}
 
+	public JSONObject authoringTree(FlowEngine flowEngine, JSONObject options) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flowEngine);
+			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+					.put("target", "engine")
+					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
+			merge(request, options);
+			return invoke(engineQName, "authoringTree", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build FlowEngine authoring tree request.", e);
+		}
+	}
+
 	private static Iterable<String> requestableProjectNames(String currentProjectName) {
 		var projectNames = new java.util.TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 		if (Engine.isStudioMode()) {
@@ -470,6 +538,8 @@ public class FlowEngineBridge {
 					.put("target", "engine")
 					.put("engineSource", flowEngine.getEngineSource())
 					.put("projectDir", flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+					.put("includeBindings", false)
+					.put("prewarmFrontendDocumentServer", Engine.isStudioMode())
 					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
 			return invoke(engineQName, "describeTree", request, null, null, null);
 		} catch (JSONException e) {
@@ -543,6 +613,11 @@ public class FlowEngineBridge {
 	}
 
 	public JSONObject applySourceMutation(FlowEngine flowEngine, String sourcePath, JSONObject mutation) throws EngineException {
+		return applySourceMutation(flowEngine, sourcePath, mutation, "");
+	}
+
+	public JSONObject applySourceMutation(FlowEngine flowEngine, String sourcePath, JSONObject mutation,
+			String authoringRootPath) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
 			var projectDir = flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath();
@@ -554,7 +629,7 @@ public class FlowEngineBridge {
 				return applyJsonSourceMutation(flowEngine, sourceFile, mutation);
 			}
 			if (sourceFile.getName().endsWith(".flow.svelte")) {
-				return applyFlowSvelteSourceMutation(flowEngine, sourceFile, mutation);
+				return applyFlowSvelteSourceMutation(flowEngine, sourceFile, mutation, authoringRootPath);
 			}
 			var source = flowEngine == null
 					? FileUtils.readFileToString(sourceFile, "UTF-8")
@@ -588,7 +663,8 @@ public class FlowEngineBridge {
 		}
 	}
 
-	private JSONObject applyFlowSvelteSourceMutation(FlowEngine flowEngine, File sourceFile, JSONObject mutation) throws Exception {
+	private JSONObject applyFlowSvelteSourceMutation(FlowEngine flowEngine, File sourceFile, JSONObject mutation,
+			String authoringRootPath) throws Exception {
 		var engineQName = effectiveEngineQName(flowEngine);
 		var projectDir = flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath();
 		var sourcePath = sourceFile.getAbsolutePath();
@@ -604,6 +680,9 @@ public class FlowEngineBridge {
 				.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
 				.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine))
 				.put("mutation", mutation == null ? new JSONObject() : mutation);
+		if (authoringRootPath != null && !authoringRootPath.isBlank()) {
+			request.put("authoringRootPath", authoringRootPath);
+		}
 		var response = invoke(engineQName, "applySourceMutation", request, null, null, null);
 		if (response.optBoolean("ok", false) && response.has("source")) {
 			var newSource = response.optString("source", source);

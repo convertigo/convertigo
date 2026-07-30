@@ -102,6 +102,10 @@ class FlowVirtualProjector {
 		return object;
 	}
 
+	static FlowVirtualObject projectedObject(DatabaseObject parent, JSONObject source, int order) {
+		return source == null ? null : toVirtualObject(parent, source, order);
+	}
+
 	private static String virtualObjectKey(JSONObject source) {
 		return source.optString("path", "") + "\u0000"
 				+ source.optString("kind", "") + "\u0000"

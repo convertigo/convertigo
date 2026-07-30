@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.couchdb;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +30,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.JsonDocument;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -91,6 +93,34 @@ public class DesignDocument extends JsonDocument {
 	@Override
 	public CouchDbConnector getConnector() {
 		return (CouchDbConnector) super.getConnector();
+	}
+
+	@Override
+	public List<DatabaseObject> getDatabaseObjectChildren() throws Exception {
+		var children = new ArrayList<>(super.getDatabaseObjectChildren());
+		var views = getJSONObject().optJSONObject("views");
+		if (views != null) {
+			var names = new ArrayList<String>();
+			for (var iterator = views.keys(); iterator.hasNext();) {
+				names.add(String.valueOf(iterator.next()));
+			}
+			names.sort(String.CASE_INSENSITIVE_ORDER);
+			for (var name : names) {
+				try {
+					children.add(new DesignDocumentView(this, name));
+				} catch (EngineException e) {
+					com.twinsoft.convertigo.engine.Engine.logBeans
+							.warn("Unable to expose FullSync view \"" + name + "\".", e);
+				}
+			}
+		}
+		return children;
+	}
+
+	@Override
+	public boolean hasDatabaseObjectChildren() throws Exception {
+		var views = getJSONObject().optJSONObject("views");
+		return (views != null && views.length() > 0) || super.hasDatabaseObjectChildren();
 	}
 	
 	static public String[] getTags(AbstractCouchDbTransaction couchDbTransaction, CouchKey key) {

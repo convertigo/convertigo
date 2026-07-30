@@ -140,10 +140,11 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	private HashMap<String, Item> commons = new HashMap<>();
 	private Set<String> flowItemIds = new HashSet<>();
 	private Project selectedProject = null;
-	private DatabaseObject selectedPaletteTarget = null;
-	private String latestFlowPaletteKey = "";
-	private String loadedFlowPaletteKey = "";
+	private volatile DatabaseObject selectedPaletteTarget = null;
+	private volatile String latestFlowPaletteKey = "";
+	private volatile String loadedFlowPaletteKey = "";
 	private volatile boolean flowPaletteRefreshPending = false;
+	private boolean flowSelectionUpdatePending = false;
 	private boolean isVisible = true, isCtrl = false, isType = false;
 	private ISelectionChangedListener selectionListener;
 	private Set<String> hiddenCategories;
@@ -356,15 +357,19 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	}
 
 	private void syncFlowItems(DatabaseObject target) {
-		for (String id: flowItemIds) {
-			all.remove(id);
-		}
-		flowItemIds.clear();
 		if (target == null || !FlowStudioSupport.isFlowPaletteTarget(target)) {
+			for (String id: flowItemIds) {
+				all.remove(id);
+			}
+			flowItemIds.clear();
 			return;
 		}
 		try {
 			var categories = FlowStudioSupport.paletteCategories(target);
+			for (String id: flowItemIds) {
+				all.remove(id);
+			}
+			flowItemIds.clear();
 			for (var i = 0; i < categories.length(); i++) {
 				var category = categories.optJSONObject(i);
 				if (category == null) {
@@ -1445,6 +1450,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	private void refresh(long threshold) {
 		Engine.execute(() -> {
 			boolean[] needUpdate = {false};
+			boolean[] refreshAgain = {false};
 			if (selectedProject != null) {
 				ComponentManager cm = ComponentManager.of(selectedProject);
 				if (cm != latestComponentManager) {
@@ -1515,9 +1521,12 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 				}
 			}
 			if (!latestFlowPaletteKey.equals(loadedFlowPaletteKey)) {
-				syncFlowItems(selectedPaletteTarget);
-				loadedFlowPaletteKey = latestFlowPaletteKey;
+				var flowTarget = selectedPaletteTarget;
+				var requestedFlowPaletteKey = latestFlowPaletteKey;
+				syncFlowItems(flowTarget);
+				loadedFlowPaletteKey = requestedFlowPaletteKey;
 				needUpdate[0] = true;
+				refreshAgain[0] = !requestedFlowPaletteKey.equals(latestFlowPaletteKey);
 			}
 			parent.getDisplay().asyncExec(() -> {
 				try {
@@ -1530,6 +1539,10 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 						updateBags();
 					}
 					flowPaletteRefreshPending = false;
+					if (refreshAgain[0]) {
+						flowPaletteRefreshPending = true;
+						refresh(0);
+					}
 					if (txt != null && searchText != null) {
 						if (txt.equals(searchText.getText())) {
 							searchText.notifyListeners(SWT.Modify, new Event());
@@ -1549,10 +1562,33 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
-			if (part instanceof ProjectExplorerView && !selection.isEmpty()) {
+			if (part instanceof ProjectExplorerView projectExplorerView && !selection.isEmpty()) {
+				if (projectExplorerView.isFlowTreeReloading()) {
+					deferFlowSelectionUpdate(projectExplorerView);
+					return;
+				}
 				update();
 			}
 		}
+	}
+
+	private void deferFlowSelectionUpdate(ProjectExplorerView projectExplorerView) {
+		if (flowSelectionUpdatePending || parent == null || parent.isDisposed()) {
+			return;
+		}
+		flowSelectionUpdatePending = true;
+		Runnable[] retry = new Runnable[1];
+		retry[0] = () -> {
+			if (parent == null || parent.isDisposed()) {
+				flowSelectionUpdatePending = false;
+			} else if (projectExplorerView.isFlowTreeReloading()) {
+				parent.getDisplay().timerExec(100, retry[0]);
+			} else {
+				flowSelectionUpdatePending = false;
+				update();
+			}
+		};
+		parent.getDisplay().timerExec(100, retry[0]);
 	}
 
 	@Override

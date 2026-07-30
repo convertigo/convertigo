@@ -27,10 +27,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -56,6 +59,7 @@ import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
@@ -63,6 +67,7 @@ import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.MultipleDeletionDialog;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.FlowTreeMutationReconciler;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
@@ -83,6 +88,11 @@ import com.twinsoft.convertigo.engine.enums.DeleteProjectOption;
 public class DatabaseObjectDeleteAction extends MyAbstractAction {
 
 	private List<DatabaseObjectTreeObject> treeNodesToUpdate;
+	private Map<DatabaseObjectTreeObject, String> treeSelectionPathsToRestore;
+
+	private record ProjectedFlowDelete(DatabaseObjectTreeObject root, JSONObject response,
+			FlowTreeMutationReconciler.Selection selection) {
+	}
 
 	public DatabaseObjectDeleteAction() {
 		super();
@@ -95,9 +105,11 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
 
-		try {
-			boolean needNgxPaletteReload = false;
-			treeNodesToUpdate = new ArrayList<>();
+			try {
+				boolean needNgxPaletteReload = false;
+				boolean needGlobalTreeRefresh = false;
+				treeNodesToUpdate = new ArrayList<>();
+			treeSelectionPathsToRestore = new HashMap<>();
 
 			ProjectExplorerView explorerView = getProjectExplorerView();
 			if (explorerView != null) {
@@ -201,8 +213,9 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 								((MobileComponentTreeObject) treeObject).closeAllEditors(false);
 							}
 
-							if (treeObject instanceof ProjectTreeObject) {
-								explorerView.removeProjectTreeObject(treeObject);
+								if (treeObject instanceof ProjectTreeObject) {
+									needGlobalTreeRefresh = true;
+									explorerView.removeProjectTreeObject(treeObject);
 								final Project project = (Project) treeObject.getObject();
 								Job rmProject = new Job("Remove '" + project.getName() + "' project") {
 
@@ -219,9 +232,17 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 
 								};
 								rmProject.schedule();
-							} else {
-								delete(treeObject);
-								// prevents treeObject and its childs to receive further TreeObjectEvents
+								} else {
+									var projectedDelete = delete(treeObject);
+									var projectedDeleteReconciled = projectedDelete != null
+											&& FlowTreeMutationReconciler.reconcile(explorerView, projectedDelete.root(),
+													projectedDelete.response(), projectedDelete.selection());
+									if (projectedDeleteReconciled) {
+										treeNodesToUpdate.remove(projectedDelete.root());
+										treeSelectionPathsToRestore.remove(projectedDelete.root());
+									}
+									needGlobalTreeRefresh |= !projectedDeleteReconciled;
+									// prevents treeObject and its childs to receive further TreeObjectEvents
 								if (treeObject instanceof TreeObjectListener) {
 									explorerView.removeTreeObjectListener(treeObject);
 								}
@@ -241,12 +262,18 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 						parentTreeObject = enumeration.nextElement();
 						if (parentTreeObject != null) {
 							explorerView.reloadTreeObject(parentTreeObject);
-							explorerView.setSelectedTreeObject(parentTreeObject);
+							var selectionPath = treeSelectionPathsToRestore.get(parentTreeObject);
+							var selectedTreeObject = selectionPath == null
+									? parentTreeObject
+									: explorerView.findTreeObjectByPath(parentTreeObject, selectionPath);
+							explorerView.setSelectedTreeObject(selectedTreeObject == null ? parentTreeObject : selectedTreeObject);
 						}
 					}
 
-					// Refresh tree to show potential 'broken' steps
-					explorerView.refreshTree();
+						// Refresh globally only for legacy DBO deletions. Projected Flow trees are already reconciled.
+						if (needGlobalTreeRefresh) {
+							explorerView.refreshTree();
+						}
 
 					// Refresh ngx palette view
 					if (needNgxPaletteReload) {
@@ -264,13 +291,14 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		}
 	}
 
-	private void delete(DatabaseObjectTreeObject treeObject) throws CoreException, ConvertigoException {
+	private ProjectedFlowDelete delete(DatabaseObjectTreeObject treeObject) throws CoreException, ConvertigoException {
 
 		DatabaseObjectTreeObject parentTreeObject = null;
 		TreeParent treeParent = treeObject.getParent();
 
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 		DatabaseObject parent = databaseObject.getParent();
+		var flowSourceRootTreeObject = flowSourceRootTreeObject(treeObject);
 
 		while ((treeParent != null) && (!(treeParent instanceof DatabaseObjectTreeObject))) {
 			treeParent = treeParent.getParent();
@@ -279,21 +307,53 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		if (treeParent != null) {
 			parentTreeObject = (DatabaseObjectTreeObject) treeParent;
 		}
+		var flowSelection = FlowTreeMutationReconciler.selection(parentTreeObject);
 
 		delete(databaseObject, false);
+		var projectedFlowMutation = databaseObject instanceof FlowVirtualObject flowObject
+				? flowObject.consumeLastSourceMutationResult()
+				: null;
 
 		/*if ((parent != null) && (!parent.hasChanged))
 			ConvertigoPlugin.projectManager.save(parent, false);*/
 
 		// Do not save after a deletion anymore
 		if (parent != null) {
-			parentTreeObject.hasBeenModified(true);
+			var modifiedTreeObject = flowSourceRootTreeObject == null ? parentTreeObject : flowSourceRootTreeObject;
+			if (modifiedTreeObject != null) {
+				modifiedTreeObject.hasBeenModified(true);
+			}
 		}
 
-		if ((parentTreeObject != null) && !treeNodesToUpdate.contains(parentTreeObject)) {
-			treeNodesToUpdate.add(parentTreeObject);
+		var treeNodeToUpdate = flowSourceRootTreeObject == null ? parentTreeObject : flowSourceRootTreeObject;
+		if ((treeNodeToUpdate != null) && !treeNodesToUpdate.contains(treeNodeToUpdate)) {
+			treeNodesToUpdate.add(treeNodeToUpdate);
 		}
+		if (flowSourceRootTreeObject != null && parentTreeObject != null) {
+			treeSelectionPathsToRestore.put(flowSourceRootTreeObject, parentTreeObject.getPath());
+		}
+		return flowSourceRootTreeObject == null || projectedFlowMutation == null
+				? null
+				: new ProjectedFlowDelete(flowSourceRootTreeObject, projectedFlowMutation, flowSelection);
+	}
 
+	private DatabaseObjectTreeObject flowSourceRootTreeObject(DatabaseObjectTreeObject treeObject) {
+		if (!(treeObject.getObject() instanceof FlowVirtualObject flowObject)) {
+			return null;
+		}
+		var sourcePath = flowObject.getSourcePath();
+		if (sourcePath.isBlank()) {
+			return null;
+		}
+		for (TreeObject current = treeObject; current != null; current = current.getParent()) {
+			if (current instanceof DatabaseObjectTreeObject databaseTreeObject
+					&& databaseTreeObject.getObject() instanceof FlowVirtualObject candidate
+					&& sourcePath.equals(candidate.getSourcePath())
+					&& "frontAst".equals(candidate.getSourceMutationPath())) {
+				return databaseTreeObject;
+			}
+		}
+		return null;
 	}
 
 	private void delete(DatabaseObject databaseObject, boolean deleteProjectOnDisk) throws EngineException, CoreException {
