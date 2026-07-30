@@ -456,6 +456,8 @@ public abstract class MobileBuilder {
 	protected void writeFile(File file, CharSequence content, String encoding) throws IOException {
 		// Replace eol characters with system line separators
 		content = LsPattern.matcher(content).replaceAll(System.lineSeparator());
+		boolean trackedSourceChanged = true;
+		boolean generationPending = MobileBuilderGeneration.isPending(project.getName());
 
 		if (initDone && Engine.isStudioMode()) {
 			synchronized (writtenFiles) {
@@ -477,6 +479,10 @@ public abstract class MobileBuilder {
 						Engine.logEngine.trace("("+ builderType +") No change for " + file.getPath());
 						return;
 					}
+				}
+
+				if (generationPending) {
+					MobileBuilderGeneration.recordFileChange(project.getName(), file);
 				}
 
 				// write file
@@ -502,6 +508,12 @@ public abstract class MobileBuilder {
 				}
 			}
 		} else {
+			if (generationPending && file.exists()) {
+				trackedSourceChanged = !content.equals(FileUtils.readFileToString(file, encoding));
+			}
+			if (generationPending && trackedSourceChanged) {
+				MobileBuilderGeneration.recordFileChange(project.getName(), file);
+			}
 			FileUtils.write(file, content, encoding);
 		}
 

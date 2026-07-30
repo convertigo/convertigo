@@ -3890,6 +3890,7 @@ public class NgxBuilder extends MobileBuilder {
 		var str = LsPattern.matcher(content).replaceAll(System.lineSeparator());
 		var charset = Charset.forName(encoding);
 		var existingFiles = NgxBuilder.existingFiles.get();
+		var generationPending = MobileBuilderGeneration.isPending(project.getName());
 		if (existingFiles != null) {
 			existingFiles.remove(file);
 		}
@@ -3911,6 +3912,10 @@ public class NgxBuilder extends MobileBuilder {
 						Engine.logEngine.trace("("+ builderType +") No change for " + file.getPath());
 						return;
 					}
+				}
+
+				if (generationPending) {
+					MobileBuilderGeneration.recordFileChange(project.getName(), file);
 				}
 				
 				// write file
@@ -3948,6 +3953,17 @@ public class NgxBuilder extends MobileBuilder {
 				}
 			}
 		} else {
+			var trackedSourceChanged = true;
+			if (generationPending) {
+				if (file.getPath().endsWith(FakeDeleted)) {
+					trackedSourceChanged = file.getParentFile().exists();
+				} else if (file.exists()) {
+					trackedSourceChanged = !FileUtils.areFilesIdentical(file, str, charset);
+				}
+				if (trackedSourceChanged) {
+					MobileBuilderGeneration.recordFileChange(project.getName(), file);
+				}
+			}
 			if (file.getPath().endsWith(FakeDeleted)) {
 				try {
 					File dir = file.getParentFile();
