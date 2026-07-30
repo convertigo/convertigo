@@ -48,7 +48,8 @@ public class CariocaServiceCodeEditorComposite extends AbstractDialogComposite {
 		try {
 			int idxComa = cariocaServiceCode.indexOf(',');
 			int idxPipe = cariocaServiceCode.indexOf('|');
-			int idxColon = cariocaServiceCode.indexOf(':');
+			// The connection parameter may contain ':', so search only in the host part.
+			int idxColon = cariocaServiceCode.indexOf(':', idxPipe + 1);
 			
 			String connectionParameter = "";
 			String host = "";

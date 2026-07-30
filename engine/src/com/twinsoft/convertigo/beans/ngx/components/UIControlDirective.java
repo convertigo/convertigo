@@ -331,14 +331,24 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	}
 	
 	private String getNewForSignature() {
-		String itemName = (getDirectiveItemName().isEmpty()) ? "item"+priority : getDirectiveItemName();
+		String itemName = (getDirectiveItemName().isEmpty()) ? "item"+priority : getDirectiveItemName().trim();
+		String indexName = getDirectiveIndexName().trim(); // ex : idx
 		String src      = getSourceSmartType().getValue(); // ex : "items"
-		String expr     = getDirectiveExpression();        // ex : "track item.name"
+		String expr     = getDirectiveExpression().trim(); // ex : "track item.name"
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append("(")
 		  .append(itemName).append(" of ").append(src);
-		
+
+		if (!expr.matches(".*\\b(track)\\b.*")) {
+			expr += (expr.endsWith(";") ? "":";") + " track $index";
+		}
+		if (!indexName.isEmpty()) {
+			if (!expr.matches(".*\\b("+ indexName +")\\b.*")) {
+				expr += (expr.endsWith(";") ? "":";") + " let "+ indexName + " = $index";
+			}
+		}
+
 		if (!expr.trim().isEmpty()) {
 			if (!expr.trim().startsWith(";")) {
 				sb.append("; ");
