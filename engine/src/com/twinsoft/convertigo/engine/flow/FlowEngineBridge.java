@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine.flow;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -62,7 +63,7 @@ public class FlowEngineBridge {
 
 	private static final String ENGINE_BASE_PATH = "libs/flow/";
 	private static final Map<String, CachedEngineSource> engineSourceCache = new ConcurrentHashMap<>();
-	private static final Map<String, CachedEngineRuntime> engineRuntimeCache = new ConcurrentHashMap<>();
+	private static final Map<String, CachedEngineRuntimePool> engineRuntimeCache = new ConcurrentHashMap<>();
 	private static final Map<String, CachedMethodResponse> methodResponseCache = new ConcurrentHashMap<>();
 	private static final Map<String, InvocationStats> invocationStats = new ConcurrentHashMap<>();
 	private static final AtomicLong cacheGeneration = new AtomicLong();
@@ -70,6 +71,7 @@ public class FlowEngineBridge {
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
 	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
+	private static final int ENGINE_RUNTIME_POOL_LIMIT = 16;
 
 	private record CachedEngineSource(File file, String source, long lastModified, long length) {
 		String sourceName() {
@@ -80,7 +82,20 @@ public class FlowEngineBridge {
 	private record CachedEngineRuntime(String sourceName, long generation, Scriptable scope, Scriptable engineObject) {
 	}
 
-	private record CachedEngineRuntimeLookup(CachedEngineRuntime runtime, boolean hit, String key, long generation, int size) {
+	private static final class CachedEngineRuntimePool {
+		private final String sourceName;
+		private final long generation;
+		private final ArrayDeque<CachedEngineRuntime> available = new ArrayDeque<>();
+		private int cachedCount;
+
+		private CachedEngineRuntimePool(String sourceName, long generation) {
+			this.sourceName = sourceName;
+			this.generation = generation;
+		}
+	}
+
+	private record CachedEngineRuntimeLookup(CachedEngineRuntime runtime, CachedEngineRuntimePool pool, boolean hit,
+			boolean pooled, String key, long generation, int size) {
 	}
 
 	private record CachedMethodResponse(String response, long generation) {
@@ -1279,16 +1294,8 @@ public class FlowEngineBridge {
 				engineScope = cx.initStandardObjects();
 			}
 
-			if (runtimeLookup != null) {
-				synchronized (runtimeLookup.runtime()) {
-					var response = invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
-							engineObject, runtimeLookup);
-					storeMethodResponse(engineRef, engineFile, engineSource, method, request, response);
-					return response;
-				}
-			}
 			var response = invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
-					engineObject, null);
+					engineObject, runtimeLookup);
 			storeMethodResponse(engineRef, engineFile, engineSource, method, request, response);
 			return response;
 		} catch (EngineException e) {
@@ -1299,6 +1306,7 @@ public class FlowEngineBridge {
 			throw new EngineException("Unable to invoke Flow engine \"" + engineRef.qname + "\" method \"" + method + "\".", e);
 		} finally {
 			recordInvocation(engineRef, method, System.nanoTime() - started, runtimeLookup, failed, methodCacheHit);
+			releaseEngineRuntime(runtimeLookup);
 			if (entered) {
 				org.mozilla.javascript.Context.exit();
 			}
@@ -1674,14 +1682,34 @@ public class FlowEngineBridge {
 	private static CachedEngineRuntimeLookup cachedEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
 			org.mozilla.javascript.Context cx) throws EngineException {
 		var baseKey = engineRef.qname + "|" + engineSource.sourceName();
-		var key = baseKey + "|shared";
+		var key = baseKey + "|pool";
 		var generation = cacheGeneration.get();
-		var cached = engineRuntimeCache.get(key);
-		if (cached != null && cached.generation() == generation && cached.sourceName().equals(engineSource.sourceName())) {
-			return new CachedEngineRuntimeLookup(cached, true, key, generation, engineRuntimeCache.size());
-		}
 		engineRuntimeCache.entrySet().removeIf(entry -> entry.getKey().startsWith(engineRef.qname + "|")
-				&& (entry.getValue().generation() != generation || !entry.getKey().equals(key)));
+				&& (entry.getValue().generation != generation || !entry.getKey().equals(key)));
+		var pool = engineRuntimeCache.computeIfAbsent(key,
+				ignored -> new CachedEngineRuntimePool(engineSource.sourceName(), generation));
+		try {
+			synchronized (pool) {
+				var cached = pool.available.pollFirst();
+				if (cached != null) {
+					return new CachedEngineRuntimeLookup(cached, pool, true, true, key, generation, engineRuntimeCache.size());
+				}
+				var fresh = createEngineRuntime(engineRef, engineFile, engineSource, cx, generation);
+				var pooled = pool.cachedCount < ENGINE_RUNTIME_POOL_LIMIT;
+				if (pooled) {
+					pool.cachedCount++;
+				}
+				return new CachedEngineRuntimeLookup(fresh, pool, false, pooled, key, generation, engineRuntimeCache.size());
+			}
+		} catch (EngineException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EngineException("Unable to initialize Flow engine runtime \"" + engineRef.qname + "\".", e);
+		}
+	}
+
+	private static CachedEngineRuntime createEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
+			org.mozilla.javascript.Context cx, long generation) throws EngineException {
 		try {
 			var scope = cx.initStandardObjects();
 			scope.put("__flowEngineDir", scope, engineFile.getParentFile().getAbsolutePath());
@@ -1692,13 +1720,23 @@ public class FlowEngineBridge {
 			if (!(engine instanceof Scriptable engineObject)) {
 				throw new EngineException("Flow engine \"" + engineRef.qname + "\" must evaluate to a JavaScript object.");
 			}
-			var fresh = new CachedEngineRuntime(engineSource.sourceName(), generation, scope, engineObject);
-			engineRuntimeCache.put(key, fresh);
-			return new CachedEngineRuntimeLookup(fresh, false, key, generation, engineRuntimeCache.size());
+			return new CachedEngineRuntime(engineSource.sourceName(), generation, scope, engineObject);
 		} catch (EngineException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new EngineException("Unable to initialize Flow engine runtime \"" + engineRef.qname + "\".", e);
+		}
+	}
+
+	private static void releaseEngineRuntime(CachedEngineRuntimeLookup lookup) {
+		if (lookup == null || !lookup.pooled()) {
+			return;
+		}
+		var pool = lookup.pool();
+		synchronized (pool) {
+			if (pool.generation == lookup.generation() && pool.sourceName.equals(lookup.runtime().sourceName())) {
+				pool.available.addLast(lookup.runtime());
+			}
 		}
 	}
 
