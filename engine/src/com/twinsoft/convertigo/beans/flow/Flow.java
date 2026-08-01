@@ -138,6 +138,7 @@ public class Flow extends Sequence {
 		if (project == null) {
 			return;
 		}
+		FlowEngine.projectUnloaded(project);
 		var projectName = project.getName();
 		var flowEngine = project.getFlowEngine();
 		var ownedEngineQName = flowEngine == null ? null : flowEngine.getEngineQName();

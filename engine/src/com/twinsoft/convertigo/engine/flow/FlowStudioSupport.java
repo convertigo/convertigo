@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class FlowStudioSupport {
@@ -127,10 +128,12 @@ public class FlowStudioSupport {
 		}
 		var nodeId = fvo.getDefinitionProperty("id");
 		try {
-			return new JSONObject()
+			var reference = new JSONObject()
 					.put("nodeId", nodeId == null ? fvo.getName() : String.valueOf(nodeId))
 					.put("sourceRelativePath", sourceRelativePath)
 					.put("sourceMutationPath", sourceMutationPath);
+			var project = fvo.getProject();
+			return project == null ? reference : reference.put("sourceProject", project.getName());
 		} catch (Exception e) {
 			return null;
 		}
@@ -140,7 +143,8 @@ public class FlowStudioSupport {
 		if (reference == null || projectName == null || projectName.isBlank()) {
 			return null;
 		}
-		var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+		var sourceProject = reference.optString("sourceProject", projectName);
+		var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(sourceProject, false);
 		if (project == null || project.getFlowEngine() == null) {
 			return null;
 		}
@@ -2392,26 +2396,71 @@ public class FlowStudioSupport {
 		if (flowEngine == null || !isFrontendSourcePath(sourcePath)) {
 			return;
 		}
-		try {
-			var response = new FlowEngineBridge().contextAction(flowEngine, new JSONObject()
-					.put("sourcePath", sourcePath)
-					.put("action", new JSONObject()
-							.put("id", "frontbuilder.svelte.dev.sync")
-							.put("payload", new JSONObject()
-									.put("sourcePath", sourcePath))));
-			if (response.optBoolean("generated", false)) {
-				flowStudioInfo("Flow frontend dev source regenerated after mutation: sourcePath=" + sourcePath
-						+ " details=" + response.opt("details"));
-			} else if (!response.optBoolean("ok", true)) {
-				flowStudioWarn("Flow frontend dev source regeneration failed after mutation: sourcePath=" + sourcePath
-						+ " response=" + response);
-			} else {
-				flowStudioInfo("Flow frontend dev source not regenerated after mutation: sourcePath=" + sourcePath
-						+ " response=" + response);
+		for (var target : frontendDevSyncTargets(flowEngine)) {
+			clearCatalogCache(target);
+			try {
+				var response = new FlowEngineBridge().contextAction(target, new JSONObject()
+						.put("frontendSourceDrafts", FlowEngineBridge.frontendSourceDrafts(target, flowEngine))
+						.put("sourcePath", sourcePath)
+						.put("action", new JSONObject()
+								.put("id", "frontbuilder.svelte.dev.sync")
+								.put("payload", new JSONObject()
+										.put("sourcePath", sourcePath))));
+				var project = target.getProject() == null ? "" : target.getProject().getName();
+				if (response.optBoolean("generated", false)) {
+					flowStudioInfo("Flow frontend dev source regenerated after mutation: project=" + project
+							+ " sourcePath=" + sourcePath + " details=" + response.opt("details"));
+				} else if (!response.optBoolean("ok", true)) {
+					flowStudioWarn("Flow frontend dev source regeneration failed after mutation: project=" + project
+							+ " sourcePath=" + sourcePath + " response=" + response);
+				}
+			} catch (Exception e) {
+				flowStudioWarn("Unable to update Flow frontend dev source after mutation: " + e.getMessage());
 			}
-		} catch (Exception e) {
-			flowStudioWarn("Unable to update Flow frontend dev source after mutation: " + e.getMessage());
 		}
+	}
+
+	private static ArrayList<FlowEngine> frontendDevSyncTargets(FlowEngine source) {
+		var targets = new ArrayList<FlowEngine>();
+		targets.add(source);
+		var sourceProject = source.getProject();
+		if (sourceProject == null || Engine.theApp == null || Engine.theApp.databaseObjectsManager == null) {
+			return targets;
+		}
+		var sourceName = sourceProject.getName();
+		for (var projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
+			var project = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(projectName);
+			if (project == null || project == sourceProject || project.getFlowEngine() == null) {
+				continue;
+			}
+			if (referencesProject(project, sourceName, new HashSet<>())) {
+				targets.add(project.getFlowEngine());
+			}
+		}
+		return targets;
+	}
+
+	private static boolean referencesProject(Project project, String sourceName, Set<String> visited) {
+		if (project == null || !visited.add(project.getName())) {
+			return false;
+		}
+		for (var reference : project.getReferenceList()) {
+			if (!(reference instanceof ProjectSchemaReference projectReference)) {
+				continue;
+			}
+			var referencedName = projectReference.getParser().getProjectName();
+			if (referencedName == null || referencedName.isBlank()) {
+				continue;
+			}
+			if (sourceName.equals(referencedName)) {
+				return true;
+			}
+			var referenced = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(referencedName);
+			if (referencesProject(referenced, sourceName, visited)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean isFrontendSourcePath(String sourcePath) {
@@ -2419,7 +2468,7 @@ public class FlowStudioSupport {
 			return false;
 		}
 		var path = sourcePath.replace('\\', '/');
-		return path.contains("/libs/flow/frontbuilder/")
+		return (path.startsWith("libs/flow/frontbuilder/") || path.contains("/libs/flow/frontbuilder/"))
 				&& (path.endsWith(".flow.svelte") || path.endsWith(".flow.css")
 						|| path.endsWith(".front.json") || path.endsWith(".uiblock.json"));
 	}

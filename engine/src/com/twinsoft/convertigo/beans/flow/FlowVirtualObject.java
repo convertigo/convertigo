@@ -842,15 +842,64 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			return;
 		}
 		var next = firstNonBlank(
-				object.optString("label", ""),
-				object.optString("title", ""),
-				object.optString("text", ""),
-				object.optString("name", ""),
-				object.optString("id", ""),
-				object.optString("kind", ""));
+				summaryValue(object.opt("label")),
+				summaryValue(object.opt("title")),
+				summaryValue(object.opt("text")),
+				summaryValue(object.opt("name")),
+				summaryValue(object.opt("id")),
+				summaryValue(object.opt("kind")));
 		if (!next.isBlank()) {
 			summary = next;
 		}
+	}
+
+	private static String summaryValue(Object value) {
+		if (value == null || JSONObject.NULL.equals(value)) {
+			return "";
+		}
+		if (value instanceof JSONObject object) {
+			return switch (object.optString("mode", "")) {
+			case "literal" -> summaryScalar(object.opt("value"));
+			case "expression" -> object.optString("expression", "");
+			case "source" -> sourceSummary(object);
+			default -> "";
+			};
+		}
+		return value instanceof JSONArray ? "" : String.valueOf(value);
+	}
+
+	private static String summaryScalar(Object value) {
+		return value == null || JSONObject.NULL.equals(value) || value instanceof JSONObject || value instanceof JSONArray
+				? ""
+				: String.valueOf(value);
+	}
+
+	private static String sourceSummary(JSONObject binding) {
+		var source = binding.optJSONObject("source");
+		if (source == null) {
+			return "";
+		}
+		var root = switch (source.optString("category", "")) {
+		case "local" -> "@local." + source.optString("name", "");
+		case "iteration" -> "@" + source.optString("scopeId", "") + "." + source.optString("value", "item");
+		case "event" -> "@event";
+		case "route" -> "@route";
+		default -> "@" + source.optString("actionId", "");
+		};
+		var path = binding.optJSONArray("path");
+		var out = new StringBuilder(root);
+		for (var i = 0; path != null && i < path.length(); i++) {
+			var segment = path.optJSONObject(i);
+			if (segment == null) {
+				continue;
+			}
+			if ("index".equals(segment.optString("kind", ""))) {
+				out.append('[').append(segment.optInt("index")).append(']');
+			} else {
+				out.append('.').append(segment.optString("name", ""));
+			}
+		}
+		return out.toString();
 	}
 
 	private static String firstNonBlank(String... values) {

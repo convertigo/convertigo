@@ -148,7 +148,8 @@ public class FlowEngineEditor extends EditorPart {
 
 	private void revealAuthoringReference(JSONObject reference) {
 		var explorer = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		if (explorer != null && !explorer.selectFlowAuthoringReference(getProjectName(), reference)) {
+		var sourceProject = reference.optString("sourceProject", getProjectName());
+		if (explorer != null && !explorer.selectFlowAuthoringReference(sourceProject, reference)) {
 			Engine.logStudio.warn("Unable to find the Flow authoring object in the project tree: " + reference);
 		}
 	}

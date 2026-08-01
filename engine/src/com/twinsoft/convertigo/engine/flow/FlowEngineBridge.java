@@ -24,8 +24,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
@@ -46,6 +48,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -101,9 +104,19 @@ public class FlowEngineBridge {
 		if (!Engine.isStudioMode() || Engine.theApp == null || Engine.theApp.eventManager == null) {
 			return;
 		}
+		var projectName = projectNameForDir(projectDir);
+		try {
+			var project = projectName.isBlank() ? null
+					: Engine.theApp.databaseObjectsManager.getLoadedProjectByName(projectName);
+			if (project != null && project.getFlowEngine() != null) {
+				FlowStudioSupport.afterSourceMutation(project.getFlowEngine(), sourcePath);
+			}
+		} catch (Exception e) {
+			Engine.logEngine.warn("(FlowEngineBridge) Unable to synchronize a mutated Flow frontend source.", e);
+		}
 		try {
 			var payload = new JSONObject()
-					.put("projectName", projectNameForDir(projectDir))
+					.put("projectName", projectName)
 					.put("projectDir", projectDir == null ? "" : projectDir)
 					.put("sourcePath", sourcePath == null ? "" : sourcePath);
 			Engine.theApp.eventManager.dispatchEvent(
@@ -753,14 +766,51 @@ public class FlowEngineBridge {
 				.put("changed", changed);
 	}
 
-	private static JSONObject frontendSourceDrafts(FlowEngine flowEngine) throws JSONException {
+	static JSONObject frontendSourceDrafts(FlowEngine... flowEngines) throws JSONException {
 		var drafts = new JSONObject();
-		if (flowEngine != null) {
-			for (var entry : flowEngine.getSourceDrafts().entrySet()) {
-				drafts.put(entry.getKey(), entry.getValue());
+		var visited = new HashSet<String>();
+		for (var flowEngine : flowEngines) {
+			if (flowEngine == null) {
+				continue;
 			}
+			appendFrontendSourceDrafts(drafts, flowEngine);
+			appendFrontendSourceDrafts(drafts, flowEngine.getProject(), visited);
 		}
 		return drafts;
+	}
+
+	private static void appendFrontendSourceDrafts(JSONObject drafts, FlowEngine flowEngine) throws JSONException {
+		if (flowEngine == null) {
+			return;
+		}
+		for (var entry : flowEngine.getSourceDrafts().entrySet()) {
+			drafts.put(entry.getKey(), entry.getValue());
+		}
+	}
+
+	private static void appendFrontendSourceDrafts(JSONObject drafts, Project project, Set<String> visited)
+			throws JSONException {
+		if (project == null || !visited.add(project.getName())) {
+			return;
+		}
+		appendFrontendSourceDrafts(drafts, project.getFlowEngine());
+		for (var reference : project.getReferenceList()) {
+			if (!(reference instanceof ProjectSchemaReference projectReference)) {
+				continue;
+			}
+			var referencedProjectName = projectReference.getParser().getProjectName();
+			if (referencedProjectName == null || referencedProjectName.isBlank()) {
+				continue;
+			}
+			try {
+				var referencedProject = Engine.theApp.databaseObjectsManager
+						.getOriginalProjectByName(referencedProjectName, true);
+				appendFrontendSourceDrafts(drafts, referencedProject, visited);
+			} catch (Exception e) {
+				Engine.logEngine.debug("(FlowEngineBridge) Unable to collect Flow drafts from referenced project \""
+						+ referencedProjectName + "\".", e);
+			}
+		}
 	}
 
 	private static List<Object> jsonPathTokens(String path) throws EngineException {

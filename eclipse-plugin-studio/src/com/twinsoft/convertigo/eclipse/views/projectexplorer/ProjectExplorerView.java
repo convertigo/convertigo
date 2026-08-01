@@ -3200,6 +3200,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (projectName == null || projectName.isBlank() || reference == null) {
 			return false;
 		}
+		projectName = reference.optString("sourceProject", projectName);
 		var provider = (ViewContentProvider) viewer.getContentProvider();
 		if (provider == null) {
 			return false;
