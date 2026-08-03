@@ -23,6 +23,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -431,7 +432,7 @@ public class Flow extends Sequence {
 					var name = key instanceof Name identifier ? identifier.getIdentifier()
 							: key instanceof StringLiteral literal ? literal.getValue() : "";
 					if ("input".equals(name) || "inputs".equals(name)) {
-						result[0] = !(property.getValue() instanceof ObjectLiteral inputs) || !inputs.getElements().isEmpty();
+						result[0] = true;
 						return false;
 					}
 				}
@@ -445,6 +446,19 @@ public class Flow extends Sequence {
 
 	private void syncFlowInputDefinitions(JSONObject inputDefinitions) throws EngineException, JSONException {
 		var changed = false;
+		var declaredNames = new HashSet<String>();
+		for (var keys = inputDefinitions.keys(); keys.hasNext();) {
+			var key = String.valueOf(keys.next());
+			if (key.matches("[A-Za-z_$][\\w$]*") && !key.startsWith("__")) {
+				declaredNames.add(key);
+			}
+		}
+		for (var variable : new ArrayList<>(getVariablesList())) {
+			if (!variable.getName().startsWith("__") && !declaredNames.contains(variable.getName())) {
+				removeVariable(variable);
+				changed = true;
+			}
+		}
 		for (var keys = inputDefinitions.keys(); keys.hasNext();) {
 			var key = String.valueOf(keys.next());
 			if (!key.matches("[A-Za-z_$][\\w$]*") || key.startsWith("__")) {
