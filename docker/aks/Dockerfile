@@ -39,9 +39,7 @@ RUN apt-get update -y \
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends software-properties-common \
   && add-apt-repository -y universe \
-  && add-apt-repository -y multiverse \
   && apt-get update -y \
-  && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     fontconfig \
     fonts-dejavu \
@@ -49,7 +47,6 @@ RUN apt-get update -y \
     libreoffice-common \
     libreoffice-core \
     libreoffice-writer \
-    ttf-mscorefonts-installer \
   && mkdir -p /usr/share/fonts/truetype/custom \
   && chmod -R a+rX /usr/share/fonts/truetype/custom \
   && fc-cache -f -v \
