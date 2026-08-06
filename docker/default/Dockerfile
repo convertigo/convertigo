@@ -24,7 +24,7 @@ RUN mkdir -p "$CATALINA_HOME"
 WORKDIR $CATALINA_HOME
 
 RUN apt-get update -y \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     dirmngr \
@@ -35,26 +35,6 @@ RUN apt-get update -y \
   && apt-get remove -y --purge libfreetype6 \
   && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends software-properties-common \
-  && add-apt-repository -y universe \
-  && apt-get update -y \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    fontconfig \
-    fonts-dejavu \
-    fonts-liberation \
-    libreoffice-common \
-    libreoffice-core \
-    libreoffice-writer \
-  && mkdir -p /usr/share/fonts/truetype/custom \
-  && chmod -R a+rX /usr/share/fonts/truetype/custom \
-  && fc-cache -f -v \
-  && apt-get remove -y --purge software-properties-common \
-  && apt-get autoremove -y \
-  && rm -rf /var/lib/apt/lists/*
-
-
 
 ## create a 'convertigo' user and fix some rights
 
