@@ -36,6 +36,8 @@ RUN apt-get update -y \
   && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
 
+
+
 ## create a 'convertigo' user and fix some rights
 
 RUN groupmod -n convertigo ubuntu \
