@@ -480,6 +480,7 @@ public class AssistantView extends ViewPart {
 			String pname = p != null ? p.getName() : "";
 			jsonMessage.put("type", "select");
 			jsonMessage.put("projectName", pname);
+			addAgentProfile(jsonMessage, p);
 			addViewerDebugContext(jsonMessage, p);
 			ConvertigoPlugin.logStudioInfo("[Assistant] set json message: " + jsonMessage.toString());
 		} catch (Exception e) {
@@ -530,6 +531,7 @@ public class AssistantView extends ViewPart {
 				}
 			} catch (Exception e) {
 			}
+			addAgentProfile(payload, null);
 			addViewerDebugContext(payload, null);
 			JSONObject message = new JSONObject();
 			message.put("type", "ConvertigoAssistant.context");
@@ -556,7 +558,52 @@ public class AssistantView extends ViewPart {
 			}
 		} catch (Exception e) {
 		}
-		return addDarkThemeParameter(url);
+		return addDarkThemeParameter(removeAgentProfileParameters(url));
+	}
+
+	private static String getUrlQuery(String url) {
+		try {
+			return StringUtils.defaultString(new URI(Objects.toString(url, "")).getRawQuery());
+		} catch (Exception e) {
+			String value = Objects.toString(url, "");
+			int queryStart = value.indexOf('?');
+			if (queryStart == -1) {
+				return "";
+			}
+			int fragmentStart = value.indexOf('#', queryStart);
+			return value.substring(queryStart + 1, fragmentStart == -1 ? value.length() : fragmentStart);
+		}
+	}
+
+	private static String removeAgentProfileParameters(String url) {
+		try {
+			String value = Objects.toString(url, "");
+			int fragmentStart = value.indexOf('#');
+			String fragment = fragmentStart == -1 ? "" : value.substring(fragmentStart);
+			String withoutFragment = fragmentStart == -1 ? value : value.substring(0, fragmentStart);
+			int queryStart = withoutFragment.indexOf('?');
+			if (queryStart == -1) {
+				return value;
+			}
+			StringBuilder query = new StringBuilder();
+			for (String part : withoutFragment.substring(queryStart + 1).split("&")) {
+				String key = part.contains("=") ? part.substring(0, part.indexOf('=')) : part;
+				if (!part.isBlank() && !"agentProfile".equals(key) && !"skillProfile".equals(key)) {
+					if (query.length() > 0) {
+						query.append('&');
+					}
+					query.append(part);
+				}
+			}
+			return withoutFragment.substring(0, queryStart)
+					+ (query.length() == 0 ? "" : "?" + query)
+					+ fragment;
+		} catch (Exception e) {
+			return Objects.toString(url, "")
+					.replaceAll("([?&])(?:agentProfile|skillProfile)=[^&#]*&?", "$1")
+					.replace("?&", "?")
+					.replaceAll("[?&]$", "");
+		}
 	}
 
 	private static String getLocalConvertigoUrl() {
@@ -828,11 +875,34 @@ public class AssistantView extends ViewPart {
 			jsonMessage.put("type", "select");
 			jsonMessage.put("threadQname", qname);
 			jsonMessage.put("projectName", qname.substring(0, qname.indexOf('.')));
+			addAgentProfile(jsonMessage, null);
 			addViewerDebugContext(jsonMessage, null);
 			ConvertigoPlugin.logStudioInfo("[Assistant] set json message: " + jsonMessage.toString());
 		} catch (Exception e) {
 			ConvertigoPlugin.logStudioWarn("[Assistant] could not set json message: " + e.getMessage());
 			e.printStackTrace();
+		}
+	}
+
+	private void addAgentProfile(JSONObject json, Project project) {
+		String profile = "generalist";
+		try {
+			String projectName = project != null ? project.getName() : "";
+			if (StringUtils.isBlank(projectName) && json.has("projectName")) {
+				projectName = json.getString("projectName");
+			}
+			if (project == null && StringUtils.isNotBlank(projectName) && Engine.theApp != null) {
+				project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+			}
+			profile = project != null && project.getFlowEngine() != null ? "flow" : "generalist";
+			json.put("agentProfile", profile);
+			json.put("skillProfile", profile);
+		} catch (Exception e) {
+			try {
+				json.put("agentProfile", profile);
+				json.put("skillProfile", profile);
+			} catch (Exception ignored) {
+			}
 		}
 	}
 
@@ -938,6 +1008,10 @@ public class AssistantView extends ViewPart {
 			
 			// set url
 			String burl = browser.getURL();
+			String query = getUrlQuery(burl);
+			if (StringUtils.isBlank(query)) {
+				query = getUrlQuery(startupUrl);
+			}
 			int idx = burl.indexOf("/DisplayObjects/mobile");
 			if (idx != -1) {
 				burl = burl.substring(0, idx) + "/DisplayObjects/mobile";
@@ -946,7 +1020,8 @@ public class AssistantView extends ViewPart {
 			if (idy != -1) {
 				burl = burl.substring(0, idy);
 			}
-			String url = burl + "/path-to-xfirst/" + threadId;
+			String url = burl + "/path-to-xfirst/" + threadId
+					+ (StringUtils.isBlank(query) ? "" : "?" + query);
 			ConvertigoPlugin.logStudioInfo("[Assistant] url: " + url);
 			browser.setUrl(url);			
 		}
