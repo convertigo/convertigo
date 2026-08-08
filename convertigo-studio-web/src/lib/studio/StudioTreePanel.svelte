@@ -16,6 +16,7 @@
 	 *  refreshMutation?: import('./dnd').DboDropResult | null,
 	 *  refreshMutationSerial?: number,
 	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>,
+	 *  onContextAction?: (event: { nodeId: string, action: any, result: any }) => void | Promise<void>,
 	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
 	 * }}
 	 */
@@ -27,6 +28,7 @@
 		refreshMutation = null,
 		refreshMutationSerial = 0,
 		onMutation,
+		onContextAction,
 		onSourceDrop
 	} = $props();
 
@@ -243,6 +245,7 @@
 				onKeepExpanded={keepExpanded}
 				onLoadChildren={loadChildren}
 				onMutation={handleMutation}
+				{onContextAction}
 				{onSourceDrop}
 			/>
 		{/each}

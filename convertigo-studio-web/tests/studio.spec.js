@@ -16,6 +16,8 @@ const projectName = 'StudioProject';
 const sequenceName = 'TestSequence';
 const sequenceId = `${projectName}.sq:${sequenceName}`;
 const initStepId = `${sequenceId}.st:Init`;
+const flowEngineId = `${projectName}.Engine`;
+const frontendBuilderId = `${flowEngineId}.frontends.svelte`;
 
 test('studio opens a selected backend object with tree, execution and flow synchronized', async ({
 	page
@@ -23,7 +25,7 @@ test('studio opens a selected backend object with tree, execution and flow synch
 	await mockStudioServices(page);
 	await page.goto('/studio/#flow');
 
-	await expect(page.getByText('Convertigo Studio')).toBeVisible();
+	await expect(page.locator('strong').filter({ hasText: 'Convertigo Studio' })).toBeVisible();
 	await expect(page.getByRole('radio', { name: 'Backend' })).toHaveAttribute(
 		'aria-checked',
 		'true'
@@ -32,16 +34,16 @@ test('studio opens a selected backend object with tree, execution and flow synch
 	await expandTreeNode(page, `${projectName}:sq`);
 	await selectTreeNode(page, sequenceId);
 
-	await page.getByRole('button', { name: 'Execution', exact: true }).click();
+	await page.getByRole('tab', { name: 'Execution', exact: true }).click();
 	await expect(page.getByText('Variables (1)')).toBeVisible();
 	await page.getByRole('button', { name: 'Execute' }).click();
 	await expect(responseEditor(page)).toBeVisible();
 	await page.getByRole('button', { name: 'Clear' }).click();
 	await expect(responseEditor(page)).toHaveCount(0);
 
-	await page.getByRole('button', { name: 'Flow', exact: true }).click();
-	await expect(page.getByRole('button', { name: 'Flow', exact: true })).toHaveAttribute(
-		'aria-expanded',
+	await page.getByRole('tab', { name: 'Flow', exact: true }).click();
+	await expect(page.getByRole('tab', { name: 'Flow', exact: true })).toHaveAttribute(
+		'aria-selected',
 		'true'
 	);
 	await expect(flowNodeName(page, 'request')).toBeVisible();
@@ -57,7 +59,7 @@ test('studio opens a selected backend object with tree, execution and flow synch
 	await expect(flowNodeName(page, 'response')).toBeVisible();
 	await expect(flowNodeName(page, 'Init')).toBeVisible();
 	await expect(page).toHaveURL(
-		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~Init/#flow$`)
+		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~Init/$`)
 	);
 });
 
@@ -86,7 +88,7 @@ test('studio applies and executes requestable test cases from the execution pane
 	await expandTreeNode(page, projectName);
 	await expandTreeNode(page, `${projectName}:sq`);
 	await selectTreeNode(page, sequenceId);
-	await page.getByRole('button', { name: 'Execution', exact: true }).click();
+	await page.getByRole('tab', { name: 'Execution', exact: true }).click();
 
 	await expect(page.getByText('Variables (1)')).toBeVisible();
 	await ensureButtonExpanded(page, /Variables \(1\)/);
@@ -139,6 +141,55 @@ test('studio frontend profile exposes a dashboard-like device rail', async ({ pa
 	await expect(page.getByText(/iPhone 17 Pro landscape - 874x402/)).toBeVisible();
 });
 
+test('studio exposes Flow actions through a touch menu and switches the iframe to dev mode', async ({
+	page
+}) => {
+	const state = createStudioState();
+	const contextActions = [];
+	await page.setViewportSize({ width: 390, height: 844 });
+	await mockStudioServices(page, { state, contextActions });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await selectTreeNode(page, frontendBuilderId);
+	await page.getByRole('radio', { name: /Frontend|Tree, preview/ }).click();
+
+	const actions = page.getByRole('button', { name: 'Actions for Svelte frontend' });
+	await expect(actions).toBeVisible();
+	await actions.click();
+	await expect(page.getByRole('menuitem', { name: /Start dev mode/ })).toBeEnabled();
+	await expect(page.getByRole('menuitem', { name: /Stop dev mode/ })).toBeDisabled();
+	await expect(page.getByRole('menuitem', { name: /Build prod/ })).toBeEnabled();
+
+	await page.getByRole('menuitem', { name: /Start dev mode/ }).click();
+	await expect.poll(() => contextActions).toEqual(['frontbuilder.svelte.dev.start']);
+	await expect(page.locator('iframe[title="StudioProject frontend"]')).toHaveAttribute(
+		'src',
+		/gateway\/dev\/studio-test-ticket/
+	);
+	await expect(page.getByText('Dev', { exact: true })).toBeVisible();
+	await expect(
+		page.frameLocator('iframe[title="StudioProject frontend"]').getByText('Dev preview')
+	).toBeVisible();
+
+	await actions.click();
+	await expect(page.getByRole('menuitem', { name: /Start dev mode/ })).toBeDisabled();
+	await expect(page.getByRole('menuitem', { name: /Stop dev mode/ })).toBeEnabled();
+	await page.getByRole('menuitem', { name: /Stop dev mode/ }).click();
+	await expect
+		.poll(() => contextActions)
+		.toEqual(['frontbuilder.svelte.dev.start', 'frontbuilder.svelte.dev.stop']);
+	await expect(page.locator('iframe[title="StudioProject frontend"]')).toHaveAttribute(
+		'src',
+		/DisplayObjects\/mobile\/index\.html/
+	);
+	await expect(page.getByText('Prod', { exact: true })).toBeVisible();
+	await expect(
+		page.frameLocator('iframe[title="StudioProject frontend"]').getByText('Prod preview')
+	).toBeVisible();
+});
+
 test('studio keeps tree, flow and url synchronized after a flow rename mutation', async ({
 	page
 }) => {
@@ -149,7 +200,7 @@ test('studio keeps tree, flow and url synchronized after a flow rename mutation'
 	await expandTreeNode(page, projectName);
 	await expandTreeNode(page, `${projectName}:sq`);
 	await selectTreeNode(page, sequenceId);
-	await page.getByRole('button', { name: 'Flow', exact: true }).click();
+	await page.getByRole('tab', { name: 'Flow', exact: true }).click();
 
 	await flowNodeName(page, 'Init').click();
 	await page.getByRole('button', { name: 'Rename step' }).click();
@@ -165,7 +216,7 @@ test('studio keeps tree, flow and url synchronized after a flow rename mutation'
 		'RenamedInit'
 	);
 	await expect(page).toHaveURL(
-		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~RenamedInit/#flow$`)
+		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~RenamedInit/$`)
 	);
 });
 
@@ -177,12 +228,13 @@ test('studio keeps flow and url synchronized after a tree rename mutation', asyn
 	await expandTreeNode(page, projectName);
 	await expandTreeNode(page, `${projectName}:sq`);
 	await selectTreeNode(page, sequenceId);
-	await page.getByRole('button', { name: 'Flow', exact: true }).click();
+	await page.getByRole('tab', { name: 'Flow', exact: true }).click();
 	await ensureTreeNodeExpanded(page, sequenceId);
 	await ensureTreeNodeExpanded(page, `${sequenceId}:st`);
 	await selectTreeNode(page, initStepId);
 
-	await page.getByRole('button', { name: 'Rename object' }).click();
+	await page.getByRole('button', { name: 'Actions for Init' }).click();
+	await page.getByRole('menuitem', { name: 'Rename', exact: true }).click();
 	const input = page.getByRole('textbox', { name: 'Rename object' });
 	await expect(input).toBeFocused();
 	await input.fill('TreeRenamedInit');
@@ -193,7 +245,7 @@ test('studio keeps flow and url synchronized after a tree rename mutation', asyn
 	);
 	await expect(flowNodeName(page, 'TreeRenamedInit')).toBeVisible();
 	await expect(page).toHaveURL(
-		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~TreeRenamedInit/#flow$`)
+		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~TreeRenamedInit/$`)
 	);
 });
 
@@ -207,7 +259,7 @@ test('studio keeps tree, flow and url synchronized after a flow delete mutation'
 	await expandTreeNode(page, projectName);
 	await expandTreeNode(page, `${projectName}:sq`);
 	await selectTreeNode(page, sequenceId);
-	await page.getByRole('button', { name: 'Flow', exact: true }).click();
+	await page.getByRole('tab', { name: 'Flow', exact: true }).click();
 	await ensureTreeNodeExpanded(page, sequenceId);
 	await ensureTreeNodeExpanded(page, `${sequenceId}:st`);
 	await expect(
@@ -227,7 +279,7 @@ test('studio keeps tree, flow and url synchronized after a flow delete mutation'
 		page.locator(`button.studio-tree-node__content[data-node-id="${initStepId}"]`)
 	).toHaveCount(0);
 	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText(sequenceName);
-	await expect(page).toHaveURL(new RegExp(`/studio/${projectName}\\.sq~${sequenceName}/#flow$`));
+	await expect(page).toHaveURL(new RegExp(`/studio/${projectName}\\.sq~${sequenceName}/$`));
 });
 
 test('studio adds a palette step from the flow and opens inline rename', async ({ page }) => {
@@ -238,7 +290,7 @@ test('studio adds a palette step from the flow and opens inline rename', async (
 	await expandTreeNode(page, projectName);
 	await expandTreeNode(page, `${projectName}:sq`);
 	await selectTreeNode(page, sequenceId);
-	await page.getByRole('button', { name: 'Flow', exact: true }).click();
+	await page.getByRole('tab', { name: 'Flow', exact: true }).click();
 	await ensureTreeNodeExpanded(page, sequenceId);
 	await ensureTreeNodeExpanded(page, `${sequenceId}:st`);
 	await page.getByRole('tab', { name: 'Palette' }).click();
@@ -261,7 +313,7 @@ test('studio adds a palette step from the flow and opens inline rename', async (
 		'DroppedFromPalette'
 	);
 	await expect(page).toHaveURL(
-		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~DroppedFromPalette/#flow$`)
+		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~DroppedFromPalette/$`)
 	);
 });
 
@@ -278,7 +330,7 @@ test('studio moves a tree step and keeps flow and url synchronized', async ({ pa
 	await expandTreeNode(page, projectName);
 	await expandTreeNode(page, `${projectName}:sq`);
 	await selectTreeNode(page, sequenceId);
-	await page.getByRole('button', { name: 'Flow', exact: true }).click();
+	await page.getByRole('tab', { name: 'Flow', exact: true }).click();
 	await ensureTreeNodeExpanded(page, sequenceId);
 	await ensureTreeNodeExpanded(page, `${sequenceId}:st`);
 	await expectTreeStepOrder(page, ['Init', 'Second', 'return']);
@@ -298,7 +350,7 @@ test('studio moves a tree step and keeps flow and url synchronized', async ({ pa
 		page.locator(`button.studio-tree-node__content[data-node-id="${initStepId}"]`)
 	).toBeVisible();
 	await expect(page).toHaveURL(
-		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~Init/#flow$`)
+		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~Init/$`)
 	);
 });
 
@@ -332,7 +384,7 @@ test('studio reorders structured child steps without collapsing their parent', a
 	await expandTreeNode(page, projectName);
 	await expandTreeNode(page, `${projectName}:sq`);
 	await selectTreeNode(page, sequenceId);
-	await page.getByRole('button', { name: 'Flow', exact: true }).click();
+	await page.getByRole('tab', { name: 'Flow', exact: true }).click();
 	await ensureTreeNodeExpanded(page, sequenceId);
 	await ensureTreeNodeExpanded(page, `${sequenceId}:st`);
 	await ensureTreeNodeExpanded(page, objectId);
@@ -354,7 +406,7 @@ test('studio reorders structured child steps without collapsing their parent', a
 	await expect(flowNodeName(page, 'field2')).toBeVisible();
 	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('field2');
 	await expect(page).toHaveURL(
-		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~object\\.st~field2/#flow$`)
+		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~object\\.st~field2/$`)
 	);
 });
 
@@ -390,7 +442,7 @@ test('studio moves a structured flow child before a sibling and keeps tree and u
 	await expandTreeNode(page, projectName);
 	await expandTreeNode(page, `${projectName}:sq`);
 	await selectTreeNode(page, sequenceId);
-	await page.getByRole('button', { name: 'Flow', exact: true }).click();
+	await page.getByRole('tab', { name: 'Flow', exact: true }).click();
 	await ensureTreeNodeExpanded(page, sequenceId);
 	await ensureTreeNodeExpanded(page, `${sequenceId}:st`);
 	await ensureTreeNodeExpanded(page, objectId);
@@ -414,7 +466,7 @@ test('studio moves a structured flow child before a sibling and keeps tree and u
 	await expect(flowNodeName(page, 'field2')).toBeVisible();
 	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('field2');
 	await expect(page).toHaveURL(
-		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~object\\.st~field2/#flow$`)
+		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~object\\.st~field2/$`)
 	);
 });
 
@@ -823,7 +875,8 @@ function responseEditor(page) {
  * @param {{
  *  roles?: string[],
  *  state?: ReturnType<typeof createStudioState>,
- *  executionRequests?: string[]
+ *  executionRequests?: string[],
+ *  contextActions?: string[]
  * }} [options]
  */
 async function mockStudioServices(page, options = {}) {
@@ -854,6 +907,22 @@ async function mockStudioServices(page, options = {}) {
 			body: JSON.stringify({ studioSmoke: 'executed' })
 		});
 	});
+
+	await page.route(`**/projects/${projectName}/DisplayObjects/mobile/index.html`, async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'text/html',
+			body: '<!doctype html><html><body><main>Prod preview</main></body></html>'
+		});
+	});
+
+	await page.route('**/admin/services/gateway/dev/studio-test-ticket/**', async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'text/html',
+			body: '<!doctype html><html><body><main>Dev preview</main></body></html>'
+		});
+	});
 }
 
 /**
@@ -870,7 +939,8 @@ function serviceName(url) {
  * @param {{
  *  roles?: string[],
  *  state?: ReturnType<typeof createStudioState>,
- *  executionRequests?: string[]
+ *  executionRequests?: string[],
+ *  contextActions?: string[]
  * }} [options]
  */
 function responseForService(service, params, options = {}) {
@@ -898,6 +968,10 @@ function responseForService(service, params, options = {}) {
 			return testPlatformResponse(state);
 		case 'studio.treeview.Get':
 			return treeviewResponse(params, state);
+		case 'studio.treeview.ContextMenu':
+			return contextMenuResponse(params, state);
+		case 'studio.treeview.ContextAction':
+			return contextActionResponse(params, state, options.contextActions);
 		case 'studio.dbo.Accept':
 			return acceptDboResponse(params);
 		case 'studio.dbo.Add':
@@ -930,6 +1004,7 @@ function responseForService(service, params, options = {}) {
 function createStudioState(overrides = {}) {
 	return {
 		nextStepIndex: 1,
+		devRunning: false,
 		steps: [
 			{ name: 'Init', classname: 'com.twinsoft.convertigo.beans.steps.SimpleStep' },
 			{ name: 'return', classname: 'com.twinsoft.convertigo.beans.steps.ReturnStep' }
@@ -1071,8 +1146,11 @@ function treeviewChildren(id, flow, state) {
 			return [
 				folderNode(`${projectName}:cn`, 'Connectors'),
 				folderNode(`${projectName}:sq`, 'Sequences'),
-				folderNode(`${projectName}:ref`, 'References')
+				folderNode(`${projectName}:ref`, 'References'),
+				treeNode(flowEngineId, 'Engine', 'FlowEngine', { children: true })
 			];
+		case flowEngineId:
+			return [treeNode(frontendBuilderId, 'Svelte frontend', 'FlowVirtualObject')];
 		case `${projectName}:sq`:
 			return [
 				treeNode(
@@ -1096,6 +1174,115 @@ function treeviewChildren(id, flow, state) {
 		default:
 			return [];
 	}
+}
+
+/**
+ * @param {URLSearchParams} params
+ * @param {ReturnType<typeof createStudioState>} state
+ */
+function contextMenuResponse(params, state) {
+	const id = params.get('id') ?? '';
+	const items =
+		id === frontendBuilderId
+			? [
+					contextMenuItem(
+						'frontbuilder.svelte.dev.start',
+						'Start dev mode',
+						'Start Vite behind the Studio gateway.',
+						'Svelte dev',
+						!state.devRunning
+					),
+					contextMenuItem(
+						'frontbuilder.svelte.dev.stop',
+						'Stop dev mode',
+						'Stop the Vite dev server.',
+						'Svelte dev',
+						state.devRunning
+					),
+					contextMenuItem(
+						'frontbuilder.svelte.dev.open',
+						'Open dev mode',
+						'Open the running Vite dev server.',
+						'Svelte dev',
+						state.devRunning
+					),
+					contextMenuItem(
+						'frontbuilder.svelte.generate',
+						'Update generated source',
+						'Regenerate the Svelte sources.',
+						'Svelte build'
+					),
+					contextMenuItem(
+						'frontbuilder.svelte.build',
+						'Build prod',
+						'Build DisplayObjects/mobile.',
+						'Svelte build'
+					),
+					contextMenuItem(
+						'frontbuilder.svelte.openBuilt',
+						'Open built prod',
+						'Open the production frontend.',
+						'Svelte build'
+					)
+				]
+			: [];
+	return {
+		id,
+		menu: {
+			ok: true,
+			protocol: 'flow.studio.menu.v1',
+			label: 'Flow',
+			items
+		}
+	};
+}
+
+/**
+ * @param {URLSearchParams} params
+ * @param {ReturnType<typeof createStudioState>} state
+ * @param {string[]=} contextActions
+ */
+function contextActionResponse(params, state, contextActions) {
+	const id = params.get('id') ?? '';
+	const action = parseServiceJson(params.get('action'));
+	contextActions?.push(action.id);
+	if (action.id === 'frontbuilder.svelte.dev.start') {
+		state.devRunning = true;
+		return {
+			id,
+			result: {
+				ok: true,
+				title: 'Svelte dev mode',
+				message: 'Svelte dev mode started.',
+				openUrl: '/admin/services/gateway/dev/studio-test-ticket/'
+			}
+		};
+	}
+	if (action.id === 'frontbuilder.svelte.dev.stop') {
+		state.devRunning = false;
+		return {
+			id,
+			result: {
+				ok: true,
+				title: 'Svelte dev mode',
+				message: 'Svelte dev mode stopped.'
+			}
+		};
+	}
+	return {
+		id,
+		result: {
+			ok: true,
+			openUrl:
+				action.id === 'frontbuilder.svelte.dev.open'
+					? '/admin/services/gateway/dev/studio-test-ticket/'
+					: ''
+		}
+	};
+}
+
+function contextMenuItem(id, label, description, group, enabled = true) {
+	return { id, label, description, group, enabled, payload: {}, confirm: '', icon: '' };
 }
 
 /**

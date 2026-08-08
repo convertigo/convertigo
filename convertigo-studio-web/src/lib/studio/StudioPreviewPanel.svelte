@@ -35,9 +35,11 @@
 	const FIT_PADDING = 24;
 	const iconButtonClasses = 'button-ico-secondary h-8! w-8! justify-center p-0!';
 
-	/** @type {{ projectName?: string, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean }} */
 	let {
 		projectName = '',
+		previewUrlOverride = '',
+		previewMode = 'production',
 		selectedDeviceId = $bindable('none'),
 		landscape = $bindable(false),
 		showDeviceSelector = true
@@ -51,7 +53,7 @@
 	let iframeOverride = $state({ base: '', value: '' });
 	let zoomOverride = $state({ base: '', value: 1 });
 	let zoomModeOverride = $state({ base: '', value: 'fit' });
-	let previewUrl = $derived(projectName ? getFrontendUrl(projectName) : '');
+	let previewUrl = $derived(previewUrlOverride || (projectName ? getFrontendUrl(projectName) : ''));
 	let addressBar = $derived(
 		addressOverride.base === previewUrl ? addressOverride.value : previewUrl
 	);
@@ -302,6 +304,12 @@
 			/>
 
 			<div class="studio-preview__actions layout-x-end-none">
+				<span
+					class="studio-preview__mode"
+					class:studio-preview__mode--development={previewMode === 'development'}
+				>
+					{previewMode === 'development' ? 'Dev' : 'Prod'}
+				</span>
 				<Button
 					full={false}
 					label="Go"
@@ -493,6 +501,24 @@
 		font-size: 0.72rem;
 		font-weight: 700;
 		text-align: center;
+	}
+
+	.studio-preview__mode {
+		border: 1px solid var(--color-surface-300-700);
+		border-radius: 999px;
+		background: color-mix(in oklab, var(--color-surface-300-700) 14%, transparent);
+		color: var(--color-surface-600-400);
+		padding: 0.08rem 0.42rem;
+		font-size: 0.64rem;
+		font-weight: 780;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.studio-preview__mode--development {
+		border-color: color-mix(in oklab, var(--color-success-500) 55%, transparent);
+		background: color-mix(in oklab, var(--color-success-500) 14%, transparent);
+		color: var(--color-success-700-300);
 	}
 
 	.studio-preview__size {

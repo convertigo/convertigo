@@ -19,7 +19,7 @@
 		renameObjectId
 	} from './dnd';
 	import { getSourcePickerDragPayload } from './sourcePickerDnd';
-	import StudioIconButton from './StudioIconButton.svelte';
+	import StudioTreeActionMenu from './StudioTreeActionMenu.svelte';
 	import StudioTreeNode from './StudioTreeNode.svelte';
 
 	const folderTypeIds = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url', 'app', 'mob']);
@@ -38,6 +38,7 @@
 	 *  onKeepExpanded?: (ids: string[]) => void,
 	 *  onLoadChildren?: (node: any, force?: boolean) => Promise<void>,
 	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>,
+	 *  onContextAction?: (event: { nodeId: string, action: any, result: any }) => void | Promise<void>,
 	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
 	 * }}
 	 */
@@ -54,6 +55,7 @@
 		onKeepExpanded,
 		onLoadChildren = async () => {},
 		onMutation,
+		onContextAction,
 		onSourceDrop
 	} = $props();
 
@@ -100,7 +102,9 @@
 	let paddingLeft = $derived(`${depth * 0.34 + 0.14}rem`);
 	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
 	let renaming = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, renameTargetId)));
-	let showSelectedActions = $derived(Boolean(selected && !renaming && draggableNode));
+	let showSelectedActions = $derived(
+		Boolean(selected && !renaming && (draggableNode || isFlowContextNode(node)))
+	);
 
 	$effect(() => {
 		const target = selectedId;
@@ -274,12 +278,7 @@
 		selectedId = node?.id ?? '';
 	}
 
-	/**
-	 * @param {MouseEvent} event
-	 */
-	function requestRename(event) {
-		event.preventDefault();
-		event.stopPropagation();
+	function requestRename() {
 		if (!node?.id) {
 			return;
 		}
@@ -287,12 +286,7 @@
 		renameTargetId = node.id;
 	}
 
-	/**
-	 * @param {MouseEvent} event
-	 */
-	async function deleteSelectedNode(event) {
-		event.preventDefault();
-		event.stopPropagation();
+	async function deleteSelectedNode() {
 		if (deletingBusy || !node?.id) {
 			return;
 		}
@@ -767,6 +761,23 @@
 		const folderMatch = id.match(/:([a-z]{2,4})$/);
 		return !folderMatch || !folderTypeIds.has(folderMatch[1]);
 	}
+
+	/**
+	 * @param {any} candidate
+	 * @returns {boolean}
+	 */
+	function isFlowContextNode(candidate) {
+		const id = String(candidate?.id ?? '');
+		const classname = String(candidate?.classname ?? '');
+		return (
+			classname === 'Flow' ||
+			classname === 'FlowEngine' ||
+			classname === 'FlowVirtualObject' ||
+			id.includes('.frontends') ||
+			id.endsWith('.flow') ||
+			id.includes('.flow.')
+		);
+	}
 </script>
 
 <div class="studio-tree-node" role="treeitem" aria-selected={selected}>
@@ -854,22 +865,17 @@
 			</button>
 		{/if}
 		{#if showSelectedActions}
-			<div class="studio-tree-node__actions" aria-label="Selected object actions">
-				<StudioIconButton
-					icon="mdi:pencil-outline"
-					title="Rename object"
-					ariaLabel="Rename object"
-					size="xs"
-					onclick={requestRename}
-				/>
-				<StudioIconButton
-					icon={deletingBusy ? 'mdi:sync' : 'mdi:delete-outline'}
-					title="Delete object"
-					ariaLabel="Delete object"
-					size="xs"
-					danger
-					disabled={deletingBusy}
-					onclick={deleteSelectedNode}
+			<div class="studio-tree-node__actions">
+				<StudioTreeActionMenu
+					nodeId={node.id}
+					{label}
+					canRename={draggableNode}
+					canDelete={draggableNode}
+					deleting={deletingBusy}
+					onSelectNode={selectNode}
+					onRename={requestRename}
+					onDelete={deleteSelectedNode}
+					{onContextAction}
 				/>
 			</div>
 		{/if}
@@ -900,6 +906,7 @@
 					{onSetExpanded}
 					{onKeepExpanded}
 					{onMutation}
+					{onContextAction}
 					{onSourceDrop}
 				/>
 			{/each}

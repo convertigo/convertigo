@@ -12,7 +12,7 @@
 		"lint": "prettier --plugin prettier-plugin-svelte --check . && eslint .",
 		"format": "prettier --write .",
 		"test:integration": "playwright test",
-		"test:unit": "vitest",
+		"test:unit": "vitest src",
 		"check:palette": "node scripts/check-skeleton-pairs.mjs",
 		"update:bezels": "node scripts/update-bezels.mjs",
 		"generate:thumbnails": "node scripts/generate-thumbnails.mjs",

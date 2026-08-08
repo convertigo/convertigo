@@ -564,6 +564,28 @@ export async function removeDbo(id = '') {
 }
 
 /**
+ * @param {string} id - the id of the selected tree object
+ * @param {Parameters<typeof call>[2]=} options
+ */
+export async function getStudioContextMenu(id = '', options = {}) {
+	return call('studio.treeview.ContextMenu', { id }, options);
+}
+
+/**
+ * @param {string} id - the id of the selected tree object
+ * @param {Record<string, any>} action - an item returned by getStudioContextMenu
+ * @param {Parameters<typeof call>[2]=} options
+ */
+export async function runStudioContextAction(id = '', action = {}, options = {}) {
+	const response = await call(
+		'studio.treeview.ContextAction',
+		{ id, action: JSON.stringify(action) },
+		options
+	);
+	return response?.result ?? response;
+}
+
+/**
  * @param {any} ids - the array of tree dbo ids
  */
 export async function cutDbo(ids = []) {

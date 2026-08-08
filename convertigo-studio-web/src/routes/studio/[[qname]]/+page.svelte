@@ -123,6 +123,8 @@
 	let activeWorkPanel = $state('execution');
 	let frontendDeviceId = $state('none');
 	let frontendLandscape = $state(false);
+	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
+	let frontendPreview = $state({ projectName: '', url: '', mode: 'production' });
 	let logsPanelOpen = $state(false);
 	/** @type {EditorTarget | null} */
 	let editorTarget = $state(null);
@@ -181,6 +183,15 @@
 		Boolean(selectedProjectName && selectedFlowSequenceName && sequences.length)
 	);
 	let showStudioWork = $derived(profile === 'backend');
+	let frontendPreviewUrl = $derived(
+		frontendPreview.projectName === selectedProjectName ? frontendPreview.url : ''
+	);
+	/** @type {'production' | 'development'} */
+	let frontendPreviewMode = $derived(
+		frontendPreview.projectName === selectedProjectName && frontendPreview.mode === 'development'
+			? 'development'
+			: 'production'
+	);
 	let showDevicePicker = $derived(profile === 'frontend');
 	let showFlowOverview = $derived(showStudioWork && flowReady);
 	let showPalette = $derived(showStudioWork);
@@ -925,6 +936,44 @@
 	}
 
 	/**
+	 * @param {{ nodeId: string, action: { id?: string }, result: any }} event
+	 */
+	async function onStudioContextAction(event) {
+		const actionId = String(event?.action?.id ?? '');
+		const result = event?.result;
+		if (result?.ok === false) {
+			return;
+		}
+		const projectName = parseSelection(event?.nodeId ?? '').projectName || selectedProjectName;
+		if (
+			(actionId === 'frontbuilder.svelte.dev.start' ||
+				actionId === 'frontbuilder.svelte.dev.open') &&
+			result?.openUrl &&
+			projectName
+		) {
+			frontendPreview = {
+				projectName,
+				url: String(result.openUrl),
+				mode: 'development'
+			};
+		} else if (
+			actionId === 'frontbuilder.svelte.dev.stop' ||
+			actionId === 'frontbuilder.svelte.build' ||
+			actionId === 'frontbuilder.svelte.openBuilt'
+		) {
+			frontendPreview = { projectName: '', url: '', mode: 'production' };
+		}
+		if (result?.refresh) {
+			await refreshStudioProject(event.nodeId);
+			refreshTreeContext(event.nodeId, 'contextAction');
+			refreshStudioViews();
+		}
+		if (result?.changed) {
+			markProjectDirty(event.nodeId);
+		}
+	}
+
+	/**
 	 * @param {string} id
 	 */
 	async function refreshStudioProject(id) {
@@ -1255,6 +1304,7 @@
 			refreshMutation={lastStudioMutation}
 			refreshMutationSerial={studioMutationSerial}
 			onMutation={onStudioMutation}
+			onContextAction={onStudioContextAction}
 			onSourceDrop={applySourceDrop}
 		/>
 	</StudioPanel>
@@ -1335,6 +1385,8 @@
 		>
 			<StudioPreviewPanel
 				projectName={selectedProjectName}
+				previewUrlOverride={frontendPreviewUrl}
+				previewMode={frontendPreviewMode}
 				bind:selectedDeviceId={frontendDeviceId}
 				bind:landscape={frontendLandscape}
 				showDeviceSelector={false}
