@@ -42,6 +42,8 @@
 	let loading = $state(false);
 	let loadError = $state('');
 	let actionBusy = $state('');
+	/** @type {boolean | null} */
+	let devRunningOverride = $state(null);
 	/** @type {StudioContextMenuItem[]} */
 	let contextItems = $state.raw([]);
 	let requestSerial = 0;
@@ -69,11 +71,12 @@
 			if (serial !== requestSerial) {
 				return;
 			}
-			contextItems = Array.isArray(response?.menu?.items)
+			const items = Array.isArray(response?.menu?.items)
 				? response.menu.items
 				: Array.isArray(response?.items)
 					? response.items
 					: [];
+			contextItems = reconcileDevActionState(items);
 		} catch (error) {
 			if (serial === requestSerial) {
 				loadError = String(error instanceof Error ? error.message : error);
@@ -112,10 +115,45 @@
 		actionBusy = action.id;
 		try {
 			const result = await runStudioContextAction(nodeId, action);
+			if (result?.ok !== false && action.id.endsWith('.dev.start')) {
+				devRunningOverride = true;
+				contextItems = reconcileDevActionState(contextItems);
+			} else if (result?.ok !== false && action.id.endsWith('.dev.stop')) {
+				devRunningOverride = false;
+				contextItems = reconcileDevActionState(contextItems);
+			}
 			await onContextAction?.({ nodeId, action, result });
 		} finally {
 			actionBusy = '';
 		}
+	}
+
+	/**
+	 * Keep the touch menu coherent immediately after a successful local action.
+	 * Isolated Flow runtimes may need one request to observe the persisted state;
+	 * the override disappears as soon as the backend reports the same state.
+	 * @param {StudioContextMenuItem[]} items
+	 */
+	function reconcileDevActionState(items) {
+		if (devRunningOverride === null) {
+			return items;
+		}
+		const start = items.find((item) => item.id.endsWith('.dev.start'));
+		const stop = items.find((item) => item.id.endsWith('.dev.stop'));
+		if (start && stop && Boolean(stop.enabled) === devRunningOverride) {
+			devRunningOverride = null;
+			return items;
+		}
+		const running = devRunningOverride === true;
+		return items.map((item) => {
+			if (item.id.endsWith('.dev.start')) {
+				return { ...item, enabled: !running };
+			}
+			if (item.id.endsWith('.dev.stop') || item.id.endsWith('.dev.open')) {
+				return { ...item, enabled: running };
+			}
+			return item;
+		});
 	}
 
 	/**

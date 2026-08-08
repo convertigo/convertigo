@@ -189,6 +189,9 @@ test('studio exposes Flow actions through a touch menu and switches the iframe t
 	await expect(
 		page.frameLocator('iframe[title="StudioProject frontend"]').getByText('Prod preview')
 	).toBeVisible();
+	await actions.click();
+	await expect(page.getByRole('menuitem', { name: /Start dev mode/ })).toBeEnabled();
+	await expect(page.getByRole('menuitem', { name: /Stop dev mode/ })).toBeDisabled();
 });
 
 test('studio keeps tree, flow and url synchronized after a flow rename mutation', async ({
@@ -1006,6 +1009,7 @@ function createStudioState(overrides = {}) {
 	return {
 		nextStepIndex: 1,
 		devRunning: false,
+		contextMenuDevRunning: false,
 		steps: [
 			{ name: 'Init', classname: 'com.twinsoft.convertigo.beans.steps.SimpleStep' },
 			{ name: 'return', classname: 'com.twinsoft.convertigo.beans.steps.ReturnStep' }
@@ -1191,21 +1195,21 @@ function contextMenuResponse(params, state) {
 						'Start dev mode',
 						'Start Vite behind the Studio gateway.',
 						'Svelte dev',
-						!state.devRunning
+						!state.contextMenuDevRunning
 					),
 					contextMenuItem(
 						'frontbuilder.svelte.dev.stop',
 						'Stop dev mode',
 						'Stop the Vite dev server.',
 						'Svelte dev',
-						state.devRunning
+						state.contextMenuDevRunning
 					),
 					contextMenuItem(
 						'frontbuilder.svelte.dev.open',
 						'Open dev mode',
 						'Open the running Vite dev server.',
 						'Svelte dev',
-						state.devRunning
+						state.contextMenuDevRunning
 					),
 					contextMenuItem(
 						'frontbuilder.svelte.generate',
@@ -1249,6 +1253,7 @@ function contextActionResponse(params, state, contextActions) {
 	contextActions?.push(action.id);
 	if (action.id === 'frontbuilder.svelte.dev.start') {
 		state.devRunning = true;
+		state.contextMenuDevRunning = true;
 		return {
 			id,
 			result: {
