@@ -164,10 +164,11 @@ test('studio exposes Flow actions through a touch menu and switches the iframe t
 
 	await page.getByRole('menuitem', { name: /Start dev mode/ }).click();
 	await expect.poll(() => contextActions).toEqual(['frontbuilder.svelte.dev.start']);
-	await expect(page.locator('iframe[title="StudioProject frontend"]')).toHaveAttribute(
-		'src',
-		/gateway\/dev\/studio-test-ticket/
-	);
+	const devIframe = page.locator('iframe[title="StudioProject frontend"]');
+	await expect(devIframe).toHaveAttribute('src', /\/convertigo\/gw\/studio-test-ticket\/$/);
+	await expect
+		.poll(async () => new URL((await devIframe.getAttribute('src')) ?? '', page.url()).origin)
+		.toBe(new URL(page.url()).origin);
 	await expect(page.getByText('Dev', { exact: true })).toBeVisible();
 	await expect(
 		page.frameLocator('iframe[title="StudioProject frontend"]').getByText('Dev preview')
@@ -916,7 +917,7 @@ async function mockStudioServices(page, options = {}) {
 		});
 	});
 
-	await page.route('**/admin/services/gateway/dev/studio-test-ticket/**', async (route) => {
+	await page.route('**/convertigo/gw/studio-test-ticket/**', async (route) => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'text/html',
@@ -1254,7 +1255,7 @@ function contextActionResponse(params, state, contextActions) {
 				ok: true,
 				title: 'Svelte dev mode',
 				message: 'Svelte dev mode started.',
-				openUrl: '/admin/services/gateway/dev/studio-test-ticket/'
+				openUrl: 'http://localhost:28080/convertigo/gw/studio-test-ticket/'
 			}
 		};
 	}
@@ -1275,7 +1276,7 @@ function contextActionResponse(params, state, contextActions) {
 			ok: true,
 			openUrl:
 				action.id === 'frontbuilder.svelte.dev.open'
-					? '/admin/services/gateway/dev/studio-test-ticket/'
+					? 'http://localhost:28080/convertigo/gw/studio-test-ticket/'
 					: ''
 		}
 	};

@@ -953,7 +953,7 @@
 		) {
 			frontendPreview = {
 				projectName,
-				url: String(result.openUrl),
+				url: studioPreviewUrl(result.openUrl),
 				mode: 'development'
 			};
 		} else if (
@@ -971,6 +971,28 @@
 		if (result?.changed) {
 			markProjectDirty(event.nodeId);
 		}
+	}
+
+	/**
+	 * Gateway tickets belong to the Convertigo origin serving Studio. A backend
+	 * action can only know its loopback origin, so keep the capability path while
+	 * rebasing it onto the browser-visible origin.
+	 * @param {unknown} value
+	 */
+	function studioPreviewUrl(value) {
+		const candidate = String(value ?? '');
+		if (!candidate || typeof window === 'undefined') {
+			return candidate;
+		}
+		try {
+			const url = new URL(candidate, window.location.href);
+			if (url.pathname.includes('/gw/')) {
+				return new URL(`${url.pathname}${url.search}${url.hash}`, window.location.origin).href;
+			}
+		} catch {
+			// Keep non-URL action values unchanged for backward compatibility.
+		}
+		return candidate;
 	}
 
 	/**
