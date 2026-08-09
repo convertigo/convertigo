@@ -13,12 +13,16 @@
 	let assistantUrl = $derived.by(() => {
 		const query = new URLSearchParams({
 			agentBridge: '1',
+			serverAgent: '1',
 			assistantMode: 'agent',
 			assistantSurface: 'studio',
 			assistantContext: 'studio',
 			userId: 'studio',
 			'dark-theme': String(Light.dark)
 		});
+		if (projectName) {
+			query.set('targetProject', projectName);
+		}
 		return `${assistantAgentUrl}?${query}`;
 	});
 	let assistantContext = $derived({
@@ -56,6 +60,7 @@
 
 	function onAssistantLoad() {
 		iframeReady = true;
+		sendAssistantContext();
 		postAssistantMessage({ type: 'init' });
 	}
 

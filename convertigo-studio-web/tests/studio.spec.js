@@ -158,10 +158,28 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 	const assistantFrame = page.frameLocator('iframe[title="Convertigo Assistant"]');
 	await expect(page.locator('iframe[title="Convertigo Assistant"]')).toHaveAttribute(
 		'src',
-		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?/
+		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?.*serverAgent=1/
 	);
+	await expect
+		.poll(async () => {
+			const src = await page.locator('iframe[title="Convertigo Assistant"]').getAttribute('src');
+			return new URL(src ?? '', page.url()).searchParams.get('targetProject');
+		})
+		.toBe(projectName);
 	await expect(assistantFrame.getByTestId('assistant-context')).toHaveText(
 		`${projectName} · studio`
+	);
+	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
+		'data-initial-project',
+		projectName
+	);
+	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
+		'data-server-agent',
+		'1'
+	);
+	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
+		'data-query-project',
+		projectName
 	);
 	await expect(page.getByRole('tab', { name: 'Frontend', exact: true })).toHaveAttribute(
 		'aria-selected',
@@ -194,11 +212,15 @@ test('studio vibe profile opens the Agent route without requiring a selected pro
 	const assistant = page.locator('iframe[title="Convertigo Assistant"]');
 	await expect(assistant).toHaveAttribute(
 		'src',
-		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?/
+		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?.*serverAgent=1/
 	);
-	await expect(
-		page.frameLocator('iframe[title="Convertigo Assistant"]').getByTestId('assistant-context')
-	).toHaveText('No project · studio');
+	const assistantContext = page
+		.frameLocator('iframe[title="Convertigo Assistant"]')
+		.getByTestId('assistant-context');
+	await expect(assistantContext).toHaveText('No project · studio');
+	await expect(assistantContext).toHaveAttribute('data-initial-project', 'No project');
+	await expect(assistantContext).toHaveAttribute('data-server-agent', '1');
+	await expect(assistantContext).toHaveAttribute('data-query-project', 'No project');
 });
 
 test('studio vibe profile remains usable on touch with the optional tree hidden', async ({
@@ -1081,14 +1103,23 @@ async function mockStudioServices(page, options = {}) {
 						<main data-testid="assistant-context">Waiting for Studio context</main>
 						<script>
 							const output = document.querySelector('[data-testid="assistant-context"]');
+							const queryProject = new URLSearchParams(location.search).get('targetProject') || '';
+							output.dataset.queryProject = queryProject || 'No project';
+							let studioContext = { projectContext: queryProject };
 							window.addEventListener('message', (event) => {
 								const message = event.data || {};
 								if (message.type === 'ConvertigoAssistant.context') {
 									const context = message.payload || {};
+									studioContext = context;
 									output.textContent = (context.projectContext || 'No project') + ' · ' + context.assistantSurface;
 								}
 								if (message.type === 'select') {
+									studioContext = message;
 									output.textContent = message.projectName + ' · ' + message.assistantSurface;
+								}
+								if (message.type === 'init') {
+									output.dataset.initialProject = studioContext.projectContext || 'No project';
+									output.dataset.serverAgent = new URLSearchParams(location.search).get('serverAgent') || '';
 								}
 							});
 							window.parent.postMessage({ type: 'ConvertigoAssistant.context.request' }, location.origin);
