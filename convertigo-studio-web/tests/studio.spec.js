@@ -198,6 +198,7 @@ test('studio hosts the Flow binding web component and applies its value on touch
 	page
 }) => {
 	const propertyUpdates = [];
+	await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
 	await page.setViewportSize({ width: 390, height: 844 });
 	await mockStudioServices(page, { propertyUpdates, flowPicker: true });
 	await page.goto('/studio/');
@@ -210,6 +211,12 @@ test('studio hosts the Flow binding web component and applies its value on touch
 
 	const picker = page.frameLocator('iframe[title="Flow picker for Text"]');
 	await expect(picker.locator('flow-binding-editor')).toBeVisible();
+	await expect(picker.locator('html')).toHaveAttribute('data-flow-theme', 'dark');
+	const pickerFrame = page.locator('iframe[title="Flow picker for Text"]');
+	const sourceDocument = await pickerFrame.getAttribute('srcdoc');
+	await page.getByLabel('Toggle light mode').click();
+	await expect(picker.locator('html')).toHaveAttribute('data-flow-theme', 'light');
+	expect(await pickerFrame.getAttribute('srcdoc')).toBe(sourceDocument);
 	await picker.getByRole('button', { name: 'Source' }).click();
 	await picker.getByRole('combobox', { name: 'Source' }).selectOption('local.points');
 	await picker.getByRole('button', { name: 'Apply' }).click();
@@ -1078,6 +1085,10 @@ function flowPickerResponse() {
 	const initial = { mode: 'literal', value: 'Fresh Flow chart benchmark' };
 	return {
 		html: `<!doctype html><html><body><div id="app"></div><script>
+		window.flowSetTheme = function (theme) {
+			document.documentElement.dataset.flowTheme = theme;
+			document.documentElement.style.colorScheme = theme;
+		};
 		customElements.define('flow-binding-editor', class extends HTMLElement {
 			connectedCallback() {
 				this.attachShadow({ mode: 'open' }).innerHTML = '<button type="button">Literal</button><button type="button">Source</button><label>Source<select aria-label="Source"><option value="local.points">Local points</option></select></label>';
@@ -1087,6 +1098,7 @@ function flowPickerResponse() {
 			get value() { return JSON.stringify({ mode: 'source', source: { category: 'local', name: 'points' }, path: [{ kind: 'property', name: 'value' }] }); }
 		});
 		window.receiveFromJava = function (state) {
+			window.flowSetTheme(state.theme || 'dark');
 			const app = document.getElementById('app');
 			app.innerHTML = '<flow-binding-editor></flow-binding-editor><button type="button" id="apply">Apply</button><output></output>';
 			const editor = app.querySelector('flow-binding-editor'); editor.setState(state);

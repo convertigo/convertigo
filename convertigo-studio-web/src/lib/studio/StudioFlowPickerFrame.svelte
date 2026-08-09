@@ -1,4 +1,5 @@
 <script>
+	import Light from '$lib/common/Light.svelte.js';
 	import { call } from '$lib/utils/service';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
@@ -53,6 +54,19 @@
 		void loadEditor(target, serial);
 	});
 
+	$effect(() => {
+		const theme = Light.mode;
+		const targetFrame = frame;
+		const id = bridgeId;
+		if (!targetFrame?.contentWindow || !id || !payload?.html) {
+			return;
+		}
+		targetFrame.contentWindow.postMessage(
+			{ channel: 'convertigo-flow-picker', bridgeId: id, type: 'theme', theme },
+			'*'
+		);
+	});
+
 	/**
 	 * @param {PickerTarget} target
 	 * @param {number} serial
@@ -73,7 +87,10 @@
 				throw new Error(response?.message || 'Flow picker is not available');
 			}
 			bridgeId = crypto.randomUUID();
-			payload = response;
+			payload = {
+				...response,
+				state: { ...response.state, theme: Light.mode }
+			};
 		} catch (err) {
 			if (serial === loadSerial) {
 				payload = null;
@@ -198,6 +215,12 @@
 					}
 				}
 			};
+			window.addEventListener('message', function (event) {
+				var message = event.data || {};
+				if (event.source !== window.parent || message.channel !== 'convertigo-flow-picker' || message.bridgeId !== data.bridgeId || message.type !== 'theme') return;
+				data.state.theme = message.theme;
+				if (typeof window.flowSetTheme === 'function') window.flowSetTheme(message.theme);
+			});
 			if (typeof window.receiveFromJava === 'function') window.receiveFromJava(data.state);
 		}());<\/script>`;
 		return editorPayload.html.includes('</body>')
@@ -253,7 +276,7 @@
 		height: 100%;
 		min-height: 18rem;
 		border: 0;
-		background: #1f2327;
+		background: light-dark(var(--color-surface-50), var(--color-surface-950));
 	}
 
 	.studio-flow-picker__status {
