@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { subscribeAdminEvents } from '$lib/admin/adminEvents';
 	import Projects from '$lib/common/Projects.svelte.js';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
@@ -178,6 +179,9 @@
 	let executionFallbackTarget = $state(null);
 	let collapsedPanels = $state({ ...DEFAULT_COLLAPSED_PANELS });
 	let layoutSizes = $state({ ...DEFAULT_LAYOUT_SIZES });
+	let projectChangeRefreshTimer;
+	let projectChangeRefreshPending = false;
+	let projectChangeRefreshRunning = false;
 
 	let selectedContext = $derived(parseSelection(selectedId));
 	let selectedProjectName = $derived(selectedContext.projectName);
@@ -282,6 +286,14 @@
 		restoreStudioLayoutPreferences();
 		urlSyncReady = true;
 		clearStudioRouteHash();
+		const unsubscribeAdminEvents = subscribeAdminEvents(
+			['projects.changed', 'admin.resync.required'],
+			handleAdminEvent
+		);
+		return () => {
+			unsubscribeAdminEvents();
+			clearTimeout(projectChangeRefreshTimer);
+		};
 	});
 
 	$effect(() => {
@@ -365,6 +377,44 @@
 	 */
 	function selectionUrl(id) {
 		return studioSelectionUrl(STUDIO_BASE, id, page.url);
+	}
+
+	/**
+	 * @param {ReturnType<typeof import('$lib/admin/adminEvents').parseAdminEvent>} event
+	 */
+	function handleAdminEvent(event) {
+		if (!event || !['projects.changed', 'admin.resync.required'].includes(event.topic)) {
+			return;
+		}
+		const eventProject = String(event.payload.project ?? '');
+		if (eventProject && eventProject !== selectedProjectName) {
+			return;
+		}
+		projectChangeRefreshPending = true;
+		clearTimeout(projectChangeRefreshTimer);
+		projectChangeRefreshTimer = setTimeout(flushProjectChangeRefresh, 120);
+	}
+
+	async function flushProjectChangeRefresh() {
+		if (projectChangeRefreshRunning || !projectChangeRefreshPending) {
+			return;
+		}
+		projectChangeRefreshPending = false;
+		projectChangeRefreshRunning = true;
+		try {
+			const projectName = selectedProjectName;
+			if (!projectName) {
+				return;
+			}
+			await refreshStudioProject(projectName);
+			propertiesRefreshSerial += 1;
+			refreshStudioViews();
+		} finally {
+			projectChangeRefreshRunning = false;
+			if (projectChangeRefreshPending) {
+				projectChangeRefreshTimer = setTimeout(flushProjectChangeRefresh, 120);
+			}
+		}
 	}
 
 	/**

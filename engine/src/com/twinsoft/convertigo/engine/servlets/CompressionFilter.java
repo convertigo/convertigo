@@ -146,7 +146,7 @@ public class CompressionFilter implements Filter {
 
 	Pattern pKO = Pattern.compile(
 		"^/qrcode|^/webclipper|^/rproxy/|\\.proxy$|\\.siteclipper/|^/fullsync/.+?/.+?/.+?|"
-		+ "^/(?:admin/services|services)/(?:.*GetIcon|logs.Download|mobiles.GetPackage|"
+		+ "^/(?:admin/services|services)/(?:.*GetIcon|events\\.Subscribe|logs.Download|mobiles.GetPackage|"
 		+ "mobiles.GetSourcePackage|projects.Export|store.DownloadStoreFolder)");
 	Pattern pOK = Pattern.compile(
 		"^/fullsync/|^/api/|^/openapi/|^/(?:admin/services|services)/|\\.(?:m?js|xml|pxml|cxml|css|html?|json|jsonp|txt|csv|map|svg|webmanifest)$|/$",

@@ -53,6 +53,7 @@ import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.admin.events.AdminEventBus;
 import com.twinsoft.convertigo.engine.events.StudioEvent;
 import com.twinsoft.convertigo.engine.events.StudioEventListener;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
@@ -146,10 +147,15 @@ public class FlowEngineBridge {
 
 	public static void notifySourceMutation(String projectDir, String sourcePath) {
 		invalidateDataCaches();
+		var projectName = projectNameForDir(projectDir);
+		try {
+			AdminEventBus.publishProjectChanged(projectName, projectName, "flow", sourcePath);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(FlowEngineBridge) Unable to publish a Flow source mutation.", e);
+		}
 		if (!Engine.isStudioMode() || Engine.theApp == null || Engine.theApp.eventManager == null) {
 			return;
 		}
-		var projectName = projectNameForDir(projectDir);
 		try {
 			var project = projectName.isBlank() ? null
 					: Engine.theApp.databaseObjectsManager.getLoadedProjectByName(projectName);

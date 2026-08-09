@@ -1,0 +1,64 @@
+/*
+ * Copyright (c) 2001-2026 Convertigo SA.
+ *
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
+ */
+
+package com.twinsoft.convertigo.engine.admin.events;
+
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
+/** Immutable envelope carried by the Admin event stream. */
+public record AdminEvent(String id, String topic, long timestamp, String instance, JSONObject payload) {
+	public AdminEvent {
+		id = id == null ? "" : id;
+		topic = topic == null ? "" : topic;
+		instance = instance == null ? "" : instance;
+		payload = copy(payload);
+	}
+
+	public JSONObject toJson() {
+		try {
+			return new JSONObject()
+					.put("id", id)
+					.put("topic", topic)
+					.put("timestamp", timestamp)
+					.put("instance", instance)
+					.put("payload", copy(payload));
+		} catch (JSONException e) {
+			throw new IllegalStateException("Unable to serialize an Admin event", e);
+		}
+	}
+
+	public static AdminEvent fromJson(String json) throws JSONException {
+		var object = new JSONObject(json);
+		return new AdminEvent(
+				object.optString("id", ""),
+				object.optString("topic", ""),
+				object.optLong("timestamp", 0L),
+				object.optString("instance", ""),
+				object.optJSONObject("payload"));
+	}
+
+	private static JSONObject copy(JSONObject value) {
+		try {
+			return value == null ? new JSONObject() : new JSONObject(value.toString());
+		} catch (JSONException e) {
+			throw new IllegalArgumentException("Invalid Admin event payload", e);
+		}
+	}
+}

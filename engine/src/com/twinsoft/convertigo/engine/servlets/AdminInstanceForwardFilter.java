@@ -290,7 +290,7 @@ public class AdminInstanceForwardFilter implements Filter {
 				var in = status >= 400 ? conn.getErrorStream() : conn.getInputStream();
 				if (in != null) {
 					try (InputStream body = in; OutputStream out = response.getOutputStream()) {
-						copy(body, out);
+						copy(body, out, isStreamingResponse(conn));
 						out.flush();
 					}
 				}
@@ -420,11 +420,23 @@ public class AdminInstanceForwardFilter implements Filter {
 	}
 
 	private static void copy(InputStream in, OutputStream out) throws IOException {
+		copy(in, out, false);
+	}
+
+	private static void copy(InputStream in, OutputStream out, boolean flushChunks) throws IOException {
 		var buffer = new byte[16 * 1024];
 		int r;
 		while ((r = in.read(buffer)) >= 0) {
 			out.write(buffer, 0, r);
+			if (flushChunks) {
+				out.flush();
+			}
 		}
+	}
+
+	private static boolean isStreamingResponse(HttpURLConnection connection) {
+		var contentType = connection.getHeaderField("Content-Type");
+		return contentType != null && contentType.toLowerCase().startsWith("text/event-stream");
 	}
 
 	private static String queryParam(String query, String key) {

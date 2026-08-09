@@ -88,6 +88,7 @@ import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.admin.events.AdminEventBus;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
@@ -829,6 +830,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 		RestApiManager.getInstance().putUrlMapper(project);
 		Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" saved!");
+		try {
+			AdminEventBus.publishProjectChanged(projectName, projectName, "project", "project.exported");
+		} catch (Exception e) {
+			Engine.logDatabaseObjectManager.warn("Unable to publish the project change for \"" + projectName + "\"", e);
+		}
 	}
 
 	Project deployProject(String projectArchiveFilename, boolean bForce) throws EngineException {
