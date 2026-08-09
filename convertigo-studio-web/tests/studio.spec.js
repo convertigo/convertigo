@@ -141,6 +141,73 @@ test('studio frontend profile exposes a dashboard-like device rail', async ({ pa
 	await expect(page.getByText(/iPhone 17 Pro landscape - 874x402/)).toBeVisible();
 });
 
+test('studio vibe profile gives the Assistant the selected project and keeps the live frontend beside it', async ({
+	page
+}) => {
+	const state = createStudioState();
+	const contextActions = [];
+	await page.setViewportSize({ width: 1440, height: 900 });
+	await mockStudioServices(page, { state, contextActions, assistant: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await selectTreeNode(page, frontendBuilderId);
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+
+	const assistantFrame = page.frameLocator('iframe[title="Convertigo Assistant"]');
+	await expect(page.locator('iframe[title="Convertigo Assistant"]')).toHaveAttribute(
+		'src',
+		/DisplayObjects\/mobile\/\?/
+	);
+	await expect(assistantFrame.getByTestId('assistant-context')).toHaveText(
+		`${projectName} · studio`
+	);
+	await expect(page.getByRole('tab', { name: 'Frontend', exact: true })).toHaveAttribute(
+		'aria-selected',
+		'true'
+	);
+
+	const actions = page.getByRole('button', { name: 'Actions for Svelte frontend' });
+	await actions.click();
+	await page.getByRole('menuitem', { name: /Start dev mode/ }).click();
+	await expect.poll(() => contextActions).toEqual(['frontbuilder.svelte.dev.start']);
+	await expect(page.locator('iframe[title="StudioProject frontend"]')).toHaveAttribute(
+		'src',
+		/\/convertigo\/gw\/studio-test-ticket\/$/
+	);
+	await expect(page.getByText('Dev', { exact: true })).toBeVisible();
+
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('tab', { name: 'Execution', exact: true }).click();
+	await expect(page.getByText('Variables (1)')).toBeVisible();
+});
+
+test('studio vibe profile remains usable on touch with the optional tree hidden', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await mockStudioServices(page, { assistant: true });
+	await page.goto('/studio/');
+	await selectTreeNode(page, projectName);
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+
+	await page.getByRole('button', { name: 'Hide projects' }).click();
+	await expect(page.getByRole('tree', { name: 'Projects' })).toBeHidden();
+	const assistant = page.locator('iframe[title="Convertigo Assistant"]');
+	const frontend = page.locator('iframe[title="StudioProject frontend"]');
+	await expect(assistant).toBeVisible();
+	await expect(frontend).toBeVisible();
+	await expect
+		.poll(async () => {
+			const assistantBox = await assistant.boundingBox();
+			const frontendBox = await frontend.boundingBox();
+			return Boolean(assistantBox && frontendBox && assistantBox.y < frontendBox.y);
+		})
+		.toBe(true);
+});
+
 test('studio exposes Flow actions through a touch menu and switches the iframe to dev mode', async ({
 	page
 }) => {
@@ -945,7 +1012,8 @@ function responseEditor(page) {
  *  contextActions?: string[],
  *  propertyUpdates?: URLSearchParams[],
  *  flowPickerRequests?: URLSearchParams[],
- *  flowPicker?: boolean
+ *  flowPicker?: boolean,
+ *  assistant?: boolean
  * }} [options]
  */
 async function mockStudioServices(page, options = {}) {
@@ -985,6 +1053,29 @@ async function mockStudioServices(page, options = {}) {
 		});
 	});
 
+	if (options.assistant) {
+		await page.route('**/projects/ConvertigoAssistant/DisplayObjects/mobile/**', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'text/html',
+				body: `<!doctype html>
+					<html><body>
+						<main data-testid="assistant-context">Waiting for Studio context</main>
+						<script>
+							const output = document.querySelector('[data-testid="assistant-context"]');
+							window.addEventListener('message', (event) => {
+								const message = event.data || {};
+								if (message.type === 'select') {
+									output.textContent = message.projectName + ' · ' + message.assistantSurface;
+								}
+							});
+							window.parent.postMessage({ type: 'ConvertigoAssistant.context.request' }, location.origin);
+						</script>
+					</body></html>`
+			});
+		});
+	}
+
 	await page.route('**/convertigo/gw/studio-test-ticket/**', async (route) => {
 		await route.fulfill({
 			status: 200,
@@ -1012,7 +1103,8 @@ function serviceName(url) {
  *  contextActions?: string[],
  *  propertyUpdates?: URLSearchParams[],
  *  flowPickerRequests?: URLSearchParams[],
- *  flowPicker?: boolean
+ *  flowPicker?: boolean,
+ *  assistant?: boolean
  * }} [options]
  */
 function responseForService(service, params, options = {}) {

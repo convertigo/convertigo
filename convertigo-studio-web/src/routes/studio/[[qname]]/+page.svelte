@@ -9,6 +9,7 @@
 	import { findPrimaryEditorProperty, isCodeEditorProperty } from '$lib/studio/propertyEditors';
 	import { decodeStudioSelectionId, studioSelectionUrl } from '$lib/studio/routeSelection';
 	import { applySourcePickerDrop, sourceDefinitionFromPayload } from '$lib/studio/sourcePickerDnd';
+	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
 	import StudioDevicePanel from '$lib/studio/StudioDevicePanel.svelte';
 	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
@@ -32,6 +33,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 
 	/** @typedef {'execution' | 'code' | 'flow' | 'doc'} WorkPanel */
+	/** @typedef {'frontend' | 'execution'} VibeResult */
 	/**
 	 * @typedef {Object} PaletteItem
 	 * @property {string=} id
@@ -76,6 +78,12 @@
 		{ id: 'flow', label: 'Flow', icon: 'mdi:source-branch' },
 		{ id: 'doc', label: 'Doc', icon: 'mdi:book-open-variant' }
 	];
+	/** @type {{ id: VibeResult, label: string, icon: string }[]} */
+	const VIBE_RESULT_VIEWS = [
+		{ id: 'frontend', label: 'Frontend', icon: 'mdi:smartphone-link' },
+		{ id: 'execution', label: 'Execution', icon: 'mdi:play-circle-outline' }
+	];
+	const VIBE_RESULT_IDS = VIBE_RESULT_VIEWS.map(({ id }) => id);
 
 	/**
 	 * @typedef {Object} EditorTarget
@@ -113,6 +121,12 @@
 			label: 'Frontend',
 			icon: 'mdi:smartphone-link',
 			description: 'Tree, preview, properties'
+		},
+		{
+			id: 'vibe',
+			label: 'Vibe',
+			icon: 'mdi:robot-outline',
+			description: 'Assistant and live result'
 		}
 	];
 	const PROFILE_IDS = profiles.map(({ id }) => id);
@@ -122,6 +136,8 @@
 	let activeSidePanel = $state('properties');
 	/** @type {WorkPanel} */
 	let activeWorkPanel = $state('execution');
+	/** @type {VibeResult} */
+	let activeVibeResult = $state('frontend');
 	let frontendDeviceId = $state('none');
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
@@ -184,6 +200,7 @@
 		Boolean(selectedProjectName && selectedFlowSequenceName && sequences.length)
 	);
 	let showStudioWork = $derived(profile === 'backend');
+	let showVibe = $derived(profile === 'vibe');
 	let frontendPreviewUrl = $derived(
 		frontendPreview.projectName === selectedProjectName ? frontendPreview.url : ''
 	);
@@ -543,6 +560,7 @@
 			profile,
 			activeSidePanel,
 			activeWorkPanel,
+			activeVibeResult,
 			logsPanelOpen,
 			collapsedPanels: {
 				tree: collapsedPanels.tree,
@@ -576,6 +594,9 @@
 		activeSidePanel = storedChoice(preferences.activeSidePanel, SIDE_PANEL_IDS, activeSidePanel);
 		activeWorkPanel = /** @type {WorkPanel} */ (
 			storedChoice(preferences.activeWorkPanel, WORK_PANEL_IDS, activeWorkPanel)
+		);
+		activeVibeResult = /** @type {VibeResult} */ (
+			storedChoice(preferences.activeVibeResult, VIBE_RESULT_IDS, activeVibeResult)
 		);
 		logsPanelOpen = Boolean(preferences.logsPanelOpen);
 		collapsedPanels = {
@@ -618,6 +639,12 @@
 	}
 
 	function normalizeLayoutPanels() {
+		if (profile === 'vibe') {
+			activeVibeResult = /** @type {VibeResult} */ (
+				storedChoice(activeVibeResult, VIBE_RESULT_IDS, 'frontend')
+			);
+			return;
+		}
 		if (profile === 'frontend') {
 			if (!['devices', 'properties'].includes(activeSidePanel)) {
 				activeSidePanel = 'devices';
@@ -1216,6 +1243,10 @@
 		if (previousProfile !== profile && profile === 'frontend') {
 			activeSidePanel = 'devices';
 		}
+		if (previousProfile !== profile && profile === 'vibe') {
+			collapsedPanels.tools = false;
+			layoutSizes.toolsWidth = Math.max(layoutSizes.toolsWidth, 440);
+		}
 		normalizeLayoutPanels();
 		persistStudioLayoutPreferences();
 	}
@@ -1263,6 +1294,16 @@
 		activeSidePanel = panel;
 		persistStudioLayoutPreferences();
 	}
+
+	/**
+	 * @param {string} result
+	 */
+	function setVibeResult(result) {
+		activeVibeResult = /** @type {VibeResult} */ (
+			storedChoice(result, VIBE_RESULT_IDS, activeVibeResult)
+		);
+		persistStudioLayoutPreferences();
+	}
 </script>
 
 <svelte:head>
@@ -1308,6 +1349,7 @@
 		{profile}
 		{profiles}
 		{collapsedPanels}
+		toolsLabel={showVibe ? 'assistant' : 'palette and properties'}
 		{breadcrumbs}
 		{showFlowOverview}
 		onSelectBreadcrumb={selectObject}
@@ -1343,6 +1385,17 @@
 		requestable={executionTarget?.requestable ?? null}
 		requestableKind={executionTarget?.kind ?? ''}
 		connectorName={executionTarget?.connectorName ?? ''}
+	/>
+{/snippet}
+
+{#snippet frontendPane()}
+	<StudioPreviewPanel
+		projectName={selectedProjectName}
+		previewUrlOverride={frontendPreviewUrl}
+		previewMode={frontendPreviewMode}
+		bind:selectedDeviceId={frontendDeviceId}
+		bind:landscape={frontendLandscape}
+		showDeviceSelector={false}
 	/>
 {/snippet}
 
@@ -1403,22 +1456,28 @@
 				doc: docPane
 			}}
 		/>
-	{:else}
+	{:else if profile === 'frontend'}
 		<StudioPanel
 			title="Frontend"
 			icon="mdi:smartphone-link"
 			class="studio__primary-panel"
 			contentClass="studio__panel-fill"
 		>
-			<StudioPreviewPanel
-				projectName={selectedProjectName}
-				previewUrlOverride={frontendPreviewUrl}
-				previewMode={frontendPreviewMode}
-				bind:selectedDeviceId={frontendDeviceId}
-				bind:landscape={frontendLandscape}
-				showDeviceSelector={false}
-			/>
+			{@render frontendPane()}
 		</StudioPanel>
+	{:else}
+		<StudioTabbedFrame
+			items={VIBE_RESULT_VIEWS}
+			active={activeVibeResult}
+			ariaLabel="Vibe result views"
+			class="studio-vibe-result"
+			fillIds={['frontend']}
+			onSelect={setVibeResult}
+			panes={{
+				frontend: frontendPane,
+				execution: executionPane
+			}}
+		/>
 	{/if}
 {/snippet}
 
@@ -1457,20 +1516,31 @@
 {/snippet}
 
 {#snippet tools()}
-	<StudioTabbedFrame
-		items={sideViews}
-		active={effectiveSidePanel}
-		ariaLabel="Studio side views"
-		panelLabel={activeSideView?.label ?? 'Side view'}
-		fillIds={SIDE_PANEL_IDS}
-		onSelect={(id) => setSidePanel(id)}
-		panes={{
-			devices: devicesPane,
-			palette: palettePane,
-			picker: pickerPane,
-			properties: propertiesPane
-		}}
-	/>
+	{#if showVibe}
+		<StudioPanel
+			title="Assistant"
+			icon="mdi:robot-outline"
+			class="studio__assistant-panel"
+			contentClass="studio__panel-fill"
+		>
+			<StudioAssistantPanel projectName={selectedProjectName} />
+		</StudioPanel>
+	{:else}
+		<StudioTabbedFrame
+			items={sideViews}
+			active={effectiveSidePanel}
+			ariaLabel="Studio side views"
+			panelLabel={activeSideView?.label ?? 'Side view'}
+			fillIds={SIDE_PANEL_IDS}
+			onSelect={(id) => setSidePanel(id)}
+			panes={{
+				devices: devicesPane,
+				palette: palettePane,
+				picker: pickerPane,
+				properties: propertiesPane
+			}}
+		/>
+	{/if}
 {/snippet}
 
 {#snippet logs()}
@@ -1553,6 +1623,12 @@
 
 <style>
 	:global(.studio__primary-panel) {
+		height: 100%;
+		min-width: 0;
+		min-height: 0;
+	}
+
+	:global(.studio__assistant-panel) {
 		height: 100%;
 		min-width: 0;
 		min-height: 0;

@@ -8,6 +8,7 @@
 	 * profile: string;
 	 * profiles: { id: string, label: string, icon: string, description?: string }[];
 	 * collapsedPanels: { tree?: boolean, tools?: boolean };
+	 * toolsLabel?: string;
 	 * breadcrumbs: { id: string, label: string, title?: string }[];
 	 * showFlowOverview?: boolean;
 	 * onSelectBreadcrumb?: (id: string) => void;
@@ -19,6 +20,7 @@
 		profile,
 		profiles = [],
 		collapsedPanels = {},
+		toolsLabel = 'palette and properties',
 		breadcrumbs = [],
 		showFlowOverview = false,
 		onSelectBreadcrumb,
@@ -47,12 +49,8 @@
 			/>
 			<StudioIconButton
 				icon="mdi:tune-vertical-variant"
-				title={collapsedPanels.tools
-					? 'Show palette and properties'
-					: 'Hide palette and properties'}
-				ariaLabel={collapsedPanels.tools
-					? 'Show palette and properties'
-					: 'Hide palette and properties'}
+				title={`${collapsedPanels.tools ? 'Show' : 'Hide'} ${toolsLabel}`}
+				ariaLabel={`${collapsedPanels.tools ? 'Show' : 'Hide'} ${toolsLabel}`}
 				active={!collapsedPanels.tools}
 				size="md"
 				onclick={() => onTogglePanel?.('tools')}
@@ -91,6 +89,7 @@
 					type="button"
 					role="radio"
 					aria-checked={profile === item.id}
+					aria-label={item.label}
 					class={[
 						'studio-topbar__profile layout-x-low',
 						profile === item.id && 'studio-topbar__profile--active'

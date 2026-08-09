@@ -133,7 +133,8 @@
 	}
 
 	.studio-shell--backend .studio-shell__workspace,
-	.studio-shell--frontend .studio-shell__workspace {
+	.studio-shell--frontend .studio-shell__workspace,
+	.studio-shell--vibe .studio-shell__workspace {
 		grid-template-columns:
 			var(--studio-tree-track) var(--studio-tree-resizer-track) var(--studio-tools-track)
 			var(--studio-tools-resizer-track)
@@ -279,7 +280,8 @@
 		}
 
 		.studio-shell--backend .studio-shell__workspace,
-		.studio-shell--frontend .studio-shell__workspace {
+		.studio-shell--frontend .studio-shell__workspace,
+		.studio-shell--vibe .studio-shell__workspace {
 			grid-template-columns: minmax(0, 1fr) !important;
 			grid-template-areas:
 				'tree'
@@ -321,7 +323,8 @@
 		}
 
 		.studio-shell--backend.studio-shell--tree-hidden .studio-shell__workspace,
-		.studio-shell--frontend.studio-shell--tree-hidden .studio-shell__workspace {
+		.studio-shell--frontend.studio-shell--tree-hidden .studio-shell__workspace,
+		.studio-shell--vibe.studio-shell--tree-hidden .studio-shell__workspace {
 			grid-template-areas:
 				'tools'
 				'main';
@@ -329,7 +332,8 @@
 		}
 
 		.studio-shell--backend.studio-shell--tools-hidden .studio-shell__workspace,
-		.studio-shell--frontend.studio-shell--tools-hidden .studio-shell__workspace {
+		.studio-shell--frontend.studio-shell--tools-hidden .studio-shell__workspace,
+		.studio-shell--vibe.studio-shell--tools-hidden .studio-shell__workspace {
 			grid-template-areas:
 				'tree'
 				'main';
@@ -339,6 +343,8 @@
 		.studio-shell--backend.studio-shell--tree-hidden.studio-shell--tools-hidden
 			.studio-shell__workspace,
 		.studio-shell--frontend.studio-shell--tree-hidden.studio-shell--tools-hidden
+			.studio-shell__workspace,
+		.studio-shell--vibe.studio-shell--tree-hidden.studio-shell--tools-hidden
 			.studio-shell__workspace {
 			grid-template-areas: 'main';
 			grid-template-rows: auto;
