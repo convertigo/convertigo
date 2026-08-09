@@ -158,7 +158,7 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 	const assistantFrame = page.frameLocator('iframe[title="Convertigo Assistant"]');
 	await expect(page.locator('iframe[title="Convertigo Assistant"]')).toHaveAttribute(
 		'src',
-		/DisplayObjects\/mobile\/\?/
+		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?/
 	);
 	await expect(assistantFrame.getByTestId('assistant-context')).toHaveText(
 		`${projectName} · studio`
@@ -182,6 +182,23 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 	await selectTreeNode(page, sequenceId);
 	await page.getByRole('tab', { name: 'Execution', exact: true }).click();
 	await expect(page.getByText('Variables (1)')).toBeVisible();
+});
+
+test('studio vibe profile opens the Agent route without requiring a selected project', async ({
+	page
+}) => {
+	await mockStudioServices(page, { assistant: true, noProjects: true });
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+
+	const assistant = page.locator('iframe[title="Convertigo Assistant"]');
+	await expect(assistant).toHaveAttribute(
+		'src',
+		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?/
+	);
+	await expect(
+		page.frameLocator('iframe[title="Convertigo Assistant"]').getByTestId('assistant-context')
+	).toHaveText('No project · studio');
 });
 
 test('studio vibe profile remains usable on touch with the optional tree hidden', async ({
@@ -1013,7 +1030,8 @@ function responseEditor(page) {
  *  propertyUpdates?: URLSearchParams[],
  *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean,
- *  assistant?: boolean
+ *  assistant?: boolean,
+ *  noProjects?: boolean
  * }} [options]
  */
 async function mockStudioServices(page, options = {}) {
@@ -1065,6 +1083,10 @@ async function mockStudioServices(page, options = {}) {
 							const output = document.querySelector('[data-testid="assistant-context"]');
 							window.addEventListener('message', (event) => {
 								const message = event.data || {};
+								if (message.type === 'ConvertigoAssistant.context') {
+									const context = message.payload || {};
+									output.textContent = (context.projectContext || 'No project') + ' · ' + context.assistantSurface;
+								}
 								if (message.type === 'select') {
 									output.textContent = message.projectName + ' · ' + message.assistantSurface;
 								}
@@ -1104,7 +1126,8 @@ function serviceName(url) {
  *  propertyUpdates?: URLSearchParams[],
  *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean,
- *  assistant?: boolean
+ *  assistant?: boolean,
+ *  noProjects?: boolean
  * }} [options]
  */
 function responseForService(service, params, options = {}) {
@@ -1124,14 +1147,14 @@ function responseForService(service, params, options = {}) {
 			return {
 				admin: {
 					projects: {
-						project: [{ name: projectName, comment: '', ref: [] }]
+						project: options.noProjects ? [] : [{ name: projectName, comment: '', ref: [] }]
 					}
 				}
 			};
 		case 'projects.GetTestPlatform':
 			return testPlatformResponse(state);
 		case 'studio.treeview.Get':
-			return treeviewResponse(params, state);
+			return options.noProjects ? { children: [] } : treeviewResponse(params, state);
 		case 'studio.treeview.ContextMenu':
 			return contextMenuResponse(params, state);
 		case 'studio.treeview.ContextAction':

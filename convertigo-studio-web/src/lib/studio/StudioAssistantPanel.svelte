@@ -7,6 +7,7 @@
 	let { projectName = '' } = $props();
 
 	const assistantBaseUrl = getFrontendUrl('ConvertigoAssistant').replace(/index\.html$/, '');
+	const assistantAgentUrl = `${assistantBaseUrl}path-to-xfirst/:threadid`;
 	let iframe = $state();
 	let iframeReady = $state(false);
 	let assistantUrl = $derived.by(() => {
@@ -18,7 +19,7 @@
 			userId: 'studio',
 			'dark-theme': String(Light.dark)
 		});
-		return `${assistantBaseUrl}?${query}`;
+		return `${assistantAgentUrl}?${query}`;
 	});
 	let assistantContext = $derived({
 		assistantSurface: 'studio',
