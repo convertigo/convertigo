@@ -1202,6 +1202,24 @@ async function mockStudioServices(page, options = {}) {
 	await page.route('**/admin/services/**', async (route) => {
 		const request = route.request();
 		const service = serviceName(request.url());
+		if (service === 'events.Subscribe') {
+			await route.fulfill({
+				status: 200,
+				headers: {
+					'cache-control': 'no-cache',
+					'content-type': 'text/event-stream;charset=UTF-8',
+					'x-xsrf-token': 'studio-test-token'
+				},
+				body: `retry: 60000\n\nid: studio-test-ready\ndata: ${JSON.stringify({
+					id: 'studio-test-ready',
+					topic: 'admin.ready',
+					timestamp: 1,
+					instance: 'studio-test',
+					payload: { topics: ['projects.changed', 'admin.resync.required'] }
+				})}\n\n`
+			});
+			return;
+		}
 		const params = new URLSearchParams(request.postData() ?? '');
 		if (service === 'studio.palette.Get' && options.paletteProbe) {
 			options.paletteProbe.requests += 1;
