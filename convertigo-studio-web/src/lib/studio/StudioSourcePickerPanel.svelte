@@ -10,6 +10,7 @@
 		sourceDefinitionFromPayload
 	} from './sourcePickerDnd';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+	import StudioFlowPickerFrame from './StudioFlowPickerFrame.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 
 	/**
@@ -84,8 +85,8 @@
 	 *  available?: boolean,
 	 *  message?: string,
 	 *  filters?: { value: string, label: string, supported?: boolean }[],
-	 *  sources?: NgxNode,
-	 *  modelTree?: NgxNode,
+	 *  sources?: NgxNode | null,
+	 *  modelTree?: NgxNode | null,
 	 *  sourceData?: any,
 	 *  sourceValue?: any
 	 * }} NgxSourceModel
@@ -136,6 +137,7 @@
 	let ngxCollapsedNodes = $state.raw(new SvelteSet());
 
 	let targetSource = $derived(parseSourceDefinition(pickerTarget?.value));
+	let flowPicker = $derived(isFlowPickerTarget(pickerTarget));
 	let ngxPicker = $derived(isNgxPickerTarget(pickerTarget));
 	let ngxDirectFilter = $derived(ngxFilter === 'Icon' || ngxFilter === 'Asset');
 	let canApply = $derived(
@@ -160,7 +162,7 @@
 	let ngxModelCount = $derived(countNgxNodes(ngxModel?.modelTree));
 
 	$effect(() => {
-		if (!active || ngxPicker || !linked) {
+		if (!active || flowPicker || ngxPicker || !linked) {
 			return;
 		}
 		const request = sourceRequest();
@@ -197,6 +199,14 @@
 			(target?.editorClass === 'NgxSmartSourcePropertyDescriptor' ||
 				(target?.kind === 'ion' && target?.mode === 'source'))
 		);
+	}
+
+	/**
+	 * @param {PickerTarget | null} target
+	 * @returns {boolean}
+	 */
+	function isFlowPickerTarget(target) {
+		return Boolean(target?.propertyName && String(target?.editorClass ?? '').startsWith('flow-'));
 	}
 
 	/**
@@ -298,7 +308,7 @@
 	 */
 	function applyNgxModel(response, options = {}) {
 		const preserveSources = options.preserveSources === true;
-		ngxModel = {
+		const nextModel = {
 			...response,
 			available: Boolean(response?.available),
 			filters: response?.filters ?? [],
@@ -307,13 +317,14 @@
 				: (response?.sources ?? null),
 			modelTree: response?.modelTree ?? null
 		};
-		ngxFilter = ngxModel.filter || 'Sequence';
-		ngxSourceData = ngxModel.sourceData ?? null;
-		ngxPath = ngxModel.path ?? '';
-		ngxPrefix = ngxModel.prefix ?? '';
-		ngxSuffix = ngxModel.suffix ?? '';
-		ngxCustom = ngxModel.custom ?? '';
-		ngxUseCustom = Boolean(ngxModel.useCustom);
+		ngxModel = nextModel;
+		ngxFilter = nextModel.filter || 'Sequence';
+		ngxSourceData = nextModel.sourceData ?? null;
+		ngxPath = nextModel.path ?? '';
+		ngxPrefix = nextModel.prefix ?? '';
+		ngxSuffix = nextModel.suffix ?? '';
+		ngxCustom = nextModel.custom ?? '';
+		ngxUseCustom = Boolean(nextModel.useCustom);
 		if (!preserveSources) {
 			ngxCollapsedNodes = new SvelteSet();
 		}
@@ -979,7 +990,11 @@
 		class="studio-source-picker__toolbar layout-x-low studio-panel-toolbar"
 		class:studio-source-picker__toolbar--ngx={ngxPicker}
 	>
-		{#if ngxPicker}
+		{#if flowPicker}
+			<span class="studio-source-picker__flow-title studio-ellipsis">
+				{pickerTarget?.displayName || pickerTarget?.propertyName || 'Flow picker'}
+			</span>
+		{:else if ngxPicker}
 			<select
 				class="studio-source-picker__filter input"
 				value={ngxFilter}
@@ -1047,7 +1062,9 @@
 		class="studio-source-picker__body layout-y-stretch-low"
 		class:studio-source-picker__body--ngx={ngxPicker}
 	>
-		{#if ngxPicker}
+		{#if flowPicker}
+			<StudioFlowPickerFrame {active} {pickerTarget} {onApply} />
+		{:else if ngxPicker}
 			{#if !pickerTarget?.id}
 				<StudioEmptyState message="No property selected" />
 			{:else if ngxLoading}
@@ -1258,6 +1275,13 @@
 
 	.studio-source-picker__toolbar--ngx {
 		padding-block: 0.34rem;
+	}
+
+	.studio-source-picker__flow-title {
+		padding: 0.2rem 0.35rem;
+		color: var(--color-surface-200-800);
+		font-size: 0.72rem;
+		font-weight: 700;
 	}
 
 	.studio-source-picker__apply {

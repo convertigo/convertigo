@@ -276,7 +276,11 @@
 		const sourcePayload = getSourcePickerDragPayload(event, $draggedData);
 		if (sourcePayload) {
 			const hostNode = findFlowNodeAtEvent(event);
-			const targetId = hostNode ? flowObjectId(hostNode) : '';
+			if (!hostNode) {
+				resetFlowDrop();
+				return;
+			}
+			const targetId = flowObjectId(hostNode);
 			if (!targetId) {
 				resetFlowDrop();
 				return;

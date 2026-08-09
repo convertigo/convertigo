@@ -194,6 +194,46 @@ test('studio exposes Flow actions through a touch menu and switches the iframe t
 	await expect(page.getByRole('menuitem', { name: /Stop dev mode/ })).toBeDisabled();
 });
 
+test('studio hosts the Flow binding web component and applies its value on touch', async ({
+	page
+}) => {
+	const propertyUpdates = [];
+	await page.setViewportSize({ width: 390, height: 844 });
+	await mockStudioServices(page, { propertyUpdates, flowPicker: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await selectTreeNode(page, frontendBuilderId);
+	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
+	await page.getByRole('button', { name: 'Edit binding' }).click();
+
+	const picker = page.frameLocator('iframe[title="Flow picker for Text"]');
+	await expect(picker.locator('flow-binding-editor')).toBeVisible();
+	await picker.getByRole('button', { name: 'Source' }).click();
+	await picker.getByRole('combobox', { name: 'Source' }).selectOption('local.points');
+	await picker.getByRole('button', { name: 'Apply' }).click();
+
+	await expect.poll(() => propertyUpdates.length).toBe(1);
+	const update = propertyUpdates[0];
+	expect(update.get('id')).toBe(frontendBuilderId);
+	expect(update.get('save')).toBe('true');
+	const props = JSON.parse(update.get('props') ?? '[]');
+	expect(props).toEqual([
+		expect.objectContaining({
+			name: 'text',
+			value: JSON.stringify({
+				mode: 'source',
+				source: { category: 'local', name: 'points' },
+				path: [{ kind: 'property', name: 'value' }]
+			})
+		})
+	]);
+	await expect(
+		page.frameLocator('iframe[title="Flow picker for Text"]').locator('flow-binding-editor')
+	).toBeVisible();
+});
+
 test('studio keeps tree, flow and url synchronized after a flow rename mutation', async ({
 	page
 }) => {
@@ -880,7 +920,9 @@ function responseEditor(page) {
  *  roles?: string[],
  *  state?: ReturnType<typeof createStudioState>,
  *  executionRequests?: string[],
- *  contextActions?: string[]
+ *  contextActions?: string[],
+ *  propertyUpdates?: URLSearchParams[],
+ *  flowPicker?: boolean
  * }} [options]
  */
 async function mockStudioServices(page, options = {}) {
@@ -944,7 +986,9 @@ function serviceName(url) {
  *  roles?: string[],
  *  state?: ReturnType<typeof createStudioState>,
  *  executionRequests?: string[],
- *  contextActions?: string[]
+ *  contextActions?: string[],
+ *  propertyUpdates?: URLSearchParams[],
+ *  flowPicker?: boolean
  * }} [options]
  */
 function responseForService(service, params, options = {}) {
@@ -989,6 +1033,9 @@ function responseForService(service, params, options = {}) {
 		case 'studio.palette.Get':
 			return paletteResponse();
 		case 'studio.properties.Get':
+			if (options.flowPicker && params.get('id') === frontendBuilderId) {
+				return flowPropertiesResponse();
+			}
 			return {
 				properties: {
 					comment: {
@@ -1000,9 +1047,72 @@ function responseForService(service, params, options = {}) {
 					}
 				}
 			};
+		case 'studio.flowpicker.Get':
+			return flowPickerResponse();
+		case 'studio.properties.Set':
+			options.propertyUpdates?.push(new URLSearchParams(params));
+			return { done: true, id: params.get('id'), state: 'success' };
 		default:
 			return {};
 	}
+}
+
+function flowPropertiesResponse() {
+	return {
+		id: frontendBuilderId,
+		properties: {
+			text: {
+				name: 'text',
+				displayName: 'Text',
+				category: 'Base properties',
+				editorClass: 'flow-binding-editor',
+				flowKind: 'binding',
+				flowType: 'binding',
+				value: JSON.stringify({ mode: 'literal', value: 'Fresh Flow chart benchmark' })
+			}
+		}
+	};
+}
+
+function flowPickerResponse() {
+	const initial = { mode: 'literal', value: 'Fresh Flow chart benchmark' };
+	return {
+		html: `<!doctype html><html><body><div id="app"></div><script>
+		customElements.define('flow-binding-editor', class extends HTMLElement {
+			connectedCallback() {
+				this.attachShadow({ mode: 'open' }).innerHTML = '<button type="button">Literal</button><button type="button">Source</button><label>Source<select aria-label="Source"><option value="local.points">Local points</option></select></label>';
+				this.shadowRoot.querySelector('button:nth-child(2)').onclick = () => { this.mode = 'source'; };
+			}
+			setState(state) { this.state = state; }
+			get value() { return JSON.stringify({ mode: 'source', source: { category: 'local', name: 'points' }, path: [{ kind: 'property', name: 'value' }] }); }
+		});
+		window.receiveFromJava = function (state) {
+			const app = document.getElementById('app');
+			app.innerHTML = '<flow-binding-editor></flow-binding-editor><button type="button" id="apply">Apply</button><output></output>';
+			const editor = app.querySelector('flow-binding-editor'); editor.setState(state);
+			app.querySelector('#apply').onclick = () => { window.flowEditor.receive(JSON.stringify({ type: 'setProperty', property: 'text', value: editor.value })); app.querySelector('output').textContent = 'Applied text'; };
+		};
+		</script></body></html>`,
+		state: {
+			mode: 'picker',
+			property: 'text',
+			virtualPath: 'frontends.svelte.routes.home.structure.heading',
+			summary: 'Heading',
+			definition: { text: initial },
+			info: {
+				propertyDefinitions: {
+					text: {
+						label: 'Text',
+						kind: 'binding',
+						type: 'binding',
+						bindingSources: [{ category: 'local', id: 'local.points', label: 'Local points' }]
+					}
+				}
+			},
+			applied: { property: 'text', value: JSON.stringify(initial) }
+		},
+		requests: {}
+	};
 }
 
 function createStudioState(overrides = {}) {
