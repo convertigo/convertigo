@@ -82,6 +82,7 @@
 	 * @property {string} id
 	 * @property {string=} propertyName
 	 * @property {string=} displayName
+	 * @property {string=} editorClass
 	 * @property {any=} value
 	 * @property {number=} serial
 	 */
@@ -1047,7 +1048,11 @@
 	 * @param {any[]=} sourceDefinition
 	 */
 	async function refreshAfterPickerApply(id, sourceDefinition) {
-		if (pickerTarget?.id === id && sourceDefinition) {
+		if (
+			pickerTarget?.id === id &&
+			sourceDefinition &&
+			!String(pickerTarget.editorClass ?? '').startsWith('flow-')
+		) {
 			pickerTarget = {
 				...pickerTarget,
 				value: sourceDefinition,

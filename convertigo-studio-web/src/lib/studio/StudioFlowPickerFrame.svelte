@@ -28,6 +28,7 @@
 	let error = $state('');
 	let bridgeId = $state('');
 	let loadSerial = 0;
+	let appliedDefinition = /** @type {Record<string, any>} */ ({});
 
 	$effect(() => {
 		function onMessage(event) {
@@ -87,6 +88,7 @@
 				throw new Error(response?.message || 'Flow picker is not available');
 			}
 			bridgeId = crypto.randomUUID();
+			appliedDefinition = { ...(response.state.definition ?? {}) };
 			payload = {
 				...response,
 				state: { ...response.state, theme: Light.mode }
@@ -136,7 +138,7 @@
 		applying = true;
 		error = '';
 		try {
-			const originalValue = editorValue(payload?.state?.definition?.[property]);
+			const originalValue = editorValue(appliedDefinition[property]);
 			const response = await call('studio.properties.Set', {
 				id: pickerTarget.id,
 				props: JSON.stringify([{ name: property, value, originalValue }]),
@@ -145,14 +147,10 @@
 			if (!response?.done) {
 				throw new Error(response?.message || 'Unable to apply Flow property');
 			}
-			payload = {
-				...payload,
-				state: {
-					...payload.state,
-					applied: { property, value }
-				}
+			appliedDefinition = {
+				...appliedDefinition,
+				[property]: parseEditorValue(value)
 			};
-			payload.state.definition[property] = parseEditorValue(value);
 			await onApply?.(response.id || pickerTarget.id, value);
 		} catch (err) {
 			error = String(err instanceof Error ? err.message : err);
@@ -268,7 +266,7 @@
 		display: grid;
 		height: 100%;
 		min-height: 0;
-		background: var(--color-surface-950-50);
+		background: light-dark(var(--color-surface-50), var(--color-surface-950));
 	}
 
 	.studio-flow-picker__frame {

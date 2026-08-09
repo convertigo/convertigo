@@ -198,9 +198,10 @@ test('studio hosts the Flow binding web component and applies its value on touch
 	page
 }) => {
 	const propertyUpdates = [];
+	const flowPickerRequests = [];
 	await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
 	await page.setViewportSize({ width: 390, height: 844 });
-	await mockStudioServices(page, { propertyUpdates, flowPicker: true });
+	await mockStudioServices(page, { propertyUpdates, flowPickerRequests, flowPicker: true });
 	await page.goto('/studio/');
 
 	await expandTreeNode(page, projectName);
@@ -222,6 +223,10 @@ test('studio hosts the Flow binding web component and applies its value on touch
 	await picker.getByRole('button', { name: 'Apply' }).click();
 
 	await expect.poll(() => propertyUpdates.length).toBe(1);
+	expect(flowPickerRequests).toHaveLength(1);
+	await expect(page.getByText('Loading Flow picker', { exact: true })).toHaveCount(0);
+	expect(await pickerFrame.getAttribute('srcdoc')).toBe(sourceDocument);
+	await expect(picker.locator('html')).toHaveAttribute('data-flow-theme', 'light');
 	const update = propertyUpdates[0];
 	expect(update.get('id')).toBe(frontendBuilderId);
 	expect(update.get('save')).toBe('true');
@@ -229,6 +234,10 @@ test('studio hosts the Flow binding web component and applies its value on touch
 	expect(props).toEqual([
 		expect.objectContaining({
 			name: 'text',
+			originalValue: JSON.stringify({
+				mode: 'literal',
+				value: 'Fresh Flow chart benchmark'
+			}),
 			value: JSON.stringify({
 				mode: 'source',
 				source: { category: 'local', name: 'points' },
@@ -236,6 +245,12 @@ test('studio hosts the Flow binding web component and applies its value on touch
 			})
 		})
 	]);
+	await picker.getByRole('button', { name: 'Apply' }).click();
+	await expect.poll(() => propertyUpdates.length).toBe(2);
+	const secondProps = JSON.parse(propertyUpdates[1].get('props') ?? '[]');
+	expect(secondProps[0]?.originalValue).toBe(props[0].value);
+	expect(flowPickerRequests).toHaveLength(1);
+	expect(await pickerFrame.getAttribute('srcdoc')).toBe(sourceDocument);
 	await expect(
 		page.frameLocator('iframe[title="Flow picker for Text"]').locator('flow-binding-editor')
 	).toBeVisible();
@@ -929,6 +944,7 @@ function responseEditor(page) {
  *  executionRequests?: string[],
  *  contextActions?: string[],
  *  propertyUpdates?: URLSearchParams[],
+ *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean
  * }} [options]
  */
@@ -995,6 +1011,7 @@ function serviceName(url) {
  *  executionRequests?: string[],
  *  contextActions?: string[],
  *  propertyUpdates?: URLSearchParams[],
+ *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean
  * }} [options]
  */
@@ -1055,6 +1072,7 @@ function responseForService(service, params, options = {}) {
 				}
 			};
 		case 'studio.flowpicker.Get':
+			options.flowPickerRequests?.push(new URLSearchParams(params));
 			return flowPickerResponse();
 		case 'studio.properties.Set':
 			options.propertyUpdates?.push(new URLSearchParams(params));
