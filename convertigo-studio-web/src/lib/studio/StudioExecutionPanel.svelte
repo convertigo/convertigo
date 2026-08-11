@@ -144,6 +144,7 @@
 			showComment={true}
 			showTestcaseEdit={true}
 			stickyActions={true}
+			freshContext={true}
 			testcaseValue={`${requestableKey}.testcases`}
 		/>
 	{/if}

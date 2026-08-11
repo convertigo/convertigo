@@ -36,6 +36,7 @@
 	 *  showTestcaseEdit?: boolean,
 	 *  testcaseValue?: string,
 	 *  stickyActions?: boolean,
+	 *  freshContext?: boolean,
 	 *  disabled?: boolean,
 	 *  class?: string
 	 * }}
@@ -52,6 +53,7 @@
 		showTestcaseEdit = true,
 		testcaseValue = 'testcases',
 		stickyActions = false,
+		freshContext = false,
 		disabled = false,
 		class: cls = ''
 	} = $props();
@@ -181,6 +183,10 @@
 					]
 				: [['__sequence', requestable.name ?? '']];
 		entries.push(['__nocache', 'true']);
+		if (freshContext) {
+			entries.push(['__context', 'studio-web-execution-*']);
+			entries.push(['__removeContext', 'true']);
+		}
 		const testcaseName = testcaseNameFromSource(source);
 		if (testcaseName) {
 			entries.push(['__testcase', testcaseName]);
@@ -503,6 +509,10 @@ console.log(await response.text());`;
 			<input type="hidden" name="__sequence" value={requestable.name} />
 		{/if}
 		<input type="hidden" name="__nocache" value="true" />
+		{#if freshContext}
+			<input type="hidden" name="__context" value="studio-web-execution-*" />
+			<input type="hidden" name="__removeContext" value="true" />
+		{/if}
 
 		{#if showIntro}
 			<div class="requestable-execution__intro">
