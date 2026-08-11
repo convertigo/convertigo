@@ -236,7 +236,6 @@ public class Flow extends Sequence {
 
 	@Override
 	public Element toXml(Document document) throws EngineException {
-		writeFlowSourceFile();
 		var element = super.toXml(document);
 		removeSerializedProperty(element, "flowSource");
 		return element;

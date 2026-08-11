@@ -53,6 +53,7 @@ import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
@@ -170,6 +171,7 @@ public class CarUtils {
 	}
 	
 	private static void exportProject(Project project, String fileName, boolean includeTestCases) throws EngineException {
+		persistFlowSources(project);
 		Document document = exportProject(project, includeTestCases);
 		try {
 			exportYAMLProject(project, fileName, document);
@@ -178,6 +180,14 @@ public class CarUtils {
 			Engine.theApp.showErrorMessage("Failed to fully export the project as YAML to '" + fileName + "'.\nExporting in the XML '" + xmlFilename + "' instead.\nXML can be imported after fixing errors below.\n" + e.getMessage());
 			Engine.logEngine.error("(CarUtils) Failed to fully export the project as YAML to '" + fileName + "', exporting in the XML '" + xmlFilename + "' instead. XML can be imported after fixing errors below.", e);
 			exportXMLProject(new File(new File(fileName).getParentFile(), xmlFilename).getAbsolutePath(), document);
+		}
+	}
+
+	private static void persistFlowSources(Project project) throws EngineException {
+		for (var sequence : project.getSequencesList()) {
+			if (sequence instanceof Flow flow) {
+				flow.saveFlowSourceFile();
+			}
 		}
 	}
 	
