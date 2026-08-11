@@ -180,6 +180,7 @@
 						['__transaction', requestable.name ?? '']
 					]
 				: [['__sequence', requestable.name ?? '']];
+		entries.push(['__nocache', 'true']);
 		const testcaseName = testcaseNameFromSource(source);
 		if (testcaseName) {
 			entries.push(['__testcase', testcaseName]);
@@ -501,6 +502,7 @@ console.log(await response.text());`;
 		{:else}
 			<input type="hidden" name="__sequence" value={requestable.name} />
 		{/if}
+		<input type="hidden" name="__nocache" value="true" />
 
 		{#if showIntro}
 			<div class="requestable-execution__intro">

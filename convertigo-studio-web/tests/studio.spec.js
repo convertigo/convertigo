@@ -104,11 +104,13 @@ test('studio applies and executes requestable test cases from the execution pane
 		.click();
 	await expect.poll(() => executionRequests.length).toBe(1);
 	expect(executionRequests[0]).toContain('__sequence=TestSequence');
+	expect(executionRequests[0]).toContain('__nocache=true');
 	expect(executionRequests[0]).toContain('input=from-testcase');
 
 	await page.locator('.requestable-testcases__grid button').filter({ hasText: 'Execute' }).click();
 	await expect.poll(() => executionRequests.length).toBe(2);
 	expect(executionRequests[1]).toContain('__sequence=TestSequence');
+	expect(executionRequests[1]).toContain('__nocache=true');
 	expect(executionRequests[1]).toContain('__testcase=PresetInput');
 	expect(executionRequests[1]).not.toContain('input=');
 });
