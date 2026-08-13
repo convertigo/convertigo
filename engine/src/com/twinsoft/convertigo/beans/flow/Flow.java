@@ -67,6 +67,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -704,7 +705,7 @@ public class Flow extends Sequence {
 		}
 	}
 
-	private static Object toJsonValue(Object value) throws JSONException {
+	static Object toJsonValue(Object value) throws JSONException {
 		if (value == null) {
 			return JSONObject.NULL;
 		}
@@ -725,21 +726,40 @@ public class Flow extends Sequence {
 			}
 			return json;
 		}
+		if (value instanceof Element element) {
+			// Xerces DOM nodes also implement NodeList. Handle the concrete node
+			// before the collection interface or text values are mistaken for
+			// sparse character arrays. docChildNodes removes the transport wrapper
+			// (<item>) and preserves the XML type annotations.
+			if ("variable".equals(element.getTagName()) && !element.hasAttribute("value")) {
+				var children = new JSONArray();
+				for (var child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+					if (child instanceof Element childElement) {
+						children.put(toJsonValue(childElement));
+					}
+				}
+				if (children.length() == 1) {
+					return children.get(0);
+				}
+				return children;
+			}
+			return new JSONTokener(XMLUtils.XmlToJson(element, true, true, JsonRoot.docChildNodes)).nextValue();
+		}
+		if (value instanceof Node node) {
+			return node.getTextContent();
+		}
 		if (value instanceof NodeList nodes) {
 			if (nodes.getLength() == 1) {
 				return toJsonValue(nodes.item(0));
 			}
 			var array = new JSONArray();
 			for (int i = 0; i < nodes.getLength(); i++) {
-				array.put(toJsonValue(nodes.item(i)));
+				var node = nodes.item(i);
+				if (node != null && (node.getNodeType() != Node.TEXT_NODE || !node.getTextContent().isBlank())) {
+					array.put(toJsonValue(node));
+				}
 			}
 			return array;
-		}
-		if (value instanceof Element element) {
-			return new JSONTokener(XMLUtils.XmlToJson(element, true)).nextValue();
-		}
-		if (value instanceof Node node) {
-			return node.getTextContent();
 		}
 		if (value instanceof Map<?, ?> map) {
 			var json = new JSONObject();
