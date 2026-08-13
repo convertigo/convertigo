@@ -149,8 +149,8 @@ public class CompressionFilter implements Filter {
 		+ "^/(?:admin/services|services)/(?:.*GetIcon|logs.Download|mobiles.GetPackage|"
 		+ "mobiles.GetSourcePackage|projects.Export|store.DownloadStoreFolder)");
 	Pattern pOK = Pattern.compile(
-		"^/fullsync/|^/api/|^/openapi/|^/(?:admin/services|services)/|\\.js$|\\.xml$|\\.pxml$|\\.cxml$|\\.css$|\\.html$|"
-		+ "\\.json$|\\.jsonp$|\\.txt$|\\.csv$|\\.htm$|\\.map$|/$");
+		"^/fullsync/|^/api/|^/openapi/|^/(?:admin/services|services)/|\\.(?:m?js|xml|pxml|cxml|css|html?|json|jsonp|txt|csv|map|svg|webmanifest)$|/$",
+		Pattern.CASE_INSENSITIVE);
 	Pattern pDisplayObjectsSpa = Pattern.compile("^/(?:system/)?projects/[^/]+/DisplayObjects/(?:mobile|pwas/[^/]+)(?:/.*)?$");
 	
 	@Override
@@ -177,15 +177,13 @@ public class CompressionFilter implements Filter {
 				uri = uri.substring(request.getContextPath().length());
 				uri = uri.replaceFirst("^/(?:system/)?projects/[^/]+/\\.services(?:/|$)", "/services/");
 				uri = uri.replaceFirst("^/(?:system/)?projects/[^/]+/\\.fullsync(?:/|$)", "/fullsync/");
-				boolean isKO = pKO.matcher(uri).find();
-				boolean isOK = pOK.matcher(uri).find();
-				if (!isOK && isDisplayObjectsSpaRoute(uri)) {
-					isOK = true;
-				}
-				shouldNegotiate = !isKO && isOK;
-				if (shouldNegotiate) {
+				var compressionCandidate = isCompressionCandidate(uri);
+				if (compressionCandidate) {
 					addVaryAcceptEncoding(response);
-					selectedEncoding = negotiateEncoding(HeaderName.AcceptEncoding.getHeader(request));
+					shouldNegotiate = !HeaderName.Range.has(request);
+					if (shouldNegotiate) {
+						selectedEncoding = negotiateEncoding(HeaderName.AcceptEncoding.getHeader(request));
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -204,6 +202,11 @@ public class CompressionFilter implements Filter {
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
+	}
+
+	boolean isCompressionCandidate(String uri) {
+		return !pKO.matcher(uri).find()
+				&& (pOK.matcher(uri).find() || isDisplayObjectsSpaRoute(uri));
 	}
 
 	private boolean isDisplayObjectsSpaRoute(String uri) {
