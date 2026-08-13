@@ -38,7 +38,7 @@ public class CacheControlFilter implements Filter {
 
 	private static final String CACHE_CONTROL_IMMUTABLE = "public, max-age=31536000, immutable";
 	private static final String CACHE_CONTROL_REVALIDATE = "no-cache, must-revalidate";
-	private static final Pattern WEBAPP_IMMUTABLE_PATH = Pattern.compile("^/_app/immutable/.+", Pattern.CASE_INSENSITIVE);
+	private static final Pattern WEBAPP_IMMUTABLE_PATH = Pattern.compile("^/(?:_app/immutable|fonts|icons|bezels)/.+", Pattern.CASE_INSENSITIVE);
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -62,10 +62,14 @@ public class CacheControlFilter implements Filter {
 		if ("/manifest.webmanifest".equals(path) || resolvesToIndexHtml(path)) {
 			return CACHE_CONTROL_REVALIDATE;
 		}
-		if (WEBAPP_IMMUTABLE_PATH.matcher(path).matches() && webappFile(path).isFile()) {
+		if (isImmutableWebappPath(path) && webappFile(path).isFile()) {
 			return CACHE_CONTROL_IMMUTABLE;
 		}
 		return null;
+	}
+
+	static boolean isImmutableWebappPath(String path) {
+		return WEBAPP_IMMUTABLE_PATH.matcher(path).matches();
 	}
 
 	private static String getPath(HttpServletRequest request) {
