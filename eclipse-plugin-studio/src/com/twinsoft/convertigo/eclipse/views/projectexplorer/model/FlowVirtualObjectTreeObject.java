@@ -43,6 +43,7 @@ import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.FlowEnumPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.FlowOutputSchemaPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.FlowPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
@@ -303,6 +304,8 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		var readOnly = isReadOnlyProperty(definition) || !getObject().isDefinitionWritable();
 		PropertyDescriptor descriptor = readOnly
 				? new InfoPropertyDescriptor(id, propertyLabel(key, definition))
+				: usesNativeEnum(definition)
+						? new FlowEnumPropertyDescriptor(id, propertyLabel(key, definition), enumValues(definition))
 				: usesFlowEditor(key, definition)
 						? new FlowPropertyDescriptor(id, propertyLabel(key, definition), this, key, definition)
 						: new TextPropertyDescriptor(id, propertyLabel(key, definition));
@@ -318,7 +321,48 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		if (definition == null) {
 			return true;
 		}
-		return !definition.optBoolean("readOnly", false);
+		var editor = definition.optString("editor", "").toLowerCase();
+		var kind = definition.optString("kind", "").toLowerCase();
+		var type = definition.optString("type", "").toLowerCase();
+		if (!editor.isBlank()) {
+			return true;
+		}
+		return switch (kind) {
+		case "binding", "expression", "code", "requestable", "json", "schema", "object", "array" -> true;
+		case "select", "enum", "boolean", "text", "string", "number", "integer" -> false;
+		default -> switch (type) {
+			case "binding", "expression", "code", "requestable", "json", "schema", "object", "array" -> true;
+			case "boolean", "string", "number", "integer" -> false;
+			default -> true;
+		};
+		};
+	}
+
+	private static boolean usesNativeEnum(JSONObject definition) {
+		if (definition == null || usesFlowEditor("", definition)) {
+			return false;
+		}
+		var kind = definition.optString("kind", "").toLowerCase();
+		var type = definition.optString("type", "").toLowerCase();
+		return "select".equals(kind) || "enum".equals(kind) || "boolean".equals(kind)
+				|| "boolean".equals(type) || definition.optJSONArray("enum") != null;
+	}
+
+	private static String[] enumValues(JSONObject definition) {
+		var values = definition == null ? null : definition.optJSONArray("enum");
+		if (values == null && definition != null
+				&& ("boolean".equalsIgnoreCase(definition.optString("kind", ""))
+						|| "boolean".equalsIgnoreCase(definition.optString("type", "")))) {
+			return new String[] { "false", "true" };
+		}
+		if (values == null) {
+			return new String[0];
+		}
+		var result = new String[values.length()];
+		for (var i = 0; i < values.length(); i++) {
+			result[i] = String.valueOf(values.opt(i));
+		}
+		return result;
 	}
 
 	private static boolean isHiddenProperty(JSONObject definition) {
@@ -387,7 +431,13 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	}
 
 	private boolean isEditableSourceKind() {
-		var kind = getObject().getVirtualKind();
+		var object = getObject();
+		var info = object.getVirtualInfoObject();
+		if (info != null && info.optBoolean("sourceWritable", false)
+				&& !info.optString("sourcePath", info.optString("file", "")).isBlank()) {
+			return true;
+		}
+		var kind = object.getVirtualKind();
 		if ("blockHooks".equals(kind) || "typeResource".equals(kind)) {
 			return true;
 		}
@@ -462,10 +512,10 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			} else if (propertyName.startsWith(P_FLOW_PROPERTY)) {
 				var key = propertyName.substring(P_FLOW_PROPERTY.length());
 				var currentValue = getObject().getDefinitionProperty(key);
-				var parsedValue = parseEditedValue(value, currentValue);
+				var parsedValue = parseEditedValue(value, currentValue, flowPropertyDefinition(key));
 				getObject().setDefinitionProperty(key, parsedValue);
 			} else {
-				var parsedValue = parseEditedValue(value, getObject().getDefinitionValue());
+				var parsedValue = parseEditedValue(value, getObject().getDefinitionValue(), null);
 				getObject().setDefinitionValue(parsedValue);
 			}
 
@@ -618,15 +668,18 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		return String.valueOf(value);
 	}
 
-	private static Object parseEditedValue(Object editedValue, Object currentValue) {
+	private static Object parseEditedValue(Object editedValue, Object currentValue, JSONObject definition) {
 		if (!(editedValue instanceof String text)) {
 			return editedValue;
 		}
 		var trimmed = text.trim();
-		if (currentValue instanceof Boolean) {
+		var kind = definition == null ? "" : definition.optString("kind", "").toLowerCase();
+		var type = definition == null ? "" : definition.optString("type", "").toLowerCase();
+		if (currentValue instanceof Boolean || "boolean".equals(kind) || "boolean".equals(type)) {
 			return Boolean.valueOf(trimmed);
 		}
-		if (currentValue instanceof Number) {
+		if (currentValue instanceof Number || "number".equals(kind) || "number".equals(type)
+				|| "integer".equals(kind) || "integer".equals(type)) {
 			return parseNumber(trimmed, currentValue);
 		}
 		if (currentValue instanceof JSONObject || currentValue instanceof JSONArray

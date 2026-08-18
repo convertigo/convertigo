@@ -143,7 +143,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	private volatile DatabaseObject selectedPaletteTarget = null;
 	private volatile String latestFlowPaletteKey = "";
 	private volatile String loadedFlowPaletteKey = "";
-	private volatile boolean flowPaletteRefreshPending = false;
+	private volatile String pendingFlowPaletteKey = "";
 	private boolean flowSelectionUpdatePending = false;
 	private boolean isVisible = true, isCtrl = false, isType = false;
 	private ISelectionChangedListener selectionListener;
@@ -356,16 +356,43 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		return key + "|" + target.getClass().getName();
 	}
 
-	private void syncFlowItems(DatabaseObject target) {
+	private void requestFlowPaletteRefresh(long threshold) {
+		var key = latestFlowPaletteKey;
+		if (key.equals(loadedFlowPaletteKey) || key.equals(pendingFlowPaletteKey)) {
+			return;
+		}
+		pendingFlowPaletteKey = key;
+		refresh(threshold);
+	}
+
+	private void forceFlowPaletteRefresh(long threshold) {
+		loadedFlowPaletteKey = "";
+		pendingFlowPaletteKey = "";
+		requestFlowPaletteRefresh(threshold);
+	}
+
+	private void clearPendingFlowPaletteRefresh(String key) {
+		if (key == null || key.equals(pendingFlowPaletteKey)) {
+			pendingFlowPaletteKey = "";
+		}
+	}
+
+	private boolean syncFlowItems(DatabaseObject target, String requestedFlowPaletteKey) {
 		if (target == null || !FlowStudioSupport.isFlowPaletteTarget(target)) {
+			if (!requestedFlowPaletteKey.equals(latestFlowPaletteKey)) {
+				return false;
+			}
 			for (String id: flowItemIds) {
 				all.remove(id);
 			}
 			flowItemIds.clear();
-			return;
+			return true;
 		}
 		try {
 			var categories = FlowStudioSupport.paletteCategories(target);
+			if (!requestedFlowPaletteKey.equals(latestFlowPaletteKey)) {
+				return false;
+			}
 			for (String id: flowItemIds) {
 				all.remove(id);
 			}
@@ -388,8 +415,10 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					addFlowItem(categoryName, flowItem);
 				}
 			}
+			return true;
 		} catch (Exception e) {
 			Engine.logStudio.debug("(PaletteView) Unable to load Flow palette", e);
+			return false;
 		}
 	}
 
@@ -608,8 +637,12 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 							DatabaseObjectTreeObject dbot = (DatabaseObjectTreeObject) to;
 							DatabaseObject last = (DatabaseObject) PaletteView.this.parent.getData("Selected");
 							selected = dbot.getObject();
+							if (selected == null) {
+								to = to.getParent();
+								continue;
+							}
 							parent = selected.getParent();
-							clear = last == null || !last.getClass().equals(dbot.getObject().getClass());
+							clear = last == null || !last.getClass().equals(selected.getClass());
 						}
 						if (clear != null) {
 							PaletteView.this.parent.setData("FolderType", folderType);
@@ -619,9 +652,8 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 							var flowPaletteKey = flowPaletteKey(selectedPaletteTarget);
 							if (!flowPaletteKey.equals(latestFlowPaletteKey)) {
 								latestFlowPaletteKey = flowPaletteKey;
-								flowPaletteRefreshPending = true;
-								refresh();
 							}
+							requestFlowPaletteRefresh(300);
 							if (selected != null || parent instanceof DatabaseObject) {
 								var project = (selected != null ? selected : (DatabaseObject) parent).getProject();
 								if (project != selectedProject) {
@@ -1125,10 +1157,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					var paletteTarget = selected != null ? selected : parent;
 					var flowOnly = FlowStudioSupport.isFlowPaletteTarget(paletteTarget);
 					if (flowOnly && !latestFlowPaletteKey.equals(loadedFlowPaletteKey)) {
-						if (!flowPaletteRefreshPending) {
-							flowPaletteRefreshPending = true;
-							refresh(0);
-						}
+						requestFlowPaletteRefresh(0);
 						return;
 					}
 
@@ -1265,20 +1294,12 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 						((RowData) lastUsedlabel.getLayoutData()).exclude = !found;
 					}
 
-					if (empty && selected != null && parent != null) {
+					// Flow palettes are computed for the exact authoring node. Falling back to
+					// an ancestor can replace a valid asynchronous response with an unrelated
+					// synthetic folder palette.
+					if (empty && !flowOnly && selected != null && parent != null) {
 						PaletteView.this.parent.setData("Selected", parent);
 						PaletteView.this.parent.setData("Parent", parent.getParent());
-						if (flowOnly) {
-							selectedPaletteTarget = parent;
-							latestFlowPaletteKey = flowPaletteKey(parent);
-							if (!latestFlowPaletteKey.equals(loadedFlowPaletteKey)) {
-								if (!flowPaletteRefreshPending) {
-									flowPaletteRefreshPending = true;
-									refresh(0);
-								}
-								return;
-							}
-						}
 						modifyText(e);
 						return;
 					}
@@ -1334,6 +1355,10 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			CompositeElement.getEngine(top).applyStyles(top, true);
 			parent.layout(true);
 			update();
+			// The workbench can restore this view before the Project Explorer has
+			// restored its selection. Re-read it a few times during startup so the
+			// palette does not depend on closing and reopening the view.
+			scheduleInitialSelectionRefresh(0);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1422,7 +1447,14 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		favoriteslabel = makeLabel.make(topBag, "Favorites");
 		lastUsedlabel = makeLabel.make(topBag, "Last used");
 		var ordered = new TreeSet<Item>((i1, i2) -> i1.compareTo(i2));
-		ordered.addAll(all.values());
+		var paletteTarget = selectedPaletteTarget;
+		var flowOnly = FlowStudioSupport.isFlowPaletteTarget(paletteTarget);
+		for (var item : all.values()) {
+			var flowItem = flowItemIds.contains(item.id());
+			if (flowOnly ? flowItem || isFlowRequestableDboItem(item, paletteTarget) : !flowItem) {
+				ordered.add(item);
+			}
+		}
 
 		String lastParent = null;
 		for (Item item: ordered) {
@@ -1448,10 +1480,18 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	}
 
 	private void refresh(long threshold) {
+		if (!isVisible) {
+			pendingFlowPaletteKey = "";
+			return;
+		}
+		var refreshFlowPaletteKey = latestFlowPaletteKey;
+		var refreshFlowTarget = selectedPaletteTarget;
 		Engine.execute(() -> {
+			var refreshStarted = System.currentTimeMillis();
 			boolean[] needUpdate = {false};
 			boolean[] refreshAgain = {false};
-			if (selectedProject != null) {
+			var flowOnly = FlowStudioSupport.isFlowPaletteTarget(refreshFlowTarget);
+			if (selectedProject != null && !flowOnly) {
 				ComponentManager cm = ComponentManager.of(selectedProject);
 				if (cm != latestComponentManager) {
 					needUpdate[0] = true;
@@ -1520,15 +1560,23 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					}
 				}
 			}
-			if (!latestFlowPaletteKey.equals(loadedFlowPaletteKey)) {
-				var flowTarget = selectedPaletteTarget;
-				var requestedFlowPaletteKey = latestFlowPaletteKey;
-				syncFlowItems(flowTarget);
-				loadedFlowPaletteKey = requestedFlowPaletteKey;
-				needUpdate[0] = true;
-				refreshAgain[0] = !requestedFlowPaletteKey.equals(latestFlowPaletteKey);
+			if (!refreshFlowPaletteKey.equals(loadedFlowPaletteKey)) {
+				if (syncFlowItems(refreshFlowTarget, refreshFlowPaletteKey)
+						&& refreshFlowPaletteKey.equals(latestFlowPaletteKey)) {
+					loadedFlowPaletteKey = refreshFlowPaletteKey;
+					needUpdate[0] = true;
+				} else {
+					refreshAgain[0] = true;
+				}
 			}
-			parent.getDisplay().asyncExec(() -> {
+			var backgroundMillis = System.currentTimeMillis() - refreshStarted;
+			var paletteParent = parent;
+			if (paletteParent == null || paletteParent.isDisposed()) {
+				clearPendingFlowPaletteRefresh(refreshFlowPaletteKey);
+				return;
+			}
+			paletteParent.getDisplay().asyncExec(() -> {
+				var uiStarted = System.currentTimeMillis();
 				try {
 					if (bag != null) {
 						bag.setData("LastSkipKey", null);
@@ -1538,10 +1586,18 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 						clearImageCache();
 						updateBags();
 					}
-					flowPaletteRefreshPending = false;
 					if (refreshAgain[0]) {
-						flowPaletteRefreshPending = true;
-						refresh(0);
+						// A Flow tree reload can replace the selected virtual object while
+						// its palette is being computed. Reacquire the actual workbench
+						// selection instead of retrying with that stale object.
+						clearPendingFlowPaletteRefresh(refreshFlowPaletteKey);
+						paletteParent.getDisplay().timerExec(250, () -> {
+							if (PaletteView.this.parent != null && !PaletteView.this.parent.isDisposed()) {
+								update();
+							}
+						});
+					} else {
+						clearPendingFlowPaletteRefresh(refreshFlowPaletteKey);
 					}
 					if (txt != null && searchText != null) {
 						if (txt.equals(searchText.getText())) {
@@ -1550,8 +1606,14 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 							searchText.setText(txt);
 						}
 					}
+					var uiMillis = System.currentTimeMillis() - uiStarted;
+					if (backgroundMillis > 1000 || uiMillis > 500) {
+						Engine.logStudio.warn("(PaletteView) Slow palette refresh: background="
+								+ backgroundMillis + "ms, ui=" + uiMillis + "ms, key=" + loadedFlowPaletteKey
+								+ ", controls=" + (bag == null || bag.isDisposed() ? 0 : bag.getChildren().length));
+					}
 				} catch (Exception e) {
-					flowPaletteRefreshPending = false;
+					clearPendingFlowPaletteRefresh(refreshFlowPaletteKey);
 					Engine.logStudio.debug("(PaletteView) Palette init failed, retrying [" + e.getClass() + ": " + e.getMessage() + "]");
 					refresh(1000);
 				}
@@ -1609,10 +1671,9 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	@Override
 	public void partVisible(IWorkbenchPartReference partRef) {
 		if (partRef.getId().equals(getViewSite().getId())) {
-			if (!isVisible) {
-				isVisible = true;
-				update();
-			}
+			isVisible = true;
+			forceFlowPaletteRefresh(0);
+			update();
 		}
 	}
 
@@ -1662,5 +1723,20 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		if (selectionListener != null && pev != null) {
 			selectionListener.selectionChanged(new SelectionChangedEvent(pev.viewer, pev.viewer.getSelection()));
 		}
+	}
+
+	private void scheduleInitialSelectionRefresh(int attempt) {
+		if (attempt >= 12 || parent == null || parent.isDisposed()) {
+			return;
+		}
+		parent.getDisplay().timerExec(Math.min(1000, 250 * (attempt + 1)), () -> {
+			if (parent == null || parent.isDisposed()) {
+				return;
+			}
+			update();
+			if (selectedPaletteTarget == null || !latestFlowPaletteKey.equals(loadedFlowPaletteKey)) {
+				scheduleInitialSelectionRefresh(attempt + 1);
+			}
+		});
 	}
 }

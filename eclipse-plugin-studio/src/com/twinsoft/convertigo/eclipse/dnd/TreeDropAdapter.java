@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
@@ -119,6 +120,16 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class TreeDropAdapter extends ViewerDropAdapter {
+	@FunctionalInterface
+	private interface FlowMutation {
+		org.codehaus.jettison.json.JSONObject run() throws Exception;
+	}
+
+	@FunctionalInterface
+	private interface FlowMutationResult {
+		void accept(org.codehaus.jettison.json.JSONObject response) throws Exception;
+	}
+
 	private int detail = DND.DROP_NONE;
 	private int feedback = DND.FEEDBACK_NONE;
 
@@ -1103,20 +1114,23 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				+ " insertBefore=" + insertBefore + " insertAfter=" + insertAfter
 				+ " position=" + position
 				+ " selectionPath=" + selectionPath);
-		var response = FlowStudioSupport.moveNode(sourceDbot.getObject(), targetDbot.getObject(), position);
-		Engine.logStudio.info("Flow frontend DnD UI move response: " + response);
-		if (!response.optBoolean("done", false)) {
-			var error = response.opt("error");
-			throw new EngineException(error == null ? "Unable to move Flow node." : error.toString());
-		}
-		if (FlowTreeMutationReconciler.reconcile(explorerView, targetDbot, response,
-				FlowTreeMutationReconciler.selection(sourceDbot,
-						response.optString("selectionMutationPath", "")))) {
-			return true;
-		}
-		reloadFlowTreeObjectAndSelectAsync(explorerView, targetDbot, selectionKey, selectionPath,
-				response.optString("selectionMutationPath", ""), flowVirtualSourcePath(sourceDbot),
-				sourceVirtualObject.getVirtualKind(), sourceVirtualObject.getVirtualType(), fallbackKey, fallbackPath);
+		runFlowMutationAsync("Move Flow frontend node",
+				() -> FlowStudioSupport.moveNode(sourceDbot.getObject(), targetDbot.getObject(), position),
+				response -> {
+					Engine.logStudio.info("Flow frontend DnD UI move response: " + response);
+					if (!response.optBoolean("done", false)) {
+						var error = response.opt("error");
+						throw new EngineException(error == null ? "Unable to move Flow node." : error.toString());
+					}
+					if (FlowTreeMutationReconciler.reconcile(explorerView, targetDbot, response,
+							FlowTreeMutationReconciler.selection(sourceDbot,
+									response.optString("selectionMutationPath", "")))) {
+						return;
+					}
+					reloadFlowTreeObjectAndSelectAsync(explorerView, targetDbot, selectionKey, selectionPath,
+							response.optString("selectionMutationPath", ""), flowVirtualSourcePath(sourceDbot),
+							sourceVirtualObject.getVirtualKind(), sourceVirtualObject.getVirtualType(), fallbackKey, fallbackPath);
+				});
 		return true;
 	}
 
@@ -1676,17 +1690,21 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 									.put("type", "paletteData")
 									.put("data", new org.codehaus.jettison.json.JSONObject(paletteSource.getFlowItemData())
 											.put("type", "FrontendBlock"));
-							var response = FlowStudioSupport.addFromPalette(dbotree.getObject(), position, transfer);
-							Engine.logStudio.info("Flow frontend DnD UI palette insert response: " + response);
-							if (!response.optBoolean("done", false)) {
-								var error = response.opt("error");
-								throw new EngineException(error == null ? "Unable to add frontend block." : error.toString());
-							}
-							if (FlowTreeMutationReconciler.reconcile(explorerView, dbotree, response,
-									FlowTreeMutationReconciler.selection(dbotree))) {
-								return;
-							}
-							reloadFlowTreeObject(explorerView, dbotree);
+							runFlowMutationAsync("Add Flow frontend node",
+									() -> FlowStudioSupport.addFromPalette(dbotree.getObject(), position, transfer),
+									response -> {
+										Engine.logStudio.info("Flow frontend DnD UI palette insert response: " + response);
+										if (!response.optBoolean("done", false)) {
+											var error = response.opt("error");
+											throw new EngineException(error == null
+													? "Unable to add frontend block."
+													: error.toString());
+										}
+										if (!FlowTreeMutationReconciler.reconcile(explorerView, dbotree, response,
+												FlowTreeMutationReconciler.selection(dbotree))) {
+											reloadFlowTreeObject(explorerView, dbotree);
+										}
+									});
 							return;
 						}
 						DatabaseObject dbop = paletteSource.getDatabaseObject();
@@ -1837,6 +1855,33 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				ConvertigoPlugin.logError("failed to add mobile source");
 			}
 		}
+	}
+
+	private void runFlowMutationAsync(String label, FlowMutation mutation, FlowMutationResult result) {
+		Engine.execute(() -> {
+			org.codehaus.jettison.json.JSONObject response = null;
+			Exception failure = null;
+			try {
+				response = mutation.run();
+			} catch (Exception e) {
+				failure = e;
+			}
+			var effectiveResponse = response;
+			var effectiveFailure = failure;
+			ConvertigoPlugin.asyncExec(() -> {
+				if (effectiveFailure != null) {
+					ConvertigoPlugin.logException(effectiveFailure, label + " failed.", false);
+					MessageDialog.openError(ConvertigoPlugin.getMainShell(), "Flow", effectiveFailure.getMessage());
+					return;
+				}
+				try {
+					result.accept(effectiveResponse);
+				} catch (Exception e) {
+					ConvertigoPlugin.logException(e, label + " reconciliation failed.", false);
+					MessageDialog.openError(ConvertigoPlugin.getMainShell(), "Flow", e.getMessage());
+				}
+			});
+		});
 	}
 
 	private void reloadTreeObject(ProjectExplorerView explorerView, TreeObject treeObject) throws EngineException, IOException {

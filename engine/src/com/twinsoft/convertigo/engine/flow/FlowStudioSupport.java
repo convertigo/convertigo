@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class FlowStudioSupport {
 
@@ -517,10 +518,10 @@ public class FlowStudioSupport {
 				.put("surface", "frontend")
 				.put("focusPath", frontendFocusPath(targetDbo))
 				.put("position", "inside")
+				.put("detail", "compact")
 				.put("applyFallback", true));
 		if (!palette.optBoolean("ok", false)) {
-			Engine.logEngine.warn("(FlowStudioSupport) Unable to compute frontend authoring palette: " + palette.opt("error"));
-			return categories;
+			throw new EngineException("Unable to compute frontend authoring palette: " + palette.opt("error"));
 		}
 		var focus = palette.optJSONObject("focus");
 		var focusPath = focus == null ? "" : focus.optString("path", "");
@@ -562,7 +563,11 @@ public class FlowStudioSupport {
 	}
 
 	private static String frontendFocusPath(DatabaseObject targetDbo) {
-		return targetDbo instanceof FlowVirtualObject fvo ? fvo.getVirtualPath() : "";
+		if (!(targetDbo instanceof FlowVirtualObject fvo)) {
+			return "";
+		}
+		var path = fvo.getVirtualPath();
+		return "frontends".equals(path) ? "frontends." + frontendBuilderName(targetDbo) : path;
 	}
 
 	private static String frontendBlockCategoryName(JSONObject block) {

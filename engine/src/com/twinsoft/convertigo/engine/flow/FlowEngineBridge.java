@@ -71,7 +71,7 @@ public class FlowEngineBridge {
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
 	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
-	private static final int ENGINE_RUNTIME_POOL_LIMIT = 16;
+	private static final int ENGINE_RUNTIME_POOL_LIMIT = 2;
 
 	private record CachedEngineSource(File file, String source, long lastModified, long length) {
 		String sourceName() {
@@ -713,6 +713,14 @@ public class FlowEngineBridge {
 		}
 		var response = invoke(engineQName, "applySourceMutation", request, null, null, null);
 		if (response.optBoolean("ok", false) && response.has("source")) {
+			if (authoringRootPath != null && !authoringRootPath.isBlank()) {
+				var authoringTree = response.optJSONObject("authoringTree");
+				if (authoringTree == null || !authoringTree.optBoolean("ok", false)) {
+					var error = authoringTree == null ? null : authoringTree.optJSONObject("error");
+					throw new EngineException("Flow frontend mutation returned no valid tree projection"
+							+ (error == null ? "." : ": " + error.optString("message", "unknown projection error")));
+				}
+			}
 			var newSource = response.optString("source", source);
 			var changed = !newSource.equals(source);
 			response.put("changed", changed);
@@ -1323,16 +1331,31 @@ public class FlowEngineBridge {
 	private static JSONObject bridgeCacheInfo(String engineQName) throws JSONException {
 		var normalizedEngineQName = normalizeEngineQName(engineQName);
 		var methods = new JSONObject();
+		var pooledRuntimeCount = 0;
+		var availableRuntimeCount = 0;
 		for (var entry : invocationStats.entrySet()) {
 			var stats = entry.getValue();
 			if (stats.engineQName.equals(normalizedEngineQName)) {
 				methods.put(stats.method, stats.toJson());
 			}
 		}
+		for (var entry : engineRuntimeCache.entrySet()) {
+			if (!entry.getKey().startsWith(normalizedEngineQName + "|")) {
+				continue;
+			}
+			var pool = entry.getValue();
+			synchronized (pool) {
+				pooledRuntimeCount += pool.cachedCount;
+				availableRuntimeCount += pool.available.size();
+			}
+		}
 		return new JSONObject()
 				.put("generation", cacheGeneration.get())
 				.put("sourceCacheSize", engineSourceCache.size())
 				.put("runtimeCacheSize", engineRuntimeCache.size())
+				.put("runtimePoolLimit", ENGINE_RUNTIME_POOL_LIMIT)
+				.put("pooledRuntimeCount", pooledRuntimeCount)
+				.put("availableRuntimeCount", availableRuntimeCount)
 				.put("methodResponseCacheSize", methodResponseCache.size())
 				.put("methodResponseCacheHits", methodResponseCacheHits.sum())
 				.put("methodResponseCacheMisses", methodResponseCacheMisses.sum())

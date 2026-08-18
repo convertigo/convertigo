@@ -209,7 +209,7 @@ public class FlowEngineEditor extends EditorPart {
 			var input = new FlowEngineEditorInput(id, title, url, projectName, tooltip, authoringProtocol);
 			var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			var editor = page.openEditor(input, ID);
-			if (editor instanceof FlowEngineEditor flowEditor) {
+			if (editor instanceof FlowEngineEditor flowEditor && flowEditor.getEditorInput() != input) {
 				flowEditor.updateInput(input);
 			}
 			return true;

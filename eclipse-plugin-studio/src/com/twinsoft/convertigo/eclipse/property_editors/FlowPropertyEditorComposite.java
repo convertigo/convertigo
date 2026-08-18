@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 
 import com.teamdev.jxbrowser.js.JsAccessible;
 import com.teamdev.jxbrowser.js.JsObject;
@@ -35,6 +36,7 @@ import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
 
 public class FlowPropertyEditorComposite extends Composite {
@@ -48,6 +50,9 @@ public class FlowPropertyEditorComposite extends Composite {
 	private final JSONObject values = new JSONObject();
 
 	private record EditorTarget(Flow flow, FlowEngine flowEngine, String qName) {
+	}
+
+	private record EditorPayload(String html, JSONObject state, long editorPreparationTime, long statePreparationTime) {
 	}
 
 	public FlowPropertyEditorComposite(Composite parent, int style, FlowVirtualObjectTreeObject treeObject,
@@ -81,23 +86,63 @@ public class FlowPropertyEditorComposite extends Composite {
 	}
 
 	private void createBrowser() {
-		browser = new C8oBrowser(this, SWT.NONE);
-		browser.setUseExternalBrowser(true);
-		ConvertigoPlugin.logStudioDebug("Flow property editor debug : " + browser.getDebugUrl());
-		try {
-			var target = findTarget(treeObject.getObject());
-			if (target == null) {
-				browser.setText(fallbackHtml("Unable to resolve parent Flow or FlowEngine."));
-				return;
+		var loading = new Label(this, SWT.CENTER);
+		loading.setText("Loading Flow property editor...");
+		var display = getDisplay();
+		var object = treeObject.getObject();
+		var target = findTarget(object);
+		if (target == null) {
+			initializeBrowser(loading,
+					new EditorPayload(fallbackHtml("Unable to resolve parent Flow or FlowEngine."), null, 0, 0));
+			return;
+		}
+		Engine.execute(() -> {
+			EditorPayload payload;
+			try {
+				var editorStarted = System.currentTimeMillis();
+				var response = propertyEditor(target);
+				var editorPreparationTime = System.currentTimeMillis() - editorStarted;
+				var html = response.optString("html", "");
+				var stateStarted = System.currentTimeMillis();
+				var editorState = state(target, object);
+				payload = new EditorPayload(
+						html.isBlank() ? fallbackHtml("Flow property editor is not available.") : html,
+						editorState, editorPreparationTime, System.currentTimeMillis() - stateStarted);
+			} catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Unable to prepare Flow property editor.");
+				payload = new EditorPayload(fallbackHtml(e.getMessage()), null, 0, 0);
 			}
-			var response = propertyEditor(target);
-			var html = response.optString("html", "");
-			browser.setText(html.isBlank() ? fallbackHtml("Flow property editor is not available.") : html);
-			installBridge();
-			post(state(target, treeObject.getObject()));
+			var prepared = payload;
+			if (!display.isDisposed()) {
+				display.asyncExec(() -> initializeBrowser(loading, prepared));
+			}
+		});
+	}
+
+	private void initializeBrowser(Label loading, EditorPayload payload) {
+		if (isDisposed()) {
+			return;
+		}
+		var started = System.currentTimeMillis();
+		try {
+			if (!loading.isDisposed()) {
+				loading.dispose();
+			}
+			browser = new C8oBrowser(this, SWT.NONE);
+			browser.setUseExternalBrowser(true);
+			browser.setText(payload.html());
+			if (payload.state() != null) {
+				installBridge();
+				post(payload.state());
+				loadBindingSourcesAsync();
+			}
+			layout(true, true);
+			ConvertigoPlugin.logStudioDebug("Flow property editor ready for " + propertyName
+					+ " (editor " + payload.editorPreparationTime() + " ms, state "
+					+ payload.statePreparationTime() + " ms, browser "
+					+ (System.currentTimeMillis() - started) + " ms) : " + browser.getDebugUrl());
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to open Flow property editor.");
-			browser.setText(fallbackHtml(e.getMessage()));
 		}
 	}
 
@@ -134,10 +179,19 @@ public class FlowPropertyEditorComposite extends Composite {
 		if (target.flow() != null && "node".equals(object.getVirtualKind())) {
 			state.put("context", context(target.flow(), object));
 		}
+		if (target.flow() == null && isBindingProperty()) {
+			state.put("bindingSources", new JSONArray());
+			state.put("bindingSourcesLoading", true);
+		}
 		if (isRequestableProperty()) {
 			state.put("requestables", requestables(target));
 		}
 		return state;
+	}
+
+	private boolean isBindingProperty() {
+		return "binding".equals(propertyDefinition.optString("kind", ""))
+				|| "binding".equals(propertyDefinition.optString("type", ""));
 	}
 
 	private boolean isRequestableProperty() {
@@ -187,6 +241,55 @@ public class FlowPropertyEditorComposite extends Composite {
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to update Flow property editor.");
 		}
+	}
+
+	private void postData(JSONObject message) {
+		try {
+			if (browser == null || browser.isDisposed()) {
+				return;
+			}
+			browser.getBrowser().mainFrame()
+					.ifPresent(frame -> frame.executeJavaScript("window.receiveFlowData(" + message + ");"));
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to update Flow property editor data.");
+		}
+	}
+
+	private void loadBindingSourcesAsync() {
+		if (!isBindingProperty()) {
+			return;
+		}
+		var display = getDisplay();
+		Engine.execute(() -> {
+			var update = new JSONObject();
+			try {
+				var object = treeObject.getObject();
+				var target = findTarget(object);
+				var response = target == null
+						? new JSONObject().put("bindingSources", new JSONArray())
+						: bindingSources(target, object, new JSONObject().put("property", propertyName));
+				update.put("bindingSources", response.optJSONArray("bindingSources"));
+				update.put("bindingSourcesLoading", false);
+				if (!response.optBoolean("ok", true)) {
+					update.put("bindingSourcesError", "Unable to load available values.");
+				}
+			} catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Unable to load Flow property editor values.");
+				try {
+					update.put("bindingSources", new JSONArray());
+					update.put("bindingSourcesLoading", false);
+					update.put("bindingSourcesError", e.getMessage());
+				} catch (Exception jsonError) {
+				}
+			}
+			if (!display.isDisposed()) {
+				display.asyncExec(() -> {
+					if (!isDisposed()) {
+						postData(update);
+					}
+				});
+			}
+		});
 	}
 
 	private static EditorTarget findTarget(DatabaseObject object) {
@@ -317,6 +420,8 @@ public class FlowPropertyEditorComposite extends Composite {
 		var response = new FlowEngineBridge().authoringTree(target.flowEngine(), new JSONObject()
 				.put("surface", "frontend")
 				.put("focusPath", object.getVirtualPath())
+				.put("bindingTargetPath", object.getSourceMutationPath())
+				.put("bindingTargetSource", object.getSourcePath())
 				.put("detail", "full")
 				.put("includeBindings", true)
 				.put("includeFrontendCatalog", false)
