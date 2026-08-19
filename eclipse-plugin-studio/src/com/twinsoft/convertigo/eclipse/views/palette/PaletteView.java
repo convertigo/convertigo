@@ -378,6 +378,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	}
 
 	private boolean syncFlowItems(DatabaseObject target, String requestedFlowPaletteKey) {
+		target = liveFlowPaletteTarget(target);
 		if (target == null || !FlowStudioSupport.isFlowPaletteTarget(target)) {
 			if (!requestedFlowPaletteKey.equals(latestFlowPaletteKey)) {
 				return false;
@@ -419,6 +420,22 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		} catch (Exception e) {
 			Engine.logStudio.debug("(PaletteView) Unable to load Flow palette", e);
 			return false;
+		}
+	}
+
+	private DatabaseObject liveFlowPaletteTarget(DatabaseObject target) {
+		if (!(target instanceof FlowVirtualObject) || target.getProject() == null) {
+			return target;
+		}
+		try {
+			var reference = FlowStudioSupport.authoringReference(target);
+			var liveTarget = FlowStudioSupport.resolveAuthoringReference(target.getProject().getName(), reference);
+			if (liveTarget == null) {
+				liveTarget = FlowStudioSupport.resolveTreeObject(target.getFullQName());
+			}
+			return liveTarget == null ? target : liveTarget;
+		} catch (Exception e) {
+			return target;
 		}
 	}
 

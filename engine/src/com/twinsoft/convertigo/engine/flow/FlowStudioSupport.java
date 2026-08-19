@@ -457,7 +457,7 @@ public class FlowStudioSupport {
 		if (isPropertyDefinitionPaletteTarget(targetDbo)) {
 			categories.put(propertyDefinitionCategory(targetDbo));
 		}
-		if (categories.length() > 0) {
+		if (categories.length() > 0 && !(targetDbo instanceof FlowEngine)) {
 			return categories;
 		}
 		if (isHelperDefinitionPaletteTarget(targetDbo)) {
@@ -521,6 +521,11 @@ public class FlowStudioSupport {
 				.put("detail", "compact")
 				.put("applyFallback", true));
 		if (!palette.optBoolean("ok", false)) {
+			var error = palette.optJSONObject("error");
+			if (targetDbo instanceof FlowEngine && error != null
+					&& "AUTHORING_FOCUS_NOT_FOUND".equals(error.optString("code"))) {
+				return categories;
+			}
 			throw new EngineException("Unable to compute frontend authoring palette: " + palette.opt("error"));
 		}
 		var focus = palette.optJSONObject("focus");
@@ -563,6 +568,9 @@ public class FlowStudioSupport {
 	}
 
 	private static String frontendFocusPath(DatabaseObject targetDbo) {
+		if (targetDbo instanceof FlowEngine) {
+			return "frontends";
+		}
 		if (!(targetDbo instanceof FlowVirtualObject fvo)) {
 			return "";
 		}
@@ -744,10 +752,11 @@ public class FlowStudioSupport {
 
 		var response = applyMutation(root, targetDbo, insertion);
 		var done = response.optBoolean("ok", false);
-		return new JSONObject()
+		return withProjectionMetadata(new JSONObject()
 				.put("done", done)
 				.put("id", done ? root.getFullQName() : "")
-				.put("error", done ? JSONObject.NULL : response.opt("error"));
+				.put("selectionId", done ? node.optString("id", "") : "")
+				.put("error", done ? JSONObject.NULL : response.opt("error")), response);
 	}
 
 	private static JSONObject addBlockDefinition(DatabaseObject targetDbo, String runtime) throws Exception {
@@ -755,16 +764,15 @@ public class FlowStudioSupport {
 		if (!(root instanceof FlowEngine flowEngine) || !canAddBlockDefinition(targetDbo, runtime)) {
 			return new JSONObject().put("done", false);
 		}
+		var projectionRoot = engineProjectionRoot(flowEngine, "catalog");
 		var blockName = nextBlockName(flowEngine, runtime);
 		var response = new FlowEngineBridge().createBlock(flowEngine, blockName, runtime);
 		var done = isSuccessResponse(response);
-		if (done) {
-			clearCatalogCache(flowEngine);
-		}
-		return new JSONObject()
+		var result = new JSONObject()
 				.put("done", done)
 				.put("id", done ? flowEngine.getFullQName() : "")
 				.put("error", done ? JSONObject.NULL : response.opt("error"));
+		return done ? refreshEngineProjection(flowEngine, projectionRoot, result, "catalog", blockName) : result;
 	}
 
 	private static JSONObject addTypeDefinition(DatabaseObject targetDbo) throws Exception {
@@ -772,16 +780,15 @@ public class FlowStudioSupport {
 		if (!(root instanceof FlowEngine flowEngine) || !canAddTypeDefinition(targetDbo)) {
 			return new JSONObject().put("done", false);
 		}
+		var projectionRoot = engineProjectionRoot(flowEngine, "catalog");
 		var typeName = nextTypeName(flowEngine);
 		var response = new FlowEngineBridge().createType(flowEngine, typeName);
 		var done = isSuccessResponse(response);
-		if (done) {
-			clearCatalogCache(flowEngine);
-		}
-		return new JSONObject()
+		var result = new JSONObject()
 				.put("done", done)
 				.put("id", done ? flowEngine.getFullQName() : "")
 				.put("error", done ? JSONObject.NULL : response.opt("error"));
+		return done ? refreshEngineProjection(flowEngine, projectionRoot, result, "catalog", typeName) : result;
 	}
 
 	private static JSONObject addPropertyDefinition(DatabaseObject targetDbo) throws Exception {
@@ -790,6 +797,7 @@ public class FlowStudioSupport {
 		if (!(root instanceof FlowEngine flowEngine) || target == null) {
 			return new JSONObject().put("done", false);
 		}
+		var projectionRoot = engineProjectionRoot(flowEngine, "catalog");
 		var name = nextPropertyName(target);
 		var descriptor = new JSONObject()
 				.put("label", name)
@@ -801,13 +809,11 @@ public class FlowStudioSupport {
 				.put("path", mutationPath(target) + "." + name)
 				.put("value", descriptor));
 		var done = isSuccessResponse(response);
-		if (done) {
-			clearCatalogCache(flowEngine);
-		}
-		return new JSONObject()
+		var result = new JSONObject()
 				.put("done", done)
 				.put("id", done ? flowEngine.getFullQName() : "")
 				.put("error", done ? JSONObject.NULL : response.opt("error"));
+		return done ? refreshEngineProjection(flowEngine, projectionRoot, result, "catalog", "") : result;
 	}
 
 	private static JSONObject addHelperDefinition(DatabaseObject targetDbo) throws Exception {
@@ -851,15 +857,14 @@ public class FlowStudioSupport {
 		}
 		var engineMutation = frontendEngineMutationFor(targetDbo, insert);
 		if (engineMutation != null) {
+			var projectionRoot = engineProjectionRoot(flowEngine, "frontends");
 			var response = new FlowEngineBridge().applyMutation(flowEngine, engineMutation);
 			var done = isSuccessResponse(response);
-			if (done) {
-				clearCatalogCache(flowEngine);
-			}
-			return new JSONObject()
+			var result = new JSONObject()
 					.put("done", done)
 					.put("id", done ? flowEngine.getFullQName() : "")
 					.put("error", done ? JSONObject.NULL : response.opt("error"));
+			return done ? refreshEngineProjection(flowEngine, projectionRoot, result, "frontends", "") : result;
 		}
 		var mutation = frontendMutationFor(targetDbo, position, insert, data.optJSONObject("targetSlot"));
 		if (mutation == null) {
@@ -967,6 +972,7 @@ public class FlowStudioSupport {
 	}
 
 	private static JSONObject createFrontendSource(FlowEngine flowEngine, DatabaseObject targetDbo, JSONObject create) throws Exception {
+		var projectionRoot = engineProjectionRoot(flowEngine, "frontends");
 		var builderName = firstNonBlank(create, "builder");
 		if (builderName.isBlank()) {
 			builderName = frontendBuilderName(targetDbo);
@@ -1013,12 +1019,12 @@ public class FlowStudioSupport {
 		file.getParentFile().mkdirs();
 		FileUtils.writeStringToFile(file, source, "UTF-8");
 		FlowEngineBridge.clearCaches();
-		clearCatalogCache(flowEngine);
-		return new JSONObject()
+		var result = new JSONObject()
 				.put("done", true)
 				.put("id", flowEngine.getFullQName())
 				.put("file", file.getAbsolutePath())
 				.put("sourceId", blockId);
+		return refreshEngineProjection(flowEngine, projectionRoot, result, "frontends", blockId);
 	}
 
 	private static boolean frontendSourceCreationWritableTarget(DatabaseObject targetDbo) {
@@ -2383,7 +2389,104 @@ public class FlowStudioSupport {
 		return result
 				.put("projected", response != null && response.optBoolean("projected", false))
 				.put("projectedRootPath", response == null ? "" : response.optString("projectedRootPath", ""))
-				.put("projectedSourcePath", response == null ? "" : response.optString("projectedSourcePath", ""));
+				.put("projectedSourcePath", response == null ? "" : response.optString("projectedSourcePath", ""))
+				.put("selectionVirtualPath", response == null ? "" : response.optString("selectionVirtualPath", ""));
+	}
+
+	private static FlowVirtualObject engineProjectionRoot(FlowEngine flowEngine, String virtualPath) {
+		if (flowEngine == null || virtualPath == null || virtualPath.isBlank()) {
+			return null;
+		}
+		try {
+			for (var child : flowEngine.getDatabaseObjectChildren()) {
+				var found = engineProjectionRoot(child, virtualPath);
+				if (found != null) {
+					return found;
+				}
+			}
+		} catch (Exception e) {
+			flowStudioWarn("Unable to capture Flow engine projection root: " + virtualPath, e);
+		}
+		return null;
+	}
+
+	private static FlowVirtualObject engineProjectionRoot(DatabaseObject candidate, String virtualPath) {
+		if (candidate instanceof FlowVirtualObject flowObject && virtualPath.equals(flowObject.getVirtualPath())) {
+			return flowObject;
+		}
+		try {
+			for (var child : candidate.getDatabaseObjectChildren()) {
+				var found = engineProjectionRoot(child, virtualPath);
+				if (found != null) {
+					return found;
+				}
+			}
+		} catch (Exception e) {
+		}
+		return null;
+	}
+
+	private static JSONObject refreshEngineProjection(FlowEngine flowEngine, FlowVirtualObject projectionRoot,
+			JSONObject result, String virtualPath, String selectionType) throws Exception {
+		clearCatalogCache(flowEngine);
+		if (projectionRoot == null) {
+			return result;
+		}
+		var tree = new FlowEngineBridge().describeTree(flowEngine);
+		var projected = findTreeNode(tree, virtualPath);
+		if (projected == null || !projectionRoot.replaceProjectedTree(projected)) {
+			flowStudioWarn("Flow engine projection could not replace the in-memory root: " + virtualPath);
+			return result;
+		}
+		result
+				.put("projected", true)
+				.put("projectedRootPath", virtualPath)
+				.put("projectedSourcePath", "");
+		var selection = findTreeNodeByType(projected, selectionType);
+		if (selection != null) {
+			result.put("selectionVirtualPath", selection.optString("path", ""));
+		}
+		return result;
+	}
+
+	private static JSONObject findTreeNodeByType(JSONObject tree, String type) {
+		if (tree == null || type == null || type.isBlank()) {
+			return null;
+		}
+		if (type.equals(tree.optString("type", ""))) {
+			return tree;
+		}
+		var children = tree.optJSONArray("children");
+		if (children == null) {
+			return null;
+		}
+		for (int i = 0; i < children.length(); i++) {
+			var found = findTreeNodeByType(children.optJSONObject(i), type);
+			if (found != null) {
+				return found;
+			}
+		}
+		return null;
+	}
+
+	private static JSONObject findTreeNode(JSONObject tree, String virtualPath) {
+		if (tree == null || virtualPath == null || virtualPath.isBlank()) {
+			return null;
+		}
+		if (virtualPath.equals(tree.optString("path", ""))) {
+			return tree;
+		}
+		var children = tree.optJSONArray("children");
+		if (children == null) {
+			return null;
+		}
+		for (int i = 0; i < children.length(); i++) {
+			var found = findTreeNode(children.optJSONObject(i), virtualPath);
+			if (found != null) {
+				return found;
+			}
+		}
+		return null;
 	}
 
 	private static JSONObject cleanFrontendMutation(JSONObject mutation) throws Exception {

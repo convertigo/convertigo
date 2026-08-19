@@ -566,6 +566,9 @@ public class FlowEngineBridge {
 					.put("target", "engine")
 					.put("engineSource", flowEngine.getEngineSource())
 					.put("projectDir", flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+					.put("includeFlowCatalog", true)
+					.put("flowCatalogOrigin", "project")
+					.put("includeCatalogLibraries", false)
 					.put("includeBindings", false)
 					.put("prewarmFrontendDocumentServer", Engine.isStudioMode())
 					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
@@ -1616,7 +1619,7 @@ public class FlowEngineBridge {
 			return false;
 		}
 		return switch (method) {
-		case "describeTree", "catalog", "context", "contextMenu", "propertyEditor", "icons", "syncInputs", "blockGet", "typeGet" -> true;
+		case "describeTree", "catalog", "context", "contextMenu", "propertyEditor", "authoringPalette", "icons", "syncInputs", "blockGet", "typeGet" -> true;
 		default -> false;
 		};
 	}
