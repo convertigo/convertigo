@@ -55,6 +55,8 @@
 		disabled = false,
 		class: cls = ''
 	} = $props();
+	const componentId = $props.id();
+	const downloadTarget = componentId + '-download';
 
 	let requestableKey = $derived(
 		requestable
@@ -351,6 +353,51 @@ console.log(await response.text());`;
 	}
 
 	/**
+	 * Submits a binary request through the browser so the response can be streamed to disk.
+	 *
+	 * @param {HTMLFormElement} form
+	 * @param {FormData} data
+	 */
+	function submitBinary(form, data) {
+		const token = localStorage.getItem('x-xsrf-token');
+		if (token && !data.has('__xsrfToken')) {
+			data.append('__xsrfToken', token);
+		}
+
+		/** @param {FormDataEvent} event */
+		const replaceFormData = (event) => {
+			for (const key of new Set(event.formData.keys())) {
+				event.formData.delete(key);
+			}
+			for (const [key, value] of data.entries()) {
+				event.formData.append(key, value);
+			}
+		};
+
+		const attributes = ['action', 'method', 'enctype', 'target'];
+		const previous = Object.fromEntries(attributes.map((name) => [name, form.getAttribute(name)]));
+		form.addEventListener('formdata', replaceFormData, { once: true });
+		try {
+			form.action = getUrl('projects/' + projectName + '/.' + mode.toLowerCase());
+			form.method = 'POST';
+			form.enctype = [...data.values()].some((value) => value instanceof File)
+				? 'multipart/form-data'
+				: 'application/x-www-form-urlencoded';
+			form.target = downloadTarget;
+			HTMLFormElement.prototype.submit.call(form);
+		} finally {
+			form.removeEventListener('formdata', replaceFormData);
+			for (const name of attributes) {
+				if (previous[name] == null) {
+					form.removeAttribute(name);
+				} else {
+					form.setAttribute(name, previous[name]);
+				}
+			}
+		}
+	}
+
+	/**
 	 * @param {SubmitEvent & { currentTarget: HTMLFormElement }} event
 	 */
 	async function run(event) {
@@ -363,7 +410,6 @@ console.log(await response.text());`;
 			updateResponse({ content: '', loading: false });
 			return;
 		}
-		updateResponse({ content: 'Loading ...', loading: true });
 		const fd = new FormData(event.currentTarget);
 		if (submitter?.value) {
 			fd.append('__testcase', submitter.value);
@@ -379,6 +425,12 @@ console.log(await response.text());`;
 				}
 			}
 		}
+		if (mode.toUpperCase() === 'BIN') {
+			updateResponse({ content: '', loading: false });
+			submitBinary(event.currentTarget, fd);
+			return;
+		}
+		updateResponse({ content: 'Loading ...', loading: true });
 		try {
 			const data = await callRequestable(mode, projectName, fd);
 			updateResponse({
@@ -442,6 +494,7 @@ console.log(await response.text());`;
 
 {#if requestable}
 	<form class={['requestable-execution', cls]} onsubmit={run}>
+		<iframe hidden name={downloadTarget} title="Binary download target"></iframe>
 		{#if kind === 'transaction'}
 			<input type="hidden" name="__connector" value={connectorName} />
 			<input type="hidden" name="__transaction" value={requestable.name} />
