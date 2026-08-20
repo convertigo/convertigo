@@ -5,6 +5,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import CheckState from '$lib/admin/components/CheckState.svelte';
 	import CronWizard from '$lib/admin/components/CronWizard.svelte';
+	import FileUploadField from '$lib/admin/components/FileUploadField.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import RequestableParameters from '$lib/admin/components/RequestableParameters.svelte';
 	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
@@ -17,8 +18,20 @@
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import { capitalize, checkArray } from '$lib/utils/service';
 	import { getContext, onDestroy } from 'svelte';
+	import { slide } from 'svelte/transition';
 
-	let { jobs, schedules, scheduled, configure, remove, init } = $derived(Scheduler);
+	let {
+		jobs,
+		schedules,
+		scheduled,
+		configure,
+		remove,
+		importScheduler,
+		exportScheduler,
+		selectForExport,
+		waiting,
+		init
+	} = $derived(Scheduler);
 	let { projects } = $derived(Project);
 	const schedulerDocHref = getAdminPageDocHref('/admin/scheduler');
 
@@ -53,29 +66,48 @@
 	const cards = $derived([
 		{
 			title: 'Jobs',
+			category: 'jobs',
 			range: [0, 3],
 			data: jobs
 		},
 		{
 			title: 'Schedules',
+			category: 'schedules',
 			range: [3, 5],
 			next: true,
 			data: schedules
 		},
 		{
 			title: 'Scheduled jobs',
+			category: 'scheduledJobs',
 			range: [5, 6],
 			data: scheduled
 		}
 	]);
 
 	let modal, nextCron;
+	let modalImport = $state();
+	let actionImport = $state('on');
+	let exporting = $state(false);
 	/*** @type {any} */
 	let rowSelected = $state(null);
 	/*** @type {any} */
 	let project = $state({});
 
 	let modalYesNo = getContext('modalYesNo');
+	let exportRows = $derived(
+		cards.flatMap(({ category, data }) =>
+			data.filter(({ name }) => name != null).map((row) => ({ category, row }))
+		)
+	);
+	let selectedExportCount = $derived(exportRows.filter(({ row }) => row.export).length);
+	let allExported = $derived(exportRows.length > 0 && selectedExportCount == exportRows.length);
+
+	function selectAllForExport(selected) {
+		for (const { category, row } of exportRows) {
+			selectForExport(category, row, selected);
+		}
+	}
 
 	function selectByName(values, name) {
 		const list = checkArray(values);
@@ -352,27 +384,149 @@
 	{/snippet}
 </ModalDynamic>
 
+<ModalDynamic bind:this={modalImport}>
+	<Card title="Drop or choose a scheduler XML file and Import">
+		<form
+			onsubmit={async (event) => {
+				if (await importScheduler(event)) {
+					modalImport.close();
+				}
+			}}
+		>
+			<fieldset class="layout-y-stretch" disabled={waiting}>
+				<FileUploadField
+					name="file"
+					accept={{ 'application/xml': ['.xml'], 'text/xml': ['.xml'] }}
+					required
+					allowDrop
+					dropIcon="mdi:import"
+					title="Drop or choose a scheduler XML file"
+					hint="then press Import"
+				/>
+				<div>
+					Import policy
+					<PropertyType
+						type="segment"
+						name="action-import"
+						item={[
+							{ text: 'Replace scheduler', value: 'clear-import' },
+							{ text: 'Merge scheduler', value: 'on' }
+						]}
+						bind:value={actionImport}
+						orientation="vertical"
+					/>
+				</div>
+				{#if actionImport == 'on'}
+					<div transition:slide>
+						In case of name conflict, priority
+						<PropertyType
+							type="segment"
+							name="priority"
+							item={[
+								{ text: 'Server', value: 'priority-server' },
+								{ text: 'File', value: 'priority-import' }
+							]}
+							value="priority-import"
+							orientation="vertical"
+						/>
+					</div>
+					<div>Elements that only exist on the server will be kept.</div>
+				{:else}
+					<div>All current scheduler elements will be replaced by the file content.</div>
+				{/if}
+				<div>The current scheduler.xml file will be saved aside as a dated backup.</div>
+				<ActionBar>
+					<Button label="Import" icon="mdi:import" type="submit" class="button-primary w-fit!" />
+					<Button
+						label="Cancel"
+						icon="mdi:close-circle-outline"
+						class="button-secondary w-fit!"
+						onclick={modalImport?.close}
+					/>
+				</ActionBar>
+			</fieldset>
+		</form>
+	</Card>
+</ModalDynamic>
+
 <div class="layout-y-stretch">
-	{#each cards as { title, range, next, data, size = "6" }, i (title)}
+	{#each cards as { title, category, range, next, data, size = "6" }, i (title)}
 		<Card {title} docHref={i == 0 ? schedulerDocHref : undefined}>
 			{#snippet cornerOption()}
 				<ResponsiveButtons
-					class="max-w-2xl"
-					buttons={Object.entries(jobTypes)
-						.slice(...range)
-						.map(([mode, { name, icon }]) => ({
-							label: `New ${name}`,
-							icon,
-							cls: 'button-primary',
-							onclick: (event) => open({ event, mode })
-						}))}
-					disabled={!init}
+					class="max-w-4xl"
+					buttons={[
+						...Object.entries(jobTypes)
+							.slice(...range)
+							.map(([mode, { name, icon }]) => ({
+								label: `New ${name}`,
+								icon,
+								cls: 'button-primary',
+								hidden: exporting,
+								onclick: (event) => open({ event, mode })
+							})),
+						...(i == 0
+							? [
+									{
+										label: 'Import',
+										icon: 'mdi:import',
+										tooltip: 'Import a scheduler XML file',
+										cls: 'button-secondary',
+										hidden: exporting,
+										onclick: modalImport?.open
+									},
+									{
+										label: 'Select All',
+										icon: 'mdi:check-all',
+										tooltip: 'Select all scheduler elements for export',
+										cls: 'button-secondary',
+										hidden: !exporting || allExported,
+										onclick: () => selectAllForExport(true)
+									},
+									{
+										label: 'Unselect All',
+										icon: 'mdi:check-all',
+										tooltip: 'Clear scheduler selection for export',
+										cls: 'button-secondary',
+										hidden: !exporting || selectedExportCount == 0,
+										onclick: () => selectAllForExport(false)
+									},
+									{
+										label: 'Export',
+										icon: 'mdi:export',
+										tooltip: 'Choose scheduler elements to export',
+										cls: 'button-secondary',
+										hidden: exporting,
+										onclick: () => (exporting = true)
+									},
+									{
+										label: `Export [${selectedExportCount}]`,
+										icon: 'mdi:export',
+										tooltip: 'Export selected scheduler elements and their dependencies',
+										cls: 'button-primary',
+										hidden: !exporting,
+										disabled: selectedExportCount == 0,
+										onclick: exportScheduler
+									},
+									{
+										label: 'Cancel',
+										icon: 'mdi:close-circle-outline',
+										tooltip: 'Exit export mode without exporting',
+										cls: 'button-secondary',
+										hidden: !exporting,
+										onclick: () => (exporting = false)
+									}
+								]
+							: [])
+					]}
+					disabled={!init || waiting}
 				/>
 			{/snippet}
 
-			{@const tableData = next
-				? data.map((row) => ({ ...row, nextSort: toNextSortValue(row.next?.[0]) }))
-				: data}
+			{@const tableData =
+				next && !exporting
+					? data.map((row) => ({ ...row, nextSort: toNextSortValue(row.next?.[0]) }))
+					: data}
 			<TableAutoCard
 				class="text-left"
 				definition={[
@@ -397,51 +551,62 @@
 				{#snippet children({ row, def })}
 					{#if def.name == 'Actions'}
 						<fieldset class="layout-x-low" disabled={!init}>
-							<CheckState
-								name={row.name}
-								title={row.enabled == 'true' || row.enabled === true
-									? 'Disable schedule'
-									: 'Enable schedule'}
-								aria-label={row.enabled == 'true' || row.enabled === true
-									? 'Disable schedule'
-									: 'Enable schedule'}
-								bind:value={
-									() => row.enabled,
-									(enabled) =>
-										configure({
-											...row,
-											enabled,
-											edit: true,
-											exname: row.name,
-											type: `schedulerNew${row.type}`
-										})
-								}
-								disabled={!init}
-							/>
-							<Button
-								class="button-ico-primary"
-								{size}
-								icon="mdi:edit-outline"
-								title="Edit schedule"
-								onclick={(event) => open({ event, mode: row.type, row })}
-							/>
-							<Button
-								class="button-ico-primary"
-								{size}
-								icon="mdi:delete-outline"
-								title="Delete schedule"
-								onclick={async (event) => {
-									if (
-										await modalYesNo.open({
-											event,
-											title: 'Please Confirm',
-											message: `Are you sure you want to delete this ${title.slice(0, -1)} ?`
-										})
-									) {
-										remove(row.name, row.type);
+							{#if exporting}
+								<PropertyType
+									values={[false, true]}
+									type="boolean"
+									name="export"
+									bind:value={
+										() => row.export, (selected) => selectForExport(category, row, selected)
 									}
-								}}
-							/>
+								/>
+							{:else}
+								<CheckState
+									name={row.name}
+									title={row.enabled == 'true' || row.enabled === true
+										? 'Disable schedule'
+										: 'Enable schedule'}
+									aria-label={row.enabled == 'true' || row.enabled === true
+										? 'Disable schedule'
+										: 'Enable schedule'}
+									bind:value={
+										() => row.enabled,
+										(enabled) =>
+											configure({
+												...row,
+												enabled,
+												edit: true,
+												exname: row.name,
+												type: `schedulerNew${row.type}`
+											})
+									}
+									disabled={!init}
+								/>
+								<Button
+									class="button-ico-primary"
+									{size}
+									icon="mdi:edit-outline"
+									title="Edit schedule"
+									onclick={(event) => open({ event, mode: row.type, row })}
+								/>
+								<Button
+									class="button-ico-primary"
+									{size}
+									icon="mdi:delete-outline"
+									title="Delete schedule"
+									onclick={async (event) => {
+										if (
+											await modalYesNo.open({
+												event,
+												title: 'Please Confirm',
+												message: `Are you sure you want to delete this ${title.slice(0, -1)} ?`
+											})
+										) {
+											remove(row.name, row.type);
+										}
+									}}
+								/>
+							{/if}
 						</fieldset>
 					{:else if row.next?.length > 1}
 						<Button

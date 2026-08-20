@@ -44,7 +44,44 @@ function normalizeParameters(parameter) {
 	}, {});
 }
 
+let waiting = $state(false);
+
+async function doCall(action, param) {
+	waiting = true;
+	try {
+		param?.preventDefault?.();
+		const res = await call(
+			`scheduler.${action}`,
+			param?.target ? new FormData(param.target) : param
+		);
+		if (!res.isError) {
+			values.refresh();
+		}
+		return res;
+	} finally {
+		waiting = false;
+	}
+}
+
+function includeJobDependencies(job, visited = []) {
+	if (!job || visited.includes(job.name)) {
+		return;
+	}
+	visited.push(job.name);
+	job.export = true;
+	for (const memberName of checkArray(job.jobsname)) {
+		includeJobDependencies(
+			values.jobs.find(({ name }) => name == memberName),
+			visited
+		);
+	}
+}
+
 let values = {
+	get waiting() {
+		return waiting;
+	},
+
 	async configure(e) {
 		e.preventDefault?.();
 		const params = e.preventDefault ? new FormData(e.target) : e;
@@ -58,6 +95,40 @@ let values = {
 			type: `schedulerNew${type}`
 		});
 		values.refresh();
+	},
+	async importScheduler(event) {
+		const res = await doCall('Import', event);
+		return !res.isError;
+	},
+	async exportScheduler() {
+		const elements = [
+			...values.jobs
+				.filter(({ export: selected }) => selected)
+				.map(({ name }) => ({ category: 'jobs', name })),
+			...values.schedules
+				.filter(({ export: selected }) => selected)
+				.map(({ name }) => ({ category: 'schedules', name })),
+			...values.scheduled
+				.filter(({ export: selected }) => selected)
+				.map(({ name }) => ({ category: 'scheduledJobs', name }))
+		];
+		const res = await doCall('Export', { elements: JSON.stringify(elements) });
+		return !res.isError;
+	},
+	selectForExport(category, row, selected) {
+		row.export = selected;
+		if (!selected) {
+			return;
+		}
+		if (category == 'jobs') {
+			includeJobDependencies(row);
+		} else if (category == 'scheduledJobs') {
+			includeJobDependencies(values.jobs.find(({ name }) => name == row.jobName));
+			const schedule = values.schedules.find(({ name }) => name == row.scheduleName);
+			if (schedule) {
+				schedule.export = true;
+			}
+		}
 	}
 };
 
@@ -68,6 +139,9 @@ export default ServiceHelper({
 	service: 'scheduler.List',
 	mapping: { element: 'admin.element' },
 	beforeUpdate: ({ element }) => {
+		for (const schedulerElement of element) {
+			schedulerElement.export = false;
+		}
 		for (const job of element.filter(({ type }) => String(type ?? '').endsWith('ConvertigoJob'))) {
 			job.parameterMap = normalizeParameters(job.parameter);
 		}
