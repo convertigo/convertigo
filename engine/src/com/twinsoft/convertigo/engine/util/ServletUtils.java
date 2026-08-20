@@ -28,9 +28,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,17 +63,24 @@ public class ServletUtils {
 	private static final Pattern IMMUTABLE_DISPLAY_OBJECTS_PATH = Pattern.compile(
 			"^/(?:system/)?projects/[^/]+/DisplayObjects/(?:mobile|pwas/[^/]+)/_app/immutable/.+",
 			Pattern.CASE_INSENSITIVE);
-	private static final Pattern HASHED_DISPLAY_OBJECTS_FILE = Pattern.compile(
-			".*-[A-Za-z0-9_-]{8,}\\.(?:css|js|mjs|map|png|apng|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf|eot|wasm)$",
+	private static final Pattern FINGERPRINTED_DISPLAY_OBJECTS_FILE = Pattern.compile(
+			".*[.-][A-Za-z0-9_-]{8,}\\.(?:css|m?js|map|png|apng|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf|eot|wasm)(?:\\.map)?$",
+			Pattern.CASE_INSENSITIVE);
+	private static final Pattern STATIC_DISPLAY_OBJECTS_FILE = Pattern.compile(
+			".*\\.(?:css|m?js|map|json|webmanifest|png|apng|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf|eot|wasm)$",
 			Pattern.CASE_INSENSITIVE);
 	private static final String CACHE_CONTROL_IMMUTABLE = "public, max-age=31536000, immutable";
 	private static final String CACHE_CONTROL_REVALIDATE = "no-cache, must-revalidate";
+	private static final Set<String> REVALIDATED_DISPLAY_OBJECTS_FILES = Set.of(
+			"index.html", "env.json", "version.json", "manifest.json", "manifest.webmanifest",
+			"asset-manifest.json", "ngsw.json", "ngsw-worker.js", "service-worker.js", "safety-worker.js");
 	private static final Set<String> MOBILE_STATIC_EXTENSIONS = Set.of("js", "mjs", "css", "map", "json", "webmanifest", "png", "jpg", "jpeg", "gif", "svg", "ico", "webp", "avif", "woff", "woff2", "ttf", "eot", "otf", "wasm");
 	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
 			Engine.logContext.debug("Static file");
 			HttpUtils.applyCorsHeaders(request, response);
+			applyStaticHeaders(file, request, response);
 
 			var normalizedPath = file.getPath().replace('\\', '/');
 			byte[] rewritten = null;
@@ -94,8 +102,6 @@ public class ServletUtils {
 				response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
 			}
 			else {
-				long maxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
-
 				// Serve static files if they exist in the projects repository.
 				if ("index.html".equalsIgnoreCase(file.getName()) && matcher.matches() && isBaseHrefRewriteSupported(file)) {
 					var depth = depthOverride != null ? depthOverride : computeDepth(request);
@@ -119,13 +125,6 @@ public class ServletUtils {
 				String mimeType = filterConfig.getServletContext().getMimeType(file.getName());
 				Engine.logContext.debug("Found MIME type: " + mimeType);
 				HeaderName.ContentType.setHeader(response, mimeType);
-				var staticCacheControl = getStaticCacheControl(request, file);
-				if (staticCacheControl != null) {
-					HeaderName.CacheControl.setHeader(response, staticCacheControl);
-				}
-				if (!HeaderName.CacheControl.has(response)) {
-					HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge);
-				}
 				writeFile(request, response, file, rewritten, mimeType);
 			}
 		} else {
@@ -204,17 +203,38 @@ public class ServletUtils {
 
 	private static String getStaticCacheControl(HttpServletRequest request, File file) {
 		var path = request.getRequestURI().substring(request.getContextPath().length());
+		var staticMaxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_APP_STATIC_MAX_AGE);
+		return getStaticCacheControl(path, file.getName(), staticMaxAge);
+	}
+
+	private static void applyStaticHeaders(File file, HttpServletRequest request, HttpServletResponse response) {
+		var cacheControl = getStaticCacheControl(request, file);
+		if (cacheControl != null) {
+			HeaderName.CacheControl.setHeader(response, cacheControl);
+		}
+		if (!HeaderName.CacheControl.has(response)) {
+			var maxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
+			HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge);
+		}
+		response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
+	}
+
+	static String getStaticCacheControl(String path, String fileName, long staticMaxAge) {
 		if (!P_DISPLAY_OBJECTS_SPA.matcher(path).matches()) {
 			return null;
 		}
-		if ("index.html".equalsIgnoreCase(file.getName())) {
+		var normalizedFileName = fileName.toLowerCase(Locale.ROOT);
+		if (REVALIDATED_DISPLAY_OBJECTS_FILES.contains(normalizedFileName)) {
 			return CACHE_CONTROL_REVALIDATE;
 		}
 		if (IMMUTABLE_DISPLAY_OBJECTS_PATH.matcher(path).matches()) {
 			return CACHE_CONTROL_IMMUTABLE;
 		}
-		if (HASHED_DISPLAY_OBJECTS_FILE.matcher(file.getName()).matches()) {
+		if (FINGERPRINTED_DISPLAY_OBJECTS_FILE.matcher(fileName).matches()) {
 			return CACHE_CONTROL_IMMUTABLE;
+		}
+		if (STATIC_DISPLAY_OBJECTS_FILE.matcher(fileName).matches()) {
+			return "public, max-age=" + Math.max(0, staticMaxAge) + ", must-revalidate";
 		}
 		return null;
 	}
