@@ -20,8 +20,10 @@
 package com.twinsoft.convertigo.eclipse.property_editors;
 
 import org.codehaus.jettison.json.JSONObject;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONTokener;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
@@ -158,6 +160,19 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 			private FlowPropertyEditorComposite composite;
 
 			@Override
+			protected void createButtonsForButtonBar(Composite parent) {
+				super.createButtonsForButtonBar(parent);
+				if (composite != null) {
+					composite.setValidityListener(valid -> {
+						var button = getButton(IDialogConstants.OK_ID);
+						if (button != null && !button.isDisposed()) {
+							button.setEnabled(valid);
+						}
+					});
+				}
+			}
+
+			@Override
 			protected int getShellStyle() {
 				return super.getShellStyle() | SWT.RESIZE | SWT.MAX;
 			}
@@ -188,6 +203,9 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 
 			@Override
 			protected void okPressed() {
+				if (composite != null && !composite.isValueValid()) {
+					return;
+				}
 				if (composite != null) {
 					rawValue = composite.getValue();
 					text.setText(inlineEditable ? rawValue : structuredSummary(rawValue));
@@ -226,7 +244,7 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 			}
 			return switch (object.optString("mode", "")) {
 			case "literal" -> summaryValue(object.opt("value"));
-			case "expression" -> object.optString("expression", "");
+			case "expression" -> expressionSummary(object);
 			case "source" -> sourceSummary(object);
 			default -> object.toString();
 			};
@@ -237,6 +255,57 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 
 	private static String summaryValue(Object value) {
 		return value == null || JSONObject.NULL.equals(value) ? "null" : String.valueOf(value);
+	}
+
+	private static String expressionSummary(JSONObject binding) {
+		var expression = binding.optString("expression", "");
+		var parts = binding.optJSONArray("parts");
+		if (parts == null) {
+			return expression;
+		}
+		var summary = new StringBuilder();
+		JSONObject previous = null;
+		for (var i = 0; i < parts.length(); i++) {
+			var part = parts.optJSONObject(i);
+			if (part == null) {
+				continue;
+			}
+			var kind = part.optString("kind", "");
+			var valuePart = "literal".equals(kind) || "source".equals(kind);
+			if (valuePart && previous != null && needsImplicitJoin(previous)) {
+				summary.append(" + ");
+			}
+			if ("literal".equals(kind)) {
+				var value = part.opt("value");
+				summary.append(value instanceof String ? JSONObject.quote((String) value) : summaryValue(value));
+			} else if ("expression".equals(kind)) {
+				summary.append(part.optString("expression", ""));
+			} else if ("source".equals(kind)) {
+				summary.append(sourceSummary(part));
+			}
+			previous = part;
+		}
+		return summary.toString();
+	}
+
+	private static boolean needsImplicitJoin(JSONObject previous) {
+		var kind = previous.optString("kind", "");
+		if ("literal".equals(kind) || "source".equals(kind)) {
+			return true;
+		}
+		if (!"expression".equals(kind)) {
+			return false;
+		}
+		var expression = previous.optString("expression", "").trim();
+		if (expression.isEmpty()) {
+			return false;
+		}
+		for (var operator : new String[] { "++", "--", "??", "&&", "||", "=>" }) {
+			if (expression.endsWith(operator)) {
+				return false;
+			}
+		}
+		return "+-*/%?:,&|!<>=([{".indexOf(expression.charAt(expression.length() - 1)) < 0;
 	}
 
 	private static String sourceSummary(JSONObject binding) {

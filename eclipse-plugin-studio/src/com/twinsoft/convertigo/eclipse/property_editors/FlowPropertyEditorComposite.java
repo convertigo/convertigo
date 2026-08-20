@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
+import java.util.function.Consumer;
+
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.swt.SWT;
@@ -47,6 +49,8 @@ public class FlowPropertyEditorComposite extends Composite {
 	private final String initialValue;
 	private C8oBrowser browser;
 	private String value;
+	private volatile boolean valueValid = true;
+	private Consumer<Boolean> validityListener;
 	private final JSONObject values = new JSONObject();
 
 	private record EditorTarget(Flow flow, FlowEngine flowEngine, String qName) {
@@ -69,6 +73,25 @@ public class FlowPropertyEditorComposite extends Composite {
 
 	public String getValue() {
 		return value == null ? "" : value;
+	}
+
+	public boolean isValueValid() {
+		return valueValid;
+	}
+
+	public void setValidityListener(Consumer<Boolean> listener) {
+		validityListener = listener;
+		if (listener != null) {
+			listener.accept(valueValid);
+		}
+	}
+
+	private void setValueValid(boolean valid) {
+		valueValid = valid;
+		var listener = validityListener;
+		if (listener != null && !getDisplay().isDisposed()) {
+			getDisplay().asyncExec(() -> listener.accept(valueValid));
+		}
 	}
 
 	public void applyAdditionalValues(String currentPropertyName) {
@@ -337,6 +360,7 @@ public class FlowPropertyEditorComposite extends Composite {
 				if ("value".equals(json.optString("type", ""))) {
 					value = json.optString("value", "");
 					values.put(propertyName, value);
+					setValueValid(json.optBoolean("valid", true));
 				}
 				if ("values".equals(json.optString("type", ""))) {
 					var properties = json.optJSONObject("values");
