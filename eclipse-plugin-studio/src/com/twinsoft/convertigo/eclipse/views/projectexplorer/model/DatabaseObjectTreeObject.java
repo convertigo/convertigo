@@ -155,7 +155,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		super(viewer, object);
 		isInherited = inherited;
 		hasBeenModified((object.bNew) || (object.hasChanged && !object.bNew));
-		getDescriptors();
 	}
 
 	@Override
@@ -249,13 +248,16 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 
-	protected void getDescriptors() {
+	protected synchronized void getDescriptors() {
 		if (propertyDescriptors != null && databaseObjectBeanDescriptor != null &&
 				databaseObjectPropertyDescriptors != null) {
 			return;
 		}
 
 		DatabaseObject databaseObject = getObject();
+		if (databaseObject == null) {
+			return;
+		}
 		if ((!(databaseObject instanceof Project)) && (databaseObject.getParent() == null))
 			return; // No needs for removed object
 
@@ -375,6 +377,25 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 
 		propertyDescriptors = (IPropertyDescriptor[]) vPropertyDescriptors.toArray(new IPropertyDescriptor[] {});
+	}
+
+	private synchronized BeanDescriptor getDatabaseObjectBeanDescriptor() {
+		if (databaseObjectBeanDescriptor != null) {
+			return databaseObjectBeanDescriptor;
+		}
+		var databaseObject = getObject();
+		if (databaseObject == null) {
+			return null;
+		}
+		try {
+			var beanInfo = databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(databaseObject.getClass());
+			return databaseObjectBeanDescriptor = beanInfo.getBeanDescriptor();
+		} catch (Exception e) {
+			var message = "Error while introspecting object " + databaseObject.getName() + " ("
+					+ databaseObject.getQName() + ")";
+			ConvertigoPlugin.logException(e, message);
+			return null;
+		}
 	}
 
 	// A default validator which accept any value
@@ -702,17 +723,21 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	public IPropertyDescriptor[] getPropertyDescriptors() {
-		return propertyDescriptors;
+		getDescriptors();
+		return propertyDescriptors == null ? new IPropertyDescriptor[0] : propertyDescriptors;
 	}
 
 	public Object getPropertyValue(Object id) {
 		if (id == null) return null;
 
 		DatabaseObject databaseObject = getObject();
+		if (databaseObject == null) return null;
 		String propertyName = (String) id;
 
-		if (propertyName.equals(P_TYPE))
-			return databaseObjectBeanDescriptor.getDisplayName();
+		if (propertyName.equals(P_TYPE)) {
+			var beanDescriptor = getDatabaseObjectBeanDescriptor();
+			return beanDescriptor == null ? null : beanDescriptor.getDisplayName();
+		}
 		else if (propertyName.equals(P_JAVA_CLASS))
 			return databaseObject.getClass().getName();
 		else if (propertyName.equals(P_NAME))
@@ -866,6 +891,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public void resetPropertyValue(Object id) {	}
 
 	public void setPropertyValue(Object id, Object value) {
+		getDescriptors();
 		MobileBuilder mb = MobileBuilder.getBuilderOf(getObject());
 		DatabaseObject databaseObject = getObject();
 		Object oldValue = getPropertyValue(id);
@@ -1090,6 +1116,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	protected java.beans.PropertyDescriptor getPropertyDescriptor(String propertyName) {
+		getDescriptors();
+		if (databaseObjectPropertyDescriptors == null) {
+			return null;
+		}
 		int len = databaseObjectPropertyDescriptors.length;
 
 		java.beans.PropertyDescriptor databaseObjectPropertyDescriptor = null;
@@ -1175,7 +1205,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (getObject().testAttribute(name, value)) {
+		var databaseObject = getObject();
+		if (databaseObject == null) {
+			return false;
+		}
+		if (databaseObject.testAttribute(name, value)) {
 			return true;
 		}
 		if (name.equals("canPaste")) {

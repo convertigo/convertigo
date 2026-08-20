@@ -84,8 +84,12 @@ public final class FlowTreeMutationReconciler {
 		var effectiveSelection = selection == null ? Selection.NONE : selection;
 		var responseSelectionSourcePath = response.optString("selectionSourcePath",
 				effectiveSelection.sourcePath());
-		TreeObject selected = findByMutationPath(projectedRoot, responseSelectionSourcePath,
+		TreeObject selected = findByVirtualPath(projectedRoot,
+				response.optString("selectionVirtualPath", ""));
+		if (selected == null) {
+			selected = findByMutationPath(projectedRoot, responseSelectionSourcePath,
 				response.optString("selectionMutationPath", ""));
+		}
 		if (selected == null) {
 			selected = findBySourceId(projectedRoot, responseSelectionSourcePath,
 					response.optString("selectionId", ""));
@@ -200,6 +204,26 @@ public final class FlowTreeMutationReconciler {
 		if (root instanceof TreeParent treeParent) {
 			for (var child : treeParent.getChildren()) {
 				var found = findBySelectionKey(child, key);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
+	private static TreeObject findByVirtualPath(TreeObject root, String virtualPath) {
+		if (virtualPath == null || virtualPath.isBlank()) {
+			return null;
+		}
+		if (root instanceof DatabaseObjectTreeObject databaseTreeObject
+				&& databaseTreeObject.getObject() instanceof FlowVirtualObject flowObject
+				&& virtualPath.equals(flowObject.getVirtualPath())) {
+			return root;
+		}
+		if (root instanceof TreeParent treeParent) {
+			for (var child : treeParent.getChildren()) {
+				var found = findByVirtualPath(child, virtualPath);
 				if (found != null) {
 					return found;
 				}

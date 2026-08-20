@@ -46,7 +46,9 @@ import org.apache.http.HttpHost;
 import org.apache.tomcat.websocket.server.WsServerContainer;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.ReverseProxyManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.sessions.RedisInstanceDiscovery;
 
 public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 
@@ -60,7 +62,7 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 	public void init() throws ServletException {
 		doLog = false;
 		doForwardIP = true;
-		doPreserveHost = true;
+		doPreserveHost = false;
 		doHandleCompression = true;
 		doPreserveCookies = true;
 		super.init();
@@ -79,23 +81,35 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 			throws ServletException, IOException {
 		var uri = (String) servletRequest.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
 		var targetUri = uri;
+		var websocketUri = uri;
 		HttpHost targetHost = null;
 		
 		if (uri == null && servletRequest.getPathInfo() != null) {
-			// enter by the /gw servlet
+			// Direct /gw entry: resolve a local capability, or forward it to its Redis-discovered owner.
 			var mKey = pKey.matcher(servletRequest.getPathInfo());
 			if (!mKey.find()) {
+				servletResponse.sendError(HttpServletResponse.SC_NOT_FOUND);
 				return;
 			}
-			targetHost = Engine.theApp.reverseProxyManager.getHttpHost(mKey.group(1));
-			if (targetHost == null) {
+			var route = resolveRoute(mKey.group(1));
+			if (route == null) {
+				servletResponse.sendError(HttpServletResponse.SC_NOT_FOUND);
 				return;
 			}
+			targetHost = route.host;
 			uri = servletRequest.getRequestURI();
-			targetUri = servletRequest.getContextPath() + servletRequest.getServletPath();
+			targetUri = (route.basePath == null ? servletRequest.getContextPath() : route.basePath)
+					+ servletRequest.getServletPath();
+			websocketUri = targetUri + servletRequest.getPathInfo();
 		} else {
-			// enter by the ProjectsDataFilter /DisplayObjects/dev
-			targetHost = new HttpHost("localhost", getDevPort(targetUri), "http");
+			// Compatibility entry through ProjectsDataFilter /DisplayObjects/dev<port>.
+			var devPort = getDevPort(targetUri);
+			if (devPort < 1) {
+				servletResponse.sendError(HttpServletResponse.SC_NOT_FOUND);
+				return;
+			}
+			targetHost = new HttpHost("127.0.0.1", devPort, "http");
+			websocketUri = uri;
 		}
 		
 		if ("websocket".equals(HeaderName.Upgrade.getHeader(servletRequest))) {
@@ -105,7 +119,10 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 				var config = ServerEndpointConfig.Builder.create(WsProxy.class, uri);
 				var subprotocols = HeaderName.SecWebSocketProtocol.getHeader(servletRequest);
 				var map = new HashMap<String, String>();
-				map.put(WSTARGET, targetHost.toURI().replaceFirst("http", "ws") + uri);
+				var query = servletRequest.getQueryString();
+				var target = targetHost.toURI().replaceFirst("^http", "ws") + websocketUri
+						+ (query == null || query.isBlank() ? "" : "?" + query);
+				map.put(WSTARGET, target);
 				if (subprotocols != null) {
 					config.subprotocols(Arrays.asList(subprotocols.split(", *")));
 					map.put(SUBPROTOCOLS, subprotocols);
@@ -119,6 +136,44 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 			servletRequest.setAttribute(ATTR_TARGET_URI, targetUri);
 			servletRequest.setAttribute(ATTR_TARGET_HOST, targetHost);
 			super.service(servletRequest, servletResponse);
+		}
+	}
+
+	private static ProxyTarget resolveRoute(String key) {
+		var manager = Engine.theApp.reverseProxyManager;
+		var local = manager.getHttpHost(key);
+		if (local != null) {
+			return new ProxyTarget(local, null);
+		}
+		var instanceId = ReverseProxyManager.getRouteInstanceId(key);
+		if (instanceId == null || instanceId.equals(RedisInstanceDiscovery.getLocalInstanceId())) {
+			return null;
+		}
+		try {
+			var baseUrl = RedisInstanceDiscovery.resolveBaseUrl(instanceId);
+			if (baseUrl == null) {
+				return null;
+			}
+			var remote = URI.create(baseUrl);
+			if (remote.getHost() == null || !("http".equalsIgnoreCase(remote.getScheme())
+					|| "https".equalsIgnoreCase(remote.getScheme()))) {
+				return null;
+			}
+			var basePath = remote.getPath() == null ? "" : remote.getPath().replaceFirst("/+$", "");
+			return new ProxyTarget(new HttpHost(remote.getHost(), remote.getPort(), remote.getScheme()), basePath);
+		} catch (Exception e) {
+			Engine.logEngine.debug("[GatewayServlet] Unable to resolve route owner for " + key, e);
+			return null;
+		}
+	}
+
+	private static final class ProxyTarget {
+		private final HttpHost host;
+		private final String basePath;
+
+		private ProxyTarget(HttpHost host, String basePath) {
+			this.host = host;
+			this.basePath = basePath;
 		}
 	}
 	

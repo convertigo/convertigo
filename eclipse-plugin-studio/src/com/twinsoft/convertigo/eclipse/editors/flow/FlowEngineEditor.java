@@ -148,7 +148,8 @@ public class FlowEngineEditor extends EditorPart {
 
 	private void revealAuthoringReference(JSONObject reference) {
 		var explorer = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		if (explorer != null && !explorer.selectFlowAuthoringReference(getProjectName(), reference)) {
+		var sourceProject = reference.optString("sourceProject", getProjectName());
+		if (explorer != null && !explorer.selectFlowAuthoringReference(sourceProject, reference)) {
 			Engine.logStudio.warn("Unable to find the Flow authoring object in the project tree: " + reference);
 		}
 	}
@@ -208,7 +209,7 @@ public class FlowEngineEditor extends EditorPart {
 			var input = new FlowEngineEditorInput(id, title, url, projectName, tooltip, authoringProtocol);
 			var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			var editor = page.openEditor(input, ID);
-			if (editor instanceof FlowEngineEditor flowEditor) {
+			if (editor instanceof FlowEngineEditor flowEditor && flowEditor.getEditorInput() != input) {
 				flowEditor.updateInput(input);
 			}
 			return true;
@@ -254,12 +255,20 @@ public class FlowEngineEditor extends EditorPart {
 	}
 
 	public void updateInput(FlowEngineEditorInput input) {
+		var targetUrl = input.getUrl();
+		if (browser != null && !browser.isDisposed() && this.input != null) {
+			var previousBaseUrl = this.input.getUrl();
+			var currentUrl = browser.getURL();
+			if (!previousBaseUrl.isBlank() && currentUrl != null && currentUrl.startsWith(previousBaseUrl)) {
+				targetUrl += currentUrl.substring(previousBaseUrl.length());
+			}
+		}
 		this.input = input;
 		setInput(input);
 		setPartName(input.getName());
 		if (browser != null && !browser.isDisposed()) {
 			installAuthoringBridge();
-			browser.setUrl(input.getUrl());
+			browser.setUrl(targetUrl);
 		}
 	}
 

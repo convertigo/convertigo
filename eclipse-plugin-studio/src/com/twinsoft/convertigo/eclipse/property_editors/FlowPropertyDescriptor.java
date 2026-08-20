@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.eclipse.property_editors;
 
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 
@@ -31,6 +33,15 @@ public class FlowPropertyDescriptor extends PropertyDescriptor {
 	private final FlowVirtualObjectTreeObject treeObject;
 	private final String propertyName;
 	private final JSONObject definition;
+	private final ILabelProvider labelProvider = new LabelProvider() {
+		@Override
+		public String getText(Object element) {
+			if (!FlowPropertyCellEditor.isInlineEditable(definition)) {
+				return FlowPropertyCellEditor.structuredSummary(element == null ? "" : String.valueOf(element));
+			}
+			return super.getText(element);
+		}
+	};
 
 	public FlowPropertyDescriptor(Object id, String displayName, FlowVirtualObjectTreeObject treeObject,
 			String propertyName, JSONObject definition) {
@@ -47,5 +58,10 @@ public class FlowPropertyDescriptor extends PropertyDescriptor {
 			editor.setValidator(getValidator());
 		}
 		return editor;
+	}
+
+	@Override
+	public ILabelProvider getLabelProvider() {
+		return labelProvider;
 	}
 }

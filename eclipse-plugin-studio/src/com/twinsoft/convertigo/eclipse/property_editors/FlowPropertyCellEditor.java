@@ -20,7 +20,10 @@
 package com.twinsoft.convertigo.eclipse.property_editors;
 
 import org.codehaus.jettison.json.JSONObject;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONTokener;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
@@ -48,6 +51,8 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 	private final FlowVirtualObjectTreeObject treeObject;
 	private final String propertyName;
 	private final JSONObject definition;
+	private boolean inlineEditable = true;
+	private String rawValue = "";
 	private Composite editor;
 
 	public FlowPropertyCellEditor(Composite parent, FlowVirtualObjectTreeObject treeObject, String propertyName,
@@ -56,6 +61,13 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 		this.treeObject = treeObject;
 		this.propertyName = propertyName;
 		this.definition = definition == null ? new JSONObject() : definition;
+		inlineEditable = isInlineEditable(this.definition);
+		if (text != null && !text.isDisposed()) {
+			text.setEditable(inlineEditable);
+			if (!inlineEditable) {
+				text.setToolTipText("Use ... to edit this structured Flow property");
+			}
+		}
 	}
 
 	@Override
@@ -118,13 +130,14 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 
 	@Override
 	protected Object doGetValue() {
-		return text == null || text.isDisposed() ? "" : text.getText();
+		return inlineEditable && text != null && !text.isDisposed() ? text.getText() : rawValue;
 	}
 
 	@Override
 	protected void doSetValue(Object value) {
+		rawValue = value == null ? "" : value.toString();
 		if (text != null && !text.isDisposed()) {
-			text.setText(value == null ? "" : value.toString());
+			text.setText(inlineEditable ? rawValue : structuredSummary(rawValue));
 		}
 	}
 
@@ -145,6 +158,19 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 		var parent = PlatformUI.getWorkbench().getModalDialogShellProvider().getShell();
 		var dialog = new Dialog(parent) {
 			private FlowPropertyEditorComposite composite;
+
+			@Override
+			protected void createButtonsForButtonBar(Composite parent) {
+				super.createButtonsForButtonBar(parent);
+				if (composite != null) {
+					composite.setValidityListener(valid -> {
+						var button = getButton(IDialogConstants.OK_ID);
+						if (button != null && !button.isDisposed()) {
+							button.setEnabled(valid);
+						}
+					});
+				}
+			}
 
 			@Override
 			protected int getShellStyle() {
@@ -177,8 +203,12 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 
 			@Override
 			protected void okPressed() {
+				if (composite != null && !composite.isValueValid()) {
+					return;
+				}
 				if (composite != null) {
-					text.setText(composite.getValue());
+					rawValue = composite.getValue();
+					text.setText(inlineEditable ? rawValue : structuredSummary(rawValue));
 					composite.applyAdditionalValues(propertyName);
 				}
 				super.okPressed();
@@ -188,6 +218,126 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 			fireApplyEditorValue();
 			deactivate();
 		}
+	}
+
+	static boolean isInlineEditable(JSONObject definition) {
+		var kind = definition.optString("kind", "").toLowerCase();
+		var type = definition.optString("type", "").toLowerCase();
+		return !switch (kind) {
+		case "binding", "expression", "code", "requestable", "json", "schema", "object", "array" -> true;
+		default -> switch (type) {
+			case "binding", "expression", "code", "requestable", "json", "schema", "object", "array" -> true;
+			default -> false;
+		};
+		};
+	}
+
+	static String structuredSummary(String raw) {
+		var trimmed = raw == null ? "" : raw.trim();
+		if (trimmed.isEmpty()) {
+			return "";
+		}
+		try {
+			var value = new JSONTokener(trimmed).nextValue();
+			if (!(value instanceof JSONObject object)) {
+				return value == null || JSONObject.NULL.equals(value) ? "null" : String.valueOf(value);
+			}
+			return switch (object.optString("mode", "")) {
+			case "literal" -> summaryValue(object.opt("value"));
+			case "expression" -> expressionSummary(object);
+			case "source" -> sourceSummary(object);
+			default -> object.toString();
+			};
+		} catch (Exception e) {
+			return raw;
+		}
+	}
+
+	private static String summaryValue(Object value) {
+		return value == null || JSONObject.NULL.equals(value) ? "null" : String.valueOf(value);
+	}
+
+	private static String expressionSummary(JSONObject binding) {
+		var expression = binding.optString("expression", "");
+		var parts = binding.optJSONArray("parts");
+		if (parts == null) {
+			return expression;
+		}
+		var summary = new StringBuilder();
+		JSONObject previous = null;
+		for (var i = 0; i < parts.length(); i++) {
+			var part = parts.optJSONObject(i);
+			if (part == null) {
+				continue;
+			}
+			var kind = part.optString("kind", "");
+			var valuePart = "literal".equals(kind) || "source".equals(kind);
+			if (valuePart && previous != null && needsImplicitJoin(previous)) {
+				summary.append(" + ");
+			}
+			if ("literal".equals(kind)) {
+				var value = part.opt("value");
+				summary.append(value instanceof String ? JSONObject.quote((String) value) : summaryValue(value));
+			} else if ("expression".equals(kind)) {
+				summary.append(part.optString("expression", ""));
+			} else if ("source".equals(kind)) {
+				summary.append(sourceSummary(part));
+			}
+			previous = part;
+		}
+		return summary.toString();
+	}
+
+	private static boolean needsImplicitJoin(JSONObject previous) {
+		var kind = previous.optString("kind", "");
+		if ("literal".equals(kind) || "source".equals(kind)) {
+			return true;
+		}
+		if (!"expression".equals(kind)) {
+			return false;
+		}
+		var expression = previous.optString("expression", "").trim();
+		if (expression.isEmpty()) {
+			return false;
+		}
+		for (var operator : new String[] { "++", "--", "??", "&&", "||", "=>" }) {
+			if (expression.endsWith(operator)) {
+				return false;
+			}
+		}
+		return "+-*/%?:,&|!<>=([{".indexOf(expression.charAt(expression.length() - 1)) < 0;
+	}
+
+	private static String sourceSummary(JSONObject binding) {
+		var source = binding.optJSONObject("source");
+		if (source == null) {
+			return binding.toString();
+		}
+		var category = source.optString("category", "");
+		var root = switch (category) {
+		case "local" -> "@local." + source.optString("name", "");
+		case "iteration" -> "@" + source.optString("scopeId", "") + "." + source.optString("value", "item");
+		case "event" -> "@event";
+		case "route" -> "@route";
+		default -> "@" + source.optString("actionId", "");
+		};
+		var path = binding.optJSONArray("path");
+		if (path == null) {
+			return root;
+		}
+		var summary = new StringBuilder(root);
+		for (var i = 0; i < path.length(); i++) {
+			var segment = path.optJSONObject(i);
+			if (segment == null) {
+				continue;
+			}
+			if ("index".equals(segment.optString("kind"))) {
+				summary.append('[').append(segment.optInt("index")).append(']');
+			} else {
+				summary.append('.').append(segment.optString("name"));
+			}
+		}
+		return summary.toString();
 	}
 
 	private static Rectangle clientArea(Shell parentShell) {
