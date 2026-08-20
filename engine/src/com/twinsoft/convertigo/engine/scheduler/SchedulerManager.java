@@ -22,8 +22,10 @@ package com.twinsoft.convertigo.engine.scheduler;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -79,9 +81,36 @@ public class SchedulerManager {
 		}
 	}
 	
-	public void load() throws FileNotFoundException {
-		try (XMLDecoder decoder = new XMLDecoder(new FileInputStream(getFileURL()))) {
-			schedulerXML = (SchedulerXML) decoder.readObject();
+	public void load() throws IOException {
+		try (FileInputStream inputStream = new FileInputStream(getFileURL())) {
+			schedulerXML = readSchedulerXML(inputStream);
+		}
+	}
+
+	public static SchedulerXML readSchedulerXML(InputStream inputStream) throws IOException {
+		final Exception[] decodingException = new Exception[1];
+		try (XMLDecoder decoder = new XMLDecoder(inputStream, null, exception -> decodingException[0] = exception)) {
+			Object object = decoder.readObject();
+			if (decodingException[0] != null) {
+				throw new IOException("Unable to decode the scheduler configuration", decodingException[0]);
+			}
+			if (!(object instanceof SchedulerXML)) {
+				throw new IOException("The file does not contain a scheduler configuration");
+			}
+			return (SchedulerXML) object;
+		} catch (RuntimeException e) {
+			throw new IOException("Unable to decode the scheduler configuration", e);
+		}
+	}
+
+	public static void writeSchedulerXML(SchedulerXML schedulerXML, OutputStream outputStream) throws IOException {
+		final Exception[] encodingException = new Exception[1];
+		try (XMLEncoder encoder = new XMLEncoder(outputStream)) {
+			encoder.setExceptionListener(exception -> encodingException[0] = exception);
+			encoder.writeObject(schedulerXML);
+		}
+		if (encodingException[0] != null) {
+			throw new IOException("Unable to encode the scheduler configuration", encodingException[0]);
 		}
 	}
 	
@@ -214,22 +243,36 @@ public class SchedulerManager {
 	}
 	
 	public void save() {
-		try (XMLEncoder encoder = new XMLEncoder(new FileOutputStream(getFileURL()))) {
+		saveWithResult();
+	}
+
+	public boolean saveWithResult() {
+		try (FileOutputStream outputStream = new FileOutputStream(getFileURL())) {
 			Engine.logEngine.debug("(Scheduler Manager) Start jobs saving ...");
-			encoder.writeObject(schedulerXML);
-		} catch (FileNotFoundException e) {
+			writeSchedulerXML(schedulerXML, outputStream);
+		} catch (IOException e) {
 			Engine.logEngine.error("(Scheduler Manager) ... jobs saving failed !", e);
+			return false;
 		}
 		
 		try {
 			load();
 			Engine.logEngine.debug("(Scheduler Manager) ... jobs saving finished !");
-		} catch (FileNotFoundException e) {
+			return true;
+		} catch (IOException e) {
 			Engine.logEngine.error("(Scheduler Manager) ... jobs reloading failed !", e);
+			return false;
 		}
 	}
 	
 	public SchedulerXML getSchedulerXML() {
 		return schedulerXML;
+	}
+
+	public void setSchedulerXML(SchedulerXML schedulerXML) {
+		if (schedulerXML == null) {
+			throw new IllegalArgumentException("schedulerXML cannot be null");
+		}
+		this.schedulerXML = schedulerXML;
 	}
 }

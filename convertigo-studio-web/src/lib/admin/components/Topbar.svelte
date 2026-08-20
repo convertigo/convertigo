@@ -18,6 +18,7 @@
 		title = undefined,
 		hasSecondaryRail = false
 	} = $props();
+	let eclipseStudio = $state(false);
 
 	const computedTitle = $derived(
 		title ??
@@ -40,9 +41,8 @@
 	});
 
 	onMount(() => {
-		if (variant === 'studio') {
-			return;
-		}
+		const win = /** @type {any} */ (window);
+		eclipseStudio = Boolean(win.java?.receiveFromJS);
 	});
 
 	$effect(() => {
@@ -77,7 +77,9 @@
 				<span class="monitor-time max-md:hidden">you {Time.browserTime}</span>
 				<span class="monitor-time">server {Time.serverTime} {Time.serverTimezone}</span>
 			{/if}
-			<LightSwitch />
+			{#if !eclipseStudio}
+				<LightSwitch />
+			{/if}
 		</section>
 	{:else}
 		<section class="layout-x pl-2 md:pl-5 {leftOffsetClass}">
@@ -138,7 +140,9 @@
 				<span class="monitor-time max-md:hidden">you {Time.browserTime}</span>
 				<span class="monitor-time">server {Time.serverTime} {Time.serverTimezone}</span>
 			{/if}
-			<LightSwitch />
+			{#if !eclipseStudio}
+				<LightSwitch />
+			{/if}
 		</section>
 	{/if}
 </header>
