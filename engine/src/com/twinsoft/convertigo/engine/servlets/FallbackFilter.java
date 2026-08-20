@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -39,6 +40,34 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class FallbackFilter implements Filter {
+	private static final Map<String, String> LEGACY_REDIRECTS = Map.of(
+			"/admin/login.html", "/login/",
+			"/admin/main.html", "/login/",
+			"/projects", "/dashboard/",
+			"/projects/", "/dashboard/"
+	);
+
+	private static boolean redirectLegacyPath(HttpServletRequest request, HttpServletResponse response, String servletPath) throws IOException {
+		if (!("GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod()))) {
+			return false;
+		}
+
+		var targetPath = LEGACY_REDIRECTS.get(servletPath);
+		if (targetPath == null) {
+			return false;
+		}
+
+		var location = new StringBuilder(request.getContextPath()).append(targetPath);
+		if (request.getQueryString() != null) {
+			location.append("?").append(request.getQueryString());
+		}
+		if (Engine.logEngine.isDebugEnabled()) {
+			Engine.logEngine.debug("(FallbackFilter) Redirect legacy path " + servletPath + " -> " + targetPath);
+		}
+		response.sendRedirect(response.encodeRedirectURL(location.toString()));
+		return true;
+	}
+
 	private static String resolveFallbackPath(String servletPath) {
 		if (!servletPath.endsWith("/index.html")) {
 			return null;
@@ -106,6 +135,10 @@ public class FallbackFilter implements Filter {
 	    HttpServletResponse response = (HttpServletResponse) _response;
 		Log4jHelper.mdcClear();
 	    var servletPath = request.getServletPath();
+
+		if (redirectLegacyPath(request, response, servletPath)) {
+			return;
+		}
 
 		if (!servletPath.endsWith("/") && ("GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod()))) {
 			var slashServletPath = servletPath + "/";
