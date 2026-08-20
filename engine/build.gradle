@@ -320,7 +320,7 @@ dependencies {
 	compileFlat    'com.convertigo.twinsoft:twinj:2016.05.09'
 	compileFlat    'com.convertigo.twinsoft:ui:2009.06.15'
 	implementation 'com.convertigo.twinsoft:util:2017.12.29'
-	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.22.1'
+	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.22.2'
 	compileFlat    'com.fasterxml.woodstox:woodstox-core:6.7.0'
 	compileFlat    ('com.google.gcm:gcm-server:1.0.0') {
 		exclude group: 'junit', module: 'junit'
@@ -383,7 +383,7 @@ dependencies {
 	compileFlat    'org.hsqldb:hsqldb:2.7.4'
 	compileFlat    'org.mariadb.jdbc:mariadb-java-client:3.5.10'
 	compileFlat    'org.postgresql:postgresql:42.7.13'
-	compileFlat    'org.redisson:redisson:4.6.1'
+	compileFlat    'org.redisson:redisson:4.7.0'
 	// end runtime dependencies
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-websocket:' + tomcatVersion
