@@ -437,14 +437,27 @@ public class FlowStudioSupport {
 		if (root == null) {
 			return categories;
 		}
+		if (targetDbo instanceof FlowEngine flowEngine) {
+			if (isBlockDefinitionPaletteTarget(targetDbo)) {
+				categories.put(blockDefinitionCategory(targetDbo));
+			}
+			if (isTypeDefinitionPaletteTarget(targetDbo)) {
+				categories.put(typeDefinitionCategory(targetDbo));
+			}
+			if (isPropertyDefinitionPaletteTarget(targetDbo)) {
+				categories.put(propertyDefinitionCategory(targetDbo));
+			}
+			if (!hasConfiguredFrontendBuilder(flowEngine)) {
+				categories.put(frontendBuilderBootstrapCategory(targetDbo));
+			}
+			return categories;
+		}
 		if (isFrontendPaletteTarget(targetDbo)) {
 			var frontendCategories = frontendBlockCategories(root, targetDbo);
 			for (int i = 0; i < frontendCategories.length(); i++) {
 				categories.put(frontendCategories.get(i));
 			}
-			if (!(targetDbo instanceof FlowEngine)) {
-				return categories;
-			}
+			return categories;
 		}
 
 		var grouped = new LinkedHashMap<String, JSONObject>();
@@ -456,9 +469,6 @@ public class FlowStudioSupport {
 		}
 		if (isPropertyDefinitionPaletteTarget(targetDbo)) {
 			categories.put(propertyDefinitionCategory(targetDbo));
-		}
-		if (targetDbo instanceof FlowEngine) {
-			return categories;
 		}
 		if (categories.length() > 0) {
 			return categories;
@@ -498,6 +508,61 @@ public class FlowStudioSupport {
 			}
 		}
 		return categories;
+	}
+
+	private static boolean hasConfiguredFrontendBuilder(FlowEngine flowEngine) {
+		var source = flowEngine.getEngineSource();
+		var frontbuilderIndent = -1;
+		for (var line : source.split("\\R")) {
+			var comment = line.indexOf('#');
+			var content = comment < 0 ? line : line.substring(0, comment);
+			var trimmed = content.trim();
+			if (trimmed.isEmpty()) {
+				continue;
+			}
+			var indent = content.length() - content.stripLeading().length();
+			if (frontbuilderIndent < 0) {
+				if ("frontbuilder:".equals(trimmed)) {
+					frontbuilderIndent = indent;
+				} else if (trimmed.startsWith("frontbuilder:")) {
+					var inlineValue = trimmed.substring("frontbuilder:".length()).trim();
+					return !inlineValue.isEmpty() && !"{}".equals(inlineValue) && !"null".equals(inlineValue);
+				}
+				continue;
+			}
+			if (indent <= frontbuilderIndent) {
+				return false;
+			}
+			if (trimmed.indexOf(':') > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static JSONObject frontendBuilderBootstrapCategory(DatabaseObject targetDbo) throws Exception {
+		var descriptor = new JSONObject()
+				.put("id", "frontbuilder.svelte.builder")
+				.put("label", "Svelte builder")
+				.put("category", "Svelte / Builders")
+				.put("descriptorKind", "create")
+				.put("createAction", true)
+				.put("icon", "mdi:application-braces-outline")
+				.put("description", "Adds the Svelte frontend builder configuration to this Flow engine.")
+				.put("targetKinds", new JSONArray().put("flowEngine").put("frontends"))
+				.put("acceptedPositions", new JSONArray().put("inside"))
+				.put("insert", new JSONObject()
+						.put("__engineMutationPath", "config.frontbuilder.svelte")
+						.put("__engineMutationOp", "merge")
+						.put("target", "svelte5")
+						.put("resourceRoot", "libs/flow/frontbuilder/svelte")
+						.put("privateDir", "_private/svelte")
+						.put("modelPath", "libs/flow/frontbuilder/svelte/model/SvelteFrontend/src/routes/+page.flow.svelte")
+						.put("buildOutput", "DisplayObjects/mobile"));
+		return new JSONObject()
+				.put("type", "Category")
+				.put("name", "Frontend create actions - Svelte / Builders")
+				.put("items", new JSONArray().put(frontendPaletteItem(targetDbo, descriptor)));
 	}
 
 	private static String blockCategoryName(JSONObject block) {
