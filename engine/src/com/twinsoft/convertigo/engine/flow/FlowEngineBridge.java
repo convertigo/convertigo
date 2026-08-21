@@ -64,6 +64,7 @@ public class FlowEngineBridge {
 	private static final String ENGINE_BASE_PATH = "libs/flow/";
 	private static final Map<String, CachedEngineSource> engineSourceCache = new ConcurrentHashMap<>();
 	private static final Map<String, CachedEngineRuntimePool> engineRuntimeCache = new ConcurrentHashMap<>();
+	private static final Object engineRuntimeCacheLock = new Object();
 	private static final Map<String, CachedMethodResponse> methodResponseCache = new ConcurrentHashMap<>();
 	private static final Map<String, InvocationStats> invocationStats = new ConcurrentHashMap<>();
 	private static final AtomicLong cacheGeneration = new AtomicLong();
@@ -102,9 +103,14 @@ public class FlowEngineBridge {
 	}
 
 	public static void clearCaches() {
-		cacheGeneration.incrementAndGet();
+		var runtimes = new ArrayList<CachedEngineRuntime>();
+		synchronized (engineRuntimeCacheLock) {
+			cacheGeneration.incrementAndGet();
+			engineRuntimeCache.values().forEach(pool -> runtimes.addAll(drainAvailableRuntimes(pool)));
+			engineRuntimeCache.clear();
+		}
 		engineSourceCache.clear();
-		engineRuntimeCache.clear();
+		disposeEngineRuntimes(runtimes, null);
 		methodResponseCache.clear();
 		methodResponseCacheInvalidations.increment();
 		RhinoUtils.clearCachedJavascript();
@@ -1709,11 +1715,22 @@ public class FlowEngineBridge {
 			org.mozilla.javascript.Context cx) throws EngineException {
 		var baseKey = engineRef.qname + "|" + engineSource.sourceName();
 		var key = baseKey + "|pool";
-		var generation = cacheGeneration.get();
-		engineRuntimeCache.entrySet().removeIf(entry -> entry.getKey().startsWith(engineRef.qname + "|")
-				&& (entry.getValue().generation != generation || !entry.getKey().equals(key)));
-		var pool = engineRuntimeCache.computeIfAbsent(key,
-				ignored -> new CachedEngineRuntimePool(engineSource.sourceName(), generation));
+		var staleRuntimes = new ArrayList<CachedEngineRuntime>();
+		long generation;
+		CachedEngineRuntimePool pool;
+		synchronized (engineRuntimeCacheLock) {
+			generation = cacheGeneration.get();
+			engineRuntimeCache.forEach((runtimeKey, runtimePool) -> {
+				if (runtimeKey.startsWith(engineRef.qname + "|")
+						&& (runtimePool.generation != generation || !runtimeKey.equals(key))
+						&& engineRuntimeCache.remove(runtimeKey, runtimePool)) {
+					staleRuntimes.addAll(drainAvailableRuntimes(runtimePool));
+				}
+			});
+			pool = engineRuntimeCache.computeIfAbsent(key,
+					ignored -> new CachedEngineRuntimePool(engineSource.sourceName(), generation));
+		}
+		disposeEngineRuntimes(staleRuntimes, cx);
 		try {
 			synchronized (pool) {
 				var cached = pool.available.pollFirst();
@@ -1755,14 +1772,71 @@ public class FlowEngineBridge {
 	}
 
 	private static void releaseEngineRuntime(CachedEngineRuntimeLookup lookup) {
-		if (lookup == null || !lookup.pooled()) {
+		if (lookup == null) {
+			return;
+		}
+		if (!lookup.pooled()) {
+			disposeEngineRuntime(lookup.runtime(), org.mozilla.javascript.Context.getCurrentContext());
 			return;
 		}
 		var pool = lookup.pool();
+		var released = false;
 		synchronized (pool) {
-			if (pool.generation == lookup.generation() && pool.sourceName.equals(lookup.runtime().sourceName())) {
+			if (engineRuntimeCache.get(lookup.key()) == pool && pool.generation == lookup.generation()
+					&& pool.sourceName.equals(lookup.runtime().sourceName())) {
 				pool.available.addLast(lookup.runtime());
+				released = true;
+			} else if (pool.cachedCount > 0) {
+				pool.cachedCount--;
 			}
+		}
+		if (!released) {
+			disposeEngineRuntime(lookup.runtime(), org.mozilla.javascript.Context.getCurrentContext());
+		}
+	}
+
+	private static List<CachedEngineRuntime> drainAvailableRuntimes(CachedEngineRuntimePool pool) {
+		var runtimes = new ArrayList<CachedEngineRuntime>();
+		synchronized (pool) {
+			while (!pool.available.isEmpty()) {
+				runtimes.add(pool.available.removeFirst());
+			}
+			pool.cachedCount = Math.max(0, pool.cachedCount - runtimes.size());
+		}
+		return runtimes;
+	}
+
+	private static void disposeEngineRuntimes(List<CachedEngineRuntime> runtimes, org.mozilla.javascript.Context cx) {
+		if (runtimes.isEmpty()) {
+			return;
+		}
+		var entered = false;
+		try {
+			if (cx == null) {
+				cx = org.mozilla.javascript.Context.enter();
+				entered = true;
+			}
+			for (var runtime : runtimes) {
+				disposeEngineRuntime(runtime, cx);
+			}
+		} finally {
+			if (entered) {
+				org.mozilla.javascript.Context.exit();
+			}
+		}
+	}
+
+	private static void disposeEngineRuntime(CachedEngineRuntime runtime, org.mozilla.javascript.Context cx) {
+		if (runtime == null || cx == null) {
+			return;
+		}
+		try {
+			var function = ScriptableObject.getProperty(runtime.engineObject(), "cacheClear");
+			if (function instanceof Function cacheClear) {
+				cacheClear.call(cx, runtime.scope(), runtime.engineObject(), new Object[] { "{}" });
+			}
+		} catch (Exception e) {
+			Engine.logEngine.warn("(FlowEngineBridge) Unable to clear a discarded engine runtime.", e);
 		}
 	}
 
