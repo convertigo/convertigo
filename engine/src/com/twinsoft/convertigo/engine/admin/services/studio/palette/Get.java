@@ -69,10 +69,7 @@ public class Get extends JSonService {
 
 		JSONArray categories = new JSONArray();
 		if (folderType == null && FlowStudioSupport.isFlowPaletteTarget(parentDbo)) {
-			var flowCategories = FlowStudioSupport.paletteCategories(parentDbo);
-			for (int i = 0; i < flowCategories.length(); i++) {
-				categories.put(flowCategories.get(i));
-			}
+			return FlowStudioSupport.paletteCategories(parentDbo);
 		}
 
 		for (DboGroup g : Engine.theApp.getDboExplorerManager().getGroups()) {

@@ -457,7 +457,10 @@ public class FlowStudioSupport {
 		if (isPropertyDefinitionPaletteTarget(targetDbo)) {
 			categories.put(propertyDefinitionCategory(targetDbo));
 		}
-		if (categories.length() > 0 && !(targetDbo instanceof FlowEngine)) {
+		if (targetDbo instanceof FlowEngine) {
+			return categories;
+		}
+		if (categories.length() > 0) {
 			return categories;
 		}
 		if (isHelperDefinitionPaletteTarget(targetDbo)) {
