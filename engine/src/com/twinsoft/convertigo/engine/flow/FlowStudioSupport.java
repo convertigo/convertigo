@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.flow;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -60,6 +61,16 @@ public class FlowStudioSupport {
 	private static final String FLOW_VIRTUAL_ICON = "/com/twinsoft/convertigo/beans/flow/images/flowvirtualobject_color_32x32.png";
 	private static final String FLOW_SCRIPT_ICON = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_script_color_32x32.png";
 	private static final Map<String, JSONObject> catalogCache = new ConcurrentHashMap<>();
+	private static final int PALETTE_CATEGORIES_CACHE_LIMIT = 64;
+	private static final Map<String, String> paletteCategoriesCache = Collections.synchronizedMap(
+			new LinkedHashMap<String, String>(PALETTE_CATEGORIES_CACHE_LIMIT, 0.75f, true) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+					return size() > PALETTE_CATEGORIES_CACHE_LIMIT;
+				}
+			});
 
 	private FlowStudioSupport() {
 	}
@@ -235,14 +246,23 @@ public class FlowStudioSupport {
 			}
 			var flowPrefix = flow.getProject().getName() + "|" + effectiveEngineQName(flow) + "|" + flow.getFullQName() + "|";
 			catalogCache.keySet().removeIf(key -> key.startsWith(flowPrefix));
+			clearPaletteCategoriesCache(flowPrefix);
 			return;
 		}
 		var key = paletteKey(dbo);
 		if (key.isBlank()) {
 			catalogCache.clear();
+			paletteCategoriesCache.clear();
 			return;
 		}
 		catalogCache.remove(key);
+		clearPaletteCategoriesCache(key);
+	}
+
+	private static void clearPaletteCategoriesCache(String prefix) {
+		synchronized (paletteCategoriesCache) {
+			paletteCategoriesCache.keySet().removeIf(key -> key.startsWith(prefix));
+		}
 	}
 
 	public static JSONObject contextMenu(DatabaseObject targetDbo) throws Exception {
@@ -432,6 +452,32 @@ public class FlowStudioSupport {
 	}
 
 	public static JSONArray paletteCategories(DatabaseObject targetDbo) throws Exception {
+		var cacheKey = paletteCategoriesCacheKey(targetDbo);
+		if (!cacheKey.isBlank()) {
+			var cached = paletteCategoriesCache.get(cacheKey);
+			if (cached != null) {
+				return new JSONArray(cached);
+			}
+		}
+		var categories = computePaletteCategories(targetDbo);
+		if (!cacheKey.isBlank()) {
+			paletteCategoriesCache.put(cacheKey, categories.toString());
+		}
+		return categories;
+	}
+
+	private static String paletteCategoriesCacheKey(DatabaseObject targetDbo) {
+		var key = paletteKey(targetDbo);
+		if (key.isBlank()) {
+			return "";
+		}
+		if (targetDbo instanceof FlowVirtualObject fvo) {
+			return key + "|" + fvo.getVirtualKind() + "|" + fvo.getVirtualPath();
+		}
+		return key + "|" + targetDbo.getClass().getName();
+	}
+
+	private static JSONArray computePaletteCategories(DatabaseObject targetDbo) throws Exception {
 		var root = flowAuthoringRoot(targetDbo);
 		var categories = new JSONArray();
 		if (root == null) {

@@ -1506,12 +1506,14 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		Engine.execute(() -> {
 			var refreshStarted = System.currentTimeMillis();
 			boolean[] needUpdate = {false};
+			boolean[] needImageRefresh = {false};
 			boolean[] refreshAgain = {false};
 			var flowOnly = FlowStudioSupport.isFlowPaletteTarget(refreshFlowTarget);
 			if (selectedProject != null && !flowOnly) {
 				ComponentManager cm = ComponentManager.of(selectedProject);
 				if (cm != latestComponentManager) {
 					needUpdate[0] = true;
+					needImageRefresh[0] = true;
 					latestComponentManager = cm;
 					cm.reloadComponents();
 					all.clear();
@@ -1600,7 +1602,9 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					}
 					String txt = searchText != null ? searchText.getText() : "";
 					if (needUpdate[0]) {
-						clearImageCache();
+						if (needImageRefresh[0]) {
+							clearImageCache();
+						}
 						updateBags();
 					}
 					if (refreshAgain[0]) {
