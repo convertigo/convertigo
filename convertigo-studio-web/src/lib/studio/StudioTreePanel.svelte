@@ -3,7 +3,12 @@
 	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { areEquivalentDboObjectIds, equivalentDboObjectIds, mutationDboContextIds } from './dnd';
+	import {
+		areEquivalentDboObjectIds,
+		equivalentDboObjectIds,
+		mutationDboContextIds,
+		mutationDboRefreshIds
+	} from './dnd';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioTreeNode from './StudioTreeNode.svelte';
 
@@ -103,9 +108,9 @@
 	 * @param {import('./dnd').DboDropResult} mutation
 	 */
 	async function handleMutation(mutation) {
-		const parentIds = mutationDboContextIds(mutation);
-		keepExpanded(parentIds);
-		await refreshAffectedParents(parentIds);
+		const contextIds = mutationDboContextIds(mutation);
+		keepExpanded(contextIds);
+		await refreshAffectedParents(mutationDboRefreshIds(mutation));
 		dataSerial += 1;
 		await onMutation?.(mutation);
 	}

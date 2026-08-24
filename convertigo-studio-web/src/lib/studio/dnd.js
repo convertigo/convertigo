@@ -920,6 +920,28 @@ function mutationDboContextIds(mutation) {
 }
 
 /**
+ * Source-backed frontend mutations already replace their server-side projected
+ * route. Refresh only the concrete old/new parents in the visible tree: asking
+ * for every ancestor again can replace the route while a deeper refresh still
+ * targets its previous object graph, collapsing the branch until it is reopened.
+ * Other DBOs keep the broader compatibility context used by the legacy tree.
+ * @param {DboDropResult | undefined} mutation
+ * @returns {string[]}
+ */
+function mutationDboRefreshIds(mutation) {
+	if (!mutation?.selectionSourcePath && !mutation?.projectedSourcePath) {
+		return mutationDboContextIds(mutation);
+	}
+	const ids = [];
+	pushUnique(ids, mutation.parentId);
+	pushUnique(ids, mutation.previousParentId);
+	if (mutation.position === 'inside' && !isMutationSubjectPayload(mutation)) {
+		pushUnique(ids, mutation.target);
+	}
+	return ids.filter(Boolean);
+}
+
+/**
  * Rename/delete mutations use `target` for the object that changed, whereas
  * drop mutations use it for a destination container/sibling.
  * @param {DboDropResult | undefined} mutation
@@ -1029,6 +1051,7 @@ export {
 	isDescendantObjectId,
 	isNoopSiblingMove,
 	mutationDboContextIds,
+	mutationDboRefreshIds,
 	objectNameFromId,
 	parentObjectId,
 	performDboDrop,

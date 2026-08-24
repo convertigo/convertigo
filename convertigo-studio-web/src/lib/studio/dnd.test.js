@@ -13,6 +13,7 @@ import {
 	isDescendantObjectId,
 	isNoopSiblingMove,
 	mutationDboContextIds,
+	mutationDboRefreshIds,
 	objectNameFromId,
 	performDboDrop,
 	renameObjectId,
@@ -415,6 +416,39 @@ describe('Studio DBO drag and drop qnames', () => {
 				'Project'
 			])
 		);
+	});
+
+	it('refreshes only exact parents after a projected frontend insertion', () => {
+		expect(
+			mutationDboRefreshIds({
+				done: true,
+				selectedId: 'Project.FlowEngine.frontends.svelte.routes.home.structure.card.spinner',
+				target: 'Project.FlowEngine.frontends.svelte.routes.home.structure.card.title',
+				parentId: 'Project.FlowEngine.frontends.svelte.routes.home.structure.card',
+				position: 'before',
+				selectionSourcePath: '/workspace/projects/Project/model/src/routes/+page.flow.svelte',
+				projectedSourcePath: '/workspace/projects/Project/model/src/routes/+page.flow.svelte',
+				payload: { type: 'paletteData', data: { type: 'FrontendBlock' } }
+			})
+		).toEqual(['Project.FlowEngine.frontends.svelte.routes.home.structure.card']);
+	});
+
+	it('refreshes both exact parents after a projected frontend cross-parent move', () => {
+		expect(
+			mutationDboRefreshIds({
+				done: true,
+				selectedId: 'Project.FlowEngine.frontends.svelte.routes.home.structure.right.spinner',
+				target: 'Project.FlowEngine.frontends.svelte.routes.home.structure.right.title',
+				parentId: 'Project.FlowEngine.frontends.svelte.routes.home.structure.right',
+				previousParentId: 'Project.FlowEngine.frontends.svelte.routes.home.structure.left',
+				position: 'before',
+				selectionSourcePath: '/workspace/projects/Project/model/src/routes/+page.flow.svelte',
+				payload: { type: 'treeData', data: { id: 'spinner' } }
+			})
+		).toEqual([
+			'Project.FlowEngine.frontends.svelte.routes.home.structure.right',
+			'Project.FlowEngine.frontends.svelte.routes.home.structure.left'
+		]);
 	});
 
 	it('keeps the source container context for structured child reorders', () => {
