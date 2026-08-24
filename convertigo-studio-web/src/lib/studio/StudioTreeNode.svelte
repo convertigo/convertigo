@@ -38,6 +38,7 @@
 	 *  onKeepExpanded?: (ids: string[]) => void,
 	 *  onLoadChildren?: (node: any, force?: boolean) => Promise<void>,
 	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>,
+	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onContextAction?: (event: { nodeId: string, action: any, result: any }) => void | Promise<void>,
 	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
 	 * }}
@@ -55,6 +56,7 @@
 		onKeepExpanded,
 		onLoadChildren = async () => {},
 		onMutation,
+		onMutationBusyChange,
 		onContextAction,
 		onSourceDrop
 	} = $props();
@@ -554,32 +556,39 @@
 		) {
 			return;
 		}
-		const result = await performDboDrop({
-			payload,
-			target: target.target,
-			position: target.position,
-			dropAction: action,
-			...getUsableTreeDropFallback(payload, target, action)
-		});
-		if (result?.done) {
-			keepMutationParentsExpanded(result);
-			if (result.position === 'inside') {
-				setExpanded(true);
-			}
-			if (result.selectedId) {
-				selectedId = result.selectedId;
-			}
-			if (onMutation) {
-				await onMutation({ ...result, source: 'tree' });
-			} else {
-				const refreshNode = result.position === 'inside' ? node : parentNode;
-				if (refreshNode) {
-					await onLoadChildren(refreshNode, true);
-					revision += 1;
+		let handled = false;
+		onMutationBusyChange?.(true);
+		try {
+			const result = await performDboDrop({
+				payload,
+				target: target.target,
+				position: target.position,
+				dropAction: action,
+				...getUsableTreeDropFallback(payload, target, action)
+			});
+			if (result?.done) {
+				keepMutationParentsExpanded(result);
+				if (result.position === 'inside') {
+					setExpanded(true);
 				}
+				if (result.selectedId) {
+					selectedId = result.selectedId;
+				}
+				if (onMutation) {
+					await onMutation({ ...result, source: 'tree' });
+				} else {
+					const refreshNode = result.position === 'inside' ? node : parentNode;
+					if (refreshNode) {
+						await onLoadChildren(refreshNode, true);
+						revision += 1;
+					}
+				}
+				handled = true;
 			}
+		} finally {
+			onMutationBusyChange?.(false, handled);
+			$draggedData = undefined;
 		}
-		$draggedData = undefined;
 	}
 
 	/**
@@ -906,6 +915,7 @@
 					{onSetExpanded}
 					{onKeepExpanded}
 					{onMutation}
+					{onMutationBusyChange}
 					{onContextAction}
 					{onSourceDrop}
 				/>

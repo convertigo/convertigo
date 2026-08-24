@@ -8,7 +8,7 @@ const FOLDER_TYPE_IDS = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url
 /**
  * @typedef {'copy' | 'move' | 'none'} DropAction
  * @typedef {'inside' | 'first' | 'before' | 'after'} DropPosition
- * @typedef {{ type?: string, data?: { id?: string, classname?: string }, options?: Record<string, unknown> }} DboDragPayload
+ * @typedef {{ type?: string, data?: { id?: string, classname?: string, type?: string }, options?: Record<string, unknown> }} DboDragPayload
  * @typedef {Object} DboDropResult
  * @property {boolean=} done
  * @property {boolean=} accept
@@ -629,12 +629,33 @@ function shouldComposePreciseDrop(drop) {
 		drop.position !== 'inside' &&
 		drop.fallbackTarget &&
 		drop.fallbackPosition === 'inside' &&
+		!supportsAtomicPreciseDrop(drop) &&
 		!isSameParentReorder(
 			drop.payload,
 			drop.target ?? '',
 			drop.position ?? 'inside',
 			drop.dropAction ?? 'none'
 		)
+	);
+}
+
+/**
+ * Flow frontend source mutations carry their requested insertion index all the
+ * way to the canonical AST. Sending an initial parent append would create an
+ * observable intermediate document and a second generation cycle.
+ *
+ * @param {{ payload?: DboDragPayload, target?: string }} drop
+ * @returns {boolean}
+ */
+function supportsAtomicPreciseDrop(drop) {
+	const payload = drop.payload;
+	if (payload?.type === 'paletteData' && payload.data?.type === 'FrontendBlock') {
+		return true;
+	}
+	return Boolean(
+		payload?.type === 'treeData' &&
+		payload.data?.id?.includes('.frontends.') &&
+		drop.target?.includes('.frontends.')
 	);
 }
 

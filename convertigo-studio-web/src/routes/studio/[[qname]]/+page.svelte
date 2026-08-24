@@ -182,6 +182,9 @@
 	let projectChangeRefreshTimer;
 	let projectChangeRefreshPending = false;
 	let projectChangeRefreshRunning = false;
+	let localTreeMutationDepth = 0;
+	let projectChangeDeferredByMutation = false;
+	let localTreeMutationHandled = false;
 
 	let selectedContext = $derived(parseSelection(selectedId));
 	let selectedProjectName = $derived(selectedContext.projectName);
@@ -392,7 +395,43 @@
 		}
 		projectChangeRefreshPending = true;
 		clearTimeout(projectChangeRefreshTimer);
+		if (localTreeMutationDepth > 0) {
+			projectChangeDeferredByMutation = true;
+			return;
+		}
 		projectChangeRefreshTimer = setTimeout(flushProjectChangeRefresh, 120);
+	}
+
+	/**
+	 * A local tree mutation already refreshes its exact parents. Its own SSE event
+	 * may arrive before the mutation response; defer that event so it cannot tear
+	 * down the tree while a precise DnD operation is still completing.
+	 *
+	 * @param {boolean} busy
+	 * @param {boolean=} handled
+	 */
+	function onStudioMutationBusyChange(busy, handled = false) {
+		if (busy) {
+			localTreeMutationDepth += 1;
+			return;
+		}
+		localTreeMutationHandled ||= handled;
+		localTreeMutationDepth = Math.max(0, localTreeMutationDepth - 1);
+		if (localTreeMutationDepth > 0) {
+			return;
+		}
+		if (!projectChangeDeferredByMutation) {
+			localTreeMutationHandled = false;
+			return;
+		}
+		projectChangeDeferredByMutation = false;
+		clearTimeout(projectChangeRefreshTimer);
+		if (localTreeMutationHandled) {
+			projectChangeRefreshPending = false;
+		} else if (projectChangeRefreshPending) {
+			projectChangeRefreshTimer = setTimeout(flushProjectChangeRefresh, 120);
+		}
+		localTreeMutationHandled = false;
 	}
 
 	async function flushProjectChangeRefresh() {
@@ -1433,6 +1472,7 @@
 			refreshMutation={lastStudioMutation}
 			refreshMutationSerial={studioMutationSerial}
 			onMutation={onStudioMutation}
+			onMutationBusyChange={onStudioMutationBusyChange}
 			onContextAction={onStudioContextAction}
 			onSourceDrop={applySourceDrop}
 		/>

@@ -751,6 +751,94 @@ describe('Studio DBO drag and drop qnames', () => {
 		);
 	});
 
+	it('inserts Flow frontend palette blocks at the precise sibling in one mutation', async () => {
+		vi.mocked(acceptDbo).mockResolvedValue({ accept: true });
+		vi.mocked(addDbo).mockResolvedValue({
+			done: true,
+			id: 'Project.Engine.frontends.svelte.routes.home.structure.spinner'
+		});
+
+		const payload = {
+			type: 'paletteData',
+			data: {
+				type: 'FrontendBlock',
+				id: 'frontend:spinner',
+				classname: 'standard.spinner'
+			},
+			options: {}
+		};
+		const result = await performDboDrop({
+			payload,
+			target: 'Project.Engine.frontends.svelte.routes.home.structure.title',
+			position: 'before',
+			dropAction: 'copy',
+			fallbackTarget: 'Project.Engine.frontends.svelte.routes.home.structure',
+			fallbackPosition: 'inside'
+		});
+
+		expect(result).toMatchObject({
+			done: true,
+			selectedId: 'Project.Engine.frontends.svelte.routes.home.structure.spinner',
+			target: 'Project.Engine.frontends.svelte.routes.home.structure.title',
+			position: 'before'
+		});
+		expect(acceptDbo).toHaveBeenCalledTimes(1);
+		expect(acceptDbo).toHaveBeenCalledWith(
+			'copy',
+			'Project.Engine.frontends.svelte.routes.home.structure.title',
+			'before',
+			payload
+		);
+		expect(addDbo).toHaveBeenCalledTimes(1);
+		expect(addDbo).toHaveBeenCalledWith(
+			'Project.Engine.frontends.svelte.routes.home.structure.title',
+			'before',
+			payload,
+			{}
+		);
+		expect(moveDbo).not.toHaveBeenCalled();
+	});
+
+	it('moves Flow frontend nodes to a precise sibling in one mutation', async () => {
+		vi.mocked(acceptDbo).mockResolvedValue({ accept: true });
+		vi.mocked(moveDbo).mockResolvedValue({
+			done: true,
+			id: 'Project.Engine.frontends.svelte.routes.home.structure.spinner'
+		});
+
+		const payload = {
+			type: 'treeData',
+			data: {
+				id: 'Project.Engine.frontends.svelte.routes.other.structure.spinner',
+				classname: 'com.twinsoft.convertigo.beans.flow.FlowVirtualObject'
+			},
+			options: {}
+		};
+		const result = await performDboDrop({
+			payload,
+			target: 'Project.Engine.frontends.svelte.routes.home.structure.title',
+			position: 'after',
+			dropAction: 'move',
+			fallbackTarget: 'Project.Engine.frontends.svelte.routes.home.structure',
+			fallbackPosition: 'inside'
+		});
+
+		expect(result).toMatchObject({
+			done: true,
+			selectedId: 'Project.Engine.frontends.svelte.routes.home.structure.spinner',
+			target: 'Project.Engine.frontends.svelte.routes.home.structure.title',
+			position: 'after'
+		});
+		expect(acceptDbo).toHaveBeenCalledTimes(1);
+		expect(moveDbo).toHaveBeenCalledTimes(1);
+		expect(moveDbo).toHaveBeenCalledWith(
+			'Project.Engine.frontends.svelte.routes.home.structure.title',
+			'after',
+			payload,
+			{}
+		);
+	});
+
 	it('preserves the engine parent id when a composed add uses a virtual folder target', async () => {
 		vi.mocked(acceptDbo).mockResolvedValue({ accept: true });
 		vi.mocked(addDbo).mockResolvedValue({
