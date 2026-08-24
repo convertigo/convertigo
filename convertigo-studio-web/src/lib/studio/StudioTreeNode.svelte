@@ -37,7 +37,7 @@
 	 *  onSetExpanded?: (id: string, expanded: boolean) => void,
 	 *  onKeepExpanded?: (ids: string[]) => void,
 	 *  onLoadChildren?: (node: any, force?: boolean) => Promise<void>,
-	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>,
+	 *  onMutation?: (mutation: import('./dnd').DboDropResult, context?: { targetParentNode?: any }) => void | Promise<void>,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onContextAction?: (event: { nodeId: string, action: any, result: any }) => void | Promise<void>,
 	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
@@ -575,7 +575,10 @@
 					selectedId = result.selectedId;
 				}
 				if (onMutation) {
-					await onMutation({ ...result, source: 'tree' });
+					await onMutation(
+						{ ...result, source: 'tree' },
+						{ targetParentNode: result.position === 'inside' ? node : parentNode }
+					);
 				} else {
 					const refreshNode = result.position === 'inside' ? node : parentNode;
 					if (refreshNode) {

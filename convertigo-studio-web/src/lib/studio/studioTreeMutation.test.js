@@ -78,4 +78,30 @@ describe('Studio projected tree mutations', () => {
 			)
 		).toBe(false);
 	});
+
+	it('accepts the loaded target parent as the mutation root', () => {
+		const card = {
+			id: 'Project.frontends.home.card',
+			children: [{ id: 'Project.frontends.home.card.title', label: 'Title' }]
+		};
+		expect(
+			applyProjectedTreeMutation(
+				[card],
+				{
+					done: true,
+					selectedId: 'Project.frontends.home.card.text',
+					selectionSourcePath: '/workspace/project/+page.flow.svelte',
+					parentId: card.id,
+					target: card.children[0].id,
+					position: 'before',
+					payload: {
+						type: 'paletteData',
+						data: { name: 'Text', insert: { label: 'New text' } }
+					}
+				},
+				idsEqual
+			)
+		).toBe(true);
+		expect(card.children.map((node) => node.label)).toEqual(['New text', 'Title']);
+	});
 });

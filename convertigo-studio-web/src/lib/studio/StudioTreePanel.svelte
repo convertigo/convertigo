@@ -107,15 +107,24 @@
 
 	/**
 	 * @param {import('./dnd').DboDropResult} mutation
+	 * @param {{ targetParentNode?: any }=} context
 	 */
-	async function handleMutation(mutation) {
+	async function handleMutation(mutation, context) {
 		const contextIds = mutationDboContextIds(mutation);
 		keepExpanded(contextIds);
-		const updatedLocally = applyProjectedTreeMutation(
-			rootChildren,
+		const targetRoots = context?.targetParentNode ? [context.targetParentNode] : rootChildren;
+		let updatedLocally = applyProjectedTreeMutation(
+			targetRoots,
 			mutation,
 			areEquivalentDboObjectIds
 		);
+		if (!updatedLocally && targetRoots !== rootChildren) {
+			updatedLocally = applyProjectedTreeMutation(
+				rootChildren,
+				mutation,
+				areEquivalentDboObjectIds
+			);
+		}
 		if (updatedLocally) {
 			dataSerial += 1;
 		}
