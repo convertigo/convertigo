@@ -1530,42 +1530,47 @@ public class FlowStudioSupport {
 	}
 
 	private static JSONObject uniqueFrontendInsertValue(FlowVirtualObject target, JSONObject insert) throws Exception {
+		var used = new HashSet<String>();
+		var targetSourcePath = sourcePath(target);
+		var projectionRoot = targetSourcePath.isBlank() ? null : frontendProjectionRoot(target, targetSourcePath);
+		if (projectionRoot != null) {
+			collectFrontendWidgetIds(projectionRoot, used);
+		}
+		var component = "frontendComponent".equals(target.getVirtualKind()) ? target : target.getParent();
+		if (component instanceof FlowVirtualObject componentFvo) {
+			collectFrontendWidgetIds(componentFvo, used);
+		}
+		var referencedComponent = frontendReferencedComponent(target);
+		if (referencedComponent != null && referencedComponent != component) {
+			collectFrontendWidgetIds(referencedComponent, used);
+		}
+		used.addAll(frontendReferencedComponentWidgetIds(target));
+		return uniqueFrontendInsertValue(insert, used);
+	}
+
+	static void collectFrontendWidgetIds(DatabaseObject candidate, Set<String> used) throws Exception {
+		if (candidate == null || used == null) {
+			return;
+		}
+		if (candidate instanceof FlowVirtualObject flowObject && "frontendWidget".equals(flowObject.getVirtualKind())) {
+			var definition = flowObject.getDefinitionObject();
+			var id = definition == null ? "" : definition.optString("id", "");
+			if (!id.isBlank()) {
+				used.add(id);
+			}
+		}
+		for (var child : candidate.getDatabaseObjectChildren()) {
+			collectFrontendWidgetIds(child, used);
+		}
+	}
+
+	static JSONObject uniqueFrontendInsertValue(JSONObject insert, Set<String> used) throws Exception {
 		var value = new JSONObject(insert.toString());
 		var base = value.optString("id", value.optString("kind", "widget"));
 		base = base.replaceAll("[^A-Za-z0-9_]", "_").replaceAll("_+", "_").replaceAll("^_+|_+$", "");
 		if (base.isBlank()) {
 			base = "widget";
 		}
-		var used = new HashSet<String>();
-		var component = "frontendComponent".equals(target.getVirtualKind()) ? target : target.getParent();
-		if (component instanceof FlowVirtualObject componentFvo) {
-			for (var child : componentFvo.getDatabaseObjectChildren()) {
-				if (child instanceof FlowVirtualObject childFvo && "frontendWidget".equals(childFvo.getVirtualKind())) {
-					var childDefinition = childFvo.getDefinitionObject();
-					if (childDefinition != null) {
-						var id = childDefinition.optString("id", "");
-						if (!id.isBlank()) {
-							used.add(id);
-						}
-					}
-				}
-			}
-		}
-		var referencedComponent = frontendReferencedComponent(target);
-		if (referencedComponent != null && referencedComponent != component) {
-			for (var child : referencedComponent.getDatabaseObjectChildren()) {
-				if (child instanceof FlowVirtualObject childFvo && "frontendWidget".equals(childFvo.getVirtualKind())) {
-					var childDefinition = childFvo.getDefinitionObject();
-					if (childDefinition != null) {
-						var id = childDefinition.optString("id", "");
-						if (!id.isBlank()) {
-							used.add(id);
-						}
-					}
-				}
-			}
-		}
-		used.addAll(frontendReferencedComponentWidgetIds(target));
 		var candidate = base;
 		for (int i = 2; used.contains(candidate); i++) {
 			candidate = base + i;

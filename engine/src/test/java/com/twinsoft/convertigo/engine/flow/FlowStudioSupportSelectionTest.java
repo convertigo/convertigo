@@ -13,9 +13,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashSet;
+import java.util.List;
+
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.Test;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 
 public class FlowStudioSupportSelectionTest {
@@ -52,6 +56,21 @@ public class FlowStudioSupportSelectionTest {
 		assertNull(FlowStudioSupport.removeNodeMutation(container));
 	}
 
+	@Test
+	public void allocatesFrontendIdsAcrossNestedSourceProjection() throws Exception {
+		var existing = candidate("frontends.svelte.routes.home.structure.card.text",
+				"frontAst.nodes[0].children[0]", "text");
+		existing.setVirtualKind("frontendWidget");
+		var used = new HashSet<String>();
+		FlowStudioSupport.collectFrontendWidgetIds(new TestContainer(existing), used);
+
+		assertEquals("text2", FlowStudioSupport.uniqueFrontendInsertValue(
+				new JSONObject().put("id", "text").put("kind", "Text"), used).getString("id"));
+		used.add("text2");
+		assertEquals("text3", FlowStudioSupport.uniqueFrontendInsertValue(
+				new JSONObject().put("id", "text").put("kind", "Text"), used).getString("id"));
+	}
+
 	private FlowVirtualObject candidate(String virtualPath, String mutationPath, String id) throws Exception {
 		var candidate = new FlowVirtualObject();
 		candidate.setVirtualPath(virtualPath);
@@ -61,5 +80,19 @@ public class FlowStudioSupportSelectionTest {
 				.toString());
 		candidate.setDefinition(new JSONObject().put("id", id).toString());
 		return candidate;
+	}
+
+	private static final class TestContainer extends DatabaseObject {
+		private static final long serialVersionUID = 1L;
+		private final List<DatabaseObject> children;
+
+		private TestContainer(DatabaseObject... children) {
+			this.children = List.of(children);
+		}
+
+		@Override
+		public List<DatabaseObject> getDatabaseObjectChildren() {
+			return children;
+		}
 	}
 }
