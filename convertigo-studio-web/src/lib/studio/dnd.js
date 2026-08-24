@@ -19,6 +19,8 @@ const FOLDER_TYPE_IDS = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url
  * @property {string=} target
  * @property {string=} parentId
  * @property {string=} previousParentId
+ * @property {string=} selectionSourcePath
+ * @property {string=} projectedSourcePath
  * @property {DropPosition=} position
  * @property {string=} source
  * @property {DboDragPayload=} payload
@@ -381,6 +383,22 @@ function inferDropPreviousParentId(drop) {
 		return undefined;
 	}
 	return parentObjectId(drop.payload.data?.id ?? '') || undefined;
+}
+
+/**
+ * Source-backed Flow widgets expose their value through properties/pickers;
+ * their stable source id is not a regular DBO name to edit inline.
+ * @param {DboDropResult | undefined} mutation
+ * @returns {boolean}
+ */
+function shouldStartInlineRename(mutation) {
+	return Boolean(
+		mutation?.payload?.type === 'paletteData' &&
+		mutation.source !== 'flow' &&
+		(mutation.selectedId || mutation.id) &&
+		!mutation.selectionSourcePath &&
+		!mutation.projectedSourcePath
+	);
 }
 
 /**
@@ -993,5 +1011,6 @@ export {
 	objectNameFromId,
 	parentObjectId,
 	performDboDrop,
-	renameObjectId
+	renameObjectId,
+	shouldStartInlineRename
 };

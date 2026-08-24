@@ -25,6 +25,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
@@ -32,6 +33,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(name = "Move", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Move extends JSonService {
@@ -67,6 +69,10 @@ public class Move extends JSonService {
 			if (dbo != null) {
 				DatabaseObject targetDbo = DboUtils.findDbo(target);
 				if (targetDbo != null) {
+					if (dbo instanceof FlowVirtualObject || targetDbo instanceof FlowVirtualObject) {
+						DboUtils.copyResult(FlowStudioSupport.moveNode(dbo, targetDbo, position), response);
+						return;
+					}
 					Long after = null;
 					DatabaseObject parentDbo;
 					if (position.equals("inside")) {

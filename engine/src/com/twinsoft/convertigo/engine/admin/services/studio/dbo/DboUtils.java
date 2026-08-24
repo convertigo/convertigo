@@ -81,6 +81,16 @@ public class DboUtils {
 		return Utils.getDbo(id);
 	}
 
+	static protected void copyResult(JSONObject source, JSONObject target) throws Exception {
+		if (source == null || target == null) {
+			return;
+		}
+		for (var keys = source.keys(); keys.hasNext();) {
+			var key = String.valueOf(keys.next());
+			target.put(key, source.get(key));
+		}
+	}
+
 	static protected boolean canCut(DatabaseObject dbo) {
 		return DboFactory.isCuttable(dbo);
 	}

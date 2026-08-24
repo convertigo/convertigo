@@ -15,7 +15,8 @@ import {
 	mutationDboContextIds,
 	objectNameFromId,
 	performDboDrop,
-	renameObjectId
+	renameObjectId,
+	shouldStartInlineRename
 } from './dnd';
 
 vi.mock('$lib/utils/service', () => ({
@@ -62,6 +63,25 @@ describe('Studio DBO drag and drop qnames', () => {
 			})
 		).toBe('move');
 		expect(writtenDropEffect).toBe('move');
+	});
+
+	it('does not rename source-backed Flow widgets after a palette insert', () => {
+		expect(
+			shouldStartInlineRename({
+				done: true,
+				selectedId: 'Project.Engine.frontends.svelte.routes.home.structure.text',
+				selectionSourcePath: 'model/Project/src/routes/+page.flow.svelte',
+				projectedSourcePath: 'model/Project/src/routes/+page.flow.svelte',
+				payload: { type: 'paletteData', data: {} }
+			})
+		).toBe(false);
+		expect(
+			shouldStartInlineRename({
+				done: true,
+				selectedId: 'Project.sq:Sequence.st:SimpleStep1',
+				payload: { type: 'paletteData', data: {} }
+			})
+		).toBe(true);
 	});
 
 	it('rebuilds renamed qnames without leaking the parent path into the new name', () => {

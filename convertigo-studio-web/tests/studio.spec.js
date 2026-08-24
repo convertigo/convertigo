@@ -18,6 +18,7 @@ const sequenceId = `${projectName}.sq:${sequenceName}`;
 const initStepId = `${sequenceId}.st:Init`;
 const flowEngineId = `${projectName}.Engine`;
 const frontendBuilderId = `${flowEngineId}.frontends.svelte`;
+const frontendStructureId = `${frontendBuilderId}.routes.home.structure`;
 
 test('studio opens a selected backend object with tree, execution and flow synchronized', async ({
 	page
@@ -128,6 +129,7 @@ test('studio frontend profile exposes a dashboard-like device rail', async ({ pa
 	await page.getByRole('radio', { name: 'Frontend' }).click();
 
 	await expect(page.getByRole('tab', { name: /Devices/ })).toHaveAttribute('aria-selected', 'true');
+	await expect(page.getByRole('tab', { name: 'Palette' })).toBeVisible();
 	await expect(page.getByText('Current device')).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Select device Responsive' })).toBeVisible();
 
@@ -139,6 +141,40 @@ test('studio frontend profile exposes a dashboard-like device rail', async ({ pa
 
 	await page.getByRole('button', { name: 'Landscape orientation' }).click();
 	await expect(page.getByText(/iPhone 17 Pro landscape - 874x402/)).toBeVisible();
+});
+
+test('studio inserts and reorders source-backed frontend blocks at the requested tree position', async ({
+	page
+}) => {
+	const state = createStudioState();
+	await mockStudioServices(page, { state });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await expandTreeNode(page, frontendBuilderId);
+	await expandTreeNode(page, frontendStructureId);
+	await selectTreeNode(page, frontendStructureId);
+	await page.getByRole('radio', { name: 'Frontend' }).click();
+	await page.getByRole('tab', { name: 'Palette' }).click();
+	await expect(paletteItem(page, 'Text')).toBeVisible();
+	await expectFrontendOrder(page, ['firstText', 'secondText']);
+
+	await dragPaletteItemToTreeNode(page, 'Text', `${frontendStructureId}.secondText`, 0.08);
+
+	await expectFrontendOrder(page, ['firstText', 'text1', 'secondText']);
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('New text');
+	await expect(page.getByRole('textbox', { name: 'Rename step' })).toHaveCount(0);
+
+	await dragTreeNodeToTreeNode(
+		page,
+		`${frontendStructureId}.text1`,
+		`${frontendStructureId}.secondText`,
+		{ yRatio: 0.9 }
+	);
+
+	await expectFrontendOrder(page, ['firstText', 'secondText', 'text1']);
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('New text');
 });
 
 test('studio vibe profile gives the Assistant the selected project and keeps the live frontend beside it', async ({
@@ -849,6 +885,44 @@ async function dragPaletteItemToFlowNode(page, itemName, targetNodeId, options =
 
 /**
  * @param {import('@playwright/test').Page} page
+ * @param {string} itemName
+ * @param {string} targetNodeId
+ * @param {number} yRatio
+ */
+async function dragPaletteItemToTreeNode(page, itemName, targetNodeId, yRatio) {
+	await page.evaluate(
+		({ itemName, targetNodeId, yRatio }) => {
+			const source = Array.from(document.querySelectorAll('.studio-palette__item')).find((node) =>
+				node.textContent?.includes(itemName)
+			);
+			const content = Array.from(
+				document.querySelectorAll('button.studio-tree-node__content')
+			).find((node) => node.getAttribute('data-node-id') === targetNodeId);
+			const target = content?.closest('.studio-tree-node__row');
+			if (!(source instanceof HTMLElement) || !(target instanceof HTMLElement)) {
+				throw new Error(`Missing palette source "${itemName}" or tree target "${targetNodeId}"`);
+			}
+			const rect = target.getBoundingClientRect();
+			const dataTransfer = new DataTransfer();
+			const eventOptions = {
+				bubbles: true,
+				cancelable: true,
+				dataTransfer,
+				clientX: rect.left + rect.width / 2,
+				clientY: rect.top + rect.height * yRatio
+			};
+			source.dispatchEvent(new DragEvent('dragstart', eventOptions));
+			target.dispatchEvent(new DragEvent('dragenter', eventOptions));
+			target.dispatchEvent(new DragEvent('dragover', eventOptions));
+			target.dispatchEvent(new DragEvent('drop', eventOptions));
+			source.dispatchEvent(new DragEvent('dragend', eventOptions));
+		},
+		{ itemName, targetNodeId, yRatio }
+	);
+}
+
+/**
+ * @param {import('@playwright/test').Page} page
  * @param {string} sourceNodeId
  * @param {string} targetNodeId
  * @param {{ xRatio?: number, yRatio?: number, beforeDrop?: () => Promise<void> }} [options]
@@ -1011,6 +1085,24 @@ async function expectTreeStepOrder(page, names) {
 			}, sequenceId)
 		)
 		.toEqual(names);
+}
+
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {string[]} ids
+ */
+async function expectFrontendOrder(page, ids) {
+	await expect
+		.poll(() =>
+			page.evaluate((parentId) => {
+				const prefix = `${parentId}.`;
+				return Array.from(document.querySelectorAll('button.studio-tree-node__content'))
+					.map((node) => node.getAttribute('data-node-id') ?? '')
+					.filter((id) => id.startsWith(prefix) && !id.slice(prefix.length).includes('.'))
+					.map((id) => id.slice(prefix.length));
+			}, frontendStructureId)
+		)
+		.toEqual(ids);
 }
 
 /**
@@ -1279,7 +1371,7 @@ function responseForService(service, params, options = {}) {
 		case 'studio.dbo.Remove':
 			return removeDboResponse(params, state);
 		case 'studio.palette.Get':
-			return paletteResponse();
+			return paletteResponse(params);
 		case 'studio.properties.Get':
 			if (options.flowPicker && params.get('id') === frontendBuilderId) {
 				return flowPropertiesResponse();
@@ -1374,6 +1466,11 @@ function createStudioState(overrides = {}) {
 		nextStepIndex: 1,
 		devRunning: false,
 		contextMenuDevRunning: false,
+		nextFrontendIndex: 1,
+		frontendNodes: [
+			{ id: 'firstText', label: 'First text' },
+			{ id: 'secondText', label: 'Second text' }
+		],
 		steps: [
 			{ name: 'Init', classname: 'com.twinsoft.convertigo.beans.steps.SimpleStep' },
 			{ name: 'return', classname: 'com.twinsoft.convertigo.beans.steps.ReturnStep' }
@@ -1437,6 +1534,21 @@ function addDboResponse(params, state) {
 	const target = params.get('target') ?? '';
 	const position = params.get('position') ?? 'inside';
 	const payload = parseServiceJson(params.get('data'));
+	if (payload?.data?.type === 'FrontendBlock') {
+		const node = { id: `text${state.nextFrontendIndex++}`, label: 'New text' };
+		const index = frontendInsertionIndex(state.frontendNodes, target, position);
+		state.frontendNodes.splice(index, 0, node);
+		return {
+			done: true,
+			id: `${frontendStructureId}.${node.id}`,
+			parentId: frontendStructureId,
+			projected: true,
+			projectedSourcePath: 'model/StudioProject/src/routes/+page.flow.svelte',
+			selectionSourcePath: 'model/StudioProject/src/routes/+page.flow.svelte',
+			selectionMutationPath: `frontAst.nodes[${index}]`,
+			selectionId: node.id
+		};
+	}
 	const classname = payload?.data?.classname ?? payload?.data?.id ?? '';
 	const name = uniqueStepName(state, stepBaseName(classname));
 	const index = insertionIndex(state.steps, target, position);
@@ -1456,6 +1568,28 @@ function moveDboResponse(params, state) {
 	const target = params.get('target') ?? '';
 	const position = params.get('position') ?? 'inside';
 	const payload = parseServiceJson(params.get('data'));
+	const frontendSourceId = payload?.data?.id ?? '';
+	if (frontendSourceId.startsWith(`${frontendStructureId}.`)) {
+		const sourceId = frontendSourceId.slice(frontendStructureId.length + 1);
+		const sourceIndex = state.frontendNodes.findIndex((node) => node.id === sourceId);
+		if (sourceIndex < 0) {
+			return { done: false };
+		}
+		const [source] = state.frontendNodes.splice(sourceIndex, 1);
+		const index = frontendInsertionIndex(state.frontendNodes, target, position);
+		state.frontendNodes.splice(index, 0, source);
+		return {
+			done: true,
+			id: `${frontendStructureId}.${source.id}`,
+			parentId: frontendStructureId,
+			previousParentId: frontendStructureId,
+			projected: true,
+			projectedSourcePath: 'model/StudioProject/src/routes/+page.flow.svelte',
+			selectionSourcePath: 'model/StudioProject/src/routes/+page.flow.svelte',
+			selectionMutationPath: `frontAst.nodes[${index}]`,
+			selectionId: source.id
+		};
+	}
 	const sourceEntry = findStepEntry(state, payload?.data?.id ?? '');
 	if (!sourceEntry) {
 		return { done: false };
@@ -1519,7 +1653,17 @@ function treeviewChildren(id, flow, state) {
 				treeNode(flowEngineId, 'Engine', 'FlowEngine', { children: true })
 			];
 		case flowEngineId:
-			return [treeNode(frontendBuilderId, 'Svelte frontend', 'FlowVirtualObject')];
+			return [
+				treeNode(frontendBuilderId, 'Svelte frontend', 'FlowVirtualObject', { children: true })
+			];
+		case frontendBuilderId:
+			return [
+				treeNode(frontendStructureId, 'Home structure', 'FlowVirtualObject', { children: true })
+			];
+		case frontendStructureId:
+			return state.frontendNodes.map((node) =>
+				treeNode(`${frontendStructureId}.${node.id}`, node.label, 'FlowVirtualObject')
+			);
 		case `${projectName}:sq`:
 			return [
 				treeNode(
@@ -1744,7 +1888,26 @@ function flowSteps(state, parentId = sequenceId) {
 	return state.steps.map((step) => stepTreeNode(step, parentId));
 }
 
-function paletteResponse() {
+function paletteResponse(params) {
+	if ((params.get('id') ?? '').startsWith(frontendStructureId)) {
+		return {
+			categories: [
+				{
+					name: 'Typography',
+					items: [
+						{
+							type: 'FrontendBlock',
+							id: 'frontend:Text',
+							name: 'Text',
+							classname: 'Text',
+							block: 'Text',
+							insert: { id: 'text', block: 'Text', props: { text: 'New text' } }
+						}
+					]
+				}
+			]
+		};
+	}
 	return {
 		categories: [
 			{
@@ -1778,6 +1941,25 @@ function paletteResponse() {
 			}
 		]
 	};
+}
+
+/**
+ * @param {{ id: string }[]} siblings
+ * @param {string} target
+ * @param {string} position
+ */
+function frontendInsertionIndex(siblings, target, position) {
+	if (position === 'inside') {
+		return siblings.length;
+	}
+	const targetId = target.startsWith(`${frontendStructureId}.`)
+		? target.slice(frontendStructureId.length + 1)
+		: '';
+	const targetIndex = siblings.findIndex((node) => node.id === targetId);
+	if (targetIndex < 0) {
+		return siblings.length;
+	}
+	return position === 'before' || position === 'first' ? targetIndex : targetIndex + 1;
 }
 
 /**

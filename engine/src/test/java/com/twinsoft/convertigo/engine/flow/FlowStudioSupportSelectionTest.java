@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 2001-2026 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ */
+package com.twinsoft.convertigo.engine.flow;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.codehaus.jettison.json.JSONObject;
+import org.junit.Test;
+
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
+
+public class FlowStudioSupportSelectionTest {
+	private static final String SOURCE = "model/Project/src/routes/+page.flow.svelte";
+
+	@Test
+	public void matchesProjectedFrontendNodesByStableMutationMetadata() throws Exception {
+		var candidate = candidate("frontends.svelte.routes.home.structure.text", "frontAst.nodes[2]", "text");
+
+		assertTrue(FlowStudioSupport.matchesProjectedSelection(candidate, SOURCE, "frontAst.nodes[2]", "", ""));
+		assertTrue(FlowStudioSupport.matchesProjectedSelection(candidate, SOURCE, "", "text", ""));
+		assertTrue(FlowStudioSupport.matchesProjectedSelection(candidate, "", "", "",
+				"frontends.svelte.routes.home.structure.text"));
+	}
+
+	@Test
+	public void rejectsStaleSourceAndMutationMetadata() throws Exception {
+		var candidate = candidate("frontends.svelte.routes.home.structure.text", "frontAst.nodes[2]", "text");
+
+		assertFalse(FlowStudioSupport.matchesProjectedSelection(candidate, "model/Other/+page.flow.svelte",
+				"frontAst.nodes[2]", "", ""));
+		assertFalse(FlowStudioSupport.matchesProjectedSelection(candidate, SOURCE, "frontAst.nodes[3]", "", ""));
+		assertFalse(FlowStudioSupport.matchesProjectedSelection(candidate, SOURCE, "", "other", ""));
+	}
+
+	private FlowVirtualObject candidate(String virtualPath, String mutationPath, String id) throws Exception {
+		var candidate = new FlowVirtualObject();
+		candidate.setVirtualPath(virtualPath);
+		candidate.setVirtualInfo(new JSONObject()
+				.put("sourcePath", SOURCE)
+				.put("sourceMutationPath", mutationPath)
+				.toString());
+		candidate.setDefinition(new JSONObject().put("id", id).toString());
+		return candidate;
+	}
+}

@@ -5,6 +5,7 @@
 	import Projects from '$lib/common/Projects.svelte.js';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
+	import { shouldStartInlineRename } from '$lib/studio/dnd';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
 	import { findPrimaryEditorProperty, isCodeEditorProperty } from '$lib/studio/propertyEditors';
 	import { decodeStudioSelectionId, studioSelectionUrl } from '$lib/studio/routeSelection';
@@ -212,7 +213,7 @@
 	);
 	let showDevicePicker = $derived(profile === 'frontend');
 	let showFlowOverview = $derived(showStudioWork && flowReady);
-	let showPalette = $derived(showStudioWork);
+	let showPalette = $derived(showStudioWork || showDevicePicker);
 	let showSourcePicker = $derived(showStudioWork || showDevicePicker);
 	let sideViews = $derived([
 		...(showDevicePicker ? [{ id: 'devices', label: 'Devices', icon: 'mdi:devices' }] : []),
@@ -944,7 +945,7 @@
 		if (nextSelection) {
 			selectedId = nextSelection;
 		}
-		if (mutation?.payload?.type === 'paletteData' && mutation?.source !== 'flow' && nextSelection) {
+		if (shouldStartInlineRename(mutation) && nextSelection) {
 			renameTargetId = nextSelection;
 		} else if (mutation?.payload?.type === 'renameData') {
 			renameTargetId = '';

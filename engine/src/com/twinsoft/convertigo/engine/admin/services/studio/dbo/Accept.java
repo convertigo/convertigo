@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
@@ -85,6 +86,11 @@ public class Accept extends JSonService {
 
 		boolean accept = false;
 		if (targetDbo != null && dbo != null) {
+			if (action.equals("move")
+					&& (dbo instanceof FlowVirtualObject || targetDbo instanceof FlowVirtualObject)) {
+				response.put("accept", FlowStudioSupport.canMoveNode(dbo, targetDbo, position));
+				return;
+			}
 			FolderType folderType = position.equals("inside") ? Utils.getFolderType(target) : targetDbo.getFolderType();
 			DatabaseObject parentDbo = position.equals("inside") ? targetDbo : targetDbo.getParent();
 			if (parentDbo != null) {

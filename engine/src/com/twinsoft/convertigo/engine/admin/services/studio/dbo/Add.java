@@ -62,11 +62,7 @@ public class Add extends JSonService {
 			var jsonData = new JSONObject(data);
 			if (FlowStudioSupport.isFlowPaletteData(jsonData)) {
 				var result = FlowStudioSupport.addFromPalette(targetDbo, position, jsonData);
-				response.put("done", result.optBoolean("done", false));
-				response.put("id", result.optString("id", targetDbo.getFullQName()));
-				if (result.has("error") && !result.isNull("error")) {
-					response.put("error", result.get("error"));
-				}
+				DboUtils.copyResult(result, response);
 				return;
 			}
 

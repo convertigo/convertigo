@@ -988,6 +988,10 @@ public class FlowStudioSupport {
 		}
 		flowStudioInfo("Flow frontend DnD palette insert mutation: target=" + flowMoveTargetSummary(targetDbo)
 				+ " position=" + position + " mutation=" + mutation);
+		var selectionSourcePath = frontendMutationSourcePath(targetDbo, mutation);
+		var selectionMutationPath = frontendSelectionMutationPath(mutation);
+		var selectionId = frontendMutationValueId(mutation);
+		var projectionRoot = frontendProjectionRoot(targetDbo, selectionSourcePath);
 		var response = applyFrontendMutation(flowEngine, targetDbo, mutation);
 		var done = response.optBoolean("ok", false) && sourceMutationChanged(response);
 		flowStudioInfo("Flow frontend DnD palette insert response: done=" + done
@@ -995,14 +999,14 @@ public class FlowStudioSupport {
 				+ " changed=" + response.opt("changed")
 				+ " debug=" + response.opt("debug")
 				+ " error=" + response.opt("error"));
-			return withProjectionMetadata(new JSONObject()
+		return withProjectedSelection(withProjectionMetadata(new JSONObject()
 					.put("done", done)
 					.put("id", done ? flowEngine.getFullQName() : "")
-					.put("selectionSourcePath", done ? frontendMutationSourcePath(targetDbo, mutation) : "")
-					.put("selectionMutationPath", done ? frontendSelectionMutationPath(mutation) : "")
-					.put("selectionId", done ? frontendMutationValueId(mutation) : "")
+					.put("selectionSourcePath", done ? selectionSourcePath : "")
+					.put("selectionMutationPath", done ? selectionMutationPath : "")
+					.put("selectionId", done ? selectionId : "")
 					.put("error", done ? JSONObject.NULL : response.has("error") ? response.opt("error")
-							: "Frontend source mutation did not change the source."), response);
+							: "Frontend source mutation did not change the source."), response), projectionRoot);
 	}
 
 	private static String frontendMutationSourcePath(DatabaseObject targetDbo, JSONObject mutation) {
@@ -1731,6 +1735,9 @@ public class FlowStudioSupport {
 			return new JSONObject().put("done", false);
 		}
 
+		var selectionSourcePath = sourcePath(source);
+		var selectionId = flowVirtualObjectId(source);
+		var projectionRoot = frontendProjectionRoot(source, selectionSourcePath);
 		var mutation = new JSONObject()
 				.put("op", "move")
 				.put("from", sourcePath)
@@ -1747,11 +1754,13 @@ public class FlowStudioSupport {
 				+ " changed=" + response.opt("changed")
 				+ " debug=" + response.opt("debug")
 				+ " error=" + response.opt("error"));
-		return withProjectionMetadata(new JSONObject()
+		return withProjectedSelection(withProjectionMetadata(new JSONObject()
 				.put("done", done)
 				.put("id", done ? root.getFullQName() : "")
+				.put("selectionSourcePath", done ? selectionSourcePath : "")
+				.put("selectionId", done ? selectionId : "")
 				.put("error", done ? JSONObject.NULL : response.has("error") ? response.opt("error")
-						: "Flow node move did not change the source."), response);
+						: "Flow node move did not change the source."), response), projectionRoot);
 	}
 
 	private static String moveInsideCollectionPath(FlowVirtualObject target) {
@@ -1863,6 +1872,10 @@ public class FlowStudioSupport {
 			return new JSONObject().put("done", false);
 		}
 		targetIndex = Math.max(0, targetIndex);
+		var selectionSourcePath = sourcePath(fvo);
+		var selectionId = flowVirtualObjectId(fvo);
+		var selectionMutationPath = collectionPath + "[" + targetIndex + "]";
+		var projectionRoot = frontendProjectionRoot(fvo, selectionSourcePath);
 		var mutation = new JSONObject()
 				.put("op", "move")
 				.put("from", path)
@@ -1878,12 +1891,14 @@ public class FlowStudioSupport {
 				+ " changed=" + response.opt("changed")
 				+ " debug=" + response.opt("debug")
 				+ " error=" + response.opt("error"));
-		return withProjectionMetadata(new JSONObject()
+		return withProjectedSelection(withProjectionMetadata(new JSONObject()
 				.put("done", done)
 				.put("id", done ? root.getFullQName() : "")
-				.put("selectionMutationPath", done ? collectionPath + "[" + targetIndex + "]" : "")
+				.put("selectionSourcePath", done ? selectionSourcePath : "")
+				.put("selectionMutationPath", done ? selectionMutationPath : "")
+				.put("selectionId", done ? selectionId : "")
 				.put("error", done ? JSONObject.NULL : response.has("error") ? response.opt("error")
-						: "Flow node move did not change the source."), response);
+						: "Flow node move did not change the source."), response), projectionRoot);
 	}
 
 	private static String flowVirtualObjectId(FlowVirtualObject fvo) {
@@ -2505,6 +2520,82 @@ public class FlowStudioSupport {
 				.put("projectedRootPath", response == null ? "" : response.optString("projectedRootPath", ""))
 				.put("projectedSourcePath", response == null ? "" : response.optString("projectedSourcePath", ""))
 				.put("selectionVirtualPath", response == null ? "" : response.optString("selectionVirtualPath", ""));
+	}
+
+	private static JSONObject withProjectedSelection(JSONObject result, FlowVirtualObject projectionRoot) {
+		if (result == null || projectionRoot == null || !result.optBoolean("done", false)) {
+			return result;
+		}
+		try {
+			var selected = findProjectedSelection(projectionRoot,
+					result.optString("selectionSourcePath", result.optString("projectedSourcePath", "")),
+					result.optString("selectionMutationPath", ""), result.optString("selectionId", ""),
+					result.optString("selectionVirtualPath", ""));
+			if (selected == null) {
+				return result;
+			}
+			result.put("id", selected.getFullQName())
+					.put("selectionVirtualPath", selected.getVirtualPath());
+			if (selected.getParent() != null) {
+				result.put("parentId", selected.getParent().getFullQName());
+			}
+		} catch (Exception e) {
+			flowStudioWarn("Unable to resolve the projected Flow selection.", e);
+		}
+		return result;
+	}
+
+	private static FlowVirtualObject findProjectedSelection(DatabaseObject root, String sourcePath,
+			String mutationPath, String id, String virtualPath) {
+		var selected = findProjectedSelectionMatch(root, sourcePath, "", "", virtualPath);
+		if (selected == null) {
+			selected = findProjectedSelectionMatch(root, sourcePath, mutationPath, "", "");
+		}
+		if (selected == null) {
+			selected = findProjectedSelectionMatch(root, sourcePath, "", id, "");
+		}
+		return selected;
+	}
+
+	private static FlowVirtualObject findProjectedSelectionMatch(DatabaseObject candidate, String sourcePath,
+			String mutationPath, String id, String virtualPath) {
+		if (candidate instanceof FlowVirtualObject flowObject
+				&& matchesProjectedSelection(flowObject, sourcePath, mutationPath, id, virtualPath)) {
+			return flowObject;
+		}
+		try {
+			for (var child : candidate.getDatabaseObjectChildren()) {
+				var selected = findProjectedSelectionMatch(child, sourcePath, mutationPath, id, virtualPath);
+				if (selected != null) {
+					return selected;
+				}
+			}
+		} catch (Exception e) {
+			flowStudioWarn("Unable to inspect a projected Flow selection candidate.", e);
+		}
+		return null;
+	}
+
+	static boolean matchesProjectedSelection(FlowVirtualObject candidate, String sourcePath,
+			String mutationPath, String id, String virtualPath) {
+		if (candidate == null) {
+			return false;
+		}
+		if (virtualPath != null && !virtualPath.isBlank()) {
+			return virtualPath.equals(candidate.getVirtualPath());
+		}
+		var sourceMatches = sourcePath == null || sourcePath.isBlank() || sourcePath.equals(sourcePath(candidate));
+		if (!sourceMatches) {
+			return false;
+		}
+		if (mutationPath != null && !mutationPath.isBlank()) {
+			return mutationPath.equals(sourceMutationPath(candidate));
+		}
+		if (id == null || id.isBlank()) {
+			return false;
+		}
+		var definition = candidate.getDefinitionObject();
+		return definition != null && id.equals(definition.optString("id", ""));
 	}
 
 	private static FlowVirtualObject engineProjectionRoot(FlowEngine flowEngine, String virtualPath) {
