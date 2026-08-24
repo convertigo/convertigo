@@ -8,7 +8,7 @@ const FOLDER_TYPE_IDS = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url
 /**
  * @typedef {'copy' | 'move' | 'none'} DropAction
  * @typedef {'inside' | 'first' | 'before' | 'after'} DropPosition
- * @typedef {{ type?: string, data?: { id?: string, classname?: string, type?: string }, options?: Record<string, unknown> }} DboDragPayload
+ * @typedef {{ type?: string, data?: { id?: string, classname?: string, type?: string, [key: string]: any }, options?: Record<string, unknown> }} DboDragPayload
  * @typedef {Object} DboDropResult
  * @property {boolean=} done
  * @property {boolean=} accept
@@ -16,6 +16,7 @@ const FOLDER_TYPE_IDS = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url
  * @property {boolean=} retried
  * @property {string=} id
  * @property {string=} selectedId
+ * @property {string=} selectionId
  * @property {string=} target
  * @property {string=} parentId
  * @property {string=} previousParentId

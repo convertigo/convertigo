@@ -11,6 +11,7 @@
 	} from './dnd';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioTreeNode from './StudioTreeNode.svelte';
+	import { applyProjectedTreeMutation } from './studioTreeMutation';
 
 	/**
 	 * @type {{
@@ -110,7 +111,19 @@
 	async function handleMutation(mutation) {
 		const contextIds = mutationDboContextIds(mutation);
 		keepExpanded(contextIds);
+		const updatedLocally = applyProjectedTreeMutation(
+			rootChildren,
+			mutation,
+			areEquivalentDboObjectIds
+		);
+		if (updatedLocally) {
+			dataSerial += 1;
+		}
 		await refreshAffectedParents(mutationDboRefreshIds(mutation));
+		// The project tree uses raw nested objects. Signal both the optimistic
+		// projection and the authoritative replacement performed by checkNodes;
+		// otherwise the second assignment can remain invisible until another UI
+		// state change happens to reevaluate the branch.
 		dataSerial += 1;
 		await onMutation?.(mutation);
 	}
