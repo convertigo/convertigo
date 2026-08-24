@@ -153,7 +153,7 @@ test('studio inserts and reorders source-backed frontend blocks at the requested
 	page
 }) => {
 	const state = createStudioState();
-	await mockStudioServices(page, { state });
+	await mockStudioServices(page, { state, frontendRefreshDelayMs: 4_000 });
 	await page.goto('/studio/');
 
 	await expandTreeNode(page, projectName);
@@ -168,6 +168,9 @@ test('studio inserts and reorders source-backed frontend blocks at the requested
 
 	await dragPaletteItemToTreeNode(page, 'Text', `${frontendStructureId}.secondText`, 0.08);
 
+	await expect(
+		page.locator(`button.studio-tree-node__content[data-node-id="${frontendStructureId}.text1"]`)
+	).toBeVisible({ timeout: 2_500 });
 	await expectFrontendOrder(page, ['firstText', 'text1', 'secondText']);
 	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('New text');
 	await expect(page.getByRole('textbox', { name: 'Rename step' })).toHaveCount(0);
@@ -1201,6 +1204,7 @@ function responseEditor(page) {
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
+ *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean
  * }} [options]
  */
@@ -1258,6 +1262,14 @@ async function mockStudioServices(page, options = {}) {
 			}
 		}
 		const body = responseForService(service, params, options);
+		if (
+			service === 'studio.treeview.Get' &&
+			options.frontendRefreshDelayMs &&
+			params.get('id') === frontendStructureId &&
+			options.state?.frontendNodes.some((node) => node.id === 'text1')
+		) {
+			await new Promise((resolve) => setTimeout(resolve, options.frontendRefreshDelayMs));
+		}
 
 		await route.fulfill({
 			status: 200,
@@ -1356,6 +1368,7 @@ function serviceName(url) {
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
+ *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean
  * }} [options]
  */

@@ -1,7 +1,7 @@
 <script>
 	import Projects from '$lib/common/Projects.svelte.js';
 	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import {
 		areEquivalentDboObjectIds,
@@ -107,7 +107,7 @@
 
 	/**
 	 * @param {import('./dnd').DboDropResult} mutation
-	 * @param {{ targetParentNode?: any }=} context
+	 * @param {{ targetParentNode?: any, projectTargetParent?: () => void, clearTargetProjection?: () => void }=} context
 	 */
 	async function handleMutation(mutation, context) {
 		const contextIds = mutationDboContextIds(mutation);
@@ -126,9 +126,14 @@
 			);
 		}
 		if (updatedLocally) {
-			dataSerial += 1;
+			context?.projectTargetParent?.();
+			// Flush the confirmed local projection before beginning the slower
+			// authoritative tree request. This keeps the DnD feedback independent
+			// from virtual-tree reconstruction latency.
+			await tick();
 		}
 		await refreshAffectedParents(mutationDboRefreshIds(mutation));
+		context?.clearTargetProjection?.();
 		// The project tree uses raw nested objects. Signal both the optimistic
 		// projection and the authoritative replacement performed by checkNodes;
 		// otherwise the second assignment can remain invisible until another UI

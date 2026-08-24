@@ -37,7 +37,9 @@
 	 *  onSetExpanded?: (id: string, expanded: boolean) => void,
 	 *  onKeepExpanded?: (ids: string[]) => void,
 	 *  onLoadChildren?: (node: any, force?: boolean) => Promise<void>,
-	 *  onMutation?: (mutation: import('./dnd').DboDropResult, context?: { targetParentNode?: any }) => void | Promise<void>,
+	 *  onMutation?: (mutation: import('./dnd').DboDropResult, context?: { targetParentNode?: any, projectTargetParent?: () => void, clearTargetProjection?: () => void }) => void | Promise<void>,
+	 *  projectParentChildren?: () => void,
+	 *  clearParentProjection?: () => void,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onContextAction?: (event: { nodeId: string, action: any, result: any }) => void | Promise<void>,
 	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
@@ -56,6 +58,8 @@
 		onKeepExpanded,
 		onLoadChildren = async () => {},
 		onMutation,
+		projectParentChildren,
+		clearParentProjection,
 		onMutationBusyChange,
 		onContextAction,
 		onSourceDrop
@@ -71,6 +75,8 @@
 	let dropAction = $state('none');
 	let dropCheckKey = '';
 	let revision = $state(0);
+	/** @type {any[] | null} */
+	let projectedChildren = $state.raw(null);
 	let autoExpandTarget = '';
 	let lastRefreshSerial;
 	let renameValue = $state('');
@@ -93,7 +99,7 @@
 	let children = $derived.by(() => {
 		dataSerial;
 		revision;
-		return Array.isArray(node?.children) ? node.children : [];
+		return projectedChildren ?? (Array.isArray(node?.children) ? node.children : []);
 	});
 	let selected = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, selectedId)));
 	let label = $derived.by(() => {
@@ -527,6 +533,15 @@
 		dropCheckKey = '';
 	}
 
+	function projectChildren() {
+		projectedChildren = Array.isArray(node?.children) ? [...node.children] : [];
+	}
+
+	function clearChildrenProjection() {
+		projectedChildren = null;
+		revision += 1;
+	}
+
 	/**
 	 * @param {DragEvent} event
 	 */
@@ -577,7 +592,13 @@
 				if (onMutation) {
 					await onMutation(
 						{ ...result, source: 'tree' },
-						{ targetParentNode: result.position === 'inside' ? node : parentNode }
+						{
+							targetParentNode: result.position === 'inside' ? node : parentNode,
+							projectTargetParent:
+								result.position === 'inside' ? projectChildren : projectParentChildren,
+							clearTargetProjection:
+								result.position === 'inside' ? clearChildrenProjection : clearParentProjection
+						}
 					);
 				} else {
 					const refreshNode = result.position === 'inside' ? node : parentNode;
@@ -918,6 +939,8 @@
 					{onSetExpanded}
 					{onKeepExpanded}
 					{onMutation}
+					projectParentChildren={projectChildren}
+					clearParentProjection={clearChildrenProjection}
 					{onMutationBusyChange}
 					{onContextAction}
 					{onSourceDrop}
