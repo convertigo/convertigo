@@ -24,6 +24,12 @@ const parts = $derived([
 			page: '/(app)/admin/projects'
 		},
 		{
+			title: 'Studio',
+			icon: 'mdi:hammer-wrench',
+			id: '/studio/[[qname]]',
+			page: '/studio/'
+		},
+		{
 			title: 'Symbols',
 			icon: 'mdi:star-outline',
 			page: '/(app)/admin/symbols'

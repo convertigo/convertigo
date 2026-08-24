@@ -83,6 +83,13 @@ const pageRules = [
 		navigable: false
 	},
 	{
+		page: '/studio/',
+		id: '/studio/[[qname]]',
+		viewRoles: 'PROJECTS_VIEW',
+		configRoles: 'PROJECTS_CONFIG',
+		navigable: false
+	},
+	{
 		page: '/(app)/admin/config',
 		id: '/(app)/admin/config/[category]',
 		viewRoles: ['CONFIG_VIEW', 'LOGS_VIEW', 'CACHE_VIEW', 'CERTIFICATE_VIEW'],
