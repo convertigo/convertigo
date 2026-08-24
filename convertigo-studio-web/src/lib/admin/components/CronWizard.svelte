@@ -50,6 +50,35 @@
 		const next = selection.map((sel, i) =>
 			i === index ? (Array.isArray(values) ? values.slice() : values ? [values] : []) : sel
 		);
+		const exclusiveValues = index == 2 || index == 4 ? ['*', '?'] : ['*'];
+		const lastValue = next[index].at(-1);
+		if (exclusiveValues.includes(lastValue)) {
+			next[index] = [lastValue];
+		} else {
+			next[index] = next[index].filter((value) => !exclusiveValues.includes(value));
+			if (next[index].length == 0) {
+				next[index] = [index == 4 ? '?' : '*'];
+			}
+		}
+
+		if (index == 2) {
+			if (next[2].includes('?')) {
+				if (next[4].includes('?')) {
+					next[4] = ['*'];
+				}
+			} else {
+				next[4] = ['?'];
+			}
+		} else if (index == 4) {
+			if (next[4].includes('?')) {
+				if (next[2].includes('?')) {
+					next[2] = ['*'];
+				}
+			} else {
+				next[2] = ['?'];
+			}
+		}
+
 		next[index].sort((a, b) => (isNaN(a) ? -1 : +a) - (isNaN(b) ? -1 : +b));
 		let exp = '0';
 		for (let sel of next) {
@@ -71,8 +100,8 @@
 		},
 		{
 			title: 'Day of month',
-			values: makeArray('*', 31, 1),
-			labels: makeArray('all', 31, 1)
+			values: ['?', ...makeArray('*', 31, 1)],
+			labels: ['any', ...makeArray('all', 31, 1)]
 		},
 		{
 			title: 'Month',
@@ -95,17 +124,30 @@
 		},
 		{
 			title: 'Day of week',
-			values: makeArray('?', 7, 1),
-			labels: ['any', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+			values: ['?', ...makeArray('*', 7, 1)],
+			labels: [
+				'any',
+				'all',
+				'Sunday',
+				'Monday',
+				'Tuesday',
+				'Wednesday',
+				'Thursday',
+				'Friday',
+				'Saturday'
+			]
 		}
 	];
 
-	let selection = $derived.by(() =>
-		cronExpression
-			.split(' ')
-			.slice(1, 6)
-			.map((v) => parseRange(v))
-	);
+	let selection = $derived.by(() => {
+		const fields = String(cronExpression ?? '')
+			.trim()
+			.split(/\s+/)
+			.slice(1, 6);
+		return ['*', '*', '*', '*', '?'].map((fallback, index) =>
+			parseRange(fields[index] ?? fallback)
+		);
+	});
 </script>
 
 <div class="layout-x-wrap-low">

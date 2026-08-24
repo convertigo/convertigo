@@ -279,6 +279,9 @@ function findDeepKey(obj, key, depth = 3) {
 }
 
 function stringilight(obj) {
+	if (Array.isArray(obj)) {
+		return obj.map(stringilight).filter(Boolean).join('\n');
+	}
 	return typeof obj == 'object' ? JSON.stringify(obj).replace(/(^\W+)|(\W+$)/g, '') : obj;
 }
 
@@ -299,7 +302,7 @@ function handleStateMessage(res, service) {
 			return;
 		}
 
-		let error = findDeepKeys(res, ['error', 'errorMessage']);
+		let error = findDeepKeys(res, ['error', 'errorMessage', 'problem']);
 		if (!error && findDeepKeys(res, ['state']) == 'error') {
 			error = findDeepKeys(res, ['message']);
 		}

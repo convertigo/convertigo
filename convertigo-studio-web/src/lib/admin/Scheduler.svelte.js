@@ -85,8 +85,11 @@ let values = {
 	async configure(e) {
 		e.preventDefault?.();
 		const params = e.preventDefault ? new FormData(e.target) : e;
-		await call('scheduler.CreateScheduledElements', params);
-		values.refresh();
+		const res = await call('scheduler.CreateScheduledElements', params);
+		if (!res.isError) {
+			await values.refresh();
+		}
+		return !res.isError;
 	},
 	async remove(exname, type) {
 		await call('scheduler.CreateScheduledElements', {
