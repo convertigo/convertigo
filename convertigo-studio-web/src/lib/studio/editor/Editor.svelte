@@ -2,12 +2,14 @@
 	import { base } from '$app/paths';
 	import { fromAction } from 'svelte/attachments';
 
-	/** @type {{content?: string, language?: string, theme?: string, readOnly?: boolean}} */
+	/** @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean}} */
 	let {
 		content = $bindable('/* Loading... */'),
 		language = 'json',
 		theme = 'vs-dark',
-		readOnly = true
+		readOnly = true,
+		contentHeight = $bindable(0),
+		scrollBeyondLastLine = true
 	} = $props();
 
 	function onEditorContentChange(nextContent) {
@@ -15,12 +17,19 @@
 		content = nextContent;
 	}
 
+	function onEditorContentHeightChange(nextContentHeight) {
+		if (contentHeight === nextContentHeight) return;
+		contentHeight = nextContentHeight;
+	}
+
 	const editorOptions = $derived.by(() => ({
 		content,
 		language,
 		theme,
 		readOnly,
-		onContentChange: onEditorContentChange
+		scrollBeyondLastLine,
+		onContentChange: onEditorContentChange,
+		onContentHeightChange: onEditorContentHeightChange
 	}));
 
 	const monacoBase = (
@@ -99,14 +108,17 @@
 			language: value?.language ?? 'json',
 			theme: value?.theme ?? 'vs-dark',
 			readOnly: value?.readOnly ?? true,
+			scrollBeyondLastLine: value?.scrollBeyondLastLine ?? true,
 			onContentChange:
-				typeof value?.onContentChange == 'function' ? value.onContentChange : undefined
+				typeof value?.onContentChange == 'function' ? value.onContentChange : undefined,
+			onContentHeightChange:
+				typeof value?.onContentHeightChange == 'function' ? value.onContentHeightChange : undefined
 		};
 	}
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, onContentChange?: (nextContent: string) => void}} value
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
 	 */
 	function mountMonaco(node, value) {
 		/** @type {any} */
@@ -119,6 +131,8 @@
 		let visibilityObserver;
 		/** @type {{ dispose: () => void } | undefined} */
 		let changeSubscription;
+		/** @type {{ dispose: () => void } | undefined} */
+		let contentSizeSubscription;
 		let disposed = false;
 		let pending = normalizeOptions(value);
 		let applyingContent = false;
@@ -171,7 +185,11 @@
 		function apply(nextValue) {
 			pending = normalizeOptions(nextValue);
 			if (!editor) return;
-			editor.updateOptions({ readOnly: pending.readOnly, domReadOnly: pending.readOnly });
+			editor.updateOptions({
+				readOnly: pending.readOnly,
+				domReadOnly: pending.readOnly,
+				scrollBeyondLastLine: pending.scrollBeyondLastLine
+			});
 			globalThis.monaco?.editor?.setTheme(pending.theme || 'vs');
 			if (editor.getValue() !== pending.content) {
 				applyingContent = true;
@@ -195,6 +213,7 @@
 					theme: pending.theme,
 					readOnly: pending.readOnly,
 					domReadOnly: pending.readOnly,
+					scrollBeyondLastLine: pending.scrollBeyondLastLine,
 					automaticLayout: false
 				});
 				changeSubscription = editor.onDidChangeModelContent(() => {
@@ -204,6 +223,10 @@
 					pending = { ...pending, content: nextContent };
 					pending.onContentChange?.(nextContent);
 				});
+				contentSizeSubscription = editor.onDidContentSizeChange((event) => {
+					pending.onContentHeightChange?.(Math.ceil(event.contentHeight));
+				});
+				pending.onContentHeightChange?.(Math.ceil(editor.getContentHeight()));
 
 				resizeObserver = new ResizeObserver(() => layout());
 				resizeObserver.observe(node);
@@ -226,6 +249,7 @@
 				intersectionObserver?.disconnect();
 				visibilityObserver?.disconnect();
 				changeSubscription?.dispose();
+				contentSizeSubscription?.dispose();
 				editor?.dispose();
 			}
 		};
