@@ -23,7 +23,7 @@ describe('Admin page rail', () => {
 
 		expect(studio).toEqual({
 			title: 'Studio',
-			icon: 'mdi:hammer-wrench',
+			icon: 'mdi:wrench',
 			id: '/studio/[[qname]]',
 			page: '/studio/'
 		});
