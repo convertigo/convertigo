@@ -33,8 +33,9 @@ async function loadPaletteCategories(id) {
 		return [];
 	}
 	const response = await call('studio.palette.Get', { id });
-	if (response?.isError) {
-		throw new Error(String(response.error ?? 'Unable to load palette'));
+	if (response?.isError || response?.error || response?.transportError || response?.offline) {
+		const message = response?.error?.message ?? response?.error ?? 'Unable to load palette';
+		throw new Error(String(message));
 	}
 	return Array.isArray(response?.categories) ? response.categories : [];
 }

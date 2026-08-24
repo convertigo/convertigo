@@ -1,4 +1,5 @@
 <script>
+	import Button from '$lib/admin/components/Button.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
@@ -8,6 +9,8 @@
 	import { loadPaletteContext } from './paletteContext';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioSection from './StudioSection.svelte';
+
+	const PALETTE_RETRY_DELAY_MS = 160;
 
 	/**
 	 * @typedef {Object} PaletteItem
@@ -91,8 +94,9 @@
 	/**
 	 * @param {string} nextId
 	 * @param {number} serial
+	 * @param {number} attempt
 	 */
-	async function loadPalette(nextId, serial) {
+	async function loadPalette(nextId, serial, attempt = 0) {
 		paletteLoading = true;
 		paletteError = '';
 		try {
@@ -105,6 +109,13 @@
 				}
 			}
 		} catch (err) {
+			if (attempt === 0 && serial === paletteLoadSerial && active && selectedId === nextId) {
+				await new Promise((resolve) => setTimeout(resolve, PALETTE_RETRY_DELAY_MS));
+				if (serial === paletteLoadSerial && active && selectedId === nextId) {
+					await loadPalette(nextId, serial, attempt + 1);
+					return;
+				}
+			}
 			if (serial === paletteLoadSerial) {
 				paletteContext = emptyPaletteContext();
 				openedCategories = [];
@@ -116,6 +127,15 @@
 				paletteLoading = false;
 			}
 		}
+	}
+
+	function retryPalette() {
+		const nextId = active ? selectedId : '';
+		if (!nextId || paletteLoading) {
+			return;
+		}
+		paletteRequestId = nextId;
+		void loadPalette(nextId, ++paletteLoadSerial);
 	}
 
 	/**
@@ -236,7 +256,18 @@
 		{#if paletteLoading && paletteContext.categories.length === 0}
 			<StudioEmptyState message="Loading palette" loading />
 		{:else if paletteError}
-			<StudioEmptyState message={paletteError} />
+			<StudioEmptyState>
+				<div class="studio-palette__error layout-y-center-low" role="alert">
+					<span>{paletteError}</span>
+					<Button
+						label="Retry"
+						icon="mdi:refresh"
+						class="button-secondary"
+						full={false}
+						onclick={retryPalette}
+					/>
+				</div>
+			</StudioEmptyState>
 		{:else if !selectedId}
 			<StudioEmptyState message="No object selected" />
 		{:else if filteredCategories.length === 0}
@@ -312,6 +343,10 @@
 		flex: 1;
 		overflow: auto;
 		padding: 0;
+	}
+
+	.studio-palette__error {
+		max-width: 20rem;
 	}
 
 	:global(.studio-palette__categories) {

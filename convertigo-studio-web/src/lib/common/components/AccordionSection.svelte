@@ -1,7 +1,7 @@
 <script>
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { slide } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 
 	/** @type {{
 	value?: any;
@@ -210,7 +210,7 @@
 	<Accordion.ItemContent>
 		{#snippet element(attributes)}
 			{#if !attributes.hidden}
-				<div {...attributes} class={panelClasses} transition:slide>
+				<div {...attributes} class={panelClasses} transition:fade={{ duration: 120 }}>
 					{@render body?.()}
 				</div>
 			{/if}

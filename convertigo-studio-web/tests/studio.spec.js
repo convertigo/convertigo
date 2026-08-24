@@ -489,6 +489,31 @@ test('studio adds a palette step from the flow and opens inline rename', async (
 	);
 });
 
+test('studio retries a transient palette failure without changing focus', async ({ page }) => {
+	const state = createStudioState();
+	const paletteProbe = { remaining: 1, requests: 0 };
+	const transitionWarnings = [];
+	page.on('console', (message) => {
+		if (message.text().includes('NaNpx')) {
+			transitionWarnings.push(message.text());
+		}
+	});
+	await mockStudioServices(page, { state, paletteProbe });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('tab', { name: 'Palette' }).click();
+
+	await expect(paletteItem(page, 'Simple step')).toBeVisible();
+	await expect.poll(() => paletteProbe.requests).toBe(2);
+	const category = page.getByRole('button', { name: /Steps/ });
+	await category.click();
+	await category.click();
+	await expect.poll(() => transitionWarnings).toEqual([]);
+});
+
 test('studio moves a tree step and keeps flow and url synchronized', async ({ page }) => {
 	const state = createStudioState();
 	state.steps.splice(1, 0, {
@@ -1053,6 +1078,7 @@ function responseEditor(page) {
  *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean,
  *  assistant?: boolean,
+ *  paletteProbe?: { remaining: number, requests: number },
  *  noProjects?: boolean
  * }} [options]
  */
@@ -1061,6 +1087,21 @@ async function mockStudioServices(page, options = {}) {
 		const request = route.request();
 		const service = serviceName(request.url());
 		const params = new URLSearchParams(request.postData() ?? '');
+		if (service === 'studio.palette.Get' && options.paletteProbe) {
+			options.paletteProbe.requests += 1;
+			if (options.paletteProbe.remaining > 0) {
+				options.paletteProbe.remaining -= 1;
+				await route.fulfill({
+					status: 503,
+					headers: {
+						'content-type': 'application/json',
+						'x-xsrf-token': 'studio-test-token'
+					},
+					body: JSON.stringify({ isError: true, error: 'Temporary palette failure' })
+				});
+				return;
+			}
+		}
 		const body = responseForService(service, params, options);
 
 		await route.fulfill({
@@ -1158,6 +1199,7 @@ function serviceName(url) {
  *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean,
  *  assistant?: boolean,
+ *  paletteProbe?: { remaining: number, requests: number },
  *  noProjects?: boolean
  * }} [options]
  */
