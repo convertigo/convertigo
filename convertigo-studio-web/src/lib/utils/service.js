@@ -249,7 +249,7 @@ export async function callRequestable(mode, project, data = {}) {
 	return res;
 }
 
-function findDeepKeys(obj, keys, depth = 3) {
+export function findDeepKeys(obj, keys, depth = 3) {
 	let res = null;
 	for (const key of keys) {
 		res = findDeepKey(obj, key, depth);
@@ -261,7 +261,7 @@ function findDeepKeys(obj, keys, depth = 3) {
 }
 
 function findDeepKey(obj, key, depth = 3) {
-	if (depth < 0) {
+	if (depth < 0 || obj == null || typeof obj !== 'object') {
 		return null;
 	}
 	if (obj[key]) {
