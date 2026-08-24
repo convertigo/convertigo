@@ -45,9 +45,31 @@ function studioSelectionUrl(base, id, url) {
 	return `${studioSelectionPath(base, id)}${url.search}`;
 }
 
+/**
+ * Read the selected object from the browser URL after a shallow Studio route
+ * update. SvelteKit deliberately keeps `page.params` tied to the loaded route
+ * during `replaceState`, while the address bar already contains the new qname.
+ * @param {string} base
+ * @param {URL} url
+ * @returns {string}
+ */
+function studioSelectionIdFromUrl(base, url) {
+	const basePath = new URL(normalizeStudioBase(base), url.origin).pathname;
+	if (!url.pathname.startsWith(basePath)) {
+		return '';
+	}
+	const routeId = url.pathname.slice(basePath.length).replace(/\/$/, '');
+	try {
+		return decodeStudioSelectionId(decodeURIComponent(routeId));
+	} catch {
+		return decodeStudioSelectionId(routeId);
+	}
+}
+
 export {
 	decodeStudioSelectionId,
 	encodeStudioSelectionId,
+	studioSelectionIdFromUrl,
 	studioSelectionPath,
 	studioSelectionUrl
 };

@@ -1,6 +1,6 @@
 <script>
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import { subscribeAdminEvents } from '$lib/admin/adminEvents';
 	import Projects from '$lib/common/Projects.svelte.js';
@@ -9,7 +9,11 @@
 	import { shouldStartInlineRename } from '$lib/studio/dnd';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
 	import { findPrimaryEditorProperty, isCodeEditorProperty } from '$lib/studio/propertyEditors';
-	import { decodeStudioSelectionId, studioSelectionUrl } from '$lib/studio/routeSelection';
+	import {
+		decodeStudioSelectionId,
+		studioSelectionIdFromUrl,
+		studioSelectionUrl
+	} from '$lib/studio/routeSelection';
 	import { applySourcePickerDrop, sourceDefinitionFromPayload } from '$lib/studio/sourcePickerDnd';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
 	import StudioDevicePanel from '$lib/studio/StudioDevicePanel.svelte';
@@ -28,6 +32,7 @@
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
+	import { createStudioMutationEventTracker } from '$lib/studio/studioMutationEvents';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { resolve } from '$lib/utils/route';
 	import { call, checkArray, saveDboProject } from '$lib/utils/service';
@@ -70,6 +75,7 @@
 		tree: false,
 		tools: false
 	};
+	const localMutationEvents = createStudioMutationEventTracker();
 	const SIDE_PANEL_IDS = ['devices', 'palette', 'picker', 'properties'];
 	/** @type {WorkPanel[]} */
 	const WORK_PANEL_IDS = ['execution', 'code', 'flow', 'doc'];
@@ -296,6 +302,7 @@
 		return () => {
 			unsubscribeAdminEvents();
 			clearTimeout(projectChangeRefreshTimer);
+			localMutationEvents.clear();
 		};
 	});
 
@@ -329,15 +336,9 @@
 			return;
 		}
 		pendingRouteSelectionId = nextId;
-		void goto(selectionUrl(nextId), {
-			replaceState: true,
-			noScroll: true,
-			keepFocus: true
-		}).catch(() => {
-			if (pendingRouteSelectionId === nextId) {
-				pendingRouteSelectionId = '';
-			}
-		});
+		replaceState(selectionUrl(nextId), page.state);
+		lastRouteSelectionId = nextId;
+		pendingRouteSelectionId = '';
 	});
 
 	$effect(() => {
@@ -371,6 +372,9 @@
 	 * @returns {string}
 	 */
 	function routeSelectionId() {
+		if (browser) {
+			return studioSelectionIdFromUrl(STUDIO_BASE, new URL(window.location.href));
+		}
 		return decodeStudioSelectionId(page.params.qname ?? '');
 	}
 
@@ -379,7 +383,7 @@
 	 * @returns {string}
 	 */
 	function selectionUrl(id) {
-		return studioSelectionUrl(STUDIO_BASE, id, page.url);
+		return studioSelectionUrl(STUDIO_BASE, id, browser ? new URL(window.location.href) : page.url);
 	}
 
 	/**
@@ -391,6 +395,9 @@
 		}
 		const eventProject = String(event.payload.project ?? '');
 		if (eventProject && eventProject !== selectedProjectName) {
+			return;
+		}
+		if (localMutationEvents.consume(event)) {
 			return;
 		}
 		projectChangeRefreshPending = true;
@@ -1028,6 +1035,7 @@
 	 */
 	async function onStudioMutation(mutation) {
 		const serial = ++mutationRefreshSerial;
+		localMutationEvents.remember(mutation);
 		lastStudioMutation = mutation;
 		studioMutationSerial += 1;
 		const nextSelection = mutation?.selectedId || mutation?.id;

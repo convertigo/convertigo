@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	decodeStudioSelectionId,
 	encodeStudioSelectionId,
+	studioSelectionIdFromUrl,
 	studioSelectionPath,
 	studioSelectionUrl
 } from './routeSelection';
@@ -35,5 +36,16 @@ describe('Studio route selection helpers', () => {
 		expect(studioSelectionUrl('/convertigo/studio/', 'Project.sq:Sequence', url)).toBe(
 			'/convertigo/studio/Project.sq~Sequence/?theme=dark&tab=flow'
 		);
+	});
+
+	it('reads a shallow Studio selection from the current browser URL', () => {
+		expect(
+			studioSelectionIdFromUrl(
+				'/convertigo/studio/',
+				new URL(
+					'https://example.test/convertigo/studio/Project.sq~Sequence.st~Step/?profile=frontend'
+				)
+			)
+		).toBe('Project.sq:Sequence.st:Step');
 	});
 });
