@@ -427,7 +427,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		Engine.execute(() -> {
 			try {
 				var project = getObject();
-				FlowEngineBridge.clearCaches();
+				if (flowEngineSourceChanged) {
+					FlowEngineBridge.clearCaches();
+				} else {
+					FlowEngineBridge.invalidateDataCaches();
+				}
 				FlowStudioSupport.clearCatalogCache(project);
 				ConvertigoPlugin.asyncExec(() -> {
 					try {

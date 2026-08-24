@@ -68,6 +68,7 @@ public class FlowEngineBridge {
 	private static final Map<String, CachedMethodResponse> methodResponseCache = new ConcurrentHashMap<>();
 	private static final Map<String, InvocationStats> invocationStats = new ConcurrentHashMap<>();
 	private static final AtomicLong cacheGeneration = new AtomicLong();
+	private static final AtomicLong dataGeneration = new AtomicLong();
 	private static final LongAdder methodResponseCacheHits = new LongAdder();
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
@@ -80,7 +81,8 @@ public class FlowEngineBridge {
 		}
 	}
 
-	private record CachedEngineRuntime(String sourceName, long generation, Scriptable scope, Scriptable engineObject) {
+	private record CachedEngineRuntime(String sourceName, long generation, long dataGeneration, Scriptable scope,
+			Scriptable engineObject) {
 	}
 
 	private static final class CachedEngineRuntimePool {
@@ -99,7 +101,7 @@ public class FlowEngineBridge {
 			boolean pooled, String key, long generation, int size) {
 	}
 
-	private record CachedMethodResponse(String response, long generation) {
+	private record CachedMethodResponse(String response, long generation, long dataGeneration) {
 	}
 
 	public static void clearCaches() {
@@ -116,12 +118,17 @@ public class FlowEngineBridge {
 		RhinoUtils.clearCachedJavascript();
 	}
 
+	public static void invalidateDataCaches() {
+		dataGeneration.incrementAndGet();
+		clearMethodResponseCache();
+	}
+
 	public static long cacheGeneration() {
 		return cacheGeneration.get();
 	}
 
 	public static void notifySourceMutation(String projectDir, String sourcePath) {
-		clearCaches();
+		invalidateDataCaches();
 		if (!Engine.isStudioMode() || Engine.theApp == null || Engine.theApp.eventManager == null) {
 			return;
 		}
@@ -1360,6 +1367,7 @@ public class FlowEngineBridge {
 		}
 		return new JSONObject()
 				.put("generation", cacheGeneration.get())
+				.put("dataGeneration", dataGeneration.get())
 				.put("sourceCacheSize", engineSourceCache.size())
 				.put("runtimeCacheSize", engineRuntimeCache.size())
 				.put("runtimePoolLimit", ENGINE_RUNTIME_POOL_LIMIT)
@@ -1433,7 +1441,8 @@ public class FlowEngineBridge {
 			String method, JSONObject request) {
 		var key = methodResponseCacheKey(engineRef, engineFile, engineSource, method, request);
 		var cached = methodResponseCache.get(key);
-		if (cached != null && cached.generation() == cacheGeneration.get()) {
+		if (cached != null && cached.generation() == cacheGeneration.get()
+				&& cached.dataGeneration() == dataGeneration.get()) {
 			methodResponseCacheHits.increment();
 			return cached;
 		}
@@ -1451,13 +1460,14 @@ public class FlowEngineBridge {
 			methodResponseCacheInvalidations.increment();
 		}
 		methodResponseCache.put(methodResponseCacheKey(engineRef, engineFile, engineSource, method, request),
-				new CachedMethodResponse(response.toString(), cacheGeneration.get()));
+				new CachedMethodResponse(response.toString(), cacheGeneration.get(), dataGeneration.get()));
 	}
 
 	private static String methodResponseCacheKey(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
 			JSONObject request) {
 		return engineRef.qname + "|" + engineSource.sourceName() + "|"
-				+ methodResponseDependencyFingerprint(engineFile, request) + "|" + cacheGeneration.get() + "|" + method + "|"
+				+ methodResponseDependencyFingerprint(engineFile, request) + "|" + cacheGeneration.get() + "|"
+				+ dataGeneration.get() + "|" + method + "|"
 				+ request.toString();
 	}
 
@@ -1735,7 +1745,16 @@ public class FlowEngineBridge {
 			synchronized (pool) {
 				var cached = pool.available.pollFirst();
 				if (cached != null) {
-					return new CachedEngineRuntimeLookup(cached, pool, true, true, key, generation, engineRuntimeCache.size());
+					try {
+						cached = refreshEngineRuntimeDataCaches(cached, cx);
+						return new CachedEngineRuntimeLookup(cached, pool, true, true, key, generation,
+								engineRuntimeCache.size());
+					} catch (Exception e) {
+						if (pool.cachedCount > 0) {
+							pool.cachedCount--;
+						}
+						Engine.logEngine.warn("(FlowEngineBridge) Unable to refresh a cached engine runtime; replacing it.", e);
+					}
 				}
 				var fresh = createEngineRuntime(engineRef, engineFile, engineSource, cx, generation);
 				var pooled = pool.cachedCount < ENGINE_RUNTIME_POOL_LIMIT;
@@ -1763,7 +1782,7 @@ public class FlowEngineBridge {
 			if (!(engine instanceof Scriptable engineObject)) {
 				throw new EngineException("Flow engine \"" + engineRef.qname + "\" must evaluate to a JavaScript object.");
 			}
-			return new CachedEngineRuntime(engineSource.sourceName(), generation, scope, engineObject);
+			return new CachedEngineRuntime(engineSource.sourceName(), generation, dataGeneration.get(), scope, engineObject);
 		} catch (EngineException e) {
 			throw e;
 		} catch (Exception e) {
@@ -1780,19 +1799,42 @@ public class FlowEngineBridge {
 			return;
 		}
 		var pool = lookup.pool();
+		var runtime = lookup.runtime();
+		try {
+			runtime = refreshEngineRuntimeDataCaches(runtime, org.mozilla.javascript.Context.getCurrentContext());
+		} catch (Exception e) {
+			synchronized (pool) {
+				if (pool.cachedCount > 0) {
+					pool.cachedCount--;
+				}
+			}
+			Engine.logEngine.warn("(FlowEngineBridge) Unable to refresh a released engine runtime; discarding it.", e);
+			return;
+		}
 		var released = false;
 		synchronized (pool) {
 			if (engineRuntimeCache.get(lookup.key()) == pool && pool.generation == lookup.generation()
-					&& pool.sourceName.equals(lookup.runtime().sourceName())) {
-				pool.available.addLast(lookup.runtime());
+					&& pool.sourceName.equals(runtime.sourceName())) {
+				pool.available.addLast(runtime);
 				released = true;
 			} else if (pool.cachedCount > 0) {
 				pool.cachedCount--;
 			}
 		}
 		if (!released) {
-			disposeEngineRuntime(lookup.runtime(), org.mozilla.javascript.Context.getCurrentContext());
+			disposeEngineRuntime(runtime, org.mozilla.javascript.Context.getCurrentContext());
 		}
+	}
+
+	private static CachedEngineRuntime refreshEngineRuntimeDataCaches(CachedEngineRuntime runtime,
+			org.mozilla.javascript.Context cx) {
+		var generation = dataGeneration.get();
+		if (runtime == null || runtime.dataGeneration() == generation || cx == null) {
+			return runtime;
+		}
+		clearEngineRuntimeDataCaches(runtime, cx);
+		return new CachedEngineRuntime(runtime.sourceName(), runtime.generation(), generation, runtime.scope(),
+				runtime.engineObject());
 	}
 
 	private static List<CachedEngineRuntime> drainAvailableRuntimes(CachedEngineRuntimePool pool) {
@@ -1831,12 +1873,16 @@ public class FlowEngineBridge {
 			return;
 		}
 		try {
-			var function = ScriptableObject.getProperty(runtime.engineObject(), "cacheClear");
-			if (function instanceof Function cacheClear) {
-				cacheClear.call(cx, runtime.scope(), runtime.engineObject(), new Object[] { "{}" });
-			}
+			clearEngineRuntimeDataCaches(runtime, cx);
 		} catch (Exception e) {
 			Engine.logEngine.warn("(FlowEngineBridge) Unable to clear a discarded engine runtime.", e);
+		}
+	}
+
+	private static void clearEngineRuntimeDataCaches(CachedEngineRuntime runtime, org.mozilla.javascript.Context cx) {
+		var function = ScriptableObject.getProperty(runtime.engineObject(), "cacheClear");
+		if (function instanceof Function cacheClear) {
+			cacheClear.call(cx, runtime.scope(), runtime.engineObject(), new Object[] { "{}" });
 		}
 	}
 
