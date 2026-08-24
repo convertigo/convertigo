@@ -132,6 +132,13 @@
 			// from virtual-tree reconstruction latency.
 			await tick();
 		}
+		// Register the local mutation before the delayed server event can arrive.
+		// The page callback remembers its exact source path synchronously, while
+		// its project/flow refresh may continue alongside tree reconciliation.
+		const mutationOutcome = Promise.resolve(onMutation?.(mutation)).then(
+			() => ({ error: null }),
+			(error) => ({ error })
+		);
 		await refreshAffectedParents(mutationDboRefreshIds(mutation));
 		context?.clearTargetProjection?.();
 		// The project tree uses raw nested objects. Signal both the optimistic
@@ -139,7 +146,10 @@
 		// otherwise the second assignment can remain invisible until another UI
 		// state change happens to reevaluate the branch.
 		dataSerial += 1;
-		await onMutation?.(mutation);
+		const outcome = await mutationOutcome;
+		if (outcome.error) {
+			throw outcome.error;
+		}
 	}
 
 	/**
