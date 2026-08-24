@@ -30,6 +30,7 @@
 		saveDesignDocument
 	} from './fullsync-api';
 	import { createFullSyncFeedback, fullSyncErrorMessage } from './fullsync-feedback';
+	import { anonymizeFullSyncFunction, nameFullSyncFunction } from './fullsync-functions';
 	import { fullSyncPretty, parseFullSyncJson, parseFullSyncJsonSilent } from './fullsync-json';
 	import { FULLSYNC_DOCS, openFullSyncJsonPayload, openFullSyncLink } from './fullsync-links';
 	import { getFullSyncConfirmModal, openFullSyncConfirmation } from './fullsync-modal';
@@ -146,7 +147,7 @@
 	let viewEditorMap = $state('');
 	let viewEditorReduceOption = $state('NONE');
 	let viewEditorReduceCustom = $state(
-		'function (keys, values, rereduce) {\n  if (rereduce) {\n    return sum(values);\n  }\n  return values.length;\n}'
+		'function reduce(keys, values, rereduce) {\n  if (rereduce) {\n    return sum(values);\n  }\n  return values.length;\n}'
 	);
 	let viewEditorNewDesignDocName = $state('');
 	let viewEditorLoadedKey = $state('');
@@ -1540,12 +1541,12 @@
 		viewEditorOriginalName = viewName;
 		viewEditorDesignDocId = designDocId == 'new-doc' ? 'new-doc' : designDocId;
 		viewEditorName = viewName == 'new-view' ? '' : viewName;
-		viewEditorMap = mapCode;
+		viewEditorMap = nameFullSyncFunction(mapCode, 'map');
 		viewEditorReduceOption = reduceOption;
 		viewEditorReduceCustom =
 			reduceOption == 'CUSTOM'
-				? reduceCode
-				: 'function (keys, values, rereduce) {\n  if (rereduce) {\n    return sum(values);\n  }\n  return values.length;\n}';
+				? nameFullSyncFunction(reduceCode, 'reduce')
+				: 'function reduce(keys, values, rereduce) {\n  if (rereduce) {\n    return sum(values);\n  }\n  return values.length;\n}';
 		viewEditorNewDesignDocName =
 			designDocId && designDocId != 'new-doc'
 				? designDocId.replace(/^_design\//, '')
@@ -1556,7 +1557,7 @@
 		if (viewEditorReduceOption == 'NONE') return null;
 		if (viewEditorReduceOption == 'CUSTOM') {
 			const code = viewEditorReduceCustom.trim();
-			return code || null;
+			return code ? anonymizeFullSyncFunction(code) : null;
 		}
 		return viewEditorReduceOption;
 	}
@@ -1594,7 +1595,7 @@
 			}
 		}
 
-		const nextMap = viewEditorMap.trim() || defaultMapFunction();
+		const nextMap = anonymizeFullSyncFunction(viewEditorMap.trim() || defaultMapFunction());
 		const nextReduce = resolveViewReduceValue();
 		const sourceDesignDocId = viewEditorOriginalDesignDocId;
 		const sourceViewName = viewEditorOriginalName;
