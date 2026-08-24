@@ -787,7 +787,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 				throw new EngineException("Flow virtual source file does not exist: " + sourcePath);
 			}
 			FileUtils.forceDelete(file);
-			FlowEngineBridge.clearCaches();
+			FlowEngineBridge.invalidateDataCaches();
 			FlowStudioSupport.clearCatalogCache(flowEngine);
 			FlowStudioSupport.afterSourceMutation(flowEngine, sourcePath);
 		} catch (EngineException e) {

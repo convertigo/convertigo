@@ -366,7 +366,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 
 		var flowSourceNames = new HashSet<String>();
-		var flowEngineSourceChanged = new boolean[] { false };
+		var flowRuntimeSourceChanged = new boolean[] { false };
+		var flowCatalogSourceChanged = new boolean[] { false };
+		var flowFrontendSourceChanged = new boolean[] { false };
 		
 		IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
 			public boolean visit(IResourceDelta delta) {
@@ -394,7 +396,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					return true;
 				}
 				if (projectRelativePath.startsWith("libs/flow/")) {
-					flowEngineSourceChanged[0] = true;
+					if (FlowEngineBridge.requiresRuntimeCacheInvalidation(projectRelativePath)) {
+						flowRuntimeSourceChanged[0] = true;
+					} else if (FlowEngineBridge.isFrontendAuthoringSourcePath(projectRelativePath)) {
+						flowFrontendSourceChanged[0] = true;
+					} else {
+						flowCatalogSourceChanged[0] = true;
+					}
 					return true;
 				}
 				
@@ -417,17 +425,20 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		} catch (CoreException e) {
 			
 		}
-		refreshFlowVirtualTree(flowSourceNames, flowEngineSourceChanged[0]);
+		refreshFlowVirtualTree(flowSourceNames, flowRuntimeSourceChanged[0],
+				flowCatalogSourceChanged[0], flowFrontendSourceChanged[0]);
 	}
 
-	private void refreshFlowVirtualTree(Set<String> flowSourceNames, boolean flowEngineSourceChanged) {
-		if (!flowEngineSourceChanged && flowSourceNames.isEmpty()) {
+	private void refreshFlowVirtualTree(Set<String> flowSourceNames, boolean flowRuntimeSourceChanged,
+			boolean flowCatalogSourceChanged, boolean flowFrontendSourceChanged) {
+		if (!flowRuntimeSourceChanged && !flowCatalogSourceChanged && !flowFrontendSourceChanged
+				&& flowSourceNames.isEmpty()) {
 			return;
 		}
 		Engine.execute(() -> {
 			try {
 				var project = getObject();
-				if (flowEngineSourceChanged) {
+				if (flowRuntimeSourceChanged) {
 					FlowEngineBridge.clearCaches();
 				} else {
 					FlowEngineBridge.invalidateDataCaches();
@@ -436,7 +447,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				ConvertigoPlugin.asyncExec(() -> {
 					try {
 						var explorerView = getProjectExplorerView();
-						if (flowEngineSourceChanged) {
+						if (flowRuntimeSourceChanged || flowCatalogSourceChanged) {
 							FlowEngine flowEngine = project.getFlowEngine();
 							if (flowEngine != null) {
 								var treeObject = explorerView.findTreeObjectByUserObject(flowEngine);
@@ -475,7 +486,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			var name = new File(path).getName();
 			flowSourceNames.add(name.substring(0, name.length() - ".flow.js".length()));
 		}
-		refreshFlowVirtualTree(flowSourceNames, path.startsWith("libs/flow/"));
+		var flowPath = path.startsWith("libs/flow/");
+		var runtimeSource = flowPath && FlowEngineBridge.requiresRuntimeCacheInvalidation(path);
+		var frontendSource = flowPath && FlowEngineBridge.isFrontendAuthoringSourcePath(path);
+		refreshFlowVirtualTree(flowSourceNames, runtimeSource,
+				flowPath && !runtimeSource && !frontendSource, frontendSource);
 	}
 
 	@Override

@@ -127,6 +127,23 @@ public class FlowEngineBridge {
 		return cacheGeneration.get();
 	}
 
+	public static boolean requiresRuntimeCacheInvalidation(String projectRelativePath) {
+		var path = normalizeProjectRelativePath(projectRelativePath);
+		return "libs/flow/Engine.js".equals(path)
+				|| path.startsWith("libs/flow/modules/")
+				|| path.startsWith("libs/flow/lib/");
+	}
+
+	public static boolean isFrontendAuthoringSourcePath(String projectRelativePath) {
+		var path = normalizeProjectRelativePath(projectRelativePath);
+		return path.startsWith("libs/flow/frontbuilder/")
+				&& (path.contains("/model/") || path.contains("/.flow-drafts/"));
+	}
+
+	private static String normalizeProjectRelativePath(String path) {
+		return path == null ? "" : path.replace('\\', '/').replaceFirst("^/+", "");
+	}
+
 	public static void notifySourceMutation(String projectDir, String sourcePath) {
 		invalidateDataCaches();
 		if (!Engine.isStudioMode() || Engine.theApp == null || Engine.theApp.eventManager == null) {

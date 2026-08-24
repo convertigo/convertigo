@@ -1132,7 +1132,7 @@ public class FlowStudioSupport {
 		}
 		file.getParentFile().mkdirs();
 		FileUtils.writeStringToFile(file, source, "UTF-8");
-		FlowEngineBridge.clearCaches();
+		FlowEngineBridge.invalidateDataCaches();
 		var result = new JSONObject()
 				.put("done", true)
 				.put("id", flowEngine.getFullQName())
