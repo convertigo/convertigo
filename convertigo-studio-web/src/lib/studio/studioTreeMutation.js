@@ -11,10 +11,13 @@
 function applyProjectedTreeMutation(roots, mutation, idsEqual) {
 	if (
 		!mutation?.done ||
-		(!mutation.selectionSourcePath && !mutation.projectedSourcePath) ||
+		(!mutation.optimistic && !mutation.selectionSourcePath && !mutation.projectedSourcePath) ||
 		!mutation.parentId
 	) {
 		return false;
+	}
+	if (mutation.pendingId) {
+		removeProjectedTreeNode(roots, mutation.pendingId, idsEqual);
 	}
 	const parent = findTreeNode(roots, mutation.parentId, idsEqual);
 	if (!parent || !Array.isArray(parent.children)) {
@@ -70,8 +73,27 @@ function projectedPaletteNode(mutation) {
 		name: label,
 		label,
 		icon: data.iconFile16 ?? data.icon ?? 'folder',
+		pending: Boolean(mutation.optimistic),
 		children: false
 	};
+}
+
+/**
+ * Remove a locally projected placeholder without waiting for an authoritative
+ * tree reload. Used to roll back a refused mutation and to replace an
+ * optimistic node with the id returned by the engine.
+ * @param {any[]} roots
+ * @param {string | undefined} id
+ * @param {(left: string | undefined, right: string | undefined) => boolean} idsEqual
+ * @returns {boolean}
+ */
+function removeProjectedTreeNode(roots, id, idsEqual) {
+	const entry = findTreeEntry(roots, id, idsEqual);
+	if (!entry?.node || !entry.parent || !Array.isArray(entry.parent.children)) {
+		return false;
+	}
+	entry.parent.children.splice(entry.parent.children.indexOf(entry.node), 1);
+	return true;
 }
 
 /**
@@ -106,4 +128,4 @@ function findTreeEntry(nodes, id, idsEqual, parent) {
 	return undefined;
 }
 
-export { applyProjectedTreeMutation };
+export { applyProjectedTreeMutation, removeProjectedTreeNode };

@@ -107,26 +107,27 @@
 
 	/**
 	 * @param {import('./dnd').DboDropResult} mutation
-	 * @param {{ targetParentNode?: any, projectTargetParent?: () => void, clearTargetProjection?: () => void }=} context
+	 * @param {{ targetParentNode?: any, projectTargetParent?: () => void, clearTargetProjection?: () => void, projectPendingParent?: () => void }=} context
 	 */
 	async function handleMutation(mutation, context) {
 		const contextIds = mutationDboContextIds(mutation);
 		keepExpanded(contextIds);
 		const targetRoots = context?.targetParentNode ? [context.targetParentNode] : rootChildren;
 		let updatedLocally = applyProjectedTreeMutation(
-			targetRoots,
+			rootChildren,
 			mutation,
 			areEquivalentDboObjectIds
 		);
 		if (!updatedLocally && targetRoots !== rootChildren) {
 			updatedLocally = applyProjectedTreeMutation(
-				rootChildren,
+				targetRoots,
 				mutation,
 				areEquivalentDboObjectIds
 			);
 		}
 		if (updatedLocally) {
 			context?.projectTargetParent?.();
+			context?.projectPendingParent?.();
 			// Flush the confirmed local projection before beginning the slower
 			// authoritative tree request. This keeps the DnD feedback independent
 			// from virtual-tree reconstruction latency.

@@ -17,7 +17,8 @@ import {
 	objectNameFromId,
 	performDboDrop,
 	renameObjectId,
-	shouldStartInlineRename
+	shouldStartInlineRename,
+	treeRowDropPosition
 } from './dnd';
 
 vi.mock('$lib/utils/service', () => ({
@@ -31,6 +32,19 @@ beforeEach(() => {
 });
 
 describe('Studio DBO drag and drop qnames', () => {
+	it('splits leaf rows into unambiguous before and after drop zones', () => {
+		expect(treeRowDropPosition(0, 40, false)).toBe('before');
+		expect(treeRowDropPosition(19, 40, false)).toBe('before');
+		expect(treeRowDropPosition(20, 40, false)).toBe('after');
+		expect(treeRowDropPosition(40, 40, false)).toBe('after');
+	});
+
+	it('keeps a central inside drop zone for containers', () => {
+		expect(treeRowDropPosition(5, 40, true)).toBe('before');
+		expect(treeRowDropPosition(20, 40, true)).toBe('inside');
+		expect(treeRowDropPosition(35, 40, true)).toBe('after');
+	});
+
 	it('extracts local object names from regular and structured qnames', () => {
 		expect(objectNameFromId('Project.sq:Sequence.st:step')).toBe('step');
 		expect(objectNameFromId('Project.sq:Sequence.st:object.field')).toBe('field');

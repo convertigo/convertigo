@@ -104,4 +104,65 @@ describe('Studio projected tree mutations', () => {
 		).toBe(true);
 		expect(card.children.map((node) => node.label)).toEqual(['New text', 'Title']);
 	});
+
+	it('projects a frontend palette placeholder before the server responds', () => {
+		const card = {
+			id: 'Project.frontends.home.card',
+			children: [{ id: 'Project.frontends.home.card.title', label: 'Title' }]
+		};
+		expect(
+			applyProjectedTreeMutation(
+				[card],
+				{
+					done: true,
+					optimistic: true,
+					selectedId: `${card.id}.__pending_spinner`,
+					parentId: card.id,
+					target: card.children[0].id,
+					position: 'before',
+					payload: {
+						type: 'paletteData',
+						data: { type: 'FrontendBlock', name: 'Spinner', insert: { label: 'Loading' } }
+					}
+				},
+				idsEqual
+			)
+		).toBe(true);
+		expect(card.children[0]).toMatchObject({ label: 'Loading', pending: true });
+	});
+
+	it('atomically replaces an optimistic placeholder with the confirmed node', () => {
+		const pendingId = 'Project.frontends.home.card.__pending_spinner';
+		const card = {
+			id: 'Project.frontends.home.card',
+			children: [
+				{ id: pendingId, label: 'Loading', pending: true },
+				{ id: 'Project.frontends.home.card.title', label: 'Title' }
+			]
+		};
+		expect(
+			applyProjectedTreeMutation(
+				[card],
+				{
+					done: true,
+					pendingId,
+					selectedId: 'Project.frontends.home.card.spinner',
+					selectionSourcePath: '/workspace/project/+page.flow.svelte',
+					parentId: card.id,
+					target: card.children[1].id,
+					position: 'before',
+					payload: {
+						type: 'paletteData',
+						data: { type: 'FrontendBlock', name: 'Spinner', insert: { label: 'Loading' } }
+					}
+				},
+				idsEqual
+			)
+		).toBe(true);
+		expect(card.children.map((child) => child.id)).toEqual([
+			'Project.frontends.home.card.spinner',
+			'Project.frontends.home.card.title'
+		]);
+		expect(card.children[0].pending).toBe(false);
+	});
 });

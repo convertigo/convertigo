@@ -16,11 +16,13 @@
 		objectNameFromId,
 		parentObjectId,
 		performDboDrop,
-		renameObjectId
+		renameObjectId,
+		treeRowDropPosition
 	} from './dnd';
 	import { getSourcePickerDragPayload } from './sourcePickerDnd';
 	import StudioTreeActionMenu from './StudioTreeActionMenu.svelte';
 	import StudioTreeNode from './StudioTreeNode.svelte';
+	import { applyProjectedTreeMutation, removeProjectedTreeNode } from './studioTreeMutation';
 
 	const folderTypeIds = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url', 'app', 'mob']);
 
@@ -37,7 +39,7 @@
 	 *  onSetExpanded?: (id: string, expanded: boolean) => void,
 	 *  onKeepExpanded?: (ids: string[]) => void,
 	 *  onLoadChildren?: (node: any, force?: boolean) => Promise<void>,
-	 *  onMutation?: (mutation: import('./dnd').DboDropResult, context?: { targetParentNode?: any, projectTargetParent?: () => void, clearTargetProjection?: () => void }) => void | Promise<void>,
+	 *  onMutation?: (mutation: import('./dnd').DboDropResult, context?: { targetParentNode?: any, projectTargetParent?: () => void, clearTargetProjection?: () => void, projectPendingParent?: () => void }) => void | Promise<void>,
 	 *  projectParentChildren?: () => void,
 	 *  clearParentProjection?: () => void,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
@@ -420,8 +422,8 @@
 	}
 
 	/**
-	 * @param {string} nodeId
-	 * @param {string} target
+	 * @param {string | undefined} nodeId
+	 * @param {string | undefined} target
 	 * @returns {boolean}
 	 */
 	function isEquivalentNodeId(nodeId, target) {
@@ -572,16 +574,24 @@
 			return;
 		}
 		let handled = false;
+		const fallback = getUsableTreeDropFallback(payload, target, action);
+		const pending = beginOptimisticPaletteDrop(payload, target, fallback);
 		onMutationBusyChange?.(true);
 		try {
+			if (pending) {
+				await tick();
+			}
 			const result = await performDboDrop({
 				payload,
 				target: target.target,
 				position: target.position,
 				dropAction: action,
-				...getUsableTreeDropFallback(payload, target, action)
+				...fallback
 			});
 			if (result?.done) {
+				if (pending) {
+					result.pendingId = pending.id;
+				}
 				keepMutationParentsExpanded(result);
 				if (result.position === 'inside') {
 					setExpanded(true);
@@ -590,17 +600,19 @@
 					selectedId = result.selectedId;
 				}
 				if (onMutation) {
+					const projection = projectionContext(result.parentId, result.position);
 					await onMutation(
 						{ ...result, source: 'tree' },
 						{
-							targetParentNode: result.position === 'inside' ? node : parentNode,
-							projectTargetParent:
-								result.position === 'inside' ? projectChildren : projectParentChildren,
-							clearTargetProjection:
-								result.position === 'inside' ? clearChildrenProjection : clearParentProjection
+							targetParentNode: projection.parent,
+							projectTargetParent: projection.project,
+							clearTargetProjection: projection.clear,
+							projectPendingParent:
+								pending && pending.parent !== projection.parent ? pending.project : undefined
 						}
 					);
 				} else {
+					rollbackOptimisticPaletteDrop(pending);
 					const refreshNode = result.position === 'inside' ? node : parentNode;
 					if (refreshNode) {
 						await onLoadChildren(refreshNode, true);
@@ -610,9 +622,90 @@
 				handled = true;
 			}
 		} finally {
+			if (!handled) {
+				rollbackOptimisticPaletteDrop(pending);
+			}
 			onMutationBusyChange?.(false, handled);
 			$draggedData = undefined;
 		}
+	}
+
+	/**
+	 * Project source-backed frontend palette drops before the engine finishes
+	 * mutation/generation. The engine response remains authoritative and
+	 * replaces this temporary id; refused calls roll it back.
+	 * @param {import('./dnd').DboDragPayload} payload
+	 * @param {{ target: string, position: import('./dnd').DropPosition }} target
+	 * @param {{ fallbackTarget?: string, fallbackPosition?: import('./dnd').DropPosition }} fallback
+	 */
+	function beginOptimisticPaletteDrop(payload, target, fallback) {
+		if (payload?.type !== 'paletteData' || payload.data?.type !== 'FrontendBlock') {
+			return null;
+		}
+		let effectiveTarget = target.target;
+		let effectivePosition = target.position;
+		let context = projectionContext('', effectivePosition);
+		if (
+			(!context.parent || !Array.isArray(context.parent.children) || !context.project) &&
+			fallback?.fallbackTarget &&
+			fallback.fallbackPosition
+		) {
+			effectiveTarget = fallback.fallbackTarget;
+			effectivePosition = fallback.fallbackPosition;
+			context = projectionContext('', effectivePosition);
+		}
+		if (!context.parent || !Array.isArray(context.parent.children) || !context.project) {
+			return null;
+		}
+		const id = `${context.parent.id}.__pending_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+		const applied = applyProjectedTreeMutation(
+			[context.parent],
+			{
+				done: true,
+				optimistic: true,
+				selectedId: id,
+				parentId: context.parent.id,
+				target: effectiveTarget,
+				position: effectivePosition,
+				payload
+			},
+			isEquivalentNodeId
+		);
+		if (!applied) {
+			return null;
+		}
+		context.project();
+		return { id, parent: context.parent, project: context.project };
+	}
+
+	/** @param {{ id: string, parent: any, project: () => void } | null} pending */
+	function rollbackOptimisticPaletteDrop(pending) {
+		if (!pending || !removeProjectedTreeNode([pending.parent], pending.id, isEquivalentNodeId)) {
+			return;
+		}
+		pending.project();
+	}
+
+	/**
+	 * Resolve the visual parent from the authoritative parent id first. This
+	 * matters when the engine retargets an inside drop to a sibling insertion.
+	 * @param {string | undefined} parentId
+	 * @param {import('./dnd').DropPosition | undefined} position
+	 */
+	function projectionContext(parentId, position) {
+		if (parentId && isEquivalentNodeId(node?.id, parentId)) {
+			return { parent: node, project: projectChildren, clear: clearChildrenProjection };
+		}
+		if (parentId && isEquivalentNodeId(parentNode?.id, parentId)) {
+			return {
+				parent: parentNode,
+				project: projectParentChildren,
+				clear: clearParentProjection
+			};
+		}
+		return position === 'inside'
+			? { parent: node, project: projectChildren, clear: clearChildrenProjection }
+			: { parent: parentNode, project: projectParentChildren, clear: clearParentProjection };
 	}
 
 	/**
@@ -707,10 +800,11 @@
 		if (rowElement && parentNode?.id) {
 			const rect = rowElement.getBoundingClientRect();
 			const y = event.clientY - rect.top;
-			if (y < rect.height * 0.28) {
+			const rowPosition = treeRowDropPosition(y, rect.height, node?.children !== false);
+			if (rowPosition === 'before') {
 				position = 'before';
 				indicator = 'before';
-			} else if (y > rect.height * 0.72) {
+			} else if (rowPosition === 'after') {
 				position = 'after';
 				target = node.id;
 				indicator = 'after';
@@ -830,6 +924,7 @@
 		class:studio-tree-node__row--drop-before={dropOver && dropAllowed && dropIndicator === 'before'}
 		class:studio-tree-node__row--drop-after={dropOver && dropAllowed && dropIndicator === 'after'}
 		class:studio-tree-node__row--drop-inside={dropOver && dropAllowed && dropIndicator === 'inside'}
+		class:studio-tree-node__row--pending={Boolean(node?.pending)}
 		class="studio-tree-node__row"
 		style:padding-left={paddingLeft}
 	>
@@ -979,6 +1074,17 @@
 
 	.studio-tree-node__row:hover {
 		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
+	}
+
+	.studio-tree-node__row--pending {
+		opacity: 0.68;
+		animation: studio-tree-pending 0.9s ease-in-out infinite alternate;
+	}
+
+	@keyframes studio-tree-pending {
+		to {
+			opacity: 1;
+		}
 	}
 
 	.studio-tree-node__row--selected {

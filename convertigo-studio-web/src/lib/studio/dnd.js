@@ -20,6 +20,8 @@ const FOLDER_TYPE_IDS = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url
  * @property {string=} target
  * @property {string=} parentId
  * @property {string=} previousParentId
+ * @property {string=} pendingId
+ * @property {boolean=} optimistic
  * @property {string=} selectionSourcePath
  * @property {string=} projectedSourcePath
  * @property {DropPosition=} position
@@ -71,6 +73,32 @@ function getDboDropAction(event, payload) {
 		return dropEffect;
 	}
 	return event.ctrlKey ? 'copy' : 'move';
+}
+
+/**
+ * Resolve the visual drop position for a tree row. Leaf nodes cannot contain
+ * children, so their whole row is split into intuitive before/after zones.
+ * Containers keep a central inside zone for nesting.
+ * @param {number} relativeY
+ * @param {number} height
+ * @param {boolean} canContainChildren
+ * @returns {'inside' | 'before' | 'after'}
+ */
+function treeRowDropPosition(relativeY, height, canContainChildren) {
+	if (!Number.isFinite(height) || height <= 0) {
+		return canContainChildren ? 'inside' : 'after';
+	}
+	const ratio = Math.max(0, Math.min(1, relativeY / height));
+	if (!canContainChildren) {
+		return ratio < 0.5 ? 'before' : 'after';
+	}
+	if (ratio < 0.28) {
+		return 'before';
+	}
+	if (ratio > 0.72) {
+		return 'after';
+	}
+	return 'inside';
 }
 
 /**
@@ -1057,5 +1085,6 @@ export {
 	parentObjectId,
 	performDboDrop,
 	renameObjectId,
-	shouldStartInlineRename
+	shouldStartInlineRename,
+	treeRowDropPosition
 };
