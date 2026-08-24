@@ -165,6 +165,10 @@ test('studio inserts and reorders source-backed frontend blocks at the requested
 	await expectFrontendOrder(page, ['firstText', 'text1', 'secondText']);
 	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('New text');
 	await expect(page.getByRole('textbox', { name: 'Rename step' })).toHaveCount(0);
+	await expect(page.getByRole('tab', { name: 'Properties', exact: true })).toHaveAttribute(
+		'aria-selected',
+		'true'
+	);
 
 	await dragTreeNodeToTreeNode(
 		page,

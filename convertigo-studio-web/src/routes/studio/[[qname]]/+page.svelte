@@ -942,6 +942,15 @@
 		lastStudioMutation = mutation;
 		studioMutationSerial += 1;
 		const nextSelection = mutation?.selectedId || mutation?.id;
+		if (
+			mutation?.payload?.type === 'paletteData' &&
+			(mutation?.selectionSourcePath || mutation?.projectedSourcePath)
+		) {
+			// A freshly inserted source-backed widget is immediately editable. Avoid
+			// starting a parent-sensitive palette request for the new child while its
+			// properties are the user's next interaction.
+			activeSidePanel = 'properties';
+		}
 		if (nextSelection) {
 			selectedId = nextSelection;
 		}
