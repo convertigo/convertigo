@@ -1635,6 +1635,51 @@ public class FlowStudioSupport {
 		return moveNodeToIndex(fvo, targetIndex);
 	}
 
+	public static boolean canRemoveNode(DatabaseObject targetDbo) {
+		if (!(targetDbo instanceof FlowVirtualObject fvo) || flowAuthoringRoot(fvo) == null) {
+			return false;
+		}
+		if (!sourcePath(fvo).isBlank() && !sourceFlag(fvo, "sourceWritable")) {
+			return false;
+		}
+		return removeNodeMutation(fvo) != null;
+	}
+
+	public static JSONObject removeNode(DatabaseObject targetDbo) throws Exception {
+		if (!(targetDbo instanceof FlowVirtualObject fvo) || !canRemoveNode(fvo)) {
+			return new JSONObject()
+					.put("done", false)
+					.put("error", "The selected Flow item is not backed by a removable source entry.");
+		}
+		var root = flowAuthoringRoot(fvo);
+		var mutation = removeNodeMutation(fvo);
+		var removedId = fvo.getFullQName();
+		var parentId = fvo.getParent() == null ? "" : fvo.getParent().getFullQName();
+		flowStudioInfo("Flow source remove mutation: target=" + flowMoveTargetSummary(fvo)
+				+ " sourcePath=" + sourcePath(fvo) + " mutation=" + mutation);
+		var mutationResponse = applyMutation(root, fvo, mutation);
+		var done = mutationResponse.optBoolean("ok", false) && sourceMutationChanged(mutationResponse);
+		return withProjectionMetadata(new JSONObject()
+				.put("done", done)
+				.put("id", done ? removedId : "")
+				.put("parentId", done ? parentId : "")
+				.put("error", done ? JSONObject.NULL : mutationResponse.has("error")
+						? mutationResponse.opt("error")
+						: "Flow item removal did not change the source."), mutationResponse);
+	}
+
+	static JSONObject removeNodeMutation(FlowVirtualObject fvo) {
+		var path = fvo == null ? "" : mutationPath(fvo);
+		if (path.isBlank() || parentArrayPath(path) == null) {
+			return null;
+		}
+		try {
+			return new JSONObject().put("op", "delete").put("path", path);
+		} catch (JSONException e) {
+			return null;
+		}
+	}
+
 	public static JSONObject moveNode(DatabaseObject sourceDbo, DatabaseObject targetDbo, boolean insertBefore) throws Exception {
 		return moveNode(sourceDbo, targetDbo, insertBefore ? "before" : "after");
 	}

@@ -8,7 +8,9 @@
  */
 package com.twinsoft.convertigo.engine.flow;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.codehaus.jettison.json.JSONObject;
@@ -37,6 +39,17 @@ public class FlowStudioSupportSelectionTest {
 				"frontAst.nodes[2]", "", ""));
 		assertFalse(FlowStudioSupport.matchesProjectedSelection(candidate, SOURCE, "frontAst.nodes[3]", "", ""));
 		assertFalse(FlowStudioSupport.matchesProjectedSelection(candidate, SOURCE, "", "other", ""));
+	}
+
+	@Test
+	public void buildsDeleteMutationOnlyForConcreteCollectionEntries() throws Exception {
+		var item = candidate("frontends.svelte.routes.home.structure.text", "frontAst.nodes[2]", "text");
+		var container = candidate("frontends.svelte.routes.home.structure", "frontAst.nodes", "structure");
+
+		var mutation = FlowStudioSupport.removeNodeMutation(item);
+		assertEquals("delete", mutation.getString("op"));
+		assertEquals("frontAst.nodes[2]", mutation.getString("path"));
+		assertNull(FlowStudioSupport.removeNodeMutation(container));
 	}
 
 	private FlowVirtualObject candidate(String virtualPath, String mutationPath, String id) throws Exception {

@@ -25,11 +25,13 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(name = "Remove", roles = { Role.WEB_ADMIN,
 		Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -47,7 +49,10 @@ public class Remove extends JSonService {
 		boolean done = false;
 		DatabaseObject dbo = DboUtils.findDbo(id);
 		if (dbo != null) {
-			if (dbo instanceof Project) {
+			if (dbo instanceof FlowVirtualObject) {
+				DboUtils.copyResult(FlowStudioSupport.removeNode(dbo), response);
+				return;
+			} else if (dbo instanceof Project) {
 				// TODO
 			} else {
 				DatabaseObject targetDbo = dbo.getParent();
