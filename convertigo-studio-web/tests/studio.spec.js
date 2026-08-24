@@ -362,6 +362,25 @@ test('studio hosts the Flow binding web component and applies its value on touch
 	).toBeVisible();
 });
 
+test('studio retries a transient Flow picker failure without closing the editor', async ({
+	page
+}) => {
+	const flowPickerProbe = { remaining: 1, requests: 0 };
+	await mockStudioServices(page, { flowPicker: true, flowPickerProbe });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await selectTreeNode(page, frontendBuilderId);
+	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
+	await page.getByRole('button', { name: 'Edit binding' }).click();
+
+	const picker = page.frameLocator('iframe[title="Flow picker for Text"]');
+	await expect(picker.locator('flow-binding-editor')).toBeVisible();
+	await expect.poll(() => flowPickerProbe.requests).toBe(2);
+	await expect(page.getByRole('button', { name: 'Retry' })).toHaveCount(0);
+});
+
 test('studio keeps tree, flow and url synchronized after a flow rename mutation', async ({
 	page
 }) => {
@@ -1077,6 +1096,7 @@ function responseEditor(page) {
  *  propertyUpdates?: URLSearchParams[],
  *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean,
+ *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
  *  noProjects?: boolean
@@ -1098,6 +1118,21 @@ async function mockStudioServices(page, options = {}) {
 						'x-xsrf-token': 'studio-test-token'
 					},
 					body: JSON.stringify({ isError: true, error: 'Temporary palette failure' })
+				});
+				return;
+			}
+		}
+		if (service === 'studio.flowpicker.Get' && options.flowPickerProbe) {
+			options.flowPickerProbe.requests += 1;
+			if (options.flowPickerProbe.remaining > 0) {
+				options.flowPickerProbe.remaining -= 1;
+				await route.fulfill({
+					status: 503,
+					headers: {
+						'content-type': 'application/json',
+						'x-xsrf-token': 'studio-test-token'
+					},
+					body: JSON.stringify({ isError: true, error: 'Temporary Flow picker failure' })
 				});
 				return;
 			}
@@ -1198,6 +1233,7 @@ function serviceName(url) {
  *  propertyUpdates?: URLSearchParams[],
  *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean,
+ *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
  *  noProjects?: boolean

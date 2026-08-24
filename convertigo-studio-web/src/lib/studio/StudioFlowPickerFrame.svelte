@@ -1,7 +1,10 @@
 <script>
+	import Button from '$lib/admin/components/Button.svelte';
 	import Light from '$lib/common/Light.svelte.js';
 	import { call } from '$lib/utils/service';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+
+	const FLOW_PICKER_RETRY_DELAY_MS = 160;
 
 	/**
 	 * @typedef {{
@@ -72,7 +75,7 @@
 	 * @param {PickerTarget} target
 	 * @param {number} serial
 	 */
-	async function loadEditor(target, serial) {
+	async function loadEditor(target, serial, attempt = 0) {
 		loading = true;
 		error = '';
 		try {
@@ -94,6 +97,24 @@
 				state: { ...response.state, theme: Light.mode }
 			};
 		} catch (err) {
+			if (
+				attempt === 0 &&
+				serial === loadSerial &&
+				active &&
+				pickerTarget?.id === target.id &&
+				pickerTarget?.propertyName === target.propertyName
+			) {
+				await new Promise((resolve) => setTimeout(resolve, FLOW_PICKER_RETRY_DELAY_MS));
+				if (
+					serial === loadSerial &&
+					active &&
+					pickerTarget?.id === target.id &&
+					pickerTarget?.propertyName === target.propertyName
+				) {
+					await loadEditor(target, serial, attempt + 1);
+					return;
+				}
+			}
 			if (serial === loadSerial) {
 				payload = null;
 				error = String(err instanceof Error ? err.message : err);
@@ -103,6 +124,14 @@
 				loading = false;
 			}
 		}
+	}
+
+	function retryPicker() {
+		const target = pickerTarget;
+		if (!active || !target?.id || !target?.propertyName || loading) {
+			return;
+		}
+		void loadEditor(target, ++loadSerial);
 	}
 
 	/**
@@ -239,7 +268,18 @@
 	{#if loading}
 		<StudioEmptyState message="Loading Flow picker" loading />
 	{:else if error && !payload}
-		<StudioEmptyState message={error} icon="mdi:alert-circle-outline" />
+		<StudioEmptyState>
+			<div class="studio-flow-picker__error" role="alert">
+				<span>{error}</span>
+				<Button
+					label="Retry"
+					icon="mdi:refresh"
+					class="button-secondary"
+					full={false}
+					onclick={retryPicker}
+				/>
+			</div>
+		</StudioEmptyState>
 	{:else if payload?.html}
 		<iframe
 			bind:this={frame}
@@ -275,6 +315,14 @@
 		min-height: 18rem;
 		border: 0;
 		background: light-dark(var(--color-surface-50), var(--color-surface-950));
+	}
+
+	.studio-flow-picker__error {
+		display: grid;
+		justify-items: center;
+		gap: 0.75rem;
+		max-width: 28rem;
+		text-align: center;
 	}
 
 	.studio-flow-picker__status {
