@@ -59,6 +59,89 @@ export function asEditorValue(value) {
 }
 
 /**
+ * Renders a Flow binding as the expression an author recognizes, without
+ * exposing the persisted JSON contract.
+ *
+ * @param {any} binding
+ * @returns {string}
+ */
+export function flowBindingPreview(binding) {
+	const parsed = parseFlowBinding(binding);
+	if (!parsed) {
+		return asEditorValue(binding) || 'empty';
+	}
+	if (parsed.mode === 'literal') {
+		return `Literal: ${asEditorValue(parsed.value) || 'empty'}`;
+	}
+	if (parsed.mode === 'expression' && Array.isArray(parsed.parts)) {
+		return expressionPartsPreview(parsed.parts) || 'Expression';
+	}
+	if (parsed.mode === 'source') {
+		return sourceBindingPreview(parsed);
+	}
+	return asEditorValue(binding) || 'empty';
+}
+
+/** @param {any} value */
+function parseFlowBinding(value) {
+	try {
+		const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+		return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+	} catch {
+		return null;
+	}
+}
+
+/** @param {any[]} parts */
+function expressionPartsPreview(parts) {
+	let preview = '';
+	let previousWasValue = false;
+	for (const part of parts) {
+		if (part?.kind === 'expression') {
+			const expression = String(part.expression ?? '').trim();
+			if (expression) {
+				preview += `${preview ? ' ' : ''}${expression} `;
+				previousWasValue = false;
+			}
+			continue;
+		}
+		const value =
+			part?.kind === 'source'
+				? sourceBindingPreview(part)
+				: part?.kind === 'literal'
+					? JSON.stringify(part.value ?? '')
+					: '';
+		if (!value) continue;
+		if (previousWasValue) preview += ' + ';
+		preview += value;
+		previousWasValue = true;
+	}
+	return preview.trim();
+}
+
+/** @param {any} binding */
+function sourceBindingPreview(binding) {
+	const source = binding?.source ?? {};
+	const category = String(source.category ?? '').trim();
+	const name = String(
+		source.name ?? source.value ?? source.actionId ?? source.scopeId ?? source.operation ?? ''
+	).trim();
+	const origin = source.label ? String(source.label) : [category, name].filter(Boolean).join('.');
+	const path = Array.isArray(binding?.path)
+		? binding.path
+				.map((part) =>
+					part?.kind === 'index' || part?.index != null
+						? `[${part.index ?? part.value}]`
+						: part?.name != null
+							? `.${part.name}`
+							: ''
+				)
+				.join('')
+		: '';
+	return `${origin || 'Source'}${path}`;
+}
+
+/**
  * @param {any} row
  * @returns {string}
  */

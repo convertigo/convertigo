@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	canOpenCodeProperty,
+	flowBindingPreview,
 	getPropertyLanguage,
 	isCodeEditorProperty,
 	isIonProperty,
@@ -122,6 +123,25 @@ describe('Studio property editor language detection', () => {
 });
 
 describe('Studio inline property picker', () => {
+	it('renders source and composed bindings as human-readable expressions', () => {
+		expect(
+			flowBindingPreview({
+				mode: 'source',
+				source: { category: 'local', name: 'language' },
+				path: []
+			})
+		).toBe('local.language');
+		expect(
+			flowBindingPreview({
+				mode: 'expression',
+				parts: [
+					{ kind: 'source', source: { category: 'local', name: 'language' }, path: [] },
+					{ kind: 'literal', value: ' is ok !' }
+				]
+			})
+		).toBe('local.language + " is ok !"');
+	});
+
 	it('closes when the same property button is clicked again', () => {
 		const current = { id: 'Project.Page.Text', propertyName: 'text', serial: 1 };
 

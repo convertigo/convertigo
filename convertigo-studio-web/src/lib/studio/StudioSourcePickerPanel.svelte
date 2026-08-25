@@ -99,7 +99,8 @@
 	 *  pickerTarget?: PickerTarget | null,
 	 *  embedded?: boolean,
 	 *  onSelectObject?: (id: string) => void,
-	 *  onApply?: (id: string, sourceDefinition?: any) => void | Promise<void>
+	 *  onApply?: (id: string, sourceDefinition?: any) => void | Promise<void>,
+	 *  onChange?: (value: any) => void
 	 * }}
 	 */
 	let {
@@ -108,7 +109,8 @@
 		pickerTarget = null,
 		embedded = false,
 		onSelectObject = () => {},
-		onApply = () => {}
+		onApply = () => {},
+		onChange = () => {}
 	} = $props();
 
 	let linked = $state(true);
@@ -1067,7 +1069,7 @@
 		class:studio-source-picker__body--ngx={ngxPicker}
 	>
 		{#if flowPicker}
-			<StudioFlowPickerFrame {active} {pickerTarget} {onApply} />
+			<StudioFlowPickerFrame {active} {pickerTarget} {onChange} />
 		{:else if ngxPicker}
 			{#if !pickerTarget?.id}
 				<StudioEmptyState message="No property selected" />
@@ -1173,7 +1175,8 @@
 							rows="2"
 							value={ngxCustom}
 							oninput={(event) => (ngxCustom = event.currentTarget.value)}
-							onchange={() => reloadNgxPreview({ custom: ngxCustom })}></textarea>
+							onchange={() => reloadNgxPreview({ custom: ngxCustom })}
+						></textarea>
 					{/if}
 					<code class="studio-source-picker__preview">{ngxModel?.computedValue || 'empty'}</code>
 				</section>

@@ -8,6 +8,7 @@
 	import {
 		asEditorValue,
 		canOpenCodeProperty,
+		flowBindingPreview,
 		getPropertyLanguage,
 		isIonProperty,
 		isSamePropertyPickerTarget,
@@ -206,34 +207,6 @@
 
 	/**
 	 * @param {any} row
-	 * @returns {string}
-	 */
-	function flowBindingPreview(row) {
-		try {
-			const binding = parseFlowBinding(row?.value);
-			if (!binding) {
-				return previewValue(row);
-			}
-			if (binding.mode === 'literal') {
-				return `Literal: ${asEditorValue(binding.value) || 'empty'}`;
-			}
-			const source = binding.source ?? {};
-			const origin =
-				source.label ?? source.actionId ?? source.scopeId ?? source.category ?? 'Source';
-			const path = Array.isArray(binding.path)
-				? binding.path
-						.map((part) => part?.name ?? part?.index)
-						.filter((part) => part != null)
-						.join('.')
-				: '';
-			return path ? `${origin} · ${path}` : String(origin);
-		} catch {
-			return previewValue(row);
-		}
-	}
-
-	/**
-	 * @param {any} row
 	 * @returns {boolean}
 	 */
 	function hasPossibleValues(row) {
@@ -401,8 +374,27 @@
 			return;
 		}
 		if (await save()) {
+			closeCurrentPicker();
 			await onSave?.(selectedId);
 		}
+	}
+
+	function cancelChanges() {
+		cancel();
+		closeCurrentPicker();
+	}
+
+	function closeCurrentPicker() {
+		if (pickerTarget?.id === selectedId) {
+			onOpenPropertyPicker?.(pickerTarget);
+		}
+	}
+
+	/** @param {any} value */
+	function updatePickerDraft(value) {
+		const propertyName = pickerTarget?.propertyName;
+		const row = properties.find((candidate) => candidate.name === propertyName);
+		if (row) row.value = value;
 	}
 
 	function openMonaco(row) {
@@ -453,7 +445,7 @@
 			saveLabel="Save"
 			cancelLabel="Cancel"
 			onSave={saveChanges}
-			onCancel={cancel}
+			onCancel={cancelChanges}
 			changesPending={hasChanges}
 			disabled={!selectedId || properties.length == 0}
 		/>
@@ -529,7 +521,7 @@
 													{:else}
 														<div class="studio-properties__fallback layout-x-low">
 															<code class="studio-properties__fallback-value"
-																>{flowBindingPreview(row)}</code
+																>{flowBindingPreview(row.value)}</code
 															>
 															<StudioIconButton
 																icon="mdi:hub"
@@ -607,6 +599,7 @@
 														active
 														{pickerTarget}
 														onApply={onPickerApply}
+														onChange={updatePickerDraft}
 														embedded
 													/>
 												</div>

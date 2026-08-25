@@ -19,19 +19,17 @@
 	 * @type {{
 	 *  active?: boolean,
 	 *  pickerTarget?: PickerTarget | null,
-	 *  onApply?: (id: string, value?: any) => void | Promise<void>
+	 *  onChange?: (value: any) => void
 	 * }}
 	 */
-	let { active = true, pickerTarget = null, onApply = () => {} } = $props();
+	let { active = true, pickerTarget = null, onChange = () => {} } = $props();
 
 	let frame = $state(/** @type {HTMLIFrameElement | null} */ (null));
 	let payload = $state(/** @type {any} */ (null));
 	let loading = $state(false);
-	let applying = $state(false);
 	let error = $state('');
 	let bridgeId = $state('');
 	let loadSerial = 0;
-	let appliedDefinition = /** @type {Record<string, any>} */ ({});
 
 	$effect(() => {
 		function onMessage(event) {
@@ -91,10 +89,15 @@
 				throw new Error(response?.message || 'Flow picker is not available');
 			}
 			bridgeId = crypto.randomUUID();
-			appliedDefinition = { ...(response.state.definition ?? {}) };
 			payload = {
 				...response,
-				state: { ...response.state, theme: Light.mode }
+				state: {
+					...response.state,
+					mode: 'property',
+					embedded: true,
+					value: editorValue(target.value),
+					theme: Light.mode
+				}
 			};
 		} catch (err) {
 			if (
@@ -148,43 +151,11 @@
 				window.open(String(event.url), '_blank', 'noopener,noreferrer');
 				return;
 			}
-			if (event.type === 'setProperty') {
-				await applyProperty(String(event.property ?? ''), String(event.value ?? ''));
+			if (event.type === 'value' && event.valid !== false) {
+				onChange(String(event.value ?? ''));
 			}
 		} catch (err) {
 			error = String(err instanceof Error ? err.message : err);
-		}
-	}
-
-	/**
-	 * @param {string} property
-	 * @param {string} value
-	 */
-	async function applyProperty(property, value) {
-		if (applying || !pickerTarget?.id || !property) {
-			return;
-		}
-		applying = true;
-		error = '';
-		try {
-			const originalValue = editorValue(appliedDefinition[property]);
-			const response = await call('studio.properties.Set', {
-				id: pickerTarget.id,
-				props: JSON.stringify([{ name: property, value, originalValue }]),
-				save: 'true'
-			});
-			if (!response?.done) {
-				throw new Error(response?.message || 'Unable to apply Flow property');
-			}
-			appliedDefinition = {
-				...appliedDefinition,
-				[property]: parseEditorValue(value)
-			};
-			await onApply?.(response.id || pickerTarget.id, value);
-		} catch (err) {
-			error = String(err instanceof Error ? err.message : err);
-		} finally {
-			applying = false;
 		}
 	}
 
@@ -194,15 +165,6 @@
 			return '';
 		}
 		return typeof value === 'string' ? value : JSON.stringify(value);
-	}
-
-	/** @param {string} value */
-	function parseEditorValue(value) {
-		try {
-			return JSON.parse(value);
-		} catch {
-			return value;
-		}
 	}
 
 	/**
@@ -288,9 +250,7 @@
 			sandbox="allow-scripts"
 			srcdoc={frameDocument(payload, bridgeId)}
 		></iframe>
-		{#if applying}
-			<div class="studio-flow-picker__status" aria-live="polite">Applying…</div>
-		{:else if error}
+		{#if error}
 			<div class="studio-flow-picker__status studio-flow-picker__status--error" role="alert">
 				{error}
 			</div>
