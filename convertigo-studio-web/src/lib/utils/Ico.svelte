@@ -1,9 +1,11 @@
 <script module>
 	import MdiAccountOutline from '~icons/mdi/account-outline';
+	import MdiAccountCircleOutline from '~icons/mdi/account-circle-outline';
 	import MdiAccountSupervisorCircleOutline from '~icons/mdi/account-supervisor-circle-outline';
 	import MdiAlertCircleOutline from '~icons/mdi/alert-circle-outline';
 	import MdiApi from '~icons/mdi/api';
 	import MdiApplicationOutline from '~icons/mdi/application-outline';
+	import MdiApplicationBracesOutline from '~icons/mdi/application-braces-outline';
 	import MdiArrowDownBoldOutline from '~icons/mdi/arrow-down-bold-outline';
 	import MdiArrowLeft from '~icons/mdi/arrow-left';
 	import MdiArrowLeftBoldOutline from '~icons/mdi/arrow-left-bold-outline';
@@ -15,6 +17,7 @@
 	import MdiBackupRestore from '~icons/mdi/backup-restore';
 	import MdiBookMultiple from '~icons/mdi/book-multiple';
 	import MdiBookOpenVariant from '~icons/mdi/book-open-variant';
+	import MdiBookshelf from '~icons/mdi/bookshelf';
 	import MdiBookmarkCheckOutline from '~icons/mdi/bookmark-check-outline';
 	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline';
 	import MdiBroom from '~icons/mdi/broom';
@@ -60,6 +63,7 @@
 	import MdiEyeOffOutline from '~icons/mdi/eye-off-outline';
 	import MdiEyeOutline from '~icons/mdi/eye-outline';
 	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline';
+	import MdiFileCodeOutline from '~icons/mdi/file-code-outline';
 	import MdiFileOutline from '~icons/mdi/file-outline';
 	import MdiFileQuestionOutline from '~icons/mdi/file-question-outline';
 	import MdiFileTreeOutline from '~icons/mdi/file-tree-outline';
@@ -85,6 +89,7 @@
 	import MdiLayersOutline from '~icons/mdi/layers-outline';
 	import MdiLightningBolt from '~icons/mdi/lightning-bolt';
 	import MdiLinkVariant from '~icons/mdi/link-variant';
+	import MdiLibraryOutline from '~icons/mdi/library-outline';
 	import MdiLock from '~icons/mdi/lock';
 	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant';
 	import MdiLockOutline from '~icons/mdi/lock-outline';
@@ -96,9 +101,11 @@
 	import MdiMenu from '~icons/mdi/menu';
 	import MdiMinus from '~icons/mdi/minus';
 	import MdiMoonAndStars from '~icons/mdi/moon-and-stars';
+	import MdiMonitorDashboard from '~icons/mdi/monitor-dashboard';
 	import MdiOpenInNew from '~icons/mdi/open-in-new';
 	import MdiPackageVariantClosed from '~icons/mdi/package-variant-closed';
 	import MdiPaletteOutline from '~icons/mdi/palette-outline';
+	import MdiPaletteSwatchOutline from '~icons/mdi/palette-swatch-outline';
 	import MdiPaperclip from '~icons/mdi/paperclip';
 	import MdiPencilOutline from '~icons/mdi/pencil-outline';
 	import MdiPhoneRotateLandscape from '~icons/mdi/phone-rotate-landscape';
@@ -108,6 +115,7 @@
 	import MdiPowerPlug from '~icons/mdi/power-plug';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline';
 	import MdiRefresh from '~icons/mdi/refresh';
+	import MdiRoutes from '~icons/mdi/routes';
 	import MdiReload from '~icons/mdi/reload';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal';
 	import MdiRestartAlert from '~icons/mdi/restart-alert';
@@ -116,11 +124,13 @@
 	import MdiShapeSquareRoundedPlus from '~icons/mdi/shape-square-rounded-plus';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
 	import MdiSourceBranch from '~icons/mdi/source-branch';
+	import MdiStateMachine from '~icons/mdi/state-machine';
 	import MdiStarOutline from '~icons/mdi/star-outline';
 	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline';
 	import MdiSync from '~icons/mdi/sync';
 	import MdiTable from '~icons/mdi/table';
 	import MdiTarget from '~icons/mdi/target';
+	import MdiTextBoxOutline from '~icons/mdi/text-box-outline';
 	import MdiToggleSwitch from '~icons/mdi/toggle-switch';
 	import MdiToggleSwitchOffOutline from '~icons/mdi/toggle-switch-off-outline';
 	import MdiTuneVerticalVariant from '~icons/mdi/tune-vertical-variant';
@@ -135,11 +145,13 @@
 
 	export const ico = {
 		'convertigo:logo': ConvertigoLogo,
+		'mdi:account-circle-outline': MdiAccountCircleOutline,
 		'mdi:account-outline': MdiAccountOutline,
 		'mdi:account-supervisor-circle-outline': MdiAccountSupervisorCircleOutline,
 		'mdi:alert-circle-outline': MdiAlertCircleOutline,
 		'mdi:api': MdiApi,
 		'mdi:application-outline': MdiApplicationOutline,
+		'mdi:application-braces-outline': MdiApplicationBracesOutline,
 		'mdi:arrow-down-bold-outline': MdiArrowDownBoldOutline,
 		'mdi:arrow-left-bold-outline': MdiArrowLeftBoldOutline,
 		'mdi:arrow-u-left-top': MdiArrowULeftTop,
@@ -152,6 +164,7 @@
 		'mdi:backup-restore': MdiBackupRestore,
 		'mdi:book-multiple': MdiBookMultiple,
 		'mdi:book-open-variant': MdiBookOpenVariant,
+		'mdi:bookshelf': MdiBookshelf,
 		'mdi:bookmark-check-outline': MdiBookmarkCheckOutline,
 		'mdi:briefcase-upload-outline': MdiBriefcaseUploadOutline,
 		'mdi:broom': MdiBroom,
@@ -196,6 +209,7 @@
 		'mdi:eye-outline': MdiEyeOutline,
 		'mdi:eye-off-outline': MdiEyeOffOutline,
 		'mdi:file-document-box-outline': MdiFileDocumentBoxOutline,
+		'mdi:file-code-outline': MdiFileCodeOutline,
 		'mdi:file-outline': MdiFileOutline,
 		'mdi:file-question-outline': MdiFileQuestionOutline,
 		'mdi:file-tree-outline': MdiFileTreeOutline,
@@ -220,6 +234,7 @@
 		'mdi:layers-outline': MdiLayersOutline,
 		'mdi:lightning-bolt': MdiLightningBolt,
 		'mdi:link-variant': MdiLinkVariant,
+		'mdi:library-outline': MdiLibraryOutline,
 		'mdi:login-variant': MdiLoginVariant,
 		'mdi:lock-open-variant': MdiLockOpenVariant,
 		'mdi:lock-outline': MdiLockOutline,
@@ -231,11 +246,13 @@
 		'mdi:menu': MdiMenu,
 		'mdi:minus': MdiMinus,
 		'mdi:moon-and-stars': MdiMoonAndStars,
+		'mdi:monitor-dashboard': MdiMonitorDashboard,
 		'mdi:package-variant-closed': MdiPackageVariantClosed,
 		'mdi:paperclip': MdiPaperclip,
 		'mdi:attachment': MdiPaperclip,
 		'mdi:pencil-outline': MdiPencilOutline,
 		'mdi:palette-outline': MdiPaletteOutline,
+		'mdi:palette-swatch-outline': MdiPaletteSwatchOutline,
 		'mdi:open-in-new-variant': MdiOpenInNew,
 		'mdi:fit-to-page-outline': MdiFitToPageOutline,
 		'mdi:camera-rotate-outline': MdiPhoneRotateLandscape,
@@ -247,6 +264,7 @@
 		'mdi:power-plug': MdiPowerPlug,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:refresh': MdiRefresh,
+		'mdi:routes': MdiRoutes,
 		'mdi:reload': MdiReload,
 		'mdi:restart-alert': MdiRestartAlert,
 		'mdi:resize-horizontal': MdiResizeHorizontal,
@@ -255,11 +273,13 @@
 		'mdi:shape-square-rounded-plus': MdiShapeSquareRoundedPlus,
 		'mdi:smartphone-link': MdiSmartphoneLink,
 		'mdi:source-branch': MdiSourceBranch,
+		'mdi:state-machine': MdiStateMachine,
 		'mdi:star-outline': MdiStarOutline,
 		'mdi:star-three-points-outline': MdiStarThreePointsOutline,
 		'mdi:sync': MdiSync,
 		'mdi:table': MdiTable,
 		'mdi:target': MdiTarget,
+		'mdi:text-box-outline': MdiTextBoxOutline,
 		'mdi:tune-vertical-variant': MdiTuneVerticalVariant,
 		'mdi:unfold-more-horizontal': MdiUnfoldMoreHorizontal,
 		'mdi:update': MdiUpdate,
@@ -290,7 +310,7 @@
 	const iconStyle = $derived(
 		`width: calc(var(--spacing)*${resolvedSize});height: calc(var(--spacing)*${resolvedSize});`
 	);
-	const IconComponent = $derived(icon?.includes(':') ? ico[icon] : undefined);
+	const IconComponent = $derived(icon?.includes(':') ? (ico[icon] ?? MdiCubeOutline) : undefined);
 
 	// let _animate = $state({ duration: 2000 });
 	// let svg = $state(null);
