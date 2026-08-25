@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(
 		name = "Get",
@@ -180,10 +181,9 @@ public class Get extends JSonService {
 			obj.put("isSourceContainer", dbo instanceof IStepSourceContainer);
 		}
 		if (!full) {
-			obj.put("children", hasLazyChildren(dbo, flow));
+			obj.put("children", lazyChildrenState(dbo, flow));
 		} else {
 			var jChildren = getChildren(dbo, null, false, flow);
-			obj.put("children", jChildren);
 			if (dbo instanceof Project) {
 				var o = new JSONObject();
 				o.put("label", "Files");
@@ -193,6 +193,7 @@ public class Get extends JSonService {
 				o.put("children", true);
 				jChildren.put(o);
 			}
+			obj.put("children", loadedChildrenState(dbo, jChildren, flow));
 		}
 		return obj;
 	}
@@ -411,11 +412,29 @@ public class Get extends JSonService {
 		return obj;
 	}
 
-	private boolean hasLazyChildren(DatabaseObject dbo, boolean flow) throws Exception {
+	static Object lazyChildrenState(DatabaseObject dbo, boolean flow) throws Exception {
+		if (dbo.hasDatabaseObjectChildren()) {
+			return true;
+		}
+		return acceptsChildren(dbo, flow) ? 0 : false;
+	}
+
+	static Object loadedChildrenState(DatabaseObject dbo, JSONArray children, boolean flow) throws Exception {
+		if (children != null && children.length() > 0) {
+			return children;
+		}
+		return acceptsChildren(dbo, flow) ? 0 : false;
+	}
+
+	private static boolean acceptsChildren(DatabaseObject dbo, boolean flow) throws Exception {
 		if (flow && (dbo instanceof Flow || dbo instanceof FlowEngine)) {
 			return true;
 		}
-		return dbo.hasDatabaseObjectChildren();
+		if (dbo instanceof FlowVirtualObject flowVirtualObject
+				&& FlowStudioSupport.frontendBlockCanContainChildren(flowVirtualObject)) {
+			return true;
+		}
+		return false;
 	}
 
 	private String iconPath(DatabaseObject dbo) {

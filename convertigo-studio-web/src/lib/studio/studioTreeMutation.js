@@ -65,6 +65,11 @@ function applyProjectedTreeMutation(roots, mutation, idsEqual) {
 function projectedPaletteNode(mutation) {
 	const data = mutation.payload?.data ?? {};
 	const insert = data.insert ?? {};
+	const canContainChildren = Boolean(
+		data.canContainChildren ||
+		(data.slots && Object.keys(data.slots).length > 0) ||
+		(Array.isArray(data.traits) && data.traits.includes('ui.container'))
+	);
 	const label = String(
 		insert.label ?? insert.text ?? data.name ?? mutation.selectionId ?? 'New block'
 	);
@@ -73,8 +78,9 @@ function projectedPaletteNode(mutation) {
 		name: label,
 		label,
 		icon: data.iconFile16 ?? data.icon ?? 'folder',
+		iconify: data.iconify,
 		pending: Boolean(mutation.optimistic),
-		children: false
+		children: canContainChildren ? true : false
 	};
 }
 

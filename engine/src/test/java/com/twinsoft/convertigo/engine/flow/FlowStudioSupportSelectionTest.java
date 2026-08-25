@@ -71,6 +71,19 @@ public class FlowStudioSupportSelectionTest {
 				new JSONObject().put("id", "text").put("kind", "Text"), used).getString("id"));
 	}
 
+	@Test
+	public void derivesFrontendContainerCapabilityFromTheProviderContract() throws Exception {
+		assertTrue(FlowStudioSupport.frontendBlockCanContainChildren(new JSONObject()
+				.put("slots", new JSONObject().put("children", new JSONObject()))));
+		assertTrue(FlowStudioSupport.frontendBlockCanContainChildren(new JSONObject()
+				.put("traits", new org.codehaus.jettison.json.JSONArray().put("ui.block").put("ui.container"))));
+		assertFalse(FlowStudioSupport.frontendBlockCanContainChildren(new JSONObject()
+				.put("traits", new org.codehaus.jettison.json.JSONArray().put("ui.block"))));
+		var projectedContainer = new FlowVirtualObject();
+		projectedContainer.setVirtualKind("frontendContainerBlock");
+		assertTrue(FlowStudioSupport.frontendBlockCanContainChildren(projectedContainer));
+	}
+
 	private FlowVirtualObject candidate(String virtualPath, String mutationPath, String id) throws Exception {
 		var candidate = new FlowVirtualObject();
 		candidate.setVirtualPath(virtualPath);

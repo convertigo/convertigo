@@ -93,7 +93,7 @@
 	let isBranch = $derived.by(() => {
 		dataSerial;
 		revision;
-		return hasExpandableChildren(node?.children);
+		return hasExpandableChildren(node);
 	});
 	let expanded = $derived(
 		Boolean(node?.id && expandedNodeIds ? hasExpandedNodeId(node.id) : localExpanded)
@@ -260,11 +260,12 @@
 	}
 
 	/**
-	 * @param {unknown} children
+	 * @param {any} candidate
 	 * @returns {boolean}
 	 */
-	function hasExpandableChildren(children) {
-		return children === true || (Array.isArray(children) && children.length > 0);
+	function hasExpandableChildren(candidate) {
+		const children = candidate?.children;
+		return children === 0 || children === true || (Array.isArray(children) && children.length > 0);
 	}
 
 	/**
@@ -950,7 +951,9 @@
 				onsubmit={commitRename}
 			>
 				<span class="studio-tree-node__icon">
-					{#if typeof node?.icon === 'string' && node.icon.includes('?')}
+					{#if node?.iconify}
+						<Ico icon={node.iconify} size={4} />
+					{:else if typeof node?.icon === 'string' && node.icon.includes('?')}
 						<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{node.icon}" alt="" />
 					{:else if node?.icon == 'file'}
 						<Ico icon="mdi:file-document-box-outline" size={4} />
@@ -979,7 +982,9 @@
 				ondblclick={(event) => toggleExpanded(event)}
 			>
 				<span class="studio-tree-node__icon">
-					{#if typeof node?.icon === 'string' && node.icon.includes('?')}
+					{#if node?.iconify}
+						<Ico icon={node.iconify} size={4} />
+					{:else if typeof node?.icon === 'string' && node.icon.includes('?')}
 						<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{node.icon}" alt="" />
 					{:else if node?.icon == 'file'}
 						<Ico icon="mdi:file-document-box-outline" size={4} />

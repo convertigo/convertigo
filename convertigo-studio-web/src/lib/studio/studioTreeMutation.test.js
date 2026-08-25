@@ -131,6 +131,38 @@ describe('Studio projected tree mutations', () => {
 		expect(card.children[0]).toMatchObject({ label: 'Loading', pending: true });
 	});
 
+	it('keeps an optimistic frontend container droppable and reuses its palette icon', () => {
+		const card = { id: 'Project.frontends.home.card', children: [] };
+		expect(
+			applyProjectedTreeMutation(
+				[card],
+				{
+					done: true,
+					optimistic: true,
+					selectedId: `${card.id}.__pending_columnLayout`,
+					parentId: card.id,
+					position: 'inside',
+					payload: {
+						type: 'paletteData',
+						data: {
+							type: 'FrontendBlock',
+							name: 'Column layout',
+							iconify: 'mdi:view-agenda-outline',
+							canContainChildren: true,
+							insert: { id: 'columnLayout' }
+						}
+					}
+				},
+				idsEqual
+			)
+		).toBe(true);
+		expect(card.children[0]).toMatchObject({
+			iconify: 'mdi:view-agenda-outline',
+			children: true,
+			pending: true
+		});
+	});
+
 	it('atomically replaces an optimistic placeholder with the confirmed node', () => {
 		const pendingId = 'Project.frontends.home.card.__pending_spinner';
 		const card = {

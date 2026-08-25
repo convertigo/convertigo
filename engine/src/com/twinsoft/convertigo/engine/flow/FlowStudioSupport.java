@@ -767,6 +767,7 @@ public class FlowStudioSupport {
 					.put("tooltip", blockId)
 					.put("builtin", false)
 					.put("additional", true)
+					.put("canContainChildren", frontendBlockCanContainChildren(block))
 					.put("insert", insert);
 		if (block.optBoolean("createAction", false) || "create".equals(firstNonBlank(block, "descriptorKind"))) {
 			item.put("createAction", true);
@@ -795,6 +796,36 @@ public class FlowStudioSupport {
 			item.put("iconify", iconify);
 		}
 		return item;
+	}
+
+	/**
+	 * Exposes the static container capability needed by Studio while an inserted
+	 * frontend block is still only an optimistic tree node. This deliberately
+	 * derives from the provider contract instead of component names.
+	 */
+	static boolean frontendBlockCanContainChildren(JSONObject block) {
+		if (block == null) {
+			return false;
+		}
+		var slots = block.optJSONObject("slots");
+		if (slots != null && slots.length() > 0) {
+			return true;
+		}
+		var traits = block.optJSONArray("traits");
+		if (traits != null) {
+			for (int i = 0; i < traits.length(); i++) {
+				if ("ui.container".equals(traits.optString(i))) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static boolean frontendBlockCanContainChildren(FlowVirtualObject block) {
+		return block != null && ("frontendContainerBlock".equals(block.getVirtualKind())
+				|| frontendBlockCanContainChildren(block.getDefinitionObject())
+				|| frontendBlockCanContainChildren(block.getVirtualInfoObject()));
 	}
 
 	private static String frontendPaletteIcon(DatabaseObject targetDbo, JSONObject block) {
