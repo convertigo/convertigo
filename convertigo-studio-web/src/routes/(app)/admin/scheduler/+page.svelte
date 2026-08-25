@@ -155,8 +155,9 @@
 	});
 
 	async function onsubmit(e) {
-		await configure(e);
-		modal.close();
+		if (await configure(e)) {
+			modal.close();
+		}
 	}
 
 	/**

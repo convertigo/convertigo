@@ -1496,51 +1496,33 @@
 						onOpenChange={(event) => (clearPresetsOpened = event.open)}
 						positioning={{ placement: 'bottom-start' }}
 					>
-						<Tooltip positioning={{ placement: fullscreen ? 'bottom-start' : 'top-start' }}>
-							<Tooltip.Trigger>
-								{#snippet element(attributes)}
-									<Popover.Trigger
-										{...attributes}
-										class="log-toolbar-button"
-										aria-label="Clear loaded logs"
+						<Popover.Trigger
+							class="log-toolbar-button"
+							title="Clear loaded logs and restart live tail"
+							aria-label="Clear loaded logs"
+						>
+							<Ico icon="mdi:broom" />
+						</Popover.Trigger>
+						<Portal>
+							<Popover.Positioner class="z-[130]" style="z-index: 130;">
+								<Popover.Content class="log-search-content">
+									<div
+										class="rounded-sm bg-surface-50-950 p-1 text-black shadow-follow dark:text-white"
 									>
-										<Ico icon="mdi:broom" />
-									</Popover.Trigger>
-								{/snippet}
-							</Tooltip.Trigger>
-							<Portal>
-								<Tooltip.Positioner class="z-[120]" style="z-index: 120;">
-									<Tooltip.Content
-										class="card preset-filled-surface-950-50 p-2 text-xs leading-none"
-									>
-										<span>Clear loaded logs and restart live tail</span>
-										<Tooltip.Arrow
-											class="[--arrow-background:var(--color-surface-950-50)] [--arrow-size:--spacing(2)]"
-										>
-											<Tooltip.ArrowTip />
-										</Tooltip.Arrow>
-									</Tooltip.Content>
-								</Tooltip.Positioner>
-							</Portal>
-						</Tooltip>
-						<Popover.Positioner class="z-[130]" style="z-index: 130;">
-							<Popover.Content class="log-search-content">
-								<div
-									class="rounded-sm bg-surface-50-950 p-1 text-black shadow-follow dark:text-white"
-								>
-									<div class="layout-y-stretch-none gap-0.5">
-										{#each clearPresets as preset (preset.label)}
-											<Button
-												full={false}
-												label={preset.label}
-												class="button-secondary h-7! justify-start px-2! text-xs"
-												onclick={() => clearLoadedLogs(preset)}
-											/>
-										{/each}
+										<div class="layout-y-stretch-none gap-0.5">
+											{#each clearPresets as preset (preset.label)}
+												<Button
+													full={false}
+													label={preset.label}
+													class="button-secondary h-7! justify-start px-2! text-xs"
+													onclick={() => clearLoadedLogs(preset)}
+												/>
+											{/each}
+										</div>
 									</div>
-								</div>
-							</Popover.Content>
-						</Popover.Positioner>
+								</Popover.Content>
+							</Popover.Positioner>
+						</Portal>
 					</Popover>
 				{/if}
 			</div>

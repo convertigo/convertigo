@@ -10,8 +10,8 @@
 		mutationDboRefreshIds
 	} from './dnd';
 	import StudioEmptyState from './StudioEmptyState.svelte';
-	import StudioTreeNode from './StudioTreeNode.svelte';
 	import { applyProjectedTreeMutation } from './studioTreeMutation';
+	import StudioTreeNode from './StudioTreeNode.svelte';
 
 	/**
 	 * @type {{
@@ -119,11 +119,7 @@
 			areEquivalentDboObjectIds
 		);
 		if (!updatedLocally && targetRoots !== rootChildren) {
-			updatedLocally = applyProjectedTreeMutation(
-				targetRoots,
-				mutation,
-				areEquivalentDboObjectIds
-			);
+			updatedLocally = applyProjectedTreeMutation(targetRoots, mutation, areEquivalentDboObjectIds);
 		}
 		if (updatedLocally) {
 			context?.projectTargetParent?.();

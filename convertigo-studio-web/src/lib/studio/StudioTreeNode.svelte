@@ -21,8 +21,8 @@
 	} from './dnd';
 	import { getSourcePickerDragPayload } from './sourcePickerDnd';
 	import StudioTreeActionMenu from './StudioTreeActionMenu.svelte';
-	import StudioTreeNode from './StudioTreeNode.svelte';
 	import { applyProjectedTreeMutation, removeProjectedTreeNode } from './studioTreeMutation';
+	import StudioTreeNode from './StudioTreeNode.svelte';
 
 	const folderTypeIds = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url', 'app', 'mob']);
 

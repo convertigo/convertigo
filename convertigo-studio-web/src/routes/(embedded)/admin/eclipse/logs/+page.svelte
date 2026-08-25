@@ -163,7 +163,7 @@
 				<Button
 					full={false}
 					size={4}
-					icon="mdi:file-document-box-outline"
+					icon="mdi:arrow-left"
 					title="Back to live logs"
 					ariaLabel="Back to live logs"
 					class="button-ico-primary h-6 w-6 justify-center p-0!"

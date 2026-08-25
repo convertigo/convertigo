@@ -4,17 +4,17 @@ import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import Instances from '$lib/admin/Instances.svelte';
 import Authentication from '$lib/common/Authentication.svelte';
+import ServerConnection, { isServerUnavailableStatus } from '$lib/common/ServerConnection.svelte';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 
 export const toaster = createToaster();
 
 let offlineUntil = 0;
 let offlineBackoff = 1000;
-let offlineToastAt = 0;
 let authToastAt = 0;
 const OFFLINE_BACKOFF_MAX = 30000;
-const OFFLINE_TOAST_COOLDOWN = 10000;
 const AUTH_TOAST_COOLDOWN = 10000;
+const SERVER_CONNECTION_TOAST_ID = 'server-connection';
 const pendingCalls = new Set();
 const adminInstance = browser
 	? // @ts-ignore
@@ -42,6 +42,34 @@ export function abortPendingCalls() {
 	pendingCalls.clear();
 }
 
+function markServerUnavailable(status, statusText) {
+	const now = Date.now();
+	const changed = ServerConnection.markUnavailable(status, statusText);
+	if (changed || now >= offlineUntil) {
+		offlineBackoff = Math.min(OFFLINE_BACKOFF_MAX, Math.round(offlineBackoff * 1.5 + 250));
+		offlineUntil = now + offlineBackoff;
+	}
+	if (changed) {
+		toaster.error({
+			id: SERVER_CONNECTION_TOAST_ID,
+			description: 'Server unavailable. Retrying…',
+			duration: 3000
+		});
+	}
+}
+
+function markServerReachable() {
+	offlineUntil = 0;
+	offlineBackoff = 1000;
+	if (ServerConnection.markReachable()) {
+		toaster.success({
+			id: SERVER_CONNECTION_TOAST_ID,
+			description: 'Server connection restored.',
+			duration: 3000
+		});
+	}
+}
+
 /**
  * @param {string} service
  * @param {any} data
@@ -52,7 +80,11 @@ export async function call(service, data = {}, options = {}) {
 		return {};
 	}
 	if (offlineUntil && Date.now() < offlineUntil) {
-		return { error: 'Server unreachable', offline: true };
+		return {
+			error: 'Server unreachable',
+			offline: true,
+			retryAfterMs: offlineUntil - Date.now()
+		};
 	}
 	let dataContent;
 	let responseStatus;
@@ -106,14 +138,26 @@ export async function call(service, data = {}, options = {}) {
 		});
 		responseStatus = res.status;
 		responseStatusText = res.statusText;
-		offlineUntil = 0;
-		offlineBackoff = 1000;
 		if (options.silentStatuses?.includes(res.status)) {
+			if (!isServerUnavailableStatus(res.status)) {
+				markServerReachable();
+			}
 			return {
 				status: res.status,
 				statusText: res.statusText,
 				silentStatus: true,
 				elapsed: Date.now() - startedAt
+			};
+		}
+		if (isServerUnavailableStatus(res.status)) {
+			markServerUnavailable(res.status, res.statusText);
+			return {
+				error: 'Server unreachable',
+				offline: true,
+				status: res.status,
+				statusText: res.statusText,
+				elapsed: Date.now() - startedAt,
+				retryAfterMs: offlineBackoff
 			};
 		}
 		var xsrf = res.headers.get('x-xsrf-token');
@@ -124,6 +168,7 @@ export async function call(service, data = {}, options = {}) {
 
 		const disposition = /filename=("|')?(.*)\1/.exec(res.headers.get('content-disposition') ?? '');
 		if (disposition) {
+			markServerReachable();
 			const link = document.createElement('a');
 			link.href = URL.createObjectURL(await res.blob());
 			link.download = disposition[2];
@@ -156,6 +201,7 @@ export async function call(service, data = {}, options = {}) {
 				dataContent = await res.json();
 			}
 		}
+		markServerReachable();
 	} catch (err) {
 		const message = String(err instanceof Error ? err.message : (err ?? ''));
 		const errorName = err instanceof Error ? err.name : '';
@@ -171,9 +217,7 @@ export async function call(service, data = {}, options = {}) {
 			if (options.silentNetworkAfterMs && elapsed >= options.silentNetworkAfterMs) {
 				return { transportError: true, elapsed };
 			}
-			const now = Date.now();
-			offlineBackoff = Math.min(OFFLINE_BACKOFF_MAX, Math.round(offlineBackoff * 1.5 + 250));
-			offlineUntil = now + offlineBackoff;
+			markServerUnavailable(responseStatus, responseStatusText);
 			dataContent = {
 				error: 'Server unreachable',
 				offline: true,
@@ -279,6 +323,9 @@ function findDeepKey(obj, key, depth = 3) {
 }
 
 function stringilight(obj) {
+	if (Array.isArray(obj)) {
+		return obj.map(stringilight).filter(Boolean).join('\n');
+	}
 	return typeof obj == 'object' ? JSON.stringify(obj).replace(/(^\W+)|(\W+$)/g, '') : obj;
 }
 
@@ -288,18 +335,10 @@ function handleStateMessage(res, service) {
 			return;
 		}
 		if (res?.offline) {
-			const now = Date.now();
-			if (now - offlineToastAt > OFFLINE_TOAST_COOLDOWN) {
-				toaster.error({
-					description: 'Server unreachable. Retrying…',
-					duration: 3000
-				});
-				offlineToastAt = now;
-			}
 			return;
 		}
 
-		let error = findDeepKeys(res, ['error', 'errorMessage']);
+		let error = findDeepKeys(res, ['error', 'errorMessage', 'problem']);
 		if (!error && findDeepKeys(res, ['state']) == 'error') {
 			error = findDeepKeys(res, ['message']);
 		}

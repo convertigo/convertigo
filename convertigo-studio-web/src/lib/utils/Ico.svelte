@@ -1,11 +1,11 @@
 <script module>
-	import MdiAccountOutline from '~icons/mdi/account-outline';
 	import MdiAccountCircleOutline from '~icons/mdi/account-circle-outline';
+	import MdiAccountOutline from '~icons/mdi/account-outline';
 	import MdiAccountSupervisorCircleOutline from '~icons/mdi/account-supervisor-circle-outline';
 	import MdiAlertCircleOutline from '~icons/mdi/alert-circle-outline';
 	import MdiApi from '~icons/mdi/api';
-	import MdiApplicationOutline from '~icons/mdi/application-outline';
 	import MdiApplicationBracesOutline from '~icons/mdi/application-braces-outline';
+	import MdiApplicationOutline from '~icons/mdi/application-outline';
 	import MdiArrowDownBoldOutline from '~icons/mdi/arrow-down-bold-outline';
 	import MdiArrowLeft from '~icons/mdi/arrow-left';
 	import MdiArrowLeftBoldOutline from '~icons/mdi/arrow-left-bold-outline';
@@ -17,8 +17,8 @@
 	import MdiBackupRestore from '~icons/mdi/backup-restore';
 	import MdiBookMultiple from '~icons/mdi/book-multiple';
 	import MdiBookOpenVariant from '~icons/mdi/book-open-variant';
-	import MdiBookshelf from '~icons/mdi/bookshelf';
 	import MdiBookmarkCheckOutline from '~icons/mdi/bookmark-check-outline';
+	import MdiBookshelf from '~icons/mdi/bookshelf';
 	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline';
 	import MdiBroom from '~icons/mdi/broom';
 	import MdiCached from '~icons/mdi/cached';
@@ -62,8 +62,8 @@
 	import MdiEyeOff from '~icons/mdi/eye-off';
 	import MdiEyeOffOutline from '~icons/mdi/eye-off-outline';
 	import MdiEyeOutline from '~icons/mdi/eye-outline';
-	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline';
 	import MdiFileCodeOutline from '~icons/mdi/file-code-outline';
+	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline';
 	import MdiFileOutline from '~icons/mdi/file-outline';
 	import MdiFileQuestionOutline from '~icons/mdi/file-question-outline';
 	import MdiFileTreeOutline from '~icons/mdi/file-tree-outline';
@@ -87,9 +87,9 @@
 	import MdiLanguageJava from '~icons/mdi/language-java';
 	import MdiLanguageRuby from '~icons/mdi/language-ruby';
 	import MdiLayersOutline from '~icons/mdi/layers-outline';
+	import MdiLibraryOutline from '~icons/mdi/library-outline';
 	import MdiLightningBolt from '~icons/mdi/lightning-bolt';
 	import MdiLinkVariant from '~icons/mdi/link-variant';
-	import MdiLibraryOutline from '~icons/mdi/library-outline';
 	import MdiLock from '~icons/mdi/lock';
 	import MdiLockOpenVariant from '~icons/mdi/lock-open-variant';
 	import MdiLockOutline from '~icons/mdi/lock-outline';
@@ -100,8 +100,8 @@
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline';
 	import MdiMenu from '~icons/mdi/menu';
 	import MdiMinus from '~icons/mdi/minus';
-	import MdiMoonAndStars from '~icons/mdi/moon-and-stars';
 	import MdiMonitorDashboard from '~icons/mdi/monitor-dashboard';
+	import MdiMoonAndStars from '~icons/mdi/moon-and-stars';
 	import MdiOpenInNew from '~icons/mdi/open-in-new';
 	import MdiPackageVariantClosed from '~icons/mdi/package-variant-closed';
 	import MdiPaletteOutline from '~icons/mdi/palette-outline';
@@ -115,18 +115,18 @@
 	import MdiPowerPlug from '~icons/mdi/power-plug';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline';
 	import MdiRefresh from '~icons/mdi/refresh';
-	import MdiRoutes from '~icons/mdi/routes';
 	import MdiReload from '~icons/mdi/reload';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal';
 	import MdiRestartAlert from '~icons/mdi/restart-alert';
 	import MdiRobotOutline from '~icons/mdi/robot-outline';
+	import MdiRoutes from '~icons/mdi/routes';
 	import MdiSearch from '~icons/mdi/search';
 	import MdiShapeSquareRoundedPlus from '~icons/mdi/shape-square-rounded-plus';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
 	import MdiSourceBranch from '~icons/mdi/source-branch';
-	import MdiStateMachine from '~icons/mdi/state-machine';
 	import MdiStarOutline from '~icons/mdi/star-outline';
 	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline';
+	import MdiStateMachine from '~icons/mdi/state-machine';
 	import MdiSync from '~icons/mdi/sync';
 	import MdiTable from '~icons/mdi/table';
 	import MdiTarget from '~icons/mdi/target';
