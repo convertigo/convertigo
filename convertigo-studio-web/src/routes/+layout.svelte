@@ -13,6 +13,8 @@
 	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Light from '$lib/common/Light.svelte';
+	import ServerConnection from '$lib/common/ServerConnection.svelte';
+	import Ico from '$lib/utils/Ico.svelte';
 	import { resolve } from '$lib/utils/route';
 	import { setModalAlert, toaster } from '$lib/utils/service';
 	import { getContext, setContext } from 'svelte';
@@ -127,6 +129,19 @@
 	<link rel="icon" href={asset('/favicon.png')} />
 	<link rel="manifest" href={asset('/manifest.webmanifest')} />
 </svelte:head>
+
+{#if ServerConnection.unavailable}
+	<div
+		role="status"
+		aria-live="polite"
+		class="fixed inset-x-0 top-0 z-[200] layout-x-center-low preset-filled-error-500 py-low px shadow-follow"
+		transition:slide={{ axis: 'y', duration: 150 }}
+	>
+		<Ico icon="mdi:alert-circle-outline" size={5} />
+		<strong>Server unavailable</strong>
+		<span>Retrying…</span>
+	</div>
+{/if}
 
 <ModalYesNo bind:this={modalYesNo} />
 <ModalDynamic bind:this={modalAlert}>
