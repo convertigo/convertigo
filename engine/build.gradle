@@ -275,6 +275,7 @@ sourceSets {
 			exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
 			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+			exclude 'test/'
 			exclude '.placeholder'
 			srcDirs = ['src']
 		}
@@ -283,8 +284,17 @@ sourceSets {
 			exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
 			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+			exclude 'test/'
 			exclude '.placeholder'
 			srcDirs = ['src']
+		}
+	}
+	test {
+		java {
+			srcDirs = ['test']
+		}
+		resources {
+			srcDirs = ['test-resources']
 		}
 	}
 }
@@ -365,7 +375,7 @@ dependencies {
 	compileFlat    'org.codehaus.woodstox:stax2-api:4.3.0'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.7.1.202607240634-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.7.1.202607240634-r'
-	compileFlat    'org.hibernate.orm:hibernate-core:7.4.5.Final'
+	compileFlat    'org.hibernate.orm:hibernate-core:7.4.6.Final'
 	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0'
 	compileFlat    'org.mozilla:rhino:1.9.1'
 	compileFlat    'org.mozilla:rhino-tools:1.9.1'
