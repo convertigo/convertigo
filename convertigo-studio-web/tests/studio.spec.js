@@ -127,15 +127,19 @@ test('studio redirects authenticated users without the web admin role', async ({
 	await expect(page).toHaveURL(/\/dashboard\/$/);
 });
 
-test('studio frontend profile exposes a dashboard-like device rail', async ({ page }) => {
+test('studio frontend profile exposes preview devices from a navigation drawer', async ({
+	page
+}) => {
 	await mockStudioServices(page);
 	await page.goto('/studio/');
 
 	await selectTreeNode(page, projectName);
 	await page.getByRole('radio', { name: 'Frontend' }).click();
 
-	await expect(page.getByRole('tab', { name: /Devices/ })).toHaveAttribute('aria-selected', 'true');
 	await expect(page.getByRole('tab', { name: 'Palette' })).toBeVisible();
+	await expect(page.getByRole('tab', { name: 'Properties', exact: true })).toBeVisible();
+	await expect(page.getByRole('tab', { name: /Devices/ })).toHaveCount(0);
+	await page.getByRole('button', { name: 'Choose preview device' }).click();
 	await expect(page.getByText('Current device')).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Select device Responsive' })).toBeVisible();
 
@@ -143,6 +147,7 @@ test('studio frontend profile exposes a dashboard-like device rail', async ({ pa
 	await page.getByRole('button', { name: 'Select device iPhone 17 Pro', exact: true }).click();
 
 	await expect(page.getByText('iPhone 17 Pro').first()).toBeVisible();
+	await page.getByRole('button', { name: 'Choose preview device' }).click();
 	await expect(page.getByRole('button', { name: 'Landscape orientation' })).toBeEnabled();
 
 	await page.getByRole('button', { name: 'Landscape orientation' }).click();
@@ -364,6 +369,7 @@ test('studio hosts the Flow binding web component and applies its value on touch
 	await selectTreeNode(page, frontendBuilderId);
 	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
 	await page.getByRole('button', { name: 'Edit binding' }).click();
+	await expect(page.getByRole('tab', { name: 'Picker', exact: true })).toHaveCount(0);
 
 	const picker = page.frameLocator('iframe[title="Flow picker for Text"]');
 	await expect(picker.locator('flow-binding-editor')).toBeVisible();
@@ -409,6 +415,8 @@ test('studio hosts the Flow binding web component and applies its value on touch
 	await expect(
 		page.frameLocator('iframe[title="Flow picker for Text"]').locator('flow-binding-editor')
 	).toBeVisible();
+	await page.getByRole('button', { name: 'Close binding picker' }).click();
+	await expect(page.locator('iframe[title="Flow picker for Text"]')).toHaveCount(0);
 });
 
 test('studio retries a transient Flow picker failure without closing the editor', async ({
