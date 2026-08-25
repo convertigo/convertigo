@@ -462,6 +462,29 @@ test('studio edits a literal Flow binding directly without loading the picker', 
 	});
 });
 
+test('studio treats an empty legacy Flow binding as an editable literal', async ({ page }) => {
+	const propertyUpdates = [];
+	const flowPickerRequests = [];
+	await mockStudioServices(page, { propertyUpdates, flowPickerRequests, flowPicker: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await selectTreeNode(page, frontendBuilderId);
+	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
+	const classesProperty = page.locator('.studio-properties__field').filter({ hasText: 'CLASSES' });
+	await classesProperty.getByRole('textbox').fill('layout-centered');
+	await page.getByRole('button', { name: 'Save', exact: true }).click();
+
+	await expect.poll(() => propertyUpdates.length).toBe(1);
+	expect(flowPickerRequests).toHaveLength(0);
+	const props = JSON.parse(propertyUpdates[0].get('props') ?? '[]');
+	expect(JSON.parse(props[0]?.value ?? '{}')).toEqual({
+		mode: 'literal',
+		value: 'layout-centered'
+	});
+});
+
 test('studio retries a transient Flow picker failure without closing the editor', async ({
 	page
 }) => {
@@ -1508,6 +1531,16 @@ function flowPropertiesResponse() {
 				flowKind: 'binding',
 				flowType: 'binding',
 				value: JSON.stringify({ mode: 'literal', value: 'Fresh Flow chart benchmark' })
+			},
+			classes: {
+				name: 'classes',
+				displayName: 'Classes',
+				category: 'Base properties',
+				shortDescription: 'Application CSS class names.',
+				editorClass: 'flow-binding-editor',
+				flowKind: 'binding',
+				flowType: 'string',
+				value: ''
 			}
 		}
 	};

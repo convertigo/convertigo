@@ -168,7 +168,9 @@
 
 	/** @param {any} row */
 	function isLiteralFlowBinding(row) {
-		return parseFlowBinding(row?.value)?.mode === 'literal';
+		return (
+			row?.value === '' || row?.value == null || parseFlowBinding(row?.value)?.mode === 'literal'
+		);
 	}
 
 	/** @param {any} row */
