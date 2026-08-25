@@ -12,6 +12,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.codehaus.jettison.json.JSONObject;
 
 public class FlowEngineBridgeCacheTest {
 	@Test
@@ -36,5 +37,25 @@ public class FlowEngineBridgeCacheTest {
 		assertFalse(FlowEngineBridge.isFrontendAuthoringSourcePath(
 				"libs/flow/frontbuilder/svelte/components/Text.flow.svelte"));
 		assertFalse(FlowEngineBridge.isFrontendAuthoringSourcePath("libs/flows/MyFlow.flow.js"));
+	}
+
+	@Test
+	public void serializesOnlyFrontendDocumentProviderCalls() throws Exception {
+		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("authoringTree",
+				new JSONObject().put("surface", "frontend")));
+		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("authoringPalette",
+				new JSONObject().put("surface", "frontend")));
+		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("propertyEditor",
+				new JSONObject().put("frontendSourceDrafts", new JSONObject())));
+		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("describeTree",
+				new JSONObject().put("target", "engine").put("frontendSourceDrafts", new JSONObject())));
+		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("applySourceMutation",
+				new JSONObject().put("target", "frontendSource").put("frontendSourceDrafts", new JSONObject())));
+
+		assertFalse(FlowEngineBridge.usesFrontendDocumentProvider("authoringTree",
+				new JSONObject().put("surface", "backend")));
+		assertFalse(FlowEngineBridge.usesFrontendDocumentProvider("propertyEditor", new JSONObject()));
+		assertFalse(FlowEngineBridge.usesFrontendDocumentProvider("applyMutation",
+				new JSONObject().put("surface", "frontend").put("frontendSourceDrafts", new JSONObject())));
 	}
 }

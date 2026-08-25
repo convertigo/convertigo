@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
@@ -75,6 +76,7 @@ public class FlowEngineBridge {
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
 	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
 	private static final int ENGINE_RUNTIME_POOL_LIMIT = 2;
+	private static final ReentrantLock[] frontendAuthoringLocks = createFrontendAuthoringLocks(32);
 
 	private record CachedEngineSource(File file, String source, long lastModified, long length) {
 		String sourceName() {
@@ -90,6 +92,7 @@ public class FlowEngineBridge {
 		private final String sourceName;
 		private final long generation;
 		private final ArrayDeque<CachedEngineRuntime> available = new ArrayDeque<>();
+		private Scriptable frontendAuthoringScope;
 		private int cachedCount;
 
 		private CachedEngineRuntimePool(String sourceName, long generation) {
@@ -1301,6 +1304,8 @@ public class FlowEngineBridge {
 	private JSONObject invoke(String engineQName, String method, JSONObject request, Context convertigoContext,
 			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		var engineRef = EngineRef.parse(normalizeEngineQName(engineQName));
+		var frontendAuthoring = usesFrontendDocumentProvider(method, request);
+		var frontendAuthoringLock = frontendAuthoring ? frontendAuthoringLock(engineRef.qname) : null;
 		var useThreadRuntime = javascriptContext == null && scope == null;
 		var cx = javascriptContext;
 		var engineScope = scope;
@@ -1314,6 +1319,9 @@ public class FlowEngineBridge {
 		var methodCacheHit = false;
 
 		try {
+			if (frontendAuthoringLock != null) {
+				frontendAuthoringLock.lock();
+			}
 			engineFile = resolveEngineFile(engineRef);
 			engineSource = cachedEngineSource(engineFile);
 			if (useThreadRuntime) {
@@ -1331,7 +1339,7 @@ public class FlowEngineBridge {
 				cx = org.mozilla.javascript.Context.enter();
 				entered = true;
 				if (useThreadRuntime) {
-					runtimeLookup = cachedEngineRuntime(engineRef, engineFile, engineSource, cx);
+					runtimeLookup = cachedEngineRuntime(engineRef, engineFile, engineSource, cx, frontendAuthoring);
 					engineScope = runtimeLookup.runtime().scope();
 					engineObject = runtimeLookup.runtime().engineObject();
 				} else {
@@ -1352,12 +1360,43 @@ public class FlowEngineBridge {
 			failed = true;
 			throw new EngineException("Unable to invoke Flow engine \"" + engineRef.qname + "\" method \"" + method + "\".", e);
 		} finally {
-			recordInvocation(engineRef, method, System.nanoTime() - started, runtimeLookup, failed, methodCacheHit);
-			releaseEngineRuntime(runtimeLookup);
-			if (entered) {
-				org.mozilla.javascript.Context.exit();
+			try {
+				recordInvocation(engineRef, method, System.nanoTime() - started, runtimeLookup, failed, methodCacheHit);
+				releaseEngineRuntime(runtimeLookup);
+				if (entered) {
+					org.mozilla.javascript.Context.exit();
+				}
+			} finally {
+				if (frontendAuthoringLock != null) {
+					frontendAuthoringLock.unlock();
+				}
 			}
 		}
+	}
+
+	private static ReentrantLock[] createFrontendAuthoringLocks(int size) {
+		var locks = new ReentrantLock[size];
+		for (var i = 0; i < size; i++) {
+			locks[i] = new ReentrantLock();
+		}
+		return locks;
+	}
+
+	private static ReentrantLock frontendAuthoringLock(String engineQName) {
+		return frontendAuthoringLocks[(engineQName.hashCode() & Integer.MAX_VALUE) % frontendAuthoringLocks.length];
+	}
+
+	static boolean usesFrontendDocumentProvider(String method, JSONObject request) {
+		if ("authoringTree".equals(method) || "authoringPalette".equals(method)) {
+			return request == null || "frontend".equals(request.optString("surface", "frontend"));
+		}
+		if (request == null || !request.has("frontendSourceDrafts")) {
+			return false;
+		}
+		return switch (method) {
+		case "propertyEditor", "describeTree", "contextMenu", "contextAction", "applySourceMutation" -> true;
+		default -> false;
+		};
 	}
 
 	private static void recordInvocation(EngineRef engineRef, String method, long durationNanos, CachedEngineRuntimeLookup runtimeLookup,
@@ -1745,7 +1784,7 @@ public class FlowEngineBridge {
 	}
 
 	private static CachedEngineRuntimeLookup cachedEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
-			org.mozilla.javascript.Context cx) throws EngineException {
+			org.mozilla.javascript.Context cx, boolean frontendAuthoring) throws EngineException {
 		var baseKey = engineRef.qname + "|" + engineSource.sourceName();
 		var key = baseKey + "|pool";
 		var staleRuntimes = new ArrayList<CachedEngineRuntime>();
@@ -1766,13 +1805,19 @@ public class FlowEngineBridge {
 		disposeEngineRuntimes(staleRuntimes, cx);
 		try {
 			synchronized (pool) {
-				var cached = pool.available.pollFirst();
+				var cached = takeAvailableRuntime(pool, frontendAuthoring);
 				if (cached != null) {
 					try {
 						cached = refreshEngineRuntimeDataCaches(cached, cx);
+						if (frontendAuthoring) {
+							pool.frontendAuthoringScope = cached.scope();
+						}
 						return new CachedEngineRuntimeLookup(cached, pool, true, true, key, generation,
 								engineRuntimeCache.size());
 					} catch (Exception e) {
+						if (cached.scope() == pool.frontendAuthoringScope) {
+							pool.frontendAuthoringScope = null;
+						}
 						if (pool.cachedCount > 0) {
 							pool.cachedCount--;
 						}
@@ -1783,6 +1828,9 @@ public class FlowEngineBridge {
 				var pooled = pool.cachedCount < ENGINE_RUNTIME_POOL_LIMIT;
 				if (pooled) {
 					pool.cachedCount++;
+					if (frontendAuthoring) {
+						pool.frontendAuthoringScope = fresh.scope();
+					}
 				}
 				return new CachedEngineRuntimeLookup(fresh, pool, false, pooled, key, generation, engineRuntimeCache.size());
 			}
@@ -1791,6 +1839,29 @@ public class FlowEngineBridge {
 		} catch (Exception e) {
 			throw new EngineException("Unable to initialize Flow engine runtime \"" + engineRef.qname + "\".", e);
 		}
+	}
+
+	private static CachedEngineRuntime takeAvailableRuntime(CachedEngineRuntimePool pool, boolean frontendAuthoring) {
+		if (frontendAuthoring) {
+			if (pool.frontendAuthoringScope != null) {
+				for (var iterator = pool.available.iterator(); iterator.hasNext();) {
+					var runtime = iterator.next();
+					if (runtime.scope() == pool.frontendAuthoringScope) {
+						iterator.remove();
+						return runtime;
+					}
+				}
+			}
+			return pool.available.pollFirst();
+		}
+		for (var iterator = pool.available.iterator(); iterator.hasNext();) {
+			var runtime = iterator.next();
+			if (runtime.scope() != pool.frontendAuthoringScope) {
+				iterator.remove();
+				return runtime;
+			}
+		}
+		return null;
 	}
 
 	private static CachedEngineRuntime createEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
@@ -1827,6 +1898,9 @@ public class FlowEngineBridge {
 			runtime = refreshEngineRuntimeDataCaches(runtime, org.mozilla.javascript.Context.getCurrentContext());
 		} catch (Exception e) {
 			synchronized (pool) {
+				if (runtime.scope() == pool.frontendAuthoringScope) {
+					pool.frontendAuthoringScope = null;
+				}
 				if (pool.cachedCount > 0) {
 					pool.cachedCount--;
 				}
@@ -1866,6 +1940,7 @@ public class FlowEngineBridge {
 			while (!pool.available.isEmpty()) {
 				runtimes.add(pool.available.removeFirst());
 			}
+			pool.frontendAuthoringScope = null;
 			pool.cachedCount = Math.max(0, pool.cachedCount - runtimes.size());
 		}
 		return runtimes;
