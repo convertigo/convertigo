@@ -138,6 +138,8 @@ test('studio frontend profile exposes preview devices from a navigation drawer',
 
 	await expect(page.getByRole('tab', { name: 'Palette' })).toBeVisible();
 	await expect(page.getByRole('tab', { name: 'Properties', exact: true })).toBeVisible();
+	await expect(page.getByRole('tab', { name: 'Frontend', exact: true })).toBeVisible();
+	await expect(page.getByRole('tab', { name: 'Doc', exact: true })).toBeVisible();
 	await expect(page.getByRole('tab', { name: /Devices/ })).toHaveCount(0);
 	await page.getByRole('button', { name: 'Choose preview device' }).click();
 	await expect(page.getByText('Current device')).toBeVisible();
@@ -152,6 +154,22 @@ test('studio frontend profile exposes preview devices from a navigation drawer',
 
 	await page.getByRole('button', { name: 'Landscape orientation' }).click();
 	await expect(page.getByText(/iPhone 17 Pro landscape - 874x402/)).toBeVisible();
+});
+
+test('studio frontend profile documents Flow properties from their authoring contract', async ({
+	page
+}) => {
+	await mockStudioServices(page, { flowPicker: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await selectTreeNode(page, frontendBuilderId);
+	await page.getByRole('radio', { name: 'Frontend' }).click();
+	await page.getByRole('tab', { name: 'Doc', exact: true }).click();
+
+	await expect(page.getByRole('heading', { name: 'Svelte builder' })).toBeVisible();
+	await expect(page.getByText('Visible text rendered by the component.')).toBeVisible();
 });
 
 test('studio inserts and reorders source-backed frontend blocks at the requested tree position', async ({
@@ -368,7 +386,7 @@ test('studio hosts the Flow binding web component and applies its value on touch
 	await expandTreeNode(page, flowEngineId);
 	await selectTreeNode(page, frontendBuilderId);
 	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
-	await page.getByRole('button', { name: 'Edit binding' }).click();
+	await page.getByRole('button', { name: 'Choose a source or compose Text' }).click();
 	await expect(page.getByRole('tab', { name: 'Picker', exact: true })).toHaveCount(0);
 
 	const picker = page.frameLocator('iframe[title="Flow picker for Text"]');
@@ -415,8 +433,33 @@ test('studio hosts the Flow binding web component and applies its value on touch
 	await expect(
 		page.frameLocator('iframe[title="Flow picker for Text"]').locator('flow-binding-editor')
 	).toBeVisible();
-	await page.getByRole('button', { name: 'Close binding picker' }).click();
+	await page.getByRole('button', { name: 'Close Text options' }).click();
 	await expect(page.locator('iframe[title="Flow picker for Text"]')).toHaveCount(0);
+});
+
+test('studio edits a literal Flow binding directly without loading the picker', async ({
+	page
+}) => {
+	const propertyUpdates = [];
+	const flowPickerRequests = [];
+	await mockStudioServices(page, { propertyUpdates, flowPickerRequests, flowPicker: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await selectTreeNode(page, frontendBuilderId);
+	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
+	const textProperty = page.locator('.studio-properties__field').filter({ hasText: 'TEXT' });
+	await textProperty.getByRole('textbox').fill('Edited directly');
+	await page.getByRole('button', { name: 'Save', exact: true }).click();
+
+	await expect.poll(() => propertyUpdates.length).toBe(1);
+	expect(flowPickerRequests).toHaveLength(0);
+	const props = JSON.parse(propertyUpdates[0].get('props') ?? '[]');
+	expect(JSON.parse(props[0]?.value ?? '{}')).toEqual({
+		mode: 'literal',
+		value: 'Edited directly'
+	});
 });
 
 test('studio retries a transient Flow picker failure without closing the editor', async ({
@@ -430,7 +473,7 @@ test('studio retries a transient Flow picker failure without closing the editor'
 	await expandTreeNode(page, flowEngineId);
 	await selectTreeNode(page, frontendBuilderId);
 	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
-	await page.getByRole('button', { name: 'Edit binding' }).click();
+	await page.getByRole('button', { name: 'Choose a source or compose Text' }).click();
 
 	const picker = page.frameLocator('iframe[title="Flow picker for Text"]');
 	await expect(picker.locator('flow-binding-editor')).toBeVisible();
@@ -1451,10 +1494,16 @@ function flowPropertiesResponse() {
 	return {
 		id: frontendBuilderId,
 		properties: {
+			Summary: {
+				displayName: 'Summary',
+				category: 'Information',
+				value: 'Svelte builder'
+			},
 			text: {
 				name: 'text',
 				displayName: 'Text',
 				category: 'Base properties',
+				shortDescription: 'Visible text rendered by the component.',
 				editorClass: 'flow-binding-editor',
 				flowKind: 'binding',
 				flowType: 'binding',

@@ -70,13 +70,18 @@ public class Get extends JSonService {
 		if (propertyDefinition == null) {
 			propertyDefinition = new JSONObject();
 		}
+		var pickerDefinitions = new JSONObject().put(property, propertyDefinition);
+		var pickerInfo = pickerInfoForProperty(info, property, pickerDefinitions);
 		if (value == null) {
 			var current = object.getDefinitionProperty(property);
 			value = current == null ? "" : String.valueOf(current);
 		}
+		var pickerDefinition = new JSONObject().put(property,
+				valueOrNull(object.getDefinitionProperty(property)));
 
 		var state = new JSONObject()
 				.put("mode", "picker")
+				.put("singleProperty", true)
 				.put("property", property)
 				.put("propertyDefinition", propertyDefinition)
 				.put("virtualKind", object.getVirtualKind())
@@ -84,24 +89,24 @@ public class Get extends JSonService {
 				.put("virtualPath", object.getVirtualPath())
 				.put("summary", object.getSummary())
 				.put("flowQName", target.qName())
-				.put("definition", valueOrObject(object.getDefinitionObject()))
-				.put("info", info)
+				.put("definition", pickerDefinition)
+				.put("info", pickerInfo)
 				.put("applied", new JSONObject().put("property", property).put("value", value));
 
 		var requests = new JSONObject();
-		if (needsContext(definitions) && !isFrontendSource(object)) {
+		if (needsContext(pickerDefinitions) && !isFrontendSource(object)) {
 			var context = context(bridge, target, object, property);
 			state.put("context", context);
 			requests.put("context", new JSONObject().put("ok", true).put("context", context));
 		}
-		if (hasKind(definitions, "requestable")) {
+		if (hasKind(pickerDefinitions, "requestable")) {
 			var requestables = target.flow() == null
 					? bridge.requestables(target.flowEngine())
 					: bridge.requestables(target.flow());
 			state.put("requestables", requestables);
 			requests.put("requestables", new JSONObject().put("ok", true).put("requestables", requestables));
 		}
-		if (hasKind(definitions, "icon")) {
+		if (hasKind(pickerDefinitions, "icon")) {
 			var options = new JSONObject().put("provider", "mdi").put("limit", 500);
 			var icons = target.flow() == null
 					? bridge.icons(target.flowEngine(), options)
@@ -114,10 +119,17 @@ public class Get extends JSonService {
 		response.put("requests", requests);
 	}
 
+	static JSONObject pickerInfoForProperty(JSONObject info, String property, JSONObject definitions) throws Exception {
+		var filtered = info == null ? new JSONObject() : new JSONObject(info.toString());
+		filtered.put("propertyDefinitions", definitions == null ? new JSONObject() : definitions);
+		filtered.put("propertyOrder", new JSONArray().put(property));
+		return filtered;
+	}
+
 	private static JSONObject pickerInfo(FlowEngineBridge bridge, PickerTarget target, FlowVirtualObject object,
 			String property) throws Exception {
 		var info = valueOrObject(object.getVirtualInfoObject());
-		if (!isFrontendSource(object)) {
+		if (!isFrontendSource(object) || !requiresFrontendProjection(info, property)) {
 			return info;
 		}
 		var virtualPath = object.getVirtualPath();
@@ -134,6 +146,12 @@ public class Get extends JSonService {
 		var focused = findNode(tree.optJSONArray("children"), virtualPath);
 		var enriched = focused == null ? null : objectValue(focused.opt("info"));
 		return enriched == null || enriched.length() == 0 ? info : enriched;
+	}
+
+	static boolean requiresFrontendProjection(JSONObject info, String property) throws Exception {
+		var definitions = info == null ? null : info.optJSONObject("propertyDefinitions");
+		var definition = definitions == null ? null : definitions.optJSONObject(property);
+		return definition != null && needsContext(new JSONObject().put(property, definition));
 	}
 
 	private static JSONObject findNode(JSONArray children, String virtualPath) {
@@ -261,5 +279,9 @@ public class Get extends JSonService {
 
 	private static JSONObject valueOrObject(JSONObject object) {
 		return object == null ? new JSONObject() : object;
+	}
+
+	private static Object valueOrNull(Object value) {
+		return value == null ? JSONObject.NULL : value;
 	}
 }

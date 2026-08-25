@@ -5,8 +5,8 @@
 	import { subscribeAdminEvents } from '$lib/admin/adminEvents';
 	import Projects from '$lib/common/Projects.svelte.js';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
 	import { shouldStartInlineRename } from '$lib/studio/dnd';
+	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
 	import {
 		findPrimaryEditorProperty,
@@ -26,6 +26,7 @@
 	import StudioExecutionPanel from '$lib/studio/StudioExecutionPanel.svelte';
 	import StudioIconButton from '$lib/studio/StudioIconButton.svelte';
 	import StudioLogsPanel from '$lib/studio/StudioLogsPanel.svelte';
+	import { createStudioMutationEventTracker } from '$lib/studio/studioMutationEvents';
 	import StudioPalettePanel from '$lib/studio/StudioPalettePanel.svelte';
 	import StudioPanel from '$lib/studio/StudioPanel.svelte';
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
@@ -34,7 +35,6 @@
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
-	import { createStudioMutationEventTracker } from '$lib/studio/studioMutationEvents';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { resolve } from '$lib/utils/route';
 	import { call, checkArray, saveDboProject } from '$lib/utils/service';
@@ -43,6 +43,7 @@
 
 	/** @typedef {'execution' | 'code' | 'flow' | 'doc'} WorkPanel */
 	/** @typedef {'frontend' | 'execution'} VibeResult */
+	/** @typedef {'frontend' | 'doc'} FrontendResult */
 	/**
 	 * @typedef {Object} PaletteItem
 	 * @property {string=} id
@@ -54,6 +55,7 @@
 	 * @property {string=} longDescriptionHtml
 	 * @property {string=} shortDescriptionText
 	 * @property {string=} propertiesDescriptionHtml
+	 * @property {{ label: string, description: string }[]=} propertyDocumentation
 	 * @property {string=} icon
 	 * @property {boolean=} builtin
 	 * @property {boolean=} additional
@@ -93,7 +95,13 @@
 		{ id: 'frontend', label: 'Frontend', icon: 'mdi:smartphone-link' },
 		{ id: 'execution', label: 'Execution', icon: 'mdi:play-circle-outline' }
 	];
+	/** @type {{ id: FrontendResult, label: string, icon: string }[]} */
+	const FRONTEND_RESULT_VIEWS = [
+		{ id: 'frontend', label: 'Frontend', icon: 'mdi:smartphone-link' },
+		{ id: 'doc', label: 'Doc', icon: 'mdi:book-open-variant' }
+	];
 	const VIBE_RESULT_IDS = VIBE_RESULT_VIEWS.map(({ id }) => id);
+	const FRONTEND_RESULT_IDS = FRONTEND_RESULT_VIEWS.map(({ id }) => id);
 
 	/**
 	 * @typedef {Object} EditorTarget
@@ -148,6 +156,8 @@
 	let activeWorkPanel = $state('execution');
 	/** @type {VibeResult} */
 	let activeVibeResult = $state('frontend');
+	/** @type {FrontendResult} */
+	let activeFrontendResult = $state('frontend');
 	let frontendDeviceId = $state('none');
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
@@ -351,7 +361,10 @@
 
 	$effect(() => {
 		const id = selectedId;
-		if (activeWorkPanel !== 'doc' || selectedPaletteItem) {
+		const docVisible =
+			(profile === 'backend' && activeWorkPanel === 'doc') ||
+			(profile === 'frontend' && activeFrontendResult === 'doc');
+		if (!docVisible || selectedPaletteItem) {
 			return;
 		}
 		if (!id || id === 'ROOT') {
@@ -744,7 +757,9 @@
 			if (!SIDE_PANEL_IDS.includes(activeSidePanel)) {
 				activeSidePanel = 'properties';
 			}
-			activeWorkPanel = 'execution';
+			activeFrontendResult = /** @type {FrontendResult} */ (
+				storedChoice(activeFrontendResult, FRONTEND_RESULT_IDS, 'frontend')
+			);
 			return;
 		}
 		if (collapsedPanels.tools || !SIDE_PANEL_IDS.includes(activeSidePanel)) {
@@ -986,15 +1001,26 @@
 	 */
 	function selectedObjectDocFallback(id, properties) {
 		const name =
-			propertyValue(properties, 'Type') || propertyValue(properties, 'Name') || selectionLabel(id);
+			propertyValue(properties, 'Summary') ||
+			propertyValue(properties, 'Type') ||
+			propertyValue(properties, 'Name') ||
+			selectionLabel(id);
 		const classname = propertyValue(properties, 'Java class');
 		if (!name && !classname) {
 			return null;
 		}
+		const propertyDocumentation = Object.entries(properties ?? {})
+			.filter(([, property]) => property?.category !== 'Information' && property?.shortDescription)
+			.map(([label, property]) => ({
+				label: String(property?.displayName || label),
+				description: String(property.shortDescription).trim()
+			}))
+			.filter((property) => property.description);
 		return {
 			id,
 			name,
-			classname
+			classname,
+			propertyDocumentation
 		};
 	}
 
@@ -1564,14 +1590,18 @@
 			}}
 		/>
 	{:else if profile === 'frontend'}
-		<StudioPanel
-			title="Frontend"
-			icon="mdi:smartphone-link"
+		<StudioTabbedFrame
+			items={FRONTEND_RESULT_VIEWS}
+			active={activeFrontendResult}
+			ariaLabel="Frontend workspace views"
 			class="studio__primary-panel"
-			contentClass="studio__panel-fill"
-		>
-			{@render frontendPane()}
-		</StudioPanel>
+			fillIds={['frontend', 'doc']}
+			onSelect={(id) => (activeFrontendResult = /** @type {FrontendResult} */ (id))}
+			panes={{
+				frontend: frontendPane,
+				doc: docPane
+			}}
+		/>
 	{:else}
 		<StudioTabbedFrame
 			items={VIBE_RESULT_VIEWS}

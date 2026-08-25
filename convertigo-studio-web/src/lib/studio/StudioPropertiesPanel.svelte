@@ -154,13 +154,62 @@
 	}
 
 	/**
+	 * @param {any} value
+	 * @returns {Record<string, any> | null}
+	 */
+	function parseFlowBinding(value) {
+		try {
+			const binding = typeof value === 'string' ? JSON.parse(value) : value;
+			return binding && typeof binding === 'object' && !Array.isArray(binding) ? binding : null;
+		} catch {
+			return null;
+		}
+	}
+
+	/** @param {any} row */
+	function isLiteralFlowBinding(row) {
+		return parseFlowBinding(row?.value)?.mode === 'literal';
+	}
+
+	/** @param {any} row */
+	function flowBindingLiteralValue(row) {
+		return parseFlowBinding(row?.value)?.value ?? '';
+	}
+
+	/** @param {any} row */
+	function flowBindingOriginalLiteralValue(row) {
+		return parseFlowBinding(row?.originalValue)?.value ?? '';
+	}
+
+	/**
+	 * @param {any} row
+	 * @param {any} value
+	 */
+	function setFlowBindingLiteralValue(row, value) {
+		const binding = parseFlowBinding(row?.value) ?? { mode: 'literal' };
+		row.value = JSON.stringify({ ...binding, mode: 'literal', value });
+	}
+
+	/** @param {any} row */
+	function flowBindingLiteralType(row) {
+		const type = String(row?.flowType ?? '').toLowerCase();
+		if (type === 'boolean') {
+			return 'boolean';
+		}
+		if (['number', 'integer'].includes(type)) {
+			return 'number';
+		}
+		return hasPossibleValues(row) ? (row.values.length < 4 ? 'segment' : 'combo') : 'text';
+	}
+
+	/**
 	 * @param {any} row
 	 * @returns {string}
 	 */
 	function flowBindingPreview(row) {
 		try {
-			const binding = typeof row?.value === 'string' ? JSON.parse(row.value) : row?.value;
-			if (!binding || typeof binding !== 'object') {
+			const binding = parseFlowBinding(row?.value);
+			if (!binding) {
 				return previewValue(row);
 			}
 			if (binding.mode === 'literal') {
@@ -273,9 +322,15 @@
 	function propertyButtons(row) {
 		const buttons = [];
 		if (String(row?.editorClass ?? '').startsWith('flow-')) {
+			const binding = isFlowBindingProperty(row);
+			const label = String(row?.displayName ?? row?.name ?? 'property');
 			buttons.push({
 				icon: 'mdi:hub',
-				title: isPickerOpen(row) ? 'Close Flow picker' : 'Open Flow picker',
+				title: isPickerOpen(row)
+					? `Close ${label} options`
+					: binding
+						? `Choose a source or compose ${label}`
+						: `Open ${label} options`,
 				active: isPickerOpen(row),
 				ariaExpanded: isPickerOpen(row),
 				onclick: () => openPicker(row)
@@ -456,22 +511,39 @@
 												{#if category == 'Information'}
 													<span class="studio-properties__static">{value}</span>
 												{:else if type === 'flow-binding'}
-													<div class="studio-properties__fallback layout-x-low">
-														<code class="studio-properties__fallback-value"
-															>{flowBindingPreview(row)}</code
-														>
-														<StudioIconButton
-															icon="mdi:hub"
-															size="xs"
-															title={isPickerOpen(row) ? 'Close binding picker' : 'Edit binding'}
-															ariaLabel={isPickerOpen(row)
-																? 'Close binding picker'
-																: 'Edit binding'}
-															active={isPickerOpen(row)}
-															aria-expanded={isPickerOpen(row)}
-															onclick={() => openPicker(row)}
+													{#if isLiteralFlowBinding(row)}
+														<PropertyType
+															type={flowBindingLiteralType(row)}
+															bind:value={
+																() => flowBindingLiteralValue(row),
+																(nextValue) => setFlowBindingLiteralValue(row, nextValue)
+															}
+															item={values}
+															originalValue={flowBindingOriginalLiteralValue(row)}
+															segmentCompact={flowBindingLiteralType(row) === 'segment'}
+															actionsHorizontal
+															buttons={propertyButtons(row)}
 														/>
-													</div>
+													{:else}
+														<div class="studio-properties__fallback layout-x-low">
+															<code class="studio-properties__fallback-value"
+																>{flowBindingPreview(row)}</code
+															>
+															<StudioIconButton
+																icon="mdi:hub"
+																size="xs"
+																title={isPickerOpen(row)
+																	? 'Close binding options'
+																	: 'Choose a source or compose value'}
+																ariaLabel={isPickerOpen(row)
+																	? 'Close binding options'
+																	: 'Choose a source or compose value'}
+																active={isPickerOpen(row)}
+																aria-expanded={isPickerOpen(row)}
+																onclick={() => openPicker(row)}
+															/>
+														</div>
+													{/if}
 												{:else if smartType}
 													<PropertyType
 														type="smarttype"

@@ -15,6 +15,7 @@
 	 * @property {string=} longDescriptionHtml
 	 * @property {string=} shortDescriptionText
 	 * @property {string=} propertiesDescriptionHtml
+	 * @property {{ label: string, description: string }[]=} propertyDocumentation
 	 * @property {string=} icon
 	 * @property {boolean=} builtin
 	 * @property {boolean=} additional
@@ -81,6 +82,22 @@
 				segments: [{ type: 'text', text: 'Properties:' }]
 			});
 			blocks.push(...htmlToBlocks(propertiesHtml));
+		}
+		if (item.propertyDocumentation?.length) {
+			blocks.push({
+				type: 'heading',
+				segments: [{ type: 'text', text: 'Properties:' }]
+			});
+			for (const property of item.propertyDocumentation) {
+				blocks.push({
+					type: 'paragraph',
+					className: 'studio-doc__property',
+					segments: [
+						{ type: 'strong', text: property.label },
+						{ type: 'text', text: ` — ${property.description}` }
+					]
+				});
+			}
 		}
 		return blocks.filter((block) => !isEmptyBlock(block));
 	}
