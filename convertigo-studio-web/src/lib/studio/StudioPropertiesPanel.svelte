@@ -10,6 +10,7 @@
 		canOpenCodeProperty,
 		getPropertyLanguage,
 		isIonProperty,
+		isSamePropertyPickerTarget,
 		isSmartSourceProperty,
 		SMART_TYPE_MODES
 	} from '$lib/studio/propertyEditors';
@@ -17,6 +18,7 @@
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 	import StudioSection from './StudioSection.svelte';
+	import StudioSourcePickerPanel from './StudioSourcePickerPanel.svelte';
 
 	/**
 	 * @type {{
@@ -25,7 +27,9 @@
 	 *  refreshSerial?: number,
 	 *  onSave?: (id: string) => void | Promise<void>,
 	 *  onOpenPropertyEditor?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void,
-	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string }) => void
+	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string }) => void,
+	 *  pickerTarget?: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string } | null,
+	 *  onPickerApply?: (id: string, value?: any) => void | Promise<void>
 	 * }}
 	 */
 	let {
@@ -34,7 +38,9 @@
 		refreshSerial = 0,
 		onSave,
 		onOpenPropertyEditor,
-		onOpenPropertyPicker
+		onOpenPropertyPicker,
+		pickerTarget = null,
+		onPickerApply = () => {}
 	} = $props();
 
 	let openedCategories = $state(/** @type {string[]} */ ([]));
@@ -226,14 +232,16 @@
 
 	/**
 	 * @param {any} row
-	 * @returns {{ icon: string, title: string, onclick: () => void }[]}
+	 * @returns {{ icon: string, title: string, active?: boolean, ariaExpanded?: boolean, onclick: () => void }[]}
 	 */
 	function smartTypeButtons(row) {
 		if (smartMode(row) === 'source') {
 			return [
 				{
 					icon: 'mdi:hub',
-					title: 'Open source picker',
+					title: isPickerOpen(row) ? 'Close source picker' : 'Open source picker',
+					active: isPickerOpen(row),
+					ariaExpanded: isPickerOpen(row),
 					onclick: () => openPicker(row)
 				}
 			];
@@ -260,14 +268,16 @@
 
 	/**
 	 * @param {any} row
-	 * @returns {{ icon: string, title: string, onclick: () => void }[]}
+	 * @returns {{ icon: string, title: string, active?: boolean, ariaExpanded?: boolean, onclick: () => void }[]}
 	 */
 	function propertyButtons(row) {
 		const buttons = [];
 		if (String(row?.editorClass ?? '').startsWith('flow-')) {
 			buttons.push({
 				icon: 'mdi:hub',
-				title: 'Open Flow picker',
+				title: isPickerOpen(row) ? 'Close Flow picker' : 'Open Flow picker',
+				active: isPickerOpen(row),
+				ariaExpanded: isPickerOpen(row),
 				onclick: () => openPicker(row)
 			});
 		}
@@ -364,6 +374,13 @@
 		});
 	}
 
+	function isPickerOpen(row) {
+		return isSamePropertyPickerTarget(pickerTarget, {
+			id: selectedId,
+			propertyName: row?.name
+		});
+	}
+
 	function applyMonaco() {
 		if (monacoRow) {
 			monacoRow.value = monacoValue;
@@ -425,6 +442,7 @@
 											class:studio-properties__field--wide={wideField}
 											class:studio-properties__field--textarea={type === 'textarea' || smartType}
 											class:studio-properties__field--changed={changed}
+											class:studio-properties__field--picker-open={isPickerOpen(row)}
 										>
 											<div class="studio-properties__field-header layout-x-between-none">
 												<span class="studio-properties__field-label" title={label}>
@@ -445,8 +463,12 @@
 														<StudioIconButton
 															icon="mdi:hub"
 															size="xs"
-															title="Edit binding"
-															ariaLabel="Edit binding"
+															title={isPickerOpen(row) ? 'Close binding picker' : 'Edit binding'}
+															ariaLabel={isPickerOpen(row)
+																? 'Close binding picker'
+																: 'Edit binding'}
+															active={isPickerOpen(row)}
+															aria-expanded={isPickerOpen(row)}
 															onclick={() => openPicker(row)}
 														/>
 													</div>
@@ -494,14 +516,27 @@
 															<StudioIconButton
 																icon="mdi:hub"
 																size="xs"
-																title="Open picker"
-																ariaLabel="Open picker"
+																title={isPickerOpen(row) ? 'Close picker' : 'Open picker'}
+																ariaLabel={isPickerOpen(row) ? 'Close picker' : 'Open picker'}
+																active={isPickerOpen(row)}
+																aria-expanded={isPickerOpen(row)}
 																onclick={() => openPicker(row)}
 															/>
 														</div>
 													</div>
 												{/if}
 											</div>
+											{#if isPickerOpen(row)}
+												<div class="studio-properties__inline-picker">
+													<StudioSourcePickerPanel
+														{selectedId}
+														active
+														{pickerTarget}
+														onApply={onPickerApply}
+														embedded
+													/>
+												</div>
+											{/if}
 										</div>
 									{/each}
 								</div>
@@ -604,6 +639,21 @@
 
 	.studio-properties__field--changed {
 		background: color-mix(in oklab, var(--color-primary-500) 5%, transparent);
+	}
+
+	.studio-properties__field--picker-open {
+		grid-template-columns: minmax(0, 1fr);
+		align-items: stretch;
+		background: color-mix(in oklab, var(--color-primary-500) 4%, transparent);
+	}
+
+	.studio-properties__inline-picker {
+		min-width: 0;
+		overflow: hidden;
+		border: 1px solid
+			color-mix(in oklab, var(--color-primary-500) 34%, var(--color-surface-200-800));
+		border-radius: var(--radius-base);
+		background: var(--color-surface-50-950);
 	}
 
 	.studio-properties__field-header {

@@ -32,7 +32,11 @@
 		{ id: 'other', title: 'Other devices', match: () => true }
 	];
 
-	let { selectedDeviceId = $bindable('none'), landscape = $bindable(false) } = $props();
+	let {
+		selectedDeviceId = $bindable('none'),
+		landscape = $bindable(false),
+		onSelect = () => {}
+	} = $props();
 
 	let selectedDevice = $derived(Bezels[selectedDeviceId] ?? Bezels.none);
 	let selectedDeviceType = $derived(selectedDevice?.type ?? '');
@@ -61,6 +65,7 @@
 		if (id === 'none') {
 			landscape = false;
 		}
+		onSelect(id);
 	}
 
 	/**

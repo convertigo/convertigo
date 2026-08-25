@@ -172,6 +172,10 @@ public class Get extends JSonService {
 		var obj = new JSONObject();
 		obj.put("label", dbo.toString());
 		obj.put("name", dbo.toString());
+		var iconify = iconifyIcon(dbo);
+		if (!iconify.isBlank()) {
+			obj.put("iconify", iconify);
+		}
 		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + iconPath(dbo));
 		obj.put("id", qname);
 		if (flow) {
@@ -455,6 +459,17 @@ public class Get extends JSonService {
 			return "workspace:" + iconPath.substring(Engine.USER_WORKSPACE_PATH.length());
 		}
 		return iconPath;
+	}
+
+	static String iconifyIcon(DatabaseObject dbo) {
+		if (!(dbo instanceof FlowVirtualObject flowVirtualObject)) {
+			return "";
+		}
+		var icon = firstNonBlank(flowVirtualObject.getVirtualInfoObject(), "iconify", "icon");
+		if (!isIconifyIcon(icon)) {
+			icon = firstNonBlank(flowVirtualObject.getDefinitionObject(), "iconify", "icon");
+		}
+		return isIconifyIcon(icon) ? icon : "";
 	}
 
 	private static String firstNonBlank(JSONObject object, String... keys) {

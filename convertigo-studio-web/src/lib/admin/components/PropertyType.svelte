@@ -442,7 +442,7 @@
 					class="inline-flex h-7 w-7 items-center justify-center rounded-base p-0! text-primary-500 transition-surface hover:text-primary-600 disabled:pointer-events-none disabled:text-surface-600-400"
 				/>
 			{/each}
-			{#each buttons as { disabled, onclick, title, icon }, idx (idx)}
+			{#each buttons as { disabled, onclick, title, icon, active, ariaExpanded }, idx (idx)}
 				{@const label = title ?? icon ?? 'action'}
 				<Button
 					full={false}
@@ -451,8 +451,12 @@
 					{icon}
 					title={label}
 					ariaLabel={label}
+					aria-expanded={ariaExpanded}
 					{onclick}
-					class="inline-flex h-7 w-7 items-center justify-center rounded-base p-0! text-primary-500 transition-surface hover:text-primary-600 disabled:pointer-events-none disabled:text-surface-600-400"
+					class={[
+						'inline-flex h-7 w-7 items-center justify-center rounded-base p-0! text-primary-500 transition-surface hover:text-primary-600 disabled:pointer-events-none disabled:text-surface-600-400',
+						active && 'bg-primary-500/12 ring-1 ring-primary-500/40'
+					]}
 				/>
 			{/each}
 		</div>

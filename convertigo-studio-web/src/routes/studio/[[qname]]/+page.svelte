@@ -8,7 +8,11 @@
 	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
 	import { shouldStartInlineRename } from '$lib/studio/dnd';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
-	import { findPrimaryEditorProperty, isCodeEditorProperty } from '$lib/studio/propertyEditors';
+	import {
+		findPrimaryEditorProperty,
+		isCodeEditorProperty,
+		togglePropertyPickerTarget
+	} from '$lib/studio/propertyEditors';
 	import {
 		decodeStudioSelectionId,
 		studioSelectionIdFromUrl,
@@ -16,7 +20,6 @@
 	} from '$lib/studio/routeSelection';
 	import { applySourcePickerDrop, sourceDefinitionFromPayload } from '$lib/studio/sourcePickerDnd';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
-	import StudioDevicePanel from '$lib/studio/StudioDevicePanel.svelte';
 	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
 	import StudioEmptyState from '$lib/studio/StudioEmptyState.svelte';
@@ -28,7 +31,6 @@
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
 	import StudioPropertiesPanel from '$lib/studio/StudioPropertiesPanel.svelte';
 	import StudioShell from '$lib/studio/StudioShell.svelte';
-	import StudioSourcePickerPanel from '$lib/studio/StudioSourcePickerPanel.svelte';
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
@@ -76,7 +78,7 @@
 		tools: false
 	};
 	const localMutationEvents = createStudioMutationEventTracker();
-	const SIDE_PANEL_IDS = ['devices', 'palette', 'picker', 'properties'];
+	const SIDE_PANEL_IDS = ['palette', 'properties'];
 	/** @type {WorkPanel[]} */
 	const WORK_PANEL_IDS = ['execution', 'code', 'flow', 'doc'];
 	/** @type {{ id: WorkPanel, label: string, icon: string }[]} */
@@ -224,14 +226,10 @@
 			? 'development'
 			: 'production'
 	);
-	let showDevicePicker = $derived(profile === 'frontend');
 	let showFlowOverview = $derived(showStudioWork && flowReady);
-	let showPalette = $derived(showStudioWork || showDevicePicker);
-	let showSourcePicker = $derived(showStudioWork || showDevicePicker);
+	let showPalette = $derived(showStudioWork || profile === 'frontend');
 	let sideViews = $derived([
-		...(showDevicePicker ? [{ id: 'devices', label: 'Devices', icon: 'mdi:devices' }] : []),
 		...(showPalette ? [{ id: 'palette', label: 'Palette', icon: 'mdi:palette-outline' }] : []),
-		...(showSourcePicker ? [{ id: 'picker', label: 'Picker', icon: 'mdi:hub' }] : []),
 		{ id: 'properties', label: 'Properties', icon: 'mdi:tune-vertical-variant' }
 	]);
 	let effectiveSidePanel = $derived(
@@ -743,8 +741,8 @@
 			return;
 		}
 		if (profile === 'frontend') {
-			if (!['devices', 'properties'].includes(activeSidePanel)) {
-				activeSidePanel = 'devices';
+			if (!SIDE_PANEL_IDS.includes(activeSidePanel)) {
+				activeSidePanel = 'properties';
 			}
 			activeWorkPanel = 'execution';
 			return;
@@ -897,12 +895,12 @@
 		if (!target?.id) {
 			return;
 		}
-		pickerTarget = {
-			...target,
-			serial: Date.now()
-		};
+		pickerTarget = togglePropertyPickerTarget(pickerTarget, target);
+		if (!pickerTarget) {
+			return;
+		}
 		selectedId = target.id;
-		setSidePanel('picker');
+		setSidePanel('properties');
 	}
 
 	/**
@@ -1348,7 +1346,7 @@
 		const previousProfile = profile;
 		profile = storedChoice(nextProfile, PROFILE_IDS, profile);
 		if (previousProfile !== profile && profile === 'frontend') {
-			activeSidePanel = 'devices';
+			activeSidePanel = 'properties';
 		}
 		if (previousProfile !== profile && profile === 'vibe') {
 			collapsedPanels.tools = false;
@@ -1504,6 +1502,7 @@
 		bind:selectedDeviceId={frontendDeviceId}
 		bind:landscape={frontendLandscape}
 		showDeviceSelector={false}
+		showDeviceDrawer
 	/>
 {/snippet}
 
@@ -1598,20 +1597,6 @@
 	/>
 {/snippet}
 
-{#snippet devicesPane()}
-	<StudioDevicePanel bind:selectedDeviceId={frontendDeviceId} bind:landscape={frontendLandscape} />
-{/snippet}
-
-{#snippet pickerPane()}
-	<StudioSourcePickerPanel
-		{selectedId}
-		active={effectiveSidePanel === 'picker'}
-		{pickerTarget}
-		onSelectObject={selectObject}
-		onApply={refreshAfterPickerApply}
-	/>
-{/snippet}
-
 {#snippet propertiesPane()}
 	<StudioPropertiesPanel
 		{selectedId}
@@ -1620,6 +1605,8 @@
 		onSave={refreshAfterPropertySave}
 		onOpenPropertyEditor={openPropertyEditor}
 		onOpenPropertyPicker={openPropertyPicker}
+		{pickerTarget}
+		onPickerApply={refreshAfterPickerApply}
 	/>
 {/snippet}
 
@@ -1642,9 +1629,7 @@
 			fillIds={SIDE_PANEL_IDS}
 			onSelect={(id) => setSidePanel(id)}
 			panes={{
-				devices: devicesPane,
 				palette: palettePane,
-				picker: pickerPane,
 				properties: propertiesPane
 			}}
 		/>

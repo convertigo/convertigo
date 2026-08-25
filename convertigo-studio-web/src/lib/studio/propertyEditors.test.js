@@ -5,8 +5,10 @@ import {
 	isCodeEditorProperty,
 	isIonProperty,
 	isMonacoProperty,
+	isSamePropertyPickerTarget,
 	isSmartSourceProperty,
-	SMART_TYPE_MODES
+	SMART_TYPE_MODES,
+	togglePropertyPickerTarget
 } from './propertyEditors';
 
 describe('Studio property editor language detection', () => {
@@ -116,5 +118,21 @@ describe('Studio property editor language detection', () => {
 
 	it('uses the Convertigo SmartType mode labels', () => {
 		expect(SMART_TYPE_MODES.map((mode) => mode.text)).toEqual(['TX', 'JS', 'SC']);
+	});
+});
+
+describe('Studio inline property picker', () => {
+	it('closes when the same property button is clicked again', () => {
+		const current = { id: 'Project.Page.Text', propertyName: 'text', serial: 1 };
+
+		expect(isSamePropertyPickerTarget(current, current)).toBe(true);
+		expect(togglePropertyPickerTarget(current, current, 2)).toBeNull();
+	});
+
+	it('moves to another property without exposing a global property list', () => {
+		const current = { id: 'Project.Page.Text', propertyName: 'text', serial: 1 };
+		const next = { id: 'Project.Page.Text', propertyName: 'classes', value: '' };
+
+		expect(togglePropertyPickerTarget(current, next, 2)).toEqual({ ...next, serial: 2 });
 	});
 });

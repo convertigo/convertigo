@@ -10,6 +10,38 @@ export const SMART_TYPE_MODES = [
 ];
 
 /**
+ * @param {any} current
+ * @param {any} target
+ * @returns {boolean}
+ */
+export function isSamePropertyPickerTarget(current, target) {
+	return (
+		Boolean(current?.id) &&
+		current.id === target?.id &&
+		current.propertyName === target?.propertyName
+	);
+}
+
+/**
+ * Keeps the inline picker exclusive: clicking the same property closes it,
+ * while clicking another property transfers the picker to that property.
+ *
+ * @param {any} current
+ * @param {any} target
+ * @param {number} serial
+ * @returns {any | null}
+ */
+export function togglePropertyPickerTarget(current, target, serial = Date.now()) {
+	if (!target?.id) {
+		return current ?? null;
+	}
+	if (isSamePropertyPickerTarget(current, target)) {
+		return null;
+	}
+	return { ...target, serial };
+}
+
+/**
  * @param {any} value
  * @returns {string}
  */

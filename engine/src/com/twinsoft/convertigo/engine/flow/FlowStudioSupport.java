@@ -692,23 +692,31 @@ public class FlowStudioSupport {
 		return "frontends".equals(path) ? "frontends." + frontendBuilderName(targetDbo) : path;
 	}
 
-	private static String frontendBlockCategoryName(JSONObject block) {
+	static String frontendBlockCategoryName(JSONObject block) {
 		if (block.optBoolean("createAction", false) || "create".equals(firstNonBlank(block, "descriptorKind"))) {
 			var category = firstNonBlank(block, "category");
-			return category.isBlank()
-					? "Frontend create actions"
-					: "Frontend create actions - " + category;
+			return category.isBlank() ? "Frontend setup" : category;
 		}
 		var provider = firstNonBlank(block, "provider");
-		var namespace = firstNonBlank(block, "namespace");
 		var category = firstNonBlank(block, "category");
-		if (provider.isBlank()) {
-			provider = "unknown";
+		return category.isBlank() ? humanizeProviderName(provider) : category;
+	}
+
+	private static String humanizeProviderName(String provider) {
+		if (provider == null || provider.isBlank()) {
+			return "Components";
 		}
-		var prefix = namespace.isBlank()
-				? "Frontend blocks - " + provider
-				: "Frontend blocks - " + provider + " / " + namespace;
-		return category.isBlank() ? prefix : prefix + " / " + category;
+		var label = provider
+				.replaceFirst("(?i)^lib[_-]flow[_-]frontend[_-]", "")
+				.replaceFirst("(?i)^lib[_-]flow[_-]", "")
+				.replaceFirst("(?i)[_-]svelte$", "")
+				.replace('_', ' ')
+				.replace('-', ' ')
+				.trim();
+		if (label.isBlank()) {
+			return "Components";
+		}
+		return Character.toUpperCase(label.charAt(0)) + label.substring(1);
 	}
 
 	private static JSONArray frontendPaletteDescriptors(DatabaseObject root) throws Exception {

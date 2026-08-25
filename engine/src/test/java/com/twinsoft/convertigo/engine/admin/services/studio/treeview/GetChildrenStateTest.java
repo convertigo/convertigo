@@ -31,4 +31,19 @@ public class GetChildrenStateTest {
 
 		assertSame(children, Get.loadedChildrenState(container, children, false));
 	}
+
+	@Test
+	public void exposesDescriptorIconsAsIconifyIdentifiers() throws Exception {
+		var avatar = new FlowVirtualObject();
+		avatar.setDefinition(new org.codehaus.jettison.json.JSONObject()
+				.put("icon", "mdi:account-circle-outline")
+				.toString());
+		assertEquals("mdi:account-circle-outline", Get.iconifyIcon(avatar));
+
+		var image = new FlowVirtualObject();
+		image.setDefinition(new org.codehaus.jettison.json.JSONObject()
+				.put("icon", "/images/image.png")
+				.toString());
+		assertEquals("", Get.iconifyIcon(image));
+	}
 }

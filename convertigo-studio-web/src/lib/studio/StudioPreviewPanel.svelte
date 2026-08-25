@@ -5,6 +5,7 @@
 	import Bezels from '$lib/dashboard/Bezels';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getFrontendUrl } from '$lib/utils/service';
+	import StudioDevicePanel from './StudioDevicePanel.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
 	const familyDefinitions = [
@@ -35,14 +36,15 @@
 	const FIT_PADDING = 24;
 	const iconButtonClasses = 'button-ico-secondary h-8! w-8! justify-center p-0!';
 
-	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean }} */
 	let {
 		projectName = '',
 		previewUrlOverride = '',
 		previewMode = 'production',
 		selectedDeviceId = $bindable('none'),
 		landscape = $bindable(false),
-		showDeviceSelector = true
+		showDeviceSelector = true,
+		showDeviceDrawer = false
 	} = $props();
 
 	/** @type {HTMLIFrameElement | undefined} */
@@ -53,6 +55,7 @@
 	let iframeOverride = $state({ base: '', value: '' });
 	let zoomOverride = $state({ base: '', value: 1 });
 	let zoomModeOverride = $state({ base: '', value: 'fit' });
+	let deviceDrawerOpen = $state(false);
 	let previewUrl = $derived(previewUrlOverride || (projectName ? getFrontendUrl(projectName) : ''));
 	let addressBar = $derived(
 		addressOverride.base === previewUrl ? addressOverride.value : previewUrl
@@ -99,6 +102,11 @@
 	);
 	let fitButtonClasses = $derived(
 		[iconButtonClasses, zoomMode === 'fit' && 'studio-preview__icon-button--active']
+			.filter(Boolean)
+			.join(' ')
+	);
+	let deviceButtonClasses = $derived(
+		[iconButtonClasses, deviceDrawerOpen && 'studio-preview__icon-button--active']
 			.filter(Boolean)
 			.join(' ')
 	);
@@ -204,6 +212,20 @@
 		fitPreview();
 	}
 
+	function toggleDeviceDrawer() {
+		deviceDrawerOpen = !deviceDrawerOpen;
+	}
+
+	function closeDeviceDrawer() {
+		deviceDrawerOpen = false;
+	}
+
+	function handleWindowKeydown(event) {
+		if (event.key === 'Escape' && deviceDrawerOpen) {
+			closeDeviceDrawer();
+		}
+	}
+
 	/**
 	 * @param {Event} event
 	 */
@@ -259,6 +281,8 @@
 	}
 </script>
 
+<svelte:window onkeydown={handleWindowKeydown} />
+
 <div class="studio-preview" style={previewStyle}>
 	{#if previewUrl}
 		<form
@@ -293,6 +317,18 @@
 					ariaLabel="Reload"
 					onclick={reloadIframe}
 				/>
+				{#if showDeviceDrawer}
+					<Button
+						full={false}
+						icon="mdi:devices"
+						class={deviceButtonClasses}
+						title={deviceDrawerOpen ? 'Close device drawer' : 'Choose preview device'}
+						ariaLabel={deviceDrawerOpen ? 'Close device drawer' : 'Choose preview device'}
+						aria-expanded={deviceDrawerOpen}
+						aria-controls="studio-preview-device-drawer"
+						onclick={toggleDeviceDrawer}
+					/>
+				{/if}
 			</div>
 
 			<input
@@ -390,6 +426,27 @@
 			</div>
 		</form>
 
+		{#if showDeviceDrawer}
+			{#if deviceDrawerOpen}
+				<button
+					type="button"
+					class="studio-preview__drawer-backdrop"
+					aria-label="Close device drawer"
+					onclick={closeDeviceDrawer}
+				></button>
+			{/if}
+			<aside
+				id="studio-preview-device-drawer"
+				class="studio-preview__device-drawer"
+				class:studio-preview__device-drawer--open={deviceDrawerOpen}
+				aria-label="Preview devices"
+				aria-hidden={!deviceDrawerOpen}
+				inert={!deviceDrawerOpen}
+			>
+				<StudioDevicePanel bind:selectedDeviceId bind:landscape onSelect={closeDeviceDrawer} />
+			</aside>
+		{/if}
+
 		<MaxRectangle bind:clientHeight bind:clientWidth class="studio-preview__viewport">
 			<div class="studio-preview__center">
 				<div
@@ -429,11 +486,46 @@
 
 <style>
 	.studio-preview {
+		position: relative;
 		display: grid;
 		height: 100%;
 		min-height: 0;
 		grid-template-rows: auto minmax(0, 1fr);
 		background: var(--color-surface-100-900);
+	}
+
+	.studio-preview__drawer-backdrop {
+		position: absolute;
+		z-index: 18;
+		inset: 2.8rem 0 0;
+		border: 0;
+		background: color-mix(in oklab, var(--color-surface-950-50) 18%, transparent);
+		cursor: default;
+	}
+
+	.studio-preview__device-drawer {
+		position: absolute;
+		z-index: 20;
+		top: 2.8rem;
+		bottom: 0;
+		left: 0;
+		width: min(22rem, calc(100% - 2rem));
+		overflow: hidden;
+		border-right: 1px solid var(--color-surface-200-800);
+		background: var(--color-surface-50-950);
+		box-shadow: var(--shadow-follow);
+		transform: translateX(-102%);
+		transition: transform 180ms ease;
+	}
+
+	.studio-preview__device-drawer--open {
+		transform: translateX(0);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.studio-preview__device-drawer {
+			transition: none;
+		}
 	}
 
 	.studio-preview__bar {

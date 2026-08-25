@@ -97,6 +97,7 @@
 	 *  selectedId?: string,
 	 *  active?: boolean,
 	 *  pickerTarget?: PickerTarget | null,
+	 *  embedded?: boolean,
 	 *  onSelectObject?: (id: string) => void,
 	 *  onApply?: (id: string, sourceDefinition?: any) => void | Promise<void>
 	 * }}
@@ -105,6 +106,7 @@
 		selectedId = '',
 		active = true,
 		pickerTarget = null,
+		embedded = false,
 		onSelectObject = () => {},
 		onApply = () => {}
 	} = $props();
@@ -985,78 +987,80 @@
 	</li>
 {/snippet}
 
-<div class="studio-source-picker layout-y-stretch">
-	<div
-		class="studio-source-picker__toolbar layout-x-low studio-panel-toolbar"
-		class:studio-source-picker__toolbar--ngx={ngxPicker}
-	>
-		{#if flowPicker}
-			<span class="studio-source-picker__flow-title studio-ellipsis">
-				{pickerTarget?.displayName || pickerTarget?.propertyName || 'Flow picker'}
-			</span>
-		{:else if ngxPicker}
-			<select
-				class="studio-source-picker__filter input"
-				value={ngxFilter}
-				disabled={ngxLoading || ngxApplying || ngxRefreshing}
-				aria-label="NGX source filter"
-				onchange={(event) => {
-					ngxFilter = event.currentTarget.value;
-					ngxSourceData = null;
-					ngxPath = '';
-					reloadNgxPreview(
-						{ filter: ngxFilter, sourceData: null, path: '' },
-						{ preserveSources: false }
-					);
-				}}
-			>
-				{#each ngxModel?.filters ?? [{ value: 'Sequence', label: 'Sequence', supported: true }] as filter (filter.value)}
-					<option value={filter.value} disabled={filter.supported === false}>
-						{filter.label}{filter.supported === false ? ' (soon)' : ''}
-					</option>
-				{/each}
-			</select>
-			<button
-				type="button"
-				class="studio-source-picker__apply button-primary"
-				disabled={!canApplyNgx || ngxApplying || ngxRefreshing}
-				onclick={applyNgxSource}
-			>
-				<Ico icon="mdi:check" size={4} />
-				Apply
-			</button>
-		{:else}
-			<StudioIconButton
-				icon="mdi:link-variant"
-				active={linked}
-				aria-pressed={linked}
-				title="Link with the projects tree selection"
-				onclick={() => (linked = !linked)}
-			/>
-			<StudioIconButton
-				icon="mdi:target"
-				disabled={!model?.sourceId}
-				title="Select displayed source"
-				onclick={() => selectObject(model?.sourceId)}
-			/>
-			<StudioIconButton
-				icon="mdi:code-tags"
-				active={showJsonPreview}
-				aria-pressed={showJsonPreview}
-				title="Toggle JSON tree"
-				onclick={() => (showJsonPreview = !showJsonPreview)}
-			/>
-			<button
-				type="button"
-				class="studio-source-picker__apply button-primary"
-				disabled={!canApply || applying}
-				onclick={applySource}
-			>
-				<Ico icon="mdi:check" size={4} />
-				Apply
-			</button>
-		{/if}
-	</div>
+<div class="studio-source-picker layout-y-stretch" class:studio-source-picker--embedded={embedded}>
+	{#if !embedded || !flowPicker}
+		<div
+			class="studio-source-picker__toolbar layout-x-low studio-panel-toolbar"
+			class:studio-source-picker__toolbar--ngx={ngxPicker}
+		>
+			{#if flowPicker}
+				<span class="studio-source-picker__flow-title studio-ellipsis">
+					{pickerTarget?.displayName || pickerTarget?.propertyName || 'Flow picker'}
+				</span>
+			{:else if ngxPicker}
+				<select
+					class="studio-source-picker__filter input"
+					value={ngxFilter}
+					disabled={ngxLoading || ngxApplying || ngxRefreshing}
+					aria-label="NGX source filter"
+					onchange={(event) => {
+						ngxFilter = event.currentTarget.value;
+						ngxSourceData = null;
+						ngxPath = '';
+						reloadNgxPreview(
+							{ filter: ngxFilter, sourceData: null, path: '' },
+							{ preserveSources: false }
+						);
+					}}
+				>
+					{#each ngxModel?.filters ?? [{ value: 'Sequence', label: 'Sequence', supported: true }] as filter (filter.value)}
+						<option value={filter.value} disabled={filter.supported === false}>
+							{filter.label}{filter.supported === false ? ' (soon)' : ''}
+						</option>
+					{/each}
+				</select>
+				<button
+					type="button"
+					class="studio-source-picker__apply button-primary"
+					disabled={!canApplyNgx || ngxApplying || ngxRefreshing}
+					onclick={applyNgxSource}
+				>
+					<Ico icon="mdi:check" size={4} />
+					Apply
+				</button>
+			{:else}
+				<StudioIconButton
+					icon="mdi:link-variant"
+					active={linked}
+					aria-pressed={linked}
+					title="Link with the projects tree selection"
+					onclick={() => (linked = !linked)}
+				/>
+				<StudioIconButton
+					icon="mdi:target"
+					disabled={!model?.sourceId}
+					title="Select displayed source"
+					onclick={() => selectObject(model?.sourceId)}
+				/>
+				<StudioIconButton
+					icon="mdi:code-tags"
+					active={showJsonPreview}
+					aria-pressed={showJsonPreview}
+					title="Toggle JSON tree"
+					onclick={() => (showJsonPreview = !showJsonPreview)}
+				/>
+				<button
+					type="button"
+					class="studio-source-picker__apply button-primary"
+					disabled={!canApply || applying}
+					onclick={applySource}
+				>
+					<Ico icon="mdi:check" size={4} />
+					Apply
+				</button>
+			{/if}
+		</div>
+	{/if}
 
 	<div
 		class="studio-source-picker__body layout-y-stretch-low"
@@ -1266,6 +1270,16 @@
 	.studio-source-picker {
 		height: 100%;
 		min-height: 0;
+	}
+
+	.studio-source-picker--embedded {
+		height: auto;
+		min-height: 18rem;
+		max-height: min(32rem, 62vh);
+	}
+
+	.studio-source-picker--embedded .studio-source-picker__body {
+		min-height: 18rem;
 	}
 
 	.studio-source-picker__toolbar {

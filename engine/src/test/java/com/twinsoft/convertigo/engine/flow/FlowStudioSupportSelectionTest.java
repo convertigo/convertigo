@@ -84,6 +84,17 @@ public class FlowStudioSupportSelectionTest {
 		assertTrue(FlowStudioSupport.frontendBlockCanContainChildren(projectedContainer));
 	}
 
+	@Test
+	public void usesHumanFrontendCategoriesWithoutProviderInternals() throws Exception {
+		assertEquals("Svelte / Layout", FlowStudioSupport.frontendBlockCategoryName(new JSONObject()
+				.put("provider", "lib_flow_frontbuilder_svelte")
+				.put("namespace", "svelte")
+				.put("category", "Svelte / Layout")));
+		assertEquals("Charts", FlowStudioSupport.frontendBlockCategoryName(new JSONObject()
+				.put("provider", "lib_flow_frontend_charts_svelte")));
+		assertEquals("Components", FlowStudioSupport.frontendBlockCategoryName(new JSONObject()));
+	}
+
 	private FlowVirtualObject candidate(String virtualPath, String mutationPath, String id) throws Exception {
 		var candidate = new FlowVirtualObject();
 		candidate.setVirtualPath(virtualPath);
