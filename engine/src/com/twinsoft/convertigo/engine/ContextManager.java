@@ -1524,6 +1524,9 @@ public class ContextManager extends AbstractRunnableManager {
 					Set<File> files = GenericUtils.cast(context.get("fileToDeleteAtEndOfContext"));
 					if (files != null) {
 						for (File file: files) {
+							if (file.exists()) {
+								Engine.logContextManager.debug("Delete file at end of Context: " + file);
+							}
 							FileUtils.deleteQuietly(file);
 						}
 					}

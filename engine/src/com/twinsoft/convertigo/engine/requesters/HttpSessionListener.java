@@ -166,6 +166,9 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 				Set<File> files = GenericUtils.cast(httpSession.getAttribute("fileToDeleteAtEndOfContext"));
 				if (files != null) {
 					for (File file: files) {
+						if (file.exists()) {
+							Engine.logEngine.debug("Delete file at end of Session: " + file);
+						}
 						FileUtils.deleteQuietly(file);
 					}
 				}
