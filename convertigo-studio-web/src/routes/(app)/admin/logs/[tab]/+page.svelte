@@ -22,6 +22,10 @@
 	import TimePicker from '$lib/admin/components/TimePicker.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
 	import LogsPurge from '$lib/admin/LogsPurge.svelte';
+	import {
+		maxLoadedLogLinesState,
+		normalizeMaxLoadedLogLines
+	} from '$lib/admin/LogViewerSettings.svelte.js';
 	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
 	import Time from '$lib/common/Time.svelte';
@@ -36,6 +40,7 @@
 	import Last from '../Last.svelte';
 
 	let logViewer = $state();
+	let maxLoadedLogLines = $state(normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current));
 	const logsDocHref = getAdminPageDocHref('/admin/logs');
 	onMount(() => {
 		let timezoneInitialized = false;
@@ -74,7 +79,7 @@
 					message: 'Are you sure you want to continue?'
 				})
 			) {
-				Configuration.refresh();
+				await discardConfigurationChanges();
 				skip = true;
 				await goto(nav.to?.url ?? '');
 			} else {
@@ -264,19 +269,33 @@
 	];
 
 	async function saveChanges(event) {
-		const toSave = logsCategory.property
-			?.filter(({ value, originalValue }) => value != originalValue)
-			.map(({ name, value }) => ({
-				'@_key': name,
-				'@_value': value
-			}));
+		const toSave =
+			logsCategory.property
+				?.filter(({ value, originalValue }) => value != originalValue)
+				.map(({ name, value }) => ({
+					'@_key': name,
+					'@_value': value
+				})) ?? [];
+		const changeCount = toSave.length + Number(hasViewerConfigurationChanges);
+		if (changeCount == 0) {
+			return;
+		}
 		const confirmed = await modalYesNo.open({
 			event,
-			title: `Are you sure you want to save ${toSave.length} propert${toSave.length == 1 ? 'y' : 'ies'}?`
+			title: `Are you sure you want to save ${changeCount} setting${changeCount == 1 ? '' : 's'}?`
 		});
 		if (confirmed) {
-			Configuration.updateConfigurations(toSave);
+			if (toSave.length > 0) {
+				await Configuration.updateConfigurations(toSave);
+			}
+			maxLoadedLogLinesState.current = normalizeMaxLoadedLogLines(maxLoadedLogLines);
+			maxLoadedLogLines = maxLoadedLogLinesState.current;
 		}
+	}
+
+	async function discardConfigurationChanges() {
+		maxLoadedLogLines = normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current);
+		await Configuration.refresh();
 	}
 
 	const normalizeLevel = (value) => String(value ?? '').toUpperCase();
@@ -335,9 +354,14 @@
 		serverFilter = filterString;
 	}
 
+	let hasViewerConfigurationChanges = $derived(
+		normalizeMaxLoadedLogLines(maxLoadedLogLines) !=
+			normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current)
+	);
 	let hasChanges = $derived(
 		tabSet == 'config' &&
-			logsCategory?.property?.some(({ value, originalValue }) => value != originalValue)
+			(logsCategory?.property?.some(({ value, originalValue }) => value != originalValue) ||
+				hasViewerConfigurationChanges)
 	);
 
 	let modalYesNo = getContext('modalYesNo');
@@ -389,7 +413,7 @@
 					{:else if tabSet == 'config'}
 						<SaveCancelButtons
 							onSave={saveChanges}
-							onCancel={Configuration.refresh}
+							onCancel={discardConfigurationChanges}
 							changesPending={hasChanges}
 						/>
 					{/if}
@@ -537,7 +561,7 @@
 				</div>
 			{:else}
 				<div class="layout-grid-[300px]" transition:slide={{ axis: 'y' }}>
-					<LogViewerConfiguration />
+					<LogViewerConfiguration bind:value={maxLoadedLogLines} />
 					{#each logsCategory?.property ?? [] as property (property.name)}
 						{#if property.name?.startsWith('LOG4J')}
 							<PropertyType {...property} bind:value={property.value} />

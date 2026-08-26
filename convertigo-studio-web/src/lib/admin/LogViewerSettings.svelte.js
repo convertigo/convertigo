@@ -1,6 +1,6 @@
 import { persistedState } from 'svelte-persisted-state';
 
-export const DEFAULT_MAX_LOADED_LOG_LINES = 250000;
+export const DEFAULT_MAX_LOADED_LOG_LINES = 100000;
 export const MIN_MAX_LOADED_LOG_LINES = 1000;
 export const MAX_MAX_LOADED_LOG_LINES = 1000000;
 

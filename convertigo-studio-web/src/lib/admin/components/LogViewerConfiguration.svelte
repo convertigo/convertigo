@@ -2,22 +2,22 @@
 	import {
 		DEFAULT_MAX_LOADED_LOG_LINES,
 		MAX_MAX_LOADED_LOG_LINES,
-		maxLoadedLogLinesState,
 		MIN_MAX_LOADED_LOG_LINES,
 		normalizeMaxLoadedLogLines
 	} from '$lib/admin/LogViewerSettings.svelte.js';
 	import Button from './Button.svelte';
 	import PropertyType from './PropertyType.svelte';
 
-	let { class: cls = '' } = $props();
-	let maxLoadedLines = $derived(normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current));
+	/** @type {{ class?: string, value?: number }} */
+	let { class: cls = '', value = $bindable(DEFAULT_MAX_LOADED_LOG_LINES) } = $props();
+	let maxLoadedLines = $derived(normalizeMaxLoadedLogLines(value));
 
 	function normalize() {
-		maxLoadedLogLinesState.current = normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current);
+		value = normalizeMaxLoadedLogLines(value);
 	}
 
 	function reset() {
-		maxLoadedLogLinesState.current = DEFAULT_MAX_LOADED_LOG_LINES;
+		value = DEFAULT_MAX_LOADED_LOG_LINES;
 	}
 </script>
 
@@ -43,7 +43,7 @@
 		min={MIN_MAX_LOADED_LOG_LINES}
 		max={MAX_MAX_LOADED_LOG_LINES}
 		step={1000}
-		bind:value={maxLoadedLogLinesState.current}
+		bind:value
 		onchange={normalize}
 		onblur={normalize}
 	/>
