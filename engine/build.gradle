@@ -353,6 +353,7 @@ dependencies {
 	compileFlat    'org.apache.httpcomponents:httpclient:4.5.14'
 	compileFlat    'org.apache.james:apache-mime4j-core:0.8.14'
 	compileFlat    'org.apache.pdfbox:pdfbox:3.0.8'
+	compileFlat    'org.apache.tika:tika-core:3.2.3'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-api:1.4.0'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-dom:1.4.0'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-impl:1.4.0'
