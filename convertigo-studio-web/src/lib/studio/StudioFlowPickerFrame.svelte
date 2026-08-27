@@ -2,8 +2,8 @@
 	import Button from '$lib/admin/components/Button.svelte';
 	import Light from '$lib/common/Light.svelte.js';
 	import { call } from '$lib/utils/service';
-	import StudioEmptyState from './StudioEmptyState.svelte';
 	import { themeContextFromMessage } from './flowAuthoring';
+	import StudioEmptyState from './StudioEmptyState.svelte';
 
 	const FLOW_PICKER_RETRY_DELAY_MS = 160;
 

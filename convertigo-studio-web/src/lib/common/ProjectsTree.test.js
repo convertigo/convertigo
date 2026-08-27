@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-	applyProjectTreeChildren,
-	normalizeProjectTreeChildren
-} from './ProjectsTree.svelte.js';
+import { applyProjectTreeChildren, normalizeProjectTreeChildren } from './ProjectsTree.svelte.js';
 
 describe('ProjectsTree', () => {
 	it('reuses existing nodes when qname aliases are equivalent', () => {

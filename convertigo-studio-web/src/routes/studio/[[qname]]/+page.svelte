@@ -6,8 +6,8 @@
 	import Projects from '$lib/common/Projects.svelte.js';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import {
-		blockDefinitionSourceId,
 		blockDefinitionForInstance,
+		blockDefinitionSourceId,
 		findBlockDefinition,
 		flowTypeDisplayName,
 		isFrontendBlockDefinitionSourceId,

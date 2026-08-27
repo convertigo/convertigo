@@ -76,7 +76,7 @@
 	});
 
 	$effect(() => {
-		const nextId = active ? (revealRequest?.contextId || selectedId) : '';
+		const nextId = active ? revealRequest?.contextId || selectedId : '';
 		if (!active || nextId === paletteRequestId) {
 			return;
 		}
@@ -168,7 +168,7 @@
 	}
 
 	function retryPalette() {
-		const nextId = active ? (revealRequest?.contextId || selectedId) : '';
+		const nextId = active ? revealRequest?.contextId || selectedId : '';
 		if (!nextId || paletteLoading) {
 			return;
 		}

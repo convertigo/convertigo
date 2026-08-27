@@ -378,7 +378,7 @@
 							<select
 								{...rest}
 								{name}
-								class="select input-common h-9 min-w-0 flex-1 px-3 text-sm {rest?.class ?? ''}"
+								class="select h-9 input-common min-w-0 flex-1 px-3 text-sm {rest?.class ?? ''}"
 								{id}
 								bind:value
 							>

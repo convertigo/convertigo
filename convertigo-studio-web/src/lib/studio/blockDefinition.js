@@ -186,8 +186,7 @@ export function isFrontendBlockDefinitionSourceId(value) {
  */
 export function blockDefinitionSourceId(item) {
 	const project = String(item?.sourceProject ?? item?.provider ?? '').trim();
-	const definitionPath = String(item?.sourceDefinitionPath ?? item?.definitionPath ?? '')
-		.trim();
+	const definitionPath = String(item?.sourceDefinitionPath ?? item?.definitionPath ?? '').trim();
 	if (
 		!/^[A-Za-z0-9_.-]+$/.test(project) ||
 		!definitionPath ||

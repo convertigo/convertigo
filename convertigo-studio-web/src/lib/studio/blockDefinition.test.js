@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-	blockDefinitionSourceId,
 	blockDefinitionForInstance,
+	blockDefinitionSourceId,
 	findBlockDefinition,
 	flowTypeDisplayName,
 	isFrontendBlockDefinitionSourceId,
@@ -113,9 +113,9 @@ describe('Flow block definition identity', () => {
 				'library.FlowEngine.frontends.builder.catalog.provider_library.namespace_svelte.uiBlocks.block_svelte_datePicker'
 			)
 		).toBe(true);
-		expect(isFrontendBlockDefinitionSourceId('sample.FlowEngine.frontends.builder.routes.home')).toBe(
-			false
-		);
+		expect(
+			isFrontendBlockDefinitionSourceId('sample.FlowEngine.frontends.builder.routes.home')
+		).toBe(false);
 	});
 
 	it('resolves a safe provider definition into the Studio library tree', () => {
