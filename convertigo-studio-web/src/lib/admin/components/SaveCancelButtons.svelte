@@ -6,6 +6,7 @@
 		onCancel?: (event?: any) => any,
 		changesPending?: boolean,
 		disabled?: boolean,
+		cancelDisabled?: boolean,
 		saveLabel?: string,
 		cancelLabel?: string,
 		saveIcon?: string,
@@ -19,6 +20,7 @@
 		onCancel = () => {},
 		changesPending = true,
 		disabled = false,
+		cancelDisabled,
 		saveLabel = 'Save changes',
 		cancelLabel = 'Cancel changes',
 		saveIcon = 'mdi:content-save-edit-outline',
@@ -52,7 +54,7 @@
 			label: cancelLabel,
 			icon: cancelIcon,
 			cls: cancelClass,
-			disabled: !changesPending,
+			disabled: cancelDisabled ?? !changesPending,
 			onclick: handleCancel
 		}
 	]}

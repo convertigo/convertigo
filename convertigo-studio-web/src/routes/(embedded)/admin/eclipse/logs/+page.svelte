@@ -8,6 +8,10 @@
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import Configuration from '$lib/admin/Configuration.svelte';
+	import {
+		maxLoadedLogLinesState,
+		normalizeMaxLoadedLogLines
+	} from '$lib/admin/LogViewerSettings.svelte.js';
 	import Time from '$lib/common/Time.svelte';
 	import { getContext, onMount, tick } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
@@ -19,6 +23,7 @@
 	let startDate = $state('');
 	let endDate = $state('');
 	let liveMinutes = $state(10);
+	let maxLoadedLogLines = $state(normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current));
 	let studioMode = $derived(page.url.searchParams.get('studioMode') == 'true');
 	let panel = $derived(page.url.searchParams.get('panel') == 'config' ? 'config' : 'view');
 
@@ -35,6 +40,11 @@
 	let hasLogLevelChanges = $derived(
 		logLevelProperties.some(({ value, originalValue }) => value != originalValue)
 	);
+	let hasViewerConfigurationChanges = $derived(
+		normalizeMaxLoadedLogLines(maxLoadedLogLines) !=
+			normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current)
+	);
+	let hasConfigurationChanges = $derived(hasLogLevelChanges || hasViewerConfigurationChanges);
 	let modalYesNo = getContext('modalYesNo');
 
 	$effect(() => {
@@ -82,24 +92,32 @@
 				'@_key': name,
 				'@_value': value
 			}));
-		if (toSave.length == 0) {
+		const changeCount = toSave.length + Number(hasViewerConfigurationChanges);
+		if (changeCount == 0) {
 			return;
 		}
 		const confirmed =
 			!modalYesNo?.open ||
 			(await modalYesNo.open({
 				event,
-				title: `Are you sure you want to save ${toSave.length} propert${
-					toSave.length == 1 ? 'y' : 'ies'
-				}?`
+				title: `Are you sure you want to save ${changeCount} setting${changeCount == 1 ? '' : 's'}?`
 			}));
 		if (confirmed) {
-			await Configuration.updateConfigurations(toSave);
+			if (toSave.length > 0) {
+				await Configuration.updateConfigurations(toSave);
+			}
+			maxLoadedLogLinesState.current = normalizeMaxLoadedLogLines(maxLoadedLogLines);
+			maxLoadedLogLines = maxLoadedLogLinesState.current;
 		}
 	}
 
-	async function setPanel(nextPanel) {
-		if (nextPanel == 'view' && hasLogLevelChanges) {
+	async function discardConfigurationChanges() {
+		maxLoadedLogLines = normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current);
+		await Configuration.refresh();
+	}
+
+	async function setPanel(nextPanel, confirmChanges = true) {
+		if (nextPanel == 'view' && confirmChanges && hasConfigurationChanges) {
 			const confirmed =
 				!modalYesNo?.open ||
 				(await modalYesNo.open({
@@ -109,7 +127,10 @@
 			if (!confirmed) {
 				return;
 			}
-			await Configuration.refresh();
+			await discardConfigurationChanges();
+		}
+		if (nextPanel == 'config') {
+			maxLoadedLogLines = normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current);
 		}
 		const url = new SvelteURL(page.url);
 		if (nextPanel == 'config') {
@@ -126,6 +147,11 @@
 		if (nextPanel == 'view') {
 			await refreshLogs();
 		}
+	}
+
+	async function cancelConfiguration() {
+		await discardConfigurationChanges();
+		await setPanel('view', false);
 	}
 
 	onMount(() => {
@@ -175,12 +201,13 @@
 					saveLabel="Save"
 					cancelLabel="Cancel"
 					onSave={saveLogLevels}
-					onCancel={Configuration.refresh}
-					changesPending={hasLogLevelChanges}
+					onCancel={cancelConfiguration}
+					changesPending={hasConfigurationChanges}
+					cancelDisabled={false}
 				/>
 			</div>
 			<div class="log-levels-grid min-h-0 grow overflow-auto p-1">
-				<LogViewerConfiguration />
+				<LogViewerConfiguration bind:value={maxLoadedLogLines} />
 				{#each logLevelProperties as property (property.name)}
 					<div class="log-level-property">
 						<PropertyType {...property} bind:value={property.value} />

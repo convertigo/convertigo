@@ -81,6 +81,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.Clipboard;
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.GitUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class AssistantView extends ViewPart {
@@ -516,6 +517,10 @@ public class AssistantView extends ViewPart {
 			payload.put("localAssistantInstalled", assistantInstalled);
 			payload.put("localMcpInstalled", mcpInstalled);
 			payload.put("localAgentBridgeInstalled", bridgeInstalled);
+			payload.put("localAssistantVersion", stackState.assistantVersion);
+			payload.put("localMcpVersion", stackState.mcpVersion);
+			payload.put("localAgentBridgeVersion", stackState.bridgeVersion);
+			payload.put("localAgentStackUpdateAllowed", stackState.updateAllowed);
 			payload.put("localAgentStackAvailable", localStackAvailable);
 			payload.put("localAgentStackState", stackState.state);
 			payload.put("localAgentStackLoading", stackState.loading);
@@ -628,11 +633,37 @@ public class AssistantView extends ViewPart {
 		}
 	}
 
+	private static Project getInstalledProject(String projectName) {
+		try {
+			if (Engine.theApp != null && Engine.theApp.databaseObjectsManager != null) {
+				return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+			}
+		} catch (Exception e) {
+		}
+		return null;
+	}
+
+	private static String getInstalledProjectVersion(String projectName) {
+		Project project = getInstalledProject(projectName);
+		return project == null ? "" : Objects.toString(project.getVersion(), "");
+	}
+
+	private static boolean isReleaseManagedProject(String projectName) {
+		Project project = getInstalledProject(projectName);
+		return project == null || GitUtils.getWorkingDir(project.getDirFile()) == null;
+	}
+
 	private LocalAgentStackState getLocalAgentStackState() {
 		LocalAgentStackState state = new LocalAgentStackState();
 		state.assistantInstalled = isProjectInstalled("ConvertigoAssistant");
 		state.mcpInstalled = isProjectInstalled("ConvertigoMCP");
 		state.bridgeInstalled = isProjectInstalled("ConvertigoAgentBridge");
+		state.assistantVersion = getInstalledProjectVersion("ConvertigoAssistant");
+		state.mcpVersion = getInstalledProjectVersion("ConvertigoMCP");
+		state.bridgeVersion = getInstalledProjectVersion("ConvertigoAgentBridge");
+		state.updateAllowed = isReleaseManagedProject("ConvertigoAssistant")
+				&& isReleaseManagedProject("ConvertigoMCP")
+				&& isReleaseManagedProject("ConvertigoAgentBridge");
 		boolean allInstalled = state.assistantInstalled && state.mcpInstalled && state.bridgeInstalled;
 		boolean opening = false;
 		boolean presentButNotInstalled = false;
@@ -717,6 +748,10 @@ public class AssistantView extends ViewPart {
 		boolean mcpInstalled;
 		boolean bridgeInstalled;
 		boolean loading;
+		boolean updateAllowed;
+		String assistantVersion = "";
+		String mcpVersion = "";
+		String bridgeVersion = "";
 		String state = "missing";
 	}
 
@@ -753,7 +788,8 @@ public class AssistantView extends ViewPart {
 		Job.create("Activate local Convertigo Assistant agent", monitor -> {
 			monitor.beginTask("Activating local Assistant agent", IProgressMonitor.UNKNOWN);
 			try {
-				postActivationStatus("running", "Activation de l'assistant local...", "", false);
+				boolean forceUpdate = getPayloadBoolean(activationPayload, "forceUpdate");
+				postActivationStatus("running", forceUpdate ? "Mise à jour de la stack Agent locale..." : "Activation de l'assistant local...", "", false);
 				JSONArray projects = getActivationProjects(activationPayload);
 				if (projects.length() == 0) {
 					throw new IllegalArgumentException("No project import URL provided by the Assistant");
@@ -762,11 +798,12 @@ public class AssistantView extends ViewPart {
 					JSONObject item = projects.getJSONObject(i);
 					String projectName = item.getString("name");
 					String importUrl = item.getString("importUrl");
-					if (isProjectInstalled(projectName)) {
+					boolean updateProject = forceUpdate || getPayloadBoolean(item, "forceUpdate");
+					if (isProjectInstalled(projectName) && !updateProject) {
 						postActivationStatus("running", projectName + " est déjà installé.", projectName, false);
 						continue;
 					}
-					postActivationStatus("running", "Import de " + projectName + "...", projectName, false);
+					postActivationStatus("running", (updateProject ? "Mise à jour de " : "Import de ") + projectName + "...", projectName, false);
 					ProjectUrlParser parser = new ProjectUrlParser(importUrl);
 					var project = Engine.theApp.referencedProjectManager.importProject(parser, true);
 					if (project == null) {
@@ -777,7 +814,7 @@ public class AssistantView extends ViewPart {
 				ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_ASSISTANT_URL, preferenceUrl);
 				var localUrl = ConvertigoPlugin.resolveStudioUrl(preferenceUrl);
 				startupUrl = addDarkThemeParameter(localUrl);
-				postActivationStatus("success", "Assistant local activé.", "", true);
+				postActivationStatus("success", forceUpdate ? "Stack Agent locale mise à jour." : "Assistant local activé.", "", true);
 				ConvertigoPlugin.asyncExec(() -> {
 					try {
 						if (browser != null && !browser.isDisposed()) {
@@ -846,6 +883,14 @@ public class AssistantView extends ViewPart {
 		} catch (Exception e) {
 		}
 		return "";
+	}
+
+	private static boolean getPayloadBoolean(JSONObject payload, String key) {
+		try {
+			return payload != null && payload.has(key) && payload.getBoolean(key);
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	private void postActivationStatus(String status, String message, String projectName, boolean done) {
@@ -930,10 +975,6 @@ public class AssistantView extends ViewPart {
 		} catch (Exception e) {
 			ConvertigoPlugin.logStudioWarn("[Assistant] could not add viewer debug context: " + e.getMessage());
 		}
-	}
-
-	private String getViewerDebugUrl(Project project) {
-		return getViewerDebugUrl(project, project != null ? project.getName() : "");
 	}
 
 	private String getViewerDebugUrl(Project project, String projectName) {
