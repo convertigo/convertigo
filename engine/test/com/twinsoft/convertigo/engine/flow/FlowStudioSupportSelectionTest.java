@@ -23,7 +23,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 
 public class FlowStudioSupportSelectionTest {
-	private static final String SOURCE = "model/Project/src/routes/+page.flow.svelte";
+	private static final String SOURCE = "libs/flow/frontbuilder/svelte/model/Project/src/routes/+page.flow.svelte";
 
 	@Test
 	public void matchesProjectedFrontendNodesByStableMutationMetadata() throws Exception {
@@ -33,6 +33,18 @@ public class FlowStudioSupportSelectionTest {
 		assertTrue(FlowStudioSupport.matchesProjectedSelection(candidate, SOURCE, "", "text", ""));
 		assertTrue(FlowStudioSupport.matchesProjectedSelection(candidate, "", "", "",
 				"frontends.svelte.routes.home.structure.text"));
+	}
+
+	@Test
+	public void exposesTheSameStableReferenceUsedByTheGeneratedFrontend() throws Exception {
+		var candidate = candidate("frontends.svelte.routes.home.structure.text", "frontAst.nodes[2]", "text");
+
+		var reference = FlowStudioSupport.authoringReference(candidate);
+
+		assertEquals("text", reference.getString("nodeId"));
+		assertEquals(SOURCE, reference.getString("sourceRelativePath"));
+		assertEquals("frontAst.nodes[2]", reference.getString("sourceMutationPath"));
+		assertFalse(reference.has("sourceProject"));
 	}
 
 	@Test
@@ -95,11 +107,70 @@ public class FlowStudioSupportSelectionTest {
 		assertEquals("Components", FlowStudioSupport.frontendBlockCategoryName(new JSONObject()));
 	}
 
+	@Test
+	public void acceptsPropsAsTheFrontendPalettePropertyContract() throws Exception {
+		var props = new JSONObject().put("value", new JSONObject()
+				.put("label", "Value")
+				.put("description", "Current value."));
+		assertEquals(props.toString(), FlowStudioSupport.frontendPalettePropertyDefinitions(
+				new JSONObject().put("props", props)).toString());
+		assertEquals(0, FlowStudioSupport.frontendPalettePropertyDefinitions(new JSONObject()).length());
+	}
+
+	@Test
+	public void exposesOnlyProviderRelativePaletteSources() throws Exception {
+		var root = new java.io.File("build/test-provider").getAbsoluteFile();
+		var source = new java.io.File(root,
+				"libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte");
+		assertEquals("libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte",
+				FlowStudioSupport.relativePaletteSourcePath(root.getPath(), source.getPath()));
+		assertEquals("", FlowStudioSupport.relativePaletteSourcePath(root.getPath(),
+				new java.io.File(root.getParentFile(), "outside.flow.svelte").getPath()));
+
+		var projectRoots = new java.util.LinkedHashMap<String, String>();
+		projectRoots.put("frontbuilder.svelte", new java.io.File(root, "unrelated").getPath());
+		projectRoots.put("lib_flow_frontbuilder_svelte", root.getPath());
+		var location = FlowStudioSupport.resolvePaletteSourceLocation(projectRoots,
+				"frontbuilder.svelte", "", source.getPath());
+		assertEquals("lib_flow_frontbuilder_svelte", location.getString("project"));
+		assertEquals("libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte",
+				location.getString("relativePath"));
+
+		location = FlowStudioSupport.resolvePaletteSourceLocation(projectRoots,
+				"lib_flow_frontbuilder_svelte",
+				"libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte", "");
+		assertEquals("lib_flow_frontbuilder_svelte", location.getString("project"));
+		assertEquals("libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte",
+				location.getString("relativePath"));
+	}
+
+	@Test
+	public void exposesPerformancePhasesOnlyForAnExplicitProfile() throws Exception {
+		var regular = new JSONObject();
+		var regularOwner = FlowStudioSupport.startPerformanceProfile(false, "regular");
+		FlowStudioSupport.finishPerformanceProfile(regularOwner, regular);
+		assertFalse(regular.has("_profile"));
+
+		var profiled = new JSONObject();
+		var profileOwner = FlowStudioSupport.startPerformanceProfile(true, "test.operation");
+		assertTrue(profileOwner);
+		FlowStudioSupport.performanceProfileMark("test.phase");
+		FlowStudioSupport.finishPerformanceProfile(profileOwner, profiled);
+
+		var profile = profiled.getJSONObject("_profile");
+		assertEquals("flow.performance.v1", profile.getString("protocol"));
+		assertEquals("test.operation", profile.getString("operation"));
+		assertTrue(profile.getDouble("totalMs") >= 0);
+		assertTrue(profile.getJSONObject("phases").has("test.phase"));
+		assertTrue(profile.getJSONObject("phases").has("service.response"));
+	}
+
 	private FlowVirtualObject candidate(String virtualPath, String mutationPath, String id) throws Exception {
 		var candidate = new FlowVirtualObject();
 		candidate.setVirtualPath(virtualPath);
 		candidate.setVirtualInfo(new JSONObject()
 				.put("sourcePath", SOURCE)
+				.put("sourceRelativePath", SOURCE)
 				.put("sourceMutationPath", mutationPath)
 				.toString());
 		candidate.setDefinition(new JSONObject().put("id", id).toString());

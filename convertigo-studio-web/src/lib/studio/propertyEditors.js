@@ -2,6 +2,19 @@ const CODE_HINT_RE =
 	/(javascript|sequencejs|script|expression|xpath|sql|query|code|source|template|payload|body|json|xml|yaml|html|css|formula|condition)/i;
 const JAVASCRIPT_HINT_RE = /(javascript|sequencejs|typescript|\.js\b|\bjs\b)/i;
 const EXPRESSION_HINT_RE = /\b(expression|condition|script|sequencejs)\b/i;
+const SEMANTIC_COLOR_VALUES = new Set([
+	'current',
+	'auto',
+	'neutral',
+	'primary',
+	'secondary',
+	'tertiary',
+	'success',
+	'warning',
+	'danger',
+	'error',
+	'muted'
+]);
 
 export const SMART_TYPE_MODES = [
 	{ value: 'plain', text: 'TX' },
@@ -90,6 +103,51 @@ function parseFlowBinding(value) {
 	} catch {
 		return null;
 	}
+}
+
+/**
+ * @param {any} row
+ * @returns {any}
+ */
+export function propertyChoiceValue(row) {
+	if (row?.editorClass !== 'flow-binding-editor') {
+		return row?.value;
+	}
+	const binding = parseFlowBinding(row?.value);
+	return binding?.mode === 'literal' ? binding.value : row?.value;
+}
+
+/**
+ * Keeps legacy or externally authored values editable as text while exposing
+ * declared closed vocabularies as choices for their valid current values.
+ *
+ * @param {any} row
+ * @returns {boolean}
+ */
+export function hasPropertyPossibleValues(row) {
+	if (!Array.isArray(row?.values) || row.values.length === 0) {
+		return false;
+	}
+	const current = propertyChoiceValue(row);
+	return row.values.some((option) => String(option?.value ?? option) === String(current));
+}
+
+/**
+ * Detects a closed semantic color vocabulary from its values rather than from
+ * a component or property name. This keeps the presentation metadata-driven.
+ *
+ * @param {any} row
+ * @returns {boolean}
+ */
+export function isSemanticColorProperty(row) {
+	if (!hasPropertyPossibleValues(row)) {
+		return false;
+	}
+	const values = row.values.map((option) => String(option?.value ?? option).toLowerCase());
+	return (
+		values.some((value) => ['primary', 'secondary', 'tertiary'].includes(value)) &&
+		values.every((value) => SEMANTIC_COLOR_VALUES.has(value))
+	);
 }
 
 /** @param {any[]} parts */
@@ -230,7 +288,12 @@ function looksLikeJavaScript(value) {
  * @returns {boolean}
  */
 export function isMonacoProperty(row, selectedId = '') {
-	if (!row || row.category === 'Information' || !isTextProperty(row)) {
+	if (
+		!row ||
+		row.category === 'Information' ||
+		row.editorClass === 'flow-binding-editor' ||
+		!isTextProperty(row)
+	) {
 		return false;
 	}
 	const value = asEditorValue(row.value);
@@ -262,6 +325,12 @@ export function isCodeEditorProperty(row, selectedId = '') {
  */
 export function canOpenCodeProperty(row, selectedId = '') {
 	if (!row || row.category === 'Information' || !isTextEditorValue(row.value)) {
+		return false;
+	}
+	// Flow bindings have a structured Literal/Source/Compose editor. Opening
+	// their persisted JSON in Monaco exposes an implementation detail and can
+	// corrupt an otherwise valid typed binding.
+	if (row.editorClass === 'flow-binding-editor') {
 		return false;
 	}
 	if (isSmartSourceProperty(row) && row.mode === 'script') {

@@ -6,6 +6,7 @@
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl } from '$lib/utils/service';
+	import { tick } from 'svelte';
 	import { loadPaletteContext } from './paletteContext';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioSection from './StudioSection.svelte';
@@ -38,6 +39,7 @@
 	 * 	selectedId?: string,
 	 * 	active?: boolean,
 	 * 	selectedPaletteItem?: PaletteItem | null,
+	 * 	revealRequest?: { key?: string, contextId?: string, serial?: number },
 	 * 	onPaletteItemSelect?: (item: PaletteItem) => void
 	 * }}
 	 */
@@ -45,6 +47,7 @@
 		selectedId = '',
 		active = true,
 		selectedPaletteItem = null,
+		revealRequest = { key: '', contextId: '', serial: 0 },
 		onPaletteItemSelect
 	} = $props();
 
@@ -57,6 +60,7 @@
 	let paletteLoadSerial = 0;
 	let openedCategories = $state(/** @type {string[]} */ ([]));
 	let paletteCategoriesTouched = $state(false);
+	let handledRevealSerial = 0;
 	let filteredCategories = $derived(filterCategories(paletteContext.categories));
 	let selectedPaletteItemKey = $derived(itemKey(selectedPaletteItem));
 	let paletteOpenValues = $derived.by(() => {
@@ -72,7 +76,7 @@
 	});
 
 	$effect(() => {
-		const nextId = active ? selectedId : '';
+		const nextId = active ? (revealRequest?.contextId || selectedId) : '';
 		if (!active || nextId === paletteRequestId) {
 			return;
 		}
@@ -85,6 +89,31 @@
 			return;
 		}
 		void loadPalette(nextId, serial);
+	});
+
+	$effect(() => {
+		const serial = Number(revealRequest?.serial ?? 0);
+		const key = String(revealRequest?.key ?? '');
+		if (!serial || serial === handledRevealSerial || !key || !active) {
+			return;
+		}
+		const categoryIndex = paletteContext.categories.findIndex((category) =>
+			(category.items ?? []).some((item) => itemKey(item) === key)
+		);
+		if (categoryIndex < 0) {
+			return;
+		}
+		handledRevealSerial = serial;
+		query = '';
+		const category = paletteContext.categories[categoryIndex];
+		openedCategories = [categoryKey(category, categoryIndex)];
+		paletteCategoriesTouched = true;
+		void tick().then(() => {
+			const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(key) : key;
+			document
+				.querySelector(`[data-palette-item-key="${escaped}"]`)
+				?.scrollIntoView({ block: 'center', inline: 'nearest' });
+		});
 	});
 
 	function emptyPaletteContext() {
@@ -109,9 +138,18 @@
 				}
 			}
 		} catch (err) {
-			if (attempt === 0 && serial === paletteLoadSerial && active && selectedId === nextId) {
+			if (
+				attempt === 0 &&
+				serial === paletteLoadSerial &&
+				active &&
+				(revealRequest?.contextId || selectedId) === nextId
+			) {
 				await new Promise((resolve) => setTimeout(resolve, PALETTE_RETRY_DELAY_MS));
-				if (serial === paletteLoadSerial && active && selectedId === nextId) {
+				if (
+					serial === paletteLoadSerial &&
+					active &&
+					(revealRequest?.contextId || selectedId) === nextId
+				) {
 					await loadPalette(nextId, serial, attempt + 1);
 					return;
 				}
@@ -130,7 +168,7 @@
 	}
 
 	function retryPalette() {
-		const nextId = active ? selectedId : '';
+		const nextId = active ? (revealRequest?.contextId || selectedId) : '';
 		if (!nextId || paletteLoading) {
 			return;
 		}
@@ -298,6 +336,7 @@
 										class="studio-palette__item layout-x-start-low"
 										class:studio-palette__item--selected={selected}
 										aria-label={itemDisplayName(item)}
+										data-palette-item-key={itemKey(item)}
 										aria-pressed={selected}
 										title={itemTitle(item)}
 										draggable="true"

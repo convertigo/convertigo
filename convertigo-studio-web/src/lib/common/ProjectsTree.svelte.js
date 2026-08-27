@@ -56,6 +56,24 @@ function normalizeProjectTreeChildren(children, previousChildren = [], options =
 }
 
 /**
+ * Applies one authoritative children response without turning a transient
+ * transport/service error into an empty branch. An empty array is a valid
+ * server answer; a missing/non-array payload is not.
+ *
+ * @param {any} node
+ * @param {any} children
+ * @param {ProjectTreeOptions=} options
+ * @returns {boolean}
+ */
+function applyProjectTreeChildren(node, children, options = {}) {
+	if (!node || !Array.isArray(children)) {
+		return false;
+	}
+	node.children = normalizeProjectTreeChildren(children, node.children, options);
+	return true;
+}
+
+/**
  * @param {any} child
  * @param {Record<string, any>} previousById
  * @param {ProjectTreeOptions} options
@@ -113,7 +131,7 @@ export function createProjectTree(options = {}) {
 
 	async function loadRoot() {
 		const tree = await call('studio.treeview.Get', {});
-		rootNode.children = normalizeProjectTreeChildren(tree?.children, undefined, options);
+		applyProjectTreeChildren(rootNode, tree?.children, options);
 	}
 
 	async function addProject(project) {
@@ -165,22 +183,14 @@ export function createProjectTree(options = {}) {
 			if (ids.length === 1) {
 				const id = ids[0];
 				const update = await call('studio.treeview.Get', { id });
-				toUpdate[id].children = normalizeProjectTreeChildren(
-					update?.children,
-					toUpdate[id].children,
-					options
-				);
+				applyProjectTreeChildren(toUpdate[id], update?.children, options);
 			} else {
 				const updates = await call('studio.treeview.Get', {
 					ids: JSON.stringify(ids)
 				});
-				for (let id in updates) {
+				for (let id in updates ?? {}) {
 					if (toUpdate[id]) {
-						toUpdate[id].children = normalizeProjectTreeChildren(
-							updates[id],
-							toUpdate[id].children,
-							options
-						);
+						applyProjectTreeChildren(toUpdate[id], updates[id], options);
 					}
 				}
 			}
@@ -205,4 +215,4 @@ export function createProjectTree(options = {}) {
 	};
 }
 
-export { normalizeProjectTreeChildren, normalizeProjectTreeNode };
+export { applyProjectTreeChildren, normalizeProjectTreeChildren, normalizeProjectTreeNode };

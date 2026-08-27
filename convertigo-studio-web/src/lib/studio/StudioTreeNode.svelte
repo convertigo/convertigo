@@ -44,6 +44,12 @@
 	 *  clearParentProjection?: () => void,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onContextAction?: (event: { nodeId: string, action: any, result: any }) => void | Promise<void>,
+	 *  canShowInFrontend?: (nodeId: string) => boolean,
+	 *  onShowInFrontend?: (nodeId: string) => void | Promise<void>,
+	 *  canRevealInPalette?: (nodeId: string) => boolean,
+	 *  onRevealInPalette?: (nodeId: string) => void | Promise<void>,
+	 *  canRevealBlockDefinition?: (nodeId: string) => boolean,
+	 *  onRevealBlockDefinition?: (nodeId: string) => void | Promise<void>,
 	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
 	 * }}
 	 */
@@ -64,6 +70,12 @@
 		clearParentProjection,
 		onMutationBusyChange,
 		onContextAction,
+		canShowInFrontend,
+		onShowInFrontend,
+		canRevealInPalette,
+		onRevealInPalette,
+		canRevealBlockDefinition,
+		onRevealBlockDefinition,
 		onSourceDrop
 	} = $props();
 
@@ -1005,9 +1017,15 @@
 					canRename={draggableNode}
 					canDelete={draggableNode}
 					deleting={deletingBusy}
+					canShowInFrontend={canShowInFrontend?.(node.id) ?? false}
+					canRevealInPalette={canRevealInPalette?.(node.id) ?? false}
+					canRevealDefinition={canRevealBlockDefinition?.(node.id) ?? false}
 					onSelectNode={selectNode}
 					onRename={requestRename}
 					onDelete={deleteSelectedNode}
+					onShowInFrontend={() => onShowInFrontend?.(node.id)}
+					onRevealInPalette={() => onRevealInPalette?.(node.id)}
+					onRevealDefinition={() => onRevealBlockDefinition?.(node.id)}
 					{onContextAction}
 				/>
 			</div>
@@ -1043,6 +1061,12 @@
 					clearParentProjection={clearChildrenProjection}
 					{onMutationBusyChange}
 					{onContextAction}
+					{canShowInFrontend}
+					{onShowInFrontend}
+					{canRevealInPalette}
+					{onRevealInPalette}
+					{canRevealBlockDefinition}
+					{onRevealBlockDefinition}
 					{onSourceDrop}
 				/>
 			{/each}

@@ -10,14 +10,18 @@
 		canOpenCodeProperty,
 		flowBindingPreview,
 		getPropertyLanguage,
+		hasPropertyPossibleValues,
 		isIonProperty,
 		isSamePropertyPickerTarget,
+		isSemanticColorProperty,
 		isSmartSourceProperty,
 		SMART_TYPE_MODES
 	} from '$lib/studio/propertyEditors';
 	import { untrack } from 'svelte';
+	import { flowTypeDisplayName } from './blockDefinition';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
+	import StudioObjectIdentity from './StudioObjectIdentity.svelte';
 	import StudioSection from './StudioSection.svelte';
 	import StudioSourcePickerPanel from './StudioSourcePickerPanel.svelte';
 
@@ -30,6 +34,8 @@
 	 *  onOpenPropertyEditor?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void,
 	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string }) => void,
 	 *  pickerTarget?: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string } | null,
+	 *  identityItem?: { id?: string, name?: string, classname?: string, instanceName?: string, icon?: string } | null,
+	 *  frontendThemeContext?: { mode: string, palette: string, tokens: any[] } | null,
 	 *  onPickerApply?: (id: string, value?: any) => void | Promise<void>
 	 * }}
 	 */
@@ -41,6 +47,8 @@
 		onOpenPropertyEditor,
 		onOpenPropertyPicker,
 		pickerTarget = null,
+		identityItem = null,
+		frontendThemeContext = null,
 		onPickerApply = () => {}
 	} = $props();
 
@@ -64,6 +72,21 @@
 	let monacoLanguage = $derived(getPropertyLanguage(monacoRow, selectedId));
 	let monacoTitle = $derived(monacoRow?.displayName ?? monacoRow?.name ?? 'Editor');
 	let monacoTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
+	let displayedIdentity = $derived(identityItem ?? propertyIdentity(categories));
+
+	function propertyIdentity(propertyCategories) {
+		const rows = (propertyCategories ?? []).flatMap((category) => category?.properties ?? []);
+		const flowType = String(rows.find((row) => row?.name === 'virtualType')?.value ?? '').trim();
+		if (!flowType) {
+			return null;
+		}
+		const summary = String(rows.find((row) => row?.name === 'summary')?.value ?? '').trim();
+		return {
+			id: `flowtype:${flowType}`,
+			name: flowTypeDisplayName(flowType),
+			instanceName: summary || String(selectedId).split('.').at(-1) || ''
+		};
+	}
 
 	$effect(() => {
 		const nextId = selectedId;
@@ -113,8 +136,14 @@
 		untrack(() => {
 			row.symbols = false;
 		});
-		if (hasPossibleValues(row)) {
+		if (isSemanticColorProperty(row)) {
+			return 'color-combo';
+		}
+		if (hasPropertyPossibleValues(row)) {
 			return values.length < 4 ? 'segment' : 'combo';
+		}
+		if (row?.flowKind === 'color') {
+			return 'color';
 		}
 		if (row.isMultiline) {
 			return 'textarea';
@@ -202,18 +231,10 @@
 		if (['number', 'integer'].includes(type)) {
 			return 'number';
 		}
-		return hasPossibleValues(row) ? (row.values.length < 4 ? 'segment' : 'combo') : 'text';
-	}
-
-	/**
-	 * @param {any} row
-	 * @returns {boolean}
-	 */
-	function hasPossibleValues(row) {
-		if (!Array.isArray(row?.values) || row.values.length === 0) {
-			return false;
+		if (isSemanticColorProperty(row)) {
+			return 'color-combo';
 		}
-		return row.values.some((option) => String(option?.value ?? option) === String(row.value));
+		return hasPropertyPossibleValues(row) ? (row.values.length < 4 ? 'segment' : 'combo') : 'text';
 	}
 
 	/**
@@ -280,14 +301,6 @@
 			];
 		}
 		return [];
-	}
-
-	/**
-	 * @param {any} row
-	 * @returns {boolean}
-	 */
-	function hasSmartTypeSideActions(row) {
-		return smartMode(row) === 'source' || smartMode(row) === 'script';
 	}
 
 	/**
@@ -450,6 +463,7 @@
 			disabled={!selectedId || properties.length == 0}
 		/>
 	</div>
+	<StudioObjectIdentity item={displayedIdentity} compact />
 
 	<div class="studio-properties__body" class:studio-properties__body--loading={loading}>
 		{#if !selectedId}
@@ -547,7 +561,7 @@
 														{originalValue}
 														originalMode={row.originalMode}
 														rows={smartMode(row) === 'script' ? textareaRows(row) : undefined}
-														actionsHorizontal={!hasSmartTypeSideActions(row)}
+														actionsHorizontal
 														buttons={smartTypeButtons(row)}
 													/>
 												{:else if inlineEditable}
@@ -598,6 +612,7 @@
 														{selectedId}
 														active
 														{pickerTarget}
+														{frontendThemeContext}
 														onApply={onPickerApply}
 														onChange={updatePickerDraft}
 														embedded
@@ -754,32 +769,22 @@
 	}
 
 	.studio-properties__field-control :global(.layout-y-low.sm\:layout-x-low > div:first-child) {
-		width: 100%;
+		width: auto;
 		min-width: 0;
+		flex: 1 1 7rem;
 	}
 
-	.studio-properties__field:not(.studio-properties__field--wide)
-		.studio-properties__field-control
-		:global(.layout-y-low.sm\:layout-x-low) {
+	.studio-properties__field-control :global(.layout-y-low.sm\:layout-x-low) {
 		width: 100%;
 		flex-direction: row;
+		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.32rem;
-	}
-
-	.studio-properties__field--wide
-		.studio-properties__field-control
-		:global(.layout-y-low.sm\:layout-x-low) {
-		width: 100%;
-		flex-direction: column;
-		align-items: stretch;
 		gap: 0.32rem;
 	}
 
 	.studio-properties__field--wide.studio-properties__field--textarea
 		.studio-properties__field-control
 		:global(.layout-y-low.sm\:layout-x-low) {
-		flex-direction: row;
 		align-items: flex-start;
 	}
 
@@ -788,15 +793,11 @@
 		min-width: 0;
 	}
 
-	.studio-properties__field:not(.studio-properties__field--wide)
-		.studio-properties__field-control
-		:global(.layout-x-low.h-fit) {
+	.studio-properties__field-control :global(.layout-x-low.h-fit) {
 		flex: 0 0 auto;
+		margin-left: auto;
 		align-self: center;
-	}
-
-	.studio-properties__field--wide .studio-properties__field-control :global(.layout-x-low.h-fit) {
-		align-self: flex-end;
+		flex-wrap: nowrap;
 	}
 
 	.studio-properties__field-control :global(.input-common),

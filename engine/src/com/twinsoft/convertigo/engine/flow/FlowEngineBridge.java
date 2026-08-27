@@ -131,6 +131,10 @@ public class FlowEngineBridge {
 		return cacheGeneration.get();
 	}
 
+	public static long dataGeneration() {
+		return dataGeneration.get();
+	}
+
 	public static boolean requiresRuntimeCacheInvalidation(String projectRelativePath) {
 		var path = normalizeProjectRelativePath(projectRelativePath);
 		return "libs/flow/Engine.js".equals(path)
@@ -741,6 +745,7 @@ public class FlowEngineBridge {
 		var source = flowEngine == null
 				? FileUtils.readFileToString(sourceFile, "UTF-8")
 				: flowEngine.getFrontendSource(sourcePath);
+		FlowStudioSupport.performanceProfileMark("sourceMutation.readSource");
 		var request = baseRequest(engineQName, source, flowEngine == null ? "" : flowEngine.getQName(), null)
 				.put("target", "frontendSource")
 				.put("source", source)
@@ -753,7 +758,9 @@ public class FlowEngineBridge {
 		if (authoringRootPath != null && !authoringRootPath.isBlank()) {
 			request.put("authoringRootPath", authoringRootPath);
 		}
+		FlowStudioSupport.performanceProfileMark("sourceMutation.buildRequest");
 		var response = invoke(engineQName, "applySourceMutation", request, null, null, null);
+		FlowStudioSupport.performanceProfileMark("sourceMutation.providerAndProjection");
 		if (response.optBoolean("ok", false) && response.has("source")) {
 			if (authoringRootPath != null && !authoringRootPath.isBlank()) {
 				var authoringTree = response.optJSONObject("authoringTree");
@@ -774,6 +781,7 @@ public class FlowEngineBridge {
 				flowEngine.setFrontendSource(sourcePath, newSource);
 			}
 		}
+		FlowStudioSupport.performanceProfileMark("sourceMutation.persistDraft");
 		return response;
 	}
 
@@ -1322,11 +1330,14 @@ public class FlowEngineBridge {
 			if (frontendAuthoringLock != null) {
 				frontendAuthoringLock.lock();
 			}
+			FlowStudioSupport.performanceProfileMark("bridge." + method + ".lock");
 			engineFile = resolveEngineFile(engineRef);
 			engineSource = cachedEngineSource(engineFile);
+			FlowStudioSupport.performanceProfileMark("bridge." + method + ".engineSource");
 			if (useThreadRuntime) {
 				if (isCacheableMethod(method, request)) {
 					var cachedResponse = cachedMethodResponse(engineRef, engineFile, engineSource, method, request);
+					FlowStudioSupport.performanceProfileMark("bridge." + method + ".methodCache");
 					if (cachedResponse != null) {
 						methodCacheHit = true;
 						return new JSONObject(cachedResponse.response());
@@ -1348,10 +1359,13 @@ public class FlowEngineBridge {
 			} else if (engineScope == null) {
 				engineScope = cx.initStandardObjects();
 			}
+			FlowStudioSupport.performanceProfileMark("bridge." + method + ".runtime");
 
 			var response = invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
 					engineObject, runtimeLookup);
+			FlowStudioSupport.performanceProfileMark("bridge." + method + ".invoke");
 			storeMethodResponse(engineRef, engineFile, engineSource, method, request, response);
+			FlowStudioSupport.performanceProfileMark("bridge." + method + ".store");
 			return response;
 		} catch (EngineException e) {
 			failed = true;
@@ -1363,6 +1377,7 @@ public class FlowEngineBridge {
 			try {
 				recordInvocation(engineRef, method, System.nanoTime() - started, runtimeLookup, failed, methodCacheHit);
 				releaseEngineRuntime(runtimeLookup);
+				FlowStudioSupport.performanceProfileMark("bridge." + method + ".release");
 				if (entered) {
 					org.mozilla.javascript.Context.exit();
 				}

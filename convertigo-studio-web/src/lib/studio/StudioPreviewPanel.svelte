@@ -5,6 +5,17 @@
 	import Bezels from '$lib/dashboard/Bezels';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getFrontendUrl } from '$lib/utils/service';
+	import {
+		authoringDropRequest,
+		authoringModeFromMessage,
+		authoringModeMessage,
+		authoringMoveRequest,
+		highlightAuthoringMessage,
+		isFlowAuthoringMessage,
+		selectedAuthoringReference as referenceFromAuthoringMessage,
+		themeContextFromMessage,
+		themeContextRequestMessage
+	} from './flowAuthoring';
 	import StudioDevicePanel from './StudioDevicePanel.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
@@ -36,7 +47,7 @@
 	const FIT_PADDING = 24;
 	const iconButtonClasses = 'button-ico-secondary h-8! w-8! justify-center p-0!';
 
-	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void }} */
 	let {
 		projectName = '',
 		previewUrlOverride = '',
@@ -44,7 +55,13 @@
 		selectedDeviceId = $bindable('none'),
 		landscape = $bindable(false),
 		showDeviceSelector = true,
-		showDeviceDrawer = false
+		showDeviceDrawer = false,
+		authoringMode = $bindable('browse'),
+		selectedAuthoringReference = null,
+		onAuthoringSelect,
+		onAuthoringDrop,
+		onAuthoringMove,
+		onThemeContext
 	} = $props();
 
 	/** @type {HTMLIFrameElement | undefined} */
@@ -56,6 +73,8 @@
 	let zoomOverride = $state({ base: '', value: 1 });
 	let zoomModeOverride = $state({ base: '', value: 'fit' });
 	let deviceDrawerOpen = $state(false);
+	let authoringReadyUrl = $state('');
+	let authoringReadySerial = $state(0);
 	let previewUrl = $derived(previewUrlOverride || (projectName ? getFrontendUrl(projectName) : ''));
 	let addressBar = $derived(
 		addressOverride.base === previewUrl ? addressOverride.value : previewUrl
@@ -134,6 +153,18 @@
 			.filter(Boolean)
 			.join(';')
 	);
+	let authoringHighlightMessage = $derived(highlightAuthoringMessage(selectedAuthoringReference));
+	let authoringModeSetMessage = $derived(authoringModeMessage(authoringMode));
+
+	$effect(() => {
+		const target = iframe?.contentWindow;
+		const readySerial = authoringReadySerial;
+		if (!readySerial || authoringReadyUrl !== iframeUrl || !target) {
+			return;
+		}
+		target.postMessage(authoringModeSetMessage, window.location.origin);
+		target.postMessage(authoringHighlightMessage, window.location.origin);
+	});
 	function applyAddressBar() {
 		if (!trimmedAddress || trimmedAddress === '#') {
 			return;
@@ -227,6 +258,48 @@
 	}
 
 	/**
+	 * @param {MessageEvent} event
+	 */
+	function handleAuthoringMessage(event) {
+		if (event.source !== iframe?.contentWindow || event.origin !== window.location.origin) {
+			return;
+		}
+		if (!isFlowAuthoringMessage(event.data)) {
+			return;
+		}
+		if (event.data.type === 'viewer.ready') {
+			authoringReadyUrl = iframeUrl;
+			authoringReadySerial += 1;
+			iframe?.contentWindow?.postMessage(themeContextRequestMessage(), window.location.origin);
+			return;
+		}
+		const themeContext = themeContextFromMessage(event.data);
+		if (themeContext) {
+			onThemeContext?.(themeContext);
+			return;
+		}
+		const nextMode = authoringModeFromMessage(event.data);
+		if (nextMode) {
+			authoringMode = nextMode;
+			return;
+		}
+		const drop = authoringDropRequest(event.data);
+		if (drop) {
+			void onAuthoringDrop?.(drop);
+			return;
+		}
+		const move = authoringMoveRequest(event.data);
+		if (move) {
+			void onAuthoringMove?.(move);
+			return;
+		}
+		const reference = referenceFromAuthoringMessage(event.data);
+		if (reference) {
+			void onAuthoringSelect?.(reference);
+		}
+	}
+
+	/**
 	 * @param {Event} event
 	 */
 	function updateAddressBar(event) {
@@ -239,6 +312,7 @@
 	 */
 	function registerIframe(node) {
 		iframe = node;
+		authoringReadyUrl = '';
 		return () => {
 			if (iframe === node) {
 				iframe = undefined;
@@ -281,7 +355,7 @@
 	}
 </script>
 
-<svelte:window onkeydown={handleWindowKeydown} />
+<svelte:window onkeydown={handleWindowKeydown} onmessage={handleAuthoringMessage} />
 
 <div class="studio-preview" style={previewStyle}>
 	{#if previewUrl}

@@ -3,6 +3,7 @@
 	import Light from '$lib/common/Light.svelte.js';
 	import { call } from '$lib/utils/service';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+	import { themeContextFromMessage } from './flowAuthoring';
 
 	const FLOW_PICKER_RETRY_DELAY_MS = 160;
 
@@ -19,10 +20,16 @@
 	 * @type {{
 	 *  active?: boolean,
 	 *  pickerTarget?: PickerTarget | null,
+	 *  frontendThemeContext?: { mode: string, palette: string, tokens: any[] } | null,
 	 *  onChange?: (value: any) => void
 	 * }}
 	 */
-	let { active = true, pickerTarget = null, onChange = () => {} } = $props();
+	let {
+		active = true,
+		pickerTarget = null,
+		frontendThemeContext = null,
+		onChange = () => {}
+	} = $props();
 
 	let frame = $state(/** @type {HTMLIFrameElement | null} */ (null));
 	let payload = $state(/** @type {any} */ (null));
@@ -47,6 +54,36 @@
 	});
 
 	$effect(() => {
+		function onViewerTheme(event) {
+			if (event.origin !== window.location.origin || event.source === frame?.contentWindow) {
+				return;
+			}
+			const context = themeContextFromMessage(event.data);
+			if (!context || !frame?.contentWindow || !bridgeId) {
+				return;
+			}
+			postContext(frame, bridgeId, context);
+		}
+		window.addEventListener('message', onViewerTheme);
+		return () => window.removeEventListener('message', onViewerTheme);
+	});
+
+	$effect(() => {
+		const context = frontendThemeContext;
+		const targetFrame = frame;
+		const id = bridgeId;
+		if (!targetFrame?.contentWindow || !id || !payload?.html || !context) {
+			return;
+		}
+		postContext(targetFrame, id, context);
+		// A reactive parent update can coincide with a srcdoc refresh. Repeat once
+		// after the browser has committed that frame so the new document cannot
+		// miss the context message sent to the previous opaque-origin window.
+		const scheduled = requestAnimationFrame(() => postContext(targetFrame, id, context));
+		return () => cancelAnimationFrame(scheduled);
+	});
+
+	$effect(() => {
 		const target = pickerTarget;
 		if (!active || !target?.id || !target?.propertyName) {
 			payload = null;
@@ -68,6 +105,36 @@
 			'*'
 		);
 	});
+
+	/**
+	 * @param {HTMLIFrameElement} targetFrame
+	 * @param {string} id
+	 * @param {{ mode: string, palette: string, tokens: any[] }} context
+	 */
+	function postContext(targetFrame, id, context) {
+		if (targetFrame !== frame || id !== bridgeId || !targetFrame.contentWindow) {
+			return;
+		}
+		targetFrame.contentWindow.postMessage(
+			{ channel: 'convertigo-flow-picker', bridgeId: id, type: 'context', context },
+			'*'
+		);
+	}
+
+	function syncFrameState() {
+		const targetFrame = frame;
+		const id = bridgeId;
+		if (!targetFrame?.contentWindow || !id || !payload?.html) {
+			return;
+		}
+		targetFrame.contentWindow.postMessage(
+			{ channel: 'convertigo-flow-picker', bridgeId: id, type: 'theme', theme: Light.mode },
+			'*'
+		);
+		if (frontendThemeContext) {
+			postContext(targetFrame, id, frontendThemeContext);
+		}
+	}
 
 	/**
 	 * @param {PickerTarget} target
@@ -96,7 +163,8 @@
 					mode: 'property',
 					embedded: true,
 					value: editorValue(target.value),
-					theme: Light.mode
+					theme: Light.mode,
+					themeContext: frontendThemeContext ?? response.state.themeContext ?? null
 				}
 			};
 		} catch (err) {
@@ -206,9 +274,14 @@
 			};
 			window.addEventListener('message', function (event) {
 				var message = event.data || {};
-				if (event.source !== window.parent || message.channel !== 'convertigo-flow-picker' || message.bridgeId !== data.bridgeId || message.type !== 'theme') return;
-				data.state.theme = message.theme;
-				if (typeof window.flowSetTheme === 'function') window.flowSetTheme(message.theme);
+				if (event.source !== window.parent || message.channel !== 'convertigo-flow-picker' || message.bridgeId !== data.bridgeId) return;
+				if (message.type === 'theme') {
+					data.state.theme = message.theme;
+					if (typeof window.flowSetTheme === 'function') window.flowSetTheme(message.theme);
+				} else if (message.type === 'context') {
+					data.state.themeContext = message.context;
+					if (typeof window.flowSetContext === 'function') window.flowSetContext(message.context);
+				}
 			});
 			if (typeof window.receiveFromJava === 'function') window.receiveFromJava(data.state);
 		}());<\/script>`;
@@ -249,6 +322,7 @@
 			title={`Flow picker for ${pickerTarget?.displayName || pickerTarget?.propertyName || 'property'}`}
 			sandbox="allow-scripts"
 			srcdoc={frameDocument(payload, bridgeId)}
+			onload={syncFrameState}
 		></iframe>
 		{#if error}
 			<div class="studio-flow-picker__status studio-flow-picker__status--error" role="alert">

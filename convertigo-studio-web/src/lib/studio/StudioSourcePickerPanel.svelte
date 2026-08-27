@@ -98,6 +98,7 @@
 	 *  active?: boolean,
 	 *  pickerTarget?: PickerTarget | null,
 	 *  embedded?: boolean,
+	 *  frontendThemeContext?: { mode: string, palette: string, tokens: any[] } | null,
 	 *  onSelectObject?: (id: string) => void,
 	 *  onApply?: (id: string, sourceDefinition?: any) => void | Promise<void>,
 	 *  onChange?: (value: any) => void
@@ -108,6 +109,7 @@
 		active = true,
 		pickerTarget = null,
 		embedded = false,
+		frontendThemeContext = null,
 		onSelectObject = () => {},
 		onApply = () => {},
 		onChange = () => {}
@@ -1069,7 +1071,7 @@
 		class:studio-source-picker__body--ngx={ngxPicker}
 	>
 		{#if flowPicker}
-			<StudioFlowPickerFrame {active} {pickerTarget} {onChange} />
+			<StudioFlowPickerFrame {active} {pickerTarget} {frontendThemeContext} {onChange} />
 		{:else if ngxPicker}
 			{#if !pickerTarget?.id}
 				<StudioEmptyState message="No property selected" />

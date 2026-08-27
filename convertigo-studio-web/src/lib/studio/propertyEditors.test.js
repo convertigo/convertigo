@@ -3,10 +3,12 @@ import {
 	canOpenCodeProperty,
 	flowBindingPreview,
 	getPropertyLanguage,
+	hasPropertyPossibleValues,
 	isCodeEditorProperty,
 	isIonProperty,
 	isMonacoProperty,
 	isSamePropertyPickerTarget,
+	isSemanticColorProperty,
 	isSmartSourceProperty,
 	SMART_TYPE_MODES,
 	togglePropertyPickerTarget
@@ -91,6 +93,20 @@ describe('Studio property editor language detection', () => {
 		expect(canOpenCodeProperty(row, 'Project.sq:Sequence.st:field')).toBe(true);
 	});
 
+	it('keeps structured Flow bindings out of the raw code editor', () => {
+		const row = {
+			name: 'loadingText',
+			displayName: 'Loading text',
+			class: 'java.lang.String',
+			editorClass: 'flow-binding-editor',
+			description: 'Literal, source or composed loading text',
+			value: JSON.stringify({ mode: 'literal', value: 'Loading signature pad…' })
+		};
+
+		expect(isMonacoProperty(row, 'Project.frontend.SignaturePad')).toBe(false);
+		expect(canOpenCodeProperty(row, 'Project.frontend.SignaturePad')).toBe(false);
+	});
+
 	it('treats NGX smart sources and scripted Ion properties as smart source values', () => {
 		expect(
 			isSmartSourceProperty({
@@ -154,5 +170,34 @@ describe('Studio inline property picker', () => {
 		const next = { id: 'Project.Page.Text', propertyName: 'classes', value: '' };
 
 		expect(togglePropertyPickerTarget(current, next, 2)).toEqual({ ...next, serial: 2 });
+	});
+});
+
+describe('Studio property choices', () => {
+	it('uses declared choices for plain and literal binding values', () => {
+		expect(hasPropertyPossibleValues({ value: 'medium', values: ['small', 'medium'] })).toBe(true);
+		expect(
+			hasPropertyPossibleValues({
+				editorClass: 'flow-binding-editor',
+				value: JSON.stringify({ mode: 'literal', value: 'medium' }),
+				values: ['small', 'medium']
+			})
+		).toBe(true);
+	});
+
+	it('keeps legacy values editable when they are outside a closed vocabulary', () => {
+		expect(hasPropertyPossibleValues({ value: 'legacy', values: ['small', 'medium'] })).toBe(false);
+	});
+
+	it('recognizes semantic color vocabularies without property-name heuristics', () => {
+		expect(
+			isSemanticColorProperty({
+				value: 'primary',
+				values: ['neutral', 'primary', 'secondary', 'success', 'warning', 'danger']
+			})
+		).toBe(true);
+		expect(
+			isSemanticColorProperty({ value: 'primary', values: ['primary', 'outline', 'ghost'] })
+		).toBe(false);
 	});
 });

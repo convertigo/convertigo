@@ -61,6 +61,7 @@ public class FlowStudioSupport {
 	private static final String FLOW_VIRTUAL_ICON = "/com/twinsoft/convertigo/beans/flow/images/flowvirtualobject_color_32x32.png";
 	private static final String FLOW_SCRIPT_ICON = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_script_color_32x32.png";
 	private static final Map<String, JSONObject> catalogCache = new ConcurrentHashMap<>();
+	private static final ThreadLocal<PerformanceProfile> performanceProfile = new ThreadLocal<>();
 	private static final int PALETTE_CATEGORIES_CACHE_LIMIT = 64;
 	private static final Map<String, String> paletteCategoriesCache = Collections.synchronizedMap(
 			new LinkedHashMap<String, String>(PALETTE_CATEGORIES_CACHE_LIMIT, 0.75f, true) {
@@ -73,6 +74,80 @@ public class FlowStudioSupport {
 			});
 
 	private FlowStudioSupport() {
+	}
+
+	private static final class PerformanceProfile {
+		private final String operation;
+		private final long startedNanos = System.nanoTime();
+		private final long startedHeapBytes = usedHeapBytes();
+		private final Map<String, Long> phases = new LinkedHashMap<>();
+		private long lastNanos = startedNanos;
+
+		private PerformanceProfile(String operation) {
+			this.operation = operation;
+		}
+
+		private void mark(String phase) {
+			var now = System.nanoTime();
+			phases.merge(phase, now - lastNanos, Long::sum);
+			lastNanos = now;
+		}
+
+		private JSONObject toJson() throws JSONException {
+			var phaseValues = new JSONObject();
+			for (var entry : phases.entrySet()) {
+				phaseValues.put(entry.getKey(), nanosToMillis(entry.getValue()));
+			}
+			return new JSONObject()
+					.put("protocol", "flow.performance.v1")
+					.put("operation", operation)
+					.put("totalMs", nanosToMillis(System.nanoTime() - startedNanos))
+					.put("heapDeltaBytes", usedHeapBytes() - startedHeapBytes)
+					.put("cacheGeneration", FlowEngineBridge.cacheGeneration())
+					.put("dataGeneration", FlowEngineBridge.dataGeneration())
+					.put("phases", phaseValues);
+		}
+	}
+
+	public static boolean startPerformanceProfile(boolean enabled, String operation) {
+		if (!enabled || performanceProfile.get() != null) {
+			return false;
+		}
+		performanceProfile.set(new PerformanceProfile(operation == null ? "flow" : operation));
+		return true;
+	}
+
+	public static void performanceProfileMark(String phase) {
+		var profile = performanceProfile.get();
+		if (profile != null && phase != null && !phase.isBlank()) {
+			profile.mark(phase);
+		}
+	}
+
+	public static void finishPerformanceProfile(boolean owner, JSONObject response) {
+		if (!owner) {
+			return;
+		}
+		var profile = performanceProfile.get();
+		performanceProfile.remove();
+		if (profile == null || response == null) {
+			return;
+		}
+		try {
+			profile.mark("service.response");
+			response.put("_profile", profile.toJson());
+		} catch (Exception e) {
+			flowStudioWarn("Unable to expose Flow performance profile.", e);
+		}
+	}
+
+	private static long usedHeapBytes() {
+		var runtime = Runtime.getRuntime();
+		return runtime.totalMemory() - runtime.freeMemory();
+	}
+
+	private static double nanosToMillis(long nanos) {
+		return Math.round(nanos / 1000.0) / 1000.0;
 	}
 
 	public static boolean isFlowPaletteTarget(DatabaseObject dbo) {
@@ -758,6 +833,14 @@ public class FlowStudioSupport {
 		if (!targetSourcePath.isBlank() && firstNonBlank(insert, "__frontendSourcePath").isBlank()) {
 			insert.put("__frontendSourcePath", targetSourcePath);
 		}
+		var propertyDefinitions = frontendPalettePropertyDefinitions(block);
+		var declaredSourceProject = firstNonBlank(block, "provider", "origin");
+		var sourcePath = firstNonBlank(block, "file", "sourcePath");
+		var sourceRelativePathHint = firstNonBlank(block, "sourceRelativePath");
+		var sourceDefinitionPath = firstNonBlank(block, "definitionPath");
+		var sourceLocation = frontendPaletteSourceLocation(declaredSourceProject, sourceRelativePathHint, sourcePath);
+		var sourceProject = sourceLocation.optString("project");
+		var sourceRelativePath = sourceLocation.optString("relativePath");
 		var item = new JSONObject()
 				.put("type", FRONTEND_BLOCK_TYPE)
 				.put("id", FRONTEND_BLOCK_ID_PREFIX + blockId)
@@ -769,7 +852,7 @@ public class FlowStudioSupport {
 				.put("shortDescriptionText", description)
 				.put("longDescriptionHtml", "")
 					.put("longDescriptionText", "")
-					.put("propertiesDescriptionHtml", propertiesDescription(block.optJSONObject("properties")))
+					.put("propertiesDescriptionHtml", propertiesDescription(propertyDefinitions))
 					.put("icon", icon)
 					.put("iconFile32", icon)
 					.put("tooltip", blockId)
@@ -777,6 +860,15 @@ public class FlowStudioSupport {
 					.put("additional", true)
 					.put("canContainChildren", frontendBlockCanContainChildren(block))
 					.put("insert", insert);
+		if (!sourceProject.isBlank() && !sourceRelativePath.isBlank()) {
+			item.put("provider", sourceProject)
+					.put("sourceProject", sourceProject)
+					.put("sourceRelativePath", sourceRelativePath)
+					.put("sourceRuntime", firstNonBlank(block, "runtime"));
+			if (!sourceDefinitionPath.isBlank()) {
+				item.put("sourceDefinitionPath", sourceDefinitionPath);
+			}
+		}
 		if (block.optBoolean("createAction", false) || "create".equals(firstNonBlank(block, "descriptorKind"))) {
 			item.put("createAction", true);
 		}
@@ -804,6 +896,92 @@ public class FlowStudioSupport {
 			item.put("iconify", iconify);
 		}
 		return item;
+	}
+
+	static JSONObject frontendPalettePropertyDefinitions(JSONObject block) {
+		var properties = block == null ? null : block.optJSONObject("properties");
+		if (properties == null && block != null) {
+			properties = block.optJSONObject("props");
+		}
+		return properties == null ? new JSONObject() : properties;
+	}
+
+	private static JSONObject frontendPaletteSourceLocation(String declaredProject, String sourceRelativePath,
+			String sourcePath) {
+		var projectDirs = new LinkedHashMap<String, String>();
+		if (Engine.theApp != null && Engine.theApp.databaseObjectsManager != null) {
+			if (declaredProject != null && !declaredProject.isBlank()) {
+				var project = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(declaredProject);
+				if (project != null && project.getDirFile() != null) {
+					projectDirs.put(declaredProject, project.getDirFile().getPath());
+				}
+			}
+			for (var projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
+				var project = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(projectName);
+				if (project != null && project.getDirFile() != null) {
+					projectDirs.putIfAbsent(projectName, project.getDirFile().getPath());
+				}
+			}
+		}
+		return resolvePaletteSourceLocation(projectDirs, declaredProject, sourceRelativePath, sourcePath);
+	}
+
+	static JSONObject resolvePaletteSourceLocation(Map<String, String> projectDirs, String declaredProject,
+			String sourceRelativePath, String sourcePath) {
+		var location = new JSONObject();
+		if (projectDirs == null || projectDirs.isEmpty()) {
+			return location;
+		}
+		var normalizedRelativePath = normalizeSourcePath(sourceRelativePath);
+		var declaredRoot = projectDirs.get(declaredProject);
+		if (declaredRoot != null && !declaredRoot.isBlank() && !normalizedRelativePath.isBlank()) {
+			var candidate = new File(declaredRoot, normalizedRelativePath);
+			var verifiedRelativePath = relativePaletteSourcePath(declaredRoot, candidate.getPath());
+			if (normalizedRelativePath.equals(verifiedRelativePath)) {
+				try {
+					return location.put("project", declaredProject).put("relativePath", verifiedRelativePath);
+				} catch (JSONException e) {
+					return new JSONObject();
+				}
+			}
+		}
+		if (sourcePath == null || sourcePath.isBlank()) {
+			return location;
+		}
+		var bestRootLength = -1;
+		for (var entry : projectDirs.entrySet()) {
+			var relativePath = relativePaletteSourcePath(entry.getValue(), sourcePath);
+			if (relativePath.isBlank()) {
+				continue;
+			}
+			var rootLength = new File(entry.getValue()).toPath().toAbsolutePath().normalize().getNameCount();
+			if (rootLength <= bestRootLength) {
+				continue;
+			}
+			bestRootLength = rootLength;
+			try {
+				location.put("project", entry.getKey()).put("relativePath", relativePath);
+			} catch (JSONException e) {
+				return new JSONObject();
+			}
+		}
+		return location;
+	}
+
+	static String relativePaletteSourcePath(String projectDir, String sourcePath) {
+		if (projectDir == null || projectDir.isBlank() || sourcePath == null || sourcePath.isBlank()) {
+			return "";
+		}
+		try {
+			var root = new File(projectDir).toPath().toAbsolutePath().normalize();
+			var source = new File(sourcePath).toPath().toAbsolutePath().normalize();
+			if (!source.startsWith(root)) {
+				return "";
+			}
+			return normalizeSourcePath(root.relativize(source).toString());
+		} catch (Exception e) {
+			return "";
+		}
 	}
 
 	/**
@@ -1973,7 +2151,9 @@ public class FlowStudioSupport {
 				.put("index", targetIndex);
 		flowStudioInfo("Flow frontend DnD move mutation: source=" + flowMoveTargetSummary(fvo)
 				+ " sourcePath=" + sourcePath(fvo) + " mutation=" + mutation);
+		performanceProfileMark("move.prepareMutation");
 		var response = applyMutation(root, fvo, mutation);
+		performanceProfileMark("move.applyMutation");
 		var done = response.optBoolean("ok", false) && sourceMutationChanged(response);
 		flowStudioInfo("Flow frontend DnD move response: done=" + done
 				+ " ok=" + response.optBoolean("ok", false)
@@ -2561,11 +2741,15 @@ public class FlowStudioSupport {
 			String sourcePath, JSONObject mutation) throws Exception {
 		var cleanMutation = cleanFrontendMutation(mutation);
 		var projectionRoot = frontendProjectionRoot(targetDbo, sourcePath);
+		performanceProfileMark("sourceMutation.resolveProjection");
 		var response = new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath, cleanMutation,
 				projectionRoot == null ? "" : projectionRoot.getVirtualPath());
+		performanceProfileMark("sourceMutation.bridge");
 		if (response.optBoolean("ok", false) && sourceMutationChanged(response)) {
 			afterSourceMutation(flowEngine, sourcePath);
+			performanceProfileMark("sourceMutation.afterMutation");
 			applyFrontendProjection(projectionRoot, sourcePath, response);
+			performanceProfileMark("sourceMutation.applyProjection");
 		} else if (response.optBoolean("ok", false)) {
 			flowStudioWarn("Flow frontend source mutation made no changes: sourcePath=" + sourcePath
 					+ " mutation=" + cleanMutation + " debug=" + response.opt("debug"));
@@ -2795,11 +2979,13 @@ public class FlowStudioSupport {
 
 	public static void afterSourceMutation(FlowEngine flowEngine, String sourcePath) {
 		clearCatalogCache(flowEngine);
+		performanceProfileMark("sourceMutation.clearCatalog");
 		if (flowEngine == null || !isFrontendSourcePath(sourcePath)) {
 			return;
 		}
 		for (var target : frontendDevSyncTargets(flowEngine)) {
 			clearCatalogCache(target);
+			performanceProfileMark("sourceMutation.resolveDevTarget");
 			try {
 				var response = new FlowEngineBridge().contextAction(target, new JSONObject()
 						.put("frontendSourceDrafts", FlowEngineBridge.frontendSourceDrafts(target, flowEngine))
@@ -2808,6 +2994,7 @@ public class FlowStudioSupport {
 								.put("id", "frontbuilder.svelte.dev.sync")
 								.put("payload", new JSONObject()
 										.put("sourcePath", sourcePath))));
+				performanceProfileMark("sourceMutation.devSync");
 				var browser = response.optJSONObject("browser");
 				if (browser != null) {
 					FlowEngineBridge.notifyStudioBrowser(browser.toString());

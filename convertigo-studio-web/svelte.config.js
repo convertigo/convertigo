@@ -1,15 +1,12 @@
 import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
-let base = '';
-try {
-	base = process.argv
-		.filter((s) => s.startsWith('--base='))
-		.map((s) => s.substring(7))
-		.join();
-} catch (e) {
-	console.error('dynamic base failed', e);
-}
+// SvelteKit loads this config in multiple build workers whose argv values are
+// not guaranteed to match. A base inferred from those transient arguments can
+// make prerendered HTML and client chunks use different __sveltekit globals.
+// Keep the default relative deployment deterministic and expose one explicit
+// environment variable for installations that need a fixed base.
+const base = process.env.C8O_STUDIO_BASE ?? '';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

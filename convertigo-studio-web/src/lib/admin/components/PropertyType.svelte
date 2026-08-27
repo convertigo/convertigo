@@ -128,6 +128,41 @@
 		}, 1);
 		rest.onchange?.({ target: select, detail: { value } });
 	}
+
+	/** @param {any} candidate */
+	function nativeColorValue(candidate) {
+		const text = String(candidate ?? '').trim();
+		if (/^#[0-9a-f]{6}$/i.test(text)) return text;
+		if (/^#[0-9a-f]{3}$/i.test(text)) {
+			return `#${[...text.slice(1)].map((part) => part.repeat(2)).join('')}`;
+		}
+		const rgb = text.match(
+			/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,[^)]*)?\)$/i
+		);
+		if (!rgb) return '#000000';
+		return `#${rgb
+			.slice(1, 4)
+			.map((part) => Math.min(255, Number(part)).toString(16).padStart(2, '0'))
+			.join('')}`;
+	}
+
+	/** @param {any} candidate */
+	function semanticColorStyle(candidate) {
+		const colors = {
+			current: 'currentColor',
+			auto: 'currentColor',
+			neutral: 'var(--color-surface-500)',
+			primary: 'var(--color-primary-500)',
+			secondary: 'var(--color-secondary-500)',
+			tertiary: 'var(--color-tertiary-500)',
+			success: 'var(--color-success-500)',
+			warning: 'var(--color-warning-500)',
+			danger: 'var(--color-error-500)',
+			error: 'var(--color-error-500)',
+			muted: 'var(--color-surface-400)'
+		};
+		return `background-color: ${colors[String(candidate ?? '').toLowerCase()] ?? 'transparent'}`;
+	}
 </script>
 
 <div class="layout-y-low sm:layout-x-low" class:w-fit={fit} class:w-full={!fit}>
@@ -333,6 +368,27 @@
 								{/each}
 							</SegmentedControl.Control>
 						</SegmentedControl>
+					{:else if type == 'color-combo'}
+						<div class="layout-x-low w-full items-center">
+							<span
+								class="h-6 w-6 flex-none rounded-full border border-surface-300-700 shadow-sm"
+								style={semanticColorStyle(value)}
+								aria-hidden="true"
+							></span>
+							<select
+								{...rest}
+								{name}
+								class="select input-common h-9 min-w-0 flex-1 px-3 text-sm {rest?.class ?? ''}"
+								{id}
+								bind:value
+							>
+								{#each item as option (option.value ?? option)}
+									{@const val = option.value ?? option}
+									{@const txt = option.text ?? option['#text'] ?? val}
+									<option class="ig-select" value={val}>{txt}</option>
+								{/each}
+							</select>
+						</div>
 					{:else if type == 'combo'}
 						<select
 							{...rest}
@@ -353,6 +409,29 @@
 								{/if}
 							{/each}
 						</select>
+					{:else if type == 'color'}
+						<div class="layout-x-low w-full items-center">
+							<input
+								type="color"
+								value={nativeColorValue(value)}
+								disabled={loading}
+								aria-label={label ? `${label} color picker` : 'Color picker'}
+								class="h-9 w-10 flex-none cursor-pointer rounded-base border border-surface-300-700 bg-transparent p-1"
+								oninput={(event) => (value = event.currentTarget.value)}
+							/>
+							<input
+								{...rest}
+								{id}
+								{name}
+								autocomplete={inputAutocomplete}
+								{placeholder}
+								type="text"
+								disabled={loading}
+								class="h-9 input-common min-w-0 flex-1 px-3 text-sm placeholder:text-surface-600-400 {rest?.class ??
+									''}"
+								bind:value
+							/>
+						</div>
 					{:else if type == 'array' || type == 'textarea'}
 						<textarea
 							{id}

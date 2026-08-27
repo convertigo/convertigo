@@ -36,6 +36,9 @@ public class Get extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
+		var profileOwner = FlowStudioSupport.startPerformanceProfile(
+				Boolean.parseBoolean(request.getParameter("profile")), "studio.flowpicker.Get");
+		try {
 		var id = request.getParameter("id");
 		var property = request.getParameter("propertyName");
 		var value = request.getParameter("value");
@@ -45,6 +48,7 @@ public class Get extends JSonService {
 		if (property == null || property.isBlank()) {
 			throw new ServiceException("missing propertyName parameter");
 		}
+		FlowStudioSupport.performanceProfileMark("picker.parameters");
 
 		var resolved = FlowStudioSupport.resolveTreeObject(id);
 		if (!(resolved instanceof FlowVirtualObject object)) {
@@ -54,6 +58,7 @@ public class Get extends JSonService {
 		if (target == null || target.flowEngine() == null) {
 			throw new ServiceException("Unable to resolve parent Flow or FlowEngine");
 		}
+		FlowStudioSupport.performanceProfileMark("picker.resolveTarget");
 
 		var bridge = new FlowEngineBridge();
 		var editor = target.flow() == null
@@ -63,8 +68,10 @@ public class Get extends JSonService {
 		if (html.isBlank()) {
 			throw new ServiceException("Flow property editor is not available");
 		}
+		FlowStudioSupport.performanceProfileMark("picker.propertyEditor");
 
 		var info = pickerInfo(bridge, target, object, property);
+		FlowStudioSupport.performanceProfileMark("picker.info");
 		var definitions = info.optJSONObject("propertyDefinitions");
 		var propertyDefinition = definitions == null ? new JSONObject() : definitions.optJSONObject(property);
 		if (propertyDefinition == null) {
@@ -99,6 +106,7 @@ public class Get extends JSonService {
 			state.put("context", context);
 			requests.put("context", new JSONObject().put("ok", true).put("context", context));
 		}
+		FlowStudioSupport.performanceProfileMark("picker.context");
 		if (hasKind(pickerDefinitions, "requestable")) {
 			var requestables = target.flow() == null
 					? bridge.requestables(target.flowEngine())
@@ -106,6 +114,7 @@ public class Get extends JSonService {
 			state.put("requestables", requestables);
 			requests.put("requestables", new JSONObject().put("ok", true).put("requestables", requestables));
 		}
+		FlowStudioSupport.performanceProfileMark("picker.requestables");
 		if (hasKind(pickerDefinitions, "icon")) {
 			var options = new JSONObject().put("provider", "mdi").put("limit", 500);
 			var icons = target.flow() == null
@@ -113,10 +122,14 @@ public class Get extends JSonService {
 					: bridge.icons(target.flow(), options);
 			requests.put("icons", icons);
 		}
+		FlowStudioSupport.performanceProfileMark("picker.icons");
 
 		response.put("html", html);
 		response.put("state", state);
 		response.put("requests", requests);
+		} finally {
+			FlowStudioSupport.finishPerformanceProfile(profileOwner, response);
+		}
 	}
 
 	static JSONObject pickerInfoForProperty(JSONObject info, String property, JSONObject definitions) throws Exception {

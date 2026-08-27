@@ -9,6 +9,7 @@
 		getPropertyLanguage
 	} from '$lib/studio/propertyEditors';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { call } from '$lib/utils/service';
 	import { untrack } from 'svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
@@ -22,13 +23,16 @@
 	 * @property {string} content
 	 * @property {string} originalValue
 	 * @property {string} language
+	 * @property {boolean=} readOnly
+	 * @property {boolean=} sourceDocument
+	 * @property {string=} revision
 	 * @property {boolean=} focused
 	 */
 
 	/**
 	 * @type {{
 	 *  selectedId?: string,
-	 *  editorTarget?: { id?: string, propertyName?: string, displayName?: string, value?: any, serial?: number } | null,
+	 *  editorTarget?: { id?: string, propertyName?: string, displayName?: string, value?: any, sourceDocument?: boolean, serial?: number } | null,
 	 *  active?: boolean,
 	 *  onSave?: (id: string) => void | Promise<void>,
 	 *  onSelectObject?: (id: string) => void
@@ -50,12 +54,15 @@
 	let loadToken = 0;
 	let fullscreen = $state(false);
 	let lastOpenRequest = '';
+	let lastSourceRequest = '';
 	/** @type {EditorTab[]} */
 	let editorTabs = $state([]);
 	let activeTabKey = $state('');
 
 	let requestedProperty = $derived(
-		loadedId === selectedId ? findEditorProperty(properties, selectedId, editorTarget) : undefined
+		!editorTarget?.sourceDocument && loadedId === selectedId
+			? findEditorProperty(properties, selectedId, editorTarget)
+			: undefined
 	);
 	let requestedPropertyKey = $derived(
 		requestedProperty && selectedId
@@ -71,18 +78,32 @@
 	);
 	let activeTab = $derived(editorTabs.find((tab) => tab.key === activeTabKey) ?? null);
 	let activeTabDirty = $derived(
-		Boolean(activeTab && activeTab.content !== activeTab.originalValue)
+		Boolean(activeTab && !activeTab.readOnly && activeTab.content !== activeTab.originalValue)
 	);
 	let theme = $derived(LightSvelte.light ? '' : 'vs-dark');
 	let canSave = $derived(Boolean(activeTab && activeTabDirty && !loading && !saving));
 
 	$effect(() => {
 		const nextId = selectedId;
-		if (!active || !nextId) {
+		if (!active || !nextId || editorTarget?.sourceDocument) {
 			return;
 		}
 		untrack(() => {
 			void loadProperties(nextId);
+		});
+	});
+
+	$effect(() => {
+		const requestKey =
+			active && editorTarget?.sourceDocument && editorTarget?.id === selectedId
+				? `${selectedId}:${editorTarget?.serial ?? ''}`
+				: '';
+		if (!requestKey || requestKey === lastSourceRequest) {
+			return;
+		}
+		lastSourceRequest = requestKey;
+		untrack(() => {
+			void openSourceDocument(selectedId);
 		});
 	});
 
@@ -166,6 +187,52 @@
 	}
 
 	/**
+	 * Opens the source document resolved by the Engine from the selected Flow
+	 * virtual object. The browser never receives or submits an arbitrary path.
+	 * @param {string} objectId
+	 */
+	async function openSourceDocument(objectId) {
+		loading = true;
+		error = '';
+		try {
+			const response = await call('studio.source.Get', { id: objectId });
+			const displayName = String(response?.fileName ?? 'Flow source');
+			const relativePath = String(response?.relativePath ?? displayName);
+			const key = createTabKey(objectId, `source:${relativePath}`);
+			closeUnfocusedEditorTabs(key);
+			const existing = editorTabs.find((tab) => tab.key === key);
+			if (existing) {
+				existing.content = String(response?.content ?? '');
+				existing.originalValue = existing.content;
+				existing.revision = String(response?.revision ?? '');
+				existing.language = String(response?.language ?? 'text');
+				activeTabKey = existing.key;
+				return;
+			}
+			const content = String(response?.content ?? '');
+			editorTabs.push({
+				key,
+				id: objectId,
+				propertyName: `source:${relativePath}`,
+				displayName,
+				content,
+				originalValue: content,
+				language: String(response?.language ?? 'text'),
+				readOnly: response?.readOnly !== false,
+				sourceDocument: true,
+				revision: String(response?.revision ?? ''),
+				focused: false
+			});
+			activeTabKey = key;
+			onSelectObject(objectId);
+		} catch (err) {
+			error = String(err instanceof Error ? err.message : err);
+		} finally {
+			loading = false;
+		}
+	}
+
+	/**
 	 * @param {EditorTab} tab
 	 */
 	function selectEditorTab(tab) {
@@ -233,7 +300,7 @@
 
 	async function saveEditor() {
 		const tab = activeTab;
-		if (!tab || !activeTabDirty) {
+		if (!tab || tab.readOnly || !activeTabDirty) {
 			return;
 		}
 		saving = true;
@@ -367,18 +434,29 @@
 		<div class="studio-editor__toolbar layout-x-between-low">
 			<div class="studio-editor__title">
 				<strong class="studio-ellipsis">{activeTab.displayName}</strong>
-				<span class="studio-ellipsis">{activeTab.id}</span>
+				<span class="studio-ellipsis"
+					>{activeTab.sourceDocument
+						? activeTab.propertyName.replace(/^source:/, '')
+						: activeTab.id}</span
+				>
 			</div>
 			<div class="studio-editor__actions layout-x-low">
-				<SaveCancelButtons
-					class="w-fit"
-					saveLabel="Save"
-					cancelLabel="Cancel"
-					onSave={saveEditor}
-					onCancel={cancelEditor}
-					changesPending={activeTabDirty}
-					disabled={!canSave}
-				/>
+				{#if activeTab.readOnly}
+					<span class="studio-editor__readonly" title="Library sources are shown read-only">
+						<Ico icon="mdi:lock-outline" size={3.4} />
+						Read-only source
+					</span>
+				{:else}
+					<SaveCancelButtons
+						class="w-fit"
+						saveLabel="Save"
+						cancelLabel="Cancel"
+						onSave={saveEditor}
+						onCancel={cancelEditor}
+						changesPending={activeTabDirty}
+						disabled={!canSave}
+					/>
+				{/if}
 				<StudioIconButton
 					icon={fullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen'}
 					size="md"
@@ -393,7 +471,7 @@
 				bind:content={activeTab.content}
 				language={activeTab.language}
 				{theme}
-				readOnly={false}
+				readOnly={activeTab.readOnly === true}
 			/>
 		</div>
 	{:else if loading}
@@ -529,6 +607,15 @@
 
 	.studio-editor__actions {
 		flex: 0 0 auto;
+	}
+
+	.studio-editor__readonly {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.28rem;
+		color: var(--studio-editor-muted);
+		font-size: 0.7rem;
+		white-space: nowrap;
 	}
 
 	.studio-editor__monaco {

@@ -40,6 +40,9 @@ public class Move extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
+		var profileOwner = FlowStudioSupport.startPerformanceProfile(
+				Boolean.parseBoolean(request.getParameter("profile")), "studio.dbo.Move");
+		try {
 
 		// target: the id of the target bean in tree
 		var target = request.getParameter("target");
@@ -58,6 +61,7 @@ public class Move extends JSonService {
 		if (data == null) {
 			throw new ServiceException("missing data parameter");
 		}
+		FlowStudioSupport.performanceProfileMark("move.parameters");
 
 		boolean done = false;
 		
@@ -68,9 +72,11 @@ public class Move extends JSonService {
 			DatabaseObject dbo = DboUtils.findDbo(jsonItem.getString("id"));
 			if (dbo != null) {
 				DatabaseObject targetDbo = DboUtils.findDbo(target);
+				FlowStudioSupport.performanceProfileMark("move.resolveObjects");
 				if (targetDbo != null) {
 					if (dbo instanceof FlowVirtualObject || targetDbo instanceof FlowVirtualObject) {
 						DboUtils.copyResult(FlowStudioSupport.moveNode(dbo, targetDbo, position), response);
+						FlowStudioSupport.performanceProfileMark("move.copyResponse");
 						return;
 					}
 					Long after = null;
@@ -129,6 +135,9 @@ public class Move extends JSonService {
 			}
 		}
 		response.put("done", done);
+		} finally {
+			FlowStudioSupport.finishPerformanceProfile(profileOwner, response);
+		}
 	}
 
 	private boolean canMoveDbo(DatabaseObject dbo, DatabaseObject parentDbo, DatabaseObject targetDbo, String target,

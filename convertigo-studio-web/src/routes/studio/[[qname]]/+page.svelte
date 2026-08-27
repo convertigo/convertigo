@@ -5,8 +5,19 @@
 	import { subscribeAdminEvents } from '$lib/admin/adminEvents';
 	import Projects from '$lib/common/Projects.svelte.js';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import { shouldStartInlineRename } from '$lib/studio/dnd';
+	import {
+		blockDefinitionSourceId,
+		blockDefinitionForInstance,
+		findBlockDefinition,
+		flowTypeDisplayName,
+		isFrontendBlockDefinitionSourceId,
+		objectPropertyValue,
+		propertyDocumentationFromDefinition,
+		propertyDocumentationFromProperties
+	} from '$lib/studio/blockDefinition';
+	import { performDboDrop, shouldStartInlineRename } from '$lib/studio/dnd';
 	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
+	import { isFrontendAuthoringNodeId } from '$lib/studio/flowAuthoring';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
 	import {
 		findPrimaryEditorProperty,
@@ -43,7 +54,7 @@
 
 	/** @typedef {'execution' | 'code' | 'flow' | 'doc'} WorkPanel */
 	/** @typedef {'frontend' | 'execution'} VibeResult */
-	/** @typedef {'frontend' | 'doc'} FrontendResult */
+	/** @typedef {'frontend' | 'code' | 'doc'} FrontendResult */
 	/**
 	 * @typedef {Object} PaletteItem
 	 * @property {string=} id
@@ -57,6 +68,13 @@
 	 * @property {string=} propertiesDescriptionHtml
 	 * @property {{ label: string, description: string }[]=} propertyDocumentation
 	 * @property {string=} icon
+	 * @property {string=} instanceName
+	 * @property {string=} flowType
+	 * @property {string=} provider
+	 * @property {string=} sourceProject
+	 * @property {string=} sourceRelativePath
+	 * @property {string=} sourceRuntime
+	 * @property {boolean=} isBlockDefinition
 	 * @property {boolean=} builtin
 	 * @property {boolean=} additional
 	 */
@@ -98,6 +116,7 @@
 	/** @type {{ id: FrontendResult, label: string, icon: string }[]} */
 	const FRONTEND_RESULT_VIEWS = [
 		{ id: 'frontend', label: 'Frontend', icon: 'mdi:smartphone-link' },
+		{ id: 'code', label: 'Code', icon: 'mdi:code-tags' },
 		{ id: 'doc', label: 'Doc', icon: 'mdi:book-open-variant' }
 	];
 	const VIBE_RESULT_IDS = VIBE_RESULT_VIEWS.map(({ id }) => id);
@@ -110,6 +129,7 @@
 	 * @property {string=} displayName
 	 * @property {string=} editorClass
 	 * @property {any=} value
+	 * @property {boolean=} sourceDocument
 	 * @property {number=} serial
 	 */
 	/**
@@ -153,15 +173,26 @@
 	let selectedId = $state(initialSelectedId);
 	let activeSidePanel = $state('properties');
 	/** @type {WorkPanel} */
-	let activeWorkPanel = $state('execution');
+	let activeWorkPanel = $state(/** @type {WorkPanel} */ ('execution'));
 	/** @type {VibeResult} */
 	let activeVibeResult = $state('frontend');
 	/** @type {FrontendResult} */
-	let activeFrontendResult = $state('frontend');
+	let activeFrontendResult = $state(/** @type {FrontendResult} */ ('frontend'));
 	let frontendDeviceId = $state('none');
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
 	let frontendPreview = $state({ projectName: '', url: '', mode: 'production' });
+	let frontendTheme = $state(
+		/** @type {{ projectName: string, context: any }} */ ({
+			projectName: '',
+			context: null
+		})
+	);
+	/** @type {import('$lib/studio/flowAuthoring').FlowAuthoringReference | null} */
+	let frontendAuthoringReference = $state(null);
+	/** @type {'browse' | 'select'} */
+	let frontendAuthoringMode = $state('browse');
+	let frontendAuthoringSerial = 0;
 	let logsPanelOpen = $state(false);
 	/** @type {EditorTarget | null} */
 	let editorTarget = $state(null);
@@ -171,6 +202,7 @@
 	let sourceChoice = $state(null);
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
+	let paletteRevealRequest = $state({ key: '', contextId: '', serial: 0 });
 	/** @type {PaletteItem | null} */
 	let selectedTreeDocItem = $state(null);
 	let selectedTreeDocLoading = $state(false);
@@ -236,6 +268,9 @@
 			? 'development'
 			: 'production'
 	);
+	let frontendThemeContext = $derived(
+		frontendTheme.projectName === selectedProjectName ? frontendTheme.context : null
+	);
 	let showFlowOverview = $derived(showStudioWork && flowReady);
 	let showPalette = $derived(showStudioWork || profile === 'frontend');
 	let sideViews = $derived([
@@ -251,6 +286,10 @@
 	let selectedDocItem = $derived(selectedPaletteItem ?? selectedTreeDocItem);
 	let selectedDocLoading = $derived(!selectedPaletteItem && selectedTreeDocLoading);
 	let selectedDocError = $derived(!selectedPaletteItem ? selectedTreeDocError : '');
+	let codeEditorActive = $derived(
+		(profile === 'backend' && activeWorkPanel === 'code') ||
+			(profile === 'frontend' && activeFrontendResult === 'code')
+	);
 	let breadcrumbs = $derived(buildBreadcrumb(selectedId));
 	let workspaceStyle = $derived(
 		[
@@ -356,7 +395,24 @@
 		}
 		paletteSelectionContext = currentSelection;
 		selectedPaletteItem = null;
+		paletteRevealRequest = {
+			key: '',
+			contextId: '',
+			serial: paletteRevealRequest.serial
+		};
 		clearSelectedTreeDocumentation();
+	});
+
+	$effect(() => {
+		const id = selectedId;
+		const previewVisible =
+			profile === 'frontend' || (profile === 'vibe' && activeVibeResult === 'frontend');
+		const serial = ++frontendAuthoringSerial;
+		if (!previewVisible || !id || id === 'ROOT') {
+			frontendAuthoringReference = null;
+			return;
+		}
+		void loadFrontendAuthoringReference(id, serial);
 	});
 
 	$effect(() => {
@@ -669,6 +725,7 @@
 			activeSidePanel,
 			activeWorkPanel,
 			activeVibeResult,
+			activeFrontendResult,
 			logsPanelOpen,
 			collapsedPanels: {
 				tree: collapsedPanels.tree,
@@ -705,6 +762,9 @@
 		);
 		activeVibeResult = /** @type {VibeResult} */ (
 			storedChoice(preferences.activeVibeResult, VIBE_RESULT_IDS, activeVibeResult)
+		);
+		activeFrontendResult = /** @type {FrontendResult} */ (
+			storedChoice(preferences.activeFrontendResult, FRONTEND_RESULT_IDS, activeFrontendResult)
 		);
 		logsPanelOpen = Boolean(preferences.logsPanelOpen);
 		collapsedPanels = {
@@ -889,6 +949,133 @@
 	}
 
 	/**
+	 * @param {string} id
+	 * @param {number} serial
+	 */
+	async function loadFrontendAuthoringReference(id, serial) {
+		const response = await call('studio.treeview.Authoring', { id });
+		if (serial !== frontendAuthoringSerial || selectedId !== id) {
+			return;
+		}
+		frontendAuthoringReference = response?.reference ?? null;
+	}
+
+	/**
+	 * @param {import('$lib/studio/flowAuthoring').FlowAuthoringReference} reference
+	 */
+	async function selectFrontendAuthoringReference(reference) {
+		const response = await call('studio.treeview.Authoring', {
+			project: selectedProjectName,
+			reference: JSON.stringify(reference)
+		});
+		const id = String(response?.id ?? '');
+		if (!id) {
+			return;
+		}
+		frontendAuthoringReference = response?.reference ?? reference;
+		selectedId = id;
+		setSidePanel('properties');
+	}
+
+	/**
+	 * @param {string} id
+	 */
+	function canShowInFrontend(id) {
+		return frontendPreviewMode === 'development' && isFrontendAuthoringNodeId(id);
+	}
+
+	/**
+	 * Switch to the live development preview and arm the one-shot selector so
+	 * the current tree object is both revealed and ready for a touch selection.
+	 * @param {string} id
+	 */
+	function showInFrontend(id) {
+		if (!canShowInFrontend(id)) {
+			return;
+		}
+		selectedId = id;
+		activeFrontendResult = 'frontend';
+		setProfile('frontend');
+		frontendAuthoringMode = 'select';
+	}
+
+	/**
+	 * Route a palette drop from the same-origin development viewer through the
+	 * exact tree mutation contract already used by Studio DnD.
+	 * @param {{ reference: import('$lib/studio/flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: import('$lib/studio/dnd').DboDragPayload }} request
+	 */
+	async function dropInFrontend(request) {
+		const mapping = await call('studio.treeview.Authoring', {
+			project: selectedProjectName,
+			reference: JSON.stringify(request.reference)
+		});
+		const target = String(mapping?.id ?? '');
+		if (!target) {
+			return;
+		}
+		let handled = false;
+		onStudioMutationBusyChange(true);
+		try {
+			const result = await performDboDrop({
+				payload: request.payload,
+				target,
+				position: request.position,
+				dropAction: 'copy'
+			});
+			if (result.done) {
+				handled = true;
+				await onStudioMutation({ ...result, source: 'preview' });
+			}
+		} finally {
+			onStudioMutationBusyChange(false, handled);
+		}
+	}
+
+	/**
+	 * Move one source-backed frontend node through the same precise mutation
+	 * contract as tree DnD, after resolving both DOM references back to AST ids.
+	 * @param {{ source: import('$lib/studio/flowAuthoring').FlowAuthoringReference, reference: import('$lib/studio/flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }} request
+	 */
+	async function moveInFrontend(request) {
+		const [sourceMapping, targetMapping] = await Promise.all([
+			call('studio.treeview.Authoring', {
+				project: selectedProjectName,
+				reference: JSON.stringify(request.source)
+			}),
+			call('studio.treeview.Authoring', {
+				project: selectedProjectName,
+				reference: JSON.stringify(request.reference)
+			})
+		]);
+		const source = String(sourceMapping?.id ?? '');
+		const target = String(targetMapping?.id ?? '');
+		if (!source || !target || source === target) {
+			return;
+		}
+		let handled = false;
+		onStudioMutationBusyChange(true);
+		try {
+			const result = await performDboDrop({
+				payload: { type: 'treeData', data: { id: source } },
+				target,
+				position: request.position,
+				dropAction: 'move'
+			});
+			if (result.done) {
+				handled = true;
+				await onStudioMutation({ ...result, source: 'preview' });
+			}
+		} finally {
+			onStudioMutationBusyChange(false, handled);
+		}
+	}
+
+	/** @param {{ mode: string, palette: string, tokens: any[] }} context */
+	function updateFrontendThemeContext(context) {
+		frontendTheme = { projectName: selectedProjectName, context };
+	}
+
+	/**
 	 * @param {EditorTarget} target
 	 */
 	function openPropertyEditor(target) {
@@ -900,7 +1087,11 @@
 			serial: Date.now()
 		};
 		selectedId = target.id;
-		setWorkPanel('code');
+		if (profile === 'frontend') {
+			setFrontendResult('code');
+		} else {
+			setWorkPanel('code');
+		}
 	}
 
 	/**
@@ -964,11 +1155,15 @@
 	async function resolveSelectedTreeDocumentation(id) {
 		const response = await call('studio.properties.Get', { id });
 		const properties = response?.properties ?? {};
-		const javaClass = propertyValue(properties, 'Java class');
-		if (javaClass) {
-			const paletteItem = await findPaletteItemByClass(id, javaClass);
+		if (isFrontendBlockDefinitionSourceId(id)) {
+			return selectedObjectDocFallback(id, properties);
+		}
+		const flowType = propertyValue(properties, 'Flow type', 'virtualType');
+		const javaClass = propertyValue(properties, 'Java class', 'P_JavaClass');
+		if (flowType || javaClass) {
+			const paletteItem = await findPaletteItem(id, { flowType, javaClass });
 			if (paletteItem) {
-				return paletteItem;
+				return blockDefinitionForInstance(paletteItem, id, properties);
 			}
 		}
 		return selectedObjectDocFallback(id, properties);
@@ -976,22 +1171,16 @@
 
 	/**
 	 * @param {string} id
-	 * @param {string} className
+	 * @param {{ flowType?: string, javaClass?: string }} identity
 	 * @returns {Promise<PaletteItem | null>}
 	 */
-	async function findPaletteItemByClass(id, className) {
+	async function findPaletteItem(id, identity) {
 		const parentId = parentPaletteId(id);
 		if (!parentId) {
 			return null;
 		}
 		const context = await loadPaletteContext(parentId);
-		for (const category of context.categories) {
-			const item = (category.items ?? []).find((entry) => entry?.classname === className);
-			if (item) {
-				return item;
-			}
-		}
-		return null;
+		return findBlockDefinition(context.categories, identity);
 	}
 
 	/**
@@ -1000,26 +1189,30 @@
 	 * @returns {PaletteItem | null}
 	 */
 	function selectedObjectDocFallback(id, properties) {
+		const flowType = propertyValue(properties, 'Flow type', 'virtualType');
 		const name =
-			propertyValue(properties, 'Summary') ||
+			flowTypeDisplayName(flowType) ||
 			propertyValue(properties, 'Type') ||
+			propertyValue(properties, 'Summary', 'summary') ||
 			propertyValue(properties, 'Name') ||
 			selectionLabel(id);
 		const classname = propertyValue(properties, 'Java class');
 		if (!name && !classname) {
 			return null;
 		}
-		const propertyDocumentation = Object.entries(properties ?? {})
-			.filter(([, property]) => property?.category !== 'Information' && property?.shortDescription)
-			.map(([label, property]) => ({
-				label: String(property?.displayName || label),
-				description: String(property.shortDescription).trim()
-			}))
-			.filter((property) => property.description);
+		const definitionDocumentation = propertyDocumentationFromDefinition(properties);
+		const propertyDocumentation = definitionDocumentation.length
+			? definitionDocumentation
+			: propertyDocumentationFromProperties(properties);
 		return {
 			id,
 			name,
 			classname,
+			instanceName: propertyValue(properties, 'Summary', 'summary'),
+			flowType,
+			description: propertyValue(properties, 'Description', 'description'),
+			longDescriptionText: propertyValue(properties, 'Long description', 'longDescription'),
+			isBlockDefinition: false,
 			propertyDocumentation
 		};
 	}
@@ -1029,8 +1222,51 @@
 	 * @param {string} name
 	 * @returns {string}
 	 */
-	function propertyValue(properties, name) {
-		return String(properties?.[name]?.value ?? '').trim();
+	function propertyValue(properties, name, technicalName = '') {
+		return objectPropertyValue(properties, name, technicalName);
+	}
+
+	function canRevealBlockDefinition(id) {
+		return isFrontendAuthoringNodeId(id);
+	}
+
+	function canRevealInPalette(id) {
+		return isFrontendAuthoringNodeId(id);
+	}
+
+	async function revealInPalette(id) {
+		const item = await resolveSelectedTreeDocumentation(id);
+		if (!item?.isBlockDefinition) {
+			return;
+		}
+		selectedTreeDocItem = item;
+		selectedPaletteItem = item;
+		paletteRevealRequest = {
+			key: item.id || item.classname || item.name || '',
+			contextId: parentPaletteId(id),
+			serial: paletteRevealRequest.serial + 1
+		};
+		setSidePanel('palette');
+	}
+
+	async function revealBlockDefinition(id) {
+		const item = await resolveSelectedTreeDocumentation(id);
+		const sourceId = blockDefinitionSourceId(item);
+		if (!sourceId) {
+			return;
+		}
+		selectedId = sourceId;
+		setSidePanel('properties');
+		editorTarget = {
+			id: sourceId,
+			sourceDocument: true,
+			serial: Date.now()
+		};
+		if (profile === 'frontend') {
+			setFrontendResult('code');
+		} else {
+			setWorkPanel('code');
+		}
 	}
 
 	/**
@@ -1435,6 +1671,16 @@
 		);
 		persistStudioLayoutPreferences();
 	}
+
+	/**
+	 * @param {string} result
+	 */
+	function setFrontendResult(result) {
+		activeFrontendResult = /** @type {FrontendResult} */ (
+			storedChoice(result, FRONTEND_RESULT_IDS, activeFrontendResult)
+		);
+		persistStudioLayoutPreferences();
+	}
 </script>
 
 <svelte:head>
@@ -1506,6 +1752,12 @@
 			onMutation={onStudioMutation}
 			onMutationBusyChange={onStudioMutationBusyChange}
 			onContextAction={onStudioContextAction}
+			{canShowInFrontend}
+			onShowInFrontend={showInFrontend}
+			{canRevealInPalette}
+			onRevealInPalette={revealInPalette}
+			{canRevealBlockDefinition}
+			onRevealBlockDefinition={revealBlockDefinition}
 			onSourceDrop={applySourceDrop}
 		/>
 	</StudioPanel>
@@ -1529,6 +1781,12 @@
 		bind:landscape={frontendLandscape}
 		showDeviceSelector={false}
 		showDeviceDrawer
+		bind:authoringMode={frontendAuthoringMode}
+		selectedAuthoringReference={frontendAuthoringReference}
+		onAuthoringSelect={selectFrontendAuthoringReference}
+		onAuthoringDrop={dropInFrontend}
+		onAuthoringMove={moveInFrontend}
+		onThemeContext={updateFrontendThemeContext}
 	/>
 {/snippet}
 
@@ -1536,7 +1794,7 @@
 	<StudioEditorPanel
 		{selectedId}
 		{editorTarget}
-		active={activeWorkPanel === 'code'}
+		active={codeEditorActive}
 		onSave={refreshAfterPropertySave}
 		onSelectObject={selectObject}
 	/>
@@ -1595,10 +1853,11 @@
 			active={activeFrontendResult}
 			ariaLabel="Frontend workspace views"
 			class="studio__primary-panel"
-			fillIds={['frontend', 'doc']}
-			onSelect={(id) => (activeFrontendResult = /** @type {FrontendResult} */ (id))}
+			fillIds={['frontend', 'code', 'doc']}
+			onSelect={setFrontendResult}
 			panes={{
 				frontend: frontendPane,
+				code: codePane,
 				doc: docPane
 			}}
 		/>
@@ -1623,6 +1882,7 @@
 		{selectedId}
 		active={effectiveSidePanel === 'palette'}
 		{selectedPaletteItem}
+		revealRequest={paletteRevealRequest}
 		onPaletteItemSelect={selectPaletteItem}
 	/>
 {/snippet}
@@ -1636,6 +1896,8 @@
 		onOpenPropertyEditor={openPropertyEditor}
 		onOpenPropertyPicker={openPropertyPicker}
 		{pickerTarget}
+		identityItem={selectedTreeDocItem}
+		{frontendThemeContext}
 		onPickerApply={refreshAfterPickerApply}
 	/>
 {/snippet}

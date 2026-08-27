@@ -19,10 +19,16 @@
 	 *  label?: string,
 	 *  canRename?: boolean,
 	 *  canDelete?: boolean,
+	 *  canShowInFrontend?: boolean,
+	 *  canRevealInPalette?: boolean,
+	 *  canRevealDefinition?: boolean,
 	 *  deleting?: boolean,
 	 *  onSelectNode?: () => void,
 	 *  onRename?: () => void,
 	 *  onDelete?: () => void | Promise<void>,
+	 *  onShowInFrontend?: () => void | Promise<void>,
+	 *  onRevealInPalette?: () => void | Promise<void>,
+	 *  onRevealDefinition?: () => void | Promise<void>,
 	 *  onContextAction?: (event: { nodeId: string, action: StudioContextMenuItem, result: any }) => void | Promise<void>
 	 * }}
 	 */
@@ -31,10 +37,16 @@
 		label = 'object',
 		canRename = false,
 		canDelete = false,
+		canShowInFrontend = false,
+		canRevealInPalette = false,
+		canRevealDefinition = false,
 		deleting = false,
 		onSelectNode,
 		onRename,
 		onDelete,
+		onShowInFrontend,
+		onRevealInPalette,
+		onRevealDefinition,
 		onContextAction
 	} = $props();
 
@@ -93,8 +105,35 @@
 	 * @param {{ value: string }} details
 	 */
 	async function handleSelect(details) {
+		if (details.value === 'frontend.show') {
+			actionBusy = 'frontend.show';
+			try {
+				await onShowInFrontend?.();
+			} finally {
+				actionBusy = '';
+			}
+			return;
+		}
 		if (details.value === 'object.rename') {
 			onRename?.();
+			return;
+		}
+		if (details.value === 'definition.reveal') {
+			actionBusy = 'definition.reveal';
+			try {
+				await onRevealDefinition?.();
+			} finally {
+				actionBusy = '';
+			}
+			return;
+		}
+		if (details.value === 'palette.reveal') {
+			actionBusy = 'palette.reveal';
+			try {
+				await onRevealInPalette?.();
+			} finally {
+				actionBusy = '';
+			}
 			return;
 		}
 		if (details.value === 'object.delete') {
@@ -211,9 +250,64 @@
 	<Portal>
 		<Menu.Positioner class="studio-tree-action-menu__positioner">
 			<Menu.Content class="studio-tree-action-menu__content">
-				{#if canRename || canDelete}
+				{#if canShowInFrontend}
+					<Menu.ItemGroup>
+						<Menu.ItemGroupLabel>Frontend</Menu.ItemGroupLabel>
+						<Menu.Item
+							value="frontend.show"
+							class="studio-tree-action-menu__item"
+							disabled={Boolean(actionBusy)}
+							title="Open the development preview and reveal this component"
+						>
+							<Ico icon={actionBusy === 'frontend.show' ? 'mdi:sync' : 'mdi:target'} size={4} />
+							<span class="studio-tree-action-menu__item-copy">
+								<Menu.ItemText>Show in frontend</Menu.ItemText>
+								<small>Reveal this component in the development preview</small>
+							</span>
+						</Menu.Item>
+					</Menu.ItemGroup>
+					{#if canRevealInPalette || canRevealDefinition || canRename || canDelete || loading || loadError || groupedContextItems.length}
+						<Menu.Separator />
+					{/if}
+				{/if}
+
+				{#if canRevealInPalette || canRevealDefinition || canRename || canDelete}
 					<Menu.ItemGroup>
 						<Menu.ItemGroupLabel>Object</Menu.ItemGroupLabel>
+						{#if canRevealInPalette}
+							<Menu.Item
+								value="palette.reveal"
+								class="studio-tree-action-menu__item"
+								disabled={Boolean(actionBusy)}
+								title="Find and select this component type in the palette"
+							>
+								<Ico
+									icon={actionBusy === 'palette.reveal' ? 'mdi:sync' : 'mdi:palette-outline'}
+									size={4}
+								/>
+								<span class="studio-tree-action-menu__item-copy">
+									<Menu.ItemText>Reveal in palette</Menu.ItemText>
+									<small>Show this component type among the available blocks</small>
+								</span>
+							</Menu.Item>
+						{/if}
+						{#if canRevealDefinition}
+							<Menu.Item
+								value="definition.reveal"
+								class="studio-tree-action-menu__item"
+								disabled={Boolean(actionBusy)}
+								title="Reveal the implementation contract in its library project"
+							>
+								<Ico
+									icon={actionBusy === 'definition.reveal' ? 'mdi:sync' : 'mdi:file-code-outline'}
+									size={4}
+								/>
+								<span class="studio-tree-action-menu__item-copy">
+									<Menu.ItemText>Reveal block definition</Menu.ItemText>
+									<small>Show its Flow Svelte or code contract in the provider Library</small>
+								</span>
+							</Menu.Item>
+						{/if}
 						{#if canRename}
 							<Menu.Item value="object.rename" class="studio-tree-action-menu__item">
 								<Ico icon="mdi:pencil-outline" size={4} />
@@ -276,7 +370,7 @@
 					{/each}
 				{/if}
 
-				{#if !loading && !loadError && !canRename && !canDelete && !groupedContextItems.length}
+				{#if !loading && !loadError && !canShowInFrontend && !canRevealInPalette && !canRevealDefinition && !canRename && !canDelete && !groupedContextItems.length}
 					<Menu.Item value="context.empty" disabled class="studio-tree-action-menu__item">
 						<Menu.ItemText>No actions available</Menu.ItemText>
 					</Menu.Item>

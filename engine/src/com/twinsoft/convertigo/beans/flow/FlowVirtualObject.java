@@ -494,7 +494,28 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			property.setAttribute("isMultiline", "true");
 		}
 		property.appendChild(XMLUtils.writeObjectToXml(document, dynamicPropertyValue(value)));
+		appendPossibleValues(document, property, definition);
 		root.appendChild(property);
+	}
+
+	private static void appendPossibleValues(Document document, Element property, JSONObject definition) {
+		var values = definition == null ? null : definition.optJSONArray("enum");
+		if (values == null || values.length() == 0) {
+			return;
+		}
+		var possibleValues = document.createElement("possibleValues");
+		for (var i = 0; i < values.length(); i++) {
+			var value = values.opt(i);
+			if (value == null || JSONObject.NULL.equals(value)) {
+				continue;
+			}
+			var possibleValue = document.createElement("value");
+			possibleValue.setTextContent(String.valueOf(value));
+			possibleValues.appendChild(possibleValue);
+		}
+		if (possibleValues.hasChildNodes()) {
+			property.appendChild(possibleValues);
+		}
 	}
 
 	private static List<String> sortedKeys(JSONObject object) {
