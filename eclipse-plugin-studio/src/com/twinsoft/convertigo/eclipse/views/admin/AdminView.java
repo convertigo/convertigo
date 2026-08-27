@@ -131,7 +131,7 @@ public class AdminView extends ViewPart {
 
 		new C8oBrowserPostMessageHelper(browser);
 
-		authenticatedBrowser = new AuthenticatedBrowser(browser, this::getUrl);
+		authenticatedBrowser = new AuthenticatedBrowser(browser, this::getStudioUrl);
 		authenticatedBrowser.load();
 	}
 
@@ -160,8 +160,18 @@ public class AdminView extends ViewPart {
 		return baseUrl.replaceFirst("/+$", "") + path + "#authToken=" + authToken;
 	}
 
+	public static String getStudioAuthenticatedUrl(String path) {
+		path = path == null || path.isBlank() ? "/" : path;
+		String separator = path.contains("?") ? "&" : "?";
+		return getAuthenticatedUrl(path + separator + "studioMode=true&theme=" + (SwtUtils.isDark() ? "dark" : "light"));
+	}
+
 	private String getUrl() {
 		return getAuthenticatedUrl("/");
+	}
+
+	private String getStudioUrl() {
+		return getStudioAuthenticatedUrl("/");
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {

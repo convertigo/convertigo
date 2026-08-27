@@ -37,7 +37,6 @@ public class LogViewerView extends ViewPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView_preview";
 	private static final String LOG_VIEWER_PATH = "/admin/eclipse/logs";
-	private static final String EMBEDDED_LOG_VIEWER_PATH = LOG_VIEWER_PATH + "?studioMode=true";
 
 	private C8oBrowser browser = null;
 	private C8oBrowserPostMessageHelper postMessageHelper = null;
@@ -109,6 +108,6 @@ public class LogViewerView extends ViewPart {
 	}
 
 	private String getEmbeddedUrl() {
-		return AdminView.getAuthenticatedUrl(EMBEDDED_LOG_VIEWER_PATH);
+		return AdminView.getStudioAuthenticatedUrl(LOG_VIEWER_PATH);
 	}
 }

@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.Locale;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -66,6 +67,20 @@ public class SwtUtils {
 
 	private static boolean lastDark = false;
 	public static boolean isDark() {
+		try {
+			IThemeEngine themeEngine = (IThemeEngine) Display.getDefault().getData("org.eclipse.e4.ui.css.swt.theme");
+			var activeTheme = themeEngine == null ? null : themeEngine.getActiveTheme();
+			if (activeTheme != null) {
+				String theme = (activeTheme.getId() + " " + activeTheme.getLabel()).toLowerCase(Locale.ROOT);
+				if (theme.contains("dark")) {
+					return lastDark = true;
+				}
+				if (theme.contains("light")) {
+					return lastDark = false;
+				}
+			}
+		} catch (Exception e) {
+		}
 		try {
 			return lastDark = PlatformUI.getWorkbench().getWorkbenchWindows()[0].getShell().getBackground().getRed() < 128;
 		} catch (Exception e) {
