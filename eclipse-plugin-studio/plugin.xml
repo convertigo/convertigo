@@ -74,7 +74,7 @@
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.OpenAssistant"
-				icon="icons/setupwizard_16x16.gif"
+				icon="icons/tigo_16x16.png"
 				id="com.twinsoft.convertigo.OpenAssistant"
 				label="&amp;Open the Convertigo Assistant"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
@@ -3840,7 +3840,7 @@
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
-			icon="icons/setupwizard_16x16.gif"
+			icon="icons/tigo_16x16.png"
 			id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
 			name="Convertigo Assistant"
 			restorable="true">
