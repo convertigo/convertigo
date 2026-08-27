@@ -43,12 +43,14 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.tika.Tika;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
@@ -75,6 +77,7 @@ public class ServletUtils {
 			"index.html", "env.json", "version.json", "manifest.json", "manifest.webmanifest",
 			"asset-manifest.json", "ngsw.json", "ngsw-worker.js", "service-worker.js", "safety-worker.js");
 	private static final Set<String> MOBILE_STATIC_EXTENSIONS = Set.of("js", "mjs", "css", "map", "json", "webmanifest", "png", "jpg", "jpeg", "gif", "svg", "ico", "webp", "avif", "woff", "woff2", "ttf", "eot", "otf", "wasm");
+	private static final Tika MIME_TYPE_DETECTOR = new Tika();
 	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
@@ -123,6 +126,14 @@ public class ServletUtils {
 				}
 
 				String mimeType = filterConfig.getServletContext().getMimeType(file.getName());
+				if (mimeType == null) {
+					try {
+						mimeType = MIME_TYPE_DETECTOR.detect(file);
+					} catch (IOException e) {
+						Engine.logContext.warn("Unable to detect MIME type for static file: " + file, e);
+						mimeType = MimeType.OctetStream.value();
+					}
+				}
 				Engine.logContext.debug("Found MIME type: " + mimeType);
 				HeaderName.ContentType.setHeader(response, mimeType);
 				writeFile(request, response, file, rewritten, mimeType);

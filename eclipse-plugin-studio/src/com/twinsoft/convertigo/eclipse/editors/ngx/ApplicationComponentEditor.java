@@ -2435,9 +2435,13 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 
 	public void setBrowserDebugPort(int debugPort) {
+		String currentUrl = c8oBrowser.getURL();
 		c8oBrowser.setDebugPort(debugPort);
 		browser = c8oBrowser.getBrowser();
 		debugUrl = c8oBrowser.getDebugUrl();
+		if (currentUrl != null && !currentUrl.equals("about:blank") && !currentUrl.equals(c8oBrowser.getURL())) {
+			c8oBrowser.loadURL(currentUrl);
+		}
 	}
 
 	public void selectPage(String pagePath) {

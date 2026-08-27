@@ -518,7 +518,6 @@ public class C8oBrowser extends Composite {
 							.addSwitch("--remote-allow-origins=*")
 							.remoteDebuggingPort(debugPort).build());
 					rt = 0;
-					browserContext.setTheme(SwtUtils.isDark() ? Theme.DARK : Theme.LIGHT);
 				} catch (ChromiumBinariesDeliveryException e) {
 					rt--;
 					if (rt == 0) {
@@ -540,6 +539,10 @@ public class C8oBrowser extends Composite {
 				}
 			}
 			browserContexts.put(browserId, browserContext);
+		}
+		Theme theme = SwtUtils.isDark() ? Theme.DARK : Theme.LIGHT;
+		if (browserContext.theme() != theme) {
+			browserContext.setTheme(theme);
 		}
 		debugUrl = "http://localhost:" + browserContext.options().remoteDebuggingPort().get();
 		this.browserContext = browserContext;

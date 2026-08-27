@@ -1,6 +1,7 @@
 <script>
 	import '../app.css';
 	import { Toast } from '@skeletonlabs/skeleton-svelte';
+	import { browser } from '$app/environment';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { asset } from '$app/paths';
 	import { page } from '$app/state';
@@ -122,7 +123,15 @@
 		void syncAuthentication();
 	});
 
-	Light.light;
+	const studioTheme =
+		browser && page.url.searchParams.get('studioMode') == 'true'
+			? page.url.searchParams.get('theme')
+			: null;
+	if (browser && (studioTheme == 'light' || studioTheme == 'dark')) {
+		Light.light = studioTheme == 'light';
+	} else {
+		Light.light;
+	}
 </script>
 
 <svelte:head>
