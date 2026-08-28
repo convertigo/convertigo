@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.dnd;
 
+import org.codehaus.jettison.json.JSONObject;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 public class PaletteSource {
@@ -86,6 +88,21 @@ public class PaletteSource {
 			xmlData = "<xml/>";
 		}
 		return xmlData;
+	}
+
+	public String getBrowserDragData() {
+		if (!isFrontendBlock() || flowItemData == null || flowItemData.isBlank()) {
+			return getXmlData();
+		}
+		try {
+			return new JSONObject()
+					.put("type", "paletteData")
+					.put("data", new JSONObject(flowItemData).put("type", "FrontendBlock"))
+					.put("options", new JSONObject())
+					.toString();
+		} catch (Exception e) {
+			return getXmlData();
+		}
 	}
 	
 	public DatabaseObject getDatabaseObject() {

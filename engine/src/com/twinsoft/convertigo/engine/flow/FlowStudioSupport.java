@@ -226,6 +226,13 @@ public class FlowStudioSupport {
 		}
 	}
 
+	public static String authoringSourceRelativePath(DatabaseObject databaseObject) {
+		if (!(databaseObject instanceof FlowVirtualObject fvo) || !isFrontendSourcePath(sourcePath(fvo))) {
+			return "";
+		}
+		return sourceRelativePath(fvo);
+	}
+
 	public static DatabaseObject resolveAuthoringReference(String projectName, JSONObject reference) throws Exception {
 		if (reference == null || projectName == null || projectName.isBlank()) {
 			return null;
@@ -346,9 +353,98 @@ public class FlowStudioSupport {
 			return emptyContextMenu();
 		}
 		var request = contextRequest(root, targetDbo);
-		return root instanceof Flow flow
+		var menu = root instanceof Flow flow
 				? new FlowEngineBridge().contextMenu(flow, request)
 				: new FlowEngineBridge().contextMenu((FlowEngine) root, request);
+		return appendStudioClientActions(menu, targetDbo);
+	}
+
+	static JSONObject appendStudioClientActions(JSONObject menu, DatabaseObject targetDbo) throws Exception {
+		if (menu == null || !menu.optBoolean("ok", false) || authoringReference(targetDbo) == null) {
+			return menu;
+		}
+		var items = menu.optJSONArray("items");
+		if (items == null) {
+			items = new JSONArray();
+			menu.put("items", items);
+		}
+		appendStudioClientAction(items, "studio.frontend.reveal", "Reveal in application",
+				"Open the development preview and reveal this component.", "Frontend", "frontend.reveal", "mdi:target",
+				"icons/studio/web_color_16x16.png");
+		appendStudioClientAction(items, "studio.palette.reveal", "Reveal in palette",
+				"Show this component type among the available frontend blocks.", "Frontend", "palette.reveal", "mdi:palette-outline",
+				"icons/palette_16x16.png");
+		appendStudioClientAction(items, "studio.definition.reveal", "Open block source",
+				"Open the Flow Svelte or code contract provided by the component library.", "Frontend", "definition.reveal", "mdi:file-code-outline",
+				"icons/studio/beans/steps/jsource_16x16.png");
+		return menu;
+	}
+
+	private static void appendStudioClientAction(JSONArray items, String id, String label, String description,
+			String group, String clientAction, String icon, String iconFile16) throws Exception {
+		for (int i = 0; i < items.length(); i++) {
+			var item = items.optJSONObject(i);
+			if (item != null && id.equals(item.optString("id", ""))) {
+				return;
+			}
+		}
+		items.put(new JSONObject()
+				.put("id", id)
+				.put("label", label)
+				.put("description", description)
+				.put("group", group)
+				.put("enabled", true)
+				.put("payload", new JSONObject())
+				.put("confirm", "")
+				.put("icon", icon)
+				.put("iconFile16", iconFile16)
+				.put("placement", "")
+				.put("clientAction", clientAction));
+	}
+
+	public static String frontendBlockDefinitionId(DatabaseObject targetDbo) throws Exception {
+		if (!(targetDbo instanceof FlowVirtualObject fvo) || authoringReference(targetDbo) == null) {
+			return "";
+		}
+		var expectedType = normalizedFrontendType(fvo.getVirtualType());
+		if (expectedType.isBlank()) {
+			return "";
+		}
+		var categories = paletteCategories(targetDbo);
+		for (int i = 0; i < categories.length(); i++) {
+			var items = categories.optJSONObject(i) == null ? null : categories.optJSONObject(i).optJSONArray("items");
+			if (items == null) {
+				continue;
+			}
+			for (int j = 0; j < items.length(); j++) {
+				var item = items.optJSONObject(j);
+				if (item == null || !matchesFrontendType(item, expectedType)) {
+					continue;
+				}
+				var sourceProject = firstNonBlank(item, "sourceProject", "provider");
+				var definitionPath = firstNonBlank(item, "sourceDefinitionPath", "definitionPath");
+				if (sourceProject.matches("[A-Za-z0-9_.-]+")
+						&& definitionPath.matches("[A-Za-z0-9_.-]+") && !definitionPath.contains("..")) {
+					return sourceProject + ".FlowEngine." + definitionPath;
+				}
+			}
+		}
+		return "";
+	}
+
+	private static boolean matchesFrontendType(JSONObject item, String expectedType) {
+		for (var key : new String[] { "block", "classname", "id", "name" }) {
+			if (expectedType.equals(normalizedFrontendType(item.optString(key, "")))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static String normalizedFrontendType(String value) {
+		var normalized = value == null ? "" : value.trim().replaceFirst("(?i)^frontendblock:", "");
+		normalized = normalized.replaceFirst("^.*[.:/]", "");
+		return normalized.replaceAll("[^A-Za-z0-9]", "").toLowerCase();
 	}
 
 	public static JSONObject outputSchema(DatabaseObject targetDbo) throws Exception {

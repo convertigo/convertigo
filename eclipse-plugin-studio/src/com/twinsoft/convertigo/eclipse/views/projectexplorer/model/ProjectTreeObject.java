@@ -431,6 +431,12 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 
 	private void refreshFlowVirtualTree(Set<String> flowSourceNames, boolean flowRuntimeSourceChanged,
 			boolean flowCatalogSourceChanged, boolean flowFrontendSourceChanged) {
+		refreshFlowVirtualTree(flowSourceNames, flowRuntimeSourceChanged,
+				flowCatalogSourceChanged, flowFrontendSourceChanged, "");
+	}
+
+	private void refreshFlowVirtualTree(Set<String> flowSourceNames, boolean flowRuntimeSourceChanged,
+			boolean flowCatalogSourceChanged, boolean flowFrontendSourceChanged, String revealSourcePath) {
 		if (!flowRuntimeSourceChanged && !flowCatalogSourceChanged && !flowFrontendSourceChanged
 				&& flowSourceNames.isEmpty()) {
 			return;
@@ -447,7 +453,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				ConvertigoPlugin.asyncExec(() -> {
 					try {
 						var explorerView = getProjectExplorerView();
-						if (flowRuntimeSourceChanged || flowCatalogSourceChanged) {
+						if (flowRuntimeSourceChanged || flowCatalogSourceChanged || flowFrontendSourceChanged) {
 							FlowEngine flowEngine = project.getFlowEngine();
 							if (flowEngine != null) {
 								var treeObject = explorerView.findTreeObjectByUserObject(flowEngine);
@@ -469,6 +475,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							} catch (Exception e) {
 							}
 						}
+						if (!revealSourcePath.isBlank()) {
+							explorerView.selectFlowAuthoringSource(getName(), revealSourcePath);
+						}
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Unable to refresh Flow virtual tree for project \"" + getName() + "\".");
 					}
@@ -480,6 +489,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 
 	public void refreshFlowVirtualTree(String sourcePath) {
+		refreshFlowVirtualTree(sourcePath, false);
+	}
+
+	public void refreshFlowVirtualTree(String sourcePath, boolean reveal) {
 		var path = sourcePath == null ? "" : sourcePath.replace('\\', '/');
 		var flowSourceNames = new HashSet<String>();
 		if (path.startsWith("libs/flows/") && path.endsWith(".flow.js")) {
@@ -490,7 +503,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		var runtimeSource = flowPath && FlowEngineBridge.requiresRuntimeCacheInvalidation(path);
 		var frontendSource = flowPath && FlowEngineBridge.isFrontendAuthoringSourcePath(path);
 		refreshFlowVirtualTree(flowSourceNames, runtimeSource,
-				flowPath && !runtimeSource && !frontendSource, frontendSource);
+				flowPath && !runtimeSource && !frontendSource, frontendSource,
+				reveal && frontendSource ? path : "");
 	}
 
 	@Override

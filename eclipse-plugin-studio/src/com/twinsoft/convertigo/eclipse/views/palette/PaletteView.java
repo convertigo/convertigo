@@ -253,6 +253,18 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	public PaletteView() {
 	}
 
+	public void revealFlowItem(DatabaseObject target) {
+		if (target == null || searchText == null || searchText.isDisposed()) {
+			return;
+		}
+		var type = target instanceof FlowVirtualObject fvo ? fvo.getVirtualType() : target.getName();
+		var label = type == null ? "" : type.trim().replaceFirst("^.*[.:/]", "")
+				.replaceAll("([a-z0-9])([A-Z])", "$1 $2");
+		searchText.setText(label);
+		searchText.notifyListeners(SWT.Modify, new Event());
+		searchText.setFocus();
+	}
+
 	private void clearImageCache() {
 		for (Image image: imageCache.values()) {
 			if (image != null && !image.isDisposed()) {
@@ -1108,7 +1120,10 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 
 				@Override
 				public void dragSetData(DragSourceEvent event) {
-					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
+					var paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
+					event.data = TextTransfer.getInstance().isSupportedType(event.dataType)
+							? paletteSource.getBrowserDragData()
+							: paletteSource.getXmlData();
 				}
 			};
 

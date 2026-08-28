@@ -12,6 +12,8 @@
 	 * @property {boolean=} enabled
 	 * @property {Record<string, any>=} payload
 	 * @property {string=} confirm
+	 * @property {string=} icon
+	 * @property {string=} clientAction
 	 */
 	/**
 	 * @type {{
@@ -88,7 +90,7 @@
 				: Array.isArray(response?.items)
 					? response.items
 					: [];
-			contextItems = reconcileDevActionState(items);
+			contextItems = reconcileDevActionState(reconcileClientActionState(items));
 		} catch (error) {
 			if (serial === requestSerial) {
 				loadError = String(error instanceof Error ? error.message : error);
@@ -105,35 +107,8 @@
 	 * @param {{ value: string }} details
 	 */
 	async function handleSelect(details) {
-		if (details.value === 'frontend.show') {
-			actionBusy = 'frontend.show';
-			try {
-				await onShowInFrontend?.();
-			} finally {
-				actionBusy = '';
-			}
-			return;
-		}
 		if (details.value === 'object.rename') {
 			onRename?.();
-			return;
-		}
-		if (details.value === 'definition.reveal') {
-			actionBusy = 'definition.reveal';
-			try {
-				await onRevealDefinition?.();
-			} finally {
-				actionBusy = '';
-			}
-			return;
-		}
-		if (details.value === 'palette.reveal') {
-			actionBusy = 'palette.reveal';
-			try {
-				await onRevealInPalette?.();
-			} finally {
-				actionBusy = '';
-			}
 			return;
 		}
 		if (details.value === 'object.delete') {
@@ -153,6 +128,10 @@
 		}
 		actionBusy = action.id;
 		try {
+			if (action.clientAction) {
+				await runClientAction(action.clientAction);
+				return;
+			}
 			const result = await runStudioContextAction(nodeId, action);
 			if (result?.ok !== false && action.id.endsWith('.dev.start')) {
 				devRunningOverride = true;
@@ -165,6 +144,39 @@
 		} finally {
 			actionBusy = '';
 		}
+	}
+
+	/**
+	 * @param {string} clientAction
+	 */
+	async function runClientAction(clientAction) {
+		if (clientAction === 'frontend.reveal') {
+			await onShowInFrontend?.();
+		} else if (clientAction === 'palette.reveal') {
+			await onRevealInPalette?.();
+		} else if (clientAction === 'definition.reveal') {
+			await onRevealDefinition?.();
+		}
+	}
+
+	/**
+	 * Surface capabilities can disable a shared descriptor without changing its
+	 * identity, label or grouping across Eclipse and Studio Web.
+	 * @param {StudioContextMenuItem[]} items
+	 */
+	function reconcileClientActionState(items) {
+		return items.map((item) => {
+			if (item.clientAction === 'frontend.reveal') {
+				return { ...item, enabled: item.enabled !== false && canShowInFrontend };
+			}
+			if (item.clientAction === 'palette.reveal') {
+				return { ...item, enabled: item.enabled !== false && canRevealInPalette };
+			}
+			if (item.clientAction === 'definition.reveal') {
+				return { ...item, enabled: item.enabled !== false && canRevealDefinition };
+			}
+			return item;
+		});
 	}
 
 	/**
@@ -215,10 +227,13 @@
 	}
 
 	/**
-	 * @param {string} id
+	 * @param {StudioContextMenuItem} item
 	 * @returns {string}
 	 */
-	function contextActionIcon(id) {
+	function contextActionIcon(item) {
+		const id = item.id;
+		const icon = item.icon || '';
+		if (/^[a-z][a-z0-9-]*:[a-z0-9_.-]+$/i.test(icon)) return icon;
 		if (id.endsWith('.dev.start')) return 'mdi:play';
 		if (id.endsWith('.dev.stop')) return 'mdi:close-circle-outline';
 		if (id.endsWith('.dev.open') || id.endsWith('.openBuilt')) return 'mdi:open-in-new-variant';
@@ -250,64 +265,9 @@
 	<Portal>
 		<Menu.Positioner class="studio-tree-action-menu__positioner">
 			<Menu.Content class="studio-tree-action-menu__content">
-				{#if canShowInFrontend}
-					<Menu.ItemGroup>
-						<Menu.ItemGroupLabel>Frontend</Menu.ItemGroupLabel>
-						<Menu.Item
-							value="frontend.show"
-							class="studio-tree-action-menu__item"
-							disabled={Boolean(actionBusy)}
-							title="Open the development preview and reveal this component"
-						>
-							<Ico icon={actionBusy === 'frontend.show' ? 'mdi:sync' : 'mdi:target'} size={4} />
-							<span class="studio-tree-action-menu__item-copy">
-								<Menu.ItemText>Show in frontend</Menu.ItemText>
-								<small>Reveal this component in the development preview</small>
-							</span>
-						</Menu.Item>
-					</Menu.ItemGroup>
-					{#if canRevealInPalette || canRevealDefinition || canRename || canDelete || loading || loadError || groupedContextItems.length}
-						<Menu.Separator />
-					{/if}
-				{/if}
-
-				{#if canRevealInPalette || canRevealDefinition || canRename || canDelete}
+				{#if canRename || canDelete}
 					<Menu.ItemGroup>
 						<Menu.ItemGroupLabel>Object</Menu.ItemGroupLabel>
-						{#if canRevealInPalette}
-							<Menu.Item
-								value="palette.reveal"
-								class="studio-tree-action-menu__item"
-								disabled={Boolean(actionBusy)}
-								title="Find and select this component type in the palette"
-							>
-								<Ico
-									icon={actionBusy === 'palette.reveal' ? 'mdi:sync' : 'mdi:palette-outline'}
-									size={4}
-								/>
-								<span class="studio-tree-action-menu__item-copy">
-									<Menu.ItemText>Reveal in palette</Menu.ItemText>
-									<small>Show this component type among the available blocks</small>
-								</span>
-							</Menu.Item>
-						{/if}
-						{#if canRevealDefinition}
-							<Menu.Item
-								value="definition.reveal"
-								class="studio-tree-action-menu__item"
-								disabled={Boolean(actionBusy)}
-								title="Reveal the implementation contract in its library project"
-							>
-								<Ico
-									icon={actionBusy === 'definition.reveal' ? 'mdi:sync' : 'mdi:file-code-outline'}
-									size={4}
-								/>
-								<span class="studio-tree-action-menu__item-copy">
-									<Menu.ItemText>Reveal block definition</Menu.ItemText>
-									<small>Show its Flow Svelte or code contract in the provider Library</small>
-								</span>
-							</Menu.Item>
-						{/if}
 						{#if canRename}
 							<Menu.Item value="object.rename" class="studio-tree-action-menu__item">
 								<Ico icon="mdi:pencil-outline" size={4} />
@@ -355,7 +315,7 @@
 									title={item.description || item.label || item.id}
 								>
 									<Ico
-										icon={actionBusy === item.id ? 'mdi:sync' : contextActionIcon(item.id)}
+										icon={actionBusy === item.id ? 'mdi:sync' : contextActionIcon(item)}
 										size={4}
 									/>
 									<span class="studio-tree-action-menu__item-copy">
@@ -370,7 +330,7 @@
 					{/each}
 				{/if}
 
-				{#if !loading && !loadError && !canShowInFrontend && !canRevealInPalette && !canRevealDefinition && !canRename && !canDelete && !groupedContextItems.length}
+				{#if !loading && !loadError && !canRename && !canDelete && !groupedContextItems.length}
 					<Menu.Item value="context.empty" disabled class="studio-tree-action-menu__item">
 						<Menu.ItemText>No actions available</Menu.ItemText>
 					</Menu.Item>

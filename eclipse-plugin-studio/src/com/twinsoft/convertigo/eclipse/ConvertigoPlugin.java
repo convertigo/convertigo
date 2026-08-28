@@ -212,12 +212,13 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			var payload = (org.codehaus.jettison.json.JSONObject) event.payload();
 			var projectName = payload.optString("projectName", "");
 			var sourcePath = payload.optString("sourcePath", "");
+			var reveal = payload.optBoolean("reveal", false);
 			getDisplay().asyncExec(() -> {
 				try {
 					var explorer = getProjectExplorerView();
 					var root = explorer == null || projectName.isBlank() ? null : explorer.getProjectRootObject(projectName);
 					if (root instanceof ProjectTreeObject projectTreeObject) {
-						projectTreeObject.refreshFlowVirtualTree(sourcePath);
+						projectTreeObject.refreshFlowVirtualTree(sourcePath, reveal);
 					}
 				} catch (Exception e) {
 					logException(e, "Unable to refresh Flow source \"" + sourcePath + "\".");

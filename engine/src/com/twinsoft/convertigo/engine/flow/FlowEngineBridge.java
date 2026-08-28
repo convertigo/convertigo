@@ -153,6 +153,10 @@ public class FlowEngineBridge {
 	}
 
 	public static void notifySourceMutation(String projectDir, String sourcePath) {
+		notifySourceMutation(projectDir, sourcePath, false);
+	}
+
+	public static void notifySourceMutation(String projectDir, String sourcePath, boolean reveal) {
 		invalidateDataCaches();
 		var projectName = projectNameForDir(projectDir);
 		try {
@@ -176,7 +180,8 @@ public class FlowEngineBridge {
 			var payload = new JSONObject()
 					.put("projectName", projectName)
 					.put("projectDir", projectDir == null ? "" : projectDir)
-					.put("sourcePath", sourcePath == null ? "" : sourcePath);
+					.put("sourcePath", sourcePath == null ? "" : sourcePath)
+					.put("reveal", reveal);
 			Engine.theApp.eventManager.dispatchEvent(
 					new StudioEvent(StudioEvent.FLOW_SOURCE_CHANGED, payload),
 					StudioEventListener.class);

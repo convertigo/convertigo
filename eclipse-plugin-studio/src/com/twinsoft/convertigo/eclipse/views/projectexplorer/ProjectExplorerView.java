@@ -193,6 +193,7 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
 import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor;
+import com.twinsoft.convertigo.eclipse.views.palette.PaletteView;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction;
@@ -853,10 +854,16 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							if (!description.isBlank()) {
 								setToolTipText(description);
 							}
-							var icon = item.optString("icon", "");
-							if (!icon.isBlank()) {
+							var iconFile16 = item.optString("iconFile16", "");
+							var sharedIcon = item.optString("icon", "");
+							if (iconFile16.isBlank() && !sharedIcon.contains(":")) {
+								iconFile16 = sharedIcon;
+							}
+							if (!iconFile16.isBlank()) {
 								try {
-									var image = ConvertigoPlugin.getDefault().getIconFromPath(icon, BeanInfo.ICON_COLOR_16x16);
+									var image = iconFile16.startsWith("icons/")
+											? ConvertigoPlugin.getDefault().getStudioIcon(iconFile16)
+											: ConvertigoPlugin.getDefault().getIconFromPath(iconFile16, BeanInfo.ICON_COLOR_16x16);
 									setImageDescriptor(ImageDescriptor.createFromImage(image));
 								} catch (Exception e) {
 								}
@@ -916,6 +923,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	private void runFlowContextAction(DatabaseObject targetDbo, JSONObject item) {
 		try {
+			var clientAction = item.optString("clientAction", "");
+			if (!clientAction.isBlank()) {
+				runFlowClientAction(targetDbo, clientAction);
+				return;
+			}
 			var confirm = item.optString("confirm", "");
 			if (!confirm.isBlank() && !MessageDialog.openConfirm(viewer.getControl().getShell(), "Flow", confirm)) {
 				return;
@@ -950,6 +962,61 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to execute Flow context action.");
 			MessageDialog.openError(viewer.getControl().getShell(), "Flow", e.getMessage());
+		}
+	}
+
+	private void runFlowClientAction(DatabaseObject targetDbo, String clientAction) throws Exception {
+		switch (clientAction) {
+		case "frontend.reveal" -> {
+			var reference = FlowStudioSupport.authoringReference(targetDbo);
+			var project = targetDbo == null ? null : targetDbo.getProject();
+			if (reference == null || project == null
+					|| !FlowEngineEditor.highlightAuthoringObject(project.getName(), reference)) {
+				setFlowStatusMessage("No development preview is open for this component.");
+			}
+		}
+		case "palette.reveal" -> {
+			var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			var view = page.showView("com.twinsoft.convertigo.eclipse.views.palette.PaletteView");
+			if (view instanceof PaletteView paletteView) {
+				paletteView.revealFlowItem(targetDbo);
+			}
+		}
+		case "definition.reveal" -> {
+			var job = new Job("Resolve Flow block source") {
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+					try {
+						var definitionId = FlowStudioSupport.frontendBlockDefinitionId(targetDbo);
+						var definition = definitionId.isBlank() ? null : FlowStudioSupport.resolveTreeObject(definitionId);
+						Display.getDefault().asyncExec(() -> revealFlowBlockDefinition(definition));
+						return Status.OK_STATUS;
+					} catch (Exception e) {
+						ConvertigoPlugin.logException(e, "Unable to resolve the Flow block source.");
+						Display.getDefault().asyncExec(() -> setFlowStatusMessage(
+								"Unable to resolve the component block source."));
+						return new Status(IStatus.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, e.getMessage(), e);
+					}
+				}
+			};
+			job.setUser(true);
+			job.schedule();
+		}
+		default -> setFlowStatusMessage("Unsupported Studio action: " + clientAction);
+		}
+	}
+
+	private void revealFlowBlockDefinition(DatabaseObject definition) {
+		if (viewer == null || viewer.getControl() == null || viewer.getControl().isDisposed()) {
+			return;
+		}
+		var treeObject = definition == null ? null : findTreeObjectByUserObject(definition);
+		if (treeObject instanceof FlowVirtualObjectTreeObject flowTreeObject) {
+			revealFlowTreeObject(treeObject);
+			setSelectedTreeObject(treeObject);
+			flowTreeObject.launchEditor("source");
+		} else {
+			setFlowStatusMessage("Unable to resolve the component block source.");
 		}
 	}
 
@@ -999,6 +1066,26 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					FlowTreeMutationReconciler.selection(targetTreeObject));
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to reconcile Flow tree after context mutation.");
+			return false;
+		}
+	}
+
+	public boolean reconcileFlowAuthoringMutation(TreeObject targetTreeObject, TreeObject selectedTreeObject,
+			DatabaseObject targetDbo, JSONObject selectionReference, JSONObject mutationResult) {
+		try {
+			var reconciled = FlowTreeMutationReconciler.reconcile(this, targetTreeObject, mutationResult,
+					FlowTreeMutationReconciler.selection(selectedTreeObject,
+							mutationResult == null ? "" : mutationResult.optString("selectionMutationPath", "")));
+			if (!reconciled) {
+				return reloadFlowContextMutation(targetDbo, selectionReference);
+			}
+			var project = targetDbo == null ? null : targetDbo.getProject();
+			if (selectionReference != null && project != null) {
+				selectFlowAuthoringReference(project.getName(), selectionReference);
+			}
+			return true;
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to reconcile Flow tree after visual authoring mutation.");
 			return false;
 		}
 	}
@@ -3210,10 +3297,23 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					&& projectName.equals(projectTreeObject.getObject().getName())) {
 				var treeObject = findFlowAuthoringTreeObject(projectTreeObject, reference);
 				if (treeObject == null) {
+					try {
+						var flowEngine = projectTreeObject.getObject().getFlowEngine();
+						var flowEngineTreeObject = flowEngine == null ? null
+								: findTreeObjectByUserObject(flowEngine, projectTreeObject);
+						if (flowEngineTreeObject != null) {
+							forceReloadTreeObject(flowEngineTreeObject);
+							treeObject = findFlowAuthoringTreeObject(projectTreeObject, reference);
+						}
+					} catch (Exception e) {
+						ConvertigoPlugin.logException(e, "Unable to refresh the Flow tree before reveal.");
+					}
+				}
+				if (treeObject == null) {
 					return false;
 				}
 				setFocus();
-				viewer.expandToLevel(treeObject, 0);
+				revealFlowTreeObject(treeObject);
 				setSelectedTreeObject(treeObject);
 				var selection = new StructuredSelection(treeObject);
 				ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged(this, selection);
@@ -3221,6 +3321,78 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 		}
 		return false;
+	}
+
+	public boolean selectFlowAuthoringSource(String projectName, String sourcePath) {
+		if (projectName == null || projectName.isBlank() || sourcePath == null || sourcePath.isBlank()) {
+			return false;
+		}
+		var provider = (ViewContentProvider) viewer.getContentProvider();
+		if (provider == null) {
+			return false;
+		}
+		for (var object : provider.getChildren(provider.getTreeRoot())) {
+			if (object instanceof ProjectTreeObject projectTreeObject
+					&& projectName.equals(projectTreeObject.getObject().getName())) {
+				var treeObject = findFlowAuthoringSourceTreeObject(projectTreeObject, sourcePath);
+				if (treeObject == null) {
+					try {
+						var flowEngine = projectTreeObject.getObject().getFlowEngine();
+						var flowEngineTreeObject = flowEngine == null ? null
+								: findTreeObjectByUserObject(flowEngine, projectTreeObject);
+						if (flowEngineTreeObject != null) {
+							forceReloadTreeObject(flowEngineTreeObject);
+							treeObject = findFlowAuthoringSourceTreeObject(projectTreeObject, sourcePath);
+						}
+					} catch (Exception e) {
+						ConvertigoPlugin.logException(e, "Unable to refresh the Flow tree before revealing source \""
+								+ sourcePath + "\".");
+					}
+				}
+				if (treeObject == null) {
+					ConvertigoPlugin.logWarning(null, "Unable to find Flow source \"" + sourcePath
+							+ "\" in the project tree for \"" + projectName + "\".", false);
+					return false;
+				}
+				setFocus();
+				revealFlowTreeObject(treeObject);
+				setSelectedTreeObject(treeObject);
+				var selection = new StructuredSelection(treeObject);
+				ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged(this, selection);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void revealFlowTreeObject(TreeObject treeObject) {
+		var ancestors = new ArrayList<TreeObject>();
+		for (var parent = treeObject == null ? null : treeObject.getParent(); parent != null; parent = parent.getParent()) {
+			ancestors.add(parent);
+		}
+		for (var index = ancestors.size() - 1; index >= 0; index--) {
+			viewer.expandToLevel(ancestors.get(index), 1);
+		}
+		viewer.reveal(treeObject);
+	}
+
+	private TreeObject findFlowAuthoringSourceTreeObject(TreeObject candidate, String sourcePath) {
+		if (candidate instanceof FlowVirtualObjectTreeObject flowTreeObject) {
+			var sourceRelativePath = FlowStudioSupport.authoringSourceRelativePath(flowTreeObject.getObject());
+			if (!sourceRelativePath.isBlank() && normalizedFlowSourcePath(sourceRelativePath)
+					.equals(normalizedFlowSourcePath(sourcePath))) {
+				return candidate;
+			}
+		}
+		if (candidate instanceof TreeParent parent) {
+			for (var child : parent.getChildren()) {
+				var found = findFlowAuthoringSourceTreeObject(child, sourcePath);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
 	}
 
 	private TreeObject findFlowAuthoringTreeObject(TreeObject candidate, JSONObject reference) {

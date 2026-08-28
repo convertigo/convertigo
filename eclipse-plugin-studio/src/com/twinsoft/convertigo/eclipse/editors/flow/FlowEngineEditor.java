@@ -20,8 +20,8 @@
 package com.twinsoft.convertigo.eclipse.editors.flow;
 
 import org.codehaus.jettison.json.JSONObject;
-import org.codehaus.jettison.json.JSONTokener;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -37,14 +37,20 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
-import com.teamdev.jxbrowser.browser.callback.ShowContextMenuCallback;
+import com.teamdev.jxbrowser.browser.callback.InjectJsCallback;
+import com.teamdev.jxbrowser.browser.callback.InjectJsCallback.Response;
+import com.teamdev.jxbrowser.js.JsAccessible;
+import com.teamdev.jxbrowser.js.JsObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 public class FlowEngineEditor extends EditorPart {
 
@@ -116,34 +122,159 @@ public class FlowEngineEditor extends EditorPart {
 			return;
 		}
 		authoringBridgeInstalled = true;
-		browser.getBrowser().set(ShowContextMenuCallback.class, (params, tell) -> {
+		browser.getBrowser().set(InjectJsCallback.class, event -> {
+			var frame = event.frame();
+			JsObject window = frame.executeJavaScript("window");
+			window.putProperty("__c8oStudioAuthoring", new AuthoringBridge());
+			frame.executeJavaScript("""
+					window.addEventListener("convertigo-flow-authoring", event => {
+						const message = event.detail;
+						if (message?.protocol === "convertigo.flow.authoring.v1"
+								&& ["authoring.select", "authoring.reveal", "authoring.move", "authoring.drop"].includes(message.type)
+								&& message.reference) {
+							window.__c8oStudioAuthoring?.receive(JSON.stringify(message));
+						}
+					});
+					""");
+			return Response.proceed();
+		});
+	}
+
+	public class AuthoringBridge {
+		@JsAccessible
+		public void receive(String serializedMessage) {
 			try {
-				var location = params.location();
-				revealAuthoringObjectAt(location.x(), location.y());
-			} finally {
-				tell.close();
+				var message = new JSONObject(serializedMessage);
+				if (!"convertigo.flow.authoring.v1".equals(message.optString("protocol", ""))) {
+					return;
+				}
+				var type = message.optString("type", "");
+				var reference = message.optJSONObject("reference");
+				if (reference == null) {
+					return;
+				}
+				if ("authoring.select".equals(type) || "authoring.reveal".equals(type)) {
+					browser.getDisplay().asyncExec(() -> revealAuthoringReference(reference));
+				} else if ("authoring.move".equals(type) || "authoring.drop".equals(type)) {
+					browser.getDisplay().asyncExec(() -> runAuthoringMutation(message));
+				}
+			} catch (Exception e) {
+				Engine.logStudio.debug("Unable to process Flow authoring message.", e);
+			}
+		}
+	}
+
+	private void runAuthoringMutation(JSONObject message) {
+		var explorer = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (explorer == null || browser == null || browser.isDisposed()) {
+			return;
+		}
+		try {
+			var type = message.optString("type", "");
+			var position = message.optString("position", "");
+			if (!"before".equals(position) && !"inside".equals(position) && !"after".equals(position)) {
+				throw new IllegalArgumentException("Unsupported Flow authoring position: " + position);
+			}
+			var target = FlowStudioSupport.resolveAuthoringReference(getProjectName(), message.getJSONObject("reference"));
+			var source = "authoring.move".equals(type)
+					? FlowStudioSupport.resolveAuthoringReference(getProjectName(), message.getJSONObject("source"))
+					: null;
+			if (target == null || ("authoring.move".equals(type) && source == null)) {
+				throw new IllegalArgumentException("Unable to resolve the Flow authoring source or target.");
+			}
+			var targetTreeObject = explorer.findTreeObjectByUserObject(target);
+			var selectedTreeObject = explorer.findTreeObjectByUserObject(source == null ? target : source);
+			var selectionReference = new JSONObject((source == null
+					? message.getJSONObject("reference") : message.getJSONObject("source")).toString());
+			Engine.execute(() -> executeAuthoringMutation(message, type, position, target, source,
+					targetTreeObject, selectedTreeObject, selectionReference));
+		} catch (Exception e) {
+			showAuthoringMutationError(e);
+		}
+	}
+
+	private void executeAuthoringMutation(JSONObject message, String type, String position, DatabaseObject target,
+			DatabaseObject source, TreeObject targetTreeObject, TreeObject selectedTreeObject,
+			JSONObject selectionReference) {
+		JSONObject response = null;
+		Exception failure = null;
+		try {
+			if ("authoring.move".equals(type)) {
+				response = FlowStudioSupport.moveNode(source, target, position);
+			} else {
+				var payload = message.getJSONObject("payload");
+				if (!FlowStudioSupport.isFlowPaletteData(payload)) {
+					throw new IllegalArgumentException("Unsupported Flow authoring palette payload.");
+				}
+				response = FlowStudioSupport.addFromPalette(target, position, payload);
+			}
+		} catch (Exception e) {
+			failure = e;
+		}
+		var effectiveResponse = response;
+		var effectiveFailure = failure;
+		ConvertigoPlugin.asyncExec(() -> handleAuthoringMutationResult(target, targetTreeObject,
+				selectedTreeObject, selectionReference, effectiveResponse, effectiveFailure));
+	}
+
+	private void handleAuthoringMutationResult(DatabaseObject target, TreeObject targetTreeObject,
+			TreeObject selectedTreeObject, JSONObject selectionReference, JSONObject response, Exception failure) {
+		if (failure != null) {
+			showAuthoringMutationError(failure);
+			return;
+		}
+		if (response == null || !response.optBoolean("done", false)) {
+			var error = response == null ? null : response.opt("error");
+			showAuthoringMutationError(new IllegalStateException(error == null || error == JSONObject.NULL
+					? "The Flow visual authoring mutation was rejected." : error.toString()));
+			return;
+		}
+		var explorer = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (explorer != null) {
+			explorer.reconcileFlowAuthoringMutation(targetTreeObject, selectedTreeObject, target,
+					updatedSelectionReference(selectionReference, response), response);
+		}
+		clearAuthoringHighlight();
+	}
+
+	private static JSONObject updatedSelectionReference(JSONObject reference, JSONObject response) {
+		try {
+			var updated = reference == null ? new JSONObject() : new JSONObject(reference.toString());
+			var mutationPath = response == null ? "" : response.optString("selectionMutationPath", "");
+			var selectionId = response == null ? "" : response.optString("selectionId", "");
+			if (!mutationPath.isBlank()) {
+				updated.put("sourceMutationPath", mutationPath);
+			}
+			if (!selectionId.isBlank()) {
+				updated.put("nodeId", selectionId);
+			}
+			return updated;
+		} catch (Exception e) {
+			return reference;
+		}
+	}
+
+	private void clearAuthoringHighlight() {
+		if (browser == null || browser.isDisposed()) {
+			return;
+		}
+		C8oBrowser.run(() -> {
+			try {
+				browser.executeJavaScriptAndReturnValue("window.__c8oFlowAuthoring?.clear()");
+			} catch (Exception e) {
+				Engine.logStudio.debug("Unable to clear the Flow authoring highlight.", e);
 			}
 		});
 	}
 
-	private void revealAuthoringObjectAt(int x, int y) {
-		C8oBrowser.run(() -> {
-			try {
-				String json = browser.executeJavaScriptAndReturnValue(
-						"JSON.stringify(window.__c8oFlowAuthoring?.referenceAt(" + x + ", " + y + ") ?? null)");
-				if (json == null || json.isBlank() || "null".equals(json)) {
-					return;
-				}
-				var value = new JSONTokener(json).nextValue();
-				if (!(value instanceof JSONObject reference)) {
-					return;
-				}
-				highlightAuthoringReference(reference);
-				browser.getDisplay().asyncExec(() -> revealAuthoringReference(reference));
-			} catch (Exception e) {
-				Engine.logStudio.debug("Unable to reveal Flow authoring object.", e);
-			}
-		});
+	private void showAuthoringMutationError(Exception error) {
+		Engine.logStudio.warn("Unable to apply Flow visual authoring mutation.", error);
+		clearAuthoringHighlight();
+		if (browser != null && !browser.isDisposed()) {
+			var message = error.getMessage();
+			MessageDialog.openError(browser.getShell(), "Flow",
+					message == null || message.isBlank() ? error.toString() : message);
+		}
 	}
 
 	private void revealAuthoringReference(JSONObject reference) {
@@ -203,14 +334,29 @@ public class FlowEngineEditor extends EditorPart {
 			var title = browser == null ? fallbackTitle : browser.optString("title", fallbackTitle);
 			var id = browser == null ? "" : browser.optString("id", "");
 			var projectName = browser == null ? fallbackProject : browser.optString("project", fallbackProject);
+			var debugPort = browser == null ? 0
+					: browser.optInt("debugPort", browser.optInt("browserDebugPort", 0));
+			if (debugPort >= 1024 && debugPort <= 65535 && Engine.theApp != null
+					&& projectName != null && !projectName.isBlank()) {
+				var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+				if (project != null) {
+					C8oBrowser.setPreferredDebugPort(project, debugPort);
+				}
+			}
 			var tooltip = browser == null ? url : browser.optString("tooltip", url);
 			var authoring = browser == null ? null : browser.optJSONObject("authoring");
 			var authoringProtocol = authoring == null ? "" : authoring.optString("protocol", "");
 			var input = new FlowEngineEditorInput(id, title, url, projectName, tooltip, authoringProtocol);
 			var page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			var editor = page.openEditor(input, ID);
-			if (editor instanceof FlowEngineEditor flowEditor && flowEditor.getEditorInput() != input) {
-				flowEditor.updateInput(input);
+			if (editor instanceof FlowEngineEditor flowEditor) {
+				if (debugPort >= 1024 && debugPort <= 65535 && flowEditor.browser != null
+						&& !flowEditor.browser.isDisposed()) {
+					flowEditor.browser.setDebugPort(debugPort);
+				}
+				if (flowEditor.getEditorInput() != input) {
+					flowEditor.updateInput(input);
+				}
 			}
 			return true;
 		} catch (Exception e) {

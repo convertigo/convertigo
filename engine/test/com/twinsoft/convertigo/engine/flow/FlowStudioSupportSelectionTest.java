@@ -48,6 +48,33 @@ public class FlowStudioSupportSelectionTest {
 	}
 
 	@Test
+	public void exposesFileLevelFrontendSourcesWithoutMutationMetadata() throws Exception {
+		var source = candidate("frontends.svelte.appStyles", "", "appStyles");
+
+		assertEquals(SOURCE, FlowStudioSupport.authoringSourceRelativePath(source));
+		assertNull(FlowStudioSupport.authoringReference(source));
+	}
+
+	@Test
+	public void exposesStudioClientActionsThroughTheSharedMenuDescriptor() throws Exception {
+		var candidate = candidate("frontends.svelte.routes.home.structure.text", "frontAst.nodes[2]", "text");
+		var menu = new JSONObject()
+				.put("ok", true)
+				.put("protocol", "flow.studio.menu.v1")
+				.put("items", new org.codehaus.jettison.json.JSONArray());
+
+		FlowStudioSupport.appendStudioClientActions(menu, candidate);
+		FlowStudioSupport.appendStudioClientActions(menu, candidate);
+
+		var items = menu.getJSONArray("items");
+		assertEquals(3, items.length());
+		assertEquals("frontend.reveal", items.getJSONObject(0).getString("clientAction"));
+		assertEquals("icons/studio/web_color_16x16.png", items.getJSONObject(0).getString("iconFile16"));
+		assertEquals("palette.reveal", items.getJSONObject(1).getString("clientAction"));
+		assertEquals("definition.reveal", items.getJSONObject(2).getString("clientAction"));
+	}
+
+	@Test
 	public void rejectsStaleSourceAndMutationMetadata() throws Exception {
 		var candidate = candidate("frontends.svelte.routes.home.structure.text", "frontAst.nodes[2]", "text");
 
