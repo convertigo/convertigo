@@ -348,7 +348,7 @@ dependencies {
 	compileFlat    'oauth.signpost:signpost-core:2.1.1'
 	compileFlat    'org.apache.axis2:axis2-saaj:1.8.2', { exclude module: 'servlet-api'}
 	compileFlat    'org.dom4j:dom4j:2.2.0'
-	compileFlat    'org.freemarker:freemarker:2.3.34'
+	compileFlat    'org.freemarker:freemarker:2.3.35'
 	compileFlat    'org.apache.commons:commons-lang3:' + commonsLang3
 	compileFlat    'org.apache.httpcomponents:httpclient:4.5.14'
 	compileFlat    'org.apache.james:apache-mime4j-core:0.8.14'
