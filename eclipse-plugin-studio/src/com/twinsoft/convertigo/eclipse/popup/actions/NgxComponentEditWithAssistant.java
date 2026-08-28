@@ -53,7 +53,7 @@ public class NgxComponentEditWithAssistant extends MyAbstractAction {
 			if (treeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
 				if (dbo instanceof UISharedRegularComponent) {
-					enable = !dbo.getProject().getName().equals("ConvertigoAssistant");
+					enable = !dbo.getProject().getName().equals("lib_ConvertigoAssistant");
 				}
 			}
 			action.setEnabled(enable);

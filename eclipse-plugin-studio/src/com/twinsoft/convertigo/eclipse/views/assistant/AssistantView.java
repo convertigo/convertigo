@@ -88,10 +88,10 @@ public class AssistantView extends ViewPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.assistant.AssistantView";
 	public static final String STARTUP_URL = "https://assistant.convertigo.com/";
-	private static final String LOCAL_ASSISTANT_PATH = "/projects/ConvertigoAssistant/DisplayObjects/mobile/";
+	private static final String LOCAL_ASSISTANT_PATH = "/projects/lib_ConvertigoAssistant/DisplayObjects/mobile/";
 	private static final String AGENT_ONBOARDING_FEATURE_VERSION = "2026-07-02.agent-onboarding-v1";
 	private static final String AGENT_DOWNLOAD_URL = "https://www.convertigo.com/developers/download-low-code-studio";
-	private static final String[] LOCAL_AGENT_STACK_PROJECTS = {"ConvertigoAssistant", "ConvertigoMCP", "ConvertigoAgentBridge"};
+	private static final String[] LOCAL_AGENT_STACK_PROJECTS = {"lib_ConvertigoAssistant", "lib_ConvertigoMCP", "lib_ConvertigoAgentBridge"};
 	private static final long LOCAL_AGENT_STACK_LOADING_RECHECK_MS = 1000L;
 	private static final long LOCAL_AGENT_STACK_LOADING_TIMEOUT_MS = 90000L;
 	private static final String WAITING_HTML = "<!doctype html><html><head><meta charset=\"utf-8\">"
@@ -207,15 +207,15 @@ public class AssistantView extends ViewPart {
 						capture();
 					});
 				}
-				else if ("ConvertigoAssistant.context.request".equals(json.getString("type"))) {
+				else if ("lib_ConvertigoAssistant.context.request".equals(json.getString("type"))) {
 					ConvertigoPlugin.asyncExec(() -> {
 						postAssistantContext();
 					});
 				}
-				else if ("ConvertigoAssistant.activateLocalAgent".equals(json.getString("type"))) {
+				else if ("lib_ConvertigoAssistant.activateLocalAgent".equals(json.getString("type"))) {
 					activateLocalAgentStack(json);
 				}
-				else if ("ConvertigoAssistant.openExternal".equals(json.getString("type"))) {
+				else if ("lib_ConvertigoAssistant.openExternal".equals(json.getString("type"))) {
 					openExternal(json);
 				}
 			} catch (Exception e1) {
@@ -539,7 +539,7 @@ public class AssistantView extends ViewPart {
 			addAgentProfile(payload, null);
 			addViewerDebugContext(payload, null);
 			JSONObject message = new JSONObject();
-			message.put("type", "ConvertigoAssistant.context");
+			message.put("type", "lib_ConvertigoAssistant.context");
 			message.put("payload", payload);
 			handler.postMessage(message);
 			ConvertigoPlugin.logStudioDebug("[Assistant] context: " + message.toString());
@@ -655,15 +655,15 @@ public class AssistantView extends ViewPart {
 
 	private LocalAgentStackState getLocalAgentStackState() {
 		LocalAgentStackState state = new LocalAgentStackState();
-		state.assistantInstalled = isProjectInstalled("ConvertigoAssistant");
-		state.mcpInstalled = isProjectInstalled("ConvertigoMCP");
-		state.bridgeInstalled = isProjectInstalled("ConvertigoAgentBridge");
-		state.assistantVersion = getInstalledProjectVersion("ConvertigoAssistant");
-		state.mcpVersion = getInstalledProjectVersion("ConvertigoMCP");
-		state.bridgeVersion = getInstalledProjectVersion("ConvertigoAgentBridge");
-		state.updateAllowed = isReleaseManagedProject("ConvertigoAssistant")
-				&& isReleaseManagedProject("ConvertigoMCP")
-				&& isReleaseManagedProject("ConvertigoAgentBridge");
+		state.assistantInstalled = isProjectInstalled("lib_ConvertigoAssistant");
+		state.mcpInstalled = isProjectInstalled("lib_ConvertigoMCP");
+		state.bridgeInstalled = isProjectInstalled("lib_ConvertigoAgentBridge");
+		state.assistantVersion = getInstalledProjectVersion("lib_ConvertigoAssistant");
+		state.mcpVersion = getInstalledProjectVersion("lib_ConvertigoMCP");
+		state.bridgeVersion = getInstalledProjectVersion("lib_ConvertigoAgentBridge");
+		state.updateAllowed = isReleaseManagedProject("lib_ConvertigoAssistant")
+				&& isReleaseManagedProject("lib_ConvertigoMCP")
+				&& isReleaseManagedProject("lib_ConvertigoAgentBridge");
 		boolean allInstalled = state.assistantInstalled && state.mcpInstalled && state.bridgeInstalled;
 		boolean opening = false;
 		boolean presentButNotInstalled = false;
@@ -906,7 +906,7 @@ public class AssistantView extends ViewPart {
 				payload.put("done", done);
 				payload.put("localAssistantUrl", getLocalAssistantUrl());
 				JSONObject msg = new JSONObject();
-				msg.put("type", "ConvertigoAssistant.activateLocalAgent.status");
+				msg.put("type", "lib_ConvertigoAssistant.activateLocalAgent.status");
 				msg.put("payload", payload);
 				handler.postMessage(msg);
 			} catch (Exception e) {
