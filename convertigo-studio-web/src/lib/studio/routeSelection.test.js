@@ -8,11 +8,11 @@ import {
 
 describe('Studio route selection helpers', () => {
 	it('uses a readable route separator for qname typed segments', () => {
-		expect(encodeStudioSelectionId('ConvertigoMCP.sq:mcp_initialize.st:result')).toBe(
-			'ConvertigoMCP.sq~mcp_initialize.st~result'
+		expect(encodeStudioSelectionId('lib_ConvertigoMCP.sq:mcp_initialize.st:result')).toBe(
+			'lib_ConvertigoMCP.sq~mcp_initialize.st~result'
 		);
-		expect(decodeStudioSelectionId('ConvertigoMCP.sq~mcp_initialize.st~result')).toBe(
-			'ConvertigoMCP.sq:mcp_initialize.st:result'
+		expect(decodeStudioSelectionId('lib_ConvertigoMCP.sq~mcp_initialize.st~result')).toBe(
+			'lib_ConvertigoMCP.sq:mcp_initialize.st:result'
 		);
 	});
 
