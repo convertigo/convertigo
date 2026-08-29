@@ -3,10 +3,13 @@
 	import Light from '$lib/common/Light.svelte';
 	import { getFrontendUrl } from '$lib/utils/service';
 
-	/** @type {{ projectName?: string }} */
-	let { projectName = '' } = $props();
+	/** @type {{ projectName?: string, agentProfile?: string }} */
+	let { projectName = '', agentProfile = 'generalist' } = $props();
 
-	const assistantBaseUrl = getFrontendUrl('ConvertigoAssistant').replace(/index\.html$/, '');
+	const assistantProject = 'lib_ConvertigoAssistant';
+	const assistantContextType = `${assistantProject}.context`;
+	const assistantContextRequestType = `${assistantContextType}.request`;
+	const assistantBaseUrl = getFrontendUrl(assistantProject).replace(/index\.html$/, '');
 	const assistantAgentUrl = `${assistantBaseUrl}path-to-xfirst/:threadid`;
 	let iframe = $state();
 	let iframeReady = $state(false);
@@ -17,6 +20,8 @@
 			assistantMode: 'agent',
 			assistantSurface: 'studio',
 			assistantContext: 'studio',
+			agentProfile,
+			skillProfile: agentProfile,
 			userId: 'studio',
 			'dark-theme': String(Light.dark)
 		});
@@ -28,6 +33,8 @@
 	let assistantContext = $derived({
 		assistantSurface: 'studio',
 		assistantContext: 'studio',
+		agentProfile,
+		skillProfile: agentProfile,
 		userId: 'studio',
 		projectContext: projectName,
 		defaultProject: projectName,
@@ -48,7 +55,7 @@
 
 	function sendAssistantContext() {
 		const context = assistantContext;
-		postAssistantMessage({ type: 'ConvertigoAssistant.context', payload: context });
+		postAssistantMessage({ type: assistantContextType, payload: context });
 		if (projectName) {
 			postAssistantMessage({
 				type: 'select',
@@ -89,10 +96,7 @@
 				return;
 			}
 			const origin = new URL(url, window.location.href).origin;
-			node.contentWindow.postMessage(
-				{ type: 'ConvertigoAssistant.context', payload: context },
-				origin
-			);
+			node.contentWindow.postMessage({ type: assistantContextType, payload: context }, origin);
 			if (context.defaultProject) {
 				node.contentWindow.postMessage(
 					{ type: 'select', projectName: context.defaultProject, ...context },
@@ -113,7 +117,7 @@
 		if (event.origin !== expectedOrigin) {
 			return;
 		}
-		if (event.data?.type === 'ConvertigoAssistant.context.request') {
+		if (event.data?.type === assistantContextRequestType) {
 			sendAssistantContext();
 		}
 	}

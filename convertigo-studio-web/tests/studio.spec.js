@@ -240,6 +240,12 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 			return new URL(src ?? '', page.url()).searchParams.get('targetProject');
 		})
 		.toBe(projectName);
+	await expect
+		.poll(async () => {
+			const src = await page.locator('iframe[title="Convertigo Assistant"]').getAttribute('src');
+			return new URL(src ?? '', page.url()).searchParams.get('agentProfile');
+		})
+		.toBe('flow');
 	await expect(assistantFrame.getByTestId('assistant-context')).toHaveText(
 		`${projectName} · studio`
 	);
@@ -1378,11 +1384,13 @@ async function mockStudioServices(page, options = {}) {
 	});
 
 	if (options.assistant) {
-		await page.route('**/projects/ConvertigoAssistant/DisplayObjects/mobile/**', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'text/html',
-				body: `<!doctype html>
+		await page.route(
+			'**/projects/lib_ConvertigoAssistant/DisplayObjects/mobile/**',
+			async (route) => {
+				await route.fulfill({
+					status: 200,
+					contentType: 'text/html',
+					body: `<!doctype html>
 					<html><body>
 						<main data-testid="assistant-context">Waiting for Studio context</main>
 						<script>
@@ -1392,7 +1400,7 @@ async function mockStudioServices(page, options = {}) {
 							let studioContext = { projectContext: queryProject };
 							window.addEventListener('message', (event) => {
 								const message = event.data || {};
-								if (message.type === 'ConvertigoAssistant.context') {
+								if (message.type === 'lib_ConvertigoAssistant.context') {
 									const context = message.payload || {};
 									studioContext = context;
 									output.textContent = (context.projectContext || 'No project') + ' · ' + context.assistantSurface;
@@ -1406,11 +1414,12 @@ async function mockStudioServices(page, options = {}) {
 									output.dataset.serverAgent = new URLSearchParams(location.search).get('serverAgent') || '';
 								}
 							});
-							window.parent.postMessage({ type: 'ConvertigoAssistant.context.request' }, location.origin);
+							window.parent.postMessage({ type: 'lib_ConvertigoAssistant.context.request' }, location.origin);
 						</script>
 					</body></html>`
-			});
-		});
+				});
+			}
+		);
 	}
 
 	await page.route('**/convertigo/gw/studio-test-ticket/**', async (route) => {
@@ -1465,7 +1474,9 @@ function responseForService(service, params, options = {}) {
 			return {
 				admin: {
 					projects: {
-						project: options.noProjects ? [] : [{ name: projectName, comment: '', ref: [] }]
+						project: options.noProjects
+							? []
+							: [{ name: projectName, comment: '', ref: ['lib_flow_engine'] }]
 					}
 				}
 			};

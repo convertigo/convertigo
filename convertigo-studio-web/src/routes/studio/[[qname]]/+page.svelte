@@ -238,6 +238,12 @@
 
 	let selectedContext = $derived(parseSelection(selectedId));
 	let selectedProjectName = $derived(selectedContext.projectName);
+	let selectedProject = $derived(
+		Projects.projects.find(({ name }) => name === selectedProjectName) ?? null
+	);
+	let assistantAgentProfile = $derived(
+		selectedProject?.ref?.includes('lib_flow_engine') ? 'flow' : 'generalist'
+	);
 	let project = $derived.by(() => (selectedProjectName ? TestPlatform(selectedProjectName) : null));
 	let sequences = $derived.by(() => {
 		const list = project?.sequence?.filter((sequence) => sequence.name) ?? [];
@@ -1910,7 +1916,10 @@
 			class="studio__assistant-panel"
 			contentClass="studio__panel-fill"
 		>
-			<StudioAssistantPanel projectName={selectedProjectName} />
+			<StudioAssistantPanel
+				projectName={selectedProjectName}
+				agentProfile={assistantAgentProfile}
+			/>
 		</StudioPanel>
 	{:else}
 		<StudioTabbedFrame
