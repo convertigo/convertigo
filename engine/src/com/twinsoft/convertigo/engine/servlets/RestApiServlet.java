@@ -42,6 +42,7 @@ import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.core.UrlAuthentication;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.beans.rest.AbstractRestOperation;
 import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -65,6 +66,7 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.convertigo.engine.util.OpenApiUtils;
+import com.twinsoft.convertigo.engine.util.RequestScopedHttpServletRequest;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -150,15 +152,6 @@ public class RestApiServlet extends GenericServlet {
 			}
 		}
 		
-		try {
-			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
-				HttpUtils.checkXSRF(request, response);
-			}
-			HttpSessionListener.checkSession(request);
-		} catch (Throwable e) {
-			throw new ServletException(e.getMessage(), e);
-		}
-		
 		if (Engine.isEngineMode() && KeyManager.getCV(Session.EmulIDURLMAPPER) < 1) {
 			String msg;
 			if (KeyManager.has(Session.EmulIDURLMAPPER) && KeyManager.hasExpired(Session.EmulIDURLMAPPER)) {
@@ -171,33 +164,6 @@ public class RestApiServlet extends GenericServlet {
 		
 		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);
 		request = wrapped_request;
-		
-		try {
-			HttpSessionListener.checkSession(request);
-		} catch (TASException e) {
-			HttpUtils.terminateSession(request.getSession());
-			throw new RuntimeException(e);
-		}
-		
-		HttpSession httpSession = request.getSession();
-		
-		LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(RestApiServlet.class.getCanonicalName()));
-		
-		if (logParameters == null) {
-			httpSession.setAttribute(RestApiServlet.class.getCanonicalName(), logParameters = new LogParameters());
-			logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
-		}
-
-		Log4jHelper.mdcSet(logParameters);
-		
-		logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
-		
-		String encoded = request.getParameter(Parameter.RsaEncoded.getName());
-		if (encoded != null) {
-			String query = Engine.theApp.rsaManager.decrypt(encoded, request.getSession());
-			wrapped_request.clearParameters();
-			wrapped_request.addQuery(query);
-		}
 		
 		String method = request.getMethod();
 		String uri = request.getRequestURI();
@@ -215,6 +181,7 @@ public class RestApiServlet extends GenericServlet {
         // Generate YAML/JSON definition (swagger specific)
 		if ("GET".equalsIgnoreCase(method) && (isYaml || isJson)) {
     		try {
+				initializeRequestSession(request, response, wrapped_request);
     			String requestUrl = HttpUtils.originalRequestURL(request);
     			
     			// force endpoint in definition
@@ -251,6 +218,8 @@ public class RestApiServlet extends GenericServlet {
 		// Handle REST request
 		else {
 			long t0 = System.currentTimeMillis();
+			HttpSession httpSession = null;
+			RequestScopedHttpServletRequest scopedRequest = null;
 			try {
 				Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
 				
@@ -290,6 +259,11 @@ public class RestApiServlet extends GenericServlet {
 					
 					// Handle request
 					if (urlMappingOperation != null) {
+						if (usesRequestScopedSession(urlMappingOperation)) {
+							scopedRequest = new RequestScopedHttpServletRequest(request);
+							request = scopedRequest;
+						}
+						httpSession = initializeRequestSession(request, response, wrapped_request);
 						StringBuffer buf;
 						
 						// Request headers
@@ -395,24 +369,68 @@ public class RestApiServlet extends GenericServlet {
 			} catch (Exception e) {
     			throw new ServletException(e);
     		} finally {
+				if (scopedRequest != null) {
+					request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);
+				}
     			Requester requester = (Requester) request.getAttribute("convertigo.requester");
     			if (requester != null) {
     				Engine.logEngine.debug("(RestApiServlet) processRequestEnd, onFinally");
 	                processRequestEnd(request, requester);
 	    			onFinally(request);
-    			} else {
-    				Engine.logEngine.debug("(RestApiServlet) terminate session");
+				} else if (httpSession != null) {
+					Engine.logEngine.debug("(RestApiServlet) terminate session");
     				try {
     					HttpUtils.terminateSession(httpSession);
     				} catch (Exception e) {
     					Engine.logEngine.warn("(RestApiServlet) unabled to terminate session", e);
     				}
     			}
+				if (scopedRequest != null) {
+					try {
+						scopedRequest.close();
+					} catch (Exception e) {
+						Engine.logEngine.warn("(RestApiServlet) unable to close request-scoped session", e);
+					}
+				}
     			
     			long t1 = System.currentTimeMillis();
     			Engine.theApp.pluginsManager.fireHttpServletRequestEnd(request, t0, t1);
     		}
 		}
+	}
+
+	static boolean usesRequestScopedSession(UrlMappingOperation operation) {
+		return operation instanceof AbstractRestOperation restOperation && restOperation.isTerminateSession();
+	}
+
+	private HttpSession initializeRequestSession(HttpServletRequest request, HttpServletResponse response,
+			HttpServletRequestTwsWrapper parameterRequest) throws Exception {
+		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
+			HttpUtils.checkXSRF(request, response);
+		}
+		try {
+			HttpSessionListener.checkSession(request);
+		} catch (TASException e) {
+			HttpUtils.terminateSession(request.getSession(false));
+			throw e;
+		}
+
+		var httpSession = request.getSession();
+		LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(RestApiServlet.class.getCanonicalName()));
+		if (logParameters == null) {
+			httpSession.setAttribute(RestApiServlet.class.getCanonicalName(), logParameters = new LogParameters());
+			logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
+		}
+		Log4jHelper.mdcSet(logParameters);
+		logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
+
+		String encoded = request.getParameter(Parameter.RsaEncoded.getName());
+		if (encoded != null) {
+			String query = Engine.theApp.rsaManager.decrypt(encoded, httpSession);
+			parameterRequest.clearParameters();
+			parameterRequest.addQuery(query);
+		}
+		return httpSession;
 	}
 
 	@Override
