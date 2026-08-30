@@ -156,6 +156,14 @@ public class FlowEngineBridge {
 		notifySourceMutation(projectDir, sourcePath, false);
 	}
 
+	/**
+	 * Rhino-safe entry point carrying the reveal intent without relying on Java
+	 * overload resolution. Keep the overloaded methods for binary compatibility.
+	 */
+	public static void notifySourceMutationWithReveal(String projectDir, String sourcePath, boolean reveal) {
+		notifySourceMutation(projectDir, sourcePath, reveal);
+	}
+
 	public static void notifySourceMutation(String projectDir, String sourcePath, boolean reveal) {
 		invalidateDataCaches();
 		var projectName = projectNameForDir(projectDir);

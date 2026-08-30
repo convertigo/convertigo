@@ -17,6 +17,13 @@ import org.codehaus.jettison.json.JSONObject;
 
 public class FlowEngineBridgeCacheTest {
 	@Test
+	public void exposesAnUnambiguousRhinoRevealEntryPoint() throws Exception {
+		assertEquals(void.class, FlowEngineBridge.class
+				.getMethod("notifySourceMutationWithReveal", String.class, String.class, boolean.class)
+				.getReturnType());
+	}
+
+	@Test
 	public void preservesBrowserDescriptorsForAdminEvents() throws Exception {
 		var payload = FlowEngineBridge.browserEventPayload(new JSONObject()
 					.put("kind", "frontbuilder.svelte.dev")
