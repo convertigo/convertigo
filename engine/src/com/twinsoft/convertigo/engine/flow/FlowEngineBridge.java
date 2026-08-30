@@ -160,6 +160,16 @@ public class FlowEngineBridge {
 		invalidateDataCaches();
 		var projectName = projectNameForDir(projectDir);
 		try {
+			var payload = new JSONObject()
+					.put("project", projectName)
+					.put("projectDir", projectDir == null ? "" : projectDir)
+					.put("sourcePath", sourcePath == null ? "" : sourcePath)
+					.put("reveal", reveal);
+			AdminEventBus.publish("flow.source.changed", payload);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(FlowEngineBridge) Unable to publish a Flow source mutation.", e);
+		}
+		try {
 			AdminEventBus.publishProjectChanged(projectName, projectName, "flow", sourcePath);
 		} catch (Exception e) {
 			Engine.logEngine.warn("(FlowEngineBridge) Unable to publish a Flow source mutation.", e);
@@ -191,8 +201,15 @@ public class FlowEngineBridge {
 	}
 
 	public static void notifyStudioBrowser(String browserJson) {
-		if (!Engine.isStudioMode() || Engine.theApp == null || Engine.theApp.eventManager == null
-				|| browserJson == null || browserJson.isBlank()) {
+		if (browserJson == null || browserJson.isBlank()) {
+			return;
+		}
+		try {
+			AdminEventBus.publish("flow.browser.open", browserEventPayload(browserJson));
+		} catch (Exception e) {
+			Engine.logEngine.warn("(FlowEngineBridge) Unable to publish a Flow browser.", e);
+		}
+		if (!Engine.isStudioMode() || Engine.theApp == null || Engine.theApp.eventManager == null) {
 			return;
 		}
 		try {
@@ -202,6 +219,10 @@ public class FlowEngineBridge {
 		} catch (Exception e) {
 			Engine.logEngine.warn("(FlowEngineBridge) Unable to notify a Flow browser.", e);
 		}
+	}
+
+	static JSONObject browserEventPayload(String browserJson) throws Exception {
+		return new JSONObject(browserJson);
 	}
 
 	private static String projectNameForDir(String projectDir) {

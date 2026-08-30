@@ -35,6 +35,7 @@
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
 	import StudioEmptyState from '$lib/studio/StudioEmptyState.svelte';
 	import StudioExecutionPanel from '$lib/studio/StudioExecutionPanel.svelte';
+	import { flowBrowserPreview, flowSourceReveal } from '$lib/studio/studioFlowEvents';
 	import StudioIconButton from '$lib/studio/StudioIconButton.svelte';
 	import StudioLogsPanel from '$lib/studio/StudioLogsPanel.svelte';
 	import { createStudioMutationEventTracker } from '$lib/studio/studioMutationEvents';
@@ -182,6 +183,7 @@
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
 	let frontendPreview = $state({ projectName: '', url: '', mode: 'production' });
+	let pendingSourceReveal = '';
 	let frontendTheme = $state(
 		/** @type {{ projectName: string, context: any }} */ ({
 			projectName: '',
@@ -349,7 +351,7 @@
 		urlSyncReady = true;
 		clearStudioRouteHash();
 		const unsubscribeAdminEvents = subscribeAdminEvents(
-			['projects.changed', 'admin.resync.required'],
+			['projects.changed', 'admin.resync.required', 'flow.browser.open', 'flow.source.changed'],
 			handleAdminEvent
 		);
 		return () => {
@@ -463,9 +465,25 @@
 	 * @param {ReturnType<typeof import('$lib/admin/adminEvents').parseAdminEvent>} event
 	 */
 	function handleAdminEvent(event) {
-		if (!event || !['projects.changed', 'admin.resync.required'].includes(event.topic)) {
+		if (!event) {
 			return;
 		}
+		const browserPreview = flowBrowserPreview(event, selectedProjectName);
+		if (browserPreview) {
+			frontendPreview = { ...browserPreview, url: studioPreviewUrl(browserPreview.url) };
+			activeVibeResult = 'frontend';
+			activeFrontendResult = 'frontend';
+			return;
+		}
+		const sourceReveal = flowSourceReveal(event, selectedProjectName);
+		if (sourceReveal) {
+			pendingSourceReveal = sourceReveal;
+			projectChangeRefreshPending = true;
+			clearTimeout(projectChangeRefreshTimer);
+			projectChangeRefreshTimer = setTimeout(flushProjectChangeRefresh, 120);
+			return;
+		}
+		if (!['projects.changed', 'admin.resync.required'].includes(event.topic)) return;
 		const eventProject = String(event.payload.project ?? '');
 		if (eventProject && eventProject !== selectedProjectName) {
 			return;
@@ -526,6 +544,16 @@
 				return;
 			}
 			await refreshStudioProject(projectName);
+			const sourcePath = pendingSourceReveal;
+			pendingSourceReveal = '';
+			if (sourcePath) {
+				const response = await call('studio.treeview.Authoring', {
+					project: projectName,
+					sourcePath
+				});
+				const id = String(response?.id ?? '');
+				if (id) selectedId = id;
+			}
 			propertiesRefreshSerial += 1;
 			refreshStudioViews();
 		} finally {

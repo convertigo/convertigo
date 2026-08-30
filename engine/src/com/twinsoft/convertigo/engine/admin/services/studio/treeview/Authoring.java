@@ -37,6 +37,15 @@ public class Authoring extends JSonService {
 			return;
 		}
 
+		var sourcePath = request.getParameter("sourcePath");
+		if (sourcePath != null && !sourcePath.isBlank()) {
+			var databaseObject = FlowStudioSupport.resolveFrontendSource(request.getParameter("project"), sourcePath);
+			if (databaseObject != null) {
+				response.put("id", databaseObject.getFullQName());
+			}
+			return;
+		}
+
 		var serializedReference = request.getParameter("reference");
 		if (serializedReference == null || serializedReference.isBlank()) {
 			throw new ServiceException("missing id or reference parameter");

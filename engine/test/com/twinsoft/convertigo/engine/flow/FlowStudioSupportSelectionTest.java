@@ -56,6 +56,16 @@ public class FlowStudioSupportSelectionTest {
 	}
 
 	@Test
+	public void resolvesAFrontendSourceWithoutRequiringMutationMetadata() throws Exception {
+		var source = candidate("frontends.svelte.appStyles", "", "appStyles");
+		var root = new TestContainer(source);
+
+		assertEquals(source, FlowStudioSupport.findFrontendSource(root, SOURCE));
+		assertNull(FlowStudioSupport.findFrontendSource(root,
+				"libs/flow/frontbuilder/svelte/model/Project/src/routes/other.flow.svelte"));
+	}
+
+	@Test
 	public void exposesStudioClientActionsThroughTheSharedMenuDescriptor() throws Exception {
 		var candidate = candidate("frontends.svelte.routes.home.structure.text", "frontAst.nodes[2]", "text");
 		var menu = new JSONObject()

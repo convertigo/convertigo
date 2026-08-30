@@ -8,6 +8,7 @@
  */
 package com.twinsoft.convertigo.engine.flow;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -15,6 +16,18 @@ import org.junit.Test;
 import org.codehaus.jettison.json.JSONObject;
 
 public class FlowEngineBridgeCacheTest {
+	@Test
+	public void preservesBrowserDescriptorsForAdminEvents() throws Exception {
+		var payload = FlowEngineBridge.browserEventPayload(new JSONObject()
+					.put("kind", "frontbuilder.svelte.dev")
+					.put("project", "Demo")
+					.put("url", "/convertigo/gw/ticket/")
+					.toString());
+
+		assertEquals("Demo", payload.getString("project"));
+		assertEquals("frontbuilder.svelte.dev", payload.getString("kind"));
+	}
+
 	@Test
 	public void distinguishesRuntimeSourcesFromAuthoringData() {
 		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("libs/flow/Engine.js"));

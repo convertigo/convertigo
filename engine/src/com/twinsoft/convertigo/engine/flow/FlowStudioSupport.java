@@ -256,6 +256,50 @@ public class FlowStudioSupport {
 		return null;
 	}
 
+	public static DatabaseObject resolveFrontendSource(String projectName, String sourceRelativePath) throws Exception {
+		if (projectName == null || projectName.isBlank() || sourceRelativePath == null || sourceRelativePath.isBlank()) {
+			return null;
+		}
+		var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+		if (project == null || project.getFlowEngine() == null) {
+			return null;
+		}
+		var normalizedPath = normalizeSourcePath(sourceRelativePath);
+		try {
+			var sourceFile = new File(sourceRelativePath);
+			if (sourceFile.isAbsolute() && project.getDirFile() != null) {
+				normalizedPath = normalizeSourcePath(project.getDirFile().toPath().toAbsolutePath().normalize()
+						.relativize(sourceFile.toPath().toAbsolutePath().normalize()).toString());
+			}
+		} catch (Exception e) {
+			return null;
+		}
+		for (var child : project.getFlowEngine().getDatabaseObjectChildren()) {
+			var resolved = findFrontendSource(child, normalizedPath);
+			if (resolved != null) {
+				return resolved;
+			}
+		}
+		return null;
+	}
+
+	static DatabaseObject findFrontendSource(DatabaseObject candidate, String sourceRelativePath) {
+		if (candidate instanceof FlowVirtualObject fvo
+				&& sourceRelativePath.equals(sourceRelativePath(fvo))) {
+			return fvo;
+		}
+		try {
+			for (var child : candidate.getDatabaseObjectChildren()) {
+				var resolved = findFrontendSource(child, sourceRelativePath);
+				if (resolved != null) {
+					return resolved;
+				}
+			}
+		} catch (Exception e) {
+		}
+		return null;
+	}
+
 	private static DatabaseObject resolveAuthoringReference(DatabaseObject candidate, String sourceRelativePath,
 			String sourceMutationPath) {
 		if (candidate instanceof FlowVirtualObject fvo
