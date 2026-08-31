@@ -1,13 +1,12 @@
 /**
  * @param {ReturnType<typeof import('$lib/admin/adminEvents').parseAdminEvent>} event
- * @param {string} selectedProject
  * @returns {{ projectName: string, url: string, mode: 'development' | 'production' } | null}
  */
-export function flowBrowserPreview(event, selectedProject) {
+export function flowBrowserPreview(event) {
 	if (event?.topic !== 'flow.browser.open') return null;
 	const projectName = String(event.payload.project ?? '');
 	const url = String(event.payload.url ?? '');
-	if (!projectName || projectName !== selectedProject || !url) return null;
+	if (!projectName || !url) return null;
 	const mode = /** @type {'development' | 'production'} */ (
 		String(event.payload.kind ?? '') === 'frontbuilder.svelte.dev' ? 'development' : 'production'
 	);
@@ -16,11 +15,12 @@ export function flowBrowserPreview(event, selectedProject) {
 
 /**
  * @param {ReturnType<typeof import('$lib/admin/adminEvents').parseAdminEvent>} event
- * @param {string} selectedProject
+ * @returns {{ projectName: string, sourcePath: string } | null}
  */
-export function flowSourceReveal(event, selectedProject) {
-	if (event?.topic !== 'flow.source.changed' || event.payload.reveal !== true) return '';
+export function flowSourceReveal(event) {
+	if (event?.topic !== 'flow.source.changed' || event.payload.reveal !== true) return null;
 	const projectName = String(event.payload.project ?? '');
-	if (!projectName || projectName !== selectedProject) return '';
-	return String(event.payload.sourcePath ?? '').trim();
+	const sourcePath = String(event.payload.sourcePath ?? '').trim();
+	if (!projectName || !sourcePath) return null;
+	return { projectName, sourcePath };
 }

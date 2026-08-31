@@ -183,7 +183,8 @@
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
 	let frontendPreview = $state({ projectName: '', url: '', mode: 'production' });
-	let pendingSourceReveal = '';
+	/** @type {{ projectName: string, sourcePath: string } | null} */
+	let pendingStudioNavigation = null;
 	let frontendTheme = $state(
 		/** @type {{ projectName: string, context: any }} */ ({
 			projectName: '',
@@ -468,19 +469,22 @@
 		if (!event) {
 			return;
 		}
-		const browserPreview = flowBrowserPreview(event, selectedProjectName);
+		const browserPreview = flowBrowserPreview(event);
 		if (browserPreview) {
 			frontendPreview = { ...browserPreview, url: studioPreviewUrl(browserPreview.url) };
 			activeVibeResult = 'frontend';
 			activeFrontendResult = 'frontend';
+			if (profile !== 'vibe') {
+				setProfile('frontend');
+			}
+			if (browserPreview.projectName !== selectedProjectName) {
+				scheduleStudioNavigation(browserPreview.projectName);
+			}
 			return;
 		}
-		const sourceReveal = flowSourceReveal(event, selectedProjectName);
+		const sourceReveal = flowSourceReveal(event);
 		if (sourceReveal) {
-			pendingSourceReveal = sourceReveal;
-			projectChangeRefreshPending = true;
-			clearTimeout(projectChangeRefreshTimer);
-			projectChangeRefreshTimer = setTimeout(flushProjectChangeRefresh, 120);
+			scheduleStudioNavigation(sourceReveal.projectName, sourceReveal.sourcePath);
 			return;
 		}
 		if (!['projects.changed', 'admin.resync.required'].includes(event.topic)) return;
@@ -497,6 +501,31 @@
 			projectChangeDeferredByMutation = true;
 			return;
 		}
+		projectChangeRefreshTimer = setTimeout(flushProjectChangeRefresh, 120);
+	}
+
+	/**
+	 * Explicit Flow actions may target a project other than the one currently
+	 * selected in Studio. Coalesce its source reveal and viewer-open events so
+	 * the more precise source selection wins regardless of event order.
+	 *
+	 * @param {string} projectName
+	 * @param {string=} sourcePath
+	 */
+	function scheduleStudioNavigation(projectName, sourcePath = '') {
+		if (!projectName) {
+			return;
+		}
+		const previousSourcePath =
+			pendingStudioNavigation?.projectName === projectName
+				? pendingStudioNavigation.sourcePath
+				: '';
+		pendingStudioNavigation = {
+			projectName,
+			sourcePath: sourcePath || previousSourcePath
+		};
+		projectChangeRefreshPending = true;
+		clearTimeout(projectChangeRefreshTimer);
 		projectChangeRefreshTimer = setTimeout(flushProjectChangeRefresh, 120);
 	}
 
@@ -539,13 +568,20 @@
 		projectChangeRefreshPending = false;
 		projectChangeRefreshRunning = true;
 		try {
-			const projectName = selectedProjectName;
+			const navigation = pendingStudioNavigation;
+			pendingStudioNavigation = null;
+			const projectName = navigation?.projectName || selectedProjectName;
 			if (!projectName) {
 				return;
 			}
+			if (!Projects.projects.some((project) => project?.name === projectName)) {
+				await Projects.refresh();
+			}
+			if (projectName !== selectedProjectName) {
+				selectedId = projectName;
+			}
 			await refreshStudioProject(projectName);
-			const sourcePath = pendingSourceReveal;
-			pendingSourceReveal = '';
+			const sourcePath = navigation?.sourcePath || '';
 			if (sourcePath) {
 				const response = await call('studio.treeview.Authoring', {
 					project: projectName,

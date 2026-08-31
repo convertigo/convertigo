@@ -7,36 +7,34 @@ function event(topic, payload) {
 }
 
 describe('Studio Flow events', () => {
-	it('opens only the selected project development viewer', () => {
+	it('carries the explicit project of a development viewer', () => {
 		const browserEvent = event('flow.browser.open', {
 			project: 'Demo',
 			url: '/convertigo/gw/ticket/',
 			kind: 'frontbuilder.svelte.dev'
 		});
-		expect(flowBrowserPreview(browserEvent, 'Demo')).toEqual({
+		expect(flowBrowserPreview(browserEvent)).toEqual({
 			projectName: 'Demo',
 			url: '/convertigo/gw/ticket/',
 			mode: 'development'
 		});
-		expect(flowBrowserPreview(browserEvent, 'Other')).toBeNull();
 		expect(
-			flowBrowserPreview(event('flow.browser.open', { project: 'Demo', url: '/built/' }), 'Demo')
+			flowBrowserPreview(event('flow.browser.open', { project: 'Demo', url: '/built/' }))
 		).toEqual({ projectName: 'Demo', url: '/built/', mode: 'production' });
 	});
 
-	it('reveals only explicit managed writes for the selected project', () => {
+	it('carries the explicit project and source of managed writes', () => {
 		const sourceEvent = event('flow.source.changed', {
 			project: 'Demo',
 			sourcePath: 'model/Demo/src/routes/+page.flow.svelte',
 			reveal: true
 		});
-		expect(flowSourceReveal(sourceEvent, 'Demo')).toBe('model/Demo/src/routes/+page.flow.svelte');
-		expect(flowSourceReveal(sourceEvent, 'Other')).toBe('');
+		expect(flowSourceReveal(sourceEvent)).toEqual({
+			projectName: 'Demo',
+			sourcePath: 'model/Demo/src/routes/+page.flow.svelte'
+		});
 		expect(
-			flowSourceReveal(
-				{ ...sourceEvent, payload: { ...sourceEvent.payload, reveal: false } },
-				'Demo'
-			)
-		).toBe('');
+			flowSourceReveal({ ...sourceEvent, payload: { ...sourceEvent.payload, reveal: false } })
+		).toBeNull();
 	});
 });

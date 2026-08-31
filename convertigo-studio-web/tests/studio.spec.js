@@ -156,6 +156,53 @@ test('studio frontend profile exposes preview devices from a navigation drawer',
 	await expect(page.getByText(/iPhone 17 Pro landscape - 874x402/)).toBeVisible();
 });
 
+test('studio follows a Flow bootstrap to the new project, exact source and dev viewer', async ({
+	page
+}) => {
+	const createdProject = 'BootstrappedFlowApp';
+	const sourcePath =
+		'libs/flow/frontbuilder/svelte/model/BootstrappedFlowApp/src/routes/+page.flow.svelte';
+	const sourceId = `${createdProject}.Engine.frontends.svelte.routes.home.structure.welcomeTitle`;
+	await mockStudioServices(page, {
+		projects: [projectName, createdProject],
+		authoringTargets: { [`${createdProject}:${sourcePath}`]: sourceId },
+		adminEvents: [
+			{
+				id: 'bootstrap-source',
+				topic: 'flow.source.changed',
+				timestamp: 2,
+				instance: 'studio-test',
+				payload: { project: createdProject, sourcePath, reveal: true }
+			},
+			{
+				id: 'bootstrap-viewer',
+				topic: 'flow.browser.open',
+				timestamp: 3,
+				instance: 'studio-test',
+				payload: {
+					project: createdProject,
+					url: '/convertigo/gw/studio-test-ticket/',
+					kind: 'frontbuilder.svelte.dev'
+				}
+			}
+		]
+	});
+	await page.goto('/studio/');
+
+	await expect(page).toHaveURL(/BootstrappedFlowApp\.Engine\.frontends\.svelte/);
+	await expect(page.getByRole('radio', { name: 'Frontend' })).toHaveAttribute(
+		'aria-checked',
+		'true'
+	);
+	await expect(page.locator('iframe[title="BootstrappedFlowApp frontend"]')).toHaveAttribute(
+		'src',
+		/\/convertigo\/gw\/studio-test-ticket\/$/
+	);
+	await expect(
+		page.frameLocator('iframe[title="BootstrappedFlowApp frontend"]').getByText('Dev preview')
+	).toBeVisible();
+});
+
 test('studio frontend profile documents Flow properties from their authoring contract', async ({
 	page
 }) => {
@@ -1287,7 +1334,10 @@ function responseEditor(page) {
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
- *  noProjects?: boolean
+ *  noProjects?: boolean,
+ *  projects?: string[],
+ *  authoringTargets?: Record<string, string>,
+ *  adminEvents?: Array<{id: string, topic: string, timestamp: number, instance: string, payload: Record<string, unknown>}>
  * }} [options]
  */
 async function mockStudioServices(page, options = {}) {
@@ -1302,13 +1352,18 @@ async function mockStudioServices(page, options = {}) {
 					'content-type': 'text/event-stream;charset=UTF-8',
 					'x-xsrf-token': 'studio-test-token'
 				},
-				body: `retry: 60000\n\nid: studio-test-ready\ndata: ${JSON.stringify({
-					id: 'studio-test-ready',
-					topic: 'admin.ready',
-					timestamp: 1,
-					instance: 'studio-test',
-					payload: { topics: ['projects.changed', 'admin.resync.required'] }
-				})}\n\n`
+				body: [
+					{
+						id: 'studio-test-ready',
+						topic: 'admin.ready',
+						timestamp: 1,
+						instance: 'studio-test',
+						payload: { topics: ['projects.changed', 'admin.resync.required'] }
+					},
+					...(options.adminEvents ?? [])
+				]
+					.map((event) => `id: ${event.id}\ndata: ${JSON.stringify(event)}\n\n`)
+					.join('')
 			});
 			return;
 		}
@@ -1454,7 +1509,9 @@ function serviceName(url) {
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
- *  noProjects?: boolean
+ *  noProjects?: boolean,
+ *  projects?: string[],
+ *  authoringTargets?: Record<string, string>
  * }} [options]
  */
 function responseForService(service, params, options = {}) {
@@ -1476,7 +1533,11 @@ function responseForService(service, params, options = {}) {
 					projects: {
 						project: options.noProjects
 							? []
-							: [{ name: projectName, comment: '', ref: ['lib_flow_engine'] }]
+							: (options.projects ?? [projectName]).map((name) => ({
+									name,
+									comment: '',
+									ref: ['lib_flow_engine']
+								}))
 					}
 				}
 			};
@@ -1484,6 +1545,12 @@ function responseForService(service, params, options = {}) {
 			return testPlatformResponse(state);
 		case 'studio.treeview.Get':
 			return options.noProjects ? { children: [] } : treeviewResponse(params, state);
+		case 'studio.treeview.Authoring': {
+			const project = params.get('project') ?? '';
+			const sourcePath = params.get('sourcePath') ?? '';
+			const id = options.authoringTargets?.[`${project}:${sourcePath}`];
+			return id ? { id } : {};
+		}
 		case 'studio.treeview.ContextMenu':
 			return contextMenuResponse(params, state);
 		case 'studio.treeview.ContextAction':
