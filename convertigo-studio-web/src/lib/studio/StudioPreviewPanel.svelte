@@ -47,11 +47,13 @@
 	const FIT_PADDING = 24;
 	const iconButtonClasses = 'button-ico-secondary h-8! w-8! justify-center p-0!';
 
-	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void }} */
 	let {
 		projectName = '',
 		previewUrlOverride = '',
 		previewMode = 'production',
+		previewModeBusy = false,
+		onPreviewModeChange,
 		selectedDeviceId = $bindable('none'),
 		landscape = $bindable(false),
 		showDeviceSelector = true,
@@ -179,6 +181,13 @@
 		} catch (error) {
 			console.warn('Unable to reload iframe', error);
 		}
+	}
+
+	function togglePreviewMode() {
+		if (previewModeBusy) {
+			return;
+		}
+		void onPreviewModeChange?.(previewMode === 'development' ? 'production' : 'development');
 	}
 
 	function navigateBack() {
@@ -414,12 +423,22 @@
 			/>
 
 			<div class="studio-preview__actions layout-x-end-none">
-				<span
+				<button
+					type="button"
 					class="studio-preview__mode"
 					class:studio-preview__mode--development={previewMode === 'development'}
+					disabled={previewModeBusy}
+					aria-busy={previewModeBusy}
+					aria-label={previewMode === 'development'
+						? 'Switch to production preview'
+						: 'Switch to development preview'}
+					title={previewMode === 'development'
+						? 'Show the latest production build'
+						: 'Open or start the development preview'}
+					onclick={togglePreviewMode}
 				>
 					{previewMode === 'development' ? 'Dev' : 'Prod'}
-				</span>
+				</button>
 				<Button
 					full={false}
 					label="Go"
@@ -670,6 +689,7 @@
 	}
 
 	.studio-preview__mode {
+		font: inherit;
 		border: 1px solid var(--color-surface-300-700);
 		border-radius: 999px;
 		background: color-mix(in oklab, var(--color-surface-300-700) 14%, transparent);
@@ -679,6 +699,17 @@
 		font-weight: 780;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
+		cursor: pointer;
+	}
+
+	.studio-preview__mode:disabled {
+		cursor: wait;
+		opacity: 0.65;
+	}
+
+	.studio-preview__mode:focus-visible {
+		outline: 2px solid var(--color-primary-500);
+		outline-offset: 2px;
 	}
 
 	.studio-preview__mode--development {

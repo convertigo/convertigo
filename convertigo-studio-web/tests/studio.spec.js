@@ -427,6 +427,55 @@ test('studio exposes Flow actions through a touch menu and switches the iframe t
 	await expect(page.getByRole('menuitem', { name: /Stop dev mode/ })).toBeDisabled();
 });
 
+test('studio switches Prod and Dev directly from the frontend viewer toolbar', async ({ page }) => {
+	const state = createStudioState();
+	const contextActions = [];
+	await mockStudioServices(page, { state, contextActions });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await selectTreeNode(page, frontendBuilderId);
+	await page.getByRole('radio', { name: /Frontend|Tree, preview/ }).click();
+
+	await page.getByRole('button', { name: 'Switch to development preview' }).click();
+	await expect.poll(() => contextActions).toEqual(['frontbuilder.svelte.dev.start']);
+	await expect(page.locator('iframe[title="StudioProject frontend"]')).toHaveAttribute(
+		'src',
+		/\/convertigo\/gw\/studio-test-ticket\/$/
+	);
+
+	await page.getByRole('button', { name: 'Switch to production preview' }).click();
+	await expect(page.locator('iframe[title="StudioProject frontend"]')).toHaveAttribute(
+		'src',
+		/DisplayObjects\/mobile\/index\.html/
+	);
+	await expect.poll(() => contextActions).toEqual(['frontbuilder.svelte.dev.start']);
+});
+
+test('studio restores an already running Dev viewer when returning to the frontend', async ({
+	page
+}) => {
+	const state = createStudioState();
+	state.devRunning = true;
+	state.contextMenuDevRunning = true;
+	const contextActions = [];
+	await mockStudioServices(page, { state, contextActions });
+	await page.goto('/studio/');
+
+	await selectTreeNode(page, projectName);
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+
+	await expect.poll(() => contextActions).toEqual(['frontbuilder.svelte.dev.open']);
+	await expect(page.locator('iframe[title="StudioProject frontend"]')).toHaveAttribute(
+		'src',
+		/\/convertigo\/gw\/studio-test-ticket\/$/
+	);
+	await expect(page.getByRole('button', { name: 'Switch to production preview' })).toHaveText(
+		'Dev'
+	);
+});
+
 test('studio hosts the Flow binding web component and applies its value on touch', async ({
 	page
 }) => {

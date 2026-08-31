@@ -49,7 +49,13 @@
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { resolve } from '$lib/utils/route';
-	import { call, checkArray, saveDboProject } from '$lib/utils/service';
+	import {
+		call,
+		checkArray,
+		getStudioContextMenu,
+		runStudioContextAction,
+		saveDboProject
+	} from '$lib/utils/service';
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 
@@ -183,6 +189,9 @@
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
 	let frontendPreview = $state({ projectName: '', url: '', mode: 'production' });
+	let frontendPreviewBusy = $state(false);
+	let studioReady = $state(false);
+	const reconciledFrontendProjects = new SvelteSet();
 	/** @type {{ projectName: string, sourcePath: string } | null} */
 	let pendingStudioNavigation = null;
 	let frontendTheme = $state(
@@ -349,6 +358,7 @@
 
 	onMount(() => {
 		restoreStudioLayoutPreferences();
+		studioReady = true;
 		urlSyncReady = true;
 		clearStudioRouteHash();
 		const unsubscribeAdminEvents = subscribeAdminEvents(
@@ -360,6 +370,22 @@
 			clearTimeout(projectChangeRefreshTimer);
 			localMutationEvents.clear();
 		};
+	});
+
+	$effect(() => {
+		const projectName = selectedProjectName;
+		const currentProfile = profile;
+		const selection = selectedId;
+		if (
+			!studioReady ||
+			!projectName ||
+			!['frontend', 'vibe'].includes(currentProfile) ||
+			reconciledFrontendProjects.has(projectName)
+		) {
+			return;
+		}
+		reconciledFrontendProjects.add(projectName);
+		void reconcileFrontendPreview(projectName, selection);
 	});
 
 	$effect(() => {
@@ -1439,6 +1465,118 @@
 	}
 
 	/**
+	 * @param {'production' | 'development'} mode
+	 */
+	async function changeFrontendPreviewMode(mode) {
+		if (frontendPreviewBusy || !selectedProjectName) {
+			return;
+		}
+		if (mode === 'production') {
+			frontendPreview = {
+				projectName: selectedProjectName,
+				url: '',
+				mode: 'production'
+			};
+			return;
+		}
+		await openFrontendDevelopmentPreview(selectedProjectName, selectedId, true);
+	}
+
+	/**
+	 * Restores a running development viewer after a Studio refresh without
+	 * starting a new process. A user can still switch back to Prod for the
+	 * current Studio session without stopping the server.
+	 * @param {string} projectName
+	 * @param {string} selection
+	 */
+	async function reconcileFrontendPreview(projectName, selection) {
+		await openFrontendDevelopmentPreview(projectName, selection, false);
+	}
+
+	/**
+	 * @param {string} projectName
+	 * @param {string} selection
+	 * @param {boolean} startWhenStopped
+	 */
+	async function openFrontendDevelopmentPreview(projectName, selection, startWhenStopped) {
+		if (frontendPreviewBusy) {
+			return false;
+		}
+		frontendPreviewBusy = true;
+		try {
+			const target = await findFrontendDevAction(projectName, selection, startWhenStopped);
+			if (!target) {
+				return false;
+			}
+			const result = await runStudioContextAction(target.nodeId, target.action);
+			await onStudioContextAction({ nodeId: target.nodeId, action: target.action, result });
+			return result?.ok !== false;
+		} catch (error) {
+			console.warn('Unable to reconcile the frontend development preview', error);
+			return false;
+		} finally {
+			frontendPreviewBusy = false;
+		}
+	}
+
+	/**
+	 * @param {string} projectName
+	 * @param {string} selection
+	 * @param {boolean} startWhenStopped
+	 * @returns {Promise<{ nodeId: string, action: any } | null>}
+	 */
+	async function findFrontendDevAction(projectName, selection, startWhenStopped) {
+		for (const nodeId of frontendBuilderCandidates(projectName, selection)) {
+			const response = await getStudioContextMenu(nodeId);
+			const actions = Array.isArray(response?.menu?.items)
+				? response.menu.items
+				: Array.isArray(response?.items)
+					? response.items
+					: [];
+			const open = actions.find(
+				(action) => action?.id === 'frontbuilder.svelte.dev.open' && action?.enabled !== false
+			);
+			if (open) {
+				return { nodeId, action: open };
+			}
+			if (startWhenStopped) {
+				const start = actions.find(
+					(action) => action?.id === 'frontbuilder.svelte.dev.start' && action?.enabled !== false
+				);
+				if (start) {
+					return { nodeId, action: start };
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Prefer the builder encoded in the current source selection. The two
+	 * conventional fallbacks keep old Flow projects and tests discoverable
+	 * when only the project root is selected.
+	 * @param {string} projectName
+	 * @param {string} selection
+	 */
+	function frontendBuilderCandidates(projectName, selection) {
+		const candidates = [];
+		const segments = String(selection ?? '').split('.');
+		const frontendsIndex = segments.indexOf('frontends');
+		if (frontendsIndex >= 0 && segments[frontendsIndex + 1]) {
+			candidates.push(segments.slice(0, frontendsIndex + 2).join('.'));
+		}
+		for (const candidate of [
+			`${projectName}.FlowEngine.frontends.builder_svelte`,
+			`${projectName}.Engine.frontends.svelte`
+		]) {
+			if (!candidates.includes(candidate)) {
+				candidates.push(candidate);
+			}
+		}
+		return candidates;
+	}
+
+	/**
 	 * Gateway tickets belong to the Convertigo origin serving Studio. A backend
 	 * action can only know its loopback origin, so keep the capability path while
 	 * rebasing it onto the browser-visible origin.
@@ -1847,6 +1985,8 @@
 		projectName={selectedProjectName}
 		previewUrlOverride={frontendPreviewUrl}
 		previewMode={frontendPreviewMode}
+		previewModeBusy={frontendPreviewBusy}
+		onPreviewModeChange={changeFrontendPreviewMode}
 		bind:selectedDeviceId={frontendDeviceId}
 		bind:landscape={frontendLandscape}
 		showDeviceSelector={false}
