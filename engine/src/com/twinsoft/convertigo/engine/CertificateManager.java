@@ -30,11 +30,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 public class CertificateManager {
+	private static final AtomicLong configurationRevision = new AtomicLong();
 	
 	private static final Collection<String> certificateExtension = Arrays.asList(".udv",".store",".cer",".pfx",".p12",".pkcs11"); 
 	public static boolean isCertificateExtension(String extensionToTest){
@@ -91,6 +93,7 @@ public class CertificateManager {
 	
 	public boolean hasChanged = true;
 	public boolean storeInformationCollected = false;
+	private long collectedConfigurationRevision = -1;
 	
 	public String keyStore;
 	public String keyStoreName;
@@ -114,7 +117,9 @@ public class CertificateManager {
 			
 			storeInformationCollected = false;
 
-			if (context.projectName.equals(previousProjectName) &&
+			long currentConfigurationRevision = configurationRevision.get();
+			if (collectedConfigurationRevision == currentConfigurationRevision &&
+					context.projectName.equals(previousProjectName) &&
 					((context.tasVirtualServerName == null && previousTasVirtualServerName == null) ||
 					(context.tasVirtualServerName != null && context.tasVirtualServerName.equals(previousTasVirtualServerName))) &&
 					((context.tasUserGroup == null && previousTasUserGroup == null) ||
@@ -143,6 +148,7 @@ public class CertificateManager {
 			previousTasUserGroup = context.tasUserGroup;
 			previousTasUserName = context.tasUserName;
 			previousProjectName = context.projectName;
+			collectedConfigurationRevision = currentConfigurationRevision;
 
 			File file = new File(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME);
 			storesProperties = PropertiesUtils.load(file);
@@ -169,6 +175,10 @@ public class CertificateManager {
 			Engine.logCertificateManager.debug("Server store: " + trustStore);
 			Engine.logCertificateManager.debug("Server store password: " + trustStorePassword);
 		}
+	}
+
+	public static void invalidate() {
+		configurationRevision.incrementAndGet();
 	}
 	
 	private void findClientStore() throws EngineException {

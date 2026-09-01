@@ -16,7 +16,9 @@ async function doCall(service, event) {
 	calling = true;
 	try {
 		const res = await call(service, formData);
-		await values.refresh();
+		if (!res.isError) {
+			await values.refresh();
+		}
 		return res;
 	} finally {
 		calling = false;
@@ -65,6 +67,39 @@ let values = {
 		const formData = new FormData();
 		formData.append('link_1', event.target.closest('tr').querySelector('input[name="link"]').value);
 		return await doCall('certificates.mappings.Delete', formData);
+	},
+	importCertificates: async (event) => {
+		const res = await doCall('certificates.Import', event);
+		return !res.isError;
+	},
+	exportCertificates: async () => {
+		const elements = [
+			...[...values.certificates, ...values.candidates]
+				.filter(({ export: selected }) => selected)
+				.map(({ name }) => ({ category: 'certificates', name })),
+			...[...values.anonymous, ...values.carioca]
+				.filter(({ export: selected }) => selected)
+				.map(({ link: name }) => ({ category: 'mappings', name }))
+		];
+		const res = await doCall('certificates.Export', {
+			elements: JSON.stringify(elements)
+		});
+		return !res.isError;
+	},
+	selectForExport: (category, row, selected) => {
+		row.export = selected;
+		if (category == 'mappings' && selected) {
+			const certificate = values.certificates.find(({ name }) => name == row.certificateName);
+			if (certificate) {
+				certificate.export = true;
+			}
+		} else if (category == 'certificates' && !selected) {
+			for (const mapping of [...values.anonymous, ...values.carioca]) {
+				if (mapping.certificateName == row.name) {
+					mapping.export = false;
+				}
+			}
+		}
 	}
 };
 
@@ -83,5 +118,19 @@ export default ServiceHelper({
 		candidates: 'admin.candidates.candidate',
 		anonymous: 'admin.bindings.anonymous.binding',
 		carioca: 'admin.bindings.carioca.binding'
+	},
+	beforeUpdate: (data) => {
+		for (const certificate of data.certificates) {
+			certificate.export = false;
+			certificate.configured = true;
+		}
+		for (const candidate of data.candidates) {
+			candidate.export = false;
+			candidate.configured = false;
+		}
+		for (const mapping of [...data.anonymous, ...data.carioca]) {
+			mapping.export = false;
+		}
+		return data;
 	}
 });
