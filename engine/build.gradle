@@ -376,7 +376,7 @@ dependencies {
 	compileFlat    'org.codehaus.woodstox:stax2-api:4.3.0'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.7.1.202607240634-r'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.7.1.202607240634-r'
-	compileFlat    'org.hibernate.orm:hibernate-core:7.4.6.Final'
+	compileFlat    'org.hibernate.orm:hibernate-core:7.4.7.Final'
 	compileFlat    'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:2.0'
 	compileFlat    'org.mozilla:rhino:1.9.1'
 	compileFlat    'org.mozilla:rhino-tools:1.9.1'
