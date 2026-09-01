@@ -68,7 +68,7 @@ $(window).ready(function() {
 	$("#logOut div").click(function() {
 		$.ajax( {
 			type : "POST",
-			url : "services/engine.Authenticate",
+			url : "../admin/services/engine.Authenticate",
 			data : "authType=logout",
 			dataType : "xml",
 			success : function(xml) {

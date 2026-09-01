@@ -24,7 +24,7 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.56.10"
+			"svelte": "^5.57.0"
 		}
 	},
 	"devDependencies": {
@@ -43,17 +43,17 @@
 		"@tailwindcss/forms": "0.5.11",
 		"@tailwindcss/typography": "0.5.20",
 		"@types/node": "^26.4.0",
-		"@typescript-eslint/parser": "^8.68.0",
+		"@typescript-eslint/parser": "^8.69.0",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.23.0",
-		"globals": "^17.11.0",
+		"globals": "^17.12.0",
 		"postcss-nesting": "^14.0.1",
 		"prettier": "^3.9.6",
 		"prettier-plugin-svelte": "^4.1.1",
 		"prettier-plugin-tailwindcss": "^0.8.1",
 		"sharp": "^0.35.4",
-		"svelte": "^5.56.10",
+		"svelte": "^5.57.0",
 		"svelte-check": "^4.7.6",
 		"svelte-eslint-parser": "^1.8.1",
 		"tailwindcss": "^4.3.3",
@@ -68,7 +68,7 @@
 		"@floating-ui/dom": "^1.8.0",
 		"@internationalized/date": "^3.12.3",
 		"@tailwindcss/vite": "^4.3.3",
-		"@xyflow/svelte": "^1.6.5",
+		"@xyflow/svelte": "^1.6.6",
 		"@zag-js/tree-view": "^1.43.3",
 		"apexcharts": "^5.16.0",
 		"bits-ui": "^2.19.0",

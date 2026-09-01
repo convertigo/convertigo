@@ -26,6 +26,9 @@
 		del,
 		mappingsConfigure,
 		mappingsDel,
+		importCertificates,
+		exportCertificates,
+		selectForExport,
 		init
 	} = $derived(Certificates);
 	let { projects } = $derived(Projects);
@@ -38,6 +41,33 @@
 
 	let modalCertInstall = $state();
 	let modalCertRemove = $state();
+	let modalImport = $state();
+	let actionImport = $state('on');
+	let exporting = $state(false);
+	let exportRows = $derived([
+		...[...certificates, ...candidates]
+			.filter(({ name }) => name != null)
+			.map((row) => ({ category: 'certificates', row })),
+		...[...anonymous, ...carioca]
+			.filter(({ link }) => link != null)
+			.map((row) => ({ category: 'mappings', row }))
+	]);
+	let selectedExportCount = $derived(
+		exportRows.filter(({ row: { export: selected } }) => selected).length
+	);
+	let allExported = $derived(exportRows.length > 0 && selectedExportCount == exportRows.length);
+
+	function selectAllForExport(selected) {
+		for (const { category, row } of exportRows) {
+			selectForExport(category, row, selected);
+		}
+	}
+
+	async function runExport() {
+		if (await exportCertificates()) {
+			exporting = false;
+		}
+	}
 </script>
 
 <ModalDynamic bind:this={modalCertInstall}>
@@ -88,6 +118,78 @@
 	</Card>
 </ModalDynamic>
 
+<ModalDynamic bind:this={modalImport}>
+	<Card title="Drop or choose a certificate ZIP archive and Import">
+		<form
+			onsubmit={async (event) => {
+				if (await importCertificates(event)) {
+					modalImport.close();
+				}
+			}}
+		>
+			<fieldset class="layout-y-stretch" disabled={calling}>
+				<FileUploadField
+					name="file"
+					accept={{
+						'application/zip': ['.zip'],
+						'application/x-zip-compressed': ['.zip']
+					}}
+					required
+					allowDrop
+					dropIcon="mdi:import"
+					title="Drop or choose a certificate ZIP archive"
+					hint="then press Import"
+				/>
+				<div>
+					Import policy
+					<PropertyType
+						type="segment"
+						name="action-import"
+						item={[
+							{ text: 'Replace certificates', value: 'clear-import' },
+							{ text: 'Merge certificates', value: 'on' }
+						]}
+						bind:value={actionImport}
+						orientation="vertical"
+					/>
+				</div>
+				{#if actionImport == 'on'}
+					<div>
+						In case of certificate name or mapping conflict, priority
+						<PropertyType
+							type="segment"
+							name="priority"
+							item={[
+								{ text: 'Server', value: 'priority-server' },
+								{ text: 'File', value: 'priority-import' }
+							]}
+							value="priority-import"
+							orientation="vertical"
+						/>
+					</div>
+					<div>Certificates that only exist on the server will be kept.</div>
+				{:else}
+					<div>All current certificate entries and certificate files will be replaced.</div>
+				{/if}
+				<div>
+					Encrypted password values are imported unchanged. Source and target servers must already
+					use compatible cryptographic configurations.
+				</div>
+				<div>The current certificate configuration will be saved as a dated ZIP backup.</div>
+				<ActionBar>
+					<Button label="Import" icon="mdi:import" type="submit" class="button-primary w-fit!" />
+					<Button
+						label="Cancel"
+						icon="mdi:close-circle-outline"
+						class="button-secondary w-fit!"
+						onclick={modalImport?.close}
+					/>
+				</ActionBar>
+			</fieldset>
+		</form>
+	</Card>
+</ModalDynamic>
+
 <ModalDynamic bind:this={modalCertRemove}>
 	<Card title="Remove a certificate">
 		<form
@@ -123,8 +225,8 @@
 	</Card>
 </ModalDynamic>
 
-{#snippet cell({
-	row: {
+{#snippet cell({ row, def, category })}
+	{@const {
 		name,
 		projectName,
 		link,
@@ -137,13 +239,13 @@
 		type,
 		validPass,
 		last
-	},
-	def
-})}
+	} = row}
 	{#if loading}
 		<AutoPlaceholder {loading} />
 	{:else if def.name == 'Certificate / Store' && def.setup}
-		{#if last}
+		{#if exporting}
+			{name}
+		{:else if last}
 			<PropertyType
 				name="name_0"
 				type="combo"
@@ -155,7 +257,9 @@
 			{name}
 		{/if}
 	{:else if def.name == 'Project Name'}
-		{#if last}
+		{#if exporting}
+			{projectName || 'default'}
+		{:else if last}
 			<PropertyType
 				name="convProject_0"
 				type="combo"
@@ -168,80 +272,117 @@
 			{projectName}
 		{/if}
 	{:else if def.name == 'Virtual Server'}
-		<PropertyType
-			name="virtualServer_0"
-			type="text"
-			value={virtualServerName}
-			originalValue={virtualServerName}
-		/>
-	{:else if def.name == 'Authorization Group'}
-		<PropertyType
-			name="group_0"
-			type="text"
-			value={imputationGroup}
-			originalValue={imputationGroup}
-		/>
-	{:else if def.name == 'User'}
-		<PropertyType name="user_0" type="text" value={userName} originalValue={userName} />
-	{:else if def.name == 'Certificate / Store'}
-		<PropertyType
-			name="cert_0"
-			type="combo"
-			item={certificates.map(({ name }) => ({ value: name, text: name }))}
-			value={certificateName ?? certificates[0]?.name}
-		/>
-	{:else if def.name == 'Type'}
-		<PropertyType
-			name="type_0"
-			type="combo"
-			item={[
-				{ value: 'server', text: 'Server' },
-				{ value: 'client', text: 'Client' }
-			]}
-			value={type ?? 'server'}
-			originalValue={type}
-		/>
-	{:else if def.name == 'Password'}
-		<form class="w-full">
-			{#if validPass == 'false'}
-				<p class="font-medium text-error-700-300">Invalid password</p>
-			{/if}
+		{#if exporting}
+			{virtualServerName || '—'}
+		{:else}
 			<PropertyType
-				name="pwd_0"
-				type="password"
-				value={password}
-				originalValue={password}
-				placeholder="Enter certificate password …"
+				name="virtualServer_0"
+				type="text"
+				value={virtualServerName}
+				originalValue={virtualServerName}
 			/>
-		</form>
+		{/if}
+	{:else if def.name == 'Authorization Group'}
+		{#if exporting}
+			{imputationGroup || '—'}
+		{:else}
+			<PropertyType
+				name="group_0"
+				type="text"
+				value={imputationGroup}
+				originalValue={imputationGroup}
+			/>
+		{/if}
+	{:else if def.name == 'User'}
+		{#if exporting}
+			{userName || '—'}
+		{:else}
+			<PropertyType name="user_0" type="text" value={userName} originalValue={userName} />
+		{/if}
+	{:else if def.name == 'Certificate / Store'}
+		{#if exporting}
+			{certificateName}
+		{:else}
+			<PropertyType
+				name="cert_0"
+				type="combo"
+				item={certificates.map(({ name }) => ({ value: name, text: name }))}
+				value={certificateName ?? certificates[0]?.name}
+			/>
+		{/if}
+	{:else if def.name == 'Type'}
+		{#if exporting}
+			{type ? (type == 'server' ? 'Server' : 'Client') : 'Not configured'}
+		{:else}
+			<PropertyType
+				name="type_0"
+				type="combo"
+				item={[
+					{ value: 'server', text: 'Server' },
+					{ value: 'client', text: 'Client' }
+				]}
+				value={type ?? 'server'}
+				originalValue={type}
+			/>
+		{/if}
+	{:else if def.name == 'Password'}
+		{#if exporting}
+			{type ? 'Included (encrypted)' : '—'}
+		{:else}
+			<form class="w-full">
+				{#if validPass == 'false'}
+					<p class="font-medium text-error-700-300">Invalid password</p>
+				{/if}
+				<PropertyType
+					name="pwd_0"
+					type="password"
+					value={password}
+					originalValue={password}
+					placeholder="Enter certificate password …"
+				/>
+			</form>
+		{/if}
 	{:else if def.name == 'Group'}
-		<PropertyType
-			name="group_0"
-			type="text"
-			value={group}
-			originalValue={group}
-			placeholder="Enter group value …"
-		/>
+		{#if exporting}
+			{group || '—'}
+		{:else}
+			<PropertyType
+				name="group_0"
+				type="text"
+				value={group}
+				originalValue={group}
+				placeholder="Enter group value …"
+			/>
+		{/if}
 	{:else if def.name === 'Actions'}
-		<ResponsiveButtons
-			buttons={[
-				{
-					icon: 'mdi:delete-outline',
-					title: def.setup ? 'Delete certificate entry' : 'Delete mapping',
-					cls: 'button-ico-primary',
-					hidden: last,
-					onclick: def.setup ? del : mappingsDel
-				},
-				{
-					icon: 'mdi:update',
-					title: def.setup ? 'Update certificate entry' : 'Update mapping',
-					cls: 'button-ico-primary',
-					onclick: def.setup ? configure : mappingsConfigure
-				}
-			]}
-			size="6"
-			class="w-full min-w-16"
-		/>
+		{#if exporting}
+			<PropertyType
+				values={[false, true]}
+				type="boolean"
+				name="export"
+				bind:value={() => row.export, (selected) => selectForExport(category, row, selected)}
+			/>
+		{:else}
+			<ResponsiveButtons
+				buttons={[
+					{
+						icon: 'mdi:delete-outline',
+						title: def.setup ? 'Delete certificate entry' : 'Delete mapping',
+						cls: 'button-ico-primary',
+						hidden: last,
+						onclick: def.setup ? del : mappingsDel
+					},
+					{
+						icon: 'mdi:update',
+						title: def.setup ? 'Update certificate entry' : 'Update mapping',
+						cls: 'button-ico-primary',
+						onclick: def.setup ? configure : mappingsConfigure
+					}
+				]}
+				size="6"
+				class="w-full min-w-16"
+			/>
+		{/if}
 	{/if}
 {/snippet}
 
@@ -249,23 +390,75 @@
 	<Card title="Certificates" docHref={certificatesDocHref}>
 		{#snippet cornerOption()}
 			<ResponsiveButtons
-				class="max-w-lg"
+				class="max-w-4xl"
 				buttons={[
 					{
 						label: 'Install a new certificate',
 						icon: 'mdi:certificate',
 						cls: 'button-primary',
+						hidden: exporting,
 						onclick: modalCertInstall?.open
 					},
 					{
 						label: 'Remove a certificate',
 						icon: 'mdi:delete-outline',
 						cls: 'button-secondary',
-						disabled: !candidates.length,
+						hidden: exporting,
+						disabled: candidates.length == 0,
 						onclick: modalCertRemove?.open
+					},
+					{
+						label: 'Import',
+						icon: 'mdi:import',
+						tooltip: 'Import a certificate ZIP archive',
+						cls: 'button-secondary',
+						hidden: exporting,
+						onclick: modalImport?.open
+					},
+					{
+						label: 'Select All',
+						icon: 'mdi:check-all',
+						tooltip: 'Select all certificates for export',
+						cls: 'button-secondary',
+						hidden: !exporting || allExported,
+						onclick: () => selectAllForExport(true)
+					},
+					{
+						label: 'Unselect All',
+						icon: 'mdi:check-all',
+						tooltip: 'Clear certificate selection for export',
+						cls: 'button-secondary',
+						hidden: !exporting || selectedExportCount == 0,
+						onclick: () => selectAllForExport(false)
+					},
+					{
+						label: 'Export',
+						icon: 'mdi:export',
+						tooltip: 'Choose certificates to export',
+						cls: 'button-secondary',
+						hidden: exporting,
+						disabled: exportRows.length == 0,
+						onclick: () => (exporting = true)
+					},
+					{
+						label: `Export [${selectedExportCount}]`,
+						icon: 'mdi:export',
+						tooltip: 'Export selected certificates and their mappings',
+						cls: 'button-primary',
+						hidden: !exporting,
+						disabled: selectedExportCount == 0,
+						onclick: runExport
+					},
+					{
+						label: 'Cancel',
+						icon: 'mdi:close-circle-outline',
+						tooltip: 'Exit export mode without exporting',
+						cls: 'button-secondary',
+						hidden: !exporting,
+						onclick: () => (exporting = false)
 					}
 				]}
-				disabled={!init}
+				disabled={!init || calling}
 			/>
 		{/snippet}
 		<div class="w-full">
@@ -286,10 +479,14 @@
 				custom: true,
 				setup: true
 			}))}
-			data={candidates.length ? [...certificates, { last: true, setup: true }] : certificates}
+			data={exporting
+				? exportRows.filter(({ category }) => category == 'certificates').map(({ row }) => row)
+				: candidates.length
+					? [...certificates, { last: true, setup: true }]
+					: certificates}
 		>
 			{#snippet children({ row, def })}
-				{@render cell({ row, def })}
+				{@render cell({ row, def, category: 'certificates' })}
 			{/snippet}
 		</TableAutoCard>
 	</Card>
@@ -316,10 +513,14 @@
 				class: cls,
 				custom: true
 			}))}
-			data={certificates.length && projects.length ? [...anonymous, { last: true }] : anonymous}
+			data={exporting
+				? anonymous
+				: certificates.length && projects.length
+					? [...anonymous, { last: true }]
+					: anonymous}
 		>
 			{#snippet children({ row, def })}
-				{@render cell({ row, def })}
+				{@render cell({ row, def, category: 'mappings' })}
 			{/snippet}
 		</TableAutoCard>
 		<div class="w-full">
@@ -345,10 +546,14 @@
 				['Certificate / Store', 'min-w-52'],
 				['Actions', 'w-20']
 			].map(([name, cls]) => ({ name, class: cls, custom: true }))}
-			data={certificates.length && projects.length ? [...carioca, { last: true }] : carioca}
+			data={exporting
+				? carioca
+				: certificates.length && projects.length
+					? [...carioca, { last: true }]
+					: carioca}
 		>
 			{#snippet children({ row, def })}
-				{@render cell({ row, def })}
+				{@render cell({ row, def, category: 'mappings' })}
 			{/snippet}
 		</TableAutoCard>
 	</Card>
