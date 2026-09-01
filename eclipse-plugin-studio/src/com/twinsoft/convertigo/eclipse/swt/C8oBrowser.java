@@ -483,7 +483,7 @@ public class C8oBrowser extends Composite {
 		browserWorks.mkdirs();
 		Engine browserContext = browserContexts.get(browserId);
 		if (browserContext != null && !browserContext.isClosed() && preferredDebugPort != null
-				&& browserContext.options().remoteDebuggingPort().get() != preferredDebugPort) {
+				&& browserContext.options().remoteDebuggingPort().get().intValue() != preferredDebugPort.intValue()) {
 			throw new IllegalStateException("Browser context already uses debug port "
 					+ browserContext.options().remoteDebuggingPort().get() + " instead of requested port " + preferredDebugPort);
 		}
