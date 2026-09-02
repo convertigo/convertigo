@@ -6,12 +6,13 @@
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl } from '$lib/utils/service';
-	import { tick } from 'svelte';
-	import { loadPaletteContext } from './paletteContext';
+	import { onDestroy, tick } from 'svelte';
+	import { loadPaletteContext, paletteContextLabel } from './paletteContext';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioSection from './StudioSection.svelte';
 
 	const PALETTE_RETRY_DELAY_MS = 160;
+	const PALETTE_TIMEOUT_MS = 20_000;
 
 	/**
 	 * @typedef {Object} PaletteItem
@@ -56,8 +57,10 @@
 	let paletteContext = $state(emptyPaletteContext());
 	let paletteLoading = $state(false);
 	let paletteError = $state('');
-	let paletteRequestId = '';
+	let paletteRequestId = $state('');
 	let paletteLoadSerial = 0;
+	/** @type {AbortController | null} */
+	let paletteRequestController = null;
 	let openedCategories = $state(/** @type {string[]} */ ([]));
 	let paletteCategoriesTouched = $state(false);
 	let handledRevealSerial = 0;
@@ -77,9 +80,16 @@
 
 	$effect(() => {
 		const nextId = active ? revealRequest?.contextId || selectedId : '';
-		if (!active || nextId === paletteRequestId) {
+		if (!active) {
+			cancelPaletteRequest();
+			paletteRequestId = '';
+			paletteLoading = false;
 			return;
 		}
+		if (nextId === paletteRequestId) {
+			return;
+		}
+		cancelPaletteRequest();
 		paletteRequestId = nextId;
 		const serial = ++paletteLoadSerial;
 		if (!nextId) {
@@ -88,8 +98,11 @@
 			paletteLoading = false;
 			return;
 		}
-		void loadPalette(nextId, serial);
+		paletteRequestController = new AbortController();
+		void loadPalette(nextId, serial, 0, paletteRequestController);
 	});
+
+	onDestroy(cancelPaletteRequest);
 
 	$effect(() => {
 		const serial = Number(revealRequest?.serial ?? 0);
@@ -124,12 +137,16 @@
 	 * @param {string} nextId
 	 * @param {number} serial
 	 * @param {number} attempt
+	 * @param {AbortController} controller
 	 */
-	async function loadPalette(nextId, serial, attempt = 0) {
+	async function loadPalette(nextId, serial, attempt = 0, controller) {
 		paletteLoading = true;
 		paletteError = '';
 		try {
-			const context = await loadPaletteContext(nextId);
+			const context = await loadPaletteContext(nextId, undefined, {
+				signal: controller.signal,
+				timeoutMs: PALETTE_TIMEOUT_MS
+			});
 			if (serial === paletteLoadSerial) {
 				if (!samePaletteContext(paletteContext, context)) {
 					paletteContext = context;
@@ -138,6 +155,9 @@
 				}
 			}
 		} catch (err) {
+			if (err instanceof Error && err.name === 'AbortError') {
+				return;
+			}
 			if (
 				attempt === 0 &&
 				serial === paletteLoadSerial &&
@@ -150,7 +170,7 @@
 					active &&
 					(revealRequest?.contextId || selectedId) === nextId
 				) {
-					await loadPalette(nextId, serial, attempt + 1);
+					await loadPalette(nextId, serial, attempt + 1, controller);
 					return;
 				}
 			}
@@ -163,8 +183,17 @@
 		} finally {
 			if (serial === paletteLoadSerial) {
 				paletteLoading = false;
+				if (paletteRequestController === controller) {
+					paletteRequestController = null;
+				}
 			}
 		}
+	}
+
+	function cancelPaletteRequest() {
+		paletteRequestController?.abort();
+		paletteRequestController = null;
+		paletteLoadSerial += 1;
 	}
 
 	function retryPalette() {
@@ -172,8 +201,11 @@
 		if (!nextId || paletteLoading) {
 			return;
 		}
+		cancelPaletteRequest();
 		paletteRequestId = nextId;
-		void loadPalette(nextId, ++paletteLoadSerial);
+		const serial = ++paletteLoadSerial;
+		paletteRequestController = new AbortController();
+		void loadPalette(nextId, serial, 0, paletteRequestController);
 	}
 
 	/**
@@ -290,9 +322,18 @@
 		/>
 	</div>
 
-	<div class="studio-palette__content">
+	<div class="studio-palette__content" aria-busy={paletteLoading}>
+		{#if paletteLoading && paletteContext.categories.length > 0}
+			<div class="studio-palette__pending layout-x-start-low" role="status">
+				<span class="studio-spinner" aria-hidden="true"></span>
+				<span>Updating palette for {paletteContextLabel(paletteRequestId)}</span>
+			</div>
+		{/if}
 		{#if paletteLoading && paletteContext.categories.length === 0}
-			<StudioEmptyState message="Loading palette" loading />
+			<StudioEmptyState
+				message={`Loading palette for ${paletteContextLabel(paletteRequestId)}`}
+				loading
+			/>
 		{:else if paletteError}
 			<StudioEmptyState>
 				<div class="studio-palette__error layout-y-center-low" role="alert">
@@ -339,7 +380,8 @@
 										data-palette-item-key={itemKey(item)}
 										aria-pressed={selected}
 										title={itemTitle(item)}
-										draggable="true"
+										disabled={paletteLoading}
+										draggable={paletteLoading ? 'false' : 'true'}
 										onclick={() => selectPaletteItem(item)}
 										ondragstart={(event) => onDragStart(event, item)}
 										ondragend={() => ($draggedData = undefined)}
@@ -388,6 +430,18 @@
 		max-width: 20rem;
 	}
 
+	.studio-palette__pending {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		min-height: 2rem;
+		border-bottom: 1px solid color-mix(in oklab, var(--color-primary-500) 22%, transparent);
+		background: color-mix(in oklab, var(--color-surface-50-950) 94%, transparent);
+		color: var(--color-surface-600-400);
+		padding: 0.35rem 0.7rem;
+		font-size: 0.72rem;
+	}
+
 	:global(.studio-palette__categories) {
 		width: 100%;
 	}
@@ -416,6 +470,11 @@
 
 	.studio-palette__item--selected {
 		color: var(--color-primary-700-300);
+	}
+
+	.studio-palette__item:disabled {
+		cursor: wait;
+		opacity: 0.55;
 	}
 
 	.studio-palette__icon {

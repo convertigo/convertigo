@@ -93,6 +93,10 @@ public class FlowStudioSupport {
 			lastNanos = now;
 		}
 
+		private void add(String phase, long nanos) {
+			phases.merge(phase, Math.max(0, nanos), Long::sum);
+		}
+
 		private JSONObject toJson() throws JSONException {
 			var phaseValues = new JSONObject();
 			for (var entry : phases.entrySet()) {
@@ -121,6 +125,18 @@ public class FlowStudioSupport {
 		var profile = performanceProfile.get();
 		if (profile != null && phase != null && !phase.isBlank()) {
 			profile.mark(phase);
+		}
+	}
+
+	/**
+	 * Adds an already measured nested duration without moving the sequential
+	 * profile cursor. Dynamic engines can therefore break down a coarse phase
+	 * without changing the existing end-to-end timings.
+	 */
+	public static void performanceProfileAdd(String phase, long nanos) {
+		var profile = performanceProfile.get();
+		if (profile != null && phase != null && !phase.isBlank() && nanos >= 0) {
+			profile.add(phase, nanos);
 		}
 	}
 
@@ -361,13 +377,17 @@ public class FlowStudioSupport {
 	}
 
 	public static void clearCatalogCache(DatabaseObject dbo) {
+		clearCatalogCache(dbo, true);
+	}
+
+	static void clearCatalogCache(DatabaseObject dbo, boolean clearVirtualChildren) {
 		var root = flowAuthoringRoot(dbo);
-		if (root instanceof FlowEngine flowEngine) {
+		if (clearVirtualChildren && root instanceof FlowEngine flowEngine) {
 			flowEngine.clearFlowVirtualChildrenCache();
 		}
 		if (root instanceof Flow flow && flow.getProject() != null) {
 			var flowEngine = flow.getProject().getFlowEngine();
-			if (flowEngine != null) {
+			if (clearVirtualChildren && flowEngine != null) {
 				flowEngine.clearFlowVirtualChildrenCache();
 			}
 			var flowPrefix = flow.getProject().getName() + "|" + effectiveEngineQName(flow) + "|" + flow.getFullQName() + "|";
@@ -2881,15 +2901,19 @@ public class FlowStudioSupport {
 			String sourcePath, JSONObject mutation) throws Exception {
 		var cleanMutation = cleanFrontendMutation(mutation);
 		var projectionRoot = frontendProjectionRoot(targetDbo, sourcePath);
+		var projectionSnapshot = projectionRoot == null ? null : flowEngine.snapshotFlowVirtualChildrenCache();
 		performanceProfileMark("sourceMutation.resolveProjection");
 		var response = new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath, cleanMutation,
 				projectionRoot == null ? "" : projectionRoot.getVirtualPath());
 		performanceProfileMark("sourceMutation.bridge");
 		if (response.optBoolean("ok", false) && sourceMutationChanged(response)) {
-			afterSourceMutation(flowEngine, sourcePath);
-			performanceProfileMark("sourceMutation.afterMutation");
-			applyFrontendProjection(projectionRoot, sourcePath, response);
+			var projectionApplied = applyFrontendProjection(projectionRoot, sourcePath, response);
+			if (projectionApplied) {
+				flowEngine.restoreFlowVirtualChildrenCache(projectionSnapshot);
+			}
 			performanceProfileMark("sourceMutation.applyProjection");
+			afterSourceMutation(flowEngine, sourcePath, projectionApplied);
+			performanceProfileMark("sourceMutation.afterMutation");
 		} else if (response.optBoolean("ok", false)) {
 			flowStudioWarn("Flow frontend source mutation made no changes: sourcePath=" + sourcePath
 					+ " mutation=" + cleanMutation + " debug=" + response.opt("debug"));
@@ -2906,9 +2930,9 @@ public class FlowStudioSupport {
 		return null;
 	}
 
-	private static void applyFrontendProjection(FlowVirtualObject projectionRoot, String sourcePath, JSONObject response) {
+	private static boolean applyFrontendProjection(FlowVirtualObject projectionRoot, String sourcePath, JSONObject response) {
 		if (projectionRoot == null || response == null) {
-			return;
+			return false;
 		}
 		var tree = response.optJSONObject("authoringTree");
 		var children = tree == null || !tree.optBoolean("ok", false) ? null : tree.optJSONArray("children");
@@ -2916,7 +2940,7 @@ public class FlowStudioSupport {
 		if (projected == null || !projectionRoot.replaceProjectedTree(projected)) {
 			flowStudioWarn("Flow frontend source projection could not replace the in-memory root: sourcePath="
 					+ sourcePath + " rootPath=" + projectionRoot.getVirtualPath());
-			return;
+			return false;
 		}
 		try {
 			response.put("projected", true)
@@ -2925,6 +2949,7 @@ public class FlowStudioSupport {
 		} catch (JSONException e) {
 			flowStudioWarn("Unable to expose Flow frontend projection metadata.", e);
 		}
+		return true;
 	}
 
 	private static JSONObject withProjectionMetadata(JSONObject result, JSONObject response) throws JSONException {
@@ -3118,13 +3143,17 @@ public class FlowStudioSupport {
 	}
 
 	public static void afterSourceMutation(FlowEngine flowEngine, String sourcePath) {
-		clearCatalogCache(flowEngine);
+		afterSourceMutation(flowEngine, sourcePath, false);
+	}
+
+	private static void afterSourceMutation(FlowEngine flowEngine, String sourcePath, boolean projectionApplied) {
+		clearCatalogCache(flowEngine, !projectionApplied);
 		performanceProfileMark("sourceMutation.clearCatalog");
 		if (flowEngine == null || !isFrontendSourcePath(sourcePath)) {
 			return;
 		}
 		for (var target : frontendDevSyncTargets(flowEngine)) {
-			clearCatalogCache(target);
+			clearCatalogCache(target, !projectionApplied);
 			performanceProfileMark("sourceMutation.resolveDevTarget");
 			try {
 				var response = new FlowEngineBridge().contextAction(target, new JSONObject()

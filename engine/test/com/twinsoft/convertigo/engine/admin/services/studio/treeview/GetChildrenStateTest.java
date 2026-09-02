@@ -8,6 +8,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.junit.Test;
 
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
+import com.twinsoft.convertigo.beans.steps.SimpleStep;
 
 public class GetChildrenStateTest {
 	@Test
@@ -45,5 +46,27 @@ public class GetChildrenStateTest {
 				.put("icon", "/images/image.png")
 				.toString());
 		assertEquals("", Get.iconifyIcon(image));
+	}
+
+	@Test
+	public void exposesFlowAndBackendEnabledState() throws Exception {
+		var enabledFlow = new FlowVirtualObject();
+		assertEquals(Boolean.TRUE, Get.enabledState(enabledFlow));
+
+		var disabledDefinition = new FlowVirtualObject();
+		disabledDefinition.setDefinition(new org.codehaus.jettison.json.JSONObject()
+				.put("disabled", true)
+				.toString());
+		assertEquals(Boolean.FALSE, Get.enabledState(disabledDefinition));
+
+		var disabledInfo = new FlowVirtualObject();
+		disabledInfo.setVirtualInfo(new org.codehaus.jettison.json.JSONObject()
+				.put("disabled", true)
+				.toString());
+		assertEquals(Boolean.FALSE, Get.enabledState(disabledInfo));
+
+		var backendStep = new SimpleStep();
+		backendStep.setEnabled(false);
+		assertEquals(Boolean.FALSE, Get.enabledState(backendStep));
 	}
 }

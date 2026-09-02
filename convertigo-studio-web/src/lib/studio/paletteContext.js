@@ -26,13 +26,21 @@ const FOLDER_TYPE_IDS = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url
 
 /**
  * @param {string} id
+ * @param {{ signal?: AbortSignal, timeoutMs?: number }} [options]
  * @returns {Promise<PaletteCategory[]>}
  */
-async function loadPaletteCategories(id) {
+async function loadPaletteCategories(id, options = {}) {
 	if (!id) {
 		return [];
 	}
-	const response = await call('studio.palette.Get', { id });
+	const response = await call('studio.palette.Get', { id }, options);
+	if (response?.aborted) {
+		const error = new Error(
+			response.timedOut ? 'Palette request timed out' : 'Palette request cancelled'
+		);
+		error.name = response.timedOut ? 'TimeoutError' : 'AbortError';
+		throw error;
+	}
 	if (response?.isError || response?.error || response?.transportError || response?.offline) {
 		const message = response?.error?.message ?? response?.error ?? 'Unable to load palette';
 		throw new Error(String(message));
@@ -42,15 +50,16 @@ async function loadPaletteCategories(id) {
 
 /**
  * @param {string} id
- * @param {(id: string) => Promise<PaletteCategory[]>} [loadCategories]
+ * @param {(id: string, options?: { signal?: AbortSignal, timeoutMs?: number }) => Promise<PaletteCategory[]>} [loadCategories]
+ * @param {{ signal?: AbortSignal, timeoutMs?: number }} [options]
  * @returns {Promise<{ id: string, fallbackFrom: string, categories: PaletteCategory[] }>}
  */
-async function loadPaletteContext(id, loadCategories = loadPaletteCategories) {
+async function loadPaletteContext(id, loadCategories = loadPaletteCategories, options = {}) {
 	const visited = [];
 	let currentId = id;
 	while (currentId && !visited.includes(currentId)) {
 		visited.push(currentId);
-		const categories = await loadCategories(currentId);
+		const categories = await loadCategories(currentId, options);
 		if (hasPaletteItems(categories)) {
 			return {
 				id: currentId,
@@ -69,6 +78,23 @@ async function loadPaletteContext(id, loadCategories = loadPaletteCategories) {
  */
 function hasPaletteItems(categories) {
 	return categories.some((category) => (category.items ?? []).length > 0);
+}
+
+/**
+ * @param {string} id
+ * @returns {string}
+ */
+function paletteContextLabel(id) {
+	const segment =
+		String(id ?? '')
+			.split('.')
+			.at(-1) ?? '';
+	const name = (segment.includes(':') ? segment.slice(segment.indexOf(':') + 1) : segment)
+		.replace(/^authoring_(?:route_)?/, '')
+		.replaceAll('_', ' ')
+		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+		.trim();
+	return name ? `${name[0].toUpperCase()}${name.slice(1)}` : 'selection';
 }
 
 /**
@@ -112,4 +138,10 @@ function parentPaletteId(id) {
 	return '';
 }
 
-export { hasPaletteItems, loadPaletteContext, parentPaletteId };
+export {
+	hasPaletteItems,
+	loadPaletteCategories,
+	loadPaletteContext,
+	paletteContextLabel,
+	parentPaletteId
+};

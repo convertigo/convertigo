@@ -39,6 +39,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
+import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -68,6 +69,9 @@ public class Get extends JSonService {
 	private static final Set<String> FLOW_PROJECT_WARMUPS = ConcurrentHashMap.newKeySet();
 
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
+		var profileOwner = FlowStudioSupport.startPerformanceProfile(
+				Boolean.parseBoolean(request.getParameter("profile")), "studio.treeview.Get");
+		try {
 		var flow = "true".equals(request.getParameter("flow"));
 		
 		var ids = request.getParameter("ids");
@@ -83,18 +87,18 @@ public class Get extends JSonService {
 		var id = request.getParameter("id");
 		response.put("children", getChildren(id, flow));
 		response.put("id", id);
+		} finally {
+			FlowStudioSupport.finishPerformanceProfile(profileOwner, response);
+		}
 	}
 
 	private JSONArray getChildren(String id, boolean flow) throws Exception {
 		var children = new JSONArray();
 		if (id == null) {
 			for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true)) {
-				if (flow) {
-					children.put(getProjectNode(projectName, flow));
-				} else {
-					var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(projectName);
-					children.put(getNode(dbo, true, flow));
-				}
+				// Project children remain loaded on demand. Loading every DatabaseObject
+				// here eagerly migrates the whole workspace before a project is expanded.
+				children.put(getProjectNode(projectName, flow));
 			}
 		} else if (id.contains("/")) {
 			children = getFileChildren(id);
@@ -178,6 +182,10 @@ public class Get extends JSonService {
 		}
 		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + iconPath(dbo));
 		obj.put("id", qname);
+		var enabled = enabledState(dbo);
+		if (enabled != null) {
+			obj.put("enabled", enabled);
+		}
 		if (flow) {
 			obj.put("classname", dbo.getClass().getSimpleName());
 			obj.put("isLoop", dbo instanceof LoopStep);
@@ -470,6 +478,18 @@ public class Get extends JSonService {
 			icon = firstNonBlank(flowVirtualObject.getDefinitionObject(), "iconify", "icon");
 		}
 		return isIconifyIcon(icon) ? icon : "";
+	}
+
+	static Boolean enabledState(DatabaseObject dbo) {
+		if (dbo instanceof FlowVirtualObject flowVirtualObject) {
+			var definition = flowVirtualObject.getDefinitionObject();
+			if (definition != null && definition.optBoolean("disabled", false)) {
+				return false;
+			}
+			var info = flowVirtualObject.getVirtualInfoObject();
+			return info == null || !info.optBoolean("disabled", false);
+		}
+		return dbo instanceof IEnableAble enableAble ? enableAble.isEnabled() : null;
 	}
 
 	private static String firstNonBlank(JSONObject object, String... keys) {

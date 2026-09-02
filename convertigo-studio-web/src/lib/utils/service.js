@@ -26,7 +26,9 @@ const adminInstance = browser
  * 	adminInstance?: string,
  * 	silentStatuses?: number[],
  * 	silentNetworkAfterMs?: number,
- * 	silentError?: (error: string, response: any) => boolean
+ * 	silentError?: (error: string, response: any) => boolean,
+ * 	signal?: AbortSignal,
+ * 	timeoutMs?: number
  * }} CallOptions
  */
 
@@ -91,6 +93,20 @@ export async function call(service, data = {}, options = {}) {
 	let responseStatusText;
 	const startedAt = Date.now();
 	const controller = new AbortController();
+	let timedOut = false;
+	let timeoutId;
+	const abortFromCaller = () => controller.abort(options.signal?.reason);
+	if (options.signal?.aborted) {
+		abortFromCaller();
+	} else {
+		options.signal?.addEventListener('abort', abortFromCaller, { once: true });
+	}
+	if (Number(options.timeoutMs) > 0) {
+		timeoutId = setTimeout(() => {
+			timedOut = true;
+			controller.abort();
+		}, Number(options.timeoutMs));
+	}
 	pendingCalls.add(controller);
 	try {
 		let url = getUrl() + service;
@@ -206,7 +222,7 @@ export async function call(service, data = {}, options = {}) {
 		const message = String(err instanceof Error ? err.message : (err ?? ''));
 		const errorName = err instanceof Error ? err.name : '';
 		if (errorName === 'AbortError' || /aborted/i.test(message)) {
-			return { aborted: true };
+			return { aborted: true, timedOut, elapsed: Date.now() - startedAt };
 		}
 		if (
 			message.includes('Failed to fetch') ||
@@ -228,6 +244,10 @@ export async function call(service, data = {}, options = {}) {
 			dataContent = { error: message, status: responseStatus, statusText: responseStatusText };
 		}
 	} finally {
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+		}
+		options.signal?.removeEventListener('abort', abortFromCaller);
 		pendingCalls.delete(controller);
 	}
 

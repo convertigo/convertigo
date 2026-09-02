@@ -90,9 +90,7 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	public List<DatabaseObject> getFlowVirtualChildren() {
-		var source = getEngineSource();
-		var key = FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + engineQName + "\n"
-				+ source + "\n" + getSourceDrafts().hashCode();
+		var key = flowVirtualChildrenCacheKey();
 		if (flowVirtualChildrenCache != null && key.equals(flowVirtualChildrenCacheKey)) {
 			return new ArrayList<>(flowVirtualChildrenCache);
 		}
@@ -100,6 +98,28 @@ public class FlowEngine extends DatabaseObject {
 		flowVirtualChildrenCacheKey = key;
 		flowVirtualChildrenCache = children;
 		return new ArrayList<>(children);
+	}
+
+	private String flowVirtualChildrenCacheKey() {
+		return FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + engineQName + "\n"
+				+ getEngineSource() + "\n" + getSourceDrafts().hashCode();
+	}
+
+	/**
+	 * Captures the already projected virtual tree without causing a projection on a
+	 * cache miss. The snapshot can be restored after a source mutation when the
+	 * provider returned and applied a fresh replacement for the affected subtree.
+	 */
+	public List<DatabaseObject> snapshotFlowVirtualChildrenCache() {
+		return flowVirtualChildrenCache == null ? null : new ArrayList<>(flowVirtualChildrenCache);
+	}
+
+	public void restoreFlowVirtualChildrenCache(List<DatabaseObject> snapshot) {
+		if (snapshot == null) {
+			return;
+		}
+		flowVirtualChildrenCacheKey = flowVirtualChildrenCacheKey();
+		flowVirtualChildrenCache = new ArrayList<>(snapshot);
 	}
 
 	@Override

@@ -32,6 +32,7 @@
 	 *  selectedId?: string,
 	 *  depth?: number,
 	 *  parentNode?: any,
+	 *  ancestorDisabled?: boolean,
 	 *  renameTargetId?: string,
 	 *  dataSerial?: number,
 	 *  refreshSerial?: number,
@@ -58,6 +59,7 @@
 		selectedId = $bindable(''),
 		depth = 0,
 		parentNode = null,
+		ancestorDisabled = false,
 		renameTargetId = $bindable(''),
 		dataSerial = 0,
 		refreshSerial = 0,
@@ -121,6 +123,25 @@
 		revision;
 		return node?.label ?? node?.name ?? 'Unnamed';
 	});
+	let disabled = $derived.by(() => {
+		dataSerial;
+		revision;
+		return node?.enabled === false;
+	});
+	let iconify = $derived.by(() => {
+		dataSerial;
+		revision;
+		return node?.iconify;
+	});
+	let icon = $derived.by(() => {
+		dataSerial;
+		revision;
+		return node?.icon;
+	});
+	let unreachable = $derived(!disabled && ancestorDisabled);
+	let availabilityTitle = $derived(
+		disabled ? `${label} — Disabled` : unreachable ? `${label} — Unreachable because an ancestor is disabled` : undefined
+	);
 	let paddingLeft = $derived(`${depth * 0.34 + 0.14}rem`);
 	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
 	let renaming = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, renameTargetId)));
@@ -920,7 +941,7 @@
 	}
 </script>
 
-<div class="studio-tree-node" role="treeitem" aria-selected={selected}>
+<div class="studio-tree-node" role="treeitem" aria-selected={selected} data-enabled={node?.enabled}>
 	<div
 		bind:this={rowElement}
 		role="presentation"
@@ -938,8 +959,11 @@
 		class:studio-tree-node__row--drop-after={dropOver && dropAllowed && dropIndicator === 'after'}
 		class:studio-tree-node__row--drop-inside={dropOver && dropAllowed && dropIndicator === 'inside'}
 		class:studio-tree-node__row--pending={Boolean(node?.pending)}
+		class:studio-tree-node__row--disabled={disabled}
+		class:studio-tree-node__row--unreachable={unreachable}
 		class="studio-tree-node__row"
 		style:padding-left={paddingLeft}
+		title={availabilityTitle}
 	>
 		<span class="studio-tree-node__toggle">
 			{#if isBranch}
@@ -963,13 +987,13 @@
 				onsubmit={commitRename}
 			>
 				<span class="studio-tree-node__icon">
-					{#if node?.iconify}
-						<Ico icon={node.iconify} size={4} />
-					{:else if typeof node?.icon === 'string' && node.icon.includes('?')}
-						<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{node.icon}" alt="" />
-					{:else if node?.icon == 'file'}
+					{#if typeof icon === 'string' && icon.includes('?')}
+						<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{icon}" alt="" />
+					{:else if iconify}
+						<Ico icon={iconify} size={4} />
+					{:else if icon == 'file'}
 						<Ico icon="mdi:file-document-box-outline" size={4} />
-					{:else if node?.icon == 'folder'}
+					{:else if icon == 'folder'}
 						<Ico icon="mdi:folder-outline" size={4} />
 					{:else}
 						<Ico icon="convertigo:logo" size={4} />
@@ -994,13 +1018,13 @@
 				ondblclick={(event) => toggleExpanded(event)}
 			>
 				<span class="studio-tree-node__icon">
-					{#if node?.iconify}
-						<Ico icon={node.iconify} size={4} />
-					{:else if typeof node?.icon === 'string' && node.icon.includes('?')}
-						<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{node.icon}" alt="" />
-					{:else if node?.icon == 'file'}
+					{#if typeof icon === 'string' && icon.includes('?')}
+						<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{icon}" alt="" />
+					{:else if iconify}
+						<Ico icon={iconify} size={4} />
+					{:else if icon == 'file'}
 						<Ico icon="mdi:file-document-box-outline" size={4} />
-					{:else if node?.icon == 'folder'}
+					{:else if icon == 'folder'}
 						<Ico icon="mdi:folder-outline" size={4} />
 					{:else}
 						<Ico icon="convertigo:logo" size={4} />
@@ -1050,6 +1074,7 @@
 					bind:renameTargetId
 					depth={depth + 1}
 					parentNode={node}
+					ancestorDisabled={ancestorDisabled || disabled}
 					{dataSerial}
 					{onLoadChildren}
 					{refreshSerial}
@@ -1120,6 +1145,14 @@
 		border-color: color-mix(in oklab, var(--color-primary-500) 38%, transparent);
 		background: color-mix(in oklab, var(--color-primary-500) 14%, transparent);
 		color: var(--color-primary-700-300);
+	}
+
+	.studio-tree-node__row--disabled {
+		color: var(--color-error-500, #dc2626);
+	}
+
+	.studio-tree-node__row--unreachable {
+		color: var(--color-warning-500, #ff8c00);
 	}
 
 	.studio-tree-node__row--drop {

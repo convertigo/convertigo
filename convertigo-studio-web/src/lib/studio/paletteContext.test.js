@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loadPaletteContext, parentPaletteId } from './paletteContext';
+import { loadPaletteContext, paletteContextLabel, parentPaletteId } from './paletteContext';
 
 describe('Studio palette parent context', () => {
 	it('uses visible typed folders before their owning database object', () => {
@@ -20,6 +20,15 @@ describe('Studio palette parent context', () => {
 		expect(parentPaletteId('Project.sq:Sequence.st:object')).toBe('Project.sq:Sequence:st');
 	});
 
+	it('formats the pending target without exposing virtual authoring prefixes', () => {
+		expect(paletteContextLabel('Project.FlowEngine.frontends.authoring_route_large_lists')).toBe(
+			'Large lists'
+		);
+		expect(paletteContextLabel('Project.FlowEngine.frontends.authoring_introTitle')).toBe(
+			'Intro Title'
+		);
+	});
+
 	it('falls back until the first parent with palette items', async () => {
 		const calls = [];
 		const categoriesById = new Map([
@@ -38,5 +47,25 @@ describe('Studio palette parent context', () => {
 			fallbackFrom: 'Project.sq:Sequence.st:Step',
 			categories: [{ name: 'Steps', items: [{ name: 'Simple step' }] }]
 		});
+	});
+
+	it('forwards cancellation and timeout options through parent fallback requests', async () => {
+		const controller = new AbortController();
+		const calls = [];
+		const options = { signal: controller.signal, timeoutMs: 20_000 };
+
+		await loadPaletteContext(
+			'Project.sq:Sequence.st:Step',
+			async (id, receivedOptions) => {
+				calls.push({ id, options: receivedOptions });
+				return id.endsWith(':st') ? [{ name: 'Steps', items: [{ name: 'Simple step' }] }] : [];
+			},
+			options
+		);
+
+		expect(calls).toEqual([
+			{ id: 'Project.sq:Sequence.st:Step', options },
+			{ id: 'Project.sq:Sequence:st', options }
+		]);
 	});
 });

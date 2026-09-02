@@ -11,6 +11,7 @@ package com.twinsoft.convertigo.engine.flow;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
@@ -20,6 +21,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.junit.Test;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 
 public class FlowStudioSupportSelectionTest {
@@ -200,6 +202,22 @@ public class FlowStudioSupportSelectionTest {
 		assertTrue(profile.getDouble("totalMs") >= 0);
 		assertTrue(profile.getJSONObject("phases").has("test.phase"));
 		assertTrue(profile.getJSONObject("phases").has("service.response"));
+	}
+
+	@Test
+	public void preservesAProjectedTreeWhenOnlyCatalogDataIsInvalidated() throws Exception {
+		var engine = new FlowEngine();
+		var projected = candidate("frontends.svelte.routes.home", "frontAst", "home");
+		projected.setParent(engine);
+		engine.restoreFlowVirtualChildrenCache(List.of(projected));
+
+		FlowStudioSupport.clearCatalogCache(engine, false);
+
+		assertSame(projected, engine.snapshotFlowVirtualChildrenCache().get(0));
+		assertSame(projected, engine.getFlowVirtualChildren().get(0));
+
+		FlowStudioSupport.clearCatalogCache(engine);
+		assertNull(engine.snapshotFlowVirtualChildrenCache());
 	}
 
 	private FlowVirtualObject candidate(String virtualPath, String mutationPath, String id) throws Exception {

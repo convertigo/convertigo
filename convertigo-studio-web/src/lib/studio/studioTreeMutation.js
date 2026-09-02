@@ -65,6 +65,7 @@ function applyProjectedTreeMutation(roots, mutation, idsEqual) {
 function projectedPaletteNode(mutation) {
 	const data = mutation.payload?.data ?? {};
 	const insert = data.insert ?? {};
+	const iconify = data.iconify ?? (isIconifyIdentifier(data.icon) ? data.icon : undefined);
 	const canContainChildren = Boolean(
 		data.canContainChildren ||
 		(data.slots && Object.keys(data.slots).length > 0) ||
@@ -77,11 +78,20 @@ function projectedPaletteNode(mutation) {
 		id: mutation.selectedId ?? mutation.id ?? '',
 		name: label,
 		label,
-		icon: data.iconFile16 ?? data.icon ?? 'folder',
-		iconify: data.iconify,
+		icon:
+			data.iconFile16 ??
+			data.iconFile ??
+			(iconify ? `studio.dbo.GetIcon?iconPath=${encodeURIComponent(iconify)}` : data.icon) ??
+			'folder',
+		iconify,
 		pending: Boolean(mutation.optimistic),
 		children: canContainChildren ? true : false
 	};
+}
+
+/** @param {unknown} icon */
+function isIconifyIdentifier(icon) {
+	return typeof icon === 'string' && /^[A-Za-z][A-Za-z0-9_-]*:[A-Za-z0-9_.-]+$/.test(icon);
 }
 
 /**

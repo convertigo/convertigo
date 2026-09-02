@@ -163,6 +163,32 @@ describe('Studio projected tree mutations', () => {
 		});
 	});
 
+	it('recognizes an Iconify palette icon before the authoritative tree reload', () => {
+		const card = { id: 'Project.frontends.home.card', children: [] };
+		expect(
+			applyProjectedTreeMutation(
+				[card],
+				{
+					done: true,
+					optimistic: true,
+					selectedId: `${card.id}.__pending_spinner`,
+					parentId: card.id,
+					position: 'inside',
+					payload: {
+						type: 'paletteData',
+						data: { name: 'Spinner', icon: 'mdi:loading' }
+					}
+				},
+				idsEqual
+			)
+		).toBe(true);
+		expect(card.children[0]).toMatchObject({
+			iconify: 'mdi:loading',
+			icon: 'studio.dbo.GetIcon?iconPath=mdi%3Aloading',
+			pending: true
+		});
+	});
+
 	it('atomically replaces an optimistic placeholder with the confirmed node', () => {
 		const pendingId = 'Project.frontends.home.card.__pending_spinner';
 		const card = {

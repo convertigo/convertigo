@@ -29,7 +29,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.ReentrantLock;
@@ -68,6 +71,7 @@ public class FlowEngineBridge {
 	private static final Map<String, CachedEngineRuntimePool> engineRuntimeCache = new ConcurrentHashMap<>();
 	private static final Object engineRuntimeCacheLock = new Object();
 	private static final Map<String, CachedMethodResponse> methodResponseCache = new ConcurrentHashMap<>();
+	private static final Map<String, String> methodResponseAliases = new ConcurrentHashMap<>();
 	private static final Map<String, InvocationStats> invocationStats = new ConcurrentHashMap<>();
 	private static final AtomicLong cacheGeneration = new AtomicLong();
 	private static final AtomicLong dataGeneration = new AtomicLong();
@@ -76,7 +80,17 @@ public class FlowEngineBridge {
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
 	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
 	private static final int ENGINE_RUNTIME_POOL_LIMIT = 2;
+	private static final int FRONTEND_AUTHORING_SINGLE_FLIGHT_LIMIT = 32;
+	private static final Map<String, CompletableFuture<String>> frontendAuthoringFlights = new ConcurrentHashMap<>();
+	private static final Object frontendAuthoringFlightsLock = new Object();
+	private static final LongAdder frontendAuthoringFlightLeaders = new LongAdder();
+	private static final LongAdder frontendAuthoringFlightFollowers = new LongAdder();
+	private static final LongAdder frontendAuthoringFlightBypasses = new LongAdder();
 	private static final ReentrantLock[] frontendAuthoringLocks = createFrontendAuthoringLocks(32);
+	private static final FrontendAuthoringLockState[] frontendAuthoringLockStates = createFrontendAuthoringLockStates(
+			frontendAuthoringLocks.length);
+	private static final FrontendAuthoringMutationGate[] frontendAuthoringMutationGates = createFrontendAuthoringMutationGates(
+			frontendAuthoringLocks.length);
 
 	private record CachedEngineSource(File file, String source, long lastModified, long length) {
 		String sourceName() {
@@ -106,6 +120,115 @@ public class FlowEngineBridge {
 	}
 
 	private record CachedMethodResponse(String response, long generation, long dataGeneration) {
+	}
+
+	private static final class FrontendAuthoringLockState {
+		private String engineQName = "";
+		private String method = "";
+		private String thread = "";
+		private long threadId;
+		private long acquiredAtMillis;
+
+		private synchronized void acquired(String engineQName, String method) {
+			var current = Thread.currentThread();
+			this.engineQName = engineQName;
+			this.method = method;
+			thread = current.getName();
+			threadId = System.identityHashCode(current);
+			acquiredAtMillis = System.currentTimeMillis();
+		}
+
+		private synchronized void released() {
+			if (threadId != System.identityHashCode(Thread.currentThread())) {
+				return;
+			}
+			engineQName = "";
+			method = "";
+			thread = "";
+			threadId = 0;
+			acquiredAtMillis = 0;
+		}
+
+		private synchronized JSONObject toJson(int index, ReentrantLock lock) throws JSONException {
+			var now = System.currentTimeMillis();
+			return new JSONObject()
+					.put("slot", index)
+					.put("locked", lock.isLocked())
+					.put("queued", lock.getQueueLength())
+					.put("engineQName", engineQName)
+					.put("method", method)
+					.put("thread", thread)
+					.put("threadId", threadId)
+					.put("heldMs", acquiredAtMillis == 0 ? 0 : Math.max(0, now - acquiredAtMillis));
+		}
+	}
+
+	static final class FrontendAuthoringMutationGate {
+		private final AtomicInteger pending = new AtomicInteger();
+		private final AtomicLong epoch = new AtomicLong();
+
+		long readStamp() {
+			return pending.get() == 0 ? epoch.get() : -1;
+		}
+
+		boolean canServe(long stamp) {
+			return stamp >= 0 && pending.get() == 0 && epoch.get() == stamp;
+		}
+
+		void beginMutation() {
+			pending.incrementAndGet();
+			epoch.incrementAndGet();
+		}
+
+		void endMutation() {
+			pending.decrementAndGet();
+		}
+
+		int pendingMutations() {
+			return pending.get();
+		}
+	}
+
+	static final class FrontendAuthoringFlight {
+		private final String key;
+		private final CompletableFuture<String> future;
+		private final boolean leader;
+
+		private FrontendAuthoringFlight(String key, CompletableFuture<String> future, boolean leader) {
+			this.key = key;
+			this.future = future;
+			this.leader = leader;
+		}
+
+		boolean leader() {
+			return leader;
+		}
+
+		void complete(JSONObject response) {
+			future.complete(response.toString());
+		}
+
+		void completeExceptionally(Throwable error) {
+			future.completeExceptionally(error);
+		}
+
+		void abandon() {
+			future.completeExceptionally(new EngineException("Flow frontend authoring request ended without a response."));
+		}
+
+		JSONObject await() throws EngineException {
+			try {
+				return new JSONObject(future.join());
+			} catch (CompletionException e) {
+				var cause = e.getCause();
+				if (cause instanceof EngineException engineException) {
+					throw engineException;
+				}
+				throw new EngineException("Unable to join a Flow frontend authoring request.", cause == null ? e : cause);
+			} catch (Exception e) {
+				throw new EngineException("Unable to read a shared Flow frontend authoring response.", e);
+			}
+		}
 	}
 
 	public static void clearCaches() {
@@ -1347,7 +1470,12 @@ public class FlowEngineBridge {
 			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		var engineRef = EngineRef.parse(normalizeEngineQName(engineQName));
 		var frontendAuthoring = usesFrontendDocumentProvider(method, request);
-		var frontendAuthoringLock = frontendAuthoring ? frontendAuthoringLock(engineRef.qname) : null;
+		var frontendAuthoringLockIndex = frontendAuthoring ? frontendAuthoringLockIndex(engineRef.qname) : -1;
+		var frontendAuthoringLock = frontendAuthoring ? frontendAuthoringLocks[frontendAuthoringLockIndex] : null;
+		var frontendAuthoringMutation = frontendAuthoring && invalidatesMethodResponseCache(method, request);
+		var frontendAuthoringMutationGate = frontendAuthoring
+				? frontendAuthoringMutationGates[frontendAuthoringLockIndex]
+				: null;
 		var useThreadRuntime = javascriptContext == null && scope == null;
 		var cx = javascriptContext;
 		var engineScope = scope;
@@ -1359,21 +1487,91 @@ public class FlowEngineBridge {
 		var started = System.nanoTime();
 		var failed = false;
 		var methodCacheHit = false;
+		var methodCacheKey = "";
+		var methodFingerprintNanos = 0L;
+		var methodCacheLookupNanos = 0L;
+		var lockContended = false;
+		var lockWaitNanos = 0L;
+		var lockAcquiredNanos = 0L;
+		var lockHeldNanos = 0L;
+		var lockAcquired = false;
+		var mutationRegistered = false;
+		var optimisticReadStamp = -1L;
+		FrontendAuthoringFlight frontendAuthoringFlight = null;
 
 		try {
-			if (frontendAuthoringLock != null) {
-				frontendAuthoringLock.lock();
+			if (frontendAuthoringMutation) {
+				frontendAuthoringMutationGate.beginMutation();
+				mutationRegistered = true;
 			}
-			FlowStudioSupport.performanceProfileMark("bridge." + method + ".lock");
-			engineFile = resolveEngineFile(engineRef);
-			engineSource = cachedEngineSource(engineFile);
+			if (frontendAuthoring && !frontendAuthoringMutation && useThreadRuntime && isCacheableMethod(method, request)) {
+				optimisticReadStamp = frontendAuthoringMutationGate.readStamp();
+				if (optimisticReadStamp >= 0) {
+					engineFile = resolveEngineFile(engineRef);
+					engineSource = cachedEngineSource(engineFile);
+					var fingerprintStarted = System.nanoTime();
+					methodCacheKey = methodResponseCacheKey(engineRef, engineFile, engineSource, method, request);
+					methodFingerprintNanos = System.nanoTime() - fingerprintStarted;
+					var cacheLookupStarted = System.nanoTime();
+					var cachedResponse = cachedMethodResponse(methodCacheKey);
+					methodCacheLookupNanos += System.nanoTime() - cacheLookupStarted;
+					FlowStudioSupport.performanceProfileMark("bridge." + method + ".methodCacheBeforeLock");
+					if (cachedResponse != null && frontendAuthoringMutationGate.canServe(optimisticReadStamp)) {
+						methodCacheHit = true;
+						return new JSONObject(cachedResponse.response());
+					}
+					frontendAuthoringFlight = acquireFrontendAuthoringFlight(methodCacheKey);
+					if (frontendAuthoringFlight != null && !frontendAuthoringFlight.leader()) {
+						FlowStudioSupport.performanceProfileMark("bridge." + method + ".singleFlightFollower");
+						return frontendAuthoringFlight.await();
+					}
+				}
+			}
+			// Different frontend reads still share the runtime pool's authoring scope.
+			// Keep them serialized until the provider lifecycle is independent from that
+			// Rhino scope; the single-flight above removes duplicate misses safely.
+			if (frontendAuthoringLock != null) {
+				FlowStudioSupport.performanceProfileMark("bridge." + method + ".beforeLock");
+				var lockWaitStarted = System.nanoTime();
+				lockContended = frontendAuthoringLock.isLocked() || frontendAuthoringLock.hasQueuedThreads();
+				frontendAuthoringLock.lock();
+				lockWaitNanos = System.nanoTime() - lockWaitStarted;
+				lockAcquiredNanos = System.nanoTime();
+				lockAcquired = true;
+				frontendAuthoringLockStates[frontendAuthoringLockIndex].acquired(engineRef.qname, method);
+				if (!frontendAuthoringMutation
+						&& (optimisticReadStamp < 0 || !frontendAuthoringMutationGate.canServe(optimisticReadStamp))) {
+					var currentReadStamp = frontendAuthoringMutationGate.readStamp();
+					if (currentReadStamp >= 0) {
+						optimisticReadStamp = currentReadStamp;
+						methodCacheKey = "";
+					}
+				}
+			}
+			FlowStudioSupport.performanceProfileMark("bridge." + method + ".lockWait");
+			if (engineFile == null) {
+				engineFile = resolveEngineFile(engineRef);
+			}
+			if (engineSource == null) {
+				engineSource = cachedEngineSource(engineFile);
+			}
 			FlowStudioSupport.performanceProfileMark("bridge." + method + ".engineSource");
 			if (useThreadRuntime) {
 				if (isCacheableMethod(method, request)) {
-					var cachedResponse = cachedMethodResponse(engineRef, engineFile, engineSource, method, request);
+					var fingerprintStarted = System.nanoTime();
+					if (methodCacheKey.isEmpty()) {
+						methodCacheKey = methodResponseCacheKey(engineRef, engineFile, engineSource, method, request);
+						methodFingerprintNanos += System.nanoTime() - fingerprintStarted;
+					}
+					var cacheLookupStarted = System.nanoTime();
+					var cachedResponse = cachedMethodResponse(methodCacheKey);
+					methodCacheLookupNanos += System.nanoTime() - cacheLookupStarted;
 					FlowStudioSupport.performanceProfileMark("bridge." + method + ".methodCache");
 					if (cachedResponse != null) {
 						methodCacheHit = true;
+						if (frontendAuthoringFlight != null && frontendAuthoringFlight.leader()) {
+							frontendAuthoringFlight.complete(new JSONObject(cachedResponse.response()));
+						}
 						return new JSONObject(cachedResponse.response());
 					}
 				} else if (invalidatesMethodResponseCache(method, request)) {
@@ -1394,31 +1592,61 @@ public class FlowEngineBridge {
 				engineScope = cx.initStandardObjects();
 			}
 			FlowStudioSupport.performanceProfileMark("bridge." + method + ".runtime");
+			attachDescribeTreeSnapshot(engineRef, method, request);
 
 			var response = invokePrepared(engineRef, engineFile, engineSource, method, request, convertigoContext, cx, engineScope,
 					engineObject, runtimeLookup);
 			FlowStudioSupport.performanceProfileMark("bridge." + method + ".invoke");
-			storeMethodResponse(engineRef, engineFile, engineSource, method, request, response);
+			if (isCacheableMethod(method, request) && methodCacheKey.isEmpty()) {
+				var fingerprintStarted = System.nanoTime();
+				methodCacheKey = methodResponseCacheKey(engineRef, engineFile, engineSource, method, request);
+				methodFingerprintNanos += System.nanoTime() - fingerprintStarted;
+			}
+			var stableAuthoringRead = !frontendAuthoring || frontendAuthoringMutation
+					|| frontendAuthoringMutationGate.canServe(optimisticReadStamp);
+			if (stableAuthoringRead) {
+				storeMethodResponse(methodCacheKey, engineRef, method, request, response);
+			} else {
+				FlowStudioSupport.performanceProfileMark("bridge." + method + ".staleSnapshotSkipped");
+			}
 			FlowStudioSupport.performanceProfileMark("bridge." + method + ".store");
+			if (frontendAuthoringFlight != null && frontendAuthoringFlight.leader()) {
+				frontendAuthoringFlight.complete(response);
+			}
 			return response;
 		} catch (EngineException e) {
 			failed = true;
+			if (frontendAuthoringFlight != null && frontendAuthoringFlight.leader()) {
+				frontendAuthoringFlight.completeExceptionally(e);
+			}
 			throw e;
 		} catch (Exception e) {
 			failed = true;
-			throw new EngineException("Unable to invoke Flow engine \"" + engineRef.qname + "\" method \"" + method + "\".", e);
+			var wrapped = new EngineException("Unable to invoke Flow engine \"" + engineRef.qname + "\" method \"" + method + "\".", e);
+			if (frontendAuthoringFlight != null && frontendAuthoringFlight.leader()) {
+				frontendAuthoringFlight.completeExceptionally(wrapped);
+			}
+			throw wrapped;
 		} finally {
 			try {
-				recordInvocation(engineRef, method, System.nanoTime() - started, runtimeLookup, failed, methodCacheHit);
 				releaseEngineRuntime(runtimeLookup);
 				FlowStudioSupport.performanceProfileMark("bridge." + method + ".release");
 				if (entered) {
 					org.mozilla.javascript.Context.exit();
 				}
 			} finally {
-				if (frontendAuthoringLock != null) {
+				releaseFrontendAuthoringFlight(frontendAuthoringFlight);
+				if (lockAcquired) {
+					lockHeldNanos = lockAcquiredNanos == 0 ? 0 : System.nanoTime() - lockAcquiredNanos;
+					frontendAuthoringLockStates[frontendAuthoringLockIndex].released();
 					frontendAuthoringLock.unlock();
 				}
+				if (mutationRegistered) {
+					frontendAuthoringMutationGate.endMutation();
+				}
+				recordInvocation(engineRef, method, System.nanoTime() - started, runtimeLookup, failed, methodCacheHit,
+						lockAcquired, lockContended, lockWaitNanos, lockHeldNanos,
+						methodFingerprintNanos, methodCacheLookupNanos);
 			}
 		}
 	}
@@ -1431,8 +1659,55 @@ public class FlowEngineBridge {
 		return locks;
 	}
 
-	private static ReentrantLock frontendAuthoringLock(String engineQName) {
-		return frontendAuthoringLocks[(engineQName.hashCode() & Integer.MAX_VALUE) % frontendAuthoringLocks.length];
+	private static FrontendAuthoringLockState[] createFrontendAuthoringLockStates(int size) {
+		var states = new FrontendAuthoringLockState[size];
+		for (var i = 0; i < size; i++) {
+			states[i] = new FrontendAuthoringLockState();
+		}
+		return states;
+	}
+
+	private static FrontendAuthoringMutationGate[] createFrontendAuthoringMutationGates(int size) {
+		var gates = new FrontendAuthoringMutationGate[size];
+		for (var i = 0; i < size; i++) {
+			gates[i] = new FrontendAuthoringMutationGate();
+		}
+		return gates;
+	}
+
+	static FrontendAuthoringFlight acquireFrontendAuthoringFlight(String key) {
+		if (key == null || key.isBlank()) {
+			return null;
+		}
+		synchronized (frontendAuthoringFlightsLock) {
+			var existing = frontendAuthoringFlights.get(key);
+			if (existing != null) {
+				frontendAuthoringFlightFollowers.increment();
+				return new FrontendAuthoringFlight(key, existing, false);
+			}
+			if (frontendAuthoringFlights.size() >= FRONTEND_AUTHORING_SINGLE_FLIGHT_LIMIT) {
+				frontendAuthoringFlightBypasses.increment();
+				return null;
+			}
+			var future = new CompletableFuture<String>();
+			frontendAuthoringFlights.put(key, future);
+			frontendAuthoringFlightLeaders.increment();
+			return new FrontendAuthoringFlight(key, future, true);
+		}
+	}
+
+	static void releaseFrontendAuthoringFlight(FrontendAuthoringFlight flight) {
+		if (flight == null || !flight.leader()) {
+			return;
+		}
+		flight.abandon();
+		synchronized (frontendAuthoringFlightsLock) {
+			frontendAuthoringFlights.remove(flight.key, flight.future);
+		}
+	}
+
+	private static int frontendAuthoringLockIndex(String engineQName) {
+		return (engineQName.hashCode() & Integer.MAX_VALUE) % frontendAuthoringLocks.length;
 	}
 
 	static boolean usesFrontendDocumentProvider(String method, JSONObject request) {
@@ -1449,17 +1724,21 @@ public class FlowEngineBridge {
 	}
 
 	private static void recordInvocation(EngineRef engineRef, String method, long durationNanos, CachedEngineRuntimeLookup runtimeLookup,
-			boolean error, boolean methodCacheHit) {
+			boolean error, boolean methodCacheHit, boolean frontendAuthoring, boolean lockContended,
+			long lockWaitNanos, long lockHeldNanos, long methodFingerprintNanos, long methodCacheLookupNanos) {
 		var key = engineRef.qname + "|" + method;
 		var stats = invocationStats.computeIfAbsent(key, k -> new InvocationStats(engineRef.qname, method));
-		stats.record(durationNanos, runtimeLookup, error, methodCacheHit);
+		stats.record(durationNanos, runtimeLookup, error, methodCacheHit, frontendAuthoring, lockContended,
+				lockWaitNanos, lockHeldNanos, methodFingerprintNanos, methodCacheLookupNanos);
 	}
 
 	private static JSONObject bridgeCacheInfo(String engineQName) throws JSONException {
 		var normalizedEngineQName = normalizeEngineQName(engineQName);
 		var methods = new JSONObject();
+		var authoringLocks = new JSONArray();
 		var pooledRuntimeCount = 0;
 		var availableRuntimeCount = 0;
+		var pendingAuthoringMutations = 0;
 		for (var entry : invocationStats.entrySet()) {
 			var stats = entry.getValue();
 			if (stats.engineQName.equals(normalizedEngineQName)) {
@@ -1476,6 +1755,13 @@ public class FlowEngineBridge {
 				availableRuntimeCount += pool.available.size();
 			}
 		}
+		for (var i = 0; i < frontendAuthoringLocks.length; i++) {
+			var lock = frontendAuthoringLocks[i];
+			pendingAuthoringMutations += frontendAuthoringMutationGates[i].pendingMutations();
+			if (lock.isLocked() || lock.hasQueuedThreads()) {
+				authoringLocks.put(frontendAuthoringLockStates[i].toJson(i, lock));
+			}
+		}
 		return new JSONObject()
 				.put("generation", cacheGeneration.get())
 				.put("dataGeneration", dataGeneration.get())
@@ -1488,6 +1774,13 @@ public class FlowEngineBridge {
 				.put("methodResponseCacheHits", methodResponseCacheHits.sum())
 				.put("methodResponseCacheMisses", methodResponseCacheMisses.sum())
 				.put("methodResponseCacheInvalidations", methodResponseCacheInvalidations.sum())
+				.put("frontendAuthoringSingleFlightLimit", FRONTEND_AUTHORING_SINGLE_FLIGHT_LIMIT)
+				.put("frontendAuthoringSingleFlightActive", frontendAuthoringFlights.size())
+				.put("frontendAuthoringSingleFlightLeaders", frontendAuthoringFlightLeaders.sum())
+				.put("frontendAuthoringSingleFlightFollowers", frontendAuthoringFlightFollowers.sum())
+				.put("frontendAuthoringSingleFlightBypasses", frontendAuthoringFlightBypasses.sum())
+				.put("frontendAuthoringPendingMutations", pendingAuthoringMutations)
+				.put("frontendAuthoringLocks", authoringLocks)
 				.put("methods", methods);
 	}
 
@@ -1545,12 +1838,13 @@ public class FlowEngineBridge {
 		}
 
 		var result = ((Function) function).call(cx, engineScope, engineObject, new Object[] { request.toString() });
-		return toJsonObject(result, engineRef.qname, method);
+		FlowStudioSupport.performanceProfileMark("bridge." + method + ".engineCall");
+		var response = toJsonObject(result, engineRef.qname, method);
+		FlowStudioSupport.performanceProfileMark("bridge." + method + ".serialization");
+		return response;
 	}
 
-	private static CachedMethodResponse cachedMethodResponse(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
-			String method, JSONObject request) {
-		var key = methodResponseCacheKey(engineRef, engineFile, engineSource, method, request);
+	private static CachedMethodResponse cachedMethodResponse(String key) {
 		var cached = methodResponseCache.get(key);
 		if (cached != null && cached.generation() == cacheGeneration.get()
 				&& cached.dataGeneration() == dataGeneration.get()) {
@@ -1561,17 +1855,52 @@ public class FlowEngineBridge {
 		return null;
 	}
 
-	private static void storeMethodResponse(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
-			JSONObject request, JSONObject response) {
+	private static void storeMethodResponse(String key, EngineRef engineRef, String method, JSONObject request, JSONObject response) {
 		if (!isCacheableMethod(method, request) || response == null) {
 			return;
 		}
 		if (methodResponseCache.size() >= METHOD_RESPONSE_CACHE_LIMIT) {
 			methodResponseCache.clear();
+			methodResponseAliases.clear();
 			methodResponseCacheInvalidations.increment();
 		}
-		methodResponseCache.put(methodResponseCacheKey(engineRef, engineFile, engineSource, method, request),
+		methodResponseCache.put(key,
 				new CachedMethodResponse(response.toString(), cacheGeneration.get(), dataGeneration.get()));
+		methodResponseAliases.put(methodResponseAliasKey(engineRef, method, request), key);
+	}
+
+	private static String methodResponseAliasKey(EngineRef engineRef, String method, JSONObject request) {
+		var projectDir = request == null ? "" : request.optString("projectDir", "");
+		return engineRef.qname + "|" + method + "|"
+				+ (request == null ? "" : request.optString("target", "")) + "|"
+				+ canonicalPath(projectDir == null || projectDir.isBlank() ? null : new File(projectDir));
+	}
+
+	private static CachedMethodResponse aliasedMethodResponse(EngineRef engineRef, String method, JSONObject request) {
+		var key = methodResponseAliases.get(methodResponseAliasKey(engineRef, method, request));
+		if (key == null || key.isBlank()) {
+			return null;
+		}
+		var cached = methodResponseCache.get(key);
+		return cached != null && cached.generation() == cacheGeneration.get()
+				&& cached.dataGeneration() == dataGeneration.get() ? cached : null;
+	}
+
+	private static void attachDescribeTreeSnapshot(EngineRef engineRef, String method, JSONObject request) throws JSONException {
+		if (!"authoringTree".equals(method) || request == null
+				|| !"frontend".equals(request.optString("surface", "frontend"))) {
+			return;
+		}
+		var describeRequest = new JSONObject()
+				.put("target", "engine")
+				.put("projectDir", request.optString("projectDir", ""));
+		var cached = aliasedMethodResponse(engineRef, "describeTree", describeRequest);
+		FlowStudioSupport.performanceProfileMark(cached == null
+				? "bridge.authoringTree.describeSnapshotMissing"
+				: "bridge.authoringTree.describeSnapshotFound");
+		if (cached != null) {
+			request.put("__flowBridgeDescribeTreeSnapshot", new JSONObject(cached.response()));
+		}
 	}
 
 	private static String methodResponseCacheKey(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
@@ -1746,7 +2075,7 @@ public class FlowEngineBridge {
 			return false;
 		}
 		return switch (method) {
-		case "describeTree", "catalog", "context", "contextMenu", "propertyEditor", "authoringPalette", "icons", "syncInputs", "blockGet", "typeGet" -> true;
+		case "describeTree", "catalog", "context", "contextMenu", "propertyEditor", "authoringPalette", "authoringTree", "icons", "syncInputs", "blockGet", "typeGet" -> true;
 		default -> false;
 		};
 	}
@@ -1828,6 +2157,7 @@ public class FlowEngineBridge {
 	private static void clearMethodResponseCache() {
 		if (!methodResponseCache.isEmpty()) {
 			methodResponseCache.clear();
+			methodResponseAliases.clear();
 			methodResponseCacheInvalidations.increment();
 		}
 	}
@@ -2152,18 +2482,29 @@ public class FlowEngineBridge {
 		private final LongAdder runtimeMisses = new LongAdder();
 		private final LongAdder runtimeDisabled = new LongAdder();
 		private final LongAdder methodCacheHits = new LongAdder();
+		private final LongAdder authoringLockCalls = new LongAdder();
+		private final LongAdder authoringLockContentions = new LongAdder();
+		private final LongAdder authoringLockWaitNanos = new LongAdder();
+		private final LongAdder authoringLockHeldNanos = new LongAdder();
+		private final LongAdder methodFingerprintNanos = new LongAdder();
+		private final LongAdder methodCacheLookupNanos = new LongAdder();
 		private final LongAdder totalNanos = new LongAdder();
 		private final AtomicLong maxNanos = new AtomicLong();
+		private final AtomicLong maxAuthoringLockWaitNanos = new AtomicLong();
+		private final AtomicLong maxAuthoringLockHeldNanos = new AtomicLong();
+		private final AtomicLong maxMethodFingerprintNanos = new AtomicLong();
 
 		private InvocationStats(String engineQName, String method) {
 			this.engineQName = engineQName;
 			this.method = method;
 		}
 
-		private void record(long durationNanos, CachedEngineRuntimeLookup runtimeLookup, boolean error, boolean methodCacheHit) {
+		private void record(long durationNanos, CachedEngineRuntimeLookup runtimeLookup, boolean error, boolean methodCacheHit,
+				boolean frontendAuthoring, boolean lockContended, long lockWaitNanos, long lockHeldNanos,
+				long methodFingerprintNanos, long methodCacheLookupNanos) {
 			count.increment();
 			totalNanos.add(durationNanos);
-			updateMax(durationNanos);
+			updateMax(maxNanos, durationNanos);
 			if (error) {
 				errors.increment();
 			}
@@ -2177,18 +2518,36 @@ public class FlowEngineBridge {
 			} else {
 				runtimeMisses.increment();
 			}
+			if (frontendAuthoring) {
+				authoringLockCalls.increment();
+				if (lockContended) {
+					authoringLockContentions.increment();
+				}
+				authoringLockWaitNanos.add(lockWaitNanos);
+				authoringLockHeldNanos.add(lockHeldNanos);
+				updateMax(maxAuthoringLockWaitNanos, lockWaitNanos);
+				updateMax(maxAuthoringLockHeldNanos, lockHeldNanos);
+			}
+			this.methodFingerprintNanos.add(methodFingerprintNanos);
+			this.methodCacheLookupNanos.add(methodCacheLookupNanos);
+			updateMax(maxMethodFingerprintNanos, methodFingerprintNanos);
 		}
 
-		private void updateMax(long durationNanos) {
-			var previous = maxNanos.get();
-			while (durationNanos > previous && !maxNanos.compareAndSet(previous, durationNanos)) {
-				previous = maxNanos.get();
+		private void updateMax(AtomicLong maximum, long durationNanos) {
+			var previous = maximum.get();
+			while (durationNanos > previous && !maximum.compareAndSet(previous, durationNanos)) {
+				previous = maximum.get();
 			}
 		}
 
 		private JSONObject toJson() throws JSONException {
 			var calls = count.sum();
 			var total = totalNanos.sum();
+			var lockCalls = authoringLockCalls.sum();
+			var lockWait = authoringLockWaitNanos.sum();
+			var lockHeld = authoringLockHeldNanos.sum();
+			var fingerprint = methodFingerprintNanos.sum();
+			var cacheLookup = methodCacheLookupNanos.sum();
 			return new JSONObject()
 					.put("calls", calls)
 					.put("errors", errors.sum())
@@ -2198,7 +2557,20 @@ public class FlowEngineBridge {
 					.put("methodCacheHits", methodCacheHits.sum())
 					.put("totalMs", nanosToMillis(total))
 					.put("avgMs", calls == 0 ? 0 : nanosToMillis(total / calls))
-					.put("maxMs", nanosToMillis(maxNanos.get()));
+					.put("maxMs", nanosToMillis(maxNanos.get()))
+					.put("authoringLockCalls", lockCalls)
+					.put("authoringLockContentions", authoringLockContentions.sum())
+					.put("authoringLockWaitTotalMs", nanosToMillis(lockWait))
+					.put("authoringLockWaitAvgMs", lockCalls == 0 ? 0 : nanosToMillis(lockWait / lockCalls))
+					.put("authoringLockWaitMaxMs", nanosToMillis(maxAuthoringLockWaitNanos.get()))
+					.put("authoringLockHeldTotalMs", nanosToMillis(lockHeld))
+					.put("authoringLockHeldAvgMs", lockCalls == 0 ? 0 : nanosToMillis(lockHeld / lockCalls))
+					.put("authoringLockHeldMaxMs", nanosToMillis(maxAuthoringLockHeldNanos.get()))
+					.put("methodFingerprintTotalMs", nanosToMillis(fingerprint))
+					.put("methodFingerprintAvgMs", calls == 0 ? 0 : nanosToMillis(fingerprint / calls))
+					.put("methodFingerprintMaxMs", nanosToMillis(maxMethodFingerprintNanos.get()))
+					.put("methodCacheLookupTotalMs", nanosToMillis(cacheLookup))
+					.put("methodCacheLookupAvgMs", calls == 0 ? 0 : nanosToMillis(cacheLookup / calls));
 		}
 	}
 
