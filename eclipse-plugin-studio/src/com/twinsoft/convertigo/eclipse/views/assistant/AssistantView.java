@@ -158,7 +158,10 @@ public class AssistantView extends ViewPart {
 		});
 		
 		new ToolItem(tb, SWT.SEPARATOR);
-		browser.addToolItemNavigation(tb);
+		browser.addToolItemNavigation(tb, () -> {
+			startupUrl = resolveAssistantStartupUrl();
+			browser.setUrl(startupUrl);
+		});
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(true);
