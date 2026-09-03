@@ -305,6 +305,14 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 		'1'
 	);
 	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
+		'data-assistant-runtime',
+		'server'
+	);
+	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
+		'data-agent-bridge-available',
+		'true'
+	);
+	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
 		'data-query-project',
 		projectName
 	);
@@ -1507,6 +1515,8 @@ async function mockStudioServices(page, options = {}) {
 								if (message.type === 'lib_ConvertigoAssistant.context') {
 									const context = message.payload || {};
 									studioContext = context;
+									output.dataset.assistantRuntime = context.assistantRuntime || '';
+									output.dataset.agentBridgeAvailable = String(context.agentBridgeAvailable ?? '');
 									output.textContent = (context.projectContext || 'No project') + ' · ' + context.assistantSurface;
 								}
 								if (message.type === 'select') {

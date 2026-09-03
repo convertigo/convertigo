@@ -33,6 +33,9 @@
 	let assistantContext = $derived({
 		assistantSurface: 'studio',
 		assistantContext: 'studio',
+		assistantRuntime: 'server',
+		agentBridgeAvailable: true,
+		localAgentBridgeAvailable: false,
 		agentProfile,
 		skillProfile: agentProfile,
 		userId: 'studio',
@@ -85,7 +88,7 @@
 	}
 
 	/**
-	 * @param {Record<string, string>} context
+	 * @param {Record<string, string | boolean>} context
 	 * @param {boolean} ready
 	 * @param {string} url
 	 * @returns {import('svelte/attachments').Attachment<HTMLIFrameElement>}
