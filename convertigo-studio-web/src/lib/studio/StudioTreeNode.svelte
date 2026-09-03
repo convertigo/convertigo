@@ -140,7 +140,11 @@
 	});
 	let unreachable = $derived(!disabled && ancestorDisabled);
 	let availabilityTitle = $derived(
-		disabled ? `${label} — Disabled` : unreachable ? `${label} — Unreachable because an ancestor is disabled` : undefined
+		disabled
+			? `${label} — Disabled`
+			: unreachable
+				? `${label} — Unreachable because an ancestor is disabled`
+				: undefined
 	);
 	let paddingLeft = $derived(`${depth * 0.34 + 0.14}rem`);
 	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
