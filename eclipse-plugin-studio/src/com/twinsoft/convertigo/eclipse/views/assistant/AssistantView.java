@@ -68,6 +68,7 @@ import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInp
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.views.admin.AdminView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -150,6 +151,7 @@ public class AssistantView extends ViewPart {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				startupUrl = resolveAssistantStartupUrl();
 				browser.setUrl(startupUrl);
 			}
 
@@ -559,7 +561,28 @@ public class AssistantView extends ViewPart {
 			}
 		} catch (Exception e) {
 		}
-		return addDarkThemeParameter(url);
+		url = addDarkThemeParameter(url);
+		if (!isLocalConvertigoUrl(url, getLocalConvertigoUrl())) {
+			return url;
+		}
+		try {
+			URI uri = new URI(url);
+			URI localUri = new URI(getLocalConvertigoUrl());
+			String path = Objects.toString(uri.getRawPath(), "/");
+			String localPath = Objects.toString(localUri.getRawPath(), "").replaceFirst("/+$", "");
+			if (StringUtils.isNotBlank(localPath) && path.startsWith(localPath + "/")) {
+				path = path.substring(localPath.length());
+			} else if (path.equals(localPath)) {
+				path = "/";
+			}
+			if (StringUtils.isNotBlank(uri.getRawQuery())) {
+				path += "?" + uri.getRawQuery();
+			}
+			return AdminView.getAuthenticatedUrl(path);
+		} catch (Exception e) {
+			ConvertigoPlugin.logStudioWarn("[Assistant] unable to create authenticated local URL: " + e.getMessage());
+			return url;
+		}
 	}
 
 	private static String getLocalConvertigoUrl() {
@@ -763,8 +786,7 @@ public class AssistantView extends ViewPart {
 				}
 				String preferenceUrl = getActivationAssistantPreferenceUrl(activationPayload);
 				ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_ASSISTANT_URL, preferenceUrl);
-				var localUrl = ConvertigoPlugin.resolveStudioUrl(preferenceUrl);
-				startupUrl = addDarkThemeParameter(localUrl);
+				startupUrl = resolveAssistantStartupUrl();
 				postActivationStatus("success", forceUpdate ? "Stack Agent locale mise à jour." : "Assistant local activé.", "", true);
 				ConvertigoPlugin.asyncExec(() -> {
 					try {
