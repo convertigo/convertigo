@@ -88,6 +88,8 @@ public class AssistantView extends ViewPart {
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.assistant.AssistantView";
 	public static final String STARTUP_URL = "https://assistant.convertigo.com/";
 	private static final String LOCAL_ASSISTANT_PATH = "/projects/lib_ConvertigoAssistant/DisplayObjects/mobile/";
+	private static final String LOCAL_AGENT_PATH = LOCAL_ASSISTANT_PATH
+			+ "?agentBridge=1&assistantMode=agent&assistantSurface=studio";
 	private static final String AGENT_ONBOARDING_FEATURE_VERSION = "2026-07-02.agent-onboarding-v1";
 	private static final String AGENT_DOWNLOAD_URL = "https://www.convertigo.com/developers/download-low-code-studio";
 	private static final String[] LOCAL_AGENT_STACK_PROJECTS = {"lib_ConvertigoAssistant", "lib_ConvertigoMCP", "lib_ConvertigoAgentBridge"};
@@ -564,6 +566,9 @@ public class AssistantView extends ViewPart {
 			}
 		} catch (Exception e) {
 		}
+		if (isLocalConvertigoUrl(url, getLocalConvertigoUrl()) && isAssistantRootUrl(url)) {
+			url = ConvertigoPlugin.resolveStudioUrl(LOCAL_AGENT_PATH);
+		}
 		url = addDarkThemeParameter(url);
 		if (!isLocalConvertigoUrl(url, getLocalConvertigoUrl())) {
 			return url;
@@ -585,6 +590,15 @@ public class AssistantView extends ViewPart {
 		} catch (Exception e) {
 			ConvertigoPlugin.logStudioWarn("[Assistant] unable to create authenticated local URL: " + e.getMessage());
 			return url;
+		}
+	}
+
+	private static boolean isAssistantRootUrl(String url) {
+		try {
+			String path = Objects.toString(new URI(url).getPath(), "").replaceFirst("/+$", "");
+			return path.endsWith("/projects/lib_ConvertigoAssistant/DisplayObjects/mobile");
+		} catch (Exception e) {
+			return false;
 		}
 	}
 
