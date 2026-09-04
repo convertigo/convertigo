@@ -269,8 +269,11 @@ public class AssistantView extends ViewPart {
 						if (projectName == null || !projectName.equals(pname)) {
 							// set select message
 							setSelectMessage(p);
-							// post project message
-							handler.postMessage(jsonMessage);
+							// The current selection is sent again by the load callback once the
+							// application message bridge is ready.
+							if (isAssistantMessageBridgeReady()) {
+								handler.postMessage(jsonMessage);
+							}
 						}
 					} catch (Exception e1) {
 						e1.printStackTrace();
@@ -339,9 +342,8 @@ public class AssistantView extends ViewPart {
 		if (browser == null || browser.isDisposed() || handler == null || loadGeneration != assistantLoadGeneration) {
 			return;
 		}
-		try {
-			Object ready = browser.executeJavaScriptAndReturnValue("typeof window.receiveFromJava === 'function'");
-			if (Boolean.TRUE.equals(ready)) {
+		if (isAssistantMessageBridgeReady()) {
+			try {
 				var json = new JSONObject();
 				json.put("type", "init");
 				handler.postMessage(json);
@@ -349,14 +351,26 @@ public class AssistantView extends ViewPart {
 					handler.postMessage(jsonMessage);
 				}
 				return;
+			} catch (Exception e) {
 			}
-		} catch (Exception e) {
 		}
 		if (attempt < 40) {
 			browser.getDisplay().timerExec(attempt < 10 ? 100 : 250,
 					() -> postAssistantInitWhenReady(loadGeneration, attempt + 1));
 		} else {
 			ConvertigoPlugin.logStudioWarn("[Assistant] application message bridge did not become ready");
+		}
+	}
+
+	private boolean isAssistantMessageBridgeReady() {
+		if (browser == null || browser.isDisposed() || handler == null) {
+			return false;
+		}
+		try {
+			Object ready = browser.executeJavaScriptAndReturnValue("typeof window.receiveFromJava === 'function'");
+			return Boolean.TRUE.equals(ready);
+		} catch (Exception e) {
+			return false;
 		}
 	}
 
