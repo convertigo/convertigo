@@ -88,8 +88,6 @@ public class AssistantView extends ViewPart {
 	public static final String ID = "com.twinsoft.convertigo.eclipse.views.assistant.AssistantView";
 	public static final String STARTUP_URL = "https://assistant.convertigo.com/";
 	private static final String LOCAL_ASSISTANT_PATH = "/projects/lib_ConvertigoAssistant/DisplayObjects/mobile/";
-	private static final String LOCAL_AGENT_PATH = LOCAL_ASSISTANT_PATH
-			+ "?agentBridge=1&assistantMode=agent&assistantSurface=studio";
 	private static final String AGENT_ONBOARDING_FEATURE_VERSION = "2026-07-02.agent-onboarding-v1";
 	private static final String AGENT_DOWNLOAD_URL = "https://www.convertigo.com/developers/download-low-code-studio";
 	private static final String[] LOCAL_AGENT_STACK_PROJECTS = {"lib_ConvertigoAssistant", "lib_ConvertigoMCP", "lib_ConvertigoAgentBridge"};
@@ -114,6 +112,8 @@ public class AssistantView extends ViewPart {
 	private JSONObject jsonMessage = new JSONObject();
 	private int counter = 1;
 	private String startupUrl = STARTUP_URL;
+	private volatile int assistantLoadGeneration = 0;
+	private volatile boolean localAgentStackPreparationScheduled = false;
 	private long localAgentStackLoadingStartedAt = 0L;
 	private boolean localAgentStackContextRecheckScheduled = false;
 	
@@ -153,16 +153,14 @@ public class AssistantView extends ViewPart {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				startupUrl = resolveAssistantStartupUrl();
-				browser.setUrl(startupUrl);
+				openAssistantStartupUrl(tb);
 			}
 
 		});
 		
 		new ToolItem(tb, SWT.SEPARATOR);
 		browser.addToolItemNavigation(tb, () -> {
-			startupUrl = resolveAssistantStartupUrl();
-			browser.setUrl(startupUrl);
+			openAssistantStartupUrl(tb);
 		});
 		
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -228,33 +226,12 @@ public class AssistantView extends ViewPart {
 			}
 		});
 		handler.onLoad(event -> {
-			// post init message
-			try {
-				var json = new JSONObject();
-				json.put("type", "init");
-				handler.postMessage(json);
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
-			
-			// post select message
-			try {
-				if (jsonMessage.has("type") && "select".equals(jsonMessage.getString("type"))) {
-					handler.postMessage(jsonMessage);
-				}
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
-			
+			int loadGeneration = ++assistantLoadGeneration;
+			postAssistantInitWhenReady(loadGeneration, 0);
 		});
 
 		ConvertigoPlugin.runAtStartup(() -> {
-			if (browser == null || browser.isDisposed()) {
-				return;
-			}
-			startupUrl = resolveAssistantStartupUrl();
-			setToolbarEnabled(tb, true);
-			browser.setUrl(startupUrl);
+			openAssistantStartupUrl(tb);
 		});
 		
 		Runnable initPev = () -> {
@@ -318,6 +295,69 @@ public class AssistantView extends ViewPart {
 		});
 		ConvertigoPlugin.asyncExec(initPev);
 		
+	}
+
+	private void openAssistantStartupUrl(ToolBar toolbar) {
+		if (browser == null || browser.isDisposed()) {
+			return;
+		}
+		startupUrl = resolveAssistantStartupUrl();
+		setToolbarEnabled(toolbar, true);
+		if (!isLocalConvertigoUrl(startupUrl, getLocalConvertigoUrl()) || !isLocalAgentStackPresentInWorkspace()
+				|| isLocalAgentStackLoaded()) {
+			browser.setUrl(startupUrl);
+			return;
+		}
+		String targetUrl = startupUrl;
+		browser.setText(WAITING_HTML);
+		if (localAgentStackPreparationScheduled) {
+			return;
+		}
+		localAgentStackPreparationScheduled = true;
+		Job.create("Prepare local Assistant agent stack", monitor -> {
+			try {
+				for (String projectName : LOCAL_AGENT_STACK_PROJECTS) {
+					if (monitor.isCanceled()) {
+						return;
+					}
+					Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, true);
+				}
+			} catch (Exception e) {
+				ConvertigoPlugin.logStudioWarn("[Assistant] unable to prepare local Agent stack: " + e.getMessage());
+			} finally {
+				ConvertigoPlugin.asyncExec(() -> {
+					localAgentStackPreparationScheduled = false;
+					if (browser != null && !browser.isDisposed()) {
+						browser.setUrl(targetUrl);
+					}
+				});
+			}
+		}).schedule();
+	}
+
+	private void postAssistantInitWhenReady(int loadGeneration, int attempt) {
+		if (browser == null || browser.isDisposed() || handler == null || loadGeneration != assistantLoadGeneration) {
+			return;
+		}
+		try {
+			Object ready = browser.executeJavaScriptAndReturnValue("typeof window.receiveFromJava === 'function'");
+			if (Boolean.TRUE.equals(ready)) {
+				var json = new JSONObject();
+				json.put("type", "init");
+				handler.postMessage(json);
+				if (jsonMessage.has("type") && "select".equals(jsonMessage.getString("type"))) {
+					handler.postMessage(jsonMessage);
+				}
+				return;
+			}
+		} catch (Exception e) {
+		}
+		if (attempt < 40) {
+			browser.getDisplay().timerExec(attempt < 10 ? 100 : 250,
+					() -> postAssistantInitWhenReady(loadGeneration, attempt + 1));
+		} else {
+			ConvertigoPlugin.logStudioWarn("[Assistant] application message bridge did not become ready");
+		}
 	}
 
 	private void capture() {
@@ -566,9 +606,6 @@ public class AssistantView extends ViewPart {
 			}
 		} catch (Exception e) {
 		}
-		if (isLocalConvertigoUrl(url, getLocalConvertigoUrl()) && isAssistantRootUrl(url)) {
-			url = ConvertigoPlugin.resolveStudioUrl(LOCAL_AGENT_PATH);
-		}
 		url = addDarkThemeParameter(url);
 		if (!isLocalConvertigoUrl(url, getLocalConvertigoUrl())) {
 			return url;
@@ -593,15 +630,6 @@ public class AssistantView extends ViewPart {
 		}
 	}
 
-	private static boolean isAssistantRootUrl(String url) {
-		try {
-			String path = Objects.toString(new URI(url).getPath(), "").replaceFirst("/+$", "");
-			return path.endsWith("/projects/lib_ConvertigoAssistant/DisplayObjects/mobile");
-		} catch (Exception e) {
-			return false;
-		}
-	}
-
 	private static String getLocalConvertigoUrl() {
 		try {
 			return Strings.CS.removeEnd(EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL), "/");
@@ -615,13 +643,7 @@ public class AssistantView extends ViewPart {
 	}
 
 	private static boolean isProjectInstalled(String projectName) {
-		try {
-			return Engine.theApp != null
-					&& Engine.theApp.databaseObjectsManager != null
-					&& Engine.theApp.databaseObjectsManager.existsProject(projectName);
-		} catch (Exception e) {
-			return false;
-		}
+		return getInstalledProject(projectName) != null;
 	}
 
 	private static Project getInstalledProject(String projectName) {
@@ -656,14 +678,18 @@ public class AssistantView extends ViewPart {
 				&& isReleaseManagedProject("lib_ConvertigoMCP")
 				&& isReleaseManagedProject("lib_ConvertigoAgentBridge");
 		boolean allInstalled = state.assistantInstalled && state.mcpInstalled && state.bridgeInstalled;
+		boolean allLoaded = allInstalled
+				&& StringUtils.isNotBlank(state.assistantVersion)
+				&& StringUtils.isNotBlank(state.mcpVersion)
+				&& StringUtils.isNotBlank(state.bridgeVersion);
 		boolean opening = false;
 		boolean presentButNotInstalled = false;
 		for (String projectName : LOCAL_AGENT_STACK_PROJECTS) {
 			opening |= isProjectOpening(projectName);
 			presentButNotInstalled |= !isProjectInstalled(projectName) && isProjectPresentInWorkspace(projectName);
 		}
-		boolean shouldWait = opening || presentButNotInstalled;
-		if (allInstalled && !opening) {
+		boolean shouldWait = opening || presentButNotInstalled || (allInstalled && !allLoaded);
+		if (allLoaded && !opening) {
 			localAgentStackLoadingStartedAt = 0L;
 			state.state = "ready";
 			state.loading = false;
@@ -730,8 +756,26 @@ public class AssistantView extends ViewPart {
 			return new File(projectDir, "c8oProject.yaml").exists()
 					|| new File(projectDir, projectName + ".xml").exists();
 		} catch (Exception e) {
-			return false;
 		}
+		return false;
+	}
+
+	private static boolean isLocalAgentStackPresentInWorkspace() {
+		for (String projectName : LOCAL_AGENT_STACK_PROJECTS) {
+			if (!isProjectPresentInWorkspace(projectName)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static boolean isLocalAgentStackLoaded() {
+		for (String projectName : LOCAL_AGENT_STACK_PROJECTS) {
+			if (StringUtils.isBlank(getInstalledProjectVersion(projectName))) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private static class LocalAgentStackState {
