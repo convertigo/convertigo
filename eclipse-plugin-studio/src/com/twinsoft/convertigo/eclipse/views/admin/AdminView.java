@@ -53,7 +53,7 @@ public class AdminView extends ViewPart {
 
 	
 	private static final Map<String, Long> authTokens = new ConcurrentHashMap<>();
-	private static final long AUTH_TOKEN_TTL = 30000;
+	private static final long AUTH_TOKEN_TTL = 5 * 60 * 1000L;
 
 	private C8oBrowser browser = null;
 	private AuthenticatedBrowser authenticatedBrowser = null;

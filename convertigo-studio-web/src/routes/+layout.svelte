@@ -50,7 +50,10 @@
 		var authToken = page.url.hash.match(new RegExp('#authToken=(.*)'));
 
 		if (authToken != null) {
-			await Authentication.authenticate({ authToken: authToken[1], authType: 'login' });
+			await Authentication.checkAuthentication();
+			if (!Authentication.authenticated) {
+				await Authentication.authenticate({ authToken: authToken[1], authType: 'login' });
+			}
 		} else {
 			await Authentication.checkAuthentication();
 		}

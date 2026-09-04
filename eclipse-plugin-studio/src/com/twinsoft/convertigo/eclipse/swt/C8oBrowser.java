@@ -329,9 +329,13 @@ public class C8oBrowser extends Composite {
 	}
 
 	public void addToolItemNavigation(ToolBar toolbar) {
+		addToolItemNavigation(toolbar, null);
+	}
+
+	public void addToolItemNavigation(ToolBar toolbar, Runnable refreshAction) {
 		addToolItemBack(toolbar);
 		addToolItemStop(toolbar);
-		addToolItemRefresh(toolbar);
+		addToolItemRefresh(toolbar, refreshAction);
 		addToolItemForward(toolbar);
 	}
 	
@@ -374,6 +378,10 @@ public class C8oBrowser extends Composite {
 	}
 	
 	public void addToolItemRefresh(ToolBar toolbar) {
+		addToolItemRefresh(toolbar, null);
+	}
+
+	public void addToolItemRefresh(ToolBar toolbar, Runnable refreshAction) {
 		var ti = new ToolItem(toolbar, SWT.NONE);
 		try {
 			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/refresh.gif"));
@@ -384,7 +392,11 @@ public class C8oBrowser extends Composite {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				getBrowser().navigation().reload();
+				if (refreshAction == null) {
+					getBrowser().navigation().reload();
+				} else {
+					refreshAction.run();
+				}
 			}
 			
 		});
