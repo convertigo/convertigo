@@ -84,6 +84,27 @@ if [ "$1" = "convertigo" ]; then
     if [ -d /workspace/classes/ ]; then
         cp -r /workspace/classes/* $WEB_INF/classes/ 2>/dev/null
     fi
+
+    ## add custom trusted certificate authorities to the JVM truststore
+
+    if [ -d /workspace/cacerts.d/ ]; then
+        C8O_CACERTS=/tmp/convertigo-cacerts
+        if [ ! -r "$JAVA_HOME/lib/security/cacerts" ]; then
+            echo "Warning: cannot read the JVM truststore at $JAVA_HOME/lib/security/cacerts; skip custom trusted certificates"
+        elif ! cp "$JAVA_HOME/lib/security/cacerts" "$C8O_CACERTS" 2>&1; then
+            echo "Warning: cannot create the custom JVM truststore; skip custom trusted certificates"
+        else
+            for certificate in /workspace/cacerts.d/* /workspace/cacerts.d/.[!.]*; do
+                [ -f "$certificate" ] || continue
+                certificate_alias="convertigo-$(basename "$certificate")"
+                echo "Import JVM trusted certificate $certificate"
+                if ! keytool -importcert -noprompt -trustcacerts -keystore "$C8O_CACERTS" -storepass changeit -alias "$certificate_alias" -file "$certificate" 2>&1; then
+                    echo "Warning: cannot import JVM trusted certificate $certificate"
+                fi
+            done
+            export JAVA_OPTS="-Djavax.net.ssl.trustStore=$C8O_CACERTS -Djavax.net.ssl.trustStorePassword=changeit $JAVA_OPTS"
+        fi
+    fi
     
     ## check and adapt the Java Xmx for limited devices
     

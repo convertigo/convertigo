@@ -64,6 +64,8 @@ Create a user-defined Docker network and run both containers on it:
 
 The legacy `--link` option may still work, but it is no longer the recommended Docker approach.
 
+For compatibility with existing deployments, the image also detects a resolvable host named `couchdb` at startup and configures it as `http://couchdb:5984`. Prefer an explicit `JAVA_OPTS` setting and a user-defined network for new deployments.
+
 ## Use embedded PouchDB as FullSync engine (not for production)
 
 Convertigo FullSync is designed to use CouchDB server or cluster. Convertigo FullSync is also compatible with PouchDB but only for little projects or tests. Internet access is required to enable this feature.
@@ -138,6 +140,39 @@ Recommended multi-instance example:
                       -Dconvertigo.engine.cache_manager.filecache.directory=/workspace/cache/server2 \
                       -Dlog.directory=/workspace/logs/server2" \
         convertigo
+
+## Add custom Java libraries or classes
+
+At each container start, the image copies the contents of these workspace directories into the Convertigo web application before Tomcat starts:
+
+- `/workspace/lib/` to `WEB-INF/lib/` for JAR files and their dependencies
+- `/workspace/classes/` to `WEB-INF/classes/` for compiled classes and resources
+
+The directory structure is preserved and overlays the files provided by the image; it does not remove existing web-application files. For classes, keep the package directory structure below `/workspace/classes/` (for example, `com/example/MyClass.class`). Restart or recreate the container after adding or updating these files. To remove an injected file, remove it from the workspace and recreate the container, since a restart does not delete files already copied into the web application.
+
+For example, prepare a workspace and mount it into the container:
+
+    mkdir -p workspace/lib workspace/classes/com/example
+    cp my-driver.jar workspace/lib/
+    cp build/classes/java/main/com/example/MyClass.class workspace/classes/com/example/
+    docker run --name C8O -v "$(pwd)/workspace:/workspace" -d -p 28080:28080 convertigo
+
+This is also useful when iterating on a custom Java extension without building a derived Convertigo image. Ensure that the mounted workspace is writable by the container at startup.
+
+## Trust custom certificate authorities
+
+To trust private root or intermediate certificate authorities, place one certificate per file directly in `/workspace/cacerts.d/`. At startup, the image copies the JDK default truststore to a temporary location, imports every regular file in this directory with `keytool`, then configures the JVM to use the generated truststore. Certificate files must be X.509 certificates in a format accepted by `keytool` (typically PEM or DER).
+
+For example:
+
+    mkdir -p workspace/cacerts.d
+    cp company-root-ca.pem workspace/cacerts.d/
+    cp partner-intermediate-ca.crt workspace/cacerts.d/
+    docker run --name C8O -v "$(pwd)/workspace:/workspace" -d -p 28080:28080 convertigo
+
+The standard JDK certificate authorities are retained. The generated truststore is not persisted: restart or recreate the container after adding, replacing, or removing a certificate. If a file cannot be imported, the image logs a warning and continues to start with the certificates successfully imported so far.
+
+This configuration is independent from the Tomcat HTTPS server certificate configured through `/ssl`.
 
 ## Make image with pre-deployed projects
 
@@ -237,7 +272,7 @@ Generated files can be retrieved if the `/ssl` mount point is configured on fold
 
 ## `JAVA_OPTS` Environment variable
 
-Convertigo is based on a **Java** process with some defaults **JVM** options. You can override our defaults **JVM** options with you own.
+Convertigo is based on a **Java** process with default **JVM** options. You can add your own JVM options with this variable; the image keeps its required runtime options.
 
 Add any **Java JVM** options such as -D[something] :
 
@@ -255,9 +290,11 @@ Log file still exists until you add the `LOG_FILE=false` environment variable :
 
 ## `JXMX` Environment variable
 
-Convertigo tries to allocate this amount of memory in the container and will automatically reduce it until the value is compatible for the Docker memory constraints. Once the best value found, it is used as `-Xmx=${JXMX}m` parameter for the JVM.
+Set `JXMX` to define the JVM heap size in MiB. The image then adds `-Xms128m -Xmx=${JXMX}m` to the JVM options. Make sure the container memory limit leaves room for memory outside the Java heap.
 
-The default `JXMX` value is `2048` and can be defined :
+When `JXMX` is not set, the image uses `-XX:MaxRAMPercentage=80` instead.
+
+For example:
 
     docker run -d --name C8O -e JXMX="4096" -p 28080:28080 convertigo
 
@@ -311,7 +348,9 @@ Convertigo operates using the JVM (Java Virtual Machine). To enable remote debug
 
 The default `ENABLE_JDWP_DEBUG` value is **false** and can be defined this way:
 
-    docker run -d –name C8O -e ENABLE_JDWP_DEBUG=true -p 28080:28080 convertigo
+    docker run -d --name C8O -e ENABLE_JDWP_DEBUG=true -p 28080:28080 -p 8000:8000 convertigo
+
+Do not expose port 8000 outside a trusted development network.
 
 ## Pre configurated `docker compose` stack
 
