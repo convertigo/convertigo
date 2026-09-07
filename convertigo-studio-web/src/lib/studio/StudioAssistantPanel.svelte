@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import Light from '$lib/common/Light.svelte';
 	import { getFrontendUrl } from '$lib/utils/service';
+	import { untrack } from 'svelte';
 
 	/** @type {{ projectName?: string, agentProfile?: string }} */
 	let { projectName = '', agentProfile = 'generalist' } = $props();
@@ -13,23 +14,20 @@
 	const assistantAgentUrl = `${assistantBaseUrl}path-to-xfirst/:threadid`;
 	let iframe = $state();
 	let iframeReady = $state(false);
-	let assistantUrl = $derived.by(() => {
+	// Bootstrap only: selection/profile updates must never navigate the iframe.
+	// Keep the initial theme for Assistants that only read it at startup.
+	const assistantUrl = (() => {
 		const query = new URLSearchParams({
 			agentBridge: '1',
 			serverAgent: '1',
 			assistantMode: 'agent',
 			assistantSurface: 'studio',
 			assistantContext: 'studio',
-			agentProfile,
-			skillProfile: agentProfile,
 			userId: 'studio',
-			'dark-theme': String(Light.dark)
+			'dark-theme': String(untrack(() => Light.dark))
 		});
-		if (projectName) {
-			query.set('targetProject', projectName);
-		}
 		return `${assistantAgentUrl}?${query}`;
-	});
+	})();
 	let assistantContext = $derived({
 		assistantSurface: 'studio',
 		assistantContext: 'studio',
@@ -39,6 +37,8 @@
 		agentProfile,
 		skillProfile: agentProfile,
 		userId: 'studio',
+		darkTheme: Light.dark,
+		theme: Light.dark ? 'dark' : 'light',
 		projectContext: projectName,
 		defaultProject: projectName,
 		projectScope: projectName ? 'selected' : '',
@@ -59,19 +59,17 @@
 	function sendAssistantContext() {
 		const context = assistantContext;
 		postAssistantMessage({ type: assistantContextType, payload: context });
-		if (projectName) {
-			postAssistantMessage({
-				type: 'select',
-				projectName,
-				...context
-			});
-		}
+		postAssistantMessage({
+			type: 'select',
+			projectName,
+			...context
+		});
 	}
 
 	function onAssistantLoad() {
 		iframeReady = true;
-		sendAssistantContext();
 		postAssistantMessage({ type: 'init' });
+		sendAssistantContext();
 	}
 
 	/**
@@ -100,12 +98,11 @@
 			}
 			const origin = new URL(url, window.location.href).origin;
 			node.contentWindow.postMessage({ type: assistantContextType, payload: context }, origin);
-			if (context.defaultProject) {
-				node.contentWindow.postMessage(
-					{ type: 'select', projectName: context.defaultProject, ...context },
-					origin
-				);
-			}
+			// An empty selection is an update too: clear the previous ambient project.
+			node.contentWindow.postMessage(
+				{ type: 'select', projectName: context.defaultProject, ...context },
+				origin
+			);
 		};
 	}
 

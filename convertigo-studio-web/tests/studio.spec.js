@@ -268,7 +268,12 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 	const state = createStudioState();
 	const contextActions = [];
 	await page.setViewportSize({ width: 1440, height: 900 });
-	await mockStudioServices(page, { state, contextActions, assistant: true });
+	await mockStudioServices(page, {
+		state,
+		contextActions,
+		assistant: true,
+		projects: [projectName, 'AnotherFlowProject']
+	});
 	await page.goto('/studio/');
 
 	await expandTreeNode(page, projectName);
@@ -286,19 +291,15 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 			const src = await page.locator('iframe[title="Convertigo Assistant"]').getAttribute('src');
 			return new URL(src ?? '', page.url()).searchParams.get('targetProject');
 		})
-		.toBe(projectName);
+		.toBeNull();
 	await expect
 		.poll(async () => {
 			const src = await page.locator('iframe[title="Convertigo Assistant"]').getAttribute('src');
 			return new URL(src ?? '', page.url()).searchParams.get('agentProfile');
 		})
-		.toBe('flow');
+		.toBeNull();
 	await expect(assistantFrame.getByTestId('assistant-context')).toHaveText(
 		`${projectName} · studio`
-	);
-	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
-		'data-initial-project',
-		projectName
 	);
 	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
 		'data-server-agent',
@@ -314,8 +315,17 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 	);
 	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
 		'data-query-project',
-		projectName
+		'No project'
 	);
+	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
+		'data-agent-profile',
+		'flow'
+	);
+	const assistantElement = page.locator('iframe[title="Convertigo Assistant"]');
+	const originalAssistantUrl = await assistantElement.getAttribute('src');
+	await assistantFrame.getByTestId('assistant-context').evaluate((node) => {
+		node.dataset.conversationProof = 'keep-this-conversation';
+	});
 	await expect(page.getByRole('tab', { name: 'Frontend', exact: true })).toHaveAttribute(
 		'aria-selected',
 		'true'
@@ -335,6 +345,15 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 	await selectTreeNode(page, sequenceId);
 	await page.getByRole('tab', { name: 'Execution', exact: true }).click();
 	await expect(page.getByText('Variables (1)')).toBeVisible();
+	await selectTreeNode(page, 'AnotherFlowProject');
+	await expect(assistantFrame.getByTestId('assistant-context')).toHaveText(
+		'AnotherFlowProject · studio'
+	);
+	await expect(assistantElement).toHaveAttribute('src', originalAssistantUrl);
+	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
+		'data-conversation-proof',
+		'keep-this-conversation'
+	);
 });
 
 test('studio vibe profile opens the Agent route without requiring a selected project', async ({
@@ -1517,11 +1536,12 @@ async function mockStudioServices(page, options = {}) {
 									studioContext = context;
 									output.dataset.assistantRuntime = context.assistantRuntime || '';
 									output.dataset.agentBridgeAvailable = String(context.agentBridgeAvailable ?? '');
+									output.dataset.agentProfile = context.agentProfile || '';
 									output.textContent = (context.projectContext || 'No project') + ' · ' + context.assistantSurface;
 								}
 								if (message.type === 'select') {
 									studioContext = message;
-									output.textContent = message.projectName + ' · ' + message.assistantSurface;
+									output.textContent = (message.projectName || 'No project') + ' · ' + message.assistantSurface;
 								}
 								if (message.type === 'init') {
 									output.dataset.initialProject = studioContext.projectContext || 'No project';
