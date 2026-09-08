@@ -161,14 +161,19 @@ This is also useful when iterating on a custom Java extension without building a
 
 ## Trust custom certificate authorities
 
-To trust private root or intermediate certificate authorities, place one certificate per file directly in `/workspace/cacerts.d/`. At startup, the image copies the JDK default truststore to a temporary location, imports every regular file in this directory with `keytool`, then configures the JVM to use the generated truststore. Certificate files must be X.509 certificates in a format accepted by `keytool` (typically PEM or DER).
+To trust private root or intermediate certificate authorities, mount a dedicated directory at `/cacerts`. At startup, the image copies the JDK default truststore to a temporary location, imports every regular file in this directory with `keytool`, then configures the JVM to use the generated truststore. Certificate files must be X.509 certificates in a format accepted by `keytool` (typically PEM or DER).
 
 For example:
 
-    mkdir -p workspace/cacerts.d
-    cp company-root-ca.pem workspace/cacerts.d/
-    cp partner-intermediate-ca.crt workspace/cacerts.d/
-    docker run --name C8O -v "$(pwd)/workspace:/workspace" -d -p 28080:28080 convertigo
+    mkdir -p custom-ca
+    cp company-root-ca.pem custom-ca/
+    cp partner-intermediate-ca.crt custom-ca/
+    docker run --name C8O \
+        -v "$(pwd)/workspace:/workspace" \
+        -v "$(pwd)/custom-ca:/cacerts:ro" \
+        -d -p 28080:28080 convertigo
+
+Keep this directory outside the Convertigo workspace and mount it read-only. In Kubernetes, mount a ConfigMap or Secret read-only at `/cacerts`. The image only reads custom CAs from this dedicated mount; files in `/workspace` are not considered.
 
 The standard JDK certificate authorities are retained. The generated truststore is not persisted: restart or recreate the container after adding, replacing, or removing a certificate. If a file cannot be imported, the image logs a warning and continues to start with the certificates successfully imported so far.
 
