@@ -1,5 +1,42 @@
 # Changelog
 
+## 8.4.4
+
+#### New Features:
+
+- [#1124](https://github.com/convertigo/convertigo/issues/1124) [Engine] Projects can now use a `.httpignore` file with Git-style patterns to prevent selected files and directories from being served over HTTP
+
+#### Improvements:
+
+- [#1118](https://github.com/convertigo/convertigo/issues/1118) [Dashboard] Request results can now be expanded to fill the available screen height
+- [#1119](https://github.com/convertigo/convertigo/issues/1119) [Studio] An optional web-based Engine Log viewer is now available as a preview alongside the default SWT viewer
+- [#1127](https://github.com/convertigo/convertigo/issues/1127) [Dashboard] Sequence, transaction and test case requests can now be copied as URLs, cURL commands, JavaScript fetch calls or POST bodies
+- [#1133](https://github.com/convertigo/convertigo/issues/1133) [Studio] NGX directives now have readable labels in the project tree, including the newer Angular control flow directives
+- [#1140](https://github.com/convertigo/convertigo/issues/1140) [NGX] The `@for` directive now supplies a default tracking expression and exposes the configured loop index variable
+- [#1143](https://github.com/convertigo/convertigo/issues/1143) [Admin] Scheduler jobs and schedules can now be exported and imported for backup or migration, with merge and replace options
+- [#1151](https://github.com/convertigo/convertigo/issues/1151) [Admin] Certificates can now be exported and imported together with their configuration and project mappings
+- [#1154](https://github.com/convertigo/convertigo/issues/1154) [Engine] Docker deployments can now trust custom certificates for outbound HTTPS by placing them in `/workspace/cacerts.d/` and restarting the container
+
+#### Bug Fixes:
+
+- [#1121](https://github.com/convertigo/convertigo/issues/1121) [Engine] Fixed, live log viewers now continue across log file rotation without missing or duplicating lines
+- [#1125](https://github.com/convertigo/convertigo/issues/1125) [Admin] Fixed, web log viewers now limit the number of loaded lines to a configurable maximum, preventing unbounded buffer growth during long sessions
+- [#1129](https://github.com/convertigo/convertigo/issues/1129) [Studio] Fixed, importing or exporting backend variables and creating test cases now preserve symbol references instead of copying resolved values; frontend variable imports leave those values empty
+- [#1132](https://github.com/convertigo/convertigo/issues/1132) [Engine] Fixed, instances sharing a workspace and the same public URL now receive changes made by peer instances without requiring a restart
+- [#1134](https://github.com/convertigo/convertigo/issues/1134) [NGX] Fixed, Angular switch directives now generate correctly, with support for default cases and empty-list content in `@for` loops
+- [#1135](https://github.com/convertigo/convertigo/issues/1135) [Studio] Fixed, Javelin connection addresses containing colons in connection parameters now display the correct host and port in the editor
+- [#1136](https://github.com/convertigo/convertigo/issues/1136) [Admin] Fixed, FullSync view functions can now be edited, and the editor warns when project reloads may overwrite database changes
+- [#1137](https://github.com/convertigo/convertigo/issues/1137) [Engine] Fixed, the file cache now removes obsolete response files after cache refreshes and cleans up orphaned files to prevent disk accumulation
+- [#1142](https://github.com/convertigo/convertigo/issues/1142) [Engine] Fixed, generated OpenAPI YAML no longer includes unsupported internal schema properties
+- [#1144](https://github.com/convertigo/convertigo/issues/1144) [Dashboard] Fixed, binary request responses now use the browser download mechanism instead of displaying file contents in the result editor
+- [#1147](https://github.com/convertigo/convertigo/issues/1147) [Admin] Fixed, legacy administration links now redirect to the current login page, and logout works again in the legacy console
+- [#1149](https://github.com/convertigo/convertigo/issues/1149) [Engine] Fixed, static project files without a recognized extension now receive a content type detected from their contents, allowing extensionless PDFs to display correctly
+- [#1150](https://github.com/convertigo/convertigo/issues/1150) [FullSync] Fixed, replication users can now read design documents, restoring database version checks and local database resets after a server database is recreated
+- [#1152](https://github.com/convertigo/convertigo/issues/1152) [Engine] Fixed, project library updates in shared workspaces no longer replace JAR files still used by running requests, avoiding stale file handle errors
+- [#1153](https://github.com/convertigo/convertigo/issues/1153) [NGX] Fixed, Show Loading now applies its spinner and appearance options correctly with Mobile Builder template 8.4.0.54
+
+---
+
 ## 8.4.3
 
 #### Improvements:
