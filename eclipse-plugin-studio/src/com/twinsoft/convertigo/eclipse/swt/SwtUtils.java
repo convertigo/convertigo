@@ -36,6 +36,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.e4.ui.css.swt.dom.CompositeElement;
 import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -63,6 +65,49 @@ public class SwtUtils {
 		gridLayout.marginWidth = marginWidth;
 		gridLayout.marginHeight = marginHeight;
 		return gridLayout;
+	}
+
+	/**
+	 * Workaround for #1128, observed with SWT Win32 3.132.0.v20251124-0642:
+	 * the workbench wraps the CTabFolder view menu onto an otherwise empty row
+	 * when a view narrows, although the view's own toolbar still fits on one row.
+	 * Recheck after Eclipse/SWT upgrades and remove this helper and its callers
+	 * once Assistant/Admin stay on one row without it, including after switching
+	 * tabs, resizing and moving views. Uses public SWT APIs and is Windows-only.
+	 */
+	public static void keepViewMenuOnTabRow(Control viewControl) {
+		if (!"win32".equals(SWT.getPlatform())) {
+			return;
+		}
+		boolean[] pending = {false};
+		Runnable schedule = () -> {
+			if (viewControl.isDisposed() || pending[0]) {
+				return;
+			}
+			pending[0] = true;
+			// Run after the workbench has installed or repositioned the view menu.
+			viewControl.getDisplay().asyncExec(() -> {
+				pending[0] = false;
+				if (viewControl.isDisposed() || !viewControl.isVisible()) {
+					return;
+				}
+				for (Composite parent = viewControl.getParent(); parent != null; parent = parent.getParent()) {
+					if (parent instanceof CTabFolder folder) {
+						Control menu = folder.getTopRight();
+						int alignment = folder.getTopRightAlignment();
+						// The Windows workbench can wrap its view menu onto an otherwise empty row.
+						if (menu != null && !menu.isDisposed() && (alignment & SWT.WRAP) != 0) {
+							folder.setTopRight(menu, alignment & ~SWT.WRAP);
+						}
+						break;
+					}
+				}
+			});
+		};
+		viewControl.addListener(SWT.Show, event -> schedule.run());
+		viewControl.addListener(SWT.Resize, event -> schedule.run());
+		viewControl.addListener(SWT.Move, event -> schedule.run());
+		schedule.run();
 	}
 
 	private static boolean lastDark = false;

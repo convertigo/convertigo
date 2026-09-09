@@ -27,6 +27,7 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -131,6 +132,7 @@ public class AssistantView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		SwtUtils.refreshTheme();
+		SwtUtils.keepViewMenuOnTabRow(parent);
 		
 		parent.setLayout(new GridLayout(1, true));
 		ToolBar tb = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
@@ -612,7 +614,16 @@ public class AssistantView extends ViewPart {
 
 	private static String addDarkThemeParameter(String url) {
 		url = StringUtils.defaultIfBlank(url, STARTUP_URL);
-		return url + (url.contains("?") ? "&" : "?") + "dark-theme=" + SwtUtils.isDark();
+		try {
+			var builder = new URIBuilder(url);
+			if (builder.getQueryParams().stream().anyMatch(parameter -> "dark-theme".equals(parameter.getName()))) {
+				return url;
+			}
+			return builder.addParameter("dark-theme", Boolean.toString(SwtUtils.isDark())).build().toString();
+		} catch (Exception e) {
+			ConvertigoPlugin.logStudioWarn("[Assistant] unable to add theme to URL: " + e.getMessage());
+			return url;
+		}
 	}
 
 	private static String resolveAssistantStartupUrl() {
@@ -641,7 +652,11 @@ public class AssistantView extends ViewPart {
 			if (StringUtils.isNotBlank(uri.getRawQuery())) {
 				path += "?" + uri.getRawQuery();
 			}
-			return AdminView.getAuthenticatedUrl(path);
+			String authenticatedUrl = AdminView.getAuthenticatedUrl(path);
+			if (StringUtils.isNotBlank(uri.getRawFragment())) {
+				authenticatedUrl += "&" + uri.getRawFragment();
+			}
+			return authenticatedUrl;
 		} catch (Exception e) {
 			ConvertigoPlugin.logStudioWarn("[Assistant] unable to create authenticated local URL: " + e.getMessage());
 			return url;

@@ -85,16 +85,16 @@ if [ "$1" = "convertigo" ]; then
         cp -r /workspace/classes/* $WEB_INF/classes/ 2>/dev/null
     fi
 
-    ## add custom trusted certificate authorities to the JVM truststore
+    ## add mounted trusted certificate authorities to the JVM truststore
 
-    if [ -d /workspace/cacerts.d/ ]; then
+    if [ -d /cacerts/ ]; then
         C8O_CACERTS=/tmp/convertigo-cacerts
         if [ ! -r "$JAVA_HOME/lib/security/cacerts" ]; then
-            echo "Warning: cannot read the JVM truststore at $JAVA_HOME/lib/security/cacerts; skip custom trusted certificates"
+            echo "Warning: cannot read the JVM truststore at $JAVA_HOME/lib/security/cacerts; skip mounted trusted certificates"
         elif ! cp "$JAVA_HOME/lib/security/cacerts" "$C8O_CACERTS" 2>&1; then
-            echo "Warning: cannot create the custom JVM truststore; skip custom trusted certificates"
+            echo "Warning: cannot create the custom JVM truststore; skip mounted trusted certificates"
         else
-            for certificate in /workspace/cacerts.d/* /workspace/cacerts.d/.[!.]*; do
+            for certificate in /cacerts/* /cacerts/.[!.]*; do
                 [ -f "$certificate" ] || continue
                 certificate_alias="convertigo-$(basename "$certificate")"
                 echo "Import JVM trusted certificate $certificate"
