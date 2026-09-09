@@ -129,6 +129,7 @@ public class AssistantView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		SwtUtils.refreshTheme();
+		SwtUtils.keepViewMenuOnTabRow(parent);
 		
 		parent.setLayout(new GridLayout(1, true));
 		ToolBar tb = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
