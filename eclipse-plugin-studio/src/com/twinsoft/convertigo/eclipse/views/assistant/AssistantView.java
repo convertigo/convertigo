@@ -55,6 +55,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.dom.Element;
 import com.teamdev.jxbrowser.engine.Theme;
+import com.teamdev.jxbrowser.frame.Frame;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -196,6 +197,13 @@ public class AssistantView extends ViewPart {
 		ConvertigoPlugin.logStudioDebug("[Assistant] debug : " + browser.getDebugUrl());
 		
 		handler = new C8oBrowserPostMessageHelper(browser);
+		handler.onMainFrameMessage((json, frame) -> {
+			if ("lib_ConvertigoAssistant.authenticate.request".equals(json.optString("type"))) {
+				String requestUrl = frame.browser().url();
+				int generation = assistantLoadGeneration;
+				ConvertigoPlugin.asyncExec(() -> renewAssistantAuthentication(json, frame, requestUrl, generation));
+			}
+		});
 		handler.onMessage(json -> {
 			ConvertigoPlugin.logStudioDebug("[Assistant] onMessage: " + json);
 			try {
@@ -230,8 +238,16 @@ public class AssistantView extends ViewPart {
 			}
 		});
 		handler.onLoad(event -> {
-			int loadGeneration = ++assistantLoadGeneration;
-			postAssistantInitWhenReady(loadGeneration, 0);
+			if (!event.frame().isMain()) {
+				return;
+			}
+			ConvertigoPlugin.asyncExec(() -> {
+				if (browser == null || browser.isDisposed()) {
+					return;
+				}
+				int loadGeneration = ++assistantLoadGeneration;
+				postAssistantInitWhenReady(loadGeneration, 0);
+			});
 		});
 
 		ConvertigoPlugin.runAtStartup(() -> {
@@ -609,6 +625,57 @@ public class AssistantView extends ViewPart {
 			scheduleLocalAgentStackContextRecheck(stackState);
 		} catch (Exception e) {
 			ConvertigoPlugin.logStudioWarn("[Assistant] could not post context: " + e.getMessage());
+		}
+	}
+
+	private static boolean isTrustedAssistantAuthenticationUrl(String url, String localAssistantUrl) {
+		try {
+			URI actual = new URI(url);
+			URI expected = new URI(localAssistantUrl);
+			String scheme = actual.getScheme();
+			if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+					|| !scheme.equalsIgnoreCase(expected.getScheme()) || actual.getHost() == null
+					|| !actual.getHost().equalsIgnoreCase(expected.getHost()) || actual.getRawUserInfo() != null) {
+				return false;
+			}
+			int defaultPort = "https".equalsIgnoreCase(scheme) ? 443 : 80;
+			if ((actual.getPort() < 0 ? defaultPort : actual.getPort())
+					!= (expected.getPort() < 0 ? defaultPort : expected.getPort())) {
+				return false;
+			}
+			String path = Objects.toString(actual.getRawPath(), "");
+			String root = expected.getRawPath();
+			// Reject encoded separators and dot segments rather than trusting URL normalization.
+			return !path.contains("%") && !path.contains("\\") && path.equals(actual.normalize().getRawPath())
+					&& (path.equals(root.substring(0, root.length() - 1)) || path.startsWith(root));
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private void renewAssistantAuthentication(JSONObject request, Frame frame, String requestUrl, int generation) {
+		try {
+			if (browser == null || browser.isDisposed() || generation != assistantLoadGeneration
+					|| !browser.getBrowser().mainFrame().filter(frame::equals).isPresent()
+					|| !requestUrl.equals(frame.browser().url())
+					|| !isTrustedAssistantAuthenticationUrl(requestUrl, getLocalAssistantUrl())) {
+				return;
+			}
+			String requestId = request.optString("requestId");
+			if (!requestId.matches("[A-Za-z0-9_-]{1,100}")) {
+				return;
+			}
+			String tokenUrl = AdminView.getAuthenticatedUrl("/");
+			JSONObject response = new JSONObject();
+			response.put("type", "lib_ConvertigoAssistant.authenticate.response");
+			response.put("requestId", requestId);
+			response.put("authToken", new URI(tokenUrl).getRawFragment().substring("authToken=".length()));
+			// Bind delivery to the requesting document; never log the one-use token.
+			frame.executeJavaScript("if (window === window.top && window.location.href === "
+					+ JSONObject.quote(requestUrl) + " && typeof window.receiveFromJava === 'function') { window.receiveFromJava("
+					+ response.toString() + "); }");
+		} catch (Exception e) {
+			ConvertigoPlugin.logStudioWarn("[Assistant] unable to renew Studio authentication");
 		}
 	}
 
