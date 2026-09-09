@@ -20,12 +20,14 @@
 package com.twinsoft.convertigo.eclipse.swt;
 
 import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import org.codehaus.jettison.json.JSONObject;
 
 import com.teamdev.jxbrowser.browser.callback.InjectJsCallback;
 import com.teamdev.jxbrowser.browser.callback.InjectJsCallback.Response;
 import com.teamdev.jxbrowser.event.Observer;
+import com.teamdev.jxbrowser.frame.Frame;
 import com.teamdev.jxbrowser.js.JsAccessible;
 import com.teamdev.jxbrowser.js.JsObject;
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
@@ -34,6 +36,7 @@ public class C8oBrowserPostMessageHelper {
 
 	private final C8oBrowser browser;
 	private Consumer<JSONObject> onMessage;
+	private BiConsumer<JSONObject, Frame> onMainFrameMessage;
 	private Observer<FrameLoadFinished> onLoad;
 
 	public C8oBrowserPostMessageHelper(C8oBrowser browser) {
@@ -46,7 +49,7 @@ public class C8oBrowserPostMessageHelper {
 		bro.set(InjectJsCallback.class, event -> {
 			var frame = event.frame();
 			JsObject window = frame.executeJavaScript("window");
-			window.putProperty("java", new BrowserInterface());
+			window.putProperty("java", new BrowserInterface(frame));
 			return Response.proceed();
 		});
 
@@ -64,6 +67,10 @@ public class C8oBrowserPostMessageHelper {
 	public void onMessage(Consumer<JSONObject> handler) {
 		this.onMessage = handler;
 	}
+
+	public void onMainFrameMessage(BiConsumer<JSONObject, Frame> handler) {
+		this.onMainFrameMessage = handler;
+	}
 	
 	public void postMessage(JSONObject message) {
 		var js = String.format("window.receiveFromJava(%s);", message.toString());
@@ -71,10 +78,19 @@ public class C8oBrowserPostMessageHelper {
 	}
 	
 	public class BrowserInterface {
+		private final Frame sourceFrame;
+
+		public BrowserInterface(Frame sourceFrame) {
+			this.sourceFrame = sourceFrame;
+		}
+
 		@JsAccessible
 		public void receiveFromJS(String message) {
 			try {
 				JSONObject json = new JSONObject(message);
+				if (onMainFrameMessage != null && browser.getBrowser().mainFrame().filter(sourceFrame::equals).isPresent()) {
+					onMainFrameMessage.accept(json, sourceFrame);
+				}
 				if (onMessage != null) {
 					onMessage.accept(json);
 				}
