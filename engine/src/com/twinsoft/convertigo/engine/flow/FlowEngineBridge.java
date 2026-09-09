@@ -725,6 +725,29 @@ public class FlowEngineBridge {
 		}
 	}
 
+	public JSONObject authoringMutate(FlowEngine flowEngine, JSONObject options) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flowEngine);
+			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+					.put("target", "engine")
+					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
+			merge(request, options);
+			var response = invoke(engineQName, "authoringMutate", request, null, null, null);
+			if (flowEngine != null && response.optBoolean("ok", false)
+					&& "engine".equals(response.optString("target")) && response.has("source")
+					&& !request.optBoolean("dryRun", false) && request.optBoolean("write", true)
+					&& request.optBoolean("persist", true)) {
+				// A loaded draft must advance with its mutation before Studio rebuilds the projection.
+				flowEngine.setEngineSource(response.getString("source"));
+			}
+			return response;
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build FlowEngine authoring mutation request.", e);
+		}
+	}
+
 	public JSONObject authoringTree(FlowEngine flowEngine, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);

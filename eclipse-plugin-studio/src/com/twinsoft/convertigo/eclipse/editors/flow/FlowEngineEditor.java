@@ -115,6 +115,50 @@ public class FlowEngineEditor extends EditorPart {
 		addToolItemFrontendDebug(toolbar);
 		installAuthoringBridge();
 		browser.setUrl(input.getUrl());
+		recoverDevViewer();
+	}
+
+	private void recoverDevViewer() {
+		var restoredInput = input;
+		if (restoredInput == null || !restoredInput.isDevViewer() || !restoredInput.supportsAuthoring()) {
+			return;
+		}
+		Engine.execute(() -> {
+			try {
+				var project = getProject();
+				var flowEngine = project == null ? null : project.getFlowEngine();
+				if (flowEngine == null) {
+					return;
+				}
+				var response = FlowStudioSupport.contextAction(flowEngine, new JSONObject()
+						.put("id", "frontbuilder.svelte.dev.start")
+						.put("payload", new JSONObject().put("wait", true)));
+				var viewer = response.optJSONObject("browser");
+				if (!response.optBoolean("ok", false) || viewer == null || viewer.optString("url", "").isBlank()) {
+					ConvertigoPlugin.logWarning("Unable to restore Flow frontend viewer: "
+							+ response.optString("message", response.toString()));
+					return;
+				}
+				ConvertigoPlugin.asyncExec(() -> {
+					if (browser == null || browser.isDisposed() || input == null
+							|| !restoredInput.getId().equals(input.getId())) {
+						return;
+					}
+					var debugPort = viewer.optInt("debugPort", viewer.optInt("browserDebugPort", 0));
+					if (debugPort >= 1024 && debugPort <= 65535) {
+						browser.setDebugPort(debugPort);
+					}
+					updateInput(new FlowEngineEditorInput(viewer.optString("id", restoredInput.getId()),
+							viewer.optString("title", restoredInput.getName()), viewer.optString("url", ""),
+							viewer.optString("project", restoredInput.getProjectName()),
+							viewer.optString("tooltip", restoredInput.getToolTipText()),
+							viewer.optJSONObject("authoring") == null ? restoredInput.getAuthoringProtocol()
+									: viewer.optJSONObject("authoring").optString("protocol", restoredInput.getAuthoringProtocol())));
+				});
+			} catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Unable to restore Flow frontend viewer.", false);
+			}
+		});
 	}
 
 	private void installAuthoringBridge() {

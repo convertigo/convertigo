@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.steps.AttributeStep;
 import com.twinsoft.convertigo.beans.steps.ElementStep;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
@@ -59,6 +60,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 
 public class ClipboardAction extends MyAbstractAction {
@@ -84,6 +86,12 @@ public class ClipboardAction extends MyAbstractAction {
 	private String copy(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
 		String sXml = null;
 		if (explorerView != null) {
+			if (selectedPaths != null && selectedPaths.length == 1
+					&& selectedPaths[0].getLastPathComponent() instanceof DatabaseObjectTreeObject treeObject
+					&& treeObject.getObject() instanceof FlowVirtualObject flowObject) {
+				clipboardManager.reset();
+				return FlowStudioSupport.virtualClipboard(flowObject).toString();
+			}
 			clipboardManager.reset();
 			clipboardManager.objectsType = type;
 			clipboardManager.isCopy = true;
@@ -122,6 +130,26 @@ public class ClipboardAction extends MyAbstractAction {
 
 	public void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject, boolean isDND) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
 		if ((explorerView != null) && (selectedTreeObject != null)) {
+			if (FlowStudioSupport.isVirtualClipboard(source)) {
+				var targetTreeObject = explorerView.getFirstSelectedDatabaseObjectTreeObject(selectedTreeObject);
+				if (targetTreeObject != null && targetTreeObject.getObject() instanceof FlowVirtualObject) {
+					try {
+						var response = FlowStudioSupport.pasteVirtualClipboard(targetTreeObject.getObject(), source);
+						if (!response.optBoolean("done", false)) {
+							throw new EngineException("Unable to paste Flow virtual object: " + response.opt("error"));
+						}
+						if (!explorerView.reconcileFlowAuthoringMutation(targetTreeObject, selectedTreeObject,
+								targetTreeObject.getObject(), null, response)) {
+							throw new EngineException("Flow virtual object was pasted, but the projected tree could not be refreshed.");
+						}
+						return;
+					} catch (EngineException e) {
+						throw e;
+					} catch (Exception e) {
+						throw new EngineException("Unable to paste Flow virtual object", e);
+					}
+				}
+			}
 			TreeObject targetTreeObject = null;
 			Object targetObject = null;
 

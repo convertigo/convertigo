@@ -1095,6 +1095,28 @@
 		frontendAuthoringMode = 'select';
 	}
 
+	/** @param {any} item Palette insertion uses the same acceptance and mutation path as a drop. */
+	async function addPaletteItem(item) {
+		const target = selectedId;
+		if (!target) return;
+		let handled = false;
+		onStudioMutationBusyChange(true);
+		try {
+			const result = await performDboDrop({
+				payload: { type: 'paletteData', data: item, options: {} },
+				target,
+				position: 'inside',
+				dropAction: 'copy'
+			});
+			if (!result.done)
+				throw new Error('This component cannot be added inside the selected object.');
+			handled = true;
+			await onStudioMutation({ ...result, source: 'palette' });
+		} finally {
+			onStudioMutationBusyChange(false, handled);
+		}
+	}
+
 	/**
 	 * Route a palette drop from the same-origin development viewer through the
 	 * exact tree mutation contract already used by Studio DnD.
@@ -2094,6 +2116,7 @@
 		{selectedPaletteItem}
 		revealRequest={paletteRevealRequest}
 		onPaletteItemSelect={selectPaletteItem}
+		onPaletteItemAdd={addPaletteItem}
 	/>
 {/snippet}
 

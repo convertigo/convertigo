@@ -116,7 +116,13 @@
 			return;
 		}
 		targetFrame.contentWindow.postMessage(
-			{ channel: 'convertigo-flow-picker', bridgeId: id, type: 'context', context },
+			{
+				channel: 'convertigo-flow-picker',
+				bridgeId: id,
+				type: 'context',
+				// The parent may supply deeply reactive state; postMessage cannot clone proxies.
+				context: $state.snapshot(context)
+			},
 			'*'
 		);
 	}

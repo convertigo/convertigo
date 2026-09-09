@@ -3140,8 +3140,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void setSelectedTreeObject(TreeObject object) {
+		setSelectedTreeObject(object, false);
+	}
+
+	public void setSelectedTreeObject(TreeObject object, boolean reveal) {
 		StructuredSelection structuredSelection = new StructuredSelection(object);
-		viewer.setSelection(structuredSelection);
+		viewer.setSelection(structuredSelection, reveal);
 	}
 
 	public TreeObject[] getSelectedTreeObjects() {

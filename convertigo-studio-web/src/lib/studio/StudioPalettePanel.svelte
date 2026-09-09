@@ -41,7 +41,8 @@
 	 * 	active?: boolean,
 	 * 	selectedPaletteItem?: PaletteItem | null,
 	 * 	revealRequest?: { key?: string, contextId?: string, serial?: number },
-	 * 	onPaletteItemSelect?: (item: PaletteItem) => void
+	 * 	onPaletteItemSelect?: (item: PaletteItem) => void,
+	 * 	onPaletteItemAdd?: (item: PaletteItem) => Promise<void>
 	 * }}
 	 */
 	let {
@@ -49,7 +50,8 @@
 		active = true,
 		selectedPaletteItem = null,
 		revealRequest = { key: '', contextId: '', serial: 0 },
-		onPaletteItemSelect
+		onPaletteItemSelect,
+		onPaletteItemAdd
 	} = $props();
 
 	let query = $state('');
@@ -57,6 +59,13 @@
 	let paletteContext = $state(emptyPaletteContext());
 	let paletteLoading = $state(false);
 	let paletteError = $state('');
+	let adding = $state(false);
+	let addError = $state('');
+	let addableItem = $derived(
+		paletteContext.categories
+			.flatMap((category) => category.items ?? [])
+			.find((item) => itemKey(item) === itemKey(selectedPaletteItem))
+	);
 	let paletteRequestId = $state('');
 	let paletteLoadSerial = 0;
 	/** @type {AbortController | null} */
@@ -306,7 +315,21 @@
 	 * @param {PaletteItem} item
 	 */
 	function selectPaletteItem(item) {
+		addError = '';
 		onPaletteItemSelect?.(item);
+	}
+
+	async function addSelectedItem() {
+		if (!addableItem || adding || paletteLoading || !onPaletteItemAdd) return;
+		adding = true;
+		addError = '';
+		try {
+			await onPaletteItemAdd(addableItem);
+		} catch (error) {
+			addError = error instanceof Error ? error.message : String(error);
+		} finally {
+			adding = false;
+		}
 	}
 </script>
 
@@ -320,6 +343,16 @@
 			icon="mdi:magnify"
 			bind:value={query}
 		/>
+		{#if onPaletteItemAdd && addableItem}
+			<Button
+				label={adding ? 'Adding…' : 'Add to selection'}
+				icon="mdi:plus"
+				class="button-secondary"
+				disabled={adding || paletteLoading}
+				onclick={addSelectedItem}
+			/>
+		{/if}
+		{#if addError}<p role="alert">{addError}</p>{/if}
 	</div>
 
 	<div class="studio-palette__content" aria-busy={paletteLoading}>

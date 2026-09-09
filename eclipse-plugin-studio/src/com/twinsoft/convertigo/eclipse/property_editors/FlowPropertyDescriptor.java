@@ -36,6 +36,9 @@ public class FlowPropertyDescriptor extends PropertyDescriptor {
 	private final ILabelProvider labelProvider = new LabelProvider() {
 		@Override
 		public String getText(Object element) {
+			if ("projectConfig".equals(definition.optString("type", ""))) {
+				return FlowPropertyCellEditor.projectConfigurationSummary(element == null ? "" : String.valueOf(element));
+			}
 			if (!FlowPropertyCellEditor.isInlineEditable(definition)) {
 				return FlowPropertyCellEditor.structuredSummary(element == null ? "" : String.valueOf(element));
 			}

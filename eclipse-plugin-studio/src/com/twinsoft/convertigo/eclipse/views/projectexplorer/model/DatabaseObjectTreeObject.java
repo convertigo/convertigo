@@ -104,6 +104,7 @@ import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -1219,8 +1220,13 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					Clipboard cb = new Clipboard(Display.getCurrent());
 					String content = (String) cb.getContents(TextTransfer.getInstance());
 					cb.dispose();
-					List<Object> dbos = ConvertigoPlugin.clipboardManagerSystem.read(content);
-					canPaste = !dbos.isEmpty();
+					if (databaseObject instanceof com.twinsoft.convertigo.beans.flow.FlowVirtualObject
+							&& FlowStudioSupport.isVirtualClipboard(content)) {
+						canPaste = true;
+					} else {
+						List<Object> dbos = ConvertigoPlugin.clipboardManagerSystem.read(content);
+						canPaste = !dbos.isEmpty();
+					}
 				} catch (Exception e) {
 					// can fail if the clipboad doesn't contain text
 				}

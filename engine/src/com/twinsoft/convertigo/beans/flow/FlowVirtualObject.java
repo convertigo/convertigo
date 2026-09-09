@@ -324,7 +324,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			applySourceDeleteMutation((FlowEngine) mutableSourceRoot(), sourceValue("sourcePath"), sourceValue("sourceMutationPath"));
 		} else if (isSourceBackedFileDeletable()) {
 			deleteSourceFile((FlowEngine) mutableSourceRoot(), sourceValue("sourcePath"));
-		} else if (isDefinitionWritable() && isDeletableVirtualKind()) {
+		} else if (isDefinitionDeletable()) {
 			applyDeleteMutation(virtualPath);
 		} else if (!virtualKind.isBlank()) {
 			throw new EngineException("Cannot delete Flow virtual " + virtualKind + " object from the tree.");
@@ -332,11 +332,9 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		super.delete();
 	}
 
-	private boolean isDeletableVirtualKind() {
-		return switch (virtualKind) {
-		case "node", "field", "binding" -> true;
-		default -> false;
-		};
+	public boolean isDefinitionDeletable() {
+		var info = getVirtualInfoObject();
+		return isDefinitionWritable() && info != null && info.optBoolean("deletable", false);
 	}
 
 	@Override
@@ -361,6 +359,10 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 
 	@Override
 	public boolean setDynamicProperty(String name, String value) throws EngineException {
+		// Eclipse qualifies virtual properties with their synthetic descriptor name.
+		// Keep the Flow contract stable: callers of this object deal in the actual
+		// virtual property name, not in the Eclipse implementation prefix.
+		name = unqualifiedVirtualPropertyName(name);
 		if (!isDefinitionWritable()) {
 			return false;
 		}
@@ -392,6 +394,12 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 
 	private static String valueOrEmpty(String value) {
 		return value == null ? "" : value;
+	}
+
+	private static String unqualifiedVirtualPropertyName(String name) {
+		var value = valueOrEmpty(name);
+		var prefix = "#flow_property:";
+		return value.startsWith(prefix) ? value.substring(prefix.length()) : value;
 	}
 
 	private static String safeName(String name) {
@@ -451,8 +459,11 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 						}
 					}
 				}
-			} else if (isEditableScalarKind() && !(value instanceof JSONObject) && !(value instanceof JSONArray)) {
-				appendDynamicProperty(document, root, "#flow_value", "Value", "Base properties", value, "Flow value.", false, null);
+			} else if ((isEditableScalarKind() && !(value instanceof JSONObject) && !(value instanceof JSONArray))
+					|| ("scope".equals(virtualKind) && "config".equals(virtualType) && value instanceof JSONObject)) {
+				var definition = propertyDefinition("#flow_value");
+				appendDynamicProperty(document, root, "#flow_value", propertyLabel("#flow_value", definition),
+						propertyCategory(definition), value, propertyDescription("#flow_value", definition), false, definition);
 			}
 		} catch (Exception e) {
 			throw new EngineException("Unable to append Flow virtual properties.", e);
@@ -644,7 +655,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	}
 
 	private void applyMutation(String path, Object value) throws EngineException {
-		var target = mutableSourceRoot();
+			var target = mutableSourceRoot();
 		if (target == null || path.isBlank()) {
 			return;
 		}
@@ -652,8 +663,9 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			throw new EngineException("Flow virtual path \"" + path + "\" is read-only.");
 		}
 		try {
+			var info = getVirtualInfoObject();
 			var mutation = new JSONObject()
-					.put("op", "replace")
+					.put("op", info == null ? "replace" : info.optString("sourceMutationOp", "replace"))
 					.put("path", path)
 					.put("value", value == null ? JSONObject.NULL : value);
 			var response = target instanceof Flow flow

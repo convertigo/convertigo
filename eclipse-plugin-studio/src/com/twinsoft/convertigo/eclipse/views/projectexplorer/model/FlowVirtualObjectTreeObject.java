@@ -76,6 +76,30 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	}
 
 	@Override
+	public boolean rename(String newName, boolean dialog) {
+		if (!FlowStudioSupport.canRenameVirtualObject(getObject())) {
+			return super.rename(newName, dialog);
+		}
+		try {
+			var response = FlowStudioSupport.renameVirtualObject(getObject(), newName);
+			getObject().setName(newName);
+			// Reconcile after the inline editor has closed: its TreeItem must stay alive until then.
+			ConvertigoPlugin.asyncExec(() -> {
+				try {
+					var explorer = ConvertigoPlugin.getDefault().getProjectExplorerView();
+					explorer.reconcileFlowAuthoringMutation(this, this, getObject(), null, response);
+				} catch (Exception e) {
+					ConvertigoPlugin.logException(e, "Unable to refresh the renamed object.", dialog);
+				}
+			});
+			return true;
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to rename the projected object.", dialog);
+			return false;
+		}
+	}
+
+	@Override
 	public boolean isEnabled() {
 		var definition = getObject().getDefinitionObject();
 		if (definition != null && definition.optBoolean("disabled", false)) {
@@ -213,6 +237,9 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		if (value instanceof JSONObject json) {
 			var info = object.getVirtualInfoObject();
 			var propertyDefinitions = info == null ? null : info.optJSONObject("propertyDefinitions");
+			// Configuration containers are represented by the tree itself. Only a
+			// scalar configuration leaf exposes its single Value property.
+			var isConfigurationObject = "config".equals(object.getVirtualType());
 			if ("node".equals(object.getVirtualKind())) {
 				var descriptor = new TextPropertyDescriptor(P_COMMENT, "Comment");
 				descriptor.setCategory(CATEGORY);
@@ -227,17 +254,21 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 						addFlowPropertyDescriptor(descriptors, key, definition);
 					}
 				}
-				for (String key : sortedKeys(json)) {
-					if (!isInternalNodeProperty(key) && !propertyDefinitions.has(key)) {
-						addFlowPropertyDescriptor(descriptors, key, null);
+				if (!isConfigurationObject) {
+					for (String key : sortedKeys(json)) {
+						if (!isInternalNodeProperty(key) && !propertyDefinitions.has(key)) {
+							addFlowPropertyDescriptor(descriptors, key, null);
+						}
 					}
 				}
 			} else {
-				for (String key : sortedKeys(json)) {
-					if (P_COMMENT.equals(key) || isInternalNodeProperty(key)) {
-						continue;
+				if (!isConfigurationObject) {
+					for (String key : sortedKeys(json)) {
+						if (P_COMMENT.equals(key) || isInternalNodeProperty(key)) {
+							continue;
+						}
+						addFlowPropertyDescriptor(descriptors, key, null);
 					}
-					addFlowPropertyDescriptor(descriptors, key, null);
 				}
 			}
 		} else if (isEditableScalarKind() && isScalar(value)) {
@@ -300,7 +331,9 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	}
 
 	private void addFlowPropertyDescriptor(List<PropertyDescriptor> descriptors, String key, JSONObject definition) {
-		var id = P_FLOW_PROPERTY + key;
+		// #flow_value edits the virtual object's complete value. It is not a
+		// named property within that value, so it must keep its dedicated id.
+		var id = P_FLOW_VALUE.equals(key) ? P_FLOW_VALUE : P_FLOW_PROPERTY + key;
 		var readOnly = isReadOnlyProperty(definition) || !getObject().isDefinitionWritable();
 		PropertyDescriptor descriptor = readOnly
 				? new InfoPropertyDescriptor(id, propertyLabel(key, definition))
@@ -499,7 +532,8 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			return;
 		}
 		if (propertyName.startsWith(P_FLOW_PROPERTY)) {
-			var definition = flowPropertyDefinition(propertyName.substring(P_FLOW_PROPERTY.length()));
+			var key = propertyName.substring(P_FLOW_PROPERTY.length());
+			var definition = flowPropertyDefinition(key);
 			if (definition != null && definition.optBoolean("readOnly", false)) {
 				return;
 			}
@@ -511,9 +545,14 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 				getObject().setComment(String.valueOf(value == null ? "" : value));
 			} else if (propertyName.startsWith(P_FLOW_PROPERTY)) {
 				var key = propertyName.substring(P_FLOW_PROPERTY.length());
-				var currentValue = getObject().getDefinitionProperty(key);
-				var parsedValue = parseEditedValue(value, currentValue, flowPropertyDefinition(key));
-				getObject().setDefinitionProperty(key, parsedValue);
+				if (P_FLOW_VALUE.equals(key)) {
+					var parsedValue = parseEditedValue(value, getObject().getDefinitionValue(), null);
+					getObject().setDefinitionValue(parsedValue);
+				} else {
+					var currentValue = getObject().getDefinitionProperty(key);
+					var parsedValue = parseEditedValue(value, currentValue, flowPropertyDefinition(key));
+					getObject().setDefinitionProperty(key, parsedValue);
+				}
 			} else {
 				var parsedValue = parseEditedValue(value, getObject().getDefinitionValue(), null);
 				getObject().setDefinitionValue(parsedValue);
@@ -522,7 +561,7 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			reloadDescriptors();
 			hasBeenModified(true);
 			var treeViewer = (TreeViewer) getAdapter(TreeViewer.class);
-			if (treeViewer != null) {
+			if (treeViewer != null && treeViewer.getControl() != null && !treeViewer.getControl().isDisposed()) {
 				treeViewer.update(this, null);
 			}
 			ConvertigoPlugin.projectManager.getProjectExplorerView()

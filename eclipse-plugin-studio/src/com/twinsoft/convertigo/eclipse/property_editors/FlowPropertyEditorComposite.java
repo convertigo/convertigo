@@ -87,6 +87,9 @@ public class FlowPropertyEditorComposite extends Composite {
 	}
 
 	private void setValueValid(boolean valid) {
+		if (isDisposed()) {
+			return;
+		}
 		valueValid = valid;
 		var listener = validityListener;
 		if (listener != null && !getDisplay().isDisposed()) {
@@ -259,6 +262,9 @@ public class FlowPropertyEditorComposite extends Composite {
 
 	private void post(JSONObject message) {
 		try {
+			if (browser == null || browser.isDisposed()) {
+				return;
+			}
 			browser.getBrowser().mainFrame()
 					.ifPresent(frame -> frame.executeJavaScript("window.receiveFromJava(" + message + ");"));
 		} catch (Exception e) {
@@ -355,6 +361,9 @@ public class FlowPropertyEditorComposite extends Composite {
 	public class BrowserBridge {
 		@JsAccessible
 		public void receive(String message) {
+			if (isDisposed()) {
+				return;
+			}
 			try {
 				var json = new JSONObject(message);
 				if ("value".equals(json.optString("type", ""))) {

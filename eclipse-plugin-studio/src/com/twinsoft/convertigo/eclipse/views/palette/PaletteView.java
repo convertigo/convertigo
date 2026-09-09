@@ -452,15 +452,11 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 	}
 
 	private void addFlowItem(String categoryName, JSONObject flowItem) {
-		var itemType = flowItem.optString("type", "FlowBlock");
 		var blockName = flowItem.optString("block", flowItem.optString("classname", flowItem.optString("name", "")));
-		var runtime = flowItem.optString("runtime", "");
-		if (blockName.isBlank() && !"FrontendBlock".equals(itemType) && !"FrontendBlockDefinition".equals(itemType)
-				&& !"FlowBlockDefinition".equals(itemType) && !"FlowTypeDefinition".equals(itemType)
-				&& !"FlowPropertyDefinition".equals(itemType) && !"FlowHelperDefinition".equals(itemType)) {
+		if (blockName.isBlank() && flowItem.optString("id", "").isBlank()) {
 			return;
 		}
-		var id = "flow " + flowItem.optString("id", blockName.isBlank() ? runtime : blockName);
+		var id = "flow " + flowItem.optString("id", blockName);
 		flowItemIds.add(id);
 		all.put(id, new Item() {
 			@Override
@@ -487,22 +483,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 
 			@Override
 			PaletteSource newPaletteSource() {
-				if ("FlowBlockDefinition".equals(itemType)) {
-					return PaletteSource.flowBlockDefinition(runtime, flowItem.optString("description", ""));
-				}
-				if ("FlowTypeDefinition".equals(itemType)) {
-					return PaletteSource.flowTypeDefinition(flowItem.optString("description", ""));
-				}
-				if ("FlowPropertyDefinition".equals(itemType)) {
-					return PaletteSource.flowPropertyDefinition(flowItem.optString("description", ""));
-				}
-				if ("FlowHelperDefinition".equals(itemType)) {
-					return PaletteSource.flowHelperDefinition(flowItem.optString("description", ""));
-				}
-				if ("FrontendBlock".equals(itemType) || "FrontendBlockDefinition".equals(itemType)) {
-					return PaletteSource.frontendBlock(flowItem.toString(), flowItem.optString("description", ""));
-				}
-				return PaletteSource.flowBlock(blockName, flowItem.optString("description", ""));
+				return PaletteSource.flowItem(flowItem.toString(), flowItem.optString("description", ""));
 			}
 
 			@Override
@@ -512,34 +493,15 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 
 			@Override
 			boolean allowedIn(DatabaseObject parent) {
-				if ("FlowBlockDefinition".equals(itemType)) {
-					return FlowStudioSupport.canAddBlockDefinition(parent, runtime);
+				try {
+					var transfer = new JSONObject().put("type", "paletteData")
+							.put("data", new JSONObject(flowItem.toString()));
+					return FlowStudioSupport.canAddFromPalette(parent, "inside", transfer)
+							|| FlowStudioSupport.canAddFromPalette(parent, "before", transfer)
+							|| FlowStudioSupport.canAddFromPalette(parent, "after", transfer);
+				} catch (Exception e) {
+					return false;
 				}
-				if ("FlowTypeDefinition".equals(itemType)) {
-					return FlowStudioSupport.canAddTypeDefinition(parent);
-				}
-				if ("FlowPropertyDefinition".equals(itemType)) {
-					return FlowStudioSupport.canAddPropertyDefinition(parent);
-				}
-				if ("FlowHelperDefinition".equals(itemType)) {
-					return FlowStudioSupport.canAddHelperDefinition(parent);
-				}
-				if ("FrontendBlock".equals(itemType) || "FrontendBlockDefinition".equals(itemType)) {
-					try {
-						var frontendItem = new JSONObject(flowItem.toString()).put("type", "FrontendBlock");
-						var transfer = new JSONObject()
-								.put("type", "paletteData")
-								.put("data", frontendItem);
-						return FlowStudioSupport.canAddFromPalette(parent, "inside", transfer)
-								|| FlowStudioSupport.canAddFromPalette(parent, "before", transfer)
-								|| FlowStudioSupport.canAddFromPalette(parent, "after", transfer);
-					} catch (Exception e) {
-						return false;
-					}
-				}
-				return FlowStudioSupport.canAddBlock(parent, "inside", blockName)
-						|| FlowStudioSupport.canAddBlock(parent, "before", blockName)
-						|| FlowStudioSupport.canAddBlock(parent, "after", blockName);
 			}
 
 			@Override

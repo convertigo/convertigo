@@ -27,60 +27,21 @@ public class PaletteSource {
 	private String xmlData = null;
 	private DatabaseObject dbo = null;
 	private String flowItemType = null;
-	private String flowBlockName = null;
-	private String flowRuntime = null;
-	private String flowBlockDescription = null;
+	private String flowItemDescription = null;
 	private String flowItemData = null;
 	
 	public PaletteSource(DatabaseObject dbo) {
 		this.dbo = dbo;
 	}
 
-	private PaletteSource(String flowBlockName, String flowBlockDescription) {
-		this.flowItemType = "node";
-		this.flowBlockName = flowBlockName;
-		this.flowBlockDescription = flowBlockDescription;
-	}
-
-	private PaletteSource(String flowItemType, String flowBlockName, String flowRuntime, String flowBlockDescription) {
-		this.flowItemType = flowItemType;
-		this.flowBlockName = flowBlockName;
-		this.flowRuntime = flowRuntime;
-		this.flowBlockDescription = flowBlockDescription;
-	}
-
-	private PaletteSource(String flowItemType, String flowItemData, String flowBlockDescription) {
+	private PaletteSource(String flowItemType, String flowItemData, String flowItemDescription) {
 		this.flowItemType = flowItemType;
 		this.flowItemData = flowItemData;
-		this.flowBlockDescription = flowBlockDescription;
+		this.flowItemDescription = flowItemDescription;
 	}
 
-	public static PaletteSource flowBlock(String blockName, String description) {
-		return new PaletteSource(blockName, description);
-	}
-
-	public static PaletteSource flowBlockDefinition(String runtime, String description) {
-		return new PaletteSource("blockDefinition", "", runtime, description);
-	}
-
-	public static PaletteSource flowTypeDefinition(String description) {
-		return new PaletteSource("typeDefinition", "", "", description);
-	}
-
-	public static PaletteSource flowPropertyDefinition(String description) {
-		return new PaletteSource("propertyDefinition", "", "", description);
-	}
-
-	public static PaletteSource flowHelperDefinition(String description) {
-		return new PaletteSource("helperDefinition", "", "", description);
-	}
-
-	public static PaletteSource frontendBlock(String itemData, String description) {
-		return new PaletteSource("frontendBlock", itemData, description);
-	}
-
-	public static PaletteSource frontendBlockDefinition(String runtime, String description) {
-		return new PaletteSource("frontendBlockDefinition", "", runtime, description);
+	public static PaletteSource flowItem(String itemData, String description) {
+		return new PaletteSource("virtualItem", itemData, description);
 	}
 	
 	public String getXmlData() {
@@ -91,13 +52,13 @@ public class PaletteSource {
 	}
 
 	public String getBrowserDragData() {
-		if (!isFrontendBlock() || flowItemData == null || flowItemData.isBlank()) {
+		if (!isFlowItem() || flowItemData == null || flowItemData.isBlank()) {
 			return getXmlData();
 		}
 		try {
 			return new JSONObject()
 					.put("type", "paletteData")
-					.put("data", new JSONObject(flowItemData).put("type", "FrontendBlock"))
+					.put("data", new JSONObject(flowItemData))
 					.put("options", new JSONObject())
 					.toString();
 		} catch (Exception e) {
@@ -109,44 +70,12 @@ public class PaletteSource {
 		return dbo;
 	}
 
-	public boolean isFlowBlock() {
-		return "node".equals(flowItemType) && flowBlockName != null;
+	public boolean isFlowItem() {
+		return "virtualItem".equals(flowItemType);
 	}
 
-	public boolean isFlowBlockDefinition() {
-		return "blockDefinition".equals(flowItemType);
-	}
-
-	public boolean isFlowTypeDefinition() {
-		return "typeDefinition".equals(flowItemType);
-	}
-
-	public boolean isFlowPropertyDefinition() {
-		return "propertyDefinition".equals(flowItemType);
-	}
-
-	public boolean isFlowHelperDefinition() {
-		return "helperDefinition".equals(flowItemType);
-	}
-
-	public boolean isFrontendBlock() {
-		return "frontendBlock".equals(flowItemType);
-	}
-
-	public boolean isFrontendBlockDefinition() {
-		return "frontendBlockDefinition".equals(flowItemType);
-	}
-
-	public String getFlowBlockName() {
-		return flowBlockName;
-	}
-
-	public String getFlowBlockDescription() {
-		return flowBlockDescription;
-	}
-
-	public String getFlowRuntime() {
-		return flowRuntime;
+	public String getFlowItemDescription() {
+		return flowItemDescription;
 	}
 
 	public String getFlowItemData() {

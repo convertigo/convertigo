@@ -28,6 +28,32 @@ public class FlowStudioSupportSelectionTest {
 	private static final String SOURCE = "libs/flow/frontbuilder/svelte/model/Project/src/routes/+page.flow.svelte";
 
 	@Test
+	public void clipboardTransportsProviderTraitsWithoutInterpretingTheKind() throws Exception {
+		var source = new FlowVirtualObject();
+		source.setVirtualKind("arbitraryProviderKind");
+		source.setVirtualInfo("{\"traits\":[\"example.entry\",\"example.named\"]}");
+		var clipboard = FlowStudioSupport.virtualClipboard(source);
+		assertEquals("example.entry", clipboard.getJSONArray("traits").getString(0));
+		assertEquals("example.named", clipboard.getJSONArray("traits").getString(1));
+		assertTrue(FlowStudioSupport.isVirtualClipboard(clipboard.toString()));
+	}
+
+	@Test
+	public void distinguishesNativePaletteEntriesFromVirtualDescriptors() throws Exception {
+		for (var type : List.of("Dbo", "Ion")) {
+			var data = new JSONObject().put("type", type).put("id", "any.native.component");
+			assertFalse(FlowStudioSupport.isFlowPaletteData(
+					new JSONObject().put("type", "paletteData").put("data", data)));
+		}
+		var data = new JSONObject().put("id", "opaque.virtual.prototype");
+		assertTrue(FlowStudioSupport.isFlowPaletteData(
+				new JSONObject().put("type", "paletteData").put("data", data)));
+		assertFalse(FlowStudioSupport.isFlowPaletteData(
+				new JSONObject().put("type", "treeData").put("data", data)));
+		assertFalse(FlowStudioSupport.isFlowPaletteData(null));
+	}
+
+	@Test
 	public void matchesProjectedFrontendNodesByStableMutationMetadata() throws Exception {
 		var candidate = candidate("frontends.svelte.routes.home.structure.text", "frontAst.nodes[2]", "text");
 
@@ -218,6 +244,20 @@ public class FlowStudioSupportSelectionTest {
 
 		FlowStudioSupport.clearCatalogCache(engine);
 		assertNull(engine.snapshotFlowVirtualChildrenCache());
+	}
+
+	@Test
+	public void resolvesCurrentProjectionRatherThanDetachedViewerBean() throws Exception {
+		for (var path : List.of("config", "custom.scope", "frontends.svelte.routes.home")) {
+			var previous = candidate(path, "", "old");
+			var current = candidate(path, "", "new");
+			var owner = new TestContainer(current);
+			previous.setParent(owner);
+			current.setParent(owner);
+			assertSame(current, FlowStudioSupport.currentProjectionRoot(previous.getParent(), SOURCE, path));
+			assertNull(FlowStudioSupport.currentProjectionRoot(owner, "another-source", path));
+			assertNull(FlowStudioSupport.currentProjectionRoot(owner, SOURCE, "missing"));
+		}
 	}
 
 	private FlowVirtualObject candidate(String virtualPath, String mutationPath, String id) throws Exception {

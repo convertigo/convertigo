@@ -208,7 +208,9 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 				}
 				if (composite != null) {
 					rawValue = composite.getValue();
-					text.setText(inlineEditable ? rawValue : structuredSummary(rawValue));
+					if (text != null && !text.isDisposed()) {
+						text.setText(inlineEditable ? rawValue : structuredSummary(rawValue));
+					}
 					composite.applyAdditionalValues(propertyName);
 				}
 				super.okPressed();
@@ -250,6 +252,29 @@ public class FlowPropertyCellEditor extends TextCellEditor {
 			};
 		} catch (Exception e) {
 			return raw;
+		}
+	}
+
+	static String projectConfigurationSummary(String raw) {
+		try {
+			var value = new JSONTokener(raw == null ? "{}" : raw).nextValue();
+			if (!(value instanceof JSONObject object)) {
+				return "No service configured";
+			}
+			var services = 0;
+			var settings = 0;
+			for (var keys = object.keys(); keys.hasNext();) {
+				var service = object.optJSONObject(String.valueOf(keys.next()));
+				if (service != null) {
+					services++;
+					settings += service.length();
+				}
+			}
+			return services == 0 ? "No service configured"
+					: services + (services == 1 ? " service" : " services") + " · "
+							+ settings + (settings == 1 ? " setting" : " settings");
+		} catch (Exception e) {
+			return "Configuration";
 		}
 	}
 

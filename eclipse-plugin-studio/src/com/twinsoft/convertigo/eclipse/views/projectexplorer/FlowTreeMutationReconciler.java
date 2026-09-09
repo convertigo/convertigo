@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualOb
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 public final class FlowTreeMutationReconciler {
 
@@ -75,6 +76,15 @@ public final class FlowTreeMutationReconciler {
 		}
 		var started = System.currentTimeMillis();
 		if (projectedRoot instanceof FlowVirtualObjectTreeObject flowRoot) {
+			DatabaseObject owner = flowRoot.getObject();
+			while (owner instanceof FlowVirtualObject && owner.getParent() != null) {
+				owner = owner.getParent();
+			}
+			var currentRoot = FlowStudioSupport.currentProjectionRoot(owner, sourcePath, rootPath);
+			if (currentRoot == null) {
+				return false;
+			}
+			flowRoot.replaceFlowObject(currentRoot);
 			var created = new HashSet<TreeObject>();
 			reconcileProjectedChildren(flowRoot, flowRoot.getObject().getDatabaseObjectChildren(), created);
 			explorerView.refreshProjectedFlowTreeObject(projectedRoot, created);
@@ -108,7 +118,7 @@ public final class FlowTreeMutationReconciler {
 		if (selected == null) {
 			selected = projectedDatabaseTreeObject;
 		}
-		explorerView.setSelectedTreeObject(selected);
+		explorerView.setSelectedTreeObject(selected, true);
 		Engine.logStudio.info("Flow projected tree reconciled: root=" + projectedRoot.getPath()
 				+ " selected=" + selected.getPath()
 				+ " elapsedMs=" + (System.currentTimeMillis() - started));

@@ -450,7 +450,27 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			ConvertigoPlugin.getDefault().deleteProjectPluginResource(deleteProjectOnDisk, databaseObject.getName());
 		}
 		else {
-			databaseObject.delete();
+			if (databaseObject instanceof FlowVirtualObject && Display.getCurrent() != null) {
+				try {
+					new org.eclipse.jface.dialogs.ProgressMonitorDialog(getParentShell()).run(true, false, monitor -> {
+						monitor.beginTask("Deleting " + databaseObject.getName(), IProgressMonitor.UNKNOWN);
+						try {
+							databaseObject.delete();
+						} catch (Exception e) {
+							throw new java.lang.reflect.InvocationTargetException(e);
+						} finally {
+							monitor.done();
+						}
+					});
+				} catch (java.lang.reflect.InvocationTargetException e) {
+					throw new EngineException("Unable to delete projected object.", e.getCause());
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new EngineException("Deletion interrupted.", e);
+				}
+			} else {
+				databaseObject.delete();
+			}
 		}
 
 		if (databaseObject instanceof CouchDbConnector) {

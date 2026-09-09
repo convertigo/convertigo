@@ -101,6 +101,10 @@ public class FlowEngineEditorInput implements IEditorInput {
 		return !authoringProtocol.isBlank();
 	}
 
+	public boolean isDevViewer() {
+		return id.endsWith(":frontbuilder.svelte.dev");
+	}
+
 	@Override
 	public int hashCode() {
 		return id.hashCode();

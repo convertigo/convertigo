@@ -76,6 +76,80 @@ public class FlowStudioSupport {
 	private FlowStudioSupport() {
 	}
 
+	private static final String VIRTUAL_CLIPBOARD_PROTOCOL = "convertigo.flow.virtual.clipboard.v1";
+
+	public static boolean canRenameVirtualObject(FlowVirtualObject object) {
+		var info = object.getVirtualInfoObject();
+		return object.isDefinitionWritable() && info != null && !info.optString("renameMutationOp").isBlank();
+	}
+
+	public static JSONObject renameVirtualObject(FlowVirtualObject object, String name) throws Exception {
+		if (!canRenameVirtualObject(object) || !(flowAuthoringRoot(object) instanceof FlowEngine engine)) {
+			throw new EngineException("This projected object does not support renaming.");
+		}
+		var info = object.getVirtualInfoObject();
+		var path = info.optString("sourceMutationPath", object.getVirtualPath());
+		var response = new FlowEngineBridge().applyMutation(engine, new JSONObject()
+				.put("op", info.optString("renameMutationOp")).put("path", path).put("value", name));
+		if (!isSuccessResponse(response)) {
+			throw new EngineException("Unable to rename projected object: " + response.opt("error"));
+		}
+		var selectionPath = response.optString("selectionMutationPath");
+		var topPath = object.getVirtualPath().split("[.\\[]", 2)[0];
+		var result = new JSONObject().put("done", true).put("id", engine.getFullQName())
+				.put("selectionMutationPath", selectionPath);
+		return refreshEngineProjection(engine, engineProjectionRoot(engine, topPath), result, topPath, "");
+	}
+
+	public static JSONObject virtualClipboard(FlowVirtualObject source) throws EngineException {
+		try {
+			return new JSONObject()
+					.put("protocol", VIRTUAL_CLIPBOARD_PROTOCOL)
+					.put("project", source.getProject() == null ? "" : source.getProject().getName())
+					.put("sourcePath", source.getVirtualPath())
+					.put("name", source.getName())
+					.put("traits", source.getVirtualInfoObject() == null ? new JSONArray()
+							: source.getVirtualInfoObject().optJSONArray("traits"))
+					.put("value", source.getDefinitionValue() == null ? JSONObject.NULL : source.getDefinitionValue());
+		} catch (JSONException e) {
+			throw new EngineException("Unable to serialize Flow virtual clipboard data.", e);
+		}
+	}
+
+	public static boolean isVirtualClipboard(String source) {
+		if (source == null || source.isBlank() || source.charAt(0) != '{') {
+			return false;
+		}
+		try {
+			return VIRTUAL_CLIPBOARD_PROTOCOL.equals(new JSONObject(source).optString("protocol"));
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	public static JSONObject pasteVirtualClipboard(DatabaseObject targetDbo, String source) throws Exception {
+		if (!(targetDbo instanceof FlowVirtualObject target)
+				|| !(flowAuthoringRoot(target) instanceof FlowEngine flowEngine) || !isVirtualClipboard(source)) {
+			return new JSONObject().put("done", false);
+		}
+		var clipboard = new JSONObject(source);
+		var transfer = new JSONObject()
+				.put("sourcePath", clipboard.optString("sourcePath"))
+				.put("targetPath", target.getVirtualPath())
+				.put("name", clipboard.optString("name", "item"))
+				.put("traits", clipboard.optJSONArray("traits"))
+				.put("value", clipboard.opt("value"));
+		var response = new FlowEngineBridge().authoringMutate(flowEngine,
+				new JSONObject().put("surface", "virtual").put("includeTree", false).put("transfer", transfer));
+		var done = isSuccessResponse(response);
+		var topPath = target.getVirtualPath().split("[.\\[]", 2)[0];
+		var result = new JSONObject().put("done", done)
+				.put("id", done ? flowEngine.getFullQName() : "")
+				.put("selectionMutationPath", done ? response.optString("selectionMutationPath", "") : "")
+				.put("error", done ? JSONObject.NULL : response.opt("error"));
+		return done ? refreshEngineProjection(flowEngine, engineProjectionRoot(flowEngine, topPath), result, topPath, "") : result;
+	}
+
 	private static final class PerformanceProfile {
 		private final String operation;
 		private final long startedNanos = System.nanoTime();
@@ -662,8 +736,38 @@ public class FlowStudioSupport {
 		return isFrontendPaletteTarget(targetDbo);
 	}
 
+	private static String normalizedPalettePosition(JSONObject data, String requestedPosition) {
+		var accepted = data == null ? null : data.optJSONArray("acceptedPositions");
+		if (accepted == null || accepted.length() == 0) {
+			return requestedPosition;
+		}
+		for (int i = 0; i < accepted.length(); i++) {
+			if (requestedPosition.equals(accepted.optString(i))) {
+				return requestedPosition;
+			}
+		}
+		for (int i = 0; i < accepted.length(); i++) {
+			if ("inside".equals(accepted.optString(i))) {
+				return "inside";
+			}
+		}
+		return null;
+	}
+
 	public static boolean canAddFromPalette(DatabaseObject targetDbo, String position, JSONObject transfer) {
 		var data = transfer == null ? null : transfer.optJSONObject("data");
+		if (data != null && (data.optJSONObject("authoringAction") != null
+				|| data.optJSONObject("authoringMutation") != null)) {
+			if (!(targetDbo instanceof FlowVirtualObject target)) {
+				return false;
+			}
+			var targetKinds = data.optJSONArray("targetKinds");
+			var kindAccepted = targetKinds == null || targetKinds.length() == 0;
+			for (int i = 0; !kindAccepted && i < targetKinds.length(); i++) {
+				kindAccepted = target.getVirtualKind().equals(targetKinds.optString(i));
+			}
+			return kindAccepted && normalizedPalettePosition(data, position) != null;
+		}
 		var type = data == null ? "" : data.optString("type", "");
 		if (FLOW_BLOCK_TYPE.equals(type)) {
 			return canAddBlock(targetDbo, position, data.optString("block", data.optString("classname", "")));
@@ -730,6 +834,13 @@ public class FlowStudioSupport {
 			}
 			if (!hasConfiguredFrontendBuilder(flowEngine)) {
 				categories.put(frontendBuilderBootstrapCategory(targetDbo));
+			}
+			return categories;
+		}
+		var virtualCategories = virtualAuthoringPaletteCategories(root, targetDbo);
+		if (virtualCategories.length() > 0) {
+			for (int i = 0; i < virtualCategories.length(); i++) {
+				categories.put(virtualCategories.get(i));
 			}
 			return categories;
 		}
@@ -844,6 +955,47 @@ public class FlowStudioSupport {
 				.put("type", "Category")
 				.put("name", "Frontend create actions - Svelte / Builders")
 				.put("items", new JSONArray().put(frontendPaletteItem(targetDbo, descriptor)));
+	}
+
+	private static JSONArray virtualAuthoringPaletteCategories(DatabaseObject root, DatabaseObject targetDbo) throws Exception {
+		var categories = new JSONArray();
+		if (!(root instanceof FlowEngine flowEngine) || !(targetDbo instanceof FlowVirtualObject target)) {
+			return categories;
+		}
+		var response = new FlowEngineBridge().authoringPalette(flowEngine, new JSONObject()
+				.put("surface", "virtual")
+				.put("focusPath", target.getVirtualPath())
+				.put("position", "inside")
+				.put("detail", "compact")
+				.put("applyFallback", false));
+		if (!response.optBoolean("ok", false)) {
+			return categories;
+		}
+		var items = response.optJSONArray("items");
+		if (items == null) {
+			return categories;
+		}
+		var grouped = new LinkedHashMap<String, JSONObject>();
+		for (int i = 0; i < items.length(); i++) {
+			var item = items.optJSONObject(i);
+			if (item == null) {
+				continue;
+			}
+			item.put("name", item.optString("label", item.optString("name", item.optString("id", "Flow item"))));
+			var categoryName = item.optString("category", "Flow");
+			var category = grouped.computeIfAbsent(categoryName, name -> {
+				try {
+					return new JSONObject().put("type", "Category").put("name", name).put("items", new JSONArray());
+				} catch (Exception e) {
+					return new JSONObject();
+				}
+			});
+			category.getJSONArray("items").put(item);
+		}
+		for (var category : grouped.values()) {
+			categories.put(category);
+		}
+		return categories;
 	}
 
 	private static String blockCategoryName(JSONObject block) {
@@ -1185,13 +1337,14 @@ public class FlowStudioSupport {
 
 	public static boolean isFlowPaletteData(JSONObject transfer) {
 		var data = transfer == null ? null : transfer.optJSONObject("data");
+		// Native palette entries also carry an id. Keep their creation on the
+		// native bean/component path, independently of their Java class name.
+		var type = data == null ? "" : data.optString("type", "");
 		return "paletteData".equals(transfer == null ? "" : transfer.optString("type"))
-				&& (FLOW_BLOCK_TYPE.equals(data == null ? "" : data.optString("type"))
-						|| FLOW_BLOCK_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
-						|| FLOW_TYPE_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
-						|| FLOW_PROPERTY_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
-						|| FLOW_HELPER_DEFINITION_TYPE.equals(data == null ? "" : data.optString("type"))
-						|| FRONTEND_BLOCK_TYPE.equals(data == null ? "" : data.optString("type")));
+				&& !"Dbo".equals(type) && !"Ion".equals(type)
+				&& data != null && (!data.optString("id", "").isBlank()
+						|| data.optJSONObject("authoringAction") != null
+						|| data.optJSONObject("authoringMutation") != null);
 	}
 
 	public static JSONObject addBlock(DatabaseObject targetDbo, String position, String blockName) throws Exception {
@@ -1209,6 +1362,30 @@ public class FlowStudioSupport {
 		var data = transfer == null ? null : transfer.optJSONObject("data");
 		if (root == null || data == null) {
 			return new JSONObject().put("done", false);
+		}
+		var authoringAction = data.optJSONObject("authoringAction");
+		var authoringMutation = data.optJSONObject("authoringMutation");
+		if ((authoringAction != null || authoringMutation != null) && root instanceof FlowEngine flowEngine
+				&& canAddFromPalette(targetDbo, position, transfer)) {
+			var target = (FlowVirtualObject) targetDbo;
+			var effectivePosition = normalizedPalettePosition(data, position);
+			var topPath = target.getVirtualPath().split("[.\\[]", 2)[0];
+			var projectionRoot = engineProjectionRoot(flowEngine, topPath);
+			var request = new JSONObject().put("surface", "virtual").put("includeTree", false);
+			if (authoringAction != null) {
+				request.put("action", new JSONObject(authoringAction.toString())
+						.put("targetPath", target.getVirtualPath())
+						.put("position", effectivePosition));
+			} else {
+				request.put("mutation", authoringMutation);
+			}
+			var response = new FlowEngineBridge().authoringMutate(flowEngine, request);
+			var done = isSuccessResponse(response);
+			var result = new JSONObject().put("done", done)
+					.put("id", done ? flowEngine.getFullQName() : "")
+					.put("selectionMutationPath", done ? response.optString("selectionMutationPath", "") : "")
+					.put("error", done ? JSONObject.NULL : response.opt("error"));
+			return done ? refreshEngineProjection(flowEngine, projectionRoot, result, topPath, "") : result;
 		}
 
 		if (FLOW_BLOCK_DEFINITION_TYPE.equals(data.optString("type", ""))) {
@@ -1423,7 +1600,8 @@ public class FlowStudioSupport {
 			return null;
 		}
 		if (!(targetDbo instanceof FlowEngine)
-				&& !(targetDbo instanceof FlowVirtualObject fvo && "frontends".equals(fvo.getVirtualType()))) {
+				&& !(targetDbo instanceof FlowVirtualObject fvo
+						&& ("frontends".equals(fvo.getVirtualType()) || "config".equals(fvo.getVirtualType())))) {
 			return null;
 		}
 		var path = firstNonBlank(insert, "__engineMutationPath");
@@ -1467,7 +1645,8 @@ public class FlowStudioSupport {
 	}
 
 	private static JSONObject createFrontendSource(FlowEngine flowEngine, DatabaseObject targetDbo, JSONObject create) throws Exception {
-		var projectionRoot = engineProjectionRoot(flowEngine, "frontends");
+			var projectionRoot = engineProjectionRoot(flowEngine,
+					targetDbo instanceof FlowVirtualObject fvo && "config".equals(fvo.getVirtualType()) ? "config" : "frontends");
 		var builderName = firstNonBlank(create, "builder");
 		if (builderName.isBlank()) {
 			builderName = frontendBuilderName(targetDbo);
@@ -2658,6 +2837,14 @@ public class FlowStudioSupport {
 		return false;
 	}
 
+	private static boolean isConfigPaletteTarget(DatabaseObject targetDbo) {
+		if (!(flowAuthoringRoot(targetDbo) instanceof FlowEngine)) {
+			return false;
+		}
+		return targetDbo instanceof FlowVirtualObject fvo && "config".equals(fvo.getVirtualType())
+				&& ("scope".equals(fvo.getVirtualKind()) || "object".equals(fvo.getVirtualKind()));
+	}
+
 	private static String frontendBuilderName(DatabaseObject targetDbo) {
 		if (targetDbo instanceof FlowVirtualObject fvo) {
 			var path = fvo.getVirtualPath();
@@ -3034,6 +3221,29 @@ public class FlowStudioSupport {
 		}
 		var definition = candidate.getDefinitionObject();
 		return definition != null && id.equals(definition.optString("id", ""));
+	}
+
+	/** Resolves a current projection, never the detached virtual bean held by a viewer. */
+	public static FlowVirtualObject currentProjectionRoot(DatabaseObject owner, String sourcePath, String virtualPath)
+			throws EngineException {
+		if (owner == null || virtualPath == null || virtualPath.isBlank()) {
+			return null;
+		}
+		if (owner instanceof FlowVirtualObject candidate && virtualPath.equals(candidate.getVirtualPath())
+				&& (sourcePath == null || sourcePath.isBlank() || sourcePath.equals(candidate.getSourcePath()))) {
+			return candidate;
+		}
+		try {
+			for (var child : owner.getDatabaseObjectChildren()) {
+				var found = currentProjectionRoot(child, sourcePath, virtualPath);
+				if (found != null) {
+					return found;
+				}
+			}
+		} catch (Exception e) {
+			throw new EngineException("Unable to resolve current Flow projection: " + virtualPath, e);
+		}
+		return null;
 	}
 
 	private static FlowVirtualObject engineProjectionRoot(FlowEngine flowEngine, String virtualPath) {

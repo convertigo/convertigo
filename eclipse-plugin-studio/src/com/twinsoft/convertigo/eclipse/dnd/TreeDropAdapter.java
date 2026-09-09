@@ -93,6 +93,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.FlowTreeMutationRec
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IOrderableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileComponentTreeObject;
@@ -1284,69 +1285,18 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
 				if (paletteSource != null) {
 					try {
-						if (paletteSource.isFlowBlock()) {
+						if (paletteSource.isFlowItem()) {
 							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
 								targetTreeObject = folderTreeObject.getParent();
 							}
-							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
+							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot
+									&& paletteSource.getFlowItemData() != null
+									&& !paletteSource.getFlowItemData().isBlank()) {
 								var position = getCurrentLocation() == LOCATION_BEFORE ? "before"
-										: getCurrentLocation() == LOCATION_AFTER ? "after"
-												: "inside";
-								return FlowStudioSupport.canAddBlock(dbot.getObject(), position, paletteSource.getFlowBlockName());
-							}
-							return false;
-						}
-						if (paletteSource.isFlowBlockDefinition()) {
-							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
-								targetTreeObject = folderTreeObject.getParent();
-							}
-							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
-								return FlowStudioSupport.canAddBlockDefinition(dbot.getObject(), paletteSource.getFlowRuntime());
-							}
-							return false;
-						}
-						if (paletteSource.isFlowTypeDefinition()) {
-							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
-								targetTreeObject = folderTreeObject.getParent();
-							}
-							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
-								return FlowStudioSupport.canAddTypeDefinition(dbot.getObject());
-							}
-							return false;
-						}
-						if (paletteSource.isFlowPropertyDefinition()) {
-							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
-								targetTreeObject = folderTreeObject.getParent();
-							}
-							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
-								return FlowStudioSupport.canAddPropertyDefinition(dbot.getObject());
-							}
-							return false;
-						}
-						if (paletteSource.isFlowHelperDefinition()) {
-							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
-								targetTreeObject = folderTreeObject.getParent();
-							}
-							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
-								return FlowStudioSupport.canAddHelperDefinition(dbot.getObject());
-							}
-							return false;
-						}
-						if (paletteSource.isFrontendBlock() || paletteSource.isFrontendBlockDefinition()) {
-							if (targetTreeObject instanceof ObjectsFolderTreeObject folderTreeObject) {
-								targetTreeObject = folderTreeObject.getParent();
-							}
-							if (targetTreeObject instanceof DatabaseObjectTreeObject dbot) {
-								if (paletteSource.getFlowItemData().isBlank()) {
-									return false;
-								}
-								var position = getCurrentLocation() == LOCATION_BEFORE ? "before"
-										: getCurrentLocation() == LOCATION_AFTER ? "after"
-												: "inside";
+										: getCurrentLocation() == LOCATION_AFTER ? "after" : "inside";
 								var transfer = new org.codehaus.jettison.json.JSONObject()
 										.put("type", "paletteData")
-										.put("data", new org.codehaus.jettison.json.JSONObject(paletteSource.getFlowItemData())
-												.put("type", "FrontendBlock"));
+										.put("data", new org.codehaus.jettison.json.JSONObject(paletteSource.getFlowItemData()));
 								return FlowStudioSupport.canAddFromPalette(dbot.getObject(), position, transfer);
 							}
 							return false;
@@ -1615,69 +1565,16 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					// Special objects move from palette
 					if (detail == DND.DROP_MOVE || detail == DND.DROP_COPY) {
 						PaletteSource paletteSource = (PaletteSource) data;
-						if (paletteSource.isFlowBlock()) {
-							var position = insertBefore ? "before" : insertAfter ? "after" : "inside";
-							runFlowPaletteMutationAsync("Add Flow block", "Unable to add Flow block.",
-									explorerView, dbotree,
-									() -> FlowStudioSupport.addBlock(dbotree.getObject(), position,
-											paletteSource.getFlowBlockName()));
-							return;
-						}
-						if (paletteSource.isFlowBlockDefinition()) {
-							var transfer = new org.codehaus.jettison.json.JSONObject()
-									.put("type", "paletteData")
-									.put("data", new org.codehaus.jettison.json.JSONObject()
-											.put("type", "FlowBlockDefinition")
-											.put("runtime", paletteSource.getFlowRuntime()));
-							runFlowPaletteMutationAsync("Add Flow block definition",
-									"Unable to add Flow block definition.", explorerView, dbotree,
-									() -> FlowStudioSupport.addFromPalette(dbotree.getObject(), "inside", transfer));
-							return;
-						}
-						if (paletteSource.isFlowTypeDefinition()) {
-							var transfer = new org.codehaus.jettison.json.JSONObject()
-									.put("type", "paletteData")
-									.put("data", new org.codehaus.jettison.json.JSONObject()
-											.put("type", "FlowTypeDefinition"));
-							runFlowPaletteMutationAsync("Add Flow type definition",
-									"Unable to add Flow type definition.", explorerView, dbotree,
-									() -> FlowStudioSupport.addFromPalette(dbotree.getObject(), "inside", transfer));
-							return;
-						}
-						if (paletteSource.isFlowPropertyDefinition()) {
-							var transfer = new org.codehaus.jettison.json.JSONObject()
-									.put("type", "paletteData")
-									.put("data", new org.codehaus.jettison.json.JSONObject()
-											.put("type", "FlowPropertyDefinition"));
-							runFlowPaletteMutationAsync("Add Flow block property",
-									"Unable to add Flow block property.", explorerView, dbotree,
-									() -> FlowStudioSupport.addFromPalette(dbotree.getObject(), "inside", transfer));
-							return;
-						}
-						if (paletteSource.isFlowHelperDefinition()) {
-							var transfer = new org.codehaus.jettison.json.JSONObject()
-									.put("type", "paletteData")
-									.put("data", new org.codehaus.jettison.json.JSONObject()
-											.put("type", "FlowHelperDefinition"));
-							runFlowPaletteMutationAsync("Add Flow helper function",
-									"Unable to add Flow helper function.", explorerView, dbotree,
-									() -> FlowStudioSupport.addFromPalette(dbotree.getObject(), "inside", transfer));
-							return;
-						}
-						if (paletteSource.isFrontendBlock() || paletteSource.isFrontendBlockDefinition()) {
-							if (paletteSource.getFlowItemData().isBlank()) {
-								throw new EngineException("Unable to add frontend block without catalog data.");
+						if (paletteSource.isFlowItem()) {
+							if (paletteSource.getFlowItemData() == null || paletteSource.getFlowItemData().isBlank()) {
+								throw new EngineException("Unable to add a Flow virtual item without authoring data.");
 							}
 							var position = insertBefore ? "before" : insertAfter ? "after" : "inside";
-							Engine.logStudio.info("Flow frontend DnD UI palette insert: target="
-									+ flowVirtualTreeSummary(dbotree) + " position=" + position
-									+ " item=" + paletteSource.getFlowItemData());
 							var transfer = new org.codehaus.jettison.json.JSONObject()
 									.put("type", "paletteData")
-									.put("data", new org.codehaus.jettison.json.JSONObject(paletteSource.getFlowItemData())
-											.put("type", "FrontendBlock"));
-							runFlowPaletteMutationAsync("Add Flow frontend node",
-									"Unable to add frontend block.", explorerView, dbotree,
+									.put("data", new org.codehaus.jettison.json.JSONObject(paletteSource.getFlowItemData()));
+							runFlowPaletteMutationAsync("Add Flow item", "Unable to add Flow item.",
+									explorerView, dbotree,
 									() -> FlowStudioSupport.addFromPalette(dbotree.getObject(), position, transfer));
 							return;
 						}
@@ -1832,7 +1729,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	}
 
 	private void runFlowMutationAsync(String label, FlowMutation mutation, FlowMutationResult result) {
+		var queuedAt = System.nanoTime();
 		Engine.execute(() -> {
+			var startedAt = System.nanoTime();
 			org.codehaus.jettison.json.JSONObject response = null;
 			Exception failure = null;
 			try {
@@ -1842,7 +1741,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 			var effectiveResponse = response;
 			var effectiveFailure = failure;
+			var completedAt = System.nanoTime();
 			ConvertigoPlugin.asyncExec(() -> {
+				var uiStartedAt = System.nanoTime();
 				if (effectiveFailure != null) {
 					ConvertigoPlugin.logException(effectiveFailure, label + " failed.", false);
 					MessageDialog.openError(ConvertigoPlugin.getMainShell(), "Flow", effectiveFailure.getMessage());
@@ -1853,6 +1754,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				} catch (Exception e) {
 					ConvertigoPlugin.logException(e, label + " reconciliation failed.", false);
 					MessageDialog.openError(ConvertigoPlugin.getMainShell(), "Flow", e.getMessage());
+				} finally {
+					Engine.logStudio.info(label + " timingsMs: workerQueue=" + (startedAt - queuedAt) / 1_000_000
+							+ " mutation=" + (completedAt - startedAt) / 1_000_000
+							+ " uiQueue=" + (uiStartedAt - completedAt) / 1_000_000
+							+ " reconcile=" + (System.nanoTime() - uiStartedAt) / 1_000_000);
 				}
 			});
 		});
@@ -1860,7 +1766,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 
 	private void runFlowPaletteMutationAsync(String label, String defaultError,
 			ProjectExplorerView explorerView, DatabaseObjectTreeObject targetTreeObject, FlowMutation mutation) {
-		var selection = FlowTreeMutationReconciler.selection(targetTreeObject);
 		runFlowMutationAsync(label, mutation, response -> {
 			Engine.logStudio.info(label + " response: " + response);
 			if (response == null || !response.optBoolean("done", false)) {
@@ -1868,8 +1773,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				throw new EngineException(error == null || error == org.codehaus.jettison.json.JSONObject.NULL
 						? defaultError : error.toString());
 			}
-			if (!FlowTreeMutationReconciler.reconcile(explorerView, targetTreeObject, response, selection)) {
-				reloadFlowTreeObject(explorerView, targetTreeObject);
+			if (!explorerView.reconcileFlowAuthoringMutation(targetTreeObject, targetTreeObject,
+					targetTreeObject.getObject(), null, response)) {
+				throw new EngineException("Flow item was added, but the projected tree could not be refreshed.");
+			}
+			if (explorerView.getFirstSelectedTreeObject() instanceof FlowVirtualObjectTreeObject selected
+					&& FlowStudioSupport.canRenameVirtualObject(selected.getObject())) {
+				explorerView.renameSelectedTreeObject(true);
 			}
 		});
 	}
