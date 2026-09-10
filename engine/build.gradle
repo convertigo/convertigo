@@ -280,6 +280,23 @@ sourceSets {
 			srcDirs = ['src']
 		}
 	}
+	sessionTest {
+		java.srcDirs = ['test']
+		compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+		runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath + compileClasspath
+	}
+}
+
+tasks.register('sessionSerializationTest', JavaExec) {
+	group = 'verification'
+	description = 'Round-trip regression tests for Redis session values (no Redis server required).'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.sessions.SessionSerializationTest'
+}
+
+tasks.named('check') {
+	dependsOn 'sessionSerializationTest'
 }
 
 dependencies {

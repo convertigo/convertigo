@@ -23,6 +23,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.Engine;
 
@@ -36,8 +37,8 @@ final class SessionValueCodec {
 		if (hint != null && hint.expectedClass() != null) {
 			return JsonCodec.MAPPER.writeValueAsString(value);
 		}
-		if (value instanceof String || value instanceof Number || value instanceof Boolean || value instanceof Map
-				|| value instanceof List) {
+		if (value instanceof String || value instanceof Number || value instanceof Boolean
+				|| (value instanceof Map && !(value instanceof Properties)) || value instanceof List) {
 			return JsonCodec.MAPPER.writeValueAsString(value);
 		}
 		var typed = ValueCodecHelper.encodeTypedValue(value);

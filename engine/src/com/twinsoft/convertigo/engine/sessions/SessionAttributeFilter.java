@@ -23,8 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.w3c.dom.Document;
-
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -51,9 +49,6 @@ final class SessionAttributeFilter {
 			return null;
 		}
 		if (!shouldKeep(name)) {
-			return null;
-		}
-		if (value instanceof Document) {
 			return null;
 		}
 		return value;
