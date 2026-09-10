@@ -146,17 +146,13 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 						if (deletedObject instanceof UIUseShared) {
 							UIUseShared uius = (UIUseShared)deletedObject;
 							String compQName = uius.getSharedComponentQName();
-							if (!compQName.isEmpty()) {
-								ComponentRefManager.get(Mode.use).removeConsumer(compQName, deletedobjectQName);
-							}
+							ComponentRefManager.get(Mode.use).removeConsumer(compQName, deletedobjectQName);
 						}
 						// a UIDynamicInvoke has been deleted
 						if (deletedObject instanceof UIDynamicInvoke) {
 							UIDynamicInvoke uidi = (UIDynamicInvoke)deletedObject;
 							String compQName = uidi.getSharedActionQName();
-							if (!compQName.isEmpty()) {
-								ComponentRefManager.get(Mode.use).removeConsumer(compQName, deletedobjectQName);
-							}
+							ComponentRefManager.get(Mode.use).removeConsumer(compQName, deletedobjectQName);
 						}
 					} else {
 						// an external shared object has been deleted and was used in this app
@@ -378,9 +374,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 							if (propertyName.equals("stack")) {
 								String oldCompQName = (String) oldValue;
 								String newCompQName = (String) newValue;
-								if (!oldCompQName.isEmpty()) {
-									ComponentRefManager.get(Mode.use).removeConsumer(oldCompQName, useQName);
-								}
+								ComponentRefManager.get(Mode.use).removeConsumer(oldCompQName, useQName);
 								if (!newCompQName.isEmpty()) {
 									ComponentRefManager.get(Mode.use).addConsumer(newCompQName, useQName);
 								}
@@ -393,7 +387,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 								if (!compQName.isEmpty() && !oldEnabled && newEnabled) {
 									ComponentRefManager.get(Mode.use).addConsumer(compQName, useQName);
 								}
-								if (!compQName.isEmpty() && oldEnabled && !newEnabled) {
+								if (oldEnabled && !newEnabled) {
 									ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQName);
 								}
 							}
@@ -405,9 +399,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 							if (propertyName.equals("sharedcomponent")) {
 								String oldCompQName = (String) oldValue;
 								String newCompQName = (String) newValue;
-								if (!oldCompQName.isEmpty()) {
-									ComponentRefManager.get(Mode.use).removeConsumer(oldCompQName, useQName);
-								}
+								ComponentRefManager.get(Mode.use).removeConsumer(oldCompQName, useQName);
 								if (!newCompQName.isEmpty()) {
 									ComponentRefManager.get(Mode.use).addConsumer(newCompQName, useQName);
 								}
@@ -420,7 +412,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 								if (!compQName.isEmpty() && !oldEnabled && newEnabled) {
 									ComponentRefManager.get(Mode.use).addConsumer(compQName, useQName);
 								}
-								if (!compQName.isEmpty() && oldEnabled && !newEnabled) {
+								if (oldEnabled && !newEnabled) {
 									ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQName);
 								}
 							}

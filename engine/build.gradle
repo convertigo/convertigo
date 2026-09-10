@@ -285,6 +285,12 @@ sourceSets {
 		compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
 		runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath + compileClasspath
 	}
+	componentRefTest {
+		java.srcDirs = ['test']
+		java.include 'com/twinsoft/convertigo/engine/mobile/**'
+		compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+		runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath + compileClasspath
+	}
 }
 
 tasks.register('sessionSerializationTest', JavaExec) {
@@ -297,6 +303,15 @@ tasks.register('sessionSerializationTest', JavaExec) {
 
 tasks.named('check') {
 	dependsOn 'sessionSerializationTest'
+	dependsOn 'componentRefManagerTest'
+}
+
+tasks.register('componentRefManagerTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for shared component and action dependency tracking.'
+	dependsOn componentRefTestClasses
+	classpath = sourceSets.componentRefTest.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.mobile.ComponentRefManagerTest'
 }
 
 dependencies {
