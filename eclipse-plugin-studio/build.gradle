@@ -1,17 +1,11 @@
 sourceSets {
 	main {
 		java {
-			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/**'
 			srcDir 'patch'
 		}
 		resources {
-			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/**'
 			srcDir 'patch'
 		}
 	}
@@ -23,7 +17,6 @@ eclipse {
 		linkedResource name: 'patch/org', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/org'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/engine'
 		linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/beans'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
 	}

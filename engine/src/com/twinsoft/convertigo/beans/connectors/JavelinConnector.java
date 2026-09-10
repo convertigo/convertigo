@@ -51,10 +51,10 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
-import com.twinsoft.convertigo.engine.plugins.VicApi;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
+import com.twinsoft.convertigo.engine.util.VicAuthorization;
 import com.twinsoft.tas.Authentication;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
@@ -241,8 +241,7 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 				// instance, from a web service call).
 				if (!context.isTrustedRequest) {
 					try {
-						VicApi vicApi = new VicApi();
-						if (!vicApi.isServiceAuthorized(context.tasUserName, context.tasVirtualServerName, context.tasServiceCode)) {
+						if (!VicAuthorization.isServiceAuthorized(context.tasUserName, context.tasVirtualServerName, context.tasServiceCode)) {
 							throw new EngineException("The service '" + context.tasServiceCode + "' is not authorized for the user '" + context.tasUserName);
 						}
 					}
