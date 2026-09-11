@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -48,6 +49,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.FlowOutputSchemaProperty
 import com.twinsoft.convertigo.eclipse.property_editors.FlowPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implements IOrderableTreeObject {
@@ -81,15 +83,45 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			return super.rename(newName, dialog);
 		}
 		try {
-			var response = FlowStudioSupport.renameVirtualObject(getObject(), newName);
+			if (newName.equals(getObject().getName())) {
+				return true;
+			}
+			var renamedObject = getObject();
+			var started = System.nanoTime();
+			var result = new JSONObject[1];
+			// Preserve the synchronous rename contract, but let SWT dispatch events
+			// while the provider validates, mutates and materializes the projection.
+			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
+				monitor.beginTask("Renaming " + renamedObject.getName(), org.eclipse.core.runtime.IProgressMonitor.UNKNOWN);
+				try {
+					result[0] = FlowStudioSupport.renameVirtualObject(renamedObject, newName);
+				} catch (Exception e) {
+					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+			});
+			var response = result[0];
+			var prepared = System.nanoTime();
 			getObject().setName(newName);
+			// The provider changed the source draft, not the ProjectTreeObject's
+			// dirty flag. Use the same save notification as a native DBO rename.
+			hasBeenModified(true);
 			// Reconcile after the inline editor has closed: its TreeItem must stay alive until then.
 			ConvertigoPlugin.asyncExec(() -> {
+				var reconcileStarted = System.nanoTime();
 				try {
 					var explorer = ConvertigoPlugin.getDefault().getProjectExplorerView();
 					explorer.reconcileFlowAuthoringMutation(this, this, getObject(), null, response);
 				} catch (Exception e) {
 					ConvertigoPlugin.logException(e, "Unable to refresh the renamed object.", dialog);
+				} finally {
+					var finished = System.nanoTime();
+					if (finished - started >= 500_000_000L) {
+						Engine.logStudio.warn("Slow projected rename UI: preparationMs=" + (prepared - started) / 1_000_000
+								+ " beforeReconcileMs=" + (reconcileStarted - prepared) / 1_000_000
+								+ " reconcileMs=" + (finished - reconcileStarted) / 1_000_000);
+					}
 				}
 			});
 			return true;
@@ -540,23 +572,11 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		}
 
 		var oldValue = getPropertyValue(id);
+		var started = System.nanoTime();
+		var mutated = started;
 		try {
-			if (P_COMMENT.equals(propertyName)) {
-				getObject().setComment(String.valueOf(value == null ? "" : value));
-			} else if (propertyName.startsWith(P_FLOW_PROPERTY)) {
-				var key = propertyName.substring(P_FLOW_PROPERTY.length());
-				if (P_FLOW_VALUE.equals(key)) {
-					var parsedValue = parseEditedValue(value, getObject().getDefinitionValue(), null);
-					getObject().setDefinitionValue(parsedValue);
-				} else {
-					var currentValue = getObject().getDefinitionProperty(key);
-					var parsedValue = parseEditedValue(value, currentValue, flowPropertyDefinition(key));
-					getObject().setDefinitionProperty(key, parsedValue);
-				}
-			} else {
-				var parsedValue = parseEditedValue(value, getObject().getDefinitionValue(), null);
-				getObject().setDefinitionValue(parsedValue);
-			}
+			applyEditedProperty(propertyName, value);
+			mutated = System.nanoTime();
 
 			reloadDescriptors();
 			hasBeenModified(true);
@@ -568,6 +588,31 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 					.fireTreeObjectPropertyChanged(new TreeObjectEvent(this, propertyName, oldValue, getPropertyValue(id)));
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to update Flow virtual property \"" + propertyName + "\".");
+		} finally {
+			var finished = System.nanoTime();
+			if (finished - started >= 500_000_000L) {
+				Engine.logStudio.warn("Slow projected property update: mutationMs=" + (mutated - started) / 1_000_000
+						+ ", notificationMs=" + (finished - mutated) / 1_000_000);
+			}
+		}
+	}
+
+	private void applyEditedProperty(String propertyName, Object value) throws Exception {
+		if (P_COMMENT.equals(propertyName)) {
+			getObject().setComment(String.valueOf(value == null ? "" : value));
+		} else if (propertyName.startsWith(P_FLOW_PROPERTY)) {
+			var key = propertyName.substring(P_FLOW_PROPERTY.length());
+			if (P_FLOW_VALUE.equals(key)) {
+				var parsedValue = parseEditedValue(value, getObject().getDefinitionValue(), null);
+				getObject().setDefinitionValue(parsedValue);
+			} else {
+				var currentValue = getObject().getDefinitionProperty(key);
+				var parsedValue = parseEditedValue(value, currentValue, flowPropertyDefinition(key));
+				getObject().setDefinitionProperty(key, parsedValue);
+			}
+		} else {
+			var parsedValue = parseEditedValue(value, getObject().getDefinitionValue(), null);
+			getObject().setDefinitionValue(parsedValue);
 		}
 	}
 

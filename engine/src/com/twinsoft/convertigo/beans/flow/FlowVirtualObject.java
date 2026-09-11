@@ -337,6 +337,10 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		return isDefinitionWritable() && info != null && info.optBoolean("deletable", false);
 	}
 
+	public boolean isDeletable() {
+		return isSourceBackedDeletable() || isSourceBackedFileDeletable() || isDefinitionDeletable();
+	}
+
 	@Override
 	public boolean isHiddenProperty(String propertyName) {
 		return switch (propertyName) {
@@ -670,12 +674,13 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 					.put("value", value == null ? JSONObject.NULL : value);
 			var response = target instanceof Flow flow
 					? new FlowEngineBridge().applyMutation(flow, mutation)
-					: new FlowEngineBridge().applyMutation((FlowEngine) target, mutation);
+					: new FlowEngineBridge().applyMutation((FlowEngine) target, mutation, true, virtualPath);
 			if (!response.optBoolean("ok", false)) {
 				var error = response.optJSONObject("error");
 				var message = error == null ? response.optString("message", "Flow mutation failed.") : flowErrorMessage(error);
 				throw new EngineException("Flow virtual mutation failed: " + message);
 			}
+			FlowStudioSupport.refreshVirtualObjectFromTree(this, response);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow virtual mutation.", e);
 		} catch (EngineException e) {
@@ -698,8 +703,8 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 					.put("op", "delete")
 					.put("path", path);
 			var response = target instanceof Flow flow
-					? new FlowEngineBridge().applyMutation(flow, mutation)
-					: new FlowEngineBridge().applyMutation((FlowEngine) target, mutation);
+					? new FlowEngineBridge().applyMutation(flow, mutation, false)
+					: new FlowEngineBridge().applyMutation((FlowEngine) target, mutation, false);
 			if (!response.optBoolean("ok", false)) {
 				var error = response.optJSONObject("error");
 				var message = error == null ? response.optString("message", "Flow delete failed.") : flowErrorMessage(error);

@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(name = "Paste", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Paste extends JSonService {
@@ -58,8 +59,21 @@ public class Paste extends JSonService {
 			throw new ServiceException("missing xml parameter");
 		}
 
+		pasteInto(resolveTarget(target), xml, response);
+	}
+
+	protected DatabaseObject resolveTarget(String id) throws Exception {
+		return DboUtils.findDbo(id);
+	}
+
+	protected JSONObject pasteVirtual(DatabaseObject target, String clipboard) throws Exception {
+		return FlowStudioSupport.pasteVirtualClipboard(target, clipboard);
+	}
+
+	void pasteInto(DatabaseObject targetDbo, String xml, JSONObject response) throws Exception {
 		JSONArray ids = new JSONArray();
-		DatabaseObject targetDbo = DboUtils.findDbo(target);
+		JSONArray results = new JSONArray();
+		JSONArray errors = new JSONArray();
 		if (targetDbo != null) {
 			Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xml)));
 			Element root = document.getDocumentElement();
@@ -73,6 +87,25 @@ public class Paste extends JSonService {
 				if (node.getNodeType() != Node.TEXT_NODE) {
 					// case copied tree items
 					if ("copy".equals(kind)) {
+						if (node instanceof Element element &&
+								"com.twinsoft.convertigo.beans.flow.FlowVirtualObject".equals(element.getAttribute("classname"))) {
+							throw new ServiceException("Outdated Flow clipboard. Copy the object again.");
+						}
+						if ("flow-virtual-clipboard".equals(node.getNodeName())) {
+							var clipboard = node.getTextContent();
+							if (!FlowStudioSupport.isVirtualClipboard(clipboard)) {
+								throw new ServiceException("Invalid Flow clipboard. Copy the object again.");
+							}
+							var result = pasteVirtual(targetDbo, clipboard);
+							results.put(result);
+							if (result.optBoolean("done", false)) {
+								DboUtils.copyResult(result, response);
+								ids.put(result.getString("id"));
+							} else {
+								errors.put(result.opt("error"));
+							}
+							continue;
+						}
 						object = DboUtils.xmlPaste(node, targetDbo);
 						if (object != null && object instanceof DatabaseObject) {
 							DatabaseObject dbo = (DatabaseObject)object;
@@ -117,8 +150,13 @@ public class Paste extends JSonService {
 				}
 			}
 		}
-		boolean done = ids.length() > 0;
+		boolean done = ids.length() > 0 && errors.length() == 0;
 		response.put("done", done);
 		response.put("ids", ids);
+		if (results.length() > 0) response.put("results", results);
+		if (errors.length() > 0) {
+			response.put("error", errors.toString());
+			response.put("partial", ids.length() > 0);
+		}
 	}
 }

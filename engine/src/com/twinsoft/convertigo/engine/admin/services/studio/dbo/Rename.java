@@ -63,7 +63,7 @@ public class Rename extends JSonService {
 		if (dbo instanceof com.twinsoft.convertigo.beans.flow.FlowVirtualObject virtual
 				&& com.twinsoft.convertigo.engine.flow.FlowStudioSupport.canRenameVirtualObject(virtual)) {
 			var result = com.twinsoft.convertigo.engine.flow.FlowStudioSupport.renameVirtualObject(virtual, newName);
-			response.put("done", result.optBoolean("done"));
+			DboUtils.copyResult(result, response);
 			response.put("ids", ids.put(result.optString("id")));
 			return;
 		}

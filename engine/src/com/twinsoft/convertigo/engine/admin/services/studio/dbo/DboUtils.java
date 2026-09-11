@@ -69,6 +69,8 @@ import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -182,6 +184,12 @@ public class DboUtils {
 
 	static protected void xmlCopy(Document document, DatabaseObject dbo) throws Exception {
 		final Element rootElement = document.getDocumentElement();
+		if (dbo instanceof FlowVirtualObject virtual) {
+			var element = document.createElement("flow-virtual-clipboard");
+			element.setTextContent(FlowStudioSupport.virtualClipboard(virtual).toString());
+			rootElement.appendChild(element);
+			return;
+		}
 
 		new WalkHelper() {
 			protected Element parentElement = rootElement;

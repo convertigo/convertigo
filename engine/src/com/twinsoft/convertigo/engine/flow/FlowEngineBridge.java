@@ -725,6 +725,38 @@ public class FlowEngineBridge {
 		}
 	}
 
+	public JSONObject authoringPalette(Flow flow, JSONObject options) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flow);
+			var request = baseRequest(engineQName, flow.getFlowSource(), flow.getQName(), null);
+			merge(request, options);
+			request.put("target", "flow").put("flowName", flow.getName());
+			var file = flow.getFlowSourceFile();
+			if (file != null) request.put("sourceFile", file.getAbsolutePath());
+			return invoke(engineQName, "authoringPalette", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build Flow authoring palette request.", e);
+		}
+	}
+
+	public JSONObject authoringMutate(Flow flow, JSONObject options) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flow);
+			var request = baseRequest(engineQName, flow.getFlowSource(), flow.getQName(), null);
+			merge(request, options);
+			request.put("target", "flow").put("flowName", flow.getName()).put("write", false).put("persist", false);
+			var file = flow.getFlowSourceFile();
+			if (file != null) request.put("sourceFile", file.getAbsolutePath());
+			var response = invoke(engineQName, "authoringMutate", request, null, null, null);
+			if (response.optBoolean("ok", false) && response.has("source") && !request.optBoolean("dryRun", false)) {
+				flow.setFlowSource(response.getString("source"));
+			}
+			return response;
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build Flow authoring mutation request.", e);
+		}
+	}
+
 	public JSONObject authoringMutate(FlowEngine flowEngine, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
@@ -734,11 +766,15 @@ public class FlowEngineBridge {
 					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
 					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
 			merge(request, options);
+			if (flowEngine != null) {
+				// A loaded model owns its draft. Only project Save may write the
+				// original source, irrespective of the provider's persistence default.
+				request.put("write", false).put("persist", false);
+			}
 			var response = invoke(engineQName, "authoringMutate", request, null, null, null);
 			if (flowEngine != null && response.optBoolean("ok", false)
 					&& "engine".equals(response.optString("target")) && response.has("source")
-					&& !request.optBoolean("dryRun", false) && request.optBoolean("write", true)
-					&& request.optBoolean("persist", true)) {
+					&& !request.optBoolean("dryRun", false)) {
 				// A loaded draft must advance with its mutation before Studio rebuilds the projection.
 				flowEngine.setEngineSource(response.getString("source"));
 			}
@@ -827,10 +863,15 @@ public class FlowEngineBridge {
 	}
 
 	public JSONObject applyMutation(Flow flow, JSONObject mutation) throws EngineException {
+		return applyMutation(flow, mutation, true);
+	}
+
+	public JSONObject applyMutation(Flow flow, JSONObject mutation, boolean includeTree) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flow);
 			var request = baseRequest(engineQName, flow.getFlowSource(), flow.getQName(), null)
 					.put("target", "flow")
+					.put("includeTree", includeTree)
 					.put("flowName", flow.getName())
 					.put("projectDir", flow.getProject() == null ? "" : flow.getProject().getDirPath())
 					.put("mutation", mutation == null ? new JSONObject() : mutation);
@@ -849,13 +890,25 @@ public class FlowEngineBridge {
 	}
 
 	public JSONObject applyMutation(FlowEngine flowEngine, JSONObject mutation) throws EngineException {
+		return applyMutation(flowEngine, mutation, true);
+	}
+
+	public JSONObject applyMutation(FlowEngine flowEngine, JSONObject mutation, boolean includeTree) throws EngineException {
+		return applyMutation(flowEngine, mutation, includeTree, "");
+	}
+
+	public JSONObject applyMutation(FlowEngine flowEngine, JSONObject mutation, boolean includeTree, String projectionPath) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
 			var request = baseRequest(engineQName, "", flowEngine.getQName(), null)
 					.put("target", "engine")
+					.put("includeTree", includeTree)
 					.put("engineSource", flowEngine.getEngineSource())
 					.put("projectDir", flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
 					.put("mutation", mutation == null ? new JSONObject() : mutation);
+			if (projectionPath != null && !projectionPath.isBlank()) {
+				request.put("projectionPaths", new JSONArray().put(projectionPath));
+			}
 			var response = invoke(engineQName, "applyMutation", request, null, null, null);
 			if (response.optBoolean("ok", false) && response.has("source")) {
 				flowEngine.setEngineSource(response.optString("source", flowEngine.getEngineSource()));
@@ -1489,7 +1542,7 @@ public class FlowEngineBridge {
 				.put("qname", project + "." + (connector == null || connector.isBlank() ? "" : connector + ".") + name);
 	}
 
-	private JSONObject invoke(String engineQName, String method, JSONObject request, Context convertigoContext,
+	JSONObject invoke(String engineQName, String method, JSONObject request, Context convertigoContext,
 			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		var engineRef = EngineRef.parse(normalizeEngineQName(engineQName));
 		var frontendAuthoring = usesFrontendDocumentProvider(method, request);

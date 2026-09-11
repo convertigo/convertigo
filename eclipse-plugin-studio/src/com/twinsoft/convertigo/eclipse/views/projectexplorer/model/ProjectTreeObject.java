@@ -317,7 +317,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 
 						Engine.theApp.databaseObjectsManager.exportProject(project);
 						
-						hasBeenModified(false);
+						clearSavedTreeState(this);
 						ConvertigoPlugin.logInfo("Project '" + projectName + "' saved!");
 						
 						IProject iProject = getIProject();
@@ -1099,6 +1099,18 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				isCheckMissingProjects = false;
 			}
 		}).schedule(5000);
+	}
+
+	/** Clear displayed projections too: they are not necessarily visited by XML export. */
+	private static void clearSavedTreeState(TreeObject node) {
+		if (node instanceof DatabaseObjectTreeObject databaseTreeObject) {
+			databaseTreeObject.markAsChanged(false);
+		}
+		if (node instanceof TreeParent parent) {
+			for (var child : parent.getChildren()) {
+				clearSavedTreeState(child);
+			}
+		}
 	}
 
 	@Override

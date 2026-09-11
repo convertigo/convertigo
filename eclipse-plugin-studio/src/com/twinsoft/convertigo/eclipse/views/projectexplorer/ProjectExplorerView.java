@@ -1072,6 +1072,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public boolean reconcileFlowAuthoringMutation(TreeObject targetTreeObject, TreeObject selectedTreeObject,
 			DatabaseObject targetDbo, JSONObject selectionReference, JSONObject mutationResult) {
+		// Successful authoring changes a draft, not necessarily a physical DBO.
+		// Notify Save before replacing tree objects or attempting UI reconciliation.
+		if (mutationResult != null && mutationResult.optBoolean("done", mutationResult.optBoolean("ok", false))
+				&& mutationResult.optBoolean("changed", true)
+				&& targetTreeObject instanceof DatabaseObjectTreeObject databaseTreeObject) {
+			databaseTreeObject.hasBeenModified(true);
+		}
 		try {
 			var reconciled = FlowTreeMutationReconciler.reconcile(this, targetTreeObject, mutationResult,
 					FlowTreeMutationReconciler.selection(selectedTreeObject,

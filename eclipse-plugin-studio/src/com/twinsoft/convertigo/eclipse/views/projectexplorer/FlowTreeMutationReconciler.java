@@ -31,6 +31,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
+import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject;
@@ -80,7 +81,10 @@ public final class FlowTreeMutationReconciler {
 			while (owner instanceof FlowVirtualObject && owner.getParent() != null) {
 				owner = owner.getParent();
 			}
-			var currentRoot = FlowStudioSupport.currentProjectionRoot(owner, sourcePath, rootPath);
+			var projectedTree = response.optJSONObject("projectedTree");
+			var currentRoot = projectedTree != null && rootPath.equals(projectedTree.optString("path"))
+					&& flowRoot.getObject().replaceProjectedTree(projectedTree) ? flowRoot.getObject()
+					: FlowStudioSupport.currentProjectionRoot(owner, sourcePath, rootPath);
 			if (currentRoot == null) {
 				return false;
 			}
@@ -117,6 +121,14 @@ public final class FlowTreeMutationReconciler {
 		}
 		if (selected == null) {
 			selected = projectedDatabaseTreeObject;
+		}
+		// Projection replacement creates fresh beans. Mark the resulting selection,
+		// not the detached destination that existed before the mutation.
+		if (response.optBoolean("done", response.optBoolean("ok", false))
+				&& response.optBoolean("changed", true)
+				&& selected instanceof DatabaseObjectTreeObject changedObject) {
+			changedObject.hasBeenModified(true);
+			explorerView.updateTreeObject(changedObject);
 		}
 		explorerView.setSelectedTreeObject(selected, true);
 		Engine.logStudio.info("Flow projected tree reconciled: root=" + projectedRoot.getPath()
@@ -170,7 +182,7 @@ public final class FlowTreeMutationReconciler {
 				fallback = treeParent;
 			}
 			if (current instanceof DatabaseObjectTreeObject databaseTreeObject
-					&& databaseTreeObject.getObject() instanceof FlowEngine) {
+					&& (databaseTreeObject.getObject() instanceof FlowEngine || databaseTreeObject.getObject() instanceof Flow)) {
 				return databaseTreeObject;
 			}
 		}

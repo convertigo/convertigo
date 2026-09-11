@@ -132,15 +132,22 @@ public class ClipboardAction extends MyAbstractAction {
 		if ((explorerView != null) && (selectedTreeObject != null)) {
 			if (FlowStudioSupport.isVirtualClipboard(source)) {
 				var targetTreeObject = explorerView.getFirstSelectedDatabaseObjectTreeObject(selectedTreeObject);
-				if (targetTreeObject != null && targetTreeObject.getObject() instanceof FlowVirtualObject) {
+				if (targetTreeObject != null) {
 					try {
+						var started = System.nanoTime();
 						var response = FlowStudioSupport.pasteVirtualClipboard(targetTreeObject.getObject(), source);
+						var mutated = System.nanoTime();
 						if (!response.optBoolean("done", false)) {
 							throw new EngineException("Unable to paste Flow virtual object: " + response.opt("error"));
 						}
 						if (!explorerView.reconcileFlowAuthoringMutation(targetTreeObject, selectedTreeObject,
 								targetTreeObject.getObject(), null, response)) {
 							throw new EngineException("Flow virtual object was pasted, but the projected tree could not be refreshed.");
+						}
+						var finished = System.nanoTime();
+						if (finished - started >= 500_000_000L) {
+							Engine.logStudio.warn("Slow projected paste: mutationMs=" + (mutated - started) / 1_000_000
+									+ ", reconciliationMs=" + (finished - mutated) / 1_000_000);
 						}
 						return;
 					} catch (EngineException e) {
