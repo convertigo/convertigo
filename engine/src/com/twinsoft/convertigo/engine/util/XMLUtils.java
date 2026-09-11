@@ -448,7 +448,8 @@ public class XMLUtils {
 		"java.util.",
 		"java.time.",
 		"java.math.",
-		"com.twinsoft."
+		"com.twinsoft.",
+		"com.fasterxml.jackson."
 	);
 
 	/**
