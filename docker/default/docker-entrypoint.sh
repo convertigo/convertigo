@@ -168,9 +168,9 @@ if [ "$1" = "convertigo" ]; then
         echo "Configure session-timeout to $SESSION_TIMEOUT"
     fi
     
-    if [ $(id -u) = "0" ] && [ "$DISABLE_SUDO" = "true" ]; then
-        rm /etc/sudoers.d/convertigo
-        echo "Disable 'sudo'"
+    if [ $(id -u) = "0" ] && [ "$DISABLE_SUDO" != "false" ]; then
+        rm -f /etc/sudoers.d/convertigo
+        echo "Disable 'sudo' (set DISABLE_SUDO=false to keep passwordless sudo)"
     fi
     
     if [ -d "/ssl/" ]; then

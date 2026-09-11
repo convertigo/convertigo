@@ -341,11 +341,13 @@ The default `SESSION_TIMEOUT` value is **30** and can be defined this way:
 
 ## `DISABLE_SUDO` Environment variable
 
-The image includes **sudo** command line, configured to allow the **convertigo** user to use it without password and to perform some **root** action inside the container. This variable allows to disable this permission.
+The image includes the **sudo** command line, configured to allow the **convertigo** user to use it without password and to perform some **root** action inside the container. This variable controls that permission.
 
-The default `DISABLE_SUDO` value is **empty** and can be defined this way:
+Passwordless **sudo** is now **disabled by default**. To keep it (for example when a project installs native packages at startup), set `DISABLE_SUDO` to **false**:
 
-    docker run -d –name C8O -e DISABLE_SUDO=true -p 28080:28080 convertigo
+    docker run -d –name C8O -e DISABLE_SUDO=false -p 28080:28080 convertigo
+
+Note: **sudo** only applies when the container runs as **root**; it has no effect when the container runs under a fixed non-root user (`runAsUser`).
 
 ## `ENABLE_JDWP_DEBUG` Environment variable
 
