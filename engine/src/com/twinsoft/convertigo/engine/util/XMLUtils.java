@@ -103,6 +103,13 @@ public class XMLUtils {
 			} catch (Exception e) {
 				Engine.logEngine.warn("Unable to harden the XML document builder factory: " + e.getMessage());
 			}
+			// Optional JAXP hardening, not supported by every XML implementation.
+			try {
+				documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+				documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+			} catch (Exception e) {
+				Engine.logEngine.debug("XML document builder factory does not support ACCESS_EXTERNAL properties: " + e.getMessage());
+			}
 			try {
 				String s = EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_NAMESPACE_AWARE);
 				if (s.equalsIgnoreCase("true"))
@@ -134,7 +141,20 @@ public class XMLUtils {
 	private static ThreadLocal<TransformerFactory> defaultTransformerFactory = new ThreadLocal<TransformerFactory>() {
 		@Override
 		protected TransformerFactory initialValue() {
-			return TransformerFactory.newInstance();
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			try {
+				transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+			} catch (Exception e) {
+				Engine.logEngine.warn("Unable to harden the XML transformer factory: " + e.getMessage());
+			}
+			// Optional JAXP hardening, not supported by every XML implementation.
+			try {
+				transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+				transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+			} catch (Exception e) {
+				Engine.logEngine.debug("XML transformer factory does not support ACCESS_EXTERNAL properties: " + e.getMessage());
+			}
+			return transformerFactory;
 		}
 	};
 
@@ -150,7 +170,19 @@ public class XMLUtils {
 		@Override
 		protected SAXParser initialValue() {
 			try {
-				return SAXParserFactory.newInstance().newSAXParser();
+				SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+				// Disable external entity resolution and external DTD access while
+				// keeping internal DTD subsets working.
+				try {
+					saxParserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+					saxParserFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+					saxParserFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+					saxParserFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+					saxParserFactory.setXIncludeAware(false);
+				} catch (Exception e) {
+					Engine.logEngine.warn("Unable to harden the SAX parser factory: " + e.getMessage());
+				}
+				return saxParserFactory.newSAXParser();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
@@ -974,6 +1006,11 @@ public class XMLUtils {
 				factory.setXIncludeAware(false);
 				factory.setExpandEntityReferences(false);
 				factory.setNamespaceAware(true);
+				try {
+					factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+					factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+				} catch (Exception ignored) {
+				}
 				return factory.newDocumentBuilder();
 			} catch (ParserConfigurationException e) {
 				Engine.logEngine.error("Unable to create the secure XML document builder", e);
