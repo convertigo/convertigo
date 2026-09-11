@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUt
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(name = "Remove", roles = { Role.WEB_ADMIN,
-		Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+		Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
 public class Remove extends JSonService {
 
 	@Override

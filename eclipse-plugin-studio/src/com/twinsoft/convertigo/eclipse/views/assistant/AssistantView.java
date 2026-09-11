@@ -991,7 +991,7 @@ public class AssistantView extends ViewPart {
 					}
 				}
 				String preferenceUrl = getActivationAssistantPreferenceUrl(activationPayload);
-				ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_ASSISTANT_URL, preferenceUrl);
+				persistAssistantPreferenceUrl(preferenceUrl);
 				startupUrl = resolveAssistantStartupUrl();
 				postActivationStatus("success", forceUpdate ? "Stack Agent locale mise à jour." : "Assistant local activé.", "", true);
 				ConvertigoPlugin.asyncExec(() -> {
@@ -1041,6 +1041,22 @@ public class AssistantView extends ViewPart {
 		}
 		JSONArray projects = new JSONArray();
 		return projects;
+	}
+
+	private static void persistAssistantPreferenceUrl(String url) throws java.io.IOException {
+		var store = ConvertigoPlugin.getDefault().getPreferenceStore();
+		if (!(store instanceof org.eclipse.jface.preference.IPersistentPreferenceStore persistent)) {
+			throw new java.io.IOException("Assistant URL preference store cannot be saved");
+		}
+		String key = ConvertigoPlugin.PREFERENCE_ASSISTANT_URL;
+		String previous = store.getString(key);
+		store.setValue(key, url);
+		try {
+			persistent.save();
+		} catch (java.io.IOException e) {
+			store.setValue(key, previous);
+			throw e;
+		}
 	}
 
 	private static String getActivationAssistantPreferenceUrl(JSONObject payload) {

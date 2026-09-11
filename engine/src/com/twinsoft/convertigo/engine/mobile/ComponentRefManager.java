@@ -79,6 +79,9 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	}
 	
 	public void addConsumer(final String compQName, final String useQName) {
+		if (compQName == null || compQName.isBlank() || useQName == null || useQName.isBlank()) {
+			return;
+		}
 		synchronized (consumers) {
 			if (consumers.get(compQName) == null) {
 				consumers.put(compQName, new HashSet<String>());
@@ -93,11 +96,17 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		synchronized (consumers) {
 			if (consumers.get(compQName) != null) {
 				consumers.get(compQName).remove(useQName);
+				if (consumers.get(compQName).isEmpty()) {
+					consumers.remove(compQName);
+				}
 			}
 		}
 	}
 	
 	public void copyKey(final String old_qname, final String new_qname) {
+		if (old_qname == null || old_qname.isBlank() || new_qname == null || new_qname.isBlank()) {
+			return;
+		}
 		synchronized (consumers) {
 			if (consumers.get(old_qname) != null) {
 				Set<String> newSet = new HashSet<String>(consumers.get(old_qname));
@@ -293,9 +302,16 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	}
 	
 	private Set<String> getDependencies(Set<String> done, String compQName) {
+		if (compQName == null || compQName.isBlank()) {
+			return Collections.unmodifiableSet(done);
+		}
 		try {
 			done.add(compQName);
 	    	for (String keyQName: getKeys()) {
+				// An empty target matches every consumer and creates false cross-project dependencies.
+				if (keyQName == null || keyQName.isBlank()) {
+					continue;
+				}
 	    		if (!keyQName.equals(compQName)) {
 	    			Pattern p = Pattern.compile("^" + Pattern.quote(keyQName) + "\\b.*");
 		    		for (String useQName: getConsumers(compQName)) {

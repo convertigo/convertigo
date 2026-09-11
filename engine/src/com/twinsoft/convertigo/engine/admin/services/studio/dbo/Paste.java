@@ -41,7 +41,7 @@ import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUt
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
-@ServiceDefinition(name = "Paste", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Paste", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
 public class Paste extends JSonService {
 
 	@Override

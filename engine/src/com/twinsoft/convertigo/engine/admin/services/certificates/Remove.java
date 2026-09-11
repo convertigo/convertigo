@@ -26,6 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
@@ -46,10 +47,22 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 public class Remove extends XmlService {
 	
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		String certificateName = request.getParameter("certificateName");		
-		File toRemove=new File(Engine.CERTIFICATES_PATH+"/"+certificateName);
-		toRemove.delete();
-		ServiceUtils.addMessage(document, "The certificate \""+certificateName+"\" has been successfully removed", "message");
+		String certificateName = request.getParameter("certificateName");
+		File certificatesDir = new File(Engine.CERTIFICATES_PATH).getCanonicalFile();
+		File toRemove = new File(certificatesDir, certificateName == null ? "" : certificateName).getCanonicalFile();
+		// The certificate must be a file located directly in the certificate
+		// directory: reject any name that escapes it (path separators, traversal,
+		// absolute or drive/UNC paths, symlink escapes).
+		if (certificateName == null || certificateName.isBlank()
+				|| !certificatesDir.equals(toRemove.getParentFile())) {
+			throw new EngineException("Invalid certificate name \"" + certificateName
+					+ "\": it must be a file located directly in the certificate directory");
+		}
+		if (toRemove.delete()) {
+			ServiceUtils.addMessage(document, "The certificate \"" + certificateName + "\" has been successfully removed", "message");
+		} else {
+			ServiceUtils.addMessage(document, "The certificate \"" + certificateName + "\" could not be removed", "message");
+		}
 	}
 		
 }	

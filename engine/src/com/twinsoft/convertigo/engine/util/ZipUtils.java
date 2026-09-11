@@ -144,7 +144,15 @@ public class ZipUtils {
 							if (!entryName.startsWith("/_data/") && !entryName.startsWith("/_private/")) {
 								Engine.logEngine.debug("  The entry is accepted");
 								File file = new File(rootDir + "/" + entryName);
-								
+
+								// Reject entries that would be written outside the
+								// extraction root.
+								File extractionRoot = new File(rootDir).getCanonicalFile();
+								if (!file.getCanonicalFile().toPath().startsWith(extractionRoot.toPath())) {
+									Engine.logEngine.warn("Skipping ZIP entry outside the target directory: " + entryName);
+									continue;
+								}
+
 								// Creating the directory if needed
 								ftmp = file.getParentFile();
 								if (!ftmp.exists()) {

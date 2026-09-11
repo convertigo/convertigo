@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 import com.twinsoft.convertigo.engine.studio.NgxSourcePickerModel;
 
-@ServiceDefinition(name = "Apply", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Apply", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
 public class Apply extends JSonService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {

@@ -38,7 +38,6 @@ eclipse {
 		natures 'org.eclipse.buildship.core.gradleprojectnature'
 		buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
 		linkedResource name: 'convertigo', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/eclipse-plugin-studio/tomcat/webapps/convertigo'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
 	}
@@ -201,7 +200,7 @@ compileJava.dependsOn dependenciesJar
 
 def warRuntimeClasspathDir = layout.buildDirectory.dir('tmp/warRuntimeClasspath')
 
-tasks.register('prepareWarRuntimeClasspath', Copy) {
+tasks.register('prepareWarRuntimeClasspath', Sync) {
 	from configurations.runtimeClasspath
 	into warRuntimeClasspathDir
 	filePermissions {
@@ -271,19 +270,13 @@ war {
 sourceSets {
 	main {
 		java {
-			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/**'
 			exclude 'test/'
 			exclude '.placeholder'
 			srcDirs = ['src']
 		}
 		resources {
-			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
-			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/**'
 			exclude 'test/'
 			exclude '.placeholder'
 			srcDirs = ['src']
@@ -297,6 +290,36 @@ sourceSets {
 			srcDirs = ['test-resources']
 		}
 	}
+}
+
+tasks.register('sessionSerializationTest', JavaExec) {
+	group = 'verification'
+	description = 'Round-trip regression tests for Redis session values (no Redis server required).'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.sessions.SessionSerializationTest'
+}
+
+tasks.named('check') {
+	dependsOn 'sessionSerializationTest'
+	dependsOn 'componentRefManagerTest'
+	dependsOn 'projectArchiveTest'
+}
+
+tasks.register('projectArchiveTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for workspace project archive cleanup.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.ProjectArchiveTest'
+}
+
+tasks.register('componentRefManagerTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for shared component and action dependency tracking.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.mobile.ComponentRefManagerTest'
 }
 
 dependencies {
@@ -313,11 +336,6 @@ dependencies {
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 	compileFlat    'com.smartbear.soapui:soapui-light:' + soapuiVersion
 	implementation "com.convertigo.provider:convertigo-provider-couchdb:8.5.0"
-	implementation('com.convertigo.provider:convertigo-provider-plugins:8.5.0') {
-		exclude group: 'xml-apis', module: 'xml-apis'
-		exclude group: 'xalan', module: 'xalan'
-		exclude group: 'xalan', module: 'serializer'
-	}	
 	implementation 'com.convertigo.provider:convertigo-provider-sap:8.3.11'
 	compileFlat    'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat    'com.convertigo.twinsoft.lib:comm:1998.11.15'

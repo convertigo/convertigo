@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUt
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
 
-@ServiceDefinition(name = "Apply", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Apply", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
 public class Apply extends JSonService {
 	private static class Candidate {
 		private final PropertyDescriptor descriptor;

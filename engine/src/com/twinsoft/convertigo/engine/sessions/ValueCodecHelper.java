@@ -22,15 +22,23 @@ package com.twinsoft.convertigo.engine.sessions;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.twinsoft.convertigo.engine.util.DomSerializationSupport;
+import com.twinsoft.convertigo.engine.util.DomSerializationSupport.DomType;
+import com.twinsoft.convertigo.engine.util.DomSerializationSupport.SerializedDom;
 
 final class ValueCodecHelper {
 	static final String FORMAT_POJO = "pojo";
+	static final String FORMAT_DOM = "dom";
 	private static final ObjectMapper POJO_MAPPER = createPojoMapper();
 
 	private ValueCodecHelper() {
@@ -91,6 +99,28 @@ final class ValueCodecHelper {
 		if (value == null) {
 			return null;
 		}
+		if (value instanceof Node || value instanceof NodeList) {
+			var dom = DomSerializationSupport.serialize(value);
+			if (dom == null) {
+				throw new IllegalArgumentException("Unable to serialize DOM session value");
+			}
+			var clazz = switch (dom.type()) {
+				case DOCUMENT -> "org.w3c.dom.Document";
+				case ELEMENT -> "org.w3c.dom.Element";
+				case NODE -> "org.w3c.dom.Node";
+				case NODE_LIST -> "org.w3c.dom.NodeList";
+			};
+			return new EncodedTypedValue(clazz, JsonCodec.MAPPER.valueToTree(dom), FORMAT_DOM);
+		}
+		if (value instanceof Properties properties) {
+			// Snapshot effective string defaults without reflecting into JDK internals.
+			var snapshot = new Properties();
+			for (var name : properties.stringPropertyNames()) {
+				snapshot.setProperty(name, properties.getProperty(name));
+			}
+			snapshot.putAll(properties);
+			return new EncodedTypedValue(Properties.class.getName(), JsonCodec.MAPPER.valueToTree(snapshot), null);
+		}
 		var clazz = value.getClass().getName();
 		try {
 			return new EncodedTypedValue(clazz, JsonCodec.MAPPER.valueToTree(value), null);
@@ -102,6 +132,14 @@ final class ValueCodecHelper {
 	static Object decodeTypedValue(String className, JsonNode valueNode, String format) throws Exception {
 		if (valueNode == null || valueNode.isNull()) {
 			return null;
+		}
+		if (FORMAT_DOM.equals(format)) {
+			var type = DomType.valueOf(valueNode.path("type").asText());
+			var dom = DomSerializationSupport.deserialize(new SerializedDom(type, valueNode.path("xml").asText(null)));
+			if (dom == null) {
+				throw new IllegalArgumentException("Unable to deserialize DOM session value");
+			}
+			return dom;
 		}
 		var mapper = FORMAT_POJO.equals(format) ? POJO_MAPPER : JsonCodec.MAPPER;
 		if (className != null && !className.isBlank()) {

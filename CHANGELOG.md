@@ -16,9 +16,16 @@
 - [#1143](https://github.com/convertigo/convertigo/issues/1143) [Admin] Scheduler jobs and schedules can now be exported and imported for backup or migration, with merge and replace options
 - [#1151](https://github.com/convertigo/convertigo/issues/1151) [Admin] Certificates can now be exported and imported together with their configuration and project mappings
 - [#1154](https://github.com/convertigo/convertigo/issues/1154) [Docker] Docker deployments can now trust custom CAs for outbound TLS through a separately mounted `/cacerts` directory
+- [#1157](https://github.com/convertigo/convertigo/issues/1157) [Engine] Projects are now loaded only from the YAML format by default, with an option to re-enable the legacy XML format
+- [#1158](https://github.com/convertigo/convertigo/issues/1158) [Engine] HTTP transactions now control whether request parameters may override the target URL or add request headers, with conservative defaults, and Download HTTP transactions write files only inside their configured folder
+- [#1159](https://github.com/convertigo/convertigo/issues/1159) [Engine] Project archive extraction now keeps extracted files within the project directory
+- [#1160](https://github.com/convertigo/convertigo/issues/1160) [Admin] Certificate removal is now restricted to files within the certificate directory
+- [#1161](https://github.com/convertigo/convertigo/issues/1161) [Engine] XML parsing now rejects external entities and external DTDs, and the obsolete `__handleComplex` request option has been removed
+- [#1164](https://github.com/convertigo/convertigo/issues/1164) [Engine] CAR archives in the workspace projects directory are now removed after successful deployment, and project deletion also removes matching archives with versioned filenames, preventing unintended redeployment on restart
 
 #### Bug Fixes:
 
+- [#1163](https://github.com/convertigo/convertigo/issues/1163) [Admin] Fixed, importing a project by URL now requires the projects configuration role instead of the read-only role
 - [#1121](https://github.com/convertigo/convertigo/issues/1121) [Engine] Fixed, live log viewers now continue across log file rotation without missing or duplicating lines
 - [#1125](https://github.com/convertigo/convertigo/issues/1125) [Admin] Fixed, web log viewers now limit the number of loaded lines to a configurable maximum, preventing unbounded buffer growth during long sessions
 - [#1129](https://github.com/convertigo/convertigo/issues/1129) [Studio] Fixed, importing or exporting backend variables and creating test cases now preserve symbol references instead of copying resolved values; frontend variable imports leave those values empty

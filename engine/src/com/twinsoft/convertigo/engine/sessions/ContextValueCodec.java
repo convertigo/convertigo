@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -78,7 +79,7 @@ final class ContextValueCodec {
 			obj.put("xml", dom.xml());
 			return obj;
 		}
-		if (value instanceof Map<?, ?> map) {
+		if (value instanceof Map<?, ?> map && !(value instanceof Properties)) {
 			var obj = new LinkedHashMap<String, Object>();
 			for (var entry : map.entrySet()) {
 				if (entry.getKey() == null) {

@@ -116,7 +116,6 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
-import com.twinsoft.convertigo.engine.plugins.VicApi;
 import com.twinsoft.convertigo.engine.util.BigMimeMultipart;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -124,6 +123,7 @@ import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
+import com.twinsoft.convertigo.engine.util.VicAuthorization;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
 
@@ -312,8 +312,7 @@ public class HttpConnector extends Connector {
 			// instance, from a web service call).
 			if (!context.isTrustedRequest) {
 				try {
-					VicApi vicApi = new VicApi();
-					if (!vicApi.isServiceAuthorized(context.tasUserName, context.tasVirtualServerName,
+					if (!VicAuthorization.isServiceAuthorized(context.tasUserName, context.tasVirtualServerName,
 							context.tasServiceCode)) {
 						throw new EngineException("The service '" + context.tasServiceCode
 								+ "' is not authorized for the user '" + context.tasUserName + "'");
