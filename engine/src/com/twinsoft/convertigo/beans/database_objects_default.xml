@@ -3438,6 +3438,12 @@
         <handlers/>
     </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="accessibility">
             <java.lang.String value="Private"/>
         </property>
@@ -3763,6 +3769,12 @@
         <handlers/>
     </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="accessibility">
             <java.lang.String value="Private"/>
         </property>
@@ -3942,6 +3954,12 @@
         <handlers/>
     </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="accessibility">
             <java.lang.String value="Private"/>
         </property>
@@ -4043,6 +4061,12 @@
     </transaction>
     
     <transaction classname="com.twinsoft.convertigo.beans.transactions.DownloadHttpTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="accessibility">
             <java.lang.String value="Private"/>
         </property>
@@ -5700,6 +5724,12 @@
         <handlers/>
     </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction" default="false" priority="0" version="   7   9   0">
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -5808,6 +5838,12 @@
         <handlers/>
     </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction" default="false" priority="0" version="   7   9   0">
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -5908,6 +5944,12 @@
         <handlers/>
     </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction" default="false" priority="0" version="   7   9   0">
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -10067,6 +10109,12 @@
         <handlers/>
     </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction" default="false" priority="0" version="   7   6   0">
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -10392,6 +10440,12 @@
         <handlers/>
     </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction" default="false" priority="0" version="   7   6   0">
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -10571,6 +10625,12 @@
         <handlers/>
     </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction" default="false" priority="0" version="   7   6   0">
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
