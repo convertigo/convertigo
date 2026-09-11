@@ -304,6 +304,15 @@ tasks.register('sessionSerializationTest', JavaExec) {
 tasks.named('check') {
 	dependsOn 'sessionSerializationTest'
 	dependsOn 'componentRefManagerTest'
+	dependsOn 'projectArchiveTest'
+}
+
+tasks.register('projectArchiveTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for workspace project archive cleanup.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.ProjectArchiveTest'
 }
 
 tasks.register('componentRefManagerTest', JavaExec) {

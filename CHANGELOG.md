@@ -22,6 +22,7 @@
 - [#1160](https://github.com/convertigo/convertigo/issues/1160) [Admin] Certificate removal is now restricted to files within the certificate directory
 - [#1161](https://github.com/convertigo/convertigo/issues/1161) [Engine] XML parsing now rejects external entities and external DTDs, and the obsolete `__handleComplex` request option has been removed
 - [#1162](https://github.com/convertigo/convertigo/issues/1162) [Docker] Passwordless sudo is now disabled by default in the container; set `DISABLE_SUDO=false` to keep it
+- [#1164](https://github.com/convertigo/convertigo/issues/1164) [Engine] CAR archives in the workspace projects directory are now removed after successful deployment, and project deletion also removes matching archives with versioned filenames, preventing unintended redeployment on restart
 
 #### Bug Fixes:
 

@@ -1,5 +1,14 @@
 # Session value serialization regression tests
 
+## Project archive cleanup
+
+`./gradlew :engine:projectArchiveTest` runs the archive regression checks, also
+included in `:engine:check`. It uses disposable temporary directories and ZIP
+fixtures. It covers internal YAML/XML project names, versioned filenames,
+successful, skipped and failed deployments, and preservation of ZIP backups and
+external archives. The deployment/extraction code is real; the project importer
+is stubbed, so this is not an end-to-end server/Studio validation.
+
 Run the standalone suite (also included in `:engine:check`):
 
 ```sh

@@ -638,14 +638,49 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public void deleteProjectAndCar(String projectName, DeleteProjectOption... options) throws EngineException {
 		try {
-			var projectArchive = new File(Engine.projectDir(projectName) + ".car");
+			var projectArchives = findProjectArchives(projectName);
 			deleteProject(projectName, options);
 
-			if (projectArchive.exists()) {
-				FileUtils.deleteAsync(renameForRemoval(projectArchive));
+			for (var projectArchive : projectArchives) {
+				if (projectArchive.exists()) {
+					FileUtils.deleteAsync(renameForRemoval(projectArchive));
+				}
 			}
 		} catch (Exception e) {
 			throw new EngineException("Unable to delete the project \"" + projectName + "\".", e);
+		}
+	}
+
+	static List<File> findProjectArchives(String projectName) throws IOException {
+		var archives = new ArrayList<File>();
+		var files = new File(Engine.PROJECTS_PATH).listFiles(file -> file.isFile() && file.getName().endsWith(".car"));
+		if (files == null) {
+			throw new IOException("Unable to list project archives in " + Engine.PROJECTS_PATH);
+		}
+		for (var file : files) {
+			try {
+				// The archive filename may include a version: match the enclosed project instead.
+				if (projectName.equals(ZipUtils.getProjectName(file.getPath()))) {
+					archives.add(file);
+				}
+			} catch (Exception e) {
+				Engine.logDatabaseObjectManager.warn("Cannot identify project archive \"" + file + "\"; leaving it untouched.", e);
+			}
+		}
+		return archives;
+	}
+
+	static void removeDeployedArchive(File archive) {
+		try {
+			// Consume workspace deployment inputs only, never a Studio/CLI archive elsewhere.
+			if (archive.getName().endsWith(".car") && archive.getCanonicalFile().getParentFile()
+					.equals(new File(Engine.PROJECTS_PATH).getCanonicalFile())) {
+				Files.deleteIfExists(archive.toPath());
+				Engine.logDatabaseObjectManager.info("Removed deployed project archive \"" + archive + "\".");
+			}
+		} catch (IOException e) {
+			// A cleanup failure must not report an otherwise successful deployment as failed.
+			Engine.logDatabaseObjectManager.warn("Unable to remove deployed project archive \"" + archive + "\".", e);
 		}
 	}
 
@@ -795,7 +830,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 					throw new EngineException("File \"" + projectFileName + "\" is missing");
 				} else {
 					// Call method with the correct archive (path)
-					updateProject(new File(new File(projectFileName).getParent(), archiveFileProject).getPath());
+					project = updateProject(new File(new File(projectFileName).getParent(), archiveFileProject).getPath());
 				}
 
 				Engine.logDatabaseObjectManager
@@ -979,6 +1014,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 
 			Engine.logDatabaseObjectManager.info("Project \"" + targetProjectName + "\" deployed!");
+			if (project != null) {
+				removeDeployedArchive(new File(projectArchiveFilename));
+			}
 			return project;
 		} catch (VersionException e) {
 			throw e;
