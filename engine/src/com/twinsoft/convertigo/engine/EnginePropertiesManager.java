@@ -1055,7 +1055,7 @@ public class EnginePropertiesManager {
 
 			properties.put("log.directory", Engine.USER_WORKSPACE_PATH + "/logs");
 
-			File logEngine = new File(getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_FILE));
+			File logEngine = new File(getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_FILE)).getAbsoluteFile();
 
 			Engine.LOG_PATH = logEngine.getParent();
 			Engine.LOG_ENGINE_NAME = logEngine.getName();
@@ -1456,11 +1456,21 @@ public class EnginePropertiesManager {
 	}
 
 	private static void configureLog4J() {
+		File logEngine = new File(getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_FILE)).getAbsoluteFile();
+		Engine.LOG_PATH = logEngine.getParent();
+		Engine.LOG_ENGINE_NAME = logEngine.getName();
+
 		Properties log4jProperties = new Properties();
 		for (PropertyName propertyName : PropertyName.values()) {
 			String sPropertyName = propertyName.toString();
 			if (sPropertyName.startsWith("log4j.")) {
 				String sPropertyValue = getProperty(propertyName);
+				// Resolve engine first: default audit follows its directory even when -Dlog.directory differs.
+				// Keep custom audit paths and do not substitute the engine path a second time.
+				if (propertyName == PropertyName.LOG4J_APPENDER_AUDITAPPENDER_FILE
+						&& propertyName.getDefaultValue().equals(getOriginalProperty(propertyName))) {
+					sPropertyValue = new File(Engine.LOG_PATH, "audit.log").getPath();
+				}
 				if (propertyName == PropertyName.LOG4J_LOGGER_CEMS || propertyName == PropertyName.LOG4J_LOGGER_CEMS_CONTEXT_AUDIT) {
 					if (sPropertyValue.isEmpty()) {
 						sPropertyValue = LogLevels.INFO.getValue();
