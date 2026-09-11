@@ -47,7 +47,7 @@ import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUt
 import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-@ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
 public class Set extends JSonService {
 
 	@Override

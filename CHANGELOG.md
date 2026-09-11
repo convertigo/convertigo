@@ -25,6 +25,7 @@
 
 #### Bug Fixes:
 
+- [#1163](https://github.com/convertigo/convertigo/issues/1163) [Admin] Fixed, importing a project by URL now requires the projects configuration role instead of the read-only role
 - [#1121](https://github.com/convertigo/convertigo/issues/1121) [Engine] Fixed, live log viewers now continue across log file rotation without missing or duplicating lines
 - [#1125](https://github.com/convertigo/convertigo/issues/1125) [Admin] Fixed, web log viewers now limit the number of loaded lines to a configurable maximum, preventing unbounded buffer growth during long sessions
 - [#1129](https://github.com/convertigo/convertigo/issues/1129) [Studio] Fixed, importing or exporting backend variables and creating test cases now preserve symbol references instead of copying resolved values; frontend variable imports leave those values empty

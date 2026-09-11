@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 @ServiceDefinition(
 		name = "ExportOption",
-		roles = { Role.TEST_PLATFORM, Role.PROJECTS_CONFIG, Role.PROJECTS_VIEW },
+		roles = { Role.WEB_ADMIN, Role.PROJECTS_CONFIG },
 		parameters = {},
 		returnValue = "return export option for projects"
 	)
