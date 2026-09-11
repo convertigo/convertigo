@@ -1238,6 +1238,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 					document = YamlConverter.readYaml(importFile);
 					document = BeansDefaultValues.unshrinkProject(document);
 				} else {
+					if (!EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ALLOW_XML_PROJECT_LOADING)) {
+						throw new EngineException("Loading projects in the legacy XML format is disabled. "
+								+ "Only the YAML project format (c8oProject.yaml) is accepted. "
+								+ "To allow the legacy XML format, set the engine property '"
+								+ PropertyName.ALLOW_XML_PROJECT_LOADING.getKey() + "' to true.");
+					}
 					document = XMLUtils.loadXml(importFile);
 				}
 

@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -37,6 +38,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -433,6 +435,53 @@ public class XMLUtils {
 		}
 	}
 
+	/**
+	 * Package prefixes allowed when native Java deserialization is used as a
+	 * fallback to read a &lt;serializable&gt; property value.
+	 *
+	 * Only simple value types and Convertigo's own classes are expected here;
+	 * any other class is rejected as a hardening measure against unsafe object
+	 * deserialization.
+	 */
+	private static final Set<String> SERIALIZABLE_ALLOWED_PREFIXES = Set.of(
+		"java.lang.",
+		"java.util.",
+		"java.time.",
+		"java.math.",
+		"com.twinsoft."
+	);
+
+	/**
+	 * Strict allow-list {@link ObjectInputFilter} guarding the
+	 * &lt;serializable&gt; deserialization sink. Classes outside
+	 * {@link #SERIALIZABLE_ALLOWED_PREFIXES} are rejected before instantiation.
+	 * Also caps stream depth and reference counts as defense in depth.
+	 */
+	private static final ObjectInputFilter SERIALIZABLE_FILTER = info -> {
+		Class<?> clazz = info.serialClass();
+		if (clazz == null) {
+			// Resource-limit check (no class involved): enforce sane bounds.
+			if (info.depth() > 20 || info.references() > 1000 || info.arrayLength() > 10000) {
+				return ObjectInputFilter.Status.REJECTED;
+			}
+			return ObjectInputFilter.Status.UNDECIDED;
+		}
+		while (clazz.isArray()) {
+			clazz = clazz.getComponentType();
+		}
+		if (clazz.isPrimitive()) {
+			return ObjectInputFilter.Status.ALLOWED;
+		}
+		String className = clazz.getName();
+		for (String prefix : SERIALIZABLE_ALLOWED_PREFIXES) {
+			if (className.startsWith(prefix)) {
+				return ObjectInputFilter.Status.ALLOWED;
+			}
+		}
+		Engine.logEngine.warn("Rejected deserialization of disallowed class in project XML: " + className);
+		return ObjectInputFilter.Status.REJECTED;
+	};
+
 	public static Object readObjectFromXml(Element node) throws Exception {
 		String nodeName = node.getNodeName();
 		String nodeValue = ((Element) node).getAttribute("value");
@@ -521,6 +570,7 @@ public class XMLUtils {
 				// We read the object to a bytes array
 				ByteArrayInputStream inputStream = new ByteArrayInputStream(objectBytes);
 				ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+				objectInputStream.setObjectInputFilter(SERIALIZABLE_FILTER);
 				Object object = objectInputStream.readObject();
 				inputStream.close();
 	

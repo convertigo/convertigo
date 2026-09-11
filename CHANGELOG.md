@@ -16,6 +16,7 @@
 - [#1143](https://github.com/convertigo/convertigo/issues/1143) [Admin] Scheduler jobs and schedules can now be exported and imported for backup or migration, with merge and replace options
 - [#1151](https://github.com/convertigo/convertigo/issues/1151) [Admin] Certificates can now be exported and imported together with their configuration and project mappings
 - [#1154](https://github.com/convertigo/convertigo/issues/1154) [Docker] Docker deployments can now trust custom CAs for outbound TLS through a separately mounted `/cacerts` directory
+- [#1157](https://github.com/convertigo/convertigo/issues/1157) [Engine] Projects are now loaded only from the YAML format by default, with an option to re-enable the legacy XML format
 
 #### Bug Fixes:
 
