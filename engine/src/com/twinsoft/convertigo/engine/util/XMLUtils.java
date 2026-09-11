@@ -101,14 +101,14 @@ public class XMLUtils {
 				documentBuilderFactory.setXIncludeAware(false);
 				documentBuilderFactory.setExpandEntityReferences(false);
 			} catch (Exception e) {
-				Engine.logEngine.warn("Unable to harden the XML document builder factory: " + e.getMessage());
+				if (Engine.logEngine != null) Engine.logEngine.warn("Unable to harden the XML document builder factory: " + e.getMessage());
 			}
 			// Optional JAXP hardening, not supported by every XML implementation.
 			try {
 				documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 				documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 			} catch (Exception e) {
-				Engine.logEngine.debug("XML document builder factory does not support ACCESS_EXTERNAL properties: " + e.getMessage());
+				// ACCESS_EXTERNAL_* is not supported by every XML implementation; ignore.
 			}
 			try {
 				String s = EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_NAMESPACE_AWARE);
@@ -145,14 +145,14 @@ public class XMLUtils {
 			try {
 				transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			} catch (Exception e) {
-				Engine.logEngine.warn("Unable to harden the XML transformer factory: " + e.getMessage());
+				if (Engine.logEngine != null) Engine.logEngine.warn("Unable to harden the XML transformer factory: " + e.getMessage());
 			}
 			// Optional JAXP hardening, not supported by every XML implementation.
 			try {
 				transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 				transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
 			} catch (Exception e) {
-				Engine.logEngine.debug("XML transformer factory does not support ACCESS_EXTERNAL properties: " + e.getMessage());
+				// ACCESS_EXTERNAL_* is not supported by every XML implementation; ignore.
 			}
 			return transformerFactory;
 		}
@@ -180,7 +180,7 @@ public class XMLUtils {
 					saxParserFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 					saxParserFactory.setXIncludeAware(false);
 				} catch (Exception e) {
-					Engine.logEngine.warn("Unable to harden the SAX parser factory: " + e.getMessage());
+					if (Engine.logEngine != null) Engine.logEngine.warn("Unable to harden the SAX parser factory: " + e.getMessage());
 				}
 				return saxParserFactory.newSAXParser();
 			} catch (Exception e) {
