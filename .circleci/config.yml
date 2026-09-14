@@ -107,32 +107,40 @@ jobs:
         name: Clone convertigo-doc
         command: |
           source /tmp/build.env
-          if [ "$CIRCLE_BRANCH" != "" ] ; then
-          git clone --depth 1 -b $CIRCLE_BRANCH --single-branch git@github.com:convertigo/convertigo-doc.git || NOCLONE=true
-          if [ "$NOCLONE" = true ]; then
-            git clone --depth 1 -b develop --single-branch git@github.com:convertigo/convertigo-doc.git
-            (cd convertigo-doc && git checkout -b $CIRCLE_BRANCH --track)
-          fi
-          else
-            echo "No documentation for tag build"
-          fi
+          # Documentation is generated only for the long-lived branches (master, hotfix, develop):
+          # feature branches would otherwise create a convertigo-doc branch and an S3 prefix to clean up.
+          case "$CIRCLE_BRANCH" in
+            master|hotfix|develop)
+              git clone --depth 1 -b $CIRCLE_BRANCH --single-branch git@github.com:convertigo/convertigo-doc.git || NOCLONE=true
+              if [ "$NOCLONE" = true ]; then
+                git clone --depth 1 -b develop --single-branch git@github.com:convertigo/convertigo-doc.git
+                (cd convertigo-doc && git checkout -b $CIRCLE_BRANCH --track)
+              fi
+              ;;
+            "")
+              echo "No documentation for tag build"
+              ;;
+            *)
+              echo "No documentation for branch $CIRCLE_BRANCH"
+              ;;
+          esac
         
     - run:
         name: Build engine.jar and documentation's .md
         command: |
           source /tmp/build.env
           test -d ~/.gradle/caches && find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rf {} +
-          if [ "$CIRCLE_BRANCH" == "" ] ; then
-            sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:jar :gradle-plugin:publish
-          else
+          if [ -d convertigo-doc ] ; then
             sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME -PdocumentationPath=$PWD/convertigo-doc :engine:generateDocumentationMd :engine:jar :gradle-plugin:publish
+          else
+            sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:jar :gradle-plugin:publish
           fi
         
     - run:
         name: Push to convertigo-doc
         command: |
           source /tmp/build.env
-          if [ "$CIRCLE_BRANCH" != "" ] ; then
+          if [ -d convertigo-doc ] ; then
           cd convertigo-doc
           git config --global user.email "info@convertigo.com"
           git config --global user.name "$CIRCLE_PROJECT_USERNAME"
@@ -140,7 +148,7 @@ jobs:
           git commit -a -m "Automatic commit from $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME@$CIRCLE_SHA1" || echo "Nothing to commit"
           git push origin $CIRCLE_BRANCH || echo "Nothing to push"
           else
-            echo "No documentation for tag build"
+            echo "No documentation for this build"
           fi
           
     - save_cache:
