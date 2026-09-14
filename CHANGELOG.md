@@ -10,6 +10,7 @@
 
 - [#1118](https://github.com/convertigo/convertigo/issues/1118) [Dashboard] Request results can now be expanded to fill the available screen height
 - [#1119](https://github.com/convertigo/convertigo/issues/1119) [Studio] An optional web-based Engine Log viewer is now available as a preview alongside the default SWT viewer
+- [#1126](https://github.com/convertigo/convertigo/issues/1126) [Engine] Minor dependency updates
 - [#1127](https://github.com/convertigo/convertigo/issues/1127) [Dashboard] Sequence, transaction and test case requests can now be copied as URLs, cURL commands, JavaScript fetch calls or POST bodies
 - [#1133](https://github.com/convertigo/convertigo/issues/1133) [Studio] NGX directives now have readable labels in the project tree, including the newer Angular control flow directives
 - [#1140](https://github.com/convertigo/convertigo/issues/1140) [NGX] The `@for` directive now supplies a default tracking expression and exposes the configured loop index variable
@@ -25,7 +26,6 @@
 
 #### Bug Fixes:
 
-- [#1163](https://github.com/convertigo/convertigo/issues/1163) [Admin] Fixed, importing a project by URL now requires the projects configuration role instead of the read-only role
 - [#1121](https://github.com/convertigo/convertigo/issues/1121) [Engine] Fixed, live log viewers now continue across log file rotation without missing or duplicating lines
 - [#1125](https://github.com/convertigo/convertigo/issues/1125) [Admin] Fixed, web log viewers now limit the number of loaded lines to a configurable maximum, preventing unbounded buffer growth during long sessions
 - [#1129](https://github.com/convertigo/convertigo/issues/1129) [Studio] Fixed, importing or exporting backend variables and creating test cases now preserve symbol references instead of copying resolved values; frontend variable imports leave those values empty
@@ -41,6 +41,9 @@
 - [#1150](https://github.com/convertigo/convertigo/issues/1150) [FullSync] Fixed, replication users can now read design documents, restoring database version checks and local database resets after a server database is recreated
 - [#1152](https://github.com/convertigo/convertigo/issues/1152) [Engine] Fixed, project library updates in shared workspaces no longer replace JAR files still used by running requests, avoiding stale file handle errors
 - [#1153](https://github.com/convertigo/convertigo/issues/1153) [NGX] Fixed, Show Loading now applies its spinner and appearance options correctly with Mobile Builder template 8.4.0.54
+- [#1155](https://github.com/convertigo/convertigo/issues/1155) [Engine] Fixed, Redis-backed sessions now preserve `Properties` and W3C DOM attribute types (`Document`, `Element`, `Node`, `NodeList`) across serialization instead of returning untyped maps or dropping documents
+- [#1156](https://github.com/convertigo/convertigo/issues/1156) [Studio] Fixed, an empty shared component reference no longer copies unrelated library components into the consuming project, and deleting it removes its dependency registration without restarting Studio
+- [#1163](https://github.com/convertigo/convertigo/issues/1163) [Admin] Fixed, importing a project by URL now requires the projects configuration role instead of the read-only role
 
 ---
 
