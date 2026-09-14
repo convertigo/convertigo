@@ -73,7 +73,10 @@ public class ApplicationComponentEditorInput implements IEditorInput {
 	}
 	
 	public boolean is(ApplicationComponent application) {
-		return application.equals(this.application) && application.getQName().equals(qname);
+		// Compare by qualified name: a project reload replaces the bean instances,
+		// and an identity check would open a second editor (and a second embedded
+		// browser sharing the same Chromium profile) for the same application.
+		return application != null && application.getQName().equals(qname);
 	}
 
 	public ApplicationComponent getApplication() {
