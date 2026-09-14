@@ -385,6 +385,41 @@ jobs:
           if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
             docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION --provenance=mode=max --sbom=true --platform linux/amd64,linux/arm64/v8 .
           fi
+
+    - run:
+        name: Update Docker Hub description from docker/README.md
+        command: |
+          source /tmp/build.env
+          if [ "$CONVERTIGO_DOCKER" = "convertigo/convertigo" ] && [ "$CONVERTIGO_BRANCH" = "latest" ]; then
+            cp docker/README.md /tmp/dockerhub-description.md
+          elif [ "$CONVERTIGO_DOCKER" = "convertigo/convertigo-ci" ] && [ "$CONVERTIGO_BRANCH" != "" ]; then
+            {
+              echo "> **Continuous integration images, not for production.** This repository receives the images built by CircleCI for the Convertigo development branches."
+              echo ">"
+              echo "> This description was published by the build of the \`$CONVERTIGO_BRANCH\` branch (version \`$CONVERTIGO_VERSION\`, image tags \`$CONVERTIGO_DOCKER_IMAGE\` and \`$CONVERTIGO_BRANCH\`). Released images are published on [convertigo/convertigo](https://hub.docker.com/r/convertigo/convertigo) and on the official [convertigo](https://hub.docker.com/_/convertigo) image."
+              echo
+              cat docker/README.md
+            } > /tmp/dockerhub-description.md
+          else
+            echo "Not a release or branch build, skip the Docker Hub description update"
+            exit 0
+          fi
+          apk add --no-cache curl jq > /dev/null
+          TOKEN=$(jq -n --arg u "$DOCKER_USERNAME" --arg p "$DOCKER_PASSWORD" '{username: $u, password: $p}' \
+            | curl -sf -X POST https://hub.docker.com/v2/users/login/ -H "Content-Type: application/json" -d @- \
+            | jq -r '.token // empty')
+          if [ -z "$TOKEN" ]; then
+            echo "WARNING: Docker Hub API login failed, description not updated"
+            exit 0
+          fi
+          jq -n --rawfile readme /tmp/dockerhub-description.md '{full_description: $readme}' > /tmp/dockerhub-description.json
+          if curl -sf -X PATCH https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/ \
+               -H "Authorization: JWT $TOKEN" -H "Content-Type: application/json" \
+               -d @/tmp/dockerhub-description.json > /dev/null; then
+            echo "Docker Hub description of $CONVERTIGO_DOCKER updated from docker/README.md"
+          else
+            echo "WARNING: Docker Hub description update failed for $CONVERTIGO_DOCKER"
+          fi
           
   build_docker_aks:
     <<: *defaults
