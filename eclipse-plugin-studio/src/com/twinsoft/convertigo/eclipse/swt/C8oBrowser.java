@@ -507,8 +507,28 @@ public class C8oBrowser extends Composite {
 		Engine browserContext = browserContexts.get(browserId);
 		if (browserContext != null && !browserContext.isClosed() && preferredDebugPort != null
 				&& browserContext.options().remoteDebuggingPort().get().intValue() != preferredDebugPort.intValue()) {
-			throw new IllegalStateException("Browser context already uses debug port "
-					+ browserContext.options().remoteDebuggingPort().get() + " instead of requested port " + preferredDebugPort);
+			int currentPort = browserContext.options().remoteDebuggingPort().get();
+			if (isEngineShared(browserContext)) {
+				// Another live browser of this project still uses the engine: follow it
+				// instead of creating a competing engine. setDebugPort switches it later.
+				logStudio("(C8oBrowser) Reusing the shared browser engine on debug port " + currentPort
+						+ " instead of requested port " + preferredDebugPort, false);
+				preferredDebugPort = currentPort;
+			} else {
+				// The engine outlived its editors (they were closed): release it so the
+				// requested port can be honoured on the same Chromium profile. Throwing
+				// here used to make the constructor drop _private/browser_id and start a
+				// second engine next to the idle one, which wedged Chromium.
+				logStudio("(C8oBrowser) Closing the idle browser engine on debug port " + currentPort
+						+ " to honour requested port " + preferredDebugPort, false);
+				browserContexts.remove(browserId);
+				try {
+					browserContext.close();
+				} catch (Exception e) {
+					logStudio("(C8oBrowser) Unable to close the idle browser engine on debug port " + currentPort + ": " + e, true);
+				}
+				browserContext = null;
+			}
 		}
 		if (browserContext == null || browserContext.isClosed()) {
 			int debugPort;
@@ -606,6 +626,18 @@ public class C8oBrowser extends Composite {
 		init(getOrCreateBrowserContext());
 		layout(true, true);
 		restoreBrowser();
+	}
+
+	private static void logStudio(String message, boolean warn) {
+		if (com.twinsoft.convertigo.engine.Engine.logStudio != null) {
+			if (warn) {
+				com.twinsoft.convertigo.engine.Engine.logStudio.warn(message);
+			} else {
+				com.twinsoft.convertigo.engine.Engine.logStudio.info(message);
+			}
+		} else {
+			System.out.println(message);
+		}
 	}
 
 	private boolean isEngineShared(Engine engine) {
