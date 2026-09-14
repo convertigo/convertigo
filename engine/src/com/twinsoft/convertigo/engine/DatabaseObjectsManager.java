@@ -1021,8 +1021,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 		} catch (VersionException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\".",
-					e);
+			String reason = e.getMessage();
+			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\""
+					+ (reason == null || reason.isBlank() ? "." : ": " + reason), e);
 		}
 	}
 
@@ -1233,6 +1234,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 			.info("Trying to load unexisting: " + oldName + "\nLoading instead: " + _importFile);
 		}
 		File importFile = _importFile;
+		// Reject the legacy XML format early (before lockAndRun, which would
+		// otherwise swallow the exception and return null) so the caller and the
+		// Admin services report the explicit reason instead of a generic error.
+		if (!importFile.getName().equals("c8oProject.yaml")
+				&& !EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ALLOW_XML_PROJECT_LOADING)) {
+			throw new EngineException("Loading projects in the legacy XML format is disabled. "
+					+ "Only the YAML project format (c8oProject.yaml) is accepted. "
+					+ "To allow the legacy XML format, set the engine property '"
+					+ PropertyName.ALLOW_XML_PROJECT_LOADING.getKey() + "' to true.");
+		}
 		String projectName = getProjectName(importFile);
 		if (projectName == null) {
 			return null;
