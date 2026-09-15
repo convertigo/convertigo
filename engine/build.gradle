@@ -60,6 +60,12 @@ eclipse {
 		}
 	}
 	
+	classpath.file.whenMerged { cp ->
+		// sessionTest and componentRefTest share the 'test' source directory: JDT rejects
+		// duplicate source entries, and the sessionTest entry already covers the whole directory.
+		cp.entries.removeAll { it.kind == 'src' && it.path == 'test' && it.output == 'bin/componentRefTest' }
+	}
+
 	classpath.file.withXml {
 		def elt = it.asElement()
 		def nl = elt.getElementsByTagName('classpathentry')
