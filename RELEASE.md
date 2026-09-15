@@ -5,7 +5,8 @@ from the **Release** issue template (`.github/ISSUE_TEMPLATE/release.md`),
 attach it to the milestone of the version and tick the items as they are done.
 
 Branches: `hotfix` carries the next patch or minor release (`X.Y.Z`), `develop`
-the next major one. Released code is tagged from `hotfix`.
+the next major one. At release time `master` is fast-forwarded to `hotfix` and
+the release is tagged there. Scripts for the manual steps live in `release/`.
 
 Two steps block the ones after them:
 
@@ -53,15 +54,29 @@ Two steps block the ones after them:
 
 ### Build
 - The last CI pipeline of `hotfix` is green (engine, Studio, Docker, qualification jobs).
-- `ext.convertigoVersion` in `build.gradle` equals the version to release.
+- `ext.convertigoVersion` in `build.gradle` equals the version to release and
+  `ext.convertigoTag` is still `'beta'` (the release script clears it).
 
 ## 2. Release
 
-- Tag the release commit of `hotfix` with `X.Y.Z` and push the tag. The tag
-  pipeline builds the artifacts, publishes the `convertigo/convertigo` image and
-  creates a GitHub release (draft; pre-release unless the tag is a plain `X.Y.Z`).
-- Review the release notes (paste the changelog section), check that
-  `convertigo-X.Y.Z.war` is attached, publish the release.
+- Run `release/tag-release.sh X.Y.Z` from a clean `hotfix` checkout. It switches
+  `build.gradle` to release mode (`convertigoTag = ''`), regenerates the
+  versioned files (`generateEclipseConfigurationWithManifest`,
+  `generateDockerfile`), commits `Official Convertigo X.Y.Z release!`,
+  fast-forwards `master`, pushes `master` and the `X.Y.Z` tag to `origin` and
+  `upstream`. The tag pipeline builds the artifacts, publishes the
+  `convertigo/convertigo` image and creates a GitHub release draft
+  (pre-release unless the tag is a plain `X.Y.Z`); the `master` pipeline
+  publishes the `latest` image and its Docker Hub description.
+- Start the next beta: `release/start-next.sh X.Y.Z+1` on `hotfix` sets the
+  next version with `convertigoTag = 'beta'`, regenerates the versioned files
+  and commits `Starting Convertigo X.Y.Z+1 beta!`; push `hotfix`.
+- Edit the release draft: reuse the previous release text, update the version
+  in the file names, the counts of new features / improvements / bug fixes from
+  the changelog section and the changelog link
+  (`https://github.com/convertigo/convertigo/blob/X.Y.Z/CHANGELOG.md`, a
+  relative link does not resolve from the releases page). Check that
+  `convertigo-X.Y.Z.war` is attached, then publish.
 - Publish the documentation: in a `convertigo-doc` checkout run
   `.circleci/doc-flow.sh release-minor` (or `release-major`). It fast-forwards
   `master` to `hotfix` and records the release point in `develop`; the `master`
@@ -71,7 +86,7 @@ Two steps block the ones after them:
 
 Requires the WAR attached to the published GitHub release.
 
-- Run `docker/release/official-image-pr.sh X.Y.Z` from this repository with a
+- Run `release/official-image-pr.sh X.Y.Z` from this repository with a
   sibling `../docker-official-images` checkout (fork of
   `docker-library/official-images`, `upstream` remote set). The script checks
   the WAR is downloadable, syncs the fork with upstream, updates
@@ -82,11 +97,12 @@ Requires the WAR attached to the published GitHub release.
 
 ## 4. After the official image is available
 
-- Docker docs: run `docker/release/docker-docs-pr.sh` with a sibling
+- Docker docs: run `release/docker-docs-pr.sh X.Y.Z` with a sibling
   `../docker-docs` checkout (fork of `docker-library/docs`, `upstream` remote
   set). The script syncs the fork, runs `./gradlew updateDockerDocsOfficial`,
   commits `convertigo/content.md` on a `convertigo-<date>` branch, pushes it and
-  opens the pull request.
+  opens the pull request. The docs do not depend on the image: `--force` opens
+  the pull request while the official image one is still under review.
 - Helm chart (`convertigo-helm`): set `version` and `appVersion` to `X.Y.Z` in
   `stable/convertigo/Chart.yaml`, update the README if needed, commit and push
   `master`. The GitHub Action publishes the chart to ECR Public, the S3
@@ -94,5 +110,5 @@ Requires the WAR attached to the published GitHub release.
   https://artifacthub.io/packages/helm/convertigo/convertigo afterwards.
 - Check the Docker Hub description of `convertigo/convertigo` matches `docker/README.md`.
 - Check https://doc.convertigo.com lists the new version in the version selector.
-- Merge `hotfix` into `develop` for a minor release, bump `ext.convertigoVersion`
-  on `hotfix` to the next patch version, close the milestone and the tracking issue.
+- Merge `hotfix` into `develop` for a minor release (once the work in progress
+  on `develop` allows it), close the milestone and the tracking issue.

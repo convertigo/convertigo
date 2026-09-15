@@ -16,18 +16,19 @@ Release checklist for **X.Y.Z**. The full procedure is in [RELEASE.md](https://g
 - [ ] Last `hotfix` pipeline green, `ext.convertigoVersion` = X.Y.Z
 
 ### Release
-- [ ] Tag `X.Y.Z` pushed, tag pipeline green
-- [ ] GitHub release notes reviewed, `convertigo-X.Y.Z.war` attached, release published
+- [ ] `release/tag-release.sh X.Y.Z` run (release commit, master, tag), tag and master pipelines green
+- [ ] `release/start-next.sh X.Y.Z+1` run and `hotfix` pushed
+- [ ] GitHub release draft edited (previous text, counts, absolute changelog link), `convertigo-X.Y.Z.war` attached, release published
 - [ ] Documentation published (`doc-flow.sh release-minor` / `release-major`)
 
 ### Docker official image (needs the WAR on the published release)
-- [ ] `docker/release/official-image-pr.sh X.Y.Z` run, pull request opened on docker-library/official-images
+- [ ] `release/official-image-pr.sh X.Y.Z` run, pull request opened on docker-library/official-images
 - [ ] `convertigo:X.Y.Z` available on Docker Hub
 
 ### After the official image is available
-- [ ] `docker/release/docker-docs-pr.sh` run, pull request opened on docker-library/docs
+- [ ] `release/docker-docs-pr.sh X.Y.Z` run, pull request opened on docker-library/docs
 - [ ] Helm chart `version` / `appVersion` = X.Y.Z pushed on `master`, chart visible on Artifact Hub
 - [ ] Docker Hub description matches `docker/README.md`
 - [ ] doc.convertigo.com lists the new version
-- [ ] `hotfix` merged into `develop`, `ext.convertigoVersion` bumped on `hotfix`
+- [ ] `hotfix` merged into `develop`
 - [ ] Milestone closed

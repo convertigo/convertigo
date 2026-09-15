@@ -12,12 +12,12 @@ here="$(cd "$(dirname "$0")" && pwd)"
 
 version="${1:-}"; [ -n "$version" ] || die "usage: $0 X.Y.Z [fork-dir]"
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "version must be X.Y.Z"
-fork="${2:-$here/../../../docker-official-images}"
+fork="${2:-$here/../../docker-official-images}"
 [ -d "$fork/.git" ] || die "fork not found: $fork"
 require_cmd gh; require_cmd curl; require_cmd git
 
 minor="${version%.*}"
-repo_dir="$(cd "$here/../.." && pwd)"
+repo_dir="$(cd "$here/.." && pwd)"
 
 # 1. The WAR must be downloadable from the published release.
 war_url="https://github.com/convertigo/convertigo/releases/download/$version/convertigo-$version.war"

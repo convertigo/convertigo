@@ -14,11 +14,11 @@ here="$(cd "$(dirname "$0")" && pwd)"
 force=0
 if [ "${1:-}" = "--force" ]; then force=1; shift; fi
 version="${1:-}"; [ -n "$version" ] || die "usage: $0 [--force] X.Y.Z [fork-dir]"
-fork="${2:-$here/../../../docker-docs}"
+fork="${2:-$here/../../docker-docs}"
 [ -d "$fork/.git" ] || die "fork not found: $fork"
 require_cmd gh; require_cmd curl; require_cmd git
 
-repo_dir="$(cd "$here/../.." && pwd)"
+repo_dir="$(cd "$here/.." && pwd)"
 
 # 1. The official image must exist.
 code="$(curl -s -o /dev/null -w '%{http_code}' "https://hub.docker.com/v2/repositories/library/convertigo/tags/$version")"
