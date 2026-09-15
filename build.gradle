@@ -885,6 +885,52 @@ tasks.register('checkStudioJdkUpToDate') {
 	}
 }
 
+tasks.register('checkSwaggerUiUpToDate') {
+	group = 'convertigo'
+	description = 'Checks whether swaggerUiVersion matches the latest swagger-ui GitHub release.'
+
+	inputs.property('swaggerUiVersion', swaggerUiVersion)
+
+	doLast {
+		def failOnOutdated = project.findProperty('failOnOutdatedSwaggerUi')?.toString()?.toBoolean() ?: false
+		def configured = swaggerUiVersion.toString()
+		try {
+			def connection = new URL('https://api.github.com/repos/swagger-api/swagger-ui/releases/latest').openConnection()
+			connection.setRequestProperty('Accept', 'application/vnd.github+json')
+			connection.setRequestProperty('User-Agent', 'convertigo-gradle')
+			def release = new JsonSlurper().parse(connection.inputStream)
+			def latest = release?.tag_name?.toString()?.replaceFirst(/^v/, '')
+			if (!latest) {
+				def msg = 'Cannot read the latest swagger-ui release tag from GitHub'
+				if (failOnOutdated) {
+					throw new GradleException(msg)
+				}
+				logger.warn(msg)
+				return
+			}
+
+			if (configured == latest) {
+				logger.lifecycle("swagger-ui is up to date (${configured}).")
+			} else {
+				def configuredLine = configured.tokenize('.').take(2).join('.')
+				def latestLine = latest.tokenize('.').take(2).join('.')
+				def scope = configuredLine == latestLine ? 'patch' : 'minor/major'
+				def msg = "swagger-ui is outdated (${scope} update): configured ${configured}, latest release is ${latest}. Update swaggerUiVersion in build.gradle and run :engine:unzipSwaggerUI."
+				if (failOnOutdated) {
+					throw new GradleException(msg)
+				}
+				logger.warn(msg)
+			}
+		} catch (Exception e) {
+			def msg = "Failed to check swagger-ui update status: ${e.message}"
+			if (failOnOutdated) {
+				throw new GradleException(msg, e)
+			}
+			logger.warn(msg)
+		}
+	}
+}
+
 def extractVersionLine = { String version ->
 	def components = ((version ?: '') =~ /\d+/).collect { it.toString() }
 	if (components.isEmpty()) {
@@ -946,6 +992,7 @@ def shouldRejectDependencyUpdate = { selection, boolean samePatchLineOnly ->
 def configureDependencyUpdatesReport = { DependencyUpdatesTask task, boolean samePatchLineOnly ->
 	if (task.project == rootProject) {
 		task.finalizedBy(rootProject.tasks.named("checkStudioJdkUpToDate"))
+		task.finalizedBy(rootProject.tasks.named("checkSwaggerUiUpToDate"))
 	}
 	task.revision = 'release'
 	task.gradleReleaseChannel = 'current'
