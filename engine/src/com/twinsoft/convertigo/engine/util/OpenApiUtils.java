@@ -666,6 +666,11 @@ public class OpenApiUtils {
 								}
 							}
 						}
+						if (responses.isEmpty()) {
+							ApiResponse response = new ApiResponse();
+							response.setDescription("successful operation");
+							responses.addApiResponse("200", response);
+						}
 
 						if (umo.getMethod().equals(HttpMethodType.DELETE.name())) {
 							item.setDelete(operation);

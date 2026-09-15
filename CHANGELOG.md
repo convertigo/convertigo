@@ -44,6 +44,7 @@
 - [#1155](https://github.com/convertigo/convertigo/issues/1155) [Engine] Fixed, Redis-backed sessions now preserve `Properties` and W3C DOM attribute types (`Document`, `Element`, `Node`, `NodeList`) across serialization instead of returning untyped maps or dropping documents
 - [#1156](https://github.com/convertigo/convertigo/issues/1156) [Studio] Fixed, an empty shared component reference no longer copies unrelated library components into the consuming project, and deleting it removes its dependency registration without restarting Studio
 - [#1163](https://github.com/convertigo/convertigo/issues/1163) [Admin] Fixed, importing a project by URL now requires the projects configuration role instead of the read-only role
+- [#1166](https://github.com/convertigo/convertigo/issues/1166) [Admin] Fixed, the Swagger UI console now displays responses of REST operations that declare no status code, and generated OpenAPI 3 specifications include a default `200` response for them
 
 ---
 
