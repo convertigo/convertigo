@@ -26,7 +26,7 @@ grep -q "^ext.convertigoVersion = '$version'$" build.gradle || die "failed to se
 grep -q "^ext.convertigoTag = 'beta'$" build.gradle || die "failed to set convertigoTag"
 
 ./gradlew -q generateEclipseConfigurationWithManifest generateDockerfile
-git add -A
+git add -u
 git diff --cached --stat
 git commit -q -m "Starting Convertigo $version beta!"
 echo "committed $(git log -1 --format=%h) on hotfix; push it with: git push upstream hotfix"

@@ -31,7 +31,7 @@ git merge-base --is-ancestor upstream/master HEAD || die "upstream/master is not
 # 1. release mode
 sed -i.bak -E "s/^ext.convertigoTag = '.*'$/ext.convertigoTag = ''/" build.gradle && rm -f build.gradle.bak
 ./gradlew -q generateEclipseConfigurationWithManifest generateDockerfile
-git add -A
+git add -u
 git diff --cached --stat
 
 # 2. release commit on hotfix

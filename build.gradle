@@ -609,7 +609,8 @@ def renderDockerDocsOfficialContent = {
 				inCodeBlock = false
 				dockerRunCodeBlock = false
 			}
-			content << line
+			// markdownfmt (Docker docs CI) expects list items as "-<tab>item"
+			content << line.replaceFirst(/^(\s*)[-*]\s+(?=\S)/, '$1-\t')
 			if (line == '> [www.convertigo.com](https://www.convertigo.com)') {
 				content << ''
 				content << '%%LOGO%%'

@@ -38,6 +38,13 @@ if git -C "$fork" diff --quiet -- convertigo/content.md; then
   echo "convertigo/content.md is already up to date"; exit 0
 fi
 
+# 4. The Docker docs CI rejects files that markdownfmt would change.
+if [ -x "$fork/markdownfmt.sh" ]; then
+  need="$(cd "$fork" && ./markdownfmt.sh -l convertigo/content.md 2>&1 || true)"
+  [ -z "$need" ] || die "convertigo/content.md needs markdownfmt (fix docker/README.md, list items use '-<tab>'):
+$(cd "$fork" && ./markdownfmt.sh -d convertigo/content.md 2>&1 | head -40)"
+fi
+
 git -C "$fork" add convertigo/content.md
 git -C "$fork" commit -q -m "Updated documentation for Convertigo $version"
 git -C "$fork" push -q -u origin "$branch"
