@@ -6,6 +6,10 @@
 
 - [#1167](https://github.com/convertigo/convertigo/issues/1167) [Engine] Server startup no longer waits on unreachable external hosts
 
+#### Bug Fixes:
+
+- [#1168](https://github.com/convertigo/convertigo/issues/1168) [Engine] Fixed, the SAP JCo placeholder jar was packaged twice in the web application, it could shadow the official `sapjco3.jar` once installed
+
 ## 8.4.4
 
 #### New Features:

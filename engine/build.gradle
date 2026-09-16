@@ -208,6 +208,8 @@ def warRuntimeClasspathDir = layout.buildDirectory.dir('tmp/warRuntimeClasspath'
 
 tasks.register('prepareWarRuntimeClasspath', Sync) {
 	from configurations.runtimeClasspath
+	// the SAP JCo placeholder is only shipped once, renamed to sapjco3.jar (see the 'sapjco3' configuration below)
+	exclude 'sapjco3-*.jar'
 	into warRuntimeClasspathDir
 	filePermissions {
 		unix('0644')
