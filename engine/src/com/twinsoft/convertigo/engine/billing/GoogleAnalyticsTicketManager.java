@@ -51,7 +51,14 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 	private URI url;
 	private String licenceId = null;
 	private long nextCheck = 0;
-	private String serverHash = Engine.isStudioMode() ? "CONVERTIGO Studio" : "CONVERTIGO Server";
+	private volatile String serverHash = Engine.isStudioMode() ? "CONVERTIGO Studio" : "CONVERTIGO Server";
+
+	// bounded timeouts: a dropped packet must never leave a request pending forever
+	private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom()
+			.setConnectionRequestTimeout(5000)
+			.setConnectTimeout(5000)
+			.setSocketTimeout(5000)
+			.build();
 
 	public GoogleAnalyticsTicketManager(String measurement_id, String api_secret, Logger log)
 			throws BillingException, URISyntaxException {
@@ -65,18 +72,27 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 		if (Engine.isCloudMode()) {
 			serverHash = Engine.cloud_customer_name;
 		} else {
-			var get = new HttpGet("http://ifconfig.io");
-			get.setConfig(RequestConfig.custom().setConnectionRequestTimeout(5000).build());
-			get.addHeader("user-agent", "curl");
-			try (var response = http.execute(get)) {
-				try (var is = response.getEntity().getContent()) {
-					var res = IOUtils.toString(is, "UTF-8").trim();
-					if (StringUtils.isNotEmpty(res)) {
-						serverHash = res;
-					}
+			// resolved in the background so the engine startup never waits on it
+			var resolver = new Thread(() -> {
+				var client = http;
+				if (client == null) {
+					return;
 				}
-			} catch (Exception e) {
-			}
+				var get = new HttpGet("http://ifconfig.io");
+				get.setConfig(REQUEST_CONFIG);
+				get.addHeader("user-agent", "curl");
+				try (var response = client.execute(get)) {
+					try (var is = response.getEntity().getContent()) {
+						var res = IOUtils.toString(is, "UTF-8").trim();
+						if (StringUtils.isNotEmpty(res)) {
+							serverHash = res;
+						}
+					}
+				} catch (Exception e) {
+				}
+			}, "GoogleAnalyticsTicketManager.serverHash");
+			resolver.setDaemon(true);
+			resolver.start();
 		}
 
 		url = new URIBuilder("https://www.google-analytics.com/mp/collect")
@@ -86,7 +102,7 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 	public synchronized void addTicket(Ticket ticket) throws BillingException {
 		try {
 			var post = new HttpPost(url);
-			post.setConfig(RequestConfig.custom().setConnectionRequestTimeout(5000).build());
+			post.setConfig(REQUEST_CONFIG);
 			var json = new JSONObject();
 			json.put("client_id", serverHash);
 			var user = ticket.getUserName();

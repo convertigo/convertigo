@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.4.5
+
+#### Improvements:
+
+- [#1167](https://github.com/convertigo/convertigo/issues/1167) [Engine] Server startup no longer waits on unreachable external hosts
+
 ## 8.4.4
 
 #### New Features:
