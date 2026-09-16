@@ -86,7 +86,15 @@ if [ "$1" = "convertigo" ]; then
     fi
 
     ## add mounted trusted certificate authorities to the JVM truststore
+    ## unless the JVM truststore is already configured explicitly (JAVA_OPTS)
 
+    case " $JAVA_OPTS " in
+        *" -Djavax.net.ssl.trustStore="*)
+            if [ -d /cacerts/ ]; then
+                echo "Info: /cacerts is ignored because an explicit JVM truststore is already configured with -Djavax.net.ssl.trustStore"
+            fi
+            ;;
+        *)
     if [ -d /cacerts/ ]; then
         C8O_CACERTS=/tmp/convertigo-cacerts
         if [ ! -r "$JAVA_HOME/lib/security/cacerts" ]; then
@@ -102,9 +110,11 @@ if [ "$1" = "convertigo" ]; then
                     echo "Warning: cannot import JVM trusted certificate $certificate"
                 fi
             done
-            export JAVA_OPTS="-Djavax.net.ssl.trustStore=$C8O_CACERTS -Djavax.net.ssl.trustStorePassword=changeit $JAVA_OPTS"
+            export JAVA_OPTS="-Djavax.net.ssl.trustStore=$C8O_CACERTS $JAVA_OPTS"
         fi
     fi
+            ;;
+    esac
     
     ## check and adapt the Java Xmx for limited devices
     

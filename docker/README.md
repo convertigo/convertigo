@@ -175,6 +175,8 @@ For example:
 
 Keep this directory outside the Convertigo workspace and mount it read-only. In Kubernetes, mount a ConfigMap or Secret read-only at `/cacerts`. The image only reads custom CAs from this dedicated mount; files in `/workspace` are not considered.
 
+`/cacerts` is a convenience to add private or corporate certificate authorities to the standard JDK trust anchors, typically behind a corporate proxy performing TLS inspection, without modifying the JDK installation (the container may run as an arbitrary non-root user). Users who need full control can still provide their own complete JVM truststore through the standard Java configuration, for example `-e JAVA_OPTS="-Djavax.net.ssl.trustStore=/path/to/truststore -Djavax.net.ssl.trustStorePassword=..."`: when `javax.net.ssl.trustStore` is already set in `JAVA_OPTS`, the image keeps that configuration unchanged and ignores `/cacerts` (an informational message is logged at startup).
+
 The standard JDK certificate authorities are retained. The generated truststore is not persisted: restart or recreate the container after adding, replacing, or removing a certificate. If a file cannot be imported, the image logs a warning and continues to start with the certificates successfully imported so far.
 
 This configuration is independent from the Tomcat HTTPS server certificate configured through `/ssl`.
