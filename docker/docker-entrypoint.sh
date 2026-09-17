@@ -80,7 +80,11 @@ if [ "$1" = "convertigo" ]; then
     if [ -d /workspace/lib/ ]; then
         cp -r /workspace/lib/* $WEB_INF/lib/ 2>/dev/null
     fi
-    
+
+    ## native libraries dropped in /workspace/lib (copied above) must be found by the JVM
+
+    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$WEB_INF/lib"
+
     if [ -d /workspace/classes/ ]; then
         cp -r /workspace/classes/* $WEB_INF/classes/ 2>/dev/null
     fi

@@ -145,8 +145,10 @@ Recommended multi-instance example:
 
 At each container start, the image copies the contents of these workspace directories into the Convertigo web application before Tomcat starts:
 
--	`/workspace/lib/` to `WEB-INF/lib/` for JAR files and their dependencies
+-	`/workspace/lib/` to `WEB-INF/lib/` for JAR files, their dependencies and native libraries
 -	`/workspace/classes/` to `WEB-INF/classes/` for compiled classes and resources
+
+`WEB-INF/lib/` is also added to the JVM native library path, so a native library dropped in `/workspace/lib/` is found without extra configuration. This is the place for the libraries the server itself loads and cannot ship, such as the official JDBC driver of the database cache (`ojdbc.jar`, `mysql-connector.jar` or `db2jcc.jar`, replacing the placeholder of the same name) or the SAP Java Connector (`sapjco3.jar`, kept under this exact name, with its `libsapjco3.so`). A library used only by the projects (SQL connectors) belongs to `/workspace/libs/` instead; a `README.md` in each of these workspace directories gives the details.
 
 The directory structure is preserved and overlays the files provided by the image; it does not remove existing web-application files. For classes, keep the package directory structure below `/workspace/classes/` (for example, `com/example/MyClass.class`). Restart or recreate the container after adding or updating these files. To remove an injected file, remove it from the workspace and recreate the container, since a restart does not delete files already copied into the web application.
 
