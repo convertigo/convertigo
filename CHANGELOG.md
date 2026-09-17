@@ -5,6 +5,7 @@
 #### Improvements:
 
 - [#1167](https://github.com/convertigo/convertigo/issues/1167) [Engine] Server startup no longer waits on unreachable external hosts
+- [#1169](https://github.com/convertigo/convertigo/issues/1169) [Engine] Placeholder jars now report where the official jar must be installed, with `lib/README.md` and `libs/README.md` in the workspace; the Docker image finds native libraries dropped in `/workspace/lib`
 
 #### Bug Fixes:
 

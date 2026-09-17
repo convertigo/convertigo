@@ -344,7 +344,7 @@ dependencies {
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 	compileFlat    'com.smartbear.soapui:soapui-light:' + soapuiVersion
 	implementation 'com.convertigo.provider:convertigo-provider-couchdb:8.3.11'
-	implementation 'com.convertigo.provider:convertigo-provider-sap:8.3.11'
+	implementation 'com.convertigo.provider:convertigo-provider-sap:8.4.5'
 	compileFlat    'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat    'com.convertigo.twinsoft.lib:comm:1998.11.15'
 	compileFlat    'com.convertigo.twinsoft.lib:ms:2002.01.03'
