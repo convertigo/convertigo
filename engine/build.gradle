@@ -311,8 +311,19 @@ tasks.register('sessionSerializationTest', JavaExec) {
 
 tasks.named('check') {
 	dependsOn 'sessionSerializationTest'
+	dependsOn 'requestScopedSessionTest'
 	dependsOn 'componentRefManagerTest'
 	dependsOn 'projectArchiveTest'
+}
+
+tasks.register('requestScopedSessionTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the ephemeral request-scoped session of terminating URL mapper operations.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSessionTest',
+		'com.twinsoft.convertigo.engine.servlets.RestApiServletSessionModeTest'
 }
 
 tasks.register('projectArchiveTest', JavaExec) {

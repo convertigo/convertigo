@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.LockRegistry;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSession;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.TASException;
 
@@ -189,6 +190,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 
 	static public void checkSession(HttpServletRequest request) throws TASException {
 		HttpSession httpSession = request.getSession(true);
+		boolean requestScoped = httpSession instanceof RequestScopedHttpSession;
 
 		var lock = LockRegistry.lock(httpSession.getId());
 		try {
@@ -203,7 +205,9 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 					devices.add(httpSession.getId());
 				}
 			}
-			if (ConvertigoHttpSessionManager.isRedisMode()) {
+			if (ConvertigoHttpSessionManager.isRedisMode() && requestScoped) {
+				checkRedisRequestScopedSession(httpSession);
+			} else if (ConvertigoHttpSessionManager.isRedisMode()) {
 				redisStartScore = checkRedisCountedSession(httpSession);
 			}
 			if (!SessionAttribute.sessionListener.has(httpSession)) {
@@ -225,7 +229,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 			}
 			boolean redisBillingEnabled = ConvertigoHttpSessionManager.isRedisMode() && Engine.theApp != null
 					&& Engine.theApp.billingManager != null && Engine.theApp.billingManager.hasActiveManagers();
-			if (redisBillingEnabled && SessionAttribute.isCounted(httpSession)) {
+			if (redisBillingEnabled && !requestScoped && SessionAttribute.isCounted(httpSession)) {
 				boolean billingStartOwner = false;
 				if (redisStartScore > 0) {
 					billingStartOwner = ConvertigoHttpSessionManager.getInstance()
@@ -284,6 +288,38 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		}
 		SessionAttribute.markCounted(httpSession);
 		return currentCV;
+	}
+
+	private static void checkRedisRequestScopedSession(HttpSession httpSession) throws TASException {
+		if (SessionAttribute.isCounted(httpSession)) {
+			return;
+		}
+
+		int maxCV = KeyManager.getMaxCV(Session.EmulIDSE);
+		int currentCV = ConvertigoHttpSessionManager.getInstance().estimateCountedSessions()
+				+ countRequestScopedSessions() + 1;
+		if (Engine.isEngineMode() && currentCV >= maxCV) {
+			currentCV = ConvertigoHttpSessionManager.getInstance().countCountedSessions()
+					+ countRequestScopedSessions() + 1;
+		}
+		if (Engine.isEngineMode()) {
+			TASException exception = checkSessionLicense(currentCV, maxCV);
+			if (exception != null) {
+				SessionAttribute.exception.set(httpSession, exception);
+				throw exception;
+			}
+		}
+		SessionAttribute.markCounted(httpSession);
+	}
+
+	private static int countRequestScopedSessions() {
+		int count = 0;
+		for (var session : httpSessions.values()) {
+			if (session instanceof RequestScopedHttpSession) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 	private static TASException checkSessionLicense(int currentCV, int maxCV) {
