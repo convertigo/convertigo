@@ -38,7 +38,7 @@ ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision 
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '8.18.3'
 ext.swaggerUiVersion = '5.32.15'
-ext.tomcatVersion = '9.0.121'
+ext.tomcatVersion = '9.0.122'
 ext.eclipseVersion = '2025-12'
 ext.eclipseBase = '4.37'
 ext.studioWebNodeVersion = '22'
@@ -47,7 +47,7 @@ ext.soapuiVersion = '5.9.1'
 ext.log4jVersion = '2.25.5'
 ext.commonsIo = '2.21.0'
 ext.commonsLang3 = '3.20.0'
-ext.jacksonVersion = '2.22.1'
+ext.jacksonVersion = '2.22.2'
 ext.xmlSchemaVersion = '1.4.7'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')

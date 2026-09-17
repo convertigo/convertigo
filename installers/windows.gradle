@@ -55,7 +55,7 @@ task unzipWin64ServerJdk {
 	doLast {
 		file('build/tmp').mkdirs()
 		def jdkScript = file('installers/nsis/download-jdk.sh').text
-		def releaseMatcher = (jdkScript =~ /(?m)^JDK_RELEASE=([0-9]+(?:\.[0-9]+){2}\+[0-9]+)\s*$/)
+		def releaseMatcher = (jdkScript =~ /(?m)^JDK_RELEASE=([0-9]+(?:\.[0-9]+){2,3}\+[0-9]+)\s*$/)
 		if (!releaseMatcher.find()) {
 			throw new GradleException("Unable to parse JDK_RELEASE from installers/nsis/download-jdk.sh")
 		}
