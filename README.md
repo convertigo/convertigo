@@ -1,8 +1,8 @@
 # Convertigo AI Driven Low Code & No Code business apps
 > Convertigo is an open source AI Driven Low code & No Code platform for business application development and back-end as a service.
 
-[![CircleCI][ci-image]][ci-url]
-<video width="2518" height="1440" src="https://github.com/user-attachments/assets/139069dc-1a13-4292-81a4-7cbdb6a5c3be"></video> [![Docker Pulls](https://img.shields.io/docker/pulls/library/convertigo?logo=docker&label=Docker%20pulls)](https://hub.docker.com/_/convertigo)
+[![CircleCI][ci-image]][ci-url] (https://img.shields.io/docker/pulls/library/convertigo?logo=docker&label=Docker%20pulls)](https://hub.docker.com/_/convertigo)
+<video width="2518" height="1440" src="https://github.com/user-attachments/assets/139069dc-1a13-4292-81a4-7cbdb6a5c3be"></video> [![Docker Pulls]
 
 Convertigo Community edition is an open source fullstack Low Code & No Code platform. The platform is used to build and run complex Cross-platform Enterprise Mobile and web apps in a few days. Convertigo platform is composed of several components:
 
