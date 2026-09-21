@@ -961,7 +961,7 @@ jobs:
           IMAGE=convertigo/convertigo
           BASE=$(sed -n 's/^FROM \([^ ]*\).*/\1/p' docker/default/Dockerfile | head -1)
           BASE_DIGEST=$(docker buildx imagetools inspect "$BASE" --format '{{json .Manifest.Digest}}' | tr -d '"')
-          REVISION=$(git log -1 --format=%H -- docker)
+          REVISION=$(git log -1 --format=%H -- docker ":(exclude)docker/README.md")
           CURRENT=$(docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{json .Image}}' 2>/dev/null || echo '{}')
           CURRENT_BASE=$(echo "$CURRENT" | jq -r '.["linux/amd64"].config.Labels["org.opencontainers.image.base.digest"] // ""')
           CURRENT_REVISION=$(echo "$CURRENT" | jq -r '.["linux/amd64"].config.Labels["org.opencontainers.image.revision"] // ""')
