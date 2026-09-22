@@ -85,37 +85,6 @@ if [ "$1" = "convertigo" ]; then
         cp -r /workspace/classes/* $WEB_INF/classes/ 2>/dev/null
     fi
 
-    ## add mounted trusted certificate authorities to the JVM truststore
-    ## unless the JVM truststore is already configured explicitly (JAVA_OPTS)
-
-    case " $JAVA_OPTS " in
-        *" -Djavax.net.ssl.trustStore="*)
-            if [ -d /cacerts/ ]; then
-                echo "Info: /cacerts is ignored because an explicit JVM truststore is already configured with -Djavax.net.ssl.trustStore"
-            fi
-            ;;
-        *)
-    if [ -d /cacerts/ ]; then
-        C8O_CACERTS=/tmp/convertigo-cacerts
-        if [ ! -r "$JAVA_HOME/lib/security/cacerts" ]; then
-            echo "Warning: cannot read the JVM truststore at $JAVA_HOME/lib/security/cacerts; skip mounted trusted certificates"
-        elif ! cp "$JAVA_HOME/lib/security/cacerts" "$C8O_CACERTS" 2>&1; then
-            echo "Warning: cannot create the custom JVM truststore; skip mounted trusted certificates"
-        else
-            for certificate in /cacerts/* /cacerts/.[!.]*; do
-                [ -f "$certificate" ] || continue
-                certificate_alias="convertigo-$(basename "$certificate")"
-                echo "Import JVM trusted certificate $certificate"
-                if ! keytool -importcert -noprompt -trustcacerts -keystore "$C8O_CACERTS" -storepass changeit -alias "$certificate_alias" -file "$certificate" 2>&1; then
-                    echo "Warning: cannot import JVM trusted certificate $certificate"
-                fi
-            done
-            export JAVA_OPTS="-Djavax.net.ssl.trustStore=$C8O_CACERTS $JAVA_OPTS"
-        fi
-    fi
-            ;;
-    esac
-    
     ## check and adapt the Java Xmx for limited devices
     
     if [ "$JXMX" != "" ]; then
@@ -258,12 +227,25 @@ if [ "$1" = "convertigo" ]; then
     for i in $(set | grep "_SERVICE_\|_PORT" | cut -f1 -d=); do unset $i; done
     
     
+    ## custom certificate authorities: delegate to the Eclipse Temurin entrypoint shipped in the
+    ## base image (opt-in with USE_SYSTEM_CA_CERTS, certificates mounted in /certificates/*.crt)
+    
+    CACERT_ENTRYPOINT=""
+    if [ -n "$USE_SYSTEM_CA_CERTS" ]; then
+        if [ -x /__cacert_entrypoint.sh ]; then
+            CACERT_ENTRYPOINT=/__cacert_entrypoint.sh
+        else
+            echo "USE_SYSTEM_CA_CERTS is set but the base image does not provide /__cacert_entrypoint.sh"
+            exit 1
+        fi
+    fi
+    
     if [ $(id -u) = "0" ]; then
         chown -Lf convertigo:convertigo /workspace
         export HOME=/home/convertigo
-        exec setpriv --reuid=convertigo --regid=convertigo --init-groups $CATALINA_HOME/bin/catalina.sh run
+        exec setpriv --reuid=convertigo --regid=convertigo --init-groups $CACERT_ENTRYPOINT $CATALINA_HOME/bin/catalina.sh run
     else
-        exec $CATALINA_HOME/bin/catalina.sh run
+        exec $CACERT_ENTRYPOINT $CATALINA_HOME/bin/catalina.sh run
     fi
 fi
 
