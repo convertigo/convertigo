@@ -291,6 +291,8 @@ Log file still exists until you add the `LOG_FILE=false` environment variable :
 
     docker run -d --name C8O -e LOG_STDOUT=true -e LOG_FILE=false -p 28080:28080 convertigo
 
+To ship these logs to a log platform (Elasticsearch / Kibana, Graylog, IBM Cloud Logs...), let the collector of your infrastructure read the container's standard output: the log format, the multi-line rule and a Fluent Bit example are described in the [Centralize the logs](https://doc.convertigo.com/documentation/latest/operating-guide/production-deployment-recommendations/#centralize-the-logs) section of the Operating Guide.
+
 ## `JXMX` Environment variable
 
 Set `JXMX` to define the JVM heap size in MiB. The image then adds `-Xms128m -Xmx=${JXMX}m` to the JVM options. Make sure the container memory limit leaves room for memory outside the Java heap.
