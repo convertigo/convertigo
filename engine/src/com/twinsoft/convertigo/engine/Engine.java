@@ -1698,6 +1698,14 @@ public class Engine {
 		return cloud_customer_name != null;
 	}
 
+	/**
+	 * True when running in an official Convertigo container image (Docker, Podman, Kubernetes),
+	 * whose Dockerfile defines CONVERTIGO_WAR_URL.
+	 */
+	public static boolean isContainer() {
+		return System.getenv("CONVERTIGO_WAR_URL") != null;
+	}
+
 	public static boolean isEngineMode() {
 		return !Engine.isStudioMode();
 	}

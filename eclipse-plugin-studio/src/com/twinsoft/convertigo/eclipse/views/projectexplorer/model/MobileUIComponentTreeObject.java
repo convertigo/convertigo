@@ -822,7 +822,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						viewer.refresh();
 
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileUIComponentTreeObject.this);
-						getDescriptors();// refresh editors (e.g labels in combobox)
 
 						TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, pValue, _pValue);
 						ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
@@ -858,7 +857,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									viewer.refresh();
 
 									ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileUIComponentTreeObject.this);
-									getDescriptors();// refresh editors (e.g labels in combobox)
 
 									TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, oValue, nValue);
 									ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);

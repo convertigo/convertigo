@@ -60,6 +60,12 @@ eclipse {
 		}
 	}
 	
+	classpath.file.whenMerged { cp ->
+		// sessionTest and componentRefTest share the 'test' source directory: JDT rejects
+		// duplicate source entries, and the sessionTest entry already covers the whole directory.
+		cp.entries.removeAll { it.kind == 'src' && it.path == 'test' && it.output == 'bin/componentRefTest' }
+	}
+
 	classpath.file.withXml {
 		def elt = it.asElement()
 		def nl = elt.getElementsByTagName('classpathentry')
@@ -202,6 +208,8 @@ def warRuntimeClasspathDir = layout.buildDirectory.dir('tmp/warRuntimeClasspath'
 
 tasks.register('prepareWarRuntimeClasspath', Sync) {
 	from configurations.runtimeClasspath
+	// the SAP JCo placeholder is only shipped once, renamed to sapjco3.jar (see the 'sapjco3' configuration below)
+	exclude 'sapjco3-*.jar'
 	into warRuntimeClasspathDir
 	filePermissions {
 		unix('0644')
@@ -305,8 +313,20 @@ tasks.register('sessionSerializationTest', JavaExec) {
 
 tasks.named('check') {
 	dependsOn 'sessionSerializationTest'
+	dependsOn 'requestScopedSessionTest'
 	dependsOn 'componentRefManagerTest'
 	dependsOn 'projectArchiveTest'
+	dependsOn 'ionBeanTest'
+}
+
+tasks.register('requestScopedSessionTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the ephemeral request-scoped session of terminating URL mapper operations.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSessionTest',
+		'com.twinsoft.convertigo.engine.servlets.RestApiServletSessionModeTest'
 }
 
 tasks.register('projectArchiveTest', JavaExec) {
@@ -315,6 +335,14 @@ tasks.register('projectArchiveTest', JavaExec) {
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'com.twinsoft.convertigo.engine.ProjectArchiveTest'
+}
+
+tasks.register('ionBeanTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for ion bean instances sharing their template model.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBeanTest'
 }
 
 tasks.register('componentRefManagerTest', JavaExec) {
@@ -339,7 +367,7 @@ dependencies {
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 	compileFlat    'com.smartbear.soapui:soapui-light:' + soapuiVersion
 	implementation "com.convertigo.provider:convertigo-provider-couchdb:8.5.0"
-	implementation 'com.convertigo.provider:convertigo-provider-sap:8.3.11'
+	implementation 'com.convertigo.provider:convertigo-provider-sap:8.4.5'
 	compileFlat    'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat    'com.convertigo.twinsoft.lib:comm:1998.11.15'
 	compileFlat    'com.convertigo.twinsoft.lib:ms:2002.01.03'
@@ -351,7 +379,7 @@ dependencies {
 	compileFlat    'com.convertigo.twinsoft:twinj:2016.05.09'
 	compileFlat    'com.convertigo.twinsoft:ui:2009.06.15'
 	implementation 'com.convertigo.twinsoft:util:2017.12.29'
-	compileFlat    'com.fasterxml.jackson.core:jackson-core:2.22.2'
+	compileFlat    'com.fasterxml.jackson.core:jackson-core:' + jacksonVersion
 	compileFlat    'com.fasterxml.woodstox:woodstox-core:6.7.0'
 	compileFlat    ('com.google.gcm:gcm-server:1.0.0') {
 		exclude group: 'junit', module: 'junit'
@@ -375,21 +403,21 @@ dependencies {
 	compileFlat    'io.swagger.parser.v3:swagger-parser-v3:2.1.48'
 	compileFlat    'javax.activation:activation:1.1.1'
 	compileFlat    'javax.mail:mail:1.4.7'
-	compileFlat    'org.slf4j:slf4j-ext:2.0.19'
-	compileFlat    'org.slf4j:slf4j-simple:2.0.19'
+	compileFlat    'org.slf4j:slf4j-ext:2.0.20'
+	compileFlat    'org.slf4j:slf4j-simple:2.0.20'
 	compileFlat    'oauth.signpost:signpost-core:2.1.1'
 	compileFlat    'org.apache.axis2:axis2-saaj:1.8.2', { exclude module: 'servlet-api'}
 	compileFlat    'org.dom4j:dom4j:2.2.0'
 	compileFlat    'org.freemarker:freemarker:2.3.35'
 	compileFlat    'org.apache.commons:commons-lang3:' + commonsLang3
 	compileFlat    'org.apache.httpcomponents:httpclient:4.5.14'
-	compileFlat    'org.apache.james:apache-mime4j-core:0.8.14'
+	compileFlat    'org.apache.james:apache-mime4j-core:0.8.15'
 	compileFlat    'org.apache.pdfbox:pdfbox:3.0.8'
 	compileFlat    'org.apache.tika:tika-core:3.2.3'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-api:1.4.0'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-dom:1.4.0'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-impl:1.4.0'
-	compileFlat    'org.apache.ws.commons.schema:XmlSchema:1.4.7'
+	compileFlat    'org.apache.ws.commons.schema:XmlSchema:' + xmlSchemaVersion
 	compileFlat    'org.bouncycastle:bcprov-jdk18on:1.84'
 	compileFlat    'org.apache.xmlbeans:xmlbeans:3.1.1-sb-fixed'
 	compileFlat    'org.apache.xmlgraphics:fop:2.11', { exclude module: 'batik-js'}

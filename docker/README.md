@@ -14,7 +14,7 @@ Convertigo Community edition brought to you by Convertigo SA. The platform is cu
 
 ## Quick start
 
-	$ docker run --name C8O -d -p 28080:28080 convertigo
+	docker run --name C8O -d -p 28080:28080 convertigo
 
 This will start a container running the minimum Convertigo server. Convertigo uses images' **/workspace** directory to store configuration file and deployed projects as an Docker volume.
 
@@ -24,7 +24,7 @@ The Server can also be accessed by HTTPS on `https://[dockerhost]:28443/converti
 
 ## Connect Convertigo to a CouchDB database for FullSync (Convertigo EE only)
 
-Convertigo FullSync uses Apache CouchDB 3.2.2 as its NoSQL repository.
+Convertigo FullSync uses Apache CouchDB 3.5 as its NoSQL repository.
 
 For modern Docker setups, prefer one of these approaches:
 
@@ -56,7 +56,7 @@ Create a user-defined Docker network and run both containers on it:
 
     docker network create c8o-net
 
-    docker run -d --name fullsync --network c8o-net couchdb:3.2.2
+    docker run -d --name fullsync --network c8o-net couchdb:3.5
 
     docker run -d --name C8O --network c8o-net \
         -e JAVA_OPTS="-Dconvertigo.engine.fullsync.couch.url=http://fullsync:5984" \
@@ -72,7 +72,7 @@ Convertigo FullSync is designed to use CouchDB server or cluster. Convertigo Ful
 
 It can be enabled directly at startup:
 
-   docker run -d --name C8O -e JAVA_OPTS="-Dconvertigo.engine.fullsync.pouchdb=true" -p 28080:28080 convertigo
+    docker run -d --name C8O -e JAVA_OPTS="-Dconvertigo.engine.fullsync.pouchdb=true" -p 28080:28080 convertigo
 
 ## Connect Convertigo Low Code Server to a Billing & Analytics database
 
@@ -96,7 +96,7 @@ If the database runs in another container, connect both containers to the same u
 
 Projects are deployed in the Convertigo workspace, a simple file system directory. You can map the docker container **/workspace** to your physical system by using:
 
-    docker run --name C8O -v $(pwd):/workspace -d -p 28080:28080 convertigo
+    docker run --name C8O -v $PWD:/workspace -d -p 28080:28080 convertigo
 
 You can share the same workspace by all Convertigo containers. In this case, when you deploy a project on a Convertigo container, it will be seen by others. This is the best way to build multi-instance load balanced Convertigo server farms.
 
@@ -145,8 +145,10 @@ Recommended multi-instance example:
 
 At each container start, the image copies the contents of these workspace directories into the Convertigo web application before Tomcat starts:
 
-- `/workspace/lib/` to `WEB-INF/lib/` for JAR files and their dependencies
-- `/workspace/classes/` to `WEB-INF/classes/` for compiled classes and resources
+-	`/workspace/lib/` to `WEB-INF/lib/` for JAR files, their dependencies and native libraries
+-	`/workspace/classes/` to `WEB-INF/classes/` for compiled classes and resources
+
+`WEB-INF/lib/` is also added to the JVM native library path, so a native library dropped in `/workspace/lib/` is found without extra configuration. This is the place for the libraries the server itself loads and cannot ship, such as the official JDBC driver of the database cache (`ojdbc.jar`, `mysql-connector.jar` or `db2jcc.jar`, replacing the placeholder of the same name) or the SAP Java Connector (`sapjco3.jar`, kept under this exact name, with its `libsapjco3.so`). A library used only by the projects (SQL connectors) belongs to `/workspace/libs/` instead; a `README.md` in each of these workspace directories gives the details.
 
 The directory structure is preserved and overlays the files provided by the image; it does not remove existing web-application files. For classes, keep the package directory structure below `/workspace/classes/` (for example, `com/example/MyClass.class`). Restart or recreate the container after adding or updating these files. To remove an injected file, remove it from the workspace and recreate the container, since a restart does not delete files already copied into the web application.
 
@@ -155,29 +157,25 @@ For example, prepare a workspace and mount it into the container:
     mkdir -p workspace/lib workspace/classes/com/example
     cp my-driver.jar workspace/lib/
     cp build/classes/java/main/com/example/MyClass.class workspace/classes/com/example/
-    docker run --name C8O -v "$(pwd)/workspace:/workspace" -d -p 28080:28080 convertigo
+    docker run --name C8O -v "$PWD/workspace:/workspace" -d -p 28080:28080 convertigo
 
 This is also useful when iterating on a custom Java extension without building a derived Convertigo image. Ensure that the mounted workspace is writable by the container at startup.
 
 ## Trust custom certificate authorities
 
-To trust private root or intermediate certificate authorities, mount a dedicated directory at `/cacerts`. At startup, the image copies the JDK default truststore to a temporary location, imports every regular file in this directory with `keytool`, then configures the JVM to use the generated truststore. Certificate files must be X.509 certificates in a format accepted by `keytool` (typically PEM or DER).
-
-For example:
+The image is based on the Eclipse Temurin JDK image, which ships an entrypoint able to add certificate authorities to the JVM truststore. It is opt-in: set the `USE_SYSTEM_CA_CERTS` environment variable and mount the certificates, in PEM format with a `.crt` extension, in the `/certificates` directory. A file may contain several certificates.
 
     mkdir -p custom-ca
-    cp company-root-ca.pem custom-ca/
+    cp company-root-ca.crt custom-ca/
     cp partner-intermediate-ca.crt custom-ca/
     docker run --name C8O \
-        -v "$(pwd)/workspace:/workspace" \
-        -v "$(pwd)/custom-ca:/cacerts:ro" \
+        -e USE_SYSTEM_CA_CERTS=1 \
+        -v "$PWD/custom-ca:/certificates:ro" \
         -d -p 28080:28080 convertigo
 
-Keep this directory outside the Convertigo workspace and mount it read-only. In Kubernetes, mount a ConfigMap or Secret read-only at `/cacerts`. The image only reads custom CAs from this dedicated mount; files in `/workspace` are not considered.
+At startup, the certificates are imported into a copy of the JDK truststore (the JDK installation is not modified, so this also works with an arbitrary non-root user) and the JVM is configured to use that copy through `JAVA_TOOL_OPTIONS`. The system certificate authorities of the image are imported as well. When the container runs as `root`, the certificates are also added to the system trust store, so command-line tools such as `curl` trust them too. In Kubernetes, mount a ConfigMap or Secret read-only at `/certificates`. The truststore is rebuilt at every container start: restart or recreate the container after adding, replacing or removing a certificate. The JVM reports the truststore it uses with a `Picked up JAVA_TOOL_OPTIONS` line at startup.
 
-The standard JDK certificate authorities are retained. The generated truststore is not persisted: restart or recreate the container after adding, replacing, or removing a certificate. If a file cannot be imported, the image logs a warning and continues to start with the certificates successfully imported so far.
-
-This configuration is independent from the Tomcat HTTPS server certificate configured through `/ssl`.
+This mechanism is documented by the [Eclipse Temurin image](https://hub.docker.com/_/eclipse-temurin) and is meant for the common case of a private or corporate certificate authority, typically behind a proxy performing TLS inspection. Users who need full control can provide their own complete JVM truststore through the standard Java configuration instead, for example `-e JAVA_OPTS="-Djavax.net.ssl.trustStore=/path/to/truststore -Djavax.net.ssl.trustStorePassword=..."`: options given in `JAVA_OPTS` take precedence over `JAVA_TOOL_OPTIONS`.
 
 ## Make image with pre-deployed projects
 
@@ -293,6 +291,8 @@ Log file still exists until you add the `LOG_FILE=false` environment variable :
 
     docker run -d --name C8O -e LOG_STDOUT=true -e LOG_FILE=false -p 28080:28080 convertigo
 
+To ship these logs to a log platform (Elasticsearch / Kibana, Graylog, IBM Cloud Logs...), let the collector of your infrastructure read the container's standard output: the log format, the multi-line rule and a Fluent Bit example are described in the [Centralize the logs](https://doc.convertigo.com/documentation/latest/operating-guide/production-deployment-recommendations/#centralize-the-logs) section of the Operating Guide.
+
 ## `JXMX` Environment variable
 
 Set `JXMX` to define the JVM heap size in MiB. The image then adds `-Xms128m -Xmx=${JXMX}m` to the JVM options. Make sure the container memory limit leaves room for memory outside the Java heap.
@@ -329,7 +329,7 @@ Allow to configure the **SameSite** parameter for generated cookies. Can be empt
 
 The default `COOKIE_SAMESITE` value is **empty** and can be defined this way:
 
-    docker run -d –name C8O -e COOKIE_SAMESITE=lax -p 28080:28080 convertigo
+    docker run -d --name C8O -e COOKIE_SAMESITE=lax -p 28080:28080 convertigo
 
 ## `SESSION_TIMEOUT` Environment variable
 
@@ -337,7 +337,7 @@ Allow to configure the default Tomcat **session-timeout** in minutes. This value
 
 The default `SESSION_TIMEOUT` value is **30** and can be defined this way:
 
-    docker run -d –name C8O -e SESSION_TIMEOUT=5 -p 28080:28080 convertigo
+    docker run -d --name C8O -e SESSION_TIMEOUT=5 -p 28080:28080 convertigo
 
 ## `DISABLE_SUDO` Environment variable
 
@@ -345,7 +345,7 @@ The image includes **sudo** command line, configured to allow the **convertigo**
 
 The default `DISABLE_SUDO` value is **empty** and can be defined this way:
 
-    docker run -d –name C8O -e DISABLE_SUDO=true -p 28080:28080 convertigo
+    docker run -d --name C8O -e DISABLE_SUDO=true -p 28080:28080 convertigo
 
 ## `ENABLE_JDWP_DEBUG` Environment variable
 

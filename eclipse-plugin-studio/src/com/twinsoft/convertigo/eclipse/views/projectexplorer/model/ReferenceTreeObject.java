@@ -79,8 +79,6 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 						reference.setProjectName((String)newValue);
 						hasBeenModified(true);
 						viewer.refresh();
-						
-						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}
 			}

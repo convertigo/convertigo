@@ -130,7 +130,6 @@ public class FullSyncListenerTreeObject extends ListenerTreeObject implements IN
 						hasBeenModified(true);
 						
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(FullSyncListenerTreeObject.this);
-						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}
 			}

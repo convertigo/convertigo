@@ -1,5 +1,16 @@
 # Changelog
 
+## 8.4.5
+
+#### Improvements:
+
+- [#1167](https://github.com/convertigo/convertigo/issues/1167) [Engine] Server startup no longer waits on unreachable external hosts
+- [#1169](https://github.com/convertigo/convertigo/issues/1169) [Engine] Placeholder jars now report where the official jar must be installed, with `lib/README.md` and `libs/README.md` in the workspace; the Docker image finds native libraries dropped in `/workspace/lib`
+
+#### Bug Fixes:
+
+- [#1168](https://github.com/convertigo/convertigo/issues/1168) [Engine] Fixed, the SAP JCo placeholder jar was packaged twice in the web application, it could shadow the official `sapjco3.jar` once installed
+
 ## 8.4.4
 
 #### New Features:
@@ -10,12 +21,13 @@
 
 - [#1118](https://github.com/convertigo/convertigo/issues/1118) [Dashboard] Request results can now be expanded to fill the available screen height
 - [#1119](https://github.com/convertigo/convertigo/issues/1119) [Studio] An optional web-based Engine Log viewer is now available as a preview alongside the default SWT viewer
+- [#1126](https://github.com/convertigo/convertigo/issues/1126) [Engine] Minor dependency updates
 - [#1127](https://github.com/convertigo/convertigo/issues/1127) [Dashboard] Sequence, transaction and test case requests can now be copied as URLs, cURL commands, JavaScript fetch calls or POST bodies
 - [#1133](https://github.com/convertigo/convertigo/issues/1133) [Studio] NGX directives now have readable labels in the project tree, including the newer Angular control flow directives
 - [#1140](https://github.com/convertigo/convertigo/issues/1140) [NGX] The `@for` directive now supplies a default tracking expression and exposes the configured loop index variable
 - [#1143](https://github.com/convertigo/convertigo/issues/1143) [Admin] Scheduler jobs and schedules can now be exported and imported for backup or migration, with merge and replace options
 - [#1151](https://github.com/convertigo/convertigo/issues/1151) [Admin] Certificates can now be exported and imported together with their configuration and project mappings
-- [#1154](https://github.com/convertigo/convertigo/issues/1154) [Docker] Docker deployments can now trust custom CAs for outbound TLS through a separately mounted `/cacerts` directory
+- [#1154](https://github.com/convertigo/convertigo/issues/1154) [Docker] Docker deployments can now trust custom CAs for outbound TLS by mounting them in `/certificates` with `USE_SYSTEM_CA_CERTS` set, through the Eclipse Temurin base image entrypoint
 - [#1157](https://github.com/convertigo/convertigo/issues/1157) [Engine] Projects are now loaded only from the YAML format by default, with an option to re-enable the legacy XML format
 - [#1158](https://github.com/convertigo/convertigo/issues/1158) [Engine] HTTP transactions now control whether request parameters may override the target URL or add request headers, with conservative defaults, and Download HTTP transactions write files only inside their configured folder
 - [#1159](https://github.com/convertigo/convertigo/issues/1159) [Engine] Project archive extraction now keeps extracted files within the project directory
@@ -25,7 +37,6 @@
 
 #### Bug Fixes:
 
-- [#1163](https://github.com/convertigo/convertigo/issues/1163) [Admin] Fixed, importing a project by URL now requires the projects configuration role instead of the read-only role
 - [#1121](https://github.com/convertigo/convertigo/issues/1121) [Engine] Fixed, live log viewers now continue across log file rotation without missing or duplicating lines
 - [#1125](https://github.com/convertigo/convertigo/issues/1125) [Admin] Fixed, web log viewers now limit the number of loaded lines to a configurable maximum, preventing unbounded buffer growth during long sessions
 - [#1129](https://github.com/convertigo/convertigo/issues/1129) [Studio] Fixed, importing or exporting backend variables and creating test cases now preserve symbol references instead of copying resolved values; frontend variable imports leave those values empty
@@ -41,6 +52,10 @@
 - [#1150](https://github.com/convertigo/convertigo/issues/1150) [FullSync] Fixed, replication users can now read design documents, restoring database version checks and local database resets after a server database is recreated
 - [#1152](https://github.com/convertigo/convertigo/issues/1152) [Engine] Fixed, project library updates in shared workspaces no longer replace JAR files still used by running requests, avoiding stale file handle errors
 - [#1153](https://github.com/convertigo/convertigo/issues/1153) [NGX] Fixed, Show Loading now applies its spinner and appearance options correctly with Mobile Builder template 8.4.0.54
+- [#1155](https://github.com/convertigo/convertigo/issues/1155) [Engine] Fixed, Redis-backed sessions now preserve `Properties` and W3C DOM attribute types (`Document`, `Element`, `Node`, `NodeList`) across serialization instead of returning untyped maps or dropping documents
+- [#1156](https://github.com/convertigo/convertigo/issues/1156) [Studio] Fixed, an empty shared component reference no longer copies unrelated library components into the consuming project, and deleting it removes its dependency registration without restarting Studio
+- [#1163](https://github.com/convertigo/convertigo/issues/1163) [Admin] Fixed, importing a project by URL now requires the projects configuration role instead of the read-only role
+- [#1166](https://github.com/convertigo/convertigo/issues/1166) [Admin] Fixed, the Swagger UI console now displays responses of REST operations that declare no status code, and generated OpenAPI 3 specifications include a default `200` response for them
 
 ---
 

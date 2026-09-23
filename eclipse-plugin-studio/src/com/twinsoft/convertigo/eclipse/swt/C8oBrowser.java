@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Collections;
 import java.util.function.Function;
 
 import org.eclipse.swt.SWT;
@@ -76,6 +79,9 @@ public class C8oBrowser extends Composite {
 	private static final String ABOUT_BLANK = "about:blank";
 	private static final long BROWSER_RECOVERY_THROTTLE = 5000;
 	private static final long UNRESPONSIVE_RECOVERY_DELAY = 60000;
+	private static final long BROWSER_RECOVERY_WINDOW = 60000;
+	private static final int BROWSER_RECOVERY_MAX_ATTEMPTS = 5;
+	private static final Set<C8oBrowser> liveBrowsers = Collections.synchronizedSet(new HashSet<>());
 	
 	private String debugUrl;
 	private String browserId;
@@ -90,6 +96,9 @@ public class C8oBrowser extends Composite {
 	private boolean browserRecreating = false;
 	private boolean browserUnresponsive = false;
 	private long lastBrowserRecovery = 0;
+	private int browserRecoveryAttempts = 0;
+	private long browserRecoveryWindowStart = 0;
+	private boolean browserRecoveryAbandoned = false;
 	private String lastLoadedUrl = ABOUT_BLANK;
 	private String lastHtml = null;
 	private Runnable restoreHandler = null;
@@ -175,7 +184,9 @@ public class C8oBrowser extends Composite {
 		this.project = project;
 		this.preferredDebugPort = getPreferredDebugPort(project);
 		this.browserId = browserId;
+		liveBrowsers.add(this);
 		addDisposeListener(e -> {
+			liveBrowsers.remove(this);
 			if (!closed) {
 				closed = true;
 				closeCurrentBrowser();
@@ -496,8 +507,28 @@ public class C8oBrowser extends Composite {
 		Engine browserContext = browserContexts.get(browserId);
 		if (browserContext != null && !browserContext.isClosed() && preferredDebugPort != null
 				&& browserContext.options().remoteDebuggingPort().get().intValue() != preferredDebugPort.intValue()) {
-			throw new IllegalStateException("Browser context already uses debug port "
-					+ browserContext.options().remoteDebuggingPort().get() + " instead of requested port " + preferredDebugPort);
+			int currentPort = browserContext.options().remoteDebuggingPort().get();
+			if (isEngineShared(browserContext)) {
+				// Another live browser of this project still uses the engine: follow it
+				// instead of creating a competing engine. setDebugPort switches it later.
+				logStudio("(C8oBrowser) Reusing the shared browser engine on debug port " + currentPort
+						+ " instead of requested port " + preferredDebugPort, false);
+				preferredDebugPort = currentPort;
+			} else {
+				// The engine outlived its editors (they were closed): release it so the
+				// requested port can be honoured on the same Chromium profile. Throwing
+				// here used to make the constructor drop _private/browser_id and start a
+				// second engine next to the idle one, which wedged Chromium.
+				logStudio("(C8oBrowser) Closing the idle browser engine on debug port " + currentPort
+						+ " to honour requested port " + preferredDebugPort, false);
+				browserContexts.remove(browserId);
+				try {
+					browserContext.close();
+				} catch (Exception e) {
+					logStudio("(C8oBrowser) Unable to close the idle browser engine on debug port " + currentPort + ": " + e, true);
+				}
+				browserContext = null;
+			}
 		}
 		if (browserContext == null || browserContext.isClosed()) {
 			int debugPort;
@@ -569,6 +600,8 @@ public class C8oBrowser extends Composite {
 			setPreferredDebugPort(project, debugPort);
 		}
 		preferredDebugPort = debugPort;
+		browserRecoveryAbandoned = false;
+		browserRecoveryAttempts = 0;
 		if (browserContext != null && !browserContext.isClosed()
 				&& browserContext.options().remoteDebuggingPort().get() == debugPort) {
 			debugUrl = "http://localhost:" + debugPort;
@@ -587,12 +620,35 @@ public class C8oBrowser extends Composite {
 		browserContexts.remove(browserId);
 		browserContext = null;
 		recoveryEngine = null;
-		if (previousContext != null && !previousContext.isClosed()) {
+		if (previousContext != null && !previousContext.isClosed() && !isEngineShared(previousContext)) {
 			previousContext.close();
 		}
 		init(getOrCreateBrowserContext());
 		layout(true, true);
 		restoreBrowser();
+	}
+
+	private static void logStudio(String message, boolean warn) {
+		if (com.twinsoft.convertigo.engine.Engine.logStudio != null) {
+			if (warn) {
+				com.twinsoft.convertigo.engine.Engine.logStudio.warn(message);
+			} else {
+				com.twinsoft.convertigo.engine.Engine.logStudio.info(message);
+			}
+		} else {
+			System.out.println(message);
+		}
+	}
+
+	private boolean isEngineShared(Engine engine) {
+		synchronized (liveBrowsers) {
+			for (C8oBrowser other : liveBrowsers) {
+				if (other != this && !other.closed && other.browserContext == engine) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private void installRecoveryHandlers() {
@@ -616,6 +672,9 @@ public class C8oBrowser extends Composite {
 		browser.navigation().on(NavigationFinished.class, event -> {
 			if (event.isInMainFrame() && event.isErrorPage()) {
 				ConvertigoPlugin.asyncExec(() -> recoverBrowser(browser, "Navigation error page: " + event.error(), false));
+			} else if (event.isInMainFrame() && isCurrentBrowser(browser)) {
+				browserRecoveryAttempts = 0;
+				browserRecoveryWindowStart = 0;
 			}
 		});
 		Engine engine = browser.engine();
@@ -650,7 +709,24 @@ public class C8oBrowser extends Composite {
 			return;
 		}
 		long now = System.currentTimeMillis();
-		if (now - lastBrowserRecovery < BROWSER_RECOVERY_THROTTLE && (!recreate || browserRecreating)) {
+		if (browserRecoveryAbandoned || browserRecreating || now - lastBrowserRecovery < BROWSER_RECOVERY_THROTTLE) {
+			return;
+		}
+		if (now - browserRecoveryWindowStart > BROWSER_RECOVERY_WINDOW) {
+			browserRecoveryWindowStart = now;
+			browserRecoveryAttempts = 0;
+		}
+		if (++browserRecoveryAttempts > BROWSER_RECOVERY_MAX_ATTEMPTS) {
+			// A crash loop would otherwise create one Chromium browser per event
+			// until the JVM runs out of native threads.
+			browserRecoveryAbandoned = true;
+			String message = "(C8oBrowser) Giving up browser recovery after " + BROWSER_RECOVERY_MAX_ATTEMPTS
+					+ " attempts in " + (BROWSER_RECOVERY_WINDOW / 1000) + " seconds: " + reason;
+			if (com.twinsoft.convertigo.engine.Engine.logStudio != null) {
+				com.twinsoft.convertigo.engine.Engine.logStudio.error(message);
+			} else {
+				System.err.println(message);
+			}
 			return;
 		}
 		lastBrowserRecovery = now;
@@ -672,10 +748,19 @@ public class C8oBrowser extends Composite {
 			if (browserView != null && !browserView.isDisposed()) {
 				browserView.dispose();
 			}
+			// Another browser of the same project may have switched the shared
+			// engine to a new debug port: follow it instead of creating a
+			// competing engine on the same Chromium profile directory.
+			preferredDebugPort = getPreferredDebugPort(project);
 			try {
 				init(browserContext != null && !browserContext.isClosed() ? browserContext : getOrCreateBrowserContext());
 			} catch (Exception e) {
-				browserContexts.remove(browserId);
+				Engine shared = browserContexts.get(browserId);
+				if (shared != null && !shared.isClosed()) {
+					preferredDebugPort = shared.options().remoteDebuggingPort().get();
+				} else {
+					browserContexts.remove(browserId);
+				}
 				browserContext = null;
 				recoveryEngine = null;
 				init(getOrCreateBrowserContext());

@@ -37,18 +37,20 @@ ext.convertigoCode = 'At'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '9.5.0'
-ext.swaggerUiVersion = '5.31.0'
+ext.swaggerUiVersion = '5.32.15'
 ext.tomcatVersion = '11.0.25'
 ext.eclipseVersion = '2026-06'
 ext.eclipseBase = '4.40'
 ext.studioWebNodeVersion = '22'
-ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
+ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2026.09.17'
 ext.soapuiVersion = '5.9.1'
 ext.log4jVersion = '2.26.1'
 ext.commonsIo = '2.22.0'
 ext.commonsLang3 = '3.20.0'
 ext.zstdJniVersion = '1.5.7-16'
 ext.brotli4jVersion = '1.23.0'
+ext.jacksonVersion = '2.22.3'
+ext.xmlSchemaVersion = '1.4.7'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
 ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
@@ -255,12 +257,13 @@ publishing {
 						'com.convertigo.twinsoft:api:2017.12.29',
 						'com.convertigo.twinsoft:tas:2019.10.16',
 						'com.convertigo.twinsoft:util:2017.12.29',
-						'com.fasterxml.jackson.core:jackson-core:2.21.1',
+						'com.fasterxml.jackson.core:jackson-core:' + jacksonVersion,
 						'commons-io:commons-io:' + commonsIo,
 						'javax.mail:mail:1.4.7',
 						'jakarta.servlet:jakarta.servlet-api:6.1.0',
 						'org.apache.commons:commons-lang3:' + commonsLang3,
 						'org.apache.httpcomponents:httpclient:4.5.14',
+						'org.apache.ws.commons.schema:XmlSchema:' + xmlSchemaVersion,
 						'org.codehaus.jettison:jettison:1.5.7'
 					].each {
 						def values = it.split(':')
@@ -553,6 +556,234 @@ task generateDockerfile {
 	}
 }
 
+def dockerDocsOfficialDir = {
+	file(findProperty('dockerDocsDir') ?: '../docker-docs')
+}
+
+def runDockerDocsOfficialCommand = { File workingDir, List<String> command, Map<String, String> environment = [:] ->
+	def normalizedCommand = command.collect { it.toString() }
+	println "\$ ${normalizedCommand.collect { it.contains(' ') ? '"' + it + '"' : it }.join(' ')}"
+	def processBuilder = new ProcessBuilder(normalizedCommand)
+		.directory(workingDir)
+		.redirectErrorStream(true)
+	processBuilder.environment().putAll(environment)
+	def process = processBuilder.start()
+	def output = process.inputStream.getText('UTF-8')
+	def exitCode = process.waitFor()
+	if (output) {
+		print output
+	}
+	if (exitCode != 0) {
+		throw new GradleException("Command failed with exit code ${exitCode}: ${command.join(' ')}")
+	}
+	return output
+}
+
+def renderDockerDocsOfficialContent = {
+	def content = []
+	def inCodeBlock = false
+	def dockerRunCodeBlock = false
+
+	def stripCodeIndent = { String line ->
+		return line.startsWith('\t') ? line.substring(1) : line.startsWith('    ') ? line.substring(4) : line.substring(3)
+	}
+
+	def normalizeCodeLine = { String line, boolean canReplaceImage ->
+		def code = stripCodeIndent(line)
+		if (code == 'FROM convertigo') {
+			code = 'FROM %%IMAGE%%'
+		} else if (canReplaceImage || code.trim().replaceFirst(/^\$ /, '').startsWith('docker run ')) {
+			code = code.replaceFirst(/(^|\s)convertigo(\s*\\?)$/, '$1%%IMAGE%%$2')
+		}
+		return code
+	}
+
+	// Docker docs convention: in a console block every command starts with "$ " so the highlighter
+	// tells commands from their output. The README stays plain markdown; the prompt is added here,
+	// only in blocks that start with a shell command (not Dockerfile snippets nor option lists).
+	def shellCodeBlock = false
+	def continuedCommand = false
+	def isShellCommand = { String code ->
+		return code ==~ /^(\$ |[a-z][\w.-]*( |$)|[A-Za-z_][A-Za-z0-9_]*=).*/
+	}
+
+	file('docker/README.md').readLines('UTF-8').each { String line ->
+		if (line ==~ /^( {3,}|\t).*/) {
+			if (!inCodeBlock) {
+				content << '```console'
+				inCodeBlock = true
+				dockerRunCodeBlock = stripCodeIndent(line).trim().replaceFirst(/^\$ /, '').startsWith('docker run ')
+				shellCodeBlock = isShellCommand(stripCodeIndent(line))
+				continuedCommand = false
+			}
+			def code = normalizeCodeLine(line, dockerRunCodeBlock)
+			if (shellCodeBlock && !continuedCommand && !code.startsWith('$ ') && !code.trim().isEmpty() && !(code ==~ /^\s.*/)) {
+				code = '$ ' + code
+			}
+			continuedCommand = code.trim().endsWith('\\')
+			content << code
+		} else {
+			if (inCodeBlock) {
+				content << '```'
+				inCodeBlock = false
+				dockerRunCodeBlock = false
+			}
+			// markdownfmt (Docker docs CI) expects list items as "-<tab>item"
+			content << line.replaceFirst(/^(\s*)[-*]\s+(?=\S)/, '$1-\t')
+			if (line == '> [www.convertigo.com](https://www.convertigo.com)') {
+				content << ''
+				content << '%%LOGO%%'
+			}
+		}
+	}
+	if (inCodeBlock) {
+		content << '```'
+	}
+	return content.collect { it.replaceFirst(/[ \t]+$/, '') }.join('\n') + '\n'
+}
+
+task generateDockerDocsOfficialContent {
+	group = 'convertigo'
+	description = 'Generates the Docker Official Images documentation content from docker/README.md.'
+
+	def output = layout.buildDirectory.file('docker-docs/convertigo/content.md')
+	inputs.file 'docker/README.md'
+	outputs.file output
+	outputs.upToDateWhen { false }
+
+	doLast {
+		def outputFile = output.get().asFile
+		outputFile.parentFile.mkdirs()
+		outputFile.setText(renderDockerDocsOfficialContent(), 'UTF-8')
+	}
+}
+
+task checkDockerDocsOfficial(dependsOn: 'generateDockerDocsOfficialContent') {
+	group = 'convertigo'
+	description = 'Checks that the sibling docker-docs repository is synchronized with docker/README.md.'
+
+	doLast {
+		def target = new File(dockerDocsOfficialDir(), 'convertigo/content.md')
+		if (!target.isFile()) {
+			throw new GradleException("Docker docs target not found: ${target}. Use -PdockerDocsDir=path/to/docker-docs if repositories are not siblings.")
+		}
+		def generated = layout.buildDirectory.file('docker-docs/convertigo/content.md').get().asFile
+		if (target.getText('UTF-8') != generated.getText('UTF-8')) {
+			throw new GradleException("Docker official docs are not synchronized. Run ./gradlew updateDockerDocsOfficial or inspect ${generated}.")
+		}
+	}
+}
+
+task updateDockerDocsOfficial(dependsOn: 'generateDockerDocsOfficialContent') {
+	group = 'convertigo'
+	description = 'Updates ../docker-docs/convertigo/content.md from docker/README.md. Override with -PdockerDocsDir=path.'
+
+	doLast {
+		def docsDir = dockerDocsOfficialDir()
+		def target = new File(docsDir, 'convertigo/content.md')
+		if (!new File(docsDir, '.git').directory) {
+			throw new GradleException("Docker docs repository not found: ${docsDir}. Use -PdockerDocsDir=path/to/docker-docs if repositories are not siblings.")
+		}
+		if (!target.isFile()) {
+			throw new GradleException("Docker docs target not found: ${target}.")
+		}
+
+		def generated = layout.buildDirectory.file('docker-docs/convertigo/content.md').get().asFile
+		def generatedText = generated.getText('UTF-8')
+		if (target.getText('UTF-8') != generatedText) {
+			def statusProcess = new ProcessBuilder('git', 'status', '--porcelain', '--', 'convertigo/content.md')
+				.directory(docsDir)
+				.redirectErrorStream(true)
+				.start()
+			def statusOutput = statusProcess.inputStream.getText('UTF-8')
+			def statusExitCode = statusProcess.waitFor()
+			if (statusExitCode != 0) {
+				throw new GradleException("Unable to inspect Docker docs git status in ${docsDir}: ${statusOutput.trim()}")
+			}
+			if (!statusOutput.trim().isEmpty() && !project.hasProperty('dockerDocsOverwrite')) {
+				throw new GradleException("Refusing to overwrite locally modified Docker docs file: ${target}. Use -PdockerDocsOverwrite=true to regenerate it anyway.")
+			}
+			target.setText(generatedText, 'UTF-8')
+		}
+	}
+}
+
+task validateDockerDocsOfficial(dependsOn: 'checkDockerDocsOfficial') {
+	group = 'convertigo'
+	description = 'Runs Docker official docs validations for the sibling docker-docs repository.'
+
+	doLast {
+		def docsDir = dockerDocsOfficialDir()
+		if (!new File(docsDir, '.git').directory) {
+			throw new GradleException("Docker docs repository not found: ${docsDir}. Use -PdockerDocsDir=path/to/docker-docs if repositories are not siblings.")
+		}
+
+		runDockerDocsOfficialCommand(docsDir, ['/usr/bin/env', 'bash', '-c', '''
+			files="$(
+				find . \\( -name '*.md' -not -name 'README.md' \\) -exec test -s '{}' ';' -print0 \
+					| xargs -0 ./markdownfmt.sh -l
+			)"
+			if [ -n "$files" ]; then
+				echo >&2 'Need markdownfmt:'
+				echo >&2 "$files"
+				echo >&2
+				echo "$files" | xargs ./markdownfmt.sh -d >&2
+				exit 1
+			fi
+		'''.stripIndent().trim()])
+
+		runDockerDocsOfficialCommand(docsDir, ['/usr/bin/env', 'bash', '-c', './.ci/check-required-files.sh && ./.ci/check-short.sh && ./.ci/check-pr-no-readme.sh'])
+
+		runDockerDocsOfficialCommand(docsDir, ['/usr/bin/env', 'bash', '-c', '''
+			needdiff=
+			need=()
+			while IFS= read -r f; do
+				fdiff="$(./ymlfmt.sh -d "$f")"
+				if [ -n "$fdiff" ]; then
+					need+=( "$f" )
+					needdiff+="$fdiff"$'\\n'
+				fi
+			done < <(find . \\( -name '*.yml' -o -name '*.yaml' \\) -not -path './.github/*')
+			if [ -n "$needdiff" ]; then
+				echo >&2 'Need ymlfmt:'
+				printf '%s\\n' "${need[@]}" >&2
+				echo >&2
+				printf '%s' "$needdiff" >&2
+				exit 1
+			fi
+		'''.stripIndent().trim()], ['DOCKER_DEFAULT_PLATFORM': findProperty('dockerDocsYmlPlatform') ?: 'linux/amd64'])
+
+		runDockerDocsOfficialCommand(docsDir, ['docker', 'run', '--rm',
+			'-v', "${docsDir.absolutePath}:/src:ro",
+			'debian:trixie-slim',
+			'bash', '-c', '''
+				set -Eeuo pipefail
+				export DEBIAN_FRONTEND=noninteractive
+				apt-get update >/dev/null
+				apt-get install -y --no-install-recommends ca-certificates curl git jq util-linux coreutils diffutils findutils >/dev/null
+
+				arch="$(dpkg --print-architecture)"
+				case "$arch" in
+					amd64) bashbrew_asset='bashbrew-amd64' ;;
+					arm64) bashbrew_asset='bashbrew-arm64v8' ;;
+					*) echo >&2 "Unsupported bashbrew validation architecture: $arch"; exit 1 ;;
+				esac
+				curl -fsSL -o /usr/local/bin/bashbrew "https://github.com/docker-library/bashbrew/releases/download/v0.1.14/$bashbrew_asset"
+				chmod +x /usr/local/bin/bashbrew
+
+				mkdir /work
+				cp -a /src/. /work/
+				cd /work
+				.ci/check-metadata.sh
+				if ! ./update.sh convertigo >/tmp/update.log 2>&1; then
+					cat /tmp/update.log >&2
+					exit 1
+				fi
+				tail -80 /tmp/update.log
+			'''.stripIndent().trim()
+		])
+	}
+}
 task downloadSystemLibFlowViewer(type: Sync) {
 	group = 'convertigo'
 	
@@ -673,6 +904,52 @@ tasks.register('checkStudioJdkUpToDate') {
 	}
 }
 
+tasks.register('checkSwaggerUiUpToDate') {
+	group = 'convertigo'
+	description = 'Checks whether swaggerUiVersion matches the latest swagger-ui GitHub release.'
+
+	inputs.property('swaggerUiVersion', swaggerUiVersion)
+
+	doLast {
+		def failOnOutdated = project.findProperty('failOnOutdatedSwaggerUi')?.toString()?.toBoolean() ?: false
+		def configured = swaggerUiVersion.toString()
+		try {
+			def connection = new URL('https://api.github.com/repos/swagger-api/swagger-ui/releases/latest').openConnection()
+			connection.setRequestProperty('Accept', 'application/vnd.github+json')
+			connection.setRequestProperty('User-Agent', 'convertigo-gradle')
+			def release = new JsonSlurper().parse(connection.inputStream)
+			def latest = release?.tag_name?.toString()?.replaceFirst(/^v/, '')
+			if (!latest) {
+				def msg = 'Cannot read the latest swagger-ui release tag from GitHub'
+				if (failOnOutdated) {
+					throw new GradleException(msg)
+				}
+				logger.warn(msg)
+				return
+			}
+
+			if (configured == latest) {
+				logger.lifecycle("swagger-ui is up to date (${configured}).")
+			} else {
+				def configuredLine = configured.tokenize('.').take(2).join('.')
+				def latestLine = latest.tokenize('.').take(2).join('.')
+				def scope = configuredLine == latestLine ? 'patch' : 'minor/major'
+				def msg = "swagger-ui is outdated (${scope} update): configured ${configured}, latest release is ${latest}. Update swaggerUiVersion in build.gradle and run :engine:unzipSwaggerUI."
+				if (failOnOutdated) {
+					throw new GradleException(msg)
+				}
+				logger.warn(msg)
+			}
+		} catch (Exception e) {
+			def msg = "Failed to check swagger-ui update status: ${e.message}"
+			if (failOnOutdated) {
+				throw new GradleException(msg, e)
+			}
+			logger.warn(msg)
+		}
+	}
+}
+
 def extractVersionLine = { String version ->
 	def components = ((version ?: '') =~ /\d+/).collect { it.toString() }
 	if (components.isEmpty()) {
@@ -737,6 +1014,7 @@ def shouldRejectDependencyUpdate = { selection, boolean samePatchLineOnly ->
 def configureDependencyUpdatesReport = { DependencyUpdatesTask task, boolean samePatchLineOnly ->
 	if (task.project == rootProject) {
 		task.finalizedBy(rootProject.tasks.named("checkStudioJdkUpToDate"))
+		task.finalizedBy(rootProject.tasks.named("checkSwaggerUiUpToDate"))
 	}
 	task.revision = 'release'
 	task.gradleReleaseChannel = 'current'

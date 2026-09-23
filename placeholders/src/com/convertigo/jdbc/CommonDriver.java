@@ -29,12 +29,27 @@ public class CommonDriver {
 		}
 		
 		String message = "(" + classPath + ") This is not the true " + jarName + ", due to license issue we cannot provide it.\n\n"
-				+ "If you do not have an official " + jarName + ", " + howToGetIt + "\n\n"
-				+ "You have to put the official " + jarName + " to your {project}/libs directory and try again.\n\n";
+				+ "If you do not have an official " + jarName + ", " + howToGetIt + "\n\n";
 		try {
 			Class<?> engine = Class.forName("com.twinsoft.convertigo.engine.Engine");
-			String path = new File("" + engine.getField("USER_WORKSPACE_PATH").get(null) + "/libs/").getCanonicalPath();
-			message += "For global use, you can also put the jar here: " + path;
+			String workspacePath = "" + engine.getField("USER_WORKSPACE_PATH").get(null);
+			String webappPath = "" + engine.getField("WEBAPP_PATH").get(null);
+			boolean isContainer = (Boolean) engine.getMethod("isContainer").invoke(null);
+			String libsPath = new File(workspacePath + "/libs/").getCanonicalPath();
+			String webappLibPath = new File(webappPath + "/WEB-INF/lib/").getCanonicalPath();
+
+			message += "Where to install the official " + jarName + " depends on what uses it:\n"
+					+ "- SQL connectors only: put it in the {project}/libs directory of the project, or in " + libsPath + " for all projects;\n"
+					+ "- database cache or analytics database: it must replace the placeholder in " + webappLibPath;
+			if (isContainer) {
+				// the official Docker image copies <workspace>/lib into WEB-INF/lib at each start
+				String libPath = new File(workspacePath + "/lib/").getCanonicalPath();
+				message += "\n  (in this container, put it in the persistent folder " + libPath
+						+ ": it is copied into the web application at each start, then restart the container).";
+			} else {
+				message += ".";
+			}
+			message += "\nA README.md file in each of these workspace folders gives the details.";
 			Object logger = engine.getField("logEngine").get(null);
 			Class<?> c_logger = logger.getClass();
 			c_logger.getMethod("error", Object.class).invoke(logger, message);

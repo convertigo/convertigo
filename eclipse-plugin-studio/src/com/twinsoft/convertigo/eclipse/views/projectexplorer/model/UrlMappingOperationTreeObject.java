@@ -111,7 +111,6 @@ public class UrlMappingOperationTreeObject extends DatabaseObjectTreeObject impl
 						hasBeenModified(true);
 						
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(UrlMappingOperationTreeObject.this);
-						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}
 			}

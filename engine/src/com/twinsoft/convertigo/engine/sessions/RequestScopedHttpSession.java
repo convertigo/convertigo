@@ -128,6 +128,7 @@ public final class RequestScopedHttpSession implements HttpSession, AutoCloseabl
 		touch();
 	}
 
+
 	@Override
 	public synchronized void invalidate() {
 		if (invalidated) {

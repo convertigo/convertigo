@@ -10,8 +10,57 @@ defaults: &defaults
   - image: cimg/openjdk:21.0
   
 version: 2.1
+
+parameters:
+  # Set by the scheduled pipeline "docker rebuild" (branch master): runs only the docker_rebuild workflow.
+  docker_rebuild:
+    type: boolean
+    default: false
+  # Rebuild even when neither the base image nor the docker/ sources changed (refreshes the OS packages).
+  docker_rebuild_force:
+    type: boolean
+    default: false
+
 orbs:
   aws-cli: circleci/aws-cli@5.4.1
+commands:
+  docker_build_push:
+    description: >
+      Build docker/<type> with buildx and push it once with every requested tag.
+      The calling job writes /tmp/docker-build.env beforehand with DOCKER_IMAGE, DOCKER_TAGS
+      (space separated) and optionally DOCKER_LABELS (key=value, space separated) and
+      CONVERTIGO_WAR_URL (replaces the WAR URL of the Dockerfile).
+    parameters:
+      type:
+        type: enum
+        enum: ["default", "aks"]
+      platforms:
+        type: string
+    steps:
+    - run:
+        name: Docker build and push for << parameters.type >>
+        command: |
+          set -eu
+          . /tmp/docker-build.env
+          cd docker/<< parameters.type >>
+          if [ -n "${CONVERTIGO_WAR_URL:-}" ] ; then
+            echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
+            sed -e "s,ENV CONVERTIGO_WAR_URL=.*,ENV CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL," -i.bak Dockerfile
+          fi
+          echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
+          echo "Install latest qemu"
+          docker pull tonistiigi/binfmt:latest
+          docker run --privileged --rm tonistiigi/binfmt --uninstall qemu-*
+          docker run --privileged --rm tonistiigi/binfmt --install all
+          echo "Launch buildx"
+          docker buildx create --use
+          ARGS=""
+          for tag in $DOCKER_TAGS ; do ARGS="$ARGS -t $DOCKER_IMAGE:$tag" ; done
+          for label in ${DOCKER_LABELS:-} ; do ARGS="$ARGS --label $label" ; done
+          echo "Build and push $DOCKER_IMAGE with tags: $DOCKER_TAGS"
+          docker buildx build --progress plain --pull --push $ARGS \
+            --provenance=mode=max --sbom=true --platform << parameters.platforms >> .
+
 jobs:
   prepare_build:
     <<: *defaults
@@ -107,32 +156,40 @@ jobs:
         name: Clone convertigo-doc
         command: |
           source /tmp/build.env
-          if [ "$CIRCLE_BRANCH" != "" ] ; then
-          git clone --depth 1 -b $CIRCLE_BRANCH --single-branch git@github.com:convertigo/convertigo-doc.git || NOCLONE=true
-          if [ "$NOCLONE" = true ]; then
-            git clone --depth 1 -b develop --single-branch git@github.com:convertigo/convertigo-doc.git
-            (cd convertigo-doc && git checkout -b $CIRCLE_BRANCH --track)
-          fi
-          else
-            echo "No documentation for tag build"
-          fi
+          # Documentation is generated only for the long-lived branches (master, hotfix, develop):
+          # feature branches would otherwise create a convertigo-doc branch and an S3 prefix to clean up.
+          case "$CIRCLE_BRANCH" in
+            master|hotfix|develop)
+              git clone --depth 1 -b $CIRCLE_BRANCH --single-branch git@github.com:convertigo/convertigo-doc.git || NOCLONE=true
+              if [ "$NOCLONE" = true ]; then
+                git clone --depth 1 -b develop --single-branch git@github.com:convertigo/convertigo-doc.git
+                (cd convertigo-doc && git checkout -b $CIRCLE_BRANCH --track)
+              fi
+              ;;
+            "")
+              echo "No documentation for tag build"
+              ;;
+            *)
+              echo "No documentation for branch $CIRCLE_BRANCH"
+              ;;
+          esac
         
     - run:
         name: Build engine.jar and documentation's .md
         command: |
           source /tmp/build.env
           test -d ~/.gradle/caches && find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rf {} +
-          if [ "$CIRCLE_BRANCH" == "" ] ; then
-            sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:jar :gradle-plugin:publish
-          else
+          if [ -d convertigo-doc ] ; then
             sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME -PdocumentationPath=$PWD/convertigo-doc :engine:generateDocumentationMd :engine:jar :gradle-plugin:publish
+          else
+            sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:jar :gradle-plugin:publish
           fi
         
     - run:
         name: Push to convertigo-doc
         command: |
           source /tmp/build.env
-          if [ "$CIRCLE_BRANCH" != "" ] ; then
+          if [ -d convertigo-doc ] ; then
           cd convertigo-doc
           git config --global user.email "info@convertigo.com"
           git config --global user.name "$CIRCLE_PROJECT_USERNAME"
@@ -140,7 +197,7 @@ jobs:
           git commit -a -m "Automatic commit from $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME@$CIRCLE_SHA1" || echo "Nothing to commit"
           git push origin $CIRCLE_BRANCH || echo "Nothing to push"
           else
-            echo "No documentation for tag build"
+            echo "No documentation for this build"
           fi
           
     - save_cache:
@@ -362,28 +419,59 @@ jobs:
         version: default
     
     - run:
-        name: Docker build and push for default
+        name: Prepare the Docker build for default
         command: |
           source /tmp/build.env
-          export TYPE=default
-          cd docker/$TYPE
-          export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
-          echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
-          sed -e "s,ENV CONVERTIGO_WAR_URL=.*,ENV CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL," -i.bak Dockerfile
-          echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          echo "Install latest qemu"
-          docker run --rm --privileged tonistiigi/binfmt --install all
-          echo "Launch buildx"
-          docker buildx create --use
-          docker pull tonistiigi/binfmt:latest
-          docker run --privileged --rm tonistiigi/binfmt --uninstall qemu-*
-          docker run --privileged --rm tonistiigi/binfmt --install all
-          docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE --provenance=mode=max --sbom=true --platform linux/amd64,linux/arm64/v8 .
+          TAGS="$CONVERTIGO_DOCKER_IMAGE"
           if [ "$CONVERTIGO_BRANCH" != "" ] ; then
-            docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH --provenance=mode=max --sbom=true --platform linux/amd64,linux/arm64/v8 .
+            TAGS="$TAGS $CONVERTIGO_BRANCH"
           fi
           if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
-            docker buildx build --progress plain --push -t $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION --provenance=mode=max --sbom=true --platform linux/amd64,linux/arm64/v8 .
+            TAGS="$TAGS $CONVERTIGO_VERSION"
+          fi
+          {
+            echo "DOCKER_IMAGE=$CONVERTIGO_DOCKER"
+            echo "DOCKER_TAGS='$TAGS'"
+            echo "CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war"
+          } > /tmp/docker-build.env
+
+    - docker_build_push:
+        type: default
+        platforms: linux/amd64,linux/arm64/v8
+
+    - run:
+        name: Update Docker Hub description from docker/README.md
+        command: |
+          source /tmp/build.env
+          if [ "$CONVERTIGO_DOCKER" = "convertigo/convertigo" ] && [ "$CONVERTIGO_BRANCH" = "latest" ]; then
+            cp docker/README.md /tmp/dockerhub-description.md
+          elif [ "$CONVERTIGO_DOCKER" = "convertigo/convertigo-ci" ] && [ "$CONVERTIGO_BRANCH" != "" ]; then
+            {
+              echo "> **Continuous integration images, not for production.** This repository receives the images built by CircleCI for the Convertigo development branches."
+              echo ">"
+              echo "> This description was published by the build of the \`$CONVERTIGO_BRANCH\` branch (version \`$CONVERTIGO_VERSION\`, image tags \`$CONVERTIGO_DOCKER_IMAGE\` and \`$CONVERTIGO_BRANCH\`). Released images are published on [convertigo/convertigo](https://hub.docker.com/r/convertigo/convertigo) and on the official [convertigo](https://hub.docker.com/_/convertigo) image."
+              echo
+              cat docker/README.md
+            } > /tmp/dockerhub-description.md
+          else
+            echo "Not a release or branch build, skip the Docker Hub description update"
+            exit 0
+          fi
+          apk add --no-cache curl jq > /dev/null
+          TOKEN=$(jq -n --arg u "$DOCKER_USERNAME" --arg p "$DOCKER_PASSWORD" '{username: $u, password: $p}' \
+            | curl -sf -X POST https://hub.docker.com/v2/users/login/ -H "Content-Type: application/json" -d @- \
+            | jq -r '.token // empty')
+          if [ -z "$TOKEN" ]; then
+            echo "WARNING: Docker Hub API login failed, description not updated"
+            exit 0
+          fi
+          jq -n --rawfile readme /tmp/dockerhub-description.md '{full_description: $readme}' > /tmp/dockerhub-description.json
+          if curl -sf -X PATCH https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/ \
+               -H "Authorization: JWT $TOKEN" -H "Content-Type: application/json" \
+               -d @/tmp/dockerhub-description.json > /dev/null; then
+            echo "Docker Hub description of $CONVERTIGO_DOCKER updated from docker/README.md"
+          else
+            echo "WARNING: Docker Hub description update failed for $CONVERTIGO_DOCKER"
           fi
           
   build_docker_aks:
@@ -402,33 +490,34 @@ jobs:
         version: default
     
     - run:
-        name: Docker build and push for aks
+        name: Prepare the Docker build for aks
         command: |
           source /tmp/build.env
-          export TYPE=aks
-          cd docker/$TYPE
-          export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
-          echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
-          sed -e "s,ENV CONVERTIGO_WAR_URL=.*,ENV CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL," -i.bak Dockerfile
-          echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          echo "Install latest qemu"
-          docker run --rm --privileged tonistiigi/binfmt --install all
-          echo "Launch buildx"
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE .
-          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE
+          TAGS="$CONVERTIGO_DOCKER_IMAGE-aks"
           if [ "$CONVERTIGO_BRANCH" != "" ] ; then
-            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
-            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
+            TAGS="$TAGS $CONVERTIGO_BRANCH-aks"
           fi
           if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
-            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
-            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
+            TAGS="$TAGS $CONVERTIGO_VERSION-aks"
           fi
-          
+          {
+            echo "DOCKER_IMAGE=$CONVERTIGO_DOCKER"
+            echo "DOCKER_TAGS='$TAGS'"
+            echo "CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war"
+          } > /tmp/docker-build.env
+
+    - docker_build_push:
+        type: aks
+        platforms: linux/amd64
+
+    - run:
+        name: Stop the beta environment after a develop build
+        command: |
+          source /tmp/build.env
           if [ "$CONVERTIGO_BRANCH" = "develop" ]; then
-          	docker run --rm -d alpine/curl -m 10 "$BETA_KILL_URL" || true
+            docker run --rm -d alpine/curl -m 10 "$BETA_KILL_URL" || true
           fi
-          
+
   qualif_jmx_1:
     <<: *defaults
     steps:
@@ -531,7 +620,7 @@ jobs:
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
           echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 8.4.0 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-3.git
+          git clone --depth 1 -b 8.4.5 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-3.git
           
     - run:
         name: Pull the docker default image
@@ -841,6 +930,73 @@ jobs:
             --body "${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg" \
             --storage-class REDUCED_REDUNDANCY \
             --acl public-read
+  rebuild_release_docker:
+    # Keeps convertigo/convertigo:<released version> in line with its base image, like the Docker
+    # Official Image: rebuilt from master when the base image digest or the docker/ sources changed.
+    docker:
+    - image: docker:latest
+
+    steps:
+    - checkout
+
+    - setup_remote_docker:
+        version: default
+
+    - run:
+        name: Check whether the released Docker images must be rebuilt
+        command: |
+          set -eu
+          apk add --no-cache curl jq git > /dev/null
+          VERSION=$(sed -n "s/ext.convertigoVersion = '\(.*\)'/\\1/p" build.gradle)
+          TAG=$(sed -n "s/ext.convertigoTag = '\(.*\)'/\\1/p" build.gradle)
+          if [ -n "$TAG" ] ; then
+            echo "build.gradle declares $VERSION-$TAG: not a released version, nothing to rebuild"
+            exit 0
+          fi
+          WAR_URL=https://github.com/convertigo/convertigo/releases/download/$VERSION/convertigo-$VERSION.war
+          if [ "$(curl -sIL -o /dev/null -w '%{http_code}' "$WAR_URL")" != "200" ] ; then
+            echo "$WAR_URL is not available: the $VERSION release is not published yet, nothing to rebuild"
+            exit 0
+          fi
+          IMAGE=convertigo/convertigo
+          BASE=$(sed -n 's/^FROM \([^ ]*\).*/\1/p' docker/default/Dockerfile | head -1)
+          BASE_DIGEST=$(docker buildx imagetools inspect "$BASE" --format '{{json .Manifest.Digest}}' | tr -d '"')
+          REVISION=$(git log -1 --format=%H -- docker ":(exclude)docker/README.md")
+          CURRENT=$(docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{json .Image}}' 2>/dev/null || echo '{}')
+          CURRENT_BASE=$(echo "$CURRENT" | jq -r '.["linux/amd64"].config.Labels["org.opencontainers.image.base.digest"] // ""')
+          CURRENT_REVISION=$(echo "$CURRENT" | jq -r '.["linux/amd64"].config.Labels["org.opencontainers.image.revision"] // ""')
+          echo "base image $BASE: $BASE_DIGEST (published image: ${CURRENT_BASE:-unknown})"
+          echo "docker/ revision: $REVISION (published image: ${CURRENT_REVISION:-unknown})"
+          if [ "$BASE_DIGEST" = "$CURRENT_BASE" ] && [ "$REVISION" = "$CURRENT_REVISION" ] && [ "<< pipeline.parameters.docker_rebuild_force >>" != "true" ] ; then
+            echo "$IMAGE:$VERSION is up to date, nothing to rebuild"
+            exit 0
+          fi
+          LABELS="org.opencontainers.image.base.name=$BASE org.opencontainers.image.base.digest=$BASE_DIGEST org.opencontainers.image.revision=$REVISION org.opencontainers.image.version=$VERSION"
+          {
+            echo "DOCKER_IMAGE=$IMAGE"
+            echo "DOCKER_TAGS='$VERSION latest'"
+            echo "DOCKER_LABELS='$LABELS'"
+          } > /tmp/docker-build.env
+          sed -e "s/^DOCKER_TAGS=.*/DOCKER_TAGS='$VERSION-aks latest-aks'/" /tmp/docker-build.env > /tmp/docker-build-aks.env
+          touch /tmp/docker-rebuild
+
+    - run:
+        name: Stop here when the published images are up to date
+        command: |
+          [ -f /tmp/docker-rebuild ] || circleci-agent step halt
+
+    - docker_build_push:
+        type: default
+        platforms: linux/amd64,linux/arm64/v8
+
+    - run:
+        name: Switch to the aks tags
+        command: cp /tmp/docker-build-aks.env /tmp/docker-build.env
+
+    - docker_build_push:
+        type: aks
+        platforms: linux/amd64
+
   release:
     docker:
     - image: cibuilds/github:latest
@@ -875,6 +1031,8 @@ jobs:
 workflows:
   version: 2
   all:
+    when:
+      not: << pipeline.parameters.docker_rebuild >>
     jobs:
     - prepare_build:
         filters:
@@ -981,5 +1139,13 @@ workflows:
             ignore: /.*/
           tags:
             only: /^\d+\..*$/
+  docker_rebuild:
+    when: << pipeline.parameters.docker_rebuild >>
+    jobs:
+    - rebuild_release_docker:
+        filters:
+          branches:
+            only: master
+
 triggers:
   pull_requests: off

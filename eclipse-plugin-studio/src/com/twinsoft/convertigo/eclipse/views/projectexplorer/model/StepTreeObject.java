@@ -152,7 +152,6 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 						hasBeenModified(true);
 						
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(StepTreeObject.this);
-						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}
 			}

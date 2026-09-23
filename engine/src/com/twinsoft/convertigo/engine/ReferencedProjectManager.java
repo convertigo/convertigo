@@ -163,6 +163,11 @@ public class ReferencedProjectManager {
 	public Project importProject(ProjectUrlParser parser, boolean force, boolean newPriorities) throws Exception {
 		String projectName = parser.getProjectName();
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+		if (project == null && Engine.theApp.databaseObjectsManager.isImportingByCurrentThread(projectName)) {
+			// cyclic reference: the project is already being loaded up the stack, don't clone or deploy another copy
+			Engine.logEngine.debug("(ReferencedProjectManager) " + projectName + " is being loaded by this thread, skip its reference");
+			return null;
+		}
 		File dir = null;
 		File prjDir = null;
 		boolean cloneDone = false;

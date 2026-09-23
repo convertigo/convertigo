@@ -62,10 +62,17 @@ public class IonBean {
 		;
 	}
 	
+	/** Property mode and value of an instance, when they differ from its model */
+	private record PropertyValue(String mode, Object value) {}
+	
 	private JSONObject jsonBean;
 	private String beanData;
 	private IonConfig ionConfig;
 	private String imageFolder = "/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/";
+	
+	// An instance shares the jsonBean of its model (never modified) and only holds its own property values
+	private IonBean model;
+	private Map<String, PropertyValue> propertyValues;
 	
 	public IonBean() {
 		try {
@@ -119,6 +126,12 @@ public class IonBean {
 		}
 	}
 	
+	IonBean(IonBean model) {
+		this.model = model;
+		this.jsonBean = model.jsonBean;
+		this.imageFolder = model.imageFolder;
+	}
+	
 	public void setImageFolder(String imageFolder) {
 		this.imageFolder = imageFolder;
 	}
@@ -127,7 +140,7 @@ public class IonBean {
 		if (beanData != null) {
 			return beanData;
 		}
-		beanData = jsonBean.toString();
+		beanData = toString();
 		try {
 			JSONObject jsonOb = new JSONObject(beanData);
 			for (Key k: Key.values()) {
@@ -169,11 +182,63 @@ public class IonBean {
 	}
 	
 	public String toString() {
-		return jsonBean.toString();
+		return mergedJSONObject().toString();
 	}
 	
 	public JSONObject getJSONObject() {
-		return jsonBean;
+		if (model == null) {
+			return jsonBean;
+		}
+		// a copy, so that the shared model is never modified
+		try {
+			return JsonUtils.copy(mergedJSONObject());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return mergedJSONObject();
+		}
+	}
+	
+	/** The jsonBean, with the property values of an instance applied on a shallow copy of its model */
+	private JSONObject mergedJSONObject() {
+		if (model == null) {
+			return jsonBean;
+		}
+		JSONObject json = new JSONObject();
+		try {
+			@SuppressWarnings("unchecked")
+			Iterator<String> it = jsonBean.keys();
+			while (it.hasNext()) {
+				String key = it.next();
+				json.put(key, jsonBean.get(key));
+			}
+			JSONObject jsonProperties = jsonBean.getJSONObject(Key.properties.name());
+			JSONObject properties = new JSONObject();
+			@SuppressWarnings("unchecked")
+			Iterator<String> itp = jsonProperties.keys();
+			while (itp.hasNext()) {
+				String pkey = itp.next();
+				Object ob = jsonProperties.get(pkey);
+				PropertyValue value = propertyValues == null ? null : propertyValues.get(pkey);
+				if (value != null) {
+					ob = toProperty(pkey, (JSONObject) ob, value).getJSONObject();
+				}
+				properties.put(pkey, ob);
+			}
+			json.put(Key.properties.name(), properties);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return json;
+	}
+	
+	private static IonProperty toProperty(String pkey, JSONObject jsonProperty, PropertyValue value) {
+		IonProperty property = new IonProperty(jsonProperty);
+		property.setName(pkey);
+		if (value != null) {
+			property.setMode(value.mode());
+			property.setValue(value.value());
+		}
+		return property;
 	}
 	
 	public String getClassName() {
@@ -204,6 +269,7 @@ public class IonBean {
 	
 	protected void setName(String name) {
 		try {
+			detach();
 			jsonBean.put(Key.name.name(), name);
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -389,8 +455,8 @@ public class IonBean {
 				if (!pkey.isEmpty()) {
 					Object ob = jsonProperties.get(pkey);
 					if (ob instanceof JSONObject) {
-						IonProperty property = new IonProperty((JSONObject)ob);
-						property.setName(pkey);
+						PropertyValue value = propertyValues == null ? null : propertyValues.get(pkey);
+						IonProperty property = toProperty(pkey, (JSONObject) ob, value);
 						properties.put(property.getName(), property);
 					}
 				}
@@ -405,13 +471,41 @@ public class IonBean {
 		try {
 			JSONObject jsonProperties = jsonBean.getJSONObject(Key.properties.name());
 			if (jsonProperties != null) {
-				jsonProperties.put(property.getName(), property.getJSONObject());
+				String name = property.getName();
+				Object ob = model == null ? null : jsonProperties.opt(name);
+				if (ob instanceof JSONObject jsonProperty && !name.isEmpty()) {
+					String mode = property.getMode();
+					Object value = property.getValue();
+					if (mode.equals(jsonProperty.opt(IonProperty.Key.mode.name())) && value.equals(jsonProperty.opt(IonProperty.Key.value.name()))) {
+						if (propertyValues != null) {
+							propertyValues.remove(name);
+						}
+					} else {
+						if (propertyValues == null) {
+							propertyValues = new HashMap<String, PropertyValue>();
+						}
+						propertyValues.put(name, new PropertyValue(mode.intern(), value));
+					}
+				} else {
+					detach();
+					jsonProperties = jsonBean.getJSONObject(Key.properties.name());
+					jsonProperties.put(name, property.getJSONObject());
+				}
 				beanData = null;
 				ionConfig = null;
 			}
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+	
+	/** Makes an instance own a copy of its model, before a change the model must not see */
+	private void detach() throws JSONException {
+		if (model != null) {
+			jsonBean = JsonUtils.copy(mergedJSONObject());
+			model = null;
+			propertyValues = null;
 		}
 	}
 	
@@ -505,3 +599,4 @@ public class IonBean {
 	}
 	 
 }
+	

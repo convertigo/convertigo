@@ -50,6 +50,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -337,9 +338,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public Project getOriginalProjectByName(String projectName, boolean checkOpenable) throws EngineException {
 		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
 
-		if (checkOpenable && !canOpenProject(projectName)) {
+		if (checkOpenable && !canOpenProject(projectName) && clearCacheIfCannotOpen(projectName)) {
 			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
-			clearCache(projectName);
 			return null;
 		}
 
@@ -485,7 +485,25 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void clearCache(String projectName) {
+		clearCache(projectName, () -> true);
+	}
+
+	/**
+	 * Clears the cache of a project that cannot be opened. The check is repeated under the import lock:
+	 * an import running meanwhile declares the project, which can then be opened and stays in the cache.
+	 * @return false if the project can be opened now
+	 */
+	private boolean clearCacheIfCannotOpen(String projectName) {
+		boolean[] cannotOpen = {true};
+		clearCache(projectName, () -> cannotOpen[0] = !canOpenProject(projectName));
+		return cannotOpen[0];
+	}
+
+	private void clearCache(String projectName, BooleanSupplier condition) {
 		Project  project = lockAndRun(projectName, (lock) -> {
+			if (!condition.getAsBoolean()) {
+				return null;
+			}
 			Project prj = null;
 			synchronized (projects) {
 				prj = projects.remove(projectName);
@@ -544,6 +562,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public Project getLoadedProjectByName(String projectName) {
 		return getCachedProject(projectName);
+	}
+
+	/** True while the current thread is importing this project, including the check of its references. */
+	public boolean isImportingByCurrentThread(String projectName) {
+		var lock = importLocks.get(projectName);
+		return lock != null && acquiredLocks.get().contains(lock);
 	}
 
 	public boolean existsProject(String projectName) {
@@ -1034,8 +1058,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 		} catch (VersionException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\".",
-					e);
+			String reason = e.getMessage();
+			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\""
+					+ (reason == null || reason.isBlank() ? "." : ": " + reason), e);
 		}
 	}
 
@@ -1247,11 +1272,22 @@ public class DatabaseObjectsManager implements AbstractManager {
 			.info("Trying to load unexisting: " + oldName + "\nLoading instead: " + _importFile);
 		}
 		File importFile = _importFile;
+		// Reject the legacy XML format early (before lockAndRun, which would
+		// otherwise swallow the exception and return null) so the caller and the
+		// Admin services report the explicit reason instead of a generic error.
+		if (!importFile.getName().equals("c8oProject.yaml")
+				&& !EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ALLOW_XML_PROJECT_LOADING)) {
+			throw new EngineException("Loading projects in the legacy XML format is disabled. "
+					+ "Only the YAML project format (c8oProject.yaml) is accepted. "
+					+ "To allow the legacy XML format, set the engine property '"
+					+ PropertyName.ALLOW_XML_PROJECT_LOADING.getKey() + "' to true.");
+		}
 		String projectName = getProjectName(importFile);
 		if (projectName == null) {
 			return null;
 		}
 		Project project = null;
+		ProjectLoadingData[] loadingData = {null};
 		try {
 			String[] version = {null};
 			boolean[] isMigrating = {false};
@@ -1328,7 +1364,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 
 				projectLoadingDataThreadLocal.remove();
-				getProjectLoadingData().projectName = projectName;
+				loadingData[0] = getProjectLoadingData();
+				loadingData[0].projectName = projectName;
 
 				// Import will perform necessary beans migration (see deserialization)
 				try {
@@ -1344,7 +1381,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 					}
 					throw e;
 				}
-				prj.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
+				prj.undefinedGlobalSymbols = loadingData[0].undefinedGlobalSymbol;
 
 				synchronized (projects) {
 					projects.put(prj.getName(), prj);
@@ -1372,8 +1409,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			.info("[importProject] Start initializing: " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().putUrlMapper(project);
 			MobileBuilder.initBuilder(project);
-			if (getProjectLoadingData().afterLoaded != null) {
-				for (var run: getProjectLoadingData().afterLoaded) {
+			if (loadingData[0].afterLoaded != null) {
+				for (var run: loadingData[0].afterLoaded) {
 					run.run();
 				}
 			}
@@ -1430,6 +1467,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 			throw e;
 		} catch (Exception e) {
 			throw new EngineException("Unable to import the project from \"" + importFile + "\".", e);
+		} finally {
+			// the afterLoaded runnables hold beans of the project: a pooled thread (http, jobs) must not keep them
+			if (loadingData[0] != null) {
+				loadingData[0].afterLoaded = null;
+				if (projectLoadingDataThreadLocal.get() == loadingData[0]) {
+					projectLoadingDataThreadLocal.remove();
+				}
+			}
 		}
 	}
 
