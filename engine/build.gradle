@@ -314,6 +314,7 @@ tasks.named('check') {
 	dependsOn 'requestScopedSessionTest'
 	dependsOn 'componentRefManagerTest'
 	dependsOn 'projectArchiveTest'
+	dependsOn 'ionBeanTest'
 }
 
 tasks.register('requestScopedSessionTest', JavaExec) {
@@ -332,6 +333,14 @@ tasks.register('projectArchiveTest', JavaExec) {
 	dependsOn sessionTestClasses
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'com.twinsoft.convertigo.engine.ProjectArchiveTest'
+}
+
+tasks.register('ionBeanTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for ion bean instances sharing their template model.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBeanTest'
 }
 
 tasks.register('componentRefManagerTest', JavaExec) {

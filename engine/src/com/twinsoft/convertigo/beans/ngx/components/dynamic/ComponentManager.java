@@ -584,14 +584,14 @@ public class ComponentManager {
 			}
 		//}
 		final IonBean model = bCache.get(modelName);
-		String templateImageFolder = getTemplateProjectImagesFolder();
 		// The model exists
 		if (model != null) {
 			boolean hasChanged = false;
 			IonBean dboBean = new IonBean(jsonBean);
 			Map<String, IonProperty> dboProperties = dboBean.getProperties();
 
-			IonBean ionBean = new IonBean(model.getJSONObject());
+			// shares the model definition (and its image folder), only the property values are kept by the instance
+			IonBean ionBean = new IonBean(model);
 			for (IonProperty ionProperty: ionBean.getProperties().values()) {
 				String propertyName = ionProperty.getName();
 				IonProperty dboProperty = dboProperties.get(propertyName);
@@ -613,13 +613,11 @@ public class ComponentManager {
 			if (hasChanged) {
 				//TODO
 			}
-			if (templateImageFolder != null) {
-				ionBean.setImageFolder(templateImageFolder);
-			}
 			return ionBean;
 		}
 		// The model doesn't exist (anymore)
 		else {
+			String templateImageFolder = getTemplateProjectImagesFolder();
 			System.out.println("(ComponentManager@"+ templateProjectName +") Model \""+modelName+"\" does not exist anymore in cache ("+jsonString+").");
 			if (Engine.isStarted) {
 				Engine.logBeans.warn("(ComponentManager@"+ templateProjectName +") Model \""+modelName+"\" does not exist anymore in cache ("+jsonString+").");
