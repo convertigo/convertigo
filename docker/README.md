@@ -24,7 +24,7 @@ The Server can also be accessed by HTTPS on `https://[dockerhost]:28443/converti
 
 ## Connect Convertigo to a CouchDB database for FullSync (Convertigo EE only)
 
-Convertigo FullSync uses Apache CouchDB 3.2.2 as its NoSQL repository.
+Convertigo FullSync uses Apache CouchDB 3.5 as its NoSQL repository.
 
 For modern Docker setups, prefer one of these approaches:
 
@@ -56,7 +56,7 @@ Create a user-defined Docker network and run both containers on it:
 
     docker network create c8o-net
 
-    docker run -d --name fullsync --network c8o-net couchdb:3.2.2
+    docker run -d --name fullsync --network c8o-net couchdb:3.5
 
     docker run -d --name C8O --network c8o-net \
         -e JAVA_OPTS="-Dconvertigo.engine.fullsync.couch.url=http://fullsync:5984" \
@@ -96,7 +96,7 @@ If the database runs in another container, connect both containers to the same u
 
 Projects are deployed in the Convertigo workspace, a simple file system directory. You can map the docker container **/workspace** to your physical system by using:
 
-    docker run --name C8O -v $(pwd):/workspace -d -p 28080:28080 convertigo
+    docker run --name C8O -v $PWD:/workspace -d -p 28080:28080 convertigo
 
 You can share the same workspace by all Convertigo containers. In this case, when you deploy a project on a Convertigo container, it will be seen by others. This is the best way to build multi-instance load balanced Convertigo server farms.
 
@@ -157,7 +157,7 @@ For example, prepare a workspace and mount it into the container:
     mkdir -p workspace/lib workspace/classes/com/example
     cp my-driver.jar workspace/lib/
     cp build/classes/java/main/com/example/MyClass.class workspace/classes/com/example/
-    docker run --name C8O -v "$(pwd)/workspace:/workspace" -d -p 28080:28080 convertigo
+    docker run --name C8O -v "$PWD/workspace:/workspace" -d -p 28080:28080 convertigo
 
 This is also useful when iterating on a custom Java extension without building a derived Convertigo image. Ensure that the mounted workspace is writable by the container at startup.
 
@@ -170,7 +170,7 @@ The image is based on the Eclipse Temurin JDK image, which ships an entrypoint a
     cp partner-intermediate-ca.crt custom-ca/
     docker run --name C8O \
         -e USE_SYSTEM_CA_CERTS=1 \
-        -v "$(pwd)/custom-ca:/certificates:ro" \
+        -v "$PWD/custom-ca:/certificates:ro" \
         -d -p 28080:28080 convertigo
 
 At startup, the certificates are imported into a copy of the JDK truststore (the JDK installation is not modified, so this also works with an arbitrary non-root user) and the JVM is configured to use that copy through `JAVA_TOOL_OPTIONS`. The system certificate authorities of the image are imported as well. When the container runs as `root`, the certificates are also added to the system trust store, so command-line tools such as `curl` trust them too. In Kubernetes, mount a ConfigMap or Secret read-only at `/certificates`. The truststore is rebuilt at every container start: restart or recreate the container after adding, replacing or removing a certificate. The JVM reports the truststore it uses with a `Picked up JAVA_TOOL_OPTIONS` line at startup.
