@@ -2631,24 +2631,25 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 
 	private void terminateNode(boolean prodOnly) {
-		String projectName = new File(project.getDirPath()).getName();
+		// #183 the node processes of this project carry "=<project dir>/DisplayObjects/mobile" in their command line:
+		// match the full path, not only the project folder name, to spare the same project opened in another workspace.
+		// The marker goes through the environment and is compared as plain text, so its characters need no escaping.
+		String marker = "=" + new File(project.getDirFile(), "DisplayObjects").getAbsolutePath() + File.separator;
 		int retry = 10;
 		try {
 			while (retry-- > 0) {
-				int code;
+				ProcessBuilder pb;
 				if (Engine.isWindows()) {
 					String prod = prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "";
-					var process = new ProcessBuilder("powershell", "-Command",
-							"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*\\" + projectName + "\\DisplayObjects\\*' " + prod + " } | ForEach-Object { $_.Terminate() }"
-							).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
-					code = process.waitFor();
+					pb = new ProcessBuilder("powershell", "-Command",
+							"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -and $_.CommandLine.IndexOf($env:C8O_NODE_MARKER, [StringComparison]::OrdinalIgnoreCase) -ge 0" + prod + " } | ForEach-Object { $_.Terminate() }");
 				} else {
-					String prod = prodOnly ? " | grep -e \"--watch\" -e \":watch\"" : "";
-					Process process = new ProcessBuilder("/bin/bash", "-c",
-							"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\"" + prod + " | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
-							).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
-					code = process.waitFor();
+					String prod = prodOnly ? " && /--watch|:watch/" : "";
+					pb = new ProcessBuilder("/bin/bash", "-c",
+							"ps -A -ww -o pid= -o args= | awk '{ i = index($0, ENVIRON[\"C8O_NODE_MARKER\"]) } i && substr($0, 1, i) ~ /node|npm|ng/" + prod + " { print $1 }' | xargs kill");
 				}
+				pb.environment().put("C8O_NODE_MARKER", marker);
+				int code = pb.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
 				if (code == 0) {
 					retry = 0;
 				}
