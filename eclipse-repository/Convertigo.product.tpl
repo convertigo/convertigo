@@ -23,8 +23,12 @@
 --add-opens=java.base/java.lang=ALL-UNNAMED
 --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
 --add-opens=java.base/java.io=ALL-UNNAMED
--Xms2048m
--Xms4096m
+-Xms256m
+-Xmx3g
+-XX:G1PeriodicGCInterval=60000
+-XX:MinHeapFreeRatio=10
+-XX:MaxHeapFreeRatio=30
+-XX:+UseStringDeduplication
       </vmArgs>
       <vmArgs>
          <argsX86>-Xms256m -Xmx1024m</argsX86>
