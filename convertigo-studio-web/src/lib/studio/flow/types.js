@@ -64,6 +64,7 @@
 
 /**
  * @typedef {Object} TreeviewItem
+ * @property {string=} renameValue
  * @property {string} id
  * @property {string=} label
  * @property {string=} name
@@ -83,6 +84,7 @@
 
 /**
  * @typedef {Object} SequenceTreeNode
+ * @property {string=} renameValue
  * @property {string} id
  * @property {string} label
  * @property {string=} name
@@ -97,6 +99,7 @@
 
 /**
  * @typedef {Object} FlowStepNodeData
+ * @property {string=} renameValue
  * @property {string} id
  * @property {string} label
  * @property {string} name

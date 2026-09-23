@@ -11,6 +11,7 @@
 		isNoopSiblingMove,
 		mutationDboContextIds,
 		objectNameFromId,
+		objectRenameValue,
 		parentObjectId,
 		performDboDrop,
 		renameObjectId
@@ -1117,7 +1118,10 @@
 			syncXyFlow();
 			return;
 		}
-		if (nextName === objectNameFromId(objectId)) {
+		const currentNode = findFlowNodeByObjectId(objectId);
+		if (
+			nextName === objectRenameValue({ id: objectId, renameValue: currentNode?.data?.renameValue })
+		) {
 			flowRenameObjectId = '';
 			syncXyFlow();
 			return;
@@ -1126,9 +1130,10 @@
 		if (!result?.done) {
 			return;
 		}
-		const nextId = renameObjectId(objectId, nextName);
+		const nextId = renameObjectId(objectId, nextName, result);
 		flowRenameObjectId = '';
 		await onMutation?.({
+			...result,
 			done: true,
 			id: nextId,
 			selectedId: nextId,

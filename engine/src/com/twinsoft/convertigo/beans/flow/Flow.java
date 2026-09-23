@@ -69,6 +69,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
+import com.twinsoft.convertigo.engine.flow.FlowSourceLayout;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -483,7 +484,9 @@ public class Flow extends Sequence {
 				variable.setDescription("Flow input " + key);
 			}
 			if (definition.has("default")) {
-				variableChanged |= setValueIfChanged(variable.getValueOrNull(), definition.opt("default"), variable::setValueOrNull);
+				variableChanged |= setValueIfChanged(variable.getValueOrNull(),
+						flowInputDefaultValue(definition.opt("default"), variable instanceof RequestableMultiValuedVariable),
+						variable::setValueOrNull);
 			}
 			if (definition.has("required")) {
 				variableChanged |= setBooleanIfChanged(variable.isRequired(), definition.optBoolean("required"), variable::setRequired);
@@ -499,6 +502,32 @@ public class Flow extends Sequence {
 		if (changed) {
 			changed();
 		}
+	}
+
+	// Convertigo variables persist scalars and XMLVector rows. A JSON array or object
+	// default must never reach Variable.setValueOrNull as a Jettison object: it would be
+	// stored as a serialized Java object that the deserialization filter rejects on
+	// the next project load. Rows become scalars, nested structures become JSON text.
+	static Object flowInputDefaultValue(Object value, boolean multiValued) {
+		if (value == null || JSONObject.NULL.equals(value)) {
+			return null;
+		}
+		if (!multiValued) {
+			return value instanceof JSONObject || value instanceof JSONArray ? value.toString() : value;
+		}
+		var rows = new java.util.ArrayList<Object>();
+		if (value instanceof JSONArray array) {
+			for (int i = 0; i < array.length(); i++) {
+				var item = array.opt(i);
+				if (item == null || JSONObject.NULL.equals(item)) {
+					continue;
+				}
+				rows.add(item instanceof JSONObject || item instanceof JSONArray ? item.toString() : item);
+			}
+		} else {
+			rows.add(value instanceof JSONObject ? value.toString() : value);
+		}
+		return rows;
 	}
 
 	private boolean isFlowInputMultiValued(String type, JSONObject definition) {
@@ -620,7 +649,11 @@ public class Flow extends Sequence {
 		if (project == null || name == null || name.isBlank()) {
 			return null;
 		}
-		return new File(new File(project.getDirFile(), "libs/flows"), name + ".flow.js");
+		return new File(new File(project.getDirFile(), sourceLayout().flows()), name + ".flow.js");
+	}
+
+	protected FlowSourceLayout sourceLayout() {
+		return FlowSourceLayout.current();
 	}
 
 	private void loadFlowSourceFile() {
@@ -647,6 +680,7 @@ public class Flow extends Sequence {
 			return;
 		}
 		try {
+			sourceLayout().ensureHttpIgnore(getProject().getDirFile());
 			file.getParentFile().mkdirs();
 			var source = getFlowSource();
 			FileUtils.writeStringToFile(file, source, StandardCharsets.UTF_8);

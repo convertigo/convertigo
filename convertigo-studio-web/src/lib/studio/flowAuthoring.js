@@ -195,3 +195,16 @@ export function selectedAuthoringReference(message) {
 	}
 	return message.reference;
 }
+
+/** Pass confirmed menu mutations through the same tree reconciliation as DnD and rename.
+ * @param {any} result
+ * @param {string} target
+ * @returns {import('./dnd').DboDropResult | null}
+ */
+export function contextAuthoringMutation(result, target) {
+	const mutation = result?.mutationResult;
+	if (!result?.ok || !(mutation?.done ?? mutation?.ok) || mutation?.changed === false) {
+		return null;
+	}
+	return { ...mutation, done: true, id: mutation.id || target, target, source: 'context' };
+}

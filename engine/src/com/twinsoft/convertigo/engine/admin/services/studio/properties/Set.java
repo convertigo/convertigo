@@ -33,6 +33,8 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IDynamicPropertyContainer;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
@@ -71,7 +73,10 @@ public class Set extends JSonService {
 		}
 
 		var done = false;
-		var dbo = Utils.getDbo(id);
+		var dbo = resolveTarget(id);
+		if (dbo instanceof FlowVirtualObject virtual) {
+			virtual.consumeLastSourceMutationResult();
+		}
 		if (dbo != null) {
 			var jsonArray = new JSONArray(props);
 			for (var i = 0; i < jsonArray.length(); i++) {
@@ -164,19 +169,39 @@ public class Set extends JSonService {
 				}
 			}
 			if (save != null && save.equals("true")) {
-				Engine.theApp.databaseObjectsManager.exportProject(dbo.getProject());
-				SharedWorkspaceSyncManager.markProjectReload(dbo.getProject().getName());
+				saveProject(dbo.getProject());
 			}
 		}
 
 		if (done) {
 			response.put("done", true);
 			response.put("id", dbo.getFullQName());
+			if (dbo instanceof FlowVirtualObject virtual) {
+				var mutation = virtual.consumeLastSourceMutationResult();
+				if (mutation != null) {
+					// Forward the provider's authoritative selection and projection, just
+					// like tree actions. A property may change the object's identity.
+					for (var keys = mutation.keys(); keys.hasNext();) {
+						var key = (String) keys.next();
+						response.put(key, mutation.get(key));
+					}
+					response.put("previousId", id);
+				}
+			}
 			response.put("state", "success");
 			response.put("message", "Properties have been successfully updated!");
 		} else {
 			response.put("done", false);
 		}
+	}
+
+	protected DatabaseObject resolveTarget(String id) throws Exception {
+		return Utils.getDbo(id);
+	}
+
+	protected void saveProject(Project project) throws Exception {
+		Engine.theApp.databaseObjectsManager.exportProject(project);
+		SharedWorkspaceSyncManager.markProjectReload(project.getName());
 	}
 
 	private static SmartType makeSmartType(String mode, Object rawValue, String pvalue) throws Exception {

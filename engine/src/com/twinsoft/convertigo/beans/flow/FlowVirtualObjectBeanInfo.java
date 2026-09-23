@@ -59,6 +59,10 @@ public class FlowVirtualObjectBeanInfo extends MySimpleBeanInfo {
 			properties[4].setDisplayName(getExternalizedString("property.definition.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.definition.short_description"));
 			properties[4].setHidden(true);
+			// "Flow type" repeats the projected "block" row and "Summary" repeats the tree
+			// label: neither belongs to the Information category (block charter).
+			properties[1].setHidden(true);
+			properties[3].setHidden(true);
 
 			for (PropertyDescriptor property : properties) {
 				property.setValue(CATEGORY, "Information");

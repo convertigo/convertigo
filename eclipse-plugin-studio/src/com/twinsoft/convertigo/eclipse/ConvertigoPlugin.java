@@ -134,7 +134,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
@@ -2048,20 +2047,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				return;
 			}
 			try {
-				TreeObject treeProject = pew.getProjectRootObject(projectName);
-				if (treeProject == null) {
-					pew.importProjectTreeObject(projectName);
-				} else if (!project.equals(treeProject.getObject())) {
-					if (treeProject instanceof ProjectTreeObject) {
-						// should not happened
-						Engine.logStudio.warn("[projectLoaded] Project '" + projectName + "' loaded and project in ProjectTree is different: reloading the ProjectTree!");
-					} else if (treeProject instanceof UnloadedProjectTreeObject) {
-						// case of standard ProjectLoadingJob in progress or case of unloaded project which part of another project dependencies
-						Engine.logStudio.info("[projectLoaded] Unloaded project '" + projectName + "' needs to be loaded or reloaded in TreeView");
-					}
-					pew.reloadProject(treeProject);
-				}
+				pew.reconcileLoadedProject(project);
 			} catch (Exception e) {
+				Engine.logStudio.error("Unable to reconcile loaded project '" + projectName + "'", e);
 			}
 		});
 	}

@@ -144,4 +144,29 @@ function findTreeEntry(nodes, id, idsEqual, parent) {
 	return undefined;
 }
 
-export { applyProjectedTreeMutation, removeProjectedTreeNode };
+/**
+ * Preserve the open subtree when its authoritative identity changes. Works for
+ * both native and projected objects; no block kind or source dialect is needed.
+ * @param {Set<string>} expanded
+ * @param {import('./dnd').DboDropResult} mutation
+ * @param {(id: string) => string[]} equivalentIds
+ */
+function remapExpandedTreeIds(expanded, mutation, equivalentIds) {
+	const previousId =
+		mutation.previousId ||
+		(mutation.payload?.type === 'renameData' ? mutation.payload.data?.id : undefined);
+	const nextId = mutation.selectedId || mutation.id;
+	if (!mutation.done || !previousId || !nextId || previousId === nextId) return;
+	const prefixes = equivalentIds(previousId);
+	for (const expandedId of Array.from(expanded)) {
+		const prefix = prefixes.find((id) => expandedId === id || expandedId.startsWith(`${id}.`));
+		if (prefix) {
+			expanded.delete(expandedId);
+			for (const id of equivalentIds(nextId)) {
+				expanded.add(id + expandedId.slice(prefix.length));
+			}
+		}
+	}
+}
+
+export { applyProjectedTreeMutation, removeProjectedTreeNode, remapExpandedTreeIds };

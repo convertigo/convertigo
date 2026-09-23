@@ -312,6 +312,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		vPropertyDescriptors.add(propertyDescriptor);
 
 		// Get Dynamic properties
+		if (databaseObject instanceof com.twinsoft.convertigo.beans.flow.FlowVirtualObject projected) {
+			vPropertyDescriptors.removeIf(descriptor ->
+					projected.hasProjectedInformationProperty(descriptor.getDisplayName()));
+		}
 		List<PropertyDescriptor> dynamicPropertyDescriptors = getDynamicPropertyDescriptors();
 		for (PropertyDescriptor dynamicPropertyDescriptor : dynamicPropertyDescriptors) {
 			vPropertyDescriptors.add(dynamicPropertyDescriptor);

@@ -101,7 +101,7 @@
 	 *  frontendThemeContext?: { mode: string, palette: string, tokens: any[] } | null,
 	 *  onSelectObject?: (id: string) => void,
 	 *  onApply?: (id: string, sourceDefinition?: any) => void | Promise<void>,
-	 *  onChange?: (value: any) => void
+	 *  onChange?: (value: any, validation?: {valid: boolean, error: string}) => void
 	 * }}
 	 */
 	let {

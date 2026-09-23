@@ -15,6 +15,7 @@ import {
 	mutationDboContextIds,
 	mutationDboRefreshIds,
 	objectNameFromId,
+	objectRenameValue,
 	performDboDrop,
 	renameObjectId,
 	shouldStartInlineRename,
@@ -32,6 +33,12 @@ beforeEach(() => {
 });
 
 describe('Studio DBO drag and drop qnames', () => {
+	it('uses the provider editable name without interpreting its projected identity or label', () => {
+		expect(objectRenameValue({ id: 'project.authoring_nodes_0', renameValue: 'request' })).toBe(
+			'request'
+		);
+		expect(objectRenameValue({ id: 'Project.sq:Sequence.st:step' })).toBe('step');
+	});
 	it('splits leaf rows into unambiguous before and after drop zones', () => {
 		expect(treeRowDropPosition(0, 40, false)).toBe('before');
 		expect(treeRowDropPosition(19, 40, false)).toBe('before');
@@ -116,6 +123,9 @@ describe('Studio DBO drag and drop qnames', () => {
 			'Project.sq:Sequence.st:object.renamed'
 		);
 		expect(renameObjectId('', 'renamed')).toBe('renamed');
+		expect(renameObjectId('Project.old', 'renamed', { id: 'Project.authoring_renamed' })).toBe(
+			'Project.authoring_renamed'
+		);
 	});
 
 	it('keeps the step folder segment when moving a step inside another step', () => {

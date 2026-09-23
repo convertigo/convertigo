@@ -107,7 +107,9 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 task copyLicense(type: Copy, dependsOn: [':checkLicenseDate']) {
 	group = 'convertigo'
 	
-	from '../license.txt'
+	from('../legal/dual-license.txt') {
+		rename { 'license.txt' }
+	}
 	into 'src/com/twinsoft/convertigo/eclipse/wizards/setup'
 }
 

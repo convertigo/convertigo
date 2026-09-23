@@ -30,7 +30,8 @@
 	 *  selectedId?: string,
 	 *  active?: boolean,
 	 *  refreshSerial?: number,
-	 *  onSave?: (id: string) => void | Promise<void>,
+	 *  onSave?: (id: string, result?: any) => void | Promise<void>,
+	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onOpenPropertyEditor?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void,
 	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string }) => void,
 	 *  pickerTarget?: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string } | null,
@@ -44,6 +45,7 @@
 		active = true,
 		refreshSerial = 0,
 		onSave,
+		onMutationBusyChange = () => {},
 		onOpenPropertyEditor,
 		onOpenPropertyPicker,
 		pickerTarget = null,
@@ -58,12 +60,15 @@
 	let monacoValue = $state('');
 	let requestedSelectionId = '';
 	let lastRefreshSerial = 0;
+	let saving = $state(false);
 	let {
 		id,
 		properties,
 		categories,
 		onSelectionChange,
 		hasChanges,
+		valid,
+		updateDraft,
 		loading,
 		getChanges,
 		save,
@@ -383,12 +388,24 @@
 	}
 
 	async function saveChanges() {
-		if (!getChanges().length) {
+		if (saving || !valid || !getChanges().length) {
 			return;
 		}
-		if (await save()) {
-			closeCurrentPicker();
-			await onSave?.(selectedId);
+		let handled = false;
+		saving = true;
+		onMutationBusyChange(true);
+		try {
+			await save({
+				persist: false,
+				onSaved: async (savedId, result) => {
+					if (selectedId === savedId) closeCurrentPicker();
+					await onSave?.(savedId, result);
+					handled = true;
+				}
+			});
+		} finally {
+			saving = false;
+			onMutationBusyChange(false, handled);
 		}
 	}
 
@@ -403,11 +420,10 @@
 		}
 	}
 
-	/** @param {any} value */
-	function updatePickerDraft(value) {
+	/** @param {any} value @param {{valid?: boolean, error?: string}} [validation] */
+	function updatePickerDraft(value, validation) {
 		const propertyName = pickerTarget?.propertyName;
-		const row = properties.find((candidate) => candidate.name === propertyName);
-		if (row) row.value = value;
+		updateDraft(propertyName, value, validation);
 	}
 
 	function openMonaco(row) {
@@ -455,12 +471,13 @@
 	<div class="studio-properties__actions studio-panel-toolbar">
 		<SaveCancelButtons
 			class="w-full"
-			saveLabel="Save"
+			saveLabel="Apply"
 			cancelLabel="Cancel"
 			onSave={saveChanges}
 			onCancel={cancelChanges}
 			changesPending={hasChanges}
-			disabled={!selectedId || properties.length == 0}
+			saveDisabled={!valid}
+			disabled={saving || !selectedId || properties.length == 0}
 		/>
 	</div>
 	<StudioObjectIdentity item={displayedIdentity} compact />
@@ -606,6 +623,11 @@
 													</div>
 												{/if}
 											</div>
+											{#if row.validation?.value === row.value && row.validation?.valid === false}
+												<p class="text-sm text-error-500" role="alert">
+													{row.validation.error || 'This value is not valid.'}
+												</p>
+											{/if}
 											{#if isPickerOpen(row)}
 												<div class="studio-properties__inline-picker">
 													<StudioSourcePickerPanel

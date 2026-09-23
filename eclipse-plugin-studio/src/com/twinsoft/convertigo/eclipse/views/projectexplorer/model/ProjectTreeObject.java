@@ -94,6 +94,8 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ReadmeBuilder;
 import com.twinsoft.convertigo.engine.ReadmeBuilder.MarkdownType;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
+import com.twinsoft.convertigo.engine.flow.FlowSourceLayout;
+import com.twinsoft.convertigo.engine.flow.FlowSourceLayout.ChangeKind;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
@@ -385,20 +387,21 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				
 				IResource resource = delta.getResource();
 				var projectRelativePath = resource.getProjectRelativePath().toString();
-				if (projectRelativePath.startsWith("libs/flow/icons/")) {
+				var changeKind = FlowSourceLayout.current().changeKind(projectRelativePath);
+				if (changeKind == ChangeKind.ICON) {
 					return true;
 				}
-				if (projectRelativePath.startsWith("libs/flows/")) {
+				if (changeKind == ChangeKind.FLOW) {
 					var name = resource.getName();
 					if (resource.getType() == IResource.FILE && name.endsWith(".flow.js")) {
 						flowSourceNames.add(name.substring(0, name.length() - ".flow.js".length()));
 					}
 					return true;
 				}
-				if (projectRelativePath.startsWith("libs/flow/")) {
-					if (FlowEngineBridge.requiresRuntimeCacheInvalidation(projectRelativePath)) {
+				if (changeKind != ChangeKind.OUTSIDE) {
+					if (changeKind == ChangeKind.RUNTIME) {
 						flowRuntimeSourceChanged[0] = true;
-					} else if (FlowEngineBridge.isFrontendAuthoringSourcePath(projectRelativePath)) {
+					} else if (changeKind == ChangeKind.FRONTEND) {
 						flowFrontendSourceChanged[0] = true;
 					} else {
 						flowCatalogSourceChanged[0] = true;
@@ -495,15 +498,14 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	public void refreshFlowVirtualTree(String sourcePath, boolean reveal) {
 		var path = sourcePath == null ? "" : sourcePath.replace('\\', '/');
 		var flowSourceNames = new HashSet<String>();
-		if (path.startsWith("libs/flows/") && path.endsWith(".flow.js")) {
+		var changeKind = FlowSourceLayout.current().changeKind(path);
+		if (changeKind == ChangeKind.FLOW && path.endsWith(".flow.js")) {
 			var name = new File(path).getName();
 			flowSourceNames.add(name.substring(0, name.length() - ".flow.js".length()));
 		}
-		var flowPath = path.startsWith("libs/flow/");
-		var runtimeSource = flowPath && FlowEngineBridge.requiresRuntimeCacheInvalidation(path);
-		var frontendSource = flowPath && FlowEngineBridge.isFrontendAuthoringSourcePath(path);
-		refreshFlowVirtualTree(flowSourceNames, runtimeSource,
-				flowPath && !runtimeSource && !frontendSource, frontendSource,
+		var frontendSource = changeKind == ChangeKind.FRONTEND;
+		refreshFlowVirtualTree(flowSourceNames, changeKind == ChangeKind.RUNTIME,
+				changeKind == ChangeKind.CATALOG, frontendSource,
 				reveal && frontendSource ? path : "");
 	}
 
@@ -811,6 +813,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 
 	public void closeAllEditors() {
+		closeAllEditors(true);
+	}
+
+	@Override
+	public void closeAllEditors(boolean save) {
 		Project project = getObject();
 		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		IWorkbenchPage activePage = workbenchWindow != null ? workbenchWindow.getActivePage() : null;
@@ -825,45 +832,45 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						// close connector editor
 						if (editorInput instanceof ConnectorEditorInput) {
 							if (((ConnectorEditorInput)editorInput).is(project)) {
-								closeEditor(activePage, editorRef);
+								closeEditor(activePage, editorRef, save);
 							}
 						}
 						// close sequence editors
 						else if (editorInput instanceof SequenceEditorInput) {
 							if (((SequenceEditorInput) editorInput).is(project)) {
-								closeEditor(activePage, editorRef);
+								closeEditor(activePage, editorRef, save);
 							}
 						}
 						// close js editors
 						else if (editorInput instanceof JScriptEditorInput) {
 							DatabaseObject dbo = ((JScriptEditorInput) editorInput).getJScriptContainer().getDatabaseObject();
 							if (dbo != null && project.equals(dbo.getProject())) {
-								closeEditor(activePage, editorRef);
+								closeEditor(activePage, editorRef, save);
 							}
 						}						
 						// close trace editors
 						else if (editorInput instanceof TraceFileEditorInput) {
 							if (((TraceFileEditorInput)editorInput).getConnector().getProject().equals(project)) {
-								closeEditor(activePage, editorRef);
+								closeEditor(activePage, editorRef, save);
 							}
 						}
 						// close other file editors
 						else if (editorInput instanceof FileEditorInput) {
 							IPath fullpath = ((FileEditorInput)editorInput).getFile().getFullPath();
 							if (fullpath.toString().replaceFirst("/(.*?)/.*", "$1").equals(project.getName())) {
-								closeEditor(activePage, editorRef);
+								closeEditor(activePage, editorRef, save);
 							}
 						}
 						else if (editorInput instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
 							com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput acei = GenericUtils.cast(editorInput);
 							if (acei.getApplication().getProject().equals(project)) {
-								closeEditor(activePage, editorRef);
+								closeEditor(activePage, editorRef, save);
 							}
 						}
 						else if (editorInput instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
 							com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput acei = GenericUtils.cast(editorInput);
 							if (acei.getApplication().getProject().equals(project)) {
-								closeEditor(activePage, editorRef);
+								closeEditor(activePage, editorRef, save);
 							}
 						}
 					}
@@ -875,10 +882,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 	}
 	
-	private boolean closeEditor(IWorkbenchPage activePage, IEditorReference editorRef) {
+	private boolean closeEditor(IWorkbenchPage activePage, IEditorReference editorRef, boolean save) {
 		if ((activePage != null) && (editorRef != null)) {
 			try {
-				return activePage.closeEditor(editorRef.getEditor(false),true);
+				return activePage.closeEditor(editorRef.getEditor(false), save);
 			}
 			catch (Exception e) {
 				return false;
@@ -1113,11 +1120,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 	}
 
-	@Override
-	public void closeAllEditors(boolean save) {
-		closeAllEditors();
-	}
-	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object getAdapter(Class adapter) {
 		Object obj = super.getAdapter(adapter);

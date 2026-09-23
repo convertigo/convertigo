@@ -78,9 +78,14 @@ public class FlowStudioSupport {
 
 	private static final String VIRTUAL_CLIPBOARD_PROTOCOL = "convertigo.flow.virtual.clipboard.v1";
 
+	public static String virtualRenameValue(FlowVirtualObject object) {
+		var info = object.getVirtualInfoObject();
+		return info == null ? object.getName() : info.optString("renameValue", object.getName());
+	}
+
 	public static boolean canRenameVirtualObject(FlowVirtualObject object) {
 		var info = object.getVirtualInfoObject();
-		return object.isDefinitionWritable() && info != null && !info.optString("renameMutationOp").isBlank();
+		return object.isDefinitionWritable() && info != null && info.optJSONObject("renameMutation") != null;
 	}
 
 	public static JSONObject renameVirtualObject(FlowVirtualObject object, String name) throws Exception {
@@ -88,33 +93,19 @@ public class FlowStudioSupport {
 	}
 
 	static JSONObject renameVirtualObject(FlowVirtualObject object, String name, FlowEngineBridge bridge) throws Exception {
-		var started = System.nanoTime();
-		if (!canRenameVirtualObject(object) || !(flowAuthoringRoot(object) instanceof FlowEngine engine)) {
+		if (!canRenameVirtualObject(object)) {
 			throw new EngineException("This projected object does not support renaming.");
 		}
 		var info = object.getVirtualInfoObject();
-		var path = info.optString("sourceMutationPath", object.getVirtualPath());
-		var response = bridge.applyMutation(engine, new JSONObject()
-				.put("op", info.optString("renameMutationOp")).put("path", path).put("value", name), false);
-		var mutated = System.nanoTime();
+		// The provider owns both the identity and its mutation. The host only supplies
+		// the user's value, irrespective of the projected kind or source dialect.
+		var mutation = new JSONObject(info.getJSONObject("renameMutation").toString()).put("value", name);
+		var previousId = object.getFullQName();
+		var response = applyProjectedMutation(flowAuthoringRoot(object), object, mutation, bridge);
 		if (!isSuccessResponse(response)) {
 			throw new EngineException("Unable to rename projected object: " + response.opt("error"));
 		}
-		var selectionPath = response.optString("selectionMutationPath");
-		var topPath = object.getVirtualPath().split("[.\\[]", 2)[0];
-		var result = new JSONObject().put("done", true).put("id", engine.getFullQName())
-				.put("selectionMutationPath", selectionPath)
-				.put("selectionVirtualPath", response.optString("selectionVirtualPath", ""));
-		// setEngineSource invalidated the model projection. Materialize it once;
-		// describing it again here would build an identical, unused second tree.
-		clearCatalogCache(engine);
-		withProjectedSelection(result, materializeEngineProjection(engine, topPath, result));
-		var finished = System.nanoTime();
-		if (finished - started >= 500_000_000L) {
-			flowStudioWarn("Slow projected rename: mutationMs=" + nanosToMillis(mutated - started)
-					+ " projectionMs=" + nanosToMillis(finished - mutated));
-		}
-		return result;
+		return response.put("previousId", previousId);
 	}
 
 	public static JSONObject virtualClipboard(FlowVirtualObject source) throws EngineException {
@@ -231,7 +222,8 @@ public class FlowStudioSupport {
 
 	/** Refresh display metadata from the provider projection, never from property-name heuristics. */
 	public static boolean refreshVirtualObjectFromTree(FlowVirtualObject object, JSONObject tree) {
-		var projected = findTreeNode(tree, object.getVirtualPath());
+		var projected = findTreeNode(tree == null ? null : tree.optJSONObject("projectedTree"), object.getVirtualPath());
+		if (projected == null) projected = findTreeNode(tree, object.getVirtualPath());
 		return projected != null && object.replaceProjectedTree(projected);
 	}
 
@@ -388,7 +380,9 @@ public class FlowStudioSupport {
 		if (sourceRelativePath.isBlank() || sourceMutationPath.isBlank()) {
 			return null;
 		}
-		var nodeId = fvo.getDefinitionProperty("id");
+		// This is the AST identity, not a possibly homonymous business property.
+		var definition = fvo.getDefinitionObject();
+		var nodeId = definition == null ? null : definition.opt("id");
 		try {
 			var reference = new JSONObject()
 					.put("nodeId", nodeId == null ? fvo.getName() : String.valueOf(nodeId))
@@ -583,7 +577,22 @@ public class FlowStudioSupport {
 	}
 
 	static JSONObject appendStudioClientActions(JSONObject menu, DatabaseObject targetDbo) throws Exception {
-		if (menu == null || !menu.optBoolean("ok", false) || authoringReference(targetDbo) == null) {
+		if (menu == null || !menu.optBoolean("ok", false)) {
+			return menu;
+		}
+		if (authoringReference(targetDbo) == null) {
+			// Backend Flow node: the palette can still reveal its block type.
+			if (targetDbo instanceof FlowVirtualObject fvo && "node".equals(fvo.getVirtualKind())
+					&& fvo.getVirtualType() != null && !fvo.getVirtualType().isBlank()) {
+				var backendItems = menu.optJSONArray("items");
+				if (backendItems == null) {
+					backendItems = new JSONArray();
+					menu.put("items", backendItems);
+				}
+				appendStudioClientAction(backendItems, "studio.palette.reveal", "Reveal in palette",
+						"Show this block type in the palette.", "Flow", "palette.reveal", "mdi:palette-outline",
+						"icons/palette_16x16.png");
+			}
 			return menu;
 		}
 		var items = menu.optJSONArray("items");
@@ -698,8 +707,12 @@ public class FlowStudioSupport {
 				? new FlowEngineBridge().contextAction(flow, request)
 				: new FlowEngineBridge().contextAction((FlowEngine) root, request);
 		var mutation = response.optJSONObject("mutation");
+		Engine.logBeans.info("Flow context action " + action.optString("id", "") + ": target=" + flowMoveTargetSummary(targetDbo)
+				+ " ok=" + response.optBoolean("ok", false) + " mutation=" + mutation);
 		if (response.optBoolean("ok", false) && mutation != null) {
 			var mutationResult = applyMutation(root, targetDbo, mutation);
+			Engine.logBeans.info("Flow context action " + action.optString("id", "") + " mutation result: "
+					+ (mutationResult == null ? "null" : mutationResult.toString()));
 			response.put("mutationResult", mutationResult);
 			if (!mutationResult.optBoolean("ok", false)) {
 				response.put("ok", false)
@@ -1040,9 +1053,9 @@ public class FlowStudioSupport {
 						.put("__engineMutationPath", "config.frontbuilder.svelte")
 						.put("__engineMutationOp", "merge")
 						.put("target", "svelte5")
-						.put("resourceRoot", "libs/flow/frontbuilder/svelte")
+						.put("resourceRoot", FlowSourceLayout.current().path("frontbuilder/svelte"))
 						.put("privateDir", "_private/svelte")
-						.put("modelPath", "libs/flow/frontbuilder/svelte/model/SvelteFrontend/src/routes/+page.flow.svelte")
+						.put("modelPath", FlowSourceLayout.current().path("frontbuilder/svelte/model/SvelteFrontend/src/routes/+page.flow.svelte"))
 						.put("buildOutput", "DisplayObjects/mobile"));
 		return new JSONObject()
 				.put("type", "Category")
@@ -1079,6 +1092,16 @@ public class FlowStudioSupport {
 				continue;
 			}
 			item.put("name", item.optString("label", item.optString("name", item.optString("id", "Flow item"))));
+			// The palette documentation panel renders what the engine documented.
+			var description = item.optString("description", "");
+			if (!item.has("shortDescriptionHtml")) {
+				item.put("shortDescriptionHtml", html(description)).put("shortDescriptionText", description);
+			}
+			var documentation = item.optJSONObject("documentation");
+			var documentedProperties = documentation == null ? null : documentation.optJSONArray("properties");
+			if (!item.has("propertiesDescriptionHtml")) {
+				item.put("propertiesDescriptionHtml", documentedPropertiesHtml(documentedProperties));
+			}
 			var categoryName = item.optString("category", "Flow");
 			var category = grouped.computeIfAbsent(categoryName, name -> {
 				try {
@@ -1789,7 +1812,7 @@ public class FlowStudioSupport {
 		var blockId = uniqueFrontendSourceId(flowEngine, baseId);
 		var project = flowEngine.getProject();
 		var projectDir = project == null ? new File(".") : project.getDirFile();
-		var rootDir = new File(projectDir, "libs/flow/frontbuilder/" + safeFileName(builderName));
+		var rootDir = new File(projectDir, FlowSourceLayout.current().path("frontbuilder/" + safeFileName(builderName)));
 		var rootPath = rootDir.getCanonicalPath();
 		Map<String, String> values = null;
 		File file = null;
@@ -1820,6 +1843,7 @@ public class FlowStudioSupport {
 					.put("done", false)
 					.put("error", "Unable to allocate a unique frontend source for " + baseId);
 		}
+		FlowSourceLayout.current().ensureHttpIgnore(projectDir);
 		file.getParentFile().mkdirs();
 		FileUtils.writeStringToFile(file, source, "UTF-8");
 		FlowEngineBridge.invalidateDataCaches();
@@ -2649,7 +2673,17 @@ public class FlowStudioSupport {
 		var name = firstNonBlank(block, "localName", "name");
 		var shortDescription = firstNonBlank(block, "shortDescription", "description");
 		var longDescription = firstNonBlank(block, "longDescription");
-		var propertiesDescription = propertiesDescription(block.optJSONObject("props"));
+		// The public descriptor exposes the block contract under "properties"; "props" is
+		// the legacy spelling still produced by older providers.
+		var declaredProperties = block.optJSONObject("properties");
+		var propertiesDescription = propertiesDescription(declaredProperties != null ? declaredProperties : block.optJSONObject("props"));
+		if (propertiesDescription.isBlank()) {
+			var keys = new java.util.ArrayList<String>();
+			for (var it = block.keys(); it.hasNext();) {
+				keys.add(String.valueOf(it.next()));
+			}
+			Engine.logBeans.info("Flow palette item without property documentation: " + blockId + " keys=" + keys);
+		}
 		var rawDescription = shortDescription;
 		if (!longDescription.isBlank()) {
 			rawDescription += "|" + longDescription;
@@ -2794,7 +2828,7 @@ public class FlowStudioSupport {
 		var name = iconify.substring(colon + 1);
 		try {
 			var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
-			var base = new File(project.getDirPath(), "libs/flow/icons/iconify/" + provider + "/" + name);
+			var base = new File(project.getDirPath(), FlowSourceLayout.current().path("icons/iconify/" + provider + "/" + name));
 			for (var suffix : new String[] { "_32x32.png", "_16x16.png", ".png" }) {
 				var file = new File(base.getAbsolutePath() + suffix);
 				if (file.isFile()) {
@@ -2830,6 +2864,24 @@ public class FlowStudioSupport {
 			}
 		}
 		return "";
+	}
+
+	private static String documentedPropertiesHtml(JSONArray documentedProperties) {
+		if (documentedProperties == null || documentedProperties.length() == 0) {
+			return "";
+		}
+		var list = new StringBuilder();
+		for (int i = 0; i < documentedProperties.length(); i++) {
+			var property = documentedProperties.optJSONObject(i);
+			if (property == null) {
+				continue;
+			}
+			var label = firstNonBlank(property, "label", "name");
+			var description = firstNonBlank(property, "description");
+			list.append("<li><i>").append(html(label)).append("</i></br>")
+					.append(html(description.isBlank() ? "Flow property \"" + label + "\"." : description)).append("</li>");
+		}
+		return list.length() == 0 ? "" : "<ul>" + list + "</ul>";
 	}
 
 	private static String propertiesDescription(JSONObject props) {
@@ -3164,33 +3216,106 @@ public class FlowStudioSupport {
 		return catalog;
 	}
 
-	private static JSONObject applyMutation(DatabaseObject root, DatabaseObject targetDbo, JSONObject mutation) throws Exception {
-		if (targetDbo instanceof FlowVirtualObject fvo && isSourceBackedTarget(fvo)) {
-			var flowEngine = root instanceof FlowEngine engine ? engine : root.getProject().getFlowEngine();
-			var sourcePath = sourcePath(fvo);
-			return applyProjectedSourceMutation(flowEngine, targetDbo, sourcePath, mutation);
+	// One routing rule for every Studio intention (menu, property, rename, DnD, delete).
+	// The bridge routes by owner and by the projection flags the engine produced,
+	// never by what a source contains:
+	//   - an executable Flow owns its nodes: the mutation goes to that Flow's draft;
+	//   - a FlowEngine object with a writable source goes to the source service;
+	//   - any other FlowEngine object mutates the engine definition.
+	public static JSONObject applyProjectedMutation(DatabaseObject root, DatabaseObject targetDbo, JSONObject mutation) throws Exception {
+		return applyProjectedMutation(root, targetDbo, mutation, new FlowEngineBridge());
+	}
+
+	static JSONObject applyProjectedMutation(DatabaseObject root, DatabaseObject targetDbo, JSONObject mutation,
+			FlowEngineBridge bridge) throws Exception {
+		FlowVirtualObject projection = targetDbo instanceof FlowVirtualObject virtual ? virtual : null;
+		while (projection != null && projection.getParent() instanceof FlowVirtualObject parent) {
+			projection = parent;
 		}
-		return root instanceof Flow flow
-				? new FlowEngineBridge().applyMutation(flow, mutation)
-				: new FlowEngineBridge().applyMutation((FlowEngine) root, mutation);
+		if (root instanceof FlowEngine flowEngine) {
+			var overrideSourcePath = mutation == null ? "" : mutation.optString("__sourcePath", "");
+			if (!overrideSourcePath.isBlank()) {
+				return completeProjectedMutation(root, targetDbo, projection, mutation,
+						applyProjectedSourceMutation(flowEngine, targetDbo, overrideSourcePath, mutation, bridge));
+			}
+			if (targetDbo instanceof FlowVirtualObject fvo) {
+				var sourcePath = sourcePath(fvo);
+				if (!sourcePath.isBlank() && sourceFlag(fvo, "sourceWritable")) {
+					return completeProjectedMutation(root, targetDbo, projection, mutation,
+							applyProjectedSourceMutation(flowEngine, targetDbo, sourcePath, mutation, bridge));
+				}
+			}
+		}
+		var response = applyOwnerMutation(root, mutation, true,
+				projection == null ? "" : projection.getVirtualPath(), bridge);
+		if (isSuccessResponse(response) && sourceMutationChanged(response)) clearCatalogCache(root, false);
+		return completeProjectedMutation(root, targetDbo, projection, mutation, response);
+	}
+
+	/** One host result for menus, rename and authoring, using the returned projection only. */
+	private static JSONObject completeProjectedMutation(DatabaseObject owner, DatabaseObject target,
+			FlowVirtualObject previousRoot, JSONObject mutation, JSONObject response) throws Exception {
+		var done = isSuccessResponse(response);
+		response.put("done", done);
+		if (!done || previousRoot == null) return response;
+		var rootPath = response.optString("projectedRootPath", previousRoot.getVirtualPath());
+		var projected = response.optJSONObject("projectedTree");
+		if (projected == null) projected = findTreeNode(response, rootPath);
+		if (projected == null) return response;
+		var projection = new FlowVirtualObject();
+		DatabaseObject projectionParent = owner;
+		// A returned projection can start below the owner (for example a page
+		// below several folders). Keep that ancestor chain when building QNames.
+		for (var ancestor = target; ancestor instanceof FlowVirtualObject virtual; ancestor = ancestor.getParent()) {
+			if (rootPath.equals(virtual.getVirtualPath())) {
+				projectionParent = ancestor.getParent();
+				break;
+			}
+		}
+		projection.setVirtualPath(rootPath);
+		if (!projection.replaceProjectedTree(projected)) return response;
+		// Attach only after materializing: this is a snapshot of an existing
+		// child, not a new DBO whose name should be made unique among siblings.
+		projection.setParent(projectionParent);
+		response.put("projected", true).put("projectedRootPath", rootPath)
+				.put("projectedSourcePath", response.optString("projectedSourcePath", previousRoot.getSourcePath()))
+				.put("projectedTree", projected);
+		if (response.optString("selectionMutationPath").isBlank() && mutation != null) {
+			response.put("selectionMutationPath", mutation.optString("selectionMutationPath", ""));
+		}
+		if (response.optString("selectionVirtualPath").isBlank()
+				&& response.optString("selectionMutationPath").isBlank()
+				&& response.optString("selectionId").isBlank() && target instanceof FlowVirtualObject virtual) {
+			response.put("selectionVirtualPath", virtual.getVirtualPath());
+			// Display paths may depend on an edited identifier. The descriptor's
+			// source address still identifies the same object after a property edit.
+			response.put("selectionMutationPath", sourceMutationPath(virtual));
+		}
+		return withProjectedSelection(response, projection);
+	}
+
+	// Mutation addressed to the owner itself (Flow draft or FlowEngine definition).
+	public static JSONObject applyOwnerMutation(DatabaseObject root, JSONObject mutation, boolean includeTree, String projectionPath) throws Exception {
+		return applyOwnerMutation(root, mutation, includeTree, projectionPath, new FlowEngineBridge());
+	}
+
+	private static JSONObject applyOwnerMutation(DatabaseObject root, JSONObject mutation, boolean includeTree,
+			String projectionPath, FlowEngineBridge bridge) throws Exception {
+		if (root instanceof Flow flow) {
+			return bridge.applyMutation(flow, mutation, includeTree);
+		}
+		if (root instanceof FlowEngine flowEngine) {
+			return bridge.applyMutation(flowEngine, mutation, includeTree, projectionPath == null ? "" : projectionPath);
+		}
+		throw new EngineException("No Flow authoring root owns this object.");
+	}
+
+	private static JSONObject applyMutation(DatabaseObject root, DatabaseObject targetDbo, JSONObject mutation) throws Exception {
+		return applyProjectedMutation(root, targetDbo, mutation);
 	}
 
 	private static JSONObject applyFrontendMutation(FlowEngine flowEngine, DatabaseObject targetDbo, JSONObject mutation) throws Exception {
-		var overrideSourcePath = mutation == null ? "" : mutation.optString("__sourcePath", "");
-		if (!overrideSourcePath.isBlank()) {
-			flowStudioInfo("Flow frontend DnD apply override mutation: sourcePath=" + overrideSourcePath
-					+ " mutation=" + cleanFrontendMutation(mutation));
-			return applyProjectedSourceMutation(flowEngine, targetDbo, overrideSourcePath, mutation);
-		}
-		if (targetDbo instanceof FlowVirtualObject fvo) {
-			var sourcePath = sourcePath(fvo);
-			if (!sourcePath.isBlank() && sourceFlag(fvo, "sourceWritable")) {
-				flowStudioInfo("Flow frontend DnD apply target mutation: target=" + flowMoveTargetSummary(fvo)
-						+ " mutation=" + mutation);
-				return applyProjectedSourceMutation(flowEngine, targetDbo, sourcePath, mutation);
-			}
-		}
-		return applyMutation(flowEngine, targetDbo, mutation);
+		return applyProjectedMutation(flowEngine, targetDbo, mutation);
 	}
 
 	public static JSONObject applyProjectedSourceMutation(FlowEngine flowEngine, DatabaseObject targetDbo,
@@ -3552,13 +3677,7 @@ public class FlowStudioSupport {
 	}
 
 	private static boolean isFrontendSourcePath(String sourcePath) {
-		if (sourcePath == null || sourcePath.isBlank()) {
-			return false;
-		}
-		var path = sourcePath.replace('\\', '/');
-		return (path.startsWith("libs/flow/frontbuilder/") || path.contains("/libs/flow/frontbuilder/"))
-				&& (path.endsWith(".flow.svelte") || path.endsWith(".flow.css")
-						|| path.endsWith(".front.json") || path.endsWith(".uiblock.json"));
+		return FlowSourceLayout.current().isFrontendDocument(sourcePath);
 	}
 
 	private static void flowStudioInfo(String message) {

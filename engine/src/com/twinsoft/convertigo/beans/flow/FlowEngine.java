@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
+import com.twinsoft.convertigo.engine.flow.FlowSourceLayout;
 
 @DboCategoryInfo(
 		getCategoryId = "FlowEngine",
@@ -203,6 +204,17 @@ public class FlowEngine extends DatabaseObject {
 		return getSourceDrafts();
 	}
 
+	/** Read-only lifecycle preflight. Never loads or saves the Engine source. */
+	public boolean isEngineSourceDirty() {
+		return engineSourceDirty;
+	}
+
+	/** Includes drafts surviving the owner instance; do not expose their contents. */
+	public static boolean hasSourceDrafts(File projectDirectory) throws java.io.IOException {
+		var prefix = projectDirectory.getCanonicalPath() + File.separator;
+		return sourceDrafts.keySet().stream().anyMatch(path -> path.startsWith(prefix));
+	}
+
 	public Map<String, String> getSourceDrafts() {
 		var drafts = new LinkedHashMap<String, String>();
 		var root = sourceRootPath();
@@ -287,7 +299,11 @@ public class FlowEngine extends DatabaseObject {
 		if (project == null) {
 			return null;
 		}
-		return new File(new File(project.getDirFile(), "libs/flow"), "engine.yaml");
+		return new File(project.getDirFile(), sourceLayout().path("engine.yaml"));
+	}
+
+	protected FlowSourceLayout sourceLayout() {
+		return FlowSourceLayout.current();
 	}
 
 	private void ensureEngineProjectReference() {
@@ -337,6 +353,7 @@ public class FlowEngine extends DatabaseObject {
 			return;
 		}
 		try {
+			sourceLayout().ensureHttpIgnore(getProject().getDirFile());
 			file.getParentFile().mkdirs();
 			FileUtils.writeStringToFile(file, getEngineSource(), StandardCharsets.UTF_8);
 			engineSourceDirty = false;
@@ -353,6 +370,7 @@ public class FlowEngine extends DatabaseObject {
 			return;
 		}
 		try {
+			sourceLayout().ensureHttpIgnore(getProject().getDirFile());
 			for (var entry : drafts.entrySet()) {
 				var file = new File(entry.getKey());
 				file.getParentFile().mkdirs();

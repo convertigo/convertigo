@@ -6,6 +6,7 @@
 		onCancel?: (event?: any) => any,
 		changesPending?: boolean,
 		disabled?: boolean,
+		saveDisabled?: boolean,
 		cancelDisabled?: boolean,
 		saveLabel?: string,
 		cancelLabel?: string,
@@ -20,6 +21,7 @@
 		onCancel = () => {},
 		changesPending = true,
 		disabled = false,
+		saveDisabled = false,
 		cancelDisabled,
 		saveLabel = 'Save changes',
 		cancelLabel = 'Cancel changes',
@@ -47,14 +49,14 @@
 			label: saveLabel,
 			icon: saveIcon,
 			cls: saveClass,
-			disabled: !changesPending,
+			disabled: disabled || saveDisabled || !changesPending,
 			onclick: handleSave
 		},
 		{
 			label: cancelLabel,
 			icon: cancelIcon,
 			cls: cancelClass,
-			disabled: cancelDisabled ?? !changesPending,
+			disabled: disabled || (cancelDisabled ?? !changesPending),
 			onclick: handleCancel
 		}
 	]}

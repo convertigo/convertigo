@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SequenceFlowBuilder } from './SequenceFlowBuilder';
+import { toXyFlow } from './xyflow';
 
 const sequenceId = 'Project.sq:Sequence';
 const objectId = `${sequenceId}.st:object`;
@@ -9,6 +10,21 @@ const ifId = `${objectId}.st:if`;
 const ifFieldId = `${ifId}.st:field1`;
 
 describe('SequenceFlowBuilder bottom container links', () => {
+	it('preserves the provider rename value from tree response to graph editor', () => {
+		const builder = new SequenceFlowBuilder();
+		const item = {
+			...builder.normalizeTreeItem({
+				id: 'Project.sq:Sequence.nodes_0',
+				label: 'GET weather',
+				renameValue: 'weather',
+				classname: 'FlowVirtualObject'
+			}),
+			children: []
+		};
+		const flow = builder.buildFlowFromTree('Project', 'Sequence', [item], palette());
+		const projected = toXyFlow(flow).nodes.find((node) => node.data.originalId === item.id);
+		expect(projected?.data.renameValue).toBe('weather');
+	});
 	it('keeps the child lane return link after a nested child is reordered before an if step', () => {
 		const flow = new SequenceFlowBuilder().buildFlowFromTree(
 			'Project',

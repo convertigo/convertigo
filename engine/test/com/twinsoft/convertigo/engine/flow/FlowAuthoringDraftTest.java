@@ -37,7 +37,7 @@ public class FlowAuthoringDraftTest {
 	@Test
 	public void reloadDiscardsUnsavedDraftAndExportPersistsIt() throws Exception {
 		var directory = folder.newFolder();
-		var file = directory.toPath().resolve("libs/flow/engine.yaml");
+		var file = directory.toPath().resolve("_flow/engine.yaml");
 		Files.createDirectories(file.getParent());
 		Files.writeString(file, "original");
 		var current = model(directory);

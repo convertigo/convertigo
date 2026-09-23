@@ -133,10 +133,11 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	public void setDefinition(String definition) throws EngineException {
 		definition = valueOrEmpty(definition);
 		if (!this.definition.equals(definition)) {
-			applyDefinitionMutation(definition);
-			this.definition = definition;
-			parsedDefinitionSource = null;
-			parsedDefinitionValue = null;
+			if (!applyMutation(virtualPath, parseDefinitionValue(definition))) {
+				this.definition = definition;
+				parsedDefinitionSource = null;
+				parsedDefinitionValue = null;
+			}
 		}
 	}
 
@@ -189,9 +190,9 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		parsedDefinitionValue = null;
 		parsedVirtualInfoSource = null;
 		parsedVirtualInfoValue = null;
-		for (var child : children) {
-			child.setParent(null);
-		}
+		// Editors and mutation listeners can still hold the previous projection
+		// until the UI reconciles it. Keep its owner chain usable during that
+		// handoff; only this children list defines the current projection.
 		children.clear();
 		for (var child : projected.children) {
 			child.setParent(this);
@@ -205,10 +206,11 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	}
 
 	public void setDefinitionValue(Object value) throws EngineException {
-		applyMutation(virtualPath, value);
-		definition = definitionString(value);
-		parsedDefinitionSource = null;
-		parsedDefinitionValue = null;
+		if (!applyMutation(virtualPath, value)) {
+			definition = definitionString(value);
+			parsedDefinitionSource = null;
+			parsedDefinitionValue = null;
+		}
 	}
 
 	public Object getDefinitionValue() {
@@ -238,6 +240,14 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		if (object == null) {
 			return null;
 		}
+		var path = declaredDefinitionPath(key);
+		if (!path.isBlank()) {
+			Object value = object;
+			for (var part : path.split("\\.")) {
+				value = value instanceof JSONObject json ? json.opt(part) : null;
+			}
+			return value;
+		}
 		if (object.has(key)) {
 			return object.opt(key);
 		}
@@ -250,39 +260,71 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		if (key.isBlank()) {
 			throw new EngineException("Flow virtual property name must not be empty.");
 		}
-		if (!key.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+		if (!key.matches("[A-Za-z_$][A-Za-z0-9_$]*")) {
 			throw new EngineException("Unsupported Flow virtual property name: " + key);
 		}
 		if (isReadOnlyProperty(propertyDefinition(key))) {
 			throw new EngineException("Flow virtual property \"" + key + "\" is read-only.");
 		}
-		var propertyPath = virtualPath.isBlank() ? key : virtualPath + "." + key;
-		applyPropertyMutation(key, propertyPath, value);
+		var relativePath = writableDefinitionPath(key);
+		var propertyPath = virtualPath.isBlank() ? relativePath : virtualPath + "." + relativePath;
 		try {
 			var object = getDefinitionObject();
 			if (object != null) {
-				object.put(key, value == null ? JSONObject.NULL : value);
-				var props = object.optJSONObject("props");
-				if (props != null) {
-					props.remove(key);
-					if (props.length() == 0) {
-						object.remove("props");
+				// Prepare a separate cache value before the mutation; a failed write
+				// must not change the projected object or flatten its payload.
+				object = new JSONObject(object.toString());
+				var parts = relativePath.split("\\.");
+				var parent = object;
+				for (var i = 0; i < parts.length - 1; i++) {
+					var child = parent.optJSONObject(parts[i]);
+					if (child == null) {
+						if (parent.has(parts[i]) && !parent.isNull(parts[i])) {
+							throw new EngineException("Flow property path crosses a non-object: " + relativePath);
+						}
+						child = new JSONObject();
+						parent.put(parts[i], child);
 					}
+					parent = child;
 				}
-				definition = object.toString();
-				parsedDefinitionSource = definition;
-				parsedDefinitionValue = object;
-				refreshSummaryFromDefinition(object);
+				parent.put(parts[parts.length - 1], value == null ? JSONObject.NULL : value);
+				if (!applyPropertyMutation(key, propertyPath, value)) {
+					definition = object.toString();
+					parsedDefinitionSource = definition;
+					parsedDefinitionValue = object;
+				}
+			} else {
+				applyPropertyMutation(key, propertyPath, value);
 			}
 		} catch (JSONException e) {
 			throw new EngineException("Unable to update Flow virtual property cache.", e);
 		}
 	}
 
+	private String writableDefinitionPath(String key) {
+		var path = declaredDefinitionPath(key);
+		if (!path.isBlank()) {
+			return path;
+		}
+		var object = getDefinitionObject();
+		var props = object == null ? null : object.optJSONObject("props");
+		return object != null && !object.has(key) && props != null && props.has(key) ? "props." + key : key;
+	}
+
+	private String declaredDefinitionPath(String key) {
+		var descriptor = propertyDefinition(key);
+		var path = descriptor == null ? "" : descriptor.optString("definitionPath", "");
+		if (!path.isBlank() && !path.matches("[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)*")) {
+			throw new IllegalArgumentException("Invalid projected Flow property path: " + path);
+		}
+		return path;
+	}
+
 	@Override
 	public String getComment() {
 		if ("node".equals(virtualKind)) {
-			var comment = getDefinitionProperty("comment");
+			var object = getDefinitionObject();
+			var comment = object == null ? null : object.opt("comment");
 			if (comment != null && !JSONObject.NULL.equals(comment)) {
 				return String.valueOf(comment);
 			}
@@ -294,7 +336,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	public void setComment(String comment) {
 		if ("node".equals(virtualKind) && isDefinitionWritable()) {
 			try {
-				setDefinitionProperty("comment", valueOrEmpty(comment));
+				setDefinitionProperty(hasDeclaredProperty("$$comment") ? "$$comment" : "comment", valueOrEmpty(comment));
 				return;
 			} catch (EngineException e) {
 				Engine.logBeans.warn("Unable to update Flow virtual object comment.", e);
@@ -370,17 +412,18 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		if (!isDefinitionWritable()) {
 			return false;
 		}
-		if ("comment".equals(name)) {
+		if ("comment".equals(name) && declaredDefinitionPath(name).isBlank()) {
 			setComment(value);
 			return true;
 		}
 		if ("#flow_value".equals(name)) {
-			setDefinitionValue(parseEditedValue(value, getDefinitionValue()));
+			setDefinitionValue(convertEditedValue(name, value));
 			return true;
 		}
 		var definition = getDefinitionObject();
 		if (definition != null && (definition.has(name) || hasDeclaredProperty(name))) {
-			setDefinitionProperty(name, parseEditedValue(value, declaredOrCurrentValue(name)));
+			var edited = convertEditedValue(name, value);
+			setDefinitionProperty(name, invertedValue(propertyDefinition(name), edited));
 			return true;
 		}
 		return false;
@@ -441,16 +484,19 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			if (value instanceof JSONObject json) {
 				var info = getVirtualInfoObject();
 				var propertyDefinitions = info == null ? null : info.optJSONObject("propertyDefinitions");
-				if ("node".equals(virtualKind)) {
+				var projectedRootPaths = new java.util.HashSet<String>();
+				var engineProjectsComment = propertyDefinitions != null && propertyDefinitions.has("$$comment");
+				if ("node".equals(virtualKind) && !hasDeclaredProperty("$$comment") && !engineProjectsComment) {
 					appendDynamicProperty(document, root, "comment", "Comment", "Base properties", getComment(), "Flow node comment.", false, null);
 				}
 				if (propertyDefinitions != null) {
 					for (var key : propertyDefinitionKeys(info, propertyDefinitions)) {
 						var definition = propertyDefinitions.optJSONObject(key);
+						projectedRootPaths.add(declaredDefinitionPath(key));
 						if (!isHiddenProperty(definition)) {
 							appendDynamicProperty(document, root, key, propertyLabel(key, definition),
 									propertyCategory(definition),
-									declaredOrCurrentValue(key),
+									projectedPropertyValue(key, definition),
 									propertyDescription(key, definition),
 									isReadOnlyProperty(definition), definition);
 						}
@@ -458,7 +504,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 				}
 				for (var key : sortedKeys(json)) {
 					if (!"comment".equals(key) && !isInternalDefinitionProperty(key)) {
-						if (propertyDefinitions == null || !propertyDefinitions.has(key)) {
+						if (!projectedRootPaths.contains(key) && (propertyDefinitions == null || !propertyDefinitions.has(key))) {
 							appendDynamicProperty(document, root, key, key, "Expert", json.opt(key), "Flow property \"" + key + "\".", false, null);
 						}
 					}
@@ -613,55 +659,18 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		return value instanceof JSONObject || value instanceof JSONArray ? value.toString() : value;
 	}
 
-	private static Object parseEditedValue(String text, Object currentValue) {
-		var trimmed = text == null ? "" : text.trim();
-		if (currentValue instanceof Boolean) {
-			return Boolean.valueOf(trimmed);
+	protected Object convertEditedValue(String name, String text) throws EngineException {
+		var owner = mutableSourceRoot();
+		if (owner == null) {
+			throw new EngineException("A Flow property edit requires its owning provider.");
 		}
-		if (currentValue instanceof Number) {
-			return parseNumber(trimmed, currentValue);
-		}
-		if (currentValue instanceof JSONObject || currentValue instanceof JSONArray
-				|| trimmed.startsWith("{") || trimmed.startsWith("[") || "null".equals(trimmed)) {
-			try {
-				return new JSONTokener(trimmed).nextValue();
-			} catch (Exception e) {
-				return text;
-			}
-		}
-		return text;
+		return new FlowEngineBridge().propertyValue(owner, propertyDefinition(name), text);
 	}
 
-	private static Object parseNumber(String text, Object currentValue) {
-		try {
-			if (currentValue instanceof Integer) {
-				return Integer.valueOf(text);
-			}
-			if (currentValue instanceof Long) {
-				return Long.valueOf(text);
-			}
-			if (currentValue instanceof Float) {
-				return Float.valueOf(text);
-			}
-			if (currentValue instanceof Double) {
-				return Double.valueOf(text);
-			}
-			return text.contains(".") || text.contains("e") || text.contains("E")
-					? Double.valueOf(text)
-					: Long.valueOf(text);
-		} catch (NumberFormatException e) {
-			return text;
-		}
-	}
-
-	private void applyDefinitionMutation(String newDefinition) throws EngineException {
-		applyMutation(virtualPath, parseDefinitionValue(newDefinition));
-	}
-
-	private void applyMutation(String path, Object value) throws EngineException {
-			var target = mutableSourceRoot();
+	private boolean applyMutation(String path, Object value) throws EngineException {
+		var target = mutableSourceRoot();
 		if (target == null || path.isBlank()) {
-			return;
+			return false;
 		}
 		if (!isWritablePath(target, path)) {
 			throw new EngineException("Flow virtual path \"" + path + "\" is read-only.");
@@ -672,15 +681,14 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 					.put("op", info == null ? "replace" : info.optString("sourceMutationOp", "replace"))
 					.put("path", path)
 					.put("value", value == null ? JSONObject.NULL : value);
-			var response = target instanceof Flow flow
-					? new FlowEngineBridge().applyMutation(flow, mutation)
-					: new FlowEngineBridge().applyMutation((FlowEngine) target, mutation, true, virtualPath);
+			var response = FlowStudioSupport.applyProjectedMutation(target, this, mutation);
 			if (!response.optBoolean("ok", false)) {
 				var error = response.optJSONObject("error");
 				var message = error == null ? response.optString("message", "Flow mutation failed.") : flowErrorMessage(error);
 				throw new EngineException("Flow virtual mutation failed: " + message);
 			}
-			FlowStudioSupport.refreshVirtualObjectFromTree(this, response);
+			lastSourceMutationResult = response;
+			return FlowStudioSupport.refreshVirtualObjectFromTree(this, response);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow virtual mutation.", e);
 		} catch (EngineException e) {
@@ -702,9 +710,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			var mutation = new JSONObject()
 					.put("op", "delete")
 					.put("path", path);
-			var response = target instanceof Flow flow
-					? new FlowEngineBridge().applyMutation(flow, mutation, false)
-					: new FlowEngineBridge().applyMutation((FlowEngine) target, mutation, false);
+			var response = FlowStudioSupport.applyOwnerMutation(target, mutation, false, "");
 			if (!response.optBoolean("ok", false)) {
 				var error = response.optJSONObject("error");
 				var message = error == null ? response.optString("message", "Flow delete failed.") : flowErrorMessage(error);
@@ -719,17 +725,17 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		}
 	}
 
-	private void applyPropertyMutation(String key, String path, Object value) throws EngineException {
+	private boolean applyPropertyMutation(String key, String path, Object value) throws EngineException {
 		var target = mutableSourceRoot();
 		if (target instanceof FlowEngine flowEngine && "block".equals(virtualKind) && isWritableSourceObject()) {
 			new FlowEngineBridge().setBlockProperty(flowEngine, virtualType, key, value);
 			FlowStudioSupport.clearCatalogCache(flowEngine);
-			return;
+			return false;
 		}
 		if (target instanceof FlowEngine flowEngine && "type".equals(virtualKind) && isWritableSourceObject()) {
 			new FlowEngineBridge().setTypeProperty(flowEngine, virtualType, key, value);
 			FlowStudioSupport.clearCatalogCache(flowEngine);
-			return;
+			return false;
 		}
 		if (target instanceof FlowEngine flowEngine && "typeResource".equals(virtualKind) && isWritableSourceObject()) {
 			var object = getDefinitionObject();
@@ -737,24 +743,24 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			var role = object == null ? "" : object.optString("role", virtualType);
 			new FlowEngineBridge().setTypeResourceProperty(flowEngine, typeName, role, key, value);
 			FlowStudioSupport.clearCatalogCache(flowEngine);
-			return;
+			return false;
 		}
 		if (target instanceof FlowEngine flowEngine && isWritableSourceObject()) {
 			var sourcePath = sourceValue("sourcePath");
 			var sourceMutationPath = sourceValue("sourceMutationPath");
 			if (!sourcePath.isBlank() && !sourceMutationPath.isBlank()) {
 				var propertyPath = sourcePropertyMutationPath(key);
-				applySourcePropertyMutation(flowEngine, sourcePath,
-						propertyPath.isBlank() ? sourceMutationPath + "." + key : propertyPath, value);
-				return;
+				return applySourcePropertyMutation(flowEngine, sourcePath,
+						propertyPath.isBlank() ? sourceMutationPath + "." + writableDefinitionPath(key) : propertyPath, value);
 			}
 		}
-		applyMutation(path, value);
+		return applyMutation(path, value);
 	}
 
-	private void applySourcePropertyMutation(FlowEngine flowEngine, String sourcePath, String path, Object value) throws EngineException {
+	private boolean applySourcePropertyMutation(FlowEngine flowEngine, String sourcePath, String path, Object value) throws EngineException {
 		try {
-			var response = new FlowEngineBridge().applySourceMutation(flowEngine, sourcePath, new JSONObject()
+			var response = FlowStudioSupport.applyProjectedMutation(flowEngine, this, new JSONObject()
+					.put("__sourcePath", sourcePath)
 					.put("op", "replace")
 					.put("path", path)
 					.put("value", value == null ? JSONObject.NULL : value));
@@ -763,9 +769,14 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 				var message = error == null ? response.optString("message", "Flow source mutation failed.") : flowErrorMessage(error);
 				throw new EngineException("Flow source mutation failed: " + message);
 			}
-			FlowStudioSupport.afterSourceMutation(flowEngine, sourcePath);
+			lastSourceMutationResult = response;
+			return FlowStudioSupport.refreshVirtualObjectFromTree(this, response);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow source property mutation.", e);
+		} catch (EngineException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EngineException("Unable to apply Flow source property mutation.", e);
 		}
 	}
 
@@ -875,86 +886,72 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		return object != null && object.optBoolean(key, false);
 	}
 
-	private void refreshSummaryFromDefinition(JSONObject object) {
-		if (object == null) {
-			return;
-		}
-		var next = firstNonBlank(
-				summaryValue(object.opt("label")),
-				summaryValue(object.opt("title")),
-				summaryValue(object.opt("text")),
-				summaryValue(object.opt("name")),
-				summaryValue(object.opt("id")),
-				summaryValue(object.opt("kind")));
-		if (!next.isBlank()) {
-			summary = next;
-		}
-	}
-
-	private static String summaryValue(Object value) {
-		if (value == null || JSONObject.NULL.equals(value)) {
-			return "";
-		}
-		if (value instanceof JSONObject object) {
-			return switch (object.optString("mode", "")) {
-			case "literal" -> summaryScalar(object.opt("value"));
-			case "expression" -> object.optString("expression", "");
-			case "source" -> sourceSummary(object);
-			default -> "";
-			};
-		}
-		return value instanceof JSONArray ? "" : String.valueOf(value);
-	}
-
-	private static String summaryScalar(Object value) {
-		return value == null || JSONObject.NULL.equals(value) || value instanceof JSONObject || value instanceof JSONArray
-				? ""
-				: String.valueOf(value);
-	}
-
-	private static String sourceSummary(JSONObject binding) {
-		var source = binding.optJSONObject("source");
-		if (source == null) {
-			return "";
-		}
-		var root = switch (source.optString("category", "")) {
-		case "local" -> "@local." + source.optString("name", "");
-		case "iteration" -> "@" + source.optString("scopeId", "") + "." + source.optString("value", "item");
-		case "event" -> "@event";
-		case "route" -> "@route";
-		default -> "@" + source.optString("actionId", "");
-		};
-		var path = binding.optJSONArray("path");
-		var out = new StringBuilder(root);
-		for (var i = 0; path != null && i < path.length(); i++) {
-			var segment = path.optJSONObject(i);
-			if (segment == null) {
-				continue;
-			}
-			if ("index".equals(segment.optString("kind", ""))) {
-				out.append('[').append(segment.optInt("index")).append(']');
-			} else {
-				out.append('.').append(segment.optString("name", ""));
-			}
-		}
-		return out.toString();
-	}
-
-	private static String firstNonBlank(String... values) {
-		if (values != null) {
-			for (var value : values) {
-				value = valueOrEmpty(value);
-				if (!value.isBlank()) {
-					return value;
-				}
-			}
-		}
-		return "";
-	}
-
 	private boolean hasDeclaredProperty(String key) {
 		var definition = propertyDefinition(key);
 		return definition != null && !isHiddenProperty(definition);
+	}
+
+	private Object projectedPropertyValue(String key, JSONObject definition) {
+		return invertedValue(definition, declaredOrCurrentValue(key));
+	}
+
+	// Value of a projected property as the user must see it: declared default when the
+	// source omits it, inverted when the descriptor says so. Studio surfaces read this
+	// instead of the raw definition so that one bridge owns the semantics.
+	public Object getProjectedPropertyValue(String key) {
+		return projectedPropertyValue(key, propertyDefinition(key));
+	}
+
+	// True when a raw definition key is already represented by a projected property
+	// (through its definitionPath); such keys must not be listed again as raw rows.
+	public boolean isProjectedDefinitionKey(String rawKey) {
+		var info = getVirtualInfoObject();
+		var definitions = info == null ? null : info.optJSONObject("propertyDefinitions");
+		if (definitions == null || rawKey == null || rawKey.isBlank()) {
+			return false;
+		}
+		for (var keys = definitions.keys(); keys.hasNext();) {
+			var definition = definitions.optJSONObject(String.valueOf(keys.next()));
+			var path = definition == null ? "" : definition.optString("definitionPath", "");
+			if (path.equals(rawKey) || path.startsWith(rawKey + ".")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Provider-defined information takes precedence over technical host information. */
+	public boolean hasProjectedInformationProperty(String label) {
+		var info = getVirtualInfoObject();
+		var definitions = info == null ? null : info.optJSONObject("propertyDefinitions");
+		if (definitions == null) {
+			return false;
+		}
+		for (var keys = definitions.keys(); keys.hasNext();) {
+			var key = String.valueOf(keys.next());
+			var definition = definitions.optJSONObject(key);
+			if (definition != null && !definition.optBoolean("hidden", false)
+					&& "Information".equals(definition.optString("category"))
+					&& label.equals(propertyLabel(key, definition))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// Descriptor flag "invert": the surface shows the negation of the stored boolean
+	// (for example "Is active" over a stored "disabled"). Symmetric on read and write.
+	private static Object invertedValue(JSONObject definition, Object value) {
+		if (definition == null || !definition.optBoolean("invert", false)) {
+			return value;
+		}
+		if (value instanceof Boolean flag) {
+			return !flag;
+		}
+		if (value == null || "".equals(value) || JSONObject.NULL.equals(value)) {
+			return Boolean.TRUE;
+		}
+		return !Boolean.parseBoolean(String.valueOf(value));
 	}
 
 	private Object declaredOrCurrentValue(String key) {
@@ -972,7 +969,12 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		}
 		var info = getVirtualInfoObject();
 		var defaults = info == null ? null : info.optJSONObject("propertyDefaults");
-		return defaults == null ? "" : defaults.opt(key);
+		if (defaults != null && defaults.has(key)) {
+			return defaults.opt(key);
+		}
+		// Information rows (block provider, block source...) carry their value in the
+		// projection info, not in the node definition.
+		return info == null || !info.has(key) ? "" : info.opt(key);
 	}
 
 	private JSONObject propertyDefinition(String key) {

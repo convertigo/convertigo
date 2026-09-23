@@ -1,7 +1,7 @@
 <script>
 	import Projects from '$lib/common/Projects.svelte.js';
 	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
-	import { onMount, tick } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import {
 		areEquivalentDboObjectIds,
@@ -10,7 +10,7 @@
 		mutationDboRefreshIds
 	} from './dnd';
 	import StudioEmptyState from './StudioEmptyState.svelte';
-	import { applyProjectedTreeMutation } from './studioTreeMutation';
+	import { applyProjectedTreeMutation, remapExpandedTreeIds } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
 
 	/**
@@ -106,7 +106,9 @@
 		if (!mutation?.done || mutation.source === 'tree') {
 			return;
 		}
-		void refreshMutationContext(serial, mutation);
+		untrack(() => {
+			void refreshMutationContext(serial, mutation);
+		});
 	});
 
 	/**
@@ -122,6 +124,7 @@
 	 * @param {{ targetParentNode?: any, projectTargetParent?: () => void, clearTargetProjection?: () => void, projectPendingParent?: () => void }=} context
 	 */
 	async function handleMutation(mutation, context) {
+		remapExpandedTreeIds(expandedNodeIds, mutation, equivalentDboObjectIds);
 		const contextIds = mutationDboContextIds(mutation);
 		keepExpanded(contextIds);
 		const targetRoots = context?.targetParentNode ? [context.targetParentNode] : rootChildren;
@@ -166,6 +169,7 @@
 	 * @param {import('./dnd').DboDropResult} mutation
 	 */
 	async function refreshMutationContext(serial, mutation) {
+		remapExpandedTreeIds(expandedNodeIds, mutation, equivalentDboObjectIds);
 		const parentIds = mutationDboContextIds(mutation);
 		if (!parentIds.length) {
 			return;

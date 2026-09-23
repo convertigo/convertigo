@@ -249,6 +249,9 @@ war {
 	from 'build/tmp/build.txt', {
 		into 'WEB-INF'
 	}
+
+	// Never pick up a payload that a prior Eclipse packaging run left in the webapp source.
+	exclude 'WEB-INF/flow-migration/**'
 	
 	exclude '**/keys.txt'
 	exclude '**/*.car'
@@ -539,7 +542,9 @@ task unzipSwaggerUI {
 task copyLicense(type: Copy, dependsOn: [':checkLicenseDate']) {
 	group = 'convertigo'
 	
-	from '../license.txt'
+	from('../legal/dual-license.txt') {
+		rename { 'license.txt' }
+	}
 	into '../eclipse-plugin-studio/tomcat/webapps/convertigo/licenses'
 }
 

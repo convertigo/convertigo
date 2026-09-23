@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.Flow;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Context;
@@ -66,7 +67,7 @@ public class FlowEngineBridge {
 
 	public static final String DEFAULT_ENGINE_QNAME = "lib_flow_engine.Engine";
 
-	private static final String ENGINE_BASE_PATH = "libs/flow/";
+	private static final String ENGINE_BASE_PATH = FlowSourceLayout.current().root() + "/";
 	private static final Map<String, CachedEngineSource> engineSourceCache = new ConcurrentHashMap<>();
 	private static final Map<String, CachedEngineRuntimePool> engineRuntimeCache = new ConcurrentHashMap<>();
 	private static final Object engineRuntimeCacheLock = new Object();
@@ -259,20 +260,11 @@ public class FlowEngineBridge {
 	}
 
 	public static boolean requiresRuntimeCacheInvalidation(String projectRelativePath) {
-		var path = normalizeProjectRelativePath(projectRelativePath);
-		return "libs/flow/Engine.js".equals(path)
-				|| path.startsWith("libs/flow/modules/")
-				|| path.startsWith("libs/flow/lib/");
+		return FlowSourceLayout.current().requiresRuntimeInvalidation(projectRelativePath);
 	}
 
 	public static boolean isFrontendAuthoringSourcePath(String projectRelativePath) {
-		var path = normalizeProjectRelativePath(projectRelativePath);
-		return path.startsWith("libs/flow/frontbuilder/")
-				&& (path.contains("/model/") || path.contains("/.flow-drafts/"));
-	}
-
-	private static String normalizeProjectRelativePath(String path) {
-		return path == null ? "" : path.replace('\\', '/').replaceFirst("^/+", "");
+		return FlowSourceLayout.current().isFrontendAuthoringSource(projectRelativePath);
 	}
 
 	public static void notifySourceMutation(String projectDir, String sourcePath) {
@@ -586,6 +578,24 @@ public class FlowEngineBridge {
 			return invoke(engineQName, "propertyEditor", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow property editor request.", e);
+		}
+	}
+
+	public Object propertyValue(DatabaseObject owner, JSONObject definition, String text) throws EngineException {
+		try {
+			var engineQName = owner instanceof Flow flow ? effectiveEngineQName(flow)
+					: effectiveEngineQName((FlowEngine) owner);
+			var request = baseRequest(engineQName, "", owner.getQName(), null)
+					.put("projectDir", owner.getProject() == null ? "" : owner.getProject().getDirPath())
+					.put("propertyDefinition", definition == null ? new JSONObject() : definition)
+					.put("text", text == null ? "" : text);
+			var result = invoke(engineQName, "propertyValue", request, null, null, null);
+			if (!result.optBoolean("ok", false) || !result.has("value")) {
+				throw new EngineException("Unable to convert Flow property value: " + result.opt("error"));
+			}
+			return result.get("value");
+		} catch (JSONException e) {
+			throw new EngineException("Unable to read Flow property value.", e);
 		}
 	}
 
@@ -1447,7 +1457,8 @@ public class FlowEngineBridge {
 			if (projectDir == null || projectDir.isBlank()) {
 				return;
 			}
-			var file = new File(projectDir, "libs/flow/types/editors/" + typeName + ".html");
+			FlowSourceLayout.current().ensureHttpIgnore(new File(projectDir));
+			var file = new File(projectDir, FlowSourceLayout.current().path("types/editors/" + typeName + ".html"));
 			if (file.isFile()) {
 				return;
 			}
@@ -1878,7 +1889,7 @@ public class FlowEngineBridge {
 			engineScope.delete("context");
 		}
 
-		engineScope.put("__flowEngineDir", engineScope, engineFile.getParentFile().getAbsolutePath());
+		initializeSourceScope(engineScope, engineFile);
 		var projectDir = request.optString("projectDir", "");
 		engineScope.put("__flowProjectDir", engineScope, projectDir);
 		engineScope.put("__flowBridgeClassSource", engineScope, bridgeClassSource());
@@ -2010,7 +2021,7 @@ public class FlowEngineBridge {
 		appendFileFingerprint(source, new File(projectRoot, "c8oProject.yaml"));
 		var flowRoot = new File(projectRoot, ENGINE_BASE_PATH);
 		appendFlowRootFingerprint(source, label + ".flow", flowRoot);
-		appendDirectoryFingerprint(source, new File(projectRoot, "libs/flows"));
+		appendDirectoryFingerprint(source, new File(projectRoot, FlowSourceLayout.current().flows()));
 	}
 
 	private static void appendReferencedProjectFingerprints(StringBuilder source, File projectRoot) {
@@ -2319,11 +2330,17 @@ public class FlowEngineBridge {
 		return null;
 	}
 
+	static void initializeSourceScope(Scriptable scope, File engineFile) {
+		scope.put("__flowEngineDir", scope, engineFile.getParentFile().getAbsolutePath());
+		// Bootstrap-owned, never accepted from an authoring/runtime request.
+		scope.put("__flowSourceLayout", scope, FlowSourceLayout.current().key());
+	}
+
 	private static CachedEngineRuntime createEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
 			org.mozilla.javascript.Context cx, long generation) throws EngineException {
 		try {
 			var scope = cx.initStandardObjects();
-			scope.put("__flowEngineDir", scope, engineFile.getParentFile().getAbsolutePath());
+			initializeSourceScope(scope, engineFile);
 			var engine = RhinoUtils.evalCachedJavascript(cx, scope, engineSource.source(), engineSource.sourceName(), 1, null);
 			if (engine == null || Undefined.isUndefined(engine)) {
 				engine = ScriptableObject.getProperty(scope, engineRef.objectName);

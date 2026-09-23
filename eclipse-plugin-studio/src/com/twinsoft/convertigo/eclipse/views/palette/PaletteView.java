@@ -389,6 +389,16 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		}
 	}
 
+	private static int paletteItemCount(JSONArray categories) {
+		var count = 0;
+		for (var i = 0; categories != null && i < categories.length(); i++) {
+			var category = categories.optJSONObject(i);
+			var items = category == null ? null : category.optJSONArray("items");
+			count += items == null ? 0 : items.length();
+		}
+		return count;
+	}
+
 	private boolean syncFlowItems(DatabaseObject target, String requestedFlowPaletteKey) {
 		target = liveFlowPaletteTarget(target);
 		if (target == null || !FlowStudioSupport.isFlowPaletteTarget(target)) {
@@ -403,6 +413,14 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		}
 		try {
 			var categories = FlowStudioSupport.paletteCategories(target);
+			// A leaf node has no palette of its own: climb to the closest ancestor that
+			// offers blocks, so siblings can still be dragged around the selection.
+			var fallback = target;
+			while (paletteItemCount(categories) == 0 && fallback instanceof FlowVirtualObject
+					&& fallback.getParent() != null && FlowStudioSupport.isFlowPaletteTarget(fallback.getParent())) {
+				fallback = fallback.getParent();
+				categories = FlowStudioSupport.paletteCategories(fallback);
+			}
 			if (!requestedFlowPaletteKey.equals(latestFlowPaletteKey)) {
 				return false;
 			}

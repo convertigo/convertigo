@@ -27,7 +27,46 @@ import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 
 public class FlowStudioSupportSelectionTest {
-	private static final String SOURCE = "libs/flow/frontbuilder/svelte/model/Project/src/routes/+page.flow.svelte";
+	private static final String SOURCE = "_flow/frontbuilder/svelte/model/Project/src/routes/+page.flow.svelte";
+
+	@Test
+	public void replacingAProjectionKeepsNestedEditorSnapshotsAttachedToTheirProject() throws Exception {
+		var project = new com.twinsoft.convertigo.beans.core.Project();
+		project.setName("Qualification");
+		var owner = new FlowEngine();
+		owner.setParent(project);
+		var root = new FlowVirtualObject();
+		root.setParent(owner);
+		root.setVirtualPath("projection");
+		var child = new JSONObject().put("path", "projection.group.item").put("name", "item");
+		var group = new JSONObject().put("path", "projection.group").put("name", "group")
+				.put("children", new org.codehaus.jettison.json.JSONArray().put(child));
+		var tree = new JSONObject().put("path", "projection").put("name", "projection")
+				.put("children", new org.codehaus.jettison.json.JSONArray().put(group));
+		assertTrue(root.replaceProjectedTree(tree));
+		var oldGroup = root.getDatabaseObjectChildren().get(0);
+		var edited = oldGroup.getDatabaseObjectChildren().get(0);
+		assertSame(project, edited.getProject());
+		assertTrue(root.replaceProjectedTree(tree));
+		assertSame(project, edited.getProject());
+		assertFalse(root.getDatabaseObjectChildren().contains(oldGroup));
+		assertSame(project, root.getDatabaseObjectChildren().get(0).getProject());
+	}
+
+	@Test
+	public void propertyMutationRefreshesBeanFromWrappedProviderProjection() throws Exception {
+		var object = new FlowVirtualObject();
+		object.setVirtualPath("nodes[0]");
+		object.setSummary("Old summary");
+		var projected = new JSONObject().put("path", "nodes[0]").put("name", "equix").put("kind", "node")
+				.put("summary", "Provider summary")
+				.put("definition", new JSONObject().put("id", "equix").put("comment", "Human note").toString());
+		var response = new JSONObject().put("projectedTree", new JSONObject().put("path", "nodes")
+				.put("children", new org.codehaus.jettison.json.JSONArray().put(projected)));
+		assertTrue(FlowStudioSupport.refreshVirtualObjectFromTree(object, response));
+		assertEquals("Provider summary", object.getSummary());
+		assertEquals("Human note", object.getComment());
+	}
 
 	@Test
 	public void backendPaletteActionKeepsProviderProjectionAndSelectionOnOwnerOrSlot() throws Exception {
@@ -129,7 +168,7 @@ public class FlowStudioSupportSelectionTest {
 	}
 
 	@Test
-	public void sourcePasteSelectsTheNewObjectAfterProjectionDetachesItsDestination() throws Exception {
+	public void sourcePasteSelectsTheNewObjectAndKeepsThePreviousOwnerUntilUiReconciliation() throws Exception {
 		var engine = new FlowEngine() {
 			@Override public String getSource(String path) { return "snapshot"; }
 			@Override public List<DatabaseObject> getDatabaseObjectChildren() { return List.of(); }
@@ -163,11 +202,80 @@ public class FlowStudioSupportSelectionTest {
 		} finally {
 			com.twinsoft.convertigo.engine.Engine.logStudio = previousLogger;
 		}
-		assertNull(target.getParent());
+		assertSame(root, target.getParent());
+		assertFalse(root.getDatabaseObjectChildren().contains(target));
 		assertTrue(result.getBoolean("done"));
 		assertEquals("projected.page.card", result.getString("selectionVirtualPath"));
 		assertSame(tree, result.getJSONObject("projectedTree"));
 		assertEquals("projected.page", result.getString("projectedRootPath"));
+		assertEquals(root.getDatabaseObjectChildren().get(0).getFullQName(), result.getString("id"));
+	}
+
+	@Test
+	public void sourceRenameSelectsTheNewIdentityAfterTheOldProjectionIsReplaced() throws Exception {
+		assertSourceIdentityChangeSelection(true);
+	}
+
+	@Test
+	public void sourcePropertyEditSelectsTheNewIdentityUsingItsDescriptorAddress() throws Exception {
+		assertSourceIdentityChangeSelection(false);
+	}
+
+	private void assertSourceIdentityChangeSelection(boolean rename) throws Exception {
+		var engine = new FlowEngine() {
+			@Override public List<DatabaseObject> getDatabaseObjectChildren() { return List.of(); }
+		};
+		var root = candidate("projected.page", "frontAst", "page");
+		var folder = new FlowVirtualObject() {
+			@Override public List<DatabaseObject> getDatabaseObjectChildren() { return List.of(root); }
+		};
+		folder.setName("arbitraryFolder");
+		folder.setVirtualPath("projected");
+		folder.setParent(engine);
+		root.setParent(folder);
+		var info = new JSONObject().put("sourcePath", SOURCE).put("sourceWritable", true)
+				.put("sourceMutationPath", "frontAst.children[0]").put("renameValue", "before")
+				.put("renameMutation", new JSONObject().put("op", "replace").put("path", "frontAst.children[0].id")
+						.put("selectionMutationPath", "frontAst.children[0]"));
+		var child = new JSONObject().put("path", "projected.page.before").put("name", "before")
+				.put("info", info.toString()).put("definition", "{\"id\":\"before\"}");
+		var tree = new JSONObject().put("path", "projected.page").put("name", "page")
+				.put("info", root.getVirtualInfo()).put("children", new org.codehaus.jettison.json.JSONArray().put(child));
+		assertTrue(root.replaceProjectedTree(tree));
+		var target = (FlowVirtualObject) root.getDatabaseObjectChildren().get(0);
+		var bridge = new FlowEngineBridge() {
+			@Override public JSONObject applySourceMutation(FlowEngine owner, String path, JSONObject mutation, String rootPath) {
+				assertSame(engine, owner);
+				assertEquals(SOURCE, path);
+				assertEquals("projected.page", rootPath);
+				assertEquals("frontAst.children[0].id", mutation.optString("path"));
+				assertEquals("after", mutation.optString("value"));
+				try {
+					child.put("path", "projected.page.after").put("name", "authoring_after")
+							.put("definition", "{\"id\":\"after\"}")
+							.put("info", info.put("renameValue", "after").toString());
+					return new JSONObject().put("ok", true).put("authoringTree", new JSONObject().put("ok", true)
+							.put("children", new org.codehaus.jettison.json.JSONArray().put(tree)));
+				} catch (Exception e) { throw new AssertionError(e); }
+			}
+		};
+		var previousLogger = com.twinsoft.convertigo.engine.Engine.logStudio;
+		JSONObject result;
+		try {
+			com.twinsoft.convertigo.engine.Engine.logStudio = org.apache.log4j.Logger.getLogger(getClass());
+			result = rename ? FlowStudioSupport.renameVirtualObject(target, "after", bridge)
+					: FlowStudioSupport.applyProjectedMutation(engine, target,
+							new JSONObject().put("op", "replace").put("path", "frontAst.children[0].id")
+									.put("value", "after"), bridge);
+		} finally {
+			com.twinsoft.convertigo.engine.Engine.logStudio = previousLogger;
+		}
+		assertSame(root, target.getParent());
+		assertFalse(root.getDatabaseObjectChildren().contains(target));
+		assertTrue(result.getBoolean("done"));
+		assertTrue(result.getBoolean("projected"));
+		assertEquals("frontAst.children[0]", result.getString("selectionMutationPath"));
+		assertEquals("projected.page.after", result.getString("selectionVirtualPath"));
 		assertEquals(root.getDatabaseObjectChildren().get(0).getFullQName(), result.getString("id"));
 	}
 
@@ -256,47 +364,85 @@ public class FlowStudioSupportSelectionTest {
 	}
 
 	@Test
-	public void renameMaterializesOneProjectionWithoutRequestingAnUnusedTree() throws Exception {
+	public void renameUsesProviderInstructionAndReturnedProjectionForEitherOwner() throws Exception {
+		for (DatabaseObject owner : List.of(new Flow(), new FlowEngine())) {
 		var root = new FlowVirtualObject();
+		root.setParent(owner);
 		root.setVirtualPath("config");
-		assertTrue(root.replaceProjectedTree(new JSONObject().put("path", "config").put("name", "Config")
+		var tree = new JSONObject().put("path", "config").put("name", "Config")
 				.put("children", new org.codehaus.jettison.json.JSONArray().put(new JSONObject()
 						.put("path", "config.after").put("name", "after")
-						.put("info", "{\"sourceMutationPath\":\"config.after\"}")))));
-		var reads = new int[1];
-		var engine = new FlowEngine() {
-			@Override
-			public List<DatabaseObject> getDatabaseObjectChildren() {
-				reads[0]++;
-				return List.of(root);
-			}
-		};
+						.put("info", "{\"sourceMutationPath\":\"config.after\"}")));
 		var object = new FlowVirtualObject() {
 			@Override
 			public boolean isDefinitionWritable() { return true; }
 		};
-		object.setParent(engine);
+		object.setParent(root);
+		object.setVirtualKind("provider.unknown-kind");
 		object.setVirtualPath("config.before");
-		object.setVirtualInfo("{\"renameMutationOp\":\"rename\",\"sourceMutationPath\":\"config.before\"}");
+		object.setVirtualInfo("{\"renameValue\":\"before\",\"renameMutation\":{\"op\":\"provider.rename\",\"path\":\"config.before\"}}");
+		assertEquals("before", FlowStudioSupport.virtualRenameValue(object));
+		var calls = new int[1];
 		var bridge = new FlowEngineBridge() {
-			@Override
-			public JSONObject applyMutation(FlowEngine owner, JSONObject mutation, boolean includeTree) {
-				assertSame(engine, owner);
-				assertFalse(includeTree);
+			private JSONObject apply(DatabaseObject target, JSONObject mutation, boolean includeTree) {
+				assertSame(owner, target);
+				assertTrue(includeTree);
+				assertEquals("provider.rename", mutation.optString("op"));
 				assertEquals("config.before", mutation.optString("path"));
 				assertEquals("after", mutation.optString("value"));
+				calls[0]++;
 				try {
-					return new JSONObject().put("ok", true).put("selectionMutationPath", "config.after");
+					return new JSONObject().put("ok", true).put("selectionMutationPath", "config.after")
+							.put("children", new org.codehaus.jettison.json.JSONArray().put(tree));
 				} catch (Exception e) { throw new AssertionError(e); }
+			}
+			@Override public JSONObject applyMutation(Flow target, JSONObject mutation, boolean includeTree) {
+				return apply(target, mutation, includeTree);
+			}
+			@Override public JSONObject applyMutation(FlowEngine target, JSONObject mutation, boolean includeTree, String path) {
+				assertEquals("config", path);
+				return apply(target, mutation, includeTree);
 			}
 		};
 		var result = FlowStudioSupport.renameVirtualObject(object, "after", bridge);
+		assertEquals(object.getFullQName(), result.getString("previousId"));
 		assertTrue(result.getBoolean("projected"));
 		assertEquals("config", result.getString("projectedRootPath"));
 		assertEquals("config.after", result.getString("selectionMutationPath"));
 		assertEquals("config.after", result.getString("selectionVirtualPath"));
-		assertEquals(root.getDatabaseObjectChildren().get(0).getFullQName(), result.getString("id"));
-		assertEquals(1, reads[0]);
+		assertSame(tree, result.getJSONObject("projectedTree"));
+		assertTrue(result.getString("id").endsWith(".Config.after"));
+		assertEquals(1, calls[0]);
+		assertFalse(object.getVirtualInfoObject().getJSONObject("renameMutation").has("value"));
+		}
+	}
+
+	@Test
+	public void ordinaryProjectedMutationKeepsSelectionAndProjectionForContextMenus() throws Exception {
+		var owner = new Flow();
+		var root = new FlowVirtualObject();
+		root.setParent(owner);
+		root.setVirtualPath("nodes");
+		var child = new FlowVirtualObject();
+		child.setParent(root);
+		child.setVirtualPath("nodes[0]");
+		var tree = new JSONObject().put("path", "nodes").put("name", "Flow")
+				.put("children", new org.codehaus.jettison.json.JSONArray().put(new JSONObject()
+						.put("path", "nodes[0]").put("name", "kept")));
+		var bridge = new FlowEngineBridge() {
+			@Override public JSONObject applyMutation(Flow flow, JSONObject mutation, boolean includeTree) {
+				try {
+					return new JSONObject().put("ok", true).put("changed", false)
+							.put("children", new org.codehaus.jettison.json.JSONArray().put(tree));
+				} catch (Exception e) { throw new AssertionError(e); }
+			}
+		};
+		var result = FlowStudioSupport.applyProjectedMutation(owner, child, new JSONObject().put("op", "provider.action"), bridge);
+		assertTrue(result.getBoolean("projected"));
+		assertTrue(result.getBoolean("done"));
+		assertFalse(result.getBoolean("changed"));
+		assertEquals("nodes[0]", result.getString("selectionVirtualPath"));
+		assertTrue(result.getString("id").endsWith(".Flow.kept"));
 	}
 
 	@Test
@@ -338,6 +484,10 @@ public class FlowStudioSupportSelectionTest {
 	@Test
 	public void exposesTheSameStableReferenceUsedByTheGeneratedFrontend() throws Exception {
 		var candidate = candidate("frontends.svelte.routes.home.structure.text", "frontAst.nodes[2]", "text");
+		candidate.setDefinition("{\"id\":\"text\",\"props\":{\"id\":5}}");
+		candidate.setVirtualInfo(new JSONObject(candidate.getVirtualInfo())
+				.put("propertyDefinitions", new JSONObject().put("id", new JSONObject().put("definitionPath", "props.id")))
+				.toString());
 
 		var reference = FlowStudioSupport.authoringReference(candidate);
 
@@ -362,7 +512,7 @@ public class FlowStudioSupportSelectionTest {
 
 		assertEquals(source, FlowStudioSupport.findFrontendSource(root, SOURCE));
 		assertNull(FlowStudioSupport.findFrontendSource(root,
-				"libs/flow/frontbuilder/svelte/model/Project/src/routes/other.flow.svelte"));
+				"_flow/frontbuilder/svelte/model/Project/src/routes/other.flow.svelte"));
 	}
 
 	@Test

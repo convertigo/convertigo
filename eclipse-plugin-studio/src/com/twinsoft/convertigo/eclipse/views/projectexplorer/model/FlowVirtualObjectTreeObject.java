@@ -30,11 +30,13 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.codehaus.jettison.json.JSONTokener;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
@@ -77,13 +79,17 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		reloadDescriptors();
 	}
 
+	public String getRenameName() {
+		return FlowStudioSupport.virtualRenameValue(getObject());
+	}
+
 	@Override
 	public boolean rename(String newName, boolean dialog) {
 		if (!FlowStudioSupport.canRenameVirtualObject(getObject())) {
-			return super.rename(newName, dialog);
+			return false;
 		}
 		try {
-			if (newName.equals(getObject().getName())) {
+			if (newName.equals(getRenameName())) {
 				return true;
 			}
 			var renamedObject = getObject();
@@ -91,7 +97,7 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			var result = new JSONObject[1];
 			// Preserve the synchronous rename contract, but let SWT dispatch events
 			// while the provider validates, mutates and materializes the projection.
-			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
+			ModalContext.run(monitor -> {
 				monitor.beginTask("Renaming " + renamedObject.getName(), org.eclipse.core.runtime.IProgressMonitor.UNKNOWN);
 				try {
 					result[0] = FlowStudioSupport.renameVirtualObject(renamedObject, newName);
@@ -100,10 +106,9 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 				} finally {
 					monitor.done();
 				}
-			});
+			}, true, new NullProgressMonitor(), viewer.getControl().getDisplay());
 			var response = result[0];
 			var prepared = System.nanoTime();
-			getObject().setName(newName);
 			// The provider changed the source draft, not the ProjectTreeObject's
 			// dirty flag. Use the same save notification as a native DBO rename.
 			hasBeenModified(true);
@@ -272,7 +277,7 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			// Configuration containers are represented by the tree itself. Only a
 			// scalar configuration leaf exposes its single Value property.
 			var isConfigurationObject = "config".equals(object.getVirtualType());
-			if ("node".equals(object.getVirtualKind())) {
+			if ("node".equals(object.getVirtualKind()) && propertyDefinitions == null) {
 				var descriptor = new TextPropertyDescriptor(P_COMMENT, "Comment");
 				descriptor.setCategory(CATEGORY);
 				descriptor.setDescription("Flow node comment displayed in the treeview comment column.");
@@ -288,7 +293,8 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 				}
 				if (!isConfigurationObject) {
 					for (String key : sortedKeys(json)) {
-						if (!isInternalNodeProperty(key) && !propertyDefinitions.has(key)) {
+						if (!isInternalNodeProperty(key) && !propertyDefinitions.has(key)
+								&& !object.isProjectedDefinitionKey(key)) {
 							addFlowPropertyDescriptor(descriptors, key, null);
 						}
 					}
@@ -380,46 +386,16 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	}
 
 	private static boolean usesFlowEditor(String key, JSONObject definition) {
-		if ("id".equals(key) || "block".equals(key)) {
-			return false;
-		}
-		if (definition == null) {
-			return true;
-		}
-		var editor = definition.optString("editor", "").toLowerCase();
-		var kind = definition.optString("kind", "").toLowerCase();
-		var type = definition.optString("type", "").toLowerCase();
-		if (!editor.isBlank()) {
-			return true;
-		}
-		return switch (kind) {
-		case "binding", "expression", "code", "requestable", "json", "schema", "object", "array" -> true;
-		case "select", "enum", "boolean", "text", "string", "number", "integer" -> false;
-		default -> switch (type) {
-			case "binding", "expression", "code", "requestable", "json", "schema", "object", "array" -> true;
-			case "boolean", "string", "number", "integer" -> false;
-			default -> true;
-		};
-		};
+		var mode = definition == null ? "custom" : definition.optString("editorMode", "custom");
+		return !"text".equals(mode) && !"choice".equals(mode);
 	}
 
 	private static boolean usesNativeEnum(JSONObject definition) {
-		if (definition == null || usesFlowEditor("", definition)) {
-			return false;
-		}
-		var kind = definition.optString("kind", "").toLowerCase();
-		var type = definition.optString("type", "").toLowerCase();
-		return "select".equals(kind) || "enum".equals(kind) || "boolean".equals(kind)
-				|| "boolean".equals(type) || definition.optJSONArray("enum") != null;
+		return definition != null && "choice".equals(definition.optString("editorMode", ""));
 	}
 
 	private static String[] enumValues(JSONObject definition) {
 		var values = definition == null ? null : definition.optJSONArray("enum");
-		if (values == null && definition != null
-				&& ("boolean".equalsIgnoreCase(definition.optString("kind", ""))
-						|| "boolean".equalsIgnoreCase(definition.optString("type", "")))) {
-			return new String[] { "false", "true" };
-		}
 		if (values == null) {
 			return new String[0];
 		}
@@ -535,7 +511,8 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			return getObject().getComment();
 		}
 		if (propertyName.startsWith(P_FLOW_PROPERTY)) {
-			return stringify(getObject().getDefinitionProperty(propertyName.substring(P_FLOW_PROPERTY.length())));
+			// The bridge owns defaults and inverted flags (Is active over disabled).
+			return stringify(getObject().getProjectedPropertyValue(propertyName.substring(P_FLOW_PROPERTY.length())));
 		}
 		if (P_FLOW_VALUE.equals(propertyName)) {
 			return stringify(getObject().getDefinitionValue());
@@ -576,6 +553,7 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		var mutated = started;
 		try {
 			applyEditedProperty(propertyName, value);
+			var response = getObject().consumeLastSourceMutationResult();
 			mutated = System.nanoTime();
 
 			reloadDescriptors();
@@ -586,6 +564,19 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			}
 			ConvertigoPlugin.projectManager.getProjectExplorerView()
 					.fireTreeObjectPropertyChanged(new TreeObjectEvent(this, propertyName, oldValue, getPropertyValue(id)));
+			// Let the cell editor close before reconciling its row and property sheet.
+			ConvertigoPlugin.asyncExec(() -> {
+				try {
+					var plugin = ConvertigoPlugin.getDefault();
+					if (response != null && response.optBoolean("projected", false)) {
+						plugin.getProjectExplorerView().reconcileFlowAuthoringMutation(this, this, getObject(), null, response);
+					} else {
+						plugin.refreshPropertiesView();
+					}
+				} catch (Exception e) {
+					ConvertigoPlugin.logException(e, "Unable to refresh the edited object.");
+				}
+			});
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to update Flow virtual property \"" + propertyName + "\".");
 		} finally {
@@ -605,7 +596,8 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			if (P_FLOW_VALUE.equals(key)) {
 				var parsedValue = parseEditedValue(value, getObject().getDefinitionValue(), null);
 				getObject().setDefinitionValue(parsedValue);
-			} else {
+			} else if (!getObject().setDynamicProperty(key, value == null ? "" : String.valueOf(value))) {
+				// Not a declared property: keep the historical raw write.
 				var currentValue = getObject().getDefinitionProperty(key);
 				var parsedValue = parseEditedValue(value, currentValue, flowPropertyDefinition(key));
 				getObject().setDefinitionProperty(key, parsedValue);

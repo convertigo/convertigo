@@ -419,7 +419,7 @@ task updateEclipseProduct(type: Copy, dependsOn: [':checkLicenseDate', 'updateEc
 	group = 'convertigo'
 	
 	def aboutTextFile = file('eclipse-plugin-product/aboutText.txt')
-	def licenseTextFile = file('license.txt')
+	def licenseTextFile = file('legal/dual-license.txt')
 	
 	inputs.properties(
 		'currentYear': currentYear,
@@ -581,7 +581,7 @@ task downloadSystemLibraries(/*dependsOn: downloadSystemLibFlowViewer*/) {
 task checkLicenseDate {
 	group = 'convertigo'
 	
-	def licenseTextFile = file('license.txt')
+	def licenseTextFile = file('legal/dual-license.txt')
 	
 	inputs.properties(
 		'currentYear': currentYear

@@ -22,6 +22,67 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class GetFlowVirtualPropertiesTest {
 	@Test
+	public void providerInformationOverridesHostInformationWithoutHidingBusinessProperties() throws Exception {
+		var project = new com.twinsoft.convertigo.beans.core.Project();
+		project.setName("Test");
+		var object = new FlowVirtualObject();
+		object.setParent(project);
+		object.setName("technicalWrapper");
+		object.setDefinition("{\"id\":\"equi\",\"props\":{\"name\":\"Business name\"}}");
+		object.setVirtualInfo("{\"propertyDefinitions\":{"
+				+ "\"$$id\":{\"label\":\"Name\",\"category\":\"Information\",\"definitionPath\":\"id\",\"readOnly\":true},"
+				+ "\"name\":{\"label\":\"Business name\",\"category\":\"Base properties\",\"definitionPath\":\"props.name\"},"
+				+ "\"hidden\":{\"label\":\"Priority\",\"category\":\"Information\",\"hidden\":true}}}");
+		assertEquals(true, object.hasProjectedInformationProperty("Name"));
+		assertEquals(false, object.hasProjectedInformationProperty("Business name"));
+		assertEquals(false, object.hasProjectedInformationProperty("Priority"));
+		var document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		var root = object.toXml(document, ExportOption.bIncludeDisplayName);
+		var props = new JSONObject();
+		var service = new Get();
+		service.addDboProperties(object, props, findProperty(root, "$$id"));
+		service.addDboProperties(object, props, findProperty(root, "name"));
+		service.addInfosProperties(object, props);
+		assertEquals("equi", props.getJSONObject("Name").getString("value"));
+		assertEquals("Business name", props.getJSONObject("Business name").getString("value"));
+		assertEquals(true, props.has("Priority"));
+	}
+
+	@Test
+	public void exposesBusinessIdAndEngineIdSeparately() throws Exception {
+		var object = new FlowVirtualObject();
+		object.setName("item");
+		object.setDefinition("{\"id\":\"node\",\"props\":{\"id\":5}}");
+		object.setVirtualInfo("{\"propertyDefinitions\":{"
+				+ "\"id\":{\"label\":\"Business ID\",\"definitionPath\":\"props.id\",\"type\":\"number\"},"
+				+ "\"$$id\":{\"label\":\"Node ID\",\"definitionPath\":\"id\",\"readOnly\":true}}}");
+		var document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		var root = object.toXml(document, ExportOption.bIncludeDisplayName, ExportOption.bIncludeEditorClass);
+		var properties = new JSONObject();
+		new Get().addDboProperties(object, properties, findProperty(root, "id"));
+		new Get().addDboProperties(object, properties, findProperty(root, "$$id"));
+		assertEquals(5, properties.getJSONObject("Business ID").getInt("value"));
+		assertEquals("node", properties.getJSONObject("Node ID").getString("value"));
+	}
+
+	@Test
+	public void doesNotExposeASecondEditableAliasForEngineMetadata() throws Exception {
+		var object = new FlowVirtualObject();
+		object.setName("item");
+		object.setDefinition("{\"disabled\":true,\"props\":{}}");
+		object.setVirtualInfo("{\"propertyDefinitions\":{\"$$disabled\":{"
+				+ "\"label\":\"Disabled\",\"definitionPath\":\"disabled\",\"type\":\"boolean\"}}}");
+		var document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		var root = object.toXml(document, ExportOption.bIncludeDisplayName);
+		findProperty(root, "$$disabled");
+		for (Node node = root.getFirstChild(); node != null; node = node.getNextSibling()) {
+			if (node instanceof Element element && "property".equals(element.getTagName())) {
+				assertEquals("Duplicate metadata alias", false, "disabled".equals(element.getAttribute("name")));
+			}
+		}
+	}
+
+	@Test
 	public void exposesClosedAuthoringChoicesThroughThePropertiesServiceContract() throws Exception {
 		var object = new FlowVirtualObject();
 		object.setName("avatar");

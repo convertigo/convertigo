@@ -59,10 +59,12 @@ public class Rename extends JSonService {
 		
 		boolean done = false;
 		JSONArray ids = new JSONArray();
-		DatabaseObject dbo = DboUtils.findDbo(id);
-		if (dbo instanceof com.twinsoft.convertigo.beans.flow.FlowVirtualObject virtual
-				&& com.twinsoft.convertigo.engine.flow.FlowStudioSupport.canRenameVirtualObject(virtual)) {
-			var result = com.twinsoft.convertigo.engine.flow.FlowStudioSupport.renameVirtualObject(virtual, newName);
+		DatabaseObject dbo = resolveTarget(id);
+		if (dbo instanceof com.twinsoft.convertigo.beans.flow.FlowVirtualObject virtual) {
+			if (!com.twinsoft.convertigo.engine.flow.FlowStudioSupport.canRenameVirtualObject(virtual)) {
+				throw new com.twinsoft.convertigo.engine.EngineException("This projected object does not support renaming.");
+			}
+			var result = renameVirtual(virtual, newName);
 			DboUtils.copyResult(result, response);
 			response.put("ids", ids.put(result.optString("id")));
 			return;
@@ -85,5 +87,13 @@ public class Rename extends JSonService {
 		
 		response.put("done", done);
 		response.put("ids", ids);
+	}
+
+	protected DatabaseObject resolveTarget(String id) throws Exception {
+		return DboUtils.findDbo(id);
+	}
+
+	protected JSONObject renameVirtual(com.twinsoft.convertigo.beans.flow.FlowVirtualObject object, String name) throws Exception {
+		return com.twinsoft.convertigo.engine.flow.FlowStudioSupport.renameVirtualObject(object, name);
 	}
 }

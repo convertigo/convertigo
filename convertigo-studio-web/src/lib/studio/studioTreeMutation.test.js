@@ -1,5 +1,39 @@
 import { describe, expect, it } from 'vitest';
-import { applyProjectedTreeMutation } from './studioTreeMutation';
+import { equivalentDboObjectIds } from './dnd';
+import { applyProjectedTreeMutation, remapExpandedTreeIds } from './studioTreeMutation';
+
+describe('rename expansion', () => {
+	it.each(['Project.meteo.Flow', 'Project.FlowEngine.Frontends.page'])(
+		'retains open descendants under %s',
+		(root) => {
+			const expanded = new Set([root, `${root}.eq`, `${root}.eq.nested`, `${root}.eqOther`]);
+			remapExpandedTreeIds(
+				expanded,
+				{ done: true, previousId: `${root}.eq`, id: `${root}.equi` },
+				equivalentDboObjectIds
+			);
+			expect(expanded.has(root)).toBe(true);
+			expect(expanded.has(`${root}.eqOther`)).toBe(true);
+			expect(expanded.has(`${root}.eq`)).toBe(false);
+			expect(expanded.has(`${root}.equi`)).toBe(true);
+			expect(expanded.has(`${root}.equi.nested`)).toBe(true);
+		}
+	);
+	it('ignores failed renames and ordinary mutations', () => {
+		const expanded = new Set(['Project.eq']);
+		remapExpandedTreeIds(
+			expanded,
+			{ done: false, previousId: 'Project.eq', id: 'Project.equi' },
+			equivalentDboObjectIds
+		);
+		remapExpandedTreeIds(
+			expanded,
+			{ done: true, target: 'Project.eq', id: 'Project.copy' },
+			equivalentDboObjectIds
+		);
+		expect([...expanded]).toEqual(['Project.eq']);
+	});
+});
 
 const idsEqual = (left, right) => left === right;
 

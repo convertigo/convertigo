@@ -39,6 +39,19 @@ export function createDatabaseObjectProperties() {
 		}));
 	});
 	let hasChanges = $derived(properties.some(propertyChanged));
+	let valid = $derived(
+		properties.every(
+			(property) =>
+				property.validation?.value !== property.value || property.validation?.valid !== false
+		)
+	);
+
+	function updateDraft(name, value, validation = {}) {
+		const property = properties.find((candidate) => candidate.name === name);
+		if (!property) return;
+		property.value = value;
+		property.validation = { ...validation, value };
+	}
 
 	function propertyChanged(property) {
 		return (
@@ -76,6 +89,7 @@ export function createDatabaseObjectProperties() {
 	function cancel() {
 		properties.forEach((p) => {
 			p.value = p.originalValue;
+			delete p.validation;
 			if ('mode' in p) {
 				p.mode = p.originalMode;
 			}
@@ -86,24 +100,30 @@ export function createDatabaseObjectProperties() {
 		return properties.filter(propertyChanged);
 	}
 
-	async function save() {
+	/**
+	 * @param {{ persist?: boolean, onSaved?: (id: string, result: any) => void | Promise<void> }} options
+	 */
+	async function save({ persist = true, onSaved } = {}) {
+		if (!valid) return false;
 		const changes = getChanges();
 		if (changes.length === 0) {
 			return true;
 		}
 		const saveId = id;
+		const submitted = changes.map(({ validation, ...property }) => property);
 		const res = await call('studio.properties.Set', {
 			id: saveId,
-			props: JSON.stringify(changes),
-			save: true
+			props: JSON.stringify(submitted),
+			save: persist
 		});
 		if (res?.done) {
-			changes.forEach((p) => {
-				p.originalValue = p.value;
+			changes.forEach((p, index) => {
+				p.originalValue = submitted[index].value;
 				if ('mode' in p) {
-					p.originalMode = p.mode;
+					p.originalMode = submitted[index].mode;
 				}
 			});
+			await onSaved?.(saveId, res);
 			return true;
 		}
 		if (id === saveId) {
@@ -125,10 +145,14 @@ export function createDatabaseObjectProperties() {
 		get hasChanges() {
 			return hasChanges;
 		},
+		get valid() {
+			return valid;
+		},
 		get loading() {
 			return loading;
 		},
 		onSelectionChange,
+		updateDraft,
 		cancel,
 		getChanges,
 		save

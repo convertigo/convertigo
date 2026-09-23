@@ -20,6 +20,7 @@ const FOLDER_TYPE_IDS = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url
  * @property {string=} target
  * @property {string=} parentId
  * @property {string=} previousParentId
+ * @property {string=} previousId
  * @property {string=} pendingId
  * @property {boolean=} optimistic
  * @property {string=} selectionSourcePath
@@ -483,12 +484,22 @@ function objectNameFromId(id) {
 	return separatorIndex >= 0 ? id.slice(separatorIndex + 1) : id;
 }
 
+/** The editable name is distinct from both the label and the technical tree id.
+ * @param {{id?: string, renameValue?: unknown} | undefined} node
+ * @returns {string}
+ */
+function objectRenameValue(node) {
+	return typeof node?.renameValue === 'string' ? node.renameValue : objectNameFromId(node?.id);
+}
+
 /**
  * @param {string | undefined} id
  * @param {string} name
+ * @param {{ id?: string }=} result Authoritative identity returned by the mutation service.
  * @returns {string}
  */
-function renameObjectId(id, name) {
+function renameObjectId(id, name, result) {
+	if (result?.id) return result.id;
 	if (!id) {
 		return name;
 	}
@@ -1082,6 +1093,7 @@ export {
 	mutationDboContextIds,
 	mutationDboRefreshIds,
 	objectNameFromId,
+	objectRenameValue,
 	parentObjectId,
 	performDboDrop,
 	renameObjectId,

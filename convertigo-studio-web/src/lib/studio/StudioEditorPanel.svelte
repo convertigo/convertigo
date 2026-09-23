@@ -34,7 +34,8 @@
 	 *  selectedId?: string,
 	 *  editorTarget?: { id?: string, propertyName?: string, displayName?: string, value?: any, sourceDocument?: boolean, serial?: number } | null,
 	 *  active?: boolean,
-	 *  onSave?: (id: string) => void | Promise<void>,
+	 *  onSave?: (id: string, result?: any) => void | Promise<void>,
+	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onSelectObject?: (id: string) => void
 	 * }}
 	 */
@@ -43,6 +44,7 @@
 		editorTarget = null,
 		active = false,
 		onSave,
+		onMutationBusyChange = () => {},
 		onSelectObject = () => {}
 	} = $props();
 
@@ -304,6 +306,8 @@
 			return;
 		}
 		saving = true;
+		let handled = false;
+		onMutationBusyChange(true);
 		try {
 			const loaded = await loadProperties(tab.id);
 			if (!loaded) {
@@ -319,14 +323,26 @@
 				return;
 			}
 			row.value = tab.content;
-			if (!(await save())) {
+			if (
+				!(await save({
+					persist: false,
+					onSaved: async (savedId, result) => {
+						await onSave?.(savedId, result);
+						handled = true;
+						const nextId = result.selectedId || result.id || savedId;
+						tab.id = nextId;
+						tab.key = createTabKey(nextId, tab.propertyName);
+						activeTabKey = tab.key;
+					}
+				}))
+			) {
 				return;
 			}
 			tab.originalValue = tab.content;
 			tab.language = getPropertyLanguage({ ...row, value: tab.content }, tab.id);
-			await onSave?.(tab.id);
 		} finally {
 			saving = false;
+			onMutationBusyChange(false, handled);
 		}
 	}
 
@@ -449,7 +465,7 @@
 				{:else}
 					<SaveCancelButtons
 						class="w-fit"
-						saveLabel="Save"
+						saveLabel="Apply"
 						cancelLabel="Cancel"
 						onSave={saveEditor}
 						onCancel={cancelEditor}

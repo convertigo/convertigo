@@ -21,7 +21,7 @@
 	 *  active?: boolean,
 	 *  pickerTarget?: PickerTarget | null,
 	 *  frontendThemeContext?: { mode: string, palette: string, tokens: any[] } | null,
-	 *  onChange?: (value: any) => void
+	 *  onChange?: (value: any, validation?: {valid: boolean, error: string}) => void
 	 * }}
 	 */
 	let {
@@ -225,8 +225,11 @@
 				window.open(String(event.url), '_blank', 'noopener,noreferrer');
 				return;
 			}
-			if (event.type === 'value' && event.valid !== false) {
-				onChange(String(event.value ?? ''));
+			if (event.type === 'value') {
+				onChange(String(event.value ?? ''), {
+					valid: event.valid !== false,
+					error: String(event.error ?? '')
+				});
 			}
 		} catch (err) {
 			error = String(err instanceof Error ? err.message : err);

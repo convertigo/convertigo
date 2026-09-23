@@ -4,6 +4,7 @@ import {
 	authoringModeFromMessage,
 	authoringModeMessage,
 	authoringMoveRequest,
+	contextAuthoringMutation,
 	FLOW_AUTHORING_PROTOCOL,
 	highlightAuthoringMessage,
 	isFlowAuthoringMessage,
@@ -22,6 +23,31 @@ const reference = {
 };
 
 describe('Flow visual authoring protocol', () => {
+	it('reconciles menu mutations like other authoring commands, preserving provider metadata', () => {
+		const mutation = {
+			ok: true,
+			id: 'project.renamed',
+			parentId: 'project',
+			projectedRootPath: 'nodes',
+			selectionVirtualPath: 'nodes[0]'
+		};
+		expect(contextAuthoringMutation({ ok: true, mutationResult: mutation }, 'project.old')).toEqual(
+			{
+				...mutation,
+				done: true,
+				target: 'project.old',
+				source: 'context'
+			}
+		);
+		for (const result of [
+			{ ok: false, mutationResult: mutation },
+			{ ok: true },
+			{ ok: true, mutationResult: { ok: false } },
+			{ ok: true, mutationResult: { ...mutation, changed: false } }
+		]) {
+			expect(contextAuthoringMutation(result, 'project.old')).toBeNull();
+		}
+	});
 	it('accepts only complete source-backed references', () => {
 		expect(isFlowAuthoringReference(reference)).toBe(true);
 		expect(isFlowAuthoringReference({ ...reference, sourceMutationPath: '' })).toBe(false);

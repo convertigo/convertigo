@@ -36,6 +36,7 @@ class SequenceFlowBuilder {
 			id: item.id,
 			label: label || item.id,
 			name: item.name,
+			renameValue: item.renameValue,
 			icon: item.icon,
 			classname: item.classname,
 			isLoop: !!item.isLoop,
@@ -889,6 +890,7 @@ class SequenceFlowBuilder {
 			data: {
 				icon: item.icon,
 				originalId: item.id,
+				renameValue: item.renameValue,
 				parentId,
 				parentBranch: branch,
 				orderIndex,

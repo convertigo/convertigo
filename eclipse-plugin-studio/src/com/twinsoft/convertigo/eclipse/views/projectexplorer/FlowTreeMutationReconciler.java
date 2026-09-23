@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -77,6 +78,9 @@ public final class FlowTreeMutationReconciler {
 		}
 		var started = System.currentTimeMillis();
 		if (projectedRoot instanceof FlowVirtualObjectTreeObject flowRoot) {
+			// Capture before replacing the beans: a renamed subtree keeps its UI
+			// wrappers (and expansion), despite the change of projected identity.
+			var renamed = renamedSubtree(flowRoot, response.optString("previousId", ""), response.optString("id", ""));
 			DatabaseObject owner = flowRoot.getObject();
 			while (owner instanceof FlowVirtualObject && owner.getParent() != null) {
 				owner = owner.getParent();
@@ -90,7 +94,7 @@ public final class FlowTreeMutationReconciler {
 			}
 			flowRoot.replaceFlowObject(currentRoot);
 			var created = new HashSet<TreeObject>();
-			reconcileProjectedChildren(flowRoot, flowRoot.getObject().getDatabaseObjectChildren(), created);
+			reconcileProjectedChildren(flowRoot, flowRoot.getObject().getDatabaseObjectChildren(), created, renamed);
 			explorerView.refreshProjectedFlowTreeObject(projectedRoot, created);
 		} else {
 			explorerView.forceReloadTreeObject(projectedRoot);
@@ -131,14 +135,40 @@ public final class FlowTreeMutationReconciler {
 			explorerView.updateTreeObject(changedObject);
 		}
 		explorerView.setSelectedTreeObject(selected, true);
+		// Retained wrappers do not trigger a selection change. The property sheet
+		// must still reread their replaced beans and descriptors after any mutation.
+		ConvertigoPlugin.getDefault().refreshPropertiesView();
 		Engine.logStudio.info("Flow projected tree reconciled: root=" + projectedRoot.getPath()
 				+ " selected=" + selected.getPath()
 				+ " elapsedMs=" + (System.currentTimeMillis() - started));
 		return true;
 	}
 
-	private static void reconcileProjectedChildren(FlowVirtualObjectTreeObject parent,
-			Iterable<DatabaseObject> projectedChildren, Set<TreeObject> created) {
+	static Map<String, FlowVirtualObjectTreeObject> renamedSubtree(FlowVirtualObjectTreeObject root,
+			String previousId, String id) {
+		var renamed = new HashMap<String, FlowVirtualObjectTreeObject>();
+		if (!previousId.isBlank() && !id.isBlank() && !previousId.equals(id)) {
+			collectRenamedSubtree(root, previousId, id, renamed);
+		}
+		return renamed;
+	}
+
+	private static void collectRenamedSubtree(FlowVirtualObjectTreeObject node, String previousId, String id,
+			Map<String, FlowVirtualObjectTreeObject> renamed) {
+		var key = node.getObject().getFullQName();
+		if (key.equals(previousId) || key.startsWith(previousId + ".")) {
+			renamed.put(id + key.substring(previousId.length()), node);
+		}
+		for (var child : node.getChildren()) {
+			if (child instanceof FlowVirtualObjectTreeObject projected) {
+				collectRenamedSubtree(projected, previousId, id, renamed);
+			}
+		}
+	}
+
+	static void reconcileProjectedChildren(FlowVirtualObjectTreeObject parent,
+			Iterable<DatabaseObject> projectedChildren, Set<TreeObject> created,
+			Map<String, FlowVirtualObjectTreeObject> renamed) {
 		Map<String, ArrayDeque<FlowVirtualObjectTreeObject>> existing = new HashMap<>();
 		for (var child : parent.getChildren()) {
 			if (child instanceof FlowVirtualObjectTreeObject flowChild) {
@@ -151,15 +181,24 @@ public final class FlowTreeMutationReconciler {
 			if (!(projectedChild instanceof FlowVirtualObject flowObject)) {
 				continue;
 			}
-			var candidates = existing.get(selectionKey(flowObject));
-			var flowChild = candidates == null || candidates.isEmpty() ? null : candidates.removeFirst();
+			var flowChild = renamed.get(flowObject.getFullQName());
+			if (flowChild != null) {
+				var candidates = existing.get(selectionKey(flowChild.getObject()));
+				if (candidates == null || !candidates.remove(flowChild)) {
+					flowChild = null;
+				}
+			}
+			if (flowChild == null) {
+				var candidates = existing.get(selectionKey(flowObject));
+				flowChild = candidates == null || candidates.isEmpty() ? null : candidates.removeFirst();
+			}
 			if (flowChild == null) {
 				flowChild = new FlowVirtualObjectTreeObject(parent.viewer, flowObject, false);
 				created.add(flowChild);
 			} else {
 				flowChild.replaceFlowObject(flowObject);
 			}
-			reconcileProjectedChildren(flowChild, flowObject.getDatabaseObjectChildren(), created);
+			reconcileProjectedChildren(flowChild, flowObject.getDatabaseObjectChildren(), created, renamed);
 			replacements.add(flowChild);
 		}
 		parent.replaceChildren(replacements);

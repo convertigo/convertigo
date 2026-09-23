@@ -26,6 +26,7 @@ import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
+import com.twinsoft.convertigo.engine.flow.FlowSourceLayout;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -280,10 +281,7 @@ public class Get extends JSonService {
 		if (info.optBoolean("frontendModel", false)) {
 			return true;
 		}
-		var path = info.optString("sourcePath", "").replace('\\', '/');
-		return path.contains("/libs/flow/frontbuilder/")
-				&& (path.endsWith(".flow.svelte") || path.endsWith(".flow.css")
-						|| path.endsWith(".front.json") || path.endsWith(".uiblock.json"));
+		return FlowSourceLayout.current().isFrontendDocument(info.optString("sourcePath", ""));
 	}
 
 	private static String infoString(JSONObject info, String key) {

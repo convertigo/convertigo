@@ -1,6 +1,6 @@
 <script>
 	import { Handle, Position } from '@xyflow/svelte';
-	import { objectNameFromId } from '$lib/studio/dnd';
+	import { objectRenameValue } from '$lib/studio/dnd';
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
@@ -22,6 +22,9 @@
 	let sideInputCount = $derived(Math.max(0, data.inputs - data.bottomInputs));
 	let sideOutputCount = $derived(Math.max(0, data.outputs - data.bottomOutputs));
 	let draggableObjectId = $derived(data.originalId ?? '');
+	let editableName = $derived(
+		objectRenameValue({ id: draggableObjectId, renameValue: data.renameValue })
+	);
 	let renameValue = $state('');
 
 	/**
@@ -29,7 +32,7 @@
 	 */
 	function focusRenameInput(node) {
 		if (draggableObjectId) {
-			renameValue = objectNameFromId(draggableObjectId);
+			renameValue = editableName;
 		}
 		/** @type {number | undefined} */
 		let frame;
@@ -282,8 +285,8 @@
 			return;
 		}
 		const nextName = renameValue.trim();
-		if (!nextName || nextName === objectNameFromId(draggableObjectId)) {
-			data.onRename?.(draggableObjectId, objectNameFromId(draggableObjectId));
+		if (!nextName || nextName === editableName) {
+			data.onRename?.(draggableObjectId, editableName);
 			return;
 		}
 		data.onRename?.(draggableObjectId, nextName);
@@ -296,7 +299,7 @@
 		if (event.key === 'Escape') {
 			event.preventDefault();
 			event.stopPropagation();
-			data.onRename?.(draggableObjectId, objectNameFromId(draggableObjectId));
+			data.onRename?.(draggableObjectId, editableName);
 		}
 	}
 </script>

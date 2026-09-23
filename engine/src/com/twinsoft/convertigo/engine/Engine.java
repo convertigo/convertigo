@@ -501,8 +501,9 @@ public class Engine {
 				Engine.theApp.httpSessionManager = ConvertigoHttpSessionManager.getInstance();
 				Engine.theApp.httpSessionManager.init();
 
-				Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager();
-				Engine.theApp.databaseObjectsManager.init();
+				var databaseObjectsManager = new DatabaseObjectsManager();
+				databaseObjectsManager.init();
+				Engine.theApp.databaseObjectsManager = databaseObjectsManager;
 				Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(ComponentRefManager.get(Mode.start));
 
 				Engine.theApp.systemDatabaseObjectsManager = new SystemDatabaseObjectsManager();

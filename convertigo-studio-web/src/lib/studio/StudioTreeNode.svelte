@@ -14,6 +14,7 @@
 		isNoopSiblingMove,
 		mutationDboContextIds,
 		objectNameFromId,
+		objectRenameValue,
 		parentObjectId,
 		performDboDrop,
 		renameObjectId,
@@ -208,7 +209,7 @@
 			return;
 		}
 		renameFocusId = id;
-		renameValue = objectNameFromId(id);
+		renameValue = objectRenameValue(node);
 		void tick().then(() => {
 			const focusInput = () => {
 				renameInput?.focus();
@@ -385,7 +386,7 @@
 		if (renamingBusy || !renaming || !node?.id) {
 			return;
 		}
-		const currentName = objectNameFromId(node.id);
+		const currentName = objectRenameValue(node);
 		const nextName = renameValue.trim();
 		if (!nextName || nextName === currentName) {
 			renameTargetId = '';
@@ -400,7 +401,7 @@
 				return;
 			}
 			const previousId = node.id;
-			const nextId = renameObjectId(previousId, nextName);
+			const nextId = renameObjectId(previousId, nextName, result);
 			renameTargetId = '';
 			if (parentNode) {
 				await onLoadChildren(parentNode, true);
@@ -408,6 +409,7 @@
 			revision += 1;
 			selectedId = nextId;
 			await onMutation?.({
+				...result,
 				done: true,
 				id: nextId,
 				selectedId: nextId,
@@ -1079,7 +1081,7 @@
 					depth={depth + 1}
 					parentNode={node}
 					ancestorDisabled={ancestorDisabled || disabled}
-					{dataSerial}
+					dataSerial={dataSerial + revision}
 					{onLoadChildren}
 					{refreshSerial}
 					{expandedNodeIds}

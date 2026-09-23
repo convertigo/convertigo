@@ -4,7 +4,7 @@ import groovy.xml.XmlSlurper
 task updateFeature(type: Copy, dependsOn: [':checkLicenseDate']) {
 	group = 'convertigo'
 	
-	def licenseTextFile = file('../license.txt')
+	def licenseTextFile = file('../legal/dual-license.txt')
 	
 	inputs.properties(
 		'currentYear': currentYear,

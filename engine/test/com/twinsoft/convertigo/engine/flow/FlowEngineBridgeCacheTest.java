@@ -55,26 +55,28 @@ public class FlowEngineBridgeCacheTest {
 
 	@Test
 	public void distinguishesRuntimeSourcesFromAuthoringData() {
-		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("libs/flow/Engine.js"));
-		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("libs/flow/modules/runtime.js"));
-		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("libs\\flow\\lib\\helper.js"));
+		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow/Engine.js"));
+		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow/modules/runtime.js"));
+		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow\\lib\\helper.js"));
+		assertFalse(FlowEngineBridge.requiresRuntimeCacheInvalidation("libs/flow/Engine.js"));
 
-		assertFalse(FlowEngineBridge.requiresRuntimeCacheInvalidation("libs/flow/engine.yaml"));
-		assertFalse(FlowEngineBridge.requiresRuntimeCacheInvalidation("libs/flow/blocks/list/map.block.js"));
+		assertFalse(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow/engine.yaml"));
+		assertFalse(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow/blocks/list/map.block.js"));
 		assertFalse(FlowEngineBridge.requiresRuntimeCacheInvalidation(
-				"libs/flow/frontbuilder/svelte/model/app/src/routes/+page.flow.svelte"));
+				"_flow/frontbuilder/svelte/model/app/src/routes/+page.flow.svelte"));
 	}
 
 	@Test
 	public void recognizesFrontendModelsAndDrafts() {
 		assertTrue(FlowEngineBridge.isFrontendAuthoringSourcePath(
-				"libs/flow/frontbuilder/svelte/model/app/src/routes/+page.flow.svelte"));
+				"_flow/frontbuilder/svelte/model/app/src/routes/+page.flow.svelte"));
 		assertTrue(FlowEngineBridge.isFrontendAuthoringSourcePath(
-				"/libs/flow/frontbuilder/svelte/.flow-drafts/draft/src/routes/+page.flow.svelte"));
+				"/_flow/frontbuilder/svelte/.flow-drafts/draft/src/routes/+page.flow.svelte"));
 
 		assertFalse(FlowEngineBridge.isFrontendAuthoringSourcePath(
-				"libs/flow/frontbuilder/svelte/components/Text.flow.svelte"));
-		assertFalse(FlowEngineBridge.isFrontendAuthoringSourcePath("libs/flows/MyFlow.flow.js"));
+				"_flow/frontbuilder/svelte/components/Text.flow.svelte"));
+		assertFalse(FlowEngineBridge.isFrontendAuthoringSourcePath("_flow/flows/MyFlow.flow.js"));
+		assertFalse(FlowEngineBridge.isFrontendAuthoringSourcePath("libs/flow/frontbuilder/svelte/model/app/src/routes/+page.flow.svelte"));
 	}
 
 	@Test

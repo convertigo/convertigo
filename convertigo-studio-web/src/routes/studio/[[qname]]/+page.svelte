@@ -17,7 +17,7 @@
 	} from '$lib/studio/blockDefinition';
 	import { performDboDrop, shouldStartInlineRename } from '$lib/studio/dnd';
 	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
-	import { isFrontendAuthoringNodeId } from '$lib/studio/flowAuthoring';
+	import { contextAuthoringMutation, isFrontendAuthoringNodeId } from '$lib/studio/flowAuthoring';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
 	import {
 		findPrimaryEditorProperty,
@@ -1410,8 +1410,9 @@
 
 	/**
 	 * @param {import('$lib/studio/dnd').DboDropResult} mutation
+	 * @param {boolean} followSelection
 	 */
-	async function onStudioMutation(mutation) {
+	async function onStudioMutation(mutation, followSelection = true) {
 		const serial = ++mutationRefreshSerial;
 		localMutationEvents.remember(mutation);
 		lastStudioMutation = mutation;
@@ -1426,7 +1427,7 @@
 			// properties are the user's next interaction.
 			activeSidePanel = 'properties';
 		}
-		if (nextSelection) {
+		if (nextSelection && followSelection) {
 			selectedId = nextSelection;
 		}
 		if (shouldStartInlineRename(mutation) && nextSelection) {
@@ -1441,6 +1442,9 @@
 			markProjectDirty(nextSelection || mutation?.parentId || mutation?.target || selectedId);
 		} finally {
 			if (serial === mutationRefreshSerial) {
+				// A mutation can keep the selected id (for example Enable/Disable).
+				// Properties must reload even when the selection itself did not change.
+				propertiesRefreshSerial += 1;
 				// StudioTreePanel refreshes only the affected mutation context; a global tree
 				// refresh can collapse expanded branches while rename/reveal is in progress.
 				refreshStudioViews({ tree: false, flow: true });
@@ -1476,7 +1480,10 @@
 		) {
 			frontendPreview = { projectName: '', url: '', mode: 'production' };
 		}
-		if (result?.refresh) {
+		const mutation = contextAuthoringMutation(result, event.nodeId);
+		if (mutation) {
+			await onStudioMutation(mutation);
+		} else if (result?.refresh) {
 			await refreshStudioProject(event.nodeId);
 			refreshTreeContext(event.nodeId, 'contextAction');
 			refreshStudioViews();
@@ -1634,8 +1641,22 @@
 	/**
 	 * @param {string} id
 	 */
-	async function refreshAfterPropertySave(id) {
+	async function refreshAfterPropertySave(id, /** @type {any} */ result = null) {
 		if (!id) {
+			return;
+		}
+		if (result?.done) {
+			await onStudioMutation(
+				{
+					...result,
+					previousId: result.previousId || id,
+					selectedId: result.selectedId || result.id || id,
+					target: id,
+					source: 'properties',
+					payload: { type: 'propertyData', data: { id } }
+				},
+				selectedId === id
+			);
 			return;
 		}
 		await refreshStudioProject(id);
@@ -1780,6 +1801,8 @@
 			await Projects.refresh();
 			await refreshStudioProject(selectedProjectName);
 			clearProjectDirty(selectedProjectName);
+			// The selected QName can survive Reload while its model has been replaced.
+			propertiesRefreshSerial += 1;
 			refreshStudioViews();
 		} finally {
 			projectActionBusy = '';
@@ -2028,6 +2051,7 @@
 		{editorTarget}
 		active={codeEditorActive}
 		onSave={refreshAfterPropertySave}
+		onMutationBusyChange={onStudioMutationBusyChange}
 		onSelectObject={selectObject}
 	/>
 {/snippet}
@@ -2126,6 +2150,7 @@
 		active={effectiveSidePanel === 'properties'}
 		refreshSerial={propertiesRefreshSerial}
 		onSave={refreshAfterPropertySave}
+		onMutationBusyChange={onStudioMutationBusyChange}
 		onOpenPropertyEditor={openPropertyEditor}
 		onOpenPropertyPicker={openPropertyPicker}
 		{pickerTarget}

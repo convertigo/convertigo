@@ -1238,6 +1238,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public Project importProject(File _importFile, boolean override) throws EngineException {
+		com.twinsoft.convertigo.engine.flow.FlowProjectLoadBoundary.beforeImport(_importFile, this);
 		String filename = _importFile.getName();
 		if (filename.endsWith(".xml") && !_importFile.exists()) {
 			String oldName = filename;

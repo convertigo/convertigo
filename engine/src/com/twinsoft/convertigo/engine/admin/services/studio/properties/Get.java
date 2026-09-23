@@ -30,6 +30,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
@@ -97,29 +98,29 @@ public class Get extends JSonService {
 
 			String depth = Integer.toString(dbo instanceof ScreenClass ? ((ScreenClass) dbo).getDepth()
 					: org.apache.commons.lang3.StringUtils.countMatches(dbo.getQName(), '.'));
-			props.put("Depth", makeInfoProperty(info, "P_Depth", depth));
+			putInfoProperty(dbo, props, "Depth", makeInfoProperty(info, "P_Depth", depth));
 
 			String exported = dbo.getProject().getInfoForProperty("exported");
-			props.put("Exported", makeInfoProperty(info, "P_Exported", exported));
+			putInfoProperty(dbo, props, "Exported", makeInfoProperty(info, "P_Exported", exported));
 
 			String javaClass = dbo.getClass().getName();
-			props.put("Java class", makeInfoProperty(info, "P_JavaClass", javaClass));
+			putInfoProperty(dbo, props, "Java class", makeInfoProperty(info, "P_JavaClass", javaClass));
 
 			String minVersion = (String) dbo.getProject().getMinVersion();
-			props.put("Min version", makeInfoProperty(info, "P_MinVersion", minVersion));
+			putInfoProperty(dbo, props, "Min version", makeInfoProperty(info, "P_MinVersion", minVersion));
 
 			String name = dbo.getName();
-			props.put("Name", makeInfoProperty(info, "P_Name", name));
+			putInfoProperty(dbo, props, "Name", makeInfoProperty(info, "P_Name", name));
 
 			String priority = Long.toString(dbo.priority);
-			props.put("Priority", makeInfoProperty(info, "P_Priority", priority));
+			putInfoProperty(dbo, props, "Priority", makeInfoProperty(info, "P_Priority", priority));
 
 			String qname = dbo.getQName();
-			props.put("QName", makeInfoProperty(info, "P_QName", qname));
+			putInfoProperty(dbo, props, "QName", makeInfoProperty(info, "P_QName", qname));
 
 			if (dbo instanceof ApplicationComponent) {
 				String tplVersion = ((ApplicationComponent) dbo).getTplProjectVersion();
-				props.put("Template version", makeInfoProperty(info, "P_TemplateVersion", tplVersion));
+				putInfoProperty(dbo, props, "Template version", makeInfoProperty(info, "P_TemplateVersion", tplVersion));
 			}
 
 			String type = null;
@@ -136,9 +137,15 @@ public class Get extends JSonService {
 			} catch (Exception e) {
 				type = "n/a";
 			}
-			props.put("Type", makeInfoProperty(info, "P_Type", type));
+			putInfoProperty(dbo, props, "Type", makeInfoProperty(info, "P_Type", type));
 
 		} catch (Exception e) {
+		}
+	}
+
+	private void putInfoProperty(DatabaseObject dbo, JSONObject props, String label, JSONObject property) throws Exception {
+		if (!(dbo instanceof FlowVirtualObject virtual) || !virtual.hasProjectedInformationProperty(label)) {
+			props.put(label, property);
 		}
 	}
 

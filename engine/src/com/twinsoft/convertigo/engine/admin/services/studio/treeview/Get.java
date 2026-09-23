@@ -182,6 +182,9 @@ public class Get extends JSonService {
 		}
 		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + iconPath(dbo));
 		obj.put("id", qname);
+		if (dbo instanceof FlowVirtualObject virtual && FlowStudioSupport.canRenameVirtualObject(virtual)) {
+			obj.put("renameValue", FlowStudioSupport.virtualRenameValue(virtual));
+		}
 		var enabled = enabledState(dbo);
 		if (enabled != null) {
 			obj.put("enabled", enabled);

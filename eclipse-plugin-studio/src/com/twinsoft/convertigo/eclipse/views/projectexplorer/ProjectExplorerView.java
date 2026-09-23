@@ -1034,11 +1034,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		var mutationResult = result.optJSONObject("mutationResult");
 		var mutationApplied = result.optBoolean("ok", false) && mutationResult != null;
 		var mutationReloaded = mutationApplied
-				&& (reconcileFlowContextMutation(targetTreeObject, mutationResult)
-						|| reloadFlowContextMutation(targetDbo, targetReference));
+				&& reconcileFlowAuthoringMutation(targetTreeObject, targetTreeObject,
+						targetDbo, targetReference, mutationResult);
 		if (!mutationReloaded && result.optBoolean("refreshTree", false)) {
 			refreshTree();
-		} else if (!mutationReloaded && result.optBoolean("refresh", false)) {
+		} else if (!mutationReloaded && (mutationApplied || result.optBoolean("refresh", false))) {
 			refreshFirstSelectedTreeObject(true);
 		}
 		var openUrl = result.optString("openUrl", "");
@@ -1057,16 +1057,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			} else {
 				setFlowStatusMessage(message);
 			}
-		}
-	}
-
-	private boolean reconcileFlowContextMutation(TreeObject targetTreeObject, JSONObject mutationResult) {
-		try {
-			return FlowTreeMutationReconciler.reconcile(this, targetTreeObject, mutationResult,
-					FlowTreeMutationReconciler.selection(targetTreeObject));
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Unable to reconcile Flow tree after context mutation.");
-			return false;
 		}
 	}
 
@@ -1973,7 +1963,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				text.addListener(SWT.Traverse, textListener);
 				text.addListener(SWT.Verify, textListener);
 				editor.setEditor(composite, item);
-				if (theTreeObject instanceof DatabaseObjectTreeObject) {
+				if (theTreeObject instanceof FlowVirtualObjectTreeObject flowTreeObject) {
+					text.setText(flowTreeObject.getRenameName());
+				} else if (theTreeObject instanceof DatabaseObjectTreeObject) {
 					text.setText(((DatabaseObjectTreeObject)theTreeObject).getName());
 				} else if (theTreeObject instanceof TraceTreeObject) {
 					text.setText(((TraceTreeObject)theTreeObject).getName());
@@ -2111,7 +2103,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							}
 							addedTreeObjects.clear();
 							done.clear();
-							refreshTreeObject(parentTreeObject, false);
+							parentTreeObject.update();
+							// Already on the UI thread: materialize the new items before restoring
+							// state. The single-argument refresh override queues an async refresh.
+							viewer.refresh(parentTreeObject, true);
 
 							if (expendedPaths != null) {
 								var expanded = new ArrayList<TreeObject>();
@@ -3047,6 +3042,31 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		ConvertigoPlugin.syncExec(() -> {
 			((ViewContentProvider) viewer.getContentProvider()).reloadProject(projectTreeObject);
 		});
+	}
+
+	/** Reflect an Engine load; never initiate another unload/load from its notification. */
+	public void reconcileLoadedProject(Project project) throws CoreException, EngineException, IOException {
+		var projectName = project.getName();
+		// The asynchronous notification may have been superseded by a reload or close.
+		if (Engine.theApp.databaseObjectsManager.getLoadedProjectByName(projectName) != project) {
+			return;
+		}
+		var treeObject = getProjectRootObject(projectName);
+		if (treeObject == null) {
+			importProjectTreeObject(projectName);
+		} else if (treeObject instanceof ProjectTreeObject projectTreeObject) {
+			if (projectTreeObject.getObject() != project) {
+				// The Engine already discarded the old model. Do not save stale editors,
+				// close the Eclipse resource, or clear the freshly loaded Engine cache.
+				projectTreeObject.closeAllEditors(false);
+				projectTreeObject.setObject(project);
+				reload(projectTreeObject, project, true);
+				ConvertigoPlugin.getDefault().refreshPropertiesView();
+				ConvertigoPlugin.getDefault().refreshPaletteView();
+			}
+		} else if (treeObject instanceof UnloadedProjectTreeObject unloaded) {
+			loadProject(unloaded);
+		}
 	}
 
 	public void reloadProjectAndDeleteNodeModules(ProjectTreeObject projectTreeObject) {
