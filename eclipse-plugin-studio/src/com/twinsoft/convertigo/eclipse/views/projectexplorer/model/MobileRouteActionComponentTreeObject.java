@@ -142,7 +142,6 @@ public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObj
 						hasBeenModified(true);
 						
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileRouteActionComponentTreeObject.this);
-						getDescriptors();// refresh editors (e.g labels in combobox)
 						
 		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileRouteActionComponentTreeObject.this, propertyName, "", "");
 		    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);

@@ -111,7 +111,6 @@ public class UrlAuthenticationTreeObject extends DatabaseObjectTreeObject implem
 						hasBeenModified(true);
 						
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(UrlAuthenticationTreeObject.this);
-						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}
 			}

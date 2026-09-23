@@ -1012,7 +1012,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 						viewer.refresh();
 
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(NgxUIComponentTreeObject.this);
-						getDescriptors();// refresh editors (e.g labels in combobox)
 
 						TreeObjectEvent treeObjectEvent = new TreeObjectEvent(NgxUIComponentTreeObject.this, propertyName, pValue, _pValue);
 						ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
@@ -1048,7 +1047,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 									viewer.refresh();
 
 									ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(NgxUIComponentTreeObject.this);
-									getDescriptors();// refresh editors (e.g labels in combobox)
 
 									TreeObjectEvent treeObjectEvent = new TreeObjectEvent(NgxUIComponentTreeObject.this, propertyName, oValue, nValue);
 									ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);

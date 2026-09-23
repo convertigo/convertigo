@@ -155,7 +155,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		super(viewer, object);
 		isInherited = inherited;
 		hasBeenModified((object.bNew) || (object.hasChanged && !object.bNew));
-		getDescriptors();
+		introspect();
 	}
 
 	@Override
@@ -241,17 +241,33 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	protected void reloadDescriptors() {
 		propertyDescriptors = null;
-		getDescriptors();
 	}
 
 	protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
 		return new ArrayList<PropertyDescriptor>();
 	}
 
+	private boolean introspect() {
+		if (databaseObjectBeanDescriptor != null && databaseObjectPropertyDescriptors != null) {
+			return true;
+		}
+		DatabaseObject databaseObject = getObject();
+		try {
+			BeanInfo bi = databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(databaseObject.getClass());
+			databaseObjectBeanDescriptor = bi.getBeanDescriptor();
+			databaseObjectPropertyDescriptors = bi.getPropertyDescriptors();
+			return true;
+		}
+		catch (Exception e) {
+			String message = "Error while introspecting object " + databaseObject.getName() + " (" + databaseObject.getQName() + ")";
+			ConvertigoPlugin.logException(e, message);
+			return false;
+		}
+	}
 
+	// Built on first use only: most objects of a project tree never have their properties displayed
 	protected void getDescriptors() {
-		if (propertyDescriptors != null && databaseObjectBeanDescriptor != null &&
-				databaseObjectPropertyDescriptors != null) {
+		if (propertyDescriptors != null) {
 			return;
 		}
 
@@ -259,21 +275,13 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		if ((!(databaseObject instanceof Project)) && (databaseObject.getParent() == null))
 			return; // No needs for removed object
 
-		int len;
-
-		java.beans.PropertyDescriptor databaseObjectPropertyDescriptor;
-
-		try {
-			BeanInfo bi = databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(databaseObject.getClass());
-			databaseObjectBeanDescriptor = bi.getBeanDescriptor();
-			databaseObjectPropertyDescriptors = bi.getPropertyDescriptors();
-			len = databaseObjectPropertyDescriptors.length;
-		}
-		catch (Exception e) {
-			String message = "Error while introspecting object " + databaseObject.getName() + " (" + databaseObject.getQName() + ")";
-			ConvertigoPlugin.logException(e, message);
+		if (!introspect()) {
 			return;
 		}
+
+		int len = databaseObjectPropertyDescriptors.length;
+
+		java.beans.PropertyDescriptor databaseObjectPropertyDescriptor;
 
 		List<PropertyDescriptor> vPropertyDescriptors = new ArrayList<PropertyDescriptor>(32);
 
@@ -649,6 +657,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	private PropertyDescriptor findPropertyDescriptor(Object id) {
 		PropertyDescriptor propertyDescriptor;
+		getDescriptors();
 		if (propertyDescriptors != null) {
 			for (int i=0;i<propertyDescriptors.length;i++) {
 				propertyDescriptor = (PropertyDescriptor)propertyDescriptors[i];
@@ -702,6 +711,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	public IPropertyDescriptor[] getPropertyDescriptors() {
+		getDescriptors();
 		return propertyDescriptors;
 	}
 
@@ -1222,9 +1232,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		checkDone(treeObjectEvent);
 		checkReset(treeObjectEvent);
-		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
-		if (!(treeObject.equals(this)))
-			getDescriptors();// refresh editors (e.g labels in combobox)
 	}
 
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
@@ -1258,9 +1265,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				}
 			}
 		}
-
-		if (!(treeObject.equals(this)) && (!getParents().contains(treeObject)))
-			getDescriptors();// refresh editors (e.g labels in combobox)
 	}
 
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
@@ -1307,8 +1311,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				}
 			}
 		}
-
-		getDescriptors();// refresh editors (e.g labels in combobox)
 	}
 
 	public boolean hasAncestorDisabled(){

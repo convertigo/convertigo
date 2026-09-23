@@ -199,7 +199,6 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 			var.setName(newValue.toString());
 			hasBeenModified(true);
 			viewer.refresh();
-			getDescriptors();// refresh editors (e.g labels in combobox)
 		}
 	}
 }

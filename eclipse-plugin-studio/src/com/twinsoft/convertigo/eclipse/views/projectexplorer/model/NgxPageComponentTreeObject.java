@@ -239,7 +239,6 @@ public class NgxPageComponentTreeObject extends NgxComponentTreeObject implement
 						hasBeenModified(true);
 						
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(NgxPageComponentTreeObject.this);
-						getDescriptors();// refresh editors (e.g labels in combobox)
 						
 		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(NgxPageComponentTreeObject.this, propertyName, "", "");
 		    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);

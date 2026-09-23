@@ -379,7 +379,6 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 						hasBeenModified(true);
 						
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobilePageComponentTreeObject.this);
-						getDescriptors();// refresh editors (e.g labels in combobox)
 						
 		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobilePageComponentTreeObject.this, propertyName, "", "");
 		    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
