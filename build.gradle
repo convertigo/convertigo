@@ -598,14 +598,30 @@ def renderDockerDocsOfficialContent = {
 		return code
 	}
 
+	// Docker docs convention: in a console block every command starts with "$ " so the highlighter
+	// tells commands from their output. The README stays plain markdown; the prompt is added here,
+	// only in blocks that start with a shell command (not Dockerfile snippets nor option lists).
+	def shellCodeBlock = false
+	def continuedCommand = false
+	def isShellCommand = { String code ->
+		return code ==~ /^(\$ |[a-z][\w.-]*( |$)|[A-Za-z_][A-Za-z0-9_]*=).*/
+	}
+
 	file('docker/README.md').readLines('UTF-8').each { String line ->
 		if (line ==~ /^( {3,}|\t).*/) {
 			if (!inCodeBlock) {
 				content << '```console'
 				inCodeBlock = true
 				dockerRunCodeBlock = stripCodeIndent(line).trim().replaceFirst(/^\$ /, '').startsWith('docker run ')
+				shellCodeBlock = isShellCommand(stripCodeIndent(line))
+				continuedCommand = false
 			}
-			content << normalizeCodeLine(line, dockerRunCodeBlock)
+			def code = normalizeCodeLine(line, dockerRunCodeBlock)
+			if (shellCodeBlock && !continuedCommand && !code.startsWith('$ ') && !code.trim().isEmpty() && !(code ==~ /^\s.*/)) {
+				code = '$ ' + code
+			}
+			continuedCommand = code.trim().endsWith('\\')
+			content << code
 		} else {
 			if (inCodeBlock) {
 				content << '```'

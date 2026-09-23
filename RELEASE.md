@@ -112,3 +112,26 @@ Requires the WAR attached to the published GitHub release.
 - Check https://doc.convertigo.com lists the new version in the version selector.
 - Merge `hotfix` into `develop` for a minor release (once the work in progress
   on `develop` allows it), close the milestone and the tracking issue.
+
+## Scheduled rebuild of the released Docker images
+
+The Docker Official Image is rebuilt by Docker whenever its base image changes;
+`convertigo/convertigo` gets the same treatment from the `docker_rebuild`
+workflow of `.circleci/config.yml`, run from `master` by a CircleCI scheduled
+pipeline.
+
+- Trigger (CircleCI > Project Settings > Triggers > scheduled): branch
+  `master`, daily, pipeline parameter `docker_rebuild = true`. Add
+  `docker_rebuild_force = true` on a second, monthly trigger to refresh the OS
+  packages even when nothing else changed.
+- The job reads the released version from `build.gradle` on `master`, then
+  compares the digest of the Dockerfile base image and the last commit touching
+  `docker/` with the `org.opencontainers.image.base.digest` and
+  `org.opencontainers.image.revision` labels of `convertigo/convertigo:X.Y.Z`.
+  When both match it stops in a few seconds; otherwise it rebuilds
+  `docker/default` (amd64 + arm64) and `docker/aks` from `master` and pushes
+  `X.Y.Z`, `latest`, `X.Y.Z-aks` and `latest-aks`. The WAR is the signed asset of
+  the GitHub release, so only the system, JDK and entrypoint layers change.
+- A Docker-only fix is therefore delivered by committing it on `master` (then
+  merging `master` into `hotfix`): the next scheduled run republishes the images.
+- Only the current release is covered; older maintenance versions are not rebuilt.
