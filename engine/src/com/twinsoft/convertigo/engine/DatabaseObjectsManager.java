@@ -538,6 +538,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
+	/** True while the current thread is importing this project, including the check of its references. */
+	public boolean isImportingByCurrentThread(String projectName) {
+		var lock = importLocks.get(projectName);
+		return lock != null && acquiredLocks.get().contains(lock);
+	}
+
 	public boolean existsProject(String projectName) {
 		File file = getStudioProjects().getProject(projectName);
 		if (file == null) {
