@@ -50,6 +50,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -335,9 +336,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public Project getOriginalProjectByName(String projectName, boolean checkOpenable) throws EngineException {
 		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
 
-		if (checkOpenable && !canOpenProject(projectName)) {
+		if (checkOpenable && !canOpenProject(projectName) && clearCacheIfCannotOpen(projectName)) {
 			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
-			clearCache(projectName);
 			return null;
 		}
 
@@ -483,7 +483,25 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void clearCache(String projectName) {
+		clearCache(projectName, () -> true);
+	}
+
+	/**
+	 * Clears the cache of a project that cannot be opened. The check is repeated under the import lock:
+	 * an import running meanwhile declares the project, which can then be opened and stays in the cache.
+	 * @return false if the project can be opened now
+	 */
+	private boolean clearCacheIfCannotOpen(String projectName) {
+		boolean[] cannotOpen = {true};
+		clearCache(projectName, () -> cannotOpen[0] = !canOpenProject(projectName));
+		return cannotOpen[0];
+	}
+
+	private void clearCache(String projectName, BooleanSupplier condition) {
 		Project  project = lockAndRun(projectName, (lock) -> {
+			if (!condition.getAsBoolean()) {
+				return null;
+			}
 			Project prj = null;
 			synchronized (projects) {
 				prj = projects.remove(projectName);
@@ -1255,6 +1273,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			return null;
 		}
 		Project project = null;
+		ProjectLoadingData[] loadingData = {null};
 		try {
 			String[] version = {null};
 			boolean[] isMigrating = {false};
@@ -1331,7 +1350,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 
 				projectLoadingDataThreadLocal.remove();
-				getProjectLoadingData().projectName = projectName;
+				loadingData[0] = getProjectLoadingData();
+				loadingData[0].projectName = projectName;
 
 				// Import will perform necessary beans migration (see deserialization)
 				try {
@@ -1347,7 +1367,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 					}
 					throw e;
 				}
-				prj.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
+				prj.undefinedGlobalSymbols = loadingData[0].undefinedGlobalSymbol;
 
 				synchronized (projects) {
 					projects.put(prj.getName(), prj);
@@ -1375,8 +1395,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			.info("[importProject] Start initializing: " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().putUrlMapper(project);
 			MobileBuilder.initBuilder(project);
-			if (getProjectLoadingData().afterLoaded != null) {
-				for (var run: getProjectLoadingData().afterLoaded) {
+			if (loadingData[0].afterLoaded != null) {
+				for (var run: loadingData[0].afterLoaded) {
 					run.run();
 				}
 			}
@@ -1433,6 +1453,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 			throw e;
 		} catch (Exception e) {
 			throw new EngineException("Unable to import the project from \"" + importFile + "\".", e);
+		} finally {
+			// the afterLoaded runnables hold beans of the project: a pooled thread (http, jobs) must not keep them
+			if (loadingData[0] != null) {
+				loadingData[0].afterLoaded = null;
+				if (projectLoadingDataThreadLocal.get() == loadingData[0]) {
+					projectLoadingDataThreadLocal.remove();
+				}
+			}
 		}
 	}
 
