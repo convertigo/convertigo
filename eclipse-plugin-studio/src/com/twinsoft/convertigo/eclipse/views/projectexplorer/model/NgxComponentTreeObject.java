@@ -28,6 +28,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -145,6 +147,23 @@ public class NgxComponentTreeObject extends DatabaseObjectTreeObject implements 
 			} catch (Exception e) {
 				Engine.logStudio.debug("Failed to create marker", e);
 			}
+		}
+	}
+	
+	/**
+	 * Refreshes the folder of a component file instead of the whole project, which can hold hundreds of
+	 * thousands of files (a linked folder of generated applications for example): from the deepest folder
+	 * of the file known by the workspace.
+	 */
+	protected static void refreshComponentFileFolder(IFile file) throws CoreException {
+		IContainer folder = file.getParent();
+		if (folder.exists()) {
+			folder.refreshLocal(IResource.DEPTH_ONE, null);
+		} else {
+			while (!folder.exists() && folder.getParent() != null) {
+				folder = folder.getParent();
+			}
+			folder.refreshLocal(IResource.DEPTH_INFINITE, null);
 		}
 	}
 	

@@ -528,14 +528,15 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 	public void editAppComponentTsFile() {
 		final ApplicationComponent application = getObject();
 		try {
-			// Refresh project resource
 			String projectName = application.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-			
-			// Close editor
 			String filePath = application.getProject().getMobileBuilder().getTempTsRelativePath(application);
 			IFile file = project.getFile(filePath);
+			
+			// Refresh the folder of the file
+			refreshComponentFileFolder(file);
+			
+			// Close editor
 			closeComponentFileEditor(file);
 			
 			// Write temporary file

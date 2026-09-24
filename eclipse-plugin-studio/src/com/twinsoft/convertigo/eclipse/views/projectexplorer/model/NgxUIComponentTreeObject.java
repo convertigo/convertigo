@@ -165,14 +165,15 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 		final UISharedComponent comp = (UISharedComponent)getObject();
 		try {
-			// Refresh project resource
 			String projectName = comp.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-
-			// Close editor
 			String filePath = comp.getProject().getMobileBuilder().getTempTsRelativePath((ISharedComponent)comp);
 			IFile file = project.getFile(filePath);
+
+			// Refresh the folder of the file
+			refreshComponentFileFolder(file);
+
+			// Close editor
 			closeComponentFileEditor(file);
 
 			// Write temporary file
@@ -233,14 +234,15 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				return;
 			}
 
-			// Refresh project resources for editor
 			String projectName = uic.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-
-			// Close editor and Reopen it after file has been rewritten
 			String relativePath = uic.getProject().getMobileBuilder().getFunctionTempTsRelativePath(uic);
 			IFile file = project.getFile(relativePath);
+
+			// Refresh the folder of the file for editor
+			refreshComponentFileFolder(file);
+
+			// Close editor and Reopen it after file has been rewritten
 			if (!(uic instanceof UICustomAction)) {
 				closeComponentFileEditor(file);
 			}
@@ -309,13 +311,14 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		final UICustom mc = (UICustom)getObject();
 		String filePath = "/_private/" + mc.priority+".html";
 		try {
-			// Refresh project resource
 			String projectName = mc.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			project.refreshLocal(IResource.DEPTH_INFINITE, null);
+			IFile file = project.getFile(filePath);
+
+			// Refresh the folder of the file
+			refreshComponentFileFolder(file);
 
 			// Close editor
-			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
 
 			// Write html file
