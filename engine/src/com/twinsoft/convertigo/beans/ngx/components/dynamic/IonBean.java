@@ -63,7 +63,7 @@ public class IonBean {
 	}
 	
 	/** Property mode and value of an instance, when they differ from its model */
-	private record PropertyValue(String mode, Object value) {}
+	record PropertyValue(String mode, Object value) {}
 	
 	private JSONObject jsonBean;
 	private String beanData;
@@ -130,6 +130,16 @@ public class IonBean {
 		this.model = model;
 		this.jsonBean = model.jsonBean;
 		this.imageFolder = model.imageFolder;
+	}
+	
+	/** The property values of this instance of a model, when they differ from it */
+	Map<String, PropertyValue> getPropertyValues() {
+		return propertyValues;
+	}
+	
+	/** Sets the property values of a new instance of a model */
+	void setPropertyValues(Map<String, PropertyValue> propertyValues) {
+		this.propertyValues = propertyValues;
 	}
 	
 	public void setImageFolder(String imageFolder) {
