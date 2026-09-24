@@ -849,23 +849,34 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public void addTreeObjectListener(TreeObjectListener treeObjectListener) {
 		if (Engine.isStarted) {
-			Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class);
+			registerTreeObjectListener(treeObjectListener);
 		} else {
-			ConvertigoPlugin.runAtStartup(() -> 
-			Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class)
-					);
+			ConvertigoPlugin.runAtStartup(() -> registerTreeObjectListener(treeObjectListener));
+		}
+	}
+
+	private static void registerTreeObjectListener(TreeObjectListener treeObjectListener) {
+		if (treeObjectListener instanceof TreeObjectPropertyListener propertyListener) {
+			Engine.theApp.eventManager.addListener(propertyListener, TreeObjectPropertyListener.class);
+		} else {
+			Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class);
 		}
 	}
 
 	public void removeTreeObjectListener(TreeObjectListener treeObjectListener) {
 		if (Engine.isStarted) {
-			Engine.theApp.eventManager.removeListener(treeObjectListener, TreeObjectListener.class);
+			if (treeObjectListener instanceof TreeObjectPropertyListener propertyListener) {
+				Engine.theApp.eventManager.removeListener(propertyListener, TreeObjectPropertyListener.class);
+			} else {
+				Engine.theApp.eventManager.removeListener(treeObjectListener, TreeObjectListener.class);
+			}
 		}
 	}
 
 	public void fireTreeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		treeObjectEvent.type = TreeObjectEvent.TYPE_PROPERTY_CHANGED;
 		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectListener.class);
+		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectPropertyListener.class);
 	}
 
 	public List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
