@@ -552,6 +552,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	/** Releases what the engine keeps for a version of a project removed from the cache. */
 	private void releaseProject(Project project) {
 		String projectName = project.getName();
+		project.markUnloaded();
 		RestApiManager.getInstance().removeUrlMapper(projectName);
 		MobileBuilder.releaseBuilder(project);
 		RequestableObject.clearUseCache(project);
