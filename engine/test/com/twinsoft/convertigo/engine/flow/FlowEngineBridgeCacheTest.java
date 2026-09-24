@@ -81,6 +81,10 @@ public class FlowEngineBridgeCacheTest {
 
 	@Test
 	public void serializesOnlyFrontendDocumentProviderCalls() throws Exception {
+		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("authoringMutate",
+				new JSONObject().put("action", new JSONObject().put("surface", "frontend"))));
+		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("authoringMutate", new JSONObject().put("surface", "frontend")));
+		assertFalse(FlowEngineBridge.usesFrontendDocumentProvider("authoringMutate", new JSONObject().put("surface", "virtual")));
 		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("authoringTree",
 				new JSONObject().put("surface", "frontend")));
 		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("authoringPalette",

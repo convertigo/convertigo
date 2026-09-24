@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.FlowPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implements IOrderableTreeObject {
@@ -274,9 +275,6 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		if (value instanceof JSONObject json) {
 			var info = object.getVirtualInfoObject();
 			var propertyDefinitions = info == null ? null : info.optJSONObject("propertyDefinitions");
-			// Configuration containers are represented by the tree itself. Only a
-			// scalar configuration leaf exposes its single Value property.
-			var isConfigurationObject = "config".equals(object.getVirtualType());
 			if ("node".equals(object.getVirtualKind()) && propertyDefinitions == null) {
 				var descriptor = new TextPropertyDescriptor(P_COMMENT, "Comment");
 				descriptor.setCategory(CATEGORY);
@@ -289,23 +287,6 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 					var definition = propertyDefinitions.optJSONObject(key);
 					if (!isHiddenProperty(definition)) {
 						addFlowPropertyDescriptor(descriptors, key, definition);
-					}
-				}
-				if (!isConfigurationObject) {
-					for (String key : sortedKeys(json)) {
-						if (!isInternalNodeProperty(key) && !propertyDefinitions.has(key)
-								&& !object.isProjectedDefinitionKey(key)) {
-							addFlowPropertyDescriptor(descriptors, key, null);
-						}
-					}
-				}
-			} else {
-				if (!isConfigurationObject) {
-					for (String key : sortedKeys(json)) {
-						if (P_COMMENT.equals(key) || isInternalNodeProperty(key)) {
-							continue;
-						}
-						addFlowPropertyDescriptor(descriptors, key, null);
 					}
 				}
 			}
@@ -358,14 +339,6 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		} catch (Exception e) {
 		}
 		return definition;
-	}
-
-	private static boolean isStructuralNodeProperty(String key) {
-		return "id".equals(key) || "block".equals(key) || P_COMMENT.equals(key);
-	}
-
-	private static boolean isInternalNodeProperty(String key) {
-		return isStructuralNodeProperty(key) || "props".equals(key);
 	}
 
 	private void addFlowPropertyDescriptor(List<PropertyDescriptor> descriptors, String key, JSONObject definition) {
@@ -597,10 +570,7 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 				var parsedValue = parseEditedValue(value, getObject().getDefinitionValue(), null);
 				getObject().setDefinitionValue(parsedValue);
 			} else if (!getObject().setDynamicProperty(key, value == null ? "" : String.valueOf(value))) {
-				// Not a declared property: keep the historical raw write.
-				var currentValue = getObject().getDefinitionProperty(key);
-				var parsedValue = parseEditedValue(value, currentValue, flowPropertyDefinition(key));
-				getObject().setDefinitionProperty(key, parsedValue);
+				throw new EngineException("The provider does not expose an editable property: " + key);
 			}
 		} else {
 			var parsedValue = parseEditedValue(value, getObject().getDefinitionValue(), null);

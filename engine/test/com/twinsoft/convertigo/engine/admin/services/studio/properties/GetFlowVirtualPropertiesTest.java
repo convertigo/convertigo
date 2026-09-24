@@ -22,6 +22,26 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class GetFlowVirtualPropertiesTest {
 	@Test
+	public void onlyProviderDeclaredPropertiesAreExposedToWebStudio() throws Exception {
+		var object = new FlowVirtualObject() {
+			@Override public boolean isDefinitionWritable() { return true; }
+		};
+		object.setName("heading");
+		object.setDefinition("{\"sourceVersion\":2,\"slots\":{},\"traits\":[\"ui.block\"],\"props\":{\"text\":\"Title\"}}");
+		object.setVirtualInfo("{\"propertyDefinitions\":{"
+				+ "\"text\":{\"definitionPath\":\"props.text\",\"category\":\"Base properties\"},"
+				+ "\"sourceVersion\":{\"category\":\"Information\",\"readOnly\":true},"
+				+ "\"slots\":{\"hidden\":true,\"readOnly\":true}}}");
+		var root = object.toXml(XMLUtils.getDefaultDocumentBuilder().newDocument(), ExportOption.bIncludeDisplayName);
+		assertEquals("false", findProperty(root, "text").getAttribute("isDisabled"));
+		assertEquals("true", findProperty(root, "sourceVersion").getAttribute("isDisabled"));
+		assertEquals("Information", findProperty(root, "sourceVersion").getAttribute("category"));
+		for (var key : new String[] { "slots", "traits", "props" }) {
+			org.junit.Assert.assertThrows(AssertionError.class, () -> findProperty(root, key));
+		}
+	}
+
+	@Test
 	public void providerInformationOverridesHostInformationWithoutHidingBusinessProperties() throws Exception {
 		var project = new com.twinsoft.convertigo.beans.core.Project();
 		project.setName("Test");

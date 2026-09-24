@@ -113,6 +113,54 @@ public class FlowStudioSupportSelectionTest {
 	}
 
 	@Test
+	public void sourceCreationActionUsesProviderSelectionWithoutJavaRecipes() throws Exception {
+		var projection = new FlowVirtualObject();
+		projection.setVirtualPath("frontends");
+		var owner = new FlowEngine() {
+			@Override public List<DatabaseObject> getDatabaseObjectChildren() { return List.of(projection); }
+		};
+		owner.setName("Engine");
+		projection.setParent(owner);
+		var target = new FlowVirtualObject();
+		target.setParent(projection);
+		target.setVirtualPath("frontends.customContainer");
+		target.setVirtualKind("arbitraryProviderContainer");
+		var action = new JSONObject().put("id", "provider.createSource").put("surface", "frontend").put("builder", "custom");
+		var descriptor = new JSONObject().put("id", "provider.createSource").put("authoringAction", action)
+				.put("iconFile32", "/fixture/icon.png").put("targetSlot", new JSONObject().put("id", "documents"))
+				.put("targetKinds", new org.codehaus.jettison.json.JSONArray().put("obsoletePresentationKind"));
+		var data = FlowStudioSupport.frontendPaletteItem(target, descriptor);
+		assertEquals(action.toString(), data.getJSONObject("authoringAction").toString());
+		var transfer = new JSONObject().put("data", data);
+		assertTrue(FlowStudioSupport.canAddFromPalette(target, "inside", transfer));
+		var bridge = new FlowEngineBridge() {
+			@Override public JSONObject authoringMutate(FlowEngine actualOwner, JSONObject options) {
+				assertSame(owner, actualOwner);
+				assertEquals("frontend", options.optString("surface"));
+				assertEquals("documents", options.optJSONObject("action").optString("targetSlotId"));
+				assertEquals("custom", options.optJSONObject("action").optString("builder"));
+				assertEquals(target.getVirtualPath(), options.optJSONObject("action").optString("targetPath"));
+				try { return new JSONObject().put("ok", true).put("selectionSourcePath", "/fixture/new/.marker.json"); }
+				catch (Exception e) { throw new AssertionError(e); }
+			}
+			@Override public JSONObject describeTree(FlowEngine actualOwner) {
+				try {
+					var created = new JSONObject().put("name", "created").put("path", "frontends.newDocument")
+							.put("info", new JSONObject().put("sourcePath", "/fixture/new/.marker.json").toString());
+					var tree = new JSONObject().put("name", "frontends").put("path", "frontends")
+							.put("children", new org.codehaus.jettison.json.JSONArray().put(created));
+					return new JSONObject().put("children", new org.codehaus.jettison.json.JSONArray().put(tree));
+				} catch (Exception e) { throw new AssertionError(e); }
+			}
+		};
+		var result = FlowStudioSupport.addFromPalette(target, "inside", transfer, bridge);
+		assertTrue(result.getBoolean("done"));
+		assertTrue(result.getBoolean("projected"));
+		assertEquals("frontends.newDocument", result.getString("selectionVirtualPath"));
+		assertNotEquals(owner.getFullQName(), result.getString("id"));
+	}
+
+	@Test
 	public void webRemovalUsesTheSameVirtualDeleteAsEclipse() throws Exception {
 		var calls = new int[1];
 		var parent = new FlowEngine();

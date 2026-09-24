@@ -26,6 +26,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -782,11 +783,26 @@ public class FlowEngineBridge {
 				request.put("write", false).put("persist", false);
 			}
 			var response = invoke(engineQName, "authoringMutate", request, null, null, null);
-			if (flowEngine != null && response.optBoolean("ok", false)
-					&& "engine".equals(response.optString("target")) && response.has("source")
-					&& !request.optBoolean("dryRun", false)) {
-				// A loaded draft must advance with its mutation before Studio rebuilds the projection.
-				flowEngine.setEngineSource(response.getString("source"));
+			if (flowEngine != null && response.optBoolean("ok", false) && !request.optBoolean("dryRun", false)) {
+				// Providers return source text; the owner alone manages working copies.
+				// Validate the complete batch before advancing the Engine source too.
+				var engineSourceUpdate = "engine".equals(response.optString("target")) && response.has("source")
+						? response.getString("source") : null;
+				if (response.has("sourceChanges")) {
+					var changes = response.getJSONObject("sourceChanges");
+					var sources = new LinkedHashMap<String, String>();
+					for (var keys = changes.keys(); keys.hasNext();) {
+						var path = keys.next().toString();
+						if (!(changes.get(path) instanceof String source)) {
+							throw new EngineException("Flow source change must contain text: " + path);
+						}
+						sources.put(path, source);
+					}
+					flowEngine.setSources(sources);
+				}
+				if (engineSourceUpdate != null) {
+					flowEngine.setEngineSource(engineSourceUpdate);
+				}
 			}
 			return response;
 		} catch (JSONException e) {
@@ -939,7 +955,7 @@ public class FlowEngineBridge {
 			var engineQName = effectiveEngineQName(flowEngine);
 			var projectDir = flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath();
 			var sourceFile = new File(sourcePath == null ? "" : sourcePath);
-			if (!sourceFile.isFile()) {
+			if (flowEngine == null ? !sourceFile.isFile() : !flowEngine.hasSource(sourcePath)) {
 				throw new EngineException("Flow source file not found: " + sourcePath);
 			}
 			if (sourceFile.getName().endsWith(".front.json")) {
@@ -1798,6 +1814,11 @@ public class FlowEngineBridge {
 	}
 
 	static boolean usesFrontendDocumentProvider(String method, JSONObject request) {
+		if ("authoringMutate".equals(method)) {
+			var action = request == null ? null : request.optJSONObject("action");
+			return request != null && "frontend".equals(action == null
+					? request.optString("surface") : action.optString("surface", request.optString("surface")));
+		}
 		if ("authoringTree".equals(method) || "authoringPalette".equals(method)) {
 			return request == null || "frontend".equals(request.optString("surface", "frontend"));
 		}

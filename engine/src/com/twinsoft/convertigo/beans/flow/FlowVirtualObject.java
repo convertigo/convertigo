@@ -412,6 +412,10 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		if (!isDefinitionWritable()) {
 			return false;
 		}
+		var descriptor = propertyDefinition(name);
+		if (isReadOnlyProperty(descriptor) || isHiddenProperty(descriptor)) {
+			throw new EngineException("This projected property is not editable: " + name);
+		}
 		if ("comment".equals(name) && declaredDefinitionPath(name).isBlank()) {
 			setComment(value);
 			return true;
@@ -421,7 +425,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			return true;
 		}
 		var definition = getDefinitionObject();
-		if (definition != null && (definition.has(name) || hasDeclaredProperty(name))) {
+		if (definition != null && hasDeclaredProperty(name)) {
 			var edited = convertEditedValue(name, value);
 			setDefinitionProperty(name, invertedValue(propertyDefinition(name), edited));
 			return true;
@@ -470,10 +474,6 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		return Math.abs(hash == Long.MIN_VALUE ? 0 : hash);
 	}
 
-	private static boolean isInternalDefinitionProperty(String key) {
-		return "id".equals(key) || "block".equals(key) || "props".equals(key);
-	}
-
 	private void appendDynamicProperties(Document document, Element root) throws EngineException {
 		if (!exportOptions.contains(ExportOption.bIncludeDisplayName)) {
 			return;
@@ -484,7 +484,6 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			if (value instanceof JSONObject json) {
 				var info = getVirtualInfoObject();
 				var propertyDefinitions = info == null ? null : info.optJSONObject("propertyDefinitions");
-				var projectedRootPaths = new java.util.HashSet<String>();
 				var engineProjectsComment = propertyDefinitions != null && propertyDefinitions.has("$$comment");
 				if ("node".equals(virtualKind) && !hasDeclaredProperty("$$comment") && !engineProjectsComment) {
 					appendDynamicProperty(document, root, "comment", "Comment", "Base properties", getComment(), "Flow node comment.", false, null);
@@ -492,20 +491,12 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 				if (propertyDefinitions != null) {
 					for (var key : propertyDefinitionKeys(info, propertyDefinitions)) {
 						var definition = propertyDefinitions.optJSONObject(key);
-						projectedRootPaths.add(declaredDefinitionPath(key));
 						if (!isHiddenProperty(definition)) {
 							appendDynamicProperty(document, root, key, propertyLabel(key, definition),
 									propertyCategory(definition),
 									projectedPropertyValue(key, definition),
 									propertyDescription(key, definition),
 									isReadOnlyProperty(definition), definition);
-						}
-					}
-				}
-				for (var key : sortedKeys(json)) {
-					if (!"comment".equals(key) && !isInternalDefinitionProperty(key)) {
-						if (!projectedRootPaths.contains(key) && (propertyDefinitions == null || !propertyDefinitions.has(key))) {
-							appendDynamicProperty(document, root, key, key, "Expert", json.opt(key), "Flow property \"" + key + "\".", false, null);
 						}
 					}
 				}

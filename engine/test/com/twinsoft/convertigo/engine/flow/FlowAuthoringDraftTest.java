@@ -2,9 +2,13 @@ package com.twinsoft.convertigo.engine.flow;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -18,6 +22,7 @@ import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class FlowAuthoringDraftTest {
 	@Rule
@@ -32,6 +37,123 @@ public class FlowAuthoringDraftTest {
 			@Override
 			public Project getProject() { return project; }
 		};
+	}
+
+	@Test
+	public void providerSourceBatchUsesTheOwnerDraftLifecycle() throws Exception {
+		var directory = folder.newFolder();
+		var current = model(directory);
+		var page = directory.toPath().resolve("_flow/new/+page.flow.svelte");
+		var marker = directory.toPath().resolve("_flow/new/group/.flow-route.json");
+		var provider = new Provider();
+		provider.response = new JSONObject().put("ok", true).put("target", "sources")
+				.put("sourceChanges", new JSONObject().put(page.toString(), "page").put(marker.toString(), ""));
+		provider.authoringMutate(current, new JSONObject().put("dryRun", true));
+		assertTrue(current.getSourceDrafts().isEmpty());
+		provider.response.put("ok", false);
+		provider.authoringMutate(current, new JSONObject());
+		assertTrue(current.getSourceDrafts().isEmpty());
+		provider.response.put("ok", true);
+		provider.authoringMutate(current, new JSONObject().put("write", true));
+		assertFalse(provider.request.getBoolean("write"));
+		assertEquals("page", current.getSource(page.toString()));
+		assertEquals("", current.getSource(marker.toString()));
+		assertFalse(Files.exists(page.getParent()));
+		current.toXml(DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
+		assertEquals("page", Files.readString(page));
+		assertEquals("", Files.readString(marker));
+		assertTrue(current.getSourceDrafts().isEmpty());
+	}
+
+	@Test
+	public void invalidProviderBatchPreservesEveryExistingDraft() throws Exception {
+		var directory = folder.newFolder();
+		var current = model(directory);
+		current.setEngineSource("original engine draft");
+		var file = directory.toPath().resolve("_flow/data.json");
+		current.setSource(file.toString(), "original file draft");
+		var provider = new Provider();
+		var changes = new JSONObject().put(file.toString(), "changed")
+				.put(directory.toPath().resolve("../outside.json").toString(), "invalid");
+		provider.response = new JSONObject().put("ok", true).put("target", "engine").put("source", "changed engine")
+				.put("sourceChanges", changes);
+		assertThrows(EngineException.class, () -> provider.authoringMutate(current, new JSONObject()));
+		assertEquals("original engine draft", current.getEngineSource());
+		assertEquals("original file draft", current.getSource(file.toString()));
+		provider.response.put("sourceChanges", new JSONObject().put(file.toString(), JSONObject.NULL));
+		assertThrows(EngineException.class, () -> provider.authoringMutate(current, new JSONObject()));
+		assertEquals("original file draft", current.getSource(file.toString()));
+		Flow.projectUnloaded(current.getProject());
+	}
+
+	@Test
+	public void newSourcesIncludingEmptyFilesExistOnlyInTheWorkingCopyUntilSave() throws Exception {
+		var directory = folder.newFolder();
+		var current = model(directory);
+		var page = directory.toPath().resolve("_flow/frontbuilder/svelte/model/Proof/src/routes/new/+page.flow.svelte");
+		var empty = directory.toPath().resolve("_flow/frontbuilder/svelte/model/Proof/src/app.flow.css");
+		var sources = Map.of(page.toString(), "new page", empty.toString(), "");
+		current.setSources(sources);
+		assertTrue(current.hasSource(empty.toString()));
+		assertTrue(current.isSourceDirty(empty.toString()));
+		assertEquals("", current.getSource(empty.toString()));
+		assertFalse(Files.exists(page.getParent()));
+		assertFalse(Files.exists(empty));
+		Flow.projectUnloaded(current.getProject());
+		assertFalse(current.hasSource(page.toString()));
+		assertFalse(current.hasSource(empty.toString()));
+		current.setSources(sources);
+		current.toXml(DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
+		assertEquals("new page", Files.readString(page));
+		assertEquals("", Files.readString(empty));
+		assertTrue(current.getSourceDrafts().isEmpty());
+		assertEquals("new page", model(directory).getSource(page.toString()));
+	}
+
+	@Test
+	public void invalidBatchDoesNotPartiallyChangeWorkingCopies() throws Exception {
+		var directory = folder.newFolder();
+		var current = model(directory);
+		var source = directory.toPath().resolve("value.json").toString();
+		current.setSource(source, "original draft");
+		var changes = new LinkedHashMap<String, String>();
+		changes.put(source, "must not apply");
+		changes.put(directory.toPath().resolve("../outside.json").toString(), "invalid");
+		assertThrows(EngineException.class, () -> current.setSources(changes));
+		assertEquals("original draft", current.getSource(source));
+		assertEquals(1, current.getSourceDrafts().size());
+		changes.clear();
+		changes.put(directory.toPath().resolve("new.json").toString(), "parent file");
+		changes.put(directory.toPath().resolve("new.json/child.json").toString(), "child");
+		assertThrows(EngineException.class, () -> current.setSources(changes));
+		assertEquals(1, current.getSourceDrafts().size());
+		changes.clear();
+		changes.put(source, "one spelling");
+		changes.put(directory.toPath().resolve("./value.json").toString(), "other spelling");
+		assertThrows(EngineException.class, () -> current.setSources(changes));
+		assertEquals("original draft", current.getSource(source));
+		var child = directory.toPath().resolve("directory.json/child.json");
+		current.setSource(child.toString(), "child draft");
+		assertThrows(EngineException.class, () -> current.setSource(child.getParent().toString(), "parent file"));
+		assertThrows(EngineException.class, () -> current.setSource(source + "/child.json", "child of draft file"));
+		assertEquals("child draft", current.getSource(child.toString()));
+		Flow.projectUnloaded(current.getProject());
+	}
+
+	@Test
+	public void aNewSourceDraftCanBeEditedBeforeItsFirstSave() throws Exception {
+		var directory = folder.newFolder();
+		var file = directory.toPath().resolve("new.flow.svelte");
+		var current = model(directory);
+		current.setSource(file.toString(), "created draft");
+		var provider = new Provider();
+		provider.method = "applySourceMutation";
+		provider.response = new JSONObject().put("ok", true).put("source", "edited draft");
+		provider.applySourceMutation(current, file.toString(), new JSONObject());
+		assertEquals("created draft", provider.request.getString("source"));
+		assertEquals("edited draft", current.getSource(file.toString()));
+		assertFalse(Files.exists(file));
+		Flow.projectUnloaded(current.getProject());
 	}
 
 	@Test

@@ -252,33 +252,67 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	public void setSource(String sourcePath, String source) throws EngineException {
+		var sources = new LinkedHashMap<String, String>();
+		sources.put(sourcePath, source);
+		setSources(sources);
+	}
+
+	/** Validate the whole source update before changing any working copy. No disk writes. */
+	public void setSources(Map<String, String> sources) throws EngineException {
+		var updates = new LinkedHashMap<String, String>();
+		for (var entry : sources.entrySet()) {
+			var key = canonicalSourcePath(entry.getKey());
+			if (updates.containsKey(key)) {
+				throw new EngineException("Duplicate Flow source destination: " + entry.getKey());
+			}
+			var source = entry.getValue() == null ? "" : entry.getValue();
+			try {
+				var file = new File(key);
+				if (file.exists() && !file.isFile()) {
+					throw new EngineException("Flow source destination is not a file: " + key);
+				}
+				for (var parent = file.getParentFile(); parent != null; parent = parent.getParentFile()) {
+					if (parent.exists() && !parent.isDirectory()) {
+						throw new EngineException("Flow source parent is not a directory: " + parent);
+					}
+				}
+				// An absent empty file is still a creation, not a discarded draft.
+				var sameAsSaved = file.isFile() && source.equals(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
+				updates.put(key, sameAsSaved ? null : source);
+			} catch (EngineException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new EngineException("Unable to read saved Flow source file \"" + key + "\".", e);
+			}
+		}
+		for (var key : updates.keySet()) {
+			if (sourceDrafts.keySet().stream().anyMatch(path -> path.startsWith(key + File.separator))) {
+				throw new EngineException("Flow source destination contains file working copies: " + key);
+			}
+			for (var parent = new File(key).getParentFile(); parent != null; parent = parent.getParentFile()) {
+				var path = parent.getPath();
+				if (updates.containsKey(path) || sourceDrafts.containsKey(path)) {
+					throw new EngineException("Flow source parent is a file working copy: " + path);
+				}
+			}
+		}
+		var modified = false;
+		for (var entry : updates.entrySet()) {
+			var key = entry.getKey();
+			var source = entry.getValue();
+			if (source == null) {
+				modified |= sourceDrafts.remove(key) != null;
+			} else if (!source.equals(sourceDrafts.put(key, source))) {
+				modified = true;
+			}
+		}
+		clearFlowVirtualChildrenCache();
+		if (modified) changed();
+	}
+
+	public boolean hasSource(String sourcePath) throws EngineException {
 		var key = canonicalSourcePath(sourcePath);
-		source = source == null ? "" : source;
-		var saved = "";
-		try {
-			var file = new File(key);
-			if (file.isFile()) {
-				saved = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-			}
-		} catch (Exception e) {
-			throw new EngineException("Unable to read saved Flow source file \"" + key + "\".", e);
-		}
-		if (saved.equals(source)) {
-			if (sourceDrafts.remove(key) != null) {
-				clearFlowVirtualChildrenCache();
-				changed();
-			} else {
-				clearFlowVirtualChildrenCache();
-			}
-			return;
-		}
-		if (!source.equals(sourceDrafts.get(key))) {
-			sourceDrafts.put(key, source);
-			clearFlowVirtualChildrenCache();
-			changed();
-		} else {
-			clearFlowVirtualChildrenCache();
-		}
+		return sourceDrafts.containsKey(key) || new File(key).isFile();
 	}
 
 	public boolean isFrontendSourceDirty(String sourcePath) throws EngineException {

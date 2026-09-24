@@ -45,6 +45,20 @@ public class FlowVirtualPropertyPathTest {
 		assertEquals("engine", object.getComment());
 	}
 
+	@Test public void rejectsUndeclaredAndReadOnlyPropertiesBeforeCallingTheProvider() throws Exception {
+		var object = object();
+		var before = object.getDefinition();
+		assertFalse(object.setDynamicProperty("props", "{}"));
+		assertFalse(object.setDynamicProperty("notDeclared", "value"));
+		var info = object.getVirtualInfoObject();
+		info.getJSONObject("propertyDefinitions").getJSONObject("$$id").put("readOnly", true);
+		info.getJSONObject("propertyDefinitions").getJSONObject("$$disabled").put("hidden", true);
+		object.setVirtualInfo(info.toString());
+		assertThrows(com.twinsoft.convertigo.engine.EngineException.class, () -> object.setDynamicProperty("$$id", "changed"));
+		assertThrows(com.twinsoft.convertigo.engine.EngineException.class, () -> object.setDynamicProperty("$$disabled", "true"));
+		assertEquals(before, object.getDefinition());
+	}
+
 	@Test public void editsBusinessValuesWithoutFlatteningTheCache() throws Exception {
 		var object = object();
 		var before = object.getDefinitionObject();
