@@ -1247,7 +1247,9 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 				if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
-					if (hasSameScriptComponent(getObject(), uic)) {
+					// the property is checked first: every NGX component receives every property change
+					boolean isFormProperty = propertyName.equals("ControlName") || propertyName.equals("identifier") || uic.isFormControlAttribute();
+					if (isFormProperty && hasSameScriptComponent(getObject(), uic)) {
 						// A ControlName property has changed
 						if (propertyName.equals("ControlName") || uic.isFormControlAttribute()) {
 							if (!newValue.equals(oldValue)) {
