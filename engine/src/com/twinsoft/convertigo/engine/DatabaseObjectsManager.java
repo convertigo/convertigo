@@ -518,12 +518,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (project != null) {
 			Engine.logDatabaseObjectManager
 			.info("[clearCache] start releasing for " + Project.formatNameWithHash(project));
-			RestApiManager.getInstance().removeUrlMapper(projectName);
-			MobileBuilder.releaseBuilder(project);
-			RequestableObject.clearUseCache(project);
-			if (Engine.isStudioMode()) {
-				Engine.theApp.contextManager.removeStudioContexts(project);
-			}
+			releaseProject(project);
 			Engine.logDatabaseObjectManager
 			.info("[clearCache] end releasing for " + Project.formatNameWithHash(project));
 		}
@@ -548,14 +543,23 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (project != null) {
 			Engine.logDatabaseObjectManager
 			.info("[clearCacheIfSymbolError] start releasing for " + Project.formatNameWithHash(project));
-			RestApiManager.getInstance().removeUrlMapper(projectName);
-			MobileBuilder.releaseBuilder(project);
-			RequestableObject.clearUseCache(project);
-			if (Engine.isStudioMode()) {
-				Engine.theApp.contextManager.removeStudioContexts(project);
-			}
+			releaseProject(project);
 			Engine.logDatabaseObjectManager
 			.info("[clearCacheIfSymbolError] end releasing for " + Project.formatNameWithHash(project));
+		}
+	}
+
+	/** Releases what the engine keeps for a version of a project removed from the cache. */
+	private void releaseProject(Project project) {
+		String projectName = project.getName();
+		RestApiManager.getInstance().removeUrlMapper(projectName);
+		MobileBuilder.releaseBuilder(project);
+		RequestableObject.clearUseCache(project);
+		if (Engine.theApp.schemaManager != null) {
+			Engine.theApp.schemaManager.clearCache(projectName);
+		}
+		if (Engine.isStudioMode()) {
+			Engine.theApp.contextManager.removeStudioContexts(project);
 		}
 	}
 
@@ -1147,7 +1151,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		parentElem.removeChild(includeElem);
 	}
 
-	static private Map<String, Pair<String, Long>> projectNameCache = new HashMap<>();
+	static private Map<String, Pair<String, Long>> projectNameCache = new ConcurrentHashMap<>();
 
 	static public String getProjectName(File projectFile) throws EngineException {
 		String projectName = null;
