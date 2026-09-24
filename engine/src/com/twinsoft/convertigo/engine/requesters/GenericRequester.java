@@ -228,7 +228,8 @@ public abstract class GenericRequester extends Requester {
 				Engine.logContext.debug("[" + getName() + "] Locking the working semaphore...");
 
 				try (var lock = Engine.theApp.contextManager.lockContext(context)) {
-					boolean isContainerContext = ContextManager.isContainerContextName(context.name);
+					boolean isContainerContext = ContextManager.isContainerContextName(context.name)
+							|| ContextManager.isRequestScopedContextId(context.contextID);
 					HttpServletRequest cacheRequest = context.httpServletRequest;
 					if (cacheRequest == null && this instanceof InternalRequester internalRequester) {
 						cacheRequest = internalRequester.getHttpServletRequest();

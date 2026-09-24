@@ -28,6 +28,13 @@ import javax.servlet.http.HttpSessionBindingListener;
  * without creating a cookie or durable session record.</p>
  */
 public final class RequestScopedHttpSession implements HttpSession, AutoCloseable {
+	public static final String ID_PREFIX = "request-";
+
+	/** True for the id of a request-scoped session, or of a context bound to one (contexts ids start with their session id). */
+	public static boolean isRequestScopedId(String id) {
+		return id != null && id.startsWith(ID_PREFIX);
+	}
+
 	private final ServletContext servletContext;
 	private final String id;
 	private final long creationTime = System.currentTimeMillis();
@@ -38,12 +45,12 @@ public final class RequestScopedHttpSession implements HttpSession, AutoCloseabl
 	private boolean invalidated;
 
 	public RequestScopedHttpSession(ServletContext servletContext) {
-		this(servletContext, "request-" + UUID.randomUUID());
+		this(servletContext, ID_PREFIX + UUID.randomUUID());
 	}
 
 	public RequestScopedHttpSession(ServletContext servletContext, String id) {
 		this.servletContext = servletContext;
-		this.id = id == null || id.isBlank() ? "request-" + UUID.randomUUID() : id;
+		this.id = id == null || id.isBlank() ? ID_PREFIX + UUID.randomUUID() : id;
 	}
 
 	public synchronized boolean isValid() {

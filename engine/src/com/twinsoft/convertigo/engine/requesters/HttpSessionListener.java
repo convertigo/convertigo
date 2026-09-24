@@ -296,12 +296,9 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		}
 
 		int maxCV = KeyManager.getMaxCV(Session.EmulIDSE);
-		int currentCV = ConvertigoHttpSessionManager.getInstance().estimateCountedSessions()
+		// stateless requests must not wait for the session store: use its last known count
+		int currentCV = ConvertigoHttpSessionManager.getInstance().cachedCountedSessions()
 				+ countRequestScopedSessions() + 1;
-		if (Engine.isEngineMode() && currentCV >= maxCV) {
-			currentCV = ConvertigoHttpSessionManager.getInstance().countCountedSessions()
-					+ countRequestScopedSessions() + 1;
-		}
 		if (Engine.isEngineMode()) {
 			TASException exception = checkSessionLicense(currentCV, maxCV);
 			if (exception != null) {

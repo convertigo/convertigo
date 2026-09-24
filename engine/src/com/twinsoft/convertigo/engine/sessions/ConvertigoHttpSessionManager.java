@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.sessions;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -211,6 +212,35 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			Engine.logRedis.debug("(ConvertigoSessionManager) estimateCountedSessions failed: " + e.getMessage());
 			return 0;
 		}
+	}
+
+	private static final long COUNTED_SESSIONS_CACHE_MILLIS = 10_000L;
+	private volatile int cachedCountedSessions = 0;
+	private volatile long cachedCountedSessionsTime = 0L;
+	private final AtomicBoolean cachedCountedSessionsRefreshing = new AtomicBoolean();
+
+	/**
+	 * Last known number of counted sessions in the session store, refreshed in background at most every
+	 * 10 seconds. It never waits for the store, so stateless requests keep working when the store is slow
+	 * or unreachable: the previous value is kept when a refresh fails.
+	 */
+	public int cachedCountedSessions() {
+		if (System.currentTimeMillis() - cachedCountedSessionsTime > COUNTED_SESSIONS_CACHE_MILLIS
+				&& cachedCountedSessionsRefreshing.compareAndSet(false, true)) {
+			Engine.execute(() -> {
+				try {
+					if (provider != null) {
+						cachedCountedSessions = provider.countCountedSessions();
+					}
+				} catch (Exception e) {
+					Engine.logRedis.debug("(ConvertigoSessionManager) cachedCountedSessions refresh failed: " + e.getMessage());
+				} finally {
+					cachedCountedSessionsTime = System.currentTimeMillis();
+					cachedCountedSessionsRefreshing.set(false);
+				}
+			});
+		}
+		return cachedCountedSessions;
 	}
 
 	public int countCountedSessions() {

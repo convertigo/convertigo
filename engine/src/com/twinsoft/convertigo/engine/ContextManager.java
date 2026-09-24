@@ -72,6 +72,7 @@ import com.twinsoft.convertigo.engine.sessions.ContextStore;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.sessions.RedisClients;
 import com.twinsoft.convertigo.engine.sessions.RedisContextStore;
+import com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSession;
 import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
 import com.twinsoft.convertigo.engine.sessions.StoreIgnore;
 import com.twinsoft.convertigo.engine.util.FileUtils;
@@ -182,6 +183,20 @@ public class ContextManager extends AbstractRunnableManager {
 		return isContainerContextName(contextId.substring(idx + 1));
 	}
 
+	/** Context of a request-scoped (stateless) session: it lives in this JVM for one request only. */
+	public static boolean isRequestScopedContextId(String contextId) {
+		return RequestScopedHttpSession.isRequestScopedId(contextId);
+	}
+
+	/** Contexts that are never read, locked or written in the shared session store. */
+	public static boolean isLocalOnlyContextId(String contextId) {
+		return isContainerContextId(contextId) || isRequestScopedContextId(contextId);
+	}
+
+	private static boolean isSharedSessionId(String sessionID) {
+		return ConvertigoHttpSessionManager.isRedisMode() && !RequestScopedHttpSession.isRequestScopedId(sessionID);
+	}
+
 	private static Set<String> requestContextCache(HttpServletRequest request) {
 		if (request == null) {
 			return null;
@@ -207,7 +222,8 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public static boolean registerRequestContext(HttpServletRequest request, Context context) {
-		if (request == null || context == null || isContainerContextName(context.name)) {
+		if (request == null || context == null || isContainerContextName(context.name)
+				|| isRequestScopedContextId(context.contextID)) {
 			return false;
 		}
 		var cache = requestContextCache(request);
@@ -232,7 +248,8 @@ public class ContextManager extends AbstractRunnableManager {
 					continue;
 				}
 				Context ctx = manager.get(contextId);
-				if (ctx == null || isContainerContextName(ctx.name) || ctx.isMarkedForRemoval()) {
+				if (ctx == null || isContainerContextName(ctx.name) || isRequestScopedContextId(ctx.contextID)
+						|| ctx.isMarkedForRemoval()) {
 					continue;
 				}
 				boolean save = ctx.httpSession == null;
@@ -552,7 +569,7 @@ public class ContextManager extends AbstractRunnableManager {
 			handleAbortRequest(contextID);
 			return true;
 		}
-		if (ConvertigoHttpSessionManager.isRedisMode()) {
+		if (ConvertigoHttpSessionManager.isRedisMode() && !isRequestScopedContextId(contextID)) {
 			try {
 				if (abortTopic == null) {
 					var cfg = RedisClients.getConfiguration();
@@ -589,7 +606,7 @@ public class ContextManager extends AbstractRunnableManager {
 			// ignore
 		}
 
-		if (ConvertigoHttpSessionManager.isRedisMode()) {
+		if (isSharedSessionId(sessionID)) {
 			try {
 				var cfg = RedisClients.getConfiguration();
 				var client = RedisClients.getClient();
@@ -700,10 +717,12 @@ public class ContextManager extends AbstractRunnableManager {
 		return lockContext(contextID, isContainer);
 	}
 
-	private AutoCloseable lockContext(String contextID, boolean isContainer) {
+	private AutoCloseable lockContext(String contextID, boolean containerContext) {
 		if (contextID == null || contextID.isBlank()) {
 			return NOOP_LOCK;
 		}
+		// request-scoped contexts, like container ones, only exist in this JVM for the current request
+		final boolean isContainer = containerContext || isRequestScopedContextId(contextID);
 
 		var retained = retainContextLock(contextID);
 		var entry = retained.entry();
@@ -769,10 +788,12 @@ public class ContextManager extends AbstractRunnableManager {
 		return tryLockContext(contextID, timeoutMillis, isContainer);
 	}
 
-	private AutoCloseable tryLockContext(String contextID, long timeoutMillis, boolean isContainer) {
+	private AutoCloseable tryLockContext(String contextID, long timeoutMillis, boolean containerContext) {
 		if (contextID == null || contextID.isBlank()) {
 			return NOOP_LOCK;
 		}
+		// request-scoped contexts, like container ones, only exist in this JVM for the current request
+		final boolean isContainer = containerContext || isRequestScopedContextId(contextID);
 
 		var retained = retainContextLock(contextID);
 		var entry = retained.entry();
@@ -870,7 +891,7 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public void deleteFromStore(String contextID) {
-		if (contextID == null || contextID.isBlank() || contextStore == null) {
+		if (contextID == null || contextID.isBlank() || contextStore == null || isLocalOnlyContextId(contextID)) {
 			return;
 		}
 		try {
@@ -881,7 +902,7 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public void refreshContextFromStore(Context context) {
-		if (context == null || contextStore == null) {
+		if (context == null || contextStore == null || isLocalOnlyContextId(context.contextID)) {
 			return;
 		}
 		try {
@@ -898,7 +919,7 @@ public class ContextManager extends AbstractRunnableManager {
 
 	public void refreshContextFromStoreIfNeeded(Context context) {
 		if (context == null || contextStore == null || !ConvertigoHttpSessionManager.isRedisMode()
-				|| isContainerContextName(context.name)) {
+				|| isContainerContextName(context.name) || isRequestScopedContextId(context.contextID)) {
 			return;
 		}
 		try {
@@ -1060,7 +1081,7 @@ public class ContextManager extends AbstractRunnableManager {
 
 	private Context get(String contextID, String contextName, String projectName) throws EngineException {
 		Context context = get(contextID);
-		if (context == null && contextStore != null) {
+		if (context == null && contextStore != null && !isLocalOnlyContextId(contextID)) {
 			synchronized (contextCreationMutex) {
 				context = get(contextID);
 				if (context == null) {
@@ -1186,7 +1207,7 @@ public class ContextManager extends AbstractRunnableManager {
 			return;
 		}
 		contexts.remove(context.contextID, context);
-		if (save && contextStore != null) {
+		if (save && contextStore != null && !isRequestScopedContextId(context.contextID)) {
 			int ttl = context.httpSession != null ? context.httpSession.getMaxInactiveInterval() : -1;
 			contextStore.save(context, ttl);
 		}
@@ -1237,7 +1258,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 		for (Context c : ctxs) {
 			if (c != null) {
-				if (isContainerContextName(c.name)) {
+				if (isContainerContextName(c.name) || isRequestScopedContextId(c.contextID)) {
 					continue;
 				}
 				try {
@@ -1257,7 +1278,7 @@ public class ContextManager extends AbstractRunnableManager {
 			Context context = contexts.remove(contextID);
 			if (context != null) {
 				remove(context);
-			} else if (contextStore != null) {
+			} else if (contextStore != null && !isLocalOnlyContextId(contextID)) {
 				contextStore.delete(contextID);
 			}
 		} catch (Exception e) {
@@ -1278,7 +1299,7 @@ public class ContextManager extends AbstractRunnableManager {
 				Context context = contexts.remove(contextID);
 				if (context != null) {
 					remove(context);
-				} else if (contextStore != null) {
+				} else if (contextStore != null && !isLocalOnlyContextId(contextID)) {
 					contextStore.delete(contextID);
 				}
 				return true;
@@ -1309,7 +1330,7 @@ public class ContextManager extends AbstractRunnableManager {
 			// ignore
 		}
 
-		if (ConvertigoHttpSessionManager.isRedisMode()) {
+		if (isSharedSessionId(sessionID)) {
 			try {
 				var cfg = RedisClients.getConfiguration();
 				var client = RedisClients.getClient();
@@ -1356,7 +1377,7 @@ public class ContextManager extends AbstractRunnableManager {
 					Context context = contexts.remove(cid);
 					if (context != null) {
 						remove(context);
-					} else if (contextStore != null) {
+					} else if (contextStore != null && !isLocalOnlyContextId(cid)) {
 						contextStore.delete(cid);
 					}
 				} catch (Exception ignore) {
@@ -1394,7 +1415,7 @@ public class ContextManager extends AbstractRunnableManager {
 			// ignore
 		}
 
-		if (ConvertigoHttpSessionManager.isRedisMode()) {
+		if (isSharedSessionId(sessionID)) {
 			try {
 				var cfg = RedisClients.getConfiguration();
 				var client = RedisClients.getClient();
@@ -1456,7 +1477,7 @@ public class ContextManager extends AbstractRunnableManager {
 				Engine.logContextManager.info("Removing context " + contextID);
 
 				contexts.remove(contextID, context);
-				if (contextStore != null) {
+				if (contextStore != null && !isLocalOnlyContextId(contextID)) {
 					contextStore.delete(contextID);
 				}
 
@@ -1582,7 +1603,7 @@ public class ContextManager extends AbstractRunnableManager {
 			return;
 		}
 		tryRemoveAllBestEffort(sessionID, 0L);
-		if (contextStore != null) {
+		if (contextStore != null && !RequestScopedHttpSession.isRequestScopedId(sessionID)) {
 			try {
 				String prefix = sessionID.startsWith(POOL_CONTEXT_ID_PREFIX) ? sessionID : sessionID + "_";
 				contextStore.deleteBySessionPrefix(prefix);
