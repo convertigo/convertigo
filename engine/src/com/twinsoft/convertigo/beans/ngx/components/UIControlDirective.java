@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
@@ -250,7 +248,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	public boolean updateSmartSource(String oldString, String newString) {
 		boolean updated = false;
 		String smartValue = directiveSource.getSmartValue();
-		if (smartValue.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(smartValue).find()) {
+		if (findSmartSource(smartValue, oldString)) {
 			directiveSource.setSmartValue(smartValue.replaceAll(oldString, newString));
 			updated = this.hasChanged = true;
 		}

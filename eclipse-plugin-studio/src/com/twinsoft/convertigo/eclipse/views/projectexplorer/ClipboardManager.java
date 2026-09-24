@@ -24,6 +24,7 @@ import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -352,6 +353,12 @@ public class ClipboardManager {
 			step.getSequence().fireStepCopied(new StepEvent(step, entry.getKey()));
 		}
 		
+		// NGX components are visited once for all the replacements
+		Map<String, String> replacements = new LinkedHashMap<String, String>();
+		for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
+			replacements.put(entry.getKey(), String.valueOf(entry.getValue().priority));
+		}
+		
 		for (Object ob : pastedObjects) {
 			// MOBILE COMPONENTS
 			if (ob instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
@@ -375,19 +382,11 @@ public class ClipboardManager {
 			} else if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
 				if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
 					com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(ob);
-					for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
-						if (page.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
-							//page.getApplication().updateSourceFiles();
-						}
-					}
+					page.updateSmartSources(replacements);
 				}
 				else if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
 					com.twinsoft.convertigo.beans.ngx.components.UIComponent uic = GenericUtils.cast(ob);
-					for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
-						if (uic.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
-							//uic.getApplication().updateSourceFiles();
-						}
-					}
+					uic.updateSmartSources(replacements);
 				}
 			}
 		}

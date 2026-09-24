@@ -22,8 +22,9 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectPropertyListener;
 
-public class TestCaseTreeObject extends DatabaseObjectTreeObject {
+public class TestCaseTreeObject extends DatabaseObjectTreeObject implements TreeObjectPropertyListener {
 
 	public TestCaseTreeObject(Viewer viewer, TestCase object) {
 		this(viewer, object, false);

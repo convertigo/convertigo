@@ -35,9 +35,10 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectPropertyListener;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOrderableTreeObject {
+public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOrderableTreeObject, TreeObjectPropertyListener {
 
 	public VariableTreeObject2(Viewer viewer, Variable object) {
 		this(viewer, object, false);

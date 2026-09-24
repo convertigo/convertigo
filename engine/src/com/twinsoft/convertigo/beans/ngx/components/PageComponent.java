@@ -1030,6 +1030,17 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		return updated;
 	}
 	
+	/** Applies each replacement, in the order of the map, to the components of this page, visited once. */
+	public boolean updateSmartSources(Map<String, String> replacements) {
+		boolean updated = false;
+		for (UIComponent uic : getUIComponentList()) {
+			if (uic.updateSmartSources(replacements)) {
+				updated = true;
+			}
+		}
+		return updated;
+	}
+	
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("icon")) {

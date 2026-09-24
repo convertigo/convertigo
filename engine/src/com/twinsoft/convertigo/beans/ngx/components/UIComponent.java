@@ -588,11 +588,40 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		return updated;
 	}
 	
+	/** Applies each replacement, in the order of the map, to this component and its descendants, visited once. */
+	public boolean updateSmartSources(Map<String, String> replacements) {
+		boolean updated = false;
+		for (Map.Entry<String, String> replacement : replacements.entrySet()) {
+			if (updateSmartSource(replacement.getKey(), replacement.getValue())) {
+				updated = true;
+			}
+		}
+		for (UIComponent uic : getUIComponentList()) {
+			if (uic.updateSmartSources(replacements)) {
+				updated = true;
+			}
+		}
+		return updated;
+	}
+	
 	public boolean updateSmartSourceModelPath(MobileSmartSource oldSource, String newPath) {
 		return false;
 	}
 	
 	public boolean updateSmartSource(String oldString, String newString) {
+		return false;
+	}
+	
+	/** Whether the text matches the regex: a regex without special characters is looked up as is, without being compiled. */
+	protected static boolean findSmartSource(String text, String regex) {
+		if (text.indexOf(regex) != -1) {
+			return true;
+		}
+		for (int i = 0; i < regex.length(); i++) {
+			if ("\\^$.|?*+()[]{}".indexOf(regex.charAt(i)) != -1) {
+				return Pattern.compile(regex).matcher(text).find();
+			}
+		}
 		return false;
 	}
 	

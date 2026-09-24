@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
@@ -281,7 +280,7 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	public boolean updateSmartSource(String oldString, String newString) {
 		boolean updated = false;
 		String smartValue = attrValue.getSmartValue();
-		if (smartValue.indexOf(oldString) != -1|| Pattern.compile(oldString).matcher(smartValue).find()) {
+		if (findSmartSource(smartValue, oldString)) {
 			attrValue.setSmartValue(smartValue.replaceAll(oldString, newString));
 			updated = this.hasChanged = true;
 		}

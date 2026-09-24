@@ -31,8 +31,9 @@ import org.eclipse.ui.PlatformUI;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditorInput;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectPropertyListener;
 
-public class SequenceTreeObject extends DatabaseObjectTreeObject implements IClosableTreeObject {
+public class SequenceTreeObject extends DatabaseObjectTreeObject implements IClosableTreeObject, TreeObjectPropertyListener {
 	
 	public SequenceTreeObject(Viewer viewer, Sequence object, boolean inherited) {
 		super(viewer, object, inherited);

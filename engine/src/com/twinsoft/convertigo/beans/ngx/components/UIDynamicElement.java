@@ -384,7 +384,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	public boolean updateSmartSource(String oldString, String newString) {
 		boolean updated = false;
 		if (beanData != null) {
-			if (beanData.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(beanData).find()) {
+			if (findSmartSource(beanData, oldString)) {
 				beanData = beanData.replaceAll(oldString, newString);
 				ionBean = null;
 				updated = this.hasChanged = true;
