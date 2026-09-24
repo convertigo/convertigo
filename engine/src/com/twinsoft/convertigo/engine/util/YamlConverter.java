@@ -58,6 +58,7 @@ public class YamlConverter {
 	private static final int P_KEY    = 6;
 	private static final int P_FILE   = 7;
 	private static final int P_VALUE  = 8;
+	private final String[] groups = new String[P_VALUE + 1];
 
 	private StringBuilder sb;
 	private BufferedReader br;
@@ -204,15 +205,14 @@ public class YamlConverter {
 	
 	private void readYamlArray(Node parent, String indent, boolean isBean) throws Exception {
 		while(checkLine()) {
-			parse.reset(line);
-			if (!parse.matches()) {
+			if (!parseLine()) {
 				throw new Exception("no match: " + line);
 			}
-			if (parse.group(P_INDENT).length() == indent.length()) {
-				String tagName = parse.group(P_KEY);
+			if (groups[P_INDENT].length() == indent.length()) {
+				String tagName = groups[P_KEY];
 				Element elt = doc.createElement(tagName);
 				parent.appendChild(elt);
-				String value = parse.group(P_VALUE); 
+				String value = groups[P_VALUE]; 
 				if (!value.isEmpty()) {
 					value = readYalmText(value, indent);
 					elt.setTextContent(value);
@@ -228,35 +228,34 @@ public class YamlConverter {
 	
 	private void readYamlElement(Element elt, String indent, boolean isBean) throws Exception {
 		while(checkLine()) {
-			parse.reset(line);
-			if (!parse.matches()) {
+			if (!parseLine()) {
 				throw new Exception("no match: " + line);
 			}
-			if (parse.group(P_INDENT).length() != indent.length()) {
+			if (groups[P_INDENT].length() != indent.length()) {
 				restoreLine();
 				return;
 			}
-			if (parse.group(P_ATTR) != null) {
-				String name = parse.group(P_KEY);
-				String value = parse.group(P_VALUE);
+			if (groups[P_ATTR] != null) {
+				String name = groups[P_KEY];
+				String value = groups[P_VALUE];
 				value = readYalmText(value, indent);
 				elt.setAttribute(name, value);
-			} else if (parse.group(P_TXT) != null) {
-				String key = parse.group(P_KEY);
-				String value = parse.group(P_VALUE);
+			} else if (groups[P_TXT] != null) {
+				String key = groups[P_KEY];
+				String value = groups[P_VALUE];
 				value = readYalmText(value, indent);
 				if (key.equals("→")) {
 					elt.appendChild(doc.createTextNode(value));
 				} else {
 					elt.appendChild(doc.createCDATASection(value));
 				}
-			} else if (parse.group(P_CHILD) != null) {
+			} else if (groups[P_CHILD] != null) {
 				if (isBean) {
 					Element nElt = doc.createElement("bean");
 					elt.appendChild(nElt);
-					nElt.setAttribute("yaml_key", parse.group(P_KEY));
-					if (parse.group(P_FILE) != null && subdir != null) {
-						String value = parse.group(P_VALUE);
+					nElt.setAttribute("yaml_key", groups[P_KEY]);
+					if (groups[P_FILE] != null && subdir != null) {
+						String value = groups[P_VALUE];
 						File subfile = new File(subdir, value);
 						BufferedReader brSaved = br;
 						String lineSaved = line;
@@ -274,9 +273,9 @@ public class YamlConverter {
 					readYamlArray(elt, indent, isBean);
 				}
 			} else {
-				String key = parse.group(P_KEY);
-				String value = parse.group(P_VALUE);
-				String textIndent = parse.group(P_ARRAY) == null ? indent : (indent + inc);
+				String key = groups[P_KEY];
+				String value = groups[P_VALUE];
+				String textIndent = groups[P_ARRAY] == null ? indent : (indent + inc);
 				value = readYalmText(value, textIndent);
 				Element nElt = doc.createElement(key);
 				elt.appendChild(nElt);
@@ -309,6 +308,47 @@ public class YamlConverter {
 		return value;
 	}
 	
+	/** Splits the line into the groups of the parse pattern, without running it when "." matches every character of the line */
+	private boolean parseLine() {
+		int n = line.length();
+		for (int i = 0; i < n; i++) {
+			char c = line.charAt(i);
+			if (c == '\u0085' || c == '\u2028' || c == '\u2029' || c == '\n' || c == '\r') {
+				parse.reset(line);
+				if (!parse.matches()) {
+					return false;
+				}
+				for (int g = P_INDENT; g <= P_VALUE; g++) {
+					groups[g] = parse.group(g);
+				}
+				return true;
+			}
+		}
+		int i = 0;
+		while (i < n && line.charAt(i) == ' ') {
+			i++;
+		}
+		groups[P_INDENT] = line.substring(0, i);
+		i = optional(i, P_ARRAY, "- ");
+		i = optional(i, P_ATTR, "↑");
+		i = optional(i, P_TXT, "→");
+		i = optional(i, P_CHILD, "↓");
+		int keyEnd = line.indexOf(sep, i);
+		if (keyEnd == -1) {
+			return false;
+		}
+		groups[P_KEY] = line.substring(i, keyEnd);
+		i = optional(keyEnd + sep.length(), P_FILE, "🗏 ");
+		groups[P_VALUE] = line.substring(i);
+		return true;
+	}
+
+	/** Sets the optional group if the line has its prefix at i, and returns the index after it */
+	private int optional(int i, int group, String prefix) {
+		groups[group] = line.startsWith(prefix, i) ? prefix : null;
+		return groups[group] == null ? i : i + prefix.length();
+	}
+
 	private void restoreLine() {
 		lastLine = line;
 	}

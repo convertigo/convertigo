@@ -124,6 +124,39 @@ public class BeansDefaultValues {
 		return null;
 	}
 
+	/** The first child element, like the XPath step * */
+	private static Element firstElement(Element element) {
+		for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				return (Element) child;
+			}
+		}
+		return null;
+	}
+
+	/** The first property element named name, like the XPath step property[@name='name'] */
+	private static Element property(Element bean, String name) {
+		for (Element child: childElements(bean)) {
+			if (child.getTagName().equals("property") && child.hasAttribute("name") && child.getAttribute("name").equals(name)) {
+				return child;
+			}
+		}
+		return null;
+	}
+
+	/** The first child element of the properties named "name", like the XPath property[@name='name']/* */
+	private static Element nameElement(Element bean) {
+		for (Element property: childElements(bean)) {
+			if (property.getTagName().equals("property") && property.hasAttribute("name") && property.getAttribute("name").equals("name")) {
+				Element value = firstElement(property);
+				if (value != null) {
+					return value;
+				}
+			}
+		}
+		return null;
+	}
+
 	private static boolean checkIsSame(Element dElt, Element pElt) {
 		if (dElt == null || pElt == null) {
 			return false;
@@ -532,7 +565,6 @@ public class BeansDefaultValues {
 	}
 
 	static private class UnshrinkProject {
-		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		Element beans;
 		JSONObject mobile_ionObjects;
 		String version;
@@ -595,8 +627,11 @@ public class BeansDefaultValues {
 
 		void unshrinkChildren(Element element, Element nParent) throws Exception {
 			Document document = nParent.getOwnerDocument();
-			for (Node pBeanNode: xpath.selectList(element, "bean[@yaml_key]")) {
-				Element pBean = (Element) pBeanNode;
+			for (Element pBean: childElements(element)) {
+				// bean[@yaml_key]
+				if (!pBean.getTagName().equals("bean") || !pBean.hasAttribute("yaml_key")) {
+					continue;
+				}
 
 				Matcher matcherBeanName = patternBeanName.matcher(pBean.getAttribute("yaml_key"));
 
@@ -629,23 +664,27 @@ public class BeansDefaultValues {
 
 				nParent.appendChild(nBean);
 
-				for (Node pAttr: xpath.selectList(pBean, "@*")) {
+				for (Node pAttr: attributes(pBean)) {
 					String name = pAttr.getNodeName();
 					if (!name.startsWith("yaml_")) {
 						nBean.setAttribute(name, pAttr.getNodeValue());
 					}
 				}
 
-				((Element) xpath.selectNode(nBean, "property[@name='name']/*")).setAttribute("value", pName);
+				nameElement(nBean).setAttribute("value", pName);
 				if (pPriority != null) {
 					nBean.setAttribute("priority", pPriority);
 				}
 
-				for (Node pPropNode: xpath.selectList(pBean, "*[not(@yaml_key)]")) {
+				for (Element pPropNode: childElements(pBean)) {
+					// *[not(@yaml_key)]
+					if (pPropNode.hasAttribute("yaml_key")) {
+						continue;
+					}
 					String propName = pPropNode.getNodeName();
-					Element nProp = (Element) xpath.selectNode(nBean, "property[@name='" + propName + "']");
+					Element nProp = property(nBean, propName);
 					if (nProp == null) {
-						Element nOther = (Element) xpath.selectNode(nBean, propName);
+						Element nOther = firstChild(nBean, propName);
 						if (nOther != null) {
 							nBean.replaceChild(document.importNode(pPropNode, true), nOther);
 							continue;
@@ -655,19 +694,19 @@ public class BeansDefaultValues {
 					}
 					nProp.setAttribute("name", propName);
 
-					for (Node pAttr: xpath.selectList(pPropNode, "@*")) {
+					for (Node pAttr: attributes(pPropNode)) {
 						String name = pAttr.getNodeName();
 						if (!name.equals("name")) {
 							nProp.setAttribute(name, pAttr.getNodeValue());
 						}
 					}
 
-					if (xpath.selectNode(pPropNode, "*") == null) {
-						Element nValue = (Element) xpath.selectNode(nProp, "*");
+					if (firstElement(pPropNode) == null) {
+						Element nValue = firstElement(nProp);
 						if (nValue == null) {
 							nValue = (Element) nProp.appendChild(document.createElement("java.lang.String"));
 						}
-						String value = ((Element) pPropNode).getTextContent();
+						String value = pPropNode.getTextContent();
 
 						if (isNgxApplicationComponent && propName.equals("tplProjectName")) {
 							templateProjectName = value;
