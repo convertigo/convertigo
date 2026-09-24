@@ -1062,6 +1062,25 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		};
 	}
 
+	/**
+	 * Whether a property change can have an effect on the NGX components, in treeObjectPropertyChanged and its
+	 * named source selector: only these changes are dispatched to them. They react to a renamed object whose
+	 * references are updated, to a changed form control (control name, identifier or form control attribute)
+	 * and to the throttleEvents and useClickForTap properties of the application.
+	 */
+	public static boolean isConcernedBy(TreeObjectEvent treeObjectEvent) {
+		String propertyName = treeObjectEvent.propertyName == null ? "" : treeObjectEvent.propertyName;
+		if (treeObjectEvent.update != TreeObjectEvent.UPDATE_NONE && (propertyName.equals("name") || propertyName.equals("qname"))) {
+			return true;
+		}
+		if (propertyName.equals("ControlName") || propertyName.equals("identifier")
+				|| propertyName.equals("throttleEvents") || propertyName.equals("useClickForTap")) {
+			return true;
+		}
+		return treeObjectEvent.getSource() instanceof DatabaseObjectTreeObject doto
+				&& doto.getObject() instanceof UIComponent uic && uic.isFormControlAttribute();
+	}
+
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);

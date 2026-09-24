@@ -856,7 +856,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private static void registerTreeObjectListener(TreeObjectListener treeObjectListener) {
-		if (treeObjectListener instanceof TreeObjectPropertyListener propertyListener) {
+		if (treeObjectListener instanceof NgxUIComponentTreeObject ngxListener) {
+			Engine.theApp.eventManager.addListener(ngxListener, NgxUIComponentTreeObject.class);
+		} else if (treeObjectListener instanceof TreeObjectPropertyListener propertyListener) {
 			Engine.theApp.eventManager.addListener(propertyListener, TreeObjectPropertyListener.class);
 		} else {
 			Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class);
@@ -865,7 +867,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public void removeTreeObjectListener(TreeObjectListener treeObjectListener) {
 		if (Engine.isStarted) {
-			if (treeObjectListener instanceof TreeObjectPropertyListener propertyListener) {
+			if (treeObjectListener instanceof NgxUIComponentTreeObject ngxListener) {
+				Engine.theApp.eventManager.removeListener(ngxListener, NgxUIComponentTreeObject.class);
+			} else if (treeObjectListener instanceof TreeObjectPropertyListener propertyListener) {
 				Engine.theApp.eventManager.removeListener(propertyListener, TreeObjectPropertyListener.class);
 			} else {
 				Engine.theApp.eventManager.removeListener(treeObjectListener, TreeObjectListener.class);
@@ -877,6 +881,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		treeObjectEvent.type = TreeObjectEvent.TYPE_PROPERTY_CHANGED;
 		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectListener.class);
 		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectPropertyListener.class);
+		// a big application has tens of thousands of NGX components, which react to few property changes
+		if (NgxUIComponentTreeObject.isConcernedBy(treeObjectEvent)) {
+			Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, NgxUIComponentTreeObject.class);
+		}
 	}
 
 	public List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
