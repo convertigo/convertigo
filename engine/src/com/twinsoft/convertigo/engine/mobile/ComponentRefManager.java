@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -68,6 +69,12 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	
 	private Map<String, Set<String>> consumers = new HashMap<String, Set<String>>();
 	
+	// computed from consumers and dropped on each change of it, which the version tracks (guarded by consumers)
+	private Map<String, Set<String>> dependencies = new HashMap<String, Set<String>>();
+	private long version = 0;
+	
+	private Map<String, Pattern> keyPatterns = new ConcurrentHashMap<String, Pattern>();
+	
 	private ComponentRefManager() {
 		
 	}
@@ -75,7 +82,14 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	private void clear() {
 		synchronized (consumers) {
 			consumers.clear();
+			consumersChanged();
 		}
+		keyPatterns.clear();
+	}
+	
+	private void consumersChanged() {
+		version++;
+		dependencies.clear();
 	}
 	
 	public void addConsumer(final String compQName, final String useQName) {
@@ -87,6 +101,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 				consumers.put(compQName, new HashSet<String>());
 			}
 			if (consumers.get(compQName).add(useQName)) {
+				consumersChanged();
 				Engine.logEngine.trace(useQName + " has been added as consumer for comp: "+ compQName + ", consummers:"+consumers.get(compQName).size());
 			}
 		}
@@ -95,7 +110,9 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	public void removeConsumer(final String compQName, final String useQName) {
 		synchronized (consumers) {
 			if (consumers.get(compQName) != null) {
-				consumers.get(compQName).remove(useQName);
+				if (consumers.get(compQName).remove(useQName)) {
+					consumersChanged();
+				}
 				if (consumers.get(compQName).isEmpty()) {
 					consumers.remove(compQName);
 				}
@@ -111,6 +128,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 			if (consumers.get(old_qname) != null) {
 				Set<String> newSet = new HashSet<String>(consumers.get(old_qname));
 				consumers.put(new_qname, newSet);
+				consumersChanged();
 			}
 		}
 	}
@@ -283,7 +301,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 //	}
     
 	private synchronized Set<String> getAllConsumers(String compQName) {
-		Set<String> dependencies = getDependencies(new HashSet<String>(), compQName);
+		Set<String> dependencies = getDependencies(compQName);
 		//System.out.println("for "+ compQName + ": dependencies="+ dependencies);
 		
 		Set<String> set = new HashSet<String>();
@@ -296,9 +314,28 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	}
 	
 	static public synchronized boolean areCircular(String compQName1, String compQName2) {
-		Set<String> dep1 = Collections.unmodifiableSet(ComponentRefManager.get(Mode.use).getDependencies(new HashSet<String>(), compQName1));
-		Set<String> dep2 = Collections.unmodifiableSet(ComponentRefManager.get(Mode.use).getDependencies(new HashSet<String>(), compQName2));
+		Set<String> dep1 = ComponentRefManager.get(Mode.use).getDependencies(compQName1);
+		Set<String> dep2 = ComponentRefManager.get(Mode.use).getDependencies(compQName2);
 		return dep1.contains(compQName2) && dep2.contains(compQName1);
+	}
+	
+	/** The shared components reachable from compQName through its consumers, compQName included. */
+	private Set<String> getDependencies(String compQName) {
+		long computedVersion;
+		synchronized (consumers) {
+			Set<String> set = dependencies.get(compQName);
+			if (set != null) {
+				return set;
+			}
+			computedVersion = version;
+		}
+		Set<String> set = Collections.unmodifiableSet(new HashSet<String>(getDependencies(new HashSet<String>(), compQName)));
+		synchronized (consumers) {
+			if (version == computedVersion) {
+				dependencies.put(compQName, set);
+			}
+		}
+		return set;
 	}
 	
 	private Set<String> getDependencies(Set<String> done, String compQName) {
@@ -313,7 +350,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 					continue;
 				}
 	    		if (!keyQName.equals(compQName)) {
-	    			Pattern p = Pattern.compile("^" + Pattern.quote(keyQName) + "\\b.*");
+	    			Pattern p = keyPatterns.computeIfAbsent(keyQName, k -> Pattern.compile("^" + Pattern.quote(k) + "\\b.*"));
 		    		for (String useQName: getConsumers(compQName)) {
 		    			//if (useQName.startsWith(keyQName)) {
 		    			if (p.matcher(useQName).find()) {
