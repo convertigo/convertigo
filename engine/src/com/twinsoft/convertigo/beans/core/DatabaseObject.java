@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public abstract class DatabaseObject implements Serializable, Cloneable, ITokenPath {
 	private static final long serialVersionUID = -873065042105207891L;
 	private static final Pattern pIntSuffix = Pattern.compile("\\d+$");
+	private static final Object NO_ORDER = new Object();
 	protected final Object mutex = new Object();
 
 	@Retention(RUNTIME)
@@ -1233,14 +1235,26 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	protected <E extends Object> List<E> sort(List<E> list, boolean ascending) {
 		List<E> res = new ArrayList<E>(list);
+		// the order of each object is looked up once, not on each comparison
+		Map<Object, Object> orders = new IdentityHashMap<>(res.size());
+		for (E e : res) {
+			Object order;
+			try {
+				order = getOrder(e);
+			} catch (EngineException ex) {
+				order = NO_ORDER;
+			}
+			orders.put(e, order);
+		}
 		Collections.sort(res, new Comparator<Object>() {
 			@SuppressWarnings("unchecked")
 			public int compare(Object o1, Object o2) {
-				try {
-					return ((Comparable<Object>) getOrder(o1)).compareTo(getOrder(o2));
-				} catch (EngineException e) {
+				Object order1 = orders.get(o1);
+				Object order2 = orders.get(o2);
+				if (order1 == NO_ORDER || order2 == NO_ORDER) {
 					return 0;
 				}
+				return ((Comparable<Object>) order1).compareTo(order2);
 			}
 		});
 		if (!ascending) {
