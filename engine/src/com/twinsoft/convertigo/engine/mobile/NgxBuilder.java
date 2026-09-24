@@ -3980,7 +3980,7 @@ public class NgxBuilder extends MobileBuilder {
 	@Override
 	protected void writeFile(File file, CharSequence content, String encoding) throws IOException {
 		// Replace eol characters with system line separators
-		var str = LsPattern.matcher(content).replaceAll(System.lineSeparator());
+		var str = toSystemLineSeparators(content);
 		var charset = Charset.forName(encoding);
 		var existingFiles = NgxBuilder.existingFiles.get();
 		var generationPending = MobileBuilderGeneration.isPending(project.getName());

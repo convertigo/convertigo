@@ -672,11 +672,10 @@ public class XMLUtils {
 	}
 
 	public static Element findNodeByAttributeValue(NodeList nodeList, String attributeName, String attributeValue) {
-		int len = nodeList.getLength();
+		// item() is null after the last node: the length of a getElementsByTagName list is not counted first
 		String tmp;
 		Element property;
-		for (int i = 0; i < len; i++) {
-			property = (Element) nodeList.item(i);
+		for (int i = 0; (property = (Element) nodeList.item(i)) != null; i++) {
 			tmp = property.getAttribute(attributeName);
 			if (attributeValue.equals(tmp)) {
 				return property;

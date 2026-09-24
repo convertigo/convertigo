@@ -1741,6 +1741,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public String getCompiledValue(String value) throws UndefinedSymbolsException {
+		if (value.indexOf("${") == -1) {
+			// no symbol
+			return value;
+		}
 		Matcher mFindSymbol = pFindSymbol.matcher(value);
 		if (mFindSymbol.find(0)) {
 			int start = 0;
