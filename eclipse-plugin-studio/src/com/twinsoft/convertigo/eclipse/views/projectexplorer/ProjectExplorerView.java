@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -376,7 +377,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	private ViewContentProvider viewContentProvider = null;
 
-	private Map<DatabaseObject, DatabaseObjectTreeObject> databaseObjectTreeObjectCache = new WeakHashMap<DatabaseObject, DatabaseObjectTreeObject>();
+	// weak values: a tree object references its bean, so a strong value would keep its key, and the project version it belongs to, forever
+	private Map<DatabaseObject, WeakReference<DatabaseObjectTreeObject>> databaseObjectTreeObjectCache = new WeakHashMap<>();
 
 	/**
 	 * The constructor.
@@ -2676,9 +2678,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private DatabaseObjectTreeObject findTreeObjectByUserObjectFromCache(DatabaseObject databaseObject) {
-		DatabaseObjectTreeObject databaseObjectTreeObject = databaseObjectTreeObjectCache.get(databaseObject);
-		if (databaseObjectTreeObject != null) {
-			if (databaseObjectTreeObject.getObject().equals(databaseObject) && databaseObjectTreeObject.parent != null) {
+		var ref = databaseObjectTreeObjectCache.get(databaseObject);
+		if (ref != null) {
+			DatabaseObjectTreeObject databaseObjectTreeObject = ref.get();
+			if (databaseObjectTreeObject != null && databaseObjectTreeObject.getObject().equals(databaseObject) && databaseObjectTreeObject.parent != null) {
 				return databaseObjectTreeObject;
 			} else {
 				databaseObjectTreeObjectCache.remove(databaseObject);
@@ -2704,7 +2707,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 		}
 		if (databaseObjectTreeObject != null) {
-			databaseObjectTreeObjectCache.put(databaseObject, databaseObjectTreeObject);
+			databaseObjectTreeObjectCache.put(databaseObject, new WeakReference<>(databaseObjectTreeObject));
 		}
 		return databaseObjectTreeObject;
 	}
