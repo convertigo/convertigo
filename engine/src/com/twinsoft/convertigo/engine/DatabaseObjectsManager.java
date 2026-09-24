@@ -2316,13 +2316,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 					boolean allLocked = false;
 					for (var j = 0; j < 20 && !allLocked; j++) {
 						Engine.logDatabaseObjectManager
-						.info("[lockAndRun] Failed to lock " + projectName + ", releasing locks for 5 secs [" + (j + 1) + "]");
+						.info("[lockAndRun] Failed to lock " + projectName + ", releasing locks for up to 5 secs [" + (j + 1) + "]");
 						for (var l : threadLocks) {
 							try {
 								l.lock.unlock();
 							} catch (Exception e) {}
 						}
-						Thread.sleep(5000);
+						// until the lock of projectName and the released locks are free, 5 secs at most
+						for (var k = 0; k < 50 && (lock.lock.isLocked() || threadLocks.stream().anyMatch(l -> l.lock.isLocked())); k++) {
+							Thread.sleep(100);
+						}
 						allLocked = true;
 						for (var l : threadLocks) {
 							try {
