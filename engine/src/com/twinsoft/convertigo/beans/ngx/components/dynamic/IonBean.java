@@ -140,45 +140,64 @@ public class IonBean {
 		if (beanData != null) {
 			return beanData;
 		}
-		beanData = toString();
+		// the bean without its model keys (but its name) and properties without their model keys (but name, mode
+		// and value), built from the merged bean instead of a parse of its text: the same keys, in the same order
+		JSONObject merged = mergedJSONObject();
 		try {
-			JSONObject jsonOb = new JSONObject(beanData);
-			for (Key k: Key.values()) {
-				if (k.equals(Key.name))
-					continue;
-				if (k.equals(Key.properties)) {
-					JSONObject jsonProperties = jsonOb.getJSONObject(Key.properties.name());
-					if (jsonProperties != null) {
-						@SuppressWarnings("unchecked")
-						Iterator<String> it = jsonProperties.keys();
-						while (it.hasNext()) {
-							String pkey = it.next();
-							if (!pkey.isEmpty()) {
-								Object ob = jsonProperties.get(pkey);
-								if (ob instanceof JSONObject) {
-									JSONObject jsonProperty = (JSONObject)ob;
-									for (IonProperty.Key kp: IonProperty.Key.values()) {
-										if (kp.equals(IonProperty.Key.name)) continue;
-										if (kp.equals(IonProperty.Key.mode)) continue;
-										if (kp.equals(IonProperty.Key.value)) continue;
-										jsonProperty.remove(kp.name());
-									}
-									jsonProperties.put(pkey, jsonProperty);
+			if (!(merged.opt(Key.properties.name()) instanceof JSONObject)) {
+				beanData = merged.toString();
+				return beanData;
+			}
+			JSONObject jsonOb = new JSONObject();
+			@SuppressWarnings("unchecked")
+			Iterator<String> it = merged.keys();
+			while (it.hasNext()) {
+				String key = it.next();
+				Object value = merged.get(key);
+				if (key.equals(Key.properties.name())) {
+					JSONObject jsonProperties = (JSONObject) value;
+					JSONObject properties = new JSONObject();
+					@SuppressWarnings("unchecked")
+					Iterator<String> itp = jsonProperties.keys();
+					while (itp.hasNext()) {
+						String pkey = itp.next();
+						Object ob = jsonProperties.get(pkey);
+						if (!pkey.isEmpty() && ob instanceof JSONObject jsonProperty) {
+							JSONObject property = new JSONObject();
+							@SuppressWarnings("unchecked")
+							Iterator<String> itk = jsonProperty.keys();
+							while (itk.hasNext()) {
+								String k = itk.next();
+								if (k.equals(IonProperty.Key.name.name()) || k.equals(IonProperty.Key.mode.name())
+										|| k.equals(IonProperty.Key.value.name()) || !isKey(IonProperty.Key.values(), k)) {
+									property.put(k, jsonProperty.get(k));
 								}
 							}
+							ob = property;
 						}
-						jsonOb.put(Key.properties.name(), jsonProperties);
-						continue;
+						properties.put(pkey, ob);
 					}
+					jsonOb.put(key, properties);
+				} else if (key.equals(Key.name.name()) || !isKey(Key.values(), key)) {
+					jsonOb.put(key, value);
 				}
-				jsonOb.remove(k.name());
 			}
 			beanData = jsonOb.toString(1);
 		} catch (JSONException e) {
 			e.printStackTrace();
+			beanData = merged.toString();
 		}
 		
 		return beanData;
+	}
+	
+	private static boolean isKey(Enum<?>[] keys, String name) {
+		for (Enum<?> key: keys) {
+			if (key.name().equals(name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public String toString() {
