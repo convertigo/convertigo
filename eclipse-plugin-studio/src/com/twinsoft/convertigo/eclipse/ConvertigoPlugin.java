@@ -24,7 +24,6 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
@@ -74,7 +73,6 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.widgets.Control;
@@ -128,6 +126,7 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.palette.PaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
@@ -1199,10 +1198,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public synchronized Image getIconFromPath(String iconPath, int iconKind) throws IOException {
 		Image image = icons.get(iconPath);
 		if (image == null) {
-			Device device = getDisplay();
-			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconPath);
-			if (inputStream != null)
-				image = new Image(device, inputStream);
+			image = SwtUtils.createImage(getDisplay(), iconPath);
 			if (image == null)
 				image = getDefaultBeanIcon(null, iconKind);
 			icons.put(iconPath, image);
@@ -1213,26 +1209,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public synchronized Image getStudioIcon(String iconPath) throws IOException {
 		Image image = icons.get(iconPath);
 		if (image == null) {
-			InputStream inputStream = null;
-			try {
-				URL url = FileLocator.find(getBundle(), new Path(iconPath), null);
-				if (url != null) {
-					inputStream = url.openStream();
-				} else {
-					inputStream = ConvertigoPlugin.class.getResourceAsStream("/" + iconPath);
-				}
-				if (inputStream != null) {
-					image = new Image(getDisplay(), inputStream);
-					icons.put(iconPath, image);
-				}
-			} finally {
-				if (inputStream != null) {
-					try {
-						inputStream.close();
-					} catch (IOException e) {
-						// ignore close error
-					}
-				}
+			image = SwtUtils.createImage(getDisplay(), iconPath, path -> {
+				URL url = FileLocator.find(getBundle(), new Path(path), null);
+				return url != null ? url.openStream() : ConvertigoPlugin.class.getResourceAsStream("/" + path);
+			}, null);
+			if (image != null) {
+				icons.put(iconPath, image);
 			}
 		}
 		return image;
@@ -1258,10 +1240,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_32x32.png";
 			}
 
-			Device device = getDisplay();
-			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
-			if (inputStream != null)
-				beanIcon = new Image(device, inputStream);
+			beanIcon = SwtUtils.createImage(getDisplay(), iconName);
 			if (beanIcon == null)
 				beanIcon = getDefaultBeanIcon(beanClass, iconKind);
 			icons.put(beanClassName + iconKind, beanIcon);
@@ -1322,9 +1301,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (beanIcon == null) {
 			ConvertigoPlugin.studioLog.debug("Getting default icon: " + iconBaseName + iconType);
 			String iconName = "/com/twinsoft/convertigo/beans/core/images/"+ iconBaseName + iconType;
-			Device device = getDisplay();
-			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
-			beanIcon = new Image(device, inputStream);
+			beanIcon = SwtUtils.createImage(getDisplay(), iconName);
 			icons.put(iconBaseName + iconType, beanIcon);
 		}
 

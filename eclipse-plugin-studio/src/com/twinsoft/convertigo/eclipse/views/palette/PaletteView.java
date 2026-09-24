@@ -69,6 +69,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageDataProvider;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -327,18 +328,20 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		} else if (imageCache.containsKey(cacheKey)) {
 			image = imageCache.get(cacheKey);
 		} else {
-			try {
-				image = new Image(handCursor.getDevice(), imagePath);
+			image = SwtUtils.createImage(handCursor.getDevice(), imagePath, SwtUtils.fileOpener, null);
+			if (image != null) {
 				if (force32) {
 					var bounds = image.getBounds();
 					if (bounds.width != 32 || bounds.height != 32) {
-						var resized = new Image(handCursor.getDevice(), image.getImageData().scaledTo(32, 32));
+						// both sizes of the icon are resized, the double size one staying sharp on a HiDPI screen
+						var data = image.getImageData(100).scaledTo(32, 32);
+						var data2x = image.getImageData(200).scaledTo(64, 64);
 						image.dispose();
-						image = resized;
+						image = new Image(handCursor.getDevice(), (ImageDataProvider) zoom -> zoom == 100 ? data : zoom == 200 ? data2x : null);
 					}
 				}
 				imageCache.put(cacheKey, image);
-			} catch (Exception e) {
+			} else {
 				System.out.println("Cannot load image " + imagePath);
 			}
 		}

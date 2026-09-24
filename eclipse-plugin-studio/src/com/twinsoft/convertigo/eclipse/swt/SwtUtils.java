@@ -25,10 +25,15 @@ import java.awt.image.DirectColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -41,7 +46,10 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageDataProvider;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridLayout;
@@ -177,6 +185,97 @@ public class SwtUtils {
 	    } catch (Throwable t) {
 	        t.printStackTrace();
 	    }
+	}
+
+	public interface ImageOpener {
+		InputStream open(String path) throws IOException;
+	}
+
+	public static final ImageOpener fileOpener = path -> new File(path).isFile() ? new FileInputStream(path) : null;
+
+	/**
+	 * Creates an image drawn with its double size variant on a HiDPI screen, when the
+	 * variant exists: name_32x32.png for name_16x16.png, or name@2x.png for name.png.
+	 * Without it, the variant of name_NNxNN.png is drawn from its name.svg source.
+	 * Returns null when the image cannot be read.
+	 */
+	public static Image createImage(Device device, String path, ImageOpener opener, UnaryOperator<ImageData> filter) {
+		var data = readImageData(path, opener);
+		if (data == null) {
+			return null;
+		}
+		var data2x = readImageData(getDoubleSizePath(path), opener);
+		if (data2x == null) {
+			data2x = drawSvgSource(path, opener, data.width * 2, data.height * 2);
+		}
+		if (data2x != null && (data2x.width != data.width * 2 || data2x.height != data.height * 2)) {
+			data2x = null;
+		}
+		if (filter != null) {
+			data = filter.apply(data);
+			if (data2x != null) {
+				data2x = filter.apply(data2x);
+			}
+		}
+		var data1x = data;
+		var data2 = data2x;
+		return new Image(device, (ImageDataProvider) zoom -> zoom == 100 ? data1x : zoom == 200 ? data2 : null);
+	}
+
+	public static Image createImage(Device device, String path) {
+		return createImage(device, path, ConvertigoPlugin.class::getResourceAsStream, null);
+	}
+
+	private static ImageData readImageData(String path, ImageOpener opener) {
+		if (path == null) {
+			return null;
+		}
+		try (var is = opener.open(path)) {
+			return is == null ? null : new ImageData(is);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private static String getDoubleSizePath(String path) {
+		var matcher = sizePattern.matcher(path);
+		if (matcher.find()) {
+			var size = Integer.toString(Integer.parseInt(matcher.group(1)) * 2);
+			return path.substring(0, matcher.start()) + "_" + size + "x" + size + path.substring(matcher.end());
+		}
+		var dot = path.lastIndexOf('.');
+		return dot > path.lastIndexOf('/') ? path.substring(0, dot) + "@2x" + path.substring(dot) : null;
+	}
+
+	private static final Pattern sizePattern = Pattern.compile("_(\\d+)x\\1(?=\\.[^./]+$)");
+
+	private static final Pattern svgRootPattern = Pattern.compile("<svg\\b[^>]*>");
+	private static final Pattern svgSizePattern = Pattern.compile("\\s(?:width|height)\\s*=\\s*(?:\"[^\"]*\"|'[^']*')");
+
+	/**
+	 * Draws the name.svg source of name_NNxNN.png at width x height, centered and scaled
+	 * to fit its viewBox, as the build does when it makes the png from the svg.
+	 */
+	private static ImageData drawSvgSource(String path, ImageOpener opener, int width, int height) {
+		var matcher = sizePattern.matcher(path);
+		if (!matcher.find()) {
+			return null;
+		}
+		try (var is = opener.open(path.substring(0, matcher.start()) + ".svg")) {
+			if (is == null) {
+				return null;
+			}
+			var svg = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			var root = svgRootPattern.matcher(svg);
+			if (!root.find() || !root.group().contains("viewBox")) {
+				return null;
+			}
+			var sized = "<svg width=\"" + width + "\" height=\"" + height + "\"" + svgSizePattern.matcher(root.group().substring(4)).replaceAll("");
+			svg = svg.substring(0, root.start()) + sized + svg.substring(root.end());
+			return new ImageData(new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8)));
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public static ImageData convertToSWT(BufferedImage bufferedImage) {

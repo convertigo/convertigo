@@ -20,19 +20,19 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.beans.BeanInfo;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageDataProvider;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
@@ -110,31 +110,23 @@ public class ViewImageProvider {
 					iconName = defIconName;
 				}
 			}
-			InputStream inputStream = null;
 			Device device = Display.getCurrent();
 			try {
 				if (iconName.startsWith("/com/twinsoft/convertigo/")) {
-					inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
-					if (inputStream == null) {
-						inputStream = ConvertigoPlugin.class.getResourceAsStream(defIconName);
+					image = SwtUtils.createImage(device, iconName, ConvertigoPlugin.class::getResourceAsStream, data -> getImageData(data, object));
+					if (image == null) {
+						image = SwtUtils.createImage(device, defIconName, ConvertigoPlugin.class::getResourceAsStream, data -> getImageData(data, object));
 					}
-					image = new Image(device, inputStream);
 				} else {
-					image = new Image(device, iconName);
+					image = SwtUtils.createImage(device, iconName, SwtUtils.fileOpener, data -> getImageData(data, object));
 				}
-				
-				ImageData imageData = getImageData(image, object);
-				image.dispose();
-				image = new Image(device, imageData);
-				imagesCache.put(imageName, image);
+				if (image != null) {
+					imagesCache.put(imageName, image);
+				} else {
+					System.out.println("Cannot load image " + imageName);
+				}
 			} catch (Throwable e) {
 				System.out.println("Cannot load image " + imageName);
-				if (inputStream != null) {
-					try {
-						inputStream.close();
-					} catch (IOException e1) {
-					}
-				}
 			}
 		}
 		return image;
@@ -146,17 +138,16 @@ public class ViewImageProvider {
 		if (image == null) {
 			Device device = Display.getCurrent();
 			
-			ImageData imageData = getImageData(base, object);
-			image = new Image(device, imageData);
+			ImageData imageData = getImageData(base.getImageData(100), object);
+			ImageData imageData2x = getImageData(base.getImageData(200), object);
+			image = new Image(device, (ImageDataProvider) zoom -> zoom == 100 ? imageData : zoom == 200 ? imageData2x : null);
 			
 			imagesCache.put(imageName, image);
 		}
 		return image;
 	}
-	
-	private static ImageData getImageData(Image image, Object object) {
-		ImageData imageData = image.getImageData();
-		
+
+	private static ImageData getImageData(ImageData imageData, Object object) {
 		DatabaseObjectTreeObject databaseObjectTreeObject = null;
 		
 		if (object instanceof DatabaseObjectTreeObject) {

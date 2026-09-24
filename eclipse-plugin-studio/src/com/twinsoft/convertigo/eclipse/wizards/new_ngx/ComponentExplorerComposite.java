@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.util.DocumentationHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -241,8 +242,10 @@ class ComponentExplorerComposite extends Composite {
 			if (imagePath.startsWith("/com/twinsoft/convertigo/")) {
 				image = ConvertigoPlugin.getDefault().getIconFromPath(imagePath, BeanInfo.ICON_COLOR_32x32);
 			} else {
-				image = new Image(getDisplay(), imagePath);
-				label.addDisposeListener(e -> label.getImage().dispose());
+				image = SwtUtils.createImage(getDisplay(), imagePath, SwtUtils.fileOpener, null);
+				if (image != null) {
+					label.addDisposeListener(e -> label.getImage().dispose());
+				}
 			}
 		} catch (Exception e) {}
 		label.setImage(image);
