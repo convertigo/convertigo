@@ -1,4 +1,4 @@
-/* @import url("platform:/plugin/org.eclipse.ui.themes/css/e4-dark.css"); */
+/* Convertigo additions to the Eclipse dark theme, the Convertigo accent is rgb(0, 200, 247) */
 
 #com-twinsoft-convertigo-eclipse-views-mobile-MobilePaletteView * {
   background-color: #2f2f2f;
@@ -8,18 +8,29 @@
   background-color: #242424;
 }
 
+/* Flat tabs without frame, the selected tab of the active view is underlined with the accent */
 .MPartStack,
 #com-twinsoft-convertigo-eclipse-views-projectexplorer-ProjectExplorerViewMStack,
 #com-twinsoft-convertigo-eclipse-views-sourcepicker-SourcePickerViewMStack,
+#com-twinsoft-convertigo-eclipse-views-assistant-AssistantViewMStack,
 #org-eclipse-ui-views-PropertySheetMStack,
 #com-twinsoft-convertigo-eclipse-views-loggers-EngineLogViewMStack {
-  swt-selected-tab-fill: rgb(47, 47, 47);
-  swt-unselected-tab-fill: rgb(47, 47, 47);
-  swt-selected-tabs-color: rgb(47, 47, 47);
-  swt-unselected-tabs-color: rgb(47, 47, 47);
-  swt-outer-keyline-color: rgb(0, 200, 247);
-  swt-inner-keyline-color: rgb(0, 200, 247);
-  swt-tab-outline: rgb(0, 200, 247);
+  swt-selected-tab-fill: #2f2f2f;
+  swt-selected-tabs-color: #2f2f2f;
+  swt-unselected-tabs-color: #262626;
+  swt-outer-keyline-color: #262626;
+  swt-tab-outline: #262626;
+  swt-selected-tab-highlight: #4a4a4a;
+  swt-selected-highlight-top: false;
+}
+
+.MPartStack.active,
+#com-twinsoft-convertigo-eclipse-views-projectexplorer-ProjectExplorerViewMStack.active,
+#com-twinsoft-convertigo-eclipse-views-sourcepicker-SourcePickerViewMStack.active,
+#com-twinsoft-convertigo-eclipse-views-assistant-AssistantViewMStack.active,
+#org-eclipse-ui-views-PropertySheetMStack.active,
+#com-twinsoft-convertigo-eclipse-views-loggers-EngineLogViewMStack.active {
+  swt-selected-tab-highlight: rgb(0, 200, 247);
 }
 
 .MPartStack *,
@@ -56,4 +67,20 @@ ObjectsExplorerComposite, ObjectsExplorerComposite * {
 
 .c8oEnginePreferenceExpandBar {
   color: #2f2f2f;
+}
+
+/* Palette */
+.MPart CLabel.c8oPaletteCategory {
+  color: #d8d8d8;
+  background-color: #3a3a3a;
+  font-weight: bold;
+}
+
+.MPart CLabel.c8oPaletteSelected {
+  color: white;
+  background-color: #0b4d63;
+}
+
+.MPart Composite.c8oPaletteBorder {
+  background-color: #3a3a3a;
 }

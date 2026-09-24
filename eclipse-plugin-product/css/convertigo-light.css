@@ -1,0 +1,23 @@
+/* Convertigo additions to the Eclipse light and classic themes, the Convertigo accent is rgb(0, 200, 247) */
+
+/* The selected tab of the active view is underlined with the accent */
+.MPartStack.active {
+  swt-selected-tab-highlight: rgb(0, 200, 247);
+  swt-selected-highlight-top: false;
+}
+
+/* Palette */
+.MPart CLabel.c8oPaletteCategory {
+  color: #333333;
+  background-color: #e8e8e8;
+  font-weight: bold;
+}
+
+.MPart CLabel.c8oPaletteSelected {
+  color: black;
+  background-color: #d2f1fc;
+}
+
+.MPart Composite.c8oPaletteBorder {
+  background-color: #e0e0e0;
+}

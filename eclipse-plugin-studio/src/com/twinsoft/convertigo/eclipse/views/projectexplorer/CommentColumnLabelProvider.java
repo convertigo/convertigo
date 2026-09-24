@@ -30,6 +30,8 @@ import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 class CommentColumnLabelProvider extends ColumnLabelProvider {
+	private static final Color darkComment = new Color(106, 153, 85);
+
 	@Override
 	public String getText(Object element) {
 		if (element instanceof DatabaseObjectTreeObject) {
@@ -52,6 +54,6 @@ class CommentColumnLabelProvider extends ColumnLabelProvider {
 
 	@Override
 	public Color getForeground(Object element) {
-		return Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN);
+		return SwtUtils.isDark() ? darkComment : Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN);
 	}
 }

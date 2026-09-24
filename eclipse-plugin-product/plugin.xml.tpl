@@ -63,6 +63,13 @@
         <themeid
             refid="org.eclipse.e4.ui.css.theme.e4_dark"></themeid>
       </stylesheet>
+      <stylesheet
+          uri="css/convertigo-light.css">
+        <themeid
+            refid="org.eclipse.e4.ui.css.theme.e4_default"></themeid>
+        <themeid
+            refid="org.eclipse.e4.ui.css.theme.e4_classic"></themeid>
+      </stylesheet>
    </extension>
 
 </plugin>

@@ -747,7 +747,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		Composite border = new Composite(left, SWT.NONE);
 		border.setLayoutData(gd = new GridData(GridData.FILL_HORIZONTAL));
 		gd.heightHint = 1;
-		border.setData("style", "background-color: rgb(0, 200, 247)");
+		border.setData(SwtUtils.CSS_CLASS_KEY, "c8oPaletteBorder");
 
 		ScrolledComposite scroll = new ScrolledComposite(left, SWT.V_SCROLL);
 		scroll.setData("style", "color: inherit; background-color: inherit");
@@ -877,11 +877,13 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 				}
 				Control latestSelected = (Control) bag.getData("LatestSelected");
 				if (latestSelected != null && !latestSelected.isDisposed()) {
+					latestSelected.setData(SwtUtils.CSS_CLASS_KEY, null);
 					latestSelected.setData("style", "color: inherit; background-color: inherit");
 					CompositeElement.getEngine(latestSelected).applyStyles(latestSelected, false);
 				}
 				bag.setData("LatestSelected", c);
-				c.setData("style", "color: blue; background-color: lightcyan");
+				c.setData("style", null);
+				c.setData(SwtUtils.CSS_CLASS_KEY, "c8oPaletteSelected");
 				CompositeElement.getEngine(c).applyStyles(c, false);
 
 				updateDoc.run();
@@ -1401,7 +1403,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			lb.setVisible(false);
 			lb.setText("    " + txt);
 			lb.setAlignment(SWT.LEFT);
-			lb.setData("style", "color: black; background-color: lightgrey");
+			lb.setData(SwtUtils.CSS_CLASS_KEY, "c8oPaletteCategory");
 			lb.setData("Label", txt);
 			lb.setData("Show", !hiddenCategories.contains(txt));
 			updateLabel.update(lb);
