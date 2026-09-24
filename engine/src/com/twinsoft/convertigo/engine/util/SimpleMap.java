@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiPredicate;
 
 public class SimpleMap {
 	private Map<String, Object> map = new HashMap<>();
@@ -38,6 +39,12 @@ public class SimpleMap {
 	public Object get(String key) {
 		synchronized (map) {
 			return map.get(key);
+		}
+	}
+
+	public void removeIf(BiPredicate<String, Object> filter) {
+		synchronized (map) {
+			map.entrySet().removeIf(entry -> filter.test(entry.getKey(), entry.getValue()));
 		}
 	}
 }

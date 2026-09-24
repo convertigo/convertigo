@@ -73,6 +73,7 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -519,6 +520,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			.info("[clearCache] start releasing for " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().removeUrlMapper(projectName);
 			MobileBuilder.releaseBuilder(project);
+			RequestableObject.clearUseCache(project);
 			if (Engine.isStudioMode()) {
 				Engine.theApp.contextManager.removeStudioContexts(project);
 			}
@@ -548,6 +550,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			.info("[clearCacheIfSymbolError] start releasing for " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().removeUrlMapper(projectName);
 			MobileBuilder.releaseBuilder(project);
+			RequestableObject.clearUseCache(project);
 			if (Engine.isStudioMode()) {
 				Engine.theApp.contextManager.removeStudioContexts(project);
 			}
