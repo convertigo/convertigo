@@ -1540,10 +1540,17 @@ public class ContextManager extends AbstractRunnableManager {
 				// HTTP session maintain its own context list in order to
 				// improve context removal on session unbound process
 				// See also #4198 which fix a regression
-				String sessionID = context.httpSession != null ? context.httpSession.getId() :
-					context.contextID.substring(0,context.contextID.indexOf("_"));
-				HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
-				if (httpSession != null) {
+				// A Studio context is shared by every HTTP session that used it
+				Collection<HttpSession> httpSessions;
+				if (contextID.startsWith(STUDIO_CONTEXT_PREFIX)) {
+					httpSessions = HttpSessionListener.getSessions();
+				} else {
+					String sessionID = context.httpSession != null ? context.httpSession.getId() :
+						context.contextID.substring(0,context.contextID.indexOf("_"));
+					HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
+					httpSessions = httpSession != null ? List.of(httpSession) : List.of();
+				}
+				for (HttpSession httpSession : httpSessions) {
 					synchronized (httpSession) {
 						try {
 							List<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
@@ -1592,6 +1599,41 @@ public class ContextManager extends AbstractRunnableManager {
 		String sessionID = httpSession.getId();
 		Engine.logContextManager.debug("Removing all contexts for " + sessionID + "...");
 		removeAll(sessionID);
+	}
+
+	/**
+	 * Removes, in the background, the Studio contexts that still use an unloaded project. Studio contexts
+	 * never expire and keep every connector they opened, so each reload of the project would otherwise stay
+	 * in memory until the Studio stops. A context in use is removed once its request is over.
+	 */
+	public void removeStudioContexts(Project project) {
+		Engine.execute(() -> {
+			for (Context context : contexts.values()) {
+				if (!context.contextID.startsWith(STUDIO_CONTEXT_PREFIX)) {
+					continue;
+				}
+				try (var lock = lockContext(context)) {
+					if (isUsing(context, project)) {
+						remove(context.contextID);
+					}
+				} catch (Exception e) {
+					Engine.logContextManager.warn("Failed to remove the studio context " + context.contextID, e);
+				}
+			}
+		});
+	}
+
+	private static boolean isUsing(Context context, Project project) {
+		if (context.project == project
+				|| (context.requestedObject != null && context.requestedObject.getProject() == project)) {
+			return true;
+		}
+		for (Connector connector : context.getOpenedConnectors()) {
+			if (connector.getProject() == project) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void removeAll() {

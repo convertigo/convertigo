@@ -519,6 +519,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			.info("[clearCache] start releasing for " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().removeUrlMapper(projectName);
 			MobileBuilder.releaseBuilder(project);
+			if (Engine.isStudioMode()) {
+				Engine.theApp.contextManager.removeStudioContexts(project);
+			}
 			Engine.logDatabaseObjectManager
 			.info("[clearCache] end releasing for " + Project.formatNameWithHash(project));
 		}
@@ -545,6 +548,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			.info("[clearCacheIfSymbolError] start releasing for " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().removeUrlMapper(projectName);
 			MobileBuilder.releaseBuilder(project);
+			if (Engine.isStudioMode()) {
+				Engine.theApp.contextManager.removeStudioContexts(project);
+			}
 			Engine.logDatabaseObjectManager
 			.info("[clearCacheIfSymbolError] end releasing for " + Project.formatNameWithHash(project));
 		}
