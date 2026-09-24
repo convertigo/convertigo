@@ -75,6 +75,8 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	
 	private Map<String, Pattern> keyPatterns = new ConcurrentHashMap<String, Pattern>();
 	
+	private static final Pattern pQNameSuffix = Pattern.compile("\\.\\w+?:$");
+	
 	private ComponentRefManager() {
 		
 	}
@@ -193,7 +195,9 @@ public class ComponentRefManager implements DatabaseObjectListener {
     
     static public DatabaseObject getDatabaseObjectByQName(String qname) {
     	try {
-			qname = qname.replaceFirst("\\.\\w+?:$", "");
+			if (qname.endsWith(":")) {
+				qname = pQNameSuffix.matcher(qname).replaceFirst("");
+			}
 			String[] name = qname.split("\\.");
 			String project = name[0];
 			DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project, false);

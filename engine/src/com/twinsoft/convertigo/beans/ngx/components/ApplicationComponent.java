@@ -473,36 +473,41 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
         if (object instanceof PageComponent) {
         	List<Long> ordered = orderedPages.get(0);
         	long time = ((PageComponent)object).priority;
-        	if (ordered.contains(time))
-        		return (long)ordered.indexOf(time);
+        	int index = orderedIndexOf(ordered, time);
+        	if (index != -1)
+        		return (long) index;
         	else throw new EngineException("Corrupted page for application \""+ getName() +"\". PageComponent \""+ ((PageComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else if (object instanceof UIDynamicMenu) {
         	List<Long> ordered = orderedMenus.get(0);
         	long time = ((UIDynamicMenu)object).priority;
-        	if (ordered.contains(time))
-        		return (long)ordered.indexOf(time);
+        	int index = orderedIndexOf(ordered, time);
+        	if (index != -1)
+        		return (long) index;
         	else throw new EngineException("Corrupted menu for application \""+ getName() +"\". MenuComponent \""+ ((UIDynamicMenu)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else if (object instanceof UIActionStack) {
         	List<Long> ordered = orderedSharedActions.get(0);
         	long time = ((UIActionStack)object).priority;
-        	if (ordered.contains(time))
-        		return (long)ordered.indexOf(time);
+        	int index = orderedIndexOf(ordered, time);
+        	if (index != -1)
+        		return (long) index;
         	else throw new EngineException("Corrupted stack for application \""+ getName() +"\". SharedAction \""+ ((UIActionStack)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else if (object instanceof UISharedComponent) {
         	List<Long> ordered = orderedSharedComponents.get(0);
         	long time = ((UISharedComponent)object).priority;
-        	if (ordered.contains(time))
-        		return (long)ordered.indexOf(time);
+        	int index = orderedIndexOf(ordered, time);
+        	if (index != -1)
+        		return (long) index;
         	else throw new EngineException("Corrupted stack for application \""+ getName() +"\". SharedComponent \""+ ((UISharedComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else if (object instanceof UIComponent) {
         	List<Long> ordered = orderedComponents.get(0);
         	long time = ((UIComponent)object).priority;
-        	if (ordered.contains(time))
-        		return (long)ordered.indexOf(time);
+        	int index = orderedIndexOf(ordered, time);
+        	if (index != -1)
+        		return (long) index;
         	else throw new EngineException("Corrupted component for application \""+ getName() +"\". UIComponent \""+ ((UIComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else return super.getOrder(object);

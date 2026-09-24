@@ -91,6 +91,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	private static final long serialVersionUID = -873065042105207891L;
 	private static final Pattern pIntSuffix = Pattern.compile("\\d+$");
 	private static final Object NO_ORDER = new Object();
+	private static final ThreadLocal<Map<List<Long>, Map<Long, Integer>>> sortIndexes = new ThreadLocal<>();
 	protected final Object mutex = new Object();
 
 	@Retention(RUNTIME)
@@ -1237,14 +1238,20 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		List<E> res = new ArrayList<E>(list);
 		// the order of each object is looked up once, not on each comparison
 		Map<Object, Object> orders = new IdentityHashMap<>(res.size());
-		for (E e : res) {
-			Object order;
-			try {
-				order = getOrder(e);
-			} catch (EngineException ex) {
-				order = NO_ORDER;
+		Map<List<Long>, Map<Long, Integer>> previousIndexes = sortIndexes.get();
+		sortIndexes.set(new IdentityHashMap<>());
+		try {
+			for (E e : res) {
+				Object order;
+				try {
+					order = getOrder(e);
+				} catch (EngineException ex) {
+					order = NO_ORDER;
+				}
+				orders.put(e, order);
 			}
-			orders.put(e, order);
+		} finally {
+			sortIndexes.set(previousIndexes);
 		}
 		Collections.sort(res, new Comparator<Object>() {
 			@SuppressWarnings("unchecked")
@@ -1261,6 +1268,25 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			Collections.reverse(res);
 		}
 		return res;
+	}
+
+	/**
+	 * The index of value in ordered, like ordered.indexOf(value). During a sort, ordered is indexed once:
+	 * getOrder can then look up the position of each sorted object without scanning ordered.
+	 */
+	protected static int orderedIndexOf(List<Long> ordered, long value) {
+		Map<List<Long>, Map<Long, Integer>> indexes = sortIndexes.get();
+		if (indexes == null) {
+			return ordered.indexOf(value);
+		}
+		Integer index = indexes.computeIfAbsent(ordered, l -> {
+			Map<Long, Integer> positions = new HashMap<>(l.size() * 2);
+			for (int i = 0; i < l.size(); i++) {
+				positions.putIfAbsent(l.get(i), i);
+			}
+			return positions;
+		}).get(value);
+		return index == null ? -1 : index;
 	}
 
 	public String[] getNames(Collection<? extends DatabaseObject> dbos) {
@@ -1435,13 +1461,27 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 
 	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
-		List<DatabaseObject> children = getDatabaseObjectChildren();
-		for (DatabaseObject child : children) {
-			if (child.getFolderType().qnamePart(child).equals(name) || child.getName().equals(name)) {
-				return child;
+		// the first matching child of getDatabaseObjectChildren(), without listing the next kinds of children
+		DatabaseObject[] found = { null };
+		new WalkHelper() {
+
+			@Override
+			protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
+				return found[0] == null;
 			}
-		}
-		return null;
+
+			@Override
+			protected void walk(DatabaseObject databaseObject) throws Exception {
+				if (databaseObject == DatabaseObject.this) {
+					super.walk(databaseObject);
+				} else if (found[0] == null && (databaseObject.getName().equals(name)
+						// the qname part of a folder type is "shortName:name"
+						|| (name.indexOf(':') != -1 && databaseObject.getFolderType().qnamePart(databaseObject).equals(name)))) {
+					found[0] = databaseObject;
+				}
+			}
+		}.init(this);
+		return found[0];
 	}
 
 	public boolean testAttribute(String name, String value) {

@@ -338,8 +338,9 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
         if (object instanceof UIComponent) {
         	List<Long> ordered = orderedComponents.get(0);
         	long time = ((UIComponent)object).priority;
-        	if (ordered.contains(time))
-        		return (long)ordered.indexOf(time);
+        	int index = orderedIndexOf(ordered, time);
+        	if (index != -1)
+        		return (long) index;
         	else throw new EngineException("Corrupted component for page \""+ getName() +"\". UIComponent \""+ ((UIComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else return super.getOrder(object);
