@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -2999,18 +3000,40 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
+	/**
+	 * Adds the action imports and functions of the contributor for the application. A shared action is
+	 * contributed by the application and by each page or component invoking it: the contributions of a
+	 * contributor with a key are computed once and then reused, in the same order.
+	 */
+	private static void addActionTs(ApplicationComponent app, Contributor contributor, Map<Object, List<Map<String, String>>> contributions,
+			Map<String, String> action_ts_imports, Map<String, String> action_ts_functions) {
+		Object key = contributor.getKey();
+		List<Map<String, String>> contribution = key == null ? null : contributions.get(key);
+		if (contribution == null) {
+			List<Map<String, String>> computed = new ArrayList<Map<String, String>>(2);
+			contributor.forContainer(app, () -> {
+				computed.add(contributor.getActionTsImports());
+				computed.add(contributor.getActionTsFunctions());
+			});
+			contribution = computed;
+			if (key != null) {
+				contributions.put(key, contribution);
+			}
+		}
+		action_ts_imports.putAll(contribution.get(0));
+		action_ts_functions.putAll(contribution.get(1));
+	}
+
 	private void writeAppServiceTs(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
 				Map<String, String> action_ts_imports = new HashMap<>();
 				Map<String, String> action_ts_functions = new HashMap<>();
+				Map<Object, List<Map<String, String>>> contributions = new IdentityHashMap<>();
 
 				//App contributors
 				for (Contributor contributor : app.getContributors()) {
-					contributor.forContainer(app, () -> {
-						action_ts_imports.putAll(contributor.getActionTsImports());
-						action_ts_functions.putAll(contributor.getActionTsFunctions());
-					});
+					addActionTs(app, contributor, contributions, action_ts_imports, action_ts_functions);
 				}
 
 				//Shared components
@@ -3018,10 +3041,7 @@ public class NgxBuilder extends MobileBuilder {
 					if (comp.isRegular()) {
 						List<Contributor> contributors = comp.getContributors();
 						for (Contributor contributor : contributors) {
-							contributor.forContainer(app, () -> {
-								action_ts_imports.putAll(contributor.getActionTsImports());
-								action_ts_functions.putAll(contributor.getActionTsFunctions());
-							});
+							addActionTs(app, contributor, contributions, action_ts_imports, action_ts_functions);
 						}
 					}
 				}
@@ -3034,10 +3054,7 @@ public class NgxBuilder extends MobileBuilder {
 					synchronized (page) {
 						List<Contributor> contributors = page.getContributors();
 						for (Contributor contributor : contributors) {
-							contributor.forContainer(app, () -> {
-								action_ts_imports.putAll(contributor.getActionTsImports());
-								action_ts_functions.putAll(contributor.getActionTsFunctions());
-							});
+							addActionTs(app, contributor, contributions, action_ts_imports, action_ts_functions);
 						}
 					}
 				}
