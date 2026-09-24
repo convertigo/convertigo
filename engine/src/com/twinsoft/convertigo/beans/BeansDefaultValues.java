@@ -289,6 +289,8 @@ public class BeansDefaultValues {
 
 		String templateProjectName = null;
 		JSONObject templateProjectIonObjects = null;
+		/** for each ion objects, the shrunk text of each beanData already shrunk with them */
+		Map<JSONObject, Map<String, String>> shrunkBeanData = new IdentityHashMap<JSONObject, Map<String, String>>();
 		
 		ShrinkProject() throws Exception {
 			Document beansDoc;
@@ -426,8 +428,16 @@ public class BeansDefaultValues {
 							
 							if (name.equals("beanData")) {
 								JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
+								// many components have the same beanData: it gives the same text
+								Map<String, String> shrunk = shrunkBeanData.computeIfAbsent(ionObjects, k -> new HashMap<String, String>());
+								String shrunkText = shrunk.get(nProp.getTextContent());
+								if (shrunkText != null) {
+									nProp.setTextContent(shrunkText);
+									continue;
+								}
 								try {
 									String beanData = nProp.getTextContent();
+									boolean reusable = true;
 									JSONObject ion = new JSONObject(beanData);
 									String ionName = (String) ion.remove("name");
 									ion.put("ionBean", ionName);
@@ -452,6 +462,7 @@ public class BeansDefaultValues {
 											}
 										} catch (Exception ex) {
 											System.out.println("No properties for "+ ionName);
+											reusable = false;
 										}
 										dIonProps = properties;
 									}
@@ -505,6 +516,9 @@ public class BeansDefaultValues {
 										nProp.setTextContent(ion.toString(1));
 									} else {
 										nProp.setTextContent(ion.toString());
+									}
+									if (reusable) {
+										shrunk.put(beanData, nProp.getTextContent());
 									}
 								} catch (Exception e) {
 									e.printStackTrace();

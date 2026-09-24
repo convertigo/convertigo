@@ -45,8 +45,6 @@ public class YamlConverter {
 	
 	private static final String endLine = System.getProperty("line.separator");
 	
-	private final Matcher toSplit = Pattern.compile("\\n").matcher("");
-	
 	private static final String quotedAtLineStart = "-?:,[]{}#&*!|>'\"%@`";
 	
 	private final Matcher parse = Pattern.compile("( *)(- )?(↑)?(→)?(↓)?(.*?): (🗏 )?(.*)").matcher("");
@@ -101,18 +99,15 @@ public class YamlConverter {
 			txt = '\'' + txt.replace("'", "''") + '\'';
 		}
 		
-		toSplit.reset(txt);
-		if (toSplit.find()) {
-			String line;
+		int end = txt.indexOf('\n');
+		if (end != -1) {
 			int start = 0;
 			sb.append("|");
 			do {
-				line = txt.substring(start, toSplit.start());
-				sb.append(endLine).append(indent).append(line);
-				start = toSplit.end();
-			} while (toSplit.find());
-			line = txt.substring(start);
-			sb.append(endLine).append(indent).append(line);
+				sb.append(endLine).append(indent).append(txt, start, end);
+				start = end + 1;
+			} while ((end = txt.indexOf('\n', start)) != -1);
+			sb.append(endLine).append(indent).append(txt, start, txt.length());
 		} else {
 			sb.append(txt);
 		}
