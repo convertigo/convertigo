@@ -22,9 +22,12 @@ package com.twinsoft.convertigo.beans;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
@@ -72,6 +75,53 @@ public class BeansDefaultValues {
 			node = node.getNextSibling();
 		} while (node != null && node.getNodeType() != Node.ELEMENT_NODE);
 		return (Element) node;
+	}
+
+	// DOM equivalents of the XPath queries of ShrinkProject, run for every bean and property of the exported project
+
+	private static List<Element> childElements(Element element) {
+		List<Element> children = new ArrayList<Element>();
+		for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				children.add((Element) child);
+			}
+		}
+		return children;
+	}
+
+	private static List<Node> attributes(Element element) {
+		NamedNodeMap map = element.getAttributes();
+		List<Node> attributes = new ArrayList<Node>(map.getLength());
+		for (int i = 0; i < map.getLength(); i++) {
+			attributes.add(map.item(i));
+		}
+		return attributes;
+	}
+
+	/** The value attribute of the first child element that has one, in the property named "name" */
+	private static Node nameValue(Element bean) {
+		for (Element property: childElements(bean)) {
+			if (property.getTagName().equals("property") && "name".equals(property.getAttribute("name")) && property.hasAttribute("name")) {
+				for (Element value: childElements(property)) {
+					if (value.hasAttribute("value")) {
+						return value.getAttributeNode("value");
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/** The first child element named name, like the XPath step: a prefixed name is not resolved */
+	private static Element firstChild(Element element, String name) {
+		if (name.indexOf(':') == -1) {
+			for (Element child: childElements(element)) {
+				if (child.getTagName().equals(name)) {
+					return child;
+				}
+			}
+		}
+		return null;
 	}
 
 	private static boolean checkIsSame(Element dElt, Element pElt) {
@@ -198,8 +248,8 @@ public class BeansDefaultValues {
 	}
 	
 	static private class ShrinkProject {
-		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		Element beans;
+		Map<Element, Map<String, Element>> defaultProperties = new IdentityHashMap<Element, Map<String, Element>>();
 		JSONObject mobile_ionObjects;
 		String nVersion = VersionUtils.normalizeVersionString(ProductVersion.productVersion);
 		String hVersion = VersionUtils.normalizeVersionString("1.0.0");
@@ -233,12 +283,32 @@ public class BeansDefaultValues {
 			return mobile_ionObjects;
 		}
 		
+		/** property[@name='name'] of a default bean, the first one for each name */
+		private Element defaultProperty(Element dBean, String name) {
+			if (name.indexOf('\'') != -1) {
+				return null;
+			}
+			Map<String, Element> properties = defaultProperties.get(dBean);
+			if (properties == null) {
+				properties = new HashMap<String, Element>();
+				for (Element dProp: childElements(dBean)) {
+					if (dProp.getTagName().equals("property") && dProp.hasAttribute("name")) {
+						properties.putIfAbsent(dProp.getAttribute("name"), dProp);
+					}
+				}
+				defaultProperties.put(dBean, properties);
+			}
+			return properties.get(name);
+		}
+
 		private void shrinkChildren(Element element, Element copy) throws Exception {
-			for (Node pBeanNode: xpath.selectList(element, "*[@classname]")) {
-				Element pBean = (Element) pBeanNode;
+			for (Element pBean: childElements(element)) {
+				if (!pBean.hasAttribute("classname")) {
+					continue;
+				}
 				String classname = pBean.getAttribute("classname");
 				String cls = classname.substring(30);
-				String pName = xpath.selectNode(pBean, "property[@name='name']/*/@value").getNodeValue();
+				String pName = nameValue(pBean).getNodeValue();
 				String pPriority = pBean.getAttribute("priority");
 
 				boolean isNgxApplicationComponent = classname.equals("com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent");
@@ -269,7 +339,7 @@ public class BeansDefaultValues {
 					nCopy.setAttribute("yaml_file", "urlMapper/" + pName + ".yaml");
 				}
 
-				Element dBean = getBeanForVersion(xpath, beans, classname, nVersion);
+				Element dBean = getBeanForVersion(beans, classname, nVersion);
 				String dBeanVersion = dBean.getAttribute("version");
 				if (hVersion.compareTo(dBeanVersion) < 0) {
 					hVersion = dBeanVersion;
@@ -277,7 +347,7 @@ public class BeansDefaultValues {
 						Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
 					}
 				}
-				for (Node pAttr: xpath.selectList(pBean, "@*")) {
+				for (Node pAttr: attributes(pBean)) {
 					String name = pAttr.getNodeName();
 					if (!name.equals("classname") &&
 							!name.equals("priority") && (
@@ -289,16 +359,18 @@ public class BeansDefaultValues {
 					}
 				}
 
-				for (Node pPropNode: xpath.selectList(pBean, "property[@name]")) {
-					Element pProp = (Element) pPropNode;
+				for (Element pProp: childElements(pBean)) {
+					if (!pProp.getTagName().equals("property") || !pProp.hasAttribute("name")) {
+						continue;
+					}
 					String name = pProp.getAttribute("name");
-					Element dProp = dBean == null ? null : (Element) xpath.selectNode(dBean, "property[@name='" + name + "']");
+					Element dProp = dBean == null ? null : defaultProperty(dBean, name);
 					if (!"name".equals(name) &&
 							(dProp == null || !checkIsSame(pProp, dProp)
 									)) {
 						Element nProp = (Element) nCopy.appendChild(nCopy.getOwnerDocument().createElement(name));
 
-						for (Node pAttr: xpath.selectList(pProp, "@*")) {
+						for (Node pAttr: attributes(pProp)) {
 							String aName = pAttr.getNodeName();
 							if (!aName.equals("name") &&
 									!aName.equals("isNull") && (
@@ -415,10 +487,14 @@ public class BeansDefaultValues {
 					}
 				}
 
-				for (Node pOther: xpath.selectList(pBean, "*[local-name()!='property' and not(@classname)]")) {
+				for (Element pOther: childElements(pBean)) {
+					String localName = pOther.getNodeName().substring(pOther.getNodeName().indexOf(':') + 1);
+					if (localName.equals("property") || pOther.hasAttribute("classname")) {
+						continue;
+					}
 					String name = pOther.getNodeName();
-					Element dOther = dBean == null ? null : (Element) xpath.selectNode(dBean, name);
-					if (!checkIsSame(dOther, (Element) pOther)) {
+					Element dOther = dBean == null ? null : firstChild(dBean, name);
+					if (!checkIsSame(dOther, pOther)) {
 						Element nImport = (Element) nCopy.getOwnerDocument().importNode(pOther, true);
 						nCopy.appendChild(nImport);
 					}
@@ -530,7 +606,7 @@ public class BeansDefaultValues {
 				String classname = "com.twinsoft.convertigo.beans." + matcherBeanName.group(2);
 				String pPriority = matcherBeanName.group(3);
 
-				Element dBean = getBeanForVersion(xpath, beans, classname, nVersion);
+				Element dBean = getBeanForVersion(beans, classname, nVersion);
 				if (!isMigrating && "true".equals(dBean.getUserData("isMigrating"))) {
 					isMigrating = true;
 				}
@@ -703,7 +779,7 @@ public class BeansDefaultValues {
 		return new UnshrinkProject().unshrinkProject(project);
 	}
 
-	private static Element getBeanForVersion(TwsCachedXPathAPI xpath, Element beans, String classname, String version) {
+	private static Element getBeanForVersion(Element beans, String classname, String version) {
 		boolean isMigrating = false;
 		String key = classname + "@" + version;
 		Map<String, Element> cache = GenericUtils.cast(beans.getUserData("cache"));
@@ -717,8 +793,11 @@ public class BeansDefaultValues {
 			}
 		}
 
-		for (Node n : xpath.selectList(beans, "*[@classname='" + classname + "']")) {
-			Element e = (Element) n;
+		// *[@classname='...'], which selected nothing for a classname with a quote
+		for (Element e: classname.indexOf('\'') == -1 ? childElements(beans) : List.<Element>of()) {
+			if (!e.hasAttribute("classname") || !e.getAttribute("classname").equals(classname)) {
+				continue;
+			}
 			String eVersion = e.getAttribute("version");
 			if (eVersion.compareTo(version) <= 0) {
 				if (isMigrating) {
@@ -778,7 +857,7 @@ public class BeansDefaultValues {
 					if (def.hasAttribute("priority")) {
 						def.setAttribute("priority", "0");
 					}
-					Element eBean = getBeanForVersion(xpath, beans, classname, nVersion);
+					Element eBean = getBeanForVersion(beans, classname, nVersion);
 					if (eBean != null) {
 						String eVersion = eBean.getAttribute("version");
 						eBean.removeAttribute("version");
