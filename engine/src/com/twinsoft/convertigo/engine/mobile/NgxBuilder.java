@@ -165,9 +165,35 @@ public class NgxBuilder extends MobileBuilder {
 
 	static private String replaceAll(String source, String regex, String replacement) {
 		if (source != null && regex != null && replacement != null) {
+			// the markers are literals: replaced as such, without escaping then parsing the replacement, which can be
+			// the megabytes of the functions of a page
+			String literal = toLiteral(regex);
+			if (literal != null) {
+				return source.replace(literal, replacement);
+			}
 			return source.replaceAll(regex, Matcher.quoteReplacement(replacement));
 		}
 		return source;
+	}
+	
+	/**
+	 * The text matched by a regular expression made of plain characters and escaped non alphanumeric ones, as the
+	 * escaped markers of the templates; null for another regular expression.
+	 */
+	static private String toLiteral(String regex) {
+		StringBuilder literal = new StringBuilder(regex.length());
+		for (int i = 0; i < regex.length(); i++) {
+			char c = regex.charAt(i);
+			if (c == '\\') {
+				if (++i == regex.length() || Character.isLetterOrDigit(c = regex.charAt(i))) {
+					return null;
+				}
+			} else if ("[](){}.*+?^$|".indexOf(c) != -1) {
+				return null;
+			}
+			literal.append(c);
+		}
+		return literal.length() == 0 ? null : literal.toString();
 	}
 	
 	static private String asCleanString(String entry) {
