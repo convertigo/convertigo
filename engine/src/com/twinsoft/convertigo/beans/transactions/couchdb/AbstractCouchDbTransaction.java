@@ -241,7 +241,11 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			throw new EngineException("empty parameter");
 		}
 		try {
-			Object o = RhinoUtils.evalCachedJavascript(this, cx, scope, "(" + str + ")", param.name(), 1, null);
+			String source = "(" + str + ")";
+			// a variable can change on each call: compiling its values would keep one script class per value forever
+			Object o = getVariable(param.param()) != null ?
+					RhinoUtils.evalInterpretedJavascript(cx, scope, source, param.name(), 1, null) :
+					RhinoUtils.evalCachedJavascript(this, cx, scope, source, param.name(), 1, null);
 			o = toJson(o);
 			return o;
 		} catch (Exception e) {}
