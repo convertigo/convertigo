@@ -256,6 +256,11 @@ public class XMLUtils {
 	}
 	
 	public static void prettyPrintDOMWithEncoding(Document doc, String defaultEncoding, Result result) {
+		prettyPrintDOMWithEncoding(doc, defaultEncoding, result, 4);
+	}
+
+	/** Pretty prints doc into result, each level being indented by indentAmount spaces */
+	public static void prettyPrintDOMWithEncoding(Document doc, String defaultEncoding, Result result, int indentAmount) {
 		Node firstChild = doc.getFirstChild();
 		boolean omitXMLDeclaration = false;
 		String encoding = defaultEncoding; // default Encoding char set if non
@@ -279,7 +284,7 @@ public class XMLUtils {
 			t.setOutputProperty(OutputKeys.ENCODING, encoding);
 			t.setOutputProperty(OutputKeys.INDENT, "yes");
 			t.setOutputProperty(OutputKeys.METHOD, "xml"); // xml, html, text
-			t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", Integer.toString(indentAmount));
 			t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, omitXMLDeclaration ? "yes" : "no");
 			t.transform(new DOMSource(doc), result);
 		} catch (Exception e) {
@@ -289,6 +294,13 @@ public class XMLUtils {
 
 	public static String prettyPrintDOM(Document doc) {
 		return prettyPrintDOMWithEncoding(doc, "ISO-8859-1");
+	}
+
+	/** Same as prettyPrintDOM(doc), each level being indented by indentAmount spaces */
+	public static String prettyPrintDOM(Document doc, int indentAmount) {
+		StringWriter writer = new StringWriter();
+		prettyPrintDOMWithEncoding(doc, "ISO-8859-1", new StreamResult(writer), indentAmount);
+		return writer.getBuffer().toString();
 	}
 	
 	public static String prettyPrintElement(Element elt) {

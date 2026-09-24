@@ -120,7 +120,8 @@ public class ClipboardManager {
 			copyDatabaseObject(dbo);
 		}
 		
-		String strObject = XMLUtils.prettyPrintDOM(clipboardDocument);
+		// one space per level: a big page nests its components deep, 4 spaces made two thirds of its text
+		String strObject = XMLUtils.prettyPrintDOM(clipboardDocument, 1);
 		return strObject;
 	}
 	
@@ -165,7 +166,8 @@ public class ClipboardManager {
 		objects = treeObjectsList.toArray(new Object[selectedPaths.length]);
 		parentTreeNodeOfCutObjects = treeParentsList.toArray(new TreeObject[selectedPaths.length]);
 		
-		String strObject = XMLUtils.prettyPrintDOM(clipboardDocument);
+		// one space per level: a big page nests its components deep, 4 spaces made two thirds of its text
+		String strObject = XMLUtils.prettyPrintDOM(clipboardDocument, 1);
 		return strObject;
 	}
 
