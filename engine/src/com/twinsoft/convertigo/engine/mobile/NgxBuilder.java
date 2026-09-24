@@ -1258,17 +1258,7 @@ public class NgxBuilder extends MobileBuilder {
 				}
 
 				// Replace all Begin_c8o_XXX, End_c8o_XXX except for functionMarker
-				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/");
-				Matcher matcher = pattern.matcher(tsContent);
-				while (matcher.find()) {
-					String markerId = matcher.group(1);
-					if (!markerId.equals(functionMarker)) {
-						String beginMarker = "/*Begin_c8o_" + markerId + "*/";
-						String endMarker = "/*End_c8o_" + markerId + "*/";
-						tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
-						tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
-					}
-				}
+				tsContent = toFunctionTempTs(tsContent, functionMarker);
 
 				// CustomAction : reduce code lines (action's function only)
 				if (tempTsDir != null && tempTsFileName != null) {
@@ -1344,36 +1334,8 @@ public class NgxBuilder extends MobileBuilder {
 			return tsContent;
 		}
 		
-		Set<String> ids = new HashSet<String>(markerIds);
 		int index = tsContent.indexOf(endMarker);
-		int length = index == -1 ? tsContent.length() : index;
-		StringBuilder sb = new StringBuilder(length + endMarker.length() + 4);
-		int copied = 0, from = 0;
-		int nextBegin = tsContent.indexOf(functionBegin), nextEnd = tsContent.indexOf(functionEnd);
-		while (true) {
-			if (nextBegin != -1 && nextBegin < from) {
-				nextBegin = tsContent.indexOf(functionBegin, from);
-			}
-			if (nextEnd != -1 && nextEnd < from) {
-				nextEnd = tsContent.indexOf(functionEnd, from);
-			}
-			int start = nextBegin == -1 ? nextEnd : nextEnd == -1 ? nextBegin : Math.min(nextBegin, nextEnd);
-			if (start == -1 || start >= length) {
-				break;
-			}
-			int idStart = start + (start == nextBegin ? functionBegin : functionEnd).length();
-			int close = tsContent.indexOf("*/", idStart);
-			if (close != -1 && close + 2 <= length) {
-				String id = tsContent.substring(idStart, close);
-				if (ids.contains(id)) {
-					sb.append(tsContent, copied, start).append("//---").append(id).append("---");
-					copied = from = close + 2;
-					continue;
-				}
-			}
-			from = start + 2;
-		}
-		sb.append(tsContent, copied, length);
+		StringBuilder sb = replaceMarkers(tsContent, index == -1 ? tsContent.length() : index, new HashSet<String>(markerIds), functionBegin, functionEnd);
 		if (index != -1) {
 			sb.append(endMarker).append(System.lineSeparator()).append("}");
 		}
@@ -1386,6 +1348,73 @@ public class NgxBuilder extends MobileBuilder {
 	 */
 	private static boolean hasSharedSlash(String tsContent) {
 		return tsContent.contains("*/*Begin_c8o_") || tsContent.contains("*/*End_c8o_");
+	}
+
+	private static final Pattern pMarker = Pattern.compile("/\\*Begin_c8o_(.+)\\*/");
+	private static final String markerBegin = "/*Begin_c8o_";
+	private static final String markerEnd = "/*End_c8o_";
+
+	/**
+	 * The TS content for the function editor: each marker of the content but the ones of keptMarkerId replaced
+	 * by "//---id---". The content of a page or of the shared actions has thousands of markers: when the marker
+	 * ids have no '*' nor '/', the markers are replaced in one pass, which gives the same result as replacing
+	 * all the markers of each id in turn.
+	 */
+	private static String toFunctionTempTs(String tsContent, String keptMarkerId) {
+		List<String> markerIds = new ArrayList<String>();
+		boolean plainIds = true;
+		Matcher matcher = pMarker.matcher(tsContent);
+		while (matcher.find()) {
+			String markerId = matcher.group(1);
+			if (!markerId.equals(keptMarkerId)) {
+				markerIds.add(markerId);
+			}
+			plainIds &= markerId.indexOf('*') == -1 && markerId.indexOf('/') == -1;
+		}
+		if (!plainIds || hasSharedSlash(tsContent)) {
+			for (String markerId: markerIds) {
+				String beginMarker = markerBegin + markerId + "*/";
+				String endMarker = markerEnd + markerId + "*/";
+				tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
+				tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
+			}
+			return tsContent;
+		}
+		return replaceMarkers(tsContent, tsContent.length(), new HashSet<String>(markerIds), markerBegin, markerEnd).toString();
+	}
+
+	/**
+	 * The first length chars of tsContent, each begin and end marker of an id of ids replaced by "//---id---".
+	 * The ids having no '*' nor '/' and no closing slash opening a marker, the markers cannot overlap.
+	 */
+	private static StringBuilder replaceMarkers(String tsContent, int length, Set<String> ids, String begin, String end) {
+		StringBuilder sb = new StringBuilder(length + 64);
+		int copied = 0, from = 0;
+		int nextBegin = tsContent.indexOf(begin), nextEnd = tsContent.indexOf(end);
+		while (true) {
+			if (nextBegin != -1 && nextBegin < from) {
+				nextBegin = tsContent.indexOf(begin, from);
+			}
+			if (nextEnd != -1 && nextEnd < from) {
+				nextEnd = tsContent.indexOf(end, from);
+			}
+			int start = nextBegin == -1 ? nextEnd : nextEnd == -1 ? nextBegin : Math.min(nextBegin, nextEnd);
+			if (start == -1 || start >= length) {
+				break;
+			}
+			int idStart = start + (start == nextBegin ? begin : end).length();
+			int close = tsContent.indexOf("*/", idStart);
+			if (close != -1 && close + 2 <= length) {
+				String id = tsContent.substring(idStart, close);
+				if (ids.contains(id)) {
+					sb.append(tsContent, copied, start).append("//---").append(id).append("---");
+					copied = from = close + 2;
+					continue;
+				}
+			}
+			from = start + 2;
+		}
+		return sb.append(tsContent, copied, length);
 	}
 
 	@Override
