@@ -428,6 +428,12 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		return sort(vUIComponents);
 	}
 
+	@Override
+	protected boolean canListChildrenUnsorted() {
+		// the getters of its children only return them sorted
+		return true;
+	}
+
 	public List<UIComponent> getDisplayableComponentList() {
 		List<UIComponent> list = new ArrayList<UIComponent>();
 		for (UIComponent uic :getUIComponentList()) {

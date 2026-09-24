@@ -92,6 +92,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	private static final Pattern pIntSuffix = Pattern.compile("\\d+$");
 	private static final Object NO_ORDER = new Object();
 	private static final ThreadLocal<Map<List<Long>, Map<Long, Integer>>> sortIndexes = new ThreadLocal<>();
+	private static final ThreadLocal<DatabaseObject> unsortedParent = new ThreadLocal<>();
 	protected final Object mutex = new Object();
 
 	@Retention(RUNTIME)
@@ -1236,6 +1237,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	protected <E extends Object> List<E> sort(List<E> list, boolean ascending) {
 		List<E> res = new ArrayList<E>(list);
+		if (unsortedParent.get() == this) {
+			// getDatabaseObjectChild only needs the children of this object, in any order
+			return res;
+		}
 		// the order of each object is looked up once, not on each comparison
 		Map<Object, Object> orders = new IdentityHashMap<>(res.size());
 		Map<List<Long>, Map<Long, Integer>> previousIndexes = sortIndexes.get();
@@ -1460,7 +1465,55 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return null;
 	}
 
+	/**
+	 * Whether getDatabaseObjectChild can list the children of this object without sorting them: the getters of
+	 * its children must only return them sorted, without keeping the sorted list nor filtering it.
+	 */
+	protected boolean canListChildrenUnsorted() {
+		return false;
+	}
+
+	private static boolean isNamed(DatabaseObject databaseObject, String name, boolean isQNamePart) {
+		return databaseObject.getName().equals(name)
+				// the qname part of a folder type is "shortName:name"
+				|| (isQNamePart && databaseObject.getFolderType().qnamePart(databaseObject).equals(name));
+	}
+
 	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
+		boolean isQNamePart = name.indexOf(':') != -1;
+		if (canListChildrenUnsorted()) {
+			// the matching children of the first kind having some, listed without sorting them: when there is only
+			// one, it is the first one
+			List<DatabaseObject> matching = new ArrayList<DatabaseObject>(2);
+			DatabaseObject previous = unsortedParent.get();
+			unsortedParent.set(this);
+			try {
+				new WalkHelper() {
+
+					@Override
+					protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
+						return matching.isEmpty();
+					}
+
+					@Override
+					protected void walk(DatabaseObject databaseObject) throws Exception {
+						if (databaseObject == DatabaseObject.this) {
+							super.walk(databaseObject);
+						} else if (isNamed(databaseObject, name, isQNamePart)) {
+							matching.add(databaseObject);
+						}
+					}
+				}.init(this);
+				if (matching.size() < 2) {
+					return matching.isEmpty() ? null : matching.get(0);
+				}
+			} catch (Exception e) {
+				// listed below as before
+			} finally {
+				unsortedParent.set(previous);
+			}
+		}
+
 		// the first matching child of getDatabaseObjectChildren(), without listing the next kinds of children
 		DatabaseObject[] found = { null };
 		new WalkHelper() {
@@ -1474,9 +1527,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			protected void walk(DatabaseObject databaseObject) throws Exception {
 				if (databaseObject == DatabaseObject.this) {
 					super.walk(databaseObject);
-				} else if (found[0] == null && (databaseObject.getName().equals(name)
-						// the qname part of a folder type is "shortName:name"
-						|| (name.indexOf(':') != -1 && databaseObject.getFolderType().qnamePart(databaseObject).equals(name)))) {
+				} else if (found[0] == null && isNamed(databaseObject, name, isQNamePart)) {
 					found[0] = databaseObject;
 				}
 			}

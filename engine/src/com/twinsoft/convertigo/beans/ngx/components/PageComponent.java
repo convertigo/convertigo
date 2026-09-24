@@ -297,6 +297,12 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		return sort(vUIComponents);
 	}
 
+	@Override
+	protected boolean canListChildrenUnsorted() {
+		// the getters of its children only return them sorted
+		return true;
+	}
+
 	public List<UIPageEvent> getUIPageEventList() {
 		Set<UIComponent> done = new HashSet<>();
 		List<UIPageEvent> eventList = new ArrayList<>();

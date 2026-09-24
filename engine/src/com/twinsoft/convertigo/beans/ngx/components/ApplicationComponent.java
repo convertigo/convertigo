@@ -884,6 +884,12 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		checkSubLoaded();
 		return sort(vSharedComponents);
 	}
+
+	@Override
+	protected boolean canListChildrenUnsorted() {
+		// the getters of its children only return them sorted
+		return true;
+	}
 	
 	private transient Set<String> declaredModules = new HashSet<String>();
 	
