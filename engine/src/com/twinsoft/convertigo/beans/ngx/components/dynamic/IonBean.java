@@ -441,7 +441,21 @@ public class IonBean {
 	}
 	
 	public IonProperty getProperty(String propertyName) {
-		return getProperties().get(propertyName);
+		// same as getProperties().get(propertyName), without building the other properties
+		if (propertyName == null || propertyName.isEmpty()) {
+			return null;
+		}
+		try {
+			JSONObject jsonProperties = jsonBean.getJSONObject(Key.properties.name());
+			Object ob = jsonProperties.opt(propertyName);
+			if (ob instanceof JSONObject) {
+				PropertyValue value = propertyValues == null ? null : propertyValues.get(propertyName);
+				return toProperty(propertyName, (JSONObject) ob, value);
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 		
 	public Map<String, IonProperty> getProperties() {
