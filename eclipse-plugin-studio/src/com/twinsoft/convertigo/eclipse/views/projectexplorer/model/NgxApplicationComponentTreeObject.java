@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import java.beans.BeanInfo;
 import java.io.File;
 import java.security.InvalidParameterException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -453,6 +454,14 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 	}
 	
 	private static void resetMainScriptComponents(DatabaseObject dbo, Set<Object> reset) {
+		resetMainScriptComponents(dbo, reset, new HashSet<String>());
+	}
+	
+	/**
+	 * lookedUp holds the qnames of the consumers already looked up by this reset: during it, looking one of them up
+	 * again gives the same object, already in reset.
+	 */
+	private static void resetMainScriptComponents(DatabaseObject dbo, Set<Object> reset, Set<String> lookedUp) {
 		try {
 			if (dbo != null) {
 				if (!reset.add(dbo)) {
@@ -503,14 +512,18 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					UIActionStack uias = uic.getSharedAction();
 					if (uias != null) {
 						for (String useQName: ComponentRefManager.getCompConsumers(uias.getQName())) {
-							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), reset);
+							if (lookedUp.add(useQName)) {
+								resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), reset, lookedUp);
+							}
 						}
 					}
 					// reset direct UIUseShared components
 					UISharedComponent uisc = uic.getSharedComponent();
 					if (uisc != null) {
 						for (String useQName: ComponentRefManager.getCompConsumers(uisc.getQName())) {
-							resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), reset);
+							if (lookedUp.add(useQName)) {
+								resetMainScriptComponents(ComponentRefManager.getDatabaseObjectByQName(useQName), reset, lookedUp);
+							}
 						}
 					}
 				}
