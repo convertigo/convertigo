@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +51,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -393,7 +395,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	private ViewContentProvider viewContentProvider = null;
 
-	private Map<DatabaseObject, DatabaseObjectTreeObject> databaseObjectTreeObjectCache = new WeakHashMap<DatabaseObject, DatabaseObjectTreeObject>();
+	// weak values: a tree object references its bean, so a strong value would keep its key, and the project version it belongs to, forever
+	private Map<DatabaseObject, WeakReference<DatabaseObjectTreeObject>> databaseObjectTreeObjectCache = new WeakHashMap<>();
 	private final Map<String, JSONObject> flowContextMenuCache = new ConcurrentHashMap<String, JSONObject>();
 	private final Set<String> flowContextMenuLoading = ConcurrentHashMap.newKeySet();
 
@@ -1260,23 +1263,34 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public void addTreeObjectListener(TreeObjectListener treeObjectListener) {
 		if (Engine.isStarted) {
-			Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class);
+			registerTreeObjectListener(treeObjectListener);
 		} else {
-			ConvertigoPlugin.runAtStartup(() -> 
-			Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class)
-					);
+			ConvertigoPlugin.runAtStartup(() -> registerTreeObjectListener(treeObjectListener));
+		}
+	}
+
+	private static void registerTreeObjectListener(TreeObjectListener treeObjectListener) {
+		if (treeObjectListener instanceof TreeObjectPropertyListener propertyListener) {
+			Engine.theApp.eventManager.addListener(propertyListener, TreeObjectPropertyListener.class);
+		} else {
+			Engine.theApp.eventManager.addListener(treeObjectListener, TreeObjectListener.class);
 		}
 	}
 
 	public void removeTreeObjectListener(TreeObjectListener treeObjectListener) {
 		if (Engine.isStarted) {
-			Engine.theApp.eventManager.removeListener(treeObjectListener, TreeObjectListener.class);
+			if (treeObjectListener instanceof TreeObjectPropertyListener propertyListener) {
+				Engine.theApp.eventManager.removeListener(propertyListener, TreeObjectPropertyListener.class);
+			} else {
+				Engine.theApp.eventManager.removeListener(treeObjectListener, TreeObjectListener.class);
+			}
 		}
 	}
 
 	public void fireTreeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		treeObjectEvent.type = TreeObjectEvent.TYPE_PROPERTY_CHANGED;
 		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectListener.class);
+		Engine.theApp.eventManager.dispatchEvent(treeObjectEvent, TreeObjectPropertyListener.class);
 	}
 
 	public List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
@@ -2868,6 +2882,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			if (treeObject instanceof ProjectTreeObject) {
 				ProjectTreeObject projectTreeObject = (ProjectTreeObject)treeObject;
 				projectTreeObject.closeAllEditors();
+				// a deleted project is not closed: its workspace listener would keep it, and keep being notified
+				ResourcesPlugin.getWorkspace().removeResourceChangeListener(projectTreeObject);
 			}
 			invisibleRoot.removeChild(treeObject);
 			ConvertigoPlugin.asyncExec(() -> viewer.refresh());
@@ -3234,9 +3250,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private DatabaseObjectTreeObject findTreeObjectByUserObjectFromCache(DatabaseObject databaseObject) {
-		DatabaseObjectTreeObject databaseObjectTreeObject = databaseObjectTreeObjectCache.get(databaseObject);
-		if (databaseObjectTreeObject != null) {
-			if (databaseObjectTreeObject.getObject().equals(databaseObject) && databaseObjectTreeObject.parent != null) {
+		var ref = databaseObjectTreeObjectCache.get(databaseObject);
+		if (ref != null) {
+			DatabaseObjectTreeObject databaseObjectTreeObject = ref.get();
+			if (databaseObjectTreeObject != null && databaseObjectTreeObject.getObject().equals(databaseObject) && databaseObjectTreeObject.parent != null) {
 				return databaseObjectTreeObject;
 			} else {
 				databaseObjectTreeObjectCache.remove(databaseObject);
@@ -3262,7 +3279,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 		}
 		if (databaseObjectTreeObject != null) {
-			databaseObjectTreeObjectCache.put(databaseObject, databaseObjectTreeObject);
+			databaseObjectTreeObjectCache.put(databaseObject, new WeakReference<>(databaseObjectTreeObject));
 		}
 		return databaseObjectTreeObject;
 	}

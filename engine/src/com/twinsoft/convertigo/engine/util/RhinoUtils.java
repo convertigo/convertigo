@@ -77,9 +77,13 @@ public class RhinoUtils {
 	}
 
 	static public Object evalInterpretedJavascript(Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
+		boolean interpretedMode = cx.isInterpretedMode();
 		cx.setInterpretedMode(true);
-		Object result = cx.evaluateString(scope, source, sourceName, lineno, securityDomain);
-		return result;
+		try {
+			return cx.evaluateString(scope, source, sourceName, lineno, securityDomain);
+		} finally {
+			cx.setInterpretedMode(interpretedMode);
+		}
 	}
 
 	static public Object jsonParse(String string) {

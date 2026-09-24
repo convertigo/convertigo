@@ -73,6 +73,7 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -519,9 +520,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (project != null) {
 			Engine.logDatabaseObjectManager
 			.info("[clearCache] start releasing for " + Project.formatNameWithHash(project));
-			Flow.projectUnloaded(project);
-			RestApiManager.getInstance().removeUrlMapper(projectName);
-			MobileBuilder.releaseBuilder(project);
+			releaseProject(project);
 			Engine.logDatabaseObjectManager
 			.info("[clearCache] end releasing for " + Project.formatNameWithHash(project));
 		}
@@ -546,11 +545,28 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (project != null) {
 			Engine.logDatabaseObjectManager
 			.info("[clearCacheIfSymbolError] start releasing for " + Project.formatNameWithHash(project));
-			Flow.projectUnloaded(project);
-			RestApiManager.getInstance().removeUrlMapper(projectName);
-			MobileBuilder.releaseBuilder(project);
+			releaseProject(project);
 			Engine.logDatabaseObjectManager
 			.info("[clearCacheIfSymbolError] end releasing for " + Project.formatNameWithHash(project));
+		}
+	}
+
+	/** Releases what the engine keeps for a version of a project removed from the cache. */
+	private void releaseProject(Project project) {
+		String projectName = project.getName();
+		project.markUnloaded();
+		Flow.projectUnloaded(project);
+		RestApiManager.getInstance().removeUrlMapper(projectName);
+		MobileBuilder.releaseBuilder(project);
+		RequestableObject.clearUseCache(project);
+		if (Engine.theApp.schemaManager != null) {
+			Engine.theApp.schemaManager.clearCache(projectName);
+		}
+		if (Engine.theApp.sqlConnectionManager != null) {
+			Engine.theApp.sqlConnectionManager.removeDatabasePools(project);
+		}
+		if (Engine.isStudioMode()) {
+			Engine.theApp.contextManager.removeStudioContexts(project);
 		}
 	}
 
@@ -1151,7 +1167,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		parentElem.removeChild(includeElem);
 	}
 
-	static private Map<String, Pair<String, Long>> projectNameCache = new HashMap<>();
+	static private Map<String, Pair<String, Long>> projectNameCache = new ConcurrentHashMap<>();
 
 	static public String getProjectName(File projectFile) throws EngineException {
 		String projectName = null;

@@ -47,7 +47,7 @@ public class YamlConverter {
 	
 	private final Matcher toSplit = Pattern.compile("\\n").matcher("");
 	
-	private final Matcher toQuote = Pattern.compile("(?:^(?:-|\\?|:|,|\\[|\\]|\\{|\\}|#|&|\\*|\\!|\\||>|'|\"|%|@|`|\\\\s))|(?:: )", Pattern.MULTILINE).matcher("");
+	private static final String quotedAtLineStart = "-?:,[]{}#&*!|>'\"%@`";
 	
 	private final Matcher parse = Pattern.compile("( *)(- )?(↑)?(→)?(↓)?(.*?): (🗏 )?(.*)").matcher("");
 	private static final int P_INDENT = 1;
@@ -71,11 +71,32 @@ public class YamlConverter {
 		
 	}
 	
+	/**
+	 * Same as the regex (?:^(?:-|\\?|:|,|\\[|\\]|\\{|\\}|#|&|\\*|\\!|\\||>|'|"|%|@|`|\\\\s))|(?:: ) in MULTILINE mode,
+	 * without its cost on long texts: an indicator (or a backslash followed by s) at the start of a line, or ": " anywhere.
+	 */
+	static boolean needsQuote(String txt) {
+		int length = txt.length();
+		boolean lineStart = true;
+		for (int i = 0; i < length; i++) {
+			char c = txt.charAt(i);
+			boolean hasNext = i + 1 < length;
+			if (lineStart && (quotedAtLineStart.indexOf(c) != -1 || (c == '\\' && hasNext && txt.charAt(i + 1) == 's'))) {
+				return true;
+			}
+			if (c == ':' && hasNext && txt.charAt(i + 1) == ' ') {
+				return true;
+			}
+			lineStart = c == '\n' || c == '\r' || c == '\u0085' || c == '\u2028' || c == '\u2029';
+		}
+		return false;
+	}
+
 	private void writeYamlText(String indent, String txt) {
 		txt = txt.replace("\r", "");
 		if (txt.isEmpty()) {
 			txt = "''";
-		} else if (toQuote.reset(txt).find()) {
+		} else if (needsQuote(txt)) {
 			txt = '\'' + txt.replace("'", "''") + '\'';
 		}
 		

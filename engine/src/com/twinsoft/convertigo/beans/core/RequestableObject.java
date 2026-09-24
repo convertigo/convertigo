@@ -407,24 +407,38 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	// does nothing
     }
     
+    private static final String USE_KEY_PREFIX = "__convertigo_use_";
+
+    /** A use() result, valid for the version of the project that evaluated it only. */
+    private record UseResult(Project project, Object value) {}
+
     static public Object useInScope(org.mozilla.javascript.Context cx, Scriptable thisObj, Object[] args, Function funObj) {
     	if (args.length < 1) {
     		return null;
     	}
     	String key = (String) args[0];
-    	String mapkey = "__convertigo_use_" + key;
+    	String mapkey = USE_KEY_PREFIX + key;
     	Scriptable ctx = (Scriptable) thisObj.get("context", thisObj);
     	Project project = (Project) ((NativeJavaObject) ctx.get("project", ctx)).unwrap();
-    	Object res = project.get(mapkey);
+    	Object res = project.get(mapkey) instanceof UseResult use && use.project() == project ? use.value() : null;
     	if (res == null) {
     		try {
     			res = RhinoUtils.evalCachedJavascript(cx, thisObj, key, "use", 1, null);
-    			project.set(mapkey, res);
+    			project.set(mapkey, new UseResult(project, res));
     		} catch (Exception e) {
     			e.printStackTrace();
     		}
     	}
     	return res;
+    }
+
+    /**
+     * Forgets the use() results of an unloaded version of a project: they keep the scope of the
+     * request that evaluated them, with its context and that version of the project.
+     */
+    static public void clearUseCache(Project project) {
+    	Engine.theApp.getShareProjectMap(project).removeIf((key, value) ->
+    			key.startsWith(USE_KEY_PREFIX) && value instanceof UseResult use && use.project() == project);
     }
     
     static public Object includeInScope(org.mozilla.javascript.Context cx, Scriptable thisObj, Object[] args, Function funObj) {

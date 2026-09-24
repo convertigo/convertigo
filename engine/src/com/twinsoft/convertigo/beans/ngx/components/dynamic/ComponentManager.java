@@ -1340,7 +1340,9 @@ public class ComponentManager {
 				return c1.getLabel().compareTo(c2.getLabel());
 			}
 		} );
-		
+
+		// rebuilt with the components: the previous ones hold beans of the projects loaded at that time
+		map.clear();
 		for (Component component : components) {
 			String group = component.getGroup();
 			if (!map.containsKey(group)) {

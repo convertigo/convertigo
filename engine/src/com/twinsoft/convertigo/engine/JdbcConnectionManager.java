@@ -38,6 +38,8 @@ import java.util.logging.Logger;
 import javax.naming.NamingException;
 
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
+import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.Project;
 
 public class JdbcConnectionManager implements AbstractManager {
 
@@ -129,6 +131,21 @@ public class JdbcConnectionManager implements AbstractManager {
 				Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' close failure ! ");
 			}
 			databasePools.remove(poolKey);
+		}
+	}
+
+	/**
+	 * Closes the pools of the SQL connectors of an unloaded version of a project: the next
+	 * version reuses the same keys and would otherwise keep the previous connection settings.
+	 */
+	public void removeDatabasePools(Project project) {
+		if (databasePools == null) {
+			return;
+		}
+		for (Connector connector : project.getConnectorsList()) {
+			if (connector instanceof SqlConnector sqlConnector) {
+				removeDatabasePool(sqlConnector);
+			}
 		}
 	}
 

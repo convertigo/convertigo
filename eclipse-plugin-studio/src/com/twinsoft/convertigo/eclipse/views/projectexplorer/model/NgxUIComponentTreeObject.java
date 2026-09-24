@@ -103,6 +103,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDe
 import com.twinsoft.convertigo.eclipse.property_editors.validators.NgxSharedComponentModuleValidator;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectPropertyListener;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
@@ -110,7 +111,7 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
+public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject, TreeObjectPropertyListener {
 
 	public NgxUIComponentTreeObject(Viewer viewer, UIComponent object, boolean inherited) {
 		super(viewer, object, inherited);
@@ -1059,17 +1060,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				}
 			}
 		};
-	}
-
-	@Override
-	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
-		super.treeObjectAdded(treeObjectEvent);
-	}
-
-
-	@Override
-	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
-		super.treeObjectRemoved(treeObjectEvent);
 	}
 
 	@Override

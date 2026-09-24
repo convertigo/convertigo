@@ -1078,6 +1078,17 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		return loader;
 	}
 
+	transient private volatile boolean unloaded = false;
+
+	/** Marks this version as removed from the engine: beans that reference it must look up the loaded version again. */
+	public void markUnloaded() {
+		unloaded = true;
+	}
+
+	public boolean hasBeenUnloaded() {
+		return unloaded;
+	}
+
 	public void set(String key, Object value) {
 		Engine.theApp.getShareProjectMap(this).set(key, value);
 	}

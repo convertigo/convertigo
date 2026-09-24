@@ -426,7 +426,8 @@ public class UIUseShared extends UIElement {
 	
 	public UISharedComponent getTargetSharedComponent() {
 		String qname =  getSharedComponentQName();
-		if (target == null || !target.getQName().equals(qname)) {
+		// a reloaded project brings new beans with the same qname
+		if (target == null || !target.getQName().equals(qname) || target.getProject() == null || target.getProject().hasBeenUnloaded()) {
 			target = null;
 			if (parent != null) { // parent may be null while dnd from palette
 				if (qname.indexOf('.') != -1) {

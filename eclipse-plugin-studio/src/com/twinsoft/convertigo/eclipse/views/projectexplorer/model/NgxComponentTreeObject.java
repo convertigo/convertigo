@@ -44,7 +44,7 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class NgxComponentTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
 	
-	final private Pattern pMarker = Pattern.compile("/\\*Begin_c8o_(.*?)\\*/\\s+(.*?)\\s*/\\*End_c8o_", Pattern.DOTALL);
+	private static final Pattern pMarker = Pattern.compile("/\\*Begin_c8o_(.*?)\\*/\\s+(.*?)\\s*/\\*End_c8o_", Pattern.DOTALL);
 	
 	NgxComponentTreeObject(Viewer viewer, MobileComponent object) {
 		super(viewer, object);
