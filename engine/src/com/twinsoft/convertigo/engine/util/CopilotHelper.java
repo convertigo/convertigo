@@ -28,31 +28,13 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class CopilotHelper {
+	private static Boolean copilotInstalled = null;
 
 	public static String addInstruction(DatabaseObject dbo, String code) {
-		if (!Engine.isStudioMode()) {
+		if (!Engine.isStudioMode() || !isCopilotInstalled()) {
 			return code;
 		}
-		var found = false;
-		try {
-            var frameworkUtilClass = Class.forName("org.osgi.framework.FrameworkUtil");
-            var convertigoPluginClass = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
-            var bundle = frameworkUtilClass.getMethod("getBundle", Class.class).invoke(null, convertigoPluginClass);
-            var bundleContext = bundle.getClass().getMethod("getBundleContext").invoke(bundle);
-            var bundles = (Object[]) bundleContext.getClass().getMethod("getBundles").invoke(bundleContext);
-            for (var b : bundles) {
-                var symbolicName = b.getClass().getMethod("getSymbolicName").invoke(b);
-                if ("com.microsoft.copilot.eclipse.core".equals(symbolicName) || "com.genuitec.copilot4eclipse".equals(symbolicName)) {
-                	found = true;
-                	break;
-                }
-            }
-        } catch (Exception e) {
-        }
-        if (!found) {
-        	return code;
-        }
-		
+
         if (dbo instanceof DesignDocument) {
 			code = "/* Copilot helper: this is a javascript script executed by a CouchDB view of a design document */\n" + code;
 			return code;
@@ -71,6 +53,30 @@ public class CopilotHelper {
 		return code;
 	}
 	
+	// called for every script evaluation: the installed plugins do not change until the Studio restarts
+	private static boolean isCopilotInstalled() {
+		if (copilotInstalled == null) {
+			var found = false;
+			try {
+				var frameworkUtilClass = Class.forName("org.osgi.framework.FrameworkUtil");
+				var convertigoPluginClass = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
+				var bundle = frameworkUtilClass.getMethod("getBundle", Class.class).invoke(null, convertigoPluginClass);
+				var bundleContext = bundle.getClass().getMethod("getBundleContext").invoke(bundle);
+				var bundles = (Object[]) bundleContext.getClass().getMethod("getBundles").invoke(bundleContext);
+				for (var b : bundles) {
+					var symbolicName = b.getClass().getMethod("getSymbolicName").invoke(b);
+					if ("com.microsoft.copilot.eclipse.core".equals(symbolicName) || "com.genuitec.copilot4eclipse".equals(symbolicName)) {
+						found = true;
+						break;
+					}
+				}
+			} catch (Exception e) {
+			}
+			copilotInstalled = found;
+		}
+		return copilotInstalled;
+	}
+
 	public static String removeInstruction(String code) {
 		return code.replaceAll("/\\* Copilot helper:.*\n", "");
 	}
