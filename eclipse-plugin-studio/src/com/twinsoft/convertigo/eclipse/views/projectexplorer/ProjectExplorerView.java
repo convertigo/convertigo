@@ -47,6 +47,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
@@ -2370,6 +2371,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			if (treeObject instanceof ProjectTreeObject) {
 				ProjectTreeObject projectTreeObject = (ProjectTreeObject)treeObject;
 				projectTreeObject.closeAllEditors();
+				// a deleted project is not closed: its workspace listener would keep it, and keep being notified
+				ResourcesPlugin.getWorkspace().removeResourceChangeListener(projectTreeObject);
 			}
 			invisibleRoot.removeChild(treeObject);
 			ConvertigoPlugin.asyncExec(() -> viewer.refresh());
