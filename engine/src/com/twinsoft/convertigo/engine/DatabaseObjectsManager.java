@@ -558,6 +558,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (Engine.theApp.schemaManager != null) {
 			Engine.theApp.schemaManager.clearCache(projectName);
 		}
+		if (Engine.theApp.sqlConnectionManager != null) {
+			Engine.theApp.sqlConnectionManager.removeDatabasePools(project);
+		}
 		if (Engine.isStudioMode()) {
 			Engine.theApp.contextManager.removeStudioContexts(project);
 		}
