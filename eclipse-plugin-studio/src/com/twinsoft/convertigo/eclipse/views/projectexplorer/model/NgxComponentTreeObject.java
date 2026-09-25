@@ -184,6 +184,8 @@ public class NgxComponentTreeObject extends DatabaseObjectTreeObject implements 
 					IFile oldFile = cfei.getFile();
 					if (parent.equals(oldFile.getParent()) && extension.equals(oldFile.getFileExtension())) {
 						activePage.closeEditor(editorReference.getEditor(false), true);
+						// the file deleted from the disk on close leaves the workspace once the editor is disposed
+						oldFile.refreshLocal(IResource.DEPTH_ZERO, null);
 						return;
 					}
 				}

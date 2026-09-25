@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -165,6 +166,8 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 					IFile oldFile = cfei.getFile();
 					if (parent.equals(oldFile.getParent()) && extension.equals(oldFile.getFileExtension())) {
 						activePage.closeEditor(editorReference.getEditor(false), true);
+						// the file deleted from the disk on close leaves the workspace once the editor is disposed
+						oldFile.refreshLocal(IResource.DEPTH_ZERO, null);
 						return;
 					}
 				}

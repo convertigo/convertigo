@@ -19,8 +19,12 @@
 
 package com.twinsoft.convertigo.eclipse;
 
+import java.io.File;
+
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -162,9 +166,9 @@ class ConvertigoPartListener implements IPartListener {
 					e.printStackTrace();
 				}
 			} else if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput) {
-				toDelete = ((com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput) input).getFile();
+				deleteComponentFile(((com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput) input).getFile());
 			} else if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput) {
-				toDelete = ((com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput) input).getFile();
+				deleteComponentFile(((com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput) input).getFile());
 			}
 			if (toDelete != null) {
 				try {
@@ -188,6 +192,36 @@ class ConvertigoPartListener implements IPartListener {
 
 			}
 		}
+	}
+
+	/**
+	 * The editor of a component file is not disposed yet: removed from the workspace now, its file would give its
+	 * document another URI, under which the language servers connect it again and never disconnect it. The file
+	 * is deleted from the disk now, and from the workspace once the editor is disposed.
+	 */
+	private static void deleteComponentFile(IFile resource) {
+		File file = resource.getLocation() == null ? null : resource.getLocation().toFile();
+		if (file != null && !FileUtils.deleteQuietly(file) && file.exists()) {
+			com.twinsoft.convertigo.engine.Engine.execute(() -> {
+				int retry = 5;
+				do {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e1) {}
+				} while (!FileUtils.deleteQuietly(file) && file.exists() && retry-- > 0);
+				refreshLater(resource);
+			});
+		}
+		refreshLater(resource);
+	}
+
+	private static void refreshLater(IResource resource) {
+		ConvertigoPlugin.asyncExec(() -> {
+			try {
+				resource.refreshLocal(IResource.DEPTH_ZERO, null);
+			} catch (CoreException e) {
+			}
+		});
 	}
 
 	/* (non-Javadoc)
