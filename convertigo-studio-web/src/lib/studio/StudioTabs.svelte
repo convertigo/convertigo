@@ -10,6 +10,7 @@
 	 * iconSize?: number;
 	 * isDisabled?: (id: string, item: any) => boolean;
 	 * onSelect?: (id: string, item: any) => void;
+	 * trail?: import('svelte').Snippet;
 	 * }} */
 	let {
 		items = [],
@@ -19,7 +20,8 @@
 		tabClass = '',
 		iconSize = 4,
 		isDisabled,
-		onSelect
+		onSelect,
+		trail
 	} = $props();
 
 	/** @param {{ id: string, disabled?: boolean }} item */
@@ -52,6 +54,11 @@
 			<span>{item.label}</span>
 		</button>
 	{/each}
+	{#if trail}
+		<div class="studio-tab-strip__trail">
+			{@render trail()}
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -97,6 +104,13 @@
 		height: 1px;
 		background: var(--color-primary-500);
 		content: '';
+	}
+
+	.studio-tab-strip__trail {
+		display: flex;
+		margin-left: auto;
+		align-items: center;
+		gap: 0.2rem;
 	}
 
 	.studio-tab:disabled {

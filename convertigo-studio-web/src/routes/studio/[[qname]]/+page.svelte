@@ -37,6 +37,7 @@
 	import { applySourcePickerDrop, sourceDefinitionFromPayload } from '$lib/studio/sourcePickerDnd';
 	import StudioActivityBar from '$lib/studio/StudioActivityBar.svelte';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
+	import StudioBuilderPanel from '$lib/studio/StudioBuilderPanel.svelte';
 	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
 	import StudioEmptyState from '$lib/studio/StudioEmptyState.svelte';
@@ -55,6 +56,9 @@
 	import StudioPanel from '$lib/studio/StudioPanel.svelte';
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
 	import StudioPropertiesPanel from '$lib/studio/StudioPropertiesPanel.svelte';
+	import StudioReferencesPanel from '$lib/studio/StudioReferencesPanel.svelte';
+	import StudioSchemaPanel from '$lib/studio/StudioSchemaPanel.svelte';
+	import StudioSearchPanel from '$lib/studio/StudioSearchPanel.svelte';
 	import StudioShell from '$lib/studio/StudioShell.svelte';
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
@@ -315,12 +319,27 @@
 	let effectiveSidePanel = $derived(
 		sideViews.some((item) => item.id === activeSidePanel) ? activeSidePanel : 'properties'
 	);
+	// the view of the left column, and the view of the bottom panel
+	let leftView = $state(/** @type {'projects' | 'search'} */ ('projects'));
+	let bottomView = $state(/** @type {'logs' | 'references' | 'schema' | 'build'} */ ('logs'));
+	const BOTTOM_VIEWS = [
+		{ id: 'logs', label: 'Logs', icon: 'mdi:file-document-box-outline' },
+		{ id: 'references', label: 'References', icon: 'mdi:link-variant' },
+		{ id: 'schema', label: 'Schema', icon: 'mdi:file-code-outline' },
+		{ id: 'build', label: 'Build', icon: 'mdi:wrench' }
+	];
 	let activityItems = $derived([
 		{
 			id: 'tree',
-			label: collapsedPanels.tree ? 'Show projects' : 'Hide projects',
+			label: collapsedPanels.tree || leftView !== 'projects' ? 'Show projects' : 'Hide projects',
 			icon: 'mdi:file-tree-outline',
-			active: !collapsedPanels.tree
+			active: !collapsedPanels.tree && leftView === 'projects'
+		},
+		{
+			id: 'search',
+			label: collapsedPanels.tree || leftView !== 'search' ? 'Search' : 'Hide search',
+			icon: 'mdi:magnify',
+			active: !collapsedPanels.tree && leftView === 'search'
 		},
 		...(showVibe
 			? [
@@ -339,8 +358,8 @@
 	let activityFooterItems = $derived([
 		{
 			id: 'logs',
-			label: logsPanelOpen ? 'Hide logs' : 'Show logs',
-			icon: 'mdi:file-document-box-outline',
+			label: logsPanelOpen ? 'Hide the panel' : 'Show the logs, references and schema',
+			icon: 'mdi:dock-bottom',
 			active: logsPanelOpen
 		},
 		{ id: 'admin', label: 'Admin console', icon: 'mdi:lock-outline', href: resolve('/admin/') }
@@ -2165,6 +2184,20 @@
 	}
 
 	/**
+	 * Shows the application served by the development build in the frontend preview.
+	 * @param {string} url
+	 */
+	function showDevelopmentBuild(url) {
+		if (selectedProjectName) {
+			frontendPreview = {
+				projectName: selectedProjectName,
+				url: studioPreviewUrl(url),
+				mode: 'development'
+			};
+		}
+	}
+
+	/**
 	 * Shows a project created or imported by the new project dialog.
 	 * @param {string} projectName
 	 */
@@ -2201,8 +2234,17 @@
 	 * @param {string} id
 	 */
 	function selectActivity(id) {
-		if (id === 'tree') {
-			toggleCollapsedPanel('tree');
+		if (id === 'tree' || id === 'search') {
+			// the projects and the search share the left column, as the views of the side bar of Cursor
+			const view = id === 'tree' ? 'projects' : 'search';
+			if (collapsedPanels.tree) {
+				leftView = view;
+				toggleCollapsedPanel('tree');
+			} else if (leftView === view) {
+				toggleCollapsedPanel('tree');
+			} else {
+				leftView = view;
+			}
 		} else if (id === 'logs') {
 			setLogsPanelOpen(!logsPanelOpen);
 		} else if (id === 'assistant' || (!collapsedPanels.tools && effectiveSidePanel === id)) {
@@ -2264,17 +2306,11 @@
 	/>
 {/snippet}
 
-{#snippet logsToolbarLead()}
-	<span class="studio__logs-toolbar-title layout-x-low studio-ellipsis studio-caption">
-		<Ico icon="mdi:file-document-box-outline" size={4} />Logs
-	</span>
-{/snippet}
-
 {#snippet logsToolbarTrail()}
 	<StudioIconButton
 		icon="mdi:chevron-down"
-		title="Collapse logs"
-		ariaLabel="Collapse logs"
+		title="Hide the panel"
+		ariaLabel="Hide the panel"
 		size="xs"
 		onclick={() => setLogsPanelOpen(false)}
 	/>
@@ -2304,10 +2340,22 @@
 {/snippet}
 
 {#snippet tree()}
+	{#if leftView === 'search'}
+		<StudioPanel
+			title="Search"
+			icon="mdi:magnify"
+			class="studio__tree-panel"
+			contentClass="studio__panel-fill"
+		>
+			<StudioSearchPanel projectName={selectedProjectName} onSelect={selectObject} />
+		</StudioPanel>
+	{/if}
 	<StudioPanel
 		title="Projects"
 		icon="mdi:folder-outline"
-		class="studio__tree-panel"
+		class={['studio__tree-panel', leftView === 'search' && 'studio__tree-panel--hidden']
+			.filter(Boolean)
+			.join(' ')}
 		actions={projectActions}
 	>
 		<StudioTreePanel
@@ -2507,8 +2555,45 @@
 	{/if}
 {/snippet}
 
+{#snippet logsPane()}
+	<StudioLogsPanel />
+{/snippet}
+
+{#snippet referencesPane()}
+	<StudioReferencesPanel
+		{selectedId}
+		active={bottomView === 'references'}
+		onSelect={selectObject}
+	/>
+{/snippet}
+
+{#snippet schemaPane()}
+	<StudioSchemaPanel
+		{selectedId}
+		projectName={selectedProjectName}
+		active={bottomView === 'schema'}
+	/>
+{/snippet}
+
+{#snippet buildPane()}
+	<StudioBuilderPanel
+		projectName={selectedProjectName}
+		active={bottomView === 'build'}
+		onLoad={showDevelopmentBuild}
+	/>
+{/snippet}
+
 {#snippet logs()}
-	<StudioLogsPanel toolbarLead={logsToolbarLead} toolbarTrail={logsToolbarTrail} />
+	<StudioTabbedFrame
+		items={BOTTOM_VIEWS}
+		active={bottomView}
+		ariaLabel="Bottom panel views"
+		fillIds={['logs', 'references', 'schema', 'build']}
+		lazyIds={['references', 'schema', 'build']}
+		onSelect={(id) => (bottomView = /** @type {'logs' | 'references' | 'schema' | 'build'} */ (id))}
+		panes={{ logs: logsPane, references: referencesPane, schema: schemaPane, build: buildPane }}
+		trail={logsToolbarTrail}
+	/>
 {/snippet}
 
 <StudioShell
@@ -2650,6 +2735,10 @@
 		min-height: 0;
 	}
 
+	:global(.studio__tree-panel--hidden) {
+		display: none !important;
+	}
+
 	:global(.studio__assistant-panel) {
 		height: 100%;
 		min-width: 0;
@@ -2665,12 +2754,6 @@
 		min-height: 0;
 		border: 0;
 		border-radius: 0;
-	}
-
-	.studio__logs-toolbar-title {
-		padding-right: 0.25rem;
-		color: var(--color-surface-800-200);
-		line-height: 1.1;
 	}
 
 	.studio-source-choice {

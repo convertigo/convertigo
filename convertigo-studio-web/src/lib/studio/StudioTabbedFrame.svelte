@@ -15,6 +15,7 @@
 	 * lazyIds?: string[];
 	 * isDisabled?: (id: string, item: any) => boolean;
 	 * onSelect?: (id: string, item: any) => void;
+	 * trail?: import('svelte').Snippet;
 	 * }} */
 	let {
 		items = [],
@@ -29,14 +30,15 @@
 		fillIds = [],
 		lazyIds = [],
 		isDisabled,
-		onSelect
+		onSelect,
+		trail
 	} = $props();
 
 	let activeItem = $derived(items.find((item) => item.id === active));
 </script>
 
 <section class={['studio-tabbed-frame', cls].filter(Boolean).join(' ')}>
-	<StudioTabs {items} {active} {ariaLabel} {isDisabled} {onSelect} {tabClass} />
+	<StudioTabs {items} {active} {ariaLabel} {isDisabled} {onSelect} {tabClass} {trail} />
 	<div
 		class={['studio-tabbed-frame-body', bodyClass].filter(Boolean).join(' ')}
 		role="tabpanel"
