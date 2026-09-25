@@ -66,6 +66,7 @@ import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.DefaultScope;
+import org.eclipse.e4.ui.css.swt.internal.theme.ThemeEngine;
 import org.eclipse.e4.ui.model.application.MApplication;
 import org.eclipse.e4.ui.model.application.ui.MUILabel;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
@@ -647,6 +648,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		super.start(context);
 		disableAngularServerForTypeScript();
 		
+		loadFonts();
+
 		Boolean[] needPalette = {null};
 		Boolean[] needPicker = {null};
 		IWorkbenchPage[] activePage = {null};
@@ -1059,6 +1062,34 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	 */
 	private static void disableAngularServerForTypeScript() {
 		DefaultScope.INSTANCE.getNode("org.eclipse.lsp4e").put("org.eclipse.wildwebdeveloper.angular/org.eclipse.tm4e.language_pack.typescript", "false");
+	}
+
+	/**
+	 * Loads IBM Plex Sans, the font of the web Studio used by the Convertigo stylesheets,
+	 * then sets the theme again: the fonts resolved before are kept by the theme engine.
+	 */
+	private void loadFonts() {
+		var display = Display.getCurrent();
+		if (display == null) {
+			if (PlatformUI.isWorkbenchRunning()) {
+				PlatformUI.getWorkbench().getDisplay().asyncExec(this::loadFonts);
+			}
+			return;
+		}
+		var loaded = false;
+		for (var name : new String[] {"IBMPlexSans-Regular.ttf", "IBMPlexSans-Bold.ttf"}) {
+			try {
+				var url = FileLocator.find(getBundle(), new Path("fonts/" + name), null);
+				if (url != null) {
+					loaded |= display.loadFont(new File(FileLocator.toFileURL(url).getPath()).getPath());
+				}
+			} catch (Exception e) {
+				studioLog.debug("Could not load the font " + name + ": " + e);
+			}
+		}
+		if (loaded && display.getData("org.eclipse.e4.ui.css.swt.theme") instanceof ThemeEngine themeEngine && themeEngine.getActiveTheme() != null) {
+			themeEngine.setTheme(themeEngine.getActiveTheme(), false, true);
+		}
 	}
 
 	/**

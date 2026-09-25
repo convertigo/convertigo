@@ -942,13 +942,13 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 				}
 				Control latestSelected = (Control) bag.getData("LatestSelected");
 				if (latestSelected != null && !latestSelected.isDisposed()) {
-					latestSelected.setData(SwtUtils.CSS_CLASS_KEY, null);
+					latestSelected.setData(SwtUtils.CSS_CLASS_KEY, "c8oPaletteItem");
 					latestSelected.setData("style", "color: inherit; background-color: inherit");
 					CompositeElement.getEngine(latestSelected).applyStyles(latestSelected, false);
 				}
 				bag.setData("LatestSelected", c);
 				c.setData("style", null);
-				c.setData(SwtUtils.CSS_CLASS_KEY, "c8oPaletteSelected");
+				c.setData(SwtUtils.CSS_CLASS_KEY, "c8oPaletteItem c8oPaletteSelected");
 				CompositeElement.getEngine(c).applyStyles(c, false);
 
 				updateDoc.run();
@@ -1510,6 +1510,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			clabel.setCursor(handCursor);
 			clabel.setData("Item", item);
 			clabel.setData("style", "color: inherit; background-color: inherit");
+			clabel.setData(SwtUtils.CSS_CLASS_KEY, "c8oPaletteItem");
 			clabel.addMouseListener(mouseListener);
 
 			clabel.addListener(SWT.DragDetect, event -> {

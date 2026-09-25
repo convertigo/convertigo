@@ -84,3 +84,12 @@ ObjectsExplorerComposite, ObjectsExplorerComposite * {
 .MPart Composite.c8oPaletteBorder {
   background-color: #3a3a3a;
 }
+
+/* IBM Plex Sans, the font of the web Studio loaded by the Studio, for the views and their tabs */
+.MPartStack,
+.MPartStack Tree, .MPartStack Table,
+.MPart Label, .MPart CLabel, .MPart Button, .MPart Link, .MPart Group,
+.MPart Text, .MPart Combo, .MPart CCombo, .MPart List,
+.MPart .c8oPaletteItem, .MPart .c8oPaletteCategory {
+  font-family: 'IBM Plex Sans';
+}
