@@ -2105,8 +2105,62 @@
 			await call('projects.Export', { projectName });
 		} else if (action === 'project.dashboard') {
 			window.open(resolve(`/dashboard/${encodeURIComponent(projectName)}/`), '_blank');
+		} else if (action === 'project.readme') {
+			await generateReadme(projectName);
+		} else if (action === 'project.symbols') {
+			const result = await call('studio.project.DeclareSymbols', { projectName });
+			const symbols = checkArray(result?.symbols);
+			if (symbols.length) {
+				toaster.success({ description: `Global symbols declared: ${symbols.join(', ')}.` });
+			} else if (result?.symbols) {
+				toaster.info({ description: 'The project uses no undeclared global symbol.' });
+			}
+		} else if (action === 'project.remoteUrl') {
+			await copyRemoteUrl(projectName);
 		} else if (action === 'project.delete') {
 			await deleteProject(projectName);
+		}
+	}
+
+	/**
+	 * Generates the readme.md file of a project, replacing an existing one after a confirmation.
+	 * @param {string} projectName
+	 */
+	async function generateReadme(projectName) {
+		let result = await call('studio.project.Readme', { projectName });
+		if (result?.exists) {
+			if (!window.confirm(`The project ${projectName} already has a readme.md file. Replace it?`)) {
+				return;
+			}
+			result = await call('studio.project.Readme', { projectName, overwrite: 'true' });
+		}
+		if (result?.done) {
+			toaster.success({ description: `${result.file} is generated.` });
+			await refreshStudioProject(projectName);
+			refreshTreeContext(projectName, 'contextAction');
+		} else if (result && 'done' in result) {
+			toaster.error({ description: `The readme.md of ${projectName} is not generated.` });
+		}
+	}
+
+	/**
+	 * Copies the remote URL of a project in a Git repository, the one another Studio imports it from.
+	 * @param {string} projectName
+	 */
+	async function copyRemoteUrl(projectName) {
+		const result = await call('studio.project.RemoteUrl', { projectName });
+		if (!result || !('url' in result)) {
+			return;
+		}
+		if (!result.url) {
+			toaster.info({ description: `The project ${projectName} is not in a Git repository.` });
+			return;
+		}
+		try {
+			await navigator.clipboard.writeText(result.url);
+			toaster.success({ description: `Copied ${result.url}` });
+		} catch {
+			toaster.error({ description: `The remote URL cannot be copied: ${result.url}` });
 		}
 	}
 

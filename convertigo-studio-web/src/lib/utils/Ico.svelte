@@ -6,6 +6,7 @@
 	import MdiApi from '~icons/mdi/api';
 	import MdiApplicationBracesOutline from '~icons/mdi/application-braces-outline';
 	import MdiApplicationOutline from '~icons/mdi/application-outline';
+	import MdiArrowDown from '~icons/mdi/arrow-down';
 	import MdiArrowDownBoldOutline from '~icons/mdi/arrow-down-bold-outline';
 	import MdiArrowLeft from '~icons/mdi/arrow-left';
 	import MdiArrowLeftBoldOutline from '~icons/mdi/arrow-left-bold-outline';
@@ -13,6 +14,7 @@
 	import MdiArrowRightBoldOutline from '~icons/mdi/arrow-right-bold-outline';
 	import MdiArrowRightThick from '~icons/mdi/arrow-right-thick';
 	import MdiArrowULeftTop from '~icons/mdi/arrow-u-left-top';
+	import MdiArrowUp from '~icons/mdi/arrow-up';
 	import MdiArrowUpBoldOutline from '~icons/mdi/arrow-up-bold-outline';
 	import MdiBackupRestore from '~icons/mdi/backup-restore';
 	import MdiBookMultiple from '~icons/mdi/book-multiple';
@@ -24,6 +26,7 @@
 	import MdiCached from '~icons/mdi/cached';
 	import MdiCalendarClock from '~icons/mdi/calendar-clock';
 	import MdiCalendarRange from '~icons/mdi/calendar-range';
+	import MdiCellphoneLink from '~icons/mdi/cellphone-link';
 	import MdiCertificate from '~icons/mdi/certificate';
 	import MdiCheck from '~icons/mdi/check';
 	import MdiCheckAll from '~icons/mdi/check-all';
@@ -44,25 +47,17 @@
 	import MdiCog from '~icons/mdi/cog';
 	import MdiCogOutline from '~icons/mdi/cog-outline';
 	import MdiContentCopy from '~icons/mdi/content-copy';
-	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline';
-	import MdiArrowUp from '~icons/mdi/arrow-up';
-	import MdiArrowDown from '~icons/mdi/arrow-down';
-	import MdiSwapHorizontal from '~icons/mdi/swap-horizontal';
-	import MdiStop from '~icons/mdi/stop';
-	import MdiDockBottom from '~icons/mdi/dock-bottom';
 	import MdiContentCut from '~icons/mdi/content-cut';
 	import MdiContentPaste from '~icons/mdi/content-paste';
+	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline';
 	import MdiContentSaveOutline from '~icons/mdi/content-save-outline';
-	import MdiFolderPlusOutline from '~icons/mdi/folder-plus-outline';
-	import MdiCellphoneLink from '~icons/mdi/cellphone-link';
-	import MdiWeb from '~icons/mdi/web';
-	import MdiServerNetwork from '~icons/mdi/server-network';
 	import MdiCubeOutline from '~icons/mdi/cube-outline';
 	import MdiDatabase from '~icons/mdi/database';
 	import MdiDatabaseClockOutline from '~icons/mdi/database-clock-outline';
 	import MdiDatabaseSyncOutline from '~icons/mdi/database-sync-outline';
 	import MdiDeleteOutline from '~icons/mdi/delete-outline';
 	import MdiDevices from '~icons/mdi/devices';
+	import MdiDockBottom from '~icons/mdi/dock-bottom';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical';
 	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline';
 	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline';
@@ -84,6 +79,7 @@
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline';
 	import MdiFitToPageOutline from '~icons/mdi/fit-to-page-outline';
 	import MdiFolderOutline from '~icons/mdi/folder-outline';
+	import MdiFolderPlusOutline from '~icons/mdi/folder-plus-outline';
 	import MdiFormatText from '~icons/mdi/format-text';
 	import MdiFullscreen from '~icons/mdi/fullscreen';
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit';
@@ -92,12 +88,12 @@
 	import MdiHomeOutline from '~icons/mdi/home-outline';
 	import MdiHub from '~icons/mdi/hub';
 	import MdiImport from '~icons/mdi/import';
-	import MdiVariable from '~icons/mdi/variable';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline';
 	import MdiKeyOutline from '~icons/mdi/key-outline';
 	import MdiLanConnect from '~icons/mdi/lan-connect';
 	import MdiLandPlots from '~icons/mdi/land-plots';
 	import MdiLanguageJava from '~icons/mdi/language-java';
+	import MdiLanguageMarkdownOutline from '~icons/mdi/language-markdown-outline';
 	import MdiLanguageRuby from '~icons/mdi/language-ruby';
 	import MdiLayersOutline from '~icons/mdi/layers-outline';
 	import MdiLibraryOutline from '~icons/mdi/library-outline';
@@ -134,12 +130,15 @@
 	import MdiRobotOutline from '~icons/mdi/robot-outline';
 	import MdiRoutes from '~icons/mdi/routes';
 	import MdiSearch from '~icons/mdi/search';
+	import MdiServerNetwork from '~icons/mdi/server-network';
 	import MdiShapeSquareRoundedPlus from '~icons/mdi/shape-square-rounded-plus';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
 	import MdiSourceBranch from '~icons/mdi/source-branch';
 	import MdiStarOutline from '~icons/mdi/star-outline';
 	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline';
 	import MdiStateMachine from '~icons/mdi/state-machine';
+	import MdiStop from '~icons/mdi/stop';
+	import MdiSwapHorizontal from '~icons/mdi/swap-horizontal';
 	import MdiSync from '~icons/mdi/sync';
 	import MdiTable from '~icons/mdi/table';
 	import MdiTarget from '~icons/mdi/target';
@@ -149,10 +148,12 @@
 	import MdiTuneVerticalVariant from '~icons/mdi/tune-vertical-variant';
 	import MdiUnfoldMoreHorizontal from '~icons/mdi/unfold-more-horizontal';
 	import MdiUpdate from '~icons/mdi/update';
+	import MdiVariable from '~icons/mdi/variable';
 	import MdiVideoOutline from '~icons/mdi/video-outline';
 	import MdiViewDashboardOutline from '~icons/mdi/view-dashboard-outline';
 	import MdiWarningOutline from '~icons/mdi/warning-outline';
 	import MdiWeatherSunny from '~icons/mdi/weather-sunny';
+	import MdiWeb from '~icons/mdi/web';
 	import MdiWrench from '~icons/mdi/wrench';
 	import ConvertigoLogo from './icons/ConvertigoLogo.svelte';
 
@@ -260,6 +261,7 @@
 		'mdi:layers-outline': MdiLayersOutline,
 		'mdi:lightning-bolt': MdiLightningBolt,
 		'mdi:link-variant': MdiLinkVariant,
+		'mdi:language-markdown-outline': MdiLanguageMarkdownOutline,
 		'mdi:library-outline': MdiLibraryOutline,
 		'mdi:login-variant': MdiLoginVariant,
 		'mdi:lock-open-variant': MdiLockOpenVariant,

@@ -380,6 +380,13 @@
 						{@render treeItem('project.importWs', 'mdi:web', 'Import a web service…')}
 						{@render treeItem('project.dashboard', 'mdi:open-in-new-variant', 'Open in dashboard')}
 						{@render treeItem(
+							'project.readme',
+							'mdi:language-markdown-outline',
+							'Generate the readme.md'
+						)}
+						{@render treeItem('project.symbols', 'mdi:code-braces', 'Declare its global symbols')}
+						{@render treeItem('project.remoteUrl', 'mdi:link-variant', 'Copy the remote URL')}
+						{@render treeItem(
 							'project.delete',
 							'mdi:delete-outline',
 							'Delete project',

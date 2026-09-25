@@ -929,7 +929,16 @@ public class ReadmeBuilder {
 	}
 	
 	public static void process(Project project, MarkdownType type) {
-		if (Engine.isStudioMode() && !isMobileBuilderTemplate(project)) {
+		if (Engine.isStudioMode()) {
+			generate(project, type);
+		}
+	}
+	
+	/**
+	 * Generates the markdown files of a project whatever the mode of the engine, when a Studio asks for them.
+	 */
+	public static void generate(Project project, MarkdownType type) {
+		if (!isMobileBuilderTemplate(project)) {
 			try {
 				if (MarkdownType.Project.equals(type) || MarkdownType.Readme.equals(type)) {
 					// Generate project.md : if does not exist or is different
