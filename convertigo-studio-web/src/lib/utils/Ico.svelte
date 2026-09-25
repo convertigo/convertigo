@@ -145,6 +145,8 @@
 	import MdiTextBoxOutline from '~icons/mdi/text-box-outline';
 	import MdiToggleSwitch from '~icons/mdi/toggle-switch';
 	import MdiToggleSwitchOffOutline from '~icons/mdi/toggle-switch-off-outline';
+	import MdiTranslate from '~icons/mdi/translate';
+	import MdiTranslateOff from '~icons/mdi/translate-off';
 	import MdiTuneVerticalVariant from '~icons/mdi/tune-vertical-variant';
 	import MdiUnfoldMoreHorizontal from '~icons/mdi/unfold-more-horizontal';
 	import MdiUpdate from '~icons/mdi/update';
@@ -252,6 +254,8 @@
 		'mdi:hub': MdiHub,
 		'mdi:import': MdiImport,
 		'mdi:variable': MdiVariable,
+		'mdi:translate': MdiTranslate,
+		'mdi:translate-off': MdiTranslateOff,
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,
 		'mdi:key-outline': MdiKeyOutline,
 		'mdi:lan-connect': MdiLanConnect,

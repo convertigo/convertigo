@@ -1,7 +1,7 @@
 <script>
+	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, getUrl } from '$lib/utils/service';
-	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
 	/**

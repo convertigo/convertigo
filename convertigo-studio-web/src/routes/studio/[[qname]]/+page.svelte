@@ -63,6 +63,7 @@
 	import StudioShell from '$lib/studio/StudioShell.svelte';
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
+	import StudioTranslationsDialog from '$lib/studio/StudioTranslationsDialog.svelte';
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
 	import StudioVariablesDialog from '$lib/studio/StudioVariablesDialog.svelte';
 	import StudioWsImportDialog from '$lib/studio/StudioWsImportDialog.svelte';
@@ -240,6 +241,8 @@
 	let wsImportProjectName = $state('');
 	/** The transaction whose variables the variables dialog chooses */
 	let variablesTargetId = $state('');
+	/** The NGX application whose translations files the translations dialog writes */
+	let translationsTargetId = $state('');
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
 	let paletteRevealRequest = $state({ key: '', contextId: '', serial: 0 });
@@ -2097,6 +2100,8 @@
 			await reloadSelectedProject();
 		} else if (action === 'dialog.variables') {
 			variablesTargetId = nodeId;
+		} else if (action === 'dialog.translations') {
+			translationsTargetId = nodeId;
 		} else if (action === 'project.importWs') {
 			wsImportProjectName = projectName;
 		} else if (action === 'project.deploy') {
@@ -2792,6 +2797,17 @@
 	</div>
 {/if}
 
+{#if translationsTargetId}
+	<StudioTranslationsDialog
+		id={translationsTargetId}
+		onDone={async (id) => {
+			translationsTargetId = '';
+			await refreshStudioProject(id);
+			refreshTreeContext(id, 'contextAction');
+		}}
+		onClose={() => (translationsTargetId = '')}
+	/>
+{/if}
 {#if variablesTargetId}
 	<StudioVariablesDialog
 		id={variablesTargetId}

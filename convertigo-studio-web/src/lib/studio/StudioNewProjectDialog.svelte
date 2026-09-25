@@ -349,6 +349,7 @@
 
 	.studio-dialog__field input {
 		height: 2rem;
+		padding-block: 0;
 		padding-inline: 0.6rem;
 		font-size: 0.8rem;
 	}

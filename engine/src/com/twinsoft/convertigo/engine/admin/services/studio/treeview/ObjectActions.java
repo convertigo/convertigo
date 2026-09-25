@@ -141,6 +141,17 @@ public class ObjectActions {
 						true, "mdi:plus");
 			}
 		}
+		if (NgxI18n.handles(dbo)) {
+			add(items, "object.i18n:true", "Enable I18n recursively",
+					"Translate the texts and the automatic menu items under this component.", true, "mdi:translate");
+			add(items, "object.i18n:false", "Disable I18n recursively",
+					"Stop translating the texts and the automatic menu items under this component.", true, "mdi:translate-off");
+		}
+		if (dbo instanceof ApplicationComponent) {
+			add(items, "object.translations", "Create the translations files…",
+					"Write the texts of the application in the translations files of its languages.", true, "mdi:translate")
+					.put("clientAction", "dialog.translations");
+		}
 		if (NgxImports.importsVariables(dbo)) {
 			add(items, "object.importNgxVariables", "Import variables from the targeted object",
 					"Add a variable for each variable of the called sequence, invoked shared action or used shared component.",
@@ -185,6 +196,13 @@ public class ObjectActions {
 			return result(false, "This action is not available for this object.");
 		}
 		var parent = dbo.getParent();
+		if (actionId.startsWith("object.i18n:")) {
+			var changed = NgxI18n.i18n(dbo, Boolean.parseBoolean(actionId.substring("object.i18n:".length())));
+			if (changed == 0) {
+				return result(true, "The texts are already set so.").put("changed", false);
+			}
+			return result(true, changed + " text" + (changed > 1 ? "s are" : " is") + " changed.").put("changed", true).put("refresh", true);
+		}
 		if (actionId.startsWith("object.createFunction:")) {
 			if (!(dbo instanceof DesignDocument designDocument)) {
 				return result(false, "This object is not a design document.");
