@@ -146,7 +146,12 @@ public class Get extends JSonService {
 
 	private void putInfoProperty(DatabaseObject dbo, JSONObject props, String label, JSONObject property) throws Exception {
 		if (!(dbo instanceof FlowVirtualObject virtual) || !virtual.hasProjectedInformationProperty(label)) {
-			props.put(label, property);
+			if (props.has(label)) {
+				// a property of the object has this label, as the type of a JSON field
+				props.put(property.getString("name"), property.put("displayName", label));
+			} else {
+				props.put(label, property);
+			}
 		}
 	}
 

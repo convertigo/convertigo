@@ -48,10 +48,16 @@ import com.twinsoft.convertigo.beans.steps.IfStep;
 import com.twinsoft.convertigo.beans.steps.IfThenElseStep;
 import com.twinsoft.convertigo.beans.steps.IsInStep;
 import com.twinsoft.convertigo.beans.steps.IsInThenElseStep;
+import com.twinsoft.convertigo.beans.steps.JsonArrayStep;
+import com.twinsoft.convertigo.beans.steps.JsonFieldStep;
+import com.twinsoft.convertigo.beans.steps.JsonObjectStep;
 import com.twinsoft.convertigo.beans.steps.SimpleSourceStep;
 import com.twinsoft.convertigo.beans.steps.SourceStep;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
+import com.twinsoft.convertigo.beans.steps.XMLComplexStep;
+import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
@@ -70,7 +76,8 @@ import com.twinsoft.convertigo.engine.studio.DatabaseObjectsAction;
  * with its name, by an object of another class that keeps the properties both classes have, and its
  * children. The steps using the replaced step as source use the new one. A condition step that gets Then
  * and Else steps puts its children in Then; a condition step that loses them keeps the children of Then,
- * those of Else are deleted.
+ * those of Else are deleted. The XML, JSON and concat steps convert their properties as
+ * {@link StepConversions} tells.
  */
 class ChangeTo {
 	private static final Set<String> NOT_COPIED = Set.of("name", "priority", "parent", "QName", "qName");
@@ -114,6 +121,18 @@ class ChangeTo {
 		target(ElementStep.class, XMLElementStep.class, "XML element step");
 		target(AttributeStep.class, ElementStep.class, "jElement step");
 		target(AttributeStep.class, XMLAttributeStep.class, "XML attribute step");
+		target(XMLElementStep.class, JsonFieldStep.class, "JSON field step");
+		target(XMLElementStep.class, XMLConcatStep.class, "XML concat step");
+		target(ElementStep.class, JsonFieldStep.class, "JSON field step");
+		target(JsonFieldStep.class, XMLElementStep.class, "XML element step");
+		target(JsonFieldStep.class, ElementStep.class, "jElement step");
+		target(XMLConcatStep.class, XMLElementStep.class, "XML element step");
+		target(XMLComplexStep.class, JsonObjectStep.class, "JSON object step");
+		target(XMLComplexStep.class, JsonArrayStep.class, "JSON array step");
+		target(JsonObjectStep.class, JsonArrayStep.class, "JSON array step");
+		target(JsonObjectStep.class, XMLComplexStep.class, "XML complex step");
+		target(JsonArrayStep.class, JsonObjectStep.class, "JSON object step");
+		target(JsonArrayStep.class, XMLComplexStep.class, "XML complex step");
 		target(IfStep.class, IfThenElseStep.class, "jIfThenElse step");
 		target(IfThenElseStep.class, IfStep.class, "jIf step");
 		target(IfExistStep.class, IfExistThenElseStep.class, "IfExistThenElse step");
@@ -159,7 +178,10 @@ class ChangeTo {
 	/**
 	 * @return the confirmation the change to the target class needs, empty if none
 	 */
-	static String confirm(DatabaseObject dbo, Class<? extends DatabaseObject> target) {
+	static String confirm(DatabaseObject dbo, Class<? extends DatabaseObject> target) throws Exception {
+		if (dbo instanceof Step step && StepConversions.handles(dbo, target) && StepConversions.lost(step, target) > 0) {
+			return "The steps under " + dbo.getName() + " are deleted. Change " + dbo.getName() + " anyway?";
+		}
 		if (losesThenElse(dbo, target)) {
 			var elseStep = ((BlockStep) dbo).getElseStep();
 			if (elseStep != null && !elseStep.getSteps().isEmpty()) {
@@ -202,6 +224,13 @@ class ChangeTo {
 			var thenStep = ((BlockStep) old).getThenStep();
 			children = thenStep == null ? new ArrayList<>() : new ArrayList<>(thenStep.getDatabaseObjectChildren());
 		}
+		copyProperties(old, replacement);
+		List<Step> added = new ArrayList<>();
+		if (old instanceof Step oldStep && replacement instanceof Step step && StepConversions.handles(old, targetClass)) {
+			StepConversions.convert(oldStep, step);
+			children = StepConversions.kept(oldStep, targetClass, children);
+			added = StepConversions.added(oldStep, step);
+		}
 		DatabaseObject holder = getsThenElse(old, targetClass) ? new ThenStep() : replacement;
 		for (var child : children) {
 			if (!DatabaseObjectsManager.acceptDatabaseObjects(holder, child)) {
@@ -209,7 +238,6 @@ class ChangeTo {
 			}
 		}
 
-		copyProperties(old, replacement);
 		replacement.bNew = true;
 		replacement.hasChanged = true;
 		var oldPriority = old.priority;
@@ -230,6 +258,9 @@ class ChangeTo {
 			elseStep.bNew = true;
 			((IThenElseContainer) replacement).addStep(elseStep);
 		}
+		for (var step : added) {
+			replacement.add(step);
+		}
 		for (var child : children) {
 			child.delete();
 			holder.add(child);
@@ -238,6 +269,9 @@ class ChangeTo {
 		replacement.setName(old.getName());
 		// renaming an object may change a property following its name, as the condition of a block step
 		copyProperties(old, replacement);
+		if (old instanceof Step oldStep && replacement instanceof Step step && StepConversions.handles(old, targetClass)) {
+			StepConversions.convert(oldStep, step);
+		}
 		if (replacement instanceof Step step && old instanceof Step && step.getSequence() != null) {
 			// the steps using the old step as source use the new one
 			step.getSequence().fireStepMoved(new StepEvent(step, String.valueOf(oldPriority)));
@@ -262,6 +296,10 @@ class ChangeTo {
 			}
 			var type = pd.getWriteMethod().getParameterTypes()[0];
 			var value = from_pd.getReadMethod().invoke(from);
+			if (value instanceof SmartType smartType) {
+				// the old object keeps its own, a rename of the new one may change it
+				value = smartType.clone();
+			}
 			if (value == null || wrap(type).isInstance(value)) {
 				try {
 					pd.getWriteMethod().invoke(to, value);
