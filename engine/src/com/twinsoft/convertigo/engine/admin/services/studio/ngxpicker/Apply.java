@@ -124,9 +124,12 @@ public class Apply extends JSonService {
 		}
 
 		for (PropertyDescriptor descriptor : Introspector.getBeanInfo(dbo.getClass()).getPropertyDescriptors()) {
+			// an engine without the Eclipse Studio gives no editor class, the type tells the smart sources
+			var smartSource = descriptor.getPropertyEditorClass() == null
+					? MobileSmartSourceType.class.equals(descriptor.getPropertyType())
+					: "NgxSmartSourcePropertyDescriptor".equals(descriptor.getPropertyEditorClass().getSimpleName());
 			if (!descriptor.getName().equals(propertyName) || descriptor.getWriteMethod() == null
-					|| descriptor.getReadMethod() == null || descriptor.getPropertyEditorClass() == null
-					|| !"NgxSmartSourcePropertyDescriptor".equals(descriptor.getPropertyEditorClass().getSimpleName())) {
+					|| descriptor.getReadMethod() == null || !smartSource) {
 				continue;
 			}
 			Object oldValue = descriptor.getReadMethod().invoke(dbo);

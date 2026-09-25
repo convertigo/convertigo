@@ -60,6 +60,7 @@
 	import StudioReferencesPanel from '$lib/studio/StudioReferencesPanel.svelte';
 	import StudioSchemaPanel from '$lib/studio/StudioSchemaPanel.svelte';
 	import StudioSearchPanel from '$lib/studio/StudioSearchPanel.svelte';
+	import StudioSharedComponentDialog from '$lib/studio/StudioSharedComponentDialog.svelte';
 	import StudioShell from '$lib/studio/StudioShell.svelte';
 	import StudioStepsFromXmlDialog from '$lib/studio/StudioStepsFromXmlDialog.svelte';
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
@@ -248,6 +249,8 @@
 	let stepsFromXmlTargetId = $state('');
 	/** @type {'xml' | 'xsd'} */
 	let stepsFromXmlMode = $state('xml');
+	/** The NGX component the shared component dialog extracts */
+	let sharedComponentTargetId = $state('');
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
 	let paletteRevealRequest = $state({ key: '', contextId: '', serial: 0 });
@@ -2107,6 +2110,8 @@
 			variablesTargetId = nodeId;
 		} else if (action === 'dialog.translations') {
 			translationsTargetId = nodeId;
+		} else if (action === 'dialog.sharedComponent') {
+			sharedComponentTargetId = nodeId;
 		} else if (action === 'dialog.stepsFromXml' || action === 'dialog.stepsFromXsd') {
 			stepsFromXmlMode = action === 'dialog.stepsFromXsd' ? 'xsd' : 'xml';
 			stepsFromXmlTargetId = nodeId;
@@ -2805,6 +2810,20 @@
 	</div>
 {/if}
 
+{#if sharedComponentTargetId}
+	<StudioSharedComponentDialog
+		id={sharedComponentTargetId}
+		onDone={async (id) => {
+			const target = sharedComponentTargetId;
+			sharedComponentTargetId = '';
+			await refreshStudioProject(target);
+			refreshTreeContext(target, 'contextAction');
+			markProjectDirty(target);
+			selectedId = id;
+		}}
+		onClose={() => (sharedComponentTargetId = '')}
+	/>
+{/if}
 {#if stepsFromXmlTargetId}
 	<StudioStepsFromXmlDialog
 		id={stepsFromXmlTargetId}

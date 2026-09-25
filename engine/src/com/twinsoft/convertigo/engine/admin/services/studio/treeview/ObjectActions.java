@@ -159,6 +159,11 @@ public class ObjectActions {
 					"Add the element and attribute steps building an element of a schema.", true, "mdi:xml")
 					.put("clientAction", "dialog.stepsFromXsd");
 		}
+		if (com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.SharedComponent.allows(dbo)) {
+			add(items, "object.sharedComponent", "Create a shared component from this object…",
+					"Move this component into a new shared component and use it in its place.", true,
+					"mdi:shape-square-rounded-plus").put("clientAction", "dialog.sharedComponent");
+		}
 		if (NgxI18n.handles(dbo)) {
 			add(items, "object.i18n:true", "Enable I18n recursively",
 					"Translate the texts and the automatic menu items under this component.", true, "mdi:translate");

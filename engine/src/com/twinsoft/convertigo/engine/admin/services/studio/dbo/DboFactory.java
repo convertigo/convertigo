@@ -134,6 +134,13 @@ public class DboFactory {
 		return null;
 	}
 	
+	/**
+	 * @return a new copy of an object and its children, as the Studio pastes it
+	 */
+	public static DatabaseObject copyOf(DatabaseObject dbo) throws Exception {
+		return createSuchDbo(dbo);
+	}
+
 	static protected DatabaseObject createSuchDbo(DatabaseObject dbo) throws Exception {
 		Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		document.appendChild(document.createElement("convertigo"));

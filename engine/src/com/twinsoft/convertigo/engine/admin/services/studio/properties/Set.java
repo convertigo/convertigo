@@ -117,7 +117,9 @@ public class Set extends JSonService {
 
 						oldValue = getter.invoke(dbo);
 
-						if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")) {
+						// an engine without the Eclipse Studio gives no editor class, the type tells the smart sources
+						if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")
+								|| MobileSmartSourceType.class.equals(ptc)) {
 							setter.invoke(dbo, new Object[] { msst });
 						} else if (SmartType.class.equals(ptc)) {
 							setter.invoke(dbo, new Object[] { makeSmartType(mode, rawValue, pvalue) });
