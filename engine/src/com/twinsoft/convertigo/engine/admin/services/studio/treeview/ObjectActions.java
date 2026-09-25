@@ -27,6 +27,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
+import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
@@ -35,6 +36,7 @@ import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.admin.services.studio.dbo.CreateStub;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 
 /**
@@ -79,6 +81,16 @@ public class ObjectActions {
 			add(items, "object.importVariables", "Import the variables of the requestable",
 					"Add the variables of the sequence or transaction to this test case.", true, "mdi:import");
 		}
+		if (dbo instanceof RequestableObject && (dbo instanceof Sequence || dbo instanceof Transaction)) {
+			add(items, "object.emptyStub", "Create an empty stub",
+					"Save an empty response as the stub answering the requests run from stub.", true,
+					"mdi:file-outline");
+		}
+		for (var target : ChangeTo.targets(dbo).entrySet()) {
+			add(items, "object.changeTo:" + target.getKey().getSimpleName(), "Change to " + target.getValue(),
+					"Replace this object by a " + target.getValue() + " keeping its properties and children.", true,
+					"mdi:swap-horizontal", "Change to");
+		}
 		if (dbo.getParent() instanceof IContainerOrdered) {
 			add(items, "object.moveUp", "Move up", "Move this object before the previous one.", true,
 					"mdi:arrow-up-bold-outline");
@@ -93,6 +105,10 @@ public class ObjectActions {
 			return result(false, "This action is not available for this object.");
 		}
 		var parent = dbo.getParent();
+		if (actionId.startsWith("object.changeTo:")) {
+			var replacement = ChangeTo.run(dbo, actionId.substring("object.changeTo:".length()));
+			return result(true, "").put("changed", true).put("refresh", true).put("selectedId", replacement.getQName(true));
+		}
 		switch (actionId) {
 		case "object.defaultConnector" -> {
 			if (!(dbo instanceof Connector connector)) {
@@ -130,6 +146,16 @@ public class ObjectActions {
 				return result(true, "The variables were already imported.").put("changed", false);
 			}
 		}
+		case "object.emptyStub" -> {
+			if (!(dbo instanceof RequestableObject requestable)) {
+				return result(false, "Only a sequence or a transaction has a stub.");
+			}
+			var file = CreateStub.write(requestable, CreateStub.emptyStub(requestable), false);
+			if (file == null) {
+				return result(false, "The stub stubs/" + requestable.getDefaultStubFileName() + " already exists.");
+			}
+			return result(true, "The empty stub stubs/" + file.getName() + " is saved.").put("changed", false);
+		}
 		case "object.moveUp", "object.moveDown" -> {
 			if (!(parent instanceof IContainerOrdered container)) {
 				return result(false, "This object cannot move.");
@@ -162,11 +188,16 @@ public class ObjectActions {
 
 	private static void add(JSONArray items, String id, String label, String description, boolean enabled,
 			String icon) throws Exception {
+		add(items, id, label, description, enabled, icon, GROUP);
+	}
+
+	private static void add(JSONArray items, String id, String label, String description, boolean enabled,
+			String icon, String group) throws Exception {
 		items.put(new JSONObject()
 				.put("id", id)
 				.put("label", label)
 				.put("description", description)
-				.put("group", GROUP)
+				.put("group", group)
 				.put("enabled", enabled)
 				.put("payload", new JSONObject())
 				.put("confirm", "")

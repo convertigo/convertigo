@@ -8,7 +8,7 @@
 	import LightSvelte from '$lib/common/Light.svelte';
 	import RequestableResponseEditor from '$lib/dashboard/RequestableResponseEditor.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { callRequestable, getUrl, toaster } from '$lib/utils/service';
+	import { call, callRequestable, getUrl, toaster } from '$lib/utils/service';
 	import { fly } from 'svelte/transition';
 
 	/**
@@ -100,6 +100,30 @@
 	let hasResponse = $derived(responseView.content.length > 0 || responseView.loading);
 	let responseTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
 	let responseEditorKey = $derived(`${requestableKey}\u0000${responseRevision}`);
+
+	/**
+	 * Saves the XML response as the default stub of the requestable, as Create stub from XML in Eclipse.
+	 */
+	async function saveStub() {
+		if (!requestable?.name) {
+			return;
+		}
+		const id =
+			kind === 'transaction'
+				? `${projectName}.cn:${connectorName}.tr:${requestable.name}`
+				: `${projectName}.sq:${requestable.name}`;
+		let result = await call('studio.dbo.CreateStub', { id, xml: responseView.content });
+		if (result?.exists && window.confirm(`The stub ${result.file} exists. Replace it?`)) {
+			result = await call('studio.dbo.CreateStub', {
+				id,
+				xml: responseView.content,
+				overwrite: 'true'
+			});
+		}
+		if (result?.done) {
+			toaster.success({ description: `The response is saved as the stub ${result.file}.` });
+		}
+	}
 
 	/**
 	 * @param {{content?: string, language?: string, loading?: boolean}} next
@@ -517,6 +541,9 @@ console.log(await response.text());`;
 			<input type="hidden" name="__sequence" value={requestable.name} />
 		{/if}
 		<input type="hidden" name="__nocache" value="true" />
+		{#if stub}
+			<input type="hidden" name="__stub" value="true" />
+		{/if}
 		{#if freshContext}
 			<input type="hidden" name="__context" value="studio-web-execution-*" />
 			<input type="hidden" name="__removeContext" value="true" />
@@ -571,6 +598,17 @@ console.log(await response.text());`;
 					disabled={disabled || responseView.loading}
 				/>
 				{@render copyAsButton('current')}
+				{#if stubbable && hasResponse && responseView.language === 'xml' && !responseView.loading}
+					<Button
+						label="Save as stub"
+						full={false}
+						class="button-secondary"
+						icon="mdi:content-save-outline"
+						title="Save this response as the stub of the requestable"
+						onclick={saveStub}
+						{disabled}
+					/>
+				{/if}
 				{#if stubbable}
 					<label
 						class="requestable-execution__stub"

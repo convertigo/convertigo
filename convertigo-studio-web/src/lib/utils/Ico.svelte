@@ -45,6 +45,7 @@
 	import MdiCogOutline from '~icons/mdi/cog-outline';
 	import MdiContentCopy from '~icons/mdi/content-copy';
 	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline';
+	import MdiSwapHorizontal from '~icons/mdi/swap-horizontal';
 	import MdiStop from '~icons/mdi/stop';
 	import MdiDockBottom from '~icons/mdi/dock-bottom';
 	import MdiContentCut from '~icons/mdi/content-cut';
@@ -199,6 +200,7 @@
 		'mdi:cog-outline': MdiCogOutline,
 		'mdi:cog': MdiCog,
 		'mdi:content-save-edit-outline': MdiContentSaveEditOutline,
+		'mdi:swap-horizontal': MdiSwapHorizontal,
 		'mdi:stop': MdiStop,
 		'mdi:dock-bottom': MdiDockBottom,
 		'mdi:content-cut': MdiContentCut,
