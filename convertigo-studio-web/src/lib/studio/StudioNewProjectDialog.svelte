@@ -5,7 +5,7 @@
 
 	/**
 	 * Creates a project from a template, as the new project wizards of the Eclipse Studio, or imports
-	 * one from the URL of its git repository or of its archive.
+	 * one from the URL of its git repository or of its archive, or from an archive file.
 	 *
 	 * @type {{
 	 *  onDone?: (projectName: string) => void | Promise<void>,
@@ -14,8 +14,10 @@
 	 */
 	let { onDone, onClose } = $props();
 
-	/** @type {'template' | 'url'} */
+	/** @type {'template' | 'url' | 'file'} */
 	let mode = $state('template');
+	/** @type {File | null} */
+	let archive = $state(null);
 	let templateId = $state(PROJECT_TEMPLATES[0].id);
 	let name = $state('');
 	/** @type {Record<string, any>} */
@@ -31,7 +33,11 @@
 		template.fields.find((field) => field.required && !String(values[field.name] ?? '').trim())
 	);
 	let canCreate = $derived(
-		mode === 'template' ? !projectNameError(name) && !missingField : Boolean(url.trim())
+		mode === 'template'
+			? !projectNameError(name) && !missingField
+			: mode === 'url'
+				? Boolean(url.trim())
+				: Boolean(archive)
 	);
 
 	/**
@@ -69,6 +75,17 @@
 					error = String(
 						result?.error?.message ?? result?.message ?? 'The project was not created.'
 					);
+				}
+			} else if (mode === 'file' && archive) {
+				const form = new FormData();
+				form.append('file', archive);
+				form.append('bAssembleXsl', 'false');
+				const result = await call('projects.Deploy', form);
+				const deployed = String(result?.admin?.message ?? '').match(/project '([^']+)'/)?.[1];
+				if (deployed) {
+					await onDone?.(deployed);
+				} else {
+					error = String(result?.admin?.error ?? 'The project was not imported.');
 				}
 			} else {
 				const result = await call('projects.ImportURL', { url: url.trim() });
@@ -117,6 +134,13 @@
 					aria-selected={mode === 'url'}
 					class={['studio-dialog__mode', mode === 'url' && 'studio-dialog__mode--active']}
 					onclick={() => (mode = 'url')}>From a URL</button
+				>
+				<button
+					type="button"
+					role="tab"
+					aria-selected={mode === 'file'}
+					class={['studio-dialog__mode', mode === 'file' && 'studio-dialog__mode--active']}
+					onclick={() => (mode = 'file')}>From a file</button
 				>
 			</div>
 		</header>
@@ -170,6 +194,20 @@
 							</label>
 						{/if}
 					{/each}
+				{:else if mode === 'file'}
+					<label class="studio-dialog__field">
+						<span>Project archive</span>
+						<input
+							class="input-common studio-dialog__file"
+							type="file"
+							accept=".car,.zip"
+							onchange={(event) => (archive = event.currentTarget.files?.[0] ?? null)}
+						/>
+						<small
+							>A .car or .zip archive exported from a Studio. It replaces a project of the same
+							name.</small
+						>
+					</label>
 				{:else}
 					<label class="studio-dialog__field">
 						<span>Git repository or project archive</span>
@@ -352,6 +390,21 @@
 		padding-block: 0;
 		padding-inline: 0.6rem;
 		font-size: 0.8rem;
+	}
+
+	.studio-dialog__field input.studio-dialog__file {
+		height: auto;
+		padding: 0.35rem 0.6rem;
+	}
+
+	.studio-dialog__file::file-selector-button {
+		margin-right: 0.6rem;
+		border: 1px solid var(--studio-line);
+		border-radius: 0.3rem;
+		background: var(--studio-hover-bg);
+		color: var(--studio-text-strong);
+		padding: 0.2rem 0.6rem;
+		font: inherit;
 	}
 
 	.studio-dialog__field small {
