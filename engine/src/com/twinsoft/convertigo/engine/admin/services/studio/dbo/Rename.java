@@ -78,6 +78,14 @@ public class Rename extends JSonService {
 			response.put("ids", ids.put(renamed == null ? designDocument.getFullQName() : renamed.getFullQName()));
 			return;
 		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.couchdb.DesignDocumentFunction function) {
+			var designDocument = function.getDesignDocument();
+			designDocument.renameFunction(function.getKind(), function.getFunctionName(), newName);
+			var renamed = designDocument.getFunction(function.getKind(), newName);
+			response.put("done", true);
+			response.put("ids", ids.put(renamed == null ? designDocument.getFullQName() : renamed.getFullQName()));
+			return;
+		}
 		// ASK: the Studio asks where to update the references of an object other objects use by its name
 		if ("ASK".equals(update)) {
 			var referenceType = dbo == null || dbo instanceof Project ? null : DboUtils.referenceType(dbo);

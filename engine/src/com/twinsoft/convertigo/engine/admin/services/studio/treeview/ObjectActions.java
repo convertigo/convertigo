@@ -24,6 +24,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocumentFunction;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocumentView;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
@@ -119,9 +120,16 @@ public class ObjectActions {
 						output ? "mdi:eye-outline" : "mdi:eye-off-outline");
 			}
 		}
-		if (dbo instanceof DesignDocument) {
+		if (dbo instanceof DesignDocument designDocument) {
 			add(items, "object.createView", "Create a view", "Add a view with a map function to this design document.",
 					true, "mdi:plus");
+			add(items, "object.createFunction:" + DesignDocumentFunction.FILTERS, "Create a filter",
+					"Add a filter function choosing the documents to replicate or to listen to.", true, "mdi:plus");
+			add(items, "object.createFunction:" + DesignDocumentFunction.UPDATES, "Create an update function",
+					"Add an update function changing a document on the server.", true, "mdi:plus");
+			add(items, "object.createFunction:" + DesignDocumentFunction.VALIDATE, "Create the validate function",
+					"Add the function validating each document written to the database.",
+					!designDocument.getJSONObject().has(DesignDocumentFunction.VALIDATE), "mdi:plus");
 		}
 		if (dbo instanceof DesignDocumentView view) {
 			if (view.hasReduce()) {
@@ -167,6 +175,15 @@ public class ObjectActions {
 			return result(false, "This action is not available for this object.");
 		}
 		var parent = dbo.getParent();
+		if (actionId.startsWith("object.createFunction:")) {
+			if (!(dbo instanceof DesignDocument designDocument)) {
+				return result(false, "This object is not a design document.");
+			}
+			var kind = actionId.substring("object.createFunction:".length());
+			var function = designDocument.getFunction(kind, designDocument.addFunction(kind));
+			return result(true, "").put("changed", true).put("refresh", true)
+					.put("selectedId", function == null ? dbo.getFullQName() : function.getFullQName());
+		}
 		if (actionId.startsWith("object.changeTo:")) {
 			var replacement = ChangeTo.run(dbo, actionId.substring("object.changeTo:".length()));
 			return result(true, "").put("changed", true).put("refresh", true).put("selectedId", replacement.getQName(true));

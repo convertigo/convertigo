@@ -123,7 +123,7 @@ public class DesignDocumentView extends DatabaseObject implements IDynamicProper
 		root.appendChild(property);
 	}
 
-	private static String safeName(String value) {
+	static String safeName(String value) {
 		var name = value == null ? "view" : value.replaceAll("[^A-Za-z0-9_]", "_");
 		if (name.isBlank()) {
 			name = "view";
@@ -137,7 +137,7 @@ public class DesignDocumentView extends DatabaseObject implements IDynamicProper
 		return name;
 	}
 
-	private static long stablePriority(String value) {
+	static long stablePriority(String value) {
 		var hash = 1125899906842597L;
 		for (var i = 0; i < value.length(); i++) {
 			hash = 31 * hash + value.charAt(i);

@@ -17,8 +17,8 @@ public class DesignDocumentViewBeanInfo extends MySimpleBeanInfo {
 		additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 		displayName = "FullSync view";
 		shortDescription = "Map and optional reduce functions exposed by a FullSync design document.";
-		iconNameC16 = "/com/twinsoft/convertigo/beans/couchdb/images/designdocument_color_16x16.png";
-		iconNameC32 = "/com/twinsoft/convertigo/beans/couchdb/images/designdocument_color_32x32.png";
+		iconNameC16 = "/com/twinsoft/convertigo/beans/couchdb/images/view_color_16x16.png";
+		iconNameC32 = "/com/twinsoft/convertigo/beans/couchdb/images/view_color_32x32.png";
 		properties = new PropertyDescriptor[0];
 	}
 }
