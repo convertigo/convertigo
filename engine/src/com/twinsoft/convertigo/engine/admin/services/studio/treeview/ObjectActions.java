@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
 import com.twinsoft.convertigo.beans.rest.PostOperation;
 import com.twinsoft.convertigo.beans.rest.PutOperation;
@@ -140,6 +141,15 @@ public class ObjectActions {
 						true, "mdi:plus");
 			}
 		}
+		if (NgxImports.importsVariables(dbo)) {
+			add(items, "object.importNgxVariables", "Import variables from the targeted object",
+					"Add a variable for each variable of the called sequence, invoked shared action or used shared component.",
+					true, "mdi:import");
+		}
+		if (NgxImports.importsEvents(dbo)) {
+			add(items, "object.importNgxEvents", "Import events from the targeted object",
+					"Add an event for each event of the used shared component.", true, "mdi:import");
+		}
 		if (Variables.handles(dbo)) {
 			add(items, "object.variables", dbo instanceof AbstractHttpTransaction ? "Add or remove dynamic variables…" : "Add variables…",
 					"Choose the variables of this transaction among the ones it can use.", true, "mdi:variable")
@@ -224,6 +234,14 @@ public class ObjectActions {
 			}
 			if (((IVariableContainer) dbo).numberOfVariables() == variables) {
 				return result(true, "The variables were already imported.").put("changed", false);
+			}
+		}
+		case "object.importNgxVariables", "object.importNgxEvents" -> {
+			var added = "object.importNgxEvents".equals(actionId) && dbo instanceof UIUseShared useShared
+					? NgxImports.importEvents(useShared)
+					: NgxImports.importVariables(dbo);
+			if (added == 0) {
+				return result(true, "The component already has them.").put("changed", false);
 			}
 		}
 		case "object.createView" -> {
