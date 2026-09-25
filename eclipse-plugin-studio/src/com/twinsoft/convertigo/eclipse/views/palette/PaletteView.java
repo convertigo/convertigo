@@ -635,7 +635,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 
 		ToolBar bar = new ToolBar(top, SWT.NONE);
 		ToolItem tiLink = new ToolItem(bar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(tiLink, "icons/studio/resize_connector.gif", "Link", "Link with the 'Projects tree' selection");
+		SwtUtils.setToolItemIcon(tiLink, "icons/studio/resize_connector.svg", "Link", "Link with the 'Projects tree' selection");
 		tiLink.setData("style", "background: unset");
 		tiLink.setSelection(!"off".equals(ConvertigoPlugin.getProperty("palette.link")));
 		if (isType) {
@@ -1451,9 +1451,9 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			try {
 				var plugin = ConvertigoPlugin.getDefault();
 				if (lb.getData("Show") == Boolean.TRUE) {
-					lb.setImage(plugin.getStudioIcon("icons/studio/show.gif"));
+					lb.setImage(plugin.getStudioIcon("icons/studio/show.svg"));
 				} else {
-					lb.setImage(plugin.getStudioIcon("icons/studio/hide.gif"));
+					lb.setImage(plugin.getStudioIcon("icons/studio/hide.svg"));
 				}
 			} catch (IOException e1) {
 			}

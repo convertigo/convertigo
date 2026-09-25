@@ -353,7 +353,7 @@ public class C8oBrowser extends Composite {
 	public void addToolItemBack(ToolBar toolbar) {
 		var ti = new ToolItem(toolbar, SWT.NONE);
 		try {
-			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/handlers_sc_exit.gif"));
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/handlers_sc_exit.svg"));
 		} catch (IOException e) {
 			ti.setText("←");
 		}
@@ -374,7 +374,7 @@ public class C8oBrowser extends Composite {
 	public void addToolItemStop(ToolBar toolbar) {
 		var ti = new ToolItem(toolbar, SWT.NONE);
 		try {
-			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/stop_transaction.gif"));
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/stop_transaction.svg"));
 		} catch (IOException e) {
 			ti.setText("X");
 		}
@@ -395,7 +395,7 @@ public class C8oBrowser extends Composite {
 	public void addToolItemRefresh(ToolBar toolbar, Runnable refreshAction) {
 		var ti = new ToolItem(toolbar, SWT.NONE);
 		try {
-			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/refresh.gif"));
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/refresh.svg"));
 		} catch (IOException e) {
 			ti.setText("R");
 		}
@@ -416,7 +416,7 @@ public class C8oBrowser extends Composite {
 	public void addToolItemForward(ToolBar toolbar) {
 		var ti = new ToolItem(toolbar, SWT.NONE);
 		try {
-			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/handlers_sc_entry.gif"));
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/handlers_sc_entry.svg"));
 		} catch (IOException e) {
 			ti.setText("→");
 		}

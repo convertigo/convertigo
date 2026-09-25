@@ -108,7 +108,7 @@ class SourcePickerComposite extends Composite {
 		
 		showBtn = new ToolItem(tb, SWT.NONE);
 		showBtn.setEnabled(false);
-		SwtUtils.setToolItemIcon(showBtn, "icons/studio/find.gif", "Source", show_step_source);
+		SwtUtils.setToolItemIcon(showBtn, "icons/studio/find.svg", "Source", show_step_source);
 		showBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -119,7 +119,7 @@ class SourcePickerComposite extends Composite {
 		
 		remBtn = new ToolItem(tb, SWT.PUSH);
 		remBtn.setEnabled(false);
-		SwtUtils.setToolItemIcon(remBtn, "icons/studio/delete.gif", "Remove", remove_source);
+		SwtUtils.setToolItemIcon(remBtn, "icons/studio/delete.svg", "Remove", remove_source);
 		remBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

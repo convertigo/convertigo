@@ -196,7 +196,8 @@ public class SwtUtils {
 	/**
 	 * Creates an image drawn with its double size variant on a HiDPI screen, when the
 	 * variant exists: name_32x32.png for name_16x16.png, or name@2x.png for name.png.
-	 * Without it, the variant of name_NNxNN.png is drawn from its name.svg source.
+	 * Without it, the variant of an svg image is drawn at double size, and the one of
+	 * name_NNxNN.png is drawn from its name.svg source.
 	 * Returns null when the image cannot be read.
 	 */
 	public static Image createImage(Device device, String path, ImageOpener opener, UnaryOperator<ImageData> filter) {
@@ -253,15 +254,19 @@ public class SwtUtils {
 	private static final Pattern svgSizePattern = Pattern.compile("\\s(?:width|height)\\s*=\\s*(?:\"[^\"]*\"|'[^']*')");
 
 	/**
-	 * Draws the name.svg source of name_NNxNN.png at width x height, centered and scaled
-	 * to fit its viewBox, as the build does when it makes the png from the svg.
+	 * Draws the svg image, or the name.svg source of name_NNxNN.png, at width x height,
+	 * centered and scaled to fit its viewBox, as the build does when it makes the png from the svg.
 	 */
 	private static ImageData drawSvgSource(String path, ImageOpener opener, int width, int height) {
-		var matcher = sizePattern.matcher(path);
-		if (!matcher.find()) {
-			return null;
+		var svgPath = path;
+		if (!path.endsWith(".svg")) {
+			var matcher = sizePattern.matcher(path);
+			if (!matcher.find()) {
+				return null;
+			}
+			svgPath = path.substring(0, matcher.start()) + ".svg";
 		}
-		try (var is = opener.open(path.substring(0, matcher.start()) + ".svg")) {
+		try (var is = opener.open(svgPath)) {
 			if (is == null) {
 				return null;
 			}

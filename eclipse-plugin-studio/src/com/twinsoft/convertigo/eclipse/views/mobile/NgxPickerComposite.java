@@ -1011,7 +1011,7 @@ public class NgxPickerComposite extends Composite {
 					}
 					
 				});
-				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/refresh.gif"));
+				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/refresh.svg"));
 			} catch (IOException e1) {
 				ti.setText("Refresh");
 			}
@@ -1038,7 +1038,7 @@ public class NgxPickerComposite extends Composite {
 					}
 					
 				});
-				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/project_open.gif"));
+				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/project_open.svg"));
 			} catch (IOException e1) {
 				ti.setText("Add");
 			}
@@ -1107,7 +1107,7 @@ public class NgxPickerComposite extends Composite {
 					}
 					
 				});
-				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/project_explorer.gif"));
+				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/project_explorer.svg"));
 			} catch (IOException e1) {
 				ti.setText("Explore");
 			}
@@ -1173,7 +1173,7 @@ public class NgxPickerComposite extends Composite {
 				public Image getImage(Object element) {
 					File file = (File) element;
 					try {
-						return ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/" + (file.isDirectory() ? "folder.png" : "new.gif"));
+						return ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/" + (file.isDirectory() ? "folder.png" : "file.svg"));
 					} catch (IOException e) {
 						return super.getImage(element);
 					}

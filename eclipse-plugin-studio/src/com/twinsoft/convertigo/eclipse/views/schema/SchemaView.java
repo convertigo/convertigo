@@ -194,7 +194,7 @@ public class SchemaView extends ViewPart implements IPartListener2, ISelectionLi
 		ToolBar toolbar = new ToolBar(composite, SWT.NONE);
 
 		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(toolItem, "icons/studio/refresh.gif", "R", "Refresh");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/refresh.svg", "R", "Refresh");
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			needRefresh = true;
 			Engine.theApp.schemaManager.clearCache(projectName);
@@ -202,18 +202,18 @@ public class SchemaView extends ViewPart implements IPartListener2, ISelectionLi
 		});
 
 		toolItem = autoRefresh = new ToolItem(toolbar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(toolItem, "icons/studio/refresh.d.gif", "AR", "Toggle auto refresh");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/refresh_auto.svg", "AR", "Toggle auto refresh");
 		toolItem.setSelection(true);
 
 		toolItem = autoValidate = new ToolItem(toolbar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(toolItem, "icons/studio/validate.gif", "AV", "Toggle auto validate");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/validate.svg", "AV", "Toggle auto validate");
 		toolItem.setSelection(false);
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			needValidate = autoValidate.getSelection();
 		});
 
 		toolItem = internalSchema = new ToolItem(toolbar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(toolItem, "icons/studio/pretty_print.gif", "IS", "Toggle internal schema");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/pretty_print.svg", "IS", "Toggle internal schema");
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			needRefresh = true;
 			updateSchema((IStructuredSelection) ConvertigoPlugin.getDefault().getProjectExplorerView().viewer.getSelection());
@@ -273,13 +273,13 @@ public class SchemaView extends ViewPart implements IPartListener2, ISelectionLi
 		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.svg", "C", "Collapse all");
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			domTree.collapseAll();
 		});
 
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.svg", "E", "Expand all");
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			domTree.expandAll();
 		});
@@ -393,14 +393,14 @@ public class SchemaView extends ViewPart implements IPartListener2, ISelectionLi
 		final TreeViewer treeViewer = new TreeViewer(composite);
 
 		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.svg", "C", "Collapse all");
 
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			treeViewer.collapseAll();
 		});
 
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
+		SwtUtils.setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.svg", "E", "Expand all");
 
 		toolItem.addSelectionListener((SelectionListener) (e) -> {
 			treeViewer.expandToLevel(50);

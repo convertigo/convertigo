@@ -87,7 +87,7 @@ public class StubDynamicMenu extends ContributionItem {
 							Image image = null;
 							try {
 								image = ConvertigoPlugin.getDefault()
-										.getStudioIcon("icons/studio/transaction_execute_selected.gif");
+										.getStudioIcon("icons/studio/transaction_execute_selected.svg");
 							} catch (Exception e) {
 							}
 
@@ -143,7 +143,7 @@ public class StubDynamicMenu extends ContributionItem {
 						Image image = null;
 						try {
 							image = ConvertigoPlugin.getDefault()
-									.getStudioIcon("icons/studio/transaction_execute_selected.gif");
+									.getStudioIcon("icons/studio/transaction_execute_selected.svg");
 						} catch (Exception e) {
 						}
 

@@ -40,6 +40,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -65,6 +66,10 @@ import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.DefaultScope;
+import org.eclipse.e4.ui.model.application.MApplication;
+import org.eclipse.e4.ui.model.application.ui.MUILabel;
+import org.eclipse.e4.ui.model.application.ui.basic.MPart;
+import org.eclipse.e4.ui.workbench.modeling.EModelService;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.ModalContext;
@@ -1021,6 +1026,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public void earlyStartup() {
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		asyncExec(() -> {
+			updateGifIconURIs(workbench);
 			IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 			if (window != null) {
 				if (perspectiveListener == null) {
@@ -1053,6 +1059,31 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	 */
 	private static void disableAngularServerForTypeScript() {
 		DefaultScope.INSTANCE.getNode("org.eclipse.lsp4e").put("org.eclipse.wildwebdeveloper.angular/org.eclipse.tm4e.language_pack.typescript", "false");
+	}
+
+	/**
+	 * Most GIF icons of the Studio are now SVG ones: the workbench model of a workspace
+	 * keeps the former icon URI of its views, replaced here by the SVG one when it exists.
+	 */
+	private void updateGifIconURIs(IWorkbench workbench) {
+		try {
+			var application = workbench.getService(MApplication.class);
+			var modelService = workbench.getService(EModelService.class);
+			var prefix = "platform:/plugin/" + getBundle().getSymbolicName() + "/";
+			Consumer<MUILabel> update = label -> {
+				var uri = label.getIconURI();
+				if (uri != null && uri.startsWith(prefix) && uri.endsWith(".gif")) {
+					var svg = uri.substring(prefix.length(), uri.length() - ".gif".length()) + ".svg";
+					if (FileLocator.find(getBundle(), new Path(svg), null) != null) {
+						label.setIconURI(prefix + svg);
+					}
+				}
+			};
+			application.getDescriptors().forEach(update);
+			modelService.findElements(application, null, MPart.class, null, EModelService.ANYWHERE).forEach(update);
+		} catch (Exception e) {
+			studioLog.debug("Could not update the icons of the views: " + e);
+		}
 	}
 
 	static public int getTraceplayerPort() {

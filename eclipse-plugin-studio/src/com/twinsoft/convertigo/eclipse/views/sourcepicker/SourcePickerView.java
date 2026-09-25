@@ -85,7 +85,7 @@ public class SourcePickerView extends ViewPart implements StepSourceListener, IS
 		for (ToolItem tiLink: Arrays.asList(spc.getTiLink(), npc.getTiLink(), mpc.getTiLink(), fpc.getTiLink())) {
 			tiLink.setToolTipText("Link with the 'Projects tree' selection");
 			try {
-				tiLink.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/resize_connector.gif"));
+				tiLink.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/resize_connector.svg"));
 			} catch (Exception e3) {
 				tiLink.setText("Link");
 			}

@@ -748,7 +748,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(tb, SWT.SEPARATOR);
 
 		button = new ToolItem(tb, SWT.PUSH);
-		SwtUtils.setToolItemIcon(button, "icons/studio/dbo_save.gif", "Save", "Save");
+		SwtUtils.setToolItemIcon(button, "icons/studio/dbo_save.svg", "Save", "Save");
 		button.addSelectionListener((SelectionListener) e -> {
 			String name = deviceName.getText().trim();
 
@@ -788,7 +788,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		button = new ToolItem(tb, SWT.PUSH);
-		SwtUtils.setToolItemIcon(button, "icons/studio/project_delete.gif", "Delete", "Delete");
+		SwtUtils.setToolItemIcon(button, "icons/studio/project_delete.svg", "Delete", "Delete");
 		button.addSelectionListener((SelectionListener) e -> {
 			String name = deviceName.getText().trim();
 
@@ -874,14 +874,14 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		item = new ToolItem(toolbar, SWT.PUSH);
 		var refreshBtn = item;
-		SwtUtils.setToolItemIcon(item, "icons/studio/refresh.gif", "Refresh", "Refresh");
+		SwtUtils.setToolItemIcon(item, "icons/studio/refresh.svg", "Refresh", "Refresh");
 		item.addSelectionListener((SelectionListener) e -> {
 			disableEdition();
 			doReload();
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(item, "icons/studio/undo.gif", "Back", "Back");
+		SwtUtils.setToolItemIcon(item, "icons/studio/undo.svg", "Back", "Back");
 		item.addSelectionListener((SelectionListener) e -> {
 			C8oBrowser.run(() -> {
 				int index = c8oBrowser.getCurrentNavigationEntryIndex();
@@ -1051,7 +1051,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(item, "icons/studio/write_wait_zone.gif", "Remove highlight", "Remove highlight");
+		SwtUtils.setToolItemIcon(item, "icons/studio/write_wait_zone.svg", "Remove highlight", "Remove highlight");
 		item.addSelectionListener((SelectionListener) e -> {
 			exHighlightElement = null;
 			exHighlightMobileComponent = null;
@@ -1067,7 +1067,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(item, "icons/studio/debug.gif", "Show debug", "Show debug");
+		SwtUtils.setToolItemIcon(item, "icons/studio/debug.svg", "Show debug", "Show debug");
 		item.addSelectionListener((SelectionListener) e -> {
 			MobileDebugView view = ConvertigoPlugin.getDefault().getMobileDebugView(true);
 			getSite().getPage().activate(view);
@@ -1222,7 +1222,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
 		item = new ToolItem(toolbar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(item, "icons/studio/accumulate.gif", "Toggle auto build", "Toggle auto build");
+		SwtUtils.setToolItemIcon(item, "icons/studio/accumulate.svg", "Toggle auto build", "Toggle auto build");
 		item.setSelection(true);
 		item.addSelectionListener((SelectionListener) e -> {
 			MobileBuilder mb = project.getMobileBuilder();
@@ -1230,7 +1230,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(item, "icons/studio/show_blocks.gif", "Manage modules", "Manage modules");
+		SwtUtils.setToolItemIcon(item, "icons/studio/show_blocks.svg", "Manage modules", "Manage modules");
 		item.addSelectionListener((SelectionListener) e -> {
 			MessageDialog dialog = new MessageDialog(
 					null, "Node_module Update / Reinstall",
@@ -1248,15 +1248,15 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
 		item = new ToolItem(toolbar, SWT.DROP_DOWN);
-		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_show_history.gif", "Select dataset", "Select dataset");
+		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_show_history.svg", "Select dataset", "Select dataset");
 
 		SelectionListener selectionListener = e -> {
 			setDataset(((MenuItem) e.widget).getText());
 		};
 
 		try {
-			Image iDataset = plugin.getStudioIcon("icons/studio/cvs_checkin.gif");
-			Image iDatasetSelected = plugin.getStudioIcon("icons/studio/cvs_checkout.gif");
+			Image iDataset = plugin.getStudioIcon("icons/studio/cvs_checkin.svg");
+			Image iDatasetSelected = plugin.getStudioIcon("icons/studio/cvs_checkout.svg");
 			final Menu mDataset = new Menu(toolbar);
 
 			item.addSelectionListener((SelectionListener) e -> {
@@ -1294,7 +1294,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		} catch (Exception e) {
 		}
 		item = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_add.gif", "Save dataset", "Save dataset");
+		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_add.svg", "Save dataset", "Save dataset");
 		item.addSelectionListener((SelectionListener) e -> {
 			String[] name = {dataset.equals("none") ? "" : dataset};
 			String extra = "";
@@ -1346,7 +1346,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_delete.gif", "Remove dataset", "Remove dataset");
+		SwtUtils.setToolItemIcon(item, "icons/studio/cvs_delete.svg", "Remove dataset", "Remove dataset");
 		item.addSelectionListener((SelectionListener) e -> {
 			if (!dataset.equals("none")) {
 				boolean ok = MessageDialog.openQuestion(null, "Delete '" + dataset + "' ?", "You really want delete'" + dataset + "' ?");

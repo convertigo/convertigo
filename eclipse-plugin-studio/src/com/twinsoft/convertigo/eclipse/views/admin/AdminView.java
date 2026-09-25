@@ -100,7 +100,7 @@ public class AdminView extends ViewPart {
 
 		ti = new ToolItem(tb, SWT.NONE);
 		try {
-			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/administration_16x16.gif"));
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/administration_16x16.svg"));
 		} catch (IOException e1) {
 		}
 		ti.setText("Home");

@@ -194,7 +194,7 @@ public class RhinoDebug extends Composite implements GuiCallback {
 		        dim.detach();
 		        RhinoDebug.this.self.setVisible(false);
 			} else {
-				SwtUtils.setToolItemIcon(self, "icons/studio/disconnect.gif", "Disable Debugger", "Disable Debugger");
+				SwtUtils.setToolItemIcon(self, "icons/studio/disconnect.svg", "Disable Debugger", "Disable Debugger");
 		        dim.attachTo(ContextFactory.getGlobal());
 		        if (RhinoDebug.this.self != null) {
 		        	RhinoDebug.this.self.setVisible(true);
@@ -206,15 +206,15 @@ public class RhinoDebug extends Composite implements GuiCallback {
 		new ToolItem(toolbar, SWT.SEPARATOR);
     	
 		var toolitem = new ToolItem(toolbar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(toolitem, "icons/studio/pause.d.gif", "Break Exception", "Break on Exception");
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/break_exception.svg", "Break Exception", "Break on Exception");
 		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnExceptions(((ToolItem) e.widget).getSelection()));
 		
 		toolitem = new ToolItem(toolbar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(toolitem, "icons/studio/handlers_sc_entry.gif", "Break Funct in", "Break on Function enter");
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/handlers_sc_entry.svg", "Break Funct in", "Break on Function enter");
 		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnEnter(((ToolItem) e.widget).getSelection()));
 		
 		toolitem = new ToolItem(toolbar, SWT.CHECK);
-		SwtUtils.setToolItemIcon(toolitem, "icons/studio/handlers_sc_exit.gif", "Break Funct out", "Break on Function return");
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/handlers_sc_exit.svg", "Break Funct out", "Break on Function return");
 		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreakOnReturn(((ToolItem) e.widget).getSelection()));
 		
 		var gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -225,11 +225,11 @@ public class RhinoDebug extends Composite implements GuiCallback {
     	toolbar.setLayoutData(new GridData(GridData.CENTER));
     	
     	toolitem = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(toolitem, "icons/studio/pause.gif", "Break", "Break on next execution");
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/pause.svg", "Break", "Break on next execution");
 		toolitem.addSelectionListener((SelectionListener) e -> dim.setBreak());
 
 		toolitem = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(toolitem, "icons/studio/run.gif", "Go", "Continue execution");
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/run.svg", "Go", "Continue execution");
 		toolitem.addSelectionListener((SelectionListener) e -> {
 			updateEnabled(false);
 			dim.setReturnValue(Dim.GO);
@@ -243,7 +243,7 @@ public class RhinoDebug extends Composite implements GuiCallback {
 		});
 		
 		toolitem = new ToolItem(toolbar, SWT.PUSH);
-		SwtUtils.setToolItemIcon(toolitem, "icons/studio/step_by_step.gif", "Over", "Step Over");
+		SwtUtils.setToolItemIcon(toolitem, "icons/studio/step_by_step.svg", "Over", "Step Over");
 		toolitem.addSelectionListener((SelectionListener) e -> {
 			updateEnabled(false);
 			dim.setReturnValue(Dim.STEP_OVER);

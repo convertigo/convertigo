@@ -150,7 +150,7 @@ public class AssistantView extends ViewPart {
 
 		var ti = new ToolItem(tb, SWT.NONE);
 		try {
-			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/setupwizard_16x16.gif"));
+			ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/setupwizard_16x16.svg"));
 		} catch (Exception e1) {
 		}
 		ti.setText("Home");

@@ -621,7 +621,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		button = new ToolItem(tb, SWT.PUSH);
 		try {
-			button.setImage(plugin.getStudioIcon("icons/studio/dbo_save.gif"));
+			button.setImage(plugin.getStudioIcon("icons/studio/dbo_save.svg"));
 		} catch (Exception e) {
 		}
 		button.setToolTipText("Save");
@@ -669,7 +669,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		button = new ToolItem(tb, SWT.PUSH);
 		try {
-			button.setImage(plugin.getStudioIcon("icons/studio/project_delete.gif"));
+			button.setImage(plugin.getStudioIcon("icons/studio/project_delete.svg"));
 		} catch (Exception e) {
 		}
 		button.setToolTipText("Delete");
@@ -758,7 +758,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Refresh");
 		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/refresh.gif"));
+			item.setImage(plugin.getStudioIcon("icons/studio/refresh.svg"));
 		} catch (Exception e) {
 		}
 		item.addSelectionListener(new SelectionAdapter() {
@@ -773,7 +773,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Back");
 		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/undo.gif"));
+			item.setImage(plugin.getStudioIcon("icons/studio/undo.svg"));
 		} catch (Exception e) {
 		}
 		item.addSelectionListener(new SelectionAdapter() {
@@ -795,7 +795,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Remove highlight");
 		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/write_wait_zone.gif"));
+			item.setImage(plugin.getStudioIcon("icons/studio/write_wait_zone.svg"));
 		} catch (Exception e) {
 		}
 		item.addSelectionListener(new SelectionAdapter() {
@@ -814,7 +814,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Show debug");
 		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/debug.gif"));
+			item.setImage(plugin.getStudioIcon("icons/studio/debug.svg"));
 		} catch (Exception e) {
 		}
 		item.addSelectionListener(new SelectionAdapter() {
@@ -854,7 +854,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item.setToolTipText("Toggle auto build");
 		item.setSelection(true);
 		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/accumulate.gif"));
+			item.setImage(plugin.getStudioIcon("icons/studio/accumulate.svg"));
 		} catch (Exception e) {
 		}
 		item.addSelectionListener(new SelectionAdapter() {
@@ -870,7 +870,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Manage modules");
 		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/show_blocks.gif"));
+			item.setImage(plugin.getStudioIcon("icons/studio/show_blocks.svg"));
 		} catch (Exception e) {
 		}
 		item.addSelectionListener(new SelectionAdapter() {
@@ -943,7 +943,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.DROP_DOWN);
 		item.setToolTipText("Select dataset");
 		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/cvs_show_history.gif"));
+			item.setImage(plugin.getStudioIcon("icons/studio/cvs_show_history.svg"));
 		} catch (Exception e) {
 		}
 
@@ -956,8 +956,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		};
 		try {
-			Image iDataset = plugin.getStudioIcon("icons/studio/cvs_checkin.gif");
-			Image iDatasetSelected = plugin.getStudioIcon("icons/studio/cvs_checkout.gif");
+			Image iDataset = plugin.getStudioIcon("icons/studio/cvs_checkin.svg");
+			Image iDatasetSelected = plugin.getStudioIcon("icons/studio/cvs_checkout.svg");
 			final Menu mDataset = new Menu(toolbar);
 
 			item.addSelectionListener(new SelectionAdapter() {
@@ -1002,7 +1002,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Save dataset");
 		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/cvs_add.gif"));
+			item.setImage(plugin.getStudioIcon("icons/studio/cvs_add.svg"));
 		} catch (Exception e) {
 		}
 		item.addSelectionListener(new SelectionAdapter() {
@@ -1063,7 +1063,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Remove dataset");
 		try {
-			item.setImage(plugin.getStudioIcon("icons/studio/cvs_delete.gif"));
+			item.setImage(plugin.getStudioIcon("icons/studio/cvs_delete.svg"));
 		} catch (Exception e) {
 		}
 		item.addSelectionListener(new SelectionAdapter() {

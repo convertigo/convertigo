@@ -20,21 +20,21 @@
 		<editor
 			class="com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor"
 			default="false"
-			icon="icons/convertigo_doc_16x16.gif"
+			icon="icons/convertigo_doc_16x16.svg"
 			id="com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor"
 			name="Application Editor">
 		</editor>
 		<editor
 			class="com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor"
 			default="false"
-			icon="icons/convertigo_doc_16x16.gif"
+			icon="icons/convertigo_doc_16x16.svg"
 			id="com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor"
 			name="Application Editor">
 		</editor>
 		<editor
 			class="com.twinsoft.convertigo.eclipse.editors.StartupEditor"
 			default="false"
-			icon="icons/convertigo_doc_16x16.gif"
+			icon="icons/convertigo_doc_16x16.svg"
 			id="com.twinsoft.convertigo.eclipse.editors.StartupEditor"
 			name="Convertigo Startup">
 		</editor>
@@ -88,7 +88,7 @@
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.OpenTutorialView"
-				icon="icons/studio/information_16x16.gif"
+				icon="icons/studio/information_16x16.svg"
 				id="com.twinsoft.convertigo.OpenTutorialView"
 				label="&amp;Open the Tutorial view"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
@@ -102,13 +102,13 @@
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.AdministrationAction"
-				icon="icons/administration_16x16.gif"
+				icon="icons/administration_16x16.svg"
 				id="com.twinsoft.convertigo.Administration"
 				label="&amp;Open web administration console"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.OpenLogViewerViewAction"
-				icon="icons/consoles/engine.gif"
+				icon="icons/consoles/engine.svg"
 				id="com.twinsoft.convertigo.OpenLogViewerView"
 				label="&amp;Open engine log viewer"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator" />
@@ -120,27 +120,27 @@
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.OpenConvertigoDocumentationAction"
-				icon="icons/convertigo_doc_16x16.gif"
+				icon="icons/convertigo_doc_16x16.svg"
 				id="com.twinsoft.convertigo.OpenConvertigoDocumentation"
 				label="&amp;Open Convertigo Documentation"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.OpenConvertigoWorkspaceFolderAction"
-				icon="icons/studio/options.gif"
+				icon="icons/studio/options.svg"
 				id="com.twinsoft.convertigo.OpenConvertigoWorkspaceFolder"
 				label="&amp;Open Convertigo workspace folder"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.CheckRemoteDependenciesAction"
-				icon="icons/studio/remote_dependencies.gif"
+				icon="icons/studio/remote_dependencies.svg"
 				id="com.twinsoft.convertigo.CheckRemoteDependenvies"
 				label="&amp;Check remote dependencies"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.SetupAction"
-				icon="icons/setupwizard_16x16.gif"
+				icon="icons/setupwizard_16x16.svg"
 				id="com.twinsoft.convertigo.Setup"
 				label="&amp;Configure Registration Account"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator" />
@@ -152,7 +152,7 @@
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.OpenPreferencesAction"
-				icon="icons/studio/xml.gif"
+				icon="icons/studio/xml.svg"
 				id="com.twinsoft.convertigo.EnginePreference"
 				label="&amp;Engine Preferences"
 				menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator" />
@@ -651,7 +651,7 @@
 				enablesFor="1"
 				id="convertigo.action.openMobileApplicationBuilderReIntall"
 				label="Re-install packages and Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 				<enablement>
 					<objectState
@@ -665,7 +665,7 @@
 				enablesFor="1"
 				id="convertigo.action.openMobileApplicationBuilderUpdate"
 				label="Update packages and Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 				<enablement>
 					<objectState
@@ -679,7 +679,7 @@
 				enablesFor="1"
 				id="convertigo.action.openMobileApplicationBuilder"
 				label="Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 				<enablement>
 					<objectState
@@ -779,7 +779,7 @@
 				enablesFor="1"
 				id="convertigo.action.openMobileBuilderReIntall"
 				label="Re-install packages and Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 			</action>
 			<action
@@ -787,7 +787,7 @@
 				enablesFor="1"
 				id="convertigo.action.openMobileBuilderUpdate"
 				label="Update packages and Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 			</action>
 			<action
@@ -795,7 +795,7 @@
 				enablesFor="1"
 				id="convertigo.action.openMobileBuilder"
 				label="Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 			</action>
 		</objectContribution>
@@ -845,7 +845,7 @@
 				enablesFor="1"
 				id="convertigo.action.openMobileBuilderReIntall"
 				label="Re-install packages and Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 			</action>
 			<action
@@ -853,7 +853,7 @@
 				enablesFor="1"
 				id="convertigo.action.openMobileBuilderUpdate"
 				label="Update packages and Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 			</action>
 			<action
@@ -861,7 +861,7 @@
 				enablesFor="1"
 				id="convertigo.action.openMobileBuilder"
 				label="Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 			</action>
 		</objectContribution>
@@ -1165,7 +1165,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.I18nUIComponentAction"
 				enablesFor="1"
-				icon="icons/studio/views.gif"
+				icon="icons/studio/views.svg"
 				id="convertigo.action.EnableI18nNgxUIComponentAction"
 				label="Enable I18n recursively"
 				menubarPath="i18n">
@@ -1173,7 +1173,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.I18nUIComponentAction"
 				enablesFor="1"
-				icon="icons/studio/views.gif"
+				icon="icons/studio/views.svg"
 				id="convertigo.action.DisableI18nNgxUIComponentAction"
 				label="Disable I18n recursively"
 				menubarPath="i18n">
@@ -1313,7 +1313,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
 				enablesFor="1"
-				icon="icons/studio/clipboard_paste.gif"
+				icon="icons/studio/clipboard_paste.svg"
 				id="convertigo.action.pasteAction"
 				label="Paste"
 				menubarPath="clipboard">
@@ -1326,21 +1326,21 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_copy.gif"
+				icon="icons/studio/clipboard_copy.svg"
 				id="convertigo.action.copyAction"
 				label="Copy"
 				menubarPath="clipboard" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_cut.gif"
+				icon="icons/studio/clipboard_cut.svg"
 				id="convertigo.action.cutAction"
 				label="Cut"
 				menubarPath="clipboard" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDeleteAction"
 				enablesFor="+"
-				icon="icons/studio/delete.gif"
+				icon="icons/studio/delete.svg"
 				id="convertigo.action.deleteAction"
 				label="Delete"
 				menubarPath="delete"
@@ -1404,14 +1404,14 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction"
 				enablesFor="1"
-				icon="icons/studio/dbo_increase_priority.gif"
+				icon="icons/studio/dbo_increase_priority.svg"
 				id="convertigo.action.increasePriority"
 				label="Increase priority"
 				menubarPath="priority" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
 				enablesFor="1"
-				icon="icons/studio/dbo_decrease_priority.gif"
+				icon="icons/studio/dbo_decrease_priority.svg"
 				id="convertigo.action.decreasePriority"
 				label="Decrease priority"
 				menubarPath="priority" />
@@ -1423,7 +1423,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectOpenAction"
 				enablesFor="+"
-				icon="icons/studio/project_open.gif"
+				icon="icons/studio/project_open.svg"
 				id="convertigo.action.openProject"
 				label="Open"
 				menubarPath="project"
@@ -1431,7 +1431,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.UnloadedProjectDeleteAction"
 				enablesFor="+"
-				icon="icons/studio/project_delete.gif"
+				icon="icons/studio/project_delete.svg"
 				id="convertigo.action.deleteProjectAction"
 				label="Delete"
 				menubarPath="project" />
@@ -1490,7 +1490,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction"
 				enablesFor="1"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				id="convertigo.action.executeSelectedTransaction"
 				label="Execute"
 				menubarPath="execute" />
@@ -1577,21 +1577,21 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyProjectRemoteURLAction"
 				enablesFor="1"
-				icon="icons/studio/clipboard_copy.gif"
+				icon="icons/studio/clipboard_copy.svg"
 				id="convertigo.action.copyProjectRemoteURL"
 				label="Copy Project Remote URL"
 				menubarPath="clipboard" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCloseAction"
 				enablesFor="+"
-				icon="icons/studio/close.gif"
+				icon="icons/studio/close.svg"
 				id="convertigo.action.closeProject"
 				label="Close"
 				menubarPath="save" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectSaveAction"
 				enablesFor="1"
-				icon="icons/studio/project_save.gif"
+				icon="icons/studio/project_save.svg"
 				id="convertigo.action.saveProject"
 				label="Save"
 				menubarPath="save"
@@ -1633,28 +1633,28 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
 				enablesFor="1"
-				icon="icons/studio/hide.gif"
+				icon="icons/studio/ignore.svg"
 				id="convertigo.action.upgradeCI.httpignore"
 				label="Update .httpignore"
 				menubarPath="convertigo.menu.ci/content" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"
 				enablesFor="1"
-				icon="icons/studio/project_export.gif"
+				icon="icons/studio/project_export.svg"
 				id="convertigo.action.exportProject"
 				label="Export"
 				menubarPath="project" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectDeployAction"
 				enablesFor="1"
-				icon="icons/studio/project_deploy.gif"
+				icon="icons/studio/project_deploy.svg"
 				id="convertigo.action.deployProject"
 				label="Deploy"
 				menubarPath="project" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRefreshAction"
 				enablesFor="1"
-				icon="icons/studio/refresh.gif"
+				icon="icons/studio/refresh.svg"
 				id="convertigo.action.reloadXmlProject"
 				label="Reload your project"
 				menubarPath="project" />
@@ -1685,7 +1685,7 @@
 				menubarPath="project" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CustomStatisticsAction"
-				icon="icons/studio/statistics.gif"
+				icon="icons/studio/statistics.svg"
 				id="convertigo.action.customStatisticsAction"
 				label="Statistics"
 				menubarPath="stats" />
@@ -1733,7 +1733,7 @@
 			<!--action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileDeviceAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/new.svg"
                id="convertigo.action.newMobileDevice"
                label="Mobile device"
                menubarPath="convertigo.menu.new/content">
@@ -1835,7 +1835,7 @@
 				enablesFor="1"
 				id="convertigo.action.openProjectMobileBuilderReIntall"
 				label="Re-install packages and Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 				<enablement>
 					<objectState
@@ -1849,7 +1849,7 @@
 				enablesFor="1"
 				id="convertigo.action.openProjectMobileBuilderUpdate"
 				label="Update packages and Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 				<enablement>
 					<objectState
@@ -1863,7 +1863,7 @@
 				enablesFor="1"
 				id="convertigo.action.openProjectMobileBuilder"
 				label="Execute"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				menubarPath="execute">
 				<enablement>
 					<objectState
@@ -2134,7 +2134,7 @@
 			<!--action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileDeviceAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/new.svg"
                id="convertigo.action.newMobileDevice"
                label="Mobile device"
                menubarPath="convertigo.menu.new/content">
@@ -3010,7 +3010,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction"
 				enablesFor="1"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				id="convertigo.action.executeSelectedSequence"
 				label="Execute"
 				menubarPath="execute">
@@ -3123,7 +3123,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentValidateAction"
 				enablesFor="1"
-				icon="icons/studio/new.gif"
+				icon="icons/studio/new.svg"
 				id="convertigo.action.newDocumentValidate"
 				label="Validate"
 				menubarPath="convertigo.menu.document.new/content">
@@ -3131,7 +3131,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentUpdateAction"
 				enablesFor="1"
-				icon="icons/studio/new.gif"
+				icon="icons/studio/new.svg"
 				id="convertigo.action.newDocumentUpdate"
 				label="Filter"
 				menubarPath="convertigo.menu.document.new/content">
@@ -3139,7 +3139,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentFilterAction"
 				enablesFor="1"
-				icon="icons/studio/new.gif"
+				icon="icons/studio/new.svg"
 				id="convertigo.action.newDocumentFilter"
 				label="Filter"
 				menubarPath="convertigo.menu.document.new/content">
@@ -3147,7 +3147,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentViewAction"
 				enablesFor="1"
-				icon="icons/studio/new.gif"
+				icon="icons/studio/new.svg"
 				id="convertigo.action.newDocumentView"
 				label="View"
 				menubarPath="convertigo.menu.document.new/content">
@@ -3169,14 +3169,14 @@
 			</menu>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ViewExecuteNoReduceAction"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				id="convertigo.action.executeNoReduceView"
 				label="Execute without reduce (limit 50 rows)"
 				menubarPath="execute">
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ViewExecuteSelectedAction"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				id="convertigo.action.executeSelectedView"
 				label="Execute with reduce"
 				menubarPath="execute">
@@ -3184,7 +3184,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentViewReduceAction"
 				enablesFor="1"
-				icon="icons/studio/new.gif"
+				icon="icons/studio/new.svg"
 				id="convertigo.action.newDocumentViewReduce"
 				label="Row"
 				menubarPath="convertigo.menu.document.view.new/content">
@@ -3199,7 +3199,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DeleteDesignDocumentViewAction"
 				enablesFor="+"
-				icon="icons/studio/delete.gif"
+				icon="icons/studio/delete.svg"
 				id="convertigo.action.deleteDocumentView"
 				label="Delete"
 				menubarPath="delete">
@@ -3207,7 +3207,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
 				enablesFor="1"
-				icon="icons/studio/clipboard_paste.gif"
+				icon="icons/studio/clipboard_paste.svg"
 				id="convertigo.action.pasteAction"
 				label="Paste"
 				menubarPath="clipboard">
@@ -3220,14 +3220,14 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_copy.gif"
+				icon="icons/studio/clipboard_copy.svg"
 				id="convertigo.action.copyAction"
 				label="Copy"
 				menubarPath="clipboard" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_cut.gif"
+				icon="icons/studio/clipboard_cut.svg"
 				id="convertigo.action.cutAction"
 				label="Cut"
 				menubarPath="clipboard" />
@@ -3238,7 +3238,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DeleteDesignDocumentFunctionAction"
 				enablesFor="1"
-				icon="icons/studio/delete.gif"
+				icon="icons/studio/delete.svg"
 				id="convertigo.action.deleteDocumentFunction"
 				label="Delete"
 				menubarPath="delete">
@@ -3253,7 +3253,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
 				enablesFor="1"
-				icon="icons/studio/clipboard_paste.gif"
+				icon="icons/studio/clipboard_paste.svg"
 				id="convertigo.action.pasteAction"
 				label="Paste"
 				menubarPath="clipboard">
@@ -3266,14 +3266,14 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_copy.gif"
+				icon="icons/studio/clipboard_copy.svg"
 				id="convertigo.action.copyAction"
 				label="Copy"
 				menubarPath="clipboard" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_cut.gif"
+				icon="icons/studio/clipboard_cut.svg"
 				id="convertigo.action.cutAction"
 				label="Cut"
 				menubarPath="clipboard" />
@@ -3301,7 +3301,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreatePropertyTableRowAction"
 				enablesFor="1"
-				icon="icons/studio/new.gif"
+				icon="icons/studio/new.svg"
 				id="convertigo.action.newTablePropertyRow"
 				label="Row"
 				menubarPath="convertigo.menu.tableProperty.new/content">
@@ -3309,7 +3309,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
 				enablesFor="1"
-				icon="icons/studio/clipboard_paste.gif"
+				icon="icons/studio/clipboard_paste.svg"
 				id="convertigo.action.pasteAction"
 				label="Paste"
 				menubarPath="clipboard">
@@ -3322,14 +3322,14 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_copy.gif"
+				icon="icons/studio/clipboard_copy.svg"
 				id="convertigo.action.copyAction"
 				label="Copy"
 				menubarPath="clipboard" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_cut.gif"
+				icon="icons/studio/clipboard_cut.svg"
 				id="convertigo.action.cutAction"
 				label="Cut"
 				menubarPath="clipboard" />
@@ -3357,7 +3357,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.CreatePropertyTableColumnAction"
 				enablesFor="1"
-				icon="icons/studio/new.gif"
+				icon="icons/studio/new.svg"
 				id="convertigo.action.newTablePropertyCol"
 				label="Column"
 				menubarPath="convertigo.menu.tableRowProperty.new/content">
@@ -3370,7 +3370,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableRowAction"
 				enablesFor="1"
-				icon="icons/studio/delete.gif"
+				icon="icons/studio/delete.svg"
 				id="convertigo.action.deleteTableRowAction"
 				label="Delete"
 				menubarPath="delete">
@@ -3378,7 +3378,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction"
 				enablesFor="1"
-				icon="icons/studio/dbo_increase_priority.gif"
+				icon="icons/studio/dbo_increase_priority.svg"
 				id="convertigo.action.moveRowUp"
 				label="Up"
 				menubarPath="move">
@@ -3386,7 +3386,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
 				enablesFor="1"
-				icon="icons/studio/dbo_decrease_priority.gif"
+				icon="icons/studio/dbo_decrease_priority.svg"
 				id="convertigo.action.moveRowDown"
 				label="Down"
 				menubarPath="move">
@@ -3394,7 +3394,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
 				enablesFor="1"
-				icon="icons/studio/clipboard_paste.gif"
+				icon="icons/studio/clipboard_paste.svg"
 				id="convertigo.action.pasteAction"
 				label="Paste"
 				menubarPath="clipboard">
@@ -3407,14 +3407,14 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_copy.gif"
+				icon="icons/studio/clipboard_copy.svg"
 				id="convertigo.action.copyAction"
 				label="Copy"
 				menubarPath="clipboard" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_cut.gif"
+				icon="icons/studio/clipboard_cut.svg"
 				id="convertigo.action.cutAction"
 				label="Cut"
 				menubarPath="clipboard" />
@@ -3431,7 +3431,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableColumnAction"
 				enablesFor="1"
-				icon="icons/studio/delete.gif"
+				icon="icons/studio/delete.svg"
 				id="convertigo.action.deleteTableColAction"
 				label="Delete"
 				menubarPath="delete">
@@ -3439,7 +3439,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction"
 				enablesFor="1"
-				icon="icons/studio/dbo_increase_priority.gif"
+				icon="icons/studio/dbo_increase_priority.svg"
 				id="convertigo.action.moveColumnUp"
 				label="Up"
 				menubarPath="move">
@@ -3447,7 +3447,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
 				enablesFor="1"
-				icon="icons/studio/dbo_decrease_priority.gif"
+				icon="icons/studio/dbo_decrease_priority.svg"
 				id="convertigo.action.moveColumnDown"
 				label="Down"
 				menubarPath="move">
@@ -3455,7 +3455,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
 				enablesFor="1"
-				icon="icons/studio/clipboard_paste.gif"
+				icon="icons/studio/clipboard_paste.svg"
 				id="convertigo.action.pasteAction"
 				label="Paste"
 				menubarPath="clipboard">
@@ -3468,14 +3468,14 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_copy.gif"
+				icon="icons/studio/clipboard_copy.svg"
 				id="convertigo.action.copyAction"
 				label="Copy"
 				menubarPath="clipboard" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
 				enablesFor="+"
-				icon="icons/studio/clipboard_cut.gif"
+				icon="icons/studio/clipboard_cut.svg"
 				id="convertigo.action.cutAction"
 				label="Cut"
 				menubarPath="clipboard" />
@@ -3494,7 +3494,7 @@
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.TestCaseExecuteSelectedAction"
 				enablesFor="1"
-				icon="icons/studio/transaction_execute_selected.gif"
+				icon="icons/studio/transaction_execute_selected.svg"
 				id="convertigo.action.executeSelectedTestCase"
 				label="Run"
 				menubarPath="run">
@@ -3770,14 +3770,14 @@
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
-			icon="icons/picker_16x16.gif"
+			icon="icons/picker_16x16.svg"
 			id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
 			name="Source Picker">
 		</view>
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
-			icon="icons/references_16x16.gif"
+			icon="icons/references_16x16.svg"
 			id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
 			name="References"
 			restorable="true">
@@ -3785,7 +3785,7 @@
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.loggers.LogViewerView"
-			icon="icons/consoles/engine.gif"
+			icon="icons/consoles/engine.svg"
 			id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
 			name="Engine Log"
 			restorable="true">
@@ -3793,7 +3793,7 @@
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
-			icon="icons/consoles/engine.gif"
+			icon="icons/consoles/engine.svg"
 			id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView_legacy"
 			name="Engine Log (SWT legacy)"
 			restorable="true">
@@ -3801,7 +3801,7 @@
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.schema.SchemaView"
-			icon="icons/schema_16x16.gif"
+			icon="icons/schema_16x16.svg"
 			id="com.twinsoft.convertigo.eclipse.views.schema.SchemaView"
 			name="Schema"
 			restorable="true">
@@ -3817,7 +3817,7 @@
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
-			icon="icons/studio/information_16x16.gif"
+			icon="icons/studio/information_16x16.svg"
 			id="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
 			name="Tutorial"
 			restorable="true">
@@ -3841,7 +3841,7 @@
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.admin.AdminView"
-			icon="icons/administration_16x16.gif"
+			icon="icons/administration_16x16.svg"
 			id="com.twinsoft.convertigo.eclipse.views.admin.AdminView"
 			name="Convertigo Administration"
 			restorable="true">
@@ -3857,7 +3857,7 @@
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
-			icon="icons/studio/debug.gif"
+			icon="icons/studio/debug.svg"
 			id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
 			name="FrontEnd Debug"
 			restorable="true">
@@ -3865,7 +3865,7 @@
 		<view
 			category="convertigo"
 			class="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
-			icon="icons/studio/debug.gif"
+			icon="icons/studio/debug.svg"
 			id="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
 			name="Backend Debug"
 			restorable="true">
@@ -3928,8 +3928,8 @@
 			targetID="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView">
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerImportAction"
-				disabledIcon="icons/studio/project_import.gif"
-				icon="icons/studio/project_import.gif"
+				disabledIcon="icons/studio/project_import.svg"
+				icon="icons/studio/project_import.svg"
 				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.import"
 				label="Import"
 				menubarPath="additions"
@@ -3938,9 +3938,8 @@
 				tooltip="Import a project in treeview" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRefreshAction"
-				disabledIcon="icons/studio/refresh.d.gif"
 				enablesFor="*"
-				icon="icons/studio/refresh.gif"
+				icon="icons/studio/refresh.svg"
 				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.refresh"
 				label="Refresh"
 				menubarPath="additions"
@@ -3952,9 +3951,8 @@
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerSaveAllAction"
-				disabledIcon="icons/studio/project_save.d.gif"
 				enablesFor="1"
-				icon="icons/studio/project_save.gif"
+				icon="icons/studio/project_save.svg"
 				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.save"
 				label="Save"
 				menubarPath="additions"
@@ -3964,7 +3962,7 @@
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerToggleLibsAction"
-				icon="icons/studio/project_explorer.gif"
+				icon="icons/studio/project_explorer.svg"
 				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.toggleLibs"
 				label="ToggleLibs"
 				menubarPath="additions"
@@ -3974,10 +3972,9 @@
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction"
-				disabledIcon="icons/studio/dbo_increase_priority.d.gif"
 				enablesFor="+"
-				hoverIcon="icons/studio/dbo_increase_priority.gif"
-				icon="icons/studio/dbo_increase_priority.gif"
+				hoverIcon="icons/studio/dbo_increase_priority.svg"
+				icon="icons/studio/dbo_increase_priority.svg"
 				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.increasePriority"
 				label="Increase priority"
 				menubarPath="additions"
@@ -4017,10 +4014,9 @@
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
-				disabledIcon="icons/studio/dbo_decrease_priority.d.gif"
 				enablesFor="+"
-				hoverIcon="icons/studio/dbo_decrease_priority.gif"
-				icon="icons/studio/dbo_decrease_priority.gif"
+				hoverIcon="icons/studio/dbo_decrease_priority.svg"
+				icon="icons/studio/dbo_decrease_priority.svg"
 				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.decreasePriority"
 				label="Decrease priority"
 				menubarPath="additions"
@@ -4060,9 +4056,9 @@
 			</action>
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerFindAction"
-				disabledIcon="icons/studio/find.gif"
+				disabledIcon="icons/studio/find.svg"
 				enablesFor="*"
-				icon="icons/studio/find.gif"
+				icon="icons/studio/find.svg"
 				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.find"
 				label="Find"
 				menubarPath="additions"
@@ -4071,9 +4067,8 @@
 				tooltip="Find objects in projects treeview" />
 			<action
 				class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRunApplicationLowCodeEditor"
-				disabledIcon="icons/studio/run.d.gif"
 				enablesFor="*"
-				icon="icons/studio/run.gif"
+				icon="icons/studio/run.svg"
 				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.runapplicationlowcodeeditor"
 				label="Run Application Low Code editor"
 				menubarPath="additions"
