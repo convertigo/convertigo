@@ -48,6 +48,10 @@ public class ContextAction extends JSonService {
 		}
 		var dbo = FlowStudioSupport.resolveTreeObject(id);
 		response.put("id", id);
-		response.put("result", FlowStudioSupport.contextAction(dbo, new JSONObject(actionSource)));
+		var action = new JSONObject(actionSource);
+		var actionId = action.optString("id", "");
+		response.put("result", actionId.startsWith("object.") && ObjectActions.handles(dbo)
+				? ObjectActions.run(dbo, actionId)
+				: FlowStudioSupport.contextAction(dbo, action));
 	}
 }

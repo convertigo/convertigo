@@ -15,7 +15,12 @@
 		propertyDocumentationFromDefinition,
 		propertyDocumentationFromProperties
 	} from '$lib/studio/blockDefinition';
-	import { performDboDrop, shouldStartInlineRename } from '$lib/studio/dnd';
+	import {
+		inferMovedObjectId,
+		parentObjectId,
+		performDboDrop,
+		shouldStartInlineRename
+	} from '$lib/studio/dnd';
 	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
 	import { contextAuthoringMutation, isFrontendAuthoringNodeId } from '$lib/studio/flowAuthoring';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
@@ -36,9 +41,15 @@
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
 	import StudioEmptyState from '$lib/studio/StudioEmptyState.svelte';
 	import StudioExecutionPanel from '$lib/studio/StudioExecutionPanel.svelte';
+	import {
+		hasStudioClipboard,
+		pasteStudioClipboard,
+		putInStudioClipboard
+	} from '$lib/studio/studioClipboard.svelte.js';
 	import { flowBrowserPreview, flowSourceReveal } from '$lib/studio/studioFlowEvents';
 	import StudioIconButton from '$lib/studio/StudioIconButton.svelte';
 	import StudioLogsPanel from '$lib/studio/StudioLogsPanel.svelte';
+	import StudioNewProjectDialog from '$lib/studio/StudioNewProjectDialog.svelte';
 	import { createStudioMutationEventTracker } from '$lib/studio/studioMutationEvents';
 	import StudioPalettePanel from '$lib/studio/StudioPalettePanel.svelte';
 	import StudioPanel from '$lib/studio/StudioPanel.svelte';
@@ -54,8 +65,10 @@
 		call,
 		checkArray,
 		getStudioContextMenu,
+		removeDbo,
 		runStudioContextAction,
-		saveDboProject
+		saveDboProject,
+		toaster
 	} from '$lib/utils/service';
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -213,6 +226,9 @@
 	let pickerTarget = $state(null);
 	/** @type {SourceChoice | null} */
 	let sourceChoice = $state(null);
+	/** @type {{ request: { id: string, objectType: string, oldName: string, newName: string }, resolve: (update: string | null) => void } | null} */
+	let renameChoice = $state(null);
+	let newProjectOpen = $state(false);
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
 	let paletteRevealRequest = $state({ key: '', contextId: '', serial: 0 });
@@ -1507,6 +1523,10 @@
 	async function onStudioContextAction(event) {
 		const actionId = String(event?.action?.id ?? '');
 		const result = event?.result;
+		if (actionId.startsWith('object.') && result?.message) {
+			// the actions on the objects outside the Flows tell why they did nothing
+			(result.ok === false ? toaster.error : toaster.info)({ description: String(result.message) });
+		}
 		if (result?.ok === false) {
 			return;
 		}
@@ -1965,6 +1985,216 @@
 	}
 
 	/**
+	 * @param {string} id
+	 * @returns {boolean} whether the tree id is a database object, not a project or a folder
+	 */
+	function isTreeObjectId(id) {
+		return Boolean(id?.includes('.')) && !isTreeFolderId(id);
+	}
+
+	/**
+	 * @param {string} id
+	 * @returns {boolean}
+	 */
+	function isTreeFolderId(id) {
+		// a folder is `owner:type`, whereas an object is `owner.type:name`
+		const folder = id?.match(/^(.*):[a-z]{2,4}$/);
+		return Boolean(folder && !/\.[a-z]{2,4}$/.test(folder[1]));
+	}
+
+	/**
+	 * @param {string} nodeId
+	 * @returns {boolean}
+	 */
+	function canPasteInto(nodeId) {
+		return Boolean(nodeId) && hasStudioClipboard();
+	}
+
+	/**
+	 * Runs an action of the tree on one of its objects, from its menu or its shortcuts, as the tree of
+	 * Eclipse does.
+	 *
+	 * @param {string} action
+	 * @param {string} nodeId
+	 */
+	async function runTreeAction(action, nodeId) {
+		const projectName = parseSelection(nodeId).projectName;
+		if (action === 'edit.copy' || action === 'edit.cut') {
+			if (isTreeObjectId(nodeId)) {
+				await putInStudioClipboard(action === 'edit.cut' ? 'cut' : 'copy', [nodeId]);
+			}
+		} else if (action === 'edit.paste') {
+			await pasteIntoTree(nodeId);
+		} else if (action === 'object.rename') {
+			if (isTreeObjectId(nodeId)) {
+				selectedId = nodeId;
+				renameTargetId = nodeId;
+			}
+		} else if (action === 'object.delete') {
+			if (isTreeObjectId(nodeId)) {
+				await deleteTreeObject(nodeId);
+			} else if (!nodeId.includes('.') && !isTreeFolderId(nodeId)) {
+				await deleteProject(projectName);
+			}
+		} else if (action === 'state.enable' || action === 'state.disable') {
+			await setTreeObjectEnabled(nodeId, action === 'state.enable');
+		} else if (action === 'project.save') {
+			await saveSelectedProject();
+		} else if (action === 'project.reload') {
+			await reloadSelectedProject();
+		} else if (action === 'project.export') {
+			await call('projects.Export', { projectName });
+		} else if (action === 'project.dashboard') {
+			window.open(resolve(`/dashboard/${encodeURIComponent(projectName)}/`), '_blank');
+		} else if (action === 'project.delete') {
+			await deleteProject(projectName);
+		}
+	}
+
+	/**
+	 * Pastes the Studio clipboard into an object of the tree, or into the object holding a folder.
+	 * @param {string} nodeId
+	 */
+	async function pasteIntoTree(nodeId) {
+		const target = isTreeFolderId(nodeId) ? nodeId.replace(/:[a-z]{2,4}$/, '') : nodeId;
+		if (!target || !hasStudioClipboard()) {
+			return;
+		}
+		let handled = false;
+		onStudioMutationBusyChange(true);
+		try {
+			const result = await pasteStudioClipboard(target);
+			if (!result.ids.length) {
+				toaster.error({
+					description: result.error || 'The clipboard cannot be pasted inside the selected object.'
+				});
+				return;
+			}
+			handled = true;
+			const sourceId = result.sourceIds[0] ?? '';
+			// a cut object keeps its name under its new parent
+			const pastedId =
+				result.kind === 'cut'
+					? inferMovedObjectId({
+							payload: { type: 'treeData', data: { id: sourceId } },
+							target,
+							position: 'inside'
+						})
+					: result.ids[0];
+			await onStudioMutation({
+				done: true,
+				id: pastedId,
+				selectedId: pastedId,
+				target,
+				parentId: target,
+				previousParentId: result.kind === 'cut' ? parentObjectId(sourceId) : undefined,
+				position: 'inside',
+				source: 'studio',
+				payload: { type: 'treeData', data: { id: sourceId } }
+			});
+		} finally {
+			onStudioMutationBusyChange(false, handled);
+		}
+	}
+
+	/**
+	 * @param {string} id
+	 */
+	async function deleteTreeObject(id) {
+		const name = id.slice(Math.max(id.lastIndexOf('.'), id.lastIndexOf(':')) + 1);
+		if (!window.confirm(`Delete "${name}"?\n\nThis action cannot be undone.`)) {
+			return;
+		}
+		const result = await removeDbo(id);
+		if (!result?.done) {
+			return;
+		}
+		const parentId = parentObjectId(id);
+		await onStudioMutation({
+			done: true,
+			id: parentId,
+			selectedId: parentId,
+			target: id,
+			position: 'inside',
+			source: 'studio',
+			payload: { type: 'deleteData', data: { id } }
+		});
+	}
+
+	/**
+	 * @param {string} id
+	 * @param {boolean} enabled
+	 */
+	async function setTreeObjectEnabled(id, enabled) {
+		const result = await call('studio.properties.Set', {
+			id,
+			prop: JSON.stringify({ name: 'isEnabled', value: String(enabled) })
+		});
+		if (result?.done) {
+			await onStudioMutation({
+				done: true,
+				id,
+				selectedId: id,
+				target: id,
+				position: 'inside',
+				source: 'studio',
+				payload: { type: 'propertyData', data: { id } }
+			});
+		}
+	}
+
+	/**
+	 * @param {string} projectName
+	 */
+	async function deleteProject(projectName) {
+		if (
+			!projectName ||
+			!window.confirm(
+				`Delete the project "${projectName}"?\n\nIts folder is deleted from the workspace: this action cannot be undone.`
+			)
+		) {
+			return;
+		}
+		const result = await call('projects.Delete', { projectName });
+		if (result?.isError) {
+			return;
+		}
+		selectedId = '';
+		await Projects.refresh();
+		refreshStudioViews();
+	}
+
+	/**
+	 * Shows a project created or imported by the new project dialog.
+	 * @param {string} projectName
+	 */
+	async function showNewProject(projectName) {
+		newProjectOpen = false;
+		await Projects.refresh();
+		selectedId = projectName;
+		refreshStudioViews();
+	}
+
+	/**
+	 * Asks where to update the references of a renamed object, as Eclipse does.
+	 * @param {{ id: string, objectType: string, oldName: string, newName: string }} request
+	 * @returns {Promise<string | null>} UPDATE_ALL, UPDATE_LOCAL, UPDATE_NONE, or null to cancel
+	 */
+	function chooseRenameUpdate(request) {
+		return new Promise((resolve) => {
+			renameChoice = { request, resolve };
+		});
+	}
+
+	/**
+	 * @param {string | null} update
+	 */
+	function answerRenameChoice(update) {
+		renameChoice?.resolve(update);
+		renameChoice = null;
+	}
+
+	/**
 	 * Shows or hides the panel of an item of the activity bar: a side view shows the tools on its tab,
 	 * or hides them when its tab is already visible.
 	 *
@@ -2011,6 +2241,12 @@
 </svelte:head>
 
 {#snippet projectActions()}
+	<StudioIconButton
+		icon="mdi:folder-plus-outline"
+		title="New project"
+		ariaLabel="New project"
+		onclick={() => (newProjectOpen = true)}
+	/>
 	<StudioIconButton
 		icon={projectActionBusy === 'save' ? 'mdi:sync' : 'mdi:content-save-edit-outline'}
 		dirty={selectedProjectDirty}
@@ -2091,6 +2327,9 @@
 			onRevealBlockDefinition={revealBlockDefinition}
 			onOpenSource={openSource}
 			onSourceDrop={applySourceDrop}
+			onTreeAction={runTreeAction}
+			{canPasteInto}
+			onChooseRenameUpdate={chooseRenameUpdate}
 		/>
 	</StudioPanel>
 {/snippet}
@@ -2343,6 +2582,63 @@
 					Close
 				</button>
 			{/if}
+		</div>
+	</div>
+{/if}
+
+{#if newProjectOpen}
+	<StudioNewProjectDialog onDone={showNewProject} onClose={() => (newProjectOpen = false)} />
+{/if}
+
+{#if renameChoice}
+	<div class="studio-source-choice" role="presentation" onclick={() => answerRenameChoice(null)}>
+		<div
+			class="studio-source-choice__dialog layout-y-stretch-low"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="studio-rename-choice-title"
+			tabindex="-1"
+			onclick={(event) => event.stopPropagation()}
+			onkeydown={(event) => {
+				event.stopPropagation();
+				if (event.key === 'Escape') answerRenameChoice(null);
+			}}
+		>
+			<header class="studio-source-choice__header layout-x-between-low">
+				<div class="layout-y-none">
+					<strong id="studio-rename-choice-title"
+						>Update {renameChoice.request.objectType} references</strong
+					>
+					<span class="studio-source-choice__target">
+						Replace '{renameChoice.request.oldName}' by '{renameChoice.request.newName}'
+					</span>
+				</div>
+			</header>
+			<div class="studio-source-choice__list layout-y-stretch-low">
+				<!-- svelte-ignore a11y_autofocus -->
+				<button
+					type="button"
+					class="studio-source-choice__option"
+					autofocus
+					onclick={() => answerRenameChoice('UPDATE_ALL')}
+				>
+					<span class="studio-source-choice__option-label">In all loaded projects</span>
+				</button>
+				<button
+					type="button"
+					class="studio-source-choice__option"
+					onclick={() => answerRenameChoice('UPDATE_LOCAL')}
+				>
+					<span class="studio-source-choice__option-label">In the current project only</span>
+				</button>
+				<button
+					type="button"
+					class="studio-source-choice__option"
+					onclick={() => answerRenameChoice('UPDATE_NONE')}
+				>
+					<span class="studio-source-choice__option-label">Nowhere, rename only</span>
+				</button>
+			</div>
 		</div>
 	</div>
 {/if}

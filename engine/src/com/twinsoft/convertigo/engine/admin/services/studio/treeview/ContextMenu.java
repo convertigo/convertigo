@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.admin.services.studio.treeview;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -40,6 +41,19 @@ public class ContextMenu extends JSonService {
 		}
 		var dbo = FlowStudioSupport.resolveTreeObject(id);
 		response.put("id", id);
-		response.put("menu", FlowStudioSupport.contextMenu(dbo));
+		var menu = FlowStudioSupport.contextMenu(dbo);
+		if (ObjectActions.handles(dbo) && menu.optBoolean("ok", false)) {
+			// the objects outside the Flows get the actions of the tree of the Eclipse Studio
+			var items = menu.optJSONArray("items");
+			if (items == null) {
+				items = new JSONArray();
+				menu.put("items", items);
+			}
+			var objectItems = ObjectActions.items(dbo);
+			for (int i = 0; i < objectItems.length(); i++) {
+				items.put(objectItems.get(i));
+			}
+		}
+		response.put("menu", menu);
 	}
 }

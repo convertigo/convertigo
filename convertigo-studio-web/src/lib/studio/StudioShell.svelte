@@ -149,9 +149,7 @@
 		--color-surface-800-200: light-dark(var(--color-surface-800), var(--color-surface-200));
 		--color-surface-900-100: light-dark(var(--color-surface-900), var(--color-surface-100));
 		--color-surface-950-50: light-dark(var(--color-surface-950), var(--color-surface-50));
-	}
-
-	.studio-shell {
+		/* the colors of the Studio, for its menus and dialogs too */
 		--studio-chrome-bg: var(--color-surface-50-950);
 		--studio-shell-bg: var(--studio-chrome-bg);
 		--studio-panel-bg: var(--studio-chrome-bg);
@@ -164,6 +162,9 @@
 		--studio-hover-bg: light-dark(#f0f0f0, #2a2d2e);
 		--studio-selection-bg: light-dark(#e4e6f1, #37373d);
 		--studio-selection-focus-bg: light-dark(#d6ebff, #04395e);
+	}
+
+	.studio-shell {
 		display: grid;
 		width: 100%;
 		height: 100vh;

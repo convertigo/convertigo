@@ -37,6 +37,8 @@
 	 *  testcaseValue?: string,
 	 *  stickyActions?: boolean,
 	 *  freshContext?: boolean,
+	 *  stubbable?: boolean,
+	 *  stub?: boolean,
 	 *  disabled?: boolean,
 	 *  class?: string
 	 * }}
@@ -54,6 +56,8 @@
 		testcaseValue = 'testcases',
 		stickyActions = false,
 		freshContext = false,
+		stubbable = false,
+		stub = $bindable(false),
 		disabled = false,
 		class: cls = ''
 	} = $props();
@@ -183,6 +187,10 @@
 					]
 				: [['__sequence', requestable.name ?? '']];
 		entries.push(['__nocache', 'true']);
+		if (stub) {
+			// the response is the stub recorded for the requestable, as Execute from stub in Eclipse
+			entries.push(['__stub', 'true']);
+		}
 		if (freshContext) {
 			entries.push(['__context', 'studio-web-execution-*']);
 			entries.push(['__removeContext', 'true']);
@@ -563,6 +571,15 @@ console.log(await response.text());`;
 					disabled={disabled || responseView.loading}
 				/>
 				{@render copyAsButton('current')}
+				{#if stubbable}
+					<label
+						class="requestable-execution__stub"
+						title="Answer with the stub recorded for this requestable"
+					>
+						<input type="checkbox" bind:checked={stub} {disabled} />
+						From stub
+					</label>
+				{/if}
 				{#if hasResponse}
 					<Button
 						label="Clear"
@@ -593,6 +610,14 @@ console.log(await response.text());`;
 {/if}
 
 <style>
+	.requestable-execution__stub {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.78rem;
+		white-space: nowrap;
+	}
+
 	.requestable-execution {
 		display: grid;
 		gap: 0.75rem;

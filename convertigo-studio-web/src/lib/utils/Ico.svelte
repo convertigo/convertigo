@@ -45,6 +45,13 @@
 	import MdiCogOutline from '~icons/mdi/cog-outline';
 	import MdiContentCopy from '~icons/mdi/content-copy';
 	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline';
+	import MdiContentCut from '~icons/mdi/content-cut';
+	import MdiContentPaste from '~icons/mdi/content-paste';
+	import MdiContentSaveOutline from '~icons/mdi/content-save-outline';
+	import MdiFolderPlusOutline from '~icons/mdi/folder-plus-outline';
+	import MdiCellphoneLink from '~icons/mdi/cellphone-link';
+	import MdiWeb from '~icons/mdi/web';
+	import MdiServerNetwork from '~icons/mdi/server-network';
 	import MdiCubeOutline from '~icons/mdi/cube-outline';
 	import MdiDatabase from '~icons/mdi/database';
 	import MdiDatabaseClockOutline from '~icons/mdi/database-clock-outline';
@@ -190,6 +197,13 @@
 		'mdi:cog-outline': MdiCogOutline,
 		'mdi:cog': MdiCog,
 		'mdi:content-save-edit-outline': MdiContentSaveEditOutline,
+		'mdi:content-cut': MdiContentCut,
+		'mdi:content-paste': MdiContentPaste,
+		'mdi:content-save-outline': MdiContentSaveOutline,
+		'mdi:folder-plus-outline': MdiFolderPlusOutline,
+		'mdi:cellphone-link': MdiCellphoneLink,
+		'mdi:web': MdiWeb,
+		'mdi:server-network': MdiServerNetwork,
 		'mdi:content-copy': MdiContentCopy,
 		'mdi:cube-outline': MdiCubeOutline,
 		'mdi:database-clock-outline': MdiDatabaseClockOutline,

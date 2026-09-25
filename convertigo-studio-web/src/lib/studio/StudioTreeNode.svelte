@@ -53,7 +53,10 @@
 	 *  canRevealBlockDefinition?: (nodeId: string) => boolean,
 	 *  onRevealBlockDefinition?: (nodeId: string) => void | Promise<void>,
 	 *  onOpenSource?: (nodeId: string) => void | Promise<void>,
-	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
+	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>,
+	 *  onTreeAction?: (action: string, nodeId: string) => void | Promise<void>,
+	 *  canPasteInto?: (nodeId: string) => boolean,
+	 *  onChooseRenameUpdate?: (request: { id: string, objectType: string, oldName: string, newName: string }) => Promise<string | null>
 	 * }}
 	 */
 	let {
@@ -81,7 +84,10 @@
 		canRevealBlockDefinition,
 		onRevealBlockDefinition,
 		onOpenSource,
-		onSourceDrop
+		onSourceDrop,
+		onTreeAction,
+		canPasteInto,
+		onChooseRenameUpdate
 	} = $props();
 
 	let localExpanded = $state(false);
@@ -151,9 +157,15 @@
 	);
 	let paddingLeft = $derived(`${depth * 0.34 + 0.14}rem`);
 	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
+	let projectNode = $derived(depth === 0 && Boolean(node?.id));
+	let folderNode = $derived(isFolderNode(node?.id ?? ''));
 	let renaming = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, renameTargetId)));
 	let showSelectedActions = $derived(
-		Boolean(selected && !renaming && (draggableNode || isFlowContextNode(node)))
+		Boolean(
+			selected &&
+			!renaming &&
+			(draggableNode || isFlowContextNode(node) || (onTreeAction && (projectNode || folderNode)))
+		)
 	);
 
 	$effect(() => {
@@ -396,7 +408,21 @@
 		}
 		renamingBusy = true;
 		try {
-			const result = await renameDbo(node.id, nextName, 'UPDATE_NONE');
+			let result = await renameDbo(node.id, nextName, onChooseRenameUpdate ? 'ASK' : 'UPDATE_NONE');
+			if (result?.ask) {
+				const update = await onChooseRenameUpdate?.({
+					id: node.id,
+					objectType: String(result.objectType ?? 'object'),
+					oldName: currentName,
+					newName: nextName
+				});
+				if (!update) {
+					await tick();
+					renameInput?.focus();
+					return;
+				}
+				result = await renameDbo(node.id, nextName, update);
+			}
 			if (!result?.done) {
 				await tick();
 				renameInput?.focus();
@@ -932,6 +958,16 @@
 	}
 
 	/**
+	 * @param {string} id
+	 * @returns {boolean}
+	 */
+	function isFolderNode(id) {
+		// a folder is `owner:type`, whereas an object is `owner.type:name`
+		const folder = id.match(/^(.*):[a-z]{2,4}$/);
+		return Boolean(folder && !/\.[a-z]{2,4}$/.test(folder[1]));
+	}
+
+	/**
 	 * @param {any} candidate
 	 * @returns {boolean}
 	 */
@@ -1048,6 +1084,12 @@
 					{label}
 					canRename={draggableNode}
 					canDelete={draggableNode}
+					canCopy={Boolean(onTreeAction && draggableNode)}
+					canPaste={Boolean(onTreeAction && canPasteInto?.(node.id))}
+					isProject={Boolean(onTreeAction && projectNode)}
+					enabledState={onTreeAction && draggableNode && typeof node?.enabled === 'boolean'
+						? node.enabled
+						: undefined}
 					deleting={deletingBusy}
 					canShowInFrontend={canShowInFrontend?.(node.id) ?? false}
 					canRevealInPalette={canRevealInPalette?.(node.id) ?? false}
@@ -1060,6 +1102,7 @@
 					onRevealDefinition={() => onRevealBlockDefinition?.(node.id)}
 					onOpenSource={() => onOpenSource?.(node.id)}
 					{onContextAction}
+					onTreeAction={(action) => onTreeAction?.(action, node.id)}
 				/>
 			</div>
 		{/if}
@@ -1103,6 +1146,9 @@
 					{onRevealBlockDefinition}
 					{onOpenSource}
 					{onSourceDrop}
+					{onTreeAction}
+					{canPasteInto}
+					{onChooseRenameUpdate}
 				/>
 			{/each}
 		</div>

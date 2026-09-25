@@ -308,6 +308,51 @@ public class DboUtils {
 		return null;
 	}
 
+	/**
+	 * The kind of an object whose name other objects use, as the Studio names it when it asks where to
+	 * update these references on a rename, or null when no object refers to it by its name.
+	 */
+	static protected String referenceType(DatabaseObject dbo) {
+		if (dbo instanceof Sequence) {
+			return "sequence";
+		}
+		if (dbo instanceof Connector) {
+			return "connector";
+		}
+		if (dbo instanceof Transaction) {
+			return "transaction";
+		}
+		if (dbo instanceof RequestableVariable) {
+			return "variable";
+		}
+		if (dbo instanceof DesignDocument) {
+			return "document";
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent
+				|| dbo instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+			return "page";
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu
+				|| dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu) {
+			return "menu";
+		}
+		if (dbo instanceof UIActionStack || dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack) {
+			return "shared action";
+		}
+		if (dbo instanceof UISharedComponent || dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent) {
+			return "shared component";
+		}
+		if (dbo instanceof UIStackVariable || dbo instanceof UICompVariable
+				|| dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIStackVariable
+				|| dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UICompVariable) {
+			return "variable";
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UICompEvent) {
+			return "event";
+		}
+		return null;
+	}
+
 	static protected boolean changeBeanName(JSONArray ids, DatabaseObject dbo, Object oldValue, Object newValue,
 			String update) {
 		if (dbo == null || newValue == null || newValue.toString().isBlank()) {

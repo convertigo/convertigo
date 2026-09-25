@@ -24,6 +24,10 @@
 	 *  canShowInFrontend?: boolean,
 	 *  canRevealInPalette?: boolean,
 	 *  canRevealDefinition?: boolean,
+	 *  canCopy?: boolean,
+	 *  canPaste?: boolean,
+	 *  isProject?: boolean,
+	 *  enabledState?: boolean,
 	 *  deleting?: boolean,
 	 *  onSelectNode?: () => void,
 	 *  onRename?: () => void,
@@ -32,7 +36,8 @@
 	 *  onRevealInPalette?: () => void | Promise<void>,
 	 *  onRevealDefinition?: () => void | Promise<void>,
 	 *  onOpenSource?: () => void | Promise<void>,
-	 *  onContextAction?: (event: { nodeId: string, action: StudioContextMenuItem, result: any }) => void | Promise<void>
+	 *  onContextAction?: (event: { nodeId: string, action: StudioContextMenuItem, result: any }) => void | Promise<void>,
+	 *  onTreeAction?: (action: string) => void | Promise<void>
 	 * }}
 	 */
 	let {
@@ -43,6 +48,10 @@
 		canShowInFrontend = false,
 		canRevealInPalette = false,
 		canRevealDefinition = false,
+		canCopy = false,
+		canPaste = false,
+		isProject = false,
+		enabledState = undefined,
 		deleting = false,
 		onSelectNode,
 		onRename,
@@ -51,8 +60,37 @@
 		onRevealInPalette,
 		onRevealDefinition,
 		onOpenSource,
-		onContextAction
+		onContextAction,
+		onTreeAction
 	} = $props();
+
+	const mod =
+		typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl+';
+	/** The actions of the tree the page runs, with the shortcuts of the tree */
+	const treeActionShortcuts = {
+		'edit.cut': `${mod}X`,
+		'edit.copy': `${mod}C`,
+		'edit.paste': `${mod}V`,
+		'object.rename': 'F2',
+		'object.delete': 'Del',
+		'project.save': `${mod}S`
+	};
+	/**
+	 * @param {string} value
+	 * @returns {string | undefined} the shortcut of a tree action, as aria-keyshortcuts names it
+	 */
+	function ariaShortcut(value) {
+		const shortcut = treeActionShortcuts[/** @type {keyof typeof treeActionShortcuts} */ (value)];
+		if (!shortcut) {
+			return undefined;
+		}
+		if (shortcut === 'Del') {
+			return 'Delete';
+		}
+		const key = shortcut.slice(mod.length);
+		return shortcut.startsWith(mod) ? `Control+${key} Meta+${key}` : shortcut;
+	}
+	let editable = $derived(canCopy || canRename || canDelete || canPaste);
 
 	let open = $state(false);
 	let loading = $state(false);
@@ -115,6 +153,10 @@
 		}
 		if (details.value === 'object.delete') {
 			await onDelete?.();
+			return;
+		}
+		if (/^(edit|project|state)\./.test(details.value)) {
+			await onTreeAction?.(details.value);
 			return;
 		}
 		if (!details.value.startsWith('context.')) {
@@ -249,6 +291,30 @@
 	}
 </script>
 
+{#snippet treeItem(
+	/** @type {string} */ value,
+	/** @type {string} */ icon,
+	/** @type {string} */ text,
+	/** @type {boolean} */ disabled = false,
+	/** @type {boolean} */ danger = false
+)}
+	<Menu.Item
+		{value}
+		class={[
+			'studio-tree-action-menu__item studio-tree-action-menu__item--shortcut',
+			danger && 'studio-tree-action-menu__item--danger'
+		]}
+		{disabled}
+		aria-keyshortcuts={ariaShortcut(value)}
+	>
+		<Ico {icon} size={4} />
+		<Menu.ItemText>{text}</Menu.ItemText>
+		<kbd class="studio-tree-action-menu__shortcut" aria-hidden="true"
+			>{treeActionShortcuts[/** @type {keyof typeof treeActionShortcuts} */ (value)] ?? ''}</kbd
+		>
+	</Menu.Item>
+{/snippet}
+
 <Menu
 	{open}
 	onOpenChange={handleOpenChange}
@@ -269,40 +335,67 @@
 	<Portal>
 		<Menu.Positioner class="studio-tree-action-menu__positioner">
 			<Menu.Content class="studio-tree-action-menu__content">
-				{#if canRename || canDelete}
+				{#if editable}
 					<Menu.ItemGroup>
-						<Menu.ItemGroupLabel>Object</Menu.ItemGroupLabel>
+						<Menu.ItemGroupLabel>Edit</Menu.ItemGroupLabel>
+						{#if canCopy}
+							{@render treeItem('edit.cut', 'mdi:content-cut', 'Cut')}
+							{@render treeItem('edit.copy', 'mdi:content-copy', 'Copy')}
+						{/if}
+						{@render treeItem('edit.paste', 'mdi:content-paste', 'Paste', !canPaste)}
 						{#if canRename}
-							<Menu.Item value="object.rename" class="studio-tree-action-menu__item">
-								<Ico icon="mdi:pencil-outline" size={4} />
-								<Menu.ItemText>Rename</Menu.ItemText>
-							</Menu.Item>
+							{@render treeItem('object.rename', 'mdi:pencil-outline', 'Rename')}
+						{/if}
+						{#if enabledState !== undefined}
+							{@render treeItem(
+								enabledState ? 'state.disable' : 'state.enable',
+								enabledState ? 'mdi:close-circle-outline' : 'mdi:check',
+								enabledState ? 'Disable' : 'Enable'
+							)}
 						{/if}
 						{#if canDelete}
-							<Menu.Item
-								value="object.delete"
-								class="studio-tree-action-menu__item studio-tree-action-menu__item--danger"
-								disabled={deleting}
-							>
-								<Ico icon={deleting ? 'mdi:sync' : 'mdi:delete-outline'} size={4} />
-								<Menu.ItemText>Delete</Menu.ItemText>
-							</Menu.Item>
+							{@render treeItem(
+								'object.delete',
+								deleting ? 'mdi:sync' : 'mdi:delete-outline',
+								'Delete',
+								deleting,
+								true
+							)}
 						{/if}
 					</Menu.ItemGroup>
-					{#if loading || loadError || groupedContextItems.length}
+				{/if}
+				{#if isProject}
+					{#if editable}
 						<Menu.Separator />
 					{/if}
+					<Menu.ItemGroup>
+						<Menu.ItemGroupLabel>Project</Menu.ItemGroupLabel>
+						{@render treeItem('project.save', 'mdi:content-save-outline', 'Save')}
+						{@render treeItem('project.reload', 'mdi:reload', 'Reload from disk')}
+						{@render treeItem('project.export', 'mdi:export', 'Export as .car')}
+						{@render treeItem('project.dashboard', 'mdi:open-in-new-variant', 'Open in dashboard')}
+						{@render treeItem(
+							'project.delete',
+							'mdi:delete-outline',
+							'Delete project',
+							false,
+							true
+						)}
+					</Menu.ItemGroup>
+				{/if}
+				{#if (editable || isProject) && (loading || loadError || groupedContextItems.length)}
+					<Menu.Separator />
 				{/if}
 
 				{#if loading}
 					<Menu.Item value="context.loading" disabled class="studio-tree-action-menu__item">
 						<Ico icon="mdi:sync" size={4} />
-						<Menu.ItemText>Loading Flow actions…</Menu.ItemText>
+						<Menu.ItemText>Loading actions…</Menu.ItemText>
 					</Menu.Item>
 				{:else if loadError}
 					<Menu.Item value="context.error" disabled class="studio-tree-action-menu__item">
 						<Ico icon="mdi:alert-circle-outline" size={4} />
-						<Menu.ItemText>Flow actions unavailable</Menu.ItemText>
+						<Menu.ItemText>Actions unavailable</Menu.ItemText>
 					</Menu.Item>
 				{:else}
 					{#each groupedContextItems as group, groupIndex (group.name)}
@@ -334,7 +427,7 @@
 					{/each}
 				{/if}
 
-				{#if !loading && !loadError && !canRename && !canDelete && !groupedContextItems.length}
+				{#if !loading && !loadError && !editable && !isProject && !groupedContextItems.length}
 					<Menu.Item value="context.empty" disabled class="studio-tree-action-menu__item">
 						<Menu.ItemText>No actions available</Menu.ItemText>
 					</Menu.Item>
@@ -414,6 +507,16 @@
 
 	:global(.studio-tree-action-menu__item--danger:not([data-disabled])) {
 		color: var(--color-error-600-400);
+	}
+
+	:global(.studio-tree-action-menu__item--shortcut) {
+		grid-template-columns: 1.1rem minmax(0, 1fr) auto;
+	}
+
+	:global(.studio-tree-action-menu__shortcut) {
+		color: var(--color-surface-500-500);
+		font-family: inherit;
+		font-size: 0.68rem;
 	}
 
 	:global(.studio-tree-action-menu__item-copy) {

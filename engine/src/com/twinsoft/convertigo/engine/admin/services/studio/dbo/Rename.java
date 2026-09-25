@@ -69,6 +69,17 @@ public class Rename extends JSonService {
 			response.put("ids", ids.put(result.optString("id")));
 			return;
 		}
+		// ASK: the Studio asks where to update the references of an object other objects use by its name
+		if ("ASK".equals(update)) {
+			var referenceType = dbo == null || dbo instanceof Project ? null : DboUtils.referenceType(dbo);
+			if (referenceType != null) {
+				response.put("done", false);
+				response.put("ask", true);
+				response.put("objectType", referenceType);
+				return;
+			}
+			update = "UPDATE_NONE";
+		}
 		if (dbo != null) {
 			if (dbo instanceof Project) {
 				// TODO

@@ -31,7 +31,10 @@
 	 *  canRevealBlockDefinition?: (nodeId: string) => boolean,
 	 *  onRevealBlockDefinition?: (nodeId: string) => void | Promise<void>,
 	 *  onOpenSource?: (nodeId: string) => void | Promise<void>,
-	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
+	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>,
+	 *  onTreeAction?: (action: string, nodeId: string) => void | Promise<void>,
+	 *  canPasteInto?: (nodeId: string) => boolean,
+	 *  onChooseRenameUpdate?: (request: { id: string, objectType: string, oldName: string, newName: string }) => Promise<string | null>
 	 * }}
 	 */
 	let {
@@ -51,7 +54,10 @@
 		canRevealBlockDefinition,
 		onRevealBlockDefinition,
 		onOpenSource,
-		onSourceDrop
+		onSourceDrop,
+		onTreeAction,
+		canPasteInto,
+		onChooseRenameUpdate
 	} = $props();
 
 	const { checkChildren, checkNodes } = createProjectTree({
@@ -112,6 +118,38 @@
 			void refreshMutationContext(serial, mutation);
 		});
 	});
+
+	/**
+	 * The shortcuts of the tree of Eclipse, on its selected object: F2 renames, Del deletes, Ctrl or ⌘
+	 * with C, X and V copies, cuts and pastes, with S saves the project.
+	 * @param {KeyboardEvent} event
+	 */
+	function handleTreeKeydown(event) {
+		const target = /** @type {HTMLElement | null} */ (event.target);
+		if (
+			!onTreeAction ||
+			!selectedId ||
+			renameTargetId ||
+			target?.closest('input, textarea, select, [contenteditable]')
+		) {
+			return;
+		}
+		const mod = event.metaKey || event.ctrlKey;
+		const key = event.key.toLowerCase();
+		/** @type {string} */
+		let action = '';
+		if (event.key === 'F2') {
+			action = 'object.rename';
+		} else if (event.key === 'Delete' || (event.key === 'Backspace' && event.metaKey)) {
+			action = 'object.delete';
+		} else if (mod && !event.altKey && !event.shiftKey) {
+			action = { c: 'edit.copy', x: 'edit.cut', v: 'edit.paste', s: 'project.save' }[key] ?? '';
+		}
+		if (action) {
+			event.preventDefault();
+			void onTreeAction(action, selectedId);
+		}
+	}
 
 	/**
 	 * @param {any} node
@@ -285,7 +323,13 @@
 	}
 </script>
 
-<div class="studio-tree" role="tree" aria-label="Projects">
+<div
+	class="studio-tree"
+	role="tree"
+	aria-label="Projects"
+	tabindex="-1"
+	onkeydown={handleTreeKeydown}
+>
 	{#if loading}
 		<StudioEmptyState message="Loading" loading small />
 	{:else if rootChildren.length === 0}
@@ -314,6 +358,9 @@
 				{onRevealBlockDefinition}
 				{onOpenSource}
 				{onSourceDrop}
+				{onTreeAction}
+				{canPasteInto}
+				{onChooseRenameUpdate}
 			/>
 		{/each}
 	{/if}

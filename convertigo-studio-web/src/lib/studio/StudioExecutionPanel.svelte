@@ -32,6 +32,7 @@
 
 	const modes = ['JSON', 'XML', 'BIN', 'CXML'];
 	let mode = $state('JSON');
+	let stub = $state(false);
 	let executionKind = $derived(selectedRequestable ? requestableKind : 'sequence');
 	let requestable = $state(/** @type {SequenceRequestable | null} */ (null));
 	let requestableSourceKey = $derived.by(() =>
@@ -145,6 +146,8 @@
 			showTestcaseEdit={true}
 			stickyActions={true}
 			freshContext={true}
+			stubbable={true}
+			bind:stub
 			testcaseValue={`${requestableKey}.testcases`}
 		/>
 	{/if}
