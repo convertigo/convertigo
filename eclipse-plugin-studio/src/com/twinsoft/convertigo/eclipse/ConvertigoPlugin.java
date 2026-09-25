@@ -65,6 +65,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.ModalContext;
@@ -617,6 +618,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	@Override
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
+		disableAngularServerForTypeScript();
 		
 		Boolean[] needPalette = {null};
 		Boolean[] needPicker = {null};
@@ -1019,6 +1021,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				}
 			}
 		});
+	}
+
+	/**
+	 * The Angular language server of Wild Web Developer also handles the TypeScript files. The class of an
+	 * NGX page can weigh several MB: each opened TypeScript editor keeps this server busy for seconds, while
+	 * LSP4E blocks the UI up to 50 ms each time it checks the commands of the active editor. The server
+	 * stays enabled for the HTML files and can be enabled again in Preferences > Language Servers.
+	 */
+	private static void disableAngularServerForTypeScript() {
+		DefaultScope.INSTANCE.getNode("org.eclipse.lsp4e").put("org.eclipse.wildwebdeveloper.angular/org.eclipse.tm4e.language_pack.typescript", "false");
 	}
 
 	static public int getTraceplayerPort() {
