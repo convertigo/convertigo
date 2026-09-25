@@ -94,7 +94,7 @@ configurations.compileFlat {
 		}
 		if (details.requested.group == 'io.netty' && details.requested.name.startsWith('netty-')) {
 			// Force Redisson transitive dependencies to the security-fixed Netty version.
-			details.useVersion '4.2.13.Final'
+			details.useVersion '4.2.18.Final'
 		}
 	}
 }
