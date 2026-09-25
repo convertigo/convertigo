@@ -2110,6 +2110,15 @@
 			variablesTargetId = nodeId;
 		} else if (action === 'dialog.translations') {
 			translationsTargetId = nodeId;
+		} else if (action === 'code.class') {
+			// the TypeScript class of an NGX component, as the "Edit class" action of the Eclipse Studio
+			selectedId = nodeId;
+			editorTarget = { id: `${nodeId}#class`, sourceDocument: true, serial: Date.now() };
+			if (profile === 'frontend') {
+				setFrontendResult('code');
+			} else {
+				setWorkPanel('code');
+			}
 		} else if (action === 'dialog.sharedComponent') {
 			sharedComponentTargetId = nodeId;
 		} else if (action === 'dialog.stepsFromXml' || action === 'dialog.stepsFromXsd') {

@@ -164,6 +164,11 @@ public class ObjectActions {
 					"Move this component into a new shared component and use it in its place.", true,
 					"mdi:shape-square-rounded-plus").put("clientAction", "dialog.sharedComponent");
 		}
+		if (com.twinsoft.convertigo.engine.admin.services.studio.source.NgxClasses.handles(dbo)) {
+			add(items, "object.editClass", "Edit the TypeScript class",
+					"Edit the code of the class of this component between its markers.", true, "mdi:language-typescript")
+					.put("clientAction", "code.class");
+		}
 		if (NgxI18n.handles(dbo)) {
 			add(items, "object.i18n:true", "Enable I18n recursively",
 					"Translate the texts and the automatic menu items under this component.", true, "mdi:translate");

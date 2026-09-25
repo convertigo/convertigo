@@ -95,6 +95,7 @@
 	import MdiLanguageJava from '~icons/mdi/language-java';
 	import MdiLanguageMarkdownOutline from '~icons/mdi/language-markdown-outline';
 	import MdiLanguageRuby from '~icons/mdi/language-ruby';
+	import MdiLanguageTypescript from '~icons/mdi/language-typescript';
 	import MdiLayersOutline from '~icons/mdi/layers-outline';
 	import MdiLibraryOutline from '~icons/mdi/library-outline';
 	import MdiLightningBolt from '~icons/mdi/lightning-bolt';
@@ -268,6 +269,7 @@
 		'mdi:lightning-bolt': MdiLightningBolt,
 		'mdi:link-variant': MdiLinkVariant,
 		'mdi:language-markdown-outline': MdiLanguageMarkdownOutline,
+		'mdi:language-typescript': MdiLanguageTypescript,
 		'mdi:library-outline': MdiLibraryOutline,
 		'mdi:login-variant': MdiLoginVariant,
 		'mdi:lock-open-variant': MdiLockOpenVariant,

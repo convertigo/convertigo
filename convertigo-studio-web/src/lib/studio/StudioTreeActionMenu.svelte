@@ -202,8 +202,8 @@
 			await onRevealDefinition?.();
 		} else if (clientAction === 'source.open') {
 			await onOpenSource?.();
-		} else if (clientAction.startsWith('dialog.')) {
-			// a dialog of the page, as the variables of a transaction
+		} else if (clientAction.startsWith('dialog.') || clientAction.startsWith('code.')) {
+			// a dialog or an editor of the page, as the variables of a transaction
 			await onTreeAction?.(clientAction);
 		}
 	}

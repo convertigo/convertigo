@@ -96,16 +96,20 @@
 	});
 
 	$effect(() => {
-		const requestKey =
-			active && editorTarget?.sourceDocument && editorTarget?.id === selectedId
-				? `${selectedId}:${editorTarget?.serial ?? ''}`
+		// the source of the selected object, or the TypeScript class of the selected NGX component
+		const sourceId =
+			active &&
+			editorTarget?.sourceDocument &&
+			(editorTarget?.id === selectedId || editorTarget?.id === `${selectedId}#class`)
+				? editorTarget.id
 				: '';
+		const requestKey = sourceId ? `${sourceId}:${editorTarget?.serial ?? ''}` : '';
 		if (!requestKey || requestKey === lastSourceRequest) {
 			return;
 		}
 		lastSourceRequest = requestKey;
 		untrack(() => {
-			void openSourceDocument(selectedId);
+			void openSourceDocument(sourceId);
 		});
 	});
 
@@ -120,6 +124,14 @@
 			openEditorTab(selectedId, property, editorTarget);
 		});
 	});
+
+	/**
+	 * Selects in the tree the object of a tab, the NGX component of a TypeScript class.
+	 * @param {string} id
+	 */
+	function selectObject(id) {
+		onSelectObject(id.replace(/#class$/, ''));
+	}
 
 	/**
 	 * @param {string} objectId
@@ -168,7 +180,7 @@
 		const existing = editorTabs.find((tab) => tab.key === key);
 		if (existing) {
 			activeTabKey = existing.key;
-			onSelectObject(existing.id);
+			selectObject(existing.id);
 			return;
 		}
 
@@ -185,7 +197,7 @@
 			focused: false
 		});
 		activeTabKey = key;
-		onSelectObject(objectId);
+		selectObject(objectId);
 	}
 
 	/**
@@ -226,7 +238,7 @@
 				focused: false
 			});
 			activeTabKey = key;
-			onSelectObject(objectId);
+			selectObject(objectId);
 		} catch (err) {
 			error = String(err instanceof Error ? err.message : err);
 		} finally {
@@ -240,7 +252,7 @@
 	function selectEditorTab(tab) {
 		tab.focused = true;
 		activeTabKey = tab.key;
-		onSelectObject(tab.id);
+		selectObject(tab.id);
 	}
 
 	/**
@@ -295,7 +307,7 @@
 			const nextTab = editorTabs[Math.min(index, editorTabs.length - 1)] ?? editorTabs.at(-1);
 			activeTabKey = nextTab?.key ?? '';
 			if (nextTab) {
-				onSelectObject(nextTab.id);
+				selectObject(nextTab.id);
 			}
 		}
 	}
@@ -387,6 +399,10 @@
 			if (result?.done) {
 				tab.originalValue = tab.content;
 				tab.revision = String(result.revision ?? '');
+				if (result.changed) {
+					// the class of a component keeps its code in the component, whose project changes
+					await onSave?.(tab.id.replace(/#class$/, ''));
+				}
 			} else {
 				error = String(result?.error?.message ?? result?.message ?? 'The file was not saved.');
 			}
