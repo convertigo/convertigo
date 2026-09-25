@@ -367,6 +367,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 	private boolean shuttingDown = false;
 
+	private boolean fontsLoaded = false;
+
 	private List<Runnable> runAtStartup = new LinkedList<Runnable>();
 
 	private static Log studioLog;
@@ -1054,6 +1056,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				}
 			}
 			simplifyToolBars(workbench);
+			applyLoadedFonts();
 		});
 	}
 
@@ -1092,8 +1095,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	/**
-	 * Loads IBM Plex Sans, the font of the web Studio used by the Convertigo stylesheets,
-	 * then sets the theme again: the fonts resolved before are kept by the theme engine.
+	 * Loads IBM Plex Sans, the font of the web Studio used by the Convertigo stylesheets. The theme engine
+	 * keeps the fonts it resolved before: the theme is set again by applyLoadedFonts once the workbench runs,
+	 * setting it while the workbench starts leaving the colors of the Eclipse theme unset.
 	 */
 	private void loadFonts() {
 		var display = Display.getCurrent();
@@ -1114,7 +1118,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				studioLog.debug("Could not load the font " + name + ": " + e);
 			}
 		}
-		if (loaded && display.getData("org.eclipse.e4.ui.css.swt.theme") instanceof ThemeEngine themeEngine && themeEngine.getActiveTheme() != null) {
+		fontsLoaded = loaded;
+	}
+
+	private void applyLoadedFonts() {
+		if (fontsLoaded && Display.getCurrent().getData("org.eclipse.e4.ui.css.swt.theme") instanceof ThemeEngine themeEngine && themeEngine.getActiveTheme() != null) {
 			themeEngine.setTheme(themeEngine.getActiveTheme(), false, true);
 		}
 	}
