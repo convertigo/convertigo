@@ -7,13 +7,13 @@
 }
 
 /* Palette */
-.MPart CLabel.c8oPaletteCategory {
+.MPart .c8oPaletteCategory {
   color: #333333;
-  background-color: #e8e8e8;
+  background-color: #dfe3e8;
   font-weight: bold;
 }
 
-.MPart CLabel.c8oPaletteSelected {
+.MPart .c8oPaletteSelected {
   color: black;
   background-color: #d2f1fc;
 }

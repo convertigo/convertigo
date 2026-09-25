@@ -67,9 +67,11 @@ import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageDataProvider;
+import org.eclipse.swt.graphics.ImageGcDrawer;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -79,6 +81,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IPartListener2;
@@ -249,6 +252,68 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 
 	private interface UpdateLabel {
 		void update(CLabel label);
+	}
+
+	/**
+	 * A label whose background color, set by the stylesheet of the theme, is drawn as a
+	 * rounded rectangle over the background of its parent, up to the visible width.
+	 */
+	private static class RoundedLabel extends CLabel {
+		private Color fill;
+		private Image rounded;
+		private String roundedKey;
+
+		RoundedLabel(Composite parent) {
+			super(parent, SWT.NONE);
+			Listener update = e -> updateRounded();
+			addListener(SWT.Resize, update);
+			addListener(SWT.Move, update);
+			parent.addListener(SWT.Resize, update);
+			addDisposeListener(e -> {
+				parent.removeListener(SWT.Resize, update);
+				if (rounded != null) {
+					rounded.dispose();
+				}
+			});
+		}
+
+		@Override
+		public void setBackground(Color color) {
+			super.setBackground(color);
+			fill = color;
+			roundedKey = null;
+			updateRounded();
+		}
+
+		private void updateRounded() {
+			if (isDisposed()) {
+				return;
+			}
+			var size = getSize();
+			var width = Math.min(size.x, getParent().getClientArea().width - getLocation().x);
+			var around = getParent().getBackground();
+			var key = fill == null || width <= 0 || size.y <= 0 || fill.equals(around) ? null : width + " " + size.y + " " + fill + " " + around;
+			if (key != null && key.equals(roundedKey)) {
+				return;
+			}
+			var previous = rounded;
+			rounded = null;
+			roundedKey = key;
+			if (key != null) {
+				var color = fill;
+				rounded = new Image(getDisplay(), (ImageGcDrawer) (gc, w, h) -> {
+					gc.setBackground(around);
+					gc.fillRectangle(0, 0, w, h);
+					gc.setAntialias(SWT.ON);
+					gc.setBackground(color);
+					gc.fillRoundRectangle(0, 0, w, h, 12, 12);
+				}, width, size.y);
+			}
+			super.setBackground(rounded);
+			if (previous != null) {
+				previous.dispose();
+			}
+		}
 	}
 
 	public PaletteView() {
@@ -1395,7 +1460,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		};
 
 		MakeLabel makeLabel = (p, txt) -> {
-			CLabel lb = new CLabel(p, SWT.NONE);
+			CLabel lb = new RoundedLabel(p);
 			RowData rowData = new RowData();
 			lb.setLayoutData(rowData);
 			rowData.width = 4000;
@@ -1432,7 +1497,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 
 		makeItem = (p, item) -> {
 			String text = formatPaletteItemText(item.name());
-			CLabel clabel = new CLabel(p, SWT.NONE);
+			CLabel clabel = new RoundedLabel(p);
 			RowData rowData = new RowData();
 			clabel.setLayoutData(rowData);
 			rowData.width = PALETTE_ITEM_WIDTH;

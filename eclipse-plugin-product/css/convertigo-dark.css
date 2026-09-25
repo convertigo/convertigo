@@ -70,13 +70,13 @@ ObjectsExplorerComposite, ObjectsExplorerComposite * {
 }
 
 /* Palette */
-.MPart CLabel.c8oPaletteCategory {
+.MPart .c8oPaletteCategory {
   color: #d8d8d8;
   background-color: #3a3a3a;
   font-weight: bold;
 }
 
-.MPart CLabel.c8oPaletteSelected {
+.MPart .c8oPaletteSelected {
   color: white;
   background-color: #0b4d63;
 }
