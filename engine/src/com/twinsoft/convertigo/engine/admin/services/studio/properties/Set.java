@@ -121,6 +121,9 @@ public class Set extends JSonService {
 							setter.invoke(dbo, new Object[] { msst });
 						} else if (SmartType.class.equals(ptc)) {
 							setter.invoke(dbo, new Object[] { makeSmartType(mode, rawValue, pvalue) });
+						} else if (rawValue instanceof JSONArray rows && PropertyTables.isTable(getter.getGenericReturnType())) {
+							// a table edited by the Studio as rows of cells
+							setter.invoke(dbo, new Object[] { PropertyTables.fromJson(rows, oldValue) });
 						} else if (pname.equals("actionValue")) {// CustomAction
 							var fc = new FormatedContent(pvalue);
 							setter.invoke(dbo, new Object[] { fc });

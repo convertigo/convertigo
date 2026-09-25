@@ -1,0 +1,40 @@
+import { describe, expect, it } from 'vitest';
+import {
+	PROPERTY_TABLE_EDITOR_NAMES,
+	PROPERTY_TABLE_EDITORS,
+	propertyTableEditor
+} from './propertyTables';
+
+describe('propertyTables', () => {
+	it('gives each editor a cell per column in a new row', () => {
+		for (const editor of Object.values(PROPERTY_TABLE_EDITORS)) {
+			expect(editor.template).toHaveLength(editor.columns.length);
+			for (const [column, choices] of Object.entries(editor.choices ?? {})) {
+				expect(choices).toContain(editor.template[Number(column)]);
+			}
+		}
+	});
+
+	it('names only known editors for the properties', () => {
+		for (const name of Object.values(PROPERTY_TABLE_EDITOR_NAMES)) {
+			expect(PROPERTY_TABLE_EDITORS[name]).toBeDefined();
+		}
+	});
+
+	it('finds the editor by its class, then by the name of the property', () => {
+		const headers = PROPERTY_TABLE_EDITORS.HttpHeaderForwardEditor;
+		expect(
+			propertyTableEditor(
+				'com.twinsoft.convertigo.eclipse.property_editors.HttpHeaderForwardEditor',
+				[]
+			)
+		).toBe(headers);
+		expect(propertyTableEditor('', [], 'httpHeaderForward')).toBe(headers);
+	});
+
+	it('numbers the columns of an unknown table', () => {
+		const editor = propertyTableEditor(undefined, [['a'], ['b', 'c', 'd']], 'unknown');
+		expect(editor.columns).toEqual(['Column 1', 'Column 2', 'Column 3']);
+		expect(editor.template).toEqual(['', '', '']);
+	});
+});

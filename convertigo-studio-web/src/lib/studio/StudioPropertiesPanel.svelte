@@ -24,6 +24,7 @@
 	import StudioObjectIdentity from './StudioObjectIdentity.svelte';
 	import StudioSection from './StudioSection.svelte';
 	import StudioSourcePickerPanel from './StudioSourcePickerPanel.svelte';
+	import StudioTableProperty from './StudioTableProperty.svelte';
 
 	/**
 	 * @type {{
@@ -359,6 +360,9 @@
 		if (category === 'Information') {
 			return false;
 		}
+		if (row?.table) {
+			return true;
+		}
 		if (type === 'textarea') {
 			return textareaRows(row) > 1;
 		}
@@ -535,6 +539,13 @@
 											<div class="studio-properties__field-control">
 												{#if category == 'Information'}
 													<span class="studio-properties__static">{value}</span>
+												{:else if row.table}
+													<StudioTableProperty
+														value={row.value}
+														editorClass={row.editorClass}
+														name={row.name}
+														onChange={(rows) => (row.value = rows)}
+													/>
 												{:else if type === 'flow-binding'}
 													{#if isLiteralFlowBinding(row)}
 														<PropertyType

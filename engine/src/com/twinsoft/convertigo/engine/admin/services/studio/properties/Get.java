@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
@@ -259,6 +260,15 @@ public class Get extends JSonService {
 				property.put("mode", mode);
 				property.put("originalMode", mode);
 				property.put("value", value);
+			} else if (XMLVector.class.getName().equals(classname)) {
+				// a table the Studio edits as rows of cells
+				var rows = PropertyTables.rows(dbo, elt.getAttribute("name"));
+				if (rows != null) {
+					property.put("value", rows);
+					property.put("table", true);
+				} else {
+					property.put("value", "n/a");
+				}
 			} else {
 				property.put("value", "n/a");
 			}

@@ -54,10 +54,12 @@ export function createDatabaseObjectProperties() {
 	}
 
 	function propertyChanged(property) {
-		return (
-			property.value != property.originalValue ||
-			('mode' in property && property.mode != property.originalMode)
-		);
+		// a table or a source is an array: it changed when its content changed
+		const valueChanged =
+			Array.isArray(property.value) || Array.isArray(property.originalValue)
+				? JSON.stringify(property.value) !== JSON.stringify(property.originalValue)
+				: property.value != property.originalValue;
+		return valueChanged || ('mode' in property && property.mode != property.originalMode);
 	}
 
 	async function onSelectionChange(e) {
