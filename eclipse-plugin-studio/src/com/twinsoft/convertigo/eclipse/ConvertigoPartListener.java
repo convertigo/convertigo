@@ -43,7 +43,7 @@ import org.eclipse.ui.views.properties.PropertySheet;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
-import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.swt.ModernTree;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -69,9 +69,8 @@ class ConvertigoPartListener implements IPartListener {
 				if (view.getCurrentPage().getControl() instanceof Tree) {
 					Tree tree = (Tree) view.getCurrentPage().getControl();
 					if (tree != null) {
-						if (SwtUtils.isDark()) {
-							tree.setLinesVisible(false);
-						}
+						tree.setLinesVisible(false);
+						ModernTree.install(tree);
 						try {
 							tree.getColumn(1).setWidth(tree.getBounds().width);
 						} catch (Exception e) {
@@ -240,9 +239,8 @@ class ConvertigoPartListener implements IPartListener {
 				if (view.getCurrentPage().getControl() instanceof Tree) {
 					Tree tree = (Tree) view.getCurrentPage().getControl();
 					if (tree != null) {
-						if (SwtUtils.isDark()) {
-							tree.setLinesVisible(false);
-						}
+						tree.setLinesVisible(false);
+						ModernTree.install(tree);
 						try {
 							tree.getColumn(1).setWidth(tree.getBounds().width);
 						} catch (Exception e) {

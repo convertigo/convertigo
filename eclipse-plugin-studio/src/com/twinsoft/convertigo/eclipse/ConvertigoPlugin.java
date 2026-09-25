@@ -70,6 +70,8 @@ import org.eclipse.e4.ui.css.swt.internal.theme.ThemeEngine;
 import org.eclipse.e4.ui.model.application.MApplication;
 import org.eclipse.e4.ui.model.application.ui.MUILabel;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
+import org.eclipse.e4.ui.model.application.ui.menu.MToolBar;
+import org.eclipse.e4.ui.model.application.ui.menu.MToolControl;
 import org.eclipse.e4.ui.workbench.modeling.EModelService;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
@@ -1051,6 +1053,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					studioLog.error("Could not open Convertigo perspective.\n" + e.getMessage());
 				}
 			}
+			simplifyToolBars(workbench);
 		});
 	}
 
@@ -1062,6 +1065,30 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	 */
 	private static void disableAngularServerForTypeScript() {
 		DefaultScope.INSTANCE.getNode("org.eclipse.lsp4e").put("org.eclipse.wildwebdeveloper.angular/org.eclipse.tm4e.language_pack.typescript", "false");
+	}
+
+	/**
+	 * Keeps the tool bar of the window to the actions of the Studio: the edition, search, navigation and
+	 * text presentation tool bars of Eclipse and its perspective switcher are hidden, their actions staying
+	 * in the menus, and the other tool bars are locked, without their drag handles.
+	 */
+	private void simplifyToolBars(IWorkbench workbench) {
+		var app = workbench.getService(MApplication.class);
+		var modelService = workbench.getService(EModelService.class);
+		var hidden = Set.of("org.eclipse.ui.workbench.edit", "org.eclipse.search.searchActionSet", "org.eclipse.ui.workbench.navigate",
+				"org.eclipse.ui.edit.text.actionSet.presentation");
+		for (var toolBar : modelService.findElements(app, null, MToolBar.class, null, EModelService.ANYWHERE)) {
+			if (hidden.contains(toolBar.getElementId())) {
+				toolBar.setToBeRendered(false);
+			} else if (toolBar.getTags().remove("Draggable")) {
+				toolBar.getTags().add("NoMove");
+				toolBar.setToBeRendered(false);
+				toolBar.setToBeRendered(true);
+			}
+		}
+		for (var control : modelService.findElements(app, "PerspectiveSwitcher", MToolControl.class, null, EModelService.ANYWHERE)) {
+			control.setToBeRendered(false);
+		}
 	}
 
 	/**

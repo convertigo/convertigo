@@ -211,6 +211,7 @@ import com.twinsoft.convertigo.eclipse.popup.actions.TracePlayAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionEditHandlersAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteDefaultAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction;
+import com.twinsoft.convertigo.eclipse.swt.ModernTree;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.trace.TracePlayerThread;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
@@ -457,7 +458,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		for (String[] def: rateDef) {
 			try {
 				Button rateUsButton = new Button(rateUsBar, SWT.PUSH);
-				rateUsButton.setData("style", "background-color: rgb(0, 200, 247); color: white");
 				if (def[1] != null) {
 					rateUsButton.setText(def[1]);
 				}
@@ -630,6 +630,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		treeViewerColumn.setEditingSupport(new CommentEditingSupport(this, viewer));
 		
 		treeViewerColumn.getColumn().addDisposeListener(e -> cp.dispose());
+		ModernTree.install(viewer.getTree());
 
 		//drillDownAdapter = new DrillDownAdapter(viewer);
 
