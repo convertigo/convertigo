@@ -25,9 +25,15 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
+import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
@@ -36,10 +42,18 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
+import com.twinsoft.convertigo.beans.rest.FormParameter;
+import com.twinsoft.convertigo.beans.rest.PostOperation;
+import com.twinsoft.convertigo.beans.rest.PutOperation;
+import com.twinsoft.convertigo.beans.rest.QueryParameter;
+import com.twinsoft.convertigo.beans.steps.AttributeStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.studio.dbo.CreateStub;
 import com.twinsoft.convertigo.engine.admin.services.studio.project.ImportWsReference;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
@@ -82,9 +96,25 @@ public class ObjectActions {
 		if (dbo instanceof SequenceStep || dbo instanceof TransactionStep) {
 			add(items, "object.importVariables", "Import the variables of the requestable",
 					"Add the variables of the called sequence or transaction to this step.", true, "mdi:import");
+			add(items, "object.exportVariables", "Export the variables to the sequence",
+					"Add the variables of this step the sequence does not have to the sequence.", true, "mdi:export");
+		} else if (dbo instanceof UrlMappingOperation operation) {
+			add(items, "object.importParameters", "Import the variables of the requestable as parameters",
+					"Add a parameter to this operation for each variable of its target sequence or transaction.",
+					!operation.getTargetRequestable().isEmpty(), "mdi:import");
 		} else if (dbo instanceof TestCase && dbo.getParent() instanceof RequestableObject) {
 			add(items, "object.importVariables", "Import the variables of the requestable",
 					"Add the variables of the sequence or transaction to this test case.", true, "mdi:import");
+		}
+		if (dbo instanceof Step step && !(dbo instanceof AttributeStep) && !(dbo instanceof XMLAttributeStep)) {
+			var output = !step.isOutput();
+			add(items, "object.output", "Output " + output, "Set the output of this step to " + output + ".", true,
+					output ? "mdi:eye-outline" : "mdi:eye-off-outline");
+			if (dbo instanceof StepWithExpressions) {
+				add(items, "object.outputRecursively", "Output " + output + " recursively",
+						"Set the output of this step and of all its steps to " + output + ".", true,
+						output ? "mdi:eye-outline" : "mdi:eye-off-outline");
+			}
 		}
 		if (dbo instanceof WebServiceReference || dbo instanceof RestServiceReference) {
 			add(items, "object.updateReference", "Update the web service",
@@ -144,6 +174,7 @@ public class ObjectActions {
 			changed(application);
 		}
 		case "object.importVariables" -> {
+			var variables = dbo instanceof IVariableContainer container ? container.numberOfVariables() : 0;
 			if (dbo instanceof SequenceStep step) {
 				step.importVariableDefinition();
 			} else if (dbo instanceof TransactionStep step) {
@@ -153,9 +184,34 @@ public class ObjectActions {
 			} else {
 				return result(false, "This object has no variables to import.");
 			}
-			if (!dbo.hasChanged) {
+			if (((IVariableContainer) dbo).numberOfVariables() == variables) {
 				return result(true, "The variables were already imported.").put("changed", false);
 			}
+		}
+		case "object.exportVariables" -> {
+			if (!(dbo instanceof RequestableStep step)) {
+				return result(false, "This object has no variables to export.");
+			}
+			var variables = step.getSequence().numberOfVariables();
+			step.exportVariableDefinition();
+			if (step.getSequence().numberOfVariables() == variables) {
+				return result(true, "The sequence already has the variables of this step.").put("changed", false);
+			}
+		}
+		case "object.importParameters" -> {
+			if (!(dbo instanceof UrlMappingOperation operation)) {
+				return result(false, "This object is not an operation.");
+			}
+			var added = importParameters(operation);
+			if (added == 0) {
+				return result(true, "The operation already has a parameter for each variable.").put("changed", false);
+			}
+		}
+		case "object.output", "object.outputRecursively" -> {
+			if (!(dbo instanceof Step step)) {
+				return result(false, "This object is not a step.");
+			}
+			output(step, !step.isOutput(), "object.outputRecursively".equals(actionId));
 		}
 		case "object.updateReference" -> {
 			if (!(dbo instanceof RemoteFileReference reference)
@@ -196,6 +252,66 @@ public class ObjectActions {
 		}
 		Engine.logStudio.debug("(ObjectActions) " + actionId + " on " + dbo.getQName());
 		return result(true, "").put("changed", true).put("refresh", true);
+	}
+
+	private static void output(Step step, boolean output, boolean recursively) {
+		step.setOutput(output);
+		step.hasChanged = true;
+		if (recursively && step instanceof StepWithExpressions container) {
+			for (var child : container.getSteps()) {
+				output(child, output, true);
+			}
+		}
+	}
+
+	/**
+	 * Adds to an operation a parameter for each variable of its target requestable it has not, as the Eclipse
+	 * Studio: a form parameter for a POST or PUT operation, a query parameter otherwise.
+	 *
+	 * @return the number of parameters added
+	 */
+	private static int importParameters(UrlMappingOperation operation) throws Exception {
+		var target = operation.getTargetRequestable().split("\\.");
+		var project = target.length > 1 ? Engine.theApp.databaseObjectsManager.getOriginalProjectByName(target[0]) : null;
+		if (project == null) {
+			throw new EngineException("The operation has no target requestable: select one first.");
+		}
+		RequestableObject requestable = target.length == 2 ? project.getSequenceByName(target[1])
+				: project.getConnectorByName(target[1]).getTransactionByName(target[2]);
+		var added = 0;
+		if (requestable instanceof IVariableContainer container) {
+			for (var variable : container.getVariables()) {
+				var name = variable.getName();
+				if (hasParameter(operation, name)) {
+					continue;
+				}
+				UrlMappingParameter parameter = operation instanceof PostOperation || operation instanceof PutOperation
+						? new FormParameter()
+						: new QueryParameter();
+				parameter.setName(name);
+				parameter.setComment(variable.getComment());
+				parameter.setArray(false);
+				parameter.setExposed(variable instanceof RequestableVariable requestableVariable && requestableVariable.isWsdl());
+				parameter.setMultiValued(variable.isMultiValued());
+				parameter.setRequired(variable.isRequired());
+				parameter.setValueOrNull(variable.isMultiValued() ? null : variable.getValueOrNull());
+				parameter.setMappedVariableName(name);
+				parameter.bNew = true;
+				parameter.hasChanged = true;
+				operation.add(parameter);
+				operation.hasChanged = true;
+				added++;
+			}
+		}
+		return added;
+	}
+
+	private static boolean hasParameter(UrlMappingOperation operation, String name) {
+		try {
+			return operation.getParameterByName(name) != null;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	private static void changed(DatabaseObject dbo) {
