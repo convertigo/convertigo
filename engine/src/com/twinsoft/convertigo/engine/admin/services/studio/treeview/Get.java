@@ -199,15 +199,6 @@ public class Get extends JSonService {
 			obj.put("children", lazyChildrenState(dbo, flow));
 		} else {
 			var jChildren = getChildren(dbo, null, false, flow);
-			if (dbo instanceof Project) {
-				var o = new JSONObject();
-				o.put("label", "Files");
-				o.put("name", "Files");
-				o.put("icon", "folder");
-				o.put("id", qname + '/');
-				o.put("children", true);
-				jChildren.put(o);
-			}
 			obj.put("children", loadedChildrenState(dbo, jChildren, flow));
 		}
 		return obj;
@@ -549,6 +540,16 @@ public class Get extends JSonService {
 			}
 			var node = getNode(child, ft != null, flow);
 			jChild.put(node);
+		}
+		if (dbo instanceof Project && ft == null) {
+			// the files of the project, which the Studio edits with studio.source.Get and Set
+			var o = new JSONObject();
+			o.put("label", "Files");
+			o.put("name", "Files");
+			o.put("icon", "folder");
+			o.put("id", qname + '/');
+			o.put("children", true);
+			jChildren.put(o);
 		}
 		return jChildren;
 	}

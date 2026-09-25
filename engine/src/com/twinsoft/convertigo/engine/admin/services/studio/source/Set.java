@@ -9,6 +9,9 @@
 
 package com.twinsoft.convertigo.engine.admin.services.studio.source;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.codehaus.jettison.json.JSONObject;
@@ -21,7 +24,15 @@ import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
-/** Stores an edited Flow source as a working copy of its FlowEngine: the project Save writes it. */
+/**
+ * Saves a source the Studio edits, as studio.source.Get gave it, only if it did not change since it was
+ * read:
+ * <ul>
+ * <li>a text file of a project, whose id is "Project/relative/path";</li>
+ * <li>an edited Flow source, stored as a working copy of its FlowEngine: the project Save writes it.</li>
+ * </ul>
+ * Parameters: id, content, and revision, the one studio.source.Get gave when the source was read.
+ */
 @ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
 public class Set extends JSonService {
 
@@ -32,11 +43,26 @@ public class Set extends JSonService {
 		if (id == null || id.isBlank() || content == null) {
 			throw new ServiceException("missing id or content parameter");
 		}
+		var revision = request.getParameter("revision");
+		if (ProjectFiles.isFileId(id)) {
+			var file = ProjectFiles.resolve(id);
+			if (!ProjectFiles.isText(file)) {
+				throw new ServiceException("The file " + file.getName() + " is not a text file the Studio can edit.");
+			}
+			var current = Get.sha256(Files.readString(file.toPath(), StandardCharsets.UTF_8));
+			if (revision != null && !revision.isEmpty() && !revision.equals(current)) {
+				throw new ServiceException("The file " + file.getName() + " changed since it was opened: open it again before saving.");
+			}
+			Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
+			response.put("done", true);
+			response.put("id", id);
+			response.put("revision", Get.sha256(content));
+			return;
+		}
 		var source = Get.sourceDocument(Utils.getDbo(id));
 		if (!source.writable()) {
 			throw new ServiceException("The selected Flow source is read-only.");
 		}
-		var revision = request.getParameter("revision");
 		if (revision != null && !revision.isBlank() && !revision.equals(source.revision())) {
 			throw new ServiceException("The source changed since it was opened; reopen it before saving.");
 		}

@@ -305,6 +305,10 @@
 		if (!tab || tab.readOnly || !activeTabDirty) {
 			return;
 		}
+		if (tab.sourceDocument) {
+			await saveSourceDocument(tab);
+			return;
+		}
 		saving = true;
 		let handled = false;
 		onMutationBusyChange(true);
@@ -364,6 +368,30 @@
 		} finally {
 			saving = false;
 			onMutationBusyChange(false, handled);
+		}
+	}
+
+	/**
+	 * Saves a text file of a project, if it did not change on the disk since it was opened.
+	 * @param {EditorTab} tab
+	 */
+	async function saveSourceDocument(tab) {
+		saving = true;
+		error = '';
+		try {
+			const result = await call('studio.source.Set', {
+				id: tab.id,
+				content: tab.content,
+				revision: tab.revision ?? ''
+			});
+			if (result?.done) {
+				tab.originalValue = tab.content;
+				tab.revision = String(result.revision ?? '');
+			} else {
+				error = String(result?.error?.message ?? result?.message ?? 'The file was not saved.');
+			}
+		} finally {
+			saving = false;
 		}
 	}
 

@@ -38,6 +38,7 @@
 	import StudioActivityBar from '$lib/studio/StudioActivityBar.svelte';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
 	import StudioBuilderPanel from '$lib/studio/StudioBuilderPanel.svelte';
+	import StudioDeployDialog from '$lib/studio/StudioDeployDialog.svelte';
 	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
 	import StudioEmptyState from '$lib/studio/StudioEmptyState.svelte';
@@ -74,7 +75,7 @@
 		saveDboProject,
 		toaster
 	} from '$lib/utils/service';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 
 	/** @typedef {'execution' | 'code' | 'flow' | 'doc'} WorkPanel */
@@ -233,6 +234,7 @@
 	/** @type {{ request: { id: string, objectType: string, oldName: string, newName: string }, resolve: (update: string | null) => void } | null} */
 	let renameChoice = $state(null);
 	let newProjectOpen = $state(false);
+	let deployProjectName = $state('');
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
 	let paletteRevealRequest = $state({ key: '', contextId: '', serial: 0 });
@@ -1451,6 +1453,33 @@
 		}
 	}
 
+	/**
+	 * @param {string} id
+	 * @returns {boolean} whether the tree id is a file of a project, as "Project/path/name.ext"
+	 */
+	function isProjectFileId(id) {
+		return Boolean(id?.includes('/')) && id.slice(id.lastIndexOf('/') + 1).includes('.');
+	}
+
+	// a file of a project selected in the tree opens in the code editor, as in the Eclipse Studio
+	$effect(() => {
+		const id = selectedId;
+		if (!isProjectFileId(id) || profile === 'vibe') {
+			return;
+		}
+		untrack(() => {
+			if (editorTarget?.id === id && editorTarget?.sourceDocument) {
+				return;
+			}
+			editorTarget = { id, sourceDocument: true, serial: Date.now() };
+			if (profile === 'frontend') {
+				setFrontendResult('code');
+			} else {
+				setWorkPanel('code');
+			}
+		});
+	});
+
 	async function revealBlockDefinition(id) {
 		const item = await resolveSelectedTreeDocumentation(id);
 		const sourceId = blockDefinitionSourceId(item);
@@ -2061,6 +2090,8 @@
 			await saveSelectedProject();
 		} else if (action === 'project.reload') {
 			await reloadSelectedProject();
+		} else if (action === 'project.deploy') {
+			deployProjectName = projectName;
 		} else if (action === 'project.export') {
 			await call('projects.Export', { projectName });
 		} else if (action === 'project.dashboard') {
@@ -2669,6 +2700,10 @@
 			{/if}
 		</div>
 	</div>
+{/if}
+
+{#if deployProjectName}
+	<StudioDeployDialog projectName={deployProjectName} onClose={() => (deployProjectName = '')} />
 {/if}
 
 {#if newProjectOpen}

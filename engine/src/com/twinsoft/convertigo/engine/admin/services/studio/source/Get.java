@@ -37,6 +37,22 @@ public class Get extends JSonService {
 		if (id == null || id.isBlank()) {
 			throw new ServiceException("missing id parameter");
 		}
+		if (ProjectFiles.isFileId(id)) {
+			// a text file of a project, which the Studio edits and saves with studio.source.Set
+			var file = ProjectFiles.resolve(id);
+			if (!ProjectFiles.isText(file)) {
+				throw new ServiceException("The file " + file.getName() + " is not a text file the Studio can edit.");
+			}
+			var content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+			response.put("id", id);
+			response.put("content", content);
+			response.put("revision", sha256(content));
+			response.put("fileName", file.getName());
+			response.put("relativePath", id.substring(id.indexOf('/') + 1).replaceFirst("^/+", ""));
+			response.put("language", ProjectFiles.language(file));
+			response.put("readOnly", false);
+			return;
+		}
 		var source = sourceDocument(Utils.getDbo(id));
 		response.put("id", id);
 		response.put("content", source.content());
