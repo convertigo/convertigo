@@ -32,6 +32,8 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -68,9 +70,12 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -234,7 +239,15 @@ public class FullSyncServlet extends HttpServlet {
 				builder.setCustomQuery(query);
 			}
 			
+			if (fullSyncConnector != null && requestParser.hasAttachment() && !checkAttachmentACL(requestParser, request, response, builder, fsAuth, debug)) {
+				return;
+			}
+			
 			String special = requestParser.getSpecial();
+			
+			// documents returned to a public session must pass through the ACL filter, which only reads JSON
+			boolean isAclFilteredRequest = fullSyncConnector != null && !requestParser.hasAttachment()
+					&& ((special == null && StringUtils.isNotEmpty(requestParser.getDocId())) || "_bulk_get".equals(special));
 			
 			boolean isChanges = "_changes".equals(special);
 			
@@ -334,6 +347,8 @@ public class FullSyncServlet extends HttpServlet {
 					isCBL = version != null && version.compareTo("1.7") >= 0;
 				}
 			}
+			// the CBL multipart/related _bulk_get response is filtered, other multipart responses are not
+			boolean forceJsonAccept = isAclFilteredRequest && !(isCBL && "_bulk_get".equals(special));
 			for (String headerName: Collections.list(request.getHeaderNames())) {
 				if (!(HeaderName.TransferEncoding.is(headerName)
 						|| HeaderName.ContentLength.is(headerName)
@@ -346,6 +361,7 @@ public class FullSyncServlet extends HttpServlet {
 						|| HeaderName.Cookie.is(headerName)
 						|| HeaderName.ContentEncoding.is(headerName)
 						|| HeaderName.Origin.is(headerName)
+						|| (forceJsonAccept && HeaderName.Accept.is(headerName))
 						|| (isChanges && (HeaderName.IfNoneMatch.is(headerName)
 								|| HeaderName.IfModifiedSince.is(headerName)
 								|| HeaderName.CacheControl.is(headerName)
@@ -358,6 +374,11 @@ public class FullSyncServlet extends HttpServlet {
 				} else {
 					debug.append("skip request Header: " + headerName + "=" + request.getHeader(headerName)+ "\n");
 				}
+			}
+			
+			if (forceJsonAccept) {
+				debug.append("request Header: " + HeaderName.Accept.value() + "=" + MimeType.Json.value() + " (ACL filter)\n");
+				HeaderName.Accept.addHeader(newRequest, MimeType.Json.value());
 			}
 			
 			{
@@ -652,6 +673,8 @@ public class FullSyncServlet extends HttpServlet {
 							"_bulk_get".equals(special)) {
 						Engine.logCouchDbManager.info("(FullSyncServlet) Checking multipart response documents for CBL BulkGet:\n" + debug);
 						Engine.theApp.couchDbManager.checkCblBulkGetResponse(fsAuth, is, response);
+					} else if (code >= 200 && code < 300 && isAclFilteredRequest) {
+						throw new SecurityException("The '" + contentType.getMimeType() + "' response cannot be filtered by the document ACL");
 					} else if (Pattern.matches(".*/bundle\\..*?\\.js", uri.getPath())) {
 						StringBuilder sb = new StringBuilder();
 						sb.append(IOUtils.toString(is, "UTF-8")
@@ -837,6 +860,67 @@ public class FullSyncServlet extends HttpServlet {
 		return fullSyncConnector;
 	}
 
+	/**
+	 * Check the ACL of the document owning the requested attachment, and pin the request
+	 * on the checked revision. Returns false if the response is already written.
+	 */
+	private boolean checkAttachmentACL(RequestParser requestParser, HttpServletRequest request, HttpServletResponse response, URIBuilder builder, FullSyncAuthentication fsAuth, StringBuffer debug) throws Exception {
+		if (requestParser.getDocPath() == null) {
+			throw new SecurityException("Attachment request without document");
+		}
+		var revs = new HashSet<String>();
+		var params = new ArrayList<NameValuePair>();
+		var query = request.getQueryString();
+		if (query != null) {
+			for (var param: URLEncodedUtils.parse(query, StandardCharsets.UTF_8)) {
+				if ("rev".equals(param.getName())) {
+					revs.add(param.getValue());
+				} else {
+					params.add(param);
+				}
+			}
+		}
+		if (revs.size() > 1) {
+			throw new SecurityException("Attachment request for several revisions");
+		}
+		
+		var docBuilder = new URIBuilder(Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getDocPath());
+		if (!revs.isEmpty()) {
+			docBuilder.setParameter("rev", revs.iterator().next());
+		}
+		var docRequest = new HttpGet(docBuilder.build());
+		HeaderName.Accept.addHeader(docRequest, MimeType.Json.value());
+		var authBasicHeader = Engine.theApp.couchDbManager.getFullSyncClient().getAuthBasicHeader();
+		if (authBasicHeader != null) {
+			docRequest.addHeader(authBasicHeader);
+		}
+		
+		long requestTime = System.currentTimeMillis();
+		try (var docResponse = httpClient.get().execute(docRequest)) {
+			int code = docResponse.getStatusLine().getStatusCode();
+			var entity = docResponse.getEntity();
+			var content = entity == null ? "" : EntityUtils.toString(entity, StandardCharsets.UTF_8);
+			debug.append("attachment ACL check: GET " + docRequest.getURI() + " -> " + code + " in " + (System.currentTimeMillis() - requestTime) + " ms\n");
+			if (code != HttpServletResponse.SC_OK) {
+				response.setStatus(code);
+				response.setContentType(MimeType.Json.value());
+				response.setCharacterEncoding("UTF-8");
+				try (var writer = response.getWriter()) {
+					writer.write(content);
+				}
+				Engine.logCouchDbManager.info("(FullSyncServlet) Attachment's document not available:\n" + debug);
+				return false;
+			}
+			var document = new JSONObject(content);
+			if (!Engine.theApp.couchDbManager.checkDocumentACL(document, fsAuth)) {
+				throw new SecurityException("No access to the attachments of the document '" + CouchKey._id.String(document) + "'");
+			}
+			params.add(new BasicNameValuePair("rev", CouchKey._rev.String(document)));
+			builder.setParameters(params);
+			return true;
+		}
+	}
+	
 	private boolean isPublicReplicationRequest(RequestParser requestParser, HttpMethodType method) {
 		var special = requestParser.getSpecial();
 		if (special == null) {
@@ -870,6 +954,7 @@ public class FullSyncServlet extends HttpServlet {
 		private String special;
 		private String dbName;
 		private String docId;
+		private String docPath;
 		private boolean attachment = false;
 		
 		private RequestParser(HttpServletRequest request, String prefix) throws UnsupportedEncodingException {
@@ -893,6 +978,9 @@ public class FullSyncServlet extends HttpServlet {
 					attachment = docId != null && !mPath.group(6).isEmpty();
 					if (!dbName.isEmpty()) {
 						path = path.replaceFirst("/", "/" + prefix);
+						if (special == null && StringUtils.isNotEmpty(docId)) {
+							docPath = "/" + prefix + dbName + "/" + docId;
+						}
 					}
 				}
 			}
@@ -912,6 +1000,10 @@ public class FullSyncServlet extends HttpServlet {
 
 		public String getDocId() {
 			return docId;
+		}
+		
+		public String getDocPath() {
+			return docPath;
 		}
 
 		private boolean isRootRequest() {
