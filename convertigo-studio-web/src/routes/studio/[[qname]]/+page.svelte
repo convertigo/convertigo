@@ -75,6 +75,7 @@
 		call,
 		checkArray,
 		getStudioContextMenu,
+		getUrl,
 		removeDbo,
 		runStudioContextAction,
 		saveDboProject,
@@ -2132,6 +2133,21 @@
 			await call('projects.Export', { projectName });
 		} else if (action === 'project.dashboard') {
 			window.open(resolve(`/dashboard/${encodeURIComponent(projectName)}/`), '_blank');
+		} else if (action === 'project.swagger') {
+			// the REST API of the project in the Swagger console of the engine, as the Eclipse Studio opens it
+			const openapi = new URL(
+				getUrl(`openapi?YAML&__project=${encodeURIComponent(projectName)}`),
+				location.href
+			);
+			window.open(
+				getUrl(`swagger/dist/index.html?url=${encodeURIComponent(openapi.href)}`),
+				'_blank'
+			);
+		} else if (action === 'project.builtApp') {
+			window.open(
+				getUrl(`projects/${encodeURIComponent(projectName)}/DisplayObjects/mobile/`),
+				'_blank'
+			);
 		} else if (action === 'project.readme') {
 			await generateReadme(projectName);
 		} else if (action === 'project.symbols') {

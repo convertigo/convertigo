@@ -379,6 +379,12 @@
 						{@render treeItem('project.deploy', 'mdi:server-network', 'Deploy to a server…')}
 						{@render treeItem('project.importWs', 'mdi:web', 'Import a web service…')}
 						{@render treeItem('project.dashboard', 'mdi:open-in-new-variant', 'Open in dashboard')}
+						{@render treeItem('project.swagger', 'mdi:api', 'Open the Swagger console')}
+						{@render treeItem(
+							'project.builtApp',
+							'mdi:cellphone-link',
+							'Open the built application'
+						)}
 						{@render treeItem(
 							'project.readme',
 							'mdi:language-markdown-outline',
