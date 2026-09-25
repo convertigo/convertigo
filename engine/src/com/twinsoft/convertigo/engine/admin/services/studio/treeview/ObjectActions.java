@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.studio.dbo.CreateStub;
 import com.twinsoft.convertigo.engine.admin.services.studio.project.ImportWsReference;
@@ -90,7 +91,8 @@ public class ObjectActions {
 					"Read the definition of the web service again and update its connector and transactions.", true,
 					"mdi:reload");
 		}
-		if (dbo instanceof RequestableObject && (dbo instanceof Sequence || dbo instanceof Transaction)) {
+		if (dbo instanceof RequestableObject && (dbo instanceof Sequence || dbo instanceof Transaction)
+				&& !(dbo instanceof SiteClipperTransaction)) {
 			add(items, "object.emptyStub", "Create an empty stub",
 					"Save an empty response as the stub answering the requests run from stub.", true,
 					"mdi:file-outline");
@@ -98,7 +100,7 @@ public class ObjectActions {
 		for (var target : ChangeTo.targets(dbo).entrySet()) {
 			add(items, "object.changeTo:" + target.getKey().getSimpleName(), "Change to " + target.getValue(),
 					"Replace this object by a " + target.getValue() + " keeping its properties and children.", true,
-					"mdi:swap-horizontal", "Change to");
+					"mdi:swap-horizontal", "Change to").put("confirm", ChangeTo.confirm(dbo, target.getKey()));
 		}
 		if (dbo.getParent() instanceof IContainerOrdered) {
 			add(items, "object.moveUp", "Move up", "Move this object before the previous one.", true,
@@ -209,9 +211,9 @@ public class ObjectActions {
 		add(items, id, label, description, enabled, icon, GROUP);
 	}
 
-	private static void add(JSONArray items, String id, String label, String description, boolean enabled,
+	private static JSONObject add(JSONArray items, String id, String label, String description, boolean enabled,
 			String icon, String group) throws Exception {
-		items.put(new JSONObject()
+		var item = new JSONObject()
 				.put("id", id)
 				.put("label", label)
 				.put("description", description)
@@ -219,6 +221,8 @@ public class ObjectActions {
 				.put("enabled", enabled)
 				.put("payload", new JSONObject())
 				.put("confirm", "")
-				.put("icon", icon));
+				.put("icon", icon);
+		items.put(item);
+		return item;
 	}
 }
