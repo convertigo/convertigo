@@ -141,6 +141,14 @@ public class ObjectActions {
 						true, "mdi:plus");
 			}
 		}
+		if (StepsFromXml.handles(dbo)) {
+			add(items, "object.stepsFromXml", "Create steps structure from XML…",
+					"Add the element and attribute steps building an XML structure.", true, "mdi:xml")
+					.put("clientAction", "dialog.stepsFromXml");
+			add(items, "object.stepsFromXsd", "Create steps structure from XSD schema…",
+					"Add the element and attribute steps building an element of a schema.", true, "mdi:xml")
+					.put("clientAction", "dialog.stepsFromXsd");
+		}
 		if (NgxI18n.handles(dbo)) {
 			add(items, "object.i18n:true", "Enable I18n recursively",
 					"Translate the texts and the automatic menu items under this component.", true, "mdi:translate");

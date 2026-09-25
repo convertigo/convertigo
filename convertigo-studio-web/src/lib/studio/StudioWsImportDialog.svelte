@@ -202,6 +202,7 @@
 	}
 
 	.studio-dialog__body {
+		min-width: 0;
 		display: grid;
 		align-content: start;
 		gap: 0.7rem;

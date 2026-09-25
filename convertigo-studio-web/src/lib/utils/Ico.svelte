@@ -157,6 +157,7 @@
 	import MdiWeatherSunny from '~icons/mdi/weather-sunny';
 	import MdiWeb from '~icons/mdi/web';
 	import MdiWrench from '~icons/mdi/wrench';
+	import MdiXml from '~icons/mdi/xml';
 	import ConvertigoLogo from './icons/ConvertigoLogo.svelte';
 
 	export const ico = {
@@ -254,6 +255,7 @@
 		'mdi:hub': MdiHub,
 		'mdi:import': MdiImport,
 		'mdi:variable': MdiVariable,
+		'mdi:xml': MdiXml,
 		'mdi:translate': MdiTranslate,
 		'mdi:translate-off': MdiTranslateOff,
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,

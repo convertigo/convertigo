@@ -261,6 +261,7 @@
 	}
 
 	.studio-dialog__body {
+		min-width: 0;
 		display: grid;
 		min-height: 0;
 		align-content: start;

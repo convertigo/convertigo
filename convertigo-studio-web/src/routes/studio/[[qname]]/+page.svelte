@@ -61,6 +61,7 @@
 	import StudioSchemaPanel from '$lib/studio/StudioSchemaPanel.svelte';
 	import StudioSearchPanel from '$lib/studio/StudioSearchPanel.svelte';
 	import StudioShell from '$lib/studio/StudioShell.svelte';
+	import StudioStepsFromXmlDialog from '$lib/studio/StudioStepsFromXmlDialog.svelte';
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
 	import StudioTranslationsDialog from '$lib/studio/StudioTranslationsDialog.svelte';
@@ -243,6 +244,10 @@
 	let variablesTargetId = $state('');
 	/** The NGX application whose translations files the translations dialog writes */
 	let translationsTargetId = $state('');
+	/** The sequence or step receiving the steps of the steps from XML dialog */
+	let stepsFromXmlTargetId = $state('');
+	/** @type {'xml' | 'xsd'} */
+	let stepsFromXmlMode = $state('xml');
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
 	let paletteRevealRequest = $state({ key: '', contextId: '', serial: 0 });
@@ -2102,6 +2107,9 @@
 			variablesTargetId = nodeId;
 		} else if (action === 'dialog.translations') {
 			translationsTargetId = nodeId;
+		} else if (action === 'dialog.stepsFromXml' || action === 'dialog.stepsFromXsd') {
+			stepsFromXmlMode = action === 'dialog.stepsFromXsd' ? 'xsd' : 'xml';
+			stepsFromXmlTargetId = nodeId;
 		} else if (action === 'project.importWs') {
 			wsImportProjectName = projectName;
 		} else if (action === 'project.deploy') {
@@ -2797,6 +2805,21 @@
 	</div>
 {/if}
 
+{#if stepsFromXmlTargetId}
+	<StudioStepsFromXmlDialog
+		id={stepsFromXmlTargetId}
+		mode={stepsFromXmlMode}
+		onDone={async (id) => {
+			const target = stepsFromXmlTargetId;
+			stepsFromXmlTargetId = '';
+			await refreshStudioProject(target);
+			refreshTreeContext(target, 'contextAction');
+			markProjectDirty(target);
+			selectedId = id;
+		}}
+		onClose={() => (stepsFromXmlTargetId = '')}
+	/>
+{/if}
 {#if translationsTargetId}
 	<StudioTranslationsDialog
 		id={translationsTargetId}

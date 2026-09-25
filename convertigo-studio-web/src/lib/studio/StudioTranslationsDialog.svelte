@@ -199,6 +199,7 @@
 	}
 
 	.studio-dialog__body {
+		min-width: 0;
 		display: grid;
 		gap: 0.7rem;
 		margin: 0;
