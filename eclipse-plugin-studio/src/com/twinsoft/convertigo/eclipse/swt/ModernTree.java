@@ -25,18 +25,18 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
 
 /**
- * Draws the rows of a tree taller, with a rounded selection and a highlight under the mouse instead of
- * the native ones. The selection is tinted with the Convertigo accent while the tree has the focus.
+ * Draws the rows of a tree as the lists of Cursor or Visual Studio Code, with their selection and their
+ * highlight under the mouse instead of the native ones: the selection is blue while the tree has the focus.
  */
 public class ModernTree {
 	private static final String KEY = "c8oModernTree";
-	private static final int ROW_HEIGHT = 26;
-	private static final Color DARK_FOCUSED = new Color(24, 72, 92);
-	private static final Color DARK_SELECTED = new Color(50, 53, 58);
-	private static final Color DARK_HOVER = new Color(42, 44, 48);
+	private static final int ROW_HEIGHT = 22;
+	private static final Color DARK_FOCUSED = new Color(4, 57, 94);
+	private static final Color DARK_SELECTED = new Color(55, 55, 61);
+	private static final Color DARK_HOVER = new Color(42, 45, 46);
 	private static final Color LIGHT_FOCUSED = new Color(210, 241, 252);
-	private static final Color LIGHT_SELECTED = new Color(228, 230, 234);
-	private static final Color LIGHT_HOVER = new Color(243, 244, 246);
+	private static final Color LIGHT_SELECTED = new Color(228, 230, 241);
+	private static final Color LIGHT_HOVER = new Color(240, 240, 240);
 
 	private ModernTree() {
 	}
@@ -78,7 +78,7 @@ public class ModernTree {
 				e.gc.setAntialias(SWT.ON);
 				e.gc.setBackground(hot ? (dark ? DARK_HOVER : LIGHT_HOVER)
 						: tree.isFocusControl() ? (dark ? DARK_FOCUSED : LIGHT_FOCUSED) : (dark ? DARK_SELECTED : LIGHT_SELECTED));
-				e.gc.fillRoundRectangle(area.x + 4, e.y + 1, area.width - 8, e.height - 2, 12, 12);
+				e.gc.fillRoundRectangle(area.x + 2, e.y, area.width - 4, e.height, 6, 6);
 			}
 		});
 		tree.redraw();

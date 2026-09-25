@@ -1,12 +1,12 @@
 /* Convertigo additions to the Eclipse dark theme, the Convertigo accent is rgb(0, 200, 247) */
 
 #com-twinsoft-convertigo-eclipse-views-mobile-MobilePaletteView * {
-  background-color: #232427;
+  background-color: #181818;
 }
 
-/* The views are rounded panels on the background of the window, with flat tabs: the selected tab is a
-   pill, underlined with the accent in the active view. No minimize and maximize buttons: a double click
-   on a tab maximizes its view. */
+/* Flat views as the panels of Cursor or Visual Studio Code, separated by lines drawn by the renderer: the
+   selected tab of a view is underlined, with the accent in the active view. No minimize and maximize
+   buttons: a double click on a tab maximizes its view. */
 .MPartStack,
 #com-twinsoft-convertigo-eclipse-views-projectexplorer-ProjectExplorerViewMStack,
 #com-twinsoft-convertigo-eclipse-views-sourcepicker-SourcePickerViewMStack,
@@ -15,19 +15,19 @@
 #com-twinsoft-convertigo-eclipse-views-loggers-EngineLogViewMStack {
   swt-tab-renderer: url('bundleclass://com.twinsoft.convertigo.studio/com.twinsoft.convertigo.eclipse.swt.ModernTabRendering');
   swt-simple: true;
-  swt-tab-height: 30px;
+  swt-tab-height: 34px;
   swt-tab-text-minimum-characters: 40;
   swt-maximize-visible: false;
   swt-minimize-visible: false;
   swt-unselected-close-visible: false;
-  background-color: #232427;
-  swt-selected-tab-fill: #232427;
-  swt-selected-tabs-color: #232427;
-  swt-unselected-tabs-color: #232427;
-  swt-outer-keyline-color: #18191b;
-  swt-inner-keyline-color: #232427;
-  swt-tab-outline: #232427;
-  swt-selected-tab-highlight: #232427;
+  background-color: #181818;
+  swt-selected-tab-fill: #181818;
+  swt-selected-tabs-color: #181818;
+  swt-unselected-tabs-color: #181818;
+  swt-outer-keyline-color: #181818;
+  swt-inner-keyline-color: #181818;
+  swt-tab-outline: #181818;
+  swt-selected-tab-highlight: #181818;
   swt-selected-highlight-top: false;
 }
 
@@ -37,18 +37,18 @@
 #com-twinsoft-convertigo-eclipse-views-assistant-AssistantViewMStack.active,
 #org-eclipse-ui-views-PropertySheetMStack.active,
 #com-twinsoft-convertigo-eclipse-views-loggers-EngineLogViewMStack.active {
-  swt-selected-tab-highlight: #232427;
+  swt-selected-tab-highlight: #181818;
 }
 
 CTabItem, CTabItem CLabel,
 .MPartStack.active > CTabItem, .MPartStack.active > CTabItem CLabel {
-  color: #8b8f96;
+  color: #9d9d9d;
 }
 
 CTabItem:selected, CTabItem:selected CLabel,
 .MPartStack.active > CTabItem:selected, .MPartStack.active > CTabItem:selected CLabel,
 .MPartStack.active.noFocus > CTabItem:selected {
-  color: #ececec;
+  color: #ffffff;
 }
 
 .MPartStack *,
@@ -59,21 +59,21 @@ CTabItem:selected, CTabItem:selected CLabel,
   background-color: inherit;
 }
 
-/* The editors are panels of the color of the code */
+/* The tabs of the editors are on the background of the views, the selected one on the color of the code */
 #org-eclipse-ui-editorss CTabFolder,
 #org-eclipse-ui-editorss CTabFolder.active {
   swt-tab-renderer: url('bundleclass://com.twinsoft.convertigo.studio/com.twinsoft.convertigo.eclipse.swt.ModernTabRendering');
   swt-simple: true;
-  swt-tab-height: 30px;
+  swt-tab-height: 34px;
   swt-maximize-visible: false;
   swt-minimize-visible: false;
   background-color: #1e1f22;
   swt-selected-tab-fill: #1e1f22;
   swt-selected-tabs-color: #1e1f22;
-  swt-unselected-tabs-color: #1e1f22;
-  swt-outer-keyline-color: #18191b;
+  swt-unselected-tabs-color: #181818;
+  swt-outer-keyline-color: #181818;
   swt-inner-keyline-color: #1e1f22;
-  swt-tab-outline: #1e1f22;
+  swt-tab-outline: #181818;
   swt-selected-tab-highlight: #1e1f22;
   swt-selected-highlight-top: false;
 }
@@ -84,30 +84,30 @@ CTabItem:selected, CTabItem:selected CLabel,
 .MPart Form, .MPart Section, .MPart FormText, .MPart Link, .MPart Sash, .MPart Button, .MPart Group,
 .MPart SashForm, .MPart Tree, .MPart FilteredTree, .MPart PageSiteComposite, .MPart ScrolledComposite,
 .MPart Table, .MPart ViewForm, .MPart ViewForm > CLabel, .MPart PageBook > Label, .MPart PageBook > SashForm {
-  background-color: #232427;
+  background-color: #181818;
 }
 
 /* The background of the window, around the views and in the tool and status bars */
 Shell, .MTrimmedWindow, Composite.MPartSashContainer, Composite.MArea, .MPerspectiveStack, .MPerspective,
 .MTrimBar, .MTrimBar ToolBar, .MTrimBar Composite, .MTrimBar CLabel, StatusLine, ImageBasedFrame,
 #PerspectiveSpacer, #org-eclipse-ui-ProgressBar, #org-eclipse-ui-ProgressBar * {
-  background-color: #18191b;
+  background-color: #181818;
 }
 
 #org-eclipse-ui-StatusLine, #org-eclipse-ui-StatusLine CLabel {
-  color: #8b8f96;
+  color: #9d9d9d;
 }
 
 #com-twinsoft-convertigo-eclipse-views-projectexplorer-ProjectExplorerViewMStack Tree,
 .View Tree, .MPartStack Tree, .MPartStack Table {
-  color: white;
-  background-color: #232427;
+  color: #cccccc;
+  background-color: #181818;
   swt-lines-visible: false;
 }
 
 .MPart Tree, .MPart Table {
-  swt-header-background-color: #232427;
-  swt-header-color: #8b8f96;
+  swt-header-background-color: #181818;
+  swt-header-color: #9d9d9d;
 }
 
 NewProjectWizardComposite1, NewProjectWizardComposite2, NewProjectWizardComposite3,
@@ -124,7 +124,16 @@ ObjectsExplorerComposite, ObjectsExplorerComposite * {
 
 #com-twinsoft-convertigo-eclipse-views-loggers-EngineLogView Table {
   color: unset;
-  background-color: unset;
+  background-color: #181818;
+}
+
+/* The activity bar chooses the view of the left column, which shows the tab of this view only */
+#com-twinsoft-convertigo-eclipse-activityBar {
+  background-color: #181818;
+}
+
+#com-twinsoft-convertigo-eclipse-views-projectexplorer-ProjectExplorerViewMStack {
+  swt-single: true;
 }
 
 .c8oEnginePreferenceExpandBar {
@@ -133,18 +142,18 @@ ObjectsExplorerComposite, ObjectsExplorerComposite * {
 
 /* Palette */
 .MPart .c8oPaletteCategory {
-  color: #d8d8d8;
-  background-color: #2e3035;
+  color: #cccccc;
+  background-color: #242424;
   font-weight: bold;
 }
 
 .MPart .c8oPaletteSelected {
   color: white;
-  background-color: #18485c;
+  background-color: #04395e;
 }
 
 .MPart Composite.c8oPaletteBorder {
-  background-color: #2e3035;
+  background-color: #2b2b2b;
 }
 
 /* IBM Plex Sans, the font of the web Studio loaded by the Studio, for the views and their tabs */

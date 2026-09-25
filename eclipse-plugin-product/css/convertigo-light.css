@@ -105,7 +105,7 @@ Shell, .MTrimmedWindow, Composite.MPartSashContainer, Composite.MArea, .MPerspec
 /* The light theme of Eclipse gives these elements its SECONDARY_BACKGROUND and tab background colors,
    which are black on macOS: the window background */
 .MTrimmedWindow, .MTrimBar, .MTrimBar#org-eclipse-ui-main-toolbar, .MTrimBar#org-eclipse-ui-trim-status,
-Composite.MPartSashContainer {
+Composite.MPartSashContainer, #com-twinsoft-convertigo-eclipse-activityBar {
   background-color: #eceef1;
 }
 

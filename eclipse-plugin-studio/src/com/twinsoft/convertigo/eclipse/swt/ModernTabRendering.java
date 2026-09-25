@@ -27,93 +27,71 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 
 /**
- * Draws each part stack as a rounded panel on the background of the window, with flat tabs: the
- * selected tab is a rounded pill, underlined with the Convertigo accent in the active part stack.
+ * Draws the part stacks flat, as the panels of Cursor or Visual Studio Code: each stack is separated from
+ * the next ones by a line on its right and bottom edges, and its tabs from its content by a line. The tabs
+ * of the editors are separated by lines, the selected one being on the background of the editor with a top
+ * line of the Convertigo accent in the active stack; the selected tab of a view is underlined.
  */
 public class ModernTabRendering extends CTabRendering {
-	private static final int MARGIN = 3;
-	private static final int PADDING = 4;
-	private static final int RADIUS = 8;
 	private static final Color ACCENT = new Color(0, 200, 247);
+	private static final Color DARK_LINE = new Color(43, 43, 43);
+	private static final Color LIGHT_LINE = new Color(229, 229, 229);
+	private static final Color DARK_UNDERLINE = new Color(204, 204, 204);
+	private static final Color LIGHT_UNDERLINE = new Color(64, 64, 64);
 
 	public ModernTabRendering(CTabFolder parent) {
 		super(parent);
 	}
 
 	@Override
-	protected Rectangle computeTrim(int part, int state, int x, int y, int width, int height) {
-		var trim = super.computeTrim(part, state, x, y, width, height);
-		switch (part) {
-		case PART_BORDER:
-			trim.x -= MARGIN + PADDING;
-			trim.width += 2 * (MARGIN + PADDING);
-			trim.y -= MARGIN;
-			trim.height += 2 * MARGIN;
-			break;
-		case PART_HEADER:
-			trim.x -= MARGIN + PADDING;
-			trim.width += 2 * (MARGIN + PADDING);
-			break;
-		case PART_BODY:
-			trim.x -= MARGIN + PADDING;
-			trim.width += 2 * (MARGIN + PADDING);
-			trim.y -= MARGIN;
-			trim.height += 2 * MARGIN + PADDING;
-			break;
-		default:
-		}
-		return trim;
-	}
-
-	@Override
 	protected void draw(int part, int state, Rectangle bounds, GC gc) {
-		switch (part) {
-		case PART_BODY:
-			// computes the shapes used to draw the tabs
-			super.draw(part, state, bounds, gc);
-			gc.setBackground(parent.getParent().getBackground());
-			gc.fillRectangle(bounds);
-			if (parent.getItemCount() == 0) {
-				// an empty editor area shows the background of the window
-				break;
-			}
-			gc.setAdvanced(true);
-			gc.setAntialias(SWT.ON);
-			gc.setBackground(parent.getBackground());
-			gc.fillRoundRectangle(bounds.x + MARGIN, bounds.y + MARGIN, bounds.width - 2 * MARGIN, bounds.height - 2 * MARGIN, 2 * RADIUS, 2 * RADIUS);
-			break;
-		case PART_HEADER:
-			break;
-		default:
-			super.draw(part, state, bounds, gc);
-			if (0 <= part && part < parent.getItemCount()) {
-				// the lines of the tabs reach the edges of the folder, outside of the panel
-				var size = parent.getSize();
-				gc.setBackground(parent.getParent().getBackground());
-				gc.fillRectangle(0, MARGIN + RADIUS, MARGIN, size.y - 2 * (MARGIN + RADIUS));
-				gc.fillRectangle(size.x - MARGIN, MARGIN + RADIUS, MARGIN, size.y - 2 * (MARGIN + RADIUS));
-				if ((state & SWT.SELECTED) != 0) {
-					drawPill(bounds, gc);
+		super.draw(part, state, bounds, gc);
+		var dark = SwtUtils.isDark();
+		var size = parent.getSize();
+		gc.setAlpha(255);
+		gc.setLineWidth(1);
+		if (part == PART_BODY) {
+			gc.setForeground(dark ? DARK_LINE : LIGHT_LINE);
+			gc.drawLine(size.x - 1, 0, size.x - 1, size.y - 1);
+			gc.drawLine(0, size.y - 1, size.x - 1, size.y - 1);
+			if (parent.getItemCount() > 0) {
+				var header = parent.getItem(0).getBounds();
+				int y = header.y + header.height;
+				var selection = parent.getSelection();
+				if (isEditorStack() && selection != null) {
+					// the selected tab of an editor opens on its content
+					var tab = selection.getBounds();
+					gc.drawLine(0, y, tab.x - 1, y);
+					gc.drawLine(tab.x + tab.width, y, size.x - 1, y);
+				} else {
+					gc.drawLine(0, y, size.x - 1, y);
 				}
 			}
+		} else if (0 <= part && part < parent.getItemCount()) {
+			boolean selected = (state & SWT.SELECTED) != 0;
+			if (isEditorStack()) {
+				gc.setForeground(dark ? DARK_LINE : LIGHT_LINE);
+				gc.drawLine(bounds.x + bounds.width - 1, bounds.y, bounds.x + bounds.width - 1, bounds.y + bounds.height);
+				if (selected && isActive()) {
+					gc.setBackground(ACCENT);
+					gc.fillRectangle(bounds.x, bounds.y, bounds.width - 1, 1);
+				}
+			} else if (selected) {
+				gc.setBackground(isActive() ? ACCENT : dark ? DARK_UNDERLINE : LIGHT_UNDERLINE);
+				gc.fillRectangle(bounds.x + 8, bounds.y + bounds.height - 2, bounds.width - 16, 1);
+			}
 		}
 	}
 
-	private void drawPill(Rectangle bounds, GC gc) {
-		gc.setAdvanced(true);
-		gc.setAntialias(SWT.ON);
-		var alpha = gc.getAlpha();
-		gc.setAlpha(SwtUtils.isDark() ? 22 : 16);
-		gc.setBackground(parent.getDisplay().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_WHITE : SWT.COLOR_BLACK));
-		gc.fillRoundRectangle(bounds.x + 2, bounds.y + 4, bounds.width - 4, bounds.height - 7, 12, 12);
-		gc.setAlpha(alpha);
-		if (isActive()) {
-			gc.setBackground(ACCENT);
-			gc.fillRoundRectangle(bounds.x + 10, bounds.y + bounds.height - 3, bounds.width - 20, 2, 2, 2);
-		}
+	private boolean isEditorStack() {
+		return hasCssClass("EditorStack");
 	}
 
 	private boolean isActive() {
-		return parent.getData(SwtUtils.CSS_CLASS_KEY) instanceof String css && (" " + css + " ").contains(" active ");
+		return hasCssClass("active");
+	}
+
+	private boolean hasCssClass(String name) {
+		return parent.getData(SwtUtils.CSS_CLASS_KEY) instanceof String css && (" " + css + " ").contains(" " + name + " ");
 	}
 }
