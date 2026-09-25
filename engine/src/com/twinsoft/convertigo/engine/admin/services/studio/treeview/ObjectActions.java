@@ -50,6 +50,7 @@ import com.twinsoft.convertigo.beans.steps.AttributeStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
@@ -115,6 +116,11 @@ public class ObjectActions {
 						"Set the output of this step and of all its steps to " + output + ".", true,
 						output ? "mdi:eye-outline" : "mdi:eye-off-outline");
 			}
+		}
+		if (Variables.handles(dbo)) {
+			add(items, "object.variables", dbo instanceof AbstractHttpTransaction ? "Add or remove dynamic variables…" : "Add variables…",
+					"Choose the variables of this transaction among the ones it can use.", true, "mdi:variable")
+					.put("clientAction", "dialog.variables");
 		}
 		if (dbo instanceof WebServiceReference || dbo instanceof RestServiceReference) {
 			add(items, "object.updateReference", "Update the web service",
@@ -322,9 +328,9 @@ public class ObjectActions {
 		return new JSONObject().put("ok", ok).put("message", message);
 	}
 
-	private static void add(JSONArray items, String id, String label, String description, boolean enabled,
+	private static JSONObject add(JSONArray items, String id, String label, String description, boolean enabled,
 			String icon) throws Exception {
-		add(items, id, label, description, enabled, icon, GROUP);
+		return add(items, id, label, description, enabled, icon, GROUP);
 	}
 
 	private static JSONObject add(JSONArray items, String id, String label, String description, boolean enabled,

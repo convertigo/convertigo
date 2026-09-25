@@ -26,7 +26,7 @@ public enum DynamicHttpVariable {
 	__body("HTTP body", "Content <b><u>body</u></b> of the HTTP POST or PUT request."),
 	__uri("URI", "Override <b><u>URI</u></b> of the request."),
 	__POST_("POST variable", "Add dynamic <b><u>POST variable</u></b> for this request. You have to rename the <b><u>custom</u></b> part of the variable name.", ""),
-	__GET_("GET variable", "Add dynamic <b><u>POST variable</u></b> for this request. You have to rename the <b><u>custom</u></b> part of the variable name.", ""),
+	__GET_("GET variable", "Add dynamic <b><u>GET variable</u></b> for this request. You have to rename the <b><u>custom</u></b> part of the variable name.", ""),
 	__contentType("Content-Type", "Override the <b><u>Content-Type</u></b> header of the request. Can be useful in combination of <b><u>body</u></b>."),
 	__header_("Custom Header", "Add dynamic <b><u>custom header</u></b> for this request. You have to rename the <b><u>custom</u></b> part of the variable name.", "__header_"),
 	__download_folder("Download folder", "Override the <b><u>Folder</u></b> property of this transaction", DownloadHttpTransaction.class),

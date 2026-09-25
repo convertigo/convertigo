@@ -92,6 +92,7 @@
 	import MdiHomeOutline from '~icons/mdi/home-outline';
 	import MdiHub from '~icons/mdi/hub';
 	import MdiImport from '~icons/mdi/import';
+	import MdiVariable from '~icons/mdi/variable';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline';
 	import MdiKeyOutline from '~icons/mdi/key-outline';
 	import MdiLanConnect from '~icons/mdi/lan-connect';
@@ -249,6 +250,7 @@
 		'mdi:home-outline': MdiHomeOutline,
 		'mdi:hub': MdiHub,
 		'mdi:import': MdiImport,
+		'mdi:variable': MdiVariable,
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,
 		'mdi:key-outline': MdiKeyOutline,
 		'mdi:lan-connect': MdiLanConnect,

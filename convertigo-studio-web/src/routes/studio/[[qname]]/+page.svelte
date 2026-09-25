@@ -38,21 +38,21 @@
 	import StudioActivityBar from '$lib/studio/StudioActivityBar.svelte';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
 	import StudioBuilderPanel from '$lib/studio/StudioBuilderPanel.svelte';
-	import StudioDeployDialog from '$lib/studio/StudioDeployDialog.svelte';
-	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
-	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
-	import StudioEmptyState from '$lib/studio/StudioEmptyState.svelte';
-	import StudioExecutionPanel from '$lib/studio/StudioExecutionPanel.svelte';
 	import {
 		hasStudioClipboard,
 		pasteStudioClipboard,
 		putInStudioClipboard
 	} from '$lib/studio/studioClipboard.svelte.js';
+	import StudioDeployDialog from '$lib/studio/StudioDeployDialog.svelte';
+	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
+	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
+	import StudioEmptyState from '$lib/studio/StudioEmptyState.svelte';
+	import StudioExecutionPanel from '$lib/studio/StudioExecutionPanel.svelte';
 	import { flowBrowserPreview, flowSourceReveal } from '$lib/studio/studioFlowEvents';
 	import StudioIconButton from '$lib/studio/StudioIconButton.svelte';
 	import StudioLogsPanel from '$lib/studio/StudioLogsPanel.svelte';
-	import StudioNewProjectDialog from '$lib/studio/StudioNewProjectDialog.svelte';
 	import { createStudioMutationEventTracker } from '$lib/studio/studioMutationEvents';
+	import StudioNewProjectDialog from '$lib/studio/StudioNewProjectDialog.svelte';
 	import StudioPalettePanel from '$lib/studio/StudioPalettePanel.svelte';
 	import StudioPanel from '$lib/studio/StudioPanel.svelte';
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
@@ -64,6 +64,7 @@
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
+	import StudioVariablesDialog from '$lib/studio/StudioVariablesDialog.svelte';
 	import StudioWsImportDialog from '$lib/studio/StudioWsImportDialog.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { resolve } from '$lib/utils/route';
@@ -237,6 +238,8 @@
 	let newProjectOpen = $state(false);
 	let deployProjectName = $state('');
 	let wsImportProjectName = $state('');
+	/** The transaction whose variables the variables dialog chooses */
+	let variablesTargetId = $state('');
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
 	let paletteRevealRequest = $state({ key: '', contextId: '', serial: 0 });
@@ -2092,6 +2095,8 @@
 			await saveSelectedProject();
 		} else if (action === 'project.reload') {
 			await reloadSelectedProject();
+		} else if (action === 'dialog.variables') {
+			variablesTargetId = nodeId;
 		} else if (action === 'project.importWs') {
 			wsImportProjectName = projectName;
 		} else if (action === 'project.deploy') {
@@ -2230,6 +2235,18 @@
 				mode: 'development'
 			};
 		}
+	}
+
+	/**
+	 * Shows the transaction whose variables the variables dialog changed.
+	 * @param {string} id
+	 */
+	async function showChangedVariables(id) {
+		variablesTargetId = '';
+		await refreshStudioProject(id);
+		refreshTreeContext(id, 'contextAction');
+		refreshStudioViews();
+		markProjectDirty(id);
 	}
 
 	/**
@@ -2721,6 +2738,13 @@
 	</div>
 {/if}
 
+{#if variablesTargetId}
+	<StudioVariablesDialog
+		id={variablesTargetId}
+		onDone={showChangedVariables}
+		onClose={() => (variablesTargetId = '')}
+	/>
+{/if}
 {#if wsImportProjectName}
 	<StudioWsImportDialog
 		projectName={wsImportProjectName}

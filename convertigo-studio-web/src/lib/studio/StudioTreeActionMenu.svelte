@@ -202,6 +202,9 @@
 			await onRevealDefinition?.();
 		} else if (clientAction === 'source.open') {
 			await onOpenSource?.();
+		} else if (clientAction.startsWith('dialog.')) {
+			// a dialog of the page, as the variables of a transaction
+			await onTreeAction?.(clientAction);
 		}
 	}
 
@@ -333,7 +336,7 @@
 		<Ico icon={triggerIcon} size={4} />
 	</Menu.Trigger>
 	<Portal>
-		<Menu.Positioner class="studio-tree-action-menu__positioner">
+		<Menu.Positioner class="studio-tree-action-menu__positioner" style="z-index: 180;">
 			<Menu.Content class="studio-tree-action-menu__content">
 				{#if editable}
 					<Menu.ItemGroup>
@@ -458,10 +461,6 @@
 		border-color: color-mix(in oklab, var(--color-primary-500) 56%, transparent);
 		background: color-mix(in oklab, var(--color-primary-500) 14%, var(--color-surface-50-950));
 		color: var(--color-primary-700-300);
-	}
-
-	:global(.studio-tree-action-menu__positioner) {
-		z-index: 180;
 	}
 
 	:global(.studio-tree-action-menu__content) {
