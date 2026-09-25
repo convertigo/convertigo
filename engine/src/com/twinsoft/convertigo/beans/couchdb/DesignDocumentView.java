@@ -35,6 +35,21 @@ public class DesignDocumentView extends DatabaseObject implements IDynamicProper
 		return viewName;
 	}
 
+	/**
+	 * @return the name of the view in the design document, which the name of the object may normalize
+	 */
+	public String getViewName() {
+		return viewName;
+	}
+
+	public DesignDocument getDesignDocument() {
+		return (DesignDocument) parent;
+	}
+
+	public boolean hasReduce() {
+		return !getFunction("reduce").isBlank();
+	}
+
 	@Override
 	public boolean isHiddenProperty(String propertyName) {
 		return switch (propertyName) {
@@ -59,10 +74,10 @@ public class DesignDocumentView extends DatabaseObject implements IDynamicProper
 			return false;
 		}
 		try {
-			var views = designDocument().getJSONObject().optJSONObject("views");
+			var views = getDesignDocument().getJSONObject().optJSONObject("views");
 			if (views == null) {
 				views = new JSONObject();
-				designDocument().getJSONObject().put("views", views);
+				getDesignDocument().getJSONObject().put("views", views);
 			}
 			var view = views.optJSONObject(viewName);
 			if (view == null) {
@@ -74,19 +89,15 @@ public class DesignDocumentView extends DatabaseObject implements IDynamicProper
 			} else {
 				view.put(name, value == null ? "" : value);
 			}
-			designDocument().hasChanged = true;
+			getDesignDocument().hasChanged = true;
 			return true;
 		} catch (Exception e) {
 			throw new EngineException("Unable to update FullSync view \"" + viewName + "\".", e);
 		}
 	}
 
-	private DesignDocument designDocument() {
-		return (DesignDocument) parent;
-	}
-
 	private String getFunction(String name) {
-		var views = designDocument().getJSONObject().optJSONObject("views");
+		var views = getDesignDocument().getJSONObject().optJSONObject("views");
 		var view = views == null ? null : views.optJSONObject(viewName);
 		return view == null ? "" : view.optString(name, "");
 	}

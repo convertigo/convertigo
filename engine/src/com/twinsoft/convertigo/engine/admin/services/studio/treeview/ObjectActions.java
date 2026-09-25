@@ -23,6 +23,8 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocumentView;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
@@ -117,6 +119,19 @@ public class ObjectActions {
 						output ? "mdi:eye-outline" : "mdi:eye-off-outline");
 			}
 		}
+		if (dbo instanceof DesignDocument) {
+			add(items, "object.createView", "Create a view", "Add a view with a map function to this design document.",
+					true, "mdi:plus");
+		}
+		if (dbo instanceof DesignDocumentView view) {
+			if (view.hasReduce()) {
+				add(items, "object.removeReduce", "Remove the reduce function", "Keep only the map function of this view.",
+						true, "mdi:minus");
+			} else {
+				add(items, "object.addReduce", "Add a reduce function", "Reduce the rows the map function of this view emits.",
+						true, "mdi:plus");
+			}
+		}
 		if (Variables.handles(dbo)) {
 			add(items, "object.variables", dbo instanceof AbstractHttpTransaction ? "Add or remove dynamic variables…" : "Add variables…",
 					"Choose the variables of this transaction among the ones it can use.", true, "mdi:variable")
@@ -193,6 +208,20 @@ public class ObjectActions {
 			if (((IVariableContainer) dbo).numberOfVariables() == variables) {
 				return result(true, "The variables were already imported.").put("changed", false);
 			}
+		}
+		case "object.createView" -> {
+			if (!(dbo instanceof DesignDocument designDocument)) {
+				return result(false, "This object is not a design document.");
+			}
+			var view = designDocument.getView(designDocument.addView());
+			return result(true, "").put("changed", true).put("refresh", true)
+					.put("selectedId", view == null ? dbo.getFullQName() : view.getFullQName());
+		}
+		case "object.addReduce", "object.removeReduce" -> {
+			if (!(dbo instanceof DesignDocumentView view)) {
+				return result(false, "This object is not a view.");
+			}
+			view.setDynamicProperty("reduce", "object.addReduce".equals(actionId) ? DesignDocument.DEFAULT_REDUCE : "");
 		}
 		case "object.exportVariables" -> {
 			if (!(dbo instanceof RequestableStep step)) {
