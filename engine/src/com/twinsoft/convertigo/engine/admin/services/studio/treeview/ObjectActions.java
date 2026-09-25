@@ -28,6 +28,9 @@ import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.references.RemoteFileReference;
+import com.twinsoft.convertigo.beans.references.RestServiceReference;
+import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
@@ -37,6 +40,7 @@ import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.studio.dbo.CreateStub;
+import com.twinsoft.convertigo.engine.admin.services.studio.project.ImportWsReference;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 
 /**
@@ -80,6 +84,11 @@ public class ObjectActions {
 		} else if (dbo instanceof TestCase && dbo.getParent() instanceof RequestableObject) {
 			add(items, "object.importVariables", "Import the variables of the requestable",
 					"Add the variables of the sequence or transaction to this test case.", true, "mdi:import");
+		}
+		if (dbo instanceof WebServiceReference || dbo instanceof RestServiceReference) {
+			add(items, "object.updateReference", "Update the web service",
+					"Read the definition of the web service again and update its connector and transactions.", true,
+					"mdi:reload");
 		}
 		if (dbo instanceof RequestableObject && (dbo instanceof Sequence || dbo instanceof Transaction)) {
 			add(items, "object.emptyStub", "Create an empty stub",
@@ -145,6 +154,15 @@ public class ObjectActions {
 			if (!dbo.hasChanged) {
 				return result(true, "The variables were already imported.").put("changed", false);
 			}
+		}
+		case "object.updateReference" -> {
+			if (!(dbo instanceof RemoteFileReference reference)
+					|| !(dbo instanceof WebServiceReference || dbo instanceof RestServiceReference)) {
+				return result(false, "This object is not a web service reference.");
+			}
+			var connector = ImportWsReference.importInto(dbo.getProject(), reference, null);
+			return result(true, connector == null ? "The web service is up to date."
+					: "The connector " + connector.getName() + " is updated.").put("changed", true).put("refresh", true);
 		}
 		case "object.emptyStub" -> {
 			if (!(dbo instanceof RequestableObject requestable)) {

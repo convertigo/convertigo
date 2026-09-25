@@ -540,8 +540,15 @@ public class Project extends DatabaseObject implements IInfoProperty {
 				throw new IllegalArgumentException("The value of argument 'transaction' is null");
 			checkSubLoaded();
 			if (vConnectors.contains(connector)) {
-				if (defaultConnector == null)
-					getDefaultConnector();
+				// the current default connector, without the exception of the Engine mode when there is none
+				if (defaultConnector == null) {
+					for (Connector current : vConnectors) {
+						if (current.isDefault) {
+							defaultConnector = current;
+							break;
+						}
+					}
+				}
 				if (defaultConnector != null)
 					defaultConnector.isDefault = false;
 				connector.isDefault = true;

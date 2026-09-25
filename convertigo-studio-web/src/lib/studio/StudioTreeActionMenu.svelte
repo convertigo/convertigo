@@ -374,6 +374,7 @@
 						{@render treeItem('project.reload', 'mdi:reload', 'Reload from disk')}
 						{@render treeItem('project.export', 'mdi:export', 'Export as .car')}
 						{@render treeItem('project.deploy', 'mdi:server-network', 'Deploy to a server…')}
+						{@render treeItem('project.importWs', 'mdi:web', 'Import a web service…')}
 						{@render treeItem('project.dashboard', 'mdi:open-in-new-variant', 'Open in dashboard')}
 						{@render treeItem(
 							'project.delete',

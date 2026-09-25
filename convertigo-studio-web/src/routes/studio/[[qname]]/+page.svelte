@@ -64,6 +64,7 @@
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
+	import StudioWsImportDialog from '$lib/studio/StudioWsImportDialog.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { resolve } from '$lib/utils/route';
 	import {
@@ -235,6 +236,7 @@
 	let renameChoice = $state(null);
 	let newProjectOpen = $state(false);
 	let deployProjectName = $state('');
+	let wsImportProjectName = $state('');
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
 	let paletteRevealRequest = $state({ key: '', contextId: '', serial: 0 });
@@ -2090,6 +2092,8 @@
 			await saveSelectedProject();
 		} else if (action === 'project.reload') {
 			await reloadSelectedProject();
+		} else if (action === 'project.importWs') {
+			wsImportProjectName = projectName;
 		} else if (action === 'project.deploy') {
 			deployProjectName = projectName;
 		} else if (action === 'project.export') {
@@ -2225,6 +2229,21 @@
 				url: studioPreviewUrl(url),
 				mode: 'development'
 			};
+		}
+	}
+
+	/**
+	 * Shows the connector of a web service imported into a project.
+	 * @param {string} id
+	 */
+	async function showImportedWebService(id) {
+		const projectName = wsImportProjectName;
+		wsImportProjectName = '';
+		await refreshStudioProject(projectName);
+		refreshStudioViews();
+		markProjectDirty(projectName);
+		if (id) {
+			selectedId = id;
 		}
 	}
 
@@ -2700,6 +2719,14 @@
 			{/if}
 		</div>
 	</div>
+{/if}
+
+{#if wsImportProjectName}
+	<StudioWsImportDialog
+		projectName={wsImportProjectName}
+		onDone={showImportedWebService}
+		onClose={() => (wsImportProjectName = '')}
+	/>
 {/if}
 
 {#if deployProjectName}

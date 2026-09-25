@@ -195,6 +195,17 @@ public class WsReference {
 		return httpConnector;
 	}
 	
+	/**
+	 * @return whether the project has a default connector, without the exception of the Engine mode when it has none
+	 */
+	private static boolean hasDefaultConnector(Project project) {
+		try {
+			return project.getDefaultConnector() != null;
+		} catch (EngineException e) {
+			return false;
+		}
+	}
+
 	static public int getTotalTaskNumber() {
 		return 9;
 	}
@@ -350,7 +361,7 @@ public class WsReference {
 			
 			if (httpConnector != null) {
 				project.add(httpConnector);
-				if (project.getDefaultConnector() == null) {
+				if (!hasDefaultConnector(project)) {
 					project.setDefaultConnector(httpConnector);
 				}
 				project.hasChanged = true;

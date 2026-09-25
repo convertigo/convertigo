@@ -206,7 +206,15 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 			throw new IllegalArgumentException("The value of argument 'transaction' is null");
 		checkSubLoaded();
 		if (vTransactions.contains(transaction)) {
-			if (defaultTransaction == null) getDefaultTransaction();
+			// the current default transaction, without the exception of the Engine mode when there is none
+			if (defaultTransaction == null) {
+				for (Transaction current : vTransactions) {
+					if (current.isDefault) {
+						defaultTransaction = current;
+						break;
+					}
+				}
+			}
 			if (defaultTransaction != null) defaultTransaction.isDefault = false;
 			transaction.isDefault = true;
 			defaultTransaction = transaction;
