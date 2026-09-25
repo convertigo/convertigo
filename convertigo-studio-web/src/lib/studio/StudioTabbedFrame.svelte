@@ -74,8 +74,6 @@
 		min-height: 0;
 		grid-template-rows: auto minmax(0, 1fr);
 		overflow: hidden;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
 		background: var(--studio-panel-bg);
 	}
 

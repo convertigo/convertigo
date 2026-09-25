@@ -529,10 +529,10 @@
 
 <style>
 	.studio-editor {
-		--studio-editor-bg: var(--color-surface-50-950);
-		--studio-editor-tabs-bg: var(--color-surface-100-900);
-		--studio-editor-tab-bg: var(--color-surface-50-950);
-		--studio-editor-tab-active-bg: var(--color-surface-100-900);
+		--studio-editor-bg: var(--studio-main-bg, var(--color-surface-50-950));
+		--studio-editor-tabs-bg: var(--studio-chrome-bg, var(--color-surface-100-900));
+		--studio-editor-tab-bg: transparent;
+		--studio-editor-tab-active-bg: var(--studio-editor-bg);
 		--studio-editor-text: var(--color-surface-950-50);
 		--studio-editor-muted: var(--color-surface-600-400);
 		display: grid;
@@ -553,12 +553,14 @@
 		box-shadow: 0 1.5rem 4rem color-mix(in oklab, black 38%, transparent);
 	}
 
+	/* The tabs of the editors of Cursor: separated by lines, the active one on the background of the
+	   code with a top line of the accent */
 	.studio-editor__tabs {
 		min-width: 0;
 		overflow-x: auto;
-		border-bottom: 1px solid var(--color-surface-200-800);
+		box-shadow: inset 0 -1px var(--studio-line, var(--color-surface-200-800));
 		background: var(--studio-editor-tabs-bg);
-		padding: 0.22rem;
+		padding: 0;
 	}
 
 	.studio-editor__tab {
@@ -567,16 +569,17 @@
 		max-width: 15rem;
 		grid-template-columns: minmax(0, 1fr) auto;
 		overflow: hidden;
-		border: 1px solid transparent;
-		border-radius: 0.28rem;
+		border: 0;
+		border-right: 1px solid var(--studio-line, var(--color-surface-200-800));
+		border-radius: 0;
 		background: var(--studio-editor-tab-bg);
-		color: var(--studio-editor-text);
+		color: var(--studio-text-idle, var(--studio-editor-text));
 	}
 
 	.studio-editor__tab--active {
-		border-color: color-mix(in oklab, var(--color-primary-500) 55%, transparent);
 		background: var(--studio-editor-tab-active-bg);
-		color: var(--color-primary-700-300);
+		box-shadow: inset 0 1px var(--color-primary-500);
+		color: var(--studio-text-strong, var(--color-primary-700-300));
 	}
 
 	.studio-editor__tab-main,
@@ -592,7 +595,7 @@
 		grid-template-columns: 0.55rem minmax(0, 1fr);
 		align-items: center;
 		gap: 0.2rem;
-		padding: 0.34rem 0.18rem 0.34rem 0.45rem;
+		padding: 0.55rem 0.18rem 0.55rem 0.6rem;
 		text-align: left;
 	}
 
@@ -604,8 +607,8 @@
 	}
 
 	.studio-editor__tab-label {
-		font-size: 0.74rem;
-		font-weight: 700;
+		font-size: 0.78rem;
+		font-weight: 400;
 	}
 
 	.studio-editor__tab-close {
@@ -616,13 +619,13 @@
 	}
 
 	.studio-editor__tab-close:hover {
-		background: color-mix(in oklab, white 10%, transparent);
+		background: var(--studio-hover-bg, color-mix(in oklab, white 10%, transparent));
 		opacity: 1;
 	}
 
 	.studio-editor__toolbar {
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: color-mix(in oklab, var(--studio-editor-bg) 92%, var(--color-primary-500));
+		border-bottom: 1px solid var(--studio-line, var(--color-surface-200-800));
+		background: var(--studio-editor-bg);
 		padding: 0.45rem 0.55rem;
 	}
 

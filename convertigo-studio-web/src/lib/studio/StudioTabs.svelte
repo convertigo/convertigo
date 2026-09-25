@@ -55,39 +55,52 @@
 </div>
 
 <style>
+	/* Flat tabs, as the panel tabs of Cursor: the selected one is underlined with the accent */
 	.studio-tab-strip {
-		display: grid;
-		grid-auto-columns: minmax(0, 1fr);
-		grid-auto-flow: column;
-		gap: 0.18rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
+		display: flex;
+		min-width: 0;
+		gap: 0.25rem;
+		overflow: hidden;
 		background: var(--studio-panel-header-bg);
-		padding: 0.22rem;
+		padding: 0 0.5rem;
 	}
 
 	.studio-tab {
+		position: relative;
 		min-width: 0;
-		height: 2.15rem;
+		height: 2.5rem;
+		flex: 0 1 auto;
 		justify-content: center;
-		border: 1px solid transparent;
-		border-radius: 0.3rem;
+		border: 0;
 		background: transparent;
-		color: var(--color-surface-700-300);
-		padding: 0 0.45rem;
+		color: var(--studio-text-idle, var(--color-surface-700-300));
+		padding: 0 0.5rem;
 		font-size: 0.72rem;
-		font-weight: 750;
+		font-weight: 600;
+		letter-spacing: 0.02em;
 		text-transform: uppercase;
 	}
 
-	.studio-tab:hover:not(:disabled),
+	.studio-tab:hover:not(:disabled) {
+		color: var(--studio-text-strong, var(--color-surface-950-50));
+	}
+
 	.studio-tab--active {
-		border-color: color-mix(in oklab, var(--color-primary-500) 38%, transparent);
-		background: color-mix(in oklab, var(--color-primary-500) 11%, transparent);
-		color: var(--color-primary-600-400);
+		color: var(--studio-text-strong, var(--color-surface-950-50));
+	}
+
+	.studio-tab--active::after {
+		position: absolute;
+		right: 0.5rem;
+		bottom: 0.3rem;
+		left: 0.5rem;
+		height: 1px;
+		background: var(--color-primary-500);
+		content: '';
 	}
 
 	.studio-tab:disabled {
-		color: var(--color-surface-500);
+		opacity: 0.45;
 		cursor: not-allowed;
 	}
 

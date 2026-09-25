@@ -1124,9 +1124,9 @@
 		align-items: center;
 		gap: 0.08rem;
 		border: 1px solid transparent;
-		border-radius: 0.35rem;
+		border-radius: 0;
 		background: transparent;
-		color: var(--color-surface-900-100);
+		color: var(--studio-text, var(--color-surface-900-100));
 		padding-top: 0.16rem;
 		padding-right: 0.24rem;
 		padding-bottom: 0.16rem;
@@ -1137,7 +1137,10 @@
 	}
 
 	.studio-tree-node__row:hover {
-		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
+		background: var(
+			--studio-hover-bg,
+			color-mix(in oklab, var(--color-primary-500) 9%, transparent)
+		);
 	}
 
 	.studio-tree-node__row--pending {
@@ -1151,10 +1154,15 @@
 		}
 	}
 
-	.studio-tree-node__row--selected {
-		border-color: color-mix(in oklab, var(--color-primary-500) 38%, transparent);
-		background: color-mix(in oklab, var(--color-primary-500) 14%, transparent);
-		color: var(--color-primary-700-300);
+	/* The selection of a list of Cursor, bordered with the accent */
+	.studio-tree-node__row--selected,
+	.studio-tree-node__row--selected:hover {
+		border-color: color-mix(in oklab, var(--color-primary-500) 70%, transparent);
+		background: var(
+			--studio-selection-focus-bg,
+			color-mix(in oklab, var(--color-primary-500) 14%, transparent)
+		);
+		color: var(--studio-text-strong, var(--color-primary-700-300));
 	}
 
 	.studio-tree-node__row--disabled {
@@ -1252,8 +1260,8 @@
 	.studio-tree-node__label {
 		min-width: max-content;
 		white-space: nowrap;
-		font-size: 0.74rem;
-		font-weight: 650;
+		font-size: 0.8rem;
+		font-weight: 400;
 	}
 
 	.studio-tree-node__actions {

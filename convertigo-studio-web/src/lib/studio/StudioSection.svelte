@@ -44,7 +44,7 @@
 
 <style>
 	:global(.studio-section-item) {
-		border-bottom: 1px solid var(--color-surface-200-800);
+		border-bottom: 1px solid var(--studio-line, var(--color-surface-200-800));
 		background: var(--studio-panel-bg, var(--color-surface-50-950));
 	}
 
@@ -52,22 +52,26 @@
 		border-top: 0;
 	}
 
+	/* A section header of a side bar of Cursor: on the panel, in small capitals */
 	:global(.studio-section-trigger) {
-		min-height: 2.45rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
+		min-height: 2rem;
 		background: var(
 			--studio-panel-header-bg,
 			color-mix(in oklab, var(--color-surface-100-900) 88%, transparent)
 		);
-		color: var(--color-surface-800-200);
-		padding: 0.45rem 0.65rem;
-		font-size: 0.78rem;
+		color: var(--studio-text, var(--color-surface-800-200));
+		padding: 0.25rem 0.6rem 0.25rem 0.85rem;
+		font-size: 0.7rem;
 		font-weight: 700;
+		letter-spacing: 0.02em;
 		text-transform: uppercase;
 	}
 
 	:global(.studio-section-trigger:hover:not(:disabled)) {
-		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
+		background: var(
+			--studio-hover-bg,
+			color-mix(in oklab, var(--color-primary-500) 9%, transparent)
+		);
 		color: var(--color-surface-950-50);
 	}
 

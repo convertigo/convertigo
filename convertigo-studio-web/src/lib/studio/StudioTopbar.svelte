@@ -30,7 +30,7 @@
 	} = $props();
 </script>
 
-<header class="studio-topbar gap-low p-low">
+<header class="studio-topbar gap-low">
 	<div class="studio-topbar__brand layout-x-low">
 		<span class="studio-topbar__logo studio-icon-tile">
 			<Ico icon="convertigo:logo" size={5} />
@@ -38,7 +38,11 @@
 		<div class="studio-topbar__title">
 			<strong class="studio-ellipsis">Convertigo Studio</strong>
 		</div>
-		<div class="studio-topbar__button-group layout-x-low" aria-label="Studio views">
+		<!-- the activity bar shows and hides the panels, these buttons do it on a narrow screen -->
+		<div
+			class="studio-topbar__button-group studio-topbar__panel-toggles layout-x-low"
+			aria-label="Studio views"
+		>
 			<StudioIconButton
 				icon="mdi:folder-outline"
 				title={collapsedPanels.tree ? 'Show projects' : 'Hide projects'}
@@ -129,12 +133,19 @@
 </header>
 
 <style>
+	/* A flat title bar, as the one of Cursor */
 	.studio-topbar {
 		display: grid;
+		min-height: 2.6rem;
 		grid-template-columns: minmax(11rem, auto) minmax(0, 1fr) auto;
 		align-items: center;
-		border-bottom: 1px solid var(--color-surface-200-800);
-		background: color-mix(in oklab, var(--studio-panel-bg) 92%, transparent);
+		border-bottom: 1px solid var(--studio-line, var(--color-surface-200-800));
+		background: var(--studio-chrome-bg, var(--studio-panel-bg));
+		padding: 0.2rem 0.5rem 0.2rem 0.6rem;
+	}
+
+	.studio-topbar__panel-toggles {
+		display: none;
 	}
 
 	.studio-topbar__brand {
@@ -142,8 +153,8 @@
 	}
 
 	.studio-topbar__logo {
-		width: 2rem;
-		height: 2rem;
+		width: 1.75rem;
+		height: 1.75rem;
 	}
 
 	.studio-topbar__title {
@@ -157,37 +168,44 @@
 	}
 
 	.studio-topbar__title strong {
-		font-size: 0.9rem;
+		font-size: 0.82rem;
+		font-weight: 600;
 		line-height: 1.1;
 	}
 
+	/* The profiles are a quiet segmented control, the active one lit with the accent on its icon */
 	.studio-topbar__profiles {
 		flex: 0 0 auto;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
-		background: var(--studio-shell-bg);
-		padding: 0.16rem;
+		gap: 0.1rem;
+		border: 1px solid var(--studio-line, var(--color-surface-200-800));
+		border-radius: 0.4rem;
+		background: transparent;
+		padding: 0.12rem;
 	}
 
 	.studio-topbar__profile {
-		height: 2rem;
+		height: 1.65rem;
 		border: 0;
-		border-radius: 0.3rem;
+		border-radius: 0.28rem;
 		background: transparent;
-		color: var(--color-surface-700-300);
-		padding: 0 0.65rem;
-		font-size: 0.78rem;
-		font-weight: 700;
+		color: var(--studio-text-idle, var(--color-surface-700-300));
+		padding: 0 0.6rem;
+		font-size: 0.75rem;
+		font-weight: 600;
 	}
 
 	.studio-topbar__profile:hover {
-		color: var(--color-surface-950-50);
-		background: color-mix(in oklab, var(--color-surface-300-700) 40%, transparent);
+		color: var(--studio-text-strong, var(--color-surface-950-50));
+		background: var(--studio-hover-bg, transparent);
 	}
 
 	.studio-topbar__profile--active {
-		background: var(--color-primary-500);
-		color: var(--color-primary-contrast-500);
+		background: var(--studio-selection-bg, var(--color-primary-500));
+		color: var(--studio-text-strong, var(--color-primary-contrast-500));
+	}
+
+	.studio-topbar__profile--active :global(svg) {
+		color: var(--color-primary-500);
 	}
 
 	.studio-topbar__actions {
@@ -228,6 +246,10 @@
 	@media (max-width: 980px) {
 		.studio-topbar {
 			grid-template-columns: minmax(0, 1fr) auto;
+		}
+
+		.studio-topbar__panel-toggles {
+			display: flex;
 		}
 
 		.studio-topbar__breadcrumb {

@@ -62,4 +62,44 @@
 		min-height: 0;
 		overflow: hidden;
 	}
+
+	/* The rows are on the background of the panel, as the output of Cursor: only the warnings and the
+	   errors keep a light tint of their level */
+	.studio-logs :global(.log-row.log-row) {
+		--log-tint-weak: 0%;
+		--log-tint-strong: 3%;
+	}
+
+	.studio-logs :global(.log-row.WARN),
+	.studio-logs :global(.log-row.ERROR),
+	.studio-logs :global(.log-row.FATAL) {
+		--log-tint-weak: 10%;
+		--log-tint-strong: 14%;
+	}
+
+	/* Quiet tool bar buttons, as the actions of a panel of Cursor */
+	.studio-logs :global(.log-toolbar-button),
+	.studio-logs :global(.log-toolbar-button-active) {
+		border-color: transparent;
+		background: transparent;
+		box-shadow: none;
+		color: var(--studio-text-idle);
+	}
+
+	.studio-logs :global(.log-toolbar-button:hover),
+	.studio-logs :global(.log-toolbar-button-active:hover) {
+		border-color: transparent;
+		background: var(--studio-hover-bg);
+		color: var(--studio-text-strong);
+	}
+
+	.studio-logs :global(.log-toolbar-button-active) {
+		color: var(--color-primary-500);
+	}
+
+	.studio-logs :global(.log-toolbar-row) {
+		border-color: transparent;
+		border-radius: 0;
+		background: transparent;
+	}
 </style>

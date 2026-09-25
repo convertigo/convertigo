@@ -30,6 +30,7 @@
 		studioSelectionUrl
 	} from '$lib/studio/routeSelection';
 	import { applySourcePickerDrop, sourceDefinitionFromPayload } from '$lib/studio/sourcePickerDnd';
+	import StudioActivityBar from '$lib/studio/StudioActivityBar.svelte';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
 	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
@@ -298,6 +299,36 @@
 	let effectiveSidePanel = $derived(
 		sideViews.some((item) => item.id === activeSidePanel) ? activeSidePanel : 'properties'
 	);
+	let activityItems = $derived([
+		{
+			id: 'tree',
+			label: collapsedPanels.tree ? 'Show projects' : 'Hide projects',
+			icon: 'mdi:file-tree-outline',
+			active: !collapsedPanels.tree
+		},
+		...(showVibe
+			? [
+					{
+						id: 'assistant',
+						label: collapsedPanels.tools ? 'Show assistant' : 'Hide assistant',
+						icon: 'mdi:robot-outline',
+						active: !collapsedPanels.tools
+					}
+				]
+			: sideViews.map((item) => ({
+					...item,
+					active: !collapsedPanels.tools && effectiveSidePanel === item.id
+				})))
+	]);
+	let activityFooterItems = $derived([
+		{
+			id: 'logs',
+			label: logsPanelOpen ? 'Hide logs' : 'Show logs',
+			icon: 'mdi:file-document-box-outline',
+			active: logsPanelOpen
+		},
+		{ id: 'admin', label: 'Admin console', icon: 'mdi:lock-outline', href: resolve('/admin/') }
+	]);
 	let activeSideView = $derived(
 		sideViews.find((item) => item.id === effectiveSidePanel) ?? sideViews.at(-1)
 	);
@@ -313,8 +344,8 @@
 		[
 			`--studio-tree-track:${collapsedPanels.tree ? '0px' : `${layoutSizes.treeWidth}px`}`,
 			`--studio-tools-track:${collapsedPanels.tools ? '0px' : `${layoutSizes.toolsWidth}px`}`,
-			`--studio-tree-resizer-track:${collapsedPanels.tree ? '0px' : 'var(--studio-shell-gap, 1.5rem)'}`,
-			`--studio-tools-resizer-track:${collapsedPanels.tools ? '0px' : 'var(--studio-shell-gap, 1.5rem)'}`,
+			`--studio-tree-resizer-track:${collapsedPanels.tree ? '0px' : '1px'}`,
+			`--studio-tools-resizer-track:${collapsedPanels.tools ? '0px' : '1px'}`,
 			`--studio-tree-row:${collapsedPanels.tree ? '2.65rem' : 'minmax(12rem, 18rem)'}`,
 			`--studio-tools-row:minmax(18rem, 24rem)`,
 			`--studio-logs-height:${layoutSizes.logsHeight}px`
@@ -981,8 +1012,9 @@
 			if (target === 'tree') {
 				layoutSizes.treeWidth = clamp(startSizes.treeWidth + delta, MIN_TREE_WIDTH, MAX_TREE_WIDTH);
 			} else {
+				// the tools are on the right of the work area: they widen when their left edge moves left
 				layoutSizes.toolsWidth = clamp(
-					startSizes.toolsWidth + delta,
+					startSizes.toolsWidth - delta,
 					MIN_TOOLS_WIDTH,
 					MAX_TOOLS_WIDTH
 				);
@@ -1008,7 +1040,9 @@
 			resizePanel('logs', event.key === 'ArrowUp' ? step : -step);
 		} else if (target !== 'logs' && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
 			event.preventDefault();
-			resizePanel(target, event.key === 'ArrowRight' ? step : -step);
+			// the arrow moves the line between the panels, which widens the tools when it goes left
+			const towardRight = event.key === 'ArrowRight' ? step : -step;
+			resizePanel(target, target === 'tools' ? -towardRight : towardRight);
 		}
 	}
 
@@ -1931,6 +1965,27 @@
 	}
 
 	/**
+	 * Shows or hides the panel of an item of the activity bar: a side view shows the tools on its tab,
+	 * or hides them when its tab is already visible.
+	 *
+	 * @param {string} id
+	 */
+	function selectActivity(id) {
+		if (id === 'tree') {
+			toggleCollapsedPanel('tree');
+		} else if (id === 'logs') {
+			setLogsPanelOpen(!logsPanelOpen);
+		} else if (id === 'assistant' || (!collapsedPanels.tools && effectiveSidePanel === id)) {
+			toggleCollapsedPanel('tools');
+		} else {
+			if (collapsedPanels.tools) {
+				toggleCollapsedPanel('tools');
+			}
+			setSidePanel(id);
+		}
+	}
+
+	/**
 	 * @param {string} result
 	 */
 	function setVibeResult(result) {
@@ -2001,6 +2056,14 @@
 		onSetProfile={setProfile}
 		onTogglePanel={toggleCollapsedPanel}
 		onShowFlow={() => setWorkPanel('flow')}
+	/>
+{/snippet}
+
+{#snippet activity()}
+	<StudioActivityBar
+		items={activityItems}
+		footerItems={activityFooterItems}
+		onSelect={selectActivity}
 	/>
 {/snippet}
 
@@ -2218,6 +2281,7 @@
 	onResizeKey={resizeWithKeyboard}
 	onOpenLogs={() => setLogsPanelOpen(true)}
 	{topbar}
+	{activity}
 	{tree}
 	{main}
 	{tools}

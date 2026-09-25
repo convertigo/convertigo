@@ -65,27 +65,26 @@
 		min-height: 0;
 		flex-direction: column;
 		overflow: hidden;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
 		background: var(--studio-panel-bg, var(--color-surface-50-950));
 	}
 
+	/* A flat header, as the title of a side bar of Cursor */
 	.studio-panel-header {
-		min-height: 2.45rem;
+		min-height: 2.5rem;
 		gap: 0.75rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
 		background: var(
 			--studio-panel-header-bg,
 			color-mix(in oklab, var(--color-surface-100-900) 88%, transparent)
 		);
-		padding: 0.45rem 0.65rem;
+		padding: 0.3rem 0.5rem 0.3rem 0.85rem;
 	}
 
 	.studio-panel-title {
 		min-width: 0;
-		color: var(--color-surface-800-200);
-		font-size: 0.78rem;
-		font-weight: 700;
+		color: var(--studio-text, var(--color-surface-800-200));
+		font-size: 0.72rem;
+		font-weight: 600;
+		letter-spacing: 0.02em;
 		text-transform: uppercase;
 	}
 
@@ -125,7 +124,7 @@
 
 	.studio-panel--collapsed .studio-panel-header {
 		height: 100%;
-		min-height: 2.45rem;
+		min-height: 2.5rem;
 		padding-inline: 0.5rem;
 	}
 

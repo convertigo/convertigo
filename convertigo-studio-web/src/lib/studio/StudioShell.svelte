@@ -10,10 +10,12 @@
 	 * onResizeKey?: (event: KeyboardEvent, target: 'tree' | 'tools' | 'logs') => void;
 	 * onOpenLogs?: () => void;
 	 * topbar?: import('svelte').Snippet;
+	 * activity?: import('svelte').Snippet;
 	 * tree?: import('svelte').Snippet;
 	 * main?: import('svelte').Snippet;
 	 * tools?: import('svelte').Snippet;
 	 * logs?: import('svelte').Snippet;
+	 * status?: import('svelte').Snippet;
 	 * }} */
 	let {
 		profile,
@@ -24,16 +26,23 @@
 		onResizeKey,
 		onOpenLogs,
 		topbar,
+		activity,
 		tree,
 		main,
 		tools,
-		logs
+		logs,
+		status
 	} = $props();
 </script>
 
+<!--
+	The Studio is laid out as Cursor or Visual Studio Code: flat panels separated by lines, the activity
+	bar and the projects on the left, the tools on the right of the work area, the logs under them and a
+	status bar at the bottom.
+-->
 <section
 	class={[
-		'studio-shell [--studio-shell-gap:--spacing(1.5)] md:[--studio-shell-gap:--spacing(3)]',
+		'studio-shell',
 		`studio-shell--${profile}`,
 		collapsedPanels.tree && 'studio-shell--tree-hidden',
 		collapsedPanels.tools && 'studio-shell--tools-hidden'
@@ -44,15 +53,17 @@
 >
 	{@render topbar?.()}
 
-	<div class="studio-shell__workspace p-low">
+	<div class="studio-shell__workspace">
+		<div class="studio-shell__activity">
+			{@render activity?.()}
+		</div>
+
 		<div class="studio-shell__tree" hidden={collapsedPanels.tree}>
 			{@render tree?.()}
 		</div>
 		<button
 			type="button"
-			class={['studio-resizer', 'studio-resizer--vertical', 'studio-resizer--tree']
-				.filter(Boolean)
-				.join(' ')}
+			class="studio-resizer studio-resizer--vertical studio-resizer--tree"
 			hidden={collapsedPanels.tree}
 			aria-label="Resize projects panel"
 			title="Resize projects panel"
@@ -64,88 +75,127 @@
 			{@render main?.()}
 		</main>
 
-		<aside class="studio-shell__tools" hidden={collapsedPanels.tools}>
-			{@render tools?.()}
-		</aside>
 		<button
 			type="button"
-			class={['studio-resizer', 'studio-resizer--vertical', 'studio-resizer--tools']
-				.filter(Boolean)
-				.join(' ')}
+			class="studio-resizer studio-resizer--vertical studio-resizer--tools"
 			hidden={collapsedPanels.tools}
 			aria-label="Resize tools panel"
 			title="Resize tools panel"
 			onpointerdown={(event) => onResizeStart?.(event, 'tools')}
 			onkeydown={(event) => onResizeKey?.(event, 'tools')}
 		></button>
+		<aside class="studio-shell__tools" hidden={collapsedPanels.tools}>
+			{@render tools?.()}
+		</aside>
+
+		{#if logsPanelOpen}
+			<section class="studio-shell__logs-panel" aria-label="Logs">
+				<button
+					type="button"
+					class="studio-resizer studio-resizer--logs"
+					aria-label="Resize logs panel"
+					title="Resize logs panel"
+					onpointerdown={(event) => onResizeStart?.(event, 'logs')}
+					onkeydown={(event) => onResizeKey?.(event, 'logs')}
+				></button>
+				<div class="studio-shell__logs-panel-body">
+					{@render logs?.()}
+				</div>
+			</section>
+		{/if}
 	</div>
 
-	{#if logsPanelOpen}
-		<section class="studio-shell__logs-panel mx-low mb-low" aria-label="Logs">
+	<footer class="studio-shell__status">
+		{#if !logsPanelOpen}
 			<button
 				type="button"
-				class="studio-resizer studio-resizer--logs"
-				aria-label="Resize logs panel"
-				title="Resize logs panel"
-				onpointerdown={(event) => onResizeStart?.(event, 'logs')}
-				onkeydown={(event) => onResizeKey?.(event, 'logs')}
-			></button>
-			<div class="studio-shell__logs-panel-body">
-				{@render logs?.()}
-			</div>
-		</section>
-	{:else}
-		<button
-			type="button"
-			class="studio-shell__logs-bar mx-low mb-low layout-x-between-low p-low"
-			aria-expanded={false}
-			onclick={onOpenLogs}
-		>
-			<span class="layout-x-low"><Ico icon="mdi:file-document-box-outline" size={4} />Logs</span>
-			<Ico icon="mdi:chevron-up" size={4} />
-		</button>
-	{/if}
+				class="studio-shell__status-item"
+				aria-expanded={false}
+				onclick={onOpenLogs}
+			>
+				<Ico icon="mdi:file-document-box-outline" size={3} />Logs
+				<Ico icon="mdi:chevron-up" size={3} />
+			</button>
+		{/if}
+		<div class="studio-shell__status-trail">
+			{@render status?.()}
+		</div>
+	</footer>
 </section>
 
 <style>
+	/* The neutral grays of Cursor for the whole Studio page, its menus and dialogs included: each shade
+	   serves the light theme on one side of the scale and the dark theme on the other. The pairings
+	   are declared again to take these shades. */
+	:global(html:has(.studio-shell)) {
+		--color-surface-50: #f8f8f8;
+		--color-surface-100: #f0f0f0;
+		--color-surface-200: #e5e5e5;
+		--color-surface-300: #d4d4d4;
+		--color-surface-400: #9d9d9d;
+		--color-surface-500: #858585;
+		--color-surface-600: #6b6b6b;
+		--color-surface-700: #3c3c3c;
+		--color-surface-800: #2b2b2b;
+		--color-surface-900: #1f1f1f;
+		--color-surface-950: #181818;
+		--color-surface-50-950: light-dark(var(--color-surface-50), var(--color-surface-950));
+		--color-surface-100-900: light-dark(var(--color-surface-100), var(--color-surface-900));
+		--color-surface-200-800: light-dark(var(--color-surface-200), var(--color-surface-800));
+		--color-surface-300-700: light-dark(var(--color-surface-300), var(--color-surface-700));
+		--color-surface-400-600: light-dark(var(--color-surface-400), var(--color-surface-600));
+		--color-surface-600-400: light-dark(var(--color-surface-600), var(--color-surface-400));
+		--color-surface-700-300: light-dark(var(--color-surface-700), var(--color-surface-300));
+		--color-surface-800-200: light-dark(var(--color-surface-800), var(--color-surface-200));
+		--color-surface-900-100: light-dark(var(--color-surface-900), var(--color-surface-100));
+		--color-surface-950-50: light-dark(var(--color-surface-950), var(--color-surface-50));
+	}
+
 	.studio-shell {
-		--studio-shell-bg: color-mix(
-			in oklab,
-			var(--color-surface-100-900) 82%,
-			var(--color-surface-200-800)
-		);
-		--studio-panel-bg: var(--color-surface-50-950);
-		--studio-panel-header-bg: color-mix(in oklab, var(--color-surface-100-900) 88%, transparent);
+		--studio-chrome-bg: var(--color-surface-50-950);
+		--studio-shell-bg: var(--studio-chrome-bg);
+		--studio-panel-bg: var(--studio-chrome-bg);
+		--studio-panel-header-bg: var(--studio-chrome-bg);
+		--studio-main-bg: light-dark(#ffffff, #1f1f1f);
+		--studio-line: var(--color-surface-200-800);
+		--studio-text: light-dark(#3b3b3b, #cccccc);
+		--studio-text-strong: light-dark(#1f1f1f, #ffffff);
+		--studio-text-idle: light-dark(#616161, #858585);
+		--studio-hover-bg: light-dark(#f0f0f0, #2a2d2e);
+		--studio-selection-bg: light-dark(#e4e6f1, #37373d);
+		--studio-selection-focus-bg: light-dark(#d6ebff, #04395e);
 		display: grid;
 		width: 100%;
 		height: 100vh;
 		min-width: 0;
 		min-height: 0;
 		grid-template-rows: auto minmax(0, 1fr) auto;
-		background: var(--studio-shell-bg);
-		color: var(--color-surface-950-50);
+		background: var(--studio-chrome-bg);
+		color: var(--studio-text);
 	}
 
 	.studio-shell__workspace {
 		display: grid;
 		min-width: 0;
 		min-height: 0;
-	}
-
-	.studio-shell--backend .studio-shell__workspace,
-	.studio-shell--frontend .studio-shell__workspace,
-	.studio-shell--vibe .studio-shell__workspace {
 		grid-template-columns:
-			var(--studio-tree-track) var(--studio-tree-resizer-track) var(--studio-tools-track)
-			var(--studio-tools-resizer-track)
-			minmax(0, 1fr);
-		grid-template-areas: 'tree tree-resizer tools tools-resizer main';
+			3rem var(--studio-tree-track) var(--studio-tree-resizer-track) minmax(0, 1fr)
+			var(--studio-tools-resizer-track) var(--studio-tools-track);
+		grid-template-rows: minmax(0, 1fr) auto;
+		grid-template-areas:
+			'activity tree tree-resizer main tools-resizer tools'
+			'activity logs logs logs logs logs';
 	}
 
 	.studio-shell__tree[hidden],
 	.studio-shell__tools[hidden],
 	.studio-resizer[hidden] {
 		display: none;
+	}
+
+	.studio-shell__activity {
+		grid-area: activity;
+		min-height: 0;
 	}
 
 	.studio-shell__tree {
@@ -159,10 +209,12 @@
 	}
 
 	.studio-shell__main {
+		--studio-panel-bg: var(--studio-main-bg);
 		grid-area: main;
 		min-width: 0;
 		min-height: 0;
 		overflow: hidden;
+		background: var(--studio-main-bg);
 	}
 
 	.studio-shell__tools {
@@ -171,28 +223,26 @@
 		min-height: 0;
 	}
 
+	/* A resizer is the line between two panels, easier to grab than its width */
 	.studio-resizer {
 		position: relative;
 		min-width: 0;
 		min-height: 0;
 		border: 0;
-		background: transparent;
+		background: var(--studio-line);
 		padding: 0;
+		transition: background 0.14s ease;
 	}
 
 	.studio-resizer::before {
 		position: absolute;
-		border-radius: 999px;
-		background: transparent;
 		content: '';
-		transition:
-			background 0.14s ease,
-			inset 0.14s ease;
 	}
 
-	.studio-resizer:hover::before,
-	.studio-resizer:focus-visible::before {
-		background: color-mix(in oklab, var(--color-primary-500) 42%, transparent);
+	.studio-resizer:hover,
+	.studio-resizer:focus-visible {
+		outline: none;
+		background: var(--color-primary-500);
 	}
 
 	.studio-resizer--vertical {
@@ -200,12 +250,7 @@
 	}
 
 	.studio-resizer--vertical::before {
-		inset: 0.35rem 0.16rem;
-	}
-
-	.studio-resizer--vertical:hover::before,
-	.studio-resizer--vertical:focus-visible::before {
-		inset: 0.15rem 0.08rem;
+		inset: 0 -3px;
 	}
 
 	.studio-resizer--tree {
@@ -218,51 +263,27 @@
 
 	.studio-resizer--logs {
 		position: absolute;
-		z-index: 2;
-		top: -0.28rem;
+		top: 0;
 		right: 0;
 		left: 0;
-		height: 0.55rem;
+		height: 1px;
 		cursor: row-resize;
 	}
 
 	.studio-resizer--logs::before {
-		inset: 0.2rem 48%;
-	}
-
-	.studio-resizer--logs:hover::before,
-	.studio-resizer--logs:focus-visible::before {
-		inset: 0.12rem 44%;
-	}
-
-	.studio-shell__logs-bar {
-		min-height: 2.45rem;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
-		background: var(--studio-panel-header-bg);
-		color: var(--color-surface-800-200);
-		font-size: 0.78rem;
-		font-weight: 700;
-		text-transform: uppercase;
-	}
-
-	.studio-shell__logs-bar:hover {
-		background: color-mix(in oklab, var(--color-primary-500) 9%, transparent);
-		color: var(--color-surface-950-50);
+		inset: -3px 0;
 	}
 
 	.studio-shell__logs-panel {
 		position: relative;
+		grid-area: logs;
 		display: grid;
 		height: min(var(--studio-logs-height), calc(100vh - 10rem));
 		min-width: 0;
 		min-height: 0;
 		grid-template-rows: minmax(0, 1fr);
 		overflow: hidden;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.45rem;
 		background: var(--studio-panel-bg);
-		box-shadow: 0 -0.75rem 1.75rem color-mix(in oklab, var(--color-surface-950) 8%, transparent);
 	}
 
 	.studio-shell__logs-panel-body {
@@ -271,25 +292,60 @@
 		overflow: hidden;
 	}
 
+	.studio-shell__status {
+		display: flex;
+		height: 1.6rem;
+		min-width: 0;
+		align-items: stretch;
+		border-top: 1px solid var(--studio-line);
+		background: var(--studio-chrome-bg);
+		color: var(--studio-text-idle);
+		font-size: 0.72rem;
+	}
+
+	.studio-shell__status-item {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		border: 0;
+		background: transparent;
+		color: inherit;
+		padding: 0 0.6rem;
+	}
+
+	.studio-shell__status-item:hover {
+		background: var(--studio-hover-bg);
+		color: var(--studio-text-strong);
+	}
+
+	.studio-shell__status-trail {
+		display: flex;
+		min-width: 0;
+		margin-left: auto;
+		align-items: center;
+		padding-right: 0.6rem;
+	}
+
 	@media (max-width: 980px) {
 		.studio-shell {
 			height: auto;
 			min-height: 100vh;
 			min-height: 100dvh;
-			grid-template-rows: auto auto auto;
 		}
 
-		.studio-shell--backend .studio-shell__workspace,
-		.studio-shell--frontend .studio-shell__workspace,
-		.studio-shell--vibe .studio-shell__workspace {
+		.studio-shell__workspace {
 			grid-template-columns: minmax(0, 1fr) !important;
 			grid-template-areas:
 				'tree'
 				'tools'
-				'main';
-			grid-template-rows: auto auto auto;
+				'main'
+				'logs';
+			grid-template-rows: auto auto auto auto;
 			align-content: start;
-			gap: var(--studio-shell-gap);
+		}
+
+		.studio-shell__activity {
+			display: none;
 		}
 
 		.studio-shell__tree,
@@ -298,6 +354,7 @@
 			width: 100%;
 			min-width: 0;
 			min-height: 0;
+			border-bottom: 1px solid var(--studio-line);
 		}
 
 		.studio-shell__tree {
@@ -318,36 +375,31 @@
 			min-height: 22rem;
 		}
 
-		.studio-resizer {
+		.studio-resizer--vertical {
 			display: none;
 		}
 
-		.studio-shell--backend.studio-shell--tree-hidden .studio-shell__workspace,
-		.studio-shell--frontend.studio-shell--tree-hidden .studio-shell__workspace,
-		.studio-shell--vibe.studio-shell--tree-hidden .studio-shell__workspace {
+		.studio-shell--tree-hidden .studio-shell__workspace {
 			grid-template-areas:
 				'tools'
-				'main';
-			grid-template-rows: auto auto;
+				'main'
+				'logs';
+			grid-template-rows: auto auto auto;
 		}
 
-		.studio-shell--backend.studio-shell--tools-hidden .studio-shell__workspace,
-		.studio-shell--frontend.studio-shell--tools-hidden .studio-shell__workspace,
-		.studio-shell--vibe.studio-shell--tools-hidden .studio-shell__workspace {
+		.studio-shell--tools-hidden .studio-shell__workspace {
 			grid-template-areas:
 				'tree'
-				'main';
-			grid-template-rows: auto auto;
+				'main'
+				'logs';
+			grid-template-rows: auto auto auto;
 		}
 
-		.studio-shell--backend.studio-shell--tree-hidden.studio-shell--tools-hidden
-			.studio-shell__workspace,
-		.studio-shell--frontend.studio-shell--tree-hidden.studio-shell--tools-hidden
-			.studio-shell__workspace,
-		.studio-shell--vibe.studio-shell--tree-hidden.studio-shell--tools-hidden
-			.studio-shell__workspace {
-			grid-template-areas: 'main';
-			grid-template-rows: auto;
+		.studio-shell--tree-hidden.studio-shell--tools-hidden .studio-shell__workspace {
+			grid-template-areas:
+				'main'
+				'logs';
+			grid-template-rows: auto auto;
 		}
 
 		.studio-shell__logs-panel {
@@ -357,10 +409,6 @@
 	}
 
 	@media (max-width: 520px) {
-		.studio-shell__workspace {
-			gap: var(--studio-shell-gap);
-		}
-
 		.studio-shell__tree {
 			height: min(20rem, 40vh);
 			height: min(20rem, 40dvh);
