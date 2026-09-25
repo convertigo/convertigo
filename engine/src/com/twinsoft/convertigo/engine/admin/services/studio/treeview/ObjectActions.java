@@ -21,7 +21,9 @@ package com.twinsoft.convertigo.engine.admin.services.studio.treeview;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
+import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocumentFunction;
@@ -57,8 +59,11 @@ import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
+import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StepUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.admin.services.studio.dbo.CreateStub;
 import com.twinsoft.convertigo.engine.admin.services.studio.project.ImportWsReference;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
@@ -140,6 +145,11 @@ public class ObjectActions {
 				add(items, "object.addReduce", "Add a reduce function", "Reduce the rows the map function of this view emits.",
 						true, "mdi:plus");
 			}
+		}
+		if (dbo instanceof StepVariable && dbo.getParent() instanceof RequestableStep) {
+			add(items, "object.generateAndLink", "Generate and link structure",
+					"Add before the step the steps building the XML described by the variable of the called requestable, and use them as source of this variable.",
+					linkedStructure((StepVariable) dbo) != null, "mdi:xml");
 		}
 		if (StepsFromXml.handles(dbo)) {
 			add(items, "object.stepsFromXml", "Create steps structure from XML…",
@@ -284,6 +294,28 @@ public class ObjectActions {
 			}
 			view.setDynamicProperty("reduce", "object.addReduce".equals(actionId) ? DesignDocument.DEFAULT_REDUCE : "");
 		}
+		case "object.generateAndLink" -> {
+			var structure = dbo instanceof StepVariable variable ? linkedStructure(variable) : null;
+			if (structure == null) {
+				return result(false, "The variable of the called requestable describes no XML structure.");
+			}
+			var step = (RequestableStep) parent;
+			var holder = step.getParent();
+			var created = StepUtils.createStepFromXmlDomModel(holder, structure);
+			if (holder instanceof Sequence sequence) {
+				sequence.addStep(created);
+				sequence.insertAtOrder(created, step.priority);
+			} else if (holder instanceof StepWithExpressions container) {
+				container.addStep(created);
+				container.insertAtOrder(created, step.priority);
+			}
+			var source = new XMLVector<String>();
+			source.add(String.valueOf(created.priority));
+			source.add(".");
+			((StepVariable) dbo).setSourceDefinition(source);
+			dbo.hasChanged = true;
+			return result(true, "").put("changed", true).put("refresh", true).put("selectedId", dbo.getFullQName());
+		}
 		case "object.exportVariables" -> {
 			if (!(dbo instanceof RequestableStep step)) {
 				return result(false, "This object has no variables to export.");
@@ -348,6 +380,31 @@ public class ObjectActions {
 		}
 		Engine.logStudio.debug("(ObjectActions) " + actionId + " on " + dbo.getQName());
 		return result(true, "").put("changed", true).put("refresh", true);
+	}
+
+	/**
+	 * @return the root of the XML structure the description of the variable of the called requestable holds,
+	 *         or null
+	 */
+	private static Element linkedStructure(StepVariable variable) {
+		try {
+			RequestableObject requestable = null;
+			if (variable.getParent() instanceof SequenceStep step) {
+				requestable = step.getTargetSequence();
+			} else if (variable.getParent() instanceof TransactionStep step) {
+				requestable = step.getTargetTransaction();
+			}
+			if (requestable instanceof IVariableContainer container
+					&& container.getVariable(variable.getName()) instanceof RequestableVariable target) {
+				var description = target.getDescription();
+				if (description != null && description.trim().startsWith("<")) {
+					return XMLUtils.parseDOMFromString(description).getDocumentElement();
+				}
+			}
+		} catch (Exception e) {
+			// no structure
+		}
+		return null;
 	}
 
 	private static void output(Step step, boolean output, boolean recursively) {
