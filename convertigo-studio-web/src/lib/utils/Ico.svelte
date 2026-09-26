@@ -23,6 +23,7 @@
 	import MdiBookshelf from '~icons/mdi/bookshelf';
 	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline';
 	import MdiBroom from '~icons/mdi/broom';
+	import MdiBugOutline from '~icons/mdi/bug-outline';
 	import MdiCached from '~icons/mdi/cached';
 	import MdiCalendarClock from '~icons/mdi/calendar-clock';
 	import MdiCalendarRange from '~icons/mdi/calendar-range';
@@ -55,6 +56,9 @@
 	import MdiDatabase from '~icons/mdi/database';
 	import MdiDatabaseClockOutline from '~icons/mdi/database-clock-outline';
 	import MdiDatabaseSyncOutline from '~icons/mdi/database-sync-outline';
+	import MdiDebugStepInto from '~icons/mdi/debug-step-into';
+	import MdiDebugStepOut from '~icons/mdi/debug-step-out';
+	import MdiDebugStepOver from '~icons/mdi/debug-step-over';
 	import MdiDeleteOutline from '~icons/mdi/delete-outline';
 	import MdiDevices from '~icons/mdi/devices';
 	import MdiDockBottom from '~icons/mdi/dock-bottom';
@@ -117,6 +121,8 @@
 	import MdiPaletteOutline from '~icons/mdi/palette-outline';
 	import MdiPaletteSwatchOutline from '~icons/mdi/palette-swatch-outline';
 	import MdiPaperclip from '~icons/mdi/paperclip';
+	import MdiPause from '~icons/mdi/pause';
+	import MdiPauseCircleOutline from '~icons/mdi/pause-circle-outline';
 	import MdiPencilOutline from '~icons/mdi/pencil-outline';
 	import MdiPhoneRotateLandscape from '~icons/mdi/phone-rotate-landscape';
 	import MdiPlay from '~icons/mdi/play';
@@ -256,6 +262,12 @@
 		'mdi:hub': MdiHub,
 		'mdi:import': MdiImport,
 		'mdi:variable': MdiVariable,
+		'mdi:debug-step-over': MdiDebugStepOver,
+		'mdi:debug-step-into': MdiDebugStepInto,
+		'mdi:debug-step-out': MdiDebugStepOut,
+		'mdi:pause': MdiPause,
+		'mdi:pause-circle-outline': MdiPauseCircleOutline,
+		'mdi:bug-outline': MdiBugOutline,
 		'mdi:xml': MdiXml,
 		'mdi:translate': MdiTranslate,
 		'mdi:translate-off': MdiTranslateOff,

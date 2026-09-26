@@ -43,6 +43,7 @@
 		pasteStudioClipboard,
 		putInStudioClipboard
 	} from '$lib/studio/studioClipboard.svelte.js';
+	import StudioDebugPanel from '$lib/studio/StudioDebugPanel.svelte';
 	import StudioDeployDialog from '$lib/studio/StudioDeployDialog.svelte';
 	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
 	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
@@ -341,12 +342,15 @@
 	);
 	// the view of the left column, and the view of the bottom panel
 	let leftView = $state(/** @type {'projects' | 'search' | 'git'} */ ('projects'));
-	let bottomView = $state(/** @type {'logs' | 'references' | 'schema' | 'build'} */ ('logs'));
+	let bottomView = $state(
+		/** @type {'logs' | 'references' | 'schema' | 'build' | 'debug'} */ ('logs')
+	);
 	const BOTTOM_VIEWS = [
 		{ id: 'logs', label: 'Logs', icon: 'mdi:file-document-box-outline' },
 		{ id: 'references', label: 'References', icon: 'mdi:link-variant' },
 		{ id: 'schema', label: 'Schema', icon: 'mdi:file-code-outline' },
-		{ id: 'build', label: 'Build', icon: 'mdi:wrench' }
+		{ id: 'build', label: 'Build', icon: 'mdi:wrench' },
+		{ id: 'debug', label: 'Debug', icon: 'mdi:bug-outline' }
 	];
 	let activityItems = $derived([
 		{
@@ -2772,15 +2776,33 @@
 	/>
 {/snippet}
 
+{#snippet debugPane()}
+	<StudioDebugPanel
+		active={bottomView === 'debug'}
+		onStopped={() => {
+			// a script stopped on a breakpoint: the debugger shows, as the Eclipse Studio shows it
+			bottomView = 'debug';
+			setLogsPanelOpen(true);
+		}}
+	/>
+{/snippet}
+
 {#snippet logs()}
 	<StudioTabbedFrame
 		items={BOTTOM_VIEWS}
 		active={bottomView}
 		ariaLabel="Bottom panel views"
-		fillIds={['logs', 'references', 'schema', 'build']}
+		fillIds={['logs', 'references', 'schema', 'build', 'debug']}
 		lazyIds={['references', 'schema', 'build']}
-		onSelect={(id) => (bottomView = /** @type {'logs' | 'references' | 'schema' | 'build'} */ (id))}
-		panes={{ logs: logsPane, references: referencesPane, schema: schemaPane, build: buildPane }}
+		onSelect={(id) =>
+			(bottomView = /** @type {'logs' | 'references' | 'schema' | 'build' | 'debug'} */ (id))}
+		panes={{
+			logs: logsPane,
+			references: referencesPane,
+			schema: schemaPane,
+			build: buildPane,
+			debug: debugPane
+		}}
 		trail={logsToolbarTrail}
 	/>
 {/snippet}
