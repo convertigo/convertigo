@@ -358,6 +358,11 @@ public class Get extends JSonService {
 		if (flags != null) {
 			property.put("flags", flags);
 		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.MobileApplication
+				&& "endpoint".equals(elt.getAttribute("name"))) {
+			// the URL the mobile application reaches the server with, which the Studio chooses among the known ones
+			property.put("endpoint", true);
+		}
 		if (dbo instanceof ProjectSchemaReference && "projectName".equals(elt.getAttribute("name"))) {
 			// a project of the workspace or of a remote repository, which the Studio edits by its parts
 			property.put("projectReference", true);

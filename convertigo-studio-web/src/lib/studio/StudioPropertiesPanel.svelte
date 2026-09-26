@@ -20,6 +20,7 @@
 	import { tick, untrack } from 'svelte';
 	import { flowTypeDisplayName } from './blockDefinition';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+	import StudioEndpointDialog from './StudioEndpointDialog.svelte';
 	import StudioFontDialog from './StudioFontDialog.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 	import StudioLifetimeDialog from './StudioLifetimeDialog.svelte';
@@ -323,6 +324,7 @@
 	let lifetimeRow = $state(/** @type {any} */ (null));
 	/** the project reference the reference dialog edits */
 	let referenceRow = $state(/** @type {any} */ (null));
+	let endpointRow = $state(/** @type {any} */ (null));
 
 	/**
 	 * @param {any} row
@@ -429,6 +431,13 @@
 			});
 		}
 		buttons.push(...namedSourceButtons(row));
+		if (row?.endpoint) {
+			buttons.push({
+				icon: 'mdi:lan-connect',
+				title: 'Choose the endpoint',
+				onclick: () => (endpointRow = row)
+			});
+		}
 		if (row?.projectReference) {
 			buttons.push({
 				icon: 'mdi:source-pull',
@@ -896,6 +905,16 @@
 		{/if}
 	</div>
 
+	{#if endpointRow}
+		<StudioEndpointDialog
+			value={String(endpointRow.value ?? '')}
+			onApply={(next) => {
+				endpointRow.value = next;
+				endpointRow = null;
+			}}
+			onClose={() => (endpointRow = null)}
+		/>
+	{/if}
 	{#if referenceRow}
 		<StudioProjectReferenceDialog
 			label={referenceRow.displayName ?? referenceRow.name}
