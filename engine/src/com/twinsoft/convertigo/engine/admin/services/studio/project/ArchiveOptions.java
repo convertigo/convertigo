@@ -37,7 +37,8 @@ import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 
 /**
  * The version of a project and what its archive includes, as the dialog of the Eclipse Studio before an
- * export or a deployment shows them and keeps them.
+ * export or a deployment shows them and keeps them, with the application of the project when it is not
+ * built.
  * <ul>
  * <li>projectName: the project</li>
  * <li>options: the included parts to keep, as a JSON object of booleans; missing to read them</li>
@@ -91,5 +92,12 @@ public class ArchiveOptions extends JSonService {
 		}
 		response.put("version", project.getVersion());
 		response.put("options", options);
+		// an application not built for its last sources, which the Eclipse Studio builds before a deployment
+		var application = project.getMobileApplication() == null ? null
+				: project.getMobileApplication().getApplicationComponent();
+		var unbuilt = application == null ? null : application.getUnbuiltMessage();
+		if (unbuilt != null) {
+			response.put("unbuiltMessage", unbuilt);
+		}
 	}
 }

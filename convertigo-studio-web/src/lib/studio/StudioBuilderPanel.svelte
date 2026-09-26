@@ -16,7 +16,9 @@
 	 *  onBuilt?: () => void,
 	 *  onServerStop?: () => void,
 	 *  serveRequest?: number,
-	 *  onServeRequestTaken?: () => void
+	 *  onServeRequestTaken?: () => void,
+	 *  buildRequest?: number,
+	 *  onBuildRequestTaken?: () => void
 	 * }}
 	 */
 	let {
@@ -26,7 +28,9 @@
 		onBuilt,
 		onServerStop,
 		serveRequest = 0,
-		onServeRequestTaken
+		onServeRequestTaken,
+		buildRequest = 0,
+		onBuildRequestTaken
 	} = $props();
 
 	const LOCAL_BUILDS = [
@@ -92,11 +96,31 @@
 		}
 	});
 
+	/** a production build, asked before a deployment as the Eclipse Studio builds the application */
+	let pendingBuild = false;
+	$effect(() => {
+		if (buildRequest) {
+			pendingBuild = true;
+			untrack(() => {
+				onBuildRequestTaken?.();
+				serveWhenReady();
+			});
+		}
+	});
+
 	/**
-	 * Shows the running development server, or starts it, once the builder tells its state.
+	 * Shows the running development server, or starts it, once the builder tells its state, and starts the
+	 * production build asked.
 	 */
 	function serveWhenReady() {
-		if (!pendingServe || connection !== 'open' || !attached) {
+		if (connection !== 'open' || !attached) {
+			return;
+		}
+		if (pendingBuild && localState === 'idle') {
+			pendingBuild = false;
+			send('build_local', { mode: 'prod' });
+		}
+		if (!pendingServe) {
 			return;
 		}
 		pendingServe = false;

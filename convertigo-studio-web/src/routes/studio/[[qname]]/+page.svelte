@@ -250,6 +250,10 @@
 	let executionRunTestcase = $state('');
 	/** asks the builder to show or start the development server of an NGX application */
 	let builderServeRequest = $state(0);
+	/** a production build asked before an export or a deployment, whose dialog comes back once built */
+	let builderBuildRequest = $state(0);
+	/** @type {{ projectName: string, mode: 'export' | 'deploy' } | null} */
+	let archiveAfterBuild = $state(null);
 	let frontendPreviewBusy = $state(false);
 	let studioReady = $state(false);
 	const reconciledFrontendProjects = new SvelteSet();
@@ -3305,9 +3309,17 @@
 		projectName={selectedProjectName}
 		active={bottomView === 'build'}
 		onLoad={showDevelopmentBuild}
-		onBuilt={showLocalBuild}
+		onBuilt={() => {
+			showLocalBuild();
+			if (archiveAfterBuild) {
+				archiveRequest = archiveAfterBuild;
+				archiveAfterBuild = null;
+			}
+		}}
 		serveRequest={builderServeRequest}
 		onServeRequestTaken={() => (builderServeRequest = 0)}
+		buildRequest={builderBuildRequest}
+		onBuildRequestTaken={() => (builderBuildRequest = 0)}
 		onServerStop={() => {
 			// the development server stopped: the preview shows the built application again
 			if (frontendPreviewMode === 'development') {
@@ -3595,6 +3607,15 @@
 			} else {
 				await call('projects.Export', { projectName, exportOptions: JSON.stringify(options) });
 			}
+		}}
+		onBuild={() => {
+			// the builder builds the application of the selected project, as the deploy wizard of Eclipse
+			archiveAfterBuild = archiveRequest;
+			archiveRequest = null;
+			selectedId = archiveAfterBuild?.projectName ?? selectedId;
+			bottomView = 'build';
+			setLogsPanelOpen(true);
+			builderBuildRequest = Date.now();
 		}}
 		onClose={() => (archiveRequest = null)}
 	/>

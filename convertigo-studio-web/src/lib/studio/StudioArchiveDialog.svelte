@@ -4,20 +4,23 @@
 
 	/**
 	 * The version of a project and what its archive includes, asked before an export or a deployment as
-	 * the Eclipse Studio does, and kept for the next ones.
+	 * the Eclipse Studio does, and kept for the next ones. An application not built for its last sources
+	 * can be built for production first.
 	 *
 	 * @type {{
 	 *  projectName: string,
 	 *  mode?: 'export' | 'deploy',
 	 *  onContinue?: (result: { versionChanged: boolean, options: Record<string, boolean> }) => void | Promise<void>,
+	 *  onBuild?: () => void,
 	 *  onClose?: () => void
 	 * }}
 	 */
-	let { projectName, mode = 'export', onContinue, onClose } = $props();
+	let { projectName, mode = 'export', onContinue, onBuild, onClose } = $props();
 
 	/** @type {{ name: string, display: string, size?: string, selected: boolean }[]} */
 	let options = $state([]);
 	let version = $state('');
+	let unbuiltMessage = $state('');
 	let loaded = $state(false);
 	let busy = $state(false);
 
@@ -25,6 +28,7 @@
 		void call('studio.project.ArchiveOptions', { projectName }).then((result) => {
 			options = Array.isArray(result?.options) ? result.options : [];
 			version = String(result?.version ?? '');
+			unbuiltMessage = String(result?.unbuiltMessage ?? '');
 			loaded = true;
 		});
 	});
@@ -71,6 +75,20 @@
 		</header>
 		<form class="studio-dialog__form" onsubmit={submit}>
 			<fieldset class="studio-dialog__body" disabled={busy || !loaded}>
+				{#if unbuiltMessage}
+					<div class="studio-dialog__warning" role="alert">
+						<p>{unbuiltMessage.split('\n')[0]}</p>
+						<p>
+							Build it for production before the {mode === 'deploy' ? 'deployment' : 'export'}: this
+							dialog comes back once the build is done.
+						</p>
+						{#if onBuild}
+							<button type="button" class="button-secondary" onclick={() => onBuild?.()}>
+								<Ico icon="mdi:wrench" size={4} /> Build for production
+							</button>
+						{/if}
+					</div>
+				{/if}
 				<p class="studio-dialog__hint">
 					You can update the version of the project before its {mode === 'deploy'
 						? 'deployment'
@@ -174,6 +192,26 @@
 	.studio-dialog__hint {
 		margin: 0;
 		color: var(--studio-text-idle);
+	}
+
+	.studio-dialog__warning {
+		display: grid;
+		justify-items: start;
+		gap: 0.4rem;
+		border: 1px solid color-mix(in oklab, var(--color-warning-500) 55%, transparent);
+		border-radius: 0.35rem;
+		background: color-mix(in oklab, var(--color-warning-500) 10%, transparent);
+		padding: 0.6rem 0.7rem;
+	}
+
+	.studio-dialog__warning p {
+		margin: 0;
+	}
+
+	.studio-dialog__warning button {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
 	}
 
 	.studio-dialog__field {
