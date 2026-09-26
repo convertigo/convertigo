@@ -41,6 +41,7 @@
 	import MdiClockStarFourPointsOutline from '~icons/mdi/clock-star-four-points-outline';
 	import MdiClose from '~icons/mdi/close';
 	import MdiCloseCircleOutline from '~icons/mdi/close-circle-outline';
+	import MdiCloudDownloadOutline from '~icons/mdi/cloud-download-outline';
 	import MdiCloudOutline from '~icons/mdi/cloud-outline';
 	import MdiCloudSyncOutline from '~icons/mdi/cloud-sync-outline';
 	import MdiCodeBlockBraces from '~icons/mdi/code-block-braces';
@@ -180,6 +181,7 @@
 	import MdiTranslate from '~icons/mdi/translate';
 	import MdiTranslateOff from '~icons/mdi/translate-off';
 	import MdiTuneVerticalVariant from '~icons/mdi/tune-vertical-variant';
+	import MdiUndo from '~icons/mdi/undo';
 	import MdiUnfoldMoreHorizontal from '~icons/mdi/unfold-more-horizontal';
 	import MdiUpdate from '~icons/mdi/update';
 	import MdiUpload from '~icons/mdi/upload';
@@ -230,6 +232,7 @@
 		'mdi:clock-star-four-points-outline': MdiClockStarFourPointsOutline,
 		'mdi:close': MdiClose,
 		'mdi:close-circle-outline': MdiCloseCircleOutline,
+		'mdi:cloud-download-outline': MdiCloudDownloadOutline,
 		'mdi:cloud-outline': MdiCloudOutline,
 		'mdi:cloud-sync-outline': MdiCloudSyncOutline,
 		'mdi:code-block-braces': MdiCodeBlockBraces,
@@ -374,6 +377,7 @@
 		'mdi:school-outline': MdiSchoolOutline,
 		'mdi:share-variant-outline': MdiShareVariantOutline,
 		'mdi:star': MdiStar,
+		'mdi:undo': MdiUndo,
 		'mdi:upload': MdiUpload,
 		'mdi:star-outline': MdiStarOutline,
 		'mdi:star-three-points-outline': MdiStarThreePointsOutline,

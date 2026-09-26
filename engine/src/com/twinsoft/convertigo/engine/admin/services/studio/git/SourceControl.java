@@ -31,10 +31,13 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
@@ -52,8 +55,9 @@ import com.twinsoft.convertigo.engine.util.GitUtils;
  * changed files, their differences, staging, commit, pull and push.
  * <ul>
  * <li>projectName: the project</li>
- * <li>action: status (default), init, diff, stage, unstage, commit, pull or push; or decorations, without
- * projectName, for the branch and the changed files of each project in a repository</li>
+ * <li>action: status (default), init, diff, stage, unstage, discard, commit, pull, push, fetch, branches,
+ * checkout (branch, create) or log; or decorations, without projectName, for the branch and the changed files
+ * of each project in a repository</li>
  * <li>paths: the files to stage or unstage, as a JSON array of paths in the repository; path: the file to
  * compare</li>
  * <li>message: the message of the commit</li>
@@ -137,6 +141,83 @@ public class SourceControl extends JSonService {
 				git.push().call();
 				status(git, prefix, response);
 			}
+			case "fetch" -> {
+				git.fetch().call();
+				status(git, prefix, response);
+			}
+			case "branches" -> {
+				var local = new JSONArray();
+				for (var ref : git.branchList().call()) {
+					local.put(Repository.shortenRefName(ref.getName()));
+				}
+				var remote = new JSONArray();
+				for (var ref : git.branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call()) {
+					var name = ref.getName().replaceFirst("^refs/remotes/", "");
+					if (!name.endsWith("/HEAD")) {
+						remote.put(name);
+					}
+				}
+				response.put("local", local);
+				response.put("remoteBranches", remote);
+				status(git, prefix, response);
+			}
+			case "checkout" -> {
+				// another branch, or a new one from the current commit, as the switch of the Eclipse Studio
+				var branch = request.getParameter("branch");
+				if (branch == null || branch.isBlank()) {
+					throw new ServiceException("missing branch parameter");
+				}
+				var repository = git.getRepository();
+				var checkout = git.checkout().setName(branch);
+				if ("true".equals(request.getParameter("create"))) {
+					checkout.setCreateBranch(true);
+				} else if (repository.findRef(Constants.R_HEADS + branch) == null
+						&& repository.findRef(Constants.R_REMOTES + branch) != null) {
+					// a branch of the remote gets a local branch following it
+					var local = branch.substring(branch.indexOf('/') + 1);
+					checkout = git.checkout().setName(local).setCreateBranch(repository.findRef(Constants.R_HEADS + local) == null)
+							.setStartPoint(branch).setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK);
+				}
+				checkout.call();
+				reload(project.getName());
+				response.put("reloaded", true);
+				status(git, prefix, response);
+			}
+			case "discard" -> {
+				// the files come back as the last commit has them, the new ones are removed
+				var paths = new JSONArray(request.getParameter("paths") == null ? "[]" : request.getParameter("paths"));
+				var untracked = git.status().call().getUntracked();
+				var hasHead = git.getRepository().resolve(Constants.HEAD) != null;
+				for (int i = 0; i < paths.length(); i++) {
+					var path = path(paths.getString(i), prefix);
+					if (untracked.contains(path) || !hasHead) {
+						new File(workingDir, path).delete();
+					} else {
+						git.checkout().setStartPoint(Constants.HEAD).addPath(path).call();
+					}
+				}
+				reload(project.getName());
+				response.put("reloaded", true);
+				status(git, prefix, response);
+			}
+			case "log" -> {
+				var commits = new JSONArray();
+				if (git.getRepository().resolve(Constants.HEAD) != null) {
+					var log = git.log().setMaxCount(50);
+					if (!prefix.isEmpty()) {
+						log.addPath(prefix.substring(0, prefix.length() - 1));
+					}
+					for (var commit : log.call()) {
+						commits.put(new JSONObject()
+								.put("id", commit.abbreviate(7).name())
+								.put("message", commit.getShortMessage())
+								.put("author", commit.getAuthorIdent().getName())
+								.put("time", commit.getCommitTime() * 1000L));
+					}
+				}
+				response.put("commits", commits);
+				status(git, prefix, response);
+			}
 			default -> throw new ServiceException("Unknown action " + action);
 			}
 		}
@@ -186,6 +267,15 @@ public class SourceControl extends JSonService {
 			}
 		}
 		return projects;
+	}
+
+	/**
+	 * Loads the project again from its files, which a checkout changed.
+	 */
+	private static void reload(String projectName) throws Exception {
+		var manager = Engine.theApp.databaseObjectsManager;
+		manager.clearCache(projectName);
+		manager.importProject(Engine.projectYamlFile(projectName), true);
 	}
 
 	/**

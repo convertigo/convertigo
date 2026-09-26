@@ -24,7 +24,8 @@
 
 	/**
 	 * The source control of the selected project in its Git repository, as the Git staging view of the
-	 * Eclipse Studio: its changed files and their differences, staging, commit, pull and push.
+	 * Eclipse Studio: its changed files and their differences, staging, discard, commit, pull, push and
+	 * fetch, its branches and its history.
 	 *
 	 * @type {{
 	 *  projectName?: string,
@@ -48,6 +49,12 @@
 	let error = $state('');
 	let diffPath = $state('');
 	let diff = $state('');
+	let branchesOpen = $state(false);
+	/** @type {{ local: string[], remote: string[] }} */
+	let branches = $state({ local: [], remote: [] });
+	let historyOpen = $state(false);
+	/** @type {{ id: string, message: string, author: string, time: number }[]} */
+	let commits = $state([]);
 
 	let staged = $derived(status?.staged ?? []);
 	let changes = $derived(status?.changes ?? []);
@@ -83,7 +90,8 @@
 			}
 			if (result && 'repository' in result) {
 				status = result;
-				if (action === 'pull' && result.head !== head) {
+				// the project loads again from its files a pull, a checkout or a discard changed
+				if ((action === 'pull' && result.head !== head) || result.reloaded) {
 					await onPulled?.(name);
 				}
 			} else {
@@ -103,6 +111,69 @@
 		await run(action, { paths: JSON.stringify(files.map((file) => file.path)) });
 		if (diffPath && files.some((file) => file.path === diffPath)) {
 			await showDiff(diffPath);
+		}
+	}
+
+	async function toggleBranches() {
+		branchesOpen = !branchesOpen;
+		if (branchesOpen) {
+			const result = await run('branches');
+			branches = {
+				local: Array.isArray(result?.local) ? result.local : [],
+				remote: Array.isArray(result?.remoteBranches) ? result.remoteBranches : []
+			};
+		}
+	}
+
+	/**
+	 * @param {string} branch
+	 * @param {boolean} [create]
+	 */
+	async function checkout(branch, create = false) {
+		const result = await run('checkout', { branch, create: String(create) });
+		if (result?.reloaded) {
+			branchesOpen = false;
+			diffPath = '';
+			if (historyOpen) {
+				await loadHistory();
+			}
+		}
+	}
+
+	async function newBranch() {
+		const branch = window.prompt('Name of the new branch, from the current commit')?.trim();
+		if (branch) {
+			await checkout(branch, true);
+		}
+	}
+
+	/**
+	 * @param {ChangedFile[]} files
+	 */
+	async function discard(files) {
+		const names = files.map((file) => fileName(file.path).name);
+		if (
+			!window.confirm(
+				`Discard the changes of ${names.length > 1 ? `${names.length} files` : names[0]}?\n\nThe new files are removed, the others come back as the last commit has them.`
+			)
+		) {
+			return;
+		}
+		await run('discard', { paths: JSON.stringify(files.map((file) => file.path)) });
+		if (diffPath && files.some((file) => file.path === diffPath)) {
+			diffPath = '';
+		}
+	}
+
+	async function loadHistory() {
+		const result = await run('log');
+		commits = Array.isArray(result?.commits) ? result.commits : [];
+	}
+
+	async function toggleHistory() {
+		historyOpen = !historyOpen;
+		if (historyOpen) {
+			await loadHistory();
 		}
 	}
 
@@ -187,6 +258,16 @@
 				onclick={() => move([file], action)}
 				><Ico icon={action === 'stage' ? 'mdi:plus' : 'mdi:minus'} size={4} /></button
 			>
+			{#if action === 'stage'}
+				<button
+					type="button"
+					class="studio-git__icon"
+					title="Discard the changes"
+					aria-label={`Discard ${parts.name}`}
+					disabled={Boolean(busy)}
+					onclick={() => discard([file])}><Ico icon="mdi:undo" size={4} /></button
+				>
+			{/if}
 			<span class={['studio-git__status', `studio-git__status--${file.kind}`]} title={file.kind}
 				>{STATUS_LETTERS[file.kind] ?? '?'}</span
 			>
@@ -223,12 +304,27 @@
 		</div>
 	{:else}
 		<div class="studio-git__head">
-			<span class="studio-git__branch" title={status.remote || 'No remote'}>
+			<button
+				type="button"
+				class="studio-git__branch"
+				title={`${status.remote || 'No remote'}: switch or create a branch`}
+				aria-expanded={branchesOpen}
+				disabled={Boolean(busy)}
+				onclick={toggleBranches}
+			>
 				<Ico icon="mdi:source-branch" size={4} />
 				{status.branch}
 				{#if status.ahead}<small title="Commits to push">↑{status.ahead}</small>{/if}
 				{#if status.behind}<small title="Commits to pull">↓{status.behind}</small>{/if}
-			</span>
+			</button>
+			<button
+				type="button"
+				class="studio-git__icon"
+				title="Fetch"
+				aria-label="Fetch"
+				disabled={Boolean(busy) || !status.remote}
+				onclick={() => run('fetch')}><Ico icon="mdi:cloud-download-outline" size={4} /></button
+			>
 			<button
 				type="button"
 				class="studio-git__icon"
@@ -254,6 +350,42 @@
 				onclick={() => run('push')}><Ico icon="mdi:arrow-up" size={4} /></button
 			>
 		</div>
+		{#if branchesOpen}
+			<div class="studio-git__branches" role="listbox" aria-label="Branches">
+				<button type="button" class="studio-git__branch-item" onclick={newBranch}>
+					<Ico icon="mdi:plus" size={4} /> New branch…
+				</button>
+				{#each branches.local as branch (branch)}
+					<button
+						type="button"
+						role="option"
+						aria-selected={branch === status.branch}
+						class={[
+							'studio-git__branch-item',
+							branch === status.branch && 'studio-git__branch-item--current'
+						]}
+						disabled={branch === status.branch || Boolean(busy)}
+						onclick={() => checkout(branch)}
+					>
+						<Ico icon="mdi:source-branch" size={4} />
+						{branch}
+					</button>
+				{/each}
+				{#each branches.remote as branch (branch)}
+					<button
+						type="button"
+						role="option"
+						aria-selected="false"
+						class="studio-git__branch-item studio-git__branch-item--remote"
+						disabled={Boolean(busy)}
+						onclick={() => checkout(branch)}
+					>
+						<Ico icon="mdi:cloud-outline" size={4} />
+						{branch}
+					</button>
+				{/each}
+			</div>
+		{/if}
 		<form
 			class="studio-git__commit"
 			onsubmit={(event) => {
@@ -309,11 +441,39 @@
 						disabled={Boolean(busy)}
 						onclick={() => move(changes, 'stage')}><Ico icon="mdi:plus" size={4} /></button
 					>
+					<button
+						type="button"
+						class="studio-git__icon"
+						title="Discard all the changes"
+						aria-label="Discard all the changes"
+						disabled={Boolean(busy)}
+						onclick={() => discard(changes)}><Ico icon="mdi:undo" size={4} /></button
+					>
 				{/if}
 			</div>
 			{@render fileList(changes, 'stage')}
 			{#if !staged.length && !changes.length}
 				<p class="studio-git__message">No change since the last commit.</p>
+			{/if}
+			<button
+				type="button"
+				class="studio-git__section studio-git__history-toggle"
+				aria-expanded={historyOpen}
+				onclick={toggleHistory}
+			>
+				<Ico icon={historyOpen ? 'mdi:chevron-down' : 'mdi:chevron-right'} size={4} />
+				<span>History</span>
+			</button>
+			{#if historyOpen}
+				{#each commits as entry (entry.id)}
+					<div class="studio-git__commit-entry" title={`${entry.id} ${entry.author}`}>
+						<code>{entry.id}</code>
+						<span>{entry.message}</span>
+						<small>{entry.author} · {new Date(entry.time).toLocaleDateString()}</small>
+					</div>
+				{:else}
+					<p class="studio-git__message">No commit yet.</p>
+				{/each}
 			{/if}
 		</div>
 	{/if}
@@ -348,8 +508,81 @@
 		flex: 1;
 		align-items: center;
 		gap: 0.3rem;
+		border: 0;
+		border-radius: 0.25rem;
+		background: transparent;
+		color: var(--studio-text-strong);
+		padding: 0.1rem 0.25rem;
+		font-weight: 600;
+		text-align: left;
+	}
+
+	.studio-git__branch:hover:not(:disabled) {
+		background: var(--studio-hover-bg);
+	}
+
+	.studio-git__branches {
+		display: grid;
+		max-height: 14rem;
+		overflow-y: auto;
+		border-bottom: 1px solid var(--studio-line);
+		padding: 0.2rem 0.4rem;
+	}
+
+	.studio-git__branch-item {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		border: 0;
+		border-radius: 0.25rem;
+		background: transparent;
+		color: var(--studio-text);
+		padding: 0.2rem 0.4rem;
+		text-align: left;
+	}
+
+	.studio-git__branch-item:hover:not(:disabled) {
+		background: var(--studio-hover-bg);
+	}
+
+	.studio-git__branch-item--current {
 		color: var(--studio-text-strong);
 		font-weight: 600;
+	}
+
+	.studio-git__branch-item--remote {
+		color: var(--studio-text-idle);
+	}
+
+	.studio-git__history-toggle {
+		width: 100%;
+		border: 0;
+		background: transparent;
+		text-align: left;
+	}
+
+	.studio-git__commit-entry {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		column-gap: 0.4rem;
+		padding: 0.2rem 0.5rem 0.2rem 1.1rem;
+	}
+
+	.studio-git__commit-entry code {
+		color: var(--studio-text-idle);
+		font-size: 0.7rem;
+	}
+
+	.studio-git__commit-entry span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-git__commit-entry small {
+		grid-column: 2;
+		color: var(--studio-text-idle);
+		font-size: 0.68rem;
 	}
 
 	.studio-git__branch small {
