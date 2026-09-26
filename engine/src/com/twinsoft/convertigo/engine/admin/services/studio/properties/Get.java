@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.beans.common.FontSource;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -293,6 +294,18 @@ public class Get extends JSonService {
 				property.put("mode", mode);
 				property.put("originalMode", mode);
 				property.put("value", value);
+			} else if (FontSource.class.getName().equals(classname)) {
+				// a font of the NGX fonts, as its JSON definition
+				var font = new FontSource();
+				Node fontNode = c.getFirstChild();
+				while (fontNode != null && !(fontNode instanceof Element)) {
+					fontNode = fontNode.getNextSibling();
+				}
+				if (fontNode != null) {
+					font.readXml(fontNode);
+				}
+				property.put("value", font.getString());
+				property.put("font", true);
 			} else if (XmlQName.class.getName().equals(classname)) {
 				// a type or an element of the schemas of the project, as {namespace}name
 				var qname = new XmlQName();

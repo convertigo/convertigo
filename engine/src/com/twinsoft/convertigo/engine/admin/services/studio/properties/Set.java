@@ -32,6 +32,7 @@ import org.apache.commons.lang3.ClassUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.common.FontSource;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XmlQName;
@@ -135,6 +136,11 @@ public class Set extends JSonService {
 						if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")
 								|| MobileSmartSourceType.class.equals(ptc)) {
 							setter.invoke(dbo, new Object[] { msst });
+						} else if (FontSource.class.equals(ptc)) {
+							// a font of the NGX fonts, as its JSON definition
+							var font = new FontSource();
+							font.setString(pvalue == null || pvalue.isBlank() ? "{}" : new JSONObject(pvalue).toString());
+							setter.invoke(dbo, new Object[] { font });
 						} else if (XmlQName.class.equals(ptc)) {
 							// a type or an element of the schemas of the project, as {namespace}name
 							setter.invoke(dbo, new Object[] { pvalue == null || pvalue.isBlank() ? new XmlQName()

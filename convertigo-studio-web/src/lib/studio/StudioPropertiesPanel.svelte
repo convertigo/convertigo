@@ -20,6 +20,7 @@
 	import { tick, untrack } from 'svelte';
 	import { flowTypeDisplayName } from './blockDefinition';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+	import StudioFontDialog from './StudioFontDialog.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 	import StudioObjectIdentity from './StudioObjectIdentity.svelte';
 	import StudioQNameDialog from './StudioQNameDialog.svelte';
@@ -311,12 +312,25 @@
 
 	/** the qualified name property the QName dialog edits */
 	let qnameRow = $state(/** @type {any} */ (null));
+	/** the font property the font dialog edits */
+	let fontRow = $state(/** @type {any} */ (null));
 
 	/**
 	 * @param {any} row
 	 * @returns {string}
 	 */
 	function previewValue(row) {
+		if (row?.font) {
+			// a font of the NGX fonts, as its JSON definition
+			try {
+				const font = JSON.parse(String(row.value || '{}'));
+				return font.fontId
+					? `${font.fontFamily} (${font.fontWeight} ${font.fontStyle} ${font.fontSubset})`
+					: 'inherits';
+			} catch {
+				return 'inherits';
+			}
+		}
 		if (row?.qname) {
 			// a type or an element of the schemas, as {namespace}name
 			const match = /^\{(.*)\}(.*)$/.exec(String(row.value ?? ''));
@@ -595,6 +609,23 @@
 														name={row.name}
 														onChange={(rows) => (row.value = rows)}
 													/>
+												{:else if row.font}
+													<div class="studio-properties__fallback layout-x-low">
+														<code
+															class="studio-properties__fallback-value"
+															class:studio-properties__fallback-value--compact={!wideField}
+															>{previewValue(row)}</code
+														>
+														<div class="studio-properties__fallback-actions layout-x-low">
+															<StudioIconButton
+																icon="mdi:format-font"
+																size="xs"
+																title="Choose the font"
+																ariaLabel={`Choose ${label}`}
+																onclick={() => (fontRow = row)}
+															/>
+														</div>
+													</div>
 												{:else if row.qname}
 													<div class="studio-properties__fallback layout-x-low">
 														<code
@@ -732,6 +763,18 @@
 			{/if}
 		{/if}
 	</div>
+
+	{#if fontRow}
+		<StudioFontDialog
+			label={fontRow.displayName ?? fontRow.name}
+			value={String(fontRow.value ?? '{}')}
+			onApply={(next) => {
+				fontRow.value = next;
+				fontRow = null;
+			}}
+			onClose={() => (fontRow = null)}
+		/>
+	{/if}
 
 	{#if qnameRow}
 		<StudioQNameDialog

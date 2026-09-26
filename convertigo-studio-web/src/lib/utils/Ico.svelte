@@ -87,6 +87,7 @@
 	import MdiFitToPageOutline from '~icons/mdi/fit-to-page-outline';
 	import MdiFolderOutline from '~icons/mdi/folder-outline';
 	import MdiFolderPlusOutline from '~icons/mdi/folder-plus-outline';
+	import MdiFormatFont from '~icons/mdi/format-font';
 	import MdiFormatText from '~icons/mdi/format-text';
 	import MdiFullscreen from '~icons/mdi/fullscreen';
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit';
@@ -334,6 +335,7 @@
 		'mdi:qrcode': MdiQrcode,
 		'mdi:camera-outline': MdiCameraOutline,
 		'mdi:image-outline': MdiImageOutline,
+		'mdi:format-font': MdiFormatFont,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:refresh': MdiRefresh,
 		'mdi:routes': MdiRoutes,

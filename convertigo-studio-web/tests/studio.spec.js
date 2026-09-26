@@ -634,6 +634,45 @@ test('studio chooses the schema type of a step among the types of the project', 
 	});
 });
 
+test('studio chooses the font of an application among the fonts of the catalog', async ({
+	page
+}) => {
+	const propertyUpdates = [];
+	await mockStudioServices(page, { propertyUpdates, fontProperty: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await expandTreeNode(page, sequenceId);
+	await expandTreeNode(page, `${sequenceId}:st`);
+	await selectTreeNode(page, initStepId);
+	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
+	const property = page.locator('.studio-properties__field').filter({ hasText: 'Definition' });
+	await expect(property.locator('code')).toHaveText('inherits');
+	await property.getByRole('button', { name: 'Choose Definition' }).click();
+
+	const dialog = page.getByRole('dialog', { name: 'Definition' });
+	await expect(dialog.getByRole('option')).toHaveCount(2);
+	await dialog.getByRole('searchbox').fill('plex');
+	await dialog.getByRole('option', { name: /IBM Plex Sans/ }).click();
+	await expect(dialog.getByRole('combobox', { name: 'Weight' })).toHaveValue('400');
+	await dialog.getByRole('combobox', { name: 'Weight' }).selectOption('700');
+	await dialog.getByRole('button', { name: 'Apply' }).click();
+	await expect(property.locator('code')).toHaveText('IBM Plex Sans (700 normal latin)');
+
+	await page.getByRole('button', { name: 'Apply', exact: true }).click();
+	await expect.poll(() => propertyUpdates.length).toBe(1);
+	const props = JSON.parse(propertyUpdates[0].get('props') ?? '[]');
+	expect(props[0]?.name).toBe('fontSource');
+	expect(JSON.parse(props[0]?.value ?? '{}')).toEqual({
+		fontId: 'ibm-plex-sans',
+		fontFamily: 'IBM Plex Sans',
+		fontWeight: '700',
+		fontStyle: 'normal',
+		fontSubset: 'latin'
+	});
+});
+
 test('studio treats an empty legacy Flow binding as an editable literal', async ({ page }) => {
 	const propertyUpdates = [];
 	const flowPickerRequests = [];
@@ -1448,6 +1487,7 @@ function responseEditor(page) {
  *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean,
  *  qnameProperty?: boolean,
+ *  fontProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1627,6 +1667,7 @@ function serviceName(url) {
  *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean,
  *  qnameProperty?: boolean,
+ *  fontProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1702,6 +1743,19 @@ function responseForService(service, params, options = {}) {
 						type: 'java.lang.String',
 						isMultiline: true
 					},
+					...(options.fontProperty
+						? {
+								Definition: {
+									name: 'fontSource',
+									displayName: 'Definition',
+									category: 'Base properties',
+									class: 'xmlizable',
+									kind: 'dbo',
+									font: true,
+									value: '{}'
+								}
+							}
+						: {}),
 					...(options.qnameProperty
 						? {
 								'Schema type': {
@@ -1716,6 +1770,32 @@ function responseForService(service, params, options = {}) {
 							}
 						: {})
 				}
+			};
+		case 'studio.ngxbuilder.Fonts':
+			if (params.get('font')) {
+				return { font: { id: params.get('font'), variants: {}, unicodeRange: {} } };
+			}
+			return {
+				fonts: [
+					{
+						id: 'abel',
+						family: 'Abel',
+						category: 'sans-serif',
+						weights: [400],
+						styles: ['normal'],
+						subsets: ['latin'],
+						defSubset: 'latin'
+					},
+					{
+						id: 'ibm-plex-sans',
+						family: 'IBM Plex Sans',
+						category: 'sans-serif',
+						weights: [100, 400, 700],
+						styles: ['italic', 'normal'],
+						subsets: ['cyrillic', 'latin'],
+						defSubset: 'latin'
+					}
+				]
 			};
 		case 'studio.properties.QNames':
 			return {
