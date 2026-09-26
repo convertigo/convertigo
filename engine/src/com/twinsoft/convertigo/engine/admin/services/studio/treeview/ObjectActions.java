@@ -24,6 +24,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
@@ -240,6 +241,20 @@ public class ObjectActions {
 					"Save an empty response as the stub answering the requests run from stub.", true,
 					"mdi:file-outline");
 		}
+		if (dbo instanceof CouchDbConnector) {
+			add(items, "object.importDesignDocuments", "Import design documents",
+					"Add the design documents of the database the project does not have yet.", true,
+					"mdi:database-import-outline");
+		}
+		if (dbo instanceof DesignDocumentView view) {
+			if (view.hasReduce()) {
+				add(items, "object.executeView", "Execute with reduce", "Run this view with its reduce function.",
+						true, "mdi:play-circle-outline").put("clientAction", "dialog.couchView:reduce");
+			}
+			add(items, "object.executeViewNoReduce", "Execute without reduce (limit 50 rows)",
+					"Run the map function of this view on its first 50 rows.", true, "mdi:play-circle-outline")
+					.put("clientAction", "dialog.couchView:map");
+		}
 		if (dbo instanceof SqlConnector) {
 			add(items, "object.sqlDesign", "Import tables, procedures and functions…",
 					"Create transactions, and sequences, from the tables, procedures and functions of the database.",
@@ -440,6 +455,20 @@ public class ObjectActions {
 				return result(false, "The stub stubs/" + requestable.getDefaultStubFileName() + " already exists.");
 			}
 			return result(true, "The empty stub stubs/" + file.getName() + " is saved.").put("changed", false);
+		}
+		case "object.importDesignDocuments" -> {
+			if (!(dbo instanceof CouchDbConnector connector)) {
+				return result(false, "This object is not a CouchDB connector.");
+			}
+			var before = connector.getDocumentsList().size();
+			connector.importCouchDbDesignDocuments();
+			var imported = connector.getDocumentsList().size() - before;
+			if (imported == 0) {
+				return result(true, "The project has all the design documents of " + connector.getDatabaseName() + ".")
+						.put("changed", false);
+			}
+			return result(true, imported + " design document" + (imported == 1 ? " is" : "s are") + " imported.")
+					.put("changed", true).put("refresh", true);
 		}
 		case "object.testSql" -> {
 			if (!(dbo instanceof SqlConnector connector)) {

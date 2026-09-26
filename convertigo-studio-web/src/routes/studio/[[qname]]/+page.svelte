@@ -47,6 +47,7 @@
 		putInStudioClipboard
 	} from '$lib/studio/studioClipboard.svelte.js';
 	import StudioCopybookDialog from '$lib/studio/StudioCopybookDialog.svelte';
+	import StudioCouchViewDialog from '$lib/studio/StudioCouchViewDialog.svelte';
 	import StudioDebugPanel from '$lib/studio/StudioDebugPanel.svelte';
 	import StudioDeployDialog from '$lib/studio/StudioDeployDialog.svelte';
 	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
@@ -290,6 +291,8 @@
 	let handlersTargetId = $state('');
 	let copybookTargetId = $state('');
 	let sqlDesignTargetId = $state('');
+	/** the view of a design document to run, as the Execute actions of a view in Eclipse */
+	let couchViewRequest = $state(/** @type {{ id: string, reduce: boolean } | null} */ (null));
 	let statisticsProjectName = $state('');
 	let aboutOpen = $state(false);
 	let preferencesOpen = $state(false);
@@ -2353,6 +2356,8 @@
 			copybookTargetId = nodeId;
 		} else if (action === 'dialog.sqlDesign') {
 			sqlDesignTargetId = nodeId;
+		} else if (action.startsWith('dialog.couchView:')) {
+			couchViewRequest = { id: nodeId, reduce: action === 'dialog.couchView:reduce' };
 		} else if (action === 'dialog.sharedComponent') {
 			sharedComponentTargetId = nodeId;
 		} else if (action === 'dialog.stepsFromXml' || action === 'dialog.stepsFromXsd') {
@@ -3296,6 +3301,13 @@
 			selectedId = id;
 		}}
 		onClose={() => (sharedComponentTargetId = '')}
+	/>
+{/if}
+{#if couchViewRequest}
+	<StudioCouchViewDialog
+		id={couchViewRequest.id}
+		reduce={couchViewRequest.reduce}
+		onClose={() => (couchViewRequest = null)}
 	/>
 {/if}
 {#if sqlDesignTargetId}
