@@ -199,6 +199,20 @@ class WebDebugger implements GuiCallback {
 		return true;
 	}
 
+	/**
+	 * @return the lines of the breakpoints of a script, set before or after it runs
+	 */
+	JSONArray breakpointsOf(String url) {
+		var list = new JSONArray();
+		var lines = breakpoints.get(url);
+		if (lines != null) {
+			for (var line : new TreeSet<>(lines)) {
+				list.put(line);
+			}
+		}
+		return list;
+	}
+
 	private Dim.SourceInfo source(String url) {
 		synchronized (sources) {
 			return sources.get(url);

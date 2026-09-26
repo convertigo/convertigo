@@ -2,14 +2,19 @@
 	import { base } from '$app/paths';
 	import { fromAction } from 'svelte/attachments';
 
-	/** @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean}} */
+	/**
+	 * breakpoints: the lines holding a breakpoint, shown in a margin whose clicks call onBreakpointToggle
+	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void}}
+	 */
 	let {
 		content = $bindable('/* Loading... */'),
 		language = 'json',
 		theme = 'vs-dark',
 		readOnly = true,
 		contentHeight = $bindable(0),
-		scrollBeyondLastLine = true
+		scrollBeyondLastLine = true,
+		breakpoints = null,
+		onBreakpointToggle
 	} = $props();
 
 	function onEditorContentChange(nextContent) {
@@ -28,6 +33,8 @@
 		theme,
 		readOnly,
 		scrollBeyondLastLine,
+		breakpoints,
+		onBreakpointToggle,
 		onContentChange: onEditorContentChange,
 		onContentHeightChange: onEditorContentHeightChange
 	}));
@@ -109,6 +116,9 @@
 			theme: value?.theme ?? 'vs-dark',
 			readOnly: value?.readOnly ?? true,
 			scrollBeyondLastLine: value?.scrollBeyondLastLine ?? true,
+			breakpoints: Array.isArray(value?.breakpoints) ? value.breakpoints : null,
+			onBreakpointToggle:
+				typeof value?.onBreakpointToggle == 'function' ? value.onBreakpointToggle : undefined,
 			onContentChange:
 				typeof value?.onContentChange == 'function' ? value.onContentChange : undefined,
 			onContentHeightChange:
@@ -118,7 +128,7 @@
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
 	 */
 	function mountMonaco(node, value) {
 		/** @type {any} */
@@ -133,6 +143,10 @@
 		let changeSubscription;
 		/** @type {{ dispose: () => void } | undefined} */
 		let contentSizeSubscription;
+		/** @type {{ dispose: () => void } | undefined} */
+		let mouseDownSubscription;
+		/** @type {any} */
+		let breakpointDecorations;
 		let disposed = false;
 		let pending = normalizeOptions(value);
 		let applyingContent = false;
@@ -188,8 +202,19 @@
 			editor.updateOptions({
 				readOnly: pending.readOnly,
 				domReadOnly: pending.readOnly,
-				scrollBeyondLastLine: pending.scrollBeyondLastLine
+				scrollBeyondLastLine: pending.scrollBeyondLastLine,
+				glyphMargin: pending.breakpoints !== null
 			});
+			breakpointDecorations?.set(
+				(pending.breakpoints ?? []).map((line) => ({
+					range: new globalThis.monaco.Range(line, 1, line, 1),
+					options: {
+						glyphMarginClassName: 'studio-editor-breakpoint',
+						glyphMarginHoverMessage: { value: 'Breakpoint' },
+						stickiness: 1
+					}
+				}))
+			);
 			globalThis.monaco?.editor?.setTheme(pending.theme || 'vs');
 			if (editor.getValue() !== pending.content) {
 				applyingContent = true;
@@ -226,6 +251,17 @@
 				contentSizeSubscription = editor.onDidContentSizeChange((event) => {
 					pending.onContentHeightChange?.(Math.ceil(event.contentHeight));
 				});
+				breakpointDecorations = editor.createDecorationsCollection();
+				mouseDownSubscription = editor.onMouseDown((event) => {
+					const line = event.target?.position?.lineNumber;
+					if (
+						pending.breakpoints !== null &&
+						line &&
+						event.target.type === Monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN
+					) {
+						pending.onBreakpointToggle?.(line);
+					}
+				});
 				pending.onContentHeightChange?.(Math.ceil(editor.getContentHeight()));
 
 				resizeObserver = new ResizeObserver(() => layout());
@@ -250,6 +286,7 @@
 				visibilityObserver?.disconnect();
 				changeSubscription?.dispose();
 				contentSizeSubscription?.dispose();
+				mouseDownSubscription?.dispose();
 				editor?.dispose();
 			}
 		};
@@ -259,3 +296,20 @@
 </script>
 
 <div class="h-full w-full" {@attach attachEditor}></div>
+
+<style>
+	/* the breakpoints, drawn as in the debug panel */
+	:global(.studio-editor-breakpoint) {
+		display: grid;
+		place-items: center;
+		cursor: pointer;
+	}
+
+	:global(.studio-editor-breakpoint)::before {
+		width: 0.55rem;
+		height: 0.55rem;
+		border-radius: 999px;
+		background: var(--color-error-500);
+		content: '';
+	}
+</style>

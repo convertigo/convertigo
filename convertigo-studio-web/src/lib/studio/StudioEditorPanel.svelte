@@ -27,6 +27,7 @@
 	 * @property {boolean=} sourceDocument
 	 * @property {string=} revision
 	 * @property {boolean=} focused
+	 * @property {number[]=} breakpoints
 	 */
 
 	/**
@@ -83,6 +84,9 @@
 		Boolean(activeTab && !activeTab.readOnly && activeTab.content !== activeTab.originalValue)
 	);
 	let theme = $derived(LightSvelte.light ? '' : 'vs-dark');
+	let debuggable = $derived(Boolean(activeTab && isDebuggable(activeTab)));
+	let debuggerAttached = $state(true);
+	let breakpointNotice = $state('');
 	let canSave = $derived(Boolean(activeTab && activeTabDirty && !loading && !saving));
 
 	$effect(() => {
@@ -124,6 +128,70 @@
 			openEditorTab(selectedId, property, editorTarget);
 		});
 	});
+
+	$effect(() => {
+		// the breakpoints of the script, which the debug panel may have changed
+		const tab = active && activeTab && isDebuggable(activeTab) ? activeTab : null;
+		const key = tab?.key;
+		breakpointNotice = '';
+		if (tab && key) {
+			untrack(() => void loadBreakpoints(tab));
+		}
+	});
+
+	/**
+	 * The JavaScript properties of the objects the engine runs, sequences and connectors, can hold
+	 * breakpoints of the debugger.
+	 * @param {EditorTab} tab
+	 */
+	function isDebuggable(tab) {
+		return !tab.sourceDocument && tab.language === 'javascript' && /\.(sq|cn):/.test(tab.id);
+	}
+
+	/**
+	 * @param {EditorTab} tab
+	 * @param {Record<string, string>} [params]
+	 */
+	async function callDebugger(tab, params = { action: 'breakpoints' }) {
+		const result = await call('studio.debug.Debugger', {
+			...params,
+			id: tab.id,
+			property: tab.propertyName
+		});
+		if (Array.isArray(result?.breakpoints)) {
+			tab.breakpoints = result.breakpoints.map(Number);
+		}
+		debuggerAttached = result?.state?.attached !== false;
+		return result;
+	}
+
+	/**
+	 * @param {EditorTab} tab
+	 */
+	async function loadBreakpoints(tab) {
+		try {
+			await callDebugger(tab);
+		} catch {
+			tab.breakpoints = [];
+		}
+	}
+
+	/**
+	 * Sets or removes a breakpoint, even before the first run of the script.
+	 * @param {number} line
+	 */
+	async function toggleBreakpoint(line) {
+		const tab = activeTab;
+		if (!tab) {
+			return;
+		}
+		const result = await callDebugger(tab, {
+			action: 'breakpoint',
+			line: String(line),
+			set: String(!(tab.breakpoints ?? []).includes(line))
+		});
+		breakpointNotice = result?.accepted === false ? `No breakpoint can stop at line ${line}` : '';
+	}
 
 	/**
 	 * Selects in the tree the object of a tab, the NGX component of a TypeScript class.
@@ -522,6 +590,19 @@
 				>
 			</div>
 			<div class="studio-editor__actions layout-x-low">
+				{#if debuggable && breakpointNotice}
+					<span class="studio-editor__readonly" role="status">{breakpointNotice}</span>
+				{:else if debuggable && !debuggerAttached && activeTab.breakpoints?.length}
+					<button
+						type="button"
+						class="studio-editor__readonly studio-editor__debugger"
+						title="The breakpoints stop the scripts once the debugger runs"
+						onclick={() => activeTab && callDebugger(activeTab, { action: 'start' })}
+					>
+						<Ico icon="mdi:bug-outline" size={3.4} />
+						Start the debugger
+					</button>
+				{/if}
 				{#if activeTab.readOnly}
 					<span class="studio-editor__readonly" title="Library sources are shown read-only">
 						<Ico icon="mdi:lock-outline" size={3.4} />
@@ -553,6 +634,8 @@
 				language={activeTab.language}
 				{theme}
 				readOnly={activeTab.readOnly === true}
+				breakpoints={debuggable ? (activeTab.breakpoints ?? []) : null}
+				onBreakpointToggle={toggleBreakpoint}
 			/>
 		</div>
 	{:else if loading}
@@ -700,6 +783,18 @@
 		color: var(--studio-editor-muted);
 		font-size: 0.7rem;
 		white-space: nowrap;
+	}
+
+	.studio-editor__debugger {
+		border: 0;
+		border-radius: 0.3rem;
+		background: transparent;
+		padding: 0.2rem 0.35rem;
+	}
+
+	.studio-editor__debugger:hover {
+		background: var(--studio-hover-bg);
+		color: var(--studio-editor-text);
 	}
 
 	.studio-editor__monaco {
