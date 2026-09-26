@@ -5,7 +5,8 @@
 	import Bezels from '$lib/dashboard/Bezels';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, getFrontendUrl } from '$lib/utils/service';
-	import { untrack } from 'svelte';
+	import { tick, untrack } from 'svelte';
+	import { captureElement } from './elementCapture';
 	import {
 		authoringDropRequest,
 		authoringModeFromMessage,
@@ -19,6 +20,7 @@
 	} from './flowAuthoring';
 	import { attachNgxAuthoring } from './ngxAuthoring';
 	import { startStyleEditor, styleEditorChanges } from './ngxStyleEditor';
+	import StudioCaptureDialog from './StudioCaptureDialog.svelte';
 	import StudioDevicePanel from './StudioDevicePanel.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
@@ -524,6 +526,31 @@
 	/**
 	 * @param {HTMLIFrameElement} node
 	 */
+	/** the Capture Manager of the application, as in the application editor of Eclipse */
+	let captureOpen = $state(false);
+	let capturePicture = $state('');
+	let captureError = $state('');
+
+	/**
+	 * Captures the preview of the application, and opens the Capture Manager to save it.
+	 */
+	async function captureApplication() {
+		captureOpen = false;
+		capturePicture = '';
+		captureError = '';
+		// the capture waits for the frames without the dialog
+		await tick();
+		try {
+			if (!iframe) {
+				throw new Error('no preview');
+			}
+			capturePicture = await captureElement(iframe);
+		} catch (error) {
+			captureError = `The browser did not capture the preview (${error instanceof Error ? error.message : error}). Choose a picture instead.`;
+		}
+		captureOpen = true;
+	}
+
 	function registerIframe(node) {
 		iframe = node;
 		authoringReadyUrl = '';
@@ -657,6 +684,14 @@
 						title={ngxShowGrids ? 'Hide the grids' : 'Show the grids, rows and columns'}
 						ariaLabel="Show the grids"
 						onclick={() => (ngxShowGrids = !ngxShowGrids)}
+					/>
+					<Button
+						full={false}
+						icon="mdi:camera-outline"
+						class={iconButtonClasses}
+						title="Capture the application as its thumbnail or a Marketplace screen"
+						ariaLabel="Capture the application"
+						onclick={() => void captureApplication()}
 					/>
 				{/if}
 				{#if showDeviceDrawer}
@@ -833,6 +868,15 @@
 		</MaxRectangle>
 	{:else}
 		<StudioEmptyState message="No project selected" class="studio-preview__empty" />
+	{/if}
+	{#if captureOpen && projectName}
+		<StudioCaptureDialog
+			{projectName}
+			capture={capturePicture}
+			error={captureError}
+			onCapture={captureApplication}
+			onClose={() => (captureOpen = false)}
+		/>
 	{/if}
 </div>
 

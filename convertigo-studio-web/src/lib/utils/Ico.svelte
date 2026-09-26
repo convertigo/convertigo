@@ -27,6 +27,7 @@
 	import MdiCached from '~icons/mdi/cached';
 	import MdiCalendarClock from '~icons/mdi/calendar-clock';
 	import MdiCalendarRange from '~icons/mdi/calendar-range';
+	import MdiCameraOutline from '~icons/mdi/camera-outline';
 	import MdiCellphoneLink from '~icons/mdi/cellphone-link';
 	import MdiCertificate from '~icons/mdi/certificate';
 	import MdiChartBoxOutline from '~icons/mdi/chart-box-outline';
@@ -96,6 +97,7 @@
 	import MdiHomeAlertOutline from '~icons/mdi/home-alert-outline';
 	import MdiHomeOutline from '~icons/mdi/home-outline';
 	import MdiHub from '~icons/mdi/hub';
+	import MdiImageOutline from '~icons/mdi/image-outline';
 	import MdiImport from '~icons/mdi/import';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline';
 	import MdiKeyOutline from '~icons/mdi/key-outline';
@@ -330,6 +332,8 @@
 		'mdi:plus': MdiPlus,
 		'mdi:power-plug': MdiPowerPlug,
 		'mdi:qrcode': MdiQrcode,
+		'mdi:camera-outline': MdiCameraOutline,
+		'mdi:image-outline': MdiImageOutline,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:refresh': MdiRefresh,
 		'mdi:routes': MdiRoutes,
