@@ -4,7 +4,7 @@
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
 	import Bezels from '$lib/dashboard/Bezels';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { getFrontendUrl } from '$lib/utils/service';
+	import { call, getFrontendUrl } from '$lib/utils/service';
 	import { untrack } from 'svelte';
 	import {
 		authoringDropRequest,
@@ -186,6 +186,78 @@
 	let ngxAuthoring = $state(/** @type {ReturnType<typeof attachNgxAuthoring> | null} */ (null));
 	let ngxSelecting = $state(false);
 	let ngxShowGrids = $state(false);
+	/** the datasets of the NGX application, its recorded session data */
+	let ngxDatasets = $state(/** @type {string[]} */ ([]));
+	let ngxDataset = $state('none');
+	const SESSION_DATA = '_c8ocafsession_storage_data';
+	try {
+		// the mobile builder mode of the Convertigo Angular Framework, which records the session data of an
+		// NGX application, set before the preview loads it
+		sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');
+	} catch {
+		// no session storage
+	}
+
+	$effect(() => {
+		// the application records its session data in the session storage it shares with the Studio, as in
+		// the application editor of the Eclipse Studio
+		if (ngxAuthoring && projectName) {
+			untrack(() => void loadNgxDatasets(projectName));
+		}
+	});
+
+	/**
+	 * @param {string} project
+	 */
+	async function loadNgxDatasets(project) {
+		const result = await call('studio.ngxbuilder.Datasets', { project });
+		if (Array.isArray(result?.datasets)) {
+			ngxDatasets = result.datasets.map(String);
+		}
+	}
+
+	/**
+	 * Restores a dataset in the application, which reloads with it.
+	 * @param {string} name
+	 */
+	async function applyNgxDataset(name) {
+		ngxDataset = name;
+		if (name === 'none') {
+			sessionStorage.removeItem(SESSION_DATA);
+		} else {
+			const result = await call('studio.ngxbuilder.Datasets', {
+				project: projectName,
+				action: 'get',
+				name
+			});
+			sessionStorage.setItem(SESSION_DATA, String(result?.data ?? '[]'));
+		}
+		reloadIframe();
+	}
+
+	async function saveNgxDataset() {
+		const data = sessionStorage.getItem(SESSION_DATA);
+		if (!data) {
+			window.alert('The application recorded no session data yet.');
+			return;
+		}
+		const name = window
+			.prompt('Name of the dataset', ngxDataset === 'none' ? '' : ngxDataset)
+			?.trim();
+		if (!name || name === 'none') {
+			return;
+		}
+		const result = await call('studio.ngxbuilder.Datasets', {
+			project: projectName,
+			action: 'save',
+			name,
+			data
+		});
+		if (result?.done) {
+			ngxDataset = name;
+			await loadNgxDatasets(projectName);
+		}
+	}
 	/** the segment of the page the preview was sent to, for a component it did not show */
 	let ngxNavigatedFor = '';
 
@@ -518,6 +590,26 @@
 						ariaLabel="Select a component in the application"
 						onclick={() => (ngxSelecting = !ngxSelecting)}
 					/>
+					<select
+						class="studio-preview__dataset input-common"
+						title="Dataset of the application: its recorded session data"
+						aria-label="Dataset"
+						value={ngxDataset}
+						onchange={(event) => void applyNgxDataset(event.currentTarget.value)}
+					>
+						<option value="none">No dataset</option>
+						{#each ngxDatasets as dataset (dataset)}
+							<option value={dataset}>{dataset}</option>
+						{/each}
+					</select>
+					<Button
+						full={false}
+						icon="mdi:content-save-outline"
+						class={iconButtonClasses}
+						title="Save the session data of the application as a dataset"
+						ariaLabel="Save the dataset"
+						onclick={saveNgxDataset}
+					/>
 					<Button
 						full={false}
 						icon="mdi:grid"
@@ -705,6 +797,13 @@
 </div>
 
 <style>
+	.studio-preview__dataset {
+		width: 7.5rem;
+		height: 2rem;
+		padding-block: 0;
+		font-size: 0.72rem;
+	}
+
 	:global(.studio-preview__select--active) {
 		background: var(--color-primary-500) !important;
 		color: white !important;
