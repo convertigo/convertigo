@@ -13,7 +13,9 @@ const defaults = {
 	/** the save of a project writes its readme.md file again */
 	readmeOnSave: false,
 	/** the site of the Convertigo Marketplace */
-	marketplaceUrl: DEFAULT_MARKETPLACE_URL
+	marketplaceUrl: DEFAULT_MARKETPLACE_URL,
+	/** @type {'ask' | 'always' | 'never'} the references of the used projects a save adds */
+	projectReferences: 'ask'
 };
 
 /**

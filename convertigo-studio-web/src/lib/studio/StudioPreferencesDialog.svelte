@@ -15,13 +15,15 @@
 	let gitRepositoryForNewProjects = $state(studioPreferences.gitRepositoryForNewProjects);
 	let readmeOnSave = $state(studioPreferences.readmeOnSave);
 	let marketplaceUrl = $state(studioPreferences.marketplaceUrl);
+	let projectReferences = $state(studioPreferences.projectReferences);
 
 	function submit(/** @type {SubmitEvent} */ event) {
 		event.preventDefault();
 		saveStudioPreferences({
 			gitRepositoryForNewProjects,
 			readmeOnSave,
-			marketplaceUrl: marketplaceUrl.trim() || DEFAULT_MARKETPLACE_URL
+			marketplaceUrl: marketplaceUrl.trim() || DEFAULT_MARKETPLACE_URL,
+			projectReferences
 		});
 		onClose?.();
 	}
@@ -60,6 +62,14 @@
 						Update the readme.md file on save
 						<small>The project.md file is always written again.</small>
 					</span>
+				</label>
+				<label class="studio-dialog__field">
+					<span>References of the used projects</span>
+					<select class="input-common" bind:value={projectReferences}>
+						<option value="ask">Ask on save</option>
+						<option value="always">Always add them on save</option>
+						<option value="never">Never add them</option>
+					</select>
 				</label>
 				<label class="studio-dialog__field">
 					<span>Marketplace URL</span>
@@ -171,6 +181,7 @@
 		font-weight: 600;
 	}
 
+	.studio-dialog__field select,
 	.studio-dialog__field input {
 		height: 2rem;
 		padding-block: 0;

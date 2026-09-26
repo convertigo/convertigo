@@ -60,7 +60,10 @@
 	import StudioNewProjectDialog from '$lib/studio/StudioNewProjectDialog.svelte';
 	import StudioPalettePanel from '$lib/studio/StudioPalettePanel.svelte';
 	import StudioPanel from '$lib/studio/StudioPanel.svelte';
-	import { studioPreferences } from '$lib/studio/studioPreferences.svelte.js';
+	import {
+		saveStudioPreferences,
+		studioPreferences
+	} from '$lib/studio/studioPreferences.svelte.js';
 	import StudioPreferencesDialog from '$lib/studio/StudioPreferencesDialog.svelte';
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
 	import StudioPropertiesPanel from '$lib/studio/StudioPropertiesPanel.svelte';
@@ -2092,6 +2095,7 @@
 			await saveDboProject(selectedProjectName, selectedId, {
 				readme: studioPreferences.readmeOnSave
 			});
+			await addMissingReferences(selectedProjectName);
 			await refreshStudioProject(selectedProjectName);
 			clearProjectDirty(selectedProjectName);
 			refreshStudioViews();
@@ -2113,6 +2117,7 @@
 				await saveDboProject(projectName, projectName, {
 					readme: studioPreferences.readmeOnSave
 				});
+				await addMissingReferences(projectName);
 				await refreshStudioProject(projectName);
 				clearProjectDirty(projectName);
 			}
@@ -2617,6 +2622,43 @@
 		await Projects.refresh();
 		selectedId = projectName;
 		refreshStudioViews();
+	}
+
+	/**
+	 * Adds the references of the projects a project uses without referencing them, as the Eclipse Studio
+	 * proposes it after a save; the answer is kept in the Studio preferences.
+	 * @param {string} projectName
+	 */
+	async function addMissingReferences(projectName) {
+		const result = await call('studio.project.MissingReferences', { projectName });
+		const missing = Array.isArray(result?.references) ? result.references.map(String) : [];
+		if (!missing.length) {
+			return;
+		}
+		let mode = studioPreferences.projectReferences;
+		if (mode === 'ask') {
+			mode = window.confirm(
+				`The project ${projectName} uses the project${missing.length > 1 ? 's' : ''} ${missing.join(', ')} without referencing ${missing.length > 1 ? 'them' : 'it'}. Add the missing references now and after the next saves? The answer is kept in the Studio preferences.`
+			)
+				? 'always'
+				: 'never';
+			saveStudioPreferences({ projectReferences: mode });
+		}
+		if (mode !== 'always') {
+			toaster.warning({
+				description: `The project ${projectName} misses references to ${missing.join(', ')}.`
+			});
+			return;
+		}
+		const added = await call('studio.project.MissingReferences', { projectName, add: 'true' });
+		if (Array.isArray(added?.added) && added.added.length) {
+			markProjectDirty(projectName);
+			await refreshStudioProject(projectName);
+			refreshStudioViews();
+			toaster.info({
+				description: `References added to ${added.added.join(', ')}: save ${projectName} to keep them.`
+			});
+		}
 	}
 
 	/**
