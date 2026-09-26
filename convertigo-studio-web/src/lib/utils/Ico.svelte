@@ -58,7 +58,9 @@
 	import MdiContentSaveOutline from '~icons/mdi/content-save-outline';
 	import MdiCubeOutline from '~icons/mdi/cube-outline';
 	import MdiDatabase from '~icons/mdi/database';
+	import MdiDatabaseCheckOutline from '~icons/mdi/database-check-outline';
 	import MdiDatabaseClockOutline from '~icons/mdi/database-clock-outline';
+	import MdiDatabaseImportOutline from '~icons/mdi/database-import-outline';
 	import MdiDatabaseSyncOutline from '~icons/mdi/database-sync-outline';
 	import MdiDebugStepInto from '~icons/mdi/debug-step-into';
 	import MdiDebugStepOut from '~icons/mdi/debug-step-out';
@@ -337,6 +339,8 @@
 		'mdi:power-plug': MdiPowerPlug,
 		'mdi:qrcode': MdiQrcode,
 		'mdi:camera-outline': MdiCameraOutline,
+		'mdi:database-check-outline': MdiDatabaseCheckOutline,
+		'mdi:database-import-outline': MdiDatabaseImportOutline,
 		'mdi:comment-text-outline': MdiCommentTextOutline,
 		'mdi:image-outline': MdiImageOutline,
 		'mdi:format-font': MdiFormatFont,

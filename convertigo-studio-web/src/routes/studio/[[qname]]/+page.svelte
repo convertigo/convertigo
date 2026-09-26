@@ -75,6 +75,7 @@
 	import StudioSharedComponentDialog from '$lib/studio/StudioSharedComponentDialog.svelte';
 	import StudioShell from '$lib/studio/StudioShell.svelte';
 	import StudioSourceControlPanel from '$lib/studio/StudioSourceControlPanel.svelte';
+	import StudioSqlDesignDialog from '$lib/studio/StudioSqlDesignDialog.svelte';
 	import StudioStatisticsDialog from '$lib/studio/StudioStatisticsDialog.svelte';
 	import StudioStepsFromXmlDialog from '$lib/studio/StudioStepsFromXmlDialog.svelte';
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
@@ -288,6 +289,7 @@
 	let sharedComponentTargetId = $state('');
 	let handlersTargetId = $state('');
 	let copybookTargetId = $state('');
+	let sqlDesignTargetId = $state('');
 	let statisticsProjectName = $state('');
 	let aboutOpen = $state(false);
 	let preferencesOpen = $state(false);
@@ -2349,6 +2351,8 @@
 			handlersTargetId = nodeId;
 		} else if (action === 'dialog.copybook') {
 			copybookTargetId = nodeId;
+		} else if (action === 'dialog.sqlDesign') {
+			sqlDesignTargetId = nodeId;
 		} else if (action === 'dialog.sharedComponent') {
 			sharedComponentTargetId = nodeId;
 		} else if (action === 'dialog.stepsFromXml' || action === 'dialog.stepsFromXsd') {
@@ -3292,6 +3296,20 @@
 			selectedId = id;
 		}}
 		onClose={() => (sharedComponentTargetId = '')}
+	/>
+{/if}
+{#if sqlDesignTargetId}
+	<StudioSqlDesignDialog
+		id={sqlDesignTargetId}
+		onDone={async (id) => {
+			const target = sqlDesignTargetId;
+			sqlDesignTargetId = '';
+			await refreshStudioProject(target);
+			refreshTreeContext(target, 'contextAction');
+			markProjectDirty(target);
+			selectedId = id;
+		}}
+		onClose={() => (sqlDesignTargetId = '')}
 	/>
 {/if}
 {#if copybookTargetId}

@@ -24,6 +24,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocumentFunction;
@@ -69,6 +70,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StepUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.admin.services.studio.dbo.CreateStub;
+import com.twinsoft.convertigo.engine.admin.services.studio.dbo.SqlDesign;
 import com.twinsoft.convertigo.engine.admin.services.studio.dbo.UpdateSchema;
 import com.twinsoft.convertigo.engine.admin.services.studio.project.ImportWsReference;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
@@ -237,6 +239,13 @@ public class ObjectActions {
 			add(items, "object.emptyStub", "Create an empty stub",
 					"Save an empty response as the stub answering the requests run from stub.", true,
 					"mdi:file-outline");
+		}
+		if (dbo instanceof SqlConnector) {
+			add(items, "object.sqlDesign", "Import tables, procedures and functions…",
+					"Create transactions, and sequences, from the tables, procedures and functions of the database.",
+					true, "mdi:database-import-outline").put("clientAction", "dialog.sqlDesign");
+			add(items, "object.testSql", "Test SQL connection", "Check the connection parameters of this connector.",
+					true, "mdi:database-check-outline");
 		}
 		if (dbo instanceof CicsTransaction) {
 			add(items, "object.importCopybook", "Import copybook…",
@@ -431,6 +440,14 @@ public class ObjectActions {
 				return result(false, "The stub stubs/" + requestable.getDefaultStubFileName() + " already exists.");
 			}
 			return result(true, "The empty stub stubs/" + file.getName() + " is saved.").put("changed", false);
+		}
+		case "object.testSql" -> {
+			if (!(dbo instanceof SqlConnector connector)) {
+				return result(false, "This object is not an SQL connector.");
+			}
+			var tested = SqlDesign.test(connector);
+			return result(tested.optBoolean("connected"), tested.optString("message", tested.optString("error")))
+					.put("changed", false);
 		}
 		case "object.updateSchema" -> {
 			if (!(dbo instanceof Transaction transaction)) {
