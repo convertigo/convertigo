@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
@@ -157,6 +158,16 @@ public class ObjectActions {
 			add(items, "object.showSourceInPicker", "Show source in Picker",
 					"Show in the source picker the step this object works on, and its source.", true, "mdi:hub")
 					.put("clientAction", "picker.sourceDefinition");
+		}
+		if (dbo instanceof Sheet sheet && sheet.getUrl() != null && !sheet.getUrl().isBlank()) {
+			// the stylesheet of the sheet, a file of its project
+			add(items, "object.editSheet", "Edit the stylesheet", "Open the XSL file of this sheet in the code editor.", true,
+					"mdi:file-code-outline").put("clientAction", "code.file:" + dbo.getProject().getName() + "/"
+							+ sheet.getUrl().replaceFirst("^[./\\\\]+", ""));
+		}
+		if (dbo instanceof TestCase) {
+			add(items, "object.runTestCase", "Run", "Execute the sequence or the transaction with the variables of this test case.",
+					true, "mdi:play-circle-outline").put("clientAction", "execution.testcase");
 		}
 		if (Handlers.handles(dbo)) {
 			add(items, "object.editHandlers", "Edit handlers", "Edit the JavaScript functions handling the events of this transaction.",

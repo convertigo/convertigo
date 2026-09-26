@@ -20,14 +20,18 @@
 	 *  projectName?: string,
 	 *  requestable?: SequenceRequestable | null,
 	 *  requestableKind?: string,
-	 *  connectorName?: string
+	 *  connectorName?: string,
+	 *  runTestcase?: string,
+	 *  onRunTestcaseTaken?: () => void
 	 * }}
 	 */
 	let {
 		projectName = '',
 		requestable: selectedRequestable = null,
 		requestableKind = 'sequence',
-		connectorName = ''
+		connectorName = '',
+		runTestcase = '',
+		onRunTestcaseTaken
 	} = $props();
 
 	const modes = ['JSON', 'XML', 'BIN', 'CXML'];
@@ -148,6 +152,8 @@
 			freshContext={true}
 			stubbable={true}
 			bind:stub
+			{runTestcase}
+			{onRunTestcaseTaken}
 			testcaseValue={`${requestableKey}.testcases`}
 		/>
 	{/if}

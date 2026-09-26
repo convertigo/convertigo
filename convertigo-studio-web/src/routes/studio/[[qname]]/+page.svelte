@@ -37,6 +37,7 @@
 	import { applySourcePickerDrop, sourceDefinitionFromPayload } from '$lib/studio/sourcePickerDnd';
 	import StudioAboutDialog from '$lib/studio/StudioAboutDialog.svelte';
 	import StudioActivityBar from '$lib/studio/StudioActivityBar.svelte';
+	import StudioAddFileDialog from '$lib/studio/StudioAddFileDialog.svelte';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
 	import StudioBuilderPanel from '$lib/studio/StudioBuilderPanel.svelte';
 	import {
@@ -230,6 +231,8 @@
 	);
 	/** the palette item or the tree object dragged over the preview of an NGX application */
 	let ngxDropPayload = /** @type {any} */ (null);
+	/** a test case to run in the execution panel, as the "Run" of a test case of the Eclipse Studio */
+	let executionRunTestcase = $state('');
 	/** asks the builder to show or start the development server of an NGX application */
 	let builderServeRequest = $state(0);
 	let frontendPreviewBusy = $state(false);
@@ -275,6 +278,7 @@
 	let handlersTargetId = $state('');
 	let statisticsProjectName = $state('');
 	let aboutOpen = $state(false);
+	let addFileProjectName = $state('');
 	/** the lib_* projects hidden from the tree, as the "Toggle libs" of the Eclipse Studio */
 	let hideLibs = $state(false);
 	let marketplaceOpen = $state(false);
@@ -2308,6 +2312,14 @@
 		} else if (action === 'code.handlers') {
 			// the JavaScript handlers of a transaction, as the "Edit handlers" action of the Eclipse Studio
 			openPropertyEditor({ id: nodeId, propertyName: 'handlers', displayName: 'Handlers' });
+		} else if (action.startsWith('code.file:')) {
+			// a file of a project, as the stylesheet of a sheet, opens in the code editor
+			selectedId = action.slice('code.file:'.length);
+		} else if (action === 'execution.testcase') {
+			// the requestable of the test case runs with its variables
+			selectedId = nodeId;
+			setWorkPanel('execution');
+			executionRunTestcase = nodeId.replace(/^.*[.:]tc:/, '');
 		} else if (action === 'dialog.handlers') {
 			handlersTargetId = nodeId;
 		} else if (action === 'dialog.sharedComponent') {
@@ -2350,6 +2362,8 @@
 			} else if (result?.admin?.result) {
 				toaster.info({ description: 'No referenced project is missing.' });
 			}
+		} else if (action === 'project.addFile') {
+			addFileProjectName = projectName;
 		} else if (action === 'project.statistics') {
 			statisticsProjectName = projectName;
 		} else if (action === 'project.readme') {
@@ -2814,6 +2828,8 @@
 		requestable={executionTarget?.requestable ?? null}
 		requestableKind={executionTarget?.kind ?? ''}
 		connectorName={executionTarget?.connectorName ?? ''}
+		runTestcase={executionRunTestcase}
+		onRunTestcaseTaken={() => (executionRunTestcase = '')}
 	/>
 {/snippet}
 
@@ -3138,6 +3154,17 @@
 			refreshStudioViews();
 		}}
 		onClose={() => (marketplaceOpen = false)}
+	/>
+{/if}
+{#if addFileProjectName}
+	<StudioAddFileDialog
+		projectName={addFileProjectName}
+		onDone={async (fileId) => {
+			addFileProjectName = '';
+			refreshStudioViews();
+			selectedId = fileId;
+		}}
+		onClose={() => (addFileProjectName = '')}
 	/>
 {/if}
 {#if aboutOpen}

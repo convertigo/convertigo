@@ -202,7 +202,7 @@
 			await onRevealDefinition?.();
 		} else if (clientAction === 'source.open') {
 			await onOpenSource?.();
-		} else if (/^(dialog|code|picker)\./.test(clientAction)) {
+		} else if (/^(dialog|code|picker|execution)\./.test(clientAction)) {
 			// a dialog, an editor or a picker of the page, as the variables of a transaction
 			await onTreeAction?.(clientAction);
 		}
@@ -391,6 +391,7 @@
 							'Generate the readme.md'
 						)}
 						{@render treeItem('project.symbols', 'mdi:code-braces', 'Declare its global symbols')}
+						{@render treeItem('project.addFile', 'mdi:file-code-outline', 'Add files…')}
 						{@render treeItem('project.statistics', 'mdi:chart-box-outline', 'Statistics')}
 						{@render treeItem(
 							'project.checkReferences',

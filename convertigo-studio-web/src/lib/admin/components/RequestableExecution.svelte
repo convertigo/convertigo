@@ -9,6 +9,7 @@
 	import RequestableResponseEditor from '$lib/dashboard/RequestableResponseEditor.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, callRequestable, getUrl, toaster } from '$lib/utils/service';
+	import { untrack } from 'svelte';
 	import { fly } from 'svelte/transition';
 
 	/**
@@ -39,6 +40,8 @@
 	 *  freshContext?: boolean,
 	 *  stubbable?: boolean,
 	 *  stub?: boolean,
+	 *  runTestcase?: string,
+	 *  onRunTestcaseTaken?: () => void,
 	 *  disabled?: boolean,
 	 *  class?: string
 	 * }}
@@ -58,6 +61,8 @@
 		freshContext = false,
 		stubbable = false,
 		stub = $bindable(false),
+		runTestcase = '',
+		onRunTestcaseTaken,
 		disabled = false,
 		class: cls = ''
 	} = $props();
@@ -466,19 +471,47 @@ console.log(await response.text());`;
 	/**
 	 * @param {SubmitEvent & { currentTarget: HTMLFormElement }} event
 	 */
-	async function run(event) {
-		event.preventDefault();
-		if (!requestable || !projectName || disabled) {
+	/** @type {HTMLFormElement | undefined} */
+	let form = $state();
+
+	$effect(() => {
+		// a test case to run, asked from elsewhere, as the "Run" of a test case of the tree
+		const name = runTestcase;
+		if (!name || !form || !requestable) {
 			return;
 		}
+		if (!(requestable.testcase ?? []).some((testcase) => testcase?.name === name)) {
+			return;
+		}
+		untrack(() => {
+			onRunTestcaseTaken?.();
+			if (form) {
+				void execute(form, name);
+			}
+		});
+	});
+
+	async function run(event) {
+		event.preventDefault();
 		const submitter = /** @type {HTMLButtonElement | null} */ (event.submitter);
 		if (submitter?.value === '__clear') {
 			updateResponse({ content: '', loading: false });
 			return;
 		}
-		const fd = new FormData(event.currentTarget);
-		if (submitter?.value) {
-			fd.append('__testcase', submitter.value);
+		await execute(event.currentTarget, submitter?.value ?? '');
+	}
+
+	/**
+	 * @param {HTMLFormElement} target
+	 * @param {string} testcase the test case whose variables the requestable runs with, or none
+	 */
+	async function execute(target, testcase) {
+		if (!requestable || !projectName || disabled) {
+			return;
+		}
+		const fd = new FormData(target);
+		if (testcase) {
+			fd.append('__testcase', testcase);
 			for (const key of [...fd.keys()]) {
 				if (!String(key).startsWith('__')) {
 					fd.delete(key);
@@ -493,7 +526,7 @@ console.log(await response.text());`;
 		}
 		if (mode.toUpperCase() === 'BIN') {
 			updateResponse({ content: '', loading: false });
-			submitBinary(event.currentTarget, fd);
+			submitBinary(target, fd);
 			return;
 		}
 		updateResponse({ content: 'Loading ...', loading: true });
@@ -559,7 +592,7 @@ console.log(await response.text());`;
 {/snippet}
 
 {#if requestable}
-	<form class={['requestable-execution', cls]} onsubmit={run}>
+	<form class={['requestable-execution', cls]} onsubmit={run} bind:this={form}>
 		<iframe hidden name={downloadTarget} title="Binary download target"></iframe>
 		{#if kind === 'transaction'}
 			<input type="hidden" name="__connector" value={connectorName} />
