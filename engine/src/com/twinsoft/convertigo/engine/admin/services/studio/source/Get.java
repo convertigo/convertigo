@@ -53,6 +53,18 @@ public class Get extends JSonService {
 			response.put("readOnly", false);
 			return;
 		}
+		if (NgxCodes.isCodeId(id)) {
+			// the code of an NGX custom action, custom component or style
+			var dbo = NgxCodes.target(id);
+			response.put("id", id);
+			response.put("content", NgxCodes.read(dbo));
+			response.put("revision", NgxCodes.revision(dbo));
+			response.put("fileName", NgxCodes.fileName(dbo));
+			response.put("relativePath", NgxCodes.fileName(dbo));
+			response.put("language", NgxCodes.language(dbo));
+			response.put("readOnly", false);
+			return;
+		}
 		if (NgxClasses.isClassId(id)) {
 			// the TypeScript class of an NGX component, whose code between markers the Studio saves
 			var dbo = NgxClasses.target(id);

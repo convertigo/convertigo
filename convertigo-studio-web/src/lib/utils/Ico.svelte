@@ -108,6 +108,8 @@
 	import MdiKeyOutline from '~icons/mdi/key-outline';
 	import MdiLanConnect from '~icons/mdi/lan-connect';
 	import MdiLandPlots from '~icons/mdi/land-plots';
+	import MdiLanguageCss3 from '~icons/mdi/language-css3';
+	import MdiLanguageHtml5 from '~icons/mdi/language-html5';
 	import MdiLanguageJava from '~icons/mdi/language-java';
 	import MdiLanguageJavascript from '~icons/mdi/language-javascript';
 	import MdiLanguageMarkdownOutline from '~icons/mdi/language-markdown-outline';
@@ -311,6 +313,8 @@
 		'mdi:lightning-bolt': MdiLightningBolt,
 		'mdi:link-variant': MdiLinkVariant,
 		'mdi:language-markdown-outline': MdiLanguageMarkdownOutline,
+		'mdi:language-css3': MdiLanguageCss3,
+		'mdi:language-html5': MdiLanguageHtml5,
 		'mdi:language-typescript': MdiLanguageTypescript,
 		'mdi:library-outline': MdiLibraryOutline,
 		'mdi:login-variant': MdiLoginVariant,

@@ -2374,6 +2374,19 @@
 			} else {
 				setWorkPanel('code');
 			}
+		} else if (action.startsWith('code.document:')) {
+			// the code of an NGX component, as the Eclipse Studio opens it on a double-click
+			selectedId = nodeId;
+			editorTarget = {
+				id: `${nodeId}#${action.slice('code.document:'.length)}`,
+				sourceDocument: true,
+				serial: Date.now()
+			};
+			if (profile === 'frontend') {
+				setFrontendResult('code');
+			} else {
+				setWorkPanel('code');
+			}
 		} else if (action.startsWith('picker.')) {
 			// the picker of a property, as the "Show source in Picker" action of the Eclipse Studio
 			selectedId = nodeId;

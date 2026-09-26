@@ -43,6 +43,19 @@ public class Set extends JSonService {
 		if (id == null || id.isBlank() || content == null) {
 			throw new ServiceException("missing id or content parameter");
 		}
+		if (NgxCodes.isCodeId(id)) {
+			var dbo = NgxCodes.target(id);
+			var revision = request.getParameter("revision");
+			if (revision != null && !revision.isEmpty() && !revision.equals(NgxCodes.revision(dbo))) {
+				throw new ServiceException("The code of " + dbo.getName() + " changed since it was opened: open it again before saving.");
+			}
+			NgxCodes.save(dbo, content);
+			response.put("done", true);
+			response.put("id", id);
+			response.put("revision", NgxCodes.revision(dbo));
+			response.put("changed", true);
+			return;
+		}
 		if (NgxClasses.isClassId(id)) {
 			var dbo = NgxClasses.target(id);
 			var revision = request.getParameter("revision");

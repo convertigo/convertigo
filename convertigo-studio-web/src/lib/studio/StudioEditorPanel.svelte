@@ -15,6 +15,9 @@
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 
+	/** the code documents of an NGX component: its class, the function of an action, a template, a style */
+	const COMPONENT_CODE = /#(class|action|html|style)$/;
+
 	/**
 	 * @typedef {Object} EditorTab
 	 * @property {string} key
@@ -114,7 +117,8 @@
 		const sourceId =
 			active &&
 			editorTarget?.sourceDocument &&
-			(editorTarget?.id === selectedId || editorTarget?.id === `${selectedId}#class`)
+			(editorTarget?.id === selectedId ||
+				editorTarget?.id?.replace(COMPONENT_CODE, '') === selectedId)
 				? editorTarget.id
 				: '';
 		const requestKey = sourceId ? `${sourceId}:${editorTarget?.serial ?? ''}` : '';
@@ -212,7 +216,7 @@
 	 * @param {string} id
 	 */
 	function selectObject(id) {
-		onSelectObject(id.replace(/#class$/, ''));
+		onSelectObject(id.replace(COMPONENT_CODE, ''));
 	}
 
 	/**
@@ -492,7 +496,7 @@
 				tab.revision = String(result.revision ?? '');
 				if (result.changed) {
 					// the class of a component keeps its code in the component, whose project changes
-					await onSave?.(tab.id.replace(/#class$/, ''));
+					await onSave?.(tab.id.replace(COMPONENT_CODE, ''));
 				}
 			} else {
 				error = String(result?.error?.message ?? result?.message ?? 'The file was not saved.');

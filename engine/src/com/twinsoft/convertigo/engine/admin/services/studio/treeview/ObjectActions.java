@@ -198,6 +198,18 @@ public class ObjectActions {
 					"Edit the code of the class of this component between its markers.", true, "mdi:language-typescript")
 					.put("clientAction", "code.class");
 		}
+		var codeSuffix = com.twinsoft.convertigo.engine.admin.services.studio.source.NgxCodes.suffix(dbo);
+		if (codeSuffix != null) {
+			var kind = switch (codeSuffix) {
+			case "#action" -> "the TypeScript function of this action";
+			case "#html" -> "the HTML template of this component";
+			default -> "the SCSS of this style";
+			};
+			add(items, "object.editCode", "Edit the code", "Edit " + kind + ".", true,
+					codeSuffix.equals("#action") ? "mdi:language-typescript"
+							: codeSuffix.equals("#html") ? "mdi:language-html5" : "mdi:language-css3")
+					.put("clientAction", "code.document:" + codeSuffix.substring(1));
+		}
 		if (NgxI18n.handles(dbo)) {
 			add(items, "object.i18n:true", "Enable I18n recursively",
 					"Translate the texts and the automatic menu items under this component.", true, "mdi:translate");
