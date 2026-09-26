@@ -30,6 +30,7 @@
 	/**
 	 * @type {{
 	 *  node: any,
+	 *  gitDecoration?: { branch: string, changes: number, ahead?: number, behind?: number },
 	 *  selectedId?: string,
 	 *  depth?: number,
 	 *  parentNode?: any,
@@ -61,6 +62,7 @@
 	 */
 	let {
 		node,
+		gitDecoration,
 		selectedId = $bindable(''),
 		depth = 0,
 		parentNode = null,
@@ -1075,6 +1077,18 @@
 					{/if}
 				</span>
 				<span class="studio-tree-node__label">{label}</span>
+				{#if gitDecoration}
+					<span
+						class="studio-tree-node__git"
+						title="Git branch {gitDecoration.branch}{gitDecoration.changes
+							? `, ${gitDecoration.changes} changed file${gitDecoration.changes > 1 ? 's' : ''}`
+							: ''}"
+					>
+						{gitDecoration.branch}{gitDecoration.changes ? ' *' : ''}{gitDecoration.ahead
+							? ` ↑${gitDecoration.ahead}`
+							: ''}{gitDecoration.behind ? ` ↓${gitDecoration.behind}` : ''}
+					</span>
+				{/if}
 			</button>
 		{/if}
 		{#if showSelectedActions}
@@ -1267,6 +1281,9 @@
 		display: grid;
 		min-width: max-content;
 		grid-template-columns: 0.82rem max-content;
+		/* the Git decoration of a project follows its label */
+		grid-auto-columns: max-content;
+		grid-auto-flow: column;
 		align-items: center;
 		gap: 0.12rem;
 		border: 0;
@@ -1308,6 +1325,13 @@
 		white-space: nowrap;
 		font-size: 0.8rem;
 		font-weight: 400;
+	}
+
+	.studio-tree-node__git {
+		margin-left: 0.4rem;
+		color: var(--studio-text-idle);
+		font-size: 0.7rem;
+		white-space: nowrap;
 	}
 
 	.studio-tree-node__actions {

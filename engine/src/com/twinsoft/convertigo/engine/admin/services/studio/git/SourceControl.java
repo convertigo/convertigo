@@ -52,7 +52,8 @@ import com.twinsoft.convertigo.engine.util.GitUtils;
  * changed files, their differences, staging, commit, pull and push.
  * <ul>
  * <li>projectName: the project</li>
- * <li>action: status (default), init, diff, stage, unstage, commit, pull or push</li>
+ * <li>action: status (default), init, diff, stage, unstage, commit, pull or push; or decorations, without
+ * projectName, for the branch and the changed files of each project in a repository</li>
  * <li>paths: the files to stage or unstage, as a JSON array of paths in the repository; path: the file to
  * compare</li>
  * <li>message: the message of the commit</li>
@@ -63,6 +64,10 @@ public class SourceControl extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
+		if ("decorations".equals(request.getParameter("action"))) {
+			response.put("projects", decorations());
+			return;
+		}
 		var projectName = request.getParameter("projectName");
 		var project = projectName == null ? null : Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		if (project == null) {
@@ -135,6 +140,52 @@ public class SourceControl extends JSonService {
 			default -> throw new ServiceException("Unknown action " + action);
 			}
 		}
+	}
+
+	/**
+	 * @return the branch, the changed files and the commits to push or pull of each project in a
+	 *         repository, as the decorations of the Git projects in the tree of the Eclipse Studio
+	 */
+	private static JSONObject decorations() throws Exception {
+		var projects = new JSONObject();
+		var statuses = new java.util.HashMap<File, org.eclipse.jgit.api.Status>();
+		for (var name : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
+			try {
+				var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, false);
+				var projectDir = project == null ? null : project.getDirFile().getCanonicalFile();
+				var workingDir = projectDir == null ? null : GitUtils.getWorkingDir(projectDir);
+				if (workingDir == null) {
+					continue;
+				}
+				workingDir = workingDir.getCanonicalFile();
+				var prefix = projectDir.equals(workingDir) ? ""
+						: workingDir.toPath().relativize(projectDir.toPath()).toString().replace(File.separatorChar, '/') + "/";
+				try (var git = Git.open(workingDir)) {
+					var repository = git.getRepository();
+					var status = statuses.get(workingDir);
+					if (status == null) {
+						status = git.status().call();
+						statuses.put(workingDir, status);
+					}
+					var changes = 0;
+					for (var path : status.getUncommittedChanges()) {
+						changes += path.startsWith(prefix) ? 1 : 0;
+					}
+					for (var path : status.getUntracked()) {
+						changes += path.startsWith(prefix) ? 1 : 0;
+					}
+					var decoration = new JSONObject().put("branch", repository.getBranch()).put("changes", changes);
+					var tracking = BranchTrackingStatus.of(repository, repository.getBranch());
+					if (tracking != null) {
+						decoration.put("ahead", tracking.getAheadCount()).put("behind", tracking.getBehindCount());
+					}
+					projects.put(name, decoration);
+				}
+			} catch (Exception e) {
+				Engine.logStudio.debug("(SourceControl) no decoration for " + name, e);
+			}
+		}
+		return projects;
 	}
 
 	/**

@@ -1,6 +1,7 @@
 <script>
 	import Projects from '$lib/common/Projects.svelte.js';
 	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
+	import { call } from '$lib/utils/service';
 	import { onMount, tick, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import {
@@ -68,6 +69,40 @@
 	let expandedNodeIds = $state.raw(new SvelteSet());
 	let dataSerial = $state(0);
 	let lastRefreshMutationSerial = 0;
+	/**
+	 * The branch and the changed files of each project in a Git repository, as the decorations of the
+	 * Eclipse Studio
+	 * @type {Record<string, { branch: string, changes: number, ahead?: number, behind?: number }>}
+	 */
+	let gitDecorations = $state({});
+	/** @type {ReturnType<typeof setTimeout> | undefined} */
+	let gitDecorationsTimer;
+
+	function refreshGitDecorations() {
+		clearTimeout(gitDecorationsTimer);
+		gitDecorationsTimer = setTimeout(async () => {
+			const result = await call('studio.git.SourceControl', { action: 'decorations' });
+			if (result?.projects) {
+				gitDecorations = result.projects;
+			}
+		}, 800);
+	}
+
+	$effect(() => {
+		// the saves, reloads and changes of the tree can change the files of the projects
+		void refreshSerial;
+		void dataSerial;
+		void Projects.projects?.length;
+		untrack(refreshGitDecorations);
+	});
+
+	onMount(() => {
+		window.addEventListener('focus', refreshGitDecorations);
+		return () => {
+			window.removeEventListener('focus', refreshGitDecorations);
+			clearTimeout(gitDecorationsTimer);
+		};
+	});
 	let rootChildren = $derived.by(() =>
 		(Projects.projects ?? [])
 			.filter((project) => project?.name)
@@ -343,6 +378,7 @@
 				depth={0}
 				{dataSerial}
 				{refreshSerial}
+				gitDecoration={gitDecorations[node.id]}
 				{expandedNodeIds}
 				onSetExpanded={setNodeExpanded}
 				onKeepExpanded={keepExpanded}
