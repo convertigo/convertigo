@@ -151,6 +151,7 @@
 	import MdiSearch from '~icons/mdi/search';
 	import MdiServerNetwork from '~icons/mdi/server-network';
 	import MdiShapeSquareRoundedPlus from '~icons/mdi/shape-square-rounded-plus';
+	import MdiShareVariantOutline from '~icons/mdi/share-variant-outline';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
 	import MdiSourceBranch from '~icons/mdi/source-branch';
 	import MdiSourcePull from '~icons/mdi/source-pull';
@@ -352,6 +353,7 @@
 		'mdi:source-branch': MdiSourceBranch,
 		'mdi:source-pull': MdiSourcePull,
 		'mdi:state-machine': MdiStateMachine,
+		'mdi:share-variant-outline': MdiShareVariantOutline,
 		'mdi:star': MdiStar,
 		'mdi:star-outline': MdiStarOutline,
 		'mdi:star-three-points-outline': MdiStarThreePointsOutline,

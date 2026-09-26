@@ -6,22 +6,32 @@
 const STORAGE_KEY = 'convertigo.studio.palette.v1';
 const MAX_HISTORY = 50;
 
-/** @returns {{ favorites: string[], history: string[] }} */
+/**
+ * @typedef {{ favorites: string[], history: string[], builtin: boolean, shared: boolean }} PaletteMemory
+ */
+
+/** @returns {PaletteMemory} */
+function defaults() {
+	return { favorites: [], history: [], builtin: true, shared: true };
+}
+
+/** @returns {PaletteMemory} */
 function load() {
 	try {
 		const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
 		return {
 			favorites: Array.isArray(stored?.favorites) ? stored.favorites.map(String) : [],
-			history: Array.isArray(stored?.history) ? stored.history.map(String) : []
+			history: Array.isArray(stored?.history) ? stored.history.map(String) : [],
+			// the objects of Convertigo and the ones shared by the projects, as the palette of Eclipse shows them
+			builtin: stored?.builtin !== false,
+			shared: stored?.shared !== false
 		};
 	} catch {
-		return { favorites: [], history: [] };
+		return defaults();
 	}
 }
 
-export const paletteMemory = $state(
-	typeof localStorage === 'undefined' ? { favorites: [], history: [] } : load()
-);
+export const paletteMemory = $state(typeof localStorage === 'undefined' ? defaults() : load());
 
 function store() {
 	try {
@@ -42,6 +52,14 @@ export function rememberPaletteUse(key) {
 		0,
 		MAX_HISTORY
 	);
+	store();
+}
+
+/**
+ * @param {'builtin' | 'shared'} kind the objects to show or to hide
+ */
+export function togglePaletteVisibility(kind) {
+	paletteMemory[kind] = !paletteMemory[kind];
 	store();
 }
 

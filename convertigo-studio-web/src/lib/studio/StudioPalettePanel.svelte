@@ -8,8 +8,14 @@
 	import { getUrl } from '$lib/utils/service';
 	import { onDestroy, tick } from 'svelte';
 	import { loadPaletteContext, paletteContextLabel } from './paletteContext';
-	import { paletteMemory, rememberPaletteUse, togglePaletteFavorite } from './paletteMemory.svelte';
+	import {
+		paletteMemory,
+		rememberPaletteUse,
+		togglePaletteFavorite,
+		togglePaletteVisibility
+	} from './paletteMemory.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+	import StudioIconButton from './StudioIconButton.svelte';
 	import StudioSection from './StudioSection.svelte';
 
 	const PALETTE_RETRY_DELAY_MS = 160;
@@ -82,7 +88,7 @@
 		/** @type {Map<string, PaletteItem>} */
 		const byKey = new Map();
 		for (const item of paletteContext.categories.flatMap((category) => category.items ?? [])) {
-			if (!byKey.has(itemKey(item))) {
+			if (visible(item) && !byKey.has(itemKey(item))) {
 				byKey.set(itemKey(item), item);
 			}
 		}
@@ -271,6 +277,9 @@
 			.map((category) => ({
 				...category,
 				items: (category.items ?? []).filter((item) => {
+					if (!visible(item)) {
+						return false;
+					}
 					if (!needle) {
 						return true;
 					}
@@ -308,6 +317,14 @@
 			return '';
 		}
 		return `${getUrl()}studio.dbo.GetIcon?iconPath=${encodeURIComponent(icon)}`;
+	}
+
+	/**
+	 * @param {PaletteItem} item
+	 * @returns {boolean} whether the palette shows the object, a built-in one or one shared by a project
+	 */
+	function visible(item) {
+		return item.builtin === false ? paletteMemory.shared : paletteMemory.builtin;
 	}
 
 	/**
@@ -371,14 +388,34 @@
 
 <div class="studio-palette layout-y-stretch">
 	<div class="studio-palette__search studio-panel-toolbar">
-		<InputGroup
-			id="studio-palette-search"
-			type="search"
-			placeholder="Search component..."
-			class="w-full"
-			icon="mdi:magnify"
-			bind:value={query}
-		/>
+		<div class="studio-palette__filter">
+			<InputGroup
+				id="studio-palette-search"
+				type="search"
+				placeholder="Search component..."
+				class="w-full"
+				icon="mdi:magnify"
+				bind:value={query}
+			/>
+			<StudioIconButton
+				icon="convertigo:logo"
+				title={paletteMemory.builtin ? 'Hide the built-in objects' : 'Show the built-in objects'}
+				ariaLabel="Built-in objects"
+				active={paletteMemory.builtin}
+				aria-pressed={paletteMemory.builtin}
+				onclick={() => togglePaletteVisibility('builtin')}
+			/>
+			<StudioIconButton
+				icon="mdi:share-variant-outline"
+				title={paletteMemory.shared
+					? 'Hide the objects shared by the projects'
+					: 'Show the objects shared by the projects'}
+				ariaLabel="Shared objects"
+				active={paletteMemory.shared}
+				aria-pressed={paletteMemory.shared}
+				onclick={() => togglePaletteVisibility('shared')}
+			/>
+		</div>
 		{#if addableItem}
 			<div class="studio-palette__actions">
 				{#if onPaletteItemAdd}
@@ -581,6 +618,12 @@
 
 	.studio-palette__item-main {
 		min-width: 0;
+	}
+
+	.studio-palette__filter {
+		display: flex;
+		align-items: center;
+		gap: 0.2rem;
 	}
 
 	.studio-palette__actions {

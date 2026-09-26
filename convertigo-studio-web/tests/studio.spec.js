@@ -976,6 +976,17 @@ test('studio keeps the favorite objects of the palette', async ({ page }) => {
 	await expect(paletteItem(page, 'JSON field')).toHaveCount(2);
 	await page.locator('#studio-palette-search').fill('json field');
 	await expect(paletteItem(page, 'JSON field')).toHaveCount(1);
+
+	// the built-in objects hide, as in the palette of Eclipse
+	await page.locator('#studio-palette-search').fill('');
+	await page.getByRole('button', { name: 'Built-in objects' }).click();
+	await expect(paletteItem(page, 'JSON field')).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Built-in objects' })).toHaveAttribute(
+		'aria-pressed',
+		'false'
+	);
+	await page.getByRole('button', { name: 'Built-in objects' }).click();
+	await expect(paletteItem(page, 'JSON field')).toHaveCount(2);
 });
 
 test('studio retries a transient palette failure without changing focus', async ({ page }) => {
