@@ -44,6 +44,8 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
  * <li>id: the tree id of an object of the project</li>
  * <li>full: true for the full schema, with the internal types of the transactions</li>
  * <li>refresh: true to generate it again instead of using the cached one</li>
+ * <li>action: validate to check an XML response against the schema, as the auto validate of the Schema
+ * view: requestable (the sequence, or connector__transaction) and xml</li>
  * </ul>
  */
 @ServiceDefinition(name = "Schema", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -61,6 +63,20 @@ public class Schema extends JSonService {
 			throw new ServiceException("The object " + id + " does not exist.");
 		}
 		var projectName = dbo.getProject().getName();
+		if ("validate".equals(request.getParameter("action"))) {
+			var requestable = request.getParameter("requestable");
+			var document = com.twinsoft.convertigo.engine.util.XMLUtils.getDefaultDocumentBuilder().parse(
+					new org.xml.sax.InputSource(new java.io.StringReader(String.valueOf(request.getParameter("xml")))));
+			try {
+				Engine.theApp.schemaManager.validateResponse(projectName, requestable, document);
+				response.put("valid", true);
+				response.put("message", "The " + projectName + " " + requestable + " XML response is valid.");
+			} catch (SAXException e) {
+				response.put("valid", false);
+				response.put("message", "The " + projectName + " " + requestable + " XML response is invalid: " + e.getMessage());
+			}
+			return;
+		}
 		if ("true".equals(request.getParameter("refresh"))) {
 			Engine.theApp.schemaManager.clearCache(projectName);
 		}

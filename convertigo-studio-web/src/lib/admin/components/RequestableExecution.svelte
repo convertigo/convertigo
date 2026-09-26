@@ -182,6 +182,30 @@
 	 * Writes the schema of the transaction again from the XML response, as "Update schema from current
 	 * connector data" in Eclipse.
 	 */
+	/** what the validation of the last XML response against the schema of the project tells */
+	let validation = $state(/** @type {{ valid: boolean, message: string } | null} */ (null));
+
+	/**
+	 * Validates the XML response against the schema of the project, as the auto validate of the Schema
+	 * view of the Eclipse Studio.
+	 */
+	async function validateResponse() {
+		if (!requestable?.name) {
+			return;
+		}
+		const result = await call('studio.treeview.Schema', {
+			id: requestableId,
+			action: 'validate',
+			requestable:
+				kind === 'transaction' ? `${connectorName}__${requestable.name}` : requestable.name,
+			xml: responseView.content
+		});
+		validation =
+			typeof result?.valid === 'boolean'
+				? { valid: result.valid, message: String(result.message ?? '') }
+				: null;
+	}
+
 	async function updateSchema() {
 		if (
 			!requestable?.name ||
@@ -624,6 +648,7 @@ console.log(await response.text());`;
 			return;
 		}
 		updateResponse({ content: 'Loading ...', loading: true });
+		validation = null;
 		xmlResponse = mode.toUpperCase() === 'XML';
 		rawData = null;
 		if (watchesConnector) {
@@ -805,6 +830,17 @@ console.log(await response.text());`;
 						{disabled}
 					/>
 				{/if}
+				{#if stubbable && xmlResponse && responseKey === requestableKey && responseView.language === 'xml' && !responseView.loading}
+					<Button
+						label="Validate"
+						full={false}
+						class="button-secondary"
+						icon="mdi:check"
+						title="Validate this response against the schema of the project"
+						onclick={validateResponse}
+						{disabled}
+					/>
+				{/if}
 				{#if onChanged && kind === 'transaction' && xmlResponse && responseKey === requestableKey && responseView.language === 'xml' && !responseView.loading}
 					<Button
 						label="Update schema"
@@ -913,6 +949,19 @@ console.log(await response.text());`;
 			</div>
 		{/if}
 
+		{#if validation && !responseView.loading}
+			<p
+				class={[
+					'requestable-execution__validation',
+					validation.valid
+						? 'requestable-execution__validation--valid'
+						: 'requestable-execution__validation--invalid'
+				]}
+				role="status"
+			>
+				{validation.message}
+			</p>
+		{/if}
 		{#if hasResponse}
 			<div transition:fly={{ duration: 180, y: -24 }}>
 				{#key responseEditorKey}
@@ -968,6 +1017,20 @@ console.log(await response.text());`;
 {/if}
 
 <style>
+	.requestable-execution__validation {
+		margin: 0;
+		font-size: 0.78rem;
+		overflow-wrap: anywhere;
+	}
+
+	.requestable-execution__validation--valid {
+		color: var(--color-success-600-400);
+	}
+
+	.requestable-execution__validation--invalid {
+		color: var(--color-error-600-400);
+	}
+
 	.requestable-execution__raw {
 		border: 1px solid var(--color-surface-200-800);
 		border-radius: 0.45rem;
