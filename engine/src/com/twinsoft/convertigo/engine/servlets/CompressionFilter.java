@@ -77,7 +77,10 @@ public class CompressionFilter implements Filter {
 					if (!isOK && isDisplayObjectsSpaRoute(uri)) {
 						isOK = true;
 					}
-					doGZip = !isKO && isOK;
+					// the development server of an application answers through the gateway, forwarded from
+					// the projects filter: the end of the forward closes the response before the compression
+					// could write it
+					doGZip = !isKO && isOK && GatewayServlet.getDevPort(uri) < 1;
 				} else {
 					doGZip = false;
 				}

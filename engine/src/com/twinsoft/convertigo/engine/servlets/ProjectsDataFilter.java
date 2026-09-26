@@ -90,6 +90,13 @@ public class ProjectsDataFilter implements Filter {
 			// should never occur
 		}
 
+		// the development server of an application serves its own files, as the dependencies Vite imports
+		// from the _private/ionic folder: they go to the gateway before the checks of the project files
+		if (GatewayServlet.getDevPort(requestURI) > 0) {
+			request.getRequestDispatcher("/gw").forward(request, response);
+			return;
+		}
+
 		Matcher m_projects = p_projects.matcher(requestURI);
 		String pathInfo = m_projects.find() ? m_projects.group(2) : "";
 
@@ -185,11 +192,6 @@ public class ProjectsDataFilter implements Filter {
 			}
 		}
 		
-		if (GatewayServlet.getDevPort(requestURI) > 0) {
-			request.getRequestDispatcher("/gw").forward(request, response);
-			return;
-		}
-
 		ServletUtils.handleFileFilter(file, request, response, filterConfig, chain);
 
 		Engine.logContext.debug("Exiting projects data filter");
