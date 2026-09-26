@@ -392,6 +392,11 @@
 						)}
 						{@render treeItem('project.symbols', 'mdi:code-braces', 'Declare its global symbols')}
 						{@render treeItem('project.statistics', 'mdi:chart-box-outline', 'Statistics')}
+						{@render treeItem(
+							'project.checkReferences',
+							'mdi:source-pull',
+							'Check the referenced projects'
+						)}
 						{@render treeItem('project.remoteUrl', 'mdi:link-variant', 'Copy the remote URL')}
 						{@render treeItem(
 							'project.delete',

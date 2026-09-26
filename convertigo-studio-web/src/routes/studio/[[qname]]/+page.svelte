@@ -2212,6 +2212,18 @@
 				getUrl(`projects/${encodeURIComponent(projectName)}/DisplayObjects/mobile/`),
 				'_blank'
 			);
+		} else if (action === 'project.checkReferences') {
+			// the projects the projects reference and are missing load, as the "Check remote
+			// dependencies" of the Eclipse Studio
+			const result = await call('projects.CheckDependencies');
+			const loaded = String(result?.admin?.result?.loaded) === 'true';
+			await Projects.refresh();
+			if (loaded) {
+				refreshStudioViews();
+				toaster.success({ description: 'The missing referenced projects are loaded.' });
+			} else if (result?.admin?.result) {
+				toaster.info({ description: 'No referenced project is missing.' });
+			}
 		} else if (action === 'project.statistics') {
 			statisticsProjectName = projectName;
 		} else if (action === 'project.readme') {
