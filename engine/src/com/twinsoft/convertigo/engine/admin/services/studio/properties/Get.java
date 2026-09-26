@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
@@ -351,6 +352,10 @@ public class Get extends JSonService {
 		var flags = PropertyTags.flags(dbo, elt.getAttribute("name"));
 		if (flags != null) {
 			property.put("flags", flags);
+		}
+		if (dbo instanceof ProjectSchemaReference && "projectName".equals(elt.getAttribute("name"))) {
+			// a project of the workspace or of a remote repository, which the Studio edits by its parts
+			property.put("projectReference", true);
 		}
 		if (NamedSources.handles(dbo, elt.getAttribute("name"))) {
 			// another object, which the Studio chooses among the ones it can name

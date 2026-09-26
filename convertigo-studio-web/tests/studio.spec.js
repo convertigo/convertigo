@@ -703,6 +703,38 @@ test('studio chooses the requestable an operation targets among the requestables
 	});
 });
 
+test('studio edits a project reference by its parts', async ({ page }) => {
+	const propertyUpdates = [];
+	await mockStudioServices(page, { propertyUpdates, referenceProperty: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
+	await page.getByRole('button', { name: 'Edit the project reference' }).click();
+
+	const dialog = page.getByRole('dialog', { name: 'Project name and remote URL' });
+	await expect(dialog.getByRole('combobox', { name: 'Project name' })).toHaveValue('lib_OAuth');
+	await expect(dialog.getByRole('textbox', { name: 'Git branch' })).toBeDisabled();
+	await dialog
+		.getByRole('textbox', { name: 'Git or http URL' })
+		.fill('https://github.com/convertigo/c8oprj-lib-oauth.git');
+	await dialog.getByRole('textbox', { name: 'Git branch' }).fill('8.4');
+	await expect(dialog.getByRole('textbox', { name: 'Project remote URL' })).toHaveValue(
+		'lib_OAuth=https://github.com/convertigo/c8oprj-lib-oauth.git:branch=8.4'
+	);
+	await dialog.getByRole('button', { name: 'Apply' }).click();
+
+	await page.getByRole('button', { name: 'Apply', exact: true }).click();
+	await expect.poll(() => propertyUpdates.length).toBe(1);
+	const props = JSON.parse(propertyUpdates[0].get('props') ?? '[]');
+	expect(props[0]).toMatchObject({
+		name: 'projectName',
+		value: 'lib_OAuth=https://github.com/convertigo/c8oprj-lib-oauth.git:branch=8.4'
+	});
+});
+
 test('studio builds the response lifetime of a requestable', async ({ page }) => {
 	const propertyUpdates = [];
 	await mockStudioServices(page, { propertyUpdates, lifetimeProperty: true });
@@ -1567,6 +1599,7 @@ function responseEditor(page) {
  *  flagsProperty?: boolean,
  *  namedSourceProperty?: boolean,
  *  lifetimeProperty?: boolean,
+ *  referenceProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1750,6 +1783,7 @@ function serviceName(url) {
  *  flagsProperty?: boolean,
  *  namedSourceProperty?: boolean,
  *  lifetimeProperty?: boolean,
+ *  referenceProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1825,6 +1859,19 @@ function responseForService(service, params, options = {}) {
 						type: 'java.lang.String',
 						isMultiline: true
 					},
+					...(options.referenceProperty
+						? {
+								'Project name and remote URL': {
+									name: 'projectName',
+									displayName: 'Project name and remote URL',
+									category: 'Base properties',
+									class: 'java.lang.String',
+									kind: 'dbo',
+									projectReference: true,
+									value: 'lib_OAuth'
+								}
+							}
+						: {}),
 					...(options.lifetimeProperty
 						? {
 								'Response lifetime': {

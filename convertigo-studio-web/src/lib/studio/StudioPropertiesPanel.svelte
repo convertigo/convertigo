@@ -25,6 +25,7 @@
 	import StudioLifetimeDialog from './StudioLifetimeDialog.svelte';
 	import StudioNamedSourceDialog from './StudioNamedSourceDialog.svelte';
 	import StudioObjectIdentity from './StudioObjectIdentity.svelte';
+	import StudioProjectReferenceDialog from './StudioProjectReferenceDialog.svelte';
 	import StudioQNameDialog from './StudioQNameDialog.svelte';
 	import StudioSection from './StudioSection.svelte';
 	import StudioSourcePickerPanel from './StudioSourcePickerPanel.svelte';
@@ -320,6 +321,8 @@
 	let namedSourceRow = $state(/** @type {any} */ (null));
 	/** the response lifetime the lifetime dialog builds */
 	let lifetimeRow = $state(/** @type {any} */ (null));
+	/** the project reference the reference dialog edits */
+	let referenceRow = $state(/** @type {any} */ (null));
 
 	/**
 	 * @param {any} row
@@ -426,6 +429,13 @@
 			});
 		}
 		buttons.push(...namedSourceButtons(row));
+		if (row?.projectReference) {
+			buttons.push({
+				icon: 'mdi:source-pull',
+				title: 'Edit the project reference',
+				onclick: () => (referenceRow = row)
+			});
+		}
 		if (row?.kind === 'dbo' && row?.name === 'responseExpiryDate') {
 			buttons.push({
 				icon: 'mdi:calendar-clock',
@@ -816,6 +826,18 @@
 			{/if}
 		{/if}
 	</div>
+
+	{#if referenceRow}
+		<StudioProjectReferenceDialog
+			label={referenceRow.displayName ?? referenceRow.name}
+			value={String(referenceRow.value ?? '')}
+			onApply={(next) => {
+				referenceRow.value = next;
+				referenceRow = null;
+			}}
+			onClose={() => (referenceRow = null)}
+		/>
+	{/if}
 
 	{#if lifetimeRow}
 		<StudioLifetimeDialog
