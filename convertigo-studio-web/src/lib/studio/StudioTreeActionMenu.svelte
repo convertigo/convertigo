@@ -416,6 +416,23 @@
 							true
 						)}
 					</Menu.ItemGroup>
+					<Menu.Separator />
+					<Menu.ItemGroup>
+						<Menu.ItemGroupLabel>Continuous integration</Menu.ItemGroupLabel>
+						{@render treeItem('project.ci:gitlab', 'mdi:source-branch', 'Update GitLab and Gradle')}
+						{@render treeItem(
+							'project.ci:circleci',
+							'mdi:source-branch',
+							'Update CircleCI and Gradle'
+						)}
+						{@render treeItem(
+							'project.ci:github-actions',
+							'mdi:source-branch',
+							'Update GitHub Actions and Gradle'
+						)}
+						{@render treeItem('project.ci:gradle', 'mdi:source-branch', 'Update Gradle only')}
+						{@render treeItem('project.ci:httpignore', 'mdi:file-hidden', 'Update .httpignore')}
+					</Menu.ItemGroup>
 				{/if}
 				{#if (editable || isProject) && (loading || loadError || groupedContextItems.length)}
 					<Menu.Separator />

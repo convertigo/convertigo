@@ -81,6 +81,7 @@
 	import MdiEyeOutline from '~icons/mdi/eye-outline';
 	import MdiFileCodeOutline from '~icons/mdi/file-code-outline';
 	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline';
+	import MdiFileHidden from '~icons/mdi/file-hidden';
 	import MdiFileOutline from '~icons/mdi/file-outline';
 	import MdiFileQuestionOutline from '~icons/mdi/file-question-outline';
 	import MdiFileTreeOutline from '~icons/mdi/file-tree-outline';
@@ -344,6 +345,7 @@
 		'mdi:comment-text-outline': MdiCommentTextOutline,
 		'mdi:image-outline': MdiImageOutline,
 		'mdi:format-font': MdiFormatFont,
+		'mdi:file-hidden': MdiFileHidden,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:refresh': MdiRefresh,
 		'mdi:routes': MdiRoutes,

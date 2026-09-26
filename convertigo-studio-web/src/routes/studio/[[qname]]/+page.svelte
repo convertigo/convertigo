@@ -2414,6 +2414,19 @@
 			}
 		} else if (action === 'project.remoteUrl') {
 			await copyRemoteUrl(projectName);
+		} else if (action.startsWith('project.ci:')) {
+			// the continuous integration files of Convertigo, as the Update CI actions of Eclipse
+			if (
+				window.confirm(
+					`This puts continuous integration files in ${projectName}. The existing files that differ are kept as dated .bak files.`
+				)
+			) {
+				await call('studio.project.ContinuousIntegration', {
+					projectName,
+					type: action.slice('project.ci:'.length)
+				});
+				refreshStudioViews();
+			}
 		} else if (action === 'project.delete') {
 			await deleteProject(projectName);
 		}
