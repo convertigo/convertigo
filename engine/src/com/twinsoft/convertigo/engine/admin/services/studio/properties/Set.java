@@ -215,6 +215,19 @@ public class Set extends JSonService {
 		if (done) {
 			response.put("done", true);
 			response.put("id", dbo.getFullQName());
+			// the global symbols the properties use and the engine does not know, which the Eclipse Studio
+			// offers to create
+			var undefinedSymbols = new java.util.TreeSet<String>();
+			var names = new JSONArray(props);
+			for (var i = 0; i < names.length(); i++) {
+				var errors = dbo.getSymbolsErrors(names.getJSONObject(i).getString("name"));
+				if (errors != null) {
+					undefinedSymbols.addAll(errors);
+				}
+			}
+			if (!undefinedSymbols.isEmpty()) {
+				response.put("undefinedSymbols", new JSONArray(undefinedSymbols));
+			}
 			if (dbo instanceof FlowVirtualObject virtual) {
 				var mutation = virtual.consumeLastSourceMutationResult();
 				if (mutation != null) {

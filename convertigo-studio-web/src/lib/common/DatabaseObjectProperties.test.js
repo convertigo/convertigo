@@ -90,6 +90,27 @@ describe('createDatabaseObjectProperties', () => {
 		}
 	);
 
+	it('offers to create the undefined global symbols of the saved properties', async () => {
+		vi.mocked(call).mockResolvedValueOnce(propertiesResponse('before'));
+		const model = createDatabaseObjectProperties();
+		await model.onSelectionChange({ selectedValue: ['Project.cn:Http'] });
+		model.properties[0].value = '${server}';
+		vi.mocked(call).mockResolvedValueOnce({ done: true, undefinedSymbols: ['server'] });
+		vi.mocked(call).mockResolvedValueOnce({ symbols: ['server'] });
+		const confirm = vi.fn(() => true);
+		vi.stubGlobal('window', { confirm });
+		try {
+			expect(await model.save({ persist: false })).toBe(true);
+		} finally {
+			vi.unstubAllGlobals();
+		}
+		expect(confirm).toHaveBeenCalledWith(expect.stringContaining('server is undefined'));
+		expect(call).toHaveBeenLastCalledWith('studio.project.DeclareSymbols', {
+			projectName: 'Project',
+			symbols: '["server"]'
+		});
+	});
+
 	it('acknowledges only submitted values and keeps the original target during a slow save', async () => {
 		vi.mocked(call).mockResolvedValueOnce(propertiesResponse('before'));
 		const model = createDatabaseObjectProperties();

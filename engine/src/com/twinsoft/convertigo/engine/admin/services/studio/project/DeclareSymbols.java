@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
  * Studio does: each one is added with an empty value.
  * <ul>
  * <li>projectName: the project</li>
+ * <li>symbols: only these symbols, as a JSON array, as the Eclipse Studio creates the ones of a property</li>
  * </ul>
  */
 @ServiceDefinition(name = "DeclareSymbols", roles = { Role.WEB_ADMIN, Role.SYMBOLS_CONFIG }, parameters = {}, returnValue = "")
@@ -47,7 +48,17 @@ public class DeclareSymbols extends JSonService {
 			throw new ServiceException("The project " + projectName + " does not exist.");
 		}
 		var symbols = Engine.theApp.databaseObjectsManager.symbolsGetUndefined(projectName);
-		if (!symbols.isEmpty()) {
+		var chosen = request.getParameter("symbols");
+		if (chosen != null) {
+			var only = new JSONArray(chosen);
+			symbols = new java.util.TreeSet<>();
+			for (var i = 0; i < only.length(); i++) {
+				if (Engine.theApp.databaseObjectsManager.symbolsGetValue(only.getString(i)) == null) {
+					symbols.add(only.getString(i));
+				}
+			}
+			Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(symbols);
+		} else if (!symbols.isEmpty()) {
 			Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(projectName);
 		}
 		response.put("symbols", new JSONArray(symbols));

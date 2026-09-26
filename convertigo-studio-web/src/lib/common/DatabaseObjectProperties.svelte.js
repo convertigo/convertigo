@@ -125,6 +125,7 @@ export function createDatabaseObjectProperties() {
 					p.originalMode = submitted[index].mode;
 				}
 			});
+			await createUndefinedSymbols(saveId, res.undefinedSymbols);
 			await onSaved?.(saveId, res);
 			return true;
 		}
@@ -132,6 +133,29 @@ export function createDatabaseObjectProperties() {
 			onSelectionChange({ selectedValue: [saveId] });
 		}
 		return false;
+	}
+
+	/**
+	 * Offers to create the global symbols the properties use and the engine does not know, as the Eclipse
+	 * Studio does after a property is set: the symbols get an empty value, their project is marked else.
+	 * @param {string} objectId
+	 * @param {any} symbols
+	 */
+	async function createUndefinedSymbols(objectId, symbols) {
+		const names = Array.isArray(symbols) ? symbols.map(String) : [];
+		if (
+			!names.length ||
+			typeof window === 'undefined' ||
+			!window.confirm(
+				`The global symbol${names.length > 1 ? 's' : ''} ${names.join(', ')} ${names.length > 1 ? 'are' : 'is'} undefined.\n\nCreate ${names.length > 1 ? 'them' : 'it'} with an empty value?`
+			)
+		) {
+			return;
+		}
+		await call('studio.project.DeclareSymbols', {
+			projectName: objectId.split(/[.:/]/)[0],
+			symbols: JSON.stringify(names)
+		});
 	}
 
 	return {
