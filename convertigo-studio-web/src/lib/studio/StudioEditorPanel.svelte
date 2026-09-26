@@ -36,7 +36,7 @@
 	/**
 	 * @type {{
 	 *  selectedId?: string,
-	 *  editorTarget?: { id?: string, propertyName?: string, displayName?: string, value?: any, sourceDocument?: boolean, serial?: number } | null,
+	 *  editorTarget?: { id?: string, propertyName?: string, displayName?: string, value?: any, persisted?: boolean, sourceDocument?: boolean, serial?: number } | null,
 	 *  active?: boolean,
 	 *  onSave?: (id: string, result?: any) => void | Promise<void>,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
@@ -252,15 +252,24 @@
 	/**
 	 * @param {string} objectId
 	 * @param {any} property
-	 * @param {{ id?: string, value?: any } | null} target
+	 * @param {{ id?: string, value?: any, persisted?: boolean } | null} target
 	 */
 	function openEditorTab(objectId, property, target) {
 		const propertyName = String(property?.name ?? property?.displayName ?? 'value');
 		const displayName = String(property?.displayName ?? property?.name ?? propertyName);
 		const key = createTabKey(objectId, propertyName);
+		// a value the engine now holds, as handlers just added: it is the saved value of the tab
+		const persisted =
+			target?.id === objectId && target.persisted && target.value !== undefined
+				? asEditorValue(target.value)
+				: undefined;
 		closeUnfocusedEditorTabs(key);
 		const existing = editorTabs.find((tab) => tab.key === key);
 		if (existing) {
+			if (persisted !== undefined && existing.content === existing.originalValue) {
+				existing.content = persisted;
+				existing.originalValue = persisted;
+			}
 			activeTabKey = existing.key;
 			selectObject(existing.id);
 			return;
@@ -274,7 +283,7 @@
 			propertyName,
 			displayName,
 			content,
-			originalValue: asEditorValue(property?.value),
+			originalValue: persisted ?? asEditorValue(property?.value),
 			language: getPropertyLanguage({ ...property, value: content }, objectId),
 			focused: false
 		});

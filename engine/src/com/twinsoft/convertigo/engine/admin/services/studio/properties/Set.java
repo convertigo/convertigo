@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IDynamicPropertyContainer;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
@@ -97,6 +98,14 @@ public class Set extends JSonService {
 					msst = new MobileSmartSourceType();
 					msst.setMode(Mode.SOURCE);
 					msst.setSmartValue(pvalue);
+				}
+
+				if (dbo instanceof Transaction transaction && "handlers".equals(pname)) {
+					// the JavaScript handlers of a transaction, which are not a property of its bean
+					transaction.setExpression(pvalue);
+					done = true;
+					dbo.hasChanged = true;
+					continue;
 				}
 
 				if (dbo instanceof IDynamicPropertyContainer dynamicPropertyContainer

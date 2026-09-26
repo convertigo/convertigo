@@ -157,6 +157,12 @@ public class ObjectActions {
 					"Show in the source picker the step this object works on, and its source.", true, "mdi:hub")
 					.put("clientAction", "picker.sourceDefinition");
 		}
+		if (Handlers.handles(dbo)) {
+			add(items, "object.editHandlers", "Edit handlers", "Edit the JavaScript functions handling the events of this transaction.",
+					true, "mdi:language-javascript").put("clientAction", "code.handlers");
+			add(items, "object.newHandler", "New handler…", "Add to the handlers of this transaction the functions of some of its events.",
+					true, "mdi:function-variant").put("clientAction", "dialog.handlers");
+		}
 		if (StepsFromXml.handles(dbo)) {
 			add(items, "object.stepsFromXml", "Create steps structure from XML…",
 					"Add the element and attribute steps building an XML structure.", true, "mdi:xml")

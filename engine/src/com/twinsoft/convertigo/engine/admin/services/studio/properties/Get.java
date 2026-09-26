@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
@@ -88,12 +89,35 @@ public class Get extends JSonService {
 						}
 						node = node.getNextSibling();
 					}
+					if (dbo instanceof Transaction transaction) {
+						addHandlersProperty(transaction, props);
+					}
 					addInfosProperties(dbo, props);
 				}
 			}
 		}
 		response.put("properties", props);
 		response.put("id", id);
+	}
+
+	/**
+	 * The JavaScript handlers of a transaction, which the Eclipse Studio edits in its own editor.
+	 */
+	private void addHandlersProperty(Transaction transaction, JSONObject props) throws Exception {
+		props.put("Handlers", new JSONObject()
+				.put("name", "handlers")
+				.put("displayName", "Handlers")
+				.put("shortDescription", "The JavaScript functions handling the events of the transaction.")
+				.put("description", "JavaScript handlers")
+				.put("value", transaction.handlers == null ? "" : transaction.handlers)
+				.put("isMultiline", true)
+				.put("isExpert", false)
+				.put("isHidden", false)
+				.put("isDisabled", false)
+				.put("isMasked", false)
+				.put("editorClass", "")
+				.put("class", "java.lang.String")
+				.put("kind", "dbo"));
 	}
 
 	protected void addInfosProperties(DatabaseObject dbo, JSONObject props) {

@@ -87,6 +87,7 @@
 	import MdiFormatText from '~icons/mdi/format-text';
 	import MdiFullscreen from '~icons/mdi/fullscreen';
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit';
+	import MdiFunctionVariant from '~icons/mdi/function-variant';
 	import MdiGithub from '~icons/mdi/github';
 	import MdiHomeAlertOutline from '~icons/mdi/home-alert-outline';
 	import MdiHomeOutline from '~icons/mdi/home-outline';
@@ -97,6 +98,7 @@
 	import MdiLanConnect from '~icons/mdi/lan-connect';
 	import MdiLandPlots from '~icons/mdi/land-plots';
 	import MdiLanguageJava from '~icons/mdi/language-java';
+	import MdiLanguageJavascript from '~icons/mdi/language-javascript';
 	import MdiLanguageMarkdownOutline from '~icons/mdi/language-markdown-outline';
 	import MdiLanguageRuby from '~icons/mdi/language-ruby';
 	import MdiLanguageTypescript from '~icons/mdi/language-typescript';
@@ -277,8 +279,10 @@
 		'mdi:invoice-scheduled-outline': MdiInvoiceScheduledOutline,
 		'mdi:key-outline': MdiKeyOutline,
 		'mdi:lan-connect': MdiLanConnect,
+		'mdi:function-variant': MdiFunctionVariant,
 		'mdi:land-plots': MdiLandPlots,
 		'mdi:language-java': MdiLanguageJava,
+		'mdi:language-javascript': MdiLanguageJavascript,
 		'mdi:language-ruby': MdiLanguageRuby,
 		'mdi:layers-outline': MdiLayersOutline,
 		'mdi:lightning-bolt': MdiLightningBolt,

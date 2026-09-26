@@ -50,6 +50,7 @@
 	import StudioEmptyState from '$lib/studio/StudioEmptyState.svelte';
 	import StudioExecutionPanel from '$lib/studio/StudioExecutionPanel.svelte';
 	import { flowBrowserPreview, flowSourceReveal } from '$lib/studio/studioFlowEvents';
+	import StudioHandlersDialog from '$lib/studio/StudioHandlersDialog.svelte';
 	import StudioIconButton from '$lib/studio/StudioIconButton.svelte';
 	import StudioLogsPanel from '$lib/studio/StudioLogsPanel.svelte';
 	import StudioMarketplace from '$lib/studio/StudioMarketplace.svelte';
@@ -164,6 +165,7 @@
 	 * @property {string=} displayName
 	 * @property {string=} editorClass
 	 * @property {any=} value
+	 * @property {boolean=} persisted whether the value is the one the engine now holds
 	 * @property {boolean=} sourceDocument
 	 * @property {number=} serial
 	 */
@@ -257,6 +259,7 @@
 	let stepsFromXmlMode = $state('xml');
 	/** The NGX component the shared component dialog extracts */
 	let sharedComponentTargetId = $state('');
+	let handlersTargetId = $state('');
 	let marketplaceOpen = $state(false);
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
@@ -2146,6 +2149,11 @@
 			selectedId = nodeId;
 			pickerRequest = { id: nodeId, propertyName: action.slice(7), serial: Date.now() };
 			setSidePanel('properties');
+		} else if (action === 'code.handlers') {
+			// the JavaScript handlers of a transaction, as the "Edit handlers" action of the Eclipse Studio
+			openPropertyEditor({ id: nodeId, propertyName: 'handlers', displayName: 'Handlers' });
+		} else if (action === 'dialog.handlers') {
+			handlersTargetId = nodeId;
 		} else if (action === 'dialog.sharedComponent') {
 			sharedComponentTargetId = nodeId;
 		} else if (action === 'dialog.stepsFromXml' || action === 'dialog.stepsFromXsd') {
@@ -2907,6 +2915,26 @@
 			refreshStudioViews();
 		}}
 		onClose={() => (marketplaceOpen = false)}
+	/>
+{/if}
+{#if handlersTargetId}
+	<StudioHandlersDialog
+		id={handlersTargetId}
+		onDone={async (id, handlers) => {
+			handlersTargetId = '';
+			await refreshStudioProject(id);
+			markProjectDirty(id);
+			propertiesRefreshSerial += 1;
+			// the new functions show in the handlers editor, as the Eclipse Studio reloads it
+			openPropertyEditor({
+				id,
+				propertyName: 'handlers',
+				displayName: 'Handlers',
+				value: handlers,
+				persisted: true
+			});
+		}}
+		onClose={() => (handlersTargetId = '')}
 	/>
 {/if}
 {#if sharedComponentTargetId}
