@@ -11,6 +11,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call } from '$lib/utils/service';
 	import { untrack } from 'svelte';
+	import { debugSession, followDebugger } from './debugSession.svelte.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 
@@ -28,6 +29,8 @@
 	 * @property {string=} revision
 	 * @property {boolean=} focused
 	 * @property {number[]=} breakpoints
+	 * @property {string=} scriptUrl the script of the property, as the debugger names it
+	 * @property {number=} scriptOffset the lines the engine adds before the property
 	 */
 
 	/**
@@ -85,7 +88,14 @@
 	);
 	let theme = $derived(LightSvelte.light ? '' : 'vs-dark');
 	let debuggable = $derived(Boolean(activeTab && isDebuggable(activeTab)));
-	let debuggerAttached = $state(true);
+	let debuggerAttached = $derived(debugSession.state?.attached !== false);
+	let currentLine = $derived.by(() => {
+		// the line where the debugger stopped in the script of the tab
+		const frame = debugSession.state?.stopped
+			? debugSession.state.frames?.find((frame) => frame.url === activeTab?.scriptUrl)
+			: undefined;
+		return frame ? frame.line - (activeTab?.scriptOffset ?? 0) : 0;
+	});
 	let breakpointNotice = $state('');
 	let canSave = $derived(Boolean(activeTab && activeTabDirty && !loading && !saving));
 
@@ -161,7 +171,11 @@
 		if (Array.isArray(result?.breakpoints)) {
 			tab.breakpoints = result.breakpoints.map(Number);
 		}
-		debuggerAttached = result?.state?.attached !== false;
+		if (result?.url) {
+			tab.scriptUrl = String(result.url);
+			tab.scriptOffset = Number(result.offset) || 0;
+		}
+		followDebugger(result?.state);
 		return result;
 	}
 
@@ -636,6 +650,7 @@
 				readOnly={activeTab.readOnly === true}
 				breakpoints={debuggable ? (activeTab.breakpoints ?? []) : null}
 				onBreakpointToggle={toggleBreakpoint}
+				currentLine={debuggable ? currentLine : 0}
 			/>
 		</div>
 	{:else if loading}

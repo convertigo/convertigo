@@ -3,8 +3,9 @@
 	import { fromAction } from 'svelte/attachments';
 
 	/**
-	 * breakpoints: the lines holding a breakpoint, shown in a margin whose clicks call onBreakpointToggle
-	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void}}
+	 * breakpoints: the lines holding a breakpoint, shown in a margin whose clicks call onBreakpointToggle;
+	 * currentLine: the line where the debugger stopped
+	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number}}
 	 */
 	let {
 		content = $bindable('/* Loading... */'),
@@ -14,7 +15,8 @@
 		contentHeight = $bindable(0),
 		scrollBeyondLastLine = true,
 		breakpoints = null,
-		onBreakpointToggle
+		onBreakpointToggle,
+		currentLine = 0
 	} = $props();
 
 	function onEditorContentChange(nextContent) {
@@ -35,6 +37,7 @@
 		scrollBeyondLastLine,
 		breakpoints,
 		onBreakpointToggle,
+		currentLine,
 		onContentChange: onEditorContentChange,
 		onContentHeightChange: onEditorContentHeightChange
 	}));
@@ -119,6 +122,7 @@
 			breakpoints: Array.isArray(value?.breakpoints) ? value.breakpoints : null,
 			onBreakpointToggle:
 				typeof value?.onBreakpointToggle == 'function' ? value.onBreakpointToggle : undefined,
+			currentLine: Number(value?.currentLine) || 0,
 			onContentChange:
 				typeof value?.onContentChange == 'function' ? value.onContentChange : undefined,
 			onContentHeightChange:
@@ -128,7 +132,7 @@
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
 	 */
 	function mountMonaco(node, value) {
 		/** @type {any} */
@@ -147,6 +151,9 @@
 		let mouseDownSubscription;
 		/** @type {any} */
 		let breakpointDecorations;
+		/** @type {any} */
+		let currentLineDecorations;
+		let shownLine = 0;
 		let disposed = false;
 		let pending = normalizeOptions(value);
 		let applyingContent = false;
@@ -215,6 +222,21 @@
 					}
 				}))
 			);
+			const line = pending.currentLine;
+			currentLineDecorations?.set(
+				line
+					? [
+							{
+								range: new globalThis.monaco.Range(line, 1, line, 1),
+								options: { isWholeLine: true, className: 'studio-editor-current-line' }
+							}
+						]
+					: []
+			);
+			if (line && line !== shownLine) {
+				editor.revealLineInCenterIfOutsideViewport(line);
+			}
+			shownLine = line;
 			globalThis.monaco?.editor?.setTheme(pending.theme || 'vs');
 			if (editor.getValue() !== pending.content) {
 				applyingContent = true;
@@ -252,6 +274,7 @@
 					pending.onContentHeightChange?.(Math.ceil(event.contentHeight));
 				});
 				breakpointDecorations = editor.createDecorationsCollection();
+				currentLineDecorations = editor.createDecorationsCollection();
 				mouseDownSubscription = editor.onMouseDown((event) => {
 					const line = event.target?.position?.lineNumber;
 					if (
@@ -303,6 +326,10 @@
 		display: grid;
 		place-items: center;
 		cursor: pointer;
+	}
+
+	:global(.studio-editor-current-line) {
+		background: color-mix(in oklab, var(--color-warning-500) 28%, transparent);
 	}
 
 	:global(.studio-editor-breakpoint)::before {

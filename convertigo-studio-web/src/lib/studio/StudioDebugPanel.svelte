@@ -1,24 +1,12 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call } from '$lib/utils/service';
-	import { onDestroy, tick, untrack } from 'svelte';
+	import { tick, untrack } from 'svelte';
+	import { debugSession, followDebugger, refreshDebugger } from './debugSession.svelte.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
 	/**
-	 * @typedef {{ url: string, line: number, function: string }} DebugFrame
-	 */
-
-	/**
-	 * @typedef {{
-	 *  attached: boolean,
-	 *  breakOnExceptions: boolean,
-	 *  serial: number,
-	 *  sources: string[],
-	 *  stopped: boolean,
-	 *  thread?: string,
-	 *  alert?: string,
-	 *  frames?: DebugFrame[]
-	 * }} DebugState
+	 * @typedef {import('./debugSession.svelte.js').DebugState} DebugState
 	 */
 
 	/**
@@ -38,7 +26,7 @@
 	 */
 	let { active = false, onStopped } = $props();
 
-	let debugState = $state(/** @type {DebugState | null} */ (null));
+	let debugState = $derived(debugSession.state);
 	let sourceUrl = $state('');
 	let source = $state(/** @type {DebugSource | null} */ (null));
 	let frameIndex = $state(0);
@@ -57,18 +45,22 @@
 	let lines = $derived(source ? source.source.split('\n') : []);
 	let breakpoints = $derived(new Set(source?.breakpoints ?? []));
 	let breakable = $derived(new Set(source?.breakable ?? []));
-	/** @type {ReturnType<typeof setTimeout> | undefined} */
-	let timer;
 	let lastSerial = -1;
 	let wasStopped = false;
 
 	$effect(() => {
 		if (active) {
-			untrack(() => void refresh());
+			untrack(() => void refreshDebugger());
 		}
 	});
 
-	onDestroy(() => clearTimeout(timer));
+	$effect(() => {
+		// the state the debugger service returned, here or from the code editor
+		const next = debugSession.state;
+		if (next) {
+			untrack(() => void apply(next));
+		}
+	});
 
 	/**
 	 * @param {string} action
@@ -80,8 +72,7 @@
 		try {
 			const result = await call('studio.debug.Debugger', { action, ...parameters });
 			if (result?.state) {
-				await apply(result.state);
-				schedule();
+				followDebugger(result.state);
 			} else if (result?.error) {
 				error = String(result.error.message ?? result.error);
 			}
@@ -92,29 +83,11 @@
 	}
 
 	/**
-	 * Follows the state of the debugger while it runs.
-	 */
-	function schedule() {
-		clearTimeout(timer);
-		timer = debugState?.attached ? setTimeout(refresh, 1000) : undefined;
-	}
-
-	async function refresh() {
-		timer = undefined;
-		const result = await call('studio.debug.Debugger', { action: 'state' });
-		if (result?.state) {
-			await apply(result.state);
-		}
-		schedule();
-	}
-
-	/**
 	 * @param {DebugState} next
 	 */
 	async function apply(next) {
 		const changed = next.serial !== lastSerial;
 		lastSerial = next.serial;
-		debugState = next;
 		if (!changed) {
 			return;
 		}

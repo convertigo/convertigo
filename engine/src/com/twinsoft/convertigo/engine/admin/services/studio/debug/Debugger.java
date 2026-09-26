@@ -64,6 +64,9 @@ public class Debugger extends JSonService {
 			var dbo = Utils.getDbo(id);
 			url = dbo.getShortQName() + "-" + scriptName(dbo, request.getParameter("property"));
 			offset = CopilotHelper.addInstruction(dbo, "").split("\n", -1).length - 1;
+			// the frames of the script show in the lines of the property
+			response.put("url", url);
+			response.put("offset", offset);
 		}
 		switch (action) {
 		case "state" -> {
