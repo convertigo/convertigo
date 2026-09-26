@@ -5,7 +5,8 @@
 
 	/**
 	 * Creates a project from a template, as the new project wizards of the Eclipse Studio, or imports
-	 * one from the URL of its git repository or of its archive, or from an archive file.
+	 * one from the URL of its git repository or of its archive, from an archive file, or from its folder on
+	 * the disk of the engine.
 	 *
 	 * @type {{
 	 *  onDone?: (projectName: string) => void | Promise<void>,
@@ -14,8 +15,9 @@
 	 */
 	let { onDone, onClose } = $props();
 
-	/** @type {'template' | 'url' | 'file'} */
+	/** @type {'template' | 'url' | 'file' | 'folder'} */
 	let mode = $state('template');
+	let folder = $state('');
 	/** @type {File | null} */
 	let archive = $state(null);
 	let templateId = $state(PROJECT_TEMPLATES[0].id);
@@ -37,7 +39,9 @@
 			? !projectNameError(name) && !missingField
 			: mode === 'url'
 				? Boolean(url.trim())
-				: Boolean(archive)
+				: mode === 'folder'
+					? Boolean(folder.trim())
+					: Boolean(archive)
 	);
 
 	/**
@@ -74,6 +78,15 @@
 				} else {
 					error = String(
 						result?.error?.message ?? result?.message ?? 'The project was not created.'
+					);
+				}
+			} else if (mode === 'folder') {
+				const result = await call('studio.project.ImportFolder', { path: folder.trim() });
+				if (result?.done) {
+					await onDone?.(String(result.project));
+				} else {
+					error = String(
+						result?.error?.message ?? result?.message ?? 'The project was not imported.'
 					);
 				}
 			} else if (mode === 'file' && archive) {
@@ -142,6 +155,13 @@
 					class={['studio-dialog__mode', mode === 'file' && 'studio-dialog__mode--active']}
 					onclick={() => (mode = 'file')}>From a file</button
 				>
+				<button
+					type="button"
+					role="tab"
+					aria-selected={mode === 'folder'}
+					class={['studio-dialog__mode', mode === 'folder' && 'studio-dialog__mode--active']}
+					onclick={() => (mode = 'folder')}>From a folder</button
+				>
 			</div>
 		</header>
 
@@ -205,6 +225,21 @@
 							</label>
 						{/if}
 					{/each}
+				{:else if mode === 'folder'}
+					<label class="studio-dialog__field">
+						<span>Project folder</span>
+						<!-- svelte-ignore a11y_autofocus -->
+						<input
+							class="input-common"
+							bind:value={folder}
+							autofocus
+							placeholder="/path/to/MyProject or /path/to/MyProject/c8oProject.yaml"
+						/>
+						<small
+							>The folder of a project, or its c8oProject.yaml, on the disk of the engine. The
+							project stays in its folder.</small
+						>
+					</label>
 				{:else if mode === 'file'}
 					<label class="studio-dialog__field">
 						<span>Project archive</span>
