@@ -59,7 +59,32 @@ public class Paste extends JSonService {
 			throw new ServiceException("missing xml parameter");
 		}
 
-		pasteInto(resolveTarget(target), xml, response);
+		// where the objects go: inside the target, as its siblings, or auto, inside the target when it accepts
+		// them and else as its siblings, as the Eclipse Studio pastes an object on one of the same type
+		var position = request.getParameter("position") == null ? "inside" : request.getParameter("position");
+		pasteInto(resolveTarget(target), xml, response, position);
+	}
+
+	/**
+	 * @return the object that receives a pasted object, the target or its parent
+	 */
+	private static DatabaseObject receiver(DatabaseObject targetDbo, Node node, DatabaseObject pasted, String position)
+			throws Exception {
+		var parent = targetDbo.getParent();
+		if (parent == null || targetDbo instanceof com.twinsoft.convertigo.beans.core.Project) {
+			return targetDbo;
+		}
+		if ("sibling".equals(position)) {
+			return parent;
+		}
+		if ("auto".equals(position)) {
+			var object = pasted != null ? pasted : DboUtils.read(node);
+			if (object instanceof DatabaseObject dbo && !DboFactory.acceptDboAsSuch(targetDbo, dbo)
+					&& DboFactory.acceptDboAsSuch(parent, dbo)) {
+				return parent;
+			}
+		}
+		return targetDbo;
 	}
 
 	protected DatabaseObject resolveTarget(String id) throws Exception {
@@ -71,6 +96,10 @@ public class Paste extends JSonService {
 	}
 
 	void pasteInto(DatabaseObject targetDbo, String xml, JSONObject response) throws Exception {
+		pasteInto(targetDbo, xml, response, "inside");
+	}
+
+	void pasteInto(DatabaseObject targetDbo, String xml, JSONObject response, String position) throws Exception {
 		JSONArray ids = new JSONArray();
 		JSONArray results = new JSONArray();
 		JSONArray errors = new JSONArray();
@@ -106,7 +135,9 @@ public class Paste extends JSonService {
 							}
 							continue;
 						}
-						object = DboUtils.xmlPaste(node, targetDbo);
+						var receiver = receiver(targetDbo, node, null, position);
+						response.put("target", receiver.getFullQName());
+						object = DboUtils.xmlPaste(node, receiver);
 						if (object != null && object instanceof DatabaseObject) {
 							DatabaseObject dbo = (DatabaseObject)object;
 							if (dbo instanceof Project) {
@@ -125,19 +156,21 @@ public class Paste extends JSonService {
 							Element el = (Element)node;
 							String id = el.getAttribute("id");
 							DatabaseObject dbo = DboUtils.findDbo(id);
-							if (dbo != null && !dbo.equals(targetDbo)) {
+							var receiver = dbo == null ? targetDbo : receiver(targetDbo, node, dbo, position);
+							response.put("target", receiver.getFullQName());
+							if (dbo != null && !dbo.equals(receiver)) {
 								if (dbo instanceof Project) {
 									
 								} else {
 									DatabaseObject previousParent = dbo.getParent();
 									try {
 										dbo.delete();
-										targetDbo.add(dbo);
+										receiver.add(dbo);
 										
 										ids.put(id);
 										
 										// notify for app generation
-										BuilderUtils.dboMoved(previousParent, targetDbo, dbo);
+										BuilderUtils.dboMoved(previousParent, receiver, dbo);
 									} catch (Exception e) {
 										if (dbo.getParent() == null && previousParent != null) {
 											previousParent.add(dbo);

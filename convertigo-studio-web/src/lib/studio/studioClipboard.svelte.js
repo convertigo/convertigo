@@ -44,14 +44,16 @@ export async function putInStudioClipboard(kind, ids) {
  * Pastes the Studio clipboard into an object of the tree. A cut is pasted only once.
  *
  * @param {string} target the id of the object that receives the pasted objects
- * @returns {Promise<{ done: boolean, ids: string[], kind: string, sourceIds: string[], error?: string }>}
+ * @param {'inside' | 'sibling' | 'auto'} [position] inside the target, next to it, or inside when it
+ *  accepts the objects and next to it else, as the Eclipse Studio pastes an object on one of its type
+ * @returns {Promise<{ done: boolean, ids: string[], kind: string, sourceIds: string[], target: string, error?: string }>}
  */
-export async function pasteStudioClipboard(target) {
+export async function pasteStudioClipboard(target, position = 'inside') {
 	const { kind, xml, ids } = studioClipboard;
 	if (!target || !kind || !xml) {
-		return { done: false, ids: [], kind, sourceIds: [] };
+		return { done: false, ids: [], kind, sourceIds: [], target };
 	}
-	const result = await pasteDbo(target, xml);
+	const result = await pasteDbo(target, xml, position);
 	const pastedIds = Array.isArray(result?.ids) ? result.ids.map(String) : [];
 	if (kind === 'cut' && pastedIds.length) {
 		clearStudioClipboard();
@@ -61,6 +63,7 @@ export async function pasteStudioClipboard(target) {
 		ids: pastedIds,
 		kind,
 		sourceIds: [...ids],
+		target: result?.target ? String(result.target) : target,
 		error: result?.error ? String(result.error) : undefined
 	};
 }

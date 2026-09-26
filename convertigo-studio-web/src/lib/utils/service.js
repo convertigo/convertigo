@@ -696,8 +696,8 @@ export async function copyDbo(ids = []) {
  * @param {string} target - the id of the target dbo in tree
  * @param {string} xml - the xml string
  */
-export async function pasteDbo(target = '', xml = '') {
-	let result = await call('studio.dbo.Paste', { target, xml });
+export async function pasteDbo(target = '', xml = '', position = 'inside') {
+	let result = await call('studio.dbo.Paste', { target, xml, position });
 	return result;
 }
 

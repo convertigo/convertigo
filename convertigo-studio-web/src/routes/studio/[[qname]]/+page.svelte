@@ -44,7 +44,8 @@
 	import {
 		hasStudioClipboard,
 		pasteStudioClipboard,
-		putInStudioClipboard
+		putInStudioClipboard,
+		studioClipboard
 	} from '$lib/studio/studioClipboard.svelte.js';
 	import StudioCopybookDialog from '$lib/studio/StudioCopybookDialog.svelte';
 	import StudioCouchViewDialog from '$lib/studio/StudioCouchViewDialog.svelte';
@@ -2671,10 +2672,25 @@
 		if (!target || !hasStudioClipboard()) {
 			return;
 		}
+		// an object pasted on itself goes next to it, or inside when the user chooses so, as the Eclipse
+		// Studio asks; another one goes inside the target, or next to it when the target cannot hold it
+		/** @type {'sibling' | 'auto'} */
+		let position = 'auto';
+		if (
+			studioClipboard.kind === 'copy' &&
+			studioClipboard.ids.length === 1 &&
+			studioClipboard.ids[0] === target
+		) {
+			position = window.confirm(
+				`Paste ${target.split(/[.:]/).pop()} as a sibling?\n\nCancel pastes it as a child, when it can hold one.`
+			)
+				? 'sibling'
+				: 'auto';
+		}
 		let handled = false;
 		onStudioMutationBusyChange(true);
 		try {
-			const result = await pasteStudioClipboard(target);
+			const result = await pasteStudioClipboard(target, position);
 			if (!result.ids.length) {
 				toaster.error({
 					description: result.error || 'The clipboard cannot be pasted inside the selected object.'
@@ -2683,12 +2699,14 @@
 			}
 			handled = true;
 			const sourceId = result.sourceIds[0] ?? '';
+			// the object that received the pasted ones, the target or its parent
+			const receiver = result.target || target;
 			// a cut object keeps its name under its new parent
 			const pastedId =
 				result.kind === 'cut'
 					? inferMovedObjectId({
 							payload: { type: 'treeData', data: { id: sourceId } },
-							target,
+							target: receiver,
 							position: 'inside'
 						})
 					: result.ids[0];
@@ -2696,8 +2714,8 @@
 				done: true,
 				id: pastedId,
 				selectedId: pastedId,
-				target,
-				parentId: target,
+				target: receiver,
+				parentId: receiver,
 				previousParentId: result.kind === 'cut' ? parentObjectId(sourceId) : undefined,
 				position: 'inside',
 				source: 'studio',
