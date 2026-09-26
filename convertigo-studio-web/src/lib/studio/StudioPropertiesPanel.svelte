@@ -22,6 +22,7 @@
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioFontDialog from './StudioFontDialog.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
+	import StudioLifetimeDialog from './StudioLifetimeDialog.svelte';
 	import StudioNamedSourceDialog from './StudioNamedSourceDialog.svelte';
 	import StudioObjectIdentity from './StudioObjectIdentity.svelte';
 	import StudioQNameDialog from './StudioQNameDialog.svelte';
@@ -317,6 +318,8 @@
 	let fontRow = $state(/** @type {any} */ (null));
 	/** the property naming another object the named source dialog edits */
 	let namedSourceRow = $state(/** @type {any} */ (null));
+	/** the response lifetime the lifetime dialog builds */
+	let lifetimeRow = $state(/** @type {any} */ (null));
 
 	/**
 	 * @param {any} row
@@ -423,6 +426,13 @@
 			});
 		}
 		buttons.push(...namedSourceButtons(row));
+		if (row?.kind === 'dbo' && row?.name === 'responseExpiryDate') {
+			buttons.push({
+				icon: 'mdi:calendar-clock',
+				title: 'Build the response lifetime',
+				onclick: () => (lifetimeRow = row)
+			});
+		}
 		return buttons;
 	}
 
@@ -806,6 +816,18 @@
 			{/if}
 		{/if}
 	</div>
+
+	{#if lifetimeRow}
+		<StudioLifetimeDialog
+			label={lifetimeRow.displayName ?? lifetimeRow.name}
+			value={String(lifetimeRow.value ?? '')}
+			onApply={(next) => {
+				lifetimeRow.value = next;
+				lifetimeRow = null;
+			}}
+			onClose={() => (lifetimeRow = null)}
+		/>
+	{/if}
 
 	{#if namedSourceRow}
 		<StudioNamedSourceDialog

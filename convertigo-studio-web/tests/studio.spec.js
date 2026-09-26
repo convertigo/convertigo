@@ -703,6 +703,31 @@ test('studio chooses the requestable an operation targets among the requestables
 	});
 });
 
+test('studio builds the response lifetime of a requestable', async ({ page }) => {
+	const propertyUpdates = [];
+	await mockStudioServices(page, { propertyUpdates, lifetimeProperty: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
+	await page.getByRole('button', { name: 'Build the response lifetime' }).click();
+
+	const dialog = page.getByRole('dialog', { name: 'Response lifetime' });
+	await expect(dialog.getByRole('spinbutton', { name: 'Seconds' })).toHaveValue('3600');
+	await dialog.getByRole('combobox', { name: 'Expires' }).selectOption('weekly');
+	await dialog.getByRole('combobox', { name: 'Day' }).selectOption('Monday');
+	await dialog.getByLabel('Time', { exact: true }).fill('08:30:00');
+	await expect(dialog.getByRole('status')).toHaveText('weekly,08:30:00,2');
+	await dialog.getByRole('button', { name: 'Apply' }).click();
+
+	await page.getByRole('button', { name: 'Apply', exact: true }).click();
+	await expect.poll(() => propertyUpdates.length).toBe(1);
+	const props = JSON.parse(propertyUpdates[0].get('props') ?? '[]');
+	expect(props[0]).toMatchObject({ name: 'responseExpiryDate', value: 'weekly,08:30:00,2' });
+});
+
 test('studio sets the visibility of a variable with its masks', async ({ page }) => {
 	const propertyUpdates = [];
 	await mockStudioServices(page, { propertyUpdates, flagsProperty: true });
@@ -1541,6 +1566,7 @@ function responseEditor(page) {
  *  fontProperty?: boolean,
  *  flagsProperty?: boolean,
  *  namedSourceProperty?: boolean,
+ *  lifetimeProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1723,6 +1749,7 @@ function serviceName(url) {
  *  fontProperty?: boolean,
  *  flagsProperty?: boolean,
  *  namedSourceProperty?: boolean,
+ *  lifetimeProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1798,6 +1825,18 @@ function responseForService(service, params, options = {}) {
 						type: 'java.lang.String',
 						isMultiline: true
 					},
+					...(options.lifetimeProperty
+						? {
+								'Response lifetime': {
+									name: 'responseExpiryDate',
+									displayName: 'Response lifetime',
+									category: 'Base properties',
+									class: 'java.lang.String',
+									kind: 'dbo',
+									value: 'absolute,3600'
+								}
+							}
+						: {}),
 					...(options.namedSourceProperty
 						? {
 								'Target requestable': {
