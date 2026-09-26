@@ -105,7 +105,8 @@ test('studio applies and executes requestable test cases from the execution pane
 	await expect.poll(() => executionRequests.length).toBe(1);
 	expect(executionRequests[0]).toContain('__sequence=TestSequence');
 	expect(executionRequests[0]).toContain('__nocache=true');
-	expect(executionRequests[0]).toContain('__context=studio-web-execution-*');
+	// each run has a context of its own, which Stop aborts
+	expect(executionRequests[0]).toMatch(/__context=studio-web-execution-[0-9a-f-]{36}&/);
 	expect(executionRequests[0]).toContain('__removeContext=true');
 	expect(executionRequests[0]).toContain('input=from-testcase');
 
@@ -113,7 +114,8 @@ test('studio applies and executes requestable test cases from the execution pane
 	await expect.poll(() => executionRequests.length).toBe(2);
 	expect(executionRequests[1]).toContain('__sequence=TestSequence');
 	expect(executionRequests[1]).toContain('__nocache=true');
-	expect(executionRequests[1]).toContain('__context=studio-web-execution-*');
+	// each run has a context of its own, which Stop aborts
+	expect(executionRequests[1]).toMatch(/__context=studio-web-execution-[0-9a-f-]{36}&/);
 	expect(executionRequests[1]).toContain('__removeContext=true');
 	expect(executionRequests[1]).toContain('__testcase=PresetInput');
 	expect(executionRequests[1]).not.toContain('input=');

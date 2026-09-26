@@ -115,6 +115,8 @@
 	/** @type {{ active?: boolean, running?: boolean, paused?: boolean, stepByStep?: boolean, step?: { id: string, name: string } } | null} */
 	let debugState = $state(null);
 	let debuggable = $derived(stubbable && kind === 'sequence');
+	/** the context of the running execution, which Stop aborts */
+	let runningContext = $state('');
 	/** the stubs recorded for the requestable, the default one first */
 	let stubFiles = $state(/** @type {string[]} */ ([]));
 	let defaultStub = $state('');
@@ -209,6 +211,15 @@
 				updateResponse({ content: state.output, language: json ? 'json' : 'xml' });
 			}
 			await new Promise((resolve) => setTimeout(resolve, state?.paused ? 700 : 300));
+		}
+	}
+
+	/**
+	 * Stops the running execution, as the Stop button of the sequence editor in Eclipse.
+	 */
+	async function abort() {
+		if (runningContext) {
+			await call('studio.debug.Abort', { context: runningContext });
 		}
 	}
 
@@ -603,6 +614,13 @@ console.log(await response.text());`;
 		}
 		updateResponse({ content: 'Loading ...', loading: true });
 		xmlResponse = mode.toUpperCase() === 'XML';
+		let context = '';
+		if (fd.get('__context') === 'studio-web-execution-*') {
+			// a context of its own, which Stop aborts
+			context = `studio-web-execution-${crypto.randomUUID()}`;
+			fd.set('__context', context);
+			runningContext = context;
+		}
 		let token = '';
 		if (debug && debuggable) {
 			token = crypto.randomUUID();
@@ -616,6 +634,9 @@ console.log(await response.text());`;
 				if (token && debugToken === token) {
 					debugToken = '';
 					debugState = null;
+				}
+				if (context && runningContext === context) {
+					runningContext = '';
 				}
 			});
 			updateResponse({
@@ -767,6 +788,16 @@ console.log(await response.text());`;
 						title="Generate the schema of the transaction again from this response"
 						onclick={updateSchema}
 						{disabled}
+					/>
+				{/if}
+				{#if stubbable && runningContext && responseView.loading}
+					<Button
+						label="Stop"
+						full={false}
+						class="button-secondary"
+						icon="mdi:stop"
+						title="Stop the execution"
+						onclick={abort}
 					/>
 				{/if}
 				{#if debuggable}
