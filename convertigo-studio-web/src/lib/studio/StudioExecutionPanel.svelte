@@ -22,7 +22,8 @@
 	 *  requestableKind?: string,
 	 *  connectorName?: string,
 	 *  runTestcase?: string,
-	 *  onRunTestcaseTaken?: () => void
+	 *  onRunTestcaseTaken?: () => void,
+	 *  onChanged?: (id: string) => void
 	 * }}
 	 */
 	let {
@@ -31,7 +32,8 @@
 		requestableKind = 'sequence',
 		connectorName = '',
 		runTestcase = '',
-		onRunTestcaseTaken
+		onRunTestcaseTaken,
+		onChanged
 	} = $props();
 
 	const modes = ['JSON', 'XML', 'BIN', 'CXML'];
@@ -154,6 +156,7 @@
 			bind:stub
 			{runTestcase}
 			{onRunTestcaseTaken}
+			{onChanged}
 			testcaseValue={`${requestableKey}.testcases`}
 		/>
 	{/if}

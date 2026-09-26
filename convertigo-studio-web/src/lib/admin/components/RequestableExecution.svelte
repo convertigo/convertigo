@@ -42,6 +42,7 @@
 	 *  stub?: boolean,
 	 *  runTestcase?: string,
 	 *  onRunTestcaseTaken?: () => void,
+	 *  onChanged?: (id: string) => void,
 	 *  disabled?: boolean,
 	 *  class?: string
 	 * }}
@@ -63,6 +64,7 @@
 		stub = $bindable(false),
 		runTestcase = '',
 		onRunTestcaseTaken,
+		onChanged,
 		disabled = false,
 		class: cls = ''
 	} = $props();
@@ -103,6 +105,8 @@
 		};
 	});
 	let hasResponse = $derived(responseView.content.length > 0 || responseView.loading);
+	/** the response shown was run in the XML mode, without the sheet of the requestable */
+	let xmlResponse = $state(false);
 	/** the stubs recorded for the requestable, the default one first */
 	let stubFiles = $state(/** @type {string[]} */ ([]));
 	let defaultStub = $state('');
@@ -151,6 +155,26 @@
 		}
 		if (result?.done) {
 			toaster.success({ description: `The response is saved as the stub ${result.file}.` });
+		}
+	}
+
+	/**
+	 * Writes the schema of the transaction again from the XML response, as "Update schema from current
+	 * connector data" in Eclipse.
+	 */
+	async function updateSchema() {
+		if (
+			!requestable?.name ||
+			!window.confirm(
+				`Update the schema of ${requestable.name} from this response? The previous schema is replaced.`
+			)
+		) {
+			return;
+		}
+		const id = requestableId;
+		const result = await call('studio.dbo.UpdateSchema', { id, xml: responseView.content });
+		if (result?.done) {
+			onChanged?.(id);
 		}
 	}
 
@@ -530,6 +554,7 @@ console.log(await response.text());`;
 			return;
 		}
 		updateResponse({ content: 'Loading ...', loading: true });
+		xmlResponse = mode.toUpperCase() === 'XML';
 		try {
 			const data = await callRequestable(mode, projectName, fd);
 			updateResponse({
@@ -669,6 +694,17 @@ console.log(await response.text());`;
 						icon="mdi:content-save-outline"
 						title="Save this response as the stub of the requestable"
 						onclick={saveStub}
+						{disabled}
+					/>
+				{/if}
+				{#if onChanged && kind === 'transaction' && xmlResponse && responseKey === requestableKey && responseView.language === 'xml' && !responseView.loading}
+					<Button
+						label="Update schema"
+						full={false}
+						class="button-secondary"
+						icon="mdi:file-tree-outline"
+						title="Generate the schema of the transaction again from this response"
+						onclick={updateSchema}
 						{disabled}
 					/>
 				{/if}

@@ -2899,6 +2899,7 @@
 		connectorName={executionTarget?.connectorName ?? ''}
 		runTestcase={executionRunTestcase}
 		onRunTestcaseTaken={() => (executionRunTestcase = '')}
+		onChanged={markProjectDirty}
 	/>
 {/snippet}
 

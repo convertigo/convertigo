@@ -68,6 +68,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StepUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.admin.services.studio.dbo.CreateStub;
+import com.twinsoft.convertigo.engine.admin.services.studio.dbo.UpdateSchema;
 import com.twinsoft.convertigo.engine.admin.services.studio.project.ImportWsReference;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 
@@ -235,6 +236,12 @@ public class ObjectActions {
 			add(items, "object.emptyStub", "Create an empty stub",
 					"Save an empty response as the stub answering the requests run from stub.", true,
 					"mdi:file-outline");
+		}
+		if (dbo instanceof Transaction && !(dbo instanceof SiteClipperTransaction)) {
+			add(items, "object.updateSchema", "Update schema from transaction's definition",
+					"Generate the schema of this transaction again from its definition.", true, "mdi:file-tree-outline")
+					.put("confirm", "Update the schema of " + dbo.getName()
+							+ " from its definition? The previous schema is replaced.");
 		}
 		for (var target : ChangeTo.targets(dbo).entrySet()) {
 			add(items, "object.changeTo:" + target.getKey().getSimpleName(), "Change to " + target.getValue(),
@@ -418,6 +425,13 @@ public class ObjectActions {
 				return result(false, "The stub stubs/" + requestable.getDefaultStubFileName() + " already exists.");
 			}
 			return result(true, "The empty stub stubs/" + file.getName() + " is saved.").put("changed", false);
+		}
+		case "object.updateSchema" -> {
+			if (!(dbo instanceof Transaction transaction)) {
+				return result(false, "Only a transaction has a schema to update.");
+			}
+			UpdateSchema.update(transaction, null);
+			return result(true, "The schema of " + dbo.getName() + " is updated.").put("changed", true);
 		}
 		case "object.moveUp", "object.moveDown" -> {
 			if (!(parent instanceof IContainerOrdered container)) {
