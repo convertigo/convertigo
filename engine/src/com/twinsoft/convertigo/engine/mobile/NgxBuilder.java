@@ -915,11 +915,14 @@ public class NgxBuilder extends MobileBuilder {
 							+ " for project '"+ application.getProject().getName() +"'.");
 					if (compareVersions(usedTplVersion, appTplVersion) >= 0) {
 						long t0 = System.currentTimeMillis();
+						// the first generation writes all the sources, even of the components whose contents
+						// were computed before, as when an engine without Studio builds an edited application
+						boolean all = !initDone;
 						
 						// shared components
 						List<Callable<String>> cList = new ArrayList<Callable<String>>();
 						for (UISharedComponent uisc: application.getSharedComponentList()) {
-							if (uisc.isReset()) {
+							if (all || uisc.isReset()) {
 								cList.add(newCallable(uisc));
 							}
 						}
@@ -927,7 +930,7 @@ public class NgxBuilder extends MobileBuilder {
 						// pages
 						List<Callable<String>> pList = new ArrayList<Callable<String>>();
 						for (PageComponent page: application.getPageComponentList()) {
-							if (page.isReset()) {
+							if (all || page.isReset()) {
 								pList.add(newCallable(page));
 							}
 						}
@@ -943,7 +946,7 @@ public class NgxBuilder extends MobileBuilder {
 						
 						// application
 						List<Callable<String>> aList = new ArrayList<Callable<String>>();
-						if (application.isReset()) {
+						if (all || application.isReset()) {
 							aList.add(new Callable<String>() {
 								@Override
 								public String call() throws Exception {
@@ -1027,17 +1030,20 @@ public class NgxBuilder extends MobileBuilder {
 					String appTplVersion = application.requiredTplVersion();
 					if (compareVersions(tplVersion, appTplVersion) >= 0) {
 						long t0 = System.currentTimeMillis();
+						// the first generation writes all the sources, even of the components whose contents
+						// were computed before, as when an engine without Studio builds an edited application
+						boolean all = !initDone;
 						for (UISharedComponent comp: application.getSharedComponentList()) {
-							if (comp.isReset()) {
+							if (all || comp.isReset()) {
 								writeCompSourceFiles(comp);
 							}
 						}
 						for (PageComponent page : application.getPageComponentList()) {
-							if (page.isReset()) {
+							if (all || page.isReset()) {
 								writePageSourceFiles(page);
 							}
 						}
-						if (application.isReset()) {
+						if (all || application.isReset()) {
 							removeUselessComps(application);
 							removeUselessPages(application);
 							writeAppSourceFiles(application);
