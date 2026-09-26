@@ -352,6 +352,10 @@ public class Get extends JSonService {
 		if (flags != null) {
 			property.put("flags", flags);
 		}
+		if (NamedSources.handles(dbo, elt.getAttribute("name"))) {
+			// another object, which the Studio chooses among the ones it can name
+			property.put("namedSource", true);
+		}
 		property.put("class", nodeName);
 		property.put("kind", "dbo");
 
@@ -386,6 +390,9 @@ public class Get extends JSonService {
 				property.remove("attr");
 				property.remove("composite");
 				property.put("kind", "ion");
+				if (NamedSources.handles(dbo, ionProperty.getName())) {
+					property.put("namedSource", true);
+				}
 				props.put(pLabel, property);
 			}
 		}

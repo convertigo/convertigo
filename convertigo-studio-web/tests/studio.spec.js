@@ -673,6 +673,36 @@ test('studio chooses the font of an application among the fonts of the catalog',
 	});
 });
 
+test('studio chooses the requestable an operation targets among the requestables', async ({
+	page
+}) => {
+	const propertyUpdates = [];
+	await mockStudioServices(page, { propertyUpdates, namedSourceProperty: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
+	await page.getByRole('button', { name: 'Choose Target requestable' }).click();
+
+	const dialog = page.getByRole('dialog', { name: 'Target requestable' });
+	await expect(dialog.getByRole('option')).toHaveCount(3);
+	await expect(dialog.getByRole('option', { selected: true })).toContainText('TestSequence');
+	await dialog.getByRole('searchbox').fill('book');
+	await dialog.getByRole('option', { name: /getBook/ }).click();
+	await expect(dialog.getByRole('status')).toHaveText('StudioProject.Books.getBook');
+	await dialog.getByRole('button', { name: 'Apply' }).click();
+
+	await page.getByRole('button', { name: 'Apply', exact: true }).click();
+	await expect.poll(() => propertyUpdates.length).toBe(1);
+	const props = JSON.parse(propertyUpdates[0].get('props') ?? '[]');
+	expect(props[0]).toMatchObject({
+		name: 'targetRequestable',
+		value: 'StudioProject.Books.getBook'
+	});
+});
+
 test('studio sets the visibility of a variable with its masks', async ({ page }) => {
 	const propertyUpdates = [];
 	await mockStudioServices(page, { propertyUpdates, flagsProperty: true });
@@ -1510,6 +1540,7 @@ function responseEditor(page) {
  *  qnameProperty?: boolean,
  *  fontProperty?: boolean,
  *  flagsProperty?: boolean,
+ *  namedSourceProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1691,6 +1722,7 @@ function serviceName(url) {
  *  qnameProperty?: boolean,
  *  fontProperty?: boolean,
  *  flagsProperty?: boolean,
+ *  namedSourceProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1766,6 +1798,19 @@ function responseForService(service, params, options = {}) {
 						type: 'java.lang.String',
 						isMultiline: true
 					},
+					...(options.namedSourceProperty
+						? {
+								'Target requestable': {
+									name: 'targetRequestable',
+									displayName: 'Target requestable',
+									category: 'Base properties',
+									class: 'java.lang.String',
+									kind: 'dbo',
+									namedSource: true,
+									value: 'StudioProject.TestSequence'
+								}
+							}
+						: {}),
 					...(options.flagsProperty
 						? {
 								Visibility: {
@@ -1809,6 +1854,24 @@ function responseForService(service, params, options = {}) {
 							}
 						: {})
 				}
+			};
+		case 'studio.properties.NamedSources':
+			return {
+				items: [
+					{
+						name: 'StudioProject.TestSequence',
+						label: 'TestSequence',
+						type: 'GenericSequence',
+						project: 'StudioProject'
+					},
+					{
+						name: 'StudioProject.Books.getBook',
+						label: 'getBook',
+						type: 'JsonHttpTransaction',
+						project: 'StudioProject'
+					},
+					{ name: 'lib_OAuth.Login', label: 'Login', type: 'GenericSequence', project: 'lib_OAuth' }
+				]
 			};
 		case 'studio.ngxbuilder.Fonts':
 			if (params.get('font')) {

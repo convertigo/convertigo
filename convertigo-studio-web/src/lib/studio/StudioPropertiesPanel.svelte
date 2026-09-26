@@ -22,6 +22,7 @@
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioFontDialog from './StudioFontDialog.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
+	import StudioNamedSourceDialog from './StudioNamedSourceDialog.svelte';
 	import StudioObjectIdentity from './StudioObjectIdentity.svelte';
 	import StudioQNameDialog from './StudioQNameDialog.svelte';
 	import StudioSection from './StudioSection.svelte';
@@ -314,6 +315,24 @@
 	let qnameRow = $state(/** @type {any} */ (null));
 	/** the font property the font dialog edits */
 	let fontRow = $state(/** @type {any} */ (null));
+	/** the property naming another object the named source dialog edits */
+	let namedSourceRow = $state(/** @type {any} */ (null));
+
+	/**
+	 * @param {any} row
+	 * @returns {{ icon: string, title: string, onclick: () => void }[]}
+	 */
+	function namedSourceButtons(row) {
+		return row?.namedSource
+			? [
+					{
+						icon: 'mdi:target',
+						title: `Choose ${row.displayName ?? row.name}`,
+						onclick: () => (namedSourceRow = row)
+					}
+				]
+			: [];
+	}
 
 	/**
 	 * @param {any} row
@@ -349,6 +368,9 @@
 	 * @returns {{ icon: string, title: string, active?: boolean, ariaExpanded?: boolean, onclick: () => void }[]}
 	 */
 	function smartTypeButtons(row) {
+		if (smartMode(row) === 'plain' && row?.namedSource) {
+			return namedSourceButtons(row);
+		}
 		if (smartMode(row) === 'source') {
 			return [
 				{
@@ -400,6 +422,7 @@
 				onclick: () => openMonaco(row)
 			});
 		}
+		buttons.push(...namedSourceButtons(row));
 		return buttons;
 	}
 
@@ -783,6 +806,20 @@
 			{/if}
 		{/if}
 	</div>
+
+	{#if namedSourceRow}
+		<StudioNamedSourceDialog
+			id={selectedId}
+			property={namedSourceRow.name}
+			label={namedSourceRow.displayName ?? namedSourceRow.name}
+			value={Array.isArray(namedSourceRow.value) ? '' : String(namedSourceRow.value ?? '')}
+			onApply={(next) => {
+				namedSourceRow.value = next;
+				namedSourceRow = null;
+			}}
+			onClose={() => (namedSourceRow = null)}
+		/>
+	{/if}
 
 	{#if fontRow}
 		<StudioFontDialog
