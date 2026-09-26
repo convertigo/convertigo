@@ -380,6 +380,17 @@
 		revision;
 		return typeof node?.comment === 'string' ? node.comment : '';
 	});
+	/** the marks of the tree of the Eclipse Studio: accessibility, auto start, undefined symbol, modified */
+	let marks = $derived.by(() => {
+		dataSerial;
+		revision;
+		return {
+			accessibility: typeof node?.accessibility === 'string' ? node.accessibility : '',
+			autoStart: node?.autoStart === true,
+			symbolError: node?.symbolError === true,
+			modified: node?.modified === true
+		};
+	});
 	let editingComment = $state(false);
 	let commentValue = $state('');
 	let commentBusy = $state(false);
@@ -1197,7 +1208,31 @@
 						<span class="studio-tree-node__default" aria-label={defaultOf}></span>
 					{/if}
 				</span>
-				<span class="studio-tree-node__label">{label}</span>
+				<span
+					class="studio-tree-node__label"
+					class:studio-tree-node__label--modified={marks.modified}
+					class:studio-tree-node__label--error={marks.symbolError}
+					title={marks.modified ? `${label} — Modified, not saved` : undefined}>{label}</span
+				>
+				{#if marks.accessibility === 'Private' || marks.accessibility === 'Hidden' || marks.autoStart || marks.symbolError}
+					<span class="studio-tree-node__marks">
+						{#if marks.symbolError}
+							<span class="studio-tree-node__mark--error" title="Undefined global symbol"
+								><Ico icon="mdi:alert-circle-outline" size={3} /></span
+							>
+						{/if}
+						{#if marks.accessibility === 'Private'}
+							<span title="Private"><Ico icon="mdi:lock-outline" size={3} /></span>
+						{:else if marks.accessibility === 'Hidden'}
+							<span title="Hidden"><Ico icon="mdi:eye-off-outline" size={3} /></span>
+						{/if}
+						{#if marks.autoStart}
+							<span title="Starts with the project"
+								><Ico icon="mdi:lightbulb-on-outline" size={3} /></span
+							>
+						{/if}
+					</span>
+				{/if}
 				{#if comment}
 					<span class="studio-tree-node__comment" title={comment}>// {comment}</span>
 				{/if}
@@ -1414,6 +1449,31 @@
 		display: grid;
 		min-width: 0;
 		place-items: center;
+	}
+
+	.studio-tree-node__label--modified {
+		font-style: italic;
+	}
+
+	.studio-tree-node__label--error {
+		color: var(--color-error-500);
+	}
+
+	.studio-tree-node__marks {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.1rem;
+		margin-inline-start: 0.2rem;
+		color: var(--studio-text-idle);
+	}
+
+	.studio-tree-node__marks > span {
+		display: inline-grid;
+		place-items: center;
+	}
+
+	.studio-tree-node__mark--error {
+		color: var(--color-error-500);
 	}
 
 	.studio-tree-node__default {

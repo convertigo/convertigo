@@ -43,6 +43,8 @@ import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
+import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.Flow;
@@ -198,6 +200,20 @@ public class Get extends JSonService {
 		var comment = Comment.firstLine(dbo.getComment());
 		if (!comment.isBlank()) {
 			obj.put("comment", comment);
+		}
+		// the marks of the tree of the Eclipse Studio: accessibility, auto start, undefined symbol, modified
+		if (dbo instanceof RequestableObject requestable
+				&& requestable.getAccessibility() != null) {
+			obj.put("accessibility", requestable.getAccessibility().name());
+		}
+		if (dbo instanceof Sequence sequence && sequence.isAutoStart()) {
+			obj.put("autoStart", true);
+		}
+		if (dbo.isSymbolError() || dbo instanceof Project project && project.undefinedGlobalSymbols) {
+			obj.put("symbolError", true);
+		}
+		if (dbo.hasChanged) {
+			obj.put("modified", true);
 		}
 		if (flow) {
 			obj.put("classname", dbo.getClass().getSimpleName());

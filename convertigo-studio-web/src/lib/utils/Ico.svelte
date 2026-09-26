@@ -115,6 +115,7 @@
 	import MdiLanguageTypescript from '~icons/mdi/language-typescript';
 	import MdiLayersOutline from '~icons/mdi/layers-outline';
 	import MdiLibraryOutline from '~icons/mdi/library-outline';
+	import MdiLightbulbOnOutline from '~icons/mdi/lightbulb-on-outline';
 	import MdiLightningBolt from '~icons/mdi/lightning-bolt';
 	import MdiLinkVariant from '~icons/mdi/link-variant';
 	import MdiLock from '~icons/mdi/lock';
@@ -314,6 +315,7 @@
 		'mdi:library-outline': MdiLibraryOutline,
 		'mdi:login-variant': MdiLoginVariant,
 		'mdi:lock-open-variant': MdiLockOpenVariant,
+		'mdi:lightbulb-on-outline': MdiLightbulbOnOutline,
 		'mdi:lock-outline': MdiLockOutline,
 		'mdi:lock': MdiLock,
 		'mdi:magnify': MdiMagnify,
