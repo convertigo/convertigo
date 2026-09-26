@@ -83,6 +83,7 @@
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
 	import StudioTranslationsDialog from '$lib/studio/StudioTranslationsDialog.svelte';
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
+	import StudioTutorials from '$lib/studio/StudioTutorials.svelte';
 	import StudioVariablesDialog from '$lib/studio/StudioVariablesDialog.svelte';
 	import StudioWsImportDialog from '$lib/studio/StudioWsImportDialog.svelte';
 	import { draggedData } from '$lib/utils/dndStore';
@@ -300,6 +301,7 @@
 	/** the lib_* projects hidden from the tree, as the "Toggle libs" of the Eclipse Studio */
 	let hideLibs = $state(false);
 	let marketplaceOpen = $state(false);
+	let tutorialsOpen = $state(false);
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
 	let paletteRevealRequest = $state({ key: '', contextId: '', serial: 0 });
@@ -422,6 +424,12 @@
 			label: 'Marketplace',
 			icon: 'mdi:store-outline',
 			active: marketplaceOpen
+		},
+		{
+			id: 'tutorials',
+			label: 'Tutorials',
+			icon: 'mdi:school-outline',
+			active: tutorialsOpen
 		},
 		...(showVibe
 			? [
@@ -2769,6 +2777,8 @@
 	function selectActivity(id) {
 		if (id === 'marketplace') {
 			marketplaceOpen = !marketplaceOpen;
+		} else if (id === 'tutorials') {
+			tutorialsOpen = !tutorialsOpen;
 		} else if (id === 'about') {
 			aboutOpen = !aboutOpen;
 		} else if (id === 'preferences') {
@@ -3287,6 +3297,9 @@
 	</div>
 {/if}
 
+{#if tutorialsOpen}
+	<StudioTutorials onClose={() => (tutorialsOpen = false)} />
+{/if}
 {#if marketplaceOpen}
 	<StudioMarketplace
 		onInstalled={async (projectName) => {

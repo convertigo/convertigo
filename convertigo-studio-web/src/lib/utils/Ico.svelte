@@ -151,6 +151,7 @@
 	import MdiRestartAlert from '~icons/mdi/restart-alert';
 	import MdiRobotOutline from '~icons/mdi/robot-outline';
 	import MdiRoutes from '~icons/mdi/routes';
+	import MdiSchoolOutline from '~icons/mdi/school-outline';
 	import MdiSearch from '~icons/mdi/search';
 	import MdiServerNetwork from '~icons/mdi/server-network';
 	import MdiShapeSquareRoundedPlus from '~icons/mdi/shape-square-rounded-plus';
@@ -359,6 +360,7 @@
 		'mdi:source-branch': MdiSourceBranch,
 		'mdi:source-pull': MdiSourcePull,
 		'mdi:state-machine': MdiStateMachine,
+		'mdi:school-outline': MdiSchoolOutline,
 		'mdi:share-variant-outline': MdiShareVariantOutline,
 		'mdi:star': MdiStar,
 		'mdi:star-outline': MdiStarOutline,

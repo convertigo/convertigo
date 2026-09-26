@@ -20,6 +20,7 @@
 	} from './flowAuthoring';
 	import { attachNgxAuthoring } from './ngxAuthoring';
 	import { startStyleEditor, styleEditorChanges } from './ngxStyleEditor';
+	import { studioActivity } from './studioActivity.svelte.js';
 	import StudioCaptureDialog from './StudioCaptureDialog.svelte';
 	import StudioDevicePanel from './StudioDevicePanel.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
@@ -302,6 +303,9 @@
 		let doc;
 		try {
 			doc = iframe?.contentDocument;
+			// the page of the application previewed, which a tutorial may wait for
+			studioActivity.previewProject = projectName;
+			studioActivity.previewUrl = String(iframe?.contentWindow?.location.href ?? '');
 		} catch {
 			return;
 		}

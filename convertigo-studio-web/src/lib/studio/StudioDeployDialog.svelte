@@ -1,6 +1,7 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call } from '$lib/utils/service';
+	import { studioActivity } from './studioActivity.svelte.js';
 
 	/**
 	 * Deploys a project on a remote Convertigo server, as the deployment wizard of the Eclipse Studio. The
@@ -79,6 +80,7 @@
 			if (result?.done) {
 				rememberServer();
 				deployed = { dashboard: result.dashboard, application: result.application };
+				studioActivity.lastDeployment = projectName;
 			} else {
 				error = String(result?.error?.message ?? result?.message ?? 'The deployment failed.');
 			}
@@ -109,12 +111,22 @@
 			<div class="studio-dialog__body">
 				<p>{projectName} is deployed on {server}.</p>
 				{#if deployed.dashboard}
-					<a href={deployed.dashboard} target="_blank" rel="noopener">
+					<a
+						href={deployed.dashboard}
+						target="_blank"
+						rel="noopener"
+						onclick={() => (studioActivity.lastLink = String(deployed?.dashboard ?? ''))}
+					>
 						<Ico icon="mdi:open-in-new-variant" size={4} /> Backend dashboard
 					</a>
 				{/if}
 				{#if deployed.application}
-					<a href={deployed.application} target="_blank" rel="noopener">
+					<a
+						href={deployed.application}
+						target="_blank"
+						rel="noopener"
+						onclick={() => (studioActivity.lastLink = String(deployed?.application ?? ''))}
+					>
 						<Ico icon="mdi:open-in-new-variant" size={4} /> Frontend application
 					</a>
 				{/if}
