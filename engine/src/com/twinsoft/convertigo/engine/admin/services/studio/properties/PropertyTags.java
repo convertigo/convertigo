@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2001-2026 Convertigo SA.
+ *
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
+ */
+
+package com.twinsoft.convertigo.engine.admin.services.studio.properties;
+
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
+import com.twinsoft.convertigo.engine.enums.Visibility;
+
+/**
+ * The choices of the integer properties the Eclipse Studio edits with its own tag or flag editors, which an
+ * engine without the Studio does not have: the property shows its tag, and a tag set gives back its index.
+ */
+class PropertyTags {
+
+	private PropertyTags() {
+	}
+
+	/**
+	 * @return the tags of the property, its value being the index of one, or null
+	 */
+	static String[] tags(DatabaseObject dbo, String property) {
+		return switch (property) {
+		case "sheetLocation" -> dbo instanceof Sequence ? new String[] { "None", "From sequence" }
+				: dbo instanceof Transaction
+						? new String[] { "None", "From transaction", "From last detected screen class" }
+						: dbo instanceof RequestableObject
+								? new String[] { "None", "From requested object", "From last detected object" }
+								: null;
+		case "xmlOutput" -> dbo instanceof SqlTransaction
+				? new String[] { "RAW", "AUTO", "ELEMENT", "ELEMENT_WITH_ATTRIBUTES", "FLAT_ELEMENT" }
+				: null;
+		case "autoCommit" -> dbo instanceof SqlTransaction
+				? new String[] { "disabled, manual commit", "enabled, after each query", "enabled, once at the end" }
+				: null;
+		case "jsonArrayTranslationPolicy" -> dbo instanceof JsonHttpTransaction
+				? JsonHttpTransaction.JSON_ARRAY_TRANSLATION_POLICY
+				: null;
+		case "dataEncoding" -> dbo instanceof HttpTransaction ? new String[] { "string", "base64" } : null;
+		default -> null;
+		};
+	}
+
+	/**
+	 * @return the flags of the property, its value being a mask of them, or null
+	 */
+	static JSONArray flags(DatabaseObject dbo, String property) throws Exception {
+		if (!(dbo instanceof Variable) || !"visibility".equals(property)) {
+			return null;
+		}
+		return new JSONArray()
+				.put(new JSONObject().put("label", "Mask in the log files").put("mask", Visibility.Logs.getMask()))
+				.put(new JSONObject().put("label", "Mask in the Studio").put("mask", Visibility.Studio.getMask()))
+				.put(new JSONObject().put("label", "Mask in the platform").put("mask", Visibility.Platform.getMask()))
+				.put(new JSONObject().put("label", "Mask in the XML files of the project").put("mask",
+						Visibility.XmlFile.getMask()));
+	}
+
+	/**
+	 * @return the index of the tag the Studio sets, or the value when it is not a tag
+	 */
+	static String index(DatabaseObject dbo, String property, String value) {
+		var tags = tags(dbo, property);
+		if (tags != null) {
+			for (var i = 0; i < tags.length; i++) {
+				if (tags[i].equals(value)) {
+					return Integer.toString(i);
+				}
+			}
+		}
+		return value;
+	}
+}

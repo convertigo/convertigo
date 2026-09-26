@@ -162,6 +162,8 @@ public class Set extends JSonService {
 							var fc = new FormatedContent(pvalue);
 							setter.invoke(dbo, new Object[] { fc });
 						} else {
+							// a tag of the Eclipse Studio editors is set as its index
+							pvalue = PropertyTags.index(dbo, pname, pvalue);
 							var propertyValue = dbo.compileProperty(pname, pvalue).toString();
 							var oPropertyValue = createObject(ptc, propertyValue);
 

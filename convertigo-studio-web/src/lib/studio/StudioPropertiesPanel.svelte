@@ -609,6 +609,26 @@
 														name={row.name}
 														onChange={(rows) => (row.value = rows)}
 													/>
+												{:else if row.flags}
+													<div class="studio-properties__flags" role="group" aria-label={label}>
+														{#each row.flags as flag (flag.mask)}
+															<label class="studio-properties__flag">
+																<input
+																	type="checkbox"
+																	checked={(Number(row.value) & flag.mask) !== 0}
+																	onchange={(event) => {
+																		const mask = Number(row.value) || 0;
+																		row.value = String(
+																			event.currentTarget.checked
+																				? mask | flag.mask
+																				: mask & ~flag.mask
+																		);
+																	}}
+																/>
+																{flag.label}
+															</label>
+														{/each}
+													</div>
 												{:else if row.font}
 													<div class="studio-properties__fallback layout-x-low">
 														<code
@@ -817,6 +837,18 @@
 </div>
 
 <style>
+	.studio-properties__flags {
+		display: grid;
+		gap: 0.2rem;
+		font-size: 0.78rem;
+	}
+
+	.studio-properties__flag {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
 	.studio-properties {
 		height: 100%;
 		min-height: 0;

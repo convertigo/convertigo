@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.properties;
 
 import java.io.File;
+import java.util.Arrays;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -337,6 +338,19 @@ public class Get extends JSonService {
 			}
 		} else {
 			property.put("value", "n/a");
+		}
+		var tags = PropertyTags.tags(dbo, elt.getAttribute("name"));
+		if (tags != null && property.has("value")) {
+			// an index of the tags of an Eclipse Studio editor, shown as its tag
+			var value = property.getString("value");
+			if (value.matches("\\d+") && Integer.parseInt(value) < tags.length) {
+				property.put("value", tags[Integer.parseInt(value)]);
+			}
+			property.put("values", new JSONArray(Arrays.asList(tags)));
+		}
+		var flags = PropertyTags.flags(dbo, elt.getAttribute("name"));
+		if (flags != null) {
+			property.put("flags", flags);
 		}
 		property.put("class", nodeName);
 		property.put("kind", "dbo");

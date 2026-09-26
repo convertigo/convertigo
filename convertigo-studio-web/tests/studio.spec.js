@@ -673,6 +673,27 @@ test('studio chooses the font of an application among the fonts of the catalog',
 	});
 });
 
+test('studio sets the visibility of a variable with its masks', async ({ page }) => {
+	const propertyUpdates = [];
+	await mockStudioServices(page, { propertyUpdates, flagsProperty: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
+	const flags = page.getByRole('group', { name: 'Visibility' });
+	await expect(flags.getByRole('checkbox', { name: 'Mask in the log files' })).toBeChecked();
+	await expect(flags.getByRole('checkbox', { name: 'Mask in the Studio' })).not.toBeChecked();
+	await flags.getByRole('checkbox', { name: 'Mask in the Studio' }).check();
+	await flags.getByRole('checkbox', { name: 'Mask in the log files' }).uncheck();
+
+	await page.getByRole('button', { name: 'Apply', exact: true }).click();
+	await expect.poll(() => propertyUpdates.length).toBe(1);
+	const props = JSON.parse(propertyUpdates[0].get('props') ?? '[]');
+	expect(props[0]).toMatchObject({ name: 'visibility', value: '2' });
+});
+
 test('studio treats an empty legacy Flow binding as an editable literal', async ({ page }) => {
 	const propertyUpdates = [];
 	const flowPickerRequests = [];
@@ -1488,6 +1509,7 @@ function responseEditor(page) {
  *  flowPicker?: boolean,
  *  qnameProperty?: boolean,
  *  fontProperty?: boolean,
+ *  flagsProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1668,6 +1690,7 @@ function serviceName(url) {
  *  flowPicker?: boolean,
  *  qnameProperty?: boolean,
  *  fontProperty?: boolean,
+ *  flagsProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1743,6 +1766,22 @@ function responseForService(service, params, options = {}) {
 						type: 'java.lang.String',
 						isMultiline: true
 					},
+					...(options.flagsProperty
+						? {
+								Visibility: {
+									name: 'visibility',
+									displayName: 'Visibility',
+									category: 'Base properties',
+									class: 'java.lang.Integer',
+									kind: 'dbo',
+									value: '1',
+									flags: [
+										{ label: 'Mask in the log files', mask: 1 },
+										{ label: 'Mask in the Studio', mask: 2 }
+									]
+								}
+							}
+						: {}),
 					...(options.fontProperty
 						? {
 								Definition: {
