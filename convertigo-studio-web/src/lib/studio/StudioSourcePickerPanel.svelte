@@ -2,6 +2,7 @@
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call } from '$lib/utils/service';
+	import { untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import {
 		applySourcePickerDrop,
@@ -101,7 +102,8 @@
 	 *  frontendThemeContext?: { mode: string, palette: string, tokens: any[] } | null,
 	 *  onSelectObject?: (id: string) => void,
 	 *  onApply?: (id: string, sourceDefinition?: any) => void | Promise<void>,
-	 *  onChange?: (value: any, validation?: {valid: boolean, error: string}) => void
+	 *  onChange?: (value: any, validation?: {valid: boolean, error: string}) => void,
+	 *  onPick?: (sourceDefinition: string[], label: string) => void
 	 * }}
 	 */
 	let {
@@ -112,10 +114,15 @@
 		frontendThemeContext = null,
 		onSelectObject = () => {},
 		onApply = () => {},
-		onChange = () => {}
+		onChange = () => {},
+		onPick = undefined
 	} = $props();
 
 	let linked = $state(true);
+	/** @type {{ priority: string, label: string, depth: number, pickable: boolean }[]} */
+	let sourceSteps = $state([]);
+	/** the step chosen as the source of a cell, before a node of its XML */
+	let chosenPriority = $state('');
 	let loading = $state(false);
 	let evaluating = $state(false);
 	let applying = $state(false);
@@ -147,7 +154,15 @@
 	let ngxPicker = $derived(isNgxPickerTarget(pickerTarget));
 	let ngxDirectFilter = $derived(ngxFilter === 'Icon' || ngxFilter === 'Asset');
 	let canApply = $derived(
-		Boolean(!ngxPicker && pickerTarget?.id && pickerTarget?.propertyName && model?.available)
+		Boolean(
+			!ngxPicker &&
+			pickerTarget?.id &&
+			pickerTarget?.propertyName &&
+			model?.available &&
+			// a cell takes a source among the steps before its step
+			(!onPick ||
+				sourceSteps.some((step) => step.pickable && step.priority === model?.sourcePriority))
+		)
 	);
 	let canApplyNgx = $derived(
 		Boolean(
@@ -178,6 +193,26 @@
 		}
 		const serial = ++loadSerial;
 		void loadSource(request, serial);
+	});
+
+	$effect(() => {
+		// the steps a cell can take its source from, as the step source editor of the Eclipse Studio
+		const id = onPick ? (pickerTarget?.id ?? '') : '';
+		void pickerTarget?.serial;
+		chosenPriority = '';
+		sourceSteps = [];
+		if (!id) {
+			return;
+		}
+		void call('studio.sourcepicker.Steps', { id }).then((result) => {
+			if (pickerTarget?.id !== id) {
+				return;
+			}
+			sourceSteps = Array.isArray(result?.steps) ? result.steps : [];
+			if (!untrack(() => targetSource.sourcePriority)) {
+				chosenPriority = sourceSteps.findLast((step) => step.pickable)?.priority ?? '';
+			}
+		});
 	});
 
 	$effect(() => {
@@ -220,6 +255,14 @@
 	 */
 	function sourceRequest() {
 		const targetId = pickerTarget?.id ?? '';
+		if (onPick && targetId) {
+			const changed = Boolean(chosenPriority) && chosenPriority !== targetSource.sourcePriority;
+			return {
+				id: targetId,
+				sourcePriority: chosenPriority || targetSource.sourcePriority,
+				xpath: changed ? '.' : targetSource.xpath
+			};
+		}
 		const currentSelection = selectedId || targetId;
 		const useExistingSource = Boolean(
 			targetId && currentSelection === targetId && targetSource.sourcePriority
@@ -582,6 +625,18 @@
 
 	async function applySource() {
 		if (!canApply || !pickerTarget?.propertyName || !model?.sourcePriority) {
+			return;
+		}
+		if (onPick) {
+			// the source goes to its editor, as a cell of a table, which saves it with the other changes
+			const payload = makeSourcePayload(
+				model.displayXpath || fullXPathInput(),
+				relativeXPath || '.'
+			);
+			onPick(
+				sourceDefinitionFromPayload(payload),
+				payload.data.displayXpath || payload.data.sourceName || ''
+			);
 			return;
 		}
 		applying = true;
@@ -1033,13 +1088,28 @@
 					Apply
 				</button>
 			{:else}
-				<StudioIconButton
-					icon="mdi:link-variant"
-					active={linked}
-					aria-pressed={linked}
-					title="Link with the projects tree selection"
-					onclick={() => (linked = !linked)}
-				/>
+				{#if onPick}
+					<select
+						class="studio-source-picker__filter input"
+						aria-label="Source step"
+						value={chosenPriority || targetSource.sourcePriority}
+						onchange={(event) => (chosenPriority = event.currentTarget.value)}
+					>
+						{#each sourceSteps as step (step.priority)}
+							<option value={step.priority} disabled={!step.pickable}
+								>{'\u00a0\u00a0'.repeat(step.depth)}{step.label}</option
+							>
+						{/each}
+					</select>
+				{:else}
+					<StudioIconButton
+						icon="mdi:link-variant"
+						active={linked}
+						aria-pressed={linked}
+						title="Link with the projects tree selection"
+						onclick={() => (linked = !linked)}
+					/>
+				{/if}
 				<StudioIconButton
 					icon="mdi:target"
 					disabled={!model?.sourceId}

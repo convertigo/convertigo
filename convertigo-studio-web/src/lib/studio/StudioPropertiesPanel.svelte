@@ -39,8 +39,8 @@
 	 *  onSave?: (id: string, result?: any) => void | Promise<void>,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onOpenPropertyEditor?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void,
-	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string }) => void,
-	 *  pickerTarget?: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string } | null,
+	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string, row?: number, column?: number }) => void,
+	 *  pickerTarget?: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string, row?: number, column?: number } | null,
 	 *  pickerRequest?: { id: string, propertyName: string, serial: number } | null,
 	 *  identityItem?: { id?: string, name?: string, classname?: string, instanceName?: string, icon?: string } | null,
 	 *  frontendThemeContext?: { mode: string, palette: string, tokens: any[] } | null,
@@ -562,6 +562,68 @@
 		});
 	}
 
+	/**
+	 * Opens the source picker on a step source of a table, as the Sources of the XML action steps.
+	 * @param {any} row
+	 * @param {number} rowIndex
+	 * @param {number} column
+	 * @param {string[]} source
+	 */
+	function openTableSourcePicker(row, rowIndex, column, source) {
+		onOpenPropertyPicker?.({
+			id: selectedId,
+			propertyName: row?.name,
+			displayName: row?.displayName,
+			value: source,
+			kind: row?.kind,
+			editorClass: row?.editorClass,
+			row: rowIndex,
+			column
+		});
+	}
+
+	/**
+	 * @param {any} row
+	 * @returns {{ row: number, column: number } | null} the cell of a table the picker chooses a source for
+	 */
+	function pickingCellOf(row) {
+		const target = pickerTarget;
+		return target &&
+			isPickerOpen(row) &&
+			typeof target.row === 'number' &&
+			typeof target.column === 'number'
+			? { row: target.row, column: target.column }
+			: null;
+	}
+
+	/**
+	 * Puts the source chosen in the picker in its cell, which the Apply saves with the table.
+	 * @param {any} row
+	 * @param {string[]} source
+	 * @param {string} label
+	 */
+	function pickTableSource(row, source, label) {
+		const target = pickerTarget;
+		if (
+			!target ||
+			typeof target.row !== 'number' ||
+			typeof target.column !== 'number' ||
+			!Array.isArray(row.value?.[target.row])
+		) {
+			return;
+		}
+		const { row: targetRow, column: targetColumn } = target;
+		row.value = row.value.map((/** @type {any[]} */ cells, /** @type {number} */ index) =>
+			index === targetRow
+				? cells.map((cell, column) => (column === targetColumn ? source : cell))
+				: cells
+		);
+		// the label of the source until the engine names it
+		row.sourceLabels = { ...row.sourceLabels, [`${source[0]} ${source[1]}`]: label };
+		// the picker closes, as the cell editor of the Eclipse Studio
+		onOpenPropertyPicker?.(target);
+	}
+
 	function isPickerOpen(row) {
 		return isSamePropertyPickerTarget(pickerTarget, {
 			id: selectedId,
@@ -650,7 +712,11 @@
 														value={row.value}
 														editorClass={row.editorClass}
 														name={row.name}
+														sourceLabels={row.sourceLabels}
+														pickingCell={pickingCellOf(row)}
 														onChange={(rows) => (row.value = rows)}
+														onPickSource={(rowIndex, column, source) =>
+															openTableSourcePicker(row, rowIndex, column, source)}
 													/>
 												{:else if row.flags}
 													<div class="studio-properties__flags" role="group" aria-label={label}>
@@ -808,6 +874,9 @@
 														{frontendThemeContext}
 														onApply={onPickerApply}
 														onChange={updatePickerDraft}
+														onPick={row.table && typeof pickerTarget?.row === 'number'
+															? (source, label) => pickTableSource(row, source, label)
+															: undefined}
 														embedded
 													/>
 												</div>

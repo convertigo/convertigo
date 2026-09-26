@@ -331,6 +331,11 @@ public class Get extends JSonService {
 				} else if (rows != null) {
 					property.put("value", rows);
 					property.put("table", true);
+					var labels = sourceLabels(dbo, rows);
+					if (labels.length() > 0) {
+						// the step sources of the cells, as the source picker names them
+						property.put("sourceLabels", labels);
+					}
 				} else {
 					property.put("value", "n/a");
 				}
@@ -368,6 +373,26 @@ public class Get extends JSonService {
 		if (shouldAdd) {
 			props.put(displayName, property);
 		}
+	}
+
+	/**
+	 * @return the labels of the step sources of the cells, by their priority and xpath separated by a space
+	 */
+	private static JSONObject sourceLabels(DatabaseObject dbo, JSONArray rows) throws Exception {
+		var labels = new JSONObject();
+		for (int r = 0; r < rows.length(); r++) {
+			var row = rows.getJSONArray(r);
+			for (int c = 0; c < row.length(); c++) {
+				if (row.get(c) instanceof JSONArray source && source.length() > 1) {
+					var definition = new XMLVector<String>();
+					for (int i = 0; i < source.length(); i++) {
+						definition.add(source.optString(i));
+					}
+					labels.put(source.optString(0) + " " + source.optString(1), sourceLabel(dbo, definition));
+				}
+			}
+		}
+		return labels;
 	}
 
 	private static String sourceLabel(DatabaseObject dbo, XMLVector<String> definition) {

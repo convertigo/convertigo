@@ -36,8 +36,8 @@ export function isSamePropertyPickerTarget(current, target) {
 }
 
 /**
- * Keeps the inline picker exclusive: clicking the same property closes it,
- * while clicking another property transfers the picker to that property.
+ * Keeps the inline picker exclusive: clicking the same property, or the same cell of a table, closes
+ * it, while clicking another property or cell transfers the picker to it.
  *
  * @param {any} current
  * @param {any} target
@@ -48,7 +48,11 @@ export function togglePropertyPickerTarget(current, target, serial = Date.now())
 	if (!target?.id) {
 		return current ?? null;
 	}
-	if (isSamePropertyPickerTarget(current, target)) {
+	if (
+		isSamePropertyPickerTarget(current, target) &&
+		current.row === target.row &&
+		current.column === target.column
+	) {
 		return null;
 	}
 	return { ...target, serial };

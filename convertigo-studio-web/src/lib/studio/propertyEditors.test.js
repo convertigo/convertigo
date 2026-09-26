@@ -171,6 +171,19 @@ describe('Studio inline property picker', () => {
 
 		expect(togglePropertyPickerTarget(current, next, 2)).toEqual({ ...next, serial: 2 });
 	});
+
+	it('moves between the cells of a table and closes on the same cell', () => {
+		const current = {
+			id: 'P.sq:S.st:concat',
+			propertyName: 'sourcesDefinition',
+			row: 0,
+			column: 1
+		};
+		const next = { ...current, row: 1 };
+
+		expect(togglePropertyPickerTarget(current, next, 2)).toEqual({ ...next, serial: 2 });
+		expect(togglePropertyPickerTarget(current, { ...current }, 2)).toBeNull();
+	});
 });
 
 describe('Studio property choices', () => {

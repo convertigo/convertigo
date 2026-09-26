@@ -4,29 +4,56 @@
 
 	/**
 	 * Edits a table property as the table editors of the Eclipse Studio: its rows of cells, each column a
-	 * text or a choice, with rows to add, move and remove.
+	 * text, a choice or a step source the source picker chooses, with rows to add, move and remove.
 	 *
 	 * @type {{
 	 *  value: any[][],
 	 *  editorClass?: string,
 	 *  name?: string,
-	 *  onChange?: (rows: string[][]) => void
+	 *  sourceLabels?: Record<string, string>,
+	 *  pickingCell?: { row: number, column: number } | null,
+	 *  onChange?: (rows: any[][]) => void,
+	 *  onPickSource?: (row: number, column: number, source: string[]) => void
 	 * }}
 	 */
-	let { value = [], editorClass = '', name = '', onChange } = $props();
+	let {
+		value = [],
+		editorClass = '',
+		name = '',
+		sourceLabels = {},
+		pickingCell = null,
+		onChange,
+		onPickSource
+	} = $props();
 
 	let rows = $derived(
 		(Array.isArray(value) ? value : []).map((row) =>
-			(Array.isArray(row) ? row : [row]).map((cell) => String(cell ?? ''))
+			(Array.isArray(row) ? row : [row]).map((cell) =>
+				Array.isArray(cell) ? cell.map(String) : String(cell ?? '')
+			)
 		)
 	);
 	let editor = $derived(propertyTableEditor(editorClass, rows, name));
 
 	/**
-	 * @param {string[][]} next
+	 * @param {any[][]} next
 	 */
 	function change(next) {
 		onChange?.(next);
+	}
+
+	/**
+	 * @param {number} rowIndex
+	 * @param {number} columnIndex
+	 * @returns {string} the label of a step source, as the source picker names it
+	 */
+	function sourceLabel(rowIndex, columnIndex) {
+		const cell = rows[rowIndex]?.[columnIndex];
+		const source = Array.isArray(cell) ? cell : [];
+		if (!source.length) {
+			return 'No source';
+		}
+		return sourceLabels?.[`${source[0]} ${source[1]}`] || source[1] || '.';
 	}
 
 	/**
@@ -74,7 +101,28 @@
 				<tr>
 					{#each editor.columns as column, columnIndex (column)}
 						<td>
-							{#if editor.choices?.[columnIndex]}
+							{#if editor.sources?.includes(columnIndex)}
+								<button
+									type="button"
+									class={[
+										'studio-table-property__source',
+										pickingCell?.row === rowIndex &&
+											pickingCell?.column === columnIndex &&
+											'studio-table-property__source--active'
+									]}
+									aria-label={column}
+									title="Choose the source in the picker"
+									onclick={() =>
+										onPickSource?.(
+											rowIndex,
+											columnIndex,
+											Array.isArray(row[columnIndex]) ? row[columnIndex] : []
+										)}
+								>
+									<Ico icon="mdi:target" size={3} />
+									<span>{sourceLabel(rowIndex, columnIndex)}</span>
+								</button>
+							{:else if editor.choices?.[columnIndex]}
 								<select
 									class="select-common"
 									aria-label={column}
@@ -129,7 +177,8 @@
 	<button
 		type="button"
 		class="studio-table-property__add"
-		onclick={() => change([...rows, [...editor.template]])}
+		onclick={() =>
+			change([...rows, editor.template.map((cell) => (Array.isArray(cell) ? [...cell] : cell))])}
 	>
 		<Ico icon="mdi:plus" size={4} /> Add a row
 	</button>
@@ -167,6 +216,35 @@
 		height: 1.6rem;
 		padding: 0 0.35rem;
 		font-size: 0.75rem;
+	}
+
+	.studio-table-property__source {
+		display: flex;
+		width: 100%;
+		min-width: 7rem;
+		height: 1.6rem;
+		align-items: center;
+		gap: 0.3rem;
+		overflow: hidden;
+		border: 1px solid var(--studio-line);
+		border-radius: 0.25rem;
+		background: transparent;
+		color: var(--studio-text);
+		padding: 0 0.35rem;
+		font-size: 0.75rem;
+		text-align: left;
+	}
+
+	.studio-table-property__source span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-table-property__source:hover,
+	.studio-table-property__source--active {
+		border-color: var(--color-primary-500);
+		color: var(--studio-text-strong);
 	}
 
 	.studio-table-property__actions {

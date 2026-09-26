@@ -33,8 +33,8 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 /**
  * The table properties of the objects, the XMLVector of rows the table editors of the Eclipse Studio edit,
- * for the web Studio: rows of text, number or boolean cells. A list of cells is a step source, the source
- * picker edits it.
+ * for the web Studio: rows of text, number or boolean cells. A list of texts is a step source, its priority
+ * and its xpath, which the source picker edits, as the Sources of the XML action steps.
  */
 class PropertyTables {
 
@@ -70,7 +70,7 @@ class PropertyTables {
 		return null;
 	}
 
-	private static JSONArray toJson(Object value) {
+	private static JSONArray toJson(Object value) throws Exception {
 		if (!(value instanceof XMLVector<?> vector)) {
 			return null;
 		}
@@ -81,10 +81,13 @@ class PropertyTables {
 			}
 			var row = new JSONArray();
 			for (var cell : cells) {
-				if (!isScalar(cell)) {
+				if (cell instanceof XMLVector<?> source) {
+					row.put(new JSONArray(source));
+				} else if (isScalar(cell)) {
+					row.put(cell == null ? "" : cell);
+				} else {
 					return null;
 				}
-				row.put(cell == null ? "" : cell);
 			}
 			rows.put(row);
 		}
@@ -126,8 +129,20 @@ class PropertyTables {
 		return cell == null || cell instanceof String || cell instanceof Number || cell instanceof Boolean;
 	}
 
-	private static Object convert(Object cell, Class<?> type) {
+	private static Object convert(Object cell, Class<?> type) throws Exception {
+		if (cell instanceof JSONArray source) {
+			// a step source, its priority and its xpath
+			var definition = new XMLVector<String>();
+			for (int i = 0; i < source.length(); i++) {
+				definition.add(source.optString(i));
+			}
+			return definition;
+		}
 		var text = cell == null || cell == JSONObject.NULL ? "" : cell.toString();
+		if (type != null && XMLVector.class.isAssignableFrom(type)) {
+			// no source yet
+			return new XMLVector<String>();
+		}
 		try {
 			if (type == Integer.class) {
 				return Integer.valueOf(text.trim());

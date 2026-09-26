@@ -32,6 +32,13 @@ describe('propertyTables', () => {
 		expect(propertyTableEditor('', [], 'httpHeaderForward')).toBe(headers);
 	});
 
+	it('edits the sources of the XML action steps with the source picker', () => {
+		const editor = propertyTableEditor('', [], 'sourcesDefinition');
+		expect(editor.columns).toEqual(['Description', 'Source', 'Default value']);
+		expect(editor.sources).toEqual([1]);
+		expect(editor.template[1]).toEqual([]);
+	});
+
 	it('numbers the columns of an unknown table', () => {
 		const editor = propertyTableEditor(undefined, [['a'], ['b', 'c', 'd']], 'unknown');
 		expect(editor.columns).toEqual(['Column 1', 'Column 2', 'Column 3']);

@@ -2,9 +2,10 @@
  * The table properties of the objects, as the table editors of the Eclipse Studio describe them: their
  * columns, the cells of a new row and the choices of a column. A table of another editor gets numbered
  * columns. An engine without the Eclipse Studio gives no editor class, the editor is then found by the
- * name of the property.
+ * name of the property. Some columns are step sources, a priority and an xpath the source picker
+ * chooses.
  *
- * @typedef {{ title: string, columns: string[], template: string[], choices?: Record<number, string[]> }} PropertyTableEditor
+ * @typedef {{ title: string, columns: string[], template: (string | string[])[], choices?: Record<number, string[]>, sources?: number[] }} PropertyTableEditor
  */
 
 /** @type {Record<string, PropertyTableEditor>} */
@@ -13,6 +14,12 @@ export const PROPERTY_TABLE_EDITORS = {
 		title: 'Actions',
 		columns: ['Label', 'Command'],
 		template: ['label', 'command']
+	},
+	ActionStepSourcesEditor: {
+		title: 'Action sources',
+		columns: ['Description', 'Source', 'Default value'],
+		template: ['description', [], ''],
+		sources: [1]
 	},
 	ActionsForSelectionColumnEditor: {
 		title: 'Actions for selection column',
@@ -177,6 +184,7 @@ export const PROPERTY_TABLE_EDITOR_NAMES = /** @type {Record<string, string>} */
 	page_ts_imports: 'MobileConfigTsImportsEditor',
 	removableHeaders: 'RemovableHeadersEditor',
 	replacements: 'ReplacementsEditor',
+	sourcesDefinition: 'ActionStepSourcesEditor',
 	startTransactionVariables: 'StartTransactionVariablesEditor',
 	throttleEvents: 'NgxThrottleEventsEditor'
 });
