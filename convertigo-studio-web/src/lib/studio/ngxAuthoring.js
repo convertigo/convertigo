@@ -73,6 +73,8 @@ export function attachNgxAuthoring(doc, handlers) {
 	const win = doc.defaultView;
 	/** @type {Element[]} */
 	let selected = [];
+	/** @type {string[]} the classes of the selected component then of its parents */
+	let selectedClasses = [];
 	/** @type {Element | null} */
 	let hovered = null;
 	let selecting = false;
@@ -122,7 +124,10 @@ export function attachNgxAuthoring(doc, handlers) {
 		if (!doc.body) {
 			return;
 		}
-		selected = selected.filter((element) => element.isConnected);
+		if (!selected.length || selected.some((element) => !element.isConnected)) {
+			// the application shows its elements late or replaces them, as when a page opens or reloads
+			selected = selectedClasses.length ? elementsOf(doc, selectedClasses) : [];
+		}
 		while (selectedOverlays.length < selected.length) {
 			selectedOverlays.push(overlay('#e0443e'));
 		}
@@ -286,7 +291,8 @@ export function attachNgxAuthoring(doc, handlers) {
 		 * @returns {boolean} whether the preview shows the component
 		 */
 		highlight(classes) {
-			selected = doc.body ? elementsOf(doc, classes) : [];
+			selectedClasses = classes ?? [];
+			selected = doc.body ? elementsOf(doc, selectedClasses) : [];
 			const first = selected[0];
 			if (first) {
 				const rect = first.getBoundingClientRect();

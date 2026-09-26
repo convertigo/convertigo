@@ -238,19 +238,29 @@
 			if (shown || !reference?.segment || ngxNavigatedFor === reference.id) {
 				return;
 			}
-			// the page of the component is not shown: the application opens it
-			ngxNavigatedFor = reference.id;
-			try {
-				const win = /** @type {any} */ (iframe?.contentWindow);
-				if (typeof win?._c8o_changePage === 'function') {
-					win._c8o_changePage(reference.segment);
-					setTimeout(() => authoring.highlight(reference.classes), 600);
-				} else if (win) {
-					win.location.href = new URL(reference.segment, win.document.baseURI).href;
+			// the application may still be showing its page: the one of the component opens only if it
+			// does not show the component soon
+			setTimeout(() => {
+				if (
+					ngxAuthoring !== authoring ||
+					ngxReference !== reference ||
+					ngxNavigatedFor === reference.id ||
+					authoring.highlight(reference.classes)
+				) {
+					return;
 				}
-			} catch (error) {
-				console.warn('Unable to open the page of the component', error);
-			}
+				ngxNavigatedFor = reference.id;
+				try {
+					const win = /** @type {any} */ (iframe?.contentWindow);
+					if (typeof win?._c8o_changePage === 'function') {
+						win._c8o_changePage(reference.segment);
+					} else if (win) {
+						win.location.href = new URL(reference.segment, win.document.baseURI).href;
+					}
+				} catch (error) {
+					console.warn('Unable to open the page of the component', error);
+				}
+			}, 1000);
 		});
 	});
 
