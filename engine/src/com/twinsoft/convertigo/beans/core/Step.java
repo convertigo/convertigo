@@ -87,6 +87,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -646,8 +647,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			
 			Long key = priority;
 			
-			// We fire engine events only in studio mode.
-            if (Engine.isStudioMode()) {
+			// We fire engine events only in studio mode, or for a sequence the web Studio debugs.
+            if (Engine.isStudioMode() || Boolean.TRUE.equals(RequestAttribute.debug.get(sequence.context.httpServletRequest))) {
             	Step loadedStep = (Step) sequence.loadedSteps.get(key).getOriginal();
             	Engine.theApp.fireObjectDetected(new EngineEvent(loadedStep));
             	if (Engine.logBeans.isTraceEnabled())

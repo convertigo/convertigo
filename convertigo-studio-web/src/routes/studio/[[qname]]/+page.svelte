@@ -2904,6 +2904,7 @@
 		runTestcase={executionRunTestcase}
 		onRunTestcaseTaken={() => (executionRunTestcase = '')}
 		onChanged={markProjectDirty}
+		onDebugStep={(id) => (selectedId = id)}
 	/>
 {/snippet}
 

@@ -43,6 +43,7 @@
 	 *  runTestcase?: string,
 	 *  onRunTestcaseTaken?: () => void,
 	 *  onChanged?: (id: string) => void,
+	 *  onDebugStep?: (id: string) => void,
 	 *  disabled?: boolean,
 	 *  class?: string
 	 * }}
@@ -65,6 +66,7 @@
 		runTestcase = '',
 		onRunTestcaseTaken,
 		onChanged,
+		onDebugStep,
 		disabled = false,
 		class: cls = ''
 	} = $props();
@@ -107,6 +109,12 @@
 	let hasResponse = $derived(responseView.content.length > 0 || responseView.loading);
 	/** the response shown was run in the XML mode, without the sheet of the requestable */
 	let xmlResponse = $state(false);
+	/** the sequence runs in the debug mode, stopping before each step as in the Eclipse Studio */
+	let debug = $state(false);
+	let debugToken = $state('');
+	/** @type {{ active?: boolean, running?: boolean, paused?: boolean, stepByStep?: boolean, step?: { id: string, name: string } } | null} */
+	let debugState = $state(null);
+	let debuggable = $derived(stubbable && kind === 'sequence');
 	/** the stubs recorded for the requestable, the default one first */
 	let stubFiles = $state(/** @type {string[]} */ ([]));
 	let defaultStub = $state('');
@@ -175,6 +183,46 @@
 		const result = await call('studio.dbo.UpdateSchema', { id, xml: responseView.content });
 		if (result?.done) {
 			onChanged?.(id);
+		}
+	}
+
+	/**
+	 * Follows the debug session of a sequence run: its current step and, while it stops, the output
+	 * document built so far.
+	 * @param {string} token
+	 * @param {boolean} json
+	 */
+	async function followDebug(token, json) {
+		let stepId = '';
+		while (debugToken === token) {
+			const result = await call('studio.debug.Steps', { token, json: String(json) });
+			if (debugToken !== token) {
+				return;
+			}
+			const state = result?.state;
+			debugState = state?.active ? state : null;
+			if (state?.step?.id && state.step.id !== stepId) {
+				stepId = state.step.id;
+				onDebugStep?.(stepId);
+			}
+			if (state?.paused && typeof state.output === 'string') {
+				updateResponse({ content: state.output, language: json ? 'json' : 'xml' });
+			}
+			await new Promise((resolve) => setTimeout(resolve, state?.paused ? 700 : 300));
+		}
+	}
+
+	/**
+	 * @param {'step' | 'run' | 'pause' | 'stop'} action
+	 */
+	async function debugAction(action) {
+		const token = debugToken;
+		if (!token) {
+			return;
+		}
+		const result = await call('studio.debug.Steps', { token, action });
+		if (debugToken === token) {
+			debugState = result?.state?.active ? result.state : null;
 		}
 	}
 
@@ -555,8 +603,21 @@ console.log(await response.text());`;
 		}
 		updateResponse({ content: 'Loading ...', loading: true });
 		xmlResponse = mode.toUpperCase() === 'XML';
+		let token = '';
+		if (debug && debuggable) {
+			token = crypto.randomUUID();
+			await call('studio.debug.Steps', { action: 'start' });
+			fd.append('__debug', token);
+			debugToken = token;
+			void followDebug(token, mode.toUpperCase() === 'JSON');
+		}
 		try {
-			const data = await callRequestable(mode, projectName, fd);
+			const data = await callRequestable(mode, projectName, fd).finally(() => {
+				if (token && debugToken === token) {
+					debugToken = '';
+					debugState = null;
+				}
+			});
 			updateResponse({
 				content: await data.text(),
 				language: data.headers.get('Content-Type')?.includes('json') ? 'json' : 'xml'
@@ -708,6 +769,15 @@ console.log(await response.text());`;
 						{disabled}
 					/>
 				{/if}
+				{#if debuggable}
+					<label
+						class="requestable-execution__stub"
+						title="Stop before each step of the sequence, as the Debug mode of the Eclipse Studio"
+					>
+						<input type="checkbox" bind:checked={debug} disabled={disabled || !!debugToken} />
+						Debug
+					</label>
+				{/if}
 				{#if stubbable}
 					<label
 						class="requestable-execution__stub"
@@ -743,6 +813,49 @@ console.log(await response.text());`;
 			</ActionBar>
 		</div>
 
+		{#if debugState}
+			<div class="requestable-execution__debug" role="toolbar" aria-label="Sequence debug">
+				<span class="requestable-execution__debug-step">
+					<Ico icon={debugState.paused ? 'mdi:pause-circle-outline' : 'mdi:play'} size={4} />
+					{#if debugState.step}
+						{debugState.paused ? 'Stopped before' : 'Running'}
+						<strong>{debugState.step.name}</strong>
+					{:else}
+						Waiting for the first step
+					{/if}
+				</span>
+				<button
+					type="button"
+					class="button-secondary"
+					title="Run the step and stop before the next one"
+					disabled={!debugState.paused}
+					onclick={() => debugAction('step')}
+					><Ico icon="mdi:debug-step-over" size={4} /> Step</button
+				>
+				<button
+					type="button"
+					class="button-secondary"
+					title="Run without stopping"
+					disabled={!debugState.stepByStep}
+					onclick={() => debugAction('run')}><Ico icon="mdi:play" size={4} /> Run</button
+				>
+				<button
+					type="button"
+					class="button-secondary"
+					title="Stop before the next step"
+					disabled={debugState.stepByStep}
+					onclick={() => debugAction('pause')}><Ico icon="mdi:pause" size={4} /> Pause</button
+				>
+				<button
+					type="button"
+					class="button-secondary"
+					title="Stop debugging, the sequence runs on"
+					onclick={() => debugAction('stop')}
+					><Ico icon="mdi:stop" size={4} /> Stop debugging</button
+				>
+			</div>
+		{/if}
+
 		{#if hasResponse}
 			<div transition:fly={{ duration: 180, y: -24 }}>
 				{#key responseEditorKey}
@@ -750,7 +863,7 @@ console.log(await response.text());`;
 						content={responseView.content}
 						language={responseView.language}
 						theme={responseTheme}
-						loading={responseView.loading}
+						loading={responseView.loading && !debugState?.paused}
 					/>
 				{/key}
 			</div>
@@ -764,6 +877,34 @@ console.log(await response.text());`;
 		max-width: 14rem;
 		height: 1.9rem;
 		padding-block: 0;
+		font-size: 0.75rem;
+	}
+
+	.requestable-execution__debug {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.4rem;
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.45rem;
+		padding: 0.4rem 0.5rem;
+		font-size: 0.78rem;
+	}
+
+	.requestable-execution__debug-step {
+		display: inline-flex;
+		flex: 1;
+		align-items: center;
+		gap: 0.35rem;
+		min-width: 0;
+	}
+
+	.requestable-execution__debug button {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		height: 1.9rem;
+		padding-inline: 0.55rem;
 		font-size: 0.75rem;
 	}
 

@@ -23,7 +23,8 @@
 	 *  connectorName?: string,
 	 *  runTestcase?: string,
 	 *  onRunTestcaseTaken?: () => void,
-	 *  onChanged?: (id: string) => void
+	 *  onChanged?: (id: string) => void,
+	 *  onDebugStep?: (id: string) => void
 	 * }}
 	 */
 	let {
@@ -33,7 +34,8 @@
 		connectorName = '',
 		runTestcase = '',
 		onRunTestcaseTaken,
-		onChanged
+		onChanged,
+		onDebugStep
 	} = $props();
 
 	const modes = ['JSON', 'XML', 'BIN', 'CXML'];
@@ -157,6 +159,7 @@
 			{runTestcase}
 			{onRunTestcaseTaken}
 			{onChanged}
+			{onDebugStep}
 			testcaseValue={`${requestableKey}.testcases`}
 		/>
 	{/if}
