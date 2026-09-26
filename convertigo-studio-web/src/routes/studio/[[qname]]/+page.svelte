@@ -71,6 +71,7 @@
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
 	import StudioPropertiesPanel from '$lib/studio/StudioPropertiesPanel.svelte';
 	import StudioReferencesPanel from '$lib/studio/StudioReferencesPanel.svelte';
+	import StudioSapDesignDialog from '$lib/studio/StudioSapDesignDialog.svelte';
 	import StudioSchemaPanel from '$lib/studio/StudioSchemaPanel.svelte';
 	import StudioSearchPanel from '$lib/studio/StudioSearchPanel.svelte';
 	import StudioSharedComponentDialog from '$lib/studio/StudioSharedComponentDialog.svelte';
@@ -301,6 +302,7 @@
 	let handlersTargetId = $state('');
 	let copybookTargetId = $state('');
 	let sqlDesignTargetId = $state('');
+	let sapDesignTargetId = $state('');
 	/** the view of a design document to run, as the Execute actions of a view in Eclipse */
 	let couchViewRequest = $state(/** @type {{ id: string, reduce: boolean } | null} */ (null));
 	let statisticsProjectName = $state('');
@@ -2394,6 +2396,8 @@
 			copybookTargetId = nodeId;
 		} else if (action === 'dialog.sqlDesign') {
 			sqlDesignTargetId = nodeId;
+		} else if (action === 'dialog.sapDesign') {
+			sapDesignTargetId = nodeId;
 		} else if (action.startsWith('dialog.couchView:')) {
 			couchViewRequest = { id: nodeId, reduce: action === 'dialog.couchView:reduce' };
 		} else if (action === 'dialog.sharedComponent') {
@@ -3510,6 +3514,20 @@
 		id={couchViewRequest.id}
 		reduce={couchViewRequest.reduce}
 		onClose={() => (couchViewRequest = null)}
+	/>
+{/if}
+{#if sapDesignTargetId}
+	<StudioSapDesignDialog
+		id={sapDesignTargetId}
+		onDone={async (id) => {
+			const target = sapDesignTargetId;
+			sapDesignTargetId = '';
+			await refreshStudioProject(target);
+			refreshTreeContext(target, 'contextAction');
+			markProjectDirty(target);
+			selectedId = id;
+		}}
+		onClose={() => (sapDesignTargetId = '')}
 	/>
 {/if}
 {#if sqlDesignTargetId}

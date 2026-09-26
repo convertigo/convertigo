@@ -262,6 +262,11 @@ public class ObjectActions {
 			add(items, "object.testSql", "Test SQL connection", "Check the connection parameters of this connector.",
 					true, "mdi:database-check-outline");
 		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.connectors.SapJcoConnector) {
+			add(items, "object.sapDesign", "Import BAPIs…",
+					"Search the BAPIs of the SAP repository and import them as transactions of this connector.",
+					true, "mdi:database-import-outline").put("clientAction", "dialog.sapDesign");
+		}
 		if (dbo instanceof CicsTransaction) {
 			add(items, "object.importCopybook", "Import copybook…",
 					"Fill the input or the output map of this transaction from a COBOL copybook.", true, "mdi:import")
