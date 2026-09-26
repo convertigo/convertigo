@@ -59,7 +59,12 @@ export function createDatabaseObjectProperties() {
 			Array.isArray(property.value) || Array.isArray(property.originalValue)
 				? JSON.stringify(property.value) !== JSON.stringify(property.originalValue)
 				: property.value != property.originalValue;
-		return valueChanged || ('mode' in property && property.mode != property.originalMode);
+		return (
+			valueChanged ||
+			('mode' in property && property.mode != property.originalMode) ||
+			// a nillable value set to null or given a value again
+			('isNull' in property && property.isNull !== property.originalIsNull)
+		);
 	}
 
 	async function onSelectionChange(e) {
@@ -78,6 +83,7 @@ export function createDatabaseObjectProperties() {
 				displayName: k,
 				originalValue: p.value,
 				originalMode: p.mode,
+				originalIsNull: p.isNull,
 				...p,
 				category: normalizeCategory(p.category)
 			}));
@@ -94,6 +100,9 @@ export function createDatabaseObjectProperties() {
 			delete p.validation;
 			if ('mode' in p) {
 				p.mode = p.originalMode;
+			}
+			if ('isNull' in p) {
+				p.isNull = p.originalIsNull;
 			}
 		});
 	}
@@ -123,6 +132,9 @@ export function createDatabaseObjectProperties() {
 				p.originalValue = submitted[index].value;
 				if ('mode' in p) {
 					p.originalMode = submitted[index].mode;
+				}
+				if ('isNull' in p) {
+					p.originalIsNull = submitted[index].isNull;
 				}
 			});
 			await createUndefinedSymbols(saveId, res.undefinedSymbols);

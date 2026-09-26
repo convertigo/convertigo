@@ -345,6 +345,22 @@ public class Get extends JSonService {
 		} else {
 			property.put("value", "n/a");
 		}
+		var nillable = PropertyTables.nillableValue(dbo, elt.getAttribute("name"));
+		if (nillable != null) {
+			// a value that can be null, as the default value of a variable, and a list for a multi-valued one
+			property.put("nillable", true);
+			property.put("isNull", Boolean.TRUE.equals(((com.twinsoft.convertigo.beans.core.INillableProperty) dbo)
+					.isNullProperty(elt.getAttribute("name"))));
+			if (nillable instanceof XMLVector<?> list) {
+				var rows = new JSONArray();
+				for (var item : list) {
+					rows.put(new JSONArray().put(item == null ? "" : String.valueOf(item)));
+				}
+				property.put("value", rows);
+				property.put("table", true);
+				property.put("editorClass", "ArrayOrNullEditor");
+			}
+		}
 		var tags = PropertyTags.tags(dbo, elt.getAttribute("name"));
 		if (tags != null && property.has("value")) {
 			// an index of the tags of an Eclipse Studio editor, shown as its tag

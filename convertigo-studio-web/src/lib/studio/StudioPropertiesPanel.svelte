@@ -403,11 +403,30 @@
 	}
 
 	/**
+	 * Sets a value that can be null to null, or gives it a value again.
+	 * @param {any} row
+	 */
+	function toggleNull(row) {
+		row.isNull = !row.isNull;
+		if (row.isNull) {
+			row.value = row.table ? [] : '';
+		}
+	}
+
+	/**
 	 * @param {any} row
 	 * @returns {{ icon: string, title: string, active?: boolean, ariaExpanded?: boolean, onclick: () => void }[]}
 	 */
 	function propertyButtons(row) {
 		const buttons = [];
+		if (row?.nillable) {
+			// the null value of a variable, as the null button of the Eclipse Studio
+			buttons.push({
+				icon: 'mdi:null',
+				title: 'Set it to null',
+				onclick: () => toggleNull(row)
+			});
+		}
 		if (String(row?.editorClass ?? '').startsWith('flow-')) {
 			const binding = isFlowBindingProperty(row);
 			const label = String(row?.displayName ?? row?.name ?? 'property');
@@ -716,7 +735,34 @@
 											<div class="studio-properties__field-control">
 												{#if category == 'Information'}
 													<span class="studio-properties__static">{value}</span>
+												{:else if row.isNull}
+													<div class="studio-properties__fallback layout-x-low">
+														<code class="studio-properties__fallback-value studio-properties__null"
+															>null</code
+														>
+														<div class="studio-properties__fallback-actions layout-x-low">
+															<StudioIconButton
+																icon="mdi:null"
+																size="xs"
+																active
+																title="Give it a value"
+																ariaLabel={`Give ${label} a value`}
+																onclick={() => toggleNull(row)}
+															/>
+														</div>
+													</div>
 												{:else if row.table}
+													{#if row.nillable}
+														<div class="studio-properties__table-actions layout-x-end-none">
+															<StudioIconButton
+																icon="mdi:null"
+																size="xs"
+																title="Set it to null"
+																ariaLabel={`Set ${label} to null`}
+																onclick={() => toggleNull(row)}
+															/>
+														</div>
+													{/if}
 													<StudioTableProperty
 														value={row.value}
 														editorClass={row.editorClass}
@@ -1174,6 +1220,16 @@
 		max-width: 100%;
 		overflow-wrap: anywhere;
 		font-size: 0.76rem;
+	}
+
+	.studio-properties__table-actions {
+		margin-bottom: 0.15rem;
+	}
+
+	.studio-properties__null {
+		color: var(--studio-text-idle);
+		font-family: var(--font-mono, monospace);
+		font-style: italic;
 	}
 
 	.studio-properties__fallback {

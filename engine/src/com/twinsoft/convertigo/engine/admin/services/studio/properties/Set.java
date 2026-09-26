@@ -93,6 +93,12 @@ public class Set extends JSonService {
 				Object rawValue = jsonObject.get("value");
 				var pvalue = rawValue instanceof JSONArray ? rawValue.toString() : jsonObject.getString("value");
 				var mode = jsonObject.has("mode") ? jsonObject.getString("mode") : "plain";
+				if (PropertyTables.setNillable(dbo, pname, rawValue, jsonObject.optBoolean("isNull", false))) {
+					// the default value of a variable, null or a text, a list for a multi-valued one
+					done = true;
+					dbo.hasChanged = true;
+					continue;
+				}
 
 				var msst = new MobileSmartSourceType(pvalue);
 				if ("script".equals(mode)) {

@@ -70,6 +70,55 @@ class PropertyTables {
 		return null;
 	}
 
+	/**
+	 * @return the value of a property that can be null, as the default value of a variable: a text, or a
+	 *         list for a multi-valued variable; null for another property
+	 */
+	static Object nillableValue(DatabaseObject dbo, String name) {
+		if (!(dbo instanceof com.twinsoft.convertigo.beans.core.INillableProperty)) {
+			return null;
+		}
+		try {
+			for (var pd : Introspector.getBeanInfo(dbo.getClass()).getPropertyDescriptors()) {
+				if (pd.getName().equals(name) && pd.getReadMethod() != null
+						&& Boolean.TRUE.equals(pd.getValue(com.twinsoft.convertigo.beans.core.MySimpleBeanInfo.NILLABLE))) {
+					var value = pd.getReadMethod().invoke(dbo);
+					return value == null ? "" : value;
+				}
+			}
+		} catch (Exception e) {
+			// not nillable
+		}
+		return null;
+	}
+
+	/**
+	 * Sets a property that can be null, as the Eclipse Studio sets the default value of a variable: its
+	 * setValueOrNull keeps the type of the value, a list for a multi-valued variable.
+	 *
+	 * @return whether the property is one that can be null
+	 */
+	static boolean setNillable(DatabaseObject dbo, String name, Object value, boolean isNull) throws Exception {
+		if (nillableValue(dbo, name) == null || !"value".equals(name)) {
+			return false;
+		}
+		Object newValue = null;
+		if (!isNull) {
+			if (value instanceof JSONArray rows) {
+				var list = new XMLVector<Object>();
+				for (int i = 0; i < rows.length(); i++) {
+					var row = rows.get(i);
+					list.add(row instanceof JSONArray cells ? cells.optString(0) : String.valueOf(row));
+				}
+				newValue = list;
+			} else {
+				newValue = value == null || value == JSONObject.NULL ? "" : value.toString();
+			}
+		}
+		dbo.getClass().getMethod("setValueOrNull", Object.class).invoke(dbo, newValue);
+		return true;
+	}
+
 	private static JSONArray toJson(Object value) throws Exception {
 		if (!(value instanceof XMLVector<?> vector)) {
 			return null;

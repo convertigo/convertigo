@@ -90,6 +90,36 @@ describe('createDatabaseObjectProperties', () => {
 		}
 	);
 
+	it('saves a value set to null and cancels it', async () => {
+		vi.mocked(call).mockResolvedValueOnce({
+			properties: {
+				Value: {
+					name: 'value',
+					category: 'Base properties',
+					value: 'text',
+					nillable: true,
+					isNull: false
+				}
+			}
+		});
+		const model = createDatabaseObjectProperties();
+		await model.onSelectionChange({ selectedValue: ['Project.sq:Sequence.vr:v'] });
+		const row = model.properties[0];
+		row.isNull = true;
+		row.value = '';
+		expect(model.hasChanges).toBe(true);
+		model.cancel();
+		expect(row.isNull).toBe(false);
+		expect(row.value).toBe('text');
+		row.isNull = true;
+		vi.mocked(call).mockResolvedValueOnce({ done: true });
+		expect(await model.save({ persist: false })).toBe(true);
+		expect(JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1]?.props ?? '[]')[0]).toMatchObject({
+			isNull: true
+		});
+		expect(model.hasChanges).toBe(false);
+	});
+
 	it('offers to create the undefined global symbols of the saved properties', async () => {
 		vi.mocked(call).mockResolvedValueOnce(propertiesResponse('before'));
 		const model = createDatabaseObjectProperties();

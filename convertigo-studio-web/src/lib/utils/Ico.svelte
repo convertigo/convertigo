@@ -133,6 +133,7 @@
 	import MdiMonitor from '~icons/mdi/monitor';
 	import MdiMonitorDashboard from '~icons/mdi/monitor-dashboard';
 	import MdiMoonAndStars from '~icons/mdi/moon-and-stars';
+	import MdiNull from '~icons/mdi/null';
 	import MdiOpenInNew from '~icons/mdi/open-in-new';
 	import MdiPackageVariantClosed from '~icons/mdi/package-variant-closed';
 	import MdiPaletteOutline from '~icons/mdi/palette-outline';
@@ -321,6 +322,7 @@
 		'mdi:lock-open-variant': MdiLockOpenVariant,
 		'mdi:lightbulb-on-outline': MdiLightbulbOnOutline,
 		'mdi:lock-outline': MdiLockOutline,
+		'mdi:null': MdiNull,
 		'mdi:lock': MdiLock,
 		'mdi:magnify': MdiMagnify,
 		'mdi:magnify-minus-outline': MdiMagnifyMinusOutline,
