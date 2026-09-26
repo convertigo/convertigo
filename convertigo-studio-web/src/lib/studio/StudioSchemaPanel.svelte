@@ -17,7 +17,7 @@
 	 */
 	let { selectedId = '', projectName = '', active = false } = $props();
 
-	/** @typedef {{ project: string, schemas: { namespace: string, xsd: string }[], valid: boolean, message: string }} SchemaInfo */
+	/** @typedef {{ project: string, schemas: { namespace: string, xsd: string, elements?: string[] }[], valid: boolean, message: string }} SchemaInfo */
 	let schema = $state.raw(/** @type {SchemaInfo | null} */ (null));
 	let namespace = $state('');
 	let full = $state(false);
@@ -29,6 +29,37 @@
 		schema?.schemas.find((candidate) => candidate.namespace === namespace) ?? schema?.schemas[0]
 	);
 	let theme = $derived(LightSvelte.light ? '' : 'vs-dark');
+	/** an element of the schema whose XML instance shows, as the Schema view of the Eclipse Studio shows it */
+	let element = $state('');
+	let sample = $state('');
+
+	$effect(() => {
+		// another namespace shows its XSD
+		void namespace;
+		element = '';
+		sample = '';
+	});
+
+	/**
+	 * @param {string} name
+	 */
+	async function showSample(name) {
+		element = name;
+		sample = '';
+		if (!name || !current) {
+			return;
+		}
+		const result = await call('studio.treeview.Schema', {
+			id: selectedId,
+			full: String(full),
+			action: 'sample',
+			namespace: current.namespace,
+			element: name
+		});
+		if (element === name) {
+			sample = String(result?.sample ?? result?.error?.message ?? '');
+		}
+	}
 
 	$effect(() => {
 		const key = `${projectName}\u0000${full}`;
@@ -96,6 +127,19 @@
 				<input type="checkbox" bind:checked={full} />
 				Full schema
 			</label>
+			<select
+				class="select-common"
+				value={element}
+				aria-label="Sample of an element"
+				title="Show an XML instance of an element of the schema"
+				disabled={!current?.elements?.length}
+				onchange={(event) => void showSample(event.currentTarget.value)}
+			>
+				<option value="">XSD</option>
+				{#each current?.elements ?? [] as name (name)}
+					<option value={name}>Sample of {name}</option>
+				{/each}
+			</select>
 			<button
 				type="button"
 				class="studio-schema__refresh"
@@ -120,6 +164,15 @@
 				<StudioEmptyState message={`Generating the ${projectName} schema`} loading small />
 			{:else if error}
 				<p class="studio-schema__error">{error}</p>
+			{:else if current && element}
+				{#key `${current.namespace}\u0000${element}\u0000${sample ? 'sample' : ''}`}
+					<Editor
+						content={sample || 'Building the sample…'}
+						language="xml"
+						{theme}
+						readOnly={true}
+					/>
+				{/key}
 			{:else if current}
 				{#key current.namespace}
 					<Editor content={current.xsd} language="xml" {theme} readOnly={true} />

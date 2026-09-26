@@ -45,7 +45,8 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
  * <li>full: true for the full schema, with the internal types of the transactions</li>
  * <li>refresh: true to generate it again instead of using the cached one</li>
  * <li>action: validate to check an XML response against the schema, as the auto validate of the Schema
- * view: requestable (the sequence, or connector__transaction) and xml</li>
+ * view: requestable (the sequence, or connector__transaction) and xml; or sample for an XML instance of an
+ * element, as the Schema view shows it: namespace and element</li>
  * </ul>
  */
 @ServiceDefinition(name = "Schema", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -84,6 +85,21 @@ public class Schema extends JSonService {
 				? Engine.theApp.schemaManager.getSchemasForProject(projectName, Option.fullSchema)
 				: Engine.theApp.schemaManager.getSchemasForProject(projectName);
 
+		if ("sample".equals(request.getParameter("action"))) {
+			var namespace = String.valueOf(request.getParameter("namespace"));
+			var name = String.valueOf(request.getParameter("element"));
+			for (var schema : collection.getXmlSchemas()) {
+				if (namespace.equals(schema.getTargetNamespace() == null ? "" : schema.getTargetNamespace())) {
+					var element = schema.getElements().getItem(new javax.xml.namespace.QName(schema.getTargetNamespace(), name));
+					if (element != null) {
+						var instance = com.twinsoft.convertigo.engine.util.XmlSchemaUtils.getDomInstance(element);
+						response.put("sample", com.twinsoft.convertigo.engine.util.XMLUtils.prettyPrintDOM(instance));
+						return;
+					}
+				}
+			}
+			throw new ServiceException("The element " + name + " is not in the schema.");
+		}
 		var schemas = new JSONArray();
 		for (var schema : collection.getXmlSchemas()) {
 			var namespace = schema.getTargetNamespace();
@@ -92,9 +108,14 @@ public class Schema extends JSonService {
 			}
 			var out = new ByteArrayOutputStream();
 			schema.write(out);
+			var elements = new java.util.TreeSet<String>();
+			for (var names = schema.getElements().getNames(); names.hasNext();) {
+				elements.add(((javax.xml.namespace.QName) names.next()).getLocalPart());
+			}
 			schemas.put(new JSONObject()
 					.put("namespace", namespace == null ? "" : namespace)
-					.put("xsd", out.toString(StandardCharsets.UTF_8)));
+					.put("xsd", out.toString(StandardCharsets.UTF_8))
+					.put("elements", new JSONArray(elements)));
 		}
 
 		var valid = true;
