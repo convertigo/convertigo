@@ -627,8 +627,31 @@ export async function acceptDbo(
  * @param {string} id - the id of the dbo in tree
  */
 export async function removeDbo(id = '') {
-	let result = await call('studio.dbo.Remove', { id });
-	return result;
+	/** @type {Record<string, string>} */
+	const linked = {};
+	if (/\.(cn|pf):[^.:]+$/.test(id) && typeof window !== 'undefined') {
+		// the folders and the database of a connector or a mobile platform, which the Eclipse Studio offers
+		// to remove too
+		const check = await call('studio.dbo.Remove', { id, check: 'true' });
+		if (!Array.isArray(check?.folders)) {
+			return check;
+		}
+		const folders = check.folders.filter((/** @type {string} */ folder) =>
+			window.confirm(`Also delete the folder linked to the deleted object?\n\n${folder}`)
+		);
+		if (folders.length) {
+			linked.folders = JSON.stringify(folders);
+		}
+		if (
+			check.database &&
+			window.confirm(
+				`Do you want to delete the "${check.database}" database from the CouchDb server?`
+			)
+		) {
+			linked.dropDatabase = 'true';
+		}
+	}
+	return call('studio.dbo.Remove', { id, ...linked });
 }
 
 /**

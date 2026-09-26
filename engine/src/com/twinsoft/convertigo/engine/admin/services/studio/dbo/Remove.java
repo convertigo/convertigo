@@ -49,6 +49,17 @@ public class Remove extends JSonService {
 		boolean done = false;
 		DatabaseObject dbo = DboUtils.findDbo(id);
 		if (dbo != null) {
+			refuse(dbo);
+			if ("true".equals(request.getParameter("check"))) {
+				// what the deletion can remove too, which the Studio asks, as the Eclipse Studio does
+				response.put("folders", new org.codehaus.jettison.json.JSONArray(linkedFolders(dbo)));
+				if (dbo instanceof com.twinsoft.convertigo.beans.connectors.CouchDbConnector couch
+						&& !couch.getDatabaseName().isEmpty()) {
+					response.put("database", couch.getDatabaseName());
+				}
+				response.put("done", false);
+				return;
+			}
 			if (dbo instanceof FlowVirtualObject) {
 				DboUtils.copyResult(FlowStudioSupport.removeNode(dbo), response);
 				return;
@@ -56,8 +67,22 @@ public class Remove extends JSonService {
 				// TODO
 			} else {
 				DatabaseObject targetDbo = dbo.getParent();
+				var folders = linkedFolders(dbo);
 				targetDbo.remove(dbo);
 				done = true;
+				// the folders and the database the user chose to remove too
+				var chosen = new org.codehaus.jettison.json.JSONArray(
+						request.getParameter("folders") == null ? "[]" : request.getParameter("folders"));
+				for (int i = 0; i < chosen.length(); i++) {
+					if (folders.contains(chosen.getString(i))) {
+						org.apache.commons.io.FileUtils.deleteQuietly(new java.io.File(chosen.getString(i)));
+					}
+				}
+				if ("true".equals(request.getParameter("dropDatabase"))
+						&& dbo instanceof com.twinsoft.convertigo.beans.connectors.CouchDbConnector couch
+						&& !couch.getDatabaseName().isEmpty()) {
+					couch.getCouchClient().deleteDatabase(couch.getDatabaseName());
+				}
 				
 				// notify for app generation
 				BuilderUtils.dboRemoved(targetDbo, dbo);
@@ -65,5 +90,45 @@ public class Remove extends JSonService {
 		}
 		
 		response.put("done", done);
+	}
+
+	/**
+	 * Refuses the deletions the Eclipse Studio refuses.
+	 */
+	private static void refuse(DatabaseObject dbo) throws ServiceException {
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.Connector connector && connector.isDefault) {
+			throw new ServiceException("Cannot delete the default connector!");
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.Transaction transaction && transaction.isDefault) {
+			throw new ServiceException("Cannot delete the default transaction!");
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.steps.ThenStep || dbo instanceof com.twinsoft.convertigo.beans.steps.ElseStep) {
+			throw new ServiceException("Cannot delete this step!");
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent page && page.isRoot
+				|| dbo instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent mobilePage && mobilePage.isRoot) {
+			throw new ServiceException("Cannot delete the root page!");
+		}
+	}
+
+	/**
+	 * @return the folders linked to the object, which the deletion can remove too: the SOAP templates and
+	 *         the traces of a connector, the resources of a mobile platform
+	 */
+	private static java.util.List<String> linkedFolders(DatabaseObject dbo) {
+		var folders = new java.util.ArrayList<String>();
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.Connector) {
+			var projectDir = com.twinsoft.convertigo.engine.Engine.projectDir(dbo.getProject().getName());
+			for (var kind : new String[] { "soap-templates", "Traces" }) {
+				var folder = new java.io.File(projectDir + "/" + kind + "/" + dbo.getName());
+				if (folder.exists()) {
+					folders.add(folder.getAbsolutePath());
+				}
+			}
+		} else if (dbo instanceof com.twinsoft.convertigo.beans.core.MobilePlatform platform
+				&& platform.getResourceFolder().exists()) {
+			folders.add(platform.getResourceFolder().getAbsolutePath());
+		}
+		return folders;
 	}
 }
