@@ -114,7 +114,12 @@ export function createDatabaseObjectProperties() {
 	/**
 	 * @param {{ persist?: boolean, onSaved?: (id: string, result: any) => void | Promise<void> }} options
 	 */
-	async function save({ persist = true, onSaved } = {}) {
+	/**
+	 * @param {{ persist?: boolean, onSaved?: (id: string, result: any) => void | Promise<void>, alsoIds?: string[] }} options
+	 *  alsoIds: the other selected objects, which get the same properties when they are of the same type,
+	 *  as the properties of the Eclipse Studio for several selected objects, their name apart
+	 */
+	async function save({ persist = true, onSaved, alsoIds = [] } = {}) {
 		if (!valid) return false;
 		const changes = getChanges();
 		if (changes.length === 0) {
@@ -139,6 +144,18 @@ export function createDatabaseObjectProperties() {
 			});
 			await createUndefinedSymbols(saveId, res.undefinedSymbols);
 			await onSaved?.(saveId, res);
+			const shared = submitted.filter((property) => property.name !== 'name');
+			for (const otherId of shared.length ? alsoIds : []) {
+				const other = await call('studio.properties.Set', {
+					id: otherId,
+					props: JSON.stringify(shared),
+					save: persist,
+					sameAs: saveId
+				});
+				if (other?.done) {
+					await onSaved?.(otherId, other);
+				}
+			}
 			return true;
 		}
 		if (id === saveId) {

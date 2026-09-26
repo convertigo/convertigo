@@ -90,6 +90,31 @@ describe('createDatabaseObjectProperties', () => {
 		}
 	);
 
+	it('applies the changes to the other selected objects of the same type, their name apart', async () => {
+		vi.mocked(call).mockResolvedValueOnce({
+			properties: {
+				Comment: { name: 'comment', category: 'Base properties', value: 'before' },
+				Name: { name: 'name', category: 'Base properties', value: 'first' }
+			}
+		});
+		const model = createDatabaseObjectProperties();
+		await model.onSelectionChange({ selectedValue: ['Project.sq:First'] });
+		model.properties[0].value = 'after';
+		model.properties[1].value = 'renamed';
+		vi.mocked(call).mockResolvedValueOnce({ done: true });
+		vi.mocked(call).mockResolvedValueOnce({ done: true });
+		const onSaved = vi.fn();
+		expect(await model.save({ persist: false, onSaved, alsoIds: ['Project.sq:Second'] })).toBe(
+			true
+		);
+		const [, other] = vi.mocked(call).mock.calls.at(-1) ?? [];
+		expect(other).toMatchObject({ id: 'Project.sq:Second', sameAs: 'Project.sq:First' });
+		expect(JSON.parse(other?.props ?? '[]').map((/** @type {any} */ p) => p.name)).toEqual([
+			'comment'
+		]);
+		expect(onSaved).toHaveBeenCalledWith('Project.sq:Second', { done: true });
+	});
+
 	it('saves a value set to null and cancels it', async () => {
 		vi.mocked(call).mockResolvedValueOnce({
 			properties: {

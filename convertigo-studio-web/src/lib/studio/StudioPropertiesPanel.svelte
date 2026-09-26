@@ -31,6 +31,7 @@
 	import StudioSection from './StudioSection.svelte';
 	import StudioSourcePickerPanel from './StudioSourcePickerPanel.svelte';
 	import StudioTableProperty from './StudioTableProperty.svelte';
+	import { treeSelectionOf } from './treeSelection.svelte.js';
 
 	/**
 	 * @type {{
@@ -104,6 +105,10 @@
 	let monacoTitle = $derived(monacoRow?.displayName ?? monacoRow?.name ?? 'Editor');
 	let monacoTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
 	let displayedIdentity = $derived(identityItem ?? propertyIdentity(categories));
+	/** the other objects selected with the shown one, which get its changes when they are of its type */
+	let otherSelected = $derived(
+		treeSelectionOf(selectedId).filter((other) => other !== selectedId && /[.:]/.test(other))
+	);
 
 	function propertyIdentity(propertyCategories) {
 		const rows = (propertyCategories ?? []).flatMap((category) => category?.properties ?? []);
@@ -568,6 +573,7 @@
 		try {
 			await save({
 				persist: false,
+				alsoIds: otherSelected,
 				onSaved: async (savedId, result) => {
 					if (selectedId === savedId) closeCurrentPicker();
 					await onSave?.(savedId, result);
@@ -715,6 +721,14 @@
 		/>
 	</div>
 	<StudioObjectIdentity item={displayedIdentity} compact />
+	{#if otherSelected.length}
+		<p class="studio-properties__multi" role="status">
+			The changes apply as well to the {otherSelected.length} other selected object{otherSelected.length >
+			1
+				? 's'
+				: ''} of the same type, their name apart.
+		</p>
+	{/if}
 
 	<div class="studio-properties__body" class:studio-properties__body--loading={loading}>
 		{#if !selectedId}
@@ -1258,6 +1272,14 @@
 
 	.studio-properties__table-actions {
 		margin-bottom: 0.15rem;
+	}
+
+	.studio-properties__multi {
+		margin: 0;
+		border-bottom: 1px solid var(--studio-line);
+		color: var(--studio-text-idle);
+		padding: 0.35rem 0.6rem;
+		font-size: 0.72rem;
 	}
 
 	.studio-properties__null {

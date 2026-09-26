@@ -80,6 +80,16 @@ public class Set extends JSonService {
 
 		var done = false;
 		var dbo = resolveTarget(id);
+		var sameAs = request.getParameter("sameAs");
+		if (dbo != null && sameAs != null && !sameAs.isBlank()) {
+			// the properties set on several selected objects go only to the objects of the same type
+			var model = resolveTarget(sameAs);
+			if (model == null || !model.getClass().equals(dbo.getClass())) {
+				response.put("done", false);
+				response.put("skipped", true);
+				return;
+			}
+		}
 		if (dbo instanceof FlowVirtualObject virtual) {
 			virtual.consumeLastSourceMutationResult();
 		}
