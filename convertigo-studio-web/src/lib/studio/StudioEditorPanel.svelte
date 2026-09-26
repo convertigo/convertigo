@@ -354,6 +354,19 @@
 
 	/**
 	 * @param {EditorTab} tab
+	 * @returns {string} the path of the TypeScript code of an NGX component in the application of its
+	 *  project, whose packages give their types, or none
+	 */
+	function typedPath(tab) {
+		if (!tab.sourceDocument || tab.language !== 'typescript' || !/#(class|action)$/.test(tab.id)) {
+			return '';
+		}
+		const project = tab.id.split(/[.:/]/)[0];
+		return `${project}/_private/ionic/src/app/studio/${tab.key.replace(/\.ts$/, '').replace(/[^\w.-]+/g, '_')}.ts`;
+	}
+
+	/**
+	 * @param {EditorTab} tab
 	 */
 	function selectEditorTab(tab) {
 		tab.focused = true;
@@ -677,6 +690,8 @@
 				currentLine={debuggable ? currentLine : 0}
 				revealLine={activeTab.revealLine ?? 0}
 				revealSerial={activeTab.revealSerial ?? 0}
+				path={typedPath(activeTab)}
+				typesProject={typedPath(activeTab) ? activeTab.id.split(/[.:/]/)[0] : ''}
 			/>
 		</div>
 	{:else if loading}

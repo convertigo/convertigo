@@ -1,12 +1,15 @@
 <script>
 	import { base } from '$app/paths';
+	import { call } from '$lib/utils/service';
 	import { fromAction } from 'svelte/attachments';
 
 	/**
 	 * breakpoints: the lines holding a breakpoint, shown in a margin whose clicks call onBreakpointToggle;
 	 * currentLine: the line where the debugger stopped; revealLine: a line to show and select, once for
-	 * each revealSerial, as a line a search found
-	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number}}
+	 * each revealSerial, as a line a search found; path: the path of the file the editor shows, and
+	 * typesProject: the project whose packages give their types to its TypeScript, as the TypeScript
+	 * editor of the Eclipse Studio knows the packages of the project
+	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string}}
 	 */
 	let {
 		content = $bindable('/* Loading... */'),
@@ -19,7 +22,9 @@
 		onBreakpointToggle,
 		currentLine = 0,
 		revealLine = 0,
-		revealSerial = 0
+		revealSerial = 0,
+		path = '',
+		typesProject = ''
 	} = $props();
 
 	function onEditorContentChange(nextContent) {
@@ -43,6 +48,8 @@
 		currentLine,
 		revealLine,
 		revealSerial,
+		path,
+		typesProject,
 		onContentChange: onEditorContentChange,
 		onContentHeightChange: onEditorContentHeightChange
 	}));
@@ -53,6 +60,8 @@
 
 	/** @type {Promise<any> | null} */
 	let monacoLoader = null;
+	/** the projects whose types the TypeScript checker knows */
+	const loadedTypes = new Set();
 
 	/**
 	 * @param {string} src
@@ -130,6 +139,8 @@
 			currentLine: Number(value?.currentLine) || 0,
 			revealLine: Number(value?.revealLine) || 0,
 			revealSerial: Number(value?.revealSerial) || 0,
+			path: String(value?.path ?? ''),
+			typesProject: String(value?.typesProject ?? ''),
 			onContentChange:
 				typeof value?.onContentChange == 'function' ? value.onContentChange : undefined,
 			onContentHeightChange:
@@ -139,7 +150,7 @@
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
 	 */
 	function mountMonaco(node, value) {
 		/** @type {any} */
@@ -162,6 +173,8 @@
 		let currentLineDecorations;
 		let shownLine = 0;
 		let revealedSerial = 0;
+		/** @type {Set<any>} the models the editor made, disposed with it */
+		const ownModels = new Set();
 		let disposed = false;
 		let pending = normalizeOptions(value);
 		let applyingContent = false;
@@ -211,9 +224,42 @@
 			}
 		}
 
+		/**
+		 * Shows the file of the path in its own model, whose path lets the TypeScript checker find the
+		 * packages of the project, or an anonymous model without path.
+		 */
+		function applyModel() {
+			const Monaco = globalThis.monaco;
+			const current = editor.getModel();
+			if (pending.path) {
+				const uri = Monaco.Uri.parse(`file:///${pending.path}`);
+				if (current?.uri.toString() === uri.toString()) {
+					return;
+				}
+				let model = Monaco.editor.getModel(uri);
+				if (!model) {
+					model = Monaco.editor.createModel(pending.content, pending.language, uri);
+					ownModels.add(model);
+				}
+				applyingContent = true;
+				editor.setModel(model);
+				applyingContent = false;
+			} else if (current?.uri.scheme === 'file') {
+				const model = Monaco.editor.createModel(pending.content, pending.language);
+				ownModels.add(model);
+				applyingContent = true;
+				editor.setModel(model);
+				applyingContent = false;
+			}
+			if (pending.typesProject) {
+				loadTypes(pending.typesProject);
+			}
+		}
+
 		function apply(nextValue) {
 			pending = normalizeOptions(nextValue);
 			if (!editor) return;
+			applyModel();
 			editor.updateOptions({
 				readOnly: pending.readOnly,
 				domReadOnly: pending.readOnly,
@@ -333,11 +379,50 @@
 				contentSizeSubscription?.dispose();
 				mouseDownSubscription?.dispose();
 				editor?.dispose();
+				for (const model of ownModels) {
+					model.dispose();
+				}
 			}
 		};
 	}
 
 	const attachEditor = $derived(fromAction(mountMonaco, () => editorOptions));
+
+	/**
+	 * Gives the type definitions of the packages of a project to the TypeScript checker, once, for the
+	 * completion and the hovers of its files; the files of the application are not all known, their
+	 * semantic errors are not shown.
+	 * @param {string} project
+	 */
+	function loadTypes(project) {
+		const Monaco = globalThis.monaco;
+		const typescript = Monaco?.languages?.typescript?.typescriptDefaults;
+		if (!typescript || loadedTypes.has(project)) {
+			return;
+		}
+		loadedTypes.add(project);
+		if (loadedTypes.size === 1) {
+			const ts = Monaco.languages.typescript;
+			typescript.setCompilerOptions({
+				target: ts.ScriptTarget.ES2020,
+				module: ts.ModuleKind.ESNext,
+				moduleResolution: ts.ModuleResolutionKind.NodeJs,
+				experimentalDecorators: true,
+				emitDecoratorMetadata: true,
+				allowNonTsExtensions: true,
+				allowSyntheticDefaultImports: true,
+				esModuleInterop: true,
+				skipLibCheck: true,
+				lib: ['es2020', 'dom']
+			});
+			typescript.setDiagnosticsOptions({ noSemanticValidation: true, noSyntaxValidation: false });
+		}
+		void call('studio.source.Types', { project }).then((result) => {
+			for (const [file, content] of Object.entries(result?.files ?? {})) {
+				typescript.addExtraLib(String(content), `file:///${project}/_private/ionic/${file}`);
+			}
+		});
+	}
 </script>
 
 <div class="h-full w-full" {@attach attachEditor}></div>
