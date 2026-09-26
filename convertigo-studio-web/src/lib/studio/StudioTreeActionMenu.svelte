@@ -409,6 +409,11 @@
 						)}
 						{@render treeItem('project.remoteUrl', 'mdi:link-variant', 'Copy the remote URL')}
 						{@render treeItem(
+							'project.convertNgx',
+							'mdi:swap-horizontal',
+							'Convert the mobile application to NGX…'
+						)}
+						{@render treeItem(
 							'project.delete',
 							'mdi:delete-outline',
 							'Delete project',

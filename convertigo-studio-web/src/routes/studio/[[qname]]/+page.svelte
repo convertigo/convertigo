@@ -2414,6 +2414,8 @@
 			}
 		} else if (action === 'project.remoteUrl') {
 			await copyRemoteUrl(projectName);
+		} else if (action === 'project.convertNgx') {
+			await convertToNgx(projectName);
 		} else if (action.startsWith('project.ci:')) {
 			// the continuous integration files of Convertigo, as the Update CI actions of Eclipse
 			if (
@@ -2429,6 +2431,42 @@
 			}
 		} else if (action === 'project.delete') {
 			await deleteProject(projectName);
+		}
+	}
+
+	/**
+	 * Converts the mobile application of a project to NGX, or upgrades its NGX application, in place or in
+	 * a copy, as the Convert Mobile Application Ngx action of the Eclipse Studio.
+	 * @param {string} projectName
+	 */
+	async function convertToNgx(projectName) {
+		if (dirtyProjectNames.has(projectName)) {
+			toaster.warning({ description: `Save ${projectName} before converting it.` });
+			return;
+		}
+		const targetName = window
+			.prompt(
+				`${projectName} will use the new version of the Mobile Builder. Enter the name of a converted copy, or keep ${projectName} to convert the project itself.`,
+				projectName
+			)
+			?.trim();
+		if (!targetName) {
+			return;
+		}
+		if (
+			targetName === projectName &&
+			!window.confirm(
+				`${projectName} is about to change and the operation cannot be undone. Make a backup of it first. Convert it now?`
+			)
+		) {
+			return;
+		}
+		const result = await call('studio.project.ConvertToNgx', { projectName, targetName });
+		if (result?.done) {
+			await Projects.refresh();
+			await refreshStudioProject(targetName);
+			refreshStudioViews();
+			selectedId = targetName;
 		}
 	}
 
