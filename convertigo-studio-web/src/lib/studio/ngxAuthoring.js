@@ -305,6 +305,23 @@ export function attachNgxAuthoring(doc, handlers) {
 			return selected.length > 0;
 		},
 		/**
+		 * Outlines the grids, rows and columns of the application, as the "Show grids" of the Eclipse Studio.
+		 * @param {boolean} value
+		 */
+		setShowGrids(value) {
+			doc.getElementById('_c8o_grids_style')?.remove();
+			if (value && doc.head) {
+				const style = doc.createElement('style');
+				style.id = '_c8o_grids_style';
+				style.textContent = [
+					'ion-grid { outline: 1px solid red; outline-offset: -1px; }',
+					'ion-row { outline: 1px dotted blue; outline-offset: -1px; }',
+					'ion-col { outline: 1px solid green; outline-offset: -1px; }'
+				].join('\n');
+				doc.head.appendChild(style);
+			}
+		},
+		/**
 		 * @param {boolean} value
 		 */
 		setSelecting(value) {

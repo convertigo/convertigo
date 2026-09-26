@@ -24,7 +24,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
+import java.net.Inet4Address;
+import java.net.NetworkInterface;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +40,7 @@ import jakarta.websocket.Session;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -56,10 +60,12 @@ import com.twinsoft.convertigo.engine.util.ProcessUtils;
  * packages when asked or needed, then serves it in development mode or builds it locally in the
  * DisplayObjects/mobile folder of the project.
  * <ul>
- * <li>client messages: {project, action: attach | build_dev | build_local | kill, params: {endpoint, install:
- * update | reinstall, mode: prod | fast | watch}}</li>
- * <li>server messages: {type: log | output | progress | load | state | built, value}; a state is dev:serving,
- * dev:idle, local:building:&lt;mode&gt; or local:idle</li>
+ * <li>client messages: {project, action: attach | build_dev | build_local | kill | auto_build, params: {endpoint,
+ * install: update | reinstall, mode: prod | fast | watch, value: the auto build}}</li>
+ * <li>server messages: {type: log | output | progress | load | network | state | built, value}; a state is
+ * dev:serving, dev:idle, local:building:&lt;mode&gt;, local:idle or auto:true|false|none (an engine without
+ * Studio writes the sources at once, without auto build); network gives the URLs of
+ * the development server on the network, as a JSON array</li>
  * </ul>
  * The development server and a local build of a project run side by side, as in the Eclipse Studio.
  */
@@ -82,6 +88,8 @@ public class WsBuilder extends WebSocketService {
 		Thread thread;
 		int portNode;
 		String baseUrl;
+		/** the URLs of the development server on the network, for a mobile device */
+		String networkUrls;
 		String state = "idle";
 		volatile Process process;
 
@@ -168,6 +176,7 @@ public class WsBuilder extends WebSocketService {
 					mb.buildFinished();
 				}
 				baseUrl = null;
+				networkUrls = null;
 				setState("idle");
 				synchronized (builds) {
 					builds.remove(key(projectName, isDev()), this);
@@ -235,8 +244,11 @@ public class WsBuilder extends WebSocketService {
 			pb.directory(ionicDir);
 			var angularJson = new File(ionicDir, "angular.json");
 			var angular = FileUtils.readFileToString(angularJson, "UTF-8");
+			// a path, as the application is reached through the gateway of the Studio or on the network by
+			// a mobile device
+			var basePath = projectEndpoint.replaceFirst("^https?://[^/]+", "");
 			angular = angular.replaceFirst("(\"serve\":\\s*\\{).*",
-					"$1 \"baseHref\":\"" + projectEndpoint + "DisplayObjects/dev" + portNode + "/\",");
+					"$1 \"baseHref\":\"" + basePath + "DisplayObjects/dev" + portNode + "/\",");
 			FileUtils.write(angularJson, angular, "UTF-8");
 
 			var standalone = mb.isStandalone();
@@ -285,9 +297,11 @@ public class WsBuilder extends WebSocketService {
 						mb.buildFinished();
 					}
 					var served = (standalone ? pServedStandalone : pServedWebpack).matcher(line);
-					if (served.matches()) {
+					if (served.matches() && baseUrl == null) {
 						baseUrl = served.group(1).replaceFirst(".*?://.*?/", "/").replaceFirst("([^/])$", "$1/");
 						send("load", baseUrl);
+						networkUrls = networkUrls(served.group(1));
+						send("network", networkUrls);
 					}
 				}
 			}
@@ -367,6 +381,32 @@ public class WsBuilder extends WebSocketService {
 				appendOutput(code == 0 && !failed ? "The application is built in DisplayObjects/mobile."
 						: "The build failed.");
 			}
+		}
+
+		/**
+		 * @return the URL of the development server on each network address of the host, as the QR codes of
+		 * the Eclipse Studio show it to a mobile device
+		 */
+		private static String networkUrls(String url) {
+			var urls = new JSONArray();
+			try {
+				var local = new URL(url);
+				for (var netint : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+					if (netint.isLoopback() || !netint.isUp()) {
+						continue;
+					}
+					for (var address : Collections.list(netint.getInetAddresses())) {
+						if (address instanceof Inet4Address) {
+							urls.put(new JSONObject().put("name", netint.getDisplayName()).put("url",
+									local.getProtocol() + "://" + address.getHostAddress() + ":" + local.getPort()
+											+ local.getFile().replaceFirst("([^/])$", "$1/")));
+						}
+					}
+				}
+			} catch (Exception e) {
+				Engine.logStudio.debug("(WsBuilder) no network address", e);
+			}
+			return urls.toString();
 		}
 
 		/**
@@ -534,6 +574,7 @@ public class WsBuilder extends WebSocketService {
 			case "build_dev" -> onBuild(params, "dev");
 			case "build_local" -> onBuild(params, NgxBuilderBuildMode.get(params.optString("mode", "fast")).name());
 			case "kill" -> onKill();
+			case "auto_build" -> onAutoBuild(params.optBoolean("value", true));
 			default -> send("log", "Unknown action " + action);
 			}
 		} catch (Exception e) {
@@ -577,6 +618,7 @@ public class WsBuilder extends WebSocketService {
 	}
 
 	private void onAttach() throws Exception {
+		send("state", autoState(builder(project)));
 		for (var dev : new boolean[] { true, false }) {
 			Build current;
 			synchronized (builds) {
@@ -588,6 +630,9 @@ public class WsBuilder extends WebSocketService {
 				send("state", current.stateMessage());
 				if (current.baseUrl != null) {
 					send("load", current.baseUrl);
+				}
+				if (current.networkUrls != null) {
+					send("network", current.networkUrls);
 				}
 			}
 		}
@@ -608,6 +653,34 @@ public class WsBuilder extends WebSocketService {
 			}
 		}
 		next.start();
+	}
+
+	/**
+	 * Suspends or resumes the writing of the sources of the application while it is edited, as the "Toggle
+	 * auto build" of the Eclipse Studio.
+	 */
+	private void onAutoBuild(boolean value) throws Exception {
+		var mb = builder(project);
+		if (mb != null && Engine.isStudioMode()) {
+			mb.setAutoBuild(value);
+		}
+		broadcast(project, "state", autoState(mb));
+	}
+
+	/**
+	 * @return the auto build state, none for an engine without Studio, whose builder writes at once
+	 */
+	private static String autoState(MobileBuilder mb) {
+		return "auto:" + (!Engine.isStudioMode() ? "none" : mb == null || mb.isAutoBuild());
+	}
+
+	private static MobileBuilder builder(String projectName) {
+		try {
+			var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+			return project == null ? null : project.getMobileBuilder();
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	private void onKill() throws Exception {

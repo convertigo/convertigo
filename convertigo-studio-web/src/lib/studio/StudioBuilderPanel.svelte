@@ -49,6 +49,14 @@
 	/** whether the builder told the state of the project since the socket opened */
 	let attached = false;
 	let localState = $state('idle');
+	/** whether the builder writes the sources of the application while it is edited */
+	let autoBuild = $state(true);
+	/** an engine without Studio writes the sources at once, without auto build */
+	let autoBuildSupported = $state(false);
+	/** @type {{ name: string, url: string }[]} the URLs of the development server on the network */
+	let networkUrls = $state([]);
+	let qrOpen = $state(false);
+	let qrUrl = $state('');
 	let running = $derived(devState !== 'idle' || localState !== 'idle');
 	let status = $derived(
 		[
@@ -157,13 +165,18 @@
 					progress = Number(value);
 				} else if (type === 'state') {
 					const [kind, ...rest] = String(value).split(':');
-					if (kind === 'dev') {
+					if (kind === 'auto') {
+						autoBuildSupported = rest[0] !== 'none';
+						autoBuild = rest[0] !== 'false';
+					} else if (kind === 'dev') {
 						const wasServing = devState === 'serving';
 						devState = rest.join(':');
 						attached = true;
 						serveWhenReady();
 						if (devState === 'idle') {
 							url = '';
+							networkUrls = [];
+							qrOpen = false;
 							if (wasServing) {
 								onServerStop?.();
 							}
@@ -174,6 +187,13 @@
 					if (devState === 'idle' && localState === 'idle') {
 						progress = -1;
 					}
+				} else if (type === 'network') {
+					try {
+						networkUrls = JSON.parse(String(value));
+					} catch {
+						networkUrls = [];
+					}
+					qrUrl = networkUrls[0]?.url ?? '';
 				} else if (type === 'built') {
 					progress = -1;
 					if (value === 'success') {
@@ -193,8 +213,8 @@
 	}
 
 	/**
-	 * @param {'attach' | 'build_dev' | 'build_local' | 'kill'} action
-	 * @param {Record<string, string>} [params]
+	 * @param {'attach' | 'build_dev' | 'build_local' | 'kill' | 'auto_build'} action
+	 * @param {Record<string, any>} [params]
 	 */
 	function send(action, params = {}) {
 		if (socket?.readyState !== WebSocket.OPEN) {
@@ -276,6 +296,47 @@
 				<Ico icon="mdi:open-in-new-variant" size={4} /> Open
 			</a>
 		{/if}
+		{#if networkUrls.length}
+			<span class="studio-builder__qr">
+				<button
+					type="button"
+					class="studio-builder__icon"
+					title="Show the QR code of the application for a mobile device on the same network"
+					aria-label="QR code"
+					aria-expanded={qrOpen}
+					onclick={() => (qrOpen = !qrOpen)}
+				>
+					<Ico icon="mdi:qrcode" size={4} />
+				</button>
+				{#if qrOpen}
+					<div class="studio-builder__qr-popup" role="dialog" aria-label="QR code">
+						<p>Flash it from a mobile device on the same network:</p>
+						<select class="input-common" aria-label="Network" bind:value={qrUrl}>
+							{#each networkUrls as network (network.url)}
+								<option value={network.url}>{network.name} - {network.url}</option>
+							{/each}
+						</select>
+						{#if qrUrl}
+							<img src={`${endpoint()}/qrcode?d=${encodeURIComponent(qrUrl)}`} alt={qrUrl} />
+						{/if}
+					</div>
+				{/if}
+			</span>
+		{/if}
+		{#if autoBuildSupported}
+			<label
+				class="studio-builder__auto"
+				title="Write the sources of the application while it is edited; when off, they are written once it is on again"
+			>
+				<input
+					type="checkbox"
+					checked={autoBuild}
+					disabled={connection !== 'open' || !projectName}
+					onchange={(event) => send('auto_build', { value: event.currentTarget.checked })}
+				/>
+				Auto build
+			</label>
+		{/if}
 		{#if progress >= 0 && progress < 100}
 			<span class="studio-builder__progress" title={`${progress}%`}>
 				<span style:width={`${progress}%`}></span>
@@ -337,6 +398,50 @@
 		height: 1.9rem;
 		padding-block: 0;
 		font-size: 0.75rem;
+	}
+
+	.studio-builder__auto {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		white-space: nowrap;
+	}
+
+	.studio-builder__qr {
+		position: relative;
+	}
+
+	/* above the panel, which clips what overflows it */
+	.studio-builder__qr-popup {
+		position: fixed;
+		z-index: 90;
+		right: 1.5rem;
+		bottom: 3.5rem;
+		display: grid;
+		width: 18rem;
+		gap: 0.5rem;
+		border: 1px solid var(--studio-line);
+		border-radius: 0.5rem;
+		background: var(--studio-chrome-bg);
+		box-shadow: 0 0.75rem 2rem color-mix(in oklab, black 30%, transparent);
+		padding: 0.75rem;
+	}
+
+	.studio-builder__qr-popup p {
+		margin: 0;
+		color: var(--studio-text-idle);
+	}
+
+	.studio-builder__qr-popup select {
+		height: 1.9rem;
+		padding-block: 0;
+		font-size: 0.72rem;
+	}
+
+	.studio-builder__qr-popup img {
+		width: 100%;
+		image-rendering: pixelated;
+		background: white;
 	}
 
 	.studio-builder__link {

@@ -185,6 +185,7 @@
 	/** the authoring of the NGX application the preview shows */
 	let ngxAuthoring = $state(/** @type {ReturnType<typeof attachNgxAuthoring> | null} */ (null));
 	let ngxSelecting = $state(false);
+	let ngxShowGrids = $state(false);
 	/** the segment of the page the preview was sent to, for a component it did not show */
 	let ngxNavigatedFor = '';
 
@@ -225,6 +226,10 @@
 
 	$effect(() => {
 		ngxAuthoring?.setSelecting(ngxSelecting);
+	});
+
+	$effect(() => {
+		ngxAuthoring?.setShowGrids(ngxShowGrids);
 	});
 
 	$effect(() => {
@@ -512,6 +517,14 @@
 							: 'Select a component by clicking it in the application'}
 						ariaLabel="Select a component in the application"
 						onclick={() => (ngxSelecting = !ngxSelecting)}
+					/>
+					<Button
+						full={false}
+						icon="mdi:grid"
+						class={[iconButtonClasses, ngxShowGrids && 'studio-preview__select--active']}
+						title={ngxShowGrids ? 'Hide the grids' : 'Show the grids, rows and columns'}
+						ariaLabel="Show the grids"
+						onclick={() => (ngxShowGrids = !ngxShowGrids)}
 					/>
 				{/if}
 				{#if showDeviceDrawer}

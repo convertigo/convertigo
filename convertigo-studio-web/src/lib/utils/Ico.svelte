@@ -91,6 +91,7 @@
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit';
 	import MdiFunctionVariant from '~icons/mdi/function-variant';
 	import MdiGithub from '~icons/mdi/github';
+	import MdiGrid from '~icons/mdi/grid';
 	import MdiHelpCircleOutline from '~icons/mdi/help-circle-outline';
 	import MdiHomeAlertOutline from '~icons/mdi/home-alert-outline';
 	import MdiHomeOutline from '~icons/mdi/home-outline';
@@ -134,6 +135,7 @@
 	import MdiPlayCircleOutline from '~icons/mdi/play-circle-outline';
 	import MdiPlus from '~icons/mdi/plus';
 	import MdiPowerPlug from '~icons/mdi/power-plug';
+	import MdiQrcode from '~icons/mdi/qrcode';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline';
 	import MdiRefresh from '~icons/mdi/refresh';
 	import MdiReload from '~icons/mdi/reload';
@@ -266,6 +268,7 @@
 		'mdi:fullscreen': MdiFullscreen,
 		'mdi:fullscreen-exit': MdiFullscreenExit,
 		'mdi:github': MdiGithub,
+		'mdi:grid': MdiGrid,
 		'mdi:help-circle-outline': MdiHelpCircleOutline,
 		'mdi:home-alert-outline': MdiHomeAlertOutline,
 		'mdi:home-outline': MdiHomeOutline,
@@ -324,6 +327,7 @@
 		'mdi:play-circle-outline': MdiPlayCircleOutline,
 		'mdi:plus': MdiPlus,
 		'mdi:power-plug': MdiPowerPlug,
+		'mdi:qrcode': MdiQrcode,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,
 		'mdi:refresh': MdiRefresh,
 		'mdi:routes': MdiRoutes,
