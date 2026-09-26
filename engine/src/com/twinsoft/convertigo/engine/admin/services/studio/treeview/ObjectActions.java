@@ -74,6 +74,7 @@ import com.twinsoft.convertigo.engine.admin.services.studio.dbo.CreateStub;
 import com.twinsoft.convertigo.engine.admin.services.studio.dbo.SqlDesign;
 import com.twinsoft.convertigo.engine.admin.services.studio.dbo.UpdateSchema;
 import com.twinsoft.convertigo.engine.admin.services.studio.project.ImportWsReference;
+import com.twinsoft.convertigo.engine.admin.services.studio.project.LocalBuild;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 
 /**
@@ -278,6 +279,17 @@ public class ObjectActions {
 			add(items, "object.sapDesign", "Import BAPIs…",
 					"Search the BAPIs of the SAP repository and import them as transactions of this connector.",
 					true, "mdi:database-import-outline").put("clientAction", "dialog.sapDesign");
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.MobilePlatform) {
+			// the local Cordova builds of the Eclipse Studio
+			add(items, "object.localBuild:debug", "Local build (Debug)", "Build the application with Cordova on this machine.", true, "mdi:wrench", "Cordova");
+			add(items, "object.localBuild:release", "Local build (Release)", "Build the release of the application with Cordova on this machine.", true, "mdi:wrench", "Cordova");
+			add(items, "object.localBuild:device", "Run on device", "Build and run the application on a connected device.", true, "mdi:cellphone-link", "Cordova");
+			add(items, "object.localBuild:emulator", "Run on emulator", "Build and run the application on an emulator.", true, "mdi:play-circle-outline", "Cordova");
+			add(items, "object.localBuild:status", "Local build status", "Tell the state of the last local build.", true, "mdi:devices", "Cordova");
+			add(items, "object.localBuild:cancel", "Cancel the local build", "Stop the running local build.", true, "mdi:stop", "Cordova");
+			add(items, "object.localBuild:clear", "Clear Cordova", "Remove the Cordova environment of this platform.", true, "mdi:delete-outline", "Cordova")
+					.put("confirm", "Remove the Cordova environment of this platform?");
 		}
 		if (dbo instanceof CicsTransaction) {
 			add(items, "object.importCopybook", "Import copybook…",
@@ -486,6 +498,23 @@ public class ObjectActions {
 			}
 			return result(true, imported + " design document" + (imported == 1 ? " is" : "s are") + " imported.")
 					.put("changed", true).put("refresh", true);
+		}
+		case "object.localBuild:debug", "object.localBuild:release", "object.localBuild:device",
+				"object.localBuild:emulator", "object.localBuild:status", "object.localBuild:cancel",
+				"object.localBuild:clear" -> {
+			if (!(dbo instanceof com.twinsoft.convertigo.beans.core.MobilePlatform platform)) {
+				return result(false, "This object is not a mobile platform.");
+			}
+			var message = switch (actionId.substring("object.localBuild:".length())) {
+			case "debug" -> LocalBuild.start(platform, "debug", false, "");
+			case "release" -> LocalBuild.start(platform, "release", false, "");
+			case "device" -> LocalBuild.start(platform, "debug", true, "device");
+			case "emulator" -> LocalBuild.start(platform, "debug", true, "emulator");
+			case "cancel" -> LocalBuild.cancel(platform);
+			case "clear" -> LocalBuild.clear(platform);
+			default -> LocalBuild.status(platform);
+			};
+			return result(true, message).put("changed", false);
 		}
 		case "object.testSql" -> {
 			if (!(dbo instanceof SqlConnector connector)) {
