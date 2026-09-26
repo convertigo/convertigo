@@ -120,6 +120,77 @@ public class DboUtils {
 		return null;
 	}
 
+	/**
+	 * Sets up an object created from the palette once added, as the new object wizard of the Eclipse Studio
+	 * does: the default transaction of a connector, the branches of an if-then-else, the variables of a
+	 * test case, the stylesheet of a sheet…
+	 */
+	static void afterAdded(DatabaseObject dbo, DatabaseObject parent) throws Exception {
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.Connector connector
+				&& parent instanceof com.twinsoft.convertigo.beans.core.Project project) {
+			if (project.getDefaultConnector() == null) {
+				project.setDefaultConnector(connector);
+			}
+			com.twinsoft.convertigo.beans.core.Connector.setupConnector(connector);
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent page
+				&& parent instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent application
+				&& application.getRootPage() == null) {
+			application.setRootPage(page);
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent page
+				&& parent instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent application
+				&& application.getRootPage() == null) {
+			application.setRootPage(page);
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.steps.SequenceStep step) {
+			var project = dbo.getProject();
+			if (!project.getSequencesList().isEmpty()) {
+				step.setSourceSequence(project.getName() + com.twinsoft.convertigo.beans.steps.TransactionStep.SOURCE_SEPARATOR
+						+ project.getSequencesList().get(0));
+			}
+		} else if (dbo instanceof com.twinsoft.convertigo.beans.steps.TransactionStep step) {
+			var project = dbo.getProject();
+			var connector = project.getDefaultConnector();
+			var transaction = connector == null ? null : connector.getDefaultTransaction();
+			if (transaction != null) {
+				var separator = com.twinsoft.convertigo.beans.steps.TransactionStep.SOURCE_SEPARATOR;
+				step.setSourceTransaction(project.getName() + separator + connector.getName() + separator + transaction.getName());
+			}
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.steps.IThenElseContainer container) {
+			container.addStep(new com.twinsoft.convertigo.beans.steps.ThenStep());
+			container.addStep(new com.twinsoft.convertigo.beans.steps.ElseStep());
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.Sheet sheet) {
+			// the sheet gets its own stylesheet, from the model of the engine
+			var name = dbo.getName() + ".xsl";
+			var file = new java.io.File(dbo.getProject().getDirFile(), name);
+			if (!file.exists()) {
+				org.apache.commons.io.FileUtils.copyFile(new java.io.File(com.twinsoft.convertigo.engine.Engine.XSL_PATH, "customsheet.xsl"), file);
+			}
+			sheet.setUrl(name);
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.TestCase testCase
+				&& parent instanceof com.twinsoft.convertigo.beans.core.RequestableObject requestable) {
+			testCase.importRequestableVariables(requestable);
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.variables.RequestableHttpVariable variable
+				&& parent instanceof com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction transaction) {
+			var verb = transaction.getHttpVerb();
+			var post = verb == com.twinsoft.convertigo.engine.enums.HttpMethodType.PUT
+					|| verb == com.twinsoft.convertigo.engine.enums.HttpMethodType.POST;
+			variable.setHttpMethod(post ? "POST" : "GET");
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction logon) {
+			logon.addCredentialsVariables();
+		}
+	}
+
+	static boolean isPaletteData(JSONObject jsonData) {
+		return "paletteData".equals(jsonData.optString("type"));
+	}
+
 	static private DatabaseObject createDboFromPalette(JSONObject jsonData, DatabaseObject parentDbo) throws Exception {
 		DatabaseObject dbo = null;
 

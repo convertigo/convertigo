@@ -82,6 +82,9 @@ public class Add extends JSonService {
 					} else {
 						parentDbo.add(dbo);
 					}
+					if (DboUtils.isPaletteData(jsonData)) {
+						DboUtils.afterAdded(dbo, parentDbo);
+					}
 					done = true;
 					response.put("id", dbo.getFullQName());
 					response.put("parentId", parentDbo.getFullQName());
