@@ -205,6 +205,11 @@ public class CompressionFilter implements Filter {
 	}
 
 	boolean isCompressionCandidate(String uri) {
+		// the development server of an application answers through the gateway, forwarded from the projects
+		// filter: the end of the forward closes the response before a compression could write it
+		if (GatewayServlet.getDevPort(uri) > 0) {
+			return false;
+		}
 		return !pKO.matcher(uri).find()
 				&& (pOK.matcher(uri).find() || isDisplayObjectsSpaRoute(uri));
 	}

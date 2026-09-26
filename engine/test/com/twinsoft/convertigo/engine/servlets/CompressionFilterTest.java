@@ -30,4 +30,10 @@ public class CompressionFilterTest {
 		assertFalse(filter.isCompressionCandidate("/projects/sample/DisplayObjects/mobile/icon.png"));
 		assertFalse(filter.isCompressionCandidate("/admin/services/projects.Export"));
 	}
+
+	@Test
+	public void excludesTheDevelopmentServerOfAnApplication() {
+		assertFalse(filter.isCompressionCandidate("/projects/sample/DisplayObjects/dev47447/"));
+		assertFalse(filter.isCompressionCandidate("/projects/sample/DisplayObjects/dev47447/main.js"));
+	}
 }
