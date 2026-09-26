@@ -58,6 +58,49 @@ class PropertyTags {
 	}
 
 	/**
+	 * @return the models a REST body parameter or response can reference, as the model editor of the
+	 *         Eclipse Studio lists them: the models of the URL mapper and the definitions of the referenced
+	 *         OpenAPI schemas; null for another property
+	 */
+	static JSONArray models(DatabaseObject dbo, String property) throws Exception {
+		if (!"modelReference".equals(property) || !(dbo instanceof com.twinsoft.convertigo.beans.rest.BodyParameter
+				|| dbo instanceof com.twinsoft.convertigo.beans.rest.AbstractRestResponse)) {
+			return null;
+		}
+		var models = new java.util.TreeSet<String>();
+		var project = dbo.getProject();
+		var mapper = project.getUrlMapper();
+		try {
+			var mapperModels = mapper == null ? "" : mapper.getModels();
+			var json = mapperModels.isEmpty() ? new org.codehaus.jettison.json.JSONObject()
+					: new org.codehaus.jettison.json.JSONObject(mapperModels);
+			for (var it = json.keys(); it.hasNext();) {
+				models.add((String) it.next());
+			}
+		} catch (Exception e) {
+			// no model
+		}
+		try {
+			var projectName = project.getName();
+			com.twinsoft.convertigo.engine.servlets.RestApiServlet.buildSwaggerDefinition(projectName, false);
+			var dir = new java.io.File(com.twinsoft.convertigo.engine.Engine.projectDir(projectName),
+					com.twinsoft.convertigo.engine.util.OpenApiUtils.jsonSchemaDirectory);
+			var files = dir.listFiles((d, name) -> name.endsWith(".jsonschema") && !name.equals(projectName + ".jsonschema"));
+			for (var file : files == null ? new java.io.File[0] : files) {
+				var json = new org.codehaus.jettison.json.JSONObject(
+						java.nio.file.Files.readString(file.toPath(), java.nio.charset.StandardCharsets.UTF_8));
+				var definitions = json.optJSONObject("definitions");
+				for (var it = definitions == null ? java.util.Collections.emptyIterator() : definitions.keys(); it.hasNext();) {
+					models.add(file.getName() + "#/definitions/" + it.next());
+				}
+			}
+		} catch (Exception e) {
+			// no referenced definition
+		}
+		return new JSONArray(models);
+	}
+
+	/**
 	 * @return whether the property takes a typed text as well as one of its choices
 	 */
 	static boolean freeText(DatabaseObject dbo, String property) {

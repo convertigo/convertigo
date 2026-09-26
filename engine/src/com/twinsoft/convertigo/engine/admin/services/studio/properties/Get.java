@@ -374,6 +374,12 @@ public class Get extends JSonService {
 			}
 			property.put("values", new JSONArray(Arrays.asList(tags)));
 		}
+		var models = PropertyTags.models(dbo, elt.getAttribute("name"));
+		if (models != null) {
+			// the models the property can reference, proposed as the model editor of the Eclipse Studio lists them
+			property.put("values", models);
+			property.put("freeText", true);
+		}
 		if (PropertyTags.freeText(dbo, elt.getAttribute("name"))) {
 			// the choices are proposed, a typed text is taken as well
 			property.put("freeText", true);
