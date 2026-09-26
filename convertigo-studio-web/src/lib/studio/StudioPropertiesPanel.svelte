@@ -187,6 +187,10 @@
 		if (isSemanticColorProperty(row)) {
 			return 'color-combo';
 		}
+		if (row.freeText && Array.isArray(values) && values.length) {
+			// a combo of the Eclipse Studio that takes a typed text as well
+			return 'combo-text';
+		}
 		if (hasPropertyPossibleValues(row)) {
 			return values.length < 4 ? 'segment' : 'combo';
 		}

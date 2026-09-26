@@ -38,7 +38,35 @@ import com.twinsoft.convertigo.engine.enums.Visibility;
  */
 class PropertyTags {
 
+	/**
+	 * The text properties whose choices the Eclipse Studio proposes in a combo that also takes a typed text
+	 * (StringComboBoxPropertyDescriptor, PropertyWithDynamicTagsEditor), by the class declaring them
+	 */
+	private static final java.util.Set<String> FREE_TEXT = java.util.Set.of("ApplicationComponent.splitPaneLayout",
+			"ApplicationComponent.tplProjectName", "PageComponent.changeDetection", "PageComponent.icon",
+			"PageComponent.iconPosition", "PageComponent.preloadPriority", "RouteActionComponent.action",
+			"RouteFullsyncEvent.verb", "UIAnimation.animationName", "UIAppEvent.appEvent", "UIAppGuard.guardType",
+			"UIControlDirective.directiveName", "UIControlEvent.eventName", "UIDynamicMenuItem.itemicon",
+			"UIDynamicMenuItem.itemiconPos", "UIFontStyle.fontFamily", "UIFontStyle.fontSize", "UIFontStyle.fontStyle",
+			"UIFontStyle.fontWeight", "UIFontStyle.ruleTargets", "UIFormControlValidator.email",
+			"UIFormControlValidator.maxLength", "UIFormControlValidator.minLength", "UIFormControlValidator.pattern",
+			"UIFormControlValidator.required", "UIFormControlValidator.requiredTrue", "UIPageEvent.viewEvent",
+			"UISharedComponentEvent.componentEvent", "UIUseVariable.binding", "UIDynamicTag.tagName",
+			"Connector.endTransactionName");
+
 	private PropertyTags() {
+	}
+
+	/**
+	 * @return whether the property takes a typed text as well as one of its choices
+	 */
+	static boolean freeText(DatabaseObject dbo, String property) {
+		for (Class<?> type = dbo.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+			if (FREE_TEXT.contains(type.getSimpleName() + "." + property)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

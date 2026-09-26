@@ -389,6 +389,24 @@
 								{/each}
 							</select>
 						</div>
+					{:else if type == 'combo-text'}
+						<input
+							{...rest}
+							{id}
+							{name}
+							type="text"
+							list={`${id}-choices`}
+							disabled={loading}
+							class="h-9 input-common px-3 text-sm {rest?.class ?? ''}"
+							bind:value
+						/>
+						<datalist id={`${id}-choices`}>
+							{#each item as option (option.value ?? option)}
+								<option value={option.value ?? option}
+									>{option.text ?? option['#text'] ?? ''}</option
+								>
+							{/each}
+						</datalist>
 					{:else if type == 'combo'}
 						<select
 							{...rest}

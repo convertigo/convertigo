@@ -370,6 +370,10 @@ public class Get extends JSonService {
 			}
 			property.put("values", new JSONArray(Arrays.asList(tags)));
 		}
+		if (PropertyTags.freeText(dbo, elt.getAttribute("name"))) {
+			// the choices are proposed, a typed text is taken as well
+			property.put("freeText", true);
+		}
 		var flags = PropertyTags.flags(dbo, elt.getAttribute("name"));
 		if (flags != null) {
 			property.put("flags", flags);
