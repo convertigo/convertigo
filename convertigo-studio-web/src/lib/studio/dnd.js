@@ -68,12 +68,14 @@ function getDboDropAction(event, payload) {
 		event.dataTransfer.dropEffect = 'copy';
 		return 'copy';
 	}
-	event.dataTransfer.dropEffect = event.ctrlKey ? 'copy' : 'move';
+	// Ctrl copies, and Option on macOS as in its Finder
+	const copy = event.ctrlKey || event.altKey;
+	event.dataTransfer.dropEffect = copy ? 'copy' : 'move';
 	const dropEffect = event.dataTransfer.dropEffect;
 	if (dropEffect === 'copy' || dropEffect === 'move') {
 		return dropEffect;
 	}
-	return event.ctrlKey ? 'copy' : 'move';
+	return copy ? 'copy' : 'move';
 }
 
 /**

@@ -568,18 +568,19 @@ console.log(await response.text());`;
 	let form = $state();
 
 	$effect(() => {
-		// a test case to run, asked from elsewhere, as the "Run" of a test case of the tree
+		// a test case to run, asked from elsewhere, as the "Run" of a test case of the tree, or * for the
+		// requestable itself, as F5 in the tree
 		const name = runTestcase;
 		if (!name || !form || !requestable) {
 			return;
 		}
-		if (!(requestable.testcase ?? []).some((testcase) => testcase?.name === name)) {
+		if (name !== '*' && !(requestable.testcase ?? []).some((testcase) => testcase?.name === name)) {
 			return;
 		}
 		untrack(() => {
 			onRunTestcaseTaken?.();
 			if (form) {
-				void execute(form, name);
+				void execute(form, name === '*' ? '' : name);
 			}
 		});
 	});

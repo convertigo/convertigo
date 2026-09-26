@@ -2418,6 +2418,11 @@
 		} else if (action.startsWith('code.file:')) {
 			// a file of a project, as the stylesheet of a sheet, opens in the code editor
 			selectedId = action.slice('code.file:'.length);
+		} else if (action === 'execution.run') {
+			// the requestable runs with its variables, as F5 in the tree of the Eclipse Studio
+			selectedId = nodeId;
+			setWorkPanel('execution');
+			executionRunTestcase = '*';
 		} else if (action === 'execution.testcase') {
 			// the requestable of the test case runs with its variables
 			selectedId = nodeId;

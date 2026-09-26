@@ -1,7 +1,7 @@
 <script>
 	import Projects from '$lib/common/Projects.svelte.js';
 	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
-	import { call } from '$lib/utils/service';
+	import { call, runStudioContextAction } from '$lib/utils/service';
 	import { onMount, tick, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import {
@@ -173,9 +173,25 @@
 		}
 		const mod = event.metaKey || event.ctrlKey;
 		const key = event.key.toLowerCase();
+		if (!mod && !event.altKey && event.key.startsWith('Arrow')) {
+			event.preventDefault();
+			navigate(event.key, /** @type {HTMLElement} */ (event.currentTarget));
+			return;
+		}
+		if (!mod && (event.key === '+' || event.key === '-')) {
+			// the priority, as + and - in the tree of the Eclipse Studio
+			event.preventDefault();
+			void moveSelected(event.key === '+' ? 'object.moveUp' : 'object.moveDown');
+			return;
+		}
 		/** @type {string} */
 		let action = '';
-		if (event.key === 'F2') {
+		if (event.key === 'F5' && !mod && /\.(sq|tr|tc):[^.:]+$/.test(selectedId)) {
+			// F5 runs the selected requestable or test case, as in the Eclipse Studio
+			action = /\.tc:[^.:]+$/.test(selectedId) ? 'execution.testcase' : 'execution.run';
+		} else if (mod && key === 'g' && /\.tr:[^.:]+$/.test(selectedId)) {
+			action = 'dialog.handlers';
+		} else if (event.key === 'F2') {
 			action = 'object.rename';
 		} else if (event.key === 'Delete' || (event.key === 'Backspace' && event.metaKey)) {
 			action = 'object.delete';
@@ -186,6 +202,68 @@
 			event.preventDefault();
 			void onTreeAction(action, selectedId);
 		}
+	}
+
+	/**
+	 * Moves the selection in the tree with the arrows: up and down to the previous and next rows, right to
+	 * expand or go into, left to collapse or go to the parent.
+	 * @param {string} key
+	 * @param {HTMLElement} container
+	 */
+	function navigate(key, container) {
+		const rows = /** @type {HTMLElement[]} */ ([
+			...container.querySelectorAll('button.studio-tree-node__content')
+		]);
+		const index = rows.findIndex((row) => row.dataset.nodeId === selectedId);
+		const current = rows[index];
+		const toggle = /** @type {HTMLButtonElement | null} */ (
+			current
+				? container.querySelector(
+						`button.studio-tree-node__toggle-button[data-node-id="${CSS.escape(selectedId)}"]`
+					)
+				: null
+		);
+		/** @type {HTMLElement | undefined} */
+		let target;
+		if (key === 'ArrowDown') {
+			target = rows[index + 1] ?? rows[0];
+		} else if (key === 'ArrowUp') {
+			target = index > 0 ? rows[index - 1] : rows[0];
+		} else if (key === 'ArrowRight') {
+			if (toggle?.getAttribute('aria-label') === 'Expand') {
+				toggle.click();
+				return;
+			}
+			target = rows[index + 1];
+		} else if (key === 'ArrowLeft') {
+			if (toggle?.getAttribute('aria-label') === 'Collapse') {
+				toggle.click();
+				return;
+			}
+			const parent = current
+				?.closest('[role="treeitem"]')
+				?.parentElement?.closest('[role="treeitem"]');
+			target = /** @type {HTMLElement | undefined} */ (
+				parent?.querySelector('button.studio-tree-node__content') ?? undefined
+			);
+		}
+		if (target && target !== current) {
+			target.click();
+			target.focus();
+		}
+	}
+
+	/**
+	 * @param {string} actionId the move of the selected object, up or down
+	 */
+	async function moveSelected(actionId) {
+		const nodeId = selectedId;
+		if (!/[.:]/.test(nodeId) || nodeId.includes('/')) {
+			return;
+		}
+		const action = { id: actionId };
+		const result = await runStudioContextAction(nodeId, action);
+		await onContextAction?.({ nodeId, action, result });
 	}
 
 	/**
