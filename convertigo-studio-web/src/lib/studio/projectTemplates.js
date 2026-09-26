@@ -4,8 +4,52 @@
  * settings of its fields (see the studio.project.Create service).
  *
  * @typedef {{ name: string, label: string, type?: 'text' | 'number' | 'password' | 'checkbox', value?: string | number | boolean, placeholder?: string, required?: boolean }} ProjectTemplateField
- * @typedef {{ id: string, label: string, description: string, icon: string, url: string, fields: ProjectTemplateField[] }} ProjectTemplate
+ * @typedef {{ id: string, label: string, description: string, icon: string, url: string, fields: ProjectTemplateField[], settings?: Record<string, any>, legacy?: boolean }} ProjectTemplate
  */
+
+const JAVELIN =
+	'template_javelin=https://github.com/convertigo/c8oprj-template-javelin/archive/7.8.0.zip';
+const JAVELIN_DKU =
+	'template_javelinDKU=https://github.com/convertigo/c8oprj-template-javelindku/archive/7.6.0.zip';
+const JAVELIN_INTEGRATION =
+	'template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.6.0.zip';
+
+/**
+ * The fields of a screen connector: its service code is "connection parameter,DIR|host:port" ("TCP" for
+ * DKU), as the new project wizards of the Eclipse Studio build it.
+ * @param {string} parameterHint
+ * @returns {ProjectTemplateField[]}
+ */
+function screenFields(parameterHint) {
+	return [
+		{ name: 'connectorName', label: 'Connector name', placeholder: 'default name' },
+		{ name: 'host', label: 'Host name', value: 'localhost', required: true },
+		{ name: 'port', label: 'Host port', type: 'number', value: 23 },
+		{ name: 'connectionParameter', label: 'Connection parameter', placeholder: parameterHint }
+	];
+}
+
+/**
+ * @param {string} id
+ * @param {string} label
+ * @param {string} description
+ * @param {string} url
+ * @param {'IBM3270' | 'IBM5250' | 'BullDKU7107' | 'UnixVT220'} emulator
+ * @param {string} parameterHint
+ * @returns {ProjectTemplate}
+ */
+function screenTemplate(id, label, description, url, emulator, parameterHint) {
+	return {
+		id,
+		label,
+		description,
+		icon: 'mdi:monitor',
+		url,
+		fields: screenFields(parameterHint),
+		settings: { emulator },
+		legacy: true
+	};
+}
 
 /** @type {ProjectTemplateField} */
 const connectorName = {
@@ -107,6 +151,76 @@ export const PROJECT_TEMPLATES = [
 				value: false
 			}
 		]
+	},
+	screenTemplate(
+		'3270web',
+		'3270 Web Style',
+		'An IBM 3270 Web style webization project.',
+		JAVELIN,
+		'IBM3270',
+		'TN3270 device name'
+	),
+	screenTemplate(
+		'5250web',
+		'5250 Web Style',
+		'An IBM 5250 Web style webization project.',
+		JAVELIN,
+		'IBM5250',
+		'TN5250 device name'
+	),
+	screenTemplate(
+		'dkuweb',
+		'DKU7xxx Web Style',
+		'A Bull DKU7xxx Web style webization project.',
+		JAVELIN_DKU,
+		'BullDKU7107',
+		'MAILBOX'
+	),
+	screenTemplate(
+		'3270screen',
+		'3270 Screen',
+		'An IBM 3270 screen based web service connector project.',
+		JAVELIN_INTEGRATION,
+		'IBM3270',
+		'TN3270 device name'
+	),
+	screenTemplate(
+		'5250screen',
+		'5250 Screen',
+		'An IBM 5250 screen based web service connector project.',
+		JAVELIN_INTEGRATION,
+		'IBM5250',
+		'TN5250 device name'
+	),
+	screenTemplate(
+		'dkuscreen',
+		'Bull DKUxxx Screen',
+		'A Bull DKU7xxx screen based web service connector project.',
+		JAVELIN_INTEGRATION,
+		'BullDKU7107',
+		'MAILBOX'
+	),
+	screenTemplate(
+		'vt220screen',
+		'Unix VTxxx Screen',
+		'A Unix VTxxx screen based web service connector project.',
+		JAVELIN_INTEGRATION,
+		'UnixVT220',
+		''
+	),
+	{
+		id: 'cics',
+		label: 'CICS COMMAREA',
+		description: 'An IBM CICS COMMAREA based web service connector project.',
+		icon: 'mdi:server-network',
+		url: 'template_CICS=https://github.com/convertigo/c8oprj-template-cics/archive/7.6.0.zip',
+		fields: [
+			connectorName,
+			{ name: 'ctgName', label: 'CTG configuration name', required: true },
+			{ name: 'ctgServer', label: 'CTG server address', required: true },
+			{ name: 'ctgPort', label: 'CTG server port', type: 'number', value: 2006 }
+		],
+		legacy: true
 	}
 ];
 
@@ -117,7 +231,7 @@ export const PROJECT_TEMPLATES = [
  */
 export function projectTemplateSettings(template, values) {
 	/** @type {Record<string, any>} */
-	const settings = {};
+	const settings = { ...template.settings };
 	for (const field of template.fields) {
 		const value = values[field.name];
 		if (field.type === 'checkbox') {

@@ -25,6 +25,20 @@ describe('projectTemplates', () => {
 		).toEqual({ server: 'api.example.com', port: 8443, https: true });
 	});
 
+	it('gives a screen template its emulator with its fields', () => {
+		const screen = PROJECT_TEMPLATES.find((template) => template.id === '5250screen');
+		if (!screen) {
+			throw new Error('missing 5250 screen template');
+		}
+		expect(
+			projectTemplateSettings(screen, {
+				host: ' as400.example.com ',
+				port: '23',
+				connectionParameter: ''
+			})
+		).toEqual({ emulator: 'IBM5250', host: 'as400.example.com', port: 23 });
+	});
+
 	it('refuses the names a project cannot take', () => {
 		expect(projectNameError('')).not.toBe('');
 		expect(projectNameError('My Project')).not.toBe('');

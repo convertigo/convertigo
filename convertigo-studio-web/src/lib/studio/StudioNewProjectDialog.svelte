@@ -149,7 +149,7 @@
 			<fieldset class="studio-dialog__body" disabled={busy}>
 				{#if mode === 'template'}
 					<div class="studio-dialog__templates" role="radiogroup" aria-label="Template">
-						{#each PROJECT_TEMPLATES as candidate (candidate.id)}
+						{#snippet templateChoice(/** @type {(typeof PROJECT_TEMPLATES)[number]} */ candidate)}
 							<button
 								type="button"
 								role="radio"
@@ -166,7 +166,18 @@
 									<small>{candidate.description}</small>
 								</span>
 							</button>
+						{/snippet}
+						{#each PROJECT_TEMPLATES.filter((candidate) => !candidate.legacy) as candidate (candidate.id)}
+							{@render templateChoice(candidate)}
 						{/each}
+						<details class="studio-dialog__legacy" open={Boolean(template.legacy)}>
+							<summary>Screen and CICS connectors</summary>
+							<div class="studio-dialog__templates">
+								{#each PROJECT_TEMPLATES.filter((candidate) => candidate.legacy) as candidate (candidate.id)}
+									{@render templateChoice(candidate)}
+								{/each}
+							</div>
+						</details>
 					</div>
 					<label class="studio-dialog__field">
 						<span>Project name</span>
@@ -333,6 +344,22 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
 		gap: 0.5rem;
+	}
+
+	.studio-dialog__legacy {
+		grid-column: 1 / -1;
+	}
+
+	.studio-dialog__legacy summary {
+		cursor: pointer;
+		padding: 0.25rem 0;
+		color: var(--studio-text-idle);
+		font-size: 0.75rem;
+		font-weight: 600;
+	}
+
+	.studio-dialog__legacy .studio-dialog__templates {
+		margin-top: 0.4rem;
 	}
 
 	.studio-dialog__template {

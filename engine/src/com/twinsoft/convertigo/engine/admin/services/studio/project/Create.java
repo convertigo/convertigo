@@ -27,7 +27,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.api.Session;
+import com.twinsoft.convertigo.beans.connectors.CicsConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
@@ -153,6 +156,44 @@ public class Create extends JSonService {
 			}
 			if (settings.has("language")) {
 				sap.setLanguage(settings.getString("language"));
+			}
+		} else if (connector instanceof JavelinConnector javelin) {
+			// a screen connector: its emulator technology and its service code, "parameter,DIR|host:port" or
+			// "parameter,TCP|host:port" for DKU, as the new project wizards of the Eclipse Studio build them
+			var emulator = settings.optString("emulator", "");
+			var technology = switch (emulator) {
+			case "IBM3270" -> Session.SNA;
+			case "IBM5250" -> Session.AS400;
+			case "BullDKU7107" -> Session.DKU;
+			case "UnixVT220" -> Session.VT;
+			default -> "";
+			};
+			if (!technology.isEmpty()) {
+				var host = settings.optString("host", "").trim();
+				var port = settings.has("port") ? String.valueOf(settings.getInt("port")) : "";
+				var address = port.isEmpty() || host.isEmpty() ? host : host + ":" + port;
+				var type = "BullDKU7107".equals(emulator) ? "TCP" : "DIR";
+				javelin.setServiceCode(settings.optString("connectionParameter", "") + "," + type + "|" + address);
+				javelin.setEmulatorTechnology(technology);
+				if ("IBM3270".equals(emulator)) {
+					javelin.setIbmTerminalType("IBM-3279");
+				} else if ("IBM5250".equals(emulator)) {
+					javelin.setIbmTerminalType("IBM-3179");
+				}
+				var screenClass = javelin.getDefaultScreenClass();
+				if (screenClass != null && !screenClass.getLocalCriterias().isEmpty()) {
+					screenClass.getLocalCriterias().get(0).setName(emulator);
+				}
+			}
+		} else if (connector instanceof CicsConnector cics) {
+			if (settings.has("ctgName")) {
+				cics.setMainframeName(settings.getString("ctgName"));
+			}
+			if (settings.has("ctgServer")) {
+				cics.setServer(settings.getString("ctgServer"));
+			}
+			if (settings.has("ctgPort")) {
+				cics.setPort(settings.getInt("ctgPort"));
 			}
 		} else if (connector instanceof SiteClipperConnector siteClipper) {
 			if (settings.has("trustAllServerCertificates")) {

@@ -120,6 +120,7 @@
 	import MdiMarketplaceOutline from '~icons/mdi/marketplace-outline';
 	import MdiMenu from '~icons/mdi/menu';
 	import MdiMinus from '~icons/mdi/minus';
+	import MdiMonitor from '~icons/mdi/monitor';
 	import MdiMonitorDashboard from '~icons/mdi/monitor-dashboard';
 	import MdiMoonAndStars from '~icons/mdi/moon-and-stars';
 	import MdiOpenInNew from '~icons/mdi/open-in-new';
@@ -311,6 +312,7 @@
 		'mdi:menu': MdiMenu,
 		'mdi:minus': MdiMinus,
 		'mdi:moon-and-stars': MdiMoonAndStars,
+		'mdi:monitor': MdiMonitor,
 		'mdi:monitor-dashboard': MdiMonitorDashboard,
 		'mdi:package-variant-closed': MdiPackageVariantClosed,
 		'mdi:paperclip': MdiPaperclip,
