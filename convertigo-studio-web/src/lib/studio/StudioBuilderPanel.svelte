@@ -1,20 +1,39 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl } from '$lib/utils/service';
-	import { onDestroy, tick } from 'svelte';
+	import { onDestroy, tick, untrack } from 'svelte';
 
 	/**
-	 * The development build of the application of a project, as the application editor of the Eclipse
-	 * Studio runs it: the studio.ngxbuilder.WsBuilder socket runs `npm run ionic:serve`, streams its output
-	 * and its progress, then gives the URL of the application it serves.
+	 * The builds of the application of a project, as the application editor of the Eclipse Studio runs
+	 * them: the studio.ngxbuilder.WsBuilder socket installs its packages when asked or needed, serves it in
+	 * development mode or builds it locally, streams the output and the progress, then gives the URL of
+	 * the application it serves or tells the end of a local build.
 	 *
 	 * @type {{
 	 *  projectName?: string,
 	 *  active?: boolean,
-	 *  onLoad?: (url: string) => void
+	 *  onLoad?: (url: string) => void,
+	 *  onBuilt?: () => void,
+	 *  onServerStop?: () => void,
+	 *  serveRequest?: number,
+	 *  onServeRequestTaken?: () => void
 	 * }}
 	 */
-	let { projectName = '', active = false, onLoad } = $props();
+	let {
+		projectName = '',
+		active = false,
+		onLoad,
+		onBuilt,
+		onServerStop,
+		serveRequest = 0,
+		onServeRequestTaken
+	} = $props();
+
+	const LOCAL_BUILDS = [
+		{ mode: 'prod', label: 'Production build' },
+		{ mode: 'fast', label: 'Fast build' },
+		{ mode: 'watch', label: 'Watch build' }
+	];
 
 	const MAX_LINES = 2000;
 
@@ -25,6 +44,21 @@
 	let connection = $state('closed');
 	let progress = $state(-1);
 	let url = $state('');
+	/** the development server, idle or serving, and the local build, idle or building:<mode> */
+	let devState = $state('idle');
+	/** whether the builder told the state of the project since the socket opened */
+	let attached = false;
+	let localState = $state('idle');
+	let running = $derived(devState !== 'idle' || localState !== 'idle');
+	let status = $derived(
+		[
+			devState === 'serving' && 'Serving in development mode',
+			localState.startsWith('building:') &&
+				`${LOCAL_BUILDS.find((build) => localState === `building:${build.mode}`)?.label ?? 'Build'} running`
+		]
+			.filter(Boolean)
+			.join(' · ')
+	);
 	/** @type {{ kind: string, text: string }[]} */
 	let lines = $state([]);
 	/** @type {HTMLDivElement | undefined} */
@@ -36,6 +70,34 @@
 			connect(project);
 		}
 	});
+
+	/** a development server to show, asked by the Dev mode of the preview */
+	let pendingServe = false;
+	$effect(() => {
+		// the request can mount the panel: it is taken, then served once the builder tells its state
+		if (serveRequest) {
+			pendingServe = true;
+			untrack(() => {
+				onServeRequestTaken?.();
+				serveWhenReady();
+			});
+		}
+	});
+
+	/**
+	 * Shows the running development server, or starts it, once the builder tells its state.
+	 */
+	function serveWhenReady() {
+		if (!pendingServe || connection !== 'open' || !attached) {
+			return;
+		}
+		pendingServe = false;
+		if (devState === 'serving' && url) {
+			onLoad?.(url);
+		} else if (devState === 'idle') {
+			send('build_dev');
+		}
+	}
 
 	onDestroy(() => socket?.close());
 
@@ -68,6 +130,9 @@
 		lines = [];
 		progress = -1;
 		url = '';
+		devState = 'idle';
+		localState = 'idle';
+		attached = false;
 		const address = new URL(`${getUrl()}studio.ngxbuilder.WsBuilder`, location.href);
 		address.protocol = address.protocol === 'https:' ? 'wss:' : 'ws:';
 		// a browser sends no header with a websocket handshake: the XSRF token of the session goes as a parameter
@@ -90,6 +155,30 @@
 				const { type, value } = JSON.parse(event.data);
 				if (type === 'progress') {
 					progress = Number(value);
+				} else if (type === 'state') {
+					const [kind, ...rest] = String(value).split(':');
+					if (kind === 'dev') {
+						const wasServing = devState === 'serving';
+						devState = rest.join(':');
+						attached = true;
+						serveWhenReady();
+						if (devState === 'idle') {
+							url = '';
+							if (wasServing) {
+								onServerStop?.();
+							}
+						}
+					} else {
+						localState = rest.join(':');
+					}
+					if (devState === 'idle' && localState === 'idle') {
+						progress = -1;
+					}
+				} else if (type === 'built') {
+					progress = -1;
+					if (value === 'success') {
+						onBuilt?.();
+					}
 				} else if (type === 'load') {
 					url = String(value);
 					void append('log', `The application is served on ${url}`);
@@ -104,17 +193,22 @@
 	}
 
 	/**
-	 * @param {'attach' | 'build_dev' | 'kill'} action
+	 * @param {'attach' | 'build_dev' | 'build_local' | 'kill'} action
+	 * @param {Record<string, string>} [params]
 	 */
-	function send(action) {
+	function send(action, params = {}) {
 		if (socket?.readyState !== WebSocket.OPEN) {
 			return;
+		}
+		if (action === 'build_dev' || action === 'build_local') {
+			progress = 0;
+			url = '';
 		}
 		socket.send(
 			JSON.stringify({
 				project: projectName,
 				action,
-				params: action === 'build_dev' ? { endpoint: endpoint() } : {}
+				params: action.startsWith('build_') ? { endpoint: endpoint(), ...params } : params
 			})
 		);
 	}
@@ -126,19 +220,53 @@
 			type="button"
 			class="button-primary"
 			disabled={connection !== 'open' || !projectName}
-			title="Build the application in development mode and serve it"
-			onclick={() => {
-				progress = 0;
-				send('build_dev');
-			}}
+			title="Build the application in development mode and serve it, installing its packages when missing"
+			onclick={() => send('build_dev')}
 		>
 			<Ico icon="mdi:play" size={4} /> Build and serve
 		</button>
+		<select
+			class="studio-builder__select input-common"
+			aria-label="Packages"
+			title="Install the packages of the application again, then serve it"
+			disabled={connection !== 'open' || !projectName}
+			value=""
+			onchange={(event) => {
+				const install = event.currentTarget.value;
+				event.currentTarget.value = '';
+				if (install) {
+					send('build_dev', { install });
+				}
+			}}
+		>
+			<option value="" disabled>Packages…</option>
+			<option value="update">Update packages and serve</option>
+			<option value="reinstall">Re-install packages and serve</option>
+		</select>
+		<select
+			class="studio-builder__select input-common"
+			aria-label="Build locally"
+			title="Build the application in the DisplayObjects/mobile folder of the project"
+			disabled={connection !== 'open' || !projectName}
+			value=""
+			onchange={(event) => {
+				const mode = event.currentTarget.value;
+				event.currentTarget.value = '';
+				if (mode) {
+					send('build_local', { mode });
+				}
+			}}
+		>
+			<option value="" disabled>Build locally…</option>
+			{#each LOCAL_BUILDS as build (build.mode)}
+				<option value={build.mode}>{build.label}</option>
+			{/each}
+		</select>
 		<button
 			type="button"
 			class="button-secondary"
-			disabled={connection !== 'open'}
-			title="Stop the development server"
+			disabled={connection !== 'open' || !running}
+			title="Stop the development server or the build"
 			onclick={() => send('kill')}
 		>
 			<Ico icon="mdi:stop" size={4} /> Stop
@@ -155,7 +283,7 @@
 		{/if}
 		<span class="studio-builder__status">
 			{connection === 'open'
-				? projectName
+				? [projectName, status].filter(Boolean).join(' - ')
 				: connection === 'connecting'
 					? 'Connecting to the builder…'
 					: 'Builder not connected'}
@@ -202,6 +330,13 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.3rem;
+	}
+
+	.studio-builder__select {
+		width: auto;
+		height: 1.9rem;
+		padding-block: 0;
+		font-size: 0.75rem;
 	}
 
 	.studio-builder__link {

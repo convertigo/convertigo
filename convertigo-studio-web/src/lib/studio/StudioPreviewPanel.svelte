@@ -5,6 +5,7 @@
 	import Bezels from '$lib/dashboard/Bezels';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getFrontendUrl } from '$lib/utils/service';
+	import { untrack } from 'svelte';
 	import {
 		authoringDropRequest,
 		authoringModeFromMessage,
@@ -47,7 +48,7 @@
 	const FIT_PADDING = 24;
 	const iconButtonClasses = 'button-ico-secondary h-8! w-8! justify-center p-0!';
 
-	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number }} */
 	let {
 		projectName = '',
 		previewUrlOverride = '',
@@ -63,7 +64,8 @@
 		onAuthoringSelect,
 		onAuthoringDrop,
 		onAuthoringMove,
-		onThemeContext
+		onThemeContext,
+		reloadSerial = 0
 	} = $props();
 
 	/** @type {HTMLIFrameElement | undefined} */
@@ -174,6 +176,15 @@
 		iframeOverride = { base: previewUrl, value: trimmedAddress };
 		addressOverride = { base: previewUrl, value: trimmedAddress };
 	}
+
+	let reloadedSerial = untrack(() => reloadSerial);
+	$effect(() => {
+		// a new build of the shown application, as a local build in DisplayObjects/mobile
+		if (reloadSerial !== reloadedSerial) {
+			reloadedSerial = reloadSerial;
+			untrack(reloadIframe);
+		}
+	});
 
 	function reloadIframe() {
 		try {

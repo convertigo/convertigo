@@ -221,6 +221,9 @@
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
 	let frontendPreview = $state({ projectName: '', url: '', mode: 'production' });
+	let frontendPreviewSerial = $state(0);
+	/** asks the builder to show or start the development server of an NGX application */
+	let builderServeRequest = $state(0);
 	let frontendPreviewBusy = $state(false);
 	let studioReady = $state(false);
 	const reconciledFrontendProjects = new SvelteSet();
@@ -1706,6 +1709,12 @@
 		try {
 			const target = await findFrontendDevAction(projectName, selection, startWhenStopped);
 			if (!target) {
+				if (startWhenStopped) {
+					// an NGX application: its builder serves it, as the Dev mode of the Eclipse Studio
+					bottomView = 'build';
+					setLogsPanelOpen(true);
+					builderServeRequest = Date.now();
+				}
 				return false;
 			}
 			const result = await runStudioContextAction(target.nodeId, target.action);
@@ -2416,6 +2425,21 @@
 	}
 
 	/**
+	 * Shows the application a local build just wrote in the DisplayObjects/mobile folder of its project.
+	 */
+	function showLocalBuild() {
+		if (!selectedProjectName) {
+			return;
+		}
+		if (frontendPreviewMode === 'production') {
+			// the same page shows the new build once reloaded
+			frontendPreviewSerial += 1;
+		} else {
+			frontendPreview = { projectName: selectedProjectName, url: '', mode: 'production' };
+		}
+	}
+
+	/**
 	 * Shows the transaction whose variables the variables dialog changed.
 	 * @param {string} id
 	 */
@@ -2696,6 +2720,7 @@
 		onAuthoringDrop={dropInFrontend}
 		onAuthoringMove={moveInFrontend}
 		onThemeContext={updateFrontendThemeContext}
+		reloadSerial={frontendPreviewSerial}
 	/>
 {/snippet}
 
@@ -2869,6 +2894,15 @@
 		projectName={selectedProjectName}
 		active={bottomView === 'build'}
 		onLoad={showDevelopmentBuild}
+		onBuilt={showLocalBuild}
+		serveRequest={builderServeRequest}
+		onServeRequestTaken={() => (builderServeRequest = 0)}
+		onServerStop={() => {
+			// the development server stopped: the preview shows the built application again
+			if (frontendPreviewMode === 'development') {
+				frontendPreview = { projectName: selectedProjectName, url: '', mode: 'production' };
+			}
+		}}
 	/>
 {/snippet}
 

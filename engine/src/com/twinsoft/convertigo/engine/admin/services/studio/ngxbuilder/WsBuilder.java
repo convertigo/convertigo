@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2026 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -24,14 +24,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
-import java.util.Collection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jakarta.websocket.Session;
@@ -46,30 +45,50 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.WebSocketService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
+import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
+/**
+ * Builds the NGX application of a project, as the application editor of the Eclipse Studio: installs its
+ * packages when asked or needed, then serves it in development mode or builds it locally in the
+ * DisplayObjects/mobile folder of the project.
+ * <ul>
+ * <li>client messages: {project, action: attach | build_dev | build_local | kill, params: {endpoint, install:
+ * update | reinstall, mode: prod | fast | watch}}</li>
+ * <li>server messages: {type: log | output | progress | load | state | built, value}; a state is dev:serving,
+ * dev:idle, local:building:&lt;mode&gt; or local:idle</li>
+ * </ul>
+ * The development server and a local build of a project run side by side, as in the Eclipse Studio.
+ */
 @ServiceDefinition(name = "WsBuilder", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
 public class WsBuilder extends WebSocketService {
 	static class Build implements Runnable {
 		private static final Set<Integer> usedPort = new HashSet<>();
-		private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
-		private static Pattern pIsBrowserOpenable = Pattern.compile(".*?open your browser on (http\\S*).*");
+		private static final Pattern pRemoveEscape = Pattern.compile("\\x1b\\[[0-9;?]*[A-Za-z]");
+		private static final Pattern pServedWebpack = Pattern.compile(".*?open your browser on (http\\S*).*");
+		private static final Pattern pServedStandalone = Pattern.compile(".*?Local:\\s+(http\\S*).*");
+		private static final Pattern pPercent = Pattern.compile("(\\d+)% (.*)");
 
 		String projectName;
 		String projectEndpoint;
+		/** dev, or the NgxBuilderBuildMode of a local build */
+		String mode;
+		/** empty, update or reinstall */
+		String install;
 		Project project;
-		String url;
 		Thread thread;
 		int portNode;
 		String baseUrl;
-		private Collection<Process> processes = new LinkedList<>();
+		String state = "idle";
+		volatile Process process;
 
-		Set<WsBuilder> clients = new HashSet<>();
-
-		Build(String projectName, String endpoint) {
+		Build(String projectName, String endpoint, String mode, String install) {
 			this.projectName = projectName;
+			this.mode = mode;
+			this.install = install;
 			projectEndpoint = endpoint + "/projects/" + projectName + "/";
 		}
 
@@ -83,153 +102,327 @@ public class WsBuilder extends WebSocketService {
 			thread.start();
 		}
 
+		boolean isDev() {
+			return "dev".equals(mode);
+		}
+
 		@Override
 		public void run() {
-			log("build thread started");
 			var mutex = new Object();
 			MobileBuilder mb = null;
 			try {
 				project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 				mb = project.getMobileBuilder();
-				if (!mb.isInitialized()) {
-					throw new Exception("Mobile Builder not initialized");
+				if (mb != null && !mb.isInitialized()) {
+					// an engine without the Eclipse Studio initializes the builder of a project only for the CLI
+					MobileBuilder.initBuilder(project, true);
 				}
-				mb.setBuildMutex(mutex);
-				mb.startBuild();
-
-				var displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
-				displayObjectsMobile.mkdirs();
+				if (mb == null || !mb.isInitialized()) {
+					throw new Exception("The project " + projectName + " has no application to build");
+				}
+				setState(isDev() ? "serving" : "building:" + mode);
 
 				var ionicDir = new File(project.getDirPath(), "_private/ionic");
-//				var nodeModules = new File(ionicDir, "node_modules");
-
 				var nodeVersion = ProcessUtils.getNodeVersion(project);
 				var nodeDir = ProcessUtils.getDefaultNodeDir();
 				try {
 					nodeDir = ProcessUtils.getNodeDir(nodeVersion, (r, t, x) -> {
 						appendOutput("Downloading nodejs " + nodeVersion + ": " + Math.round((r * 100f) / t) + "%");
 					});
-				} catch (Exception e1) {
+				} catch (Exception e) {
+					log("Failed to get nodejs " + nodeVersion + ": " + e.getMessage());
 				}
+				var versions = "Will use nodejs " + ProcessUtils.getNodeVersion(nodeDir) + " and npm "
+						+ ProcessUtils.getNpmVersion(nodeDir);
+				appendOutput(versions);
+				Engine.logStudio.info(versions);
+				var path = nodeDir.getAbsolutePath();
 
-				{
-					String versions = "Will use nodejs " + ProcessUtils.getNodeVersion(nodeDir) + " and npm "
-							+ ProcessUtils.getNpmVersion(nodeDir);
-					appendOutput(versions);
-					Engine.logStudio.info(versions);
+				// the development server replaces all the node processes of the project, a local build only a
+				// watching one
+				terminateNode(!isDev());
+
+				var nodeModules = new File(ionicDir, "node_modules");
+				if (StringUtils.isNotBlank(install) || !nodeModules.exists() || mb.getNeedPkgUpdate()) {
+					installPackages(path, ionicDir, "reinstall".equals(install));
 				}
+				mb.setNeedPkgUpdate(false);
 
-				String path = nodeDir.getAbsolutePath();
-
-				terminateNode(false);
-
-				var pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:serve");
-
-				List<String> cmd = pb.command();
-				synchronized (usedPort) {
-					int port = (Math.abs(ionicDir.getAbsolutePath().hashCode()) % 10000) + 40000;
-					cmd.add("--");
-					usedPort.clear();
-					portNode = NetworkUtils.nextAvailable(port, usedPort);
-					cmd.add("--port=" + portNode);
-					cmd.add("--host=0.0.0.0");
-					cmd.add("--disable-host-check=true");
+				if (isDev()) {
+					mb.setBuildMutex(mutex);
+					serve(path, ionicDir, mb, mutex);
+				} else {
+					buildLocally(path, ionicDir, mb, NgxBuilderBuildMode.get(mode));
 				}
+			} catch (Exception e) {
+				log("Exception: " + e.getMessage());
+				Engine.logStudio.warn("(WsBuilder) build of " + projectName + " failed", e);
+			} finally {
+				synchronized (mutex) {
+					mutex.notify();
+				}
+				if (mb != null) {
+					if (isDev()) {
+						mb.setBuildMutex(null);
+					}
+					mb.buildFinished();
+				}
+				baseUrl = null;
+				setState("idle");
+				synchronized (builds) {
+					builds.remove(key(projectName, isDev()), this);
+				}
+			}
+		}
 
-				// #183 add useless option to help terminateNode method to find the current path
-				cmd.add("--ssl-key=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
-
-				pb.redirectErrorStream(true);
-				pb.directory(ionicDir);
-				String angular_json = FileUtils.readFileToString(new File(ionicDir, "angular.json"), "UTF-8");
-				angular_json = angular_json.replaceFirst("(\"serve\":\s*\\{).*",
-						"$1 \"baseHref\":\"" + projectEndpoint + "DisplayObjects/dev" + portNode + "/\",");
-				FileUtils.write(new File(ionicDir, "angular.json"), angular_json, "UTF-8");
-				Process p = pb.start();
-				processes.add(p);
-
-				var matcher = Pattern.compile("(\\d+)% (.*)").matcher("");
-				var br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		/**
+		 * Runs npm install in the ionic folder, after removing its node_modules for a re-install.
+		 */
+		private void installPackages(String path, File ionicDir, boolean clean) throws Exception {
+			var nodeModules = new File(ionicDir, "node_modules");
+			if (clean && nodeModules.exists()) {
+				appendOutput("Removing existing node_modules... This can take several seconds...");
+				com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(nodeModules);
+			}
+			appendOutput("Installing node_modules... This can take several minutes depending on your network connection speed...");
+			if (!nodeModules.exists()) {
+				var packageLockTpl = new File(ionicDir, "package-lock-tpl.json");
+				if (packageLockTpl.exists()) {
+					com.twinsoft.convertigo.engine.util.FileUtils.copyFile(packageLockTpl, new File(ionicDir, "package-lock.json"));
+				}
+			}
+			var pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir, "npm", "install",
+					"--legacy-peer-deps", "--loglevel", "info", "--ssl-key=" + marker());
+			pb.redirectErrorStream(true);
+			pb.directory(ionicDir);
+			var p = start(pb);
+			try (var br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 				String line;
-
-				StringBuilder sb = null;
-				String lastLine = null;
 				while ((line = br.readLine()) != null) {
-					line = pRemoveEchap.matcher(line).replaceAll("");
-					if (StringUtils.isNotBlank(line) && !line.equals(lastLine)) {
-						lastLine = line;
+					line = clean(line);
+					if (StringUtils.isNotBlank(line)) {
 						Engine.logStudio.info(line);
+						appendOutput(line);
+					}
+				}
+			}
+			var code = p.waitFor();
+			appendOutput(code == 0 ? "Packages installed." : "npm install ended with the code " + code + ".");
+		}
+
+		/**
+		 * Serves the application in development mode, through the gateway of the engine.
+		 */
+		private void serve(String path, File ionicDir, MobileBuilder mb, Object mutex) throws Exception {
+			mb.startBuild();
+			new File(project.getDirPath(), "DisplayObjects/mobile").mkdirs();
+
+			var pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:serve");
+			List<String> cmd = pb.command();
+			synchronized (usedPort) {
+				int port = (Math.abs(ionicDir.getAbsolutePath().hashCode()) % 10000) + 40000;
+				cmd.add("--");
+				usedPort.clear();
+				portNode = NetworkUtils.nextAvailable(port, usedPort);
+				cmd.add("--port=" + portNode);
+				cmd.add("--host=0.0.0.0");
+				cmd.add("--disable-host-check=true");
+			}
+			// #183 add useless option to help terminateNode method to find the current path
+			cmd.add("--ssl-key=" + marker());
+
+			pb.redirectErrorStream(true);
+			pb.directory(ionicDir);
+			var angularJson = new File(ionicDir, "angular.json");
+			var angular = FileUtils.readFileToString(angularJson, "UTF-8");
+			angular = angular.replaceFirst("(\"serve\":\\s*\\{).*",
+					"$1 \"baseHref\":\"" + projectEndpoint + "DisplayObjects/dev" + portNode + "/\",");
+			FileUtils.write(angularJson, angular, "UTF-8");
+
+			var standalone = mb.isStandalone();
+			var p = start(pb);
+			try (var br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+				String line;
+				StringBuilder errors = null;
+				while ((line = br.readLine()) != null) {
+					line = clean(line);
+					if (StringUtils.isBlank(line)) {
+						continue;
+					}
+					Engine.logStudio.info(line);
+					var lower = normalize(line).toLowerCase(Locale.ROOT);
+					var ended = false;
+					if (standalone) {
+						progress(standaloneProgress(lower));
+						appendOutput(line);
+						ended = lower.contains("application bundle generation complete")
+								|| lower.contains("bundle generation failed");
+					} else {
 						if (line.startsWith("Error: ")) {
-							sb = new StringBuilder();
+							errors = new StringBuilder();
 						}
-						if (sb != null) {
+						if (errors != null) {
+							errors.append(line).append('\n');
 							if (line.contains("Failed to compile.")) {
-								sb.append(line);
-								error(sb.toString());
-								sb = null;
-							} else {
-								sb.append(line + "\n");
+								log("error: " + errors);
+								errors = null;
 							}
 						}
-
-						matcher.reset(line);
+						var matcher = pPercent.matcher(line);
 						if (matcher.find()) {
 							progress(Integer.parseInt(matcher.group(1)));
 							appendOutput(matcher.group(2));
 						} else {
 							appendOutput(line);
 						}
-						if (line.matches(".*Compiled .*successfully.*")) {
-							progress(100);
-							error(null);
-							synchronized (mutex) {
-								mutex.notify();
-							}
-							mb.buildFinished();
+						ended = line.matches(".*Compiled .*successfully.*") || line.contains("Failed to compile.");
+					}
+					if (ended) {
+						progress(100);
+						synchronized (mutex) {
+							mutex.notify();
 						}
+						mb.buildFinished();
+					}
+					var served = (standalone ? pServedStandalone : pServedWebpack).matcher(line);
+					if (served.matches()) {
+						baseUrl = served.group(1).replaceFirst(".*?://.*?/", "/").replaceFirst("([^/])$", "$1/");
+						send("load", baseUrl);
+					}
+				}
+			}
+		}
 
-						Matcher m = pIsBrowserOpenable.matcher(line);
-						if (m.matches()) {
-							String sGroup = m.group(1);
-							baseUrl = sGroup.replaceFirst(".*?://.*?/", "/").replaceFirst("([^/])$", "$1/"); // sGroup.substring(0,
-																												// sGroup.lastIndexOf("/"));
-							doLoad();
+		/**
+		 * Builds the application in the DisplayObjects/mobile folder of the project, as the "Build locally"
+		 * menu of the Eclipse Studio.
+		 */
+		private void buildLocally(String path, File ionicDir, MobileBuilder mb, NgxBuilderBuildMode buildMode) throws Exception {
+			mb.setAppBuildMode(buildMode == NgxBuilderBuildMode.prod ? MobileBuilderBuildMode.production : MobileBuilderBuildMode.fast);
+			var baseHref = "/convertigo";
+			try {
+				baseHref = new URL(projectEndpoint).getPath().replaceFirst("/projects/.*", "");
+			} catch (Exception e) {
+			}
+			baseHref += "/projects/" + projectName + "/DisplayObjects/mobile/";
+
+			appendOutput("Building the application in " + buildMode.label() + " mode...");
+			var displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
+			displayObjectsMobile.mkdirs();
+			for (var file : displayObjectsMobile.listFiles()) {
+				if (!file.getName().equals("assets")) {
+					com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(file);
+				}
+			}
+
+			var standalone = mb.isStandalone();
+			var pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
+			List<String> cmd = pb.command();
+			cmd.add("--");
+			// #183 add useless option to help terminateNode method to find the current path
+			cmd.add((standalone ? "--external-dependencies=" : "--output-path=") + displayObjectsMobile.getAbsolutePath());
+			// #393 add base href for project's web app
+			cmd.add("--base-href=" + baseHref);
+			pb.redirectErrorStream(true);
+			pb.directory(ionicDir);
+
+			var p = start(pb);
+			var failed = false;
+			try (var br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+				String line;
+				while ((line = br.readLine()) != null) {
+					line = clean(line);
+					if (StringUtils.isBlank(line)) {
+						continue;
+					}
+					Engine.logStudio.debug(line);
+					var lower = normalize(line).toLowerCase(Locale.ROOT);
+					var matcher = pPercent.matcher(line);
+					if (!standalone && matcher.find()) {
+						progress(Integer.parseInt(matcher.group(1)));
+						appendOutput(matcher.group(2));
+					} else {
+						if (standalone) {
+							progress(standaloneProgress(lower));
+						}
+						appendOutput(line);
+					}
+					if (lower.contains("bundle generation failed") || lower.contains("[error]")
+							|| line.contains("Failed to compile.")) {
+						failed = true;
+					}
+					if (lower.contains("application bundle generation complete") || line.contains("- Hash:")) {
+						progress(100);
+						if (buildMode == NgxBuilderBuildMode.watch) {
+							send("built", failed ? "failed" : "success");
+							failed = false;
 						}
 					}
 				}
-
-//				if (buildCount == this.buildCount) {
-//					appendOutput("\\o/");
-//				} else {
-//					appendOutput("previous build canceled !");
-//				}
-			} catch (Exception e) {
-				log("Exception: " + e);
-			} finally {
-				synchronized (mutex) {
-					mutex.notify();
-				}
-				mb.setBuildMutex(null);
-				if (mb != null) {
-					mb.buildFinished();
-				}
 			}
-			synchronized (clients) {
-				clients.forEach(c -> remove(c));
+			var code = p.waitFor();
+			if (buildMode != NgxBuilderBuildMode.watch || code != 0) {
+				progress(100);
+				send("built", code == 0 && !failed ? "success" : "failed");
+				appendOutput(code == 0 && !failed ? "The application is built in DisplayObjects/mobile."
+						: "The build failed.");
 			}
 		}
 
-		private void doLoad() {
-			send("load", baseUrl);
+		/**
+		 * @return the progress a line of the standalone (esbuild) builder shows, 0 when it tells nothing
+		 */
+		private static int standaloneProgress(String lower) {
+			if (lower.contains("application bundle generation complete") || lower.contains("bundle generation failed")) {
+				return 99;
+			} else if (lower.contains("lazy chunk files")) {
+				return 80;
+			} else if (lower.contains("initial chunk files")) {
+				return 60;
+			} else if (lower.contains("✔")) {
+				return 35;
+			} else if (lower.contains("❯") || lower.contains("changes detected. rebuilding")) {
+				return 1;
+			}
+			return 0;
 		}
 
-		private void progress(int parseInt) {
-			send("progress", "" + parseInt);
+		/**
+		 * Stops the processes this build started, with their children.
+		 */
+		void stopProcess() {
+			var current = process;
+			if (current != null && current.isAlive()) {
+				current.toHandle().descendants().forEach(ProcessHandle::destroy);
+				current.destroy();
+			}
 		}
 
-		private void error(String string) {
-			if (string != null) {
-				log("error: " + string);
+		private Process start(ProcessBuilder pb) throws IOException {
+			var p = pb.start();
+			process = p;
+			return p;
+		}
+
+		private static String clean(String line) {
+			line = pRemoveEscape.matcher(line).replaceAll("");
+			return line.replaceAll("[\\p{Cntrl}&&[^\\t]]", "");
+		}
+
+		private static String normalize(String line) {
+			return line.replace(' ', ' ').replaceAll("\\s+", " ").trim();
+		}
+
+		/**
+		 * @return the useless option value that marks the node processes of the project
+		 */
+		private String marker() {
+			return new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath();
+		}
+
+		private void progress(int progress) {
+			if (progress > 0) {
+				send("progress", "" + progress);
 			}
 		}
 
@@ -241,53 +434,48 @@ public class WsBuilder extends WebSocketService {
 			send("log", log);
 		}
 
+		private void setState(String state) {
+			this.state = state;
+			send("state", stateMessage());
+		}
+
+		String stateMessage() {
+			return (isDev() ? "dev:" : "local:") + state;
+		}
+
 		private void send(String type, String value) {
-			synchronized (clients) {
-				for (var client : clients) {
-					try {
-						WsBuilder.send(client.session, type, value);
-					} catch (Exception e) {
-					}
-				}
-			}
+			WsBuilder.broadcast(projectName, type, value);
 		}
 
-		public void add(WsBuilder client) {
-			synchronized (clients) {
-				client.build = this;
-				clients.add(client);
-			}
-		}
-
-		public void remove(WsBuilder client) {
-			synchronized (clients) {
-				client.build = null;
-				clients.remove(client);
-			}
-		}
-
+		/**
+		 * Stops the node processes of the project: its development server, its builds and its installs.
+		 */
 		void terminateNode(boolean prodOnly) {
-			baseUrl = null;
-			String projectName = new File(project.getDirPath()).getName();
+			if (!prodOnly) {
+				baseUrl = null;
+			}
+			stopProcess();
+			if (project == null) {
+				return;
+			}
+			// #183 the node processes of this project carry "=<project dir>/DisplayObjects/mobile" in their
+			// command line: match the full path to spare the same project opened in another workspace
+			var marker = "=" + new File(project.getDirFile(), "DisplayObjects").getAbsolutePath() + File.separator;
 			int retry = 10;
 			try {
 				while (retry-- > 0) {
-					int code;
+					ProcessBuilder pb;
 					if (Engine.isWindows()) {
-						String prod = prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "";
-						var process = new ProcessBuilder("powershell", "-Command",
-							"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*\\" + projectName + "\\DisplayObjects\\*' " + prod + " } | ForEach-Object { $_.Terminate() }"
-						).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
-						code = process.waitFor();
+						var prod = prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "";
+						pb = new ProcessBuilder("powershell", "-Command",
+								"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -and $_.CommandLine.IndexOf($env:C8O_NODE_MARKER, [StringComparison]::OrdinalIgnoreCase) -ge 0" + prod + " } | ForEach-Object { $_.Terminate() }");
 					} else {
-						String prod = prodOnly ? " | grep -e \"--watch\" -e \":watch\"" : "";
-						Process process = new ProcessBuilder("/bin/bash", "-c",
-							"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\"" + prod
-							+ " | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/" + projectName
-							+ "/DisplayObjects/.*,\\1,p\" | xargs kill")
-						.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
-						code = process.waitFor();
+						var prod = prodOnly ? " && /--watch|:watch/" : "";
+						pb = new ProcessBuilder("/bin/bash", "-c",
+								"ps -A -ww -o pid= -o args= | awk '{ i = index($0, ENVIRON[\"C8O_NODE_MARKER\"]) } i && substr($0, 1, i) ~ /node|npm|ng/" + prod + " { print $1 }' | xargs kill");
 					}
+					pb.environment().put("C8O_NODE_MARKER", marker);
+					int code = pb.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
 					if (code == 0) {
 						retry = 0;
 					}
@@ -301,99 +489,144 @@ public class WsBuilder extends WebSocketService {
 		}
 	}
 
+	/** the running builds, by project for the development server and by project + " local" for a local build */
 	static Map<String, Build> builds = new HashMap<>();
+	/** the clients following the builds of each project */
+	static Map<String, Set<WsBuilder>> listeners = new HashMap<>();
 
 	Session session;
 	String project;
-	Build build;
+
+	static String key(String project, boolean dev) {
+		return dev ? project : project + " local";
+	}
+
+	static void broadcast(String project, String type, String value) {
+		Set<WsBuilder> clients;
+		synchronized (listeners) {
+			clients = new HashSet<>(listeners.getOrDefault(project, Set.of()));
+		}
+		for (var client : clients) {
+			try {
+				synchronized (client) {
+					send(client.session, type, value);
+				}
+			} catch (Exception e) {
+			}
+		}
+	}
 
 	@Override
 	public void onOpen(Session session) {
-		Engine.logAdmin.warn("onOpen");
 		this.session = session;
 	}
 
 	@Override
 	public void onMessage(String message, Session session) {
-		Engine.logAdmin.warn("onMessage: " + message);
 		try {
 			var json = new JSONObject(message);
-			project = json.getString("project");
 			var action = json.getString("action");
-			var params = json.getJSONObject("params");
+			var params = json.optJSONObject("params");
+			params = params == null ? new JSONObject() : params;
+			follow(json.getString("project"));
 			switch (action) {
-			case "attach":
-				onAttach();
-				break;
-			case "build_dev":
-				onBuildDev(params);
-				break;
-			case "kill":
-				onKill();
-				break;
+			case "attach" -> onAttach();
+			case "build_dev" -> onBuild(params, "dev");
+			case "build_local" -> onBuild(params, NgxBuilderBuildMode.get(params.optString("mode", "fast")).name());
+			case "kill" -> onKill();
+			default -> send("log", "Unknown action " + action);
 			}
 		} catch (Exception e) {
-			Engine.logAdmin.error("failed to send back message", e);
+			Engine.logAdmin.error("(WsBuilder) failed to handle the message " + message, e);
 		}
 	}
 
 	@Override
 	public void onClose(Session session) {
-		Engine.logAdmin.warn("onClose");
-		if (build != null) {
-			build.remove(this);
-		}
+		follow(null);
 	}
 
 	@Override
 	public void onError(Throwable throwable, Session session) {
-		Engine.logAdmin.warn("onError", throwable);
-		if (build != null) {
-			build.remove(this);
+		Engine.logAdmin.debug("(WsBuilder) socket error", throwable);
+		follow(null);
+	}
+
+	/**
+	 * Follows the builds of a project, and no more the ones of the previous project.
+	 */
+	private void follow(String next) {
+		synchronized (listeners) {
+			if (project != null && !project.equals(next)) {
+				var clients = listeners.get(project);
+				if (clients != null) {
+					clients.remove(this);
+				}
+			}
+			project = next;
+			if (next != null) {
+				listeners.computeIfAbsent(next, k -> new HashSet<>()).add(this);
+			}
 		}
 	}
 
 	void send(String action, String message) throws JSONException, IOException {
-		send(session, action, message);
+		synchronized (this) {
+			send(session, action, message);
+		}
 	}
 
 	private void onAttach() throws Exception {
-		if (build != null) {
-			build.remove(this);
+		for (var dev : new boolean[] { true, false }) {
+			Build current;
+			synchronized (builds) {
+				current = builds.get(key(project, dev));
+			}
+			if (current == null) {
+				send("state", dev ? "dev:idle" : "local:idle");
+			} else {
+				send("state", current.stateMessage());
+				if (current.baseUrl != null) {
+					send("load", current.baseUrl);
+				}
+			}
 		}
-		synchronized (builds) {
-			build = builds.get(project);
-		}
+	}
 
-		if (build == null) {
-			send("log", "No builder running for " + project);
+	private void onBuild(JSONObject params, String mode) throws Exception {
+		var next = new Build(project, params.getString("endpoint"), mode, params.optString("install", ""));
+		Build previous;
+		synchronized (builds) {
+			previous = builds.put(key(project, next.isDev()), next);
+		}
+		if (previous != null) {
+			// one development server and one local build at a time for a project: the new one replaces the
+			// running one
+			previous.stopProcess();
+			if (previous.thread != null) {
+				previous.thread.join(10000);
+			}
+		}
+		next.start();
+	}
+
+	private void onKill() throws Exception {
+		Build dev, local;
+		synchronized (builds) {
+			dev = builds.get(key(project, true));
+			local = builds.get(key(project, false));
+		}
+		if (dev == null && local == null) {
+			send("state", "dev:idle");
+			send("state", "local:idle");
 			return;
 		}
-
-		build.add(this);
-		send("log", "Builder attached for " + project);
-		if (build.baseUrl != null) {
-			send("load", build.baseUrl);
+		broadcast(project, "log", "Stopping the builds of " + project);
+		if (local != null) {
+			local.terminateNode(true);
 		}
-	}
-
-	private void onBuildDev(JSONObject params) throws Exception {
-		if (build != null) {
-			send("log", "prevents starting a new build of " + project);
-//			return;
-		}
-		synchronized (builds) {
-			build = new Build(project, params.getString("endpoint"));
-			builds.put(project, build);
-		}
-		build.add(this);
-		build.start();
-	}
-
-	private void onKill() {
-		if (build != null) {
-			build.log("killing builds for " + project);
-			build.terminateNode(false);
+		if (dev != null) {
+			dev.terminateNode(false);
 		}
 	}
 
