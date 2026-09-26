@@ -61,6 +61,8 @@
 	let to = $state(LANGUAGES.includes(browser) && browser !== 'en' ? browser : 'fr');
 	let busy = $state(false);
 	let error = $state('');
+	/** the target texts translated from the source ones, with the free Google Translate API */
+	let auto = $state(false);
 
 	let name = $derived(id.split(/[.:]/).pop() ?? id);
 
@@ -72,11 +74,21 @@
 		busy = true;
 		error = '';
 		try {
-			const result = await call('studio.ngxbuilder.Translations', { id, from, to });
+			const result = await call('studio.ngxbuilder.Translations', {
+				id,
+				from,
+				to,
+				auto: String(auto)
+			});
 			if (result?.done) {
 				toaster.success({
-					description: `${result.texts} text${result.texts > 1 ? 's' : ''} written in ${result.files.join(', ')}.`
+					description: `${result.texts} text${result.texts > 1 ? 's' : ''} written in ${result.files.join(', ')}${result.translated ? ', translated automatically' : ''}.`
 				});
+				if (result.translationError) {
+					toaster.warning({
+						description: `The automatic translation failed, the texts are kept untranslated: ${result.translationError}`
+					});
+				}
 				await onDone?.(id);
 			} else {
 				error = String(result?.error?.message ?? 'The translations files were not written.');
@@ -124,6 +136,13 @@
 							<option value={language.code}>{language.name} ({language.code})</option>
 						{/each}
 					</select>
+				</label>
+				<label class="studio-dialog__check">
+					<input type="checkbox" bind:checked={auto} disabled={from === to} />
+					<span>
+						Translate automatically from the language of the texts
+						<small>With the free Google Translate API, limited by quotas.</small>
+					</span>
 				</label>
 				{#if error}
 					<p class="studio-dialog__error" role="alert">{error}</p>
@@ -228,6 +247,21 @@
 		padding-block: 0;
 		padding-inline: 0.6rem;
 		font-size: 0.8rem;
+	}
+
+	.studio-dialog__check {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.5rem;
+	}
+
+	.studio-dialog__check span {
+		display: grid;
+		gap: 0.1rem;
+	}
+
+	.studio-dialog__check small {
+		color: var(--studio-text-idle);
 	}
 
 	.studio-dialog__error {

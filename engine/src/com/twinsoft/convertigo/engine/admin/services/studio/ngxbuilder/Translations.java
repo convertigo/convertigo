@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -48,6 +49,8 @@ import com.twinsoft.convertigo.engine.mobile.TranslateUtils;
  * <ul>
  * <li>id: the application</li>
  * <li>from, to: the source and target languages, as "en" or "fr"</li>
+ * <li>auto: true to translate the texts of the target file from the source one, with the free Google
+ * Translate API, limited by quotas</li>
  * </ul>
  */
 @ServiceDefinition(name = "Translations", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
@@ -68,11 +71,27 @@ public class Translations extends JSonService {
 		var texts = texts(application);
 		var i18nDir = new File(application.getProject().getDirPath(), "DisplayObjects/mobile/assets/i18n");
 		var files = new ArrayList<String>();
+		var auto = "true".equals(request.getParameter("auto")) && !from.equals(to);
+		var translated = false;
 		for (var language : from.equals(to) ? List.of(from) : List.of(from, to)) {
 			var file = new File(i18nDir, language + ".json");
-			TranslateUtils.storeTranslations(texts, file);
+			if (auto && language.equals(to)) {
+				// the target texts translated from the source file, as the Eclipse Studio does
+				try {
+					TranslateUtils.newTranslator().translate(Locale.forLanguageTag(from), new File(i18nDir, from + ".json"),
+							Locale.forLanguageTag(to), file);
+					translated = true;
+				} catch (Exception e) {
+					Engine.logStudio.warn("(Translations) automatic translation failed: " + e.getMessage());
+					response.put("translationError", e.getMessage());
+					TranslateUtils.storeTranslations(texts, file);
+				}
+			} else {
+				TranslateUtils.storeTranslations(texts, file);
+			}
 			files.add(application.getProject().getName() + "/DisplayObjects/mobile/assets/i18n/" + file.getName());
 		}
+		response.put("translated", translated);
 		try {
 			// the application is generated again with its languages
 			application.updateSourceFiles();
