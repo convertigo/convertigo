@@ -3,7 +3,7 @@
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { getUrl, removeDbo, renameDbo } from '$lib/utils/service';
+	import { call, getUrl, removeDbo, renameDbo } from '$lib/utils/service';
 	import { tick } from 'svelte';
 	import {
 		canDropDbo,
@@ -349,6 +349,63 @@
 
 	function selectNode() {
 		selectedId = node?.id ?? '';
+	}
+
+	/** the first line of the comment, shown and edited as in the comment column of the Eclipse tree */
+	let comment = $derived.by(() => {
+		dataSerial;
+		revision;
+		return typeof node?.comment === 'string' ? node.comment : '';
+	});
+	let editingComment = $state(false);
+	let commentValue = $state('');
+	let commentBusy = $state(false);
+	/** @type {HTMLInputElement | undefined} */
+	let commentInput = $state();
+
+	async function editComment() {
+		if (!node?.id) {
+			return;
+		}
+		selectedId = node.id;
+		commentValue = comment;
+		editingComment = true;
+		await tick();
+		commentInput?.focus();
+		commentInput?.select();
+	}
+
+	/**
+	 * @param {Event} event
+	 */
+	async function commitComment(event) {
+		event.preventDefault();
+		if (commentBusy || !editingComment || !node?.id) {
+			return;
+		}
+		const next = commentValue.trim();
+		if (next === comment) {
+			editingComment = false;
+			return;
+		}
+		commentBusy = true;
+		try {
+			const result = await call('studio.treeview.Comment', { id: node.id, comment: next });
+			if (typeof result?.comment === 'string') {
+				node.comment = result.comment;
+				revision += 1;
+				editingComment = false;
+				if (result.changed) {
+					await onContextAction?.({
+						nodeId: node.id,
+						action: { id: 'object.comment' },
+						result: { changed: true }
+					});
+				}
+			}
+		} finally {
+			commentBusy = false;
+		}
 	}
 
 	function requestRename() {
@@ -1063,6 +1120,29 @@
 					onkeydown={handleRenameKeydown}
 				/>
 			</form>
+		{:else if editingComment}
+			<form
+				data-node-id={node?.id}
+				class="studio-tree-node__content studio-tree-node__content--rename"
+				onsubmit={commitComment}
+			>
+				<span class="studio-tree-node__label">{label}</span>
+				<input
+					bind:this={commentInput}
+					bind:value={commentValue}
+					class="studio-tree-node__rename studio-tree-node__comment-input"
+					aria-label="Comment"
+					placeholder="Comment"
+					disabled={commentBusy}
+					onblur={commitComment}
+					onkeydown={(event) => {
+						if (event.key === 'Escape') {
+							event.preventDefault();
+							editingComment = false;
+						}
+					}}
+				/>
+			</form>
 		{:else}
 			<button
 				type="button"
@@ -1088,6 +1168,9 @@
 					{/if}
 				</span>
 				<span class="studio-tree-node__label">{label}</span>
+				{#if comment}
+					<span class="studio-tree-node__comment" title={comment}>// {comment}</span>
+				{/if}
 				{#if gitDecoration}
 					<span
 						class="studio-tree-node__git"
@@ -1121,6 +1204,7 @@
 					canRevealDefinition={canRevealBlockDefinition?.(node.id) ?? false}
 					onSelectNode={selectNode}
 					onRename={requestRename}
+					onEditComment={draggableNode && !projectNode ? editComment : undefined}
 					onDelete={deleteSelectedNode}
 					onShowInFrontend={() => onShowInFrontend?.(node.id)}
 					onRevealInPalette={() => onRevealInPalette?.(node.id)}
@@ -1348,6 +1432,20 @@
 		white-space: nowrap;
 		font-size: 0.8rem;
 		font-weight: 400;
+	}
+
+	.studio-tree-node__comment {
+		max-width: 18rem;
+		overflow: hidden;
+		margin-left: 0.5rem;
+		color: var(--color-success-700-300);
+		font-size: 0.72rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-tree-node__comment-input {
+		margin-left: 0.4rem;
 	}
 
 	.studio-tree-node__git {

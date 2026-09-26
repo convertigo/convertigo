@@ -195,6 +195,10 @@ public class Get extends JSonService {
 		if (defaultOf != null) {
 			obj.put("default", defaultOf);
 		}
+		var comment = Comment.firstLine(dbo.getComment());
+		if (!comment.isBlank()) {
+			obj.put("comment", comment);
+		}
 		if (flow) {
 			obj.put("classname", dbo.getClass().getSimpleName());
 			obj.put("isLoop", dbo instanceof LoopStep);

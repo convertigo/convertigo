@@ -49,6 +49,7 @@
 	import MdiCoffee from '~icons/mdi/coffee';
 	import MdiCog from '~icons/mdi/cog';
 	import MdiCogOutline from '~icons/mdi/cog-outline';
+	import MdiCommentTextOutline from '~icons/mdi/comment-text-outline';
 	import MdiContentCopy from '~icons/mdi/content-copy';
 	import MdiContentCut from '~icons/mdi/content-cut';
 	import MdiContentPaste from '~icons/mdi/content-paste';
@@ -334,6 +335,7 @@
 		'mdi:power-plug': MdiPowerPlug,
 		'mdi:qrcode': MdiQrcode,
 		'mdi:camera-outline': MdiCameraOutline,
+		'mdi:comment-text-outline': MdiCommentTextOutline,
 		'mdi:image-outline': MdiImageOutline,
 		'mdi:format-font': MdiFormatFont,
 		'mdi:receipt-text-send-outline': MdiReceiptTextSendOutline,

@@ -31,6 +31,7 @@
 	 *  deleting?: boolean,
 	 *  onSelectNode?: () => void,
 	 *  onRename?: () => void,
+	 *  onEditComment?: () => void,
 	 *  onDelete?: () => void | Promise<void>,
 	 *  onShowInFrontend?: () => void | Promise<void>,
 	 *  onRevealInPalette?: () => void | Promise<void>,
@@ -55,6 +56,7 @@
 		deleting = false,
 		onSelectNode,
 		onRename,
+		onEditComment,
 		onDelete,
 		onShowInFrontend,
 		onRevealInPalette,
@@ -149,6 +151,10 @@
 	async function handleSelect(details) {
 		if (details.value === 'object.rename') {
 			onRename?.();
+			return;
+		}
+		if (details.value === 'object.comment') {
+			onEditComment?.();
 			return;
 		}
 		if (details.value === 'object.delete') {
@@ -348,6 +354,9 @@
 						{@render treeItem('edit.paste', 'mdi:content-paste', 'Paste', !canPaste)}
 						{#if canRename}
 							{@render treeItem('object.rename', 'mdi:pencil-outline', 'Rename')}
+						{/if}
+						{#if onEditComment}
+							{@render treeItem('object.comment', 'mdi:comment-text-outline', 'Edit comment')}
 						{/if}
 						{#if enabledState !== undefined}
 							{@render treeItem(
