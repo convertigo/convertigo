@@ -171,6 +171,14 @@ public class NgxConverter {
 		} catch (Exception e) {}
 	}
 
+	/**
+	 * @return whether the YAML key of a bean, as "name [package.Class-priority]", is of the class
+	 */
+	private static boolean isBeanOf(String yaml_key, String classname) {
+		var matcher = patternBeanName.matcher(yaml_key);
+		return matcher.matches() ? matcher.group(2).endsWith(classname) : yaml_key.endsWith(classname);
+	}
+
 	private static boolean checkBean(Element beanEl) {
 		String yaml_key = beanEl.getAttribute("yaml_key");
 		
@@ -232,19 +240,19 @@ public class NgxConverter {
 		
 		/* Standard Beans */
 		// for application
-		if (yaml_key.endsWith("ngx.components.ApplicationComponent")) {
+		if (isBeanOf(yaml_key, "ngx.components.ApplicationComponent")) {
 			try {
 				xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent(NGX_TPL_PROJECT_NAME);
 			} catch (Exception e) {}
 		}
 		
 		// for shared component
-		if (yaml_key.endsWith("ngx.components.UISharedComponent")) {
+		if (isBeanOf(yaml_key, "ngx.components.UISharedComponent")) {
 			beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UISharedComponent", "UISharedRegularComponent"));
 		}
 
 		// for useshared variable
-		if (yaml_key.endsWith("ngx.components.UIControlVariable")) {
+		if (isBeanOf(yaml_key, "ngx.components.UIControlVariable")) {
 			Element parentEl = (Element) beanEl.getParentNode();
 			if (parentEl.getAttribute("yaml_key").endsWith("ngx.components.UIUseShared")) {
 				beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UIControlVariable", "UIUseVariable"));
@@ -252,7 +260,7 @@ public class NgxConverter {
 		}
 		
 		// for application theme
-		if (yaml_key.endsWith("ngx.components.UITheme")) {
+		if (isBeanOf(yaml_key, "ngx.components.UITheme")) {
 			try {
 				Node formatedContent = xpath.selectList(beanEl, "//com.twinsoft.convertigo.beans.common.FormatedContent").get(0);
 				CDATASection cdata = (CDATASection)formatedContent.getFirstChild();
@@ -262,7 +270,7 @@ public class NgxConverter {
 		}
 		
 		// for style
-		if (yaml_key.endsWith("ngx.components.UIStyle")) {
+		if (isBeanOf(yaml_key, "ngx.components.UIStyle")) {
 			try {
 				Node formatedContent = xpath.selectList(beanEl, "//com.twinsoft.convertigo.beans.common.FormatedContent").get(0);
 				CDATASection cdata = (CDATASection)formatedContent.getFirstChild();
@@ -1136,7 +1144,7 @@ public class NgxConverter {
 							Element parentEl = (Element) beanEl.getParentNode();
 							if (parentEl != null) {
 								String parent_yaml_key = parentEl.getAttribute("yaml_key");;
-								if (parent_yaml_key.endsWith("ngx.components.UISharedRegularComponent")) {
+								if (isBeanOf(parent_yaml_key, "ngx.components.UISharedRegularComponent")) {
 									viewEventNode.setTextContent("onDidLeave");
 								}
 							}
@@ -1504,12 +1512,12 @@ public class NgxConverter {
 			// Ionic3 project migration
 			if (yaml_key.indexOf("mobile.components") != -1) {
 				
-				if (yaml_key.endsWith("mobile.components.UISharedComponent")) {
+				if (isBeanOf(yaml_key, "mobile.components.UISharedComponent")) {
 					sharedCompEl = beanEl;
 					sharedMap.put(beanEl, new ArrayList<Element>());
 				}
 				
-				if (yaml_key.endsWith("mobile.components.UIPageEvent")) {
+				if (isBeanOf(yaml_key, "mobile.components.UIPageEvent")) {
 					isPageEvent = true;
 				}
 				
@@ -1662,21 +1670,21 @@ public class NgxConverter {
 			else if (yaml_key.indexOf("ngx.components") != -1) {
 				
 				// for application
-				if (yaml_key.endsWith("ngx.components.ApplicationComponent")) {
+				if (isBeanOf(yaml_key, "ngx.components.ApplicationComponent")) {
 					try {
 						xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent(NGX_TPL_PROJECT_NAME);
 					} catch (Exception e) {}
 				}
 				
 				// for shared component
-				if (yaml_key.endsWith("ngx.components.UISharedComponent")) {
+				if (isBeanOf(yaml_key, "ngx.components.UISharedComponent")) {
 					beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UISharedComponent", "UISharedRegularComponent"));
 					sharedCompEl = beanEl;
 					sharedMap.put(beanEl, new ArrayList<Element>());
 				}
 				
 				// for useshared variable
-				if (yaml_key.endsWith("ngx.components.UIControlVariable")) {
+				if (isBeanOf(yaml_key, "ngx.components.UIControlVariable")) {
 					Element parentEl = (Element) beanEl.getParentNode();
 					if (parentEl.getAttribute("yaml_key").endsWith("ngx.components.UIUseShared")) {
 						beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UIControlVariable", "UIUseVariable"));
@@ -1684,7 +1692,7 @@ public class NgxConverter {
 				}
 				
 				// for control event
-				if (yaml_key.endsWith("ngx.components.UIControlEvent")) {
+				if (isBeanOf(yaml_key, "ngx.components.UIControlEvent")) {
 					ngx_handleSlidesEvents(beanEl);
 				}
 				
