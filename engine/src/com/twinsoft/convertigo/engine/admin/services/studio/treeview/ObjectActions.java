@@ -60,6 +60,7 @@ import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.CicsTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
@@ -236,6 +237,11 @@ public class ObjectActions {
 			add(items, "object.emptyStub", "Create an empty stub",
 					"Save an empty response as the stub answering the requests run from stub.", true,
 					"mdi:file-outline");
+		}
+		if (dbo instanceof CicsTransaction) {
+			add(items, "object.importCopybook", "Import copybook…",
+					"Fill the input or the output map of this transaction from a COBOL copybook.", true, "mdi:import")
+					.put("clientAction", "dialog.copybook");
 		}
 		if (dbo instanceof Transaction && !(dbo instanceof SiteClipperTransaction)) {
 			add(items, "object.updateSchema", "Update schema from transaction's definition",

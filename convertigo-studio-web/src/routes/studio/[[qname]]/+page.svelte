@@ -45,6 +45,7 @@
 		pasteStudioClipboard,
 		putInStudioClipboard
 	} from '$lib/studio/studioClipboard.svelte.js';
+	import StudioCopybookDialog from '$lib/studio/StudioCopybookDialog.svelte';
 	import StudioDebugPanel from '$lib/studio/StudioDebugPanel.svelte';
 	import StudioDeployDialog from '$lib/studio/StudioDeployDialog.svelte';
 	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
@@ -281,6 +282,7 @@
 	/** The NGX component the shared component dialog extracts */
 	let sharedComponentTargetId = $state('');
 	let handlersTargetId = $state('');
+	let copybookTargetId = $state('');
 	let statisticsProjectName = $state('');
 	let aboutOpen = $state(false);
 	let preferencesOpen = $state(false);
@@ -2340,6 +2342,8 @@
 			executionRunTestcase = nodeId.replace(/^.*[.:]tc:/, '');
 		} else if (action === 'dialog.handlers') {
 			handlersTargetId = nodeId;
+		} else if (action === 'dialog.copybook') {
+			copybookTargetId = nodeId;
 		} else if (action === 'dialog.sharedComponent') {
 			sharedComponentTargetId = nodeId;
 		} else if (action === 'dialog.stepsFromXml' || action === 'dialog.stepsFromXsd') {
@@ -3282,6 +3286,19 @@
 			selectedId = id;
 		}}
 		onClose={() => (sharedComponentTargetId = '')}
+	/>
+{/if}
+{#if copybookTargetId}
+	<StudioCopybookDialog
+		id={copybookTargetId}
+		onDone={async (id) => {
+			copybookTargetId = '';
+			await refreshStudioProject(id);
+			refreshTreeContext(id, 'contextAction');
+			markProjectDirty(id);
+			selectedId = id;
+		}}
+		onClose={() => (copybookTargetId = '')}
 	/>
 {/if}
 {#if stepsFromXmlTargetId}
