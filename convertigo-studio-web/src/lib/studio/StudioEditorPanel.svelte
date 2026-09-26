@@ -34,12 +34,14 @@
 	 * @property {number[]=} breakpoints
 	 * @property {string=} scriptUrl the script of the property, as the debugger names it
 	 * @property {number=} scriptOffset the lines the engine adds before the property
+	 * @property {number=} revealLine a line to show, as a line a search found
+	 * @property {number=} revealSerial when the line was asked, the editor shows it once for each
 	 */
 
 	/**
 	 * @type {{
 	 *  selectedId?: string,
-	 *  editorTarget?: { id?: string, propertyName?: string, displayName?: string, value?: any, persisted?: boolean, sourceDocument?: boolean, serial?: number } | null,
+	 *  editorTarget?: { id?: string, propertyName?: string, displayName?: string, value?: any, persisted?: boolean, sourceDocument?: boolean, serial?: number, line?: number } | null,
 	 *  active?: boolean,
 	 *  onSave?: (id: string, result?: any) => void | Promise<void>,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
@@ -127,7 +129,7 @@
 		}
 		lastSourceRequest = requestKey;
 		untrack(() => {
-			void openSourceDocument(sourceId);
+			void openSourceDocument(sourceId, editorTarget?.line ?? 0);
 		});
 	});
 
@@ -300,7 +302,11 @@
 	 * virtual object. The browser never receives or submits an arbitrary path.
 	 * @param {string} objectId
 	 */
-	async function openSourceDocument(objectId) {
+	/**
+	 * @param {string} objectId
+	 * @param {number} [line] a line to show, as a line a search found
+	 */
+	async function openSourceDocument(objectId, line = 0) {
 		loading = true;
 		error = '';
 		try {
@@ -315,6 +321,10 @@
 				existing.originalValue = existing.content;
 				existing.revision = String(response?.revision ?? '');
 				existing.language = String(response?.language ?? 'text');
+				if (line) {
+					existing.revealLine = line;
+					existing.revealSerial = Date.now();
+				}
 				activeTabKey = existing.key;
 				return;
 			}
@@ -330,7 +340,8 @@
 				readOnly: response?.readOnly !== false,
 				sourceDocument: true,
 				revision: String(response?.revision ?? ''),
-				focused: false
+				focused: false,
+				...(line ? { revealLine: line, revealSerial: Date.now() } : {})
 			});
 			activeTabKey = key;
 			selectObject(objectId);
@@ -664,6 +675,8 @@
 				breakpoints={debuggable ? (activeTab.breakpoints ?? []) : null}
 				onBreakpointToggle={toggleBreakpoint}
 				currentLine={debuggable ? currentLine : 0}
+				revealLine={activeTab.revealLine ?? 0}
+				revealSerial={activeTab.revealSerial ?? 0}
 			/>
 		</div>
 	{:else if loading}

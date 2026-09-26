@@ -4,8 +4,9 @@
 
 	/**
 	 * breakpoints: the lines holding a breakpoint, shown in a margin whose clicks call onBreakpointToggle;
-	 * currentLine: the line where the debugger stopped
-	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number}}
+	 * currentLine: the line where the debugger stopped; revealLine: a line to show and select, once for
+	 * each revealSerial, as a line a search found
+	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number}}
 	 */
 	let {
 		content = $bindable('/* Loading... */'),
@@ -16,7 +17,9 @@
 		scrollBeyondLastLine = true,
 		breakpoints = null,
 		onBreakpointToggle,
-		currentLine = 0
+		currentLine = 0,
+		revealLine = 0,
+		revealSerial = 0
 	} = $props();
 
 	function onEditorContentChange(nextContent) {
@@ -38,6 +41,8 @@
 		breakpoints,
 		onBreakpointToggle,
 		currentLine,
+		revealLine,
+		revealSerial,
 		onContentChange: onEditorContentChange,
 		onContentHeightChange: onEditorContentHeightChange
 	}));
@@ -123,6 +128,8 @@
 			onBreakpointToggle:
 				typeof value?.onBreakpointToggle == 'function' ? value.onBreakpointToggle : undefined,
 			currentLine: Number(value?.currentLine) || 0,
+			revealLine: Number(value?.revealLine) || 0,
+			revealSerial: Number(value?.revealSerial) || 0,
 			onContentChange:
 				typeof value?.onContentChange == 'function' ? value.onContentChange : undefined,
 			onContentHeightChange:
@@ -132,7 +139,7 @@
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
 	 */
 	function mountMonaco(node, value) {
 		/** @type {any} */
@@ -154,6 +161,7 @@
 		/** @type {any} */
 		let currentLineDecorations;
 		let shownLine = 0;
+		let revealedSerial = 0;
 		let disposed = false;
 		let pending = normalizeOptions(value);
 		let applyingContent = false;
@@ -246,6 +254,20 @@
 			const model = editor.getModel();
 			if (model && model.getLanguageId() !== pending.language) {
 				globalThis.monaco?.editor?.setModelLanguage(model, pending.language);
+			}
+			if (
+				pending.revealLine &&
+				pending.revealSerial !== revealedSerial &&
+				model &&
+				pending.revealLine <= model.getLineCount()
+			) {
+				// the line found, selected once its content is shown
+				revealedSerial = pending.revealSerial;
+				const line = pending.revealLine;
+				editor.setSelection(
+					new globalThis.monaco.Range(line, 1, line, model.getLineMaxColumn(line))
+				);
+				editor.revealLineInCenter(line);
 			}
 			scheduleLayout();
 		}

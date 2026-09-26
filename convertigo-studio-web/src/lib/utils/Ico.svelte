@@ -81,6 +81,7 @@
 	import MdiEyeOutline from '~icons/mdi/eye-outline';
 	import MdiFileCodeOutline from '~icons/mdi/file-code-outline';
 	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline';
+	import MdiFileDocumentOutline from '~icons/mdi/file-document-outline';
 	import MdiFileHidden from '~icons/mdi/file-hidden';
 	import MdiFileOutline from '~icons/mdi/file-outline';
 	import MdiFileQuestionOutline from '~icons/mdi/file-question-outline';
@@ -273,6 +274,7 @@
 		'mdi:eye-off-outline': MdiEyeOffOutline,
 		'mdi:file-document-box-outline': MdiFileDocumentBoxOutline,
 		'mdi:file-code-outline': MdiFileCodeOutline,
+		'mdi:file-document-outline': MdiFileDocumentOutline,
 		'mdi:file-outline': MdiFileOutline,
 		'mdi:file-question-outline': MdiFileQuestionOutline,
 		'mdi:file-tree-outline': MdiFileTreeOutline,

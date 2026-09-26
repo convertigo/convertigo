@@ -189,6 +189,7 @@
 	 * @property {boolean=} persisted whether the value is the one the engine now holds
 	 * @property {boolean=} sourceDocument
 	 * @property {number=} serial
+	 * @property {number=} line a line to show, as a line a search found
 	 */
 	/**
 	 * @typedef {Object} SourcePropertyCandidate
@@ -3063,7 +3064,20 @@
 			class="studio__tree-panel"
 			contentClass="studio__panel-fill"
 		>
-			<StudioSearchPanel projectName={selectedProjectName} onSelect={selectObject} />
+			<StudioSearchPanel
+				projectName={selectedProjectName}
+				onSelect={selectObject}
+				onSelectFile={(id, line) => {
+					// a line of a file a search found, shown in the code editor
+					selectedId = id;
+					editorTarget = { id, sourceDocument: true, serial: Date.now(), line };
+					if (profile === 'frontend') {
+						setFrontendResult('code');
+					} else {
+						setWorkPanel('code');
+					}
+				}}
+			/>
 		</StudioPanel>
 	{:else if leftView === 'git'}
 		<StudioPanel
