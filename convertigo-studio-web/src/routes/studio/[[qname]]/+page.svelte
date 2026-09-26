@@ -86,6 +86,11 @@
 	import StudioTutorials from '$lib/studio/StudioTutorials.svelte';
 	import StudioVariablesDialog from '$lib/studio/StudioVariablesDialog.svelte';
 	import StudioWsImportDialog from '$lib/studio/StudioWsImportDialog.svelte';
+	import {
+		clearTreeSelection,
+		treeSelection,
+		treeSelectionOf
+	} from '$lib/studio/treeSelection.svelte.js';
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { resolve } from '$lib/utils/route';
@@ -339,6 +344,15 @@
 	let localTreeMutationHandled = false;
 
 	let selectedContext = $derived(parseSelection(selectedId));
+	$effect(() => {
+		// another object selected elsewhere ends the selection of several objects
+		const id = selectedId;
+		untrack(() => {
+			if (treeSelection.ids.length && !treeSelection.ids.includes(id)) {
+				clearTreeSelection();
+			}
+		});
+	});
 	let selectedProjectName = $derived(selectedContext.projectName);
 	let selectedProject = $derived(
 		Projects.projects.find(({ name }) => name === selectedProjectName) ?? null
@@ -2306,9 +2320,17 @@
 	 */
 	async function runTreeAction(action, nodeId) {
 		const projectName = parseSelection(nodeId).projectName;
+		// the objects selected together, as in the tree of Eclipse
+		const selection = treeSelectionOf(nodeId).filter(isTreeObjectId);
 		if (action === 'edit.copy' || action === 'edit.cut') {
-			if (isTreeObjectId(nodeId)) {
-				await putInStudioClipboard(action === 'edit.cut' ? 'cut' : 'copy', [nodeId]);
+			if (selection.length) {
+				await putInStudioClipboard(action === 'edit.cut' ? 'cut' : 'copy', selection);
+			}
+		} else if (action === 'object.delete' && selection.length > 1) {
+			await deleteTreeObjects(selection);
+		} else if ((action === 'state.enable' || action === 'state.disable') && selection.length > 1) {
+			for (const id of selection) {
+				await setTreeObjectEnabled(id, action === 'state.enable');
 			}
 		} else if (action === 'edit.paste') {
 			await pasteIntoTree(nodeId);
@@ -2569,6 +2591,36 @@
 	/**
 	 * @param {string} id
 	 */
+	/**
+	 * Deletes the objects selected together, after one confirmation, as the tree of Eclipse does.
+	 * @param {string[]} ids
+	 */
+	async function deleteTreeObjects(ids) {
+		if (!window.confirm(`Delete these ${ids.length} objects?\n\nThis action cannot be undone.`)) {
+			return;
+		}
+		clearTreeSelection();
+		// the children of a deleted object go with it
+		const roots = ids.filter(
+			(id) => !ids.some((other) => other !== id && id.startsWith(`${other}.`))
+		);
+		for (const id of roots) {
+			const result = await removeDbo(id);
+			if (result?.done) {
+				const parentId = parentObjectId(id);
+				await onStudioMutation({
+					done: true,
+					id: parentId,
+					selectedId: parentId,
+					target: id,
+					position: 'inside',
+					source: 'studio',
+					payload: { type: 'deleteData', data: { id } }
+				});
+			}
+		}
+	}
+
 	async function deleteTreeObject(id) {
 		const name = id.slice(Math.max(id.lastIndexOf('.'), id.lastIndexOf(':')) + 1);
 		if (!window.confirm(`Delete "${name}"?\n\nThis action cannot be undone.`)) {

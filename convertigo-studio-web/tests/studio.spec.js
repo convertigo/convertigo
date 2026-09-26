@@ -915,6 +915,39 @@ test('studio keeps tree, flow and url synchronized after a flow delete mutation'
 	await expect(page).toHaveURL(new RegExp(`/studio/${projectName}\\.sq~${sequenceName}/$`));
 });
 
+test('studio selects several tree objects and deletes them together', async ({ page }) => {
+	const state = createStudioState();
+	await mockStudioServices(page, { state });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await expandTreeNode(page, sequenceId);
+	await expandTreeNode(page, `${sequenceId}:st`);
+	const init = page.locator(`button.studio-tree-node__content[data-node-id="${initStepId}"]`);
+	const returnStep = page.locator(
+		`button.studio-tree-node__content[data-node-id="${sequenceId}.st:return"]`
+	);
+	await init.click();
+	await returnStep.click({ modifiers: ['ControlOrMeta'] });
+	await expect(page.locator('.studio-tree-node__row--multi')).toHaveCount(2);
+
+	// a plain click selects one object again
+	await returnStep.click();
+	await expect(page.locator('.studio-tree-node__row--multi')).toHaveCount(0);
+	await init.click();
+	await returnStep.click({ modifiers: ['Shift'] });
+	await expect(page.locator('.studio-tree-node__row--multi')).toHaveCount(2);
+
+	page.once('dialog', async (dialog) => {
+		expect(dialog.message()).toContain('Delete these 2 objects?');
+		await dialog.accept();
+	});
+	await init.press('Delete');
+	await expect(init).toHaveCount(0);
+	await expect(returnStep).toHaveCount(0);
+});
+
 test('studio adds a palette step from the flow and opens inline rename', async ({ page }) => {
 	const state = createStudioState();
 	await mockStudioServices(page, { state });

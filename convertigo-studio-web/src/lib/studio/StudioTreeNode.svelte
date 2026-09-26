@@ -24,6 +24,13 @@
 	import StudioTreeActionMenu from './StudioTreeActionMenu.svelte';
 	import { applyProjectedTreeMutation, removeProjectedTreeNode } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
+	import {
+		clearTreeSelection,
+		selectTreeRange,
+		toggleTreeSelection,
+		treeSelection,
+		treeSelectionOf
+	} from './treeSelection.svelte.js';
 
 	const folderTypeIds = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url', 'app', 'mob']);
 
@@ -347,8 +354,22 @@
 		}
 	}
 
-	function selectNode() {
-		selectedId = node?.id ?? '';
+	/**
+	 * @param {MouseEvent=} event
+	 */
+	function selectNode(event) {
+		const id = node?.id ?? '';
+		if (id && (event?.metaKey || event?.ctrlKey)) {
+			// several objects selected together, as in the tree of Eclipse
+			toggleTreeSelection(id, selectedId);
+			return;
+		}
+		if (id && event?.shiftKey && selectedId) {
+			selectTreeRange(selectedId, id);
+			return;
+		}
+		clearTreeSelection();
+		selectedId = id;
 	}
 
 	/** the first line of the comment, shown and edited as in the comment column of the Eclipse tree */
@@ -418,6 +439,11 @@
 
 	async function deleteSelectedNode() {
 		if (deletingBusy || !node?.id) {
+			return;
+		}
+		if (onTreeAction && treeSelectionOf(node.id).length > 1) {
+			// the objects selected together are deleted together
+			await onTreeAction('object.delete', node.id);
 			return;
 		}
 		const previousId = node.id;
@@ -1064,6 +1090,7 @@
 		ondragleave={resetDrop}
 		ondrop={handleDrop}
 		class:studio-tree-node__row--selected={selected}
+		class:studio-tree-node__row--multi={Boolean(node?.id && treeSelection.ids.includes(node.id))}
 		class:studio-tree-node__row--drop={dropOver && dropAllowed}
 		class:studio-tree-node__row--drop-denied={dropOver && !dropAllowed}
 		class:studio-tree-node__row--drop-before={dropOver && dropAllowed && dropIndicator === 'before'}
@@ -1310,6 +1337,12 @@
 	}
 
 	/* The selection of a list of Cursor, bordered with the accent */
+	.studio-tree-node__row--multi,
+	.studio-tree-node__row--multi:hover {
+		background: color-mix(in oklab, var(--color-primary-500) 10%, transparent);
+		color: var(--studio-text-strong, var(--color-primary-700-300));
+	}
+
 	.studio-tree-node__row--selected,
 	.studio-tree-node__row--selected:hover {
 		border-color: color-mix(in oklab, var(--color-primary-500) 70%, transparent);
