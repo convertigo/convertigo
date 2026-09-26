@@ -38,7 +38,6 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IDynamicPropertyContainer;
-import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
@@ -153,9 +152,8 @@ public class Set extends JSonService {
 									: new XmlQName(QName.valueOf(pvalue)) });
 						} else if (SmartType.class.equals(ptc)) {
 							setter.invoke(dbo, new Object[] { makeSmartType(mode, rawValue, pvalue) });
-						} else if (rawValue instanceof JSONArray parts && dbo instanceof IStepSourceContainer
-								&& "sourceDefinition".equals(pname)) {
-							// the source of a step: the priority of its step and its xpath
+						} else if (rawValue instanceof JSONArray parts && StepSources.handles(dbo, pname)) {
+							// a source of a step: the priority of its step and its xpath
 							var source = new XMLVector<String>();
 							for (int part = 0; part < parts.length(); part++) {
 								source.add(parts.getString(part));

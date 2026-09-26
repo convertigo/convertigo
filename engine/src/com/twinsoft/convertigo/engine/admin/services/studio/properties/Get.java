@@ -323,9 +323,9 @@ public class Get extends JSonService {
 			} else if (XMLVector.class.getName().equals(classname)) {
 				// a table the Studio edits as rows of cells
 				var rows = PropertyTables.rows(dbo, elt.getAttribute("name"));
-				if (dbo instanceof IStepSourceContainer container && "sourceDefinition".equals(elt.getAttribute("name"))) {
-					// the source of a step, which the source picker shows: the priority of its step and its xpath
-					var definition = container.getSourceDefinition();
+				if (StepSources.handles(dbo, elt.getAttribute("name"))) {
+					// a source of a step, which the source picker shows: the priority of its step and its xpath
+					var definition = stepSource(dbo, elt.getAttribute("name"));
 					property.put("value", new JSONArray(definition));
 					property.put("sourceLabel", sourceLabel(dbo, definition));
 				} else if (rows != null) {
@@ -418,6 +418,20 @@ public class Get extends JSonService {
 			}
 		}
 		return labels;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static XMLVector<String> stepSource(DatabaseObject dbo, String name) throws Exception {
+		if (dbo instanceof IStepSourceContainer container && "sourceDefinition".equals(name)) {
+			return container.getSourceDefinition();
+		}
+		for (var pd : java.beans.Introspector.getBeanInfo(dbo.getClass()).getPropertyDescriptors()) {
+			if (pd.getName().equals(name) && pd.getReadMethod() != null
+					&& pd.getReadMethod().invoke(dbo) instanceof XMLVector<?> source) {
+				return (XMLVector<String>) source;
+			}
+		}
+		return new XMLVector<>();
 	}
 
 	private static String sourceLabel(DatabaseObject dbo, XMLVector<String> definition) {

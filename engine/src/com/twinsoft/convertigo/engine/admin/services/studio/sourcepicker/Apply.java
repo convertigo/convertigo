@@ -107,6 +107,17 @@ public class Apply extends JSonService {
 		for (PropertyDescriptor descriptor : CachedIntrospector.getPropertyDescriptors(dbo, Property.sourcesDefinition)) {
 			addCandidate(candidates, descriptor, "sourcesDefinition");
 		}
+		// the other sources of the steps, as the connection string of a transaction step
+		try {
+			for (PropertyDescriptor descriptor : java.beans.Introspector.getBeanInfo(dbo.getClass()).getPropertyDescriptors()) {
+				if (!"sourceDefinition".equals(descriptor.getName())
+						&& com.twinsoft.convertigo.engine.admin.services.studio.properties.StepSources.handles(dbo, descriptor.getName())) {
+					addCandidate(candidates, descriptor, "sourceDefinition");
+				}
+			}
+		} catch (Exception e) {
+			// no other source
+		}
 		candidates.sort(Comparator.comparing(candidate -> candidate.descriptor.getDisplayName()));
 		return candidates;
 	}
