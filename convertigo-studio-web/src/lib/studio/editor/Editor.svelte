@@ -9,7 +9,7 @@
 	 * each revealSerial, as a line a search found; path: the path of the file the editor shows, and
 	 * typesProject: the project whose packages give their types to its TypeScript, as the TypeScript
 	 * editor of the Eclipse Studio knows the packages of the project
-	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string}}
+	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void}}
 	 */
 	let {
 		content = $bindable('/* Loading... */'),
@@ -24,7 +24,8 @@
 		revealLine = 0,
 		revealSerial = 0,
 		path = '',
-		typesProject = ''
+		typesProject = '',
+		onSave = undefined
 	} = $props();
 
 	function onEditorContentChange(nextContent) {
@@ -50,6 +51,7 @@
 		revealSerial,
 		path,
 		typesProject,
+		onSave,
 		onContentChange: onEditorContentChange,
 		onContentHeightChange: onEditorContentHeightChange
 	}));
@@ -141,6 +143,7 @@
 			revealSerial: Number(value?.revealSerial) || 0,
 			path: String(value?.path ?? ''),
 			typesProject: String(value?.typesProject ?? ''),
+			onSave: typeof value?.onSave == 'function' ? value.onSave : undefined,
 			onContentChange:
 				typeof value?.onContentChange == 'function' ? value.onContentChange : undefined,
 			onContentHeightChange:
@@ -150,7 +153,7 @@
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
 	 */
 	function mountMonaco(node, value) {
 		/** @type {any} */
@@ -341,6 +344,8 @@
 				contentSizeSubscription = editor.onDidContentSizeChange((event) => {
 					pending.onContentHeightChange?.(Math.ceil(event.contentHeight));
 				});
+				// Ctrl or ⌘ with S saves the file, as in the editors of the Eclipse Studio
+				editor.addCommand(Monaco.KeyMod.CtrlCmd | Monaco.KeyCode.KeyS, () => pending.onSave?.());
 				breakpointDecorations = editor.createDecorationsCollection();
 				currentLineDecorations = editor.createDecorationsCollection();
 				mouseDownSubscription = editor.onMouseDown((event) => {

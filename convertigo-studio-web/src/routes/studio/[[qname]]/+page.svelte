@@ -2127,6 +2127,25 @@
 		sourceChoice = null;
 	}
 
+	/**
+	 * Ctrl or ⌘ with S saves the selected project wherever the focus is, as the Save of the Eclipse Studio,
+	 * instead of the page of the browser; the tree, the code editor and the properties handle it first.
+	 * @param {KeyboardEvent} event
+	 */
+	function handleSaveShortcut(event) {
+		if (
+			event.defaultPrevented ||
+			!(event.metaKey || event.ctrlKey) ||
+			event.altKey ||
+			event.shiftKey ||
+			event.key.toLowerCase() !== 's'
+		) {
+			return;
+		}
+		event.preventDefault();
+		void saveSelectedProject();
+	}
+
 	async function saveSelectedProject() {
 		if (!selectedProjectName || projectActionBusy) {
 			return;
@@ -2975,6 +2994,8 @@
 	}
 </script>
 
+<svelte:window onkeydown={handleSaveShortcut} />
+
 <svelte:head>
 	<title>Convertigo Studio</title>
 </svelte:head>
@@ -3283,6 +3304,7 @@
 		identityItem={selectedTreeDocItem}
 		{frontendThemeContext}
 		onPickerApply={refreshAfterPickerApply}
+		onSaveProject={saveSelectedProject}
 	/>
 {/snippet}
 

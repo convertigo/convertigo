@@ -691,6 +691,7 @@
 				revealLine={activeTab.revealLine ?? 0}
 				revealSerial={activeTab.revealSerial ?? 0}
 				path={typedPath(activeTab)}
+				onSave={() => void saveEditor()}
 				typesProject={typedPath(activeTab) ? activeTab.id.split(/[.:/]/)[0] : ''}
 			/>
 		</div>

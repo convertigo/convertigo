@@ -45,7 +45,8 @@
 	 *  pickerRequest?: { id: string, propertyName: string, serial: number } | null,
 	 *  identityItem?: { id?: string, name?: string, classname?: string, instanceName?: string, icon?: string } | null,
 	 *  frontendThemeContext?: { mode: string, palette: string, tokens: any[] } | null,
-	 *  onPickerApply?: (id: string, value?: any) => void | Promise<void>
+	 *  onPickerApply?: (id: string, value?: any) => void | Promise<void>,
+	 *  onSaveProject?: () => void | Promise<void>
 	 * }}
 	 */
 	let {
@@ -60,8 +61,24 @@
 		pickerRequest = null,
 		identityItem = null,
 		frontendThemeContext = null,
-		onPickerApply = () => {}
+		onPickerApply = () => {},
+		onSaveProject
 	} = $props();
+
+	/**
+	 * Ctrl or ⌘ with S applies the changes of the properties and saves the project, as the Eclipse Studio
+	 * sets the properties at once and saves the project.
+	 * @param {KeyboardEvent} event
+	 */
+	async function handleSaveKey(event) {
+		if (!(event.metaKey || event.ctrlKey) || event.altKey || event.key.toLowerCase() !== 's') {
+			return;
+		}
+		event.preventDefault();
+		event.stopPropagation();
+		await saveChanges();
+		await onSaveProject?.();
+	}
 
 	let openedCategories = $state(/** @type {string[]} */ ([]));
 	let clickedCategories = $state(/** @type {string[]} */ ([]));
@@ -683,7 +700,8 @@
 	}
 </script>
 
-<div class="studio-properties layout-y-stretch">
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="studio-properties layout-y-stretch" onkeydown={handleSaveKey}>
 	<div class="studio-properties__actions studio-panel-toolbar">
 		<SaveCancelButtons
 			class="w-full"
