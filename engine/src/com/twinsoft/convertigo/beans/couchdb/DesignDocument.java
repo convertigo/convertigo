@@ -57,6 +57,34 @@ public class DesignDocument extends JsonDocument {
 	}
 
 	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+		identify();
+	}
+
+	@Override
+	public void setName(String name) throws EngineException {
+		super.setName(name);
+		identify();
+	}
+
+	/**
+	 * Gives the document the id of its name, which the Eclipse Studio sets when it shows a new or renamed
+	 * design document, so that it syncs to the database without the Studio: a renamed document is a new one.
+	 */
+	private void identify() {
+		var json = getJSONObject();
+		if (json == null || getName() == null) {
+			return;
+		}
+		var id = CouchKey._design.key() + getName();
+		if (!id.equals(CouchKey._id.String(json))) {
+			CouchKey._id.put(json, id);
+			CouchKey._rev.remove(json);
+		}
+	}
+
+	@Override
 	public Element toXml(Document document) throws EngineException {
 		/*if (jsonDocument != null) {
 			if (bNew) {

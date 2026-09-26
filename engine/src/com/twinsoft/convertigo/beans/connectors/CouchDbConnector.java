@@ -98,6 +98,8 @@ public class CouchDbConnector extends Connector {
 	 */
 	public void setServer(String server) {
 		this.server = server;
+		// the client reaches the server of the connector
+		couchClient = null;
 	}
 
 	/**
@@ -112,6 +114,7 @@ public class CouchDbConnector extends Connector {
 	 */
 	public void setPort(int port) {
 		this.port = port;
+		couchClient = null;
 	}
 
 	/**
@@ -126,6 +129,7 @@ public class CouchDbConnector extends Connector {
 	 */
 	public void setHttps(boolean https) {
 		this.https = https;
+		couchClient = null;
 	}
 	
 	public String getCouchUsername() {
@@ -134,6 +138,7 @@ public class CouchDbConnector extends Connector {
 
 	public void setCouchUsername(String couchUsername) {
 		this.couchUsername = couchUsername;
+		couchClient = null;
 	}
 
 	public String getCouchPassword() {
@@ -142,6 +147,7 @@ public class CouchDbConnector extends Connector {
 
 	public void setCouchPassword(String couchPassword) {
 		this.couchPassword = couchPassword;
+		couchClient = null;
 	}
 
 	@Override
