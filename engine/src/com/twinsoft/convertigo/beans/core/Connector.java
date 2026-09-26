@@ -94,6 +94,12 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 		connectorListeners.remove(ConnectorListener.class, connectorListener);
 	}
 
+	/**
+	 * Receives the data of the connectors, their copies running the transactions included, as the web
+	 * Studio shows the data a connector got last.
+	 */
+	public static volatile ConnectorListener dataWatcher = null;
+
 	public void fireDataChanged(ConnectorEvent connectorEvent) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = connectorListeners.getListenerList();
@@ -102,6 +108,10 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 		for (int i = listeners.length - 2 ; i >= 0 ; i-=2)
 			if (listeners[i] == ConnectorListener.class)
 				((ConnectorListener) listeners[i+1]).dataChanged(connectorEvent);
+		var watcher = dataWatcher;
+		if (watcher != null) {
+			watcher.dataChanged(connectorEvent);
+		}
 	}
 
 	/**

@@ -44,6 +44,7 @@
 	 *  onRunTestcaseTaken?: () => void,
 	 *  onChanged?: (id: string) => void,
 	 *  onDebugStep?: (id: string) => void,
+	 *  connectorData?: boolean,
 	 *  disabled?: boolean,
 	 *  class?: string
 	 * }}
@@ -67,6 +68,7 @@
 		onRunTestcaseTaken,
 		onChanged,
 		onDebugStep,
+		connectorData = false,
 		disabled = false,
 		class: cls = ''
 	} = $props();
@@ -107,6 +109,14 @@
 		};
 	});
 	let hasResponse = $derived(responseView.content.length > 0 || responseView.loading);
+	/**
+	 * The data the connector of the transaction got, as the connector editors of the Eclipse Studio show it.
+	 * @type {{ kind: string, text?: string, headers?: string[], rows?: string[][], total?: number } | null}
+	 */
+	let rawData = $state(null);
+	let watchesConnector = $derived(
+		connectorData && kind === 'transaction' && Boolean(connectorName)
+	);
 	/** the response shown was run in the XML mode, without the sheet of the requestable */
 	let xmlResponse = $state(false);
 	/** the sequence runs in the debug mode, stopping before each step as in the Eclipse Studio */
@@ -614,6 +624,14 @@ console.log(await response.text());`;
 		}
 		updateResponse({ content: 'Loading ...', loading: true });
 		xmlResponse = mode.toUpperCase() === 'XML';
+		rawData = null;
+		if (watchesConnector) {
+			await call('studio.dbo.ConnectorData', {
+				action: 'watch',
+				project: projectName,
+				connector: connectorName
+			});
+		}
 		let context = '';
 		if (fd.get('__context') === 'studio-web-execution-*') {
 			// a context of its own, which Stop aborts
@@ -643,6 +661,13 @@ console.log(await response.text());`;
 				content: await data.text(),
 				language: data.headers.get('Content-Type')?.includes('json') ? 'json' : 'xml'
 			});
+			if (watchesConnector) {
+				const result = await call('studio.dbo.ConnectorData', {
+					project: projectName,
+					connector: connectorName
+				});
+				rawData = result?.kind && result.kind !== 'none' ? result : null;
+			}
 		} catch (err) {
 			updateResponse({
 				content: String(err instanceof Error ? err.message : err),
@@ -899,10 +924,102 @@ console.log(await response.text());`;
 				{/key}
 			</div>
 		{/if}
+		{#if rawData && !responseView.loading}
+			<details class="requestable-execution__raw">
+				<summary>
+					Connector data
+					{#if rawData.kind === 'table'}
+						<small
+							>{rawData.total} row{rawData.total === 1 ? '' : 's'}{(rawData.rows?.length ?? 0) <
+							(rawData.total ?? 0)
+								? `, first ${rawData.rows?.length} shown`
+								: ''}</small
+						>
+					{/if}
+				</summary>
+				{#if rawData.kind === 'table'}
+					<div class="requestable-execution__raw-table">
+						<table>
+							<thead>
+								<tr>
+									{#each rawData.headers ?? [] as header, index (index)}
+										<th>{header}</th>
+									{/each}
+								</tr>
+							</thead>
+							<tbody>
+								{#each rawData.rows ?? [] as row, index (index)}
+									<tr>
+										{#each row as cell, column (column)}
+											<td>{cell}</td>
+										{/each}
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{:else}
+					<pre>{rawData.text}</pre>
+				{/if}
+			</details>
+		{/if}
 	</form>
 {/if}
 
 <style>
+	.requestable-execution__raw {
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.45rem;
+		font-size: 0.75rem;
+	}
+
+	.requestable-execution__raw summary {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		padding: 0.4rem 0.6rem;
+		font-weight: 600;
+	}
+
+	.requestable-execution__raw summary small {
+		opacity: 0.7;
+		font-weight: 400;
+	}
+
+	.requestable-execution__raw pre {
+		max-height: 24rem;
+		overflow: auto;
+		margin: 0;
+		border-top: 1px solid var(--color-surface-200-800);
+		padding: 0.6rem;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	.requestable-execution__raw-table {
+		max-height: 24rem;
+		overflow: auto;
+		border-top: 1px solid var(--color-surface-200-800);
+	}
+
+	.requestable-execution__raw-table table {
+		border-collapse: collapse;
+	}
+
+	.requestable-execution__raw-table :is(th, td) {
+		border-bottom: 1px solid var(--color-surface-200-800);
+		padding: 0.2rem 0.5rem;
+		text-align: left;
+		white-space: nowrap;
+	}
+
+	.requestable-execution__raw-table th {
+		position: sticky;
+		top: 0;
+		background: var(--color-surface-100-900);
+	}
+
 	.requestable-execution__stub-file {
 		width: auto;
 		max-width: 14rem;

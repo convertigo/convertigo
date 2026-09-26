@@ -160,6 +160,7 @@
 			{onRunTestcaseTaken}
 			{onChanged}
 			{onDebugStep}
+			connectorData={executionKind === 'transaction'}
 			testcaseValue={`${requestableKey}.testcases`}
 		/>
 	{/if}
