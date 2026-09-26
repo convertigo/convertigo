@@ -260,11 +260,12 @@ class WebDebugger implements GuiCallback {
 		var breakable = new JSONArray();
 		var count = text.split("\n", -1).length;
 		for (int line = 1; line <= count; line++) {
-			if (source.breakpoint(line)) {
-				lines.add(line);
-			}
+			// Rhino refuses to tell the breakpoint of a line that cannot hold one, as an empty line
 			if (source.breakableLine(line)) {
 				breakable.put(line);
+				if (source.breakpoint(line)) {
+					lines.add(line);
+				}
 			}
 		}
 		return new JSONObject().put("url", url).put("source", text).put("breakpoints", new JSONArray(lines))
