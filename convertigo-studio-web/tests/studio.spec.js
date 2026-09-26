@@ -595,6 +595,45 @@ test('studio edits a literal Flow binding directly without loading the picker', 
 	});
 });
 
+test('studio chooses the schema type of a step among the types of the project', async ({
+	page
+}) => {
+	const propertyUpdates = [];
+	await mockStudioServices(page, { propertyUpdates, qnameProperty: true });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await expandTreeNode(page, sequenceId);
+	await expandTreeNode(page, `${sequenceId}:st`);
+	await selectTreeNode(page, initStepId);
+	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
+	const property = page.locator('.studio-properties__field').filter({ hasText: 'Schema type' });
+	await expect(property.locator('code')).toHaveText('none');
+	await property.getByRole('button', { name: 'Choose Schema type' }).click();
+
+	const dialog = page.getByRole('dialog', { name: 'Schema type' });
+	await expect(dialog.getByRole('option')).toHaveCount(2);
+	await dialog.getByRole('searchbox').fill('person');
+	await expect(dialog.getByRole('option')).toHaveCount(1);
+	await dialog.getByRole('option', { name: /personType/ }).click();
+	await expect(dialog.getByRole('status')).toHaveText('Use the dynamic type personType.');
+	await dialog.getByRole('textbox', { name: 'Local name' }).fill('addressType');
+	await expect(dialog.getByRole('status')).toHaveText(
+		'Create the dynamic type addressType in http://studio/project.'
+	);
+	await dialog.getByRole('button', { name: 'Apply' }).click();
+	await expect(property.locator('code')).toHaveText('addressType (http://studio/project)');
+
+	await page.getByRole('button', { name: 'Apply', exact: true }).click();
+	await expect.poll(() => propertyUpdates.length).toBe(1);
+	const props = JSON.parse(propertyUpdates[0].get('props') ?? '[]');
+	expect(props[0]).toMatchObject({
+		name: 'xmlComplexTypeAffectation',
+		value: '{http://studio/project}addressType'
+	});
+});
+
 test('studio treats an empty legacy Flow binding as an editable literal', async ({ page }) => {
 	const propertyUpdates = [];
 	const flowPickerRequests = [];
@@ -1408,6 +1447,7 @@ function responseEditor(page) {
  *  propertyUpdates?: URLSearchParams[],
  *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean,
+ *  qnameProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1586,6 +1626,7 @@ function serviceName(url) {
  *  propertyUpdates?: URLSearchParams[],
  *  flowPickerRequests?: URLSearchParams[],
  *  flowPicker?: boolean,
+ *  qnameProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  paletteProbe?: { remaining: number, requests: number },
@@ -1660,8 +1701,44 @@ function responseForService(service, params, options = {}) {
 						originalValue: '',
 						type: 'java.lang.String',
 						isMultiline: true
-					}
+					},
+					...(options.qnameProperty
+						? {
+								'Schema type': {
+									name: 'xmlComplexTypeAffectation',
+									displayName: 'Schema type',
+									category: 'Base properties',
+									class: 'xmlizable',
+									kind: 'dbo',
+									qname: 'complexType',
+									value: ''
+								}
+							}
+						: {})
 				}
+			};
+		case 'studio.properties.QNames':
+			return {
+				kind: 'complexType',
+				namespace: 'http://studio/project',
+				items: [
+					{
+						qname: '{http://studio/project}personType',
+						namespace: 'http://studio/project',
+						name: 'personType',
+						kind: 'complexType',
+						dynamic: true,
+						readOnly: false
+					},
+					{
+						qname: '{http://studio/project}ConvertigoError',
+						namespace: 'http://studio/project',
+						name: 'ConvertigoError',
+						kind: 'complexType',
+						dynamic: false,
+						readOnly: false
+					}
+				]
 			};
 		case 'studio.flowpicker.Get':
 			options.flowPickerRequests?.push(new URLSearchParams(params));

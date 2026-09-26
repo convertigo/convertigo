@@ -22,6 +22,7 @@
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 	import StudioObjectIdentity from './StudioObjectIdentity.svelte';
+	import StudioQNameDialog from './StudioQNameDialog.svelte';
 	import StudioSection from './StudioSection.svelte';
 	import StudioSourcePickerPanel from './StudioSourcePickerPanel.svelte';
 	import StudioTableProperty from './StudioTableProperty.svelte';
@@ -308,11 +309,19 @@
 		}
 	}
 
+	/** the qualified name property the QName dialog edits */
+	let qnameRow = $state(/** @type {any} */ (null));
+
 	/**
 	 * @param {any} row
 	 * @returns {string}
 	 */
 	function previewValue(row) {
+		if (row?.qname) {
+			// a type or an element of the schemas, as {namespace}name
+			const match = /^\{(.*)\}(.*)$/.exec(String(row.value ?? ''));
+			return match ? `${match[2]}${match[1] ? ` (${match[1]})` : ''}` : String(row.value || 'none');
+		}
 		if (typeof row?.sourceLabel === 'string') {
 			// the source of a step, as its step and xpath
 			return row.sourceLabel || 'empty';
@@ -586,6 +595,23 @@
 														name={row.name}
 														onChange={(rows) => (row.value = rows)}
 													/>
+												{:else if row.qname}
+													<div class="studio-properties__fallback layout-x-low">
+														<code
+															class="studio-properties__fallback-value"
+															class:studio-properties__fallback-value--compact={!wideField}
+															>{previewValue(row)}</code
+														>
+														<div class="studio-properties__fallback-actions layout-x-low">
+															<StudioIconButton
+																icon="mdi:file-tree-outline"
+																size="xs"
+																title={`Choose the ${row.qname === 'element' ? 'element' : 'type'} in the schemas of the project`}
+																ariaLabel={`Choose ${label}`}
+																onclick={() => (qnameRow = row)}
+															/>
+														</div>
+													</div>
 												{:else if type === 'flow-binding'}
 													{#if isLiteralFlowBinding(row)}
 														<PropertyType
@@ -706,6 +732,20 @@
 			{/if}
 		{/if}
 	</div>
+
+	{#if qnameRow}
+		<StudioQNameDialog
+			id={selectedId}
+			property={qnameRow.name}
+			label={qnameRow.displayName ?? qnameRow.name}
+			value={String(qnameRow.value ?? '')}
+			onApply={(next) => {
+				qnameRow.value = next;
+				qnameRow = null;
+			}}
+			onClose={() => (qnameRow = null)}
+		/>
+	{/if}
 
 	{#if monacoRow}
 		<div class="studio-properties__editor" role="dialog" aria-modal="true">

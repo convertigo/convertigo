@@ -30,6 +30,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
@@ -292,6 +293,18 @@ public class Get extends JSonService {
 				property.put("mode", mode);
 				property.put("originalMode", mode);
 				property.put("value", value);
+			} else if (XmlQName.class.getName().equals(classname)) {
+				// a type or an element of the schemas of the project, as {namespace}name
+				var qname = new XmlQName();
+				Node qnameNode = c.getFirstChild();
+				while (qnameNode != null && !(qnameNode instanceof Element)) {
+					qnameNode = qnameNode.getNextSibling();
+				}
+				if (qnameNode != null) {
+					qname.readXml(qnameNode);
+				}
+				property.put("value", qname.isEmpty() ? "" : qname.getQName().toString());
+				property.put("qname", QNames.kind(elt.getAttribute("name")));
 			} else if (XMLVector.class.getName().equals(classname)) {
 				// a table the Studio edits as rows of cells
 				var rows = PropertyTables.rows(dbo, elt.getAttribute("name"));

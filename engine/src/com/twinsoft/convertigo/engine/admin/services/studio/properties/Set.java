@@ -23,6 +23,9 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+
+import javax.xml.namespace.QName;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.ClassUtils;
@@ -31,6 +34,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IDynamicPropertyContainer;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
@@ -131,6 +135,10 @@ public class Set extends JSonService {
 						if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")
 								|| MobileSmartSourceType.class.equals(ptc)) {
 							setter.invoke(dbo, new Object[] { msst });
+						} else if (XmlQName.class.equals(ptc)) {
+							// a type or an element of the schemas of the project, as {namespace}name
+							setter.invoke(dbo, new Object[] { pvalue == null || pvalue.isBlank() ? new XmlQName()
+									: new XmlQName(QName.valueOf(pvalue)) });
 						} else if (SmartType.class.equals(ptc)) {
 							setter.invoke(dbo, new Object[] { makeSmartType(mode, rawValue, pvalue) });
 						} else if (rawValue instanceof JSONArray parts && dbo instanceof IStepSourceContainer
