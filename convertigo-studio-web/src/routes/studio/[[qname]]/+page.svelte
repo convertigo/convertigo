@@ -60,6 +60,8 @@
 	import StudioNewProjectDialog from '$lib/studio/StudioNewProjectDialog.svelte';
 	import StudioPalettePanel from '$lib/studio/StudioPalettePanel.svelte';
 	import StudioPanel from '$lib/studio/StudioPanel.svelte';
+	import { studioPreferences } from '$lib/studio/studioPreferences.svelte.js';
+	import StudioPreferencesDialog from '$lib/studio/StudioPreferencesDialog.svelte';
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
 	import StudioPropertiesPanel from '$lib/studio/StudioPropertiesPanel.svelte';
 	import StudioReferencesPanel from '$lib/studio/StudioReferencesPanel.svelte';
@@ -278,6 +280,7 @@
 	let handlersTargetId = $state('');
 	let statisticsProjectName = $state('');
 	let aboutOpen = $state(false);
+	let preferencesOpen = $state(false);
 	let addFileProjectName = $state('');
 	/** the lib_* projects hidden from the tree, as the "Toggle libs" of the Eclipse Studio */
 	let hideLibs = $state(false);
@@ -425,6 +428,12 @@
 			label: logsPanelOpen ? 'Hide the panel' : 'Show the logs, references and schema',
 			icon: 'mdi:dock-bottom',
 			active: logsPanelOpen
+		},
+		{
+			id: 'preferences',
+			label: 'Studio preferences',
+			icon: 'mdi:cog-outline',
+			active: preferencesOpen
 		},
 		{ id: 'about', label: 'About Convertigo', icon: 'mdi:help-circle-outline', active: aboutOpen },
 		{ id: 'admin', label: 'Admin console', icon: 'mdi:lock-outline', href: resolve('/admin/') }
@@ -2080,7 +2089,9 @@
 		}
 		projectActionBusy = 'save';
 		try {
-			await saveDboProject(selectedProjectName, selectedId);
+			await saveDboProject(selectedProjectName, selectedId, {
+				readme: studioPreferences.readmeOnSave
+			});
 			await refreshStudioProject(selectedProjectName);
 			clearProjectDirty(selectedProjectName);
 			refreshStudioViews();
@@ -2099,7 +2110,9 @@
 		projectActionBusy = 'saveAll';
 		try {
 			for (const projectName of [...dirtyProjectNames]) {
-				await saveDboProject(projectName, projectName);
+				await saveDboProject(projectName, projectName, {
+					readme: studioPreferences.readmeOnSave
+				});
 				await refreshStudioProject(projectName);
 				clearProjectDirty(projectName);
 			}
@@ -2600,9 +2613,21 @@
 	 */
 	async function showNewProject(projectName) {
 		newProjectOpen = false;
+		await ensureGitRepository(projectName);
 		await Projects.refresh();
 		selectedId = projectName;
 		refreshStudioViews();
+	}
+
+	/**
+	 * Gives a new project a Git repository with an initial commit, as the Eclipse Studio does unless its
+	 * preferences tell otherwise; a project already in a repository keeps it.
+	 * @param {string} projectName
+	 */
+	async function ensureGitRepository(projectName) {
+		if (studioPreferences.gitRepositoryForNewProjects && projectName) {
+			await call('studio.git.SourceControl', { projectName, action: 'init' });
+		}
 	}
 
 	/**
@@ -2635,6 +2660,8 @@
 			marketplaceOpen = !marketplaceOpen;
 		} else if (id === 'about') {
 			aboutOpen = !aboutOpen;
+		} else if (id === 'preferences') {
+			preferencesOpen = !preferencesOpen;
 		} else if (id === 'tree' || id === 'search' || id === 'git') {
 			// the projects, the search and the source control share the left column, as the views of the side bar of Cursor
 			const view = id === 'tree' ? 'projects' : id;
@@ -3150,6 +3177,7 @@
 {#if marketplaceOpen}
 	<StudioMarketplace
 		onInstalled={async (projectName) => {
+			await ensureGitRepository(projectName);
 			selectedId = projectName;
 			refreshStudioViews();
 		}}
@@ -3166,6 +3194,9 @@
 		}}
 		onClose={() => (addFileProjectName = '')}
 	/>
+{/if}
+{#if preferencesOpen}
+	<StudioPreferencesDialog onClose={() => (preferencesOpen = false)} />
 {/if}
 {#if aboutOpen}
 	<StudioAboutDialog onClose={() => (aboutOpen = false)} />

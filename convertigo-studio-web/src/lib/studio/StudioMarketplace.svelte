@@ -3,6 +3,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call } from '$lib/utils/service';
 	import { onMount } from 'svelte';
+	import { studioPreferences } from './studioPreferences.svelte.js';
 
 	/**
 	 * The Convertigo Marketplace, as the Marketplace view of the Eclipse Studio: the site shows the
@@ -13,7 +14,8 @@
 	 */
 	let { onInstalled, onClose } = $props();
 
-	const MARKETPLACE_URL = 'https://marketplace.convertigo.com/';
+	// the site of the Marketplace, from the Studio preferences
+	const MARKETPLACE_URL = studioPreferences.marketplaceUrl;
 	const origin = new URL(MARKETPLACE_URL).origin;
 
 	/** @type {HTMLIFrameElement | undefined} */

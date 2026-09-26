@@ -26,6 +26,8 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.ReadmeBuilder;
+import com.twinsoft.convertigo.engine.ReadmeBuilder.MarkdownType;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
@@ -57,6 +59,8 @@ public class Save extends JSonService {
 		}
 
 		Engine.theApp.databaseObjectsManager.exportProject(project);
+		// the project.md file, and the readme.md file when asked, as the Eclipse Studio writes them on save
+		ReadmeBuilder.generate(project, "true".equals(request.getParameter("readme")) ? MarkdownType.Readme : MarkdownType.Project);
 		SharedWorkspaceSyncManager.markProjectReload(project.getName());
 		response.put("done", true);
 		response.put("id", project.getName());

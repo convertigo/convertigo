@@ -542,12 +542,16 @@ export async function moveDbo(
 /**
  * @param {string} projectName - the project to export to disk
  * @param {string=} id - a selected dbo id used as fallback by older engines
- * @param {Parameters<typeof call>[2]=} options
+ * @param {Parameters<typeof call>[2] & { readme?: boolean }=} options readme: writes the readme.md file
+ * of the project again
  */
 export async function saveDboProject(projectName = '', id = '', options = {}) {
+	// readme: the save writes the readme.md file of the project again
+	const { readme, ...callOptions } = /** @type {Record<string, any>} */ (options);
+	options = callOptions;
 	let result = await call(
 		'studio.dbo.Save',
-		{ projectName, id },
+		{ projectName, id, ...(readme ? { readme: 'true' } : {}) },
 		{
 			...options,
 			silentError: (error, response) =>
