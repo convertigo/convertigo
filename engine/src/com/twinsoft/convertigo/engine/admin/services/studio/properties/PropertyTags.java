@@ -40,7 +40,8 @@ class PropertyTags {
 
 	/**
 	 * The text properties whose choices the Eclipse Studio proposes in a combo that also takes a typed text
-	 * (StringComboBoxPropertyDescriptor, PropertyWithDynamicTagsEditor), by the class declaring them
+	 * (StringComboBoxPropertyDescriptor, PropertyWithDynamicTagsEditor, PropertyWithTagsEditorAdvance), by
+	 * the class declaring them
 	 */
 	private static final java.util.Set<String> FREE_TEXT = java.util.Set.of("ApplicationComponent.splitPaneLayout",
 			"ApplicationComponent.tplProjectName", "PageComponent.changeDetection", "PageComponent.icon",
@@ -52,7 +53,12 @@ class PropertyTags {
 			"UIFormControlValidator.maxLength", "UIFormControlValidator.minLength", "UIFormControlValidator.pattern",
 			"UIFormControlValidator.required", "UIFormControlValidator.requiredTrue", "UIPageEvent.viewEvent",
 			"UISharedComponentEvent.componentEvent", "UIUseVariable.binding", "UIDynamicTag.tagName",
-			"Connector.endTransactionName");
+			"Connector.endTransactionName",
+			// the tags of PropertyWithTagsEditorAdvance, whose combo takes a symbol as well
+			"GetViewTransaction.viewname", "LogStep.level", "LogStep.logger", "PostUpdateTransaction.updatename",
+			"PutUpdateTransaction.updatename", "RequestableHttpVariable.httpMethod", "Sheet.browser",
+			"SqlConnector.jdbcDriverClassName", "UrlMappingParameter.inputType", "XMLDateTimeStep.inputLocale",
+			"XMLDateTimeStep.outputLocale", "XMLGenerateDatesStep.inputLocale", "XMLGenerateDatesStep.outputLocale");
 
 	private PropertyTags() {
 	}
