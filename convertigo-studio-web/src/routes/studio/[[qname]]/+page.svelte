@@ -35,6 +35,7 @@
 		studioSelectionUrl
 	} from '$lib/studio/routeSelection';
 	import { applySourcePickerDrop, sourceDefinitionFromPayload } from '$lib/studio/sourcePickerDnd';
+	import StudioAboutDialog from '$lib/studio/StudioAboutDialog.svelte';
 	import StudioActivityBar from '$lib/studio/StudioActivityBar.svelte';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
 	import StudioBuilderPanel from '$lib/studio/StudioBuilderPanel.svelte';
@@ -262,6 +263,7 @@
 	let sharedComponentTargetId = $state('');
 	let handlersTargetId = $state('');
 	let statisticsProjectName = $state('');
+	let aboutOpen = $state(false);
 	/** the lib_* projects hidden from the tree, as the "Toggle libs" of the Eclipse Studio */
 	let hideLibs = $state(false);
 	let marketplaceOpen = $state(false);
@@ -409,6 +411,7 @@
 			icon: 'mdi:dock-bottom',
 			active: logsPanelOpen
 		},
+		{ id: 'about', label: 'About Convertigo', icon: 'mdi:help-circle-outline', active: aboutOpen },
 		{ id: 'admin', label: 'Admin console', icon: 'mdi:lock-outline', href: resolve('/admin/') }
 	]);
 	let activeSideView = $derived(
@@ -2478,6 +2481,8 @@
 	function selectActivity(id) {
 		if (id === 'marketplace') {
 			marketplaceOpen = !marketplaceOpen;
+		} else if (id === 'about') {
+			aboutOpen = !aboutOpen;
 		} else if (id === 'tree' || id === 'search' || id === 'git') {
 			// the projects, the search and the source control share the left column, as the views of the side bar of Cursor
 			const view = id === 'tree' ? 'projects' : id;
@@ -2981,6 +2986,9 @@
 		}}
 		onClose={() => (marketplaceOpen = false)}
 	/>
+{/if}
+{#if aboutOpen}
+	<StudioAboutDialog onClose={() => (aboutOpen = false)} />
 {/if}
 {#if statisticsProjectName}
 	<StudioStatisticsDialog

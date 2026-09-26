@@ -91,6 +91,7 @@
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit';
 	import MdiFunctionVariant from '~icons/mdi/function-variant';
 	import MdiGithub from '~icons/mdi/github';
+	import MdiHelpCircleOutline from '~icons/mdi/help-circle-outline';
 	import MdiHomeAlertOutline from '~icons/mdi/home-alert-outline';
 	import MdiHomeOutline from '~icons/mdi/home-outline';
 	import MdiHub from '~icons/mdi/hub';
@@ -265,6 +266,7 @@
 		'mdi:fullscreen': MdiFullscreen,
 		'mdi:fullscreen-exit': MdiFullscreenExit,
 		'mdi:github': MdiGithub,
+		'mdi:help-circle-outline': MdiHelpCircleOutline,
 		'mdi:home-alert-outline': MdiHomeAlertOutline,
 		'mdi:home-outline': MdiHomeOutline,
 		'mdi:hub': MdiHub,
