@@ -18,6 +18,7 @@
 		themeContextRequestMessage
 	} from './flowAuthoring';
 	import { attachNgxAuthoring } from './ngxAuthoring';
+	import { startStyleEditor, styleEditorChanges } from './ngxStyleEditor';
 	import StudioDevicePanel from './StudioDevicePanel.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
@@ -49,7 +50,7 @@
 	const FIT_PADDING = 24;
 	const iconButtonClasses = 'button-ico-secondary h-8! w-8! justify-center p-0!';
 
-	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, onNgxStyleChanges?: (changes: any) => void | Promise<void>, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean }} */
 	let {
 		projectName = '',
 		previewUrlOverride = '',
@@ -67,6 +68,7 @@
 		onAuthoringMove,
 		onThemeContext,
 		reloadSerial = 0,
+		onNgxStyleChanges,
 		ngxReference = null,
 		onNgxSelect,
 		onNgxDrop,
@@ -186,6 +188,34 @@
 	let ngxAuthoring = $state(/** @type {ReturnType<typeof attachNgxAuthoring> | null} */ (null));
 	let ngxSelecting = $state(false);
 	let ngxShowGrids = $state(false);
+	/** the style editor of the NGX application, GrapesJS in the preview */
+	let ngxStyleEditing = $state(false);
+
+	async function toggleNgxStyleEditor() {
+		const win = iframe?.contentWindow;
+		if (!win) {
+			return;
+		}
+		if (!ngxStyleEditing) {
+			ngxSelecting = false;
+			ngxShowGrids = false;
+			ngxAuthoring?.highlight([]);
+			const projectUrl = getFrontendUrl(projectName).replace(/\/DisplayObjects\/.*$/, '');
+			startStyleEditor(
+				win,
+				projectUrl,
+				isResponsivePreview ? 'desktop' : landscape ? 'mobileLandscape' : 'mobilePortrait'
+			);
+			ngxStyleEditing = true;
+			return;
+		}
+		const changes = styleEditorChanges(win);
+		ngxStyleEditing = false;
+		if (changes) {
+			await onNgxStyleChanges?.(changes);
+		}
+		reloadIframe();
+	}
 	/** the datasets of the NGX application, its recorded session data */
 	let ngxDatasets = $state(/** @type {string[]} */ ([]));
 	let ngxDataset = $state('none');
@@ -609,6 +639,16 @@
 						title="Save the session data of the application as a dataset"
 						ariaLabel="Save the dataset"
 						onclick={saveNgxDataset}
+					/>
+					<Button
+						full={false}
+						icon="mdi:palette-swatch-outline"
+						class={[iconButtonClasses, ngxStyleEditing && 'studio-preview__select--active']}
+						title={ngxStyleEditing
+							? 'Apply the styles, texts and moves of the style editor'
+							: 'Edit the styles of the application'}
+						ariaLabel="Style editor"
+						onclick={() => void toggleNgxStyleEditor()}
 					/>
 					<Button
 						full={false}

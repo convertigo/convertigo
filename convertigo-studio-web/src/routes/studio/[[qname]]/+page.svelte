@@ -1339,6 +1339,27 @@
 		}
 	}
 
+	/**
+	 * Applies to the NGX application the styles, texts and moves of the style editor of its preview.
+	 * @param {any} changes
+	 */
+	async function applyNgxStyleChanges(changes) {
+		const result = await call('studio.ngxbuilder.StyleEditor', {
+			project: selectedProjectName,
+			changes: JSON.stringify(changes)
+		});
+		const changed = Array.isArray(result?.changed) ? result.changed.map(String) : [];
+		if (changed.length) {
+			await refreshStudioProject(selectedProjectName);
+			markProjectDirty(selectedProjectName);
+			propertiesRefreshSerial += 1;
+			refreshStudioViews();
+			toaster.success({
+				description: `The style editor changed ${changed.length} object${changed.length > 1 ? 's' : ''}.`
+			});
+		}
+	}
+
 	async function dropInFrontend(request) {
 		const mapping = await call('studio.treeview.Authoring', {
 			project: selectedProjectName,
@@ -2817,6 +2838,7 @@
 		{ngxReference}
 		onNgxSelect={selectInNgxPreview}
 		onNgxDrop={dropInNgxPreview}
+		onNgxStyleChanges={applyNgxStyleChanges}
 		{ngxCanDrop}
 	/>
 {/snippet}

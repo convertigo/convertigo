@@ -95,7 +95,7 @@ public class Authoring extends JSonService {
 	 * @return the component of the application with the priority, the shared components walked where they
 	 * are used, as the Eclipse Studio finds it
 	 */
-	private static DatabaseObject find(DatabaseObject application, long priority) throws Exception {
+	static DatabaseObject find(DatabaseObject application, long priority) throws Exception {
 		var walked = new HashSet<DatabaseObject>();
 		try {
 			new WalkHelper() {
