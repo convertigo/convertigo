@@ -118,12 +118,24 @@
 		}
 		lastRefreshSerial = nextRefreshSerial;
 		requestedSelectionId = nextId;
-		void onSelectionChange({ selectedValue: [nextId] }).finally(() => {
+		untrack(() => void showObject(nextId));
+	});
+
+	/**
+	 * Shows the properties of an object once the changes of the object left are applied, as the Eclipse
+	 * Studio sets a property when its field loses the focus.
+	 * @param {string} nextId
+	 */
+	async function showObject(nextId) {
+		if (id && id !== nextId && hasChanges && valid && !saving) {
+			await saveChanges();
+		}
+		await onSelectionChange({ selectedValue: [nextId] }).finally(() => {
 			if (requestedSelectionId === nextId) {
 				requestedSelectionId = '';
 			}
 		});
-	});
+	}
 
 	let handledPickerRequest = 0;
 
