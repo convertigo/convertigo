@@ -62,6 +62,7 @@
 	import StudioSearchPanel from '$lib/studio/StudioSearchPanel.svelte';
 	import StudioSharedComponentDialog from '$lib/studio/StudioSharedComponentDialog.svelte';
 	import StudioShell from '$lib/studio/StudioShell.svelte';
+	import StudioSourceControlPanel from '$lib/studio/StudioSourceControlPanel.svelte';
 	import StudioStepsFromXmlDialog from '$lib/studio/StudioStepsFromXmlDialog.svelte';
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
@@ -339,7 +340,7 @@
 		sideViews.some((item) => item.id === activeSidePanel) ? activeSidePanel : 'properties'
 	);
 	// the view of the left column, and the view of the bottom panel
-	let leftView = $state(/** @type {'projects' | 'search'} */ ('projects'));
+	let leftView = $state(/** @type {'projects' | 'search' | 'git'} */ ('projects'));
 	let bottomView = $state(/** @type {'logs' | 'references' | 'schema' | 'build'} */ ('logs'));
 	const BOTTOM_VIEWS = [
 		{ id: 'logs', label: 'Logs', icon: 'mdi:file-document-box-outline' },
@@ -359,6 +360,12 @@
 			label: collapsedPanels.tree || leftView !== 'search' ? 'Search' : 'Hide search',
 			icon: 'mdi:magnify',
 			active: !collapsedPanels.tree && leftView === 'search'
+		},
+		{
+			id: 'git',
+			label: collapsedPanels.tree || leftView !== 'git' ? 'Source control' : 'Hide source control',
+			icon: 'mdi:source-branch',
+			active: !collapsedPanels.tree && leftView === 'git'
 		},
 		...(showVibe
 			? [
@@ -2398,9 +2405,9 @@
 	 * @param {string} id
 	 */
 	function selectActivity(id) {
-		if (id === 'tree' || id === 'search') {
-			// the projects and the search share the left column, as the views of the side bar of Cursor
-			const view = id === 'tree' ? 'projects' : 'search';
+		if (id === 'tree' || id === 'search' || id === 'git') {
+			// the projects, the search and the source control share the left column, as the views of the side bar of Cursor
+			const view = id === 'tree' ? 'projects' : id;
 			if (collapsedPanels.tree) {
 				leftView = view;
 				toggleCollapsedPanel('tree');
@@ -2513,11 +2520,29 @@
 		>
 			<StudioSearchPanel projectName={selectedProjectName} onSelect={selectObject} />
 		</StudioPanel>
+	{:else if leftView === 'git'}
+		<StudioPanel
+			title="Source control"
+			icon="mdi:source-branch"
+			class="studio__tree-panel"
+			contentClass="studio__panel-fill"
+		>
+			<StudioSourceControlPanel
+				projectName={selectedProjectName}
+				dirty={selectedProjectDirty}
+				onPulled={async (name) => {
+					// the files changed on disk: the project is loaded again
+					await call('projects.Reload', { projectName: name });
+					await refreshStudioProject(name);
+					refreshStudioViews();
+				}}
+			/>
+		</StudioPanel>
 	{/if}
 	<StudioPanel
 		title="Projects"
 		icon="mdi:folder-outline"
-		class={['studio__tree-panel', leftView === 'search' && 'studio__tree-panel--hidden']
+		class={['studio__tree-panel', leftView !== 'projects' && 'studio__tree-panel--hidden']
 			.filter(Boolean)
 			.join(' ')}
 		actions={projectActions}
