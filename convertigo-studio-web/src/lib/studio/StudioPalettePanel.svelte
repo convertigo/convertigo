@@ -8,6 +8,7 @@
 	import { getUrl } from '$lib/utils/service';
 	import { onDestroy, tick } from 'svelte';
 	import { loadPaletteContext, paletteContextLabel } from './paletteContext';
+	import { paletteMemory, rememberPaletteUse, togglePaletteFavorite } from './paletteMemory.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioSection from './StudioSection.svelte';
 
@@ -73,7 +74,41 @@
 	let openedCategories = $state(/** @type {string[]} */ ([]));
 	let paletteCategoriesTouched = $state(false);
 	let handledRevealSerial = 0;
-	let filteredCategories = $derived(filterCategories(paletteContext.categories));
+	/** the favorite and the last used objects the palette of the selection has, as in Eclipse */
+	let memoryCategories = $derived.by(() => {
+		if (query.trim()) {
+			return [];
+		}
+		/** @type {Map<string, PaletteItem>} */
+		const byKey = new Map();
+		for (const item of paletteContext.categories.flatMap((category) => category.items ?? [])) {
+			if (!byKey.has(itemKey(item))) {
+				byKey.set(itemKey(item), item);
+			}
+		}
+		const favorites = paletteMemory.favorites;
+		return [
+			{
+				name: 'Favorites',
+				items: favorites.map((key) => byKey.get(key)).filter((item) => item !== undefined)
+			},
+			{
+				name: 'Last used',
+				items: paletteMemory.history
+					.filter((key) => !favorites.includes(key))
+					.map((key) => byKey.get(key))
+					.filter((item) => item !== undefined)
+					.slice(0, 8)
+			}
+		].filter((category) => category.items.length > 0);
+	});
+	let filteredCategories = $derived([
+		...memoryCategories,
+		...filterCategories(paletteContext.categories)
+	]);
+	let favoriteSelected = $derived(
+		Boolean(addableItem && paletteMemory.favorites.includes(itemKey(addableItem)))
+	);
 	let selectedPaletteItemKey = $derived(itemKey(selectedPaletteItem));
 	let paletteOpenValues = $derived.by(() => {
 		const keys = filteredCategories.map((category, index) => categoryKey(category, index));
@@ -325,6 +360,7 @@
 		addError = '';
 		try {
 			await onPaletteItemAdd(addableItem);
+			rememberPaletteUse(itemKey(addableItem));
 		} catch (error) {
 			addError = error instanceof Error ? error.message : String(error);
 		} finally {
@@ -343,14 +379,26 @@
 			icon="mdi:magnify"
 			bind:value={query}
 		/>
-		{#if onPaletteItemAdd && addableItem}
-			<Button
-				label={adding ? 'Adding…' : 'Add to selection'}
-				icon="mdi:plus"
-				class="button-secondary"
-				disabled={adding || paletteLoading}
-				onclick={addSelectedItem}
-			/>
+		{#if addableItem}
+			<div class="studio-palette__actions">
+				{#if onPaletteItemAdd}
+					<Button
+						label={adding ? 'Adding…' : 'Add to selection'}
+						icon="mdi:plus"
+						class="button-secondary"
+						disabled={adding || paletteLoading}
+						onclick={addSelectedItem}
+					/>
+				{/if}
+				<Button
+					full={false}
+					icon={favoriteSelected ? 'mdi:star' : 'mdi:star-outline'}
+					class="button-secondary studio-palette__star"
+					title={favoriteSelected ? 'Remove from the favorites' : 'Add to the favorites'}
+					ariaLabel={favoriteSelected ? 'Remove from the favorites' : 'Add to the favorites'}
+					onclick={() => togglePaletteFavorite(itemKey(addableItem))}
+				/>
+			</div>
 		{/if}
 		{#if addError}<p role="alert">{addError}</p>{/if}
 	</div>
@@ -417,7 +465,15 @@
 										draggable={paletteLoading ? 'false' : 'true'}
 										onclick={() => selectPaletteItem(item)}
 										ondragstart={(event) => onDragStart(event, item)}
-										ondragend={() => ($draggedData = undefined)}
+										ondragend={(event) => {
+											$draggedData = undefined;
+											if (
+												event.dataTransfer?.dropEffect &&
+												event.dataTransfer.dropEffect !== 'none'
+											) {
+												rememberPaletteUse(itemKey(item));
+											}
+										}}
 									>
 										<span class="studio-palette__icon">
 											{#if iconSource(item.icon)}
@@ -435,6 +491,11 @@
 												>{itemDisplayName(item)}</span
 											>
 										</span>
+										{#if paletteMemory.favorites.includes(itemKey(item))}
+											<span class="studio-palette__favorite" aria-label="Favorite">
+												<Ico icon="mdi:star" size={3} />
+											</span>
+										{/if}
 									</button>
 								{/each}
 							</div>
@@ -520,6 +581,24 @@
 
 	.studio-palette__item-main {
 		min-width: 0;
+	}
+
+	.studio-palette__actions {
+		display: flex;
+		align-items: stretch;
+		gap: 0.35rem;
+		margin-top: 0.4rem;
+	}
+
+	.studio-palette__actions :global(.studio-palette__star) {
+		flex: 0 0 auto;
+		height: auto;
+	}
+
+	.studio-palette__favorite {
+		display: inline-flex;
+		margin-left: auto;
+		color: var(--color-warning-500);
 	}
 
 	.studio-palette__item-name {

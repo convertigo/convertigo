@@ -950,6 +950,34 @@ test('studio adds a palette step from the flow and opens inline rename', async (
 	);
 });
 
+test('studio keeps the favorite objects of the palette', async ({ page }) => {
+	await mockStudioServices(page);
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('tab', { name: 'Palette' }).click();
+	await expect(paletteItem(page, 'JSON field')).toBeVisible();
+	await expect(page.getByRole('heading', { name: /Favorites/ })).toHaveCount(0);
+
+	await paletteItem(page, 'JSON field').click();
+	await page.getByRole('button', { name: 'Add to the favorites' }).click();
+	await expect(page.getByRole('button', { name: 'Remove from the favorites' })).toBeVisible();
+	await expect(paletteItem(page, 'JSON field')).toHaveCount(2);
+	await expect(paletteItem(page, 'JSON field').first().getByLabel('Favorite')).toBeVisible();
+
+	// the favorites stay in the browser
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('tab', { name: 'Palette' }).click();
+	await expect(paletteItem(page, 'JSON field')).toHaveCount(2);
+	await page.locator('#studio-palette-search').fill('json field');
+	await expect(paletteItem(page, 'JSON field')).toHaveCount(1);
+});
+
 test('studio retries a transient palette failure without changing focus', async ({ page }) => {
 	const state = createStudioState();
 	const paletteProbe = { remaining: 1, requests: 0 };
