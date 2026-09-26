@@ -52,6 +52,7 @@
 	import { flowBrowserPreview, flowSourceReveal } from '$lib/studio/studioFlowEvents';
 	import StudioIconButton from '$lib/studio/StudioIconButton.svelte';
 	import StudioLogsPanel from '$lib/studio/StudioLogsPanel.svelte';
+	import StudioMarketplace from '$lib/studio/StudioMarketplace.svelte';
 	import { createStudioMutationEventTracker } from '$lib/studio/studioMutationEvents';
 	import StudioNewProjectDialog from '$lib/studio/StudioNewProjectDialog.svelte';
 	import StudioPalettePanel from '$lib/studio/StudioPalettePanel.svelte';
@@ -254,6 +255,7 @@
 	let stepsFromXmlMode = $state('xml');
 	/** The NGX component the shared component dialog extracts */
 	let sharedComponentTargetId = $state('');
+	let marketplaceOpen = $state(false);
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
 	let paletteRevealRequest = $state({ key: '', contextId: '', serial: 0 });
@@ -370,6 +372,12 @@
 			label: collapsedPanels.tree || leftView !== 'git' ? 'Source control' : 'Hide source control',
 			icon: 'mdi:source-branch',
 			active: !collapsedPanels.tree && leftView === 'git'
+		},
+		{
+			id: 'marketplace',
+			label: 'Marketplace',
+			icon: 'mdi:store-outline',
+			active: marketplaceOpen
 		},
 		...(showVibe
 			? [
@@ -2409,7 +2417,9 @@
 	 * @param {string} id
 	 */
 	function selectActivity(id) {
-		if (id === 'tree' || id === 'search' || id === 'git') {
+		if (id === 'marketplace') {
+			marketplaceOpen = !marketplaceOpen;
+		} else if (id === 'tree' || id === 'search' || id === 'git') {
 			// the projects, the search and the source control share the left column, as the views of the side bar of Cursor
 			const view = id === 'tree' ? 'projects' : id;
 			if (collapsedPanels.tree) {
@@ -2882,6 +2892,15 @@
 	</div>
 {/if}
 
+{#if marketplaceOpen}
+	<StudioMarketplace
+		onInstalled={async (projectName) => {
+			selectedId = projectName;
+			refreshStudioViews();
+		}}
+		onClose={() => (marketplaceOpen = false)}
+	/>
+{/if}
 {#if sharedComponentTargetId}
 	<StudioSharedComponentDialog
 		id={sharedComponentTargetId}

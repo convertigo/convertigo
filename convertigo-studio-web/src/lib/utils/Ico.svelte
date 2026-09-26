@@ -145,6 +145,7 @@
 	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline';
 	import MdiStateMachine from '~icons/mdi/state-machine';
 	import MdiStop from '~icons/mdi/stop';
+	import MdiStoreOutline from '~icons/mdi/store-outline';
 	import MdiSwapHorizontal from '~icons/mdi/swap-horizontal';
 	import MdiSync from '~icons/mdi/sync';
 	import MdiTable from '~icons/mdi/table';
@@ -262,6 +263,8 @@
 		'mdi:hub': MdiHub,
 		'mdi:import': MdiImport,
 		'mdi:variable': MdiVariable,
+		'mdi:store-outline': MdiStoreOutline,
+		'mdi:open-in-new': MdiOpenInNew,
 		'mdi:debug-step-over': MdiDebugStepOver,
 		'mdi:debug-step-into': MdiDebugStepInto,
 		'mdi:debug-step-out': MdiDebugStepOut,
