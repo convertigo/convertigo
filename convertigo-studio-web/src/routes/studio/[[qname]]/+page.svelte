@@ -1644,6 +1644,10 @@
 		) {
 			frontendPreview = { projectName: '', url: '', mode: 'production' };
 		}
+		if (result?.projects) {
+			// another project was loaded, as a referenced project updated from its repository
+			await Projects.refresh();
+		}
 		const mutation = contextAuthoringMutation(result, event.nodeId);
 		if (mutation) {
 			await onStudioMutation(mutation);

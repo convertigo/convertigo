@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
@@ -205,6 +206,13 @@ public class ObjectActions {
 			add(items, "object.variables", dbo instanceof AbstractHttpTransaction ? "Add or remove dynamic variables…" : "Add variables…",
 					"Choose the variables of this transaction among the ones it can use.", true, "mdi:variable")
 					.put("clientAction", "dialog.variables");
+		}
+		if (dbo instanceof ProjectSchemaReference reference && gitUrl(reference) != null) {
+			var name = reference.getParser().getProjectName();
+			add(items, "object.updateProjectReference", "Update the referenced project",
+					"Fetch the Git repository of " + name + " and load its last version.", true, "mdi:source-pull")
+					.put("confirm", "Update " + name + " from " + gitUrl(reference)
+							+ "? The changes of its repository that are not pushed are lost.");
 		}
 		if (dbo instanceof WebServiceReference || dbo instanceof RestServiceReference) {
 			add(items, "object.updateReference", "Update the web service",
@@ -372,6 +380,24 @@ public class ObjectActions {
 			return result(true, connector == null ? "The web service is up to date."
 					: "The connector " + connector.getName() + " is updated.").put("changed", true).put("refresh", true);
 		}
+		case "object.updateProjectReference" -> {
+			if (!(dbo instanceof ProjectSchemaReference reference) || gitUrl(reference) == null) {
+				return result(false, "This object does not reference a project of a Git repository.");
+			}
+			var parser = reference.getParser();
+			var project = Engine.theApp.referencedProjectManager.importProject(parser, true);
+			if (project == null) {
+				return result(false, "The project " + parser.getProjectName() + " cannot be loaded.");
+			}
+			// a loaded project stays as it was: it loads again from its updated files, as the Eclipse
+			// Studio reloads it
+			var name = project.getName();
+			Engine.theApp.schemaManager.clearCache(name);
+			Engine.theApp.databaseObjectsManager.clearCache(name);
+			project = Engine.theApp.databaseObjectsManager.getProjectByName(name);
+			return result(true, "The project " + project.getName() + " is up to date.").put("changed", false)
+					.put("refresh", true).put("projects", true);
+		}
 		case "object.emptyStub" -> {
 			if (!(dbo instanceof RequestableObject requestable)) {
 				return result(false, "Only a sequence or a transaction has a stub.");
@@ -491,6 +517,14 @@ public class ObjectActions {
 
 	private static void changed(DatabaseObject dbo) {
 		dbo.hasChanged = true;
+	}
+
+	/**
+	 * @return the Git repository of a referenced project, or null for a project of the workspace
+	 */
+	private static String gitUrl(ProjectSchemaReference reference) {
+		var url = reference.getParser().getGitUrl();
+		return url == null || url.isBlank() ? null : url;
 	}
 
 	private static JSONObject result(boolean ok, String message) throws Exception {

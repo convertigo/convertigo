@@ -145,6 +145,7 @@
 	import MdiShapeSquareRoundedPlus from '~icons/mdi/shape-square-rounded-plus';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
 	import MdiSourceBranch from '~icons/mdi/source-branch';
+	import MdiSourcePull from '~icons/mdi/source-pull';
 	import MdiStarOutline from '~icons/mdi/star-outline';
 	import MdiStarThreePointsOutline from '~icons/mdi/star-three-points-outline';
 	import MdiStateMachine from '~icons/mdi/state-machine';
@@ -332,6 +333,7 @@
 		'mdi:shape-square-rounded-plus': MdiShapeSquareRoundedPlus,
 		'mdi:smartphone-link': MdiSmartphoneLink,
 		'mdi:source-branch': MdiSourceBranch,
+		'mdi:source-pull': MdiSourcePull,
 		'mdi:state-machine': MdiStateMachine,
 		'mdi:star-outline': MdiStarOutline,
 		'mdi:star-three-points-outline': MdiStarThreePointsOutline,
