@@ -331,6 +331,10 @@ public class Get extends JSonService {
 				} else if (rows != null) {
 					property.put("value", rows);
 					property.put("table", true);
+					var editor = PropertyTables.editor(dbo, elt.getAttribute("name"));
+					if (editor != null && property.optString("editorClass").isBlank()) {
+						property.put("editorClass", editor);
+					}
 					var labels = sourceLabels(dbo, rows);
 					if (labels.length() > 0) {
 						// the step sources of the cells, as the source picker names them

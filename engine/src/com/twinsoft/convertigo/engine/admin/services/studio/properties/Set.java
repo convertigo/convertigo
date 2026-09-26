@@ -86,6 +86,16 @@ public class Set extends JSonService {
 		if (dbo != null) {
 			var jsonArray = new JSONArray(props);
 			for (var i = 0; i < jsonArray.length(); i++) {
+				// a value is refused, as the editors of the Eclipse Studio refuse it, before any is set
+				var checked = jsonArray.getJSONObject(i);
+				if (checked.opt("value") instanceof String text) {
+					var invalid = PropertyValidators.invalid(dbo, checked.getString("name"), text);
+					if (invalid != null) {
+						throw new ServiceException(invalid);
+					}
+				}
+			}
+			for (var i = 0; i < jsonArray.length(); i++) {
 				Object oldValue = null, newValue = null;
 				var jsonObject = jsonArray.getJSONObject(i);
 				var pname = jsonObject.getString("name");

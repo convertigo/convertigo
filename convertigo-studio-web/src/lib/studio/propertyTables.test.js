@@ -39,6 +39,17 @@ describe('propertyTables', () => {
 		expect(editor.template[1]).toEqual([]);
 	});
 
+	it('names the columns of the tables the engine gives the editor of', () => {
+		expect(propertyTableEditor('TransformStepReplacementEditor', []).columns).toEqual([
+			'Regular exp',
+			'Replacement'
+		]);
+		expect(propertyTableEditor('IsInStepTestEditor', []).choices).toEqual({ 0: ['AND', 'NOT'] });
+		expect(propertyTableEditor('', [], 'tags').title).toBe('Table');
+		expect(propertyTableEditor('SplitStepTagsEditor', []).columns).toEqual(['Tag name']);
+		expect(propertyTableEditor('', [], 'applicationIcons').columns).toEqual(['Icon']);
+	});
+
 	it('numbers the columns of an unknown table', () => {
 		const editor = propertyTableEditor(undefined, [['a'], ['b', 'c', 'd']], 'unknown');
 		expect(editor.columns).toEqual(['Column 1', 'Column 2', 'Column 3']);

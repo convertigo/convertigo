@@ -48,6 +48,11 @@ export const PROPERTY_TABLE_EDITORS = {
 		columns: ['Variable', 'Value'],
 		template: ['variable', 'value']
 	},
+	ApplicationIconsEditor: {
+		title: 'Application icons',
+		columns: ['Icon'],
+		template: ['{"src": "assets/icon_512x512.png","sizes": "512x512","type": "image/png"}']
+	},
 	FieldListEditor: {
 		title: 'Field list',
 		columns: ['Line', 'Column', 'Text', 'Field name'],
@@ -63,6 +68,12 @@ export const PROPERTY_TABLE_EDITORS = {
 		title: 'HTTP parameters',
 		columns: ['Variable', 'Value'],
 		template: ['variable', 'value']
+	},
+	IsInStepTestEditor: {
+		title: 'Tests',
+		columns: ['Operator', 'Regular exp'],
+		template: ['AND', ''],
+		choices: { 0: ['AND', 'NOT'] }
 	},
 	JsonIndexEditor: { title: 'JSON index', columns: ['Field'], template: ['key.subkey'] },
 	KeywordEditor: {
@@ -131,10 +142,16 @@ export const PROPERTY_TABLE_EDITORS = {
 		template: ['""', '']
 	},
 	SplitFieldsEditor: { title: 'Columns names', columns: ['Label'], template: ['label'] },
+	SplitStepTagsEditor: { title: 'Split tags', columns: ['Tag name'], template: ['split'] },
 	StartTransactionVariablesEditor: {
 		title: 'Starting transaction variables',
 		columns: ['Context number', 'Parameter name', 'Parameter value'],
 		template: ['*', 'name', 'value']
+	},
+	TransformStepReplacementEditor: {
+		title: 'Transform replacements',
+		columns: ['Regular exp', 'Replacement'],
+		template: ['abc', '']
 	},
 	WebClipperAttributesEditor: {
 		title: 'WebClipper attributes',
@@ -158,6 +175,7 @@ export const PROPERTY_TABLE_EDITORS = {
 /** The editors of the table properties, by the name of the property, as the bean infos declare them. */
 export const PROPERTY_TABLE_EDITOR_NAMES = /** @type {Record<string, string>} */ ({
 	actions: 'ActionsEditor',
+	applicationIcons: 'ApplicationIconsEditor',
 	app_ts_imports: 'MobileConfigTsImportsEditor',
 	attachments: 'SmtpAttachmentEditor',
 	browserDefinitions: 'BrowserDefinitionEditor',
@@ -186,6 +204,7 @@ export const PROPERTY_TABLE_EDITOR_NAMES = /** @type {Record<string, string>} */
 	replacements: 'ReplacementsEditor',
 	sourcesDefinition: 'ActionStepSourcesEditor',
 	startTransactionVariables: 'StartTransactionVariablesEditor',
+	testDefinition: 'IsInStepTestEditor',
 	throttleEvents: 'NgxThrottleEventsEditor'
 });
 

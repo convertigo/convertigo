@@ -38,7 +38,28 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
  */
 class PropertyTables {
 
+	/** the table editors of the Eclipse Studio, by the class declaring the property */
+	private static final java.util.Map<String, String> EDITORS = java.util.Map.of(
+			"XMLTransformStep.replacements", "TransformStepReplacementEditor",
+			"IsInStep.testDefinition", "IsInStepTestEditor",
+			"XMLSplitStep.tags", "SplitStepTagsEditor",
+			"MobileApplication.applicationIcons", "ApplicationIconsEditor",
+			"XMLActionStep.sourcesDefinition", "ActionStepSourcesEditor");
+
 	private PropertyTables() {
+	}
+
+	/**
+	 * @return the table editor of the Eclipse Studio for a property, for an engine without the Studio, or null
+	 */
+	static String editor(DatabaseObject dbo, String name) {
+		for (Class<?> type = dbo.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+			var editor = EDITORS.get(type.getSimpleName() + "." + name);
+			if (editor != null) {
+				return editor;
+			}
+		}
+		return null;
 	}
 
 	/**
