@@ -33,8 +33,11 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
+import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
@@ -268,7 +271,12 @@ public class Get extends JSonService {
 			} else if (XMLVector.class.getName().equals(classname)) {
 				// a table the Studio edits as rows of cells
 				var rows = PropertyTables.rows(dbo, elt.getAttribute("name"));
-				if (rows != null) {
+				if (dbo instanceof IStepSourceContainer container && "sourceDefinition".equals(elt.getAttribute("name"))) {
+					// the source of a step, which the source picker shows: the priority of its step and its xpath
+					var definition = container.getSourceDefinition();
+					property.put("value", new JSONArray(definition));
+					property.put("sourceLabel", sourceLabel(dbo, definition));
+				} else if (rows != null) {
 					property.put("value", rows);
 					property.put("table", true);
 				} else {
@@ -286,6 +294,18 @@ public class Get extends JSonService {
 		boolean shouldAdd = !property.has("isHidden") || "false".equals(property.getString("isHidden"));
 		if (shouldAdd) {
 			props.put(displayName, property);
+		}
+	}
+
+	private static String sourceLabel(DatabaseObject dbo, XMLVector<String> definition) {
+		var owner = dbo instanceof Step step ? step : dbo.getParent() instanceof Step step ? step : null;
+		if (owner == null || definition.isEmpty()) {
+			return "";
+		}
+		try {
+			return new StepSource(owner, definition).getLabel();
+		} catch (Exception e) {
+			return "";
 		}
 	}
 

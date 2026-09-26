@@ -17,7 +17,7 @@
 		isSmartSourceProperty,
 		SMART_TYPE_MODES
 	} from '$lib/studio/propertyEditors';
-	import { untrack } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import { flowTypeDisplayName } from './blockDefinition';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
@@ -36,6 +36,7 @@
 	 *  onOpenPropertyEditor?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void,
 	 *  onOpenPropertyPicker?: (target: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string }) => void,
 	 *  pickerTarget?: { id: string, propertyName?: string, displayName?: string, value?: any, kind?: string, editorClass?: string, mode?: string } | null,
+	 *  pickerRequest?: { id: string, propertyName: string, serial: number } | null,
 	 *  identityItem?: { id?: string, name?: string, classname?: string, instanceName?: string, icon?: string } | null,
 	 *  frontendThemeContext?: { mode: string, palette: string, tokens: any[] } | null,
 	 *  onPickerApply?: (id: string, value?: any) => void | Promise<void>
@@ -50,6 +51,7 @@
 		onOpenPropertyEditor,
 		onOpenPropertyPicker,
 		pickerTarget = null,
+		pickerRequest = null,
 		identityItem = null,
 		frontendThemeContext = null,
 		onPickerApply = () => {}
@@ -114,6 +116,40 @@
 			if (requestedSelectionId === nextId) {
 				requestedSelectionId = '';
 			}
+		});
+	});
+
+	let handledPickerRequest = 0;
+
+	$effect(() => {
+		// a picker asked from elsewhere opens once the properties of its object show
+		const request = pickerRequest;
+		if (!request || request.serial === handledPickerRequest || request.id !== id) {
+			return;
+		}
+		const found = categories.find(({ properties: rows }) =>
+			rows.some((row) => row?.name === request.propertyName)
+		);
+		if (!found) {
+			return;
+		}
+		handledPickerRequest = request.serial;
+		untrack(() => {
+			const opened = openedCategories.length ? openedCategories : getDefaultOpenedCategories();
+			if (!opened.includes(found.category)) {
+				openedCategories = [...opened, found.category];
+			}
+			const row = found.properties.find((row) => row?.name === request.propertyName);
+			if (!isPickerOpen(row)) {
+				openPicker(row);
+			}
+			void tick().then(() =>
+				setTimeout(() =>
+					document
+						.querySelector('.studio-properties__inline-picker')
+						?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+				)
+			);
 		});
 	});
 
@@ -277,6 +313,10 @@
 	 * @returns {string}
 	 */
 	function previewValue(row) {
+		if (typeof row?.sourceLabel === 'string') {
+			// the source of a step, as its step and xpath
+			return row.sourceLabel || 'empty';
+		}
 		const value = asEditorValue(row?.value);
 		return value === '' ? 'empty' : value;
 	}

@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IDynamicPropertyContainer;
+import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
@@ -123,6 +124,14 @@ public class Set extends JSonService {
 							setter.invoke(dbo, new Object[] { msst });
 						} else if (SmartType.class.equals(ptc)) {
 							setter.invoke(dbo, new Object[] { makeSmartType(mode, rawValue, pvalue) });
+						} else if (rawValue instanceof JSONArray parts && dbo instanceof IStepSourceContainer
+								&& "sourceDefinition".equals(pname)) {
+							// the source of a step: the priority of its step and its xpath
+							var source = new XMLVector<String>();
+							for (int part = 0; part < parts.length(); part++) {
+								source.add(parts.getString(part));
+							}
+							setter.invoke(dbo, new Object[] { source });
 						} else if (rawValue instanceof JSONArray rows && PropertyTables.isTable(getter.getGenericReturnType())) {
 							// a table edited by the Studio as rows of cells
 							setter.invoke(dbo, new Object[] { PropertyTables.fromJson(rows, oldValue) });

@@ -238,6 +238,8 @@
 	let editorTarget = $state(null);
 	/** @type {EditorTarget | null} */
 	let pickerTarget = $state(null);
+	/** @type {{ id: string, propertyName: string, serial: number } | null} */
+	let pickerRequest = $state(null);
 	/** @type {SourceChoice | null} */
 	let sourceChoice = $state(null);
 	/** @type {{ request: { id: string, objectType: string, oldName: string, newName: string }, resolve: (update: string | null) => void } | null} */
@@ -2139,6 +2141,11 @@
 			} else {
 				setWorkPanel('code');
 			}
+		} else if (action.startsWith('picker.')) {
+			// the picker of a property, as the "Show source in Picker" action of the Eclipse Studio
+			selectedId = nodeId;
+			pickerRequest = { id: nodeId, propertyName: action.slice(7), serial: Date.now() };
+			setSidePanel('properties');
 		} else if (action === 'dialog.sharedComponent') {
 			sharedComponentTargetId = nodeId;
 		} else if (action === 'dialog.stepsFromXml' || action === 'dialog.stepsFromXsd') {
@@ -2723,6 +2730,7 @@
 		onOpenPropertyEditor={openPropertyEditor}
 		onOpenPropertyPicker={openPropertyPicker}
 		{pickerTarget}
+		{pickerRequest}
 		identityItem={selectedTreeDocItem}
 		{frontendThemeContext}
 		onPickerApply={refreshAfterPickerApply}

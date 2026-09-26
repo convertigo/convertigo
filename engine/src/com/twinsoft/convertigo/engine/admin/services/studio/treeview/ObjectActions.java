@@ -30,6 +30,7 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocumentFunction;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocumentView;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
@@ -150,6 +151,11 @@ public class ObjectActions {
 			add(items, "object.generateAndLink", "Generate and link structure",
 					"Add before the step the steps building the XML described by the variable of the called requestable, and use them as source of this variable.",
 					linkedStructure((StepVariable) dbo) != null, "mdi:xml");
+		}
+		if (dbo instanceof IStepSourceContainer container && !container.getSourceDefinition().isEmpty()) {
+			add(items, "object.showSourceInPicker", "Show source in Picker",
+					"Show in the source picker the step this object works on, and its source.", true, "mdi:hub")
+					.put("clientAction", "picker.sourceDefinition");
 		}
 		if (StepsFromXml.handles(dbo)) {
 			add(items, "object.stepsFromXml", "Create steps structure from XML…",
