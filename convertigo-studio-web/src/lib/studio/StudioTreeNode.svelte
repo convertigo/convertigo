@@ -181,7 +181,9 @@
 		Boolean(
 			selected &&
 			!renaming &&
-			(draggableNode || isFlowContextNode(node) || (onTreeAction && (projectNode || folderNode)))
+			(draggableNode ||
+				isFlowContextNode(node) ||
+				(onTreeAction && (projectNode || folderNode || Boolean(node?.id?.includes('/')))))
 		)
 	);
 
@@ -1043,7 +1045,8 @@
 	 * @returns {boolean}
 	 */
 	function isDraggableNode(id) {
-		if (!id || !id.includes('.')) {
+		// the files of a project, as `Project//path`, are not objects
+		if (!id || !id.includes('.') || id.includes('/')) {
 			return false;
 		}
 		const folderMatch = id.match(/:([a-z]{2,4})$/);
@@ -1222,6 +1225,13 @@
 					canCopy={Boolean(onTreeAction && draggableNode)}
 					canPaste={Boolean(onTreeAction && canPasteInto?.(node.id))}
 					isProject={Boolean(onTreeAction && projectNode)}
+					fileKind={!onTreeAction || !node.id.includes('/')
+						? ''
+						: /^[^/]+\/$/.test(node.id)
+							? 'root'
+							: node.icon === 'folder'
+								? 'folder'
+								: 'file'}
 					enabledState={onTreeAction && draggableNode && typeof node?.enabled === 'boolean'
 						? node.enabled
 						: undefined}

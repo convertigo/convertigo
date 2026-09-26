@@ -948,6 +948,40 @@ test('studio selects several tree objects and deletes them together', async ({ p
 	await expect(returnStep).toHaveCount(0);
 });
 
+test('studio creates, renames and deletes the files of a project', async ({ page }) => {
+	const state = createStudioState();
+	await mockStudioServices(page, { state });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}/`);
+	await selectTreeNode(page, `${projectName}/`);
+	await page.getByRole('button', { name: 'Actions for Files' }).click();
+	page.once('dialog', (dialog) => dialog.accept('notes.txt'));
+	await page.getByRole('menuitem', { name: 'New file…' }).click();
+	const notes = page.locator(
+		`button.studio-tree-node__content[data-node-id="${projectName}//notes.txt"]`
+	);
+	await expect(notes).toBeVisible();
+	expect(state.files).toEqual(['notes.txt', 'readme.md']);
+
+	// a file is not an object: F2 and Del rename and delete the file
+	await notes.click();
+	page.once('dialog', (dialog) => dialog.accept('todo.txt'));
+	await notes.press('F2');
+	const todo = page.locator(
+		`button.studio-tree-node__content[data-node-id="${projectName}//todo.txt"]`
+	);
+	await expect(todo).toBeVisible();
+	page.once('dialog', async (dialog) => {
+		expect(dialog.message()).toContain('Delete "todo.txt"?');
+		await dialog.accept();
+	});
+	await todo.press('Delete');
+	await expect(todo).toHaveCount(0);
+	expect(state.files).toEqual(['readme.md']);
+});
+
 test('studio adds a palette step from the flow and opens inline rename', async ({ page }) => {
 	const state = createStudioState();
 	await mockStudioServices(page, { state });
@@ -1896,6 +1930,8 @@ function responseForService(service, params, options = {}) {
 			return testPlatformResponse(state);
 		case 'studio.treeview.Get':
 			return options.noProjects ? { children: [] } : treeviewResponse(params, state);
+		case 'studio.source.Files':
+			return filesResponse(params, state);
 		case 'studio.treeview.Authoring': {
 			const project = params.get('project') ?? '';
 			const sourcePath = params.get('sourcePath') ?? '';
@@ -2184,6 +2220,7 @@ function createStudioState(overrides = {}) {
 			{ name: 'Init', classname: 'com.twinsoft.convertigo.beans.steps.SimpleStep' },
 			{ name: 'return', classname: 'com.twinsoft.convertigo.beans.steps.ReturnStep' }
 		],
+		files: ['readme.md'],
 		...overrides
 	};
 }
@@ -2359,8 +2396,13 @@ function treeviewChildren(id, flow, state) {
 				folderNode(`${projectName}:cn`, 'Connectors'),
 				folderNode(`${projectName}:sq`, 'Sequences'),
 				folderNode(`${projectName}:ref`, 'References'),
-				treeNode(flowEngineId, 'Engine', 'FlowEngine', { children: true })
+				treeNode(flowEngineId, 'Engine', 'FlowEngine', { children: true }),
+				folderNode(`${projectName}/`, 'Files')
 			];
+		case `${projectName}/`:
+			return [...state.files]
+				.sort()
+				.map((name) => ({ id: `${projectName}//${name}`, name, label: name, icon: 'file' }));
 		case flowEngineId:
 			return [
 				treeNode(frontendBuilderId, 'Svelte frontend', 'FlowVirtualObject', { children: true })
@@ -2396,6 +2438,28 @@ function treeviewChildren(id, flow, state) {
 		default:
 			return [];
 	}
+}
+
+/**
+ * @param {URLSearchParams} params
+ * @param {ReturnType<typeof createStudioState>} state
+ */
+function filesResponse(params, state) {
+	const name = String(params.get('id')).replace(/^.*\//, '');
+	const action = params.get('action');
+	if (action === 'newFile') {
+		state.files = [...state.files, String(params.get('name'))].sort();
+		return { done: true, id: `${projectName}//${params.get('name')}` };
+	}
+	if (action === 'rename') {
+		state.files = state.files.map((file) => (file === name ? String(params.get('name')) : file));
+		return { done: true, id: `${projectName}//${params.get('name')}` };
+	}
+	if (action === 'delete') {
+		state.files = state.files.filter((file) => file !== name);
+		return { done: true };
+	}
+	return {};
 }
 
 /**

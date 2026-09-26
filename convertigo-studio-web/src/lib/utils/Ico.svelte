@@ -177,6 +177,7 @@
 	import MdiTuneVerticalVariant from '~icons/mdi/tune-vertical-variant';
 	import MdiUnfoldMoreHorizontal from '~icons/mdi/unfold-more-horizontal';
 	import MdiUpdate from '~icons/mdi/update';
+	import MdiUpload from '~icons/mdi/upload';
 	import MdiVariable from '~icons/mdi/variable';
 	import MdiVideoOutline from '~icons/mdi/video-outline';
 	import MdiViewDashboardOutline from '~icons/mdi/view-dashboard-outline';
@@ -363,6 +364,7 @@
 		'mdi:school-outline': MdiSchoolOutline,
 		'mdi:share-variant-outline': MdiShareVariantOutline,
 		'mdi:star': MdiStar,
+		'mdi:upload': MdiUpload,
 		'mdi:star-outline': MdiStarOutline,
 		'mdi:star-three-points-outline': MdiStarThreePointsOutline,
 		'mdi:sync': MdiSync,

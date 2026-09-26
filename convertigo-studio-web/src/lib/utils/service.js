@@ -118,7 +118,7 @@ export async function call(service, data = {}, options = {}) {
 		Instances.apply(headers);
 		if (data instanceof FormData) {
 			let files = new FormData();
-			for (const [entryKey, value] of data.entries()) {
+			for (const [entryKey, value] of [...data.entries()]) {
 				const key = String(entryKey);
 				if (value instanceof File) {
 					files.append(key, value);
@@ -275,7 +275,7 @@ export async function callRequestable(mode, project, data = {}) {
 	Instances.apply(headers);
 	if (data instanceof FormData) {
 		let files = new FormData();
-		for (const [entryKey, value] of data.entries()) {
+		for (const [entryKey, value] of [...data.entries()]) {
 			const key = String(entryKey);
 			if (value instanceof File) {
 				files.append(key, value);

@@ -2290,7 +2290,7 @@
 	 * @returns {boolean} whether the tree id is a database object, not a project or a folder
 	 */
 	function isTreeObjectId(id) {
-		return Boolean(id?.includes('.')) && !isTreeFolderId(id);
+		return Boolean(id?.includes('.')) && !id.includes('/') && !isTreeFolderId(id);
 	}
 
 	/**
@@ -2319,6 +2319,10 @@
 	 * @param {string} nodeId
 	 */
 	async function runTreeAction(action, nodeId) {
+		if (/^[^/]+\/\/./.test(nodeId) && (action === 'object.rename' || action === 'object.delete')) {
+			// F2 and Del on a file of the project
+			action = action === 'object.rename' ? 'file.rename' : 'file.delete';
+		}
 		const projectName = parseSelection(nodeId).projectName;
 		// the objects selected together, as in the tree of Eclipse
 		const selection = treeSelectionOf(nodeId).filter(isTreeObjectId);
@@ -2461,7 +2465,77 @@
 			}
 		} else if (action === 'project.delete') {
 			await deleteProject(projectName);
+		} else if (action.startsWith('file.')) {
+			await manageProjectFile(action.slice('file.'.length), nodeId);
 		}
+	}
+
+	/**
+	 * Creates, uploads, renames or deletes a file of a project from its files tree, as the file tree of
+	 * the Eclipse Studio.
+	 * @param {string} action newFile, newFolder, upload, rename or delete
+	 * @param {string} nodeId the file or the folder, as the tree names it
+	 */
+	async function manageProjectFile(action, nodeId) {
+		const name = nodeId.replace(/^.*\//, '');
+		// the folder holding the file, the root of the files keeps its trailing slash
+		const parentId = nodeId.replace(/\/[^/]+$/, '');
+		let folderId = nodeId;
+		/** @type {any} */
+		let result;
+		if (action === 'newFile' || action === 'newFolder') {
+			const newName = window.prompt(
+				action === 'newFile' ? 'Name of the new file' : 'Name of the new folder'
+			);
+			if (!newName?.trim()) {
+				return;
+			}
+			result = await call('studio.source.Files', { action, id: nodeId, name: newName.trim() });
+		} else if (action === 'upload') {
+			const files = await pickFiles();
+			if (!files.length) {
+				return;
+			}
+			const data = new FormData();
+			data.append('action', 'upload');
+			data.append('id', nodeId);
+			// a key for each file, the call takes the files out of the parameters by key
+			files.forEach((file, index) => data.append(`file${index}`, file, file.name));
+			result = await call('studio.source.Files', data);
+		} else if (action === 'rename') {
+			const newName = window.prompt(`Rename ${name}`, name);
+			if (!newName?.trim() || newName.trim() === name) {
+				return;
+			}
+			folderId = parentId;
+			result = await call('studio.source.Files', { action, id: nodeId, name: newName.trim() });
+		} else if (action === 'delete') {
+			if (!window.confirm(`Delete "${name}"?\n\nThis action cannot be undone.`)) {
+				return;
+			}
+			folderId = parentId;
+			result = await call('studio.source.Files', { action, id: nodeId });
+		}
+		if (!result?.done) {
+			return;
+		}
+		refreshTreeContext(folderId, 'contextAction');
+		refreshStudioViews();
+		selectedId = result.id ?? parentId;
+	}
+
+	/**
+	 * @returns {Promise<File[]>} the files the user picks, none when they cancel
+	 */
+	function pickFiles() {
+		return new Promise((resolve) => {
+			const input = document.createElement('input');
+			input.type = 'file';
+			input.multiple = true;
+			input.addEventListener('change', () => resolve([...(input.files ?? [])]), { once: true });
+			input.addEventListener('cancel', () => resolve([]), { once: true });
+			input.click();
+		});
 	}
 
 	/**

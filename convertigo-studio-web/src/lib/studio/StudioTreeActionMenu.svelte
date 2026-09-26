@@ -27,6 +27,7 @@
 	 *  canCopy?: boolean,
 	 *  canPaste?: boolean,
 	 *  isProject?: boolean,
+	 *  fileKind?: '' | 'root' | 'folder' | 'file',
 	 *  enabledState?: boolean,
 	 *  deleting?: boolean,
 	 *  onSelectNode?: () => void,
@@ -52,6 +53,7 @@
 		canCopy = false,
 		canPaste = false,
 		isProject = false,
+		fileKind = '',
 		enabledState = undefined,
 		deleting = false,
 		onSelectNode,
@@ -75,6 +77,8 @@
 		'edit.paste': `${mod}V`,
 		'object.rename': 'F2',
 		'object.delete': 'Del',
+		'file.rename': 'F2',
+		'file.delete': 'Del',
 		'project.save': `${mod}S`
 	};
 	/**
@@ -119,6 +123,11 @@
 	}
 
 	async function loadContextMenu() {
+		if (fileKind) {
+			// a file of the project has only the actions on files
+			contextItems = [];
+			return;
+		}
 		const serial = ++requestSerial;
 		loading = true;
 		loadError = '';
@@ -161,7 +170,7 @@
 			await onDelete?.();
 			return;
 		}
-		if (/^(edit|project|state)\./.test(details.value)) {
+		if (/^(edit|project|state|file)\./.test(details.value)) {
 			await onTreeAction?.(details.value);
 			return;
 		}
@@ -376,6 +385,20 @@
 						{/if}
 					</Menu.ItemGroup>
 				{/if}
+				{#if fileKind}
+					<Menu.ItemGroup>
+						<Menu.ItemGroupLabel>Files</Menu.ItemGroupLabel>
+						{#if fileKind !== 'file'}
+							{@render treeItem('file.newFile', 'mdi:file-outline', 'New file…')}
+							{@render treeItem('file.newFolder', 'mdi:folder-plus-outline', 'New folder…')}
+							{@render treeItem('file.upload', 'mdi:upload', 'Upload files…')}
+						{/if}
+						{#if fileKind !== 'root'}
+							{@render treeItem('file.rename', 'mdi:pencil-outline', 'Rename…')}
+							{@render treeItem('file.delete', 'mdi:delete-outline', 'Delete', false, true)}
+						{/if}
+					</Menu.ItemGroup>
+				{/if}
 				{#if isProject}
 					{#if editable}
 						<Menu.Separator />
@@ -483,7 +506,7 @@
 					{/each}
 				{/if}
 
-				{#if !loading && !loadError && !editable && !isProject && !groupedContextItems.length}
+				{#if !loading && !loadError && !editable && !isProject && !fileKind && !groupedContextItems.length}
 					<Menu.Item value="context.empty" disabled class="studio-tree-action-menu__item">
 						<Menu.ItemText>No actions available</Menu.ItemText>
 					</Menu.Item>
