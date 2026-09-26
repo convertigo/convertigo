@@ -37,12 +37,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
@@ -188,6 +190,10 @@ public class Get extends JSonService {
 		var enabled = enabledState(dbo);
 		if (enabled != null) {
 			obj.put("enabled", enabled);
+		}
+		var defaultOf = defaultOf(dbo);
+		if (defaultOf != null) {
+			obj.put("default", defaultOf);
 		}
 		if (flow) {
 			obj.put("classname", dbo.getClass().getSimpleName());
@@ -484,6 +490,25 @@ public class Get extends JSonService {
 			return info == null || !Boolean.TRUE.equals(info.opt("disabled"));
 		}
 		return dbo instanceof IEnableAble enableAble ? enableAble.isEnabled() : null;
+	}
+
+	/**
+	 * @return what the object is the default of, as the Eclipse Studio marks it in its tree, or null
+	 */
+	static String defaultOf(DatabaseObject dbo) {
+		if (dbo instanceof Connector connector && connector.isDefault) {
+			return "Default connector";
+		}
+		if (dbo instanceof Transaction transaction && transaction.isDefault) {
+			return "Default transaction";
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent page && page.isRoot) {
+			return "Root page";
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent page && page.isRoot) {
+			return "Root page";
+		}
+		return null;
 	}
 
 	private static String firstNonBlank(JSONObject object, String... keys) {

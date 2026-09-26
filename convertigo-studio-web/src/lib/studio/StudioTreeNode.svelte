@@ -149,13 +149,21 @@
 		revision;
 		return node?.icon;
 	});
+	/** what the object is the default of, as the Eclipse Studio marks it */
+	let defaultOf = $derived.by(() => {
+		dataSerial;
+		revision;
+		return typeof node?.default === 'string' ? node.default : '';
+	});
 	let unreachable = $derived(!disabled && ancestorDisabled);
 	let availabilityTitle = $derived(
 		disabled
 			? `${label} — Disabled`
 			: unreachable
 				? `${label} — Unreachable because an ancestor is disabled`
-				: undefined
+				: defaultOf
+					? `${label} — ${defaultOf}`
+					: undefined
 	);
 	let paddingLeft = $derived(`${depth * 0.34 + 0.14}rem`);
 	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
@@ -1075,6 +1083,9 @@
 					{:else}
 						<Ico icon="convertigo:logo" size={4} />
 					{/if}
+					{#if defaultOf}
+						<span class="studio-tree-node__default" aria-label={defaultOf}></span>
+					{/if}
 				</span>
 				<span class="studio-tree-node__label">{label}</span>
 				{#if gitDecoration}
@@ -1272,9 +1283,21 @@
 
 	.studio-tree-node__toggle,
 	.studio-tree-node__icon {
+		position: relative;
 		display: grid;
 		min-width: 0;
 		place-items: center;
+	}
+
+	.studio-tree-node__default {
+		position: absolute;
+		right: -0.15rem;
+		bottom: -0.1rem;
+		width: 0.42rem;
+		height: 0.42rem;
+		border: 1px solid var(--studio-chrome-bg, white);
+		border-radius: 999px;
+		background: var(--color-success-500);
 	}
 
 	.studio-tree-node__content {
