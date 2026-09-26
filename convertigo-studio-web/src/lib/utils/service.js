@@ -437,6 +437,11 @@ function handleStateMessage(res, service) {
 			return;
 		}
 
+		if (service == 'studio.treeview.ContextAction' && typeof res?.result?.ok == 'boolean') {
+			// the Studio tells the result of an object action itself, as a success or an error
+			return;
+		}
+
 		let message = findDeepKeys(res, ['success', 'message', 'status']);
 
 		if (message) {
