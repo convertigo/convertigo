@@ -5,7 +5,7 @@
 	/**
 	 * Imports a remote REST or SOAP web service into a project, as the web service reference wizards of
 	 * the Eclipse Studio: an HTTP connector with a transaction per operation, and a sequence per
-	 * transaction if asked.
+	 * transaction if asked. The definition is an URL or a file of the user, which the project keeps.
 	 *
 	 * @type {{ projectName: string, onDone?: (id: string) => void | Promise<void>, onClose?: () => void }}
 	 */
@@ -14,6 +14,11 @@
 	/** @type {'rest' | 'soap'} */
 	let type = $state('rest');
 	let url = $state('');
+	/** @type {'url' | 'file'} */
+	let source = $state('url');
+	/** @type {File | null} */
+	let definition = $state(null);
+	let ready = $derived(source === 'url' ? Boolean(url.trim()) : Boolean(definition));
 	let authenticated = $state(false);
 	let user = $state('');
 	let password = $state('');
@@ -24,19 +29,30 @@
 
 	async function submit(/** @type {SubmitEvent} */ event) {
 		event.preventDefault();
-		if (busy || !url.trim()) {
+		if (busy || !ready) {
 			return;
 		}
 		busy = true;
 		error = '';
 		try {
-			const result = await call('studio.project.ImportWsReference', {
+			/** @type {Record<string, string>} */
+			const params = {
 				projectName,
 				type,
-				url: url.trim(),
-				...(authenticated ? { user, password } : {}),
 				...(sequences ? { sequences, sequencesAuthenticated: String(sequencesAuthenticated) } : {})
-			});
+			};
+			/** @type {any} */
+			let data;
+			if (source === 'file' && definition) {
+				data = new FormData();
+				for (const [key, value] of Object.entries(params)) {
+					data.append(key, value);
+				}
+				data.append('definition', definition, definition.name);
+			} else {
+				data = { ...params, url: url.trim(), ...(authenticated ? { user, password } : {}) };
+			}
+			const result = await call('studio.project.ImportWsReference', data);
 			if (result?.done) {
 				toaster.success({
 					description: `The web service is imported with ${result.transactions} transaction${result.transactions > 1 ? 's' : ''}.`
@@ -88,22 +104,53 @@
 						onclick={() => (type = 'soap')}>SOAP (WSDL)</button
 					>
 				</div>
-				<label class="studio-dialog__field">
-					<span>URL of the {type === 'rest' ? 'Swagger or OpenAPI definition' : 'WSDL'}</span>
-					<!-- svelte-ignore a11y_autofocus -->
-					<input
-						class="input-common"
-						bind:value={url}
-						autofocus
-						placeholder={type === 'rest'
-							? 'https://api.example.com/openapi.json'
-							: 'https://example.com/service?wsdl'}
-					/>
-				</label>
-				<label class="studio-dialog__check">
-					<input type="checkbox" bind:checked={authenticated} /> The definition needs an authentication
-				</label>
-				{#if authenticated}
+				<div class="studio-dialog__modes" role="radiogroup" aria-label="Source of the definition">
+					<button
+						type="button"
+						role="radio"
+						aria-checked={source === 'url'}
+						class={['studio-dialog__mode', source === 'url' && 'studio-dialog__mode--active']}
+						onclick={() => (source = 'url')}>From a URL</button
+					>
+					<button
+						type="button"
+						role="radio"
+						aria-checked={source === 'file'}
+						class={['studio-dialog__mode', source === 'file' && 'studio-dialog__mode--active']}
+						onclick={() => (source = 'file')}>From a file</button
+					>
+				</div>
+				{#if source === 'url'}
+					<label class="studio-dialog__field">
+						<span>URL of the {type === 'rest' ? 'Swagger or OpenAPI definition' : 'WSDL'}</span>
+						<!-- svelte-ignore a11y_autofocus -->
+						<input
+							class="input-common"
+							bind:value={url}
+							autofocus
+							placeholder={type === 'rest'
+								? 'https://api.example.com/openapi.json'
+								: 'https://example.com/service?wsdl'}
+						/>
+					</label>
+					<label class="studio-dialog__check">
+						<input type="checkbox" bind:checked={authenticated} /> The definition needs an authentication
+					</label>
+				{:else}
+					<label class="studio-dialog__field">
+						<span>{type === 'rest' ? 'Swagger or OpenAPI definition' : 'WSDL'} file</span>
+						<input
+							class="input-common studio-dialog__file"
+							type="file"
+							accept={type === 'rest' ? '.json,.yaml,.yml' : '.wsdl,.xml'}
+							onchange={(event) => (definition = event.currentTarget.files?.[0] ?? null)}
+						/>
+						<small
+							>The project keeps the file in its {type === 'rest' ? 'openapi' : 'wsdl'} folder.</small
+						>
+					</label>
+				{/if}
+				{#if source === 'url' && authenticated}
 					<label class="studio-dialog__field">
 						<span>User</span>
 						<input class="input-common" bind:value={user} autocomplete="username" />
@@ -141,7 +188,7 @@
 				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
 					>Cancel</button
 				>
-				<button type="submit" class="button-primary" disabled={busy || !url.trim()}>
+				<button type="submit" class="button-primary" disabled={busy || !ready}>
 					{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 					Import
 				</button>
@@ -250,6 +297,26 @@
 		padding-block: 0;
 		padding-inline: 0.6rem;
 		font-size: 0.8rem;
+	}
+
+	.studio-dialog__field input.studio-dialog__file {
+		height: auto;
+		padding: 0.35rem 0.6rem;
+	}
+
+	.studio-dialog__file::file-selector-button {
+		margin-right: 0.6rem;
+		border: 1px solid var(--studio-line);
+		border-radius: 0.3rem;
+		background: var(--studio-hover-bg);
+		color: var(--studio-text-strong);
+		padding: 0.2rem 0.6rem;
+		font: inherit;
+	}
+
+	.studio-dialog__field small {
+		color: var(--studio-text-idle);
+		font-size: 0.72rem;
 	}
 
 	.studio-dialog__check {
