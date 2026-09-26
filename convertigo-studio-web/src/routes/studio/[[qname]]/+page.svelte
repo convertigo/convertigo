@@ -66,6 +66,7 @@
 	import StudioSharedComponentDialog from '$lib/studio/StudioSharedComponentDialog.svelte';
 	import StudioShell from '$lib/studio/StudioShell.svelte';
 	import StudioSourceControlPanel from '$lib/studio/StudioSourceControlPanel.svelte';
+	import StudioStatisticsDialog from '$lib/studio/StudioStatisticsDialog.svelte';
 	import StudioStepsFromXmlDialog from '$lib/studio/StudioStepsFromXmlDialog.svelte';
 	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
@@ -260,6 +261,9 @@
 	/** The NGX component the shared component dialog extracts */
 	let sharedComponentTargetId = $state('');
 	let handlersTargetId = $state('');
+	let statisticsProjectName = $state('');
+	/** the lib_* projects hidden from the tree, as the "Toggle libs" of the Eclipse Studio */
+	let hideLibs = $state(false);
 	let marketplaceOpen = $state(false);
 	/** @type {PaletteItem | null} */
 	let selectedPaletteItem = $state(null);
@@ -932,6 +936,7 @@
 			activeVibeResult,
 			activeFrontendResult,
 			logsPanelOpen,
+			hideLibs,
 			collapsedPanels: {
 				tree: collapsedPanels.tree,
 				tools: collapsedPanels.tools
@@ -972,6 +977,7 @@
 			storedChoice(preferences.activeFrontendResult, FRONTEND_RESULT_IDS, activeFrontendResult)
 		);
 		logsPanelOpen = Boolean(preferences.logsPanelOpen);
+		hideLibs = Boolean(preferences.hideLibs);
 		collapsedPanels = {
 			...DEFAULT_COLLAPSED_PANELS,
 			tree: Boolean(preferences.collapsedPanels?.tree),
@@ -1949,6 +1955,26 @@
 		}
 	}
 
+	/**
+	 * Saves every modified project, as the "Save all" of the Eclipse Studio.
+	 */
+	async function saveAllProjects() {
+		if (!dirtyProjectNames.size || projectActionBusy) {
+			return;
+		}
+		projectActionBusy = 'saveAll';
+		try {
+			for (const projectName of [...dirtyProjectNames]) {
+				await saveDboProject(projectName, projectName);
+				await refreshStudioProject(projectName);
+				clearProjectDirty(projectName);
+			}
+			refreshStudioViews();
+		} finally {
+			projectActionBusy = '';
+		}
+	}
+
 	async function reloadSelectedProject() {
 		if (!selectedProjectName || projectActionBusy) {
 			return;
@@ -2182,6 +2208,8 @@
 				getUrl(`projects/${encodeURIComponent(projectName)}/DisplayObjects/mobile/`),
 				'_blank'
 			);
+		} else if (action === 'project.statistics') {
+			statisticsProjectName = projectName;
 		} else if (action === 'project.readme') {
 			await generateReadme(projectName);
 		} else if (action === 'project.symbols') {
@@ -2498,6 +2526,26 @@
 		onclick={saveSelectedProject}
 	/>
 	<StudioIconButton
+		icon={projectActionBusy === 'saveAll' ? 'mdi:sync' : 'mdi:content-save-all-outline'}
+		dirty={dirtyProjectNames.size > 1}
+		title={dirtyProjectNames.size
+			? `Save all - ${dirtyProjectNames.size} modified project${dirtyProjectNames.size > 1 ? 's' : ''}`
+			: 'Save all'}
+		ariaLabel="Save all"
+		disabled={!dirtyProjectNames.size || Boolean(projectActionBusy)}
+		onclick={saveAllProjects}
+	/>
+	<StudioIconButton
+		icon="mdi:library-outline"
+		active={hideLibs}
+		title={hideLibs ? 'Show the libraries' : 'Hide the libraries'}
+		ariaLabel={hideLibs ? 'Show the libraries' : 'Hide the libraries'}
+		onclick={() => {
+			hideLibs = !hideLibs;
+			persistStudioLayoutPreferences();
+		}}
+	/>
+	<StudioIconButton
 		icon={projectActionBusy === 'reload' ? 'mdi:sync' : 'mdi:reload'}
 		title="Reload project"
 		ariaLabel="Reload project"
@@ -2577,6 +2625,7 @@
 		actions={projectActions}
 	>
 		<StudioTreePanel
+			{hideLibs}
 			bind:selectedId
 			bind:renameTargetId
 			refreshSerial={treeRefreshSerial}
@@ -2915,6 +2964,12 @@
 			refreshStudioViews();
 		}}
 		onClose={() => (marketplaceOpen = false)}
+	/>
+{/if}
+{#if statisticsProjectName}
+	<StudioStatisticsDialog
+		projectName={statisticsProjectName}
+		onClose={() => (statisticsProjectName = '')}
 	/>
 {/if}
 {#if handlersTargetId}

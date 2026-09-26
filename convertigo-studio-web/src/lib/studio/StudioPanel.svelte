@@ -34,7 +34,7 @@
 			<span class="studio-panel-title-text">{title}</span>
 		</div>
 		{#if actions}
-			<div class="ml-auto layout-x-low">
+			<div class="studio-panel-actions ml-auto layout-x-low">
 				{@render actions?.()}
 			</div>
 		{/if}
@@ -86,6 +86,11 @@
 		font-weight: 600;
 		letter-spacing: 0.02em;
 		text-transform: uppercase;
+	}
+
+	/* the actions of a panel, close together as a toolbar */
+	.studio-panel-actions {
+		gap: 0.15rem;
 	}
 
 	.studio-panel-title-text {

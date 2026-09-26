@@ -29,6 +29,7 @@
 	import MdiCalendarRange from '~icons/mdi/calendar-range';
 	import MdiCellphoneLink from '~icons/mdi/cellphone-link';
 	import MdiCertificate from '~icons/mdi/certificate';
+	import MdiChartBoxOutline from '~icons/mdi/chart-box-outline';
 	import MdiCheck from '~icons/mdi/check';
 	import MdiCheckAll from '~icons/mdi/check-all';
 	import MdiChevronDown from '~icons/mdi/chevron-down';
@@ -50,6 +51,7 @@
 	import MdiContentCopy from '~icons/mdi/content-copy';
 	import MdiContentCut from '~icons/mdi/content-cut';
 	import MdiContentPaste from '~icons/mdi/content-paste';
+	import MdiContentSaveAllOutline from '~icons/mdi/content-save-all-outline';
 	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline';
 	import MdiContentSaveOutline from '~icons/mdi/content-save-outline';
 	import MdiCubeOutline from '~icons/mdi/cube-outline';
@@ -225,8 +227,10 @@
 		'mdi:content-cut': MdiContentCut,
 		'mdi:content-paste': MdiContentPaste,
 		'mdi:content-save-outline': MdiContentSaveOutline,
+		'mdi:content-save-all-outline': MdiContentSaveAllOutline,
 		'mdi:folder-plus-outline': MdiFolderPlusOutline,
 		'mdi:cellphone-link': MdiCellphoneLink,
+		'mdi:chart-box-outline': MdiChartBoxOutline,
 		'mdi:web': MdiWeb,
 		'mdi:server-network': MdiServerNetwork,
 		'mdi:content-copy': MdiContentCopy,

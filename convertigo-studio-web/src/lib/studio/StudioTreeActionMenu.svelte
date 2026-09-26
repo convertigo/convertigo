@@ -391,6 +391,7 @@
 							'Generate the readme.md'
 						)}
 						{@render treeItem('project.symbols', 'mdi:code-braces', 'Declare its global symbols')}
+						{@render treeItem('project.statistics', 'mdi:chart-box-outline', 'Statistics')}
 						{@render treeItem('project.remoteUrl', 'mdi:link-variant', 'Copy the remote URL')}
 						{@render treeItem(
 							'project.delete',

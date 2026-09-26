@@ -17,6 +17,7 @@
 	/**
 	 * @type {{
 	 *  selectedId?: string,
+	 *  hideLibs?: boolean,
 	 *  renameTargetId?: string,
 	 *  autoSelectFirst?: boolean,
 	 *  refreshSerial?: number,
@@ -40,6 +41,7 @@
 	 */
 	let {
 		selectedId = $bindable(''),
+		hideLibs = false,
 		renameTargetId = $bindable(''),
 		autoSelectFirst = true,
 		refreshSerial = 0,
@@ -105,7 +107,7 @@
 	});
 	let rootChildren = $derived.by(() =>
 		(Projects.projects ?? [])
-			.filter((project) => project?.name)
+			.filter((project) => project?.name && !(hideLibs && project.name.startsWith('lib_')))
 			.map((project) => {
 				if (!rootNodeCache[project.name]) {
 					rootNodeCache[project.name] = {
