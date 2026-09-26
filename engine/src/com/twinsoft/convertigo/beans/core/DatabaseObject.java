@@ -793,20 +793,25 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 
 	public Element toXml(Document document, ExportOption... exportOptions) throws EngineException {
-		try {
-			this.exportOptions.addAll(Arrays.asList(exportOptions));
-			return toXml(document);
-		} finally {
-			this.exportOptions.clear();
+		// the options belong to the object while it serializes: two serializations wait for each other
+		synchronized (this) {
+			try {
+				this.exportOptions.addAll(Arrays.asList(exportOptions));
+				return toXml(document);
+			} finally {
+				this.exportOptions.clear();
+			}
 		}
 	}
 
 	public Element toXml(Document document, String propertyName, ExportOption... exportOptions) throws EngineException {
-		try {
-			this.exportOptions.addAll(Arrays.asList(exportOptions));
-			return toXml(document, propertyName);
-		} finally {
-			this.exportOptions.clear();
+		synchronized (this) {
+			try {
+				this.exportOptions.addAll(Arrays.asList(exportOptions));
+				return toXml(document, propertyName);
+			} finally {
+				this.exportOptions.clear();
+			}
 		}
 	}
 
