@@ -98,6 +98,33 @@
 		};
 	});
 	let hasResponse = $derived(responseView.content.length > 0 || responseView.loading);
+	/** the stubs recorded for the requestable, the default one first */
+	let stubFiles = $state(/** @type {string[]} */ ([]));
+	let defaultStub = $state('');
+	let stubFile = $state('');
+	let requestableId = $derived(
+		!requestable?.name
+			? ''
+			: kind === 'transaction'
+				? `${projectName}.cn:${connectorName}.tr:${requestable.name}`
+				: `${projectName}.sq:${requestable.name}`
+	);
+
+	$effect(() => {
+		// the stub files to execute from, as the "Execute from stub" menu of Eclipse
+		const id = stubbable && stub ? requestableId : '';
+		stubFiles = [];
+		stubFile = '';
+		if (id) {
+			void call('studio.dbo.Stubs', { id }).then((result) => {
+				if (id === requestableId && Array.isArray(result?.stubs)) {
+					defaultStub = String(result.defaultStub ?? '');
+					stubFiles = result.stubs.map(String);
+					stubFile = stubFiles.includes(defaultStub) ? defaultStub : (stubFiles[0] ?? '');
+				}
+			});
+		}
+	});
 	let responseTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
 	let responseEditorKey = $derived(`${requestableKey}\u0000${responseRevision}`);
 
@@ -108,10 +135,7 @@
 		if (!requestable?.name) {
 			return;
 		}
-		const id =
-			kind === 'transaction'
-				? `${projectName}.cn:${connectorName}.tr:${requestable.name}`
-				: `${projectName}.sq:${requestable.name}`;
+		const id = requestableId;
 		let result = await call('studio.dbo.CreateStub', { id, xml: responseView.content });
 		if (result?.exists && window.confirm(`The stub ${result.file} exists. Replace it?`)) {
 			result = await call('studio.dbo.CreateStub', {
@@ -214,6 +238,9 @@
 		if (stub) {
 			// the response is the stub recorded for the requestable, as Execute from stub in Eclipse
 			entries.push(['__stub', 'true']);
+			if (stubFile && stubFile !== defaultStub) {
+				entries.push(['__stub_filename', stubFile]);
+			}
 		}
 		if (freshContext) {
 			entries.push(['__context', 'studio-web-execution-*']);
@@ -543,6 +570,9 @@ console.log(await response.text());`;
 		<input type="hidden" name="__nocache" value="true" />
 		{#if stub}
 			<input type="hidden" name="__stub" value="true" />
+			{#if stubFile && stubFile !== defaultStub}
+				<input type="hidden" name="__stub_filename" value={stubFile} />
+			{/if}
 		{/if}
 		{#if freshContext}
 			<input type="hidden" name="__context" value="studio-web-execution-*" />
@@ -617,6 +647,18 @@ console.log(await response.text());`;
 						<input type="checkbox" bind:checked={stub} {disabled} />
 						From stub
 					</label>
+					{#if stub && stubFiles.length > 1}
+						<select
+							class="requestable-execution__stub-file input-common"
+							aria-label="Stub file"
+							bind:value={stubFile}
+							{disabled}
+						>
+							{#each stubFiles as file (file)}
+								<option value={file}>{file}</option>
+							{/each}
+						</select>
+					{/if}
 				{/if}
 				{#if hasResponse}
 					<Button
@@ -648,6 +690,14 @@ console.log(await response.text());`;
 {/if}
 
 <style>
+	.requestable-execution__stub-file {
+		width: auto;
+		max-width: 14rem;
+		height: 1.9rem;
+		padding-block: 0;
+		font-size: 0.75rem;
+	}
+
 	.requestable-execution__stub {
 		display: inline-flex;
 		align-items: center;
