@@ -39,7 +39,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
  * session data of the application in the dataset folder of the project, which the preview restores.
  * <ul>
  * <li>project</li>
- * <li>action: list (default), get (name), save (name, data: a JSON array)</li>
+ * <li>action: list (default), get (name), save (name, data: a JSON array), remove (name)</li>
  * </ul>
  */
 @ServiceDefinition(name = "Datasets", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
@@ -54,13 +54,15 @@ public class Datasets extends JSonService {
 		var dir = new File(project.getDirPath(), "dataset");
 		var action = request.getParameter("action");
 		var name = request.getParameter("name");
-		if ("get".equals(action) || "save".equals(action)) {
+		if ("get".equals(action) || "save".equals(action) || "remove".equals(action)) {
 			if (name == null || !name.matches("[\\w .-]+") || "none".equals(name)) {
 				throw new ServiceException("Invalid dataset name " + name);
 			}
 			var file = new File(dir, name + ".json");
 			if ("get".equals(action)) {
 				response.put("data", file.exists() ? FileUtils.readFileToString(file, "UTF-8") : "[]");
+			} else if ("remove".equals(action)) {
+				response.put("done", file.delete());
 			} else {
 				dir.mkdirs();
 				FileUtils.write(file, new JSONArray(request.getParameter("data")).toString(2), "UTF-8");

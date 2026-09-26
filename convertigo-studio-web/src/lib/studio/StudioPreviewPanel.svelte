@@ -20,6 +20,15 @@
 	} from './flowAuthoring';
 	import { attachNgxAuthoring } from './ngxAuthoring';
 	import { startStyleEditor, styleEditorChanges } from './ngxStyleEditor';
+	import {
+		addCustomDevice,
+		deviceById,
+		deviceOsOf,
+		previewDevices,
+		removeCustomDevice,
+		selectDeviceOs,
+		withDeviceOs
+	} from './previewDevices.svelte.js';
 	import { studioActivity } from './studioActivity.svelte.js';
 	import StudioCaptureDialog from './StudioCaptureDialog.svelte';
 	import StudioDevicePanel from './StudioDevicePanel.svelte';
@@ -98,7 +107,9 @@
 	let zoomMode = $derived(zoomModeOverride.base === previewUrl ? zoomModeOverride.value : 'fit');
 	let trimmedAddress = $derived(addressBar.trim());
 	let deviceGroups = $derived.by(buildDeviceGroups);
-	let selectedDevice = $derived(Bezels[selectedDeviceId] ?? Bezels.none);
+	let selectedDevice = $derived(deviceById(selectedDeviceId));
+	let effectiveOs = $derived(deviceOsOf(selectedDevice));
+	let frameUrl = $derived(withDeviceOs(iframeUrl, effectiveOs));
 	let isResponsivePreview = $derived(selectedDevice.id === 'none');
 	let deviceViewportWidth = $derived(getDeviceMetric(selectedDevice.iframe?.width, 1280));
 	let deviceViewportHeight = $derived(getDeviceMetric(selectedDevice.iframe?.height, 800));
@@ -108,7 +119,9 @@
 	let viewportHeight = $derived(
 		isResponsivePreview ? 0 : landscape ? deviceViewportWidth : deviceViewportHeight
 	);
-	let isFramedDevice = $derived(!isResponsivePreview && !landscape);
+	let isFramedDevice = $derived(
+		!isResponsivePreview && !landscape && Boolean(selectedDevice.bezel)
+	);
 	let frameWidth = $derived(
 		isFramedDevice ? getDeviceMetric(selectedDevice.bezel?.width, viewportWidth) : viewportWidth
 	);
@@ -266,6 +279,23 @@
 			sessionStorage.setItem(SESSION_DATA, String(result?.data ?? '[]'));
 		}
 		reloadIframe();
+	}
+
+	async function removeNgxDataset() {
+		const name = ngxDataset;
+		if (name === 'none' || !window.confirm(`Remove the dataset ${name}?`)) {
+			return;
+		}
+		const result = await call('studio.ngxbuilder.Datasets', {
+			project: projectName,
+			action: 'remove',
+			name
+		});
+		if (result?.done) {
+			ngxDataset = 'none';
+			sessionStorage.removeItem(SESSION_DATA);
+			await loadNgxDatasets(projectName);
+		}
 	}
 
 	async function saveNgxDataset() {
@@ -448,6 +478,13 @@
 	 */
 	function selectDevice(event) {
 		const select = /** @type {HTMLSelectElement | null} */ (event.currentTarget);
+		if (select?.value === ADD_DEVICE) {
+			const added = addCustomDevice();
+			select.value = added || selectedDeviceId;
+			if (!added) {
+				return;
+			}
+		}
 		selectedDeviceId = select?.value || 'none';
 		fitPreview();
 		if (selectedDeviceId === 'none') {
@@ -578,6 +615,16 @@
 		return Number.isFinite(value) ? Number(value) : fallback;
 	}
 
+	const ADD_DEVICE = '__add';
+
+	function removeSelectedDevice() {
+		if (removeCustomDevice(selectedDevice.id)) {
+			selectedDeviceId = 'none';
+			landscape = false;
+			fitPreview();
+		}
+	}
+
 	function buildDeviceGroups() {
 		const devices = Object.values(Bezels)
 			.filter(Boolean)
@@ -599,6 +646,9 @@
 				familyDevices.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
 				groups.push({ id: family.id, title: family.title, devices: familyDevices });
 			}
+		}
+		if (previewDevices.custom.length) {
+			groups.push({ id: 'custom', title: 'Custom devices', devices: previewDevices.custom });
 		}
 		return groups;
 	}
@@ -671,6 +721,16 @@
 						ariaLabel="Save the dataset"
 						onclick={saveNgxDataset}
 					/>
+					{#if ngxDataset !== 'none'}
+						<Button
+							full={false}
+							icon="mdi:delete-outline"
+							class={iconButtonClasses}
+							title="Remove the dataset"
+							ariaLabel="Remove the dataset"
+							onclick={() => void removeNgxDataset()}
+						/>
+					{/if}
 					<Button
 						full={false}
 						icon="mdi:palette-swatch-outline"
@@ -746,7 +806,7 @@
 				/>
 				{#if showDeviceSelector}
 					<label class="studio-preview__device-select layout-x-low">
-						{#if isResponsivePreview}
+						{#if isResponsivePreview || !selectedDevice.bezel}
 							<Ico icon="mdi:devices" size={4} />
 						{:else}
 							<img
@@ -766,8 +826,33 @@
 									{/each}
 								</optgroup>
 							{/each}
+							<option value={ADD_DEVICE}>Add a custom device…</option>
 						</select>
 					</label>
+					{#if 'custom' in selectedDevice}
+						<Button
+							full={false}
+							icon="mdi:delete-outline"
+							class={iconButtonClasses}
+							title="Remove this custom device"
+							ariaLabel="Remove this custom device"
+							onclick={removeSelectedDevice}
+						/>
+					{/if}
+					<select
+						class="studio-preview__os"
+						value={previewDevices.os}
+						aria-label="Device OS"
+						title="The OS the application shows, as its Ionic mode"
+						onchange={(event) =>
+							selectDeviceOs(/** @type {'auto' | 'android' | 'ios'} */ (event.currentTarget.value))}
+					>
+						<option value="auto"
+							>OS of the device ({effectiveOs === 'ios' ? 'iOS' : 'Android'})</option
+						>
+						<option value="android">Android</option>
+						<option value="ios">iOS</option>
+					</select>
 				{/if}
 				<span class="studio-preview__size studio-ellipsis">{viewportLabel}</span>
 				<Button
@@ -858,7 +943,7 @@
 							{@attach registerIframe}
 							class={['studio-preview__frame', isFramedDevice && 'studio-preview__frame--framed']}
 							title={`${projectName} frontend`}
-							src={iframeUrl}
+							src={frameUrl}
 						></iframe>
 						{#if isFramedDevice}
 							<picture class="studio-preview__bezel" aria-hidden="true">
@@ -963,6 +1048,17 @@
 		background: color-mix(in oklab, var(--color-surface-100-900) 78%, transparent);
 		color: var(--color-surface-700-300);
 		padding: 0 0.45rem;
+	}
+
+	.studio-preview__os {
+		max-width: 9rem;
+		height: 2rem;
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.3rem;
+		background: color-mix(in oklab, var(--color-surface-100-900) 78%, transparent);
+		color: var(--color-surface-950-50);
+		padding: 0 0.45rem;
+		font-size: 0.74rem;
 	}
 
 	.studio-preview__device-select select {

@@ -4,6 +4,14 @@
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import Bezels from '$lib/dashboard/Bezels';
 	import Ico from '$lib/utils/Ico.svelte';
+	import {
+		addCustomDevice,
+		deviceById,
+		nativeOsOf,
+		previewDevices,
+		removeCustomDevice,
+		selectDeviceOs
+	} from './previewDevices.svelte.js';
 
 	const familyDefinitions = [
 		{
@@ -38,7 +46,7 @@
 		onSelect = () => {}
 	} = $props();
 
-	let selectedDevice = $derived(Bezels[selectedDeviceId] ?? Bezels.none);
+	let selectedDevice = $derived(deviceById(selectedDeviceId));
 	let selectedDeviceType = $derived(selectedDevice?.type ?? '');
 	let selectedDeviceTitle = $derived(
 		selectedDevice?.id === 'none' ? 'Responsive' : (selectedDevice?.title ?? 'Responsive')
@@ -61,7 +69,7 @@
 	 */
 	function selectDevice(id) {
 		selectedDeviceId = id;
-		openGroups = [deviceGroupMap[id] ?? 'responsive'];
+		openGroups = [deviceGroupMap[id] ?? (id.startsWith('custom-') ? 'custom' : 'responsive')];
 		if (id === 'none') {
 			landscape = false;
 		}
@@ -72,7 +80,11 @@
 	 * @param {boolean} nextLandscape
 	 */
 	function setLandscape(nextLandscape) {
-		if (selectedDeviceType === 'phone' || selectedDeviceType === 'tablet') {
+		if (
+			selectedDeviceType === 'phone' ||
+			selectedDeviceType === 'tablet' ||
+			selectedDeviceType === 'custom'
+		) {
 			landscape = nextLandscape;
 		}
 	}
@@ -99,7 +111,24 @@
 				groups.push({ id: family.id, title: family.title, devices: familyDevices });
 			}
 		}
+		groups.push({ id: 'custom', title: 'Custom devices', devices: previewDevices.custom });
 		return groups;
+	}
+
+	function addDevice() {
+		const id = addCustomDevice();
+		if (id) {
+			selectDevice(id);
+		}
+	}
+
+	/**
+	 * @param {string} id
+	 */
+	function removeDevice(id) {
+		if (removeCustomDevice(id) && selectedDeviceId === id) {
+			selectDevice('none');
+		}
 	}
 </script>
 
@@ -109,7 +138,7 @@
 			<span class="studio-label">Current device</span>
 			<strong class="studio-ellipsis">{selectedDeviceTitle}</strong>
 		</div>
-		{#if selectedDevice.id === 'none'}
+		{#if selectedDevice.id === 'none' || !selectedDevice.bezel}
 			<Ico icon="mdi:devices" size={6} />
 		{:else}
 			<img
@@ -146,6 +175,20 @@
 		</button>
 	</div>
 
+	<div class="studio-device-panel__orientation studio-surface" aria-label="Device OS">
+		{#each [{ os: 'auto', label: `Auto (${nativeOsOf(selectedDevice) === 'ios' ? 'iOS' : 'Android'})` }, { os: 'android', label: 'Android' }, { os: 'ios', label: 'iOS' }] as choice (choice.os)}
+			<button
+				type="button"
+				class="layout-x-center-low"
+				class:studio-device-panel__orientation-button--active={previewDevices.os === choice.os}
+				title="The OS the NGX application shows, as its Ionic mode"
+				onclick={() => selectDeviceOs(/** @type {'auto' | 'android' | 'ios'} */ (choice.os))}
+			>
+				<span>{choice.label}</span>
+			</button>
+		{/each}
+	</div>
+
 	<AccordionGroup bind:value={openGroups} collapsible class="studio-device-panel__groups">
 		{#each deviceGroups as group (group.id)}
 			<AccordionSection
@@ -163,6 +206,7 @@
 						{#each group.devices as device (device.id)}
 							{@const isResponsive = device.id === 'none'}
 							{@const isSelected = selectedDeviceId === device.id}
+							{@const isCustom = group.id === 'custom'}
 							<button
 								type="button"
 								class="studio-device-panel__device layout-x-low"
@@ -171,7 +215,7 @@
 								aria-label={`Select device ${isResponsive ? 'Responsive' : device.title}`}
 								onclick={() => selectDevice(device.id)}
 							>
-								{#if isResponsive}
+								{#if isResponsive || isCustom}
 									<span class="studio-device-panel__responsive-thumb" aria-hidden="true">
 										<Ico icon="mdi:devices" size={5} />
 									</span>
@@ -191,8 +235,43 @@
 										>{device.iframe?.width ?? '-'} x {device.iframe?.height ?? '-'}</small
 									>
 								</span>
+								{#if isCustom}
+									<span
+										class="studio-device-panel__remove"
+										role="button"
+										tabindex="0"
+										title="Remove the device"
+										aria-label={`Remove device ${device.title}`}
+										onclick={(event) => {
+											event.stopPropagation();
+											removeDevice(device.id);
+										}}
+										onkeydown={(event) => {
+											if (event.key === 'Enter' || event.key === ' ') {
+												event.preventDefault();
+												event.stopPropagation();
+												removeDevice(device.id);
+											}
+										}}><Ico icon="mdi:close" size={4} /></span
+									>
+								{/if}
 							</button>
 						{/each}
+						{#if group.id === 'custom'}
+							<button
+								type="button"
+								class="studio-device-panel__device layout-x-low"
+								onclick={addDevice}
+							>
+								<span class="studio-device-panel__responsive-thumb" aria-hidden="true">
+									<Ico icon="mdi:plus" size={5} />
+								</span>
+								<span class="studio-device-panel__device-text layout-y-none">
+									<strong class="studio-ellipsis">Add a custom device</strong>
+									<small class="studio-ellipsis">Its name and its screen size</small>
+								</span>
+							</button>
+						{/if}
 					</div>
 				{/snippet}
 			</AccordionSection>
@@ -201,6 +280,20 @@
 </section>
 
 <style>
+	.studio-device-panel__remove {
+		display: inline-grid;
+		margin-inline-start: auto;
+		place-items: center;
+		border-radius: 0.25rem;
+		color: var(--color-surface-600-400);
+		padding: 0.15rem;
+	}
+
+	.studio-device-panel__remove:hover {
+		background: color-mix(in oklab, var(--color-error-500) 15%, transparent);
+		color: var(--color-error-500);
+	}
+
 	.studio-device-panel {
 		height: 100%;
 		min-width: 0;
