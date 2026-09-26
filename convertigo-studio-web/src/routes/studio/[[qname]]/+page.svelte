@@ -38,6 +38,7 @@
 	import StudioAboutDialog from '$lib/studio/StudioAboutDialog.svelte';
 	import StudioActivityBar from '$lib/studio/StudioActivityBar.svelte';
 	import StudioAddFileDialog from '$lib/studio/StudioAddFileDialog.svelte';
+	import StudioArchiveDialog from '$lib/studio/StudioArchiveDialog.svelte';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
 	import StudioBuilderPanel from '$lib/studio/StudioBuilderPanel.svelte';
 	import {
@@ -270,6 +271,10 @@
 	let renameChoice = $state(null);
 	let newProjectOpen = $state(false);
 	let deployProjectName = $state('');
+	/** the project whose version and archive options are asked before its export or deployment */
+	let archiveRequest = $state(
+		/** @type {{ projectName: string, mode: 'export' | 'deploy' } | null} */ (null)
+	);
 	let wsImportProjectName = $state('');
 	/** The transaction whose variables the variables dialog chooses */
 	let variablesTargetId = $state('');
@@ -2352,9 +2357,9 @@
 		} else if (action === 'project.importWs') {
 			wsImportProjectName = projectName;
 		} else if (action === 'project.deploy') {
-			deployProjectName = projectName;
+			archiveRequest = { projectName, mode: 'deploy' };
 		} else if (action === 'project.export') {
-			await call('projects.Export', { projectName });
+			archiveRequest = { projectName, mode: 'export' };
 		} else if (action === 'project.dashboard') {
 			window.open(resolve(`/dashboard/${encodeURIComponent(projectName)}/`), '_blank');
 		} else if (action === 'project.swagger') {
@@ -3345,6 +3350,34 @@
 
 {#if deployProjectName}
 	<StudioDeployDialog projectName={deployProjectName} onClose={() => (deployProjectName = '')} />
+{/if}
+{#if archiveRequest}
+	<StudioArchiveDialog
+		projectName={archiveRequest.projectName}
+		mode={archiveRequest.mode}
+		onContinue={async ({ versionChanged, options }) => {
+			const { projectName, mode } = /** @type {{ projectName: string, mode: string }} */ (
+				archiveRequest
+			);
+			archiveRequest = null;
+			if (versionChanged || dirtyProjectNames.has(projectName)) {
+				// the archive is made of the saved project, as the Eclipse Studio saves it first
+				await saveDboProject(projectName, projectName, {
+					readme: studioPreferences.readmeOnSave
+				});
+				await refreshStudioProject(projectName);
+				clearProjectDirty(projectName);
+				propertiesRefreshSerial += 1;
+				refreshStudioViews();
+			}
+			if (mode === 'deploy') {
+				deployProjectName = projectName;
+			} else {
+				await call('projects.Export', { projectName, exportOptions: JSON.stringify(options) });
+			}
+		}}
+		onClose={() => (archiveRequest = null)}
+	/>
 {/if}
 
 {#if newProjectOpen}
