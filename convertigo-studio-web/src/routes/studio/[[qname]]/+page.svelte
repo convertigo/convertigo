@@ -75,6 +75,7 @@
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
 	import StudioVariablesDialog from '$lib/studio/StudioVariablesDialog.svelte';
 	import StudioWsImportDialog from '$lib/studio/StudioWsImportDialog.svelte';
+	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { resolve } from '$lib/utils/route';
 	import {
@@ -89,6 +90,7 @@
 	} from '$lib/utils/service';
 	import { onMount, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { get } from 'svelte/store';
 
 	/** @typedef {'execution' | 'code' | 'flow' | 'doc'} WorkPanel */
 	/** @typedef {'frontend' | 'execution'} VibeResult */
@@ -222,6 +224,12 @@
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
 	let frontendPreview = $state({ projectName: '', url: '', mode: 'production' });
 	let frontendPreviewSerial = $state(0);
+	/** the selected component of an NGX application, as the preview finds its elements */
+	let ngxReference = $state(
+		/** @type {{ id: string, classes: string[], segment: string } | null} */ (null)
+	);
+	/** the palette item or the tree object dragged over the preview of an NGX application */
+	let ngxDropPayload = /** @type {any} */ (null);
 	/** asks the builder to show or start the development server of an NGX application */
 	let builderServeRequest = $state(0);
 	let frontendPreviewBusy = $state(false);
@@ -1246,6 +1254,91 @@
 	 * exact tree mutation contract already used by Studio DnD.
 	 * @param {{ reference: import('$lib/studio/flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: import('$lib/studio/dnd').DboDragPayload }} request
 	 */
+	$effect(() => {
+		// the selected component of an NGX application shows in its preview, as in the Eclipse Studio
+		const id =
+			profile === 'frontend' && selectedId.includes('.MobileApplication.') ? selectedId : '';
+		if (!id) {
+			ngxReference = null;
+			return;
+		}
+		void call('studio.ngxbuilder.Authoring', { action: 'reference', id }).then((result) => {
+			if (selectedId === id && Array.isArray(result?.classes)) {
+				ngxReference = {
+					id,
+					classes: result.classes.map(String),
+					segment: String(result.segment ?? '')
+				};
+			}
+		});
+	});
+
+	/**
+	 * @param {string} priority
+	 * @returns {Promise<string>} the id of the component of the NGX application with the priority
+	 */
+	async function ngxComponentId(priority) {
+		const result = await call('studio.ngxbuilder.Authoring', {
+			action: 'find',
+			project: selectedProjectName,
+			priority
+		});
+		return String(result?.id ?? '');
+	}
+
+	/**
+	 * Selects in the tree the component clicked in the preview of an NGX application.
+	 * @param {string} priority
+	 */
+	async function selectInNgxPreview(priority) {
+		const id = await ngxComponentId(priority);
+		if (id) {
+			selectObject(id);
+		}
+	}
+
+	/**
+	 * @returns {boolean} whether a palette item or a tree object is dragged, kept for its drop
+	 */
+	function ngxCanDrop() {
+		const data = get(draggedData);
+		if (data?.type === 'paletteData' || data?.type === 'treeData') {
+			ngxDropPayload = data;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Drops the dragged palette item or tree object before, inside or after a component of the preview of
+	 * an NGX application, as the Eclipse Studio drops them in its application editor.
+	 * @param {{ priority: string, position: 'before' | 'inside' | 'after' }} request
+	 */
+	async function dropInNgxPreview(request) {
+		const payload = ngxDropPayload;
+		ngxDropPayload = null;
+		const target = payload ? await ngxComponentId(request.priority) : '';
+		if (!target) {
+			return;
+		}
+		let handled = false;
+		onStudioMutationBusyChange(true);
+		try {
+			const result = await performDboDrop({
+				payload,
+				target,
+				position: request.position,
+				dropAction: payload.type === 'paletteData' ? 'copy' : 'move'
+			});
+			if (result.done) {
+				handled = true;
+				await onStudioMutation({ ...result, source: 'preview' });
+			}
+		} finally {
+			onStudioMutationBusyChange(false, handled);
+		}
+	}
+
 	async function dropInFrontend(request) {
 		const mapping = await call('studio.treeview.Authoring', {
 			project: selectedProjectName,
@@ -2721,6 +2814,10 @@
 		onAuthoringMove={moveInFrontend}
 		onThemeContext={updateFrontendThemeContext}
 		reloadSerial={frontendPreviewSerial}
+		{ngxReference}
+		onNgxSelect={selectInNgxPreview}
+		onNgxDrop={dropInNgxPreview}
+		{ngxCanDrop}
 	/>
 {/snippet}
 

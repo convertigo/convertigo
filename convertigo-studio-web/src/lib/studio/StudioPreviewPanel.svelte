@@ -17,6 +17,7 @@
 		themeContextFromMessage,
 		themeContextRequestMessage
 	} from './flowAuthoring';
+	import { attachNgxAuthoring } from './ngxAuthoring';
 	import StudioDevicePanel from './StudioDevicePanel.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
@@ -48,7 +49,7 @@
 	const FIT_PADDING = 24;
 	const iconButtonClasses = 'button-ico-secondary h-8! w-8! justify-center p-0!';
 
-	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean }} */
 	let {
 		projectName = '',
 		previewUrlOverride = '',
@@ -65,7 +66,11 @@
 		onAuthoringDrop,
 		onAuthoringMove,
 		onThemeContext,
-		reloadSerial = 0
+		reloadSerial = 0,
+		ngxReference = null,
+		onNgxSelect,
+		onNgxDrop,
+		ngxCanDrop
 	} = $props();
 
 	/** @type {HTMLIFrameElement | undefined} */
@@ -176,6 +181,78 @@
 		iframeOverride = { base: previewUrl, value: trimmedAddress };
 		addressOverride = { base: previewUrl, value: trimmedAddress };
 	}
+
+	/** the authoring of the NGX application the preview shows */
+	let ngxAuthoring = $state(/** @type {ReturnType<typeof attachNgxAuthoring> | null} */ (null));
+	let ngxSelecting = $state(false);
+	/** the segment of the page the preview was sent to, for a component it did not show */
+	let ngxNavigatedFor = '';
+
+	/**
+	 * Follows the document the preview loaded when it shows an NGX application.
+	 */
+	function attachNgxDocument() {
+		ngxAuthoring?.destroy();
+		ngxAuthoring = null;
+		let doc;
+		try {
+			doc = iframe?.contentDocument;
+		} catch {
+			return;
+		}
+		if (!doc) {
+			return;
+		}
+		let tries = 0;
+		const wait = () => {
+			// the application creates its ion-app once bootstrapped
+			if (iframe?.contentDocument !== doc) {
+				return;
+			}
+			if (doc.querySelector('ion-app')) {
+				ngxAuthoring = attachNgxAuthoring(doc, {
+					onSelect: (priority) => void onNgxSelect?.(priority),
+					onDrop: (request) => void onNgxDrop?.(request),
+					canDrop: () => ngxCanDrop?.() ?? false
+				});
+				ngxAuthoring.setSelecting(untrack(() => ngxSelecting));
+			} else if (tries++ < 40) {
+				setTimeout(wait, 250);
+			}
+		};
+		wait();
+	}
+
+	$effect(() => {
+		ngxAuthoring?.setSelecting(ngxSelecting);
+	});
+
+	$effect(() => {
+		const authoring = ngxAuthoring;
+		const reference = ngxReference;
+		if (!authoring) {
+			return;
+		}
+		untrack(() => {
+			const shown = authoring.highlight(reference?.classes ?? []);
+			if (shown || !reference?.segment || ngxNavigatedFor === reference.id) {
+				return;
+			}
+			// the page of the component is not shown: the application opens it
+			ngxNavigatedFor = reference.id;
+			try {
+				const win = /** @type {any} */ (iframe?.contentWindow);
+				if (typeof win?._c8o_changePage === 'function') {
+					win._c8o_changePage(reference.segment);
+					setTimeout(() => authoring.highlight(reference.classes), 600);
+				} else if (win) {
+					win.location.href = new URL(reference.segment, win.document.baseURI).href;
+				}
+			} catch (error) {
+				console.warn('Unable to open the page of the component', error);
+			}
+		});
+	});
 
 	let reloadedSerial = untrack(() => reloadSerial);
 	$effect(() => {
@@ -333,7 +410,11 @@
 	function registerIframe(node) {
 		iframe = node;
 		authoringReadyUrl = '';
+		node.addEventListener('load', attachNgxDocument);
 		return () => {
+			node.removeEventListener('load', attachNgxDocument);
+			ngxAuthoring?.destroy();
+			ngxAuthoring = null;
 			if (iframe === node) {
 				iframe = undefined;
 			}
@@ -411,6 +492,18 @@
 					ariaLabel="Reload"
 					onclick={reloadIframe}
 				/>
+				{#if ngxAuthoring}
+					<Button
+						full={false}
+						icon="mdi:target"
+						class={[iconButtonClasses, ngxSelecting && 'studio-preview__select--active']}
+						title={ngxSelecting
+							? 'Stop selecting components in the application'
+							: 'Select a component by clicking it in the application'}
+						ariaLabel="Select a component in the application"
+						onclick={() => (ngxSelecting = !ngxSelecting)}
+					/>
+				{/if}
 				{#if showDeviceDrawer}
 					<Button
 						full={false}
@@ -589,6 +682,11 @@
 </div>
 
 <style>
+	:global(.studio-preview__select--active) {
+		background: var(--color-primary-500) !important;
+		color: white !important;
+	}
+
 	.studio-preview {
 		position: relative;
 		display: grid;
