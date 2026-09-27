@@ -292,6 +292,11 @@ public class Flow extends Sequence {
 	}
 
 	@Override
+	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
+		return FlowVirtualObject.findChild(getDatabaseObjectChildren(), name);
+	}
+
+	@Override
 	public List<DatabaseObject> getAllChildren() {
 		synchronizeFlowInputs();
 		var children = new ArrayList<DatabaseObject>(super.getAllChildren());

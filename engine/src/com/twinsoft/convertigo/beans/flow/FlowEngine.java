@@ -86,6 +86,11 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	@Override
+	public DatabaseObject getDatabaseObjectChild(String name) {
+		return FlowVirtualObject.findChild(getDatabaseObjectChildren(), name);
+	}
+
+	@Override
 	public boolean hasDatabaseObjectChildren() {
 		return !getFlowVirtualChildren().isEmpty();
 	}

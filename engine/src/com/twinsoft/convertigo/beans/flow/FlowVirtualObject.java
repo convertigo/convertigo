@@ -90,6 +90,21 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		this.priority = stablePriority(parent, this.virtualPath, getName());
 	}
 
+	/** Finds a child among getDatabaseObjectChildren(): Flow virtual children have no bean getter to walk. */
+	static DatabaseObject findChild(List<DatabaseObject> children, String name) {
+		for (var child : children) {
+			if (child.getName().equals(name) || child.getFolderType().qnamePart(child).equals(name)) {
+				return child;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public DatabaseObject getDatabaseObjectChild(String name) {
+		return findChild(getDatabaseObjectChildren(), name);
+	}
+
 	void addVirtualChild(FlowVirtualObject child) {
 		children.add(child);
 	}
