@@ -1238,6 +1238,67 @@ test('studio moves a structured flow child before a sibling and keeps tree and u
  * @param {import('@playwright/test').Page} page
  * @param {string} nodeId
  */
+test('studio copies objects to the system clipboard and pastes the ones of another Studio', async ({
+	page
+}) => {
+	const state = createStudioState();
+	/** @type {URLSearchParams[]} */
+	const pasteRequests = [];
+	await mockStudioServices(page, { state, pasteRequests });
+	// an in-memory clipboard, which leaves the clipboard of the system as it is
+	await page.addInitScript(() => {
+		const clipboard = {
+			text: '',
+			async readText() {
+				return clipboard.text;
+			},
+			async writeText(/** @type {string} */ text) {
+				clipboard.text = text;
+			},
+			async write(/** @type {any[]} */ items) {
+				const blob = await items[0].getType('text/plain');
+				clipboard.text = await blob.text();
+			}
+		};
+		Object.defineProperty(navigator, 'clipboard', { value: clipboard, configurable: true });
+		/** @type {any} */ (window).testClipboard = clipboard;
+	});
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('button', { name: `Actions for ${sequenceName}` }).click();
+	await page.getByRole('menuitem', { name: 'Copy', exact: true }).click();
+	await expect
+		.poll(() => page.evaluate(() => /** @type {any} */ (window).testClipboard.text))
+		.toContain('<convertigo clipboard="copy">');
+
+	// the objects another Studio copied, pasted with Ctrl or ⌘ V from the paste event
+	const eclipseCopy =
+		'<?xml version="1.0" encoding="ISO-8859-1"?>\n<convertigo-clipboard><sequence name="Copied"/></convertigo-clipboard>';
+	await page.evaluate((text) => {
+		const target = /** @type {HTMLElement} */ (document.activeElement);
+		const mod = /Mac/.test(navigator.platform) ? { metaKey: true } : { ctrlKey: true };
+		target.dispatchEvent(new KeyboardEvent('keydown', { key: 'v', bubbles: true, ...mod }));
+		const clipboardData = new DataTransfer();
+		clipboardData.setData('text/plain', text);
+		target.dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true }));
+	}, eclipseCopy);
+	await expect.poll(() => pasteRequests.length).toBe(1);
+	expect(pasteRequests[0].get('xml')).toBe(eclipseCopy);
+	expect(pasteRequests[0].get('target')).toBe(sequenceId);
+
+	// the menu reads the system clipboard, and other text leaves the copy of this Studio
+	await page.evaluate(() => {
+		/** @type {any} */ (window).testClipboard.text = 'some text';
+	});
+	await page.getByRole('button', { name: `Actions for ${sequenceName}` }).click();
+	await page.getByRole('menuitem', { name: 'Paste' }).click();
+	await expect.poll(() => pasteRequests.length).toBe(2);
+	expect(pasteRequests[1].get('xml')).toContain('<convertigo clipboard="copy">');
+});
+
 async function expandTreeNode(page, nodeId) {
 	const toggle = page.locator(`button.studio-tree-node__toggle-button[data-node-id="${nodeId}"]`);
 	await expect(toggle).toBeVisible();
@@ -1930,6 +1991,15 @@ function responseForService(service, params, options = {}) {
 			return testPlatformResponse(state);
 		case 'studio.treeview.Get':
 			return options.noProjects ? { children: [] } : treeviewResponse(params, state);
+		case 'studio.dbo.Copy':
+			return {
+				done: true,
+				xml: '<?xml version="1.0" encoding="UTF-8"?>\n<convertigo clipboard="copy"><sequence/></convertigo>',
+				text: '<?xml version="1.0" encoding="UTF-8"?>\n<convertigo clipboard="copy"><sequence/></convertigo>'
+			};
+		case 'studio.dbo.Paste':
+			options.pasteRequests?.push(params);
+			return { done: false, ids: [], error: 'Pasted in the test' };
 		case 'studio.source.Files':
 			return filesResponse(params, state);
 		case 'studio.treeview.Authoring': {

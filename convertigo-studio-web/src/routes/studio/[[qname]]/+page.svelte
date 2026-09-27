@@ -42,10 +42,11 @@
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
 	import StudioBuilderPanel from '$lib/studio/StudioBuilderPanel.svelte';
 	import {
+		canReadSystemClipboard,
 		hasStudioClipboard,
 		pasteStudioClipboard,
 		putInStudioClipboard,
-		studioClipboard
+		studioClipboardContent
 	} from '$lib/studio/studioClipboard.svelte.js';
 	import StudioCopybookDialog from '$lib/studio/StudioCopybookDialog.svelte';
 	import StudioCouchViewDialog from '$lib/studio/StudioCouchViewDialog.svelte';
@@ -2335,7 +2336,7 @@
 	 * @returns {boolean}
 	 */
 	function canPasteInto(nodeId) {
-		return Boolean(nodeId) && hasStudioClipboard();
+		return Boolean(nodeId) && (hasStudioClipboard() || canReadSystemClipboard());
 	}
 
 	/**
@@ -2344,8 +2345,9 @@
 	 *
 	 * @param {string} action
 	 * @param {string} nodeId
+	 * @param {{ text?: string }} [options] the text of the system clipboard, when a paste event gives it
 	 */
-	async function runTreeAction(action, nodeId) {
+	async function runTreeAction(action, nodeId, options = {}) {
 		if (/^[^/]+\/\/./.test(nodeId) && (action === 'object.rename' || action === 'object.delete')) {
 			// F2 and Del on a file of the project
 			action = action === 'object.rename' ? 'file.rename' : 'file.delete';
@@ -2364,7 +2366,7 @@
 				await setTreeObjectEnabled(id, action === 'state.enable');
 			}
 		} else if (action === 'edit.paste') {
-			await pasteIntoTree(nodeId);
+			await pasteIntoTree(nodeId, options.text);
 		} else if (action === 'object.rename') {
 			if (isTreeObjectId(nodeId)) {
 				selectedId = nodeId;
@@ -2666,21 +2668,23 @@
 	/**
 	 * Pastes the Studio clipboard into an object of the tree, or into the object holding a folder.
 	 * @param {string} nodeId
+	 * @param {string} [text] the text of the system clipboard, when a paste event gives it
 	 */
-	async function pasteIntoTree(nodeId) {
+	async function pasteIntoTree(nodeId, text) {
 		const target = isTreeFolderId(nodeId) ? nodeId.replace(/:[a-z]{2,4}$/, '') : nodeId;
-		if (!target || !hasStudioClipboard()) {
+		if (!target) {
+			return;
+		}
+		const content = await studioClipboardContent(text);
+		if (!content.kind || !content.xml) {
+			toaster.info({ description: 'The clipboard holds no object of a Convertigo Studio.' });
 			return;
 		}
 		// an object pasted on itself goes next to it, or inside when the user chooses so, as the Eclipse
 		// Studio asks; another one goes inside the target, or next to it when the target cannot hold it
 		/** @type {'sibling' | 'auto'} */
 		let position = 'auto';
-		if (
-			studioClipboard.kind === 'copy' &&
-			studioClipboard.ids.length === 1 &&
-			studioClipboard.ids[0] === target
-		) {
+		if (content.kind === 'copy' && content.ids.length === 1 && content.ids[0] === target) {
 			position = window.confirm(
 				`Paste ${target.split(/[.:]/).pop()} as a sibling?\n\nCancel pastes it as a child, when it can hold one.`
 			)
@@ -2690,7 +2694,7 @@
 		let handled = false;
 		onStudioMutationBusyChange(true);
 		try {
-			const result = await pasteStudioClipboard(target, position);
+			const result = await pasteStudioClipboard(target, position, content);
 			if (!result.ids.length) {
 				toaster.error({
 					description: result.error || 'The clipboard cannot be pasted inside the selected object.'

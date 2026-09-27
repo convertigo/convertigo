@@ -61,6 +61,10 @@ public class Copy extends JSonService {
 			String sXml = XMLUtils.prettyPrintDOM(document);
 			response.put("done", true);
 			response.put("xml", sXml);
+			// the text for the system clipboard: a lone Flow object as the Eclipse Studio copies it
+			var first = root.getFirstChild();
+			response.put("text", root.getChildNodes().getLength() == 1 && "flow-virtual-clipboard".equals(first.getNodeName())
+					? first.getTextContent() : sXml);
 		} else {
 			response.put("done", false);
 		}

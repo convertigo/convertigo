@@ -104,9 +104,20 @@ public class Paste extends JSonService {
 		JSONArray results = new JSONArray();
 		JSONArray errors = new JSONArray();
 		if (targetDbo != null) {
-			Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xml)));
+			Document document;
+			if (FlowStudioSupport.isVirtualClipboard(xml.strip())) {
+				// a Flow object copied by the Eclipse Studio
+				document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+				var root = document.createElement("convertigo");
+				root.setAttribute("clipboard", "copy");
+				root.appendChild(document.createElement("flow-virtual-clipboard")).setTextContent(xml.strip());
+				document.appendChild(root);
+			} else {
+				document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xml.strip())));
+			}
 			Element root = document.getDocumentElement();
-			String kind = root.getAttribute("clipboard");
+			// objects copied by the Eclipse Studio are in a convertigo-clipboard element
+			String kind = "convertigo-clipboard".equals(root.getNodeName()) ? "copy" : root.getAttribute("clipboard");
 			NodeList nodeList = root.getChildNodes();
 			int len = nodeList.getLength();
 			Object object;

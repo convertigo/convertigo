@@ -34,7 +34,7 @@
 	 *  onRevealBlockDefinition?: (nodeId: string) => void | Promise<void>,
 	 *  onOpenSource?: (nodeId: string) => void | Promise<void>,
 	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>,
-	 *  onTreeAction?: (action: string, nodeId: string) => void | Promise<void>,
+	 *  onTreeAction?: (action: string, nodeId: string, options?: { text?: string }) => void | Promise<void>,
 	 *  canPasteInto?: (nodeId: string) => boolean,
 	 *  onChooseRenameUpdate?: (request: { id: string, objectType: string, oldName: string, newName: string }) => Promise<string | null>
 	 * }}
@@ -195,13 +195,42 @@
 			action = 'object.rename';
 		} else if (event.key === 'Delete' || (event.key === 'Backspace' && event.metaKey)) {
 			action = 'object.delete';
+		} else if (mod && !event.altKey && !event.shiftKey && key === 'v') {
+			// the browser gives the text of the system clipboard to the paste event that follows, without
+			// asking to read the clipboard; the paste runs without it when no such event comes
+			const nodeId = selectedId;
+			clearTimeout(pendingPaste);
+			pendingPaste = setTimeout(() => {
+				pendingPaste = undefined;
+				void onTreeAction?.('edit.paste', nodeId);
+			}, 50);
+			return;
 		} else if (mod && !event.altKey && !event.shiftKey) {
-			action = { c: 'edit.copy', x: 'edit.cut', v: 'edit.paste', s: 'project.save' }[key] ?? '';
+			action = { c: 'edit.copy', x: 'edit.cut', s: 'project.save' }[key] ?? '';
 		}
 		if (action) {
 			event.preventDefault();
 			void onTreeAction(action, selectedId);
 		}
+	}
+
+	/** @type {ReturnType<typeof setTimeout> | undefined} */
+	let pendingPaste;
+
+	/**
+	 * Pastes on Ctrl or ⌘ V the objects of the system clipboard, copied by this Studio or another one.
+	 * @param {ClipboardEvent} event
+	 */
+	function handleTreePaste(event) {
+		if (pendingPaste === undefined) {
+			return;
+		}
+		clearTimeout(pendingPaste);
+		pendingPaste = undefined;
+		event.preventDefault();
+		void onTreeAction?.('edit.paste', selectedId, {
+			text: event.clipboardData?.getData('text/plain') ?? ''
+		});
 	}
 
 	/**
@@ -444,6 +473,7 @@
 	aria-label="Projects"
 	tabindex="-1"
 	onkeydown={handleTreeKeydown}
+	onpaste={handleTreePaste}
 >
 	{#if loading}
 		<StudioEmptyState message="Loading" loading small />
