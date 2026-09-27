@@ -189,7 +189,10 @@ task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
 		include 'META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat'
 	}
 	from(dependenciesIndex)
-	exclude 'org/w3c/dom/**', 'org/xml/sax/**', 'javax/xml/catalog/**', 'javax/xml/datatype/**', 'javax/xml/namespace/**'
+	// The JDK provides org.w3c.dom, but not the SVG and SMIL DOM of xml-apis-ext: Batik
+	// (SVG rasterization, FOP) needs them at runtime.
+	exclude { it.path.startsWith('org/w3c/dom/') && !it.path.startsWith('org/w3c/dom/svg/') && !it.path.startsWith('org/w3c/dom/smil/') }
+	exclude 'org/xml/sax/**', 'javax/xml/catalog/**', 'javax/xml/datatype/**', 'javax/xml/namespace/**'
 	exclude 'javax/xml/parsers/**', 'javax/xml/stream/**', 'javax/xml/transform/**', 'javax/xml/validation/**'
 	exclude 'javax/xml/xpath/**', 'javax/xml/XMLConstants.class'
 	exclude 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/DEPENDENCIES'
