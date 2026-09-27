@@ -1835,6 +1835,8 @@ function responseEditor(page) {
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
  *  projects?: string[],
+ *  closeRequests?: URLSearchParams[],
+ *  pasteRequests?: URLSearchParams[],
  *  authoringTargets?: Record<string, string>,
  *  adminEvents?: Array<{id: string, topic: string, timestamp: number, instance: string, payload: Record<string, unknown>}>
  * }} [options]
@@ -2019,6 +2021,8 @@ function serviceName(url) {
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
  *  projects?: string[],
+ *  closeRequests?: URLSearchParams[],
+ *  pasteRequests?: URLSearchParams[],
  *  authoringTargets?: Record<string, string>
  * }} [options]
  */
@@ -2056,11 +2060,12 @@ function responseForService(service, params, options = {}) {
 		case 'studio.treeview.Get':
 			if (state.closedProjects && !params.has('id') && !params.has('ids')) {
 				// the projects of the workspace, closed or not
+				const closed = state.closedProjects;
 				return {
 					children: (options.projects ?? [projectName]).map((name) => ({
 						id: name,
-						children: !state.closedProjects.includes(name),
-						...(state.closedProjects.includes(name) ? { closed: true } : {})
+						children: !closed.includes(name),
+						...(closed.includes(name) ? { closed: true } : {})
 					}))
 				};
 			}
@@ -2069,9 +2074,10 @@ function responseForService(service, params, options = {}) {
 			options.closeRequests?.push(params);
 			const names = JSON.parse(params.get('projects') ?? '[]');
 			const open = params.get('open') === 'true';
+			const closed = state.closedProjects ?? [];
 			state.closedProjects = open
-				? state.closedProjects.filter((name) => !names.includes(name))
-				: [...new Set([...state.closedProjects, ...names])];
+				? closed.filter((name) => !names.includes(name))
+				: [...new Set([...closed, ...names])];
 			return { done: true, projects: names };
 		}
 		case 'studio.dbo.Copy':
