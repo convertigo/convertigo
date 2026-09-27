@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -571,7 +572,37 @@ public class ComponentManager {
 		return Collections.unmodifiableMap(c8oBeans);
 	}
 	
+	/** A bean loaded from a serialized bean: its model, its property values and the model properties it misses */
+	private record LoadedBean(String modelName, IonBean model, Map<String, IonBean.PropertyValue> propertyValues, List<String> missingProperties) {}
+	
+	/** For each serialized bean already loaded, the bean it gave, while components have this serialized bean */
+	private Map<String, LoadedBean> loadedBeans = Collections.synchronizedMap(new WeakHashMap<String, LoadedBean>());
+	
+	private void missingProperty(String modelName, String propertyName) {
+		System.out.println("(ComponentManager@"+ templateProjectName +") For model \""+modelName+"\", ion property \""+propertyName+"\" not found in serialized data. Property will be set with default value.");
+		if (Engine.isStarted) {
+			Engine.logBeans.warn("(ComponentManager@"+ templateProjectName +") For model \""+modelName+"\", ion property \""+propertyName+"\" not found in serialized data: ignore it. Property will be set with default value.");
+		}
+	}
+	
 	public IonBean loadBean(String jsonString) throws Exception {
+		// many components have the same serialized bean: the property values it gave with the same model are set
+		// on a new instance of the model, without parsing it again
+		LoadedBean loaded = loadedBeans.get(jsonString);
+		if (loaded != null && loaded.model() == bCache.get(loaded.modelName())) {
+			if (Engine.isStarted) {
+				Engine.logBeans.trace("(ComponentManager@"+ this.templateProjectName +") loading bean from model "+ loaded.modelName());
+			}
+			IonBean ionBean = new IonBean(loaded.model());
+			for (String propertyName: loaded.missingProperties()) {
+				missingProperty(loaded.modelName(), propertyName);
+			}
+			if (loaded.propertyValues() != null) {
+				ionBean.setPropertyValues(new HashMap<String, IonBean.PropertyValue>(loaded.propertyValues()));
+			}
+			return ionBean;
+		}
+		
 		JSONObject jsonBean = new JSONObject(jsonString);
 		String modelName = "Unknown";
 		if (jsonBean.has(IonBean.Key.name.name())) {
@@ -592,6 +623,7 @@ public class ComponentManager {
 
 			// shares the model definition (and its image folder), only the property values are kept by the instance
 			IonBean ionBean = new IonBean(model);
+			List<String> missingProperties = new ArrayList<String>();
 			for (IonProperty ionProperty: ionBean.getProperties().values()) {
 				String propertyName = ionProperty.getName();
 				IonProperty dboProperty = dboProperties.get(propertyName);
@@ -603,16 +635,16 @@ public class ComponentManager {
 					}
 				}
 				else {
-					System.out.println("(ComponentManager@"+ templateProjectName +") For model \""+modelName+"\", ion property \""+propertyName+"\" not found in serialized data. Property will be set with default value.");
-					if (Engine.isStarted) {
-						Engine.logBeans.warn("(ComponentManager@"+ templateProjectName +") For model \""+modelName+"\", ion property \""+propertyName+"\" not found in serialized data: ignore it. Property will be set with default value.");
-					}
+					missingProperty(modelName, propertyName);
+					missingProperties.add(propertyName);
 					hasChanged = true;
 				}
 			}
 			if (hasChanged) {
 				//TODO
 			}
+			Map<String, IonBean.PropertyValue> propertyValues = ionBean.getPropertyValues();
+			loadedBeans.put(jsonString, new LoadedBean(modelName, model, propertyValues == null ? null : new HashMap<String, IonBean.PropertyValue>(propertyValues), missingProperties));
 			return ionBean;
 		}
 		// The model doesn't exist (anymore)

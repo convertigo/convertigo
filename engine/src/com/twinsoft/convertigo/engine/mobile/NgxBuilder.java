@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -164,9 +165,35 @@ public class NgxBuilder extends MobileBuilder {
 
 	static private String replaceAll(String source, String regex, String replacement) {
 		if (source != null && regex != null && replacement != null) {
+			// the markers are literals: replaced as such, without escaping then parsing the replacement, which can be
+			// the megabytes of the functions of a page
+			String literal = toLiteral(regex);
+			if (literal != null) {
+				return source.replace(literal, replacement);
+			}
 			return source.replaceAll(regex, Matcher.quoteReplacement(replacement));
 		}
 		return source;
+	}
+	
+	/**
+	 * The text matched by a regular expression made of plain characters and escaped non alphanumeric ones, as the
+	 * escaped markers of the templates; null for another regular expression.
+	 */
+	static private String toLiteral(String regex) {
+		StringBuilder literal = new StringBuilder(regex.length());
+		for (int i = 0; i < regex.length(); i++) {
+			char c = regex.charAt(i);
+			if (c == '\\') {
+				if (++i == regex.length() || Character.isLetterOrDigit(c = regex.charAt(i))) {
+					return null;
+				}
+			} else if ("[](){}.*+?^$|".indexOf(c) != -1) {
+				return null;
+			}
+			literal.append(c);
+		}
+		return literal.length() == 0 ? null : literal.toString();
 	}
 	
 	static private String asCleanString(String entry) {
@@ -1257,17 +1284,7 @@ public class NgxBuilder extends MobileBuilder {
 				}
 
 				// Replace all Begin_c8o_XXX, End_c8o_XXX except for functionMarker
-				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/");
-				Matcher matcher = pattern.matcher(tsContent);
-				while (matcher.find()) {
-					String markerId = matcher.group(1);
-					if (!markerId.equals(functionMarker)) {
-						String beginMarker = "/*Begin_c8o_" + markerId + "*/";
-						String endMarker = "/*End_c8o_" + markerId + "*/";
-						tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
-						tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
-					}
-				}
+				tsContent = toFunctionTempTs(tsContent, functionMarker);
 
 				// CustomAction : reduce code lines (action's function only)
 				if (tempTsDir != null && tempTsFileName != null) {
@@ -1310,6 +1327,122 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
+	private static final Pattern pFunctionMarker = Pattern.compile("/\\*Begin_c8o_function:(.+)\\*/");
+	private static final String functionBegin = "/*Begin_c8o_function:";
+	private static final String functionEnd = "/*End_c8o_function:";
+
+	/**
+	 * The TS content for the class editor: each function marker of the content replaced by "//---id---",
+	 * cut after endMarker and closed. A page of thousands of functions has megabytes of content: when the
+	 * marker ids have no '*' nor '/', the content is cut first and its markers replaced in one pass, which
+	 * gives the same result as replacing all the markers of each id in turn then cutting.
+	 */
+	private static String toTempTs(String tsContent, String endMarker) {
+		List<String> markerIds = new ArrayList<String>();
+		boolean plainIds = true;
+		Matcher matcher = pFunctionMarker.matcher(tsContent);
+		while (matcher.find()) {
+			String markerId = matcher.group(1);
+			markerIds.add(markerId);
+			plainIds &= markerId.indexOf('*') == -1 && markerId.indexOf('/') == -1;
+		}
+		if (!plainIds || hasSharedSlash(tsContent)) {
+			for (String markerId: markerIds) {
+				String beginMarker = functionBegin + markerId + "*/";
+				String endFunctionMarker = functionEnd + markerId + "*/";
+				tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
+				tsContent = tsContent.replace(endFunctionMarker, "//---"+markerId+"---");
+			}
+			int index = tsContent.indexOf(endMarker);
+			if (index != -1) {
+				tsContent = tsContent.substring(0, index) + endMarker + System.lineSeparator() + "}";
+			}
+			return tsContent;
+		}
+		
+		int index = tsContent.indexOf(endMarker);
+		StringBuilder sb = replaceMarkers(tsContent, index == -1 ? tsContent.length() : index, new HashSet<String>(markerIds), functionBegin, functionEnd);
+		if (index != -1) {
+			sb.append(endMarker).append(System.lineSeparator()).append("}");
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Whether the closing slash of a marker can also open the next one: replacing the markers of each id in turn
+	 * replaces both, these contents keep that way.
+	 */
+	private static boolean hasSharedSlash(String tsContent) {
+		return tsContent.contains("*/*Begin_c8o_") || tsContent.contains("*/*End_c8o_");
+	}
+
+	private static final Pattern pMarker = Pattern.compile("/\\*Begin_c8o_(.+)\\*/");
+	private static final String markerBegin = "/*Begin_c8o_";
+	private static final String markerEnd = "/*End_c8o_";
+
+	/**
+	 * The TS content for the function editor: each marker of the content but the ones of keptMarkerId replaced
+	 * by "//---id---". The content of a page or of the shared actions has thousands of markers: when the marker
+	 * ids have no '*' nor '/', the markers are replaced in one pass, which gives the same result as replacing
+	 * all the markers of each id in turn.
+	 */
+	private static String toFunctionTempTs(String tsContent, String keptMarkerId) {
+		List<String> markerIds = new ArrayList<String>();
+		boolean plainIds = true;
+		Matcher matcher = pMarker.matcher(tsContent);
+		while (matcher.find()) {
+			String markerId = matcher.group(1);
+			if (!markerId.equals(keptMarkerId)) {
+				markerIds.add(markerId);
+			}
+			plainIds &= markerId.indexOf('*') == -1 && markerId.indexOf('/') == -1;
+		}
+		if (!plainIds || hasSharedSlash(tsContent)) {
+			for (String markerId: markerIds) {
+				String beginMarker = markerBegin + markerId + "*/";
+				String endMarker = markerEnd + markerId + "*/";
+				tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
+				tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
+			}
+			return tsContent;
+		}
+		return replaceMarkers(tsContent, tsContent.length(), new HashSet<String>(markerIds), markerBegin, markerEnd).toString();
+	}
+
+	/**
+	 * The first length chars of tsContent, each begin and end marker of an id of ids replaced by "//---id---".
+	 * The ids having no '*' nor '/' and no closing slash opening a marker, the markers cannot overlap.
+	 */
+	private static StringBuilder replaceMarkers(String tsContent, int length, Set<String> ids, String begin, String end) {
+		StringBuilder sb = new StringBuilder(length + 64);
+		int copied = 0, from = 0;
+		int nextBegin = tsContent.indexOf(begin), nextEnd = tsContent.indexOf(end);
+		while (true) {
+			if (nextBegin != -1 && nextBegin < from) {
+				nextBegin = tsContent.indexOf(begin, from);
+			}
+			if (nextEnd != -1 && nextEnd < from) {
+				nextEnd = tsContent.indexOf(end, from);
+			}
+			int start = nextBegin == -1 ? nextEnd : nextEnd == -1 ? nextBegin : Math.min(nextBegin, nextEnd);
+			if (start == -1 || start >= length) {
+				break;
+			}
+			int idStart = start + (start == nextBegin ? begin : end).length();
+			int close = tsContent.indexOf("*/", idStart);
+			if (close != -1 && close + 2 <= length) {
+				String id = tsContent.substring(idStart, close);
+				if (ids.contains(id)) {
+					sb.append(tsContent, copied, start).append("//---").append(id).append("---");
+					copied = from = close + 2;
+					continue;
+				}
+			}
+			from = start + 2;
+		}
+		return sb.append(tsContent, copied, length);
+	}
+
 	@Override
 	public void writePageTempTs(final IPageComponent pageComponent) throws EngineException {
 		PageComponent page = (PageComponent) pageComponent;
@@ -1336,23 +1469,8 @@ public class NgxBuilder extends MobileBuilder {
 					tsContent = getPageTsContent(page);
 				}
 
-				// Replace all Begin_c8o_function:XXX, End_c8o_function:XXX
-				Pattern pattern = Pattern.compile("/\\*Begin_c8o_function:(.+)\\*/");
-				Matcher matcher = pattern.matcher(tsContent);
-				while (matcher.find()) {
-					String markerId = matcher.group(1);
-					String beginMarker = "/*Begin_c8o_function:" + markerId + "*/";
-					String endMarker = "/*End_c8o_function:" + markerId + "*/";
-					tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
-					tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
-				}
-
-				// Remove all CTSXXX
-				int index = tsContent.indexOf("/*End_c8o_PageFunction*/");
-				if (index != -1) {
-					tsContent = tsContent.substring(0, index) + "/*End_c8o_PageFunction*/"
-							+ System.lineSeparator() + "}";
-				}
+				// Replace all Begin_c8o_function:XXX, End_c8o_function:XXX and remove all CTSXXX
+				tsContent = toTempTs(tsContent, "/*End_c8o_PageFunction*/");
 
 				// Write file if needed (do not need delay)
 				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
@@ -1391,23 +1509,8 @@ public class NgxBuilder extends MobileBuilder {
 					tsContent = getCompTsContent(comp);
 				}
 
-				// Replace all Begin_c8o_function:XXX, End_c8o_function:XXX
-				Pattern pattern = Pattern.compile("/\\*Begin_c8o_function:(.+)\\*/");
-				Matcher matcher = pattern.matcher(tsContent);
-				while (matcher.find()) {
-					String markerId = matcher.group(1);
-					String beginMarker = "/*Begin_c8o_function:" + markerId + "*/";
-					String endMarker = "/*End_c8o_function:" + markerId + "*/";
-					tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
-					tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
-				}
-
-				// Remove all CTSXXX
-				int index = tsContent.indexOf("/*End_c8o_CompFunction*/");
-				if (index != -1) {
-					tsContent = tsContent.substring(0, index) + "/*End_c8o_CompFunction*/"
-							+ System.lineSeparator() + "}";
-				}
+				// Replace all Begin_c8o_function:XXX, End_c8o_function:XXX and remove all CTSXXX
+				tsContent = toTempTs(tsContent, "/*End_c8o_CompFunction*/");
 
 				// Write file if needed (do not need delay)
 				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
@@ -2952,18 +3055,40 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
+	/**
+	 * Adds the action imports and functions of the contributor for the application. A shared action is
+	 * contributed by the application and by each page or component invoking it: the contributions of a
+	 * contributor with a key are computed once and then reused, in the same order.
+	 */
+	private static void addActionTs(ApplicationComponent app, Contributor contributor, Map<Object, List<Map<String, String>>> contributions,
+			Map<String, String> action_ts_imports, Map<String, String> action_ts_functions) {
+		Object key = contributor.getKey();
+		List<Map<String, String>> contribution = key == null ? null : contributions.get(key);
+		if (contribution == null) {
+			List<Map<String, String>> computed = new ArrayList<Map<String, String>>(2);
+			contributor.forContainer(app, () -> {
+				computed.add(contributor.getActionTsImports());
+				computed.add(contributor.getActionTsFunctions());
+			});
+			contribution = computed;
+			if (key != null) {
+				contributions.put(key, contribution);
+			}
+		}
+		action_ts_imports.putAll(contribution.get(0));
+		action_ts_functions.putAll(contribution.get(1));
+	}
+
 	private void writeAppServiceTs(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
 				Map<String, String> action_ts_imports = new HashMap<>();
 				Map<String, String> action_ts_functions = new HashMap<>();
+				Map<Object, List<Map<String, String>>> contributions = new IdentityHashMap<>();
 
 				//App contributors
 				for (Contributor contributor : app.getContributors()) {
-					contributor.forContainer(app, () -> {
-						action_ts_imports.putAll(contributor.getActionTsImports());
-						action_ts_functions.putAll(contributor.getActionTsFunctions());
-					});
+					addActionTs(app, contributor, contributions, action_ts_imports, action_ts_functions);
 				}
 
 				//Shared components
@@ -2971,10 +3096,7 @@ public class NgxBuilder extends MobileBuilder {
 					if (comp.isRegular()) {
 						List<Contributor> contributors = comp.getContributors();
 						for (Contributor contributor : contributors) {
-							contributor.forContainer(app, () -> {
-								action_ts_imports.putAll(contributor.getActionTsImports());
-								action_ts_functions.putAll(contributor.getActionTsFunctions());
-							});
+							addActionTs(app, contributor, contributions, action_ts_imports, action_ts_functions);
 						}
 					}
 				}
@@ -2987,10 +3109,7 @@ public class NgxBuilder extends MobileBuilder {
 					synchronized (page) {
 						List<Contributor> contributors = page.getContributors();
 						for (Contributor contributor : contributors) {
-							contributor.forContainer(app, () -> {
-								action_ts_imports.putAll(contributor.getActionTsImports());
-								action_ts_functions.putAll(contributor.getActionTsFunctions());
-							});
+							addActionTs(app, contributor, contributions, action_ts_imports, action_ts_functions);
 						}
 					}
 				}
@@ -3887,7 +4006,7 @@ public class NgxBuilder extends MobileBuilder {
 	@Override
 	protected void writeFile(File file, CharSequence content, String encoding) throws IOException {
 		// Replace eol characters with system line separators
-		var str = LsPattern.matcher(content).replaceAll(System.lineSeparator());
+		var str = toSystemLineSeparators(content);
 		var charset = Charset.forName(encoding);
 		var existingFiles = NgxBuilder.existingFiles.get();
 		var generationPending = MobileBuilderGeneration.isPending(project.getName());

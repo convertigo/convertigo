@@ -19,11 +19,16 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.jface.viewers.ViewerLabel;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
@@ -32,8 +37,30 @@ class DecoratingColumnLabelProvider extends ColumnLabelProvider {
 	
 	private DecoratingLabelProvider provider;
 	
+	/** for each element, its undecorated text, and the text and image it was last shown with */
+	private Map<Object, Object[]> shown = new WeakHashMap<Object, Object[]>();
+	
 	DecoratingColumnLabelProvider(ILabelProvider provider, ILabelDecorator decorator) {
 		this.provider = new DecoratingLabelProvider(provider, decorator);		
+	}
+
+	@Override
+	public void update(ViewerCell cell) {
+		Object element = cell.getElement();
+		String text = provider.getLabelProvider().getText(element);
+		// while the decoration of a label is pending, as when the Git decorations are computed again after a project
+		// is loaded, an element whose text has not changed keeps the decorated text and image it was shown with
+		// instead of losing its decoration until it is computed again
+		Object[] last = shown.get(element);
+		boolean unchanged = last != null && text != null && text.equals(last[0]) && !(last[2] instanceof Image image && image.isDisposed());
+		ViewerLabel label = unchanged ? new ViewerLabel((String) last[1], (Image) last[2]) : new ViewerLabel("", null);
+		provider.updateLabel(label, element);
+		shown.put(element, new Object[] { text, label.getText(), label.getImage() });
+		cell.setText(label.getText());
+		cell.setImage(label.getImage());
+		cell.setBackground(getBackground(element));
+		cell.setForeground(getForeground(element));
+		cell.setFont(getFont(element));
 	}
 
 	@Override

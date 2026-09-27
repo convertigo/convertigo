@@ -338,8 +338,9 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
         if (object instanceof UIComponent) {
         	List<Long> ordered = orderedComponents.get(0);
         	long time = ((UIComponent)object).priority;
-        	if (ordered.contains(time))
-        		return (long)ordered.indexOf(time);
+        	int index = orderedIndexOf(ordered, time);
+        	if (index != -1)
+        		return (long) index;
         	else throw new EngineException("Corrupted component for page \""+ getName() +"\". UIComponent \""+ ((UIComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else return super.getOrder(object);
@@ -425,6 +426,12 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 	public List<UIComponent> getUIComponentList() {
 		checkSubLoaded();
 		return sort(vUIComponents);
+	}
+
+	@Override
+	protected boolean canListChildrenUnsorted() {
+		// the getters of its children only return them sorted
+		return true;
 	}
 
 	public List<UIComponent> getDisplayableComponentList() {
@@ -588,11 +595,40 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		return updated;
 	}
 	
+	/** Applies each replacement, in the order of the map, to this component and its descendants, visited once. */
+	public boolean updateSmartSources(Map<String, String> replacements) {
+		boolean updated = false;
+		for (Map.Entry<String, String> replacement : replacements.entrySet()) {
+			if (updateSmartSource(replacement.getKey(), replacement.getValue())) {
+				updated = true;
+			}
+		}
+		for (UIComponent uic : getUIComponentList()) {
+			if (uic.updateSmartSources(replacements)) {
+				updated = true;
+			}
+		}
+		return updated;
+	}
+	
 	public boolean updateSmartSourceModelPath(MobileSmartSource oldSource, String newPath) {
 		return false;
 	}
 	
 	public boolean updateSmartSource(String oldString, String newString) {
+		return false;
+	}
+	
+	/** Whether the text matches the regex: a regex without special characters is looked up as is, without being compiled. */
+	protected static boolean findSmartSource(String text, String regex) {
+		if (text.indexOf(regex) != -1) {
+			return true;
+		}
+		for (int i = 0; i < regex.length(); i++) {
+			if ("\\^$.|?*+()[]{}".indexOf(regex.charAt(i)) != -1) {
+				return Pattern.compile(regex).matcher(text).find();
+			}
+		}
 		return false;
 	}
 	

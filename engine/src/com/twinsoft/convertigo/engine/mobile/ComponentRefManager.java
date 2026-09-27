@@ -75,6 +75,8 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	
 	private Map<String, Pattern> keyPatterns = new ConcurrentHashMap<String, Pattern>();
 	
+	private static final Pattern pQNameSuffix = Pattern.compile("\\.\\w+?:$");
+	
 	private ComponentRefManager() {
 		
 	}
@@ -193,7 +195,9 @@ public class ComponentRefManager implements DatabaseObjectListener {
     
     static public DatabaseObject getDatabaseObjectByQName(String qname) {
     	try {
-			qname = qname.replaceFirst("\\.\\w+?:$", "");
+			if (qname.endsWith(":")) {
+				qname = pQNameSuffix.matcher(qname).replaceFirst("");
+			}
 			String[] name = qname.split("\\.");
 			String project = name[0];
 			DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project, false);
@@ -350,10 +354,9 @@ public class ComponentRefManager implements DatabaseObjectListener {
 					continue;
 				}
 	    		if (!keyQName.equals(compQName)) {
-	    			Pattern p = keyPatterns.computeIfAbsent(keyQName, k -> Pattern.compile("^" + Pattern.quote(k) + "\\b.*"));
 		    		for (String useQName: getConsumers(compQName)) {
 		    			//if (useQName.startsWith(keyQName)) {
-		    			if (p.matcher(useQName).find()) {
+		    			if (isInside(useQName, keyQName)) {
 		    				if (!done.contains(keyQName)) {
 		    					getDependencies(done, keyQName);
 		    				}
@@ -367,6 +370,32 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		return Collections.unmodifiableSet(done);
 	}
     
+	/** Whether useQName starts with keyQName followed by a word boundary, as the pattern ^quote(keyQName)\b.* finds */
+	private boolean isInside(String useQName, String keyQName) {
+		if (!useQName.startsWith(keyQName)) {
+			return false;
+		}
+		int end = keyQName.length();
+		char left = keyQName.charAt(end - 1);
+		if (end == useQName.length()) {
+			if (left < 128) {
+				return isWord(left);
+			}
+		} else {
+			char right = useQName.charAt(end);
+			if (left < 128 && right < 128) {
+				return isWord(left) != isWord(right);
+			}
+		}
+		// the regex defines the boundary of the other characters
+		Pattern p = keyPatterns.computeIfAbsent(keyQName, k -> Pattern.compile("^" + Pattern.quote(k) + "\\b.*"));
+		return p.matcher(useQName).find();
+	}
+	
+	private static boolean isWord(char c) {
+		return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+	}
+	
 	private Set<String> getConsumers(final String compQName) {
 		synchronized (consumers) {
 			if (consumers.get(compQName) != null) {

@@ -124,6 +124,39 @@ public class BeansDefaultValues {
 		return null;
 	}
 
+	/** The first child element, like the XPath step * */
+	private static Element firstElement(Element element) {
+		for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				return (Element) child;
+			}
+		}
+		return null;
+	}
+
+	/** The first property element named name, like the XPath step property[@name='name'] */
+	private static Element property(Element bean, String name) {
+		for (Element child: childElements(bean)) {
+			if (child.getTagName().equals("property") && child.hasAttribute("name") && child.getAttribute("name").equals(name)) {
+				return child;
+			}
+		}
+		return null;
+	}
+
+	/** The first child element of the properties named "name", like the XPath property[@name='name']/* */
+	private static Element nameElement(Element bean) {
+		for (Element property: childElements(bean)) {
+			if (property.getTagName().equals("property") && property.hasAttribute("name") && property.getAttribute("name").equals("name")) {
+				Element value = firstElement(property);
+				if (value != null) {
+					return value;
+				}
+			}
+		}
+		return null;
+	}
+
 	private static boolean checkIsSame(Element dElt, Element pElt) {
 		if (dElt == null || pElt == null) {
 			return false;
@@ -256,6 +289,8 @@ public class BeansDefaultValues {
 
 		String templateProjectName = null;
 		JSONObject templateProjectIonObjects = null;
+		/** for each ion objects, the shrunk text of each beanData already shrunk with them */
+		Map<JSONObject, Map<String, String>> shrunkBeanData = new IdentityHashMap<JSONObject, Map<String, String>>();
 		
 		ShrinkProject() throws Exception {
 			Document beansDoc;
@@ -395,8 +430,16 @@ public class BeansDefaultValues {
 							
 							if (name.equals("beanData")) {
 								JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
+								// many components have the same beanData: it gives the same text
+								Map<String, String> shrunk = shrunkBeanData.computeIfAbsent(ionObjects, k -> new HashMap<String, String>());
+								String shrunkText = shrunk.get(nProp.getTextContent());
+								if (shrunkText != null) {
+									nProp.setTextContent(shrunkText);
+									continue;
+								}
 								try {
 									String beanData = nProp.getTextContent();
+									boolean reusable = true;
 									JSONObject ion = new JSONObject(beanData);
 									String ionName = (String) ion.remove("name");
 									ion.put("ionBean", ionName);
@@ -421,6 +464,7 @@ public class BeansDefaultValues {
 											}
 										} catch (Exception ex) {
 											System.out.println("No properties for "+ ionName);
+											reusable = false;
 										}
 										dIonProps = properties;
 									}
@@ -474,6 +518,9 @@ public class BeansDefaultValues {
 										nProp.setTextContent(ion.toString(1));
 									} else {
 										nProp.setTextContent(ion.toString());
+									}
+									if (reusable) {
+										shrunk.put(beanData, nProp.getTextContent());
 									}
 								} catch (Exception e) {
 									e.printStackTrace();
@@ -534,7 +581,6 @@ public class BeansDefaultValues {
 	}
 
 	static private class UnshrinkProject {
-		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		Element beans;
 		JSONObject mobile_ionObjects;
 		String version;
@@ -543,6 +589,8 @@ public class BeansDefaultValues {
 
 		String templateProjectName = null;
 		JSONObject templateProjectIonObjects = null;
+		/** for each ion objects, the unshrunk text of each beanData already unshrunk with them */
+		Map<JSONObject, Map<String, String>> unshrunkBeanData = new IdentityHashMap<JSONObject, Map<String, String>>();
 		
 		UnshrinkProject() throws Exception {
 			Document beansDoc;
@@ -597,8 +645,11 @@ public class BeansDefaultValues {
 
 		void unshrinkChildren(Element element, Element nParent) throws Exception {
 			Document document = nParent.getOwnerDocument();
-			for (Node pBeanNode: xpath.selectList(element, "bean[@yaml_key]")) {
-				Element pBean = (Element) pBeanNode;
+			for (Element pBean: childElements(element)) {
+				// bean[@yaml_key]
+				if (!pBean.getTagName().equals("bean") || !pBean.hasAttribute("yaml_key")) {
+					continue;
+				}
 
 				Matcher matcherBeanName = patternBeanName.matcher(pBean.getAttribute("yaml_key"));
 
@@ -631,23 +682,27 @@ public class BeansDefaultValues {
 
 				nParent.appendChild(nBean);
 
-				for (Node pAttr: xpath.selectList(pBean, "@*")) {
+				for (Node pAttr: attributes(pBean)) {
 					String name = pAttr.getNodeName();
 					if (!name.startsWith("yaml_")) {
 						nBean.setAttribute(name, pAttr.getNodeValue());
 					}
 				}
 
-				((Element) xpath.selectNode(nBean, "property[@name='name']/*")).setAttribute("value", pName);
+				nameElement(nBean).setAttribute("value", pName);
 				if (pPriority != null) {
 					nBean.setAttribute("priority", pPriority);
 				}
 
-				for (Node pPropNode: xpath.selectList(pBean, "*[not(@yaml_key)]")) {
+				for (Element pPropNode: childElements(pBean)) {
+					// *[not(@yaml_key)]
+					if (pPropNode.hasAttribute("yaml_key")) {
+						continue;
+					}
 					String propName = pPropNode.getNodeName();
-					Element nProp = (Element) xpath.selectNode(nBean, "property[@name='" + propName + "']");
+					Element nProp = property(nBean, propName);
 					if (nProp == null) {
-						Element nOther = (Element) xpath.selectNode(nBean, propName);
+						Element nOther = firstChild(nBean, propName);
 						if (nOther != null) {
 							nBean.replaceChild(document.importNode(pPropNode, true), nOther);
 							continue;
@@ -657,19 +712,19 @@ public class BeansDefaultValues {
 					}
 					nProp.setAttribute("name", propName);
 
-					for (Node pAttr: xpath.selectList(pPropNode, "@*")) {
+					for (Node pAttr: attributes(pPropNode)) {
 						String name = pAttr.getNodeName();
 						if (!name.equals("name")) {
 							nProp.setAttribute(name, pAttr.getNodeValue());
 						}
 					}
 
-					if (xpath.selectNode(pPropNode, "*") == null) {
-						Element nValue = (Element) xpath.selectNode(nProp, "*");
+					if (firstElement(pPropNode) == null) {
+						Element nValue = firstElement(nProp);
 						if (nValue == null) {
 							nValue = (Element) nProp.appendChild(document.createElement("java.lang.String"));
 						}
-						String value = ((Element) pPropNode).getTextContent();
+						String value = pPropNode.getTextContent();
 
 						if (isNgxApplicationComponent && propName.equals("tplProjectName")) {
 							templateProjectName = value;
@@ -677,76 +732,89 @@ public class BeansDefaultValues {
 						
 						if (propName.equals("beanData")) {
 							JSONObject ionObjects = getIonObjects(classname.indexOf(".ngx.") != -1, templateProjectName);
-							try {
-								JSONObject ion = new JSONObject(value);
-								String ionName = (String) ion.remove("ionBean");
+							// many components have the same beanData: it gives the same text
+							Map<String, String> unshrunk = unshrunkBeanData.computeIfAbsent(ionObjects, k -> new HashMap<String, String>());
+							String shrunkValue = value;
+							String unshrunkText = unshrunk.get(shrunkValue);
+							if (unshrunkText != null) {
+								value = unshrunkText;
+							} else {
+								try {
+									boolean reusable = true;
+									JSONObject ion = new JSONObject(value);
+									String ionName = (String) ion.remove("ionBean");
 								
-								// unshrink using TPL ion_objects.json
-								if (ionObjects.has("Beans")) {
-									if (ionObjects.getJSONObject("Beans").getJSONObject(ionName).has("properties")) {
-										JSONObject dIonProps = ionObjects.getJSONObject("Beans").getJSONObject(ionName).getJSONObject("properties");
+									// unshrink using TPL ion_objects.json
+									if (ionObjects.has("Beans")) {
+										if (ionObjects.getJSONObject("Beans").getJSONObject(ionName).has("properties")) {
+											JSONObject dIonProps = ionObjects.getJSONObject("Beans").getJSONObject(ionName).getJSONObject("properties");
 										
+											JSONObject ionProps = new JSONObject();
+											ion.put("properties", ionProps);
+
+											for (Iterator<?> iProp = dIonProps.keys(); iProp.hasNext();) {
+												String keyProp = (String) iProp.next();
+												JSONObject jsonObject = copyTplIonProperty(ionObjects, keyProp, dIonProps.get(keyProp));
+												jsonObject.put("name", keyProp);
+												if (ion.has(keyProp)) {
+													String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
+													jsonObject.put("mode", smart[0]);
+													jsonObject.put("value", smart.length == 1 ? false : smart[1]);
+												}
+												ionProps.put(keyProp, jsonObject);
+											}
+										} else {
+											System.out.println("No properties for "+ ionName);
+											reusable = false;
+										}
+									}
+									// unshrink using JAVA ion_objects_default.json
+									else {
+										JSONObject dIonProps = ionObjects.getJSONObject(ionName);
+
+										Iterator<?> iProp = dIonProps.keys();
+										String dVersion = iProp.next().toString();
+										while (iProp.hasNext()) {
+											String v = iProp.next().toString();
+											if (v.compareTo(nVersion) <= 0 && v.compareTo(dVersion) > 0) {
+												dVersion = v;
+											}
+										}
+										dIonProps = dIonProps.getJSONObject(dVersion).getJSONObject("properties");
 										JSONObject ionProps = new JSONObject();
 										ion.put("properties", ionProps);
 
-										for (Iterator<?> iProp = dIonProps.keys(); iProp.hasNext();) {
+										for (iProp = dIonProps.keys(); iProp.hasNext();) {
 											String keyProp = (String) iProp.next();
-											JSONObject jsonObject = copyTplIonProperty(ionObjects, keyProp, dIonProps.get(keyProp));
-											jsonObject.put("name", keyProp);
-											if (ion.has(keyProp)) {
-												String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
-												jsonObject.put("mode", smart[0]);
-												jsonObject.put("value", smart.length == 1 ? false : smart[1]);
-											}
-											ionProps.put(keyProp, jsonObject);
-										}
-									} else {
-										System.out.println("No properties for "+ ionName);
-									}
-								}
-								// unshrink using JAVA ion_objects_default.json
-								else {
-									JSONObject dIonProps = ionObjects.getJSONObject(ionName);
-
-									Iterator<?> iProp = dIonProps.keys();
-									String dVersion = iProp.next().toString();
-									while (iProp.hasNext()) {
-										String v = iProp.next().toString();
-										if (v.compareTo(nVersion) <= 0 && v.compareTo(dVersion) > 0) {
-											dVersion = v;
-										}
-									}
-									dIonProps = dIonProps.getJSONObject(dVersion).getJSONObject("properties");
-									JSONObject ionProps = new JSONObject();
-									ion.put("properties", ionProps);
-
-									for (iProp = dIonProps.keys(); iProp.hasNext();) {
-										String keyProp = (String) iProp.next();
-										if (!ion.has(keyProp)) {
-											ionProps.put(keyProp, dIonProps.getJSONObject(keyProp));
-										} else {
-											String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
-											JSONObject v = new JSONObject();
-											v.put("mode", smart[0]);
-											if (smart.length == 1) {
-												// <not set> case
-												v.put("value", false);
+											if (!ion.has(keyProp)) {
+												ionProps.put(keyProp, dIonProps.getJSONObject(keyProp));
 											} else {
-												v.put("value", smart[1]);
+												String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
+												JSONObject v = new JSONObject();
+												v.put("mode", smart[0]);
+												if (smart.length == 1) {
+													// <not set> case
+													v.put("value", false);
+												} else {
+													v.put("value", smart[1]);
+												}
+												ionProps.put(keyProp, v);
 											}
-											ionProps.put(keyProp, v);
+											ionProps.getJSONObject(keyProp).put("name", keyProp);
 										}
-										ionProps.getJSONObject(keyProp).put("name", keyProp);
 									}
-								}
 
-								ion.put("name", ionName);
-								value = ion.toString();
-							} catch (Exception e) {
-								e.printStackTrace();
-								if (Engine.logEngine != null) {
-									String beanData = value;
-									Engine.logEngine.warn("[BeansDefaultValues] An error has been detected while deserializing data: "+ beanData, e);
+									ion.put("name", ionName);
+									value = ion.toString();
+									if (reusable) {
+										unshrunk.put(shrunkValue, value);
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
+									if (Engine.logEngine != null) {
+										String beanData = value;
+										Engine.logEngine.warn("[BeansDefaultValues] An error has been detected while deserializing data: "+ beanData, e);
+									}
 								}
 							}
 						}

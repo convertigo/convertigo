@@ -389,6 +389,11 @@ public class UIActionStack extends UIComponent implements IShared, IExposeAble, 
 	protected Contributor getContributor() {
 		return new Contributor() {
 			@Override
+			public Object getKey() {
+				return UIActionStack.this;
+			}
+			
+			@Override
 			public Map<String, String> getActionTsFunctions() {
 				Map<String, String> functions = new HashMap<String, String>();
 				String functionName = getFunctionName();

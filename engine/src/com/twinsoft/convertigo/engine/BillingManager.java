@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSession;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 
 public class BillingManager implements AbstractManager, PropertyChangeEventListener {
@@ -184,11 +185,19 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		}
 	}
 
-	public synchronized void insertBilling(HttpSessionListener sessionListener, String operation)
+	public void insertBilling(HttpSessionListener sessionListener, String operation)
 			throws EngineException {
-		int score = ConvertigoHttpSessionManager.isRedisMode()
-				? ConvertigoHttpSessionManager.getInstance().countCountedSessions()
-				: HttpSessionListener.countSessions();
+		if (!hasActiveManagers()) {
+			return;
+		}
+		int score;
+		if (!ConvertigoHttpSessionManager.isRedisMode()) {
+			score = HttpSessionListener.countSessions();
+		} else if (RequestScopedHttpSession.isRequestScopedId(sessionListener.getSessionID())) {
+			score = ConvertigoHttpSessionManager.getInstance().cachedCountedSessions();
+		} else {
+			score = ConvertigoHttpSessionManager.getInstance().countCountedSessions();
+		}
 		insertBillingSession(operation, sessionListener.getCreationTime(), sessionListener.getSessionID(),
 				sessionListener.getClientIP(), sessionListener.getUserAgent(), sessionListener.getAuthenticatedUser(),
 				sessionListener.getUuid(), score);

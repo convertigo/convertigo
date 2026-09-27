@@ -250,8 +250,9 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
         if (object instanceof UIComponent) {
         	List<Long> ordered = orderedComponents.get(0);
         	long time = ((UIComponent)object).priority;
-        	if (ordered.contains(time))
-        		return (long)ordered.indexOf(time);
+        	int index = orderedIndexOf(ordered, time);
+        	if (index != -1)
+        		return (long) index;
         	else throw new EngineException("Corrupted component for page \""+ getName() +"\". UIComponent \""+ ((UIComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else return super.getOrder(object);
@@ -294,6 +295,12 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	public List<UIComponent> getUIComponentList() {
 		checkSubLoaded();
 		return sort(vUIComponents);
+	}
+
+	@Override
+	protected boolean canListChildrenUnsorted() {
+		// the getters of its children only return them sorted
+		return true;
 	}
 
 	public List<UIPageEvent> getUIPageEventList() {
@@ -1024,6 +1031,17 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		boolean updated = false;
 		for (UIComponent uic : getUIComponentList()) {
 			if (uic.updateSmartSources(oldString, newString)) {
+				updated = true;
+			}
+		}
+		return updated;
+	}
+	
+	/** Applies each replacement, in the order of the map, to the components of this page, visited once. */
+	public boolean updateSmartSources(Map<String, String> replacements) {
+		boolean updated = false;
+		for (UIComponent uic : getUIComponentList()) {
+			if (uic.updateSmartSources(replacements)) {
 				updated = true;
 			}
 		}

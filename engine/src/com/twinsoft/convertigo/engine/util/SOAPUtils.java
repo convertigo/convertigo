@@ -46,6 +46,8 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.stream.StreamSource;
 
 import org.dom4j.io.DocumentSource;
 import org.w3c.dom.Attr;
@@ -85,6 +87,14 @@ public class SOAPUtils {
 		
 		if (sc instanceof DocumentSource) {
 			ob = ((DocumentSource) sc).getDocument();
+		}
+		else if (sc instanceof StreamSource || sc instanceof SAXSource) {
+			// a stream is parsed like any untrusted XML, without DOCTYPE
+			try {
+				ob = XMLUtils.parseDOMFromInputSource(SAXSource.sourceToInputSource(sc));
+			} catch (SAXException | IOException e) {
+				throw new TransformerException(e);
+			}
 		}
 		else {
 			// Create a transformer

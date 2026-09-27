@@ -56,6 +56,22 @@ public abstract class MobileBuilder {
 
 	protected static Pattern LsPattern = Pattern.compile("\\R");
 	protected static Pattern CacheVersion = Pattern.compile("const\\sCACHE_VERSION\\s\\=\\s\\d+");
+	
+	/**
+	 * content with its line breaks replaced by the system line separator, as LsPattern.matcher(content).replaceAll(System.lineSeparator()),
+	 * without running the pattern on a content whose line breaks are already the system line separator.
+	 */
+	protected static String toSystemLineSeparators(CharSequence content) {
+		String str = content.toString();
+		boolean lf = System.lineSeparator().equals("\n");
+		for (int i = 0; i < str.length(); i++) {
+			char c = str.charAt(i);
+			if ((c == '\n' && !lf) || c == '\r' || c == '\u000B' || c == '\f' || c == '\u0085' || c == '\u2028' || c == '\u2029') {
+				return LsPattern.matcher(str).replaceAll(System.lineSeparator());
+			}
+		}
+		return str;
+	}
 
 	protected Project project = null;
 	protected Object buildMutex = null;

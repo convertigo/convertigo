@@ -142,11 +142,9 @@ public class XMLUtils {
 		@Override
 		protected TransformerFactory initialValue() {
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
-			try {
-				transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-			} catch (Exception e) {
-				if (Engine.logEngine != null) Engine.logEngine.warn("Unable to harden the XML transformer factory: " + e.getMessage());
-			}
+			// No FEATURE_SECURE_PROCESSING here: Xalan then rejects every attribute of the
+			// literal result elements of a stylesheet (the SmtpStep XSL loses its href, src, style...).
+			// The transformed documents are DOM trees already parsed by the hardened builder.
 			// Optional JAXP hardening, not supported by every XML implementation.
 			try {
 				transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -256,6 +254,11 @@ public class XMLUtils {
 	}
 	
 	public static void prettyPrintDOMWithEncoding(Document doc, String defaultEncoding, Result result) {
+		prettyPrintDOMWithEncoding(doc, defaultEncoding, result, 4);
+	}
+
+	/** Pretty prints doc into result, each level being indented by indentAmount spaces */
+	public static void prettyPrintDOMWithEncoding(Document doc, String defaultEncoding, Result result, int indentAmount) {
 		Node firstChild = doc.getFirstChild();
 		boolean omitXMLDeclaration = false;
 		String encoding = defaultEncoding; // default Encoding char set if non
@@ -279,7 +282,7 @@ public class XMLUtils {
 			t.setOutputProperty(OutputKeys.ENCODING, encoding);
 			t.setOutputProperty(OutputKeys.INDENT, "yes");
 			t.setOutputProperty(OutputKeys.METHOD, "xml"); // xml, html, text
-			t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", Integer.toString(indentAmount));
 			t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, omitXMLDeclaration ? "yes" : "no");
 			t.transform(new DOMSource(doc), result);
 		} catch (Exception e) {
@@ -289,6 +292,13 @@ public class XMLUtils {
 
 	public static String prettyPrintDOM(Document doc) {
 		return prettyPrintDOMWithEncoding(doc, "ISO-8859-1");
+	}
+
+	/** Same as prettyPrintDOM(doc), each level being indented by indentAmount spaces */
+	public static String prettyPrintDOM(Document doc, int indentAmount) {
+		StringWriter writer = new StringWriter();
+		prettyPrintDOMWithEncoding(doc, "ISO-8859-1", new StreamResult(writer), indentAmount);
+		return writer.getBuffer().toString();
 	}
 	
 	public static String prettyPrintElement(Element elt) {
@@ -660,11 +670,10 @@ public class XMLUtils {
 	}
 
 	public static Element findNodeByAttributeValue(NodeList nodeList, String attributeName, String attributeValue) {
-		int len = nodeList.getLength();
+		// item() is null after the last node: the length of a getElementsByTagName list is not counted first
 		String tmp;
 		Element property;
-		for (int i = 0; i < len; i++) {
-			property = (Element) nodeList.item(i);
+		for (int i = 0; (property = (Element) nodeList.item(i)) != null; i++) {
 			tmp = property.getAttribute(attributeName);
 			if (attributeValue.equals(tmp)) {
 				return property;
@@ -1022,6 +1031,10 @@ public class XMLUtils {
 	static public Document parseDOMFromString(String sDom) throws SAXException, IOException {
 		Document dom = secureDocumentBuilder.get().parse(new InputSource(new StringReader(sDom)));
 		return dom;
+	}
+
+	static public Document parseDOMFromInputSource(InputSource inputSource) throws SAXException, IOException {
+		return secureDocumentBuilder.get().parse(inputSource);
 	}
 
 	public static EntityResolver getEntityResolver() {

@@ -165,14 +165,15 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 		final UISharedComponent comp = (UISharedComponent)getObject();
 		try {
-			// Refresh project resource
 			String projectName = comp.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-
-			// Close editor
 			String filePath = comp.getProject().getMobileBuilder().getTempTsRelativePath((ISharedComponent)comp);
 			IFile file = project.getFile(filePath);
+
+			// Refresh the folder of the file
+			refreshComponentFileFolder(file);
+
+			// Close editor
 			closeComponentFileEditor(file);
 
 			// Write temporary file
@@ -233,14 +234,15 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				return;
 			}
 
-			// Refresh project resources for editor
 			String projectName = uic.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-
-			// Close editor and Reopen it after file has been rewritten
 			String relativePath = uic.getProject().getMobileBuilder().getFunctionTempTsRelativePath(uic);
 			IFile file = project.getFile(relativePath);
+
+			// Refresh the folder of the file for editor
+			refreshComponentFileFolder(file);
+
+			// Close editor and Reopen it after file has been rewritten
 			if (!(uic instanceof UICustomAction)) {
 				closeComponentFileEditor(file);
 			}
@@ -309,13 +311,14 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		final UICustom mc = (UICustom)getObject();
 		String filePath = "/_private/" + mc.priority+".html";
 		try {
-			// Refresh project resource
 			String projectName = mc.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			project.refreshLocal(IResource.DEPTH_INFINITE, null);
+			IFile file = project.getFile(filePath);
+
+			// Refresh the folder of the file
+			refreshComponentFileFolder(file);
 
 			// Close editor
-			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
 
 			// Write html file
@@ -1062,6 +1065,25 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		};
 	}
 
+	/**
+	 * Whether a property change can have an effect on the NGX components, in treeObjectPropertyChanged and its
+	 * named source selector: only these changes are dispatched to them. They react to a renamed object whose
+	 * references are updated, to a changed form control (control name, identifier or form control attribute)
+	 * and to the throttleEvents and useClickForTap properties of the application.
+	 */
+	public static boolean isConcernedBy(TreeObjectEvent treeObjectEvent) {
+		String propertyName = treeObjectEvent.propertyName == null ? "" : treeObjectEvent.propertyName;
+		if (treeObjectEvent.update != TreeObjectEvent.UPDATE_NONE && (propertyName.equals("name") || propertyName.equals("qname"))) {
+			return true;
+		}
+		if (propertyName.equals("ControlName") || propertyName.equals("identifier")
+				|| propertyName.equals("throttleEvents") || propertyName.equals("useClickForTap")) {
+			return true;
+		}
+		return treeObjectEvent.getSource() instanceof DatabaseObjectTreeObject doto
+				&& doto.getObject() instanceof UIComponent uic && uic.isFormControlAttribute();
+	}
+
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
@@ -1247,7 +1269,9 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 				if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
-					if (hasSameScriptComponent(getObject(), uic)) {
+					// the property is checked first: every NGX component receives every property change
+					boolean isFormProperty = propertyName.equals("ControlName") || propertyName.equals("identifier") || uic.isFormControlAttribute();
+					if (isFormProperty && hasSameScriptComponent(getObject(), uic)) {
 						// A ControlName property has changed
 						if (propertyName.equals("ControlName") || uic.isFormControlAttribute()) {
 							if (!newValue.equals(oldValue)) {

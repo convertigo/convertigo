@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,9 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public abstract class DatabaseObject implements Serializable, Cloneable, ITokenPath {
 	private static final long serialVersionUID = -873065042105207891L;
 	private static final Pattern pIntSuffix = Pattern.compile("\\d+$");
+	private static final Object NO_ORDER = new Object();
+	private static final ThreadLocal<Map<List<Long>, Map<Long, Integer>>> sortIndexes = new ThreadLocal<>();
+	private static final ThreadLocal<DatabaseObject> unsortedParent = new ThreadLocal<>();
 	protected final Object mutex = new Object();
 
 	@Retention(RUNTIME)
@@ -1233,20 +1237,61 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	protected <E extends Object> List<E> sort(List<E> list, boolean ascending) {
 		List<E> res = new ArrayList<E>(list);
+		if (unsortedParent.get() == this) {
+			// getDatabaseObjectChild only needs the children of this object, in any order
+			return res;
+		}
+		// the order of each object is looked up once, not on each comparison
+		Map<Object, Object> orders = new IdentityHashMap<>(res.size());
+		Map<List<Long>, Map<Long, Integer>> previousIndexes = sortIndexes.get();
+		sortIndexes.set(new IdentityHashMap<>());
+		try {
+			for (E e : res) {
+				Object order;
+				try {
+					order = getOrder(e);
+				} catch (EngineException ex) {
+					order = NO_ORDER;
+				}
+				orders.put(e, order);
+			}
+		} finally {
+			sortIndexes.set(previousIndexes);
+		}
 		Collections.sort(res, new Comparator<Object>() {
 			@SuppressWarnings("unchecked")
 			public int compare(Object o1, Object o2) {
-				try {
-					return ((Comparable<Object>) getOrder(o1)).compareTo(getOrder(o2));
-				} catch (EngineException e) {
+				Object order1 = orders.get(o1);
+				Object order2 = orders.get(o2);
+				if (order1 == NO_ORDER || order2 == NO_ORDER) {
 					return 0;
 				}
+				return ((Comparable<Object>) order1).compareTo(order2);
 			}
 		});
 		if (!ascending) {
 			Collections.reverse(res);
 		}
 		return res;
+	}
+
+	/**
+	 * The index of value in ordered, like ordered.indexOf(value). During a sort, ordered is indexed once:
+	 * getOrder can then look up the position of each sorted object without scanning ordered.
+	 */
+	protected static int orderedIndexOf(List<Long> ordered, long value) {
+		Map<List<Long>, Map<Long, Integer>> indexes = sortIndexes.get();
+		if (indexes == null) {
+			return ordered.indexOf(value);
+		}
+		Integer index = indexes.computeIfAbsent(ordered, l -> {
+			Map<Long, Integer> positions = new HashMap<>(l.size() * 2);
+			for (int i = 0; i < l.size(); i++) {
+				positions.putIfAbsent(l.get(i), i);
+			}
+			return positions;
+		}).get(value);
+		return index == null ? -1 : index;
 	}
 
 	public String[] getNames(Collection<? extends DatabaseObject> dbos) {
@@ -1420,14 +1465,74 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return null;
 	}
 
+	/**
+	 * Whether getDatabaseObjectChild can list the children of this object without sorting them: the getters of
+	 * its children must only return them sorted, without keeping the sorted list nor filtering it.
+	 */
+	protected boolean canListChildrenUnsorted() {
+		return false;
+	}
+
+	private static boolean isNamed(DatabaseObject databaseObject, String name, boolean isQNamePart) {
+		return databaseObject.getName().equals(name)
+				// the qname part of a folder type is "shortName:name"
+				|| (isQNamePart && databaseObject.getFolderType().qnamePart(databaseObject).equals(name));
+	}
+
 	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
-		List<DatabaseObject> children = getDatabaseObjectChildren();
-		for (DatabaseObject child : children) {
-			if (child.getFolderType().qnamePart(child).equals(name) || child.getName().equals(name)) {
-				return child;
+		boolean isQNamePart = name.indexOf(':') != -1;
+		if (canListChildrenUnsorted()) {
+			// the matching children of the first kind having some, listed without sorting them: when there is only
+			// one, it is the first one
+			List<DatabaseObject> matching = new ArrayList<DatabaseObject>(2);
+			DatabaseObject previous = unsortedParent.get();
+			unsortedParent.set(this);
+			try {
+				new WalkHelper() {
+
+					@Override
+					protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
+						return matching.isEmpty();
+					}
+
+					@Override
+					protected void walk(DatabaseObject databaseObject) throws Exception {
+						if (databaseObject == DatabaseObject.this) {
+							super.walk(databaseObject);
+						} else if (isNamed(databaseObject, name, isQNamePart)) {
+							matching.add(databaseObject);
+						}
+					}
+				}.init(this);
+				if (matching.size() < 2) {
+					return matching.isEmpty() ? null : matching.get(0);
+				}
+			} catch (Exception e) {
+				// listed below as before
+			} finally {
+				unsortedParent.set(previous);
 			}
 		}
-		return null;
+
+		// the first matching child of getDatabaseObjectChildren(), without listing the next kinds of children
+		DatabaseObject[] found = { null };
+		new WalkHelper() {
+
+			@Override
+			protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
+				return found[0] == null;
+			}
+
+			@Override
+			protected void walk(DatabaseObject databaseObject) throws Exception {
+				if (databaseObject == DatabaseObject.this) {
+					super.walk(databaseObject);
+				} else if (found[0] == null && isNamed(databaseObject, name, isQNamePart)) {
+					found[0] = databaseObject;
+				}
+			}
+		}.init(this);
+		return found[0];
 	}
 
 	public boolean testAttribute(String name, String value) {

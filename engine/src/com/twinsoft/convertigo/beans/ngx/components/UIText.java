@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
-import java.util.regex.Pattern;
-
 import org.apache.commons.text.StringEscapeUtils;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
@@ -132,7 +130,7 @@ public class UIText extends UIComponent implements ITagsProperty {
 	public boolean updateSmartSource(String oldString, String newString) {
 		boolean updated = false;
 		String smartValue = textValue.getSmartValue();
-		if (smartValue.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(smartValue).find()) {
+		if (findSmartSource(smartValue, oldString)) {
 			textValue.setSmartValue(smartValue.replaceAll(oldString, newString));
 			updated = this.hasChanged = true;
 		}

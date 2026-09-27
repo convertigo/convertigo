@@ -91,6 +91,15 @@ public abstract class Contributor {
 		return false;
 	}
 	
+	/**
+	 * The object whose contributions this contributor gives, when they only depend on it and on the container:
+	 * the contributions of an already seen key can then be reused. By default null, the contributions of each
+	 * contributor are computed.
+	 */
+	public Object getKey() {
+		return null;
+	}
+	
 	@Override
 	public String toString() {
         String result = getCompBeanDir().entrySet()

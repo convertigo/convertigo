@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
-import java.util.regex.Pattern;
-
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboFolderType;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
@@ -111,7 +109,7 @@ public class UIControlVariable extends UIComponent implements ITagsProperty {
 	public boolean updateSmartSource(String oldString, String newString) {
 		boolean updated = false;
 		String smartValue = varValue.getSmartValue();
-		if (smartValue.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(smartValue).find()) {
+		if (findSmartSource(smartValue, oldString)) {
 			varValue.setSmartValue(smartValue.replaceAll(oldString, newString));
 			updated = this.hasChanged = true;
 		}
