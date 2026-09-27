@@ -504,8 +504,8 @@
 		[
 			`--studio-tree-track:${collapsedPanels.tree ? '0px' : `${layoutSizes.treeWidth}px`}`,
 			`--studio-tools-track:${collapsedPanels.tools ? '0px' : `${layoutSizes.toolsWidth}px`}`,
-			`--studio-tree-resizer-track:${collapsedPanels.tree ? '0px' : '1px'}`,
-			`--studio-tools-resizer-track:${collapsedPanels.tools ? '0px' : '1px'}`,
+			`--studio-tree-resizer-track:${collapsedPanels.tree ? '0px' : 'var(--studio-gutter, 1px)'}`,
+			`--studio-tools-resizer-track:${collapsedPanels.tools ? '0px' : 'var(--studio-gutter, 1px)'}`,
 			`--studio-tree-row:${collapsedPanels.tree ? '2.65rem' : 'minmax(12rem, 18rem)'}`,
 			`--studio-tools-row:minmax(18rem, 24rem)`,
 			`--studio-logs-height:${layoutSizes.logsHeight}px`

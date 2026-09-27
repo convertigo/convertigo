@@ -1,5 +1,6 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
+	import './studioTheme.css';
 
 	/** @type {{
 	 * profile: string;
@@ -162,6 +163,10 @@
 		--studio-hover-bg: light-dark(#f0f0f0, #2a2d2e);
 		--studio-selection-bg: light-dark(#e4e6f1, #37373d);
 		--studio-selection-focus-bg: light-dark(#d6ebff, #04395e);
+		/* the window under the panels, which show as cards on it */
+		--studio-canvas-bg: light-dark(#e8e8ea, #0f0f10);
+		--studio-card-radius: 0.65rem;
+		--studio-gutter: 0.4rem;
 	}
 
 	.studio-shell {
@@ -325,6 +330,67 @@
 		margin-left: auto;
 		align-items: center;
 		padding-right: 0.6rem;
+	}
+
+	/* On a large screen, the panels are cards on the window, as in Claude Desktop */
+	@media (min-width: 981px) {
+		.studio-shell {
+			background: var(--studio-canvas-bg);
+		}
+
+		.studio-shell :global(.studio-topbar),
+		.studio-shell :global(.studio-activity-bar),
+		.studio-shell__status {
+			border-color: transparent;
+			background: transparent;
+		}
+
+		.studio-shell__workspace {
+			padding: 0 var(--studio-gutter) 0 0;
+			row-gap: var(--studio-gutter);
+		}
+
+		.studio-shell__tree,
+		.studio-shell__main,
+		.studio-shell__tools,
+		.studio-shell__logs-panel {
+			overflow: hidden;
+			border: 1px solid var(--studio-line);
+			border-radius: var(--studio-card-radius);
+			background: var(--studio-panel-bg);
+			box-shadow: 0 1px 2px light-dark(rgb(0 0 0 / 0.06), rgb(0 0 0 / 0.4));
+		}
+
+		.studio-shell__main {
+			background: var(--studio-main-bg);
+		}
+
+		.studio-resizer--vertical {
+			background: transparent;
+		}
+
+		.studio-resizer--vertical::after {
+			position: absolute;
+			inset: 0.8rem calc(50% - 1px);
+			border-radius: 1px;
+			background: transparent;
+			content: '';
+			transition: background 0.14s ease;
+		}
+
+		.studio-resizer--vertical:hover,
+		.studio-resizer--vertical:focus-visible {
+			background: transparent;
+		}
+
+		.studio-resizer--vertical:hover::after,
+		.studio-resizer--vertical:focus-visible::after {
+			background: var(--color-primary-500);
+		}
+
+		.studio-resizer--logs {
+			background: transparent;
+		}
 	}
 
 	@media (max-width: 980px) {

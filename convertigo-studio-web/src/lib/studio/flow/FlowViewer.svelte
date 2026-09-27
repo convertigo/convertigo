@@ -79,7 +79,7 @@
 		'terminal-return': FlowTerminalReturnEdge
 	};
 	const flowNodeSize = { width: 150, height: 72 };
-	const flowMinimapReserve = { width: 230, height: 160 };
+	const flowMinimapReserve = { width: 170, height: 116 };
 	const flowDropBeforeRatio = 0.34;
 	const flowDropAfterRatio = 0.66;
 
@@ -1558,7 +1558,7 @@
 				>
 					<Background />
 					<Controls />
-					<MiniMap pannable zoomable />
+					<MiniMap pannable zoomable width={150} height={96} />
 				</SvelteFlow>
 			{:else}
 				<div class="flow-dashboard__center">No sequence selected</div>
@@ -1787,6 +1787,15 @@
 	:global(.flow-dashboard .svelte-flow__controls-button) {
 		border-bottom-color: var(--flow-controls-border);
 		background: var(--flow-controls-bg);
+		color: var(--flow-controls-text);
+	}
+
+	:global(.flow-dashboard .svelte-flow__attribution) {
+		background: transparent;
+		opacity: 0.55;
+	}
+
+	:global(.flow-dashboard .svelte-flow__attribution a) {
 		color: var(--flow-controls-text);
 	}
 

@@ -1395,7 +1395,7 @@
 		align-items: center;
 		gap: 0.08rem;
 		border: 1px solid transparent;
-		border-radius: 0;
+		border-radius: 0.35rem;
 		background: transparent;
 		color: var(--studio-text, var(--color-surface-900-100));
 		padding-top: 0.16rem;
@@ -1548,7 +1548,7 @@
 		grid-auto-columns: max-content;
 		grid-auto-flow: column;
 		align-items: center;
-		gap: 0.12rem;
+		gap: 0.35rem;
 		border: 0;
 		background: transparent;
 		color: inherit;

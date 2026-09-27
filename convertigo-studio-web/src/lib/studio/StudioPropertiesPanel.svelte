@@ -1197,13 +1197,12 @@
 	.studio-properties__field-label {
 		min-width: 0;
 		overflow: hidden;
-		color: var(--color-surface-600-400);
-		font-size: 0.67rem;
-		font-weight: 750;
+		color: var(--studio-text, var(--color-surface-700-300));
+		font-size: 0.76rem;
+		font-weight: 500;
 		letter-spacing: 0;
 		line-height: 1.2;
 		text-overflow: ellipsis;
-		text-transform: uppercase;
 		white-space: nowrap;
 	}
 

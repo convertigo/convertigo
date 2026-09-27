@@ -1,0 +1,99 @@
+/*
+ * The controls of the Studio, its menus and dialogs included: one accent for the main action of a
+ * panel, neutral buttons for the others, icons at the size of their text and plain frames. The
+ * administration console keeps its own look.
+ */
+html:has(.studio-shell) {
+	--studio-control-bg: light-dark(#ffffff, #2a2a2b);
+	--studio-control-line: light-dark(#d4d4d8, #3a3a3c);
+	--studio-control-radius: 0.4rem;
+	--studio-segment-track: light-dark(#e6e6e9, #232325);
+	--studio-segment-thumb: light-dark(#ffffff, #3b3b3f);
+}
+
+html:has(.studio-shell) :is(.button-primary, .button-secondary, .button-tertiary, .button-error) {
+	min-height: 1.9rem;
+	gap: 0.4rem;
+	border-radius: var(--studio-control-radius);
+	padding: 0.25rem 0.7rem;
+	box-shadow: none;
+	font-size: 0.8rem;
+}
+
+/* the icons of the buttons have their size inline */
+html:has(.studio-shell)
+	:is(.button-primary, .button-secondary, .button-tertiary, .button-error)
+	svg {
+	width: 1.05rem !important;
+	height: 1.05rem !important;
+}
+
+html:has(.studio-shell) .button-primary {
+	border-color: transparent;
+	color: var(--color-primary-contrast-dark);
+}
+
+html:has(.studio-shell) .button-secondary {
+	border-color: var(--studio-control-line);
+	background: var(--studio-control-bg);
+	color: var(--studio-text-strong);
+}
+
+html:has(.studio-shell) .button-secondary:not(:disabled):hover {
+	border-color: color-mix(in oklab, var(--studio-control-line) 60%, var(--studio-text-idle));
+	background: var(--studio-hover-bg);
+	color: var(--studio-text-strong);
+}
+
+html:has(.studio-shell) :is(.button-primary, .button-secondary):disabled {
+	opacity: 0.45;
+}
+
+html:has(.studio-shell) input[type='checkbox'] {
+	border-color: var(--studio-control-line);
+	border-radius: 0.25rem;
+	color: var(--color-primary-500);
+	accent-color: var(--color-primary-500);
+}
+
+html:has(.studio-shell) input[type='checkbox']:not(:checked) {
+	background-color: var(--studio-control-bg);
+}
+
+/* the execution of a requestable: plain frames instead of dashed ones */
+html:has(.studio-shell) :is(.requestable-execution__comment, .requestable-execution__actions) {
+	border-style: solid;
+	border-color: var(--studio-line);
+	background: transparent;
+}
+
+html:has(.studio-shell) .requestable-execution__actions--sticky {
+	background: color-mix(in oklab, var(--studio-main-bg) 88%, transparent);
+}
+
+/* the segmented controls, as in macOS: the chosen option raised on a sunken track */
+html:has(.studio-shell) [data-scope='radio-group'][data-part='control'].input-common {
+	height: auto;
+	min-height: 1.9rem;
+	border-color: transparent;
+	border-radius: var(--studio-control-radius);
+	background: var(--studio-segment-track);
+	padding: 2px;
+}
+
+html:has(.studio-shell) [data-scope='radio-group'][data-part='indicator'] {
+	border-radius: calc(var(--studio-control-radius) - 2px);
+	background: var(--studio-segment-thumb);
+	box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+
+html:has(.studio-shell) [data-scope='radio-group'][data-part='item-text'] {
+	padding: 0.2rem 0.75rem;
+	color: var(--studio-text-idle);
+	font-size: 0.8rem;
+}
+
+html:has(.studio-shell) [data-scope='radio-group'][data-part='item-text'][data-state='checked'] {
+	color: var(--studio-text-strong);
+	font-weight: 600;
+}

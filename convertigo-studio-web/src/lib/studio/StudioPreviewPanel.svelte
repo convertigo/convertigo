@@ -800,7 +800,7 @@
 				<Button
 					full={false}
 					label="Go"
-					class="button-primary h-8! w-fit! px-3!"
+					class="button-secondary h-8! w-fit! px-3!"
 					disabled={!trimmedAddress || trimmedAddress === '#'}
 					onclick={applyAddressBar}
 				/>
@@ -1038,6 +1038,7 @@
 	.studio-preview__nav,
 	.studio-preview__actions {
 		min-width: 0;
+		align-items: center;
 	}
 
 	.studio-preview__device-select {
