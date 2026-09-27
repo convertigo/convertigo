@@ -1671,7 +1671,8 @@ async function dragFlowNodeToFlowNode(page, sourceNodeId, targetNodeId, options 
  * @param {{ yRatio?: number, beforeDrop?: () => Promise<void> }} [options]
  */
 async function dragTreeNodeToTreeNode(page, sourceNodeId, targetNodeId, options = {}) {
-	const sourceBox = await treeRowBox(page, sourceNodeId);
+	// a row is taken by its label, as a user does, away from its action button
+	const sourceBox = await treeLabelBox(page, sourceNodeId);
 	const targetBox = await treeRowBox(page, targetNodeId);
 	if (!sourceBox || !targetBox) {
 		throw new Error(`Missing tree DnD source "${sourceNodeId}" or target "${targetNodeId}"`);
@@ -1685,6 +1686,17 @@ async function dragTreeNodeToTreeNode(page, sourceNodeId, targetNodeId, options 
 	);
 	await options.beforeDrop?.();
 	await page.mouse.up();
+}
+
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {string} nodeId
+ */
+async function treeLabelBox(page, nodeId) {
+	const box = await page
+		.locator(`button.studio-tree-node__content[data-node-id="${nodeId}"]`)
+		.boundingBox();
+	return box ? { x: box.x, y: box.y, width: box.width, height: box.height } : null;
 }
 
 /**

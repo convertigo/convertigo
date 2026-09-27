@@ -181,7 +181,9 @@
 						? `${label} — ${defaultOf}`
 						: undefined
 	);
-	let paddingLeft = $derived(`${depth * 0.34 + 0.14}rem`);
+	let paddingLeft = $derived(`${depth * 0.62 + 0.14}rem`);
+	/** the indent guide of the children, under the chevron of their parent */
+	let childrenGuideLeft = $derived(`${depth * 0.62 + 0.14 + 0.36}rem`);
 	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
 	let folderNode = $derived(isFolderNode(node?.id ?? ''));
 	let renaming = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, renameTargetId)));
@@ -1154,6 +1156,7 @@
 		class:studio-tree-node__row--disabled={disabled}
 		class:studio-tree-node__row--unreachable={unreachable}
 		class:studio-tree-node__row--closed={closedProject}
+		class:studio-tree-node__row--folder={folderNode}
 		class="studio-tree-node__row"
 		style:padding-left={paddingLeft}
 		title={availabilityTitle}
@@ -1343,7 +1346,11 @@
 	</div>
 
 	{#if expanded && children.length}
-		<div class="studio-tree-node__children" role="group">
+		<div
+			class="studio-tree-node__children"
+			role="group"
+			style:--tree-guide-left={childrenGuideLeft}
+		>
 			{#each children as child, index (child.id ?? child.name)}
 				<StudioTreeNode
 					node={child}
@@ -1394,13 +1401,14 @@
 		grid-template-columns: 0.72rem max-content auto;
 		align-items: center;
 		gap: 0.08rem;
+		min-height: 1.6rem;
 		border: 1px solid transparent;
 		border-radius: 0.35rem;
 		background: transparent;
 		color: var(--studio-text, var(--color-surface-900-100));
-		padding-top: 0.16rem;
+		padding-top: 0;
 		padding-right: 0.24rem;
-		padding-bottom: 0.16rem;
+		padding-bottom: 0;
 		transition:
 			background 0.14s ease,
 			border-color 0.14s ease,
@@ -1432,14 +1440,19 @@
 		color: var(--studio-text-strong, var(--color-primary-700-300));
 	}
 
+	/* the selection, tinted with the accent, as a row of Linear */
 	.studio-tree-node__row--selected,
 	.studio-tree-node__row--selected:hover {
-		border-color: color-mix(in oklab, var(--color-primary-500) 70%, transparent);
-		background: var(
-			--studio-selection-focus-bg,
-			color-mix(in oklab, var(--color-primary-500) 14%, transparent)
+		background: light-dark(
+			color-mix(in oklab, var(--color-primary-500) 16%, white),
+			color-mix(in oklab, var(--color-primary-500) 22%, #1c1c1d)
 		);
 		color: var(--studio-text-strong, var(--color-primary-700-300));
+	}
+
+	/* the folders of the objects stay behind the objects */
+	.studio-tree-node__row--folder:not(.studio-tree-node__row--selected) {
+		color: var(--studio-text-idle, var(--color-surface-600-400));
 	}
 
 	.studio-tree-node__row--disabled {
@@ -1663,7 +1676,20 @@
 	}
 
 	.studio-tree-node__children {
+		position: relative;
 		margin-left: 0;
 		border-left: 0;
+	}
+
+	/* the indent guide of the children, as in the trees of VS Code */
+	.studio-tree-node__children::before {
+		position: absolute;
+		top: 0;
+		bottom: 0.2rem;
+		left: var(--tree-guide-left);
+		width: 1px;
+		background: var(--studio-line, var(--color-surface-200-800));
+		content: '';
+		pointer-events: none;
 	}
 </style>

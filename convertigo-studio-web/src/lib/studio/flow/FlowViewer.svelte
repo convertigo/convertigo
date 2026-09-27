@@ -1570,7 +1570,10 @@
 
 <style>
 	.flow-dashboard {
-		--flow-canvas-bg: light-dark(var(--color-surface-50), var(--color-surface-950));
+		--flow-canvas-bg: var(
+			--studio-main-bg,
+			light-dark(var(--color-surface-50), var(--color-surface-950))
+		);
 		--flow-toolbar-bg: light-dark(var(--color-surface-100), var(--color-surface-900));
 		--flow-toolbar-text: light-dark(var(--color-surface-950), var(--color-surface-50));
 		--flow-toolbar-border: light-dark(var(--color-surface-200), var(--color-surface-800));
@@ -1578,13 +1581,14 @@
 		--flow-edge-label-bg: var(--color-surface-50-950);
 		--flow-edge-label-border: var(--color-surface-300-700);
 		--flow-edge-label-text: var(--color-primary-700-300);
-		--flow-node-bg-start: light-dark(var(--color-surface-100), var(--color-surface-900));
-		--flow-node-bg-end: light-dark(var(--color-surface-50), var(--color-surface-950));
-		--flow-node-border-base: light-dark(var(--color-surface-300), var(--color-surface-700));
+		/* the steps are plain cards, raised above the canvas */
+		--flow-node-bg-start: light-dark(#ffffff, #29292b);
+		--flow-node-bg-end: var(--flow-node-bg-start);
+		--flow-node-border-base: light-dark(#dcdce0, #3a3a3d);
 		--flow-node-text: light-dark(var(--color-surface-950), var(--color-surface-50));
 		--flow-node-muted: light-dark(var(--color-surface-600), var(--color-surface-400));
-		--flow-node-shadow: light-dark(rgb(15 23 42 / 0.16), rgb(0 0 0 / 0.48));
-		--flow-node-inset: light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.05));
+		--flow-node-shadow: light-dark(rgb(15 23 42 / 0.1), rgb(0 0 0 / 0.45));
+		--flow-node-inset: transparent;
 		--flow-node-handle-bg: light-dark(var(--color-surface-100), var(--color-surface-900));
 		--flow-node-handle-border: light-dark(var(--color-surface-200), var(--color-surface-800));
 		--flow-node-handle-text: light-dark(var(--color-surface-700), var(--color-surface-300));
@@ -1630,7 +1634,7 @@
 		--flow-minimap-node-border: light-dark(rgb(112 117 120 / 0.46), rgb(251 253 255 / 0.42));
 		--flow-handle-border: light-dark(var(--color-surface-100), var(--color-surface-950));
 		--xy-background-color: var(--flow-canvas-bg);
-		--xy-background-pattern-color: light-dark(rgb(0 47 83 / 0.18), rgb(125 211 252 / 0.24));
+		--xy-background-pattern-color: light-dark(rgb(0 0 0 / 0.14), rgb(255 255 255 / 0.1));
 		--xy-controls-button-background-color: var(--flow-controls-bg);
 		--xy-controls-button-background-color-hover: var(--flow-node-toggle-hover-bg);
 		--xy-controls-button-color: var(--flow-controls-text);
@@ -1720,11 +1724,10 @@
 	}
 
 	:global(.flow-dashboard .svelte-flow__node.selected .flow-step-node) {
-		border-color: var(--flow-node-selected-border);
+		border-color: var(--color-primary-500);
 		box-shadow:
-			0 0 0 3px var(--flow-node-selected-ring),
-			0 0 34px var(--flow-node-selected-glow),
-			0 18px 36px -22px var(--flow-node-shadow);
+			0 0 0 3px color-mix(in oklab, var(--color-primary-500) 28%, transparent),
+			0 8px 18px -12px var(--flow-node-shadow);
 	}
 
 	:global(.flow-dashboard .svelte-flow__node.selected) {

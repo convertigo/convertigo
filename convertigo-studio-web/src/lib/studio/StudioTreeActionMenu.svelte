@@ -568,24 +568,31 @@
 </Menu>
 
 <style>
+	/* a ghost button in the row, larger for a finger */
 	:global(.studio-tree-action-menu__trigger) {
 		display: inline-grid;
-		width: 2rem;
-		height: 2rem;
+		width: 1.3rem;
+		height: 1.3rem;
 		place-items: center;
-		border: 1px solid color-mix(in oklab, var(--color-primary-500) 32%, transparent);
-		border-radius: 0.35rem;
-		background: color-mix(in oklab, var(--color-surface-50-950) 90%, transparent);
-		color: var(--color-surface-700-300);
+		border: 1px solid transparent;
+		border-radius: 0.3rem;
+		background: transparent;
+		color: var(--studio-text-idle, var(--color-surface-700-300));
 		padding: 0;
+	}
+
+	@media (pointer: coarse) {
+		:global(.studio-tree-action-menu__trigger) {
+			width: 2rem;
+			height: 2rem;
+		}
 	}
 
 	:global(.studio-tree-action-menu__trigger:hover:not(:disabled)),
 	:global(.studio-tree-action-menu__trigger:focus-visible:not(:disabled)),
 	:global(.studio-tree-action-menu__trigger[data-state='open']) {
-		border-color: color-mix(in oklab, var(--color-primary-500) 56%, transparent);
-		background: color-mix(in oklab, var(--color-primary-500) 14%, var(--color-surface-50-950));
-		color: var(--color-primary-700-300);
+		background: color-mix(in oklab, var(--studio-text-strong, currentColor) 12%, transparent);
+		color: var(--studio-text-strong, var(--color-primary-700-300));
 	}
 
 	:global(.studio-tree-action-menu__content) {

@@ -30,6 +30,14 @@
 	/**
 	 * @param {HTMLInputElement} node
 	 */
+	/**
+	 * @param {string} name
+	 * @returns {string[]} the words of a camelCase, snake_case or dotted name, where it can wrap
+	 */
+	function nameWords(name) {
+		return String(name ?? '').split(/(?<=[a-z0-9])(?=[A-Z])|(?<=[_.\-])/);
+	}
+
 	function focusRenameInput(node) {
 		if (draggableObjectId) {
 			renameValue = editableName;
@@ -515,7 +523,10 @@
 				/>
 			</form>
 		{:else}
-			<div class="flow-step-node__name">{data.name || data.label}</div>
+			<div class="flow-step-node__name" title={data.name || data.label}>
+				{#each nameWords(data.name || data.label) as word, index (index)}{#if index}<wbr
+						/>{/if}{word}{/each}
+			</div>
 		{/if}
 		<div class="flow-step-node__type">
 			{#if data.isLoop}
@@ -600,28 +611,28 @@
 		width: 150px;
 		height: 72px;
 		border: 1px solid
-			color-mix(in oklab, var(--step-color) 35%, var(--flow-node-border-base, #e2e8f0));
-		border-radius: 0.45rem;
+			color-mix(in oklab, var(--step-color) 18%, var(--flow-node-border-base, #e2e8f0));
+		border-radius: 0.6rem;
 		background: linear-gradient(
 			180deg,
 			var(--flow-node-bg-start, #242b3a) 0%,
 			var(--flow-node-bg-end, #1b2230) 100%
 		);
 		box-shadow:
-			0 14px 28px -20px var(--flow-node-shadow, #020617),
-			0 0 0 1px var(--flow-node-inset, rgb(255 255 255 / 0.05)) inset;
+			0 1px 2px var(--flow-node-shadow, #020617),
+			0 8px 18px -12px var(--flow-node-shadow, #020617);
 		color: var(--flow-node-text, #f8fafc);
 		isolation: isolate;
 		padding: 0.45rem 0.55rem 0.45rem 0.7rem;
 		overflow: visible;
 	}
 
+	/* the selected step is ringed with the accent, without glow */
 	.flow-step-node--selected {
-		border-color: var(--flow-node-selected-border, #38bdf8);
+		border-color: var(--color-primary-500, #38bdf8);
 		box-shadow:
-			0 14px 28px -20px var(--flow-node-shadow, #020617),
-			0 0 0 2px var(--flow-node-selected-ring, rgb(56 189 248 / 0.72)),
-			0 0 30px var(--flow-node-selected-glow, rgb(56 189 248 / 0.48));
+			0 0 0 3px color-mix(in oklab, var(--color-primary-500, #38bdf8) 28%, transparent),
+			0 8px 18px -12px var(--flow-node-shadow, #020617);
 	}
 
 	.flow-step-node--terminal {
@@ -646,6 +657,7 @@
 	}
 
 	.flow-step-node--selected::before {
+		display: none;
 		position: absolute;
 		z-index: -1;
 		inset: -0.62rem;
@@ -900,9 +912,9 @@
 
 	.flow-step-node__accent {
 		position: absolute;
-		inset: 0 auto 0 0;
-		width: 0.22rem;
-		border-radius: 0.45rem 0 0 0.45rem;
+		inset: 0.55rem auto 0.55rem 0;
+		width: 0.2rem;
+		border-radius: 0 999px 999px 0;
 		background: var(--step-color);
 	}
 
@@ -1010,13 +1022,17 @@
 		}
 	}
 
+	/* a long name shows on two lines */
 	.flow-step-node__name {
+		display: -webkit-box;
 		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		font-size: 0.78rem;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow-wrap: anywhere;
+		font-size: 0.8rem;
 		line-height: 1.15;
-		font-weight: 650;
+		font-weight: 600;
 	}
 
 	.flow-step-node__rename-form {
