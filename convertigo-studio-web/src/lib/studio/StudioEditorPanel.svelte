@@ -700,7 +700,12 @@
 	{:else if error}
 		<StudioEmptyState message={error} full class="studio-editor__empty" />
 	{:else if !selectedId}
-		<StudioEmptyState message="No object selected" full class="studio-editor__empty" />
+		<StudioEmptyState
+			message="No object selected"
+			icon="mdi:cursor-default-click-outline"
+			full
+			class="studio-editor__empty"
+		/>
 	{:else}
 		<StudioEmptyState
 			message="No text editor for this selection"

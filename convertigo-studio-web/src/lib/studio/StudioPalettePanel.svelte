@@ -466,7 +466,7 @@
 				</div>
 			</StudioEmptyState>
 		{:else if !selectedId}
-			<StudioEmptyState message="No object selected" />
+			<StudioEmptyState message="No object selected" icon="mdi:cursor-default-click-outline" />
 		{:else if filteredCategories.length === 0}
 			<StudioEmptyState message="No component available" />
 		{:else}

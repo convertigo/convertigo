@@ -139,9 +139,9 @@
 
 <div class="studio-execution">
 	{#if !projectName}
-		<StudioEmptyState message="No project selected" full />
+		<StudioEmptyState message="No project selected" icon="mdi:folder-outline" full />
 	{:else if !requestable}
-		<StudioEmptyState message="No requestable selected" full />
+		<StudioEmptyState message="No requestable selected" icon="mdi:play-circle-outline" full />
 	{:else}
 		<RequestableExecution
 			{projectName}

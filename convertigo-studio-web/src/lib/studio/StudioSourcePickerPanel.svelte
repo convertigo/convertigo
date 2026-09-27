@@ -1253,7 +1253,7 @@
 				</section>
 			{/if}
 		{:else if !activeSourceId}
-			<StudioEmptyState message="No object selected" />
+			<StudioEmptyState message="No object selected" icon="mdi:cursor-default-click-outline" />
 		{:else if loading}
 			<StudioEmptyState message="Loading source" loading />
 		{:else if error}

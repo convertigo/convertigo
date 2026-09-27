@@ -3293,7 +3293,7 @@
 			onSourceDrop={applySourceDrop}
 		/>
 	{:else}
-		<StudioEmptyState message="No sequence selected" full />
+		<StudioEmptyState message="No sequence selected" icon="mdi:source-branch" full />
 	{/if}
 {/snippet}
 

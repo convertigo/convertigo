@@ -956,7 +956,11 @@
 			</div>
 		</MaxRectangle>
 	{:else}
-		<StudioEmptyState message="No project selected" class="studio-preview__empty" />
+		<StudioEmptyState
+			message="No project selected"
+			icon="mdi:folder-outline"
+			class="studio-preview__empty"
+		/>
 	{/if}
 	{#if captureOpen && projectName}
 		<StudioCaptureDialog

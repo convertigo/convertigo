@@ -54,6 +54,8 @@
 		display: grid;
 		min-height: 7rem;
 		place-items: center;
+		/* the icon stays above its message, whatever the height */
+		align-content: center;
 		gap: 0.65rem;
 		color: var(--color-surface-600-400);
 		padding: 1rem;

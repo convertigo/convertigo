@@ -385,7 +385,10 @@
 				{/each}
 			</article>
 		{:else}
-			<StudioEmptyState message="No documentation available for this component." />
+			<StudioEmptyState
+				message="No documentation available for this component."
+				icon="mdi:book-open-variant"
+			/>
 		{/if}
 	{:else if loading}
 		<StudioEmptyState message="Loading documentation..." loading full />

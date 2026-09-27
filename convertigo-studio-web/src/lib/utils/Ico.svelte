@@ -91,6 +91,7 @@
 	import MdiFilterCog from '~icons/mdi/filter-cog';
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline';
 	import MdiFitToPageOutline from '~icons/mdi/fit-to-page-outline';
+	import MdiCursorDefaultClickOutline from '~icons/mdi/cursor-default-click-outline';
 	import MdiFolderLockOutline from '~icons/mdi/folder-lock-outline';
 	import MdiFolderOpenOutline from '~icons/mdi/folder-open-outline';
 	import MdiFolderOutline from '~icons/mdi/folder-outline';
@@ -287,6 +288,7 @@
 		'mdi:filter-cog': MdiFilterCog,
 		'mdi:filter': MdiFilter,
 		'mdi:folder-outline': MdiFolderOutline,
+		'mdi:cursor-default-click-outline': MdiCursorDefaultClickOutline,
 		'mdi:folder-lock-outline': MdiFolderLockOutline,
 		'mdi:folder-open-outline': MdiFolderOpenOutline,
 		'mdi:format-text': MdiFormatText,

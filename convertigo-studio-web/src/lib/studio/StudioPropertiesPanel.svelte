@@ -732,7 +732,7 @@
 
 	<div class="studio-properties__body" class:studio-properties__body--loading={loading}>
 		{#if !selectedId}
-			<StudioEmptyState message="No object selected" />
+			<StudioEmptyState message="No object selected" icon="mdi:cursor-default-click-outline" />
 		{:else}
 			<AccordionGroup
 				class="studio-properties__sections"
