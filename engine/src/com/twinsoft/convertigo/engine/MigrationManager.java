@@ -56,6 +56,11 @@ public class MigrationManager {
 					String targetProjectArchive = "";
 					
 					for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
+						if (!Engine.isStudioMode()
+								&& Engine.theApp.databaseObjectsManager.getStudioProjects().isClosed(projectName)) {
+							// a project the web Studio closed loads, and migrates, once opened again
+							continue;
+						}
 						if (!jobs.containsKey(projectName)) {
 							while(countRunning() >= cpus) {
 								Thread.sleep(100);

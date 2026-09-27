@@ -4,6 +4,7 @@
 	import { call, runStudioContextAction } from '$lib/utils/service';
 	import { onMount, tick, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { closedProjects, refreshClosedProjects } from './closedProjects.svelte.js';
 	import {
 		areEquivalentDboObjectIds,
 		equivalentDboObjectIds,
@@ -105,20 +106,39 @@
 			clearTimeout(gitDecorationsTimer);
 		};
 	});
+	$effect(() => {
+		// the closed projects, which the list of the projects of the engine leaves out
+		void refreshSerial;
+		void Projects.projects?.length;
+		untrack(() => void refreshClosedProjects());
+	});
 	let rootChildren = $derived.by(() =>
-		(Projects.projects ?? [])
-			.filter((project) => project?.name && !(hideLibs && project.name.startsWith('lib_')))
-			.map((project) => {
-				if (!rootNodeCache[project.name]) {
-					rootNodeCache[project.name] = {
-						id: project.name,
-						name: project.name,
-						label: project.name,
+		[
+			...(Projects.projects ?? [])
+				.map((project) => project?.name)
+				.filter((name) => name && !closedProjects.names.includes(name)),
+			...closedProjects.names
+		]
+			.filter((name) => !(hideLibs && name.startsWith('lib_')))
+			// the order of the engine, which ignores the case
+			.sort((left, right) => {
+				const [a, b] = [left.toLowerCase(), right.toLowerCase()];
+				return a < b ? -1 : a > b ? 1 : 0;
+			})
+			.map((name) => {
+				const closed = closedProjects.names.includes(name);
+				// a project opened or closed again shows as a new node, without the children it had
+				if (!rootNodeCache[name] || Boolean(rootNodeCache[name].closed) !== closed) {
+					rootNodeCache[name] = {
+						id: name,
+						name,
+						label: name,
 						icon: 'folder',
-						children: true
+						children: !closed,
+						...(closed ? { closed: true } : {})
 					};
 				}
-				return rootNodeCache[project.name];
+				return rootNodeCache[name];
 			})
 	);
 	let loading = $derived(Projects.loading && rootChildren.length === 0);

@@ -1238,6 +1238,50 @@ test('studio moves a structured flow child before a sibling and keeps tree and u
  * @param {import('@playwright/test').Page} page
  * @param {string} nodeId
  */
+test('studio closes a project and opens it again', async ({ page }) => {
+	const state = createStudioState({ closedProjects: ['Archive'] });
+	/** @type {URLSearchParams[]} */
+	const closeRequests = [];
+	await mockStudioServices(page, {
+		state,
+		projects: [projectName, 'Archive'],
+		closeRequests
+	});
+	await page.goto('/studio/');
+
+	// a closed project shows without children, and only opens or is deleted
+	const archiveRow = page.locator('.studio-tree-node__row', {
+		has: page.locator('button.studio-tree-node__content[data-node-id="Archive"]')
+	});
+	await expect(archiveRow).toHaveClass(/studio-tree-node__row--closed/);
+	await expect(
+		page.locator('button.studio-tree-node__toggle-button[data-node-id="Archive"]')
+	).toHaveCount(0);
+	await selectTreeNode(page, 'Archive');
+	await page.getByRole('button', { name: 'Actions for Archive' }).click();
+	await expect(page.getByRole('menuitem', { name: 'Open' })).toBeVisible();
+	await expect(page.getByRole('menuitem', { name: 'Delete project' })).toBeVisible();
+	await expect(page.getByRole('menuitem', { name: 'Save' })).toHaveCount(0);
+	await page.keyboard.press('Escape');
+
+	// a double click opens it, as in the Eclipse Studio
+	await page.locator('button.studio-tree-node__content[data-node-id="Archive"]').dblclick();
+	await expect(archiveRow).not.toHaveClass(/studio-tree-node__row--closed/);
+	expect(closeRequests.map((params) => [params.get('projects'), params.get('open')])).toEqual([
+		['["Archive"]', 'true']
+	]);
+
+	await selectTreeNode(page, projectName);
+	await page.getByRole('button', { name: `Actions for ${projectName}` }).click();
+	await page.getByRole('menuitem', { name: 'Close' }).click();
+	const projectRow = page.locator('.studio-tree-node__row', {
+		has: page.locator(`button.studio-tree-node__content[data-node-id="${projectName}"]`)
+	});
+	await expect(projectRow).toHaveClass(/studio-tree-node__row--closed/);
+	expect(closeRequests.at(-1)?.get('open')).toBe('false');
+	expect(state.closedProjects).toEqual([projectName]);
+});
+
 test('studio copies objects to the system clipboard and pastes the ones of another Studio', async ({
 	page
 }) => {
@@ -1979,18 +2023,39 @@ function responseForService(service, params, options = {}) {
 					projects: {
 						project: options.noProjects
 							? []
-							: (options.projects ?? [projectName]).map((name) => ({
-									name,
-									comment: '',
-									ref: ['lib_flow_engine']
-								}))
+							: (options.projects ?? [projectName])
+									.filter((name) => !state.closedProjects?.includes(name))
+									.map((name) => ({
+										name,
+										comment: '',
+										ref: ['lib_flow_engine']
+									}))
 					}
 				}
 			};
 		case 'projects.GetTestPlatform':
 			return testPlatformResponse(state);
 		case 'studio.treeview.Get':
+			if (state.closedProjects && !params.has('id') && !params.has('ids')) {
+				// the projects of the workspace, closed or not
+				return {
+					children: (options.projects ?? [projectName]).map((name) => ({
+						id: name,
+						children: !state.closedProjects.includes(name),
+						...(state.closedProjects.includes(name) ? { closed: true } : {})
+					}))
+				};
+			}
 			return options.noProjects ? { children: [] } : treeviewResponse(params, state);
+		case 'studio.project.Close': {
+			options.closeRequests?.push(params);
+			const names = JSON.parse(params.get('projects') ?? '[]');
+			const open = params.get('open') === 'true';
+			state.closedProjects = open
+				? state.closedProjects.filter((name) => !names.includes(name))
+				: [...new Set([...state.closedProjects, ...names])];
+			return { done: true, projects: names };
+		}
 		case 'studio.dbo.Copy':
 			return {
 				done: true,
@@ -2291,6 +2356,8 @@ function createStudioState(overrides = {}) {
 			{ name: 'return', classname: 'com.twinsoft.convertigo.beans.steps.ReturnStep' }
 		],
 		files: ['readme.md'],
+		/** @type {string[] | undefined} the projects closed in the workspace */
+		closedProjects: undefined,
 		...overrides
 	};
 }

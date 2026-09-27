@@ -2164,6 +2164,31 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	@Override
+	public boolean isClosed(String projectName) {
+		return !canOpen(projectName);
+	}
+
+	@Override
+	public boolean setClosed(String projectName, boolean closed) throws EngineException {
+		syncExec(() -> {
+			var explorer = getProjectExplorerView();
+			if (explorer != null) {
+				explorer.setProjectClosed(projectName, closed);
+			}
+		});
+		// the Studio opens the project in a job
+		for (int i = 0; i < 300 && !closed && !canOpen(projectName); i++) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				break;
+			}
+		}
+		return canOpen(projectName) != closed;
+	}
+
+	@Override
 	public Map<String, File> getProjects(boolean checkOpenable) {
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();

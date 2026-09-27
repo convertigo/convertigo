@@ -15,6 +15,7 @@
 		propertyDocumentationFromDefinition,
 		propertyDocumentationFromProperties
 	} from '$lib/studio/blockDefinition';
+	import { isProjectClosed, setProjectsClosed } from '$lib/studio/closedProjects.svelte.js';
 	import {
 		inferMovedObjectId,
 		parentObjectId,
@@ -352,7 +353,11 @@
 	let projectChangeDeferredByMutation = false;
 	let localTreeMutationHandled = false;
 
-	let selectedContext = $derived(parseSelection(selectedId));
+	/** the selected object, for the views: a closed project shows nothing, until it is opened again */
+	let viewSelectedId = $derived(
+		isProjectClosed(parseSelection(selectedId).projectName) ? '' : selectedId
+	);
+	let selectedContext = $derived(parseSelection(viewSelectedId));
 	$effect(() => {
 		// another object selected elsewhere ends the selection of several objects
 		const id = selectedId;
@@ -2208,6 +2213,47 @@
 	}
 
 	/**
+	 * Closes a project, as the Eclipse Studio does: it stays in the tree, without loading, until it is
+	 * opened again. Its unsaved changes are saved first.
+	 * @param {string} projectName
+	 * @param {boolean} closed false to open the project again
+	 */
+	async function setProjectClosed(projectName, closed) {
+		if (!projectName || projectActionBusy) {
+			return;
+		}
+		if (closed && dirtyProjectNames.has(projectName)) {
+			if (
+				!window.confirm(
+					`The project "${projectName}" has unsaved changes.\n\nSave them and close the project?`
+				)
+			) {
+				return;
+			}
+		}
+		projectActionBusy = closed ? 'close' : 'open';
+		try {
+			if (closed && dirtyProjectNames.has(projectName)) {
+				await saveDboProject(projectName, projectName, {
+					readme: studioPreferences.readmeOnSave
+				});
+				clearProjectDirty(projectName);
+			}
+			const result = await setProjectsClosed([projectName], closed);
+			if (!result.done) {
+				toaster.error({
+					description:
+						result.error || `The project ${projectName} cannot be ${closed ? 'closed' : 'opened'}.`
+				});
+			}
+			await Projects.refresh();
+			refreshStudioViews();
+		} finally {
+			projectActionBusy = '';
+		}
+	}
+
+	/**
 	 * @param {{ tree?: boolean, flow?: boolean }} [options]
 	 */
 	function refreshStudioViews(options = {}) {
@@ -2384,6 +2430,8 @@
 			await saveSelectedProject();
 		} else if (action === 'project.reload') {
 			await reloadSelectedProject();
+		} else if (action === 'project.close' || action === 'project.open') {
+			await setProjectClosed(projectName, action === 'project.close');
 		} else if (action === 'dialog.variables') {
 			variablesTargetId = nodeId;
 		} else if (action === 'dialog.translations') {
@@ -3220,7 +3268,7 @@
 
 {#snippet codePane()}
 	<StudioEditorPanel
-		{selectedId}
+		selectedId={viewSelectedId}
 		{editorTarget}
 		active={codeEditorActive}
 		onSave={refreshAfterPropertySave}
@@ -3236,7 +3284,7 @@
 			{sequences}
 			selectedSequenceName={selectedFlowSequenceName}
 			autoSelectFirst={false}
-			selectedObjectId={selectedId}
+			selectedObjectId={viewSelectedId}
 			refreshSerial={flowRefreshSerial}
 			refreshMutation={lastStudioMutation}
 			refreshMutationSerial={studioMutationSerial}
@@ -3308,7 +3356,7 @@
 
 {#snippet palettePane()}
 	<StudioPalettePanel
-		{selectedId}
+		selectedId={viewSelectedId}
 		active={effectiveSidePanel === 'palette'}
 		{selectedPaletteItem}
 		revealRequest={paletteRevealRequest}
@@ -3319,7 +3367,7 @@
 
 {#snippet propertiesPane()}
 	<StudioPropertiesPanel
-		{selectedId}
+		selectedId={viewSelectedId}
 		active={effectiveSidePanel === 'properties'}
 		refreshSerial={propertiesRefreshSerial}
 		onSave={refreshAfterPropertySave}
@@ -3370,7 +3418,7 @@
 
 {#snippet referencesPane()}
 	<StudioReferencesPanel
-		{selectedId}
+		selectedId={viewSelectedId}
 		active={bottomView === 'references'}
 		onSelect={selectObject}
 	/>
@@ -3378,7 +3426,7 @@
 
 {#snippet schemaPane()}
 	<StudioSchemaPanel
-		{selectedId}
+		selectedId={viewSelectedId}
 		projectName={selectedProjectName}
 		active={bottomView === 'schema'}
 	/>

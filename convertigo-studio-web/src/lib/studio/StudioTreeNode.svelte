@@ -163,18 +163,26 @@
 		return typeof node?.default === 'string' ? node.default : '';
 	});
 	let unreachable = $derived(!disabled && ancestorDisabled);
+	let projectNode = $derived(depth === 0 && Boolean(node?.id));
+	/** a project closed in the workspace, as the Eclipse Studio shows one: it opens again on double click */
+	let closedProject = $derived.by(() => {
+		dataSerial;
+		revision;
+		return projectNode && node?.closed === true;
+	});
 	let availabilityTitle = $derived(
-		disabled
-			? `${label} — Disabled`
-			: unreachable
-				? `${label} — Unreachable because an ancestor is disabled`
-				: defaultOf
-					? `${label} — ${defaultOf}`
-					: undefined
+		closedProject
+			? `${label} — Closed, double-click to open it`
+			: disabled
+				? `${label} — Disabled`
+				: unreachable
+					? `${label} — Unreachable because an ancestor is disabled`
+					: defaultOf
+						? `${label} — ${defaultOf}`
+						: undefined
 	);
 	let paddingLeft = $derived(`${depth * 0.34 + 0.14}rem`);
 	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
-	let projectNode = $derived(depth === 0 && Boolean(node?.id));
 	let folderNode = $derived(isFolderNode(node?.id ?? ''));
 	let renaming = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, renameTargetId)));
 	let showSelectedActions = $derived(
@@ -1113,6 +1121,7 @@
 		class:studio-tree-node__row--pending={Boolean(node?.pending)}
 		class:studio-tree-node__row--disabled={disabled}
 		class:studio-tree-node__row--unreachable={unreachable}
+		class:studio-tree-node__row--closed={closedProject}
 		class="studio-tree-node__row"
 		style:padding-left={paddingLeft}
 		title={availabilityTitle}
@@ -1190,7 +1199,8 @@
 				data-node-id={node?.id}
 				class="studio-tree-node__content"
 				onclick={selectNode}
-				ondblclick={(event) => toggleExpanded(event)}
+				ondblclick={(event) =>
+					closedProject ? onTreeAction?.('project.open', node.id) : toggleExpanded(event)}
 			>
 				<span class="studio-tree-node__icon">
 					{#if typeof icon === 'string' && icon.includes('?')}
@@ -1258,8 +1268,9 @@
 					canRename={draggableNode}
 					canDelete={draggableNode}
 					canCopy={Boolean(onTreeAction && draggableNode)}
-					canPaste={Boolean(onTreeAction && canPasteInto?.(node.id))}
+					canPaste={Boolean(onTreeAction && !closedProject && canPasteInto?.(node.id))}
 					isProject={Boolean(onTreeAction && projectNode)}
+					closed={closedProject}
 					fileKind={!onTreeAction || !node.id.includes('/')
 						? ''
 						: /^[^/]+\/$/.test(node.id)
@@ -1404,6 +1415,15 @@
 
 	.studio-tree-node__row--unreachable {
 		color: var(--color-warning-500, #ff8c00);
+	}
+
+	.studio-tree-node__row--closed {
+		color: color-mix(in oklab, currentColor 55%, transparent);
+	}
+
+	.studio-tree-node__row--closed .studio-tree-node__icon {
+		filter: grayscale(1);
+		opacity: 0.6;
 	}
 
 	.studio-tree-node__row--drop {

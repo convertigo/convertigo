@@ -99,10 +99,17 @@ public class Get extends JSonService {
 	private JSONArray getChildren(String id, boolean flow) throws Exception {
 		var children = new JSONArray();
 		if (id == null) {
-			for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(true)) {
+			var studio = Engine.theApp.databaseObjectsManager.getStudioProjects();
+			for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
 				// Project children remain loaded on demand. Loading every DatabaseObject
 				// here eagerly migrates the whole workspace before a project is expanded.
-				children.put(getProjectNode(projectName, flow));
+				var node = getProjectNode(projectName, flow);
+				if (studio.isClosed(projectName)) {
+					// a closed project shows without children, as in the tree of the Eclipse Studio
+					node.put("closed", true);
+					node.put("children", false);
+				}
+				children.put(node);
 			}
 		} else if (id.contains("/")) {
 			children = getFileChildren(id);

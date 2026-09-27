@@ -27,6 +27,7 @@
 	 *  canCopy?: boolean,
 	 *  canPaste?: boolean,
 	 *  isProject?: boolean,
+	 *  closed?: boolean,
 	 *  fileKind?: '' | 'root' | 'folder' | 'file',
 	 *  enabledState?: boolean,
 	 *  deleting?: boolean,
@@ -53,6 +54,7 @@
 		canCopy = false,
 		canPaste = false,
 		isProject = false,
+		closed = false,
 		fileKind = '',
 		enabledState = undefined,
 		deleting = false,
@@ -123,8 +125,8 @@
 	}
 
 	async function loadContextMenu() {
-		if (fileKind) {
-			// a file of the project has only the actions on files
+		if (fileKind || closed) {
+			// a file of the project has only the actions on files, a closed project opens or is deleted
 			contextItems = [];
 			return;
 		}
@@ -399,7 +401,19 @@
 						{/if}
 					</Menu.ItemGroup>
 				{/if}
-				{#if isProject}
+				{#if isProject && closed}
+					<Menu.ItemGroup>
+						<Menu.ItemGroupLabel>Project</Menu.ItemGroupLabel>
+						{@render treeItem('project.open', 'mdi:folder-open-outline', 'Open')}
+						{@render treeItem(
+							'project.delete',
+							'mdi:delete-outline',
+							'Delete project',
+							false,
+							true
+						)}
+					</Menu.ItemGroup>
+				{:else if isProject}
 					{#if editable}
 						<Menu.Separator />
 					{/if}
@@ -407,6 +421,7 @@
 						<Menu.ItemGroupLabel>Project</Menu.ItemGroupLabel>
 						{@render treeItem('project.save', 'mdi:content-save-outline', 'Save')}
 						{@render treeItem('project.reload', 'mdi:reload', 'Reload from disk')}
+						{@render treeItem('project.close', 'mdi:folder-lock-outline', 'Close')}
 						{@render treeItem('project.export', 'mdi:export', 'Export as .car')}
 						{@render treeItem('project.deploy', 'mdi:server-network', 'Deploy to a server…')}
 						{@render treeItem('project.importWs', 'mdi:web', 'Import a web service…')}

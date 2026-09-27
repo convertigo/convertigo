@@ -2876,6 +2876,29 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	//******************************** HELPER METHODS FOR ACTIONS **************************************//
 
+	/**
+	 * Closes or opens a project of the tree, as its Close and Open actions do.
+	 * @return false if the tree has no such project to close or open
+	 */
+	public boolean setProjectClosed(String projectName, boolean closed) {
+		var provider = (ViewContentProvider) viewer.getContentProvider();
+		if (provider == null) {
+			return false;
+		}
+		for (var object : provider.getChildren(provider.getTreeRoot())) {
+			if (closed && object instanceof ProjectTreeObject project
+					&& projectName.equals(project.getObject().getName())) {
+				return unloadProjectTreeObject(project) != null;
+			}
+			if (!closed && object instanceof UnloadedProjectTreeObject unloaded
+					&& projectName.equals(unloaded.toString())) {
+				loadProject(unloaded, false);
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public void loadSelectedUnloadedProjectTreeObject() {
 		//		TreeObject treeObject = getFirstSelectedTreeObject();
 		//		if ((treeObject != null) && (treeObject instanceof UnloadedProjectTreeObject))

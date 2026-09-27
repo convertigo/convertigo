@@ -59,6 +59,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.HttpResponseException;
+import org.codehaus.jettison.json.JSONArray;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -157,10 +158,95 @@ public class DatabaseObjectsManager implements AbstractManager {
 		public void reloadProject(String name) throws EngineException;
 
 		public void renameProject(String oldName, String newName);
+
+		/**
+		 * @return whether the project is in the workspace but closed, as a Studio closes one: it does not
+		 * load until it is opened again
+		 */
+		default public boolean isClosed(String projectName) {
+			return false;
+		}
+
+		/**
+		 * Closes a project, which stays in the workspace without loading, or opens it again.
+		 * @return false if the project cannot be closed or opened here
+		 */
+		default public boolean setClosed(String projectName, boolean closed) throws EngineException {
+			return false;
+		}
+
+		/**
+		 * The project is deleted from the workspace: a project created later with its name is not closed.
+		 */
+		default public void projectRemoved(String projectName) {
+		}
 	}
 
 	public static StudioProjects studioProjects = new StudioProjects() {
 		Map<String, File> projectsDir = new HashMap<String, File>();
+
+		/** the projects closed by the web Studio, kept in the configuration of the workspace */
+		Set<String> closedProjects;
+
+		private File closedProjectsFile() {
+			return new File(Engine.CONFIGURATION_PATH, "studio_closed_projects.json");
+		}
+
+		private synchronized Set<String> closedProjects() {
+			if (closedProjects == null) {
+				closedProjects = new TreeSet<String>();
+				var file = closedProjectsFile();
+				if (file.exists()) {
+					try {
+						var names = new JSONArray(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
+						for (int i = 0; i < names.length(); i++) {
+							closedProjects.add(names.getString(i));
+						}
+					} catch (Exception e) {
+						Engine.logDatabaseObjectManager.warn("Unable to read the closed projects from " + file, e);
+					}
+				}
+			}
+			return closedProjects;
+		}
+
+		@Override
+		public boolean canOpen(String projectName) {
+			return !isClosed(projectName);
+		}
+
+		@Override
+		public synchronized boolean isClosed(String projectName) {
+			return closedProjects().contains(projectName);
+		}
+
+		@Override
+		public void projectRemoved(String projectName) {
+			try {
+				setClosed(projectName, false);
+			} catch (EngineException e) {
+				Engine.logDatabaseObjectManager.warn("Unable to forget the closed project " + projectName, e);
+			}
+		}
+
+		@Override
+		public synchronized boolean setClosed(String projectName, boolean closed) throws EngineException {
+			var names = closedProjects();
+			if (!(closed ? names.add(projectName) : names.remove(projectName))) {
+				return true;
+			}
+			var file = closedProjectsFile();
+			try {
+				if (names.isEmpty()) {
+					FileUtils.deleteQuietly(file);
+				} else {
+					FileUtils.writeStringToFile(file, new JSONArray(names).toString(1), StandardCharsets.UTF_8);
+				}
+			} catch (Exception e) {
+				throw new EngineException("Unable to write the closed projects to " + file, e);
+			}
+			return true;
+		}
 
 		@Override
 		public void declareProject(String projectName, File projectFile) {
@@ -675,6 +761,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 					}
 				}
 				FileUtils.deleteAsync(removeDir);
+				if (!bPreserveEclipe && !bPreserveVCS) {
+					getStudioProjects().projectRemoved(projectName);
+				}
 			}
 
 			clearCache(projectName);
