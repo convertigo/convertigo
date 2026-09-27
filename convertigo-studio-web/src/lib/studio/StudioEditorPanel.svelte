@@ -308,6 +308,27 @@
 		saving = true;
 		let handled = false;
 		onMutationBusyChange(true);
+		if (tab.sourceDocument) {
+			// A Flow source is stored as a working copy of its FlowEngine; the
+			// project Save writes it like any other Flow source.
+			try {
+				const response = await call('studio.source.Set', {
+					id: tab.id,
+					content: tab.content,
+					revision: tab.revision ?? ''
+				});
+				tab.revision = String(response?.revision ?? '');
+				tab.originalValue = tab.content;
+				await onSave?.(tab.id, { id: tab.id });
+				handled = true;
+			} catch (err) {
+				error = String(err instanceof Error ? err.message : err);
+			} finally {
+				saving = false;
+				onMutationBusyChange(false, handled);
+			}
+			return;
+		}
 		try {
 			const loaded = await loadProperties(tab.id);
 			if (!loaded) {

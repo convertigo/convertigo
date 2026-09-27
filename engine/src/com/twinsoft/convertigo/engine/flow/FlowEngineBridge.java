@@ -207,7 +207,11 @@ public class FlowEngineBridge {
 		}
 
 		void complete(JSONObject response) {
-			future.complete(response.toString());
+			future.complete(serializedResponse(response));
+		}
+
+		void complete(String serializedResponse) {
+			future.complete(serializedResponse);
 		}
 
 		void completeExceptionally(Throwable error) {
@@ -654,6 +658,18 @@ public class FlowEngineBridge {
 		}
 	}
 
+	/** The _flow/dependencies.json content of a project: the versions of the definer projects it uses. */
+	public JSONObject dependencies(FlowEngine flowEngine) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flowEngine);
+			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+			return invoke(engineQName, "dependencies", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build Flow dependencies request.", e);
+		}
+	}
+
 	public JSONObject icons(FlowEngine flowEngine, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
@@ -958,9 +974,6 @@ public class FlowEngineBridge {
 			if (flowEngine == null ? !sourceFile.isFile() : !flowEngine.hasSource(sourcePath)) {
 				throw new EngineException("Flow source file not found: " + sourcePath);
 			}
-			if (sourceFile.getName().endsWith(".front.json")) {
-				return applyJsonSourceMutation(flowEngine, sourceFile, mutation);
-			}
 			if (sourceFile.getName().endsWith(".flow.svelte")) {
 				return applyFlowSvelteSourceMutation(flowEngine, sourceFile, mutation, authoringRootPath);
 			}
@@ -1044,60 +1057,6 @@ public class FlowEngineBridge {
 		return response;
 	}
 
-	private static JSONObject applyJsonSourceMutation(FlowEngine flowEngine, File sourceFile, JSONObject mutation) throws Exception {
-		var source = flowEngine == null
-				? FileUtils.readFileToString(sourceFile, "UTF-8")
-				: flowEngine.getFrontendSource(sourceFile.getAbsolutePath());
-		var root = new JSONObject(source);
-		var op = mutation == null ? "" : mutation.optString("op", "");
-		var path = mutation == null ? "" : mutation.optString("path", "");
-		var value = mutation == null ? JSONObject.NULL : mutation.opt("value");
-		if ("replace".equals(op) || "set".equals(op)) {
-			jsonSet(root, jsonPathTokens(path), value);
-		} else if ("append".equals(op)) {
-			var target = jsonGet(root, jsonPathTokens(path));
-			if (!(target instanceof JSONArray array)) {
-				throw new EngineException("Flow JSON mutation target is not an array: " + path);
-			}
-			array.put(value == null ? JSONObject.NULL : value);
-		} else if ("insert".equals(op)) {
-			var tokens = jsonPathTokens(path);
-			var target = jsonGet(root, tokens);
-			if (!(target instanceof JSONArray array)) {
-				throw new EngineException("Flow JSON mutation target is not an array: " + path);
-			}
-			var index = Math.max(0, Math.min(mutation.optInt("index", array.length()), array.length()));
-			var copy = new JSONArray();
-			for (int i = 0; i < index; i++) {
-				copy.put(array.get(i));
-			}
-			copy.put(value == null ? JSONObject.NULL : value);
-			for (int i = index; i < array.length(); i++) {
-				copy.put(array.get(i));
-			}
-			jsonSet(root, tokens, copy);
-		} else if ("delete".equals(op) || "remove".equals(op)) {
-			jsonRemove(root, jsonPathTokens(path));
-		} else {
-			throw new EngineException("Unsupported Flow JSON mutation operation: " + op);
-		}
-		var newSource = root.toString(2) + "\n";
-		var changed = !newSource.equals(source);
-		if (changed) {
-			if (flowEngine == null) {
-				FileUtils.writeStringToFile(sourceFile, newSource, "UTF-8");
-			} else {
-				flowEngine.setFrontendSource(sourceFile.getAbsolutePath(), newSource);
-			}
-		}
-		return new JSONObject()
-				.put("ok", true)
-				.put("target", "json")
-				.put("source", newSource)
-				.put("sourceFile", sourceFile.getAbsolutePath())
-				.put("changed", changed);
-	}
-
 	static JSONObject frontendSourceDrafts(FlowEngine... flowEngines) throws JSONException {
 		var drafts = new JSONObject();
 		var visited = new HashSet<String>();
@@ -1143,106 +1102,6 @@ public class FlowEngineBridge {
 						+ referencedProjectName + "\".", e);
 			}
 		}
-	}
-
-	private static List<Object> jsonPathTokens(String path) throws EngineException {
-		var tokens = new ArrayList<Object>();
-		var key = new StringBuilder();
-		for (int i = 0; i < path.length(); i++) {
-			var ch = path.charAt(i);
-			if (ch == '.') {
-				if (key.length() > 0) {
-					tokens.add(key.toString());
-					key.setLength(0);
-				}
-			} else if (ch == '[') {
-				if (key.length() > 0) {
-					tokens.add(key.toString());
-					key.setLength(0);
-				}
-				var end = path.indexOf(']', i);
-				if (end == -1) {
-					throw new EngineException("Invalid Flow JSON mutation path: " + path);
-				}
-				tokens.add(Integer.valueOf(path.substring(i + 1, end)));
-				i = end;
-			} else {
-				key.append(ch);
-			}
-		}
-		if (key.length() > 0) {
-			tokens.add(key.toString());
-		}
-		if (tokens.isEmpty()) {
-			throw new EngineException("Empty Flow JSON mutation path.");
-		}
-		return tokens;
-	}
-
-	private static Object jsonGet(Object root, List<Object> tokens) throws Exception {
-		var current = root;
-		for (var token : tokens) {
-			current = jsonChild(current, token);
-		}
-		return current;
-	}
-
-	private static Object jsonChild(Object current, Object token) throws Exception {
-		if (token instanceof Integer index && current instanceof JSONArray array) {
-			return array.get(index);
-		}
-		if (token instanceof String key && current instanceof JSONObject object) {
-			return object.get(key);
-		}
-		throw new EngineException("Invalid Flow JSON mutation path segment: " + token);
-	}
-
-	private static void jsonSet(Object root, List<Object> tokens, Object value) throws Exception {
-		var parent = root;
-		for (int i = 0; i < tokens.size() - 1; i++) {
-			parent = jsonChild(parent, tokens.get(i));
-		}
-		var last = tokens.get(tokens.size() - 1);
-		if (last instanceof Integer index && parent instanceof JSONArray array) {
-			array.put(index, value == null ? JSONObject.NULL : value);
-			return;
-		}
-		if (last instanceof String key && parent instanceof JSONObject object) {
-			object.put(key, value == null ? JSONObject.NULL : value);
-			return;
-		}
-		throw new EngineException("Invalid Flow JSON mutation target: " + last);
-	}
-
-	private static void jsonRemove(Object root, List<Object> tokens) throws Exception {
-		var last = tokens.get(tokens.size() - 1);
-		if (tokens.size() == 1) {
-			if (last instanceof String key && root instanceof JSONObject object) {
-				object.remove(key);
-				return;
-			}
-			throw new EngineException("Invalid Flow JSON mutation delete target: " + last);
-		}
-		var parentTokens = tokens.subList(0, tokens.size() - 1);
-		var parent = jsonGet(root, parentTokens);
-		if (last instanceof String key && parent instanceof JSONObject object) {
-			object.remove(key);
-			return;
-		}
-		if (last instanceof Integer index && parent instanceof JSONArray array) {
-			if (index < 0 || index >= array.length()) {
-				throw new EngineException("Flow JSON mutation delete index out of range: " + index);
-			}
-			var copy = new JSONArray();
-			for (int i = 0; i < array.length(); i++) {
-				if (i != index) {
-					copy.put(array.get(i));
-				}
-			}
-			jsonSet(root, parentTokens, copy);
-			return;
-		}
-		throw new EngineException("Invalid Flow JSON mutation delete target: " + last);
 	}
 
 	private JSONObject writeCodeMirror(String engineQName, String flowQName, String projectDir, String source, String name, File sourceFile)
@@ -1673,7 +1532,7 @@ public class FlowEngineBridge {
 					if (cachedResponse != null) {
 						methodCacheHit = true;
 						if (frontendAuthoringFlight != null && frontendAuthoringFlight.leader()) {
-							frontendAuthoringFlight.complete(new JSONObject(cachedResponse.response()));
+							frontendAuthoringFlight.complete(cachedResponse.response());
 						}
 						return new JSONObject(cachedResponse.response());
 					}
@@ -1973,7 +1832,7 @@ public class FlowEngineBridge {
 			methodResponseCacheInvalidations.increment();
 		}
 		methodResponseCache.put(key,
-				new CachedMethodResponse(response.toString(), cacheGeneration.get(), dataGeneration.get()));
+				new CachedMethodResponse(serializedResponse(response), cacheGeneration.get(), dataGeneration.get()));
 		methodResponseAliases.put(methodResponseAliasKey(engineRef, method, request), key);
 	}
 
@@ -2528,13 +2387,29 @@ public class FlowEngineBridge {
 		}
 	}
 
+	// The engine answers with JSON text. Keep that text with the parsed object so the
+	// method cache and the shared authoring flight reuse it instead of serializing the
+	// same (often multi-megabyte) response again.
+	static final class EngineJSONObject extends JSONObject {
+		private final String json;
+
+		EngineJSONObject(String json) throws JSONException {
+			super(json);
+			this.json = json;
+		}
+	}
+
+	static String serializedResponse(JSONObject response) {
+		return response instanceof EngineJSONObject engineResponse ? engineResponse.json : response.toString();
+	}
+
 	private static JSONObject toJsonObject(Object result, String engineQName, String method) throws EngineException {
 		if (result == null || Undefined.isUndefined(result)) {
 			return new JSONObject();
 		}
 		try {
 			var json = result instanceof CharSequence ? result.toString() : RhinoUtils.jsonStringify(result);
-			return new JSONObject(json);
+			return new EngineJSONObject(json);
 		} catch (Exception e) {
 			throw new EngineException("Flow engine \"" + engineQName + "\" method \"" + method
 					+ "\" must return a JSON object or a JSON object string.", e);

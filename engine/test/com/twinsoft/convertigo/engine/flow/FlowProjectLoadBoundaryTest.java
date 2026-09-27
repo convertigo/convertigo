@@ -72,27 +72,10 @@ public class FlowProjectLoadBoundaryTest {
 		assertEquals("Canonical", DatabaseObjectsManager.getProjectName(descriptor));
 	}
 
-	@Test public void canonicalSourcesAreStillRefusedByTheLegacyRuntime() throws Exception {
-		var descriptor = project("Canonical");
-		write(descriptor, "_flow/flows/Test.flow.js", "export default {};\n");
-
-		expectCode("FLOW_PROJECT_CANONICAL_RUNTIME_REQUIRED", () ->
-				FlowProjectLoadBoundary.checkLocalAdmission(descriptor.getParentFile().toPath(), FlowSourceLayout.LEGACY));
-	}
-
-	@Test public void pendingLegacyMixedAndSourceLessFlowProjectsRemainBlocked() throws Exception {
+	@Test public void pendingAndSourceLessFlowProjectsRemainBlocked() throws Exception {
 		var pending = project("Pending");
 		write(pending, FlowProjectLoadBoundary.PENDING_FILE, "pending");
 		expectCode("FLOW_PROJECT_RECOVERY_REQUIRED", () -> FlowProjectLoadBoundary.beforeImport(pending, manager));
-
-		var legacy = project("Legacy");
-		write(legacy, "libs/flows/Test.flow.js", "legacy");
-		expectCode("FLOW_PROJECT_LEGACY_RUNTIME_REQUIRED", () -> FlowProjectLoadBoundary.beforeImport(legacy, manager));
-
-		var mixed = project("Mixed");
-		write(mixed, "_flow/flows/Test.flow.js", "canonical");
-		write(mixed, "libs/flows/Test.flow.js", "legacy");
-		expectCode("FLOW_PROJECT_MIXED_LAYOUT", () -> FlowProjectLoadBoundary.beforeImport(mixed, manager));
 
 		var sourceLess = project("SourceLess");
 		expectCode("FLOW_PROJECT_SOURCE_REQUIRED", () -> FlowProjectLoadBoundary.beforeImport(sourceLess, manager));

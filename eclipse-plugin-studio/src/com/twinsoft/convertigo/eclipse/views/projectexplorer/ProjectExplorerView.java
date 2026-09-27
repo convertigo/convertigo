@@ -1005,6 +1005,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			job.setUser(true);
 			job.schedule();
 		}
+		case "source.open" -> {
+			if (findTreeObjectByUserObject(targetDbo) instanceof FlowVirtualObjectTreeObject flowTreeObject) {
+				flowTreeObject.launchEditor("source");
+			}
+		}
 		default -> setFlowStatusMessage("Unsupported Studio action: " + clientAction);
 		}
 	}

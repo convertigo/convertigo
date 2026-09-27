@@ -18,7 +18,6 @@ import java.nio.file.StandardCopyOption;
 
 /** Filesystem layout only; never interprets Flow source or block properties. */
 public enum FlowSourceLayout {
-	LEGACY("legacy", "libs/flow", "libs/flows"),
 	FLOW("_flow", "_flow", "_flow/flows");
 
 	private final String key;
@@ -47,9 +46,6 @@ public enum FlowSourceLayout {
 	 * create files below it. Existing user rules are retained verbatim.
 	 */
 	public synchronized void ensureHttpIgnore(File projectDirectory) throws IOException {
-		if (this != FLOW) {
-			return;
-		}
 		if (projectDirectory == null) {
 			throw new IOException("Missing project directory for Flow HTTP protection");
 		}
@@ -139,8 +135,7 @@ public enum FlowSourceLayout {
 		var path = normalize(source);
 		var prefix = path("frontbuilder") + "/";
 		return (path.startsWith(prefix) || path.contains("/" + prefix))
-				&& (path.endsWith(".flow.svelte") || path.endsWith(".flow.css")
-						|| path.endsWith(".front.json") || path.endsWith(".uiblock.json"));
+				&& (path.endsWith(".flow.svelte") || path.endsWith(".flow.css") || path.endsWith(".uiblock.json"));
 	}
 
 	private static String normalize(String path) {

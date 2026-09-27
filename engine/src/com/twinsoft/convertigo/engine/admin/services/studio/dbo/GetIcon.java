@@ -120,10 +120,17 @@ public class GetIcon extends DownloadService {
 			return new FileInputStream(Engine.USER_WORKSPACE_PATH + iconPath.substring("workspace:".length()));
 		}
 		var iconFile = new File(iconPath);
-		if (iconFile.isAbsolute() && isInLoadedProject(iconFile)) {
+		if (iconFile.isAbsolute() && (isInLoadedProject(iconFile) || isInFlowIconCache(iconFile))) {
 			return new FileInputStream(iconFile);
 		}
 		return GetIcon.class.getResourceAsStream(iconPath);
+	}
+
+	/** Studio renderings of Flow icons (tinted SVG, PNG) are derived into the workspace cache. */
+	private boolean isInFlowIconCache(File iconFile) throws Exception {
+		var iconPath = iconFile.getCanonicalPath();
+		var cachePath = new File(Engine.USER_WORKSPACE_PATH, "cache").getCanonicalPath();
+		return iconPath.startsWith(cachePath + File.separator + "flow-icons-");
 	}
 
 	private boolean isInLoadedProject(File iconFile) throws Exception {

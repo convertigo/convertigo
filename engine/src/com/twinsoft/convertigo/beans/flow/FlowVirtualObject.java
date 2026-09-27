@@ -22,7 +22,10 @@ package com.twinsoft.convertigo.beans.flow;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IDynamicPropertyContainer;
@@ -43,6 +46,9 @@ import org.w3c.dom.Element;
 public class FlowVirtualObject extends DatabaseObject implements IDynamicPropertyContainer {
 
 	private static final long serialVersionUID = -8182422318922188314L;
+
+	private static final String SHARED_DEFINITIONS_KEY = "flow.virtualDefinitions";
+	private static final Map<String, JSONObject> parsedSharedDefinitions = new ConcurrentHashMap<>();
 
 	private String virtualKind = "";
 	private String virtualType = "";
@@ -325,7 +331,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		if ("node".equals(virtualKind)) {
 			var object = getDefinitionObject();
 			var comment = object == null ? null : object.opt("comment");
-			if (comment != null && !JSONObject.NULL.equals(comment)) {
+			if (comment != null && !isJsonNull(comment)) {
 				return String.valueOf(comment);
 			}
 		}
@@ -558,7 +564,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		var possibleValues = document.createElement("possibleValues");
 		for (var i = 0; i < values.length(); i++) {
 			var value = values.opt(i);
-			if (value == null || JSONObject.NULL.equals(value)) {
+			if (isJsonNull(value)) {
 				continue;
 			}
 			var possibleValue = document.createElement("value");
@@ -643,8 +649,13 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 				|| value instanceof String text && text.contains("\n");
 	}
 
+	// Jettison reads a literal JSON null as EXPLICIT_NULL, distinct from NULL.
+	private static boolean isJsonNull(Object value) {
+		return value == null || JSONObject.NULL.equals(value) || JSONObject.EXPLICIT_NULL.equals(value);
+	}
+
 	private static Object dynamicPropertyValue(Object value) {
-		if (value == null || JSONObject.NULL.equals(value)) {
+		if (isJsonNull(value)) {
 			return "";
 		}
 		return value instanceof JSONObject || value instanceof JSONArray ? value.toString() : value;
@@ -739,8 +750,10 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		if (target instanceof FlowEngine flowEngine && isWritableSourceObject()) {
 			var sourcePath = sourceValue("sourcePath");
 			var sourceMutationPath = sourceValue("sourceMutationPath");
-			if (!sourcePath.isBlank() && !sourceMutationPath.isBlank()) {
-				var propertyPath = sourcePropertyMutationPath(key);
+			var propertyPath = sourcePropertyMutationPath(key);
+			// A node may expose only per-property source paths (e.g. a component header),
+			// without being a mutable source node itself.
+			if (!sourcePath.isBlank() && (!sourceMutationPath.isBlank() || !propertyPath.isBlank())) {
 				return applySourcePropertyMutation(flowEngine, sourcePath,
 						propertyPath.isBlank() ? sourceMutationPath + "." + writableDefinitionPath(key) : propertyPath, value);
 			}
@@ -798,7 +811,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		var sourceMutationPath = sourceValue("sourceMutationPath");
 		return target instanceof FlowEngine
 				&& isWritableSourceObject()
-				&& (sourcePath.endsWith(".front.json") || sourcePath.endsWith(".flow.svelte"))
+				&& sourcePath.endsWith(".flow.svelte")
 				&& !sourceMutationPath.isBlank();
 	}
 
@@ -823,10 +836,19 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	private void deleteSourceFile(FlowEngine flowEngine, String sourcePath) throws EngineException {
 		try {
 			var file = new File(sourcePath);
-			if (!file.isFile()) {
+			var draft = flowEngine.discardSource(sourcePath);
+			if (!file.isFile() && !draft) {
 				throw new EngineException("Flow virtual source file does not exist: " + sourcePath);
 			}
-			FileUtils.forceDelete(file);
+			if (file.isFile()) {
+				FileUtils.forceDelete(file);
+			}
+			// A component style sheet belongs to its component source.
+			if (sourcePath.endsWith(".flow.svelte")) {
+				var style = sourcePath.substring(0, sourcePath.length() - ".svelte".length()) + ".css";
+				flowEngine.discardSource(style);
+				FileUtils.deleteQuietly(new File(style));
+			}
 			FlowEngineBridge.invalidateDataCaches();
 			FlowStudioSupport.clearCatalogCache(flowEngine);
 			FlowStudioSupport.afterSourceMutation(flowEngine, sourcePath);
@@ -837,7 +859,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		}
 	}
 
-	private boolean isWritableSourceObject() {
+	public boolean isWritableSourceObject() {
 		return jsonFlag(getDefinitionObject(), "sourceWritable") || jsonFlag(getVirtualInfoObject(), "sourceWritable");
 	}
 
@@ -939,7 +961,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		if (value instanceof Boolean flag) {
 			return !flag;
 		}
-		if (value == null || "".equals(value) || JSONObject.NULL.equals(value)) {
+		if (isJsonNull(value) || "".equals(value)) {
 			return Boolean.TRUE;
 		}
 		return !Boolean.parseBoolean(String.valueOf(value));
@@ -1015,16 +1037,57 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		}
 	}
 
+	/**
+	 * Fills the fields an info does not define itself from the shared definition it
+	 * references, as an instance gets its class. The Flow engine publishes each distinct
+	 * definition (ref -> JSON) in the server shared map; entries are immutable.
+	 */
+	public static JSONObject resolveSharedDefinitions(JSONObject info) {
+		var ref = info == null ? "" : info.optString("definitionRef", "");
+		var entry = ref.isEmpty() ? null : sharedDefinition(ref);
+		if (entry != null) {
+			for (Iterator<?> keys = entry.keys(); keys.hasNext();) {
+				var key = (String) keys.next();
+				if (!info.has(key)) {
+					try {
+						info.put(key, entry.get(key));
+					} catch (JSONException e) {
+						// The key comes from the entry itself.
+					}
+				}
+			}
+		}
+		return info;
+	}
+
+	private static JSONObject sharedDefinition(String ref) {
+		var entry = parsedSharedDefinitions.get(ref);
+		if (entry == null && Engine.theApp != null
+				&& Engine.theApp.getShareServerMap().get(SHARED_DEFINITIONS_KEY) instanceof Map<?, ?> definitions
+				&& definitions.get(ref) instanceof String json) {
+			try {
+				entry = new JSONObject(json);
+				var previous = parsedSharedDefinitions.putIfAbsent(ref, entry);
+				entry = previous == null ? entry : previous;
+			} catch (JSONException e) {
+				return null;
+			}
+		}
+		return entry;
+	}
+
 	private Object parsedVirtualInfoValue() {
 		if (!virtualInfo.equals(parsedVirtualInfoSource)) {
-			parsedVirtualInfoValue = parseDefinitionValue(virtualInfo);
+			var value = parseDefinitionValue(virtualInfo);
+			parsedVirtualInfoValue = value instanceof JSONObject info
+					? resolveSharedDefinitions(info) : value;
 			parsedVirtualInfoSource = virtualInfo;
 		}
 		return parsedVirtualInfoValue;
 	}
 
 	private static String definitionString(Object value) {
-		if (value == null || JSONObject.NULL.equals(value)) {
+		if (isJsonNull(value)) {
 			return "null";
 		}
 		return value instanceof String text ? JSONObject.quote(text) : String.valueOf(value);

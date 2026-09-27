@@ -52,6 +52,7 @@
 	 *  onRevealInPalette?: (nodeId: string) => void | Promise<void>,
 	 *  canRevealBlockDefinition?: (nodeId: string) => boolean,
 	 *  onRevealBlockDefinition?: (nodeId: string) => void | Promise<void>,
+	 *  onOpenSource?: (nodeId: string) => void | Promise<void>,
 	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
 	 * }}
 	 */
@@ -79,6 +80,7 @@
 		onRevealInPalette,
 		canRevealBlockDefinition,
 		onRevealBlockDefinition,
+		onOpenSource,
 		onSourceDrop
 	} = $props();
 
@@ -1056,6 +1058,7 @@
 					onShowInFrontend={() => onShowInFrontend?.(node.id)}
 					onRevealInPalette={() => onRevealInPalette?.(node.id)}
 					onRevealDefinition={() => onRevealBlockDefinition?.(node.id)}
+					onOpenSource={() => onOpenSource?.(node.id)}
 					{onContextAction}
 				/>
 			</div>
@@ -1098,6 +1101,7 @@
 					{onRevealInPalette}
 					{canRevealBlockDefinition}
 					{onRevealBlockDefinition}
+					{onOpenSource}
 					{onSourceDrop}
 				/>
 			{/each}

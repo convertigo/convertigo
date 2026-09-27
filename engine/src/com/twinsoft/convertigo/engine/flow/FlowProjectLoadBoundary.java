@@ -73,13 +73,6 @@ public final class FlowProjectLoadBoundary {
 		if (safeEntry(root, PENDING_FILE) != null) fail("FLOW_PROJECT_RECOVERY_REQUIRED", root.getFileName().toString());
 		var canonical = safeEntry(root, "_flow");
 		if (canonical != null && !canonical.isDirectory()) fail("FLOW_PROJECT_EXPECTED_DIRECTORY", "_flow");
-		var legacy = safeEntry(root, "libs/flow") != null || safeEntry(root, "libs/flows") != null;
-		if (layout == FlowSourceLayout.LEGACY) {
-			if (canonical != null) fail("FLOW_PROJECT_CANONICAL_RUNTIME_REQUIRED", root.getFileName().toString());
-			return;
-		}
-		if (legacy && canonical != null) fail("FLOW_PROJECT_MIXED_LAYOUT", root.getFileName().toString());
-		if (legacy) fail("FLOW_PROJECT_LEGACY_RUNTIME_REQUIRED", root.getFileName().toString());
 		if (canonical == null && isFlowDefinition(root.resolve("c8oProject.yaml").toFile())) {
 			fail("FLOW_PROJECT_SOURCE_REQUIRED", root.getFileName().toString());
 		}

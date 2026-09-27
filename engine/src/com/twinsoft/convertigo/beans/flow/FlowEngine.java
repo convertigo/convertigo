@@ -162,6 +162,7 @@ public class FlowEngine extends DatabaseObject {
 	public Element toXml(Document document) throws EngineException {
 		writeEngineSourceFile();
 		writeSourceDraftFiles();
+		writeDependenciesFile();
 		var element = super.toXml(document);
 		removeSerializedProperty(element, "engineSource");
 		return element;
@@ -310,6 +311,15 @@ public class FlowEngine extends DatabaseObject {
 		if (modified) changed();
 	}
 
+	/** Drop the working copy of a source (a created source not saved yet disappears). */
+	public boolean discardSource(String sourcePath) throws EngineException {
+		var removed = sourceDrafts.remove(canonicalSourcePath(sourcePath)) != null;
+		if (removed) {
+			clearFlowVirtualChildrenCache();
+		}
+		return removed;
+	}
+
 	public boolean hasSource(String sourcePath) throws EngineException {
 		var key = canonicalSourcePath(sourcePath);
 		return sourceDrafts.containsKey(key) || new File(key).isFile();
@@ -419,6 +429,37 @@ public class FlowEngine extends DatabaseObject {
 		}
 	}
 
+	/**
+	 * Records the version of each definer project whose definitions the project uses
+	 * (_flow/dependencies.json), so its sources keep the defaults they were written against.
+	 * Written only when its content changes; never blocks the save.
+	 */
+	private void writeDependenciesFile() {
+		var project = getProject();
+		// The Flow runtime answers only in a started engine (not in bare serialization tests).
+		if (project == null || !Engine.isStarted || Engine.logBeans == null) {
+			return;
+		}
+		try {
+			var response = new FlowEngineBridge().dependencies(this);
+			if (!response.optBoolean("ok", false)) {
+				Engine.logBeans.warn("(FlowEngine) Unable to compute Flow dependencies of " + project.getName() + ": " + response.opt("error"));
+				return;
+			}
+			var warnings = response.optJSONArray("warnings");
+			for (int i = 0; warnings != null && i < warnings.length(); i++) {
+				Engine.logBeans.warn("(FlowEngine) " + warnings.optJSONObject(i).optString("message"));
+			}
+			if (response.optBoolean("changed", false)) {
+				var file = new File(project.getDirFile(), sourceLayout().path("dependencies.json"));
+				file.getParentFile().mkdirs();
+				FileUtils.writeStringToFile(file, response.optString("source"), StandardCharsets.UTF_8);
+			}
+		} catch (Exception e) {
+			Engine.logBeans.warn("(FlowEngine) Unable to write Flow dependencies of " + project.getName(), e);
+		}
+	}
+
 	static void projectUnloaded(Project project) {
 		if (project == null) {
 			return;
@@ -455,7 +496,7 @@ public class FlowEngine extends DatabaseObject {
 			}
 			var file = new File(sourcePath).getCanonicalFile();
 			var name = file.getName();
-			var supported = name.endsWith(".front.json") || name.endsWith(".flow.svelte")
+			var supported = name.endsWith(".flow.svelte")
 					|| name.endsWith(".flow.css")
 					|| name.endsWith(".block.js") || name.endsWith(".type.yaml")
 					|| name.endsWith(".schema.json") || name.endsWith(".yaml")

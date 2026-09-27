@@ -653,8 +653,8 @@ public class FlowStudioSupportSelectionTest {
 	public void exposesOnlyProviderRelativePaletteSources() throws Exception {
 		var root = new java.io.File("build/test-provider").getAbsoluteFile();
 		var source = new java.io.File(root,
-				"libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte");
-		assertEquals("libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte",
+				"_flow/frontbuilder/svelte/components/DatePicker.flow.svelte");
+		assertEquals("_flow/frontbuilder/svelte/components/DatePicker.flow.svelte",
 				FlowStudioSupport.relativePaletteSourcePath(root.getPath(), source.getPath()));
 		assertEquals("", FlowStudioSupport.relativePaletteSourcePath(root.getPath(),
 				new java.io.File(root.getParentFile(), "outside.flow.svelte").getPath()));
@@ -665,14 +665,14 @@ public class FlowStudioSupportSelectionTest {
 		var location = FlowStudioSupport.resolvePaletteSourceLocation(projectRoots,
 				"frontbuilder.svelte", "", source.getPath());
 		assertEquals("lib_flow_frontbuilder_svelte", location.getString("project"));
-		assertEquals("libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte",
+		assertEquals("_flow/frontbuilder/svelte/components/DatePicker.flow.svelte",
 				location.getString("relativePath"));
 
 		location = FlowStudioSupport.resolvePaletteSourceLocation(projectRoots,
 				"lib_flow_frontbuilder_svelte",
-				"libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte", "");
+				"_flow/frontbuilder/svelte/components/DatePicker.flow.svelte", "");
 		assertEquals("lib_flow_frontbuilder_svelte", location.getString("project"));
-		assertEquals("libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte",
+		assertEquals("_flow/frontbuilder/svelte/components/DatePicker.flow.svelte",
 				location.getString("relativePath"));
 	}
 

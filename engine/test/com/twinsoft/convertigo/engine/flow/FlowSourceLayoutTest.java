@@ -72,10 +72,6 @@ public class FlowSourceLayoutTest {
 		var ignore = root.resolve(".httpignore");
 		Files.writeString(ignore, "# user rule\r\n!/_flow/resources/**\r\n");
 		layout.ensureHttpIgnore(root.toFile());
-		if (layout == FlowSourceLayout.LEGACY) {
-			assertEquals("# user rule\r\n!/_flow/resources/**\r\n", Files.readString(ignore));
-			return;
-		}
 		var expected = "# user rule\r\n!/_flow/resources/**\r\n/_flow/\r\n";
 		assertEquals(expected, Files.readString(ignore));
 		layout.ensureHttpIgnore(root.toFile());
@@ -86,10 +82,6 @@ public class FlowSourceLayoutTest {
 		var root = folder.newFolder().toPath();
 		var ignore = root.resolve(".httpignore");
 		layout.ensureHttpIgnore(root.toFile());
-		if (layout == FlowSourceLayout.LEGACY) {
-			assertFalse(Files.exists(ignore));
-			return;
-		}
 		assertEquals("/_flow/" + System.lineSeparator(), Files.readString(ignore));
 		Files.writeString(ignore, "# user rule\n");
 		layout.ensureHttpIgnore(root.toFile());
@@ -97,7 +89,6 @@ public class FlowSourceLayoutTest {
 	}
 
 	@Test public void canonicalHttpIgnoreRejectsLinkedFiles() throws Exception {
-		org.junit.Assume.assumeTrue(layout == FlowSourceLayout.FLOW);
 		var root = folder.newFolder().toPath();
 		var ignore = root.resolve(".httpignore");
 		Files.writeString(root.resolve("target"), "# keep\n");
@@ -109,7 +100,6 @@ public class FlowSourceLayoutTest {
 	}
 
 	@Test public void failedCanonicalHttpIgnoreWritePreventsFlowSourceCreation() throws Exception {
-		org.junit.Assume.assumeTrue(layout == FlowSourceLayout.FLOW);
 		var root = folder.newFolder().toPath();
 		Files.createDirectory(root.resolve(".httpignore"));
 		var flow = flow(project(root.toFile()));
@@ -119,18 +109,17 @@ public class FlowSourceLayoutTest {
 	}
 
 	@Test public void classificationAndInvalidationUseTheSameRoot() {
-		var other = layout == FlowSourceLayout.LEGACY ? FlowSourceLayout.FLOW : FlowSourceLayout.LEGACY;
 		for (var path : new String[] { "Engine.js", "modules/source-layout.js", "lib/helper.js" }) {
 			assertTrue(layout.requiresRuntimeInvalidation(layout.path(path)));
 			assertTrue(layout.requiresRuntimeInvalidation("/" + layout.path(path).replace('/', '\\')));
-			assertFalse(layout.requiresRuntimeInvalidation(other.path(path)));
+			assertFalse(layout.requiresRuntimeInvalidation("flow-other/" + path));
 		}
 		var source = layout.path("frontbuilder/svelte/model/App/src/routes/+page.flow.svelte");
 		assertTrue(layout.isFrontendAuthoringSource(source));
 		assertTrue(layout.isFrontendDocument(source));
 		assertTrue(layout.isFrontendDocument("/project/" + source));
 		assertTrue(layout.isFrontendDocument(("C:/project/" + source).replace('/', '\\')));
-		assertFalse(layout.isFrontendDocument(other.path("frontbuilder/svelte/model/a.flow.svelte")));
+		assertFalse(layout.isFrontendDocument("flow-other/" + "frontbuilder/svelte/model/a.flow.svelte"));
 		assertFalse(layout.isFrontendDocument(layout.path("resources/a.flow.svelte")));
 		assertFalse(layout.isFrontendAuthoringSource(layout.path("frontbuilder/svelte/components/widget.svelte")));
 		assertFalse(layout.requiresRuntimeInvalidation(source));
@@ -141,8 +130,7 @@ public class FlowSourceLayoutTest {
 		var root = folder.newFolder().toPath();
 		var project = project(root.toFile());
 		var path = root.resolve(layout.flows()).resolve("Proof.flow.js");
-		var other = layout == FlowSourceLayout.LEGACY ? FlowSourceLayout.FLOW : FlowSourceLayout.LEGACY;
-		var inactive = root.resolve(other.flows()).resolve("Proof.flow.js");
+		var inactive = root.resolve("flow-other/flows").resolve("Proof.flow.js");
 		write(path, "official");
 		write(inactive, "inactive");
 		var flow = flow(project);
@@ -170,9 +158,8 @@ public class FlowSourceLayoutTest {
 		assertEquals(FlowSourceLayout.ChangeKind.CATALOG, layout.changeKind(layout.path("blocks/widget.block.js")));
 		assertEquals(FlowSourceLayout.ChangeKind.CATALOG, layout.changeKind(layout.path("engine.yaml")));
 		assertEquals(FlowSourceLayout.ChangeKind.CATALOG, layout.changeKind(layout.path("frontbuilder/svelte/components/Widget.flow.svelte")));
-		var other = layout == FlowSourceLayout.LEGACY ? FlowSourceLayout.FLOW : FlowSourceLayout.LEGACY;
-		assertEquals(FlowSourceLayout.ChangeKind.OUTSIDE, layout.changeKind(other.flows() + "/Proof.flow.js"));
-		assertEquals(FlowSourceLayout.ChangeKind.OUTSIDE, layout.changeKind(other.path("engine.yaml")));
+		assertEquals(FlowSourceLayout.ChangeKind.OUTSIDE, layout.changeKind("flow-other/flows" + "/Proof.flow.js"));
+		assertEquals(FlowSourceLayout.ChangeKind.OUTSIDE, layout.changeKind("flow-other/" + "engine.yaml"));
 		assertEquals(FlowSourceLayout.ChangeKind.OUTSIDE, layout.changeKind("DisplayObjects/mobile/app.js"));
 		assertEquals(FlowSourceLayout.ChangeKind.OUTSIDE, layout.changeKind(null));
 		assertEquals(FlowSourceLayout.ChangeKind.FLOW, layout.changeKind((layout.flows() + "/Proof.flow.js").replace('/', '\\')));

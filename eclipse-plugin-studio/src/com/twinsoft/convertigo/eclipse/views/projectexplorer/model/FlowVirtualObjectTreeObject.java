@@ -37,6 +37,7 @@ import org.codehaus.jettison.json.JSONTokener;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.operation.ModalContext;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
@@ -140,11 +141,11 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	@Override
 	public boolean isEnabled() {
 		var definition = getObject().getDefinitionObject();
-		if (definition != null && definition.optBoolean("disabled", false)) {
+		if (definition != null && Boolean.TRUE.equals(definition.opt("disabled"))) {
 			return false;
 		}
 		var info = getObject().getVirtualInfoObject();
-		return info == null || !info.optBoolean("disabled", false);
+		return info == null || !Boolean.TRUE.equals(info.opt("disabled"));
 	}
 
 	public String getIconImagePath() {
@@ -212,6 +213,14 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 			return;
 		}
 		try {
+			// This editor works on the saved file: a working copy (created or edited in the
+			// Studio, not saved yet) would overwrite its changes on the next project Save.
+			var flowEngine = getObject().getProject() == null ? null : getObject().getProject().getFlowEngine();
+			if (flowEngine != null && getObject().isWritableSourceObject() && flowEngine.isSourceDirty(filePath)) {
+				MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+						"Flow source", "Save the project before editing this source.");
+				return;
+			}
 			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			if (page == null) {
 				return;
@@ -638,7 +647,7 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 		var values = new ArrayList<String>();
 		for (var i = 0; i < array.length(); i++) {
 			var value = array.opt(i);
-			if (value != null && !JSONObject.NULL.equals(value)) {
+			if (value != null && !JSONObject.NULL.equals(value) && !JSONObject.EXPLICIT_NULL.equals(value)) {
 				values.add(String.valueOf(value));
 			}
 		}
@@ -708,7 +717,7 @@ public class FlowVirtualObjectTreeObject extends DatabaseObjectTreeObject implem
 	}
 
 	private static String stringify(Object value) {
-		if (value == null || JSONObject.NULL.equals(value)) {
+		if (value == null || JSONObject.NULL.equals(value) || JSONObject.EXPLICIT_NULL.equals(value)) {
 			return "";
 		}
 		return String.valueOf(value);

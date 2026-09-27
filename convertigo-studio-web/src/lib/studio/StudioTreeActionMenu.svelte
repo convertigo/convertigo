@@ -31,6 +31,7 @@
 	 *  onShowInFrontend?: () => void | Promise<void>,
 	 *  onRevealInPalette?: () => void | Promise<void>,
 	 *  onRevealDefinition?: () => void | Promise<void>,
+	 *  onOpenSource?: () => void | Promise<void>,
 	 *  onContextAction?: (event: { nodeId: string, action: StudioContextMenuItem, result: any }) => void | Promise<void>
 	 * }}
 	 */
@@ -49,6 +50,7 @@
 		onShowInFrontend,
 		onRevealInPalette,
 		onRevealDefinition,
+		onOpenSource,
 		onContextAction
 	} = $props();
 
@@ -156,6 +158,8 @@
 			await onRevealInPalette?.();
 		} else if (clientAction === 'definition.reveal') {
 			await onRevealDefinition?.();
+		} else if (clientAction === 'source.open') {
+			await onOpenSource?.();
 		}
 	}
 

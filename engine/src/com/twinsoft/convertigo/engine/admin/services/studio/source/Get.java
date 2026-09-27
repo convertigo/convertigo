@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
@@ -43,7 +44,7 @@ public class Get extends JSonService {
 		response.put("fileName", source.file().getName());
 		response.put("relativePath", source.relativePath());
 		response.put("language", language(source.file()));
-		response.put("readOnly", true);
+		response.put("readOnly", !source.writable());
 	}
 
 	static SourceDocument sourceDocument(DatabaseObject dbo) throws Exception {
@@ -55,23 +56,31 @@ public class Get extends JSonService {
 			throw new ServiceException("The selected Flow object has no source document.");
 		}
 		var file = new File(sourcePath).getCanonicalFile();
-		if (!file.isFile() || !isSupportedSource(file)) {
+		// A writable source is read through its FlowEngine: an unsaved working copy wins.
+		var flowEngine = flowObject.isWritableSourceObject() ? owningFlowEngine(flowObject) : null;
+		var drafted = flowEngine != null && flowEngine.hasSource(file.getPath());
+		if ((!file.isFile() && !drafted) || !isSupportedSource(file)) {
 			throw new ServiceException("The selected Flow source is not an editable code document.");
 		}
-		var content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+		var content = drafted ? flowEngine.getSource(file.getPath()) : Files.readString(file.toPath(), StandardCharsets.UTF_8);
 		var info = flowObject.getVirtualInfoObject();
 		var relativePath = info == null ? "" : info.optString("sourceRelativePath", "");
 		if (relativePath.isBlank()) {
 			relativePath = file.getName();
 		}
-		return new SourceDocument(file, relativePath, content, sha256(content));
+		return new SourceDocument(file, relativePath, content, sha256(content), flowEngine);
+	}
+
+	static FlowEngine owningFlowEngine(FlowVirtualObject flowObject) {
+		var project = flowObject.getProject();
+		return project == null ? null : project.getFlowEngine();
 	}
 
 	private static boolean isSupportedSource(File file) {
 		var name = file.getName().toLowerCase();
 		return name.endsWith(".flow.svelte") || name.endsWith(".flow.css")
 				|| name.endsWith(".svelte") || name.endsWith(".svelte.js")
-				|| name.endsWith(".svelte.ts") || name.endsWith(".block.js");
+				|| name.endsWith(".svelte.ts") || name.endsWith(".js");
 	}
 
 	private static String language(File file) {
@@ -88,11 +97,14 @@ public class Get extends JSonService {
 		return "html";
 	}
 
-	private static String sha256(String content) throws Exception {
+	static String sha256(String content) throws Exception {
 		return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
 				.digest(content.getBytes(StandardCharsets.UTF_8)));
 	}
 
-	static record SourceDocument(File file, String relativePath, String content, String revision) {
+	static record SourceDocument(File file, String relativePath, String content, String revision, FlowEngine flowEngine) {
+		boolean writable() {
+			return flowEngine != null;
+		}
 	}
 }

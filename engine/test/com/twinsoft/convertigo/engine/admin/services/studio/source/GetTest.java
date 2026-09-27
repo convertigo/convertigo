@@ -35,13 +35,13 @@ public class GetTest {
 		var object = new FlowVirtualObject();
 		object.setVirtualInfo(new JSONObject()
 				.put("sourcePath", source.toString())
-				.put("sourceRelativePath", "libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte")
+				.put("sourceRelativePath", "_flow/frontbuilder/svelte/components/DatePicker.flow.svelte")
 				.toString());
 
 		var document = Get.sourceDocument(object);
 
 		assertEquals(source.toFile().getCanonicalFile(), document.file());
-		assertEquals("libs/flow/frontbuilder/svelte/components/DatePicker.flow.svelte", document.relativePath());
+		assertEquals("_flow/frontbuilder/svelte/components/DatePicker.flow.svelte", document.relativePath());
 		assertEquals("<script>const label = 'Date';</script>\n", document.content());
 		assertEquals(64, document.revision().length());
 	}

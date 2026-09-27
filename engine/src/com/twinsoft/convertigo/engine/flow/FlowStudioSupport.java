@@ -580,6 +580,16 @@ public class FlowStudioSupport {
 		if (menu == null || !menu.optBoolean("ok", false)) {
 			return menu;
 		}
+		if (targetDbo instanceof FlowVirtualObject codeObject && isCodeSourceObject(codeObject)) {
+			var codeItems = menu.optJSONArray("items");
+			if (codeItems == null) {
+				codeItems = new JSONArray();
+				menu.put("items", codeItems);
+			}
+			appendStudioClientAction(codeItems, "studio.source.open", "Open source",
+					"Edit the code of this definition.", "Source", "source.open", "mdi:file-code-outline",
+					"icons/studio/beans/steps/jsource_16x16.png");
+		}
 		if (authoringReference(targetDbo) == null) {
 			// Backend Flow node: the palette can still reveal its block type.
 			if (targetDbo instanceof FlowVirtualObject fvo && "node".equals(fvo.getVirtualKind())
@@ -610,6 +620,15 @@ public class FlowStudioSupport {
 				"Open the Flow Svelte or code contract provided by the component library.", "Frontend", "definition.reveal", "mdi:file-code-outline",
 				"icons/studio/beans/steps/jsource_16x16.png");
 		return menu;
+	}
+
+	/** A definition implemented as code (a Rhino block, its hooks, a Svelte component) is edited as source. */
+	public static boolean isCodeSourceObject(FlowVirtualObject fvo) {
+		var kind = fvo.getVirtualKind();
+		var codeKind = "frontendBlockImplementation".equals(kind) || "blockHooks".equals(kind)
+				|| ("blockImplementation".equals(kind) && !"flow".equals(fvo.getVirtualType()));
+		var sourcePath = fvo.getSourcePath();
+		return codeKind && sourcePath != null && !sourcePath.isBlank();
 	}
 
 	private static void appendStudioClientAction(JSONArray items, String id, String label, String description,
@@ -711,8 +730,6 @@ public class FlowStudioSupport {
 				+ " ok=" + response.optBoolean("ok", false) + " mutation=" + mutation);
 		if (response.optBoolean("ok", false) && mutation != null) {
 			var mutationResult = applyMutation(root, targetDbo, mutation);
-			Engine.logBeans.info("Flow context action " + action.optString("id", "") + " mutation result: "
-					+ (mutationResult == null ? "null" : mutationResult.toString()));
 			response.put("mutationResult", mutationResult);
 			if (!mutationResult.optBoolean("ok", false)) {
 				response.put("ok", false)
@@ -862,9 +879,11 @@ public class FlowStudioSupport {
 			// A provider-selected slot is authoritative. The action revalidates its
 			// traits against the current tree; Java must not apply a second kind rule.
 			var kindAccepted = data.optJSONObject("targetSlot") != null || targetKinds == null || targetKinds.length() == 0;
+			// Same rule as the engine palette: a target kind names the node kind or type.
 			for (int i = 0; !kindAccepted && i < targetKinds.length(); i++) {
 				kindAccepted = targetDbo instanceof FlowVirtualObject target
-						&& target.getVirtualKind().equals(targetKinds.optString(i));
+						&& (target.getVirtualKind().equals(targetKinds.optString(i))
+								|| target.getVirtualType().equals(targetKinds.optString(i)));
 			}
 			return kindAccepted && normalizedPalettePosition(data, position) != null;
 		}
@@ -910,6 +929,9 @@ public class FlowStudioSupport {
 		if (key.isBlank()) {
 			return "";
 		}
+		// Engine code and library updates change what the palette offers without any
+		// source mutation of this project: key the cache by the engine cache generation.
+		key = key + "|" + FlowEngineBridge.cacheGeneration();
 		if (targetDbo instanceof FlowVirtualObject fvo) {
 			return key + "|" + fvo.getVirtualKind() + "|" + fvo.getVirtualPath();
 		}
@@ -1091,6 +1113,14 @@ public class FlowStudioSupport {
 			var item = items.optJSONObject(i);
 			if (item == null) {
 				continue;
+			}
+			// A frontend block offered in an engine projection (the tree of a Catalog
+			// component) is inserted into its source like in the Frontends tree.
+			if (root instanceof FlowEngine && item.optJSONObject("insert") != null
+					&& !item.has("authoringAction") && !item.has("authoringMutation")) {
+				var category = item.optString("category", "Flow");
+				item = frontendPaletteItem(targetDbo, item);
+				item.put("category", category);
 			}
 			item.put("name", item.optString("label", item.optString("name", item.optString("id", "Flow item"))));
 			// The palette documentation panel renders what the engine documented.
@@ -1878,13 +1908,6 @@ public class FlowStudioSupport {
 					.put("index", index)
 					.put("value", insertValue);
 		}
-		var widgetsPath = frontendReferencedComponentWidgetsPath(fvo);
-		if (widgetsPath != null) {
-			return new JSONObject()
-					.put("op", "append")
-					.put("path", widgetsPath)
-					.put("value", insertValue);
-		}
 		return null;
 	}
 
@@ -2024,24 +2047,6 @@ public class FlowStudioSupport {
 		return null;
 	}
 
-	private static String frontendReferencedComponentWidgetsPath(FlowVirtualObject target) throws Exception {
-		var componentId = frontendReferencedComponentId(target);
-		if (componentId == null || componentId.isBlank()) {
-			return null;
-		}
-		var model = new JSONObject(frontendSource(target));
-		var components = model.optJSONArray("components");
-		if (components == null) {
-			return null;
-		}
-		for (int i = 0; i < components.length(); i++) {
-			var component = components.optJSONObject(i);
-			if (component != null && componentId.equals(component.optString("id", ""))) {
-				return "components[" + i + "].widgets";
-			}
-		}
-		return null;
-	}
 
 	private static String frontendReferencedComponentId(FlowVirtualObject target) {
 		var definition = target.getDefinitionObject();
@@ -2096,7 +2101,6 @@ public class FlowStudioSupport {
 		if (referencedComponent != null && referencedComponent != component) {
 			collectFrontendWidgetIds(referencedComponent, used);
 		}
-		used.addAll(frontendReferencedComponentWidgetIds(target));
 		return uniqueFrontendInsertValue(insert, used);
 	}
 
@@ -2131,56 +2135,9 @@ public class FlowStudioSupport {
 		return value;
 	}
 
-	private static Set<String> frontendReferencedComponentWidgetIds(FlowVirtualObject target) {
-		var used = new HashSet<String>();
-		try {
-			if (!sourcePath(target).endsWith(".front.json")) {
-				return used;
-			}
-			var componentId = frontendReferencedComponentId(target);
-			if (componentId == null || componentId.isBlank()) {
-				return used;
-			}
-			var model = new JSONObject(frontendSource(target));
-			var components = model.optJSONArray("components");
-			if (components == null) {
-				return used;
-			}
-			for (int i = 0; i < components.length(); i++) {
-				var component = components.optJSONObject(i);
-				if (component == null || !componentId.equals(component.optString("id", ""))) {
-					continue;
-				}
-				var widgets = component.optJSONArray("widgets");
-				if (widgets == null) {
-					return used;
-				}
-				for (int j = 0; j < widgets.length(); j++) {
-					var widget = widgets.optJSONObject(j);
-					var id = widget == null ? "" : widget.optString("id", "");
-					if (!id.isBlank()) {
-						used.add(id);
-					}
-				}
-				return used;
-			}
-		} catch (Exception e) {
-			Engine.logStudio.debug("Unable to collect frontend widget ids", e);
-		}
-		return used;
-	}
 
 	private static boolean isSuccessResponse(JSONObject response) {
 		return response != null && !response.has("error") && (!response.has("ok") || response.optBoolean("ok", false));
-	}
-
-	private static String frontendSource(FlowVirtualObject target) throws Exception {
-		var sourcePath = sourcePath(target);
-		var root = flowAuthoringRoot(target);
-		if (root instanceof FlowEngine flowEngine) {
-			return flowEngine.getFrontendSource(sourcePath);
-		}
-		return FileUtils.readFileToString(new File(sourcePath), "UTF-8");
 	}
 
 	public static JSONObject moveNode(DatabaseObject targetDbo, boolean up, int count) throws Exception {

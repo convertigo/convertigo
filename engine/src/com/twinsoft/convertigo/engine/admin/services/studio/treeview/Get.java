@@ -486,11 +486,11 @@ public class Get extends JSonService {
 	static Boolean enabledState(DatabaseObject dbo) {
 		if (dbo instanceof FlowVirtualObject flowVirtualObject) {
 			var definition = flowVirtualObject.getDefinitionObject();
-			if (definition != null && definition.optBoolean("disabled", false)) {
+			if (definition != null && Boolean.TRUE.equals(definition.opt("disabled"))) {
 				return false;
 			}
 			var info = flowVirtualObject.getVirtualInfoObject();
-			return info == null || !info.optBoolean("disabled", false);
+			return info == null || !Boolean.TRUE.equals(info.opt("disabled"));
 		}
 		return dbo instanceof IEnableAble enableAble ? enableAble.isEnabled() : null;
 	}

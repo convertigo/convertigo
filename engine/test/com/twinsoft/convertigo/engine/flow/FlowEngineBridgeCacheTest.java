@@ -58,7 +58,7 @@ public class FlowEngineBridgeCacheTest {
 		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow/Engine.js"));
 		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow/modules/runtime.js"));
 		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow\\lib\\helper.js"));
-		assertFalse(FlowEngineBridge.requiresRuntimeCacheInvalidation("libs/flow/Engine.js"));
+		assertFalse(FlowEngineBridge.requiresRuntimeCacheInvalidation("other/Engine.js"));
 
 		assertFalse(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow/engine.yaml"));
 		assertFalse(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow/blocks/list/map.block.js"));
@@ -76,7 +76,7 @@ public class FlowEngineBridgeCacheTest {
 		assertFalse(FlowEngineBridge.isFrontendAuthoringSourcePath(
 				"_flow/frontbuilder/svelte/components/Text.flow.svelte"));
 		assertFalse(FlowEngineBridge.isFrontendAuthoringSourcePath("_flow/flows/MyFlow.flow.js"));
-		assertFalse(FlowEngineBridge.isFrontendAuthoringSourcePath("libs/flow/frontbuilder/svelte/model/app/src/routes/+page.flow.svelte"));
+		assertFalse(FlowEngineBridge.isFrontendAuthoringSourcePath("other/frontbuilder/svelte/model/app/src/routes/+page.flow.svelte"));
 	}
 
 	@Test

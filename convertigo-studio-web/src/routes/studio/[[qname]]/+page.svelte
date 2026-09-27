@@ -1367,6 +1367,21 @@
 		setSidePanel('palette');
 	}
 
+	/**
+	 * Opens the code of a definition implemented as source (Rhino block, Svelte component).
+	 * @param {string} id
+	 */
+	function openSource(id) {
+		selectedId = id;
+		setSidePanel('properties');
+		editorTarget = { id, sourceDocument: true, serial: Date.now() };
+		if (profile === 'frontend') {
+			setFrontendResult('code');
+		} else {
+			setWorkPanel('code');
+		}
+	}
+
 	async function revealBlockDefinition(id) {
 		const item = await resolveSelectedTreeDocumentation(id);
 		const sourceId = blockDefinitionSourceId(item);
@@ -2011,6 +2026,7 @@
 			onRevealInPalette={revealInPalette}
 			{canRevealBlockDefinition}
 			onRevealBlockDefinition={revealBlockDefinition}
+			onOpenSource={openSource}
 			onSourceDrop={applySourceDrop}
 		/>
 	</StudioPanel>
