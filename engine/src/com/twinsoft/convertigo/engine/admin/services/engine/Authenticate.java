@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.engine.admin.services.engine;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -92,6 +94,17 @@ public class Authenticate extends XmlService {
 		public long accountBlockedUntil = 0;
 	}
 
+	/**
+	 * @return whether the token is the one of the application that started the engine, as the desktop
+	 * Convertigo Studio, which opens the web Studio authenticated: a secret it gives the engine in the
+	 * CONVERTIGO_STUDIO_AUTH_TOKEN environment variable
+	 */
+	private static boolean isLauncherToken(String authToken) {
+		String expected = System.getenv("CONVERTIGO_STUDIO_AUTH_TOKEN");
+		return expected != null && expected.length() >= 32 && MessageDigest.isEqual(
+				expected.getBytes(StandardCharsets.UTF_8), authToken.getBytes(StandardCharsets.UTF_8));
+	}
+
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		boolean logIn = "login".equals(ServiceUtils.getRequiredParameter(request, "authType"));
@@ -108,7 +121,9 @@ public class Authenticate extends XmlService {
 			
 			if (authToken != null) {
 				try {
-					Class.forName("com.twinsoft.convertigo.eclipse.views.admin.AdminView").getMethod("checkAuthToken", String.class).invoke(null, authToken);
+					if (!isLauncherToken(authToken)) {
+						Class.forName("com.twinsoft.convertigo.eclipse.views.admin.AdminView").getMethod("checkAuthToken", String.class).invoke(null, authToken);
+					}
 					user = EnginePropertiesManager.getProperty(PropertyName.ADMIN_USERNAME);
 				} catch (Throwable t) {
 					authToken = null;
