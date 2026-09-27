@@ -79,7 +79,7 @@
 		'terminal-return': FlowTerminalReturnEdge
 	};
 	const flowNodeSize = { width: 150, height: 72 };
-	const flowMinimapReserve = { width: 170, height: 116 };
+	const flowMinimapReserve = { height: 116 };
 	const flowDropBeforeRatio = 0.34;
 	const flowDropAfterRatio = 0.66;
 
@@ -1473,7 +1473,8 @@
 		if (!width || !height) {
 			return;
 		}
-		const fitWidth = Math.max(320, width - Math.min(flowMinimapReserve.width, width * 0.28));
+		// the flow shows above the minimap, in the bottom corner, and takes the whole width
+		const fitWidth = Math.max(320, width);
 		const fitHeight = Math.max(240, height - Math.min(flowMinimapReserve.height, height * 0.32));
 		const targetNodes = nodeIds?.size ? nodes.filter((node) => nodeIds.has(node.id)) : nodes;
 		const nodesToFit = targetNodes.length ? targetNodes : nodes;

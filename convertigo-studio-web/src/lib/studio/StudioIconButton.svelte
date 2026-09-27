@@ -68,18 +68,35 @@
 		align-items: center;
 		justify-content: center;
 		gap: 0;
-		border: 1px solid var(--color-surface-200-800);
+		/* a ghost button, as in the tool bars of Cursor: its frame shows on hover */
+		border: 1px solid transparent;
 		border-radius: 0.35rem;
-		background: var(--color-surface-50-950);
-		color: var(--color-surface-700-300);
+		background: transparent;
+		color: var(--studio-text-idle, var(--color-surface-700-300));
 		padding: 0 !important;
+		box-shadow: none !important;
+	}
+
+	/* the icon at the size of the text, whatever the size of the button */
+	:global(.studio-action-button svg) {
+		width: calc(var(--studio-action-size) * 0.58) !important;
+		height: calc(var(--studio-action-size) * 0.58) !important;
+		max-width: 1.1rem;
+		max-height: 1.1rem;
 	}
 
 	:global(.studio-action-button:hover:not(:disabled)),
-	:global(.studio-action-button:focus-visible:not(:disabled)),
+	:global(.studio-action-button:focus-visible:not(:disabled)) {
+		background: var(
+			--studio-hover-bg,
+			color-mix(in oklab, var(--color-surface-300-700) 45%, transparent)
+		);
+		color: var(--studio-text-strong, var(--color-surface-950-50));
+	}
+
 	:global(.studio-action-button.studio-action-button--active) {
-		border-color: color-mix(in oklab, var(--color-primary-500) 45%, transparent);
-		background: color-mix(in oklab, var(--color-primary-500) 12%, transparent);
+		border-color: color-mix(in oklab, var(--color-primary-500) 40%, transparent);
+		background: color-mix(in oklab, var(--color-primary-500) 14%, transparent);
 		color: var(--color-primary-600-400);
 	}
 

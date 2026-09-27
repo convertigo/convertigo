@@ -97,3 +97,44 @@ html:has(.studio-shell) [data-scope='radio-group'][data-part='item-text'][data-s
 	color: var(--studio-text-strong);
 	font-weight: 600;
 }
+
+/* the fields of the Studio at the size of its text */
+html:has(.studio-shell) .c8o-input-group {
+	min-height: 1.9rem;
+	border-radius: var(--studio-control-radius);
+}
+
+html:has(.studio-shell) .c8o-input-group :is(input, input::placeholder) {
+	font-size: 0.8rem;
+}
+
+html:has(.studio-shell) .c8o-input-group svg {
+	width: 1rem !important;
+	height: 1rem !important;
+}
+
+/* the toasts as cards of the Studio, marked with the color of their kind */
+html:has(.studio-shell) [data-scope='toast'][data-part='root'] {
+	border: 1px solid var(--studio-control-line);
+	border-left: 3px solid var(--studio-toast-accent, var(--color-primary-500));
+	border-radius: 0.6rem;
+	background: var(--studio-control-bg);
+	color: var(--studio-text-strong);
+	box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.45);
+}
+
+html:has(.studio-shell) [data-scope='toast'][data-part='root'][data-type='success'] {
+	--studio-toast-accent: var(--color-success-500);
+}
+
+html:has(.studio-shell) [data-scope='toast'][data-part='root'][data-type='error'] {
+	--studio-toast-accent: var(--color-error-500);
+}
+
+html:has(.studio-shell) [data-scope='toast'][data-part='root'][data-type='warning'] {
+	--studio-toast-accent: var(--color-warning-500);
+}
+
+html:has(.studio-shell) [data-scope='toast'][data-part='close-trigger'] {
+	color: var(--studio-text-idle);
+}

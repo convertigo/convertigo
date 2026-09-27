@@ -1811,7 +1811,7 @@
 				full={false}
 				size={4}
 				class={studioMode
-					? `button-ico-primary ${autoScroll ? 'preset-filled-primary-500' : ''} h-6 w-6 justify-center p-0!`
+					? `button-ico-primary ${autoScroll ? 'rounded bg-primary-500/15 text-primary-600-400' : ''} h-6 w-6 justify-center p-0!`
 					: `mini-card flex-row-reverse ${
 							autoScroll
 								? 'preset-filled-primary-500'
