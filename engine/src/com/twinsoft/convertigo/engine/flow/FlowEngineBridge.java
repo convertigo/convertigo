@@ -245,6 +245,7 @@ public class FlowEngineBridge {
 			engineRuntimeCache.clear();
 		}
 		engineSourceCache.clear();
+		rootFingerprints.clear();
 		disposeEngineRuntimes(runtimes, null);
 		methodResponseCache.clear();
 		methodResponseCacheInvalidations.increment();
@@ -253,6 +254,7 @@ public class FlowEngineBridge {
 
 	public static void invalidateDataCaches() {
 		dataGeneration.incrementAndGet();
+		rootFingerprints.clear();
 		clearMethodResponseCache();
 	}
 
@@ -1878,9 +1880,44 @@ public class FlowEngineBridge {
 				+ request.toString();
 	}
 
+	// The dependency fingerprint walks every source file of the engine, the project and its
+	// references: about a thousand metadata calls, seconds on a network file system, on each
+	// cacheable call. Writes made through Convertigo already bump the cache generations
+	// (part of the key) and clear these entries; files changed outside Convertigo (git,
+	// shell, deployment) are seen through a cheap per-root stamp, or after a few seconds.
+	private static final long ROOT_FINGERPRINT_TTL_MS = 5000;
+	private static final Map<String, RootFingerprint> rootFingerprints = new ConcurrentHashMap<>();
+
+	private record RootFingerprint(String stamp, String value, long computedAt) {
+	}
+
+	private static String cachedRootFingerprint(String kind, File root, File flowRoot, java.util.function.Consumer<StringBuilder> walk) {
+		var key = kind + ":" + canonicalPath(root);
+		var stamp = new StringBuilder();
+		for (var file : new File[] { root, flowRoot, new File(root, "c8oProject.yaml"), new File(root, "flow-deploy.json"),
+				new File(flowRoot, "Engine.js"), new File(flowRoot, "engine.yaml") }) {
+			stamp.append(file.lastModified()).append(':').append(file.length()).append(';');
+		}
+		var now = System.currentTimeMillis();
+		var cached = rootFingerprints.get(key);
+		if (cached != null && cached.stamp().equals(stamp.toString()) && now - cached.computedAt() < ROOT_FINGERPRINT_TTL_MS) {
+			return cached.value();
+		}
+		var value = new StringBuilder();
+		walk.accept(value);
+		rootFingerprints.put(key, new RootFingerprint(stamp.toString(), value.toString(), now));
+		return value.toString();
+	}
+
 	private static String methodResponseDependencyFingerprint(File engineFile, JSONObject request) {
 		var source = new StringBuilder();
-		appendFlowRootFingerprint(source, "engine", engineFile == null ? null : engineFile.getParentFile());
+		var engineRoot = engineFile == null ? null : engineFile.getParentFile();
+		if (engineRoot == null) {
+			appendFlowRootFingerprint(source, "engine", null);
+		} else {
+			source.append(cachedRootFingerprint("engine", engineRoot.getParentFile() == null ? engineRoot : engineRoot.getParentFile(),
+					engineRoot, walk -> appendFlowRootFingerprint(walk, "engine", engineRoot)));
+		}
 		var projectDir = request == null ? "" : request.optString("projectDir", "");
 		if (projectDir != null && !projectDir.isBlank()) {
 			var projectRoot = new File(projectDir);
@@ -1898,6 +1935,12 @@ public class FlowEngineBridge {
 			return;
 		}
 		source.append(label).append(":").append(canonicalPath(projectRoot)).append("\n");
+		source.append(cachedRootFingerprint("project", projectRoot, new File(projectRoot, ENGINE_BASE_PATH),
+				walk -> appendProjectTreeFingerprint(walk, projectRoot)));
+	}
+
+	private static void appendProjectTreeFingerprint(StringBuilder source, File projectRoot) {
+		var label = "project";
 		appendFileFingerprint(source, new File(projectRoot, "c8oProject.yaml"));
 		var flowRoot = new File(projectRoot, ENGINE_BASE_PATH);
 		appendFlowRootFingerprint(source, label + ".flow", flowRoot);
