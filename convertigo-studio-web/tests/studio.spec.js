@@ -948,6 +948,24 @@ test('studio selects several tree objects and deletes them together', async ({ p
 	await expect(returnStep).toHaveCount(0);
 });
 
+test('studio opens the menu of a tree object on a right click', async ({ page }) => {
+	const state = createStudioState();
+	await mockStudioServices(page, { state });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	const sequence = page.locator(`button.studio-tree-node__content[data-node-id="${sequenceId}"]`);
+	const box = await sequence.boundingBox();
+	await sequence.click({ button: 'right', position: { x: 24, y: 6 } });
+	// the object is selected and its menu opens where it was clicked, as in the tree of Eclipse
+	await expect(sequence.locator('xpath=..')).toHaveClass(/studio-tree-node__row--selected/);
+	const copy = page.getByRole('menuitem', { name: 'Copy', exact: true });
+	await expect(copy).toBeVisible();
+	const menu = await copy.locator('xpath=ancestor::*[@data-part="content"]').boundingBox();
+	expect(Math.abs((menu?.x ?? 0) - ((box?.x ?? 0) + 24))).toBeLessThan(16);
+});
+
 test('studio creates, renames and deletes the files of a project', async ({ page }) => {
 	const state = createStudioState();
 	await mockStudioServices(page, { state });

@@ -4,7 +4,7 @@
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, getUrl, removeDbo, renameDbo } from '$lib/utils/service';
-	import { tick } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import {
 		canDropDbo,
 		canUseDboDropFallback,
@@ -185,15 +185,46 @@
 	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
 	let folderNode = $derived(isFolderNode(node?.id ?? ''));
 	let renaming = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, renameTargetId)));
-	let showSelectedActions = $derived(
+	let hasActions = $derived(
 		Boolean(
-			selected &&
-			!renaming &&
-			(draggableNode ||
-				isFlowContextNode(node) ||
-				(onTreeAction && (projectNode || folderNode || Boolean(node?.id?.includes('/')))))
+			draggableNode ||
+			isFlowContextNode(node) ||
+			(onTreeAction && (projectNode || folderNode || Boolean(node?.id?.includes('/'))))
 		)
 	);
+	let showSelectedActions = $derived(Boolean(selected && !renaming && hasActions));
+	/**
+	 * Where the menu of the actions opens on a right click, as the menu of the tree of Eclipse
+	 * @type {{ x: number, y: number, serial: number } | null}
+	 */
+	let contextMenuRequest = $state(null);
+	$effect(() => {
+		if (!showSelectedActions) {
+			untrack(() => (contextMenuRequest = null));
+		}
+	});
+
+	/**
+	 * Opens the menu of the actions of the object where it is right clicked, and selects it, unless it
+	 * is one of the objects selected together.
+	 * @param {MouseEvent} event
+	 */
+	function openContextMenu(event) {
+		const id = node?.id ?? '';
+		if (!id || renaming || !hasActions) {
+			return;
+		}
+		event.preventDefault();
+		if (!treeSelection.ids.includes(id)) {
+			clearTreeSelection();
+		}
+		selectedId = id;
+		contextMenuRequest = {
+			x: event.clientX,
+			y: event.clientY,
+			serial: (contextMenuRequest?.serial ?? 0) + 1
+		};
+	}
 
 	$effect(() => {
 		const target = selectedId;
@@ -1104,6 +1135,7 @@
 	<div
 		bind:this={rowElement}
 		role="presentation"
+		oncontextmenu={openContextMenu}
 		draggable={draggableNode}
 		ondragstart={handleDragStart}
 		ondragend={handleDragEnd}
@@ -1271,6 +1303,7 @@
 					canPaste={Boolean(onTreeAction && !closedProject && canPasteInto?.(node.id))}
 					isProject={Boolean(onTreeAction && projectNode)}
 					closed={closedProject}
+					contextRequest={contextMenuRequest}
 					fileKind={!onTreeAction || !node.id.includes('/')
 						? ''
 						: /^[^/]+\/$/.test(node.id)

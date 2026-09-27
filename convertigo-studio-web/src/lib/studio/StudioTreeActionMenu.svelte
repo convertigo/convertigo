@@ -2,6 +2,7 @@
 	import { Menu, Portal } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getStudioContextMenu, runStudioContextAction } from '$lib/utils/service';
+	import { untrack } from 'svelte';
 
 	/**
 	 * @typedef {Object} StudioContextMenuItem
@@ -28,6 +29,7 @@
 	 *  canPaste?: boolean,
 	 *  isProject?: boolean,
 	 *  closed?: boolean,
+	 *  contextRequest?: { x: number, y: number, serial: number } | null,
 	 *  fileKind?: '' | 'root' | 'folder' | 'file',
 	 *  enabledState?: boolean,
 	 *  deleting?: boolean,
@@ -55,6 +57,7 @@
 		canPaste = false,
 		isProject = false,
 		closed = false,
+		contextRequest = null,
 		fileKind = '',
 		enabledState = undefined,
 		deleting = false,
@@ -113,10 +116,43 @@
 	let triggerIcon = $derived(actionBusy || deleting ? 'mdi:sync' : 'mdi:dots-vertical');
 
 	/**
+	 * The point of the right click the menu opens at, as a context menu, instead of below its button
+	 * @type {{ x: number, y: number } | null}
+	 */
+	let contextPoint = $state(null);
+	let handledContextSerial = 0;
+	$effect(() => {
+		const request = contextRequest;
+		if (!request || request.serial === handledContextSerial) {
+			return;
+		}
+		handledContextSerial = request.serial;
+		// the tree already selected the object, or kept the objects selected together
+		untrack(() => {
+			contextPoint = { x: request.x, y: request.y };
+			open = true;
+			contextItems = [];
+			void loadContextMenu();
+		});
+	});
+	let positioning = $derived.by(() => {
+		const point = contextPoint;
+		return point
+			? {
+					placement: /** @type {const} */ ('bottom-start'),
+					getAnchorRect: () => ({ ...point, width: 0, height: 0 })
+				}
+			: { placement: /** @type {const} */ ('bottom-end') };
+	});
+
+	/**
 	 * @param {{ open: boolean }} details
 	 */
 	function handleOpenChange(details) {
 		open = details.open;
+		if (!open) {
+			contextPoint = null;
+		}
 		if (open) {
 			onSelectNode?.();
 			contextItems = [];
@@ -339,7 +375,7 @@
 	{open}
 	onOpenChange={handleOpenChange}
 	onSelect={handleSelect}
-	positioning={{ placement: 'bottom-end' }}
+	{positioning}
 	aria-label={`Actions for ${label}`}
 >
 	<Menu.Trigger
