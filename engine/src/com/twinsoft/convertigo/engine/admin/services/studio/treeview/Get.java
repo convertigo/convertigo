@@ -200,6 +200,10 @@ public class Get extends JSonService {
 		if (enabled != null) {
 			obj.put("enabled", enabled);
 		}
+		// the tree enables or disables these objects, as the Eclipse Studio; a Flow object has its own property
+		if (dbo instanceof IEnableAble) {
+			obj.put("enableAble", true);
+		}
 		var defaultOf = defaultOf(dbo);
 		if (defaultOf != null) {
 			obj.put("default", defaultOf);

@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.dbo;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,12 +56,14 @@ public class SapDesign extends JSonService {
 		if ("import".equals(request.getParameter("action"))) {
 			var functions = new JSONArray(String.valueOf(request.getParameter("functions")));
 			var imported = new JSONArray();
+			var missing = new ArrayList<String>();
 			for (var i = 0; i < functions.length(); i++) {
 				var function = functions.getJSONObject(i);
 				var name = function.getString("name");
 				connector.removeSerializedData(name);
 				var transaction = SapJcoConnector.createSapJcoTransaction(connector, name);
 				if (transaction == null) {
+					missing.add(name);
 					continue;
 				}
 				// a BAPI imported again replaces its transaction
@@ -77,8 +80,16 @@ public class SapDesign extends JSonService {
 				connector.add(transaction);
 				imported.put(transaction.getFullQName());
 			}
+			// the functions the SAP repository did not describe are told, as nothing else shows them
+			var message = "The SAP repository did not describe " + String.join(", ", missing) + ".";
+			if (imported.length() == 0) {
+				throw new ServiceException(message);
+			}
 			connector.hasChanged = true;
 			response.put("transactions", imported);
+			if (!missing.isEmpty()) {
+				response.put("error", message);
+			}
 			return;
 		}
 		var pattern = request.getParameter("pattern");

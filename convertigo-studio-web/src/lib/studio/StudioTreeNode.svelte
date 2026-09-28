@@ -1313,7 +1313,10 @@
 							: node.icon === 'folder'
 								? 'folder'
 								: 'file'}
-					enabledState={onTreeAction && draggableNode && typeof node?.enabled === 'boolean'
+					enabledState={onTreeAction &&
+					draggableNode &&
+					node?.enableAble &&
+					typeof node?.enabled === 'boolean'
 						? node.enabled
 						: undefined}
 					deleting={deletingBusy}
