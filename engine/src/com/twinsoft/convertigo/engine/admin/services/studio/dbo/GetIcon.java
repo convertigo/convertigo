@@ -120,7 +120,10 @@ public class GetIcon extends DownloadService {
 			return new FileInputStream(Engine.USER_WORKSPACE_PATH + iconPath.substring("workspace:".length()));
 		}
 		var iconFile = new File(iconPath);
-		if (iconFile.isAbsolute() && (isInLoadedProject(iconFile) || isInFlowIconCache(iconFile))) {
+		// a path of the classes, as /com/twinsoft/…, is no file: the projects, which the engine may still
+		// be loading, are searched only for a file
+		if (iconFile.isAbsolute() && iconFile.isFile()
+				&& (isInLoadedProject(iconFile) || isInFlowIconCache(iconFile))) {
 			return new FileInputStream(iconFile);
 		}
 		return GetIcon.class.getResourceAsStream(iconPath);
