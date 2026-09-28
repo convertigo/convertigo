@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 class FlowPickerComposite extends Composite {
 
@@ -304,6 +305,9 @@ class FlowPickerComposite extends Composite {
 						.put("requestables", target.flow() == null
 								? new FlowEngineBridge().requestables(target.flowEngine())
 								: new FlowEngineBridge().requestables(target.flow()))
+						.toString();
+				case "bindingSources" -> FlowStudioSupport.frontendBindingSources(target.flowEngine(), treeObject.getObject(),
+						json.optJSONObject("payload") == null ? "" : json.optJSONObject("payload").optString("property", ""))
 						.toString();
 				case "context" -> new JSONObject()
 						.put("ok", true)

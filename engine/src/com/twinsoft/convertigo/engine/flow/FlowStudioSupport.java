@@ -83,6 +83,37 @@ public class FlowStudioSupport {
 		return info == null ? object.getName() : info.optString("renameValue", object.getName());
 	}
 
+	/**
+	 * Binding sources of one property of a frontend node, as every Studio editor
+	 * host (Properties view, Source Picker) offers them.
+	 */
+	public static JSONObject frontendBindingSources(FlowEngine flowEngine, FlowVirtualObject object, String property) throws Exception {
+		if (flowEngine == null || object == null || object.getVirtualPath().isBlank()) {
+			return new JSONObject().put("ok", true).put("bindingSources", new JSONArray());
+		}
+		var response = new FlowEngineBridge().authoringTree(flowEngine, new JSONObject()
+				.put("surface", "frontend")
+				.put("focusPath", object.getVirtualPath())
+				.put("bindingTargetPath", object.getSourceMutationPath())
+				.put("bindingTargetSource", object.getSourcePath())
+				.put("detail", "full")
+				.put("includeBindings", true)
+				.put("includeFrontendCatalog", false)
+				.put("includeFlowCatalog", false)
+				.put("property", property));
+		var children = response.optJSONArray("children");
+		var node = children == null || children.length() == 0 ? null : children.optJSONObject(0);
+		var rawInfo = node == null ? null : node.opt("info");
+		var info = rawInfo instanceof JSONObject object2 ? object2
+				: rawInfo instanceof String text && !text.isBlank() ? new JSONObject(text) : null;
+		var definitions = info == null ? null : info.optJSONObject("propertyDefinitions");
+		var definition = definitions == null ? null : definitions.optJSONObject(property);
+		var sources = definition == null ? null : definition.optJSONArray("bindingSources");
+		return new JSONObject()
+				.put("ok", response.optBoolean("ok", true))
+				.put("bindingSources", sources == null ? new JSONArray() : sources);
+	}
+
 	public static boolean canRenameVirtualObject(FlowVirtualObject object) {
 		var info = object.getVirtualInfoObject();
 		return object.isDefinitionWritable() && info != null && info.optJSONObject("renameMutation") != null;

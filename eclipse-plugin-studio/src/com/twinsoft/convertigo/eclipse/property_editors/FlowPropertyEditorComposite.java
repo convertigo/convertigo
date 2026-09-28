@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FlowVirtualObjectTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 public class FlowPropertyEditorComposite extends Composite {
 
@@ -446,29 +447,8 @@ public class FlowPropertyEditorComposite extends Composite {
 	}
 
 	private JSONObject bindingSources(EditorTarget target, FlowVirtualObject object, JSONObject payload) throws Exception {
-		if (target.flowEngine() == null || object.getVirtualPath().isBlank()) {
-			return new JSONObject().put("ok", true).put("bindingSources", new JSONArray());
-		}
 		var property = payload == null ? propertyName : payload.optString("property", propertyName);
-		var response = new FlowEngineBridge().authoringTree(target.flowEngine(), new JSONObject()
-				.put("surface", "frontend")
-				.put("focusPath", object.getVirtualPath())
-				.put("bindingTargetPath", object.getSourceMutationPath())
-				.put("bindingTargetSource", object.getSourcePath())
-				.put("detail", "full")
-				.put("includeBindings", true)
-				.put("includeFrontendCatalog", false)
-				.put("includeFlowCatalog", false)
-				.put("property", property));
-		var children = response.optJSONArray("children");
-		var node = children == null || children.length() == 0 ? null : children.optJSONObject(0);
-		var info = node == null ? null : jsonObject(node.opt("info"));
-		var definitions = info == null ? null : info.optJSONObject("propertyDefinitions");
-		var definition = definitions == null ? null : definitions.optJSONObject(property);
-		var sources = definition == null ? null : definition.optJSONArray("bindingSources");
-		return new JSONObject()
-				.put("ok", response.optBoolean("ok", true))
-				.put("bindingSources", sources == null ? new JSONArray() : sources);
+		return FlowStudioSupport.frontendBindingSources(target.flowEngine(), object, property);
 	}
 
 	private static JSONObject jsonObject(Object value) {
