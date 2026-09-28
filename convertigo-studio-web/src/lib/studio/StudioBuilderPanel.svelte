@@ -98,9 +98,11 @@
 
 	/** a production build, asked before a deployment as the Eclipse Studio builds the application */
 	let pendingBuild = false;
+	let pendingBuildNotified = false;
 	$effect(() => {
 		if (buildRequest) {
 			pendingBuild = true;
+			pendingBuildNotified = false;
 			untrack(() => {
 				onBuildRequestTaken?.();
 				serveWhenReady();
@@ -119,6 +121,9 @@
 		if (pendingBuild && localState === 'idle') {
 			pendingBuild = false;
 			send('build_local', { mode: 'prod' });
+		} else if (pendingBuild && localState === 'building:watch' && !pendingBuildNotified) {
+			pendingBuildNotified = true;
+			void append('log', 'The production build starts once the watch build is stopped.');
 		}
 		if (!pendingServe) {
 			return;
@@ -207,6 +212,8 @@
 						}
 					} else {
 						localState = rest.join(':');
+						// the production build asked before a deployment starts once the running build ends
+						serveWhenReady();
 					}
 					if (devState === 'idle' && localState === 'idle') {
 						progress = -1;
@@ -220,7 +227,8 @@
 					qrUrl = networkUrls[0]?.url ?? '';
 				} else if (type === 'built') {
 					progress = -1;
-					if (value === 'success') {
+					// a build ending before the production build asked for a deployment does not deploy
+					if (value === 'success' && !pendingBuild) {
 						onBuilt?.();
 					}
 				} else if (type === 'load') {

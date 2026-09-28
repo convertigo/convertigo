@@ -28,6 +28,8 @@
 	let captures = $state([]);
 	let picture = $state('');
 	let busy = $state(false);
+	/** a file chosen that is not a picture */
+	let chooseError = $state('');
 
 	$effect.pre(() => {
 		picture = captured;
@@ -55,14 +57,49 @@
 	/**
 	 * @param {Event & { currentTarget: HTMLInputElement }} event
 	 */
-	function choose(event) {
+	async function choose(event) {
 		const file = event.currentTarget.files?.[0];
 		if (!file) {
 			return;
 		}
-		const reader = new FileReader();
-		reader.onload = () => (picture = String(reader.result ?? ''));
-		reader.readAsDataURL(file);
+		try {
+			picture = await fitPicture(file);
+			chooseError = '';
+		} catch {
+			picture = '';
+			chooseError = `${file.name} is not a picture.`;
+		}
+	}
+
+	/** the longest side of a picture chosen, which keeps it under the 2 MB a request of the Engine takes */
+	const MAX_SIDE = 1600;
+	const MAX_DATA = 1_500_000;
+
+	/**
+	 * Reads a picture chosen, reduced to fit the request that saves it: a photo would exceed it.
+	 * @param {File} file
+	 * @returns {Promise<string>} the data URL of the picture
+	 */
+	async function fitPicture(file) {
+		const bitmap = await createImageBitmap(file);
+		const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+		const canvas = document.createElement('canvas');
+		canvas.width = Math.round(bitmap.width * scale);
+		canvas.height = Math.round(bitmap.height * scale);
+		canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+		bitmap.close();
+		// a PNG keeps its transparency when it fits, the others become JPEG
+		const png = file.type === 'image/png' ? canvas.toDataURL('image/png') : '';
+		if (png && png.length <= MAX_DATA) {
+			return png;
+		}
+		for (const quality of [0.9, 0.75, 0.6]) {
+			const jpeg = canvas.toDataURL('image/jpeg', quality);
+			if (jpeg.length <= MAX_DATA || quality === 0.6) {
+				return jpeg;
+			}
+		}
+		return '';
 	}
 </script>
 
@@ -93,7 +130,7 @@
 				{:else}
 					<div class="studio-capture__empty">
 						<Ico icon="mdi:image-outline" size={8} />
-						<span>{error || 'No capture yet.'}</span>
+						<span>{chooseError || error || 'No capture yet.'}</span>
 					</div>
 				{/if}
 				<div class="studio-capture__sources">

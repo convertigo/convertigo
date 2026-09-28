@@ -62,7 +62,11 @@ public class Datasets extends JSonService {
 			if ("get".equals(action)) {
 				response.put("data", file.exists() ? FileUtils.readFileToString(file, "UTF-8") : "[]");
 			} else if ("remove".equals(action)) {
-				response.put("done", file.delete());
+				// a dataset already removed from the disk is removed
+				if (!file.delete() && file.exists()) {
+					throw new ServiceException("The dataset " + name + " cannot be removed.");
+				}
+				response.put("done", true);
 			} else {
 				dir.mkdirs();
 				FileUtils.write(file, new JSONArray(request.getParameter("data")).toString(2), "UTF-8");

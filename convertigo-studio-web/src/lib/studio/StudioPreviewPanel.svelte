@@ -294,8 +294,9 @@
 		if (result?.done) {
 			ngxDataset = 'none';
 			sessionStorage.removeItem(SESSION_DATA);
-			await loadNgxDatasets(projectName);
 		}
+		// the list shows the datasets on the disk, even when the removal failed
+		await loadNgxDatasets(projectName);
 	}
 
 	async function saveNgxDataset() {
