@@ -89,21 +89,20 @@
 			{@render tools?.()}
 		</aside>
 
-		{#if logsPanelOpen}
-			<section class="studio-shell__logs-panel" aria-label="Logs">
-				<button
-					type="button"
-					class="studio-resizer studio-resizer--logs"
-					aria-label="Resize logs panel"
-					title="Resize logs panel"
-					onpointerdown={(event) => onResizeStart?.(event, 'logs')}
-					onkeydown={(event) => onResizeKey?.(event, 'logs')}
-				></button>
-				<div class="studio-shell__logs-panel-body">
-					{@render logs?.()}
-				</div>
-			</section>
-		{/if}
+		<!-- kept while hidden: a build or a debugger it follows goes on -->
+		<section class="studio-shell__logs-panel" aria-label="Logs" hidden={!logsPanelOpen}>
+			<button
+				type="button"
+				class="studio-resizer studio-resizer--logs"
+				aria-label="Resize logs panel"
+				title="Resize logs panel"
+				onpointerdown={(event) => onResizeStart?.(event, 'logs')}
+				onkeydown={(event) => onResizeKey?.(event, 'logs')}
+			></button>
+			<div class="studio-shell__logs-panel-body">
+				{@render logs?.()}
+			</div>
+		</section>
 	</div>
 
 	<footer class="studio-shell__status">
@@ -195,6 +194,7 @@
 
 	.studio-shell__tree[hidden],
 	.studio-shell__tools[hidden],
+	.studio-shell__logs-panel[hidden],
 	.studio-resizer[hidden] {
 		display: none;
 	}

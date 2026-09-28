@@ -3466,13 +3466,16 @@
 {/snippet}
 
 {#snippet logsPane()}
-	<StudioLogsPanel />
+	<!-- the logs follow the engine only while they show -->
+	{#if logsPanelOpen}
+		<StudioLogsPanel />
+	{/if}
 {/snippet}
 
 {#snippet referencesPane()}
 	<StudioReferencesPanel
 		selectedId={viewSelectedId}
-		active={bottomView === 'references'}
+		active={logsPanelOpen && bottomView === 'references'}
 		onSelect={selectObject}
 	/>
 {/snippet}
@@ -3481,14 +3484,14 @@
 	<StudioSchemaPanel
 		selectedId={viewSelectedId}
 		projectName={selectedProjectName}
-		active={bottomView === 'schema'}
+		active={logsPanelOpen && bottomView === 'schema'}
 	/>
 {/snippet}
 
 {#snippet buildPane()}
 	<StudioBuilderPanel
 		projectName={selectedProjectName}
-		active={bottomView === 'build'}
+		active={logsPanelOpen && bottomView === 'build'}
 		onLoad={showDevelopmentBuild}
 		onBuilt={() => {
 			showLocalBuild();
@@ -3512,7 +3515,7 @@
 
 {#snippet debugPane()}
 	<StudioDebugPanel
-		active={bottomView === 'debug'}
+		active={logsPanelOpen && bottomView === 'debug'}
 		onStopped={() => {
 			// a script stopped on a breakpoint: the debugger shows, as the Eclipse Studio shows it
 			bottomView = 'debug';
@@ -3527,7 +3530,7 @@
 		active={bottomView}
 		ariaLabel="Bottom panel views"
 		fillIds={['logs', 'references', 'schema', 'build', 'debug']}
-		lazyIds={['references', 'schema', 'build']}
+		lazyIds={['references', 'schema']}
 		onSelect={(id) =>
 			(bottomView = /** @type {'logs' | 'references' | 'schema' | 'build' | 'debug'} */ (id))}
 		panes={{

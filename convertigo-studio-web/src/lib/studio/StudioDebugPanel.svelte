@@ -47,6 +47,7 @@
 	let breakable = $derived(new Set(source?.breakable ?? []));
 	let lastSerial = -1;
 	let wasStopped = false;
+	let stoppedFrames = '';
 
 	$effect(() => {
 		if (active) {
@@ -91,12 +92,19 @@
 		if (!changed) {
 			return;
 		}
-		if (next.stopped && !wasStopped) {
-			// a script stopped: its source and variables show, as the Eclipse Studio shows them
+		// a state also changes when a script loads: a stop is new when its frames are
+		const frames = JSON.stringify(next.frames ?? []);
+		const stoppedAgain = next.stopped && wasStopped && frames !== stoppedFrames;
+		stoppedFrames = next.stopped ? frames : '';
+		if (next.stopped && (!wasStopped || stoppedAgain)) {
+			// a script stopped, or stopped again after a step: its source and variables show, as the
+			// Eclipse Studio shows them
+			if (!wasStopped) {
+				onStopped?.();
+			}
 			frameIndex = 0;
-			onStopped?.();
 			const frame = next.frames?.[0];
-			if (frame) {
+			if (frame && (!wasStopped || frame.url !== sourceUrl)) {
 				await openSource(frame.url);
 			}
 			await loadVariables();

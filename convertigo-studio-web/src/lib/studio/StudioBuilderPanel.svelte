@@ -44,6 +44,10 @@
 	/** @type {WebSocket | null} */
 	let socket = null;
 	let socketProject = '';
+	/** @type {ReturnType<typeof setTimeout> | undefined} */
+	let reconnectTimer;
+	/** whether this panel asked the development server, whose address a new socket also tells */
+	let serveAsked = false;
 	/** @type {'closed' | 'connecting' | 'open'} */
 	let connection = $state('closed');
 	let progress = $state(-1);
@@ -136,7 +140,12 @@
 		}
 	}
 
-	onDestroy(() => socket?.close());
+	onDestroy(() => {
+		clearTimeout(reconnectTimer);
+		const current = socket;
+		socket = null;
+		current?.close();
+	});
 
 	/**
 	 * @param {string} kind
@@ -162,8 +171,10 @@
 	 * @param {string} project
 	 */
 	function connect(project) {
+		clearTimeout(reconnectTimer);
 		socket?.close();
 		socketProject = project;
+		serveAsked = false;
 		lines = [];
 		progress = -1;
 		url = '';
@@ -185,6 +196,13 @@
 			if (socket === current) {
 				connection = 'closed';
 				socketProject = '';
+				// the builder connects again once the engine is back, as after a restart
+				clearTimeout(reconnectTimer);
+				reconnectTimer = setTimeout(() => {
+					if (socket === current && active && projectName) {
+						connect(projectName);
+					}
+				}, 3000);
 			}
 		};
 		current.onmessage = (event) => {
@@ -234,7 +252,10 @@
 				} else if (type === 'load') {
 					url = String(value);
 					void append('log', `The application is served on ${url}`);
-					onLoad?.(url);
+					// a server already running, told to a new socket, does not switch the preview
+					if (serveAsked) {
+						onLoad?.(url);
+					}
 				} else {
 					void append(type, String(value));
 				}
@@ -255,6 +276,9 @@
 		if (action === 'build_dev' || action === 'build_local') {
 			progress = 0;
 			url = '';
+		}
+		if (action === 'build_dev') {
+			serveAsked = true;
 		}
 		socket.send(
 			JSON.stringify({
