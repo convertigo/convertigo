@@ -186,6 +186,24 @@ public class Get extends JSonService {
 		}
 	}
 
+	/**
+	 * The value of the global symbols a property uses, as the properties of the Eclipse Studio show it after
+	 * its text, or that a symbol is undefined; a masked property keeps its secret.
+	 */
+	private static void addCompiledValue(JSONObject property, String value) throws Exception {
+		if (value == null || !value.contains("${") || property.optBoolean("isMasked", false)) {
+			return;
+		}
+		try {
+			var compiled = Engine.theApp.databaseObjectsManager.getCompiledValue(value);
+			if (!value.equals(compiled)) {
+				property.put("compiledValue", compiled);
+			}
+		} catch (com.twinsoft.convertigo.engine.UndefinedSymbolsException e) {
+			property.put("undefinedSymbols", true);
+		}
+	}
+
 	private JSONObject makeInfoProperty(JSONObject info, String name, Object value) throws Exception {
 		return JsonUtils.copy(info).put("name", name).put("value", value);
 	}
@@ -239,6 +257,7 @@ public class Get extends JSonService {
 				addIonProperties(dbo, props, c.getAttribute("value"));
 			} else {
 				property.put("value", c.getAttribute("value"));
+				addCompiledValue(property, c.getAttribute("value"));
 			}
 
 			Node next = fc.getNextSibling();

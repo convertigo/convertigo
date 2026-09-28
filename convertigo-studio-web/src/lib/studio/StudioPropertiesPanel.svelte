@@ -1054,6 +1054,20 @@
 													{row.validation.error || 'This value is not valid.'}
 												</p>
 											{/if}
+											{#if !changed && row.compiledValue !== undefined}
+												<!-- the value of its global symbols, as the properties of the Eclipse Studio show it -->
+												<small
+													class="studio-properties__compiled"
+													title="The value of the global symbols of this property"
+													>⇒ {row.compiledValue}</small
+												>
+											{:else if !changed && row.undefinedSymbols}
+												<small
+													class="studio-properties__compiled studio-properties__compiled--undefined"
+													title="A global symbol of this property has no value"
+													>Undefined global symbol</small
+												>
+											{/if}
 											{#if isPickerOpen(row)}
 												<div class="studio-properties__inline-picker">
 													<StudioSourcePickerPanel
@@ -1201,6 +1215,20 @@
 	.studio-properties {
 		height: 100%;
 		min-height: 0;
+	}
+
+	.studio-properties__compiled {
+		display: block;
+		overflow: hidden;
+		margin-top: 0.2rem;
+		color: var(--studio-text-idle);
+		font-size: 0.7rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-properties__compiled--undefined {
+		color: var(--color-warning-600-400);
 	}
 
 	.studio-properties__body {
