@@ -70,6 +70,35 @@
 		});
 	});
 
+	// a save writes the files of the project: their changes show again
+	let wasDirty = false;
+	$effect(() => {
+		const isDirty = dirty;
+		if (wasDirty && !isDirty) {
+			untrack(() => projectName && void run('status'));
+		}
+		wasDirty = isDirty;
+	});
+
+	/**
+	 * @param {string} action what reloads the project from its files
+	 * @returns {boolean} whether the changes of the project not saved can be lost
+	 */
+	function confirmUnsaved(action) {
+		return (
+			!dirty ||
+			window.confirm(
+				`The project ${projectName} has changes not saved, which the ${action} loses as it loads the project again from its files.\n\nContinue?`
+			)
+		);
+	}
+
+	async function pull() {
+		if (confirmUnsaved('pull')) {
+			await run('pull');
+		}
+	}
+
 	/**
 	 * @param {string} action
 	 * @param {Record<string, string>} [parameters]
@@ -130,6 +159,10 @@
 	 * @param {boolean} [create]
 	 */
 	async function checkout(branch, create = false) {
+		// a new branch starts from the current commit, whose files do not change
+		if (!create && !confirmUnsaved('checkout')) {
+			return;
+		}
 		const result = await run('checkout', { branch, create: String(create) });
 		if (result?.reloaded) {
 			branchesOpen = false;
@@ -155,7 +188,8 @@
 		if (
 			!window.confirm(
 				`Discard the changes of ${names.length > 1 ? `${names.length} files` : names[0]}?\n\nThe new files are removed, the others come back as the last commit has them.`
-			)
+			) ||
+			!confirmUnsaved('discard')
 		) {
 			return;
 		}
@@ -339,7 +373,7 @@
 				title="Pull"
 				aria-label="Pull"
 				disabled={Boolean(busy) || !status.remote}
-				onclick={() => run('pull')}><Ico icon="mdi:arrow-down" size={4} /></button
+				onclick={() => pull()}><Ico icon="mdi:arrow-down" size={4} /></button
 			>
 			<button
 				type="button"
