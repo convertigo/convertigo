@@ -975,8 +975,9 @@ test('studio creates, renames and deletes the files of a project', async ({ page
 	await expandTreeNode(page, `${projectName}/`);
 	await selectTreeNode(page, `${projectName}/`);
 	await page.getByRole('button', { name: 'Actions for Files' }).click();
-	page.once('dialog', (dialog) => dialog.accept('notes.txt'));
 	await page.getByRole('menuitem', { name: 'New file…' }).click();
+	// the Studio asks the name in its own dialog, which the desktop Studio needs instead of window.prompt
+	await answerStudioPrompt(page, 'notes.txt');
 	const notes = page.locator(
 		`button.studio-tree-node__content[data-node-id="${projectName}//notes.txt"]`
 	);
@@ -985,8 +986,8 @@ test('studio creates, renames and deletes the files of a project', async ({ page
 
 	// a file is not an object: F2 and Del rename and delete the file
 	await notes.click();
-	page.once('dialog', (dialog) => dialog.accept('todo.txt'));
 	await notes.press('F2');
+	await answerStudioPrompt(page, 'todo.txt');
 	const todo = page.locator(
 		`button.studio-tree-node__content[data-node-id="${projectName}//todo.txt"]`
 	);
@@ -1686,6 +1687,18 @@ async function dragTreeNodeToTreeNode(page, sourceNodeId, targetNodeId, options 
 	);
 	await options.beforeDrop?.();
 	await page.mouse.up();
+}
+
+/**
+ * Answers the question of the Studio prompt dialog.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} value
+ */
+async function answerStudioPrompt(page, value) {
+	const dialog = page.locator('[aria-labelledby="studio-prompt-title"]');
+	await expect(dialog).toBeVisible();
+	await dialog.getByRole('textbox').fill(value);
+	await dialog.getByRole('button', { name: 'OK', exact: true }).click();
 }
 
 /**
