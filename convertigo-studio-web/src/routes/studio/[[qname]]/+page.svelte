@@ -26,6 +26,8 @@
 	import { contextAuthoringMutation, isFrontendAuthoringNodeId } from '$lib/studio/flowAuthoring';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
 	import { projectFileFolders } from '$lib/studio/projectFileFolders.js';
+	import StudioPromptDialog from '$lib/studio/StudioPromptDialog.svelte';
+	import { studioPrompt } from '$lib/studio/studioPrompt.svelte.js';
 	import {
 		findPrimaryEditorProperty,
 		isCodeEditorProperty,
@@ -2703,7 +2705,7 @@
 		/** @type {any} */
 		let result;
 		if (action === 'newFile' || action === 'newFolder') {
-			const newName = window.prompt(
+			const newName = await studioPrompt(
 				action === 'newFile' ? 'Name of the new file' : 'Name of the new folder'
 			);
 			if (!newName?.trim()) {
@@ -2722,7 +2724,7 @@
 			files.forEach((file, index) => data.append(`file${index}`, file, file.name));
 			result = await call('studio.source.Files', data);
 		} else if (action === 'rename') {
-			const newName = window.prompt(`Rename ${name}`, name);
+			const newName = await studioPrompt(`Rename ${name}`, name);
 			if (!newName?.trim() || newName.trim() === name) {
 				return;
 			}
@@ -3900,6 +3902,9 @@
 		onClose={() => (archiveRequest = null)}
 	/>
 {/if}
+
+<!-- the texts asked to the user, as window.prompt, which the desktop Studio does not support -->
+<StudioPromptDialog />
 
 {#if newProjectOpen}
 	<StudioNewProjectDialog onDone={showNewProject} onClose={() => (newProjectOpen = false)} />

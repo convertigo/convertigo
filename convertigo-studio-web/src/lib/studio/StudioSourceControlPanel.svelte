@@ -3,6 +3,7 @@
 	import { call } from '$lib/utils/service';
 	import { untrack } from 'svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+	import { studioPrompt } from './studioPrompt.svelte.js';
 
 	/**
 	 * @typedef {{ path: string, kind: 'added' | 'modified' | 'deleted' | 'untracked' | 'conflicting' }} ChangedFile
@@ -174,7 +175,7 @@
 	}
 
 	async function newBranch() {
-		const branch = window.prompt('Name of the new branch, from the current commit')?.trim();
+		const branch = (await studioPrompt('Name of the new branch, from the current commit'))?.trim();
 		if (branch) {
 			await checkout(branch, true);
 		}

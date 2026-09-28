@@ -1,4 +1,5 @@
 import Bezels from '$lib/dashboard/Bezels';
+import { studioPrompt } from './studioPrompt.svelte.js';
 
 /**
  * The devices the user adds to the previews and the OS the NGX applications show, as the custom devices
@@ -85,15 +86,15 @@ export function selectDeviceOs(os) {
 
 /**
  * Asks the name and the size of a device and adds it.
- * @returns {string} the id of the device added, none when the user cancels
+ * @returns {Promise<string>} the id of the device added, none when the user cancels
  */
-export function addCustomDevice() {
-	const title = window.prompt('Name of the device')?.trim();
+export async function addCustomDevice() {
+	const title = (await studioPrompt('Name of the device'))?.trim();
 	if (!title) {
 		return '';
 	}
 	const size = /^\s*(\d+)\s*[x×*,]\s*(\d+)\s*$/.exec(
-		window.prompt('Width and height of its screen, in CSS pixels', '390x844') ?? ''
+		(await studioPrompt('Width and height of its screen, in CSS pixels', '390x844')) ?? ''
 	);
 	if (!size || !Number(size[1]) || !Number(size[2])) {
 		return '';

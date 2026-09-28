@@ -34,6 +34,7 @@
 	import StudioCaptureDialog from './StudioCaptureDialog.svelte';
 	import StudioDevicePanel from './StudioDevicePanel.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+	import { studioPrompt } from './studioPrompt.svelte.js';
 
 	const familyDefinitions = [
 		{
@@ -313,9 +314,9 @@
 			window.alert('The application recorded no session data yet.');
 			return;
 		}
-		const name = window
-			.prompt('Name of the dataset', ngxDataset === 'none' ? '' : ngxDataset)
-			?.trim();
+		const name = (
+			await studioPrompt('Name of the dataset', ngxDataset === 'none' ? '' : ngxDataset)
+		)?.trim();
 		if (!name || name === 'none') {
 			return;
 		}
@@ -485,10 +486,10 @@
 	/**
 	 * @param {Event} event
 	 */
-	function selectDevice(event) {
+	async function selectDevice(event) {
 		const select = /** @type {HTMLSelectElement | null} */ (event.currentTarget);
 		if (select?.value === ADD_DEVICE) {
-			const added = addCustomDevice();
+			const added = await addCustomDevice();
 			select.value = added || selectedDeviceId;
 			if (!added) {
 				return;

@@ -115,8 +115,8 @@
 		return groups;
 	}
 
-	function addDevice() {
-		const id = addCustomDevice();
+	async function addDevice() {
+		const id = await addCustomDevice();
 		if (id) {
 			selectDevice(id);
 		}
