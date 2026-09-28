@@ -208,7 +208,7 @@
 			await onDelete?.();
 			return;
 		}
-		if (/^(edit|project|state|file)\./.test(details.value)) {
+		if (/^(edit|project|state|file|palette)\./.test(details.value)) {
 			await onTreeAction?.(details.value);
 			return;
 		}
@@ -393,6 +393,10 @@
 	<Portal>
 		<Menu.Positioner class="studio-tree-action-menu__positioner" style="z-index: 180;">
 			<Menu.Content class="studio-tree-action-menu__content">
+				{#if !fileKind && !closed}
+					<!-- the objects to add, as the New submenu of the Eclipse Studio: the palette of the object -->
+					{@render treeItem('palette.open', 'mdi:plus-box-outline', 'New…')}
+				{/if}
 				{#if editable}
 					<Menu.ItemGroup>
 						<Menu.ItemGroupLabel>Edit</Menu.ItemGroupLabel>

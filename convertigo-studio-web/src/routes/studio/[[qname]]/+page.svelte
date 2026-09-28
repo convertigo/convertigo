@@ -2603,6 +2603,11 @@
 		} else if (action === 'code.handlers') {
 			// the JavaScript handlers of a transaction, as the "Edit handlers" action of the Eclipse Studio
 			openPropertyEditor({ id: nodeId, propertyName: 'handlers', displayName: 'Handlers' });
+		} else if (action === 'palette.open') {
+			// the objects the selected one takes, as the New submenu of the tree of the Eclipse Studio
+			selectedId = nodeId;
+			collapsedPanels.tools = false;
+			setSidePanel('palette');
 		} else if (action === 'tree.refresh') {
 			// F5 refreshes the tree, as in the Eclipse Studio
 			await Projects.refresh();
