@@ -42,7 +42,8 @@
 	});
 
 	let what = $derived(kind === 'element' ? 'element' : 'type');
-	let qname = $derived(name ? `{${namespace}}${name}` : '');
+	// a name without namespace has no braces, as QName.toString() gives it
+	let qname = $derived(name ? (namespace ? `{${namespace}}${name}` : name) : '');
 	let selected = $derived(items.find((item) => item.qname === qname));
 	let shown = $derived.by(() => {
 		const text = filter.trim().toLowerCase();

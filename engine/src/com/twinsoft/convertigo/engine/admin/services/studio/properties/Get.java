@@ -270,6 +270,10 @@ public class Get extends JSonService {
 				property.put("mode", mode);
 				property.put("originalMode", mode);
 				property.put("value", value);
+				if (property.optString("editorClass").isBlank()) {
+					// the editor the Eclipse Studio gives it, which an engine without Studio does not know
+					property.put("editorClass", "NgxSmartSourcePropertyDescriptor");
+				}
 			} else if ("com.twinsoft.convertigo.beans.steps.SmartType".equals(classname)) {
 				var smartType = new SmartType();
 				Node smartNode = c.getFirstChild();

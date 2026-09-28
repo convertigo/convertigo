@@ -310,7 +310,20 @@
 		loading = true;
 		error = '';
 		try {
-			const response = await call('studio.source.Get', { id: objectId });
+			// a file the Studio cannot edit, as an image, tells it in the editor, without an error dialog
+			const response = await call(
+				'studio.source.Get',
+				{ id: objectId },
+				{ silentError: () => true }
+			);
+			if (typeof response?.content !== 'string') {
+				error = String(
+					response?.error?.message ?? response?.message ?? 'This source cannot be opened.'
+				);
+				// the reason shows in place of the editor, the open tabs stay in the strip
+				activeTabKey = '';
+				return;
+			}
 			const displayName = String(response?.fileName ?? 'Flow source');
 			const relativePath = String(response?.relativePath ?? displayName);
 			const key = createTabKey(objectId, `source:${relativePath}`);

@@ -66,7 +66,7 @@ describe('Studio property editor language detection', () => {
 		).toBe('json');
 	});
 
-	it('allows explicit code actions for non-java textual values without auto-selecting code', () => {
+	it('keeps step sources out of the code editor, which would save them as text', () => {
 		const row = {
 			name: 'sourceDefinition',
 			displayName: 'Source definition',
@@ -76,7 +76,7 @@ describe('Studio property editor language detection', () => {
 
 		expect(isMonacoProperty(row, 'Project.sq:Sequence.st:Step')).toBe(false);
 		expect(isCodeEditorProperty(row, 'Project.sq:Sequence.st:Step')).toBe(false);
-		expect(canOpenCodeProperty(row, 'Project.sq:Sequence.st:Step')).toBe(true);
+		expect(canOpenCodeProperty(row, 'Project.sq:Sequence.st:Step')).toBe(false);
 	});
 
 	it('opens step SmartType script values as JavaScript', () => {

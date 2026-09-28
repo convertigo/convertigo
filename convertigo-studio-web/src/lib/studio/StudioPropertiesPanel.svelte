@@ -218,6 +218,10 @@
 		untrack(() => {
 			row.symbols = false;
 		});
+		if (row.isMasked === true && !row.isMultiline && typeof value === 'string') {
+			// a masked property, as a password, as the Eclipse Studio masks it
+			return 'password';
+		}
 		if (isSemanticColorProperty(row)) {
 			return 'color-combo';
 		}
@@ -525,11 +529,21 @@
 	/**
 	 * @param {any} row
 	 * @param {string} category
+	 * @returns {boolean} whether the property only shows its value: the information on the object, and
+	 *  the properties its object does not let change, as the tag name of an NGX component
+	 */
+	function isReadOnlyRow(row, category) {
+		return category === 'Information' || row?.isDisabled === true;
+	}
+
+	/**
+	 * @param {any} row
+	 * @param {string} category
 	 * @param {string} type
 	 * @returns {boolean}
 	 */
 	function isWideField(row, category, type) {
-		if (category === 'Information') {
+		if (isReadOnlyRow(row, category)) {
 			return false;
 		}
 		if (row?.table) {
@@ -558,7 +572,7 @@
 	 */
 	function isChanged(row, category) {
 		return (
-			category !== 'Information' &&
+			!isReadOnlyRow(row, category) &&
 			(row.value != row.originalValue || ('mode' in row && row.mode != row.originalMode))
 		);
 	}
@@ -781,8 +795,10 @@
 												{/if}
 											</div>
 											<div class="studio-properties__field-control">
-												{#if category == 'Information'}
-													<span class="studio-properties__static">{value}</span>
+												{#if isReadOnlyRow(row, category)}
+													<span class="studio-properties__static"
+														>{row.isMasked === true && value ? '••••••••' : value}</span
+													>
 												{:else if row.isNull}
 													<div class="studio-properties__fallback layout-x-low">
 														<code class="studio-properties__fallback-value studio-properties__null"

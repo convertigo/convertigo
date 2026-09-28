@@ -331,6 +331,10 @@ export function canOpenCodeProperty(row, selectedId = '') {
 	if (!row || row.category === 'Information' || !isTextEditorValue(row.value)) {
 		return false;
 	}
+	// a source of a step, as [priority, xpath], a table, or a property its object does not let change
+	if (Array.isArray(row.value) || row.sourceLabel !== undefined || row.isDisabled === true) {
+		return false;
+	}
 	// Flow bindings have a structured Literal/Source/Compose editor. Opening
 	// their persisted JSON in Monaco exposes an implementation detail and can
 	// corrupt an otherwise valid typed binding.

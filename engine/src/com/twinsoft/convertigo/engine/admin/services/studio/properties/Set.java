@@ -205,6 +205,9 @@ public class Set extends JSonService {
 							if (oPropertyValue != null) {
 								var args = new Object[] { oPropertyValue };
 								setter.invoke(dbo, args);
+							} else if (!propertyValue.isEmpty()) {
+								// as a source of a step given as a text: nothing is set, so nothing is done
+								throw new ServiceException("The property " + pname + " cannot take a text value.");
 							}
 						}
 
