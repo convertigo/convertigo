@@ -443,27 +443,6 @@
 		saving = true;
 		let handled = false;
 		onMutationBusyChange(true);
-		if (tab.sourceDocument) {
-			// A Flow source is stored as a working copy of its FlowEngine; the
-			// project Save writes it like any other Flow source.
-			try {
-				const response = await call('studio.source.Set', {
-					id: tab.id,
-					content: tab.content,
-					revision: tab.revision ?? ''
-				});
-				tab.revision = String(response?.revision ?? '');
-				tab.originalValue = tab.content;
-				await onSave?.(tab.id, { id: tab.id });
-				handled = true;
-			} catch (err) {
-				error = String(err instanceof Error ? err.message : err);
-			} finally {
-				saving = false;
-				onMutationBusyChange(false, handled);
-			}
-			return;
-		}
 		try {
 			const loaded = await loadProperties(tab.id);
 			if (!loaded) {
@@ -503,30 +482,41 @@
 	}
 
 	/**
-	 * Saves a text file of a project, if it did not change on the disk since it was opened.
+	 * Saves a source document, if it did not change since it was opened: a text file of a project, the
+	 * code of an NGX component, or a Flow source, which is stored as a working copy of its FlowEngine that
+	 * the project Save writes.
 	 * @param {EditorTab} tab
 	 */
 	async function saveSourceDocument(tab) {
 		saving = true;
 		error = '';
+		let handled = false;
+		onMutationBusyChange(true);
 		try {
 			const result = await call('studio.source.Set', {
 				id: tab.id,
 				content: tab.content,
 				revision: tab.revision ?? ''
 			});
-			if (result?.done) {
+			// a Flow source answers its revision and whether its working copy is unsaved
+			const flowSource = typeof result?.dirty === 'boolean';
+			if (result?.done || flowSource) {
 				tab.originalValue = tab.content;
 				tab.revision = String(result.revision ?? '');
-				if (result.changed) {
-					// the class of a component keeps its code in the component, whose project changes
+				if (result.changed || flowSource) {
+					// the class of a component keeps its code in the component, a Flow source in a working
+					// copy: their project changes
 					await onSave?.(tab.id.replace(COMPONENT_CODE, ''));
+					handled = true;
 				}
 			} else {
 				error = String(result?.error?.message ?? result?.message ?? 'The file was not saved.');
 			}
+		} catch (err) {
+			error = String(err instanceof Error ? err.message : err);
 		} finally {
 			saving = false;
+			onMutationBusyChange(false, handled);
 		}
 	}
 
