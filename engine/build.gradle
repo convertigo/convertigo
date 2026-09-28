@@ -325,8 +325,8 @@ tasks.named('check') {
 tasks.register('requestScopedSessionTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression tests for the ephemeral request-scoped session of terminating URL mapper operations.'
-	dependsOn sessionTestClasses
-	classpath = sourceSets.sessionTest.runtimeClasspath
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSessionTest',
 		'com.twinsoft.convertigo.engine.servlets.RestApiServletSessionModeTest'
@@ -343,8 +343,8 @@ tasks.register('projectArchiveTest', JavaExec) {
 tasks.register('ionBeanTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression tests for ion bean instances sharing their template model.'
-	dependsOn sessionTestClasses
-	classpath = sourceSets.sessionTest.runtimeClasspath
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBeanTest'
 }
 
