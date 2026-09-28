@@ -2284,13 +2284,13 @@
 			event.defaultPrevented ||
 			!(event.metaKey || event.ctrlKey) ||
 			event.altKey ||
-			event.shiftKey ||
 			event.key.toLowerCase() !== 's'
 		) {
 			return;
 		}
 		event.preventDefault();
-		void saveSelectedProject();
+		// with Shift, all the projects not saved, as the Save All of the Eclipse Studio
+		void (event.shiftKey ? saveAllProjects() : saveSelectedProject());
 	}
 
 	/**

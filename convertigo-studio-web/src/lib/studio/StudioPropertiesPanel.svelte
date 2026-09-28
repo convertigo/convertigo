@@ -76,6 +76,11 @@
 		if (!(event.metaKey || event.ctrlKey) || event.altKey || event.key.toLowerCase() !== 's') {
 			return;
 		}
+		if (event.shiftKey) {
+			// the page saves all the projects once the change is applied, as the Save All of the Eclipse Studio
+			void saveChanges();
+			return;
+		}
 		event.preventDefault();
 		event.stopPropagation();
 		await saveChanges();
