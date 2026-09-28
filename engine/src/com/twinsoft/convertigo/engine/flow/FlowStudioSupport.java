@@ -1731,7 +1731,7 @@ public class FlowStudioSupport {
 		flowStudioInfo("Flow frontend DnD palette insert mutation: target=" + flowMoveTargetSummary(targetDbo)
 				+ " position=" + position + " mutation=" + mutation);
 		var selectionSourcePath = frontendMutationSourcePath(targetDbo, mutation);
-		var selectionMutationPath = frontendSelectionMutationPath(mutation);
+		var selectionMutationPath = frontendSelectionMutationPath(targetDbo, selectionSourcePath, mutation);
 		var selectionId = frontendMutationValueId(mutation);
 		var projectionRoot = frontendProjectionRoot(targetDbo, selectionSourcePath);
 		var response = applyFrontendMutation(flowEngine, targetDbo, mutation);
@@ -1759,12 +1759,43 @@ public class FlowStudioSupport {
 		return targetDbo instanceof FlowVirtualObject flowObject ? sourcePath(flowObject) : "";
 	}
 
-	private static String frontendSelectionMutationPath(JSONObject mutation) {
-		if (mutation == null || !"insert".equals(mutation.optString("op", ""))) {
+	private static String frontendSelectionMutationPath(DatabaseObject targetDbo, String sourcePath, JSONObject mutation) throws Exception {
+		var op = mutation == null ? "" : mutation.optString("op", "");
+		var path = mutation == null ? "" : mutation.optString("path", "");
+		if (path.isBlank()) {
 			return "";
 		}
-		var path = mutation.optString("path", "");
-		return path.isBlank() ? "" : path + "[" + Math.max(0, mutation.optInt("index", 0)) + "]";
+		if ("insert".equals(op)) {
+			return path + "[" + Math.max(0, mutation.optInt("index", 0)) + "]";
+		}
+		if (!"append".equals(op)) {
+			return "";
+		}
+		// An appended node lands after the items already projected under the same array,
+		// so the new node gets selected (and offered for renaming) like an inserted one.
+		// Count within the projected source that receives the node, not the whole engine tree.
+		var root = targetDbo;
+		while (root.getParent() instanceof FlowVirtualObject parent
+				&& (sourcePath == null || sourcePath.isBlank() || sourcePath.equals(sourcePath(parent)))) {
+			root = parent;
+		}
+		return path + "[" + countProjectedItems(root, sourcePath, path + "[") + "]";
+	}
+
+	private static int countProjectedItems(DatabaseObject parent, String sourcePath, String prefix) throws Exception {
+		var count = 0;
+		for (var child : parent.getDatabaseObjectChildren()) {
+			if (!(child instanceof FlowVirtualObject object)) {
+				continue;
+			}
+			var mutationPath = object.getSourceMutationPath();
+			if ((sourcePath == null || sourcePath.isBlank() || sourcePath.equals(sourcePath(object)))
+					&& mutationPath.startsWith(prefix) && mutationPath.indexOf(']', prefix.length()) == mutationPath.length() - 1) {
+				count++;
+			}
+			count += countProjectedItems(object, sourcePath, prefix);
+		}
+		return count;
 	}
 
 	private static String frontendMutationValueId(JSONObject mutation) {
