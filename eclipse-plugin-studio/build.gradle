@@ -99,8 +99,7 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 					'org.eclipse.ui.workbench.texteditor',
 					'org.eclipse.ui.views',
 					'org.eclipse.wst.sse.ui',
-					'org.eclipse.wst.sse.core',
-					'jakarta.annotation-api'
+					'org.eclipse.wst.sse.core'
 				].join(',')
 			)
 		}.writeTo(manifest)

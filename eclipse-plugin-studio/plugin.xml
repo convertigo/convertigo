@@ -429,7 +429,6 @@
 		</perspectiveExtension>
 		<perspectiveExtension
 			targetID="com.twinsoft.convertigo.eclipse.ConvertigoPerspective">
-			<!-- the left column: the views chosen by the activity bar above the properties -->
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
 				ratio="0.20"
@@ -438,49 +437,13 @@
 			<view
 				id="org.eclipse.ui.navigator.ProjectExplorer"
 				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView" />
+				relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView">
+			</view>
 			<view
-				id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
-				minimized="false"
-				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView" />
-			<view
-				id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
-				minimized="false"
-				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView" />
-			<view
-				id="org.eclipse.egit.ui.StagingView"
-				minimized="false"
-				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView" />
-			<view
-				id="org.eclipse.egit.ui.RepositoriesView"
-				minimized="false"
-				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView" />
-			<view
-				id="org.eclipse.search.ui.views.SearchView"
-				visible="false"
-				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView" />
-			<view
-				id="org.eclipse.ui.views.PropertySheet"
 				ratio="0.65"
 				relationship="bottom"
-				relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView" />
-			<!-- the right column, on the whole height: the assistant and the palette -->
-			<view
-				id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
-				ratio="0.75"
-				minimized="false"
-				relationship="right"
-				relative="org.eclipse.ui.editorss" />
-			<view
-				id="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"
-				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView" />
-			<!-- the bottom panel, under the editors -->
+				relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
+				id="org.eclipse.ui.views.PropertySheet" />
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
 				ratio="0.70"
@@ -492,19 +455,53 @@
 				relative="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView" />
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.schema.SchemaView"
+				relationship="stack"
+				minimized="false"
+				relative="org.eclipse.ui.console.ConsoleView" />
+			<view
+				id="org.eclipse.egit.ui.RepositoriesView"
+				relationship="stack"
+				minimized="false"
+				relative="com.twinsoft.convertigo.eclipse.views.schema.SchemaView" />
+			<view
+				id="org.eclipse.egit.ui.StagingView"
+				relationship="stack"
+				minimized="false"
+				relative="org.eclipse.egit.ui.RepositoriesView" />
+			<view
+				id="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView"
+				minimized="false"
+				ratio="0.35"
+				relationship="left"
+				relative="org.eclipse.ui.editorss" />
+			<view
+				id="com.twinsoft.convertigo.eclipse.views.palette.PaletteView"
+				relationship="stack"
+				relative="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView" />
+			<view
+				id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
 				minimized="false"
 				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView" />
+				relative="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView">
+			</view>
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
 				minimized="false"
 				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView" />
+				relative="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView">
+			</view>
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
 				minimized="false"
 				relationship="stack"
-				relative="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView" />
+				relative="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView">
+			</view>
+			<view
+				id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
+				minimized="false"
+				relationship="stack"
+				relative="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView">
+			</view>
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.tuto.TutoView"
 				visible="false"

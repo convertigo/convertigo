@@ -70,9 +70,7 @@ import org.eclipse.e4.ui.css.swt.internal.theme.ThemeEngine;
 import org.eclipse.e4.ui.model.application.MApplication;
 import org.eclipse.e4.ui.model.application.ui.MUIElement;
 import org.eclipse.e4.ui.model.application.ui.MUILabel;
-import org.eclipse.e4.ui.model.application.ui.SideValue;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
-import org.eclipse.e4.ui.model.application.ui.basic.MTrimmedWindow;
 import org.eclipse.e4.ui.model.application.ui.menu.MToolBar;
 import org.eclipse.e4.ui.model.application.ui.menu.MToolControl;
 import org.eclipse.e4.ui.workbench.modeling.EModelService;
@@ -140,7 +138,6 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.flow.FlowEngineEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.swt.ActivityBar;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.palette.PaletteView;
@@ -214,10 +211,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_BROWSER_OFFSCREEN = "browser.offscreen";
 	public static final String PREFERENCE_ASSISTANT_URL = "assistant.url";
 	public static final String PREFERENCE_MARKETPLACE_URL = "marketplace.url";
-	public static final String PREFERENCE_LAYOUT_VERSION = "layout.version";
-
-	private static final String LAYOUT_VERSION = "1";
-	private static final String ACTIVITY_BAR_ID = "com.twinsoft.convertigo.eclipse.activityBar";
 	
 	private static final QualifiedName qnInit = new QualifiedName(PLUGIN_UNIQUE_ID + ".init", "done");
 	
@@ -1065,10 +1058,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				} catch (WorkbenchException e) {
 					studioLog.error("Could not open Convertigo perspective.\n" + e.getMessage());
 				}
-				resetLayoutOnce(window);
 			}
 			simplifyToolBars(workbench);
-			addActivityBar(workbench);
 			applyLoadedFonts();
 		});
 	}
@@ -1081,20 +1072,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	 */
 	private static void disableAngularServerForTypeScript() {
 		DefaultScope.INSTANCE.getNode("org.eclipse.lsp4e").put("org.eclipse.wildwebdeveloper.angular/org.eclipse.tm4e.language_pack.typescript", "false");
-	}
-
-	/**
-	 * The views of the Convertigo perspective are laid out as in Cursor: the activity bar and the views it
-	 * chooses on the left, the assistant and the palette on the right, the logs under the editors. The
-	 * perspective of an existing workspace is reset once to take this layout.
-	 */
-	private static void resetLayoutOnce(IWorkbenchWindow window) {
-		var page = window.getActivePage();
-		if (page != null && page.getPerspective() != null && PLUGIN_PERSPECTIVE_ID.equals(page.getPerspective().getId())
-				&& !LAYOUT_VERSION.equals(getProperty(PREFERENCE_LAYOUT_VERSION))) {
-			page.resetPerspective();
-			setProperty(PREFERENCE_LAYOUT_VERSION, LAYOUT_VERSION);
-		}
 	}
 
 	/**
@@ -1118,23 +1095,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 		for (var control : modelService.findElements(app, "PerspectiveSwitcher", MToolControl.class, null, EModelService.ANYWHERE)) {
 			keepHidden(control);
-		}
-	}
-
-	/**
-	 * Adds the activity bar, as the one of Cursor, on the left edge of the windows that have none.
-	 */
-	private void addActivityBar(IWorkbench workbench) {
-		var app = workbench.getService(MApplication.class);
-		var modelService = workbench.getService(EModelService.class);
-		for (var window : app.getChildren()) {
-			if (window instanceof MTrimmedWindow trimmedWindow && modelService.find(ACTIVITY_BAR_ID, trimmedWindow) == null) {
-				var activityBar = modelService.createModelElement(MToolControl.class);
-				activityBar.setElementId(ACTIVITY_BAR_ID);
-				activityBar.setContributionURI("bundleclass://" + getBundle().getSymbolicName() + "/" + ActivityBar.class.getName());
-				activityBar.getTags().add("stretch");
-				modelService.getTrim(trimmedWindow, SideValue.LEFT).getChildren().add(0, activityBar);
-			}
 		}
 	}
 

@@ -38,6 +38,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 
+import com.twinsoft.convertigo.eclipse.ColorEnum;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -90,8 +91,7 @@ class EngineLogViewLabelProvider extends CellLabelProvider implements
 	}
 	
 	public Color getBackground(Object element, int columnIndex) {
-		// the dark theme colors the text only, on the background of the table given by the theme
-		return isDark ? null : getColor(element);
+		return isDark ? ColorEnum.BACKGROUND_DARK.get() : getColor(element);
 	}
 	
 	private Color getColor(Object element) {
