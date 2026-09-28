@@ -1328,11 +1328,6 @@
 		}
 	}
 
-	/**
-	 * Route a palette drop from the same-origin development viewer through the
-	 * exact tree mutation contract already used by Studio DnD.
-	 * @param {{ reference: import('$lib/studio/flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: import('$lib/studio/dnd').DboDragPayload }} request
-	 */
 	$effect(() => {
 		// the selected component of an NGX application shows in its preview, as in the Eclipse Studio
 		const id =
@@ -1443,6 +1438,11 @@
 	const STALE_AUTHORING_MESSAGE =
 		'This element of the preview is no longer in the project: reload the preview.';
 
+	/**
+	 * Route a palette drop from the same-origin development viewer through the
+	 * exact tree mutation contract already used by Studio DnD.
+	 * @param {{ reference: import('$lib/studio/flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: import('$lib/studio/dnd').DboDragPayload }} request
+	 */
 	async function dropInFrontend(request) {
 		const mapping = await call('studio.treeview.Authoring', {
 			project: selectedProjectName,
@@ -2832,9 +2832,6 @@
 	}
 
 	/**
-	 * @param {string} id
-	 */
-	/**
 	 * Deletes the objects selected together, after one confirmation, as the tree of Eclipse does.
 	 * @param {string[]} ids
 	 */
@@ -2864,6 +2861,9 @@
 		}
 	}
 
+	/**
+	 * @param {string} id
+	 */
 	async function deleteTreeObject(id) {
 		const name = id.slice(Math.max(id.lastIndexOf('.'), id.lastIndexOf(':')) + 1);
 		if (!window.confirm(`Delete "${name}"?\n\nThis action cannot be undone.`)) {
