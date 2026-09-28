@@ -452,7 +452,7 @@
 	}
 
 	/**
-	 * @param {MouseEvent} event
+	 * @param {MouseEvent | KeyboardEvent} event
 	 * @param {string} key
 	 */
 	function closeEditorTab(event, key) {
@@ -473,6 +473,27 @@
 				selectObject(nextTab.id);
 			}
 		}
+	}
+
+	/**
+	 * ⌘W or Ctrl+W closes the open editor, as in the Eclipse Studio; a browser keeps the key to close its
+	 * tab, the desktop Studio gives it to the page.
+	 * @param {KeyboardEvent} event
+	 */
+	function handleCloseShortcut(event) {
+		if (
+			!active ||
+			!activeTab ||
+			event.defaultPrevented ||
+			!(event.metaKey || event.ctrlKey) ||
+			event.altKey ||
+			event.shiftKey ||
+			event.key.toLowerCase() !== 'w'
+		) {
+			return;
+		}
+		event.preventDefault();
+		closeEditorTab(event, activeTab.key);
 	}
 
 	async function saveEditor() {
@@ -629,6 +650,8 @@
 		return property?.value;
 	}
 </script>
+
+<svelte:window onkeydown={handleCloseShortcut} />
 
 <div class="studio-editor" class:studio-editor--fullscreen={fullscreen}>
 	{#if editorTabs.length > 0}

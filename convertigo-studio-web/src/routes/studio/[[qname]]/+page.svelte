@@ -2218,6 +2218,18 @@
 	}
 
 	/**
+	 * A project with changes not saved asks before the page leaves, as the Eclipse Studio asks before it
+	 * quits: the desktop Studio also asks before its window closes.
+	 * @param {BeforeUnloadEvent} event
+	 */
+	function warnUnsaved(event) {
+		if (dirtyProjectNames.size) {
+			event.preventDefault();
+			event.returnValue = '';
+		}
+	}
+
+	/**
 	 * Ctrl or ⌘ with S saves the selected project wherever the focus is, as the Save of the Eclipse Studio,
 	 * instead of the page of the browser; the tree, the code editor and the properties handle it first.
 	 * @param {KeyboardEvent} event
@@ -3195,7 +3207,7 @@
 	}
 </script>
 
-<svelte:window onkeydown={handleSaveShortcut} />
+<svelte:window onkeydown={handleSaveShortcut} onbeforeunload={warnUnsaved} />
 
 <svelte:head>
 	<title>Convertigo Studio</title>
