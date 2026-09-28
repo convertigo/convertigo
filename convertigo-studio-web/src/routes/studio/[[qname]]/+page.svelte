@@ -2430,7 +2430,10 @@
 	 * @returns {boolean}
 	 */
 	function canPasteInto(nodeId) {
-		return Boolean(nodeId) && (hasStudioClipboard() || canReadSystemClipboard());
+		// the files of a project take no object
+		return (
+			Boolean(nodeId) && !nodeId.includes('/') && (hasStudioClipboard() || canReadSystemClipboard())
+		);
 	}
 
 	/**
@@ -2469,7 +2472,7 @@
 		} else if (action === 'object.delete') {
 			if (isTreeObjectId(nodeId)) {
 				await deleteTreeObject(nodeId);
-			} else if (!nodeId.includes('.') && !isTreeFolderId(nodeId)) {
+			} else if (!/[./]/.test(nodeId) && !isTreeFolderId(nodeId)) {
 				await deleteProject(projectName);
 			}
 		} else if (action === 'state.enable' || action === 'state.disable') {
@@ -2768,7 +2771,7 @@
 	 */
 	async function pasteIntoTree(nodeId, text) {
 		const target = isTreeFolderId(nodeId) ? nodeId.replace(/:[a-z]{2,4}$/, '') : nodeId;
-		if (!target) {
+		if (!target || target.includes('/')) {
 			return;
 		}
 		const content = await studioClipboardContent(text);

@@ -168,7 +168,7 @@ public class ObjectActions {
 		if (dbo instanceof Sheet sheet && sheet.getUrl() != null && !sheet.getUrl().isBlank()) {
 			// the stylesheet of the sheet, a file of its project
 			add(items, "object.editSheet", "Edit the stylesheet", "Open the XSL file of this sheet in the code editor.", true,
-					"mdi:file-code-outline").put("clientAction", "code.file:" + dbo.getProject().getName() + "/"
+					"mdi:file-code-outline").put("clientAction", "code.file:" + dbo.getProject().getName() + "//"
 							+ sheet.getUrl().replaceFirst("^[./\\\\]+", ""));
 		}
 		if (dbo instanceof TestCase) {

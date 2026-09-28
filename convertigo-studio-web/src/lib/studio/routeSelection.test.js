@@ -23,6 +23,17 @@ describe('Studio route selection helpers', () => {
 		);
 	});
 
+	it('keeps the slashes of a file id out of the path, which Tomcat would refuse encoded', () => {
+		const path = studioSelectionPath('/convertigo/studio/', 'Project//css/my file.css');
+		expect(path).toBe('/convertigo/studio/Project%252F%252Fcss%252Fmy%20file.css/');
+		expect(
+			studioSelectionIdFromUrl('/convertigo/studio/', new URL(`https://example.test${path}`))
+		).toBe('Project//css/my file.css');
+		expect(decodeStudioSelectionId('Project%2F%2Fcss%2Fmy file.css')).toBe(
+			'Project//css/my file.css'
+		);
+	});
+
 	it('builds canonical Studio paths with and without a selection', () => {
 		expect(studioSelectionPath('/convertigo/studio', '')).toBe('/convertigo/studio/');
 		expect(studioSelectionPath('/convertigo/studio/', 'Project.sq:Sequence')).toBe(

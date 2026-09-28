@@ -16,8 +16,11 @@ export function isProjectClosed(projectName) {
 
 export async function refreshClosedProjects() {
 	const result = await call('studio.treeview.Get', {});
-	const children = Array.isArray(result?.children) ? result.children : [];
-	const names = children
+	// a failed request keeps the projects known closed
+	if (!Array.isArray(result?.children)) {
+		return;
+	}
+	const names = result.children
 		.filter((child) => child?.closed === true && child?.id)
 		.map((child) => String(child.id));
 	if (names.join('\n') !== closedProjects.names.join('\n')) {

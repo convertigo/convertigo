@@ -271,7 +271,8 @@
 
 	$effect(() => {
 		if (selected && rowElement) {
-			rowElement.scrollIntoView({ block: 'center', inline: 'nearest' });
+			// a row already shown does not move, which a double click would miss
+			rowElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 		}
 	});
 
@@ -418,6 +419,14 @@
 		}
 		clearTreeSelection();
 		selectedId = id;
+	}
+
+	/** the menu of an object of the selection acts on all the objects selected, as its right click */
+	function selectMenuNode() {
+		if (treeSelection.ids.length > 1 && treeSelection.ids.includes(node?.id ?? '')) {
+			return;
+		}
+		selectNode();
 	}
 
 	/** the first line of the comment, shown and edited as in the comment column of the Eclipse tree */
@@ -1327,7 +1336,7 @@
 					canShowInFrontend={canShowInFrontend?.(node.id) ?? false}
 					canRevealInPalette={canRevealInPalette?.(node.id) ?? false}
 					canRevealDefinition={canRevealBlockDefinition?.(node.id) ?? false}
-					onSelectNode={selectNode}
+					onSelectNode={selectMenuNode}
 					onRename={requestRename}
 					onEditComment={draggableNode && !projectNode ? editComment : undefined}
 					onDelete={deleteSelectedNode}

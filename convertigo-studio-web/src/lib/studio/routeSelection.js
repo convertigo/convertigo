@@ -6,15 +6,20 @@ const QNAME_INTERNAL_SEPARATOR = ':';
  * @returns {string}
  */
 function encodeStudioSelectionId(id = '') {
-	return encodeURIComponent(String(id).replaceAll(QNAME_INTERNAL_SEPARATOR, QNAME_ROUTE_SEPARATOR));
+	// the slashes of a file id are encoded twice: Tomcat refuses a path with an encoded slash
+	return encodeURIComponent(
+		String(id).replaceAll(QNAME_INTERNAL_SEPARATOR, QNAME_ROUTE_SEPARATOR)
+	).replaceAll('%2F', '%252F');
 }
 
 /**
- * @param {string} routeId
+ * @param {string} routeId the id of the route, decoded once
  * @returns {string}
  */
 function decodeStudioSelectionId(routeId = '') {
-	return String(routeId).replaceAll(QNAME_ROUTE_SEPARATOR, QNAME_INTERNAL_SEPARATOR);
+	return String(routeId)
+		.replaceAll('%2F', '/')
+		.replaceAll(QNAME_ROUTE_SEPARATOR, QNAME_INTERNAL_SEPARATOR);
 }
 
 /**
