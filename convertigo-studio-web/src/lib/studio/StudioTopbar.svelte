@@ -121,8 +121,11 @@
 					onclick={onShowFlow}
 				/>
 			{/if}
+			<!-- the admin console opens beside the Studio, which a window without address bar could not come back to -->
 			<StudioIconButton
 				href={resolve('/admin/')}
+				target="_blank"
+				rel="noopener"
 				icon="mdi:lock-outline"
 				title="Admin console"
 				ariaLabel="Admin console"

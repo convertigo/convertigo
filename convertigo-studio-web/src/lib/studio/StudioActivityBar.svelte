@@ -18,7 +18,16 @@
 
 {#snippet activity(/** @type {ActivityItem} */ item)}
 	{#if item.href}
-		<a class="studio-activity" href={item.href} title={item.label} aria-label={item.label}>
+		<!-- a page of its own, as the admin console, leaves the Studio open: a window without address bar
+		     (Electron) could not come back -->
+		<a
+			class="studio-activity"
+			href={item.href}
+			target="_blank"
+			rel="noopener"
+			title={item.label}
+			aria-label={item.label}
+		>
 			<Ico icon={item.icon} size={6} />
 		</a>
 	{:else}
