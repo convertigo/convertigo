@@ -217,8 +217,9 @@ test('studio frontend profile documents Flow properties from their authoring con
 	await page.getByRole('radio', { name: 'Frontend' }).click();
 	await page.getByRole('tab', { name: 'Doc', exact: true }).click();
 
+	// the Doc view, laid out by the dock among the other views of the Studio
 	await expect(
-		page.getByRole('main').getByRole('heading', { name: 'Svelte builder' })
+		page.locator('[data-dock-view="doc"]').getByRole('heading', { name: 'Svelte builder' })
 	).toBeVisible();
 	await expect(page.getByText('Visible text rendered by the component.')).toBeVisible();
 });

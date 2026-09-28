@@ -562,7 +562,7 @@
 			!(event.metaKey || event.ctrlKey) ||
 			event.altKey ||
 			event.shiftKey ||
-			event.key.toLowerCase() !== 'w'
+			String(event.key ?? '').toLowerCase() !== 'w'
 		) {
 			return;
 		}

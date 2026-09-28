@@ -22,6 +22,7 @@
 		performDboDrop,
 		shouldStartInlineRename
 	} from '$lib/studio/dnd';
+	import StudioDock from '$lib/studio/dock/StudioDock.svelte';
 	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
 	import { contextAuthoringMutation, isFrontendAuthoringNodeId } from '$lib/studio/flowAuthoring';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
@@ -67,7 +68,6 @@
 	import { createStudioMutationEventTracker } from '$lib/studio/studioMutationEvents';
 	import StudioNewProjectDialog from '$lib/studio/StudioNewProjectDialog.svelte';
 	import StudioPalettePanel from '$lib/studio/StudioPalettePanel.svelte';
-	import StudioPanel from '$lib/studio/StudioPanel.svelte';
 	import {
 		saveStudioPreferences,
 		studioPreferences
@@ -87,7 +87,6 @@
 	import StudioSqlDesignDialog from '$lib/studio/StudioSqlDesignDialog.svelte';
 	import StudioStatisticsDialog from '$lib/studio/StudioStatisticsDialog.svelte';
 	import StudioStepsFromXmlDialog from '$lib/studio/StudioStepsFromXmlDialog.svelte';
-	import StudioTabbedFrame from '$lib/studio/StudioTabbedFrame.svelte';
 	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
 	import StudioTranslationsDialog from '$lib/studio/StudioTranslationsDialog.svelte';
 	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
@@ -117,8 +116,6 @@
 	import { get } from 'svelte/store';
 
 	/** @typedef {'execution' | 'code' | 'flow' | 'doc'} WorkPanel */
-	/** @typedef {'frontend' | 'execution'} VibeResult */
-	/** @typedef {'frontend' | 'code' | 'doc'} FrontendResult */
 	/**
 	 * @typedef {Object} PaletteItem
 	 * @property {string=} id
@@ -146,25 +143,8 @@
 	const STUDIO_BASE = resolve('/studio/');
 	const STUDIO_LAYOUT_STORAGE_KEY = 'convertigo.studio.layout.v1';
 	const initialSelectedId = routeSelectionId();
-	const MIN_TREE_WIDTH = 208;
-	const MAX_TREE_WIDTH = 520;
-	const MIN_TOOLS_WIDTH = 260;
-	const MAX_TOOLS_WIDTH = 560;
-	const MIN_LOGS_HEIGHT = 128;
-	const MAX_LOGS_HEIGHT = 520;
-	const DEFAULT_LAYOUT_SIZES = {
-		treeWidth: 304,
-		toolsWidth: 360,
-		logsHeight: 260
-	};
-	const DEFAULT_COLLAPSED_PANELS = {
-		tree: false,
-		tools: false
-	};
 	const localMutationEvents = createStudioMutationEventTracker();
 	const SIDE_PANEL_IDS = ['palette', 'properties'];
-	/** @type {WorkPanel[]} */
-	const WORK_PANEL_IDS = ['execution', 'code', 'flow', 'doc'];
 	/** @type {{ id: WorkPanel, label: string, icon: string }[]} */
 	const WORK_VIEWS = [
 		{ id: 'execution', label: 'Execution', icon: 'mdi:play-circle-outline' },
@@ -172,19 +152,51 @@
 		{ id: 'flow', label: 'Flow', icon: 'mdi:source-branch' },
 		{ id: 'doc', label: 'Doc', icon: 'mdi:book-open-variant' }
 	];
-	/** @type {{ id: VibeResult, label: string, icon: string }[]} */
-	const VIBE_RESULT_VIEWS = [
-		{ id: 'frontend', label: 'Frontend', icon: 'mdi:smartphone-link' },
-		{ id: 'execution', label: 'Execution', icon: 'mdi:play-circle-outline' }
-	];
-	/** @type {{ id: FrontendResult, label: string, icon: string }[]} */
-	const FRONTEND_RESULT_VIEWS = [
-		{ id: 'frontend', label: 'Frontend', icon: 'mdi:smartphone-link' },
-		{ id: 'code', label: 'Code', icon: 'mdi:code-tags' },
-		{ id: 'doc', label: 'Doc', icon: 'mdi:book-open-variant' }
-	];
-	const VIBE_RESULT_IDS = VIBE_RESULT_VIEWS.map(({ id }) => id);
-	const FRONTEND_RESULT_IDS = FRONTEND_RESULT_VIEWS.map(({ id }) => id);
+	const DOCK_LEFT_VIEWS = ['projects', 'search', 'git'];
+	const DOCK_BOTTOM_VIEWS = ['logs', 'references', 'schema', 'build', 'debug'];
+	/**
+	 * The layout of the views of each profile before it is changed, as the perspectives of the Eclipse
+	 * Studio: the projects on the left, the work area in the middle, the tools on the right and the logs,
+	 * hidden at first, under them.
+	 * @type {Record<string, import('$lib/studio/dock/dockTypes.js').DockLayout>}
+	 */
+	const DOCK_LAYOUTS = {
+		backend: {
+			areas: {
+				left: DOCK_LEFT_VIEWS,
+				center: ['execution', 'code', 'flow', 'doc'],
+				right: ['palette', 'properties'],
+				bottom: DOCK_BOTTOM_VIEWS
+			},
+			active: ['properties'],
+			closed: ['search', 'git'],
+			sizes: { left: 304, right: 360, bottom: 260 },
+			hidden: ['bottom']
+		},
+		frontend: {
+			areas: {
+				left: DOCK_LEFT_VIEWS,
+				center: ['frontend', 'code', 'doc'],
+				right: ['palette', 'properties'],
+				bottom: DOCK_BOTTOM_VIEWS
+			},
+			active: ['properties'],
+			closed: ['search', 'git'],
+			sizes: { left: 304, right: 360, bottom: 260 },
+			hidden: ['bottom']
+		},
+		vibe: {
+			areas: {
+				left: DOCK_LEFT_VIEWS,
+				center: ['frontend', 'execution'],
+				right: ['assistant'],
+				bottom: DOCK_BOTTOM_VIEWS
+			},
+			closed: ['search', 'git'],
+			sizes: { left: 304, right: 440, bottom: 260 },
+			hidden: ['bottom']
+		}
+	};
 
 	/**
 	 * @typedef {Object} EditorTarget
@@ -237,13 +249,14 @@
 
 	let profile = $state('backend');
 	let selectedId = $state(initialSelectedId);
+	/** the side view shown last, which the activity bar shows again */
 	let activeSidePanel = $state('properties');
-	/** @type {WorkPanel} */
-	let activeWorkPanel = $state(/** @type {WorkPanel} */ ('execution'));
-	/** @type {VibeResult} */
-	let activeVibeResult = $state('frontend');
-	/** @type {FrontendResult} */
-	let activeFrontendResult = $state(/** @type {FrontendResult} */ ('frontend'));
+	/** @type {any} the dock, which lays out the views */
+	let dock = $state();
+	/** the views in the layout, and the visible ones */
+	let dockOpen = $state(/** @type {Record<string, boolean>} */ ({}));
+	let dockVisible = $state(/** @type {Record<string, boolean>} */ ({}));
+	let dockMenuOpen = $state(false);
 	let frontendDeviceId = $state('none');
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
@@ -280,7 +293,8 @@
 	/** @type {'browse' | 'select'} */
 	let frontendAuthoringMode = $state('browse');
 	let frontendAuthoringSerial = 0;
-	let logsPanelOpen = $state(false);
+	/** whether a view of the bottom panel shows */
+	let logsPanelOpen = $derived(DOCK_BOTTOM_VIEWS.some((id) => dockVisible[id]));
 	/** @type {EditorTarget | null} */
 	let editorTarget = $state(null);
 	/** @type {EditorTarget | null} */
@@ -358,8 +372,6 @@
 	let executionFallbackKey = '';
 	/** @type {{ kind: 'transaction', connectorName?: string, requestable: any } | null} */
 	let executionFallbackTarget = $state(null);
-	let collapsedPanels = $state({ ...DEFAULT_COLLAPSED_PANELS });
-	let layoutSizes = $state({ ...DEFAULT_LAYOUT_SIZES });
 	let projectChangeRefreshTimer;
 	let projectChangeRefreshPending = false;
 	let projectChangeRefreshRunning = false;
@@ -435,14 +447,27 @@
 		...(showPalette ? [{ id: 'palette', label: 'Palette', icon: 'mdi:palette-outline' }] : []),
 		{ id: 'properties', label: 'Properties', icon: 'mdi:tune-vertical-variant' }
 	]);
-	let effectiveSidePanel = $derived(
-		sideViews.some((item) => item.id === activeSidePanel) ? activeSidePanel : 'properties'
-	);
-	// the view of the left column, and the view of the bottom panel
+	// the view of the left column, and the view of the bottom panel, shown last
 	let leftView = $state(/** @type {'projects' | 'search' | 'git'} */ ('projects'));
 	let bottomView = $state(
 		/** @type {'logs' | 'references' | 'schema' | 'build' | 'debug'} */ ('logs')
 	);
+	$effect(() => {
+		// the views shown last, which the activity bar and the logs button show again
+		const left = DOCK_LEFT_VIEWS.find((id) => dockVisible[id]);
+		const side = SIDE_PANEL_IDS.find((id) => dockVisible[id]);
+		const bottom = DOCK_BOTTOM_VIEWS.find((id) => dockVisible[id]);
+		untrack(() => {
+			if (left) leftView = /** @type {'projects' | 'search' | 'git'} */ (left);
+			if (side) activeSidePanel = side;
+			if (bottom) bottomView = /** @type {typeof bottomView} */ (bottom);
+		});
+	});
+	/** the sides of the Studio hidden, which the top bar shows again */
+	let collapsedPanels = $derived({
+		tree: !DOCK_LEFT_VIEWS.some((id) => dockVisible[id]),
+		tools: showVibe ? !dockVisible.assistant : !SIDE_PANEL_IDS.some((id) => dockVisible[id])
+	});
 	const BOTTOM_VIEWS = [
 		{ id: 'logs', label: 'Logs', icon: 'mdi:file-document-box-outline' },
 		{ id: 'references', label: 'References', icon: 'mdi:link-variant' },
@@ -453,21 +478,21 @@
 	let activityItems = $derived([
 		{
 			id: 'tree',
-			label: collapsedPanels.tree || leftView !== 'projects' ? 'Show projects' : 'Hide projects',
+			label: dockVisible.projects ? 'Hide projects' : 'Show projects',
 			icon: 'mdi:file-tree-outline',
-			active: !collapsedPanels.tree && leftView === 'projects'
+			active: Boolean(dockVisible.projects)
 		},
 		{
 			id: 'search',
-			label: collapsedPanels.tree || leftView !== 'search' ? 'Search' : 'Hide search',
+			label: dockVisible.search ? 'Hide search' : 'Search',
 			icon: 'mdi:magnify',
-			active: !collapsedPanels.tree && leftView === 'search'
+			active: Boolean(dockVisible.search)
 		},
 		{
 			id: 'git',
-			label: collapsedPanels.tree || leftView !== 'git' ? 'Source control' : 'Hide source control',
+			label: dockVisible.git ? 'Hide source control' : 'Source control',
 			icon: 'mdi:source-branch',
-			active: !collapsedPanels.tree && leftView === 'git'
+			active: Boolean(dockVisible.git)
 		},
 		{
 			id: 'marketplace',
@@ -485,14 +510,14 @@
 			? [
 					{
 						id: 'assistant',
-						label: collapsedPanels.tools ? 'Show assistant' : 'Hide assistant',
+						label: dockVisible.assistant ? 'Hide assistant' : 'Show assistant',
 						icon: 'mdi:robot-outline',
-						active: !collapsedPanels.tools
+						active: Boolean(dockVisible.assistant)
 					}
 				]
 			: sideViews.map((item) => ({
 					...item,
-					active: !collapsedPanels.tools && effectiveSidePanel === item.id
+					active: Boolean(dockVisible[item.id])
 				})))
 	]);
 	let activityFooterItems = $derived([
@@ -503,6 +528,12 @@
 			active: logsPanelOpen
 		},
 		{
+			id: 'layout',
+			label: 'Views and layout',
+			icon: 'mdi:view-dashboard-edit-outline',
+			active: dockMenuOpen
+		},
+		{
 			id: 'preferences',
 			label: 'Studio preferences',
 			icon: 'mdi:cog-outline',
@@ -511,28 +542,11 @@
 		{ id: 'about', label: 'About Convertigo', icon: 'mdi:help-circle-outline', active: aboutOpen },
 		{ id: 'admin', label: 'Admin console', icon: 'mdi:lock-outline', href: resolve('/admin/') }
 	]);
-	let activeSideView = $derived(
-		sideViews.find((item) => item.id === effectiveSidePanel) ?? sideViews.at(-1)
-	);
 	let selectedDocItem = $derived(selectedPaletteItem ?? selectedTreeDocItem);
 	let selectedDocLoading = $derived(!selectedPaletteItem && selectedTreeDocLoading);
 	let selectedDocError = $derived(!selectedPaletteItem ? selectedTreeDocError : '');
-	let codeEditorActive = $derived(
-		(profile === 'backend' && activeWorkPanel === 'code') ||
-			(profile === 'frontend' && activeFrontendResult === 'code')
-	);
+	let codeEditorActive = $derived(Boolean(dockVisible.code));
 	let breadcrumbs = $derived(buildBreadcrumb(selectedId));
-	let workspaceStyle = $derived(
-		[
-			`--studio-tree-track:${collapsedPanels.tree ? '0px' : `${layoutSizes.treeWidth}px`}`,
-			`--studio-tools-track:${collapsedPanels.tools ? '0px' : `${layoutSizes.toolsWidth}px`}`,
-			`--studio-tree-resizer-track:${collapsedPanels.tree ? '0px' : 'var(--studio-gutter, 1px)'}`,
-			`--studio-tools-resizer-track:${collapsedPanels.tools ? '0px' : 'var(--studio-gutter, 1px)'}`,
-			`--studio-tree-row:${collapsedPanels.tree ? '2.65rem' : 'minmax(12rem, 18rem)'}`,
-			`--studio-tools-row:minmax(18rem, 24rem)`,
-			`--studio-logs-height:${layoutSizes.logsHeight}px`
-		].join(';')
-	);
 
 	$effect(() => {
 		const id = selectedId;
@@ -653,8 +667,7 @@
 
 	$effect(() => {
 		const id = selectedId;
-		const previewVisible =
-			profile === 'frontend' || (profile === 'vibe' && activeVibeResult === 'frontend');
+		const previewVisible = Boolean(dockOpen.frontend);
 		const serial = ++frontendAuthoringSerial;
 		if (!previewVisible || !id || id === 'ROOT') {
 			frontendAuthoringReference = null;
@@ -665,9 +678,7 @@
 
 	$effect(() => {
 		const id = selectedId;
-		const docVisible =
-			(profile === 'backend' && activeWorkPanel === 'doc') ||
-			(profile === 'frontend' && activeFrontendResult === 'doc');
+		const docVisible = Boolean(dockVisible.doc);
 		if (!docVisible || selectedPaletteItem) {
 			return;
 		}
@@ -711,11 +722,10 @@
 		const browserPreview = flowBrowserPreview(event);
 		if (browserPreview) {
 			frontendPreview = { ...browserPreview, url: studioPreviewUrl(browserPreview.url) };
-			activeVibeResult = 'frontend';
-			activeFrontendResult = 'frontend';
 			if (profile !== 'vibe') {
 				setProfile('frontend');
 			}
+			dock?.show('frontend');
 			if (browserPreview.projectName !== selectedProjectName) {
 				scheduleStudioNavigation(browserPreview.projectName);
 			}
@@ -994,28 +1004,6 @@
 	}
 
 	/**
-	 * @param {number} value
-	 * @param {number} min
-	 * @param {number} max
-	 * @returns {number}
-	 */
-	function clamp(value, min, max) {
-		return Math.min(max, Math.max(min, value));
-	}
-
-	/**
-	 * @param {any} value
-	 * @param {number} fallback
-	 * @param {number} min
-	 * @param {number} max
-	 * @returns {number}
-	 */
-	function clampStoredNumber(value, fallback, min, max) {
-		const number = Number(value);
-		return Number.isFinite(number) ? clamp(number, min, max) : fallback;
-	}
-
-	/**
 	 * @param {any} value
 	 * @param {string[]} allowed
 	 * @param {string} fallback
@@ -1045,24 +1033,8 @@
 	 * @returns {any}
 	 */
 	function studioLayoutPreferences() {
-		return {
-			profile,
-			activeSidePanel,
-			activeWorkPanel,
-			activeVibeResult,
-			activeFrontendResult,
-			logsPanelOpen,
-			hideLibs,
-			collapsedPanels: {
-				tree: collapsedPanels.tree,
-				tools: collapsedPanels.tools
-			},
-			layoutSizes: {
-				treeWidth: layoutSizes.treeWidth,
-				toolsWidth: layoutSizes.toolsWidth,
-				logsHeight: layoutSizes.logsHeight
-			}
-		};
+		// the layout of the views is kept by the dock, for each profile
+		return { profile, hideLibs };
 	}
 
 	function persistStudioLayoutPreferences() {
@@ -1082,44 +1054,8 @@
 			return;
 		}
 		profile = storedChoice(preferences.profile, PROFILE_IDS, profile);
-		activeSidePanel = storedChoice(preferences.activeSidePanel, SIDE_PANEL_IDS, activeSidePanel);
-		activeWorkPanel = /** @type {WorkPanel} */ (
-			storedChoice(preferences.activeWorkPanel, WORK_PANEL_IDS, activeWorkPanel)
-		);
-		activeVibeResult = /** @type {VibeResult} */ (
-			storedChoice(preferences.activeVibeResult, VIBE_RESULT_IDS, activeVibeResult)
-		);
-		activeFrontendResult = /** @type {FrontendResult} */ (
-			storedChoice(preferences.activeFrontendResult, FRONTEND_RESULT_IDS, activeFrontendResult)
-		);
-		logsPanelOpen = Boolean(preferences.logsPanelOpen);
 		hideLibs = Boolean(preferences.hideLibs);
-		collapsedPanels = {
-			...DEFAULT_COLLAPSED_PANELS,
-			tree: Boolean(preferences.collapsedPanels?.tree),
-			tools: Boolean(preferences.collapsedPanels?.tools)
-		};
-		layoutSizes = {
-			treeWidth: clampStoredNumber(
-				preferences.layoutSizes?.treeWidth,
-				DEFAULT_LAYOUT_SIZES.treeWidth,
-				MIN_TREE_WIDTH,
-				MAX_TREE_WIDTH
-			),
-			toolsWidth: clampStoredNumber(
-				preferences.layoutSizes?.toolsWidth,
-				DEFAULT_LAYOUT_SIZES.toolsWidth,
-				MIN_TOOLS_WIDTH,
-				MAX_TOOLS_WIDTH
-			),
-			logsHeight: clampStoredNumber(
-				preferences.layoutSizes?.logsHeight,
-				DEFAULT_LAYOUT_SIZES.logsHeight,
-				MIN_LOGS_HEIGHT,
-				getMaxLogsHeight()
-			)
-		};
-		normalizeLayoutPanels();
+		dock?.setProfile(profile);
 	}
 
 	function clearStudioRouteHash() {
@@ -1131,119 +1067,6 @@
 			noScroll: true,
 			keepFocus: true
 		});
-	}
-
-	function normalizeLayoutPanels() {
-		if (profile === 'vibe') {
-			activeVibeResult = /** @type {VibeResult} */ (
-				storedChoice(activeVibeResult, VIBE_RESULT_IDS, 'frontend')
-			);
-			return;
-		}
-		if (profile === 'frontend') {
-			if (!SIDE_PANEL_IDS.includes(activeSidePanel)) {
-				activeSidePanel = 'properties';
-			}
-			activeFrontendResult = /** @type {FrontendResult} */ (
-				storedChoice(activeFrontendResult, FRONTEND_RESULT_IDS, 'frontend')
-			);
-			return;
-		}
-		if (collapsedPanels.tools || !SIDE_PANEL_IDS.includes(activeSidePanel)) {
-			activeSidePanel = 'properties';
-		}
-		if (!WORK_PANEL_IDS.includes(activeWorkPanel)) {
-			activeWorkPanel = 'execution';
-		}
-	}
-
-	function getMaxLogsHeight() {
-		return Math.max(MIN_LOGS_HEIGHT, Math.min(MAX_LOGS_HEIGHT, window.innerHeight - 180));
-	}
-
-	/**
-	 * @param {'tree' | 'tools' | 'logs'} target
-	 * @param {number} delta
-	 */
-	function resizePanel(target, delta) {
-		if (target === 'tree') {
-			layoutSizes.treeWidth = clamp(layoutSizes.treeWidth + delta, MIN_TREE_WIDTH, MAX_TREE_WIDTH);
-		} else if (target === 'tools') {
-			layoutSizes.toolsWidth = clamp(
-				layoutSizes.toolsWidth + delta,
-				MIN_TOOLS_WIDTH,
-				MAX_TOOLS_WIDTH
-			);
-		} else {
-			layoutSizes.logsHeight = clamp(
-				layoutSizes.logsHeight + delta,
-				MIN_LOGS_HEIGHT,
-				getMaxLogsHeight()
-			);
-		}
-		persistStudioLayoutPreferences();
-	}
-
-	/**
-	 * @param {PointerEvent} event
-	 * @param {'tree' | 'tools' | 'logs'} target
-	 */
-	function startResize(event, target) {
-		if (event.button !== 0) {
-			return;
-		}
-		if (event.currentTarget instanceof HTMLElement) {
-			event.currentTarget.focus();
-		}
-		event.preventDefault();
-		const startX = event.clientX;
-		const startY = event.clientY;
-		const startSizes = { ...layoutSizes };
-		function onMove(moveEvent) {
-			if (target === 'logs') {
-				layoutSizes.logsHeight = clamp(
-					startSizes.logsHeight - (moveEvent.clientY - startY),
-					MIN_LOGS_HEIGHT,
-					getMaxLogsHeight()
-				);
-				return;
-			}
-			const delta = moveEvent.clientX - startX;
-			if (target === 'tree') {
-				layoutSizes.treeWidth = clamp(startSizes.treeWidth + delta, MIN_TREE_WIDTH, MAX_TREE_WIDTH);
-			} else {
-				// the tools are on the right of the work area: they widen when their left edge moves left
-				layoutSizes.toolsWidth = clamp(
-					startSizes.toolsWidth - delta,
-					MIN_TOOLS_WIDTH,
-					MAX_TOOLS_WIDTH
-				);
-			}
-		}
-		function onUp() {
-			window.removeEventListener('pointermove', onMove);
-			window.removeEventListener('pointerup', onUp);
-			persistStudioLayoutPreferences();
-		}
-		window.addEventListener('pointermove', onMove);
-		window.addEventListener('pointerup', onUp, { once: true });
-	}
-
-	/**
-	 * @param {KeyboardEvent} event
-	 * @param {'tree' | 'tools' | 'logs'} target
-	 */
-	function resizeWithKeyboard(event, target) {
-		const step = event.shiftKey ? 32 : 16;
-		if (target === 'logs' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
-			event.preventDefault();
-			resizePanel('logs', event.key === 'ArrowUp' ? step : -step);
-		} else if (target !== 'logs' && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
-			event.preventDefault();
-			// the arrow moves the line between the panels, which widens the tools when it goes left
-			const towardRight = event.key === 'ArrowRight' ? step : -step;
-			resizePanel(target, target === 'tools' ? -towardRight : towardRight);
-		}
 	}
 
 	/**
@@ -1272,7 +1095,9 @@
 		if (
 			editorProperty &&
 			isCodeEditorProperty(editorProperty, id) &&
-			activeWorkPanel === 'execution'
+			dockVisible.execution &&
+			dockOpen.code &&
+			!dockVisible.code
 		) {
 			setWorkPanel('code');
 		}
@@ -1324,8 +1149,8 @@
 			return;
 		}
 		selectedId = id;
-		activeFrontendResult = 'frontend';
 		setProfile('frontend');
+		dock?.show('frontend');
 		frontendAuthoringMode = 'select';
 	}
 
@@ -1821,7 +1646,7 @@
 			// A freshly inserted source-backed widget is immediately editable. Avoid
 			// starting a parent-sensitive palette request for the new child while its
 			// properties are the user's next interaction.
-			activeSidePanel = 'properties';
+			dock?.show('properties');
 		}
 		if (nextSelection && followSelection) {
 			selectedId = nextSelection;
@@ -1946,8 +1771,7 @@
 			if (!target) {
 				if (startWhenStopped) {
 					// an NGX application: its builder serves it, as the Dev mode of the Eclipse Studio
-					bottomView = 'build';
-					setLogsPanelOpen(true);
+					dock?.show('build');
 					builderServeRequest = Date.now();
 				}
 				return false;
@@ -2021,8 +1845,7 @@
 			selectedId = projectName;
 		}
 		setProfile('frontend');
-		bottomView = 'build';
-		setLogsPanelOpen(true);
+		dock?.show('build');
 		builderServeRequest = { at: Date.now(), install };
 	}
 
@@ -2303,7 +2126,7 @@
 			event.defaultPrevented ||
 			!(event.metaKey || event.ctrlKey) ||
 			event.altKey ||
-			event.key.toLowerCase() !== 's'
+			String(event.key ?? '').toLowerCase() !== 's'
 		) {
 			return;
 		}
@@ -2539,7 +2362,7 @@
 		if (event.defaultPrevented || !(event.metaKey || event.ctrlKey) || event.altKey) {
 			return;
 		}
-		const key = event.key.toLowerCase();
+		const key = String(event.key ?? '').toLowerCase();
 		const redo =
 			(key === 'z' && event.shiftKey) || (key === 'y' && event.ctrlKey && !event.metaKey);
 		if (!redo && !(key === 'z' && !event.shiftKey)) {
@@ -2584,61 +2407,50 @@
 	 * @param {string} nextProfile
 	 */
 	function setProfile(nextProfile) {
-		const previousProfile = profile;
 		profile = storedChoice(nextProfile, PROFILE_IDS, profile);
-		if (previousProfile !== profile && profile === 'frontend') {
-			activeSidePanel = 'properties';
-		}
-		if (previousProfile !== profile && profile === 'vibe') {
-			collapsedPanels.tools = false;
-			layoutSizes.toolsWidth = Math.max(layoutSizes.toolsWidth, 440);
-		}
-		normalizeLayoutPanels();
+		// the views take the layout of the profile at once, before a view of it is shown
+		dock?.setProfile(profile);
 		persistStudioLayoutPreferences();
 	}
 
 	/**
+	 * Hides a side of the Studio, or shows it again with the view it showed last.
 	 * @param {'tree' | 'tools'} panel
 	 */
 	function toggleCollapsedPanel(panel) {
-		collapsedPanels[panel] = !collapsedPanels[panel];
-		normalizeLayoutPanels();
-		persistStudioLayoutPreferences();
+		const ids = panel === 'tree' ? DOCK_LEFT_VIEWS : showVibe ? ['assistant'] : SIDE_PANEL_IDS;
+		const shown = ids.find((id) => dockVisible[id]);
+		if (shown) {
+			dock?.hide(shown);
+		} else {
+			dock?.show(panel === 'tree' ? leftView : showVibe ? 'assistant' : activeSidePanel);
+		}
 	}
 
 	/**
 	 * @param {boolean} open
 	 */
 	function setLogsPanelOpen(open) {
-		logsPanelOpen = open;
-		persistStudioLayoutPreferences();
+		const shown = DOCK_BOTTOM_VIEWS.find((id) => dockVisible[id]);
+		if (open) {
+			dock?.show(shown ?? bottomView);
+		} else if (shown) {
+			dock?.hide(shown);
+		}
 	}
 
 	/**
 	 * @param {WorkPanel} panel
 	 */
 	function setWorkPanel(panel) {
-		if (isWorkPanelDisabled(panel)) {
-			return;
-		}
-		activeWorkPanel = panel;
-		persistStudioLayoutPreferences();
-	}
-
-	/**
-	 * @param {WorkPanel} panel
-	 * @returns {boolean}
-	 */
-	function isWorkPanelDisabled(panel) {
-		return panel === 'flow' && !showFlowOverview && activeWorkPanel !== 'flow';
+		dock?.show(panel);
 	}
 
 	/**
 	 * @param {string} panel
 	 */
 	function setSidePanel(panel) {
-		activeSidePanel = panel;
-		persistStudioLayoutPreferences();
+		dock?.show(panel);
 	}
 
 	/**
@@ -2758,7 +2570,6 @@
 		} else if (action === 'palette.open') {
 			// the objects the selected one takes, as the New submenu of the tree of the Eclipse Studio
 			selectedId = nodeId;
-			collapsedPanels.tools = false;
 			setSidePanel('palette');
 		} else if (action === 'tree.refresh') {
 			// F5 refreshes the tree, as in the Eclipse Studio
@@ -3363,46 +3174,22 @@
 		} else if (id === 'preferences') {
 			preferencesOpen = !preferencesOpen;
 		} else if (id === 'tree' || id === 'search' || id === 'git') {
-			// the projects, the search and the source control share the left column, as the views of the side bar of Cursor
-			const view = id === 'tree' ? 'projects' : id;
-			if (collapsedPanels.tree) {
-				leftView = view;
-				toggleCollapsedPanel('tree');
-			} else if (leftView === view) {
-				toggleCollapsedPanel('tree');
-			} else {
-				leftView = view;
-			}
+			// the projects, the search and the source control, as the views of the side bar of Cursor
+			dock?.toggle(id === 'tree' ? 'projects' : id);
 		} else if (id === 'logs') {
 			setLogsPanelOpen(!logsPanelOpen);
-		} else if (id === 'assistant' || (!collapsedPanels.tools && effectiveSidePanel === id)) {
-			toggleCollapsedPanel('tools');
+		} else if (id === 'layout') {
+			dockMenuOpen = !dockMenuOpen;
 		} else {
-			if (collapsedPanels.tools) {
-				toggleCollapsedPanel('tools');
-			}
-			setSidePanel(id);
+			dock?.toggle(id);
 		}
 	}
 
 	/**
 	 * @param {string} result
 	 */
-	function setVibeResult(result) {
-		activeVibeResult = /** @type {VibeResult} */ (
-			storedChoice(result, VIBE_RESULT_IDS, activeVibeResult)
-		);
-		persistStudioLayoutPreferences();
-	}
-
-	/**
-	 * @param {string} result
-	 */
 	function setFrontendResult(result) {
-		activeFrontendResult = /** @type {FrontendResult} */ (
-			storedChoice(result, FRONTEND_RESULT_IDS, activeFrontendResult)
-		);
-		persistStudioLayoutPreferences();
+		dock?.show(result);
 	}
 </script>
 
@@ -3522,80 +3309,60 @@
 	/>
 {/snippet}
 
-{#snippet tree()}
-	{#if leftView === 'search'}
-		<StudioPanel
-			title="Search"
-			icon="mdi:magnify"
-			class="studio__tree-panel"
-			contentClass="studio__panel-fill"
-		>
-			<StudioSearchPanel
-				projectName={selectedProjectName}
-				onSelect={selectObject}
-				onSelectFile={(id, line) => {
-					// a line of a file a search found, shown in the code editor
-					selectedId = id;
-					editorTarget = { id, sourceDocument: true, serial: Date.now(), line };
-					if (profile === 'frontend') {
-						setFrontendResult('code');
-					} else {
-						setWorkPanel('code');
-					}
-				}}
-			/>
-		</StudioPanel>
-	{:else if leftView === 'git'}
-		<StudioPanel
-			title="Source control"
-			icon="mdi:source-branch"
-			class="studio__tree-panel"
-			contentClass="studio__panel-fill"
-		>
-			<StudioSourceControlPanel
-				projectName={selectedProjectName}
-				dirty={selectedProjectDirty}
-				onPulled={async (name) => {
-					// the files changed on disk: the project is loaded again
-					await call('projects.Reload', { projectName: name });
-					await refreshStudioProject(name);
-					refreshStudioViews();
-				}}
-			/>
-		</StudioPanel>
-	{/if}
-	<StudioPanel
-		title="Projects"
-		icon="mdi:folder-outline"
-		class={['studio__tree-panel', leftView !== 'projects' && 'studio__tree-panel--hidden']
-			.filter(Boolean)
-			.join(' ')}
-		actions={projectActions}
-	>
-		<StudioTreePanel
-			{hideLibs}
-			bind:selectedId
-			bind:renameTargetId
-			refreshSerial={treeRefreshSerial}
-			refreshMutation={lastStudioMutation}
-			refreshMutationSerial={studioMutationSerial}
-			reloadProject={historyReload}
-			onMutation={onStudioMutation}
-			onMutationBusyChange={onStudioMutationBusyChange}
-			onContextAction={onStudioContextAction}
-			{canShowInFrontend}
-			onShowInFrontend={showInFrontend}
-			{canRevealInPalette}
-			onRevealInPalette={revealInPalette}
-			{canRevealBlockDefinition}
-			onRevealBlockDefinition={revealBlockDefinition}
-			onOpenSource={openSource}
-			onSourceDrop={applySourceDrop}
-			onTreeAction={runTreeAction}
-			{canPasteInto}
-			onChooseRenameUpdate={chooseRenameUpdate}
-		/>
-	</StudioPanel>
+{#snippet projectsPane()}
+	<StudioTreePanel
+		{hideLibs}
+		bind:selectedId
+		bind:renameTargetId
+		refreshSerial={treeRefreshSerial}
+		refreshMutation={lastStudioMutation}
+		refreshMutationSerial={studioMutationSerial}
+		reloadProject={historyReload}
+		onMutation={onStudioMutation}
+		onMutationBusyChange={onStudioMutationBusyChange}
+		onContextAction={onStudioContextAction}
+		{canShowInFrontend}
+		onShowInFrontend={showInFrontend}
+		{canRevealInPalette}
+		onRevealInPalette={revealInPalette}
+		{canRevealBlockDefinition}
+		onRevealBlockDefinition={revealBlockDefinition}
+		onOpenSource={openSource}
+		onSourceDrop={applySourceDrop}
+		onTreeAction={runTreeAction}
+		{canPasteInto}
+		onChooseRenameUpdate={chooseRenameUpdate}
+	/>
+{/snippet}
+
+{#snippet searchPane()}
+	<StudioSearchPanel
+		projectName={selectedProjectName}
+		onSelect={selectObject}
+		onSelectFile={(id, line) => {
+			// a line of a file a search found, shown in the code editor
+			selectedId = id;
+			editorTarget = { id, sourceDocument: true, serial: Date.now(), line };
+			if (profile === 'frontend') {
+				setFrontendResult('code');
+			} else {
+				setWorkPanel('code');
+			}
+		}}
+	/>
+{/snippet}
+
+{#snippet gitPane()}
+	<StudioSourceControlPanel
+		projectName={selectedProjectName}
+		dirty={selectedProjectDirty}
+		onPulled={async (name) => {
+			// the files changed on disk: the project is loaded again
+			await call('projects.Reload', { projectName: name });
+			await refreshStudioProject(name);
+			refreshStudioViews();
+		}}
+	/>
 {/snippet}
 
 {#snippet executionPane()}
@@ -3678,58 +3445,10 @@
 	/>
 {/snippet}
 
-{#snippet main()}
-	{#if showStudioWork}
-		<StudioTabbedFrame
-			items={WORK_VIEWS}
-			active={activeWorkPanel}
-			ariaLabel="Studio workspace views"
-			class="studio-work"
-			fillIds={['code', 'flow', 'doc']}
-			lazyIds={['flow']}
-			isDisabled={(id) => isWorkPanelDisabled(/** @type {WorkPanel} */ (id))}
-			onSelect={(id) => setWorkPanel(/** @type {WorkPanel} */ (id))}
-			panes={{
-				execution: executionPane,
-				code: codePane,
-				flow: flowPane,
-				doc: docPane
-			}}
-		/>
-	{:else if profile === 'frontend'}
-		<StudioTabbedFrame
-			items={FRONTEND_RESULT_VIEWS}
-			active={activeFrontendResult}
-			ariaLabel="Frontend workspace views"
-			class="studio__primary-panel"
-			fillIds={['frontend', 'code', 'doc']}
-			onSelect={setFrontendResult}
-			panes={{
-				frontend: frontendPane,
-				code: codePane,
-				doc: docPane
-			}}
-		/>
-	{:else}
-		<StudioTabbedFrame
-			items={VIBE_RESULT_VIEWS}
-			active={activeVibeResult}
-			ariaLabel="Vibe result views"
-			class="studio-vibe-result"
-			fillIds={['frontend']}
-			onSelect={setVibeResult}
-			panes={{
-				frontend: frontendPane,
-				execution: executionPane
-			}}
-		/>
-	{/if}
-{/snippet}
-
 {#snippet palettePane()}
 	<StudioPalettePanel
 		selectedId={viewSelectedId}
-		active={effectiveSidePanel === 'palette'}
+		active={Boolean(dockVisible.palette)}
 		{selectedPaletteItem}
 		revealRequest={paletteRevealRequest}
 		onPaletteItemSelect={selectPaletteItem}
@@ -3740,7 +3459,7 @@
 {#snippet propertiesPane()}
 	<StudioPropertiesPanel
 		selectedId={viewSelectedId}
-		active={effectiveSidePanel === 'properties'}
+		active={Boolean(dockVisible.properties)}
 		refreshSerial={propertiesRefreshSerial}
 		onSave={refreshAfterPropertySave}
 		onMutationBusyChange={onStudioMutationBusyChange}
@@ -3755,38 +3474,13 @@
 	/>
 {/snippet}
 
-{#snippet tools()}
-	{#if showVibe}
-		<StudioPanel
-			title="Assistant"
-			icon="mdi:robot-outline"
-			class="studio__assistant-panel"
-			contentClass="studio__panel-fill"
-		>
-			<StudioAssistantPanel
-				projectName={selectedProjectName}
-				agentProfile={assistantAgentProfile}
-			/>
-		</StudioPanel>
-	{:else}
-		<StudioTabbedFrame
-			items={sideViews}
-			active={effectiveSidePanel}
-			ariaLabel="Studio side views"
-			panelLabel={activeSideView?.label ?? 'Side view'}
-			fillIds={SIDE_PANEL_IDS}
-			onSelect={(id) => setSidePanel(id)}
-			panes={{
-				palette: palettePane,
-				properties: propertiesPane
-			}}
-		/>
-	{/if}
+{#snippet assistantPane()}
+	<StudioAssistantPanel projectName={selectedProjectName} agentProfile={assistantAgentProfile} />
 {/snippet}
 
 {#snippet logsPane()}
 	<!-- the logs follow the engine only while they show -->
-	{#if logsPanelOpen}
+	{#if dockVisible.logs}
 		<StudioLogsPanel />
 	{/if}
 {/snippet}
@@ -3794,7 +3488,7 @@
 {#snippet referencesPane()}
 	<StudioReferencesPanel
 		selectedId={viewSelectedId}
-		active={logsPanelOpen && bottomView === 'references'}
+		active={Boolean(dockVisible.references)}
 		onSelect={selectObject}
 	/>
 {/snippet}
@@ -3803,14 +3497,14 @@
 	<StudioSchemaPanel
 		selectedId={viewSelectedId}
 		projectName={selectedProjectName}
-		active={logsPanelOpen && bottomView === 'schema'}
+		active={Boolean(dockVisible.schema)}
 	/>
 {/snippet}
 
 {#snippet buildPane()}
 	<StudioBuilderPanel
 		projectName={selectedProjectName}
-		active={logsPanelOpen && bottomView === 'build'}
+		active={Boolean(dockVisible.build)}
 		onLoad={showDevelopmentBuild}
 		onBuilt={() => {
 			// a first build gives the project its application
@@ -3836,49 +3530,97 @@
 
 {#snippet debugPane()}
 	<StudioDebugPanel
-		active={logsPanelOpen && bottomView === 'debug'}
+		active={Boolean(dockVisible.debug)}
 		onStopped={() => {
 			// a script stopped on a breakpoint: the debugger shows, as the Eclipse Studio shows it
-			bottomView = 'debug';
-			setLogsPanelOpen(true);
+			dock?.show('debug');
 		}}
 	/>
 {/snippet}
 
-{#snippet logs()}
-	<StudioTabbedFrame
-		items={BOTTOM_VIEWS}
-		active={bottomView}
-		ariaLabel="Bottom panel views"
-		fillIds={['logs', 'references', 'schema', 'build', 'debug']}
-		lazyIds={['references', 'schema']}
-		onSelect={(id) =>
-			(bottomView = /** @type {'logs' | 'references' | 'schema' | 'build' | 'debug'} */ (id))}
-		panes={{
-			logs: logsPane,
-			references: referencesPane,
-			schema: schemaPane,
-			build: buildPane,
-			debug: debugPane
-		}}
-		trail={logsToolbarTrail}
+{#snippet workspace()}
+	<StudioDock
+		bind:this={dock}
+		bind:open={dockOpen}
+		bind:visible={dockVisible}
+		bind:menuOpen={dockMenuOpen}
+		{profile}
+		layouts={DOCK_LAYOUTS}
+		views={[
+			{
+				id: 'projects',
+				title: 'Projects',
+				icon: 'mdi:folder-outline',
+				content: projectsPane,
+				toolbar: projectActions,
+				scroll: true
+			},
+			{ id: 'search', title: 'Search', icon: 'mdi:magnify', content: searchPane, lazy: true },
+			{
+				id: 'git',
+				title: 'Source control',
+				icon: 'mdi:source-branch',
+				content: gitPane,
+				lazy: true
+			},
+			...WORK_VIEWS.map((view) => ({
+				id: view.id,
+				title: view.label,
+				icon: view.icon,
+				content: { execution: executionPane, code: codePane, flow: flowPane, doc: docPane }[
+					view.id
+				],
+				lazy: view.id === 'flow',
+				scroll: view.id === 'execution',
+				main: true
+			})),
+			{
+				id: 'frontend',
+				title: 'Frontend',
+				icon: 'mdi:smartphone-link',
+				content: frontendPane,
+				main: true
+			},
+			{ id: 'palette', title: 'Palette', icon: 'mdi:palette-outline', content: palettePane },
+			{
+				id: 'properties',
+				title: 'Properties',
+				icon: 'mdi:tune-vertical-variant',
+				content: propertiesPane
+			},
+			{
+				id: 'assistant',
+				title: 'Assistant',
+				icon: 'mdi:robot-outline',
+				content: assistantPane,
+				lazy: true
+			},
+			...BOTTOM_VIEWS.map((view) => ({
+				id: view.id,
+				title: view.label,
+				icon: view.icon,
+				content: {
+					logs: logsPane,
+					references: referencesPane,
+					schema: schemaPane,
+					build: buildPane,
+					debug: debugPane
+				}[view.id],
+				actions: view.id === 'logs' ? logsToolbarTrail : undefined,
+				lazy: view.id === 'references' || view.id === 'schema'
+			}))
+		]}
 	/>
 {/snippet}
 
 <StudioShell
 	{profile}
 	{collapsedPanels}
-	{workspaceStyle}
 	{logsPanelOpen}
-	onResizeStart={startResize}
-	onResizeKey={resizeWithKeyboard}
 	onOpenLogs={() => setLogsPanelOpen(true)}
 	{topbar}
 	{activity}
-	{tree}
-	{main}
-	{tools}
-	{logs}
+	{workspace}
 />
 
 {#if sourceChoice}
@@ -4201,27 +3943,7 @@
 {/if}
 
 <style>
-	:global(.studio__primary-panel) {
-		height: 100%;
-		min-width: 0;
-		min-height: 0;
-	}
-
-	:global(.studio__tree-panel--hidden) {
-		display: none !important;
-	}
-
-	:global(.studio__assistant-panel) {
-		height: 100%;
-		min-width: 0;
-		min-height: 0;
-	}
-
-	:global(.studio__panel-fill) {
-		overflow: hidden;
-	}
-
-	:global(.studio-work .flow-dashboard) {
+	:global([data-dock-view='flow'] .flow-dashboard) {
 		height: 100%;
 		min-height: 0;
 		border: 0;

@@ -74,6 +74,7 @@
 		"bits-ui": "^2.19.3",
 		"caniuse-lite": "^1.0.30001813",
 		"chart.js": "^4.5.1",
+		"dockview": "^8.3.1",
 		"fast-xml-parser": "^5.11.2",
 		"fs-extra": "^11.4.1",
 		"html-entities": "^2.6.0",

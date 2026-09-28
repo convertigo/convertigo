@@ -69,6 +69,7 @@
 	import MdiDeleteOutline from '~icons/mdi/delete-outline';
 	import MdiDevices from '~icons/mdi/devices';
 	import MdiDockBottom from '~icons/mdi/dock-bottom';
+	import MdiDockWindow from '~icons/mdi/dock-window';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical';
 	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline';
 	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline';
@@ -191,10 +192,13 @@
 	import MdiUpload from '~icons/mdi/upload';
 	import MdiVariable from '~icons/mdi/variable';
 	import MdiVideoOutline from '~icons/mdi/video-outline';
+	import MdiViewDashboardEditOutline from '~icons/mdi/view-dashboard-edit-outline';
 	import MdiViewDashboardOutline from '~icons/mdi/view-dashboard-outline';
 	import MdiWarningOutline from '~icons/mdi/warning-outline';
 	import MdiWeatherSunny from '~icons/mdi/weather-sunny';
 	import MdiWeb from '~icons/mdi/web';
+	import MdiWindowMaximize from '~icons/mdi/window-maximize';
+	import MdiWindowRestore from '~icons/mdi/window-restore';
 	import MdiWrench from '~icons/mdi/wrench';
 	import MdiXml from '~icons/mdi/xml';
 	import ConvertigoLogo from './icons/ConvertigoLogo.svelte';
@@ -241,6 +245,7 @@
 		'mdi:cloud-sync-outline': MdiCloudSyncOutline,
 		'mdi:code-block-braces': MdiCodeBlockBraces,
 		'mdi:code-braces': MdiCodeBraces,
+		'mdi:dock-window': MdiDockWindow,
 		'mdi:swagger': MdiCodeBraces,
 		'mdi:code-tags': MdiCodeTags,
 		'mdi:coffee': MdiCoffee,
@@ -259,6 +264,7 @@
 		'mdi:folder-plus-outline': MdiFolderPlusOutline,
 		'mdi:cellphone-link': MdiCellphoneLink,
 		'mdi:chart-box-outline': MdiChartBoxOutline,
+		'mdi:view-dashboard-edit-outline': MdiViewDashboardEditOutline,
 		'mdi:web': MdiWeb,
 		'mdi:server-network': MdiServerNetwork,
 		'mdi:content-copy': MdiContentCopy,
@@ -311,6 +317,8 @@
 		'mdi:pause': MdiPause,
 		'mdi:pause-circle-outline': MdiPauseCircleOutline,
 		'mdi:bug-outline': MdiBugOutline,
+		'mdi:window-maximize': MdiWindowMaximize,
+		'mdi:window-restore': MdiWindowRestore,
 		'mdi:xml': MdiXml,
 		'mdi:translate': MdiTranslate,
 		'mdi:translate-off': MdiTranslateOff,
