@@ -2167,15 +2167,28 @@
 		void saveSelectedProject();
 	}
 
+	/**
+	 * Saves a project, as the project Save does, with its readme when the preferences ask for it.
+	 * @param {string} projectName
+	 * @param {string} [id] the selected object of the project
+	 * @returns {Promise<boolean>} whether the project was saved: the service shows why it was not
+	 */
+	async function saveProject(projectName, id = projectName) {
+		const result = await saveDboProject(projectName, id, {
+			readme: studioPreferences.readmeOnSave
+		});
+		return !result?.isError && result?.done !== false;
+	}
+
 	async function saveSelectedProject() {
 		if (!selectedProjectName || projectActionBusy) {
 			return;
 		}
 		projectActionBusy = 'save';
 		try {
-			await saveDboProject(selectedProjectName, selectedId, {
-				readme: studioPreferences.readmeOnSave
-			});
+			if (!(await saveProject(selectedProjectName, selectedId))) {
+				return;
+			}
 			await addMissingReferences(selectedProjectName);
 			await refreshStudioProject(selectedProjectName);
 			clearProjectDirty(selectedProjectName);
@@ -2195,9 +2208,9 @@
 		projectActionBusy = 'saveAll';
 		try {
 			for (const projectName of [...dirtyProjectNames]) {
-				await saveDboProject(projectName, projectName, {
-					readme: studioPreferences.readmeOnSave
-				});
+				if (!(await saveProject(projectName))) {
+					continue;
+				}
 				await addMissingReferences(projectName);
 				await refreshStudioProject(projectName);
 				clearProjectDirty(projectName);
@@ -2248,16 +2261,17 @@
 		projectActionBusy = closed ? 'close' : 'open';
 		try {
 			if (closed && dirtyProjectNames.has(projectName)) {
-				await saveDboProject(projectName, projectName, {
-					readme: studioPreferences.readmeOnSave
-				});
+				// a project whose changes are not saved stays open
+				if (!(await saveProject(projectName))) {
+					return;
+				}
 				clearProjectDirty(projectName);
 			}
 			const result = await setProjectsClosed([projectName], closed);
-			if (!result.done) {
+			// the service already shows its error
+			if (!result.done && !result.error) {
 				toaster.error({
-					description:
-						result.error || `The project ${projectName} cannot be ${closed ? 'closed' : 'opened'}.`
+					description: `The project ${projectName} cannot be ${closed ? 'closed' : 'opened'}.`
 				});
 			}
 			await Projects.refresh();
@@ -2758,24 +2772,26 @@
 		try {
 			const result = await pasteStudioClipboard(target, position, content);
 			if (!result.ids.length) {
-				toaster.error({
-					description: result.error || 'The clipboard cannot be pasted inside the selected object.'
-				});
+				// the service already shows its error
+				if (!result.error) {
+					toaster.error({
+						description: 'The clipboard cannot be pasted inside the selected object.'
+					});
+				}
 				return;
 			}
 			handled = true;
 			const sourceId = result.sourceIds[0] ?? '';
 			// the object that received the pasted ones, the target or its parent
 			const receiver = result.target || target;
-			// a cut object keeps its name under its new parent
+			// the service gives the id the object took, renamed when its name is taken
 			const pastedId =
-				result.kind === 'cut'
-					? inferMovedObjectId({
-							payload: { type: 'treeData', data: { id: sourceId } },
-							target: receiver,
-							position: 'inside'
-						})
-					: result.ids[0];
+				result.ids[0] ||
+				inferMovedObjectId({
+					payload: { type: 'treeData', data: { id: sourceId } },
+					target: receiver,
+					position: 'inside'
+				});
 			await onStudioMutation({
 				done: true,
 				id: pastedId,
@@ -3750,9 +3766,9 @@
 			archiveRequest = null;
 			if (versionChanged || dirtyProjectNames.has(projectName)) {
 				// the archive is made of the saved project, as the Eclipse Studio saves it first
-				await saveDboProject(projectName, projectName, {
-					readme: studioPreferences.readmeOnSave
-				});
+				if (!(await saveProject(projectName))) {
+					return;
+				}
 				await refreshStudioProject(projectName);
 				clearProjectDirty(projectName);
 				propertiesRefreshSerial += 1;

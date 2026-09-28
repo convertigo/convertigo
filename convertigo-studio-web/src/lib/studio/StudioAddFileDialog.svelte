@@ -43,7 +43,8 @@
 				});
 			}
 			if (result?.done) {
-				await onDone?.(`${projectName}/${result.file}`);
+				// the files of a project are "Project//path" in the tree
+				await onDone?.(`${projectName}//${result.file}`);
 			}
 		} finally {
 			busy = false;

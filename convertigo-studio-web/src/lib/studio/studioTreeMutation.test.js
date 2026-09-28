@@ -218,7 +218,7 @@ describe('Studio projected tree mutations', () => {
 		).toBe(true);
 		expect(card.children[0]).toMatchObject({
 			iconify: 'mdi:loading',
-			icon: 'studio.dbo.GetIcon?iconPath=mdi%3Aloading',
+			icon: 'folder',
 			pending: true
 		});
 	});

@@ -54,8 +54,8 @@ public class Save extends JSonService {
 		}
 
 		if (project == null) {
-			response.put("done", false);
-			return;
+			throw new ServiceException("The project " + (projectName != null ? projectName : id)
+					+ " cannot be saved: it is closed or missing.");
 		}
 
 		Engine.theApp.databaseObjectsManager.exportProject(project);

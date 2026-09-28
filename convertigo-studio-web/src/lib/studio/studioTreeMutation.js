@@ -78,11 +78,8 @@ function projectedPaletteNode(mutation) {
 		id: mutation.selectedId ?? mutation.id ?? '',
 		name: label,
 		label,
-		icon:
-			data.iconFile16 ??
-			data.iconFile ??
-			(iconify ? `studio.dbo.GetIcon?iconPath=${encodeURIComponent(iconify)}` : data.icon) ??
-			'folder',
+		// an Iconify icon shows as such: studio.dbo.GetIcon only serves image files
+		icon: data.iconFile16 ?? data.iconFile ?? (iconify ? undefined : data.icon) ?? 'folder',
 		iconify,
 		pending: Boolean(mutation.optimistic),
 		children: canContainChildren ? true : false

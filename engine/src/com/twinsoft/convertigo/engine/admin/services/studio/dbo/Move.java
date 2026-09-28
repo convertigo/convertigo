@@ -119,6 +119,7 @@ public class Move extends JSonService {
 										BuilderUtils.dboMoved(previousParent, parentDbo, dbo);
 									}
 								} catch (Exception e) {
+									response.put("error", "The object cannot be moved: " + e.getMessage());
 									if (dbo.getParent() == null && previousParent != null) {
 										after = previousSibling == null ? 0L : previousSibling.priority;
 										if (previousParent instanceof IContainerOrdered) {

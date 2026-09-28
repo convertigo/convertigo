@@ -178,7 +178,8 @@ public class Paste extends JSonService {
 										dbo.delete();
 										receiver.add(dbo);
 										
-										ids.put(id);
+										// the id it takes under its new parent, which renames it when its name is taken
+										ids.put(dbo.getFullQName());
 										
 										// notify for app generation
 										BuilderUtils.dboMoved(previousParent, receiver, dbo);
@@ -186,6 +187,7 @@ public class Paste extends JSonService {
 										if (dbo.getParent() == null && previousParent != null) {
 											previousParent.add(dbo);
 										}
+										errors.put(e.getMessage());
 									}
 								}
 							}
