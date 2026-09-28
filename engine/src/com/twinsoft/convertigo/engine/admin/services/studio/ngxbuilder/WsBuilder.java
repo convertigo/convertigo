@@ -531,6 +531,25 @@ public class WsBuilder extends WebSocketService {
 
 	/** the running builds, by project for the development server and by project + " local" for a local build */
 	static Map<String, Build> builds = new HashMap<>();
+
+	/**
+	 * Stops the node processes of all the builds as the engine stops: a development server, a build or an
+	 * install would outlive it, as when the desktop Studio quits.
+	 */
+	public static void stopAll() {
+		List<Build> running;
+		synchronized (builds) {
+			running = List.copyOf(builds.values());
+			builds.clear();
+		}
+		for (var build : running) {
+			try {
+				build.terminateNode(false);
+			} catch (Exception e) {
+				Engine.logStudio.warn("(WsBuilder) failed to stop a build", e);
+			}
+		}
+	}
 	/** the clients following the builds of each project */
 	static Map<String, Set<WsBuilder>> listeners = new HashMap<>();
 
