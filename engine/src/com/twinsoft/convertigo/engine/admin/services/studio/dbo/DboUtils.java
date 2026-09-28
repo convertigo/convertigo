@@ -49,7 +49,10 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.UrlAuthentication;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
+import com.twinsoft.convertigo.beans.steps.BlockStep;
+import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
+import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
@@ -100,6 +103,12 @@ public class DboUtils {
 	static protected boolean acceptDbo(DatabaseObject targetDatabaseObject, DatabaseObject databaseObject,
 			boolean includeSpecials) {
 		if (targetDatabaseObject.getQName().startsWith(databaseObject.getQName())) {
+			return false;
+		}
+		// a step with a Then and an Else takes only the one it misses, as its addStep refuses any other
+		if (targetDatabaseObject instanceof BlockStep block && block.hasThenElseSteps()
+				&& !(databaseObject instanceof ThenStep && block.getThenStep() == null)
+				&& !(databaseObject instanceof ElseStep && block.getElseStep() == null)) {
 			return false;
 		}
 		if (!DboFactory.acceptDbo(targetDatabaseObject, databaseObject, includeSpecials)) {
