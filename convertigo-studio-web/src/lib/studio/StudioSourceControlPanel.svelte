@@ -53,7 +53,7 @@
 	/** @type {{ local: string[], remote: string[] }} */
 	let branches = $state({ local: [], remote: [] });
 	let historyOpen = $state(false);
-	/** @type {{ id: string, message: string, author: string, time: number }[]} */
+	/** @type {{ id: string, subject: string, author: string, time: number }[]} */
 	let commits = $state([]);
 
 	let staged = $derived(status?.staged ?? []);
@@ -468,7 +468,7 @@
 				{#each commits as entry (entry.id)}
 					<div class="studio-git__commit-entry" title={`${entry.id} ${entry.author}`}>
 						<code>{entry.id}</code>
-						<span>{entry.message}</span>
+						<span>{entry.subject}</span>
 						<small>{entry.author} · {new Date(entry.time).toLocaleDateString()}</small>
 					</div>
 				{:else}

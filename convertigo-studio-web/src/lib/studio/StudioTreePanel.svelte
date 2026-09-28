@@ -85,8 +85,10 @@
 		clearTimeout(gitDecorationsTimer);
 		gitDecorationsTimer = setTimeout(async () => {
 			const result = await call('studio.git.SourceControl', { action: 'decorations' });
-			if (result?.projects) {
-				gitDecorations = result.projects;
+			if (Array.isArray(result?.projects)) {
+				gitDecorations = Object.fromEntries(
+					result.projects.map((/** @type {any} */ decoration) => [decoration.project, decoration])
+				);
 			}
 		}, 800);
 	}

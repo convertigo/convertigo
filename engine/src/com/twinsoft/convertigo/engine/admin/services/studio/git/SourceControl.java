@@ -38,6 +38,7 @@ import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
@@ -132,14 +133,32 @@ public class SourceControl extends JSonService {
 			}
 			case "pull" -> {
 				var result = git.pull().call();
-				if (!result.isSuccessful()) {
-					throw new ServiceException("The pull did not succeed: " + result.getMergeResult().getMergeStatus() + ".");
-				}
+				// the project loads again from its pulled files, a merge or a rebase stopped on a conflict included
+				reload(project.getName());
+				response.put("reloaded", true);
 				status(git, prefix, response);
+				if (!result.isSuccessful()) {
+					var cause = result.getMergeResult() != null ? result.getMergeResult().getMergeStatus()
+							: result.getRebaseResult() != null ? result.getRebaseResult().getStatus() : "failed";
+					response.put("error", "The pull did not succeed: " + cause + ".");
+				}
 			}
 			case "push" -> {
-				git.push().call();
+				// a push the remote refuses, as a push that is not a fast-forward, still ends without exception
+				var refused = new ArrayList<String>();
+				for (var result : git.push().call()) {
+					for (var update : result.getRemoteUpdates()) {
+						var updateStatus = update.getStatus();
+						if (updateStatus != RemoteRefUpdate.Status.OK && updateStatus != RemoteRefUpdate.Status.UP_TO_DATE) {
+							refused.add(Repository.shortenRefName(update.getRemoteName()) + ": " + updateStatus
+									+ (update.getMessage() == null ? "" : " (" + update.getMessage() + ")"));
+						}
+					}
+				}
 				status(git, prefix, response);
+				if (!refused.isEmpty()) {
+					response.put("error", "The push was refused: " + String.join(", ", refused) + ".");
+				}
 			}
 			case "fetch" -> {
 				git.fetch().call();
@@ -210,7 +229,7 @@ public class SourceControl extends JSonService {
 					for (var commit : log.call()) {
 						commits.put(new JSONObject()
 								.put("id", commit.abbreviate(7).name())
-								.put("message", commit.getShortMessage())
+								.put("subject", commit.getShortMessage())
 								.put("author", commit.getAuthorIdent().getName())
 								.put("time", commit.getCommitTime() * 1000L));
 					}
@@ -227,8 +246,9 @@ public class SourceControl extends JSonService {
 	 * @return the branch, the changed files and the commits to push or pull of each project in a
 	 *         repository, as the decorations of the Git projects in the tree of the Eclipse Studio
 	 */
-	private static JSONObject decorations() throws Exception {
-		var projects = new JSONObject();
+	private static JSONArray decorations() throws Exception {
+		// a list, since a project named as a key of a message, as "error", would be shown as one
+		var projects = new JSONArray();
 		var statuses = new java.util.HashMap<File, org.eclipse.jgit.api.Status>();
 		for (var name : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
 			try {
@@ -255,12 +275,13 @@ public class SourceControl extends JSonService {
 					for (var path : status.getUntracked()) {
 						changes += path.startsWith(prefix) ? 1 : 0;
 					}
-					var decoration = new JSONObject().put("branch", repository.getBranch()).put("changes", changes);
+					var decoration = new JSONObject().put("project", name).put("branch", repository.getBranch())
+							.put("changes", changes);
 					var tracking = BranchTrackingStatus.of(repository, repository.getBranch());
 					if (tracking != null) {
 						decoration.put("ahead", tracking.getAheadCount()).put("behind", tracking.getBehindCount());
 					}
-					projects.put(name, decoration);
+					projects.put(decoration);
 				}
 			} catch (Exception e) {
 				Engine.logStudio.debug("(SourceControl) no decoration for " + name, e);
