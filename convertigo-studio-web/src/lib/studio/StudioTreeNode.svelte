@@ -22,6 +22,7 @@
 	} from './dnd';
 	import { getSourcePickerDragPayload } from './sourcePickerDnd';
 	import { FOLDER_TYPE_IDS, isFolderId } from './folderTypes.js';
+	import { projectFileFolders } from './projectFileFolders.js';
 	import StudioTreeActionMenu from './StudioTreeActionMenu.svelte';
 	import { applyProjectedTreeMutation, removeProjectedTreeNode } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
@@ -403,6 +404,9 @@
 	 */
 	function selectNode(event) {
 		const id = node?.id ?? '';
+		if (id.includes('/') && node?.icon === 'folder') {
+			projectFileFolders.add(id);
+		}
 		if (id && (event?.metaKey || event?.ctrlKey)) {
 			// several objects selected together, as in the tree of Eclipse
 			toggleTreeSelection(id, selectedId);

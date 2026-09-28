@@ -25,6 +25,7 @@
 	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
 	import { contextAuthoringMutation, isFrontendAuthoringNodeId } from '$lib/studio/flowAuthoring';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
+	import { projectFileFolders } from '$lib/studio/projectFileFolders.js';
 	import {
 		findPrimaryEditorProperty,
 		isCodeEditorProperty,
@@ -1713,7 +1714,11 @@
 	 * @returns {boolean} whether the tree id is a file of a project, as "Project/path/name.ext"
 	 */
 	function isProjectFileId(id) {
-		return Boolean(id?.includes('/')) && id.slice(id.lastIndexOf('/') + 1).includes('.');
+		return (
+			Boolean(id?.includes('/')) &&
+			id.slice(id.lastIndexOf('/') + 1).includes('.') &&
+			!projectFileFolders.has(id)
+		);
 	}
 
 	// a file of a project selected in the tree opens in the code editor, as in the Eclipse Studio

@@ -66,12 +66,13 @@
 	let fullscreen = $state(false);
 	let lastOpenRequest = '';
 	let lastSourceRequest = '';
+	let sourceToken = 0;
 	/** @type {EditorTab[]} */
 	let editorTabs = $state([]);
 	let activeTabKey = $state('');
 
 	let requestedProperty = $derived(
-		!editorTarget?.sourceDocument && loadedId === selectedId
+		!isSourceTarget(editorTarget, selectedId) && loadedId === selectedId
 			? findEditorProperty(properties, selectedId, editorTarget)
 			: undefined
 	);
@@ -106,7 +107,7 @@
 
 	$effect(() => {
 		const nextId = selectedId;
-		if (!active || !nextId || editorTarget?.sourceDocument) {
+		if (!active || !nextId || isSourceTarget(editorTarget, nextId)) {
 			return;
 		}
 		untrack(() => {
@@ -154,6 +155,18 @@
 			untrack(() => void loadBreakpoints(tab));
 		}
 	});
+
+	/**
+	 * @param {any} target
+	 * @param {string} id
+	 * @returns {boolean} whether the editor shows a source of the object, instead of its properties
+	 */
+	function isSourceTarget(target, id) {
+		return Boolean(
+			target?.sourceDocument &&
+			(target.id === id || String(target.id ?? '').replace(COMPONENT_CODE, '') === id)
+		);
+	}
 
 	/**
 	 * The JavaScript properties of the objects the engine runs, sequences and connectors, can hold
@@ -298,15 +311,27 @@
 	}
 
 	/**
-	 * Opens the source document resolved by the Engine from the selected Flow
-	 * virtual object. The browser never receives or submits an arbitrary path.
-	 * @param {string} objectId
-	 */
-	/**
+	 * Opens a source document: a file of a project, the code of an NGX component or the source resolved by
+	 * the Engine from a Flow virtual object. The browser never receives or submits an arbitrary path.
 	 * @param {string} objectId
 	 * @param {number} [line] a line to show, as a line a search found
 	 */
 	async function openSourceDocument(objectId, line = 0) {
+		// a tab with changes not applied shows as it is: reading the source again would lose them
+		const changed = editorTabs.find(
+			(tab) => tab.sourceDocument && tab.id === objectId && tab.content !== tab.originalValue
+		);
+		if (changed) {
+			if (line) {
+				changed.revealLine = line;
+				changed.revealSerial = Date.now();
+			}
+			error = '';
+			activeTabKey = changed.key;
+			return;
+		}
+		// a source asked later replaces this one, which a slow answer must not bring back
+		const token = ++sourceToken;
 		loading = true;
 		error = '';
 		try {
@@ -316,6 +341,9 @@
 				{ id: objectId },
 				{ silentError: () => true }
 			);
+			if (token !== sourceToken) {
+				return;
+			}
 			if (typeof response?.content !== 'string') {
 				error = String(
 					response?.error?.message ?? response?.message ?? 'This source cannot be opened.'
@@ -361,7 +389,9 @@
 		} catch (err) {
 			error = String(err instanceof Error ? err.message : err);
 		} finally {
-			loading = false;
+			if (token === sourceToken) {
+				loading = false;
+			}
 		}
 	}
 
@@ -383,6 +413,7 @@
 	 */
 	function selectEditorTab(tab) {
 		tab.focused = true;
+		error = '';
 		activeTabKey = tab.key;
 		selectObject(tab.id);
 	}
@@ -682,6 +713,12 @@
 				/>
 			</div>
 		</div>
+		{#if error}
+			<p class="studio-editor__error" role="alert">
+				<Ico icon="mdi:alert-circle-outline" size={3.4} />
+				<span>{error}</span>
+			</p>
+		{/if}
 		<div class="studio-editor__monaco" onfocusin={markActiveTabFocused}>
 			<Editor
 				bind:content={activeTab.content}
@@ -839,6 +876,16 @@
 
 	.studio-editor__actions {
 		flex: 0 0 auto;
+	}
+
+	.studio-editor__error {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		margin: 0;
+		padding: 0.3rem 0.75rem;
+		color: var(--color-error-600-400);
+		font-size: 0.75rem;
 	}
 
 	.studio-editor__readonly {
