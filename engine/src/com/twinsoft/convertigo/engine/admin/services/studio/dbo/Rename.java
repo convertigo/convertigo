@@ -102,8 +102,19 @@ public class Rename extends JSonService {
 			update = "UPDATE_NONE";
 		}
 		if (dbo != null) {
-			if (dbo instanceof Project) {
-				// TODO
+			if (dbo instanceof Project project) {
+				// a project renames its folder and its file, keeping the references of the other projects to it, as
+				// the tree of the Eclipse Studio renames it
+				Project.checkName(newName);
+				if (!newName.equals(project.getName())
+						&& com.twinsoft.convertigo.engine.Engine.theApp.databaseObjectsManager.existsProject(newName)) {
+					throw new ServiceException("The project \"" + newName + "\" already exists.");
+				}
+				com.twinsoft.convertigo.engine.mobile.MobileBuilder.releaseBuilder(project);
+				com.twinsoft.convertigo.engine.Engine.theApp.databaseObjectsManager.renameProject(project, newName, true);
+				done = true;
+				response.put("id", project.getName());
+				ids.put(project.getName());
 			} else {
 				String oldName = dbo.getName();
 				

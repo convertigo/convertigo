@@ -1945,6 +1945,30 @@
 	}
 
 	/**
+	 * Renames a project, its folder and its file, as F2 on a project in the tree of the Eclipse Studio: the
+	 * references of the other projects to it keep working.
+	 * @param {string} projectName
+	 */
+	async function renameProject(projectName) {
+		const newName = (await studioPrompt(`Rename the project ${projectName}`, projectName))?.trim();
+		if (!newName || newName === projectName) {
+			return;
+		}
+		await settlePropertyApply();
+		const result = await call('studio.dbo.Rename', {
+			id: projectName,
+			name: newName,
+			update: 'UPDATE_NONE'
+		});
+		if (result?.done) {
+			clearProjectDirty(projectName);
+			await Projects.refresh();
+			selectedId = String(result.id ?? newName);
+			refreshStudioViews();
+		}
+	}
+
+	/**
 	 * @param {string} projectName
 	 * @returns {Promise<string>} the default transaction of the default connector of the project, or none
 	 */
@@ -2554,7 +2578,11 @@
 			if (isTreeObjectId(nodeId)) {
 				selectedId = nodeId;
 				renameTargetId = nodeId;
+			} else if (!/[.:/]/.test(nodeId)) {
+				await renameProject(nodeId);
 			}
+		} else if (action === 'project.rename') {
+			await renameProject(projectName);
 		} else if (action === 'object.delete') {
 			if (isTreeObjectId(nodeId)) {
 				await deleteTreeObject(nodeId);

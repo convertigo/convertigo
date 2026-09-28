@@ -463,6 +463,7 @@
 						<Menu.ItemGroupLabel>Project</Menu.ItemGroupLabel>
 						{@render treeItem('project.save', 'mdi:content-save-outline', 'Save')}
 						{@render treeItem('project.reload', 'mdi:reload', 'Reload from disk')}
+						{@render treeItem('project.rename', 'mdi:pencil-outline', 'Rename…')}
 						{@render treeItem('project.close', 'mdi:folder-lock-outline', 'Close')}
 						{@render treeItem('project.export', 'mdi:export', 'Export as .car')}
 						{@render treeItem('project.deploy', 'mdi:server-network', 'Deploy to a server…')}
