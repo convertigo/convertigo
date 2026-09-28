@@ -1945,6 +1945,26 @@
 	}
 
 	/**
+	 * @param {string} projectName
+	 * @returns {Promise<string>} the default transaction of the default connector of the project, or none
+	 */
+	async function defaultTransactionId(projectName) {
+		const connectors = await call('studio.treeview.Get', { id: `${projectName}:cn` });
+		const connector = (connectors?.children ?? []).find(
+			(/** @type {any} */ child) => child?.default === 'Default connector'
+		);
+		if (!connector) {
+			return '';
+		}
+		const transactions = await call('studio.treeview.Get', { id: `${connector.id}:tr` });
+		return String(
+			(transactions?.children ?? []).find(
+				(/** @type {any} */ child) => child?.default === 'Default transaction'
+			)?.id ?? ''
+		);
+	}
+
+	/**
 	 * Executes the NGX application of a project, as Execute in the tree of the Eclipse Studio opens its editor:
 	 * the Frontend profile shows the application its builder serves in development mode.
 	 * @param {string} projectName
@@ -2583,6 +2603,23 @@
 		} else if (action === 'code.handlers') {
 			// the JavaScript handlers of a transaction, as the "Edit handlers" action of the Eclipse Studio
 			openPropertyEditor({ id: nodeId, propertyName: 'handlers', displayName: 'Handlers' });
+		} else if (action === 'tree.refresh') {
+			// F5 refreshes the tree, as in the Eclipse Studio
+			await Projects.refresh();
+			refreshStudioViews();
+		} else if (action === 'execution.default') {
+			// Ctrl+F5 runs the default transaction of the default connector of the project
+			const transactionId = await defaultTransactionId(projectName);
+			if (!transactionId) {
+				toaster.info({ description: `The project ${projectName} has no default transaction.` });
+			} else {
+				selectedId = transactionId;
+				if (profile === 'frontend') {
+					setProfile('backend');
+				}
+				setWorkPanel('execution');
+				executionRunTestcase = '*';
+			}
 		} else if (action === 'panel.execution') {
 			// the execution of a sequence or a connector, as a double-click in the tree of the Eclipse Studio
 			selectedId = nodeId;

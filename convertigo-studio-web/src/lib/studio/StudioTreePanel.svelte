@@ -6,6 +6,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import { closedProjects, refreshClosedProjects } from './closedProjects.svelte.js';
 	import { isFolderId } from './folderTypes.js';
+	import { treeSelectionOf } from './treeSelection.svelte.js';
 	import {
 		areEquivalentDboObjectIds,
 		equivalentDboObjectIds,
@@ -209,9 +210,30 @@
 		}
 		/** @type {string} */
 		let action = '';
-		if (event.key === 'F5' && !mod && /\.(sq|tr|tc):[^.:]+$/.test(selectedId)) {
-			// F5 runs the selected requestable or test case, as in the Eclipse Studio
-			action = /\.tc:[^.:]+$/.test(selectedId) ? 'execution.testcase' : 'execution.run';
+		if (!mod && !event.altKey && event.key === 'Enter') {
+			// Enter opens the object, as a double-click, or opens and closes a folder
+			const open = findNodeById(selectedId)?.open;
+			event.preventDefault();
+			if (open) {
+				void onTreeAction(open, selectedId);
+			} else {
+				const toggle = /** @type {HTMLElement} */ (event.currentTarget).querySelector(
+					`button.studio-tree-node__toggle-button[data-node-id="${CSS.escape(selectedId)}"]`
+				);
+				/** @type {HTMLButtonElement | null} */ (toggle)?.click();
+			}
+			return;
+		}
+		if (event.key === 'F5') {
+			// F5 runs the selected requestable or test case and else refreshes the tree, Ctrl+F5 runs the default
+			// transaction, as in the Eclipse Studio, instead of reloading the page
+			action = mod
+				? 'execution.default'
+				: /\.tc:[^.:]+$/.test(selectedId)
+					? 'execution.testcase'
+					: /\.(sq|tr):[^.:]+$/.test(selectedId)
+						? 'execution.run'
+						: 'tree.refresh';
 		} else if (mod && key === 'g' && /\.tr:[^.:]+$/.test(selectedId)) {
 			action = 'dialog.handlers';
 		} else if (event.key === 'F2') {
@@ -309,14 +331,26 @@
 	 * @param {string} actionId the move of the selected object, up or down
 	 */
 	async function moveSelected(actionId) {
-		const nodeId = selectedId;
 		// a project, a file or a folder has no priority
-		if (!/[.:]/.test(nodeId) || nodeId.includes('/') || isFolderId(nodeId)) {
-			return;
+		const movable = treeSelectionOf(selectedId).filter(
+			(id) => /[.:]/.test(id) && !id.includes('/') && !isFolderId(id)
+		);
+		// the objects selected together move in the order of the tree: the first ones first when they go up
+		const buttons = [...document.querySelectorAll('button.studio-tree-node__content')].map(
+			(button) => /** @type {HTMLElement} */ (button).dataset.nodeId
+		);
+		movable.sort((a, b) => buttons.indexOf(a) - buttons.indexOf(b));
+		if (actionId === 'object.moveDown') {
+			movable.reverse();
 		}
-		const action = { id: actionId };
-		const result = await runStudioContextAction(nodeId, action);
-		await onContextAction?.({ nodeId, action, result });
+		for (const nodeId of movable) {
+			const action = { id: actionId };
+			const result = await runStudioContextAction(nodeId, action);
+			await onContextAction?.({ nodeId, action, result });
+			if (result?.ok === false || result?.isError) {
+				return;
+			}
+		}
 	}
 
 	/**

@@ -170,6 +170,11 @@ public class ObjectActions {
 		if (!handles(dbo)) {
 			return items;
 		}
+		if (dbo instanceof Sequence || dbo instanceof Transaction) {
+			add(items, "object.execute", "Execute",
+					"Run the " + (dbo instanceof Sequence ? "sequence" : "transaction") + " with its variables, as F5.",
+					true, "mdi:play").put("clientAction", "execution.run");
+		}
 		if (dbo instanceof Connector connector) {
 			add(items, "object.defaultConnector", "Set as default connector",
 					"Use this connector when a request names none.", !connector.isDefault, "mdi:check");
