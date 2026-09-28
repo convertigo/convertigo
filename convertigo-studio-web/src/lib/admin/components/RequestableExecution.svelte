@@ -191,12 +191,32 @@
 		}
 	}
 
-	/**
-	 * Writes the schema of the transaction again from the XML response, as "Update schema from current
-	 * connector data" in Eclipse.
-	 */
 	/** what the validation of the last XML response against the schema of the project tells */
 	let validation = $state(/** @type {{ valid: boolean, message: string } | null} */ (null));
+
+	const AUTO_VALIDATE = 'studio.execution.autoValidate';
+	/** each XML response is validated once it comes, as the auto validate of the Schema view of Eclipse */
+	let autoValidate = $state(readAutoValidate());
+
+	function readAutoValidate() {
+		try {
+			return localStorage.getItem(AUTO_VALIDATE) === 'true';
+		} catch {
+			return false;
+		}
+	}
+
+	function toggleAutoValidate() {
+		autoValidate = !autoValidate;
+		try {
+			localStorage.setItem(AUTO_VALIDATE, String(autoValidate));
+		} catch {
+			// no storage
+		}
+		if (autoValidate && xmlResponse && responseView.language === 'xml' && !responseView.loading) {
+			void validateResponse();
+		}
+	}
 
 	/**
 	 * Validates the XML response against the schema of the project, as the auto validate of the Schema
@@ -219,6 +239,10 @@
 				: null;
 	}
 
+	/**
+	 * Writes the schema of the transaction again from the XML response, as "Update schema from current
+	 * connector data" in Eclipse.
+	 */
 	async function updateSchema() {
 		if (
 			!requestable?.name ||
@@ -705,6 +729,9 @@ console.log(await response.text());`;
 				content: await data.text(),
 				language: data.headers.get('Content-Type')?.includes('json') ? 'json' : 'xml'
 			});
+			if (stubbable && autoValidate && xmlResponse && responseView.language === 'xml') {
+				await validateResponse();
+			}
 			if (watchesConnector) {
 				const result = await call('studio.dbo.ConnectorData', {
 					project: projectName,
@@ -857,6 +884,19 @@ console.log(await response.text());`;
 						title="Validate this response against the schema of the project"
 						onclick={validateResponse}
 						{disabled}
+					/>
+				{/if}
+				{#if stubbable && xmlResponse}
+					<Button
+						full={false}
+						class={['button-secondary', autoValidate && 'preset-filled-primary-100-900']}
+						icon={autoValidate ? 'mdi:check-decagram' : 'mdi:check-decagram-outline'}
+						title={autoValidate
+							? 'Each XML response is validated against the schema: stop it'
+							: 'Validate each XML response against the schema of the project'}
+						ariaLabel="Validate each response"
+						aria-pressed={autoValidate}
+						onclick={toggleAutoValidate}
 					/>
 				{/if}
 				{#if onChanged && kind === 'transaction' && xmlResponse && responseKey === requestableKey && responseView.language === 'xml' && !responseView.loading}
