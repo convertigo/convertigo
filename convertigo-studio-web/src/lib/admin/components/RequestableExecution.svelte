@@ -1,3 +1,11 @@
+<script module>
+	/**
+	 * The last result of each requestable, which shows again once it is selected again.
+	 * @type {Map<string, { content: string, language: string }>}
+	 */
+	const lastResults = new Map();
+</script>
+
 <script>
 	import { settlePropertyApply } from '$lib/studio/propertyApply.svelte.js';
 	import { Popover } from '@skeletonlabs/skeleton-svelte';
@@ -103,9 +111,13 @@
 				loading: responseLoading
 			};
 		}
+		// the last result of the requestable shows again, as its editor of the Eclipse Studio keeps it
+		const kept = lastResults.get(requestableKey);
 		return {
-			content: requestable?.response ?? '',
-			language: requestable?.language ?? 'json',
+			content: requestable?.response || kept?.content || '',
+			language: requestable?.response
+				? (requestable?.language ?? 'json')
+				: (kept?.language ?? 'json'),
 			loading: requestable?.loading === true
 		};
 	});
@@ -289,6 +301,9 @@
 			requestable.response = responseContent;
 			requestable.language = responseLanguage;
 			requestable.loading = responseLoading;
+		}
+		if (!responseLoading && requestableKey) {
+			lastResults.set(requestableKey, { content: responseContent, language: responseLanguage });
 		}
 	}
 
