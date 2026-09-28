@@ -100,6 +100,11 @@
 	}
 
 	function apply() {
+		// a font chosen before the catalog loads stays as it is
+		if (fontId && !font) {
+			onApply?.(value || '{}');
+			return;
+		}
 		onApply?.(
 			font
 				? JSON.stringify({

@@ -109,6 +109,14 @@
 	let otherSelected = $derived(
 		treeSelectionOf(selectedId).filter((other) => other !== selectedId && /[.:]/.test(other))
 	);
+	/** the objects selected with the shown one, which its changes still reach once another is selected */
+	/** @type {string[]} */
+	let shownOthers = [];
+	$effect(() => {
+		if (id && id === selectedId) {
+			shownOthers = otherSelected;
+		}
+	});
 
 	function propertyIdentity(propertyCategories) {
 		const rows = (propertyCategories ?? []).flatMap((category) => category?.properties ?? []);
@@ -149,8 +157,12 @@
 	 * @param {string} nextId
 	 */
 	async function showObject(nextId) {
-		if (id && id !== nextId && hasChanges && valid && !saving) {
+		// the changes are applied before the object shows again, or another one
+		if (id && hasChanges && valid && !saving) {
 			await saveChanges();
+			if (requestedSelectionId !== nextId) {
+				return;
+			}
 		}
 		await onSelectionChange({ selectedValue: [nextId] }).finally(() => {
 			if (requestedSelectionId === nextId) {
@@ -587,7 +599,7 @@
 		try {
 			await save({
 				persist: false,
-				alsoIds: otherSelected,
+				alsoIds: id === selectedId ? otherSelected : shownOthers,
 				onSaved: async (savedId, result) => {
 					if (selectedId === savedId) closeCurrentPicker();
 					await onSave?.(savedId, result);
