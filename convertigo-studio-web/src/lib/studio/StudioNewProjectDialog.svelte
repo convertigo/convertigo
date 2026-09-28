@@ -25,6 +25,19 @@
 	/** @type {Record<string, any>} */
 	let values = $state(defaultValues(PROJECT_TEMPLATES[0]));
 	let url = $state('');
+	/** the name of the project of a URL, as the Project name of the import wizard of the Eclipse Studio */
+	let urlName = $state('');
+	/** a name typed before the URL, as "ProjectName=https://…", which the engine reads */
+	let namedUrl = $derived(/^[^=:/\s]+=/.test(url.trim()));
+	/** an archive keeps the name of its project, a Git repository needs the name of its project */
+	let archiveUrl = $derived(/^(?:[^=:/\s]+=)?https?:\/\/.*\.(?:zip|car)\b/i.test(url.trim()));
+	let urlNameError = $derived(
+		urlName.trim()
+			? projectNameError(urlName.trim())
+			: url.trim() && !namedUrl && !archiveUrl
+				? 'A Git repository needs the name of its project.'
+				: ''
+	);
 	let busy = $state(false);
 	let error = $state('');
 	let template = $derived(
@@ -38,7 +51,7 @@
 		mode === 'template'
 			? !projectNameError(name) && !missingField
 			: mode === 'url'
-				? Boolean(url.trim())
+				? Boolean(url.trim()) && !urlNameError
 				: mode === 'folder'
 					? Boolean(folder.trim())
 					: Boolean(archive)
@@ -101,7 +114,10 @@
 					error = String(result?.admin?.error ?? 'The project was not imported.');
 				}
 			} else {
-				const result = await call('projects.ImportURL', { url: url.trim() });
+				const typed = url.trim();
+				const result = await call('projects.ImportURL', {
+					url: !namedUrl && urlName.trim() ? `${urlName.trim()}=${typed}` : typed
+				});
 				const success = String(result?.admin?.success ?? '');
 				const imported = success.match(/project '([^']+)'/)?.[1];
 				if (imported) {
@@ -265,10 +281,29 @@
 							placeholder="https://github.com/owner/project.git or https://…/project.car"
 						/>
 						<small>
-							Prefix with <code>ProjectName=</code> to choose the name, and add a branch with
-							<code>:branch=name</code> for a git repository.
+							Add a branch with <code>:branch=name</code> or a folder with <code>:path=folder</code>
+							for a git repository.
 						</small>
 					</label>
+					{#if !namedUrl}
+						<label class="studio-dialog__field">
+							<span>Project name</span>
+							<input
+								class="input-common"
+								bind:value={urlName}
+								placeholder={archiveUrl ? 'The name of the project of the archive' : 'MyProject'}
+							/>
+							{#if urlNameError}
+								<small class="studio-dialog__error">{urlNameError}</small>
+							{:else}
+								<small
+									>{archiveUrl
+										? 'Leave it empty to keep the name of the project of the archive.'
+										: 'The name of the project of the repository, as in its c8oProject.yaml.'}</small
+								>
+							{/if}
+						</label>
+					{/if}
 				{/if}
 				{#if error}
 					<p class="studio-dialog__error" role="alert">{error}</p>
