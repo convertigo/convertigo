@@ -3,6 +3,7 @@
 	import LogViewer from '$lib/admin/components/LogViewer.svelte';
 	import Time from '$lib/common/Time.svelte';
 	import { onMount, tick } from 'svelte';
+	import StudioLogLevelsDialog from './StudioLogLevelsDialog.svelte';
 
 	let logViewer = $state();
 	let autoScroll = $state(true);
@@ -11,6 +12,8 @@
 	let endDate = $state('');
 	let serverFilter = $state('');
 	let filters = $state({});
+	/** the levels of the logs, as the Configure Log level of the log view of the Eclipse Studio */
+	let levelsOpen = $state(false);
 	/** @type {{ toolbarLead?: import('svelte').Snippet, toolbarTrail?: import('svelte').Snippet }} */
 	let { toolbarLead, toolbarTrail } = $props();
 
@@ -50,10 +53,15 @@
 		{serverFilter}
 		bind:filters
 		studioMode={true}
+		onConfigureLevels={() => (levelsOpen = true)}
 		{toolbarLead}
 		{toolbarTrail}
 	/>
 </div>
+
+{#if levelsOpen}
+	<StudioLogLevelsDialog onClose={() => (levelsOpen = false)} />
+{/if}
 
 <style>
 	.studio-logs {
