@@ -48,7 +48,14 @@ public class ImportURL extends XmlService {
 			ProjectUrlParser parser = new ProjectUrlParser(url);
 			if (parser.isValid()) {
 				Project project;
-				if ((project = Engine.theApp.referencedProjectManager.importProject(parser, true)) == null) {
+				if (url.trim().matches("(?i)https?://.*") && parser.getGitUrl() != null) {
+					// an archive given without a name keeps the name of its project, as a deployed archive does,
+					// instead of the name of its file, as lib_OAuth_8.0.0.car
+					project = Engine.theApp.databaseObjectsManager.deployProject(parser.getGitUrl(), null, true);
+				} else {
+					project = Engine.theApp.referencedProjectManager.importProject(parser, true);
+				}
+				if (project == null) {
 					error = "No project loaded with: " + url;
 				} else {
 					projectName = project.getName();
