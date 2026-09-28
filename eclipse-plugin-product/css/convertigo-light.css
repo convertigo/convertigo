@@ -27,19 +27,13 @@
   swt-selected-highlight-top: false;
 }
 
-.MPartStack.active, .MPartStack.active.noFocus,
+.MPartStack.active,
 #com-twinsoft-convertigo-eclipse-views-projectexplorer-ProjectExplorerViewMStack.active,
 #com-twinsoft-convertigo-eclipse-views-sourcepicker-SourcePickerViewMStack.active,
 #com-twinsoft-convertigo-eclipse-views-assistant-AssistantViewMStack.active,
 #org-eclipse-ui-views-PropertySheetMStack.active,
 #com-twinsoft-convertigo-eclipse-views-loggers-EngineLogViewMStack.active {
-  swt-selected-tab-fill: #ffffff;
-  swt-unselected-tabs-color: #ffffff;
   swt-selected-tab-highlight: #ffffff;
-}
-
-.MPartStack, .MPartStack.active {
-  swt-draw-custom-tab-content-background: false;
 }
 
 CTabItem, CTabItem CLabel,
@@ -100,23 +94,6 @@ Shell, .MTrimmedWindow, Composite.MPartSashContainer, Composite.MArea, .MPerspec
 .MPart Tree, .MPart Table {
   swt-header-background-color: #ffffff;
   swt-header-color: #6b7078;
-}
-
-/* The light theme of Eclipse gives these elements its SECONDARY_BACKGROUND and tab background colors,
-   which are black on macOS: the window background */
-.MTrimmedWindow, .MTrimBar, .MTrimBar#org-eclipse-ui-main-toolbar, .MTrimBar#org-eclipse-ui-trim-status,
-Composite.MPartSashContainer {
-  background-color: #eceef1;
-}
-
-/* and the panels */
-CTabFolder Canvas, #org-eclipse-ui-editorss CTabItem,
-.MPartStack > Composite, .MPartStack.active > Composite, .MPartStack.active.noFocus > Composite,
-.View Composite, .View Composite Label, .View ToolBar, .View Group, .View Group Label, .View Section,
-.View BusyIndicator, .View SashForm, .View Link, .View FormText, .View Hyperlink, .View Canvas,
-.View FigureCanvas, .View TitleRegion, .MPartStack.active .View TitleRegion,
-.View Composite Tree[swt-lines-visible=false] {
-  background-color: #ffffff;
 }
 
 /* Palette */

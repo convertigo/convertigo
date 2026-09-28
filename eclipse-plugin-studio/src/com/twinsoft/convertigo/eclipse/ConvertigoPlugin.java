@@ -68,15 +68,11 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.e4.ui.css.swt.internal.theme.ThemeEngine;
 import org.eclipse.e4.ui.model.application.MApplication;
-import org.eclipse.e4.ui.model.application.ui.MUIElement;
 import org.eclipse.e4.ui.model.application.ui.MUILabel;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.e4.ui.model.application.ui.menu.MToolBar;
 import org.eclipse.e4.ui.model.application.ui.menu.MToolControl;
 import org.eclipse.e4.ui.workbench.modeling.EModelService;
-import org.eclipse.emf.common.notify.Notification;
-import org.eclipse.emf.common.notify.impl.AdapterImpl;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.ModalContext;
@@ -1086,7 +1082,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				"org.eclipse.ui.edit.text.actionSet.presentation");
 		for (var toolBar : modelService.findElements(app, null, MToolBar.class, null, EModelService.ANYWHERE)) {
 			if (hidden.contains(toolBar.getElementId())) {
-				keepHidden(toolBar);
+				toolBar.setToBeRendered(false);
 			} else if (toolBar.getTags().remove("Draggable")) {
 				toolBar.getTags().add("NoMove");
 				toolBar.setToBeRendered(false);
@@ -1094,25 +1090,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			}
 		}
 		for (var control : modelService.findElements(app, "PerspectiveSwitcher", MToolControl.class, null, EModelService.ANYWHERE)) {
-			keepHidden(control);
+			control.setToBeRendered(false);
 		}
-	}
-
-	/**
-	 * Hides an element of the window, and hides it again each time Eclipse renders it, as the tool bar of an
-	 * action set shown with an editor.
-	 */
-	private static void keepHidden(MUIElement element) {
-		element.setToBeRendered(false);
-		((EObject) element).eAdapters().add(new AdapterImpl() {
-
-			@Override
-			public void notifyChanged(Notification notification) {
-				if (element.isToBeRendered()) {
-					PlatformUI.getWorkbench().getDisplay().asyncExec(() -> element.setToBeRendered(false));
-				}
-			}
-		});
 	}
 
 	/**
