@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	canOpenCodeProperty,
+	findPrimaryEditorProperty,
 	flowBindingPreview,
 	getPropertyLanguage,
 	hasPropertyPossibleValues,
@@ -64,6 +65,29 @@ describe('Studio property editor language detection', () => {
 				value: '{}'
 			})
 		).toBe('json');
+	});
+
+	it('keeps the choices among values out of the code editor', () => {
+		const rows = [
+			{
+				name: 'comment',
+				displayName: 'Comment',
+				class: 'java.lang.String',
+				value: 'A sample',
+				isMultiline: true
+			},
+			{
+				name: 'jsonRoot',
+				displayName: 'JSON object output',
+				class: 'java.lang.String',
+				value: 'docChildNodes',
+				values: ['docNode', 'docChildNodes', 'docElement']
+			}
+		];
+
+		expect(isMonacoProperty(rows[1], 'sampleKitchenSink')).toBe(false);
+		expect(canOpenCodeProperty(rows[1], 'sampleKitchenSink')).toBe(false);
+		expect(findPrimaryEditorProperty(rows, 'sampleKitchenSink')?.name).toBe('comment');
 	});
 
 	it('keeps step sources out of the code editor, which would save them as text', () => {

@@ -296,7 +296,9 @@ export function isMonacoProperty(row, selectedId = '') {
 		!row ||
 		row.category === 'Information' ||
 		row.editorClass === 'flow-binding-editor' ||
-		!isTextProperty(row)
+		!isTextProperty(row) ||
+		// a choice among values, as the JSON output of a project, is no code
+		(Array.isArray(row.values) && row.values.length > 0)
 	) {
 		return false;
 	}
@@ -331,8 +333,14 @@ export function canOpenCodeProperty(row, selectedId = '') {
 	if (!row || row.category === 'Information' || !isTextEditorValue(row.value)) {
 		return false;
 	}
-	// a source of a step, as [priority, xpath], a table, or a property its object does not let change
-	if (Array.isArray(row.value) || row.sourceLabel !== undefined || row.isDisabled === true) {
+	// a source of a step, as [priority, xpath], a table, a choice among values, or a property its object
+	// does not let change
+	if (
+		Array.isArray(row.value) ||
+		row.sourceLabel !== undefined ||
+		row.isDisabled === true ||
+		hasPropertyPossibleValues(row)
+	) {
 		return false;
 	}
 	// Flow bindings have a structured Literal/Source/Compose editor. Opening
