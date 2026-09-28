@@ -35,6 +35,27 @@ describe('ProjectsTree', () => {
 		]);
 	});
 
+	it('drops the marks an object no longer has', () => {
+		const previous = {
+			id: 'Project.cn:Http',
+			name: 'Http',
+			default: 'Default connector',
+			modified: true,
+			comment: 'old',
+			enabled: false
+		};
+		const [node] = normalizeProjectTreeChildren(
+			[{ id: 'Project.cn:Http', name: 'Http', comment: 'new', children: true }],
+			[previous]
+		);
+
+		expect(node).toBe(previous);
+		expect(node.default).toBeUndefined();
+		expect(node.modified).toBeUndefined();
+		expect(node.enabled).toBeUndefined();
+		expect(node.comment).toBe('new');
+	});
+
 	it('normalizes labels and names for new nodes', () => {
 		const children = normalizeProjectTreeChildren([{ id: 'Project', label: 'Project' }]);
 

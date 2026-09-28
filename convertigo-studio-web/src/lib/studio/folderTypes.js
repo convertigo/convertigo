@@ -1,0 +1,47 @@
+/**
+ * The types of the folders of the tree, as the last part of their ids, as "Project.cn:Http:tr": the short
+ * names of the FolderType enum of the engine, and the folders of the Flow trees.
+ */
+export const FOLDER_TYPE_IDS = new Set([
+	'ac',
+	'at',
+	'ah',
+	'cn',
+	'ct',
+	'cr',
+	'dc',
+	'ev',
+	'er',
+	'fn',
+	'id',
+	'in',
+	'ls',
+	'mp',
+	'mn',
+	'op',
+	'pg',
+	'pr',
+	'pf',
+	'pl',
+	'rf',
+	'rs',
+	'rt',
+	'sc',
+	'sq',
+	'sa',
+	'sp',
+	'sh',
+	'sr',
+	'st',
+	'sl',
+	'tp',
+	'tc',
+	'tr',
+	'vl',
+	'vr',
+	// the folders of the Flow trees
+	'ref',
+	'url',
+	'app',
+	'mob'
+]);

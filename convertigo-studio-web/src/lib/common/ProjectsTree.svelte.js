@@ -4,6 +4,20 @@ import { call } from '$lib/utils/service';
  * @typedef {{ equivalentIds?: (id: string | undefined) => string[] }} ProjectTreeOptions
  */
 
+/** The marks of a tree node that studio.treeview.Get writes only when the object has them */
+const OPTIONAL_MARKS = [
+	'default',
+	'comment',
+	'autoStart',
+	'symbolError',
+	'modified',
+	'accessibility',
+	'enabled',
+	'iconify',
+	'renameValue',
+	'closed'
+];
+
 /**
  * @param {any} node
  * @param {any=} previous
@@ -17,6 +31,12 @@ function normalizeProjectTreeNode(node, previous, options = {}) {
 		shareProjectTreeId(previous.id, node.id, options)
 	) {
 		const previousChildren = Array.isArray(previous.children) ? previous.children : undefined;
+		// the engine only writes the marks an object has: a mark it no longer writes is gone
+		for (const mark of OPTIONAL_MARKS) {
+			if (!(mark in node)) {
+				delete previous[mark];
+			}
+		}
 		Object.assign(previous, node);
 		if (Array.isArray(node.children)) {
 			previous.children = normalizeProjectTreeChildren(node.children, previousChildren, options);

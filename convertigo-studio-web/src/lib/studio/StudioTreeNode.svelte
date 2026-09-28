@@ -21,6 +21,7 @@
 		treeRowDropPosition
 	} from './dnd';
 	import { getSourcePickerDragPayload } from './sourcePickerDnd';
+	import { FOLDER_TYPE_IDS } from './folderTypes.js';
 	import StudioTreeActionMenu from './StudioTreeActionMenu.svelte';
 	import { applyProjectedTreeMutation, removeProjectedTreeNode } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
@@ -32,7 +33,7 @@
 		treeSelectionOf
 	} from './treeSelection.svelte.js';
 
-	const folderTypeIds = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url', 'app', 'mob']);
+	const folderTypeIds = FOLDER_TYPE_IDS;
 
 	/**
 	 * @type {{

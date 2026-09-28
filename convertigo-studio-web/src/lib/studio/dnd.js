@@ -1,9 +1,9 @@
 import { acceptDbo, addDbo, moveDbo } from '$lib/utils/service';
+import { FOLDER_TYPE_IDS } from './folderTypes.js';
 
 const SILENT_ERROR_OPTIONS = {
 	silentError: () => true
 };
-const FOLDER_TYPE_IDS = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url', 'app', 'mob']);
 
 /**
  * @typedef {'copy' | 'move' | 'none'} DropAction

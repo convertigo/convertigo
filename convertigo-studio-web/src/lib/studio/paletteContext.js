@@ -1,6 +1,5 @@
 import { call } from '$lib/utils/service';
-
-const FOLDER_TYPE_IDS = new Set(['sq', 'cn', 'tr', 'st', 'vr', 'tc', 'ref', 'url', 'app', 'mob']);
+import { FOLDER_TYPE_IDS } from './folderTypes.js';
 
 /**
  * @typedef {Object} PaletteItem
