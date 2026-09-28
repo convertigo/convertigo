@@ -282,8 +282,17 @@
 		loading = true;
 		error = '';
 		try {
-			const response = await call('studio.sourcepicker.Get', request);
+			// a schema the engine cannot build shows in the picker, without an error dialog
+			const response = await call('studio.sourcepicker.Get', request, { silentError: () => true });
 			if (serial !== loadSerial) {
+				return;
+			}
+			if (response?.isError || response?.error) {
+				error = String(
+					response?.error?.message ??
+						response?.error ??
+						'The source of this object cannot be shown.'
+				);
 				return;
 			}
 			model = normalizeModel(response);
