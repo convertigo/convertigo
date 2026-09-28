@@ -1766,6 +1766,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 
 	private void runFlowPaletteMutationAsync(String label, String defaultError,
 			ProjectExplorerView explorerView, DatabaseObjectTreeObject targetTreeObject, FlowMutation mutation) {
+		var targetPath = targetTreeObject.getObject() instanceof FlowVirtualObject target ? target.getVirtualPath() : "";
 		runFlowMutationAsync(label, mutation, response -> {
 			Engine.logStudio.info(label + " response: " + response);
 			if (response == null || !response.optBoolean("done", false)) {
@@ -1777,7 +1778,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					targetTreeObject.getObject(), null, response)) {
 				throw new EngineException("Flow item was added, but the projected tree could not be refreshed.");
 			}
+			// Offer the name of the added object, never the one of the drop target.
 			if (explorerView.getFirstSelectedTreeObject() instanceof FlowVirtualObjectTreeObject selected
+					&& !selected.getObject().getVirtualPath().equals(targetPath)
 					&& FlowStudioSupport.canRenameVirtualObject(selected.getObject())) {
 				explorerView.renameSelectedTreeObject(true);
 			}

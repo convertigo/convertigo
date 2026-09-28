@@ -1741,14 +1741,21 @@ public class FlowStudioSupport {
 				+ " changed=" + response.opt("changed")
 				+ " debug=" + response.opt("debug")
 				+ " error=" + response.opt("error"));
-		return withProjectedSelection(withProjectionMetadata(new JSONObject()
+		var result = withProjectionMetadata(new JSONObject()
 					.put("done", done)
 					.put("id", done ? flowEngine.getFullQName() : "")
 					.put("selectionSourcePath", done ? selectionSourcePath : "")
 					.put("selectionMutationPath", done ? selectionMutationPath : "")
 					.put("selectionId", done ? selectionId : "")
 					.put("error", done ? JSONObject.NULL : response.has("error") ? response.opt("error")
-							: "Frontend source mutation did not change the source."), response), projectionRoot);
+							: "Frontend source mutation did not change the source."), response);
+		if (!selectionMutationPath.isBlank()) {
+			// The source mutation defaults its selection to the target (a property edit).
+			// The inserted node is known by its source address, which the host resolves
+			// in the refreshed tree; the projection taken before the insert cannot hold it.
+			return result.put("selectionVirtualPath", "");
+		}
+		return withProjectedSelection(result, projectionRoot);
 	}
 
 	private static String frontendMutationSourcePath(DatabaseObject targetDbo, JSONObject mutation) {
