@@ -14,6 +14,7 @@ const OPTIONAL_MARKS = [
 	'accessibility',
 	'enabled',
 	'enableAble',
+	'open',
 	'iconify',
 	'renameValue',
 	'closed'

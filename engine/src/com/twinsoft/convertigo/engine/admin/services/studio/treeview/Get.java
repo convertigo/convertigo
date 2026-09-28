@@ -204,6 +204,10 @@ public class Get extends JSonService {
 		if (dbo instanceof IEnableAble) {
 			obj.put("enableAble", true);
 		}
+		var open = ObjectActions.openAction(dbo);
+		if (open != null) {
+			obj.put("open", open);
+		}
 		var defaultOf = defaultOf(dbo);
 		if (defaultOf != null) {
 			obj.put("default", defaultOf);

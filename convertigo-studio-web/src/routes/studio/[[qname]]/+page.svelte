@@ -2564,6 +2564,28 @@
 		} else if (action === 'code.handlers') {
 			// the JavaScript handlers of a transaction, as the "Edit handlers" action of the Eclipse Studio
 			openPropertyEditor({ id: nodeId, propertyName: 'handlers', displayName: 'Handlers' });
+		} else if (action === 'panel.execution') {
+			// the execution of a sequence or a connector, as a double-click in the tree of the Eclipse Studio
+			selectedId = nodeId;
+			if (profile === 'frontend') {
+				setProfile('backend');
+			}
+			setWorkPanel('execution');
+		} else if (action === 'panel.code') {
+			selectedId = nodeId;
+			if (profile === 'frontend') {
+				setFrontendResult('code');
+			} else {
+				setWorkPanel('code');
+			}
+		} else if (action.startsWith('code.property:')) {
+			// a property edited as code, as the SQL query of a transaction or the script of a step
+			openPropertyEditor({ id: nodeId, propertyName: action.slice('code.property:'.length) });
+		} else if (action === 'frontend.show') {
+			// an NGX component in the preview of its application, as the application editor of the Eclipse Studio
+			selectedId = nodeId;
+			setProfile('frontend');
+			setFrontendResult('frontend');
 		} else if (action === 'frontend.execute' || action === 'frontend.execute:update') {
 			executeFrontend(projectName, action.endsWith(':update') ? 'update' : '');
 		} else if (action.startsWith('code.file:')) {

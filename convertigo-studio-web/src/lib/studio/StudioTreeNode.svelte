@@ -1247,7 +1247,12 @@
 				class="studio-tree-node__content"
 				onclick={selectNode}
 				ondblclick={(event) =>
-					closedProject ? onTreeAction?.('project.open', node.id) : toggleExpanded(event)}
+					closedProject
+						? onTreeAction?.('project.open', node.id)
+						: // what the object opens, as a double-click in the tree of the Eclipse Studio
+							onTreeAction && node?.open
+							? onTreeAction(node.open, node.id)
+							: toggleExpanded(event)}
 			>
 				<span class="studio-tree-node__icon">
 					{#if typeof icon === 'string' && icon.includes('?')}

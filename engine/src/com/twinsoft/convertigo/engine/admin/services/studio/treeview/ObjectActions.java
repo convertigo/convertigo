@@ -96,6 +96,44 @@ public class ObjectActions {
 	}
 
 	/**
+	 * @return what a double-click on the object opens, as the tree of the Eclipse Studio: the execution of a
+	 *         sequence or a connector, the code of a transaction, of a JavaScript step, of a view or of an NGX
+	 *         component, the source of a step in the picker, the stylesheet of a sheet, the preview of an NGX
+	 *         component; or null, the node then opens or closes
+	 */
+	static String openAction(DatabaseObject dbo) {
+		if (dbo instanceof Sequence || dbo instanceof Connector) {
+			return "panel.execution";
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.transactions.SqlTransaction) {
+			return "code.property:sqlQuery";
+		}
+		if (dbo instanceof Transaction) {
+			return "code.handlers";
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.steps.SimpleStep) {
+			return "code.property:expression";
+		}
+		if (dbo instanceof IStepSourceContainer container && !container.getSourceDefinition().isEmpty()) {
+			return "picker.sourceDefinition";
+		}
+		if (dbo instanceof DesignDocumentFunction) {
+			return "panel.code";
+		}
+		if (dbo instanceof Sheet sheet && sheet.getUrl() != null && !sheet.getUrl().isBlank()) {
+			return "code.file:" + dbo.getProject().getName() + "//" + sheet.getUrl().replaceFirst("^[./\\\\]+", "");
+		}
+		var codeSuffix = com.twinsoft.convertigo.engine.admin.services.studio.source.NgxCodes.suffix(dbo);
+		if (codeSuffix != null) {
+			return "code.document:" + codeSuffix.substring(1);
+		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+			return "frontend.show";
+		}
+		return null;
+	}
+
+	/**
 	 * @return the NGX application a project, its mobile application or the application itself executes, as the
 	 *         Execute of the tree of the Eclipse Studio, or null
 	 */
