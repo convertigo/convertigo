@@ -1,4 +1,5 @@
 <script>
+	import { trackPropertyApply } from './propertyApply.svelte.js';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
@@ -589,7 +590,53 @@
 		);
 	}
 
-	async function saveChanges() {
+	/**
+	 * A value committed in a field, by Enter, by leaving the field or by a choice, is applied at once, as the
+	 * property sheet of the Eclipse Studio sets it.
+	 * @param {Event} event
+	 */
+	function commitField(event) {
+		const target = event.target;
+		if (
+			!(target instanceof HTMLInputElement) &&
+			!(target instanceof HTMLSelectElement) &&
+			!(target instanceof HTMLTextAreaElement)
+		) {
+			return;
+		}
+		const choice =
+			target instanceof HTMLSelectElement ||
+			(target instanceof HTMLInputElement && /^(checkbox|radio)$/.test(target.type));
+		if (choice) {
+			void saveChanges();
+			return;
+		}
+		// a text applies a moment after its field is left, which leaves the time of a click on Cancel; a save of
+		// the project waits for it
+		void trackPropertyApply(
+			new Promise((resolve) => setTimeout(() => resolve(applyChanges()), 250))
+		);
+	}
+
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	function commitOnEnter(event) {
+		if (
+			event.key === 'Enter' &&
+			!event.isComposing &&
+			!event.shiftKey &&
+			event.target instanceof HTMLInputElement
+		) {
+			void saveChanges();
+		}
+	}
+
+	function saveChanges() {
+		return trackPropertyApply(applyChanges());
+	}
+
+	async function applyChanges() {
 		if (saving || !valid || !getChanges().length) {
 			return;
 		}
@@ -756,7 +803,13 @@
 		</p>
 	{/if}
 
-	<div class="studio-properties__body" class:studio-properties__body--loading={loading}>
+	<div
+		class="studio-properties__body"
+		class:studio-properties__body--loading={loading}
+		onchange={commitField}
+		onkeydown={commitOnEnter}
+		role="presentation"
+	>
 		{#if !selectedId}
 			<StudioEmptyState message="No object selected" icon="mdi:cursor-default-click-outline" />
 		{:else}
@@ -799,7 +852,12 @@
 											class:studio-properties__field--picker-open={isPickerOpen(row)}
 										>
 											<div class="studio-properties__field-header layout-x-between-none">
-												<span class="studio-properties__field-label" title={label}>
+												<span
+													class="studio-properties__field-label"
+													title={String(row.shortDescription ?? '')
+														.split('|')[0]
+														.trim() || label}
+												>
 													{label}
 												</span>
 												{#if changed}

@@ -772,13 +772,12 @@ test('studio sets the visibility of a variable with its masks', async ({ page })
 	const flags = page.getByRole('group', { name: 'Visibility' });
 	await expect(flags.getByRole('checkbox', { name: 'Mask in the log files' })).toBeChecked();
 	await expect(flags.getByRole('checkbox', { name: 'Mask in the Studio' })).not.toBeChecked();
+	// a mask applies at once, as the property sheet of the Eclipse Studio sets a checked value: the masks
+	// of the log files and of the Studio together
 	await flags.getByRole('checkbox', { name: 'Mask in the Studio' }).check();
-	await flags.getByRole('checkbox', { name: 'Mask in the log files' }).uncheck();
-
-	await page.getByRole('button', { name: 'Apply', exact: true }).click();
 	await expect.poll(() => propertyUpdates.length).toBe(1);
 	const props = JSON.parse(propertyUpdates[0].get('props') ?? '[]');
-	expect(props[0]).toMatchObject({ name: 'visibility', value: '2' });
+	expect(props[0]).toMatchObject({ name: 'visibility', value: '3' });
 });
 
 test('studio treats an empty legacy Flow binding as an editable literal', async ({ page }) => {

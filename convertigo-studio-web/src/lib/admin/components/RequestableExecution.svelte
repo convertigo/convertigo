@@ -1,4 +1,5 @@
 <script>
+	import { settlePropertyApply } from '$lib/studio/propertyApply.svelte.js';
 	import { Popover } from '@skeletonlabs/skeleton-svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -627,6 +628,8 @@ console.log(await response.text());`;
 		if (!requestable || !projectName || disabled) {
 			return;
 		}
+		// a property of the Studio committed as the button takes the focus is applied before the run
+		await settlePropertyApply();
 		const fd = new FormData(target);
 		if (testcase) {
 			fd.append('__testcase', testcase);

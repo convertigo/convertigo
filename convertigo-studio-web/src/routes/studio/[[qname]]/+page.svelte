@@ -26,6 +26,7 @@
 	import { contextAuthoringMutation, isFrontendAuthoringNodeId } from '$lib/studio/flowAuthoring';
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
 	import { projectFileFolders } from '$lib/studio/projectFileFolders.js';
+	import { settlePropertyApply } from '$lib/studio/propertyApply.svelte.js';
 	import StudioPromptDialog from '$lib/studio/StudioPromptDialog.svelte';
 	import { studioPrompt } from '$lib/studio/studioPrompt.svelte.js';
 	import {
@@ -2262,6 +2263,8 @@
 	}
 
 	async function saveSelectedProject() {
+		// a property committed as the button takes the focus is applied first
+		await settlePropertyApply();
 		if (!selectedProjectName || projectActionBusy) {
 			return;
 		}
@@ -2283,6 +2286,8 @@
 	 * Saves every modified project, as the "Save all" of the Eclipse Studio.
 	 */
 	async function saveAllProjects() {
+		// a property committed as the button takes the focus is applied first
+		await settlePropertyApply();
 		if (!dirtyProjectNames.size || projectActionBusy) {
 			return;
 		}
