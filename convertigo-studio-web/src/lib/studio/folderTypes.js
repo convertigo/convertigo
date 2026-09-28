@@ -45,3 +45,12 @@ export const FOLDER_TYPE_IDS = new Set([
 	'app',
 	'mob'
 ]);
+
+/**
+ * @param {string} id
+ * @returns {boolean} whether the tree id is a folder, as `owner:type`, whereas an object is `owner.type:name`
+ */
+export function isFolderId(id) {
+	const folder = String(id ?? '').match(/^(.*):([a-z]{2,4})$/);
+	return Boolean(folder && FOLDER_TYPE_IDS.has(folder[2]) && !/\.[a-z]{2,4}$/.test(folder[1]));
+}

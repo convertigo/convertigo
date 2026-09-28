@@ -5,6 +5,7 @@
 	import { onMount, tick, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { closedProjects, refreshClosedProjects } from './closedProjects.svelte.js';
+	import { isFolderId } from './folderTypes.js';
 	import {
 		areEquivalentDboObjectIds,
 		equivalentDboObjectIds,
@@ -309,7 +310,8 @@
 	 */
 	async function moveSelected(actionId) {
 		const nodeId = selectedId;
-		if (!/[.:]/.test(nodeId) || nodeId.includes('/')) {
+		// a project, a file or a folder has no priority
+		if (!/[.:]/.test(nodeId) || nodeId.includes('/') || isFolderId(nodeId)) {
 			return;
 		}
 		const action = { id: actionId };

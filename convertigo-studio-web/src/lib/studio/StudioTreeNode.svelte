@@ -21,7 +21,7 @@
 		treeRowDropPosition
 	} from './dnd';
 	import { getSourcePickerDragPayload } from './sourcePickerDnd';
-	import { FOLDER_TYPE_IDS } from './folderTypes.js';
+	import { FOLDER_TYPE_IDS, isFolderId } from './folderTypes.js';
 	import StudioTreeActionMenu from './StudioTreeActionMenu.svelte';
 	import { applyProjectedTreeMutation, removeProjectedTreeNode } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
@@ -1111,9 +1111,7 @@
 	 * @returns {boolean}
 	 */
 	function isFolderNode(id) {
-		// a folder is `owner:type`, whereas an object is `owner.type:name`
-		const folder = id.match(/^(.*):[a-z]{2,4}$/);
-		return Boolean(folder && !/\.[a-z]{2,4}$/.test(folder[1]));
+		return isFolderId(id);
 	}
 
 	/**
