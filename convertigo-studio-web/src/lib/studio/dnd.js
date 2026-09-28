@@ -1006,6 +1006,17 @@ function expandableDboAncestorIds(id) {
 	if (!id) {
 		return ids;
 	}
+	if (id.includes('/')) {
+		// a file of a project, "Project//folder/file": its project, the files of the project, its folders
+		const projectName = id.slice(0, id.indexOf('/'));
+		const folders = id.slice(projectName.length).replace(/^\/+/, '').split('/').slice(0, -1);
+		pushUnique(ids, projectName);
+		pushUnique(ids, `${projectName}/`);
+		folders.forEach((_, index) =>
+			pushUnique(ids, `${projectName}//${folders.slice(0, index + 1).join('/')}`)
+		);
+		return ids;
+	}
 	const projectName = id.split(/[.:]/)[0] ?? '';
 	pushUnique(ids, projectName);
 	for (const folderId of dboTreeFolderIds(id)) {

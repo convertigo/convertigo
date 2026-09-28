@@ -394,6 +394,16 @@ describe('Studio DBO drag and drop qnames', () => {
 		]);
 	});
 
+	it('keeps the folders of a project file expanded', () => {
+		expect(expandableDboAncestorIds('Project//css/theme/custom.css')).toEqual([
+			'Project',
+			'Project/',
+			'Project//css',
+			'Project//css/theme'
+		]);
+		expect(expandableDboAncestorIds('Project//readme.md')).toEqual(['Project', 'Project/']);
+	});
+
 	it('builds a shared mutation context for cross-parent flow to tree refreshes', () => {
 		expect(
 			mutationDboContextIds({

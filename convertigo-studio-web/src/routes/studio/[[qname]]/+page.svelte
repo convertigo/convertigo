@@ -826,7 +826,8 @@
 			return { projectName: '', sequenceName: '', connectorName: '', transactionName: '' };
 		}
 		const segments = id.split('.');
-		const projectName = segments[0]?.replace(/:.*/, '') ?? '';
+		// the name of a project stops at the first separator: the files of a project are "Project//path"
+		const projectName = segments[0]?.replace(/[:/].*/, '') ?? '';
 		const byType = Object.fromEntries(
 			segments
 				.map((segment) => segment.match(/^([^:]+):(.*)$/))
@@ -941,6 +942,19 @@
 	function buildBreadcrumb(id) {
 		if (!id || id === 'ROOT') {
 			return [];
+		}
+		if (id.includes('/')) {
+			// a file of a project, "Project//folder/file": the project, then the folders and the file
+			const projectName = id.slice(0, id.indexOf('/'));
+			const parts = id.slice(projectName.length).replace(/^\/+/, '').split('/').filter(Boolean);
+			return [
+				{ id: projectName, label: projectName, title: projectName },
+				...parts.map((part, index) => ({
+					id: `${projectName}//${parts.slice(0, index + 1).join('/')}`,
+					label: part,
+					title: parts.slice(0, index + 1).join('/')
+				}))
+			];
 		}
 		return id.split('.').reduce((items, segment) => {
 			const previous = items[items.length - 1];
