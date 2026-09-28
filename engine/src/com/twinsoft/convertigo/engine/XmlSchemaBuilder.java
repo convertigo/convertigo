@@ -376,7 +376,8 @@ public class XmlSchemaBuilder {
 							if (ob instanceof XmlSchemaImport) {
 								XmlSchemaImport xmlSchemaImport = (XmlSchemaImport)ob;
 								String tns = Project.getProjectTargetNamespace(pname);
-								if (xmlSchemaImport.getNamespace().equals(tns)) {
+								// an import may have no namespace, as a schema of a referenced project not loaded
+								if (tns.equals(xmlSchemaImport.getNamespace())) {
 									missing.remove(pname);
 								}
 							}
