@@ -3494,6 +3494,8 @@
 		active={logsPanelOpen && bottomView === 'build'}
 		onLoad={showDevelopmentBuild}
 		onBuilt={() => {
+			// a first build gives the project its application
+			void Projects.refresh();
 			showLocalBuild();
 			if (archiveAfterBuild) {
 				archiveRequest = archiveAfterBuild;

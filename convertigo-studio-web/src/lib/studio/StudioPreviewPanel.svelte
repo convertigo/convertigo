@@ -2,6 +2,7 @@
 	import { asset } from '$app/paths';
 	import Button from '$lib/admin/components/Button.svelte';
 	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
+	import Projects from '$lib/common/Projects.svelte.js';
 	import Bezels from '$lib/dashboard/Bezels';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, getFrontendUrl } from '$lib/utils/service';
@@ -98,7 +99,14 @@
 	let deviceDrawerOpen = $state(false);
 	let authoringReadyUrl = $state('');
 	let authoringReadySerial = $state(0);
-	let previewUrl = $derived(previewUrlOverride || (projectName ? getFrontendUrl(projectName) : ''));
+	/** a project without an application, as a library of sequences, has nothing to preview */
+	let noFrontend = $derived(
+		!previewUrlOverride &&
+			Projects.projects.find((project) => project?.name === projectName)?.hasFrontend === 'false'
+	);
+	let previewUrl = $derived(
+		previewUrlOverride || (projectName && !noFrontend ? getFrontendUrl(projectName) : '')
+	);
 	let addressBar = $derived(
 		addressOverride.base === previewUrl ? addressOverride.value : previewUrl
 	);
@@ -956,6 +964,12 @@
 				</div>
 			</div>
 		</MaxRectangle>
+	{:else if noFrontend}
+		<StudioEmptyState
+			message={`The project ${projectName} has no frontend application.`}
+			icon="mdi:application-outline"
+			class="studio-preview__empty"
+		/>
 	{:else}
 		<StudioEmptyState
 			message="No project selected"
