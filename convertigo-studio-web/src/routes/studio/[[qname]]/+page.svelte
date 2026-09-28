@@ -27,8 +27,6 @@
 	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
 	import { projectFileFolders } from '$lib/studio/projectFileFolders.js';
 	import { settlePropertyApply } from '$lib/studio/propertyApply.svelte.js';
-	import StudioPromptDialog from '$lib/studio/StudioPromptDialog.svelte';
-	import { studioPrompt } from '$lib/studio/studioPrompt.svelte.js';
 	import {
 		findPrimaryEditorProperty,
 		isCodeEditorProperty,
@@ -76,6 +74,8 @@
 	} from '$lib/studio/studioPreferences.svelte.js';
 	import StudioPreferencesDialog from '$lib/studio/StudioPreferencesDialog.svelte';
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
+	import StudioPromptDialog from '$lib/studio/StudioPromptDialog.svelte';
+	import { studioPrompt } from '$lib/studio/studioPrompt.svelte.js';
 	import StudioPropertiesPanel from '$lib/studio/StudioPropertiesPanel.svelte';
 	import StudioReferencesPanel from '$lib/studio/StudioReferencesPanel.svelte';
 	import StudioSapDesignDialog from '$lib/studio/StudioSapDesignDialog.svelte';
@@ -346,6 +346,15 @@
 	let lastStudioMutation = $state(null);
 	let projectActionBusy = $state('');
 	let dirtyProjectNames = $state.raw(new SvelteSet());
+	/** @type {Record<string, { canUndo: boolean, canRedo: boolean }>} what the history of each project can undo */
+	let projectHistories = $state({});
+	/** @type {Map<string, ReturnType<typeof setTimeout>>} */
+	const projectSnapshotTimers = new Map();
+	let projectHistoryBusy = $state(false);
+	const isMacPlatform =
+		typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+	/** @type {{ projectName: string, serial: number } | null} the project an undo or a redo replaced */
+	let historyReload = $state(null);
 	let executionFallbackKey = '';
 	/** @type {{ kind: 'transaction', connectorName?: string, requestable: any } | null} */
 	let executionFallbackTarget = $state(null);
@@ -394,6 +403,14 @@
 	let selectedProjectDirty = $derived(
 		Boolean(selectedProjectName && dirtyProjectNames.has(selectedProjectName))
 	);
+	let selectedProjectHistory = $derived(projectHistories[selectedProjectName] ?? null);
+	$effect(() => {
+		// the state of the project when it is selected is the first one an undo comes back to
+		const projectName = selectedProjectName;
+		if (projectName && !isProjectClosed(projectName)) {
+			untrack(() => void callProjectHistory(projectName, 'baseline'));
+		}
+	});
 	let selectedFlowSequenceName = $derived(selectedContext.sequenceName || '');
 	let flowReady = $derived(
 		Boolean(selectedProjectName && selectedFlowSequenceName && sequences.length)
@@ -814,6 +831,8 @@
 			}
 			propertiesRefreshSerial += 1;
 			refreshStudioViews();
+			// a change made outside the Studio, as by the assistant, can be undone too
+			scheduleProjectSnapshot(projectName);
 		} finally {
 			projectChangeRefreshRunning = false;
 			if (projectChangeRefreshPending) {
@@ -2426,13 +2445,118 @@
 
 	/**
 	 * @param {string} id
+	 * @param {{ snapshot?: boolean }} [options] snapshot false for the state an undo or a redo restored
 	 */
-	function markProjectDirty(id) {
+	function markProjectDirty(id, { snapshot = true } = {}) {
 		const projectName = parseSelection(id).projectName || selectedProjectName;
-		if (!projectName || dirtyProjectNames.has(projectName)) {
+		if (!projectName) {
+			return;
+		}
+		if (snapshot) {
+			scheduleProjectSnapshot(projectName);
+		}
+		if (dirtyProjectNames.has(projectName)) {
 			return;
 		}
 		dirtyProjectNames = new SvelteSet([...dirtyProjectNames, projectName]);
+	}
+
+	/**
+	 * The engine keeps the state of the project after a change, which an undo comes back to; changes
+	 * made together, as the properties applied one after the other, make a single state.
+	 * @param {string} projectName
+	 */
+	function scheduleProjectSnapshot(projectName) {
+		clearTimeout(projectSnapshotTimers.get(projectName));
+		projectSnapshotTimers.set(
+			projectName,
+			setTimeout(() => {
+				projectSnapshotTimers.delete(projectName);
+				void callProjectHistory(projectName, 'snapshot');
+			}, 300)
+		);
+	}
+
+	/**
+	 * @param {string} projectName
+	 * @param {'baseline' | 'snapshot' | 'undo' | 'redo' | 'state'} action
+	 */
+	async function callProjectHistory(projectName, action) {
+		const result = await call(
+			'studio.project.History',
+			{ project: projectName, action },
+			{ silentError: () => action !== 'undo' && action !== 'redo' }
+		);
+		if (result && !result.isError && 'canUndo' in result) {
+			projectHistories = {
+				...projectHistories,
+				[projectName]: { canUndo: Boolean(result.canUndo), canRedo: Boolean(result.canRedo) }
+			};
+		}
+		return result;
+	}
+
+	/**
+	 * Comes back to the previous state of the selected project, or to the one an undo left with redo: the
+	 * engine loads the project again in this state, which is saved as any change.
+	 * @param {'undo' | 'redo'} action
+	 */
+	async function undoProjectChange(action) {
+		const projectName = selectedProjectName;
+		if (!projectName || projectHistoryBusy || projectActionBusy) {
+			return;
+		}
+		projectHistoryBusy = true;
+		try {
+			// the last change first makes its state, which an undo leaves
+			const pending = projectSnapshotTimers.get(projectName);
+			if (pending) {
+				clearTimeout(pending);
+				projectSnapshotTimers.delete(projectName);
+			}
+			const result = await callProjectHistory(projectName, action);
+			if (!result?.done) {
+				return;
+			}
+			await refreshStudioProject(projectName);
+			markProjectDirty(projectName, { snapshot: false });
+			// the objects of the project are new ones, the selected object may no longer exist
+			propertiesRefreshSerial += 1;
+			historyReload = { projectName, serial: (historyReload?.serial ?? 0) + 1 };
+			// the tree reads its open branches of the project again, from historyReload
+			refreshStudioViews({ tree: false, flow: true });
+		} finally {
+			projectHistoryBusy = false;
+		}
+	}
+
+	/**
+	 * ⌘Z or Ctrl+Z undoes the last change of the selected project, ⇧⌘Z, Ctrl+Shift+Z or Ctrl+Y redoes it,
+	 * as in the Eclipse Studio; a field or an editor keeps them for its own text.
+	 * @param {KeyboardEvent} event
+	 */
+	function handleUndoShortcut(event) {
+		if (event.defaultPrevented || !(event.metaKey || event.ctrlKey) || event.altKey) {
+			return;
+		}
+		const key = event.key.toLowerCase();
+		const redo =
+			(key === 'z' && event.shiftKey) || (key === 'y' && event.ctrlKey && !event.metaKey);
+		if (!redo && !(key === 'z' && !event.shiftKey)) {
+			return;
+		}
+		const target = /** @type {HTMLElement | null} */ (
+			event.target instanceof HTMLElement ? event.target : null
+		);
+		if (
+			target?.closest(
+				'input, textarea, select, [contenteditable]:not([contenteditable="false"]), .monaco-editor'
+			)
+		) {
+			return;
+		}
+		event.preventDefault();
+		void undoProjectChange(redo ? 'redo' : 'undo');
 	}
 
 	/**
@@ -3282,7 +3406,13 @@
 	}
 </script>
 
-<svelte:window onkeydown={handleSaveShortcut} onbeforeunload={warnUnsaved} />
+<svelte:window
+	onkeydown={(event) => {
+		handleSaveShortcut(event);
+		handleUndoShortcut(event);
+	}}
+	onbeforeunload={warnUnsaved}
+/>
 
 <svelte:head>
 	<title>Convertigo Studio</title>
@@ -3303,6 +3433,24 @@
 		ariaLabel="Run the application"
 		disabled={!selectedProjectName}
 		onclick={() => void executeSelectedFrontend()}
+	/>
+	<StudioIconButton
+		icon="mdi:undo"
+		title={isMacPlatform
+			? 'Undo the last change of the project (⌘Z)'
+			: 'Undo the last change of the project (Ctrl+Z)'}
+		ariaLabel="Undo"
+		disabled={!selectedProjectHistory?.canUndo || projectHistoryBusy || Boolean(projectActionBusy)}
+		onclick={() => void undoProjectChange('undo')}
+	/>
+	<StudioIconButton
+		icon="mdi:redo"
+		title={isMacPlatform
+			? 'Redo the change of the project (⇧⌘Z)'
+			: 'Redo the change of the project (Ctrl+Y)'}
+		ariaLabel="Redo"
+		disabled={!selectedProjectHistory?.canRedo || projectHistoryBusy || Boolean(projectActionBusy)}
+		onclick={() => void undoProjectChange('redo')}
 	/>
 	<StudioIconButton
 		icon={projectActionBusy === 'save' ? 'mdi:sync' : 'mdi:content-save-edit-outline'}
@@ -3431,6 +3579,7 @@
 			refreshSerial={treeRefreshSerial}
 			refreshMutation={lastStudioMutation}
 			refreshMutationSerial={studioMutationSerial}
+			reloadProject={historyReload}
 			onMutation={onStudioMutation}
 			onMutationBusyChange={onStudioMutationBusyChange}
 			onContextAction={onStudioContextAction}
@@ -3496,6 +3645,7 @@
 		onSave={refreshAfterPropertySave}
 		onMutationBusyChange={onStudioMutationBusyChange}
 		onSelectObject={selectObject}
+		reloadProject={historyReload}
 	/>
 {/snippet}
 

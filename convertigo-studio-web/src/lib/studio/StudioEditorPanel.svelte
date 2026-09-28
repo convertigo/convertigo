@@ -45,7 +45,8 @@
 	 *  active?: boolean,
 	 *  onSave?: (id: string, result?: any) => void | Promise<void>,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
-	 *  onSelectObject?: (id: string) => void
+	 *  onSelectObject?: (id: string) => void,
+	 *  reloadProject?: { projectName: string, serial: number } | null
 	 * }}
 	 */
 	let {
@@ -54,7 +55,8 @@
 		active = false,
 		onSave,
 		onMutationBusyChange = () => {},
-		onSelectObject = () => {}
+		onSelectObject = () => {},
+		reloadProject = null
 	} = $props();
 
 	let { properties, onSelectionChange, save, cancel } = $derived(createDatabaseObjectProperties());
@@ -144,6 +146,14 @@
 		untrack(() => {
 			openEditorTab(selectedId, property, editorTarget);
 		});
+	});
+
+	$effect(() => {
+		// an undo or a redo replaced the objects of a project
+		const projectName = reloadProject?.projectName;
+		if (reloadProject?.serial && projectName) {
+			untrack(() => void reloadProjectTabs(projectName));
+		}
 	});
 
 	$effect(() => {
@@ -264,6 +274,70 @@
 		} finally {
 			if (token === loadToken) {
 				loading = false;
+			}
+		}
+	}
+
+	/**
+	 * Reads again the tabs of the objects of a project, after an undo or a redo: a tab without changes
+	 * shows the value the engine now holds, the tab of an object that no longer exists closes. The files
+	 * of the project, which an undo does not change, stay as they are.
+	 * @param {string} projectName
+	 */
+	async function reloadProjectTabs(projectName) {
+		loadedId = '';
+		if (active && selectedId) {
+			void loadProperties(selectedId);
+		}
+		for (const tab of [...editorTabs]) {
+			if (
+				tab.id.split(/[.:/]/)[0] !== projectName ||
+				tab.content !== tab.originalValue ||
+				(tab.sourceDocument && !COMPONENT_CODE.test(tab.id))
+			) {
+				continue;
+			}
+			let value;
+			if (tab.sourceDocument) {
+				const response = await call(
+					'studio.source.Get',
+					{ id: tab.id },
+					{ silentError: () => true }
+				);
+				value = typeof response?.content === 'string' ? response.content : undefined;
+				if (value !== undefined) {
+					tab.revision = String(response?.revision ?? '');
+				}
+			} else {
+				const response = await call(
+					'studio.properties.Get',
+					{ id: tab.id },
+					{ silentError: () => true }
+				);
+				const property = Object.entries(response?.properties ?? {})
+					.map(([displayName, p]) => ({ displayName, ...p }))
+					.find(
+						(p) =>
+							normalizePropertyName(p.name ?? p.displayName) ===
+							normalizePropertyName(tab.propertyName)
+					);
+				value = property ? asEditorValue(property.value) : undefined;
+			}
+			if (tab.content !== tab.originalValue) {
+				// changed while it was read
+				continue;
+			}
+			if (value === undefined) {
+				const index = editorTabs.findIndex((t) => t.key === tab.key);
+				if (index >= 0) {
+					editorTabs.splice(index, 1);
+				}
+				if (activeTabKey === tab.key) {
+					activeTabKey = editorTabs[Math.min(index, editorTabs.length - 1)]?.key ?? '';
+				}
+			} else {
+				tab.content = value;
+				tab.originalValue = value;
 			}
 		}
 	}

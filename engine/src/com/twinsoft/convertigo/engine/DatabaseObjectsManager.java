@@ -1364,6 +1364,48 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return version[0];
 	}
 
+	/**
+	 * Replaces the loaded project by the one of a state of it, as the undo of the Studio: its files are not
+	 * written, the project is marked changed for a save to write them.
+	 * @param projectName the project
+	 * @param document the XML of the state, as CarUtils.exportProjectDocument gives it
+	 */
+	public Project restoreProject(String projectName, Document document) throws EngineException {
+		Element rootElement = document.getDocumentElement();
+		Element projectElement = (Element) XMLUtils.findChildNode(rootElement, Node.ELEMENT_NODE);
+		if (projectElement == null) {
+			throw new EngineException("The state of the project " + projectName + " is empty.");
+		}
+		projectElement.setAttribute("version", rootElement.getAttribute("beans"));
+		clearCache(projectName);
+		ProjectLoadingData[] loadingData = {null};
+		Project project = lockAndRun(projectName, (lock) -> {
+			projectLoadingDataThreadLocal.remove();
+			loadingData[0] = getProjectLoadingData();
+			loadingData[0].projectName = projectName;
+			Project prj = (Project) importDatabaseObject(projectElement, null);
+			prj.undefinedGlobalSymbols = loadingData[0].undefinedGlobalSymbol;
+			synchronized (projects) {
+				projects.put(prj.getName(), prj);
+			}
+			return prj;
+		});
+		if (project == null) {
+			throw new EngineException("The state of the project " + projectName + " cannot be loaded.");
+		}
+		getStudioProjects().projectLoaded(project);
+		RestApiManager.getInstance().putUrlMapper(project);
+		MobileBuilder.initBuilder(project);
+		if (loadingData[0].afterLoaded != null) {
+			for (var run: loadingData[0].afterLoaded) {
+				run.run();
+			}
+		}
+		project.hasChanged = true;
+		Engine.logDatabaseObjectManager.info("[restoreProject] Restored a state of " + Project.formatNameWithHash(project));
+		return project;
+	}
+
 	public Project importProject(String importFileName, boolean override) throws EngineException {
 		return importProject(new File(importFileName), override);
 	}

@@ -184,6 +184,7 @@
 	import MdiTranslate from '~icons/mdi/translate';
 	import MdiTranslateOff from '~icons/mdi/translate-off';
 	import MdiTuneVerticalVariant from '~icons/mdi/tune-vertical-variant';
+	import MdiRedo from '~icons/mdi/redo';
 	import MdiUndo from '~icons/mdi/undo';
 	import MdiUnfoldMoreHorizontal from '~icons/mdi/unfold-more-horizontal';
 	import MdiUpdate from '~icons/mdi/update';
@@ -383,6 +384,7 @@
 		'mdi:school-outline': MdiSchoolOutline,
 		'mdi:share-variant-outline': MdiShareVariantOutline,
 		'mdi:star': MdiStar,
+		'mdi:redo': MdiRedo,
 		'mdi:undo': MdiUndo,
 		'mdi:upload': MdiUpload,
 		'mdi:star-outline': MdiStarOutline,

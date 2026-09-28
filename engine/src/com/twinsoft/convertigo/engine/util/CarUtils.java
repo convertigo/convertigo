@@ -231,6 +231,14 @@ public class CarUtils {
 		}
 	}
 	
+	/**
+	 * @return the XML of the project as it is loaded, with its test cases, without writing its files: a state
+	 *         the Studio undoes to
+	 */
+	public static Document exportProjectDocument(Project project) throws EngineException {
+		return exportProject(project, true);
+	}
+
 	private static Document exportProject(Project project, final boolean includeTestCases) 
 			throws EngineException {
 		try {

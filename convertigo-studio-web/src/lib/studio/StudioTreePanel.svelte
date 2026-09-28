@@ -26,6 +26,7 @@
 	 *  refreshSerial?: number,
 	 *  refreshMutation?: import('./dnd').DboDropResult | null,
 	 *  refreshMutationSerial?: number,
+	 *  reloadProject?: { projectName: string, serial: number } | null,
 	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onContextAction?: (event: { nodeId: string, action: any, result: any }) => void | Promise<void>,
@@ -50,6 +51,7 @@
 		refreshSerial = 0,
 		refreshMutation = null,
 		refreshMutationSerial = 0,
+		reloadProject = null,
 		onMutation,
 		onMutationBusyChange,
 		onContextAction,
@@ -403,6 +405,36 @@
 		const outcome = await mutationOutcome;
 		if (outcome.error) {
 			throw outcome.error;
+		}
+	}
+
+	$effect(() => {
+		// an undo or a redo replaced the objects of a project
+		const projectName = reloadProject?.projectName;
+		if (reloadProject?.serial && projectName) {
+			untrack(() => void reloadProjectBranches(projectName));
+		}
+	});
+
+	/**
+	 * Reads again the open branches of a project, whose objects an undo or a redo replaced: a branch
+	 * emptied by the change undone has its children again.
+	 * @param {string} projectName
+	 */
+	async function reloadProjectBranches(projectName) {
+		const ids = [...expandedNodeIds].filter((id) => String(id).split(/[.:/]/)[0] === projectName);
+		await refreshAffectedParents([projectName, ...ids]);
+		dataSerial += 1;
+		// an object the change undone had created is gone: its nearest parent is selected
+		let id = String(selectedId ?? '');
+		if (id.split(/[.:/]/)[0] === projectName && !findNodeById(id)) {
+			while (id.includes('.') || id.includes(':') || id.includes('/')) {
+				id = id.replace(/[.:/]+[^.:/]*$/, '');
+				if (findNodeById(id)) {
+					break;
+				}
+			}
+			selectedId = id || projectName;
 		}
 	}
 
