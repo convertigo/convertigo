@@ -71,10 +71,10 @@ public class Schema extends JSonService {
 			try {
 				Engine.theApp.schemaManager.validateResponse(projectName, requestable, document);
 				response.put("valid", true);
-				response.put("message", "The " + projectName + " " + requestable + " XML response is valid.");
+				response.put("summary", "The " + projectName + " " + requestable + " XML response is valid.");
 			} catch (SAXException e) {
 				response.put("valid", false);
-				response.put("message", "The " + projectName + " " + requestable + " XML response is invalid: " + e.getMessage());
+				response.put("summary", "The " + projectName + " " + requestable + " XML response is invalid: " + e.getMessage());
 			}
 			return;
 		}
@@ -130,6 +130,6 @@ public class Schema extends JSonService {
 		response.put("project", projectName);
 		response.put("schemas", schemas);
 		response.put("valid", valid);
-		response.put("message", message);
+		response.put("summary", message);
 	}
 }

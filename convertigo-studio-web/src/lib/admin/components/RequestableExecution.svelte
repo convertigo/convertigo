@@ -202,7 +202,7 @@
 		});
 		validation =
 			typeof result?.valid === 'boolean'
-				? { valid: result.valid, message: String(result.message ?? '') }
+				? { valid: result.valid, message: String(result.summary ?? '') }
 				: null;
 	}
 

@@ -17,7 +17,10 @@
 	 */
 	let { selectedId = '', projectName = '', active = false } = $props();
 
-	/** @typedef {{ project: string, schemas: { namespace: string, xsd: string, elements?: string[] }[], valid: boolean, message: string }} SchemaInfo */
+	// a file of a project shows the schema of its project
+	let schemaId = $derived(selectedId?.includes('/') ? projectName : selectedId);
+
+	/** @typedef {{ project: string, schemas: { namespace: string, xsd: string, elements?: string[] }[], valid: boolean, summary: string }} SchemaInfo */
 	let schema = $state.raw(/** @type {SchemaInfo | null} */ (null));
 	let namespace = $state('');
 	let full = $state(false);
@@ -50,7 +53,7 @@
 			return;
 		}
 		const result = await call('studio.treeview.Schema', {
-			id: selectedId,
+			id: schemaId,
 			full: String(full),
 			action: 'sample',
 			namespace: current.namespace,
@@ -78,7 +81,7 @@
 		loading = true;
 		try {
 			const response = await call('studio.treeview.Schema', {
-				id: selectedId,
+				id: schemaId,
 				full: String(full),
 				refresh: String(refresh)
 			});
@@ -152,10 +155,10 @@
 			{#if schema}
 				<span
 					class={['studio-schema__message', !schema.valid && 'studio-schema__message--invalid']}
-					title={schema.message}
+					title={schema.summary}
 				>
 					<Ico icon={schema.valid ? 'mdi:check' : 'mdi:alert-circle-outline'} size={4} />
-					{schema.message}
+					{schema.summary}
 				</span>
 			{/if}
 		</div>

@@ -230,10 +230,12 @@
 				return;
 			}
 			const result = await runStudioContextAction(nodeId, action);
-			if (result?.ok !== false && action.id.endsWith('.dev.start')) {
+			// a failed request keeps the state of the development server
+			const succeeded = result?.ok !== false && !result?.isError;
+			if (succeeded && action.id.endsWith('.dev.start')) {
 				devRunningOverride = true;
 				contextItems = reconcileDevActionState(contextItems);
-			} else if (result?.ok !== false && action.id.endsWith('.dev.stop')) {
+			} else if (succeeded && action.id.endsWith('.dev.stop')) {
 				devRunningOverride = false;
 				contextItems = reconcileDevActionState(contextItems);
 			}

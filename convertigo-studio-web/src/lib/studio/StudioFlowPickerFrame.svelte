@@ -150,16 +150,23 @@
 		loading = true;
 		error = '';
 		try {
-			const response = await call('studio.flowpicker.Get', {
-				id: target.id,
-				propertyName: target.propertyName,
-				value: editorValue(target.value)
-			});
+			const response = await call(
+				'studio.flowpicker.Get',
+				{
+					id: target.id,
+					propertyName: target.propertyName,
+					value: editorValue(target.value)
+				},
+				// the first failure is retried silently, the second one shows its cause once
+				{ silentError: () => attempt === 0 }
+			);
 			if (serial !== loadSerial) {
 				return;
 			}
 			if (!response?.html || !response?.state) {
-				throw new Error(response?.message || 'Flow picker is not available');
+				throw new Error(
+					response?.error?.message || response?.message || 'Flow picker is not available'
+				);
 			}
 			bridgeId = crypto.randomUUID();
 			payload = {

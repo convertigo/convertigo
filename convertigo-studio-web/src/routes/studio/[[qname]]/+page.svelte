@@ -1438,6 +1438,10 @@
 		}
 	}
 
+	/** The message when the preview shows an element the project no longer has */
+	const STALE_AUTHORING_MESSAGE =
+		'This element of the preview is no longer in the project: reload the preview.';
+
 	async function dropInFrontend(request) {
 		const mapping = await call('studio.treeview.Authoring', {
 			project: selectedProjectName,
@@ -1445,6 +1449,9 @@
 		});
 		const target = String(mapping?.id ?? '');
 		if (!target) {
+			if (!mapping?.isError) {
+				toaster.error({ description: STALE_AUTHORING_MESSAGE });
+			}
 			return;
 		}
 		let handled = false;
@@ -1484,6 +1491,9 @@
 		const source = String(sourceMapping?.id ?? '');
 		const target = String(targetMapping?.id ?? '');
 		if (!source || !target || source === target) {
+			if ((!source || !target) && !sourceMapping?.isError && !targetMapping?.isError) {
+				toaster.error({ description: STALE_AUTHORING_MESSAGE });
+			}
 			return;
 		}
 		let handled = false;
@@ -1816,11 +1826,12 @@
 	async function onStudioContextAction(event) {
 		const actionId = String(event?.action?.id ?? '');
 		const result = event?.result;
-		if (actionId.startsWith('object.') && result?.message) {
-			// the actions on the objects outside the Flows tell why they did nothing
+		if (result?.message && (actionId.startsWith('object.') || result.ok === false)) {
+			// the actions on the objects outside the Flows tell why they did nothing, the others when they fail
 			(result.ok === false ? toaster.error : toaster.info)({ description: String(result.message) });
 		}
-		if (result?.ok === false) {
+		// a failed request already shows its error
+		if (result?.ok === false || result?.isError) {
 			return;
 		}
 		const projectName = parseSelection(event?.nodeId ?? '').projectName || selectedProjectName;
@@ -1856,6 +1867,10 @@
 		}
 		if (result?.changed) {
 			markProjectDirty(event.nodeId);
+		}
+		if (result?.selectedId) {
+			// the object the action created, as a view of a design document, is selected
+			selectedId = String(result.selectedId);
 		}
 	}
 
@@ -1911,7 +1926,7 @@
 			}
 			const result = await runStudioContextAction(target.nodeId, target.action);
 			await onStudioContextAction({ nodeId: target.nodeId, action: target.action, result });
-			return result?.ok !== false;
+			return result?.ok !== false && !result?.isError;
 		} catch (error) {
 			console.warn('Unable to reconcile the frontend development preview', error);
 			return false;

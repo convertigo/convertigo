@@ -41,6 +41,13 @@
 	async function load(id) {
 		const current = ++serial;
 		loadedId = id;
+		if (id.includes('/')) {
+			// a file of a project is no object: nothing refers to it by name
+			references = null;
+			loading = false;
+			error = 'A file of a project has no references.';
+			return;
+		}
 		loading = true;
 		error = '';
 		try {
