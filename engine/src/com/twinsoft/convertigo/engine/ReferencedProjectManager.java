@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GitUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
@@ -171,11 +172,14 @@ public class ReferencedProjectManager {
 		File dir = null;
 		File prjDir = null;
 		boolean cloneDone = false;
+		// a name that is no name of project, as the name of its repository the Marketplace copies, names nothing:
+		// the project keeps its own name
+		boolean projectNamed = StringUtils.normalize(projectName).equals(projectName);
 		if (parser.getGitRepo() == null) {
 			if ((!force && project != null) || parser.getGitUrl() == null) {
 				return project;
 			} else {
-				return Engine.theApp.databaseObjectsManager.deployProject(parser.getGitUrl(), projectName, true, false, newPriorities);
+				return Engine.theApp.databaseObjectsManager.deployProject(parser.getGitUrl(), projectNamed ? projectName : null, true, false, newPriorities);
 			}
 		}
 		if (project != null) {
@@ -241,7 +245,7 @@ public class ReferencedProjectManager {
 			}
 			if (project == null) {
 				project = Engine.theApp.databaseObjectsManager.importProject(new File(prjDir, "c8oProject.yaml"), false);
-				if (project != null && !projectName.equals(project.getName())) {
+				if (project != null && projectNamed && !projectName.equals(project.getName())) {
 					throw new EngineException("Referenced name is '" + projectName + "' but loaded project is '" + project.getName() + "'");
 				}
 				Engine.logEngine.info("(ReferencedProjectManager) Referenced project is loaded: " + project);
