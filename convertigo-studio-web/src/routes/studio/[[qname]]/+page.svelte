@@ -255,6 +255,7 @@
 	/** a test case to run in the execution panel, as the "Run" of a test case of the Eclipse Studio */
 	let executionRunTestcase = $state('');
 	/** asks the builder to show or start the development server of an NGX application */
+	/** @type {number | { at: number, install: string }} */
 	let builderServeRequest = $state(0);
 	/** a production build asked before an export or a deployment, whose dialog comes back once built */
 	let builderBuildRequest = $state(0);
@@ -1941,6 +1942,52 @@
 	}
 
 	/**
+	 * Executes the NGX application of a project, as Execute in the tree of the Eclipse Studio opens its editor:
+	 * the Frontend profile shows the application its builder serves in development mode.
+	 * @param {string} projectName
+	 * @param {string} [install] update to update the packages first, as Update packages and Execute
+	 */
+	function executeFrontend(projectName, install = '') {
+		if (!projectName) {
+			return;
+		}
+		if (selectedProjectName !== projectName) {
+			selectedId = projectName;
+		}
+		setProfile('frontend');
+		bottomView = 'build';
+		setLogsPanelOpen(true);
+		builderServeRequest = { at: Date.now(), install };
+	}
+
+	/**
+	 * Executes the application of the selected project, as the Run Application Low Code editor button of the
+	 * projects of the Eclipse Studio: an NGX application, or a Flow frontend through its development server.
+	 */
+	async function executeSelectedFrontend() {
+		const projectName = selectedProjectName;
+		if (!projectName) {
+			return;
+		}
+		const response = await getStudioContextMenu(projectName);
+		const items = Array.isArray(response?.menu?.items) ? response.menu.items : [];
+		if (items.some((item) => item?.id === 'frontend.execute')) {
+			executeFrontend(projectName);
+			return;
+		}
+		const target = await findFrontendDevAction(projectName, selectedId, true);
+		if (target) {
+			setProfile('frontend');
+			const result = await runStudioContextAction(target.nodeId, target.action);
+			await onStudioContextAction({ nodeId: target.nodeId, action: target.action, result });
+			return;
+		}
+		toaster.info({
+			description: `The project ${projectName} has no frontend application to run.`
+		});
+	}
+
+	/**
 	 * @param {string} projectName
 	 * @param {string} selection
 	 * @param {boolean} startWhenStopped
@@ -2517,6 +2564,8 @@
 		} else if (action === 'code.handlers') {
 			// the JavaScript handlers of a transaction, as the "Edit handlers" action of the Eclipse Studio
 			openPropertyEditor({ id: nodeId, propertyName: 'handlers', displayName: 'Handlers' });
+		} else if (action === 'frontend.execute' || action === 'frontend.execute:update') {
+			executeFrontend(projectName, action.endsWith(':update') ? 'update' : '');
 		} else if (action.startsWith('code.file:')) {
 			// a file of a project, as the stylesheet of a sheet, opens in the code editor
 			selectedId = action.slice('code.file:'.length);
@@ -3134,6 +3183,15 @@
 		title="New project"
 		ariaLabel="New project"
 		onclick={() => (newProjectOpen = true)}
+	/>
+	<StudioIconButton
+		icon="mdi:play"
+		title={selectedProjectName
+			? `Run the application of ${selectedProjectName}`
+			: 'Run the application of the selected project'}
+		ariaLabel="Run the application"
+		disabled={!selectedProjectName}
+		onclick={() => void executeSelectedFrontend()}
 	/>
 	<StudioIconButton
 		icon={projectActionBusy === 'save' ? 'mdi:sync' : 'mdi:content-save-edit-outline'}

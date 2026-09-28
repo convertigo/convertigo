@@ -257,7 +257,7 @@
 			await onRevealDefinition?.();
 		} else if (clientAction === 'source.open') {
 			await onOpenSource?.();
-		} else if (/^(dialog|code|picker|execution)\./.test(clientAction)) {
+		} else if (/^(dialog|code|picker|execution)\.|^frontend\.execute/.test(clientAction)) {
 			// a dialog, an editor or a picker of the page, as the variables of a transaction
 			await onTreeAction?.(clientAction);
 		}

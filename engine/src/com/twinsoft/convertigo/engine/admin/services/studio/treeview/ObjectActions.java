@@ -95,6 +95,38 @@ public class ObjectActions {
 		return dbo != null && !(dbo instanceof FlowVirtualObject) && !(dbo instanceof Project);
 	}
 
+	/**
+	 * @return the NGX application a project, its mobile application or the application itself executes, as the
+	 *         Execute of the tree of the Eclipse Studio, or null
+	 */
+	static ApplicationComponent executedApplication(DatabaseObject dbo) {
+		if (dbo instanceof ApplicationComponent application) {
+			return application;
+		}
+		var project = dbo instanceof Project p ? p
+				: dbo instanceof com.twinsoft.convertigo.beans.core.MobileApplication m ? m.getProject() : null;
+		var mobileApplication = project == null ? null : project.getMobileApplication();
+		return mobileApplication != null && mobileApplication.getApplicationComponent() instanceof ApplicationComponent application
+				? application : null;
+	}
+
+	/**
+	 * @return Execute and Update packages and Execute, as the tree of the Eclipse Studio offers them on an NGX
+	 *         application, its mobile application and its project: the web Studio builds it and previews it
+	 */
+	static JSONArray executeItems(DatabaseObject dbo) throws Exception {
+		var items = new JSONArray();
+		if (executedApplication(dbo) != null) {
+			add(items, "frontend.execute", "Execute",
+					"Build the application in development mode and show it in the preview.", true, "mdi:play", "Execute")
+					.put("clientAction", "frontend.execute");
+			add(items, "frontend.executeUpdate", "Update packages and Execute",
+					"Update the packages of the application, then build it in development mode and show it.", true,
+					"mdi:package-up", "Execute").put("clientAction", "frontend.execute:update");
+		}
+		return items;
+	}
+
 	static JSONArray items(DatabaseObject dbo) throws Exception {
 		var items = new JSONArray();
 		if (!handles(dbo)) {

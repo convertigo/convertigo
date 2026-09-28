@@ -54,6 +54,20 @@ public class ContextMenu extends JSonService {
 				items.put(objectItems.get(i));
 			}
 		}
+		if (menu.optBoolean("ok", false)) {
+			// an NGX application executes from its project too, which has no other object action
+			var executeItems = ObjectActions.executeItems(dbo);
+			if (executeItems.length() > 0) {
+				var items = menu.optJSONArray("items");
+				if (items == null) {
+					items = new JSONArray();
+					menu.put("items", items);
+				}
+				for (int i = 0; i < executeItems.length(); i++) {
+					items.put(executeItems.get(i));
+				}
+			}
+		}
 		response.put("menu", menu);
 	}
 }

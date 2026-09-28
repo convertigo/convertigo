@@ -15,7 +15,7 @@
 	 *  onLoad?: (url: string) => void,
 	 *  onBuilt?: () => void,
 	 *  onServerStop?: () => void,
-	 *  serveRequest?: number,
+	 *  serveRequest?: number | { at: number, install?: string },
 	 *  onServeRequestTaken?: () => void,
 	 *  buildRequest?: number,
 	 *  onBuildRequestTaken?: () => void
@@ -89,10 +89,13 @@
 
 	/** a development server to show, asked by the Dev mode of the preview */
 	let pendingServe = false;
+	/** the packages to update or install again before serving, as Update packages and Execute */
+	let pendingInstall = '';
 	$effect(() => {
 		// the request can mount the panel: it is taken, then served once the builder tells its state
 		if (serveRequest) {
 			pendingServe = true;
+			pendingInstall = typeof serveRequest === 'object' ? (serveRequest.install ?? '') : '';
 			untrack(() => {
 				onServeRequestTaken?.();
 				serveWhenReady();
@@ -132,12 +135,19 @@
 		if (!pendingServe) {
 			return;
 		}
-		pendingServe = false;
-		if (devState === 'serving' && url) {
+		// a server starting or stopping keeps the request until the builder tells its next state
+		if (pendingInstall) {
+			// the builder replaces a running server with one whose packages are updated
+			send('build_dev', { install: pendingInstall });
+		} else if (devState === 'serving' && url) {
 			onLoad?.(url);
 		} else if (devState === 'idle') {
 			send('build_dev');
+		} else {
+			return;
 		}
+		pendingServe = false;
+		pendingInstall = '';
 	}
 
 	onDestroy(() => {
