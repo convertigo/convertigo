@@ -727,6 +727,48 @@ public class FlowStudioSupportSelectionTest {
 		}
 	}
 
+	@Test
+	public void aPaletteInsertSelectsTheInsertedNodeOfTheFreshProjectionWithItsParent() throws Exception {
+		var engine = new FlowEngine() {
+			@Override public List<DatabaseObject> getDatabaseObjectChildren() { return List.of(); }
+		};
+		var root = candidate("projected.page", "frontAst", "page");
+		root.setParent(engine);
+		// the fresh projection, after the insert, holds the new node beside the one already there
+		var structureInfo = new JSONObject().put("sourcePath", SOURCE).put("sourceMutationPath", "frontAst.slots.structure");
+		var shellInfo = new JSONObject().put("sourcePath", SOURCE).put("sourceMutationPath", "frontAst.slots.structure.children[0]");
+		var iconInfo = new JSONObject().put("sourcePath", SOURCE).put("sourceMutationPath", "frontAst.slots.structure.children[1]");
+		var tree = new JSONObject().put("path", "projected.page").put("name", "page").put("info", root.getVirtualInfo())
+				.put("children", new org.codehaus.jettison.json.JSONArray().put(new JSONObject()
+						.put("path", "projected.page.structure").put("name", "structure").put("info", structureInfo.toString())
+						.put("children", new org.codehaus.jettison.json.JSONArray()
+								.put(new JSONObject().put("path", "projected.page.structure.shell").put("name", "shell")
+										.put("info", shellInfo.toString()))
+								.put(new JSONObject().put("path", "projected.page.structure.icon").put("name", "icon")
+										.put("info", iconInfo.toString())))));
+		assertTrue(root.replaceProjectedTree(tree));
+		var structure = root.getDatabaseObjectChildren().get(0);
+		var icon = structure.getDatabaseObjectChildren().get(1);
+		// the provider selects the target of the mutation, as for a property edit
+		var inserted = new JSONObject().put("done", true).put("id", engine.getFullQName())
+				.put("selectionSourcePath", SOURCE).put("selectionMutationPath", "frontAst.slots.structure.children[1]")
+				.put("selectionId", "icon").put("projected", true).put("selectionVirtualPath", "projected.page.structure");
+
+		var result = FlowStudioSupport.insertedNodeSelection(inserted, root);
+		assertEquals(icon.getFullQName(), result.getString("id"));
+		assertEquals(structure.getFullQName(), result.getString("parentId"));
+		assertEquals("projected.page.structure.icon", result.getString("selectionVirtualPath"));
+
+		// a projection the insert did not replace does not hold the new node: the host resolves it
+		var notProjected = new JSONObject().put("done", true).put("id", engine.getFullQName())
+				.put("selectionSourcePath", SOURCE).put("selectionMutationPath", "frontAst.slots.structure.children[1]")
+				.put("projected", false).put("selectionVirtualPath", "projected.page.structure");
+		var unresolved = FlowStudioSupport.insertedNodeSelection(notProjected, root);
+		assertEquals(engine.getFullQName(), unresolved.getString("id"));
+		assertEquals("", unresolved.getString("selectionVirtualPath"));
+		assertFalse(unresolved.has("parentId"));
+	}
+
 	private FlowVirtualObject candidate(String virtualPath, String mutationPath, String id) throws Exception {
 		var candidate = new FlowVirtualObject();
 		candidate.setVirtualPath(virtualPath);

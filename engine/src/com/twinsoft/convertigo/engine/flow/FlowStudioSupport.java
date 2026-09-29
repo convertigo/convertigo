@@ -1780,13 +1780,21 @@ public class FlowStudioSupport {
 					.put("selectionId", done ? selectionId : "")
 					.put("error", done ? JSONObject.NULL : response.has("error") ? response.opt("error")
 							: "Frontend source mutation did not change the source."), response);
-		if (!selectionMutationPath.isBlank()) {
-			// The source mutation defaults its selection to the target (a property edit).
-			// The inserted node is known by its source address, which the host resolves
-			// in the refreshed tree; the projection taken before the insert cannot hold it.
-			return result.put("selectionVirtualPath", "");
+		return insertedNodeSelection(result, projectionRoot);
+	}
+
+	/**
+	 * The selection of the node a palette insert added. The source mutation defaults its selection to the
+	 * target (a property edit): the inserted node is known by its source address. Once the fresh projection
+	 * replaced the in-memory one, it is found there, and its id and parent let the web Studio place and
+	 * select it; otherwise the host resolves it in its refreshed tree.
+	 */
+	static JSONObject insertedNodeSelection(JSONObject result, FlowVirtualObject projectionRoot) throws JSONException {
+		if (result.optString("selectionMutationPath", "").isBlank()) {
+			return withProjectedSelection(result, projectionRoot);
 		}
-		return withProjectedSelection(result, projectionRoot);
+		result.put("selectionVirtualPath", "");
+		return result.optBoolean("projected", false) ? withProjectedSelection(result, projectionRoot) : result;
 	}
 
 	private static String frontendMutationSourcePath(DatabaseObject targetDbo, JSONObject mutation) {
