@@ -1,7 +1,7 @@
 <script>
 	import Button from '$lib/admin/components/Button.svelte';
 	import Light from '$lib/common/Light.svelte.js';
-	import { call } from '$lib/utils/service';
+	import { call, serverRetryDelay } from '$lib/utils/service';
 	import { themeContextFromMessage } from './flowAuthoring';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
@@ -188,7 +188,10 @@
 				pickerTarget?.id === target.id &&
 				pickerTarget?.propertyName === target.propertyName
 			) {
-				await new Promise((resolve) => setTimeout(resolve, FLOW_PICKER_RETRY_DELAY_MS));
+				// a server marked unavailable answers offline until its delay is over
+				await new Promise((resolve) =>
+					setTimeout(resolve, Math.max(FLOW_PICKER_RETRY_DELAY_MS, serverRetryDelay()))
+				);
 				if (
 					serial === loadSerial &&
 					active &&

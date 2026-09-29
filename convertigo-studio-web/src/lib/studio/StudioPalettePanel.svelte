@@ -5,7 +5,7 @@
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { getUrl } from '$lib/utils/service';
+	import { getUrl, serverRetryDelay } from '$lib/utils/service';
 	import { onDestroy, tick } from 'svelte';
 	import { loadPaletteContext, paletteContextLabel } from './paletteContext';
 	import {
@@ -214,7 +214,10 @@
 				active &&
 				(revealRequest?.contextId || selectedId) === nextId
 			) {
-				await new Promise((resolve) => setTimeout(resolve, PALETTE_RETRY_DELAY_MS));
+				// a server marked unavailable answers offline until its delay is over
+				await new Promise((resolve) =>
+					setTimeout(resolve, Math.max(PALETTE_RETRY_DELAY_MS, serverRetryDelay()))
+				);
 				if (
 					serial === paletteLoadSerial &&
 					active &&

@@ -60,6 +60,14 @@ function markServerUnavailable(status, statusText) {
 	}
 }
 
+/**
+ * @returns {number} the milliseconds before a call goes to the server again, while it is marked unavailable:
+ *          a retry sooner is answered offline without being sent
+ */
+export function serverRetryDelay() {
+	return offlineUntil ? Math.max(0, offlineUntil - Date.now()) : 0;
+}
+
 function markServerReachable() {
 	offlineUntil = 0;
 	offlineBackoff = 1000;
