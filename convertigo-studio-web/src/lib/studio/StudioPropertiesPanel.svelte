@@ -28,6 +28,7 @@
 	import StudioFontDialog from './StudioFontDialog.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 	import StudioLifetimeDialog from './StudioLifetimeDialog.svelte';
+	import StudioMergeVersions from './StudioMergeVersions.svelte';
 	import StudioNamedSourceDialog from './StudioNamedSourceDialog.svelte';
 	import StudioObjectIdentity from './StudioObjectIdentity.svelte';
 	import StudioProjectReferenceDialog from './StudioProjectReferenceDialog.svelte';
@@ -53,7 +54,8 @@
 	 *  identityItem?: { id?: string, name?: string, classname?: string, instanceName?: string, icon?: string } | null,
 	 *  frontendThemeContext?: { mode: string, palette: string, tokens: any[] } | null,
 	 *  onPickerApply?: (id: string, value?: any) => void | Promise<void>,
-	 *  onSaveProject?: () => void | Promise<void>
+	 *  onSaveProject?: () => void | Promise<void>,
+	 *  onSelectObject?: (id: string) => void
 	 * }}
 	 */
 	let {
@@ -69,7 +71,8 @@
 		identityItem = null,
 		frontendThemeContext = null,
 		onPickerApply = () => {},
-		onSaveProject
+		onSaveProject,
+		onSelectObject
 	} = $props();
 
 	/** the changes of the object since the commit of the Git mode of the tree */
@@ -900,6 +903,17 @@
 										<dd class="studio-properties__merge-chosen">{conflict.value}</dd>
 									{/if}
 								</dl>
+							{/if}
+							{#if conflict.versions}
+								<StudioMergeVersions
+									versions={conflict.versions}
+									labels={{
+										base: 'Base',
+										mine: merge?.ours ? `Mine · ${merge.ours}` : 'Mine',
+										theirs: merge?.theirs ? `Theirs · ${merge.theirs}` : 'Theirs'
+									}}
+									onSelect={onSelectObject}
+								/>
 							{/if}
 							{#if mergeEditing === conflict.id}
 								<form

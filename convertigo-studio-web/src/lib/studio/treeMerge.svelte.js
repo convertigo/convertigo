@@ -8,7 +8,7 @@ import { expandableDboAncestorIds } from './dnd';
  * @typedef {{ id: string, kind: string, description?: string, key?: string, name: string, type?: string,
  *  objectId?: string, parentId?: string, objectParentId?: string, property?: string, label?: string,
  *  base?: string, mine?: string, theirs?: string, editable?: boolean, choices: string[],
- *  resolution?: string, value?: string, path?: string }} MergeConflict
+ *  resolution?: string, value?: string, path?: string, versions?: { left: string, right: string, root: any } }} MergeConflict
  * @typedef {{ status: 'added' | 'modified' | 'removed' | 'moved', origin: string, key: string, name: string,
  *  type?: string, objectId?: string, parentId?: string, objectParentId?: string, properties?: string[] }} MergeChange
  * @typedef {{ kind: string, state: string, ours: string, theirs: string, branch?: string, onto?: string,

@@ -3570,6 +3570,7 @@
 		{frontendThemeContext}
 		onPickerApply={refreshAfterPickerApply}
 		onSaveProject={saveSelectedProject}
+		onSelectObject={selectObject}
 	/>
 {/snippet}
 
