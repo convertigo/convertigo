@@ -3076,10 +3076,8 @@
 			return;
 		}
 		if (frontendPreviewMode === 'production') {
-			// the same page shows the new build once reloaded
+			// the same page shows the new build once reloaded; the development server, served, stays shown
 			frontendPreviewSerial += 1;
-		} else {
-			frontendPreview = { projectName: applicationProjectName, url: '', mode: 'production' };
 		}
 	}
 

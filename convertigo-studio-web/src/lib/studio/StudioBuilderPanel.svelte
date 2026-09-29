@@ -317,7 +317,9 @@
 					setFailed(value === 'failed', 'The compilation of the development server');
 				} else if (type === 'built') {
 					progress = -1;
-					setFailed(value === 'failed', 'The local build');
+					if (value !== 'stopped') {
+						setFailed(value === 'failed', 'The local build');
+					}
 					// a build ending before the production build asked for a deployment does not deploy
 					if (value === 'success' && !pendingBuild) {
 						onBuilt?.();
@@ -411,15 +413,37 @@
 				<option value={build.mode}>{build.label}</option>
 			{/each}
 		</select>
-		<button
-			type="button"
-			class="button-secondary"
-			disabled={connection !== 'open' || !running}
-			title="Stop the development server or the build"
-			onclick={() => send('kill')}
-		>
-			<Ico icon="mdi:stop" size={4} /> Stop
-		</button>
+		{#if devState !== 'idle' && localState !== 'idle'}
+			<!-- each one stops alone, as the Stop buttons of the application editor of the Eclipse Studio -->
+			<button
+				type="button"
+				class="button-secondary"
+				disabled={connection !== 'open'}
+				title="Stop the development server, the local build going on"
+				onclick={() => send('kill', { target: 'dev' })}
+			>
+				<Ico icon="mdi:stop" size={4} /> Stop serving
+			</button>
+			<button
+				type="button"
+				class="button-secondary"
+				disabled={connection !== 'open'}
+				title="Stop the local build, the development server going on"
+				onclick={() => send('kill', { target: 'local' })}
+			>
+				<Ico icon="mdi:stop" size={4} /> Stop the build
+			</button>
+		{:else}
+			<button
+				type="button"
+				class="button-secondary"
+				disabled={connection !== 'open' || !running}
+				title="Stop the development server or the build"
+				onclick={() => send('kill')}
+			>
+				<Ico icon="mdi:stop" size={4} /> Stop
+			</button>
+		{/if}
 		{#if url}
 			<a class="studio-builder__link" href={url} target="_blank" rel="noopener">
 				<Ico icon="mdi:open-in-new-variant" size={4} /> Open

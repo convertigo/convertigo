@@ -62,7 +62,8 @@ import com.twinsoft.convertigo.engine.util.ProcessUtils;
  * DisplayObjects/mobile folder of the project.
  * <ul>
  * <li>client messages: {project, action: attach | build_dev | build_local | kill | auto_build, params: {endpoint,
- * install: update | reinstall, mode: prod | fast | watch, value: the auto build}}</li>
+ * install: update | reinstall, mode: prod | fast | watch, value: the auto build, target: dev | local, what
+ * kill stops, both when empty}}</li>
  * <li>server messages: {type: log | output | error | progress | load | network | state | built | compiled,
  * value}; error is a line of the output that tells an error, compiled the end of a compilation of the
  * development server, success or failed, phase what the build does, installing, building or empty, which
@@ -102,6 +103,8 @@ public class WsBuilder extends WebSocketService {
 		String phase = "";
 		String state = "idle";
 		volatile Process process;
+		/** whether the build was stopped, which does not fail */
+		volatile boolean stopped;
 
 		Build(String projectName, String endpoint, String mode, String install) {
 			this.projectName = projectName;
@@ -440,7 +443,10 @@ public class WsBuilder extends WebSocketService {
 				}
 			}
 			var code = p.waitFor();
-			if (buildMode != NgxBuilderBuildMode.watch || code != 0) {
+			if (stopped) {
+				send("built", "stopped");
+				appendOutput("The build is stopped.");
+			} else if (buildMode != NgxBuilderBuildMode.watch || code != 0) {
 				progress(100);
 				send("built", code == 0 && !failed ? "success" : "failed");
 				appendOutput(code == 0 && !failed ? "The application is built in DisplayObjects/mobile."
@@ -496,6 +502,7 @@ public class WsBuilder extends WebSocketService {
 		 * Stops the processes this build started, with their children.
 		 */
 		void stopProcess() {
+			stopped = true;
 			var current = process;
 			if (current != null && current.isAlive()) {
 				current.toHandle().descendants().forEach(ProcessHandle::destroy);
@@ -577,9 +584,27 @@ public class WsBuilder extends WebSocketService {
 		 * Stops the node processes of the project: its development server, its builds and its installs.
 		 */
 		void terminateNode(boolean prodOnly) {
+			terminateNode(prodOnly ? " && /--watch|:watch/" : "", prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "");
 			if (!prodOnly) {
 				baseUrl = null;
 			}
+		}
+
+		/**
+		 * Stops the development server alone, a local build of the project going on, as the Stop of the
+		 * application editor of the Eclipse Studio stops the one it is asked.
+		 */
+		void terminateServe() {
+			baseUrl = null;
+			terminateNode(" && /serve/", " -and $_.CommandLine -like '*serve*'");
+		}
+
+		/**
+		 * @param filter what the command line of a node process of the project also matches to be killed, for
+		 * awk
+		 * @param windowsFilter the same, for PowerShell
+		 */
+		private void terminateNode(String filter, String windowsFilter) {
 			stopProcess();
 			if (project == null) {
 				return;
@@ -592,13 +617,11 @@ public class WsBuilder extends WebSocketService {
 				while (retry-- > 0) {
 					ProcessBuilder pb;
 					if (Engine.isWindows()) {
-						var prod = prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "";
 						pb = new ProcessBuilder("powershell", "-Command",
-								"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -and $_.CommandLine.IndexOf($env:C8O_NODE_MARKER, [StringComparison]::OrdinalIgnoreCase) -ge 0" + prod + " } | ForEach-Object { $_.Terminate() }");
+								"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -and $_.CommandLine.IndexOf($env:C8O_NODE_MARKER, [StringComparison]::OrdinalIgnoreCase) -ge 0" + windowsFilter + " } | ForEach-Object { $_.Terminate() }");
 					} else {
-						var prod = prodOnly ? " && /--watch|:watch/" : "";
 						pb = new ProcessBuilder("/bin/bash", "-c",
-								"ps -A -ww -o pid= -o args= | awk '{ i = index($0, ENVIRON[\"C8O_NODE_MARKER\"]) } i && substr($0, 1, i) ~ /node|npm|ng/" + prod + " { print $1 }' | xargs kill");
+								"ps -A -ww -o pid= -o args= | awk '{ i = index($0, ENVIRON[\"C8O_NODE_MARKER\"]) } i && substr($0, 1, i) ~ /node|npm|ng/" + filter + " { print $1 }' | xargs kill");
 					}
 					pb.environment().put("C8O_NODE_MARKER", marker);
 					int code = pb.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
@@ -703,7 +726,7 @@ public class WsBuilder extends WebSocketService {
 			case "attach" -> onAttach();
 			case "build_dev" -> onBuild(params, "dev");
 			case "build_local" -> onBuild(params, NgxBuilderBuildMode.get(params.optString("mode", "fast")).name());
-			case "kill" -> onKill();
+			case "kill" -> onKill(params.optString("target", ""));
 			case "auto_build" -> onAutoBuild(params.optBoolean("value", true));
 			default -> send("log", "Unknown action " + action);
 			}
@@ -825,23 +848,31 @@ public class WsBuilder extends WebSocketService {
 		}
 	}
 
-	private void onKill() throws Exception {
+	/**
+	 * @param target dev to stop the development server, local to stop the local build, empty for both
+	 */
+	private void onKill(String target) throws Exception {
 		Build dev, local;
 		synchronized (builds) {
-			dev = builds.get(key(project, true));
-			local = builds.get(key(project, false));
+			dev = "local".equals(target) ? null : builds.get(key(project, true));
+			local = "dev".equals(target) ? null : builds.get(key(project, false));
 		}
 		if (dev == null && local == null) {
 			send("state", "dev:idle");
 			send("state", "local:idle");
 			return;
 		}
-		broadcast(project, "log", "Stopping the builds of " + project);
 		if (local != null) {
+			broadcast(project, "log", "Stopping the local build of " + project);
 			local.terminateNode(true);
 		}
 		if (dev != null) {
-			dev.terminateNode(false);
+			broadcast(project, "log", "Stopping the development server of " + project);
+			if (local != null || "dev".equals(target)) {
+				dev.terminateServe();
+			} else {
+				dev.terminateNode(false);
+			}
 		}
 	}
 
