@@ -1,4 +1,4 @@
-import { call } from '$lib/utils/service';
+import { call, toaster } from '$lib/utils/service';
 import { SvelteSet } from 'svelte/reactivity';
 
 const _categories = ['Base properties', 'Properties', 'Expert', 'Information'];
@@ -143,6 +143,10 @@ export function createDatabaseObjectProperties() {
 				}
 			});
 			await createUndefinedSymbols(saveId, res.undefinedSymbols);
+			if (res.notice) {
+				// what the change does beyond the object, as a template changed deletes the packages
+				toaster.info({ description: String(res.notice) });
+			}
 			await onSaved?.(saveId, res);
 			const shared = submitted.filter((property) => property.name !== 'name');
 			for (const otherId of shared.length ? alsoIds : []) {

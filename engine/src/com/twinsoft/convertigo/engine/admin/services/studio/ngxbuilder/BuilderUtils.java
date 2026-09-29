@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class BuilderUtils {
@@ -82,6 +83,28 @@ public class BuilderUtils {
 			dboRemoved(appSet, mcSet, app, parentOfDeleted, deletedObject);
 		}
 		dboUpdated(parentOfDeleted);
+	}
+
+	/**
+	 * An application that takes another template, as the Eclipse Studio reloads it: its builds stop, the
+	 * packages of the former template are deleted, installed again at its next run, and its builder takes
+	 * the files of the new template.
+	 * @return what the user is told
+	 */
+	public static String templateChanged(Project project) {
+		WsBuilder.stop(project.getName());
+		boolean initialized = project.isMobileBuilderInitialized();
+		if (initialized) {
+			MobileBuilder.releaseBuilder(project, true);
+		}
+		var nodeModules = new File(project.getDirPath(), "_private/ionic/node_modules");
+		boolean deleted = !nodeModules.exists() || FileUtils.deleteQuietly(nodeModules);
+		if (initialized) {
+			MobileBuilder.initBuilder(project, true);
+		}
+		return deleted
+				? "You have just changed the template. Packages have been deleted and will be reinstalled next time you run your application again."
+				: "You have just changed the template: packages could not be deleted! Do not forget to reinstall the packages before running your application again, otherwise it may be corrupted!";
 	}
 
 	public static void dboUpdated(DatabaseObject dbo) {

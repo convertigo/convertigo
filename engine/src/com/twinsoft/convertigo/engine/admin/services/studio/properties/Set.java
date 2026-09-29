@@ -232,6 +232,10 @@ public class Set extends JSonService {
 
 					// notify for app generation
 					BuilderUtils.dboChanged(dbo, pname, oldValue, newValue);
+					if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent
+							&& "tplProjectName".equals(pname) && !oldValue.equals(newValue)) {
+						response.put("notice", BuilderUtils.templateChanged(dbo.getProject()));
+					}
 				}
 			}
 			if (save != null && save.equals("true")) {
