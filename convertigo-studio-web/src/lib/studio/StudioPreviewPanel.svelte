@@ -236,6 +236,36 @@
 	let ngxShowGrids = $state(false);
 	/** the highlight of the selected component hidden, as the Remove highlight of the Eclipse Studio */
 	let ngxHighlightHidden = $state(false);
+
+	/**
+	 * Removes the highlight of the selected component, which shows again with the next one selected.
+	 * @param {boolean} leaveSelecting whether the select mode ends too, as with Escape
+	 */
+	function deselectNgxComponent(leaveSelecting) {
+		ngxHighlightHidden = true;
+		if (leaveSelecting) {
+			ngxSelecting = false;
+		}
+	}
+
+	/**
+	 * Escape ends the select mode of the preview, as it does in the application.
+	 * @param {KeyboardEvent} event
+	 */
+	function handlePreviewEscape(event) {
+		const target = /** @type {HTMLElement | null} */ (
+			event.target instanceof HTMLElement ? event.target : null
+		);
+		if (
+			event.key !== 'Escape' ||
+			event.defaultPrevented ||
+			!ngxSelecting ||
+			target?.closest('input, textarea, select, [role="dialog"], [role="menu"]')
+		) {
+			return;
+		}
+		deselectNgxComponent(true);
+	}
 	/** the style editor of the NGX application, GrapesJS in the preview */
 	let ngxStyleEditing = $state(false);
 
@@ -494,7 +524,12 @@
 			}
 			if (doc.querySelector('ion-app')) {
 				ngxAuthoring = attachNgxAuthoring(doc, {
-					onSelect: (priority) => void onNgxSelect?.(priority),
+					onSelect: (priority) => {
+						// the component picked again shows its highlight
+						ngxHighlightHidden = false;
+						void onNgxSelect?.(priority);
+					},
+					onDeselect: (leaveSelecting) => deselectNgxComponent(leaveSelecting),
 					onDrop: (request) => void onNgxDrop?.(request),
 					canDrop: () => ngxCanDrop?.() ?? false,
 					onDragStart: (priority) => onNgxDragStart?.(priority),
@@ -670,7 +705,9 @@
 	function handleWindowKeydown(event) {
 		if (event.key === 'Escape' && deviceDrawerOpen) {
 			closeDeviceDrawer();
+			return;
 		}
+		handlePreviewEscape(event);
 	}
 
 	/**

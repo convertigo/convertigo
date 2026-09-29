@@ -58,6 +58,7 @@ export function elementsOf(doc, classes) {
 /**
  * @typedef {{
  *  onSelect?: (priority: string) => void,
+ *  onDeselect?: (leaveSelecting: boolean) => void,
  *  onDragStart?: (priority: string) => void,
  *  onDragEnd?: () => void,
  *  onDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void,
@@ -67,7 +68,9 @@ export function elementsOf(doc, classes) {
 
 /**
  * Follows the document of the preview: the highlight of the selected component, the hover, the selection
- * on click in select mode or on right click, and the drops of the palette with their position.
+ * on click in select mode or on right click, and the drops of the palette with their position. The
+ * highlight goes with its × button, Escape, a click beside the components in select mode or a click in
+ * the application.
  * @param {Document} doc
  * @param {NgxAuthoringHandlers} handlers
  */
@@ -84,6 +87,8 @@ export function attachNgxAuthoring(doc, handlers) {
 	let selectedOverlays = [];
 	/** @type {HTMLElement | null} */
 	let hoverOverlay = null;
+	/** @type {HTMLButtonElement | null} the button on the highlight, which removes it */
+	let deselectButton = null;
 	/** @type {HTMLElement | null} */
 	let chooser = null;
 	let frame = 0;
@@ -135,6 +140,7 @@ export function attachNgxAuthoring(doc, handlers) {
 		}
 		selectedOverlays.splice(selected.length).forEach((div) => div.remove());
 		selected.forEach((element, index) => place(selectedOverlays[index], element));
+		placeDeselectButton();
 		if (hovered?.isConnected && !selected.includes(hovered)) {
 			hoverOverlay ??= overlay('#3a7bd5');
 			place(hoverOverlay, hovered);
@@ -142,6 +148,66 @@ export function attachNgxAuthoring(doc, handlers) {
 			hoverOverlay?.remove();
 			hoverOverlay = null;
 		}
+	}
+
+	/** The × at the corner of the highlight of the selected component, which removes it. */
+	function placeDeselectButton() {
+		const first = selected[0];
+		const rect = first?.getBoundingClientRect();
+		if (!rect || !(rect.width || rect.height)) {
+			deselectButton?.remove();
+			deselectButton = null;
+			return;
+		}
+		if (!deselectButton) {
+			const button = doc.createElement('button');
+			button.setAttribute(OVERLAY_ATTRIBUTE, '');
+			button.type = 'button';
+			button.title = 'Remove the highlight (Escape)';
+			button.setAttribute('aria-label', 'Remove the highlight');
+			button.textContent = '×';
+			button.style.cssText = [
+				'position: fixed',
+				'z-index: 2147483647',
+				'width: 18px',
+				'height: 18px',
+				'display: grid',
+				'place-items: center',
+				'border: 0',
+				'border-radius: 50%',
+				'background: #e0443e',
+				'color: white',
+				'font: 600 14px/1 system-ui, sans-serif',
+				'padding: 0',
+				'cursor: pointer',
+				'box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35)'
+			].join(';');
+			doc.body.appendChild(button);
+			deselectButton = button;
+		}
+		const viewWidth = win?.innerWidth ?? rect.right;
+		deselectButton.style.top = `${Math.max(0, rect.top - 9)}px`;
+		deselectButton.style.left = `${Math.max(0, Math.min(viewWidth - 18, rect.right - 9))}px`;
+	}
+
+	/**
+	 * Removes the highlight of the selected component.
+	 * @param {boolean} leaveSelecting whether the select mode ends too
+	 */
+	function deselect(leaveSelecting) {
+		hovered = null;
+		handlers.onDeselect?.(leaveSelecting);
+		schedule();
+	}
+
+	/** @param {KeyboardEvent} event */
+	function onKeyDown(event) {
+		if (event.key !== 'Escape' || (!selected.length && !selecting && !chooser)) {
+			return;
+		}
+		event.preventDefault();
+		closeChooser();
+		deselect(true);
 	}
 
 	function schedule() {
@@ -218,6 +284,12 @@ export function attachNgxAuthoring(doc, handlers) {
 
 	/** @param {MouseEvent} event */
 	function onClick(event) {
+		if (deselectButton && deselectButton.contains(/** @type {Node} */ (event.target))) {
+			event.preventDefault();
+			event.stopPropagation();
+			deselect(false);
+			return;
+		}
 		if (chooser) {
 			if (chooser.contains(/** @type {Node} */ (event.target))) {
 				// a position of the drop, chosen in the chooser
@@ -228,6 +300,10 @@ export function attachNgxAuthoring(doc, handlers) {
 			schedule();
 		}
 		if (!selecting) {
+			// a click in the application uses it: the highlight of the selected component goes
+			if (selected.length) {
+				deselect(false);
+			}
 			return;
 		}
 		event.preventDefault();
@@ -235,6 +311,9 @@ export function attachNgxAuthoring(doc, handlers) {
 		const component = componentOf(event.target, event);
 		if (component) {
 			handlers.onSelect?.(component.priority);
+		} else if (selected.length) {
+			// beside the components
+			deselect(false);
 		}
 	}
 
@@ -343,6 +422,7 @@ export function attachNgxAuthoring(doc, handlers) {
 	doc.addEventListener('mousemove', onMove, options);
 	doc.addEventListener('click', onClick, options);
 	doc.addEventListener('contextmenu', onContextMenu, options);
+	doc.addEventListener('keydown', onKeyDown, options);
 	doc.addEventListener('mousedown', onMouseDown, options);
 	doc.addEventListener('mouseup', releasePressed, options);
 	doc.addEventListener('dragstart', onDragStart, options);
@@ -406,6 +486,7 @@ export function attachNgxAuthoring(doc, handlers) {
 			doc.removeEventListener('mousemove', onMove, options);
 			doc.removeEventListener('click', onClick, options);
 			doc.removeEventListener('contextmenu', onContextMenu, options);
+			doc.removeEventListener('keydown', onKeyDown, options);
 			doc.removeEventListener('mousedown', onMouseDown, options);
 			doc.removeEventListener('mouseup', releasePressed, options);
 			doc.removeEventListener('dragstart', onDragStart, options);
@@ -425,6 +506,7 @@ export function attachNgxAuthoring(doc, handlers) {
 			closeChooser();
 			selectedOverlays.forEach((div) => div.remove());
 			hoverOverlay?.remove();
+			deselectButton?.remove();
 			doc.documentElement.style.cursor = '';
 		}
 	};
