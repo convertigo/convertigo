@@ -2,6 +2,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, toaster } from '$lib/utils/service';
 	import { untrack } from 'svelte';
+	import StudioCredentialsDialog from './StudioCredentialsDialog.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import { studioPrompt } from './studioPrompt.svelte.js';
 	import StudioRebaseDialog from './StudioRebaseDialog.svelte';
@@ -120,6 +121,27 @@
 	let stashes = $state([]);
 	/** @type {{ name: string, url: string, pushUrl?: string }[]} */
 	let remotes = $state([]);
+	/** the address of the remote whose credentials are asked, and the answer awaited */
+	let credentialsUrl = $state(/** @type {string | null} */ (null));
+	/** @type {((credentials: { username: string, password: string } | null) => void) | null} */
+	let credentialsAnswer = null;
+
+	/**
+	 * @param {string} url
+	 * @returns {Promise<{ username: string, password: string } | null>}
+	 */
+	function askCredentials(url) {
+		credentialsAnswer?.(null);
+		credentialsUrl = url;
+		return new Promise((resolve) => {
+			credentialsAnswer = (credentials) => {
+				credentialsUrl = null;
+				credentialsAnswer = null;
+				resolve(credentials);
+			};
+		});
+	}
+
 	/** the commit an interactive rebase replays the commits after */
 	let rebaseFrom = $state(/** @type {{ id: string, subject: string } | null} */ (null));
 	/** the menu open: pull, or the id of a commit */
@@ -216,6 +238,20 @@
 				...parameters
 			});
 			if (name !== projectName) {
+				return null;
+			}
+			if (result?.authRequired && result.remoteUrl) {
+				// the remote refused the operation without credentials: asked, the operation is done again
+				status = result;
+				const credentials = await askCredentials(result.remoteUrl);
+				if (credentials) {
+					busy = '';
+					return await run(action, {
+						...parameters,
+						authRemote: result.authRemote,
+						...credentials
+					});
+				}
 				return null;
 			}
 			if (result && 'repository' in result) {
@@ -975,6 +1011,11 @@
 			menu = '';
 		}
 	}}
+/>
+
+<StudioCredentialsDialog
+	url={credentialsUrl}
+	onAnswer={(credentials) => credentialsAnswer?.(credentials)}
 />
 
 <StudioRebaseDialog
