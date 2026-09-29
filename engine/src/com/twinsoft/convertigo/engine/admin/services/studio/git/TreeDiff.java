@@ -45,15 +45,20 @@ import org.w3c.dom.Node;
 import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.GitUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
 
 /**
@@ -64,6 +69,8 @@ import com.twinsoft.convertigo.engine.util.YamlConverter;
  * <ul>
  * <li>projectName: the project</li>
  * <li>ref: the commit compared to, a branch, a tag or an id, HEAD when empty</li>
+ * <li>action: revert to give back to an object the value a property had at the commit, of the object id
+ * of the tree and of its property, beanData.name for a property of Ionic of an NGX component</li>
  * </ul>
  */
 @ServiceDefinition(name = "TreeDiff", roles = { Role.WEB_ADMIN, Role.PROJECTS_CONFIG }, parameters = {}, returnValue = "")
@@ -108,11 +115,95 @@ public class TreeDiff extends JSonService {
 			var before = commit && new File(headDir, "c8oProject.yaml").exists()
 					? beans(BeansDefaultValues.unshrinkProject(YamlConverter.readYaml(new File(headDir, "c8oProject.yaml"))))
 					: new LinkedHashMap<String, Bean>();
+			if ("revert".equals(request.getParameter("action"))) {
+				revert(project, before, request.getParameter("id"), request.getParameter("property"));
+				response.put("done", true);
+				return;
+			}
 			var after = beans(current(project, new File(tmp, "current")));
 			response.put("changes", compare(project, before, after));
 		} finally {
 			FileUtils.deleteQuietly(tmp);
 		}
+	}
+
+	/**
+	 * Gives back to an object the value a property had at the commit, as the Studio would set it.
+	 */
+	private static void revert(Project project, Map<String, Bean> before, String id, String name) throws Exception {
+		if (id == null || name == null || name.isBlank()) {
+			throw new ServiceException("missing id or property parameter");
+		}
+		var objects = new HashMap<String, DatabaseObject>();
+		live(project, null, objects);
+		var entry = objects.entrySet().stream().filter((e) -> id.equals(e.getValue().getFullQName())).findFirst()
+				.orElseThrow(() -> new ServiceException("The object " + id + " does not exist."));
+		var dbo = entry.getValue();
+		var old = before.get(entry.getKey());
+		if (old == null) {
+			throw new ServiceException("The object " + dbo.getName() + " is not in the commit.");
+		}
+		if (name.startsWith("beanData.")) {
+			revertIon(dbo, old, name.substring("beanData.".length()));
+			return;
+		}
+		var property = old.properties.get(name);
+		if (property == null) {
+			throw new ServiceException("The property " + name + " is not in the commit.");
+		}
+		for (var pd : CachedIntrospector.getBeanInfo(dbo.getClass()).getPropertyDescriptors()) {
+			if (!pd.getName().equals(name) || pd.getWriteMethod() == null || pd.getReadMethod() == null) {
+				continue;
+			}
+			Element valueElement = null;
+			for (var child = property.getFirstChild(); child != null && valueElement == null; child = child.getNextSibling()) {
+				if (child instanceof Element element) {
+					valueElement = element;
+				}
+			}
+			if (valueElement == null) {
+				throw new ServiceException("The property " + name + " has no value in the commit.");
+			}
+			Object value = XMLUtils.readObjectFromXml(valueElement);
+			if (property.hasAttribute("ciphered")) {
+				value = DatabaseObject.decryptPropertyValue(value);
+			}
+			var previous = pd.getReadMethod().invoke(dbo);
+			pd.getWriteMethod().invoke(dbo, value);
+			dbo.hasChanged = true;
+			BuilderUtils.dboChanged(dbo, name, previous, pd.getReadMethod().invoke(dbo));
+			return;
+		}
+		throw new ServiceException("The object " + dbo.getName() + " has no property " + name + ".");
+	}
+
+	/**
+	 * Gives back to an NGX component of Ionic the mode and the value a property of Ionic had at the commit.
+	 */
+	private static void revertIon(DatabaseObject dbo, Bean old, String name) throws Exception {
+		if (!(dbo instanceof UIDynamicElement element) || element.getIonBean() == null
+				|| element.getIonBean().getProperty(name) == null) {
+			throw new ServiceException("The object " + dbo.getName() + " has no property of Ionic " + name + ".");
+		}
+		var value = ionValues(value(old.properties.get("beanData")), new HashMap<>()).getOrDefault(name, "");
+		var colon = value.indexOf(':');
+		var mode = colon < 0 ? "plain" : value.substring(0, colon);
+		var text = colon < 0 ? value : value.substring(colon + 1);
+		var msst = new MobileSmartSourceType(text);
+		if ("script".equals(mode)) {
+			msst = new MobileSmartSourceType();
+			msst.setMode(Mode.SCRIPT);
+			msst.setSmartValue(text);
+		} else if ("source".equals(mode)) {
+			msst = new MobileSmartSourceType();
+			msst.setMode(Mode.SOURCE);
+			msst.setSmartValue(text);
+		}
+		var ionBean = element.getIonBean();
+		var previous = ionBean.getPropertyValue(name);
+		ionBean.setPropertyValue(name, msst);
+		dbo.hasChanged = true;
+		BuilderUtils.dboChanged(dbo, name, previous, ionBean.getPropertyValue(name));
 	}
 
 	/**
