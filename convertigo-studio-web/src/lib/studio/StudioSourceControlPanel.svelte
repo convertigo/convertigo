@@ -7,7 +7,12 @@
 	import { studioPrompt } from './studioPrompt.svelte.js';
 	import StudioRebaseDialog from './StudioRebaseDialog.svelte';
 	import { setTreeDiffEnabled, setTreeDiffRef } from './treeDiff.svelte.js';
-	import { describeOperation, gitEvents, notifyGitChange } from './treeMerge.svelte.js';
+	import {
+		describeOperation,
+		gitEvents,
+		notifyGitChange,
+		warnDuplicates
+	} from './treeMerge.svelte.js';
 
 	/**
 	 * @typedef {{ path: string, kind: 'added' | 'modified' | 'deleted' | 'untracked' | 'conflicting' }} ChangedFile
@@ -270,6 +275,7 @@
 			}
 			if (result && 'repository' in result) {
 				status = result;
+				warnDuplicates(result);
 				const stopped = result.operation;
 				if (
 					stopped &&

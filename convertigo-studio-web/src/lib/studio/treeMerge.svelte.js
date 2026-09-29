@@ -1,4 +1,4 @@
-import { call } from '$lib/utils/service';
+import { call, toaster } from '$lib/utils/service';
 import { expandableDboAncestorIds } from './dnd';
 
 /**
@@ -68,6 +68,24 @@ export function notifyGitChange(projectName, message) {
 		gitEvents.messages[projectName] = message;
 	}
 	gitEvents.serial += 1;
+}
+
+/**
+ * Warns of the objects an operation of Git left twice in projects, as a step moved on both sides that a
+ * rebase put in two places.
+ * @param {any} result the response of the Source control or the TreeMerge service
+ */
+export function warnDuplicates(result) {
+	const duplicates = result?.duplicates;
+	if (!duplicates || typeof duplicates !== 'object') {
+		return;
+	}
+	for (const [project, names] of Object.entries(duplicates)) {
+		toaster.warning({
+			title: `Objects found twice in ${project}`,
+			description: `${/** @type {string[]} */ (names).join(', ')}: Git put them in two places. Delete the copies to keep one of each.`
+		});
+	}
 }
 
 /**
