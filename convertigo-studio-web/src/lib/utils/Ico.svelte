@@ -87,6 +87,7 @@
 	import MdiEyeOffOutline from '~icons/mdi/eye-off-outline';
 	import MdiEyeOutline from '~icons/mdi/eye-outline';
 	import MdiFileCodeOutline from '~icons/mdi/file-code-outline';
+	import MdiFileCompare from '~icons/mdi/file-compare';
 	import MdiFileDocumentBoxOutline from '~icons/mdi/file-document-box-outline';
 	import MdiFileDocumentOutline from '~icons/mdi/file-document-outline';
 	import MdiFileHidden from '~icons/mdi/file-hidden';
@@ -288,6 +289,7 @@
 		'mdi:keyboard-return': MdiKeyboardReturn,
 		'mdi:tablet': MdiTablet,
 		'mdi:format-list-bulleted': MdiFormatListBulleted,
+		'mdi:file-compare': MdiFileCompare,
 		'mdi:dots-vertical': MdiDotsVertical,
 		'mdi:download-lock-outline': MdiDownloadLockOutline,
 		'mdi:download-off-outline': MdiDownloadOffOutline,

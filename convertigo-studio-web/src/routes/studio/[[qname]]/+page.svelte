@@ -94,6 +94,11 @@
 	import StudioVariablesDialog from '$lib/studio/StudioVariablesDialog.svelte';
 	import StudioWsImportDialog from '$lib/studio/StudioWsImportDialog.svelte';
 	import {
+		scheduleTreeDiffRefresh,
+		setTreeDiffEnabled,
+		treeDiff
+	} from '$lib/studio/treeDiff.svelte.js';
+	import {
 		clearTreeSelection,
 		treeSelection,
 		treeSelectionOf
@@ -1683,6 +1688,7 @@
 	 * @param {boolean} followSelection
 	 */
 	async function onStudioMutation(mutation, followSelection = true) {
+		scheduleTreeDiffRefresh();
 		const serial = ++mutationRefreshSerial;
 		localMutationEvents.remember(mutation);
 		lastStudioMutation = mutation;
@@ -2027,6 +2033,8 @@
 		if (!id) {
 			return;
 		}
+		// a property changed changes the comparison of the Git mode
+		scheduleTreeDiffRefresh();
 		if (result?.done) {
 			await onStudioMutation(
 				{
@@ -3322,6 +3330,15 @@
 		ariaLabel="Save all"
 		disabled={!dirtyProjectNames.size || Boolean(projectActionBusy)}
 		onclick={saveAllProjects}
+	/>
+	<StudioIconButton
+		icon="mdi:file-compare"
+		active={treeDiff.enabled}
+		title={treeDiff.enabled
+			? 'Leave the Git mode'
+			: 'Git mode: the objects changed since a commit, in the tree'}
+		ariaLabel="Git mode"
+		onclick={() => setTreeDiffEnabled(!treeDiff.enabled)}
 	/>
 	<StudioIconButton
 		icon="mdi:library-outline"

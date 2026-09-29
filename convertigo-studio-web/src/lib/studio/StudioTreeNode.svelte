@@ -26,6 +26,7 @@
 	import StudioTreeActionMenu from './StudioTreeActionMenu.svelte';
 	import { applyProjectedTreeMutation, removeProjectedTreeNode } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
+	import { nodeDiff, treeDiff } from './treeDiff.svelte.js';
 	import {
 		clearTreeSelection,
 		selectTreeRange,
@@ -124,10 +125,41 @@
 	/** @type {HTMLInputElement | undefined} */
 	let renameInput = $state();
 
+	/** the change of the object since the commit of the Git mode, and whether it holds changed objects */
+	let diffOf = $derived(nodeDiff(node?.id ?? ''));
+	let change = $derived(diffOf.change);
+	/** the objects removed since the commit, shown where they were */
+	let ghosts = $derived.by(() => {
+		const diff = diffOf.diff;
+		if (!diff || !node?.id) {
+			return [];
+		}
+		const own = diff.ghosts[node.id] ?? [];
+		// an object whose folder left with it shows under the object that held the folder
+		const childIds = new Set(
+			(Array.isArray(node.children) ? node.children : []).map((child) => child?.id)
+		);
+		const orphans = (diff.ghostsByObject[node.id] ?? []).filter(
+			(ghost) => ghost.parentId !== node.id && !childIds.has(ghost.parentId)
+		);
+		return [...own, ...orphans];
+	});
+	/** the Git mode shows the changed objects only, and those that hold some */
+	let hiddenByDiff = $derived(
+		Boolean(
+			treeDiff.enabled &&
+			treeDiff.changedOnly &&
+			diffOf.diff &&
+			!diffOf.diff.loading &&
+			!change &&
+			!diffOf.ancestor &&
+			depth > 0
+		)
+	);
 	let isBranch = $derived.by(() => {
 		dataSerial;
 		revision;
-		return hasExpandableChildren(node);
+		return hasExpandableChildren(node) || ghosts.length > 0;
 	});
 	let expanded = $derived(
 		Boolean(node?.id && expandedNodeIds ? hasExpandedNodeId(node.id) : localExpanded)
@@ -298,6 +330,29 @@
 				focusInput();
 			}
 		});
+	});
+
+	$effect(() => {
+		// the Git mode opens the objects that hold changes, whose children load then
+		if (
+			treeDiff.enabled &&
+			treeDiff.changedOnly &&
+			expanded &&
+			isBranch &&
+			node &&
+			node.children === true &&
+			!untrack(() => loading)
+		) {
+			untrack(async () => {
+				loading = true;
+				try {
+					await onLoadChildren(node);
+					revision += 1;
+				} finally {
+					loading = false;
+				}
+			});
+		}
 	});
 
 	async function toggleExpanded(event) {
@@ -1145,269 +1200,338 @@
 			id.includes('.flow.')
 		);
 	}
+
+	/**
+	 * @param {import('./treeDiff.svelte.js').TreeChange} change
+	 * @returns {string}
+	 */
+	function diffTitle(change) {
+		const since = `since ${treeDiff.ref}`;
+		if (change.status === 'added') {
+			return `Added ${since}`;
+		}
+		const parts = [];
+		if (change.oldName) {
+			parts.push(`renamed from ${change.oldName}`);
+		}
+		if (change.moved) {
+			parts.push('moved');
+		}
+		const count = change.properties?.length ?? 0;
+		if (count) {
+			parts.push(`${count} propert${count > 1 ? 'ies' : 'y'} changed`);
+		}
+		return `Modified ${since}: ${parts.join(', ')}`;
+	}
 </script>
 
-<div class="studio-tree-node" role="treeitem" aria-selected={selected} data-enabled={node?.enabled}>
+{#if !hiddenByDiff}
 	<div
-		bind:this={rowElement}
-		role="presentation"
-		oncontextmenu={openContextMenu}
-		draggable={draggableNode}
-		ondragstart={handleDragStart}
-		ondragend={handleDragEnd}
-		ondragenter={checkDrop}
-		ondragover={checkDrop}
-		ondragleave={resetDrop}
-		ondrop={handleDrop}
-		class:studio-tree-node__row--selected={selected}
-		class:studio-tree-node__row--multi={Boolean(node?.id && treeSelection.ids.includes(node.id))}
-		class:studio-tree-node__row--drop={dropOver && dropAllowed}
-		class:studio-tree-node__row--drop-denied={dropOver && !dropAllowed}
-		class:studio-tree-node__row--drop-before={dropOver && dropAllowed && dropIndicator === 'before'}
-		class:studio-tree-node__row--drop-after={dropOver && dropAllowed && dropIndicator === 'after'}
-		class:studio-tree-node__row--drop-inside={dropOver && dropAllowed && dropIndicator === 'inside'}
-		class:studio-tree-node__row--pending={Boolean(node?.pending)}
-		class:studio-tree-node__row--disabled={disabled}
-		class:studio-tree-node__row--unreachable={unreachable}
-		class:studio-tree-node__row--closed={closedProject}
-		class:studio-tree-node__row--folder={folderNode}
-		class="studio-tree-node__row"
-		style:padding-left={paddingLeft}
-		title={availabilityTitle}
+		class="studio-tree-node"
+		role="treeitem"
+		aria-selected={selected}
+		data-enabled={node?.enabled}
 	>
-		<span class="studio-tree-node__toggle">
-			{#if isBranch}
+		<div
+			bind:this={rowElement}
+			role="presentation"
+			oncontextmenu={openContextMenu}
+			draggable={draggableNode}
+			ondragstart={handleDragStart}
+			ondragend={handleDragEnd}
+			ondragenter={checkDrop}
+			ondragover={checkDrop}
+			ondragleave={resetDrop}
+			ondrop={handleDrop}
+			class:studio-tree-node__row--selected={selected}
+			class:studio-tree-node__row--multi={Boolean(node?.id && treeSelection.ids.includes(node.id))}
+			class:studio-tree-node__row--drop={dropOver && dropAllowed}
+			class:studio-tree-node__row--drop-denied={dropOver && !dropAllowed}
+			class:studio-tree-node__row--drop-before={dropOver &&
+				dropAllowed &&
+				dropIndicator === 'before'}
+			class:studio-tree-node__row--drop-after={dropOver && dropAllowed && dropIndicator === 'after'}
+			class:studio-tree-node__row--drop-inside={dropOver &&
+				dropAllowed &&
+				dropIndicator === 'inside'}
+			class:studio-tree-node__row--pending={Boolean(node?.pending)}
+			class:studio-tree-node__row--disabled={disabled}
+			class:studio-tree-node__row--unreachable={unreachable}
+			class:studio-tree-node__row--closed={closedProject}
+			class:studio-tree-node__row--folder={folderNode}
+			class="studio-tree-node__row"
+			style:padding-left={paddingLeft}
+			title={availabilityTitle}
+		>
+			<span class="studio-tree-node__toggle">
+				{#if isBranch}
+					<button
+						type="button"
+						data-node-id={node?.id}
+						class:studio-tree-node__toggle-button--open={expanded}
+						class="studio-tree-node__toggle-button"
+						aria-label={expanded ? 'Collapse' : 'Expand'}
+						onclick={(event) => toggleExpanded(event)}
+						disabled={loading}
+					>
+						<Ico icon={loading ? 'mdi:sync' : 'mdi:chevron-right'} size={4} />
+					</button>
+				{/if}
+			</span>
+			{#if renaming}
+				<form
+					data-node-id={node?.id}
+					class="studio-tree-node__content studio-tree-node__content--rename"
+					onsubmit={commitRename}
+				>
+					<span class="studio-tree-node__icon">
+						{#if typeof icon === 'string' && icon.includes('?')}
+							<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{icon}" alt="" />
+						{:else if iconify}
+							<Ico icon={iconify} size={4} />
+						{:else if icon == 'file'}
+							<Ico icon="mdi:file-document-box-outline" size={4} />
+						{:else if icon == 'folder'}
+							<Ico icon="mdi:folder-outline" size={4} />
+						{:else}
+							<Ico icon="convertigo:logo" size={4} />
+						{/if}
+					</span>
+					<input
+						bind:this={renameInput}
+						bind:value={renameValue}
+						class="studio-tree-node__rename"
+						aria-label="Rename object"
+						disabled={renamingBusy}
+						onblur={commitRename}
+						onkeydown={handleRenameKeydown}
+					/>
+				</form>
+			{:else if editingComment}
+				<form
+					data-node-id={node?.id}
+					class="studio-tree-node__content studio-tree-node__content--rename"
+					onsubmit={commitComment}
+				>
+					<span class="studio-tree-node__label">{label}</span>
+					<input
+						bind:this={commentInput}
+						bind:value={commentValue}
+						class="studio-tree-node__rename studio-tree-node__comment-input"
+						aria-label="Comment"
+						placeholder="Comment"
+						disabled={commentBusy}
+						onblur={commitComment}
+						onkeydown={(event) => {
+							if (event.key === 'Escape') {
+								event.preventDefault();
+								editingComment = false;
+							}
+						}}
+					/>
+				</form>
+			{:else}
 				<button
 					type="button"
 					data-node-id={node?.id}
-					class:studio-tree-node__toggle-button--open={expanded}
-					class="studio-tree-node__toggle-button"
-					aria-label={expanded ? 'Collapse' : 'Expand'}
-					onclick={(event) => toggleExpanded(event)}
-					disabled={loading}
+					class="studio-tree-node__content"
+					onclick={selectNode}
+					ondblclick={(event) =>
+						closedProject
+							? onTreeAction?.('project.open', node.id)
+							: // what the object opens, as a double-click in the tree of the Eclipse Studio
+								onTreeAction && node?.open
+								? onTreeAction(node.open, node.id)
+								: toggleExpanded(event)}
 				>
-					<Ico icon={loading ? 'mdi:sync' : 'mdi:chevron-right'} size={4} />
+					<span class="studio-tree-node__icon">
+						{#if typeof icon === 'string' && icon.includes('?')}
+							<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{icon}" alt="" />
+						{:else if iconify}
+							<Ico icon={iconify} size={4} />
+						{:else if icon == 'file'}
+							<Ico icon="mdi:file-document-box-outline" size={4} />
+						{:else if icon == 'folder'}
+							<Ico icon="mdi:folder-outline" size={4} />
+						{:else}
+							<Ico icon="convertigo:logo" size={4} />
+						{/if}
+						{#if defaultOf}
+							<span class="studio-tree-node__default" aria-label={defaultOf}></span>
+						{/if}
+					</span>
+					<span
+						class="studio-tree-node__label"
+						class:studio-tree-node__label--added={change?.status === 'added'}
+						class:studio-tree-node__label--changed={change?.status === 'modified'}
+						class:studio-tree-node__label--modified={marks.modified}
+						class:studio-tree-node__label--error={marks.symbolError}
+						title={marks.modified ? `${label} — Modified, not saved` : undefined}>{label}</span
+					>
+					{#if marks.accessibility === 'Private' || marks.accessibility === 'Hidden' || marks.autoStart || marks.symbolError}
+						<span class="studio-tree-node__marks">
+							{#if marks.symbolError}
+								<span class="studio-tree-node__mark--error" title="Undefined global symbol"
+									><Ico icon="mdi:alert-circle-outline" size={3} /></span
+								>
+							{/if}
+							{#if marks.accessibility === 'Private'}
+								<span title="Private"><Ico icon="mdi:lock-outline" size={3} /></span>
+							{:else if marks.accessibility === 'Hidden'}
+								<span title="Hidden"><Ico icon="mdi:eye-off-outline" size={3} /></span>
+							{/if}
+							{#if marks.autoStart}
+								<span title="Starts with the project"
+									><Ico icon="mdi:lightbulb-on-outline" size={3} /></span
+								>
+							{/if}
+						</span>
+					{/if}
+					{#if change}
+						<span
+							class={['studio-tree-node__diff', `studio-tree-node__diff--${change.status}`]}
+							title={diffTitle(change)}
+							>{change.status === 'added'
+								? 'A'
+								: change.oldName && !change.properties?.length
+									? 'R'
+									: 'M'}</span
+						>
+					{:else if diffOf.ancestor}
+						<span class="studio-tree-node__diff-dot" title="Holds changes since {treeDiff.ref}"
+						></span>
+					{/if}
+					{#if comment}
+						<span class="studio-tree-node__comment" title={comment}>// {comment}</span>
+					{/if}
+					{#if gitDecoration}
+						<span
+							class="studio-tree-node__git"
+							title="Git branch {gitDecoration.branch}{gitDecoration.changes
+								? `, ${gitDecoration.changes} changed file${gitDecoration.changes > 1 ? 's' : ''}`
+								: ''}"
+						>
+							{gitDecoration.branch}{gitDecoration.changes ? ' *' : ''}{gitDecoration.ahead
+								? ` ↑${gitDecoration.ahead}`
+								: ''}{gitDecoration.behind ? ` ↓${gitDecoration.behind}` : ''}
+						</span>
+					{/if}
 				</button>
 			{/if}
-		</span>
-		{#if renaming}
-			<form
-				data-node-id={node?.id}
-				class="studio-tree-node__content studio-tree-node__content--rename"
-				onsubmit={commitRename}
-			>
-				<span class="studio-tree-node__icon">
-					{#if typeof icon === 'string' && icon.includes('?')}
-						<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{icon}" alt="" />
-					{:else if iconify}
-						<Ico icon={iconify} size={4} />
-					{:else if icon == 'file'}
-						<Ico icon="mdi:file-document-box-outline" size={4} />
-					{:else if icon == 'folder'}
-						<Ico icon="mdi:folder-outline" size={4} />
-					{:else}
-						<Ico icon="convertigo:logo" size={4} />
-					{/if}
-				</span>
-				<input
-					bind:this={renameInput}
-					bind:value={renameValue}
-					class="studio-tree-node__rename"
-					aria-label="Rename object"
-					disabled={renamingBusy}
-					onblur={commitRename}
-					onkeydown={handleRenameKeydown}
-				/>
-			</form>
-		{:else if editingComment}
-			<form
-				data-node-id={node?.id}
-				class="studio-tree-node__content studio-tree-node__content--rename"
-				onsubmit={commitComment}
-			>
-				<span class="studio-tree-node__label">{label}</span>
-				<input
-					bind:this={commentInput}
-					bind:value={commentValue}
-					class="studio-tree-node__rename studio-tree-node__comment-input"
-					aria-label="Comment"
-					placeholder="Comment"
-					disabled={commentBusy}
-					onblur={commitComment}
-					onkeydown={(event) => {
-						if (event.key === 'Escape') {
-							event.preventDefault();
-							editingComment = false;
-						}
-					}}
-				/>
-			</form>
-		{:else}
-			<button
-				type="button"
-				data-node-id={node?.id}
-				class="studio-tree-node__content"
-				onclick={selectNode}
-				ondblclick={(event) =>
-					closedProject
-						? onTreeAction?.('project.open', node.id)
-						: // what the object opens, as a double-click in the tree of the Eclipse Studio
-							onTreeAction && node?.open
-							? onTreeAction(node.open, node.id)
-							: toggleExpanded(event)}
-			>
-				<span class="studio-tree-node__icon">
-					{#if typeof icon === 'string' && icon.includes('?')}
-						<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{icon}" alt="" />
-					{:else if iconify}
-						<Ico icon={iconify} size={4} />
-					{:else if icon == 'file'}
-						<Ico icon="mdi:file-document-box-outline" size={4} />
-					{:else if icon == 'folder'}
-						<Ico icon="mdi:folder-outline" size={4} />
-					{:else}
-						<Ico icon="convertigo:logo" size={4} />
-					{/if}
-					{#if defaultOf}
-						<span class="studio-tree-node__default" aria-label={defaultOf}></span>
-					{/if}
-				</span>
+			{#if showSelectedActions}
+				<div class="studio-tree-node__actions">
+					<StudioTreeActionMenu
+						nodeId={node.id}
+						{label}
+						canRename={draggableNode}
+						canDelete={draggableNode}
+						canCopy={Boolean(onTreeAction && draggableNode)}
+						canPaste={Boolean(onTreeAction && !closedProject && canPasteInto?.(node.id))}
+						isProject={Boolean(onTreeAction && projectNode)}
+						closed={closedProject}
+						contextRequest={contextMenuRequest}
+						fileKind={!onTreeAction || !node.id.includes('/')
+							? ''
+							: /^[^/]+\/$/.test(node.id)
+								? 'root'
+								: node.icon === 'folder'
+									? 'folder'
+									: 'file'}
+						enabledState={onTreeAction &&
+						draggableNode &&
+						node?.enableAble &&
+						typeof node?.enabled === 'boolean'
+							? node.enabled
+							: undefined}
+						deleting={deletingBusy}
+						canShowInFrontend={canShowInFrontend?.(node.id) ?? false}
+						canRevealInPalette={canRevealInPalette?.(node.id) ?? false}
+						canRevealDefinition={canRevealBlockDefinition?.(node.id) ?? false}
+						onSelectNode={selectMenuNode}
+						onRename={requestRename}
+						onEditComment={draggableNode && !projectNode ? editComment : undefined}
+						onDelete={deleteSelectedNode}
+						onShowInFrontend={() => onShowInFrontend?.(node.id)}
+						onRevealInPalette={() => onRevealInPalette?.(node.id)}
+						onRevealDefinition={() => onRevealBlockDefinition?.(node.id)}
+						onOpenSource={() => onOpenSource?.(node.id)}
+						{onContextAction}
+						onTreeAction={(action) => onTreeAction?.(action, node.id)}
+					/>
+				</div>
+			{/if}
+			{#if dropOver}
 				<span
-					class="studio-tree-node__label"
-					class:studio-tree-node__label--modified={marks.modified}
-					class:studio-tree-node__label--error={marks.symbolError}
-					title={marks.modified ? `${label} — Modified, not saved` : undefined}>{label}</span
+					class="studio-tree-node__drop-label"
+					class:studio-tree-node__drop-label--denied={!dropAllowed}
+					title={dropAllowed ? currentDropLabel() : 'Not allowed'}
 				>
-				{#if marks.accessibility === 'Private' || marks.accessibility === 'Hidden' || marks.autoStart || marks.symbolError}
-					<span class="studio-tree-node__marks">
-						{#if marks.symbolError}
-							<span class="studio-tree-node__mark--error" title="Undefined global symbol"
-								><Ico icon="mdi:alert-circle-outline" size={3} /></span
-							>
-						{/if}
-						{#if marks.accessibility === 'Private'}
-							<span title="Private"><Ico icon="mdi:lock-outline" size={3} /></span>
-						{:else if marks.accessibility === 'Hidden'}
-							<span title="Hidden"><Ico icon="mdi:eye-off-outline" size={3} /></span>
-						{/if}
-						{#if marks.autoStart}
-							<span title="Starts with the project"
-								><Ico icon="mdi:lightbulb-on-outline" size={3} /></span
-							>
-						{/if}
-					</span>
-				{/if}
-				{#if comment}
-					<span class="studio-tree-node__comment" title={comment}>// {comment}</span>
-				{/if}
-				{#if gitDecoration}
-					<span
-						class="studio-tree-node__git"
-						title="Git branch {gitDecoration.branch}{gitDecoration.changes
-							? `, ${gitDecoration.changes} changed file${gitDecoration.changes > 1 ? 's' : ''}`
-							: ''}"
+					{dropAllowed ? currentDropLabel() : 'Not allowed'}
+				</span>
+			{/if}
+		</div>
+
+		{#if expanded && (children.length || ghosts.length)}
+			<div
+				class="studio-tree-node__children"
+				role="group"
+				style:--tree-guide-left={childrenGuideLeft}
+			>
+				{#each children as child, index (child.id ?? child.name)}
+					<StudioTreeNode
+						node={child}
+						bind:selectedId
+						bind:renameTargetId
+						depth={depth + 1}
+						parentNode={node}
+						ancestorDisabled={ancestorDisabled || disabled}
+						dataSerial={dataSerial + revision}
+						{onLoadChildren}
+						{refreshSerial}
+						{expandedNodeIds}
+						{onSetExpanded}
+						{onKeepExpanded}
+						{onMutation}
+						projectParentChildren={projectChildren}
+						clearParentProjection={clearChildrenProjection}
+						{onMutationBusyChange}
+						{onContextAction}
+						{canShowInFrontend}
+						{onShowInFrontend}
+						{canRevealInPalette}
+						{onRevealInPalette}
+						{canRevealBlockDefinition}
+						{onRevealBlockDefinition}
+						{onOpenSource}
+						{onSourceDrop}
+						{onTreeAction}
+						{canPasteInto}
+						{onChooseRenameUpdate}
+					/>
+				{/each}
+				{#each ghosts as ghost (ghost.id)}
+					<div
+						class="studio-tree-node__row studio-tree-node__row--ghost"
+						role="treeitem"
+						aria-selected="false"
+						style:padding-left={`${(depth + 1) * 0.62 + 0.14}rem`}
+						title="{ghost.type ?? 'Object'} {ghost.name}, removed since {treeDiff.ref}"
 					>
-						{gitDecoration.branch}{gitDecoration.changes ? ' *' : ''}{gitDecoration.ahead
-							? ` ↑${gitDecoration.ahead}`
-							: ''}{gitDecoration.behind ? ` ↓${gitDecoration.behind}` : ''}
-					</span>
-				{/if}
-			</button>
-		{/if}
-		{#if showSelectedActions}
-			<div class="studio-tree-node__actions">
-				<StudioTreeActionMenu
-					nodeId={node.id}
-					{label}
-					canRename={draggableNode}
-					canDelete={draggableNode}
-					canCopy={Boolean(onTreeAction && draggableNode)}
-					canPaste={Boolean(onTreeAction && !closedProject && canPasteInto?.(node.id))}
-					isProject={Boolean(onTreeAction && projectNode)}
-					closed={closedProject}
-					contextRequest={contextMenuRequest}
-					fileKind={!onTreeAction || !node.id.includes('/')
-						? ''
-						: /^[^/]+\/$/.test(node.id)
-							? 'root'
-							: node.icon === 'folder'
-								? 'folder'
-								: 'file'}
-					enabledState={onTreeAction &&
-					draggableNode &&
-					node?.enableAble &&
-					typeof node?.enabled === 'boolean'
-						? node.enabled
-						: undefined}
-					deleting={deletingBusy}
-					canShowInFrontend={canShowInFrontend?.(node.id) ?? false}
-					canRevealInPalette={canRevealInPalette?.(node.id) ?? false}
-					canRevealDefinition={canRevealBlockDefinition?.(node.id) ?? false}
-					onSelectNode={selectMenuNode}
-					onRename={requestRename}
-					onEditComment={draggableNode && !projectNode ? editComment : undefined}
-					onDelete={deleteSelectedNode}
-					onShowInFrontend={() => onShowInFrontend?.(node.id)}
-					onRevealInPalette={() => onRevealInPalette?.(node.id)}
-					onRevealDefinition={() => onRevealBlockDefinition?.(node.id)}
-					onOpenSource={() => onOpenSource?.(node.id)}
-					{onContextAction}
-					onTreeAction={(action) => onTreeAction?.(action, node.id)}
-				/>
+						<span class="studio-tree-node__toggle"></span>
+						<span class="studio-tree-node__content studio-tree-node__content--ghost">
+							<span class="studio-tree-node__icon"
+								><Ico icon="mdi:minus-circle-outline" size={4} /></span
+							>
+							<span class="studio-tree-node__label">{ghost.name}</span>
+							<span class="studio-tree-node__ghost-type">{ghost.type ?? ''}</span>
+							<span class="studio-tree-node__diff studio-tree-node__diff--removed">D</span>
+						</span>
+					</div>
+				{/each}
 			</div>
 		{/if}
-		{#if dropOver}
-			<span
-				class="studio-tree-node__drop-label"
-				class:studio-tree-node__drop-label--denied={!dropAllowed}
-				title={dropAllowed ? currentDropLabel() : 'Not allowed'}
-			>
-				{dropAllowed ? currentDropLabel() : 'Not allowed'}
-			</span>
-		{/if}
 	</div>
-
-	{#if expanded && children.length}
-		<div
-			class="studio-tree-node__children"
-			role="group"
-			style:--tree-guide-left={childrenGuideLeft}
-		>
-			{#each children as child, index (child.id ?? child.name)}
-				<StudioTreeNode
-					node={child}
-					bind:selectedId
-					bind:renameTargetId
-					depth={depth + 1}
-					parentNode={node}
-					ancestorDisabled={ancestorDisabled || disabled}
-					dataSerial={dataSerial + revision}
-					{onLoadChildren}
-					{refreshSerial}
-					{expandedNodeIds}
-					{onSetExpanded}
-					{onKeepExpanded}
-					{onMutation}
-					projectParentChildren={projectChildren}
-					clearParentProjection={clearChildrenProjection}
-					{onMutationBusyChange}
-					{onContextAction}
-					{canShowInFrontend}
-					{onShowInFrontend}
-					{canRevealInPalette}
-					{onRevealInPalette}
-					{canRevealBlockDefinition}
-					{onRevealBlockDefinition}
-					{onOpenSource}
-					{onSourceDrop}
-					{onTreeAction}
-					{canPasteInto}
-					{onChooseRenameUpdate}
-				/>
-			{/each}
-		</div>
-	{/if}
-</div>
+{/if}
 
 <style>
 	.studio-tree-node {
@@ -1623,6 +1747,70 @@
 		white-space: nowrap;
 		font-size: 0.8rem;
 		font-weight: 400;
+	}
+
+	/* the Git mode: the objects changed since a commit, and those removed, where they were */
+	.studio-tree-node__label--added {
+		color: light-dark(#2e7d32, #81c784);
+	}
+
+	.studio-tree-node__label--changed {
+		color: light-dark(#b26a00, #e2c08d);
+	}
+
+	.studio-tree-node__diff {
+		display: inline-grid;
+		width: 1rem;
+		height: 1rem;
+		margin-left: 0.45rem;
+		place-items: center;
+		border-radius: 0.2rem;
+		font-size: 0.62rem;
+		font-weight: 800;
+	}
+
+	.studio-tree-node__diff--added {
+		background: color-mix(in oklab, #2e7d32 20%, transparent);
+		color: light-dark(#2e7d32, #81c784);
+	}
+
+	.studio-tree-node__diff--modified {
+		background: color-mix(in oklab, #e2a23b 22%, transparent);
+		color: light-dark(#b26a00, #e2c08d);
+	}
+
+	.studio-tree-node__diff--removed {
+		background: color-mix(in oklab, #d32f2f 20%, transparent);
+		color: light-dark(#c62828, #ef9a9a);
+	}
+
+	.studio-tree-node__diff-dot {
+		width: 0.4rem;
+		height: 0.4rem;
+		margin-left: 0.45rem;
+		border-radius: 999px;
+		background: light-dark(#b26a00, #e2c08d);
+	}
+
+	.studio-tree-node__row--ghost {
+		cursor: default;
+	}
+
+	.studio-tree-node__content--ghost {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		color: light-dark(#c62828, #ef9a9a);
+	}
+
+	.studio-tree-node__content--ghost .studio-tree-node__label {
+		text-decoration: line-through;
+		opacity: 0.8;
+	}
+
+	.studio-tree-node__ghost-type {
+		color: var(--studio-text-idle);
+		font-size: 0.7rem;
 	}
 
 	/* the comments in the green of the comments of the code, aligned by the tree */

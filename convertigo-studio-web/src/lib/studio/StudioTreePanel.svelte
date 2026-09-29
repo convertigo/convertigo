@@ -1,6 +1,7 @@
 <script>
 	import Projects from '$lib/common/Projects.svelte.js';
 	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
+	import Ico from '$lib/utils/Ico.svelte';
 	import { call, runStudioContextAction } from '$lib/utils/service';
 	import { onMount, tick, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -15,6 +16,14 @@
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import { applyProjectedTreeMutation, remapExpandedTreeIds } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
+	import {
+		loadTreeDiff,
+		projectOfNode,
+		scheduleTreeDiffRefresh,
+		setTreeDiffEnabled,
+		setTreeDiffRef,
+		treeDiff
+	} from './treeDiff.svelte.js';
 	import { treeSelectionOf } from './treeSelection.svelte.js';
 
 	/** the part of the width of the view the column of the comments goes to at most */
@@ -100,6 +109,74 @@
 			}
 		}, 800);
 	}
+
+	/** the commits the Git mode compares to: the branches of the repository of the project selected */
+	let diffRefs = $state(/** @type {string[]} */ ([]));
+	let diffRefsProject = '';
+
+	$effect(() => {
+		// the Git mode compares the project selected and the projects opened in the tree
+		if (!treeDiff.enabled) {
+			return;
+		}
+		const names = new Set([
+			projectOfNode(selectedId),
+			...[...expandedNodeIds].filter((id) => id && !/[.:/]/.test(String(id)))
+		]);
+		untrack(() => {
+			for (const name of names) {
+				if (isTreeProject(name) && !treeDiff.projects[name]) {
+					void loadTreeDiff(name);
+				}
+			}
+		});
+	});
+
+	$effect(() => {
+		// the changes of the projects change their comparison
+		void refreshSerial;
+		void dataSerial;
+		void refreshMutationSerial;
+		untrack(scheduleTreeDiffRefresh);
+	});
+
+	$effect(() => {
+		// the objects changed show, the objects that hold them open
+		if (!treeDiff.enabled || !treeDiff.changedOnly) {
+			return;
+		}
+		const ids = Object.values(treeDiff.projects).flatMap((diff) => Object.keys(diff.ancestors));
+		untrack(() => keepExpanded(ids));
+	});
+
+	/**
+	 * @param {string} name
+	 * @returns {boolean} whether the tree shows the project, the selection being maybe an item of the palette
+	 */
+	function isTreeProject(name) {
+		return Boolean(name) && rootChildren.some((node) => node?.id === name && !node?.closed);
+	}
+
+	$effect(() => {
+		const projectName = treeDiff.enabled ? projectOfNode(selectedId) : '';
+		if (!isTreeProject(projectName) || projectName === diffRefsProject) {
+			return;
+		}
+		diffRefsProject = projectName;
+		untrack(async () => {
+			const result = await call('studio.git.SourceControl', {
+				projectName,
+				action: 'branches'
+			}).catch(() => null);
+			if (diffRefsProject === projectName) {
+				diffRefs = [...(result?.local ?? []), ...(result?.remoteBranches ?? [])].map(String);
+			}
+		});
+	});
+
+	let diffProject = $derived(
+		treeDiff.enabled ? treeDiff.projects[projectOfNode(selectedId)] : undefined
+	);
 
 	$effect(() => {
 		// the saves, reloads and changes of the tree can change the files of the projects
@@ -569,6 +646,10 @@
 		let frame = 0;
 		const align = () => {
 			frame = 0;
+			tree.style.setProperty(
+				'--studio-tree-view-width',
+				`${tree.parentElement?.clientWidth || tree.clientWidth}px`
+			);
 			const comments = /** @type {NodeListOf<HTMLElement>} */ (
 				tree.querySelectorAll('.studio-tree-node__comment')
 			);
@@ -615,6 +696,69 @@
 	onpaste={handleTreePaste}
 	{@attach alignComments}
 >
+	{#if treeDiff.enabled}
+		<div class="studio-tree-diff" role="toolbar" aria-label="Changes since a commit">
+			<Ico icon="mdi:source-branch" size={3.6} />
+			<span>Changes since</span>
+			<select
+				class="studio-tree-diff__ref"
+				aria-label="Commit compared to"
+				value={treeDiff.ref}
+				onchange={(event) => setTreeDiffRef(event.currentTarget.value)}
+			>
+				<option value="HEAD">HEAD</option>
+				{#each diffRefs.filter((ref) => ref !== 'HEAD') as ref (ref)}
+					<option value={ref}>{ref}</option>
+				{/each}
+			</select>
+			{#if diffProject?.loading && !diffProject.changes.length}
+				<span class="studio-tree-diff__counts">Comparing…</span>
+			{:else if diffProject?.error}
+				<span
+					class="studio-tree-diff__counts studio-tree-diff__counts--error"
+					title={diffProject.error}>{diffProject.error}</span
+				>
+			{:else if diffProject && !diffProject.repository}
+				<span class="studio-tree-diff__counts">Not in a Git repository</span>
+			{:else if diffProject}
+				<span
+					class="studio-tree-diff__counts"
+					title={diffProject.commit
+						? `${diffProject.commit.shortId} ${diffProject.commit.message}`
+						: 'No commit yet'}
+				>
+					<span class="studio-tree-diff__count--added">{diffProject.counts.added} added</span> ·
+					<span class="studio-tree-diff__count--modified"
+						>{diffProject.counts.modified} modified</span
+					>
+					·
+					<span class="studio-tree-diff__count--removed">{diffProject.counts.removed} removed</span>
+				</span>
+			{/if}
+			<label class="studio-tree-diff__only">
+				<input type="checkbox" bind:checked={treeDiff.changedOnly} />
+				Changed only
+			</label>
+			<button
+				type="button"
+				class="studio-tree-diff__button"
+				title="Compare again"
+				aria-label="Compare again"
+				onclick={() => Object.keys(treeDiff.projects).forEach((name) => void loadTreeDiff(name))}
+			>
+				<Ico icon="mdi:reload" size={3.6} />
+			</button>
+			<button
+				type="button"
+				class="studio-tree-diff__button"
+				title="Leave the Git mode"
+				aria-label="Leave the Git mode"
+				onclick={() => setTreeDiffEnabled(false)}
+			>
+				<Ico icon="mdi:close" size={3.6} />
+			</button>
+		</div>
+	{/if}
 	{#if loading}
 		<StudioEmptyState message="Loading" loading small />
 	{:else if rootChildren.length === 0}
@@ -653,6 +797,87 @@
 </div>
 
 <style>
+	/* the Git mode: what the tree is compared to, and its changes */
+	.studio-tree-diff {
+		position: sticky;
+		z-index: 2;
+		top: 0;
+		left: 0;
+		box-sizing: border-box;
+		width: var(--studio-tree-view-width, 100%);
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.35rem 0.5rem;
+		margin: -0.35rem -0.35rem 0.25rem;
+		border-bottom: 1px solid var(--studio-line, var(--color-surface-200-800));
+		background: var(--studio-panel-bg, var(--color-surface-50-950));
+		color: var(--studio-text-idle);
+		padding: 0.35rem 0.55rem;
+		font-size: 0.72rem;
+	}
+
+	.studio-tree-diff__ref {
+		height: 1.5rem;
+		border: 1px solid var(--studio-line, var(--color-surface-200-800));
+		border-radius: 0.3rem;
+		background-color: transparent;
+		color: var(--studio-text-strong);
+		padding: 0 1.4rem 0 0.35rem;
+		background-position: right 0.1rem center;
+		background-size: 1rem 1rem;
+		font-size: 0.72rem;
+		field-sizing: content;
+	}
+
+	.studio-tree-diff__counts {
+		color: var(--studio-text);
+	}
+
+	.studio-tree-diff__counts--error {
+		overflow: hidden;
+		max-width: 14rem;
+		color: var(--color-error-600-400);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-tree-diff__count--added {
+		color: light-dark(#2e7d32, #81c784);
+	}
+
+	.studio-tree-diff__count--modified {
+		color: light-dark(#b26a00, #e2c08d);
+	}
+
+	.studio-tree-diff__count--removed {
+		color: light-dark(#c62828, #ef9a9a);
+	}
+
+	.studio-tree-diff__only {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		margin-left: auto;
+		cursor: pointer;
+	}
+
+	.studio-tree-diff__button {
+		display: inline-grid;
+		width: 1.5rem;
+		height: 1.5rem;
+		place-items: center;
+		border: 0;
+		border-radius: 0.3rem;
+		background: transparent;
+		color: inherit;
+	}
+
+	.studio-tree-diff__button:hover {
+		background: var(--studio-hover-bg);
+		color: var(--studio-text-strong);
+	}
+
 	.studio-tree {
 		display: grid;
 		width: max-content;

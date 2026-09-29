@@ -18,6 +18,7 @@
 		isSmartSourceProperty,
 		SMART_TYPE_MODES
 	} from '$lib/studio/propertyEditors';
+	import Ico from '$lib/utils/Ico.svelte';
 	import { tick, untrack } from 'svelte';
 	import { flowTypeDisplayName } from './blockDefinition';
 	import { trackPropertyApply } from './propertyApply.svelte.js';
@@ -34,6 +35,7 @@
 	import StudioSection from './StudioSection.svelte';
 	import StudioSourcePickerPanel from './StudioSourcePickerPanel.svelte';
 	import StudioTableProperty from './StudioTableProperty.svelte';
+	import { nodeDiff, treeDiff } from './treeDiff.svelte.js';
 	import { treeSelectionOf } from './treeSelection.svelte.js';
 
 	/**
@@ -68,6 +70,9 @@
 		onPickerApply = () => {},
 		onSaveProject
 	} = $props();
+
+	/** the changes of the object since the commit of the Git mode of the tree */
+	let diffChange = $derived(selectedId ? nodeDiff(selectedId).change : undefined);
 
 	/**
 	 * Ctrl or ⌘ with S applies the changes of the properties and saves the project, as the Eclipse Studio
@@ -820,6 +825,38 @@
 		{#if !selectedId}
 			<StudioEmptyState message="No object selected" icon="mdi:cursor-default-click-outline" />
 		{:else}
+			{#if diffChange}
+				<section class="studio-properties__diff" aria-label="Changes since {treeDiff.ref}">
+					<header class="studio-properties__diff-title">
+						<Ico icon="mdi:file-compare" size={3.6} />
+						{diffChange.status === 'added' ? 'Added' : 'Changed'} since {treeDiff.ref}
+					</header>
+					{#if diffChange.oldName}
+						<div class="studio-properties__diff-row">
+							<span class="studio-properties__diff-name">Name</span>
+							<span><del>{diffChange.oldName}</del> → <ins>{diffChange.name}</ins></span>
+						</div>
+					{/if}
+					{#if diffChange.moved}
+						<div class="studio-properties__diff-row">
+							<span class="studio-properties__diff-name">Place</span>
+							<span>moved to another parent</span>
+						</div>
+					{/if}
+					{#each diffChange.properties ?? [] as property (property.name)}
+						<div class="studio-properties__diff-row">
+							<span class="studio-properties__diff-name" title={property.name}
+								>{property.label}</span
+							>
+							<span class="studio-properties__diff-values">
+								{#if property.old}<del>{property.old}</del>{:else}<em>default</em>{/if}
+								→
+								{#if property.new}<ins>{property.new}</ins>{:else}<em>default</em>{/if}
+							</span>
+						</div>
+					{/each}
+				</section>
+			{/if}
 			<AccordionGroup
 				class="studio-properties__sections"
 				value={openedCategories.length ? openedCategories : getDefaultOpenedCategories()}
@@ -1236,6 +1273,57 @@
 	.studio-properties {
 		height: 100%;
 		min-height: 0;
+	}
+
+	/* the changes of the object since the commit of the Git mode */
+	.studio-properties__diff {
+		display: grid;
+		gap: 0.3rem;
+		margin: 0.4rem 0.5rem 0.6rem;
+		border: 1px solid color-mix(in oklab, #e2a23b 40%, transparent);
+		border-radius: 0.45rem;
+		background: color-mix(in oklab, #e2a23b 8%, transparent);
+		padding: 0.5rem 0.65rem;
+		font-size: 0.76rem;
+	}
+
+	.studio-properties__diff-title {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		color: light-dark(#b26a00, #e2c08d);
+		font-weight: 700;
+	}
+
+	.studio-properties__diff-row {
+		display: grid;
+		grid-template-columns: minmax(6rem, 30%) minmax(0, 1fr);
+		gap: 0.5rem;
+	}
+
+	.studio-properties__diff-name {
+		overflow: hidden;
+		color: var(--studio-text-idle);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-properties__diff-values {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.studio-properties__diff del {
+		color: light-dark(#c62828, #ef9a9a);
+	}
+
+	.studio-properties__diff ins {
+		color: light-dark(#2e7d32, #81c784);
+		text-decoration: none;
+	}
+
+	.studio-properties__diff em {
+		color: var(--studio-text-idle);
 	}
 
 	.studio-properties__compiled {
