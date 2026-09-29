@@ -52,6 +52,7 @@ public class DefaultInternalTranslator implements Translator {
 		Map<String, Object> request = GenericUtils.cast(inputData);
 
 		InputDocumentBuilder inputDocumentBuilder = new InputDocumentBuilder(context);
+		inputDocumentBuilder.setConnectionStringOverrideAllowed(true);
 
 		// Indicates whether variable values were generated using strict mode or nor(text/childs only)
 		inputDocumentBuilder.transactionVariablesElement.setAttribute("strictMode", Boolean.toString(bStrictMode));

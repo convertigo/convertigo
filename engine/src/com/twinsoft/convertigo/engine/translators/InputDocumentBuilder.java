@@ -35,6 +35,9 @@ class InputDocumentBuilder {
 	private final Element webviewerActionElement;
 	final Element transactionVariablesElement;
 	
+	// connector connection string overrides are only accepted from requests built by the engine itself
+	private boolean connectionStringOverrideAllowed = false;
+	
 	InputDocumentBuilder(Context context) {
 		this.context = context;
 		
@@ -107,8 +110,17 @@ class InputDocumentBuilder {
 		return handleSpecialParameter(parameterName, parameterValues);
 	}
 	
+	void setConnectionStringOverrideAllowed(boolean connectionStringOverrideAllowed) {
+		this.connectionStringOverrideAllowed = connectionStringOverrideAllowed;
+	}
+	
 	boolean handleSpecialParameter(String parameterName, String[] parameterValues) {
 		String parameterValue = parameterValues.length > 0 ? parameterValues[0] : null;
+		
+		if (!connectionStringOverrideAllowed && Parameter.ConnectorConnectionString.getName().equals(parameterName)) {
+			Engine.logContext.warn("Ignored the '" + parameterName + "' parameter: it is only accepted from calls made inside the engine.");
+			return true;
+		}
 		
 		// This is a Javelin field's value.
 		if (parameterName.indexOf(Parameter.JavelinField.getName()) == 0) {
