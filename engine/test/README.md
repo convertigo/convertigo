@@ -1,4 +1,9 @@
-# Session value serialization regression tests
+# Engine regression tests
+
+Test source sets and verification tasks are configured in `engine/tests.gradle`,
+included by `engine/build.gradle`. Run `./gradlew :engine:check` for the regression
+suites, or select an individual task below. `:engine:soapuiSmokeTest` is a separate
+opt-in smoke test.
 
 ## MDC lifecycle
 
