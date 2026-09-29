@@ -281,9 +281,15 @@ class GitOperation {
 	}
 
 	static GitOperation of(Git git) throws Exception {
+		return of(git, git.status().call().getConflicting());
+	}
+
+	/**
+	 * @param conflicting the paths in conflict, of a status already read
+	 */
+	static GitOperation of(Git git, java.util.Set<String> conflicting) throws Exception {
 		var repository = git.getRepository();
 		var state = repository.getRepositoryState();
-		var conflicting = git.status().call().getConflicting();
 		var operation = switch (state) {
 		case MERGING, MERGING_RESOLVED -> new GitOperation(MERGE, state);
 		case CHERRY_PICKING, CHERRY_PICKING_RESOLVED -> new GitOperation(CHERRY_PICK, state);

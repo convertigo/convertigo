@@ -1069,7 +1069,7 @@ public class SourceControl extends JSonService {
 		var repository = git.getRepository();
 		var status = git.status().call();
 		response.put("repository", true);
-		var operation = GitOperation.of(git);
+		var operation = GitOperation.of(git, status.getConflicting());
 		// the branch rebased rather than the commit HEAD is at
 		response.put("branch", GitOperation.REBASE.equals(operation.kind) && !operation.branch.isEmpty() ? operation.branch : repository.getBranch());
 		var head = repository.resolve(Constants.HEAD);

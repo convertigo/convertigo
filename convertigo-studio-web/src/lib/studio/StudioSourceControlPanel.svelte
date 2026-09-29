@@ -50,6 +50,20 @@
 	 */
 	let { projectName = '', dirty = false, onPulled, onMerging, onShowTree } = $props();
 
+	/** the actions that start an operation of Git or go on with it, which may stop */
+	const STARTING = new Set([
+		'pull',
+		'merge',
+		'rebase',
+		'rebaseInteractive',
+		'cherryPick',
+		'revert',
+		'continue',
+		'skip',
+		'stashApply',
+		'stashPop'
+	]);
+
 	/** the actions that change the repository, of which the other views of Git are told */
 	const CHANGING = new Set([
 		'init',
@@ -281,7 +295,7 @@
 						description: `Resolve the conflicts of ${name} in the Projects tree, then ${what.complete.toLowerCase()}.`
 					});
 					await onMerging?.(name);
-				} else if (stopped && CHANGING.has(action) && action !== 'abort') {
+				} else if (stopped && STARTING.has(action)) {
 					const what = describeOperation(stopped);
 					toaster.info({
 						title: `${what.title}: stopped`,
