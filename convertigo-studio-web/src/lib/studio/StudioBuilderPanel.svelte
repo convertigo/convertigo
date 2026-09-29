@@ -22,7 +22,7 @@
 	 *  onServerStop?: () => void,
 	 *  onFailedChange?: (failed: boolean) => void,
 	 *  onActivity?: (activity: { phase: string, progress: number }) => void,
-	 *  serveRequest?: number | { at: number, install?: string },
+	 *  serveRequest?: number | { at: number, install?: string, attach?: boolean },
 	 *  onServeRequestTaken?: () => void,
 	 *  buildRequest?: number,
 	 *  onBuildRequestTaken?: () => void
@@ -95,9 +95,12 @@
 	/** @type {HTMLDivElement | undefined} */
 	let output = $state();
 
+	/** a request to serve, build or show the application, which connects the builder while hidden */
+	let requested = $state(false);
+
 	$effect(() => {
 		const project = projectName;
-		if (active && project && project !== socketProject) {
+		if ((active || requested) && project && project !== socketProject) {
 			connect(project);
 		}
 	});
@@ -134,11 +137,19 @@
 	let pendingServe = false;
 	/** the packages to update or install again before serving, as Update packages and Execute */
 	let pendingInstall = '';
+	/** whether the request only shows the development server running, without starting one */
+	let pendingAttach = false;
 	$effect(() => {
 		// the request can mount the panel: it is taken, then served once the builder tells its state
 		if (serveRequest) {
+			const attach = typeof serveRequest === 'object' && Boolean(serveRequest.attach);
+			// a request to serve pending is not turned into one to show only
+			if (!(attach && pendingServe && !pendingAttach)) {
+				pendingInstall = typeof serveRequest === 'object' ? (serveRequest.install ?? '') : '';
+				pendingAttach = attach;
+			}
 			pendingServe = true;
-			pendingInstall = typeof serveRequest === 'object' ? (serveRequest.install ?? '') : '';
+			requested = true;
 			untrack(() => {
 				onServeRequestTaken?.();
 				serveWhenReady();
@@ -152,6 +163,7 @@
 	$effect(() => {
 		if (buildRequest) {
 			pendingBuild = true;
+			requested = true;
 			pendingBuildNotified = false;
 			untrack(() => {
 				onBuildRequestTaken?.();
@@ -179,7 +191,15 @@
 			return;
 		}
 		// a server starting or stopping keeps the request until the builder tells its next state
-		if (pendingInstall) {
+		if (pendingAttach) {
+			// the application served already shows, as the application editor of the Eclipse Studio opened again
+			if (devState === 'serving' && url) {
+				onLoad?.(url);
+			} else if (devState === 'serving') {
+				// its address comes with the state
+				serveAsked = true;
+			}
+		} else if (pendingInstall) {
 			// the builder replaces a running server with one whose packages are updated
 			send('build_dev', { install: pendingInstall });
 		} else if (devState === 'serving' && url) {
@@ -191,6 +211,7 @@
 		}
 		pendingServe = false;
 		pendingInstall = '';
+		pendingAttach = false;
 	}
 
 	onDestroy(() => {

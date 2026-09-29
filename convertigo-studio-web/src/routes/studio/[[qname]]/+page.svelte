@@ -280,7 +280,7 @@
 	/** a test case to run in the execution panel, as the "Run" of a test case of the Eclipse Studio */
 	let executionRunTestcase = $state('');
 	/** asks the builder to show or start the development server of an NGX application */
-	/** @type {number | { at: number, install: string }} */
+	/** @type {number | { at: number, install?: string, attach?: boolean }} */
 	let builderServeRequest = $state(0);
 	/** a production build asked before an export or a deployment, whose dialog comes back once built */
 	let builderBuildRequest = $state(0);
@@ -631,6 +631,13 @@
 		}
 		reconciledFrontendProjects.add(projectName);
 		void reconcileFrontendPreview(projectName, selection);
+		// the development server of an NGX application running, as after a reload of the Studio, shows again,
+		// unless the application is asked to be served
+		untrack(() => {
+			if (!builderServeRequest) {
+				builderServeRequest = { at: Date.now(), attach: true };
+			}
+		});
 	});
 
 	$effect(() => {
@@ -2641,6 +2648,8 @@
 			showApplication(projectName);
 			setProfile('frontend');
 			setFrontendResult('frontend');
+			// its application is served, as the Eclipse Studio opens its editor, or the one served shows
+			builderServeRequest = { at: Date.now() };
 		} else if (action === 'frontend.execute' || action === 'frontend.execute:update') {
 			executeFrontend(projectName, action.endsWith(':update') ? 'update' : '');
 		} else if (action.startsWith('code.file:')) {
