@@ -23,7 +23,8 @@
 	 *  staged?: ChangedFile[],
 	 *  changes?: ChangedFile[],
 	 *  operation?: import('./treeMerge.svelte.js').GitOperation,
-	 *  pullRebase?: boolean
+	 *  pullRebase?: boolean,
+	 *  detached?: boolean
 	 * }} SourceControlStatus
 	 */
 
@@ -60,7 +61,13 @@
 		'abort',
 		'checkout',
 		'fetch',
-		'push'
+		'push',
+		'reset',
+		'createBranch',
+		'deleteBranch',
+		'renameBranch',
+		'tag',
+		'deleteTag'
 	]);
 
 	const STATUS_LETTERS = {
@@ -83,8 +90,17 @@
 	let historyOpen = $state(false);
 	/** the branch whose history shows, HEAD when empty */
 	let historyRef = $state('');
-	/** @type {{ id: string, subject: string, author: string, time: number, inHead?: boolean, merge?: boolean }[]} */
+	/** @type {{ id: string, subject: string, author: string, time: number, inHead?: boolean, merge?: boolean, refs?: string[] }[]} */
 	let commits = $state([]);
+	/** the commit whose details show, its files changed and the differences of one of them */
+	let commitOpen = $state('');
+	/** @type {{ commit?: any, files: ChangedFile[] } | null} */
+	let commitDetails = $state(null);
+	let commitDiffPath = $state('');
+	let commitDiff = $state('');
+	/** @type {{ name: string, commit: string, annotation?: string }[]} */
+	let tags = $state([]);
+	let amend = $state(false);
 	/** the menu open: pull, or the id of a commit */
 	let menu = $state('');
 
@@ -345,6 +361,138 @@
 	}
 
 	/**
+	 * Shows or hides the details of a commit: its message, its author and the files of the project it changed.
+	 * @param {string} id
+	 */
+	async function toggleCommit(id) {
+		menu = '';
+		commitDiffPath = '';
+		if (commitOpen === id) {
+			commitOpen = '';
+			return;
+		}
+		commitOpen = id;
+		commitDetails = null;
+		const result = await call('studio.git.SourceControl', { projectName, action: 'show', commit: id });
+		if (commitOpen === id) {
+			commitDetails = { commit: result?.commit, files: Array.isArray(result?.files) ? result.files : [] };
+		}
+	}
+
+	/**
+	 * @param {string} id the commit
+	 * @param {string} path a file it changed
+	 */
+	async function showCommitDiff(id, path) {
+		if (commitDiffPath === path) {
+			commitDiffPath = '';
+			return;
+		}
+		commitDiffPath = path;
+		commitDiff = '';
+		const result = await call('studio.git.SourceControl', { projectName, action: 'show', commit: id, path });
+		if (commitDiffPath === path) {
+			commitDiff = String(result?.diff ?? '');
+		}
+	}
+
+	/**
+	 * The actions of the history on a commit: checked out, a branch or a tag at it, the current branch reset
+	 * to it.
+	 * @param {'checkout' | 'branch' | 'tag' | 'soft' | 'mixed' | 'hard'} what
+	 * @param {{ id: string, subject: string }} entry
+	 */
+	async function commitAction(what, entry) {
+		menu = '';
+		if (what === 'checkout') {
+			if (
+				window.confirm(
+					`Check out ${entry.id} "${entry.subject}"?\n\nHEAD is detached at this commit: create a branch to commit on it.`
+				) &&
+				confirmUnsaved('checkout')
+			) {
+				await run('checkout', { branch: entry.id });
+			}
+		} else if (what === 'branch') {
+			const branch = (await studioPrompt(`Name of the new branch, at ${entry.id}`))?.trim();
+			if (branch && confirmUnsaved('checkout')) {
+				await run('createBranch', { branch, commit: entry.id });
+			}
+		} else if (what === 'tag') {
+			const name = (await studioPrompt(`Name of the tag, at ${entry.id}`))?.trim();
+			if (name) {
+				const annotation = await studioPrompt('Message of the tag, empty for a lightweight tag');
+				if (annotation !== null) {
+					await run('tag', { name, commit: entry.id, annotation: annotation ?? '' });
+				}
+			}
+		} else {
+			const detail = {
+				soft: 'The changes since it stay staged.',
+				mixed: 'The changes since it stay in the files, not staged.',
+				hard: 'The changes since it, and those not committed, are lost.'
+			}[what];
+			if (
+				window.confirm(`Reset ${status?.branch} to ${entry.id} "${entry.subject}"?\n\n${detail}`) &&
+				(what !== 'hard' || confirmUnsaved('reset'))
+			) {
+				await run('reset', { commit: entry.id, mode: what });
+			}
+		}
+		if (historyOpen) {
+			await loadHistory();
+		}
+	}
+
+	/**
+	 * @param {string} branch
+	 */
+	async function renameBranch(branch) {
+		const name = (await studioPrompt(`New name of the branch ${branch}`, branch))?.trim();
+		if (name && name !== branch) {
+			await run('renameBranch', { branch, name });
+			await loadBranches();
+		}
+	}
+
+	/**
+	 * @param {string} branch
+	 */
+	async function deleteBranch(branch) {
+		if (!window.confirm(`Delete the branch ${branch}?`)) {
+			return;
+		}
+		const result = await run('deleteBranch', { branch });
+		if (
+			result?.notMerged &&
+			window.confirm(`The branch ${branch} has commits merged nowhere, which are lost with it.\n\nDelete it anyway?`)
+		) {
+			await run('deleteBranch', { branch, force: 'true' });
+		}
+		await loadBranches();
+	}
+
+	/**
+	 * @param {string} name
+	 */
+	async function deleteTag(name) {
+		if (window.confirm(`Delete the tag ${name}?`)) {
+			await run('deleteTag', { name });
+			await loadBranches();
+		}
+	}
+
+	async function loadBranches() {
+		const result = await run('branches');
+		branches = {
+			local: Array.isArray(result?.local) ? result.local : [],
+			remote: Array.isArray(result?.remoteBranches) ? result.remoteBranches : []
+		};
+		const tagged = await call('studio.git.SourceControl', { projectName, action: 'tags' });
+		tags = Array.isArray(tagged?.tags) ? tagged.tags : [];
+	}
+
+	/**
 	 * Shows in the Git mode of the tree the changes since a commit.
 	 * @param {string} id
 	 */
@@ -358,11 +506,7 @@
 	async function toggleBranches() {
 		branchesOpen = !branchesOpen;
 		if (branchesOpen) {
-			const result = await run('branches');
-			branches = {
-				local: Array.isArray(result?.local) ? result.local : [],
-				remote: Array.isArray(result?.remoteBranches) ? result.remoteBranches : []
-			};
+			await loadBranches();
 		}
 	}
 
@@ -431,13 +575,30 @@
 	}
 
 	async function commit() {
-		if (!message.trim() || !staged.length) {
+		if (!message.trim() || (!staged.length && !amend)) {
 			return;
 		}
-		const result = await run('commit', { message: message.trim() });
+		const result = await run('commit', { message: message.trim(), ...(amend ? { amend: 'true' } : {}) });
 		if (result?.commit) {
 			message = '';
 			diffPath = '';
+			amend = false;
+			if (historyOpen) {
+				await loadHistory();
+			}
+		}
+	}
+
+	/**
+	 * Amends the last commit: its message is proposed.
+	 */
+	async function toggleAmend() {
+		amend = !amend;
+		if (amend && !message.trim()) {
+			const result = await call('studio.git.SourceControl', { projectName, action: 'show', commit: 'HEAD' });
+			if (amend && !message.trim()) {
+				message = String(result?.commit?.body ?? '').trim();
+			}
 		}
 	}
 
@@ -579,7 +740,7 @@
 				onclick={toggleBranches}
 			>
 				<Ico icon="mdi:source-branch" size={4} />
-				{status.branch}
+				{status.detached ? `detached at ${status.head}` : status.branch}
 				{#if status.ahead}<small title="Commits to push">↑{status.ahead}</small>{/if}
 				{#if status.behind}<small title="Commits to pull">↓{status.behind}</small>{/if}
 			</button>
@@ -716,7 +877,27 @@
 							<Ico icon="mdi:source-branch" size={4} />
 							{branch}
 						</button>
+						<button
+							type="button"
+							class="studio-git__branch-merge"
+							title="Rename {branch}"
+							aria-label="Rename {branch}"
+							disabled={Boolean(busy)}
+							onclick={() => renameBranch(branch)}
+						>
+							<Ico icon="mdi:rename-outline" size={4} />
+						</button>
 						{#if branch !== status.branch}
+							<button
+								type="button"
+								class="studio-git__branch-merge"
+								title="Delete {branch}"
+								aria-label="Delete {branch}"
+								disabled={Boolean(busy)}
+								onclick={() => deleteBranch(branch)}
+							>
+								<Ico icon="mdi:delete-outline" size={4} />
+							</button>
 							<button
 								type="button"
 								class="studio-git__branch-merge"
@@ -775,6 +956,31 @@
 						</button>
 					</div>
 				{/each}
+				{#each tags as tag (tag.name)}
+					<div class="studio-git__branch-row">
+						<button
+							type="button"
+							class="studio-git__branch-item studio-git__branch-item--remote"
+							title={tag.annotation ? `${tag.name}: ${tag.annotation}` : tag.name}
+							disabled={Boolean(busy) || Boolean(operation)}
+							onclick={() => commitAction('checkout', { id: tag.commit, subject: tag.name })}
+						>
+							<Ico icon="mdi:tag-outline" size={4} />
+							{tag.name}
+							<small>{tag.commit}</small>
+						</button>
+						<button
+							type="button"
+							class="studio-git__branch-merge"
+							title="Delete the tag {tag.name}"
+							aria-label="Delete the tag {tag.name}"
+							disabled={Boolean(busy)}
+							onclick={() => deleteTag(tag.name)}
+						>
+							<Ico icon="mdi:delete-outline" size={4} />
+						</button>
+					</div>
+				{/each}
 			</div>
 		{/if}
 		<form
@@ -790,13 +996,20 @@
 				placeholder="Message of the commit"
 				bind:value={message}
 				disabled={Boolean(busy)}></textarea>
-			<button
-				type="submit"
-				class="button-primary"
-				disabled={Boolean(busy) || !message.trim() || !staged.length}
-			>
-				<Ico icon={busy === 'commit' ? 'mdi:sync' : 'mdi:check'} size={4} /> Commit
-			</button>
+			<div class="studio-git__commit-row">
+				<label class="studio-git__amend" title="Amend the last commit with the changes staged and this message">
+					<input type="checkbox" checked={amend} disabled={Boolean(busy)} onchange={toggleAmend} />
+					Amend
+				</label>
+				<button
+					type="submit"
+					class="button-primary"
+					disabled={Boolean(busy) || !message.trim() || (!staged.length && !amend)}
+				>
+					<Ico icon={busy === 'commit' ? 'mdi:sync' : 'mdi:check'} size={4} />
+					{amend ? 'Amend' : 'Commit'}
+				</button>
+			</div>
 			{#if dirty}
 				<small class="studio-git__hint">Save the project to commit its last changes.</small>
 			{/if}
@@ -875,9 +1088,28 @@
 			</div>
 			{#if historyOpen}
 				{#each commits as entry (entry.id)}
-					<div class="studio-git__commit-entry" title={`${entry.id} ${entry.author}`}>
+					<div
+						class={['studio-git__commit-entry', commitOpen === entry.id && 'studio-git__commit-entry--open']}
+						title={`${entry.id} ${entry.author}`}
+					>
 						<code>{entry.id}</code>
-						<span>{entry.subject}</span>
+						<button
+							type="button"
+							class="studio-git__commit-subject"
+							aria-expanded={commitOpen === entry.id}
+							onclick={() => toggleCommit(entry.id)}
+						>
+							{#each entry.refs ?? [] as ref (ref)}
+								<span
+									class={[
+										'studio-git__ref',
+										ref.startsWith('tag: ') && 'studio-git__ref--tag',
+										ref.includes('/') && !ref.startsWith('tag: ') && 'studio-git__ref--remote'
+									]}>{ref.replace(/^tag: /, '')}</span
+								>
+							{/each}
+							{entry.subject}
+						</button>
 						<small>{entry.author} · {new Date(entry.time).toLocaleDateString()}</small>
 						<div class="studio-git__menu-host studio-git__commit-menu">
 							<button
@@ -898,6 +1130,25 @@
 									<button
 										type="button"
 										role="menuitem"
+										disabled={Boolean(operation)}
+										onclick={() => commitAction('checkout', entry)}
+									>
+										<Ico icon="mdi:source-commit" size={4} /> Check out this commit
+									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={Boolean(operation)}
+										onclick={() => commitAction('branch', entry)}
+									>
+										<Ico icon="mdi:source-branch-plus" size={4} /> New branch here…
+									</button>
+									<button type="button" role="menuitem" onclick={() => commitAction('tag', entry)}>
+										<Ico icon="mdi:tag-plus-outline" size={4} /> Tag…
+									</button>
+									<button
+										type="button"
+										role="menuitem"
 										disabled={entry.inHead !== false || entry.merge || Boolean(operation)}
 										title={entry.inHead !== false ? `${status.branch} already has this commit` : ''}
 										onclick={() => applyCommit('cherryPick', entry)}
@@ -913,10 +1164,81 @@
 									>
 										<Ico icon="mdi:undo-variant" size={4} /> Revert
 									</button>
+									<span class="studio-git__menu-label">Reset {status.branch} here</span>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={Boolean(operation)}
+										onclick={() => commitAction('soft', entry)}
+									>
+										<Ico icon="mdi:restore" size={4} /> Soft: the changes since stay staged
+									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={Boolean(operation)}
+										onclick={() => commitAction('mixed', entry)}
+									>
+										<Ico icon="mdi:restore" size={4} /> Mixed: they stay in the files
+									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={Boolean(operation)}
+										onclick={() => commitAction('hard', entry)}
+									>
+										<Ico icon="mdi:restore" size={4} /> Hard: they are lost
+									</button>
 								</div>
 							{/if}
 						</div>
 					</div>
+					{#if commitOpen === entry.id}
+						<div class="studio-git__commit-details">
+							{#if !commitDetails}
+								<small>Reading the commit…</small>
+							{:else}
+								<pre class="studio-git__commit-body">{commitDetails.commit?.body ?? ''}</pre>
+								<small
+									>{commitDetails.commit?.author}{commitDetails.commit?.email
+										? ` <${commitDetails.commit.email}>`
+										: ''} · {new Date(commitDetails.commit?.time ?? 0).toLocaleString()}{commitDetails.commit
+										?.parents?.length
+										? ` · parent ${commitDetails.commit.parents.join(', ')}`
+										: ''}</small
+								>
+								{#each commitDetails.files as file (file.path)}
+									{@const parts = fileName(file.path)}
+									<div
+										class={['studio-git__file', commitDiffPath === file.path && 'studio-git__file--open']}
+									>
+										<button
+											type="button"
+											class="studio-git__file-name"
+											title={file.path}
+											onclick={() => showCommitDiff(entry.id, file.path)}
+										>
+											<span>{parts.name}</span>
+											<small>{parts.dir}</small>
+										</button>
+										<span class={['studio-git__status', `studio-git__status--${file.kind}`]} title={file.kind}
+											>{STATUS_LETTERS[file.kind] ?? 'R'}</span
+										>
+									</div>
+									{#if commitDiffPath === file.path}
+										<pre class="studio-git__diff">{#if commitDiff}{#each commitDiff.split('\n') as line, index (index)}<span
+														class={[
+															'studio-git__line',
+															lineKind(line) && `studio-git__line--${lineKind(line)}`
+														]}>{line}{'\n'}</span
+													>{/each}{:else}Reading the differences…{/if}</pre>
+									{/if}
+								{:else}
+									<small>No file of the project changed.</small>
+								{/each}
+							{/if}
+						</div>
+					{/if}
 				{:else}
 					<p class="studio-git__message">No commit yet.</p>
 				{/each}
@@ -1043,6 +1365,93 @@
 
 	.studio-git__commit-entry:hover {
 		background: var(--studio-hover-bg);
+	}
+
+	.studio-git__commit-subject {
+		display: block;
+		min-width: 0;
+		overflow: hidden;
+		border: 0;
+		background: transparent;
+		color: var(--studio-text);
+		padding: 0;
+		text-align: left;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-git__commit-entry--open {
+		background: var(--studio-hover-bg);
+	}
+
+	.studio-git__ref {
+		display: inline-block;
+		margin-right: 0.25rem;
+		border-radius: 0.2rem;
+		background: color-mix(in oklab, var(--color-primary-500) 18%, transparent);
+		color: var(--studio-text-strong);
+		padding: 0 0.25rem;
+		font-size: 0.66rem;
+		font-weight: 600;
+	}
+
+	.studio-git__ref--remote {
+		background: color-mix(in oklab, var(--color-secondary-500, #888) 18%, transparent);
+	}
+
+	.studio-git__ref--tag {
+		background: color-mix(in oklab, var(--color-warning-500) 22%, transparent);
+	}
+
+	.studio-git__commit-details {
+		display: grid;
+		gap: 0.2rem;
+		padding: 0.15rem 0.5rem 0.4rem 1.1rem;
+		background: var(--studio-hover-bg);
+	}
+
+	.studio-git__commit-details > small {
+		color: var(--studio-text-idle);
+		font-size: 0.68rem;
+	}
+
+	.studio-git__commit-body {
+		margin: 0;
+		font-family: inherit;
+		font-size: 0.74rem;
+		white-space: pre-wrap;
+	}
+
+	.studio-git__menu-label {
+		padding: 0.35rem 0.5rem 0.1rem;
+		color: var(--studio-text-idle);
+		font-size: 0.66rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.studio-git__commit-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.studio-git__commit-row button {
+		flex: 1;
+	}
+
+	.studio-git__amend {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: var(--studio-text-idle);
+		font-size: 0.72rem;
+	}
+
+	.studio-git__branch-item small {
+		color: var(--studio-text-idle);
+		font-size: 0.66rem;
 	}
 
 	.studio-git__commit-menu {
