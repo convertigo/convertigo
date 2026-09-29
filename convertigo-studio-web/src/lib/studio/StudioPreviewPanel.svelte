@@ -121,8 +121,18 @@
 		addressOverride.base === previewUrl ? addressOverride.value : previewUrl
 	);
 	let iframeUrl = $derived(iframeOverride.base === previewUrl ? iframeOverride.value : previewUrl);
-	let zoom = $derived(zoomOverride.base === previewUrl ? zoomOverride.value : 1);
-	let zoomMode = $derived(zoomModeOverride.base === previewUrl ? zoomModeOverride.value : 'fit');
+	/** what the preview of each project keeps, as the application editor of the Eclipse Studio */
+	let projectPreview = $state(
+		/** @type {{ device?: string, landscape?: boolean, zoom?: number, zoomMode?: string, dataset?: string }} */ ({})
+	);
+	let zoom = $derived(
+		zoomOverride.base === previewUrl ? zoomOverride.value : (projectPreview.zoom ?? 1)
+	);
+	let zoomMode = $derived(
+		zoomModeOverride.base === previewUrl
+			? zoomModeOverride.value
+			: (projectPreview.zoomMode ?? 'fit')
+	);
 	let trimmedAddress = $derived(addressBar.trim());
 	let deviceGroups = $derived.by(buildDeviceGroups);
 	let selectedDevice = $derived(deviceById(selectedDeviceId));
@@ -253,6 +263,71 @@
 	/** the datasets of the NGX application, its recorded session data */
 	let ngxDatasets = $state(/** @type {string[]} */ ([]));
 	let ngxDataset = $state('none');
+	/** the data of the dataset chosen, which the application takes again each time it loads */
+	let ngxDatasetData = '';
+	/** the project whose preview settings are restored */
+	let restoredProject = '';
+
+	/**
+	 * @param {string} project
+	 */
+	function previewKey(project) {
+		return `convertigo.studio.preview.${project}`;
+	}
+
+	$effect(() => {
+		// the device, the zoom and the dataset of the preview of the project, as it left them
+		const project = projectName;
+		if (!project || project === restoredProject) {
+			return;
+		}
+		restoredProject = project;
+		untrack(() => {
+			let saved = {};
+			try {
+				saved = JSON.parse(localStorage.getItem(previewKey(project)) ?? '{}') ?? {};
+			} catch {
+				saved = {};
+			}
+			projectPreview = saved;
+			if (typeof saved.device === 'string' && deviceById(saved.device).id === saved.device) {
+				selectedDeviceId = saved.device;
+				landscape = Boolean(saved.landscape);
+			}
+			ngxDataset = 'none';
+			ngxDatasetData = '';
+		});
+	});
+
+	/**
+	 * Keeps a setting of the preview of the project.
+	 * @param {Record<string, any>} settings
+	 */
+	function keepPreview(settings) {
+		if (!projectName) {
+			return;
+		}
+		projectPreview = { ...projectPreview, ...settings };
+		try {
+			localStorage.setItem(previewKey(projectName), JSON.stringify(projectPreview));
+		} catch {
+			// the settings are not kept
+		}
+	}
+
+	$effect(() => {
+		// the device chosen for the project
+		const device = selectedDeviceId;
+		const turned = landscape;
+		untrack(() => {
+			if (
+				projectName === restoredProject &&
+				(projectPreview.device !== device || Boolean(projectPreview.landscape) !== turned)
+			) {
+				keepPreview({ device, landscape: turned });
+			}
+		});
+	});
 	const SESSION_DATA = '_c8ocafsession_storage_data';
 	try {
 		// the mobile builder mode of the Convertigo Angular Framework, which records the session data of an
@@ -277,6 +352,11 @@
 		const result = await call('studio.ngxbuilder.Datasets', { project });
 		if (Array.isArray(result?.datasets)) {
 			ngxDatasets = result.datasets.map(String);
+			// the dataset the project had, applied again
+			const saved = projectPreview.dataset;
+			if (project === projectName && saved && ngxDataset !== saved && ngxDatasets.includes(saved)) {
+				await applyNgxDataset(saved);
+			}
 		}
 	}
 
@@ -286,7 +366,9 @@
 	 */
 	async function applyNgxDataset(name) {
 		ngxDataset = name;
+		keepPreview({ dataset: name === 'none' ? '' : name });
 		if (name === 'none') {
+			ngxDatasetData = '';
 			sessionStorage.removeItem(SESSION_DATA);
 		} else {
 			const result = await call('studio.ngxbuilder.Datasets', {
@@ -294,9 +376,24 @@
 				action: 'get',
 				name
 			});
-			sessionStorage.setItem(SESSION_DATA, String(result?.data ?? '[]'));
+			ngxDatasetData = String(result?.data ?? '[]');
+			sessionStorage.setItem(SESSION_DATA, ngxDatasetData);
 		}
 		reloadIframe();
+	}
+
+	/**
+	 * The application takes the dataset chosen again each time it loads, as when it is built again: the
+	 * session data it recorded meanwhile give way.
+	 */
+	function reapplyNgxDataset() {
+		if (ngxDataset !== 'none' && ngxDatasetData) {
+			try {
+				sessionStorage.setItem(SESSION_DATA, ngxDatasetData);
+			} catch {
+				// no session storage
+			}
+		}
 	}
 
 	async function removeNgxDataset() {
@@ -311,6 +408,8 @@
 		});
 		if (result?.done) {
 			ngxDataset = 'none';
+			ngxDatasetData = '';
+			keepPreview({ dataset: '' });
 			sessionStorage.removeItem(SESSION_DATA);
 		}
 		// the list shows the datasets on the disk, even when the removal failed
@@ -337,6 +436,8 @@
 		});
 		if (result?.done) {
 			ngxDataset = name;
+			ngxDatasetData = data;
+			keepPreview({ dataset: name });
 			await loadNgxDatasets(projectName);
 		}
 	}
@@ -361,6 +462,8 @@
 		if (!doc) {
 			return;
 		}
+		// the page of the application leaves: the next one starts with the dataset chosen
+		iframe?.contentWindow?.addEventListener('pagehide', reapplyNgxDataset);
 		let tries = 0;
 		const wait = () => {
 			// the application creates its ion-app once bootstrapped
@@ -436,6 +539,7 @@
 	});
 
 	function reloadIframe() {
+		reapplyNgxDataset();
 		try {
 			iframe?.contentWindow?.location?.reload();
 		} catch (error) {
@@ -485,11 +589,13 @@
 	function setZoom(value) {
 		zoomModeOverride = { base: previewUrl, value: 'manual' };
 		zoomOverride = { base: previewUrl, value };
+		keepPreview({ zoom: value, zoomMode: 'manual' });
 	}
 
 	function fitPreview() {
 		zoomModeOverride = { base: previewUrl, value: 'fit' };
 		zoomOverride = { base: previewUrl, value: 1 };
+		keepPreview({ zoom: 1, zoomMode: 'fit' });
 	}
 
 	/**
@@ -1113,6 +1219,7 @@
 		color: white !important;
 	}
 
+	/* the toolbar follows the width of the view, which the dock sets, rather than the one of the window */
 	.studio-preview {
 		position: relative;
 		display: grid;
@@ -1120,6 +1227,7 @@
 		min-height: 0;
 		grid-template-rows: auto minmax(0, 1fr);
 		background: var(--color-surface-100-900);
+		container-type: inline-size;
 	}
 
 	.studio-preview__drawer-backdrop {
@@ -1388,13 +1496,25 @@
 		min-height: 16rem;
 	}
 
-	@media (max-width: 900px) {
+	/* too narrow for one line: the address goes beside the navigation, the actions under them */
+	@container (max-width: 1100px) {
+		.studio-preview__bar {
+			grid-template-columns: auto minmax(8rem, 1fr);
+		}
+
+		.studio-preview__actions {
+			grid-column: 1 / -1;
+			justify-content: flex-start;
+			overflow-x: auto;
+		}
+	}
+
+	@container (max-width: 700px) {
 		.studio-preview__bar {
 			grid-template-columns: minmax(0, 1fr);
 		}
 
-		.studio-preview__actions {
-			justify-content: flex-start;
+		.studio-preview__nav {
 			overflow-x: auto;
 		}
 
