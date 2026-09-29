@@ -265,6 +265,32 @@ test('studio inserts and reorders source-backed frontend blocks at the requested
 	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('New text');
 });
 
+test('studio drops a frontend block on a closed container without leaving its placeholder', async ({
+	page
+}) => {
+	const state = createStudioState();
+	await mockStudioServices(page, { state });
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await expandTreeNode(page, frontendBuilderId);
+	await selectTreeNode(page, frontendStructureId);
+	await page.getByRole('radio', { name: 'Frontend' }).click();
+	await page.getByRole('tab', { name: 'Palette' }).click();
+	await expect(paletteItem(page, 'Text')).toBeVisible();
+
+	// the structure is closed, its children are not loaded: the placeholder goes after it
+	await dragPaletteItemToTreeNode(page, 'Text', frontendStructureId, 0.5);
+
+	await expect(
+		page.locator(`button.studio-tree-node__content[data-node-id="${frontendStructureId}.text1"]`)
+	).toBeVisible();
+	await expect(
+		page.locator('button.studio-tree-node__content[data-node-id*="__pending_"]')
+	).toHaveCount(0);
+});
+
 test('studio vibe profile gives the Assistant the selected project and keeps the live frontend beside it', async ({
 	page
 }) => {

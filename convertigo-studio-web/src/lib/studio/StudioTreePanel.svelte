@@ -15,7 +15,11 @@
 	import { isFolderId } from './folderTypes.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioFileMergeDialog from './StudioFileMergeDialog.svelte';
-	import { applyProjectedTreeMutation, remapExpandedTreeIds } from './studioTreeMutation';
+	import {
+		applyProjectedTreeMutation,
+		remapExpandedTreeIds,
+		removeProjectedTreeNode
+	} from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
 	import {
 		loadTreeDiff,
@@ -649,9 +653,14 @@
 		if (!updatedLocally && targetRoots !== rootChildren) {
 			updatedLocally = applyProjectedTreeMutation(targetRoots, mutation, areEquivalentDboObjectIds);
 		}
+		// the placeholder of a palette drop leaves its parent even when the confirmed object cannot be
+		// placed locally, as in a closed branch whose children are not loaded: the refresh shows it
+		if (mutation.pendingId) {
+			removeProjectedTreeNode(rootChildren, mutation.pendingId, areEquivalentDboObjectIds);
+		}
+		context?.projectPendingParent?.();
 		if (updatedLocally) {
 			context?.projectTargetParent?.();
-			context?.projectPendingParent?.();
 			// Flush the confirmed local projection before beginning the slower
 			// authoritative tree request. This keeps the DnD feedback independent
 			// from virtual-tree reconstruction latency.
