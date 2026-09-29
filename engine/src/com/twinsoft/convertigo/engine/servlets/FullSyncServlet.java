@@ -32,10 +32,12 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +92,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.FullSyncAnonymousReplication;
+import com.twinsoft.convertigo.engine.enums.FullSyncReplicationAccess;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -533,6 +536,9 @@ public class FullSyncServlet extends HttpServlet {
 			if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
 				try {
 					bulkDocsRequest = new JSONObject(requestStringEntity);
+					if (fullSyncConnector != null) {
+						checkBulkDocsOwnership(fsClient, dbName, bulkDocsRequest, fsAuth);
+					}
 					Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, bulkDocsRequest, fsAuth);
 					String newEntity = bulkDocsRequest.toString();
 					if (!newEntity.equals(requestStringEntity)) {
@@ -774,10 +780,46 @@ public class FullSyncServlet extends HttpServlet {
 		}
 	}
 
+	/**
+	 * A public session can only update documents it is allowed to read: the current revision of
+	 * each updated document must pass the document ACL, otherwise the whole request is refused.
+	 */
+	private void checkBulkDocsOwnership(FullSyncClient fsClient, String dbName, JSONObject bulkDocs, FullSyncAuthentication fsAuth) throws Exception {
+		var docs = CouchKey.docs.JSONArray(bulkDocs);
+		if (docs == null) {
+			return;
+		}
+		var ids = new JSONArray();
+		for (int i = 0; i < docs.length(); i++) {
+			var doc = docs.optJSONObject(i);
+			var id = doc == null ? null : doc.optString(CouchKey._id.key(), null);
+			if (id != null && !id.startsWith("_design/") && !id.startsWith("_local/")) {
+				ids.put(id);
+			}
+		}
+		if (ids.length() == 0) {
+			return;
+		}
+		var query = new HashMap<String, String>(1);
+		query.put("include_docs", "true");
+		var rows = CouchKey.rows.JSONArray(fsClient.postAllDocs(dbName, query, ids));
+		for (int i = 0; rows != null && i < rows.length(); i++) {
+			var current = rows.optJSONObject(i) == null ? null : rows.optJSONObject(i).optJSONObject("doc");
+			if (current != null && !Engine.theApp.couchDbManager.checkDocumentACL(current, fsAuth)) {
+				throw new SecurityException("The '" + dbName + "' database refused the update of a document the session cannot access");
+			}
+		}
+	}
+
+	/**
+	 * Returns the most restrictive FullSync connector declaring this database, or null if
+	 * no connector declares it or if one of them keeps it for server-side use only.
+	 */
 	private FullSyncConnector getFullSyncConnector(String dbName) {
 		if (StringUtils.isBlank(dbName)) {
 			return null;
 		}
+		FullSyncConnector result = null;
 		for (var projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
 			try {
 				var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
@@ -785,7 +827,12 @@ public class FullSyncServlet extends HttpServlet {
 					if (connector instanceof FullSyncConnector) {
 						var fullSyncConnector = (FullSyncConnector) connector;
 						if (fullSyncConnector.getDatabaseName().equals(dbName)) {
-							return fullSyncConnector;
+							if (fullSyncConnector.getReplicationAccess() == FullSyncReplicationAccess.deny) {
+								return null;
+							}
+							if (result == null || fullSyncConnector.getAnonymousReplication() != FullSyncAnonymousReplication.allow) {
+								result = fullSyncConnector;
+							}
 						}
 					}
 				}
@@ -793,7 +840,7 @@ public class FullSyncServlet extends HttpServlet {
 				Engine.logCouchDbManager.warn("(FullSyncServlet) Failed to inspect project '" + projectName + "' for a FullSync connector", e);
 			}
 		}
-		return null;
+		return result;
 	}
 
 	private void checkFullSyncAdminRequest(RequestParser requestParser, HttpMethodType method, boolean canWrite) {
@@ -967,10 +1014,14 @@ public class FullSyncServlet extends HttpServlet {
 			if (mPath.matches()) {
 				path = mPath.group(1);
 				special = mPath.group(2);
+				checkSpecialSegment(special);
 				if (special == null) {
 					dbName = mPath.group(3);
 					special = mPath.group(4);
 					docId = mPath.group(5);
+					checkSpecialSegment(special);
+					checkNameSegment(dbName);
+					checkNameSegment(docId);
 					attachment = docId != null && !mPath.group(6).isEmpty();
 					if (!dbName.isEmpty()) {
 						path = path.replaceFirst("/", "/" + prefix);
@@ -978,6 +1029,33 @@ public class FullSyncServlet extends HttpServlet {
 							docPath = "/" + prefix + dbName + "/" + docId;
 						}
 					}
+				}
+			}
+		}
+
+		/**
+		 * Special endpoint names are plain ASCII: an encoded form would not be recognized by the checks
+		 * below while CouchDB decodes it.
+		 */
+		private static void checkSpecialSegment(String segment) {
+			if (segment != null && segment.indexOf('%') != -1) {
+				throw new SecurityException("FullSync request path restriction.");
+			}
+		}
+
+		/**
+		 * A database or document segment must not become a special endpoint once decoded by CouchDB.
+		 */
+		private static void checkNameSegment(String segment) {
+			if (segment != null && !segment.startsWith("_") && segment.indexOf('%') != -1) {
+				String decoded;
+				try {
+					decoded = URLDecoder.decode(segment.replace("+", "%2B"), StandardCharsets.UTF_8);
+				} catch (IllegalArgumentException e) {
+					throw new SecurityException("FullSync request path restriction.");
+				}
+				if (decoded.startsWith("_")) {
+					throw new SecurityException("FullSync request path restriction.");
 				}
 			}
 		}
