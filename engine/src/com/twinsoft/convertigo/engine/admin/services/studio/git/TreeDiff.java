@@ -315,7 +315,7 @@ public class TreeDiff extends JSonService {
 		}
 	}
 
-	private static Document read(File dir) throws Exception {
+	static Document read(File dir) throws Exception {
 		var yaml = new File(dir, "c8oProject.yaml");
 		if (!yaml.exists()) {
 			var empty = XMLUtils.getDefaultDocumentBuilder().newDocument();
@@ -343,6 +343,40 @@ public class TreeDiff extends JSonService {
 		var beans = new LinkedHashMap<String, Bean>();
 		collect(document.getDocumentElement(), null, beans);
 		return beans;
+	}
+
+	/**
+	 * @return the objects a version of a project has twice, by their key, as a step that an operation of Git put
+	 *         in two places
+	 */
+	static java.util.List<String> duplicates(Document document) {
+		var twice = new java.util.ArrayList<String>();
+		duplicates(document.getDocumentElement(), null, new java.util.HashSet<>(), twice);
+		return twice;
+	}
+
+	private static void duplicates(Element element, String parentKey, java.util.Set<String> seen, java.util.List<String> twice) {
+		for (var node = element.getFirstChild(); node != null; node = node.getNextSibling()) {
+			if (!(node instanceof Element child)) {
+				continue;
+			}
+			if (child.hasAttribute("classname") && child.hasAttribute("priority")) {
+				String name = null;
+				for (var prop = child.getFirstChild(); prop != null; prop = prop.getNextSibling()) {
+					if (prop instanceof Element property && "property".equals(property.getTagName()) && "name".equals(property.getAttribute("name"))) {
+						name = value(property);
+					}
+				}
+				var classname = child.getAttribute("classname");
+				var key = key(child.getAttribute("priority"), parentKey, classname, name);
+				if (!seen.add(key)) {
+					twice.add(name + " (" + typeName(classname) + ")");
+				}
+				duplicates(child, key, seen, twice);
+			} else {
+				duplicates(child, parentKey, seen, twice);
+			}
+		}
 	}
 
 	static void collect(Element element, String parentKey, Map<String, Bean> beans) {

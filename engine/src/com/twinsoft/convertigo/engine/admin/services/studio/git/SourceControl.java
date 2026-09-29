@@ -429,6 +429,9 @@ public class SourceControl extends JSonService {
 					pull.setRebase("rebase".equals(mode));
 				}
 				var result = pull.call();
+				if (result.getMergeResult() != null) {
+					response.put("reviewed", TreeMerge.review(git, head, GitOperation.MERGE, null));
+				}
 				var operation = afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
 				if (!result.isSuccessful() && !operation.stopped()) {
@@ -448,6 +451,7 @@ public class SourceControl extends JSonService {
 				var before = snapshot(git);
 				var head = git.getRepository().resolve("HEAD^{commit}");
 				var result = git.merge().include(branch, id).setMessage("Merge branch '" + branch + "'").call();
+				response.put("reviewed", TreeMerge.review(git, head, GitOperation.MERGE, null));
 				var operation = afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
 				if (!result.getMergeStatus().isSuccessful() && !operation.stopped()) {
@@ -518,6 +522,9 @@ public class SourceControl extends JSonService {
 					if (failing != null && failing.getFailingPaths() != null) {
 						error = "The revert would overwrite the changes of " + String.join(", ", failing.getFailingPaths().keySet()) + ": commit or stash them first.";
 					}
+				}
+				if (error == null) {
+					response.put("reviewed", TreeMerge.review(git, head, "cherryPick".equals(action) ? GitOperation.CHERRY_PICK : GitOperation.REVERT, id));
 				}
 				afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
@@ -1002,6 +1009,7 @@ public class SourceControl extends JSonService {
 		var moved = !Objects.equals(headBefore, git.getRepository().resolve("HEAD^{commit}"));
 		var workingDir = git.getRepository().getWorkTree().getCanonicalFile();
 		var reloaded = new JSONArray();
+		var duplicates = new JSONObject();
 		var self = false;
 		for (var entry : snapshot(git).entrySet()) {
 			var name = entry.getKey();
@@ -1017,9 +1025,17 @@ public class SourceControl extends JSonService {
 				continue;
 			} else {
 				reload(name);
+				// objects an operation put in two places, as a step of a rebase moved on both sides
+				var twice = TreeDiff.duplicates(TreeDiff.read(projectDir));
+				if (!twice.isEmpty()) {
+					duplicates.put(name, new JSONArray(twice));
+				}
 			}
 			reloaded.put(name);
 			self |= name.equals(projectName);
+		}
+		if (duplicates.length() > 0) {
+			response.put("duplicates", duplicates);
 		}
 		response.put("reloaded", self);
 		response.put("reloadedProjects", reloaded);

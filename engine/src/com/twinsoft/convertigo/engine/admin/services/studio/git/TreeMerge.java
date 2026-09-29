@@ -37,7 +37,18 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.dircache.DirCacheEntry;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.AndTreeFilter;
+import org.eclipse.jgit.treewalk.filter.OrTreeFilter;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.treewalk.filter.TreeFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -504,12 +515,7 @@ public class TreeMerge extends JSonService {
 	 * index: the merge is ready to commit.
 	 */
 	private static void complete(Git git, String prefix, File projectDir, Document merged, JSONArray fileConflicts, Session session) throws Exception {
-		var shrink = BeansDefaultValues.shrinkProject(merged);
-		YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
-		for (var path : new String[] { prefix + "c8oProject.yaml", prefix + "_c8oProject" }) {
-			git.add().addFilepattern(path).call();
-			git.add().addFilepattern(path).setUpdate(true).call();
-		}
+		write(git, prefix, projectDir, merged);
 		for (var i = 0; i < fileConflicts.length(); i++) {
 			var path = fileConflicts.getJSONObject(i).getString("path");
 			var resolution = session.resolutions.get("file:" + path);
@@ -529,6 +535,190 @@ public class TreeMerge extends JSonService {
 				// the side chosen has no such file
 				git.rm().addFilepattern(path).call();
 			}
+		}
+	}
+
+	/**
+	 * Once Git merged, picked or reverted a commit, the projects both sides changed, which Git merged line by
+	 * line, are merged again object by object: a merge of their lines can be clean where their objects
+	 * conflict, as a step moved on both sides into two blocks, found twice then. The merge of the objects is
+	 * taken; when it has conflicts, the operation stops on them as on the conflicts of Git.
+	 * @param before HEAD before the operation
+	 * @param kind the operation, a merge, a cherry-pick or a revert
+	 * @param picked the commit picked or reverted
+	 * @return the projects merged again, and those stopped on conflicts
+	 */
+	static JSONArray review(Git git, ObjectId before, String kind, ObjectId picked) throws Exception {
+		var reviewed = new JSONArray();
+		var repository = git.getRepository();
+		var head = repository.resolve("HEAD^{commit}");
+		if (before == null || head == null) {
+			return reviewed;
+		}
+		var committed = !head.equals(before);
+		ObjectId base, theirs;
+		RevCommit commit = null;
+		try (var walk = new RevWalk(repository)) {
+			if (committed) {
+				commit = walk.parseCommit(head);
+				if (commit.getParentCount() == 0 || !commit.getParent(0).equals(before)) {
+					// fast-forward
+					return reviewed;
+				}
+				if (GitOperation.MERGE.equals(kind)) {
+					if (commit.getParentCount() != 2) {
+						return reviewed;
+					}
+					theirs = commit.getParent(1);
+					walk.setRevFilter(RevFilter.MERGE_BASE);
+					walk.markStart(walk.parseCommit(before));
+					walk.markStart(walk.parseCommit(theirs));
+					base = walk.next();
+				} else {
+					var p = picked == null ? null : walk.parseCommit(picked);
+					if (p == null || p.getParentCount() == 0) {
+						return reviewed;
+					}
+					base = GitOperation.CHERRY_PICK.equals(kind) ? p.getParent(0) : p;
+					theirs = GitOperation.CHERRY_PICK.equals(kind) ? p : p.getParent(0);
+				}
+			} else {
+				var operation = GitOperation.of(git);
+				if (!kind.equals(operation.kind) || operation.theirs == null) {
+					return reviewed;
+				}
+				base = operation.base;
+				theirs = operation.theirs;
+			}
+		}
+		if (base == null) {
+			return reviewed;
+		}
+		var operation = committed ? null : GitOperation.of(git);
+		var workingDir = repository.getWorkTree().getCanonicalFile();
+		var conflicting = new TreeSet<String>();
+		var rewritten = false;
+		for (var name : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
+			var yaml = Engine.projectYamlFile(name);
+			if (yaml == null || !yaml.exists()) {
+				continue;
+			}
+			var projectDir = yaml.getParentFile().getCanonicalFile();
+			var dir = GitUtils.getWorkingDir(projectDir);
+			if (dir == null || !dir.getCanonicalFile().equals(workingDir)) {
+				continue;
+			}
+			var prefix = projectDir.equals(workingDir) ? ""
+					: workingDir.toPath().relativize(projectDir.toPath()).toString().replace(File.separatorChar, '/') + "/";
+			if (operation != null && operation.conflicts(prefix)) {
+				// merged object by object already
+				continue;
+			}
+			var mine = objectFiles(repository, base, before, prefix);
+			var other = objectFiles(repository, base, theirs, prefix);
+			if (mine.isEmpty() || other.isEmpty()) {
+				continue;
+			}
+			var tmp = Files.createTempDirectory("c8o-treereview").toFile();
+			try {
+				var merge = new Merge(TreeDiff.documentAt(repository, base, prefix, new File(tmp, "base")),
+						TreeDiff.documentAt(repository, before, prefix, new File(tmp, "ours")),
+						TreeDiff.documentAt(repository, theirs, prefix, new File(tmp, "theirs")), new HashMap<>(), new HashMap<>());
+				merge.run();
+				var result = committed ? TreeDiff.documentAt(repository, head, prefix, new File(tmp, "result")) : TreeDiff.read(projectDir);
+				if (merge.conflicts.length() > 0) {
+					var both = new TreeSet<>(mine);
+					both.retainAll(other);
+					conflicting.addAll(both.isEmpty() ? Set.of(prefix + "c8oProject.yaml") : both);
+					reviewed.put(new JSONObject().put("project", name).put("conflicts", merge.conflicts.length()));
+				} else if (!sameProject(merge.merged, result) || !TreeDiff.duplicates(result).isEmpty()) {
+					write(git, prefix, projectDir, merge.merged);
+					rewritten = true;
+					reviewed.put(new JSONObject().put("project", name).put("merged", true));
+				}
+			} finally {
+				FileUtils.deleteQuietly(tmp);
+			}
+		}
+		if (!conflicting.isEmpty()) {
+			if (committed) {
+				// the commit is undone: the operation stops, as Git stops on its conflicts
+				git.reset().setMode(ResetCommand.ResetType.SOFT).setRef(before.name()).call();
+				if (GitOperation.MERGE.equals(kind)) {
+					repository.writeMergeHeads(java.util.List.of(theirs));
+				} else if (GitOperation.CHERRY_PICK.equals(kind)) {
+					repository.writeCherryPickHead(picked);
+				} else {
+					repository.writeRevertHead(picked);
+				}
+				repository.writeMergeCommitMsg(commit.getFullMessage());
+			}
+			markConflicts(repository, conflicting, base, before, theirs);
+		} else if (rewritten && committed) {
+			git.commit().setAmend(true).setMessage(commit.getFullMessage()).setAuthor(commit.getAuthorIdent()).call();
+		}
+		return reviewed;
+	}
+
+	/** @return the files of the objects of a project changed between two commits */
+	private static Set<String> objectFiles(Repository repository, ObjectId from, ObjectId to, String prefix) throws Exception {
+		var paths = new TreeSet<String>();
+		try (var walk = new RevWalk(repository); var tree = new TreeWalk(repository)) {
+			tree.addTree(walk.parseCommit(from).getTree());
+			tree.addTree(walk.parseCommit(to).getTree());
+			tree.setRecursive(true);
+			tree.setFilter(AndTreeFilter.create(
+					OrTreeFilter.create(PathFilter.create(prefix + "c8oProject.yaml"), PathFilter.create(prefix + "_c8oProject")), TreeFilter.ANY_DIFF));
+			while (tree.next()) {
+				paths.add(tree.getPathString());
+			}
+		}
+		return paths;
+	}
+
+	/** puts files in conflict in the index, with their versions of the base, mine and theirs */
+	private static void markConflicts(Repository repository, Set<String> paths, ObjectId base, ObjectId ours, ObjectId theirs) throws Exception {
+		var sides = new ObjectId[] { base, ours, theirs };
+		var trees = new org.eclipse.jgit.revwalk.RevTree[3];
+		try (var walk = new RevWalk(repository)) {
+			for (var i = 0; i < 3; i++) {
+				trees[i] = walk.parseCommit(sides[i]).getTree();
+			}
+		}
+		var cache = repository.lockDirCache();
+		try {
+			var builder = cache.builder();
+			for (var i = 0; i < cache.getEntryCount(); i++) {
+				var entry = cache.getEntry(i);
+				if (!paths.contains(entry.getPathString())) {
+					builder.add(entry);
+				}
+			}
+			for (var path : paths) {
+				for (var stage = 1; stage <= 3; stage++) {
+					try (var tree = TreeWalk.forPath(repository, path, trees[stage - 1])) {
+						if (tree != null) {
+							var entry = new DirCacheEntry(path, stage);
+							entry.setFileMode(tree.getFileMode(0));
+							entry.setObjectId(tree.getObjectId(0));
+							builder.add(entry);
+						}
+					}
+				}
+			}
+			builder.commit();
+		} finally {
+			cache.unlock();
+		}
+	}
+
+	/** writes a version of a project in its files, added to the index */
+	private static void write(Git git, String prefix, File projectDir, Document document) throws Exception {
+		var shrink = BeansDefaultValues.shrinkProject(document);
+		YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
+		for (var path : new String[] { prefix + "c8oProject.yaml", prefix + "_c8oProject" }) {
+			git.add().addFilepattern(path).call();
+			git.add().addFilepattern(path).setUpdate(true).call();
 		}
 	}
 
@@ -775,7 +965,8 @@ public class TreeMerge extends JSonService {
 					}
 					mark(handled, theirs, t);
 				} else if (o == null) {
-					if (!same(base, b, theirs, t)) {
+					// moved by them counts as a change
+					if (!same(base, b, theirs, t) || !Objects.equals(b.parentKey, t.parentKey)) {
 						var resolution = conflict("removed:" + t.key, "removed-by-me", "Removed by me, changed by them", b, t, null, null, null, false);
 						versions("base", base, b, "theirs", theirs, t);
 						if (chose(resolution, "theirs")) {
@@ -797,7 +988,7 @@ public class TreeMerge extends JSonService {
 					// in a branch removed by them, shown by its top
 					continue;
 				}
-				if (same(base, b, ours, o)) {
+				if (same(base, b, ours, o) && Objects.equals(b.parentKey, o.parentKey)) {
 					change("removed", o, null);
 					remove(o.key);
 				} else {
