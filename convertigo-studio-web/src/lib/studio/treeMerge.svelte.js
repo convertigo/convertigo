@@ -72,10 +72,20 @@ export function notifyGitChange(projectName, message) {
 
 /**
  * Warns of the objects an operation of Git left twice in projects, as a step moved on both sides that a
- * rebase put in two places.
+ * rebase put in two places; and tells the projects the Studio merged again object by object, rather than
+ * the lines of their files as Git merged them.
  * @param {any} result the response of the Source control or the TreeMerge service
  */
-export function warnDuplicates(result) {
+export function tellMergedObjects(result) {
+	const merged = (Array.isArray(result?.reviewed) ? result.reviewed : [])
+		.filter((/** @type {any} */ review) => review?.merged)
+		.map((/** @type {any} */ review) => String(review.project));
+	if (merged.length) {
+		toaster.info({
+			title: 'Merged object by object',
+			description: `${merged.join(', ')}: the objects both sides changed are merged one by one, and the references to the objects renamed follow them.`
+		});
+	}
 	const duplicates = result?.duplicates;
 	if (!duplicates || typeof duplicates !== 'object') {
 		return;

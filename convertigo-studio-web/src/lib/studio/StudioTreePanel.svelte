@@ -31,8 +31,8 @@
 		loadTreeMerge,
 		notifyGitChange,
 		resolveAllConflicts,
-		treeMerge,
-		warnDuplicates
+		tellMergedObjects,
+		treeMerge
 	} from './treeMerge.svelte.js';
 	import { treeSelectionOf } from './treeSelection.svelte.js';
 
@@ -234,7 +234,7 @@
 			if (!result || (!result.completed && !result.aborted && !('repository' in result))) {
 				return;
 			}
-			warnDuplicates(result);
+			tellMergedObjects(result);
 			const reloaded = Array.isArray(result.reloadedProjects) ? result.reloadedProjects : [];
 			for (const name of new Set([projectName, ...reloaded])) {
 				await reloadProjectBranches(name);

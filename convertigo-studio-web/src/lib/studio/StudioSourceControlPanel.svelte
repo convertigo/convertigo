@@ -11,7 +11,7 @@
 		describeOperation,
 		gitEvents,
 		notifyGitChange,
-		warnDuplicates
+		tellMergedObjects
 	} from './treeMerge.svelte.js';
 
 	/**
@@ -275,7 +275,7 @@
 			}
 			if (result && 'repository' in result) {
 				status = result;
-				warnDuplicates(result);
+				tellMergedObjects(result);
 				const stopped = result.operation;
 				if (
 					stopped &&
