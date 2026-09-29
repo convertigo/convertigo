@@ -58,6 +58,8 @@ export function elementsOf(doc, classes) {
 /**
  * @typedef {{
  *  onSelect?: (priority: string) => void,
+ *  onDragStart?: (priority: string) => void,
+ *  onDragEnd?: () => void,
  *  onDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void,
  *  canDrop?: () => boolean
  * }} NgxAuthoringHandlers
@@ -236,6 +238,51 @@ export function attachNgxAuthoring(doc, handlers) {
 		}
 	}
 
+	/** @type {Element | null} the component a press in select mode can drag */
+	let pressed = null;
+
+	/**
+	 * In select mode, a component pressed can be dragged elsewhere in the page, as in the application
+	 * editor of the Eclipse Studio: it moves as a drop of the tree.
+	 * @param {MouseEvent} event
+	 */
+	function onMouseDown(event) {
+		if (!selecting || event.button !== 0) {
+			return;
+		}
+		const component = componentOf(event.target, event);
+		if (component) {
+			pressed = component.element;
+			/** @type {any} */ (pressed).draggable = true;
+		}
+	}
+
+	/** @param {DragEvent} event */
+	function onDragStart(event) {
+		const component = pressed ? componentOf(event.target, event) : null;
+		if (!component) {
+			return;
+		}
+		event.stopPropagation();
+		if (event.dataTransfer) {
+			event.dataTransfer.effectAllowed = 'move';
+			event.dataTransfer.setData('text/plain', component.priority);
+		}
+		handlers.onDragStart?.(component.priority);
+	}
+
+	function releasePressed() {
+		if (pressed) {
+			/** @type {any} */ (pressed).draggable = false;
+			pressed = null;
+		}
+	}
+
+	function onDragEnd() {
+		releasePressed();
+		handlers.onDragEnd?.();
+	}
+
 	/**
 	 * A right click selects the component in the tree, as in the application editor of the Eclipse Studio;
 	 * with Alt, the page keeps its own menu.
@@ -260,7 +307,8 @@ export function attachNgxAuthoring(doc, handlers) {
 		}
 		event.preventDefault();
 		if (event.dataTransfer) {
-			event.dataTransfer.dropEffect = 'copy';
+			// a component of the page moves, an object of the palette or of the tree is added
+			event.dataTransfer.dropEffect = event.dataTransfer.effectAllowed === 'move' ? 'move' : 'copy';
 		}
 		const component = componentOf(event.target, event);
 		if (component?.element !== hovered) {
@@ -295,6 +343,10 @@ export function attachNgxAuthoring(doc, handlers) {
 	doc.addEventListener('mousemove', onMove, options);
 	doc.addEventListener('click', onClick, options);
 	doc.addEventListener('contextmenu', onContextMenu, options);
+	doc.addEventListener('mousedown', onMouseDown, options);
+	doc.addEventListener('mouseup', releasePressed, options);
+	doc.addEventListener('dragstart', onDragStart, options);
+	doc.addEventListener('dragend', onDragEnd, options);
 	doc.addEventListener('dragover', onDragOver, options);
 	doc.addEventListener('drop', onDrop, options);
 	doc.addEventListener('dragleave', onDragLeave, options);
@@ -354,6 +406,11 @@ export function attachNgxAuthoring(doc, handlers) {
 			doc.removeEventListener('mousemove', onMove, options);
 			doc.removeEventListener('click', onClick, options);
 			doc.removeEventListener('contextmenu', onContextMenu, options);
+			doc.removeEventListener('mousedown', onMouseDown, options);
+			doc.removeEventListener('mouseup', releasePressed, options);
+			doc.removeEventListener('dragstart', onDragStart, options);
+			doc.removeEventListener('dragend', onDragEnd, options);
+			releasePressed();
 			doc.removeEventListener('dragover', onDragOver, options);
 			doc.removeEventListener('drop', onDrop, options);
 			doc.removeEventListener('dragleave', onDragLeave, options);

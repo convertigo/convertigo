@@ -1251,6 +1251,18 @@
 	}
 
 	/**
+	 * A component of the preview dragged in it moves as a drop of the tree, its object found once dropped.
+	 * @param {string} priority
+	 */
+	function ngxDragStart(priority) {
+		draggedData.set({ type: 'treeData', data: { id: '', priority }, options: {} });
+	}
+
+	function ngxDragEnd() {
+		draggedData.set(undefined);
+	}
+
+	/**
 	 * @returns {boolean} whether a palette item or a tree object is dragged, kept for its drop
 	 */
 	function ngxCanDrop() {
@@ -1270,8 +1282,12 @@
 	async function dropInNgxPreview(request) {
 		const payload = ngxDropPayload;
 		ngxDropPayload = null;
-		const target = payload ? await ngxComponentId(request.priority) : '';
-		if (!target) {
+		if (payload?.type === 'treeData' && !payload.data?.id && payload.data?.priority) {
+			// a component of the preview, dragged in it
+			payload.data.id = await ngxComponentId(payload.data.priority);
+		}
+		const target = payload?.data?.id !== '' ? await ngxComponentId(request.priority) : '';
+		if (!target || target === payload?.data?.id) {
 			return;
 		}
 		let handled = false;
@@ -3456,6 +3472,8 @@
 		onNgxDrop={dropInNgxPreview}
 		onNgxStyleChanges={applyNgxStyleChanges}
 		{ngxCanDrop}
+		onNgxDragStart={ngxDragStart}
+		onNgxDragEnd={ngxDragEnd}
 		activity={buildActivity}
 	/>
 {/snippet}
