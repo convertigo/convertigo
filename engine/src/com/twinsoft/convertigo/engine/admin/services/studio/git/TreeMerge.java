@@ -900,6 +900,141 @@ public class TreeMerge extends JSonService {
 			return best == null ? key : keys.get(best) + key.substring(best.length());
 		}
 
+		/** the properties that refer to an object of a project by its names, as project.sequence */
+		private static final String[] REFERENCES = { "sourceSequence", "sourceTransaction", "sharedcomponent", "stack" };
+
+		/**
+		 * The references of the merged objects to objects of the project, as a sequence a step calls: to an
+		 * object the merge renames or moves, they refer to it as it is then; to an object the merge removes,
+		 * which a side had, it is a conflict.
+		 * @param names the names the merge gives the objects renamed, by their key
+		 */
+		private void mergeReferences(Map<String, String> names) throws Exception {
+			java.util.function.Function<Bean, String> merged = (bean) -> names.getOrDefault(bean.key, bean.name);
+			for (var m : new java.util.ArrayList<>(mb.values())) {
+				for (var name : REFERENCES) {
+					var property = m.properties.get(name);
+					if (property != null && text(property) != null) {
+						mergeReference(m, name, TreeDiff.label(m.classname, name), text(property), merged, (qname) -> {
+							var fixed = (Element) property.cloneNode(true);
+							var value = valueElement(fixed);
+							if (value.hasAttribute("value")) {
+								value.setAttribute("value", qname);
+							} else {
+								value.setTextContent(qname);
+							}
+							setProperty(m, name, fixed);
+						});
+					}
+				}
+				var data = m.properties.get("beanData");
+				if (data != null) {
+					var labels = new HashMap<String, String>();
+					var requestable = TreeDiff.ionValues(TreeDiff.value(data), labels).getOrDefault("requestable", "");
+					if (requestable.startsWith("plain:")) {
+						mergeReference(m, "beanData.requestable", labels.getOrDefault("requestable", "requestable"), requestable.substring("plain:".length()), merged,
+								(qname) -> {
+									try {
+										setIon(m, "requestable", "plain:" + qname);
+									} catch (Exception e) {
+										throw new RuntimeException(e);
+									}
+								});
+					}
+				}
+			}
+		}
+
+		private void mergeReference(Bean m, String property, String label, String qname, java.util.function.Function<Bean, String> merged,
+				java.util.function.Consumer<String> fix) throws Exception {
+			var root = root(mb);
+			if (root == null || qname.isEmpty() || !qname.startsWith(root.name + ".") || resolve(mb, qname, merged) != null) {
+				return;
+			}
+			// broken by a side, in its version, it is as that side left it
+			for (var side : java.util.List.of(ours, theirs)) {
+				if (side.containsKey(m.key) && qname.equals(reference(side, m.key, property)) && resolve(side, qname, (bean) -> bean.name) == null) {
+					return;
+				}
+			}
+			// the object it refers to, on a side that has it
+			Bean target = null;
+			for (var side : java.util.List.of(ours, theirs, base)) {
+				if ((target = resolve(side, qname, (bean) -> bean.name)) != null) {
+					break;
+				}
+			}
+			if (target == null) {
+				// already missing
+				return;
+			}
+			var there = mb.get(target.key);
+			if (there != null) {
+				fix.accept(qname(there, merged));
+				change("modified", ours.containsKey(m.key) ? ours.get(m.key) : m, new JSONArray().put(label));
+				return;
+			}
+			var resolution = conflict("reference:" + m.key + ":" + property, "property", "Refers to " + target.name + ", which the merge removes",
+					ours.containsKey(m.key) ? ours.get(m.key) : m, theirs.get(m.key), property, label, new String[] { reference(base, m.key, property), reference(ours, m.key, property), reference(theirs, m.key, property) }, true);
+			last.put("choices", new JSONArray().put("mine").put("edit"));
+			if (chose(resolution, "edit") && resolution.value() != null && !resolution.value().isBlank()) {
+				fix.accept(resolution.value().strip());
+			}
+		}
+
+		/** @return the reference of an object of a side, or empty */
+		private static String reference(Map<String, Bean> side, String key, String property) throws Exception {
+			var bean = side.get(key);
+			if (bean == null) {
+				return "";
+			}
+			if (property.startsWith("beanData.")) {
+				var ion = TreeDiff.ionValues(TreeDiff.value(bean.properties.get("beanData")), new HashMap<>()).getOrDefault(property.substring("beanData.".length()), "");
+				return ion.startsWith("plain:") ? ion.substring("plain:".length()) : ion;
+			}
+			var text = text(bean.properties.get(property));
+			return text == null ? "" : text;
+		}
+
+		private static Bean root(Map<String, Bean> side) {
+			for (var bean : side.values()) {
+				if (bean.parentKey == null) {
+					return bean;
+				}
+			}
+			return null;
+		}
+
+		/** @return the object of a side that names give, from the project, or null */
+		private static Bean resolve(Map<String, Bean> side, String qname, java.util.function.Function<Bean, String> nameOf) {
+			var parts = qname.split("\\.");
+			var current = root(side);
+			if (current == null || !nameOf.apply(current).equals(parts[0])) {
+				return null;
+			}
+			for (var i = 1; i < parts.length && current != null; i++) {
+				Bean next = null;
+				for (var key : current.children) {
+					var child = side.get(key);
+					if (child != null && nameOf.apply(child).equals(parts[i])) {
+						next = child;
+						break;
+					}
+				}
+				current = next;
+			}
+			return current;
+		}
+
+		/** @return the names of an object of the merged project, from the project */
+		private String qname(Bean bean, java.util.function.Function<Bean, String> nameOf) {
+			var names = new java.util.LinkedList<String>();
+			for (var current = bean; current != null; current = current.parentKey == null ? null : mb.get(current.parentKey)) {
+				names.addFirst(nameOf.apply(current));
+			}
+			return String.join(".", names);
+		}
+
 		/** @return the objects of a side aligned, those renamed shown with their name */
 		private static Map<String, Bean> named(Document aligned, Map<String, String> names) {
 			var beans = TreeDiff.beans(aligned);
@@ -961,6 +1096,11 @@ public class TreeMerge extends JSonService {
 					named.add(new Object[] { m, name });
 				}
 			}
+			var names = new HashMap<String, String>();
+			for (var entry : named) {
+				names.put(((Bean) entry[0]).key, (String) entry[1]);
+			}
+			mergeReferences(names);
 			for (var entry : named) {
 				setName((Bean) entry[0], (String) entry[1]);
 			}
