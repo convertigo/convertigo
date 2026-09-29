@@ -218,6 +218,9 @@
 		Boolean(trimmedAddress) && trimmedAddress !== '#' && trimmedAddress !== iframeUrl
 	);
 	let moreOpen = $state(false);
+	/** the desktop Studio, which opens the developer tools of an application in a window of its own */
+	const desktopStudio =
+		typeof window !== 'undefined' && Boolean(/** @type {any} */ (window).convertigoStudio);
 	let barHeight = $state(0);
 	let deviceGroups = $derived.by(buildDeviceGroups);
 	let selectedDevice = $derived(deviceById(selectedDeviceId));
@@ -950,11 +953,19 @@
 	}
 
 	/**
-	 * Opens the developer tools on the application, as the DevTools button of the Eclipse Studio: the desktop
-	 * Studio inspects the preview, a browser has its own tools.
+	 * Opens the developer tools on the application, as the DevTools button of the Eclipse Studio. The desktop
+	 * Studio opens the page of the application in a window of its own, whose developer tools show its code
+	 * only, with the session data of the preview; with Alt, it inspects the preview in the Studio. A browser
+	 * has its own tools.
+	 * @param {MouseEvent} [event]
 	 */
-	function openDevTools() {
+	function openDevTools(event) {
 		const studio = /** @type {any} */ (window).convertigoStudio;
+		if (studio?.debugApplication && !event?.altKey) {
+			const data = sessionStorage.getItem(SESSION_DATA);
+			studio.debugApplication(currentPageUrl(), data == null ? {} : { [SESSION_DATA]: data });
+			return;
+		}
 		const rect = iframe?.getBoundingClientRect();
 		if (studio?.inspect && rect) {
 			studio.inspect(
@@ -1136,7 +1147,9 @@
 					full={false}
 					icon="mdi:bug-outline"
 					class={[iconButtonClasses, 'studio-preview__wide']}
-					title="Developer tools of the application"
+					title={desktopStudio
+						? 'Developer tools of the application, in a window of its own (Alt: inspect the preview in the Studio)'
+						: 'Developer tools of the application'}
 					ariaLabel="Developer tools"
 					disabled={!iframe}
 					onclick={openDevTools}
@@ -1191,9 +1204,9 @@
 								type="button"
 								role="menuitem"
 								disabled={!iframe}
-								onclick={() => {
+								onclick={(event) => {
 									moreOpen = false;
-									openDevTools();
+									openDevTools(event);
 								}}
 							>
 								<Ico icon="mdi:bug-outline" size={4} />Developer tools
