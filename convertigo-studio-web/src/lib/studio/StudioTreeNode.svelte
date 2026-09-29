@@ -27,6 +27,7 @@
 	import { applyProjectedTreeMutation, removeProjectedTreeNode } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
 	import { nodeDiff, treeDiff } from './treeDiff.svelte.js';
+	import { mergeOfNode } from './treeMerge.svelte.js';
 	import {
 		clearTreeSelection,
 		selectTreeRange,
@@ -144,6 +145,26 @@
 		);
 		return [...own, ...orphans];
 	});
+	/** the merge of the project stopped on conflicts: the conflicts of the object, what came from them */
+	let merge = $derived(mergeOfNode(node?.id ?? ''));
+	let mergeConflicts = $derived((merge && node?.id && merge.conflictsById[node.id]) || []);
+	let mergeChange = $derived(merge && node?.id ? merge.changesById[node.id] : undefined);
+	let mergeUnresolved = $derived(mergeConflicts.filter((conflict) => !conflict.resolution).length);
+	/** the objects the merge adds from them, or asks to restore, shown where they go */
+	let mergeGhosts = $derived.by(() => {
+		if (!merge || !node?.id) {
+			return [];
+		}
+		const childIds = new Set(
+			(Array.isArray(node.children) ? node.children : []).map((child) => child?.id)
+		);
+		return [
+			...(merge.ghosts[node.id] ?? []),
+			...Object.entries(merge.ghosts)
+				.filter(([parentId]) => parentId !== node.id && !childIds.has(parentId))
+				.flatMap(([, items]) => items.filter((item) => item.objectParentId === node.id))
+		];
+	});
 	/** the Git mode shows the changed objects only, and those that hold some */
 	let hiddenByDiff = $derived(
 		Boolean(
@@ -159,7 +180,7 @@
 	let isBranch = $derived.by(() => {
 		dataSerial;
 		revision;
-		return hasExpandableChildren(node) || ghosts.length > 0;
+		return hasExpandableChildren(node) || ghosts.length > 0 || mergeGhosts.length > 0;
 	});
 	let expanded = $derived(
 		Boolean(node?.id && expandedNodeIds ? hasExpandedNodeId(node.id) : localExpanded)
@@ -333,10 +354,9 @@
 	});
 
 	$effect(() => {
-		// the Git mode opens the objects that hold changes, whose children load then
+		// the Git mode and a merge open the objects that hold changes, whose children load then
 		if (
-			treeDiff.enabled &&
-			treeDiff.changedOnly &&
+			((treeDiff.enabled && treeDiff.changedOnly) || merge) &&
 			expanded &&
 			isBranch &&
 			node &&
@@ -1387,7 +1407,43 @@
 							{/if}
 						</span>
 					{/if}
-					{#if change}
+					{#if merge}
+						{#if mergeConflicts.length}
+							<span
+								class={[
+									'studio-tree-node__diff',
+									mergeUnresolved
+										? 'studio-tree-node__diff--conflict'
+										: 'studio-tree-node__diff--resolved'
+								]}
+								title={mergeConflicts
+									.map(
+										(conflict) =>
+											`${conflict.label ?? conflict.description}${conflict.resolution ? `: ${conflict.resolution}` : ''}`
+									)
+									.join('\n')}>{mergeUnresolved ? 'C' : '✓'}</span
+							>
+						{:else if mergeChange}
+							<span
+								class={[
+									'studio-tree-node__diff',
+									`studio-tree-node__diff--${mergeChange.status === 'removed' ? 'removed' : mergeChange.status === 'added' ? 'added' : 'modified'}`
+								]}
+								title="{mergeChange.status === 'removed'
+									? 'Removed'
+									: mergeChange.status === 'moved'
+										? 'Moved'
+										: 'Changed'} by them{mergeChange.properties?.length
+									? `: ${mergeChange.properties.join(', ')}`
+									: ''}">{mergeChange.status === 'removed' ? 'D' : 'M'}</span
+							>
+						{:else if merge.ancestors[node?.id ?? '']}
+							<span
+								class="studio-tree-node__diff-dot studio-tree-node__diff-dot--conflict"
+								title="Holds objects merged"
+							></span>
+						{/if}
+					{:else if change}
 						<span
 							class={['studio-tree-node__diff', `studio-tree-node__diff--${change.status}`]}
 							title={diffTitle(change)}
@@ -1471,7 +1527,7 @@
 			{/if}
 		</div>
 
-		{#if expanded && (children.length || ghosts.length)}
+		{#if expanded && (children.length || ghosts.length || mergeGhosts.length)}
 			<div
 				class="studio-tree-node__children"
 				role="group"
@@ -1508,6 +1564,44 @@
 						{canPasteInto}
 						{onChooseRenameUpdate}
 					/>
+				{/each}
+				{#each mergeGhosts as ghost ('kind' in ghost ? ghost.id : `${ghost.status}:${ghost.key}`)}
+					{@const conflict = 'kind' in ghost}
+					<div
+						class={[
+							'studio-tree-node__row',
+							'studio-tree-node__row--ghost',
+							!conflict && 'studio-tree-node__row--ghost-added'
+						]}
+						role="treeitem"
+						aria-selected="false"
+						style:padding-left={`${(depth + 1) * 0.62 + 0.14}rem`}
+						title={conflict
+							? `${ghost.type ?? 'Object'} ${ghost.name}: ${ghost.description}`
+							: `${ghost.type ?? 'Object'} ${ghost.name}, added by them`}
+					>
+						<span class="studio-tree-node__toggle"></span>
+						<span class="studio-tree-node__content studio-tree-node__content--ghost">
+							<span class="studio-tree-node__icon"
+								><Ico
+									icon={conflict ? 'mdi:alert-circle-outline' : 'mdi:plus-circle-outline'}
+									size={4}
+								/></span
+							>
+							<span class="studio-tree-node__label">{ghost.name}</span>
+							<span class="studio-tree-node__ghost-type">{ghost.type ?? ''}</span>
+							<span
+								class={[
+									'studio-tree-node__diff',
+									conflict
+										? ghost.resolution
+											? 'studio-tree-node__diff--resolved'
+											: 'studio-tree-node__diff--conflict'
+										: 'studio-tree-node__diff--added'
+								]}>{conflict ? (ghost.resolution ? '✓' : 'C') : 'A'}</span
+							>
+						</span>
+					</div>
 				{/each}
 				{#each ghosts as ghost (ghost.id)}
 					<div
@@ -1782,6 +1876,28 @@
 	.studio-tree-node__diff--removed {
 		background: color-mix(in oklab, #d32f2f 20%, transparent);
 		color: light-dark(#c62828, #ef9a9a);
+	}
+
+	.studio-tree-node__diff--conflict {
+		background: color-mix(in oklab, #d32f2f 28%, transparent);
+		color: light-dark(#b71c1c, #ff8a80);
+	}
+
+	.studio-tree-node__diff--resolved {
+		background: color-mix(in oklab, #2e7d32 20%, transparent);
+		color: light-dark(#2e7d32, #81c784);
+	}
+
+	.studio-tree-node__row--ghost-added .studio-tree-node__content--ghost {
+		color: light-dark(#2e7d32, #81c784);
+	}
+
+	.studio-tree-node__row--ghost-added .studio-tree-node__content--ghost .studio-tree-node__label {
+		text-decoration: none;
+	}
+
+	.studio-tree-node__diff-dot--conflict {
+		background: light-dark(#c62828, #ef9a9a);
 	}
 
 	.studio-tree-node__diff-dot {

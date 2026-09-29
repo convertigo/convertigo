@@ -2,7 +2,7 @@
 	import Projects from '$lib/common/Projects.svelte.js';
 	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { call, runStudioContextAction } from '$lib/utils/service';
+	import { call, runStudioContextAction, toaster } from '$lib/utils/service';
 	import { onMount, tick, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { closedProjects, refreshClosedProjects } from './closedProjects.svelte.js';
@@ -24,6 +24,7 @@
 		setTreeDiffRef,
 		treeDiff
 	} from './treeDiff.svelte.js';
+	import { loadTreeMerge, resolveAllConflicts, treeMerge } from './treeMerge.svelte.js';
 	import { treeSelectionOf } from './treeSelection.svelte.js';
 
 	/** the part of the width of the view the column of the comments goes to at most */
@@ -53,7 +54,8 @@
 	 *  onSourceDrop?: (targetId: string, payload: import('./sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>,
 	 *  onTreeAction?: (action: string, nodeId: string, options?: { text?: string }) => void | Promise<void>,
 	 *  canPasteInto?: (nodeId: string) => boolean,
-	 *  onChooseRenameUpdate?: (request: { id: string, objectType: string, oldName: string, newName: string }) => Promise<string | null>
+	 *  onChooseRenameUpdate?: (request: { id: string, objectType: string, oldName: string, newName: string }) => Promise<string | null>,
+	 *  onMergeEnded?: (projectName: string, result: any) => void | Promise<void>
 	 * }}
 	 */
 	let {
@@ -78,7 +80,8 @@
 		onSourceDrop,
 		onTreeAction,
 		canPasteInto,
-		onChooseRenameUpdate
+		onChooseRenameUpdate,
+		onMergeEnded
 	} = $props();
 
 	const { checkChildren, checkNodes } = createProjectTree({
@@ -92,7 +95,7 @@
 	/**
 	 * The branch and the changed files of each project in a Git repository, as the decorations of the
 	 * Eclipse Studio
-	 * @type {Record<string, { branch: string, changes: number, ahead?: number, behind?: number }>}
+	 * @type {Record<string, { project?: string, branch: string, changes: number, ahead?: number, behind?: number, merging?: boolean }>}
 	 */
 	let gitDecorations = $state({});
 	/** @type {ReturnType<typeof setTimeout> | undefined} */
@@ -108,6 +111,65 @@
 				);
 			}
 		}, 800);
+	}
+
+	$effect(() => {
+		// a merge of a project stopped on conflicts, merged object by object in the tree
+		const merging = Object.entries(gitDecorations)
+			.filter(([, decoration]) => decoration?.merging)
+			.map(([name]) => name);
+		untrack(() => {
+			for (const name of merging) {
+				if (!treeMerge.projects[name]) {
+					void loadTreeMerge(name).then(() => {
+						const ids = Object.keys(treeMerge.projects[name]?.ancestors ?? {});
+						keepExpanded(ids);
+					});
+				}
+			}
+			for (const name of Object.keys(treeMerge.projects)) {
+				if (!merging.includes(name)) {
+					delete treeMerge.projects[name];
+				}
+			}
+		});
+	});
+
+	let mergeListOpen = $state(true);
+	let mergeBusy = $state('');
+
+	/**
+	 * Ends the merge of a project: written and ready to commit, or abandoned.
+	 * @param {string} projectName
+	 * @param {'complete' | 'abort'} action
+	 */
+	async function endMerge(projectName, action) {
+		if (
+			action === 'abort' &&
+			!window.confirm(
+				`Abort the merge of ${projectName}? The project and its files are given back as they were before the merge.`
+			)
+		) {
+			return;
+		}
+		mergeBusy = action;
+		try {
+			const result = await loadTreeMerge(projectName, { action });
+			if (result?.completed || result?.aborted) {
+				delete treeMerge.projects[projectName];
+				await reloadProjectBranches(projectName);
+				refreshGitDecorations();
+				toaster[result.completed ? 'success' : 'info']({
+					title: result.completed ? 'Merge ready to commit' : 'Merge aborted',
+					description: result.completed
+						? `The merged objects of ${projectName} are written and added: commit them in the Source control view.`
+						: `${projectName} is back as it was before the merge.`
+				});
+				await onMergeEnded?.(projectName, result);
+			}
+		} finally {
+			mergeBusy = '';
+		}
 	}
 
 	/** the commits the Git mode compares to: the branches of the repository of the project selected */
@@ -696,6 +758,100 @@
 	onpaste={handleTreePaste}
 	{@attach alignComments}
 >
+	{#each Object.entries(treeMerge.projects) as [projectName, merge] (projectName)}
+		<div
+			class="studio-tree-diff studio-tree-merge"
+			role="region"
+			aria-label="Merge of {projectName}"
+		>
+			<div class="studio-tree-merge__head">
+				<Ico icon="mdi:source-merge" size={3.6} />
+				<strong>Merging {merge.theirs || 'a branch'}</strong>
+				<span>into {projectName}</span>
+				<span
+					class={[
+						'studio-tree-merge__count',
+						merge.unresolved ? 'studio-tree-merge__count--open' : 'studio-tree-merge__count--done'
+					]}
+					>{merge.unresolved
+						? `${merge.unresolved} conflict${merge.unresolved > 1 ? 's' : ''}`
+						: 'no conflict left'}</span
+				>
+				<span class="studio-tree-merge__auto">· {merge.changes.length} merged automatically</span>
+				<button
+					type="button"
+					class="studio-tree-diff__button"
+					title={mergeListOpen ? 'Hide the conflicts' : 'Show the conflicts'}
+					aria-label={mergeListOpen ? 'Hide the conflicts' : 'Show the conflicts'}
+					aria-expanded={mergeListOpen}
+					onclick={() => (mergeListOpen = !mergeListOpen)}
+				>
+					<Ico icon={mergeListOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'} size={3.6} />
+				</button>
+			</div>
+			{#if merge.error}
+				<span class="studio-tree-diff__counts--error" title={merge.error}>{merge.error}</span>
+			{/if}
+			{#if mergeListOpen && merge.conflicts.length}
+				<ul class="studio-tree-merge__list">
+					{#each merge.conflicts as conflict (conflict.id)}
+						<li>
+							<button
+								type="button"
+								class="studio-tree-merge__conflict"
+								class:studio-tree-merge__conflict--resolved={Boolean(conflict.resolution)}
+								title={conflict.description}
+								onclick={() => {
+									if (conflict.objectId) {
+										selectedId = conflict.objectId;
+									}
+								}}
+							>
+								<span class="studio-tree-merge__mark">{conflict.resolution ? '✓' : 'C'}</span>
+								<span class="studio-tree-merge__name">{conflict.name}</span>
+								<span class="studio-tree-merge__what"
+									>{conflict.label ?? conflict.description}{conflict.resolution
+										? ` · ${conflict.resolution}`
+										: ''}</span
+								>
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+			<div class="studio-tree-merge__actions">
+				<button
+					type="button"
+					class="studio-tree-merge__action"
+					disabled={!merge.unresolved || Boolean(mergeBusy)}
+					onclick={() => void resolveAllConflicts(projectName, 'mine')}>Keep all mine</button
+				>
+				<button
+					type="button"
+					class="studio-tree-merge__action"
+					disabled={!merge.unresolved || Boolean(mergeBusy)}
+					onclick={() => void resolveAllConflicts(projectName, 'theirs')}>Take all theirs</button
+				>
+				<span class="studio-tree-merge__spacer"></span>
+				<button
+					type="button"
+					class="studio-tree-merge__action"
+					disabled={Boolean(mergeBusy)}
+					onclick={() => void endMerge(projectName, 'abort')}>Abort</button
+				>
+				<button
+					type="button"
+					class="studio-tree-merge__action studio-tree-merge__action--complete"
+					disabled={merge.unresolved > 0 || Boolean(mergeBusy)}
+					title={merge.unresolved
+						? 'Resolve the conflicts first'
+						: 'Write the merged project, ready to commit'}
+					onclick={() => void endMerge(projectName, 'complete')}
+					>{mergeBusy === 'complete' ? 'Completing…' : 'Complete the merge'}</button
+				>
+			</div>
+		</div>
+	{/each}
 	{#if treeDiff.enabled}
 		<div class="studio-tree-diff" role="toolbar" aria-label="Changes since a commit">
 			<Ico icon="mdi:source-branch" size={3.6} />
@@ -815,6 +971,140 @@
 		color: var(--studio-text-idle);
 		padding: 0.35rem 0.55rem;
 		font-size: 0.72rem;
+	}
+
+	/* the merge of a project stopped on conflicts */
+	.studio-tree-merge {
+		display: grid;
+		gap: 0.35rem;
+		border-bottom-color: color-mix(in oklab, #d32f2f 40%, var(--studio-line));
+		background: color-mix(
+			in oklab,
+			#d32f2f 6%,
+			var(--studio-panel-bg, var(--color-surface-50-950))
+		);
+	}
+
+	.studio-tree-merge__head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.3rem;
+		color: var(--studio-text);
+	}
+
+	.studio-tree-merge__head strong {
+		color: var(--studio-text-strong);
+	}
+
+	.studio-tree-merge__count--open {
+		color: light-dark(#c62828, #ef9a9a);
+		font-weight: 700;
+	}
+
+	.studio-tree-merge__count--done {
+		color: light-dark(#2e7d32, #81c784);
+		font-weight: 700;
+	}
+
+	.studio-tree-merge__auto {
+		color: var(--studio-text-idle);
+	}
+
+	.studio-tree-merge__head .studio-tree-diff__button {
+		margin-left: auto;
+	}
+
+	.studio-tree-merge__list {
+		display: grid;
+		max-height: 9rem;
+		overflow: auto;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.studio-tree-merge__conflict {
+		display: flex;
+		width: 100%;
+		min-width: 0;
+		align-items: center;
+		gap: 0.4rem;
+		border: 0;
+		border-radius: 0.3rem;
+		background: transparent;
+		color: var(--studio-text);
+		padding: 0.15rem 0.3rem;
+		text-align: left;
+	}
+
+	.studio-tree-merge__conflict:hover {
+		background: var(--studio-hover-bg);
+	}
+
+	.studio-tree-merge__mark {
+		display: inline-grid;
+		flex: none;
+		width: 1rem;
+		height: 1rem;
+		place-items: center;
+		border-radius: 0.2rem;
+		background: color-mix(in oklab, #d32f2f 28%, transparent);
+		color: light-dark(#b71c1c, #ff8a80);
+		font-size: 0.62rem;
+		font-weight: 800;
+	}
+
+	.studio-tree-merge__conflict--resolved .studio-tree-merge__mark {
+		background: color-mix(in oklab, #2e7d32 20%, transparent);
+		color: light-dark(#2e7d32, #81c784);
+	}
+
+	.studio-tree-merge__name {
+		flex: none;
+		color: var(--studio-text-strong);
+	}
+
+	.studio-tree-merge__what {
+		overflow: hidden;
+		color: var(--studio-text-idle);
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-tree-merge__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3rem;
+	}
+
+	.studio-tree-merge__spacer {
+		flex: 1;
+	}
+
+	.studio-tree-merge__action {
+		height: 1.5rem;
+		border: 1px solid var(--studio-line, var(--color-surface-200-800));
+		border-radius: 0.3rem;
+		background: transparent;
+		color: var(--studio-text-strong);
+		padding: 0 0.5rem;
+		font-size: 0.72rem;
+	}
+
+	.studio-tree-merge__action:not(:disabled):hover {
+		background: var(--studio-hover-bg);
+	}
+
+	.studio-tree-merge__action:disabled {
+		opacity: 0.45;
+	}
+
+	.studio-tree-merge__action--complete:not(:disabled) {
+		border-color: transparent;
+		background: color-mix(in oklab, #2e7d32 26%, transparent);
+		color: light-dark(#1b5e20, #a5d6a7);
+		font-weight: 700;
 	}
 
 	.studio-tree-diff__ref {

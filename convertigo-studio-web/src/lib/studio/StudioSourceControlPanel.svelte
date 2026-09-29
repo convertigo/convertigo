@@ -1,6 +1,6 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
-	import { call } from '$lib/utils/service';
+	import { call, toaster } from '$lib/utils/service';
 	import { untrack } from 'svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import { studioPrompt } from './studioPrompt.svelte.js';
@@ -31,10 +31,11 @@
 	 * @type {{
 	 *  projectName?: string,
 	 *  dirty?: boolean,
-	 *  onPulled?: (projectName: string) => void | Promise<void>
+	 *  onPulled?: (projectName: string) => void | Promise<void>,
+	 *  onMerging?: (projectName: string) => void | Promise<void>
 	 * }}
 	 */
-	let { projectName = '', dirty = false, onPulled } = $props();
+	let { projectName = '', dirty = false, onPulled, onMerging } = $props();
 
 	const STATUS_LETTERS = {
 		added: 'A',
@@ -120,8 +121,16 @@
 			}
 			if (result && 'repository' in result) {
 				status = result;
-				// the project loads again from its files a pull, a checkout or a discard changed
-				if ((action === 'pull' && result.head !== head) || result.reloaded) {
+				if (result.merging) {
+					// a merge stopped on conflicts: the tree merges the objects, the files Git filled with its
+					// markers are not loaded
+					toaster.warning({
+						title: 'Merge stopped on conflicts',
+						description: `Resolve the conflicts of ${name} in the Projects tree, then complete the merge.`
+					});
+					await onMerging?.(name);
+				} else if ((action === 'pull' && result.head !== head) || result.reloaded) {
+					// the project loads again from its files a pull, a checkout or a discard changed
 					await onPulled?.(name);
 				}
 			} else {
@@ -141,6 +150,20 @@
 		await run(action, { paths: JSON.stringify(files.map((file) => file.path)) });
 		if (diffPath && files.some((file) => file.path === diffPath)) {
 			await showDiff(diffPath);
+		}
+	}
+
+	/**
+	 * Merges a branch into the current one, as a pull merges the remote one.
+	 * @param {string} branch
+	 */
+	async function mergeBranch(branch) {
+		if (!confirmUnsaved('merge')) {
+			return;
+		}
+		const result = await run('merge', { branch });
+		if (result && 'repository' in result) {
+			branchesOpen = false;
 		}
 	}
 
@@ -391,33 +414,59 @@
 					<Ico icon="mdi:plus" size={4} /> New branch…
 				</button>
 				{#each branches.local as branch (branch)}
-					<button
-						type="button"
-						role="option"
-						aria-selected={branch === status.branch}
-						class={[
-							'studio-git__branch-item',
-							branch === status.branch && 'studio-git__branch-item--current'
-						]}
-						disabled={branch === status.branch || Boolean(busy)}
-						onclick={() => checkout(branch)}
-					>
-						<Ico icon="mdi:source-branch" size={4} />
-						{branch}
-					</button>
+					<div class="studio-git__branch-row">
+						<button
+							type="button"
+							role="option"
+							aria-selected={branch === status.branch}
+							class={[
+								'studio-git__branch-item',
+								branch === status.branch && 'studio-git__branch-item--current'
+							]}
+							disabled={branch === status.branch || Boolean(busy)}
+							onclick={() => checkout(branch)}
+						>
+							<Ico icon="mdi:source-branch" size={4} />
+							{branch}
+						</button>
+						{#if branch !== status.branch}
+							<button
+								type="button"
+								class="studio-git__branch-merge"
+								title="Merge {branch} into {status.branch}"
+								aria-label="Merge {branch} into {status.branch}"
+								disabled={Boolean(busy)}
+								onclick={() => mergeBranch(branch)}
+							>
+								<Ico icon="mdi:source-merge" size={4} />
+							</button>
+						{/if}
+					</div>
 				{/each}
 				{#each branches.remote as branch (branch)}
-					<button
-						type="button"
-						role="option"
-						aria-selected="false"
-						class="studio-git__branch-item studio-git__branch-item--remote"
-						disabled={Boolean(busy)}
-						onclick={() => checkout(branch)}
-					>
-						<Ico icon="mdi:cloud-outline" size={4} />
-						{branch}
-					</button>
+					<div class="studio-git__branch-row">
+						<button
+							type="button"
+							role="option"
+							aria-selected="false"
+							class="studio-git__branch-item studio-git__branch-item--remote"
+							disabled={Boolean(busy)}
+							onclick={() => checkout(branch)}
+						>
+							<Ico icon="mdi:cloud-outline" size={4} />
+							{branch}
+						</button>
+						<button
+							type="button"
+							class="studio-git__branch-merge"
+							title="Merge {branch} into {status.branch}"
+							aria-label="Merge {branch} into {status.branch}"
+							disabled={Boolean(busy)}
+							onclick={() => mergeBranch(branch)}
+						>
+							<Ico icon="mdi:source-merge" size={4} />
+						</button>
+					</div>
 				{/each}
 			</div>
 		{/if}
@@ -766,6 +815,32 @@
 	}
 
 	.studio-git__status--deleted,
+	.studio-git__branch-row {
+		display: flex;
+		align-items: stretch;
+	}
+
+	.studio-git__branch-row .studio-git__branch-item {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.studio-git__branch-merge {
+		display: inline-grid;
+		flex: none;
+		width: 1.8rem;
+		place-items: center;
+		border: 0;
+		border-radius: 0.3rem;
+		background: transparent;
+		color: var(--studio-text-idle);
+	}
+
+	.studio-git__branch-merge:not(:disabled):hover {
+		background: var(--studio-hover-bg);
+		color: var(--studio-text-strong);
+	}
+
 	.studio-git__status--conflicting {
 		color: var(--color-error-600-400);
 	}

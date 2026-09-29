@@ -3445,6 +3445,11 @@
 	<StudioSourceControlPanel
 		projectName={selectedProjectName}
 		dirty={selectedProjectDirty}
+		onMerging={() => {
+			// the tree shows the merge stopped on conflicts
+			treeRefreshSerial += 1;
+			dock?.show('projects');
+		}}
 		onPulled={async (name) => {
 			// the files changed on disk: the project is loaded again
 			await call('projects.Reload', { projectName: name });

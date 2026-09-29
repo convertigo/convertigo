@@ -159,6 +159,7 @@
 	import MdiPlay from '~icons/mdi/play';
 	import MdiPlayCircleOutline from '~icons/mdi/play-circle-outline';
 	import MdiPlus from '~icons/mdi/plus';
+	import MdiPlusCircleOutline from '~icons/mdi/plus-circle-outline';
 	import MdiPowerPlug from '~icons/mdi/power-plug';
 	import MdiQrcode from '~icons/mdi/qrcode';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline';
@@ -176,6 +177,7 @@
 	import MdiShareVariantOutline from '~icons/mdi/share-variant-outline';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
 	import MdiSourceBranch from '~icons/mdi/source-branch';
+	import MdiSourceMerge from '~icons/mdi/source-merge';
 	import MdiSourcePull from '~icons/mdi/source-pull';
 	import MdiStar from '~icons/mdi/star';
 	import MdiStarOutline from '~icons/mdi/star-outline';
@@ -290,6 +292,8 @@
 		'mdi:tablet': MdiTablet,
 		'mdi:format-list-bulleted': MdiFormatListBulleted,
 		'mdi:file-compare': MdiFileCompare,
+		'mdi:source-merge': MdiSourceMerge,
+		'mdi:plus-circle-outline': MdiPlusCircleOutline,
 		'mdi:dots-vertical': MdiDotsVertical,
 		'mdi:download-lock-outline': MdiDownloadLockOutline,
 		'mdi:download-off-outline': MdiDownloadOffOutline,

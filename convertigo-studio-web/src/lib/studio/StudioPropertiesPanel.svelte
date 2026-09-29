@@ -36,6 +36,7 @@
 	import StudioSourcePickerPanel from './StudioSourcePickerPanel.svelte';
 	import StudioTableProperty from './StudioTableProperty.svelte';
 	import { nodeDiff, revertTreeProperty, treeDiff } from './treeDiff.svelte.js';
+	import { mergeOfNode, resolveConflict } from './treeMerge.svelte.js';
 	import { treeSelectionOf } from './treeSelection.svelte.js';
 
 	/**
@@ -74,6 +75,32 @@
 	/** the changes of the object since the commit of the Git mode of the tree */
 	let diffChange = $derived(selectedId ? nodeDiff(selectedId).change : undefined);
 	let revertingProperty = $state('');
+	/** the merge of the project stopped on conflicts: the conflicts of the object and what came from them */
+	let merge = $derived(selectedId ? mergeOfNode(selectedId) : undefined);
+	let mergeConflicts = $derived((merge && merge.conflictsById[selectedId]) || []);
+	let mergeChange = $derived(merge ? merge.changesById[selectedId] : undefined);
+	/** the value typed for a conflict resolved by an edit */
+	let mergeEdits = $state(/** @type {Record<string, string>} */ ({}));
+	let mergeEditing = $state('');
+
+	/**
+	 * @param {import('./treeMerge.svelte.js').MergeConflict} conflict
+	 * @param {string} choice
+	 * @param {string} [value]
+	 */
+	function resolve(conflict, choice, value) {
+		const projectName = String(selectedId).match(/^[^.:/~]+/)?.[0] ?? '';
+		mergeEditing = '';
+		return resolveConflict(projectName, conflict.id, choice, value);
+	}
+
+	/** @type {Record<string, string>} */
+	const CHOICE_LABELS = {
+		mine: 'Keep mine',
+		theirs: 'Take theirs',
+		both: 'Keep both',
+		edit: 'Edit…'
+	};
 
 	/**
 	 * Gives back the value of a property at the commit, as a change of the Studio.
@@ -842,6 +869,101 @@
 		{#if !selectedId}
 			<StudioEmptyState message="No object selected" icon="mdi:cursor-default-click-outline" />
 		{:else}
+			{#if mergeConflicts.length || mergeChange}
+				<section class="studio-properties__merge" aria-label="Merge of {merge?.theirs}">
+					<header class="studio-properties__merge-title">
+						<Ico icon="mdi:source-merge" size={3.6} />
+						{mergeConflicts.length
+							? `Merge conflict${mergeConflicts.length > 1 ? 's' : ''} with ${merge?.theirs}`
+							: `Merged from ${merge?.theirs}`}
+					</header>
+					{#each mergeConflicts as conflict (conflict.id)}
+						<div class="studio-properties__merge-conflict">
+							<div class="studio-properties__merge-what">
+								<strong>{conflict.label ?? conflict.description}</strong>
+								{#if conflict.label}<span>{conflict.description}</span>{/if}
+							</div>
+							{#if conflict.kind === 'property'}
+								<dl class="studio-properties__merge-values">
+									<dt>base</dt>
+									<dd>{conflict.base || '—'}</dd>
+									<dt>mine</dt>
+									<dd class:studio-properties__merge-chosen={conflict.resolution === 'mine'}>
+										{conflict.mine || '—'}
+									</dd>
+									<dt>theirs</dt>
+									<dd class:studio-properties__merge-chosen={conflict.resolution === 'theirs'}>
+										{conflict.theirs || '—'}
+									</dd>
+									{#if conflict.resolution === 'edit'}
+										<dt>edited</dt>
+										<dd class="studio-properties__merge-chosen">{conflict.value}</dd>
+									{/if}
+								</dl>
+							{/if}
+							{#if mergeEditing === conflict.id}
+								<form
+									class="studio-properties__merge-edit"
+									onsubmit={(event) => {
+										event.preventDefault();
+										void resolve(conflict, 'edit', mergeEdits[conflict.id] ?? '');
+									}}
+								>
+									<input
+										aria-label="Value of {conflict.label}"
+										bind:value={mergeEdits[conflict.id]}
+									/>
+									<button type="submit" class="studio-properties__merge-choice">Apply</button>
+									<button
+										type="button"
+										class="studio-properties__merge-choice"
+										onclick={() => (mergeEditing = '')}>Cancel</button
+									>
+								</form>
+							{:else}
+								<div class="studio-properties__merge-choices">
+									{#each conflict.choices as choice (choice)}
+										<button
+											type="button"
+											class="studio-properties__merge-choice"
+											class:studio-properties__merge-choice--chosen={conflict.resolution === choice}
+											aria-pressed={conflict.resolution === choice}
+											onclick={() => {
+												if (choice === 'edit') {
+													mergeEdits[conflict.id] = conflict.value ?? conflict.mine ?? '';
+													mergeEditing = conflict.id;
+												} else {
+													void resolve(conflict, choice);
+												}
+											}}>{CHOICE_LABELS[choice] ?? choice}</button
+										>
+									{/each}
+									{#if conflict.resolution}
+										<button
+											type="button"
+											class="studio-properties__merge-choice studio-properties__merge-choice--clear"
+											title="Choose again"
+											aria-label="Choose again"
+											onclick={() => void resolve(conflict, 'clear')}
+										>
+											<Ico icon="mdi:undo" size={3.4} />
+										</button>
+									{/if}
+								</div>
+							{/if}
+						</div>
+					{/each}
+					{#if mergeChange}
+						<p class="studio-properties__merge-from">
+							{mergeChange.status === 'removed'
+								? 'Removed by them: the merge removes it'
+								: mergeChange.status === 'moved'
+									? 'Moved by them'
+									: `Changed by them, taken: ${mergeChange.properties?.join(', ') ?? ''}`}
+						</p>
+					{/if}
+				</section>
+			{/if}
 			{#if diffChange}
 				<section class="studio-properties__diff" aria-label="Changes since {treeDiff.ref}">
 					<header class="studio-properties__diff-title">
@@ -1302,6 +1424,118 @@
 	.studio-properties {
 		height: 100%;
 		min-height: 0;
+	}
+
+	/* the conflicts of the object in a merge stopped on them */
+	.studio-properties__merge {
+		display: grid;
+		gap: 0.45rem;
+		margin: 0.4rem 0.5rem 0.6rem;
+		border: 1px solid color-mix(in oklab, #d32f2f 40%, transparent);
+		border-radius: 0.45rem;
+		background: color-mix(in oklab, #d32f2f 7%, transparent);
+		padding: 0.5rem 0.65rem;
+		font-size: 0.76rem;
+	}
+
+	.studio-properties__merge-title {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		color: light-dark(#b71c1c, #ff8a80);
+		font-weight: 700;
+	}
+
+	.studio-properties__merge-conflict {
+		display: grid;
+		gap: 0.35rem;
+		border-top: 1px solid color-mix(in oklab, #d32f2f 18%, transparent);
+		padding-top: 0.4rem;
+	}
+
+	.studio-properties__merge-what {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.4rem;
+	}
+
+	.studio-properties__merge-what span {
+		color: var(--studio-text-idle);
+		font-size: 0.7rem;
+	}
+
+	.studio-properties__merge-values {
+		display: grid;
+		grid-template-columns: 3.4rem minmax(0, 1fr);
+		gap: 0.15rem 0.5rem;
+		margin: 0;
+	}
+
+	.studio-properties__merge-values dt {
+		color: var(--studio-text-idle);
+	}
+
+	.studio-properties__merge-values dd {
+		margin: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.studio-properties__merge-chosen {
+		color: light-dark(#2e7d32, #81c784);
+		font-weight: 600;
+	}
+
+	.studio-properties__merge-choices,
+	.studio-properties__merge-edit {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3rem;
+	}
+
+	.studio-properties__merge-edit input {
+		flex: 1;
+		min-width: 8rem;
+		height: 1.6rem;
+		border: 1px solid var(--studio-line, var(--color-surface-200-800));
+		border-radius: 0.3rem;
+		background: var(--studio-main-bg, transparent);
+		color: var(--studio-text-strong);
+		padding: 0 0.4rem;
+		font-size: 0.74rem;
+	}
+
+	.studio-properties__merge-choice {
+		height: 1.6rem;
+		border: 1px solid var(--studio-line, var(--color-surface-200-800));
+		border-radius: 0.3rem;
+		background: transparent;
+		color: var(--studio-text-strong);
+		padding: 0 0.5rem;
+		font-size: 0.72rem;
+	}
+
+	.studio-properties__merge-choice:hover {
+		background: var(--studio-hover-bg);
+	}
+
+	.studio-properties__merge-choice--chosen {
+		border-color: transparent;
+		background: color-mix(in oklab, #2e7d32 24%, transparent);
+		color: light-dark(#1b5e20, #a5d6a7);
+		font-weight: 700;
+	}
+
+	.studio-properties__merge-choice--clear {
+		display: inline-grid;
+		width: 1.6rem;
+		place-items: center;
+		padding: 0;
+	}
+
+	.studio-properties__merge-from {
+		margin: 0;
+		color: var(--studio-text-idle);
 	}
 
 	/* the changes of the object since the commit of the Git mode */
