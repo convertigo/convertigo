@@ -1377,6 +1377,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 			throw new EngineException("The state of the project " + projectName + " is empty.");
 		}
 		projectElement.setAttribute("version", rootElement.getAttribute("beans"));
+		// the application builder the web Studio initialized, which an engine without the Eclipse Studio
+		// neither releases nor initializes with the project: the restored state generates its sources again
+		Project previous = getCachedProject(projectName);
+		boolean builderInitialized = previous != null && previous.isMobileBuilderInitialized();
+		if (builderInitialized && !Engine.isStudioMode()) {
+			MobileBuilder.releaseBuilder(previous, true);
+		}
 		clearCache(projectName);
 		ProjectLoadingData[] loadingData = {null};
 		Project project = lockAndRun(projectName, (lock) -> {
@@ -1395,7 +1402,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 		getStudioProjects().projectLoaded(project);
 		RestApiManager.getInstance().putUrlMapper(project);
-		MobileBuilder.initBuilder(project);
+		MobileBuilder.initBuilder(project, builderInitialized);
 		if (loadingData[0].afterLoaded != null) {
 			for (var run: loadingData[0].afterLoaded) {
 				run.run();

@@ -79,6 +79,17 @@ public class History extends JSonService {
 			this.project = new WeakReference<>(project);
 		}
 
+		/**
+		 * The project restored in the state of the top of the history, whose export is the one the next
+		 * changes are compared to: a loaded project and a restored one write some values differently, as
+		 * the data of the NGX components.
+		 */
+		private void restored(Project project) throws Exception {
+			this.project = new WeakReference<>(project);
+			undo.pop();
+			undo.push(export(project));
+		}
+
 		private boolean push(State state) {
 			var top = undo.peek();
 			if (top != null && top.hash.equals(state.hash)) {
@@ -138,7 +149,7 @@ public class History extends JSonService {
 				if (history.undo.size() > 1) {
 					history.redo.push(history.undo.pop());
 					project = restore(projectName, history.undo.peek());
-					history.project = new WeakReference<>(project);
+					history.restored(project);
 					done = true;
 				}
 				break;
@@ -149,7 +160,7 @@ public class History extends JSonService {
 					var state = history.redo.pop();
 					history.undo.push(state);
 					project = restore(projectName, state);
-					history.project = new WeakReference<>(project);
+					history.restored(project);
 					done = true;
 				}
 				break;

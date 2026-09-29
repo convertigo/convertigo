@@ -269,7 +269,11 @@ public class CarUtils {
 					Element parentElement = this.parentElement;
 					
 					Element element = parentElement;
-					element = databaseObject.toXml(document);
+					// the object is held by a serialization with options, as the properties the web Studio shows:
+					// the export waits for it instead of taking its options
+					synchronized (databaseObject) {
+						element = databaseObject.toXml(document);
+					}
 					String name = " : " + databaseObject.getName();
 					try {
 						name = CachedIntrospector.getBeanInfo(databaseObject.getClass()).getBeanDescriptor().getDisplayName() + name;
