@@ -30,10 +30,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -115,6 +117,8 @@ public class ZipUtils {
 			ftmp.mkdirs();
 			Engine.logEngine.debug("Root directory created");
 		}
+		var extractionRoot = ftmp.getCanonicalFile().toPath();
+		Set<File> directories = new HashSet<>();
 		
 		if (prefixDir != null && !prefixDir.endsWith("/")) {
 			prefixDir = prefixDir + "/";
@@ -147,21 +151,26 @@ public class ZipUtils {
 
 								// Reject entries that would be written outside the
 								// extraction root.
-								File extractionRoot = new File(rootDir).getCanonicalFile();
-								if (!file.getCanonicalFile().toPath().startsWith(extractionRoot.toPath())) {
+								if (!file.getCanonicalFile().toPath().startsWith(extractionRoot)) {
 									Engine.logEngine.warn("Skipping ZIP entry outside the target directory: " + entryName);
 									continue;
 								}
 
 								// Creating the directory if needed
 								ftmp = file.getParentFile();
-								if (!ftmp.exists()) {
-									ftmp.mkdirs();
-									Engine.logEngine.debug("  Directory created");
+								if (!directories.contains(ftmp)) {
+									if (!ftmp.exists()) {
+										ftmp.mkdirs();
+										Engine.logEngine.debug("  Directory created");
+									}
+									if (ftmp.isDirectory()) {
+										directories.add(ftmp);
+									}
 								}
 								
 								// Writing the files to the disk
-								FileOutputStream fos = new FileOutputStream(file);
+								// Inflater reads can be short; batch writes to shared filesystems.
+								BufferedOutputStream fos = new BufferedOutputStream(new FileOutputStream(file), 64 * 1024);
 								try {
 									IOUtils.copy(zis, fos);
 								} finally {
@@ -182,28 +191,27 @@ public class ZipUtils {
 	}
     
     
- 	/*** Added by julienda - 08/09/2012
- 	 * Return the project name by reading the first directory into the archive (.car)
- 	 * @param path: the archive path
- 	 * @return filename: the project name
- 	 * @throws IOException */
-     public static String getProjectName(String path) throws IOException {
- 		Engine.logEngine.trace("PATH: " + path);
- 		
- 		ZipInputStream zis = new ZipInputStream(new FileInputStream(path));
- 	    ZipEntry ze = null;
- 	    Matcher matcher = reProjectFromCAR.matcher("");
- 	    try {
- 	        while(!matcher.matches() && (ze = zis.getNextEntry()) != null) {
- 	        	matcher.reset(ze.getName());
- 	        }
- 	    }
- 	    finally {
- 	        zis.close();
- 	    }
- 	    return matcher.group(1);
- 	}
- 	
+	/**
+	 * Returns the name of the first project descriptor in the archive's entry index.
+	 * @param path the archive path
+	 * @return the project name
+	 * @throws IOException if the archive cannot be read or contains no project descriptor
+	 */
+	public static String getProjectName(String path) throws IOException {
+		Engine.logEngine.trace("PATH: " + path);
+		// Only entry names are needed: don't inflate the files preceding the descriptor.
+		try (ZipFile zip = new ZipFile(path)) {
+			Matcher matcher = reProjectFromCAR.matcher("");
+			var entries = zip.entries();
+			while (entries.hasMoreElements()) {
+				if (matcher.reset(entries.nextElement().getName()).matches()) {
+					return matcher.group(1);
+				}
+			}
+		}
+		throw new IOException("No project descriptor found in archive: " + path);
+	}
+
  	/*** Added by julienda - 10/09/2012
  	 * Return the archive name corresponding of the project name
  	 * @param supposedProject: the (supposed) project

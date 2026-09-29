@@ -595,9 +595,6 @@ public class BeansDefaultValues {
 			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(DBO_XMLPATH)) {
 				beansDoc = XMLUtils.getDefaultDocumentBuilder().parse(is);
 			}
-			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(MOBILE_JSONPATH)) {
-				mobile_ionObjects = new JSONObject(IOUtils.toString(is, "UTF-8"));
-			}
 			beans = beansDoc.getDocumentElement();
 		}
 
@@ -611,6 +608,11 @@ public class BeansDefaultValues {
 				} catch (Exception e) {
 					// could not read from *_objects.json files
 					throw new EngineException("Unable to read ion objects from files", e);
+				}
+			}
+			if (mobile_ionObjects == null) {
+				try (InputStream is = BeansDefaultValues.class.getResourceAsStream(MOBILE_JSONPATH)) {
+					mobile_ionObjects = new JSONObject(IOUtils.toString(is, "UTF-8"));
 				}
 			}
 			return mobile_ionObjects;

@@ -37,6 +37,17 @@ tasks.named('check') {
 	dependsOn 'projectArchiveTest'
 	dependsOn 'ionBeanTest'
 	dependsOn 'mdcLifecycleTest'
+	dependsOn 'workspaceLoadingTest'
+}
+
+tasks.register('workspaceLoadingTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for project loading and archive metadata.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.ZipUtilsTest',
+		'com.twinsoft.convertigo.engine.ReferencedProjectManagerTest'
 }
 
 tasks.register('mdcLifecycleTest', JavaExec) {
