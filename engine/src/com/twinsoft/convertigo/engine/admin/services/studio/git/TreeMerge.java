@@ -544,14 +544,213 @@ public class TreeMerge extends JSonService {
 		/** the last conflict added, to which its versions are given */
 		JSONObject last;
 
+		/** the names of the objects renamed on each side, by their key in the base */
+		final Map<String, String> oursNames = new HashMap<>(), theirsNames = new HashMap<>();
+
 		Merge(Document base, Document ours, Document theirs, Map<String, Resolution> resolutions, Map<String, DatabaseObject> live) {
 			this.base = TreeDiff.beans(base);
-			this.ours = TreeDiff.beans(ours);
-			this.theirs = TreeDiff.beans(theirs);
-			this.merged = (Document) ours.cloneNode(true);
+			// the objects renamed, as a sequence or a connector, whose key is made of their name, merge with
+			// the object of the base under its name: they are given their name at the end
+			var oursKeys = new HashMap<String, String>();
+			var alignedOurs = align(ours, oursNames, oursKeys);
+			this.ours = named(alignedOurs, oursNames);
+			this.theirs = named(align(theirs, theirsNames, new HashMap<>()), theirsNames);
+			this.merged = (Document) alignedOurs.cloneNode(true);
 			this.mb = TreeDiff.beans(merged);
 			this.resolutions = resolutions;
-			this.live = live;
+			this.live = new HashMap<>();
+			live.forEach((key, dbo) -> this.live.putIfAbsent(aligned(oursKeys, key), dbo));
+		}
+
+		/**
+		 * @return a copy of a side whose objects renamed have the name they have in the base
+		 * @param names the names they have on the side, by their key in the base
+		 * @param keys their keys in the base, by their keys on the side
+		 */
+		private Document align(Document side, Map<String, String> names, Map<String, String> keys) {
+			var copy = (Document) side.cloneNode(true);
+			var beans = TreeDiff.beans(copy);
+			for (var bean : new java.util.ArrayList<>(beans.values())) {
+				if (bean.parentKey == null) {
+					align(beans, bean, bean.key, names, keys);
+				}
+			}
+			return copy;
+		}
+
+		/**
+		 * Finds the children of an object of a side renamed: one added there and one of the base missing there,
+		 * of the same type, under the same object, with children in common, or none on both sides and the
+		 * same properties.
+		 * @param aligned the key of the object in the base, when it has one
+		 */
+		private void align(Map<String, Bean> side, Bean s, String aligned, Map<String, String> names, Map<String, String> keys) {
+			var b = base.get(aligned);
+			var alignedKeys = new HashMap<String, String>();
+			var added = new java.util.ArrayList<Bean>();
+			for (var key : s.children) {
+				var c = side.get(key);
+				if (c == null) {
+					continue;
+				}
+				var a = byPriority(key) ? key : aligned + "/" + c.classname + ":" + c.name;
+				alignedKeys.put(key, a);
+				if (!byPriority(key) && !base.containsKey(a)) {
+					added.add(c);
+				}
+			}
+			if (b != null && !added.isEmpty()) {
+				var present = new HashSet<>(alignedKeys.values());
+				var missing = new java.util.ArrayList<Bean>();
+				for (var key : b.children) {
+					if (!byPriority(key) && !present.contains(key) && base.containsKey(key)) {
+						missing.add(base.get(key));
+					}
+				}
+				while (!added.isEmpty() && !missing.isEmpty()) {
+					Bean[] best = null;
+					var score = -1;
+					for (var c : added) {
+						for (var m : missing) {
+							var common = c.classname.equals(m.classname) ? common(side, c, m) : -1;
+							if (common > score && renamed(side, c, m, common)) {
+								best = new Bean[] { c, m };
+								score = common;
+							}
+						}
+					}
+					if (best == null) {
+						break;
+					}
+					var c = best[0];
+					var m = best[1];
+					added.remove(c);
+					missing.remove(m);
+					names.put(m.key, c.name);
+					keys.put(c.key, m.key);
+					alignedKeys.put(c.key, m.key);
+					setName(c, m.name);
+				}
+			}
+			for (var key : s.children) {
+				var c = side.get(key);
+				if (c != null) {
+					align(side, c, alignedKeys.get(key), names, keys);
+				}
+			}
+		}
+
+		/** @return the children an object of a side has in common with an object of the base, as its children */
+		private int common(Map<String, Bean> side, Bean c, Bean m) {
+			var count = 0;
+			for (var key : c.children) {
+				var child = side.get(key);
+				if (child != null && m.children.contains(byPriority(key) ? key : m.key + "/" + child.classname + ":" + child.name)) {
+					count++;
+				}
+			}
+			return count;
+		}
+
+		private boolean renamed(Map<String, Bean> side, Bean c, Bean m, int common) {
+			if (c.children.isEmpty() && m.children.isEmpty()) {
+				var names = new TreeSet<String>();
+				names.addAll(c.properties.keySet());
+				names.addAll(m.properties.keySet());
+				names.remove("name");
+				for (var name : names) {
+					if (!TreeDiff.canonical(c.properties.get(name)).equals(TreeDiff.canonical(m.properties.get(name)))) {
+						return false;
+					}
+				}
+				return true;
+			}
+			return common > 0 && common * 2 >= Math.min(c.children.size(), m.children.size());
+		}
+
+		/** @return whether a key is that of an object by its priority, not by its path */
+		private static boolean byPriority(String key) {
+			return key.startsWith("p:") && key.indexOf('/') < 0;
+		}
+
+		/** @return the key in the base of a key of a side, its objects renamed there given their key in the base */
+		private static String aligned(Map<String, String> keys, String key) {
+			String best = null;
+			for (var k : keys.keySet()) {
+				if ((key.equals(k) || key.startsWith(k + "/")) && (best == null || k.length() > best.length())) {
+					best = k;
+				}
+			}
+			return best == null ? key : keys.get(best) + key.substring(best.length());
+		}
+
+		/** @return the objects of a side aligned, those renamed shown with their name */
+		private static Map<String, Bean> named(Document aligned, Map<String, String> names) {
+			var beans = TreeDiff.beans(aligned);
+			names.forEach((key, name) -> {
+				var bean = beans.get(key);
+				if (bean != null) {
+					bean.name = name;
+				}
+			});
+			return beans;
+		}
+
+		private static void setName(Bean bean, String name) {
+			var value = valueElement(bean.properties.get("name"));
+			if (value == null) {
+				return;
+			}
+			if (value.hasAttribute("value")) {
+				value.setAttribute("value", name);
+			} else {
+				value.setTextContent(name);
+			}
+		}
+
+		/**
+		 * Gives the objects renamed their name: renamed by them only, theirs; on both sides differently, or
+		 * with the name of another object of the same parent, it is a conflict.
+		 */
+		private void mergeNames() throws Exception {
+			var keys = new TreeSet<String>();
+			keys.addAll(oursNames.keySet());
+			keys.addAll(theirsNames.keySet());
+			var named = new java.util.ArrayList<Object[]>();
+			for (var key : keys) {
+				var m = mb.get(key);
+				var b = base.get(key);
+				if (m == null || b == null) {
+					continue;
+				}
+				var mine = oursNames.getOrDefault(key, b.name);
+				var other = theirsNames.getOrDefault(key, b.name);
+				var name = other.equals(b.name) ? mine : mine.equals(b.name) ? other : null;
+				var parent = mb.get(m.parentKey);
+				var taken = false;
+				if (name != null && parent != null && !name.equals(b.name)) {
+					for (var sibling : parent.children) {
+						var o = mb.get(sibling);
+						taken |= o != null && !sibling.equals(key) && o.classname.equals(m.classname) && name.equals(o.name);
+					}
+				}
+				if (name == null || taken) {
+					var resolution = conflict("rename:" + key, "property", name == null ? "Renamed on both sides" : "Renamed to the name of another object there",
+							ours.containsKey(key) ? ours.get(key) : m, theirs.get(key), "name", "Name", new String[] { b.name, mine, other }, true);
+					name = chose(resolution, "theirs") ? other : chose(resolution, "edit") && resolution.value() != null && !resolution.value().isBlank() ? resolution.value() : mine;
+				} else if (!name.equals(mine)) {
+					change("modified", ours.containsKey(key) ? ours.get(key) : m, new JSONArray().put("Name"));
+				}
+				if (!name.equals(b.name)) {
+					named.add(new Object[] { m, name });
+				}
+			}
+			for (var entry : named) {
+				setName((Bean) entry[0], (String) entry[1]);
+			}
+			if (!named.isEmpty()) {
+				mb = TreeDiff.beans(merged);
+			}
 		}
 
 		void run() throws Exception {
@@ -610,6 +809,7 @@ public class TreeMerge extends JSonService {
 				}
 			}
 			mergeOrders();
+			mergeNames();
 		}
 
 		/**
