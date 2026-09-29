@@ -133,14 +133,38 @@ public class SourceControl extends JSonService {
 			}
 			case "pull" -> {
 				var result = git.pull().call();
-				// the project loads again from its pulled files, a merge or a rebase stopped on a conflict included
-				reload(project.getName());
-				response.put("reloaded", true);
+				// the project loads again from its pulled files; a merge stopped on a conflict of its objects keeps
+				// the project loaded, the Studio merging them rather than loading the files Git filled with markers
+				var merging = merging(git, prefix);
+				if (!merging) {
+					reload(project.getName());
+					response.put("reloaded", true);
+				}
+				response.put("merging", merging);
 				status(git, prefix, response);
-				if (!result.isSuccessful()) {
+				if (!result.isSuccessful() && !merging) {
 					var cause = result.getMergeResult() != null ? result.getMergeResult().getMergeStatus()
 							: result.getRebaseResult() != null ? result.getRebaseResult().getStatus() : "failed";
 					response.put("error", "The pull did not succeed: " + cause + ".");
+				}
+			}
+			case "merge" -> {
+				// a branch merged into the current one, as a pull merges the remote one
+				var branch = request.getParameter("branch");
+				var id = branch == null ? null : git.getRepository().resolve(branch);
+				if (id == null) {
+					throw new ServiceException("The branch " + branch + " does not exist.");
+				}
+				var result = git.merge().include(branch, id).setMessage("Merge branch '" + branch + "'").call();
+				var merging = merging(git, prefix);
+				if (!merging) {
+					reload(project.getName());
+					response.put("reloaded", true);
+				}
+				response.put("merging", merging);
+				status(git, prefix, response);
+				if (!result.getMergeStatus().isSuccessful() && !merging) {
+					response.put("error", "The merge did not succeed: " + result.getMergeStatus() + ".");
 				}
 			}
 			case "push" -> {
@@ -277,6 +301,11 @@ public class SourceControl extends JSonService {
 					}
 					var decoration = new JSONObject().put("project", name).put("branch", repository.getBranch())
 							.put("changes", changes);
+					var heads = repository.readMergeHeads();
+					if (heads != null && !heads.isEmpty() && status.getConflicting().stream().anyMatch((path) -> path.startsWith(prefix))) {
+						// a merge stopped on its conflicts, which the Studio merges object by object
+						decoration.put("merging", true);
+					}
 					var tracking = BranchTrackingStatus.of(repository, repository.getBranch());
 					if (tracking != null) {
 						decoration.put("ahead", tracking.getAheadCount()).put("behind", tracking.getBehindCount());
@@ -293,7 +322,23 @@ public class SourceControl extends JSonService {
 	/**
 	 * Loads the project again from its files, which a checkout changed.
 	 */
-	private static void reload(String projectName) throws Exception {
+	/**
+	 * @return whether a merge stopped on a conflict of the files of the project
+	 */
+	static boolean merging(Git git, String prefix) throws Exception {
+		var heads = git.getRepository().readMergeHeads();
+		if (heads == null || heads.isEmpty()) {
+			return false;
+		}
+		for (var path : git.status().call().getConflicting()) {
+			if (path.startsWith(prefix)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	static void reload(String projectName) throws Exception {
 		var manager = Engine.theApp.databaseObjectsManager;
 		manager.clearCache(projectName);
 		manager.importProject(Engine.projectYamlFile(projectName), true);

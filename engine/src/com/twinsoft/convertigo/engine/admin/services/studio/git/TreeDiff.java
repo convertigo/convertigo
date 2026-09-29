@@ -78,12 +78,16 @@ public class TreeDiff extends JSonService {
 	private static final int MAX_VALUE = 4000;
 
 	/** an object of a side of the comparison */
-	private static class Bean {
+	static class Bean {
 		String key;
 		String parentKey;
 		String classname;
 		String name;
+		/** its element in the document of its side */
+		Element element;
 		Map<String, Element> properties = new LinkedHashMap<>();
+		/** the keys of its children, in their order */
+		java.util.List<String> children = new java.util.ArrayList<>();
 	}
 
 	@Override
@@ -210,7 +214,7 @@ public class TreeDiff extends JSonService {
 	 * Writes the files of the project at the commit in a folder.
 	 * @return whether the commit is found
 	 */
-	private static boolean extract(Repository repository, String ref, String prefix, File dir, JSONObject response) throws Exception {
+	static boolean extract(Repository repository, String ref, String prefix, File dir, JSONObject response) throws Exception {
 		var id = repository.resolve(ref + "^{commit}");
 		if (id == null) {
 			if ("HEAD".equals(ref)) {
@@ -246,9 +250,43 @@ public class TreeDiff extends JSonService {
 	}
 
 	/**
+	 * @return the objects of the project at a commit, empty when the commit has not the project
+	 */
+	static Map<String, Bean> beansAt(Repository repository, org.eclipse.jgit.lib.ObjectId commitId, String prefix, File dir) throws Exception {
+		return beans(documentAt(repository, commitId, prefix, dir));
+	}
+
+	/**
+	 * @return the project at a commit, as its files hold it, or an empty project document
+	 */
+	static Document documentAt(Repository repository, org.eclipse.jgit.lib.ObjectId commitId, String prefix, File dir) throws Exception {
+		try (var walk = new RevWalk(repository); var tree = new TreeWalk(repository)) {
+			var commit = walk.parseCommit(commitId);
+			tree.addTree(commit.getTree());
+			tree.setRecursive(true);
+			tree.setFilter(OrTreeFilter.create(new TreeFilter[] {
+				PathFilter.create(prefix + "c8oProject.yaml"),
+				PathFilter.create(prefix + "_c8oProject")
+			}));
+			while (tree.next()) {
+				var file = new File(dir, tree.getPathString().substring(prefix.length()));
+				file.getParentFile().mkdirs();
+				Files.write(file.toPath(), repository.open(tree.getObjectId(0)).getBytes());
+			}
+		}
+		var yaml = new File(dir, "c8oProject.yaml");
+		if (!yaml.exists()) {
+			var empty = XMLUtils.getDefaultDocumentBuilder().newDocument();
+			empty.appendChild(empty.createElement("convertigo"));
+			return empty;
+		}
+		return BeansDefaultValues.unshrinkProject(YamlConverter.readYaml(yaml));
+	}
+
+	/**
 	 * @return the project loaded, written in YAML and read again, as its files would hold it once saved
 	 */
-	private static Document current(Project project, File dir) throws Exception {
+	static Document current(Project project, File dir) throws Exception {
 		dir.mkdirs();
 		var shrink = BeansDefaultValues.shrinkProject(CarUtils.exportProjectDocument(project));
 		var yaml = new File(dir, "c8oProject.yaml");
@@ -259,13 +297,13 @@ public class TreeDiff extends JSonService {
 	/**
 	 * @return the objects of a project document, by their key
 	 */
-	private static Map<String, Bean> beans(Document document) {
+	static Map<String, Bean> beans(Document document) {
 		var beans = new LinkedHashMap<String, Bean>();
 		collect(document.getDocumentElement(), null, beans);
 		return beans;
 	}
 
-	private static void collect(Element element, String parentKey, Map<String, Bean> beans) {
+	static void collect(Element element, String parentKey, Map<String, Bean> beans) {
 		for (var node = element.getFirstChild(); node != null; node = node.getNextSibling()) {
 			if (!(node instanceof Element child)) {
 				continue;
@@ -281,8 +319,11 @@ public class TreeDiff extends JSonService {
 				}
 				bean.name = value(bean.properties.get("name"));
 				bean.key = key(child.getAttribute("priority"), parentKey, bean.classname, bean.name);
+				bean.element = child;
 				// a copy keeps its first key
-				beans.putIfAbsent(bean.key, bean);
+				if (beans.putIfAbsent(bean.key, bean) == null && parentKey != null && beans.containsKey(parentKey)) {
+					beans.get(parentKey).children.add(bean.key);
+				}
 				collect(child, bean.key, beans);
 			} else {
 				collect(child, parentKey, beans);
@@ -293,12 +334,12 @@ public class TreeDiff extends JSonService {
 	/**
 	 * An object is known by its priority, else by its path.
 	 */
-	private static String key(String priority, String parentKey, String classname, String name) {
+	static String key(String priority, String parentKey, String classname, String name) {
 		return priority != null && !priority.isEmpty() && !"0".equals(priority) ? "p:" + priority
 				: (parentKey == null ? "" : parentKey) + "/" + classname + ":" + name;
 	}
 
-	private static void live(DatabaseObject dbo, String parentKey, Map<String, DatabaseObject> objects) throws Exception {
+	static void live(DatabaseObject dbo, String parentKey, Map<String, DatabaseObject> objects) throws Exception {
 		var key = key(Long.toString(dbo.priority), parentKey, dbo.getClass().getName(), dbo.getName());
 		objects.putIfAbsent(key, dbo);
 		for (var child : dbo.getDatabaseObjectChildren()) {
@@ -411,7 +452,7 @@ public class TreeDiff extends JSonService {
 	/**
 	 * @return the mode and the value of each property of Ionic set, as "mode:value"
 	 */
-	private static Map<String, String> ionValues(String json, Map<String, String> labels) {
+	static Map<String, String> ionValues(String json, Map<String, String> labels) {
 		var values = new TreeMap<String, String>();
 		if (json == null || json.isBlank()) {
 			return values;
@@ -459,7 +500,7 @@ public class TreeDiff extends JSonService {
 	/**
 	 * @return a value of Ionic as the Properties view shows it, its mode before it when it is not a text
 	 */
-	private static String readable(String value) {
+	static String readable(String value) {
 		if (value.isEmpty()) {
 			return "";
 		}
@@ -483,7 +524,7 @@ public class TreeDiff extends JSonService {
 		return change;
 	}
 
-	private static FolderType folderType(String classname) {
+	static FolderType folderType(String classname) {
 		try {
 			return DatabaseObject.getFolderType(Class.forName(classname));
 		} catch (Throwable e) {
@@ -491,7 +532,7 @@ public class TreeDiff extends JSonService {
 		}
 	}
 
-	private static String typeName(String classname) {
+	static String typeName(String classname) {
 		try {
 			return CachedIntrospector.getBeanInfo(Class.forName(classname).asSubclass(DatabaseObject.class)).getBeanDescriptor().getDisplayName();
 		} catch (Throwable e) {
@@ -499,7 +540,7 @@ public class TreeDiff extends JSonService {
 		}
 	}
 
-	private static String label(String classname, String name) {
+	static String label(String classname, String name) {
 		try {
 			for (var pd : CachedIntrospector.getBeanInfo(Class.forName(classname).asSubclass(DatabaseObject.class)).getPropertyDescriptors()) {
 				if (pd.getName().equals(name)) {
@@ -515,7 +556,7 @@ public class TreeDiff extends JSonService {
 	/**
 	 * @return the value of a property to compare, its format aside
 	 */
-	private static String canonical(Node node) {
+	static String canonical(Node node) {
 		if (node == null) {
 			return "";
 		}
@@ -553,7 +594,7 @@ public class TreeDiff extends JSonService {
 	/**
 	 * @return the value of a property to read: the value of a simple type, else its text
 	 */
-	private static String display(Element property) {
+	static String display(Element property) {
 		var text = value(property);
 		return text.length() > MAX_VALUE ? text.substring(0, MAX_VALUE) + "…" : text;
 	}
@@ -561,7 +602,7 @@ public class TreeDiff extends JSonService {
 	/**
 	 * @return the whole value of a property: the value of a simple type, else its text
 	 */
-	private static String value(Element property) {
+	static String value(Element property) {
 		if (property == null) {
 			return "";
 		}
