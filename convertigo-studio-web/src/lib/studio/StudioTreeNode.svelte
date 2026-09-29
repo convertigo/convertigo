@@ -20,9 +20,9 @@
 		renameObjectId,
 		treeRowDropPosition
 	} from './dnd';
-	import { getSourcePickerDragPayload } from './sourcePickerDnd';
 	import { FOLDER_TYPE_IDS, isFolderId } from './folderTypes.js';
 	import { projectFileFolders } from './projectFileFolders.js';
+	import { getSourcePickerDragPayload } from './sourcePickerDnd';
 	import StudioTreeActionMenu from './StudioTreeActionMenu.svelte';
 	import { applyProjectedTreeMutation, removeProjectedTreeNode } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
@@ -1029,7 +1029,9 @@
 		if (rowElement && parentNode?.id) {
 			const rect = rowElement.getBoundingClientRect();
 			const y = event.clientY - rect.top;
-			const rowPosition = treeRowDropPosition(y, rect.height, node?.children !== false);
+			// an object without children can take some, as an empty event or sequence: the engine tells
+			// it, and the drop inside an object that takes none goes after it
+			const rowPosition = treeRowDropPosition(y, rect.height, true);
 			if (rowPosition === 'before') {
 				position = 'before';
 				indicator = 'before';
