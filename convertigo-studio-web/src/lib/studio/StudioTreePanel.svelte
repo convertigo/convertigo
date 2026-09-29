@@ -14,6 +14,7 @@
 	} from './dnd';
 	import { isFolderId } from './folderTypes.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+	import StudioFileMergeDialog from './StudioFileMergeDialog.svelte';
 	import { applyProjectedTreeMutation, remapExpandedTreeIds } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
 	import {
@@ -186,6 +187,15 @@
 	});
 
 	let mergeListOpen = $state(true);
+	/** the file in conflict whose blocks are resolved in a dialog */
+	let fileMerge = $state(/** @type {{ projectName: string, id: string } | null} */ (null));
+	let fileMergeConflict = $derived(
+		fileMerge
+			? (treeMerge.projects[fileMerge.projectName]?.conflicts.find(
+					(conflict) => conflict.id === fileMerge?.id
+				) ?? null)
+			: null
+	);
 	let mergeBusy = $state('');
 
 	/**
@@ -264,7 +274,8 @@
 			} else if (stopped?.kind === 'rebase' && result.result === 'EDIT') {
 				toaster.info({
 					title: 'Rebase stopped to edit a commit',
-					description: 'Change the project, commit or amend, then continue the rebase in the Source control view.'
+					description:
+						'Change the project, commit or amend, then continue the rebase in the Source control view.'
 				});
 			} else if (stopped && stopped.conflicts > 0) {
 				toaster.info({
@@ -872,7 +883,9 @@
 	{@attach alignComments}
 >
 	{#each Object.entries(treeMerge.projects) as [projectName, merge] (projectName)}
-		{@const operation = describeOperation(merge.operation ?? { kind: merge.kind, ours: merge.ours, theirs: merge.theirs })}
+		{@const operation = describeOperation(
+			merge.operation ?? { kind: merge.kind, ours: merge.ours, theirs: merge.theirs }
+		)}
 		<div
 			class="studio-tree-diff studio-tree-merge"
 			role="region"
@@ -919,7 +932,9 @@
 								class:studio-tree-merge__conflict--resolved={Boolean(conflict.resolution)}
 								title={conflict.description}
 								onclick={() => {
-									if (conflict.objectId) {
+									if (conflict.kind === 'file') {
+										fileMerge = { projectName, id: conflict.id };
+									} else if (conflict.objectId) {
 										selectedId = conflict.objectId;
 									}
 								}}
@@ -982,6 +997,17 @@
 			</div>
 		</div>
 	{/each}
+	<StudioFileMergeDialog
+		projectName={fileMerge?.projectName ?? ''}
+		conflict={fileMergeConflict}
+		mineLabel={fileMerge
+			? `Mine · ${treeMerge.projects[fileMerge.projectName]?.ours ?? ''}`
+			: 'Mine'}
+		theirsLabel={fileMerge
+			? `Theirs · ${treeMerge.projects[fileMerge.projectName]?.theirs ?? ''}`
+			: 'Theirs'}
+		onClose={() => (fileMerge = null)}
+	/>
 	{#if treeDiff.enabled}
 		<div class="studio-tree-diff" role="toolbar" aria-label="Changes since a commit">
 			<Ico icon="mdi:source-branch" size={3.6} />
