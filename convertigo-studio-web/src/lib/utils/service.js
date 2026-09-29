@@ -437,6 +437,11 @@ function handleStateMessage(res, service) {
 			return;
 		}
 
+		if (/^studio\.git\./.test(service)) {
+			// the Git views of the Studio tell their results themselves: the status of a change is not a message
+			return;
+		}
+
 		if (service == 'studio.treeview.ContextAction' && typeof res?.result?.ok == 'boolean') {
 			// the Studio tells the result of an object action itself, as a success or an error
 			return;

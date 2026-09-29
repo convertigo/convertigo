@@ -36,7 +36,7 @@
 	import StudioSourcePickerPanel from './StudioSourcePickerPanel.svelte';
 	import StudioTableProperty from './StudioTableProperty.svelte';
 	import { nodeDiff, revertTreeProperty, treeDiff } from './treeDiff.svelte.js';
-	import { mergeOfNode, resolveConflict } from './treeMerge.svelte.js';
+	import { describeOperation, mergeOfNode, resolveConflict } from './treeMerge.svelte.js';
 	import { treeSelectionOf } from './treeSelection.svelte.js';
 
 	/**
@@ -870,11 +870,11 @@
 			<StudioEmptyState message="No object selected" icon="mdi:cursor-default-click-outline" />
 		{:else}
 			{#if mergeConflicts.length || mergeChange}
-				<section class="studio-properties__merge" aria-label="Merge of {merge?.theirs}">
+				<section class="studio-properties__merge" aria-label="Conflicts with {merge?.theirs}">
 					<header class="studio-properties__merge-title">
-						<Ico icon="mdi:source-merge" size={3.6} />
+						<Ico icon={describeOperation(merge?.operation).icon} size={3.6} />
 						{mergeConflicts.length
-							? `Merge conflict${mergeConflicts.length > 1 ? 's' : ''} with ${merge?.theirs}`
+							? `Conflict${mergeConflicts.length > 1 ? 's' : ''} with ${merge?.theirs}`
 							: `Merged from ${merge?.theirs}`}
 					</header>
 					{#each mergeConflicts as conflict (conflict.id)}
@@ -887,11 +887,11 @@
 								<dl class="studio-properties__merge-values">
 									<dt>base</dt>
 									<dd>{conflict.base || '—'}</dd>
-									<dt>mine</dt>
+									<dt title={merge?.ours}>mine</dt>
 									<dd class:studio-properties__merge-chosen={conflict.resolution === 'mine'}>
 										{conflict.mine || '—'}
 									</dd>
-									<dt>theirs</dt>
+									<dt title={merge?.theirs}>theirs</dt>
 									<dd class:studio-properties__merge-chosen={conflict.resolution === 'theirs'}>
 										{conflict.theirs || '—'}
 									</dd>

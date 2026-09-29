@@ -2,8 +2,8 @@ import { call } from '$lib/utils/service';
 import { expandableDboAncestorIds } from './dnd';
 
 /**
- * The merges of projects stopped on conflicts, merged object by object: the conflicts to resolve, and the
- * objects merged from their side.
+ * The conflicts of projects, of a merge, a rebase, a cherry-pick, a revert or a stash applied, merged object
+ * by object: the conflicts to resolve, and the objects merged from their side.
  *
  * @typedef {{ id: string, kind: string, description?: string, key?: string, name: string, type?: string,
  *  objectId?: string, parentId?: string, objectParentId?: string, property?: string, label?: string,
@@ -11,7 +11,12 @@ import { expandableDboAncestorIds } from './dnd';
  *  resolution?: string, value?: string, path?: string }} MergeConflict
  * @typedef {{ status: 'added' | 'modified' | 'removed' | 'moved', origin: string, key: string, name: string,
  *  type?: string, objectId?: string, parentId?: string, objectParentId?: string, properties?: string[] }} MergeChange
- * @typedef {{ loading: boolean, error: string, merging: boolean, theirs: string, unresolved: number,
+ * @typedef {{ kind: string, state: string, ours: string, theirs: string, branch?: string, onto?: string,
+ *  step?: number, steps?: number, commit?: { id: string, subject: string, author: string },
+ *  conflicts: number, projectConflicts: string[], canContinue: boolean, canSkip: boolean,
+ *  canAbort: boolean, commitMessage?: string }} GitOperation
+ * @typedef {{ loading: boolean, error: string, merging: boolean, kind: string, ours: string, theirs: string,
+ *  operation: GitOperation | null, unresolved: number,
  *  conflicts: MergeConflict[], changes: MergeChange[], conflictsById: Record<string, MergeConflict[]>,
  *  changesById: Record<string, MergeChange>, ghosts: Record<string, (MergeConflict | MergeChange)[]>,
  *  ancestors: Record<string, boolean> }} ProjectMerge
@@ -21,6 +26,86 @@ export const treeMerge = $state({
 	/** @type {Record<string, ProjectMerge>} */
 	projects: {}
 });
+
+/**
+ * What the views of Git tell each other: a serial that changes as an operation changes the repository of a
+ * project, and the message of the commit that ends a merge.
+ */
+export const gitEvents = $state({
+	serial: 0,
+	/** @type {Record<string, string>} */
+	messages: {}
+});
+
+/**
+ * @param {string} projectName
+ * @param {string} [message] the message of the commit that ends its merge
+ */
+export function notifyGitChange(projectName, message) {
+	if (message) {
+		gitEvents.messages[projectName] = message;
+	}
+	gitEvents.serial += 1;
+}
+
+/**
+ * @param {Partial<GitOperation> | null | undefined} operation
+ * @returns {{ icon: string, title: string, detail: string, complete: string, done: string, ended: string }}
+ *  how the views name an operation stopped: its title, the button that ends the resolution of its conflicts,
+ *  what it says once they are resolved, and once it ended
+ */
+export function describeOperation(operation) {
+	const commit = operation?.commit ? `${operation.commit.id} ${operation.commit.subject}` : '';
+	switch (operation?.kind) {
+		case 'rebase':
+			return {
+				icon: 'mdi:source-branch-sync',
+				title: `Rebasing ${operation.branch || 'the branch'} onto ${operation.onto || 'another'}`,
+				detail:
+					(operation.steps ? `commit ${operation.step}/${operation.steps}` : '') +
+					(commit ? `${operation.steps ? ': ' : ''}${commit}` : ''),
+				complete: 'Continue the rebase',
+				done: 'Rebase done',
+				ended: 'Rebase done'
+			};
+		case 'cherry-pick':
+			return {
+				icon: 'mdi:fruit-cherries',
+				title: `Cherry-picking ${operation.commit?.id ?? 'a commit'}`,
+				detail: operation.commit?.subject ?? '',
+				complete: 'Complete the cherry-pick',
+				done: 'Commit cherry-picked',
+				ended: 'Commit cherry-picked'
+			};
+		case 'revert':
+			return {
+				icon: 'mdi:undo-variant',
+				title: `Reverting ${operation.commit?.id ?? 'a commit'}`,
+				detail: operation.commit?.subject ?? '',
+				complete: 'Complete the revert',
+				done: 'Commit reverted',
+				ended: 'Commit reverted'
+			};
+		case 'conflicts':
+			return {
+				icon: 'mdi:alert-circle-outline',
+				title: 'Conflicts of the changes applied',
+				detail: 'as those of a stash',
+				complete: 'Mark as resolved',
+				done: 'Conflicts resolved',
+				ended: 'Conflicts resolved'
+			};
+		default:
+			return {
+				icon: 'mdi:source-merge',
+				title: `Merging ${operation?.theirs || 'a branch'} into ${operation?.ours || 'the branch'}`,
+				detail: '',
+				complete: 'Complete the merge',
+				done: 'Merge ready to commit',
+				ended: 'Merge committed'
+			};
+	}
+}
 
 /**
  * Indexes a merge for the nodes of the tree: the conflicts and the changes of the objects it shows, and
@@ -34,7 +119,10 @@ export function indexTreeMerge(result) {
 		loading: false,
 		error: '',
 		merging: result?.merging === true,
+		kind: String(result?.kind ?? 'merge'),
+		ours: String(result?.ours ?? ''),
 		theirs: String(result?.theirs ?? ''),
+		operation: result?.operation ?? null,
 		unresolved: Number(result?.unresolved) || 0,
 		conflicts: Array.isArray(result?.conflicts) ? result.conflicts : [],
 		changes: Array.isArray(result?.changes) ? result.changes : [],

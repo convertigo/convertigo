@@ -3446,16 +3446,18 @@
 		projectName={selectedProjectName}
 		dirty={selectedProjectDirty}
 		onMerging={() => {
-			// the tree shows the merge stopped on conflicts
+			// the tree shows the conflicts the operation stopped on
 			treeRefreshSerial += 1;
 			dock?.show('projects');
 		}}
-		onPulled={async (name) => {
-			// the files changed on disk: the project is loaded again
-			await call('projects.Reload', { projectName: name });
-			await refreshStudioProject(name);
+		onPulled={async (name, reloaded = []) => {
+			// the engine loaded again the projects whose files the operation changed
+			for (const projectName of new Set([name, ...reloaded])) {
+				await refreshStudioProject(projectName);
+			}
 			refreshStudioViews();
 		}}
+		onShowTree={() => dock?.show('projects')}
 	/>
 {/snippet}
 

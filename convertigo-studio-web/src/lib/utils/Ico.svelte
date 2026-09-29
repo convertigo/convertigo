@@ -6,6 +6,9 @@
 	import MdiApi from '~icons/mdi/api';
 	import MdiApplicationBracesOutline from '~icons/mdi/application-braces-outline';
 	import MdiApplicationOutline from '~icons/mdi/application-outline';
+	import MdiArchiveArrowDownOutline from '~icons/mdi/archive-arrow-down-outline';
+	import MdiArchiveArrowUpOutline from '~icons/mdi/archive-arrow-up-outline';
+	import MdiArchiveOutline from '~icons/mdi/archive-outline';
 	import MdiArrowDown from '~icons/mdi/arrow-down';
 	import MdiArrowDownBoldOutline from '~icons/mdi/arrow-down-bold-outline';
 	import MdiArrowLeft from '~icons/mdi/arrow-left';
@@ -46,6 +49,7 @@
 	import MdiCloudDownloadOutline from '~icons/mdi/cloud-download-outline';
 	import MdiCloudOutline from '~icons/mdi/cloud-outline';
 	import MdiCloudSyncOutline from '~icons/mdi/cloud-sync-outline';
+	import MdiCloudUploadOutline from '~icons/mdi/cloud-upload-outline';
 	import MdiCodeBlockBraces from '~icons/mdi/code-block-braces';
 	import MdiCodeBraces from '~icons/mdi/code-braces';
 	import MdiCodeTags from '~icons/mdi/code-tags';
@@ -78,6 +82,7 @@
 	import MdiDotsVertical from '~icons/mdi/dots-vertical';
 	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline';
 	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline';
+	import MdiDrag from '~icons/mdi/drag';
 	import MdiEditOutline from '~icons/mdi/edit-outline';
 	import MdiEmailOutline from '~icons/mdi/email-outline';
 	import MdiEmoticonHappyOutline from '~icons/mdi/emoticon-happy-outline';
@@ -105,12 +110,14 @@
 	import MdiFormatFont from '~icons/mdi/format-font';
 	import MdiFormatListBulleted from '~icons/mdi/format-list-bulleted';
 	import MdiFormatText from '~icons/mdi/format-text';
+	import MdiFruitCherries from '~icons/mdi/fruit-cherries';
 	import MdiFullscreen from '~icons/mdi/fullscreen';
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit';
 	import MdiFunctionVariant from '~icons/mdi/function-variant';
 	import MdiGithub from '~icons/mdi/github';
 	import MdiGrid from '~icons/mdi/grid';
 	import MdiHelpCircleOutline from '~icons/mdi/help-circle-outline';
+	import MdiHistory from '~icons/mdi/history';
 	import MdiHomeAlertOutline from '~icons/mdi/home-alert-outline';
 	import MdiHomeOutline from '~icons/mdi/home-outline';
 	import MdiHub from '~icons/mdi/hub';
@@ -166,8 +173,10 @@
 	import MdiRedo from '~icons/mdi/redo';
 	import MdiRefresh from '~icons/mdi/refresh';
 	import MdiReload from '~icons/mdi/reload';
+	import MdiRenameOutline from '~icons/mdi/rename-outline';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal';
 	import MdiRestartAlert from '~icons/mdi/restart-alert';
+	import MdiRestore from '~icons/mdi/restore';
 	import MdiRobotOutline from '~icons/mdi/robot-outline';
 	import MdiRoutes from '~icons/mdi/routes';
 	import MdiSchoolOutline from '~icons/mdi/school-outline';
@@ -175,8 +184,13 @@
 	import MdiServerNetwork from '~icons/mdi/server-network';
 	import MdiShapeSquareRoundedPlus from '~icons/mdi/shape-square-rounded-plus';
 	import MdiShareVariantOutline from '~icons/mdi/share-variant-outline';
+	import MdiSkipNext from '~icons/mdi/skip-next';
 	import MdiSmartphoneLink from '~icons/mdi/smartphone-link';
 	import MdiSourceBranch from '~icons/mdi/source-branch';
+	import MdiSourceBranchPlus from '~icons/mdi/source-branch-plus';
+	import MdiSourceBranchRemove from '~icons/mdi/source-branch-remove';
+	import MdiSourceBranchSync from '~icons/mdi/source-branch-sync';
+	import MdiSourceCommit from '~icons/mdi/source-commit';
 	import MdiSourceMerge from '~icons/mdi/source-merge';
 	import MdiSourcePull from '~icons/mdi/source-pull';
 	import MdiStar from '~icons/mdi/star';
@@ -189,6 +203,8 @@
 	import MdiSync from '~icons/mdi/sync';
 	import MdiTable from '~icons/mdi/table';
 	import MdiTablet from '~icons/mdi/tablet';
+	import MdiTagOutline from '~icons/mdi/tag-outline';
+	import MdiTagPlusOutline from '~icons/mdi/tag-plus-outline';
 	import MdiTarget from '~icons/mdi/target';
 	import MdiTextBoxOutline from '~icons/mdi/text-box-outline';
 	import MdiToggleSwitch from '~icons/mdi/toggle-switch';
@@ -197,6 +213,7 @@
 	import MdiTranslateOff from '~icons/mdi/translate-off';
 	import MdiTuneVerticalVariant from '~icons/mdi/tune-vertical-variant';
 	import MdiUndo from '~icons/mdi/undo';
+	import MdiUndoVariant from '~icons/mdi/undo-variant';
 	import MdiUnfoldMoreHorizontal from '~icons/mdi/unfold-more-horizontal';
 	import MdiUpdate from '~icons/mdi/update';
 	import MdiUpload from '~icons/mdi/upload';
@@ -429,6 +446,23 @@
 		'mdi:warning-outline': MdiWarningOutline,
 		'mdi:weather-sunny': MdiWeatherSunny,
 		'mdi:chevron-up': MdiChevronUp,
+		'mdi:archive-arrow-down-outline': MdiArchiveArrowDownOutline,
+		'mdi:archive-arrow-up-outline': MdiArchiveArrowUpOutline,
+		'mdi:archive-outline': MdiArchiveOutline,
+		'mdi:cloud-upload-outline': MdiCloudUploadOutline,
+		'mdi:drag': MdiDrag,
+		'mdi:fruit-cherries': MdiFruitCherries,
+		'mdi:history': MdiHistory,
+		'mdi:rename-outline': MdiRenameOutline,
+		'mdi:restore': MdiRestore,
+		'mdi:skip-next': MdiSkipNext,
+		'mdi:source-branch-plus': MdiSourceBranchPlus,
+		'mdi:source-branch-remove': MdiSourceBranchRemove,
+		'mdi:source-branch-sync': MdiSourceBranchSync,
+		'mdi:source-commit': MdiSourceCommit,
+		'mdi:tag-outline': MdiTagOutline,
+		'mdi:tag-plus-outline': MdiTagPlusOutline,
+		'mdi:undo-variant': MdiUndoVariant,
 		'mdi:wrench': MdiWrench
 	};
 </script>

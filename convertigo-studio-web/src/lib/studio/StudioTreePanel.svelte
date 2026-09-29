@@ -24,7 +24,14 @@
 		setTreeDiffRef,
 		treeDiff
 	} from './treeDiff.svelte.js';
-	import { loadTreeMerge, resolveAllConflicts, treeMerge } from './treeMerge.svelte.js';
+	import {
+		describeOperation,
+		gitEvents,
+		loadTreeMerge,
+		notifyGitChange,
+		resolveAllConflicts,
+		treeMerge
+	} from './treeMerge.svelte.js';
 	import { treeSelectionOf } from './treeSelection.svelte.js';
 
 	/** the part of the width of the view the column of the comments goes to at most */
@@ -135,37 +142,106 @@
 		});
 	});
 
+	// the Source control view changed a repository: the Git decorations show again
+	$effect(() => {
+		void gitEvents.serial;
+		untrack(() => refreshGitDecorations());
+	});
+
 	let mergeListOpen = $state(true);
 	let mergeBusy = $state('');
 
 	/**
-	 * Ends the merge of a project: written and ready to commit, or abandoned.
+	 * Ends the resolution of the conflicts of a project: written, then a merge is ready to commit, a
+	 * cherry-pick or a revert commits, a rebase continues and may stop at a next commit; or the operation is
+	 * abandoned, or a rebase skips the commit it stopped at.
 	 * @param {string} projectName
-	 * @param {'complete' | 'abort'} action
+	 * @param {'complete' | 'abort' | 'skip'} action
 	 */
 	async function endMerge(projectName, action) {
+		const merge = treeMerge.projects[projectName];
+		const operation = describeOperation(merge?.operation);
 		if (
 			action === 'abort' &&
 			!window.confirm(
-				`Abort the merge of ${projectName}? The project and its files are given back as they were before the merge.`
+				`Abort: ${operation.title}? The project and its files are given back as they were before.`
+			)
+		) {
+			return;
+		}
+		if (
+			action === 'skip' &&
+			!window.confirm(
+				`Skip the commit ${merge?.operation?.commit?.id ?? ''}? The rebased branch will not have its changes.`
 			)
 		) {
 			return;
 		}
 		mergeBusy = action;
 		try {
-			const result = await loadTreeMerge(projectName, { action });
-			if (result?.completed || result?.aborted) {
-				delete treeMerge.projects[projectName];
-				await reloadProjectBranches(projectName);
-				refreshGitDecorations();
-				toaster[result.completed ? 'success' : 'info']({
-					title: result.completed ? 'Merge ready to commit' : 'Merge aborted',
-					description: result.completed
-						? `The merged objects of ${projectName} are written and added: commit them in the Source control view.`
-						: `${projectName} is back as it was before the merge.`
+			const result =
+				action === 'skip'
+					? await call('studio.git.SourceControl', { projectName, action: 'skip' })
+					: await loadTreeMerge(projectName, { action });
+			if (!result || (!result.completed && !result.aborted && !('repository' in result))) {
+				return;
+			}
+			const reloaded = Array.isArray(result.reloadedProjects) ? result.reloadedProjects : [];
+			for (const name of new Set([projectName, ...reloaded])) {
+				await reloadProjectBranches(name);
+			}
+			refreshGitDecorations();
+			notifyGitChange(
+				projectName,
+				result.completed && merge?.kind === 'merge' ? String(result.commitMessage ?? '') : undefined
+			);
+			await onMergeEnded?.(projectName, result);
+			if (result.merging) {
+				// the rebase goes on and stops at a next commit
+				const next = await loadTreeMerge(projectName);
+				keepExpanded(Object.keys(treeMerge.projects[projectName]?.ancestors ?? {}));
+				const described = describeOperation(next?.operation);
+				toaster.warning({
+					title: `${described.title}: new conflicts`,
+					description: described.detail
 				});
-				await onMergeEnded?.(projectName, result);
+				return;
+			}
+			delete treeMerge.projects[projectName];
+			const stopped = result.operation;
+			if (action === 'abort') {
+				toaster.info({
+					title: 'Aborted',
+					description: `${projectName} is back as it was before: ${operation.title.toLowerCase()} is abandoned.`
+				});
+			} else if (result.result === 'EMPTY') {
+				toaster.info({
+					title: 'Nothing left to commit',
+					description: `Once resolved, ${operation.title.toLowerCase()} changes nothing: it is dropped.`
+				});
+			} else if (stopped?.kind === 'rebase' && result.result === 'NOTHING_TO_COMMIT') {
+				toaster.warning({
+					title: 'Nothing left to commit',
+					description: `The commit ${stopped.commit?.id ?? ''} has no change once resolved: skip it in the Source control view.`
+				});
+			} else if (stopped?.kind === 'rebase' && result.result === 'EDIT') {
+				toaster.info({
+					title: 'Rebase stopped to edit a commit',
+					description: 'Change the project, commit or amend, then continue the rebase in the Source control view.'
+				});
+			} else if (stopped && stopped.conflicts > 0) {
+				toaster.info({
+					title: 'Conflicts left in other files',
+					description: `${projectName} is resolved; the operation goes on once the other conflicts are resolved.`
+				});
+			} else {
+				toaster.success({
+					title: operation.done,
+					description:
+						merge?.kind === 'merge'
+							? `The merged objects of ${projectName} are written and added: commit them in the Source control view.`
+							: `${projectName} is written and loaded again.`
+				});
 			}
 		} finally {
 			mergeBusy = '';
@@ -759,15 +835,16 @@
 	{@attach alignComments}
 >
 	{#each Object.entries(treeMerge.projects) as [projectName, merge] (projectName)}
+		{@const operation = describeOperation(merge.operation ?? { kind: merge.kind, ours: merge.ours, theirs: merge.theirs })}
 		<div
 			class="studio-tree-diff studio-tree-merge"
 			role="region"
-			aria-label="Merge of {projectName}"
+			aria-label="Conflicts of {projectName}"
 		>
 			<div class="studio-tree-merge__head">
-				<Ico icon="mdi:source-merge" size={3.6} />
-				<strong>Merging {merge.theirs || 'a branch'}</strong>
-				<span>into {projectName}</span>
+				<Ico icon={operation.icon} size={3.6} />
+				<strong>{operation.title}</strong>
+				<span>in {projectName}</span>
 				<span
 					class={[
 						'studio-tree-merge__count',
@@ -789,6 +866,9 @@
 					<Ico icon={mergeListOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'} size={3.6} />
 				</button>
 			</div>
+			{#if operation.detail}
+				<span class="studio-tree-merge__detail" title={operation.detail}>{operation.detail}</span>
+			{/if}
 			{#if merge.error}
 				<span class="studio-tree-diff__counts--error" title={merge.error}>{merge.error}</span>
 			{/if}
@@ -823,16 +903,27 @@
 				<button
 					type="button"
 					class="studio-tree-merge__action"
+					title={merge.ours ? `Keep the version of ${merge.ours}` : 'Keep my version'}
 					disabled={!merge.unresolved || Boolean(mergeBusy)}
 					onclick={() => void resolveAllConflicts(projectName, 'mine')}>Keep all mine</button
 				>
 				<button
 					type="button"
 					class="studio-tree-merge__action"
+					title={merge.theirs ? `Take the version of ${merge.theirs}` : 'Take their version'}
 					disabled={!merge.unresolved || Boolean(mergeBusy)}
 					onclick={() => void resolveAllConflicts(projectName, 'theirs')}>Take all theirs</button
 				>
 				<span class="studio-tree-merge__spacer"></span>
+				{#if merge.operation?.canSkip}
+					<button
+						type="button"
+						class="studio-tree-merge__action"
+						title="Skip the commit the rebase stopped at, and go on with the next ones"
+						disabled={Boolean(mergeBusy)}
+						onclick={() => void endMerge(projectName, 'skip')}>Skip</button
+					>
+				{/if}
 				<button
 					type="button"
 					class="studio-tree-merge__action"
@@ -845,9 +936,11 @@
 					disabled={merge.unresolved > 0 || Boolean(mergeBusy)}
 					title={merge.unresolved
 						? 'Resolve the conflicts first'
-						: 'Write the merged project, ready to commit'}
+						: merge.kind === 'merge'
+							? 'Write the merged project, ready to commit'
+							: 'Write the project resolved and go on'}
 					onclick={() => void endMerge(projectName, 'complete')}
-					>{mergeBusy === 'complete' ? 'Completing…' : 'Complete the merge'}</button
+					>{mergeBusy === 'complete' ? 'Completing…' : operation.complete}</button
 				>
 			</div>
 		</div>
@@ -863,6 +956,9 @@
 				onchange={(event) => setTreeDiffRef(event.currentTarget.value)}
 			>
 				<option value="HEAD">HEAD</option>
+				{#if treeDiff.ref !== 'HEAD' && !diffRefs.includes(treeDiff.ref)}
+					<option value={treeDiff.ref}>{treeDiff.ref}</option>
+				{/if}
 				{#each diffRefs.filter((ref) => ref !== 'HEAD') as ref (ref)}
 					<option value={ref}>{ref}</option>
 				{/each}
@@ -880,7 +976,7 @@
 				<span
 					class="studio-tree-diff__counts"
 					title={diffProject.commit
-						? `${diffProject.commit.shortId} ${diffProject.commit.message}`
+						? `${diffProject.commit.shortId} ${diffProject.commit.subject}`
 						: 'No commit yet'}
 				>
 					<span class="studio-tree-diff__count--added">{diffProject.counts.added} added</span> ·
@@ -1005,6 +1101,15 @@
 	.studio-tree-merge__count--done {
 		color: light-dark(#2e7d32, #81c784);
 		font-weight: 700;
+	}
+
+	.studio-tree-merge__detail {
+		overflow: hidden;
+		padding-left: 1.3rem;
+		color: var(--studio-text-idle);
+		font-size: 0.72rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.studio-tree-merge__auto {
