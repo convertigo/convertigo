@@ -189,6 +189,10 @@ public class CarUtils {
 				flow.saveFlowSourceFile();
 			}
 		}
+		var flowEngine = project.getFlowEngine();
+		if (flowEngine != null) {
+			flowEngine.saveSources();
+		}
 	}
 	
 	private static void exportYAMLProject(Project project, String fileName, Document document) throws Exception {

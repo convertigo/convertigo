@@ -59,7 +59,7 @@ public class FlowAuthoringDraftTest {
 		assertEquals("page", current.getSource(page.toString()));
 		assertEquals("", current.getSource(marker.toString()));
 		assertFalse(Files.exists(page.getParent()));
-		current.toXml(DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
+		current.saveSources();
 		assertEquals("page", Files.readString(page));
 		assertEquals("", Files.readString(marker));
 		assertTrue(current.getSourceDrafts().isEmpty());
@@ -103,7 +103,7 @@ public class FlowAuthoringDraftTest {
 		assertFalse(current.hasSource(page.toString()));
 		assertFalse(current.hasSource(empty.toString()));
 		current.setSources(sources);
-		current.toXml(DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
+		current.saveSources();
 		assertEquals("new page", Files.readString(page));
 		assertEquals("", Files.readString(empty));
 		assertTrue(current.getSourceDrafts().isEmpty());
@@ -157,7 +157,7 @@ public class FlowAuthoringDraftTest {
 	}
 
 	@Test
-	public void reloadDiscardsUnsavedDraftAndExportPersistsIt() throws Exception {
+	public void reloadDiscardsUnsavedDraftAndSavePersistsIt() throws Exception {
 		var directory = folder.newFolder();
 		var file = directory.toPath().resolve("_flow/engine.yaml");
 		Files.createDirectories(file.getParent());
@@ -169,7 +169,10 @@ public class FlowAuthoringDraftTest {
 		assertEquals("draft", current.getEngineSource());
 		assertEquals("original", Files.readString(file));
 		assertEquals("original", model(directory).getEngineSource());
+		// a serialization that is not a save, as a state of the undo history, writes nothing
 		current.toXml(DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
+		assertEquals("original", Files.readString(file));
+		current.saveSources();
 		assertEquals("draft", Files.readString(file));
 		assertEquals("draft", model(directory).getEngineSource());
 	}
@@ -188,7 +191,7 @@ public class FlowAuthoringDraftTest {
 	}
 
 	@Test
-	public void frontendClipboardUsesDraftAndOnlyExportPersistsSource() throws Exception {
+	public void frontendClipboardUsesDraftAndOnlySavePersistsSource() throws Exception {
 		var directory = folder.newFolder();
 		var file = directory.toPath().resolve("page.flow.svelte");
 		Files.writeString(file, "original");
@@ -205,6 +208,8 @@ public class FlowAuthoringDraftTest {
 		assertEquals("original", model(directory).getFrontendSource(file.toString()));
 		current.setFrontendSource(file.toString(), "pasted draft");
 		current.toXml(DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
+		assertEquals("original", Files.readString(file));
+		current.saveSources();
 		assertEquals("pasted draft", Files.readString(file));
 		assertEquals("pasted draft", model(directory).getFrontendSource(file.toString()));
 	}

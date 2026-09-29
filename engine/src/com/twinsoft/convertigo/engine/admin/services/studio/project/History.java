@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.admin.services.studio.project;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.lang.ref.WeakReference;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
@@ -43,6 +44,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.flow.FlowWorkingCopies;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
@@ -61,7 +63,17 @@ public class History extends JSonService {
 	private static final long MAX_BYTES = 64L * 1024 * 1024;
 	private static final Map<String, ProjectHistory> histories = new ConcurrentHashMap<>();
 
-	private record State(String hash, byte[] xml) {
+	/**
+	 * @param flowSources the Flow sources changed and not saved, which are not in the XML of the project
+	 */
+	private record State(String hash, byte[] xml, Map<String, String> flowSources) {
+		private long size() {
+			long size = xml.length;
+			for (var entry : flowSources.entrySet()) {
+				size += 2L * (entry.getKey().length() + entry.getValue().length());
+			}
+			return size;
+		}
 	}
 
 	private static class ProjectHistory {
@@ -100,7 +112,7 @@ public class History extends JSonService {
 			int count = 0;
 			for (Iterator<State> it = undo.iterator(); it.hasNext();) {
 				var s = it.next();
-				bytes += s.xml.length;
+				bytes += s.size();
 				if (++count > MAX_STATES || (count > 2 && bytes > MAX_BYTES)) {
 					it.remove();
 				}
@@ -148,7 +160,7 @@ public class History extends JSonService {
 				}
 				if (history.undo.size() > 1) {
 					history.redo.push(history.undo.pop());
-					project = restore(projectName, history.undo.peek());
+					project = restore(project, history.undo.peek());
 					history.restored(project);
 					done = true;
 				}
@@ -159,7 +171,7 @@ public class History extends JSonService {
 				} else if (!history.redo.isEmpty()) {
 					var state = history.redo.pop();
 					history.undo.push(state);
-					project = restore(projectName, state);
+					project = restore(project, state);
 					history.restored(project);
 					done = true;
 				}
@@ -180,6 +192,7 @@ public class History extends JSonService {
 
 	private static State export(Project project) throws Exception {
 		var document = CarUtils.exportProjectDocument(project);
+		var flowSources = FlowWorkingCopies.of(project);
 		var digest = MessageDigest.getInstance("SHA-256");
 		var bytes = new ByteArrayOutputStream();
 		try (var gzip = new GZIPOutputStream(bytes); var out = new DigestOutputStream(gzip, digest)) {
@@ -188,14 +201,28 @@ public class History extends JSonService {
 			transformer.setOutputProperty(OutputKeys.INDENT, "no");
 			transformer.transform(new DOMSource(document), new StreamResult(out));
 		}
-		return new State(HexFormat.of().formatHex(digest.digest()), bytes.toByteArray());
+		// a change of a Flow source not saved makes a state too
+		for (var entry : flowSources.entrySet()) {
+			digest.update(entry.getKey().getBytes(StandardCharsets.UTF_8));
+			digest.update((byte) 0);
+			digest.update(entry.getValue().getBytes(StandardCharsets.UTF_8));
+			digest.update((byte) 0);
+		}
+		return new State(HexFormat.of().formatHex(digest.digest()), bytes.toByteArray(), flowSources);
 	}
 
-	private static Project restore(String projectName, State state) throws Exception {
+	/**
+	 * Loads the project again in a state, with the Flow sources the state had not saved: the project
+	 * loaded again drops those of its previous objects.
+	 */
+	private static Project restore(Project current, State state) throws Exception {
 		Document document;
 		try (var in = new GZIPInputStream(new ByteArrayInputStream(state.xml))) {
 			document = XMLUtils.getDefaultDocumentBuilder().parse(in);
 		}
-		return Engine.theApp.databaseObjectsManager.restoreProject(projectName, document);
+		var previous = FlowWorkingCopies.of(current);
+		var project = Engine.theApp.databaseObjectsManager.restoreProject(current.getName(), document);
+		FlowWorkingCopies.restore(project, state.flowSources, previous);
+		return project;
 	}
 }

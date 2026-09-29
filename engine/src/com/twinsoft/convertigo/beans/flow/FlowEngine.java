@@ -163,14 +163,23 @@ public class FlowEngine extends DatabaseObject {
 		}
 	}
 
+	/**
+	 * The Engine source and the working copies live in their files, which the save of the project writes
+	 * (saveSources): a serialization that is not a save, as a state of the undo history, the Git view, a
+	 * search or a copy, never writes them.
+	 */
 	@Override
 	public Element toXml(Document document) throws EngineException {
-		writeEngineSourceFile();
-		writeSourceDraftFiles();
-		writeDependenciesFile();
 		var element = super.toXml(document);
 		removeSerializedProperty(element, "engineSource");
 		return element;
+	}
+
+	/** Writes the Engine source, the working copies and the dependencies, as the save of the project. */
+	public void saveSources() throws EngineException {
+		writeEngineSourceFile();
+		writeSourceDraftFiles();
+		writeDependenciesFile();
 	}
 
 	public String getEngineQName() {

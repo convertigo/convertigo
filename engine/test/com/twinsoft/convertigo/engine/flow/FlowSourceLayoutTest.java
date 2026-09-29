@@ -165,7 +165,7 @@ public class FlowSourceLayoutTest {
 		assertEquals(FlowSourceLayout.ChangeKind.FLOW, layout.changeKind((layout.flows() + "/Proof.flow.js").replace('/', '\\')));
 	}
 
-	@Test public void engineAndFrontendDraftsPersistOnlyOnExport() throws Exception {
+	@Test public void engineAndFrontendDraftsPersistOnlyOnSave() throws Exception {
 		var root = folder.newFolder().toPath();
 		var project = project(root.toFile());
 		var config = root.resolve(layout.path("engine.yaml"));
@@ -181,7 +181,11 @@ public class FlowSourceLayoutTest {
 		assertEquals("official page", Files.readString(frontend));
 		assertEquals("draft page", engine.getSourceDrafts().get(frontend.toFile().getCanonicalPath()));
 		assertTrue(engine.isFrontendSourceDirty(frontend.toString()));
+		// a serialization that is not a save writes nothing
 		engine.toXml(DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
+		assertEquals("official config", Files.readString(config));
+		assertEquals("official page", Files.readString(frontend));
+		engine.saveSources();
 		assertEquals("draft config", model(project).getEngineSource());
 		assertEquals("draft page", Files.readString(frontend));
 		assertFalse(engine.isFrontendSourceDirty(frontend.toString()));
