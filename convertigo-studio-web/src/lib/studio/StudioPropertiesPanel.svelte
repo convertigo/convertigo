@@ -28,6 +28,7 @@
 	import StudioFontDialog from './StudioFontDialog.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 	import StudioLifetimeDialog from './StudioLifetimeDialog.svelte';
+	import StudioMergeTrees from './StudioMergeTrees.svelte';
 	import StudioMergeVersions from './StudioMergeVersions.svelte';
 	import StudioNamedSourceDialog from './StudioNamedSourceDialog.svelte';
 	import StudioObjectIdentity from './StudioObjectIdentity.svelte';
@@ -95,6 +96,63 @@
 		const projectName = String(selectedId).match(/^[^.:/~]+/)?.[0] ?? '';
 		mergeEditing = '';
 		return resolveConflict(projectName, conflict.id, choice, value);
+	}
+
+	/** how the two versions of an object in conflict show: their differences, or two trees side by side */
+	let versionsView = $state(readVersionsView());
+	/** the conflict whose two trees show over the whole window */
+	let wideConflict = $state(
+		/** @type {import('./treeMerge.svelte.js').MergeConflict | null} */ (null)
+	);
+
+	function readVersionsView() {
+		try {
+			return localStorage.getItem('convertigo.studio.merge.versionsView') === 'trees'
+				? 'trees'
+				: 'differences';
+		} catch {
+			return 'differences';
+		}
+	}
+
+	/**
+	 * @param {'differences' | 'trees'} view
+	 */
+	function setVersionsView(view) {
+		versionsView = view;
+		try {
+			localStorage.setItem('convertigo.studio.merge.versionsView', view);
+		} catch {
+			// kept for this view only
+		}
+	}
+
+	/**
+	 * @param {string | undefined} side mine, theirs or base
+	 */
+	function sideLabel(side) {
+		return side === 'mine'
+			? merge?.ours
+				? `Mine · ${merge.ours}`
+				: 'Mine'
+			: side === 'theirs'
+				? merge?.theirs
+					? `Theirs · ${merge.theirs}`
+					: 'Theirs'
+				: 'Base';
+	}
+
+	/**
+	 * Shows a dialog over the whole window, out of the view whose panel would contain it.
+	 * @param {HTMLElement} node
+	 */
+	function portal(node) {
+		node.ownerDocument.body.appendChild(node);
+		return {
+			destroy() {
+				node.remove();
+			}
+		};
 	}
 
 	/** @type {Record<string, string>} */
@@ -873,6 +931,47 @@
 			<StudioEmptyState message="No object selected" icon="mdi:cursor-default-click-outline" />
 		{:else}
 			{#if mergeConflicts.length || mergeChange}
+				{#if wideConflict?.versions?.trees}
+					<div
+						class="studio-properties__wide"
+						role="presentation"
+						use:portal
+						onclick={() => (wideConflict = null)}
+					>
+						<div
+							class="studio-properties__wide-box"
+							role="dialog"
+							aria-modal="true"
+							aria-label="The two versions of {wideConflict.name}"
+							tabindex="-1"
+							onclick={(event) => event.stopPropagation()}
+							onkeydown={(event) => {
+								event.stopPropagation();
+								if (event.key === 'Escape') wideConflict = null;
+							}}
+						>
+							<header class="studio-properties__wide-head">
+								<strong>{wideConflict.name}</strong>
+								<span>{wideConflict.description}</span>
+								<button
+									type="button"
+									class="studio-properties__versions-wide"
+									aria-label="Close"
+									onclick={() => (wideConflict = null)}><Ico icon="mdi:close" size={4} /></button
+								>
+							</header>
+							<StudioMergeTrees
+								trees={wideConflict.versions.trees}
+								leftLabel={sideLabel(wideConflict.versions.left)}
+								rightLabel={sideLabel(wideConflict.versions.right)}
+								onSelect={(id) => {
+									wideConflict = null;
+									onSelectObject?.(id);
+								}}
+							/>
+						</div>
+					</div>
+				{/if}
 				<section class="studio-properties__merge" aria-label="Conflicts with {merge?.theirs}">
 					<header class="studio-properties__merge-title">
 						<Ico icon={describeOperation(merge?.operation).icon} size={3.6} />
@@ -905,15 +1004,52 @@
 								</dl>
 							{/if}
 							{#if conflict.versions}
-								<StudioMergeVersions
-									versions={conflict.versions}
-									labels={{
-										base: 'Base',
-										mine: merge?.ours ? `Mine · ${merge.ours}` : 'Mine',
-										theirs: merge?.theirs ? `Theirs · ${merge.theirs}` : 'Theirs'
-									}}
-									onSelect={onSelectObject}
-								/>
+								<div class="studio-properties__versions-bar">
+									<div
+										class="studio-properties__versions-view"
+										role="radiogroup"
+										aria-label="Show the two versions"
+									>
+										<button
+											type="button"
+											role="radio"
+											aria-checked={versionsView === 'differences'}
+											onclick={() => setVersionsView('differences')}
+											><Ico icon="mdi:format-list-bulleted" size={3.5} /> Differences</button
+										>
+										<button
+											type="button"
+											role="radio"
+											aria-checked={versionsView === 'trees'}
+											onclick={() => setVersionsView('trees')}
+											><Ico icon="mdi:file-tree-outline" size={3.5} /> Two trees</button
+										>
+									</div>
+									{#if conflict.versions.trees}
+										<button
+											type="button"
+											class="studio-properties__versions-wide"
+											title="Show the two trees over the whole window"
+											aria-label="Show the two trees over the whole window"
+											onclick={() => (wideConflict = conflict)}
+											><Ico icon="mdi:window-maximize" size={3.5} /></button
+										>
+									{/if}
+								</div>
+								{#if versionsView === 'trees' && conflict.versions.trees}
+									<StudioMergeTrees
+										trees={conflict.versions.trees}
+										leftLabel={sideLabel(conflict.versions.left)}
+										rightLabel={sideLabel(conflict.versions.right)}
+										onSelect={onSelectObject}
+									/>
+								{:else}
+									<StudioMergeVersions
+										versions={conflict.versions}
+										labels={{ base: 'Base', mine: sideLabel('mine'), theirs: sideLabel('theirs') }}
+										onSelect={onSelectObject}
+									/>
+								{/if}
 							{/if}
 							{#if mergeEditing === conflict.id}
 								<form
@@ -1441,6 +1577,96 @@
 	}
 
 	/* the conflicts of the object in a merge stopped on them */
+	.studio-properties__versions-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.studio-properties__versions-view {
+		display: inline-flex;
+		overflow: hidden;
+		border: 1px solid var(--studio-line);
+		border-radius: 0.3rem;
+	}
+
+	.studio-properties__versions-view button {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		border: 0;
+		background: transparent;
+		color: var(--studio-text-idle);
+		padding: 0.12rem 0.5rem;
+		font-size: 0.72rem;
+	}
+
+	.studio-properties__versions-view button + button {
+		border-left: 1px solid var(--studio-line);
+	}
+
+	.studio-properties__versions-view button[aria-checked='true'] {
+		background: var(--studio-selection-bg);
+		color: var(--studio-text-strong);
+	}
+
+	.studio-properties__versions-wide {
+		display: inline-grid;
+		width: 1.5rem;
+		height: 1.5rem;
+		margin-left: auto;
+		place-items: center;
+		border: 0;
+		border-radius: 0.25rem;
+		background: transparent;
+		color: var(--studio-text-idle);
+	}
+
+	.studio-properties__versions-wide:hover {
+		background: var(--studio-hover-bg);
+		color: var(--studio-text-strong);
+	}
+
+	.studio-properties__wide {
+		position: fixed;
+		inset: 0;
+		z-index: 95;
+		display: grid;
+		place-items: center;
+		background: color-mix(in oklab, black 45%, transparent);
+		padding: 1rem;
+	}
+
+	.studio-properties__wide-box {
+		display: grid;
+		width: min(90rem, 100%);
+		max-height: calc(100vh - 2rem);
+		gap: 0.5rem;
+		overflow: auto;
+		border: 1px solid var(--studio-line);
+		border-radius: 0.5rem;
+		background: var(--studio-chrome-bg);
+		box-shadow: 0 1.5rem 4rem color-mix(in oklab, black 35%, transparent);
+		color: var(--studio-text);
+		padding: 0.75rem 1rem 1rem;
+		--studio-trees-height: calc(100vh - 20rem);
+	}
+
+	.studio-properties__wide-head {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+	}
+
+	.studio-properties__wide-head strong {
+		color: var(--studio-text-strong);
+	}
+
+	.studio-properties__wide-head span {
+		color: var(--studio-text-idle);
+		font-size: 0.78rem;
+	}
+
 	.studio-properties__merge {
 		display: grid;
 		gap: 0.45rem;
