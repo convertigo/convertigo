@@ -510,7 +510,16 @@
 		if (hostNode) {
 			const target = flowObjectId(hostNode);
 			if (!target) {
-				return null;
+				// the node of an empty sequence takes its first step
+				return flow?.nodes.find((node) => node.id === hostNode.id)?.data?.placeholder
+					? {
+							target: selectedSequenceId,
+							position: 'inside',
+							indicator: 'inside',
+							targetNodeId: hostNode.id,
+							dropHostLabel: dropHostLabel(selectedSequenceId)
+						}
+					: null;
 			}
 			if (isDraggedFlowObject(payload, target)) {
 				return null;
@@ -1506,8 +1515,11 @@
 			<div class="flow-dashboard__title">
 				<span>{selectedSequence?.name ?? 'Flow'}</span>
 				{#if flow}
+					{@const steps = flow.nodes.filter((node) => !node.data?.placeholder).length}
 					<span class="flow-dashboard__metrics">
-						{flow.nodes.length} steps · {flow.links.length} links
+						{steps} step{steps === 1 ? '' : 's'} · {flow.links.length} link{flow.links.length === 1
+							? ''
+							: 's'}
 					</span>
 				{/if}
 			</div>

@@ -1035,12 +1035,13 @@ class SequenceFlowBuilder {
 			nodes: [
 				{
 					id: nodeId,
-					type: 'InputVariablesStep',
+					// the node where the first step of the sequence is dropped
+					type: 'Drop a step here',
 					label,
 					x: 180,
 					y: 180,
 					color: '#3b82f6',
-					inputs: 0,
+					inputs: 1,
 					outputs: 1,
 					data: { placeholder: true }
 				}
