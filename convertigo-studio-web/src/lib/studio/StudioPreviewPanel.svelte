@@ -383,6 +383,23 @@
 	}
 
 	/**
+	 * The page of the application leaves, as when it is built again: the edits of the style editor, which
+	 * would be lost with it, are applied to the application.
+	 * @param {Window} win
+	 */
+	function leavePreviewPage(win) {
+		reapplyNgxDataset();
+		if (!ngxStyleEditing) {
+			return;
+		}
+		const changes = styleEditorChanges(win);
+		ngxStyleEditing = false;
+		if (changes) {
+			void onNgxStyleChanges?.(changes);
+		}
+	}
+
+	/**
 	 * The application takes the dataset chosen again each time it loads, as when it is built again: the
 	 * session data it recorded meanwhile give way.
 	 */
@@ -462,8 +479,9 @@
 		if (!doc) {
 			return;
 		}
-		// the page of the application leaves: the next one starts with the dataset chosen
-		iframe?.contentWindow?.addEventListener('pagehide', reapplyNgxDataset);
+		// the page of the application leaves: its style edits are applied, the next one starts with the dataset
+		const win = iframe?.contentWindow;
+		win?.addEventListener('pagehide', () => leavePreviewPage(win));
 		let tries = 0;
 		const wait = () => {
 			// the application creates its ion-app once bootstrapped
