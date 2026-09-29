@@ -1,4 +1,5 @@
 <script>
+	import { asset } from '$app/paths';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { createDockview } from 'dockview';
 	import 'dockview/dist/styles/dockview.css';
@@ -43,6 +44,11 @@
 	const NARROW_DIRECTIONS = { left: 'above', right: 'below', center: 'below', bottom: 'below' };
 	const NARROW_SCREEN = '(max-width: 980px)';
 	const DEFAULT_SIZES = { left: 280, right: 340, bottom: 240 };
+	/** the page the views moved to a window of their own open in, as a second screen shows them */
+	const POPOUT_URL = asset('/studio-popout.html');
+	/** the desktop Studio, which opens again the windows of the views where they were */
+	const desktop =
+		typeof window !== 'undefined' && Boolean(/** @type {any} */ (window).convertigoStudio);
 
 	/** @type {HTMLElement | undefined} */
 	let container = $state();
@@ -155,9 +161,14 @@
 		const maximize = document.createElement('button');
 		maximize.type = 'button';
 		maximize.className = 'studio-dock-actions__button';
-		element.append(viewActions, maximize);
+		const popout = document.createElement('button');
+		popout.type = 'button';
+		popout.className = 'studio-dock-actions__button';
+		element.append(viewActions, popout, maximize);
 		/** @type {any} */
 		let icon;
+		/** @type {any} */
+		let popoutIcon;
 		/** @type {{ dispose: () => void }[]} */
 		const subscriptions = [];
 		const update = () => {
@@ -174,10 +185,11 @@
 			}
 			group.element?.classList.toggle('studio-dock-group--main', Boolean(viewOf(id)?.main));
 			const maximized = Boolean(group.api?.isMaximized?.());
+			const location = group.api?.location?.type;
 			const label = maximized ? 'Restore the views' : 'Maximize the view';
 			maximize.title = label;
 			maximize.setAttribute('aria-label', label);
-			maximize.hidden = group.api?.location?.type === 'floating';
+			maximize.hidden = location === 'floating' || location === 'popout';
 			if (icon) {
 				void unmount(icon);
 			}
@@ -185,7 +197,26 @@
 				target: maximize,
 				props: { icon: maximized ? 'mdi:window-restore' : 'mdi:window-maximize', size: 4 }
 			});
+			const popoutLabel =
+				location === 'popout' ? 'Move back to the Studio' : 'Move to a new window';
+			popout.title = popoutLabel;
+			popout.setAttribute('aria-label', popoutLabel);
+			popout.hidden = maximized;
+			if (popoutIcon) {
+				void unmount(popoutIcon);
+			}
+			popoutIcon = mount(Ico, {
+				target: popout,
+				props: { icon: location === 'popout' ? 'mdi:dock-window' : 'mdi:open-in-new', size: 4 }
+			});
 		};
+		popout.addEventListener('click', () => {
+			if (group.api?.location?.type === 'popout') {
+				movePopoutBack(group);
+			} else {
+				void popoutGroup(group);
+			}
+		});
 		maximize.addEventListener('click', () => {
 			if (group.activePanel) {
 				toggleMaximize(group.activePanel.api);
@@ -211,8 +242,98 @@
 				if (icon) {
 					void unmount(icon);
 				}
+				if (popoutIcon) {
+					void unmount(popoutIcon);
+				}
 			}
 		};
+	}
+
+	/**
+	 * Moves a view, or its group, to a window of its own, placed over it, which the Studio can put on
+	 * another screen.
+	 * @param {any} item a group or a view
+	 */
+	async function popoutGroup(item) {
+		if (!api) {
+			return;
+		}
+		const group = item.group ?? item;
+		const rect = group.element?.getBoundingClientRect();
+		const chrome = Math.max(0, window.outerHeight - window.innerHeight);
+		const position = rect
+			? {
+					left: Math.round(window.screenX + rect.left),
+					top: Math.round(window.screenY + chrome + rect.top),
+					width: Math.max(480, Math.round(rect.width)),
+					height: Math.max(360, Math.round(rect.height))
+				}
+			: undefined;
+		await api.addPopoutGroup(item, { popoutUrl: POPOUT_URL, position });
+	}
+
+	/**
+	 * Moves the views of a window of their own back to the Studio, as the window closes.
+	 * @param {any} group
+	 */
+	function movePopoutBack(group) {
+		api
+			?.getPopouts()
+			.find((popout) => popout.group === group)
+			?.window.close();
+	}
+
+	/**
+	 * A window of views shows the Studio in its theme and its styles, those it loads later too.
+	 * @param {Window} popup
+	 */
+	function preparePopout(popup) {
+		const doc = popup.document;
+		const root = document.documentElement;
+		const sync = () => {
+			doc.documentElement.className = root.className;
+			for (const name of ['style', 'data-theme', 'data-mode', 'lang']) {
+				const value = root.getAttribute(name);
+				if (value == null) {
+					doc.documentElement.removeAttribute(name);
+				} else {
+					doc.documentElement.setAttribute(name, value);
+				}
+			}
+		};
+		sync();
+		// the colors of the Studio are declared for a page that shows it
+		if (!doc.querySelector('.studio-shell')) {
+			const marker = doc.createElement('div');
+			marker.className = 'studio-shell';
+			marker.style.display = 'none';
+			doc.body.prepend(marker);
+		}
+		doc.body.style.background = 'var(--studio-canvas-bg, var(--studio-main-bg))';
+		doc.body.style.color = 'var(--studio-text)';
+		const theme = new MutationObserver(sync);
+		theme.observe(root, { attributes: true });
+		const styles = new MutationObserver((records) => {
+			for (const record of records) {
+				for (const node of record.addedNodes) {
+					if (
+						node instanceof HTMLStyleElement ||
+						(node instanceof HTMLLinkElement && node.rel === 'stylesheet')
+					) {
+						doc.head.appendChild(node.cloneNode(true));
+					}
+				}
+			}
+		});
+		styles.observe(document.head, { childList: true });
+		popup.addEventListener(
+			'pagehide',
+			() => {
+				theme.disconnect();
+				styles.disconnect();
+			},
+			{ once: true }
+		);
 	}
 
 	/**
@@ -308,7 +429,7 @@
 				const id = panel.api.component;
 				nextOpen[id] = true;
 				const group = panel.group;
-				const floating = group?.api?.location?.type === 'floating';
+				const floating = ['floating', 'popout'].includes(group?.api?.location?.type);
 				if (
 					group?.activePanel === panel &&
 					(floating || group.api.isVisible) &&
@@ -366,10 +487,34 @@
 	function readLayout(name) {
 		try {
 			const raw = localStorage.getItem(layoutKey(name));
-			return raw ? JSON.parse(raw) : null;
+			return raw ? withoutPopouts(JSON.parse(raw)) : null;
 		} catch {
 			return null;
 		}
+	}
+
+	/**
+	 * A browser does not open windows without a click: the views of the windows of their own float in the
+	 * Studio instead, which the desktop Studio opens again.
+	 * @param {any} layout
+	 */
+	function withoutPopouts(layout) {
+		if (desktop || !layout?.popoutGroups?.length) {
+			return layout;
+		}
+		const floating = layout.popoutGroups
+			.filter((/** @type {any} */ popout) => popout.data || popout.grid)
+			.map((/** @type {any} */ popout, /** @type {number} */ index) => ({
+				...(popout.grid ? { grid: popout.grid } : { data: popout.data }),
+				position: {
+					left: 48 + index * 32,
+					top: 48 + index * 32,
+					width: Math.min(popout.position?.width ?? 480, 720),
+					height: Math.min(popout.position?.height ?? 360, 540)
+				}
+			}));
+		const { popoutGroups: _popouts, ...rest } = layout;
+		return { ...rest, floatingGroups: [...(layout.floatingGroups ?? []), ...floating] };
 	}
 
 	/**
@@ -530,6 +675,10 @@
 			panel.group.api.setVisible(true);
 		}
 		panel.api.setActive();
+		api
+			.getPopouts()
+			.find((popout) => popout.group === panel.group)
+			?.window.focus();
 		updateState();
 	}
 
@@ -543,7 +692,9 @@
 		if (!panel?.group) {
 			return;
 		}
-		if (panel.group.api.location?.type === 'floating') {
+		if (panel.group.api.location?.type === 'popout') {
+			movePopoutBack(panel.group);
+		} else if (panel.group.api.location?.type === 'floating') {
 			panel.api.close();
 		} else if (panel.group.api.isMaximized()) {
 			panel.group.api.exitMaximized();
@@ -658,19 +809,25 @@
 			createTabComponent: createTab,
 			createRightHeaderActionComponent: createGroupActions,
 			floatingGroupBounds: 'boundedWithinViewport',
+			popoutUrl: POPOUT_URL,
 			getTabContextMenuItems: ({ panel }) =>
 				/** @type {import('dockview').ContextMenuItem[]} */ ([
 					'close',
 					'closeOthers',
 					'separator',
-					...(panel.api.location?.type === 'floating'
-						? []
+					...(panel.api.location?.type === 'popout'
+						? [{ label: 'Move back to the Studio', action: () => movePopoutBack(panel.group) }]
 						: [
-								{
-									label: panel.api.isMaximized() ? 'Restore' : 'Maximize',
-									action: () => toggleMaximize(panel.api)
-								},
-								'float'
+								...(panel.api.location?.type === 'floating'
+									? []
+									: [
+											{
+												label: panel.api.isMaximized() ? 'Restore' : 'Maximize',
+												action: () => toggleMaximize(panel.api)
+											},
+											'float'
+										]),
+								{ label: 'Move to a new window', action: () => void popoutGroup(panel) }
 							])
 				])
 		});
@@ -681,6 +838,11 @@
 			}),
 			api.onDidActivePanelChange(updateState),
 			api.onDidAddPanel(updateState),
+			api.onDidAddPopoutGroup((popout) => {
+				preparePopout(popout.window);
+				updateState();
+			}),
+			api.onDidRemovePopoutGroup(updateState),
 			api.onDidMaximizedGroupChange((event) => {
 				if (!event.isMaximized) {
 					// once the grid has shown the groups again, and has done what exited the maximized view
