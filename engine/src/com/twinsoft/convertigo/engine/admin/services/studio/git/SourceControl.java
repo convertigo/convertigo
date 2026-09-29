@@ -423,10 +423,29 @@ public class SourceControl extends JSonService {
 				var head = git.getRepository().resolve("HEAD^{commit}");
 				var repository = git.getRepository();
 				var pullRemote = repository.getConfig().getString("branch", repository.getBranch(), "remote");
-				var pull = authenticated(git, pullRemote == null ? "origin" : pullRemote, git.pull());
 				var mode = request.getParameter("mode");
-				if ("rebase".equals(mode) || "merge".equals(mode)) {
-					pull.setRebase("rebase".equals(mode));
+				if ("rebase".equals(mode) || (!"merge".equals(mode) && pullsByRebase(repository))) {
+					// fetched, then rebased as the Studio rebases, its commits merged again object by object
+					var remote = pullRemote == null ? "origin" : pullRemote;
+					if (!".".equals(remote)) {
+						authenticated(git, remote, git.fetch().setRemote(remote)).call();
+					}
+					var tracking = new org.eclipse.jgit.lib.BranchConfig(repository.getConfig(), repository.getBranch()).getTrackingBranch();
+					var upstream = tracking == null ? null : repository.resolve(tracking + "^{commit}");
+					if (upstream == null) {
+						throw new ServiceException("The branch " + repository.getBranch() + " has no upstream branch to pull.");
+					}
+					var reviewed = new JSONArray();
+					var outcome = GitOperation.startRebase(git, upstream, Repository.shortenRefName(tracking), null, reviewed);
+					response.put("reviewed", reviewed);
+					afterOperation(git, prefix, project.getName(), head, before, response);
+					status(git, prefix, response);
+					outcome.put(response);
+					return;
+				}
+				var pull = authenticated(git, pullRemote == null ? "origin" : pullRemote, git.pull());
+				if ("merge".equals(mode)) {
+					pull.setRebase(false);
 				}
 				var result = pull.call();
 				if (result.getMergeResult() != null) {
@@ -467,10 +486,12 @@ public class SourceControl extends JSonService {
 				}
 				var before = snapshot(git);
 				var head = git.getRepository().resolve("HEAD^{commit}");
-				var result = git.rebase().setUpstream(id).setUpstreamName(branch).call();
+				var reviewed = new JSONArray();
+				var outcome = GitOperation.startRebase(git, id, branch, null, reviewed);
+				response.put("reviewed", reviewed);
 				afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
-				GitOperation.Outcome.of(result).put(response);
+				outcome.put(response);
 			}
 			case "rebaseTodo" -> {
 				// the commits a rebase on a commit replays, to choose what to do of each
@@ -486,9 +507,10 @@ public class SourceControl extends JSonService {
 				var before = snapshot(git);
 				var head = repository.resolve("HEAD^{commit}");
 				var handler = GitOperation.interactive(repository, upstream, steps);
-				org.eclipse.jgit.api.RebaseResult result;
+				var reviewed = new JSONArray();
+				GitOperation.Outcome outcome;
 				try {
-					result = git.rebase().setUpstream(upstream).runInteractively(handler).call();
+					outcome = GitOperation.startRebase(git, upstream, null, handler, reviewed);
 				} catch (Exception e) {
 					// the rebase is not left half started
 					if (repository.getRepositoryState().isRebasing()) {
@@ -496,9 +518,10 @@ public class SourceControl extends JSonService {
 					}
 					throw new ServiceException("The rebase did not start: " + e.getMessage(), e);
 				}
+				response.put("reviewed", reviewed);
 				afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
-				GitOperation.Outcome.of(result).put(response);
+				outcome.put(response);
 			}
 			case "cherryPick", "revert" -> {
 				// a commit applied on the current branch, or its changes undone by a new commit
@@ -541,13 +564,15 @@ public class SourceControl extends JSonService {
 				var before = snapshot(git);
 				var head = git.getRepository().resolve("HEAD^{commit}");
 				GitOperation.Outcome outcome = null;
+				var reviewed = new JSONArray();
 				if ("abort".equals(action)) {
 					operation.abort(git);
 				} else if ("skip".equals(action)) {
-					outcome = operation.skip(git);
+					outcome = operation.skip(git, reviewed);
 				} else {
-					outcome = operation.proceed(git, request.getParameter("message"));
+					outcome = operation.proceed(git, request.getParameter("message"), reviewed);
 				}
+				response.put("reviewed", reviewed);
 				TreeMerge.forget(project.getName(), git.getRepository());
 				afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
@@ -927,6 +952,18 @@ public class SourceControl extends JSonService {
 			}
 		}
 		return branch + "|" + label;
+	}
+
+	/**
+	 * @return whether the current branch pulls by a rebase, as its configuration or the one of pull says
+	 */
+	private static boolean pullsByRebase(Repository repository) throws Exception {
+		var config = repository.getConfig();
+		var mode = config.getEnum(org.eclipse.jgit.lib.BranchConfig.BranchRebaseMode.values(), "branch", repository.getBranch(), "rebase", null);
+		if (mode == null) {
+			mode = config.getEnum(org.eclipse.jgit.lib.BranchConfig.BranchRebaseMode.values(), "pull", null, "rebase", org.eclipse.jgit.lib.BranchConfig.BranchRebaseMode.NONE);
+		}
+		return mode != org.eclipse.jgit.lib.BranchConfig.BranchRebaseMode.NONE;
 	}
 
 	/**

@@ -222,7 +222,9 @@ public class TreeMerge extends JSonService {
 					GitOperation.Outcome outcome = null;
 					if (resolved.conflicting.isEmpty() && (GitOperation.REBASE.equals(resolved.kind)
 							|| GitOperation.CHERRY_PICK.equals(resolved.kind) || GitOperation.REVERT.equals(resolved.kind))) {
-						outcome = resolved.proceed(git, null);
+						var reviewed = new JSONArray();
+						outcome = resolved.proceed(git, null, reviewed);
+						response.put("reviewed", reviewed);
 					}
 					var next = SourceControl.afterOperation(git, prefix, projectName, head, before, response);
 					response.put("completed", true);
@@ -544,8 +546,8 @@ public class TreeMerge extends JSonService {
 	 * conflict, as a step moved on both sides into two blocks, found twice then. The merge of the objects is
 	 * taken; when it has conflicts, the operation stops on them as on the conflicts of Git.
 	 * @param before HEAD before the operation
-	 * @param kind the operation, a merge, a cherry-pick or a revert
-	 * @param picked the commit picked or reverted
+	 * @param kind the operation, a merge, a cherry-pick, a revert, or a rebase which replayed a commit
+	 * @param picked the commit picked, reverted or replayed
 	 * @return the projects merged again, and those stopped on conflicts
 	 */
 	static JSONArray review(Git git, ObjectId before, String kind, ObjectId picked) throws Exception {
@@ -579,8 +581,9 @@ public class TreeMerge extends JSonService {
 					if (p == null || p.getParentCount() == 0) {
 						return reviewed;
 					}
-					base = GitOperation.CHERRY_PICK.equals(kind) ? p.getParent(0) : p;
-					theirs = GitOperation.CHERRY_PICK.equals(kind) ? p : p.getParent(0);
+					var forward = !GitOperation.REVERT.equals(kind);
+					base = forward ? p.getParent(0) : p;
+					theirs = forward ? p : p.getParent(0);
 				}
 			} else {
 				var operation = GitOperation.of(git);
@@ -642,22 +645,92 @@ public class TreeMerge extends JSonService {
 		}
 		if (!conflicting.isEmpty()) {
 			if (committed) {
-				// the commit is undone: the operation stops, as Git stops on its conflicts
+				// the commit is undone: the operation stops, as Git stops on its conflicts; a rebase knows the
+				// commit it replays, and commits it again once they are resolved
 				git.reset().setMode(ResetCommand.ResetType.SOFT).setRef(before.name()).call();
-				if (GitOperation.MERGE.equals(kind)) {
-					repository.writeMergeHeads(java.util.List.of(theirs));
-				} else if (GitOperation.CHERRY_PICK.equals(kind)) {
-					repository.writeCherryPickHead(picked);
-				} else {
-					repository.writeRevertHead(picked);
+				if (!GitOperation.REBASE.equals(kind)) {
+					if (GitOperation.MERGE.equals(kind)) {
+						repository.writeMergeHeads(java.util.List.of(theirs));
+					} else if (GitOperation.CHERRY_PICK.equals(kind)) {
+						repository.writeCherryPickHead(picked);
+					} else {
+						repository.writeRevertHead(picked);
+					}
+					repository.writeMergeCommitMsg(commit.getFullMessage());
 				}
-				repository.writeMergeCommitMsg(commit.getFullMessage());
 			}
 			markConflicts(repository, conflicting, base, before, theirs);
 		} else if (rewritten && committed) {
 			git.commit().setAmend(true).setMessage(commit.getFullMessage()).setAuthor(commit.getAuthorIdent()).call();
 		}
 		return reviewed;
+	}
+
+	/**
+	 * Resolves the conflicts of Git that the merge of objects resolves, as those of a commit a rebase replays:
+	 * the files of the objects of each project in conflict are merged object by object, when that merge has
+	 * no conflict and no other file of the repository is in conflict.
+	 * @param reviewed the projects merged, added to
+	 * @return whether no conflict is left
+	 */
+	static boolean resolveClean(Git git, JSONArray reviewed) throws Exception {
+		var repository = git.getRepository();
+		var operation = GitOperation.of(git);
+		if (operation.conflicting.isEmpty()) {
+			return true;
+		}
+		if (operation.theirs == null) {
+			return false;
+		}
+		var workingDir = repository.getWorkTree().getCanonicalFile();
+		var covered = new HashSet<String>();
+		var merged = new java.util.ArrayList<Object[]>();
+		for (var name : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
+			var yaml = Engine.projectYamlFile(name);
+			if (yaml == null || !yaml.exists()) {
+				continue;
+			}
+			var projectDir = yaml.getParentFile().getCanonicalFile();
+			var dir = GitUtils.getWorkingDir(projectDir);
+			if (dir == null || !dir.getCanonicalFile().equals(workingDir)) {
+				continue;
+			}
+			var prefix = projectDir.equals(workingDir) ? ""
+					: workingDir.toPath().relativize(projectDir.toPath()).toString().replace(File.separatorChar, '/') + "/";
+			if (!operation.conflicts(prefix)) {
+				continue;
+			}
+			for (var path : operation.conflicting) {
+				if (path.startsWith(prefix)) {
+					if (!path.equals(prefix + "c8oProject.yaml") && !path.startsWith(prefix + "_c8oProject/")) {
+						// a script or another file of the project, merged by the user
+						return false;
+					}
+					covered.add(path);
+				}
+			}
+			var tmp = Files.createTempDirectory("c8o-treeresolve").toFile();
+			try {
+				var merge = new Merge(operation.base == null ? empty() : TreeDiff.documentAt(repository, operation.base, prefix, new File(tmp, "base")),
+						operation.ours == null ? empty() : TreeDiff.documentAt(repository, operation.ours, prefix, new File(tmp, "ours")),
+						TreeDiff.documentAt(repository, operation.theirs, prefix, new File(tmp, "theirs")), new HashMap<>(), new HashMap<>());
+				merge.run();
+				if (merge.conflicts.length() > 0) {
+					return false;
+				}
+				merged.add(new Object[] { name, prefix, projectDir, merge.merged });
+			} finally {
+				FileUtils.deleteQuietly(tmp);
+			}
+		}
+		if (!covered.containsAll(operation.conflicting)) {
+			return false;
+		}
+		for (var project : merged) {
+			write(git, (String) project[1], (File) project[2], (Document) project[3]);
+			reviewed.put(new JSONObject().put("project", project[0]).put("merged", true));
+		}
+		return true;
 	}
 
 	/** @return the files of the objects of a project changed between two commits */

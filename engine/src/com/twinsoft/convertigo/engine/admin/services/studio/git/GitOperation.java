@@ -178,6 +178,175 @@ class GitOperation {
 		};
 	}
 
+	/** the steps of a rebase of the Studio, kept in the directory of the rebase, which Git removes as it ends */
+	private static final String REVIEW = "c8o-studio-review";
+
+	/**
+	 * Starts a rebase of the Studio on a commit: its commits replayed one by one, each merged again object by
+	 * object once Git replayed it, as a cherry-pick of the Studio. Up to date, or behind the commit, it is
+	 * left to Git.
+	 * @param handler the handler of an interactive rebase, or null
+	 * @param reviewed the projects merged again, and those stopped on conflicts
+	 */
+	static Outcome startRebase(Git git, ObjectId upstream, String upstreamName, RebaseCommand.InteractiveHandler handler, JSONArray reviewed) throws Exception {
+		var repository = git.getRepository();
+		var command = git.rebase().setUpstream(upstream);
+		if (upstreamName != null) {
+			command.setUpstreamName(upstreamName);
+		}
+		if (handler == null) {
+			try (var walk = new RevWalk(repository)) {
+				var head = walk.parseCommit(repository.resolve("HEAD^{commit}"));
+				var onto = walk.parseCommit(upstream);
+				if (walk.isMergedInto(onto, head) || walk.isMergedInto(head, onto)) {
+					return Outcome.of(command.call());
+				}
+			}
+		}
+		return replay(git, command.runInteractively(reviewed(repository, handler)).call(), reviewed);
+	}
+
+	/**
+	 * @return the handler of a rebase of the Studio, the actions of an interactive one kept: each pick is
+	 *         made an edit, to stop at once Git replayed the commit, merged again then before it goes on
+	 */
+	private static RebaseCommand.InteractiveHandler reviewed(Repository repository, RebaseCommand.InteractiveHandler handler) {
+		return new RebaseCommand.InteractiveHandler() {
+			@Override
+			public void prepareSteps(java.util.List<org.eclipse.jgit.lib.RebaseTodoLine> todo) {
+				if (handler != null) {
+					handler.prepareSteps(todo);
+				}
+				try {
+					var review = review(repository);
+					for (var line : todo) {
+						if (line.getCommit() != null && line.getAction() == org.eclipse.jgit.lib.RebaseTodoLine.Action.PICK) {
+							line.setAction(org.eclipse.jgit.lib.RebaseTodoLine.Action.EDIT);
+							add(review, "picks", line.getCommit().name());
+						}
+					}
+					review(repository, review);
+				} catch (Exception e) {
+					throw new IllegalArgumentException(e.getMessage(), e);
+				}
+			}
+
+			@Override
+			public String modifyCommitMessage(String message) {
+				return handler != null ? handler.modifyCommitMessage(message) : nextMessage(repository, message);
+			}
+		};
+	}
+
+	/**
+	 * Goes on with a rebase of the Studio while it stops at a pick made an edit: the commit Git replayed is
+	 * merged again object by object, taken when it differs from the merge of the lines of Git; the rebase stops
+	 * on the conflicts of its objects, as on those of Git, and at the edits asked.
+	 * @param reviewed the projects merged again, and those stopped on conflicts
+	 */
+	static Outcome replay(Git git, RebaseResult result, JSONArray reviewed) throws Exception {
+		var repository = git.getRepository();
+		while (true) {
+			var status = result.getStatus();
+			var step = status == RebaseResult.Status.EDIT || status == RebaseResult.Status.STOPPED ? lastDone(repository) : null;
+			if (step == null) {
+				return Outcome.of(result);
+			}
+			var review = review(repository);
+			if (status == RebaseResult.Status.STOPPED) {
+				// the conflicts of Git, merged object by object: at once when the objects have none, else by the
+				// user in the Studio
+				add(review, "merged", step);
+				review(repository, review);
+				if (!TreeMerge.resolveClean(git, reviewed)) {
+					return Outcome.of(result);
+				}
+				result = git.rebase().setOperation(RebaseCommand.Operation.CONTINUE).runInteractively(reviewed(repository, resumed(repository))).call();
+				continue;
+			}
+			if (!has(review, "merged", step)) {
+				add(review, "merged", step);
+				review(repository, review);
+				var original = repository.resolve(step + "^{commit}");
+				try (var walk = new RevWalk(repository)) {
+					var head = walk.parseCommit(repository.resolve("HEAD^{commit}"));
+					if (original != null && !original.equals(head) && head.getParentCount() > 0) {
+						var stopped = false;
+						var projects = TreeMerge.review(git, head.getParent(0), REBASE, original);
+						for (var i = 0; i < projects.length(); i++) {
+							reviewed.put(projects.get(i));
+							stopped |= projects.getJSONObject(i).has("conflicts");
+						}
+						if (stopped) {
+							return new Outcome(RebaseResult.Status.STOPPED.name(), null);
+						}
+					}
+				}
+			}
+			if (!has(review, "picks", step)) {
+				// an edit asked
+				return Outcome.of(result);
+			}
+			result = git.rebase().setOperation(RebaseCommand.Operation.CONTINUE).runInteractively(reviewed(repository, resumed(repository))).call();
+		}
+	}
+
+	private static File rebaseDir(Repository repository) {
+		var apply = new File(repository.getDirectory(), "rebase-apply");
+		return apply.isDirectory() ? apply : new File(repository.getDirectory(), "rebase-merge");
+	}
+
+	/** @return the commit of the last step a rebase did, as its lines name it, or null */
+	private static String lastDone(Repository repository) throws Exception {
+		var dir = rebaseDir(repository);
+		if (!new File(dir, "done").isFile()) {
+			return null;
+		}
+		String last = null;
+		for (var line : repository.readRebaseTodo(dir.getName() + "/done", false)) {
+			if (line.getCommit() != null) {
+				last = line.getCommit().name();
+			}
+		}
+		return last;
+	}
+
+	/** @return the picks made edits and the steps merged again of a rebase of the Studio */
+	private static JSONObject review(Repository repository) {
+		var file = new File(rebaseDir(repository), REVIEW);
+		try {
+			return file.isFile() ? new JSONObject(Files.readString(file.toPath())) : new JSONObject();
+		} catch (Exception e) {
+			return new JSONObject();
+		}
+	}
+
+	private static void review(Repository repository, JSONObject review) throws Exception {
+		var dir = rebaseDir(repository);
+		if (dir.isDirectory()) {
+			Files.writeString(new File(dir, REVIEW).toPath(), review.toString());
+		}
+	}
+
+	private static boolean has(JSONObject review, String list, String id) throws Exception {
+		var ids = review.optJSONArray(list);
+		for (var i = 0; ids != null && i < ids.length(); i++) {
+			if (id.equals(ids.getString(i))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void add(JSONObject review, String list, String id) throws Exception {
+		if (!has(review, list, id)) {
+			if (review.optJSONArray(list) == null) {
+				review.put(list, new JSONArray());
+			}
+			review.getJSONArray(list).put(id);
+		}
+	}
+
 	/**
 	 * @return the handler of an interactive rebase going on: its steps kept, its messages given
 	 */
@@ -597,13 +766,20 @@ class GitOperation {
 	 * @param message the message of a merge, or null for the one of Git
 	 */
 	Outcome proceed(Git git, String message) throws Exception {
+		return proceed(git, message, new JSONArray());
+	}
+
+	/**
+	 * @param reviewed the projects a rebase of the Studio merged again, and those stopped on conflicts
+	 */
+	Outcome proceed(Git git, String message, JSONArray reviewed) throws Exception {
 		var repository = git.getRepository();
 		if (!conflicting.isEmpty()) {
 			throw new ServiceException(conflicting.size() + " file" + (conflicting.size() > 1 ? "s have" : " has") + " conflicts to resolve first.");
 		}
 		switch (kind) {
 		case REBASE -> {
-			return Outcome.of(rebase(git).setOperation(RebaseCommand.Operation.CONTINUE).call());
+			return replay(git, rebase(git).setOperation(RebaseCommand.Operation.CONTINUE).call(), reviewed);
 		}
 		case MERGE, CHERRY_PICK, REVERT -> {
 			var status = git.status().call();
@@ -631,20 +807,21 @@ class GitOperation {
 	/**
 	 * Skips the commit a rebase stopped at, and goes on with the next ones.
 	 */
-	Outcome skip(Git git) throws Exception {
+	Outcome skip(Git git, JSONArray reviewed) throws Exception {
 		if (!REBASE.equals(kind)) {
 			throw new ServiceException("Only a rebase skips a commit.");
 		}
-		return Outcome.of(rebase(git).setOperation(RebaseCommand.Operation.SKIP).call());
+		return replay(git, rebase(git).setOperation(RebaseCommand.Operation.SKIP).call(), reviewed);
 	}
 
 	/**
-	 * @return a rebase going on, with its messages when it is interactive
+	 * @return a rebase going on, with its messages when it is interactive, its commits merged again object by
+	 *         object when it is one of the Studio
 	 */
 	private RebaseCommand rebase(Git git) {
 		var rebase = git.rebase();
 		if (state == RepositoryState.REBASING_INTERACTIVE) {
-			rebase.runInteractively(resumed(git.getRepository()));
+			rebase.runInteractively(reviewed(git.getRepository(), resumed(git.getRepository())));
 		}
 		return rebase;
 	}
