@@ -7,6 +7,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, getFrontendUrl, toaster } from '$lib/utils/service';
 	import { tick, untrack } from 'svelte';
+	import { fade } from 'svelte/transition';
 	import { captureElement } from './elementCapture';
 	import {
 		authoringDropRequest,
@@ -58,6 +59,9 @@
 			match: (device) => device.type === 'desktop' && device.id !== 'none'
 		}
 	];
+	const BANNER_MIN_TIME = 900;
+	const BANNER_RESULT_TIME = 1600;
+	const BANNER_FAILED_TIME = 4000;
 	const ZOOM_STEP = 0.15;
 	const ZOOM_CHOICES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 	const MIN_ZOOM = 0.4;
@@ -67,7 +71,7 @@
 	const labeledButtonClasses =
 		'button-ico-secondary studio-preview__labeled h-8! w-fit! justify-center px-2!';
 
-	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, onNgxStyleChanges?: (changes: any) => void | Promise<void>, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean, onNgxDragStart?: (priority: string) => void, onNgxDragEnd?: () => void, activity?: { phase: string, progress: number } }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, onNgxStyleChanges?: (changes: any) => void | Promise<void>, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean, onNgxDragStart?: (priority: string) => void, onNgxDragEnd?: () => void, activity?: { phase: string, progress: number, result?: string, serial?: number } }} */
 	let {
 		projectName = '',
 		previewUrlOverride = '',
@@ -92,7 +96,7 @@
 		ngxCanDrop,
 		onNgxDragStart,
 		onNgxDragEnd,
-		activity = { phase: '', progress: -1 }
+		activity = { phase: '', progress: -1, result: '', serial: 0 }
 	} = $props();
 
 	/** @type {HTMLIFrameElement | undefined} */
@@ -105,6 +109,76 @@
 				? `Building the application…${activity.progress > 0 && activity.progress < 100 ? ` ${activity.progress}%` : ''}`
 				: ''
 	);
+	/**
+	 * The banner of the preview, as a toast: a build shows long enough to be read, even the one of the
+	 * development server after a change, which takes a fraction of a second, then tells how it ended.
+	 */
+	let banner = $state({ label: '', tone: 'busy', progress: -1 });
+	let bannerShownAt = 0;
+	/** @type {ReturnType<typeof setTimeout> | undefined} */
+	let bannerTimer;
+	let bannerSerial = untrack(() => activity?.serial ?? 0);
+	/** how the last build ended, told once the banner of the build was read */
+	let bannerResult = '';
+
+	$effect(() => {
+		const label = activityLabel;
+		const progress = activity?.progress ?? -1;
+		const serial = activity?.serial ?? 0;
+		const result = activity?.result ?? '';
+		untrack(() => updateBanner(label, progress, serial, result));
+	});
+
+	$effect(() => () => clearTimeout(bannerTimer));
+
+	/**
+	 * @param {string} label what the builder does, empty when it ended
+	 * @param {number} progress
+	 * @param {number} serial the count of the builds ended
+	 * @param {string} result how the last one ended
+	 */
+	function updateBanner(label, progress, serial, result) {
+		if (serial !== bannerSerial) {
+			bannerSerial = serial;
+			bannerResult = result;
+		}
+		if (label) {
+			clearTimeout(bannerTimer);
+			if (banner.tone !== 'busy' || !banner.label) {
+				bannerShownAt = Date.now();
+			}
+			banner = { label, tone: 'busy', progress };
+			return;
+		}
+		if (banner.label && banner.tone !== 'busy' && !bannerResult) {
+			// the end of a build shows until its time is over
+			return;
+		}
+		clearTimeout(bannerTimer);
+		const tell = () => {
+			const ended = bannerResult;
+			bannerResult = '';
+			if (!ended) {
+				banner = { label: '', tone: 'busy', progress: -1 };
+				return;
+			}
+			const failed = ended === 'failed';
+			banner = {
+				label: failed ? 'The build failed, see the Build view' : 'Application updated',
+				tone: failed ? 'failed' : 'success',
+				progress: -1
+			};
+			bannerTimer = setTimeout(
+				() => (banner = { label: '', tone: 'busy', progress: -1 }),
+				failed ? BANNER_FAILED_TIME : BANNER_RESULT_TIME
+			);
+		};
+		if (banner.label && banner.tone === 'busy') {
+			bannerTimer = setTimeout(tell, Math.max(0, bannerShownAt + BANNER_MIN_TIME - Date.now()));
+		} else {
+			tell();
+		}
+	}
 	let clientHeight = $state(0);
 	let clientWidth = $state(0);
 	let addressOverride = $state({ base: '', value: '' });
@@ -1375,12 +1449,24 @@
 		{/if}
 
 		<MaxRectangle bind:clientHeight bind:clientWidth class="studio-preview__viewport">
-			{#if activityLabel}
-				<div class="studio-preview__activity" role="status">
-					<Ico icon="mdi:sync" size={4} class="studio-preview__activity-icon" />
-					<span>{activityLabel}</span>
-					{#if activity.progress > 0 && activity.progress < 100}
-						<span class="studio-preview__activity-bar" style:width={`${activity.progress}%`}></span>
+			{#if banner.label}
+				<div
+					class={['studio-preview__activity', `studio-preview__activity--${banner.tone}`]}
+					role="status"
+					transition:fade={{ duration: 150 }}
+				>
+					<Ico
+						icon={banner.tone === 'success'
+							? 'mdi:check-circle-outline'
+							: banner.tone === 'failed'
+								? 'mdi:alert-circle-outline'
+								: 'mdi:sync'}
+						size={4}
+						class="studio-preview__activity-icon"
+					/>
+					<span>{banner.label}</span>
+					{#if banner.progress > 0 && banner.progress < 100}
+						<span class="studio-preview__activity-bar" style:width={`${banner.progress}%`}></span>
 					{/if}
 				</div>
 			{/if}
@@ -1462,9 +1548,21 @@
 		white-space: nowrap;
 	}
 
-	.studio-preview__activity :global(.studio-preview__activity-icon) {
+	.studio-preview__activity--busy :global(.studio-preview__activity-icon) {
 		animation: studio-preview-spin 1.2s linear infinite;
 		color: var(--color-primary-500);
+	}
+
+	.studio-preview__activity--success :global(.studio-preview__activity-icon) {
+		color: var(--color-success-600-400);
+	}
+
+	.studio-preview__activity--failed {
+		border-color: color-mix(in oklab, var(--color-error-500) 45%, transparent);
+	}
+
+	.studio-preview__activity--failed :global(.studio-preview__activity-icon) {
+		color: var(--color-error-600-400);
 	}
 
 	.studio-preview__activity-bar {

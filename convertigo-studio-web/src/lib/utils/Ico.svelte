@@ -34,6 +34,7 @@
 	import MdiChartBoxOutline from '~icons/mdi/chart-box-outline';
 	import MdiCheck from '~icons/mdi/check';
 	import MdiCheckAll from '~icons/mdi/check-all';
+	import MdiCheckCircleOutline from '~icons/mdi/check-circle-outline';
 	import MdiChevronDown from '~icons/mdi/chevron-down';
 	import MdiChevronLeft from '~icons/mdi/chevron-left';
 	import MdiChevronRight from '~icons/mdi/chevron-right';
@@ -239,6 +240,7 @@
 		'mdi:certificate': MdiCertificate,
 		'mdi:check': MdiCheck,
 		'mdi:check-all': MdiCheckAll,
+		'mdi:check-circle-outline': MdiCheckCircleOutline,
 		'mdi:chevron-left': MdiChevronLeft,
 		'mdi:chevron-down': MdiChevronDown,
 		'mdi:circle-small': MdiCircleSmall,

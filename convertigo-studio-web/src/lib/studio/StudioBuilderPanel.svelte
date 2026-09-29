@@ -21,7 +21,7 @@
 	 *  onBuilt?: () => void,
 	 *  onServerStop?: () => void,
 	 *  onFailedChange?: (failed: boolean) => void,
-	 *  onActivity?: (activity: { phase: string, progress: number }) => void,
+	 *  onActivity?: (activity: { phase: string, progress: number, result: string, serial: number }) => void,
 	 *  serveRequest?: number | { at: number, install?: string, attach?: boolean },
 	 *  onServeRequestTaken?: () => void,
 	 *  buildRequest?: number,
@@ -79,6 +79,8 @@
 	/** what the development server and the local build do: installing, building or nothing */
 	let devPhase = $state('');
 	let localPhase = $state('');
+	/** the end of the last build seen building, success or failed, which the preview tells */
+	let buildResult = $state({ result: '', serial: 0 });
 	let running = $derived(devState !== 'idle' || localState !== 'idle');
 	let status = $derived(
 		[
@@ -113,7 +115,7 @@
 
 	$effect(() => {
 		// the preview shows the packages installed and the application built
-		const activity = { phase: devPhase || localPhase, progress };
+		const activity = { phase: devPhase || localPhase, progress, ...buildResult };
 		untrack(() => onActivity?.(activity));
 	});
 
@@ -336,10 +338,17 @@
 					}
 				} else if (type === 'compiled') {
 					setFailed(value === 'failed', 'The compilation of the development server');
+					// the last result the builder gives back to a Studio attaching is not a new build
+					if (devPhase === 'building') {
+						buildResult = { result: value, serial: buildResult.serial + 1 };
+					}
 				} else if (type === 'built') {
 					progress = -1;
 					if (value !== 'stopped') {
 						setFailed(value === 'failed', 'The local build');
+						if (localPhase === 'building') {
+							buildResult = { result: value, serial: buildResult.serial + 1 };
+						}
 					}
 					// a build ending before the production build asked for a deployment does not deploy
 					if (value === 'success' && !pendingBuild) {

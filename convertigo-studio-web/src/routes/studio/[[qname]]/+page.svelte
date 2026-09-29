@@ -74,8 +74,8 @@
 	} from '$lib/studio/studioPreferences.svelte.js';
 	import StudioPreferencesDialog from '$lib/studio/StudioPreferencesDialog.svelte';
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
-	import StudioPromptDialog from '$lib/studio/StudioPromptDialog.svelte';
 	import { studioPrompt } from '$lib/studio/studioPrompt.svelte.js';
+	import StudioPromptDialog from '$lib/studio/StudioPromptDialog.svelte';
 	import StudioPropertiesPanel from '$lib/studio/StudioPropertiesPanel.svelte';
 	import StudioReferencesPanel from '$lib/studio/StudioReferencesPanel.svelte';
 	import StudioSapDesignDialog from '$lib/studio/StudioSapDesignDialog.svelte';
@@ -260,7 +260,7 @@
 	/** whether the application of the selected project does not build, which the Build view tells */
 	let buildFailed = $state(false);
 	/** what the builder of the application does, which the preview shows */
-	let buildActivity = $state({ phase: '', progress: -1 });
+	let buildActivity = $state({ phase: '', progress: -1, result: '', serial: 0 });
 	let frontendDeviceId = $state('none');
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
