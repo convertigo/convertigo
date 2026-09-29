@@ -1346,8 +1346,9 @@
 	 * @param {{ reference: import('$lib/studio/flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: import('$lib/studio/dnd').DboDragPayload }} request
 	 */
 	async function dropInFrontend(request) {
+		// the preview shows the application of applicationProjectName, whatever object is selected
 		const mapping = await call('studio.treeview.Authoring', {
-			project: selectedProjectName,
+			project: applicationProjectName,
 			reference: JSON.stringify(request.reference)
 		});
 		const target = String(mapping?.id ?? '');
@@ -1383,11 +1384,11 @@
 	async function moveInFrontend(request) {
 		const [sourceMapping, targetMapping] = await Promise.all([
 			call('studio.treeview.Authoring', {
-				project: selectedProjectName,
+				project: applicationProjectName,
 				reference: JSON.stringify(request.source)
 			}),
 			call('studio.treeview.Authoring', {
-				project: selectedProjectName,
+				project: applicationProjectName,
 				reference: JSON.stringify(request.reference)
 			})
 		]);
