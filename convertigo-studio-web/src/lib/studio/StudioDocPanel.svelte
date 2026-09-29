@@ -1,5 +1,5 @@
 <script>
-	import { documentationBlocks } from './docBlocks.js';
+	import { documentationBlocks, documentationSegments } from './docBlocks.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioObjectIdentity from './StudioObjectIdentity.svelte';
 
@@ -74,14 +74,22 @@
 				segments: [{ type: 'text', text: 'Properties:' }]
 			});
 			for (const property of item.propertyDocumentation) {
+				// the description of a property is HTML, its summary before a | and its details after
+				const description = splitRawDescription(property.description);
 				blocks.push({
 					type: 'paragraph',
 					className: 'studio-doc__property',
 					segments: [
 						{ type: 'strong', text: property.label },
-						{ type: 'text', text: ` — ${property.description}` }
+						...(description.shortHtml
+							? [{ type: 'text', text: ' — ' }, ...documentationSegments(description.shortHtml)]
+							: [])
 					]
 				});
+				const details = documentationBlocks(description.longHtml);
+				if (details.length) {
+					blocks.push({ type: 'details', blocks: details });
+				}
 			}
 		}
 		return blocks.filter((block) => block.type !== 'paragraph' || block.segments.length);
@@ -187,6 +195,12 @@
 		</div>
 	{:else if block.type === 'rule'}
 		<hr />
+	{:else if block.type === 'details'}
+		<div class="studio-doc__property-details">
+			{#each block.blocks as child, index (index)}
+				{@render docBlock(child)}
+			{/each}
+		</div>
 	{/if}
 {/snippet}
 
@@ -266,6 +280,12 @@
 		border-left: 3px solid var(--color-surface-400-600);
 		color: var(--color-surface-700-300);
 		padding: 0.1rem 0 0.1rem 0.8rem;
+	}
+
+	.studio-doc__property-details {
+		margin: -0.45rem 0 0.9rem 0.9rem;
+		color: var(--color-surface-700-300);
+		font-size: 0.84rem;
 	}
 
 	.studio-doc__table {
