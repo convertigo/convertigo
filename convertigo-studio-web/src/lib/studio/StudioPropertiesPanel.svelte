@@ -35,7 +35,7 @@
 	import StudioSection from './StudioSection.svelte';
 	import StudioSourcePickerPanel from './StudioSourcePickerPanel.svelte';
 	import StudioTableProperty from './StudioTableProperty.svelte';
-	import { nodeDiff, treeDiff } from './treeDiff.svelte.js';
+	import { nodeDiff, revertTreeProperty, treeDiff } from './treeDiff.svelte.js';
 	import { treeSelectionOf } from './treeSelection.svelte.js';
 
 	/**
@@ -73,6 +73,23 @@
 
 	/** the changes of the object since the commit of the Git mode of the tree */
 	let diffChange = $derived(selectedId ? nodeDiff(selectedId).change : undefined);
+	let revertingProperty = $state('');
+
+	/**
+	 * Gives back the value of a property at the commit, as a change of the Studio.
+	 * @param {string} name
+	 */
+	async function revertProperty(name) {
+		const id = selectedId;
+		revertingProperty = name;
+		try {
+			if (await revertTreeProperty(id, name)) {
+				await onSave?.(id);
+			}
+		} finally {
+			revertingProperty = '';
+		}
+	}
 
 	/**
 	 * Ctrl or ⌘ with S applies the changes of the properties and saves the project, as the Eclipse Studio
@@ -853,6 +870,18 @@
 								→
 								{#if property.new}<ins>{property.new}</ins>{:else}<em>default</em>{/if}
 							</span>
+							{#if diffChange.status === 'modified'}
+								<button
+									type="button"
+									class="studio-properties__diff-revert"
+									title="Give back the value of {treeDiff.ref}"
+									aria-label="Revert {property.label}"
+									disabled={revertingProperty === property.name}
+									onclick={() => void revertProperty(property.name)}
+								>
+									<Ico icon="mdi:undo" size={3.4} />
+								</button>
+							{/if}
 						</div>
 					{/each}
 				</section>
@@ -1297,8 +1326,25 @@
 
 	.studio-properties__diff-row {
 		display: grid;
-		grid-template-columns: minmax(6rem, 30%) minmax(0, 1fr);
+		grid-template-columns: minmax(6rem, 30%) minmax(0, 1fr) auto;
+		align-items: start;
 		gap: 0.5rem;
+	}
+
+	.studio-properties__diff-revert {
+		display: inline-grid;
+		width: 1.4rem;
+		height: 1.4rem;
+		place-items: center;
+		border: 0;
+		border-radius: 0.3rem;
+		background: transparent;
+		color: var(--studio-text-idle);
+	}
+
+	.studio-properties__diff-revert:hover {
+		background: var(--studio-hover-bg);
+		color: var(--studio-text-strong);
 	}
 
 	.studio-properties__diff-name {

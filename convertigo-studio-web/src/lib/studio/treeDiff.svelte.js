@@ -167,3 +167,20 @@ export function nodeDiff(id) {
 	const diff = treeDiff.enabled ? treeDiff.projects[projectOfNode(id)] : undefined;
 	return { diff, change: diff?.byId[id], ancestor: Boolean(diff?.ancestors[id]) };
 }
+
+/**
+ * Gives back to an object the value a property had at the commit of the mode.
+ * @param {string} id the id of the object in the tree
+ * @param {string} property its property, beanData.name for a property of Ionic
+ * @returns {Promise<boolean>} whether it is done
+ */
+export async function revertTreeProperty(id, property) {
+	const result = await call('studio.git.TreeDiff', {
+		projectName: projectOfNode(id),
+		ref: treeDiff.ref,
+		action: 'revert',
+		id,
+		property
+	});
+	return result?.done === true;
+}
