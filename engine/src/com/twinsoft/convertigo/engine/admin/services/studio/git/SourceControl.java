@@ -541,7 +541,7 @@ public class SourceControl extends JSonService {
 				} else {
 					outcome = operation.proceed(git, request.getParameter("message"));
 				}
-				TreeMerge.forget(project.getName());
+				TreeMerge.forget(project.getName(), git.getRepository());
 				afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
 				if (outcome != null) {
@@ -1034,9 +1034,21 @@ public class SourceControl extends JSonService {
 	static void loadCommitted(Git git, String projectName, File projectDir, String prefix) throws Exception {
 		var repository = git.getRepository();
 		var head = repository.resolve("HEAD^{commit}");
-		if (head == null) {
-			return;
+		if (head != null) {
+			loadVersion(projectName, projectDir, (dir) -> TreeDiff.writeFiles(repository, head, prefix, dir));
 		}
+	}
+
+	/** writes the files of the objects of a version of a project in its directory */
+	interface VersionWriter {
+		void write(File projectDir) throws Exception;
+	}
+
+	/**
+	 * Loads a version of a project, its files given back once loaded: the files of Git filled with its
+	 * markers, or saved by the Studio during a merge.
+	 */
+	static void loadVersion(String projectName, File projectDir, VersionWriter writer) throws Exception {
 		var yaml = new File(projectDir, "c8oProject.yaml");
 		var objects = new File(projectDir, "_c8oProject");
 		var saved = new LinkedHashMap<File, byte[]>();
@@ -1051,7 +1063,7 @@ public class SourceControl extends JSonService {
 		try {
 			FileUtils.deleteQuietly(yaml);
 			FileUtils.deleteQuietly(objects);
-			TreeDiff.writeFiles(repository, head, prefix, projectDir);
+			writer.write(projectDir);
 			if (yaml.isFile()) {
 				reload(projectName);
 			}

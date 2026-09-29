@@ -291,6 +291,14 @@ public class TreeDiff extends JSonService {
 	 *         1 for the base, 2 for mine, 3 for theirs
 	 */
 	static Document documentAtStage(Repository repository, int stage, String prefix, File dir) throws Exception {
+		writeStageFiles(repository, stage, prefix, dir);
+		return read(dir);
+	}
+
+	/**
+	 * Writes the files of the objects of the project of a side of the conflicts of the index in a directory.
+	 */
+	static void writeStageFiles(Repository repository, int stage, String prefix, File dir) throws Exception {
 		var index = repository.readDirCache();
 		for (var i = 0; i < index.getEntryCount(); i++) {
 			var entry = index.getEntry(i);
@@ -305,7 +313,6 @@ public class TreeDiff extends JSonService {
 				Files.write(file.toPath(), repository.open(entry.getObjectId()).getBytes());
 			}
 		}
-		return read(dir);
 	}
 
 	private static Document read(File dir) throws Exception {

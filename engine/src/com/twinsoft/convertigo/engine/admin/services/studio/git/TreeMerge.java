@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.git;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,9 +74,14 @@ public class TreeMerge extends JSonService {
 	private record Resolution(String choice, String value) {
 	}
 
-	/** the choices made for the conflicts of a project, until the commit they are against changes */
+	/**
+	 * The choices made for the conflicts of a project, until the commit they are against changes, kept in
+	 * the directory of Git for a start of the engine during the merge; aligned once the project the Studio
+	 * shows is the version mine is, the changes made in the Studio then merged as mine.
+	 */
 	private static class Session {
 		String key;
+		boolean aligned;
 		Map<String, Resolution> resolutions = new ConcurrentHashMap<>();
 	}
 
@@ -102,7 +108,7 @@ public class TreeMerge extends JSonService {
 			var repository = git.getRepository();
 			var operation = GitOperation.of(git);
 			if (!operation.conflicts(prefix)) {
-				sessions.remove(projectName);
+				forget(projectName, repository);
 				response.put("merging", false);
 				if (operation.stopped()) {
 					response.put("operation", operation.toJson(git, prefix));
@@ -111,15 +117,14 @@ public class TreeMerge extends JSonService {
 			}
 			// the choices made hold for a commit merged, replayed, picked or reverted, or for conflicts of the index
 			var key = operation.kind + ":" + (operation.theirs != null ? operation.theirs.name() : stages(repository, prefix));
-			var session = sessions.compute(projectName, (k, current) -> current != null && key.equals(current.key) ? current : new Session());
-			session.key = key;
+			var session = sessions.compute(projectName, (k, current) -> current != null && key.equals(current.key) ? current : restore(repository, projectName, key));
 
 			if ("abort".equals(action)) {
 				// the operation is left, as git merge --abort or git rebase --abort do, the projects load again
 				var before = SourceControl.snapshot(git);
 				var head = repository.resolve("HEAD^{commit}");
 				operation.abort(git);
-				sessions.remove(projectName);
+				forget(projectName, repository);
 				SourceControl.afterOperation(git, prefix, projectName, head, before, response);
 				response.put("merging", false);
 				response.put("aborted", true);
@@ -137,21 +142,41 @@ public class TreeMerge extends JSonService {
 				} else {
 					session.resolutions.put(id, new Resolution(choice, request.getParameter("value")));
 				}
+				save(repository, projectName, session);
 			}
 
 			var tmp = Files.createTempDirectory("c8o-treemerge").toFile();
 			try {
 				Document base, ours, theirs;
+				SourceControl.VersionWriter oursWriter;
 				if (operation.theirs != null) {
 					base = operation.base == null ? empty() : TreeDiff.documentAt(repository, operation.base, prefix, new File(tmp, "base"));
 					ours = operation.ours == null ? empty() : TreeDiff.documentAt(repository, operation.ours, prefix, new File(tmp, "ours"));
 					theirs = TreeDiff.documentAt(repository, operation.theirs, prefix, new File(tmp, "theirs"));
+					var oursId = operation.ours;
+					oursWriter = oursId == null ? null : (dir) -> TreeDiff.writeFiles(repository, oursId, prefix, dir);
 				} else {
 					// conflicts whose commits are not known, as those of a stash applied: the sides the index keeps
 					base = TreeDiff.documentAtStage(repository, 1, prefix, new File(tmp, "base"));
 					ours = TreeDiff.documentAtStage(repository, 2, prefix, new File(tmp, "ours"));
 					theirs = TreeDiff.documentAtStage(repository, 3, prefix, new File(tmp, "theirs"));
+					oursWriter = (dir) -> TreeDiff.writeStageFiles(repository, 2, prefix, dir);
 				}
+				// mine is the project the Studio shows, with the changes made in it during the merge: it starts as
+				// the version the conflicts are against, loaded again when it is another, as a project not
+				// loaded again by a rebase of Git
+				var shown = TreeDiff.current(project, new File(tmp, "shown"));
+				if (!session.aligned) {
+					if (oursWriter != null && !sameProject(shown, ours)) {
+						SourceControl.loadVersion(projectName, projectDir, oursWriter);
+						project = SourceControl.project(projectName);
+						shown = TreeDiff.current(project, new File(tmp, "shown-again"));
+						response.put("reloaded", true);
+					}
+					session.aligned = true;
+					save(repository, projectName, session);
+				}
+				ours = shown;
 				var live = new HashMap<String, DatabaseObject>();
 				TreeDiff.live(project, null, live);
 				var merge = new Merge(base, ours, theirs, session.resolutions, live);
@@ -165,6 +190,7 @@ public class TreeMerge extends JSonService {
 					for (var i = 0; i < fileConflicts.length(); i++) {
 						session.resolutions.putIfAbsent(fileConflicts.getJSONObject(i).getString("id"), new Resolution(choice, null));
 					}
+					save(repository, projectName, session);
 					merge = new Merge(base, ours, theirs, session.resolutions, live);
 					merge.run();
 					fileConflicts = fileConflicts(git, prefix, session);
@@ -178,7 +204,7 @@ public class TreeMerge extends JSonService {
 					var head = repository.resolve("HEAD^{commit}");
 					var message = operation.message(repository);
 					complete(git, prefix, projectDir, merge.merged, fileConflicts, session);
-					sessions.remove(projectName);
+					forget(projectName, repository);
 					// a rebase goes on with the next commits, a cherry-pick or a revert commits, once the
 					// repository has no other conflict; a merge is committed from the Source control view
 					var resolved = GitOperation.of(git);
@@ -219,8 +245,86 @@ public class TreeMerge extends JSonService {
 	/**
 	 * Forgets the choices made for the conflicts of a project, as an operation ends.
 	 */
-	static void forget(String projectName) {
+	static void forget(String projectName, Repository repository) {
 		sessions.remove(projectName);
+		FileUtils.deleteQuietly(sessionFile(repository, projectName));
+	}
+
+	private static File sessionFile(Repository repository, String projectName) {
+		return new File(repository.getDirectory(), "c8o-studio-merge-" + projectName + ".json");
+	}
+
+	/**
+	 * @return the choices made for the conflicts of a project, as kept in the directory of Git, or new ones
+	 *         when they are for other conflicts
+	 */
+	private static Session restore(Repository repository, String projectName, String key) {
+		var session = new Session();
+		session.key = key;
+		var file = sessionFile(repository, projectName);
+		try {
+			if (file.isFile()) {
+				var json = new JSONObject(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
+				if (key.equals(json.optString("key"))) {
+					session.aligned = json.optBoolean("aligned");
+					var resolutions = json.optJSONObject("resolutions");
+					if (resolutions != null) {
+						for (var it = resolutions.keys(); it.hasNext();) {
+							var id = (String) it.next();
+							var resolution = resolutions.getJSONObject(id);
+							session.resolutions.put(id, new Resolution(resolution.getString("choice"), resolution.has("value") ? resolution.getString("value") : null));
+						}
+					}
+				} else {
+					FileUtils.deleteQuietly(file);
+				}
+			}
+		} catch (Exception e) {
+			Engine.logStudio.debug("(TreeMerge) the choices kept for " + projectName + " are not read", e);
+		}
+		return session;
+	}
+
+	private static void save(Repository repository, String projectName, Session session) {
+		try {
+			var resolutions = new JSONObject();
+			for (var entry : session.resolutions.entrySet()) {
+				var resolution = new JSONObject().put("choice", entry.getValue().choice());
+				if (entry.getValue().value() != null) {
+					resolution.put("value", entry.getValue().value());
+				}
+				resolutions.put(entry.getKey(), resolution);
+			}
+			var json = new JSONObject().put("key", session.key).put("aligned", session.aligned).put("resolutions", resolutions);
+			FileUtils.writeStringToFile(sessionFile(repository, projectName), json.toString(), StandardCharsets.UTF_8);
+		} catch (Exception e) {
+			Engine.logStudio.debug("(TreeMerge) the choices for " + projectName + " are not kept", e);
+		}
+	}
+
+	/**
+	 * @return whether two versions of a project have the same objects, with the same properties and children
+	 */
+	private static boolean sameProject(Document left, Document right) {
+		var l = TreeDiff.beans(left);
+		var r = TreeDiff.beans(right);
+		if (!l.keySet().equals(r.keySet())) {
+			return false;
+		}
+		for (var bean : l.values()) {
+			var other = r.get(bean.key);
+			if (!bean.children.equals(other.children)) {
+				return false;
+			}
+			var names = new HashSet<String>(bean.properties.keySet());
+			names.addAll(other.properties.keySet());
+			for (var name : names) {
+				if (!TreeDiff.canonical(bean.properties.get(name)).equals(TreeDiff.canonical(other.properties.get(name)))) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	/**
