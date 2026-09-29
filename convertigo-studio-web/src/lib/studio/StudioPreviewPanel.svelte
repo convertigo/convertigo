@@ -5,7 +5,7 @@
 	import Projects from '$lib/common/Projects.svelte.js';
 	import Bezels from '$lib/dashboard/Bezels';
 	import Ico from '$lib/utils/Ico.svelte';
-	import { call, getFrontendUrl } from '$lib/utils/service';
+	import { call, getFrontendUrl, toaster } from '$lib/utils/service';
 	import { tick, untrack } from 'svelte';
 	import { captureElement } from './elementCapture';
 	import {
@@ -64,7 +64,7 @@
 	const FIT_PADDING = 24;
 	const iconButtonClasses = 'button-ico-secondary h-8! w-8! justify-center p-0!';
 
-	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, onNgxStyleChanges?: (changes: any) => void | Promise<void>, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, onNgxStyleChanges?: (changes: any) => void | Promise<void>, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean, activity?: { phase: string, progress: number } }} */
 	let {
 		projectName = '',
 		previewUrlOverride = '',
@@ -86,11 +86,20 @@
 		ngxReference = null,
 		onNgxSelect,
 		onNgxDrop,
-		ngxCanDrop
+		ngxCanDrop,
+		activity = { phase: '', progress: -1 }
 	} = $props();
 
 	/** @type {HTMLIFrameElement | undefined} */
 	let iframe = $state();
+	/** what the builder of the application does, shown over the preview as the Eclipse Studio shows it */
+	let activityLabel = $derived(
+		activity?.phase === 'installing'
+			? 'Installing the packages of the application…'
+			: activity?.phase === 'building'
+				? `Building the application…${activity.progress > 0 && activity.progress < 100 ? ` ${activity.progress}%` : ''}`
+				: ''
+	);
 	let clientHeight = $state(0);
 	let clientWidth = $state(0);
 	let addressOverride = $state({ base: '', value: '' });
@@ -602,6 +611,50 @@
 		captureOpen = true;
 	}
 
+	/**
+	 * @returns {string} the page the preview shows, the application having navigated since it opened
+	 */
+	function currentPageUrl() {
+		try {
+			const href = iframe?.contentWindow?.location.href;
+			if (href && href !== 'about:blank') {
+				return href;
+			}
+		} catch {
+			// an application of another origin keeps its page
+		}
+		return trimmedAddress || previewUrl;
+	}
+
+	/** Opens the page the preview shows in a window of its own, as the Eclipse Studio opens it in a browser. */
+	function openCurrentPage() {
+		const url = currentPageUrl();
+		if (url) {
+			window.open(url, '_blank', 'noopener,noreferrer');
+		}
+	}
+
+	/**
+	 * Opens the developer tools on the application, as the DevTools button of the Eclipse Studio: the desktop
+	 * Studio inspects the preview, a browser has its own tools.
+	 */
+	function openDevTools() {
+		const studio = /** @type {any} */ (window).convertigoStudio;
+		const rect = iframe?.getBoundingClientRect();
+		if (studio?.inspect && rect) {
+			studio.inspect(
+				Math.round(rect.left + rect.width / 2),
+				Math.round(rect.top + rect.height / 2)
+			);
+			return;
+		}
+		const mac = /Mac|iPhone|iPad/.test(navigator.platform);
+		toaster.info({
+			title: 'Developer tools',
+			description: `Open the developer tools of the browser (${mac ? '⌥⌘I' : 'Ctrl+Shift+I'}) and choose the frame of the application, or open the application in a window of its own.`
+		});
+	}
+
 	function registerIframe(node) {
 		iframe = node;
 		authoringReadyUrl = '';
@@ -901,13 +954,20 @@
 				/>
 				<Button
 					full={false}
-					href={trimmedAddress || previewUrl}
-					target="_blank"
-					rel="noreferrer"
+					icon="mdi:bug-outline"
+					class={iconButtonClasses}
+					title="Developer tools of the application"
+					ariaLabel="Developer tools"
+					disabled={!iframe}
+					onclick={openDevTools}
+				/>
+				<Button
+					full={false}
 					icon="mdi:open-in-new-variant"
 					class={iconButtonClasses}
-					title="Open frontend"
+					title="Open the page of the application in a window of its own"
 					ariaLabel="Open frontend"
+					onclick={openCurrentPage}
 				/>
 			</div>
 		</form>
@@ -934,6 +994,15 @@
 		{/if}
 
 		<MaxRectangle bind:clientHeight bind:clientWidth class="studio-preview__viewport">
+			{#if activityLabel}
+				<div class="studio-preview__activity" role="status">
+					<Ico icon="mdi:sync" size={4} class="studio-preview__activity-icon" />
+					<span>{activityLabel}</span>
+					{#if activity.progress > 0 && activity.progress < 100}
+						<span class="studio-preview__activity-bar" style:width={`${activity.progress}%`}></span>
+					{/if}
+				</div>
+			{/if}
 			<div class="studio-preview__center">
 				<div
 					class={[
@@ -990,6 +1059,48 @@
 </div>
 
 <style>
+	/* over the preview, which stays usable while its application builds */
+	.studio-preview__activity {
+		position: absolute;
+		z-index: 5;
+		top: 0.6rem;
+		left: 50%;
+		display: flex;
+		overflow: hidden;
+		align-items: center;
+		gap: 0.45rem;
+		border: 1px solid var(--studio-line);
+		border-radius: 999px;
+		background: color-mix(in oklab, var(--studio-panel-bg) 92%, transparent);
+		box-shadow: 0 4px 16px light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.45));
+		color: var(--studio-text);
+		padding: 0.35rem 0.85rem;
+		font-size: 0.75rem;
+		pointer-events: none;
+		transform: translateX(-50%);
+		white-space: nowrap;
+	}
+
+	.studio-preview__activity :global(.studio-preview__activity-icon) {
+		animation: studio-preview-spin 1.2s linear infinite;
+		color: var(--color-primary-500);
+	}
+
+	.studio-preview__activity-bar {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		height: 2px;
+		background: var(--color-primary-500);
+		transition: width 0.2s ease;
+	}
+
+	@keyframes studio-preview-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
 	.studio-preview__dataset {
 		width: 7.5rem;
 		height: 2rem;
@@ -1164,6 +1275,7 @@
 	}
 
 	:global(.studio-preview__viewport) {
+		position: relative;
 		min-width: 0;
 		min-height: 0;
 		overflow: auto;

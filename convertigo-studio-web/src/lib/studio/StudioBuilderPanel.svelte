@@ -21,6 +21,7 @@
 	 *  onBuilt?: () => void,
 	 *  onServerStop?: () => void,
 	 *  onFailedChange?: (failed: boolean) => void,
+	 *  onActivity?: (activity: { phase: string, progress: number }) => void,
 	 *  serveRequest?: number | { at: number, install?: string },
 	 *  onServeRequestTaken?: () => void,
 	 *  buildRequest?: number,
@@ -34,6 +35,7 @@
 		onBuilt,
 		onServerStop,
 		onFailedChange,
+		onActivity,
 		serveRequest = 0,
 		onServeRequestTaken,
 		buildRequest = 0,
@@ -74,6 +76,9 @@
 	let qrUrl = $state('');
 	/** whether the last compilation of the development server, or the last local build, failed */
 	let failed = $state(false);
+	/** what the development server and the local build do: installing, building or nothing */
+	let devPhase = $state('');
+	let localPhase = $state('');
 	let running = $derived(devState !== 'idle' || localState !== 'idle');
 	let status = $derived(
 		[
@@ -101,6 +106,12 @@
 		// the Studio marks the Build view while the application does not build
 		const current = failed;
 		untrack(() => onFailedChange?.(current));
+	});
+
+	$effect(() => {
+		// the preview shows the packages installed and the application built
+		const activity = { phase: devPhase || localPhase, progress };
+		untrack(() => onActivity?.(activity));
 	});
 
 	/**
@@ -226,6 +237,8 @@
 		devState = 'idle';
 		localState = 'idle';
 		failed = false;
+		devPhase = '';
+		localPhase = '';
 		attached = false;
 		const address = new URL(`${getUrl()}studio.ngxbuilder.WsBuilder`, location.href);
 		address.protocol = address.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -290,6 +303,13 @@
 						networkUrls = [];
 					}
 					qrUrl = networkUrls[0]?.url ?? '';
+				} else if (type === 'phase') {
+					const [kind, ...rest] = String(value).split(':');
+					if (kind === 'dev') {
+						devPhase = rest.join(':');
+					} else {
+						localPhase = rest.join(':');
+					}
 				} else if (type === 'compiled') {
 					setFailed(value === 'failed', 'The compilation of the development server');
 				} else if (type === 'built') {

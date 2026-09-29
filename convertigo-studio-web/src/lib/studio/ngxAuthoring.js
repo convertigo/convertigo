@@ -65,7 +65,7 @@ export function elementsOf(doc, classes) {
 
 /**
  * Follows the document of the preview: the highlight of the selected component, the hover, the selection
- * on click in select mode and the drops of the palette with their position.
+ * on click in select mode or on right click, and the drops of the palette with their position.
  * @param {Document} doc
  * @param {NgxAuthoringHandlers} handlers
  */
@@ -236,6 +236,23 @@ export function attachNgxAuthoring(doc, handlers) {
 		}
 	}
 
+	/**
+	 * A right click selects the component in the tree, as in the application editor of the Eclipse Studio;
+	 * with Alt, the page keeps its own menu.
+	 * @param {MouseEvent} event
+	 */
+	function onContextMenu(event) {
+		if (event.altKey) {
+			return;
+		}
+		const component = componentOf(event.target, event);
+		if (component) {
+			event.preventDefault();
+			event.stopPropagation();
+			handlers.onSelect?.(component.priority);
+		}
+	}
+
 	/** @param {DragEvent} event */
 	function onDragOver(event) {
 		if (handlers.canDrop && !handlers.canDrop()) {
@@ -277,6 +294,7 @@ export function attachNgxAuthoring(doc, handlers) {
 	const options = { capture: true };
 	doc.addEventListener('mousemove', onMove, options);
 	doc.addEventListener('click', onClick, options);
+	doc.addEventListener('contextmenu', onContextMenu, options);
 	doc.addEventListener('dragover', onDragOver, options);
 	doc.addEventListener('drop', onDrop, options);
 	doc.addEventListener('dragleave', onDragLeave, options);
@@ -335,6 +353,7 @@ export function attachNgxAuthoring(doc, handlers) {
 		destroy() {
 			doc.removeEventListener('mousemove', onMove, options);
 			doc.removeEventListener('click', onClick, options);
+			doc.removeEventListener('contextmenu', onContextMenu, options);
 			doc.removeEventListener('dragover', onDragOver, options);
 			doc.removeEventListener('drop', onDrop, options);
 			doc.removeEventListener('dragleave', onDragLeave, options);

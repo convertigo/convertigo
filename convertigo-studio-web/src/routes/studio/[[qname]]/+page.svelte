@@ -259,6 +259,8 @@
 	let dockMenuOpen = $state(false);
 	/** whether the application of the selected project does not build, which the Build view tells */
 	let buildFailed = $state(false);
+	/** what the builder of the application does, which the preview shows */
+	let buildActivity = $state({ phase: '', progress: -1 });
 	let frontendDeviceId = $state('none');
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
@@ -3447,6 +3449,7 @@
 		onNgxDrop={dropInNgxPreview}
 		onNgxStyleChanges={applyNgxStyleChanges}
 		{ngxCanDrop}
+		activity={buildActivity}
 	/>
 {/snippet}
 
@@ -3553,6 +3556,7 @@
 		active={Boolean(dockVisible.build)}
 		onLoad={showDevelopmentBuild}
 		onFailedChange={(failed) => (buildFailed = failed)}
+		onActivity={(activity) => (buildActivity = activity)}
 		onBuilt={() => {
 			// a first build gives the project its application
 			void Projects.refresh();

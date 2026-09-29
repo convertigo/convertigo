@@ -64,7 +64,8 @@ import com.twinsoft.convertigo.engine.util.ProcessUtils;
  * install: update | reinstall, mode: prod | fast | watch, value: the auto build}}</li>
  * <li>server messages: {type: log | output | error | progress | load | network | state | built | compiled,
  * value}; error is a line of the output that tells an error, compiled the end of a compilation of the
- * development server, success or failed; a state is
+ * development server, success or failed, phase what the build does, installing, building or empty, which
+ * the preview shows; a state is
  * dev:serving, dev:idle, local:building:&lt;mode&gt;, local:idle or auto:true|false|none (an engine without
  * Studio writes the sources at once, without auto build); network gives the URLs of
  * the development server on the network, as a JSON array</li>
@@ -94,6 +95,8 @@ public class WsBuilder extends WebSocketService {
 		String networkUrls;
 		/** the result of the last compilation of the development server, success or failed */
 		String compiled;
+		/** what the build does, installing the packages, building the application, or nothing */
+		String phase = "";
 		String state = "idle";
 		volatile Process process;
 
@@ -181,6 +184,7 @@ public class WsBuilder extends WebSocketService {
 				}
 				baseUrl = null;
 				networkUrls = null;
+				setPhase("");
 				setState("idle");
 				synchronized (builds) {
 					builds.remove(key(projectName, isDev()), this);
@@ -197,6 +201,7 @@ public class WsBuilder extends WebSocketService {
 				appendOutput("Removing existing node_modules... This can take several seconds...");
 				com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(nodeModules);
 			}
+			setPhase("installing");
 			appendOutput("Installing node_modules... This can take several minutes depending on your network connection speed...");
 			if (!nodeModules.exists()) {
 				var packageLockTpl = new File(ionicDir, "package-lock-tpl.json");
@@ -228,6 +233,7 @@ public class WsBuilder extends WebSocketService {
 		 */
 		private void serve(String path, File ionicDir, MobileBuilder mb, Object mutex) throws Exception {
 			mb.startBuild();
+			setPhase("building");
 			new File(project.getDirPath(), "DisplayObjects/mobile").mkdirs();
 
 			var pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:serve");
@@ -268,6 +274,9 @@ public class WsBuilder extends WebSocketService {
 					Engine.logStudio.info(line);
 					var lower = normalize(line).toLowerCase(Locale.ROOT);
 					var ended = false;
+					if (lower.contains("changes detected") || lower.contains("compiling...")) {
+						setPhase("building");
+					}
 					if (standalone) {
 						progress(standaloneProgress(lower));
 						if (isError(lower)) {
@@ -304,6 +313,7 @@ public class WsBuilder extends WebSocketService {
 						compiled = lower.contains("bundle generation failed") || line.contains("Failed to compile.")
 								? "failed" : "success";
 						send("compiled", compiled);
+						setPhase("");
 						synchronized (mutex) {
 							mutex.notify();
 						}
@@ -333,6 +343,7 @@ public class WsBuilder extends WebSocketService {
 			}
 			baseHref += "/projects/" + projectName + "/DisplayObjects/mobile/";
 
+			setPhase("building");
 			appendOutput("Building the application in " + buildMode.label() + " mode...");
 			var displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
 			displayObjectsMobile.mkdirs();
@@ -387,6 +398,7 @@ public class WsBuilder extends WebSocketService {
 						if (buildMode == NgxBuilderBuildMode.watch) {
 							send("built", failed ? "failed" : "success");
 							failed = false;
+							setPhase("");
 						}
 					}
 				}
@@ -512,6 +524,13 @@ public class WsBuilder extends WebSocketService {
 
 		String stateMessage() {
 			return (isDev() ? "dev:" : "local:") + state;
+		}
+
+		private void setPhase(String phase) {
+			if (!phase.equals(this.phase)) {
+				this.phase = phase;
+				send("phase", (isDev() ? "dev:" : "local:") + phase);
+			}
 		}
 
 		private void send(String type, String value) {
@@ -711,6 +730,9 @@ public class WsBuilder extends WebSocketService {
 				}
 				if (current.compiled != null) {
 					send("compiled", current.compiled);
+				}
+				if (!current.phase.isEmpty()) {
+					send("phase", (dev ? "dev:" : "local:") + current.phase);
 				}
 			}
 		}
