@@ -851,11 +851,11 @@ public class SourceControl extends JSonService {
 	 * @return the project, loaded as HEAD has it when its files are filled with the markers of Git, as
 	 *         after a start of the engine during a merge
 	 */
-	static com.twinsoft.convertigo.beans.core.Project project(String projectName) throws Exception {
+	public static com.twinsoft.convertigo.beans.core.Project project(String projectName) throws Exception {
 		return project(projectName, true);
 	}
 
-	static com.twinsoft.convertigo.beans.core.Project project(String projectName, boolean checkOpenable) throws Exception {
+	public static com.twinsoft.convertigo.beans.core.Project project(String projectName, boolean checkOpenable) throws Exception {
 		if (projectName == null) {
 			return null;
 		}
