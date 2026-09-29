@@ -259,6 +259,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 
 	private static void runAsyncDelete() {
+		Log4jHelper.mdcClear();
 		var retry = ASYNC_DELETE_MAX_RETRIES;
 		var exhausted = false;
 		try {

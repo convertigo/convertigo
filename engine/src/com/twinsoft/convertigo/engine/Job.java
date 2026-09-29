@@ -24,9 +24,11 @@ import org.w3c.dom.Document;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 class Job extends Thread {
+	private final Log4jHelper.MdcSnapshot logContext = Log4jHelper.mdcSnapshot();
 	private CacheManager cacheManager;
 	private DatabaseObject requestedObject;
     protected Requester requester;
@@ -44,6 +46,15 @@ class Job extends Thread {
     }
 
     public void run() {
+		try {
+			logContext.install();
+			runWithMdc();
+		} finally {
+			Log4jHelper.mdcClear();
+		}
+	}
+
+	private void runWithMdc() {
         setPriority(7);
         
         isFinished = false;

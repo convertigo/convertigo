@@ -42,11 +42,21 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SchedulerJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
+		Log4jHelper.mdcClear();
+		try {
+			executeWithMdc(context);
+		} finally {
+			Log4jHelper.mdcClear();
+		}
+	}
+
+	private void executeWithMdc(JobExecutionContext context) throws JobExecutionException {
 		JobDetail jd = context.getJobDetail();
 		ScheduledJob scheduledJob = (ScheduledJob) jd.getJobDataMap().get("scheduledJob");
 		SchedulerManager schedulerManager = (SchedulerManager) jd.getJobDataMap().get("schedulerManager");
@@ -115,7 +125,7 @@ public class SchedulerJob implements Job {
 							jobCount[0]++;
 							AbstractJob abstractJob = list.remove(0);
 							final String subname = jdName + "[" + abstractJob.getName() + "]";
-							Thread thread = new Thread(() -> {
+							Thread thread = new Thread(Log4jHelper.withMdc(() -> {
 								try {
 									executeJob(abstractJob, subname);
 								} finally {
@@ -124,7 +134,7 @@ public class SchedulerJob implements Job {
 										jobCount.notify();
 									}
 								}
-							});
+							}));
 							threads.add(thread);
 							thread.setDaemon(true);
 							thread.start();

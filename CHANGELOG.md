@@ -6,6 +6,8 @@
 
 - [#1167](https://github.com/convertigo/convertigo/issues/1167) [Engine] Server startup no longer waits on unreachable external hosts
 - [#1169](https://github.com/convertigo/convertigo/issues/1169) [Engine] Placeholder jars now report where the official jar must be installed, with `lib/README.md` and `libs/README.md` in the workspace; the Docker image finds native libraries dropped in `/workspace/lib`
+- [#1214](https://github.com/convertigo/convertigo/issues/1214) [Engine] The connector connection string override is now reserved to calls made inside the engine
+- [#1215](https://github.com/convertigo/convertigo/issues/1215) [Engine] FullSync connectors can keep their database for server-side use only with the new Replication Access property; the most restrictive connector applies to a shared database, and clients can only update the documents they can read
 
 #### Bug Fixes:
 

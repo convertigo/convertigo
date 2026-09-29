@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
@@ -503,6 +504,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 		}
 
 		private void cleanupLoop() {
+			Log4jHelper.mdcClear();
 			while (true) {
 				try {
 					Thread.sleep(CLEANUP_INTERVAL_MILLIS);

@@ -53,7 +53,7 @@ import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 public class Add extends JSonService {
 
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
-		try {
+		try (var logContext = Log4jHelper.mdcScope()) {
 			JSONArray logs = new JSONArray(request.getParameter("logs"));
 			JSONObject env = new JSONObject(request.getParameter("env"));
 
@@ -73,7 +73,6 @@ public class Add extends JSonService {
 					}
 				}
 			}
-			httpSession.setAttribute(Add.class.getCanonicalName(), logParametersMap);
 
 			LogParameters logParameters = logParametersMap.get(uid);
 
@@ -82,13 +81,11 @@ public class Add extends JSonService {
 				
 				logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
 			}
-
-			Log4jHelper.mdcSet(logParameters);
 			
 			logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
 
 			if (EnginePropertiesManager.getProperty(PropertyName.NET_REVERSE_DNS).equalsIgnoreCase("true")) {
-				Log4jHelper.mdcPut(mdcKeys.ClientHostName, request.getRemoteHost());
+				logParameters.put(mdcKeys.ClientHostName.toString().toLowerCase(), request.getRemoteHost());
 			}
 			
 			for (Iterator<String> iKey = GenericUtils.cast(env.keys()); iKey.hasNext();) {
@@ -96,9 +93,12 @@ public class Add extends JSonService {
 				logParameters.put(key.toLowerCase(), env.get(key));
 			}
 
-			if (SessionAttribute.authenticatedUser.get(httpSession) != null) {
-				Log4jHelper.mdcPut(mdcKeys.User, SessionAttribute.authenticatedUser.string(httpSession));			
-			}
+			String user = SessionAttribute.authenticatedUser.string(httpSession);
+			logParameters.put(mdcKeys.User.toString().toLowerCase(), user == null ? "(anonymous)" : user);
+			// Keep the cached device environment independent of this request's MDC.
+			logParametersMap.put(uid, (LogParameters) logParameters.clone());
+			httpSession.setAttribute(Add.class.getCanonicalName(), logParametersMap);
+			Log4jHelper.mdcSet(logParameters);
 
 			for (int i = 0; i < logs.length(); i++) {
 				JSONObject log = logs.getJSONObject(i);
@@ -113,14 +113,12 @@ public class Add extends JSonService {
 			}
 			
 			response.put("remoteLogLevel", Engine.logDevices.getEffectiveLevel().toString().toLowerCase());
-		} finally {
-			Log4jHelper.mdcClear();
 		}
 	}
 
 	private LogParameters toLogParameters(Object value) {
 		if (value instanceof LogParameters logParameters) {
-			return logParameters;
+			return (LogParameters) logParameters.clone();
 		}
 		var logParameters = new LogParameters();
 		if (value instanceof Map<?, ?> map) {

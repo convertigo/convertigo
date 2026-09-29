@@ -45,7 +45,9 @@ public class LogParameters {
 	
 	@Override
 	public synchronized Object clone() {
-		return this;
+		LogParameters copy = new LogParameters();
+		copy.parametersMap.putAll(parametersMap);
+		return copy;
 	}
 	
 	@Override

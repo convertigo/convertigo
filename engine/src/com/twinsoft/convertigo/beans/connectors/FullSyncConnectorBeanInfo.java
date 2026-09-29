@@ -23,6 +23,7 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.engine.enums.FullSyncAnonymousReplication;
+import com.twinsoft.convertigo.engine.enums.FullSyncReplicationAccess;
 
 public class FullSyncConnectorBeanInfo extends MySimpleBeanInfo {
     
@@ -39,12 +40,17 @@ public class FullSyncConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
 			properties[0] = new PropertyDescriptor("anonymousReplication", beanClass, "getAnonymousReplication", "setAnonymousReplication");
 	        properties[0].setDisplayName(getExternalizedString("property.anonymousReplication.display_name"));
 	        properties[0].setShortDescription(getExternalizedString("property.anonymousReplication.short_description"));
 	        properties[0].setPropertyEditorClass(FullSyncAnonymousReplication.class);
+
+			properties[1] = new PropertyDescriptor("replicationAccess", beanClass, "getReplicationAccess", "setReplicationAccess");
+	        properties[1].setDisplayName(getExternalizedString("property.replicationAccess.display_name"));
+	        properties[1].setShortDescription(getExternalizedString("property.replicationAccess.short_description"));
+	        properties[1].setPropertyEditorClass(FullSyncReplicationAccess.class);
 
 			getPropertyDescriptor("databaseName").setHidden(true);
 			getPropertyDescriptor("https").setHidden(true);

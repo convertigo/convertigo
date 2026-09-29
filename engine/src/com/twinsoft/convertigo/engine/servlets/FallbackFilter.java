@@ -37,7 +37,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
-import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class FallbackFilter implements Filter {
 	private static final Map<String, String> LEGACY_REDIRECTS = Map.of(
@@ -133,7 +132,6 @@ public class FallbackFilter implements Filter {
 	public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain filterChain) throws IOException, ServletException {
 	    HttpServletRequest request = (HttpServletRequest) _request;
 	    HttpServletResponse response = (HttpServletResponse) _response;
-		Log4jHelper.mdcClear();
 	    var servletPath = request.getServletPath();
 
 		if (redirectLegacyPath(request, response, servletPath)) {

@@ -198,13 +198,14 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		}
 
 		private void process() throws ServletException {
+			var logContext = Log4jHelper.mdcScope();
 			try {
 				LogParameters logParameters = new LogParameters();
 				Log4jHelper.mdcSet(logParameters);
 
 				long uniqueRequestID = System.currentTimeMillis() + (long) (Math.random() * 1261440000000L);
-				logParameters.put("UID", Long.toHexString(uniqueRequestID));
-				logParameters.put("ClientIP", request.getRemoteAddr());
+				Log4jHelper.mdcPut(Log4jHelper.mdcKeys.UID, Long.toHexString(uniqueRequestID));
+				Log4jHelper.mdcPut(Log4jHelper.mdcKeys.ClientIP, request.getRemoteAddr());
 
 				String sessionID = request.getSession().getId();
 				Engine.logSiteClipper.debug("(SiteClipperConnector) find sessionID : " + sessionID);
@@ -233,8 +234,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 						throw new ServletException("(SiteClipperConnector) the context " + context.name + " isn't initialized (no project loaded or expired)");
 					}
 					context.lastAccessTime = System.currentTimeMillis();
-					logParameters.put("ContextID", context.contextID);
-					logParameters.put("Project", context.projectName);
+					Log4jHelper.mdcPut(Log4jHelper.mdcKeys.ContextID, context.contextID);
+					Log4jHelper.mdcPut(Log4jHelper.mdcKeys.Project, context.projectName);
 
 					// if no connector provided, search other SiteClipperConnector of the project
 					// and choose the default if exists
@@ -256,7 +257,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					}
 
 					Connector connector = context.loadConnector(connectorName);
-					logParameters.put("Connector", connectorName);
+					Log4jHelper.mdcPut(Log4jHelper.mdcKeys.Connector, connectorName);
 
 					if (connector instanceof SiteClipperConnector) {
 						SiteClipperConnector siteClipperConnector = (SiteClipperConnector) connector;
@@ -278,7 +279,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					throw new ServletException("(SiteClipperConnector) failed to process the request", e);
 				}
 			} finally {
-				Log4jHelper.mdcClear();
+				logContext.close();
 				request = null;
 				response = null;
 			}

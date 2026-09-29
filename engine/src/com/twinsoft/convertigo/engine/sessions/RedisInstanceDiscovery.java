@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.util.InstanceIdentity;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 /**
  * Lightweight Redis-based instance discovery for clustered admin usage.
@@ -104,7 +105,10 @@ public final class RedisInstanceDiscovery {
 			started = true;
 			startedAt = System.currentTimeMillis();
 			scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-				var t = new Thread(r, "convertigo-redis-instance-heartbeat");
+				var t = new Thread(() -> {
+					Log4jHelper.mdcClear();
+					r.run();
+				}, "convertigo-redis-instance-heartbeat");
 				t.setDaemon(true);
 				return t;
 			});

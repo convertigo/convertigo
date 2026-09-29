@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.sessions.StatefulSessionAttributes;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.sessions.RedisClients;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class LogServiceHelper {
 	public enum LogManagerParameter {
@@ -53,6 +54,7 @@ public class LogServiceHelper {
 
 	private static final Map<String, Pair<Long, HttpSession>> activeInstance = new HashMap<>();
 	private static final Thread logmanagerCleaner = new Thread(() -> {
+		Log4jHelper.mdcClear();
 		while(true) {
 			try {
 				boolean redisMode = ConvertigoHttpSessionManager.isRedisMode();

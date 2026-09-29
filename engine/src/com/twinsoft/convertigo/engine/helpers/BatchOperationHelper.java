@@ -28,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class BatchOperationHelper {
 	private final static ThreadLocal<Set<Runnable>[]> batchOperation = new ThreadLocal<Set<Runnable>[]>() {
@@ -72,7 +73,7 @@ public class BatchOperationHelper {
 									)
 							);
 					for (Runnable runnable: array[0]) {
-						executor.execute(runnable);
+						executor.execute(Log4jHelper.withMdc(runnable));
 					}
 					executor.shutdown();
 					List<Runnable> endOp = endOperation.get()[0];

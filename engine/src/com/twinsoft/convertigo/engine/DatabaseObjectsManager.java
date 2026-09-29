@@ -257,9 +257,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 		public File getProject(String projectName) {
 			File file = projectsDir.get(projectName);
-			if (file == null || !file.exists()) {
-				file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+			if (file != null && file.exists()) {
+				return file;
 			}
+			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
 			return file.exists() ? file : null;
 		}
 
@@ -349,7 +350,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 
 		if (list != null) {
-			for (File projectDir : projectsDir.listFiles()) {
+			for (File projectDir : list) {
 				String projectName = projectDir.getName();
 
 				if (!projectNames.contains(projectName)) {

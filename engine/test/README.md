@@ -1,4 +1,20 @@
-# Session value serialization regression tests
+# Engine regression tests
+
+Test source sets and verification tasks are configured in `engine/tests.gradle`,
+included by `engine/build.gradle`. Run `./gradlew :engine:check` for the regression
+suites, or select an individual task below. `:engine:soapuiSmokeTest` is a separate
+opt-in smoke test.
+
+## MDC lifecycle
+
+`./gradlew :engine:mdcLifecycleTest` runs the logging regression suite, also
+included in `:engine:check`. It uses the production Log4j bridge, layout and
+`nolog` filter to check rendered log fields, cleanup of reused workers, delayed
+executor tasks, requestable threads, context snapshots, nested requester errors
+(including cleanup failures), HTTP filter boundaries, `nolog` initialization before
+alias forwarding, and device log environments.
+The tests run in their own JVM with in-memory fixtures; they do not start a server
+or contact SMTP, Redis or other external services.
 
 ## Project archive cleanup
 
@@ -8,6 +24,16 @@ fixtures. It covers internal YAML/XML project names, versioned filenames,
 successful, skipped and failed deployments, and preservation of ZIP backups and
 external archives. The deployment/extraction code is real; the project importer
 is stubbed, so this is not an end-to-end server/Studio validation.
+
+## Workspace loading
+
+`./gradlew :engine:workspaceLoadingTest` checks archive identification from entry
+metadata (YAML, legacy XML, descriptor order, Unicode names and missing descriptors),
+extraction into shared directories, buffered binary output, and project reference
+discovery without reading included sequence files. It uses temporary fixtures and
+does not start an engine.
+
+## Session serialization
 
 Run the standalone suite (also included in `:engine:check`):
 

@@ -1,0 +1,92 @@
+// Engine test source set and verification tasks.
+
+sourceSets {
+	test {
+		java.srcDirs = ['test']
+		resources.srcDirs = ['test-resources']
+	}
+}
+
+dependencies {
+	testImplementation 'junit:junit:4.13.2'
+}
+
+tasks.register('sessionSerializationTest', JavaExec) {
+	group = 'verification'
+	description = 'Round-trip regression tests for Redis session values (no Redis server required).'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.sessions.SessionSerializationTest'
+}
+
+tasks.named('check') {
+	dependsOn 'sessionSerializationTest'
+	dependsOn 'requestScopedSessionTest'
+	dependsOn 'componentRefManagerTest'
+	dependsOn 'projectArchiveTest'
+	dependsOn 'ionBeanTest'
+	dependsOn 'mdcLifecycleTest'
+	dependsOn 'workspaceLoadingTest'
+}
+
+tasks.register('workspaceLoadingTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for project loading and archive metadata.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.ZipUtilsTest',
+		'com.twinsoft.convertigo.engine.ReferencedProjectManagerTest'
+}
+
+tasks.register('mdcLifecycleTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for MDC isolation across requests and asynchronous tasks.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.MdcLifecycleTest'
+}
+
+tasks.register('requestScopedSessionTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the ephemeral request-scoped session of terminating URL mapper operations.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSessionTest',
+		'com.twinsoft.convertigo.engine.servlets.RestApiServletSessionModeTest'
+}
+
+tasks.register('projectArchiveTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for workspace project archive cleanup.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.ProjectArchiveTest'
+}
+
+tasks.register('ionBeanTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for ion bean instances sharing their template model.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBeanTest'
+}
+
+tasks.register('componentRefManagerTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for shared component and action dependency tracking.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.mobile.ComponentRefManagerTest'
+}
+
+tasks.register('soapuiSmokeTest', JavaExec) {
+	group = 'verification'
+	description = 'Runs a minimal SoapUI initialization to validate the light dependencies.'
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.util.SoapUiSmokeTest'
+	dependsOn tasks.named('classes')
+	dependsOn rootProject.tasks.named('publishSoapuiLightPublicationToMavenLocal')
+}
