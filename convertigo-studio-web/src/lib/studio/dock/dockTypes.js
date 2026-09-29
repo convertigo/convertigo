@@ -12,6 +12,7 @@
  * @property {boolean=} main a view of the work area, on the background of the editors
  * @property {boolean=} scroll a view taller than its panel, which scrolls in it
  * @property {string=} alert what goes wrong in the view, as a build that fails, marked on its tab
+ * @property {string=} detail what the view shows, as the project of an application, after its name
  *
  * @typedef {'left' | 'center' | 'right' | 'bottom'} DockArea
  * @typedef {Object} DockLayout the layout of a profile before it is changed

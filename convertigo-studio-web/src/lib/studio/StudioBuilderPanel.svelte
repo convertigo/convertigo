@@ -1,3 +1,8 @@
+<script module>
+	/** the output of the builds of each project, which a panel showing another project keeps */
+	const outputs = new Map();
+</script>
+
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl, toaster } from '$lib/utils/service';
@@ -210,9 +215,12 @@
 	function connect(project) {
 		clearTimeout(reconnectTimer);
 		socket?.close();
+		if (socketProject) {
+			outputs.set(socketProject, lines);
+		}
 		socketProject = project;
 		serveAsked = false;
-		lines = [];
+		lines = outputs.get(project) ?? [];
 		progress = -1;
 		url = '';
 		devState = 'idle';

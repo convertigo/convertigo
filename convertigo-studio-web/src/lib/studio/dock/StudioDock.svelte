@@ -65,7 +65,7 @@
 	let stateQueued = false;
 	/** where a closed view goes back: the view it was grouped with */
 	const closedBeside = new Map();
-	/** @type {Map<string, { alert?: string }>} the tabs of the views, which show their alerts */
+	/** @type {Map<string, { alert?: string, detail?: string }>} the tabs, which show what their views tell */
 	const tabs = new Map();
 	/** the layout before a view is maximized, whose sizes the groups take again once it is restored */
 	let beforeMaximize = /** @type {any} */ (null);
@@ -125,6 +125,7 @@
 					title: view?.title ?? options.name,
 					icon: view?.icon,
 					alert: viewOf(options.name)?.alert ?? '',
+					detail: viewOf(options.name)?.detail ?? '',
 					onClose: () => params.api.close()
 				});
 				tabs.set(options.name, tab);
@@ -626,6 +627,7 @@
 			const tab = tabs.get(view.id);
 			if (tab) {
 				tab.alert = view.alert ?? '';
+				tab.detail = view.detail ?? '';
 			}
 		}
 	});

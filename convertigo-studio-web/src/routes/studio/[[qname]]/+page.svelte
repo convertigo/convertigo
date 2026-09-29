@@ -263,6 +263,11 @@
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
 	let frontendPreview = $state({ projectName: '', url: '', mode: 'production' });
+	/**
+	 * the project whose application the preview and the Build view show: the last one executed or shown,
+	 * as the application editor of the Eclipse Studio stays open while other projects are selected
+	 */
+	let applicationProject = $state('');
 	let frontendPreviewSerial = $state(0);
 	/** the selected component of an NGX application, as the preview finds its elements */
 	let ngxReference = $state(
@@ -431,17 +436,25 @@
 	);
 	let showStudioWork = $derived(profile === 'backend');
 	let showVibe = $derived(profile === 'vibe');
+	/** the project of the preview and the Build view, the selected one until an application is shown */
+	let applicationProjectName = $derived(
+		applicationProject &&
+			!isProjectClosed(applicationProject) &&
+			Projects.projects.some((project) => project?.name === applicationProject)
+			? applicationProject
+			: selectedProjectName
+	);
 	let frontendPreviewUrl = $derived(
-		frontendPreview.projectName === selectedProjectName ? frontendPreview.url : ''
+		frontendPreview.projectName === applicationProjectName ? frontendPreview.url : ''
 	);
 	/** @type {'production' | 'development'} */
 	let frontendPreviewMode = $derived(
-		frontendPreview.projectName === selectedProjectName && frontendPreview.mode === 'development'
+		frontendPreview.projectName === applicationProjectName && frontendPreview.mode === 'development'
 			? 'development'
 			: 'production'
 	);
 	let frontendThemeContext = $derived(
-		frontendTheme.projectName === selectedProjectName ? frontendTheme.context : null
+		frontendTheme.projectName === applicationProjectName ? frontendTheme.context : null
 	);
 	let showFlowOverview = $derived(showStudioWork && flowReady);
 	let showPalette = $derived(showStudioWork || profile === 'frontend');
@@ -602,9 +615,10 @@
 	});
 
 	$effect(() => {
-		const projectName = selectedProjectName;
+		const projectName = applicationProjectName;
 		const currentProfile = profile;
-		const selection = selectedId;
+		const selection =
+			parseSelection(selectedId).projectName === projectName ? selectedId : projectName;
 		if (
 			!studioReady ||
 			!projectName ||
@@ -724,6 +738,7 @@
 		const browserPreview = flowBrowserPreview(event);
 		if (browserPreview) {
 			frontendPreview = { ...browserPreview, url: studioPreviewUrl(browserPreview.url) };
+			showApplication(browserPreview.projectName);
 			if (profile !== 'vibe') {
 				setProfile('frontend');
 			}
@@ -1122,7 +1137,7 @@
 	 */
 	async function selectFrontendAuthoringReference(reference) {
 		const response = await call('studio.treeview.Authoring', {
-			project: selectedProjectName,
+			project: applicationProjectName,
 			reference: JSON.stringify(reference)
 		});
 		const id = String(response?.id ?? '');
@@ -1151,6 +1166,7 @@
 			return;
 		}
 		selectedId = id;
+		showApplication(parseSelection(id).projectName);
 		setProfile('frontend');
 		dock?.show('frontend');
 		frontendAuthoringMode = 'select';
@@ -1181,7 +1197,11 @@
 	$effect(() => {
 		// the selected component of an NGX application shows in its preview, as in the Eclipse Studio
 		const id =
-			profile === 'frontend' && selectedId.includes('.MobileApplication.') ? selectedId : '';
+			profile === 'frontend' &&
+			parseSelection(selectedId).projectName === applicationProjectName &&
+			/\.(pg|mn|sp):/.test(selectedId)
+				? selectedId
+				: '';
 		if (!id) {
 			ngxReference = null;
 			return;
@@ -1204,7 +1224,7 @@
 	async function ngxComponentId(priority) {
 		const result = await call('studio.ngxbuilder.Authoring', {
 			action: 'find',
-			project: selectedProjectName,
+			project: applicationProjectName,
 			priority
 		});
 		return String(result?.id ?? '');
@@ -1268,14 +1288,15 @@
 	 * @param {any} changes
 	 */
 	async function applyNgxStyleChanges(changes) {
+		const projectName = applicationProjectName;
 		const result = await call('studio.ngxbuilder.StyleEditor', {
-			project: selectedProjectName,
+			project: projectName,
 			changes: JSON.stringify(changes)
 		});
 		const changed = Array.isArray(result?.changed) ? result.changed.map(String) : [];
 		if (changed.length) {
-			await refreshStudioProject(selectedProjectName);
-			markProjectDirty(selectedProjectName);
+			await refreshStudioProject(projectName);
+			markProjectDirty(projectName);
 			propertiesRefreshSerial += 1;
 			refreshStudioViews();
 			toaster.success({
@@ -1367,7 +1388,7 @@
 
 	/** @param {{ mode: string, palette: string, tokens: any[] }} context */
 	function updateFrontendThemeContext(context) {
-		frontendTheme = { projectName: selectedProjectName, context };
+		frontendTheme = { projectName: applicationProjectName, context };
 	}
 
 	/**
@@ -1701,6 +1722,7 @@
 				url: studioPreviewUrl(result.openUrl),
 				mode: 'development'
 			};
+			showApplication(projectName);
 		} else if (
 			actionId === 'frontbuilder.svelte.dev.stop' ||
 			actionId === 'frontbuilder.svelte.build' ||
@@ -1733,18 +1755,21 @@
 	 * @param {'production' | 'development'} mode
 	 */
 	async function changeFrontendPreviewMode(mode) {
-		if (frontendPreviewBusy || !selectedProjectName) {
+		const projectName = applicationProjectName;
+		if (frontendPreviewBusy || !projectName) {
 			return;
 		}
 		if (mode === 'production') {
 			frontendPreview = {
-				projectName: selectedProjectName,
+				projectName,
 				url: '',
 				mode: 'production'
 			};
 			return;
 		}
-		await openFrontendDevelopmentPreview(selectedProjectName, selectedId, true);
+		const selection =
+			parseSelection(selectedId).projectName === projectName ? selectedId : projectName;
+		await openFrontendDevelopmentPreview(projectName, selection, true);
 	}
 
 	/**
@@ -1846,6 +1871,7 @@
 		if (selectedProjectName !== projectName) {
 			selectedId = projectName;
 		}
+		showApplication(projectName);
 		setProfile('frontend');
 		dock?.show('build');
 		builderServeRequest = { at: Date.now(), install };
@@ -2610,6 +2636,7 @@
 		} else if (action === 'frontend.show') {
 			// an NGX component in the preview of its application, as the application editor of the Eclipse Studio
 			selectedId = nodeId;
+			showApplication(projectName);
 			setProfile('frontend');
 			setFrontendResult('frontend');
 		} else if (action === 'frontend.execute' || action === 'frontend.execute:update') {
@@ -3030,9 +3057,9 @@
 	 * @param {string} url
 	 */
 	function showDevelopmentBuild(url) {
-		if (selectedProjectName) {
+		if (applicationProjectName) {
 			frontendPreview = {
-				projectName: selectedProjectName,
+				projectName: applicationProjectName,
 				url: studioPreviewUrl(url),
 				mode: 'development'
 			};
@@ -3043,14 +3070,25 @@
 	 * Shows the application a local build just wrote in the DisplayObjects/mobile folder of its project.
 	 */
 	function showLocalBuild() {
-		if (!selectedProjectName) {
+		if (!applicationProjectName) {
 			return;
 		}
 		if (frontendPreviewMode === 'production') {
 			// the same page shows the new build once reloaded
 			frontendPreviewSerial += 1;
 		} else {
-			frontendPreview = { projectName: selectedProjectName, url: '', mode: 'production' };
+			frontendPreview = { projectName: applicationProjectName, url: '', mode: 'production' };
+		}
+	}
+
+	/**
+	 * Shows the application of a project in the preview and the Build view, which stay on it while other
+	 * projects are selected.
+	 * @param {string} projectName
+	 */
+	function showApplication(projectName) {
+		if (projectName) {
+			applicationProject = projectName;
 		}
 	}
 
@@ -3297,7 +3335,13 @@
 		{breadcrumbs}
 		{showFlowOverview}
 		onSelectBreadcrumb={selectObject}
-		onSetProfile={setProfile}
+		onSetProfile={(id) => {
+			// the Frontend profile chosen shows the application of the selected project
+			if (id === 'frontend') {
+				showApplication(selectedProjectName);
+			}
+			setProfile(id);
+		}}
 		onTogglePanel={toggleCollapsedPanel}
 		onShowFlow={() => setWorkPanel('flow')}
 	/>
@@ -3382,7 +3426,7 @@
 
 {#snippet frontendPane()}
 	<StudioPreviewPanel
-		projectName={selectedProjectName}
+		projectName={applicationProjectName}
 		previewUrlOverride={frontendPreviewUrl}
 		previewMode={frontendPreviewMode}
 		previewModeBusy={frontendPreviewBusy}
@@ -3505,7 +3549,7 @@
 
 {#snippet buildPane()}
 	<StudioBuilderPanel
-		projectName={selectedProjectName}
+		projectName={applicationProjectName}
 		active={Boolean(dockVisible.build)}
 		onLoad={showDevelopmentBuild}
 		onFailedChange={(failed) => (buildFailed = failed)}
@@ -3525,7 +3569,7 @@
 		onServerStop={() => {
 			// the development server stopped: the preview shows the built application again
 			if (frontendPreviewMode === 'development') {
-				frontendPreview = { projectName: selectedProjectName, url: '', mode: 'production' };
+				frontendPreview = { projectName: applicationProjectName, url: '', mode: 'production' };
 			}
 		}}
 	/>
@@ -3582,6 +3626,7 @@
 				title: 'Frontend',
 				icon: 'mdi:smartphone-link',
 				content: frontendPane,
+				detail: applicationProjectName,
 				main: true
 			},
 			{ id: 'palette', title: 'Palette', icon: 'mdi:palette-outline', content: palettePane },
@@ -3611,6 +3656,7 @@
 				}[view.id],
 				actions: view.id === 'logs' ? logsToolbarTrail : undefined,
 				alert: view.id === 'build' && buildFailed ? 'The application does not build' : '',
+				detail: view.id === 'build' ? applicationProjectName : '',
 				lazy: view.id === 'references' || view.id === 'schema'
 			}))
 		]}
