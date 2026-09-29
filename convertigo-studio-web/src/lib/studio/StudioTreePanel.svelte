@@ -171,6 +171,20 @@
 		untrack(() => refreshGitDecorations());
 	});
 
+	// a project loaded again by the engine for its merge shows again
+	let reloadedSeen = /** @type {Record<string, number>} */ ({});
+	$effect(() => {
+		const reloaded = { ...treeMerge.reloaded };
+		untrack(() => {
+			for (const [name, serial] of Object.entries(reloaded)) {
+				if (reloadedSeen[name] !== serial) {
+					reloadedSeen[name] = serial;
+					void reloadProjectBranches(name);
+				}
+			}
+		});
+	});
+
 	let mergeListOpen = $state(true);
 	let mergeBusy = $state('');
 

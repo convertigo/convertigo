@@ -98,6 +98,7 @@
 		setTreeDiffEnabled,
 		treeDiff
 	} from '$lib/studio/treeDiff.svelte.js';
+	import { scheduleTreeMergeRefresh } from '$lib/studio/treeMerge.svelte.js';
 	import {
 		clearTreeSelection,
 		treeSelection,
@@ -1689,6 +1690,7 @@
 	 */
 	async function onStudioMutation(mutation, followSelection = true) {
 		scheduleTreeDiffRefresh();
+		scheduleTreeMergeRefresh();
 		const serial = ++mutationRefreshSerial;
 		localMutationEvents.remember(mutation);
 		lastStudioMutation = mutation;
@@ -2035,6 +2037,7 @@
 		}
 		// a property changed changes the comparison of the Git mode
 		scheduleTreeDiffRefresh();
+		scheduleTreeMergeRefresh();
 		if (result?.done) {
 			await onStudioMutation(
 				{

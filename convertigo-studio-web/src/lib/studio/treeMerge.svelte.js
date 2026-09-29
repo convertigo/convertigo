@@ -25,8 +25,28 @@ import { expandableDboAncestorIds } from './dnd';
 
 export const treeMerge = $state({
 	/** @type {Record<string, ProjectMerge>} */
-	projects: {}
+	projects: {},
+	/** by project, a serial that changes as the engine loads it again for its merge */
+	reloaded: /** @type {Record<string, number>} */ ({})
 });
+
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let refreshTimer;
+
+/**
+ * The merges shown are read again a moment after a change of the Studio: its changes are mine.
+ */
+export function scheduleTreeMergeRefresh() {
+	if (!Object.keys(treeMerge.projects).length) {
+		return;
+	}
+	clearTimeout(refreshTimer);
+	refreshTimer = setTimeout(() => {
+		for (const projectName of Object.keys(treeMerge.projects)) {
+			void loadTreeMerge(projectName);
+		}
+	}, 700);
+}
 
 /**
  * What the views of Git tell each other: a serial that changes as an operation changes the repository of a
@@ -170,6 +190,10 @@ export async function loadTreeMerge(projectName, parameters = {}) {
 	}
 	try {
 		const result = await call('studio.git.TreeMerge', { projectName, ...parameters });
+		if (result?.reloaded) {
+			// the project loaded again as the version its conflicts are against
+			treeMerge.reloaded[projectName] = (treeMerge.reloaded[projectName] ?? 0) + 1;
+		}
 		if (result?.merging) {
 			treeMerge.projects[projectName] = indexTreeMerge(result);
 		} else {
