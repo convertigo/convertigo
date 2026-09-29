@@ -824,13 +824,27 @@ public class TreeMerge extends JSonService {
 		}
 
 		private void addTheirs(Bean t, Set<String> handled) throws Exception {
-			mark(handled, theirs, t);
 			var parent = mb.get(t.parentKey);
 			if (parent == null) {
 				// added under an object removed by me: left with it
+				mark(handled, theirs, t);
 				return;
 			}
+			markNew(handled, t);
 			var element = (Element) merged.importNode(t.element, true);
+			// the objects that were there, in the base or mine, which they moved into the new one, as an action
+			// they put in a new If, are not copied with it: they move where they put them, with the changes of
+			// both sides, and the objects they added into them are added then
+			var holder = merged.createElement("holder");
+			holder.appendChild(element);
+			var copy = new java.util.LinkedHashMap<String, Bean>();
+			TreeDiff.collect(holder, t.parentKey, copy);
+			holder.removeChild(element);
+			for (var bean : copy.values()) {
+				if (!bean.key.equals(t.key) && (base.containsKey(bean.key) || ours.containsKey(bean.key))) {
+					bean.element.getParentNode().removeChild(bean.element);
+				}
+			}
 			insert(parent.element, element, theirs.get(t.parentKey), t.key);
 			mb = TreeDiff.beans(merged);
 			change("added", t, null);
@@ -1010,6 +1024,20 @@ public class TreeMerge extends JSonService {
 				}
 			}
 			return true;
+		}
+
+		/**
+		 * Marks handled an object added by them and the objects added with it, but those that were there
+		 * before, which they moved into it, and the objects below them.
+		 */
+		private void markNew(Set<String> handled, Bean bean) {
+			handled.add(bean.key);
+			for (var child : bean.children) {
+				var c = theirs.get(child);
+				if (c != null && !base.containsKey(child) && !ours.containsKey(child)) {
+					markNew(handled, c);
+				}
+			}
 		}
 
 		private void mark(Set<String> handled, Map<String, Bean> side, Bean bean) {
