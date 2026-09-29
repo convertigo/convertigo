@@ -128,6 +128,19 @@
 	}
 
 	/**
+	 * @param {import('./treeMerge.svelte.js').MergeConflict} conflict
+	 * @returns {{ props?: Record<string, 'mine' | 'theirs'>, children?: Record<string, boolean> }} what
+	 *  is kept of each side, as chosen
+	 */
+	function combinationOf(conflict) {
+		try {
+			return conflict.value ? JSON.parse(conflict.value) : {};
+		} catch {
+			return {};
+		}
+	}
+
+	/**
 	 * @param {string | undefined} side mine, theirs or base
 	 */
 	function sideLabel(side) {
@@ -160,6 +173,7 @@
 		mine: 'Keep mine',
 		theirs: 'Take theirs',
 		both: 'Keep both',
+		merge: 'Combine…',
 		edit: 'Edit…'
 	};
 
@@ -1036,7 +1050,7 @@
 										>
 									{/if}
 								</div>
-								{#if versionsView === 'trees' && conflict.versions.trees}
+								{#if versionsView === 'trees' && conflict.versions.trees && conflict.resolution !== 'merge'}
 									<StudioMergeTrees
 										trees={conflict.versions.trees}
 										leftLabel={sideLabel(conflict.versions.left)}
@@ -1048,7 +1062,15 @@
 										versions={conflict.versions}
 										labels={{ base: 'Base', mine: sideLabel('mine'), theirs: sideLabel('theirs') }}
 										onSelect={onSelectObject}
+										combination={conflict.resolution === 'merge' ? combinationOf(conflict) : null}
+										onCombine={(next) => void resolve(conflict, 'merge', JSON.stringify(next))}
 									/>
+									{#if conflict.resolution === 'merge'}
+										<p class="studio-properties__versions-hint">
+											Click the value to keep of each property, mine by default; uncheck the objects
+											of a single side to leave out.
+										</p>
+									{/if}
 								{/if}
 							{/if}
 							{#if mergeEditing === conflict.id}
@@ -1577,6 +1599,12 @@
 	}
 
 	/* the conflicts of the object in a merge stopped on them */
+	.studio-properties__versions-hint {
+		margin: 0;
+		color: var(--studio-text-idle);
+		font-size: 0.7rem;
+	}
+
 	.studio-properties__versions-bar {
 		display: flex;
 		align-items: center;
