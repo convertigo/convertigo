@@ -155,7 +155,7 @@ test('studio frontend profile exposes preview devices from a navigation drawer',
 	await expect(page.getByRole('button', { name: 'Landscape orientation' })).toBeEnabled();
 
 	await page.getByRole('button', { name: 'Landscape orientation' }).click();
-	await expect(page.getByText(/iPhone 17 Pro landscape - 874x402/)).toBeVisible();
+	await expect(page.getByText('iPhone 17 Pro · 874×402')).toBeVisible();
 });
 
 test('studio follows a Flow bootstrap to the new project, exact source and dev viewer', async ({
@@ -468,14 +468,14 @@ test('studio switches Prod and Dev directly from the frontend viewer toolbar', a
 	await selectTreeNode(page, frontendBuilderId);
 	await page.getByRole('radio', { name: /Frontend|Tree, preview/ }).click();
 
-	await page.getByRole('button', { name: 'Switch to development preview' }).click();
+	await page.getByRole('radio', { name: 'Dev', exact: true }).click();
 	await expect.poll(() => contextActions).toEqual(['frontbuilder.svelte.dev.start']);
 	await expect(page.locator('iframe[title="StudioProject frontend"]')).toHaveAttribute(
 		'src',
 		/\/convertigo\/gw\/studio-test-ticket\/$/
 	);
 
-	await page.getByRole('button', { name: 'Switch to production preview' }).click();
+	await page.getByRole('radio', { name: 'Prod', exact: true }).click();
 	await expect(page.locator('iframe[title="StudioProject frontend"]')).toHaveAttribute(
 		'src',
 		/DisplayObjects\/mobile\/index\.html/
@@ -501,9 +501,7 @@ test('studio restores an already running Dev viewer when returning to the fronte
 		'src',
 		/\/convertigo\/gw\/studio-test-ticket\/$/
 	);
-	await expect(page.getByRole('button', { name: 'Switch to production preview' })).toHaveText(
-		'Dev'
-	);
+	await expect(page.getByRole('radio', { name: 'Dev', exact: true })).toBeChecked();
 });
 
 test('studio hosts the Flow binding web component and applies its value on touch', async ({

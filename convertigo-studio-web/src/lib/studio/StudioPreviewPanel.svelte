@@ -59,10 +59,13 @@
 		}
 	];
 	const ZOOM_STEP = 0.15;
+	const ZOOM_CHOICES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 	const MIN_ZOOM = 0.4;
 	const MAX_ZOOM = 2.5;
 	const FIT_PADDING = 24;
 	const iconButtonClasses = 'button-ico-secondary h-8! w-8! justify-center p-0!';
+	const labeledButtonClasses =
+		'button-ico-secondary studio-preview__labeled h-8! w-fit! justify-center px-2!';
 
 	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, onNgxStyleChanges?: (changes: any) => void | Promise<void>, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean, onNgxDragStart?: (priority: string) => void, onNgxDragEnd?: () => void, activity?: { phase: string, progress: number } }} */
 	let {
@@ -136,6 +139,12 @@
 			: (projectPreview.zoomMode ?? 'fit')
 	);
 	let trimmedAddress = $derived(addressBar.trim());
+	/** an address typed and not loaded yet, which the ↵ button of the field loads as Enter */
+	let addressEdited = $derived(
+		Boolean(trimmedAddress) && trimmedAddress !== '#' && trimmedAddress !== iframeUrl
+	);
+	let moreOpen = $state(false);
+	let barHeight = $state(0);
 	let deviceGroups = $derived.by(buildDeviceGroups);
 	let selectedDevice = $derived(deviceById(selectedDeviceId));
 	let effectiveOs = $derived(deviceOsOf(selectedDevice));
@@ -170,24 +179,32 @@
 		return Math.max(0.08, Math.min(1, availableWidth / frameWidth, availableHeight / frameHeight));
 	});
 	let appliedScale = $derived(zoomMode === 'fit' ? fitScale : fitScale * zoom);
-	let zoomLabel = $derived(zoomMode === 'fit' ? 'Fit' : `${Math.round(zoom * 100)}%`);
 	let viewportLabel = $derived(
 		isResponsivePreview
 			? 'Responsive'
 			: `${selectedDevice.title}${landscape ? ' landscape' : ''} - ${viewportWidth}x${viewportHeight}`
 	);
-	let fitButtonClasses = $derived(
-		[iconButtonClasses, zoomMode === 'fit' && 'studio-preview__icon-button--active']
-			.filter(Boolean)
-			.join(' ')
+	/** the zooms the toolbar offers, with the current one when the zoom buttons reached another */
+	let zoomChoices = $derived(
+		[...new Set([...ZOOM_CHOICES, ...(zoomMode === 'fit' ? [] : [zoom])])].sort((a, b) => a - b)
 	);
-	let deviceButtonClasses = $derived(
-		[iconButtonClasses, deviceDrawerOpen && 'studio-preview__icon-button--active']
-			.filter(Boolean)
-			.join(' ')
+	let deviceChipLabel = $derived(
+		isResponsivePreview
+			? 'Responsive'
+			: `${selectedDevice.title} · ${viewportWidth}×${viewportHeight}`
+	);
+	let deviceIcon = $derived(
+		isResponsivePreview
+			? 'mdi:devices'
+			: selectedDevice.type === 'tablet'
+				? 'mdi:tablet'
+				: selectedDevice.type === 'desktop'
+					? 'mdi:monitor'
+					: 'mdi:cellphone'
 	);
 	let previewStyle = $derived(
 		[
+			barHeight ? `--studio-preview-bar-height:${barHeight}px` : '',
 			`--studio-preview-scale:${appliedScale}`,
 			frameWidth ? `--studio-preview-width:${frameWidth}px` : '',
 			frameHeight ? `--studio-preview-height:${frameHeight}px` : '',
@@ -363,6 +380,8 @@
 		});
 	});
 	const SESSION_DATA = '_c8ocafsession_storage_data';
+	const SAVE_DATASET = '__save';
+	const REMOVE_DATASET = '__remove';
 	try {
 		// the mobile builder mode of the Convertigo Angular Framework, which records the session data of an
 		// NGX application, set before the preview loads it
@@ -465,6 +484,21 @@
 		}
 		// the list shows the datasets on the disk, even when the removal failed
 		await loadNgxDatasets(projectName);
+	}
+
+	/**
+	 * The dataset menu restores a dataset, or saves or removes one.
+	 * @param {Event} event
+	 */
+	function chooseNgxDataset(event) {
+		const select = /** @type {HTMLSelectElement} */ (event.currentTarget);
+		const value = select.value;
+		if (value === SAVE_DATASET || value === REMOVE_DATASET) {
+			select.value = ngxDataset;
+			void (value === SAVE_DATASET ? saveNgxDataset() : removeNgxDataset());
+		} else {
+			void applyNgxDataset(value);
+		}
 	}
 
 	async function saveNgxDataset() {
@@ -616,11 +650,14 @@
 		}
 	}
 
-	function togglePreviewMode() {
-		if (previewModeBusy) {
+	/**
+	 * @param {'production' | 'development'} mode
+	 */
+	function choosePreviewMode(mode) {
+		if (previewModeBusy || mode === previewMode) {
 			return;
 		}
-		void onPreviewModeChange?.(previewMode === 'development' ? 'production' : 'development');
+		void onPreviewModeChange?.(mode);
 	}
 
 	function navigateBack() {
@@ -659,6 +696,18 @@
 		zoomModeOverride = { base: previewUrl, value: 'manual' };
 		zoomOverride = { base: previewUrl, value };
 		keepPreview({ zoom: value, zoomMode: 'manual' });
+	}
+
+	/**
+	 * @param {Event} event the zoom menu, whose value is fit or a zoom
+	 */
+	function chooseZoom(event) {
+		const value = /** @type {HTMLSelectElement} */ (event.currentTarget).value;
+		if (value === 'fit') {
+			fitPreview();
+		} else {
+			setZoom(Number(value));
+		}
 	}
 
 	function fitPreview() {
@@ -703,6 +752,10 @@
 	}
 
 	function handleWindowKeydown(event) {
+		if (event.key === 'Escape' && moreOpen) {
+			moreOpen = false;
+			return;
+		}
 		if (event.key === 'Escape' && deviceDrawerOpen) {
 			closeDeviceDrawer();
 			return;
@@ -758,6 +811,17 @@
 	function updateAddressBar(event) {
 		const input = /** @type {HTMLInputElement | null} */ (event.currentTarget);
 		addressOverride = { base: previewUrl, value: input?.value ?? '' };
+	}
+
+	/**
+	 * Escape in the address gives back the one of the page loaded, as in a browser.
+	 * @param {KeyboardEvent} event
+	 */
+	function handleAddressKeydown(event) {
+		if (event.key === 'Escape' && addressEdited) {
+			event.preventDefault();
+			addressOverride = { base: previewUrl, value: iframeUrl };
+		}
 	}
 
 	/**
@@ -898,253 +962,106 @@
 
 <div class="studio-preview" style={previewStyle}>
 	{#if previewUrl}
+		<!--
+			The toolbar has a row for the navigation, as the one of a browser, and a row for the edition of
+			the application on the left and its display on the right.
+		-->
 		<form
 			class="studio-preview__bar"
+			bind:offsetHeight={barHeight}
 			onsubmit={(event) => {
 				event.preventDefault();
 				applyAddressBar();
 			}}
 		>
-			<div class="studio-preview__nav layout-x-none">
-				<Button
-					full={false}
-					icon="mdi:arrow-left"
-					class={iconButtonClasses}
-					title="Go back"
-					ariaLabel="Go back"
-					onclick={navigateBack}
-				/>
-				<Button
-					full={false}
-					icon="mdi:arrow-right"
-					class={iconButtonClasses}
-					title="Go forward"
-					ariaLabel="Go forward"
-					onclick={navigateForward}
-				/>
-				<Button
-					full={false}
-					icon="mdi:reload"
-					class={iconButtonClasses}
-					title="Reload"
-					ariaLabel="Reload"
-					onclick={reloadIframe}
-				/>
-				{#if ngxAuthoring}
+			<div class="studio-preview__row">
+				<div class="studio-preview__group">
 					<Button
 						full={false}
-						icon="mdi:target"
-						class={[iconButtonClasses, ngxSelecting && 'studio-preview__select--active']}
-						title={ngxSelecting
-							? 'Stop selecting components in the application'
-							: 'Select a component by clicking it in the application'}
-						ariaLabel="Select a component in the application"
-						onclick={() => (ngxSelecting = !ngxSelecting)}
-					/>
-					<select
-						class="studio-preview__dataset input-common"
-						title="Dataset of the application: its recorded session data"
-						aria-label="Dataset"
-						value={ngxDataset}
-						onchange={(event) => void applyNgxDataset(event.currentTarget.value)}
-					>
-						<option value="none">No dataset</option>
-						{#each ngxDatasets as dataset (dataset)}
-							<option value={dataset}>{dataset}</option>
-						{/each}
-					</select>
-					<Button
-						full={false}
-						icon="mdi:content-save-outline"
+						icon="mdi:arrow-left"
 						class={iconButtonClasses}
-						title="Save the session data of the application as a dataset"
-						ariaLabel="Save the dataset"
-						onclick={saveNgxDataset}
-					/>
-					{#if ngxDataset !== 'none'}
-						<Button
-							full={false}
-							icon="mdi:delete-outline"
-							class={iconButtonClasses}
-							title="Remove the dataset"
-							ariaLabel="Remove the dataset"
-							onclick={() => void removeNgxDataset()}
-						/>
-					{/if}
-					<Button
-						full={false}
-						icon="mdi:palette-swatch-outline"
-						class={[iconButtonClasses, ngxStyleEditing && 'studio-preview__select--active']}
-						title={ngxStyleEditing
-							? 'Apply the styles, texts and moves of the style editor'
-							: 'Edit the styles of the application'}
-						ariaLabel="Style editor"
-						onclick={() => void toggleNgxStyleEditor()}
-					/>
-					{#if ngxReference}
-						<Button
-							full={false}
-							icon={ngxHighlightHidden ? 'mdi:eye-outline' : 'mdi:eye-off-outline'}
-							class={iconButtonClasses}
-							title={ngxHighlightHidden
-								? 'Show the highlight of the selected component'
-								: 'Hide the highlight of the selected component'}
-							ariaLabel={ngxHighlightHidden ? 'Show the highlight' : 'Hide the highlight'}
-							onclick={() => (ngxHighlightHidden = !ngxHighlightHidden)}
-						/>
-					{/if}
-					<Button
-						full={false}
-						icon="mdi:grid"
-						class={[iconButtonClasses, ngxShowGrids && 'studio-preview__select--active']}
-						title={ngxShowGrids ? 'Hide the grids' : 'Show the grids, rows and columns'}
-						ariaLabel="Show the grids"
-						onclick={() => (ngxShowGrids = !ngxShowGrids)}
+						title="Go back"
+						ariaLabel="Go back"
+						onclick={navigateBack}
 					/>
 					<Button
 						full={false}
-						icon="mdi:camera-outline"
+						icon="mdi:arrow-right"
+						class={[iconButtonClasses, 'studio-preview__forward']}
+						title="Go forward"
+						ariaLabel="Go forward"
+						onclick={navigateForward}
+					/>
+					<Button
+						full={false}
+						icon="mdi:reload"
 						class={iconButtonClasses}
-						title="Capture the application as its thumbnail or a Marketplace screen"
-						ariaLabel="Capture the application"
-						onclick={() => void captureApplication()}
+						title="Reload"
+						ariaLabel="Reload"
+						onclick={reloadIframe}
 					/>
-				{/if}
-				{#if showDeviceDrawer}
-					<Button
-						full={false}
-						icon="mdi:devices"
-						class={deviceButtonClasses}
-						title={deviceDrawerOpen ? 'Close device drawer' : 'Choose preview device'}
-						ariaLabel={deviceDrawerOpen ? 'Close device drawer' : 'Choose preview device'}
-						aria-expanded={deviceDrawerOpen}
-						aria-controls="studio-preview-device-drawer"
-						onclick={toggleDeviceDrawer}
-					/>
-				{/if}
-			</div>
-
-			<input
-				type="text"
-				value={addressBar}
-				oninput={updateAddressBar}
-				placeholder="URL"
-				class="studio-preview__address"
-			/>
-
-			<div class="studio-preview__actions layout-x-end-none">
-				<button
-					type="button"
-					class="studio-preview__mode"
-					class:studio-preview__mode--development={previewMode === 'development'}
-					disabled={previewModeBusy}
+				</div>
+				<div
+					class="studio-preview__modes"
+					role="radiogroup"
+					aria-label="Build previewed"
 					aria-busy={previewModeBusy}
-					aria-label={previewMode === 'development'
-						? 'Switch to production preview'
-						: 'Switch to development preview'}
-					title={previewMode === 'development'
-						? 'Show the latest production build'
-						: 'Open or start the development preview'}
-					onclick={togglePreviewMode}
 				>
-					{previewMode === 'development' ? 'Dev' : 'Prod'}
-				</button>
+					<button
+						type="button"
+						role="radio"
+						aria-checked={previewMode === 'development'}
+						class="studio-preview__mode studio-preview__mode--development"
+						disabled={previewModeBusy}
+						title="The development build, which follows the changes of the project"
+						onclick={() => choosePreviewMode('development')}>Dev</button
+					>
+					<button
+						type="button"
+						role="radio"
+						aria-checked={previewMode !== 'development'}
+						class="studio-preview__mode"
+						disabled={previewModeBusy}
+						title="The latest production build"
+						onclick={() => choosePreviewMode('production')}>Prod</button
+					>
+				</div>
+				<div class="studio-preview__address">
+					<Ico icon="mdi:web" size={4} class="studio-preview__address-icon" />
+					<input
+						type="text"
+						value={addressBar}
+						oninput={updateAddressBar}
+						onkeydown={handleAddressKeydown}
+						placeholder="URL"
+						aria-label="Address of the page"
+						spellcheck="false"
+					/>
+					{#if addressEdited}
+						<button
+							type="button"
+							class="studio-preview__enter"
+							title="Load this address (Enter), Escape gives back the one of the page"
+							aria-label="Load the address"
+							onclick={applyAddressBar}
+						>
+							<Ico icon="mdi:keyboard-return" size={4} />
+						</button>
+					{/if}
+				</div>
 				<Button
 					full={false}
 					label="Go"
 					class="button-secondary h-8! w-fit! px-3!"
+					title="Go to the address"
 					disabled={!trimmedAddress || trimmedAddress === '#'}
 					onclick={applyAddressBar}
 				/>
-				{#if showDeviceSelector}
-					<label class="studio-preview__device-select layout-x-low">
-						{#if isResponsivePreview || !selectedDevice.bezel}
-							<Ico icon="mdi:devices" size={4} />
-						{:else}
-							<img
-								class="studio-preview__device-thumb"
-								src={asset(`/bezels/thumbnails/${selectedDevice.id}.webp`)}
-								alt=""
-								loading="lazy"
-							/>
-						{/if}
-						<select value={selectedDeviceId} aria-label="Preview device" onchange={selectDevice}>
-							{#each deviceGroups as group (group.id)}
-								<optgroup label={group.title}>
-									{#each group.devices as device (device.id)}
-										<option value={device.id}
-											>{device.id === 'none' ? 'Responsive' : device.title}</option
-										>
-									{/each}
-								</optgroup>
-							{/each}
-							<option value={ADD_DEVICE}>Add a custom device…</option>
-						</select>
-					</label>
-					{#if 'custom' in selectedDevice}
-						<Button
-							full={false}
-							icon="mdi:delete-outline"
-							class={iconButtonClasses}
-							title="Remove this custom device"
-							ariaLabel="Remove this custom device"
-							onclick={removeSelectedDevice}
-						/>
-					{/if}
-					<select
-						class="studio-preview__os"
-						value={previewDevices.os}
-						aria-label="Device OS"
-						title="The OS the application shows, as its Ionic mode"
-						onchange={(event) =>
-							selectDeviceOs(/** @type {'auto' | 'android' | 'ios'} */ (event.currentTarget.value))}
-					>
-						<option value="auto"
-							>OS of the device ({effectiveOs === 'ios' ? 'iOS' : 'Android'})</option
-						>
-						<option value="android">Android</option>
-						<option value="ios">iOS</option>
-					</select>
-				{/if}
-				<span class="studio-preview__size studio-ellipsis">{viewportLabel}</span>
-				<Button
-					full={false}
-					icon="mdi:magnify-minus-outline"
-					class={iconButtonClasses}
-					title="Zoom out"
-					ariaLabel="Zoom out"
-					onclick={() => adjustZoom(-1)}
-				/>
-				<Button
-					full={false}
-					icon="mdi:fit-to-page-outline"
-					class={fitButtonClasses}
-					title="Fit to screen"
-					ariaLabel="Fit to screen"
-					onclick={fitPreview}
-				/>
-				<Button
-					full={false}
-					icon="mdi:magnify-plus-outline"
-					class={iconButtonClasses}
-					title="Zoom in"
-					ariaLabel="Zoom in"
-					onclick={() => adjustZoom(1)}
-				/>
-				<span class="studio-preview__zoom">{zoomLabel}</span>
-				<Button
-					full={false}
-					icon="mdi:camera-rotate-outline"
-					class={iconButtonClasses}
-					title="Rotate viewport"
-					ariaLabel="Rotate viewport"
-					disabled={isResponsivePreview}
-					onclick={toggleLandscape}
-				/>
+				<span class="studio-preview__sep studio-preview__wide" aria-hidden="true"></span>
 				<Button
 					full={false}
 					icon="mdi:bug-outline"
-					class={iconButtonClasses}
+					class={[iconButtonClasses, 'studio-preview__wide']}
 					title="Developer tools of the application"
 					ariaLabel="Developer tools"
 					disabled={!iframe}
@@ -1153,13 +1070,288 @@
 				<Button
 					full={false}
 					icon="mdi:open-in-new-variant"
-					class={iconButtonClasses}
+					class={[iconButtonClasses, 'studio-preview__wide']}
 					title="Open the page of the application in a window of its own"
 					ariaLabel="Open frontend"
 					onclick={openCurrentPage}
 				/>
+				<div class="studio-preview__more studio-preview__narrow">
+					<Button
+						full={false}
+						icon="mdi:dots-horizontal"
+						class={[iconButtonClasses, moreOpen && 'studio-preview__icon-button--active']}
+						title="More actions"
+						ariaLabel="More actions"
+						aria-haspopup="menu"
+						aria-expanded={moreOpen}
+						onclick={() => (moreOpen = !moreOpen)}
+					/>
+					{#if moreOpen}
+						<div class="studio-preview__menu" role="menu" aria-label="More actions">
+							{#if ngxAuthoring}
+								<button
+									type="button"
+									role="menuitemcheckbox"
+									aria-checked={ngxShowGrids}
+									onclick={() => {
+										ngxShowGrids = !ngxShowGrids;
+										moreOpen = false;
+									}}
+								>
+									<Ico icon="mdi:grid" size={4} />Show the grids
+									{#if ngxShowGrids}<Ico icon="mdi:check" size={4} class="ml-auto" />{/if}
+								</button>
+								<button
+									type="button"
+									role="menuitem"
+									onclick={() => {
+										moreOpen = false;
+										void captureApplication();
+									}}
+								>
+									<Ico icon="mdi:camera-outline" size={4} />Capture the application
+								</button>
+								<hr />
+							{/if}
+							<button
+								type="button"
+								role="menuitem"
+								disabled={!iframe}
+								onclick={() => {
+									moreOpen = false;
+									openDevTools();
+								}}
+							>
+								<Ico icon="mdi:bug-outline" size={4} />Developer tools
+							</button>
+							<button
+								type="button"
+								role="menuitem"
+								onclick={() => {
+									moreOpen = false;
+									openCurrentPage();
+								}}
+							>
+								<Ico icon="mdi:open-in-new-variant" size={4} />Open in a window
+							</button>
+						</div>
+					{/if}
+				</div>
+			</div>
+
+			<div class="studio-preview__row studio-preview__row--tools">
+				{#if ngxAuthoring}
+					<div class="studio-preview__group">
+						<Button
+							full={false}
+							icon="mdi:target"
+							label="Select"
+							class={[labeledButtonClasses, ngxSelecting && 'studio-preview__icon-button--active']}
+							title={ngxSelecting
+								? 'Stop selecting components in the application'
+								: 'Select a component by clicking it in the application'}
+							ariaLabel="Select a component in the application"
+							aria-pressed={ngxSelecting}
+							onclick={() => (ngxSelecting = !ngxSelecting)}
+						/>
+						{#if ngxReference}
+							<Button
+								full={false}
+								icon={ngxHighlightHidden ? 'mdi:eye-outline' : 'mdi:eye-off-outline'}
+								class={iconButtonClasses}
+								title={ngxHighlightHidden
+									? 'Show the highlight of the selected component'
+									: 'Hide the highlight of the selected component'}
+								ariaLabel={ngxHighlightHidden ? 'Show the highlight' : 'Hide the highlight'}
+								onclick={() => (ngxHighlightHidden = !ngxHighlightHidden)}
+							/>
+						{/if}
+						<Button
+							full={false}
+							icon="mdi:palette-swatch-outline"
+							label="Styles"
+							class={[
+								labeledButtonClasses,
+								ngxStyleEditing && 'studio-preview__icon-button--active'
+							]}
+							title={ngxStyleEditing
+								? 'Apply the styles, texts and moves of the style editor'
+								: 'Edit the styles of the application'}
+							ariaLabel="Style editor"
+							aria-pressed={ngxStyleEditing}
+							onclick={() => void toggleNgxStyleEditor()}
+						/>
+						<Button
+							full={false}
+							icon="mdi:grid"
+							class={[
+								iconButtonClasses,
+								'studio-preview__wide',
+								ngxShowGrids && 'studio-preview__icon-button--active'
+							]}
+							title={ngxShowGrids ? 'Hide the grids' : 'Show the grids, rows and columns'}
+							ariaLabel="Show the grids"
+							aria-pressed={ngxShowGrids}
+							onclick={() => (ngxShowGrids = !ngxShowGrids)}
+						/>
+					</div>
+					<span class="studio-preview__sep" aria-hidden="true"></span>
+					<label
+						class="studio-preview__chip studio-preview__dataset"
+						title="Dataset of the application: its recorded session data"
+					>
+						<Ico icon="mdi:database-outline" size={4} />
+						<select aria-label="Dataset" value={ngxDataset} onchange={chooseNgxDataset}>
+							<option value="none">No dataset</option>
+							{#each ngxDatasets as dataset (dataset)}
+								<option value={dataset}>{dataset}</option>
+							{/each}
+							<optgroup label="Actions">
+								<option value={SAVE_DATASET}>Save the session data as a dataset…</option>
+								{#if ngxDataset !== 'none'}
+									<option value={REMOVE_DATASET}>Remove the dataset {ngxDataset}</option>
+								{/if}
+							</optgroup>
+						</select>
+					</label>
+				{/if}
+				<span class="studio-preview__spacer"></span>
+				<div class="studio-preview__group">
+					{#if showDeviceDrawer}
+						<button
+							type="button"
+							class="studio-preview__chip studio-preview__device"
+							class:studio-preview__chip--open={deviceDrawerOpen}
+							title={deviceDrawerOpen ? 'Close device drawer' : 'Choose preview device'}
+							aria-label={deviceDrawerOpen ? 'Close device drawer' : 'Choose preview device'}
+							aria-expanded={deviceDrawerOpen}
+							aria-controls="studio-preview-device-drawer"
+							onclick={toggleDeviceDrawer}
+						>
+							<Ico icon={deviceIcon} size={4} />
+							<span class="studio-preview__device-name studio-ellipsis">{deviceChipLabel}</span>
+							<Ico icon="mdi:chevron-down" size={3} class="studio-preview__chevron" />
+						</button>
+					{/if}
+					{#if showDeviceSelector}
+						<label class="studio-preview__device-select layout-x-low">
+							{#if isResponsivePreview || !selectedDevice.bezel}
+								<Ico icon="mdi:devices" size={4} />
+							{:else}
+								<img
+									class="studio-preview__device-thumb"
+									src={asset(`/bezels/thumbnails/${selectedDevice.id}.webp`)}
+									alt=""
+									loading="lazy"
+								/>
+							{/if}
+							<select value={selectedDeviceId} aria-label="Preview device" onchange={selectDevice}>
+								{#each deviceGroups as group (group.id)}
+									<optgroup label={group.title}>
+										{#each group.devices as device (device.id)}
+											<option value={device.id}
+												>{device.id === 'none' ? 'Responsive' : device.title}</option
+											>
+										{/each}
+									</optgroup>
+								{/each}
+								<option value={ADD_DEVICE}>Add a custom device…</option>
+							</select>
+						</label>
+						{#if 'custom' in selectedDevice}
+							<Button
+								full={false}
+								icon="mdi:delete-outline"
+								class={iconButtonClasses}
+								title="Remove this custom device"
+								ariaLabel="Remove this custom device"
+								onclick={removeSelectedDevice}
+							/>
+						{/if}
+						<select
+							class="studio-preview__os"
+							value={previewDevices.os}
+							aria-label="Device OS"
+							title="The OS the application shows, as its Ionic mode"
+							onchange={(event) =>
+								selectDeviceOs(
+									/** @type {'auto' | 'android' | 'ios'} */ (event.currentTarget.value)
+								)}
+						>
+							<option value="auto"
+								>OS of the device ({effectiveOs === 'ios' ? 'iOS' : 'Android'})</option
+							>
+							<option value="android">Android</option>
+							<option value="ios">iOS</option>
+						</select>
+						<span class="studio-preview__size studio-ellipsis">{viewportLabel}</span>
+					{/if}
+					{#if !isResponsivePreview}
+						<Button
+							full={false}
+							icon="mdi:camera-rotate-outline"
+							class={[iconButtonClasses, landscape && 'studio-preview__icon-button--active']}
+							title={landscape
+								? 'Rotate the viewport to portrait'
+								: 'Rotate the viewport to landscape'}
+							ariaLabel="Rotate viewport"
+							aria-pressed={landscape}
+							onclick={toggleLandscape}
+						/>
+					{/if}
+				</div>
+				<span class="studio-preview__sep" aria-hidden="true"></span>
+				<div class="studio-preview__group">
+					<Button
+						full={false}
+						icon="mdi:minus"
+						class={[iconButtonClasses, 'studio-preview__zoom-step']}
+						title="Zoom out"
+						ariaLabel="Zoom out"
+						onclick={() => adjustZoom(-1)}
+					/>
+					<label class="studio-preview__chip studio-preview__zoom" title="Zoom of the preview">
+						<select
+							aria-label="Zoom"
+							value={zoomMode === 'fit' ? 'fit' : String(zoom)}
+							onchange={chooseZoom}
+						>
+							<option value="fit">Fit</option>
+							{#each zoomChoices as choice (choice)}
+								<option value={String(choice)}>{Math.round(choice * 100)}%</option>
+							{/each}
+						</select>
+					</label>
+					<Button
+						full={false}
+						icon="mdi:plus"
+						class={[iconButtonClasses, 'studio-preview__zoom-step']}
+						title="Zoom in"
+						ariaLabel="Zoom in"
+						onclick={() => adjustZoom(1)}
+					/>
+				</div>
+				{#if ngxAuthoring}
+					<span class="studio-preview__sep studio-preview__wide" aria-hidden="true"></span>
+					<Button
+						full={false}
+						icon="mdi:camera-outline"
+						class={[iconButtonClasses, 'studio-preview__wide']}
+						title="Capture the application as its thumbnail or a Marketplace screen"
+						ariaLabel="Capture the application"
+						onclick={() => void captureApplication()}
+					/>
+				{/if}
 			</div>
 		</form>
+
+		{#if moreOpen}
+			<div
+				class="studio-preview__menu-backdrop"
+				role="presentation"
+				onclick={() => (moreOpen = false)}
+			></div>
+		{/if}
 
 		{#if showDeviceDrawer}
 			{#if deviceDrawerOpen}
@@ -1290,18 +1482,6 @@
 		}
 	}
 
-	.studio-preview__dataset {
-		width: 7.5rem;
-		height: 2rem;
-		padding-block: 0;
-		font-size: 0.72rem;
-	}
-
-	:global(.studio-preview__select--active) {
-		background: var(--color-primary-500) !important;
-		color: white !important;
-	}
-
 	/* the toolbar follows the width of the view, which the dock sets, rather than the one of the window */
 	.studio-preview {
 		position: relative;
@@ -1316,7 +1496,7 @@
 	.studio-preview__drawer-backdrop {
 		position: absolute;
 		z-index: 18;
-		inset: 2.8rem 0 0;
+		inset: var(--studio-preview-bar-height, 2.8rem) 0 0;
 		border: 0;
 		background: color-mix(in oklab, var(--color-surface-950-50) 18%, transparent);
 		cursor: default;
@@ -1325,7 +1505,7 @@
 	.studio-preview__device-drawer {
 		position: absolute;
 		z-index: 20;
-		top: 2.8rem;
+		top: var(--studio-preview-bar-height, 2.8rem);
 		bottom: 0;
 		left: 0;
 		width: min(22rem, calc(100% - 2rem));
@@ -1349,18 +1529,285 @@
 
 	.studio-preview__bar {
 		display: grid;
-		grid-template-columns: auto minmax(12rem, 1fr) auto;
-		align-items: center;
-		gap: 0.35rem;
+		gap: 0.3rem;
 		border-bottom: 1px solid var(--color-surface-200-800);
 		background: color-mix(in oklab, var(--color-surface-50-950) 88%, transparent);
-		padding: 0.38rem;
+		padding: 0.35rem 0.4rem;
 	}
 
-	.studio-preview__nav,
-	.studio-preview__actions {
+	/* the buttons of the toolbar read as the ones of the other views of the Studio */
+	.studio-preview__bar :global(.button-ico-secondary) {
+		color: var(--studio-text-idle);
+	}
+
+	.studio-preview__bar :global(.button-ico-secondary:not(:disabled):hover) {
+		background: var(--studio-hover-bg);
+		color: var(--studio-text-strong);
+	}
+
+	.studio-preview__bar :global(.button-ico-secondary:disabled) {
+		opacity: 0.4;
+	}
+
+	.studio-preview__bar :global(.studio-preview__icon-button--active),
+	.studio-preview__bar :global(.studio-preview__icon-button--active:not(:disabled):hover) {
+		background: color-mix(in oklab, var(--color-primary-500) 16%, transparent);
+		color: var(--color-primary-600-400);
+	}
+
+	.studio-preview__row {
+		display: flex;
 		min-width: 0;
 		align-items: center;
+		gap: 0.25rem;
+	}
+
+	.studio-preview__group {
+		display: flex;
+		flex: none;
+		align-items: center;
+		gap: 0.125rem;
+	}
+
+	.studio-preview__sep {
+		flex: none;
+		width: 1px;
+		height: 1.1rem;
+		margin: 0 0.25rem;
+		background: var(--color-surface-200-800);
+	}
+
+	.studio-preview__spacer {
+		flex: 1 1 0;
+		min-width: 0.25rem;
+	}
+
+	/* Dev and Prod, the build the preview shows, as a segmented control */
+	.studio-preview__modes {
+		display: inline-flex;
+		flex: none;
+		height: 2rem;
+		align-items: stretch;
+		gap: 2px;
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.35rem;
+		background: color-mix(in oklab, var(--color-surface-100-900) 78%, transparent);
+		padding: 2px;
+	}
+
+	.studio-preview__mode {
+		font: inherit;
+		border: 0;
+		border-radius: 0.25rem;
+		background: transparent;
+		color: var(--color-surface-600-400);
+		padding: 0 0.55rem;
+		font-size: 0.72rem;
+		font-weight: 650;
+		cursor: pointer;
+	}
+
+	.studio-preview__mode:not(:disabled):hover {
+		color: var(--color-surface-950-50);
+	}
+
+	.studio-preview__mode[aria-checked='true'] {
+		background: var(--color-surface-300-700);
+		color: var(--color-surface-950-50);
+	}
+
+	.studio-preview__mode--development[aria-checked='true'] {
+		background: color-mix(in oklab, var(--color-success-500) 22%, transparent);
+		color: var(--color-success-700-300);
+	}
+
+	.studio-preview__mode:disabled {
+		cursor: wait;
+	}
+
+	.studio-preview__modes[aria-busy='true'] {
+		opacity: 0.65;
+	}
+
+	.studio-preview__mode:focus-visible {
+		outline: 2px solid var(--color-primary-500);
+		outline-offset: 1px;
+	}
+
+	.studio-preview__address {
+		display: flex;
+		flex: 1 1 12rem;
+		min-width: 6rem;
+		height: 2rem;
+		align-items: center;
+		gap: 0.35rem;
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.3rem;
+		background: var(--color-surface-50-950);
+		padding: 0 0.2rem 0 0.5rem;
+	}
+
+	.studio-preview__address:focus-within {
+		border-color: var(--color-primary-500);
+	}
+
+	.studio-preview__address :global(.studio-preview__address-icon) {
+		flex: none;
+		color: var(--color-surface-500);
+	}
+
+	.studio-preview__address input {
+		flex: 1;
+		min-width: 0;
+		height: 100%;
+		border: 0;
+		background: transparent;
+		color: var(--color-surface-950-50);
+		padding: 0;
+		font-size: 0.76rem;
+		outline: none;
+		box-shadow: none;
+	}
+
+	.studio-preview__enter {
+		display: inline-flex;
+		flex: none;
+		width: 1.6rem;
+		height: 1.6rem;
+		align-items: center;
+		justify-content: center;
+		border: 0;
+		border-radius: 0.25rem;
+		background: color-mix(in oklab, var(--color-primary-500) 14%, transparent);
+		color: var(--color-primary-600-400);
+		cursor: pointer;
+	}
+
+	.studio-preview__enter:hover {
+		background: color-mix(in oklab, var(--color-primary-500) 26%, transparent);
+	}
+
+	/* the dataset, device and zoom menus */
+	.studio-preview__chip {
+		display: inline-flex;
+		flex: none;
+		min-width: 0;
+		height: 2rem;
+		align-items: center;
+		gap: 0.35rem;
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.3rem;
+		background: color-mix(in oklab, var(--color-surface-100-900) 78%, transparent);
+		color: var(--color-surface-700-300);
+		padding: 0 0.45rem;
+		font: inherit;
+		font-size: 0.74rem;
+	}
+
+	.studio-preview__chip select {
+		field-sizing: content;
+		min-width: 0;
+		height: 100%;
+		border: 0;
+		background-color: transparent;
+		background-position: right 0.05rem center;
+		background-size: 1rem 1rem;
+		color: var(--color-surface-950-50);
+		padding: 0 1.2rem 0 0;
+		font-size: 0.74rem;
+		outline: none;
+		box-shadow: none;
+		cursor: pointer;
+	}
+
+	.studio-preview__chip:focus-within,
+	.studio-preview__chip:hover,
+	.studio-preview__chip--open {
+		border-color: color-mix(in oklab, var(--color-surface-400-600) 70%, transparent);
+	}
+
+	.studio-preview__dataset select {
+		max-width: 9rem;
+	}
+
+	.studio-preview__device {
+		cursor: pointer;
+	}
+
+	.studio-preview__device-name {
+		max-width: 14rem;
+		color: var(--color-surface-950-50);
+		font-weight: 600;
+	}
+
+	.studio-preview__device :global(.studio-preview__chevron) {
+		color: var(--color-surface-500);
+	}
+
+	.studio-preview__zoom select {
+		min-width: 3.2rem;
+		font-weight: 650;
+	}
+
+	.studio-preview :global(.studio-preview__labeled) {
+		gap: 0.3rem;
+		font-size: 0.74rem;
+		font-weight: 600;
+	}
+
+	.studio-preview__more {
+		position: relative;
+		flex: none;
+	}
+
+	.studio-preview__menu-backdrop {
+		position: absolute;
+		z-index: 30;
+		inset: 0;
+	}
+
+	.studio-preview__menu {
+		position: absolute;
+		z-index: 31;
+		top: calc(100% + 0.3rem);
+		right: 0;
+		display: grid;
+		min-width: 13rem;
+		border: 1px solid var(--color-surface-200-800);
+		border-radius: 0.45rem;
+		background: var(--color-surface-50-950);
+		box-shadow: var(--shadow-follow);
+		padding: 0.25rem;
+	}
+
+	.studio-preview__menu button {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		border: 0;
+		border-radius: 0.3rem;
+		background: transparent;
+		color: var(--color-surface-950-50);
+		padding: 0.4rem 0.5rem;
+		font-size: 0.78rem;
+		text-align: left;
+	}
+
+	.studio-preview__menu button:not(:disabled):hover {
+		background: var(--studio-hover-bg);
+	}
+
+	.studio-preview__menu button:disabled {
+		opacity: 0.5;
+	}
+
+	.studio-preview__menu hr {
+		margin: 0.25rem 0;
+		border-color: var(--color-surface-200-800);
+	}
+
+	.studio-preview__narrow {
+		display: none;
 	}
 
 	.studio-preview__device-select {
@@ -1405,55 +1852,6 @@
 		border-color: color-mix(in oklab, var(--color-primary-500) 44%, transparent);
 		background: color-mix(in oklab, var(--color-primary-500) 12%, transparent);
 		color: var(--color-primary-600-400);
-	}
-
-	.studio-preview__address {
-		min-width: 0;
-		height: 2rem;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.3rem;
-		background: var(--color-surface-50-950);
-		color: var(--color-surface-950-50);
-		padding: 0 0.55rem;
-		font-size: 0.76rem;
-	}
-
-	.studio-preview__zoom {
-		min-width: 2.3rem;
-		color: var(--color-surface-600-400);
-		font-size: 0.72rem;
-		font-weight: 700;
-		text-align: center;
-	}
-
-	.studio-preview__mode {
-		font: inherit;
-		border: 1px solid var(--color-surface-300-700);
-		border-radius: 999px;
-		background: color-mix(in oklab, var(--color-surface-300-700) 14%, transparent);
-		color: var(--color-surface-600-400);
-		padding: 0.08rem 0.42rem;
-		font-size: 0.64rem;
-		font-weight: 780;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		cursor: pointer;
-	}
-
-	.studio-preview__mode:disabled {
-		cursor: wait;
-		opacity: 0.65;
-	}
-
-	.studio-preview__mode:focus-visible {
-		outline: 2px solid var(--color-primary-500);
-		outline-offset: 2px;
-	}
-
-	.studio-preview__mode--development {
-		border-color: color-mix(in oklab, var(--color-success-500) 55%, transparent);
-		background: color-mix(in oklab, var(--color-success-500) 14%, transparent);
-		color: var(--color-success-700-300);
 	}
 
 	.studio-preview__size {
@@ -1579,30 +1977,52 @@
 		min-height: 16rem;
 	}
 
-	/* too narrow for one line: the address goes beside the navigation, the actions under them */
-	@container (max-width: 1100px) {
-		.studio-preview__bar {
-			grid-template-columns: auto minmax(8rem, 1fr);
+	/* a view less wide: the zoom takes its menu only */
+	@container (max-width: 820px) {
+		.studio-preview :global(.studio-preview__zoom-step) {
+			display: none;
 		}
 
-		.studio-preview__actions {
-			grid-column: 1 / -1;
-			justify-content: flex-start;
-			overflow-x: auto;
+		.studio-preview__device-name {
+			max-width: 9rem;
 		}
 	}
 
+	/* a narrow view: the tools show their icons only, the actions used less go in the More menu */
 	@container (max-width: 700px) {
-		.studio-preview__bar {
-			grid-template-columns: minmax(0, 1fr);
+		.studio-preview :global(.studio-preview__wide) {
+			display: none;
 		}
 
-		.studio-preview__nav {
-			overflow-x: auto;
+		.studio-preview__narrow {
+			display: block;
 		}
 
-		.studio-preview__device-select select {
-			max-width: 10rem;
+		.studio-preview :global(.studio-preview__labeled) {
+			width: 2rem !important;
+			padding: 0 !important;
+		}
+
+		.studio-preview :global(.studio-preview__labeled > span + span) {
+			display: none;
+		}
+
+		.studio-preview__row--tools {
+			flex-wrap: wrap;
+		}
+
+		.studio-preview__device-name {
+			max-width: 8rem;
+		}
+
+		.studio-preview__dataset select {
+			max-width: 7rem;
+		}
+	}
+
+	@container (max-width: 460px) {
+		.studio-preview :global(.studio-preview__forward) {
+			display: none;
 		}
 	}
 </style>

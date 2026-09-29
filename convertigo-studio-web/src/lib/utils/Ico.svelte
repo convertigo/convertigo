@@ -28,6 +28,7 @@
 	import MdiCalendarClock from '~icons/mdi/calendar-clock';
 	import MdiCalendarRange from '~icons/mdi/calendar-range';
 	import MdiCameraOutline from '~icons/mdi/camera-outline';
+	import MdiCellphone from '~icons/mdi/cellphone';
 	import MdiCellphoneLink from '~icons/mdi/cellphone-link';
 	import MdiCertificate from '~icons/mdi/certificate';
 	import MdiChartBoxOutline from '~icons/mdi/chart-box-outline';
@@ -58,10 +59,12 @@
 	import MdiContentSaveEditOutline from '~icons/mdi/content-save-edit-outline';
 	import MdiContentSaveOutline from '~icons/mdi/content-save-outline';
 	import MdiCubeOutline from '~icons/mdi/cube-outline';
+	import MdiCursorDefaultClickOutline from '~icons/mdi/cursor-default-click-outline';
 	import MdiDatabase from '~icons/mdi/database';
 	import MdiDatabaseCheckOutline from '~icons/mdi/database-check-outline';
 	import MdiDatabaseClockOutline from '~icons/mdi/database-clock-outline';
 	import MdiDatabaseImportOutline from '~icons/mdi/database-import-outline';
+	import MdiDatabaseOutline from '~icons/mdi/database-outline';
 	import MdiDatabaseSyncOutline from '~icons/mdi/database-sync-outline';
 	import MdiDebugStepInto from '~icons/mdi/debug-step-into';
 	import MdiDebugStepOut from '~icons/mdi/debug-step-out';
@@ -70,6 +73,7 @@
 	import MdiDevices from '~icons/mdi/devices';
 	import MdiDockBottom from '~icons/mdi/dock-bottom';
 	import MdiDockWindow from '~icons/mdi/dock-window';
+	import MdiDotsHorizontal from '~icons/mdi/dots-horizontal';
 	import MdiDotsVertical from '~icons/mdi/dots-vertical';
 	import MdiDownloadLockOutline from '~icons/mdi/download-lock-outline';
 	import MdiDownloadOffOutline from '~icons/mdi/download-off-outline';
@@ -92,7 +96,6 @@
 	import MdiFilterCog from '~icons/mdi/filter-cog';
 	import MdiFilterCogOutline from '~icons/mdi/filter-cog-outline';
 	import MdiFitToPageOutline from '~icons/mdi/fit-to-page-outline';
-	import MdiCursorDefaultClickOutline from '~icons/mdi/cursor-default-click-outline';
 	import MdiFolderLockOutline from '~icons/mdi/folder-lock-outline';
 	import MdiFolderOpenOutline from '~icons/mdi/folder-open-outline';
 	import MdiFolderOutline from '~icons/mdi/folder-outline';
@@ -112,6 +115,7 @@
 	import MdiImport from '~icons/mdi/import';
 	import MdiInvoiceScheduledOutline from '~icons/mdi/invoice-scheduled-outline';
 	import MdiKeyOutline from '~icons/mdi/key-outline';
+	import MdiKeyboardReturn from '~icons/mdi/keyboard-return';
 	import MdiLanConnect from '~icons/mdi/lan-connect';
 	import MdiLandPlots from '~icons/mdi/land-plots';
 	import MdiLanguageCss3 from '~icons/mdi/language-css3';
@@ -155,6 +159,7 @@
 	import MdiPowerPlug from '~icons/mdi/power-plug';
 	import MdiQrcode from '~icons/mdi/qrcode';
 	import MdiReceiptTextSendOutline from '~icons/mdi/receipt-text-send-outline';
+	import MdiRedo from '~icons/mdi/redo';
 	import MdiRefresh from '~icons/mdi/refresh';
 	import MdiReload from '~icons/mdi/reload';
 	import MdiResizeHorizontal from '~icons/mdi/resize-horizontal';
@@ -178,6 +183,7 @@
 	import MdiSwapHorizontal from '~icons/mdi/swap-horizontal';
 	import MdiSync from '~icons/mdi/sync';
 	import MdiTable from '~icons/mdi/table';
+	import MdiTablet from '~icons/mdi/tablet';
 	import MdiTarget from '~icons/mdi/target';
 	import MdiTextBoxOutline from '~icons/mdi/text-box-outline';
 	import MdiToggleSwitch from '~icons/mdi/toggle-switch';
@@ -185,7 +191,6 @@
 	import MdiTranslate from '~icons/mdi/translate';
 	import MdiTranslateOff from '~icons/mdi/translate-off';
 	import MdiTuneVerticalVariant from '~icons/mdi/tune-vertical-variant';
-	import MdiRedo from '~icons/mdi/redo';
 	import MdiUndo from '~icons/mdi/undo';
 	import MdiUnfoldMoreHorizontal from '~icons/mdi/unfold-more-horizontal';
 	import MdiUpdate from '~icons/mdi/update';
@@ -274,6 +279,11 @@
 		'mdi:database': MdiDatabase,
 		'mdi:delete-outline': MdiDeleteOutline,
 		'mdi:devices': MdiDevices,
+		'mdi:cellphone': MdiCellphone,
+		'mdi:database-outline': MdiDatabaseOutline,
+		'mdi:dots-horizontal': MdiDotsHorizontal,
+		'mdi:keyboard-return': MdiKeyboardReturn,
+		'mdi:tablet': MdiTablet,
 		'mdi:dots-vertical': MdiDotsVertical,
 		'mdi:download-lock-outline': MdiDownloadLockOutline,
 		'mdi:download-off-outline': MdiDownloadOffOutline,
