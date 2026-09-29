@@ -7,8 +7,10 @@
 
 	/**
 	 * The Convertigo Marketplace, as the Marketplace view of the Eclipse Studio: the site shows the
-	 * libraries and starters, and asks the Studio to install them, which imports their project. The path of
-	 * a project the site copies can also be imported here.
+	 * libraries and starters, and asks the Studio to install them, which imports their project, a starter
+	 * in a new Git repository. In the desktop Studio, the site talks to it as to the Eclipse Studio, through
+	 * the window.java its frame is given; in a browser, the site only copies the path of a project, which is
+	 * imported here.
 	 *
 	 * @type {{ onInstalled?: (projectName: string) => void | Promise<void>, onClose?: () => void }}
 	 */
@@ -23,6 +25,10 @@
 	let src = $state(MARKETPLACE_URL);
 	let installing = $state('');
 	let projectPath = $state('');
+	/** the desktop Studio gives the frame of the site the window.java of the Eclipse Studio */
+	const desktop = typeof window !== 'undefined' && 'convertigoStudio' in window;
+	/** @type {string} */
+	let version = '';
 
 	/**
 	 * @param {Record<string, any>} message
@@ -39,14 +45,34 @@
 	}
 
 	/**
-	 * @param {string} url the project to import, as "Name=git or archive URL"
+	 * Tells the site, in the desktop Studio, that it is in a Studio and its version, as the Eclipse Studio
+	 * does once it is loaded: it then proposes to add the projects rather than to copy their path.
 	 */
-	async function install(url) {
+	async function init() {
+		if (!desktop) {
+			return;
+		}
+		if (!version) {
+			const status = await call('engine.JsonStatus');
+			version = String(status?.product ?? '');
+		}
+		post({ type: 'init', version });
+	}
+
+	/**
+	 * @param {string} url the project to import, as "Name=git or archive URL"
+	 * @param {boolean} [starter] a starter, which gets a Git repository of its own
+	 */
+	async function install(url, starter = false) {
 		installing = url.split('=')[0];
 		try {
 			const result = await call('projects.ImportURL', { url });
 			const project = String(result?.admin?.success ?? '').match(/project '([^']+)'/)?.[1];
 			if (project) {
+				if (starter) {
+					// a new project from a starter, versioned from its start as in the Eclipse Studio
+					await call('studio.git.SourceControl', { projectName: project, action: 'init' });
+				}
 				await Projects.refresh();
 			}
 			post({
@@ -73,7 +99,7 @@
 			}
 			const data = event.data;
 			if (data?.type === 'install' && typeof data.url === 'string') {
-				void install(data.url);
+				void install(data.url, data.starter === true);
 			} else if (data?.type === 'get' && typeof data.project === 'string') {
 				const project = installed(data.project);
 				post({
@@ -105,28 +131,32 @@
 		<header class="studio-marketplace__header">
 			<Ico icon="mdi:store-outline" size={4} />
 			<strong>Marketplace</strong>
-			<form
-				class="studio-marketplace__import"
-				onsubmit={async (event) => {
-					event.preventDefault();
-					if (projectPath.trim() && !installing) {
-						await install(projectPath.trim());
-						projectPath = '';
-					}
-				}}
-			>
-				<input
-					class="input-common"
-					aria-label="Project path"
-					placeholder="Paste the project path copied from the marketplace"
-					bind:value={projectPath}
-				/>
-				<button
-					type="submit"
-					class="button-secondary"
-					disabled={!projectPath.trim() || Boolean(installing)}>Import</button
+			{#if !desktop}
+				<form
+					class="studio-marketplace__import"
+					onsubmit={async (event) => {
+						event.preventDefault();
+						if (projectPath.trim() && !installing) {
+							await install(projectPath.trim());
+							projectPath = '';
+						}
+					}}
 				>
-			</form>
+					<input
+						class="input-common"
+						aria-label="Project path"
+						placeholder="Paste the project path copied from the marketplace"
+						bind:value={projectPath}
+					/>
+					<button
+						type="submit"
+						class="button-secondary"
+						disabled={!projectPath.trim() || Boolean(installing)}>Import</button
+					>
+				</form>
+			{:else}
+				<span class="studio-marketplace__spacer"></span>
+			{/if}
 			{#if installing}
 				<span class="studio-marketplace__status"
 					><Ico icon="mdi:sync" size={4} /> Installing {installing}…</span
@@ -156,9 +186,19 @@
 				onclick={() => onClose?.()}><Ico icon="mdi:close" size={4} /></button
 			>
 		</header>
-		<!-- the site talks to its parent with messages; the "init" of the Eclipse Studio would make it call
-		     window.java instead, which a frame has not -->
-		<iframe bind:this={frame} {src} title="Convertigo Marketplace" allow="clipboard-write"></iframe>
+		<!-- the site talks to its parent with messages; told "init", it calls window.java instead, which only
+		     the frame of the desktop Studio has -->
+		<iframe
+			bind:this={frame}
+			{src}
+			title="Convertigo Marketplace"
+			allow="clipboard-write"
+			onload={() => {
+				void init();
+				// again once the site listens, as its application starts after its page
+				setTimeout(() => void init(), 1500);
+			}}
+		></iframe>
 	</div>
 </div>
 
@@ -192,6 +232,10 @@
 		gap: 0.4rem;
 		border-bottom: 1px solid var(--studio-line);
 		padding: 0.5rem 0.6rem 0.5rem 1rem;
+	}
+
+	.studio-marketplace__spacer {
+		flex: 1;
 	}
 
 	.studio-marketplace__import {
