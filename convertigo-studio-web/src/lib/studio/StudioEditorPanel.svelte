@@ -12,11 +12,14 @@
 	import { call } from '$lib/utils/service';
 	import { untrack } from 'svelte';
 	import { debugSession, followDebugger } from './debugSession.svelte.js';
+	import { findZones } from './editor/editableZones.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 
 	/** the code documents of an NGX component: its class, the function of an action, a template, a style */
 	const COMPONENT_CODE = /#(class|action|html|style)$/;
+	/** whether the generated code of the classes is folded, around the zones where the code is written */
+	const ZONES_FOCUS_KEY = 'convertigo.studio.editor.zonesFocus';
 
 	/**
 	 * @typedef {Object} EditorTab
@@ -105,6 +108,12 @@
 		return frame ? frame.line - (activeTab?.scriptOffset ?? 0) : 0;
 	});
 	let breakpointNotice = $state('');
+	/** the zones of a generated class or action function, where the code of the component is written */
+	let zones = $derived(activeTab && isZoned(activeTab) ? findZones(activeTab.content) : []);
+	let zonesFocus = $state(readZonesFocus());
+	let zonesMenuOpen = $state(false);
+	let zoneReveal = $state({ name: '', serial: 0 });
+	let zonesWithCode = $derived(zones.filter((zone) => !zone.empty).length);
 	let canSave = $derived(Boolean(activeTab && activeTabDirty && !loading && !saving));
 
 	$effect(() => {
@@ -474,6 +483,42 @@
 	 * @returns {string} the path of the TypeScript code of an NGX component in the application of its
 	 *  project, whose packages give their types, or none
 	 */
+	/**
+	 * @param {EditorTab} tab
+	 * @returns {boolean} whether the tab shows generated code whose zones only are kept
+	 */
+	function isZoned(tab) {
+		return Boolean(tab.sourceDocument && !tab.readOnly && /#(class|action)$/.test(tab.id));
+	}
+
+	function readZonesFocus() {
+		try {
+			return localStorage.getItem(ZONES_FOCUS_KEY) !== 'false';
+		} catch {
+			return true;
+		}
+	}
+
+	function toggleZonesFocus() {
+		zonesFocus = !zonesFocus;
+		try {
+			localStorage.setItem(ZONES_FOCUS_KEY, String(zonesFocus));
+		} catch {
+			// no storage
+		}
+	}
+
+	/**
+	 * @param {import('./editor/editableZones.js').EditableZone} zone
+	 * @returns {number} the lines of code of the zone
+	 */
+	function zoneLines(zone) {
+		return (activeTab?.content ?? '')
+			.slice(zone.contentStart, zone.contentEnd)
+			.split('\n')
+			.filter((line) => line.trim()).length;
+	}
+
 	function typedPath(tab) {
 		if (!tab.sourceDocument || tab.language !== 'typescript' || !/#(class|action)$/.test(tab.id)) {
 			return '';
@@ -785,6 +830,80 @@
 						Start the debugger
 					</button>
 				{/if}
+				{#if zones.length}
+					<div class="studio-editor__zones">
+						<button
+							type="button"
+							class="studio-editor__zones-button"
+							aria-haspopup="menu"
+							aria-expanded={zonesMenuOpen}
+							title="The zones where the code of the component is written, the rest being generated"
+							onclick={() => (zonesMenuOpen = !zonesMenuOpen)}
+						>
+							<Ico icon="mdi:format-list-bulleted" size={3.4} />
+							<span class="studio-editor__zones-label">Zones</span>
+							<span class="studio-editor__zones-count">{zonesWithCode}/{zones.length}</span>
+							<Ico icon="mdi:chevron-down" size={3} />
+						</button>
+						{#if zonesMenuOpen}
+							<div
+								class="studio-editor__zones-backdrop"
+								role="presentation"
+								onclick={() => (zonesMenuOpen = false)}
+							></div>
+							<div
+								class="studio-editor__zones-menu"
+								role="menu"
+								aria-label="Zones"
+								tabindex="-1"
+								onkeydown={(event) => {
+									if (event.key === 'Escape') {
+										zonesMenuOpen = false;
+									}
+								}}
+							>
+								{#each zones as zone (zone.name)}
+									{@const lines = zoneLines(zone)}
+									<button
+										type="button"
+										role="menuitem"
+										class="studio-editor__zone"
+										onclick={() => {
+											zoneReveal = { name: zone.name, serial: Date.now() };
+											zonesMenuOpen = false;
+										}}
+									>
+										<span
+											class="studio-editor__zone-dot"
+											class:studio-editor__zone-dot--code={lines > 0}
+										></span>
+										<span class="studio-editor__zone-text">
+											<strong>{zone.label}</strong>
+											<small>{zone.hint || zone.name}</small>
+										</span>
+										<span class="studio-editor__zone-lines"
+											>{lines ? `${lines} line${lines > 1 ? 's' : ''}` : 'empty'}</span
+										>
+									</button>
+								{/each}
+							</div>
+						{/if}
+					</div>
+					<button
+						type="button"
+						class="studio-editor__zones-button"
+						aria-pressed={!zonesFocus}
+						title={zonesFocus
+							? 'Show the code generated around the zones'
+							: 'Fold the code generated around the zones'}
+						onclick={toggleZonesFocus}
+					>
+						<Ico icon={zonesFocus ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} size={3.4} />
+						<span class="studio-editor__zones-label"
+							>{zonesFocus ? 'Show generated code' : 'Fold generated code'}</span
+						>
+					</button>
+				{/if}
 				{#if activeTab.readOnly}
 					<span class="studio-editor__readonly" title="Library sources are shown read-only">
 						<Ico icon="mdi:lock-outline" size={3.4} />
@@ -830,6 +949,9 @@
 				path={typedPath(activeTab)}
 				onSave={() => void saveEditor()}
 				typesProject={typedPath(activeTab) ? activeTab.id.split(/[.:/]/)[0] : ''}
+				editableZones={zones.length > 0}
+				{zonesFocus}
+				{zoneReveal}
 			/>
 		</div>
 	{:else if loading}
@@ -950,6 +1072,7 @@
 	}
 
 	.studio-editor__toolbar {
+		container: studio-editor-toolbar / inline-size;
 		border-bottom: 1px solid var(--studio-line, var(--color-surface-200-800));
 		background: var(--studio-editor-bg);
 		padding: 0.45rem 0.55rem;
@@ -973,6 +1096,124 @@
 
 	.studio-editor__actions {
 		flex: 0 0 auto;
+	}
+
+	/* the zones of a generated class, and the generated code folded around them */
+	.studio-editor__zones {
+		position: relative;
+	}
+
+	.studio-editor__zones-button {
+		display: inline-flex;
+		height: 1.9rem;
+		align-items: center;
+		gap: 0.3rem;
+		border: 1px solid var(--studio-control-line, var(--color-surface-200-800));
+		border-radius: var(--studio-control-radius, 0.3rem);
+		background: transparent;
+		color: var(--studio-editor-text);
+		padding: 0 0.55rem;
+		font-size: 0.74rem;
+		white-space: nowrap;
+	}
+
+	.studio-editor__zones-button:hover,
+	.studio-editor__zones-button[aria-expanded='true'] {
+		background: var(--studio-hover-bg, var(--color-surface-100-900));
+	}
+
+	.studio-editor__zones-count {
+		border-radius: 999px;
+		background: color-mix(in oklab, var(--color-primary-500) 18%, transparent);
+		color: var(--color-primary-700-300);
+		padding: 0 0.4rem;
+		font-size: 0.68rem;
+		font-weight: 650;
+	}
+
+	.studio-editor__zones-backdrop {
+		position: fixed;
+		z-index: 30;
+		inset: 0;
+	}
+
+	.studio-editor__zones-menu {
+		position: absolute;
+		z-index: 31;
+		top: calc(100% + 0.3rem);
+		right: 0;
+		display: grid;
+		width: max-content;
+		min-width: 17rem;
+		max-width: 24rem;
+		max-height: 22rem;
+		overflow: auto;
+		border: 1px solid var(--studio-line, var(--color-surface-200-800));
+		border-radius: 0.45rem;
+		background: var(--studio-panel-bg, var(--color-surface-50-950));
+		box-shadow: var(--shadow-follow);
+		padding: 0.25rem;
+	}
+
+	.studio-editor__zone {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		border: 0;
+		border-radius: 0.3rem;
+		background: transparent;
+		color: var(--studio-editor-text);
+		padding: 0.35rem 0.5rem;
+		text-align: left;
+	}
+
+	.studio-editor__zone:hover,
+	.studio-editor__zone:focus-visible {
+		background: var(--studio-hover-bg, var(--color-surface-100-900));
+	}
+
+	.studio-editor__zone-dot {
+		flex: none;
+		width: 0.5rem;
+		height: 0.5rem;
+		border: 1.5px solid var(--color-primary-500);
+		border-radius: 999px;
+	}
+
+	.studio-editor__zone-dot--code {
+		background: var(--color-primary-500);
+	}
+
+	.studio-editor__zone-text {
+		display: grid;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.studio-editor__zone-text strong {
+		font-size: 0.78rem;
+		font-weight: 600;
+	}
+
+	.studio-editor__zone-text small {
+		overflow: hidden;
+		color: var(--studio-editor-muted);
+		font-size: 0.68rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-editor__zone-lines {
+		flex: none;
+		color: var(--studio-editor-muted);
+		font-size: 0.68rem;
+	}
+
+	/* a narrow editor keeps the icons of the zone buttons */
+	@container studio-editor-toolbar (max-width: 620px) {
+		.studio-editor__zones-label {
+			display: none;
+		}
 	}
 
 	.studio-editor__error {

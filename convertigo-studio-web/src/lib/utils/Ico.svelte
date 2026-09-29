@@ -102,6 +102,7 @@
 	import MdiFolderOutline from '~icons/mdi/folder-outline';
 	import MdiFolderPlusOutline from '~icons/mdi/folder-plus-outline';
 	import MdiFormatFont from '~icons/mdi/format-font';
+	import MdiFormatListBulleted from '~icons/mdi/format-list-bulleted';
 	import MdiFormatText from '~icons/mdi/format-text';
 	import MdiFullscreen from '~icons/mdi/fullscreen';
 	import MdiFullscreenExit from '~icons/mdi/fullscreen-exit';
@@ -286,6 +287,7 @@
 		'mdi:dots-horizontal': MdiDotsHorizontal,
 		'mdi:keyboard-return': MdiKeyboardReturn,
 		'mdi:tablet': MdiTablet,
+		'mdi:format-list-bulleted': MdiFormatListBulleted,
 		'mdi:dots-vertical': MdiDotsVertical,
 		'mdi:download-lock-outline': MdiDownloadLockOutline,
 		'mdi:download-off-outline': MdiDownloadOffOutline,

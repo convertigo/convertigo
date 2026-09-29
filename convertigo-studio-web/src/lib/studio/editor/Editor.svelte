@@ -2,14 +2,17 @@
 	import { base } from '$app/paths';
 	import { call } from '$lib/utils/service';
 	import { fromAction } from 'svelte/attachments';
+	import { changesInZones, findZones, generatedRuns, zoneAt } from './editableZones.js';
 
 	/**
 	 * breakpoints: the lines holding a breakpoint, shown in a margin whose clicks call onBreakpointToggle;
 	 * currentLine: the line where the debugger stopped; revealLine: a line to show and select, once for
 	 * each revealSerial, as a line a search found; path: the path of the file the editor shows, and
 	 * typesProject: the project whose packages give their types to its TypeScript, as the TypeScript
-	 * editor of the Eclipse Studio knows the packages of the project
-	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void}}
+	 * editor of the Eclipse Studio knows the packages of the project; editableZones: the code is a
+	 * generated class whose zones between its Begin_c8o and End_c8o comments only are editable, and
+	 * zonesFocus folds its generated code; zoneReveal: a zone to show and write in, once for each serial
+	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, editableZones?: boolean, zonesFocus?: boolean, zoneReveal?: { name: string, serial: number }}}
 	 */
 	let {
 		content = $bindable('/* Loading... */'),
@@ -25,7 +28,10 @@
 		revealSerial = 0,
 		path = '',
 		typesProject = '',
-		onSave = undefined
+		onSave = undefined,
+		editableZones = false,
+		zonesFocus = false,
+		zoneReveal = { name: '', serial: 0 }
 	} = $props();
 
 	function onEditorContentChange(nextContent) {
@@ -52,6 +58,9 @@
 		path,
 		typesProject,
 		onSave,
+		editableZones,
+		zonesFocus,
+		zoneReveal,
 		onContentChange: onEditorContentChange,
 		onContentHeightChange: onEditorContentHeightChange
 	}));
@@ -144,6 +153,12 @@
 			path: String(value?.path ?? ''),
 			typesProject: String(value?.typesProject ?? ''),
 			onSave: typeof value?.onSave == 'function' ? value.onSave : undefined,
+			editableZones: value?.editableZones === true,
+			zonesFocus: value?.zonesFocus === true,
+			zoneReveal: {
+				name: String(value?.zoneReveal?.name ?? ''),
+				serial: Number(value?.zoneReveal?.serial) || 0
+			},
 			onContentChange:
 				typeof value?.onContentChange == 'function' ? value.onContentChange : undefined,
 			onContentHeightChange:
@@ -153,7 +168,7 @@
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, editableZones?: boolean, zonesFocus?: boolean, zoneReveal?: { name: string, serial: number }, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
 	 */
 	function mountMonaco(node, value) {
 		/** @type {any} */
@@ -184,6 +199,254 @@
 		let layoutFrame = 0;
 		/** @type {number[]} */
 		let layoutTimers = [];
+		/** @type {any} the zones of a generated class, their markers and the generated code around them */
+		let zoneDecorations;
+		/** @type {import('./editableZones.js').EditableZone[]} */
+		let zones = [];
+		/** the text the zones were found in, which a change outside them gives back */
+		let zoneText = '';
+		let zoneMode = '';
+		let zoneReadOnly = false;
+		let revealedZoneSerial = 0;
+		let reverting = false;
+		/** @type {any[]} the selections before a change, given back with the text */
+		let zoneSelections = [];
+		/** @type {string[]} the view zones that sum up the generated code folded */
+		let foldZoneIds = [];
+		/** @type {Map<string, string>} the run of each of them */
+		const foldZoneRuns = new Map();
+		let foldSignature = '';
+		/** the runs of generated code unfolded by a click on their summary */
+		const unfoldedRuns = new Set();
+		/** @type {{ dispose: () => void }[]} */
+		const zoneSubscriptions = [];
+
+		/**
+		 * Finds the zones of the code again, and shows them: the generated code dimmed, the markers as
+		 * labels, a hint in the empty zones, marks in the scrollbar, the generated code folded in focus.
+		 * @param {boolean} [force] even when the code and the mode did not change
+		 */
+		function refreshZones(force = false) {
+			const Monaco = globalThis.monaco;
+			const model = editor?.getModel();
+			if (!model || !zoneDecorations) return;
+			const text = model.getValue();
+			const mode = `${pending.editableZones}:${pending.zonesFocus}:${pending.readOnly}`;
+			if (!force && text === zoneText && mode === zoneMode) return;
+			if (mode !== zoneMode && pending.zonesFocus) {
+				unfoldedRuns.clear();
+			}
+			zoneMode = mode;
+			zoneText = text;
+			zones = pending.editableZones ? findZones(text) : [];
+			/** @param {number} from @param {number} to */
+			const range = (from, to) => {
+				const start = model.getPositionAt(from);
+				const end = model.getPositionAt(to);
+				return new Monaco.Range(start.lineNumber, start.column, end.lineNumber, end.column);
+			};
+			const decorations = [];
+			let generatedFrom = 0;
+			for (const zone of zones) {
+				if (zone.beginOffset > generatedFrom) {
+					decorations.push({
+						range: range(generatedFrom, zone.beginOffset),
+						options: { inlineClassName: 'studio-zone-generated' }
+					});
+				}
+				generatedFrom = zone.endOffset;
+				decorations.push({
+					range: new Monaco.Range(zone.beginLine, 1, zone.endLine, 1),
+					options: {
+						isWholeLine: true,
+						className: 'studio-zone-line',
+						linesDecorationsClassName: 'studio-zone-gutter',
+						overviewRuler: {
+							color: 'rgba(14, 165, 233, 0.7)',
+							position: Monaco.editor.OverviewRulerLane.Left
+						},
+						minimap: {
+							color: 'rgba(14, 165, 233, 0.45)',
+							position: Monaco.editor.MinimapPosition.Inline
+						}
+					}
+				});
+				const nameStart = zone.beginOffset + '/*Begin_c8o_'.length;
+				const nameEnd = zone.contentStart - 2;
+				decorations.push(
+					{
+						range: range(zone.beginOffset, nameStart),
+						options: { inlineClassName: 'studio-zone-marker' }
+					},
+					{
+						range: range(nameStart, nameEnd),
+						options: {
+							inlineClassName: 'studio-zone-name',
+							before: { content: '✎ ', inlineClassName: 'studio-zone-name' },
+							hoverMessage: {
+								value: `**${zone.label}**${zone.hint ? `: ${zone.hint}` : ''}. The code written between the Begin_c8o and End_c8o comments is kept in the component.`
+							}
+						}
+					},
+					{
+						range: range(nameEnd, zone.contentStart),
+						options: { inlineClassName: 'studio-zone-marker' }
+					},
+					{
+						range: range(zone.contentEnd, zone.endOffset),
+						options: { inlineClassName: 'studio-zone-marker' }
+					}
+				);
+				if (zone.empty && !pending.readOnly) {
+					decorations.push({
+						range: range(zone.contentStart, zone.contentStart),
+						options: {
+							showIfCollapsed: true,
+							after: {
+								content: 'Write your code here',
+								inlineClassName: 'studio-zone-placeholder',
+								cursorStops: Monaco.editor.InjectedTextCursorStops.None
+							}
+						}
+					});
+				}
+			}
+			if (zones.length && text.length > generatedFrom) {
+				decorations.push({
+					range: range(generatedFrom, text.length),
+					options: { inlineClassName: 'studio-zone-generated' }
+				});
+			}
+			zoneDecorations.set(decorations);
+			foldGeneratedCode();
+			updateZoneReadOnly();
+		}
+
+		/**
+		 * In focus, hides the runs of generated code and shows a line that sums up each, which a click
+		 * unfolds; the folding of the code itself is not changed.
+		 */
+		function foldGeneratedCode() {
+			const Monaco = globalThis.monaco;
+			const model = editor.getModel();
+			const runs =
+				pending.editableZones && pending.zonesFocus && zones.length
+					? generatedRuns(zones, model.getLinesContent()).filter(
+							(run) => !unfoldedRuns.has(run.key)
+						)
+					: [];
+			const signature = runs.map((run) => `${run.key}:${run.startLine}:${run.endLine}`).join('|');
+			if (signature === foldSignature) return;
+			foldSignature = signature;
+			editor.setHiddenAreas?.(
+				runs.map((run) => new Monaco.Range(run.startLine, 1, run.endLine, 1)),
+				'c8o-zones'
+			);
+			editor.changeViewZones((/** @type {any} */ accessor) => {
+				for (const id of foldZoneIds) accessor.removeZone(id);
+				foldZoneIds = [];
+				foldZoneRuns.clear();
+				for (const run of runs) {
+					const domNode = document.createElement('div');
+					domNode.className = 'studio-zone-fold';
+					const count = run.endLine - run.startLine + 1;
+					const label = document.createElement('span');
+					label.className = 'studio-zone-fold__label';
+					label.textContent = `⋯ ${count} generated lines`;
+					const summary = document.createElement('span');
+					summary.className = 'studio-zone-fold__summary';
+					summary.textContent = run.summary;
+					domNode.append(label, summary);
+					domNode.title = 'Show these generated lines';
+					const id = accessor.addZone({
+						afterLineNumber: run.startLine - 1,
+						heightInLines: 1,
+						// the summary takes the place of the lines it hides
+						showInHiddenAreas: true,
+						domNode
+					});
+					foldZoneIds.push(id);
+					foldZoneRuns.set(id, run.key);
+				}
+			});
+		}
+
+		/**
+		 * The code outside the zones is read-only: the editor is while a selection is outside them, and
+		 * tells why when something is typed there.
+		 */
+		function updateZoneReadOnly() {
+			const model = editor.getModel();
+			let readOnly = pending.readOnly;
+			if (!readOnly && pending.editableZones && zones.length) {
+				readOnly = !editor
+					.getSelections()
+					.every((/** @type {any} */ selection) =>
+						zoneAt(
+							zones,
+							model.getOffsetAt(selection.getStartPosition()),
+							model.getOffsetAt(selection.getEndPosition())
+						)
+					);
+			}
+			if (readOnly !== zoneReadOnly) {
+				zoneReadOnly = readOnly;
+				editor.updateOptions({
+					readOnly,
+					readOnlyMessage: pending.readOnly
+						? undefined
+						: {
+								value:
+									'This code is generated by Convertigo: write yours in a ✎ zone, between its Begin_c8o and End_c8o comments.'
+							}
+				});
+			}
+		}
+
+		/**
+		 * Shows a zone and puts the cursor in it, at its code or where to write it.
+		 * @param {string} name
+		 */
+		function revealZone(name) {
+			const model = editor.getModel();
+			const zone = zones.find((candidate) => candidate.name === name);
+			if (!zone || !model) return;
+			const code = model.getValue().slice(zone.contentStart, zone.contentEnd);
+			const offset = zone.empty
+				? zone.contentStart
+				: zone.contentStart + (code.length - code.replace(/^\s+/, '').length);
+			const position = model.getPositionAt(offset);
+			editor.setPosition(position);
+			editor.revealLineInCenter(position.lineNumber);
+			editor.focus();
+		}
+
+		/**
+		 * A click on the hint of an empty zone opens a line to write in.
+		 * @param {any} event
+		 */
+		function openEmptyZone(event) {
+			if (!event.target?.element?.classList?.contains('studio-zone-placeholder')) return;
+			const model = editor.getModel();
+			const position = event.target.position;
+			if (pending.readOnly || !position) return;
+			const clicked = zones.find(
+				(candidate) =>
+					candidate.empty &&
+					model.getPositionAt(candidate.contentStart).lineNumber === position.lineNumber
+			);
+			if (!clicked) return;
+			const at = model.getPositionAt(clicked.contentStart);
+			const indent = /^\s*/.exec(model.getLineContent(at.lineNumber))?.[0] ?? '';
+			editor.executeEdits('c8o-zones', [
+				{
+					range: new globalThis.monaco.Range(at.lineNumber, at.column, at.lineNumber, at.column),
+					text: `\n${indent}`
+				}
+			]);
+			editor.setPosition({ lineNumber: at.lineNumber + 1, column: indent.length + 1 });
+			editor.focus();
+		}
 
 		function layout() {
 			if (!editor) return;
@@ -318,6 +581,12 @@
 				);
 				editor.revealLineInCenter(line);
 			}
+			zoneReadOnly = pending.readOnly;
+			refreshZones(true);
+			if (pending.zoneReveal.name && pending.zoneReveal.serial !== revealedZoneSerial) {
+				revealedZoneSerial = pending.zoneReveal.serial;
+				revealZone(pending.zoneReveal.name);
+			}
 			scheduleLayout();
 		}
 
@@ -334,8 +603,28 @@
 					scrollBeyondLastLine: pending.scrollBeyondLastLine,
 					automaticLayout: false
 				});
-				changeSubscription = editor.onDidChangeModelContent(() => {
-					if (applyingContent) return;
+				changeSubscription = editor.onDidChangeModelContent((/** @type {any} */ event) => {
+					if (applyingContent || reverting) return;
+					if (
+						pending.editableZones &&
+						zones.length &&
+						!event.isUndoing &&
+						!event.isRedoing &&
+						!changesInZones(zones, event.changes)
+					) {
+						// a change of the generated code, as a replacement or a drop, is given back
+						const model = editor.getModel();
+						const selections = zoneSelections;
+						reverting = true;
+						model.pushEditOperations(
+							editor.getSelections(),
+							[{ range: model.getFullModelRange(), text: zoneText }],
+							() => selections
+						);
+						reverting = false;
+						return;
+					}
+					refreshZones();
 					const nextContent = editor.getValue();
 					if (pending.content === nextContent) return;
 					pending = { ...pending, content: nextContent };
@@ -348,7 +637,45 @@
 				editor.addCommand(Monaco.KeyMod.CtrlCmd | Monaco.KeyCode.KeyS, () => pending.onSave?.());
 				breakpointDecorations = editor.createDecorationsCollection();
 				currentLineDecorations = editor.createDecorationsCollection();
+				zoneDecorations = editor.createDecorationsCollection();
+				zoneSubscriptions.push(
+					editor.onDidChangeCursorSelection(() => {
+						if (reverting) return;
+						zoneSelections = editor.getSelections();
+						if (pending.editableZones) updateZoneReadOnly();
+					}),
+					// Backspace at the start of a zone and Delete at its end would remove its markers
+					editor.onKeyDown((/** @type {any} */ event) => {
+						if (!pending.editableZones || !zones.length || zoneReadOnly) return;
+						const backspace = event.keyCode === Monaco.KeyCode.Backspace;
+						if (!backspace && event.keyCode !== Monaco.KeyCode.Delete) return;
+						const model = editor.getModel();
+						const blocked = editor.getSelections().some((/** @type {any} */ selection) => {
+							if (!selection.isEmpty()) return false;
+							const offset = model.getOffsetAt(selection.getStartPosition());
+							return zones.some((zone) =>
+								backspace ? zone.contentStart === offset : zone.contentEnd === offset
+							);
+						});
+						if (blocked) {
+							event.preventDefault();
+							event.stopPropagation();
+						}
+					}),
+					editor.onMouseUp((/** @type {any} */ event) => {
+						if (pending.editableZones) openEmptyZone(event);
+					})
+				);
 				mouseDownSubscription = editor.onMouseDown((event) => {
+					const run =
+						event.target?.type === Monaco.editor.MouseTargetType.CONTENT_VIEW_ZONE
+							? foldZoneRuns.get(event.target.detail?.viewZoneId)
+							: undefined;
+					if (run) {
+						unfoldedRuns.add(run);
+						foldGeneratedCode();
+						return;
+					}
 					const line = event.target?.position?.lineNumber;
 					if (
 						pending.breakpoints !== null &&
@@ -383,6 +710,7 @@
 				changeSubscription?.dispose();
 				contentSizeSubscription?.dispose();
 				mouseDownSubscription?.dispose();
+				for (const subscription of zoneSubscriptions) subscription.dispose();
 				editor?.dispose();
 				for (const model of ownModels) {
 					model.dispose();
@@ -442,6 +770,73 @@
 
 	:global(.studio-editor-current-line) {
 		background: color-mix(in oklab, var(--color-warning-500) 28%, transparent);
+	}
+
+	/* the zones of a generated class: its code at full contrast, the generated code dimmed around it */
+	:global(.studio-zone-line) {
+		background: color-mix(in oklab, var(--color-primary-500) 7%, transparent);
+	}
+
+	:global(.studio-zone-gutter) {
+		width: 3px !important;
+		margin-left: 3px;
+		background: var(--color-primary-500);
+	}
+
+	:global(.studio-zone-generated) {
+		opacity: 0.5;
+	}
+
+	:global(.studio-zone-marker) {
+		opacity: 0.45;
+		font-style: italic;
+	}
+
+	:global(.studio-zone-name) {
+		background: color-mix(in oklab, var(--color-primary-500) 20%, transparent);
+		color: var(--color-primary-700-300) !important;
+		font-style: normal;
+	}
+
+	:global(.studio-zone-placeholder) {
+		margin-left: 1.5ch;
+		color: var(--color-surface-500) !important;
+		font-style: italic;
+		cursor: pointer;
+	}
+
+	:global(.studio-zone-fold) {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		height: 100%;
+		overflow: hidden;
+		color: var(--color-surface-600-400);
+		font-family: var(--studio-font-sans, inherit);
+		font-size: 0.72rem;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+
+	:global(.studio-zone-fold__label) {
+		flex: none;
+		border: 1px solid var(--color-surface-300-700);
+		border-radius: 0.3rem;
+		background: var(--color-surface-100-900);
+		padding: 0 0.45rem;
+		line-height: 1.2rem;
+	}
+
+	:global(.studio-zone-fold:hover .studio-zone-fold__label) {
+		border-color: var(--color-primary-500);
+		color: var(--color-primary-600-400);
+	}
+
+	:global(.studio-zone-fold__summary) {
+		overflow: hidden;
+		font-family: var(--monaco-monospace-font, monospace);
+		opacity: 0.7;
+		text-overflow: ellipsis;
 	}
 
 	:global(.studio-editor-breakpoint)::before {
