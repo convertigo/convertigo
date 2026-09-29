@@ -722,6 +722,32 @@ public class TreeMerge extends JSonService {
 		}
 	}
 
+	/**
+	 * @return a text changed on both sides merged line by line, or null when the lines they changed overlap
+	 */
+	static String mergeLines(String base, String mine, String theirs) {
+		var texts = java.util.List.of(raw(base), raw(mine), raw(theirs));
+		var result = new org.eclipse.jgit.merge.MergeAlgorithm().merge(org.eclipse.jgit.diff.RawTextComparator.DEFAULT, texts.get(0), texts.get(1), texts.get(2));
+		if (result.containsConflicts()) {
+			return null;
+		}
+		var merged = new StringBuilder();
+		for (var chunk : result) {
+			merged.append(texts.get(chunk.getSequenceIndex()).getString(chunk.getBegin(), chunk.getEnd(), false));
+		}
+		// the last line ends as the side that changed its end has it
+		var end = mine.endsWith("\n") == base.endsWith("\n") ? theirs.endsWith("\n") : mine.endsWith("\n");
+		if (!end && merged.length() > 0 && merged.charAt(merged.length() - 1) == '\n') {
+			merged.setLength(merged.length() - 1);
+		}
+		return merged.toString();
+	}
+
+	/** the lines of a text, the last one ended as the others */
+	private static org.eclipse.jgit.diff.RawText raw(String text) {
+		return new org.eclipse.jgit.diff.RawText((text.endsWith("\n") || text.isEmpty() ? text : text + "\n").getBytes(StandardCharsets.UTF_8));
+	}
+
 	/** the merge of the objects of three versions of a project */
 	private static class Merge {
 		final Map<String, Bean> base, ours, theirs;
@@ -1134,6 +1160,13 @@ public class TreeMerge extends JSonService {
 					taken.put(TreeDiff.label(o.classname, name));
 					continue;
 				}
+				// a text of lines, as a script, merges when the lines changed on each side are not the same
+				var lines = mergeLines(b.properties.get(name), o.properties.get(name), t.properties.get(name));
+				if (lines != null) {
+					setProperty(m, name, lines);
+					taken.put(TreeDiff.label(o.classname, name));
+					continue;
+				}
 				var editable = valueElement(o.properties.get(name)) != null && valueElement(o.properties.get(name)).hasAttribute("value");
 				var id = "property:" + o.key + ":" + name;
 				var resolution = conflict(id, "property", "Changed on both sides", o, t, name, TreeDiff.label(o.classname, name),
@@ -1173,6 +1206,15 @@ public class TreeMerge extends JSonService {
 					setIon(m, name, st);
 					taken.put(label);
 					continue;
+				}
+				var modeOf = so.indexOf(':') < 0 ? "" : so.substring(0, so.indexOf(':') + 1);
+				if (!modeOf.isEmpty() && st.startsWith(modeOf) && (sb.isEmpty() || sb.startsWith(modeOf)) && (so.indexOf('\n') >= 0 || st.indexOf('\n') >= 0)) {
+					var lines = TreeMerge.mergeLines(sb.isEmpty() ? "" : sb.substring(modeOf.length()), so.substring(modeOf.length()), st.substring(modeOf.length()));
+					if (lines != null) {
+						setIon(m, name, modeOf + lines);
+						taken.put(label);
+						continue;
+					}
 				}
 				var resolution = conflict("property:" + o.key + ":beanData." + name, "property", "Changed on both sides", o, t,
 						"beanData." + name, label,
@@ -1391,6 +1433,48 @@ public class TreeMerge extends JSonService {
 			} else {
 				value.setTextContent(data.toString());
 			}
+		}
+
+		/**
+		 * @return the property of mine with its text merged line by line with theirs, or null when it is not a
+		 *         text of lines or their lines changed overlap
+		 */
+		private Element mergeLines(Element base, Element mine, Element theirs) {
+			var vb = text(base);
+			var vo = text(mine);
+			var vt = text(theirs);
+			if (vo == null || vt == null || (base != null && vb == null) || (vo.indexOf('\n') < 0 && vt.indexOf('\n') < 0)) {
+				return null;
+			}
+			var merged = TreeMerge.mergeLines(vb == null ? "" : vb, vo, vt);
+			if (merged == null) {
+				return null;
+			}
+			var property = (Element) mine.cloneNode(true);
+			var value = valueElement(property);
+			if (value.hasAttribute("value")) {
+				value.setAttribute("value", merged);
+			} else {
+				value.setTextContent(merged);
+			}
+			return property;
+		}
+
+		/** @return the text of a property, a value or the text of its element, or null when it is not one */
+		private static String text(Element property) {
+			var value = valueElement(property);
+			if (value == null) {
+				return null;
+			}
+			if (value.hasAttribute("value")) {
+				return value.getAttribute("value");
+			}
+			for (var child = value.getFirstChild(); child != null; child = child.getNextSibling()) {
+				if (child instanceof Element) {
+					return null;
+				}
+			}
+			return value.getTextContent();
 		}
 
 		private static Element valueElement(Element property) {
