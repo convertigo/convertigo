@@ -90,7 +90,7 @@ export function describeOperation(operation) {
 			return {
 				icon: 'mdi:alert-circle-outline',
 				title: 'Conflicts of the changes applied',
-				detail: 'as those of a stash',
+				detail: operation?.theirs ?? '',
 				complete: 'Mark as resolved',
 				done: 'Conflicts resolved',
 				ended: 'Conflicts resolved'

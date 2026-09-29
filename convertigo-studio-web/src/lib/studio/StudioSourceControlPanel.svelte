@@ -3,9 +3,9 @@
 	import { call, toaster } from '$lib/utils/service';
 	import { untrack } from 'svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
+	import { studioPrompt } from './studioPrompt.svelte.js';
 	import { setTreeDiffEnabled, setTreeDiffRef } from './treeDiff.svelte.js';
 	import { describeOperation, gitEvents, notifyGitChange } from './treeMerge.svelte.js';
-	import { studioPrompt } from './studioPrompt.svelte.js';
 
 	/**
 	 * @typedef {{ path: string, kind: 'added' | 'modified' | 'deleted' | 'untracked' | 'conflicting' }} ChangedFile
@@ -24,7 +24,8 @@
 	 *  changes?: ChangedFile[],
 	 *  operation?: import('./treeMerge.svelte.js').GitOperation,
 	 *  pullRebase?: boolean,
-	 *  detached?: boolean
+	 *  detached?: boolean,
+	 *  stashCount?: number
 	 * }} SourceControlStatus
 	 */
 
@@ -67,7 +68,11 @@
 		'deleteBranch',
 		'renameBranch',
 		'tag',
-		'deleteTag'
+		'deleteTag',
+		'stash',
+		'stashApply',
+		'stashPop',
+		'stashDrop'
 	]);
 
 	const STATUS_LETTERS = {
@@ -101,6 +106,9 @@
 	/** @type {{ name: string, commit: string, annotation?: string }[]} */
 	let tags = $state([]);
 	let amend = $state(false);
+	let stashesOpen = $state(false);
+	/** @type {{ index: number, id: string, subject: string, time: number }[]} */
+	let stashes = $state([]);
 	/** the menu open: pull, or the id of a commit */
 	let menu = $state('');
 
@@ -304,20 +312,27 @@
 		const what = described;
 		if (
 			action === 'abort' &&
-			!window.confirm(`Abort: ${what.title}?\n\nThe repository and its files are given back as they were before.`)
+			!window.confirm(
+				`Abort: ${what.title}?\n\nThe repository and its files are given back as they were before.`
+			)
 		) {
 			return;
 		}
 		if (
 			action === 'skip' &&
-			!window.confirm(`Skip the commit ${operation?.commit?.id ?? ''}? The rebased branch will not have its changes.`)
+			!window.confirm(
+				`Skip the commit ${operation?.commit?.id ?? ''}? The rebased branch will not have its changes.`
+			)
 		) {
 			return;
 		}
 		if (action !== 'continue' && !confirmUnsaved(action)) {
 			return;
 		}
-		const result = await run(action, action === 'continue' && message.trim() ? { message: message.trim() } : {});
+		const result = await run(
+			action,
+			action === 'continue' && message.trim() ? { message: message.trim() } : {}
+		);
 		if (result && 'repository' in result && !result.operation) {
 			message = '';
 			toaster[result.result === 'EMPTY' ? 'info' : 'success']({
@@ -351,7 +366,10 @@
 			action === 'cherryPick'
 				? `Cherry-pick ${entry.id} "${entry.subject}" onto ${status?.branch}?`
 				: `Revert ${entry.id} "${entry.subject}"?\n\nA new commit undoes its changes.`;
-		if (!window.confirm(what) || !confirmUnsaved(action === 'cherryPick' ? 'cherry-pick' : 'revert')) {
+		if (
+			!window.confirm(what) ||
+			!confirmUnsaved(action === 'cherryPick' ? 'cherry-pick' : 'revert')
+		) {
 			return;
 		}
 		await run(action, { commit: entry.id });
@@ -373,9 +391,16 @@
 		}
 		commitOpen = id;
 		commitDetails = null;
-		const result = await call('studio.git.SourceControl', { projectName, action: 'show', commit: id });
+		const result = await call('studio.git.SourceControl', {
+			projectName,
+			action: 'show',
+			commit: id
+		});
 		if (commitOpen === id) {
-			commitDetails = { commit: result?.commit, files: Array.isArray(result?.files) ? result.files : [] };
+			commitDetails = {
+				commit: result?.commit,
+				files: Array.isArray(result?.files) ? result.files : []
+			};
 		}
 	}
 
@@ -390,7 +415,12 @@
 		}
 		commitDiffPath = path;
 		commitDiff = '';
-		const result = await call('studio.git.SourceControl', { projectName, action: 'show', commit: id, path });
+		const result = await call('studio.git.SourceControl', {
+			projectName,
+			action: 'show',
+			commit: id,
+			path
+		});
 		if (commitDiffPath === path) {
 			commitDiff = String(result?.diff ?? '');
 		}
@@ -465,7 +495,9 @@
 		const result = await run('deleteBranch', { branch });
 		if (
 			result?.notMerged &&
-			window.confirm(`The branch ${branch} has commits merged nowhere, which are lost with it.\n\nDelete it anyway?`)
+			window.confirm(
+				`The branch ${branch} has commits merged nowhere, which are lost with it.\n\nDelete it anyway?`
+			)
 		) {
 			await run('deleteBranch', { branch, force: 'true' });
 		}
@@ -490,6 +522,63 @@
 		};
 		const tagged = await call('studio.git.SourceControl', { projectName, action: 'tags' });
 		tags = Array.isArray(tagged?.tags) ? tagged.tags : [];
+	}
+
+	async function loadStashes() {
+		const result = await run('stashes');
+		stashes = Array.isArray(result?.stashes) ? result.stashes : [];
+	}
+
+	async function toggleStashes() {
+		stashesOpen = !stashesOpen;
+		if (stashesOpen) {
+			await loadStashes();
+		}
+	}
+
+	/**
+	 * Sets the changes aside, the files given back as the last commit has them.
+	 */
+	async function stashChanges() {
+		const stashMessage = await studioPrompt('Message of the stash, empty for the default one');
+		if (stashMessage === null || !confirmUnsaved('stash')) {
+			return;
+		}
+		const untracked =
+			changes.some((file) => file.kind === 'untracked') &&
+			window.confirm('Stash the new files too?\n\nCancel to leave them in the files.');
+		const result = await run('stash', {
+			message: stashMessage ?? '',
+			untracked: String(untracked)
+		});
+		if (result && 'repository' in result) {
+			stashesOpen = true;
+			await loadStashes();
+		}
+	}
+
+	/**
+	 * @param {'stashApply' | 'stashPop' | 'stashDrop'} action
+	 * @param {{ index: number, subject: string }} stash
+	 */
+	async function stashAction(action, stash) {
+		if (action === 'stashDrop') {
+			if (
+				!window.confirm(`Drop stash@{${stash.index}} "${stash.subject}"? Its changes are lost.`)
+			) {
+				return;
+			}
+		} else if (!confirmUnsaved(action === 'stashPop' ? 'pop' : 'apply')) {
+			return;
+		}
+		const result = await run(action, { index: String(stash.index) });
+		if (result?.merging && action === 'stashPop') {
+			toaster.info({
+				title: 'The stash is kept',
+				description: 'Its changes have conflicts: drop it once they are resolved.'
+			});
+		}
+		await loadStashes();
 	}
 
 	/**
@@ -578,7 +667,10 @@
 		if (!message.trim() || (!staged.length && !amend)) {
 			return;
 		}
-		const result = await run('commit', { message: message.trim(), ...(amend ? { amend: 'true' } : {}) });
+		const result = await run('commit', {
+			message: message.trim(),
+			...(amend ? { amend: 'true' } : {})
+		});
 		if (result?.commit) {
 			message = '';
 			diffPath = '';
@@ -595,7 +687,11 @@
 	async function toggleAmend() {
 		amend = !amend;
 		if (amend && !message.trim()) {
-			const result = await call('studio.git.SourceControl', { projectName, action: 'show', commit: 'HEAD' });
+			const result = await call('studio.git.SourceControl', {
+				projectName,
+				action: 'show',
+				commit: 'HEAD'
+			});
 			if (amend && !message.trim()) {
 				message = String(result?.commit?.body ?? '').trim();
 			}
@@ -695,9 +791,58 @@
 	{/each}
 {/snippet}
 
+{#snippet commitDetailsBlock(/** @type {string} */ id)}
+	<div class="studio-git__commit-details">
+		{#if !commitDetails}
+			<small>Reading the commit…</small>
+		{:else}
+			<pre class="studio-git__commit-body">{commitDetails.commit?.body ?? ''}</pre>
+			<small
+				>{commitDetails.commit?.author}{commitDetails.commit?.email
+					? ` <${commitDetails.commit.email}>`
+					: ''} · {new Date(commitDetails.commit?.time ?? 0).toLocaleString()}{commitDetails.commit
+					?.parents?.length
+					? ` · parent ${commitDetails.commit.parents.join(', ')}`
+					: ''}</small
+			>
+			{#each commitDetails.files as file (file.path)}
+				{@const parts = fileName(file.path)}
+				<div class={['studio-git__file', commitDiffPath === file.path && 'studio-git__file--open']}>
+					<button
+						type="button"
+						class="studio-git__file-name"
+						title={file.path}
+						onclick={() => showCommitDiff(id, file.path)}
+					>
+						<span>{parts.name}</span>
+						<small>{parts.dir}</small>
+					</button>
+					<span class={['studio-git__status', `studio-git__status--${file.kind}`]} title={file.kind}
+						>{STATUS_LETTERS[file.kind] ?? 'R'}</span
+					>
+				</div>
+				{#if commitDiffPath === file.path}
+					<pre
+						class="studio-git__diff">{#if commitDiff}{#each commitDiff.split('\n') as line, index (index)}<span
+									class={[
+										'studio-git__line',
+										lineKind(line) && `studio-git__line--${lineKind(line)}`
+									]}>{line}{'\n'}</span
+								>{/each}{:else}Reading the differences…{/if}</pre>
+				{/if}
+			{:else}
+				<small>No file of the project changed.</small>
+			{/each}
+		{/if}
+	</div>
+{/snippet}
+
 <svelte:window
 	onpointerdown={(event) => {
-		if (menu && !(event.target instanceof Element && event.target.closest('.studio-git__menu-host'))) {
+		if (
+			menu &&
+			!(event.target instanceof Element && event.target.closest('.studio-git__menu-host'))
+		) {
 			menu = '';
 		}
 	}}
@@ -833,7 +978,8 @@
 							class="studio-git__action"
 							title="Skip the commit the rebase stopped at"
 							disabled={Boolean(busy)}
-							onclick={() => endOperation('skip')}><Ico icon="mdi:skip-next" size={4} /> Skip</button
+							onclick={() => endOperation('skip')}
+							><Ico icon="mdi:skip-next" size={4} /> Skip</button
 						>
 					{/if}
 					<button
@@ -997,7 +1143,10 @@
 				bind:value={message}
 				disabled={Boolean(busy)}></textarea>
 			<div class="studio-git__commit-row">
-				<label class="studio-git__amend" title="Amend the last commit with the changes staged and this message">
+				<label
+					class="studio-git__amend"
+					title="Amend the last commit with the changes staged and this message"
+				>
 					<input type="checkbox" checked={amend} disabled={Boolean(busy)} onchange={toggleAmend} />
 					Amend
 				</label>
@@ -1054,10 +1203,89 @@
 						onclick={() => discard(changes)}><Ico icon="mdi:undo" size={4} /></button
 					>
 				{/if}
+				{#if changes.length || staged.length}
+					<button
+						type="button"
+						class="studio-git__icon"
+						title="Stash the changes: set them aside, the files given back as the last commit has them"
+						aria-label="Stash the changes"
+						disabled={Boolean(busy) || Boolean(operation)}
+						onclick={stashChanges}><Ico icon="mdi:archive-arrow-down-outline" size={4} /></button
+					>
+				{/if}
 			</div>
 			{@render fileList(changes, 'stage')}
 			{#if !staged.length && !changes.length}
 				<p class="studio-git__message">No change since the last commit.</p>
+			{/if}
+			{#if status.stashCount || stashesOpen}
+				<div class="studio-git__section">
+					<button
+						type="button"
+						class="studio-git__history-toggle"
+						aria-expanded={stashesOpen}
+						onclick={toggleStashes}
+					>
+						<Ico icon={stashesOpen ? 'mdi:chevron-down' : 'mdi:chevron-right'} size={4} />
+						<span>Stashes</span>
+					</button>
+					<small>{status.stashCount ?? 0}</small>
+				</div>
+				{#if stashesOpen}
+					{#each stashes as stash (stash.id)}
+						{@const key = `stash@{${stash.index}}`}
+						<div
+							class={[
+								'studio-git__commit-entry',
+								commitOpen === key && 'studio-git__commit-entry--open'
+							]}
+							title={`${key} ${stash.id}`}
+						>
+							<code>{key}</code>
+							<button
+								type="button"
+								class="studio-git__commit-subject"
+								aria-expanded={commitOpen === key}
+								onclick={() => toggleCommit(key)}>{stash.subject}</button
+							>
+							<small>{new Date(stash.time).toLocaleString()}</small>
+							<div class="studio-git__stash-actions">
+								<button
+									type="button"
+									class="studio-git__icon"
+									title="Apply the stash, kept in the list"
+									aria-label="Apply {key}"
+									disabled={Boolean(busy) || Boolean(operation)}
+									onclick={() => stashAction('stashApply', stash)}
+									><Ico icon="mdi:archive-arrow-up-outline" size={4} /></button
+								>
+								<button
+									type="button"
+									class="studio-git__icon"
+									title="Pop the stash: apply it and drop it"
+									aria-label="Pop {key}"
+									disabled={Boolean(busy) || Boolean(operation)}
+									onclick={() => stashAction('stashPop', stash)}
+									><Ico icon="mdi:archive-outline" size={4} /></button
+								>
+								<button
+									type="button"
+									class="studio-git__icon"
+									title="Drop the stash"
+									aria-label="Drop {key}"
+									disabled={Boolean(busy)}
+									onclick={() => stashAction('stashDrop', stash)}
+									><Ico icon="mdi:delete-outline" size={4} /></button
+								>
+							</div>
+						</div>
+						{#if commitOpen === key}
+							{@render commitDetailsBlock(key)}
+						{/if}
+					{:else}
+						<p class="studio-git__message">No stash.</p>
+					{/each}
+				{/if}
 			{/if}
 			<div class="studio-git__section">
 				<button
@@ -1089,7 +1317,10 @@
 			{#if historyOpen}
 				{#each commits as entry (entry.id)}
 					<div
-						class={['studio-git__commit-entry', commitOpen === entry.id && 'studio-git__commit-entry--open']}
+						class={[
+							'studio-git__commit-entry',
+							commitOpen === entry.id && 'studio-git__commit-entry--open'
+						]}
 						title={`${entry.id} ${entry.author}`}
 					>
 						<code>{entry.id}</code>
@@ -1194,50 +1425,7 @@
 						</div>
 					</div>
 					{#if commitOpen === entry.id}
-						<div class="studio-git__commit-details">
-							{#if !commitDetails}
-								<small>Reading the commit…</small>
-							{:else}
-								<pre class="studio-git__commit-body">{commitDetails.commit?.body ?? ''}</pre>
-								<small
-									>{commitDetails.commit?.author}{commitDetails.commit?.email
-										? ` <${commitDetails.commit.email}>`
-										: ''} · {new Date(commitDetails.commit?.time ?? 0).toLocaleString()}{commitDetails.commit
-										?.parents?.length
-										? ` · parent ${commitDetails.commit.parents.join(', ')}`
-										: ''}</small
-								>
-								{#each commitDetails.files as file (file.path)}
-									{@const parts = fileName(file.path)}
-									<div
-										class={['studio-git__file', commitDiffPath === file.path && 'studio-git__file--open']}
-									>
-										<button
-											type="button"
-											class="studio-git__file-name"
-											title={file.path}
-											onclick={() => showCommitDiff(entry.id, file.path)}
-										>
-											<span>{parts.name}</span>
-											<small>{parts.dir}</small>
-										</button>
-										<span class={['studio-git__status', `studio-git__status--${file.kind}`]} title={file.kind}
-											>{STATUS_LETTERS[file.kind] ?? 'R'}</span
-										>
-									</div>
-									{#if commitDiffPath === file.path}
-										<pre class="studio-git__diff">{#if commitDiff}{#each commitDiff.split('\n') as line, index (index)}<span
-														class={[
-															'studio-git__line',
-															lineKind(line) && `studio-git__line--${lineKind(line)}`
-														]}>{line}{'\n'}</span
-													>{/each}{:else}Reading the differences…{/if}</pre>
-									{/if}
-								{:else}
-									<small>No file of the project changed.</small>
-								{/each}
-							{/if}
-						</div>
+						{@render commitDetailsBlock(entry.id)}
 					{/if}
 				{:else}
 					<p class="studio-git__message">No commit yet.</p>
@@ -1452,6 +1640,17 @@
 	.studio-git__branch-item small {
 		color: var(--studio-text-idle);
 		font-size: 0.66rem;
+	}
+
+	.studio-git__stash-actions {
+		display: flex;
+		grid-row: 1 / span 2;
+		grid-column: 3;
+		align-self: center;
+	}
+
+	.studio-git__section small:last-child {
+		margin-right: 0;
 	}
 
 	.studio-git__commit-menu {
