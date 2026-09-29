@@ -834,8 +834,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     public class RequestableThread extends Thread {
         protected Throwable exception = null;
         protected Thread callingThread;
-        public boolean bContinue = true;
-        
+        // Written by the calling thread (timeout, abort), read by this thread before each step.
+        public volatile boolean bContinue = true;
+
         private long engineId;
         
         public org.mozilla.javascript.Context javascriptContext = null;
