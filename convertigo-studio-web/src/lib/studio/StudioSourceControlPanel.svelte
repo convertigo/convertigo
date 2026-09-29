@@ -25,7 +25,10 @@
 	 *  operation?: import('./treeMerge.svelte.js').GitOperation,
 	 *  pullRebase?: boolean,
 	 *  detached?: boolean,
-	 *  stashCount?: number
+	 *  stashCount?: number,
+	 *  remoteName?: string,
+	 *  remoteCount?: number,
+	 *  upstream?: string
 	 * }} SourceControlStatus
 	 */
 
@@ -72,7 +75,11 @@
 		'stash',
 		'stashApply',
 		'stashPop',
-		'stashDrop'
+		'stashDrop',
+		'addRemote',
+		'setRemoteUrl',
+		'removeRemote',
+		'deleteRemoteBranch'
 	]);
 
 	const STATUS_LETTERS = {
@@ -109,6 +116,8 @@
 	let stashesOpen = $state(false);
 	/** @type {{ index: number, id: string, subject: string, time: number }[]} */
 	let stashes = $state([]);
+	/** @type {{ name: string, url: string, pushUrl?: string }[]} */
+	let remotes = $state([]);
 	/** the menu open: pull, or the id of a commit */
 	let menu = $state('');
 
@@ -522,6 +531,101 @@
 		};
 		const tagged = await call('studio.git.SourceControl', { projectName, action: 'tags' });
 		tags = Array.isArray(tagged?.tags) ? tagged.tags : [];
+		const listed = await call('studio.git.SourceControl', { projectName, action: 'remotes' });
+		remotes = Array.isArray(listed?.remotes) ? listed.remotes : [];
+	}
+
+	/**
+	 * Pushes the current branch: to the branch of the remote it follows, else published to a remote, which it
+	 * then follows.
+	 * @param {{ tags?: boolean, force?: boolean, choose?: boolean }} [options]
+	 */
+	async function push(options = {}) {
+		menu = '';
+		/** @type {Record<string, string>} */
+		const parameters = {};
+		if (options.choose) {
+			const remote = (
+				await studioPrompt(
+					`Remote to publish ${status?.branch} to: ${remotes.map((r) => r.name).join(', ') || 'origin'}`,
+					status?.remoteName ?? 'origin'
+				)
+			)?.trim();
+			if (!remote) {
+				return;
+			}
+			parameters.remote = remote;
+			parameters.publish = 'true';
+		}
+		if (options.tags) {
+			parameters.tags = 'true';
+		}
+		if (options.force) {
+			if (
+				!window.confirm(
+					`Force the push of ${status?.branch} to ${status?.upstream ?? status?.remoteName}?\n\nThe commits of the remote not in ${status?.branch} are lost on it. The push is refused when the remote changed since the last fetch.`
+				)
+			) {
+				return;
+			}
+			parameters.force = 'true';
+		}
+		await run('push', parameters);
+	}
+
+	async function addRemote() {
+		const name = (await studioPrompt('Name of the remote', remotes.length ? '' : 'origin'))?.trim();
+		if (!name) {
+			return;
+		}
+		const url = (await studioPrompt(`Address of the remote ${name}`))?.trim();
+		if (url) {
+			const result = await run('addRemote', { name, url });
+			if (result && 'repository' in result) {
+				await run('fetch', { remote: name });
+			}
+			await loadBranches();
+		}
+	}
+
+	/**
+	 * @param {{ name: string, url: string }} remote
+	 */
+	async function editRemote(remote) {
+		const url = (await studioPrompt(`Address of the remote ${remote.name}`, remote.url))?.trim();
+		if (url && url !== remote.url) {
+			await run('setRemoteUrl', { name: remote.name, url });
+			await loadBranches();
+		}
+	}
+
+	/**
+	 * @param {{ name: string }} remote
+	 */
+	async function removeRemote(remote) {
+		if (
+			window.confirm(
+				`Remove the remote ${remote.name}?\n\nIts branches are no longer followed; the remote itself does not change.`
+			)
+		) {
+			await run('removeRemote', { name: remote.name });
+			await loadBranches();
+		}
+	}
+
+	/**
+	 * @param {string} branch a branch of a remote, as origin/feature
+	 */
+	async function deleteRemoteBranch(branch) {
+		const slash = branch.indexOf('/');
+		if (
+			window.confirm(
+				`Delete the branch ${branch.slice(slash + 1)} from the remote ${branch.slice(0, slash)}?\n\nThe deletion is pushed to the remote, for all who use it.`
+			)
+		) {
+			await run('deleteRemoteBranch', { branch });
+			await loadBranches();
+		}
 	}
 
 	async function loadStashes() {
@@ -892,7 +996,7 @@
 			<button
 				type="button"
 				class="studio-git__icon"
-				title="Fetch"
+				title="Fetch all the remotes"
 				aria-label="Fetch"
 				disabled={Boolean(busy) || !status.remote}
 				onclick={() => run('fetch')}><Ico icon="mdi:cloud-download-outline" size={4} /></button
@@ -936,14 +1040,65 @@
 					</div>
 				{/if}
 			</div>
-			<button
-				type="button"
-				class="studio-git__icon"
-				title="Push"
-				aria-label="Push"
-				disabled={Boolean(busy) || !status.remote}
-				onclick={() => run('push')}><Ico icon="mdi:arrow-up" size={4} /></button
-			>
+			<div class="studio-git__menu-host">
+				<button
+					type="button"
+					class="studio-git__icon"
+					title={status.upstream
+						? `Push to ${status.upstream}`
+						: `Publish ${status.branch} to ${status.remoteName ?? 'a remote'}`}
+					aria-label="Push"
+					disabled={Boolean(busy) || !status.remote || Boolean(operation) || status.detached}
+					onclick={() => push()}
+					><Ico
+						icon={status.upstream ? 'mdi:arrow-up' : 'mdi:cloud-upload-outline'}
+						size={4}
+					/></button
+				>
+				<button
+					type="button"
+					class="studio-git__icon studio-git__icon--menu"
+					title="Push with the tags, forced, or to another remote"
+					aria-label="Push options"
+					aria-haspopup="menu"
+					aria-expanded={menu === 'push'}
+					disabled={Boolean(busy) || !status.remote || Boolean(operation) || status.detached}
+					onclick={async () => {
+						menu = menu === 'push' ? '' : 'push';
+						if (menu === 'push' && !remotes.length) {
+							const listed = await call('studio.git.SourceControl', {
+								projectName,
+								action: 'remotes'
+							});
+							remotes = Array.isArray(listed?.remotes) ? listed.remotes : [];
+						}
+					}}><Ico icon="mdi:chevron-down" size={3} /></button
+				>
+				{#if menu === 'push'}
+					<div class="studio-git__menu" role="menu">
+						<button type="button" role="menuitem" onclick={() => push()}>
+							<Ico icon="mdi:arrow-up" size={4} />
+							{status.upstream ? `Push to ${status.upstream}` : `Publish to ${status.remoteName}`}
+						</button>
+						<button type="button" role="menuitem" onclick={() => push({ tags: true })}>
+							<Ico icon="mdi:tag-outline" size={4} /> Push with the tags
+						</button>
+						<button
+							type="button"
+							role="menuitem"
+							disabled={!status.upstream}
+							onclick={() => push({ force: true })}
+						>
+							<Ico icon="mdi:alert-circle-outline" size={4} /> Force push, if the remote did not change
+						</button>
+						{#if (status.remoteCount ?? 0) > 1}
+							<button type="button" role="menuitem" onclick={() => push({ choose: true })}>
+								<Ico icon="mdi:cloud-upload-outline" size={4} /> Publish to another remote…
+							</button>
+						{/if}
+					</div>
+				{/if}
+			</div>
 		</div>
 		{#if operation}
 			<div class="studio-git__operation" role="status" aria-label="Operation in progress">
@@ -1083,6 +1238,16 @@
 						<button
 							type="button"
 							class="studio-git__branch-merge"
+							title="Delete {branch} from its remote"
+							aria-label="Delete {branch} from its remote"
+							disabled={Boolean(busy)}
+							onclick={() => deleteRemoteBranch(branch)}
+						>
+							<Ico icon="mdi:delete-outline" size={4} />
+						</button>
+						<button
+							type="button"
+							class="studio-git__branch-merge"
 							title="Rebase {status.branch} onto {branch}"
 							aria-label="Rebase {status.branch} onto {branch}"
 							disabled={Boolean(busy) || Boolean(operation)}
@@ -1127,6 +1292,47 @@
 						</button>
 					</div>
 				{/each}
+				<span class="studio-git__menu-label">Remotes</span>
+				{#each remotes as remote (remote.name)}
+					<div class="studio-git__branch-row">
+						<span
+							class="studio-git__branch-item studio-git__branch-item--remote"
+							title={remote.url}
+						>
+							<Ico icon="mdi:cloud-outline" size={4} />
+							{remote.name}
+							<small class="studio-git__remote-url">{remote.url}</small>
+						</span>
+						<button
+							type="button"
+							class="studio-git__branch-merge"
+							title="Change the address of {remote.name}"
+							aria-label="Change the address of {remote.name}"
+							disabled={Boolean(busy)}
+							onclick={() => editRemote(remote)}
+						>
+							<Ico icon="mdi:pencil-outline" size={4} />
+						</button>
+						<button
+							type="button"
+							class="studio-git__branch-merge"
+							title="Remove the remote {remote.name}"
+							aria-label="Remove the remote {remote.name}"
+							disabled={Boolean(busy)}
+							onclick={() => removeRemote(remote)}
+						>
+							<Ico icon="mdi:delete-outline" size={4} />
+						</button>
+					</div>
+				{/each}
+				<button
+					type="button"
+					class="studio-git__branch-item"
+					disabled={Boolean(busy)}
+					onclick={addRemote}
+				>
+					<Ico icon="mdi:plus" size={4} /> Add a remote…
+				</button>
 			</div>
 		{/if}
 		<form
@@ -1640,6 +1846,26 @@
 	.studio-git__branch-item small {
 		color: var(--studio-text-idle);
 		font-size: 0.66rem;
+	}
+
+	.studio-git__remote-url {
+		min-width: 0;
+		flex: 1 1 auto;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-git__branches {
+		overflow-x: hidden;
+	}
+
+	.studio-git__branches > * {
+		min-width: 0;
+	}
+
+	.studio-git__branch-item > :global(:first-child) {
+		flex: none;
 	}
 
 	.studio-git__stash-actions {
