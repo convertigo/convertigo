@@ -397,29 +397,7 @@ public class TreeDiff extends JSonService {
 				changes.put(change);
 				continue;
 			}
-			var properties = new JSONArray();
-			var names = new TreeMap<String, Boolean>();
-			old.properties.keySet().forEach((name) -> names.put(name, true));
-			bean.properties.keySet().forEach((name) -> names.put(name, true));
-			for (var name : names.keySet()) {
-				var was = old.properties.get(name);
-				var is = bean.properties.get(name);
-				if ("name".equals(name) || canonical(was).equals(canonical(is))) {
-					continue;
-				}
-				if ("beanData".equals(name)) {
-					// the properties of an NGX component of Ionic, rather than its definition
-					ionChanges(value(was), value(is), properties);
-					continue;
-				}
-				var property = new JSONObject();
-				property.put("name", name);
-				property.put("label", label(bean.classname, name));
-				var masked = was != null && was.hasAttribute("ciphered") || is != null && is.hasAttribute("ciphered");
-				property.put("old", masked ? "••••••" : display(was));
-				property.put("new", masked ? "••••••" : display(is));
-				properties.put(property);
-			}
+			var properties = propertyChanges(old, bean);
 			var renamed = !old.name.equals(bean.name);
 			var moved = old.parentKey != null && !old.parentKey.equals(bean.parentKey);
 			if (properties.length() > 0 || renamed || moved) {
@@ -462,6 +440,37 @@ public class TreeDiff extends JSonService {
 	 * Adds the properties of Ionic that changed between two data of an NGX component, whose definition is
 	 * held in a whole form or in a compact one, "property": "mode:value".
 	 */
+	/**
+	 * @return the properties of an object that differ between two versions of it, but its name, as
+	 *         {name, label, old, new}, the properties of Ionic of an NGX component one by one
+	 */
+	static JSONArray propertyChanges(Bean old, Bean bean) throws Exception {
+		var properties = new JSONArray();
+		var names = new TreeMap<String, Boolean>();
+		old.properties.keySet().forEach((name) -> names.put(name, true));
+		bean.properties.keySet().forEach((name) -> names.put(name, true));
+		for (var name : names.keySet()) {
+			var was = old.properties.get(name);
+			var is = bean.properties.get(name);
+			if ("name".equals(name) || canonical(was).equals(canonical(is))) {
+				continue;
+			}
+			if ("beanData".equals(name)) {
+				// the properties of an NGX component of Ionic, rather than its definition
+				ionChanges(value(was), value(is), properties);
+				continue;
+			}
+			var property = new JSONObject();
+			property.put("name", name);
+			property.put("label", label(bean.classname, name));
+			var masked = was != null && was.hasAttribute("ciphered") || is != null && is.hasAttribute("ciphered");
+			property.put("old", masked ? "••••••" : display(was));
+			property.put("new", masked ? "••••••" : display(is));
+			properties.put(property);
+		}
+		return properties;
+	}
+
 	private static void ionChanges(String before, String after, JSONArray properties) throws Exception {
 		var labels = new HashMap<String, String>();
 		var was = ionValues(before, labels);

@@ -344,6 +344,8 @@ public class TreeMerge extends JSonService {
 		final Map<String, DatabaseObject> live;
 		final JSONArray conflicts = new JSONArray();
 		final JSONArray changes = new JSONArray();
+		/** the last conflict added, to which its versions are given */
+		JSONObject last;
 
 		Merge(Document base, Document ours, Document theirs, Map<String, Resolution> resolutions, Map<String, DatabaseObject> live) {
 			this.base = TreeDiff.beans(base);
@@ -368,6 +370,7 @@ public class TreeMerge extends JSonService {
 				} else if (b == null) {
 					if (!same(ours, o, theirs, t)) {
 						var resolution = conflict("added:" + t.key, "added-both", "Added on both sides, differently", o, t, null, null, null, false);
+						versions("mine", ours, o, "theirs", theirs, t);
 						if (chose(resolution, "theirs")) {
 							replace(o.key, t);
 						}
@@ -376,6 +379,7 @@ public class TreeMerge extends JSonService {
 				} else if (o == null) {
 					if (!same(base, b, theirs, t)) {
 						var resolution = conflict("removed:" + t.key, "removed-by-me", "Removed by me, changed by them", b, t, null, null, null, false);
+						versions("base", base, b, "theirs", theirs, t);
 						if (chose(resolution, "theirs")) {
 							restore(t);
 						}
@@ -400,6 +404,7 @@ public class TreeMerge extends JSonService {
 					remove(o.key);
 				} else {
 					var resolution = conflict("kept:" + o.key, "removed-by-theirs", "Changed by me, removed by them", o, b, null, null, null, false);
+					versions("base", base, b, "mine", ours, o);
 					if (chose(resolution, "theirs")) {
 						remove(o.key);
 					}
@@ -519,6 +524,11 @@ public class TreeMerge extends JSonService {
 			var theirsParent = mb.get(t.parentKey);
 			if (!Objects.equals(o.parentKey, b.parentKey)) {
 				var resolution = conflict("move:" + o.key, "move", "Moved on both sides", o, t, null, null, null, false);
+				versions("mine", ours, o, "theirs", theirs, t);
+				var parents = new JSONObject().put("name", "parent").put("label", "Parent")
+						.put("old", ours.containsKey(o.parentKey) ? ours.get(o.parentKey).name : "")
+						.put("new", theirs.containsKey(t.parentKey) ? theirs.get(t.parentKey).name : "");
+				last.getJSONObject("versions").getJSONObject("root").put("status", "modified").getJSONArray("properties").put(parents);
 				if (!chose(resolution, "theirs")) {
 					return;
 				}
@@ -548,6 +558,7 @@ public class TreeMerge extends JSonService {
 				var other = mb.get(sibling);
 				if (other != null && !other.key.equals(t.key) && other.classname.equals(t.classname) && Objects.equals(other.name, t.name) && ours.containsKey(other.key)) {
 					var resolution = conflict("name:" + t.key, "same-name", "Added by them with the name of an object of mine", other, t, null, null, null, false);
+					versions("mine", mb, other, "theirs", theirs, t);
 					if (chose(resolution, "mine")) {
 						remove(t.key);
 					} else if (chose(resolution, "theirs")) {
@@ -763,7 +774,88 @@ public class TreeMerge extends JSonService {
 				}
 			}
 			conflicts.put(conflict);
+			last = conflict;
 			return resolution;
+		}
+
+		/**
+		 * Gives the last conflict the two versions of its object, compared: the properties that differ, and its
+		 * children matched by their key, else by their type and name, those on a single side and those
+		 * that differ, as {left, right, root: {name, type, status same|modified|left|right, objectId,
+		 * properties [{name, label, old, new}], children}}.
+		 */
+		private void versions(String left, Map<String, Bean> ls, Bean l, String right, Map<String, Bean> rs, Bean r) throws Exception {
+			var budget = new int[] { 400 };
+			last.put("versions", new JSONObject().put("left", left).put("right", right).put("root", node(ls, l, rs, r, 0, budget)));
+		}
+
+		private JSONObject node(Map<String, Bean> ls, Bean l, Map<String, Bean> rs, Bean r, int depth, int[] budget) throws Exception {
+			budget[0]--;
+			var bean = l != null ? l : r;
+			var node = new JSONObject();
+			node.put("name", bean.name);
+			node.put("type", TreeDiff.typeName(bean.classname));
+			var properties = new JSONArray();
+			String status;
+			if (l == null) {
+				status = "right";
+			} else if (r == null) {
+				status = "left";
+			} else if (same(ls, l, rs, r) && l.name.equals(r.name)) {
+				status = "same";
+			} else {
+				status = "modified";
+				if (!l.name.equals(r.name)) {
+					properties.put(new JSONObject().put("name", "name").put("label", "Name").put("old", l.name).put("new", r.name));
+				}
+				var changed = TreeDiff.propertyChanges(l, r);
+				for (var i = 0; i < changed.length(); i++) {
+					properties.put(changed.get(i));
+				}
+			}
+			node.put("status", status);
+			node.put("properties", properties);
+			// the object as the tree shows it, when the loaded project has it
+			var dbo = live.get((ls == ours || ls == mb) && l != null ? l.key : (rs == ours || rs == mb) && r != null ? r.key : "");
+			if (dbo != null) {
+				node.put("objectId", dbo.getFullQName());
+			}
+			var children = new JSONArray();
+			if (!"same".equals(status) && depth < 8) {
+				var matched = new HashSet<String>();
+				var rightChildren = r == null ? java.util.List.<String>of() : r.children;
+				for (var key : l == null ? java.util.List.<String>of() : l.children) {
+					var lc = ls.get(key);
+					if (lc == null || budget[0] <= 0) {
+						continue;
+					}
+					Bean rc = null;
+					if (rightChildren.contains(key) && !matched.contains(key)) {
+						rc = rs.get(key);
+					} else {
+						for (var other : rightChildren) {
+							var candidate = rs.get(other);
+							if (candidate != null && !matched.contains(other) && !rightChildren.contains(key)
+									&& candidate.classname.equals(lc.classname) && Objects.equals(candidate.name, lc.name)) {
+								rc = candidate;
+								break;
+							}
+						}
+					}
+					if (rc != null) {
+						matched.add(rc.key);
+					}
+					children.put(node(ls, lc, rs, rc, depth + 1, budget));
+				}
+				for (var key : rightChildren) {
+					var rc = rs.get(key);
+					if (rc != null && !matched.contains(key) && budget[0] > 0) {
+						children.put(node(ls, null, rs, rc, depth + 1, budget));
+					}
+				}
+			}
+			node.put("children", children);
+			return node;
 		}
 
 		/** an object merged from their side, as the tree shows it */
