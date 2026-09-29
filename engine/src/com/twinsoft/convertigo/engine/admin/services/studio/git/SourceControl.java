@@ -72,7 +72,8 @@ import com.twinsoft.convertigo.engine.util.GitUtils;
  * (commit, mode soft, mixed or hard), createBranch (branch, commit, checkout), deleteBranch (branch, force),
  * renameBranch (branch, name), tags, tag (name, commit, annotation), deleteTag (name), stashes, stash (message,
  * untracked), stashApply or stashPop (index), stashDrop (index), remotes, addRemote or setRemoteUrl (name, url),
- * removeRemote (name), deleteRemoteBranch (branch), push (remote, publish, tags, force) or fetch (remote); or
+ * removeRemote (name), deleteRemoteBranch (branch), push (remote, publish, tags, force), fetch (remote),
+ * rebaseTodo (upstream) or rebaseInteractive (upstream, steps); or
  * decorations,
  * without projectName, for the branch and the changed files of each project in a repository</li>
  * <li>paths: the files to stage or unstage, as a JSON array of paths in the repository; path: the file to
@@ -398,6 +399,34 @@ public class SourceControl extends JSonService {
 				var before = snapshot(git);
 				var head = git.getRepository().resolve("HEAD^{commit}");
 				var result = git.rebase().setUpstream(id).setUpstreamName(branch).call();
+				afterOperation(git, prefix, project.getName(), head, before, response);
+				status(git, prefix, response);
+				GitOperation.Outcome.of(result).put(response);
+			}
+			case "rebaseTodo" -> {
+				// the commits a rebase on a commit replays, to choose what to do of each
+				response.put("todo", GitOperation.rebaseTodo(git.getRepository(), commit(git.getRepository(), request.getParameter("upstream"))));
+				status(git, prefix, response);
+			}
+			case "rebaseInteractive" -> {
+				// the commits after a commit replayed in the order and with the actions chosen: picked, reworded,
+				// stopped to edit, squashed, fixed up or dropped
+				var repository = git.getRepository();
+				var upstream = commit(repository, request.getParameter("upstream"));
+				var steps = new JSONArray(request.getParameter("steps") == null ? "[]" : request.getParameter("steps"));
+				var before = snapshot(git);
+				var head = repository.resolve("HEAD^{commit}");
+				var handler = GitOperation.interactive(repository, upstream, steps);
+				org.eclipse.jgit.api.RebaseResult result;
+				try {
+					result = git.rebase().setUpstream(upstream).runInteractively(handler).call();
+				} catch (Exception e) {
+					// the rebase is not left half started
+					if (repository.getRepositoryState().isRebasing()) {
+						git.rebase().setOperation(org.eclipse.jgit.api.RebaseCommand.Operation.ABORT).call();
+					}
+					throw new ServiceException("The rebase did not start: " + e.getMessage(), e);
+				}
 				afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
 				GitOperation.Outcome.of(result).put(response);

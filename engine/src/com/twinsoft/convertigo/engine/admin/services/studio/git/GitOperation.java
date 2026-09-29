@@ -81,6 +81,174 @@ class GitOperation {
 		appliedStashes.put(repository.getDirectory().getAbsolutePath(), stash);
 	}
 
+	/**
+	 * The messages of an interactive rebase, by repository, in the order JGit asks them: the new message of
+	 * each commit reworded, null to keep it, and of each squash, null to keep the messages combined. They
+	 * outlive the request that started it, for the rebase that goes on after a stop.
+	 */
+	private static final java.util.Map<String, java.util.LinkedList<String>> rebaseMessages = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/**
+	 * @return the handler of an interactive rebase: its steps, in the order and with the actions given, as
+	 *         {id, action: pick, reword, edit, squash, fixup or drop, message}, every commit of the rebase given
+	 */
+	static RebaseCommand.InteractiveHandler interactive(Repository repository, ObjectId upstream, JSONArray steps) throws Exception {
+		// every commit of the rebase has an action, before JGit starts it
+		var todo = rebaseTodo(repository, upstream);
+		var ids = new java.util.HashSet<String>();
+		for (var i = 0; i < todo.length(); i++) {
+			ids.add(todo.getJSONObject(i).getString("id"));
+		}
+		var given = new java.util.HashSet<String>();
+		for (var i = 0; i < steps.length(); i++) {
+			var step = steps.getJSONObject(i);
+			var id = step.optString("id");
+			if (!ids.contains(id) || !given.add(id)) {
+				throw new ServiceException("The commit " + id + " is not a commit of the rebase, or is given twice.");
+			}
+			if (!step.optString("action", "pick").matches("pick|reword|edit|squash|fixup|drop")) {
+				throw new ServiceException("Unknown action " + step.optString("action") + " for the commit " + id + ".");
+			}
+		}
+		if (!given.equals(ids)) {
+			throw new ServiceException("Each commit of the rebase needs an action.");
+		}
+		var kept = new java.util.ArrayList<JSONObject>();
+		for (var i = 0; i < steps.length(); i++) {
+			var step = steps.getJSONObject(i);
+			if (!"drop".equals(step.optString("action"))) {
+				kept.add(step);
+			}
+		}
+		if (!kept.isEmpty() && kept.get(0).optString("action").matches("squash|fixup")) {
+			throw new ServiceException("The first commit kept cannot be squashed: it has no commit before it.");
+		}
+		var messages = new java.util.LinkedList<String>();
+		var squashed = false;
+		for (var i = 0; i < kept.size(); i++) {
+			var action = kept.get(i).optString("action");
+			if ("reword".equals(action)) {
+				var message = kept.get(i).optString("message", "");
+				messages.add(message.isBlank() ? null : message);
+			}
+			squashed |= "squash".equals(action);
+			var next = i + 1 < kept.size() ? kept.get(i + 1).optString("action") : "";
+			if (action.matches("squash|fixup") && !next.matches("squash|fixup")) {
+				if (squashed) {
+					messages.add(null);
+				}
+				squashed = false;
+			}
+		}
+		rebaseMessages.put(repository.getDirectory().getAbsolutePath(), messages);
+		return new RebaseCommand.InteractiveHandler() {
+			@Override
+			public void prepareSteps(java.util.List<org.eclipse.jgit.lib.RebaseTodoLine> todo) {
+				var lines = new java.util.ArrayList<>(todo);
+				todo.clear();
+				try {
+					for (var i = 0; i < steps.length(); i++) {
+						var step = steps.getJSONObject(i);
+						var id = step.getString("id");
+						var line = lines.stream().filter((l) -> l.getCommit() != null && (l.getCommit().name().startsWith(id) || id.startsWith(l.getCommit().name()))).findFirst().orElse(null);
+						if (line == null) {
+							throw new IllegalArgumentException("The commit " + id + " is not in the rebase.");
+						}
+						lines.remove(line);
+						if (!"drop".equals(step.optString("action"))) {
+							line.setAction(org.eclipse.jgit.lib.RebaseTodoLine.Action.parse(step.optString("action", "pick")));
+							todo.add(line);
+						}
+					}
+				} catch (IllegalArgumentException e) {
+					throw e;
+				} catch (Exception e) {
+					throw new IllegalArgumentException(e.getMessage(), e);
+				}
+				for (var line : lines) {
+					if (line.getCommit() != null) {
+						throw new IllegalArgumentException("The commit " + line.getCommit().name() + " of the rebase has no action.");
+					}
+				}
+			}
+
+			@Override
+			public String modifyCommitMessage(String message) {
+				return nextMessage(repository, message);
+			}
+		};
+	}
+
+	/**
+	 * @return the handler of an interactive rebase going on: its steps kept, its messages given
+	 */
+	private static RebaseCommand.InteractiveHandler resumed(Repository repository) {
+		return new RebaseCommand.InteractiveHandler() {
+			@Override
+			public void prepareSteps(java.util.List<org.eclipse.jgit.lib.RebaseTodoLine> todo) {
+			}
+
+			@Override
+			public String modifyCommitMessage(String message) {
+				return nextMessage(repository, message);
+			}
+		};
+	}
+
+	private static String nextMessage(Repository repository, String message) {
+		var messages = rebaseMessages.get(repository.getDirectory().getAbsolutePath());
+		String next = null;
+		if (messages != null) {
+			synchronized (messages) {
+				next = messages.isEmpty() ? null : messages.removeFirst();
+			}
+		}
+		if (next == null && message != null && message.length() > 1 && message.substring(1).startsWith(" This is a combination of")) {
+			// the messages of the commits squashed, separated as Git does, rather than line after line
+			var comment = message.charAt(0);
+			var parts = new java.util.ArrayList<String>();
+			var part = new StringBuilder();
+			for (var line : message.split("\n", -1)) {
+				if (!line.isEmpty() && line.charAt(0) == comment) {
+					if (!part.toString().isBlank()) {
+						parts.add(part.toString().strip());
+					}
+					part.setLength(0);
+				} else {
+					part.append(line).append('\n');
+				}
+			}
+			if (!part.toString().isBlank()) {
+				parts.add(part.toString().strip());
+			}
+			return String.join("\n\n", parts);
+		}
+		return next == null ? message : next;
+	}
+
+	/**
+	 * @return the commits a rebase on a commit replays, oldest first, without the merges it flattens
+	 */
+	static JSONArray rebaseTodo(Repository repository, ObjectId upstream) throws Exception {
+		var todo = new JSONArray();
+		try (var walk = new RevWalk(repository)) {
+			walk.sort(org.eclipse.jgit.revwalk.RevSort.TOPO);
+			walk.sort(org.eclipse.jgit.revwalk.RevSort.REVERSE, true);
+			walk.markStart(walk.parseCommit(repository.resolve("HEAD^{commit}")));
+			walk.markUninteresting(walk.parseCommit(upstream));
+			for (var commit : walk) {
+				if (commit.getParentCount() <= 1) {
+					todo.put(new JSONObject()
+							.put("id", commit.abbreviate(7).name())
+							.put("subject", commit.getShortMessage())
+							.put("body", commit.getFullMessage())
+							.put("author", commit.getAuthorIdent().getName()));
+				}
+			}
+		}
+		return todo;
+	}
+
 	/** one of the kinds above, empty when the repository has no operation stopped */
 	final String kind;
 	final RepositoryState state;
@@ -380,6 +548,7 @@ class GitOperation {
 		var repository = git.getRepository();
 		if (REBASE.equals(kind)) {
 			git.rebase().setOperation(RebaseCommand.Operation.ABORT).call();
+			rebaseMessages.remove(repository.getDirectory().getAbsolutePath());
 			return;
 		}
 		git.reset().setMode(ResetType.HARD).call();
@@ -401,7 +570,7 @@ class GitOperation {
 		}
 		switch (kind) {
 		case REBASE -> {
-			return Outcome.of(git.rebase().setOperation(RebaseCommand.Operation.CONTINUE).call());
+			return Outcome.of(rebase(git).setOperation(RebaseCommand.Operation.CONTINUE).call());
 		}
 		case MERGE, CHERRY_PICK, REVERT -> {
 			var status = git.status().call();
@@ -433,7 +602,18 @@ class GitOperation {
 		if (!REBASE.equals(kind)) {
 			throw new ServiceException("Only a rebase skips a commit.");
 		}
-		return Outcome.of(git.rebase().setOperation(RebaseCommand.Operation.SKIP).call());
+		return Outcome.of(rebase(git).setOperation(RebaseCommand.Operation.SKIP).call());
+	}
+
+	/**
+	 * @return a rebase going on, with its messages when it is interactive
+	 */
+	private RebaseCommand rebase(Git git) {
+		var rebase = git.rebase();
+		if (state == RepositoryState.REBASING_INTERACTIVE) {
+			rebase.runInteractively(resumed(git.getRepository()));
+		}
+		return rebase;
 	}
 
 	/**
