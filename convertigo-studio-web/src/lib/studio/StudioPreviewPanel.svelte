@@ -234,6 +234,8 @@
 	let ngxAuthoring = $state(/** @type {ReturnType<typeof attachNgxAuthoring> | null} */ (null));
 	let ngxSelecting = $state(false);
 	let ngxShowGrids = $state(false);
+	/** the highlight of the selected component hidden, as the Remove highlight of the Eclipse Studio */
+	let ngxHighlightHidden = $state(false);
 	/** the style editor of the NGX application, GrapesJS in the preview */
 	let ngxStyleEditing = $state(false);
 
@@ -515,13 +517,23 @@
 	});
 
 	$effect(() => {
+		// another component selected shows its highlight again
+		void ngxReference?.id;
+		untrack(() => (ngxHighlightHidden = false));
+	});
+
+	$effect(() => {
 		const authoring = ngxAuthoring;
 		const reference = ngxReference;
+		const hidden = ngxHighlightHidden;
 		if (!authoring) {
 			return;
 		}
 		untrack(() => {
-			const shown = authoring.highlight(reference?.classes ?? []);
+			const shown = authoring.highlight(hidden ? [] : (reference?.classes ?? []));
+			if (hidden) {
+				return;
+			}
 			if (shown || !reference?.segment || ngxNavigatedFor === reference.id) {
 				return;
 			}
@@ -932,6 +944,18 @@
 						ariaLabel="Style editor"
 						onclick={() => void toggleNgxStyleEditor()}
 					/>
+					{#if ngxReference}
+						<Button
+							full={false}
+							icon={ngxHighlightHidden ? 'mdi:eye-outline' : 'mdi:eye-off-outline'}
+							class={iconButtonClasses}
+							title={ngxHighlightHidden
+								? 'Show the highlight of the selected component'
+								: 'Hide the highlight of the selected component'}
+							ariaLabel={ngxHighlightHidden ? 'Show the highlight' : 'Hide the highlight'}
+							onclick={() => (ngxHighlightHidden = !ngxHighlightHidden)}
+						/>
+					{/if}
 					<Button
 						full={false}
 						icon="mdi:grid"
