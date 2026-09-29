@@ -4,6 +4,7 @@
 	import { untrack } from 'svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import { studioPrompt } from './studioPrompt.svelte.js';
+	import StudioRebaseDialog from './StudioRebaseDialog.svelte';
 	import { setTreeDiffEnabled, setTreeDiffRef } from './treeDiff.svelte.js';
 	import { describeOperation, gitEvents, notifyGitChange } from './treeMerge.svelte.js';
 
@@ -79,7 +80,8 @@
 		'addRemote',
 		'setRemoteUrl',
 		'removeRemote',
-		'deleteRemoteBranch'
+		'deleteRemoteBranch',
+		'rebaseInteractive'
 	]);
 
 	const STATUS_LETTERS = {
@@ -118,6 +120,8 @@
 	let stashes = $state([]);
 	/** @type {{ name: string, url: string, pushUrl?: string }[]} */
 	let remotes = $state([]);
+	/** the commit an interactive rebase replays the commits after */
+	let rebaseFrom = $state(/** @type {{ id: string, subject: string } | null} */ (null));
 	/** the menu open: pull, or the id of a commit */
 	let menu = $state('');
 
@@ -686,6 +690,22 @@
 	}
 
 	/**
+	 * Replays the commits after a commit with the actions chosen in the dialog of the interactive rebase.
+	 * @param {{ id: string, action: string, message?: string }[]} steps
+	 */
+	async function rebaseInteractively(steps) {
+		const base = rebaseFrom;
+		if (!base || !confirmUnsaved('rebase')) {
+			return;
+		}
+		rebaseFrom = null;
+		await run('rebaseInteractive', { upstream: base.id, steps: JSON.stringify(steps) });
+		if (historyOpen) {
+			await loadHistory();
+		}
+	}
+
+	/**
 	 * Shows in the Git mode of the tree the changes since a commit.
 	 * @param {string} id
 	 */
@@ -955,6 +975,14 @@
 			menu = '';
 		}
 	}}
+/>
+
+<StudioRebaseDialog
+	{projectName}
+	branch={status?.branch}
+	upstream={rebaseFrom}
+	onStart={rebaseInteractively}
+	onClose={() => (rebaseFrom = null)}
 />
 
 <div class="studio-git">
@@ -1600,6 +1628,21 @@
 										onclick={() => applyCommit('revert', entry)}
 									>
 										<Ico icon="mdi:undo-variant" size={4} /> Revert
+									</button>
+									<button
+										type="button"
+										role="menuitem"
+										disabled={Boolean(operation) ||
+											entry.inHead === false ||
+											commits[0]?.id === entry.id ||
+											Boolean(historyRef)}
+										title="Pick, reword, edit, squash, fix up, drop or reorder the commits after this one"
+										onclick={() => {
+											menu = '';
+											rebaseFrom = entry;
+										}}
+									>
+										<Ico icon="mdi:source-branch-sync" size={4} /> Rebase the commits after this one…
 									</button>
 									<span class="studio-git__menu-label">Reset {status.branch} here</span>
 									<button
