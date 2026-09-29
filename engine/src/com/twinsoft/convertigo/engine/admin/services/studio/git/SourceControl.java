@@ -70,7 +70,8 @@ import com.twinsoft.convertigo.engine.util.GitUtils;
  * push, fetch, branches, checkout (branch, create), merge (branch), rebase (branch), cherryPick (commit), revert
  * (commit), continue (message), skip or abort of the operation stopped, log (ref), show (commit, path), reset
  * (commit, mode soft, mixed or hard), createBranch (branch, commit, checkout), deleteBranch (branch, force),
- * renameBranch (branch, name), tags, tag (name, commit, annotation) or deleteTag (name); or decorations,
+ * renameBranch (branch, name), tags, tag (name, commit, annotation), deleteTag (name), stashes, stash (message,
+ * untracked), stashApply or stashPop (index), stashDrop (index); or decorations,
  * without projectName, for the branch and the changed files of each project in a repository</li>
  * <li>paths: the files to stage or unstage, as a JSON array of paths in the repository; path: the file to
  * compare</li>
@@ -282,6 +283,68 @@ public class SourceControl extends JSonService {
 					}
 					tag.call();
 				}
+				status(git, prefix, response);
+			}
+			case "stashes" -> {
+				var stashes = new JSONArray();
+				var index = 0;
+				for (var stash : git.stashList().call()) {
+					stashes.put(new JSONObject()
+							.put("index", index++)
+							.put("id", stash.abbreviate(7).name())
+							// not "message", which the Studio shows as a message
+							.put("subject", stash.getShortMessage())
+							.put("time", stash.getCommitTime() * 1000L));
+				}
+				response.put("stashes", stashes);
+				status(git, prefix, response);
+			}
+			case "stash" -> {
+				// the changes set aside, the files given back as HEAD has them
+				var before = snapshot(git);
+				var head = git.getRepository().resolve("HEAD^{commit}");
+				var stash = git.stashCreate().setIncludeUntracked("true".equals(request.getParameter("untracked")));
+				var message = request.getParameter("message");
+				if (message != null && !message.isBlank()) {
+					stash.setWorkingDirectoryMessage(message.strip());
+				}
+				if (stash.call() == null) {
+					throw new ServiceException("No change to stash.");
+				}
+				afterOperation(git, prefix, project.getName(), head, before, response);
+				status(git, prefix, response);
+			}
+			case "stashApply", "stashPop" -> {
+				// the changes of a stash applied again, dropped once applied by a pop; conflicts are merged object by
+				// object, the stash kept
+				var index = Integer.parseInt(request.getParameter("index") == null ? "0" : request.getParameter("index"));
+				var ref = "stash@{" + index + "}";
+				var stash = git.getRepository().resolve(ref);
+				if (stash == null) {
+					throw new ServiceException("The stash " + ref + " does not exist.");
+				}
+				var before = snapshot(git);
+				var head = git.getRepository().resolve("HEAD^{commit}");
+				var applied = true;
+				try {
+					git.stashApply().setStashRef(ref).call();
+				} catch (org.eclipse.jgit.api.errors.StashApplyFailureException e) {
+					applied = false;
+					GitOperation.applied(git.getRepository(), ref + ": " + git.getRepository().parseCommit(stash).getShortMessage());
+				}
+				if (applied && "stashPop".equals(action)) {
+					git.stashDrop().setStashRef(index).call();
+				}
+				var operation = afterOperation(git, prefix, project.getName(), head, before, response);
+				status(git, prefix, response);
+				if (!applied && !operation.stopped()) {
+					response.put("error", "The stash does not apply on the changes of the files: commit or stash them first.");
+				}
+				response.put("applied", applied);
+			}
+			case "stashDrop" -> {
+				var index = Integer.parseInt(request.getParameter("index") == null ? "0" : request.getParameter("index"));
+				git.stashDrop().setStashRef(index).call();
 				status(git, prefix, response);
 			}
 			case "deleteTag" -> {
@@ -823,6 +886,13 @@ public class SourceControl extends JSonService {
 			rebase = repository.getConfig().getString("pull", null, "rebase");
 		}
 		response.put("pullRebase", rebase != null && !"false".equals(rebase));
+		var stashes = 0;
+		if (head != null) {
+			for (var stash : git.stashList().call()) {
+				stashes += stash != null ? 1 : 0;
+			}
+		}
+		response.put("stashCount", stashes);
 		var staged = new TreeMap<String, String>();
 		var unstaged = new TreeMap<String, String>();
 		put(staged, status.getAdded(), "added", prefix);

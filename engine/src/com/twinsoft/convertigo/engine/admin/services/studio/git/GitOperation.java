@@ -71,6 +71,16 @@ class GitOperation {
 		}
 	}
 
+	/** the stash applied with conflicts, by repository, which the index does not name */
+	private static final java.util.Map<String, String> appliedStashes = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/**
+	 * Names the side of the conflicts of a stash applied.
+	 */
+	static void applied(Repository repository, String stash) {
+		appliedStashes.put(repository.getDirectory().getAbsolutePath(), stash);
+	}
+
 	/** one of the kinds above, empty when the repository has no operation stopped */
 	final String kind;
 	final RepositoryState state;
@@ -114,6 +124,12 @@ class GitOperation {
 		default -> new GitOperation(conflicting.isEmpty() ? "" : CONFLICTS, state);
 		};
 		operation.conflicting.addAll(conflicting);
+		var gitDir = repository.getDirectory().getAbsolutePath();
+		if (CONFLICTS.equals(operation.kind)) {
+			operation.theirsName = appliedStashes.getOrDefault(gitDir, "the changes applied");
+		} else {
+			appliedStashes.remove(gitDir);
+		}
 		try (var walk = new RevWalk(repository)) {
 			var head = repository.resolve("HEAD^{commit}");
 			operation.ours = head;
