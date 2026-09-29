@@ -486,6 +486,88 @@ public class TreeMerge extends JSonService {
 					}
 				}
 			}
+			mergeOrders();
+		}
+
+		/**
+		 * The order of the children of each object kept on the three sides, by kind, as its steps or its
+		 * variables: changed by them only, it is taken; changed on both sides differently, it is a conflict.
+		 */
+		private void mergeOrders() throws Exception {
+			for (var b : base.values()) {
+				var o = ours.get(b.key);
+				var t = theirs.get(b.key);
+				if (o == null || t == null || mb.get(b.key) == null) {
+					continue;
+				}
+				var groups = new java.util.LinkedHashMap<FolderType, java.util.List<String>>();
+				for (var key : b.children) {
+					var child = base.get(key);
+					if (child != null && o.children.contains(key) && t.children.contains(key)) {
+						groups.computeIfAbsent(TreeDiff.folderType(child.classname), (k) -> new java.util.ArrayList<>()).add(key);
+					}
+				}
+				for (var group : groups.entrySet()) {
+					var common = group.getValue();
+					if (common.size() < 2) {
+						continue;
+					}
+					var inOurs = o.children.stream().filter(common::contains).toList();
+					var inTheirs = t.children.stream().filter(common::contains).toList();
+					if (inTheirs.equals(common) || inTheirs.equals(inOurs)) {
+						continue;
+					}
+					if (inOurs.equals(common)) {
+						reorder(b.key, inTheirs);
+						change("modified", o, new JSONArray().put("Order"));
+						continue;
+					}
+					var id = "order:" + o.key + ":" + group.getKey().name();
+					var resolution = conflict(id, "order", "Reordered on both sides, differently", o, t, "order", "Order",
+							new String[] { names(base, common), names(ours, inOurs), names(theirs, inTheirs) }, false);
+					if (chose(resolution, "theirs")) {
+						reorder(b.key, inTheirs);
+					}
+				}
+			}
+		}
+
+		private static String names(Map<String, Bean> side, java.util.List<String> keys) {
+			var names = new java.util.ArrayList<String>();
+			for (var key : keys) {
+				names.add(side.get(key).name);
+			}
+			return String.join("\n", names);
+		}
+
+		/**
+		 * Puts children of an object of the merged project in an order, in the places they have.
+		 */
+		private void reorder(String key, java.util.List<String> order) {
+			var parent = mb.get(key);
+			var current = parent.children.stream().filter(order::contains).toList();
+			if (current.size() != order.size()) {
+				return;
+			}
+			var markers = new java.util.ArrayList<Node>();
+			for (var child : current) {
+				var element = mb.get(child).element;
+				var marker = merged.createComment("order");
+				element.getParentNode().insertBefore(marker, element);
+				markers.add(marker);
+			}
+			var elements = new java.util.ArrayList<Element>();
+			for (var child : order) {
+				var element = mb.get(child).element;
+				element.getParentNode().removeChild(element);
+				elements.add(element);
+			}
+			for (var i = 0; i < markers.size(); i++) {
+				var marker = markers.get(i);
+				marker.getParentNode().insertBefore(elements.get(i), marker);
+				marker.getParentNode().removeChild(marker);
+			}
+			mb = TreeDiff.beans(merged);
 		}
 
 		Set<String> conflictIds() throws Exception {
