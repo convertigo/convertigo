@@ -84,7 +84,7 @@ public class TreeMerge extends JSonService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		var projectName = request.getParameter("projectName");
-		var project = project(projectName);
+		var project = SourceControl.project(projectName);
 		if (project == null) {
 			throw new ServiceException("The project " + projectName + " does not exist.");
 		}
@@ -221,36 +221,6 @@ public class TreeMerge extends JSonService {
 	 */
 	static void forget(String projectName) {
 		sessions.remove(projectName);
-	}
-
-	/**
-	 * @return the project, loaded as HEAD has it when its files are filled with the markers of Git, as
-	 *         after a start of the engine during a merge
-	 */
-	private static Project project(String projectName) throws Exception {
-		if (projectName == null) {
-			return null;
-		}
-		try {
-			return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-		} catch (Exception e) {
-			var yaml = Engine.projectYamlFile(projectName);
-			var projectDir = yaml == null ? null : yaml.getParentFile().getCanonicalFile();
-			var workingDir = projectDir == null ? null : GitUtils.getWorkingDir(projectDir);
-			if (workingDir == null) {
-				throw e;
-			}
-			workingDir = workingDir.getCanonicalFile();
-			var prefix = projectDir.equals(workingDir) ? ""
-					: workingDir.toPath().relativize(projectDir.toPath()).toString().replace(File.separatorChar, '/') + "/";
-			try (var git = Git.open(workingDir)) {
-				if (!SourceControl.merging(git, prefix)) {
-					throw e;
-				}
-				SourceControl.loadCommitted(git, projectName, projectDir, prefix);
-			}
-			return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-		}
 	}
 
 	/**

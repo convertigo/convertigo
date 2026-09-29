@@ -29,7 +29,6 @@ import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RebaseCommand;
 import org.eclipse.jgit.api.RebaseResult;
-import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.lib.CommitConfig;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -379,12 +378,13 @@ class GitOperation {
 		var todo = count(repository, dir, "git-rebase-todo");
 		var msgnum = read(new File(dir, "msgnum"));
 		var end = read(new File(dir, "end"));
-		if (msgnum.matches("\\d+") && end.matches("\\d+")) {
-			step = Integer.parseInt(msgnum);
-			steps = Integer.parseInt(end);
-		} else if (done + todo > 0) {
+		// the lists done and to do, which JGit keeps up to date as Git does, rather than the counters of Git
+		if (done + todo > 0) {
 			step = done;
 			steps = done + todo;
+		} else if (msgnum.matches("\\d+") && end.matches("\\d+")) {
+			step = Integer.parseInt(msgnum);
+			steps = Integer.parseInt(end);
 		}
 		if (stopped != null) {
 			commit = walk.parseCommit(stopped);
@@ -548,7 +548,8 @@ class GitOperation {
 
 	/**
 	 * Abandons the operation: the repository, its index and its files, are given back as they were before
-	 * it; the conflicts of a stash applied are dropped with the other changes, the stash staying.
+	 * it. As git merge --abort, the files the operation changed come back as HEAD has them, the changes of
+	 * the other files, not committed, stay; a rebase is abandoned as git rebase --abort does.
 	 */
 	void abort(Git git) throws Exception {
 		var repository = git.getRepository();
@@ -557,7 +558,33 @@ class GitOperation {
 			rebaseMessages.remove(repository.getDirectory().getAbsolutePath());
 			return;
 		}
-		git.reset().setMode(ResetType.HARD).call();
+		// the files of the operation: in conflict, or staged by it
+		var status = git.status().call();
+		var paths = new TreeSet<String>();
+		paths.addAll(status.getConflicting());
+		paths.addAll(status.getAdded());
+		paths.addAll(status.getChanged());
+		paths.addAll(status.getRemoved());
+		var head = repository.resolve("HEAD^{tree}");
+		var inHead = new java.util.ArrayList<String>();
+		var added = new java.util.ArrayList<String>();
+		for (var path : paths) {
+			var exists = false;
+			if (head != null) {
+				try (var walk = org.eclipse.jgit.treewalk.TreeWalk.forPath(repository, path, head)) {
+					exists = walk != null;
+				}
+			}
+			(exists ? inHead : added).add(path);
+		}
+		if (!inHead.isEmpty()) {
+			git.checkout().setStartPoint(Constants.HEAD).addPaths(inHead).call();
+		}
+		if (!added.isEmpty()) {
+			var rm = git.rm();
+			added.forEach(rm::addFilepattern);
+			rm.call();
+		}
 		repository.writeMergeHeads(null);
 		repository.writeCherryPickHead(null);
 		repository.writeRevertHead(null);

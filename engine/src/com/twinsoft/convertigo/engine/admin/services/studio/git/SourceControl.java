@@ -122,7 +122,7 @@ public class SourceControl extends JSonService {
 			return;
 		}
 		var projectName = request.getParameter("projectName");
-		var project = projectName == null ? null : Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		var project = project(projectName);
 		if (project == null) {
 			throw new ServiceException("The project " + projectName + " does not exist.");
 		}
@@ -802,7 +802,7 @@ public class SourceControl extends JSonService {
 		var statuses = new java.util.HashMap<File, org.eclipse.jgit.api.Status>();
 		for (var name : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
 			try {
-				var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, false);
+				var project = project(name, false);
 				var projectDir = project == null ? null : project.getDirFile().getCanonicalFile();
 				var workingDir = projectDir == null ? null : GitUtils.getWorkingDir(projectDir);
 				if (workingDir == null) {
@@ -845,6 +845,40 @@ public class SourceControl extends JSonService {
 			}
 		}
 		return projects;
+	}
+
+	/**
+	 * @return the project, loaded as HEAD has it when its files are filled with the markers of Git, as
+	 *         after a start of the engine during a merge
+	 */
+	static com.twinsoft.convertigo.beans.core.Project project(String projectName) throws Exception {
+		return project(projectName, true);
+	}
+
+	static com.twinsoft.convertigo.beans.core.Project project(String projectName, boolean checkOpenable) throws Exception {
+		if (projectName == null) {
+			return null;
+		}
+		try {
+			return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, checkOpenable);
+		} catch (Exception e) {
+			var yaml = Engine.projectYamlFile(projectName);
+			var projectDir = yaml == null ? null : yaml.getParentFile().getCanonicalFile();
+			var workingDir = projectDir == null ? null : GitUtils.getWorkingDir(projectDir);
+			if (workingDir == null) {
+				throw e;
+			}
+			workingDir = workingDir.getCanonicalFile();
+			var prefix = projectDir.equals(workingDir) ? ""
+					: workingDir.toPath().relativize(projectDir.toPath()).toString().replace(File.separatorChar, '/') + "/";
+			try (var git = Git.open(workingDir)) {
+				if (!merging(git, prefix)) {
+					throw e;
+				}
+				loadCommitted(git, projectName, projectDir, prefix);
+			}
+			return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, checkOpenable);
+		}
 	}
 
 	/**

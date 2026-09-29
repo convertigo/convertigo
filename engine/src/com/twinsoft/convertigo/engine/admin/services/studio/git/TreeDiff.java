@@ -93,7 +93,7 @@ public class TreeDiff extends JSonService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		var projectName = request.getParameter("projectName");
-		var project = projectName == null ? null : Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		var project = SourceControl.project(projectName);
 		if (project == null) {
 			throw new ServiceException("The project " + projectName + " does not exist.");
 		}
