@@ -3052,6 +3052,12 @@ public class NgxBuilder extends MobileBuilder {
 				File appPkgJson = new File(ionicWorkDir, "package.json");
 				writeFile(appPkgJson, jsonPackage.toString(2), "UTF-8");
 
+				// an engine without the Eclipse Studio writes the files at once: the application it serves
+				// installs the new packages now
+				if (initDone && getNeedPkgUpdate() && !Engine.isStudioMode()) {
+					firePackageUpdated();
+				}
+
 				if (initDone) {
 					Engine.logEngine.trace("("+ builderType +") Ionic package json file generated");
 				}

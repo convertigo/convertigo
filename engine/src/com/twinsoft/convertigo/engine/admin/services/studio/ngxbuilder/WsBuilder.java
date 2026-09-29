@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
@@ -65,7 +66,7 @@ import com.twinsoft.convertigo.engine.util.ProcessUtils;
  * <li>server messages: {type: log | output | error | progress | load | network | state | built | compiled,
  * value}; error is a line of the output that tells an error, compiled the end of a compilation of the
  * development server, success or failed, phase what the build does, installing, building or empty, which
- * the preview shows; a state is
+ * the preview shows, restart a development server served again with new packages; a state is
  * dev:serving, dev:idle, local:building:&lt;mode&gt;, local:idle or auto:true|false|none (an engine without
  * Studio writes the sources at once, without auto build); network gives the URLs of
  * the development server on the network, as a JSON array</li>
@@ -82,6 +83,8 @@ public class WsBuilder extends WebSocketService {
 		private static final Pattern pPercent = Pattern.compile("(\\d+)% (.*)");
 
 		String projectName;
+		/** the Convertigo endpoint the application calls */
+		String endpoint;
 		String projectEndpoint;
 		/** dev, or the NgxBuilderBuildMode of a local build */
 		String mode;
@@ -104,6 +107,7 @@ public class WsBuilder extends WebSocketService {
 			this.projectName = projectName;
 			this.mode = mode;
 			this.install = install;
+			this.endpoint = endpoint;
 			projectEndpoint = endpoint + "/projects/" + projectName + "/";
 		}
 
@@ -234,6 +238,38 @@ public class WsBuilder extends WebSocketService {
 		private void serve(String path, File ionicDir, MobileBuilder mb, Object mutex) throws Exception {
 			mb.startBuild();
 			setPhase("building");
+			// a component that needs new packages, as the Eclipse Studio does, installs them and serves again
+			var restarting = new boolean[] { false };
+			MobileEventListener packagesNeeded = () -> {
+				synchronized (restarting) {
+					if (restarting[0]) {
+						return;
+					}
+					restarting[0] = true;
+				}
+				log("The application needs new packages: they are installed and the application is served again.");
+				// the Studio shows the application served again, as the one it asked
+				send("restart", "packages");
+				var next = new Build(projectName, endpoint, mode, "update");
+				var thread = new Thread(() -> {
+					try {
+						launch(next);
+					} catch (Exception e) {
+						Engine.logStudio.warn("(WsBuilder) failed to serve " + projectName + " again", e);
+					}
+				});
+				thread.setDaemon(true);
+				thread.start();
+			};
+			mb.addMobileEventListener(packagesNeeded);
+			try {
+				servePackaged(path, ionicDir, mb, mutex);
+			} finally {
+				mb.removeMobileEventListener(packagesNeeded);
+			}
+		}
+
+		private void servePackaged(String path, File ionicDir, MobileBuilder mb, Object mutex) throws Exception {
 			new File(project.getDirPath(), "DisplayObjects/mobile").mkdirs();
 
 			var pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:serve");
@@ -739,10 +775,16 @@ public class WsBuilder extends WebSocketService {
 	}
 
 	private void onBuild(JSONObject params, String mode) throws Exception {
-		var next = new Build(project, params.getString("endpoint"), mode, params.optString("install", ""));
+		launch(new Build(project, params.getString("endpoint"), mode, params.optString("install", "")));
+	}
+
+	/**
+	 * Starts a build, which replaces the running one of the same kind.
+	 */
+	static void launch(Build next) throws InterruptedException {
 		Build previous;
 		synchronized (builds) {
-			previous = builds.put(key(project, next.isDev()), next);
+			previous = builds.put(key(next.projectName, next.isDev()), next);
 		}
 		if (previous != null) {
 			// one development server and one local build at a time for a project: the new one replaces the

@@ -303,6 +303,9 @@
 						networkUrls = [];
 					}
 					qrUrl = networkUrls[0]?.url ?? '';
+				} else if (type === 'restart') {
+					// the builder serves the application again with the packages a component needs, as asked
+					serveAsked = true;
 				} else if (type === 'phase') {
 					const [kind, ...rest] = String(value).split(':');
 					if (kind === 'dev') {
