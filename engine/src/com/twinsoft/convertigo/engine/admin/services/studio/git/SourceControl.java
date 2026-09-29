@@ -34,6 +34,8 @@ import java.util.TreeMap;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
@@ -59,6 +61,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.flow.FlowSourceLayout;
 import com.twinsoft.convertigo.engine.util.GitUtils;
 
 /**
@@ -1021,6 +1024,12 @@ public class SourceControl extends JSonService {
 			var objects = new File(projectDir, "_c8oProject");
 			if (objects.isDirectory()) {
 				files.addAll(FileUtils.listFiles(objects, null, true));
+			}
+			// the Flow sources, as a Flow or a page, are files of the project beside its objects
+			var flowSources = new File(projectDir, FlowSourceLayout.current().root());
+			if (flowSources.isDirectory()) {
+				files.addAll(FileUtils.listFiles(flowSources, TrueFileFilter.INSTANCE,
+						FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter("node_modules"))));
 			}
 			files.sort(null);
 			var state = new StringBuilder();
