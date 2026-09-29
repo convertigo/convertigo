@@ -1,5 +1,4 @@
 <script>
-	import { trackPropertyApply } from './propertyApply.svelte.js';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
@@ -9,6 +8,7 @@
 	import {
 		asEditorValue,
 		canOpenCodeProperty,
+		choiceControl,
 		flowBindingPreview,
 		getPropertyLanguage,
 		hasPropertyPossibleValues,
@@ -20,6 +20,8 @@
 	} from '$lib/studio/propertyEditors';
 	import { tick, untrack } from 'svelte';
 	import { flowTypeDisplayName } from './blockDefinition';
+	import { trackPropertyApply } from './propertyApply.svelte.js';
+	import StudioBooleanField from './StudioBooleanField.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioEndpointDialog from './StudioEndpointDialog.svelte';
 	import StudioFontDialog from './StudioFontDialog.svelte';
@@ -248,7 +250,7 @@
 			return 'combo-text';
 		}
 		if (hasPropertyPossibleValues(row)) {
-			return values.length < 4 ? 'segment' : 'combo';
+			return choiceControl(values);
 		}
 		if (row?.flowKind === 'color') {
 			return 'color';
@@ -342,7 +344,7 @@
 		if (isSemanticColorProperty(row)) {
 			return 'color-combo';
 		}
-		return hasPropertyPossibleValues(row) ? (row.values.length < 4 ? 'segment' : 'combo') : 'text';
+		return hasPropertyPossibleValues(row) ? choiceControl(row.values) : 'text';
 	}
 
 	/**
@@ -967,7 +969,14 @@
 														</div>
 													</div>
 												{:else if type === 'flow-binding'}
-													{#if isLiteralFlowBinding(row)}
+													{#if isLiteralFlowBinding(row) && flowBindingLiteralType(row) === 'boolean'}
+														<StudioBooleanField
+															value={flowBindingLiteralValue(row)}
+															onChange={(nextValue) => setFlowBindingLiteralValue(row, nextValue)}
+															{label}
+															buttons={propertyButtons(row)}
+														/>
+													{:else if isLiteralFlowBinding(row)}
 														<PropertyType
 															type={flowBindingLiteralType(row)}
 															bind:value={
@@ -1011,6 +1020,13 @@
 														rows={smartMode(row) === 'script' ? textareaRows(row) : undefined}
 														actionsHorizontal
 														buttons={smartTypeButtons(row)}
+													/>
+												{:else if inlineEditable && type === 'boolean'}
+													<StudioBooleanField
+														{value}
+														onChange={(nextValue) => (row.value = nextValue)}
+														{label}
+														buttons={propertyButtons(row)}
 													/>
 												{:else if inlineEditable}
 													<PropertyType
@@ -1377,7 +1393,11 @@
 		min-width: 0;
 	}
 
+	/* a text grows with its lines, those it wraps too, then scrolls */
 	.studio-properties__field-control :global(textarea) {
+		field-sizing: content;
+		min-height: 2.25rem;
+		max-height: 9.5rem;
 		resize: vertical;
 	}
 

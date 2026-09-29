@@ -136,6 +136,25 @@ export function hasPropertyPossibleValues(row) {
 	return row.values.some((option) => String(option?.value ?? option) === String(current));
 }
 
+/** the characters the choices side by side can take, each as wide as the longest */
+const SEGMENT_MAX_TEXT = 20;
+
+/**
+ * The control of a choice among values: the few short ones side by side, the others in a list, whose
+ * labels would be cut side by side.
+ *
+ * @param {any[]} values
+ * @returns {'segment' | 'combo'}
+ */
+export function choiceControl(values) {
+	const longest = Math.max(
+		...values.map(
+			(option) => String(option?.text ?? option?.['#text'] ?? option?.value ?? option).length
+		)
+	);
+	return values.length < 4 && values.length * longest <= SEGMENT_MAX_TEXT ? 'segment' : 'combo';
+}
+
 /**
  * Detects a closed semantic color vocabulary from its values rather than from
  * a component or property name. This keeps the presentation metadata-driven.

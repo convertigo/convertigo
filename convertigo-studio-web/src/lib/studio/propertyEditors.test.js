@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	canOpenCodeProperty,
+	choiceControl,
 	findPrimaryEditorProperty,
 	flowBindingPreview,
 	getPropertyLanguage,
@@ -220,6 +221,20 @@ describe('Studio property choices', () => {
 				values: ['small', 'medium']
 			})
 		).toBe(true);
+	});
+
+	it('shows the few short choices side by side and the others in a list', () => {
+		expect(choiceControl(['verbose', 'useType'])).toBe('segment');
+		expect(choiceControl(['JXPath', 'Xalan'])).toBe('segment');
+		expect(choiceControl(['all', 'docLiteral', 'rpc'])).toBe('combo');
+		expect(choiceControl(['docNode', 'docChildNodes', 'docAttrAndChildNodes'])).toBe('combo');
+		expect(
+			choiceControl([
+				{ value: '0', text: 'none' },
+				{ value: '1', text: 'all' }
+			])
+		).toBe('segment');
+		expect(choiceControl(['a', 'b', 'c', 'd'])).toBe('combo');
 	});
 
 	it('keeps legacy values editable when they are outside a closed vocabulary', () => {
