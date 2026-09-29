@@ -45,7 +45,6 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.BinaryServletRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
@@ -90,14 +89,12 @@ public class BinaryServlet extends GenericServlet {
 
 	private void handleRemoteData(HttpServletRequest request, HttpServletResponse response, String remoteDataUrl) throws ServletException, IOException {
 		GetMethod method = null;
+		var logContext = Log4jHelper.mdcScope();
 		try {
 			HttpSession httpSession = request.getSession();
 
-			LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(BinaryServlet.class.getCanonicalName()));
-			if (logParameters == null) {
-				httpSession.setAttribute(BinaryServlet.class.getCanonicalName(), logParameters = new LogParameters());
-				logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
-			}
+			LogParameters logParameters = new LogParameters();
+			logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
 			logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
 			Log4jHelper.mdcSet(logParameters);
 
@@ -170,7 +167,7 @@ public class BinaryServlet extends GenericServlet {
 		} catch (Exception e) {
 			processException(request, response, e);
 		} finally {
-			Log4jHelper.mdcClear();
+			logContext.close();
 			removeSession(request, 1);
 			if (method != null) {
 				method.releaseConnection();

@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.util.InstanceIdentity;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.tas.KeyManager;
 
@@ -161,6 +162,7 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 
 	@Override
 	public void run() {
+		Log4jHelper.mdcClear();
 		while (isRunning) {
 			try {
 				Thread.sleep(POLL_INTERVAL_MS);

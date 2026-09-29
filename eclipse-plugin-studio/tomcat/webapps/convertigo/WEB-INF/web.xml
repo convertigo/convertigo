@@ -28,6 +28,16 @@
 	</session-config>
 
 	<filter>
+		<filter-name>MdcFilter</filter-name>
+		<filter-class>com.twinsoft.convertigo.engine.servlets.MdcFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>MdcFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>ERROR</dispatcher>
+	</filter-mapping>
+	<filter>
 		<filter-name>SessionSerializationFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.SessionSerializationFilter</filter-class>
 	</filter>

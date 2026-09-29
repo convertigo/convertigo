@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.ThreadUtils;
@@ -832,6 +833,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
     
     public class RequestableThread extends Thread {
+		private final Log4jHelper.MdcSnapshot logContext = Log4jHelper.mdcSnapshot();
         protected Throwable exception = null;
         protected Thread callingThread;
         public boolean bContinue = true;
@@ -852,6 +854,15 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
 		@Override
         public void run() {
+			try {
+				logContext.install();
+				runWithMdc();
+			} finally {
+				Log4jHelper.mdcClear();
+			}
+		}
+
+		private void runWithMdc() {
         	context.statistics.stop(workerThreadCreationStatistic);
         	
 			context.steps = new ArrayList<String>(8);

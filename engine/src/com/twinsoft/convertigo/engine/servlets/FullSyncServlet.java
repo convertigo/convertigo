@@ -156,7 +156,7 @@ public class FullSyncServlet extends HttpServlet {
 		}
 		
 		HttpSession httpSession = request.getSession();
-		
+		var logContext = Log4jHelper.mdcScope();
 		try {
 			FullSyncClient fsClient = Engine.theApp.couchDbManager.getFullSyncClient();
 			RequestParser requestParser = new RequestParser(request, fsClient.getPrefix());
@@ -189,16 +189,12 @@ public class FullSyncServlet extends HttpServlet {
 				set.add(request);
 			}
 			
-			LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(FullSyncServlet.class.getCanonicalName()));
-			
-			if (logParameters == null) {
-				httpSession.setAttribute(FullSyncServlet.class.getCanonicalName(), logParameters = new LogParameters());
-				logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
-			}
+			LogParameters logParameters = new LogParameters();
+			logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
 
 			Log4jHelper.mdcSet(logParameters);
 			
-			logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
+			Log4jHelper.mdcPut(mdcKeys.ClientIP, request.getRemoteAddr());
 
 			if (EnginePropertiesManager.getProperty(PropertyName.NET_REVERSE_DNS).equalsIgnoreCase("true")) {
 				Log4jHelper.mdcPut(mdcKeys.ClientHostName, request.getRemoteHost());
@@ -753,7 +749,7 @@ public class FullSyncServlet extends HttpServlet {
 			}
 			HttpUtils.terminateNewSession(httpSession);
 		} finally {
-			Log4jHelper.mdcClear();
+			logContext.close();
 			synchronized (httpSession) {
 				Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(httpSession);
 				if (set != null) {

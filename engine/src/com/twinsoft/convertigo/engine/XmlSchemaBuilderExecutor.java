@@ -32,6 +32,7 @@ import java.util.concurrent.Executors;
 import org.apache.ws.commons.schema.XmlSchema;
 
 import com.twinsoft.convertigo.engine.SchemaManager.Option;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class XmlSchemaBuilderExecutor {
 	
@@ -88,11 +89,17 @@ public class XmlSchemaBuilderExecutor {
 		    executor = Executors.newFixedThreadPool(size);
 		    CompletionService<String> completion = new ExecutorCompletionService<String>(executor);
 		    for (final XmlSchemaBuilder builder: builders) {
+				var logContext = Log4jHelper.mdcSnapshot();
 		    	completion.submit(new Callable<String>() {
 					@Override
 					public String call() throws Exception {
-						builder.beginBuildSchema(XmlSchemaBuilderExecutor.this);
-						return builder.toString();
+						try {
+							logContext.install();
+							builder.beginBuildSchema(XmlSchemaBuilderExecutor.this);
+							return builder.toString();
+						} finally {
+							Log4jHelper.mdcClear();
+						}
 					}
 				});
 		    	if (!first) {

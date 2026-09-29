@@ -35,14 +35,11 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.MDC;
-
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.MinificationManager;
-import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 
 public class ProjectsDataFilter implements Filter {
@@ -55,14 +52,7 @@ public class ProjectsDataFilter implements Filter {
 
 		HttpServletRequest request = (HttpServletRequest) _request;
 		HttpServletResponse response = (HttpServletResponse) _response;
-		String query = request.getQueryString();
 		String requestURI = request.getRequestURI();
-		
-		if (HeaderName.XConvertigoNoLog.has(request) || (query != null && query.matches("(.*&)?__nolog=true(&.*)?")) || requestURI.contains("/system/projects/")) {
-			MDC.put("nolog", true);
-		} else {
-			MDC.remove("nolog");
-		}
 		
 		Engine.logContext.debug("Entering projects data servlet filter");
 

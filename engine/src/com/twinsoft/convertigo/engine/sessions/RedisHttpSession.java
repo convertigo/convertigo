@@ -34,6 +34,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 @SuppressWarnings("deprecation")
 final class RedisHttpSession implements HttpSession, Serializable {
@@ -530,6 +531,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 		}
 
 		private void cleanupLoop() {
+			Log4jHelper.mdcClear();
 			while (true) {
 				try {
 					Thread.sleep(CLEANUP_INTERVAL_MILLIS);

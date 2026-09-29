@@ -82,6 +82,7 @@ import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.LogCleaner;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
@@ -136,7 +137,10 @@ public class Engine {
 		
 		@Override
 		public Thread newThread(Runnable r) {
-			Thread thread = new Thread(r);
+			Thread thread = new Thread(() -> {
+				Log4jHelper.mdcClear();
+				r.run();
+			});
 			thread.setName("ConvertigoExecutor-" + threadCount++);
 			thread.setDaemon(true);
 			return thread;
@@ -1734,7 +1738,7 @@ public class Engine {
 	}
 
 	public static void execute(Runnable runnable) {
-		executor.execute(() -> {
+		executor.execute(Log4jHelper.withMdc(() -> {
 			Thread th = Thread.currentThread();
 			String name = th.getName();
 			try {
@@ -1750,7 +1754,7 @@ public class Engine {
 					th.setName(name);
 				}
 			}
-		});
+		}));
 	}
 
 	private static Map<Class<? extends Runnable>, boolean[]> executeThreshold = new HashMap<>();
@@ -1766,7 +1770,7 @@ public class Engine {
 			boolean[] _doit = {true};
 			synchronized (_doit) {
 				executeThreshold.put(runnable.getClass(), _doit);
-				executor.execute(() -> {
+				executor.execute(Log4jHelper.withMdc(() -> {
 					Thread th = Thread.currentThread();
 					String name = th.getName();
 					try {
@@ -1791,7 +1795,7 @@ public class Engine {
 							th.setName(name);
 						}
 					}
-				});
+				}));
 				try {
 					_doit.wait();
 				} catch (Exception e) {

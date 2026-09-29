@@ -315,6 +315,16 @@ tasks.named('check') {
 	dependsOn 'componentRefManagerTest'
 	dependsOn 'projectArchiveTest'
 	dependsOn 'ionBeanTest'
+	dependsOn 'mdcLifecycleTest'
+}
+
+tasks.register('mdcLifecycleTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for MDC isolation across requests and asynchronous tasks.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.MdcLifecycleTest'
 }
 
 tasks.register('requestScopedSessionTest', JavaExec) {

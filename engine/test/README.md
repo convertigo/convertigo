@@ -1,5 +1,16 @@
 # Session value serialization regression tests
 
+## MDC lifecycle
+
+`./gradlew :engine:mdcLifecycleTest` runs the logging regression suite, also
+included in `:engine:check`. It uses the production Log4j bridge, layout and
+`nolog` filter to check rendered log fields, cleanup of reused workers, delayed
+executor tasks, requestable threads, context snapshots, nested requester errors
+(including cleanup failures), HTTP filter boundaries, `nolog` initialization before
+alias forwarding, and device log environments.
+The tests run in their own JVM with in-memory fixtures; they do not start a server
+or contact SMTP, Redis or other external services.
+
 ## Project archive cleanup
 
 `./gradlew :engine:projectArchiveTest` runs the archive regression checks, also
