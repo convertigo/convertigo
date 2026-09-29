@@ -2894,6 +2894,16 @@ public class NgxBuilder extends MobileBuilder {
 					String wContent = FileUtils.readFileToString(angularJson, "UTF-8");
 					JSONObject wJsonObject = new JSONObject(wContent);
 					
+					// the base the development server of the web Studio serves the application at is not a
+					// change of the application, which would install its packages and serve it again
+					try {
+						wJsonObject.getJSONObject("projects").getJSONObject("app").getJSONObject("architect")
+								.getJSONObject("build").getJSONObject("configurations").getJSONObject("serve")
+								.remove("baseHref");
+					} catch (Exception e) {
+						// no serve configuration
+					}
+					
 					boolean needUpdate = !jsonObject.toString().equals(wJsonObject.toString());
 					if (needUpdate) {
 						setNeedPkgUpdate(true);
