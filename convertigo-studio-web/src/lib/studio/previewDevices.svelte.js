@@ -131,7 +131,8 @@ export function removeCustomDevice(id) {
 /**
  * The URL of an application of the engine with the Ionic mode of its OS, which the Ionic applications
  * read at their start, as the Eclipse Studio gives them the user agent of the device. The Android mode
- * is the one of a desktop browser, which needs no parameter.
+ * is the one of a desktop browser, which needs no parameter. The application opens from its folder, as
+ * once deployed: Angular leaves index.html in the path of its router when a query follows it.
  * @param {string} url
  * @param {'android' | 'ios'} os
  * @returns {string}
@@ -145,6 +146,7 @@ export function withDeviceOs(url, os) {
 		if (address.origin !== location.origin || !/\/projects\/[^/]+\//.test(address.pathname)) {
 			return url;
 		}
+		address.pathname = address.pathname.replace(/\/index\.html$/, '/');
 		address.searchParams.set('ionic:mode', 'ios');
 		return address.href;
 	} catch {

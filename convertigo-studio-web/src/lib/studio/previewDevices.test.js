@@ -8,7 +8,7 @@ describe('previewDevices', () => {
 			expect(
 				withDeviceOs('/convertigo/projects/App/DisplayObjects/mobile/index.html#/home', 'ios')
 			).toBe(
-				'http://studio.test/convertigo/projects/App/DisplayObjects/mobile/index.html?ionic%3Amode=ios#/home'
+				'http://studio.test/convertigo/projects/App/DisplayObjects/mobile/?ionic%3Amode=ios#/home'
 			);
 			expect(
 				withDeviceOs('/convertigo/projects/App/DisplayObjects/mobile/index.html', 'android')
