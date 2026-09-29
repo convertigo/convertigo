@@ -84,6 +84,37 @@ import com.twinsoft.convertigo.engine.util.GitUtils;
 @ServiceDefinition(name = "SourceControl", roles = { Role.WEB_ADMIN, Role.PROJECTS_CONFIG }, parameters = {}, returnValue = "")
 public class SourceControl extends JSonService {
 
+	/**
+	 * The credentials given for the remotes, by address, kept in memory until the engine stops, never
+	 * written: the Studio asks them when a remote refuses a fetch, a pull or a push without them.
+	 */
+	private static final Map<String, org.eclipse.jgit.transport.CredentialsProvider> credentials = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/** the remote an operation contacts, named when it refuses it without credentials */
+	private static final ThreadLocal<String> contacting = new ThreadLocal<>();
+
+	/**
+	 * @return a command that contacts a remote, with the credentials given for its address
+	 */
+	private static <C extends org.eclipse.jgit.api.TransportCommand<C, ?>> C authenticated(Git git, String remote, C command) {
+		contacting.set(remote);
+		var url = remote == null ? null : git.getRepository().getConfig().getString("remote", remote, "url");
+		var provider = url == null ? null : credentials.get(url);
+		return provider == null ? command : command.setCredentialsProvider(provider);
+	}
+
+	/**
+	 * @return whether a remote refused an operation for its credentials, missing or wrong
+	 */
+	private static boolean refusedCredentials(Throwable e) {
+		for (; e != null; e = e.getCause()) {
+			if (e.getMessage() != null && e.getMessage().matches("(?is).*(not authorized|authentication is required|authentication failed|\\b401\\b|\\b403\\b).*")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		if ("decorations".equals(request.getParameter("action"))) {
@@ -116,6 +147,38 @@ public class SourceControl extends JSonService {
 		var prefix = projectDir.equals(workingDir) ? ""
 				: workingDir.toPath().relativize(projectDir.toPath()).toString().replace(File.separatorChar, '/') + "/";
 		try (var git = Git.open(workingDir)) {
+			// the credentials given for the remote that refused the operation
+			var authRemote = request.getParameter("authRemote");
+			var authUrl = authRemote == null ? null : git.getRepository().getConfig().getString("remote", authRemote, "url");
+			if (authUrl != null && request.getParameter("password") != null) {
+				var username = request.getParameter("username");
+				credentials.put(authUrl, new org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider(username == null ? "" : username, request.getParameter("password")));
+			}
+			try {
+				serve(git, workingDir, prefix, project, action, request, response);
+			} catch (org.eclipse.jgit.api.errors.TransportException e) {
+				if (!refusedCredentials(e)) {
+					throw e;
+				}
+				// the Studio asks the credentials of the remote, and does the operation again with them
+				var remote = contacting.get();
+				var url = remote == null ? null : git.getRepository().getConfig().getString("remote", remote, "url");
+				if (url != null) {
+					credentials.remove(url);
+				}
+				status(git, prefix, response);
+				response.put("authRequired", true);
+				response.put("authRemote", remote);
+				response.put("remoteUrl", url);
+			} finally {
+				contacting.remove();
+			}
+		}
+	}
+
+	private void serve(Git git, File workingDir, String prefix, com.twinsoft.convertigo.beans.core.Project project, String action, HttpServletRequest request,
+			JSONObject response) throws Exception {
+		{
 			switch (action) {
 			case "status" -> status(git, prefix, response);
 			case "diff" -> response.put("diff", diff(git, path(request.getParameter("path"), prefix)));
@@ -358,7 +421,9 @@ public class SourceControl extends JSonService {
 				// merged, or rebased, as the configuration of the branch says or as asked
 				var before = snapshot(git);
 				var head = git.getRepository().resolve("HEAD^{commit}");
-				var pull = git.pull();
+				var repository = git.getRepository();
+				var pullRemote = repository.getConfig().getString("branch", repository.getBranch(), "remote");
+				var pull = authenticated(git, pullRemote == null ? "origin" : pullRemote, git.pull());
 				var mode = request.getParameter("mode");
 				if ("rebase".equals(mode) || "merge".equals(mode)) {
 					pull.setRebase("rebase".equals(mode));
@@ -499,7 +564,7 @@ public class SourceControl extends JSonService {
 				if (remote == null) {
 					throw new ServiceException("The repository has no remote to push to.");
 				}
-				var push = git.push().setRemote(remote);
+				var push = authenticated(git, remote, git.push().setRemote(remote));
 				if (full != null && full.startsWith(Constants.R_HEADS)) {
 					var target = publish ? full : repository.getConfig().getString("branch", branch, "merge");
 					push.setRefSpecs(new org.eclipse.jgit.transport.RefSpec(full + ":" + (target == null ? full : target)));
@@ -540,7 +605,7 @@ public class SourceControl extends JSonService {
 				// all the remotes, the branches they no longer have removed
 				var remote = request.getParameter("remote");
 				for (var name : remote == null || remote.isBlank() ? git.getRepository().getRemoteNames() : Set.of(remote)) {
-					git.fetch().setRemote(name).setRemoveDeletedRefs(true).call();
+					authenticated(git, name, git.fetch().setRemote(name).setRemoveDeletedRefs(true)).call();
 				}
 				status(git, prefix, response);
 			}
@@ -569,6 +634,14 @@ public class SourceControl extends JSonService {
 				}
 				status(git, prefix, response);
 			}
+			case "forgetCredentials" -> {
+				// the credentials given for a remote, asked again at its next refusal
+				var url = git.getRepository().getConfig().getString("remote", request.getParameter("name"), "url");
+				if (url != null) {
+					credentials.remove(url);
+				}
+				status(git, prefix, response);
+			}
 			case "removeRemote" -> {
 				// the remote and its branches, as git remote remove does
 				var name = request.getParameter("name");
@@ -590,7 +663,7 @@ public class SourceControl extends JSonService {
 				}
 				var remote = branch.substring(0, slash);
 				var refused = new ArrayList<String>();
-				for (var result : git.push().setRemote(remote).setRefSpecs(new org.eclipse.jgit.transport.RefSpec(":" + Constants.R_HEADS + branch.substring(slash + 1))).call()) {
+				for (var result : authenticated(git, remote, git.push().setRemote(remote)).setRefSpecs(new org.eclipse.jgit.transport.RefSpec(":" + Constants.R_HEADS + branch.substring(slash + 1))).call()) {
 					for (var update : result.getRemoteUpdates()) {
 						if (update.getStatus() != RemoteRefUpdate.Status.OK && update.getStatus() != RemoteRefUpdate.Status.NON_EXISTING) {
 							refused.add(update.getStatus() + (update.getMessage() == null ? "" : " (" + update.getMessage() + ")"));
