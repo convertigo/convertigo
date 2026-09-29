@@ -60,12 +60,14 @@ function normalizedDefinitionType(value) {
 /**
  * Match the public provider descriptor by its stable Flow type. Java class is
  * only a fallback for regular DBOs: all frontend widgets intentionally share
- * FlowVirtualObject and must not collapse onto that technical class.
+ * FlowVirtualObject and must not collapse onto that technical class. The NGX
+ * components of Ionic share UIDynamicElement too: their type, the name of their
+ * Ionic bean, tells the one of the palette, "ngx <type>".
  * @param {{ name?: string, items?: any[] }[]} categories
- * @param {{ flowType?: string, javaClass?: string }} identity
+ * @param {{ flowType?: string, javaClass?: string, type?: string }} identity
  * @returns {any | null}
  */
-export function findBlockDefinition(categories, { flowType = '', javaClass = '' } = {}) {
+export function findBlockDefinition(categories, { flowType = '', javaClass = '', type = '' } = {}) {
 	const normalizedFlowType = normalizedDefinitionType(flowType);
 	for (const category of categories ?? []) {
 		for (const item of category?.items ?? []) {
@@ -81,6 +83,16 @@ export function findBlockDefinition(categories, { flowType = '', javaClass = '' 
 	}
 	if (!javaClass || javaClass.endsWith('.FlowVirtualObject')) {
 		return null;
+	}
+	if (type) {
+		for (const category of categories ?? []) {
+			const item = (category?.items ?? []).find(
+				(candidate) => candidate?.classname === javaClass && candidate?.id === `ngx ${type}`
+			);
+			if (item) {
+				return item;
+			}
+		}
 	}
 	for (const category of categories ?? []) {
 		const item = (category?.items ?? []).find((candidate) => candidate?.classname === javaClass);

@@ -47,6 +47,16 @@ describe('Flow block definition identity', () => {
 		);
 	});
 
+	it('tells the NGX components of Ionic, which share their Java class, by their type', () => {
+		const javaClass = 'com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement';
+		const accordion = { id: 'ngx Accordion', name: 'Accordion', classname: javaClass };
+		const title = { id: 'ngx BarTitle', name: 'Bar Title', classname: javaClass };
+		expect(
+			findBlockDefinition([{ items: [accordion, title] }], { javaClass, type: 'BarTitle' })
+		).toBe(title);
+		expect(findBlockDefinition([{ items: [accordion, title] }], { javaClass })).toBe(accordion);
+	});
+
 	it('keeps the palette name primary and the instance summary secondary', () => {
 		const documentedProperties = {
 			...properties,

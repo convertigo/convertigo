@@ -1501,8 +1501,9 @@
 		}
 		const flowType = propertyValue(properties, 'Flow type', 'virtualType');
 		const javaClass = propertyValue(properties, 'Java class', 'P_JavaClass');
+		const type = propertyValue(properties, 'Type', 'P_Type');
 		if (flowType || javaClass) {
-			const paletteItem = await findPaletteItem(id, { flowType, javaClass });
+			const paletteItem = await findPaletteItem(id, { flowType, javaClass, type });
 			if (paletteItem) {
 				return blockDefinitionForInstance(paletteItem, id, properties);
 			}
@@ -1512,7 +1513,7 @@
 
 	/**
 	 * @param {string} id
-	 * @param {{ flowType?: string, javaClass?: string }} identity
+	 * @param {{ flowType?: string, javaClass?: string, type?: string }} identity
 	 * @returns {Promise<PaletteItem | null>}
 	 */
 	async function findPaletteItem(id, identity) {
