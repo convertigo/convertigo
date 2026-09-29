@@ -366,14 +366,129 @@ public class TreeMerge extends JSonService {
 			conflict.put("kind", "file");
 			conflict.put("name", relative);
 			conflict.put("path", path);
-			conflict.put("choices", new JSONArray().put("mine").put("theirs"));
+			var choices = new JSONArray().put("mine").put("theirs");
+			// a text is merged line by line, its conflicts resolved block by block
+			var blocks = blocks(git.getRepository(), path);
+			if (blocks != null) {
+				conflict.put("blocks", blocks);
+				choices.put("blocks");
+			}
+			conflict.put("choices", choices);
 			var resolution = session.resolutions.get("file:" + path);
 			if (resolution != null) {
-				conflict.put("resolution", resolution.choice());
+				if ("blocks".equals(resolution.choice())) {
+					conflict.put("value", resolution.value());
+					if (blocks != null && assemble(blocks, resolution.value()) != null) {
+						conflict.put("resolution", "blocks");
+					}
+				} else {
+					conflict.put("resolution", resolution.choice());
+				}
 			}
 			conflicts.put(conflict);
 		}
 		return conflicts;
+	}
+
+	/**
+	 * @return the blocks of a text file in conflict, merged line by line as Git merges it: the lines merged,
+	 *         {kind: same, text}, and the conflicts, {kind: conflict, index, base, mine, theirs}; null when a
+	 *         side removed it or is not a text
+	 */
+	static JSONArray blocks(Repository repository, String path) throws Exception {
+		var index = repository.readDirCache();
+		var sides = new byte[4][];
+		for (var i = 0; i < index.getEntryCount(); i++) {
+			var entry = index.getEntry(i);
+			if (entry.getStage() > 0 && entry.getPathString().equals(path)) {
+				sides[entry.getStage()] = repository.open(entry.getObjectId()).getBytes();
+			}
+		}
+		if (sides[2] == null || sides[3] == null) {
+			return null;
+		}
+		for (var side : sides) {
+			if (side != null && (side.length > 2_000_000 || org.eclipse.jgit.diff.RawText.isBinary(side))) {
+				return null;
+			}
+		}
+		var texts = java.util.List.of(new org.eclipse.jgit.diff.RawText(sides[1] == null ? new byte[0] : sides[1]),
+				new org.eclipse.jgit.diff.RawText(sides[2]), new org.eclipse.jgit.diff.RawText(sides[3]));
+		var result = new org.eclipse.jgit.merge.MergeAlgorithm().merge(org.eclipse.jgit.diff.RawTextComparator.DEFAULT, texts.get(0), texts.get(1), texts.get(2));
+		var blocks = new JSONArray();
+		JSONObject same = null;
+		JSONObject conflict = null;
+		var count = 0;
+		for (var chunk : result) {
+			var text = texts.get(chunk.getSequenceIndex()).getString(chunk.getBegin(), chunk.getEnd(), false);
+			switch (chunk.getConflictState()) {
+			case NO_CONFLICT -> {
+				conflict = null;
+				if (same == null) {
+					blocks.put(same = new JSONObject().put("kind", "same").put("text", ""));
+				}
+				same.put("text", same.getString("text") + text);
+			}
+			case FIRST_CONFLICTING_RANGE -> {
+				same = null;
+				blocks.put(conflict = new JSONObject().put("kind", "conflict").put("index", count++).put("mine", text).put("base", "").put("theirs", ""));
+			}
+			case BASE_CONFLICTING_RANGE -> {
+				if (conflict != null) {
+					conflict.put("base", text);
+				}
+			}
+			case NEXT_CONFLICTING_RANGE -> {
+				if (conflict != null) {
+					conflict.put("theirs", text);
+				}
+			}
+			}
+		}
+		return blocks;
+	}
+
+	/**
+	 * @param choices the choice of each conflict, by its index: mine, theirs, both, mine then theirs, both
+	 *        theirs first, or {edit: its lines}
+	 * @return the text of a file, its blocks put together as chosen, or null while a conflict has no choice
+	 */
+	static String assemble(JSONArray blocks, String choices) {
+		try {
+			var chosen = choices == null ? new JSONObject() : new JSONObject(choices);
+			var text = new StringBuilder();
+			for (var i = 0; i < blocks.length(); i++) {
+				var block = blocks.getJSONObject(i);
+				if ("same".equals(block.getString("kind"))) {
+					text.append(block.getString("text"));
+					continue;
+				}
+				var key = String.valueOf(block.getInt("index"));
+				if (!chosen.has(key)) {
+					return null;
+				}
+				var mine = block.getString("mine");
+				var theirs = block.getString("theirs");
+				var choice = chosen.get(key);
+				if (choice instanceof JSONObject edit) {
+					var lines = edit.optString("edit");
+					text.append(lines.isEmpty() || lines.endsWith("\n") ? lines : lines + "\n");
+				} else {
+					switch (String.valueOf(choice)) {
+					case "mine" -> text.append(mine);
+					case "theirs" -> text.append(theirs);
+					case "both" -> text.append(mine).append(mine.isEmpty() || mine.endsWith("\n") ? "" : "\n").append(theirs);
+					case "theirsFirst" -> text.append(theirs).append(theirs.isEmpty() || theirs.endsWith("\n") ? "" : "\n").append(mine);
+					default -> {
+						return null;
+					}
+					}
+				}
+			}
+			return text.toString();
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	private static int unresolved(JSONArray conflicts) throws Exception {
@@ -398,6 +513,14 @@ public class TreeMerge extends JSonService {
 		for (var i = 0; i < fileConflicts.length(); i++) {
 			var path = fileConflicts.getJSONObject(i).getString("path");
 			var resolution = session.resolutions.get("file:" + path);
+			if ("blocks".equals(resolution.choice())) {
+				// the lines merged and the lines chosen of each block
+				var text = assemble(fileConflicts.getJSONObject(i).getJSONArray("blocks"), resolution.value());
+				var file = new File(git.getRepository().getWorkTree(), path);
+				FileUtils.writeStringToFile(file, text, StandardCharsets.UTF_8);
+				git.add().addFilepattern(path).call();
+				continue;
+			}
 			var stage = "theirs".equals(resolution.choice()) ? CheckoutCommand.Stage.THEIRS : CheckoutCommand.Stage.OURS;
 			try {
 				git.checkout().setStage(stage).addPath(path).call();
