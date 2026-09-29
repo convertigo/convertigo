@@ -140,7 +140,7 @@
 					<label class="studio-dialog__field">
 						<span>{type === 'rest' ? 'Swagger or OpenAPI definition' : 'WSDL'} file</span>
 						<input
-							class="input-common studio-dialog__file"
+							class="studio-dialog__file input-common"
 							type="file"
 							accept={type === 'rest' ? '.json,.yaml,.yml' : '.wsdl,.xml'}
 							onchange={(event) => (definition = event.currentTarget.files?.[0] ?? null)}

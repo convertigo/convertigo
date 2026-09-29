@@ -430,7 +430,7 @@
 				<Button
 					full={false}
 					icon={favoriteSelected ? 'mdi:star' : 'mdi:star-outline'}
-					class="button-secondary studio-palette__star"
+					class="studio-palette__star button-secondary"
 					title={favoriteSelected ? 'Remove from the favorites' : 'Add to the favorites'}
 					ariaLabel={favoriteSelected ? 'Remove from the favorites' : 'Add to the favorites'}
 					onclick={() => togglePaletteFavorite(itemKey(addableItem))}

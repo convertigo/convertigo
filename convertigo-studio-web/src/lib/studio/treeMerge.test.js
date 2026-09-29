@@ -82,8 +82,10 @@ describe('treeMerge', () => {
 			'Merging feature into main'
 		);
 		expect(
-			describeOperation({ kind: 'cherry-pick', commit: { id: 'def5678', subject: 'Fix', author: 'me' } })
-				.title
+			describeOperation({
+				kind: 'cherry-pick',
+				commit: { id: 'def5678', subject: 'Fix', author: 'me' }
+			}).title
 		).toBe('Cherry-picking def5678');
 		expect(describeOperation({ kind: 'revert' }).complete).toBe('Complete the revert');
 		expect(describeOperation({ kind: 'conflicts' }).complete).toBe('Mark as resolved');

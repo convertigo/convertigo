@@ -72,7 +72,7 @@
 				</div>
 				<label class="studio-dialog__field">
 					<span>Copybook file</span>
-					<input class="input-common studio-dialog__file" type="file" onchange={load} />
+					<input class="studio-dialog__file input-common" type="file" onchange={load} />
 				</label>
 				<label class="studio-dialog__field">
 					<span>Copybook</span>

@@ -142,7 +142,7 @@
 					<label class="studio-dialog__field">
 						<span>XML file</span>
 						<input
-							class="input-common studio-dialog__file"
+							class="studio-dialog__file input-common"
 							type="file"
 							accept=".xml"
 							onchange={(event) => load(event, (text) => (xml = text))}
@@ -188,7 +188,7 @@
 						<label class="studio-dialog__field">
 							<span>Schema file</span>
 							<input
-								class="input-common studio-dialog__file"
+								class="studio-dialog__file input-common"
 								type="file"
 								accept=".xsd"
 								onchange={(event) =>

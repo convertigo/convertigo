@@ -143,7 +143,7 @@
 							><Ico icon="mdi:camera-outline" size={4} /> Capture the preview</button
 						>
 					{/if}
-					<label class="button-secondary studio-capture__file">
+					<label class="studio-capture__file button-secondary">
 						<Ico icon="mdi:image-outline" size={4} /> Choose a picture
 						<input type="file" accept="image/*" onchange={choose} />
 					</label>

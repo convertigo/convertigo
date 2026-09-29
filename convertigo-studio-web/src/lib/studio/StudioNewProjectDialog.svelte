@@ -260,7 +260,7 @@
 					<label class="studio-dialog__field">
 						<span>Project archive</span>
 						<input
-							class="input-common studio-dialog__file"
+							class="studio-dialog__file input-common"
 							type="file"
 							accept=".car,.zip"
 							onchange={(event) => (archive = event.currentTarget.files?.[0] ?? null)}

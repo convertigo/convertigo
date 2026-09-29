@@ -273,7 +273,7 @@
 		{:else}
 			<button
 				type="button"
-				class="button-primary studio-debug__start"
+				class="studio-debug__start button-primary"
 				disabled={Boolean(busy)}
 				onclick={() => run('start')}
 			>

@@ -7,7 +7,6 @@
 </script>
 
 <script>
-	import { settlePropertyApply } from '$lib/studio/propertyApply.svelte.js';
 	import { Popover } from '@skeletonlabs/skeleton-svelte';
 	import ActionBar from '$lib/admin/components/ActionBar.svelte';
 	import Button from '$lib/admin/components/Button.svelte';
@@ -16,6 +15,7 @@
 	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
 	import LightSvelte from '$lib/common/Light.svelte';
 	import RequestableResponseEditor from '$lib/dashboard/RequestableResponseEditor.svelte';
+	import { settlePropertyApply } from '$lib/studio/propertyApply.svelte.js';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, callRequestable, getUrl, toaster } from '$lib/utils/service';
 	import { untrack } from 'svelte';
