@@ -1625,11 +1625,12 @@
 		font-weight: 400;
 	}
 
+	/* the comments in the green of the comments of the code, aligned by the tree */
 	.studio-tree-node__comment {
 		max-width: 18rem;
 		overflow: hidden;
 		margin-left: 0.5rem;
-		color: var(--color-success-700-300);
+		color: light-dark(#3f7f5f, #6a9955);
 		font-size: 0.72rem;
 		text-overflow: ellipsis;
 		white-space: nowrap;

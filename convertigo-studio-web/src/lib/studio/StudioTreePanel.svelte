@@ -5,17 +5,21 @@
 	import { onMount, tick, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { closedProjects, refreshClosedProjects } from './closedProjects.svelte.js';
-	import { isFolderId } from './folderTypes.js';
-	import { treeSelectionOf } from './treeSelection.svelte.js';
 	import {
 		areEquivalentDboObjectIds,
 		equivalentDboObjectIds,
 		mutationDboContextIds,
 		mutationDboRefreshIds
 	} from './dnd';
+	import { isFolderId } from './folderTypes.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import { applyProjectedTreeMutation, remapExpandedTreeIds } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
+	import { treeSelectionOf } from './treeSelection.svelte.js';
+
+	/** the part of the width of the view the column of the comments goes to at most */
+	const COMMENT_COLUMN_MAX = 0.6;
+	const COMMENT_GAP = 10;
 
 	/**
 	 * @type {{
@@ -555,6 +559,51 @@
 		}
 		return undefined;
 	}
+
+	/**
+	 * Aligns the comments of the rows shown on a column, after the longest name, which a name too long
+	 * for the width of the view goes beyond.
+	 * @param {HTMLElement} tree
+	 */
+	function alignComments(tree) {
+		let frame = 0;
+		const align = () => {
+			frame = 0;
+			const comments = /** @type {NodeListOf<HTMLElement>} */ (
+				tree.querySelectorAll('.studio-tree-node__comment')
+			);
+			if (!comments.length) {
+				return;
+			}
+			const origin = tree.getBoundingClientRect().left;
+			const ends = [...comments].map(
+				(comment) =>
+					(comment.previousElementSibling?.getBoundingClientRect().right ?? origin) - origin
+			);
+			const width = tree.parentElement?.clientWidth || tree.clientWidth;
+			const column = Math.min(Math.max(...ends), width * COMMENT_COLUMN_MAX);
+			comments.forEach((comment, index) => {
+				comment.style.marginLeft = `${Math.max(0, column - ends[index]) + COMMENT_GAP}px`;
+			});
+		};
+		const schedule = () => {
+			if (!frame) {
+				frame = requestAnimationFrame(align);
+			}
+		};
+		const mutations = new MutationObserver(schedule);
+		mutations.observe(tree, { childList: true, subtree: true, characterData: true });
+		const resize = new ResizeObserver(schedule);
+		if (tree.parentElement) {
+			resize.observe(tree.parentElement);
+		}
+		schedule();
+		return () => {
+			cancelAnimationFrame(frame);
+			mutations.disconnect();
+			resize.disconnect();
+		};
+	}
 </script>
 
 <div
@@ -564,6 +613,7 @@
 	tabindex="-1"
 	onkeydown={handleTreeKeydown}
 	onpaste={handleTreePaste}
+	{@attach alignComments}
 >
 	{#if loading}
 		<StudioEmptyState message="Loading" loading small />
