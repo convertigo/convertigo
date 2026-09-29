@@ -83,6 +83,17 @@
 	</nav>
 
 	<div class="studio-topbar__actions layout-x-low">
+		<a
+			class="studio-topbar__star layout-x-low"
+			href="https://github.com/convertigo/convertigo"
+			target="_blank"
+			rel="noopener noreferrer"
+			title="Star Convertigo on GitHub"
+		>
+			<Ico icon="mdi:github" size={4} />
+			<span class="studio-topbar__star-label">Star us</span>
+			<Ico icon="mdi:star-outline" size={3.5} class="studio-topbar__star-icon" />
+		</a>
 		<div
 			class="studio-topbar__profiles layout-x-none"
 			role="radiogroup"
@@ -214,6 +225,37 @@
 	.studio-topbar__actions {
 		min-width: 0;
 		justify-content: flex-end;
+	}
+
+	/* Star us on GitHub, as in the top bar of the console */
+	.studio-topbar__star {
+		flex: none;
+		height: 1.9rem;
+		align-items: center;
+		gap: 0.3rem;
+		border: 1px solid var(--studio-control-line, var(--color-surface-200-800));
+		border-radius: 999px;
+		color: var(--studio-text-strong);
+		padding: 0 0.65rem;
+		font-size: 0.74rem;
+		font-weight: 600;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.studio-topbar__star:hover {
+		border-color: color-mix(in oklab, #e3b341 60%, transparent);
+		background: color-mix(in oklab, #e3b341 12%, transparent);
+	}
+
+	.studio-topbar__star :global(.studio-topbar__star-icon) {
+		color: #e3b341;
+	}
+
+	@media (max-width: 1180px) {
+		.studio-topbar__star-label {
+			display: none;
+		}
 	}
 
 	.studio-topbar__breadcrumb {
