@@ -71,7 +71,9 @@ import com.twinsoft.convertigo.engine.util.GitUtils;
  * (commit), continue (message), skip or abort of the operation stopped, log (ref), show (commit, path), reset
  * (commit, mode soft, mixed or hard), createBranch (branch, commit, checkout), deleteBranch (branch, force),
  * renameBranch (branch, name), tags, tag (name, commit, annotation), deleteTag (name), stashes, stash (message,
- * untracked), stashApply or stashPop (index), stashDrop (index); or decorations,
+ * untracked), stashApply or stashPop (index), stashDrop (index), remotes, addRemote or setRemoteUrl (name, url),
+ * removeRemote (name), deleteRemoteBranch (branch), push (remote, publish, tags, force) or fetch (remote); or
+ * decorations,
  * without projectName, for the branch and the changed files of each project in a repository</li>
  * <li>paths: the files to stage or unstage, as a JSON array of paths in the repository; path: the file to
  * compare</li>
@@ -453,9 +455,38 @@ public class SourceControl extends JSonService {
 				}
 			}
 			case "push" -> {
+				// the current branch pushed to its remote, published to a remote when it has none, with the tags,
+				// or forced when the remote has not changed since the last fetch
+				var repository = git.getRepository();
+				var branch = repository.getBranch();
+				var full = repository.getFullBranch();
+				var remote = request.getParameter("remote");
+				var tracked = repository.getConfig().getString("branch", branch, "remote");
+				var publish = "true".equals(request.getParameter("publish")) || tracked == null;
+				if (remote == null || remote.isBlank()) {
+					remote = tracked != null ? tracked : repository.getRemoteNames().contains("origin") ? "origin"
+							: repository.getRemoteNames().stream().findFirst().orElse(null);
+				}
+				if (remote == null) {
+					throw new ServiceException("The repository has no remote to push to.");
+				}
+				var push = git.push().setRemote(remote);
+				if (full != null && full.startsWith(Constants.R_HEADS)) {
+					var target = publish ? full : repository.getConfig().getString("branch", branch, "merge");
+					push.setRefSpecs(new org.eclipse.jgit.transport.RefSpec(full + ":" + (target == null ? full : target)));
+					if ("true".equals(request.getParameter("force"))) {
+						// force with lease: refused when the remote changed since the branch of the remote was fetched
+						var tracking = repository.resolve(Constants.R_REMOTES + remote + "/" + Repository.shortenRefName(target == null ? full : target));
+						push.setForce(true).setRefLeaseSpecs(new org.eclipse.jgit.transport.RefLeaseSpec(target == null ? full : target,
+								tracking == null ? ObjectId.zeroId().name() : tracking.name()));
+					}
+				}
+				if ("true".equals(request.getParameter("tags"))) {
+					push.setPushTags();
+				}
 				// a push the remote refuses, as a push that is not a fast-forward, still ends without exception
 				var refused = new ArrayList<String>();
-				for (var result : git.push().call()) {
+				for (var result : push.call()) {
 					for (var update : result.getRemoteUpdates()) {
 						var updateStatus = update.getStatus();
 						if (updateStatus != RemoteRefUpdate.Status.OK && updateStatus != RemoteRefUpdate.Status.UP_TO_DATE) {
@@ -464,14 +495,86 @@ public class SourceControl extends JSonService {
 						}
 					}
 				}
+				if (refused.isEmpty() && tracked == null && full != null && full.startsWith(Constants.R_HEADS)) {
+					// the branch published follows its branch of the remote, when it followed none
+					var config = repository.getConfig();
+					config.setString("branch", branch, "remote", remote);
+					config.setString("branch", branch, "merge", full);
+					config.save();
+				}
 				status(git, prefix, response);
 				if (!refused.isEmpty()) {
 					response.put("error", "The push was refused: " + String.join(", ", refused) + ".");
 				}
 			}
 			case "fetch" -> {
-				git.fetch().call();
+				// all the remotes, the branches they no longer have removed
+				var remote = request.getParameter("remote");
+				for (var name : remote == null || remote.isBlank() ? git.getRepository().getRemoteNames() : Set.of(remote)) {
+					git.fetch().setRemote(name).setRemoveDeletedRefs(true).call();
+				}
 				status(git, prefix, response);
+			}
+			case "remotes" -> {
+				var remotes = new JSONArray();
+				for (var config : git.remoteList().call()) {
+					remotes.put(new JSONObject()
+							.put("name", config.getName())
+							.put("url", config.getURIs().isEmpty() ? "" : config.getURIs().get(0).toString())
+							.put("pushUrl", config.getPushURIs().isEmpty() ? "" : config.getPushURIs().get(0).toString()));
+				}
+				response.put("remotes", remotes);
+				status(git, prefix, response);
+			}
+			case "addRemote", "setRemoteUrl" -> {
+				var name = request.getParameter("name");
+				var url = request.getParameter("url");
+				if (name == null || name.isBlank() || url == null || url.isBlank()) {
+					throw new ServiceException("missing name or url parameter");
+				}
+				var uri = new org.eclipse.jgit.transport.URIish(url.strip());
+				if ("addRemote".equals(action)) {
+					git.remoteAdd().setName(name.strip()).setUri(uri).call();
+				} else {
+					git.remoteSetUrl().setRemoteName(name).setRemoteUri(uri).call();
+				}
+				status(git, prefix, response);
+			}
+			case "removeRemote" -> {
+				// the remote and its branches, as git remote remove does
+				var name = request.getParameter("name");
+				git.remoteRemove().setRemoteName(name).call();
+				var repository = git.getRepository();
+				for (var ref : repository.getRefDatabase().getRefsByPrefix(Constants.R_REMOTES + name + "/")) {
+					var update = repository.updateRef(ref.getName());
+					update.setForceUpdate(true);
+					update.delete();
+				}
+				status(git, prefix, response);
+			}
+			case "deleteRemoteBranch" -> {
+				// a branch of a remote removed from it, by a push
+				var branch = request.getParameter("branch");
+				var slash = branch == null ? -1 : branch.indexOf('/');
+				if (slash < 1) {
+					throw new ServiceException("The branch " + branch + " is not a branch of a remote.");
+				}
+				var remote = branch.substring(0, slash);
+				var refused = new ArrayList<String>();
+				for (var result : git.push().setRemote(remote).setRefSpecs(new org.eclipse.jgit.transport.RefSpec(":" + Constants.R_HEADS + branch.substring(slash + 1))).call()) {
+					for (var update : result.getRemoteUpdates()) {
+						if (update.getStatus() != RemoteRefUpdate.Status.OK && update.getStatus() != RemoteRefUpdate.Status.NON_EXISTING) {
+							refused.add(update.getStatus() + (update.getMessage() == null ? "" : " (" + update.getMessage() + ")"));
+						}
+					}
+				}
+				if (refused.isEmpty()) {
+					git.branchDelete().setBranchNames(Constants.R_REMOTES + branch).setForce(true).call();
+				}
+				status(git, prefix, response);
+				if (!refused.isEmpty()) {
+					response.put("error", "The remote refused to delete " + branch + ": " + String.join(", ", refused) + ".");
+				}
 			}
 			case "branches" -> {
 				var local = new JSONArray();
@@ -871,7 +974,17 @@ public class SourceControl extends JSonService {
 		response.put("head", head == null ? "" : head.abbreviate(7).name());
 		var full = repository.getFullBranch();
 		response.put("detached", head != null && full != null && !full.startsWith(Constants.R_HEADS) && !GitOperation.REBASE.equals(operation.kind));
-		response.put("remote", repository.getConfig().getString("remote", "origin", "url"));
+		// the remote the branch follows, else origin, else the first one
+		var branchRemote = repository.getConfig().getString("branch", repository.getBranch(), "remote");
+		var remotes = repository.getRemoteNames();
+		var remote = branchRemote != null ? branchRemote : remotes.contains("origin") ? "origin" : remotes.stream().findFirst().orElse(null);
+		response.put("remote", remote == null ? null : repository.getConfig().getString("remote", remote, "url"));
+		response.put("remoteName", remote);
+		response.put("remoteCount", remotes.size());
+		var merge = repository.getConfig().getString("branch", repository.getBranch(), "merge");
+		if (branchRemote != null && merge != null) {
+			response.put("upstream", branchRemote + "/" + Repository.shortenRefName(merge));
+		}
 		var tracking = BranchTrackingStatus.of(repository, repository.getBranch());
 		if (tracking != null) {
 			response.put("ahead", tracking.getAheadCount());
