@@ -473,11 +473,12 @@ public class NgxBuilder extends MobileBuilder {
 				if (pushedFiles == null) {
 					pushedFiles = new HashMap<String, CharSequence>();
 				}
-
-				// retrieve/set necessary external component files
-				updateConsumer();
-				updateConsumers();
 			}
+
+			// retrieve/set necessary external component files, also for the web Studio, whose engine builds the
+			// applications and their libraries
+			updateConsumer();
+			updateConsumers();
 			
 			var files = existingFiles.get();
 			if (files != null) {

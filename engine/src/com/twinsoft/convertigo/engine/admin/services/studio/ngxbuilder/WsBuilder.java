@@ -128,6 +128,39 @@ public class WsBuilder extends WebSocketService {
 			return "dev".equals(mode);
 		}
 
+		/**
+		 * @return the projects a project uses, all levels, the deepest first, which have shared components of
+		 *         an application
+		 */
+		private java.util.List<com.twinsoft.convertigo.beans.core.Project> libraries(com.twinsoft.convertigo.beans.core.Project project) {
+			var projects = new java.util.ArrayList<com.twinsoft.convertigo.beans.core.Project>();
+			projects.add(project);
+			for (var i = 0; i < projects.size(); i++) {
+				for (var reference : projects.get(i).getReferenceList()) {
+					if (reference instanceof com.twinsoft.convertigo.beans.references.ProjectSchemaReference schema) {
+						// the name of the project, its reference being "name=url"
+						var name = schema.getParser().getProjectName();
+						try {
+							var used = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name);
+							if (used != null && !projects.contains(used)) {
+								projects.add(used);
+							}
+						} catch (Exception e) {
+							Engine.logStudio.debug("(WsBuilder) the project " + name + " used by " + project.getName() + " does not load", e);
+						}
+					}
+				}
+			}
+			projects.remove(project);
+			java.util.Collections.reverse(projects);
+			projects.removeIf((used) -> {
+				var application = used.getMobileApplication();
+				return application == null || !(application.getApplicationComponent() instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent app)
+						|| app.getSharedComponentList().isEmpty();
+			});
+			return projects;
+		}
+
 		@Override
 		public void run() {
 			var mutex = new Object();
@@ -135,6 +168,15 @@ public class WsBuilder extends WebSocketService {
 			try {
 				project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 				mb = project.getMobileBuilder();
+				// the libraries it uses generate their shared components first, which the application takes, as
+				// the CLI does
+				for (var library : libraries(project)) {
+					var builder = library.getMobileBuilder();
+					if (builder != null && !builder.isInitialized()) {
+						appendOutput("Generating the components of " + library.getName());
+						MobileBuilder.initBuilder(library, true);
+					}
+				}
 				if (mb != null && !mb.isInitialized()) {
 					// an engine without the Eclipse Studio initializes the builder of a project only for the CLI
 					MobileBuilder.initBuilder(project, true);
