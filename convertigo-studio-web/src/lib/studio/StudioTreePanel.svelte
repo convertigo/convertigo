@@ -142,6 +142,29 @@
 		});
 	});
 
+	// the engine answers as soon as it starts, while it still loads the projects of the workspace: once they
+	// are loaded, those the tree did not list, as a project in conflict loaded as HEAD has it, are listed
+	onMount(() => {
+		let stopped = false;
+		void (async () => {
+			for (let attempt = 0; attempt < 360 && !stopped; attempt++) {
+				const result = await call('studio.project.Loading', {}, { silentError: () => true });
+				if (stopped || result?.loading !== true) {
+					const listed = new Set((Projects.projects ?? []).map((project) => project?.name));
+					if (Array.isArray(result?.loaded) && result.loaded.some((name) => !listed.has(name))) {
+						await Projects.refresh();
+						refreshGitDecorations();
+					}
+					return;
+				}
+				await new Promise((resolve) => setTimeout(resolve, 700));
+			}
+		})();
+		return () => {
+			stopped = true;
+		};
+	});
+
 	// the Source control view changed a repository: the Git decorations show again
 	$effect(() => {
 		void gitEvents.serial;
