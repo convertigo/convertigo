@@ -484,7 +484,7 @@ public class Get extends JSonService {
 		return false;
 	}
 
-	static String iconPath(DatabaseObject dbo) {
+	public static String iconPath(DatabaseObject dbo) {
 		var iconPath = "";
 		if (dbo instanceof FlowVirtualObject flowVirtualObject) {
 			iconPath = firstNonBlank(flowVirtualObject.getVirtualInfoObject(), "iconFile16", "iconFile", "iconFile32", "iconSvg");

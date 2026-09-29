@@ -756,7 +756,147 @@ public class TreeMerge extends JSonService {
 		 */
 		private void versions(String left, Map<String, Bean> ls, Bean l, String right, Map<String, Bean> rs, Bean r) throws Exception {
 			var budget = new int[] { 400 };
-			last.put("versions", new JSONObject().put("left", left).put("right", right).put("root", node(ls, l, rs, r, 0, budget)));
+			var versions = new JSONObject().put("left", left).put("right", right).put("root", node(ls, l, rs, r, 0, budget));
+			// the two versions whole, as two trees, each object with its match on the other side
+			var matches = new HashMap<String, String>();
+			match(ls, l, rs, r, matches);
+			var reverse = new HashMap<String, String>();
+			matches.forEach((k, v) -> reverse.put(v, k));
+			var trees = new JSONObject();
+			if (l != null) {
+				trees.put("left", tree(ls, l, rs, matches, new int[] { 1500 }));
+			}
+			if (r != null) {
+				trees.put("right", tree(rs, r, ls, reverse, new int[] { 1500 }));
+			}
+			versions.put("trees", trees);
+			last.put("versions", versions);
+		}
+
+		/**
+		 * Matches the objects of two versions, by their key, else by their type and name.
+		 */
+		private void match(Map<String, Bean> ls, Bean l, Map<String, Bean> rs, Bean r, Map<String, String> matches) {
+			if (l == null || r == null) {
+				return;
+			}
+			matches.put(l.key, r.key);
+			var taken = new HashSet<String>();
+			for (var key : l.children) {
+				var lc = ls.get(key);
+				if (lc == null) {
+					continue;
+				}
+				Bean rc = r.children.contains(key) ? rs.get(key) : null;
+				if (rc == null) {
+					for (var other : r.children) {
+						var candidate = rs.get(other);
+						if (candidate != null && !taken.contains(other) && !l.children.contains(other)
+								&& candidate.classname.equals(lc.classname) && Objects.equals(candidate.name, lc.name)) {
+							rc = candidate;
+							break;
+						}
+					}
+				}
+				if (rc != null && taken.add(rc.key)) {
+					match(ls, lc, rs, rc, matches);
+				}
+			}
+		}
+
+		/**
+		 * @return a version of an object and its children whole, each with its icon, its properties, those
+		 *         that differ from its match, the key of its match, and whether it is only on this side,
+		 *         changed, or has changes below it
+		 */
+		private JSONObject tree(Map<String, Bean> side, Bean bean, Map<String, Bean> other, Map<String, String> matches, int[] budget) throws Exception {
+			budget[0]--;
+			var node = new JSONObject();
+			node.put("key", bean.key);
+			node.put("name", bean.name);
+			node.put("type", TreeDiff.typeName(bean.classname));
+			var matched = matches.containsKey(bean.key) ? other.get(matches.get(bean.key)) : null;
+			if (matched != null) {
+				node.put("match", matched.key);
+			}
+			var dbo = side == ours || side == mb ? live.get(bean.key) : null;
+			if (dbo == null && matched != null && (other == ours || other == mb)) {
+				dbo = live.get(matched.key);
+			}
+			if (side == ours || side == mb) {
+				var mine = live.get(bean.key);
+				if (mine != null) {
+					node.put("objectId", mine.getFullQName());
+				}
+			}
+			node.put("icon", "studio.dbo.GetIcon?iconPath=" + icon(bean.classname, dbo));
+			// its properties, those of Ionic one by one, as the Properties view shows them
+			var differ = matched == null ? new HashSet<String>() : new HashSet<String>();
+			if (matched != null) {
+				var changed = TreeDiff.propertyChanges(bean, matched);
+				for (var i = 0; i < changed.length(); i++) {
+					differ.add(changed.getJSONObject(i).getString("name"));
+				}
+			}
+			var properties = new JSONArray();
+			for (var entry : bean.properties.entrySet()) {
+				var name = entry.getKey();
+				if ("name".equals(name)) {
+					continue;
+				}
+				if ("beanData".equals(name)) {
+					var labels = new HashMap<String, String>();
+					for (var ion : TreeDiff.ionValues(TreeDiff.value(entry.getValue()), labels).entrySet()) {
+						var value = TreeDiff.readable(ion.getValue());
+						properties.put(new JSONObject().put("name", "beanData." + ion.getKey()).put("label", labels.getOrDefault(ion.getKey(), ion.getKey()))
+								.put("value", value.length() > 400 ? value.substring(0, 400) + "…" : value).put("differs", differ.contains("beanData." + ion.getKey())));
+					}
+					continue;
+				}
+				var ciphered = entry.getValue().hasAttribute("ciphered");
+				var value = ciphered ? "••••••" : TreeDiff.display(entry.getValue());
+				properties.put(new JSONObject().put("name", name).put("label", TreeDiff.label(bean.classname, name))
+						.put("value", value.length() > 400 ? value.substring(0, 400) + "…" : value).put("differs", differ.contains(name)));
+			}
+			node.put("properties", properties);
+			var children = new JSONArray();
+			var inner = false;
+			for (var key : bean.children) {
+				var child = side.get(key);
+				if (child == null || budget[0] <= 0) {
+					continue;
+				}
+				var json = tree(side, child, other, matches, budget);
+				inner |= !"same".equals(json.getString("status")) || json.optBoolean("inner");
+				children.put(json);
+			}
+			node.put("children", children);
+			node.put("status", matched == null ? "only" : !differ.isEmpty() || !Objects.equals(bean.name, matched.name) ? "changed" : "same");
+			// a child of the other side missing here counts as a change below
+			if (matched != null) {
+				for (var key : matched.children) {
+					if (!matches.containsValue(key) && !matches.containsKey(key)) {
+						inner = true;
+						break;
+					}
+				}
+			}
+			node.put("inner", inner);
+			return node;
+		}
+
+		/**
+		 * @return the icon of an object: of the loaded one when there is one, else of its type
+		 */
+		private String icon(String classname, DatabaseObject dbo) {
+			try {
+				if (dbo == null) {
+					dbo = (DatabaseObject) Class.forName(classname).getConstructor().newInstance();
+				}
+				return com.twinsoft.convertigo.engine.admin.services.studio.treeview.Get.iconPath(dbo);
+			} catch (Throwable e) {
+				return "/com/twinsoft/convertigo/beans/core/images/databaseobject_color_32x32.png";
+			}
 		}
 
 		private JSONObject node(Map<String, Bean> ls, Bean l, Map<String, Bean> rs, Bean r, int depth, int[] budget) throws Exception {
