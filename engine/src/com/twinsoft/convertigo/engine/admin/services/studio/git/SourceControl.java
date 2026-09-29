@@ -40,6 +40,7 @@ import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Constants;
@@ -67,11 +68,13 @@ import com.twinsoft.convertigo.engine.util.GitUtils;
  * <li>projectName: the project</li>
  * <li>action: status (default), init, diff, stage, unstage, discard, commit, pull (mode merge or rebase),
  * push, fetch, branches, checkout (branch, create), merge (branch), rebase (branch), cherryPick (commit), revert
- * (commit), continue (message), skip or abort of the operation stopped, or log; or decorations, without
- * projectName, for the branch and the changed files of each project in a repository</li>
+ * (commit), continue (message), skip or abort of the operation stopped, log (ref), show (commit, path), reset
+ * (commit, mode soft, mixed or hard), createBranch (branch, commit, checkout), deleteBranch (branch, force),
+ * renameBranch (branch, name), tags, tag (name, commit, annotation) or deleteTag (name); or decorations,
+ * without projectName, for the branch and the changed files of each project in a repository</li>
  * <li>paths: the files to stage or unstage, as a JSON array of paths in the repository; path: the file to
  * compare</li>
- * <li>message: the message of the commit</li>
+ * <li>message: the message of the commit, amend: true to amend the last one</li>
  * </ul>
  */
 @ServiceDefinition(name = "SourceControl", roles = { Role.WEB_ADMIN, Role.PROJECTS_CONFIG }, parameters = {}, returnValue = "")
@@ -133,12 +136,156 @@ public class SourceControl extends JSonService {
 				status(git, prefix, response);
 			}
 			case "commit" -> {
+				// a new commit, or the last one amended with the changes staged and its new message
 				var message = request.getParameter("message");
 				if (message == null || message.isBlank()) {
 					throw new ServiceException("The commit needs a message.");
 				}
-				var commit = git.commit().setMessage(message).call();
+				var commit = git.commit().setMessage(message).setAmend("true".equals(request.getParameter("amend"))).call();
 				response.put("commit", commit.abbreviate(7).name());
+				status(git, prefix, response);
+			}
+			case "show" -> {
+				// a commit: its message, its author, its parents and the files of the project it changed, or the
+				// differences of one of them
+				var repository = git.getRepository();
+				var id = commit(repository, request.getParameter("commit"));
+				try (var walk = new RevWalk(repository)) {
+					var commit = walk.parseCommit(id);
+					var parent = commit.getParentCount() > 0 ? walk.parseCommit(commit.getParent(0)) : null;
+					var path = request.getParameter("path");
+					if (path != null) {
+						response.put("diff", diff(repository, parent, commit, path(path, prefix)));
+					} else {
+						var parents = new JSONArray();
+						for (var p : commit.getParents()) {
+							parents.put(p.abbreviate(7).name());
+						}
+						response.put("commit", new JSONObject()
+								.put("id", commit.abbreviate(7).name())
+								.put("fullId", commit.name())
+								.put("subject", commit.getShortMessage())
+								// not "message", which the Studio shows as a message
+								.put("body", commit.getFullMessage())
+								.put("author", commit.getAuthorIdent().getName())
+								.put("email", commit.getAuthorIdent().getEmailAddress())
+								.put("time", commit.getAuthorIdent().getWhenAsInstant().toEpochMilli())
+								.put("committer", commit.getCommitterIdent().getName())
+								.put("parents", parents));
+						var files = new TreeMap<String, String>();
+						try (var formatter = new DiffFormatter(org.eclipse.jgit.util.io.NullOutputStream.INSTANCE)) {
+							formatter.setRepository(repository);
+							formatter.setDetectRenames(true);
+							for (var entry : formatter.scan(parent == null ? null : parent.getTree(), commit.getTree())) {
+								var changed = entry.getChangeType() == org.eclipse.jgit.diff.DiffEntry.ChangeType.DELETE ? entry.getOldPath() : entry.getNewPath();
+								if (changed.startsWith(prefix)) {
+									files.put(changed, switch (entry.getChangeType()) {
+									case ADD, COPY -> "added";
+									case DELETE -> "deleted";
+									case RENAME -> "renamed";
+									default -> "modified";
+									});
+								}
+							}
+						}
+						response.put("files", files(files));
+					}
+				}
+				status(git, prefix, response);
+			}
+			case "reset" -> {
+				// the current branch moved to a commit: soft keeps the changes staged, mixed keeps them in the
+				// files, hard drops them
+				var repository = git.getRepository();
+				var id = commit(repository, request.getParameter("commit"));
+				var mode = request.getParameter("mode") == null ? "mixed" : request.getParameter("mode");
+				var before = snapshot(git);
+				var head = repository.resolve("HEAD^{commit}");
+				git.reset().setRef(id.name()).setMode(switch (mode) {
+				case "soft" -> ResetType.SOFT;
+				case "hard" -> ResetType.HARD;
+				default -> ResetType.MIXED;
+				}).call();
+				afterOperation(git, prefix, project.getName(), head, before, response);
+				status(git, prefix, response);
+			}
+			case "createBranch" -> {
+				// a new branch at a commit, checked out or not
+				var repository = git.getRepository();
+				var branch = request.getParameter("branch");
+				if (branch == null || branch.isBlank()) {
+					throw new ServiceException("missing branch parameter");
+				}
+				var id = commit(repository, request.getParameter("commit"));
+				if ("false".equals(request.getParameter("checkout"))) {
+					git.branchCreate().setName(branch).setStartPoint(id.name()).call();
+				} else {
+					var before = snapshot(git);
+					var head = repository.resolve("HEAD^{commit}");
+					git.checkout().setCreateBranch(true).setName(branch).setStartPoint(id.name()).call();
+					afterOperation(git, prefix, project.getName(), head, before, response);
+				}
+				status(git, prefix, response);
+			}
+			case "deleteBranch" -> {
+				// a local branch removed, forced when its commits are not merged
+				var branch = request.getParameter("branch");
+				try {
+					git.branchDelete().setBranchNames(Constants.R_HEADS + branch).setForce("true".equals(request.getParameter("force"))).call();
+				} catch (org.eclipse.jgit.api.errors.NotMergedException e) {
+					response.put("notMerged", true);
+				}
+				status(git, prefix, response);
+			}
+			case "renameBranch" -> {
+				var branch = request.getParameter("branch");
+				var name = request.getParameter("name");
+				if (branch == null || name == null || name.isBlank()) {
+					throw new ServiceException("missing branch or name parameter");
+				}
+				git.branchRename().setOldName(branch).setNewName(name.strip()).call();
+				status(git, prefix, response);
+			}
+			case "tags" -> {
+				var repository = git.getRepository();
+				var tags = new JSONArray();
+				try (var walk = new RevWalk(repository)) {
+					for (var ref : git.tagList().call()) {
+						var tag = new JSONObject().put("name", Repository.shortenRefName(ref.getName()));
+						var object = walk.parseAny(ref.getObjectId());
+						if (object instanceof org.eclipse.jgit.revwalk.RevTag annotated) {
+							tag.put("annotation", annotated.getShortMessage());
+						}
+						var peeled = walk.peel(object);
+						tag.put("commit", peeled.abbreviate(7).name());
+						tags.put(tag);
+					}
+				}
+				response.put("tags", tags);
+				status(git, prefix, response);
+			}
+			case "tag" -> {
+				// a tag at a commit, annotated when it has a message
+				var repository = git.getRepository();
+				var name = request.getParameter("name");
+				if (name == null || name.isBlank()) {
+					throw new ServiceException("missing name parameter");
+				}
+				var id = commit(repository, request.getParameter("commit"));
+				var annotation = request.getParameter("annotation");
+				try (var walk = new RevWalk(repository)) {
+					var tag = git.tag().setName(name.strip()).setObjectId(walk.parseCommit(id));
+					if (annotation != null && !annotation.isBlank()) {
+						tag.setAnnotated(true).setMessage(annotation);
+					} else {
+						tag.setAnnotated(false);
+					}
+					tag.call();
+				}
+				status(git, prefix, response);
+			}
+			case "deleteTag" -> {
+				git.tagDelete().setTags(request.getParameter("name")).call();
 				status(git, prefix, response);
 			}
 			case "pull" -> {
@@ -287,7 +434,11 @@ public class SourceControl extends JSonService {
 				}
 				var repository = git.getRepository();
 				var checkout = git.checkout().setName(branch);
-				if ("true".equals(request.getParameter("create"))) {
+				if (repository.findRef(Constants.R_HEADS + branch) == null && repository.findRef(Constants.R_REMOTES + branch) == null
+						&& !"true".equals(request.getParameter("create"))) {
+					// a commit, HEAD detached at it
+					checkout = git.checkout().setName(commit(repository, branch).name());
+				} else if ("true".equals(request.getParameter("create"))) {
 					checkout.setCreateBranch(true);
 				} else if (repository.findRef(Constants.R_HEADS + branch) == null
 						&& repository.findRef(Constants.R_REMOTES + branch) != null) {
@@ -337,6 +488,19 @@ public class SourceControl extends JSonService {
 							}
 						}
 					}
+					// the branches and the tags at each commit
+					var refs = new java.util.HashMap<ObjectId, JSONArray>();
+					for (var at : repository.getRefDatabase().getRefs()) {
+						var name = at.getName();
+						if (!name.startsWith(Constants.R_HEADS) && !name.startsWith(Constants.R_REMOTES) && !name.startsWith(Constants.R_TAGS) || name.endsWith("/HEAD")) {
+							continue;
+						}
+						var peeled = repository.getRefDatabase().peel(at);
+						var target = peeled.getPeeledObjectId() != null ? peeled.getPeeledObjectId() : at.getObjectId();
+						if (target != null) {
+							refs.computeIfAbsent(target, (k) -> new JSONArray()).put(name.startsWith(Constants.R_TAGS) ? "tag: " + Repository.shortenRefName(name) : Repository.shortenRefName(name));
+						}
+					}
 					var log = git.log().add(start).setMaxCount(50);
 					if (!prefix.isEmpty()) {
 						log.addPath(prefix.substring(0, prefix.length() - 1));
@@ -348,7 +512,8 @@ public class SourceControl extends JSonService {
 								.put("author", commit.getAuthorIdent().getName())
 								.put("time", commit.getCommitTime() * 1000L)
 								.put("inHead", !outside.contains(commit))
-								.put("merge", commit.getParentCount() > 1));
+								.put("merge", commit.getParentCount() > 1)
+								.put("refs", refs.getOrDefault(commit.getId(), new JSONArray())));
 					}
 				}
 				response.put("commits", commits);
@@ -599,6 +764,30 @@ public class SourceControl extends JSonService {
 	}
 
 	/**
+	 * @return a commit, by its id, a branch or a tag
+	 */
+	private static ObjectId commit(Repository repository, String name) throws Exception {
+		var id = name == null || name.isBlank() ? null : repository.resolve(name + "^{commit}");
+		if (id == null) {
+			throw new ServiceException("The commit " + name + " does not exist.");
+		}
+		return id;
+	}
+
+	/**
+	 * @return the differences of a file in a commit, from its first parent, as a unified diff
+	 */
+	private static String diff(Repository repository, org.eclipse.jgit.revwalk.RevCommit parent, org.eclipse.jgit.revwalk.RevCommit commit, String path) throws Exception {
+		var out = new ByteArrayOutputStream();
+		try (var formatter = new DiffFormatter(out)) {
+			formatter.setRepository(repository);
+			formatter.setPathFilter(PathFilter.create(path));
+			formatter.format(parent == null ? null : parent.getTree(), commit.getTree());
+		}
+		return out.toString(StandardCharsets.UTF_8);
+	}
+
+	/**
 	 * @return the path of a file of the project in the repository, refusing the others
 	 */
 	private static String path(String path, String prefix) throws ServiceException {
@@ -617,6 +806,8 @@ public class SourceControl extends JSonService {
 		response.put("branch", GitOperation.REBASE.equals(operation.kind) && !operation.branch.isEmpty() ? operation.branch : repository.getBranch());
 		var head = repository.resolve(Constants.HEAD);
 		response.put("head", head == null ? "" : head.abbreviate(7).name());
+		var full = repository.getFullBranch();
+		response.put("detached", head != null && full != null && !full.startsWith(Constants.R_HEADS) && !GitOperation.REBASE.equals(operation.kind));
 		response.put("remote", repository.getConfig().getString("remote", "origin", "url"));
 		var tracking = BranchTrackingStatus.of(repository, repository.getBranch());
 		if (tracking != null) {
