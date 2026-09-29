@@ -233,13 +233,21 @@ public class CarUtils {
 	
 	/**
 	 * @return the XML of the project as it is loaded, with its test cases, without writing its files: a state
-	 *         the Studio undoes to
+	 *         the Studio undoes to or compares; its objects stay changed, not saved
 	 */
 	public static Document exportProjectDocument(Project project) throws EngineException {
-		return exportProject(project, true);
+		return exportProject(project, true, false);
 	}
 
 	private static Document exportProject(Project project, final boolean includeTestCases) 
+			throws EngineException {
+		return exportProject(project, includeTestCases, true);
+	}
+
+	/**
+	 * @param saved whether the export saves the project, its objects being no longer changed
+	 */
+	private static Document exportProject(Project project, final boolean includeTestCases, final boolean saved)
 			throws EngineException {
 		try {
 			final Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
@@ -307,8 +315,10 @@ public class CarUtils {
 					element.appendChild(document.createComment(StringUtils.rightPad(closepad + "</" + name + ">", 150)));
 					document.setUserData("depth", depth, null);
 					
-					databaseObject.hasChanged = false;
-					databaseObject.bNew = false;
+					if (saved) {
+						databaseObject.hasChanged = false;
+						databaseObject.bNew = false;
+					}
 					
 					this.parentElement = parentElement;
 				}				
