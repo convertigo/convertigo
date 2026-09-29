@@ -36,17 +36,14 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ResetCommand.ResetType;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
@@ -58,15 +55,16 @@ import com.twinsoft.convertigo.engine.util.GitUtils;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
 
 /**
- * A merge of a project stopped on conflicts, merged object by object rather than line by line: the project at
- * the base of the merge, at HEAD, "mine", and at the commit merged, "theirs", the changes of a single side
- * taken, the others given to choose. The project files, which Git filled with its markers, are written once
- * the conflicts are resolved.
+ * The conflicts of a project, of a merge, a rebase, a cherry-pick, a revert or a stash applied, merged object by
+ * object rather than line by line: the project at the base, at HEAD, "mine", and at the commit taken,
+ * "theirs", the changes of a single side taken, the others given to choose. The project files, which Git
+ * filled with its markers, are written once the conflicts are resolved.
  * <ul>
  * <li>projectName: the project</li>
  * <li>action: state, the default; resolve, of a conflict id with a choice, mine, theirs, both or edit, and a
- * value to edit, clear to choose again; resolveAll with a choice; abort, as git merge --abort; complete, the
- * merged project written, added to the index and loaded again, to commit</li>
+ * value to edit, clear to choose again; resolveAll with a choice; abort, as git merge --abort or git rebase
+ * --abort; complete, the merged project written, added to the index and loaded again: a merge is then
+ * committed, a cherry-pick or a revert commits, a rebase continues</li>
  * </ul>
  */
 @ServiceDefinition(name = "TreeMerge", roles = { Role.WEB_ADMIN, Role.PROJECTS_CONFIG }, parameters = {}, returnValue = "")
@@ -75,9 +73,9 @@ public class TreeMerge extends JSonService {
 	private record Resolution(String choice, String value) {
 	}
 
-	/** the choices made for the merge of a project, until the commit merged changes */
+	/** the choices made for the conflicts of a project, until the commit they are against changes */
 	private static class Session {
-		String mergeHead;
+		String key;
 		Map<String, Resolution> resolutions = new ConcurrentHashMap<>();
 	}
 
@@ -86,7 +84,7 @@ public class TreeMerge extends JSonService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		var projectName = request.getParameter("projectName");
-		var project = projectName == null ? null : Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		var project = project(projectName);
 		if (project == null) {
 			throw new ServiceException("The project " + projectName + " does not exist.");
 		}
@@ -102,25 +100,30 @@ public class TreeMerge extends JSonService {
 		var action = request.getParameter("action") == null ? "state" : request.getParameter("action");
 		try (var git = Git.open(workingDir)) {
 			var repository = git.getRepository();
-			var heads = repository.readMergeHeads();
-			if (heads == null || heads.isEmpty()) {
+			var operation = GitOperation.of(git);
+			if (!operation.conflicts(prefix)) {
 				sessions.remove(projectName);
 				response.put("merging", false);
+				if (operation.stopped()) {
+					response.put("operation", operation.toJson(git, prefix));
+				}
 				return;
 			}
-			var theirsId = heads.get(0);
-			var session = sessions.compute(projectName, (k, current) -> current != null && theirsId.name().equals(current.mergeHead) ? current : new Session());
-			session.mergeHead = theirsId.name();
+			// the choices made hold for a commit merged, replayed, picked or reverted, or for conflicts of the index
+			var key = operation.kind + ":" + (operation.theirs != null ? operation.theirs.name() : stages(repository, prefix));
+			var session = sessions.compute(projectName, (k, current) -> current != null && key.equals(current.key) ? current : new Session());
+			session.key = key;
 
 			if ("abort".equals(action)) {
-				// the merge is left, as git merge --abort does, the project loads again from its files
-				git.reset().setMode(ResetType.HARD).call();
-				repository.writeMergeHeads(null);
-				repository.writeMergeCommitMsg(null);
+				// the operation is left, as git merge --abort or git rebase --abort do, the projects load again
+				var before = SourceControl.snapshot(git);
+				var head = repository.resolve("HEAD^{commit}");
+				operation.abort(git);
 				sessions.remove(projectName);
-				SourceControl.reload(projectName);
+				SourceControl.afterOperation(git, prefix, projectName, head, before, response);
 				response.put("merging", false);
 				response.put("aborted", true);
+				response.put("kind", operation.kind);
 				return;
 			}
 			if ("resolve".equals(action)) {
@@ -136,13 +139,19 @@ public class TreeMerge extends JSonService {
 				}
 			}
 
-			var oursId = repository.resolve("HEAD^{commit}");
-			var baseId = mergeBase(repository, oursId, theirsId);
 			var tmp = Files.createTempDirectory("c8o-treemerge").toFile();
 			try {
-				var base = baseId == null ? empty() : TreeDiff.documentAt(repository, baseId, prefix, new File(tmp, "base"));
-				var ours = TreeDiff.documentAt(repository, oursId, prefix, new File(tmp, "ours"));
-				var theirs = TreeDiff.documentAt(repository, theirsId, prefix, new File(tmp, "theirs"));
+				Document base, ours, theirs;
+				if (operation.theirs != null) {
+					base = operation.base == null ? empty() : TreeDiff.documentAt(repository, operation.base, prefix, new File(tmp, "base"));
+					ours = operation.ours == null ? empty() : TreeDiff.documentAt(repository, operation.ours, prefix, new File(tmp, "ours"));
+					theirs = TreeDiff.documentAt(repository, operation.theirs, prefix, new File(tmp, "theirs"));
+				} else {
+					// conflicts whose commits are not known, as those of a stash applied: the sides the index keeps
+					base = TreeDiff.documentAtStage(repository, 1, prefix, new File(tmp, "base"));
+					ours = TreeDiff.documentAtStage(repository, 2, prefix, new File(tmp, "ours"));
+					theirs = TreeDiff.documentAtStage(repository, 3, prefix, new File(tmp, "theirs"));
+				}
 				var live = new HashMap<String, DatabaseObject>();
 				TreeDiff.live(project, null, live);
 				var merge = new Merge(base, ours, theirs, session.resolutions, live);
@@ -165,17 +174,36 @@ public class TreeMerge extends JSonService {
 					if (unresolved > 0) {
 						throw new ServiceException(unresolved + " conflict" + (unresolved > 1 ? "s are" : " is") + " not resolved yet.");
 					}
+					var before = SourceControl.snapshot(git);
+					var head = repository.resolve("HEAD^{commit}");
+					var message = operation.message(repository);
 					complete(git, prefix, projectDir, merge.merged, fileConflicts, session);
 					sessions.remove(projectName);
-					SourceControl.reload(projectName);
-					response.put("merging", false);
+					// a rebase goes on with the next commits, a cherry-pick or a revert commits, once the
+					// repository has no other conflict; a merge is committed from the Source control view
+					var resolved = GitOperation.of(git);
+					GitOperation.Outcome outcome = null;
+					if (resolved.conflicting.isEmpty() && (GitOperation.REBASE.equals(resolved.kind)
+							|| GitOperation.CHERRY_PICK.equals(resolved.kind) || GitOperation.REVERT.equals(resolved.kind))) {
+						outcome = resolved.proceed(git, null);
+					}
+					var next = SourceControl.afterOperation(git, prefix, projectName, head, before, response);
 					response.put("completed", true);
-					var message = repository.readMergeCommitMsg();
-					response.put("message", message == null ? "" : message.strip());
+					response.put("kind", operation.kind);
+					response.put("commitMessage", message);
+					if (outcome != null) {
+						outcome.put(response);
+					}
+					if (next.stopped()) {
+						response.put("operation", next.toJson(git, prefix));
+					}
 					return;
 				}
 				response.put("merging", true);
-				response.put("theirs", theirsLabel(repository, theirsId));
+				response.put("kind", operation.kind);
+				response.put("ours", operation.oursName);
+				response.put("theirs", operation.theirsName);
+				response.put("operation", operation.toJson(git, prefix));
 				response.put("conflicts", merge.conflicts);
 				for (var i = 0; i < fileConflicts.length(); i++) {
 					merge.conflicts.put(fileConflicts.get(i));
@@ -188,33 +216,62 @@ public class TreeMerge extends JSonService {
 		}
 	}
 
+	/**
+	 * Forgets the choices made for the conflicts of a project, as an operation ends.
+	 */
+	static void forget(String projectName) {
+		sessions.remove(projectName);
+	}
+
+	/**
+	 * @return the project, loaded as HEAD has it when its files are filled with the markers of Git, as
+	 *         after a start of the engine during a merge
+	 */
+	private static Project project(String projectName) throws Exception {
+		if (projectName == null) {
+			return null;
+		}
+		try {
+			return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		} catch (Exception e) {
+			var yaml = Engine.projectYamlFile(projectName);
+			var projectDir = yaml == null ? null : yaml.getParentFile().getCanonicalFile();
+			var workingDir = projectDir == null ? null : GitUtils.getWorkingDir(projectDir);
+			if (workingDir == null) {
+				throw e;
+			}
+			workingDir = workingDir.getCanonicalFile();
+			var prefix = projectDir.equals(workingDir) ? ""
+					: workingDir.toPath().relativize(projectDir.toPath()).toString().replace(File.separatorChar, '/') + "/";
+			try (var git = Git.open(workingDir)) {
+				if (!SourceControl.merging(git, prefix)) {
+					throw e;
+				}
+				SourceControl.loadCommitted(git, projectName, projectDir, prefix);
+			}
+			return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		}
+	}
+
+	/**
+	 * @return a key of the conflicts of the index for a project, the versions of its files in conflict
+	 */
+	private static String stages(Repository repository, String prefix) throws Exception {
+		var index = repository.readDirCache();
+		var key = new StringBuilder();
+		for (var i = 0; i < index.getEntryCount(); i++) {
+			var entry = index.getEntry(i);
+			if (entry.getStage() != 0 && entry.getPathString().startsWith(prefix)) {
+				key.append(entry.getPathString()).append(entry.getStage()).append(entry.getObjectId().name());
+			}
+		}
+		return Integer.toHexString(key.toString().hashCode());
+	}
+
 	private static Document empty() throws Exception {
 		var document = com.twinsoft.convertigo.engine.util.XMLUtils.getDefaultDocumentBuilder().newDocument();
 		document.appendChild(document.createElement("convertigo"));
 		return document;
-	}
-
-	private static ObjectId mergeBase(Repository repository, ObjectId ours, ObjectId theirs) throws Exception {
-		try (var walk = new RevWalk(repository)) {
-			walk.setRevFilter(RevFilter.MERGE_BASE);
-			walk.markStart(walk.parseCommit(ours));
-			walk.markStart(walk.parseCommit(theirs));
-			var base = walk.next();
-			return base == null ? null : base.getId();
-		}
-	}
-
-	private static String theirsLabel(Repository repository, ObjectId theirs) throws Exception {
-		var message = repository.readMergeCommitMsg();
-		if (message != null && !message.isBlank()) {
-			var first = message.strip().split("\n")[0];
-			var matcher = java.util.regex.Pattern.compile("Merge (?:remote-tracking )?branch '([^']+)'").matcher(first);
-			if (matcher.find()) {
-				return matcher.group(1);
-			}
-			return first;
-		}
-		return theirs.abbreviate(7).name();
 	}
 
 	/**

@@ -228,7 +228,8 @@ public class TreeDiff extends JSonService {
 			var info = new JSONObject();
 			info.put("id", commit.getName());
 			info.put("shortId", commit.getName().substring(0, 7));
-			info.put("message", commit.getShortMessage());
+			// not "message", which the Studio shows as a message
+			info.put("subject", commit.getShortMessage());
 			info.put("author", commit.getAuthorIdent().getName());
 			info.put("time", commit.getCommitTime() * 1000L);
 			response.put("commit", info);
@@ -260,6 +261,14 @@ public class TreeDiff extends JSonService {
 	 * @return the project at a commit, as its files hold it, or an empty project document
 	 */
 	static Document documentAt(Repository repository, org.eclipse.jgit.lib.ObjectId commitId, String prefix, File dir) throws Exception {
+		writeFiles(repository, commitId, prefix, dir);
+		return read(dir);
+	}
+
+	/**
+	 * Writes the files of the objects of the project at a commit in a directory.
+	 */
+	static void writeFiles(Repository repository, org.eclipse.jgit.lib.ObjectId commitId, String prefix, File dir) throws Exception {
 		try (var walk = new RevWalk(repository); var tree = new TreeWalk(repository)) {
 			var commit = walk.parseCommit(commitId);
 			tree.addTree(commit.getTree());
@@ -274,6 +283,32 @@ public class TreeDiff extends JSonService {
 				Files.write(file.toPath(), repository.open(tree.getObjectId(0)).getBytes());
 			}
 		}
+	}
+
+	/**
+	 * @return the project of a side of the conflicts of the index, as the conflicts of a stash applied, whose
+	 *         commits are not known: the files merged, and the version of the side of the files in conflict,
+	 *         1 for the base, 2 for mine, 3 for theirs
+	 */
+	static Document documentAtStage(Repository repository, int stage, String prefix, File dir) throws Exception {
+		var index = repository.readDirCache();
+		for (var i = 0; i < index.getEntryCount(); i++) {
+			var entry = index.getEntry(i);
+			var path = entry.getPathString();
+			if (!path.startsWith(prefix) || (entry.getStage() != 0 && entry.getStage() != stage)) {
+				continue;
+			}
+			var relative = path.substring(prefix.length());
+			if (relative.equals("c8oProject.yaml") || relative.startsWith("_c8oProject/")) {
+				var file = new File(dir, relative);
+				file.getParentFile().mkdirs();
+				Files.write(file.toPath(), repository.open(entry.getObjectId()).getBytes());
+			}
+		}
+		return read(dir);
+	}
+
+	private static Document read(File dir) throws Exception {
 		var yaml = new File(dir, "c8oProject.yaml");
 		if (!yaml.exists()) {
 			var empty = XMLUtils.getDefaultDocumentBuilder().newDocument();

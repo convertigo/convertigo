@@ -22,22 +22,31 @@ package com.twinsoft.convertigo.engine.admin.services.studio.git;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryState;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
@@ -56,9 +65,10 @@ import com.twinsoft.convertigo.engine.util.GitUtils;
  * changed files, their differences, staging, commit, pull and push.
  * <ul>
  * <li>projectName: the project</li>
- * <li>action: status (default), init, diff, stage, unstage, discard, commit, pull, push, fetch, branches,
- * checkout (branch, create) or log; or decorations, without projectName, for the branch and the changed files
- * of each project in a repository</li>
+ * <li>action: status (default), init, diff, stage, unstage, discard, commit, pull (mode merge or rebase),
+ * push, fetch, branches, checkout (branch, create), merge (branch), rebase (branch), cherryPick (commit), revert
+ * (commit), continue (message), skip or abort of the operation stopped, or log; or decorations, without
+ * projectName, for the branch and the changed files of each project in a repository</li>
  * <li>paths: the files to stage or unstage, as a JSON array of paths in the repository; path: the file to
  * compare</li>
  * <li>message: the message of the commit</li>
@@ -132,20 +142,22 @@ public class SourceControl extends JSonService {
 				status(git, prefix, response);
 			}
 			case "pull" -> {
-				var result = git.pull().call();
-				// the project loads again from its pulled files; a merge stopped on a conflict of its objects keeps
-				// the project loaded, the Studio merging them rather than loading the files Git filled with markers
-				var merging = merging(git, prefix);
-				if (!merging) {
-					reload(project.getName());
-					response.put("reloaded", true);
+				// merged, or rebased, as the configuration of the branch says or as asked
+				var before = snapshot(git);
+				var head = git.getRepository().resolve("HEAD^{commit}");
+				var pull = git.pull();
+				var mode = request.getParameter("mode");
+				if ("rebase".equals(mode) || "merge".equals(mode)) {
+					pull.setRebase("rebase".equals(mode));
 				}
-				response.put("merging", merging);
+				var result = pull.call();
+				var operation = afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
-				if (!result.isSuccessful() && !merging) {
+				if (!result.isSuccessful() && !operation.stopped()) {
+					var error = GitOperation.rebaseError(result.getRebaseResult());
 					var cause = result.getMergeResult() != null ? result.getMergeResult().getMergeStatus()
 							: result.getRebaseResult() != null ? result.getRebaseResult().getStatus() : "failed";
-					response.put("error", "The pull did not succeed: " + cause + ".");
+					response.put("error", error != null ? error : "The pull did not succeed: " + cause + ".");
 				}
 			}
 			case "merge" -> {
@@ -155,16 +167,79 @@ public class SourceControl extends JSonService {
 				if (id == null) {
 					throw new ServiceException("The branch " + branch + " does not exist.");
 				}
+				var before = snapshot(git);
+				var head = git.getRepository().resolve("HEAD^{commit}");
 				var result = git.merge().include(branch, id).setMessage("Merge branch '" + branch + "'").call();
-				var merging = merging(git, prefix);
-				if (!merging) {
-					reload(project.getName());
-					response.put("reloaded", true);
-				}
-				response.put("merging", merging);
+				var operation = afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
-				if (!result.getMergeStatus().isSuccessful() && !merging) {
+				if (!result.getMergeStatus().isSuccessful() && !operation.stopped()) {
 					response.put("error", "The merge did not succeed: " + result.getMergeStatus() + ".");
+				}
+			}
+			case "rebase" -> {
+				// the commits of the current branch replayed on another one
+				var branch = request.getParameter("branch");
+				var id = branch == null ? null : git.getRepository().resolve(branch);
+				if (id == null) {
+					throw new ServiceException("The branch " + branch + " does not exist.");
+				}
+				var before = snapshot(git);
+				var head = git.getRepository().resolve("HEAD^{commit}");
+				var result = git.rebase().setUpstream(id).setUpstreamName(branch).call();
+				afterOperation(git, prefix, project.getName(), head, before, response);
+				status(git, prefix, response);
+				GitOperation.Outcome.of(result).put(response);
+			}
+			case "cherryPick", "revert" -> {
+				// a commit applied on the current branch, or its changes undone by a new commit
+				var name = request.getParameter("commit");
+				var id = name == null ? null : git.getRepository().resolve(name + "^{commit}");
+				if (id == null) {
+					throw new ServiceException("The commit " + name + " does not exist.");
+				}
+				var before = snapshot(git);
+				var head = git.getRepository().resolve("HEAD^{commit}");
+				String error = null;
+				if ("cherryPick".equals(action)) {
+					var result = git.cherryPick().include(id).call();
+					if (result.getStatus() == CherryPickStatus.FAILED) {
+						error = "The cherry-pick would overwrite the changes of " + String.join(", ", result.getFailingPaths().keySet()) + ": commit or stash them first.";
+					}
+				} else {
+					var revert = git.revert().include(id);
+					revert.call();
+					var failing = revert.getFailingResult();
+					if (failing != null && failing.getFailingPaths() != null) {
+						error = "The revert would overwrite the changes of " + String.join(", ", failing.getFailingPaths().keySet()) + ": commit or stash them first.";
+					}
+				}
+				afterOperation(git, prefix, project.getName(), head, before, response);
+				status(git, prefix, response);
+				if (error != null) {
+					response.put("error", error);
+				}
+			}
+			case "continue", "skip", "abort" -> {
+				// the operation stopped goes on, skips the commit it stopped at, or is abandoned
+				var operation = GitOperation.of(git);
+				if (!operation.stopped()) {
+					throw new ServiceException("No operation is in progress.");
+				}
+				var before = snapshot(git);
+				var head = git.getRepository().resolve("HEAD^{commit}");
+				GitOperation.Outcome outcome = null;
+				if ("abort".equals(action)) {
+					operation.abort(git);
+				} else if ("skip".equals(action)) {
+					outcome = operation.skip(git);
+				} else {
+					outcome = operation.proceed(git, request.getParameter("message"));
+				}
+				TreeMerge.forget(project.getName());
+				afterOperation(git, prefix, project.getName(), head, before, response);
+				status(git, prefix, response);
+				if (outcome != null) {
+					outcome.put(response);
 				}
 			}
 			case "push" -> {
@@ -221,14 +296,16 @@ public class SourceControl extends JSonService {
 					checkout = git.checkout().setName(local).setCreateBranch(repository.findRef(Constants.R_HEADS + local) == null)
 							.setStartPoint(branch).setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK);
 				}
+				var before = snapshot(git);
+				var head = repository.resolve("HEAD^{commit}");
 				checkout.call();
-				reload(project.getName());
-				response.put("reloaded", true);
+				afterOperation(git, prefix, project.getName(), head, before, response);
 				status(git, prefix, response);
 			}
 			case "discard" -> {
 				// the files come back as the last commit has them, the new ones are removed
 				var paths = new JSONArray(request.getParameter("paths") == null ? "[]" : request.getParameter("paths"));
+				var before = snapshot(git);
 				var untracked = git.status().call().getUntracked();
 				var hasHead = git.getRepository().resolve(Constants.HEAD) != null;
 				for (int i = 0; i < paths.length(); i++) {
@@ -239,14 +316,28 @@ public class SourceControl extends JSonService {
 						git.checkout().setStartPoint(Constants.HEAD).addPath(path).call();
 					}
 				}
-				reload(project.getName());
-				response.put("reloaded", true);
+				afterOperation(git, prefix, project.getName(), git.getRepository().resolve("HEAD^{commit}"), before, response);
 				status(git, prefix, response);
 			}
 			case "log" -> {
+				// the commits of HEAD, or of another branch, those HEAD has not to cherry-pick
 				var commits = new JSONArray();
-				if (git.getRepository().resolve(Constants.HEAD) != null) {
-					var log = git.log().setMaxCount(50);
+				var repository = git.getRepository();
+				var head = repository.resolve("HEAD^{commit}");
+				var ref = request.getParameter("ref");
+				var start = ref == null || ref.isBlank() ? head : repository.resolve(ref + "^{commit}");
+				if (start != null) {
+					var outside = new java.util.HashSet<ObjectId>();
+					if (head != null && !start.equals(head)) {
+						try (var walk = new RevWalk(repository)) {
+							walk.markStart(walk.parseCommit(start));
+							walk.markUninteresting(walk.parseCommit(head));
+							for (var commit : walk) {
+								outside.add(commit.copy());
+							}
+						}
+					}
+					var log = git.log().add(start).setMaxCount(50);
 					if (!prefix.isEmpty()) {
 						log.addPath(prefix.substring(0, prefix.length() - 1));
 					}
@@ -255,7 +346,9 @@ public class SourceControl extends JSonService {
 								.put("id", commit.abbreviate(7).name())
 								.put("subject", commit.getShortMessage())
 								.put("author", commit.getAuthorIdent().getName())
-								.put("time", commit.getCommitTime() * 1000L));
+								.put("time", commit.getCommitTime() * 1000L)
+								.put("inHead", !outside.contains(commit))
+								.put("merge", commit.getParentCount() > 1));
 					}
 				}
 				response.put("commits", commits);
@@ -299,12 +392,14 @@ public class SourceControl extends JSonService {
 					for (var path : status.getUntracked()) {
 						changes += path.startsWith(prefix) ? 1 : 0;
 					}
-					var decoration = new JSONObject().put("project", name).put("branch", repository.getBranch())
+					var decoration = new JSONObject().put("project", name).put("branch", branch(repository))
 							.put("changes", changes);
-					var heads = repository.readMergeHeads();
-					if (heads != null && !heads.isEmpty() && status.getConflicting().stream().anyMatch((path) -> path.startsWith(prefix))) {
-						// a merge stopped on its conflicts, which the Studio merges object by object
+					if (status.getConflicting().stream().anyMatch((path) -> path.startsWith(prefix))) {
+						// an operation stopped on conflicts, which the Studio merges object by object
 						decoration.put("merging", true);
+					}
+					if (repository.getRepositoryState() != RepositoryState.SAFE) {
+						decoration.put("operation", repository.getRepositoryState().name());
 					}
 					var tracking = BranchTrackingStatus.of(repository, repository.getBranch());
 					if (tracking != null) {
@@ -320,16 +415,51 @@ public class SourceControl extends JSonService {
 	}
 
 	/**
-	 * Loads the project again from its files, which a checkout changed.
+	 * @return the branch, and the operation stopped, as the prompt of Git shows them: main|REBASE 1/3
 	 */
+	private static String branch(Repository repository) throws Exception {
+		var branch = repository.getBranch();
+		var state = repository.getRepositoryState();
+		var label = switch (state) {
+		case MERGING, MERGING_RESOLVED -> "MERGING";
+		case CHERRY_PICKING, CHERRY_PICKING_RESOLVED -> "CHERRY-PICKING";
+		case REVERTING, REVERTING_RESOLVED -> "REVERTING";
+		case REBASING, REBASING_REBASING, REBASING_MERGE, REBASING_INTERACTIVE, APPLY -> "REBASE";
+		case BISECTING -> "BISECTING";
+		default -> "";
+		};
+		if (label.isEmpty()) {
+			return branch;
+		}
+		if ("REBASE".equals(label)) {
+			var dir = new File(repository.getDirectory(), "rebase-merge");
+			if (!dir.isDirectory()) {
+				dir = new File(repository.getDirectory(), "rebase-apply");
+			}
+			try {
+				var headName = new File(dir, "head-name");
+				if (headName.isFile()) {
+					branch = Repository.shortenRefName(Files.readString(headName.toPath()).strip());
+				}
+				var done = new File(dir, "done");
+				var todo = new File(dir, "git-rebase-todo");
+				var step = done.isFile() ? repository.readRebaseTodo(dir.getName() + "/done", false).size() : 0;
+				var steps = step + (todo.isFile() ? repository.readRebaseTodo(dir.getName() + "/git-rebase-todo", false).size() : 0);
+				if (steps > 0) {
+					label += " " + step + "/" + steps;
+				}
+			} catch (Exception e) {
+				// the step is not shown
+			}
+		}
+		return branch + "|" + label;
+	}
+
 	/**
-	 * @return whether a merge stopped on a conflict of the files of the project
+	 * @return whether the files of a project have conflicts, of a merge, a rebase, a cherry-pick, a revert
+	 *         or a stash applied, which the Studio merges object by object
 	 */
 	static boolean merging(Git git, String prefix) throws Exception {
-		var heads = git.getRepository().readMergeHeads();
-		if (heads == null || heads.isEmpty()) {
-			return false;
-		}
 		for (var path : git.status().call().getConflicting()) {
 			if (path.startsWith(prefix)) {
 				return true;
@@ -338,10 +468,134 @@ public class SourceControl extends JSonService {
 		return false;
 	}
 
+	/**
+	 * Loads the project again from its files.
+	 */
 	static void reload(String projectName) throws Exception {
 		var manager = Engine.theApp.databaseObjectsManager;
+		Engine.theApp.schemaManager.clearCache(projectName);
 		manager.clearCache(projectName);
 		manager.importProject(Engine.projectYamlFile(projectName), true);
+	}
+
+	/**
+	 * @return the directory of the repository of a project, without opening it
+	 */
+	private static File workingDir(File dir) {
+		while (dir != null && !new File(dir, ".git").isDirectory()) {
+			dir = dir.getParentFile();
+		}
+		return dir;
+	}
+
+	/**
+	 * @return the projects of the repository, with the state of the files of their objects, to load again
+	 *         those an operation changes
+	 */
+	static Map<String, String> snapshot(Git git) throws Exception {
+		var snapshot = new TreeMap<String, String>();
+		var workingDir = git.getRepository().getWorkTree().getCanonicalFile();
+		for (var name : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
+			var yaml = Engine.projectYamlFile(name);
+			if (yaml == null || !yaml.exists()) {
+				continue;
+			}
+			var projectDir = yaml.getParentFile().getCanonicalFile();
+			var dir = workingDir(projectDir);
+			if (dir == null || !dir.getCanonicalFile().equals(workingDir)) {
+				continue;
+			}
+			var files = new ArrayList<File>();
+			files.add(yaml);
+			var objects = new File(projectDir, "_c8oProject");
+			if (objects.isDirectory()) {
+				files.addAll(FileUtils.listFiles(objects, null, true));
+			}
+			files.sort(null);
+			var state = new StringBuilder();
+			for (var file : files) {
+				state.append(file.getPath()).append(':').append(file.lastModified()).append(':').append(file.length()).append('\n');
+			}
+			snapshot.put(name, state.toString());
+		}
+		return snapshot;
+	}
+
+	/**
+	 * Once an operation changed the files of the repository, its projects whose files changed load again,
+	 * but those in conflict: the Studio merges their objects rather than loading the files Git filled with its
+	 * markers, and loads the version of HEAD when the operation moved it, as a rebase.
+	 * @param headBefore HEAD before the operation
+	 * @param before the snapshot of the projects before the operation
+	 * @return the operation the repository stopped at, or none
+	 */
+	static GitOperation afterOperation(Git git, String prefix, String projectName, ObjectId headBefore, Map<String, String> before,
+			JSONObject response) throws Exception {
+		var operation = GitOperation.of(git);
+		var moved = !Objects.equals(headBefore, git.getRepository().resolve("HEAD^{commit}"));
+		var workingDir = git.getRepository().getWorkTree().getCanonicalFile();
+		var reloaded = new JSONArray();
+		var self = false;
+		for (var entry : snapshot(git).entrySet()) {
+			var name = entry.getKey();
+			var projectDir = Engine.projectYamlFile(name).getParentFile().getCanonicalFile();
+			var projectPrefix = projectDir.equals(workingDir) ? ""
+					: workingDir.toPath().relativize(projectDir.toPath()).toString().replace(File.separatorChar, '/') + "/";
+			if (operation.conflicts(projectPrefix)) {
+				if (!moved) {
+					continue;
+				}
+				loadCommitted(git, name, projectDir, projectPrefix);
+			} else if (entry.getValue().equals(before.get(name))) {
+				continue;
+			} else {
+				reload(name);
+			}
+			reloaded.put(name);
+			self |= name.equals(projectName);
+		}
+		response.put("reloaded", self);
+		response.put("reloadedProjects", reloaded);
+		response.put("merging", operation.conflicts(prefix));
+		return operation;
+	}
+
+	/**
+	 * Loads a project in conflict as HEAD has it, the files Git filled with its markers given back once
+	 * loaded: the Studio merges its objects on the version its conflicts are against.
+	 */
+	static void loadCommitted(Git git, String projectName, File projectDir, String prefix) throws Exception {
+		var repository = git.getRepository();
+		var head = repository.resolve("HEAD^{commit}");
+		if (head == null) {
+			return;
+		}
+		var yaml = new File(projectDir, "c8oProject.yaml");
+		var objects = new File(projectDir, "_c8oProject");
+		var saved = new LinkedHashMap<File, byte[]>();
+		if (yaml.isFile()) {
+			saved.put(yaml, Files.readAllBytes(yaml.toPath()));
+		}
+		if (objects.isDirectory()) {
+			for (var file : FileUtils.listFiles(objects, null, true)) {
+				saved.put(file, Files.readAllBytes(file.toPath()));
+			}
+		}
+		try {
+			FileUtils.deleteQuietly(yaml);
+			FileUtils.deleteQuietly(objects);
+			TreeDiff.writeFiles(repository, head, prefix, projectDir);
+			if (yaml.isFile()) {
+				reload(projectName);
+			}
+		} finally {
+			FileUtils.deleteQuietly(yaml);
+			FileUtils.deleteQuietly(objects);
+			for (var file : saved.entrySet()) {
+				file.getKey().getParentFile().mkdirs();
+				Files.write(file.getKey().toPath(), file.getValue());
+			}
+		}
 	}
 
 	/**
@@ -358,7 +612,9 @@ public class SourceControl extends JSonService {
 		var repository = git.getRepository();
 		var status = git.status().call();
 		response.put("repository", true);
-		response.put("branch", repository.getBranch());
+		var operation = GitOperation.of(git);
+		// the branch rebased rather than the commit HEAD is at
+		response.put("branch", GitOperation.REBASE.equals(operation.kind) && !operation.branch.isEmpty() ? operation.branch : repository.getBranch());
 		var head = repository.resolve(Constants.HEAD);
 		response.put("head", head == null ? "" : head.abbreviate(7).name());
 		response.put("remote", repository.getConfig().getString("remote", "origin", "url"));
@@ -368,6 +624,14 @@ public class SourceControl extends JSonService {
 			response.put("behind", tracking.getBehindCount());
 		}
 		response.put("prefix", prefix);
+		if (operation.stopped()) {
+			response.put("operation", operation.toJson(git, prefix));
+		}
+		var rebase = repository.getConfig().getString("branch", repository.getBranch(), "rebase");
+		if (rebase == null) {
+			rebase = repository.getConfig().getString("pull", null, "rebase");
+		}
+		response.put("pullRebase", rebase != null && !"false".equals(rebase));
 		var staged = new TreeMap<String, String>();
 		var unstaged = new TreeMap<String, String>();
 		put(staged, status.getAdded(), "added", prefix);
