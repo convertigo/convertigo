@@ -447,6 +447,8 @@ public class TreeMerge extends JSonService {
 						versions("mine", ours, o, "theirs", theirs, t);
 						if (chose(resolution, "theirs")) {
 							replace(o.key, t);
+						} else if (chose(resolution, "merge")) {
+							combine(ours, o, theirs, t, combination(resolution));
 						}
 					}
 					mark(handled, theirs, t);
@@ -637,6 +639,10 @@ public class TreeMerge extends JSonService {
 						remove(t.key);
 					} else if (chose(resolution, "theirs")) {
 						remove(other.key);
+					} else if (chose(resolution, "merge")) {
+						// one object, mine, with what was chosen of theirs
+						combine(mb, mb.get(other.key), theirs, t, combination(resolution));
+						remove(t.key);
 					} else if (chose(resolution, "both")) {
 						var added = mb.get(t.key);
 						var name = added.properties.get("name");
@@ -836,6 +842,9 @@ public class TreeMerge extends JSonService {
 			if ("same-name".equals(kind)) {
 				choices.put("both");
 			}
+			if ("same-name".equals(kind) || "added-both".equals(kind)) {
+				choices.put("merge");
+			}
 			if (editable) {
 				choices.put("edit");
 			}
@@ -885,26 +894,108 @@ public class TreeMerge extends JSonService {
 				return;
 			}
 			matches.put(l.key, r.key);
+			for (var pair : pairs(ls, l, rs, r).left()) {
+				if (pair[1] != null) {
+					match(ls, pair[0], rs, pair[1], matches);
+				}
+			}
+		}
+
+		/** the children of two versions of an object: those of the left one with their match, or none, and those of the right one only */
+		private record Pairs(java.util.List<Bean[]> left, java.util.List<Bean> right) {
+		}
+
+		/**
+		 * @return the children of two versions of an object, matched by their key, else by their type and name
+		 */
+		private Pairs pairs(Map<String, Bean> ls, Bean l, Map<String, Bean> rs, Bean r) {
+			var left = new java.util.ArrayList<Bean[]>();
+			var right = new java.util.ArrayList<Bean>();
 			var taken = new HashSet<String>();
-			for (var key : l.children) {
+			var rightChildren = r == null ? java.util.List.<String>of() : r.children;
+			var leftChildren = l == null ? java.util.List.<String>of() : l.children;
+			for (var key : leftChildren) {
 				var lc = ls.get(key);
 				if (lc == null) {
 					continue;
 				}
-				Bean rc = r.children.contains(key) ? rs.get(key) : null;
+				Bean rc = rightChildren.contains(key) ? rs.get(key) : null;
 				if (rc == null) {
-					for (var other : r.children) {
+					for (var other : rightChildren) {
 						var candidate = rs.get(other);
-						if (candidate != null && !taken.contains(other) && !l.children.contains(other)
+						if (candidate != null && !taken.contains(other) && !leftChildren.contains(other)
 								&& candidate.classname.equals(lc.classname) && Objects.equals(candidate.name, lc.name)) {
 							rc = candidate;
 							break;
 						}
 					}
 				}
-				if (rc != null && taken.add(rc.key)) {
-					match(ls, lc, rs, rc, matches);
+				if (rc != null && !taken.add(rc.key)) {
+					rc = null;
 				}
+				left.add(new Bean[] { lc, rc });
+			}
+			for (var key : rightChildren) {
+				var rc = rs.get(key);
+				if (rc != null && !taken.contains(key)) {
+					right.add(rc);
+				}
+			}
+			return new Pairs(left, right);
+		}
+
+		/**
+		 * Combines two versions of an object in the merged project, where the left one is: the properties
+		 * chosen theirs taken, the children of a single side kept or not, as chosen, those matched combined in
+		 * turn.
+		 * @param value the choices, as {props: {"key#property": mine|theirs}, children: {"L:key"|"R:key": false}}
+		 */
+		private void combine(Map<String, Bean> ls, Bean l, Map<String, Bean> rs, Bean r, JSONObject value) throws Exception {
+			if (mb.get(l.key) == null) {
+				return;
+			}
+			var props = value.optJSONObject("props");
+			var children = value.optJSONObject("children");
+			var changes = TreeDiff.propertyChanges(l, r);
+			for (var i = 0; i < changes.length(); i++) {
+				var name = changes.getJSONObject(i).getString("name");
+				if (props == null || !"theirs".equals(props.optString(l.key + "#" + name))) {
+					continue;
+				}
+				if (name.startsWith("beanData.")) {
+					var ion = name.substring("beanData.".length());
+					var values = TreeDiff.ionValues(TreeDiff.value(r.properties.get("beanData")), new HashMap<>());
+					setIon(mb.get(l.key), ion, values.getOrDefault(ion, ""));
+				} else {
+					setProperty(mb.get(l.key), name, r.properties.get(name));
+				}
+			}
+			if (!Objects.equals(l.name, r.name) && props != null && "theirs".equals(props.optString(l.key + "#name"))) {
+				setProperty(mb.get(l.key), "name", r.properties.get("name"));
+			}
+			var pairs = pairs(ls, l, rs, r);
+			for (var pair : pairs.left()) {
+				if (pair[1] != null) {
+					combine(ls, pair[0], rs, pair[1], value);
+				} else if (children != null && children.has("L:" + pair[0].key) && !children.getBoolean("L:" + pair[0].key)) {
+					remove(pair[0].key);
+				}
+			}
+			for (var rc : pairs.right()) {
+				var keep = children == null || !children.has("R:" + rc.key) || children.getBoolean("R:" + rc.key);
+				var parent = mb.get(l.key);
+				if (keep && parent != null && !mb.containsKey(rc.key)) {
+					insert(parent.element, (Element) merged.importNode(rc.element, true), r, rc.key);
+					mb = TreeDiff.beans(merged);
+				}
+			}
+		}
+
+		private static JSONObject combination(Resolution resolution) {
+			try {
+				return resolution.value() == null || resolution.value().isBlank() ? new JSONObject() : new JSONObject(resolution.value());
+			} catch (Exception e) {
+				return new JSONObject();
 			}
 		}
 
@@ -1009,6 +1100,13 @@ public class TreeMerge extends JSonService {
 			var node = new JSONObject();
 			node.put("name", bean.name);
 			node.put("type", TreeDiff.typeName(bean.classname));
+			// the keys the choices of a combination name the objects by
+			if (l != null) {
+				node.put("key", l.key);
+			}
+			if (r != null) {
+				node.put("rightKey", r.key);
+			}
 			var properties = new JSONArray();
 			String status;
 			if (l == null) {
@@ -1036,34 +1134,14 @@ public class TreeMerge extends JSonService {
 			}
 			var children = new JSONArray();
 			if (!"same".equals(status) && depth < 8) {
-				var matched = new HashSet<String>();
-				var rightChildren = r == null ? java.util.List.<String>of() : r.children;
-				for (var key : l == null ? java.util.List.<String>of() : l.children) {
-					var lc = ls.get(key);
-					if (lc == null || budget[0] <= 0) {
-						continue;
+				var pairs = pairs(ls, l, rs, r);
+				for (var pair : pairs.left()) {
+					if (budget[0] > 0) {
+						children.put(node(ls, pair[0], rs, pair[1], depth + 1, budget));
 					}
-					Bean rc = null;
-					if (rightChildren.contains(key) && !matched.contains(key)) {
-						rc = rs.get(key);
-					} else {
-						for (var other : rightChildren) {
-							var candidate = rs.get(other);
-							if (candidate != null && !matched.contains(other) && !rightChildren.contains(key)
-									&& candidate.classname.equals(lc.classname) && Objects.equals(candidate.name, lc.name)) {
-								rc = candidate;
-								break;
-							}
-						}
-					}
-					if (rc != null) {
-						matched.add(rc.key);
-					}
-					children.put(node(ls, lc, rs, rc, depth + 1, budget));
 				}
-				for (var key : rightChildren) {
-					var rc = rs.get(key);
-					if (rc != null && !matched.contains(key) && budget[0] > 0) {
+				for (var rc : pairs.right()) {
+					if (budget[0] > 0) {
 						children.put(node(ls, null, rs, rc, depth + 1, budget));
 					}
 				}
