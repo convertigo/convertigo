@@ -62,7 +62,9 @@ import com.twinsoft.convertigo.engine.util.ProcessUtils;
  * <ul>
  * <li>client messages: {project, action: attach | build_dev | build_local | kill | auto_build, params: {endpoint,
  * install: update | reinstall, mode: prod | fast | watch, value: the auto build}}</li>
- * <li>server messages: {type: log | output | progress | load | network | state | built, value}; a state is
+ * <li>server messages: {type: log | output | error | progress | load | network | state | built | compiled,
+ * value}; error is a line of the output that tells an error, compiled the end of a compilation of the
+ * development server, success or failed; a state is
  * dev:serving, dev:idle, local:building:&lt;mode&gt;, local:idle or auto:true|false|none (an engine without
  * Studio writes the sources at once, without auto build); network gives the URLs of
  * the development server on the network, as a JSON array</li>
@@ -90,6 +92,8 @@ public class WsBuilder extends WebSocketService {
 		String baseUrl;
 		/** the URLs of the development server on the network, for a mobile device */
 		String networkUrls;
+		/** the result of the last compilation of the development server, success or failed */
+		String compiled;
 		String state = "idle";
 		volatile Process process;
 
@@ -266,7 +270,12 @@ public class WsBuilder extends WebSocketService {
 					var ended = false;
 					if (standalone) {
 						progress(standaloneProgress(lower));
-						appendOutput(line);
+						if (isError(lower)) {
+							appendError(line);
+						} else {
+							appendOutput(line);
+						}
+						// the end of a compilation tells how it went, before its errors
 						ended = lower.contains("application bundle generation complete")
 								|| lower.contains("bundle generation failed");
 					} else {
@@ -291,6 +300,10 @@ public class WsBuilder extends WebSocketService {
 					}
 					if (ended) {
 						progress(100);
+						// the Studio tells the compilations that fail, as the application editor of the Eclipse Studio
+						compiled = lower.contains("bundle generation failed") || line.contains("Failed to compile.")
+								? "failed" : "success";
+						send("compiled", compiled);
 						synchronized (mutex) {
 							mutex.notify();
 						}
@@ -359,7 +372,11 @@ public class WsBuilder extends WebSocketService {
 						if (standalone) {
 							progress(standaloneProgress(lower));
 						}
-						appendOutput(line);
+						if (isError(lower)) {
+							appendError(line);
+						} else {
+							appendOutput(line);
+						}
 					}
 					if (lower.contains("bundle generation failed") || lower.contains("[error]")
 							|| line.contains("Failed to compile.")) {
@@ -470,6 +487,20 @@ public class WsBuilder extends WebSocketService {
 			send("output", string);
 		}
 
+		/** a line of the output that tells an error of the build, which the Studio shows in red */
+		private void appendError(String string) {
+			send("error", string);
+		}
+
+		/**
+		 * @param lower a line of the output, normalized in lower case
+		 * @return whether it tells an error of the compilation, as esbuild and the Angular compiler write them
+		 */
+		private static boolean isError(String lower) {
+			return lower.startsWith("✘ [error]") || lower.startsWith("[error]") || lower.startsWith("error:")
+					|| lower.matches("^error (ts|ng)\\d+.*") || lower.contains("bundle generation failed");
+		}
+
 		private void log(String log) {
 			send("log", log);
 		}
@@ -550,6 +581,31 @@ public class WsBuilder extends WebSocketService {
 			}
 		}
 	}
+	/**
+	 * Stops the development server and the local build of a project closed, deleted or renamed, whose node
+	 * processes would go on with a folder that leaves the workspace.
+	 */
+	public static void stop(String projectName) {
+		Build dev, local;
+		synchronized (builds) {
+			dev = builds.remove(key(projectName, true));
+			local = builds.remove(key(projectName, false));
+		}
+		if (dev == null && local == null) {
+			return;
+		}
+		broadcast(projectName, "log", "Stopping the builds of " + projectName);
+		for (var build : new Build[] { local, dev }) {
+			if (build != null) {
+				try {
+					build.terminateNode(false);
+				} catch (Exception e) {
+					Engine.logStudio.warn("(WsBuilder) failed to stop a build of " + projectName, e);
+				}
+			}
+		}
+	}
+
 	/** the clients following the builds of each project */
 	static Map<String, Set<WsBuilder>> listeners = new HashMap<>();
 
@@ -652,6 +708,9 @@ public class WsBuilder extends WebSocketService {
 				}
 				if (current.networkUrls != null) {
 					send("network", current.networkUrls);
+				}
+				if (current.compiled != null) {
+					send("compiled", current.compiled);
 				}
 			}
 		}

@@ -257,6 +257,8 @@
 	let dockOpen = $state(/** @type {Record<string, boolean>} */ ({}));
 	let dockVisible = $state(/** @type {Record<string, boolean>} */ ({}));
 	let dockMenuOpen = $state(false);
+	/** whether the application of the selected project does not build, which the Build view tells */
+	let buildFailed = $state(false);
 	let frontendDeviceId = $state('none');
 	let frontendLandscape = $state(false);
 	/** @type {{ projectName: string, url: string, mode: 'production' | 'development' }} */
@@ -3506,6 +3508,7 @@
 		projectName={selectedProjectName}
 		active={Boolean(dockVisible.build)}
 		onLoad={showDevelopmentBuild}
+		onFailedChange={(failed) => (buildFailed = failed)}
 		onBuilt={() => {
 			// a first build gives the project its application
 			void Projects.refresh();
@@ -3607,6 +3610,7 @@
 					debug: debugPane
 				}[view.id],
 				actions: view.id === 'logs' ? logsToolbarTrail : undefined,
+				alert: view.id === 'build' && buildFailed ? 'The application does not build' : '',
 				lazy: view.id === 'references' || view.id === 'schema'
 			}))
 		]}

@@ -692,6 +692,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		var bPreserveEclipe = DeleteProjectOption.preserveEclipse.as(options);
 		var bPreserveVCS = DeleteProjectOption.preserveVCS.as(options);
 		var bUnloadOnly = DeleteProjectOption.unloadOnly.as(options);
+		// the application of the project, served or built by the web Studio, stops with it
+		com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.WsBuilder.stop(projectName);
 		try {
 			// Remove all pooled related contexts in server mode
 			if (Engine.isEngineMode() && !Engine.isCliMode()) {
@@ -1855,6 +1857,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (oldName.equals(newName)) {
 			return;
 		}
+		// the application of the project, served or built by the web Studio, stops before its folder moves
+		com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.WsBuilder.stop(oldName);
 		// Rename dir
 		File file = Engine.projectFile(oldName);
 		if (!file.exists()) {

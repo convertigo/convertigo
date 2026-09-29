@@ -1,6 +1,6 @@
 <script>
 	import Ico from '$lib/utils/Ico.svelte';
-	import { getUrl } from '$lib/utils/service';
+	import { getUrl, toaster } from '$lib/utils/service';
 	import { onDestroy, tick, untrack } from 'svelte';
 
 	/**
@@ -15,6 +15,7 @@
 	 *  onLoad?: (url: string) => void,
 	 *  onBuilt?: () => void,
 	 *  onServerStop?: () => void,
+	 *  onFailedChange?: (failed: boolean) => void,
 	 *  serveRequest?: number | { at: number, install?: string },
 	 *  onServeRequestTaken?: () => void,
 	 *  buildRequest?: number,
@@ -27,6 +28,7 @@
 		onLoad,
 		onBuilt,
 		onServerStop,
+		onFailedChange,
 		serveRequest = 0,
 		onServeRequestTaken,
 		buildRequest = 0,
@@ -65,10 +67,13 @@
 	let networkUrls = $state([]);
 	let qrOpen = $state(false);
 	let qrUrl = $state('');
+	/** whether the last compilation of the development server, or the last local build, failed */
+	let failed = $state(false);
 	let running = $derived(devState !== 'idle' || localState !== 'idle');
 	let status = $derived(
 		[
 			devState === 'serving' && 'Serving in development mode',
+			failed && 'Build failed',
 			localState.startsWith('building:') &&
 				`${LOCAL_BUILDS.find((build) => localState === `building:${build.mode}`)?.label ?? 'Build'} running`
 		]
@@ -86,6 +91,28 @@
 			connect(project);
 		}
 	});
+
+	$effect(() => {
+		// the Studio marks the Build view while the application does not build
+		const current = failed;
+		untrack(() => onFailedChange?.(current));
+	});
+
+	/**
+	 * A compilation that fails is told once, until the application builds again, as the application editor
+	 * of the Eclipse Studio shows it.
+	 * @param {boolean} next
+	 * @param {string} what
+	 */
+	function setFailed(next, what) {
+		if (next && !failed) {
+			toaster.error({
+				title: `The application of ${socketProject} does not build`,
+				description: `${what} failed: its errors are in the Build view.`
+			});
+		}
+		failed = next;
+	}
 
 	/** a development server to show, asked by the Dev mode of the preview */
 	let pendingServe = false;
@@ -190,6 +217,7 @@
 		url = '';
 		devState = 'idle';
 		localState = 'idle';
+		failed = false;
 		attached = false;
 		const address = new URL(`${getUrl()}studio.ngxbuilder.WsBuilder`, location.href);
 		address.protocol = address.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -234,6 +262,7 @@
 							url = '';
 							networkUrls = [];
 							qrOpen = false;
+							failed = false;
 							if (wasServing) {
 								onServerStop?.();
 							}
@@ -253,8 +282,11 @@
 						networkUrls = [];
 					}
 					qrUrl = networkUrls[0]?.url ?? '';
+				} else if (type === 'compiled') {
+					setFailed(value === 'failed', 'The compilation of the development server');
 				} else if (type === 'built') {
 					progress = -1;
+					setFailed(value === 'failed', 'The local build');
 					// a build ending before the production build asked for a deployment does not deploy
 					if (value === 'success' && !pendingBuild) {
 						onBuilt?.();
@@ -408,7 +440,7 @@
 				<span style:width={`${progress}%`}></span>
 			</span>
 		{/if}
-		<span class="studio-builder__status">
+		<span class={['studio-builder__status', failed && 'studio-builder__status--failed']}>
 			{connection === 'open'
 				? [projectName, status].filter(Boolean).join(' - ')
 				: connection === 'connecting'
@@ -574,6 +606,10 @@
 	}
 
 	.studio-builder__line--error {
+		color: var(--color-error-600-400);
+	}
+
+	.studio-builder__status--failed {
 		color: var(--color-error-600-400);
 	}
 </style>

@@ -2,8 +2,8 @@
 	import Ico from '$lib/utils/Ico.svelte';
 
 	/**
-	 * The tab of a view of the dock: its icon, its name and the button that closes it.
-	 * @type {{ tab: { title: string, icon?: string, onClose: () => void } }}
+	 * The tab of a view of the dock: its icon, its name, what goes wrong in it and the button that closes it.
+	 * @type {{ tab: { title: string, icon?: string, alert?: string, onClose: () => void } }}
 	 */
 	let { tab } = $props();
 </script>
@@ -13,6 +13,9 @@
 		<Ico icon={tab.icon} size={4} />
 	{/if}
 	<span class="studio-dock-tab__label">{tab.title}</span>
+	{#if tab.alert}
+		<span class="studio-dock-tab__alert" role="img" title={tab.alert} aria-label={tab.alert}></span>
+	{/if}
 	<button
 		type="button"
 		class="studio-dock-tab__close"
@@ -46,6 +49,14 @@
 	.studio-dock-tab__label {
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	.studio-dock-tab__alert {
+		width: 0.45rem;
+		height: 0.45rem;
+		flex: none;
+		border-radius: 999px;
+		background: var(--color-error-500);
 	}
 
 	.studio-dock-tab__close {

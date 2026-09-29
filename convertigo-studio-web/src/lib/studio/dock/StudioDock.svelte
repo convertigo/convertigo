@@ -65,6 +65,8 @@
 	let stateQueued = false;
 	/** where a closed view goes back: the view it was grouped with */
 	const closedBeside = new Map();
+	/** @type {Map<string, { alert?: string }>} the tabs of the views, which show their alerts */
+	const tabs = new Map();
 	/** the layout before a view is maximized, whose sizes the groups take again once it is restored */
 	let beforeMaximize = /** @type {any} */ (null);
 
@@ -122,13 +124,16 @@
 				const tab = $state({
 					title: view?.title ?? options.name,
 					icon: view?.icon,
+					alert: viewOf(options.name)?.alert ?? '',
 					onClose: () => params.api.close()
 				});
+				tabs.set(options.name, tab);
 				component = mount(StudioDockTab, { target: element, props: { tab } });
 				// a double-click on a tab maximizes its view, as in the Eclipse Studio
 				element.addEventListener('dblclick', () => toggleMaximize(params.api));
 			},
 			dispose() {
+				tabs.delete(options.name);
 				if (component) {
 					void unmount(component);
 					component = undefined;
@@ -614,6 +619,16 @@
 			? NARROW_DIRECTIONS[area]
 			: AREA_DIRECTIONS[/** @type {'left' | 'right' | 'bottom'} */ (area)];
 	}
+
+	$effect(() => {
+		// the alerts of the views, on their tabs
+		for (const view of views) {
+			const tab = tabs.get(view.id);
+			if (tab) {
+				tab.alert = view.alert ?? '';
+			}
+		}
+	});
 
 	$effect(() => {
 		// a profile chosen before the dock was laid out, as the one the preferences keep
