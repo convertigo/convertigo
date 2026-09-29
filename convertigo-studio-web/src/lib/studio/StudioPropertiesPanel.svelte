@@ -999,8 +999,13 @@
 								<strong>{conflict.label ?? conflict.description}</strong>
 								{#if conflict.label}<span>{conflict.description}</span>{/if}
 							</div>
-							{#if conflict.kind === 'property'}
-								<dl class="studio-properties__merge-values">
+							{#if conflict.kind === 'property' || conflict.kind === 'order'}
+								<dl
+									class={[
+										'studio-properties__merge-values',
+										conflict.kind === 'order' && 'studio-properties__merge-values--lines'
+									]}
+								>
 									<dt>base</dt>
 									<dd>{conflict.base || '—'}</dd>
 									<dt title={merge?.ours}>mine</dt>
@@ -1599,6 +1604,10 @@
 	}
 
 	/* the conflicts of the object in a merge stopped on them */
+	.studio-properties__merge-values--lines dd {
+		white-space: pre-line;
+	}
+
 	.studio-properties__versions-hint {
 		margin: 0;
 		color: var(--studio-text-idle);
