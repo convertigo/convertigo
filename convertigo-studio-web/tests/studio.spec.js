@@ -557,16 +557,19 @@ test('studio hosts the Flow binding web component and applies its value on touch
 	expect(await pickerFrame.getAttribute('srcdoc')).toBe(sourceDocument);
 	await picker.getByRole('button', { name: 'Source' }).click();
 	await picker.getByRole('combobox', { name: 'Source' }).selectOption('local.points');
+	// the value of the picker is a change of the Properties, which their Apply sets without saving
 	await picker.getByRole('button', { name: 'Apply' }).click();
+	expect(await pickerFrame.getAttribute('srcdoc')).toBe(sourceDocument);
+	await expect(picker.locator('html')).toHaveAttribute('data-flow-theme', 'light');
+	expect(propertyUpdates).toHaveLength(0);
+	await page.getByRole('button', { name: 'Apply', exact: true }).click();
 
 	await expect.poll(() => propertyUpdates.length).toBe(1);
 	expect(flowPickerRequests).toHaveLength(1);
 	await expect(page.getByText('Loading Flow picker', { exact: true })).toHaveCount(0);
-	expect(await pickerFrame.getAttribute('srcdoc')).toBe(sourceDocument);
-	await expect(picker.locator('html')).toHaveAttribute('data-flow-theme', 'light');
 	const update = propertyUpdates[0];
 	expect(update.get('id')).toBe(frontendBuilderId);
-	expect(update.get('save')).toBe('true');
+	expect(update.get('save')).toBe('false');
 	const props = JSON.parse(update.get('props') ?? '[]');
 	expect(props).toEqual([
 		expect.objectContaining({
@@ -582,17 +585,9 @@ test('studio hosts the Flow binding web component and applies its value on touch
 			})
 		})
 	]);
-	await picker.getByRole('button', { name: 'Apply' }).click();
-	await expect.poll(() => propertyUpdates.length).toBe(2);
-	const secondProps = JSON.parse(propertyUpdates[1].get('props') ?? '[]');
-	expect(secondProps[0]?.originalValue).toBe(props[0].value);
-	expect(flowPickerRequests).toHaveLength(1);
-	expect(await pickerFrame.getAttribute('srcdoc')).toBe(sourceDocument);
-	await expect(
-		page.frameLocator('iframe[title="Flow picker for Text"]').locator('flow-binding-editor')
-	).toBeVisible();
-	await page.getByRole('button', { name: 'Close Text options' }).click();
+	// the change applied closes the picker of the property
 	await expect(page.locator('iframe[title="Flow picker for Text"]')).toHaveCount(0);
+	expect(flowPickerRequests).toHaveLength(1);
 });
 
 test('studio edits a literal Flow binding directly without loading the picker', async ({
@@ -609,7 +604,7 @@ test('studio edits a literal Flow binding directly without loading the picker', 
 	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
 	const textProperty = page.locator('.studio-properties__field').filter({ hasText: 'TEXT' });
 	await textProperty.getByRole('textbox').fill('Edited directly');
-	await page.getByRole('button', { name: 'Save', exact: true }).click();
+	await page.getByRole('button', { name: 'Apply', exact: true }).click();
 
 	await expect.poll(() => propertyUpdates.length).toBe(1);
 	expect(flowPickerRequests).toHaveLength(0);
@@ -817,7 +812,7 @@ test('studio treats an empty legacy Flow binding as an editable literal', async 
 	await page.getByRole('tab', { name: 'Properties', exact: true }).click();
 	const classesProperty = page.locator('.studio-properties__field').filter({ hasText: 'CLASSES' });
 	await classesProperty.getByRole('textbox').fill('layout-centered');
-	await page.getByRole('button', { name: 'Save', exact: true }).click();
+	await page.getByRole('button', { name: 'Apply', exact: true }).click();
 
 	await expect.poll(() => propertyUpdates.length).toBe(1);
 	expect(flowPickerRequests).toHaveLength(0);
@@ -2389,7 +2384,7 @@ function flowPickerResponse() {
 			const app = document.getElementById('app');
 			app.innerHTML = '<flow-binding-editor></flow-binding-editor><button type="button" id="apply">Apply</button><output></output>';
 			const editor = app.querySelector('flow-binding-editor'); editor.setState(state);
-			app.querySelector('#apply').onclick = () => { window.flowEditor.receive(JSON.stringify({ type: 'setProperty', property: 'text', value: editor.value })); app.querySelector('output').textContent = 'Applied text'; };
+			app.querySelector('#apply').onclick = () => { window.flowEditor.receive(JSON.stringify({ type: 'value', value: editor.value, valid: true })); app.querySelector('output').textContent = 'Applied text'; };
 		};
 		</script></body></html>`,
 		state: {
