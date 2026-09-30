@@ -10,6 +10,10 @@
 	import { fade } from 'svelte/transition';
 	import { captureElement } from './elementCapture';
 	import {
+		authoringActionDoneMessage,
+		authoringActionRequest,
+		authoringActionsMessage,
+		authoringActionsRequest,
 		authoringDropRequest,
 		authoringModeFromMessage,
 		authoringModeMessage,
@@ -71,7 +75,7 @@
 	const labeledButtonClasses =
 		'button-ico-secondary studio-preview__labeled h-8! w-fit! justify-center px-2!';
 
-	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, onNgxStyleChanges?: (changes: any) => void | Promise<void>, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean, onNgxDragStart?: (priority: string) => void, onNgxDragEnd?: () => void, activity?: { phase: string, progress: number, result?: string, serial?: number } }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onAuthoringActions?: (reference: import('./flowAuthoring').FlowAuthoringReference) => import('./flowAuthoring').FlowAuthoringAction[] | Promise<import('./flowAuthoring').FlowAuthoringAction[]>, onAuthoringAction?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, action: string }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, onNgxStyleChanges?: (changes: any) => void | Promise<void>, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean, onNgxDragStart?: (priority: string) => void, onNgxDragEnd?: () => void, activity?: { phase: string, progress: number, result?: string, serial?: number } }} */
 	let {
 		projectName = '',
 		previewUrlOverride = '',
@@ -87,6 +91,8 @@
 		onAuthoringSelect,
 		onAuthoringDrop,
 		onAuthoringMove,
+		onAuthoringActions,
+		onAuthoringAction,
 		onThemeContext,
 		reloadSerial = 0,
 		onNgxStyleChanges,
@@ -874,6 +880,35 @@
 		const move = authoringMoveRequest(event.data);
 		if (move) {
 			void onAuthoringMove?.(move);
+			return;
+		}
+		// the chip of the selection in the application offers the actions of the tree on its object
+		const actionsRequest = authoringActionsRequest(event.data);
+		if (actionsRequest) {
+			const target = iframe?.contentWindow;
+			void Promise.resolve()
+				.then(() => onAuthoringActions?.(actionsRequest.reference) ?? [])
+				.catch(() => [])
+				.then((actions) =>
+					target?.postMessage(
+						authoringActionsMessage(actionsRequest.reference, actions),
+						window.location.origin
+					)
+				);
+			return;
+		}
+		const actionRequest = authoringActionRequest(event.data);
+		if (actionRequest) {
+			const target = iframe?.contentWindow;
+			void Promise.resolve()
+				.then(() => onAuthoringAction?.(actionRequest))
+				.catch(() => undefined)
+				.then(() =>
+					target?.postMessage(
+						authoringActionDoneMessage(actionRequest.reference, actionRequest.action),
+						window.location.origin
+					)
+				);
 			return;
 		}
 		const reference = referenceFromAuthoringMessage(event.data);

@@ -30,7 +30,7 @@ export function isFlowAuthoringReference(value) {
 
 /**
  * @param {unknown} value
- * @returns {value is { protocol: string, type: string, reference?: FlowAuthoringReference, source?: FlowAuthoringReference, mode?: unknown, position?: unknown, payload?: unknown, themeContext?: unknown }}
+ * @returns {value is { protocol: string, type: string, reference?: FlowAuthoringReference, source?: FlowAuthoringReference, mode?: unknown, position?: unknown, payload?: unknown, themeContext?: unknown, action?: unknown }}
  */
 export function isFlowAuthoringMessage(value) {
 	const candidate = /** @type {Record<string, unknown> | null} */ (
@@ -194,6 +194,75 @@ export function selectedAuthoringReference(message) {
 		return null;
 	}
 	return message.reference;
+}
+
+/**
+ * @typedef {{ id: string, label: string, description?: string, danger?: boolean, enabled?: boolean }} FlowAuthoringAction
+ */
+
+/**
+ * The preview asks for the actions on the object it shows selected.
+ * @param {unknown} message
+ * @returns {{ reference: FlowAuthoringReference } | null}
+ */
+export function authoringActionsRequest(message) {
+	if (
+		!isFlowAuthoringMessage(message) ||
+		message.type !== 'authoring.actions.request' ||
+		!isFlowAuthoringReference(message.reference)
+	) {
+		return null;
+	}
+	return { reference: message.reference };
+}
+
+/**
+ * The actions the Studio offers on the object the preview shows selected, as in its tree.
+ * @param {FlowAuthoringReference} reference
+ * @param {FlowAuthoringAction[]} actions
+ */
+export function authoringActionsMessage(reference, actions) {
+	return {
+		protocol: FLOW_AUTHORING_PROTOCOL,
+		type: 'authoring.actions',
+		reference,
+		actions: (Array.isArray(actions) ? actions : [])
+			.filter((action) => action && typeof action.id === 'string' && action.id && typeof action.label === 'string')
+			.map((action) => ({
+				id: action.id,
+				label: action.label,
+				...(action.description ? { description: String(action.description) } : {}),
+				...(action.danger ? { danger: true } : {}),
+				...(action.enabled === false ? { enabled: false } : {})
+			}))
+	};
+}
+
+/**
+ * The preview runs one of the actions of the object it shows selected.
+ * @param {unknown} message
+ * @returns {{ reference: FlowAuthoringReference, action: string } | null}
+ */
+export function authoringActionRequest(message) {
+	if (
+		!isFlowAuthoringMessage(message) ||
+		message.type !== 'authoring.action' ||
+		!isFlowAuthoringReference(message.reference) ||
+		typeof message.action !== 'string' ||
+		!message.action
+	) {
+		return null;
+	}
+	return { reference: message.reference, action: message.action };
+}
+
+/**
+ * Tells the preview the action it asked for is over, done or not.
+ * @param {FlowAuthoringReference} reference
+ * @param {string} action
+ */
+export function authoringActionDoneMessage(reference, action) {
+	return { protocol: FLOW_AUTHORING_PROTOCOL, type: 'authoring.action.done', reference, action };
 }
 
 /** Pass confirmed menu mutations through the same tree reconciliation as DnD and rename.

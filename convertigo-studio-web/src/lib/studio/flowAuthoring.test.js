@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+	authoringActionDoneMessage,
+	authoringActionRequest,
+	authoringActionsMessage,
+	authoringActionsRequest,
 	authoringDropRequest,
 	authoringModeFromMessage,
 	authoringModeMessage,
@@ -184,5 +188,48 @@ describe('Flow visual authoring protocol', () => {
 		});
 		expect(authoringMoveRequest({ ...message, source: null })).toBe(null);
 		expect(authoringMoveRequest({ ...message, position: 'around' })).toBe(null);
+	});
+
+	it('answers the chip of the preview with the actions of the tree on its object', () => {
+		const request = { protocol: FLOW_AUTHORING_PROTOCOL, type: 'authoring.actions.request', reference };
+		expect(authoringActionsRequest(request)).toEqual({ reference });
+		expect(authoringActionsRequest({ ...request, reference: { nodeId: 'title' } })).toBe(null);
+		expect(authoringActionsRequest({ ...request, type: 'authoring.select' })).toBe(null);
+		expect(
+			authoringActionsMessage(reference, [
+				{ id: 'flow.node.disable', label: 'Disable', description: 'Skip this node.' },
+				{ id: 'object.delete', label: 'Delete', danger: true, enabled: false },
+				/** @type {any} */ ({ label: 'no id' }),
+				/** @type {any} */ ({ id: 'no.label' })
+			])
+		).toEqual({
+			protocol: FLOW_AUTHORING_PROTOCOL,
+			type: 'authoring.actions',
+			reference,
+			actions: [
+				{ id: 'flow.node.disable', label: 'Disable', description: 'Skip this node.' },
+				{ id: 'object.delete', label: 'Delete', danger: true, enabled: false }
+			]
+		});
+		expect(authoringActionsMessage(reference, /** @type {any} */ (null)).actions).toEqual([]);
+	});
+
+	it('runs an action of the chip once and tells when it is over', () => {
+		const message = {
+			protocol: FLOW_AUTHORING_PROTOCOL,
+			type: 'authoring.action',
+			reference,
+			action: 'flow.node.disable'
+		};
+		expect(authoringActionRequest(message)).toEqual({ reference, action: 'flow.node.disable' });
+		expect(authoringActionRequest({ ...message, action: '' })).toBe(null);
+		expect(authoringActionRequest({ ...message, action: 3 })).toBe(null);
+		expect(authoringActionRequest({ ...message, reference: null })).toBe(null);
+		expect(authoringActionDoneMessage(reference, 'object.delete')).toEqual({
+			protocol: FLOW_AUTHORING_PROTOCOL,
+			type: 'authoring.action.done',
+			reference,
+			action: 'object.delete'
+		});
 	});
 });

@@ -344,6 +344,76 @@ test('studio drops a block from the preview after a node that takes nothing insi
 	await expectFrontendOrder(page, ['firstText', 'secondText', 'text1']);
 });
 
+test('studio runs the actions of the chip of the preview as its tree does', async ({ page }) => {
+	const state = createStudioState();
+	const contextActions = [];
+	const removeRequests = [];
+	await mockStudioServices(page, {
+		state,
+		contextActions,
+		removeRequests,
+		authoringReferences: { secondText: `${frontendStructureId}.secondText` }
+	});
+	// the chip of a Dev viewer asks for the actions of the second text, then runs two of them
+	await page.route('**/convertigo/gw/studio-test-ticket/**', async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'text/html',
+			body: `<!doctype html><html><body>
+				<output id="actions"></output><output id="done"></output>
+				<button type="button" id="ask">Ask the actions</button>
+				<button type="button" id="disable">Disable</button>
+				<button type="button" id="delete">Delete</button>
+				<script>
+					const reference = { nodeId: 'secondText', sourceMutationPath: 'frontAst.nodes[1]',
+						sourceRelativePath: 'model/StudioProject/src/routes/+page.flow.svelte' };
+					const send = (message) => parent.postMessage(Object.assign(
+						{ protocol: 'convertigo.flow.authoring.v1', reference: reference }, message), location.origin);
+					addEventListener('message', (event) => {
+						if (event.data && event.data.type === 'authoring.actions') {
+							document.getElementById('actions').textContent =
+								event.data.actions.map((action) => action.id).join(',');
+						}
+						if (event.data && event.data.type === 'authoring.action.done') {
+							document.getElementById('done').textContent += event.data.action + ';';
+						}
+					});
+					document.getElementById('ask').onclick = () => send({ type: 'authoring.actions.request' });
+					document.getElementById('disable').onclick = () =>
+						send({ type: 'authoring.action', action: 'flow.node.disable' });
+					document.getElementById('delete').onclick = () =>
+						send({ type: 'authoring.action', action: 'object.delete' });
+				</script></body></html>`
+		});
+	});
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await expandTreeNode(page, frontendBuilderId);
+	await expandTreeNode(page, frontendStructureId);
+	await selectTreeNode(page, frontendStructureId);
+	await page.getByRole('radio', { name: 'Frontend' }).click();
+	await page.getByRole('radio', { name: 'Dev', exact: true }).click();
+	await expectFrontendOrder(page, ['firstText', 'secondText']);
+	const viewer = page.frameLocator('iframe[title="StudioProject frontend"]');
+
+	// the actions of the tree on the object itself, not those of the whole frontend
+	await viewer.getByRole('button', { name: 'Ask the actions' }).click();
+	await expect(viewer.locator('#actions')).toHaveText('flow.node.disable,object.delete');
+	await viewer.getByRole('button', { name: 'Disable' }).click();
+	await expect.poll(() => contextActions.at(-1)).toBe('flow.node.disable');
+	await expect(viewer.locator('#done')).toHaveText('flow.node.disable;');
+	// Delete asks the same confirmation as the tree
+	page.once('dialog', (dialog) => dialog.accept());
+	await viewer.getByRole('button', { name: 'Delete' }).click();
+	await expect
+		.poll(() => removeRequests.map((params) => params.get('id')))
+		.toEqual([`${frontendStructureId}.secondText`]);
+	await expect(viewer.locator('#done')).toHaveText('flow.node.disable;object.delete;');
+	await expectFrontendOrder(page, ['firstText']);
+});
+
 test('studio vibe profile gives the Assistant the selected project and keeps the live frontend beside it', async ({
 	page
 }) => {
@@ -1937,6 +2007,7 @@ function responseEditor(page) {
  *  authoringTargets?: Record<string, string>,
  *  authoringReferences?: Record<string, string>,
  *  addRequests?: URLSearchParams[],
+ *  removeRequests?: URLSearchParams[],
  *  adminEvents?: Array<{id: string, topic: string, timestamp: number, instance: string, payload: Record<string, unknown>}>
  * }} [options]
  */
@@ -2124,7 +2195,8 @@ function serviceName(url) {
  *  pasteRequests?: URLSearchParams[],
  *  authoringTargets?: Record<string, string>,
  *  authoringReferences?: Record<string, string>,
- *  addRequests?: URLSearchParams[]
+ *  addRequests?: URLSearchParams[],
+ *  removeRequests?: URLSearchParams[]
  * }} [options]
  */
 function responseForService(service, params, options = {}) {
@@ -2215,6 +2287,7 @@ function responseForService(service, params, options = {}) {
 		case 'studio.dbo.Rename':
 			return renameDboResponse(params, state);
 		case 'studio.dbo.Remove':
+			options.removeRequests?.push(params);
 			return removeDboResponse(params, state);
 		case 'studio.palette.Get':
 			return paletteResponse(params);
@@ -2781,7 +2854,22 @@ function contextMenuResponse(params, state) {
 						'Svelte build'
 					)
 				]
-			: [];
+			: id.startsWith(`${frontendStructureId}.`)
+				? [
+						contextMenuItem(
+							'flow.node.disable',
+							'Disable',
+							'Skip this Flow node as if it was absent.',
+							'Flow'
+						),
+						contextMenuItem(
+							'frontbuilder.svelte.dev.start',
+							'Start dev mode',
+							'Start Vite behind the Studio gateway.',
+							'Svelte dev'
+						)
+					]
+				: [];
 	return {
 		id,
 		menu: {
@@ -2916,6 +3004,15 @@ function insertionIndex(siblings, target, position) {
  */
 function removeDboResponse(params, state) {
 	const id = params.get('id') ?? '';
+	if (id.startsWith(`${frontendStructureId}.`)) {
+		const index = state.frontendNodes.findIndex(
+			(node) => node.id === id.slice(frontendStructureId.length + 1)
+		);
+		if (index >= 0) {
+			state.frontendNodes.splice(index, 1);
+		}
+		return { done: index >= 0 };
+	}
 	const entry = findStepEntry(state, id);
 	if (!entry) {
 		return { done: false };

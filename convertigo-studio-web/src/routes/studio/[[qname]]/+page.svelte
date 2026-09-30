@@ -1423,6 +1423,73 @@
 		}
 	}
 
+	/**
+	 * The tree object of a node the preview shows, in the application it shows.
+	 * @param {import('$lib/studio/flowAuthoring').FlowAuthoringReference} reference
+	 */
+	async function frontendAuthoringObject(reference) {
+		const mapping = await call('studio.treeview.Authoring', {
+			project: applicationProjectName,
+			reference: JSON.stringify(reference)
+		});
+		return String(mapping?.id ?? '');
+	}
+
+	/**
+	 * The actions the preview offers on the object it shows selected: those of its menu in the tree
+	 * that act on the object itself, as Disable or Enable, and its deletion.
+	 * @param {import('$lib/studio/flowAuthoring').FlowAuthoringReference} reference
+	 * @returns {Promise<import('$lib/studio/flowAuthoring').FlowAuthoringAction[]>}
+	 */
+	async function frontendAuthoringActions(reference) {
+		const id = await frontendAuthoringObject(reference);
+		if (!id) {
+			return [];
+		}
+		// the chip asks as soon as a node is selected: a failure leaves it its own actions, silently
+		const response = await getStudioContextMenu(id, { silentError: () => true });
+		const items = Array.isArray(response?.menu?.items) ? response.menu.items : [];
+		return [
+			...items
+				.filter((item) => /^flow\.node\./.test(String(item?.id ?? '')) && item.enabled !== false)
+				.map((item) => ({
+					id: String(item.id),
+					label: String(item.label || item.id),
+					description: String(item.description ?? '')
+				})),
+			{
+				id: 'object.delete',
+				label: 'Delete',
+				description: 'Delete this object and its children.',
+				danger: true
+			}
+		];
+	}
+
+	/**
+	 * Runs an action of the chip of the preview as the menu of the tree runs it, with its confirmation.
+	 * @param {{ reference: import('$lib/studio/flowAuthoring').FlowAuthoringReference, action: string }} request
+	 */
+	async function runFrontendAuthoringAction(request) {
+		const id = await frontendAuthoringObject(request.reference);
+		if (!id) {
+			toaster.error({ description: STALE_AUTHORING_MESSAGE });
+			return;
+		}
+		if (request.action === 'object.delete') {
+			await deleteTreeObject(id);
+			return;
+		}
+		const response = await getStudioContextMenu(id);
+		const items = Array.isArray(response?.menu?.items) ? response.menu.items : [];
+		const action = items.find((item) => item?.id === request.action);
+		if (!action?.enabled || (action.confirm && !window.confirm(action.confirm))) {
+			return;
+		}
+		const result = await runStudioContextAction(id, action);
+		await onStudioContextAction({ nodeId: id, action, result });
+	}
+
 	/** @param {{ mode: string, palette: string, tokens: any[] }} context */
 	function updateFrontendThemeContext(context) {
 		frontendTheme = { projectName: applicationProjectName, context };
@@ -3499,6 +3566,8 @@
 		onAuthoringSelect={selectFrontendAuthoringReference}
 		onAuthoringDrop={dropInFrontend}
 		onAuthoringMove={moveInFrontend}
+		onAuthoringActions={frontendAuthoringActions}
+		onAuthoringAction={runFrontendAuthoringAction}
 		onThemeContext={updateFrontendThemeContext}
 		reloadSerial={frontendPreviewSerial}
 		{ngxReference}
