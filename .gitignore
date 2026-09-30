@@ -17,6 +17,8 @@ META-INF
 
 **/.gradle
 /build
+# Local code graphs, extraction caches, and query logs.
+graphify-out/
 /convertigo-splash/splash.bmp
 /convertigo-templates/*/*.gradle
 !/convertigo-templates/common/*.gradle

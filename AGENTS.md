@@ -9,6 +9,14 @@ These repo-wide notes are still evolving. Prefer more specific `AGENTS.md` files
 - Apply dependency and toolchain version edits before `generateEclipseConfigurationWithManifest`. Eclipse/platform and stable Tycho updates are permitted on develop, with a fresh Maven Studio build when either changes.
 - Updating dependencies does not authorize committing, merging, or pushing. Perform those actions only when explicitly requested.
 
+## Local code graph
+
+- For optional Java/Studio web relationship searches, use [.agents/skills/convertigo-code-graph/SKILL.md](.agents/skills/convertigo-code-graph/SKILL.md). Generated graphs stay local under ignored `build/graphify/`; do not commit them.
+- Prefer this scoped recipe over a generic installed Graphify workflow. It does not index repository documents or private notes, and does not use a model provider.
+- Check the local index's content fingerprint before relying on it. Build or refresh it when useful for the current task, not on every edit, dependency update, build, or commit. Ordinary targeted source searches do not require Graphify.
+- Community names are structural hints, not architecture claims. Verify important results in the source, especially Svelte and inferred edges.
+- For web-to-Java admin relationships, prefer the recipe's bounded `services`/`impact` queries and `services.html` detail view. Keep call sites, types, source references, confidence, and unresolved expressions visible; an import alone does not imply calls to every service in a module.
+
 ## Changelog review
 
 - Treat `CHANGELOG.md` entries marked with `- *` as generated drafts that still need editorial review.

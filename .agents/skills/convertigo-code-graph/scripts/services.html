@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Convertigo Service Graph</title>
+  <script
+    src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"
+    integrity="sha384-Ux6phic9PEHJ38YtrijhkzyJ8yQlH8i/+buBR8s3mAZOJrP1gwyvAcIYl3GWtpX1"
+    crossorigin="anonymous"
+  ></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font: 14px system-ui;
+      color: #24262a;
+      background: #f7f8fa;
+      letter-spacing: 0;
+    }
+    header {
+      padding: 12px 18px;
+      border-bottom: 1px solid #d9dde2;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: white;
+    }
+    h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    select,
+    input {
+      font: inherit;
+      border: 1px solid #b8bec5;
+      padding: 7px;
+      border-radius: 4px;
+      max-width: 100%;
+    }
+    input {
+      width: 240px;
+    }
+    select {
+      width: 340px;
+    }
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      height: calc(100dvh - 95px);
+    }
+    #graph {
+      min-height: 400px;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+    }
+    aside {
+      border-left: 1px solid #d9dde2;
+      padding: 16px;
+      overflow: auto;
+    }
+    h2 {
+      font-size: 16px;
+      margin: 8px 0 12px;
+    }
+    dl {
+      margin: 0;
+    }
+    dt {
+      color: #5b6470;
+      margin-top: 14px;
+      font-size: 12px;
+    }
+    dd {
+      margin: 3px 0;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+    #members {
+      list-style: none;
+      padding: 0;
+    }
+    #members li {
+      border-top: 1px solid #d9dde2;
+      padding: 8px 0;
+    }
+    a {
+      color: #096c96;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    footer {
+      height: 36px;
+      padding: 8px 18px;
+      border-top: 1px solid #d9dde2;
+      font-size: 12px;
+      overflow: hidden;
+      background: #f0f2f5;
+    }
+    #error {
+      color: #a82234;
+    }
+    #legend {
+      font-size: 12px;
+      color: #626b74;
+    }
+    #counts {
+      font-size: 12px;
+      color: #626b74;
+    }
+    @media (max-width: 800px) {
+      main {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      #graph {
+        height: 55dvh;
+      }
+      aside {
+        border-left: 0;
+        border-top: 1px solid #d9dde2;
+      }
+      header {
+        gap: 8px;
+      }
+      input,
+      select {
+        width: 100%;
+      }
+      footer {
+        height: auto;
+      }
+    }
+  </style>
+  <header>
+    <h1>Convertigo Service Graph</h1>
+    <input
+      id="search"
+      type="search"
+      placeholder="Search symbols or services"
+      aria-label="Search symbols or services"
+    /><select id="root" aria-label="Selected symbol or service"></select
+    ><span id="counts"></span>
+  </header>
+  <main>
+    <div id="graph"></div>
+    <aside>
+      <div id="error"></div>
+      <div id="legend">
+        Component / Module / Function / HTTP Service / Java Class
+      </div>
+      <h2 id="title">Selection</h2>
+      <dl id="details"></dl>
+      <h2>Relations</h2>
+      <ul id="members"></ul>
+    </aside>
+  </main>
+  <footer id="status"></footer>
+  <script>
+    const DATA = __SERVICE_DATA__;
+    const byId = new Map(DATA.nodes.map((n) => [n.id, n])),
+      outgoing = new Map(),
+      incoming = new Map();
+    for (const e of DATA.edges) {
+      if (!outgoing.has(e.source)) outgoing.set(e.source, []);
+      outgoing.get(e.source).push(e);
+      if (!incoming.has(e.target)) incoming.set(e.target, []);
+      incoming.get(e.target).push(e);
+    }
+    const forward = new Set([
+        "contains",
+        "calls",
+        "passes_callback",
+        "default_callback",
+      ]),
+      rpc = new Set([
+        "calls_http",
+        "references_resource",
+        "configures_service",
+      ]);
+    const palette = {
+      component: "#228e7e",
+      module: "#688179",
+      function: "#4c82c3",
+      http_service: "#c78524",
+      class: "#a96d91",
+    };
+    const select = document.querySelector("#root"),
+      search = document.querySelector("#search");
+    const roots = DATA.nodes
+      .filter((n) =>
+        ["component", "module", "http_service"].includes(n.entity_type),
+      )
+      .sort((a, b) => a.label.localeCompare(b.label));
+    let network,
+      visibleEdges = [];
+    function options(filter = "") {
+      const prior = select.value;
+      select.replaceChildren();
+      for (const n of roots.filter((n) =>
+        (n.label + " " + n.source_file)
+          .toLowerCase()
+          .includes(filter.toLowerCase()),
+      )) {
+        const o = document.createElement("option");
+        o.value = n.id;
+        o.textContent = n.label + " [" + n.entity_type + "]";
+        select.append(o);
+      }
+      if ([...select.options].some((o) => o.value === prior))
+        select.value = prior;
+    }
+    function field(label, value) {
+      const dt = document.createElement("dt"),
+        dd = document.createElement("dd");
+      dt.textContent = label;
+      dd.textContent = value ?? "Unavailable";
+      document.querySelector("#details").append(dt, dd);
+    }
+    function inspectNode(id) {
+      const n = byId.get(id);
+      if (!n) return;
+      document.querySelector("#title").textContent = n.label;
+      document.querySelector("#details").replaceChildren();
+      field("Type", n.entity_type);
+      field("Source", n.source_file + ":" + n.source_location);
+      field("Origin", n.confidence);
+      if (n.roles) field("Roles", n.roles.join(", "));
+      if (n.handler_class) field("Handler", n.handler_class);
+      if (n.entry_points?.length)
+        field(
+          "Java Entry",
+          n.entry_points
+            .map((e) => e.name + ":" + e.source_location)
+            .join("\n"),
+        );
+      document.querySelector("#members").replaceChildren();
+      for (const e of visibleEdges
+        .filter((e) => e.source === id || e.target === id)
+        .slice(0, 50)) {
+        const li = document.createElement("li"),
+          a = document.createElement("a");
+        a.href = "#";
+        const other = byId.get(e.source === id ? e.target : e.source);
+        a.textContent =
+          e.relation + " " + (other?.label ?? "?") + " [" + e.confidence + "]";
+        a.onclick = (event) => {
+          event.preventDefault();
+          inspectEdge(e);
+        };
+        li.append(a);
+        document.querySelector("#members").append(li);
+      }
+    }
+    function inspectEdge(e) {
+      document.querySelector("#title").textContent = e.relation;
+      document.querySelector("#details").replaceChildren();
+      field("From", byId.get(e.source)?.label);
+      field("To", byId.get(e.target)?.label);
+      field("Origin", e.confidence);
+      field("Source", e.source_file + ":" + e.source_location);
+      field(
+        "Evidence",
+        e.evidence ?? "Static AST reference; potential invocation",
+      );
+      if (e.dispatch_source) field("Dispatch", e.dispatch_source);
+      document.querySelector("#members").replaceChildren();
+    }
+    function draw() {
+      const root = byId.get(select.value);
+      if (!root) {
+        if (network) network.destroy();
+        network = null;
+        document.querySelector("#title").textContent = "No matching symbol";
+        document.querySelector("#details").replaceChildren();
+        document.querySelector("#members").replaceChildren();
+        document.querySelector("#status").textContent = "0 matching symbols";
+        return;
+      }
+      const keep = new Set([root.id]),
+        chosen = new Set(),
+        todo = [root.id];
+      const reverse = root.entity_type === "http_service";
+      let truncated = false;
+      while (todo.length) {
+        const id = todo.shift();
+        for (const e of (reverse ? incoming : outgoing).get(id) ?? []) {
+          if (!(forward.has(e.relation) || rpc.has(e.relation))) continue;
+          const next = reverse ? e.source : e.target;
+          if (!byId.has(next)) continue;
+          if (byId.get(next).transport_boundary) continue;
+          if (keep.size >= 160 && !keep.has(next)) {
+            truncated = true;
+            continue;
+          }
+          chosen.add(e);
+          if (!keep.has(next)) {
+            keep.add(next);
+            todo.push(next);
+          }
+        }
+      }
+      for (const id of [...keep])
+        for (const e of outgoing.get(id) ?? [])
+          if (e.relation === "handled_by" && byId.has(e.target)) {
+            keep.add(e.target);
+            chosen.add(e);
+          }
+      visibleEdges = [...chosen];
+      const ns = [...keep].map((id) => {
+        const n = byId.get(id),
+          title = document.createElement("span");
+        title.textContent =
+          n.entity_type + " | " + n.source_file + ":" + n.source_location;
+        return {
+          id,
+          label: n.label,
+          color: palette[n.entity_type] ?? "#899099",
+          shape: n.entity_type === "http_service" ? "diamond" : "dot",
+          size: n.entity_type === "http_service" ? 16 : 10,
+          title,
+        };
+      });
+      const es = visibleEdges.map((e, i) => ({
+        id: i,
+        from: e.source,
+        to: e.target,
+        arrows: "to",
+        label: e.relation,
+        font: { size: 10 },
+        dashes: e.confidence !== "EXTRACTED",
+        color: { color: e.confidence === "EXTRACTED" ? "#9fa9b5" : "#cf8e4a" },
+      }));
+      if (network) network.destroy();
+      if (!window.vis) {
+        document.querySelector("#error").textContent =
+          "Graph renderer unavailable (CDN). Node and relation details remain available.";
+      } else {
+        network = new vis.Network(
+          document.querySelector("#graph"),
+          { nodes: ns, edges: es },
+          {
+            interaction: { hover: true },
+            physics: {
+              solver: "barnesHut",
+              stabilization: { iterations: 150 },
+            },
+            nodes: { font: { size: 12 } },
+            edges: { smooth: false },
+          },
+        );
+        network.on("click", (p) => {
+          if (p.nodes.length) inspectNode(p.nodes[0]);
+          else if (p.edges.length) inspectEdge(visibleEdges[p.edges[0]]);
+        });
+      }
+      const unresolved = DATA.unresolved.filter((r) => keep.has(r.owner));
+      document.querySelector("#status").textContent =
+        keep.size +
+        " nodes / " +
+        es.length +
+        " relations" +
+        (truncated ? " / truncated at 160 nodes" : "") +
+        " / " +
+        unresolved.length +
+        " unresolved expressions. Static potential relations, not runtime traffic. " +
+        (DATA.provenance?.commit.slice(0, 9) ?? "");
+      inspectNode(root.id);
+      if (unresolved.length)
+        field(
+          "Unresolved",
+          unresolved
+            .slice(0, 10)
+            .map(
+              (r) =>
+                r.source_file +
+                ":" +
+                r.source_location +
+                " " +
+                r.expression +
+                " (" +
+                r.reason +
+                ")",
+            )
+            .join("\n"),
+        );
+    }
+    options();
+    select.value = byId.has("http:studio.palette.Get")
+      ? "http:studio.palette.Get"
+      : select.value;
+    draw();
+    select.onchange = draw;
+    search.oninput = () => {
+      options(search.value);
+      draw();
+    };
+    document.querySelector("#counts").textContent =
+      DATA.metrics.svelte_components +
+      " components / " +
+      DATA.metrics.java_handlers +
+      " services";
+  </script>
+</html>
