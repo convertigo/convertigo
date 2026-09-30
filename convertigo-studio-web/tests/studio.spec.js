@@ -291,6 +291,59 @@ test('studio drops a frontend block on a closed container without leaving its pl
 	).toHaveCount(0);
 });
 
+test('studio drops a block from the preview after a node that takes nothing inside', async ({
+	page
+}) => {
+	const state = createStudioState();
+	const addRequests = [];
+	await mockStudioServices(page, {
+		state,
+		addRequests,
+		authoringReferences: { secondText: `${frontendStructureId}.secondText` }
+	});
+	// the Dev viewer drops a palette block in the middle of the second text
+	await page.route('**/convertigo/gw/studio-test-ticket/**', async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'text/html',
+			body: `<!doctype html><html><body><button type="button">Drop on the second text</button><script>
+				document.querySelector('button').addEventListener('click', () => parent.postMessage({
+					protocol: 'convertigo.flow.authoring.v1',
+					type: 'authoring.drop',
+					reference: {
+						nodeId: 'secondText',
+						sourceRelativePath: 'model/StudioProject/src/routes/+page.flow.svelte',
+						sourceMutationPath: 'frontAst.nodes[1]'
+					},
+					position: 'inside',
+					payload: { type: 'paletteData', data: { type: 'FrontendBlock', id: 'FrontendBlock:svelte.text', block: 'svelte.text', name: 'Text' } }
+				}, location.origin));
+			</script></body></html>`
+		});
+	});
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await expandTreeNode(page, frontendBuilderId);
+	await expandTreeNode(page, frontendStructureId);
+	await selectTreeNode(page, frontendStructureId);
+	await page.getByRole('radio', { name: 'Frontend' }).click();
+	await page.getByRole('radio', { name: 'Dev', exact: true }).click();
+	await expectFrontendOrder(page, ['firstText', 'secondText']);
+
+	await page
+		.frameLocator('iframe[title="StudioProject frontend"]')
+		.getByRole('button', { name: 'Drop on the second text' })
+		.click();
+
+	// a text takes no child: the block goes after it, as in the tree, not at the end of the page
+	await expect
+		.poll(() => addRequests.map((params) => `${params.get('target')}:${params.get('position')}`))
+		.toEqual([`${frontendStructureId}.secondText:after`]);
+	await expectFrontendOrder(page, ['firstText', 'secondText', 'text1']);
+});
+
 test('studio vibe profile gives the Assistant the selected project and keeps the live frontend beside it', async ({
 	page
 }) => {
@@ -1882,6 +1935,8 @@ function responseEditor(page) {
  *  closeRequests?: URLSearchParams[],
  *  pasteRequests?: URLSearchParams[],
  *  authoringTargets?: Record<string, string>,
+ *  authoringReferences?: Record<string, string>,
+ *  addRequests?: URLSearchParams[],
  *  adminEvents?: Array<{id: string, topic: string, timestamp: number, instance: string, payload: Record<string, unknown>}>
  * }} [options]
  */
@@ -2067,7 +2122,9 @@ function serviceName(url) {
  *  projects?: string[],
  *  closeRequests?: URLSearchParams[],
  *  pasteRequests?: URLSearchParams[],
- *  authoringTargets?: Record<string, string>
+ *  authoringTargets?: Record<string, string>,
+ *  authoringReferences?: Record<string, string>,
+ *  addRequests?: URLSearchParams[]
  * }} [options]
  */
 function responseForService(service, params, options = {}) {
@@ -2138,7 +2195,10 @@ function responseForService(service, params, options = {}) {
 		case 'studio.treeview.Authoring': {
 			const project = params.get('project') ?? '';
 			const sourcePath = params.get('sourcePath') ?? '';
-			const id = options.authoringTargets?.[`${project}:${sourcePath}`];
+			const reference = params.has('reference') ? parseServiceJson(params.get('reference')) : null;
+			const id = reference
+				? options.authoringReferences?.[reference.nodeId]
+				: options.authoringTargets?.[`${project}:${sourcePath}`];
 			return id ? { id } : {};
 		}
 		case 'studio.treeview.ContextMenu':
@@ -2148,6 +2208,7 @@ function responseForService(service, params, options = {}) {
 		case 'studio.dbo.Accept':
 			return acceptDboResponse(params);
 		case 'studio.dbo.Add':
+			options.addRequests?.push(params);
 			return addDboResponse(params, state);
 		case 'studio.dbo.Move':
 			return moveDboResponse(params, state);
@@ -2472,6 +2533,10 @@ function acceptDboResponse(params) {
 	const target = params.get('target') ?? '';
 	const position = params.get('position') ?? '';
 	if (position === 'inside' && target.startsWith(`${sequenceId}.st:`)) {
+		return { accept: false };
+	}
+	// the frontend texts take no child, as the engine tells from their slots
+	if (position === 'inside' && target.startsWith(`${frontendStructureId}.`)) {
 		return { accept: false };
 	}
 	return { accept: true };

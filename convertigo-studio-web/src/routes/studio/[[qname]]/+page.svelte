@@ -1361,11 +1361,14 @@
 		let handled = false;
 		onStudioMutationBusyChange(true);
 		try {
+			// as in the tree, a node that takes nothing inside gets the drop after it
 			const result = await performDboDrop({
 				payload: request.payload,
 				target,
 				position: request.position,
-				dropAction: 'copy'
+				dropAction: 'copy',
+				fallbackTarget: target,
+				fallbackPosition: 'after'
 			});
 			if (result.done) {
 				handled = true;
@@ -1407,7 +1410,9 @@
 				payload: { type: 'treeData', data: { id: source } },
 				target,
 				position: request.position,
-				dropAction: 'move'
+				dropAction: 'move',
+				fallbackTarget: target,
+				fallbackPosition: 'after'
 			});
 			if (result.done) {
 				handled = true;

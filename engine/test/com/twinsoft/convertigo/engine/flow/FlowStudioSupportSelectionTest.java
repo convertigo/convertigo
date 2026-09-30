@@ -769,6 +769,151 @@ public class FlowStudioSupportSelectionTest {
 		assertFalse(unresolved.has("parentId"));
 	}
 
+	@Test
+	public void aPaletteBlockDroppedOnAnotherNodeGoesToTheSlotOfThatNode() throws Exception {
+		var engine = new FlowEngine() {
+			@Override public List<DatabaseObject> getDatabaseObjectChildren() { return List.of(); }
+		};
+		var root = candidate("projected.page", "frontAst", "page");
+		root.setParent(engine);
+		var blocks = new org.codehaus.jettison.json.JSONArray().put("ui.block").put("ui.directive");
+		var cardPath = "frontAst.slots.structure.children[0]";
+		var ifPath = cardPath + ".slots.children.children[2]";
+		var tree = node("projected.page", "page", "frontAst", null, new JSONObject()
+				.put("structure", slot(blocks, "frontAst.slots.structure.children")))
+				.put("children", new org.codehaus.jettison.json.JSONArray().put(node("projected.page.structure", "structure",
+						"frontAst.slots.structure.children", parentSlot("frontAst", "structure"), new JSONObject()
+								.put("structure", slot(blocks, "frontAst.slots.structure.children")))
+						.put("children", new org.codehaus.jettison.json.JSONArray().put(node("projected.page.structure.card", "card",
+								cardPath, parentSlot("frontAst", "structure"), new JSONObject()
+										.put("children", slot(blocks, cardPath + ".slots.children.children")))
+								.put("children", new org.codehaus.jettison.json.JSONArray()
+										.put(node("projected.page.structure.card.title", "title", cardPath + ".slots.children.children[0]",
+												parentSlot(cardPath, "children"), new JSONObject()))
+										.put(node("projected.page.structure.card.button", "button", cardPath + ".slots.children.children[1]",
+												parentSlot(cardPath, "children"), new JSONObject().put("events", slot(
+														new org.codehaus.jettison.json.JSONArray().put("ui.event"),
+														cardPath + ".slots.children.children[1].slots.events.children"))))
+										.put(node("projected.page.structure.card.when", "when", ifPath, parentSlot(cardPath, "children"),
+												new JSONObject().put("then", new JSONObject().put("acceptsFrom", "parentSlot")
+														.put("sourceMutationPath", ifPath + ".slots.then.children")))))))));
+		assertTrue(root.replaceProjectedTree(tree));
+		var structure = root.getDatabaseObjectChildren().get(0);
+		var card = structure.getDatabaseObjectChildren().get(0);
+		var title = card.getDatabaseObjectChildren().get(0);
+		var button = card.getDatabaseObjectChildren().get(1);
+		var when = card.getDatabaseObjectChildren().get(2);
+		// the palette was computed for the Structure, the node selected when the block was dragged
+		var icon = new JSONObject().put("type", "FrontendBlock").put("block", "svelte.icon")
+				.put("targetKinds", new org.codehaus.jettison.json.JSONArray().put("frontendStructure"))
+				.put("acceptedPositions", new org.codehaus.jettison.json.JSONArray().put("inside"))
+				.put("traits", new org.codehaus.jettison.json.JSONArray().put("ui.block"))
+				.put("targetPath", "projected.page.structure")
+				.put("targetSlot", new JSONObject().put("id", "structure").put("accepts", blocks)
+						.put("sourceMutationPath", "frontAst.slots.structure.children").put("sourcePath", "/project/" + SOURCE))
+				.put("insert", new JSONObject().put("id", "icon").put("kind", "icon").put("tag", "Icon")
+						.put("__frontendSourcePath", "/project/" + SOURCE));
+
+		// inside the palette node, its own slot
+		var mutation = FlowStudioSupport.frontendDropMutation(structure, "inside", icon);
+		assertEquals("append", mutation.getString("op"));
+		assertEquals("frontAst.slots.structure.children", mutation.getString("path"));
+		assertEquals("/project/" + SOURCE, mutation.getString("__sourcePath"));
+		// inside a container, its content, not the end of the Structure
+		mutation = FlowStudioSupport.frontendDropMutation(card, "inside", icon);
+		assertEquals("append", mutation.getString("op"));
+		assertEquals(cardPath + ".slots.children.children", mutation.getString("path"));
+		assertEquals(SOURCE, mutation.getString("__sourcePath"));
+		assertFalse(mutation.getJSONObject("value").has("__frontendSourcePath"));
+		assertTrue(FlowStudioSupport.canAddFrontendBlock(card, "inside", icon));
+		// a slot inheriting the accepts of the slot holding its node
+		assertEquals(ifPath + ".slots.then.children", FlowStudioSupport.frontendDropMutation(when, "inside", icon).getString("path"));
+		// a button takes events only, a text nothing: the drop inside is refused, and goes beside them
+		for (var leaf : List.of(title, button)) {
+			assertFalse(FlowStudioSupport.canAddFrontendBlock(leaf, "inside", icon));
+			assertNull(FlowStudioSupport.frontendDropMutation(leaf, "inside", icon));
+			assertTrue(FlowStudioSupport.canAddFrontendBlock(leaf, "after", icon));
+		}
+		mutation = FlowStudioSupport.frontendDropMutation(button, "after", icon);
+		assertEquals("insert", mutation.getString("op"));
+		assertEquals(cardPath + ".slots.children.children", mutation.getString("path"));
+		assertEquals(2, mutation.getInt("index"));
+		mutation = FlowStudioSupport.frontendDropMutation(title, "before", icon);
+		assertEquals(0, mutation.getInt("index"));
+		// beside the card, in the Structure slot of the page, whatever form its source path takes
+		mutation = FlowStudioSupport.frontendDropMutation(card, "after", icon);
+		assertEquals("frontAst.slots.structure.children", mutation.getString("path"));
+		assertEquals(1, mutation.getInt("index"));
+		// an event goes to the events of the button, never in a content slot
+		var event = new JSONObject(icon.toString()).put("block", "svelte.onclick")
+				.put("traits", new org.codehaus.jettison.json.JSONArray().put("ui.event"))
+				.put("insert", new JSONObject().put("id", "onclick").put("kind", "click").put("tag", "OnClick"));
+		assertEquals(cardPath + ".slots.children.children[1].slots.events.children",
+				FlowStudioSupport.frontendDropMutation(button, "inside", event).getString("path"));
+		assertFalse(FlowStudioSupport.canAddFrontendBlock(card, "inside", event));
+		assertFalse(FlowStudioSupport.canAddFrontendBlock(title, "after", event));
+		// an item of a provider that does not tell the traits: the accepts of its slot stand for them
+		var untyped = new JSONObject(icon.toString());
+		untyped.remove("traits");
+		assertEquals(cardPath + ".slots.children.children", FlowStudioSupport.frontendDropMutation(card, "inside", untyped).getString("path"));
+		// a read-only slot takes nothing
+		var readOnly = (FlowVirtualObject) card;
+		var info = readOnly.getVirtualInfoObject();
+		info.getJSONObject("slots").getJSONObject("children").put("sourceWritable", false);
+		readOnly.setVirtualInfo(info.toString());
+		assertFalse(FlowStudioSupport.canAddFrontendBlock(card, "inside", icon));
+		assertFalse(FlowStudioSupport.canAddFrontendBlock(title, "after", icon));
+	}
+
+	@Test
+	public void aProviderActionDroppedOnAnotherNodeLetsTheProviderChooseItsSlot() throws Exception {
+		var flow = new Flow() {
+			@Override public List<DatabaseObject> getDatabaseObjectChildren() { return List.of(); }
+		};
+		flow.setName("backend");
+		var slot = new FlowVirtualObject();
+		slot.setParent(flow);
+		slot.setVirtualPath("nodes");
+		var other = new FlowVirtualObject();
+		other.setParent(slot);
+		other.setVirtualPath("nodes[0]");
+		var data = new JSONObject().put("authoringAction", new JSONObject().put("id", "provider.action"))
+				.put("acceptedPositions", new org.codehaus.jettison.json.JSONArray().put("inside"))
+				.put("targetSlot", new JSONObject().put("id", "nodes")).put("targetPath", "nodes");
+		var transfer = new JSONObject().put("data", data);
+		for (var target : List.of(slot, other)) {
+			var slotIds = new java.util.ArrayList<String>();
+			var bridge = new FlowEngineBridge() {
+				@Override public JSONObject authoringMutate(Flow owner, JSONObject options) {
+					slotIds.add(options.optJSONObject("action").optString("targetSlotId", "none"));
+					try { return new JSONObject().put("ok", false); }
+					catch (Exception e) { throw new AssertionError(e); }
+				}
+			};
+			FlowStudioSupport.addFromPalette(target, "inside", transfer, bridge);
+			assertEquals(List.of(target == slot ? "nodes" : "none"), slotIds);
+		}
+	}
+
+	private JSONObject node(String path, String name, String mutationPath, JSONObject parentSlot, JSONObject slots) throws Exception {
+		var info = new JSONObject().put("sourcePath", SOURCE).put("sourceMutationPath", mutationPath)
+				.put("sourceWritable", true).put("slots", slots);
+		if (parentSlot != null) {
+			info.put("parentSlot", parentSlot);
+		}
+		return new JSONObject().put("path", path).put("name", name).put("info", info.toString());
+	}
+
+	private JSONObject slot(org.codehaus.jettison.json.JSONArray accepts, String mutationPath) throws Exception {
+		return new JSONObject().put("accepts", accepts).put("sourceMutationPath", mutationPath).put("sourceWritable", true);
+	}
+
+	private JSONObject parentSlot(String ownerPath, String slotId) throws Exception {
+		// the provider names the source relative to the project, the palette absolute
+		return new JSONObject().put("ownerPath", ownerPath).put("slotId", slotId)
+				.put("sourcePath", "frontAst".equals(ownerPath) ? "/project/" + SOURCE : SOURCE);
+	}
+
 	private FlowVirtualObject candidate(String virtualPath, String mutationPath, String id) throws Exception {
 		var candidate = new FlowVirtualObject();
 		candidate.setVirtualPath(virtualPath);

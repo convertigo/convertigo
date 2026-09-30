@@ -862,16 +862,19 @@ public class FlowStudioSupport {
 
 	public static boolean canAddFrontendBlock(DatabaseObject targetDbo, String position, JSONObject data) {
 		try {
-			var targetSlot = data == null ? null : data.optJSONObject("targetSlot");
-			if (targetSlot == null && !frontendTargetKindsMatch(data, targetDbo)) {
+			var insert = frontendInsertValue(data);
+			if (frontendEngineMutationFor(targetDbo, insert) != null) {
+				return frontendAcceptedPositionMatch(data, position)
+						&& (data.optJSONObject("targetSlot") != null || frontendTargetKindsMatch(data, targetDbo));
+			}
+			var drop = frontendDrop(targetDbo, position, data);
+			if (drop.refused() || (drop.slot() == null && !frontendTargetKindsMatch(data, targetDbo))) {
 				return false;
 			}
 			if (!frontendAcceptedPositionMatch(data, position)) {
 				return false;
 			}
-			var insert = frontendInsertValue(data);
-			return frontendEngineMutationFor(targetDbo, insert) != null
-					|| frontendMutationFor(targetDbo, position, insert, targetSlot) != null;
+			return frontendMutationFor(targetDbo, position, drop.insert(), drop.slot()) != null;
 		} catch (Exception e) {
 			return false;
 		}
@@ -1122,9 +1125,10 @@ public class FlowStudioSupport {
 		if (!(root instanceof Flow) && (!(root instanceof FlowEngine) || !(targetDbo instanceof FlowVirtualObject))) {
 			return categories;
 		}
+		var focusPath = targetDbo instanceof FlowVirtualObject target ? target.getVirtualPath() : "";
 		var options = new JSONObject()
 				.put("surface", "virtual")
-				.put("focusPath", targetDbo instanceof FlowVirtualObject target ? target.getVirtualPath() : "")
+				.put("focusPath", focusPath)
 				.put("position", "inside")
 				.put("detail", "compact")
 				.put("applyFallback", false);
@@ -1144,6 +1148,10 @@ public class FlowStudioSupport {
 			var item = items.optJSONObject(i);
 			if (item == null) {
 				continue;
+			}
+			// The slot of an item is a slot of the palette node: a drop on another node resolves its own.
+			if (item.optJSONObject("targetSlot") != null && !item.has("targetPath")) {
+				item.put("targetPath", focusPath);
 			}
 			// A frontend block offered in an engine projection (the tree of a Catalog
 			// component) is inserted into its source like in the Frontends tree.
@@ -1375,6 +1383,9 @@ public class FlowStudioSupport {
 		if (block.optJSONObject("targetSlot") != null) {
 			item.put("targetSlot", block.getJSONObject("targetSlot"));
 		}
+		if (block.optJSONArray("traits") != null) {
+			item.put("traits", block.getJSONArray("traits"));
+		}
 		for (var capability : new String[] { "authoringAction", "authoringMutation" }) {
 			if (block.optJSONObject(capability) != null) item.put(capability, block.getJSONObject(capability));
 		}
@@ -1542,6 +1553,14 @@ public class FlowStudioSupport {
 		return addFromPalette(targetDbo, position, transfer);
 	}
 
+	/**
+	 * Whether the slot of a palette item applies to a drop: inside the node the palette was computed for.
+	 * Dropped elsewhere, the provider resolves the slot of the node dropped on.
+	 */
+	private static boolean paletteSlotApplies(JSONObject data, String targetPath, String position) {
+		return "inside".equals(position) && targetPath.equals(data.optString("targetPath", targetPath));
+	}
+
 	public static JSONObject addFromPalette(DatabaseObject targetDbo, String position, JSONObject transfer) throws Exception {
 		return addFromPalette(targetDbo, position, transfer, new FlowEngineBridge());
 	}
@@ -1557,10 +1576,11 @@ public class FlowStudioSupport {
 		if (authoringAction != null && root instanceof Flow flow) {
 			if (!canAddFromPalette(targetDbo, position, transfer)) return new JSONObject().put("done", false);
 			var path = targetDbo instanceof FlowVirtualObject target ? target.getVirtualPath() : "";
+			var effectivePosition = normalizedPalettePosition(data, position);
 			var action = new JSONObject(authoringAction.toString()).put("targetPath", path)
-					.put("position", normalizedPalettePosition(data, position));
+					.put("position", effectivePosition);
 			var slot = data.optJSONObject("targetSlot");
-			if (slot != null) action.put("targetSlotId", slot.optString("id"));
+			if (slot != null && paletteSlotApplies(data, path, effectivePosition)) action.put("targetSlotId", slot.optString("id"));
 			var response = bridge.authoringMutate(flow,
 					new JSONObject().put("surface", "virtual").put("includeTree", true).put("action", action));
 			var done = response.optBoolean("ok", false);
@@ -1595,7 +1615,9 @@ public class FlowStudioSupport {
 						.put("targetPath", target.getVirtualPath())
 						.put("position", effectivePosition);
 				var slot = data.optJSONObject("targetSlot");
-				if (slot != null) action.put("targetSlotId", slot.optString("id"));
+				if (slot != null && paletteSlotApplies(data, target.getVirtualPath(), effectivePosition)) {
+					action.put("targetSlotId", slot.optString("id"));
+				}
 				request.put("action", action);
 			} else {
 				request.put("mutation", authoringMutation);
@@ -1753,7 +1775,7 @@ public class FlowStudioSupport {
 					.put("error", done ? JSONObject.NULL : response.opt("error"));
 			return done ? refreshEngineProjection(flowEngine, projectionRoot, result, "frontends", "") : result;
 		}
-		var mutation = frontendMutationFor(targetDbo, position, insert, data.optJSONObject("targetSlot"));
+		var mutation = frontendDropMutation(targetDbo, position, data);
 		if (mutation == null) {
 			flowStudioWarn("Flow frontend DnD palette insert rejected: target=" + flowMoveTargetSummary(targetDbo)
 					+ " position=" + position + " data=" + data);
@@ -1883,6 +1905,181 @@ public class FlowStudioSupport {
 				.put("value", cleanFrontendInsertValue(insert));
 	}
 
+
+	/**
+	 * Where a palette block dropped on a node goes. A palette item carries the slot of the node its palette
+	 * was computed for (its targetPath). Dropped on another node, in the tree or in the preview, the block
+	 * goes to a slot of that node, resolved as the provider resolves the targets of a palette: inside, the
+	 * first writable slot of the node that accepts the traits of the block; before or after, the slot of its
+	 * semantic parent that holds it. A node without slot contract keeps the rules of its kind; a drop inside
+	 * a node that takes the block nowhere is refused, and the host drops it after the node.
+	 *
+	 * @param slot the slot the block goes to, null for the rules of the kind of the node
+	 * @param insert the value to insert, without the source of the palette node when it is not the target
+	 * @param refused true when the node takes the block nowhere at this position
+	 */
+	record FrontendDrop(JSONObject slot, JSONObject insert, boolean refused) {
+	}
+
+	static FrontendDrop frontendDrop(DatabaseObject targetDbo, String position, JSONObject data) throws Exception {
+		var insert = frontendInsertValue(data);
+		var paletteSlot = data == null ? null : data.optJSONObject("targetSlot");
+		if (paletteSlot == null || !(targetDbo instanceof FlowVirtualObject target)
+				|| !firstNonBlank(insert, "__frontendMutationPath", "__engineMutationPath").isBlank()) {
+			return new FrontendDrop(paletteSlot, insert, false);
+		}
+		position = position == null || position.isBlank() ? "inside" : position;
+		if ("inside".equals(position) && target.getVirtualPath().equals(data.optString("targetPath", ""))) {
+			return new FrontendDrop(paletteSlot, insert, false);
+		}
+		var traits = data.optJSONArray("traits");
+		if (traits == null || traits.length() == 0) {
+			// An item of a provider that does not tell the traits of its block was offered for the slot
+			// of the palette node: the accepts of that slot stand for them.
+			traits = paletteSlot.optJSONArray("accepts");
+		}
+		// The insert names the source of the palette node: the one of the node dropped on applies.
+		var targetInsert = new JSONObject(insert.toString());
+		targetInsert.remove("__frontendSourcePath");
+		if ("inside".equals(position)) {
+			var slots = frontendSlots(target);
+			if (slots == null) {
+				return new FrontendDrop(null, targetInsert, false);
+			}
+			for (var keys = slots.keys(); keys.hasNext();) {
+				var slot = frontendDropSlot(target, String.valueOf(keys.next()), traits, position);
+				if (slot != null) {
+					return new FrontendDrop(slot, targetInsert, false);
+				}
+			}
+			return new FrontendDrop(null, targetInsert, true);
+		}
+		var reference = frontendParentSlotReference(target);
+		var owner = reference == null ? null : frontendSlotOwner(target, reference);
+		if (owner == null) {
+			// Without a semantic parent, the block goes beside the node as it always did.
+			return new FrontendDrop(paletteSlot, insert, false);
+		}
+		var slot = sourceFlag(target, "readOnlyReference") ? null
+				: frontendDropSlot(owner, reference.optString("slotId", ""), traits, position);
+		var holds = slot != null && slot.optString("sourceMutationPath", "").equals(parentArrayPath(sourceMutationPath(target)));
+		return holds ? new FrontendDrop(slot, targetInsert, false) : new FrontendDrop(null, targetInsert, true);
+	}
+
+	/** The source mutation of a palette block dropped on a node, null when the node does not take it there. */
+	static JSONObject frontendDropMutation(DatabaseObject targetDbo, String position, JSONObject data) throws Exception {
+		var drop = frontendDrop(targetDbo, position, data);
+		return drop.refused() ? null : frontendMutationFor(targetDbo, position, drop.insert(), drop.slot());
+	}
+
+	/** The slot key of a node as the target of a block of these traits, null when it does not take it. */
+	private static JSONObject frontendDropSlot(FlowVirtualObject node, String key, JSONArray traits, String position) throws JSONException {
+		var slots = frontendSlots(node);
+		var slot = slots == null ? null : slots.optJSONObject(key);
+		var accepts = slot == null ? null : frontendSlotAccepts(node, key, 0);
+		if (accepts == null || !intersects(accepts, traits) || slot.optBoolean("readOnlyReference", false)
+				|| sourceFlag(node, "readOnlyReference") || (!"inside".equals(position) && sourceFlag(node, "readOnly"))) {
+			return null;
+		}
+		var writable = slot.has("sourceWritable") && !slot.isNull("sourceWritable") && !"".equals(slot.optString("sourceWritable"))
+				? Boolean.valueOf(slot.optBoolean("sourceWritable", false)) : sourceFlagValue(node, "sourceWritable");
+		var mutationPath = slot.optString("sourceMutationPath", "");
+		if ("inside".equals(position) && mutationPath.isBlank()) {
+			mutationPath = sourceValue(node, "frontendInsertMutationPath");
+			mutationPath = mutationPath.isBlank() ? sourceMutationPath(node) : mutationPath;
+		}
+		if (Boolean.FALSE.equals(writable) || mutationPath.isBlank()) {
+			return null;
+		}
+		return new JSONObject()
+				.put("id", slot.optString("id", key))
+				.put("label", slot.optString("label", key))
+				.put("accepts", accepts)
+				.put("sourceMutationPath", mutationPath)
+				.put("sourcePath", slot.optString("sourcePath", "").isBlank() ? sourcePath(node) : slot.optString("sourcePath"))
+				.put("position", position)
+				.put("mode", "inside".equals(position) ? "inside" : "sibling");
+	}
+
+	/** The slots a projected node declares, null when it has no slot contract. */
+	private static JSONObject frontendSlots(FlowVirtualObject node) {
+		var info = node.getVirtualInfoObject();
+		if (info != null && info.optJSONObject("slots") != null) {
+			return info.optJSONObject("slots");
+		}
+		var definition = node.getDefinitionObject();
+		return definition == null ? null : definition.optJSONObject("slots");
+	}
+
+	private static JSONObject frontendParentSlotReference(FlowVirtualObject node) {
+		var info = node.getVirtualInfoObject();
+		return info == null ? null : info.optJSONObject("parentSlot");
+	}
+
+	/** The accepts of a slot, those of the slot holding its node when it inherits them; null when unresolved. */
+	private static JSONArray frontendSlotAccepts(FlowVirtualObject node, String key, int depth) {
+		var slots = frontendSlots(node);
+		var slot = slots == null ? null : slots.optJSONObject(key);
+		if (slot == null || depth > 32) {
+			return null;
+		}
+		if (!"parentSlot".equals(slot.optString("acceptsFrom", ""))) {
+			var accepts = slot.optJSONArray("accepts");
+			return accepts == null ? new JSONArray() : accepts;
+		}
+		var reference = frontendParentSlotReference(node);
+		var owner = reference == null ? null : frontendSlotOwner(node, reference);
+		return owner == null ? null : frontendSlotAccepts(owner, reference.optString("slotId", ""), depth + 1);
+	}
+
+	/**
+	 * The ancestor owning the slot a parentSlot reference names: by its source and mutation path when the
+	 * reference names a source, as the provider does, else by its virtual path.
+	 */
+	private static FlowVirtualObject frontendSlotOwner(FlowVirtualObject node, JSONObject reference) {
+		var ownerPath = reference.optString("ownerPath", "");
+		var slotId = reference.optString("slotId", "");
+		var sourceQualified = reference.has("sourcePath");
+		var ownerSource = reference.optString("sourcePath", "");
+		if (ownerPath.isBlank() || slotId.isBlank() || (sourceQualified && ownerSource.isBlank())) {
+			return null;
+		}
+		for (var parent = node.getParent(); parent instanceof FlowVirtualObject owner; parent = owner.getParent()) {
+			var slots = frontendSlots(owner);
+			if (slots == null || slots.optJSONObject(slotId) == null) {
+				continue;
+			}
+			if (sourceQualified ? ownerPath.equals(sourceMutationPath(owner)) && sameSourcePath(sourcePath(owner), ownerSource)
+					: ownerPath.equals(owner.getVirtualPath())) {
+				return owner;
+			}
+		}
+		return null;
+	}
+
+	/** Whether two source paths name the same file, one of them possibly relative to the project. */
+	private static boolean sameSourcePath(String left, String right) {
+		left = normalizeSourcePath(left);
+		right = normalizeSourcePath(right);
+		return !left.isBlank() && !right.isBlank()
+				&& (left.equals(right) || left.endsWith("/" + right) || right.endsWith("/" + left));
+	}
+
+	private static boolean intersects(JSONArray left, JSONArray right) {
+		if (left == null || right == null) {
+			return false;
+		}
+		var values = new HashSet<String>();
+		for (int i = 0; i < left.length(); i++) {
+			values.add(left.optString(i));
+		}
+		for (int i = 0; i < right.length(); i++) {
+			if (values.contains(right.optString(i))) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	private static JSONObject frontendMutationFor(DatabaseObject targetDbo, String position, JSONObject insert) throws Exception {
 		return frontendMutationFor(targetDbo, position, insert, null);
