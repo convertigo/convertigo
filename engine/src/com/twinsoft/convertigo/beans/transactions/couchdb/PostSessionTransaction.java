@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import javax.xml.namespace.QName;
 
 import com.twinsoft.convertigo.engine.enums.CouchParam;
-import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 
 public class PostSessionTransaction extends AbstractCouchDbTransaction {
 
@@ -46,7 +45,7 @@ public class PostSessionTransaction extends AbstractCouchDbTransaction {
 		String name = getParameterStringValue(CouchParam.name);
 		String password = getParameterStringValue(CouchParam.password);
 		
-		getConnector().setCouchClient(new CouchClient(getCouchClient().getServerUrl(), name, password));
+		getConnector().signIn(name, password);
 		
 		return getCouchClient().getSession();
 	}
