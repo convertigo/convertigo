@@ -410,7 +410,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     
     private static final String USE_KEY_PREFIX = "__convertigo_use_";
 
-    /** A use() result, valid for the version of the project that evaluated it only. */
+    /** A use() result, valid for the version of the project loaded that evaluated it only. */
     private record UseResult(Project project, Object value) {}
 
     static public Object useInScope(org.mozilla.javascript.Context cx, Scriptable thisObj, Object[] args, Function funObj) {
@@ -421,11 +421,13 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	String mapkey = USE_KEY_PREFIX + key;
     	Scriptable ctx = (Scriptable) thisObj.get("context", thisObj);
     	Project project = (Project) ((NativeJavaObject) ctx.get("project", ctx)).unwrap();
-    	Object res = project.get(mapkey) instanceof UseResult use && use.project() == project ? use.value() : null;
+    	// a request works on a copy of the project: its results belong to the version loaded it copies
+    	Project version = (Project) project.getOriginal();
+    	Object res = project.get(mapkey) instanceof UseResult use && use.project() == version ? use.value() : null;
     	if (res == null) {
     		try {
     			res = RhinoUtils.evalCachedJavascript(cx, thisObj, key, "use", 1, null);
-    			project.set(mapkey, new UseResult(project, res));
+    			project.set(mapkey, new UseResult(version, res));
     		} catch (Exception e) {
     			e.printStackTrace();
     		}
@@ -438,8 +440,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
      * request that evaluated them, with its context and that version of the project.
      */
     static public void clearUseCache(Project project) {
+    	Project version = (Project) project.getOriginal();
     	Engine.theApp.getShareProjectMap(project).removeIf((key, value) ->
-    			key.startsWith(USE_KEY_PREFIX) && value instanceof UseResult use && use.project() == project);
+    			key.startsWith(USE_KEY_PREFIX) && value instanceof UseResult use && use.project() == version);
     }
     
     static public Object includeInScope(org.mozilla.javascript.Context cx, Scriptable thisObj, Object[] args, Function funObj) {
