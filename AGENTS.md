@@ -2,6 +2,13 @@
 
 These repo-wide notes are still evolving. Prefer more specific `AGENTS.md` files in subdirectories when they exist.
 
+## Dependency maintenance
+
+- For hotfix/develop dependency update work, read [.agents/skills/convertigo-studio-update/SKILL.md](.agents/skills/convertigo-studio-update/SKILL.md) and use its lane-specific procedure and helper scripts.
+- Prefer this repository's version of the procedure over a separately installed copy. Commands operate on the current checkout; do not assume personal paths or a neighboring clone.
+- Apply dependency and toolchain version edits before `generateEclipseConfigurationWithManifest`. Eclipse/platform and stable Tycho updates are permitted on develop, with a fresh Maven Studio build when either changes.
+- Updating dependencies does not authorize committing, merging, or pushing. Perform those actions only when explicitly requested.
+
 ## Changelog review
 
 - Treat `CHANGELOG.md` entries marked with `- *` as generated drafts that still need editorial review.
