@@ -123,6 +123,9 @@ public class EmbeddedTomcat implements Runnable {
 			connector.setPort(httpConnectorPort);
 			connector.setSecure(false);
 			connector.setScheme("http");
+			// the development server of a Flow frontend serves its sources by their path, with the brackets of
+			// the SvelteKit route directories (/src/routes/product/[id]/+page.svelte)
+			connector.setProperty("relaxedPathChars", "[]");
 			embedded.getService().addConnector(connector);
 			
 			int httpsConnectorPort = httpConnectorPort + 1;
@@ -132,6 +135,7 @@ public class EmbeddedTomcat implements Runnable {
 			connector.setPort(httpsConnectorPort);
 			connector.setSecure(true);
 			connector.setScheme("https");
+			connector.setProperty("relaxedPathChars", "[]");
 			SSLHostConfig sslHostconfig = new SSLHostConfig();
 			SSLHostConfigCertificate certificate = new SSLHostConfigCertificate(sslHostconfig, SSLHostConfigCertificate.Type.RSA);
 			// openssl req -x509 -days 3650 -out localhost.crt -keyout localhost.key   -newkey rsa:2048 -nodes -sha256   -subj '/CN=localhost' -extensions EXT -config <( \
