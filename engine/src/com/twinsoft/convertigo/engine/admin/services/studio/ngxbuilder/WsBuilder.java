@@ -629,6 +629,8 @@ public class WsBuilder extends WebSocketService {
 			terminateNode(prodOnly ? " && /--watch|:watch/" : "", prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "");
 			if (!prodOnly) {
 				baseUrl = null;
+				// the gateway no longer reaches its port
+				portNode = 0;
 			}
 		}
 
@@ -639,6 +641,7 @@ public class WsBuilder extends WebSocketService {
 		void terminateServe() {
 			baseUrl = null;
 			terminateNode(" && /serve/", " -and $_.CommandLine -like '*serve*'");
+			portNode = 0;
 		}
 
 		/**
@@ -728,6 +731,17 @@ public class WsBuilder extends WebSocketService {
 
 	/** the clients following the builds of each project */
 	static Map<String, Set<WsBuilder>> listeners = new HashMap<>();
+
+	/**
+	 * @return whether the development server the Studio started for a project listens on a port, the only one
+	 *         the gateway of the engine reaches for it
+	 */
+	public static boolean serves(String projectName, int port) {
+		synchronized (builds) {
+			var build = builds.get(projectName);
+			return port > 0 && build != null && build.portNode == port;
+		}
+	}
 
 	Session session;
 	String project;

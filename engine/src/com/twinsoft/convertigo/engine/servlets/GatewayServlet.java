@@ -47,8 +47,11 @@ import jakarta.websocket.server.ServerEndpointConfig;
 import org.apache.http.HttpHost;
 import org.apache.tomcat.websocket.server.WsServerContainer;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ReverseProxyManager;
+import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.WsBuilder;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.sessions.RedisInstanceDiscovery;
 
@@ -57,6 +60,7 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 	private static final long serialVersionUID = -5125409699734422218L;
 	private static final Pattern pKey = Pattern.compile("^/(.*?)(?:/|$)");
 	private static final Pattern pDevPort = Pattern.compile(".*/DisplayObjects/dev(\\d+)/");
+	private static final Pattern pDevProject = Pattern.compile("/projects/([^/]+)/DisplayObjects/dev\\d+/");
 	private static final String SUBPROTOCOLS = "subprotocols";
 	private static final String WSTARGET = "wstarget";
 
@@ -104,9 +108,13 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 					+ servletRequest.getServletPath();
 			websocketUri = targetUri + servletRequest.getPathInfo();
 		} else {
-			// Compatibility entry through ProjectsDataFilter /DisplayObjects/dev<port>.
+			// Compatibility entry through ProjectsDataFilter /DisplayObjects/dev<port>: only to the development
+			// server the Studio started for the project, for a user of the Studio.
 			var devPort = getDevPort(targetUri);
-			if (devPort < 1) {
+			var project = pDevProject.matcher(targetUri);
+			if (devPort < 1 || !project.find() || !WsBuilder.serves(project.group(1), devPort) || !AuthenticatedSessionManager.hasRole(
+					Engine.authenticatedSessionManager.getRoles(servletRequest.getSession(false)), new Role[] { Role.WEB_ADMIN })) {
+				Engine.logEngine.debug("[GatewayServlet] Refused the development uri " + targetUri);
 				servletResponse.sendError(HttpServletResponse.SC_NOT_FOUND);
 				return;
 			}
