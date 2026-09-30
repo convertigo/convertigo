@@ -38,6 +38,16 @@ tasks.named('check') {
 	dependsOn 'ionBeanTest'
 	dependsOn 'mdcLifecycleTest'
 	dependsOn 'workspaceLoadingTest'
+	dependsOn 'fullSyncReplicationPolicyTest'
+}
+
+tasks.register('fullSyncReplicationPolicyTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for FullSync replication access and shared database restrictions.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.servlets.FullSyncReplicationPolicyTest'
 }
 
 tasks.register('workspaceLoadingTest', JavaExec) {

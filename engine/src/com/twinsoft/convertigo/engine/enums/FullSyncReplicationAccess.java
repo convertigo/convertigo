@@ -21,5 +21,6 @@ package com.twinsoft.convertigo.engine.enums;
 
 public enum FullSyncReplicationAccess {
 	allow,
+	pullOnly,
 	deny
 }

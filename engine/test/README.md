@@ -5,6 +5,15 @@ included by `engine/build.gradle`. Run `./gradlew :engine:check` for the regress
 suites, or select an individual task below. `:engine:soapuiSmokeTest` is a separate
 opt-in smoke test.
 
+## FullSync replication access
+
+`./gradlew :engine:fullSyncReplicationPolicyTest` checks the public endpoint policy
+for `allow`, `pullOnly` and `deny`, including POST reads, writable replication
+checkpoints, refusal of document writes, and independent aggregation of access and
+anonymous restrictions for shared databases. It uses the production request parser
+and policy without starting CouchDB. A real client replication and checkpoint
+resume still require runtime validation.
+
 ## MDC lifecycle
 
 `./gradlew :engine:mdcLifecycleTest` runs the logging regression suite, also
