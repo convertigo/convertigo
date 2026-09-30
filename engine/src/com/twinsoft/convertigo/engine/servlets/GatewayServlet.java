@@ -123,11 +123,7 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 		}
 		
 		if ("websocket".equals(HeaderName.Upgrade.getHeader(servletRequest))) {
-			if (!isListening(targetHost)) {
-				// A development server restarting: Vite reloads its page as soon as a websocket to its
-				// server opens. Accepted without the server, it would reload a page the proxy cannot serve
-				// yet (the error page); refused, the client polls until the server listens.
-				servletResponse.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+			if (refusedUntilListening(targetHost, servletResponse)) {
 				return;
 			}
 			try {
@@ -154,6 +150,19 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 			servletRequest.setAttribute(ATTR_TARGET_HOST, targetHost);
 			super.service(servletRequest, servletResponse);
 		}
+	}
+
+	/**
+	 * A development server restarting: Vite reloads its page as soon as a websocket to its server opens.
+	 * Accepted without the server, it would reload a page the proxy cannot serve yet (the error page);
+	 * refused, the client polls until the server listens.
+	 */
+	static boolean refusedUntilListening(HttpHost target, HttpServletResponse response) throws IOException {
+		if (isListening(target)) {
+			return false;
+		}
+		response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+		return true;
 	}
 
 	/** Whether the target accepts connections, before a websocket is accepted on its behalf. */
