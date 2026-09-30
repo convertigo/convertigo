@@ -37,6 +37,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.util.ServletUtils;
 
 public class FallbackFilter implements Filter {
 	private static final Map<String, String> LEGACY_REDIRECTS = Map.of(
@@ -68,31 +69,7 @@ public class FallbackFilter implements Filter {
 	}
 
 	private static String resolveFallbackPath(String servletPath) {
-		if (!servletPath.endsWith("/index.html")) {
-			return null;
-		}
-
-		if (new File(Engine.WEBAPP_PATH, servletPath).exists()) {
-			return servletPath;
-		}
-
-		var segments = servletPath.split("/");
-		var currentPath = new StringBuilder();
-
-		for (var i = 1; i < segments.length; i++) { // skip the first empty "/"
-			currentPath.append("/");
-
-			if (new File(Engine.WEBAPP_PATH, currentPath.toString() + segments[i]).exists()) {
-				currentPath.append(segments[i]);
-			} else if (new File(Engine.WEBAPP_PATH, currentPath.toString() + "_").exists()) {
-				currentPath.append("_");
-			} else {
-				return null;
-			}
-		}
-
-		var fallbackPath = currentPath.toString();
-		return new File(Engine.WEBAPP_PATH, fallbackPath).exists() ? fallbackPath : null;
+		return ServletUtils.resolvePlaceholderPath(new File(Engine.WEBAPP_PATH), servletPath);
 	}
 
 	private static HttpServletRequest withoutConditionalCaching(HttpServletRequest request) {

@@ -141,6 +141,21 @@ public class ServletUtils {
 		} else {
 			Matcher m = p_mobile.matcher(file.getPath().replace('\\', '/'));
 			if (m.matches() && shouldFallbackToMobileIndex(m.group(2))) {
+				// a route prerendered with "_" in place of its parameters (static SvelteKit build of a Flow frontend)
+				var relativePath = m.group(2);
+				var placeholder = resolvePlaceholderPath(new File(m.group(1)),
+						"/" + relativePath + (relativePath.isEmpty() || relativePath.endsWith("/") ? "" : "/") + "index.html");
+				if (placeholder != null) {
+					var uri = request.getRequestURI();
+					if (!uri.endsWith("/") && ("GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod()))) {
+						// the relative URLs of the page resolve from its directory
+						var query = request.getQueryString();
+						response.sendRedirect(response.encodeRedirectURL(uri + "/" + (query == null ? "" : "?" + query)));
+						return;
+					}
+					handleFileFilter(new File(m.group(1), placeholder.substring(1)), request, response, filterConfig, chain);
+					return;
+				}
 				var depth = computeDepth(request);
 				if (depth != null) {
 					request.setAttribute(ATTR_BASE_DEPTH, depth);
@@ -272,6 +287,42 @@ public class ServletUtils {
 
 	private static boolean shouldFallbackToMobileIndex(String relativePath) {
 		return !isKnownMobileStaticResource(relativePath);
+	}
+
+	/**
+	 * The page of a static build that answers a path whose route parameters were prerendered with "_" in
+	 * their place (SvelteKit entries such as "/product/_/"): a missing segment is taken by a "_" directory.
+	 * Returns the path of the page relative to root, starting with "/", or null.
+	 */
+	public static String resolvePlaceholderPath(File root, String path) {
+		if (!path.endsWith("/index.html")) {
+			return null;
+		}
+
+		if (new File(root, path).exists()) {
+			return path;
+		}
+
+		var segments = path.split("/");
+		var currentPath = new StringBuilder();
+
+		for (var i = 1; i < segments.length; i++) { // skip the first empty "/"
+			if ("..".equals(segments[i])) {
+				return null;
+			}
+			currentPath.append("/");
+
+			if (new File(root, currentPath.toString() + segments[i]).exists()) {
+				currentPath.append(segments[i]);
+			} else if (new File(root, currentPath.toString() + "_").exists()) {
+				currentPath.append("_");
+			} else {
+				return null;
+			}
+		}
+
+		var fallbackPath = currentPath.toString();
+		return new File(root, fallbackPath).exists() ? fallbackPath : null;
 	}
 
 	private static boolean isKnownMobileStaticResource(String relativePath) {
