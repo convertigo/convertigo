@@ -20,6 +20,8 @@
 package com.twinsoft.convertigo.engine.servlets;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -113,6 +115,13 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 		}
 		
 		if ("websocket".equals(HeaderName.Upgrade.getHeader(servletRequest))) {
+			if (!isListening(targetHost)) {
+				// A development server restarting: Vite reloads its page as soon as a websocket to its
+				// server opens. Accepted without the server, it would reload a page the proxy cannot serve
+				// yet (the error page); refused, the client polls until the server listens.
+				servletResponse.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				return;
+			}
 			try {
 				var wsContainer = (WsServerContainer) getServletContext()
 						.getAttribute("jakarta.websocket.server.ServerContainer");
@@ -136,6 +145,17 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 			servletRequest.setAttribute(ATTR_TARGET_URI, targetUri);
 			servletRequest.setAttribute(ATTR_TARGET_HOST, targetHost);
 			super.service(servletRequest, servletResponse);
+		}
+	}
+
+	/** Whether the target accepts connections, before a websocket is accepted on its behalf. */
+	static boolean isListening(HttpHost host) {
+		var port = host.getPort() > 0 ? host.getPort() : "https".equalsIgnoreCase(host.getSchemeName()) ? 443 : 80;
+		try (var socket = new Socket()) {
+			socket.connect(new InetSocketAddress(host.getHostName(), port), 2000);
+			return true;
+		} catch (IOException e) {
+			return false;
 		}
 	}
 
@@ -244,12 +264,21 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 				}, conf.build(), URI.create(map.get(WSTARGET).get(0)));
 			} catch (Exception e) {
 				Engine.logEngine.debug("[GatewayServlet] Failed to connectToServer: " + e);
+				// the target went away since the upgrade: the client is told, rather than kept open on nothing
+				try {
+					session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, "Target unavailable"));
+				} catch (IOException closeError) {
+					Engine.logEngine.trace("[GatewayServlet] Failed to close the server: " + closeError);
+				}
 			}
 		}
 
 		@OnMessage
 		public void onMessage(String message, Session session) {
 			Engine.logEngine.trace("[GatewayServlet] Server onMessage: " + message);
+			if (client == null) {
+				return;
+			}
 			try {
 				client.getBasicRemote().sendText(message);
 			} catch (IOException e) {
@@ -260,6 +289,9 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 		@OnClose
 		public void onClose(Session session) {
 			Engine.logEngine.trace("[GatewayServlet] Server close " + session.getId());
+			if (client == null) {
+				return;
+			}
 			try {
 				client.close();
 			} catch (IOException e) {
