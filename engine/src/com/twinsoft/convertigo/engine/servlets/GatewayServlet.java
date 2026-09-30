@@ -45,7 +45,10 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.apache.http.HttpHost;
 import org.apache.tomcat.websocket.server.WsServerContainer;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.WsBuilder;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 
 public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
@@ -53,6 +56,7 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 	private static final long serialVersionUID = -5125409699734422218L;
 	private static final Pattern pKey = Pattern.compile("^/(.*?)(?:/|$)");
 	private static final Pattern pDevPort = Pattern.compile(".*/DisplayObjects/dev(\\d+)/");
+	private static final Pattern pDevProject = Pattern.compile("/projects/([^/]+)/DisplayObjects/dev\\d+/");
 	private static final String SUBPROTOCOLS = "subprotocols";
 	private static final String WSTARGET = "wstarget";
 
@@ -94,8 +98,18 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 			uri = servletRequest.getRequestURI();
 			targetUri = servletRequest.getContextPath() + servletRequest.getServletPath();
 		} else {
-			// enter by the ProjectsDataFilter /DisplayObjects/dev
-			targetHost = new HttpHost("localhost", getDevPort(targetUri), "http");
+			// enter by the ProjectsDataFilter /DisplayObjects/dev: only to the development server the Studio
+			// started for the project, for a user of the Studio
+			var port = getDevPort(targetUri);
+			var project = pDevProject.matcher(targetUri);
+			var session = servletRequest.getSession(false);
+			if (!project.find() || !WsBuilder.serves(project.group(1), port) || !AuthenticatedSessionManager.hasRole(
+					Engine.authenticatedSessionManager.getRoles(session), new Role[] { Role.WEB_ADMIN })) {
+				Engine.logEngine.debug("[GatewayServlet] Refused the development uri " + targetUri);
+				servletResponse.sendError(HttpServletResponse.SC_NOT_FOUND);
+				return;
+			}
+			targetHost = new HttpHost("localhost", port, "http");
 		}
 		
 		if ("websocket".equals(HeaderName.Upgrade.getHeader(servletRequest))) {
