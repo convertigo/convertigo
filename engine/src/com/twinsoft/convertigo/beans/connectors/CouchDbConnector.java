@@ -61,6 +61,13 @@ public class CouchDbConnector extends Connector {
 	
 	private transient CouchClient couchClient = null;
 	
+	/** the client of the connector loaded that the client of this copy follows */
+	private transient CouchClient originalClient = null;
+	
+	/** the user and the password a session signed in with */
+	private transient String sessionName = null;
+	private transient String sessionPassword = null;
+	
 	public CouchDbConnector() {
 		
 	}
@@ -69,6 +76,9 @@ public class CouchDbConnector extends Connector {
 	public Connector clone() throws CloneNotSupportedException {
 		CouchDbConnector clonedObject = (CouchDbConnector) super.clone();
 		clonedObject.couchClient = null;
+		clonedObject.originalClient = null;
+		clonedObject.sessionName = null;
+		clonedObject.sessionPassword = null;
 		return clonedObject;
 	}
 
@@ -158,20 +168,42 @@ public class CouchDbConnector extends Connector {
 	}
 	
 	public CouchClient getCouchClient() {
-		if (couchClient == null) {
-			if (!isOriginal()) {
-				couchClient = getOriginal().getCouchClient(); 
-			} else {
+		if (isOriginal()) {
+			if (couchClient == null) {
 				String url = isHttps() ? "https" : "http";
 				url+= "://" + getServer() + ":" + getPort();
 				couchClient = new CouchClient(url, couchUsername, couchPassword);
 			}
+			return couchClient;
+		}
+		// a copy, as the connector of a session, follows the client of the connector loaded: a change of its
+		// server, port or credentials reaches the sessions at once, a session signed in with its user
+		CouchClient current = ((CouchDbConnector) getOriginal()).getCouchClient();
+		if (couchClient == null || (originalClient != null && originalClient != current)) {
+			couchClient = sessionName == null ? current : new CouchClient(current.getServerUrl(), sessionName, sessionPassword);
+			originalClient = current;
 		}
 		return couchClient;
 	}
 	
+	/**
+	 * Gives the connector a client of its own, kept as it is, or none to follow the connector loaded again.
+	 */
 	public void setCouchClient(CouchClient couchClient) {
 		this.couchClient = couchClient;
+		originalClient = null;
+		sessionName = null;
+		sessionPassword = null;
+	}
+	
+	/**
+	 * Signs the session of this connector in with a user of CouchDB: its client reaches the server of the
+	 * connector with that user, as the server changes too.
+	 */
+	public void signIn(String name, String password) {
+		setCouchClient(null);
+		sessionName = name;
+		sessionPassword = password;
 	}
 	
 	public void setData(Object data) {
