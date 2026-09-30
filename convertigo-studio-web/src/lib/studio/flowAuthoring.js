@@ -257,6 +257,14 @@ export function authoringActionRequest(message) {
 }
 
 /**
+ * Tells the preview the move it asked for is over, done or not: the moved node can keep its id.
+ * @param {FlowAuthoringReference} source
+ */
+export function authoringMoveDoneMessage(source) {
+	return { protocol: FLOW_AUTHORING_PROTOCOL, type: 'authoring.move.done', reference: source };
+}
+
+/**
  * Tells the preview the action it asked for is over, done or not.
  * @param {FlowAuthoringReference} reference
  * @param {string} action

@@ -7,6 +7,7 @@ import {
 	authoringDropRequest,
 	authoringModeFromMessage,
 	authoringModeMessage,
+	authoringMoveDoneMessage,
 	authoringMoveRequest,
 	contextAuthoringMutation,
 	FLOW_AUTHORING_PROTOCOL,
@@ -188,6 +189,11 @@ describe('Flow visual authoring protocol', () => {
 		});
 		expect(authoringMoveRequest({ ...message, source: null })).toBe(null);
 		expect(authoringMoveRequest({ ...message, position: 'around' })).toBe(null);
+		expect(authoringMoveDoneMessage(reference)).toEqual({
+			protocol: FLOW_AUTHORING_PROTOCOL,
+			type: 'authoring.move.done',
+			reference
+		});
 	});
 
 	it('answers the chip of the preview with the actions of the tree on its object', () => {

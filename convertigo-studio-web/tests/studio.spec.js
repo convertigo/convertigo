@@ -414,6 +414,66 @@ test('studio runs the actions of the chip of the preview as its tree does', asyn
 	await expectFrontendOrder(page, ['firstText']);
 });
 
+test('studio tells the preview when its move is over and highlights the moved node where it is', async ({
+	page
+}) => {
+	const state = createStudioState();
+	await mockStudioServices(page, {
+		state,
+		authoringReferences: {
+			firstText: `${frontendStructureId}.firstText`,
+			secondText: `${frontendStructureId}.secondText`
+		}
+	});
+	// a Dev viewer moves the second text before the first one, and shows what the Studio tells it
+	await page.route('**/convertigo/gw/studio-test-ticket/**', async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'text/html',
+			body: `<!doctype html><html><body>
+				<output id="highlight"></output><output id="done"></output>
+				<button type="button" id="move">Move before the first text</button>
+				<script>
+					const path = 'model/StudioProject/src/routes/+page.flow.svelte';
+					addEventListener('message', (event) => {
+						const message = event.data || {};
+						if (message.type === 'authoring.highlight') {
+							document.getElementById('highlight').textContent =
+								message.reference.nodeId + '@' + message.reference.sourceMutationPath;
+						}
+						if (message.type === 'authoring.move.done') {
+							document.getElementById('done').textContent = message.reference.nodeId;
+						}
+					});
+					parent.postMessage({ protocol: 'convertigo.flow.authoring.v1', type: 'viewer.ready' }, location.origin);
+					document.getElementById('move').onclick = () => parent.postMessage({
+						protocol: 'convertigo.flow.authoring.v1', type: 'authoring.move', position: 'before',
+						source: { nodeId: 'secondText', sourceRelativePath: path, sourceMutationPath: 'frontAst.nodes[1]' },
+						reference: { nodeId: 'firstText', sourceRelativePath: path, sourceMutationPath: 'frontAst.nodes[0]' }
+					}, location.origin);
+				</script></body></html>`
+		});
+	});
+	await page.goto('/studio/');
+
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, flowEngineId);
+	await expandTreeNode(page, frontendBuilderId);
+	await expandTreeNode(page, frontendStructureId);
+	await selectTreeNode(page, `${frontendStructureId}.secondText`);
+	await page.getByRole('radio', { name: 'Frontend' }).click();
+	await page.getByRole('radio', { name: 'Dev', exact: true }).click();
+	const viewer = page.frameLocator('iframe[title="StudioProject frontend"]');
+	await expect(viewer.locator('#highlight')).toHaveText('secondText@frontAst.nodes[1]');
+
+	await viewer.getByRole('button', { name: 'Move before the first text' }).click();
+
+	// the moved text keeps its id: the viewer is told the move is over, and where the text is now
+	await expect(viewer.locator('#done')).toHaveText('secondText');
+	await expect(viewer.locator('#highlight')).toHaveText('secondText@frontAst.nodes[0]');
+	await expectFrontendOrder(page, ['secondText', 'firstText']);
+});
+
 test('studio vibe profile gives the Assistant the selected project and keeps the live frontend beside it', async ({
 	page
 }) => {
@@ -2265,6 +2325,22 @@ function responseForService(service, params, options = {}) {
 		case 'studio.source.Files':
 			return filesResponse(params, state);
 		case 'studio.treeview.Authoring': {
+			// the address of a text of the page follows its place, its id does not
+			const selected = params.get('id') ?? '';
+			if (selected.startsWith(`${frontendStructureId}.`)) {
+				const nodeId = selected.slice(frontendStructureId.length + 1);
+				const index = state.frontendNodes.findIndex((node) => node.id === nodeId);
+				return index < 0
+					? {}
+					: {
+							id: selected,
+							reference: {
+								nodeId,
+								sourceRelativePath: 'model/StudioProject/src/routes/+page.flow.svelte',
+								sourceMutationPath: `frontAst.nodes[${index}]`
+							}
+						};
+			}
 			const project = params.get('project') ?? '';
 			const sourcePath = params.get('sourcePath') ?? '';
 			const reference = params.has('reference') ? parseServiceJson(params.get('reference')) : null;

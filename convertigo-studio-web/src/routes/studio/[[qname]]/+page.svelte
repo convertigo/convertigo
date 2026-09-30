@@ -1139,12 +1139,28 @@
 	 * @param {string} id
 	 * @param {number} serial
 	 */
-	async function loadFrontendAuthoringReference(id, serial) {
+	async function loadFrontendAuthoringReference(id, serial, keepEqual = false) {
 		const response = await call('studio.treeview.Authoring', { id });
 		if (serial !== frontendAuthoringSerial || selectedId !== id) {
 			return;
 		}
-		frontendAuthoringReference = response?.reference ?? null;
+		const reference = response?.reference ?? null;
+		if (keepEqual && JSON.stringify(reference) === JSON.stringify(frontendAuthoringReference)) {
+			return;
+		}
+		frontendAuthoringReference = reference;
+	}
+
+	/**
+	 * Reloads the address of the selected node in its source, which a mutation can change without
+	 * changing its id (a move): the preview highlights it where it is.
+	 */
+	function refreshFrontendAuthoringReference() {
+		const id = selectedId;
+		if (!dockOpen.frontend || !id || id === 'ROOT') {
+			return;
+		}
+		void loadFrontendAuthoringReference(id, ++frontendAuthoringSerial, true);
 	}
 
 	/**
@@ -1796,6 +1812,7 @@
 				// A mutation can keep the selected id (for example Enable/Disable).
 				// Properties must reload even when the selection itself did not change.
 				propertiesRefreshSerial += 1;
+				refreshFrontendAuthoringReference();
 				// StudioTreePanel refreshes only the affected mutation context; a global tree
 				// refresh can collapse expanded branches while rename/reveal is in progress.
 				refreshStudioViews({ tree: false, flow: true });
@@ -2483,6 +2500,7 @@
 			markProjectDirty(projectName, { snapshot: false });
 			// the objects of the project are new ones, the selected object may no longer exist
 			propertiesRefreshSerial += 1;
+			refreshFrontendAuthoringReference();
 			historyReload = { projectName, serial: (historyReload?.serial ?? 0) + 1 };
 			// the tree reads its open branches of the project again, from historyReload
 			refreshStudioViews({ tree: false, flow: true });

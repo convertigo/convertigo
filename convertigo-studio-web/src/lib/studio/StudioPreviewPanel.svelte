@@ -17,6 +17,7 @@
 		authoringDropRequest,
 		authoringModeFromMessage,
 		authoringModeMessage,
+		authoringMoveDoneMessage,
 		authoringMoveRequest,
 		highlightAuthoringMessage,
 		isFlowAuthoringMessage,
@@ -879,7 +880,14 @@
 		}
 		const move = authoringMoveRequest(event.data);
 		if (move) {
-			void onAuthoringMove?.(move);
+			// the viewer waits for the end of its move, which can keep the id of the moved node
+			const target = iframe?.contentWindow;
+			void Promise.resolve()
+				.then(() => onAuthoringMove?.(move))
+				.catch(() => undefined)
+				.then(() =>
+					target?.postMessage(authoringMoveDoneMessage(move.source), window.location.origin)
+				);
 			return;
 		}
 		// the chip of the selection in the application offers the actions of the tree on its object
