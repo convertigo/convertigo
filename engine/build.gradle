@@ -434,3 +434,17 @@ processResources.dependsOn('copyFlashUpdateDependencies')
 compileJava.dependsOn(['copyLicense', 'copyFlashUpdateDependencies', 'updateProductVersion'])
 processResources.dependsOn(':convertigo-svg-icons:run')
 jar.dependsOn('updateBeansDefaultValues')
+// Focused regression tests for maintenance backports.
+sourceSets {
+	test {
+		java.srcDirs = ['test']
+	}
+}
+
+dependencies {
+	testImplementation 'junit:junit:4.13.2'
+}
+
+tasks.named('test') {
+	useJUnit()
+}
