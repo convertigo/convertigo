@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 
 @ServiceDefinition(name = "Rename", roles = { Role.WEB_ADMIN,
-		Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+		Role.PROJECTS_CONFIG }, parameters = {}, returnValue = "")
 public class Rename extends JSonService {
 
 	@Override

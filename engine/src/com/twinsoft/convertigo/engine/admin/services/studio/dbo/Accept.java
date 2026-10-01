@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @ServiceDefinition(name = "Accept", roles = { Role.WEB_ADMIN,
-		Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+		Role.PROJECTS_CONFIG }, parameters = {}, returnValue = "")
 public class Accept extends JSonService {
 
 	@Override
