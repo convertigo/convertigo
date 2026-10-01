@@ -52,6 +52,7 @@ public enum HeaderName {
 	ContentLength("Content-Length"),
 	ContentLocation("Content-Location"),
 	ContentType("Content-Type"),
+	ContentSecurityPolicy("Content-Security-Policy"),
 	Cookie("Cookie"),
 	Destination("Destination"),
 	ETag("ETag"),
@@ -74,6 +75,7 @@ public enum HeaderName {
 	ProxyAuthenticate("Proxy-Authenticate"),
 	ProxyAuthorization("Proxy-Authorization"),
 	Referer("Referer"),
+	ReferrerPolicy("Referrer-Policy"),
 	SecWebSocketProtocol("Sec-WebSocket-Protocol"),
 	Server("Server"),
 	SetCookie("Set-Cookie"),
@@ -89,6 +91,8 @@ public enum HeaderName {
 	XConvertigoRequestHost("X-Convertigo-Request-Host"),
 	XConvertigoSDK("X-Convertigo-SDK"),
 	XConvertigoMB("X-Convertigo-MB"),
+	XContentTypeOptions("X-Content-Type-Options"),
+	XFrameOptions("X-Frame-Options"),
 	XXsrfToken("X-XSRF-Token"),
 	VOID("");
 	

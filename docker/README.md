@@ -102,6 +102,19 @@ You can lock the **testplatform** by setting the account :
 
     docker run -d --name C8O -e CONVERTIGO_TESTPLATFORM_USER=tp_user -e CONVERTIGO_TESTPLATFORM_PASSWORD=s3cret -p 28080:28080 convertigo
 
+### `PUBLIC_DOMAINS` Environment variable
+
+For production CORS configuration, you can replace the default `cors.policy = =Origin`
+behavior with an explicit list of public origins:
+
+    docker run -d --name C8O -e PUBLIC_DOMAINS="https://app.example.com#https://admin.example.com" -p 28080:28080 convertigo
+
+Values must match the full browser `Origin` header, including scheme and optional port.
+Multiple origins are separated with `#`.
+If `/workspace/configuration/engine.properties` already defines `cors.policy`, `PUBLIC_DOMAINS`
+is ignored. Use `JAVA_OPTS=-Dconvertigo.engine.cors.policy=...` only when you need an explicit
+JVM-level override.
+
 ## HTTPS / SSL Configuration
 
 In many cases, the Convertigo instance is behind a reverse proxy that handles HTTPS / SSL configuration. But you can configure the container to manage existing SSL certificates or dynamically generate one.

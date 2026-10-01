@@ -36,18 +36,22 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.tika.Tika;
 import org.apache.commons.io.IOUtils;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 public class ServletUtils {
 	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/(:?mobile|pwas/.*?)/).+");
 	
+	private static final Tika MIME_TYPE_DETECTOR = new Tika();
+
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
 			Engine.logContext.debug("Static file");
@@ -68,6 +72,14 @@ public class ServletUtils {
 
 				// Serve static files if they exist in the projects repository.
 				String mimeType = filterConfig.getServletContext().getMimeType(file.getName());
+				if (mimeType == null) {
+					try {
+						mimeType = MIME_TYPE_DETECTOR.detect(file);
+					} catch (IOException e) {
+						Engine.logContext.warn("Unable to detect MIME type for static file: " + file, e);
+						mimeType = MimeType.OctetStream.value();
+					}
+				}
 				Engine.logContext.debug("Found MIME type: " + mimeType);
 				HeaderName.ContentType.setHeader(response, mimeType);
 				HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge	);
