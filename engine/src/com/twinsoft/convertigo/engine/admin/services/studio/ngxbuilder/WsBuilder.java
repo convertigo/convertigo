@@ -295,6 +295,9 @@ public class WsBuilder extends WebSocketService {
 				synchronized (usedPort) {
 					usedPort.remove(portNode);
 				}
+				if (!prodOnly) {
+					portNode = 0;
+				}
 			} catch (Exception e) {
 				Engine.logStudio.warn("Failed to terminate the node server", e);
 			}
@@ -302,6 +305,17 @@ public class WsBuilder extends WebSocketService {
 	}
 
 	static Map<String, Build> builds = new HashMap<>();
+
+	/**
+	 * @return whether the development server the Studio started for a project listens on a port, the only one
+	 *         the gateway of the engine reaches for it
+	 */
+	public static boolean serves(String projectName, int port) {
+		synchronized (builds) {
+			var build = builds.get(projectName);
+			return port > 0 && build != null && build.portNode == port;
+		}
+	}
 
 	Session session;
 	String project;
