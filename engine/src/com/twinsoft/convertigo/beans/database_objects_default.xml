@@ -7150,6 +7150,9 @@
         <property name="port">
             <java.lang.Integer value="5984"/>
         </property>
+        <property name="replicationAccess">
+            <java.lang.String value="allow"/>
+        </property>
         <property name="secureDatabase">
             <java.lang.Boolean value="false"/>
         </property>
@@ -7190,9 +7193,6 @@
         </property>
         <property name="port">
             <java.lang.Integer value="5984"/>
-        </property>
-        <property name="replicationAccess">
-            <java.lang.String value="allow"/>
         </property>
         <property name="secureDatabase">
             <java.lang.Boolean value="false"/>
