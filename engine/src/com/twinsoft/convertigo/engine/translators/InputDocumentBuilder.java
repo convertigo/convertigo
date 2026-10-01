@@ -21,13 +21,11 @@ package com.twinsoft.convertigo.engine.translators;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 class InputDocumentBuilder {
 	private Context context;
@@ -57,10 +55,6 @@ class InputDocumentBuilder {
 	}
 	
 	void addVariable(String parameterName, String parameterValue) {
-		addVariable(parameterName, parameterValue, false);
-	}
-	
-	private void addVariable(String parameterName, String parameterValue, boolean isHandleComplex) {
 		if (parameterName == null || parameterValue == null) {
 			return;
 		}
@@ -72,29 +66,13 @@ class InputDocumentBuilder {
 		if (parameterValue.equals("_empty_array_")) {
 			Engine.logContext.info("Input variable " + parameterName + " is an empty array");
 		} else {
-			if (isHandleComplex && parameterValue.startsWith("<")) {
-				try {
-					Document doc = XMLUtils.parseDOMFromString(parameterValue);
-					Node node = context.inputDocument.importNode(doc.getDocumentElement(),true);
-					item.appendChild(node);
-				} catch (Exception e) {
-					item.setAttribute("value", parameterValue);
-					Engine.logContext.info("Unable to handle '" + parameterName + "' complex variable's value. Set it to String value");
-				}
-			}
-			else {
-				item.setAttribute("value", parameterValue);
-			}
+			item.setAttribute("value", parameterValue);
 			Engine.logContext.info("Input variable " + parameterName + " = '" + Visibility.maskValue(parameterValue) +"'");
 		}
 		transactionVariablesElement.appendChild(item);
 	}
 	
 	void addVariable(String parameterName, String[] parameterValues) {
-		addVariable(parameterName, parameterValues, false);
-	}
-	
-	void addVariable(String parameterName, String[] parameterValues, boolean isHandleComplex) {
 		// For empty multivalued parameters do not set 'value' attribute (Sequencer only)
 		if (parameterValues.length == 0) {
 			Element item = context.inputDocument.createElement("variable");
@@ -104,7 +82,7 @@ class InputDocumentBuilder {
 			Engine.logContext.info("Added requestable variable '" + parameterName + "' as an empty array");
 		} else {
 			for (int i = 0 ; i < parameterValues.length ; i++) {
-				addVariable(parameterName, parameterValues[i], isHandleComplex);
+				addVariable(parameterName, parameterValues[i]);
 			}
 		}
 	}

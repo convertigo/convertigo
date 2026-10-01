@@ -44,6 +44,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.XMLConstants;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -87,6 +88,26 @@ public class XMLUtils {
 		@Override
 		protected DocumentBuilderFactory initialValue() {
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+			// Disable external entity resolution and external DTD access. Internal
+			// DTD subsets (used by some shipped XSL) keep working; only external
+			// references are blocked.
+			try {
+				documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+				documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+				documentBuilderFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+				documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+				documentBuilderFactory.setXIncludeAware(false);
+				documentBuilderFactory.setExpandEntityReferences(false);
+			} catch (Exception e) {
+				if (Engine.logEngine != null) Engine.logEngine.warn("Unable to harden the XML document builder factory: " + e.getMessage());
+			}
+			// Optional JAXP hardening, not supported by every XML implementation.
+			try {
+				documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+				documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+			} catch (Exception e) {
+				// ACCESS_EXTERNAL_* is not supported by every XML implementation; ignore.
+			}
 			try {
 				String s = EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_NAMESPACE_AWARE);
 				if (s.equalsIgnoreCase("true"))
@@ -118,7 +139,20 @@ public class XMLUtils {
 	private static ThreadLocal<TransformerFactory> defaultTransformerFactory = new ThreadLocal<TransformerFactory>() {
 		@Override
 		protected TransformerFactory initialValue() {
-			return TransformerFactory.newInstance();
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			try {
+				transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+			} catch (Exception e) {
+				if (Engine.logEngine != null) Engine.logEngine.warn("Unable to harden the XML transformer factory: " + e.getMessage());
+			}
+			// Optional JAXP hardening, not supported by every XML implementation.
+			try {
+				transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+				transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+			} catch (Exception e) {
+				// ACCESS_EXTERNAL_* is not supported by every XML implementation; ignore.
+			}
+			return transformerFactory;
 		}
 	};
 
@@ -134,7 +168,19 @@ public class XMLUtils {
 		@Override
 		protected SAXParser initialValue() {
 			try {
-				return SAXParserFactory.newInstance().newSAXParser();
+				SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+				// Disable external entity resolution and external DTD access while
+				// keeping internal DTD subsets working.
+				try {
+					saxParserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+					saxParserFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+					saxParserFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+					saxParserFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+					saxParserFactory.setXIncludeAware(false);
+				} catch (Exception e) {
+					if (Engine.logEngine != null) Engine.logEngine.warn("Unable to harden the SAX parser factory: " + e.getMessage());
+				}
+				return saxParserFactory.newSAXParser();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
@@ -896,8 +942,34 @@ public class XMLUtils {
 		return parseDOM(new File(filename));
 	}
 
+	// Builder used to parse XML coming from untrusted string input (e.g. request
+	// parameters). It forbids DOCTYPE declarations entirely, so no entity can be
+	// defined or referenced.
+	private static ThreadLocal<DocumentBuilder> secureDocumentBuilder = new ThreadLocal<DocumentBuilder>() {
+		@Override
+		protected DocumentBuilder initialValue() {
+			try {
+				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+				factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+				factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+				factory.setXIncludeAware(false);
+				factory.setExpandEntityReferences(false);
+				factory.setNamespaceAware(true);
+				try {
+					factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+					factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+				} catch (Exception ignored) {
+				}
+				return factory.newDocumentBuilder();
+			} catch (ParserConfigurationException e) {
+				Engine.logEngine.error("Unable to create the secure XML document builder", e);
+				return null;
+			}
+		}
+	};
+
 	static public Document parseDOMFromString(String sDom) throws SAXException, IOException {
-		Document dom = getDefaultDocumentBuilder().parse(new InputSource(new StringReader(sDom)));
+		Document dom = secureDocumentBuilder.get().parse(new InputSource(new StringReader(sDom)));
 		return dom;
 	}
 
