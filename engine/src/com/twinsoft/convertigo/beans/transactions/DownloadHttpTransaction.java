@@ -253,7 +253,17 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 			if (cdh != null) {
 				var m = Pattern.compile("filename=\"?((?:\\\\\"|[^\"])*)\"?").matcher(cdh);
 				if (m.find() && StringUtils.isNotBlank(m.group(1))) {
-					currentFilename = m.group(1).replace("\\\"", "\"");
+					String extracted = m.group(1).replace("\\\"", "\"");
+					// An upstream-supplied filename must never carry a path: keep
+					// only its base name to prevent writing outside the folder.
+					extracted = extracted.replace('\\', '/');
+					int sep = extracted.lastIndexOf('/');
+					if (sep >= 0) {
+						extracted = extracted.substring(sep + 1);
+					}
+					if (StringUtils.isNotBlank(extracted)) {
+						currentFilename = extracted;
+					}
 				}
 			}
 		}
@@ -284,7 +294,17 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 		
 		filepath += filename;
 		file = Engine.theApp.filePropertyManager.getFileFromProperty(filepath, getProject().getName());
-		
+
+		// Defense in depth: make sure the resolved destination stays inside the
+		// configured download folder, whatever the filename source was.
+		File rootDir = Engine.theApp.filePropertyManager.getFileFromProperty(folder, getProject().getName());
+		String rootCanonical = rootDir.getCanonicalPath();
+		String fileCanonical = file.getCanonicalPath();
+		if (!fileCanonical.equals(rootCanonical) && !fileCanonical.startsWith(rootCanonical + File.separator)) {
+			throw new IOException("Download destination \"" + fileCanonical
+					+ "\" is outside the configured download folder \"" + rootCanonical + "\"");
+		}
+
 		if (fileExistPolicy == FileExistPolicy.increment) {
 			file = FileUtils.incrementFilename(file);
 		}

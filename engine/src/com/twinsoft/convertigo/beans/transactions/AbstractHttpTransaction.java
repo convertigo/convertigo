@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.engine.enums.DynamicHttpVariable;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.enums.HttpUriOverridePolicy;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -113,6 +114,32 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	private boolean allowDownloadAttachment = false;
 
 	private boolean followRedirect = true;
+
+	/** Controls how the request-supplied __uri parameter may change the target URL. */
+	private HttpUriOverridePolicy allowedUriOverride = HttpUriOverridePolicy.deny;
+
+	public HttpUriOverridePolicy getAllowedUriOverride() {
+		return allowedUriOverride;
+	}
+
+	public void setAllowedUriOverride(HttpUriOverridePolicy allowedUriOverride) {
+		this.allowedUriOverride = allowedUriOverride;
+	}
+
+	/**
+	 * When false, request-supplied __header_ parameters that do not match a
+	 * declared transaction variable are ignored. Declared variables are always
+	 * honored.
+	 */
+	private boolean allowUndeclaredHeaderOverride = false;
+
+	public boolean isAllowUndeclaredHeaderOverride() {
+		return allowUndeclaredHeaderOverride;
+	}
+
+	public void setAllowUndeclaredHeaderOverride(boolean allowUndeclaredHeaderOverride) {
+		this.allowUndeclaredHeaderOverride = allowUndeclaredHeaderOverride;
+	}
 
 	public AbstractHttpTransaction() {
 		super();
@@ -386,9 +413,26 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		}
 		
 		if (StringUtils.isNotBlank(uri)) {
-			setCurrentSubDir(uri);
-			//needRestoreVariablesDefinition = true;
-			needRestoreVariables = true;
+			boolean applyUri = true;
+			// The __uri override policy only guards transactions reachable from
+			// outside (Public or Hidden), where the value can be injected by the
+			// caller. Private transactions are internal and keep the legacy behavior.
+			if (!isPrivateAccessibility()) {
+				if (allowedUriOverride == HttpUriOverridePolicy.deny) {
+					applyUri = false;
+					Engine.logBeans.warn("(AbstractHttpTransaction) Ignoring __uri override for transaction \"" + getName()
+							+ "\": __uri overrides are disabled on this externally reachable transaction; set allowedUriOverride to relative or absolute to allow it");
+				} else if (allowedUriOverride == HttpUriOverridePolicy.relative && uri.toLowerCase().startsWith("http")) {
+					applyUri = false;
+					Engine.logBeans.warn("(AbstractHttpTransaction) Ignoring absolute __uri override for transaction \"" + getName()
+							+ "\": only a relative sub path is allowed; set allowedUriOverride to absolute to permit a full URL");
+				}
+			}
+			if (applyUri) {
+				setCurrentSubDir(uri);
+				//needRestoreVariablesDefinition = true;
+				needRestoreVariables = true;
+			}
 		}
 		
 		// Overrides static HTTP headers using __header_ request parameters 
@@ -400,6 +444,17 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 				Element headerNode = (Element) headerNodes.item(i);
 				XMLVector<String> header = new XMLVector<String>();
 				String name = headerNode.getAttribute("name");
+				// On externally reachable transactions (Public or Hidden), a header
+				// supplied through a request-level __header_ parameter is honored only
+				// when the transaction declares a matching variable or when undeclared
+				// overrides are explicitly allowed. Private transactions are internal.
+				if (!isPrivateAccessibility() && !allowUndeclaredHeaderOverride
+						&& getVariable(DynamicHttpVariable.__header_.name() + name) == null) {
+					Engine.logBeans.warn("(AbstractHttpTransaction) Ignoring undeclared __header_ override \"" + name
+							+ "\" for externally reachable transaction \"" + getName()
+							+ "\": declare a matching variable or set allowUndeclaredHeaderOverride to true");
+					continue;
+				}
 				NameValuePair nvp = map.remove(name);
 				if (nvp != null) {
 					name = nvp.getName();

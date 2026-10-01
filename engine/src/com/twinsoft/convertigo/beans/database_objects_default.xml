@@ -3087,6 +3087,12 @@
         <property name="allowDownloadAttachment">
             <java.lang.Boolean value="false"/>
         </property>
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>
         </property>
@@ -3412,6 +3418,12 @@
         <property name="allowDownloadAttachment">
             <java.lang.Boolean value="false"/>
         </property>
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>
         </property>
@@ -3591,6 +3603,12 @@
         <property name="allowDownloadAttachment">
             <java.lang.Boolean value="false"/>
         </property>
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>
         </property>
@@ -3691,6 +3709,12 @@
         </property>
         <property name="allowDownloadAttachment">
             <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
         </property>
         <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>
@@ -5349,6 +5373,12 @@
         <property name="allowDownloadAttachment">
             <java.lang.Boolean value="false"/>
         </property>
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>
         </property>
@@ -5457,6 +5487,12 @@
         <property name="allowDownloadAttachment">
             <java.lang.Boolean value="false"/>
         </property>
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>
         </property>
@@ -5556,6 +5592,12 @@
         </property>
         <property name="allowDownloadAttachment">
             <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
         </property>
         <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>
@@ -9716,6 +9758,12 @@
         <property name="allowDownloadAttachment">
             <java.lang.Boolean value="false"/>
         </property>
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>
         </property>
@@ -10041,6 +10089,12 @@
         <property name="allowDownloadAttachment">
             <java.lang.Boolean value="false"/>
         </property>
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
+        </property>
         <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>
         </property>
@@ -10219,6 +10273,12 @@
         </property>
         <property name="allowDownloadAttachment">
             <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowUndeclaredHeaderOverride">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowedUriOverride">
+            <java.lang.String value="deny"/>
         </property>
         <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>

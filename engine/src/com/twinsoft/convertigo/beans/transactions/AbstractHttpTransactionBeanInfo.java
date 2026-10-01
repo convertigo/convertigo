@@ -26,6 +26,7 @@ import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.enums.HttpUriOverridePolicy;
 
 public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
     
@@ -36,7 +37,7 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/AbstractHttpTransaction");
 
-			properties = new PropertyDescriptor[12];
+			properties = new PropertyDescriptor[14];
 			
 			properties[0] = new PropertyDescriptor("subDir", AbstractHttpTransaction.class, "getSubDir", "setSubDir");
 			properties[0].setDisplayName(getExternalizedString("property.subDir.display_name"));
@@ -99,6 +100,17 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[11].setDisplayName(getExternalizedString("property.followRedirect.display_name"));
 			properties[11].setShortDescription(getExternalizedString("property.followRedirect.short_description"));
 			properties[11].setExpert(true);
+
+			properties[12] = new PropertyDescriptor("allowedUriOverride", beanClass, "getAllowedUriOverride", "setAllowedUriOverride");
+			properties[12].setDisplayName(getExternalizedString("property.allowedUriOverride.display_name"));
+			properties[12].setShortDescription(getExternalizedString("property.allowedUriOverride.short_description"));
+			properties[12].setExpert(true);
+			properties[12].setPropertyEditorClass(HttpUriOverridePolicy.class);
+
+			properties[13] = new PropertyDescriptor("allowUndeclaredHeaderOverride", beanClass, "isAllowUndeclaredHeaderOverride", "setAllowUndeclaredHeaderOverride");
+			properties[13].setDisplayName(getExternalizedString("property.allowUndeclaredHeaderOverride.display_name"));
+			properties[13].setShortDescription(getExternalizedString("property.allowUndeclaredHeaderOverride.short_description"));
+			properties[13].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
