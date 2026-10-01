@@ -254,7 +254,7 @@ public class NgxConverter {
 		// for useshared variable
 		if (isBeanOf(yaml_key, "ngx.components.UIControlVariable")) {
 			Element parentEl = (Element) beanEl.getParentNode();
-			if (parentEl.getAttribute("yaml_key").endsWith("ngx.components.UIUseShared")) {
+			if (isBeanOf(parentEl.getAttribute("yaml_key"), "ngx.components.UIUseShared")) {
 				beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UIControlVariable", "UIUseVariable"));
 			}
 		}
@@ -1686,7 +1686,7 @@ public class NgxConverter {
 				// for useshared variable
 				if (isBeanOf(yaml_key, "ngx.components.UIControlVariable")) {
 					Element parentEl = (Element) beanEl.getParentNode();
-					if (parentEl.getAttribute("yaml_key").endsWith("ngx.components.UIUseShared")) {
+					if (isBeanOf(parentEl.getAttribute("yaml_key"), "ngx.components.UIUseShared")) {
 						beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UIControlVariable", "UIUseVariable"));
 					}
 				}

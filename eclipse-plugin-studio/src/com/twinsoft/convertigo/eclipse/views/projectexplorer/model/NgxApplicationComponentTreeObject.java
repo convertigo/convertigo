@@ -272,16 +272,20 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 				}
 				
 				if (dbo.bNew && (doto.isChildOf(this) || doUpdate)) {
-					if (!done.add(getObject())) {
-						return;
+					if (done.add(getObject())) {
+						if (reset.add(getObject())) {
+							getObject().reset();
+							Engine.logEngine.trace("App "+ getObject().getQName() + " has been reset");
+						}
+						resetMainScriptComponents(dbo, reset);
+						getObject().updateSourceFiles();
+					} else if (dbo instanceof UIComponent uic && uic.getMainScriptComponent() != null && !reset.contains(uic.getMainScriptComponent())) {
+						// an object added with others in another page, as the use of a shared component created
+						// from objects of a page, added after that component: its page is reset and written too
+						resetMainScriptComponents(dbo, reset);
+						getObject().updateSourceFiles();
 					}
-					if (reset.add(getObject())) {
-						getObject().reset();
-						Engine.logEngine.trace("App "+ getObject().getQName() + " has been reset");
-					}
-					resetMainScriptComponents(dbo, reset);
-					getObject().updateSourceFiles();
-				}				
+				}
 			} catch (Exception e) {}
 		}
 	}
