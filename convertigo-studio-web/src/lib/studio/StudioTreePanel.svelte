@@ -687,7 +687,7 @@
 	}
 
 	$effect(() => {
-		// an undo or a redo replaced the objects of a project
+		// Reload, undo or redo replaced the objects of a project.
 		const projectName = reloadProject?.projectName;
 		if (reloadProject?.serial && projectName) {
 			untrack(() => void reloadProjectBranches(projectName));
@@ -695,15 +695,14 @@
 	});
 
 	/**
-	 * Reads again the open branches of a project, whose objects an undo or a redo replaced: a branch
-	 * emptied by the change undone has its children again.
+	 * Reads the open branches of a restored project again, including its selection.
 	 * @param {string} projectName
 	 */
 	async function reloadProjectBranches(projectName) {
 		const ids = [...expandedNodeIds].filter((id) => String(id).split(/[.:/]/)[0] === projectName);
 		await refreshAffectedParents([projectName, ...ids]);
 		dataSerial += 1;
-		// an object the change undone had created is gone: its nearest parent is selected
+		// A removed working-copy object is gone: select its nearest surviving parent.
 		let id = String(selectedId ?? '');
 		if (id.split(/[.:/]/)[0] === projectName && !findNodeById(id)) {
 			while (id.includes('.') || id.includes(':') || id.includes('/')) {

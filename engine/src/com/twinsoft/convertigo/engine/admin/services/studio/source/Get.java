@@ -99,11 +99,11 @@ public class Get extends JSonService {
 		var file = new File(sourcePath).getCanonicalFile();
 		// A writable source is read through its FlowEngine: an unsaved working copy wins.
 		var flowEngine = flowObject.isWritableSourceObject() ? owningFlowEngine(flowObject) : null;
-		var drafted = flowEngine != null && flowEngine.hasSource(file.getPath());
-		if ((!file.isFile() && !drafted) || !isSupportedSource(file)) {
+		var available = flowEngine == null ? file.isFile() : flowEngine.hasSource(file.getPath());
+		if (!available || !isSupportedSource(file)) {
 			throw new ServiceException("The selected Flow source is not an editable code document.");
 		}
-		var content = drafted ? flowEngine.getSource(file.getPath()) : Files.readString(file.toPath(), StandardCharsets.UTF_8);
+		var content = flowEngine != null ? flowEngine.getSource(file.getPath()) : Files.readString(file.toPath(), StandardCharsets.UTF_8);
 		var info = flowObject.getVirtualInfoObject();
 		var relativePath = info == null ? "" : info.optString("sourceRelativePath", "");
 		if (relativePath.isBlank()) {

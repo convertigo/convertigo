@@ -486,6 +486,14 @@ function objectNameFromId(id) {
 	return separatorIndex >= 0 ? id.slice(separatorIndex + 1) : id;
 }
 
+/** Native objects keep their existing behavior when the service omits the capability.
+ * @param {{canRename?: unknown} | undefined} node
+ * @returns {boolean}
+ */
+function objectCanRename(node) {
+	return node?.canRename !== false;
+}
+
 /** The editable name is distinct from both the label and the technical tree id.
  * @param {{id?: string, renameValue?: unknown} | undefined} node
  * @returns {string}
@@ -1105,6 +1113,7 @@ export {
 	isNoopSiblingMove,
 	mutationDboContextIds,
 	mutationDboRefreshIds,
+	objectCanRename,
 	objectNameFromId,
 	objectRenameValue,
 	parentObjectId,

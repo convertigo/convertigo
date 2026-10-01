@@ -87,6 +87,54 @@ public class FlowAuthoringDraftTest {
 	}
 
 	@Test
+	public void providerMovePlanIsDraftOnlyAndItsWholeStateReturnsToTheProvider() throws Exception {
+		var directory = folder.newFolder();
+		var current = model(directory);
+		var before = directory.toPath().resolve("old.json");
+		var after = directory.toPath().resolve("new.json");
+		Files.writeString(before, "saved");
+		var provider = new Provider();
+		provider.response = new JSONObject().put("ok", true).put("target", "sources")
+				.put("sourceChanges", new JSONObject().put(after.toString(), "draft"))
+				.put("sourceRemovals", new org.codehaus.jettison.json.JSONArray().put(before.toString()));
+		provider.authoringMutate(current, new JSONObject().put("dryRun", true));
+		assertTrue(current.getSourceChanges().writes().isEmpty());
+		assertTrue(current.getSourceChanges().removals().isEmpty());
+		provider.authoringMutate(current, new JSONObject());
+		assertFalse(current.hasSource(before.toString()));
+		assertEquals("draft", current.getSource(after.toString()));
+		assertEquals("saved", Files.readString(before));
+		assertFalse(Files.exists(after));
+		provider.method = "authoringTree";
+		provider.authoringTree(current, new JSONObject());
+		assertEquals("draft", provider.request.getJSONObject("frontendSourceDrafts").getString(after.toFile().getCanonicalPath()));
+		assertEquals(before.toFile().getCanonicalPath(), provider.request.getJSONArray("sourceRemovals").getString(0));
+		Flow.projectUnloaded(current.getProject());
+	}
+
+	@Test
+	public void malformedRemovalOrConflictingPlanCannotPartiallyAdvanceOwnerSources() throws Exception {
+		var directory = folder.newFolder();
+		var current = model(directory);
+		current.setEngineSource("engine draft");
+		var file = directory.toPath().resolve("saved.json");
+		Files.writeString(file, "saved");
+		current.setSource(file.toString(), "file draft");
+		var provider = new Provider();
+		provider.response = new JSONObject().put("ok", true).put("target", "engine").put("source", "must not apply")
+				.put("sourceChanges", new JSONObject().put(file.toString(), "must not apply"))
+				.put("sourceRemovals", new org.codehaus.jettison.json.JSONArray().put(JSONObject.NULL));
+		assertThrows(EngineException.class, () -> provider.authoringMutate(current, new JSONObject()));
+		provider.response.put("sourceRemovals", new org.codehaus.jettison.json.JSONArray().put(file.toString()));
+		assertThrows(EngineException.class, () -> provider.authoringMutate(current, new JSONObject()));
+		assertEquals("engine draft", current.getEngineSource());
+		assertEquals("file draft", current.getSource(file.toString()));
+		assertTrue(current.getSourceRemovals().isEmpty());
+		assertEquals("saved", Files.readString(file));
+		Flow.projectUnloaded(current.getProject());
+	}
+
+	@Test
 	public void newSourcesIncludingEmptyFilesExistOnlyInTheWorkingCopyUntilSave() throws Exception {
 		var directory = folder.newFolder();
 		var current = model(directory);

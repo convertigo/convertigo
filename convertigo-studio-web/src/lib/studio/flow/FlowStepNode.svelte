@@ -1,6 +1,6 @@
 <script>
 	import { Handle, Position } from '@xyflow/svelte';
-	import { objectRenameValue } from '$lib/studio/dnd';
+	import { objectCanRename, objectRenameValue } from '$lib/studio/dnd';
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import { draggedData } from '$lib/utils/dndStore';
 	import Ico from '$lib/utils/Ico.svelte';
@@ -22,6 +22,7 @@
 	let sideInputCount = $derived(Math.max(0, data.inputs - data.bottomInputs));
 	let sideOutputCount = $derived(Math.max(0, data.outputs - data.bottomOutputs));
 	let draggableObjectId = $derived(data.originalId ?? '');
+	let canRename = $derived(Boolean(draggableObjectId) && objectCanRename(data));
 	let editableName = $derived(
 		objectRenameValue({ id: draggableObjectId, renameValue: data.renameValue })
 	);
@@ -267,7 +268,7 @@
 	function requestRename(event) {
 		event.preventDefault();
 		event.stopPropagation();
-		if (draggableObjectId) {
+		if (canRename) {
 			data.onRequestRename?.(draggableObjectId);
 		}
 	}
@@ -289,7 +290,7 @@
 	function commitRename(event) {
 		event.preventDefault();
 		event.stopPropagation();
-		if (!data.isRenaming || !draggableObjectId) {
+		if (!canRename || !data.isRenaming) {
 			return;
 		}
 		const nextName = renameValue.trim();
@@ -348,17 +349,19 @@
 				<span aria-hidden="true"></span>
 				<span aria-hidden="true"></span>
 			</button>
-			<button
-				type="button"
-				class="flow-step-node__action nopan nowheel"
-				title="Rename step"
-				aria-label="Rename step"
-				onpointerdown={(event) => event.stopPropagation()}
-				onmousedown={(event) => event.stopPropagation()}
-				onclick={requestRename}
-			>
-				<Ico icon="mdi:pencil-outline" size={3.2} />
-			</button>
+			{#if canRename}
+				<button
+					type="button"
+					class="flow-step-node__action nopan nowheel"
+					title="Rename step"
+					aria-label="Rename step"
+					onpointerdown={(event) => event.stopPropagation()}
+					onmousedown={(event) => event.stopPropagation()}
+					onclick={requestRename}
+				>
+					<Ico icon="mdi:pencil-outline" size={3.2} />
+				</button>
+			{/if}
 			<button
 				type="button"
 				class="flow-step-node__action flow-step-node__action--danger nopan nowheel"
@@ -509,7 +512,7 @@
 		{/if}
 	</div>
 	<div class="flow-step-node__body">
-		{#if data.isRenaming}
+		{#if canRename && data.isRenaming}
 			<form class="flow-step-node__rename-form" onsubmit={commitRename}>
 				<input
 					{@attach focusRenameInput}

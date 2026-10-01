@@ -207,7 +207,17 @@ function sourceBindingPreview(binding) {
 	const name = String(
 		source.name ?? source.value ?? source.actionId ?? source.scopeId ?? source.operation ?? ''
 	).trim();
-	const origin = source.label ? String(source.label) : [category, name].filter(Boolean).join('.');
+	// A root selector repeats its category in value; a named producer does not.
+	const rootSelector =
+		source.name == null &&
+		source.actionId == null &&
+		source.scopeId == null &&
+		source.operation == null &&
+		source.value != null &&
+		name === category;
+	const origin = source.label
+		? String(source.label)
+		: [category, rootSelector ? '' : name].filter(Boolean).join('.');
 	const path = Array.isArray(binding?.path)
 		? binding.path
 				.map((part) =>

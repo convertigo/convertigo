@@ -44,7 +44,7 @@
 	import StudioAddFileDialog from '$lib/studio/StudioAddFileDialog.svelte';
 	import StudioArchiveDialog from '$lib/studio/StudioArchiveDialog.svelte';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
-	import StudioBuilderPanel from '$lib/studio/StudioBuilderPanel.svelte';
+	import StudioProjectBuilderPanel from '$lib/studio/StudioProjectBuilderPanel.svelte';
 	import {
 		canReadSystemClipboard,
 		hasStudioClipboard,
@@ -2119,6 +2119,19 @@
 	}
 
 	/**
+	 * A restored project has new objects; the tree reconciles its selection with
+	 * the surviving ancestors instead of keeping a QName that no longer exists.
+	 * @param {string} projectName
+	 */
+	async function refreshRestoredProject(projectName) {
+		await refreshStudioProject(projectName);
+		propertiesRefreshSerial += 1;
+		refreshFrontendAuthoringReference();
+		historyReload = { projectName, serial: (historyReload?.serial ?? 0) + 1 };
+		refreshStudioViews({ tree: false, flow: true });
+	}
+
+	/**
 	 * @param {string} id
 	 */
 	async function refreshAfterPropertySave(id, /** @type {any} */ result = null) {
@@ -2349,18 +2362,18 @@
 	}
 
 	async function reloadSelectedProject() {
-		if (!selectedProjectName || projectActionBusy) {
+		const projectName = selectedProjectName;
+		if (!projectName || projectActionBusy) {
 			return;
 		}
 		projectActionBusy = 'reload';
 		try {
-			await call('projects.Reload', { projectName: selectedProjectName });
+			await call('projects.Reload', { projectName });
 			await Projects.refresh();
-			await refreshStudioProject(selectedProjectName);
-			clearProjectDirty(selectedProjectName);
-			// The selected QName can survive Reload while its model has been replaced.
-			propertiesRefreshSerial += 1;
-			refreshStudioViews();
+			// History follows the new project instance, so refresh its toolbar state.
+			await callProjectHistory(projectName, 'state');
+			clearProjectDirty(projectName);
+			await refreshRestoredProject(projectName);
 		} finally {
 			projectActionBusy = '';
 		}
@@ -2496,14 +2509,8 @@
 			if (!result?.done) {
 				return;
 			}
-			await refreshStudioProject(projectName);
 			markProjectDirty(projectName, { snapshot: false });
-			// the objects of the project are new ones, the selected object may no longer exist
-			propertiesRefreshSerial += 1;
-			refreshFrontendAuthoringReference();
-			historyReload = { projectName, serial: (historyReload?.serial ?? 0) + 1 };
-			// the tree reads its open branches of the project again, from historyReload
-			refreshStudioViews({ tree: false, flow: true });
+			await refreshRestoredProject(projectName);
 		} finally {
 			projectHistoryBusy = false;
 		}
@@ -3698,7 +3705,7 @@
 {/snippet}
 
 {#snippet buildPane()}
-	<StudioBuilderPanel
+	<StudioProjectBuilderPanel
 		projectName={applicationProjectName}
 		active={Boolean(dockVisible.build)}
 		onLoad={showDevelopmentBuild}

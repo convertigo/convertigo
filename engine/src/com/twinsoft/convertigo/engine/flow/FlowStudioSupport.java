@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.flow;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -128,10 +129,16 @@ public class FlowStudioSupport {
 			throw new EngineException("This projected object does not support renaming.");
 		}
 		var info = object.getVirtualInfoObject();
+		var previousId = object.getFullQName();
+		if (name.equals(virtualRenameValue(object))) {
+			var unchanged = new JSONObject().put("ok", true).put("done", true).put("changed", false)
+					.put("id", previousId).put("previousId", previousId);
+			if (object.getParent() != null) unchanged.put("parentId", object.getParent().getFullQName());
+			return unchanged;
+		}
 		// The provider owns both the identity and its mutation. The host only supplies
 		// the user's value, irrespective of the projected kind or source dialect.
 		var mutation = new JSONObject(info.getJSONObject("renameMutation").toString()).put("value", name);
-		var previousId = object.getFullQName();
 		var response = applyProjectedMutation(flowAuthoringRoot(object), object, mutation, bridge);
 		if (!isSuccessResponse(response)) {
 			throw new EngineException("Unable to rename projected object: " + response.opt("error"));
@@ -3306,6 +3313,29 @@ public class FlowStudioSupport {
 			projection = parent;
 		}
 		if (root instanceof FlowEngine flowEngine) {
+			// A provider may rename a resource (several files), rather than an AST
+			// field in one text source. Java only routes the declared source target.
+			if (mutation != null && "sources".equals(mutation.optString("target"))) {
+				var response = bridge.authoringMutate(flowEngine, new JSONObject()
+						.put("mutation", cleanFrontendMutation(mutation)).put("includeTree", false));
+				if (isSuccessResponse(response) && sourceMutationChanged(response)) {
+					response = refreshEngineProjection(flowEngine, projection, response,
+							projection == null ? "" : projection.getVirtualPath(), "", bridge);
+					// A source plan can change several documents. One sync with the
+					// owner's complete working copy is sufficient, independent of kind.
+					var changes = response.optJSONObject("sourceChanges");
+					if (changes != null) {
+						for (var keys = changes.keys(); keys.hasNext();) {
+							var path = keys.next().toString();
+							if (isFrontendSourcePath(path)) {
+								afterSourceMutation(flowEngine, path, response.optBoolean("projected"));
+								break;
+							}
+						}
+					}
+				}
+				return completeProjectedMutation(root, targetDbo, projection, mutation, response);
+			}
 			var overrideSourcePath = mutation == null ? "" : mutation.optString("__sourcePath", "");
 			if (!overrideSourcePath.isBlank()) {
 				return completeProjectedMutation(root, targetDbo, projection, mutation,
@@ -3357,6 +3387,7 @@ public class FlowStudioSupport {
 			response.put("selectionMutationPath", mutation.optString("selectionMutationPath", ""));
 		}
 		if (response.optString("selectionVirtualPath").isBlank()
+				&& response.optString("selectionSourcePath").isBlank()
 				&& response.optString("selectionMutationPath").isBlank()
 				&& response.optString("selectionId").isBlank() && target instanceof FlowVirtualObject virtual) {
 			response.put("selectionVirtualPath", virtual.getVirtualPath());
@@ -3616,6 +3647,7 @@ public class FlowStudioSupport {
 		result
 				.put("projected", true)
 				.put("projectedRootPath", virtualPath)
+				.put("projectedTree", projected)
 				.put("projectedSourcePath", "");
 		var selection = findTreeNodeByType(projected, selectionType);
 		if (selection != null) {
@@ -3679,18 +3711,29 @@ public class FlowStudioSupport {
 	}
 
 	private static void afterSourceMutation(FlowEngine flowEngine, String sourcePath, boolean projectionApplied) {
+		afterSourceMutations(flowEngine, java.util.Collections.singletonList(sourcePath), projectionApplied);
+	}
+
+	/** A source-state replacement is one notification, even when a move changed many files. */
+	public static void afterSourceMutations(FlowEngine flowEngine, Collection<String> sourcePaths) {
+		afterSourceMutations(flowEngine, sourcePaths, false);
+	}
+
+	private static void afterSourceMutations(FlowEngine flowEngine, Collection<String> sourcePaths, boolean projectionApplied) {
+		if (sourcePaths == null || sourcePaths.isEmpty()) return;
 		clearCatalogCache(flowEngine, !projectionApplied);
 		performanceProfileMark("sourceMutation.clearCatalog");
-		if (flowEngine == null || !isFrontendSourcePath(sourcePath)) {
+		if (flowEngine == null || sourcePaths.stream().noneMatch(FlowStudioSupport::isFrontendSourcePath)) {
 			return;
 		}
+		var sourcePath = sourcePaths.iterator().next();
 		for (var target : frontendDevSyncTargets(flowEngine)) {
 			clearCatalogCache(target, !projectionApplied);
 			performanceProfileMark("sourceMutation.resolveDevTarget");
 			try {
-				var response = new FlowEngineBridge().contextAction(target, new JSONObject()
-						.put("frontendSourceDrafts", FlowEngineBridge.frontendSourceDrafts(target, flowEngine))
+				var response = new FlowEngineBridge().contextAction(target, FlowEngineBridge.sourceWorkingCopies(target, flowEngine)
 						.put("sourcePath", sourcePath)
+						.put("sourcePaths", new JSONArray(sourcePaths))
 						.put("action", new JSONObject()
 								.put("id", "frontbuilder.svelte.dev.sync")
 								.put("payload", new JSONObject()

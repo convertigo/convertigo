@@ -466,6 +466,59 @@ public class FlowStudioSupportSelectionTest {
 	}
 
 	@Test
+	public void resourceRenameUsesGenericSourcePlanAndSelectsTheNewSourcePath() throws Exception {
+		var owner = new FlowEngine();
+		var root = new FlowVirtualObject();
+		root.setParent(owner);
+		root.setVirtualPath("projection");
+		var object = new FlowVirtualObject() {
+			@Override public boolean isDefinitionWritable() { return true; }
+		};
+		object.setParent(root);
+		object.setVirtualKind("provider.arbitrary-resource");
+		object.setVirtualPath("projection.before");
+		object.setVirtualInfo(new JSONObject().put("sourcePath", "/fixture/before")
+				.put("sourceWritable", true).put("renameValue", "before")
+				.put("renameMutation", new JSONObject().put("target", "sources")
+						.put("op", "provider.resource.rename").put("sourcePath", "/fixture/before")).toString());
+		var unchanged = FlowStudioSupport.renameVirtualObject(object, "before", new FlowEngineBridge());
+		assertFalse(unchanged.getBoolean("changed"));
+		assertEquals(object.getFullQName(), unchanged.getString("id"));
+		var tree = new JSONObject().put("path", "projection").put("name", "Projection")
+				.put("children", new org.codehaus.jettison.json.JSONArray().put(new JSONObject()
+						.put("path", "projection.after").put("name", "after")
+						.put("info", "{\"sourcePath\":\"/fixture/after\"}")));
+		var calls = new int[2];
+		var bridge = new FlowEngineBridge() {
+			@Override public JSONObject authoringMutate(FlowEngine target, JSONObject request) {
+				assertSame(owner, target);
+				var mutation = request.optJSONObject("mutation");
+				assertEquals("sources", mutation.optString("target"));
+				assertEquals("provider.resource.rename", mutation.optString("op"));
+				assertEquals("after", mutation.optString("value"));
+				assertFalse(request.optBoolean("includeTree", true));
+				calls[0]++;
+				try { return new JSONObject().put("ok", true).put("changed", true)
+						.put("selectionSourcePath", "/fixture/after"); }
+				catch (Exception e) { throw new AssertionError(e); }
+			}
+			@Override public JSONObject describeTree(FlowEngine target) {
+				calls[1]++;
+				try { return new JSONObject().put("children", new org.codehaus.jettison.json.JSONArray().put(tree)); }
+				catch (Exception e) { throw new AssertionError(e); }
+			}
+		};
+		var result = FlowStudioSupport.renameVirtualObject(object, "after", bridge);
+		assertTrue(result.getBoolean("done"));
+		assertEquals("projection.after", result.getString("selectionVirtualPath"));
+		assertTrue(result.getString("id").endsWith(".Projection.after"));
+		assertSame(tree, result.getJSONObject("projectedTree"));
+		assertEquals(1, calls[0]);
+		assertEquals(1, calls[1]);
+		assertFalse(object.getVirtualInfoObject().getJSONObject("renameMutation").has("value"));
+	}
+
+	@Test
 	public void ordinaryProjectedMutationKeepsSelectionAndProjectionForContextMenus() throws Exception {
 		var owner = new Flow();
 		var root = new FlowVirtualObject();

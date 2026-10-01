@@ -10,6 +10,7 @@
 		isDescendantObjectId,
 		isNoopSiblingMove,
 		mutationDboContextIds,
+		objectCanRename,
 		objectNameFromId,
 		objectRenameValue,
 		parentObjectId,
@@ -1128,6 +1129,11 @@
 			return;
 		}
 		const currentNode = findFlowNodeByObjectId(objectId);
+		if (!objectCanRename(currentNode?.data)) {
+			flowRenameObjectId = '';
+			syncXyFlow();
+			return;
+		}
 		if (
 			nextName === objectRenameValue({ id: objectId, renameValue: currentNode?.data?.renameValue })
 		) {
@@ -1163,7 +1169,7 @@
 	 * @param {string} objectId
 	 */
 	function requestFlowRename(objectId) {
-		if (!objectId) {
+		if (!objectId || !objectCanRename(findFlowNodeByObjectId(objectId)?.data)) {
 			return;
 		}
 		flowRenameObjectId = objectId;

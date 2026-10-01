@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
  */
 public final class FlowWorkingCopies {
 	private static final String FILE = "file:";
+	private static final String REMOVED_FILE = "removed-file:";
 	private static final String ENGINE = "engine";
 	private static final String FLOW = "flow:";
 
@@ -54,8 +55,12 @@ public final class FlowWorkingCopies {
 		var flowEngine = project.getFlowEngine();
 		if (flowEngine != null) {
 			var root = rootPath(project);
-			for (var entry : flowEngine.getSourceDrafts().entrySet()) {
+			var changes = flowEngine.getSourceChanges();
+			for (var entry : changes.writes().entrySet()) {
 				copies.put(FILE + entry.getKey().substring(root.length() + 1), entry.getValue());
+			}
+			for (var path : changes.removals()) {
+				copies.put(REMOVED_FILE + path.substring(root.length() + 1), "");
 			}
 			if (flowEngine.isEngineSourceDirty()) {
 				copies.put(ENGINE, flowEngine.getEngineSource());
@@ -78,10 +83,13 @@ public final class FlowWorkingCopies {
 			throws EngineException {
 		var flowEngine = project.getFlowEngine();
 		var files = new LinkedHashMap<String, String>();
+		var removals = new TreeSet<String>();
 		for (var entry : copies.entrySet()) {
 			var key = entry.getKey();
 			if (key.startsWith(FILE)) {
 				files.put(file(project, key).getPath(), entry.getValue());
+			} else if (key.startsWith(REMOVED_FILE)) {
+				removals.add(file(project, key).getPath());
 			} else if (key.equals(ENGINE) && flowEngine != null) {
 				// the saved source is read first: a copy equal to it is not a change
 				flowEngine.getEngineSource();
@@ -98,24 +106,31 @@ public final class FlowWorkingCopies {
 		if (flowEngine == null) {
 			return;
 		}
-		if (!files.isEmpty()) {
-			flowEngine.setSources(files);
+		if (!files.isEmpty() || !removals.isEmpty()) {
+			flowEngine.applySourceChanges(files, removals);
 		}
-		var changed = new TreeSet<String>();
+		var changed = new TreeSet<>(FlowEngine.takeDiscardedSourcePaths(project));
 		for (var map : List.of(copies, previous)) {
 			for (var key : map.keySet()) {
-				if (key.startsWith(FILE) && !Objects.equals(copies.get(key), previous.get(key))) {
-					changed.add(key);
+				if ((key.startsWith(FILE) || key.startsWith(REMOVED_FILE))
+						&& !Objects.equals(copies.get(key), previous.get(key))) {
+					changed.add(file(project, key).getPath());
 				}
 			}
 		}
-		for (var key : changed) {
-			FlowStudioSupport.afterSourceMutation(flowEngine, file(project, key).getPath());
+		FlowStudioSupport.afterSourceMutations(flowEngine, changed);
+	}
+
+	/** Called only after a saved project has finished loading, not before history restores its sources. */
+	public static void projectLoaded(Project project) {
+		var paths = FlowEngine.takeDiscardedSourcePaths(project);
+		if (!paths.isEmpty()) {
+			FlowStudioSupport.afterSourceMutations(project.getFlowEngine(), paths);
 		}
 	}
 
 	private static File file(Project project, String key) {
-		return new File(project.getDirFile(), key.substring(FILE.length()));
+		return new File(project.getDirFile(), key.substring(key.startsWith(REMOVED_FILE) ? REMOVED_FILE.length() : FILE.length()));
 	}
 
 	private static String rootPath(Project project) {

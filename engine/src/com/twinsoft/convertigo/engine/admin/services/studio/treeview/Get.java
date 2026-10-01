@@ -193,9 +193,7 @@ public class Get extends JSonService {
 		}
 		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + iconPath(dbo));
 		obj.put("id", qname);
-		if (dbo instanceof FlowVirtualObject virtual && FlowStudioSupport.canRenameVirtualObject(virtual)) {
-			obj.put("renameValue", FlowStudioSupport.virtualRenameValue(virtual));
-		}
+		putRenameCapability(dbo, obj);
 		var enabled = enabledState(dbo);
 		if (enabled != null) {
 			obj.put("enabled", enabled);
@@ -395,6 +393,7 @@ public class Get extends JSonService {
 		obj.put("icon", FLOW_VIRTUAL_ICON);
 		obj.put("id", projectName + "." + flowEngineName + "." + path);
 		obj.put("classname", FlowVirtualObject.class.getSimpleName());
+		obj.put("canRename", false);
 		obj.put("isLoop", false);
 		obj.put("isXml", false);
 		obj.put("isSourceContainer", false);
@@ -438,6 +437,7 @@ public class Get extends JSonService {
 		obj.put("icon", FLOW_VIRTUAL_ICON);
 		obj.put("id", flowQName + ".flow");
 		obj.put("classname", FlowVirtualObject.class.getSimpleName());
+		obj.put("canRename", false);
 		obj.put("isLoop", false);
 		obj.put("isXml", false);
 		obj.put("isSourceContainer", false);
@@ -457,6 +457,16 @@ public class Get extends JSonService {
 		obj.put("isSourceContainer", false);
 		obj.put("children", true);
 		return obj;
+	}
+
+	static void putRenameCapability(DatabaseObject dbo, JSONObject node) throws Exception {
+		if (dbo instanceof FlowVirtualObject virtual) {
+			var canRename = FlowStudioSupport.canRenameVirtualObject(virtual);
+			node.put("canRename", canRename);
+			if (canRename) {
+				node.put("renameValue", FlowStudioSupport.virtualRenameValue(virtual));
+			}
+		}
 	}
 
 	static Object lazyChildrenState(DatabaseObject dbo, boolean flow) throws Exception {

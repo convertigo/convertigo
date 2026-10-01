@@ -21,6 +21,8 @@ import org.junit.rules.TemporaryFolder;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
+import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 
 public class GetTest {
@@ -56,5 +58,26 @@ public class GetTest {
 		object.setVirtualInfo(new JSONObject().put("sourcePath", text.toString()).toString());
 
 		assertThrows(ServiceException.class, () -> Get.sourceDocument(object));
+	}
+
+	@Test
+	public void removedWritableSourceDoesNotFallBackToItsSavedContents() throws Exception {
+		var directory = temporaryFolder.getRoot();
+		var source = directory.toPath().resolve("source.block.js");
+		Files.writeString(source, "saved source");
+		var holder = new FlowEngine[1];
+		var project = new Project() {
+			@Override public java.io.File getDirFile() { return directory; }
+			@Override public FlowEngine getFlowEngine() { return holder[0]; }
+		};
+		var owner = new FlowEngine() { @Override public Project getProject() { return project; } };
+		holder[0] = owner;
+		var object = new FlowVirtualObject() { @Override public Project getProject() { return project; } };
+		object.setVirtualInfo(new JSONObject().put("sourcePath", source.toString()).put("sourceWritable", true).toString());
+		assertEquals("saved source", Get.sourceDocument(object).content());
+		owner.applySourceChanges(java.util.Map.of(), java.util.List.of(source.toString()));
+		assertThrows(ServiceException.class, () -> Get.sourceDocument(object));
+		assertEquals("saved source", Files.readString(source));
+		Flow.projectUnloaded(project);
 	}
 }

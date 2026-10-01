@@ -13,6 +13,7 @@
 		getDboDropAction,
 		isNoopSiblingMove,
 		mutationDboContextIds,
+		objectCanRename,
 		objectNameFromId,
 		objectRenameValue,
 		parentObjectId,
@@ -240,8 +241,11 @@
 	/** the indent guide of the children, under the chevron of their parent */
 	let childrenGuideLeft = $derived(`${depth * 0.62 + 0.14 + 0.36}rem`);
 	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
+	let canRename = $derived(draggableNode && objectCanRename(node));
 	let folderNode = $derived(isFolderNode(node?.id ?? ''));
-	let renaming = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, renameTargetId)));
+	let renaming = $derived(
+		canRename && Boolean(node?.id && isEquivalentNodeId(node.id, renameTargetId))
+	);
 	let hasActions = $derived(
 		Boolean(
 			draggableNode ||
@@ -573,7 +577,7 @@
 	}
 
 	function requestRename() {
-		if (!node?.id) {
+		if (!canRename || !node?.id) {
 			return;
 		}
 		selectedId = node.id;
@@ -1479,7 +1483,7 @@
 					<StudioTreeActionMenu
 						nodeId={node.id}
 						{label}
-						canRename={draggableNode}
+						{canRename}
 						canDelete={draggableNode}
 						canCopy={Boolean(onTreeAction && draggableNode)}
 						canPaste={Boolean(onTreeAction && !closedProject && canPasteInto?.(node.id))}

@@ -2235,6 +2235,7 @@ function toStepNodeData(node, options, outputVisualOrder) {
 		onToggleSubsteps: substepDescendantCount ? options.onToggleSubsteps : void 0,
 		originalId: typeof data.originalId === 'string' ? data.originalId : void 0,
 		renameValue: typeof data.renameValue === 'string' ? data.renameValue : void 0,
+		canRename: typeof data.canRename === 'boolean' ? data.canRename : void 0,
 		isSelected: isSelectedFlowNode(node, options.selectedObjectId),
 		isDropTarget: Boolean(options.dropTargetNodeId && node.id === options.dropTargetNodeId),
 		isDropDenied: Boolean(

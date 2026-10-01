@@ -609,9 +609,8 @@ public class FlowEngineBridge {
 	public JSONObject propertyEditor(FlowEngine flowEngine) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
-			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
-					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
+			var request = sourceRequest(baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
 			return invoke(engineQName, "propertyEditor", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build FlowEngine property editor request.", e);
@@ -712,11 +711,10 @@ public class FlowEngineBridge {
 	public JSONObject contextMenu(FlowEngine flowEngine, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
-			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+			var request = sourceRequest(baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
 					.put("target", "engine")
 					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
-					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
 			merge(request, options);
 			return invoke(engineQName, "contextMenu", request, null, null, null);
 		} catch (JSONException e) {
@@ -727,11 +725,10 @@ public class FlowEngineBridge {
 	public JSONObject contextAction(FlowEngine flowEngine, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
-			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+			var request = sourceRequest(baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
 					.put("target", "engine")
 					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
-					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
 			merge(request, options);
 			return invoke(engineQName, "contextAction", request, null, null, null);
 		} catch (JSONException e) {
@@ -742,11 +739,10 @@ public class FlowEngineBridge {
 	public JSONObject authoringPalette(FlowEngine flowEngine, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
-			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+			var request = sourceRequest(baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
 					.put("target", "engine")
 					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
-					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
 			merge(request, options);
 			return invoke(engineQName, "authoringPalette", request, null, null, null);
 		} catch (JSONException e) {
@@ -789,11 +785,10 @@ public class FlowEngineBridge {
 	public JSONObject authoringMutate(FlowEngine flowEngine, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
-			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+			var request = sourceRequest(baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
 					.put("target", "engine")
 					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
-					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
 			merge(request, options);
 			if (flowEngine != null) {
 				// A loaded model owns its draft. Only project Save may write the
@@ -806,9 +801,10 @@ public class FlowEngineBridge {
 				// Validate the complete batch before advancing the Engine source too.
 				var engineSourceUpdate = "engine".equals(response.optString("target")) && response.has("source")
 						? response.getString("source") : null;
+				var sources = new LinkedHashMap<String, String>();
+				var removals = new ArrayList<String>();
 				if (response.has("sourceChanges")) {
 					var changes = response.getJSONObject("sourceChanges");
-					var sources = new LinkedHashMap<String, String>();
 					for (var keys = changes.keys(); keys.hasNext();) {
 						var path = keys.next().toString();
 						if (!(changes.get(path) instanceof String source)) {
@@ -816,8 +812,15 @@ public class FlowEngineBridge {
 						}
 						sources.put(path, source);
 					}
-					flowEngine.setSources(sources);
 				}
+				if (response.has("sourceRemovals")) {
+					var paths = response.getJSONArray("sourceRemovals");
+					for (var index = 0; index < paths.length(); index++) {
+						if (!(paths.get(index) instanceof String path)) throw new EngineException("Flow source removal must contain a path.");
+						removals.add(path);
+					}
+				}
+				if (!sources.isEmpty() || !removals.isEmpty()) flowEngine.applySourceChanges(sources, removals);
 				if (engineSourceUpdate != null) {
 					flowEngine.setEngineSource(engineSourceUpdate);
 				}
@@ -831,11 +834,10 @@ public class FlowEngineBridge {
 	public JSONObject authoringTree(FlowEngine flowEngine, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
-			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
+			var request = sourceRequest(baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
 					.put("target", "engine")
 					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
-					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
+					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
 			merge(request, options);
 			return invoke(engineQName, "authoringTree", request, null, null, null);
 		} catch (JSONException e) {
@@ -865,7 +867,7 @@ public class FlowEngineBridge {
 	public JSONObject describeTree(FlowEngine flowEngine) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
-			var request = baseRequest(engineQName, "", flowEngine.getQName(), null)
+			var request = sourceRequest(baseRequest(engineQName, "", flowEngine.getQName(), null), flowEngine)
 					.put("target", "engine")
 					.put("engineSource", flowEngine.getEngineSource())
 					.put("projectDir", flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
@@ -873,8 +875,7 @@ public class FlowEngineBridge {
 					.put("flowCatalogOrigin", "project")
 					.put("includeCatalogLibraries", false)
 					.put("includeBindings", false)
-					.put("prewarmFrontendDocumentServer", Engine.isStudioMode())
-					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine));
+					.put("prewarmFrontendDocumentServer", Engine.isStudioMode());
 			return invoke(engineQName, "describeTree", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build FlowEngine tree request.", e);
@@ -982,13 +983,12 @@ public class FlowEngineBridge {
 			var source = flowEngine == null
 					? FileUtils.readFileToString(sourceFile, "UTF-8")
 					: flowEngine.getSource(sourceFile.getAbsolutePath());
-			var request = baseRequest(engineQName, source, flowEngine == null ? "" : flowEngine.getQName(), null)
+			var request = sourceRequest(baseRequest(engineQName, source, flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
 					.put("target", "flow")
 					.put("flowSource", source)
 					.put("sourceFile", sourceFile.getAbsolutePath())
 					.put("sourcePath", sourceFile.getAbsolutePath())
 					.put("projectDir", projectDir)
-					.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine))
 					.put("mutation", mutation == null ? new JSONObject() : mutation);
 			var response = invoke(engineQName, "applySourceMutation", request, null, null, null);
 			if (response.optBoolean("ok", false) && response.has("source")) {
@@ -1020,14 +1020,13 @@ public class FlowEngineBridge {
 				? FileUtils.readFileToString(sourceFile, "UTF-8")
 				: flowEngine.getFrontendSource(sourcePath);
 		FlowStudioSupport.performanceProfileMark("sourceMutation.readSource");
-		var request = baseRequest(engineQName, source, flowEngine == null ? "" : flowEngine.getQName(), null)
+		var request = sourceRequest(baseRequest(engineQName, source, flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
 				.put("target", "frontendSource")
 				.put("source", source)
 				.put("sourceFile", sourcePath)
 				.put("sourcePath", sourcePath)
 				.put("projectDir", projectDir)
 				.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
-				.put("frontendSourceDrafts", frontendSourceDrafts(flowEngine))
 				.put("mutation", mutation == null ? new JSONObject() : mutation);
 		if (authoringRootPath != null && !authoringRootPath.isBlank()) {
 			request.put("authoringRootPath", authoringRootPath);
@@ -1059,34 +1058,43 @@ public class FlowEngineBridge {
 		return response;
 	}
 
-	static JSONObject frontendSourceDrafts(FlowEngine... flowEngines) throws JSONException {
+	private static JSONObject sourceRequest(JSONObject request, FlowEngine... flowEngines) throws JSONException {
+		merge(request, sourceWorkingCopies(flowEngines));
+		return request;
+	}
+
+	/** A single provider request carries both text drafts and explicit absence. */
+	static JSONObject sourceWorkingCopies(FlowEngine... flowEngines) throws JSONException {
 		var drafts = new JSONObject();
+		var removals = new java.util.TreeSet<String>();
 		var visited = new HashSet<String>();
 		for (var flowEngine : flowEngines) {
 			if (flowEngine == null) {
 				continue;
 			}
-			appendFrontendSourceDrafts(drafts, flowEngine);
-			appendFrontendSourceDrafts(drafts, flowEngine.getProject(), visited);
+			appendSourceWorkingCopies(drafts, removals, flowEngine);
+			appendSourceWorkingCopies(drafts, removals, flowEngine.getProject(), visited);
 		}
-		return drafts;
+		return new JSONObject().put("frontendSourceDrafts", drafts).put("sourceRemovals", new JSONArray(removals));
 	}
 
-	private static void appendFrontendSourceDrafts(JSONObject drafts, FlowEngine flowEngine) throws JSONException {
+	private static void appendSourceWorkingCopies(JSONObject drafts, Set<String> removals, FlowEngine flowEngine) throws JSONException {
 		if (flowEngine == null) {
 			return;
 		}
-		for (var entry : flowEngine.getSourceDrafts().entrySet()) {
+		var changes = flowEngine.getSourceChanges();
+		for (var entry : changes.writes().entrySet()) {
 			drafts.put(entry.getKey(), entry.getValue());
 		}
+		removals.addAll(changes.removals());
 	}
 
-	private static void appendFrontendSourceDrafts(JSONObject drafts, Project project, Set<String> visited)
+	private static void appendSourceWorkingCopies(JSONObject drafts, Set<String> removals, Project project, Set<String> visited)
 			throws JSONException {
 		if (project == null || !visited.add(project.getName())) {
 			return;
 		}
-		appendFrontendSourceDrafts(drafts, project.getFlowEngine());
+		appendSourceWorkingCopies(drafts, removals, project.getFlowEngine());
 		for (var reference : project.getReferenceList()) {
 			if (!(reference instanceof ProjectSchemaReference projectReference)) {
 				continue;
@@ -1098,7 +1106,7 @@ public class FlowEngineBridge {
 			try {
 				var referencedProject = Engine.theApp.databaseObjectsManager
 						.getOriginalProjectByName(referencedProjectName, true);
-				appendFrontendSourceDrafts(drafts, referencedProject, visited);
+				appendSourceWorkingCopies(drafts, removals, referencedProject, visited);
 			} catch (Exception e) {
 				Engine.logEngine.debug("(FlowEngineBridge) Unable to collect Flow drafts from referenced project \""
 						+ referencedProjectName + "\".", e);

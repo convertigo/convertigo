@@ -22,9 +22,12 @@ package com.twinsoft.convertigo.beans.flow;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FileUtils;
@@ -54,7 +57,16 @@ public class FlowEngine extends DatabaseObject {
 			+ "engineQName: " + FlowEngineBridge.DEFAULT_ENGINE_QNAME + "\n"
 			+ "bindings: {}\n"
 			+ "config: {}\n";
-	private static final Map<String, String> sourceDrafts = new ConcurrentHashMap<>();
+	// A removal is an explicit working-copy state, never an empty source file.
+	private record SourceDraft(String source, boolean removed) { }
+	private static final SourceDraft REMOVED_SOURCE = new SourceDraft("", true);
+	private static final Map<String, SourceDraft> sourceDrafts = new ConcurrentHashMap<>();
+	// Only paths, never draft text: a reload must notify source consumers after
+	// the replacement project is loaded, without retaining its discarded values.
+	private static final Map<String, Set<String>> discardedSourcePaths = new ConcurrentHashMap<>();
+	// Clones of one project share its lock; unrelated projects never wait for its Save I/O.
+	private static final Map<String, Object> sourceLocks = new ConcurrentHashMap<>();
+	public record SourceChanges(Map<String, String> writes, Set<String> removals) { }
 
 	private String engineQName = FlowEngineBridge.DEFAULT_ENGINE_QNAME;
 	private String engineSource = DEFAULT_ENGINE_SOURCE;
@@ -108,7 +120,7 @@ public class FlowEngine extends DatabaseObject {
 
 	private String flowVirtualChildrenCacheKey() {
 		return FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + engineQName + "\n"
-				+ getEngineSource() + "\n" + getSourceDrafts().hashCode();
+				+ getEngineSource() + "\n" + sourceChanges().hashCode();
 	}
 
 	/**
@@ -226,20 +238,45 @@ public class FlowEngine extends DatabaseObject {
 
 	/** Includes drafts surviving the owner instance; do not expose their contents. */
 	public static boolean hasSourceDrafts(File projectDirectory) throws java.io.IOException {
-		var prefix = projectDirectory.getCanonicalPath() + File.separator;
-		return sourceDrafts.keySet().stream().anyMatch(path -> path.startsWith(prefix));
+		var root = projectDirectory.getCanonicalPath();
+		var prefix = root + File.separator;
+		synchronized (sourceLock(root)) {
+			return sourceDrafts.keySet().stream().anyMatch(path -> path.startsWith(prefix));
+		}
 	}
 
 	public Map<String, String> getSourceDrafts() {
-		var drafts = new LinkedHashMap<String, String>();
+		return new LinkedHashMap<>(getSourceChanges().writes());
+	}
+
+	/** Explicitly absent files in the effective source view, including saved files. */
+	public Set<String> getSourceRemovals() {
+		return new LinkedHashSet<>(getSourceChanges().removals());
+	}
+
+	/** One coherent snapshot for history, providers and source publication. */
+	public SourceChanges getSourceChanges() {
+		var writes = new LinkedHashMap<String, String>();
+		var removals = new LinkedHashSet<String>();
+		for (var entry : sourceChanges().entrySet()) {
+			if (entry.getValue().removed()) removals.add(entry.getKey());
+			else writes.put(entry.getKey(), entry.getValue().source());
+		}
+		return new SourceChanges(Map.copyOf(writes), Set.copyOf(removals));
+	}
+
+	private Map<String, SourceDraft> sourceChanges() {
+		var drafts = new LinkedHashMap<String, SourceDraft>();
 		var root = sourceRootPath();
 		if (root == null) {
 			return drafts;
 		}
 		var prefix = root + File.separator;
-		for (var entry : sourceDrafts.entrySet()) {
-			if (entry.getKey().startsWith(prefix)) {
-				drafts.put(entry.getKey(), entry.getValue());
+		synchronized (sourceLock(root)) {
+			for (var entry : sourceDrafts.entrySet()) {
+				if (entry.getKey().startsWith(prefix)) {
+					drafts.put(entry.getKey(), entry.getValue());
+				}
 			}
 		}
 		return drafts;
@@ -251,9 +288,11 @@ public class FlowEngine extends DatabaseObject {
 
 	public String getSource(String sourcePath) throws EngineException {
 		var key = canonicalSourcePath(sourcePath);
-		var draft = sourceDrafts.get(key);
+		SourceDraft draft;
+		synchronized (sourceLock()) { draft = sourceDrafts.get(key); }
 		if (draft != null) {
-			return draft;
+			if (draft.removed()) throw new EngineException("Flow source file is removed in the working copy: " + key);
+			return draft.source();
 		}
 		try {
 			return FileUtils.readFileToString(new File(key), StandardCharsets.UTF_8);
@@ -274,12 +313,41 @@ public class FlowEngine extends DatabaseObject {
 
 	/** Validate the whole source update before changing any working copy. No disk writes. */
 	public void setSources(Map<String, String> sources) throws EngineException {
-		var updates = new LinkedHashMap<String, String>();
+		applySourceChanges(sources, List.of());
+	}
+
+	/**
+	 * Apply one source plan in memory. A move is writes at new paths plus explicit
+	 * removals at old paths. Null in the existing text API still means empty text.
+	 */
+	public void applySourceChanges(Map<String, String> sources, Collection<String> removals) throws EngineException {
+		synchronized (sourceLock()) {
+			var updates = validatedSourceChanges(sources, removals);
+			var modified = false;
+			for (var entry : updates.entrySet()) {
+				var key = entry.getKey();
+				var draft = entry.getValue();
+				if (draft == null) {
+					modified |= sourceDrafts.remove(key) != null;
+				} else if (!draft.equals(sourceDrafts.put(key, draft))) {
+					modified = true;
+				}
+			}
+			clearFlowVirtualChildrenCache();
+			if (modified) changed();
+		}
+	}
+
+	private Map<String, SourceDraft> validatedSourceChanges(Map<String, String> sources,
+			Collection<String> removals) throws EngineException {
+		var updates = new LinkedHashMap<String, SourceDraft>();
+		var writePaths = new LinkedHashSet<String>();
 		for (var entry : sources.entrySet()) {
 			var key = canonicalSourcePath(entry.getKey());
 			if (updates.containsKey(key)) {
 				throw new EngineException("Duplicate Flow source destination: " + entry.getKey());
 			}
+			writePaths.add(key);
 			var source = entry.getValue() == null ? "" : entry.getValue();
 			try {
 				var file = new File(key);
@@ -293,41 +361,42 @@ public class FlowEngine extends DatabaseObject {
 				}
 				// An absent empty file is still a creation, not a discarded draft.
 				var sameAsSaved = file.isFile() && source.equals(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
-				updates.put(key, sameAsSaved ? null : source);
+				updates.put(key, sameAsSaved ? null : new SourceDraft(source, false));
 			} catch (EngineException e) {
 				throw e;
 			} catch (Exception e) {
 				throw new EngineException("Unable to read saved Flow source file \"" + key + "\".", e);
 			}
 		}
-		for (var key : updates.keySet()) {
-			if (sourceDrafts.keySet().stream().anyMatch(path -> path.startsWith(key + File.separator))) {
+		for (var sourcePath : removals) {
+			var key = canonicalSourcePath(sourcePath);
+			if (updates.containsKey(key)) throw new EngineException("Duplicate Flow source destination: " + sourcePath);
+			var file = new File(key);
+			if (file.exists() && !file.isFile()) throw new EngineException("Flow source removal is not a file: " + key);
+			// Removing a draft-only creation simply cancels it; there is no saved file to hide.
+			updates.put(key, file.isFile() ? REMOVED_SOURCE : null);
+		}
+		for (var key : writePaths) {
+			if (sourceDrafts.entrySet().stream().anyMatch(entry -> !entry.getValue().removed()
+					&& entry.getKey().startsWith(key + File.separator))) {
 				throw new EngineException("Flow source destination contains file working copies: " + key);
 			}
 			for (var parent = new File(key).getParentFile(); parent != null; parent = parent.getParentFile()) {
 				var path = parent.getPath();
-				if (updates.containsKey(path) || sourceDrafts.containsKey(path)) {
+				var parentDraft = sourceDrafts.get(path);
+				if (writePaths.contains(path)
+						|| parentDraft != null && !parentDraft.removed()) {
 					throw new EngineException("Flow source parent is a file working copy: " + path);
 				}
 			}
 		}
-		var modified = false;
-		for (var entry : updates.entrySet()) {
-			var key = entry.getKey();
-			var source = entry.getValue();
-			if (source == null) {
-				modified |= sourceDrafts.remove(key) != null;
-			} else if (!source.equals(sourceDrafts.put(key, source))) {
-				modified = true;
-			}
-		}
-		clearFlowVirtualChildrenCache();
-		if (modified) changed();
+		return updates;
 	}
 
 	/** Drop the working copy of a source (a created source not saved yet disappears). */
 	public boolean discardSource(String sourcePath) throws EngineException {
-		var removed = sourceDrafts.remove(canonicalSourcePath(sourcePath)) != null;
+		boolean removed;
+		synchronized (sourceLock()) { removed = sourceDrafts.remove(canonicalSourcePath(sourcePath)) != null; }
 		if (removed) {
 			clearFlowVirtualChildrenCache();
 		}
@@ -336,7 +405,10 @@ public class FlowEngine extends DatabaseObject {
 
 	public boolean hasSource(String sourcePath) throws EngineException {
 		var key = canonicalSourcePath(sourcePath);
-		return sourceDrafts.containsKey(key) || new File(key).isFile();
+		synchronized (sourceLock()) {
+			var draft = sourceDrafts.get(key);
+			return draft == null ? new File(key).isFile() : !draft.removed();
+		}
 	}
 
 	public boolean isFrontendSourceDirty(String sourcePath) throws EngineException {
@@ -344,7 +416,7 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	public boolean isSourceDirty(String sourcePath) throws EngineException {
-		return sourceDrafts.containsKey(canonicalSourcePath(sourcePath));
+		synchronized (sourceLock()) { return sourceDrafts.containsKey(canonicalSourcePath(sourcePath)); }
 	}
 
 	@Override
@@ -423,23 +495,25 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	private void writeSourceDraftFiles() throws EngineException {
-		var drafts = getSourceDrafts();
-		if (drafts.isEmpty()) {
-			return;
-		}
-		try {
-			sourceLayout().ensureHttpIgnore(getProject().getDirFile());
-			for (var entry : drafts.entrySet()) {
-				var file = new File(entry.getKey());
-				file.getParentFile().mkdirs();
-				FileUtils.writeStringToFile(file, entry.getValue(), StandardCharsets.UTF_8);
+		synchronized (sourceLock()) {
+			var drafts = sourceChanges();
+			if (drafts.isEmpty()) return;
+			var changes = getSourceChanges();
+			var writes = changes.writes();
+			var removals = changes.removals();
+			// Recheck confinement and filesystem shape at publication, not just at edit time.
+			validatedSourceChanges(writes, removals);
+			for (var key : drafts.keySet()) {
+				if (!key.equals(canonicalSourcePath(key))) throw new EngineException("Flow source path changed before Save: " + key);
 			}
-			for (var entry : drafts.entrySet()) {
-				sourceDrafts.remove(entry.getKey(), entry.getValue());
+			try {
+				sourceLayout().ensureHttpIgnore(getProject().getDirFile());
+				FlowSourcePublisher.publish(writes, removals, getProject().getDirFile());
+				for (var entry : drafts.entrySet()) sourceDrafts.remove(entry.getKey(), entry.getValue());
+				clearFlowVirtualChildrenCache();
+			} catch (Exception e) {
+				throw new EngineException("Unable to publish Flow source working copies; drafts retained.", e);
 			}
-			clearFlowVirtualChildrenCache();
-		} catch (Exception e) {
-			throw new EngineException("Unable to write Flow source draft files.", e);
 		}
 	}
 
@@ -481,10 +555,45 @@ public class FlowEngine extends DatabaseObject {
 		try {
 			var root = project.getDirFile().getCanonicalPath();
 			var prefix = root + File.separator;
-			sourceDrafts.keySet().removeIf(path -> path.startsWith(prefix));
+			synchronized (sourceLock(root)) {
+				var removed = new LinkedHashSet<String>();
+				sourceDrafts.keySet().removeIf(path -> {
+					if (!path.startsWith(prefix)) return false;
+					removed.add(path);
+					return true;
+				});
+				if (!removed.isEmpty()) {
+					discardedSourcePaths.merge(root, removed, (before, after) -> {
+						var all = new LinkedHashSet<>(before);
+						all.addAll(after);
+						return all;
+					});
+				}
+			}
 		} catch (Exception e) {
 			Engine.logBeans.debug("Unable to discard Flow source drafts for project \"" + project.getName() + "\".", e);
 		}
+	}
+
+	/** The paths whose effective content changed when the previous project was unloaded. */
+	static Set<String> takeDiscardedSourcePaths(Project project) {
+		if (project == null) return Set.of();
+		try {
+			var paths = discardedSourcePaths.remove(project.getDirFile().getCanonicalPath());
+			return paths == null ? Set.of() : paths;
+		} catch (Exception e) {
+			Engine.logBeans.debug("Unable to resolve discarded Flow source paths.", e);
+			return Set.of();
+		}
+	}
+
+	private Object sourceLock() {
+		var root = sourceRootPath();
+		return sourceLock(root == null ? "" : root);
+	}
+
+	private static Object sourceLock(String root) {
+		return sourceLocks.computeIfAbsent(root, key -> new Object());
 	}
 
 	private String sourceRootPath() {

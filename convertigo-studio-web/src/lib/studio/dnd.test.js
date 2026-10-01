@@ -14,6 +14,7 @@ import {
 	isNoopSiblingMove,
 	mutationDboContextIds,
 	mutationDboRefreshIds,
+	objectCanRename,
 	objectNameFromId,
 	objectRenameValue,
 	performDboDrop,
@@ -33,6 +34,12 @@ beforeEach(() => {
 });
 
 describe('Studio DBO drag and drop qnames', () => {
+	it('honors the projected rename capability without interpreting object types or identities', () => {
+		expect(objectCanRename({ canRename: false })).toBe(false);
+		expect(objectCanRename({ canRename: true })).toBe(true);
+		// Native objects and responses from older services keep their behavior.
+		expect(objectCanRename({})).toBe(true);
+	});
 	it('uses the provider editable name without interpreting its projected identity or label', () => {
 		expect(objectRenameValue({ id: 'project.authoring_nodes_0', renameValue: 'request' })).toBe(
 			'request'

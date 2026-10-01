@@ -9,17 +9,28 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.Before;
+import org.junit.After;
 import org.junit.rules.TemporaryFolder;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class FlowWorkingCopiesTest {
+	private org.apache.log4j.Logger previousStudioLogger;
+	@Before public void headlessStudioLogger() {
+		previousStudioLogger = Engine.logStudio;
+		Engine.logStudio = org.apache.log4j.Logger.getLogger(getClass());
+	}
+	@After public void restoreStudioLogger() { Engine.logStudio = previousStudioLogger; }
+
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
 
@@ -143,5 +154,81 @@ public class FlowWorkingCopiesTest {
 		assertEquals("draft page", Files.readString(page));
 		assertEquals("draft engine", Files.readString(engineFile));
 		assertEquals(Map.of(), FlowWorkingCopies.of(current.project));
+	}
+
+	@Test
+	public void historyRestoresBothSidesOfAMoveAndUndoRedoNeverWriteDisk() throws Exception {
+		var directory = saved();
+		var target = directory.toPath().resolve("_flow/frontbuilder/moved.flow.svelte");
+		var current = new Loaded(directory);
+		current.engine.applySourceChanges(Map.of(target.toString(), "moved draft"), List.of(page.toString()));
+		var moved = FlowWorkingCopies.of(current.project);
+		assertEquals(Map.of("removed-file:_flow/frontbuilder/page.flow.svelte", "",
+				"file:_flow/frontbuilder/moved.flow.svelte", "moved draft"), moved);
+		Flow.projectUnloaded(current.project);
+		var undone = new Loaded(directory);
+		FlowWorkingCopies.restore(undone.project, Map.of(), moved);
+		assertEquals("saved page", undone.engine.getSource(page.toString()));
+		assertFalse(undone.engine.hasSource(target.toString()));
+		Flow.projectUnloaded(undone.project);
+		var redone = new Loaded(directory);
+		FlowWorkingCopies.restore(redone.project, moved, Map.of());
+		assertFalse(redone.engine.hasSource(page.toString()));
+		assertEquals("moved draft", redone.engine.getSource(target.toString()));
+		assertEquals(moved, FlowWorkingCopies.of(redone.project));
+		assertEquals("saved page", Files.readString(page));
+		assertFalse(Files.exists(target));
+		redone.engine.saveSources();
+		assertFalse(Files.exists(page));
+		assertEquals("moved draft", Files.readString(target));
+		assertTrue(FlowWorkingCopies.of(redone.project).isEmpty());
+	}
+
+	@Test
+	public void reloadRemembersOnlyAffectedPathsUntilTheReplacementProjectLoads() throws Exception {
+		var directory = saved();
+		var target = directory.toPath().resolve("_flow/new/page.flow.svelte");
+		var metadata = directory.toPath().resolve("_flow/meta.json");
+		var current = new Loaded(directory);
+		current.engine.applySourceChanges(Map.of(target.toString(), "moved draft",
+				metadata.toString(), "metadata draft"), List.of(page.toString()));
+		Flow.projectUnloaded(current.project);
+		var reloaded = new Loaded(directory);
+		assertEquals("saved page", reloaded.engine.getSource(page.toString()));
+		assertFalse(reloaded.engine.hasSource(target.toString()));
+		assertFalse(reloaded.engine.hasSource(metadata.toString()));
+		var affected = FlowEngine.takeDiscardedSourcePaths(reloaded.project);
+		assertEquals(Set.of(page.toFile().getCanonicalPath(), target.toFile().getCanonicalPath(),
+				metadata.toFile().getCanonicalPath()), affected);
+		assertTrue(FlowEngine.takeDiscardedSourcePaths(reloaded.project).isEmpty());
+		assertFalse(Files.exists(target));
+		assertFalse(Files.exists(metadata));
+	}
+
+	@Test
+	public void historyRestoresTheFinalEffectiveStateBeforeConsumingReloadNotifications() throws Exception {
+		var directory = saved();
+		var current = new Loaded(directory);
+		current.engine.setSource(page.toString(), "draft page");
+		var copies = FlowWorkingCopies.of(current.project);
+		Flow.projectUnloaded(current.project);
+		var restored = new Loaded(directory);
+		FlowWorkingCopies.restore(restored.project, copies, copies);
+		assertEquals("draft page", restored.engine.getSource(page.toString()));
+		assertTrue(FlowEngine.takeDiscardedSourcePaths(restored.project).isEmpty());
+		assertEquals("saved page", Files.readString(page));
+		Flow.projectUnloaded(restored.project);
+		FlowEngine.takeDiscardedSourcePaths(restored.project);
+	}
+
+	@Test
+	public void reloadOfSavedSourcesDoesNotNotifyDiscardedValues() throws Exception {
+		var directory = saved();
+		var current = new Loaded(directory);
+		current.engine.setSource(page.toString(), "published");
+		current.engine.saveSources();
+		Flow.projectUnloaded(current.project);
+		assertTrue(FlowEngine.takeDiscardedSourcePaths(current.project).isEmpty());
+		assertEquals("published", Files.readString(page));
 	}
 }

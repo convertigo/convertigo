@@ -164,6 +164,39 @@ describe('Studio property editor language detection', () => {
 });
 
 describe('Studio inline property picker', () => {
+	it('does not repeat a root source selector but keeps named homonyms', () => {
+		for (const category of ['route', 'event', 'props', 'theme']) {
+			expect(
+				flowBindingPreview({
+					mode: 'source',
+					source: { category, value: category },
+					path: [
+						{ kind: 'property', name: 'params' },
+						{ kind: 'property', name: 'id' }
+					]
+				})
+			).toBe(`${category}.params.id`);
+		}
+		for (const source of [
+			{ category: 'local', name: 'local' },
+			{ category: 'requestable', actionId: 'requestable' },
+			{ category: 'iteration', scopeId: 'iteration' }
+		]) {
+			expect(flowBindingPreview({ mode: 'source', source, path: [] })).toBe(
+				`${source.category}.${source.category}`
+			);
+		}
+		expect(
+			flowBindingPreview({ mode: 'source', source: { category: 'route', value: 'query' } })
+		).toBe('route.query');
+		expect(
+			flowBindingPreview({
+				mode: 'source',
+				source: { category: 'route', value: 'route', label: 'Current route' }
+			})
+		).toBe('Current route');
+	});
+
 	it('renders source and composed bindings as human-readable expressions', () => {
 		expect(
 			flowBindingPreview({

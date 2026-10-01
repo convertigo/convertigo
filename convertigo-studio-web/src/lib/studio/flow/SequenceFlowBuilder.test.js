@@ -10,6 +10,24 @@ const ifId = `${objectId}.st:if`;
 const ifFieldId = `${ifId}.st:field1`;
 
 describe('SequenceFlowBuilder bottom container links', () => {
+	it.each([true, false, undefined])(
+		'preserves rename capability %s from tree to graph editor',
+		(canRename) => {
+			const builder = new SequenceFlowBuilder();
+			const item = {
+				...builder.normalizeTreeItem({
+					id: 'Project.sq:Sequence.nodes_0',
+					label: 'Provider object',
+					canRename,
+					classname: 'FlowVirtualObject'
+				}),
+				children: []
+			};
+			const flow = builder.buildFlowFromTree('Project', 'Sequence', [item], palette());
+			const projected = toXyFlow(flow).nodes.find((node) => node.data.originalId === item.id);
+			expect(projected?.data.canRename).toBe(canRename);
+		}
+	);
 	it('preserves the provider rename value from tree response to graph editor', () => {
 		const builder = new SequenceFlowBuilder();
 		const item = {
