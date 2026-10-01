@@ -224,6 +224,10 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 								if (!variableName.isEmpty()) {
 									parameterName = variableName;
 								}
+							} else if (Parameter.ConnectorConnectionString.getName().equals(parameterName)) {
+								// not a declared parameter: engine reserved, never taken from the HTTP request
+								Engine.logBeans.warn("(AbstractRestOperation) \""+ getName() +"\" ignored the '" + parameterName + "' field");
+								continue;
 							}
 							
 							Object mapValue = map.get(parameterName);
