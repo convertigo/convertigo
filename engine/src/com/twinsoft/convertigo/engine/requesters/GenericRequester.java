@@ -211,6 +211,14 @@ public abstract class GenericRequester extends Requester {
 
 	@Override
     public final Object processRequest(Object inputData) throws Exception {
+		try (var logContext = Log4jHelper.mdcScope()) {
+			return processRequestWithContext(inputData);
+		}
+	}
+
+	/** Must run inside an MDC scope that also covers requester-specific cleanup. */
+	protected final Object processRequestWithContext(Object inputData) throws Exception {
+		Log4jHelper.mdcSet(null);
         if (Engine.theApp == null) throw new EngineException("Unable to process the request: the Convertigo engine is not started!");
 
 		Object result = null;
@@ -323,8 +331,6 @@ public abstract class GenericRequester extends Requester {
     		}
     		Engine.logContext.debug("[" + getName() + "] end of request");
     		
-    		// Remove all MDC values for clean release of the thread
-    		Log4jHelper.mdcClear();
     	}
 
     	return result;

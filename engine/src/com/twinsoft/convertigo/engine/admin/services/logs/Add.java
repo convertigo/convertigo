@@ -53,7 +53,7 @@ import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 public class Add extends JSonService {
 
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
-		try {
+		try (var logContext = Log4jHelper.mdcScope()) {
 			JSONArray logs = new JSONArray(request.getParameter("logs"));
 			JSONObject env = new JSONObject(request.getParameter("env"));
 
@@ -68,23 +68,25 @@ public class Add extends JSonService {
 			Map<String, LogParameters> logParametersMap = GenericUtils.cast(httpSession.getAttribute(Add.class.getCanonicalName()));
 
 			if (logParametersMap == null) {
-				httpSession.setAttribute(Add.class.getCanonicalName(), logParametersMap = new HashMap<String, LogParameters>());
+				logParametersMap = new HashMap<String, LogParameters>();
+			} else {
+				logParametersMap = new HashMap<>(logParametersMap);
 			}
 
 			LogParameters logParameters = logParametersMap.get(uid);
 
 			if (logParameters == null) {
-				logParametersMap.put(uid, logParameters = new LogParameters());
+				logParameters = new LogParameters();
 				
 				logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
+			} else {
+				logParameters = (LogParameters) logParameters.clone();
 			}
-
-			Log4jHelper.mdcSet(logParameters);
 			
 			logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
 
 			if (EnginePropertiesManager.getProperty(PropertyName.NET_REVERSE_DNS).equalsIgnoreCase("true")) {
-				Log4jHelper.mdcPut(mdcKeys.ClientHostName, request.getRemoteHost());
+				logParameters.put(mdcKeys.ClientHostName.toString().toLowerCase(), request.getRemoteHost());
 			}
 			
 			for (Iterator<String> iKey = GenericUtils.cast(env.keys()); iKey.hasNext();) {
@@ -92,9 +94,11 @@ public class Add extends JSonService {
 				logParameters.put(key.toLowerCase(), env.get(key));
 			}
 
-			if (SessionAttribute.authenticatedUser.get(httpSession) != null) {
-				Log4jHelper.mdcPut(mdcKeys.User, SessionAttribute.authenticatedUser.string(httpSession));			
-			}
+			String user = SessionAttribute.authenticatedUser.string(httpSession);
+			logParameters.put(mdcKeys.User.toString().toLowerCase(), user == null ? "(anonymous)" : user);
+			logParametersMap.put(uid, (LogParameters) logParameters.clone());
+			httpSession.setAttribute(Add.class.getCanonicalName(), logParametersMap);
+			Log4jHelper.mdcSet(logParameters);
 
 			for (int i = 0; i < logs.length(); i++) {
 				JSONObject log = logs.getJSONObject(i);
@@ -109,8 +113,6 @@ public class Add extends JSonService {
 			}
 			
 			response.put("remoteLogLevel", Engine.logDevices.getEffectiveLevel().toString().toLowerCase());
-		} finally {
-			Log4jHelper.mdcClear();
 		}
 	}	 
 }

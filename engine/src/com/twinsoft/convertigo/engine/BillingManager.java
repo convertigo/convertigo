@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class BillingManager implements AbstractManager, PropertyChangeEventListener {
 
@@ -75,6 +76,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			tickets = new LinkedList<Ticket>();
 			consumer = new Thread(new Runnable() {
 				public void run() {
+					Log4jHelper.mdcClear();
 					while (!isDestroying && consumer == Thread.currentThread()) {
 						Ticket ticket = null;
 						try {

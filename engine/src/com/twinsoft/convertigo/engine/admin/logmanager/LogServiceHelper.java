@@ -33,6 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class LogServiceHelper {
 	public enum LogManagerParameter {
@@ -46,6 +47,7 @@ public class LogServiceHelper {
 
 	private static final Map<String, Pair<Long, HttpSession>> activeInstance = new HashMap<>();
 	private static final Thread logmanagerCleaner = new Thread(() -> {
+		Log4jHelper.mdcClear();
 		while(true) {
 			try {
 				Thread.sleep(10000);

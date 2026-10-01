@@ -58,13 +58,15 @@ public abstract class Biller extends AbstractBiller {
 						Log4jHelper.mdcClear();
 						Biller biller = queue.poll(30, TimeUnit.SECONDS);
 						if (biller != null) {
-							Log4jHelper.mdcSet(biller.context.logParameters);
+							biller.logContext.install();
 							
 							Engine.logBillers.info("(Biller) Insert a billing request, remains " + queue.size() + " in queue.");
 							biller.insertBilling(biller.context, null);
 						}
 					} catch (Throwable t) {
 						Engine.logBillers.warn("(Biller) Something wrong with a billing insertion", t);
+					} finally {
+						Log4jHelper.mdcClear();
 					}
 				}
 				costMap.clear();
@@ -78,6 +80,7 @@ public abstract class Biller extends AbstractBiller {
 
 	protected SqlRequester sqlRequester;
 	private Context context;
+	private Log4jHelper.MdcSnapshot logContext;
 	
 	/**
 	 * Constructs a Biller object.
@@ -115,6 +118,7 @@ public abstract class Biller extends AbstractBiller {
 	public void insertBilling(Context context) throws EngineException {
 		try {
 			this.context = context.clone();
+			logContext = Log4jHelper.mdcSnapshot();
 			queue.offer(this);
 		} catch (CloneNotSupportedException e) {
 			throw new EngineException("Unable to clone the context", e);

@@ -66,13 +66,11 @@ import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
-import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -854,12 +852,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	            	if (bInternalInvoke) {
 	            		Engine.logBeans.debug("(RequestableStep) Internal invoke requested");
 		            	InternalRequester internalRequester = new InternalRequester(request, sequence.context.httpServletRequest);
-		            	LogParameters logParameters = sequence.context.logParameters;
 		        		Object result = internalRequester.processRequest();
-
-		        		// MDC log parameters must return to their original values, because
-		            	// the internal requester has been executed on the same thread as us.
-		            	Log4jHelper.mdcSet(logParameters);
 
 		            	if (result != null) {
 			            	xmlHttpDocument = (Document) result;

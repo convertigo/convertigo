@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class CacheManager extends AbstractRunnableManager implements PropertyChangeEventListener {
@@ -401,6 +402,7 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 	protected abstract void checkRepository() throws EngineException;
 
 	public void run() {
+		Log4jHelper.mdcClear();
 		Engine.logCacheManager.info("Starting the vulture thread for cache entry expiration");
 
 		while (isRunning) {

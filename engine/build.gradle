@@ -446,6 +446,13 @@ dependencies {
 	testImplementation 'junit:junit:4.13.2'
 }
 
+// The 8.3 dependency bundle also contains an older JUnit from SoapUI.
+def testFramework = configurations.testCompileClasspath.filter {
+	it.name.startsWith('junit-') || it.name.startsWith('hamcrest-core-')
+}
+sourceSets.test.compileClasspath = testFramework + sourceSets.test.compileClasspath
+
 tasks.named('test') {
 	useJUnit()
+	classpath = testFramework + classpath
 }

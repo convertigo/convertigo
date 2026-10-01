@@ -56,7 +56,6 @@ import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
@@ -137,6 +136,12 @@ public class RestApiServlet extends GenericServlet {
 
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		try (var logContext = Log4jHelper.mdcScope()) {
+			serviceWithContext(request, response);
+		}
+	}
+
+	private void serviceWithContext(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		if (request.getCharacterEncoding() == null) {
 			try {
 				request.setCharacterEncoding("UTF-8"); // Set encoding if needed
@@ -176,16 +181,12 @@ public class RestApiServlet extends GenericServlet {
 		
 		HttpSession httpSession = request.getSession();
 		
-		LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(RestApiServlet.class.getCanonicalName()));
-		
-		if (logParameters == null) {
-			httpSession.setAttribute(RestApiServlet.class.getCanonicalName(), logParameters = new LogParameters());
-			logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
-		}
+		LogParameters logParameters = new LogParameters();
+		logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
 
 		Log4jHelper.mdcSet(logParameters);
 		
-		logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
+		Log4jHelper.mdcPut(mdcKeys.ClientIP, request.getRemoteAddr());
 		
 		String encoded = request.getParameter(Parameter.RsaEncoded.getName());
 		if (encoded != null) {

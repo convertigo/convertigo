@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.translators.DefaultInternalTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class InternalRequester extends GenericRequester {
 
@@ -74,13 +75,15 @@ public class InternalRequester extends GenericRequester {
     }
     
     public Object processRequest() throws Exception {
-    	try {
-    		return processRequest(inputData);
-    	} finally {
-    		Map<String, Object> request = GenericUtils.cast(inputData);
-            processRequestEnd(request);
-			onFinally(request);
-    	}
+		try (var logContext = Log4jHelper.mdcScope()) {
+			try {
+				return processRequestWithContext(inputData);
+			} finally {
+				Map<String, Object> request = GenericUtils.cast(inputData);
+				processRequestEnd(request);
+				onFinally(request);
+			}
+		}
     }
     
     private void processRequestEnd(Map<String, Object> request) {

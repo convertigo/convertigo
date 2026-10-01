@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.steps.ParallelStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
@@ -531,6 +532,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 	
 	class AsynchronousStepThread extends Thread {
+		private final Log4jHelper.MdcSnapshot logContext = Log4jHelper.mdcSnapshot();
 		private org.mozilla.javascript.Context javascriptContext = null;
         private Scriptable scope = null;
         private Sequence refSequence = null;
@@ -548,6 +550,15 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 
         @Override
         public void run() {
+			try {
+				logContext.install();
+				runWithMdc();
+			} finally {
+				Log4jHelper.mdcClear();
+			}
+		}
+
+		private void runWithMdc() {
             bContinue = true;
             try {
                 javascriptContext = org.mozilla.javascript.Context.enter();
