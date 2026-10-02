@@ -20,6 +20,138 @@ const flowEngineId = `${projectName}.Engine`;
 const frontendBuilderId = `${flowEngineId}.frontends.svelte`;
 const frontendStructureId = `${frontendBuilderId}.routes.home.structure`;
 
+test('studio object search supports each filter without text, combines filters and opens results', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const requests = [];
+	await page.route('**/admin/services/studio.treeview.Search', async (route) => {
+		requests.push(new URLSearchParams(route.request().postData() ?? ''));
+		await route.fulfill({
+			json: {
+				results: [
+					{
+						id: initStepId,
+						name: 'Init',
+						type: 'Step',
+						project: projectName,
+						path: [projectName, sequenceName],
+						icon: ''
+					}
+				],
+				truncated: false
+			}
+		});
+	});
+	await page.goto('/studio/');
+	await page.getByRole('button', { name: 'Search', exact: true }).click();
+	const panel = page.locator('.studio-search');
+	const submit = panel.getByRole('button', { name: 'Search', exact: true });
+	await expect(submit).toBeDisabled();
+	const filters = [
+		['Broken sources', 'brokenSources'],
+		['Inactive objects', 'inactive'],
+		['Uses symbols', 'symbols'],
+		['Unknown symbols', 'unknownSymbols']
+	];
+	for (const [label, key] of filters) {
+		await panel.getByRole('checkbox', { name: label }).check();
+		await expect(submit).toBeEnabled();
+		await submit.click();
+		await expect(panel.getByText('1 object in 1 project')).toBeVisible();
+		const params = requests.at(-1);
+		expect(params.get('text')).toBe('');
+		for (const [, filterKey] of filters) {
+			expect(params.get(filterKey)).toBe(String(filterKey === key));
+		}
+		await panel.getByRole('checkbox', { name: label }).uncheck();
+		await expect(submit).toBeDisabled();
+	}
+	for (const [label] of filters) await panel.getByRole('checkbox', { name: label }).check();
+	await submit.click();
+	await expect.poll(() => requests.length).toBe(5);
+	for (const [, key] of filters) expect(requests.at(-1).get(key)).toBe('true');
+	const group = panel.getByRole('button', { name: `${projectName} 1`, exact: true });
+	await group.click();
+	await expect(panel.getByRole('button', { name: /Init/ })).toHaveCount(0);
+	await group.click();
+	await panel.getByRole('button', { name: /Init/ }).click();
+	await expect(page).toHaveURL(
+		new RegExp(`/studio/${projectName}\\.sq~${sequenceName}\\.st~Init/$`)
+	);
+});
+
+test('studio object type-only search keeps file search independent of object filters', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const requests = [];
+	await page.route('**/admin/services/studio.*.Search', async (route) => {
+		requests.push({
+			service: serviceName(route.request().url()),
+			params: new URLSearchParams(route.request().postData() ?? '')
+		});
+		await route.fulfill({ json: { results: [], truncated: false } });
+	});
+	await page.goto('/studio/');
+	await page.getByRole('button', { name: 'Search', exact: true }).click();
+	const panel = page.locator('.studio-search');
+	const submit = panel.getByRole('button', { name: 'Search', exact: true });
+	await panel.getByRole('combobox', { name: 'Object type' }).selectOption('Step');
+	await expect(submit).toBeEnabled();
+	await submit.click();
+	await expect(panel.getByText('No object found.')).toBeVisible();
+	expect(requests[0].params.get('text')).toBe('');
+	expect(requests[0].params.get('type')).toBe('Step');
+	await panel.getByRole('checkbox', { name: 'Broken sources' }).check();
+	await panel.getByRole('radio', { name: 'Files', exact: true }).click();
+	await expect(panel.getByRole('group', { name: 'Object filters (AND)' })).toHaveCount(0);
+	await expect(submit).toBeDisabled();
+	await panel.getByRole('textbox', { name: 'Search in the files' }).fill('hello');
+	await submit.click();
+	await expect(panel.getByText('No line found.')).toBeVisible();
+	expect(requests[1].service).toBe('studio.source.Search');
+	for (const key of ['type', 'brokenSources', 'inactive', 'symbols', 'unknownSymbols']) {
+		expect(requests[1].params.has(key)).toBe(false);
+	}
+	await panel.getByRole('textbox', { name: 'Search in the files' }).fill('');
+	await panel.getByRole('radio', { name: 'Objects', exact: true }).click();
+	await expect(panel.getByRole('checkbox', { name: 'Broken sources' })).toBeChecked();
+	await expect(submit).toBeEnabled();
+});
+
+test('studio object search combines text options and project scope with filters and reports errors', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const requests = [];
+	await page.route('**/admin/services/studio.treeview.Search', async (route) => {
+		requests.push(new URLSearchParams(route.request().postData() ?? ''));
+		await route.fulfill({ json: { error: { message: 'The regular expression is not valid.' } } });
+	});
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('button', { name: 'Search', exact: true }).click();
+	const panel = page.locator('.studio-search');
+	await panel.getByRole('combobox', { name: 'Scope' }).selectOption('project');
+	await panel.getByRole('checkbox', { name: 'Unknown symbols' }).check();
+	await panel.getByRole('textbox', { name: 'Search in the objects' }).fill('[');
+	await panel.getByTitle('Match case', { exact: true }).click();
+	await panel.getByTitle('Use a regular expression', { exact: true }).click();
+	await panel.getByRole('button', { name: 'Search', exact: true }).click();
+	await expect(panel.getByText('The regular expression is not valid.')).toBeVisible();
+	expect(Object.fromEntries(requests[0])).toMatchObject({
+		text: '[',
+		matchCase: 'true',
+		regExp: 'true',
+		scope: projectName,
+		unknownSymbols: 'true'
+	});
+	await expect(panel.getByRole('button', { name: 'Search', exact: true })).toBeEnabled();
+});
+
 test('studio opens a selected backend object with tree, execution and flow synchronized', async ({
 	page
 }) => {

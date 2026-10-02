@@ -2,6 +2,7 @@
 	import AutoSvg from '$lib/utils/AutoSvg.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, getUrl } from '$lib/utils/service';
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
 	/**
@@ -41,6 +42,30 @@
 		'Criteria',
 		'ExtractionRule'
 	];
+	const OBJECT_FILTERS = [
+		{
+			key: 'brokenSources',
+			label: 'Broken sources',
+			description:
+				'Objects with a broken step source, including step variables and SmartType sources.'
+		},
+		{
+			key: 'inactive',
+			label: 'Inactive objects',
+			description: 'Objects whose own Is active / Is enabled property is false.'
+		},
+		{
+			key: 'symbols',
+			label: 'Uses symbols',
+			description:
+				'Objects using global symbols, including known symbols and symbols with a default value.'
+		},
+		{
+			key: 'unknownSymbols',
+			label: 'Unknown symbols',
+			description: 'Objects with an undefined symbol in one of their own properties.'
+		}
+	];
 
 	/** @type {'objects' | 'files'} */
 	let what = $state('objects');
@@ -48,6 +73,16 @@
 	let matchCase = $state(false);
 	let regExp = $state(false);
 	let type = $state('*');
+	/** @type {Record<string, boolean>} */
+	let filters = $state({
+		brokenSources: false,
+		inactive: false,
+		symbols: false,
+		unknownSymbols: false
+	});
+	let canSearch = $derived(
+		Boolean(text) || (what === 'objects' && (type !== '*' || Object.values(filters).some(Boolean)))
+	);
 	/** @type {'workspace' | 'project'} */
 	let scope = $state('workspace');
 	let searching = $state(false);
@@ -56,7 +91,7 @@
 	let results = $state.raw(null);
 	let truncated = $state(false);
 	/** @type {Set<string>} */
-	let collapsed = $state(new Set());
+	const collapsed = new SvelteSet();
 	let groups = $derived(groupByProject(results ?? []));
 	/** @type {FileResult[] | null} */
 	let fileResults = $state.raw(null);
@@ -67,9 +102,9 @@
 	 */
 	function groupFiles(items) {
 		/** @type {Map<string, Map<string, FileResult[]>>} */
-		const byProject = new Map();
+		const byProject = new SvelteMap();
 		for (const item of items) {
-			const files = byProject.get(item.project) ?? new Map();
+			const files = byProject.get(item.project) ?? new SvelteMap();
 			files.set(item.path, [...(files.get(item.path) ?? []), item]);
 			byProject.set(item.project, files);
 		}
@@ -85,7 +120,7 @@
 	 */
 	function groupByProject(items) {
 		/** @type {Map<string, SearchResult[]>} */
-		const byProject = new Map();
+		const byProject = new SvelteMap();
 		for (const item of items) {
 			byProject.set(item.project, [...(byProject.get(item.project) ?? []), item]);
 		}
@@ -94,7 +129,7 @@
 
 	async function search(/** @type {SubmitEvent} */ event) {
 		event.preventDefault();
-		if (!text || searching) {
+		if (!canSearch || searching) {
 			return;
 		}
 		searching = true;
@@ -110,7 +145,7 @@
 				if (Array.isArray(response?.results)) {
 					fileResults = response.results;
 					truncated = Boolean(response.truncated);
-					collapsed = new Set();
+					collapsed.clear();
 				} else {
 					error = String(response?.error?.message ?? response?.message ?? 'The search failed.');
 				}
@@ -121,12 +156,13 @@
 				matchCase: String(matchCase),
 				regExp: String(regExp),
 				type,
+				...Object.fromEntries(Object.entries(filters).map(([key, value]) => [key, String(value)])),
 				...(scope === 'project' && projectName ? { scope: projectName } : {})
 			});
 			if (Array.isArray(response?.results)) {
 				results = response.results;
 				truncated = Boolean(response.truncated);
-				collapsed = new Set();
+				collapsed.clear();
 			} else {
 				error = String(response?.error?.message ?? response?.message ?? 'The search failed.');
 			}
@@ -139,11 +175,9 @@
 	 * @param {string} project
 	 */
 	function toggleGroup(project) {
-		const next = new Set(collapsed);
-		if (!next.delete(project)) {
-			next.add(project);
+		if (!collapsed.delete(project)) {
+			collapsed.add(project);
 		}
-		collapsed = next;
 	}
 </script>
 
@@ -198,10 +232,28 @@
 				<option value="workspace">All projects</option>
 				<option value="project" disabled={!projectName}>{projectName || 'Selected project'}</option>
 			</select>
-			<button type="submit" class="button-primary" disabled={!text || searching}>
+			<button
+				type="submit"
+				class="button-primary"
+				disabled={!canSearch || searching}
+				aria-label="Search"
+			>
 				<Ico icon={searching ? 'mdi:sync' : 'mdi:magnify'} size={4} />
 			</button>
 		</div>
+		{#if what === 'objects'}
+			<fieldset class="studio-search__filters p-low">
+				<legend>Object filters (AND)</legend>
+				<div class="layout-grid-low-[105px]">
+					{#each OBJECT_FILTERS as filter (filter.key)}
+						<label class="layout-x-low" title={filter.description}>
+							<input type="checkbox" bind:checked={filters[filter.key]} />
+							{filter.label}
+						</label>
+					{/each}
+				</div>
+			</fieldset>
+		{/if}
 	</form>
 
 	<div class="studio-search__results">
@@ -296,7 +348,7 @@
 				{/if}
 			{/each}
 		{:else}
-			<StudioEmptyState message="Search a text in the definition of the objects" small />
+			<StudioEmptyState message="Search by text, object type or object filters" small />
 		{/if}
 	</div>
 </div>
@@ -379,6 +431,18 @@
 		min-height: 0;
 		overflow: auto;
 		padding-bottom: 0.5rem;
+	}
+
+	.studio-search__filters {
+		min-width: 0;
+		border: 1px solid var(--studio-line);
+		border-radius: 0.25rem;
+		color: var(--studio-text);
+		font-size: 0.72rem;
+	}
+
+	.studio-search__filters legend {
+		color: var(--studio-text-idle);
 	}
 
 	.studio-search__message {

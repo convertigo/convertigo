@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.admin.services.studio.treeview;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -38,6 +39,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
+import com.twinsoft.convertigo.engine.util.DatabaseObjectSearchFilters;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
 
@@ -45,9 +47,10 @@ import com.twinsoft.convertigo.engine.util.YamlConverter;
  * Finds the objects whose definition contains a text, as the Convertigo search of the Eclipse Studio: each
  * object of the projects, or of the object given as scope, is written as YAML and searched.
  * <ul>
- * <li>text: the searched text, or a regular expression with regExp=true</li>
+ * <li>text: optional searched text, or a regular expression with regExp=true</li>
  * <li>matchCase: true for a case sensitive search</li>
  * <li>type: a database object type (Sequence, Step, Transaction...), or * for all</li>
+ * <li>brokenSources, inactive, symbols, unknownSymbols: object filters combined with AND</li>
  * <li>scope: the tree id of the object to search in, the whole workspace when missing</li>
  * <li>limit: the maximum number of results (500 by default)</li>
  * </ul>
@@ -57,10 +60,7 @@ public class Search extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
-		var text = request.getParameter("text");
-		if (text == null || text.isEmpty()) {
-			throw new ServiceException("missing text parameter");
-		}
+		var text = Objects.requireNonNullElse(request.getParameter("text"), "");
 		var matchCase = "true".equals(request.getParameter("matchCase"));
 		var regExp = "true".equals(request.getParameter("regExp"));
 		var type = request.getParameter("type");
@@ -68,6 +68,14 @@ public class Search extends JSonService {
 			type = "*";
 		} else if (!"*".equals(type)) {
 			DatabaseObjectTypes.valueOf(type);
+		}
+		var filters = new DatabaseObjectSearchFilters(
+				"true".equals(request.getParameter("brokenSources")),
+				"true".equals(request.getParameter("inactive")),
+				"true".equals(request.getParameter("symbols")),
+				"true".equals(request.getParameter("unknownSymbols")));
+		if (text.isEmpty() && "*".equals(type) && !filters.hasCriteria()) {
+			throw new ServiceException("Enter a search text, choose an object type or select an object filter.");
 		}
 		var limit = 500;
 		try {
@@ -77,7 +85,7 @@ public class Search extends JSonService {
 		}
 
 		Pattern pattern = null;
-		if (regExp) {
+		if (regExp && !text.isEmpty()) {
 			try {
 				pattern = matchCase ? Pattern.compile(text) : Pattern.compile(text, Pattern.CASE_INSENSITIVE);
 			} catch (PatternSyntaxException e) {
@@ -117,19 +125,23 @@ public class Search extends JSonService {
 
 				@Override
 				protected void walk(DatabaseObject databaseObject) throws Exception {
-					if (truncated[0]) {
+					if (databaseObject == null || truncated[0]) {
 						return;
 					}
-					if ("*".equals(objectType) || objectType.equals(databaseObject.getDatabaseType())) {
-						String definition;
-						try {
-							definition = YamlConverter.toYaml(databaseObject.toXml(XMLUtils.createDom()));
-						} catch (Exception e) {
-							definition = databaseObject.toString();
+					if (("*".equals(objectType) || objectType.equals(databaseObject.getDatabaseType()))
+							&& filters.matches(databaseObject)) {
+						var found = text.isEmpty();
+						if (!found) {
+							String definition;
+							try {
+								definition = YamlConverter.toYaml(databaseObject.toXml(XMLUtils.createDom()));
+							} catch (Exception e) {
+								definition = databaseObject.toString();
+							}
+							found = matcher != null
+									? matcher.reset(definition).find()
+									: (matchCase ? definition : definition.toLowerCase()).contains(searched);
 						}
-						var found = matcher != null
-								? matcher.reset(definition).find()
-								: (matchCase ? definition : definition.toLowerCase()).contains(searched);
 						if (found) {
 							if (results.length() >= max) {
 								truncated[0] = true;

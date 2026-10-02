@@ -111,7 +111,7 @@ public class Apply extends JSonService {
 		try {
 			for (PropertyDescriptor descriptor : java.beans.Introspector.getBeanInfo(dbo.getClass()).getPropertyDescriptors()) {
 				if (!"sourceDefinition".equals(descriptor.getName())
-						&& com.twinsoft.convertigo.engine.admin.services.studio.properties.StepSources.handles(dbo, descriptor.getName())) {
+						&& com.twinsoft.convertigo.engine.util.StepSources.handles(dbo, descriptor.getName())) {
 					addCandidate(candidates, descriptor, "sourceDefinition");
 				}
 			}

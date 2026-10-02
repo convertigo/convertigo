@@ -11,6 +11,14 @@ opt-in smoke test.
 sources, PDF step broken-source labels, updates after repairing a source, and
 empty or malformed definitions. It runs without starting an engine or Studio.
 
+## Studio object search
+
+`./gradlew :engine:studioSearchTest` exercises the web search service and the
+filters shared with Eclipse: type/filter-only searches, AND combinations,
+symbols, classic/PDF/variable/multiple/additional step sources, text and regex,
+project scope, unavailable workspace projects and result limits. It uses
+in-memory projects without a server or Eclipse property editor classes.
+
 ## FullSync replication access
 
 `./gradlew :engine:fullSyncReplicationPolicyTest` checks the public endpoint policy

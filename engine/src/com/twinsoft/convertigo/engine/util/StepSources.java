@@ -17,7 +17,7 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.twinsoft.convertigo.engine.admin.services.studio.properties;
+package com.twinsoft.convertigo.engine.util;
 
 import java.util.Set;
 

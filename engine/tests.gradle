@@ -29,6 +29,7 @@ tasks.named('check') {
 	dependsOn 'workspaceLoadingTest'
 	dependsOn 'fullSyncReplicationPolicyTest'
 	dependsOn 'stepSourceTest'
+	dependsOn 'studioSearchTest'
 }
 
 tasks.register('stepSourceTest', JavaExec) {
@@ -38,6 +39,15 @@ tasks.register('stepSourceTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.beans.core.StepSourceTest'
+}
+
+tasks.register('studioSearchTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for Studio object search criteria and shared filters.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.admin.services.studio.treeview.SearchTest'
 }
 
 tasks.register('fullSyncReplicationPolicyTest', JavaExec) {
