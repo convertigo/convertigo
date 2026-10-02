@@ -4189,7 +4189,7 @@
 			id="com.twinsoft.convertigo.eclipse.search.DatabaseObjectSearchPage"
 			class="com.twinsoft.convertigo.eclipse.search.DatabaseObjectSearchPage"
 			label="Convertigo Search"
-			sizeHint="460,160"
+			sizeHint="460,300"
 			icon="icons/studio/convertigo_logo_16x16.png"
 			tabPosition="1">
 		</page>

@@ -39,6 +39,16 @@ tasks.named('check') {
 	dependsOn 'mdcLifecycleTest'
 	dependsOn 'workspaceLoadingTest'
 	dependsOn 'fullSyncReplicationPolicyTest'
+	dependsOn 'stepSourceTest'
+}
+
+tasks.register('stepSourceTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for step source aggregation and broken-source labels.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.core.StepSourceTest'
 }
 
 tasks.register('fullSyncReplicationPolicyTest', JavaExec) {

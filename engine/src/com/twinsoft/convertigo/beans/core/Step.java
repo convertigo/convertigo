@@ -290,14 +290,17 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	public boolean workOnSource() {
 		if (this instanceof IStepSourceContainer) {
-			return !((IStepSourceContainer)this).getSourceDefinition().isEmpty();
+			var definition = ((IStepSourceContainer)this).getSourceDefinition();
+			if (definition != null && !definition.isEmpty()) return true;
 		}
-		else if (this instanceof IStepSourcesContainer) {
-			return !((IStepSourcesContainer)this).getSourcesDefinition().isEmpty();
+		if (this instanceof IStepSourcesContainer) {
+			var definitions = ((IStepSourcesContainer)this).getSourcesDefinition();
+			if (definitions != null && !definitions.isEmpty()) return true;
 		}
-		else if (this instanceof IStepSmartTypeContainer) {
+		if (this instanceof IStepSmartTypeContainer) {
 			for (SmartType smartType: ((IStepSmartTypeContainer)this).getSmartTypes()) {
-				if (smartType.isUseSource()) {
+				if (smartType != null && smartType.isUseSource()
+						&& !new StepSource(this, smartType.getSourceDefinition()).isEmpty()) {
 					return true;
 				}
 			}
@@ -322,18 +325,26 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	public Set<StepSource> getSources() {
 		Set<StepSource> stepSources = new HashSet<StepSource>();
 		if (this instanceof IStepSourceContainer) {
-			stepSources.add(getSource());
+			var source = getSource();
+			if (source != null && !source.isEmpty()) stepSources.add(source);
 		}
-		else if (this instanceof IStepSourcesContainer) {
-			for (XMLVector<Object> row: ((IStepSourcesContainer)this).getSourcesDefinition()) {
-				XMLVector<String> sourceDefinition = GenericUtils.cast(row.get(1));
-				stepSources.add(new StepSource(this, sourceDefinition));
+		// A step may implement more than one source container (notably PdfFormStep).
+		if (this instanceof IStepSourcesContainer) {
+			var definitions = ((IStepSourcesContainer)this).getSourcesDefinition();
+			if (definitions != null) {
+				for (Object entry: definitions) {
+					if (entry instanceof XMLVector<?> row && row.size() > 1
+							&& row.get(1) instanceof XMLVector<?> definition && !definition.isEmpty()) {
+						stepSources.add(new StepSource(this, GenericUtils.cast(definition)));
+					}
+				}
 			}
 		}
-		else if (this instanceof IStepSmartTypeContainer) {
+		if (this instanceof IStepSmartTypeContainer) {
 			for (SmartType smartType: ((IStepSmartTypeContainer)this).getSmartTypes()) {
-				if (smartType.isUseSource()) {
-					stepSources.add(new StepSource(this, smartType.getSourceDefinition()));
+				if (smartType != null && smartType.isUseSource()) {
+					var source = new StepSource(this, smartType.getSourceDefinition());
+					if (!source.isEmpty()) stepSources.add(source);
 				}
 			}
 		}
@@ -387,7 +398,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	protected String getLabel() throws EngineException {
 		if (workOnSource()) {
 			StepSource stepSource = getSource();
-			if (stepSource != null) {
+			if (stepSource != null && !stepSource.isEmpty()) {
 				return stepSource.getLabel();
 			}
 		}

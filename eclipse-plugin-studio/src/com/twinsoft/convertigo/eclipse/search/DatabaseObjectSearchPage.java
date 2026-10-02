@@ -31,6 +31,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
@@ -43,6 +44,10 @@ public class DatabaseObjectSearchPage extends DialogPage implements ISearchPage 
 	private Text tSearch = null;
 	private Button bMatchCase = null;
 	private Button bRegExp = null;
+	private Button bBrokenSources = null;
+	private Button bInactive = null;
+	private Button bSymbols = null;
+	private Button bUnknownSymbols = null;
 
 	private ISearchPageContainer container;
 	private DatabaseObject root = null;
@@ -71,9 +76,7 @@ public class DatabaseObjectSearchPage extends DialogPage implements ISearchPage 
 		tSearch = new Text(part, SWT.BORDER);
 		tSearch.setText(search);
 		tSearch.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING));
-		tSearch.addModifyListener((e) -> {
-			container.setPerformActionEnabled(!tSearch.getText().isEmpty());
-		});
+		tSearch.addModifyListener((e) -> updateActionEnabled());
 		tSearch.setSelection(0, search.length());
 		tSearch.setFocus();
 
@@ -98,6 +101,20 @@ public class DatabaseObjectSearchPage extends DialogPage implements ISearchPage 
 			cType.add(v.name());
 		}
 		cType.select(type);
+		cType.addListener(SWT.Selection, (e) -> updateActionEnabled());
+
+		var filters = new Group(self, SWT.NONE);
+		filters.setText("Object filters (AND)");
+		filters.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		GridLayoutFactory.fillDefaults().margins(5, 3).numColumns(2).applyTo(filters);
+		bBrokenSources = createFilter(filters, "Broken sources", "search.bBrokenSources",
+				"Objects with a broken step source, including step variables and SmartType sources.");
+		bInactive = createFilter(filters, "Inactive objects", "search.bInactive",
+				"Objects whose own Is active / Is enabled property is false.");
+		bSymbols = createFilter(filters, "Uses symbols", "search.bSymbols",
+				"Objects using global symbols, including known symbols and symbols with a default value.");
+		bUnknownSymbols = createFilter(filters, "Unknown symbols", "search.bUnknownSymbols",
+				"Objects with an undefined symbol in one of their own properties.");
 
 		scope = root == null ? new RadioGroupFieldEditor("scope", "Scope", 1, new String[][] {
 			{"Workspace", "workspace"}
@@ -112,6 +129,24 @@ public class DatabaseObjectSearchPage extends DialogPage implements ISearchPage 
 		setControl(self);
 	}
 
+	private Button createFilter(Composite parent, String label, String preference, String tooltip) {
+		var button = new Button(parent, SWT.CHECK);
+		button.setText(label);
+		button.setToolTipText(tooltip);
+		button.setSelection(ConvertigoPlugin.getDefault().getPreferenceStore().getBoolean(preference));
+		button.addListener(SWT.Selection, (e) -> updateActionEnabled());
+		return button;
+	}
+
+	private void updateActionEnabled() {
+		container.setPerformActionEnabled(!tSearch.getText().isEmpty()
+				|| cType != null && cType.getSelectionIndex() > 0
+				|| bBrokenSources != null && bBrokenSources.getSelection()
+				|| bInactive != null && bInactive.getSelection()
+				|| bSymbols != null && bSymbols.getSelection()
+				|| bUnknownSymbols != null && bUnknownSymbols.getSelection());
+	}
+
 	@Override
 	public boolean performAction() {
 		var store = ConvertigoPlugin.getDefault().getPreferenceStore();
@@ -124,6 +159,10 @@ public class DatabaseObjectSearchPage extends DialogPage implements ISearchPage 
 		store.setValue("bMatchCase", matchCase);
 		store.setValue("bRegExp", regExp);
 		store.setValue("cType", type);
+		store.setValue("search.bBrokenSources", bBrokenSources.getSelection());
+		store.setValue("search.bInactive", bInactive.getSelection());
+		store.setValue("search.bSymbols", bSymbols.getSelection());
+		store.setValue("search.bUnknownSymbols", bUnknownSymbols.getSelection());
 		scope.store();
 
 		var dbo = root;
@@ -131,7 +170,8 @@ public class DatabaseObjectSearchPage extends DialogPage implements ISearchPage 
 		case "workspace": dbo = null; break;
 		case "project": dbo = dbo.getProject();
 		}
-		var query = new DatabaseObjectSearchQuery(dbo, search, matchCase, regExp, cType.getText());
+		var query = new DatabaseObjectSearchQuery(dbo, search, matchCase, regExp, cType.getText(),
+				bBrokenSources.getSelection(), bInactive.getSelection(), bSymbols.getSelection(), bUnknownSymbols.getSelection());
 		NewSearchUI.runQueryInBackground(query);
 		return true;
 	}
@@ -149,7 +189,7 @@ public class DatabaseObjectSearchPage extends DialogPage implements ISearchPage 
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		if (visible) {
-			container.setPerformActionEnabled(!tSearch.getText().isEmpty());
+			updateActionEnabled();
 		}
 	}
 }
