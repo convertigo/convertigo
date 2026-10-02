@@ -4,6 +4,7 @@
 
 #### Improvements:
 
+- [#1165](https://github.com/convertigo/convertigo/issues/1165) [Studio] Object searches can now combine filters for broken sources, inactive objects, symbol usage and undefined symbols; PDF steps also flag broken sources in the project tree
 - [#1167](https://github.com/convertigo/convertigo/issues/1167) [Engine] Server startup no longer waits on unreachable external hosts
 - [#1169](https://github.com/convertigo/convertigo/issues/1169) [Engine] Placeholder jars now report where the official jar must be installed, with `lib/README.md` and `libs/README.md` in the workspace; the Docker image finds native libraries dropped in `/workspace/lib`
 - [#1214](https://github.com/convertigo/convertigo/issues/1214) [Engine] The connector connection string override is now reserved to calls made inside the engine

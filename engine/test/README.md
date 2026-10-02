@@ -5,6 +5,12 @@ included by `engine/build.gradle`. Run `./gradlew :engine:check` for the regress
 suites, or select an individual task below. `:engine:soapuiSmokeTest` is a separate
 opt-in smoke test.
 
+## Step sources
+
+`./gradlew :engine:stepSourceTest` checks aggregation of classic and SmartType
+sources, PDF step broken-source labels, updates after repairing a source, and
+empty or malformed definitions. It runs without starting an engine or Studio.
+
 ## FullSync replication access
 
 `./gradlew :engine:fullSyncReplicationPolicyTest` checks the public endpoint policy

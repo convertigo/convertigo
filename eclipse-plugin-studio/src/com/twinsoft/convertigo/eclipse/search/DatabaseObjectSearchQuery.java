@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.search;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -28,10 +29,17 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.search.ui.ISearchQuery;
 import org.eclipse.search.ui.ISearchResult;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
+import com.twinsoft.convertigo.beans.core.IStepSourcesContainer;
+import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
 
@@ -40,6 +48,10 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 	private boolean matchCase;
 	private boolean useRegExp;
 	private String objectType;
+	private boolean brokenSources;
+	private boolean inactive;
+	private boolean symbols;
+	private boolean unknownSymbols;
 	private DatabaseObjectSearchResult searchResult;
 	private DatabaseObject root;
 	private String rootQName;
@@ -47,18 +59,36 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 
 
 	public DatabaseObjectSearchQuery(DatabaseObject root, String searchString, boolean matchCase, boolean useRegExp, String objectType) {
+		this(root, searchString, matchCase, useRegExp, objectType, false, false, false, false);
+	}
+
+	public DatabaseObjectSearchQuery(DatabaseObject root, String searchString, boolean matchCase, boolean useRegExp,
+			String objectType, boolean brokenSources, boolean inactive, boolean symbols, boolean unknownSymbols) {
 		this.root = root;
 		this.searchString = searchString;
 		this.matchCase = matchCase;
 		this.useRegExp = useRegExp;
 		this.objectType = objectType;
+		this.brokenSources = brokenSources;
+		this.inactive = inactive;
+		this.symbols = symbols;
+		this.unknownSymbols = unknownSymbols;
 		this.searchResult = new DatabaseObjectSearchResult(this);
 		rootQName = root == null ? "workspace" : root.getFullQName();
 	}
 
 	@Override
 	public String getLabel() {
-		return (useRegExp ? "regular expression" : "substring") + " '" + searchString + "' from " + rootQName;
+		var criteria = new ArrayList<String>();
+		if (!searchString.isEmpty()) {
+			criteria.add((useRegExp ? "regular expression" : "substring") + " '" + searchString + "'");
+		}
+		if (!"*".equals(objectType)) criteria.add("type " + objectType);
+		if (brokenSources) criteria.add("broken sources");
+		if (inactive) criteria.add("inactive objects");
+		if (symbols) criteria.add("uses symbols");
+		if (unknownSymbols) criteria.add("unknown symbols");
+		return (criteria.isEmpty() ? "all objects" : String.join(" AND ", criteria)) + " from " + rootQName;
 	}
 
 	@Override
@@ -79,7 +109,7 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 			searching = true;
 			
 			var substring = new String[]{searchString};
-			var matcher = useRegExp ? 
+			var matcher = useRegExp && !searchString.isEmpty() ?
 					(matchCase ? Pattern.compile(searchString) : Pattern.compile(searchString, Pattern.CASE_INSENSITIVE)).matcher("") 
 					: null;
 			if (!matchCase) {
@@ -96,29 +126,40 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 				}
 				
 				var dbo = i instanceof String s ? dbom.getOriginalProjectByName(s, true) : (DatabaseObject) i;
+				// A workspace project can have disappeared, been closed or become unavailable
+				// after the list was retrieved; the manager then legitimately returns null.
+				if (dbo == null) {
+					ConvertigoPlugin.logInfo("Search skipped unavailable project '" + i + "'.", false);
+					continue;
+				}
 				
 				new WalkHelper() {
 					@Override
 					protected void walk(DatabaseObject databaseObject) throws Exception {
+						if (databaseObject == null) {
+							return;
+						}
 						if (monitor.isCanceled()) {
 							status[0] = Status.CANCEL_STATUS;
 							return;
 						}
 						var match = "*".equals(objectType) || databaseObject.getDatabaseType().equals(objectType);
-						if (match) {
-							String text;
-							try {
-								text = YamlConverter.toYaml(databaseObject.toXml(XMLUtils.createDom()));
-							} catch (Exception e) {
-								text = databaseObject.toString();
-							}
-							var found = false;
-							if (useRegExp) {
-								matcher.reset(text);
-								found = matcher.find();
-							} else {
-								text = matchCase ? text : text.toLowerCase();
-								found = text.contains(substring[0]);
+						if (match && matchesFilters(databaseObject)) {
+							var found = searchString.isEmpty();
+							if (!found) {
+								String text;
+								try {
+									text = YamlConverter.toYaml(databaseObject.toXml(XMLUtils.createDom()));
+								} catch (Exception e) {
+									text = databaseObject.toString();
+								}
+								if (useRegExp) {
+									matcher.reset(text);
+									found = matcher.find();
+								} else {
+									text = matchCase ? text : text.toLowerCase();
+									found = text.contains(substring[0]);
+								}
 							}
 
 							if (found) {
@@ -131,11 +172,99 @@ public class DatabaseObjectSearchQuery implements ISearchQuery {
 				}.init(dbo);
 			}
 		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Database object search failed in " + rootQName, false);
 			ConvertigoPlugin.errorMessageBox(e.getClass().getName() + ":\n" + e.getMessage());
 			status[0] = Status.CANCEL_STATUS;
 		}
 		searching = false;
 		return status[0];
+	}
+
+	private boolean matchesFilters(DatabaseObject databaseObject) throws Exception {
+		if (databaseObject == null) {
+			return false;
+		}
+		if (unknownSymbols && !databaseObject.isSymbolError()) {
+			return false;
+		}
+		if (brokenSources && !hasBrokenSource(databaseObject)) {
+			return false;
+		}
+		if (!inactive && !symbols) {
+			return true;
+		}
+		var isInactive = false;
+		var usesSymbols = databaseObject.isSymbolError();
+		for (var property : CachedIntrospector.getBeanInfo(databaseObject).getPropertyDescriptors()) {
+			var name = property.getName();
+			if (inactive && ("isEnabled".equals(name) || "isEnable".equals(name)) && property.getReadMethod() != null) {
+				isInactive |= Boolean.FALSE.equals(property.getReadMethod().invoke(databaseObject));
+			}
+			// Compilation keeps the original value only when it contains a global symbol,
+			// including encrypted properties, nested XMLVectors and SmartType expressions.
+			if (symbols && databaseObject.getCompilablePropertySourceValue(name) != null) {
+				usesSymbols = true;
+			}
+		}
+		return (!inactive || isInactive) && (!symbols || usesSymbols);
+	}
+
+	private boolean hasBrokenSource(DatabaseObject databaseObject) throws Exception {
+		var owner = databaseObject instanceof Step step ? step
+				: databaseObject.getParent() instanceof Step parentStep ? parentStep : null;
+		if (owner == null) {
+			return false;
+		}
+		if (databaseObject instanceof IStepSourceContainer container) {
+			if (isBrokenSource(owner, container.getSourceDefinition())) return true;
+		}
+		// Inspect multi-source rows defensively: legacy rows can contain text instead
+		// of a source definition, and this search also covers step variables.
+		if (databaseObject instanceof IStepSourcesContainer container) {
+			for (Object entry : container.getSourcesDefinition()) {
+				if (entry instanceof XMLVector<?> row && row.size() > 1
+						&& row.get(1) instanceof XMLVector<?> definition
+						&& isBrokenSource(owner, definition)) return true;
+			}
+		}
+		if (databaseObject instanceof IStepSmartTypeContainer container) {
+			for (var smartType : container.getSmartTypes()) {
+				if (smartType != null && smartType.isUseSource()
+						&& isBrokenSource(owner, smartType.getSourceDefinition())) return true;
+			}
+		}
+		// Some steps have additional source properties (connection string, dates, ...)
+		// that are not exposed by Step.getSources().
+		for (var property : CachedIntrospector.getBeanInfo(databaseObject).getPropertyDescriptors()) {
+			var getter = property.getReadMethod();
+			var editor = property.getPropertyEditorClass();
+			if (getter == null) continue;
+			if (editor != null && "StepSourceEditor".equals(editor.getSimpleName())
+					&& XMLVector.class.isAssignableFrom(property.getPropertyType())) {
+				if (getter.invoke(databaseObject) instanceof XMLVector<?> definition
+						&& isBrokenSource(owner, definition)) return true;
+			} else if (SmartType.class.equals(property.getPropertyType())) {
+				var smartType = (SmartType) getter.invoke(databaseObject);
+				if (smartType != null && smartType.isUseSource()
+						&& isBrokenSource(owner, smartType.getSourceDefinition())) return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isBrokenSource(Step owner, XMLVector<?> definition) {
+		if (definition == null || definition.isEmpty()) {
+			return false;
+		}
+		if (!(definition.get(0) instanceof String priority)) {
+			return true;
+		}
+		try {
+			// Same target lookup as StepSource.isBroken(), without assuming vector element types.
+			return owner.getParentSequence().loadedSteps.get(Long.valueOf(priority)) == null;
+		} catch (NumberFormatException e) {
+			return true;
+		}
 	}
 
 	@Override

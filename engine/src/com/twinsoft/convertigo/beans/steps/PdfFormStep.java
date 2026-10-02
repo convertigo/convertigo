@@ -101,6 +101,15 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 		xml = true;
 	}
 
+	@Override
+	public String toString() {
+		try {
+			return getName() + getSpecificLabel();
+		} catch (EngineException e) {
+			return getName();
+		}
+	}
+
 	/* Setters and Getters */
 	public SmartType getFilePath() {
 		return filePath;
@@ -108,6 +117,7 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 
 	public void setFilePath(SmartType filePath) {
 		this.filePath = filePath;
+		smartTypes = null;
 	}
 
 	public SmartType getFields() {
@@ -116,6 +126,7 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 
 	public void setFields(SmartType fieldsList) {
 		this.fieldsList = fieldsList;
+		smartTypes = null;
 	}
 
 	public Action getAction() {
@@ -132,6 +143,7 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 
 	public void setTargetFile(SmartType targetFile) {
 		this.targetFile = targetFile;
+		smartTypes = null;
 	}
 
 	@Override

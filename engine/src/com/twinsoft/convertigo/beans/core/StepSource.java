@@ -42,7 +42,7 @@ public class StepSource {
 	}
 	
 	public boolean isEmpty() {
-		return definition.isEmpty();
+		return definition == null || definition.isEmpty();
 	}
 	public XMLVector<String> getDefinition() {
 		return definition;
@@ -178,8 +178,14 @@ public class StepSource {
 	
 	public String getLabel() throws EngineException {
 		String label = "";
-		if (definition.size() > 0) {
-			Step step = (Step)owner.getParentSequence().loadedSteps.get(Long.valueOf(getPriority()));
+		if (!isEmpty()) {
+			Long priority;
+			try {
+				priority = Long.valueOf(getPriority());
+			} catch (NumberFormatException | ClassCastException e) {
+				return "! broken source !";
+			}
+			Step step = (Step)owner.getParentSequence().loadedSteps.get(priority);
 			if (step != null) {
 				label = step.getContextXpath(getXpath());
 				if (label.equals(".")) {
@@ -205,6 +211,11 @@ public class StepSource {
 	}
 
 	public boolean isBroken() {
-		return owner.getParentSequence().loadedSteps.get(Long.valueOf(getPriority())) == null;
+		if (isEmpty()) return false;
+		try {
+			return owner.getParentSequence().loadedSteps.get(Long.valueOf(getPriority())) == null;
+		} catch (NumberFormatException | ClassCastException e) {
+			return true;
+		}
 	}
 }
