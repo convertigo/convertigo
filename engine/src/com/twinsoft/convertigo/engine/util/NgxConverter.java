@@ -42,6 +42,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.BeansDefaultValues;
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
@@ -1750,12 +1751,123 @@ public class NgxConverter {
 		convertBean(root);
 		//XMLUtils.saveXml(document, new File(outputDir, "b.xml"));
 		document = BeansDefaultValues.unshrinkProject(document);
+		migrateNgxBeans(document);
 		Document shrink = BeansDefaultValues.shrinkProject(document);
 		YamlConverter.writeYaml(shrink, new File(outputDir, "c8oProject.yaml"), new File(outputDir, "_c8oProject"));
 		
 		sharedMap.clear();
 		
 		com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(new File(outputDir, "_private/ionic"));
+	}
+
+	private static final String UICustomActionClass = "com.twinsoft.convertigo.beans.ngx.components.UICustomAction";
+	private static final String UIActionStackClass = "com.twinsoft.convertigo.beans.ngx.components.UIActionStack";
+	private static final String UIDynamicMenuItemsClass = "com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItems";
+
+	/**
+	 * Migrates the converted beans as the beans of an NGX project older than 8.4.0 migrate when it loads: the
+	 * converted project is written with the version of its beans, which these migrations no longer apply to.
+	 * The imports of a custom action go to the application, where a shared action takes them, and the items of
+	 * a menu are translated, as before.
+	 */
+	private static void migrateNgxBeans(Document document) throws Exception {
+		var all = document.getElementsByTagName("*");
+		var beans = new ArrayList<Element>();
+		for (int i = 0; i < all.getLength(); i++) {
+			var element = (Element) all.item(i);
+			var classname = element.getAttribute("classname");
+			if (UICustomActionClass.equals(classname) || UIDynamicMenuItemsClass.equals(classname)) {
+				beans.add(element);
+			}
+		}
+		for (var bean : beans) {
+			if (UIDynamicMenuItemsClass.equals(bean.getAttribute("classname"))) {
+				setProperty(bean, "i18n", Boolean.TRUE);
+				continue;
+			}
+			var pageImports = tsImports(vectorProperty(bean, "page_ts_imports"));
+			var moduleImports = tsImports(vectorProperty(bean, "module_ts_imports"));
+			copyIfEmpty(bean, "app_ts_imports", pageImports);
+			copyIfEmpty(bean, "local_module_ts_imports", moduleImports);
+			copyIfEmpty(bean, "local_module_ng_imports", vectorProperty(bean, "module_ng_imports"));
+			copyIfEmpty(bean, "local_module_ng_providers", vectorProperty(bean, "module_ng_providers"));
+			setProperty(bean, "module_ts_imports", moduleImports);
+			// a custom action of a shared action has the imports of the application only
+			setProperty(bean, "page_ts_imports", inSharedAction(bean) ? new XMLVector<XMLVector<String>>() : pageImports);
+		}
+	}
+
+	/** @return TypeScript imports as NGX writes them, the names imported between braces */
+	private static XMLVector<XMLVector<String>> tsImports(XMLVector<XMLVector<String>> imports) {
+		for (XMLVector<String> v : imports) {
+			try {
+				String entry = v.get(0).trim();
+				boolean isDirectImport = v.size() < 3 ? false : "true".equals(v.get(2).trim());
+				if (!isDirectImport && !entry.isEmpty() && !entry.startsWith("{") && (entry.indexOf(" as ") == -1)) {
+					v.set(0, "{ "+ entry + " }");
+				}
+				while (v.size() > 2) {
+					v.remove(v.size() - 1);
+				}
+			} catch (Exception e) {
+				// an entry the custom action skips, as its migration does
+				e.printStackTrace();
+			}
+		}
+		return imports;
+	}
+
+	private static boolean inSharedAction(Element bean) {
+		for (var node = bean.getParentNode(); node instanceof Element parent; node = parent.getParentNode()) {
+			if (UIActionStackClass.equals(parent.getAttribute("classname"))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void copyIfEmpty(Element bean, String name, XMLVector<XMLVector<String>> value) throws Exception {
+		if (!value.isEmpty() && vectorProperty(bean, name).isEmpty()) {
+			setProperty(bean, name, new XMLVector<XMLVector<String>>(value));
+		}
+	}
+
+	private static Element property(Element bean, String name) {
+		for (var node = bean.getFirstChild(); node != null; node = node.getNextSibling()) {
+			if (node instanceof Element property && "property".equals(property.getTagName()) && name.equals(property.getAttribute("name"))) {
+				return property;
+			}
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static XMLVector<XMLVector<String>> vectorProperty(Element bean, String name) throws Exception {
+		var property = property(bean, name);
+		if (property != null) {
+			for (var node = property.getFirstChild(); node != null; node = node.getNextSibling()) {
+				if (node instanceof Element value) {
+					if (XMLUtils.readObjectFromXml(value) instanceof XMLVector<?> vector) {
+						return (XMLVector<XMLVector<String>>) vector;
+					}
+					break;
+				}
+			}
+		}
+		return new XMLVector<XMLVector<String>>();
+	}
+
+	private static void setProperty(Element bean, String name, Object value) throws Exception {
+		var property = property(bean, name);
+		if (property == null) {
+			property = bean.getOwnerDocument().createElement("property");
+			property.setAttribute("name", name);
+			bean.insertBefore(property, bean.getFirstChild());
+		}
+		while (property.getFirstChild() != null) {
+			property.removeChild(property.getFirstChild());
+		}
+		property.appendChild(XMLUtils.writeObjectToXml(bean.getOwnerDocument(), value));
 	}
 
 	private static String time() {
