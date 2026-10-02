@@ -44,7 +44,6 @@
 	import StudioAddFileDialog from '$lib/studio/StudioAddFileDialog.svelte';
 	import StudioArchiveDialog from '$lib/studio/StudioArchiveDialog.svelte';
 	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
-	import StudioProjectBuilderPanel from '$lib/studio/StudioProjectBuilderPanel.svelte';
 	import {
 		canReadSystemClipboard,
 		hasStudioClipboard,
@@ -74,6 +73,7 @@
 	} from '$lib/studio/studioPreferences.svelte.js';
 	import StudioPreferencesDialog from '$lib/studio/StudioPreferencesDialog.svelte';
 	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
+	import StudioProjectBuilderPanel from '$lib/studio/StudioProjectBuilderPanel.svelte';
 	import { studioPrompt } from '$lib/studio/studioPrompt.svelte.js';
 	import StudioPromptDialog from '$lib/studio/StudioPromptDialog.svelte';
 	import StudioPropertiesPanel from '$lib/studio/StudioPropertiesPanel.svelte';

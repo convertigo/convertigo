@@ -227,7 +227,10 @@ export function authoringActionsMessage(reference, actions) {
 		type: 'authoring.actions',
 		reference,
 		actions: (Array.isArray(actions) ? actions : [])
-			.filter((action) => action && typeof action.id === 'string' && action.id && typeof action.label === 'string')
+			.filter(
+				(action) =>
+					action && typeof action.id === 'string' && action.id && typeof action.label === 'string'
+			)
 			.map((action) => ({
 				id: action.id,
 				label: action.label,

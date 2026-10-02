@@ -197,7 +197,11 @@ describe('Flow visual authoring protocol', () => {
 	});
 
 	it('answers the chip of the preview with the actions of the tree on its object', () => {
-		const request = { protocol: FLOW_AUTHORING_PROTOCOL, type: 'authoring.actions.request', reference };
+		const request = {
+			protocol: FLOW_AUTHORING_PROTOCOL,
+			type: 'authoring.actions.request',
+			reference
+		};
 		expect(authoringActionsRequest(request)).toEqual({ reference });
 		expect(authoringActionsRequest({ ...request, reference: { nodeId: 'title' } })).toBe(null);
 		expect(authoringActionsRequest({ ...request, type: 'authoring.select' })).toBe(null);
