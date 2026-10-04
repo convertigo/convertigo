@@ -7,7 +7,7 @@
 	import Ico from '$lib/utils/Ico.svelte';
 	import { getUrl, serverRetryDelay } from '$lib/utils/service';
 	import { onDestroy, tick } from 'svelte';
-	import { loadPaletteContext, paletteContextLabel } from './paletteContext';
+	import { loadPaletteContext, paletteContextLabel, paletteIconPath } from './paletteContext';
 	import {
 		paletteMemory,
 		rememberPaletteUse,
@@ -33,6 +33,11 @@
 	 * @property {string=} shortDescriptionText
 	 * @property {string=} propertiesDescriptionHtml
 	 * @property {string=} icon
+	 * @property {string=} iconSvg
+	 * @property {string=} iconFile32
+	 * @property {string=} iconFile16
+	 * @property {string=} iconFile
+	 * @property {string=} iconify
 	 * @property {boolean=} builtin
 	 * @property {boolean=} additional
 	 */
@@ -315,7 +320,9 @@
 			.join('\u001e');
 	}
 
-	function iconSource(icon) {
+	/** @param {PaletteItem} item */
+	function iconSource(item) {
+		const icon = paletteIconPath(item);
 		if (!icon) {
 			return '';
 		}
@@ -516,14 +523,10 @@
 										}}
 									>
 										<span class="studio-palette__icon">
-											{#if iconSource(item.icon)}
-												<AutoSvg
-													src={iconSource(item.icon)}
-													alt=""
-													class="h-5 w-5 object-contain"
-												/>
+											{#if iconSource(item)}
+												<AutoSvg src={iconSource(item)} alt="" class="h-5 w-5 object-contain" />
 											{:else}
-												<Ico icon="mdi:cube-outline" size={4} />
+												<Ico icon={item.iconify || item.icon || 'mdi:cube-outline'} size={4} />
 											{/if}
 										</span>
 										<span class="studio-palette__item-main">

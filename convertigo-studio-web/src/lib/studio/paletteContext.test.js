@@ -1,5 +1,43 @@
 import { describe, expect, it } from 'vitest';
-import { loadPaletteContext, paletteContextLabel, parentPaletteId } from './paletteContext';
+import {
+	loadPaletteContext,
+	paletteContextLabel,
+	paletteIconPath,
+	parentPaletteId
+} from './paletteContext';
+
+describe('Studio palette icon assets', () => {
+	it('uses a resolved SVG instead of the descriptor symbolic icon', () => {
+		expect(
+			paletteIconPath({
+				icon: 'mdi:equal',
+				iconify: 'mdi:equal',
+				iconSvg: '/cache/flow-icons-v2/equal.svg',
+				iconFile32: '/cache/flow-icons-v2/equal_32x32.png'
+			})
+		).toBe('/cache/flow-icons-v2/equal.svg');
+	});
+
+	it('supports resolved raster assets and ordinary DBO icons', () => {
+		expect(paletteIconPath({ icon: 'mdi:equal', iconFile32: '/cache/equal_32x32.png' })).toBe(
+			'/cache/equal_32x32.png'
+		);
+		expect(paletteIconPath({ icon: '/beans/images/sequence_32x32.png' })).toBe(
+			'/beans/images/sequence_32x32.png'
+		);
+		expect(paletteIconPath({ icon: 'workspace:cache/example.svg' })).toBe(
+			'workspace:cache/example.svg'
+		);
+	});
+
+	it('never sends a symbolic icon identifier to the image service', () => {
+		expect(paletteIconPath({ icon: 'mdi:equal' })).toBe('');
+		expect(paletteIconPath({ iconFile32: 'mdi:equal', iconFile: '/cache/equal.svg' })).toBe(
+			'/cache/equal.svg'
+		);
+		expect(paletteIconPath({})).toBe('');
+	});
+});
 
 describe('Studio palette parent context', () => {
 	it('uses visible typed folders before their owning database object', () => {

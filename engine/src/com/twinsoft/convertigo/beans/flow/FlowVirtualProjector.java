@@ -70,18 +70,28 @@ class FlowVirtualProjector {
 			return children;
 		}
 		var seen = new HashSet<String>();
+		var names = new HashSet<String>();
 		for (var i = 0; i < array.length(); i++) {
 			var child = array.optJSONObject(i);
 			if (child != null && seen.add(virtualObjectKey(child))) {
-				children.add(toVirtualObject(parent, child, i));
+				children.add(toVirtualObject(parent, child, i, names));
 			}
 		}
 		return children;
 	}
 
-	private static FlowVirtualObject toVirtualObject(DatabaseObject parent, JSONObject source, int order) {
+	private static FlowVirtualObject toVirtualObject(DatabaseObject parent, JSONObject source, int order, HashSet<String> names) {
+		var name = FlowVirtualObject.safeName(source.optString("name", "item"));
+		// A presentation sibling may refer to another source branch, and different
+		// source names may normalize to the same DBO name. Keep QNames unambiguous
+		// without reserving business keys or changing their source mutation paths.
+		if (!names.add(name)) {
+			var base = name + "_" + Integer.toUnsignedString(virtualObjectKey(source).hashCode(), 36);
+			name = base;
+			for (int i = 2; !names.add(name); i++) name = base + "_" + i;
+		}
 		var object = new FlowVirtualObject(parent,
-				source.optString("name", "item"),
+				name,
 				source.optString("kind", ""),
 				source.optString("type", ""),
 				source.optString("path", ""),
@@ -92,10 +102,11 @@ class FlowVirtualProjector {
 		var children = source.optJSONArray("children");
 		if (children != null) {
 			var seen = new HashSet<String>();
+			var childNames = new HashSet<String>();
 			for (var i = 0; i < children.length(); i++) {
 				var child = children.optJSONObject(i);
 				if (child != null && seen.add(virtualObjectKey(child))) {
-					object.addVirtualChild(toVirtualObject(object, child, i));
+					object.addVirtualChild(toVirtualObject(object, child, i, childNames));
 				}
 			}
 		}
@@ -103,7 +114,23 @@ class FlowVirtualProjector {
 	}
 
 	static FlowVirtualObject projectedObject(DatabaseObject parent, JSONObject source, int order) {
-		return source == null ? null : toVirtualObject(parent, source, order);
+		if (source == null) return null;
+		var names = new HashSet<String>();
+		// A targeted refresh must allocate names against the existing siblings,
+		// exactly as a complete projection does, excluding the replaced node itself.
+		if (parent instanceof FlowVirtualObject virtualParent) {
+			for (var sibling : virtualParent.getDatabaseObjectChildren()) {
+				if (!(sibling instanceof FlowVirtualObject virtual)
+						|| !virtualObjectKey(source).equals(virtualObjectKey(virtual))) {
+					names.add(sibling.getName());
+				}
+			}
+		}
+		return toVirtualObject(parent, source, order, names);
+	}
+
+	private static String virtualObjectKey(FlowVirtualObject source) {
+		return source.getVirtualPath() + "\u0000" + source.getVirtualKind() + "\u0000" + source.getVirtualType();
 	}
 
 	private static String virtualObjectKey(JSONObject source) {

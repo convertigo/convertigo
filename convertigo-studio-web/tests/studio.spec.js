@@ -1992,6 +1992,54 @@ test('studio keeps the favorite objects of the palette', async ({ page }) => {
 	await expect(paletteItem(page, 'JSON field')).toHaveCount(2);
 });
 
+test('studio palette renders resolved descriptor icons instead of treating names as files', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const iconPath = '/cache/flow-icons-v2/studio/iconify/mdi/equal.svg';
+	const imageRequests = [];
+	await page.route('**/admin/services/studio.palette.Get', async (route) => {
+		await route.fulfill({
+			json: {
+				categories: [
+					{
+						name: 'Compare',
+						items: [
+							{
+								id: 'compare.equal',
+								name: 'Equal',
+								icon: 'mdi:equal',
+								iconify: 'mdi:equal',
+								iconSvg: iconPath
+							}
+						]
+					}
+				]
+			}
+		});
+	});
+	await page.route('**/admin/services/studio.dbo.GetIcon?*', async (route) => {
+		const path = new URL(route.request().url()).searchParams.get('iconPath');
+		imageRequests.push(path);
+		if (path !== iconPath) return route.fallback();
+		await route.fulfill({
+			contentType: 'image/svg+xml',
+			body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 8h16v3H4zm0 5h16v3H4z"/></svg>'
+		});
+	});
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, `${projectName}:sq`);
+	await selectTreeNode(page, sequenceId);
+	await page.getByRole('tab', { name: 'Palette' }).click();
+	await expect(paletteItem(page, 'Equal').locator('svg path')).toHaveAttribute(
+		'd',
+		'M4 8h16v3H4zm0 5h16v3H4z'
+	);
+	expect(imageRequests).toContain(iconPath);
+	expect(imageRequests).not.toContain('mdi:equal');
+});
+
 test('studio retries a transient palette failure without changing focus', async ({ page }) => {
 	const state = createStudioState();
 	const paletteProbe = { remaining: 1, requests: 0 };

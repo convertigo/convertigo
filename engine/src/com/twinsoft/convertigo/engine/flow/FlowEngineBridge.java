@@ -427,15 +427,8 @@ public class FlowEngineBridge {
 	public JSONObject describeTree(Flow flow) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flow);
-			var request = baseRequest(engineQName, flow.getFlowSource(), flow.getQName(), null)
-					.put("target", "flow")
-					.put("flowName", flow.getName())
-					.put("projectDir", flow.getProject() == null ? "" : flow.getProject().getDirPath())
+			var request = flowAuthoringRequest(engineQName, flow, null)
 					.put("allowRequestableSchema", false);
-			var sourceFile = flow.getFlowSourceFile();
-			if (sourceFile != null) {
-				request.put("sourceFile", sourceFile.getAbsolutePath());
-			}
 			return invoke(engineQName, "describeTree", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow tree request.", e);
@@ -617,6 +610,15 @@ public class FlowEngineBridge {
 		}
 	}
 
+	public JSONObject tagContribution(FlowEngine flowEngine) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flowEngine);
+			var request = sourceRequest(baseRequest(engineQName, "", flowEngine.getQName(), null), flowEngine)
+					.put("projectDir", flowEngine.getProject().getDirPath());
+			return invoke(engineQName, "tagContribution", request, null, null, null);
+		} catch (JSONException e) { throw new EngineException("Unable to describe Flow tag contribution.", e); }
+	}
+
 	public JSONObject requestables(Flow flow) throws EngineException {
 		var currentProjectName = flow == null || flow.getProject() == null ? "" : flow.getProject().getName();
 		return requestables(currentProjectName);
@@ -753,11 +755,7 @@ public class FlowEngineBridge {
 	public JSONObject authoringPalette(Flow flow, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flow);
-			var request = baseRequest(engineQName, flow.getFlowSource(), flow.getQName(), null);
-			merge(request, options);
-			request.put("target", "flow").put("flowName", flow.getName());
-			var file = flow.getFlowSourceFile();
-			if (file != null) request.put("sourceFile", file.getAbsolutePath());
+			var request = flowAuthoringRequest(engineQName, flow, options);
 			return invoke(engineQName, "authoringPalette", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build Flow authoring palette request.", e);
@@ -767,11 +765,7 @@ public class FlowEngineBridge {
 	public JSONObject authoringMutate(Flow flow, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flow);
-			var request = baseRequest(engineQName, flow.getFlowSource(), flow.getQName(), null);
-			merge(request, options);
-			request.put("target", "flow").put("flowName", flow.getName()).put("write", false).put("persist", false);
-			var file = flow.getFlowSourceFile();
-			if (file != null) request.put("sourceFile", file.getAbsolutePath());
+			var request = flowAuthoringRequest(engineQName, flow, options).put("write", false).put("persist", false);
 			var response = invoke(engineQName, "authoringMutate", request, null, null, null);
 			if (response.optBoolean("ok", false) && response.has("source") && !request.optBoolean("dryRun", false)) {
 				flow.setFlowSource(response.getString("source"));
@@ -914,16 +908,9 @@ public class FlowEngineBridge {
 	public JSONObject applyMutation(Flow flow, JSONObject mutation, boolean includeTree) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flow);
-			var request = baseRequest(engineQName, flow.getFlowSource(), flow.getQName(), null)
-					.put("target", "flow")
+			var request = flowAuthoringRequest(engineQName, flow, null)
 					.put("includeTree", includeTree)
-					.put("flowName", flow.getName())
-					.put("projectDir", flow.getProject() == null ? "" : flow.getProject().getDirPath())
 					.put("mutation", mutation == null ? new JSONObject() : mutation);
-			var sourceFile = flow.getFlowSourceFile();
-			if (sourceFile != null) {
-				request.put("sourceFile", sourceFile.getAbsolutePath());
-			}
 			var response = invoke(engineQName, "applyMutation", request, null, null, null);
 			if (response.optBoolean("ok", false) && response.has("source")) {
 				flow.setFlowSource(response.optString("source", flow.getFlowSource()));
@@ -1058,13 +1045,13 @@ public class FlowEngineBridge {
 		return response;
 	}
 
-	private static JSONObject sourceRequest(JSONObject request, FlowEngine... flowEngines) throws JSONException {
+	private static JSONObject sourceRequest(JSONObject request, FlowEngine... flowEngines) throws JSONException, EngineException {
 		merge(request, sourceWorkingCopies(flowEngines));
 		return request;
 	}
 
 	/** A single provider request carries both text drafts and explicit absence. */
-	static JSONObject sourceWorkingCopies(FlowEngine... flowEngines) throws JSONException {
+	static JSONObject sourceWorkingCopies(FlowEngine... flowEngines) throws JSONException, EngineException {
 		var drafts = new JSONObject();
 		var removals = new java.util.TreeSet<String>();
 		var visited = new HashSet<String>();
@@ -1078,11 +1065,11 @@ public class FlowEngineBridge {
 		return new JSONObject().put("frontendSourceDrafts", drafts).put("sourceRemovals", new JSONArray(removals));
 	}
 
-	private static void appendSourceWorkingCopies(JSONObject drafts, Set<String> removals, FlowEngine flowEngine) throws JSONException {
+	private static void appendSourceWorkingCopies(JSONObject drafts, Set<String> removals, FlowEngine flowEngine) throws JSONException, EngineException {
 		if (flowEngine == null) {
 			return;
 		}
-		var changes = flowEngine.getSourceChanges();
+		var changes = com.twinsoft.convertigo.beans.flow.FlowWorkingCopies.sourceChanges(flowEngine);
 		for (var entry : changes.writes().entrySet()) {
 			drafts.put(entry.getKey(), entry.getValue());
 		}
@@ -1090,7 +1077,7 @@ public class FlowEngineBridge {
 	}
 
 	private static void appendSourceWorkingCopies(JSONObject drafts, Set<String> removals, Project project, Set<String> visited)
-			throws JSONException {
+			throws JSONException, EngineException {
 		if (project == null || !visited.add(project.getName())) {
 			return;
 		}
@@ -1103,14 +1090,16 @@ public class FlowEngineBridge {
 			if (referencedProjectName == null || referencedProjectName.isBlank()) {
 				continue;
 			}
+			Project referencedProject;
 			try {
-				var referencedProject = Engine.theApp.databaseObjectsManager
+				referencedProject = Engine.theApp.databaseObjectsManager
 						.getOriginalProjectByName(referencedProjectName, true);
-				appendSourceWorkingCopies(drafts, removals, referencedProject, visited);
 			} catch (Exception e) {
 				Engine.logEngine.debug("(FlowEngineBridge) Unable to collect Flow drafts from referenced project \""
 						+ referencedProjectName + "\".", e);
+				continue;
 			}
+			appendSourceWorkingCopies(drafts, removals, referencedProject, visited);
 		}
 	}
 
@@ -1377,6 +1366,20 @@ public class FlowEngineBridge {
 		return DEFAULT_ENGINE_QNAME;
 	}
 
+	/** Tree, palette and mutations resolve blocks against the same owner and working copies. */
+	private JSONObject flowAuthoringRequest(String engineQName, Flow flow, JSONObject options) throws JSONException, EngineException {
+		var project = flow.getProject();
+		var request = baseRequest(engineQName, flow.getFlowSource(), flow.getQName(), null);
+		merge(request, options);
+		sourceRequest(request, project == null ? null : project.getFlowEngine())
+				.put("target", "flow")
+				.put("flowName", flow.getName())
+				.put("projectDir", project == null ? "" : project.getDirPath());
+		var file = flow.getFlowSourceFile();
+		if (file != null) request.put("sourceFile", file.getAbsolutePath());
+		return request;
+	}
+
 	private JSONObject baseRequest(String engineQName, String flowSource, String flowQName, Context convertigoContext) throws JSONException {
 		var request = new JSONObject()
 				.put("engineQName", normalizeEngineQName(engineQName))
@@ -1438,8 +1441,27 @@ public class FlowEngineBridge {
 				.put("qname", project + "." + (connector == null || connector.isBlank() ? "" : connector + ".") + name);
 	}
 
+	/** Capture generic tag/source drafts before acquiring any Rhino/provider lock. */
+	public static JSONObject prepareProjectRequest(JSONObject request) throws EngineException {
+		request.remove("tagContext"); // This is server-owned context, not a caller override.
+		if (Engine.theApp == null || Engine.theApp.databaseObjectsManager == null) return request;
+		try {
+			String qname = request.optString("flowQName", "");
+			String name = qname.contains(".") ? qname.substring(0, qname.indexOf('.'))
+					: request.optString("project", projectNameForDir(request.optString("projectDir", "")));
+			var project = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name);
+			if (project == null) return request;
+			String directory = request.optString("projectDir", "");
+			if (!directory.isBlank() && !new File(directory).getCanonicalFile().equals(project.getDirFile().getCanonicalFile())) return request;
+			request.put("tagContext", new JSONObject(com.twinsoft.convertigo.engine.tags.TagManager.get().context(project).toString()));
+			sourceRequest(request, project.getFlowEngine());
+			return request;
+		} catch (Exception e) { throw new EngineException("Unable to capture project authoring context.", e); }
+	}
+
 	JSONObject invoke(String engineQName, String method, JSONObject request, Context convertigoContext,
 			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
+		prepareProjectRequest(request);
 		var engineRef = EngineRef.parse(normalizeEngineQName(engineQName));
 		var frontendAuthoring = usesFrontendDocumentProvider(method, request);
 		var frontendAuthoringLockIndex = frontendAuthoring ? frontendAuthoringLockIndex(engineRef.qname) : -1;

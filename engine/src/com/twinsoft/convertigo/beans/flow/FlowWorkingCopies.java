@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -44,6 +45,37 @@ public final class FlowWorkingCopies {
 	private static final String FLOW = "flow:";
 
 	private FlowWorkingCopies() {
+	}
+
+	/** The effective file view, including the sources still carried by their owner beans. */
+	public static FlowEngine.SourceChanges sourceChanges(FlowEngine owner) throws EngineException {
+		var writes = new LinkedHashMap<String, String>();
+		var removals = new TreeSet<String>();
+		var project = owner == null ? null : owner.getProject();
+		if (owner != null) {
+			var changes = owner.getSourceChanges();
+			writes.putAll(changes.writes()); removals.addAll(changes.removals());
+			if (project != null && owner.isEngineSourceDirty()) addSource(writes, removals, owner.getEngineSourceFile(), owner.getEngineSource());
+		}
+		if (project != null) {
+			for (var sequence : project.getSequencesList()) {
+				if (sequence instanceof Flow flow && flow.isFlowSourceDirty()) {
+					addSource(writes, removals, flow.getFlowSourceFile(), flow.getFlowSource());
+				}
+			}
+		}
+		return new FlowEngine.SourceChanges(Map.copyOf(writes), Set.copyOf(removals));
+	}
+
+	private static void addSource(Map<String, String> writes, Set<String> removals, File file, String source)
+			throws EngineException {
+		try {
+			String path = file.getCanonicalPath();
+			if (removals.contains(path) || writes.containsKey(path) && !Objects.equals(writes.get(path), source)) {
+				throw new EngineException("Conflicting Flow working copies for source \"" + path + "\".");
+			}
+			writes.put(path, source);
+		} catch (java.io.IOException e) { throw new EngineException("Unable to resolve a Flow working copy.", e); }
 	}
 
 	/**

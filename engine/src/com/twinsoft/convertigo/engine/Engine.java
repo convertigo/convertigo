@@ -509,6 +509,8 @@ public class Engine {
 				databaseObjectsManager.init();
 				Engine.theApp.databaseObjectsManager = databaseObjectsManager;
 				Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(ComponentRefManager.get(Mode.start));
+				com.twinsoft.convertigo.engine.flow.FlowTagContribution.register(
+						com.twinsoft.convertigo.engine.tags.TagManager.get().contributions());
 
 				Engine.theApp.systemDatabaseObjectsManager = new SystemDatabaseObjectsManager();
 				Engine.theApp.systemDatabaseObjectsManager.init();

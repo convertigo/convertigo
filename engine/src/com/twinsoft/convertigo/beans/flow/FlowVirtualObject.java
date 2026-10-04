@@ -244,11 +244,8 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 
 	public boolean isDefinitionWritable() {
 		var target = mutableSourceRoot();
-		if (isReadOnlyReference() && !isWritableSourceObject()) {
-			return false;
-		}
 		return target != null && !virtualPath.isBlank()
-				&& (isWritablePath(target, virtualPath) || isWritableSourceObject());
+				&& isWritableSourceObject();
 	}
 
 	public JSONObject getDefinitionObject() {
@@ -474,7 +471,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		return value.startsWith(prefix) ? value.substring(prefix.length()) : value;
 	}
 
-	private static String safeName(String name) {
+	static String safeName(String name) {
 		var normalized = valueOrEmpty(name).trim().replaceAll("[^A-Za-z0-9_]", "_");
 		normalized = normalized.replaceAll("_+", "_");
 		if (normalized.isBlank()) {
@@ -689,7 +686,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		if (target == null || path.isBlank()) {
 			return false;
 		}
-		if (!isWritablePath(target, path)) {
+		if (!isDefinitionWritable()) {
 			throw new EngineException("Flow virtual path \"" + path + "\" is read-only.");
 		}
 		try {
@@ -720,7 +717,7 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		if (target == null || path.isBlank()) {
 			return;
 		}
-		if (!isWritablePath(target, path)) {
+		if (!isDefinitionWritable()) {
 			throw new EngineException("Flow virtual path \"" + path + "\" is read-only.");
 		}
 		try {
@@ -875,7 +872,20 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	}
 
 	public boolean isWritableSourceObject() {
-		return jsonFlag(getDefinitionObject(), "sourceWritable") || jsonFlag(getVirtualInfoObject(), "sourceWritable");
+		// Capabilities belong to the provider descriptor, not to Java path names.
+		// An explicit restriction wins; absent capabilities never grant writes.
+		var info = getVirtualInfoObject();
+		var definition = getDefinitionObject();
+		if (jsonFlag(info, "readOnly") || jsonFlag(definition, "readOnly") || isReadOnlyReference()) {
+			return false;
+		}
+		if (info != null && info.has("sourceWritable")) {
+			return jsonFlag(info, "sourceWritable");
+		}
+		if (definition != null && definition.has("sourceWritable")) {
+			return jsonFlag(definition, "sourceWritable");
+		}
+		return false;
 	}
 
 	private boolean isReadOnlyReference() {
@@ -1025,19 +1035,6 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 			}
 		}
 		return null;
-	}
-
-	private static boolean isWritablePath(DatabaseObject target, String virtualPath) {
-		if (target instanceof Flow) {
-			return !virtualPath.startsWith("catalog");
-		}
-		if (target instanceof FlowEngine) {
-			return virtualPath.equals("bindings")
-					|| virtualPath.startsWith("bindings.")
-					|| virtualPath.equals("config")
-					|| virtualPath.startsWith("config.");
-		}
-		return false;
 	}
 
 	public static Object parseDefinitionValue(String value) {

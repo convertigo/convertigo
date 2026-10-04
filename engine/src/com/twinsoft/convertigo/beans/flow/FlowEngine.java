@@ -424,7 +424,7 @@ public class FlowEngine extends DatabaseObject {
 		return "FlowEngine";
 	}
 
-	private File getEngineSourceFile() {
+	File getEngineSourceFile() {
 		var project = getProject();
 		if (project == null) {
 			return null;

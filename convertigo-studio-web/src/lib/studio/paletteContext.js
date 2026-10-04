@@ -13,6 +13,11 @@ import { FOLDER_TYPE_IDS } from './folderTypes.js';
  * @property {string=} shortDescriptionText
  * @property {string=} propertiesDescriptionHtml
  * @property {string=} icon
+ * @property {string=} iconSvg
+ * @property {string=} iconFile32
+ * @property {string=} iconFile16
+ * @property {string=} iconFile
+ * @property {string=} iconify
  * @property {boolean=} builtin
  * @property {boolean=} additional
  */
@@ -80,6 +85,23 @@ function hasPaletteItems(categories) {
 }
 
 /**
+ * Resolved assets take precedence over the symbolic icon name of a descriptor.
+ * An Iconify identifier is not a file accepted by studio.dbo.GetIcon.
+ * @param {PaletteItem} item
+ * @returns {string}
+ */
+function paletteIconPath(item) {
+	return (
+		[item.iconSvg, item.iconFile32, item.iconFile16, item.iconFile, item.icon].find(
+			(icon) =>
+				typeof icon === 'string' &&
+				icon.trim() &&
+				!/^[A-Za-z][A-Za-z0-9_-]*:[A-Za-z0-9_.-]+$/.test(icon)
+		) ?? ''
+	);
+}
+
+/**
  * @param {string} id
  * @returns {string}
  */
@@ -142,5 +164,6 @@ export {
 	loadPaletteCategories,
 	loadPaletteContext,
 	paletteContextLabel,
+	paletteIconPath,
 	parentPaletteId
 };

@@ -436,6 +436,13 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		return key + "|" + target.getClass().getName();
 	}
 
+	private static String paletteTargetType(DatabaseObject target) {
+		if (target == null) return "null";
+		return target instanceof FlowVirtualObject virtual
+				? PaletteFilterKey.context(target.getClass().getName(), virtual.getVirtualKind(), virtual.getVirtualType())
+				: PaletteFilterKey.context(target.getClass().getName(), "", "");
+	}
+
 	private void requestFlowPaletteRefresh(long threshold) {
 		var key = latestFlowPaletteKey;
 		if (key.equals(loadedFlowPaletteKey) || key.equals(pendingFlowPaletteKey)) {
@@ -516,7 +523,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			}
 			return true;
 		} catch (Exception e) {
-			Engine.logStudio.debug("(PaletteView) Unable to load Flow palette", e);
+			Engine.logStudio.warn("(PaletteView) Unable to load Flow palette for " + target.getFullQName(), e);
 			return false;
 		}
 	}
@@ -719,7 +726,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 								continue;
 							}
 							parent = selected.getParent();
-							clear = last == null || !last.getClass().equals(selected.getClass());
+							clear = last == null || !paletteTargetType(last).equals(paletteTargetType(selected));
 						}
 						if (clear != null) {
 							PaletteView.this.parent.setData("FolderType", folderType);
@@ -731,6 +738,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 								latestFlowPaletteKey = flowPaletteKey;
 							}
 							requestFlowPaletteRefresh(300);
+							if (clear == true) searchText.setText("");
 							if (selected != null || parent instanceof DatabaseObject) {
 								var project = (selected != null ? selected : (DatabaseObject) parent).getProject();
 								if (project != selectedProject) {
@@ -741,9 +749,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 							} else {
 								selectedProject = null;
 							}
-							if (clear == true) {
-								searchText.setText("");
-							} else {
+							if (clear != true) {
 								searchText.notifyListeners(SWT.Modify, new Event());
 							}
 							break;
@@ -789,6 +795,8 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 						tiShared.setSelection(true);
 					}
 				}
+				ConvertigoPlugin.setProperty("palette.internal", tiInternal.getSelection() ? "on" : "off");
+				ConvertigoPlugin.setProperty("palette.shared", tiShared.getSelection() ? "on" : "off");
 				searchText.notifyListeners(SWT.Modify, new Event());
 			}
 		};
@@ -1243,14 +1251,13 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 						return;
 					}
 
-					var skipKey = text + ":"
-							+ (selected != null ? selected.getClass().getCanonicalName() : folderType != null ? folderType.toString() : "null") + ":"
-							+ (selected != null ? selected.getFullQName() : parent != null ? parent.getFullQName() : "null") + ":"
-							+ (selectedProject != null ? selectedProject.getName() : "null") + ":"
-							+ hiddenCategories + ":"
-							+ favorites.stream().map(i -> i.name()).collect( Collectors.joining( "," )) + ":"
-							+ lastUsed.stream().map(i -> i.name()).collect( Collectors.joining( "," ));
-					var lastSkipKey = (String) bag.getData("LastSkipKey");
+					var skipKey = new PaletteFilterKey(text,
+							selected != null ? paletteTargetType(selected) : folderType != null ? folderType.toString() : "null",
+							selected != null ? selected.getFullQName() : parent != null ? parent.getFullQName() : "null",
+							selectedProject != null ? selectedProject.getName() : "null", hiddenCategories,
+							favorites.stream().map(Item::id).toList(), lastUsed.stream().map(Item::id).toList(),
+							tiInternal.getSelection(), tiShared.getSelection());
+					var lastSkipKey = bag.getData("LastSkipKey");
 					if (skipKey.equals(lastSkipKey)) {
 						return;
 					} else {
@@ -1436,13 +1443,17 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			});
 			CompositeElement.getEngine(top).applyStyles(top, true);
 			parent.layout(true);
+			// Render the catalogue independently of selection linking. With a restored
+			// "off" preference, update() deliberately ignores the tree selection.
+			updateBags();
 			update();
+			searchText.notifyListeners(SWT.Modify, new Event());
 			// The workbench can restore this view before the Project Explorer has
 			// restored its selection. Re-read it a few times during startup so the
 			// palette does not depend on closing and reopening the view.
 			scheduleInitialSelectionRefresh(0);
 		} catch (Exception e) {
-			e.printStackTrace();
+			ConvertigoPlugin.logException(e, "Unable to initialize the palette");
 		}
 	}
 
