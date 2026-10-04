@@ -30,6 +30,7 @@ tasks.named('check') {
 	dependsOn 'fullSyncReplicationPolicyTest'
 	dependsOn 'stepSourceTest'
 	dependsOn 'studioSearchTest'
+	dependsOn 'tagTest'
 }
 
 tasks.register('stepSourceTest', JavaExec) {
@@ -119,4 +120,13 @@ tasks.register('soapuiSmokeTest', JavaExec) {
 	mainClass = 'com.twinsoft.convertigo.engine.util.SoapUiSmokeTest'
 	dependsOn tasks.named('classes')
 	dependsOn rootProject.tasks.named('publishSoapuiLightPublicationToMavenLocal')
+}
+
+tasks.register('tagTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for shared project and workspace tag editing, lifecycle and persistence.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.tags.TagManagerTest', 'com.twinsoft.convertigo.engine.tags.TagPasteAdapterTest'
 }

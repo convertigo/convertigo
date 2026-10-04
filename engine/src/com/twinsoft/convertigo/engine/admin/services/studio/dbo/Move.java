@@ -100,6 +100,7 @@ public class Move extends JSonService {
 								DatabaseObject previousParent = dbo.getParent();
 								DatabaseObject previousSibling = dbo.getPreviousSiblingInFolder();
 								try {
+									com.twinsoft.convertigo.engine.tags.TagManager.get().prepareStructuralChange(dbo, parentDbo.getProject());
 									dbo.delete();
 									if (parentDbo instanceof IContainerOrdered) {
 										((IContainerOrdered) parentDbo).add(dbo, after);
@@ -118,9 +119,12 @@ public class Move extends JSonService {
 									} else {
 										BuilderUtils.dboMoved(previousParent, parentDbo, dbo);
 									}
+									com.twinsoft.convertigo.engine.tags.TagManager.get().reconcile();
 								} catch (Exception e) {
 									response.put("error", "The object cannot be moved: " + e.getMessage());
-									if (dbo.getParent() == null && previousParent != null) {
+									done = false;
+									if (dbo.getParent() != previousParent && previousParent != null) {
+										if (dbo.getParent() != null) dbo.delete();
 										after = previousSibling == null ? 0L : previousSibling.priority;
 										if (previousParent instanceof IContainerOrdered) {
 											((IContainerOrdered) previousParent).add(dbo, after);

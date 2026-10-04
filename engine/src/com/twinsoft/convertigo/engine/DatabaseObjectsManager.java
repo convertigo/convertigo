@@ -642,6 +642,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private void releaseProject(Project project) {
 		String projectName = project.getName();
 		project.markUnloaded();
+		com.twinsoft.convertigo.engine.tags.TagManager.get().projectClosed(project);
 		Flow.projectUnloaded(project);
 		RestApiManager.getInstance().removeUrlMapper(projectName);
 		MobileBuilder.releaseBuilder(project);
@@ -1403,6 +1404,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			throw new EngineException("The state of the project " + projectName + " cannot be loaded.");
 		}
 		getStudioProjects().projectLoaded(project);
+		com.twinsoft.convertigo.engine.tags.TagManager.get().projectOpened(project);
 		RestApiManager.getInstance().putUrlMapper(project);
 		MobileBuilder.initBuilder(project, builderInitialized);
 		if (loadingData[0].afterLoaded != null) {
@@ -1868,34 +1870,51 @@ public class DatabaseObjectsManager implements AbstractManager {
 			return;
 		}
 
-		File newDir = file.getParentFile();
-		boolean renamed = false;
-		if (newDir.getName().equals(oldName)) {
-			File dir = file.getParentFile();
-			newDir = new File(dir.getParentFile(), newName);
-			if (!dir.renameTo(newDir)) {
-				throw new EngineException("Unable to rename the object path \"" + dir.getAbsolutePath() + "\" to \""
-						+ newDir.getAbsolutePath()
-						+ "\".\n This directory already exists or is probably locked by another application.");
+		try (var tagRename = com.twinsoft.convertigo.engine.tags.TagManager.get().beginProjectRename(project)) {
+			File oldDir = file.getParentFile();
+			File newDir = file.getParentFile();
+			boolean renamed = false;
+			if (newDir.getName().equals(oldName)) {
+				File dir = file.getParentFile();
+				newDir = new File(dir.getParentFile(), newName);
+				if (!dir.renameTo(newDir)) {
+					throw new EngineException("Unable to rename the object path \"" + dir.getAbsolutePath() + "\" to \""
+							+ newDir.getAbsolutePath()
+							+ "\".\n This directory already exists or is probably locked by another application.");
+				}
+				renamed = true;
 			}
-			renamed = true;
-		}
 
-		try {
-			Engine.logDatabaseObjectManager.info("Renaming project '" + oldName + "' to '" + newName + "' "
-					+ (keepOldReferences ? "with" : "without") + " keepOldReferences");
-			clearCache(project);
-			if (!renamed) {
-				studioProjects.renameProject(oldName, newName);
+			try {
+				Engine.logDatabaseObjectManager.info("Renaming project '" + oldName + "' to '" + newName + "' "
+						+ (keepOldReferences ? "with" : "without") + " keepOldReferences");
+				clearCache(project);
+				if (!renamed) {
+					studioProjects.renameProject(oldName, newName);
+				}
+				project.setName(newName);
+				com.twinsoft.convertigo.engine.tags.TagManager.get().renameProject(project, oldName);
+				project.hasChanged = true;
+				exportProject(project);
+				file = new File(newDir, file.getName());
+				ProjectUtils.renameProjectFile(file, newName, keepOldReferences);
+				FileUtils.deleteQuietly(new File(newDir, ".project"));
+				tagRename.commit();
+			} catch (Exception e) {
+				try { tagRename.close(); } catch (Exception rollback) { e.addSuppressed(rollback); }
+				try {
+					boolean importing = project.isImporting;
+					try { project.isImporting = true; project.setName(oldName); }
+					finally { project.isImporting = importing; }
+					if (!renamed) studioProjects.renameProject(newName, oldName);
+					ProjectUtils.renameProjectFile(new File(newDir, newName + ".xml"), oldName, keepOldReferences);
+				} catch (Exception rollback) { e.addSuppressed(rollback); }
+				if (renamed && !newDir.renameTo(oldDir)) e.addSuppressed(new IOException("Unable to restore project directory " + oldDir));
+				project.hasChanged = true;
+				throw new ConvertigoException("Failed to rename to project", e);
 			}
-			project.setName(newName);
-			project.hasChanged = true;
-			exportProject(project);
-			file = new File(newDir, file.getName());
-			ProjectUtils.renameProjectFile(file, newName, keepOldReferences);
-			FileUtils.deleteQuietly(new File(newDir, ".project"));
-		} catch (Exception e) {
-			throw new ConvertigoException("Failed to rename to project", e);
+		} catch (java.io.IOException e) {
+			throw new ConvertigoException("Unable to prepare project tags for rename", e);
 		}
 	}
 

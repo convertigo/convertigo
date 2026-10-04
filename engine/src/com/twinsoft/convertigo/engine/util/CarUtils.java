@@ -171,15 +171,38 @@ public class CarUtils {
 	}
 	
 	private static void exportProject(Project project, String fileName, boolean includeTestCases) throws EngineException {
-		persistFlowSources(project);
-		Document document = exportProject(project, includeTestCases);
-		try {
-			exportYAMLProject(project, fileName, document);
-		} catch (Exception e) {
-			var xmlFilename = project.getName() + ".xml";
-			Engine.theApp.showErrorMessage("Failed to fully export the project as YAML to '" + fileName + "'.\nExporting in the XML '" + xmlFilename + "' instead.\nXML can be imported after fixing errors below.\n" + e.getMessage());
-			Engine.logEngine.error("(CarUtils) Failed to fully export the project as YAML to '" + fileName + "', exporting in the XML '" + xmlFilename + "' instead. XML can be imported after fixing errors below.", e);
-			exportXMLProject(new File(new File(fileName).getParentFile(), xmlFilename).getAbsolutePath(), document);
+		boolean projectSave = new File(fileName).getParentFile().equals(project.getDirFile());
+		com.twinsoft.convertigo.engine.tags.TagManager.ProjectWriter writer = () -> {
+			persistFlowSources(project);
+			Document document = exportProject(project, includeTestCases, false);
+			try {
+				exportYAMLProject(project, fileName, document);
+			} catch (Exception e) {
+				var xmlFilename = project.getName() + ".xml";
+				Engine.theApp.showErrorMessage("Failed to fully export the project as YAML to '" + fileName + "'.\nExporting in the XML '" + xmlFilename + "' instead.\nXML can be imported after fixing errors below.\n" + e.getMessage());
+				Engine.logEngine.error("(CarUtils) Failed to fully export the project as YAML to '" + fileName + "', exporting in the XML '" + xmlFilename + "' instead. XML can be imported after fixing errors below.", e);
+				exportXMLProject(new File(new File(fileName).getParentFile(), xmlFilename).getAbsolutePath(), document);
+				throw new EngineException("YAML save failed; recovery XML written to " + xmlFilename, e);
+			}
+		};
+		if (projectSave) {
+			com.twinsoft.convertigo.engine.tags.TagManager.get().save(project,
+					project.getDirFile().toPath().resolve("_c8oProject/tags.json"), writer);
+			try {
+				new WalkHelper() {
+					@Override protected void walk(DatabaseObject dbo) throws Exception {
+						super.walk(dbo);
+						dbo.hasChanged = false;
+						dbo.bNew = false;
+					}
+				}.init(project);
+			} catch (Exception e) {
+				project.hasChanged = true;
+				throw new EngineException("Unable to finish project save", e);
+			}
+		} else {
+			try { writer.write(); }
+			catch (Exception e) { throw new EngineException("Unable to export project", e); }
 		}
 	}
 

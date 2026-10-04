@@ -43,7 +43,7 @@ public class Save extends JSonService {
 		Project project = null;
 
 		if (projectName != null && !projectName.isBlank()) {
-			project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+			project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		} else if (id != null && !id.isBlank()) {
 			DatabaseObject dbo = DboUtils.findDbo(id);
 			if (dbo != null) {

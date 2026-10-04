@@ -42,6 +42,13 @@
 	/**
 	 * @type {{
 	 *  node: any,
+	 *  occurrencePrefix?: string,
+	 *  onTagDrop?: (group: any, payload: any, transfer: boolean) => Promise<void>,
+	 *  onManageTags?: (node: any) => void,
+	 *  canManageTags?: (node: any) => boolean,
+	 *  tagsGrouped?: boolean,
+	 *  currentTagId?: string,
+	 *  onToggleTagGrouping?: () => void | Promise<void>,
 	 *  gitDecoration?: { branch: string, changes: number, ahead?: number, behind?: number },
 	 *  selectedId?: string,
 	 *  depth?: number,
@@ -74,6 +81,13 @@
 	 */
 	let {
 		node,
+		occurrencePrefix = '',
+		onTagDrop,
+		onManageTags,
+		canManageTags,
+		tagsGrouped = false,
+		currentTagId = '',
+		onToggleTagGrouping,
 		gitDecoration,
 		selectedId = $bindable(''),
 		depth = 0,
@@ -104,6 +118,7 @@
 		onChooseRenameUpdate
 	} = $props();
 
+	let rowId = $derived(`${occurrencePrefix}${node?.rowId ?? node?.id ?? ''}`);
 	let localExpanded = $state(false);
 	let loading = $state(false);
 	let dropOver = $state(false);
@@ -184,12 +199,22 @@
 		return hasExpandableChildren(node) || ghosts.length > 0 || mergeGhosts.length > 0;
 	});
 	let expanded = $derived(
-		Boolean(node?.id && expandedNodeIds ? hasExpandedNodeId(node.id) : localExpanded)
+		Boolean(node?.id && expandedNodeIds ? hasExpandedNodeId(rowId) : localExpanded)
 	);
 	let children = $derived.by(() => {
 		dataSerial;
 		revision;
 		return projectedChildren ?? (Array.isArray(node?.children) ? node.children : []);
+	});
+	let tags = $derived.by(() => {
+		dataSerial;
+		revision;
+		return (node?.tags ?? []).filter((tag) => tag.id !== currentTagId);
+	});
+	let tagGroupCount = $derived.by(() => {
+		dataSerial;
+		revision;
+		return node?.count ?? children.length;
 	});
 	let selected = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, selectedId)));
 	let label = $derived.by(() => {
@@ -219,7 +244,7 @@
 		return typeof node?.default === 'string' ? node.default : '';
 	});
 	let unreachable = $derived(!disabled && ancestorDisabled);
-	let projectNode = $derived(depth === 0 && Boolean(node?.id));
+	let projectNode = $derived(!node?.tagGroup && Boolean(node?.id) && !/[.:/]/.test(node.id));
 	/** a project closed in the workspace, as the Eclipse Studio shows one: it opens again on double click */
 	let closedProject = $derived.by(() => {
 		dataSerial;
@@ -240,20 +265,21 @@
 	let paddingLeft = $derived(`${depth * 0.62 + 0.14}rem`);
 	/** the indent guide of the children, under the chevron of their parent */
 	let childrenGuideLeft = $derived(`${depth * 0.62 + 0.14 + 0.36}rem`);
-	let draggableNode = $derived(isDraggableNode(node?.id ?? ''));
+	let draggableNode = $derived(!node?.tagGroup && isDraggableNode(node?.id ?? ''));
 	let canRename = $derived(draggableNode && objectCanRename(node));
 	let folderNode = $derived(isFolderNode(node?.id ?? ''));
-	let renaming = $derived(
-		canRename && Boolean(node?.id && isEquivalentNodeId(node.id, renameTargetId))
-	);
+	let renaming = $derived(canRename && Boolean(rowId && isEquivalentNodeId(rowId, renameTargetId)));
 	let hasActions = $derived(
 		Boolean(
+			onToggleTagGrouping ||
 			draggableNode ||
 			isFlowContextNode(node) ||
 			(onTreeAction && (projectNode || folderNode || Boolean(node?.id?.includes('/'))))
 		)
 	);
-	let showSelectedActions = $derived(Boolean(selected && !renaming && hasActions));
+	let showSelectedActions = $derived(
+		Boolean((selected || node?.tagGroup) && !renaming && hasActions)
+	);
 	/**
 	 * Where the menu of the actions opens on a right click, as the menu of the tree of Eclipse
 	 * @type {{ x: number, y: number, serial: number } | null}
@@ -276,10 +302,10 @@
 			return;
 		}
 		event.preventDefault();
-		if (!treeSelection.ids.includes(id)) {
+		if (!node.tagGroup && !treeSelection.ids.includes(id)) {
 			clearTreeSelection();
 		}
-		selectedId = id;
+		if (!node.tagGroup) selectedId = id;
 		contextMenuRequest = {
 			x: event.clientX,
 			y: event.clientY,
@@ -290,13 +316,19 @@
 	$effect(() => {
 		const target = selectedId;
 		const nodeId = node?.id ?? '';
+		const containsTarget = node?.tagGroup
+			? children.some(
+					(member) =>
+						isEquivalentNodeId(member.id, target) || isAncestorSelectionNode(member.id, target)
+				)
+			: isAncestorSelectionNode(nodeId, target);
 		if (
 			!target ||
 			!nodeId ||
 			isEquivalentNodeId(nodeId, target) ||
 			!isBranch ||
 			autoExpandTarget === target ||
-			!isAncestorSelectionNode(nodeId, target)
+			!containsTarget
 		) {
 			return;
 		}
@@ -417,7 +449,7 @@
 	 * @param {boolean} nextExpanded
 	 */
 	function setExpanded(nextExpanded) {
-		const nodeId = node?.id ?? '';
+		const nodeId = rowId;
 		if (onSetExpanded && nodeId) {
 			onSetExpanded(nodeId, nextExpanded);
 			return;
@@ -483,6 +515,10 @@
 	 * @param {MouseEvent=} event
 	 */
 	function selectNode(event) {
+		if (node?.tagGroup) {
+			setExpanded(!expanded);
+			return;
+		}
 		const id = node?.id ?? '';
 		if (id.includes('/') && node?.icon === 'folder') {
 			projectFileFolders.add(id);
@@ -502,6 +538,7 @@
 
 	/** the menu of an object of the selection acts on all the objects selected, as its right click */
 	function selectMenuNode() {
+		if (node?.tagGroup) return;
 		if (treeSelection.ids.length > 1 && treeSelection.ids.includes(node?.id ?? '')) {
 			return;
 		}
@@ -581,7 +618,7 @@
 			return;
 		}
 		selectedId = node.id;
-		renameTargetId = node.id;
+		renameTargetId = rowId;
 	}
 
 	async function deleteSelectedNode() {
@@ -759,6 +796,15 @@
 	 * @param {DragEvent} event
 	 */
 	async function checkDrop(event) {
+		if (node?.tagGroup) {
+			event.preventDefault();
+			event.stopPropagation();
+			dropOver = true;
+			const payload = getDboDragPayload(event, $draggedData);
+			dropAllowed = payload?.type === 'treeData' && payload.data?.tagScope === node.scope;
+			if (event.dataTransfer) event.dataTransfer.dropEffect = dropAllowed ? 'link' : 'none';
+			return;
+		}
 		const sourcePayload = getSourcePickerDragPayload(event, $draggedData);
 		if (sourcePayload && node?.id) {
 			event.preventDefault();
@@ -856,6 +902,14 @@
 	 * @param {DragEvent} event
 	 */
 	async function handleDrop(event) {
+		if (node?.tagGroup) {
+			event.preventDefault();
+			event.stopPropagation();
+			resetDrop();
+			await onTagDrop?.(node, getDboDragPayload(event, $draggedData), event.shiftKey);
+			$draggedData = undefined;
+			return;
+		}
 		event.preventDefault();
 		event.stopPropagation();
 		const sourcePayload = getSourcePickerDragPayload(event, $draggedData);
@@ -1039,7 +1093,12 @@
 		}
 		const treeData = {
 			type: 'treeData',
-			data: { id: node.id, classname: node.classname ?? '' },
+			data: {
+				id: node.id,
+				classname: node.classname ?? '',
+				tagId: node.tagId,
+				tagScope: node.tagScope
+			},
 			options: {}
 		};
 		event.dataTransfer?.setData('text/plain', JSON.stringify(treeData));
@@ -1254,6 +1313,8 @@
 		class="studio-tree-node"
 		role="treeitem"
 		aria-selected={selected}
+		aria-expanded={isBranch ? expanded : undefined}
+		data-row-id={rowId}
 		data-enabled={node?.enabled}
 	>
 		<div
@@ -1392,6 +1453,16 @@
 						class:studio-tree-node__label--error={marks.symbolError}
 						title={marks.modified ? `${label} — Modified, not saved` : undefined}>{label}</span
 					>
+					{#if node.tagGroup}
+						<span class="text-xs opacity-70">({tagGroupCount})</span>
+					{/if}
+					{#each tags as tag (tag.id)}
+						<span
+							class="studio-tree-tag"
+							title={`${tag.label} · ${tag.id}`}
+							style:border-color={tag.presentation?.color ?? 'currentColor'}>{tag.label}</span
+						>
+					{/each}
 					{#if marks.accessibility === 'Private' || marks.accessibility === 'Hidden' || marks.autoStart || marks.symbolError}
 						<span class="studio-tree-node__marks">
 							{#if marks.symbolError}
@@ -1482,6 +1553,12 @@
 				<div class="studio-tree-node__actions">
 					<StudioTreeActionMenu
 						nodeId={node.id}
+						tagGroup={Boolean(node.tagGroup)}
+						tagScope={node.tagScope ?? node.scope}
+						canManageTags={canManageTags?.(node) ?? false}
+						{tagsGrouped}
+						{onToggleTagGrouping}
+						onManageTags={() => onManageTags?.(node)}
 						{label}
 						{canRename}
 						canDelete={draggableNode}
@@ -1537,13 +1614,20 @@
 				role="group"
 				style:--tree-guide-left={childrenGuideLeft}
 			>
-				{#each children as child, index (child.id ?? child.name)}
+				{#each children as child (child.rowId ?? child.id ?? child.name)}
 					<StudioTreeNode
 						node={child}
+						occurrencePrefix={node.rowId && !node.tagGroup ? `${rowId}/` : occurrencePrefix}
+						{onTagDrop}
+						{onManageTags}
+						{canManageTags}
+						{tagsGrouped}
+						{onToggleTagGrouping}
+						currentTagId={node.tagGroup ? node.tagId : ''}
 						bind:selectedId
 						bind:renameTargetId
 						depth={depth + 1}
-						parentNode={node}
+						parentNode={node.tagGroup ? parentNode : node}
 						ancestorDisabled={ancestorDisabled || disabled}
 						dataSerial={dataSerial + revision}
 						{onLoadChildren}
@@ -1632,6 +1716,14 @@
 {/if}
 
 <style>
+	.studio-tree-tag {
+		border: 1px solid;
+		border-left-width: 4px;
+		border-radius: 0.3rem;
+		padding: 0 0.25rem;
+		font-size: 0.65rem;
+		color: var(--studio-text-idle);
+	}
 	.studio-tree-node {
 		width: max-content;
 		min-width: 100%;

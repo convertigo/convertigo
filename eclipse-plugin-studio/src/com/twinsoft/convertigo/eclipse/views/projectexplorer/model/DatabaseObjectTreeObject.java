@@ -739,7 +739,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	public IPropertyDescriptor[] getPropertyDescriptors() {
 		getDescriptors();
-		return propertyDescriptors == null ? new IPropertyDescriptor[0] : propertyDescriptors;
+		var descriptors = new java.util.ArrayList<IPropertyDescriptor>(java.util.Arrays.asList(propertyDescriptors == null ? new IPropertyDescriptor[0] : propertyDescriptors));
+		if (com.twinsoft.convertigo.engine.tags.TagPolicy.supports(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects, getObject())) {
+			var objects = new org.eclipse.ui.views.properties.PropertyDescriptor("P_ObjectTags", "Sequence tags"); objects.setCategory("Information"); descriptors.add(objects);
+		}
+		if (getObject() instanceof Project) { var projects = new org.eclipse.ui.views.properties.PropertyDescriptor("P_ProjectTags", "Project tags"); projects.setCategory("Information"); descriptors.add(projects); }
+		return descriptors.toArray(IPropertyDescriptor[]::new);
 	}
 
 	public Object getPropertyValue(Object id) {
@@ -748,6 +753,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		DatabaseObject databaseObject = getObject();
 		if (databaseObject == null) return null;
 		String propertyName = (String) id;
+		if (propertyName.equals("P_ObjectTags") || propertyName.equals("P_ProjectTags"))
+			return com.twinsoft.convertigo.engine.tags.TagManager.get().labels(propertyName.equals("P_ProjectTags") ? com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects : com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects, databaseObject);
 
 		if (propertyName.equals(P_TYPE)) {
 			var beanDescriptor = getDatabaseObjectBeanDescriptor();

@@ -46,6 +46,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 	
 	private ProjectExplorerView projectExplorerView;
 	private TreeParent invisibleRoot;
+	final TagTreeProjection tags = new TagTreeProjection();
 	
 	ViewContentProvider(ProjectExplorerView projectExplorerView) {
 		this.projectExplorerView = projectExplorerView;
@@ -68,7 +69,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 						i.remove();
 					}
 				}
-				return c.toArray(new TreeObject[c.size()]);
+				return tags.enabled ? tags.children(invisibleRoot, invisibleRoot, true) : c.toArray(new TreeObject[c.size()]);
 			}
 			return getChildren(invisibleRoot);
 		}
@@ -83,10 +84,12 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 	}
 	
 	public Object[] getChildren(Object parent) {
-		if (parent instanceof TreeParent) {
-			Collection<? extends TreeObject> c = ((TreeParent) parent).getChildren();
-			return c.toArray(new TreeObject[c.size()]);
+		if (parent instanceof TagTreeObject occurrence) {
+			if (occurrence.target == null) return occurrence.getChildren().toArray();
+			if (occurrence.target instanceof TreeParent real) return tags.children(occurrence, real, false);
+			return NO_CHILDREN;
 		}
+		if (parent instanceof TreeParent tree) return tags.children(tree, tree, tree == invisibleRoot);
 
 		if (parent instanceof IFolder) {
 			return getResources((IFolder) parent);
@@ -96,6 +99,8 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 	}
 	
 	public boolean hasChildren(Object parent) {
+		if (parent instanceof TagTreeObject occurrence)
+			return occurrence.target == null ? occurrence.hasChildren() : occurrence.target instanceof TreeParent real && real.hasChildren();
 		if (parent instanceof TreeParent)
 			return ((TreeParent)parent).hasChildren();
 		return false;

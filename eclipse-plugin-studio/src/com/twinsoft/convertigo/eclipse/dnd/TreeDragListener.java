@@ -39,6 +39,8 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class TreeDragListener extends DragSourceAdapter {
 
 	private StructuredViewer viewer;
+	static com.twinsoft.convertigo.eclipse.views.projectexplorer.TagTreeObject tagSourceGroup;
+	static java.util.List<com.twinsoft.convertigo.beans.core.DatabaseObject> tagSourceTargets = java.util.List.of();
 	private Color background = null;
 
 	public TreeDragListener(StructuredViewer viewer) {
@@ -50,6 +52,8 @@ public class TreeDragListener extends DragSourceAdapter {
 	 */
 	@Override
 	public void dragFinished(DragSourceEvent event) {
+		tagSourceTargets = java.util.List.of();
+		tagSourceGroup = null;
 		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (background != null && explorerView != null) {
 			explorerView.viewer.getTree().setBackground(background);
@@ -91,7 +95,27 @@ public class TreeDragListener extends DragSourceAdapter {
 	 */
 	@Override
 	public void dragStart(DragSourceEvent event) {
+		tagSourceGroup = null;
+		tagSourceTargets = java.util.List.of();
 		event.doit = !viewer.getSelection().isEmpty();
+		if (viewer.getSelection() instanceof org.eclipse.jface.viewers.IStructuredSelection selection) {
+			String sourceId = null; boolean mixed = false;
+			var targets = new java.util.LinkedHashSet<com.twinsoft.convertigo.beans.core.DatabaseObject>();
+			for (Object item : selection.toArray()) {
+				com.twinsoft.convertigo.eclipse.views.projectexplorer.TagTreeObject group = null;
+				if (item instanceof com.twinsoft.convertigo.eclipse.views.projectexplorer.TagTreeObject row) {
+					if (row.target == null) { event.doit = false; return; }
+					if (row.getParent() instanceof com.twinsoft.convertigo.eclipse.views.projectexplorer.TagTreeObject parent && parent.target == null) group = parent;
+				}
+				String id = group == null ? "" : group.group.path("tagId").asText();
+				if (sourceId != null && !sourceId.equals(id)) mixed = true;
+				sourceId = id; tagSourceGroup = group;
+				if (item instanceof com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject tree
+						&& tree.check().getObject() instanceof com.twinsoft.convertigo.beans.core.DatabaseObject dbo) targets.add(dbo);
+			}
+			if (mixed) tagSourceGroup = null;
+			tagSourceTargets = java.util.List.copyOf(targets);
+		}
 	}
 
 	

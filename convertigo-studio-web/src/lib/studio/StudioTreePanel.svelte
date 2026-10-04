@@ -1,9 +1,11 @@
 <script>
+	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Projects from '$lib/common/Projects.svelte.js';
 	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, runStudioContextAction, toaster } from '$lib/utils/service';
 	import { onMount, tick, untrack } from 'svelte';
+	import { persistedState } from 'svelte-persisted-state';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { closedProjects, refreshClosedProjects } from './closedProjects.svelte.js';
 	import {
@@ -15,6 +17,7 @@
 	import { isFolderId } from './folderTypes.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioFileMergeDialog from './StudioFileMergeDialog.svelte';
+	import StudioTagsDialog from './StudioTagsDialog.svelte';
 	import {
 		applyProjectedTreeMutation,
 		remapExpandedTreeIds,
@@ -43,6 +46,7 @@
 	/** the part of the width of the view the column of the comments goes to at most */
 	const COMMENT_COLUMN_MAX = 0.6;
 	const COMMENT_GAP = 10;
+	let tagDropConfirmation;
 
 	/**
 	 * @type {{
@@ -54,6 +58,8 @@
 	 *  refreshMutation?: import('./dnd').DboDropResult | null,
 	 *  refreshMutationSerial?: number,
 	 *  reloadProject?: { projectName: string, serial: number } | null,
+	 *  tagChange?: any,
+	 *  onTagsChanged?: (result: any) => void,
 	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onContextAction?: (event: { nodeId: string, action: any, result: any }) => void | Promise<void>,
@@ -80,6 +86,8 @@
 		refreshMutation = null,
 		refreshMutationSerial = 0,
 		reloadProject = null,
+		tagChange = null,
+		onTagsChanged,
 		onMutation,
 		onMutationBusyChange,
 		onContextAction,
@@ -97,8 +105,13 @@
 		onMergeEnded
 	} = $props();
 
+	const tagPreference = persistedState('studio-tags-grouped', false);
+	let tagsGrouped = $derived(tagPreference.current);
+	let tagRoots = $state.raw(/** @type {any[]} */ ([]));
+	let tagsDialog;
 	const { checkChildren, checkNodes } = createProjectTree({
-		equivalentIds: equivalentDboObjectIds
+		equivalentIds: equivalentDboObjectIds,
+		parameters: () => ({ tagsGrouped })
 	});
 	/** @type {Record<string, any>} */
 	const rootNodeCache = {};
@@ -346,7 +359,7 @@
 	 * @returns {boolean} whether the tree shows the project, the selection being maybe an item of the palette
 	 */
 	function isTreeProject(name) {
-		return Boolean(name) && rootChildren.some((node) => node?.id === name && !node?.closed);
+		return Boolean(name) && normalRootChildren.some((node) => node?.id === name && !node?.closed);
 	}
 
 	$effect(() => {
@@ -391,42 +404,207 @@
 		void Projects.projects?.length;
 		untrack(() => void refreshClosedProjects());
 	});
-	let rootChildren = $derived.by(() =>
-		[
-			...(Projects.projects ?? [])
-				.map((project) => project?.name)
-				.filter((name) => name && !closedProjects.names.includes(name)),
-			...closedProjects.names
-		]
-			.filter((name) => !(hideLibs && name.startsWith('lib_')))
-			// the order of the engine, which ignores the case
-			.sort((left, right) => {
-				const [a, b] = [left.toLowerCase(), right.toLowerCase()];
-				return a < b ? -1 : a > b ? 1 : 0;
-			})
-			.map((name) => {
-				const closed = closedProjects.names.includes(name);
-				// a project opened or closed again shows as a new node, without the children it had
-				if (!rootNodeCache[name] || Boolean(rootNodeCache[name].closed) !== closed) {
-					rootNodeCache[name] = {
-						id: name,
-						name,
-						label: name,
-						icon: 'folder',
-						children: !closed,
-						...(closed ? { closed: true } : {})
-					};
+	let normalRootChildren = $derived.by(() => {
+		dataSerial;
+		return (
+			[
+				...(Projects.projects ?? [])
+					.map((project) => project?.name)
+					.filter((name) => name && !closedProjects.names.includes(name)),
+				...closedProjects.names
+			]
+				.filter((name) => !(hideLibs && name.startsWith('lib_')))
+				// the order of the engine, which ignores the case
+				.sort((left, right) => {
+					const [a, b] = [left.toLowerCase(), right.toLowerCase()];
+					return a < b ? -1 : a > b ? 1 : 0;
+				})
+				.map((name) => {
+					const closed = closedProjects.names.includes(name);
+					// a project opened or closed again shows as a new node, without the children it had
+					if (!rootNodeCache[name] || Boolean(rootNodeCache[name].closed) !== closed) {
+						rootNodeCache[name] = {
+							id: name,
+							name,
+							label: name,
+							icon: 'folder',
+							children: !closed,
+							...(closed ? { closed: true } : {})
+						};
+					}
+					return rootNodeCache[name];
+				})
+		);
+	});
+	let rootChildren = $derived(tagsGrouped ? tagRoots : normalRootChildren);
+	let tagsRootRequest = 0;
+	async function refreshTagRoots() {
+		const serial = ++tagsRootRequest;
+		const response = await call('studio.treeview.Get', { tagsGrouped });
+		if (serial !== tagsRootRequest || !Array.isArray(response?.children)) return;
+		// Loaded children belong to each displayed occurrence. The normal-tree cache can still be lazy.
+		// This request-local lookup is not reactive component state.
+		const previous = Object.create(null);
+		const remember = (nodes) => {
+			for (const node of nodes) {
+				previous[node.rowId ?? node.id] = node;
+				if (node.tagGroup && Array.isArray(node.children)) remember(node.children);
+			}
+		};
+		remember(tagRoots);
+		const decorate = (nodes) =>
+			nodes.map((node) => {
+				if (node.tagGroup) return { ...node, children: decorate(node.children ?? []) };
+				const occurrence = tagsGrouped ? previous[node.rowId ?? node.id] : null;
+				const cached = Array.isArray(occurrence?.children)
+					? occurrence
+					: (rootNodeCache[node.id] ?? occurrence);
+				const root = rootNodeCache[node.id];
+				if (root) rootNodeCache[node.id] = { ...root, ...node, children: root.children };
+				if (cached) {
+					return { ...cached, ...node, children: cached.children };
 				}
-				return rootNodeCache[name];
+				return node;
+			});
+		tagRoots = decorate(response.children);
+		dataSerial += 1;
+	}
+	$effect(() => {
+		void tagsGrouped;
+		void Projects.projects?.length;
+		void closedProjects.names.length;
+		untrack(() => void refreshTagRoots());
+	});
+	async function toggleTagsView() {
+		tagPreference.current = !tagsGrouped;
+		const loaded = [];
+		const collect = (nodes) => {
+			for (const node of nodes) {
+				if (!Array.isArray(node.children)) continue;
+				if (!node.tagGroup) loaded.push(node);
+				collect(node.children);
+			}
+		};
+		collect(normalRootChildren);
+		await checkNodes(loaded, true);
+		await refreshTagRoots();
+		dataSerial += 1;
+	}
+	// Commands may request a canonical target (palette/F2); only one displayed occurrence edits it.
+	$effect(() => {
+		const target = renameTargetId;
+		if (!target || target.startsWith('tag-row:')) return;
+		/** @param {any[]} nodes @param {string} prefix @returns {string} */
+		const find = (nodes, prefix = '') => {
+			for (const node of nodes) {
+				const row = `${prefix}${node.rowId ?? node.id ?? ''}`;
+				if (!node.tagGroup && areEquivalentDboObjectIds(node.id, target)) return row;
+				if (expandedNodeIds.has(row) && Array.isArray(node.children)) {
+					const found = find(node.children, node.rowId && !node.tagGroup ? `${row}/` : prefix);
+					if (found) return found;
+				}
+			}
+			return '';
+		};
+		const row = find(rootChildren);
+		if (row && row !== target) renameTargetId = row;
+	});
+	/** @param {any} result */
+	async function tagsChanged(result) {
+		await refreshAffectedParents((result.affectedContainers ?? []).filter(Boolean));
+		await refreshTagRoots();
+		for (const name of result.dirtyProjects ?? []) {
+			if (rootNodeCache[name]) rootNodeCache[name].modified = true;
+		}
+		onTagsChanged?.(result);
+		dataSerial += 1;
+	}
+	$effect(() => {
+		const change = tagChange;
+		if (change) untrack(() => void tagsChanged(change));
+	});
+	/** @param {any} node */
+	function canManageTags(node) {
+		dataSerial;
+		if (node.tagGroup) return true;
+		if (!node.tagScope) return false;
+		return treeSelectionOf(node.id).every((id) => {
+			const target = findNodeById(id);
+			return (
+				target?.tagScope === node.tagScope &&
+				(node.tagScope === 'workspaceProjects' ||
+					id.split(/[.:/]/)[0] === node.id.split(/[.:/]/)[0])
+			);
+		});
+	}
+	/** @param {any} node */
+	function manageTags(node) {
+		if (!canManageTags(node)) return;
+		const scope = node.tagScope ?? node.scope;
+		const project =
+			scope === 'workspaceProjects' ? '' : (node.project ?? node.id.split(/[.:/]/)[0]);
+		const targets = node.tagGroup ? [] : treeSelectionOf(node.id);
+		void tagsDialog.open(scope, project, targets, node.tagGroup ? node.tagId : '');
+	}
+	/** @param {any} group @param {any} payload @param {boolean} transfer */
+	async function tagDrop(group, payload, transfer) {
+		if (payload?.type !== 'treeData' || !payload.data?.id) {
+			toaster.error({
+				description: 'Drop an existing object here. Create objects in their real parent.'
+			});
+			return;
+		}
+		const targets = treeSelectionOf(payload.data.id);
+		const scope = group.scope;
+		const project = group.project;
+		if (!targets.every((id) => findNodeById(id)?.tagScope === scope)) {
+			toaster.error({ description: 'Tags can only be assigned to projects and sequences.' });
+			return;
+		}
+		const snapshot = await call('studio.tags.Get', { scope, project });
+		const clear = !group.tagId;
+		const fromTagId = payload.data.tagId;
+		if (
+			clear &&
+			!(await tagDropConfirmation.open({
+				title: 'Remove tag memberships',
+				message: `Remove all tags from ${targets.length} target(s)? Objects remain in their real parent.`
+			}))
+		)
+			return;
+		if (
+			transfer &&
+			fromTagId &&
+			!(await tagDropConfirmation.open({
+				title: 'Transfer tag membership',
+				message:
+					'Remove membership in the source tag and add membership in this tag? Other tags will remain.'
+			}))
+		)
+			return;
+		const action = clear ? 'clear' : transfer && fromTagId ? 'transfer' : 'assign';
+		const result = await call('studio.tags.Apply', {
+			scope,
+			project,
+			revision: snapshot.revision,
+			action,
+			input: JSON.stringify({
+				targets,
+				tagIds: clear ? [] : [group.tagId],
+				fromTagId,
+				confirmed: clear
 			})
-	);
+		});
+		if (result?.done) await tagsChanged(result);
+	}
+
 	let loading = $derived(Projects.loading && rootChildren.length === 0);
 
 	onMount(() => {
 		let cancelled = false;
 		async function selectFirstWhenReady() {
 			while (!cancelled && autoSelectFirst && !selectedId) {
-				const firstProject = rootChildren.find((node) => node?.id && node.id !== 'ROOT');
+				const firstProject = normalRootChildren.find((node) => node?.id && node.id !== 'ROOT');
 				if (firstProject?.id) {
 					selectedId = firstProject.id;
 					return;
@@ -530,6 +708,18 @@
 		}
 		if (action) {
 			event.preventDefault();
+			if (
+				action === 'object.rename' &&
+				selectedId.includes('.') &&
+				!selectedId.includes('/') &&
+				!isFolderId(selectedId)
+			) {
+				const row = target?.closest('[data-row-id]')?.getAttribute('data-row-id');
+				if (row) {
+					renameTargetId = row;
+					return;
+				}
+			}
 			void onTreeAction(action, selectedId);
 		}
 	}
@@ -563,13 +753,15 @@
 		const rows = /** @type {HTMLElement[]} */ ([
 			...container.querySelectorAll('button.studio-tree-node__content')
 		]);
-		const index = rows.findIndex((row) => row.dataset.nodeId === selectedId);
+		const focusedIndex = rows.findIndex((row) => row === document.activeElement);
+		const index =
+			focusedIndex >= 0 ? focusedIndex : rows.findIndex((row) => row.dataset.nodeId === selectedId);
 		const current = rows[index];
 		const toggle = /** @type {HTMLButtonElement | null} */ (
 			current
-				? container.querySelector(
-						`button.studio-tree-node__toggle-button[data-node-id="${CSS.escape(selectedId)}"]`
-					)
+				? current
+						.closest('[role="treeitem"]')
+						?.querySelector('button.studio-tree-node__toggle-button')
 				: null
 		);
 		/** @type {HTMLElement | undefined} */
@@ -633,7 +825,17 @@
 	 * @param {boolean=} force
 	 */
 	async function loadChildren(node, force = false) {
+		if (node?.tagGroup) return;
 		await checkChildren(node, force);
+		function updateOccurrences(nodes) {
+			for (const occurrence of nodes) {
+				if (occurrence !== node && occurrence.id === node.id) occurrence.children = node.children;
+				if (Array.isArray(occurrence.children)) updateOccurrences(occurrence.children);
+			}
+		}
+		updateOccurrences(rootChildren);
+		if (rootNodeCache[node.id]) rootNodeCache[node.id].children = node.children;
+		dataSerial += 1;
 	}
 
 	/**
@@ -788,10 +990,14 @@
 				continue;
 			}
 			visited.add(id);
-			const node = findNodeById(id);
-			if (node?.id) {
-				nodes.push(node);
-			}
+			const visit = (children) => {
+				for (const node of children) {
+					if (!node.tagGroup && node?.id && areEquivalentDboObjectIds(node.id, id))
+						nodes.push(node);
+					if (Array.isArray(node?.children)) visit(node.children);
+				}
+			};
+			visit(rootChildren);
 		}
 		await checkNodes(nodes, true);
 	}
@@ -1089,9 +1295,14 @@
 	{:else if rootChildren.length === 0}
 		<StudioEmptyState message="No project available" small />
 	{:else}
-		{#each rootChildren as node (node.id ?? node.name)}
+		{#each rootChildren as node (node.rowId ?? node.id ?? node.name)}
 			<StudioTreeNode
 				{node}
+				onTagDrop={tagDrop}
+				onManageTags={manageTags}
+				{canManageTags}
+				{tagsGrouped}
+				onToggleTagGrouping={toggleTagsView}
 				bind:selectedId
 				bind:renameTargetId
 				depth={0}
@@ -1120,6 +1331,9 @@
 		{/each}
 	{/if}
 </div>
+
+<StudioTagsDialog bind:this={tagsDialog} onChanged={tagsChanged} />
+<ModalYesNo bind:this={tagDropConfirmation} />
 
 <style>
 	/* the Git mode: what the tree is compared to, and its changes */

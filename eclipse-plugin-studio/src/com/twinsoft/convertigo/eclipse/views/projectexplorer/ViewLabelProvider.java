@@ -107,6 +107,17 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 
 	@Override
 	public String getText(Object obj) {
+		String currentTag = obj instanceof TagTreeObject row ? row.currentTagId() : "";
+		if (obj instanceof TagTreeObject occurrence) {
+			if (occurrence.target == null) return "# " + occurrence.getName() + " (" + occurrence.getChildren().size() + ")";
+			obj = occurrence.target;
+		}
+		String tags = "";
+		if (obj instanceof DatabaseObjectTreeObject target) {
+			for (var tag : com.twinsoft.convertigo.engine.tags.TagManager.get().badges(target.getObject()).path("tags")) if (!tag.path("id").asText().equals(currentTag)) tags += " [" + tag.path("label").asText() + "]";
+		} else if (obj instanceof UnloadedProjectTreeObject target) {
+			for (var tag : com.twinsoft.convertigo.engine.tags.TagManager.get().projectBadges(target.getName()).path("tags")) if (!tag.path("id").asText().equals(currentTag)) tags += " [" + tag.path("label").asText() + "]";
+		}
 		if (obj instanceof DatabaseObjectTreeObject) {
 			DatabaseObject dbo = ((DatabaseObjectTreeObject) obj).getObject();
 			if (dbo.isSymbolError() || (dbo instanceof Project && ((Project) dbo).undefinedGlobalSymbols)) {
@@ -121,7 +132,7 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 			if (dbo instanceof RequestableObject && !notShownSpecialChar ) {
 				return ( ((RequestableObject) dbo).getAccessibility() == Accessibility.Private ? "🔒 " : ( 
 						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "👓 " : (isMac ? "🚪 " : " 🚪  " ) ) ) + 
-						(dbo instanceof Sequence ? (((Sequence)dbo).isAutoStart() ? "💡 ":""):"") + obj.toString();
+						(dbo instanceof Sequence ? (((Sequence)dbo).isAutoStart() ? "💡 ":""):"") + obj.toString() + tags;
 			}
 		}
 		if (obj instanceof ResourceFolderTreeObject) {
@@ -130,11 +141,15 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 		if (obj instanceof ResourceTreeObject) {
 			return ((ResourceTreeObject) obj).getName();
 		}
-		return obj.toString();
+		return obj.toString() + tags;
 	}
 	
 	@Override
 	public Image getImage(Object obj) {
+		if (obj instanceof TagTreeObject occurrence) {
+			if (occurrence.target == null) return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER);
+			obj = occurrence.target;
+		}
 		try {
 			String iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
 			Image image = null;
@@ -236,6 +251,7 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 	}
 
 	public Font getFont(Object element) {
+		if (element instanceof TagTreeObject occurrence && occurrence.target != null) element = occurrence.target;
 		if (element instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) element;
 			DatabaseObject databaseObject = databaseObjectTreeObject.getObject();
@@ -246,6 +262,7 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 	}
 
 	public Color getForeground(Object element) {
+		if (element instanceof TagTreeObject occurrence && occurrence.target != null) element = occurrence.target;
 		if (element instanceof UnloadedProjectTreeObject) {
 			return colorUnloadedProject;
 		}
@@ -288,6 +305,7 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 	}
 
 	public Color getBackground(Object element) {
+		if (element instanceof TagTreeObject occurrence && occurrence.target != null) element = occurrence.target;
 		if (element instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) element;
 			if (databaseObjectTreeObject.isDetectedObject) return colorDetectedDatabaseObject;

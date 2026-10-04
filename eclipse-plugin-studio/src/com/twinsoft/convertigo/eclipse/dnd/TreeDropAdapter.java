@@ -271,6 +271,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		Engine.logStudio.info("---------------------- Drop started ----------------------");
 		try {
 			Object targetObject = getCurrentTarget();
+			if (targetObject instanceof com.twinsoft.convertigo.eclipse.views.projectexplorer.TagTreeObject row) {
+				if (row.target == null) return assignTagDrop(row, data);
+				targetObject = row.check();
+			}
 
 			// Handle objects copy or move with Drag and drop
 			if (targetObject instanceof TreeObject) {
@@ -299,6 +303,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
 							boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
 							TreeObject sourceObject = (TreeObject) getSelectedObject();
+							if (sourceObject != null) sourceObject = sourceObject.check();
 							if (handleFlowVirtualMove(sourceObject, targetTreeObject, explorerView, insertBefore, insertAfter)) {
 								return true;
 							}
@@ -1161,8 +1166,59 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ViewerDropAdapter#validateDrop(java.lang.Object, int, org.eclipse.swt.dnd.TransferData)
 	 */
+	private boolean assignTagDrop(com.twinsoft.convertigo.eclipse.views.projectexplorer.TagTreeObject group, Object data) {
+		if (!(data instanceof String) || TreeDragListener.tagSourceTargets.isEmpty()) {
+			org.eclipse.jface.dialogs.MessageDialog.openInformation(Display.getDefault().getActiveShell(), "Tag group", "Drop an existing object here. Create objects in their real parent."); return false;
+		}
+		var explorer = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		var targets = new java.util.TreeSet<String>();
+		for (var dbo : TreeDragListener.tagSourceTargets) targets.add(dbo.getFullQName());
+		if (targets.isEmpty()) return false;
+		String tagId = group.group.path("tagId").asText();
+		if (tagId.isEmpty() && !org.eclipse.jface.dialogs.MessageDialog.openConfirm(Display.getDefault().getActiveShell(), "Remove all tags", "Remove all tags from " + targets.size() + " target(s)? Objects remain in their real parent.")) return false;
+		var scope = com.twinsoft.convertigo.engine.tags.TagManager.Scope.valueOf(group.group.path("scope").asText());
+		String project = group.group.path("project").asText();
+		var sourceGroup = TreeDragListener.tagSourceGroup;
+		String fromTagId = sourceGroup == null ? "" : sourceGroup.group.path("tagId").asText();
+		boolean transfer = !tagId.isEmpty() && !fromTagId.isEmpty() && getCurrentOperation() == DND.DROP_MOVE;
+		if (transfer && !MessageDialog.openConfirm(Display.getDefault().getActiveShell(), "Move membership between tags", "Remove membership in the source tag and add membership in this tag? Other tags and real parents remain unchanged.")) return false;
+		ConvertigoPlugin.clipboardManagerDND.isCut = false;
+		org.eclipse.core.runtime.jobs.Job.create("Assign object tags", monitor -> {
+			try {
+				var manager = com.twinsoft.convertigo.engine.tags.TagManager.get();
+				var snapshot = manager.read(scope, project);
+				var input = com.twinsoft.convertigo.engine.tags.TagDocument.JSON.createObjectNode().put("confirmed", tagId.isEmpty());
+				var ids = input.putArray("tagIds"); if (!tagId.isEmpty()) ids.add(tagId);
+				var members = input.putArray("targets"); targets.forEach(members::add);
+				if (transfer) input.put("fromTagId", fromTagId);
+				var result = manager.mutate(scope, project, snapshot.path("revision").asText(), tagId.isEmpty() ? "clear" : transfer ? "transfer" : "assign", input);
+				Display.getDefault().asyncExec(() -> {
+					if (explorer.viewer.getControl().isDisposed()) return;
+					for (var name : result.path("dirtyProjects")) {
+						var loaded = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name.asText());
+						var tree = loaded == null ? null : explorer.findTreeObjectByUserObject(loaded);
+						if (tree instanceof DatabaseObjectTreeObject dboTree) dboTree.hasBeenModified(true);
+					}
+					for (var container : result.path("affectedContainers")) explorer.refreshTaggedCollection(container.asText());
+				});
+			} catch (Exception e) { Display.getDefault().asyncExec(() -> org.eclipse.jface.dialogs.MessageDialog.openError(Display.getDefault().getActiveShell(), "Tag assignment refused", e.getMessage())); }
+		}).schedule(); return true;
+	}
+
 	@Override
 	public boolean validateDrop(Object target, int operation, TransferData transferType) {
+		if (target instanceof com.twinsoft.convertigo.eclipse.views.projectexplorer.TagTreeObject row) {
+			if (row.target == null) {
+				if (!TextTransfer.getInstance().isSupportedType(transferType) || TreeDragListener.tagSourceTargets.isEmpty()) return false;
+				boolean workspace = row.group.path("scope").asText().equals("workspaceProjects");
+				String project = row.group.path("project").asText();
+				return TreeDragListener.tagSourceTargets.stream().allMatch(dbo -> workspace
+						? com.twinsoft.convertigo.engine.tags.TagPolicy.supports(com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects, dbo)
+						: com.twinsoft.convertigo.engine.tags.TagPolicy.supports(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects, dbo)
+							&& dbo.getProject() != null && dbo.getProject().getName().equals(project));
+			}
+			target = row.check();
+		}
 		if (MobileSourceTransfer.getInstance().isSupportedType(transferType)) {
 			MobileSource mobileSource = MobileSourceTransfer.getInstance().getMobileSource();
 			if (mobileSource != null) {

@@ -191,6 +191,13 @@ public class ProjectUtils {
 			}
 		}
 
+		try {
+			com.twinsoft.convertigo.engine.tags.TagManager.rebaseImportedSource(oldXml.getParentFile().toPath(), oldName, newName);
+		} catch (IOException e) {
+			// An invalid extension source remains available for diagnostics and explicit repair.
+			Engine.logDatabaseObjectManager.warn("Unable to rebase project tags: " + e.getMessage());
+		}
+
 		File dotProject = new File(oldXml.getParentFile(), ".project");
 		if (dotProject.exists()) {
 			replacements.clear();

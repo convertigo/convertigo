@@ -1,7 +1,7 @@
 import { call } from '$lib/utils/service';
 
 /**
- * @typedef {{ equivalentIds?: (id: string | undefined) => string[] }} ProjectTreeOptions
+ * @typedef {{ equivalentIds?: (id: string | undefined) => string[], parameters?: () => Record<string, any> }} ProjectTreeOptions
  */
 
 /** The marks of a tree node that studio.treeview.Get writes only when the object has them */
@@ -17,7 +17,8 @@ const OPTIONAL_MARKS = [
 	'open',
 	'iconify',
 	'renameValue',
-	'closed'
+	'closed',
+	'tags'
 ];
 
 /**
@@ -30,7 +31,7 @@ function normalizeProjectTreeNode(node, previous, options = {}) {
 	if (
 		previous &&
 		typeof previous === 'object' &&
-		shareProjectTreeId(previous.id, node.id, options)
+		(node.rowId ? previous.rowId === node.rowId : shareProjectTreeId(previous.id, node.id, options))
 	) {
 		const previousChildren = Array.isArray(previous.children) ? previous.children : undefined;
 		// the engine only writes the marks an object has: a mark it no longer writes is gone
@@ -64,7 +65,7 @@ function normalizeProjectTreeChildren(children, previousChildren = [], options =
 	previousChildren = Array.isArray(previousChildren) ? previousChildren : [];
 	const previousById = Object.create(null);
 	for (const child of previousChildren) {
-		for (const id of projectTreeEquivalentIds(child?.id, options)) {
+		for (const id of child?.rowId ? [child.rowId] : projectTreeEquivalentIds(child?.id, options)) {
 			previousById[id] = child;
 		}
 	}
@@ -102,7 +103,7 @@ function applyProjectTreeChildren(node, children, options = {}) {
  * @returns {any}
  */
 function findPreviousProjectTreeNode(child, previousById, options) {
-	for (const id of projectTreeEquivalentIds(child?.id, options)) {
+	for (const id of child?.rowId ? [child.rowId] : projectTreeEquivalentIds(child?.id, options)) {
 		if (previousById[id]) {
 			return previousById[id];
 		}
@@ -152,7 +153,7 @@ export function createProjectTree(options = {}) {
 	});
 
 	async function loadRoot() {
-		const tree = await call('studio.treeview.Get', {});
+		const tree = await call('studio.treeview.Get', options.parameters?.() ?? {});
 		applyProjectTreeChildren(rootNode, tree?.children, options);
 	}
 
@@ -164,15 +165,16 @@ export function createProjectTree(options = {}) {
 	}
 
 	async function checkChildren(node = rootNode, force = false) {
+		/** @type {Record<string, any[]>} */
 		let toUpdate = {};
 		if (force && node?.id) {
-			toUpdate[node.id] = node;
+			(toUpdate[node.id] ??= []).push(node);
 		} else if (node.children && !Array.isArray(node.children)) {
-			toUpdate[node.id] = node;
+			(toUpdate[node.id] ??= []).push(node);
 		} else if (Array.isArray(node.children)) {
 			for (let child of node.children) {
 				if (child.children && !Array.isArray(child.children)) {
-					toUpdate[child.id] = child;
+					(toUpdate[child.id] ??= []).push(child);
 				}
 			}
 		}
@@ -184,35 +186,39 @@ export function createProjectTree(options = {}) {
 	 * @param {boolean=} force
 	 */
 	async function checkNodes(nodes = [], force = false) {
+		/** @type {Record<string, any[]>} */
 		let toUpdate = {};
 		for (const node of nodes) {
 			if (!node?.id) {
 				continue;
 			}
 			if (force || (node.children && !Array.isArray(node.children))) {
-				toUpdate[node.id] = node;
+				(toUpdate[node.id] ??= []).push(node);
 			}
 		}
 		await updateChildren(toUpdate);
 	}
 
 	/**
-	 * @param {Record<string, any>} toUpdate
+	 * @param {Record<string, any[]>} toUpdate
 	 */
 	async function updateChildren(toUpdate) {
 		const ids = Object.keys(toUpdate);
 		if (ids.length > 0) {
 			if (ids.length === 1) {
 				const id = ids[0];
-				const update = await call('studio.treeview.Get', { id });
-				applyProjectTreeChildren(toUpdate[id], update?.children, options);
+				const update = await call('studio.treeview.Get', { id, ...options.parameters?.() });
+				for (const node of toUpdate[id])
+					applyProjectTreeChildren(node, structuredClone(update?.children), options);
 			} else {
 				const updates = await call('studio.treeview.Get', {
-					ids: JSON.stringify(ids)
+					ids: JSON.stringify(ids),
+					...options.parameters?.()
 				});
 				for (let id in updates ?? {}) {
 					if (toUpdate[id]) {
-						applyProjectTreeChildren(toUpdate[id], updates[id], options);
+						for (const node of toUpdate[id])
+							applyProjectTreeChildren(node, structuredClone(updates[id]), options);
 					}
 				}
 			}

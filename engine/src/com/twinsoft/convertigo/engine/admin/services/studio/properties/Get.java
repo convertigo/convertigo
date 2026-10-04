@@ -128,6 +128,11 @@ public class Get extends JSonService {
 	protected void addInfosProperties(DatabaseObject dbo, JSONObject props) {
 		try {
 			JSONObject info = new JSONObject().put("category", "Information").put("isDisabled", true);
+			var tags = com.twinsoft.convertigo.engine.tags.TagManager.get();
+			if (com.twinsoft.convertigo.engine.tags.TagPolicy.supports(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects, dbo))
+				putInfoProperty(dbo, props, "Sequence tags", makeInfoProperty(info, "P_ObjectTags", tags.labels(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects, dbo)));
+			if (dbo instanceof com.twinsoft.convertigo.beans.core.Project)
+				putInfoProperty(dbo, props, "Project tags", makeInfoProperty(info, "P_ProjectTags", tags.labels(com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects, dbo)));
 
 			String depth = Integer.toString(dbo instanceof ScreenClass ? ((ScreenClass) dbo).getDepth()
 					: org.apache.commons.lang3.StringUtils.countMatches(dbo.getQName(), '.'));

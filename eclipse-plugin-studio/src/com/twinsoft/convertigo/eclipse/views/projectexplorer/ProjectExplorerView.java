@@ -641,7 +641,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		hookKeyboardActions();
 		contributeToActionBars();
 
-		getSite().setSelectionProvider(viewer);
+		getSite().setSelectionProvider(new TagSelectionProvider(viewer));
 
 		ConvertigoPlugin.runAtStartup(() -> initialize());
 	}
@@ -697,7 +697,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		menuMgr.setOverrides(new ConvertigoContributionManager());
 		Menu menu = menuMgr.createContextMenu(viewer.getControl());
 		viewer.getControl().setMenu(menu);
-		getSite().registerContextMenu(menuMgr, viewer);
+		getSite().registerContextMenu(menuMgr, new TagSelectionProvider(viewer));
 	}
 
 	private void hookKeyboardActions() {
@@ -792,10 +792,29 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private void fillLocalPullDown(IMenuManager manager) {
+		addTagActions(manager);
 	}
 
 	private void fillLocalToolBar(IToolBarManager manager) {
-
+		// Tag presentation is controlled from the view and context menus.
+	}
+	private org.eclipse.jface.action.Action tagGroupingAction;
+	private org.eclipse.jface.action.Action tagGroupingAction() {
+		if (tagGroupingAction == null) {
+			tagGroupingAction = new org.eclipse.jface.action.Action("Group by tags", org.eclipse.jface.action.IAction.AS_CHECK_BOX) {
+				@Override public void run() {
+					viewContentProvider.tags.enabled = isChecked();
+					ConvertigoPlugin.setProperty("studio.tags.grouped", Boolean.toString(isChecked()));
+					if (ConvertigoPlugin.getDefault().getPreferenceStore() instanceof org.eclipse.jface.preference.IPersistentPreferenceStore preferences) {
+						try { preferences.save(); } catch (java.io.IOException e) { ConvertigoPlugin.logException(e, "Unable to save tag view preference"); }
+					}
+					viewer.refresh();
+				}
+			};
+			boolean grouped = "true".equals(ConvertigoPlugin.getProperty("studio.tags.grouped"));
+			tagGroupingAction.setChecked(grouped); viewContentProvider.tags.enabled = grouped;
+		}
+		return tagGroupingAction;
 	}
 
 	private void fillStatusBar(IStatusLineManager statusLine) {
@@ -805,9 +824,95 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
+		addTagActions(manager);
 		addFlowContextMenu(manager);
 		// Other plug-ins can contribute there actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+	}
+
+	private void addTagActions(IMenuManager manager) {
+		manager.add(tagGroupingAction());
+		if (viewer.getStructuredSelection().getFirstElement() instanceof TagTreeObject group && group.target == null) {
+			manager.add(new org.eclipse.jface.action.Action("Edit tag…") {
+				@Override public void run() {
+					new TagManagerDialog(viewer.getControl().getShell(), com.twinsoft.convertigo.engine.tags.TagManager.Scope.valueOf(group.group.path("scope").asText()),
+							group.group.path("project").asText(), java.util.List.of(), result -> {
+						for (var name : result.path("dirtyProjects")) {
+							var loaded = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name.asText());
+							var tree = loaded == null ? null : findTreeObjectByUserObject(loaded);
+							if (tree instanceof DatabaseObjectTreeObject dboTree) dboTree.hasBeenModified(true);
+						}
+						for (var container : result.path("affectedContainers")) refreshTaggedCollection(container.asText());
+					}).selectTag(group.group.path("tagId").asText()).open();
+				}
+			});
+			return;
+		}
+		manager.add(new org.eclipse.jface.action.Action("Sequence tags…") {
+			@Override public boolean isEnabled() {
+				var selection = getSelectedTreeObjects();
+				return selection != null && selection.length > 0 && java.util.Arrays.stream(selection).allMatch(tree ->
+						tree.getObject() instanceof DatabaseObject dbo && com.twinsoft.convertigo.engine.tags.TagPolicy.supports(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects, dbo));
+			}
+			@Override public void run() { openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects); }
+		});
+		manager.add(new org.eclipse.jface.action.Action("Project tags…") {
+			@Override public boolean isEnabled() {
+				var selection = getSelectedTreeObjects();
+				return selection != null && selection.length > 0 && java.util.Arrays.stream(selection).allMatch(tree ->
+						tree instanceof UnloadedProjectTreeObject || tree.getObject() instanceof Project);
+			}
+			@Override public void run() { openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects); }
+		});
+	}
+	private void openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope scope) {
+		var selected = getSelectedTreeObjects();
+		var targets = new java.util.ArrayList<String>();
+		String project = "";
+		if (selected != null) for (var tree : selected) {
+			if (tree.getObject() instanceof DatabaseObject dbo && dbo.getProject() != null) {
+				if (project.isEmpty()) project = dbo.getProject().getName();
+				if (scope == com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects) {
+					if (dbo instanceof Project && !targets.contains(dbo.getProject().getName())) targets.add(dbo.getProject().getName());
+				} else if (project.equals(dbo.getProject().getName())
+						&& com.twinsoft.convertigo.engine.tags.TagPolicy.supports(scope, dbo)) targets.add(dbo.getFullQName());
+			} else if (scope == com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects && tree instanceof UnloadedProjectTreeObject) targets.add(tree.getName());
+		}
+		if (scope == com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects && (project.isEmpty() || targets.isEmpty())) {
+			org.eclipse.jface.dialogs.MessageDialog.openInformation(viewer.getControl().getShell(), "Sequence tags", "Select a sequence in an open project first."); return;
+		}
+		new TagManagerDialog(viewer.getControl().getShell(), scope, project, targets, result -> {
+			for (var name : result.path("dirtyProjects")) {
+				var loaded = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name.asText());
+				var tree = loaded == null ? null : findTreeObjectByUserObject(loaded);
+				if (tree instanceof DatabaseObjectTreeObject dboTree) dboTree.hasBeenModified(true);
+			}
+			for (var container : result.path("affectedContainers")) refreshTaggedCollection(container.asText());
+			if (result.path("done").asBoolean()) ConvertigoPlugin.getDefault().refreshPropertiesView();
+		}).open();
+	}
+
+	public void refreshTaggedCollection(String collection) {
+		if (collection.isEmpty()) { viewer.refresh(); return; }
+		int colon = collection.lastIndexOf(':');
+		var folderType = colon > 0 ? com.twinsoft.convertigo.engine.enums.FolderType.parse(collection.substring(colon + 1)) : null;
+		String parent = folderType == null ? collection : collection.substring(0, colon);
+		try {
+			var dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(parent);
+			var tree = dbo == null ? null : findTreeObjectByUserObject(dbo);
+			if (tree != null) {
+				viewer.refresh(tree);
+				for (var row : viewContentProvider.tags.occurrencesOf(tree)) viewer.refresh(row);
+				if (folderType != null && tree instanceof TreeParent realParent) {
+					for (var child : realParent.getChildren()) if (child instanceof ObjectsFolderTreeObject folder
+							&& (folder.getName().equalsIgnoreCase(folderType.displayName())
+								|| folder.getChildren().stream().anyMatch(member -> member.getObject() instanceof DatabaseObject object && object.getFolderType() == folderType))) {
+						viewer.refresh(folder);
+						for (var row : viewContentProvider.tags.occurrencesOf(folder)) viewer.refresh(row);
+					}
+				}
+			}
+		} catch (Exception e) { ConvertigoPlugin.logException(e, "Unable to refresh tagged collection"); }
 	}
 
 	private void addFlowContextMenu(IMenuManager manager) {
@@ -1216,6 +1321,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			public void run() {
 				IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
 				TreeObject treeObject = (TreeObject) selection.getFirstElement();
+				if (treeObject instanceof TagTreeObject occurrence && occurrence.target == null) {
+					viewer.setExpandedState(occurrence, !viewer.getExpandedState(occurrence));
+					return;
+				}
+				if (treeObject != null) treeObject = treeObject.check();
 
 				if (treeObject instanceof UnloadedProjectTreeObject) {
 					loadProject((UnloadedProjectTreeObject) treeObject);
@@ -1432,6 +1542,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			public void selectionChanged(SelectionChangedEvent event) {
 				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 				TreeObject treeObject = (TreeObject) selection.getFirstElement();
+				if (treeObject != null) treeObject = treeObject.check();
 
 				if (treeObject != null) {
 					// remember current project
@@ -2884,7 +2995,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (provider == null) {
 			return false;
 		}
-		for (var object : provider.getChildren(provider.getTreeRoot())) {
+		for (var object : provider.getTreeRoot().getChildren().toArray()) {
 			if (closed && object instanceof ProjectTreeObject project
 					&& projectName.equals(project.getObject().getName())) {
 				return unloadProjectTreeObject(project) != null;
@@ -2929,7 +3040,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private void closeAllProjects() {
 		ViewContentProvider provider = (ViewContentProvider)viewer.getContentProvider();
 		if (provider != null) {
-			Object[] objects = provider.getChildren(provider.getTreeRoot());
+			Object[] objects = provider.getTreeRoot().getChildren().toArray();
 			for (int i=0; i<objects.length; i++) {
 				TreeObject treeObject = (TreeObject)objects[i];
 				if (treeObject instanceof ProjectTreeObject) {
@@ -2944,7 +3055,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private boolean loadedProjectsHaveReferences() {
 		ViewContentProvider provider = (ViewContentProvider)viewer.getContentProvider();
 		if (provider != null) {
-			Object[] objects = provider.getChildren(provider.getTreeRoot());
+			Object[] objects = provider.getTreeRoot().getChildren().toArray();
 			for (int i=0; i<objects.length; i++) {
 				TreeObject treeObject = (TreeObject)objects[i];
 				if (treeObject instanceof ProjectTreeObject) {
@@ -3204,7 +3315,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		ISelection selection = viewer.getSelection();
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 		TreeObject selectedTreeObject = (TreeObject) structuredSelection.getFirstElement();
-		return selectedTreeObject;
+		return selectedTreeObject == null ? null : selectedTreeObject.check();
 	}
 
 	public DatabaseObjectTreeObject getFirstSelectedDatabaseObjectTreeObject(TreeObject selection){
@@ -3233,10 +3344,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (!selection.isEmpty()) {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			Object[] treeArray = structuredSelection.toArray();
-			treeObjects = new TreeObject[structuredSelection.size()];
-			for (int i = 0; i < treeObjects.length; i++) {
-				treeObjects[i] = ((TreeObject) treeArray[i]).check();
-			}
+			var targets = new java.util.LinkedHashSet<TreeObject>();
+			for (Object element : treeArray) targets.add(((TreeObject) element).check());
+			treeObjects = targets.toArray(TreeObject[]::new);
 		}
 		return treeObjects;
 	}
@@ -3341,7 +3451,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 			ViewContentProvider provider = (ViewContentProvider) viewer.getContentProvider();
 			if (provider != null) {
-				Object[] objects = provider.getChildren(provider.getTreeRoot());
+				Object[] objects = provider.getTreeRoot().getChildren().toArray();
 				for (int i = 0; i < objects.length; i++) {
 					TreeObject treeObject = (TreeObject) objects[i];
 					if (treeObject instanceof ProjectTreeObject) {
@@ -3376,7 +3486,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (provider == null) {
 			return false;
 		}
-		for (var object : provider.getChildren(provider.getTreeRoot())) {
+		for (var object : provider.getTreeRoot().getChildren().toArray()) {
 			if (object instanceof ProjectTreeObject projectTreeObject
 					&& projectName.equals(projectTreeObject.getObject().getName())) {
 				var treeObject = findFlowAuthoringTreeObject(projectTreeObject, reference);
@@ -3415,7 +3525,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (provider == null) {
 			return false;
 		}
-		for (var object : provider.getChildren(provider.getTreeRoot())) {
+		for (var object : provider.getTreeRoot().getChildren().toArray()) {
 			if (object instanceof ProjectTreeObject projectTreeObject
 					&& projectName.equals(projectTreeObject.getObject().getName())) {
 				var treeObject = findFlowAuthoringSourceTreeObject(projectTreeObject, sourcePath);

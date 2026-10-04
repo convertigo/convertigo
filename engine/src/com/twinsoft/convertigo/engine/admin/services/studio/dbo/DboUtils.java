@@ -279,6 +279,7 @@ public class DboUtils {
 				Element parentElement = this.parentElement;
 
 				Element element = databaseObject.toXml(document, ExportOption.bIncludeVersion);
+				com.twinsoft.convertigo.engine.tags.TagManager.get().copyToClipboard(element, databaseObject);
 				parentElement.appendChild(element);
 
 				this.parentElement = element;
@@ -360,6 +361,7 @@ public class DboUtils {
 			if (parentDbo instanceof IContainerOrdered) {
 				databaseObject.priority = databaseObject.getNewOrderValue();
 			}
+			com.twinsoft.convertigo.engine.tags.TagManager.get().trackPasteAttachment(parentDbo, databaseObject);
 			parentDbo.add(databaseObject);
 
 			NodeList childNodes = node.getChildNodes();
@@ -383,6 +385,7 @@ public class DboUtils {
 
 			databaseObject.isImporting = false; // needed
 			databaseObject.isSubLoaded = true;
+			com.twinsoft.convertigo.engine.tags.TagManager.get().pasteFromClipboard((Element) node, databaseObject);
 			return databaseObject;
 		}
 		return null;

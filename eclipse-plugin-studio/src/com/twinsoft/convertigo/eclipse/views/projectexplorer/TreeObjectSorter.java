@@ -36,6 +36,7 @@ class TreeObjectSorter extends ViewerSorter {
 	
 	@Override
 	public int category(Object element) {
+		if (element instanceof TagTreeObject occurrence) return occurrence.target == null ? 10 : category(occurrence.target);
 		if (element instanceof UnloadedProjectTreeObject) return 10;
 		if (element instanceof DatabaseObjectTreeObject) return 10;
 		if (element instanceof ObjectsFolderTreeObject) {
@@ -49,6 +50,14 @@ class TreeObjectSorter extends ViewerSorter {
 
 	@Override
 	public int compare(Viewer viewer, Object e1, Object e2) {
+		if (e1 instanceof TagTreeObject a && e2 instanceof TagTreeObject b && a.target == null && b.target == null) {
+			if (a == b) return 0;
+			if (a.group.path("tagId").asText().isEmpty()) return b.group.path("tagId").asText().isEmpty() ? 0 : 1;
+			if (b.group.path("tagId").asText().isEmpty()) return -1;
+			int label = a.getName().compareTo(b.getName()); return label == 0 ? a.rowId.compareTo(b.rowId) : label;
+		}
+		if (e1 instanceof TagTreeObject a && a.target != null) e1 = a.target;
+		if (e2 instanceof TagTreeObject b && b.target != null) e2 = b.target;
 		if ((e1 instanceof DatabaseObjectTreeObject) && (e2 instanceof DatabaseObjectTreeObject)) {
 			DatabaseObject d1 = ((DatabaseObjectTreeObject) e1).getObject();
 			DatabaseObject d2 = ((DatabaseObjectTreeObject) e2).getObject();

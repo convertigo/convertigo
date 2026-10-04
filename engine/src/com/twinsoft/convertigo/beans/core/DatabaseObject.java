@@ -279,6 +279,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 
 	public void delete() throws EngineException {
+		com.twinsoft.convertigo.engine.tags.TagManager.beforeModelChange(this, null);
 		Engine.logBeans.info("Deleting the object \"" + getName() + "\"");
 		if (parent != null) {
 			parent.remove(this);
@@ -494,9 +495,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			}
 		}
 		String oldName = this.name;
+		if (!oldName.equals(newName[0])) com.twinsoft.convertigo.engine.tags.TagManager.beforeModelChange(this, getProject());
 		// set new name and new computed file name
 		setBeanName(newName[0]);
 		if (original == null && !isImporting && !oldName.equals(name)) {
+			try { com.twinsoft.convertigo.engine.tags.TagManager.afterModelRename(this); }
+			catch (EngineException e) { setBeanName(oldName); throw e; }
 			onBeanNameChanged(oldName, name);
 		}
 	}

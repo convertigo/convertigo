@@ -77,19 +77,24 @@ public class Get extends JSonService {
 				Boolean.parseBoolean(request.getParameter("profile")), "studio.treeview.Get");
 		try {
 		var flow = "true".equals(request.getParameter("flow"));
+		var groupedTags = "true".equals(request.getParameter("tagsGrouped"));
+		try { com.twinsoft.convertigo.engine.tags.TagManager.get().reconcile(); }
+		catch (java.io.IOException e) { response.put("tagsDiagnostic", e.getMessage()); }
 		
 		var ids = request.getParameter("ids");
 		if (ids != null) {
 			var jids = new JSONArray(ids);
 			for (int i = 0; i < jids.length(); i++) {
 				var id = jids.getString(i);
-				response.put(id, getChildren(id, flow));
+				var children = getChildren(id, flow);
+				response.put(id, groupedTags ? com.twinsoft.convertigo.engine.admin.services.studio.tags.TreeProjection.apply(id, children) : children);
 			}
 			return;
 		}
 		
 		var id = request.getParameter("id");
-		response.put("children", getChildren(id, flow));
+		var children = getChildren(id, flow);
+		response.put("children", groupedTags ? com.twinsoft.convertigo.engine.admin.services.studio.tags.TreeProjection.apply(id, children) : children);
 		response.put("id", id);
 		} finally {
 			FlowStudioSupport.finishPerformanceProfile(profileOwner, response);
@@ -172,6 +177,11 @@ public class Get extends JSonService {
 		obj.put("name", projectName);
 		obj.put("icon", "studio.dbo.GetIcon?iconPath=/com/twinsoft/convertigo/beans/core/images/project_color_32x32.png");
 		obj.put("id", projectName);
+		obj.put("taggable", true);
+		obj.put("tagScope", "workspaceProjects");
+		obj.put("tags", new JSONObject(com.twinsoft.convertigo.engine.tags.TagManager.get().projectBadges(projectName).toString()).getJSONArray("tags"));
+		var loaded = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(projectName);
+		if (loaded != null && loaded.hasChanged) obj.put("modified", true);
 		obj.put("children", true);
 		if (flow) {
 			obj.put("classname", Project.class.getSimpleName());
@@ -193,6 +203,10 @@ public class Get extends JSonService {
 		}
 		obj.put("icon", "studio.dbo.GetIcon?iconPath=" + iconPath(dbo));
 		obj.put("id", qname);
+		obj.put("taggable", com.twinsoft.convertigo.engine.tags.TagPolicy.supports(dbo));
+		var tagScope = com.twinsoft.convertigo.engine.tags.TagPolicy.scope(dbo);
+		if (tagScope != null) obj.put("tagScope", tagScope.name());
+		obj.put("tags", new JSONObject(com.twinsoft.convertigo.engine.tags.TagManager.get().badges(dbo).toString()).getJSONArray("tags"));
 		putRenameCapability(dbo, obj);
 		var enabled = enabledState(dbo);
 		if (enabled != null) {

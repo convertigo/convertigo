@@ -19,6 +19,12 @@
 	/**
 	 * @type {{
 	 *  nodeId: string,
+	 *  tagGroup?: boolean,
+	 *  tagScope?: string,
+	 *  canManageTags?: boolean,
+	 *  tagsGrouped?: boolean,
+	 *  onManageTags?: () => void | Promise<void>,
+	 *  onToggleTagGrouping?: () => void | Promise<void>,
 	 *  label?: string,
 	 *  canRename?: boolean,
 	 *  canDelete?: boolean,
@@ -47,6 +53,12 @@
 	 */
 	let {
 		nodeId,
+		tagGroup = false,
+		tagScope = '',
+		canManageTags = false,
+		tagsGrouped = false,
+		onManageTags,
+		onToggleTagGrouping,
 		label = 'object',
 		canRename = false,
 		canDelete = false,
@@ -161,7 +173,7 @@
 	}
 
 	async function loadContextMenu() {
-		if (fileKind || closed) {
+		if (tagGroup || fileKind || closed) {
 			// a file of the project has only the actions on files, a closed project opens or is deleted
 			contextItems = [];
 			return;
@@ -196,6 +208,14 @@
 	 * @param {{ value: string }} details
 	 */
 	async function handleSelect(details) {
+		if (details.value === 'tags.manage') {
+			await onManageTags?.();
+			return;
+		}
+		if (details.value === 'tags.view') {
+			await onToggleTagGrouping?.();
+			return;
+		}
 		if (details.value === 'object.rename') {
 			onRename?.();
 			return;
@@ -393,7 +413,26 @@
 	<Portal>
 		<Menu.Positioner class="studio-tree-action-menu__positioner" style="z-index: 180;">
 			<Menu.Content class="studio-tree-action-menu__content">
-				{#if !fileKind && !closed}
+				{#if onToggleTagGrouping}
+					<Menu.ItemGroup>
+						<Menu.ItemGroupLabel>Tags</Menu.ItemGroupLabel>
+						{#if tagScope}
+							{@render treeItem(
+								'tags.manage',
+								'mdi:tag-outline',
+								tagScope === 'workspaceProjects' ? 'Project tags…' : 'Sequence tags…',
+								!canManageTags
+							)}
+						{/if}
+						{@render treeItem(
+							'tags.view',
+							tagsGrouped ? 'mdi:check' : 'mdi:folder-outline',
+							'Group by tags'
+						)}
+					</Menu.ItemGroup>
+					<Menu.Separator />
+				{/if}
+				{#if !tagGroup && !fileKind && !closed}
 					<!-- the objects to add, as the New submenu of the Eclipse Studio: the palette of the object -->
 					{@render treeItem('palette.open', 'mdi:plus-box-outline', 'New…')}
 				{/if}

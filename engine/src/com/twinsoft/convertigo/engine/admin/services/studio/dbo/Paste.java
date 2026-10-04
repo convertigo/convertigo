@@ -122,78 +122,83 @@ public class Paste extends JSonService {
 			int len = nodeList.getLength();
 			Object object;
 			Node node;
-			for (int i = 0; i < len; i++) {
-				node = (Node) nodeList.item(i);
-				if (node.getNodeType() != Node.TEXT_NODE) {
-					// case copied tree items
-					if ("copy".equals(kind)) {
-						if (node instanceof Element element &&
-								"com.twinsoft.convertigo.beans.flow.FlowVirtualObject".equals(element.getAttribute("classname"))) {
-							throw new ServiceException("Outdated Flow clipboard. Copy the object again.");
-						}
-						if ("flow-virtual-clipboard".equals(node.getNodeName())) {
-							var clipboard = node.getTextContent();
-							if (!FlowStudioSupport.isVirtualClipboard(clipboard)) {
-								throw new ServiceException("Invalid Flow clipboard. Copy the object again.");
+			var added = new java.util.ArrayList<DatabaseObject>();
+			try (var tagPaste = "copy".equals(kind) ? com.twinsoft.convertigo.engine.tags.TagManager.get().beginPaste() : null) {
+				for (int i = 0; i < len; i++) {
+					node = (Node) nodeList.item(i);
+					if (node.getNodeType() != Node.TEXT_NODE) {
+						// case copied tree items
+						if ("copy".equals(kind)) {
+							if (node instanceof Element element &&
+									"com.twinsoft.convertigo.beans.flow.FlowVirtualObject".equals(element.getAttribute("classname"))) {
+								throw new ServiceException("Outdated Flow clipboard. Copy the object again.");
 							}
-							var result = pasteVirtual(targetDbo, clipboard);
-							results.put(result);
-							if (result.optBoolean("done", false)) {
-								DboUtils.copyResult(result, response);
-								ids.put(result.getString("id"));
-							} else {
-								errors.put(result.opt("error"));
-							}
-							continue;
-						}
-						var receiver = receiver(targetDbo, node, null, position);
-						response.put("target", receiver.getFullQName());
-						object = DboUtils.xmlPaste(node, receiver);
-						if (object != null && object instanceof DatabaseObject) {
-							DatabaseObject dbo = (DatabaseObject)object;
-							if (dbo instanceof Project) {
-								//TODO
-							} else {
-								ids.put(dbo.getQName(true));
-								
-								// notify for app generation
-								BuilderUtils.dboAdded(dbo);
-							}
-						}
-					}
-					// case cut tree items
-					else if ("cut".equals(kind)) {
-						if (node.getNodeType() == Node.ELEMENT_NODE) {
-							Element el = (Element)node;
-							String id = el.getAttribute("id");
-							DatabaseObject dbo = DboUtils.findDbo(id);
-							var receiver = dbo == null ? targetDbo : receiver(targetDbo, node, dbo, position);
-							response.put("target", receiver.getFullQName());
-							if (dbo != null && !dbo.equals(receiver)) {
-								if (dbo instanceof Project) {
-									
+							if ("flow-virtual-clipboard".equals(node.getNodeName())) {
+								var clipboard = node.getTextContent();
+								if (!FlowStudioSupport.isVirtualClipboard(clipboard)) {
+									throw new ServiceException("Invalid Flow clipboard. Copy the object again.");
+								}
+								var result = pasteVirtual(targetDbo, clipboard);
+								results.put(result);
+								if (result.optBoolean("done", false)) {
+									DboUtils.copyResult(result, response);
+									ids.put(result.getString("id"));
 								} else {
-									DatabaseObject previousParent = dbo.getParent();
-									try {
-										dbo.delete();
-										receiver.add(dbo);
+									errors.put(result.opt("error"));
+								}
+								continue;
+							}
+							var receiver = receiver(targetDbo, node, null, position);
+							response.put("target", receiver.getFullQName());
+							object = DboUtils.xmlPaste(node, receiver);
+							if (object != null && object instanceof DatabaseObject) {
+								DatabaseObject dbo = (DatabaseObject)object;
+								if (dbo instanceof Project) {
+									//TODO
+								} else {
+									ids.put(dbo.getQName(true));
+								
+									// notify for app generation
+									added.add(dbo);
+								}
+							}
+						}
+						// case cut tree items
+						else if ("cut".equals(kind)) {
+							if (node.getNodeType() == Node.ELEMENT_NODE) {
+								Element el = (Element)node;
+								String id = el.getAttribute("id");
+								DatabaseObject dbo = DboUtils.findDbo(id);
+								var receiver = dbo == null ? targetDbo : receiver(targetDbo, node, dbo, position);
+								response.put("target", receiver.getFullQName());
+								if (dbo != null && !dbo.equals(receiver)) {
+									if (dbo instanceof Project) {
+									
+									} else {
+										DatabaseObject previousParent = dbo.getParent();
+										try {
+											dbo.delete();
+											receiver.add(dbo);
 										
-										// the id it takes under its new parent, which renames it when its name is taken
-										ids.put(dbo.getFullQName());
+											// the id it takes under its new parent, which renames it when its name is taken
+											ids.put(dbo.getFullQName());
 										
-										// notify for app generation
-										BuilderUtils.dboMoved(previousParent, receiver, dbo);
-									} catch (Exception e) {
-										if (dbo.getParent() == null && previousParent != null) {
-											previousParent.add(dbo);
+											// notify for app generation
+											BuilderUtils.dboMoved(previousParent, receiver, dbo);
+										} catch (Exception e) {
+											if (dbo.getParent() == null && previousParent != null) {
+												previousParent.add(dbo);
+											}
+											errors.put(e.getMessage());
 										}
-										errors.put(e.getMessage());
 									}
 								}
 							}
 						}
 					}
 				}
+				if (tagPaste != null) tagPaste.commit();
+				for (DatabaseObject dbo : added) BuilderUtils.dboAdded(dbo);
 			}
 		}
 		boolean done = ids.length() > 0 && errors.length() == 0;

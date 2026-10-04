@@ -1,3 +1,5 @@
+import { SvelteSet } from 'svelte/reactivity';
+
 /**
  * The objects selected together in the tree, as the tree of the Eclipse Studio selects several of them
  * with Ctrl or ⌘ and Shift: copy, cut, delete, enable and disable run on all of them.
@@ -9,7 +11,11 @@ export const treeSelection = $state({ ids: /** @type {string[]} */ ([]) });
  * @param {string} primary the object selected before, which joins the selection
  */
 export function toggleTreeSelection(id, primary) {
-	const ids = treeSelection.ids.length ? [...treeSelection.ids] : primary ? [primary] : [];
+	const ids = treeSelection.ids.length
+		? [...new SvelteSet(treeSelection.ids)]
+		: primary
+			? [primary]
+			: [];
 	treeSelection.ids = ids.includes(id) ? ids.filter((selected) => selected !== id) : [...ids, id];
 }
 
@@ -27,7 +33,11 @@ export function selectTreeRange(from, to) {
 	treeSelection.ids =
 		start < 0 || end < 0
 			? [to]
-			: shown.slice(Math.min(start, end), Math.max(start, end) + 1).filter(Boolean);
+			: [
+					...new SvelteSet(
+						shown.slice(Math.min(start, end), Math.max(start, end) + 1).filter(Boolean)
+					)
+				];
 }
 
 export function clearTreeSelection() {
@@ -42,6 +52,6 @@ export function clearTreeSelection() {
  */
 export function treeSelectionOf(id) {
 	return treeSelection.ids.length > 1 && treeSelection.ids.includes(id)
-		? [...treeSelection.ids]
+		? [...new SvelteSet(treeSelection.ids)]
 		: [id];
 }

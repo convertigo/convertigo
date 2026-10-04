@@ -383,6 +383,8 @@ public class YamlConverter {
 		y.sb = new StringBuilder();
 		y.subdir = subdir;
 		var existingFiles = FileUtils.indexExistingFiles(subdir);
+		// This writer owns YAML sources only; independent project documents survive an export.
+		existingFiles.removeIf(file -> !file.getName().endsWith(".yaml"));
 		Node node = document.getDocumentElement().getFirstChild();
 		while (node != null) {
 			if (node instanceof Element) {

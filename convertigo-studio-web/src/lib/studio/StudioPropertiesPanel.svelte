@@ -19,6 +19,7 @@
 		SMART_TYPE_MODES
 	} from '$lib/studio/propertyEditors';
 	import Ico from '$lib/utils/Ico.svelte';
+	import { call } from '$lib/utils/service';
 	import { tick, untrack } from 'svelte';
 	import { flowTypeDisplayName } from './blockDefinition';
 	import { trackPropertyApply } from './propertyApply.svelte.js';
@@ -46,6 +47,7 @@
 	 *  selectedId?: string,
 	 *  active?: boolean,
 	 *  refreshSerial?: number,
+	 *  tagChange?: any,
 	 *  onSave?: (id: string, result?: any) => void | Promise<void>,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onOpenPropertyEditor?: (target: { id: string, propertyName?: string, displayName?: string, value?: any }) => void,
@@ -63,6 +65,7 @@
 		selectedId = '',
 		active = true,
 		refreshSerial = 0,
+		tagChange = null,
 		onSave,
 		onMutationBusyChange = () => {},
 		onOpenPropertyEditor,
@@ -234,6 +237,25 @@
 		cancel
 	} = $derived(createDatabaseObjectProperties());
 	let monacoLanguage = $derived(getPropertyLanguage(monacoRow, selectedId));
+	let tagInformationRequest = 0;
+	$effect(() => {
+		const change = tagChange;
+		const target = selectedId;
+		if (active && change && change.affectedTargets?.includes(target))
+			untrack(() => void refreshTagInformation(target));
+	});
+	/** Update read-only tag fields while retaining pending edits to ordinary properties. @param {string} target */
+	async function refreshTagInformation(target) {
+		const serial = ++tagInformationRequest;
+		const response = await call('studio.properties.Get', { id: target });
+		if (serial !== tagInformationRequest || id !== target) return;
+		for (const incoming of Object.values(response?.properties ?? {})) {
+			const value = /** @type {any} */ (incoming);
+			if (!['P_ObjectTags', 'P_ProjectTags'].includes(value.name) || !value.isDisabled) continue;
+			const property = properties.find((item) => item.name === value.name);
+			if (property) property.value = property.originalValue = value.value;
+		}
+	}
 	let monacoTitle = $derived(monacoRow?.displayName ?? monacoRow?.name ?? 'Editor');
 	let monacoTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
 	let displayedIdentity = $derived(identityItem ?? propertyIdentity(categories));

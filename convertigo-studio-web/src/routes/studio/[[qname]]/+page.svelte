@@ -375,6 +375,10 @@
 	let lastStudioMutation = $state(null);
 	let projectActionBusy = $state('');
 	let dirtyProjectNames = $state.raw(new SvelteSet());
+	/** @type {Record<string, any> | null} */
+	let treeTagChange = $state.raw(null);
+	/** @type {Record<string, any> | null} */
+	let propertiesTagChange = $state.raw(null);
 	/** @type {Record<string, { canUndo: boolean, canRedo: boolean }>} what the history of each project can undo */
 	let projectHistories = $state({});
 	/** @type {Map<string, ReturnType<typeof setTimeout>>} */
@@ -769,6 +773,13 @@
 			return;
 		}
 		if (!['projects.changed', 'admin.resync.required'].includes(event.topic)) return;
+		if (event.payload.reason === 'project.tagsChanged') {
+			for (const name of event.payload.dirtyProjects ?? [])
+				markProjectDirty(name, { snapshot: false });
+			treeTagChange = { ...event.payload, serial: Date.now() };
+			propertiesTagChange = treeTagChange;
+			return;
+		}
 		const eventProject = String(event.payload.project ?? '');
 		if (eventProject && eventProject !== selectedProjectName) {
 			return;
@@ -3501,6 +3512,11 @@
 
 {#snippet projectsPane()}
 	<StudioTreePanel
+		tagChange={treeTagChange}
+		onTagsChanged={(result) => {
+			for (const name of result.dirtyProjects ?? []) markProjectDirty(name, { snapshot: false });
+			propertiesTagChange = { ...result, serial: Date.now() };
+		}}
 		{hideLibs}
 		bind:selectedId
 		bind:renameTargetId
@@ -3660,6 +3676,7 @@
 
 {#snippet propertiesPane()}
 	<StudioPropertiesPanel
+		tagChange={propertiesTagChange}
 		selectedId={viewSelectedId}
 		active={Boolean(dockVisible.properties)}
 		refreshSerial={propertiesRefreshSerial}

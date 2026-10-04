@@ -206,6 +206,7 @@ public class ClipboardManager {
 					
 					Element element = parentElement;
 					element = databaseObject.toXml(clipboardDocument, ExportOption.bIncludeVersion);
+					com.twinsoft.convertigo.engine.tags.TagManager.get().copyToClipboard(element, databaseObject);
 					appendDndData(element, databaseObject);
 					parentElement.appendChild(element);
 					
@@ -321,76 +322,83 @@ public class ClipboardManager {
 	}
 
 	public void paste(String xmlData, Object parentObject, boolean bChangeName) throws EngineException, SAXException, IOException {
-		Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
-		Element rootElement = document.getDocumentElement();
-		NodeList nodeList = rootElement.getChildNodes();
-		int len = nodeList.getLength();
-		Node node;
-		
-		pastedSteps.clear();
-		pastedComponents.clear();
-		
-		pastedObjects = new Object[]{};
-		if (len > 0) {
-			pastedObjects = new Object[len];
-		}
-		
-		Object object = null;
-		for (int i = 0 ; i < len ; i++) {
-			node = (Node) nodeList.item(i);
-			if (node.getNodeType() != Node.TEXT_NODE) {
-				if (parentObject instanceof IPropertyTreeObject) {
-					object = paste(node, (IPropertyTreeObject) parentObject, bChangeName);
-				} else if (parentObject instanceof IDesignTreeObject) {
-					object = paste(node, (IDesignTreeObject) parentObject, bChangeName);
-				} else {
-					object = paste(node, (DatabaseObject) parentObject, bChangeName);
-				}
-				pastedObjects[i] = object;
+		try (var tagPaste = com.twinsoft.convertigo.engine.tags.TagManager.get().beginPaste()) {
+
+			Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
+			Element rootElement = document.getDocumentElement();
+			NodeList nodeList = rootElement.getChildNodes();
+			int len = nodeList.getLength();
+			Node node;
+
+			pastedSteps.clear();
+			pastedComponents.clear();
+
+			pastedObjects = new Object[]{};
+			if (len > 0) {
+				pastedObjects = new Object[len];
 			}
-		}
-		
-		for (Entry<String, Step> entry : pastedSteps.entrySet()) {
-			Step step = entry.getValue();
-			step.getSequence().fireStepCopied(new StepEvent(step, entry.getKey()));
-		}
-		
-		// NGX components are visited once for all the replacements
-		Map<String, String> replacements = new LinkedHashMap<String, String>();
-		for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
-			replacements.put(entry.getKey(), String.valueOf(entry.getValue().priority));
-		}
-		
-		for (Object ob : pastedObjects) {
-			// MOBILE COMPONENTS
-			if (ob instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
-				if (ob instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
-					com.twinsoft.convertigo.beans.mobile.components.PageComponent page = GenericUtils.cast(ob);
-					for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
-						if (page.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
-							page.markPageAsDirty();
-						}
+
+			Object object = null;
+			for (int i = 0 ; i < len ; i++) {
+				node = (Node) nodeList.item(i);
+				if (node.getNodeType() != Node.TEXT_NODE) {
+					if (parentObject instanceof IPropertyTreeObject) {
+						object = paste(node, (IPropertyTreeObject) parentObject, bChangeName);
+					} else if (parentObject instanceof IDesignTreeObject) {
+						object = paste(node, (IDesignTreeObject) parentObject, bChangeName);
+					} else {
+						object = paste(node, (DatabaseObject) parentObject, bChangeName);
 					}
-				}
-				else if (ob instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
-					com.twinsoft.convertigo.beans.mobile.components.UIComponent uic = GenericUtils.cast(ob);
-					for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
-						if (uic.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
-							uic.markAsDirty();
-						}
-					}
-				}
-			// NGX COMPONENTS
-			} else if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
-				if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
-					com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(ob);
-					page.updateSmartSources(replacements);
-				}
-				else if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
-					com.twinsoft.convertigo.beans.ngx.components.UIComponent uic = GenericUtils.cast(ob);
-					uic.updateSmartSources(replacements);
+					pastedObjects[i] = object;
 				}
 			}
+
+			tagPaste.commit();
+			for (Entry<String, Step> entry : pastedSteps.entrySet()) {
+				Step step = entry.getValue();
+				step.getSequence().fireStepCopied(new StepEvent(step, entry.getKey()));
+			}
+
+			// NGX components are visited once for all the replacements
+			Map<String, String> replacements = new LinkedHashMap<String, String>();
+			for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
+				replacements.put(entry.getKey(), String.valueOf(entry.getValue().priority));
+			}
+
+			for (Object ob : pastedObjects) {
+				// MOBILE COMPONENTS
+				if (ob instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+					if (ob instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+						com.twinsoft.convertigo.beans.mobile.components.PageComponent page = GenericUtils.cast(ob);
+						for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
+							if (page.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+								page.markPageAsDirty();
+							}
+						}
+					}
+					else if (ob instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+						com.twinsoft.convertigo.beans.mobile.components.UIComponent uic = GenericUtils.cast(ob);
+						for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
+							if (uic.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+								uic.markAsDirty();
+							}
+						}
+					}
+				// NGX COMPONENTS
+				} else if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+					if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+						com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(ob);
+						page.updateSmartSources(replacements);
+					}
+					else if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+						com.twinsoft.convertigo.beans.ngx.components.UIComponent uic = GenericUtils.cast(ob);
+						uic.updateSmartSources(replacements);
+					}
+				}
+			}
+		} catch (EngineException | SAXException | IOException | RuntimeException e) {
+			pastedObjects = new Object[]{}; pastedSteps.clear(); pastedComponents.clear();
+			throw e;
 		}
 	}
 
@@ -537,7 +545,8 @@ public class ClipboardManager {
 			
 			// Special case of project
 			if (databaseObject instanceof Project) {
-				return databaseObject;
+				com.twinsoft.convertigo.engine.tags.TagManager.get().pasteFromClipboard((Element) node, databaseObject);
+			return databaseObject;
 			}
 			
 			boolean bContinue = true;
@@ -668,6 +677,7 @@ public class ClipboardManager {
 			}
 			
 			// Now add dbo to target
+			com.twinsoft.convertigo.engine.tags.TagManager.get().trackPasteAttachment(parentDatabaseObject, databaseObject);
 			try {
 				if (parentDatabaseObject instanceof ScreenClass) {
 					if (parentDatabaseObject instanceof JavelinScreenClass) {
@@ -888,6 +898,7 @@ public class ClipboardManager {
 			
 			databaseObject.isImporting = false; // needed
 			databaseObject.isSubLoaded = true;
+			com.twinsoft.convertigo.engine.tags.TagManager.get().pasteFromClipboard((Element) node, databaseObject);
 			return databaseObject;
 		} else if (object instanceof JsonData) {
 			if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
@@ -1014,9 +1025,14 @@ public class ClipboardManager {
 				}
 			}
 		}
+		try { com.twinsoft.convertigo.engine.tags.TagManager.get().reconcile(); }
+		catch (java.io.IOException e) { throw new EngineException("Unable to maintain moved tag identities", e); }
+
 	}
 
 	private void cutAndPaste(final DatabaseObject object, DatabaseObject parentDatabaseObject) throws ConvertigoException {
+		try { com.twinsoft.convertigo.engine.tags.TagManager.get().prepareStructuralChange(object, parentDatabaseObject.getProject()); }
+		catch (java.io.IOException e) { throw new EngineException("Tag source prevents this move", e); }
 		// Verifying if a sheet with the same browser does not already exist
 		if (object instanceof Sheet) {
 			String browser = ((Sheet) object).getBrowser();

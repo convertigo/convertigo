@@ -20,6 +20,589 @@ const flowEngineId = `${projectName}.Engine`;
 const frontendBuilderId = `${flowEngineId}.frontends.svelte`;
 const frontendStructureId = `${frontendBuilderId}.routes.home.structure`;
 
+test('studio tags edit typed contributions and immediately refresh badges', async ({ page }) => {
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page);
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await selectTreeNode(page, sequenceId);
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
+	await dialog.getByLabel('Label', { exact: true }).fill('Client <script>');
+	await dialog.getByText('Advanced', { exact: true }).click();
+	await dialog.getByLabel('Count', { exact: true }).fill('7');
+	await dialog.getByLabel('Enabled', { exact: true }).check();
+	await dialog.getByRole('combobox', { name: 'Level', exact: true }).selectOption('high');
+	await expect(dialog.getByText('retired — extension unavailable (read only)')).toBeVisible();
+	await dialog.getByRole('button', { name: 'Update tag', exact: true }).click();
+	await expect.poll(() => tags.commands.length).toBe(1);
+	expect(tags.commands[0].input.definition.metadata).toEqual({
+		neutral: { count: 7, enabled: true, level: 'high' },
+		retired: { preserved: ['ordered', 'values'] }
+	});
+	await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+	await expect(
+		page.locator('button.studio-tree-node__content[data-node-id="' + sequenceId + '"]')
+	).toContainText('Client <script>');
+	await expect(page.getByRole('button', { name: 'Save project - unsaved changes' })).toBeEnabled();
+});
+
+test('studio tags edit ordered references through the generic descriptor without raw JSON', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page, { references: true });
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await selectTreeNode(page, sequenceId);
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
+	await dialog.getByText('Advanced', { exact: true }).click();
+	const resources = dialog.getByRole('group', { name: 'Resources', exact: true });
+	await expect(resources.getByRole('alert')).toContainText('retired');
+	await resources.getByRole('button', { name: 'Remove retired', exact: true }).click();
+	await resources
+		.getByRole('combobox', { name: 'Choose a reference', exact: true })
+		.selectOption('Mail');
+	await resources.getByRole('button', { name: 'Add', exact: true }).click();
+	await resources
+		.getByRole('combobox', { name: 'Choose a reference', exact: true })
+		.selectOption('B2');
+	await resources.getByRole('button', { name: 'Add', exact: true }).click();
+	await resources.getByRole('button', { name: 'Move B2 up', exact: true }).click();
+	await resources.getByRole('button', { name: 'Move B2 up', exact: true }).click();
+	await expect(resources.getByRole('list')).toContainText('1. B2');
+	await expect(resources.getByRole('combobox')).not.toContainText('B1');
+	await expect(resources.getByRole('alert')).toHaveCount(0);
+	await dialog.getByRole('button', { name: 'Update tag', exact: true }).click();
+	await expect.poll(() => tags.commands.length).toBe(1);
+	expect(tags.commands[0].input.definition.metadata.neutral.resources).toEqual([
+		'B2',
+		'B1',
+		'Mail'
+	]);
+	await expect(resources.getByRole('list')).toContainText('1. B2');
+});
+
+test('studio tags reorder memberships without changing the tag being edited', async ({ page }) => {
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page);
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await selectTreeNode(page, sequenceId);
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
+	await dialog.getByLabel('Label', { exact: true }).fill('Pending label');
+	await expect(
+		dialog.getByRole('list', { name: 'Ordered values' }).getByRole('listitem').first()
+	).toContainText('1. CRM');
+	await dialog.getByRole('button', { name: 'Move CRM down', exact: true }).click();
+	await expect.poll(() => tags.commands.length).toBe(1);
+	expect(tags.commands[0]).toEqual({
+		action: 'reorder',
+		input: {
+			targets: [sequenceId],
+			tagIds: ['41a604a2-4900-437b-9cb8-7209f4152e3a', '5e1012bd-4ab1-452a-8e23-4228586256a2']
+		}
+	});
+	await expect(
+		dialog.getByRole('list', { name: 'Ordered values' }).getByRole('listitem').first()
+	).toContainText('1. Audit');
+	await expect(dialog.getByLabel('Label', { exact: true })).toHaveValue('Pending label');
+	await expect(dialog.getByRole('button', { name: 'Move Audit up', exact: true })).toBeDisabled();
+	await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	await expect(
+		dialog.getByRole('list', { name: 'Ordered values' }).getByRole('listitem').first()
+	).toContainText('1. Audit');
+});
+
+test('studio tags enable sequence actions after a direct URL loads its lazy tree', async ({
+	page
+}) => {
+	await page.addInitScript(() => localStorage.setItem('studio-tags-grouped', 'true'));
+	await mockStudioServices(page);
+	await mockTagServices(page);
+	const url = `/studio/${sequenceId.replaceAll(':', '~')}/`;
+	// Vite preview lacks the engine's dynamic Studio URL fallback.
+	await page.route('**' + url, async (route) => {
+		const response = await page.request.get('/studio/_/');
+		await route.fulfill({ response });
+	});
+	await page.goto(url);
+	await openTreeMenu(page, sequenceId);
+	await expect(page.getByRole('menuitem', { name: 'Sequence tags…', exact: true })).toBeEnabled();
+	await page.keyboard.press('Escape');
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	await expect(
+		page.getByRole('dialog').getByRole('checkbox', { name: 'Include TestSequence', exact: true })
+	).toBeChecked();
+});
+
+test('studio tags preserve loaded workspace occurrences after a tag update', async ({ page }) => {
+	await page.addInitScript(() => localStorage.setItem('studio-tags-grouped', 'true'));
+	await mockStudioServices(page);
+	await mockTagServices(page);
+	await page.goto('/studio/');
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	await expect(
+		tree.getByRole('button', { name: 'Stack (1)', exact: true }).locator('..').locator('..')
+	).toHaveAttribute('aria-expanded', 'true');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await tree.getByRole('button', { name: 'CRM (1)', exact: true }).click();
+	await expandTreeNode(page, sequenceId);
+	await expandTreeNode(page, sequenceId + ':st');
+	await selectTreeNode(page, sequenceId);
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
+	await dialog.getByLabel('Label', { exact: true }).fill('Clients');
+	await dialog.getByRole('button', { name: 'Update tag', exact: true }).click();
+	await expect(dialog.getByText('Modified — save the project to keep these tags.')).toBeVisible();
+	await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+	await expect(tree.getByRole('button', { name: 'Clients (1)', exact: true })).toBeVisible();
+	await expect(
+		tree.locator('button.studio-tree-node__content[data-node-id="' + initStepId + '"]')
+	).toBeVisible();
+	await selectTreeNode(page, initStepId);
+	await openTreeMenu(page, initStepId);
+	await expect(page.getByRole('menuitem', { name: 'Sequence tags…', exact: true })).toHaveCount(0);
+	await page.keyboard.press('Escape');
+});
+
+test('studio tags exclude steps from assignment actions and grouped collections', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page);
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await selectTreeNode(page, sequenceId);
+	await openTreeMenu(page, sequenceId);
+	await expect(page.getByRole('menuitem', { name: 'Sequence tags…', exact: true })).toBeEnabled();
+	await page.keyboard.press('Escape');
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Group by tags', exact: true }).click();
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	await tree.getByRole('button', { name: 'CRM (1)', exact: true }).click();
+	const occurrence = tree.locator(
+		'button.studio-tree-node__content[data-node-id="' + sequenceId + '"]'
+	);
+	await occurrence
+		.locator('..')
+		.locator('..')
+		.locator(':scope > div > span > button[aria-label="Expand"]')
+		.click();
+	await expandTreeNode(page, sequenceId + ':st');
+	await selectTreeNode(page, initStepId);
+	await openTreeMenu(page, initStepId);
+	await expect(page.getByRole('menuitem', { name: 'Sequence tags…', exact: true })).toHaveCount(0);
+	await page.keyboard.press('Escape');
+	const steps = tree
+		.locator('button.studio-tree-node__content[data-node-id="' + sequenceId + ':st"]')
+		.locator('..')
+		.locator('..');
+	await expect(steps.locator('.studio-tree-tag')).toHaveCount(0);
+	await expect(
+		steps.getByRole('button', { name: /^(Untagged|CRM|Audit)( \(\d+\))?$/ })
+	).toHaveCount(0);
+	await tree
+		.locator('button.studio-tree-node__content[data-node-id="' + sequenceId + '"]')
+		.first()
+		.click({ modifiers: ['ControlOrMeta'] });
+	await openTreeMenu(page, sequenceId);
+	await expect(page.getByRole('menuitem', { name: 'Sequence tags…', exact: true })).toBeDisabled();
+	await page.keyboard.press('Escape');
+	expect(tags.commands).toHaveLength(0);
+});
+
+test('studio tags keep independent occurrence expansion and deduplicate object commands', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page);
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await openTreeMenu(page, projectName);
+	await page.getByRole('menuitem', { name: 'Group by tags', exact: true }).click();
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	await expect(tree.getByRole('button', { name: 'Stack (1)', exact: true })).toBeVisible();
+	await ensureTreeNodeExpanded(page, projectName);
+	await ensureTreeNodeExpanded(page, projectName + ':sq');
+	for (const label of ['Audit', 'CRM']) {
+		const content = tree.getByRole('button', { name: `${label} (1)`, exact: true });
+		await content
+			.locator('..')
+			.locator('..')
+			.locator(':scope > div > span > button[aria-label="Expand"]')
+			.click();
+	}
+	const occurrences = tree.locator(
+		'button.studio-tree-node__content[data-node-id="' + sequenceId + '"]'
+	);
+	await expect(occurrences).toHaveCount(2);
+	await expect(occurrences.nth(0).locator('.studio-tree-tag')).toHaveCount(1);
+	await expect(occurrences.nth(0)).toContainText('CRM');
+	await expect(occurrences.nth(1).locator('.studio-tree-tag')).toHaveCount(1);
+	await expect(occurrences.nth(1)).toContainText('Audit');
+	const rows = occurrences.locator('..').locator('..');
+	await rows.nth(0).locator(':scope > div > span > button[aria-label="Expand"]').click();
+	await expect(rows.nth(0)).toHaveAttribute('aria-expanded', 'true');
+	await expect(rows.nth(1)).toHaveAttribute('aria-expanded', 'false');
+	await occurrences.nth(0).click();
+	await occurrences.nth(1).click({ modifiers: ['ControlOrMeta'] });
+	await page.keyboard.press('ControlOrMeta+c');
+	await expect.poll(() => tags.copies.length).toBe(1);
+	expect(JSON.parse(tags.copies[0].get('ids'))).toEqual([sequenceId]);
+	await tree.getByRole('button', { name: 'Audit (1)', exact: true }).click({ button: 'right' });
+	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog.getByLabel('Label', { exact: true })).toHaveValue('Audit');
+	await expect(
+		dialog.getByRole('checkbox', { name: 'Include TestSequence', exact: true })
+	).toBeChecked();
+	await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+	await tree.getByRole('button', { name: 'Audit (1)', exact: true }).click({ button: 'right' });
+	await page.getByRole('menuitem', { name: 'Group by tags', exact: true }).click();
+	await expect(tree.getByRole('button', { name: 'Audit (1)', exact: true })).toHaveCount(0);
+	await expect(
+		tree
+			.locator('button.studio-tree-node__content[data-node-id="' + sequenceId + '"]')
+			.locator('.studio-tree-tag')
+	).toHaveCount(2);
+});
+
+test('studio tags immediately refresh a retained group counter after membership removal', async ({
+	page
+}) => {
+	await page.addInitScript(() => localStorage.setItem('studio-tags-grouped', 'true'));
+	await mockStudioServices(page);
+	await mockTagServices(page, { secondSequence: true });
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	await tree.getByRole('button', { name: 'Audit (2)', exact: true }).click();
+	await selectTreeNode(page, sequenceId);
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByRole('button', { name: 'Audit', exact: true }).click();
+	await dialog.getByRole('checkbox', { name: 'Include TestSequence', exact: true }).uncheck();
+	await expect(dialog.getByText('Modified — save the project to keep these tags.')).toBeVisible();
+	await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+	await expect(tree.getByRole('button', { name: 'Audit (1)', exact: true })).toBeVisible();
+	await expect(tree.getByRole('button', { name: 'Audit (2)', exact: true })).toHaveCount(0);
+});
+
+for (const trigger of ['menu', 'F2']) {
+	test(`studio tags rename one occurrence with ${trigger} and update both memberships`, async ({
+		page
+	}) => {
+		await page.addInitScript(() => localStorage.setItem('studio-tags-grouped', 'true'));
+		await mockStudioServices(page);
+		const tags = await mockTagServices(page);
+		await page.goto('/studio/');
+		await expandTreeNode(page, projectName);
+		await expandTreeNode(page, projectName + ':sq');
+		const tree = page.getByRole('tree', { name: 'Projects' });
+		for (const label of ['Audit', 'CRM'])
+			await tree.getByRole('button', { name: `${label} (1)`, exact: true }).click();
+		const occurrences = tree.locator(
+			`button.studio-tree-node__content[data-node-id="${sequenceId}"]`
+		);
+		await expect(occurrences).toHaveCount(2);
+		const occurrence = occurrences.nth(trigger === 'menu' ? 0 : 1);
+		if (trigger === 'menu') {
+			await occurrence.click({ button: 'right' });
+			await page.getByRole('menuitem', { name: /^Rename\b/ }).click();
+		} else {
+			await occurrence.click();
+			await occurrence.press('F2');
+		}
+		const input = tree.getByRole('textbox', { name: 'Rename object', exact: true });
+		await expect(input).toHaveCount(1);
+		await expect(input).toBeFocused();
+		await input.fill('RenamedSequence');
+		await input.press('Enter');
+		await expect(input).toHaveCount(0);
+		await expect.poll(() => tags.renames.length).toBe(1);
+		expect(tags.renames[0].get('id')).toBe(sequenceId);
+		expect(tags.renames[0].get('name')).toBe('RenamedSequence');
+		const renamedId = `${projectName}.sq:RenamedSequence`;
+		await expect(
+			tree.locator(`button.studio-tree-node__content[data-node-id="${renamedId}"]`)
+		).toHaveCount(2);
+		await expect(occurrences).toHaveCount(0);
+		await expect(tree.getByRole('button', { name: 'Audit (1)', exact: true })).toBeVisible();
+		await expect(tree.getByRole('button', { name: 'CRM (1)', exact: true })).toBeVisible();
+	});
+}
+
+test('studio tags retain project capabilities in normal view after workspace refresh', async ({
+	page
+}) => {
+	const projects = [projectName];
+	await mockStudioServices(page, { projects });
+	await mockTagServices(page, { projects });
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await openTreeMenu(page, projectName);
+	await expect(page.getByRole('menuitem', { name: 'Project tags…', exact: true })).toBeEnabled();
+	await page.keyboard.press('Escape');
+	projects.push('NewProject');
+	await selectTreeNode(page, projectName);
+	await page.keyboard.press('F5');
+	await openTreeMenu(page, 'NewProject');
+	await expect(page.getByRole('menuitem', { name: 'Project tags…', exact: true })).toBeEnabled();
+	await page.keyboard.press('Escape');
+	await openTreeMenu(page, projectName);
+	await expect(page.getByRole('menuitem', { name: 'Project tags…', exact: true })).toBeEnabled();
+	await page.keyboard.press('Escape');
+	await expect(
+		page.locator(`button.studio-tree-node__content[data-node-id="${sequenceId}"]`)
+	).toBeVisible();
+});
+
+test('studio tags finish membership changes before starting a new tag', async ({ page }) => {
+	let release = () => {};
+	const pending = new Promise((resolve) => {
+		release = () => resolve(undefined);
+	});
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page, { beforeApply: () => pending });
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await selectTreeNode(page, sequenceId);
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
+	await dialog.getByRole('checkbox', { name: 'Include TestSequence', exact: true }).uncheck();
+	await expect.poll(() => tags.commands.length).toBe(1);
+	await expect(dialog.getByRole('button', { name: 'New tag', exact: true })).toBeDisabled();
+	release();
+	await expect(dialog.getByRole('button', { name: 'New tag', exact: true })).toBeEnabled();
+	await dialog.getByRole('button', { name: 'New tag', exact: true }).click();
+	await expect(dialog.getByLabel('Label', { exact: true })).toHaveValue('');
+	await expect(dialog.getByRole('button', { name: 'Create tag', exact: true })).toBeVisible();
+});
+
+async function openTreeMenu(page, nodeId) {
+	await page
+		.locator('button.studio-tree-node__content[data-node-id="' + nodeId + '"]')
+		.first()
+		.click({ button: 'right' });
+	await expect(page.getByRole('menuitem', { name: 'Group by tags', exact: true })).toBeVisible();
+}
+
+async function mockTagServices(page, options = {}) {
+	const ids = ['5e1012bd-4ab1-452a-8e23-4228586256a2', '41a604a2-4900-437b-9cb8-7209f4152e3a'];
+	let target = sequenceId;
+	const other = `${projectName}.sq:OtherSequence`;
+	const assignments = {
+		[target]: [...ids],
+		...(options.secondSequence ? { [other]: [ids[1]] } : {})
+	};
+	const tags = {
+		[ids[0]]: {
+			label: 'CRM',
+			metadata: {
+				neutral: {
+					count: 1,
+					enabled: false,
+					level: 'low',
+					...(options.references ? { resources: ['retired', 'B1'] } : {})
+				},
+				retired: { preserved: ['ordered', 'values'] }
+			}
+		},
+		[ids[1]]: { label: 'Audit', metadata: {} }
+	};
+	const commands = [],
+		copies = [],
+		renames = [];
+	let revision = 1,
+		dirty = false;
+	const snapshot = () => ({
+		scope: 'projectObjects',
+		project: projectName,
+		revision: String(revision),
+		dirty,
+		readOnly: false,
+		tags,
+		assignments,
+		targets: [target, ...(options.secondSequence ? [other] : [])],
+		diagnostics: [],
+		contributions: {
+			neutral: {
+				label: 'Neutral test',
+				fields: {
+					count: { type: 'integer', label: 'Count' },
+					enabled: { type: 'boolean', label: 'Enabled' },
+					level: { type: 'string', label: 'Level', enum: ['low', 'high'] },
+					...(options.references
+						? {
+								resources: {
+									type: 'array',
+									label: 'Resources',
+									uniqueItems: true,
+									items: { type: 'string', enum: ['B1', 'B2', 'Mail'] }
+								}
+							}
+						: {})
+				}
+			}
+		}
+	});
+	await page.route('**/admin/services/studio.tags.*', async (route) => {
+		const params = new URLSearchParams(route.request().postData() ?? '');
+		if (serviceName(route.request().url()) === 'studio.tags.Get')
+			return route.fulfill({ json: snapshot() });
+		const input = JSON.parse(params.get('input') ?? '{}');
+		const action = params.get('action');
+		commands.push({ action, input });
+		await options.beforeApply?.(action);
+		if (action === 'remove') {
+			for (const id of input.targets)
+				assignments[id] = assignments[id].filter((tag) => !input.tagIds.includes(tag));
+		} else if (action === 'assign') {
+			for (const id of input.targets)
+				assignments[id] = [...new Set([...(assignments[id] ?? []), ...input.tagIds])];
+		} else if (action === 'reorder') {
+			for (const id of input.targets) assignments[id] = [...input.tagIds];
+		} else tags[input.id] = input.definition;
+		revision++;
+		dirty = true;
+		await route.fulfill({
+			json: {
+				...snapshot(),
+				id: input.id,
+				done: true,
+				dirtyProjects: [projectName],
+				affectedTargets: [target],
+				affectedContainers: [projectName + ':sq']
+			}
+		});
+	});
+	await page.route('**/admin/services/studio.dbo.Copy', async (route) => {
+		copies.push(new URLSearchParams(route.request().postData() ?? ''));
+		await route.fulfill({ json: { done: true, xml: '<convertigo-clipboard/>' } });
+	});
+	await page.route('**/admin/services/studio.dbo.Rename', async (route) => {
+		const params = new URLSearchParams(route.request().postData() ?? '');
+		if (params.get('id') !== target) return route.fallback();
+		renames.push(params);
+		const previous = target;
+		target = projectName + '.sq:' + params.get('name');
+		assignments[target] = assignments[previous];
+		delete assignments[previous];
+		await route.fulfill({
+			json: { done: true, id: target, affectedContainers: [projectName + ':sq'] }
+		});
+	});
+	await page.route('**/admin/services/studio.treeview.Get', async (route) => {
+		const params = new URLSearchParams(route.request().postData() ?? '');
+		const grouped = params.get('tagsGrouped') === 'true';
+		const children = (id) => {
+			const nodes = id
+				? treeviewChildren(id.replace(target, sequenceId), false, createStudioState()).map(
+						(node) => ({
+							...node,
+							id: node.id.replace(sequenceId, target),
+							...(node.id === sequenceId
+								? { name: target.split('.sq:')[1], label: target.split('.sq:')[1] }
+								: {})
+						})
+					)
+				: (options.projects ?? [projectName]).map((name) =>
+						treeNode(name, name, 'Project', {
+							children: true,
+							taggable: true,
+							tagScope: 'workspaceProjects'
+						})
+					);
+			if (options.secondSequence && id === projectName + ':sq')
+				nodes.push(
+					treeNode(other, 'OtherSequence', 'GenericSequence', {
+						taggable: true,
+						tagScope: 'projectObjects'
+					})
+				);
+			const decorated = nodes.map((node) => ({
+				...node,
+				...(assignments[node.id]
+					? { tags: assignments[node.id].map((id) => ({ ...tags[id], id })) }
+					: {})
+			}));
+			if (grouped && !id)
+				return [
+					{
+						id: 'tag-row:fixture-stack',
+						rowId: 'tag-row:fixture-stack',
+						tagGroup: true,
+						tagId: 'e6d4e02c-d29d-4bf9-8c68-b0be926eeb86',
+						scope: 'workspaceProjects',
+						project: '',
+						collectionId: 'workspace',
+						label: 'Stack',
+						count: decorated.length,
+						children: decorated.map((node) => ({
+							...node,
+							rowId: 'tag-row:fixture-stack/' + node.id
+						}))
+					}
+				];
+			if (!grouped || !decorated.some((node) => node.id === target)) return decorated;
+			const groups = ids
+				.slice()
+				.sort((a, b) => tags[a].label.localeCompare(tags[b].label))
+				.map((tagId) => {
+					const rowId = 'tag-row:' + Buffer.from(id + '/' + tagId).toString('base64url');
+					return {
+						id: rowId,
+						rowId,
+						tagGroup: true,
+						tagId,
+						scope: 'projectObjects',
+						project: projectName,
+						collectionId: id,
+						label: tags[tagId].label,
+						count: decorated.filter((node) => assignments[node.id]?.includes(tagId)).length,
+						children: decorated
+							.filter((node) => assignments[node.id]?.includes(tagId))
+							.map((node) => ({ ...node, rowId: rowId + '/' + node.id }))
+					};
+				});
+			return [...groups, ...decorated.filter((node) => !assignments[node.id])];
+		};
+		const idsParam = params.get('ids');
+		await route.fulfill({
+			json: idsParam
+				? Object.fromEntries(JSON.parse(idsParam).map((id) => [id, children(id)]))
+				: { children: children(params.get('id')) }
+		});
+	});
+	return { commands, copies, renames };
+}
+
 test('studio object search supports each filter without text, combines filters and opens results', async ({
 	page
 }) => {
@@ -3333,7 +3916,7 @@ function stepId(step, parentId) {
  * @param {string} id
  * @param {string} label
  * @param {string} classname
- * @param {{ children?: boolean | any[], isSourceContainer?: boolean }} [options]
+ * @param {{ children?: boolean | any[], isSourceContainer?: boolean, taggable?: boolean, tagScope?: string }} [options]
  */
 function treeNode(id, label, classname, options = {}) {
 	return {
@@ -3341,6 +3924,10 @@ function treeNode(id, label, classname, options = {}) {
 		name: label,
 		label,
 		classname,
+		taggable: options.taggable ?? (id === projectName || id === sequenceId),
+		tagScope:
+			options.tagScope ??
+			(id === projectName ? 'workspaceProjects' : id === sequenceId ? 'projectObjects' : undefined),
 		icon: 'file',
 		children: options.children ?? false,
 		isLoop: false,

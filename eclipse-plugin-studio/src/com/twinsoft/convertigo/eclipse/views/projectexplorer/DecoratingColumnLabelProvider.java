@@ -22,7 +22,11 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.StyledCellLabelProvider;
+import org.eclipse.jface.viewers.IColorProvider;
+import org.eclipse.jface.viewers.IFontProvider;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -33,7 +37,8 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 
-class DecoratingColumnLabelProvider extends ColumnLabelProvider {
+class DecoratingColumnLabelProvider extends StyledCellLabelProvider implements ILabelProvider, IColorProvider, IFontProvider {
+	private final Map<String, Color> tagColors = new java.util.HashMap<>();
 	
 	private DecoratingLabelProvider provider;
 	
@@ -61,7 +66,33 @@ class DecoratingColumnLabelProvider extends ColumnLabelProvider {
 		cell.setBackground(getBackground(element));
 		cell.setForeground(getForeground(element));
 		cell.setFont(getFont(element));
+		var ranges = new java.util.ArrayList<StyleRange>();
+		if (element instanceof TagTreeObject row && row.target == null) {
+			String color = row.group.path("presentation").path("color").asText();
+			if (color.matches("#[0-9a-fA-F]{6}")) ranges.add(new StyleRange(0, 1, tagColor(cell, color), null));
+		} else {
+			Object target = element instanceof TagTreeObject row ? row.check() : element;
+			com.fasterxml.jackson.databind.JsonNode tags = null;
+			if (target instanceof com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject dbo)
+				tags = com.twinsoft.convertigo.engine.tags.TagManager.get().badges(dbo.getObject()).path("tags");
+			else if (target instanceof com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject unloaded)
+				tags = com.twinsoft.convertigo.engine.tags.TagManager.get().projectBadges(unloaded.getName()).path("tags");
+			if (tags != null) for (var tag : tags) {
+				if (element instanceof TagTreeObject row && tag.path("id").asText().equals(row.currentTagId())) continue;
+				String color = tag.path("presentation").path("color").asText();
+				int position = cell.getText().lastIndexOf("[" + tag.path("label").asText() + "]");
+				if (position >= 0 && color.matches("#[0-9a-fA-F]{6}")) ranges.add(new StyleRange(position, 1, tagColor(cell, color), null));
+			}
+		}
+		cell.setStyleRanges(ranges.toArray(StyleRange[]::new));
+		super.update(cell);
 	}
+
+	private Color tagColor(ViewerCell cell, String value) {
+		return tagColors.computeIfAbsent(value, color -> new Color(cell.getControl().getDisplay(), new RGB(
+				Integer.parseInt(color.substring(1, 3), 16), Integer.parseInt(color.substring(3, 5), 16), Integer.parseInt(color.substring(5, 7), 16))));
+	}
+	@Override public void dispose() { tagColors.values().forEach(Color::dispose); provider.dispose(); super.dispose(); }
 
 	@Override
 	public Font getFont(Object element) {
