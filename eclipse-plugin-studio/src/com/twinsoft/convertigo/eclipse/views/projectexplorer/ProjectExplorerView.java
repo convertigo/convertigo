@@ -864,8 +864,19 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			@Override public void run() { openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects); }
 		});
+		manager.add(new org.eclipse.jface.action.Action("Create tag from references…") {
+			@Override public boolean isEnabled() {
+				var selection = getSelectedTreeObjects();
+				return selection != null && selection.length == 1 &&
+						(selection[0] instanceof UnloadedProjectTreeObject || selection[0].getObject() instanceof Project);
+			}
+			@Override public void run() { openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects, true); }
+		});
 	}
 	private void openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope scope) {
+		openTagManager(scope, false);
+	}
+	private void openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope scope, boolean fromReferences) {
 		var selected = getSelectedTreeObjects();
 		var targets = new java.util.ArrayList<String>();
 		String project = "";
@@ -881,7 +892,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (scope == com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects && (project.isEmpty() || targets.isEmpty())) {
 			org.eclipse.jface.dialogs.MessageDialog.openInformation(viewer.getControl().getShell(), "Sequence tags", "Select a sequence in an open project first."); return;
 		}
-		new TagManagerDialog(viewer.getControl().getShell(), scope, project, targets, result -> {
+		var dialog = new TagManagerDialog(viewer.getControl().getShell(), scope, project, targets, result -> {
 			for (var name : result.path("dirtyProjects")) {
 				var loaded = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name.asText());
 				var tree = loaded == null ? null : findTreeObjectByUserObject(loaded);
@@ -889,7 +900,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			for (var container : result.path("affectedContainers")) refreshTaggedCollection(container.asText());
 			if (result.path("done").asBoolean()) ConvertigoPlugin.getDefault().refreshPropertiesView();
-		}).open();
+		});
+		if (fromReferences && targets.size() == 1) dialog.createFromReferences(targets.get(0));
+		dialog.open();
 	}
 
 	public void refreshTaggedCollection(String collection) {

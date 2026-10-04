@@ -114,6 +114,10 @@
 	@apply rounded-container border border-color shadow-follow;
 }
 
+@utility modal-panel {
+	@apply rounded-container border border-color bg-surface-50-950 text-surface-950-50 shadow-xl;
+}
+
 @utility accordion-item {
 	@apply w-full overflow-hidden surface-card-shell bg-surface-100-900;
 }

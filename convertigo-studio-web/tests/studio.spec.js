@@ -20,6 +20,200 @@ const flowEngineId = `${projectName}.Engine`;
 const frontendBuilderId = `${flowEngineId}.frontends.svelte`;
 const frontendStructureId = `${frontendBuilderId}.routes.home.structure`;
 
+test('studio project menu previews a reference tag and creates its memberships in one command', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const members = [projectName, 'Library', 'Leaf'];
+	const tags = await mockTagServices(page, {
+		projects: [...members, 'Unrelated'],
+		referenceTargets: members
+	});
+	await page.goto('/studio/');
+	await openTreeMenu(page, projectName);
+	await page.getByRole('menuitem', { name: 'Create tag from references…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog.getByLabel('Label', { exact: true })).toHaveValue(projectName);
+	for (const name of members) {
+		const checkbox = dialog.getByRole('checkbox', { name: `Include ${name}`, exact: true });
+		await expect(checkbox).toBeChecked();
+		await expect(checkbox).toBeDisabled();
+	}
+	await expect(
+		dialog.getByRole('checkbox', { name: 'Include Unrelated', exact: true })
+	).not.toBeChecked();
+	expect(tags.commands).toHaveLength(0);
+	await dialog.getByLabel('Label', { exact: true }).fill('Application stack');
+	await dialog.getByRole('button', { name: 'Create tag', exact: true }).click();
+	await expect.poll(() => tags.commands.length).toBe(1);
+	expect(tags.commands[0]).toMatchObject({
+		action: 'createFromReferences',
+		input: { project: projectName, definition: { label: 'Application stack' } }
+	});
+	await expect(dialog.getByRole('button', { name: 'Update tag', exact: true })).toBeVisible();
+	const leaf = dialog.getByRole('checkbox', { name: 'Include Leaf', exact: true });
+	await expect(leaf).toBeEnabled();
+	await leaf.uncheck();
+	await expect.poll(() => tags.commands.length).toBe(2);
+	expect(tags.commands[1]).toMatchObject({ action: 'remove', input: { targets: ['Leaf'] } });
+	await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await openTreeMenu(page, sequenceId);
+	await expect(
+		page.getByRole('menuitem', { name: 'Create tag from references…', exact: true })
+	).toHaveCount(0);
+});
+
+test('studio project membership checks preserve the scrolled list and its DOM rows', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const names = Array.from({ length: 60 }, (_, i) => `Project${String(i).padStart(2, '0')}`);
+	const tags = await mockTagServices(page, { projects: [projectName, ...names] });
+	await page.goto('/studio/');
+	await openTreeMenu(page, projectName);
+	await page.getByRole('menuitem', { name: 'Project tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	const list = dialog.locator('.studio-tags__member-list');
+	const checkbox = dialog.getByRole('checkbox', { name: 'Include Project40', exact: true });
+	await checkbox.scrollIntoViewIfNeeded();
+	const before = await list.evaluate((element) => element.scrollTop);
+	expect(before).toBeGreaterThan(0);
+	const row = await checkbox.elementHandle();
+	await checkbox.check();
+	await expect.poll(() => tags.commands.length).toBe(1);
+	await expect(checkbox).toBeEnabled();
+	await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBe(before);
+	expect(await row.evaluate((element) => element.isConnected)).toBe(true);
+	await checkbox.uncheck();
+	await expect.poll(() => tags.commands.length).toBe(2);
+	await expect(checkbox).toBeEnabled();
+	await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBe(before);
+});
+
+test('studio reference tag creation requires a single project selection', async ({ page }) => {
+	const projects = [projectName, 'Library'];
+	await mockStudioServices(page, { projects });
+	const tags = await mockTagServices(page, { projects });
+	await page.goto('/studio/');
+	await selectTreeNode(page, projectName);
+	await page
+		.locator('button.studio-tree-node__content[data-node-id="Library"]')
+		.click({ modifiers: ['ControlOrMeta'] });
+	await openTreeMenu(page, projectName);
+	await expect(page.getByRole('menuitem', { name: 'Project tags…', exact: true })).toBeEnabled();
+	await expect(
+		page.getByRole('menuitem', { name: 'Create tag from references…', exact: true })
+	).toBeDisabled();
+	expect(tags.commands).toHaveLength(0);
+});
+
+test('studio reference tag creation is disabled when its preview cannot be read', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page, { referenceError: true });
+	await page.goto('/studio/');
+	await openTreeMenu(page, projectName);
+	await page.getByRole('menuitem', { name: 'Create tag from references…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog.getByRole('alert')).toContainText('Unable to read references of Library');
+	await expect(dialog.getByRole('alert')).toContainText('Unreadable fixture');
+	await expect(page.getByRole('dialog')).toHaveCount(1);
+	await expect(dialog.getByRole('button', { name: 'Create tag', exact: true })).toBeDisabled();
+	expect(tags.commands).toHaveLength(0);
+});
+
+test('studio reference tags report unavailable libraries without disabling creation', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page, {
+		projects: [projectName, 'Library'],
+		referenceTargets: [projectName, 'Library'],
+		referenceWarnings: [
+			'Library references NotInstalled, which is not in this workspace and will not be included.'
+		]
+	});
+	await page.goto('/studio/');
+	await openTreeMenu(page, projectName);
+	await page.getByRole('menuitem', { name: 'Create tag from references…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog.getByRole('alert')).toContainText('NotInstalled');
+	await expect(dialog.getByLabel('Label', { exact: true })).toBeEnabled();
+	await expect(
+		dialog.getByRole('checkbox', { name: 'Include Library', exact: true })
+	).toBeChecked();
+	await expect(dialog.getByRole('button', { name: 'Create tag', exact: true })).toBeEnabled();
+	await dialog.getByRole('button', { name: 'Create tag', exact: true }).click();
+	await expect(dialog.getByRole('button', { name: 'Update tag', exact: true })).toBeEnabled();
+	expect(tags.commands).toHaveLength(1);
+});
+
+test('studio reference tag creation also opens from a grouped project occurrence', async ({
+	page
+}) => {
+	await page.addInitScript(() => localStorage.setItem('studio-tags-grouped', 'true'));
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page, { referenceTargets: [projectName] });
+	await page.goto('/studio/');
+	await ensureTreeNodeExpanded(page, 'tag-row:fixture-stack');
+	await openTreeMenu(page, projectName);
+	await page.getByRole('menuitem', { name: 'Create tag from references…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog.getByLabel('Label', { exact: true })).toHaveValue(projectName);
+	await expect(dialog.getByRole('button', { name: 'Create tag', exact: true })).toBeEnabled();
+	expect(tags.commands).toHaveLength(0);
+});
+
+test('studio project action menus remain inside a short viewport', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 720 });
+	const projects = [...Array.from({ length: 8 }, (_, index) => `Library${index}`), projectName];
+	await mockStudioServices(page, { projects });
+	await mockTagServices(page, { projects });
+	await page.goto('/studio/');
+	await openTreeMenu(page, projectName);
+	const menu = page.getByRole('menu', { name: `Actions for ${projectName}`, exact: true });
+	await expect
+		.poll(async () => {
+			const bounds = await menu.boundingBox();
+			return Boolean(bounds && bounds.y >= 0 && bounds.y + bounds.height <= 720);
+		})
+		.toBe(true);
+	await page.getByRole('menuitem', { name: 'Create tag from references…', exact: true }).click();
+	await expect(page.getByRole('dialog').getByLabel('Label', { exact: true })).toHaveValue(
+		projectName
+	);
+});
+
+for (const theme of ['light', 'dark']) {
+	test(`studio tags have an opaque elevated dialog in ${theme} mode`, async ({ page }) => {
+		await page.addInitScript((value) => localStorage.setItem('theme', value), theme);
+		await mockStudioServices(page);
+		await mockTagServices(page);
+		await page.goto('/studio/');
+		await openTreeMenu(page, projectName);
+		await page.getByRole('menuitem', { name: 'Project tags…', exact: true }).click();
+		const dialog = page.getByRole('dialog');
+		await expect(dialog).toBeVisible();
+		const appearance = await dialog.evaluate((element) => {
+			const style = getComputedStyle(element);
+			return {
+				background: style.backgroundColor,
+				shadow: style.boxShadow,
+				border: parseFloat(style.borderTopWidth)
+			};
+		});
+		expect(appearance.background).not.toBe('rgba(0, 0, 0, 0)');
+		expect(appearance.background).not.toBe('transparent');
+		expect(appearance.shadow).not.toBe('none');
+		expect(appearance.border).toBeGreaterThanOrEqual(1);
+		await expect(page.locator('html')).toHaveClass(theme === 'dark' ? /dark/ : /^(?!.*\bdark\b)/);
+		await page.screenshot({ path: test.info().outputPath('tags-dialog.png') });
+	});
+}
+
 test('studio tags edit typed contributions and immediately refresh badges', async ({ page }) => {
 	await mockStudioServices(page);
 	const tags = await mockTagServices(page);
@@ -441,8 +635,8 @@ async function mockTagServices(page, options = {}) {
 		renames = [];
 	let revision = 1,
 		dirty = false;
-	const snapshot = () => ({
-		scope: 'projectObjects',
+	const snapshot = (scope = 'projectObjects') => ({
+		scope,
 		project: projectName,
 		revision: String(revision),
 		dirty,
@@ -450,6 +644,7 @@ async function mockTagServices(page, options = {}) {
 		tags,
 		assignments,
 		targets: [target, ...(options.secondSequence ? [other] : [])],
+		projects: options.projects ?? [projectName],
 		diagnostics: [],
 		contributions: {
 			neutral: {
@@ -474,13 +669,39 @@ async function mockTagServices(page, options = {}) {
 	});
 	await page.route('**/admin/services/studio.tags.*', async (route) => {
 		const params = new URLSearchParams(route.request().postData() ?? '');
+		const scope = params.get('scope') ?? 'projectObjects';
+		if (
+			serviceName(route.request().url()) === 'studio.tags.Get' &&
+			params.get('referenceProject') &&
+			options.referenceError
+		)
+			return route.fulfill({
+				status: 500,
+				contentType: 'text/xml',
+				body: '<error><message>Unable to read references of Library: Unreadable fixture</message><exception>java.io.IOException</exception></error>'
+			});
 		if (serviceName(route.request().url()) === 'studio.tags.Get')
-			return route.fulfill({ json: snapshot() });
+			return route.fulfill({
+				json: {
+					...snapshot(scope),
+					...(params.get('referenceProject')
+						? {
+								referenceTargets: options.referenceTargets ?? [params.get('referenceProject')],
+								diagnostics: options.referenceWarnings ?? []
+							}
+						: {})
+				}
+			});
 		const input = JSON.parse(params.get('input') ?? '{}');
 		const action = params.get('action');
 		commands.push({ action, input });
 		await options.beforeApply?.(action);
-		if (action === 'remove') {
+		if (action === 'createFromReferences') {
+			input.id = '3be52fce-0274-4e89-9c55-7c1f4f435170';
+			tags[input.id] = { ...input.definition, shared: false };
+			for (const name of options.referenceTargets ?? [input.project])
+				assignments[name] = [input.id];
+		} else if (action === 'remove') {
 			for (const id of input.targets)
 				assignments[id] = assignments[id].filter((tag) => !input.tagIds.includes(tag));
 		} else if (action === 'assign') {
@@ -490,15 +711,15 @@ async function mockTagServices(page, options = {}) {
 			for (const id of input.targets) assignments[id] = [...input.tagIds];
 		} else tags[input.id] = input.definition;
 		revision++;
-		dirty = true;
+		dirty = scope === 'projectObjects';
 		await route.fulfill({
 			json: {
-				...snapshot(),
+				...snapshot(scope),
 				id: input.id,
 				done: true,
-				dirtyProjects: [projectName],
+				dirtyProjects: dirty ? [projectName] : [],
 				affectedTargets: [target],
-				affectedContainers: [projectName + ':sq']
+				affectedContainers: scope === 'workspaceProjects' ? [''] : [projectName + ':sq']
 			}
 		});
 	});

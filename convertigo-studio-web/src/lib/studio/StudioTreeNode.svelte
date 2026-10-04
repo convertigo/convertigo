@@ -44,7 +44,7 @@
 	 *  node: any,
 	 *  occurrencePrefix?: string,
 	 *  onTagDrop?: (group: any, payload: any, transfer: boolean) => Promise<void>,
-	 *  onManageTags?: (node: any) => void,
+	 *  onManageTags?: (node: any, fromReferences?: boolean) => void,
 	 *  canManageTags?: (node: any) => boolean,
 	 *  tagsGrouped?: boolean,
 	 *  currentTagId?: string,
@@ -1451,6 +1451,7 @@
 						class:studio-tree-node__label--changed={change?.status === 'modified'}
 						class:studio-tree-node__label--modified={marks.modified}
 						class:studio-tree-node__label--error={marks.symbolError}
+						style:color={node.tagGroup ? node.presentation?.color : undefined}
 						title={marks.modified ? `${label} — Modified, not saved` : undefined}>{label}</span
 					>
 					{#if node.tagGroup}
@@ -1556,9 +1557,12 @@
 						tagGroup={Boolean(node.tagGroup)}
 						tagScope={node.tagScope ?? node.scope}
 						canManageTags={canManageTags?.(node) ?? false}
+						canCreateTagFromReferences={Boolean(
+							canManageTags?.(node) && treeSelectionOf(node.id).length === 1
+						)}
 						{tagsGrouped}
 						{onToggleTagGrouping}
-						onManageTags={() => onManageTags?.(node)}
+						onManageTags={(fromReferences) => onManageTags?.(node, fromReferences)}
 						{label}
 						{canRename}
 						canDelete={draggableNode}

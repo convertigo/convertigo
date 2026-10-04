@@ -66,6 +66,112 @@ public class TagManagerTest {
 		command(scope, "assign", input);
 	}
 	private void save(Project project) throws Exception { manager.save(project, source(project), () -> {}); project.hasChanged = false; }
+	private void reference(Project owner, String name, String target) throws Exception {
+		var reference = new com.twinsoft.convertigo.beans.references.ProjectSchemaReference();
+		reference.setName(name); reference.setProjectName(target); reference.isSubLoaded = true; owner.add(reference);
+	}
+
+	@Test public void referenceTagPreviewIncludesRootTransitiveReferencesAndCyclesWithoutWriting() throws Exception {
+		var lib = project("Lib"); var leaf = project("Leaf");
+		reference(project, "Library", "Lib=https://github.com/example/lib.git");
+		reference(project, "SameLibrary", "Lib"); reference(lib, "Leaf", "Leaf"); reference(leaf, "Cycle", "Demo");
+		var schema = new com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference();
+		schema.setName("SchemaOnly"); schema.isSubLoaded = true; project.add(schema);
+		ObjectNode before = read(Scope.workspaceProjects);
+		var preview = manager.read(Scope.workspaceProjects, null, "Demo");
+		assertEquals(List.of("Demo", "Lib", "Leaf"), TagDocument.JSON.convertValue(preview.path("referenceTargets"), List.class));
+		assertEquals(before, read(Scope.workspaceProjects));
+		assertFalse(Files.exists(root.resolve("studio/tags.json"))); assertFalse(Files.exists(source(project)));
+	}
+
+	@Test public void referenceTagCreationIsOneLocalRevisionCheckedCommandAndMembershipsStayEditable() throws Exception {
+		var lib = project("Lib"); var leaf = project("Leaf");
+		reference(project, "Library", "Lib"); reference(lib, "Leaf", "Leaf");
+		ObjectNode input = json("{\"project\":\"Demo\",\"definition\":{\"label\":\"Application\",\"shared\":true,\"presentation\":{\"color\":\"#2563EB\"}}}");
+		var result = command(Scope.workspaceProjects, "createFromReferences", input);
+		String id = result.path("id").asText(); TagDocument.validateId(id);
+		assertTrue(result.path("done").asBoolean()); assertEquals(3, result.path("affectedTargets").size());
+		assertEquals("", result.path("affectedContainers").get(0).asText()); assertTrue(result.path("dirtyProjects").isEmpty());
+		assertFalse(result.path("tags").path(id).path("shared").asBoolean());
+		for (var owner : List.of(project, lib, leaf)) {
+			assertEquals(id, result.path("assignments").path(owner.getName()).get(0).asText());
+			assertFalse(Files.exists(source(owner))); owner.hasChanged = false;
+		}
+		var reopened = new TagManager(root, projects::get, this::source, projects::keySet);
+		assertEquals(result.path("assignments"), reopened.read(Scope.workspaceProjects, null).path("assignments"));
+		var later = project("Later"); reference(leaf, "Later", "Later");
+		assertFalse(read(Scope.workspaceProjects).path("assignments").has(later.getName()));
+		ObjectNode remove = json("{\"targets\":[\"Leaf\"],\"tagIds\":[\"" + id + "\"]}");
+		command(Scope.workspaceProjects, "remove", remove);
+		assertFalse(read(Scope.workspaceProjects).path("assignments").has("Leaf"));
+	}
+
+	@Test public void unavailableReferencesAreReportedWithoutPreventingAWorkspaceTag() throws Exception {
+		var lib = project("Lib"); reference(project, "Library", "Lib"); reference(lib, "Cycle", "Demo");
+		reference(lib, "Template", "__PROJECT_NAME__"); reference(project, "Missing", "NotInstalled");
+		String existing = create(Scope.workspaceProjects, "Existing"); assign(Scope.workspaceProjects, existing, "Demo", "Lib");
+		byte[] bytes = Files.readAllBytes(root.resolve("studio/tags.json"));
+		var preview = manager.read(Scope.workspaceProjects, null, "Demo");
+		assertEquals(List.of("Demo", "Lib"), TagDocument.JSON.convertValue(preview.path("referenceTargets"), List.class));
+		assertEquals(2, preview.path("diagnostics").size());
+		assertTrue(preview.path("diagnostics").toString().contains("NotInstalled"));
+		assertTrue(preview.path("diagnostics").toString().contains("__PROJECT_NAME__"));
+		assertFalse(preview.path("readOnly").asBoolean());
+		assertArrayEquals(bytes, Files.readAllBytes(root.resolve("studio/tags.json")));
+		var result = command(Scope.workspaceProjects, "createFromReferences", json("{\"project\":\"Demo\",\"definition\":{\"label\":\"Available stack\"}}"));
+		assertTrue(result.path("done").asBoolean()); assertEquals(preview.path("diagnostics"), result.path("diagnostics"));
+		for (String name : List.of("Demo", "Lib")) assertEquals(List.of(existing, result.path("id").asText()),
+				TagDocument.JSON.convertValue(result.path("assignments").path(name), List.class));
+		assertFalse(result.path("assignments").has("NotInstalled")); assertFalse(result.path("assignments").has("__PROJECT_NAME__"));
+	}
+
+	@Test public void invalidRootOrUnreadableReferencesCannotPublishAPartialTag() throws Exception {
+		String existing = create(Scope.workspaceProjects, "Existing"); assign(Scope.workspaceProjects, existing, "Demo");
+		ObjectNode before = read(Scope.workspaceProjects); byte[] bytes = Files.readAllBytes(root.resolve("studio/tags.json"));
+		assertThrows(java.io.IOException.class, () -> command(Scope.workspaceProjects, "createFromReferences", json("{\"project\":\"Missing\",\"definition\":{\"label\":\"New\"}}")));
+		assertEquals(before, read(Scope.workspaceProjects)); assertArrayEquals(bytes, Files.readAllBytes(root.resolve("studio/tags.json")));
+		assertThrows(java.io.IOException.class, () -> command(Scope.workspaceProjects, "createFromReferences", json("{\"project\":42,\"definition\":{\"label\":\"New\"}}")));
+		assertThrows(java.io.IOException.class, () -> command(Scope.projectObjects, "createFromReferences", json("{\"project\":\"Demo\",\"definition\":{\"label\":\"New\"}}")));
+		assertThrows(java.io.IOException.class, () -> manager.read(Scope.projectObjects, "Demo", "Demo"));
+		assertArrayEquals(bytes, Files.readAllBytes(root.resolve("studio/tags.json")));
+		var unreadable = new TagManager(root, projects::get, this::source, projects::keySet, name -> { throw new java.io.IOException("Unreadable fixture"); });
+		var failure = assertThrows(java.io.IOException.class, () -> unreadable.read(Scope.workspaceProjects, null, "Demo"));
+		assertTrue(failure.getMessage().contains("Demo")); assertTrue(failure.getMessage().contains("Unreadable fixture"));
+		assertThrows(java.io.IOException.class, () -> unreadable.mutate(Scope.workspaceProjects, null,
+				unreadable.read(Scope.workspaceProjects, null).path("revision").asText(), "createFromReferences", json("{\"project\":\"Demo\",\"definition\":{\"label\":\"New\"}}")));
+		assertEquals(before.path("assignments"), unreadable.read(Scope.workspaceProjects, null).path("assignments"));
+		assertArrayEquals(bytes, Files.readAllBytes(root.resolve("studio/tags.json")));
+	}
+
+	@Test public void referenceCreationRejectsStaleRevisionsAndInvalidDefinitions() throws Exception {
+		String revision = read(Scope.workspaceProjects).path("revision").asText();
+		create(Scope.workspaceProjects, "Existing");
+		ObjectNode before = read(Scope.workspaceProjects);
+		assertThrows(java.io.IOException.class, () -> manager.mutate(Scope.workspaceProjects, null, revision, "createFromReferences", json("{\"project\":\"Demo\",\"definition\":{\"label\":\"New\"}}")));
+		assertThrows(java.io.IOException.class, () -> command(Scope.workspaceProjects, "createFromReferences", json("{\"project\":\"Demo\",\"definition\":{\"label\":\"\"}}")));
+		assertEquals(before, read(Scope.workspaceProjects));
+	}
+
+	@Test public void referenceResolverCanReadClosedProjectsWithoutLoadingUnderTheDomainMonitor() throws Exception {
+		var names = List.of("Root", "Library", "Leaf"); var loads = new java.util.concurrent.atomic.AtomicInteger();
+		final TagManager[] holder = new TagManager[1];
+		var local = holder[0] = new TagManager(root.resolve("closed"), name -> { loads.incrementAndGet(); return null; },
+				owner -> { fail("No project source may be opened"); return null; }, () -> names, name -> {
+					assertFalse(Thread.holdsLock(holder[0]));
+					return switch (name) { case "Root" -> List.of("Library"); case "Library" -> List.of("Leaf"); default -> List.of("Root"); };
+				});
+		var snapshot = local.read(Scope.workspaceProjects, null, "Root");
+		var result = local.mutate(Scope.workspaceProjects, null, snapshot.path("revision").asText(), "createFromReferences", json("{\"project\":\"Root\",\"definition\":{\"label\":\"Closed stack\"}}"));
+		assertEquals(3, result.path("assignments").size()); assertEquals(0, loads.get());
+	}
+
+	@Test public void referenceClosureIsBoundedBeforeAnyPublication() throws Exception {
+		var names = new java.util.ArrayList<String>(); for (int i = 0; i <= 1000; i++) names.add("Project" + i);
+		var local = new TagManager(root.resolve("bounded"), name -> null, this::source, () -> names,
+				name -> name.equals("Project0") ? names : List.of());
+		assertThrows(java.io.IOException.class, () -> local.projectReferenceTargets("Project0"));
+		assertFalse(Files.exists(root.resolve("bounded/studio/tags.json")));
+	}
 
 	@Test public void extensionProvidersRunOutsideTheDomainMonitorForReadsAndEdits() throws Exception {
 		manager.contributions().register("contextual", context -> {

@@ -12,7 +12,7 @@ import com.twinsoft.convertigo.engine.tags.TagManager;
 public class Get extends JSonService {
 	@Override protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		var scope = TagManager.Scope.valueOf(request.getParameter("scope"));
-		var result = TagManager.get().read(scope, request.getParameter("project"));
+		var result = TagManager.get().read(scope, request.getParameter("project"), request.getParameter("referenceProject"));
 		if (scope == TagManager.Scope.projectObjects) result.set("suggestions", TagManager.get().suggestions(request.getParameter("project")).path("suggestions"));
 		var json = new JSONObject(result.toString()); var keys = json.keys();
 		while (keys.hasNext()) { String key = (String) keys.next(); response.put(key, json.get(key)); }

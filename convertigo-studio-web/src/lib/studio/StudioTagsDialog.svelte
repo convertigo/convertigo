@@ -19,6 +19,7 @@
 	let targets = $state(/** @type {string[]} */ ([]));
 	let snapshot = $state(/** @type {any} */ (null));
 	let selected = $state('');
+	let referenceProject = $state('');
 	let definition = $state(/** @type {any} */ ({ label: '', description: '', metadata: {} }));
 	let search = $state('');
 	let busy = $state(false);
@@ -34,9 +35,11 @@
 			.sort((a, b) => a.label.localeCompare(b.label) || a.id.localeCompare(b.id))
 	);
 	let members = $derived(
-		Object.entries(snapshot?.assignments ?? {})
-			.filter(([, ids]) => /** @type {string[]} */ (ids).includes(selected))
-			.map(([target]) => target)
+		!selected && referenceProject
+			? (snapshot?.referenceTargets ?? [])
+			: Object.entries(snapshot?.assignments ?? {})
+					.filter(([, ids]) => /** @type {string[]} */ (ids).includes(selected))
+					.map(([target]) => target)
 	);
 	let availableTargets = $derived(
 		[
@@ -52,34 +55,54 @@
 	);
 	let conflict = $derived((snapshot?.conflicts ?? []).find((item) => item.tagId === selected));
 
-	/** @param {string} nextScope @param {string} name @param {string[]} selectedTargets @param {string} tagId */
-	export async function open(nextScope, name, selectedTargets = [], tagId = '') {
+	/** @param {string} nextScope @param {string} name @param {string[]} selectedTargets @param {string} tagId @param {string} fromReferences */
+	export async function open(
+		nextScope,
+		name,
+		selectedTargets = [],
+		tagId = '',
+		fromReferences = ''
+	) {
 		scope = nextScope;
 		project = name;
 		targets = [...new Set(selectedTargets)];
 		orderTarget = targets[0] ?? '';
 		search = '';
 		selected = '';
-		definition = { label: '', description: '', metadata: {} };
+		referenceProject = fromReferences;
+		definition = { label: referenceProject, description: '', metadata: {} };
 		await refresh();
 		if (!availableTargets.includes(orderTarget)) orderTarget = availableTargets[0] ?? '';
 		const first =
 			tagId ||
 			selectedTargets.flatMap((target) => snapshot?.assignments?.[target] ?? [])[0] ||
 			definitions[0]?.id;
-		if (first && snapshot?.tags?.[first]) edit(first);
+		if (!referenceProject && first && snapshot?.tags?.[first]) edit(first);
 		return modal.open({ scope });
 	}
 
 	async function refresh() {
 		error = '';
-		snapshot = await call('studio.tags.Get', { scope, project });
-		if (snapshot?.isError) error = 'Unable to read tags. Refresh to try again.';
+		snapshot = await call(
+			'studio.tags.Get',
+			{ scope, project, referenceProject },
+			{ silentError: () => true }
+		);
+		if (snapshot?.isError || !snapshot?.revision) {
+			error = String(
+				snapshot?.error?.message ??
+					snapshot?.message ??
+					snapshot?.error ??
+					'Unable to read tags. Refresh to try again.'
+			);
+			snapshot = { ...snapshot, readOnly: true };
+		}
 	}
 
 	/** @param {string} id */
 	function edit(id) {
 		selected = id;
+		referenceProject = '';
 		definition = JSON.parse(JSON.stringify(snapshot.tags[id]));
 		definition.metadata ??= {};
 		definition.description ??= '';
@@ -90,15 +113,23 @@
 		busy = true;
 		error = '';
 		try {
-			const result = await call('studio.tags.Apply', {
-				scope,
-				project,
-				revision: snapshot.revision,
-				action,
-				input: JSON.stringify(input)
-			});
+			const result = await call(
+				'studio.tags.Apply',
+				{
+					scope,
+					project,
+					revision: snapshot.revision,
+					action,
+					input: JSON.stringify(input)
+				},
+				{ silentError: () => true }
+			);
 			if (!result?.done) {
-				error = 'The change was refused. Refresh before trying again.';
+				error = String(
+					result?.error?.message ??
+						result?.message ??
+						'The change was refused. Refresh before trying again.'
+				);
 				return null;
 			}
 			snapshot = { ...result, suggestions: result.suggestions ?? snapshot?.suggestions };
@@ -115,7 +146,10 @@
 	}
 
 	async function saveDefinition() {
-		const result = await apply(selected ? 'update' : 'create', { id: selected, definition });
+		const result = await apply(
+			selected ? 'update' : referenceProject ? 'createFromReferences' : 'create',
+			{ id: selected, definition, project: referenceProject }
+		);
 		if (result?.id) {
 			edit(result.id);
 		}
@@ -158,6 +192,7 @@
 	function newTag() {
 		if (busy) return;
 		selected = '';
+		referenceProject = '';
 		definition = { label: '', description: '', metadata: {} };
 	}
 
@@ -194,7 +229,7 @@
 	}
 </script>
 
-<ModalDynamic bind:this={modal} class="w-full max-w-4xl card preset-filled-surface-50-950 p">
+<ModalDynamic bind:this={modal} class="w-full max-w-4xl p">
 	{#snippet children({ close })}
 		<div class="studio-tags">
 			<header class="layout-x-between-low">
@@ -209,6 +244,14 @@
 				>Select a tag, then check the {scope === 'workspaceProjects' ? 'projects' : 'sequences'} that
 				belong to it.</Dialog.Description
 			>
+			{#if referenceProject}
+				<p class="studio-tags__hint">
+					Create a local tag for {referenceProject} and its direct and indirect project references. Review
+					the checked projects, then choose Create tag. Only projects present in this workspace are included;
+					unavailable references are listed below. Memberships remain editable afterward; they do not
+					track future reference changes.
+				</p>
+			{/if}
 			{#if error}<p role="alert">{error}</p>{/if}
 			{#each snapshot?.diagnostics ?? [] as message (message)}<p role="alert">{message}</p>{/each}
 			<div class="studio-tags__body">
@@ -295,8 +338,11 @@
 								disabled={busy || snapshot?.readOnly || !definition.label.trim()}
 							/>
 						</div>
-						{#if selected}
-							<fieldset class="studio-tags__members" disabled={busy || snapshot?.readOnly}>
+						{#if selected || referenceProject}
+							<fieldset
+								class="studio-tags__members"
+								disabled={busy || snapshot?.readOnly || !selected}
+							>
 								<legend
 									>{scope === 'workspaceProjects' ? 'Projects' : 'Sequences'}
 									<span class="studio-tags__hint">({members.length})</span></legend
@@ -307,7 +353,7 @@
 											<input
 												type="checkbox"
 												aria-label={`Include ${targetLabel(target)}`}
-												checked={snapshot?.assignments?.[target]?.includes(selected) ?? false}
+												checked={members.includes(target)}
 												onchange={(event) => changeMembership(target, event)}
 											/>
 											<span>{targetLabel(target)}</span>
@@ -317,6 +363,8 @@
 										</p>{/each}
 								</div>
 							</fieldset>
+						{/if}
+						{#if selected}
 							<fieldset class="layout-y-low" disabled={busy || snapshot?.readOnly}>
 								<legend>Tag order</legend>
 								<label class="studio-tags__field"

@@ -22,8 +22,9 @@
 	 *  tagGroup?: boolean,
 	 *  tagScope?: string,
 	 *  canManageTags?: boolean,
+	 *  canCreateTagFromReferences?: boolean,
 	 *  tagsGrouped?: boolean,
-	 *  onManageTags?: () => void | Promise<void>,
+	 *  onManageTags?: (fromReferences?: boolean) => void | Promise<void>,
 	 *  onToggleTagGrouping?: () => void | Promise<void>,
 	 *  label?: string,
 	 *  canRename?: boolean,
@@ -56,6 +57,7 @@
 		tagGroup = false,
 		tagScope = '',
 		canManageTags = false,
+		canCreateTagFromReferences = false,
 		tagsGrouped = false,
 		onManageTags,
 		onToggleTagGrouping,
@@ -210,6 +212,10 @@
 	async function handleSelect(details) {
 		if (details.value === 'tags.manage') {
 			await onManageTags?.();
+			return;
+		}
+		if (details.value === 'tags.references') {
+			await onManageTags?.(true);
 			return;
 		}
 		if (details.value === 'tags.view') {
@@ -422,6 +428,14 @@
 								'mdi:tag-outline',
 								tagScope === 'workspaceProjects' ? 'Project tags…' : 'Sequence tags…',
 								!canManageTags
+							)}
+						{/if}
+						{#if isProject && !tagGroup}
+							{@render treeItem(
+								'tags.references',
+								'mdi:tag-plus-outline',
+								'Create tag from references…',
+								!canCreateTagFromReferences
 							)}
 						{/if}
 						{@render treeItem(
@@ -643,7 +657,7 @@
 
 	:global(.studio-tree-action-menu__content) {
 		width: min(20rem, calc(100vw - 1rem));
-		max-height: min(32rem, calc(100vh - 1rem));
+		max-height: min(32rem, calc(100vh - 1rem), var(--available-height, 100vh));
 		overflow: auto;
 		border: 1px solid var(--color-surface-200-800);
 		border-radius: 0.5rem;

@@ -28,6 +28,7 @@ public final class TagManagerDialog extends TitleAreaDialog {
 	private final java.util.function.Consumer<ObjectNode> refresh;
 	private ObjectNode snapshot, definition = TagDocument.JSON.createObjectNode();
 	private String selected = "";
+	private String referenceProject = "";
 	private Table tags, targets, suggestions, orderedTags;
 	private Combo orderTarget;
 	private final List<String> orderTargets = new ArrayList<>();
@@ -51,6 +52,7 @@ public final class TagManagerDialog extends TitleAreaDialog {
 		setShellStyle(getShellStyle() | SWT.RESIZE); setBlockOnOpen(false);
 	}
 	public TagManagerDialog selectTag(String id) { selected = id; return this; }
+	public TagManagerDialog createFromReferences(String name) { referenceProject = name; selected = ""; return this; }
 	@Override protected Point getInitialSize() { return new Point(780, 620); }
 	@Override protected Control createDialogArea(Composite parent) {
 		setTitle(scope == TagManager.Scope.workspaceProjects ? "Project tags" : "Sequence tags — " + project);
@@ -61,7 +63,7 @@ public final class TagManagerDialog extends TitleAreaDialog {
 		Composite left = new Composite(columns, SWT.NONE); left.setLayout(new GridLayout(1, false));
 		filter = new Text(left, SWT.SEARCH | SWT.BORDER); filter.setMessage("Find a tag"); filter.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false)); filter.addModifyListener(event -> renderTags());
 		tags = table(left, SWT.SINGLE, 200); tags.addListener(SWT.Selection, event -> { if (!busy && event.item instanceof TableItem item) edit((String) item.getData()); });
-		button(left, "New tag", () -> { selected = ""; tags.deselectAll(); definition = TagDocument.JSON.createObjectNode().put("label", ""); renderEditor(); label.setFocus(); });
+		button(left, "New tag", () -> { selected = referenceProject = ""; tags.deselectAll(); definition = TagDocument.JSON.createObjectNode().put("label", ""); renderEditor(); label.setFocus(); });
 		scroll = new ScrolledComposite(columns, SWT.V_SCROLL); scroll.setExpandHorizontal(true); scroll.setExpandVertical(true);
 		details = new Composite(scroll, SWT.NONE); details.setLayout(new GridLayout(1, false)); scroll.setContent(details);
 		Composite nameRow = new Composite(details, SWT.NONE); nameRow.setLayout(new GridLayout(2, false)); nameRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -128,7 +130,7 @@ public final class TagManagerDialog extends TitleAreaDialog {
 		((GridData) optional.getLayoutData()).heightHint = height + optional.getSpacing() * (optional.getItemCount() + 1);
 		details.layout(true, true); scroll.setMinSize(details.computeSize(Math.max(220, scroll.getClientArea().width), SWT.DEFAULT));
 	}
-	private void load() { run("Read tags", () -> { ObjectNode value = TagManager.get().read(scope, project); if (scope == TagManager.Scope.projectObjects) value.set("suggestions", TagManager.get().suggestions(project).path("suggestions")); return value; }); }
+	private void load() { String references = referenceProject; run("Read tags", () -> { ObjectNode value = TagManager.get().read(scope, project, references); if (scope == TagManager.Scope.projectObjects) value.set("suggestions", TagManager.get().suggestions(project).path("suggestions")); return value; }); }
 	@FunctionalInterface private interface Work { ObjectNode run() throws Exception; }
 	private void run(String name, Work work) { run(name, work, false); }
 	private void run(String name, Work work, boolean keepDetails) {
@@ -140,7 +142,7 @@ public final class TagManagerDialog extends TitleAreaDialog {
 				if (snapshot != null && !result.has("suggestions") && snapshot.has("suggestions")) result.set("suggestions", snapshot.get("suggestions"));
 				snapshot = result;
 				if (result.has("id") && !result.path("id").asText().isEmpty()) selected = result.path("id").asText();
-				if (selected.isEmpty() && !snapshot.path("tags").isEmpty()) {
+				if (selected.isEmpty() && referenceProject.isEmpty() && !snapshot.path("tags").isEmpty()) {
 					selected = initialTargets.stream().flatMap(target -> java.util.stream.StreamSupport.stream(snapshot.path("assignments").path(target).spliterator(), false)).map(JsonNode::asText).findFirst().orElse(snapshot.path("tags").fieldNames().next());
 				}
 				render(keepDetails); refresh.accept(result); }); }
@@ -153,7 +155,7 @@ public final class TagManagerDialog extends TitleAreaDialog {
 		setErrorMessage(null); renderTags(); suggestions.removeAll();
 		for (var suggestion : snapshot.path("suggestions")) { var item = new TableItem(suggestions, SWT.NONE); item.setText(suggestion.path("definition").path("label").asText() + " — " + suggestion.path("project").asText()); item.setData(suggestion); }
 		if (keepDetails && !selected.isEmpty() && snapshot.path("tags").has(selected)) renderMemberships();
-		else if (!selected.isEmpty() && snapshot.path("tags").has(selected)) edit(selected); else { selected = ""; definition = TagDocument.JSON.createObjectNode().put("label", ""); renderEditor(); }
+		else if (!selected.isEmpty() && snapshot.path("tags").has(selected)) edit(selected); else { selected = ""; definition = TagDocument.JSON.createObjectNode().put("label", referenceProject); renderEditor(); }
 		StringBuilder message = new StringBuilder(scope == TagManager.Scope.workspaceProjects ? "Memberships are saved in this workspace." : snapshot.path("dirty").asBoolean() ? "Modified — save the project to keep these tags." : "Sequence tags are saved with the project.");
 		for (var diagnostic : snapshot.path("diagnostics")) message.append('\n').append(diagnostic.asText()); status.setText(message.toString());
 		for (var control : editControls) if (!control.isDisposed()) control.setEnabled(!snapshot.path("readOnly").asBoolean());
@@ -170,7 +172,7 @@ public final class TagManagerDialog extends TitleAreaDialog {
 			var item = new TableItem(tags, SWT.NONE); item.setText(entry.getValue().path("label").asText()); item.setData(entry.getKey()); if (entry.getKey().equals(selected)) tags.setSelection(item);
 		}
 	}
-	private void edit(String id) { selected = id; definition = (ObjectNode) snapshot.path("tags").path(id).deepCopy(); renderEditor(); }
+	private void edit(String id) { selected = id; referenceProject = ""; definition = (ObjectNode) snapshot.path("tags").path(id).deepCopy(); renderEditor(); }
 	private String targetLabel(String target) { return scope == TagManager.Scope.workspaceProjects ? target : target.replaceFirst("^.*\\.sq[:~]", ""); }
 	private int memberCount() { return (int) java.util.Arrays.stream(targets.getItems()).filter(TableItem::getChecked).count(); }
 	private String memberNames() { return String.join(", ", java.util.Arrays.stream(targets.getItems()).filter(TableItem::getChecked).map(item -> (String) item.getData()).toList()); }
@@ -181,9 +183,14 @@ public final class TagManagerDialog extends TitleAreaDialog {
 		else colorButton.setBackground(null);
 	}
 	private void renderMemberships() {
-		targets.removeAll(); if (snapshot != null) for (var target : snapshot.path(scope == TagManager.Scope.workspaceProjects ? "projects" : "targets")) {
-			String name = target.asText(); var item = new TableItem(targets, SWT.NONE); item.setText(targetLabel(name)); item.setData(name);
+		JsonNode names = snapshot == null ? TagDocument.JSON.createArrayNode() : snapshot.path(scope == TagManager.Scope.workspaceProjects ? "projects" : "targets");
+		// Keep existing rows so checking a member does not reset scrolling or selection.
+		targets.setItemCount(names.size());
+		int index = 0;
+		for (var target : names) {
+			String name = target.asText(); var item = targets.getItem(index++); item.setText(targetLabel(name)); item.setData(name); item.setChecked(false);
 			for (var id : snapshot.path("assignments").path(name)) if (id.asText().equals(selected)) item.setChecked(true);
+			if (selected.isEmpty() && !referenceProject.isEmpty()) for (var member : snapshot.path("referenceTargets")) if (name.equals(member.asText())) item.setChecked(true);
 		}
 		targets.setEnabled(!selected.isEmpty() && snapshot != null && !snapshot.path("readOnly").asBoolean());
 		((Group) targets.getParent()).setText((scope == TagManager.Scope.workspaceProjects ? "Projects" : "Sequences") + " (" + memberCount() + ")");
@@ -213,6 +220,8 @@ public final class TagManagerDialog extends TitleAreaDialog {
 	}
 
 	private void renderEditor() {
+		setMessage(referenceProject.isEmpty() ? "Select a tag, then check the " + (scope == TagManager.Scope.workspaceProjects ? "projects" : "sequences") + " that belong to it."
+				: "Create a local tag for " + referenceProject + " and its direct and indirect project references. Only workspace projects are included; unavailable references are listed below. Memberships remain editable afterward and do not track future reference changes.");
 		label.setText(definition.path("label").asText()); description.setText(definition.path("description").asText()); renderColor(); update.setText(selected.isEmpty() ? "Create tag" : "Update tag"); identity.setText(selected.isEmpty() ? "" : "ID: " + selected);
 		renderMemberships(); renderOrder();
 		if (shared != null) { shared.setSelection(definition.path("shared").asBoolean()); shared.setEnabled(!selected.isEmpty() && snapshot != null && !snapshot.path("readOnly").asBoolean()); }
@@ -284,7 +293,8 @@ public final class TagManagerDialog extends TitleAreaDialog {
 					else if (schema.path("type").asText().equals("number")) values.put(path[1], Double.parseDouble(value));
 					else values.put(path[1], value); }
 			}
-			ObjectNode input = TagDocument.JSON.createObjectNode().put("id", selected); input.set("definition", next); command(selected.isEmpty() ? "create" : "update", input);
+			ObjectNode input = TagDocument.JSON.createObjectNode().put("id", selected).put("project", referenceProject); input.set("definition", next);
+			command(selected.isEmpty() ? referenceProject.isEmpty() ? "create" : "createFromReferences" : "update", input);
 		} catch (RuntimeException e) { setErrorMessage("Invalid metadata value: " + e.getMessage()); }
 	}
 }

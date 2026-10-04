@@ -69,7 +69,7 @@ class DecoratingColumnLabelProvider extends StyledCellLabelProvider implements I
 		var ranges = new java.util.ArrayList<StyleRange>();
 		if (element instanceof TagTreeObject row && row.target == null) {
 			String color = row.group.path("presentation").path("color").asText();
-			if (color.matches("#[0-9a-fA-F]{6}")) ranges.add(new StyleRange(0, 1, tagColor(cell, color), null));
+			if (color.matches("#[0-9a-fA-F]{6}")) addTagStyle(ranges, cell.getText(), "# " + row.getName(), tagColor(cell, color));
 		} else {
 			Object target = element instanceof TagTreeObject row ? row.check() : element;
 			com.fasterxml.jackson.databind.JsonNode tags = null;
@@ -80,12 +80,18 @@ class DecoratingColumnLabelProvider extends StyledCellLabelProvider implements I
 			if (tags != null) for (var tag : tags) {
 				if (element instanceof TagTreeObject row && tag.path("id").asText().equals(row.currentTagId())) continue;
 				String color = tag.path("presentation").path("color").asText();
-				int position = cell.getText().lastIndexOf("[" + tag.path("label").asText() + "]");
-				if (position >= 0 && color.matches("#[0-9a-fA-F]{6}")) ranges.add(new StyleRange(position, 1, tagColor(cell, color), null));
+				if (color.matches("#[0-9a-fA-F]{6}")) addTagStyle(ranges, cell.getText(), "[" + tag.path("label").asText() + "]", tagColor(cell, color));
 			}
 		}
 		cell.setStyleRanges(ranges.toArray(StyleRange[]::new));
 		super.update(cell);
+	}
+
+	static void addTagStyle(java.util.List<StyleRange> ranges, String text, String label, Color color) {
+		int position = text.lastIndexOf(label);
+		if (position >= 0) {
+			ranges.add(new StyleRange(position, label.length(), color, null));
+		}
 	}
 
 	private Color tagColor(ViewerCell cell, String value) {

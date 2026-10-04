@@ -57,6 +57,22 @@ public class ReferencedProjectManagerTest {
 				.map(ref -> ref.getName()).collect(Collectors.toSet()));
 	}
 
+	@Test
+	public void readsClosedLegacyXmlProjectReferencesWithoutLoadingTheProject() throws Exception {
+		var doc = com.twinsoft.convertigo.engine.util.XMLUtils.getDefaultDocumentBuilder().newDocument();
+		var root = doc.createElement("convertigo"); doc.appendChild(root);
+		var reference = new com.twinsoft.convertigo.beans.references.ProjectSchemaReference();
+		reference.setName("Library"); reference.setProjectName("lib_First=https://github.com/example/first.git");
+		root.appendChild(reference.toXml(doc));
+		var schema = new com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference(); schema.setName("Schema");
+		root.appendChild(schema.toXml(doc));
+		var file = folder.newFile("Demo.xml");
+		com.twinsoft.convertigo.engine.util.XMLUtils.saveXml(doc, file);
+		var refs = ReferencedProjectManager.references(file);
+		assertEquals(Set.of("lib_First"), refs.stream().map(ref -> ref.getParser().getProjectName()).collect(Collectors.toSet()));
+		assertEquals("Library", refs.iterator().next().getName());
+	}
+
 	private File yaml(String content) throws Exception {
 		var file = folder.newFile("c8oProject.yaml");
 		Files.writeString(file.toPath(), "↑convertigo: 8.0.0.m006\n↓Demo [core.Project]: \n" + content);

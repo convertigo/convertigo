@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class ReferencedProjectManager {
@@ -273,6 +274,17 @@ public class ReferencedProjectManager {
 	}
 
 	public static Set<ProjectSchemaReference> references(File file) throws Exception {
+		if (file.getName().endsWith(".xml")) {
+			var doc = XMLUtils.parseDOM(file);
+			var refs = new HashSet<ProjectSchemaReference>();
+			var nodes = doc.getElementsByTagName("reference");
+			for (int i = 0; i < nodes.getLength(); i++) {
+				var node = (Element) nodes.item(i);
+				if (node.getAttribute("classname").equals(ProjectSchemaReference.class.getName()))
+					refs.add((ProjectSchemaReference) DatabaseObject.read(node));
+			}
+			return refs;
+		}
 		if (!file.getName().endsWith(".yaml")) {
 			return Collections.emptySet();
 		}

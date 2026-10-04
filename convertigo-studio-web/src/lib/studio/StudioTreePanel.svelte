@@ -537,14 +537,24 @@
 			);
 		});
 	}
-	/** @param {any} node */
-	function manageTags(node) {
+	/** @param {any} node @param {boolean} fromReferences */
+	function manageTags(node, fromReferences = false) {
 		if (!canManageTags(node)) return;
 		const scope = node.tagScope ?? node.scope;
 		const project =
 			scope === 'workspaceProjects' ? '' : (node.project ?? node.id.split(/[.:/]/)[0]);
 		const targets = node.tagGroup ? [] : treeSelectionOf(node.id);
-		void tagsDialog.open(scope, project, targets, node.tagGroup ? node.tagId : '');
+		if (fromReferences && (scope !== 'workspaceProjects' || targets.length !== 1)) {
+			toaster.error({ description: 'Select one project to create a tag from its references.' });
+			return;
+		}
+		void tagsDialog.open(
+			scope,
+			project,
+			targets,
+			node.tagGroup ? node.tagId : '',
+			fromReferences ? targets[0] : ''
+		);
 	}
 	/** @param {any} group @param {any} payload @param {boolean} transfer */
 	async function tagDrop(group, payload, transfer) {

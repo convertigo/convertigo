@@ -4,6 +4,7 @@ package com.twinsoft.convertigo.engine.tags;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,8 +25,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ReferencedProjectManager;
 
 /** Shared editing domain. Project changes are drafts until the common project export succeeds. */
 public final class TagManager {
@@ -40,7 +43,12 @@ public final class TagManager {
 			instance = new TagManager(Path.of(Engine.isStudioMode() ? Engine.PROJECTS_PATH : Engine.USER_WORKSPACE_PATH),
 					name -> Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name),
 					project -> project.getDirFile().toPath().resolve("_c8oProject/tags.json"),
-					() -> Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false));
+					() -> Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false), name -> {
+						Project project = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name);
+						if (project != null) return referenceNames(project.getReferenceList());
+						try { return referenceNames(ReferencedProjectManager.references(Engine.projectFile(name))); }
+						catch (Exception e) { throw new IOException("Unable to read project references: " + name, e); }
+					});
 		}
 		return instance;
 	}
@@ -84,6 +92,8 @@ public final class TagManager {
 	private final Function<String, Project> loaded;
 	private final Function<Project, Path> projectSource;
 	private final Supplier<? extends Collection<String>> projectNames;
+	@FunctionalInterface public interface ProjectReferences { Collection<String> names(String project) throws IOException; }
+	private final ProjectReferences references;
 	private final WeakHashMap<Project, State> projects = new WeakHashMap<>();
 	private final Map<String, Map<String, ObjectNode>> portable = new TreeMap<>();
 	private State workspace;
@@ -96,8 +106,69 @@ public final class TagManager {
 	/** Injection points keep the domain independently testable, with no Studio or runtime startup. */
 	public TagManager(Path workspace, Function<String, Project> loaded, Function<Project, Path> projectSource,
 			Supplier<? extends Collection<String>> projectNames) {
+		this(workspace, loaded, projectSource, projectNames, name -> {
+			Project project = loaded.apply(name);
+			if (project == null) throw new IOException("Project must be open to read its references: " + name);
+			return referenceNames(project.getReferenceList());
+		});
+	}
+	public TagManager(Path workspace, Function<String, Project> loaded, Function<Project, Path> projectSource,
+			Supplier<? extends Collection<String>> projectNames, ProjectReferences references) {
 		this.workspacePath = workspace.resolve("studio/tags.json");
-		this.loaded = loaded; this.projectSource = projectSource; this.projectNames = projectNames;
+		this.loaded = loaded; this.projectSource = projectSource; this.projectNames = projectNames; this.references = references;
+	}
+	private static Collection<String> referenceNames(Collection<? extends com.twinsoft.convertigo.beans.core.Reference> references) {
+		var names = new TreeSet<String>();
+		for (var reference : references) if (reference instanceof ProjectSchemaReference project) {
+			String name = project.getParser().getProjectName();
+			if (!name.isBlank()) names.add(name);
+		}
+		return names;
+	}
+
+	/** A one-time membership seed, not a dynamic dependency group. Never imports or opens a project. */
+	public List<String> projectReferenceTargets(String project) throws IOException {
+		return projectReferenceSelection(project).targets();
+	}
+	private record ReferenceSelection(List<String> targets, List<String> warnings) {
+		ObjectNode describe(ObjectNode result) {
+			result.set("referenceTargets", TagDocument.JSON.valueToTree(targets));
+			for (String warning : warnings) result.withArray("diagnostics").add(warning);
+			return result;
+		}
+	}
+	private ReferenceSelection projectReferenceSelection(String project) throws IOException {
+		TagDocument.validateTarget(project);
+		Set<String> known = Set.copyOf(projectNames.get());
+		if (!known.contains(project)) throw new IOException("Project is not in this workspace: " + project);
+		var members = new LinkedHashSet<String>();
+		var warnings = new TreeSet<String>();
+		var pending = new ArrayDeque<String>(); pending.add(project);
+		while (!pending.isEmpty()) {
+			String name = pending.removeFirst();
+			if (members.contains(name)) continue;
+			TagDocument.validateTarget(name);
+			if (members.size() >= 1000) throw new IOException("Expected at most 1000 referenced projects");
+			members.add(name);
+			Collection<String> names;
+			try { names = references.names(name); }
+			catch (IOException e) { throw new IOException("Unable to read references of " + name + ": " + e.getMessage(), e); }
+			for (String target : new TreeSet<>(names)) {
+				TagDocument.validateTarget(target);
+				if (known.contains(target)) pending.add(target);
+				else warnings.add(name + " references " + target + ", which is not in this workspace and will not be included.");
+			}
+		}
+		return new ReferenceSelection(List.copyOf(members), List.copyOf(warnings));
+	}
+
+	public ObjectNode read(Scope scope, String project, String referenceProject) throws IOException {
+		ObjectNode result = read(scope, project);
+		if (referenceProject != null && !referenceProject.isEmpty()) {
+			if (scope != Scope.workspaceProjects) throw new IOException("Project references belong to workspace project tags");
+			projectReferenceSelection(referenceProject).describe(result);
+		}
+		return result;
 	}
 
 	public TagContributions contributions() { return contributions; }
@@ -352,11 +423,19 @@ public final class TagManager {
 	/** One revision-checked domain command, with validated targets and complete impact information. */
 	public ObjectNode mutate(Scope scope, String projectName, String revision, String action, ObjectNode input) throws IOException {
 		ObjectNode available = contributionDescriptors(scope, projectName);
-		return mutate(scope, projectName, revision, action, input, available);
+		ReferenceSelection selection = null;
+		if (action.equals("createFromReferences")) {
+			if (scope != Scope.workspaceProjects) throw new IOException("Project references belong to workspace project tags");
+			if (!input.path("project").isTextual()) throw new IOException("Expected a project name");
+			// File/model reads stay outside the tag-domain monitor, just like descriptor providers.
+			selection = projectReferenceSelection(input.path("project").asText());
+		}
+		ObjectNode result = mutate(scope, projectName, revision, action, input, available, selection == null ? List.of() : selection.targets());
+		return selection == null ? result : selection.describe(result);
 	}
 
 	private synchronized ObjectNode mutate(Scope scope, String projectName, String revision, String action, ObjectNode input,
-			ObjectNode available) throws IOException {
+			ObjectNode available, List<String> referenceTargets) throws IOException {
 		reconcile();
 		Project project = scope == Scope.projectObjects ? requireProject(projectName) : null;
 		State state = project == null ? workspace() : state(project);
@@ -367,10 +446,10 @@ public final class TagManager {
 		Map<Project, TagDocument> publications = new LinkedHashMap<>();
 		Map<String, DatabaseObject> newBindings = new HashMap<>();
 		switch (action) {
-			case "create", "update" -> {
+			case "create", "createFromReferences", "update" -> {
 				ObjectNode definition = input.path("definition") instanceof ObjectNode d ? d.deepCopy() : null;
 				if (definition == null) throw new IOException("Missing tag definition");
-				if (action.equals("create")) { id = UUID.randomUUID().toString(); if (project == null) definition.put("shared", false); }
+				if (!action.equals("update")) { id = UUID.randomUUID().toString(); if (project == null) definition.put("shared", false); }
 				else { TagDocument.validateId(id); if (!next.tags.containsKey(id)) throw new IOException("Unknown tag"); }
 				ObjectNode previous = next.tags.get(id);
 				// Shared is changed only by the publication command, after preflighting every member.
@@ -378,6 +457,12 @@ public final class TagManager {
 				TagDocument.validateDefinition(definition, project == null);
 				contributions.validateEdit(metadata(previous), metadata(definition), available);
 				next.tags.put(id, definition);
+				Set<String> knownProjects = referenceTargets.isEmpty() ? Set.of() : Set.copyOf(projectNames.get());
+				for (String target : referenceTargets) {
+					if (!knownProjects.contains(target)) throw new IOException("Unknown project: " + target);
+					next.assignments.computeIfAbsent(target, ignored -> new LinkedHashSet<>()).add(id);
+					affected.add(target);
+				}
 				final String updatedId = id;
 				next.assignments.forEach((target, ids) -> { if (ids.contains(updatedId)) affected.add(target); });
 			}

@@ -77,9 +77,9 @@
 >
 	<Dialog.Trigger class="hidden" />
 	<Portal>
-		<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-50-950/60 backdrop-blur-sm" />
+		<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-950/60 backdrop-blur-sm" />
 		<Dialog.Positioner class="fixed inset-0 z-50 layout-x-none justify-center p-low">
-			<Dialog.Content class={`relative max-h-full overflow-auto ${cls}`}>
+			<Dialog.Content class={`relative max-h-full overflow-auto modal-panel ${cls}`}>
 				{#if params}
 					{@render children?.({ setResult, close, params })}
 				{/if}
