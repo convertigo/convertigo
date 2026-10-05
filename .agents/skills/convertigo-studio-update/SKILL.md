@@ -9,7 +9,7 @@ description: Run the Convertigo Studio dependency update routine in a hotfix or 
 
 Use this skill for the project's Convertigo Studio dependency update flow. All command examples run from the target checkout's root:
 
-- hotfix: branch `hotfix`, currently ticket `#1216` for Convertigo `8.4.6`.
+- hotfix: branch `hotfix`, currently ticket `#1170` for Convertigo `8.4.6`.
 - develop: branch `develop`, currently ticket `#1039` for Convertigo `8.5.0`.
 
 Prefer the local repository's actual branch, remotes, package scripts, and `build.gradle` contents over assumptions. Read applicable `AGENTS.md` files before editing.
@@ -57,7 +57,7 @@ The helper does not select or apply dependency versions. Its develop plan includ
 - Run `npm audit fix` without `--force` after the Studio web npm update. Never run `npm audit fix --force` unless the maintainer explicitly approves the breaking changes or downgrades it proposes.
 - Do not commit, merge, or push unless the user explicitly asks for that step.
 - After commands that can write files, inspect `git status` and `git diff` before continuing.
-- Keep ticket references in commits: hotfix `8.4.6` uses `#1216`, develop `8.5.0` uses `#1039`. Verify the maintenance ticket again when the Convertigo version changes.
+- Keep ticket references in commits: hotfix `8.4.6` uses `#1170`, develop `8.5.0` uses `#1039`. Verify the maintenance ticket again when the Convertigo version changes. Former ticket `#1216` is a closed duplicate of `#1170`; keep existing commit references intact, but use `#1170` for new updates.
 
 ## Lane Matrix
 
@@ -69,7 +69,7 @@ Hotfix:
 - npm update: in `convertigo-studio-web`, run `npm run deps:minor-update`.
 - Gradle generation: after applying the selected Gradle dependency/version edits, run `./gradlew generateEclipseConfigurationWithManifest --console=plain` before npm work.
 - Validation: after npm work, run npm `format`, `lint`, `check:admin`, `build`; rerun Gradle checks such as `dependencyUpdatesPatch` and `:engine:war` when publishing.
-- Commit message pattern: `ref #1216 - Update Studio dependencies`.
+- Commit message pattern: `ref #1170 - Update Studio dependencies`.
 - Push target when requested: verify remotes first, then push hotfix to both configured `origin` and `upstream` if that matches the current repository setup.
 
 Develop:

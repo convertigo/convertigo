@@ -16,7 +16,7 @@ LANES = {
     "hotfix": {
         "branch": "hotfix",
         "maintenance_version": "8.4.6",
-        "ticket": "#1216",
+        "ticket": "#1170",
         "gradle_task": "dependencyUpdatesPatch",
         "npm_update": "deps:minor-update",
     },
