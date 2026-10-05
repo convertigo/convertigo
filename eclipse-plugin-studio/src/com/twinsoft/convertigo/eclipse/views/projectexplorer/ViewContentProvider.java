@@ -216,6 +216,9 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 						job.setUser(true);
 						job.schedule();
 					}
+					else if (ProjectLoadingJob.deferReload(projectName)) {
+						Engine.logStudio.info("[reloadProject] Project '" + projectName + "' is still loading in the Projects view: reloaded once loaded");
+					}
 					else {
 						UnloadedProjectTreeObject treeObject = projectExplorerView.unloadProjectTreeObject((ProjectTreeObject) projectTreeObject);
 						if (treeObject != null) {

@@ -22,8 +22,10 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 import org.eclipse.core.resources.IFolder;
@@ -55,6 +57,8 @@ import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
 class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 	private static final Semaphore semaphore = new Semaphore(Runtime.getRuntime().availableProcessors());
+	/** The jobs building the tree of a project already attached to the Projects view, by project name. */
+	private static final Map<String, ProjectLoadingJob> building = new ConcurrentHashMap<>();
 	private String projectName;
 	private DatabaseObjectTreeObject projectTreeObject;
 	private ConnectorTreeObject defaultConnectorTreeObject;
@@ -65,6 +69,23 @@ class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 	private boolean isCopy;
 	private boolean select;
 	private String originalName;
+	private volatile boolean reloadRequested = false;
+
+	/**
+	 * Reloading a project whose tree is still built would detach it from the Projects view while the job keeps
+	 * adding objects to it: they would stay registered as listeners, with the unloaded version of the project.
+	 * Such a reload is done once the tree is built.
+	 *
+	 * @return true if the reload is deferred
+	 */
+	static boolean deferReload(String projectName) {
+		var job = building.get(projectName);
+		if (job == null) {
+			return false;
+		}
+		job.reloadRequested = true;
+		return true;
+	}
 
 	ProjectLoadingJob(Viewer viewer, UnloadedProjectTreeObject unloadedProjectTreeObject, boolean select) {
 		this(viewer, unloadedProjectTreeObject, select, false, null);
@@ -176,6 +197,7 @@ class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 					defaultConnectorTreeObject = null;
 					demoTraceTreeObject = null;
 
+					building.put(projectName, this);
 					invisibleRoot.removeChild(unloadedProjectTreeObject);
 					invisibleRoot.addChild(projectTreeObject);
 					ConvertigoPlugin.projectManager.setCurrentProject((ProjectTreeObject)projectTreeObject);
@@ -203,6 +225,7 @@ class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 					return status;
 				}
 				finally {
+					building.remove(projectName, this);
 					// Updating the tree viewer
 					Display.getDefault().asyncExec(new Runnable() {
 						public void run() {
@@ -234,6 +257,10 @@ class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 									}
 								});
 
+								if (reloadRequested) {
+									Engine.logStudio.info("(ProjectLoadingJob) Reloading project '" + projectName + "' as requested while it was loading");
+									ConvertigoPlugin.projectManager.getProjectExplorerView().reloadProject(projectTreeObject);
+								}
 							}
 						}
 					});
