@@ -41,6 +41,19 @@ public class TagContributionsTest {
 		assertThrows(IOException.class, () -> contributions.validateEdit(previous,
 				TagDocument.parseObject("{\"extension\":{\"resources\":[\"retired\",\"another missing\"]}}")));
 	}
+	@Test public void aFailingExtensionIsAbsentWithoutBreakingTheOthers() throws Exception {
+		var contributions = new TagContributions();
+		contributions.register("broken", context -> { throw new IOException("Engine without tag metadata"); });
+		contributions.register("invalid", context -> TagDocument.parseObject("{\"label\":\"No fields\"}"));
+		contributions.register("extension", context -> TagDocument.parseObject(DESCRIPTOR));
+		var available = contributions.descriptors(new TagContributions.Context(TagManager.Scope.projectObjects, new Project()));
+		assertTrue(available.has("extension"));
+		assertFalse(available.has("broken") || available.has("invalid"));
+		// The metadata of the absent extension stays preserved and read-only; the others stay editable.
+		var previous = TagDocument.parseObject("{\"broken\":{\"configs\":[\"B1\"]}}");
+		contributions.validateEdit(previous, TagDocument.parseObject("{\"broken\":{\"configs\":[\"B1\"]},\"extension\":{\"resources\":[\"B2\"]}}"), available);
+		assertThrows(IOException.class, () -> contributions.validateEdit(previous, TagDocument.parseObject("{\"broken\":{\"configs\":[]}}"), available));
+	}
 	@Test public void unavailableNamespacesCannotLoseTheirMetadata() throws Exception {
 		var contributions = new TagContributions();
 		var previous = TagDocument.parseObject("{\"extension\":{\"resources\":[\"B1\"]}}");

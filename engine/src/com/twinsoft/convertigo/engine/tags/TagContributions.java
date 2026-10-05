@@ -83,10 +83,29 @@ public final class TagContributions {
 		Map<String, Provider> available;
 		synchronized (this) { result = descriptors(); available = new TreeMap<>(providers); }
 		for (var entry : available.entrySet()) {
-			ObjectNode descriptor = entry.getValue().describe(context);
-			if (descriptor != null) { validateDescriptor(descriptor); result.set(entry.getKey(), descriptor.deepCopy()); }
+			ObjectNode descriptor;
+			try {
+				descriptor = entry.getValue().describe(context);
+				if (descriptor != null) validateDescriptor(descriptor);
+			} catch (IOException | RuntimeException e) {
+				// A failing extension is absent: its metadata stays preserved and read-only, every other tag stays editable.
+				unavailable(entry.getKey(), context, e);
+				continue;
+			}
+			if (descriptor != null) result.set(entry.getKey(), descriptor.deepCopy());
 		}
 		return result;
+	}
+
+	private final Map<String, String> warnings = new java.util.concurrent.ConcurrentHashMap<>();
+
+	private void unavailable(String namespace, Context context, Exception e) {
+		String where = namespace + (context.project() == null ? "" : "@" + context.project().getName());
+		String reason = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+		if (reason.equals(warnings.put(where, reason))) return;
+		if (com.twinsoft.convertigo.engine.Engine.logEngine != null) com.twinsoft.convertigo.engine.Engine.logEngine.warn("[Tags] The \""
+				+ namespace + "\" tag metadata of " + (context.project() == null ? "the workspace" : context.project().getName())
+				+ " is read-only, its extension cannot describe it: " + reason);
 	}
 
 	/** Unknown namespaces are preserved, but an absent extension cannot edit them. */
