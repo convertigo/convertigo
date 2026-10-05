@@ -237,14 +237,30 @@ public class TagManagerTest {
 		assertNull(failure.get());
 	}
 
+	@Test public void aJustSavedTagSourceIsCheckedByContentWithoutTheDomainMonitor() throws Exception {
+		String id = create(Scope.projectObjects, "Fresh"); assign(Scope.projectObjects, id, first.getFullQName()); save(project);
+		var holding = new java.util.concurrent.CountDownLatch(1); var release = new java.util.concurrent.CountDownLatch(1);
+		var holder = new Thread(() -> { synchronized (manager) { holding.countDown(); try { release.await(); } catch (InterruptedException e) { } } });
+		holder.start();
+		var executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+		try {
+			assertTrue(holding.await(10, java.util.concurrent.TimeUnit.SECONDS));
+			var context = executor.submit(() -> manager.runContext(project)).get(5, java.util.concurrent.TimeUnit.SECONDS);
+			assertEquals(List.of(id), ids(TagDocument.parseObject(context), first.getFullQName()));
+		} finally { release.countDown(); holder.join(10000); executor.shutdownNow(); }
+	}
+
 	@Test public void theFlowRunContextFollowsEditsExternalSourcesAndRenames() throws Exception {
 		String a = create(Scope.projectObjects, "A"), b = create(Scope.projectObjects, "B");
 		assign(Scope.projectObjects, a, first.getFullQName()); assign(Scope.projectObjects, b, first.getFullQName());
 		assertEquals(List.of(a, b), ids(manager.context(project), first.getFullQName()));
 		save(project);
+		var saved = Files.getLastModifiedTime(source(project));
 		TagDocument external = TagDocument.read(source(project), false);
 		external.assignments.put(first.getFullQName(), new java.util.LinkedHashSet<>(List.of(b, a)));
-		Files.write(source(project), external.bytes());
+		// Same size and same date as the saved file (a rewrite within the timestamp granularity): only its content differs.
+		assertEquals(Files.size(source(project)), external.bytes().length);
+		Files.write(source(project), external.bytes()); Files.setLastModifiedTime(source(project), saved);
 		assertEquals(List.of(b, a), ids(manager.context(project), first.getFullQName()));
 		// Renamed without this manager's hook: the context notices the member moved and reconciles by itself.
 		first.setName("Renamed");

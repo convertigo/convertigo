@@ -58,26 +58,40 @@ public final class TagManager {
 		}
 	}
 
-	/** Size and date of a tag source: a cheap hint that the file changed; its content fingerprint stays the authority. */
-	private record FileStamp(long modified, long size) {
+	/**
+	 * Size and date of a tag source: a cheap hint that the file changed; its content fingerprint stays the authority.
+	 * Taken within RACY_MILLIS of the last modification, a stamp is racy: a later write of the same size can keep the
+	 * same date (timestamp granularity), so the content is checked until a later stamp confirms it, as git does.
+	 */
+	private record FileStamp(long modified, long size, boolean racy) {
+		static final FileStamp NONE = new FileStamp(-1, -1, false);
+		// Above the granularity of common file systems (1 s for HFS+, 2 s for FAT).
+		static final long RACY_MILLIS = 3000;
 		static FileStamp of(Path path) {
 			try {
 				var attributes = Files.readAttributes(path, java.nio.file.attribute.BasicFileAttributes.class);
-				return new FileStamp(attributes.lastModifiedTime().toMillis(), attributes.size());
-			} catch (IOException e) { return new FileStamp(-1, -1); }
+				long modified = attributes.lastModifiedTime().toMillis();
+				return new FileStamp(modified, attributes.size(), System.currentTimeMillis() - modified < RACY_MILLIS);
+			} catch (IOException e) { return NONE; }
 		}
+		boolean sameFile(FileStamp other) { return modified == other.modified && size == other.size; }
 	}
 
 	/** Immutable tag context of a project for Flow requests, current while nothing it was built from has changed. */
-	private record RunContext(Project project, State state, long generation, Path path, FileStamp stamp,
+	private record RunContext(Project project, State state, long generation, Path path, FileStamp stamp, String fingerprint,
 			int boundTargets, List<Observation> observed, String json) {
-		boolean current(Project original) {
-			if (project != original || generation != state.generation || boundTargets != state.bindings.size()
-					|| !stamp.equals(FileStamp.of(path))) return false;
+		/** This context when still current, the same with a confirmed stamp, or null when it must be rebuilt. */
+		RunContext current(Project original) {
+			if (project != original || generation != state.generation || boundTargets != state.bindings.size()) return null;
 			// A member moved or renamed since this context needs the reconciliation done under the domain monitor.
 			for (var observation : observed) if (observation.dbo().getProject() != observation.project()
-					|| !observation.qname().equals(observation.dbo().getFullQName())) return false;
-			return true;
+					|| !observation.qname().equals(observation.dbo().getFullQName())) return null;
+			FileStamp now = FileStamp.of(path);
+			if (!stamp.sameFile(now)) return null;
+			if (!stamp.racy()) return this;
+			// Stamped before reading: a write after this read changes the date, unless it is racy too.
+			try { if (!TagDocument.fingerprint(path).equals(fingerprint)) return null; } catch (IOException e) { return null; }
+			return now.racy() ? this : new RunContext(project, state, generation, path, now, fingerprint, boundTargets, observed, json);
 		}
 	}
 	private record Observation(DatabaseObject dbo, Project project, String qname) { }
@@ -90,7 +104,7 @@ public final class TagManager {
 		// Read by Flow requests without the monitor; every change of the working state increments it.
 		volatile long generation;
 		long labelGeneration = -1, labelPortableVersion = -1;
-		FileStamp stamp = new FileStamp(-1, -1);
+		FileStamp stamp = FileStamp.NONE;
 		ObjectNode lastValidContext;
 		String warned, conflict;
 		// A pending remap of moved members that cannot be applied: this project only is read-only until it is resolved.
@@ -223,8 +237,11 @@ public final class TagManager {
 	 */
 	public String runContext(Project project) {
 		Project original = (Project) project.getOriginal();
-		RunContext cached = runContexts.get(original.getName());
-		if (cached != null && cached.current(original)) return cached.json();
+		RunContext cached = runContexts.get(original.getName()), current = cached == null ? null : cached.current(original);
+		if (current != null) {
+			if (current != cached) runContexts.replace(original.getName(), cached, current);
+			return current.json();
+		}
 		synchronized (this) {
 			reconcileAll();
 			State state = state(original);
@@ -237,8 +254,10 @@ public final class TagManager {
 			}
 			if (generation == state.generation) state.stamp = stamp;
 			cached = runContexts.get(original.getName());
-			if (cached == null || !cached.current(original)) cached = refreshRunContext(original, state);
-			return cached.json();
+			current = cached == null ? null : cached.current(original);
+			if (current == null) current = refreshRunContext(original, state);
+			else if (current != cached) runContexts.replace(original.getName(), cached, current);
+			return current.json();
 		}
 	}
 
@@ -267,7 +286,7 @@ public final class TagManager {
 		}
 		var observed = new ArrayList<Observation>();
 		state.bindings.values().forEach(dbo -> { if (dbo != null) observed.add(new Observation(dbo, dbo.getProject(), dbo.getFullQName())); });
-		var run = new RunContext(project, state, state.generation, state.path, state.stamp, state.bindings.size(),
+		var run = new RunContext(project, state, state.generation, state.path, state.stamp, state.fingerprint, state.bindings.size(),
 				List.copyOf(observed), context.toString());
 		runContexts.values().removeIf(previous -> previous.project() == project);
 		runContexts.put(project.getName(), run);
@@ -836,8 +855,8 @@ public final class TagManager {
 			writer.write();
 			if (bytes != null) {
 				TagDocument.write(source, bytes, state.fingerprint);
-				state.path = source; state.fingerprint = TagDocument.fingerprint(source); state.base = state.work.copy();
-				state.stamp = FileStamp.of(source); state.generation++;
+				state.path = source; state.stamp = FileStamp.of(source); state.fingerprint = TagDocument.fingerprint(source);
+				state.base = state.work.copy(); state.generation++;
 				refreshRunContext(project, state);
 			}
 			cachePortable(project.getName(), state.base.projectTags);
