@@ -118,7 +118,7 @@ public class BuilderUtils {
 			if (dbo != null && dbo instanceof MobileComponent) {
 				MobileComponent mc = (MobileComponent) dbo;
 				resetMainScriptComponents(dbo, reset);
-				mc.getApplication().updateSourceFiles();
+				updateSourceFiles(mc.getApplication());
 
 				if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent) dbo;
@@ -134,7 +134,7 @@ public class BuilderUtils {
 									ApplicationComponent app = (ApplicationComponent) p.getMobileApplication()
 											.getApplicationComponent();
 									resetMainScriptComponents(app, reset);
-									app.updateSourceFiles();
+									updateSourceFiles(app);
 								}
 							}
 						}
@@ -143,6 +143,15 @@ public class BuilderUtils {
 			}
 		} catch (Exception e) {
 			Engine.logEngine.error("Unabled to update application sources", e);
+		}
+	}
+
+	/** An application that fails to update its sources does not prevent the other ones from updating theirs. */
+	private static void updateSourceFiles(ApplicationComponent app) {
+		try {
+			app.updateSourceFiles();
+		} catch (Exception e) {
+			Engine.logEngine.error("Unable to update the application sources of the project " + app.getProject().getName(), e);
 		}
 	}
 

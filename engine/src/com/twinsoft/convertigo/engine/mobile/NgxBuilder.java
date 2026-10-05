@@ -355,9 +355,15 @@ public class NgxBuilder extends MobileBuilder {
 
 	public void appChanged() throws EngineException {
 		// a released builder belongs to an unloaded version of the project: its sources would replace those of
-		// the loaded version. A builder never initialized, as the one of an engine without Studio, still writes.
+		// the loaded version
 		if (released) {
 			Engine.logEngine.debug("("+ builderType +") Ignored 'appChanged' of the released builder of ionic project '"+ project.getName() +"'");
+			return;
+		}
+		// a builder never initialized, as the one of an engine without Studio before the application is built,
+		// does not know its template yet: it cannot write the sources, its initialization writes them all
+		if (ionicTplDir == null) {
+			Engine.logEngine.debug("("+ builderType +") Ignored 'appChanged' of the builder never initialized of ionic project '"+ project.getName() +"'");
 			return;
 		}
 		updateSourceFiles();
