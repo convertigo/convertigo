@@ -5,14 +5,41 @@
 #### Improvements:
 
 - [#1165](https://github.com/convertigo/convertigo/issues/1165) [Studio] Object searches can now combine filters for broken sources, inactive objects, symbol usage and undefined symbols; PDF steps also flag broken sources in the project tree
-- [#1167](https://github.com/convertigo/convertigo/issues/1167) [Engine] Server startup no longer waits on unreachable external hosts
-- [#1169](https://github.com/convertigo/convertigo/issues/1169) [Engine] Placeholder jars now report where the official jar must be installed, with `lib/README.md` and `libs/README.md` in the workspace; the Docker image finds native libraries dropped in `/workspace/lib`
+- [#1169](https://github.com/convertigo/convertigo/issues/1169) [Engine] Missing JDBC and SAP JCo libraries now report where to install the official jars, and Docker deployments recognize native libraries placed in `/workspace/lib`
+- [#1177](https://github.com/convertigo/convertigo/issues/1177) [Engine] REST operations with Terminate session enabled now use independent request-only sessions without a session cookie, preventing concurrent calls from blocking or interrupting each other and avoiding Redis session-store waits
+- [#1179](https://github.com/convertigo/convertigo/issues/1179) [Engine] URL imports no longer load the same project twice, and cyclic project references no longer cause unnecessary Git clones
+- [#1180](https://github.com/convertigo/convertigo/issues/1180) [Studio] Large NGX projects now use less memory
+- [#1194](https://github.com/convertigo/convertigo/issues/1194) [Studio] Changing properties, renaming objects and opening class or custom action editors are now faster in large NGX applications
+- [#1197](https://github.com/convertigo/convertigo/issues/1197) [Engine] Large NGX projects now load, reload, save and generate their sources faster, including projects with many shared components
+- [#1198](https://github.com/convertigo/convertigo/issues/1198) [Studio] Project refreshes now exclude symbolic links to folders from Eclipse resources, avoiding slowdowns caused by large linked directories
+- [#1213](https://github.com/convertigo/convertigo/issues/1213) [Engine] CAR archive deployments now perform fewer filesystem operations, improving deployment times on high-latency storage
 - [#1214](https://github.com/convertigo/convertigo/issues/1214) [Engine] The connector connection string override is now reserved to calls made inside the engine
-- [#1215](https://github.com/convertigo/convertigo/issues/1215) [Engine] FullSync connectors can allow bidirectional client replication, allow pull only, or keep their database for server-side use only with the new Replication Access property; the most restrictive settings apply to a shared database, and clients can only update the documents they can read
+- [#1215](https://github.com/convertigo/convertigo/issues/1215) [FullSync] FullSync connectors can allow bidirectional client replication, allow pull only, or keep their database for server-side use only with the new Replication Access property; the most restrictive settings apply to a shared database, and clients can only update the documents they can read
 
 #### Bug Fixes:
 
-- [#1168](https://github.com/convertigo/convertigo/issues/1168) [Engine] Fixed, the SAP JCo placeholder jar was packaged twice in the web application, it could shadow the official `sapjco3.jar` once installed
+- [#1167](https://github.com/convertigo/convertigo/issues/1167) [Engine] Fixed, optional public-IP discovery no longer blocks server startup when its external service is unreachable
+- [#1168](https://github.com/convertigo/convertigo/issues/1168) [Engine] Fixed, the SAP JCo placeholder jar no longer shadows an installed official `sapjco3.jar`
+- [#1181](https://github.com/convertigo/convertigo/issues/1181) [Studio] Fixed, closing an NGX application editor no longer stops the development server of a same-named project in another Studio
+- [#1182](https://github.com/convertigo/convertigo/issues/1182) [Studio] Fixed, reloading or deleting projects now releases their previous versions, preventing memory accumulation during repeated reloads
+- [#1185](https://github.com/convertigo/convertigo/issues/1185) [FullSync] Fixed, PostFind transactions with varying query parameters no longer accumulate compiled scripts in memory
+- [#1186](https://github.com/convertigo/convertigo/issues/1186) [Engine] Fixed, `use()` now returns results from the current project version after a reload or redeployment
+- [#1187](https://github.com/convertigo/convertigo/issues/1187) [Engine] Fixed, SQL connection pools now use current connector settings after reload or deployment and close when the project is deleted
+- [#1188](https://github.com/convertigo/convertigo/issues/1188) [Studio] Fixed, shared actions and components now use the current library version when regenerated after a library reload
+- [#1190](https://github.com/convertigo/convertigo/issues/1190) [Engine] Fixed, project schemas are now refreshed after a Studio project reload
+- [#1191](https://github.com/convertigo/convertigo/issues/1191) [Studio] Fixed, creating a shared component from page objects now updates the generated page to use that component
+- [#1196](https://github.com/convertigo/convertigo/issues/1196) [Studio] Fixed, switching or closing large NGX TypeScript editors no longer freezes the Studio or retains closed documents; the Angular language server is now disabled by default for TypeScript and can be re-enabled in Preferences
+- [#1199](https://github.com/convertigo/convertigo/issues/1199) [Studio] Fixed, Git decorations in the projects tree no longer blink while projects load
+- [#1200](https://github.com/convertigo/convertigo/issues/1200) [FullSync] Fixed, document access restrictions now also apply to attachments and multipart document responses
+- [#1203](https://github.com/convertigo/convertigo/issues/1203) [Studio] Fixed, NGX application previews no longer show an empty page when accessed through the engine development gateway
+- [#1204](https://github.com/convertigo/convertigo/issues/1204) [Studio] Fixed, the initial NGX source generation now preserves pages and components edited before the builder initializes
+- [#1205](https://github.com/convertigo/convertigo/issues/1205) [Studio] Fixed, concurrent property reads no longer lose property names or categories
+- [#1206](https://github.com/convertigo/convertigo/issues/1206) [FullSync] Fixed, CouchDB design documents created or renamed outside Eclipse now sync to their database, and connector changes to the server or credentials take effect in existing sessions
+- [#1207](https://github.com/convertigo/convertigo/issues/1207) [Studio] Fixed, Ionic 3 applications can now be converted to NGX with their shared component variables and custom action imports preserved
+- [#1208](https://github.com/convertigo/convertigo/issues/1208) [Engine] Fixed, projects imported by archive or repository URL now keep their internal project name unless a valid explicit rename is requested
+- [#1210](https://github.com/convertigo/convertigo/issues/1210) [Engine] Fixed, an unreadable XSD reference without a namespace no longer causes project schema generation to fail
+- [#1212](https://github.com/convertigo/convertigo/issues/1212) [Engine] Fixed, logs now retain the correct project and request attribution across asynchronous and nested calls
+- [#1219](https://github.com/convertigo/convertigo/issues/1219) [Engine] Fixed, after overlapping reloads of an NGX project in the Studio, editing it no longer writes its generated sources again from the previous version
 
 ## 8.4.5
 

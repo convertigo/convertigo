@@ -354,6 +354,12 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	public void appChanged() throws EngineException {
+		// a released builder belongs to an unloaded version of the project: its sources would replace those of
+		// the loaded version. A builder never initialized, as the one of an engine without Studio, still writes.
+		if (released) {
+			Engine.logEngine.debug("("+ builderType +") Ignored 'appChanged' of the released builder of ionic project '"+ project.getName() +"'");
+			return;
+		}
 		updateSourceFiles();
 	}
 	
@@ -416,6 +422,7 @@ public class NgxBuilder extends MobileBuilder {
 			Engine.logEngine.warn("("+ builderType +") Builder already initialized for ionic project "+ projectID +". Skipping");
 			return;
 		}
+		released = false;
 
 		ApplicationComponent application = (ApplicationComponent) project.getMobileApplication().getApplicationComponent();
 		String tplName = application.getTplProjectName();
@@ -736,6 +743,7 @@ public class NgxBuilder extends MobileBuilder {
 			Engine.logEngine.warn("("+ builderType +") Builder already released for ionic project "+ projectID +". Skipping");
 			return;
 		}
+		released = true;
 
 		if (isIonicTemplateBased()) {
 			Engine.logEngine.debug("("+ builderType +") Start releasing builder for ionic project "+ projectID);
@@ -830,6 +838,9 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	private boolean updateUseCallables = true;
+
+	/** Set by release: the project this builder belongs to was unloaded, its sources must no longer be written. */
+	private volatile boolean released = false;
 	
 	private void updateSourceFiles() throws EngineException {
 		if (updateUseCallables) {
