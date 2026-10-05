@@ -1453,7 +1453,8 @@ public class FlowEngineBridge {
 			if (project == null) return request;
 			String directory = request.optString("projectDir", "");
 			if (!directory.isBlank() && !new File(directory).getCanonicalFile().equals(project.getDirFile().getCanonicalFile())) return request;
-			request.put("tagContext", new JSONObject(com.twinsoft.convertigo.engine.tags.TagManager.get().context(project).toString()));
+			// Read from an immutable snapshot, without the tag monitor; a diagnosed tag source travels in the context.
+			request.put("tagContext", new JSONObject(com.twinsoft.convertigo.engine.tags.TagManager.get().runContext(project)));
 			sourceRequest(request, project.getFlowEngine());
 			return request;
 		} catch (Exception e) { throw new EngineException("Unable to capture project authoring context.", e); }

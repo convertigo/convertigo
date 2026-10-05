@@ -33,43 +33,81 @@ import com.twinsoft.convertigo.engine.ReferencedProjectManager;
 /** Shared editing domain. Project changes are drafts until the common project export succeeds. */
 public final class TagManager {
 	public enum Scope { projectObjects, workspaceProjects }
-	private static Engine owner;
-	private static TagManager instance;
+	// Every Flow request asks for the manager: once created it is read without a monitor (instance is written before owner).
+	private static volatile Engine owner;
+	private static volatile TagManager instance;
 
-	public static synchronized TagManager get() {
-		if (instance == null || owner != Engine.theApp) {
-			owner = Engine.theApp;
-			// Eclipse stores engine configuration in plugin metadata; tag organization belongs to its real workspace.
-			instance = new TagManager(Path.of(Engine.isStudioMode() ? Engine.PROJECTS_PATH : Engine.USER_WORKSPACE_PATH),
-					name -> Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name),
-					project -> project.getDirFile().toPath().resolve("_c8oProject/tags.json"),
-					() -> Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false), name -> {
-						Project project = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name);
-						if (project != null) return referenceNames(project.getReferenceList());
-						try { return referenceNames(ReferencedProjectManager.references(Engine.projectFile(name))); }
-						catch (Exception e) { throw new IOException("Unable to read project references: " + name, e); }
-					});
+	public static TagManager get() {
+		Engine current = owner; TagManager manager = instance;
+		if (manager != null && current == Engine.theApp) return manager;
+		synchronized (TagManager.class) {
+			if (instance == null || owner != Engine.theApp) {
+				// Eclipse stores engine configuration in plugin metadata; tag organization belongs to its real workspace.
+				instance = new TagManager(Path.of(Engine.isStudioMode() ? Engine.PROJECTS_PATH : Engine.USER_WORKSPACE_PATH),
+						name -> Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name),
+						project -> project.getDirFile().toPath().resolve("_c8oProject/tags.json"),
+						() -> Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false), name -> {
+							Project project = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name);
+							if (project != null) return referenceNames(project.getReferenceList());
+							try { return referenceNames(ReferencedProjectManager.references(Engine.projectFile(name))); }
+							catch (Exception e) { throw new IOException("Unable to read project references: " + name, e); }
+						});
+				owner = Engine.theApp;
+			}
+			return instance;
 		}
-		return instance;
 	}
+
+	/** Size and date of a tag source: a cheap hint that the file changed; its content fingerprint stays the authority. */
+	private record FileStamp(long modified, long size) {
+		static FileStamp of(Path path) {
+			try {
+				var attributes = Files.readAttributes(path, java.nio.file.attribute.BasicFileAttributes.class);
+				return new FileStamp(attributes.lastModifiedTime().toMillis(), attributes.size());
+			} catch (IOException e) { return new FileStamp(-1, -1); }
+		}
+	}
+
+	/** Immutable tag context of a project for Flow requests, current while nothing it was built from has changed. */
+	private record RunContext(Project project, State state, long generation, Path path, FileStamp stamp,
+			int boundTargets, List<Observation> observed, String json) {
+		boolean current(Project original) {
+			if (project != original || generation != state.generation || boundTargets != state.bindings.size()
+					|| !stamp.equals(FileStamp.of(path))) return false;
+			// A member moved or renamed since this context needs the reconciliation done under the domain monitor.
+			for (var observation : observed) if (observation.dbo().getProject() != observation.project()
+					|| !observation.qname().equals(observation.dbo().getFullQName())) return false;
+			return true;
+		}
+	}
+	private record Observation(DatabaseObject dbo, Project project, String qname) { }
 
 	private final class State {
 		Path path;
 		final Project project;
 		TagDocument base, work;
 		String fingerprint, diagnostic;
-		long generation, labelGeneration = -1, labelPortableVersion = -1;
+		// Read by Flow requests without the monitor; every change of the working state increments it.
+		volatile long generation;
+		long labelGeneration = -1, labelPortableVersion = -1;
+		FileStamp stamp = new FileStamp(-1, -1);
+		ObjectNode lastValidContext;
+		String warned, conflict;
+		// A pending remap of moved members that cannot be applied: this project only is read-only until it is resolved.
+		String reconcileIssue;
 		final Map<String, String> labels = new HashMap<>();
 		final Map<String, DatabaseObject> bindings = new HashMap<>();
 		State(Path path, Project project) { this.path = path; this.project = project; load(project == null); }
 		void load(boolean workspace) {
+			// Stamped before reading: a change during the read is seen as a change by the next Flow request.
+			stamp = FileStamp.of(path);
 			try { fingerprint = TagDocument.fingerprint(path); base = TagDocument.read(path, workspace); diagnostic = null; }
 			catch (IOException e) { fingerprint = "invalid"; base = new TagDocument(workspace); diagnostic = e.getMessage(); }
 			work = base.copy(); generation++;
 			// Keep known object identities (including unresolved identities) across a clean external edit.
 			// Only an explicit project reload may bind an old QName to a replacement object.
 			bindings.keySet().retainAll(work.assignments.keySet());
-			if (project != null) { bind(project, this); cachePortable(project.getName(), base.projectTags); }
+			if (project != null) { bind(project, this); cachePortable(project.getName(), base.projectTags); refreshRunContext(project, this); }
 		}
 		boolean dirty() { return !work.object().equals(base.object()); }
 		String revision() { return fingerprint + ":" + generation; }
@@ -83,6 +121,7 @@ public final class TagManager {
 		void editable(String expected) throws IOException {
 			checkExternal();
 			if (diagnostic != null) throw new IOException(diagnostic);
+			if (reconcileIssue != null) throw new IOException(reconcileIssue);
 			if (expected == null || !expected.equals(revision())) throw new IOException("Tag revision conflict; refresh the tag manager");
 			checkWritable(path);
 		}
@@ -95,6 +134,7 @@ public final class TagManager {
 	@FunctionalInterface public interface ProjectReferences { Collection<String> names(String project) throws IOException; }
 	private final ProjectReferences references;
 	private final WeakHashMap<Project, State> projects = new WeakHashMap<>();
+	private final java.util.concurrent.ConcurrentHashMap<String, RunContext> runContexts = new java.util.concurrent.ConcurrentHashMap<>();
 	private final Map<String, Map<String, ObjectNode>> portable = new TreeMap<>();
 	private State workspace;
 	private long portableVersion;
@@ -174,21 +214,76 @@ public final class TagManager {
 	public TagContributions contributions() { return contributions; }
 
 	/** Data-only working context for extensions; no descriptor/provider is invoked here. */
-	public synchronized ObjectNode context(Project project) throws IOException {
-		reconcile();
-		State state = state(project);
-		state.checkExternal();
-		if (state.diagnostic != null) throw new IOException(state.diagnostic);
-		ObjectNode context = TagDocument.JSON.createObjectNode().put("project", project.getName()).put("revision", state.revision());
-		ObjectNode definitions = context.putObject("tags");
-		state.work.tags.forEach((id, definition) -> definitions.set(id, definition.deepCopy()));
-		ObjectNode assignments = context.putObject("assignments"), aliases = context.putObject("aliases");
-		state.work.assignments.forEach((target, ids) -> {
-			var values = assignments.putArray(target); ids.forEach(values::add);
-			DatabaseObject dbo = state.bindings.get(target);
-			if (dbo != null) aliases.put(dbo.getQName(), target);
-		});
-		return context;
+	public ObjectNode context(Project project) throws IOException { return TagDocument.parseObject(runContext(project)); }
+
+	/**
+	 * The working tag context of a project for a Flow request, as JSON. Its hot path takes no domain monitor, so a
+	 * project save never holds Flow executions. A diagnosed tag source never fails the request: the last valid context
+	 * keeps serving, with a "warning", or the context carries the "diagnostic" and its provider decides what depends on it.
+	 */
+	public String runContext(Project project) {
+		Project original = (Project) project.getOriginal();
+		RunContext cached = runContexts.get(original.getName());
+		if (cached != null && cached.current(original)) return cached.json();
+		synchronized (this) {
+			reconcileAll();
+			State state = state(original);
+			FileStamp stamp = FileStamp.of(state.path);
+			long generation = state.generation;
+			try { state.checkExternal(); state.conflict = null; }
+			catch (IOException e) {
+				// An unsaved draft over an external change: the working copy stays authoritative until the conflict is resolved.
+				if (!e.getMessage().equals(state.conflict)) { state.conflict = e.getMessage(); warn(original.getName() + ": " + e.getMessage()); }
+			}
+			if (generation == state.generation) state.stamp = stamp;
+			cached = runContexts.get(original.getName());
+			if (cached == null || !cached.current(original)) cached = refreshRunContext(original, state);
+			return cached.json();
+		}
+	}
+
+	/** Called under the monitor after every change of a project working state, so Flow requests keep their hot path. */
+	private RunContext refreshRunContext(Project project, State state) {
+		ObjectNode context;
+		if (state.diagnostic == null) {
+			context = TagDocument.JSON.createObjectNode().put("project", project.getName()).put("revision", state.revision());
+			ObjectNode definitions = context.putObject("tags");
+			state.work.tags.forEach((id, definition) -> definitions.set(id, definition.deepCopy()));
+			ObjectNode assignments = context.putObject("assignments"), aliases = context.putObject("aliases");
+			state.work.assignments.forEach((target, ids) -> {
+				var values = assignments.putArray(target); ids.forEach(values::add);
+				DatabaseObject dbo = state.bindings.get(target);
+				if (dbo != null) aliases.put(dbo.getQName(), target);
+			});
+			state.lastValidContext = context; state.warned = null;
+		} else if (state.lastValidContext != null) {
+			context = state.lastValidContext.deepCopy().put("warning", state.diagnostic);
+			warnOnce(state, state.diagnostic + " (the last valid tags stay in use)");
+		} else {
+			context = TagDocument.JSON.createObjectNode().put("project", project.getName()).put("revision", state.revision())
+					.put("diagnostic", state.diagnostic);
+			context.putObject("tags"); context.putObject("assignments"); context.putObject("aliases");
+			warnOnce(state, state.diagnostic);
+		}
+		var observed = new ArrayList<Observation>();
+		state.bindings.values().forEach(dbo -> { if (dbo != null) observed.add(new Observation(dbo, dbo.getProject(), dbo.getFullQName())); });
+		var run = new RunContext(project, state, state.generation, state.path, state.stamp, state.bindings.size(),
+				List.copyOf(observed), context.toString());
+		runContexts.values().removeIf(previous -> previous.project() == project);
+		runContexts.put(project.getName(), run);
+		return run;
+	}
+
+	private void forgetRunContext(Project project) {
+		Project original = (Project) project.getOriginal();
+		runContexts.values().removeIf(previous -> previous.project() == original);
+	}
+
+	private static void warn(String message) { if (Engine.logEngine != null) Engine.logEngine.warn("[Tags] " + message); }
+	private static void warnOnce(State state, String message) {
+		if (message.equals(state.warned)) return;
+		state.warned = message;
+		warn((state.project == null ? "Workspace" : state.project.getName()) + ": " + message);
 	}
 
 	private State workspace() { if (workspace == null) workspace = new State(workspacePath, null); return workspace; }
@@ -252,15 +347,26 @@ public final class TagManager {
 		}
 	}
 
-	private void changed(Project project, State state) { state.generation++; project.hasChanged = true; }
+	private void changed(Project project, State state) { state.generation++; project.hasChanged = true; refreshRunContext(project, state); }
 
 	/** Observe actual object identity only after a structural operation has finished (including rollback). */
 	public synchronized void reconcile() throws IOException {
-		// Prepare every affected source first. A conflict in one destination must not partially remap another.
+		String failure = reconcileAll();
+		if (failure != null) throw new IOException(failure);
+	}
+
+	/**
+	 * Remaps every pending identity change as one plan: a conflict in one destination must not partially remap another.
+	 * A failed plan stays entirely pending and marks only the projects it involves (read-only, their save refused), so
+	 * the other projects keep editing and saving. Returns the failure, or null.
+	 */
+	private String reconcileAll() {
 		Map<State, TagDocument> drafts = new LinkedHashMap<>();
 		Map<State, Map<String, DatabaseObject>> bindings = new LinkedHashMap<>();
 		Map<State, Project> owners = new LinkedHashMap<>();
 		Map<State, Map<String, String>> imports = new HashMap<>();
+		Set<State> involved = new LinkedHashSet<>();
+		String failure = null;
 		for (var entry : new ArrayList<>(projects.entrySet())) {
 			Project project = entry.getKey(); State source = entry.getValue();
 			for (var binding : new ArrayList<>(source.bindings.entrySet())) {
@@ -269,14 +375,17 @@ public final class TagManager {
 				Project destination = dbo.getProject(); String oldQName = binding.getKey();
 				String nextQName = destination == null ? null : dbo.getFullQName();
 				if (destination == project && oldQName.equals(nextQName)) continue;
-				preflight(source);
 				LinkedHashSet<String> ids = source.work.assignments.get(oldQName);
 				if (ids == null) continue;
+				State target = destination == null ? null : destination == project ? source : state(destination);
+				involved.add(source); if (target != null) involved.add(target);
+				if (failure != null) continue;
+				try { preflight(source); if (target != null && target != source) preflight(target); }
+				catch (IOException e) { failure = e.getMessage(); continue; }
 				TagDocument sourceDraft = drafts.computeIfAbsent(source, ignored -> source.work.copy());
 				Map<String, DatabaseObject> sourceBindings = bindings.computeIfAbsent(source, ignored -> new HashMap<>(source.bindings));
 				owners.put(source, project);
-				if (destination != null) {
-					State target = destination == project ? source : state(destination); preflight(target);
+				if (target != null) {
 					TagDocument targetDraft = drafts.computeIfAbsent(target, ignored -> target.work.copy());
 					Map<String, DatabaseObject> targetBindings = bindings.computeIfAbsent(target, ignored -> new HashMap<>(target.bindings));
 					owners.put(target, destination);
@@ -292,10 +401,16 @@ public final class TagManager {
 				sourceDraft.assignments.remove(oldQName); sourceBindings.remove(oldQName);
 			}
 		}
-		for (var draft : drafts.values()) draft.bytes();
+		if (failure == null) {
+			try { for (var draft : drafts.values()) draft.bytes(); }
+			catch (IOException e) { failure = e.getMessage(); }
+		}
+		for (State state : projects.values()) state.reconcileIssue = failure != null && involved.contains(state) ? failure : null;
+		if (failure != null) return failure;
 		drafts.forEach((state, draft) -> {
 			state.work = draft; state.bindings.clear(); state.bindings.putAll(bindings.get(state)); changed(owners.get(state), state);
 		});
+		return null;
 	}
 
 	private static void preflight(State state) throws IOException {
@@ -322,8 +437,7 @@ public final class TagManager {
 	}
 
 	public static void beforeModelChange(DatabaseObject object, Project destination) throws EngineException {
-		TagManager manager;
-		synchronized (TagManager.class) { manager = owner == Engine.theApp ? instance : null; }
+		Engine current = owner; TagManager manager = current == Engine.theApp ? instance : null;
 		if (manager == null || object.getOriginal() != object || object.isImporting) return;
 		try { manager.prepareStructuralChange(object, destination); }
 		catch (IOException e) { throw new EngineException("Tag source prevents this mutation: " + e.getMessage(), e); }
@@ -331,8 +445,7 @@ public final class TagManager {
 
 	/** Name changes are complete here, including UPDATE_NONE. Moves reconcile after their final reattachment. */
 	public static void afterModelRename(DatabaseObject object) throws EngineException {
-		TagManager manager;
-		synchronized (TagManager.class) { manager = owner == Engine.theApp ? instance : null; }
+		Engine current = owner; TagManager manager = current == Engine.theApp ? instance : null;
 		if (manager == null || object.getOriginal() != object || object.isImporting || object instanceof Project) return;
 		try { manager.reconcile(); }
 		catch (IOException e) { throw new EngineException("Unable to maintain tag identities", e); }
@@ -357,9 +470,10 @@ public final class TagManager {
 
 	private synchronized ObjectNode read(Scope scope, String projectName, ObjectNode available) throws IOException {
 		var diagnostics = new ArrayList<String>();
-		try { reconcile(); } catch (IOException e) { diagnostics.add(e.getMessage()); }
+		reconcileAll();
 		Project project = scope == Scope.projectObjects ? requireProject(projectName) : null;
 		State state = project == null ? workspace() : state(project);
+		if (state.reconcileIssue != null) diagnostics.add(state.reconcileIssue);
 		try {
 			long generation = state.generation; state.checkExternal();
 			if (project != null && state.generation != generation) bind(project, state);
@@ -436,7 +550,7 @@ public final class TagManager {
 
 	private synchronized ObjectNode mutate(Scope scope, String projectName, String revision, String action, ObjectNode input,
 			ObjectNode available, List<String> referenceTargets) throws IOException {
-		reconcile();
+		reconcileAll();
 		Project project = scope == Scope.projectObjects ? requireProject(projectName) : null;
 		State state = project == null ? workspace() : state(project);
 		state.editable(revision);
@@ -543,9 +657,11 @@ public final class TagManager {
 			state.fingerprint = TagDocument.fingerprint(state.path); state.base = next.copy();
 		}
 		boolean changed = !next.object().equals(state.work.object()); state.work = next;
-		if (changed) { if (project == null) state.generation++; else changed(project, state); }
+		// Bindings first: a change publishes the Flow run context, whose aliases come from them.
 		state.bindings.putAll(newBindings);
 		state.bindings.keySet().retainAll(next.assignments.keySet());
+		if (changed) { if (project == null) state.generation++; else changed(project, state); }
+		else if (project != null && !newBindings.isEmpty()) refreshRunContext(project, state);
 		var dirtyProjects = new TreeSet<String>();
 		if (project != null && state.dirty()) dirtyProjects.add(project.getName());
 		publications.forEach((target, document) -> {
@@ -636,7 +752,7 @@ public final class TagManager {
 		} catch (IOException e) { workspace.diagnostic = "Portable tag discovery: " + e.getMessage(); }
 	}
 
-	public synchronized void projectClosed(Project project) { if (!renaming.contains(project)) projects.remove(project); }
+	public synchronized void projectClosed(Project project) { if (!renaming.contains(project)) { projects.remove(project); forgetRunContext(project); } }
 
 	public interface Rename extends AutoCloseable {
 		void commit() throws IOException;
@@ -711,7 +827,8 @@ public final class TagManager {
 	/** Serialize the project and its sidecar under the same domain lock, clearing dirty only on success. */
 	public synchronized void save(Project project, Path source, ProjectWriter writer) throws EngineException {
 		try {
-			reconcile(); State state = state(project);
+			reconcileAll(); State state = state(project);
+			if (state.reconcileIssue != null) throw new IOException(state.reconcileIssue);
 			state.checkExternal();
 			if (state.dirty() && state.diagnostic != null) throw new IOException(state.diagnostic);
 			byte[] bytes = state.dirty() ? state.work.bytes() : null;
@@ -719,7 +836,9 @@ public final class TagManager {
 			writer.write();
 			if (bytes != null) {
 				TagDocument.write(source, bytes, state.fingerprint);
-				state.path = source; state.fingerprint = TagDocument.fingerprint(source); state.base = state.work.copy(); state.generation++;
+				state.path = source; state.fingerprint = TagDocument.fingerprint(source); state.base = state.work.copy();
+				state.stamp = FileStamp.of(source); state.generation++;
+				refreshRunContext(project, state);
 			}
 			cachePortable(project.getName(), state.base.projectTags);
 		} catch (Exception e) { project.hasChanged = true; throw new EngineException("Project save failed: " + e.getMessage(), e); }
@@ -784,7 +903,7 @@ public final class TagManager {
 	/** Clipboard transport is an attribute, not a serialized DBO property or a persistent UI identity. */
 	public synchronized void copyToClipboard(Element element, DatabaseObject dbo) throws IOException {
 		if (!TagPolicy.supports(Scope.projectObjects, dbo)) return;
-		reconcile(); Project project = dbo.getProject(); if (project == null) return;
+		reconcileAll(); Project project = dbo.getProject(); if (project == null) return;
 		State state = state(project); LinkedHashSet<String> ids = state.work.assignments.get(dbo.getFullQName());
 		if (ids == null || ids.isEmpty()) return;
 		ObjectNode definitions = TagDocument.JSON.createObjectNode(); ids.forEach(id -> definitions.set(id, state.work.tags.get(id)));
@@ -849,8 +968,9 @@ public final class TagManager {
 					if (!assigned.isEmpty()) draft.assignments.computeIfAbsent(dbo.getFullQName(), key -> new LinkedHashSet<>()).addAll(assigned);
 				}
 				for (var draft : drafts.values()) draft.bytes();
-				drafts.forEach((project, draft) -> { State state = state(project); state.work = draft; changed(project, state); });
+				// Bindings first: each change publishes the Flow run context, whose aliases come from them.
 				objects.keySet().forEach(dbo -> state(dbo.getProject()).bindings.put(dbo.getFullQName(), dbo));
+				drafts.forEach((project, draft) -> { State state = state(project); state.work = draft; changed(project, state); });
 				committed = true;
 			}
 		}

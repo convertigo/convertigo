@@ -189,6 +189,70 @@ public class TagManagerTest {
 		assertFalse(Files.exists(source(project)));
 	}
 
+	private static List<String> ids(ObjectNode context, String target) {
+		var result = new java.util.ArrayList<String>();
+		context.path("assignments").path(target).forEach(id -> result.add(id.asText()));
+		return result;
+	}
+
+	@Test public void anInvalidTagSourceNeverFailsAFlowRequestButCarriesItsDiagnostic() throws Exception {
+		Files.createDirectories(source(project).getParent());
+		Files.writeString(source(project), "{ not json");
+		var reopened = new TagManager(root, projects::get, this::source, projects::keySet);
+		var context = reopened.context(project);
+		assertFalse(context.path("diagnostic").asText().isEmpty());
+		assertEquals(0, context.path("assignments").size());
+		assertFalse(context.has("warning"));
+	}
+
+	@Test public void aTagSourceBrokenAfterwardsKeepsItsLastValidContextWithAWarning() throws Exception {
+		String id = create(Scope.projectObjects, "Kept"); assign(Scope.projectObjects, id, first.getFullQName()); save(project);
+		assertEquals(List.of(id), ids(manager.context(project), first.getFullQName()));
+		// A merge left conflict markers: Flow executions keep the last valid memberships instead of all failing.
+		Files.writeString(source(project), "<<<<<<< HEAD\n{}\n=======\n{}\n>>>>>>> other\n");
+		var context = manager.context(project);
+		assertEquals(List.of(id), ids(context, first.getFullQName()));
+		assertFalse(context.path("warning").asText().isEmpty());
+		assertFalse(context.has("diagnostic"));
+		assertTrue(read(Scope.projectObjects).toString().contains("diagnostic"));
+	}
+
+	@Test public void flowRequestsReadTheTagContextWhileASaveHoldsTheDomainMonitor() throws Exception {
+		String id = create(Scope.projectObjects, "Running"); assign(Scope.projectObjects, id, first.getFullQName());
+		assertEquals(List.of(id), ids(manager.context(project), first.getFullQName()));
+		var writing = new java.util.concurrent.CountDownLatch(1); var release = new java.util.concurrent.CountDownLatch(1);
+		var failure = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+		var saving = new Thread(() -> {
+			try { manager.save(project, source(project), () -> { writing.countDown(); release.await(); }); }
+			catch (Throwable e) { failure.set(e); }
+		});
+		saving.start();
+		var executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+		try {
+			assertTrue(writing.await(10, java.util.concurrent.TimeUnit.SECONDS));
+			assertTrue(Thread.getAllStackTraces().containsKey(saving));
+			var context = executor.submit(() -> manager.runContext(project)).get(5, java.util.concurrent.TimeUnit.SECONDS);
+			assertEquals(List.of(id), ids(TagDocument.parseObject(context), first.getFullQName()));
+		} finally { release.countDown(); saving.join(10000); executor.shutdownNow(); }
+		assertNull(failure.get());
+	}
+
+	@Test public void theFlowRunContextFollowsEditsExternalSourcesAndRenames() throws Exception {
+		String a = create(Scope.projectObjects, "A"), b = create(Scope.projectObjects, "B");
+		assign(Scope.projectObjects, a, first.getFullQName()); assign(Scope.projectObjects, b, first.getFullQName());
+		assertEquals(List.of(a, b), ids(manager.context(project), first.getFullQName()));
+		save(project);
+		TagDocument external = TagDocument.read(source(project), false);
+		external.assignments.put(first.getFullQName(), new java.util.LinkedHashSet<>(List.of(b, a)));
+		Files.write(source(project), external.bytes());
+		assertEquals(List.of(b, a), ids(manager.context(project), first.getFullQName()));
+		// Renamed without this manager's hook: the context notices the member moved and reconciles by itself.
+		first.setName("Renamed");
+		var renamed = manager.context(project);
+		assertEquals(List.of(b, a), ids(renamed, first.getFullQName()));
+		assertEquals(first.getFullQName(), renamed.path("aliases").path(first.getQName()).asText());
+	}
+
 	@Test public void missingSourcesStayMissingAfterRead() throws Exception {
 		assertTrue(read(Scope.projectObjects).path("tags").isEmpty()); assertTrue(read(Scope.workspaceProjects).path("tags").isEmpty());
 		assertFalse(Files.exists(source(project))); assertFalse(Files.exists(root.resolve("studio/tags.json"))); assertFalse(project.hasChanged);
@@ -530,6 +594,28 @@ public class TagManagerTest {
 		var original = read(Scope.projectObjects); assertTrue(original.path("assignments").has("Demo.sq:First"));
 		assertTrue(original.path("assignments").has("Demo.sq:Second"));
 		assertTrue(original.path("readOnly").asBoolean());
+	}
+	@Test public void aFailedReconcileBlocksOnlyTheProjectsItInvolves() throws Exception {
+		String id = create(Scope.projectObjects, "group"); assign(Scope.projectObjects, id, first.getFullQName());
+		Project invalid = project("Invalid"), other = project("Other"); var alone = sequence(other, "Alone"); manager.projectOpened(other);
+		Files.createDirectories(source(invalid).getParent()); Files.writeString(source(invalid), "invalid");
+		project.remove(first); invalid.add(first);
+		assertThrows(java.io.IOException.class, manager::reconcile);
+		// An unrelated project keeps editing and saving its tags.
+		var otherTags = manager.read(Scope.projectObjects, "Other");
+		assertFalse(otherTags.path("readOnly").asBoolean());
+		String otherId = manager.mutate(Scope.projectObjects, "Other", otherTags.path("revision").asText(), "create",
+				json("{\"definition\":{\"label\":\"alone\",\"metadata\":{}}}")).path("id").asText();
+		ObjectNode assignment = json("{\"tagIds\":[\"" + otherId + "\"]}"); assignment.putArray("targets").add(alone.getFullQName());
+		manager.mutate(Scope.projectObjects, "Other", manager.read(Scope.projectObjects, "Other").path("revision").asText(), "assign", assignment);
+		save(other);
+		assertTrue(Files.readString(source(other)).contains(otherId));
+		// The involved project stays read-only with its pending memberships, its save refused, its Flow requests served.
+		var involved = read(Scope.projectObjects);
+		assertTrue(involved.path("readOnly").asBoolean());
+		assertTrue(involved.path("assignments").has("Demo.sq:First"));
+		assertThrows(EngineException.class, () -> save(project));
+		assertTrue(manager.context(project).has("tags"));
 	}
 	@Test public void unavailableFieldsWithinKnownContributionsCannotBeDeleted() throws Exception {
 		String id = UUID.randomUUID().toString(); TagDocument document = new TagDocument(false);
