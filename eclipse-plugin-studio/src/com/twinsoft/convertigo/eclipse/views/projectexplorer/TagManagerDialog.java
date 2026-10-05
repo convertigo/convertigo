@@ -90,6 +90,8 @@ public final class TagManagerDialog extends TitleAreaDialog {
 		orderedTags.addListener(SWT.Selection, event -> { if (event.item instanceof TableItem item) { orderedTag = (String) item.getData(); updateOrderButtons(); } });
 		Composite orderButtons = new Composite(orderGroup, SWT.NONE); orderButtons.setLayout(new GridLayout(1, false));
 		orderUp = button(orderButtons, "Move up", () -> moveOrder(-1)); orderDown = button(orderButtons, "Move down", () -> moveOrder(1));
+		// Extension fields (such as the Flow configurations of a tag) are part of its definition, not advanced settings.
+		metadata = new Composite(details, SWT.NONE); metadata.setLayout(new GridLayout(2, false)); metadata.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		optional = new ExpandBar(details, SWT.NONE); optional.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		if (scope == TagManager.Scope.workspaceProjects) {
 			sharingContent = new Composite(optional, SWT.NONE); sharingContent.setLayout(new GridLayout(1, false));
@@ -104,7 +106,6 @@ public final class TagManagerDialog extends TitleAreaDialog {
 			sharingItem = new ExpandItem(optional, SWT.NONE); sharingItem.setText("Sharing"); sharingItem.setControl(sharingContent);
 		}
 		advancedContent = new Composite(optional, SWT.NONE); advancedContent.setLayout(new GridLayout(1, false));
-		metadata = new Composite(advancedContent, SWT.NONE); metadata.setLayout(new GridLayout(2, false)); metadata.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		identity = new Label(advancedContent, SWT.WRAP); identity.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		button(advancedContent, "Delete tag…", () -> { if (!selected.isEmpty() && MessageDialog.openConfirm(getShell(), "Delete tag", "Remove this tag and its " + memberCount() + " membership(s)? Objects remain intact.")) command("delete", TagDocument.JSON.createObjectNode().put("id", selected).put("memberCount", memberCount()).put("confirmed", true)); });
 		suggestions = table(advancedContent, SWT.SINGLE, 70);

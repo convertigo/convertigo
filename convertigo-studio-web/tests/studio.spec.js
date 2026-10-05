@@ -226,7 +226,8 @@ test('studio tags edit typed contributions and immediately refresh badges', asyn
 	const dialog = page.getByRole('dialog');
 	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
 	await dialog.getByLabel('Label', { exact: true }).fill('Client <script>');
-	await dialog.getByText('Advanced', { exact: true }).click();
+	// Extension fields belong to the tag definition, outside the Advanced section.
+	await expect(dialog.getByLabel('Count', { exact: true })).toBeVisible();
 	await dialog.getByLabel('Count', { exact: true }).fill('7');
 	await dialog.getByLabel('Enabled', { exact: true }).check();
 	await dialog.getByRole('combobox', { name: 'Level', exact: true }).selectOption('high');
@@ -257,8 +258,8 @@ test('studio tags edit ordered references through the generic descriptor without
 	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
 	const dialog = page.getByRole('dialog');
 	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
-	await dialog.getByText('Advanced', { exact: true }).click();
 	const resources = dialog.getByRole('group', { name: 'Resources', exact: true });
+	await expect(resources).toBeVisible();
 	await expect(resources.getByRole('alert')).toContainText('retired');
 	await resources.getByRole('button', { name: 'Remove retired', exact: true }).click();
 	await resources

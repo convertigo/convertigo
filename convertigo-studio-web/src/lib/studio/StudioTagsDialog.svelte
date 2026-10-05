@@ -445,8 +445,7 @@
 								</details>
 							{/if}
 						{/if}
-						<details class="studio-tags__advanced">
-							<summary>Advanced</summary>
+						{#if Object.keys(snapshot?.contributions ?? {}).length || Object.keys(definition.metadata ?? {}).length}
 							<fieldset class="studio-tags__form" disabled={busy || snapshot?.readOnly}>
 								{#each Object.entries(snapshot?.contributions ?? {}) as [namespace, contribution] (namespace)}
 									<fieldset class="layout-y-low">
@@ -520,6 +519,9 @@
 									</details>
 								{/each}
 							</fieldset>
+						{/if}
+						<details class="studio-tags__advanced">
+							<summary>Advanced</summary>
 							{#if selected}<p class="studio-tags__hint">ID: {selected}</p>
 								<Button
 									label="Delete tag…"
