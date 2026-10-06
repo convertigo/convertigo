@@ -441,6 +441,8 @@ public class EnginePropertiesManager {
 		DELEGATE_URL ("delegate.url", "", "Delegate URL for extra functionality", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		AUTO_GC ("auto.gc", "false", "Automatically GC on low usage (every 10 min)", PropertyCategory.Main),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		LOCAL_WORK_DIRECTORY ("local_work.directory", "", "Local working directory: fast storage, not shared between instances, content reused when still valid (empty: project folders); engine restart required", PropertyCategory.Main),
 
 		/** ACCOUNTS */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)

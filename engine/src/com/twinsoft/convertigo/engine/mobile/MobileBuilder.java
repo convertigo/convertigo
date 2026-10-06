@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.LocalWorkDirectory;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.events.BaseEvent;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
@@ -362,6 +363,19 @@ public abstract class MobileBuilder {
 
 	public boolean getNeedPkgUpdate() {
 		return this.needPkgUpdate;
+	}
+
+	/**
+	 * The working folder of the application (_private/ionic: generated sources, packages, build cache) goes to the
+	 * local working directory when one is configured, before the builder writes in it. Its template refers to the
+	 * project folders (../../DisplayObjects/mobile, ../../Flashupdate), reached there through the mirror of the
+	 * project: the output folder is created first.
+	 */
+	protected void relocateWorkFolder() {
+		if (LocalWorkDirectory.isEnabled()) {
+			new File(projectDir, "DisplayObjects/mobile").mkdirs();
+		}
+		LocalWorkDirectory.relocate(project.getName(), projectDir, "_private/ionic");
 	}
 
 	protected void cleanDirectories() {

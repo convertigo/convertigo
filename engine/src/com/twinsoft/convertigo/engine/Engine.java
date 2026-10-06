@@ -482,6 +482,8 @@ public class Engine {
 					StartupDiagnostics.run();
 				}
 
+				LocalWorkDirectory.init();
+
 				// Initializing the engine
 				Engine.theApp = new Engine();
 
@@ -821,6 +823,7 @@ public class Engine {
 				// first, as the process of the engine may be killed soon after: the node processes of the NGX
 				// builds of the web Studio would outlive the engine
 				com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.WsBuilder.stopAll();
+				LocalWorkDirectory.release();
 
 				// Temporary reset the start/stop date in order to unlink the requestable's
 				// running thread engine ID.

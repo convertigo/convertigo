@@ -160,6 +160,7 @@ import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.LocalWorkDirectory;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
@@ -2071,6 +2072,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							"--legacy-peer-deps", "--loglevel", "info", "--ssl-key=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
+					LocalWorkDirectory.beginWork(nodeModules);
 					Process p = pb.start();
 
 					processes.add(p);
@@ -2085,6 +2087,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 					}
 					Engine.logStudio.info(line);
+					if (p.waitFor() == 0) {
+						LocalWorkDirectory.endWork(nodeModules);
+					}
 					appendOutput("\\o/");
 				} catch (Exception e) {
 					appendOutput(":( " + e);

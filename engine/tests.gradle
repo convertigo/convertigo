@@ -31,6 +31,7 @@ tasks.named('check') {
 	dependsOn 'stepSourceTest'
 	dependsOn 'studioSearchTest'
 	dependsOn 'tagTest'
+	dependsOn 'localWorkDirectoryTest'
 }
 
 tasks.register('stepSourceTest', JavaExec) {
@@ -130,4 +131,13 @@ tasks.register('tagTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.tags.TagManagerTest', 'com.twinsoft.convertigo.engine.tags.TagPasteAdapterTest'
+}
+
+tasks.register('localWorkDirectoryTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the local working directory: links, reuse, version and startup cleanup.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.LocalWorkDirectoryTest'
 }

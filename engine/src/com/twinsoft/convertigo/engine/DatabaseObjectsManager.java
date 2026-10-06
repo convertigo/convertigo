@@ -716,6 +716,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 				return;
 			}
 
+			// its rebuildable data goes with its _private folder
+			LocalWorkDirectory.projectRemoved(projectName);
+
 			var projectDir = new File(Engine.projectDir(projectName));
 			var removeDir = projectDir;
 

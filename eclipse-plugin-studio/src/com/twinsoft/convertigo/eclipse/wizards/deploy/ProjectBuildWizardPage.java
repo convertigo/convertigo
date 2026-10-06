@@ -108,6 +108,7 @@ class ProjectBuildWizardPage extends WizardPage {
 				});
 				monitor.worked(1);
 				String nodePath = nodeDir.getAbsolutePath();
+				File nodeModules = new File(ionicDir, "node_modules");
 				
 				// Installing node_modules
 				monitor.beginTask("Installing node_modules", IProgressMonitor.UNKNOWN);
@@ -126,6 +127,7 @@ class ProjectBuildWizardPage extends WizardPage {
 				}
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
+				com.twinsoft.convertigo.engine.LocalWorkDirectory.beginWork(nodeModules);
 				Process p = pb.start();
 				br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				while (!monitor.isCanceled() && (line = br.readLine()) != null) {
@@ -143,6 +145,7 @@ class ProjectBuildWizardPage extends WizardPage {
 				if (code != 0) {
 					throw new EngineException("Installation return a '" + code + "' failure code");
 				}
+				com.twinsoft.convertigo.engine.LocalWorkDirectory.endWork(nodeModules);
 				monitor.done();
 				
 				//Remove previous build directory

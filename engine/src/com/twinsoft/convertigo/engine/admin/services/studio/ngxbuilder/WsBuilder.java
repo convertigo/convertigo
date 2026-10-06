@@ -47,6 +47,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.LocalWorkDirectory;
 import com.twinsoft.convertigo.engine.admin.services.WebSocketService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
@@ -258,6 +259,7 @@ public class WsBuilder extends WebSocketService {
 					com.twinsoft.convertigo.engine.util.FileUtils.copyFile(packageLockTpl, new File(ionicDir, "package-lock.json"));
 				}
 			}
+			LocalWorkDirectory.beginWork(nodeModules);
 			var pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir, "npm", "install",
 					"--legacy-peer-deps", "--loglevel", "info", "--ssl-key=" + marker());
 			pb.redirectErrorStream(true);
@@ -274,6 +276,9 @@ public class WsBuilder extends WebSocketService {
 				}
 			}
 			var code = p.waitFor();
+			if (code == 0) {
+				LocalWorkDirectory.endWork(nodeModules);
+			}
 			appendOutput(code == 0 ? "Packages installed." : "npm install ended with the code " + code + ".");
 		}
 

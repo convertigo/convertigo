@@ -455,6 +455,8 @@ public class NgxBuilder extends MobileBuilder {
 
 			setNeedPkgUpdate(false);
 
+			relocateWorkFolder();
+
 			// Clean directories
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 			

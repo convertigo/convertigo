@@ -333,6 +333,7 @@ public class CLI {
 				Engine.logConvertigo.info("download NodeJS " + nodeVersion + ": " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
 		});
 		String nodePath = nodeDir.getAbsolutePath();
+		File nodeModules = new File(ionicDir, "node_modules");
 		
 		ProcessBuilder pb;
 		String line;
@@ -349,6 +350,7 @@ public class CLI {
 		}
 		pb.redirectErrorStream(true);
 		pb.directory(ionicDir);
+		LocalWorkDirectory.beginWork(nodeModules);
 		Process p = pb.start();
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 			while ((line = br.readLine()) != null) {
@@ -359,6 +361,9 @@ public class CLI {
 			}
 		}
 		int code = p.waitFor();
+		if (code == 0) {
+			LocalWorkDirectory.endWork(nodeModules);
+		}
 		Engine.logConvertigo.info("npm install finished with exit: " + code);
 		
 		ngx = b_ngx;
