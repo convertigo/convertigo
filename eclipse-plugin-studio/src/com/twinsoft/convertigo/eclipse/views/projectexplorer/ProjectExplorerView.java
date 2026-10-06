@@ -585,6 +585,22 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				super.update(element, properties);
 				packColumns();
 			}
+
+			// Grouped by tags, a tree object shows through occurrences: one of them is selected, revealed or expanded
+			@Override
+			public void setSelection(ISelection selection, boolean reveal) {
+				super.setSelection(tagPresentation(selection), reveal);
+			}
+
+			@Override
+			public void reveal(Object element) {
+				super.reveal(tagPresentation(element));
+			}
+
+			@Override
+			public void expandToLevel(Object elementOrTreePath, int level) {
+				super.expandToLevel(tagPresentation(elementOrTreePath), level);
+			}
 		};
 		stackLayout.topControl = noEngine;
 		viewer.setData(ProjectExplorerView.class.getCanonicalName(), this);
@@ -914,6 +930,65 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			for (var container : result.path("affectedContainers")) refreshTaggedCollection(container.asText());
 			if (result.path("done").asBoolean()) ConvertigoPlugin.getDefault().refreshPropertiesView();
 		};
+	}
+
+	private ISelection tagPresentation(ISelection selection) {
+		if (!viewContentProvider.tags.enabled || !(selection instanceof IStructuredSelection structured) || structured.isEmpty()) {
+			return selection;
+		}
+		var elements = new ArrayList<Object>();
+		for (Object element : structured.toArray()) elements.add(tagPresentation(element));
+		return new StructuredSelection(elements);
+	}
+
+	/** Grouped by tags, the occurrence a tree object shows through, its rows opened toward it; else the element itself. */
+	private Object tagPresentation(Object element) {
+		if (!viewContentProvider.tags.enabled || !(element instanceof TreeObject real) || element instanceof TagTreeObject
+				|| viewer.testFindItem(element) != null) {
+			return element;
+		}
+		var reveal = new TagReveal();
+		var chain = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Object, Boolean>());
+		for (TreeObject current = real; current != null; current = current.getParent()) chain.add(current);
+		walkTagOccurrences(viewContentProvider.getElements(viewer.getInput()), real, chain, List.of(), 0, true, reveal);
+		if (reveal.rows.isEmpty()) {
+			return element;
+		}
+		for (int index = 0; index < reveal.rows.size() - 1; index++) viewer.expandToLevel(reveal.rows.get(index), 1);
+		return reveal.rows.get(reveal.rows.size() - 1);
+	}
+
+	/**
+	 * Grouped by tags, an object can show in several tag groups, and so can its ancestors: it reveals through the
+	 * occurrence already showing it, else the one opened the deepest toward it, else the first one in the tree.
+	 */
+	private static final class TagReveal {
+		List<Object> rows = List.of();
+		boolean visible;
+		int depth = -1;
+		void consider(List<Object> path, boolean shown, int opened) {
+			if ((shown && !visible) || (shown == visible && opened > depth)) {
+				rows = path; visible = shown; depth = opened;
+			}
+		}
+	}
+
+	private void walkTagOccurrences(Object[] children, TreeObject real, java.util.Set<Object> chain, List<Object> path, int depth, boolean open, TagReveal reveal) {
+		children = children.clone();
+		if (viewer.getComparator() != null) viewer.getComparator().sort(viewer, children);
+		for (Object child : children) {
+			boolean group = child instanceof TagTreeObject row && row.target == null;
+			Object target = child instanceof TagTreeObject row ? row.target : child;
+			if (!group && !chain.contains(target)) continue;
+			var rows = new ArrayList<Object>(path);
+			rows.add(child);
+			if (target == real) {
+				reveal.consider(rows, open, depth);
+				continue;
+			}
+			boolean opened = open && viewer.getExpandedState(child);
+			walkTagOccurrences(viewContentProvider.getChildren(child), real, chain, rows, opened ? depth + 1 : depth, opened, reveal);
+		}
 	}
 
 	public void refreshTaggedCollection(String collection) {
@@ -3584,6 +3659,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private void revealFlowTreeObject(TreeObject treeObject) {
+		if (viewContentProvider.tags.enabled) {
+			// grouped by tags, the occurrence is chosen for the object, not for each of its ancestors
+			viewer.reveal(treeObject);
+			return;
+		}
 		var ancestors = new ArrayList<TreeObject>();
 		for (var parent = treeObject == null ? null : treeObject.getParent(); parent != null; parent = parent.getParent()) {
 			ancestors.add(parent);

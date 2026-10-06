@@ -387,10 +387,11 @@ test('studio tags exclude steps from assignment actions and grouped collections'
 	await openTreeMenu(page, sequenceId);
 	await page.getByRole('menuitem', { name: 'Group by tags', exact: true }).click();
 	const tree = page.getByRole('tree', { name: 'Projects' });
-	await tree.getByRole('button', { name: 'CRM (1)', exact: true }).click();
+	// the selected sequence shows in its first occurrence only, under Audit
 	const occurrence = tree.locator(
 		'button.studio-tree-node__content[data-node-id="' + sequenceId + '"]'
 	);
+	await expect(occurrence).toHaveCount(1);
 	await occurrence
 		.locator('..')
 		.locator('..')
@@ -436,7 +437,7 @@ test('studio tags display toggles the tag labels of the tree independently of th
 	await page.getByRole('menuitem', { name: 'Group by tags', exact: true }).click();
 	await ensureTreeNodeExpanded(page, projectName);
 	await ensureTreeNodeExpanded(page, projectName + ':sq');
-	await tree.getByRole('button', { name: 'CRM (1)', exact: true }).click();
+	// the selected sequence shows in its first occurrence only, under Audit
 	await expect(sequence).toHaveCount(1);
 	await expect(sequence.locator('.studio-tree-tag')).toHaveCount(0);
 	await openTreeMenu(page, sequenceId);
@@ -826,6 +827,61 @@ test('studio tree menus open with their actions so that their items do not move'
 	const before = await item.boundingBox();
 	await page.waitForTimeout(300);
 	expect(await item.boundingBox()).toEqual(before);
+});
+
+test('studio tags reveal an object in a single of its occurrences', async ({ page }) => {
+	await page.addInitScript(() => localStorage.setItem('studio-tags-grouped', 'true'));
+	await mockStudioServices(page);
+	await mockTagServices(page);
+	const url = `/studio/${initStepId.replaceAll(':', '~')}/`;
+	await page.route('**' + url, async (route) => {
+		const response = await page.request.get('/studio/_/');
+		await route.fulfill({ response });
+	});
+	await page.goto(url);
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	const steps = tree.locator(`button.studio-tree-node__content[data-node-id="${initStepId}"]`);
+	// nothing is opened toward the step: its first occurrence opens, under Audit
+	await expect(steps).toHaveCount(1);
+	const group = (/** @type {string} */ label) =>
+		tree
+			.getByRole('button', { name: `${label} (1)`, exact: true })
+			.locator('..')
+			.locator('..');
+	await expect(group('Audit')).toHaveAttribute('aria-expanded', 'true');
+	await expect(group('CRM')).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('studio tags keep the occurrence opened toward a selected object', async ({ page }) => {
+	await page.addInitScript(() => localStorage.setItem('studio-tags-grouped', 'true'));
+	await mockStudioServices(page);
+	await mockTagServices(page);
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	const group = (/** @type {string} */ label) =>
+		tree
+			.getByRole('button', { name: `${label} (1)`, exact: true })
+			.locator('..')
+			.locator('..');
+	await group('CRM').locator(':scope > div > span > button[aria-label="Expand"]').click();
+	const sequences = tree.locator(`button.studio-tree-node__content[data-node-id="${sequenceId}"]`);
+	await expect(sequences).toHaveCount(1);
+	await sequences
+		.locator('..')
+		.locator('..')
+		.locator(':scope > div > span > button[aria-label="Expand"]')
+		.click();
+	await expandTreeNode(page, sequenceId + ':st');
+	await tree.locator(`button.studio-tree-node__content[data-node-id="${initStepId}"]`).click();
+	await expect(page).toHaveURL(new RegExp(initStepId.replaceAll(':', '~')));
+	// the selection already shows under CRM: the occurrence under Audit stays closed
+	await page.waitForTimeout(500);
+	await expect(group('Audit')).toHaveAttribute('aria-expanded', 'false');
+	await expect(
+		tree.locator(`button.studio-tree-node__content[data-node-id="${initStepId}"]`)
+	).toHaveCount(1);
 });
 
 async function openTreeMenu(page, nodeId) {

@@ -48,6 +48,7 @@
 	 *  canManageTags?: (node: any) => boolean,
 	 *  tagsGrouped?: boolean,
 	 *  tagsDisplayed?: boolean,
+	 *  revealRows?: Set<string> | null,
 	 *  currentTagId?: string,
 	 *  onToggleTagGrouping?: () => void | Promise<void>,
 	 *  onToggleTagDisplay?: () => void | Promise<void>,
@@ -89,6 +90,7 @@
 		canManageTags,
 		tagsGrouped = false,
 		tagsDisplayed = true,
+		revealRows = null,
 		currentTagId = '',
 		onToggleTagGrouping,
 		onToggleTagDisplay,
@@ -333,7 +335,9 @@
 			isEquivalentNodeId(nodeId, target) ||
 			!isBranch ||
 			autoExpandTarget === target ||
-			!containsTarget
+			!containsTarget ||
+			// grouped by tags, only one occurrence of the selection opens toward it
+			(revealRows && !revealRows.has(rowId))
 		) {
 			return;
 		}
@@ -1634,6 +1638,7 @@
 						{canManageTags}
 						{tagsGrouped}
 						{tagsDisplayed}
+						{revealRows}
 						{onToggleTagGrouping}
 						{onToggleTagDisplay}
 						currentTagId={node.tagGroup ? node.tagId : ''}

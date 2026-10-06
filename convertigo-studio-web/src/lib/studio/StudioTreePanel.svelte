@@ -41,6 +41,7 @@
 		tellMergedObjects,
 		treeMerge
 	} from './treeMerge.svelte.js';
+	import { tagRevealRows } from './tagReveal.js';
 	import { treeSelectionOf } from './treeSelection.svelte.js';
 
 	/** the part of the width of the view the column of the comments goes to at most */
@@ -441,6 +442,20 @@
 		);
 	});
 	let rootChildren = $derived(tagsGrouped ? tagRoots : normalRootChildren);
+	/**
+	 * Grouped by tags, the selection can show in several occurrences: only the rows of one of them
+	 * open toward it, the one already opened the deepest toward it, else the first one
+	 */
+	let revealRows = $derived.by(() => {
+		dataSerial;
+		if (!tagsGrouped || !selectedId) return null;
+		const opened = expandedNodeIds;
+		return tagRevealRows(rootChildren, selectedId, {
+			isExpanded: (row) =>
+				opened.has(row) || equivalentDboObjectIds(row).some((id) => opened.has(id)),
+			equivalentIds: equivalentDboObjectIds
+		});
+	});
 	let tagsRootRequest = 0;
 	async function refreshTagRoots() {
 		const serial = ++tagsRootRequest;
@@ -1336,6 +1351,7 @@
 				{canManageTags}
 				{tagsGrouped}
 				{tagsDisplayed}
+				{revealRows}
 				onToggleTagGrouping={toggleTagsView}
 				onToggleTagDisplay={toggleTagDisplay}
 				bind:selectedId
