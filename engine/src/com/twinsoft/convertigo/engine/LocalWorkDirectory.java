@@ -41,7 +41,8 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 /**
  * The local working directory of the engine (engine property "local_work.directory"): fast storage, local to this
  * instance and never shared with the others. Projects keep there the rebuildable folders they would otherwise write
- * in their folder of the workspace, which is shared and slow storage in cloud deployments.
+ * in their folder of the workspace, which is shared and slow storage in cloud deployments, and the engine its own
+ * rebuildable folders, such as the Node.js distributions.
  * <p>
  * A relocated folder becomes a symbolic link to its place in the directory of its project, here. That directory
  * mirrors the project: its other top-level entries are links to the project ones, so that the relative paths of the
@@ -105,6 +106,22 @@ public final class LocalWorkDirectory {
 
 	public static boolean isEnabled() {
 		return current != null;
+	}
+
+	/**
+	 * A rebuildable folder of the engine, kept across Convertigo versions (for instance "nodes", the Node.js
+	 * distributions), created if needed.
+	 *
+	 * @return the folder in the local working directory, or null without local working directory
+	 */
+	public static File getDirectory(String name) {
+		var local = current;
+		if (local == null || PROJECTS.equals(name)) {
+			return null;
+		}
+		var directory = new File(local.root, name);
+		directory.mkdirs();
+		return directory;
 	}
 
 	/** @return the directory of a project in the local working directory, or null without local working directory */
@@ -322,29 +339,31 @@ public final class LocalWorkDirectory {
 	}
 
 	/**
-	 * @return the marker of a work in progress on a folder, by its real place, null for a folder outside the
-	 *         directory of a project here
+	 * @return the marker of a work in progress on a folder, by its real place: in the directory of its project for a
+	 *         project folder, at the root for a folder of the engine; null for a folder outside this directory
 	 */
 	private Path markerFor(File folder) {
-		Path real;
+		Path real, top;
 		try {
 			var parent = folder.getAbsoluteFile().getParentFile();
 			real = parent.toPath().toRealPath().resolve(folder.getName());
+			top = root.toPath().toRealPath();
 		} catch (Exception e) {
 			return null;
 		}
-		Path projects;
-		try {
-			projects = root.toPath().resolve(PROJECTS).toRealPath();
-		} catch (IOException e) {
-			return null;
+		var projects = top.resolve(PROJECTS);
+		if (real.startsWith(projects)) {
+			if (real.getNameCount() - projects.getNameCount() < 2) {
+				return null;
+			}
+			var relative = projects.relativize(real);
+			return marker(projects.resolve(relative.getName(0)), relative.subpath(1, relative.getNameCount()));
 		}
-		if (!real.startsWith(projects) || real.getNameCount() - projects.getNameCount() < 2) {
-			return null;
-		}
-		var relative = projects.relativize(real);
-		var key = relative.subpath(1, relative.getNameCount()).toString().replace(File.separatorChar, '/');
-		return projects.resolve(relative.getName(0)).resolve(WORKING).resolve(URLEncoder.encode(key, StandardCharsets.UTF_8));
+		return real.startsWith(top) && !real.equals(top) ? marker(top, top.relativize(real)) : null;
+	}
+
+	private static Path marker(Path directory, Path key) {
+		return directory.resolve(WORKING).resolve(URLEncoder.encode(key.toString().replace(File.separatorChar, '/'), StandardCharsets.UTF_8));
 	}
 
 	/** Instances of engines no longer running: their lock is free. */
@@ -382,24 +401,28 @@ public final class LocalWorkDirectory {
 	}
 
 	private void removeInterruptedWork() {
+		removeInterruptedWork(root);
 		var projects = new File(root, PROJECTS).listFiles(File::isDirectory);
-		if (projects == null) {
+		if (projects != null) {
+			for (var project : projects) {
+				removeInterruptedWork(project);
+			}
+		}
+	}
+
+	private static void removeInterruptedWork(File directory) {
+		var markers = new File(directory, WORKING).listFiles(File::isFile);
+		if (markers == null) {
 			return;
 		}
-		for (var project : projects) {
-			var markers = new File(project, WORKING).listFiles(File::isFile);
-			if (markers == null) {
-				continue;
+		for (var marker : markers) {
+			var key = URLDecoder.decode(marker.getName(), StandardCharsets.UTF_8);
+			var target = directory.toPath().resolve(key).normalize();
+			if (target.startsWith(directory.toPath()) && !target.equals(directory.toPath())) {
+				FileUtils.deleteQuietly(target.toFile());
+				info("Local working directory: removed " + target + ", interrupted during the previous run");
 			}
-			for (var marker : markers) {
-				var key = URLDecoder.decode(marker.getName(), StandardCharsets.UTF_8);
-				var target = project.toPath().resolve(key).normalize();
-				if (target.startsWith(project.toPath())) {
-					FileUtils.deleteQuietly(target.toFile());
-					info("Local working directory: removed " + target + ", interrupted during the previous run");
-				}
-				marker.delete();
-			}
+			marker.delete();
 		}
 	}
 

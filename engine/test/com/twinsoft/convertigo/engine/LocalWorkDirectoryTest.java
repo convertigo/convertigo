@@ -263,6 +263,43 @@ public class LocalWorkDirectoryTest {
 	}
 
 	@Test
+	public void engineFoldersAreKeptAcrossVersions() throws Exception {
+		LocalWorkDirectory.use(open("v1"));
+		var nodes = LocalWorkDirectory.getDirectory("nodes");
+		assertEquals(new File(root, "nodes"), nodes);
+		assertTrue("the folder is created", nodes.isDirectory());
+		new File(nodes, "node-v22-linux-x64/bin").mkdirs();
+		LocalWorkDirectory.relocate("App", project, IONIC);
+		assertNull("projects are not an engine folder", LocalWorkDirectory.getDirectory("projects"));
+		LocalWorkDirectory.use(null);
+		assertNull("no engine folder without local working directory", LocalWorkDirectory.getDirectory("nodes"));
+
+		LocalWorkDirectory.use(open("v2"));
+		assertTrue("Node.js distributions do not depend on the Convertigo version", new File(root, "nodes/node-v22-linux-x64/bin").isDirectory());
+		assertFalse("project data does", local(IONIC).exists());
+	}
+
+	@Test
+	public void anInterruptedExtractionIsRemovedAtStartup() throws Exception {
+		LocalWorkDirectory.use(open("v1"));
+		var nodes = LocalWorkDirectory.getDirectory("nodes");
+		var interrupted = new File(nodes, "node-v22-linux-arm64");
+		var completed = new File(nodes, "node-v20-linux-arm64");
+		LocalWorkDirectory.beginWork(interrupted);
+		new File(interrupted, "bin").mkdirs();
+		LocalWorkDirectory.beginWork(completed);
+		new File(completed, "bin").mkdirs();
+		LocalWorkDirectory.endWork(completed);
+		assertTrue(new File(root, ".c8o-working/nodes%2Fnode-v22-linux-arm64").isFile());
+		LocalWorkDirectory.use(null);
+
+		LocalWorkDirectory.use(open("v1"));
+		assertFalse("a half extracted distribution is not reused", interrupted.exists());
+		assertTrue("a completed one is", new File(completed, "bin").isDirectory());
+		assertFalse(new File(root, ".c8o-working/nodes%2Fnode-v22-linux-arm64").exists());
+	}
+
+	@Test
 	public void relativePathsResolveFromTheLink() throws Exception {
 		LocalWorkDirectory.use(open("v1"));
 		var ionic = LocalWorkDirectory.relocate("App", project, IONIC);

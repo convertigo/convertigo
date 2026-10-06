@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
+import com.twinsoft.convertigo.engine.LocalWorkDirectory;
 import com.twinsoft.convertigo.engine.proxy.ntlm.NtlmConnectProxyBridge;
 
 public class ProcessUtils {
@@ -286,11 +287,17 @@ public class ProcessUtils {
 		return Engine.isWindows() ? "win-x64" : Engine.isLinux() ? (arm64 ? "linux-arm64" : "linux-x64") : arm64 ? "darwin-arm64" : "darwin-x64";
 	}
 
+	/** The Node.js distributions, rebuildable: in the local working directory when one is configured. */
+	private static File getNodesDir() {
+		var local = LocalWorkDirectory.getDirectory("nodes");
+		return local != null ? local : new File(Engine.USER_WORKSPACE_PATH, "nodes");
+	}
+
 	private static File getLocalNodeDir(String version) {
 		if (version.equals(defaultNodeVersion) && defaultNodeDir != null) {
 			return defaultNodeDir;
 		}
-		return new File(Engine.USER_WORKSPACE_PATH, "nodes/node-" + version + "-" + getNodeOs());
+		return new File(getNodesDir(), "node-" + version + "-" + getNodeOs());
 	}
 
 	public static SortedSet<String> getNodeVersions() {
@@ -304,7 +311,7 @@ public class ProcessUtils {
 			}
 		});
 
-		File npms = new File(Engine.USER_WORKSPACE_PATH, "nodes");
+		File npms = getNodesDir();
 		if (npms.exists()) {
 			String os = getNodeOs();
 			for (File f : npms.listFiles()) {
@@ -344,6 +351,8 @@ public class ProcessUtils {
 				return dir;
 			}
 			File archive = new File(dir.getPath() + (Engine.isWindows() ? ".zip" : ".tar.gz"));
+			// an extraction interrupted in the local working directory is removed at the next startup
+			File folder = LocalWorkDirectory.beginWork(dir);
 			HttpGet get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName());
 			boolean retry;
 			do {
@@ -407,6 +416,9 @@ public class ProcessUtils {
 				}
 				FileUtils.deleteQuietly(archive);
 			} while(retry);
+			if (folder.exists()) {
+				LocalWorkDirectory.endWork(folder);
+			}
 			return dir;
 		}
 	}
