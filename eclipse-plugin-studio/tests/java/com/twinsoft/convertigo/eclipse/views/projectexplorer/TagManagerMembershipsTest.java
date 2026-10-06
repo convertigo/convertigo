@@ -31,7 +31,7 @@ public final class TagManagerMembershipsTest {
             for (var scope : List.of(TagManager.Scope.workspaceProjects, TagManager.Scope.projectObjects)) {
                 exercise(shell, table, scope);
             }
-            System.out.println("TagManagerMembershipsTest: project and sequence rows, scroll, selection and authoritative checks passed");
+            System.out.println("TagManagerMembershipsTest: project and object rows, kinds, scroll, selection and authoritative checks passed");
         } finally {
             shell.dispose();
             display.dispose();
@@ -70,6 +70,13 @@ public final class TagManagerMembershipsTest {
             require(table.getSelectionIndex() == 30, "membership update lost the row selection");
             require(row.getChecked() == checked, "checkbox does not match the authoritative snapshot");
             require(((Group) table.getParent()).getText().endsWith(checked ? "(1)" : "(0)"), "member count is stale");
+        }
+        if (scope == TagManager.Scope.projectObjects) {
+            snapshot.putObject("targetDetails").putObject(name).put("kind", "Page").put("label", "Checkout");
+            render.invoke(dialog);
+            require(row.getText().equals("Checkout (Page)"), "a project object must be listed with its kind");
+            require(table.getItem(0).getText().equals("Sequence0"), "an object without details must keep its name");
+            snapshot.remove("targetDetails");
         }
         field(dialog, "selected", "anotherTag");
         render.invoke(dialog);

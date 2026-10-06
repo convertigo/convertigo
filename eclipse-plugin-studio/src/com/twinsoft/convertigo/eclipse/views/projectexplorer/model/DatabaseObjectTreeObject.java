@@ -741,7 +741,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		getDescriptors();
 		var descriptors = new java.util.ArrayList<IPropertyDescriptor>(java.util.Arrays.asList(propertyDescriptors == null ? new IPropertyDescriptor[0] : propertyDescriptors));
 		if (com.twinsoft.convertigo.engine.tags.TagPolicy.supports(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects, getObject())) {
-			var objects = new org.eclipse.ui.views.properties.PropertyDescriptor("P_ObjectTags", "Sequence tags"); objects.setCategory("Information"); descriptors.add(objects);
+			var objects = new org.eclipse.ui.views.properties.PropertyDescriptor("P_ObjectTags", "Object tags"); objects.setCategory("Information"); descriptors.add(objects);
 		}
 		if (getObject() instanceof Project) { var projects = new org.eclipse.ui.views.properties.PropertyDescriptor("P_ProjectTags", "Project tags"); projects.setCategory("Information"); descriptors.add(projects); }
 		return descriptors.toArray(IPropertyDescriptor[]::new);

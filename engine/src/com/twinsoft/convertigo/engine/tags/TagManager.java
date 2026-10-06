@@ -357,7 +357,7 @@ public final class TagManager {
 			try {
 				DatabaseObject dbo = missing > 64 ? indexed.get(qname) : resolve(project, qname);
 				if (dbo != null && !TagPolicy.supports(Scope.projectObjects, dbo)) {
-					state.diagnostic = "Unsupported tag target (only sequences are allowed): " + qname;
+					state.diagnostic = "Unsupported tag target (only sequences, transactions, pages, shared components and shared actions are allowed): " + qname;
 					dbo = null;
 				}
 				state.bindings.put(qname, dbo);
@@ -506,7 +506,11 @@ public final class TagManager {
 			state.bindings.forEach((qname, dbo) -> { if (dbo == null) messages.add("Unresolved tag target: " + qname); });
 			result.put("project", project.getName());
 			var targets = result.putArray("targets");
-			project.getSequencesList().stream().map(DatabaseObject::getFullQName).sorted().forEach(targets::add);
+			var details = result.putObject("targetDetails");
+			for (DatabaseObject target : TagPolicy.objects(project)) {
+				targets.add(target.getFullQName());
+				details.putObject(target.getFullQName()).put("kind", TagPolicy.kind(target)).put("label", TagPolicy.label(target));
+			}
 		} else {
 			var conflicts = result.putArray("conflicts");
 			for (var definition : state.work.tags.entrySet()) {

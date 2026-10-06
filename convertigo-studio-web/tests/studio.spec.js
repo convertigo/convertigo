@@ -75,6 +75,7 @@ test('studio project membership checks preserve the scrolled list and its DOM ro
 	await openTreeMenu(page, projectName);
 	await page.getByRole('menuitem', { name: 'Project tags…', exact: true }).click();
 	const dialog = page.getByRole('dialog');
+	await dialog.getByRole('button', { name: 'Edit Audit', exact: true }).click();
 	const list = dialog.locator('.studio-tags__member-list');
 	const checkbox = dialog.getByRole('checkbox', { name: 'Include Project40', exact: true });
 	await checkbox.scrollIntoViewIfNeeded();
@@ -105,7 +106,7 @@ test('studio reference tag creation requires a single project selection', async 
 	await expect(page.getByRole('menuitem', { name: 'Project tags…', exact: true })).toBeEnabled();
 	await expect(
 		page.getByRole('menuitem', { name: 'Create tag from references…', exact: true })
-	).toBeDisabled();
+	).toHaveCount(0);
 	expect(tags.commands).toHaveLength(0);
 });
 
@@ -222,9 +223,9 @@ test('studio tags edit typed contributions and immediately refresh badges', asyn
 	await expandTreeNode(page, projectName + ':sq');
 	await selectTreeNode(page, sequenceId);
 	await openTreeMenu(page, sequenceId);
-	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
 	const dialog = page.getByRole('dialog');
-	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
+	await dialog.getByRole('button', { name: 'Edit CRM', exact: true }).click();
 	await dialog.getByLabel('Label', { exact: true }).fill('Client <script>');
 	// Extension fields belong to the tag definition, outside the Advanced section.
 	await expect(dialog.getByLabel('Count', { exact: true })).toBeVisible();
@@ -255,9 +256,9 @@ test('studio tags edit ordered references through the generic descriptor without
 	await expandTreeNode(page, projectName + ':sq');
 	await selectTreeNode(page, sequenceId);
 	await openTreeMenu(page, sequenceId);
-	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
 	const dialog = page.getByRole('dialog');
-	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
+	await dialog.getByRole('button', { name: 'Edit CRM', exact: true }).click();
 	const resources = dialog.getByRole('group', { name: 'Resources', exact: true });
 	await expect(resources).toBeVisible();
 	await expect(resources.getByRole('alert')).toContainText('retired');
@@ -285,7 +286,7 @@ test('studio tags edit ordered references through the generic descriptor without
 	await expect(resources.getByRole('list')).toContainText('1. B2');
 });
 
-test('studio tags reorder memberships without changing the tag being edited', async ({ page }) => {
+test('studio object tags reorder the tags of the object', async ({ page }) => {
 	await mockStudioServices(page);
 	const tags = await mockTagServices(page);
 	await page.goto('/studio/');
@@ -293,13 +294,10 @@ test('studio tags reorder memberships without changing the tag being edited', as
 	await expandTreeNode(page, projectName + ':sq');
 	await selectTreeNode(page, sequenceId);
 	await openTreeMenu(page, sequenceId);
-	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
 	const dialog = page.getByRole('dialog');
-	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
-	await dialog.getByLabel('Label', { exact: true }).fill('Pending label');
-	await expect(
-		dialog.getByRole('list', { name: 'Ordered values' }).getByRole('listitem').first()
-	).toContainText('1. CRM');
+	const order = dialog.getByRole('list', { name: 'Ordered values' });
+	await expect(order.getByRole('listitem').first()).toContainText('1. CRM');
 	await dialog.getByRole('button', { name: 'Move CRM down', exact: true }).click();
 	await expect.poll(() => tags.commands.length).toBe(1);
 	expect(tags.commands[0]).toEqual({
@@ -309,17 +307,13 @@ test('studio tags reorder memberships without changing the tag being edited', as
 			tagIds: ['41a604a2-4900-437b-9cb8-7209f4152e3a', '5e1012bd-4ab1-452a-8e23-4228586256a2']
 		}
 	});
-	await expect(
-		dialog.getByRole('list', { name: 'Ordered values' }).getByRole('listitem').first()
-	).toContainText('1. Audit');
-	await expect(dialog.getByLabel('Label', { exact: true })).toHaveValue('Pending label');
+	await expect(order.getByRole('listitem').first()).toContainText('1. Audit');
 	await expect(dialog.getByRole('button', { name: 'Move Audit up', exact: true })).toBeDisabled();
+	await expect(dialog.getByRole('checkbox', { name: 'CRM', exact: true })).toBeChecked();
 	await dialog.getByRole('button', { name: 'Close', exact: true }).click();
 	await openTreeMenu(page, sequenceId);
-	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
-	await expect(
-		dialog.getByRole('list', { name: 'Ordered values' }).getByRole('listitem').first()
-	).toContainText('1. Audit');
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
+	await expect(order.getByRole('listitem').first()).toContainText('1. Audit');
 });
 
 test('studio tags enable sequence actions after a direct URL loads its lazy tree', async ({
@@ -336,12 +330,12 @@ test('studio tags enable sequence actions after a direct URL loads its lazy tree
 	});
 	await page.goto(url);
 	await openTreeMenu(page, sequenceId);
-	await expect(page.getByRole('menuitem', { name: 'Sequence tags…', exact: true })).toBeEnabled();
+	await expect(page.getByRole('menuitem', { name: 'Object tags…', exact: true })).toBeEnabled();
 	await page.keyboard.press('Escape');
 	await openTreeMenu(page, sequenceId);
-	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
 	await expect(
-		page.getByRole('dialog').getByRole('checkbox', { name: 'Include TestSequence', exact: true })
+		page.getByRole('dialog').getByRole('checkbox', { name: 'CRM', exact: true })
 	).toBeChecked();
 });
 
@@ -361,9 +355,9 @@ test('studio tags preserve loaded workspace occurrences after a tag update', asy
 	await expandTreeNode(page, sequenceId + ':st');
 	await selectTreeNode(page, sequenceId);
 	await openTreeMenu(page, sequenceId);
-	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
 	const dialog = page.getByRole('dialog');
-	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
+	await dialog.getByRole('button', { name: 'Edit CRM', exact: true }).click();
 	await dialog.getByLabel('Label', { exact: true }).fill('Clients');
 	await dialog.getByRole('button', { name: 'Update tag', exact: true }).click();
 	await expect(dialog.getByText('Modified — save the project to keep these tags.')).toBeVisible();
@@ -374,7 +368,7 @@ test('studio tags preserve loaded workspace occurrences after a tag update', asy
 	).toBeVisible();
 	await selectTreeNode(page, initStepId);
 	await openTreeMenu(page, initStepId);
-	await expect(page.getByRole('menuitem', { name: 'Sequence tags…', exact: true })).toHaveCount(0);
+	await expect(page.getByRole('menuitem', { name: 'Object tags…', exact: true })).toHaveCount(0);
 	await page.keyboard.press('Escape');
 });
 
@@ -388,7 +382,7 @@ test('studio tags exclude steps from assignment actions and grouped collections'
 	await expandTreeNode(page, projectName + ':sq');
 	await selectTreeNode(page, sequenceId);
 	await openTreeMenu(page, sequenceId);
-	await expect(page.getByRole('menuitem', { name: 'Sequence tags…', exact: true })).toBeEnabled();
+	await expect(page.getByRole('menuitem', { name: 'Object tags…', exact: true })).toBeEnabled();
 	await page.keyboard.press('Escape');
 	await openTreeMenu(page, sequenceId);
 	await page.getByRole('menuitem', { name: 'Group by tags', exact: true }).click();
@@ -405,7 +399,7 @@ test('studio tags exclude steps from assignment actions and grouped collections'
 	await expandTreeNode(page, sequenceId + ':st');
 	await selectTreeNode(page, initStepId);
 	await openTreeMenu(page, initStepId);
-	await expect(page.getByRole('menuitem', { name: 'Sequence tags…', exact: true })).toHaveCount(0);
+	await expect(page.getByRole('menuitem', { name: 'Object tags…', exact: true })).toHaveCount(0);
 	await page.keyboard.press('Escape');
 	const steps = tree
 		.locator('button.studio-tree-node__content[data-node-id="' + sequenceId + ':st"]')
@@ -420,9 +414,45 @@ test('studio tags exclude steps from assignment actions and grouped collections'
 		.first()
 		.click({ modifiers: ['ControlOrMeta'] });
 	await openTreeMenu(page, sequenceId);
-	await expect(page.getByRole('menuitem', { name: 'Sequence tags…', exact: true })).toBeDisabled();
+	await expect(page.getByRole('menuitem', { name: 'Object tags…', exact: true })).toHaveCount(0);
 	await page.keyboard.press('Escape');
 	expect(tags.commands).toHaveLength(0);
+});
+
+test('studio tags display toggles the tag labels of the tree independently of the grouping', async ({
+	page
+}) => {
+	await page.addInitScript(() => localStorage.setItem('studio-tags-displayed', 'false'));
+	await mockStudioServices(page);
+	await mockTagServices(page);
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	const sequence = tree.locator(`button.studio-tree-node__content[data-node-id="${sequenceId}"]`);
+	await expect(sequence).toBeVisible();
+	await expect(sequence.locator('.studio-tree-tag')).toHaveCount(0);
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Group by tags', exact: true }).click();
+	await ensureTreeNodeExpanded(page, projectName);
+	await ensureTreeNodeExpanded(page, projectName + ':sq');
+	await tree.getByRole('button', { name: 'CRM (1)', exact: true }).click();
+	await expect(sequence).toHaveCount(1);
+	await expect(sequence.locator('.studio-tree-tag')).toHaveCount(0);
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Display tags', exact: true }).click();
+	// the occurrence in a tag group shows the other tag of the sequence
+	await expect(sequence.locator('.studio-tree-tag')).toHaveCount(1);
+	await expect(tree.getByRole('button', { name: 'CRM (1)', exact: true })).toBeVisible();
+	expect(await page.evaluate(() => localStorage.getItem('studio-tags-displayed'))).toBe('true');
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Group by tags', exact: true }).click();
+	await expect(tree.getByRole('button', { name: 'CRM (1)', exact: true })).toHaveCount(0);
+	await expect(sequence.locator('.studio-tree-tag')).toHaveCount(2);
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Display tags', exact: true }).click();
+	await expect(sequence.locator('.studio-tree-tag')).toHaveCount(0);
+	expect(await page.evaluate(() => localStorage.getItem('studio-tags-displayed'))).toBe('false');
 });
 
 test('studio tags keep independent occurrence expansion and deduplicate object commands', async ({
@@ -465,7 +495,8 @@ test('studio tags keep independent occurrence expansion and deduplicate object c
 	await expect.poll(() => tags.copies.length).toBe(1);
 	expect(JSON.parse(tags.copies[0].get('ids'))).toEqual([sequenceId]);
 	await tree.getByRole('button', { name: 'Audit (1)', exact: true }).click({ button: 'right' });
-	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	await expect(page.getByRole('menuitem', { name: 'Object tags…', exact: true })).toHaveCount(0);
+	await page.getByRole('menuitem', { name: 'Edit tag…', exact: true }).click();
 	const dialog = page.getByRole('dialog');
 	await expect(dialog.getByLabel('Label', { exact: true })).toHaveValue('Audit');
 	await expect(
@@ -495,10 +526,9 @@ test('studio tags immediately refresh a retained group counter after membership 
 	await tree.getByRole('button', { name: 'Audit (2)', exact: true }).click();
 	await selectTreeNode(page, sequenceId);
 	await openTreeMenu(page, sequenceId);
-	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
 	const dialog = page.getByRole('dialog');
-	await dialog.getByRole('button', { name: 'Audit', exact: true }).click();
-	await dialog.getByRole('checkbox', { name: 'Include TestSequence', exact: true }).uncheck();
+	await dialog.getByRole('checkbox', { name: 'Audit', exact: true }).uncheck();
 	await expect(dialog.getByText('Modified — save the project to keep these tags.')).toBeVisible();
 	await dialog.getByRole('button', { name: 'Close', exact: true }).click();
 	await expect(tree.getByRole('button', { name: 'Audit (1)', exact: true })).toBeVisible();
@@ -587,9 +617,9 @@ test('studio tags finish membership changes before starting a new tag', async ({
 	await expandTreeNode(page, projectName + ':sq');
 	await selectTreeNode(page, sequenceId);
 	await openTreeMenu(page, sequenceId);
-	await page.getByRole('menuitem', { name: 'Sequence tags…', exact: true }).click();
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
 	const dialog = page.getByRole('dialog');
-	await dialog.getByRole('button', { name: 'CRM', exact: true }).click();
+	await dialog.getByRole('button', { name: 'Edit CRM', exact: true }).click();
 	await dialog.getByRole('checkbox', { name: 'Include TestSequence', exact: true }).uncheck();
 	await expect.poll(() => tags.commands.length).toBe(1);
 	await expect(dialog.getByRole('button', { name: 'New tag', exact: true })).toBeDisabled();
@@ -598,6 +628,204 @@ test('studio tags finish membership changes before starting a new tag', async ({
 	await dialog.getByRole('button', { name: 'New tag', exact: true }).click();
 	await expect(dialog.getByLabel('Label', { exact: true })).toHaveValue('');
 	await expect(dialog.getByRole('button', { name: 'Create tag', exact: true })).toBeVisible();
+});
+
+test('studio object tags list the objects of every kind of the project', async ({ page }) => {
+	await mockStudioServices(page);
+	const transactionId = `${projectName}.cn:Http.tr:Charge`;
+	const pageId = `${projectName}.MobileApplication.Application.pg:Checkout`;
+	const tags = await mockTagServices(page, {
+		objects: [
+			{ id: transactionId, kind: 'Transaction', label: 'Http › Charge' },
+			{ id: pageId, kind: 'Page', label: 'Checkout' }
+		]
+	});
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog.getByText('Tags of TestSequence (Sequence)', { exact: true })).toBeVisible();
+	await dialog.getByRole('button', { name: 'Edit CRM', exact: true }).click();
+	await expect(dialog.getByText(`Object tags — ${projectName}`, { exact: true })).toBeVisible();
+	const members = dialog.locator('.studio-tags__member');
+	await expect(members).toHaveText([
+		/TestSequence\s*Sequence/,
+		/Http › Charge\s*Transaction/,
+		/Checkout\s*Page/
+	]);
+	await dialog.getByRole('checkbox', { name: 'Include Checkout', exact: true }).check();
+	await expect.poll(() => tags.commands.length).toBe(1);
+	expect(tags.commands[0]).toMatchObject({ action: 'assign', input: { targets: [pageId] } });
+	await expect(
+		dialog.getByRole('checkbox', { name: 'Include Checkout', exact: true })
+	).toBeChecked();
+});
+
+test('studio object tags check the existing tags of the project and create one for the object', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page);
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog.getByText('Tags of TestSequence', { exact: true })).toBeVisible();
+	await expect(dialog.getByRole('checkbox', { name: 'Audit', exact: true })).toBeChecked();
+	await expect(dialog.getByRole('checkbox', { name: 'CRM', exact: true })).toBeChecked();
+	const find = dialog.getByRole('searchbox', { name: 'Find or create a tag', exact: true });
+	const create = dialog.getByRole('button', { name: 'Create tag', exact: true });
+	await find.fill('crm');
+	await expect(create).toBeDisabled();
+	await expect(dialog.getByRole('checkbox')).toHaveCount(1);
+	await find.fill('Payment');
+	await expect(create).toBeEnabled();
+	await find.press('Enter');
+	await expect.poll(() => tags.commands.length).toBe(2);
+	expect(tags.commands[0]).toMatchObject({
+		action: 'create',
+		input: { definition: { label: 'Payment' } }
+	});
+	expect(tags.commands[1]).toMatchObject({
+		action: 'assign',
+		input: { targets: [sequenceId], tagIds: [tags.commands[0].input.id] }
+	});
+	await expect(find).toHaveValue('');
+	await expect(dialog.getByRole('checkbox', { name: 'Payment', exact: true })).toBeChecked();
+	await dialog.getByRole('checkbox', { name: 'CRM', exact: true }).uncheck();
+	await expect.poll(() => tags.commands.length).toBe(3);
+	expect(tags.commands[2]).toMatchObject({
+		action: 'remove',
+		input: { targets: [sequenceId], tagIds: ['5e1012bd-4ab1-452a-8e23-4228586256a2'] }
+	});
+	await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+	await expect(
+		page.locator(`button.studio-tree-node__content[data-node-id="${sequenceId}"]`)
+	).toContainText('Payment');
+});
+
+test('studio object tags add a tag of some of the selected objects to all of them', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const tags = await mockTagServices(page, { secondSequence: true });
+	const other = `${projectName}.sq:OtherSequence`;
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await selectTreeNode(page, sequenceId);
+	await page
+		.locator(`button.studio-tree-node__content[data-node-id="${other}"]`)
+		.click({ modifiers: ['ControlOrMeta'] });
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog.getByText('Tags of 2 objects', { exact: true })).toBeVisible();
+	const audit = dialog.getByRole('checkbox', { name: 'Audit', exact: true });
+	const crm = dialog.getByRole('checkbox', { name: 'CRM', exact: true });
+	await expect(audit).toBeChecked();
+	await expect(crm).not.toBeChecked();
+	expect(await crm.evaluate((input) => /** @type {HTMLInputElement} */ (input).indeterminate)).toBe(
+		true
+	);
+	// the order of tags belongs to a single object
+	await expect(dialog.getByRole('list', { name: 'Ordered values' })).toHaveCount(0);
+	await crm.click();
+	await expect.poll(() => tags.commands.length).toBe(1);
+	expect(tags.commands[0]).toMatchObject({
+		action: 'assign',
+		input: { targets: [sequenceId, other], tagIds: ['5e1012bd-4ab1-452a-8e23-4228586256a2'] }
+	});
+	await expect(crm).toBeChecked();
+	await expect
+		.poll(() => crm.evaluate((input) => /** @type {HTMLInputElement} */ (input).indeterminate))
+		.toBe(false);
+});
+
+test('studio object tags open a tag with all its members and come back to the object', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	await mockTagServices(page);
+	await page.goto('/studio/');
+	await openTreeMenu(page, projectName);
+	await page.getByRole('menuitem', { name: 'Project tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog.getByText(`Tags of ${projectName}`, { exact: true })).toBeVisible();
+	await dialog.getByRole('button', { name: 'Edit CRM', exact: true }).click();
+	await expect(dialog.getByText('Project tags', { exact: true })).toBeVisible();
+	await expect(dialog.getByLabel('Label', { exact: true })).toHaveValue('CRM');
+	await expect(
+		dialog.getByRole('checkbox', { name: `Include ${projectName}`, exact: true })
+	).toBeVisible();
+	await dialog
+		.getByRole('button', { name: `Back to the tags of ${projectName}`, exact: true })
+		.click();
+	await expect(dialog.getByText(`Tags of ${projectName}`, { exact: true })).toBeVisible();
+	await dialog.getByRole('button', { name: 'Manage tags…', exact: true }).click();
+	await expect(dialog.getByLabel('Label', { exact: true })).toHaveValue('Audit');
+});
+
+test('studio tags clear the modified mark of a project once it is saved', async ({ page }) => {
+	await mockStudioServices(page);
+	await mockTagServices(page);
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await selectTreeNode(page, sequenceId);
+	await openTreeMenu(page, sequenceId);
+	await page.getByRole('menuitem', { name: 'Object tags…', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByRole('checkbox', { name: 'Audit', exact: true }).uncheck();
+	await expect(dialog.getByText('Modified — save the project to keep these tags.')).toBeVisible();
+	await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+	const label = page.locator(
+		`button.studio-tree-node__content[data-node-id="${projectName}"] .studio-tree-node__label`
+	);
+	await expect(label).toHaveClass(/studio-tree-node__label--modified/);
+	await page.getByRole('button', { name: 'Save project - unsaved changes', exact: true }).click();
+	await expect(page.getByRole('button', { name: 'Save project', exact: true })).toBeVisible();
+	await expect(label).not.toHaveClass(/studio-tree-node__label--modified/);
+});
+
+test('studio tree menus open with their actions so that their items do not move', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	await mockTagServices(page);
+	await page.route('**/admin/services/studio.treeview.ContextMenu', async (route) => {
+		await new Promise((resolve) => setTimeout(resolve, 200));
+		await route.fulfill({
+			json: {
+				menu: {
+					items: Array.from({ length: 6 }, (_, index) => ({
+						id: `fixture.action${index}`,
+						label: `Fixture action ${index}`,
+						group: 'Fixture',
+						enabled: true
+					}))
+				}
+			}
+		});
+	});
+	await page.goto('/studio/');
+	await expandTreeNode(page, projectName);
+	await expandTreeNode(page, projectName + ':sq');
+	await page
+		.locator(`button.studio-tree-node__content[data-node-id="${sequenceId}"]`)
+		.click({ button: 'right' });
+	const item = page.getByRole('menuitem', { name: 'Object tags…', exact: true });
+	await expect(item).toBeVisible();
+	// the menu shows once its actions are loaded, not before with a row that they replace
+	expect(await page.getByRole('menuitem', { name: 'Loading actions…' }).count()).toBe(0);
+	await expect(page.getByRole('menuitem', { name: 'Fixture action 5', exact: true })).toBeVisible();
+	const before = await item.boundingBox();
+	await page.waitForTimeout(300);
+	expect(await item.boundingBox()).toEqual(before);
 });
 
 async function openTreeMenu(page, nodeId) {
@@ -644,7 +872,22 @@ async function mockTagServices(page, options = {}) {
 		readOnly: false,
 		tags,
 		assignments,
-		targets: [target, ...(options.secondSequence ? [other] : [])],
+		targets: [
+			target,
+			...(options.secondSequence ? [other] : []),
+			...(options.objects ?? []).map((object) => object.id)
+		],
+		...(options.objects
+			? {
+					targetDetails: Object.fromEntries([
+						[target, { kind: 'Sequence', label: target.split('.sq:')[1] }],
+						...options.objects.map((object) => [
+							object.id,
+							{ kind: object.kind, label: object.label }
+						])
+					])
+				}
+			: {}),
 		projects: options.projects ?? [projectName],
 		diagnostics: [],
 		contributions: {
@@ -710,6 +953,9 @@ async function mockTagServices(page, options = {}) {
 				assignments[id] = [...new Set([...(assignments[id] ?? []), ...input.tagIds])];
 		} else if (action === 'reorder') {
 			for (const id of input.targets) assignments[id] = [...input.tagIds];
+		} else if (action === 'create') {
+			input.id = 'c0ffee00-4a1b-4c2d-8e3f-000000000001';
+			tags[input.id] = input.definition;
 		} else tags[input.id] = input.definition;
 		revision++;
 		dirty = scope === 'projectObjects';

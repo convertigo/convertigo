@@ -3513,6 +3513,7 @@
 {#snippet projectsPane()}
 	<StudioTreePanel
 		tagChange={treeTagChange}
+		dirtyProjects={dirtyProjectNames}
 		onTagsChanged={(result) => {
 			for (const name of result.dirtyProjects ?? []) markProjectDirty(name, { snapshot: false });
 			propertiesTagChange = { ...result, serial: Date.now() };

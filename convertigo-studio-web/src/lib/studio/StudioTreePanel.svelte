@@ -1,7 +1,7 @@
 <script>
 	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
 	import Projects from '$lib/common/Projects.svelte.js';
-	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
+	import { createProjectTree, mergeProjectTreeMarks } from '$lib/common/ProjectsTree.svelte.js';
 	import Ico from '$lib/utils/Ico.svelte';
 	import { call, runStudioContextAction, toaster } from '$lib/utils/service';
 	import { onMount, tick, untrack } from 'svelte';
@@ -60,6 +60,7 @@
 	 *  reloadProject?: { projectName: string, serial: number } | null,
 	 *  tagChange?: any,
 	 *  onTagsChanged?: (result: any) => void,
+	 *  dirtyProjects?: Set<string>,
 	 *  onMutation?: (mutation: import('./dnd').DboDropResult) => void | Promise<void>,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onContextAction?: (event: { nodeId: string, action: any, result: any }) => void | Promise<void>,
@@ -88,6 +89,7 @@
 		reloadProject = null,
 		tagChange = null,
 		onTagsChanged,
+		dirtyProjects = undefined,
 		onMutation,
 		onMutationBusyChange,
 		onContextAction,
@@ -107,6 +109,8 @@
 
 	const tagPreference = persistedState('studio-tags-grouped', false);
 	let tagsGrouped = $derived(tagPreference.current);
+	const tagDisplayPreference = persistedState('studio-tags-displayed', true);
+	let tagsDisplayed = $derived(tagDisplayPreference.current);
 	let tagRoots = $state.raw(/** @type {any[]} */ ([]));
 	let tagsDialog;
 	const { checkChildren, checkNodes } = createProjectTree({
@@ -460,9 +464,13 @@
 					? occurrence
 					: (rootNodeCache[node.id] ?? occurrence);
 				const root = rootNodeCache[node.id];
-				if (root) rootNodeCache[node.id] = { ...root, ...node, children: root.children };
+				if (root)
+					rootNodeCache[node.id] = {
+						...mergeProjectTreeMarks(root, node),
+						children: root.children
+					};
 				if (cached) {
-					return { ...cached, ...node, children: cached.children };
+					return { ...mergeProjectTreeMarks(cached, node), children: cached.children };
 				}
 				return node;
 			});
@@ -475,6 +483,9 @@
 		void closedProjects.names.length;
 		untrack(() => void refreshTagRoots());
 	});
+	function toggleTagDisplay() {
+		tagDisplayPreference.current = !tagsDisplayed;
+	}
 	async function toggleTagsView() {
 		tagPreference.current = !tagsGrouped;
 		const loaded = [];
@@ -523,6 +534,15 @@
 		const change = tagChange;
 		if (change) untrack(() => void tagsChanged(change));
 	});
+	/** the projects the page knew modified, to see the ones saved, reloaded or closed since */
+	let previousDirtyProjects = new Set();
+	$effect(() => {
+		const dirty = new Set(dirtyProjects ?? []);
+		const cleaned = [...previousDirtyProjects].some((name) => !dirty.has(name));
+		previousDirtyProjects = dirty;
+		// a project no longer modified shows the state of the engine again, without its modified mark
+		if (cleaned) untrack(() => void refreshTagRoots());
+	});
 	/** @param {any} node */
 	function canManageTags(node) {
 		dataSerial;
@@ -568,7 +588,10 @@
 		const scope = group.scope;
 		const project = group.project;
 		if (!targets.every((id) => findNodeById(id)?.tagScope === scope)) {
-			toaster.error({ description: 'Tags can only be assigned to projects and sequences.' });
+			toaster.error({
+				description:
+					'Tags can only be assigned to projects, sequences, transactions, pages, shared components and shared actions.'
+			});
 			return;
 		}
 		const snapshot = await call('studio.tags.Get', { scope, project });
@@ -1312,7 +1335,9 @@
 				onManageTags={manageTags}
 				{canManageTags}
 				{tagsGrouped}
+				{tagsDisplayed}
 				onToggleTagGrouping={toggleTagsView}
+				onToggleTagDisplay={toggleTagDisplay}
 				bind:selectedId
 				bind:renameTargetId
 				depth={0}

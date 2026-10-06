@@ -78,7 +78,6 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILabelDecorator;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -394,6 +393,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public Action projectExplorerSaveAllAction;
 
 	private ViewContentProvider viewContentProvider = null;
+	private ViewLabelProvider viewLabelProvider = null;
 
 	// weak values: a tree object references its bean, so a strong value would keep its key, and the project version it belongs to, forever
 	private Map<DatabaseObject, WeakReference<DatabaseObjectTreeObject>> databaseObjectTreeObjectCache = new WeakHashMap<>();
@@ -617,7 +617,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 		TreeViewerColumn treeViewerColumn = new TreeViewerColumn(viewer, SWT.LEFT);
 
-		ILabelProvider lp = new ViewLabelProvider();
+		ViewLabelProvider lp = viewLabelProvider = new ViewLabelProvider();
 		ILabelDecorator ld = PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator();
 
 		treeViewerColumn.setLabelProvider(new DecoratingColumnLabelProvider(lp, ld));
@@ -798,23 +798,31 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private void fillLocalToolBar(IToolBarManager manager) {
 		// Tag presentation is controlled from the view and context menus.
 	}
-	private org.eclipse.jface.action.Action tagGroupingAction;
-	private org.eclipse.jface.action.Action tagGroupingAction() {
+
+	private Action tagGroupingAction;
+	private Action tagDisplayAction;
+	/** creates the actions that present the tags in the tree, with their saved state applied to the tree */
+	private void makeTagViewActions() {
 		if (tagGroupingAction == null) {
-			tagGroupingAction = new org.eclipse.jface.action.Action("Group by tags", org.eclipse.jface.action.IAction.AS_CHECK_BOX) {
-				@Override public void run() {
-					viewContentProvider.tags.enabled = isChecked();
-					ConvertigoPlugin.setProperty("studio.tags.grouped", Boolean.toString(isChecked()));
-					if (ConvertigoPlugin.getDefault().getPreferenceStore() instanceof org.eclipse.jface.preference.IPersistentPreferenceStore preferences) {
-						try { preferences.save(); } catch (java.io.IOException e) { ConvertigoPlugin.logException(e, "Unable to save tag view preference"); }
-					}
-					viewer.refresh();
-				}
-			};
-			boolean grouped = "true".equals(ConvertigoPlugin.getProperty("studio.tags.grouped"));
-			tagGroupingAction.setChecked(grouped); viewContentProvider.tags.enabled = grouped;
+			tagGroupingAction = makeTagViewAction("Group by tags", "studio.tags.grouped", false, checked -> viewContentProvider.tags.enabled = checked);
+			tagDisplayAction = makeTagViewAction("Display tags", "studio.tags.displayed", true, checked -> viewLabelProvider.tagsDisplayed = checked);
 		}
-		return tagGroupingAction;
+	}
+	private Action makeTagViewAction(String text, String property, boolean byDefault, java.util.function.Consumer<Boolean> apply) {
+		var action = new Action(text, Action.AS_CHECK_BOX) {
+			@Override public void run() {
+				apply.accept(isChecked());
+				ConvertigoPlugin.setProperty(property, Boolean.toString(isChecked()));
+				if (ConvertigoPlugin.getDefault().getPreferenceStore() instanceof org.eclipse.jface.preference.IPersistentPreferenceStore preferences) {
+					try { preferences.save(); } catch (IOException e) { ConvertigoPlugin.logException(e, "Unable to save tag view preference"); }
+				}
+				viewer.refresh();
+			}
+		};
+		String value = ConvertigoPlugin.getProperty(property);
+		boolean checked = value == null || value.isEmpty() ? byDefault : "true".equals(value);
+		action.setChecked(checked); apply.accept(checked);
+		return action;
 	}
 
 	private void fillStatusBar(IStatusLineManager statusLine) {
@@ -830,48 +838,42 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
 
+	/** adds the Tags submenu, filled when it is shown with only the tag actions available for the selection */
 	private void addTagActions(IMenuManager manager) {
-		manager.add(tagGroupingAction());
+		makeTagViewActions();
+		var tagsMenu = new MenuManager("Tags", "com.twinsoft.convertigo.eclipse.views.projectexplorer.tags");
+		tagsMenu.setRemoveAllWhenShown(true);
+		tagsMenu.addMenuListener(this::fillTagMenu);
+		manager.add(tagsMenu);
+	}
+	private void fillTagMenu(IMenuManager manager) {
+		var selection = getSelectedTreeObjects();
 		if (viewer.getStructuredSelection().getFirstElement() instanceof TagTreeObject group && group.target == null) {
-			manager.add(new org.eclipse.jface.action.Action("Edit tag…") {
+			manager.add(new Action("Edit tag…") {
 				@Override public void run() {
 					new TagManagerDialog(viewer.getControl().getShell(), com.twinsoft.convertigo.engine.tags.TagManager.Scope.valueOf(group.group.path("scope").asText()),
-							group.group.path("project").asText(), java.util.List.of(), result -> {
-						for (var name : result.path("dirtyProjects")) {
-							var loaded = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name.asText());
-							var tree = loaded == null ? null : findTreeObjectByUserObject(loaded);
-							if (tree instanceof DatabaseObjectTreeObject dboTree) dboTree.hasBeenModified(true);
-						}
-						for (var container : result.path("affectedContainers")) refreshTaggedCollection(container.asText());
-					}).selectTag(group.group.path("tagId").asText()).open();
+							group.group.path("project").asText(), java.util.List.of(), tagChanges()).selectTag(group.group.path("tagId").asText()).open();
 				}
 			});
-			return;
+		} else if (selection != null && selection.length > 0) {
+			if (java.util.Arrays.stream(selection).allMatch(tree -> tree.getObject() instanceof DatabaseObject dbo
+					&& com.twinsoft.convertigo.engine.tags.TagPolicy.supports(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects, dbo))) {
+				manager.add(new Action("Object tags…") {
+					@Override public void run() { openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects); }
+				});
+			}
+			if (java.util.Arrays.stream(selection).allMatch(tree -> tree instanceof UnloadedProjectTreeObject || tree.getObject() instanceof Project)) {
+				manager.add(new Action("Project tags…") {
+					@Override public void run() { openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects); }
+				});
+				if (selection.length == 1) manager.add(new Action("Create tag from references…") {
+					@Override public void run() { openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects, true); }
+				});
+			}
 		}
-		manager.add(new org.eclipse.jface.action.Action("Sequence tags…") {
-			@Override public boolean isEnabled() {
-				var selection = getSelectedTreeObjects();
-				return selection != null && selection.length > 0 && java.util.Arrays.stream(selection).allMatch(tree ->
-						tree.getObject() instanceof DatabaseObject dbo && com.twinsoft.convertigo.engine.tags.TagPolicy.supports(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects, dbo));
-			}
-			@Override public void run() { openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects); }
-		});
-		manager.add(new org.eclipse.jface.action.Action("Project tags…") {
-			@Override public boolean isEnabled() {
-				var selection = getSelectedTreeObjects();
-				return selection != null && selection.length > 0 && java.util.Arrays.stream(selection).allMatch(tree ->
-						tree instanceof UnloadedProjectTreeObject || tree.getObject() instanceof Project);
-			}
-			@Override public void run() { openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects); }
-		});
-		manager.add(new org.eclipse.jface.action.Action("Create tag from references…") {
-			@Override public boolean isEnabled() {
-				var selection = getSelectedTreeObjects();
-				return selection != null && selection.length == 1 &&
-						(selection[0] instanceof UnloadedProjectTreeObject || selection[0].getObject() instanceof Project);
-			}
-			@Override public void run() { openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects, true); }
-		});
+		if (!manager.isEmpty()) manager.add(new Separator());
+		manager.add(tagGroupingAction);
+		manager.add(tagDisplayAction);
 	}
 	private void openTagManager(com.twinsoft.convertigo.engine.tags.TagManager.Scope scope) {
 		openTagManager(scope, false);
@@ -890,9 +892,20 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			} else if (scope == com.twinsoft.convertigo.engine.tags.TagManager.Scope.workspaceProjects && tree instanceof UnloadedProjectTreeObject) targets.add(tree.getName());
 		}
 		if (scope == com.twinsoft.convertigo.engine.tags.TagManager.Scope.projectObjects && (project.isEmpty() || targets.isEmpty())) {
-			org.eclipse.jface.dialogs.MessageDialog.openInformation(viewer.getControl().getShell(), "Sequence tags", "Select a sequence in an open project first."); return;
+			org.eclipse.jface.dialogs.MessageDialog.openInformation(viewer.getControl().getShell(), "Object tags", "Select a sequence, a transaction, a page, a shared component or a shared action in an open project first."); return;
 		}
-		var dialog = new TagManagerDialog(viewer.getControl().getShell(), scope, project, targets, result -> {
+		if (!fromReferences) {
+			// From an object: its tags, the existing tags of its scope to check or a new one
+			new ObjectTagsDialog(viewer.getControl().getShell(), scope, project, targets, tagChanges()).open();
+			return;
+		}
+		var dialog = new TagManagerDialog(viewer.getControl().getShell(), scope, project, targets, tagChanges());
+		if (targets.size() == 1) dialog.createFromReferences(targets.get(0));
+		dialog.open();
+	}
+	/** Shows the result of a tag command in the tree: modified projects, tagged collections and properties. */
+	private java.util.function.Consumer<com.fasterxml.jackson.databind.node.ObjectNode> tagChanges() {
+		return result -> {
 			for (var name : result.path("dirtyProjects")) {
 				var loaded = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name.asText());
 				var tree = loaded == null ? null : findTreeObjectByUserObject(loaded);
@@ -900,9 +913,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			for (var container : result.path("affectedContainers")) refreshTaggedCollection(container.asText());
 			if (result.path("done").asBoolean()) ConvertigoPlugin.getDefault().refreshPropertiesView();
-		});
-		if (fromReferences && targets.size() == 1) dialog.createFromReferences(targets.get(0));
-		dialog.open();
+		};
 	}
 
 	public void refreshTaggedCollection(String collection) {

@@ -24,8 +24,10 @@
 	 *  canManageTags?: boolean,
 	 *  canCreateTagFromReferences?: boolean,
 	 *  tagsGrouped?: boolean,
+	 *  tagsDisplayed?: boolean,
 	 *  onManageTags?: (fromReferences?: boolean) => void | Promise<void>,
 	 *  onToggleTagGrouping?: () => void | Promise<void>,
+	 *  onToggleTagDisplay?: () => void | Promise<void>,
 	 *  label?: string,
 	 *  canRename?: boolean,
 	 *  canDelete?: boolean,
@@ -59,8 +61,10 @@
 		canManageTags = false,
 		canCreateTagFromReferences = false,
 		tagsGrouped = false,
+		tagsDisplayed = true,
 		onManageTags,
 		onToggleTagGrouping,
+		onToggleTagDisplay,
 		label = 'object',
 		canRename = false,
 		canDelete = false,
@@ -144,9 +148,7 @@
 		// the tree already selected the object, or kept the objects selected together
 		untrack(() => {
 			contextPoint = { x: request.x, y: request.y };
-			open = true;
-			contextItems = [];
-			void loadContextMenu();
+			void openWhenLoaded();
 		});
 	});
 	let positioning = $derived.by(() => {
@@ -163,14 +165,32 @@
 	 * @param {{ open: boolean }} details
 	 */
 	function handleOpenChange(details) {
-		open = details.open;
-		if (!open) {
+		if (!details.open) {
+			openSerial++;
+			open = false;
 			contextPoint = null;
+			return;
 		}
-		if (open) {
-			onSelectNode?.();
-			contextItems = [];
-			void loadContextMenu();
+		onSelectNode?.();
+		void openWhenLoaded();
+	}
+
+	/** how long a slow engine may delay the menu before it shows its actions loading */
+	const CONTEXT_ACTIONS_WAIT = 400;
+	let openSerial = 0;
+	/**
+	 * Shows the menu once its actions are loaded: its size then no longer changes, so that its items do
+	 * not move under the pointer, as when a menu opened above the pointer grows upward
+	 */
+	async function openWhenLoaded() {
+		const serial = ++openSerial;
+		contextItems = [];
+		await Promise.race([
+			loadContextMenu(),
+			new Promise((resolve) => setTimeout(resolve, CONTEXT_ACTIONS_WAIT))
+		]);
+		if (serial === openSerial) {
+			open = true;
 		}
 	}
 
@@ -220,6 +240,10 @@
 		}
 		if (details.value === 'tags.view') {
 			await onToggleTagGrouping?.();
+			return;
+		}
+		if (details.value === 'tags.display') {
+			await onToggleTagDisplay?.();
 			return;
 		}
 		if (details.value === 'object.rename') {
@@ -422,20 +446,23 @@
 				{#if onToggleTagGrouping}
 					<Menu.ItemGroup>
 						<Menu.ItemGroupLabel>Tags</Menu.ItemGroupLabel>
-						{#if tagScope}
+						<!-- an action unavailable for the selection is not shown, as in the Eclipse Studio -->
+						{#if tagScope && canManageTags}
 							{@render treeItem(
 								'tags.manage',
 								'mdi:tag-outline',
-								tagScope === 'workspaceProjects' ? 'Project tags…' : 'Sequence tags…',
-								!canManageTags
+								tagGroup
+									? 'Edit tag…'
+									: tagScope === 'workspaceProjects'
+										? 'Project tags…'
+										: 'Object tags…'
 							)}
 						{/if}
-						{#if isProject && !tagGroup}
+						{#if isProject && !tagGroup && canCreateTagFromReferences}
 							{@render treeItem(
 								'tags.references',
 								'mdi:tag-plus-outline',
-								'Create tag from references…',
-								!canCreateTagFromReferences
+								'Create tag from references…'
 							)}
 						{/if}
 						{@render treeItem(
@@ -443,6 +470,13 @@
 							tagsGrouped ? 'mdi:check' : 'mdi:folder-outline',
 							'Group by tags'
 						)}
+						{#if onToggleTagDisplay}
+							{@render treeItem(
+								'tags.display',
+								tagsDisplayed ? 'mdi:check' : 'mdi:label-outline',
+								'Display tags'
+							)}
+						{/if}
 					</Menu.ItemGroup>
 					<Menu.Separator />
 				{/if}

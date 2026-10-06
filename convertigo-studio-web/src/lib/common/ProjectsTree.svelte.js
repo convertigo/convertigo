@@ -56,6 +56,21 @@ function normalizeProjectTreeNode(node, previous, options = {}) {
 }
 
 /**
+ * A node the engine wrote again over the node shown: the marks it no longer writes are gone
+ * @param {any} previous
+ * @param {any} node
+ */
+function mergeProjectTreeMarks(previous, node) {
+	const merged = { ...previous, ...node };
+	for (const mark of OPTIONAL_MARKS) {
+		if (!(mark in node)) {
+			delete merged[mark];
+		}
+	}
+	return merged;
+}
+
+/**
  * @param {any} children
  * @param {any[]=} previousChildren
  * @param {ProjectTreeOptions=} options
@@ -243,4 +258,9 @@ export function createProjectTree(options = {}) {
 	};
 }
 
-export { applyProjectTreeChildren, normalizeProjectTreeChildren, normalizeProjectTreeNode };
+export {
+	applyProjectTreeChildren,
+	mergeProjectTreeMarks,
+	normalizeProjectTreeChildren,
+	normalizeProjectTreeNode
+};

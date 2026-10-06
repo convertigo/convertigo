@@ -70,7 +70,10 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 	private Color colorInheritedDatabaseObject;
 	private Color colorUnreachableDatabaseObject;
 	private Color colorDetectedDatabaseObject;
-	
+
+	/** whether the labels end with the tags of their object, independently of the grouping by tags */
+	boolean tagsDisplayed = true;
+
 	public ViewLabelProvider() {
 		Device device = Display.getCurrent();
 
@@ -113,9 +116,9 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 			obj = occurrence.target;
 		}
 		String tags = "";
-		if (obj instanceof DatabaseObjectTreeObject target) {
+		if (tagsDisplayed && obj instanceof DatabaseObjectTreeObject target) {
 			for (var tag : com.twinsoft.convertigo.engine.tags.TagManager.get().badges(target.getObject()).path("tags")) if (!tag.path("id").asText().equals(currentTag)) tags += " [" + tag.path("label").asText() + "]";
-		} else if (obj instanceof UnloadedProjectTreeObject target) {
+		} else if (tagsDisplayed && obj instanceof UnloadedProjectTreeObject target) {
 			for (var tag : com.twinsoft.convertigo.engine.tags.TagManager.get().projectBadges(target.getName()).path("tags")) if (!tag.path("id").asText().equals(currentTag)) tags += " [" + tag.path("label").asText() + "]";
 		}
 		if (obj instanceof DatabaseObjectTreeObject) {

@@ -29,11 +29,7 @@ public final class TagManagerDialog extends TitleAreaDialog {
 	private ObjectNode snapshot, definition = TagDocument.JSON.createObjectNode();
 	private String selected = "";
 	private String referenceProject = "";
-	private Table tags, targets, suggestions, orderedTags;
-	private Combo orderTarget;
-	private final List<String> orderTargets = new ArrayList<>();
-	private Button orderUp, orderDown;
-	private String orderedTarget = "", orderedTag = "";
+	private Table tags, targets, suggestions;
 	private Text filter, label, description;
 	private Composite details, metadata, conflicts, sharingContent, advancedContent;
 	private ScrolledComposite scroll;
@@ -48,15 +44,14 @@ public final class TagManagerDialog extends TitleAreaDialog {
 
 	public TagManagerDialog(Shell shell, TagManager.Scope scope, String project, List<String> targets, java.util.function.Consumer<ObjectNode> refresh) {
 		super(shell); this.scope = scope; this.project = project; this.initialTargets = List.copyOf(targets); this.refresh = refresh;
-		orderedTarget = targets.isEmpty() ? "" : targets.get(0);
 		setShellStyle(getShellStyle() | SWT.RESIZE); setBlockOnOpen(false);
 	}
 	public TagManagerDialog selectTag(String id) { selected = id; return this; }
 	public TagManagerDialog createFromReferences(String name) { referenceProject = name; selected = ""; return this; }
 	@Override protected Point getInitialSize() { return new Point(780, 620); }
 	@Override protected Control createDialogArea(Composite parent) {
-		setTitle(scope == TagManager.Scope.workspaceProjects ? "Project tags" : "Sequence tags — " + project);
-		setMessage("Select a tag, then check the " + (scope == TagManager.Scope.workspaceProjects ? "projects" : "sequences") + " that belong to it.");
+		setTitle(scope == TagManager.Scope.workspaceProjects ? "Project tags" : "Object tags — " + project);
+		setMessage("Select a tag, then check the " + (scope == TagManager.Scope.workspaceProjects ? "projects" : "objects") + " that belong to it.");
 		Composite area = (Composite) super.createDialogArea(parent), content = new Composite(area, SWT.NONE);
 		content.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true)); content.setLayout(new GridLayout(1, false));
 		SashForm columns = new SashForm(content, SWT.HORIZONTAL); columns.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -73,23 +68,12 @@ public final class TagManagerDialog extends TitleAreaDialog {
 		GridData colorData = new GridData(SWT.LEFT, SWT.CENTER, false, false); colorData.widthHint = 95; colorButton.setLayoutData(colorData);
 		new Label(details, SWT.NONE).setText("Description"); description = text(details, SWT.MULTI | SWT.WRAP); description.setTextLimit(4096); ((GridData) description.getLayoutData()).heightHint = 48;
 		update = button(details, "Update tag", this::saveDefinition); update.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		Group memberGroup = new Group(details, SWT.NONE); memberGroup.setText(scope == TagManager.Scope.workspaceProjects ? "Projects" : "Sequences"); memberGroup.setLayout(new GridLayout(1, false)); memberGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		Group memberGroup = new Group(details, SWT.NONE); memberGroup.setText(scope == TagManager.Scope.workspaceProjects ? "Projects" : "Objects"); memberGroup.setLayout(new GridLayout(1, false)); memberGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		targets = table(memberGroup, SWT.CHECK | SWT.SINGLE, 130); editControls.add(targets);
-		targets.addListener(SWT.Selection, event -> { if (!busy && event.item instanceof TableItem item) {
-			orderedTarget = (String) item.getData(); renderOrder();
-			if (event.detail == SWT.CHECK && !selected.isEmpty()) {
-				ObjectNode input = TagDocument.JSON.createObjectNode(); input.putArray("targets").add(orderedTarget); input.putArray("tagIds").add(selected); command(item.getChecked() ? "assign" : "remove", input);
-			}
+		targets.addListener(SWT.Selection, event -> { if (!busy && event.item instanceof TableItem item && event.detail == SWT.CHECK && !selected.isEmpty()) {
+			ObjectNode input = TagDocument.JSON.createObjectNode(); input.putArray("targets").add((String) item.getData()); input.putArray("tagIds").add(selected); command(item.getChecked() ? "assign" : "remove", input);
 		} });
-		Group orderGroup = new Group(details, SWT.NONE); orderGroup.setText("Tag order"); orderGroup.setLayout(new GridLayout(2, false)); orderGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-		new Label(orderGroup, SWT.NONE).setText(scope == TagManager.Scope.workspaceProjects ? "Project" : "Sequence");
-		orderTarget = new Combo(orderGroup, SWT.DROP_DOWN | SWT.READ_ONLY); orderTarget.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false)); editControls.add(orderTarget);
-		orderTarget.addListener(SWT.Selection, event -> { if (!busy && orderTarget.getSelectionIndex() >= 0) { orderedTarget = orderTargets.get(orderTarget.getSelectionIndex()); renderOrder(); } });
-		Label orderHint = new Label(orderGroup, SWT.WRAP); orderHint.setText("Applied from top to bottom. Later tags take precedence when an extension combines values."); orderHint.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		orderedTags = table(orderGroup, SWT.SINGLE, 80); editControls.add(orderedTags);
-		orderedTags.addListener(SWT.Selection, event -> { if (event.item instanceof TableItem item) { orderedTag = (String) item.getData(); updateOrderButtons(); } });
-		Composite orderButtons = new Composite(orderGroup, SWT.NONE); orderButtons.setLayout(new GridLayout(1, false));
-		orderUp = button(orderButtons, "Move up", () -> moveOrder(-1)); orderDown = button(orderButtons, "Move down", () -> moveOrder(1));
+		// The order of the tags of an object belongs to the tags of that object (ObjectTagsDialog).
 		// Extension fields (such as the Flow configurations of a tag) are part of its definition, not advanced settings.
 		metadata = new Composite(details, SWT.NONE); metadata.setLayout(new GridLayout(2, false)); metadata.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		optional = new ExpandBar(details, SWT.NONE); optional.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -118,7 +102,8 @@ public final class TagManagerDialog extends TitleAreaDialog {
 		Button reload = new Button(footer, SWT.PUSH); reload.setText("Refresh tags"); reload.addListener(SWT.Selection, event -> load());
 		load(); return area;
 	}
-	@Override protected void createButtonsForButtonBar(Composite parent) { createButton(parent, CANCEL, "Close", true); }
+	// Close is not the default button: Return in a field must not close the dialog and lose the definition being edited.
+	@Override protected void createButtonsForButtonBar(Composite parent) { createButton(parent, CANCEL, "Close", false); }
 	@Override protected boolean isResizable() { return true; }
 	@Override public boolean close() { if (tagColor != null) tagColor.dispose(); return super.close(); }
 	private Table table(Composite parent, int style, int height) { Table table = new Table(parent, SWT.BORDER | SWT.FULL_SELECTION | style); GridData data = new GridData(SWT.FILL, SWT.FILL, true, true); data.heightHint = height; data.widthHint = 180; table.setLayoutData(data); return table; }
@@ -150,19 +135,18 @@ public final class TagManagerDialog extends TitleAreaDialog {
 			catch (Exception e) { display.asyncExec(() -> { if (getShell() == null || getShell().isDisposed()) return; busy = false; if (snapshot != null) render(); else for (var control : editControls) if (!control.isDisposed()) control.setEnabled(true); setErrorMessage(e.getMessage()); }); }
 		}).schedule();
 	}
-	private void command(String action, ObjectNode input) { if (snapshot == null || snapshot.path("readOnly").asBoolean()) return; String revision = snapshot.path("revision").asText(); run("Update tags", () -> TagManager.get().mutate(scope, project, revision, action, input), List.of("assign", "remove", "reorder").contains(action)); }
+	private void command(String action, ObjectNode input) { if (snapshot == null || snapshot.path("readOnly").asBoolean()) return; String revision = snapshot.path("revision").asText(); run("Update tags", () -> TagManager.get().mutate(scope, project, revision, action, input), List.of("assign", "remove").contains(action)); }
 	private void render() { render(false); }
 	private void render(boolean keepDetails) {
 		setErrorMessage(null); renderTags(); suggestions.removeAll();
 		for (var suggestion : snapshot.path("suggestions")) { var item = new TableItem(suggestions, SWT.NONE); item.setText(suggestion.path("definition").path("label").asText() + " — " + suggestion.path("project").asText()); item.setData(suggestion); }
 		if (keepDetails && !selected.isEmpty() && snapshot.path("tags").has(selected)) renderMemberships();
 		else if (!selected.isEmpty() && snapshot.path("tags").has(selected)) edit(selected); else { selected = ""; definition = TagDocument.JSON.createObjectNode().put("label", referenceProject); renderEditor(); }
-		StringBuilder message = new StringBuilder(scope == TagManager.Scope.workspaceProjects ? "Memberships are saved in this workspace." : snapshot.path("dirty").asBoolean() ? "Modified — save the project to keep these tags." : "Sequence tags are saved with the project.");
+		StringBuilder message = new StringBuilder(scope == TagManager.Scope.workspaceProjects ? "Memberships are saved in this workspace." : snapshot.path("dirty").asBoolean() ? "Modified — save the project to keep these tags." : "Object tags are saved with the project.");
 		for (var diagnostic : snapshot.path("diagnostics")) message.append('\n').append(diagnostic.asText()); status.setText(message.toString());
 		for (var control : editControls) if (!control.isDisposed()) control.setEnabled(!snapshot.path("readOnly").asBoolean());
 		for (var control : metadataEditors.values()) if (!control.isDisposed()) control.setEnabled(!snapshot.path("readOnly").asBoolean());
 		targets.setEnabled(!selected.isEmpty() && !snapshot.path("readOnly").asBoolean()); if (shared != null) shared.setEnabled(!selected.isEmpty() && !snapshot.path("readOnly").asBoolean());
-		renderOrder();
 		getShell().layout(true, true); layoutDetails();
 	}
 	private void renderTags() {
@@ -174,7 +158,13 @@ public final class TagManagerDialog extends TitleAreaDialog {
 		}
 	}
 	private void edit(String id) { selected = id; referenceProject = ""; definition = (ObjectNode) snapshot.path("tags").path(id).deepCopy(); renderEditor(); }
-	private String targetLabel(String target) { return scope == TagManager.Scope.workspaceProjects ? target : target.replaceFirst("^.*\\.sq[:~]", ""); }
+	/** A project object is listed with its kind, as the objects of every kind of a project share its tags. */
+	private String targetLabel(String target) {
+		if (scope == TagManager.Scope.workspaceProjects) return target;
+		JsonNode details = snapshot == null ? null : snapshot.path("targetDetails").path(target);
+		return details == null || details.isMissingNode() ? target.replaceFirst("^.*\\.[a-z]{2}[:~]", "")
+				: details.path("label").asText() + " (" + details.path("kind").asText() + ")";
+	}
 	private int memberCount() { return (int) java.util.Arrays.stream(targets.getItems()).filter(TableItem::getChecked).count(); }
 	private String memberNames() { return String.join(", ", java.util.Arrays.stream(targets.getItems()).filter(TableItem::getChecked).map(item -> (String) item.getData()).toList()); }
 	private void renderColor() {
@@ -194,37 +184,14 @@ public final class TagManagerDialog extends TitleAreaDialog {
 			if (selected.isEmpty() && !referenceProject.isEmpty()) for (var member : snapshot.path("referenceTargets")) if (name.equals(member.asText())) item.setChecked(true);
 		}
 		targets.setEnabled(!selected.isEmpty() && snapshot != null && !snapshot.path("readOnly").asBoolean());
-		((Group) targets.getParent()).setText((scope == TagManager.Scope.workspaceProjects ? "Projects" : "Sequences") + " (" + memberCount() + ")");
-	}
-	private void renderOrder() {
-		if (snapshot == null || orderTarget == null) return;
-		orderTargets.clear(); orderTarget.removeAll(); orderedTags.removeAll();
-		for (var target : snapshot.path(scope == TagManager.Scope.workspaceProjects ? "projects" : "targets")) { orderTargets.add(target.asText()); orderTarget.add(targetLabel(target.asText())); }
-		if (!orderTargets.contains(orderedTarget)) orderedTarget = orderTargets.isEmpty() ? "" : orderTargets.get(0);
-		orderTarget.select(orderTargets.indexOf(orderedTarget));
-		int index = 0;
-		for (var id : snapshot.path("assignments").path(orderedTarget)) {
-			var item = new TableItem(orderedTags, SWT.NONE); item.setData(id.asText()); item.setText(++index + ". " + snapshot.path("tags").path(id.asText()).path("label").asText());
-			if (id.asText().equals(orderedTag)) orderedTags.setSelection(item);
-		}
-		updateOrderButtons();
-	}
-	private void updateOrderButtons() {
-		int index = orderedTags.getSelectionIndex(); boolean editable = !busy && snapshot != null && !snapshot.path("readOnly").asBoolean();
-		orderUp.setEnabled(editable && index > 0); orderDown.setEnabled(editable && index >= 0 && index < orderedTags.getItemCount() - 1);
-	}
-	private void moveOrder(int offset) {
-		int index = orderedTags.getSelectionIndex(); if (busy || index < 0 || index + offset < 0 || index + offset >= orderedTags.getItemCount()) return;
-		var ids = new ArrayList<String>(); for (var item : orderedTags.getItems()) ids.add((String) item.getData());
-		java.util.Collections.swap(ids, index, index + offset);
-		ObjectNode input = TagDocument.JSON.createObjectNode(); input.putArray("targets").add(orderedTarget); var array = input.putArray("tagIds"); ids.forEach(array::add); command("reorder", input);
+		((Group) targets.getParent()).setText((scope == TagManager.Scope.workspaceProjects ? "Projects" : "Objects") + " (" + memberCount() + ")");
 	}
 
 	private void renderEditor() {
-		setMessage(referenceProject.isEmpty() ? "Select a tag, then check the " + (scope == TagManager.Scope.workspaceProjects ? "projects" : "sequences") + " that belong to it."
+		setMessage(referenceProject.isEmpty() ? "Select a tag, then check the " + (scope == TagManager.Scope.workspaceProjects ? "projects" : "objects") + " that belong to it."
 				: "Create a local tag for " + referenceProject + " and its direct and indirect project references. Only workspace projects are included; unavailable references are listed below. Memberships remain editable afterward and do not track future reference changes.");
 		label.setText(definition.path("label").asText()); description.setText(definition.path("description").asText()); renderColor(); update.setText(selected.isEmpty() ? "Create tag" : "Update tag"); identity.setText(selected.isEmpty() ? "" : "ID: " + selected);
-		renderMemberships(); renderOrder();
+		renderMemberships();
 		if (shared != null) { shared.setSelection(definition.path("shared").asBoolean()); shared.setEnabled(!selected.isEmpty() && snapshot != null && !snapshot.path("readOnly").asBoolean()); }
 		if (conflicts != null && snapshot != null) {
 			for (var control : conflicts.getChildren()) { editControls.remove(control); control.dispose(); }

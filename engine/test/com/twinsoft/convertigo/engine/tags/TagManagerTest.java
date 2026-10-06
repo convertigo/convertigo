@@ -273,18 +273,20 @@ public class TagManagerTest {
 		assertTrue(read(Scope.projectObjects).path("tags").isEmpty()); assertTrue(read(Scope.workspaceProjects).path("tags").isEmpty());
 		assertFalse(Files.exists(source(project))); assertFalse(Files.exists(root.resolve("studio/tags.json"))); assertFalse(project.hasChanged);
 	}
-	@Test public void whitelistOnlyAllowsProjectsAndSequencesInTheirRespectiveScopes() throws Exception {
+	@Test public void whitelistOnlyAllowsProjectsAndProjectObjectsInTheirRespectiveScopes() throws Exception {
 		var step = step(sequence, "Excluded");
 		var connector = new com.twinsoft.convertigo.beans.connectors.HttpConnector(); connector.setName("Http"); project.add(connector);
 		var transaction = new com.twinsoft.convertigo.beans.transactions.HttpTransaction(); transaction.setName("Call"); connector.add(transaction);
 		var variable = new com.twinsoft.convertigo.beans.variables.RequestableVariable(); variable.setName("Input"); sequence.add(variable);
 		var candidates = read(Scope.projectObjects).path("targets");
 		assertTrue(candidates.toString().contains(sequence.getFullQName()));
+		assertTrue(candidates.toString().contains(transaction.getFullQName()));
 		assertFalse(candidates.toString().contains(step.getFullQName()));
 		assertTrue(TagPolicy.supports(Scope.workspaceProjects, project)); assertTrue(TagPolicy.supports(Scope.projectObjects, sequence));
+		assertTrue(TagPolicy.supports(Scope.projectObjects, transaction));
 		assertFalse(TagPolicy.supports(Scope.projectObjects, project)); assertFalse(TagPolicy.supports(Scope.workspaceProjects, sequence));
 		String id = create(Scope.projectObjects, "eligible");
-		for (var excluded : List.of(step, connector, transaction, variable, project)) {
+		for (var excluded : List.of(step, connector, variable, project)) {
 			assertFalse(TagPolicy.supports(Scope.projectObjects, excluded));
 			ObjectNode before = read(Scope.projectObjects); boolean dirty = project.hasChanged;
 			assertThrows(java.io.IOException.class, () -> assign(Scope.projectObjects, id, first.getFullQName(), excluded.getFullQName()));
@@ -296,6 +298,39 @@ public class TagManagerTest {
 		String local = create(Scope.workspaceProjects, "local");
 		assertThrows(java.io.IOException.class, () -> assign(Scope.workspaceProjects, local, sequence.getFullQName()));
 		assign(Scope.workspaceProjects, local, "Demo"); assertEquals(1, manager.badges(project).path("tags").size());
+	}
+	@Test public void oneProjectTagMarksBackEndAndFrontEndObjects() throws Exception {
+		var connector = new com.twinsoft.convertigo.beans.connectors.HttpConnector(); connector.setName("Http"); project.add(connector);
+		var transaction = new com.twinsoft.convertigo.beans.transactions.HttpTransaction(); transaction.setName("Charge"); connector.add(transaction);
+		var mobile = new com.twinsoft.convertigo.beans.core.MobileApplication(); mobile.setName("MobileApplication"); project.add(mobile);
+		var application = new com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent(); application.setName("Application"); mobile.add(application);
+		var page = new com.twinsoft.convertigo.beans.ngx.components.PageComponent(); page.setName("Checkout"); application.add(page);
+		var shared = new com.twinsoft.convertigo.beans.ngx.components.UISharedComponent(); shared.setName("Cart"); application.add(shared);
+		var action = new com.twinsoft.convertigo.beans.ngx.components.UIActionStack(); action.setName("Pay"); application.add(action);
+		var snapshot = read(Scope.projectObjects);
+		var targets = new java.util.ArrayList<String>(); snapshot.path("targets").forEach(target -> targets.add(target.asText()));
+		assertEquals(List.of(first.getFullQName(), sequence.getFullQName(), neighbor.getFullQName(), second.getFullQName(),
+				transaction.getFullQName(), page.getFullQName(), shared.getFullQName(), action.getFullQName()), targets);
+		var details = snapshot.path("targetDetails");
+		assertEquals("Sequence", details.path(sequence.getFullQName()).path("kind").asText());
+		assertEquals("Http › Charge", details.path(transaction.getFullQName()).path("label").asText());
+		assertEquals("Transaction", details.path(transaction.getFullQName()).path("kind").asText());
+		assertEquals("Page", details.path(page.getFullQName()).path("kind").asText());
+		assertEquals("Shared component", details.path(shared.getFullQName()).path("kind").asText());
+		assertEquals("Shared action", details.path(action.getFullQName()).path("kind").asText());
+		String payment = create(Scope.projectObjects, "Payment");
+		assign(Scope.projectObjects, payment, sequence.getFullQName(), transaction.getFullQName(), page.getFullQName(), shared.getFullQName(), action.getFullQName());
+		for (var member : List.of(sequence, transaction, page, shared, action)) {
+			assertEquals("Payment", manager.badges(member).path("tags").get(0).path("label").asText());
+			assertEquals("Payment", manager.labels(Scope.projectObjects, member));
+		}
+		var pages = manager.collection(Scope.projectObjects, "Demo", application.getFullQName() + ":pg", List.of(page.getFullQName())).path("groups");
+		assertEquals("Payment", pages.get(0).path("label").asText()); assertEquals(page.getFullQName(), pages.get(0).path("members").get(0).path("targetId").asText());
+		var changed = command(Scope.projectObjects, "remove", json("{\"tagIds\":[\"" + payment + "\"],\"targets\":[\"" + transaction.getFullQName() + "\"]}"));
+		assertTrue(changed.path("affectedContainers").toString().contains(connector.getFullQName() + ":tr"));
+		page.setName("Payment"); manager.reconcile();
+		assertTrue(read(Scope.projectObjects).path("assignments").has(page.getFullQName()));
+		assertEquals("Payment", manager.labels(Scope.projectObjects, page));
 	}
 	@Test public void clipboardCannotBypassTheWhitelist() throws Exception {
 		String id = create(Scope.projectObjects, "tag"); assign(Scope.projectObjects, id, first.getFullQName());
@@ -309,7 +344,7 @@ public class TagManagerTest {
 		var step = step(sequence, "Excluded"); String id = UUID.randomUUID().toString(); var document = new TagDocument(false);
 		document.tags.put(id, json("{\"label\":\"legacy\"}")); document.assignments.put(step.getFullQName(), new java.util.LinkedHashSet<>(List.of(id)));
 		byte[] original = document.bytes(); TagDocument.write(source(project), original, "absent"); manager.projectClosed(project); manager.projectOpened(project);
-		var snapshot = read(Scope.projectObjects); assertTrue(snapshot.path("readOnly").asBoolean()); assertTrue(snapshot.path("diagnostics").toString().contains("only sequences"));
+		var snapshot = read(Scope.projectObjects); assertTrue(snapshot.path("readOnly").asBoolean()); assertTrue(snapshot.path("diagnostics").toString().contains("only sequences, transactions, pages"));
 		assertTrue(manager.badges(step).path("tags").isEmpty()); assertArrayEquals(original, Files.readAllBytes(source(project)));
 	}
 	@Test public void closedWorkspaceProjectionAndPresentationMutationStayLazyAtScale() throws Exception {

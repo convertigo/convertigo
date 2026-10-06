@@ -47,8 +47,10 @@
 	 *  onManageTags?: (node: any, fromReferences?: boolean) => void,
 	 *  canManageTags?: (node: any) => boolean,
 	 *  tagsGrouped?: boolean,
+	 *  tagsDisplayed?: boolean,
 	 *  currentTagId?: string,
 	 *  onToggleTagGrouping?: () => void | Promise<void>,
+	 *  onToggleTagDisplay?: () => void | Promise<void>,
 	 *  gitDecoration?: { branch: string, changes: number, ahead?: number, behind?: number },
 	 *  selectedId?: string,
 	 *  depth?: number,
@@ -86,8 +88,10 @@
 		onManageTags,
 		canManageTags,
 		tagsGrouped = false,
+		tagsDisplayed = true,
 		currentTagId = '',
 		onToggleTagGrouping,
+		onToggleTagDisplay,
 		gitDecoration,
 		selectedId = $bindable(''),
 		depth = 0,
@@ -209,6 +213,7 @@
 	let tags = $derived.by(() => {
 		dataSerial;
 		revision;
+		if (!tagsDisplayed) return [];
 		return (node?.tags ?? []).filter((tag) => tag.id !== currentTagId);
 	});
 	let tagGroupCount = $derived.by(() => {
@@ -1561,7 +1566,9 @@
 							canManageTags?.(node) && treeSelectionOf(node.id).length === 1
 						)}
 						{tagsGrouped}
+						{tagsDisplayed}
 						{onToggleTagGrouping}
+						{onToggleTagDisplay}
 						onManageTags={(fromReferences) => onManageTags?.(node, fromReferences)}
 						{label}
 						{canRename}
@@ -1626,7 +1633,9 @@
 						{onManageTags}
 						{canManageTags}
 						{tagsGrouped}
+						{tagsDisplayed}
 						{onToggleTagGrouping}
+						{onToggleTagDisplay}
 						currentTagId={node.tagGroup ? node.tagId : ''}
 						bind:selectedId
 						bind:renameTargetId

@@ -70,7 +70,7 @@ class DecoratingColumnLabelProvider extends StyledCellLabelProvider implements I
 		if (element instanceof TagTreeObject row && row.target == null) {
 			String color = row.group.path("presentation").path("color").asText();
 			if (color.matches("#[0-9a-fA-F]{6}")) addTagStyle(ranges, cell.getText(), "# " + row.getName(), tagColor(cell, color));
-		} else {
+		} else if (!(provider.getLabelProvider() instanceof ViewLabelProvider labels) || labels.tagsDisplayed) {
 			Object target = element instanceof TagTreeObject row ? row.check() : element;
 			com.fasterxml.jackson.databind.JsonNode tags = null;
 			if (target instanceof com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject dbo)
