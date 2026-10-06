@@ -281,7 +281,9 @@ public class ProcessUtils {
 	}
 
 	private static String getNodeOs() {
-		return Engine.isWindows() ? "win-x64" : Engine.isLinux() ? "linux-x64" : "aarch64".equals(System.getProperty("os.arch")) ? "darwin-arm64" : "darwin-x64";
+		// an arm64 Linux (Docker on Apple Silicon, Graviton...) cannot run the x64 build: its own folder keeps them apart
+		boolean arm64 = "aarch64".equals(System.getProperty("os.arch"));
+		return Engine.isWindows() ? "win-x64" : Engine.isLinux() ? (arm64 ? "linux-arm64" : "linux-x64") : arm64 ? "darwin-arm64" : "darwin-x64";
 	}
 
 	private static File getLocalNodeDir(String version) {
