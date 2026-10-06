@@ -126,7 +126,11 @@ export function createDatabaseObjectProperties() {
 			return true;
 		}
 		const saveId = id;
-		const submitted = changes.map(({ validation, ...property }) => property);
+		const submitted = changes.map((property) => {
+			const copy = { ...property };
+			delete copy.validation;
+			return copy;
+		});
 		const res = await call('studio.properties.Set', {
 			id: saveId,
 			props: JSON.stringify(submitted),

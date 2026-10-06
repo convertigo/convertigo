@@ -1,9 +1,11 @@
 <script module>
+	import { SvelteMap } from 'svelte/reactivity';
+
 	/**
 	 * The last result of each requestable, which shows again once it is selected again.
-	 * @type {Map<string, { content: string, language: string }>}
+	 * @type {SvelteMap<string, { content: string, language: string }>}
 	 */
-	const lastResults = new Map();
+	const lastResults = new SvelteMap();
 </script>
 
 <script>

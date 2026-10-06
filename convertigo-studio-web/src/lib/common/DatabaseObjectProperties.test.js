@@ -45,6 +45,11 @@ describe('createDatabaseObjectProperties', () => {
 		expect(await model.save()).toBe(true);
 		const submitted = JSON.parse(vi.mocked(call).mock.calls.at(-1)[1].props);
 		expect(submitted[0]).not.toHaveProperty('validation');
+		expect(model.properties[0].validation).toEqual({
+			valid: true,
+			error: '',
+			value: 'local.changed'
+		});
 	});
 
 	it('clears validation on cancel, selection and replacement of the validated value', async () => {

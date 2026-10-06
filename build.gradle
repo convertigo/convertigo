@@ -47,7 +47,7 @@ ext.soapuiVersion = '5.9.1'
 ext.log4jVersion = '2.26.1'
 ext.commonsIo = '2.22.0'
 ext.commonsLang3 = '3.21.0'
-ext.zstdJniVersion = '1.5.7-20'
+ext.zstdJniVersion = '1.5.7-21'
 ext.brotli4jVersion = '1.23.0'
 ext.jacksonVersion = '2.22.3'
 ext.xmlSchemaVersion = '1.4.7'
@@ -1046,5 +1046,5 @@ allprojects {
 wrapper {
 	group = 'convertigo'
 	
-	gradleVersion = '9.7.1'
+	gradleVersion = '9.8.0'
 }

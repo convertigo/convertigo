@@ -29,11 +29,15 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.twinsoft.convertigo.engine.CLI;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally;
 
+@DisableCachingByDefault(because = "Runs native build tools in the local mobile workspace")
 public class LocalBuild extends ConvertigoTask {
 	List<String> platforms = Collections.emptyList();
 	String mode = "debug";
@@ -80,6 +84,7 @@ public class LocalBuild extends ConvertigoTask {
 	}
 
 	@InputFiles @Optional
+	@PathSensitive(PathSensitivity.ABSOLUTE)
 	public File getIosProvisioningProfile() {
 		return iosProvisioningProfile;
 	}
@@ -98,6 +103,7 @@ public class LocalBuild extends ConvertigoTask {
 	}
 
 	@InputFiles @Optional
+	@PathSensitive(PathSensitivity.ABSOLUTE)
 	public File getAndroidKeystore() {
 		return androidKeystore;
 	}

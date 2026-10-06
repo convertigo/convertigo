@@ -27,9 +27,11 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.twinsoft.convertigo.engine.CLI;
 
+@DisableCachingByDefault(because = "Exports the current mutable Convertigo project state")
 public class ProjectCar extends ConvertigoTask {
 	private File destinationDir;
 	private File destinationFile;
@@ -62,57 +64,57 @@ public class ProjectCar extends ConvertigoTask {
 		this.destinationFile = destinationFile;
 	}
 	
-	@Input @Optional
-	public Boolean isIncludeTestCases() {
+	@Input
+	public boolean isIncludeTestCases() {
 		return includeTestCases;
 	}
 
-	public void setIncludeTestCases(Boolean includeTestCases) {
+	public void setIncludeTestCases(boolean includeTestCases) {
 		this.includeTestCases = includeTestCases;
 	}
 	
-	@Input @Optional
-	public Boolean isIncludeStubs() {
+	@Input
+	public boolean isIncludeStubs() {
 		return includeStubs;
 	}
 
-	public void setIncludeStubs(Boolean includeStubs) {
+	public void setIncludeStubs(boolean includeStubs) {
 		this.includeStubs = includeStubs;
 	}
 
-	@Input @Optional
-	public Boolean isIncludeMobileApp() {
+	@Input
+	public boolean isIncludeMobileApp() {
 		return includeMobileApp;
 	}
 
-	public void setIncludeMobileApp(Boolean includeMobileApp) {
+	public void setIncludeMobileApp(boolean includeMobileApp) {
 		this.includeMobileApp = includeMobileApp;
 	}
 
-	@Input @Optional
-	public Boolean isIncludeMobileAppAssets() {
+	@Input
+	public boolean isIncludeMobileAppAssets() {
 		return includeMobileAppAssets;
 	}
 
-	public void setIncludeMobileAppAssets(Boolean includeMobileAppAssets) {
+	public void setIncludeMobileAppAssets(boolean includeMobileAppAssets) {
 		this.includeMobileAppAssets = includeMobileAppAssets;
 	}
 
-	@Input @Optional
-	public Boolean isIncludeMobileDataset() {
+	@Input
+	public boolean isIncludeMobileDataset() {
 		return includeMobileDataset;
 	}
 
-	public void setIncludeMobileDataset(Boolean includeMobileDataset) {
+	public void setIncludeMobileDataset(boolean includeMobileDataset) {
 		this.includeMobileDataset = includeMobileDataset;
 	}
 
-	@Input @Optional
-	public Boolean isIncludeMobilePlatformsAssets() {
+	@Input
+	public boolean isIncludeMobilePlatformsAssets() {
 		return includeMobilePlatformsAssets;
 	}
 
-	public void setIncludeMobilePlatformsAssets(Boolean includeMobilePlatformsAssets) {
+	public void setIncludeMobilePlatformsAssets(boolean includeMobilePlatformsAssets) {
 		this.includeMobilePlatformsAssets = includeMobilePlatformsAssets;
 	}
 

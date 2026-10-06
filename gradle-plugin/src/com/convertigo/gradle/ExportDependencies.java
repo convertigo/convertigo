@@ -20,9 +20,11 @@
 package com.convertigo.gradle;
 
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.twinsoft.convertigo.engine.CLI;
 
+@DisableCachingByDefault(because = "Exports dependencies of the current mutable Convertigo project")
 public class ExportDependencies extends ProjectCar {
 	
 	public ExportDependencies() {

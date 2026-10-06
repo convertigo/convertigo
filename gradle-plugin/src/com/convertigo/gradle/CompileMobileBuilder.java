@@ -22,9 +22,11 @@ package com.convertigo.gradle;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.twinsoft.convertigo.engine.CLI;
 
+@DisableCachingByDefault(because = "Runs npm against the generated mobile builder workspace")
 public class CompileMobileBuilder extends ConvertigoTask {
 	
 	private String mode = null;

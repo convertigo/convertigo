@@ -20,9 +20,11 @@
 package com.convertigo.gradle;
 
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.twinsoft.convertigo.engine.CLI;
 
+@DisableCachingByDefault(because = "Starts a build on an external Convertigo build server")
 public class RemoteBuildLaunch extends ConvertigoTask {
 
 	public RemoteBuildLaunch() {

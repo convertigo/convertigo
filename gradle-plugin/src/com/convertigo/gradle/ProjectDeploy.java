@@ -25,9 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.twinsoft.convertigo.engine.CLI;
 
+@DisableCachingByDefault(because = "Deploys a mutable Convertigo project to an external server")
 public class ProjectDeploy extends ConvertigoTask {
 	private String server = "";
 	private String user = "admin";
@@ -63,21 +65,21 @@ public class ProjectDeploy extends ConvertigoTask {
 		this.password = password;
 	}
 
-	@Input @Optional
-	public Boolean isTrustAllCertificates() {
+	@Input
+	public boolean isTrustAllCertificates() {
 		return trustAllCertificates;
 	}
 
-	public void setTrustAllCertificates(Boolean trustAllCertificates) {
+	public void setTrustAllCertificates(boolean trustAllCertificates) {
 		this.trustAllCertificates = trustAllCertificates;
 	}
 
-	@Input @Optional
-	public Boolean isAssembleXsl() {
+	@Input
+	public boolean isAssembleXsl() {
 		return assembleXsl;
 	}
 
-	public void setAssembleXsl(Boolean assembleXsl) {
+	public void setAssembleXsl(boolean assembleXsl) {
 		this.assembleXsl = assembleXsl;
 	}
 

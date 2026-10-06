@@ -20,9 +20,11 @@
 package com.convertigo.gradle;
 
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.twinsoft.convertigo.engine.CLI;
 
+@DisableCachingByDefault(because = "Saves the current mutable Convertigo project state")
 public class ProjectExport extends ConvertigoTask {
 	
 	public ProjectExport() {

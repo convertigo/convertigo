@@ -27,9 +27,11 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.twinsoft.convertigo.engine.CLI;
 
+@DisableCachingByDefault(because = "Downloads the result of an external Convertigo build")
 public class RemoteBuildDownload extends ConvertigoTask {
 	
 	private File destinationDir;

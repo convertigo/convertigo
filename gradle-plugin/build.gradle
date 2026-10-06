@@ -17,6 +17,9 @@ sourceSets {
 			srcDirs = ['src']
 		}
 	}
+	test {
+		java.srcDirs = ['test']
+	}
 }
 
 compileJava.dependsOn ':engine:publish'
@@ -27,6 +30,8 @@ dependencies {
 	}
 	implementation "com.convertigo:dependencies:$version"
 	runtimeOnly    'jakarta.servlet:jakarta.servlet-api:6.1.0'
+	testImplementation gradleTestKit()
+	testImplementation 'junit:junit:4.13.2'
 }
 
 gradlePlugin {

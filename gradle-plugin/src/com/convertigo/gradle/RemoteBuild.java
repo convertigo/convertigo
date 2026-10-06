@@ -27,10 +27,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
+@DisableCachingByDefault(because = "Configures mutable state for external Convertigo builds")
 public class RemoteBuild extends ConvertigoTask {
 	List<String> platforms = Collections.emptyList();
 	String authenticationToken = null;

@@ -21,7 +21,9 @@ package com.convertigo.gradle;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Internal;
+import org.gradle.work.DisableCachingByDefault;
 
+@DisableCachingByDefault(because = "Base type for tasks using mutable Convertigo project state")
 public abstract class ConvertigoTask extends DefaultTask {
 	ConvertigoPlugin plugin;
 	

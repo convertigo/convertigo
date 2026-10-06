@@ -25,10 +25,12 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.CLI;
 
+@DisableCachingByDefault(because = "Loads a Convertigo project into mutable engine state")
 public class ProjectLoad extends ConvertigoTask {
 	private Project convertigoProject;
 	private String projectVersion;
