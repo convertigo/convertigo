@@ -67,6 +67,7 @@ tasks.register('workspaceLoadingTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.ZipUtilsTest',
+		'com.twinsoft.convertigo.engine.util.YamlConverterTest',
 		'com.twinsoft.convertigo.engine.ReferencedProjectManagerTest'
 }
 
