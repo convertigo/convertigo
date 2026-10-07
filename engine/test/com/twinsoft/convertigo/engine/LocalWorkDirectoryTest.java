@@ -333,6 +333,21 @@ public class LocalWorkDirectoryTest {
 	}
 
 	@Test
+	public void aProjectDeployedAgainKeepsWhatItRebuildsAtOnce() throws Exception {
+		LocalWorkDirectory.use(open("v1"));
+		var ionic = LocalWorkDirectory.relocate("App", project, IONIC);
+		new File(ionic, "node_modules/old").mkdirs();
+		LocalWorkDirectory.projectRemoved("App");
+		assertFalse("the data of the removed project leaves its place at once", local("").exists());
+
+		LocalWorkDirectory.relocate("App", project, IONIC);
+		Files.writeString(new File(ionic, "angular.json").toPath(), "{}");
+		assertTrashEmptied();
+		assertTrue("what the new version rebuilds at once is kept", local(IONIC + "/angular.json").isFile());
+		assertFalse("the former data is gone", local(IONIC + "/node_modules/old").exists());
+	}
+
+	@Test
 	public void whatAnInterruptedRunLeftInTheTrashIsRemovedAtStartup() throws Exception {
 		var left = new File(root, ".trash/1-1-projects/App");
 		new File(left, IONIC + "/node_modules/pkg").mkdirs();

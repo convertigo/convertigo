@@ -32,6 +32,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +71,7 @@ public final class LocalWorkDirectory {
 	private final File root;
 	private final FileChannel channel;
 	private final FileLock lock;
-	private int discarded = 0;
+	private final AtomicInteger discarded = new AtomicInteger();
 
 	private LocalWorkDirectory(File root, FileChannel channel, FileLock lock) {
 		this.root = root;
@@ -218,14 +219,14 @@ public final class LocalWorkDirectory {
 		}
 	}
 
-	/** Removes the data of a project, deleted or reset: it is rebuilt when needed. */
+	/**
+	 * Removes the data of a project, deleted or reset: it is rebuilt when needed. It leaves its place at once, as the
+	 * project may come back before its deletion ends, when a new version is deployed, and rebuild it there.
+	 */
 	public static void projectRemoved(String projectName) {
 		var local = current;
 		if (local != null) {
-			var directory = local.projectPath(projectName).toFile();
-			if (directory.exists()) {
-				deleteInBackground(directory);
-			}
+			local.discard(local.projectPath(projectName).toFile());
 		}
 	}
 
@@ -456,14 +457,14 @@ public final class LocalWorkDirectory {
 	}
 
 	/**
-	 * Removes a folder without delaying the startup: it goes at once to the trash of this directory, a rename on the
-	 * same storage, and is deleted in the background. Links inside are removed without their targets.
+	 * Removes a folder at once, without waiting for its deletion: it goes to the trash of this directory, a rename on
+	 * the same storage, and is deleted in the background. Links inside are removed without their targets.
 	 */
 	private void discard(File file) {
 		if (!Files.exists(file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
 			return;
 		}
-		var target = new File(new File(root, TRASH), System.currentTimeMillis() + "-" + (++discarded) + "-" + file.getName());
+		var target = new File(new File(root, TRASH), System.currentTimeMillis() + "-" + discarded.incrementAndGet() + "-" + file.getName());
 		try {
 			Files.createDirectories(target.getParentFile().toPath());
 			Files.move(file.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
