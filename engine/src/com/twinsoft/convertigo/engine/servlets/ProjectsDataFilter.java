@@ -36,6 +36,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
+import com.twinsoft.convertigo.engine.ApplicationBuilds;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -182,6 +183,25 @@ public class ProjectsDataFilter implements Filter {
 			}
 		}
 		
+		if (projectDir != null && file.getName().equals("index.html")) {
+			var mobileIndex = new File(projectDir, "DisplayObjects/mobile/index.html");
+			if (file.getCanonicalFile().equals(mobileIndex.getCanonicalFile())) {
+				var projectName = projectDir.getName();
+				var page = ApplicationBuilds.statusPage(projectName, projectDir);
+				if (page != null) {
+					// the application has no build yet on this server
+					response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+					if (ApplicationBuilds.isInProgress(projectName)) {
+						response.setHeader("Retry-After", "15");
+					}
+					response.setHeader("Cache-Control", "no-store");
+					response.setContentType("text/html; charset=UTF-8");
+					response.getWriter().write(page);
+					return;
+				}
+			}
+		}
+
 		ServletUtils.handleFileFilter(file, request, response, filterConfig, chain);
 
 		Engine.logContext.debug("Exiting projects data filter");

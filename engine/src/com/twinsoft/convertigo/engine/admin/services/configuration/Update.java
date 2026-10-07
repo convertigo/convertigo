@@ -103,6 +103,8 @@ public class Update extends XmlService {
 
 		EnginePropertiesManager.saveProperties();
 		SharedWorkspaceSyncManager.markPropertiesChanged();
+		// the applications not built as the builds were not allowed
+		com.twinsoft.convertigo.engine.ApplicationBuilds.buildsAllowed();
 
 		Element update = document.createElement("update");
 		update.setAttribute("status", "ok");

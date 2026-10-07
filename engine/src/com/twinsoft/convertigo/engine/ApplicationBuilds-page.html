@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+%REFRESH%<title>%TITLE% · %PROJECT%</title>
+<style>
+:root {
+	--bg: #fbfdff;
+	--card: #ffffff;
+	--text: #1d2024;
+	--muted: #5b6574;
+	--border: #e7f0fe;
+	--accent: #0fb6e6;
+	--accent-soft: #e8fbff;
+	--error: oklch(62% 0.12 20deg);
+	--error-soft: oklch(96% 0.03 20deg);
+	--warning: #c7765c;
+	--warning-soft: #fdeee9;
+	color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #1d2024;
+		--card: #2a2f35;
+		--text: #f2f5f8;
+		--muted: #a9b1bb;
+		--border: #3a4048;
+		--accent: #18cfff;
+		--accent-soft: #00587a;
+		--error: oklch(70% 0.12 20deg);
+		--error-soft: oklch(31% 0.09 20deg);
+		--warning: #f28c6a;
+		--warning-soft: #4a2e25;
+	}
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+	display: grid;
+	place-items: center;
+	padding: 16px;
+	background: var(--bg);
+	color: var(--text);
+	font-family: 'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	line-height: 1.5;
+}
+main {
+	width: min(560px, 100%);
+	padding: 32px;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: var(--card);
+	box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+}
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--accent);
+	background: var(--accent-soft);
+}
+.failed .badge { color: var(--error); background: var(--error-soft); }
+.notAllowed .badge { color: var(--warning); background: var(--warning-soft); }
+.spinner {
+	width: 12px;
+	height: 12px;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+.failed .spinner, .notAllowed .spinner { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+h1 { margin: 16px 0 8px; font-size: 24px; font-weight: 600; }
+p { margin: 0 0 12px; color: var(--muted); }
+.project { color: var(--text); font-weight: 600; }
+footer { margin-top: 24px; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main class="%STATE%">
+<span class="badge"><span class="spinner" aria-hidden="true"></span>%TITLE%</span>
+<h1>Application of the project <span class="project">%PROJECT%</span></h1>
+<p>%MESSAGE%</p>
+<footer>Convertigo</footer>
+</main>
+</body>
+</html>

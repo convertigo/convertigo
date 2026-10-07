@@ -106,6 +106,10 @@ public class WsBuilder extends WebSocketService {
 		volatile Process process;
 		/** whether the build was stopped, which does not fail */
 		volatile boolean stopped;
+		/** also receives the output of the build (a build of the server) */
+		java.util.function.Consumer<String> listener;
+		/** how the local build ended: success, failed or stopped */
+		volatile String result;
 
 		Build(String projectName, String endpoint, String mode, String install) {
 			this.projectName = projectName;
@@ -221,6 +225,7 @@ public class WsBuilder extends WebSocketService {
 					buildLocally(path, ionicDir, mb, NgxBuilderBuildMode.get(mode));
 				}
 			} catch (Exception e) {
+				result = "failed";
 				log("Exception: " + e.getMessage());
 				Engine.logStudio.warn("(WsBuilder) build of " + projectName + " failed", e);
 			} finally {
@@ -491,6 +496,7 @@ public class WsBuilder extends WebSocketService {
 				}
 			}
 			var code = p.waitFor();
+			result = stopped ? "stopped" : code == 0 && !failed ? "success" : "failed";
 			if (stopped) {
 				send("built", "stopped");
 				appendOutput("The build is stopped.");
@@ -588,11 +594,17 @@ public class WsBuilder extends WebSocketService {
 
 		private void appendOutput(String string) {
 			send("output", string);
+			if (listener != null) {
+				listener.accept(string);
+			}
 		}
 
 		/** a line of the output that tells an error of the build, which the Studio shows in red */
 		private void appendError(String string) {
 			send("error", string);
+			if (listener != null) {
+				listener.accept(string);
+			}
 		}
 
 		/**
@@ -606,6 +618,9 @@ public class WsBuilder extends WebSocketService {
 
 		private void log(String log) {
 			send("log", log);
+			if (listener != null) {
+				listener.accept(log);
+			}
 		}
 
 		private void setState(String state) {
@@ -870,6 +885,43 @@ public class WsBuilder extends WebSocketService {
 
 	private void onBuild(JSONObject params, String mode) throws Exception {
 		launch(new Build(project, params.getString("endpoint"), mode, params.optString("install", "")));
+	}
+
+	/**
+	 * A production build of an application by the server, in the calling thread, which the Studio web sees as a local
+	 * build of the project.
+	 *
+	 * @param listener receives the output of the build
+	 * @return whether the application is built
+	 */
+	public static boolean buildForServer(String projectName, String endpoint,
+			java.util.function.Consumer<String> listener) throws InterruptedException {
+		var build = new Build(projectName, endpoint, NgxBuilderBuildMode.prod.name(), "");
+		build.listener = listener;
+		build.thread = Thread.currentThread();
+		Build previous;
+		synchronized (builds) {
+			previous = builds.put(key(projectName, false), build);
+		}
+		if (previous != null) {
+			previous.stopProcess();
+			if (previous.thread != null && previous.thread != Thread.currentThread()) {
+				previous.thread.join(10000);
+			}
+		}
+		build.run();
+		return "success".equals(build.result);
+	}
+
+	/** Stops the build of the server of a project, if any. */
+	public static void stopBuildForServer(String projectName) {
+		Build build;
+		synchronized (builds) {
+			build = builds.get(key(projectName, false));
+		}
+		if (build != null && build.listener != null) {
+			build.stopProcess();
+		}
 	}
 
 	/**

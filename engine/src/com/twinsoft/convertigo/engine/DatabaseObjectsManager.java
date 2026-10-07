@@ -1581,6 +1581,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			// Unloading dropped working copies. Notify their consumers only once
 			// the replacement project and its referenced runtime are ready.
 			com.twinsoft.convertigo.beans.flow.FlowWorkingCopies.projectLoaded(project);
+			ApplicationBuilds.projectLoaded(project);
 			Engine.logDatabaseObjectManager
 			.info("[importProject] End initializing: " + Project.formatNameWithHash(project));
 

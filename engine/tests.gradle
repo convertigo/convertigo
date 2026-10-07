@@ -33,6 +33,7 @@ tasks.named('check') {
 	dependsOn 'tagTest'
 	dependsOn 'localWorkDirectoryTest'
 	dependsOn 'projectLibrariesTest'
+	dependsOn 'applicationBuildsTest'
 }
 
 tasks.register('stepSourceTest', JavaExec) {
@@ -150,4 +151,13 @@ tasks.register('projectLibrariesTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.ProjectLibrariesTest'
+}
+
+tasks.register('applicationBuildsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the builds of the applications by a server: lock between instances and publication.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.ApplicationBuildsTest'
 }
