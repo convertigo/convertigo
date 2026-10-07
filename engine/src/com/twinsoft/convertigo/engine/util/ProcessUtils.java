@@ -130,11 +130,17 @@ public class ProcessUtils {
 		File npmFile = new File(nodeDir, Engine.isWindows() ? "npm.cmd" : "npm");
 		try {
 			if (npmFile.exists()) {
-				Process p = new ProcessBuilder(npmFile.getAbsolutePath(), "-version").start();
-				if (p.waitFor(5, TimeUnit.SECONDS)) {
-					try (InputStream is = p.getInputStream()) {
-						version = IOUtils.toString(is, Charset.defaultCharset()).trim();
+				// npm is a script run by the node of its folder, which is not necessarily in the PATH of the engine
+				Process p = getProcessBuilder(nodeDir.getAbsolutePath(), npmFile.getAbsolutePath(), "-version")
+						.redirectError(Redirect.DISCARD).start();
+				if (p.waitFor(10, TimeUnit.SECONDS)) {
+					if (p.exitValue() == 0) {
+						try (InputStream is = p.getInputStream()) {
+							version = IOUtils.toString(is, Charset.defaultCharset()).trim();
+						}
 					}
+				} else {
+					p.destroyForcibly();
 				}
 			} else {
 				Engine.logConvertigo.info("npm doesn't exist here: " + npmFile.getAbsolutePath());
