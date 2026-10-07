@@ -127,6 +127,40 @@ public final class RedisSessionConfiguration {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
+    /** One-line summary of the effective settings for the logs, without any secret. */
+    public String describe() {
+        var sb = new StringBuilder();
+        sb.append("address=").append(getAddress())
+                .append(", database=").append(database)
+                .append(", username=").append(getUsername() != null ? getUsername() : "(none)")
+                .append(", password=").append(getPassword() != null ? "(set)" : "(none)")
+                .append(", timeout=").append(timeoutMillis).append(" ms")
+                .append(", pool=").append(connectionMinimumIdleSize).append('/').append(connectionPoolSize)
+                .append(", prefix=").append(keyPrefix);
+        if (ssl) {
+            sb.append(", truststore=").append(describeStore(sslTruststore))
+                    .append(", keystore=").append(describeStore(sslKeystore));
+            if (sslKeystoreType != null) {
+                sb.append(" (").append(sslKeystoreType).append(')');
+            }
+            sb.append(", verification=").append(sslVerificationMode != null ? sslVerificationMode : "default (STRICT)");
+            if (sslProtocols.length > 0) {
+                sb.append(", protocols=").append(String.join(",", sslProtocols));
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String describeStore(String location) {
+        if (location == null) {
+            return "(none)";
+        }
+        if (location.matches("^[a-zA-Z][a-zA-Z0-9+.-]+:.*")) {
+            return location;
+        }
+        return new java.io.File(location).canRead() ? location : location + " (NOT READABLE)";
+    }
+
     String getAddress() {
         var protocol = this.ssl ? "rediss" : "redis";
         return protocol + "://" + this.host + ":" + this.port;

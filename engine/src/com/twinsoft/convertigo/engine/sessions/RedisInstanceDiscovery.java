@@ -514,10 +514,10 @@ public final class RedisInstanceDiscovery {
 				return;
 			}
 			ensureLocalResolved();
-			var map = instancesMap();
-			if (map == null) {
-				return;
-			}
+			// not instancesMap(): its errors are swallowed and the heartbeat also measures the reachability of Redis
+			var cfg = RedisClients.getConfiguration();
+			RMapCache<String, String> map = RedisClients.getClient().getMapCache(cfg.getContextKeyPrefix() + INDEX_INSTANCES,
+					StringCodec.INSTANCE);
 			String id = localInstanceId;
 			String url = localBaseUrl;
 			if (id == null || id.isBlank() || url == null || url.isBlank()) {
@@ -533,7 +533,9 @@ public final class RedisInstanceDiscovery {
 
 			String json = JSON.writeValueAsString(payload);
 			map.fastPut(id, json, TTL_SECONDS, TimeUnit.SECONDS);
+			RedisHealth.success();
 		} catch (Exception e) {
+			RedisHealth.failure(e);
 			Engine.logRedis.debug("(RedisInstanceDiscovery) heartbeat failed", e);
 		}
 	}

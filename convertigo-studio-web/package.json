@@ -24,7 +24,7 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.57.1"
+			"svelte": "^5.57.2"
 		}
 	},
 	"devDependencies": {
@@ -53,7 +53,7 @@
 		"prettier-plugin-svelte": "^4.1.1",
 		"prettier-plugin-tailwindcss": "^0.8.1",
 		"sharp": "^0.35.5",
-		"svelte": "^5.57.1",
+		"svelte": "^5.57.2",
 		"svelte-check": "^4.7.6",
 		"svelte-eslint-parser": "^1.8.1",
 		"tailwindcss": "^4.3.3",
@@ -72,7 +72,7 @@
 		"@zag-js/tree-view": "^1.45.0",
 		"apexcharts": "^5.16.0",
 		"bits-ui": "^2.19.5",
-		"caniuse-lite": "^1.0.30001814",
+		"caniuse-lite": "^1.0.30001815",
 		"chart.js": "^4.5.1",
 		"dockview": "^8.4.1",
 		"fast-xml-parser": "^5.11.2",
