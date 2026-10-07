@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.function.Predicate;
 
@@ -50,7 +51,8 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
  * <p>
  * The directory may be reused after a restart, but its content is never trusted as is: at startup, everything
  * produced by another Convertigo version, by a work interrupted during the previous run, or for a project that no
- * longer exists is removed. A lock keeps two live engines configured with the same directory apart. Only the
+ * longer exists is removed, without delaying the startup: it leaves its place at once for a trash emptied in the
+ * background. A lock keeps two live engines configured with the same directory apart. Only the
  * entries created here are ever removed, and links are removed without their targets: a directory set by mistake
  * keeps its other content, and a project its folders.
  */
@@ -61,12 +63,14 @@ public final class LocalWorkDirectory {
 	private static final String WORKING = ".c8o-working";
 	private static final String INSTANCE_PREFIX = "instance-";
 	private static final String MOVED_SUFFIX = ".moved-";
+	private static final String TRASH = ".trash";
 
 	private static volatile LocalWorkDirectory current;
 
 	private final File root;
 	private final FileChannel channel;
 	private final FileLock lock;
+	private int discarded = 0;
 
 	private LocalWorkDirectory(File root, FileChannel channel, FileLock lock) {
 		this.root = root;
@@ -239,6 +243,8 @@ public final class LocalWorkDirectory {
 				warn("Local working directory: symbolic links are not available in " + configured + ", rebuildable folders stay in the projects", null);
 				return null;
 			}
+			// nothing here delays the startup: what goes is renamed at once and deleted in the background
+			opened.emptyTrash();
 			opened.checkVersion(version);
 			opened.removeInterruptedWork();
 			opened.removeProjects(projectExists);
@@ -377,7 +383,7 @@ public final class LocalWorkDirectory {
 				var stale = tryOpen(instance);
 				if (stale != null) {
 					stale.close();
-					FileUtils.deleteQuietly(instance);
+					discard(instance);
 					info("Local working directory: removed " + instance + ", left by a stopped engine");
 				}
 			} catch (IOException e) {
@@ -394,7 +400,7 @@ public final class LocalWorkDirectory {
 		}
 		var projects = new File(root, PROJECTS);
 		if (projects.exists()) {
-			FileUtils.deleteQuietly(projects);
+			discard(projects);
 			info("Local working directory: data of " + (previous == null ? "an unknown version" : previous) + " removed");
 		}
 		Files.writeString(stamp.toPath(), version, StandardCharsets.UTF_8);
@@ -410,7 +416,7 @@ public final class LocalWorkDirectory {
 		}
 	}
 
-	private static void removeInterruptedWork(File directory) {
+	private void removeInterruptedWork(File directory) {
 		var markers = new File(directory, WORKING).listFiles(File::isFile);
 		if (markers == null) {
 			return;
@@ -419,7 +425,7 @@ public final class LocalWorkDirectory {
 			var key = URLDecoder.decode(marker.getName(), StandardCharsets.UTF_8);
 			var target = directory.toPath().resolve(key).normalize();
 			if (target.startsWith(directory.toPath()) && !target.equals(directory.toPath())) {
-				FileUtils.deleteQuietly(target.toFile());
+				discard(target.toFile());
 				info("Local working directory: removed " + target + ", interrupted during the previous run");
 			}
 			marker.delete();
@@ -433,8 +439,36 @@ public final class LocalWorkDirectory {
 		}
 		for (var project : projects) {
 			if (!projectExists.test(project.getName())) {
-				FileUtils.deleteQuietly(project);
+				discard(project);
 				info("Local working directory: removed the data of the project " + project.getName() + ", no longer in the workspace");
+			}
+		}
+	}
+
+	/**
+	 * Removes a folder without delaying the startup: it goes at once to the trash of this directory, a rename on the
+	 * same storage, and is deleted in the background. Links inside are removed without their targets.
+	 */
+	private void discard(File file) {
+		if (!Files.exists(file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+			return;
+		}
+		var target = new File(new File(root, TRASH), System.currentTimeMillis() + "-" + (++discarded) + "-" + file.getName());
+		try {
+			Files.createDirectories(target.getParentFile().toPath());
+			Files.move(file.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+			deleteInBackground(target);
+		} catch (IOException e) {
+			deleteInBackground(file);
+		}
+	}
+
+	/** What a previous run left in the trash. */
+	private void emptyTrash() {
+		var left = new File(root, TRASH).listFiles();
+		if (left != null) {
+			for (var file : left) {
+				deleteInBackground(file);
 			}
 		}
 	}

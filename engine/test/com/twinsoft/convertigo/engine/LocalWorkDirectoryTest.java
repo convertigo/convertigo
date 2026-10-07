@@ -69,6 +69,16 @@ public class LocalWorkDirectoryTest {
 		assertFalse(message, Files.exists(file.toPath(), LinkOption.NOFOLLOW_LINKS));
 	}
 
+	/** Startup removals leave their place at once for the trash of the directory, emptied in the background. */
+	private void assertTrashEmptied() throws Exception {
+		var trash = new File(root, ".trash");
+		for (int i = 0; i < 100 && trash.list() != null && trash.list().length > 0; i++) {
+			Thread.sleep(100);
+		}
+		var left = trash.list();
+		assertTrue("the trash is emptied: " + (left == null ? "" : String.join(", ", left)), left == null || left.length == 0);
+	}
+
 	private void assertProjectIntact() throws Exception {
 		assertEquals("the project keeps its files", "built", Files.readString(new File(displayObjects, "index.html").toPath()));
 		assertTrue(new File(project, "Flashupdate").isDirectory());
@@ -196,6 +206,7 @@ public class LocalWorkDirectoryTest {
 		assertFalse("half installed packages are not reused", local(IONIC + "/node_modules").exists());
 		assertTrue("the rest of the folder is kept", local(IONIC).isDirectory());
 		assertFalse(local(".c8o-working/_private%2Fionic%2Fnode_modules").exists());
+		assertTrashEmptied();
 		assertProjectIntact();
 	}
 
@@ -211,6 +222,7 @@ public class LocalWorkDirectoryTest {
 		assertFalse("data of another version is removed", local(IONIC).exists());
 		assertEquals("v2", Files.readString(new File(root, ".convertigo-version").toPath(), StandardCharsets.UTF_8));
 		assertTrue("other content of the directory is kept", foreign.isFile());
+		assertTrashEmptied();
 		assertProjectIntact();
 	}
 
@@ -226,6 +238,7 @@ public class LocalWorkDirectoryTest {
 		LocalWorkDirectory.use(open("v1", "Other"));
 		assertFalse("the data of a project no longer in the workspace is removed", new File(root, "projects/App").exists());
 		assertTrue(new File(root, "projects/Other/" + IONIC).isDirectory());
+		assertTrashEmptied();
 		assertProjectIntact();
 
 		LocalWorkDirectory.projectRemoved("Other");
@@ -297,6 +310,16 @@ public class LocalWorkDirectoryTest {
 		assertFalse("a half extracted distribution is not reused", interrupted.exists());
 		assertTrue("a completed one is", new File(completed, "bin").isDirectory());
 		assertFalse(new File(root, ".c8o-working/nodes%2Fnode-v22-linux-arm64").exists());
+	}
+
+	@Test
+	public void whatAnInterruptedRunLeftInTheTrashIsRemovedAtStartup() throws Exception {
+		var left = new File(root, ".trash/1-1-projects/App");
+		new File(left, IONIC + "/node_modules/pkg").mkdirs();
+		Files.createSymbolicLink(new File(left, "DisplayObjects").toPath(), new File(project, "DisplayObjects").toPath());
+		LocalWorkDirectory.use(open("v1"));
+		assertTrashEmptied();
+		assertProjectIntact();
 	}
 
 	@Test
