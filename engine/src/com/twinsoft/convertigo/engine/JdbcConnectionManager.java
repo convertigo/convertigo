@@ -26,13 +26,14 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.util.Collections;
-import java.util.Enumeration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import javax.naming.NamingException;
@@ -41,7 +42,13 @@ import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 
-public class JdbcConnectionManager implements AbstractManager {
+/**
+ * The JDBC connections of the SQL connectors. A driver provided by the libraries of a project belongs to the generation
+ * of its class path (see {@link ProjectLibraries}): each project connects with its own version of a driver, and the
+ * pools and drivers of a replaced generation are released once it is retired. Drivers of the engine are shared and
+ * reached through DriverManager.
+ */
+public class JdbcConnectionManager implements AbstractManager, ProjectLibraries.Holder {
 
 	private static Class<?> dataSourceCls = null;
 	private static Method dataSourceClose = null;
@@ -62,8 +69,14 @@ public class JdbcConnectionManager implements AbstractManager {
 	private static Method dataSourceGetMaxActive = null;
 	private static Method dataSourceGetNumIdle = null;
 	private static Method dataSourceGetMaxIdle = null;
+	/** Pools by connector and generation of the class path of its project. */
 	private Map<String, Object> databasePools;
+	/** Drivers of the engine, registered once. */
 	private Set<String> driversLoaded;
+	/** Drivers of the libraries of the projects, by generation and class name. */
+	private final Map<String, Map<String, Driver>> projectDrivers = new ConcurrentHashMap<>();
+	/** Registered in DriverManager for the code of the projects that uses it, by generation. */
+	private final Map<String, List<Driver>> projectShims = new ConcurrentHashMap<>();
 	
 	public JdbcConnectionManager() {
 	}
@@ -71,6 +84,7 @@ public class JdbcConnectionManager implements AbstractManager {
 	public void init() throws EngineException {
 		databasePools = new HashMap<>(2048);
 		driversLoaded = new HashSet<>();
+		ProjectLibraries.addHolder(this);
 		try {
 			try {
 				dataSourceCls = Class.forName("org.apache.tomcat.dbcp.dbcp2.BasicDataSource");
@@ -105,32 +119,93 @@ public class JdbcConnectionManager implements AbstractManager {
 	}
 	
 	public void destroy() throws EngineException {
-		Enumeration<String> keysEnum = Collections.enumeration(databasePools.keySet());
-		while(keysEnum.hasMoreElements()) {
-			String poolKey = (String)keysEnum.nextElement();
-			Engine.logEngine.debug("[SqlConnectionManager] Closing datasource '" + poolKey + "'...");
-			try {
-				dataSourceClose.invoke(databasePools.get(poolKey));
-				Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' closed.");
-			} catch (Exception e) {
-				Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' close failure ! ");
+		ProjectLibraries.removeHolder(this);
+		synchronized (this) {
+			for (var poolKey : new ArrayList<>(databasePools.keySet())) {
+				closePool(poolKey);
 			}
-			databasePools.remove(poolKey);
+			databasePools = null;
 		}
-		databasePools = null;
+		for (var generation : new ArrayList<>(projectShims.keySet())) {
+			deregisterDrivers(generation);
+		}
 	}
-	
-	public void removeDatabasePool(SqlConnector connector) {
-		String poolKey = getKey(connector);
-		if (databasePools.containsKey(poolKey)) {
-			Engine.logEngine.debug("[SqlConnectionManager] Closing datasource '" + poolKey + "'...");
-			try {
-				dataSourceClose.invoke(databasePools.get(poolKey));
-				Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' closed.");
-			} catch (Exception e) {
-				Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' close failure ! ");
+
+	private void closePool(String poolKey) {
+		Engine.logEngine.debug("[SqlConnectionManager] Closing datasource '" + poolKey + "'...");
+		try {
+			dataSourceClose.invoke(databasePools.get(poolKey));
+			Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' closed.");
+		} catch (Exception e) {
+			Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' close failure ! ");
+		}
+		databasePools.remove(poolKey);
+	}
+
+	/** Closes the pools of a connector, whatever the generation of the class path of its project. */
+	public synchronized void removeDatabasePool(SqlConnector connector) {
+		if (databasePools == null) {
+			return;
+		}
+		var prefix = connector.getQName() + "\n";
+		for (var poolKey : new ArrayList<>(databasePools.keySet())) {
+			if (poolKey.startsWith(prefix)) {
+				closePool(poolKey);
 			}
-			databasePools.remove(poolKey);
+		}
+	}
+
+	@Override
+	public synchronized boolean inUse(ProjectClassLoader generation) {
+		if (databasePools == null) {
+			return false;
+		}
+		var suffix = "\n" + generation.getId();
+		for (var poolEntry : databasePools.entrySet()) {
+			try {
+				if (poolEntry.getKey().endsWith(suffix) && ((Number) dataSourceGetNumActive.invoke(poolEntry.getValue())).intValue() > 0) {
+					return true;
+				}
+			} catch (Exception e) {
+				// released anyway at the time limit
+			}
+		}
+		return false;
+	}
+
+	/** A retired generation: its pools are closed and its drivers deregistered. */
+	@Override
+	public void release(ProjectClassLoader generation) {
+		synchronized (this) {
+			if (databasePools != null) {
+				var suffix = "\n" + generation.getId();
+				for (var poolKey : new ArrayList<>(databasePools.keySet())) {
+					if (poolKey.endsWith(suffix)) {
+						closePool(poolKey);
+					}
+				}
+			}
+		}
+		deregisterDrivers(generation.getId());
+		try {
+			var count = generation.defineEngineClass(ProjectDriversCleanup.class).getMethod("deregister").invoke(null);
+			Engine.logEngine.debug("(JdbcConnectionManager) JDBC drivers registered by the classes of " + generation + ": " + count + " deregistered");
+		} catch (Exception e) {
+			Engine.logEngine.debug("(JdbcConnectionManager) Unable to deregister the JDBC drivers registered by the classes of " + generation, e);
+		}
+	}
+
+	private void deregisterDrivers(String generation) {
+		projectDrivers.remove(generation);
+		var shims = projectShims.remove(generation);
+		if (shims != null) {
+			for (var shim : shims) {
+				try {
+					DriverManager.deregisterDriver(shim);
+				} catch (SQLException e) {
+					Engine.logEngine.debug("(JdbcConnectionManager) Unable to deregister a JDBC driver of " + generation, e);
+				}
+			}
 		}
 	}
 
@@ -238,7 +313,7 @@ public class JdbcConnectionManager implements AbstractManager {
 		return pool;
 	}
 
-	private synchronized Object getDatabasePool (SqlConnector connector) throws Exception {
+	private synchronized Object getDatabasePool(SqlConnector connector) throws Exception {
 		if (databasePools.containsKey(getKey(connector))) {
 			Engine.logEngine.debug("(JdbcConnectionManager) getDatabasePool() returning existing pool");
 			return databasePools.get(getKey(connector));
@@ -249,8 +324,10 @@ public class JdbcConnectionManager implements AbstractManager {
 		}
 	}
 	
-	private String getKey (SqlConnector connector) {
-		return connector.getQName();
+	/** @return the key of the pool of a connector, for the generation of the class path running the request */
+	private String getKey(SqlConnector connector) {
+		var classLoader = Thread.currentThread().getContextClassLoader();
+		return connector.getQName() + "\n" + (classLoader instanceof ProjectClassLoader generation ? generation.getId() : "");
 	}
 	
 	public Connection getConnection(SqlConnector connector) throws Exception {
@@ -264,8 +341,9 @@ public class JdbcConnectionManager implements AbstractManager {
 			// Attempt to load the database driver
 			String jdbcDriverClassName = connector.getJdbcDriverClassName();
 			Engine.logEngine.debug("(JdbcConnectionManager) JDBC driver: " + jdbcDriverClassName);
+			Driver projectDriver;
 			try {
-				checkDriverLoaded(jdbcDriverClassName);
+				projectDriver = loadDriver(jdbcDriverClassName);
 			} catch (ClassNotFoundException e) {
 				throw e;
 			} catch (SQLException e) {
@@ -299,17 +377,7 @@ public class JdbcConnectionManager implements AbstractManager {
 				String password = connector.getRealJdbcUserPassword();
 				Engine.logEngine.trace("(JdbcConnectionManager) Password: " + password);
 
-				if ("".equals(user)) {
-					Engine.logEngine.debug("(JdbcConnectionManager) Anonymous connection requested");
-					connection = DriverManager.getConnection(jdbcURL);
-				}
-				else {
-					Engine.logEngine.debug("(JdbcConnectionManager) Non anonymous connection requested");
-					connection = DriverManager.getConnection(
-							jdbcURL,
-							user,
-							password);
-				}
+				connection = connectWithoutPool(projectDriver, jdbcURL, user, password);
 
 				Engine.logEngine.debug("(JdbcConnectionManager) non pooled connection = " + connection);
 			}
@@ -317,18 +385,95 @@ public class JdbcConnectionManager implements AbstractManager {
 		return connection;
 	}
 	
-	private void checkDriverLoaded(String jdbcDriverClassName) throws Exception {
+	/**
+	 * A driver of the libraries of the project running the request is connected with directly: DriverManager would
+	 * hand the URL to the first registered driver accepting it, whatever its project.
+	 */
+	Connection connectWithoutPool(Driver projectDriver, String jdbcURL, String user, String password) throws SQLException {
+		var anonymous = "".equals(user);
+		Engine.logEngine.debug("(JdbcConnectionManager) " + (anonymous ? "Anonymous" : "Non anonymous") + " connection requested");
+		if (projectDriver != null) {
+			var info = new Properties();
+			if (!anonymous && user != null) {
+				info.put("user", user);
+			}
+			if (!anonymous && password != null) {
+				info.put("password", password);
+			}
+			var connection = projectDriver.connect(jdbcURL, info);
+			if (connection != null) {
+				return connection;
+			}
+		}
+		return anonymous ? DriverManager.getConnection(jdbcURL) : DriverManager.getConnection(jdbcURL, user, password);
+	}
+
+	/**
+	 * Loads a JDBC driver with the class loader of the request.
+	 *
+	 * @return the driver when the libraries of the project provide it, for the generation of their class path; null
+	 *         for a driver of the engine, registered once in DriverManager
+	 */
+	Driver loadDriver(String jdbcDriverClassName) throws Exception {
+		var classLoader = Thread.currentThread().getContextClassLoader();
+		if (classLoader instanceof ProjectClassLoader generation) {
+			var drivers = projectDrivers.computeIfAbsent(generation.getId(), id -> new ConcurrentHashMap<>());
+			synchronized (drivers) {
+				var driver = drivers.get(jdbcDriverClassName);
+				if (driver == null) {
+					var driverClass = generation.loadClass(jdbcDriverClassName);
+					if (driverClass.getClassLoader() != generation) {
+						driver = ENGINE_DRIVER;
+					} else {
+						driver = (Driver) driverClass.getDeclaredConstructor().newInstance();
+						// for the code of the project that connects through DriverManager
+						var shim = new DriverShim(driver);
+						DriverManager.registerDriver(shim);
+						projectShims.computeIfAbsent(generation.getId(), id -> new ArrayList<>()).add(shim);
+					}
+					drivers.put(jdbcDriverClassName, driver);
+				}
+				if (driver != ENGINE_DRIVER) {
+					return driver;
+				}
+			}
+		}
 		synchronized (driversLoaded) {
 			if (!driversLoaded.contains(jdbcDriverClassName)) {
-				ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 				Driver d = (Driver) classLoader.loadClass(jdbcDriverClassName).getDeclaredConstructor().newInstance();
 				DriverManager.registerDriver(new DriverShim(d));
 				driversLoaded.add(jdbcDriverClassName);
 			}
 		}
+		return null;
 	}
+
+	/** Marks a driver of the engine in the drivers of a generation. */
+	private static final Driver ENGINE_DRIVER = new Driver() {
+		public boolean acceptsURL(String u) {
+			return false;
+		}
+		public Connection connect(String u, Properties p) {
+			return null;
+		}
+		public int getMajorVersion() {
+			return 0;
+		}
+		public int getMinorVersion() {
+			return 0;
+		}
+		public DriverPropertyInfo[] getPropertyInfo(String u, Properties p) {
+			return new DriverPropertyInfo[0];
+		}
+		public boolean jdbcCompliant() {
+			return false;
+		}
+		public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+			throw new SQLFeatureNotSupportedException();
+		}
+	};
 	
-	private class DriverShim implements Driver {
+	private static class DriverShim implements Driver {
 		private Driver driver;
 		DriverShim(Driver d) {
 			this.driver = d;

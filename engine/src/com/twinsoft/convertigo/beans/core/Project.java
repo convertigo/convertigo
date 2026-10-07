@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.ProjectLibraries;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
@@ -52,7 +53,6 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
-import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
@@ -93,7 +93,6 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 	public static final String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
 
-	private final Object mutexClassLoader = new Object();
 
 	/**
 	 * The Context timeout in seconds.
@@ -172,7 +171,6 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 	transient private long lastChange = 0L;
 
-	transient private DirClassLoader loader;
 
 	transient private String minVersion;
 	
@@ -490,13 +488,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		String newDatabaseObjectName = getChildBeanName(vReferences, reference.getName(), reference.bNew);
 		reference.setName(newDatabaseObjectName);
 		vReferences.add(reference);
-		loader = null;
+		ProjectLibraries.checkAtNextUse(getName());
 		super.add(reference);
 	}
 
 	public void removeReference(Reference device) throws EngineException {
 		checkSubLoaded();
-		loader = null;
+		ProjectLibraries.checkAtNextUse(getName());
 		vReferences.remove(device);
 	}
 
@@ -1067,22 +1065,21 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		return dirs;
 	}
 
+	/** @return the libs folders of the project, then those of the projects it references */
+	public List<File> getLibrariesDirectories() {
+		return addClassPathDirs(new LinkedList<>());
+	}
+
+	/**
+	 * @return the current generation of the class path of the project: its libraries, then the engine (see
+	 *         {@link ProjectLibraries})
+	 */
 	public ClassLoader getProjectClassLoader() {
 		Object original = getOriginal();
 		if (original != this) {
 			return ((Project) original).getProjectClassLoader();
 		}
-		synchronized (mutexClassLoader) {
-			if (loader != null && loader.isContentChanged()) {
-				loader = null;
-			}
-			if (loader == null) {
-				List<File> dirs = addClassPathDirs(new LinkedList<>());
-				File toCopy = new File(Engine.USER_WORKSPACE_PATH + "/libs/" + getName());
-				loader = new DirClassLoader(dirs, Engine.getEngineClassLoader(), toCopy);
-			}
-		}
-		return loader;
+		return ProjectLibraries.classLoader(this);
 	}
 
 	transient private volatile boolean unloaded = false;

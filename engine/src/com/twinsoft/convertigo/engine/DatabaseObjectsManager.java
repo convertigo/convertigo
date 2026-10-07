@@ -642,6 +642,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private void releaseProject(Project project) {
 		String projectName = project.getName();
 		project.markUnloaded();
+		ProjectLibraries.checkAtNextUse(projectName);
 		com.twinsoft.convertigo.engine.tags.TagManager.get().projectClosed(project);
 		Flow.projectUnloaded(project);
 		RestApiManager.getInstance().removeUrlMapper(projectName);
@@ -718,6 +719,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			// its rebuildable data goes with its _private folder
 			LocalWorkDirectory.projectRemoved(projectName);
+			ProjectLibraries.projectRemoved(projectName);
 
 			var projectDir = new File(Engine.projectDir(projectName));
 			var removeDir = projectDir;

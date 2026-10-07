@@ -1,0 +1,6 @@
+# Packages that the libraries of a project never replace: their classes are taken from the engine when it has them.
+# A second copy of these classes in a project breaks the JavaScript Packages object and casts between engine objects.
+# One package prefix per line. Without any, the libraries of a project are searched first for every class.
+com.twinsoft.
+org.mozilla.javascript.
+jakarta.servlet.

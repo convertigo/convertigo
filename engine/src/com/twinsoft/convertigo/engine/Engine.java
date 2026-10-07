@@ -854,6 +854,7 @@ public class Engine {
 					Engine.logEngine.info("Removing the SQL connections manager");
 					Engine.theApp.sqlConnectionManager.destroy();
 				}
+				ProjectLibraries.stop();
 
 				if (Engine.theApp.filePropertyManager != null) {
 					Engine.logEngine.info("Removing the file property manager");
