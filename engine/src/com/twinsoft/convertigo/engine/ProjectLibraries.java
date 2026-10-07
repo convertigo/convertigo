@@ -42,14 +42,16 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 /**
- * The class paths of the projects, made of their libraries (libs/*.jar and libs/classes, with those of the projects they
- * reference) and searched before the engine (see {@link ProjectClassLoader}).
+ * The class paths of the projects, made of their libraries (libs/*.jar, libs/classes and the classes compiled from
+ * libs/src, with those of the projects they reference) and searched before the engine (see {@link ProjectClassLoader}
+ * and {@link ProjectSources}).
  * <p>
  * A project uses one generation of its class path at a time: an immutable class loader over a copy of its libraries.
  * When the libraries change, the next generation is built, in the background on a server, before answering in the
  * Studio where a library is replaced to be used at once, and it replaces the current one for the next requests. The
  * running requests finish with the generation they started with. A project loaded again with the same libraries keeps
- * its generation.
+ * its generation. When its sources do not compile, a project keeps its current generation, or gets one without the
+ * classes of its sources.
  * <p>
  * A replaced generation is retired: once its resources are no longer in use, or after a time limit, the engine releases
  * what it keeps for it (see {@link Holder}), and the garbage collector reclaims it when nothing else uses it, so an
@@ -99,6 +101,26 @@ public final class ProjectLibraries {
 		return classpaths.computeIfAbsent(project, Classpath::new).loader(dirs, version == null ? "" : version, synchronous);
 	}
 
+	/**
+	 * For the export of a project: the classes compiled from its own libs/src in its current generation, with the copy of
+	 * the sources they are compiled from.
+	 *
+	 * @return the classes folder and the sources folder, or null when the generation has no classes of these sources
+	 */
+	public static File[] compiledSources(Project project) {
+		if (!(classLoader(project) instanceof ProjectClassLoader generation) || generation.getSnapshot() == null) {
+			return null;
+		}
+		var sources = new File(generation.getSnapshot(), "source-0/" + ClasspathSnapshot.SOURCES);
+		var classes = new File(sources.getPath() + ClasspathSnapshot.COMPILED_SUFFIX);
+		return sources.isDirectory() && classes.isDirectory() ? new File[] { classes, sources } : null;
+	}
+
+	/** @return the fingerprint of the content of a src folder, written next to the classes compiled from it */
+	public static String sourcesFingerprint(File sources) throws java.io.IOException {
+		return ClasspathSnapshot.sourcesFingerprint(sources);
+	}
+
 	/** The libraries of a project may have changed (references edited, project loaded again): checked at its next use. */
 	public static void checkAtNextUse(String project) {
 		var classpath = classpaths.get(project);
@@ -146,6 +168,8 @@ public final class ProjectLibraries {
 		private volatile String stamp;
 		private volatile long nextCheck;
 		private volatile long removedAt;
+		/** the current generation lacks the classes of sources this engine did not compile, as it did not build */
+		private volatile boolean waitingForBuild;
 
 		private Classpath(String name) {
 			this.name = name;
@@ -190,12 +214,14 @@ public final class ProjectLibraries {
 				var directories = dirs.get();
 				var entries = ClasspathSnapshot.entries(directories);
 				var newStamp = ClasspathSnapshot.stamp(directories, entries);
-				if (newStamp.equals(stamp)) {
+				var mayCompile = ProjectSources.mayCompile();
+				if (newStamp.equals(stamp) && !(waitingForBuild && mayCompile)) {
 					return;
 				}
 				var fingerprint = ClasspathSnapshot.fingerprint(entries);
 				var previous = current;
-				if (previous != null && fingerprint.equals(previous.getFingerprint())) {
+				if (previous != null && (fingerprint.equals(previous.getFingerprint())
+						|| (fingerprint + ClasspathSnapshot.WITHOUT_SOURCES).equals(previous.getFingerprint()) && !mayCompile)) {
 					// files touched, same content
 					stamp = newStamp;
 					return;
@@ -203,17 +229,32 @@ public final class ProjectLibraries {
 				synchronized (lock(name)) {
 					File snapshot = null;
 					File snapshots = null;
+					var generationFingerprint = fingerprint;
 					if (!entries.isEmpty()) {
 						snapshots = snapshots(name);
-						snapshot = ClasspathSnapshot.prepare(entries, snapshots, fingerprint);
+						try {
+							snapshot = ClasspathSnapshot.prepare(name, entries, snapshots, fingerprint, mayCompile);
+						} catch (ProjectSources.CompilationException e) {
+							// not compiled again until the libraries change
+							stamp = newStamp;
+							error("Libraries of the project " + name + ": " + e.getMessage() + (previous != null
+									? "\nThe project keeps its previous libraries."
+									: "\nThe project uses its libraries without the classes of these sources."));
+							if (previous != null) {
+								return;
+							}
+							snapshot = ClasspathSnapshot.prepare(name, entries, snapshots, fingerprint, false);
+						}
+						generationFingerprint = snapshot.getName();
 					}
 					var next = new ProjectClassLoader(ClasspathSnapshot.urls(entries, snapshot), engineLoader(), name, version,
-							fingerprint, snapshot);
+							generationFingerprint, snapshot);
 					if (background && beforeSwap != null) {
 						beforeSwap.run();
 					}
 					current = next;
 					stamp = newStamp;
+					waitingForBuild = !mayCompile && generationFingerprint.endsWith(ClasspathSnapshot.WITHOUT_SOURCES);
 					if (previous != null) {
 						// before the cleaning: the running requests still read its copy
 						retire(previous);
@@ -450,6 +491,12 @@ public final class ProjectLibraries {
 	private static void info(String message) {
 		if (Engine.logEngine != null) {
 			Engine.logEngine.info(message);
+		}
+	}
+
+	private static void error(String message) {
+		if (Engine.logEngine != null) {
+			Engine.logEngine.error(message);
 		}
 	}
 

@@ -168,7 +168,8 @@ public final class ProjectClassLoader extends URLClassLoader {
 	@Override
 	public String toString() {
 		return "ProjectClassLoader[" + id + (version.isBlank() ? "" : ", version " + version) + ", libraries "
-				+ (fingerprint.length() > 12 ? fingerprint.substring(0, 12) : fingerprint) + "]";
+				+ (fingerprint.length() > 12 ? fingerprint.substring(0, 12) : fingerprint)
+				+ (fingerprint.endsWith(ClasspathSnapshot.WITHOUT_SOURCES) ? " without the classes of its sources" : "") + "]";
 	}
 
 	private static List<String> readProtectedPackages() {

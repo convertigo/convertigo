@@ -37,19 +37,45 @@ import java.util.List;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 /**
- * The libraries of a project (the jars and classes folders of its libs folders) and their immutable copies: a class
- * loader reads a copy, so the libraries can be replaced while it is in use. A completed copy never changes: it is
- * published only once fully copied and verified, and named after the fingerprint of its content.
+ * The libraries of a project (the jars, classes and src folders of its libs folders, with the classes compiled before
+ * from src, in a build folder) and their immutable copies: a class loader reads a copy, so the libraries can be
+ * replaced while it is in use. A completed copy never changes: it is published only once fully copied, verified and
+ * its sources compiled (see {@link ProjectSources}), and named after the fingerprint of its content, followed by
+ * {@link #WITHOUT_SOURCES} when sources did not get their classes.
  */
 final class ClasspathSnapshot {
 	static final String COMPLETE_MARKER = ".complete";
 	private static final String LEGACY_OBSOLETE_MARKER = ".legacy-obsolete";
 	private static final String OBSOLETE_MARKER = ".obsolete";
 	static final String STAGING_PREFIX = ".staging-";
+	/** The Java sources of a libs folder, compiled with the project. */
+	static final String SOURCES = "src";
+	/** The classes compiled from the sources of a libs folder before, by the CI or the export of the project. */
+	static final String BUILD = "build";
+	static final String BUILD_CLASSES = "classes";
+	/** In the build folder: the fingerprint of the sources its classes are compiled from. */
+	static final String BUILD_FINGERPRINT = "src.sha256";
+	/** In a copy: the classes of the sources of a libs folder, next to them. */
+	static final String COMPILED_SUFFIX = ".classes";
+	/** The name of a copy in which sources did not get their classes ends with it. */
+	static final String WITHOUT_SOURCES = "-without-sources";
 	private static final int DIGEST_BUFFER_SIZE = 65536;
 
-	/** A jar or classes folder of a libs folder, and its path in a copy. */
-	record Entry(File source, String relativePath) {
+	enum Kind {
+		/** a jar or a classes folder, used as it is */
+		LIBRARY,
+		/** a src folder, compiled */
+		SOURCES,
+		/** a build folder, whose classes are those of the src folder when compiled from the same sources */
+		BUILD
+	}
+
+	/** An item of a libs folder (dir: its index among the libs folders), and its path in a copy. */
+	record Entry(File source, String relativePath, Kind kind, int dir) {
+		/** @return in a copy, where the classes of a src folder are */
+		String compiledPath() {
+			return relativePath + COMPILED_SUFFIX;
+		}
 	}
 
 	private ClasspathSnapshot() {
@@ -65,8 +91,12 @@ final class ClasspathSnapshot {
 			}
 			Arrays.sort(list);
 			for (var name : list) {
-				if (name.endsWith(".jar") || name.equals("classes")) {
-					entries.add(new Entry(new File(dir, name), "source-" + dirIndex + "/" + name));
+				var file = new File(dir, name);
+				var kind = name.endsWith(".jar") || name.equals("classes") ? Kind.LIBRARY
+						: name.equals(SOURCES) && file.isDirectory() ? Kind.SOURCES
+						: name.equals(BUILD) && new File(file, BUILD_CLASSES).isDirectory() ? Kind.BUILD : null;
+				if (kind != null) {
+					entries.add(new Entry(file, "source-" + dirIndex + "/" + name, kind, dirIndex));
 				}
 			}
 		}
@@ -109,13 +139,26 @@ final class ClasspathSnapshot {
 		return fingerprint(entries, null);
 	}
 
-	private static String fingerprint(List<Entry> entries, File snapshot) throws IOException {
-		MessageDigest digest;
+	/**
+	 * @return the fingerprint of the content of a src folder, wherever it is: the one written in a build folder with the
+	 *         classes compiled from it
+	 */
+	static String sourcesFingerprint(File sources) throws IOException {
+		var digest = sha256();
+		appendDigest(digest, sources, SOURCES);
+		return HexFormat.of().formatHex(digest.digest());
+	}
+
+	private static MessageDigest sha256() {
 		try {
-			digest = MessageDigest.getInstance("SHA-256");
+			return MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
 			throw new IllegalStateException("SHA-256 is not available", e);
 		}
+	}
+
+	private static String fingerprint(List<Entry> entries, File snapshot) throws IOException {
+		var digest = sha256();
 		for (var entry : entries) {
 			var file = snapshot == null ? entry.source() : new File(snapshot, entry.relativePath());
 			appendDigest(digest, file, entry.relativePath());
@@ -151,13 +194,20 @@ final class ClasspathSnapshot {
 	}
 
 	/**
+	 * @param compile whether sources can be compiled; when not, they get only the classes of their build folder, if
+	 *        compiled from the same sources
 	 * @return the completed copy of the libraries in the snapshots folder, made if needed
-	 * @throws IOException when the libraries change during the copy, among others
+	 * @throws IOException when the libraries change during the copy, or sources do not compile, among others
 	 */
-	static File prepare(List<Entry> entries, File snapshots, String fingerprint) throws IOException {
+	static File prepare(String project, List<Entry> entries, File snapshots, String fingerprint, boolean compile)
+			throws IOException {
 		var snapshot = new File(snapshots, fingerprint);
 		if (isComplete(snapshot)) {
 			return snapshot;
+		}
+		var withoutSources = new File(snapshots, fingerprint + WITHOUT_SOURCES);
+		if (!compile && isComplete(withoutSources)) {
+			return withoutSources;
 		}
 		Files.createDirectories(snapshots.toPath());
 		// publish only a fully copied and verified folder, never files one by one
@@ -175,6 +225,9 @@ final class ClasspathSnapshot {
 			if (!fingerprint.equals(fingerprint(entries, staging.toFile()))) {
 				throw new IOException("Project classpath changed while its snapshot was being copied");
 			}
+			if (!ProjectSources.build(project, entries, staging.toFile(), compile)) {
+				snapshot = withoutSources;
+			}
 			Files.createFile(staging.resolve(COMPLETE_MARKER));
 			try {
 				Files.move(staging, snapshot.toPath());
@@ -189,18 +242,36 @@ final class ClasspathSnapshot {
 		return snapshot;
 	}
 
+	/** @return the class path of a copy: its jars and classes folders, and the classes of its src folders */
 	static URL[] urls(List<Entry> entries, File snapshot) {
-		var urls = new URL[entries.size()];
-		for (int i = 0; i < urls.length; i++) {
-			var entry = entries.get(i);
-			var file = snapshot == null ? entry.source() : new File(snapshot, entry.relativePath());
+		var urls = new ArrayList<URL>();
+		for (var file : classpath(entries, snapshot)) {
 			try {
-				urls[i] = file.toURI().toURL();
+				urls.add(file.toURI().toURL());
 			} catch (Exception e) {
 				throw new IllegalStateException("Unable to add classpath entry \"" + file + "\"", e);
 			}
 		}
-		return urls;
+		return urls.toArray(new URL[urls.size()]);
+	}
+
+	static List<File> classpath(List<Entry> entries, File snapshot) {
+		var files = new ArrayList<File>();
+		for (var entry : entries) {
+			if (entry.kind() == Kind.LIBRARY) {
+				files.add(snapshot == null ? entry.source() : new File(snapshot, entry.relativePath()));
+			} else if (entry.kind() == Kind.SOURCES && snapshot != null) {
+				var compiled = new File(snapshot, entry.compiledPath());
+				if (compiled.isDirectory()) {
+					files.add(compiled);
+				}
+			} else if (entry.kind() == Kind.BUILD && snapshot != null
+					&& entries.stream().noneMatch(other -> other.kind() == Kind.SOURCES && other.dir() == entry.dir())) {
+				// classes delivered without their sources
+				files.add(new File(snapshot, entry.relativePath() + "/" + BUILD_CLASSES));
+			}
+		}
+		return files;
 	}
 
 	static boolean isComplete(File snapshot) {

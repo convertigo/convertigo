@@ -42,6 +42,11 @@ public class DirClassLoader extends URLClassLoader {
 		this.parent = parent;
 	}
 
+	/** @return the class loader searched after this folder */
+	public ClassLoader getParentLoader() {
+		return parent;
+	}
+
 	private static URL[] makeURLs(File dir) {
 		var urls = new ArrayList<URL>();
 		var list = dir.list();

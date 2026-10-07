@@ -64,6 +64,7 @@ public class ProjectLibrariesTest {
 		ProjectLibraries.removedDelay = 0;
 		// the tests sweep themselves
 		ProjectLibraries.sweepPeriod = TimeUnit.HOURS.toMillis(1);
+		ProjectSources.compileAllowed = () -> true;
 	}
 
 	@After
@@ -76,6 +77,7 @@ public class ProjectLibrariesTest {
 		ProjectLibraries.sweepPeriod = 15_000;
 		ProjectLibraries.beforeSwap = null;
 		ProjectLibraries.reporter = null;
+		ProjectSources.compileAllowed = () -> true;
 		LocalWorkDirectory.use(null);
 		FileUtils.deleteQuietly(base);
 	}
@@ -375,4 +377,147 @@ public class ProjectLibrariesTest {
 			thread.setContextClassLoader(previous);
 		}
 	}
+
+	/** Writes the sources (by class name) and resources (by path) of a src folder, replacing it. */
+	private static File src(File libsDir, Map<String, String> sources, Map<String, String> resources) throws Exception {
+		var src = new File(libsDir, "src");
+		FileUtils.deleteQuietly(src);
+		for (var source : sources.entrySet()) {
+			var file = new File(src, source.getKey().replace('.', '/') + ".java");
+			file.getParentFile().mkdirs();
+			Files.writeString(file.toPath(), source.getValue());
+		}
+		for (var resource : resources.entrySet()) {
+			var file = new File(src, resource.getKey());
+			file.getParentFile().mkdirs();
+			Files.writeString(file.toPath(), resource.getValue());
+		}
+		return src;
+	}
+
+	/** A source using a library of the project and the engine. */
+	private static Map<String, String> greeter(String greeting) {
+		return Map.of("app.Greeter", """
+				package app;
+				public class Greeter {
+					public static String greet() {
+						return "%s " + lib.Hello.version() + " " + com.twinsoft.convertigo.engine.Engine.class.getSimpleName();
+					}
+				}
+				""".formatted(greeting));
+	}
+
+	private static final Map<String, String> BROKEN = Map.of("app.Greeter", """
+			package app;
+			public class Greeter {
+				public static String greet() { return missing(); }
+			}
+			""");
+
+	@Test
+	public void sourcesAreCompiledAgainstTheLibrariesAndTheEngineWithTheirResources() throws Exception {
+		jar(new File(libs, "hello.jar"), hello("v1"));
+		src(libs, greeter("hello"), Map.of("app/greeting.txt", "bonjour"));
+		var generation = load();
+		assertEquals("hello v1 Engine", call(generation.loadClass("app.Greeter"), "greet"));
+		assertNotNull("the other files of src are resources", generation.getResource("app/greeting.txt"));
+		assertFalse(generation.toString().contains("without"));
+		assertTrue("compiled in the copy", new File(generation.getSnapshot(), "source-0/src.classes/app/Greeter.class").isFile());
+		assertFalse("never in the project", new File(libs, "src/app/Greeter.class").exists());
+	}
+
+	@Test
+	public void aChangedSourceMakesANewGeneration() throws Exception {
+		jar(new File(libs, "hello.jar"), hello("v1"));
+		var src = src(libs, greeter("hello"), Map.of());
+		var first = load();
+		assertEquals("hello v1 Engine", call(first.loadClass("app.Greeter"), "greet"));
+
+		src(libs, greeter("salut"), Map.of());
+		src.setLastModified(System.currentTimeMillis() + 2000);
+		var second = load();
+		assertNotSame(first, second);
+		assertEquals("salut v1 Engine", call(second.loadClass("app.Greeter"), "greet"));
+		assertEquals("loaded again unchanged: the same generation", second, load());
+	}
+
+	@Test
+	public void sourcesThatDoNotCompileLeaveThePreviousGeneration() throws Exception {
+		jar(new File(libs, "hello.jar"), hello("v1"));
+		src(libs, greeter("hello"), Map.of());
+		var working = load();
+
+		src(libs, BROKEN, Map.of());
+		assertSame("the project keeps its generation", working, load());
+		assertSame("and does not compile them again until they change", working, load());
+		assertEquals("hello v1 Engine", call(working.loadClass("app.Greeter"), "greet"));
+
+		src(libs, greeter("fixed"), Map.of());
+		var fixed = load();
+		assertNotSame(working, fixed);
+		assertEquals("fixed v1 Engine", call(fixed.loadClass("app.Greeter"), "greet"));
+	}
+
+	@Test
+	public void aFirstLoadWithSourcesThatDoNotCompileUsesTheLibrariesWithoutThem() throws Exception {
+		jar(new File(libs, "hello.jar"), hello("v1"));
+		src(libs, BROKEN, Map.of());
+		var generation = load();
+		assertEquals("v1", version(generation));
+		assertThrows(ClassNotFoundException.class, () -> generation.loadClass("app.Greeter"));
+		assertTrue(generation.toString(), generation.toString().contains("without the classes of its sources"));
+	}
+
+	@Test
+	public void compilationErrorsTellTheFileAndTheLine() throws Exception {
+		var src = src(libs, BROKEN, Map.of());
+		var error = assertThrows(ProjectSources.CompilationException.class,
+				() -> ProjectSources.compile(src, new File(base, "out"), List.of(), "App/libs/src"));
+		assertTrue(error.getErrors().toString(), error.getErrors().get(0).startsWith("App/libs/src/app/Greeter.java:3: "));
+	}
+
+	@Test
+	public void aServerThatDoesNotBuildTakesTheClassesCompiledFromTheSameSources() throws Exception {
+		ProjectSources.compileAllowed = () -> false;
+		jar(new File(libs, "hello.jar"), hello("v1"));
+		var src = src(libs, greeter("prebuilt"), Map.of());
+		var build = new File(libs, "build");
+		ProjectSources.compile(src, new File(build, "classes"), List.of(new File(libs, "hello.jar")), "App/libs/src");
+		Files.writeString(new File(build, "src.sha256").toPath(), ClasspathSnapshot.sourcesFingerprint(src));
+		var generation = load();
+		assertEquals("prebuilt v1 Engine", call(generation.loadClass("app.Greeter"), "greet"));
+
+		src(libs, greeter("edited"), Map.of());
+		var edited = load();
+		assertNotSame(generation, edited);
+		assertThrows("classes compiled from other sources are not used",
+				ClassNotFoundException.class, () -> edited.loadClass("app.Greeter"));
+		assertTrue(edited.toString().contains("without the classes of its sources"));
+
+		ProjectSources.compileAllowed = () -> true;
+		ProjectLibraries.checkAtNextUse("App");
+		assertEquals("a server that builds compiles them", "edited v1 Engine",
+				call(load().loadClass("app.Greeter"), "greet"));
+	}
+
+	@Test
+	public void classesDeliveredWithoutTheirSourcesAreUsed() throws Exception {
+		ProjectSources.compileAllowed = () -> false;
+		jar(new File(libs, "hello.jar"), hello("v1"));
+		var src = src(new File(base, "elsewhere"), greeter("delivered"), Map.of());
+		ProjectSources.compile(src, new File(libs, "build/classes"), List.of(new File(libs, "hello.jar")), "elsewhere");
+		assertEquals("delivered v1 Engine", call(load().loadClass("app.Greeter"), "greet"));
+	}
+
+	@Test
+	public void theSourcesOfAReferencedProjectAreCompiledFirst() throws Exception {
+		var libLibs = new File(base, "projects/Lib/libs");
+		src(libLibs, Map.of("shared.Util", "package shared; public class Util { public static String name() { return \"util\"; } }"),
+				Map.of());
+		src(libs, Map.of("app.User", "package app; public class User { public static String use() { return shared.Util.name(); } }"),
+				Map.of());
+		var generation = ProjectLibraries.classLoader("App", () -> List.of(libs, libLibs), "1.0", true);
+		assertEquals("util", call(generation.loadClass("app.User"), "use"));
+	}
+
 }

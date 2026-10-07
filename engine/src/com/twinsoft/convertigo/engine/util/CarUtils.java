@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ProjectLibraries;
 import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
@@ -96,8 +97,11 @@ public class CarUtils {
 					}
 				}
 			}
+			// the classes compiled from libs/src are those of the current libraries, never a former build folder
+			undeployedFiles.add(new File(projectDir, "libs/build"));
 			FileUtils.deleteQuietly(file);
 			File f = ZipUtils.makeZip(file.getAbsolutePath(), dirPath, projectName, undeployedFiles);
+			addCompiledSources(f, project);
 			
 			if (skipTestCase != null) {
 				Map<String, String> zip_properties = new HashMap<>();
@@ -125,6 +129,44 @@ public class CarUtils {
 			if (skipTestCase != null) {
 				FileUtils.deleteQuietly(skipTestCase.getParentFile());
 			}
+		}
+	}
+
+	/**
+	 * Adds the classes compiled from the libs/src folder of the project to the archive, in libs/build with the fingerprint
+	 * of their sources: a server that does not build uses them.
+	 */
+	private static void addCompiledSources(File archive, Project project) throws IOException {
+		if (!new File(project.getDirPath(), "libs/src").isDirectory()) {
+			return;
+		}
+		var compiled = ProjectLibraries.compiledSources(project);
+		if (compiled == null) {
+			Engine.logEngine.warn("(CarUtils) the archive of the project " + project.getName() + " has no classes of libs/src,"
+					+ " which did not compile: a server that does not build will use the project without them");
+			return;
+		}
+		Map<String, String> zip_properties = new HashMap<>();
+		zip_properties.put("create", "false");
+		zip_properties.put("encoding", "UTF-8");
+		try (FileSystem zipfs = FileSystems.newFileSystem(URI.create("jar:" + archive.toURI()), zip_properties)) {
+			Path build = zipfs.getPath(project.getName(), "libs", "build");
+			Path classes = compiled[0].toPath();
+			try (var files = Files.walk(classes)) {
+				for (Path p : (Iterable<Path>) files::iterator) {
+					Path target = build.resolve("classes");
+					String relative = classes.relativize(p).toString().replace(File.separatorChar, '/');
+					if (!relative.isEmpty()) {
+						target = target.resolve(relative);
+					}
+					if (Files.isDirectory(p)) {
+						Files.createDirectories(target);
+					} else {
+						Files.copy(p, target);
+					}
+				}
+			}
+			Files.writeString(build.resolve("src.sha256"), ProjectLibraries.sourcesFingerprint(compiled[1]));
 		}
 	}
 
