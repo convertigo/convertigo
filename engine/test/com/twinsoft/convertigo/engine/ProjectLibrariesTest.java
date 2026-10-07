@@ -550,4 +550,25 @@ public class ProjectLibrariesTest {
 		}
 	}
 
+
+	@Test
+	public void theCliCopiesTheLibrariesInATemporaryFolderOfTheProcess() throws Exception {
+		LocalWorkDirectory.use(null);
+		var cli = Engine.bCliMode;
+		var workspace = Engine.USER_WORKSPACE_PATH;
+		try {
+			Engine.bCliMode = true;
+			Engine.USER_WORKSPACE_PATH = new File(base, "workspace").getPath();
+			src(libs, Map.of("app.Cli", "package app; public class Cli { public static String name() { return \"cli\"; } }"), Map.of());
+			var generation = load();
+			assertEquals("cli", call(generation.loadClass("app.Cli"), "name"));
+			assertTrue("in a temporary folder of the process: " + generation.getSnapshot(),
+					generation.getSnapshot().getParentFile().getParentFile().getName().startsWith("convertigo-cli-libs-"));
+			assertFalse("nothing in the workspace of the CLI", new File(base, "workspace/libs").exists());
+		} finally {
+			Engine.bCliMode = cli;
+			Engine.USER_WORKSPACE_PATH = workspace;
+		}
+	}
+
 }

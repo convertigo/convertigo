@@ -399,10 +399,11 @@ public final class ProjectLibraries {
 
 	/**
 	 * @return the folder of the copies of the libraries of a project: in the local working directory when the engine
-	 *         has one, else in the workspace, shared with the other instances
+	 *         has one, in a temporary folder of the process for the CLI, else in the workspace, shared with the other
+	 *         instances
 	 */
 	private static File snapshots(String project) {
-		var local = LocalWorkDirectory.getDirectory("libs");
+		var local = localSnapshots();
 		if (local != null) {
 			return new File(local, project);
 		}
@@ -410,8 +411,31 @@ public final class ProjectLibraries {
 	}
 
 	private static boolean isLocal(File snapshots) {
-		var local = LocalWorkDirectory.getDirectory("libs");
+		var local = localSnapshots();
 		return local != null && snapshots.toPath().startsWith(local.toPath());
+	}
+
+	private static File cliSnapshots;
+
+	/** @return where the copies are cleaned once no generation uses them, null in the workspace */
+	private static File localSnapshots() {
+		var local = LocalWorkDirectory.getDirectory("libs");
+		if (local != null || !Engine.isCliMode()) {
+			return local;
+		}
+		synchronized (ProjectLibraries.class) {
+			if (cliSnapshots == null) {
+				try {
+					// a build (Gradle, CI) compiles once: nothing is left in the workspace of the CLI
+					var folder = java.nio.file.Files.createTempDirectory("convertigo-cli-libs-").toFile();
+					Runtime.getRuntime().addShutdownHook(new Thread(() -> FileUtils.deleteQuietly(folder), "ProjectLibraries cleaning"));
+					cliSnapshots = folder;
+				} catch (java.io.IOException e) {
+					return null;
+				}
+			}
+			return cliSnapshots;
+		}
 	}
 
 	/** @return the copies used by the generations of a project still alive */
