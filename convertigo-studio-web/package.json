@@ -24,7 +24,7 @@
 	"overrides": {
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
-			"svelte": "^5.57.1"
+			"svelte": "^5.57.2"
 		}
 	},
 	"devDependencies": {
@@ -43,23 +43,23 @@
 		"@tailwindcss/forms": "0.5.11",
 		"@tailwindcss/typography": "0.5.20",
 		"@types/node": "^25.9.9",
-		"@typescript-eslint/parser": "^8.71.0",
+		"@typescript-eslint/parser": "^8.71.1",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.23.0",
 		"globals": "^17.13.0",
-		"postcss-nesting": "^14.0.2",
+		"postcss-nesting": "^14.0.3",
 		"prettier": "^3.9.9",
 		"prettier-plugin-svelte": "^3.5.2",
 		"prettier-plugin-tailwindcss": "^0.8.1",
 		"sharp": "^0.35.5",
-		"svelte": "^5.57.1",
+		"svelte": "^5.57.2",
 		"svelte-check": "^4.7.6",
 		"svelte-eslint-parser": "^1.8.1",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^5.9.3",
 		"unplugin-icons": "^23.0.1",
-		"vite": "^7.3.6",
+		"vite": "^7.3.7",
 		"vitest": "^4.1.11"
 	},
 	"type": "module",
@@ -69,10 +69,10 @@
 		"@internationalized/date": "^3.12.4",
 		"@tailwindcss/vite": "^4.3.3",
 		"@xyflow/svelte": "^1.7.0",
-		"@zag-js/tree-view": "^1.44.0",
+		"@zag-js/tree-view": "^1.45.0",
 		"apexcharts": "^5.16.0",
 		"bits-ui": "^2.19.5",
-		"caniuse-lite": "^1.0.30001814",
+		"caniuse-lite": "^1.0.30001815",
 		"chart.js": "^4.5.1",
 		"fast-xml-parser": "^5.11.2",
 		"fs-extra": "^11.4.1",
