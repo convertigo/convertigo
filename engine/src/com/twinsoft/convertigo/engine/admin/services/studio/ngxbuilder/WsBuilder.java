@@ -205,7 +205,7 @@ public class WsBuilder extends WebSocketService {
 
 				// the development server replaces all the node processes of the project, a local build only a
 				// watching one
-				terminateNode(!isDev());
+				clearNode(!isDev());
 
 				var nodeModules = new File(ionicDir, "node_modules");
 				if (StringUtils.isNotBlank(install) || !nodeModules.exists() || mb.getNeedPkgUpdate()) {
@@ -631,7 +631,16 @@ public class WsBuilder extends WebSocketService {
 		 * Stops the node processes of the project: its development server, its builds and its installs.
 		 */
 		void terminateNode(boolean prodOnly) {
-			terminateNode(prodOnly ? " && /--watch|:watch/" : "", prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "");
+			stopProcess();
+			clearNode(prodOnly);
+		}
+
+		/**
+		 * Kills the node processes of the project left by previous builds, all of them or only a watching one,
+		 * as this build starts: unlike a stop, this build goes on and reports its own result.
+		 */
+		private void clearNode(boolean prodOnly) {
+			killNode(prodOnly ? " && /--watch|:watch/" : "", prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "");
 			if (!prodOnly) {
 				baseUrl = null;
 				// the gateway no longer reaches its port
@@ -645,7 +654,8 @@ public class WsBuilder extends WebSocketService {
 		 */
 		void terminateServe() {
 			baseUrl = null;
-			terminateNode(" && /serve/", " -and $_.CommandLine -like '*serve*'");
+			stopProcess();
+			killNode(" && /serve/", " -and $_.CommandLine -like '*serve*'");
 			portNode = 0;
 		}
 
@@ -654,8 +664,7 @@ public class WsBuilder extends WebSocketService {
 		 * awk
 		 * @param windowsFilter the same, for PowerShell
 		 */
-		private void terminateNode(String filter, String windowsFilter) {
-			stopProcess();
+		private void killNode(String filter, String windowsFilter) {
 			if (project == null) {
 				return;
 			}
