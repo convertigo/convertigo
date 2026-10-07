@@ -1803,6 +1803,40 @@ public class FlowEngineBridge {
 		}
 
 		initializeSourceScope(engineScope, engineFile);
+		// Packages, java... of the generation of the class path of the project of the call, until it returns
+		var generation = callGeneration(request, convertigoContext);
+		FlowPackages.bind(cx, engineScope, generation);
+		try {
+			return invokeBound(engineRef, engineSource, method, request, cx, engineScope, engineObject, runtimeLookup);
+		} finally {
+			FlowPackages.restore(engineScope, generation);
+		}
+	}
+
+	/**
+	 * @return the generation of the class path of the project of a call: the one of the Convertigo context running a
+	 *         Flow, else the one of the project the request names; null for none
+	 */
+	static ClassLoader callGeneration(JSONObject request, Context convertigoContext) {
+		try {
+			Project project = convertigoContext == null ? null : convertigoContext.project;
+			if (project == null && Engine.theApp != null && Engine.theApp.databaseObjectsManager != null) {
+				var qname = request.optString("flowQName", "");
+				var name = qname.contains(".") ? qname.substring(0, qname.indexOf('.'))
+						: request.optString("project", projectNameForDir(request.optString("projectDir", "")));
+				if (name != null && !name.isBlank()) {
+					project = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(name);
+				}
+			}
+			return project == null ? null : project.getProjectClassLoader();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private JSONObject invokeBound(EngineRef engineRef, CachedEngineSource engineSource, String method, JSONObject request,
+			org.mozilla.javascript.Context cx, Scriptable engineScope, Scriptable engineObject,
+			CachedEngineRuntimeLookup runtimeLookup) throws EngineException {
 		var projectDir = request.optString("projectDir", "");
 		engineScope.put("__flowProjectDir", engineScope, projectDir);
 		engineScope.put("__flowBridgeClassSource", engineScope, bridgeClassSource());
@@ -2293,7 +2327,8 @@ public class FlowEngineBridge {
 	private static CachedEngineRuntime createEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
 			org.mozilla.javascript.Context cx, long generation) throws EngineException {
 		try {
-			var scope = cx.initStandardObjects();
+			// shared by all the projects: the packages of the engine, a call binds those of its project
+			var scope = FlowPackages.createScope(cx);
 			initializeSourceScope(scope, engineFile);
 			var engine = RhinoUtils.evalCachedJavascript(cx, scope, engineSource.source(), engineSource.sourceName(), 1, null);
 			if (engine == null || Undefined.isUndefined(engine)) {

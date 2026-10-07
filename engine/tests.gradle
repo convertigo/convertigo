@@ -34,6 +34,7 @@ tasks.named('check') {
 	dependsOn 'localWorkDirectoryTest'
 	dependsOn 'projectLibrariesTest'
 	dependsOn 'applicationBuildsTest'
+	dependsOn 'flowPackagesTest'
 }
 
 tasks.register('stepSourceTest', JavaExec) {
@@ -160,4 +161,13 @@ tasks.register('applicationBuildsTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.ApplicationBuildsTest'
+}
+
+tasks.register('flowPackagesTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the Java packages of the Flow calls: the generation of the project, the engine back after.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowPackagesTest'
 }
