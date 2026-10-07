@@ -313,6 +313,26 @@ public class LocalWorkDirectoryTest {
 	}
 
 	@Test
+	public void foldersUnderDifferentEntriesOfAProjectAreBothKeptHere() throws Exception {
+		var modules = "_flow/frontbuilder/svelte/node_modules";
+		new File(project, "_flow/frontbuilder/svelte").mkdirs();
+		LocalWorkDirectory.use(open("v1"));
+		var ionic = LocalWorkDirectory.relocate("App", project, IONIC);
+		assertTrue("the entry of the second folder is mirrored first", Files.isSymbolicLink(local("_flow").toPath()));
+
+		var nodeModules = LocalWorkDirectory.relocate("App", project, modules);
+		assertEquals(local(modules).toPath(), Files.readSymbolicLink(nodeModules.toPath()));
+		assertTrue("its entry becomes a folder here", Files.isDirectory(local("_flow").toPath(), LinkOption.NOFOLLOW_LINKS));
+		Files.writeString(new File(nodeModules, "package.json").toPath(), "{}");
+		assertTrue("its content is written here, not in the project through a loop", local(modules + "/package.json").isFile());
+
+		LocalWorkDirectory.relocate("App", project, IONIC);
+		assertEquals("the first folder is kept as is", local(IONIC).toPath(), Files.readSymbolicLink(ionic.toPath()));
+		assertTrue(Files.isDirectory(local("_flow").toPath(), LinkOption.NOFOLLOW_LINKS));
+		assertProjectIntact();
+	}
+
+	@Test
 	public void whatAnInterruptedRunLeftInTheTrashIsRemovedAtStartup() throws Exception {
 		var left = new File(root, ".trash/1-1-projects/App");
 		new File(left, IONIC + "/node_modules/pkg").mkdirs();

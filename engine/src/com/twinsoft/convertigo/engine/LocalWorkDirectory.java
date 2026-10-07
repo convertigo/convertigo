@@ -156,9 +156,16 @@ public final class LocalWorkDirectory {
 				}
 			} else {
 				var directory = local.projectPath(projectName);
+				var own = Path.of(relativePath).getName(0).toString();
+				var top = directory.resolve(own);
+				if (Files.isSymbolicLink(top)) {
+					// the mirror of that entry, made for another folder of the project kept here, would lead back to the
+					// project: the entry becomes a folder here
+					Files.delete(top);
+				}
 				var target = directory.resolve(relativePath);
 				Files.createDirectories(target);
-				mirror(projectDir.toPath(), directory, Path.of(relativePath).getName(0).toString());
+				mirror(projectDir.toPath(), directory, own);
 				if (!Files.isSymbolicLink(link) || !Files.readSymbolicLink(link).equals(target)) {
 					if (Files.isSymbolicLink(link)) {
 						Files.delete(link);
@@ -306,6 +313,9 @@ public final class LocalWorkDirectory {
 						continue;
 					}
 					Files.delete(mirrored);
+				} else if (Files.isDirectory(mirrored, LinkOption.NOFOLLOW_LINKS)) {
+					// it holds another folder of the project kept here
+					continue;
 				} else if (Files.exists(mirrored, LinkOption.NOFOLLOW_LINKS)) {
 					warn("Local working directory: " + mirrored + " is not a link to " + entry + ", left as is", null);
 					continue;
