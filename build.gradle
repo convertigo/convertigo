@@ -14,7 +14,7 @@ buildscript {
 //}
 
 plugins {
-  id 'io.github.ben-manes.versions' version '0.64.0'
+  id 'io.github.ben-manes.versions' version '0.65.0'
   id 'org.owasp.dependencycheck' version '12.2.2'
 }
 
@@ -36,7 +36,7 @@ ext.convertigoCodename = 'astatine'
 ext.convertigoCode = 'At'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
-ext.jxBrowserVersion = '9.5.2'
+ext.jxBrowserVersion = '9.5.3'
 ext.swaggerUiVersion = '5.33.1'
 ext.tomcatVersion = '11.0.26'
 ext.eclipseVersion = '2026-09'
@@ -47,7 +47,7 @@ ext.soapuiVersion = '5.9.1'
 ext.log4jVersion = '2.26.1'
 ext.commonsIo = '2.22.0'
 ext.commonsLang3 = '3.21.0'
-ext.zstdJniVersion = '1.5.7-21'
+ext.zstdJniVersion = '1.5.7-22'
 ext.brotli4jVersion = '1.23.0'
 ext.jacksonVersion = '2.22.3'
 ext.xmlSchemaVersion = '1.4.7'

@@ -24,6 +24,7 @@
 		removeProjectedTreeNode
 	} from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
+	import { tagRevealRows } from './tagReveal.js';
 	import {
 		loadTreeDiff,
 		projectOfNode,
@@ -41,7 +42,6 @@
 		tellMergedObjects,
 		treeMerge
 	} from './treeMerge.svelte.js';
-	import { tagRevealRows } from './tagReveal.js';
 	import { treeSelectionOf } from './treeSelection.svelte.js';
 
 	/** the part of the width of the view the column of the comments goes to at most */
