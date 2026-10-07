@@ -29,6 +29,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -36,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -351,70 +354,115 @@ public class ProcessUtils {
 				return dir;
 			}
 			File archive = new File(dir.getPath() + (Engine.isWindows() ? ".zip" : ".tar.gz"));
+			// with a local working directory, the archive is kept in the workspace, a single file that shared storage
+			// reads well: a new instance extracts it locally (about a second) instead of downloading it again
+			File cached = LocalWorkDirectory.isEnabled() ? new File(new File(Engine.USER_WORKSPACE_PATH, "nodes"), archive.getName()) : null;
+			boolean fromCache = cached != null && cached.isFile();
 			// an extraction interrupted in the local working directory is removed at the next startup
 			File folder = LocalWorkDirectory.beginWork(dir);
 			HttpGet get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName());
 			boolean retry;
 			do {
 				retry = false;
-				Engine.logEngine.info("getNodeDir archive " + dir + " downloaded from " + get.getURI().toString());
+				// instances sharing the workspace may download at once: each one writes its own file
+				File source = fromCache ? cached : cached != null ? new File(cached.getPath() + ".part-" + UUID.randomUUID()) : archive;
+				boolean extracted = false;
+				try {
+					if (fromCache) {
+						Engine.logEngine.info("getNodeDir archive " + dir + " extracted from " + cached);
+					} else {
+						Engine.logEngine.info("getNodeDir archive " + dir + " downloaded from " + get.getURI().toString());
 
-				try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
-					FileUtils.deleteQuietly(archive);
-					archive.getParentFile().mkdirs();
-					if (progress != null) {
-						long length = response.getEntity().getContentLength();
-						try (FileOutputStream fos = new FileOutputStream(archive)) {
-							InputStream is = response.getEntity().getContent();
-							byte[] buf = new byte[1024 * 1024];
-							int n;
-							long t = 0, now, ts = 0;
-							while ((n = is.read(buf)) > -1) {
-								fos.write(buf, 0, n);
-								t += n;
-								now = System.currentTimeMillis();
-								if (now > ts) {
+						try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+							FileUtils.deleteQuietly(source);
+							source.getParentFile().mkdirs();
+							if (progress != null) {
+								long length = response.getEntity().getContentLength();
+								try (FileOutputStream fos = new FileOutputStream(source)) {
+									InputStream is = response.getEntity().getContent();
+									byte[] buf = new byte[1024 * 1024];
+									int n;
+									long t = 0, now, ts = 0;
+									while ((n = is.read(buf)) > -1) {
+										fos.write(buf, 0, n);
+										t += n;
+										now = System.currentTimeMillis();
+										if (now > ts) {
+											progress.update(t, length, 1);
+											ts = now + 2000;
+										}
+									}
 									progress.update(t, length, 1);
-									ts = now + 2000;
 								}
+							} else {
+								FileUtils.copyInputStreamToFile(response.getEntity().getContent(), source);
 							}
-							progress.update(t, length, 1);
+						}
+					}
+					if (Engine.isWindows()) {
+						Level l = Engine.logEngine.getLevel();
+						try {
+							Engine.logEngine.info("prepare to unzip " + source.getAbsolutePath() + " to " + dir.getAbsolutePath());
+							Engine.logEngine.setLevel(Level.OFF);
+							ZipUtils.expandZip(source.getAbsolutePath(), dir.getAbsolutePath(), dir.getName());
+							extracted = true;
+							Engine.logEngine.setLevel(l);
+							Engine.logEngine.info("unzip terminated!");
+						} catch (Exception e) {
+							if (!fromCache) {
+								throw e;
+							}
+							Engine.logEngine.setLevel(l);
+							Engine.logEngine.warn("getNodeDir unable to extract " + cached + ", it is downloaded again", e);
+						} finally {
+							Engine.logEngine.setLevel(l);
 						}
 					} else {
-						FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
-					}
-				}
-				if (Engine.isWindows()) {
-					Level l = Engine.logEngine.getLevel();
-					try {
-						Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
-						Engine.logEngine.setLevel(Level.OFF);
-						ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), dir.getName());
-						Engine.logEngine.setLevel(l);
-						Engine.logEngine.info("unzip terminated!");
-					} finally {
-						Engine.logEngine.setLevel(l);
-					}
-				} else {
-					Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
-					int status = ProcessUtils.getProcessBuilder(null, "tar", "-zxf", archive.getAbsolutePath()).directory(archive.getParentFile())
-							.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
-					if (archive.getName().contains("darwin-arm64")) {
-						if (status != 0) {
+						Engine.logEngine.info("tar -zxf " + source.getAbsolutePath() + " into " + dir.getParentFile());
+						dir.getParentFile().mkdirs();
+						int status = ProcessUtils.getProcessBuilder(null, "tar", "-zxf", source.getAbsolutePath(), "-C", dir.getParentFile().getAbsolutePath())
+								.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
+						extracted = status == 0;
+						if (!extracted && fromCache) {
+							Engine.logEngine.warn("getNodeDir unable to extract " + cached + ", it is downloaded again");
 							retry = true;
-							get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName().replace("arm64", "x64"));
-						} else if (!dir.exists()) {
-							File dir64 = new File(dir.getParentFile(), dir.getName().replace("arm64", "x64"));
-							if (dir64.exists()) {
-								dir64.renameTo(dir);
+						} else if (archive.getName().contains("darwin-arm64")) {
+							if (status != 0) {
+								retry = true;
+								get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName().replace("arm64", "x64"));
+							} else if (!dir.exists()) {
+								File dir64 = new File(dir.getParentFile(), dir.getName().replace("arm64", "x64"));
+								if (dir64.exists()) {
+									dir64.renameTo(dir);
+								}
 							}
 						}
+						if (!retry) {
+							dir = new File(dir, "bin");
+						}
 					}
-					if (!retry) {
-						dir = new File(dir, "bin");
+				} finally {
+					if (source != archive && source != cached) {
+						// only an archive extracted successfully is shared with the other instances
+						if (extracted) {
+							try {
+								Files.move(source.toPath(), cached.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+							} catch (IOException e) {
+								Engine.logEngine.debug("getNodeDir unable to keep " + cached, e);
+							}
+						}
+						FileUtils.deleteQuietly(source);
 					}
 				}
-				FileUtils.deleteQuietly(archive);
+				if (fromCache && !extracted) {
+					// a damaged archive is not kept
+					FileUtils.deleteQuietly(cached);
+					fromCache = false;
+					retry = true;
+				}
+				if (cached == null) {
+					FileUtils.deleteQuietly(archive);
+				}
 			} while(retry);
 			if (folder.exists()) {
 				LocalWorkDirectory.endWork(folder);
