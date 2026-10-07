@@ -253,8 +253,9 @@ public final class ApplicationBuilds {
 			var mobileApplication = project.getMobileApplication();
 			if (mobileApplication != null && mobileApplication
 					.getApplicationComponent() instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent app) {
-				// a production build writes env.json, which the page of an unbuilt application has not
-				if (app.getBuiltGenerationTime() != -1) {
+				// a production build writes env.json, which the page of an unbuilt application has not; a lock left
+				// in place tells a build interrupted while it was writing the application, which may have written it
+				if (app.getBuiltGenerationTime() != -1 && !new File(project.getDirPath(), "DisplayObjects/" + LOCK).exists()) {
 					return null;
 				}
 				var projectName = project.getName();
@@ -388,11 +389,12 @@ public final class ApplicationBuilds {
 				return me.equals(holder) ? null : holder;
 			} catch (FileAlreadyExistsException e) {
 				var holder = holder(lock);
-				if (holder == null || !isStale(lock, holder)) {
+				// this instance builds one application at a time: its own lock is left by a former run, interrupted
+				if (holder == null || !(holder.equals(me) || isStale(lock, holder))) {
 					return holder == null ? "unknown" : holder;
 				}
-				info("Application build: the lock " + lock + " of the instance " + holder + " is no longer renewed, it is"
-						+ " taken over");
+				info("Application build: the lock " + lock + " of the instance " + holder + (holder.equals(me)
+						? " is left by a former run of this instance" : " is no longer renewed") + ", it is taken over");
 				Files.deleteIfExists(lock.toPath());
 			}
 		}

@@ -73,6 +73,14 @@ public class ApplicationBuildsTest {
 	}
 
 	@Test
+	public void aLockLeftByAFormerRunOfThisInstanceIsTakenOver() throws Exception {
+		Files.createDirectories(lock.getParentFile().toPath());
+		// a container restarted in the same pod keeps its identity
+		Files.writeString(lock.toPath(), "this-pod");
+		assertNull("a build interrupted by the restart, taken over at once", ApplicationBuilds.acquire(lock));
+	}
+
+	@Test
 	public void aFailedBuildRestoresThePageDeliveredWithTheProjectAndKeepsItsAssets() throws Exception {
 		var mobile = new File(base, "DisplayObjects/mobile");
 		Files.createDirectories(new File(mobile, "assets").toPath());
