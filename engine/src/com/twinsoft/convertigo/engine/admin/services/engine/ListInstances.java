@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sessions.RedisHealth;
 import com.twinsoft.convertigo.engine.sessions.RedisInstanceDiscovery;
 
 @ServiceDefinition(
@@ -47,6 +48,8 @@ public class ListInstances extends JSonService {
 		var localBaseUrl = RedisInstanceDiscovery.getLocalBaseUrl();
 
 		response.put("storeMode", ConvertigoHttpSessionManager.getInstance().getStoreMode().name());
+		response.put("provider", ConvertigoHttpSessionManager.getInstance().getProviderName());
+		response.put("redis", new JSONObject(RedisHealth.toMap()));
 		response.put("localInstanceId", localId != null ? localId : "");
 		response.put("localBaseUrl", localBaseUrl != null ? localBaseUrl : "");
 

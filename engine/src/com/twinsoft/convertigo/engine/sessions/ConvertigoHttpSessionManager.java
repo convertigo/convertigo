@@ -39,6 +39,7 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 	private final Object mutex = new Object();
 	private volatile SessionProvider provider;
 	private volatile SessionStoreMode storeMode;
+	private volatile String storeModeProperty;
 
 	private ConvertigoHttpSessionManager() {
 	}
@@ -287,6 +288,7 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 	private SessionStoreMode computeStoreMode() {
 		var raw = EnginePropertiesManager.getProperty(PropertyName.SESSION_STORE_MODE);
 		var result = SessionStoreMode.fromProperty(raw);
+		storeModeProperty = raw;
 		Engine.logRedis.debug("(ConvertigoSessionManager) Resolved SESSION_STORE_MODE='" + raw + "' => store="
 				+ result.name());
 		return result;
@@ -295,6 +297,10 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 	private SessionProvider buildProvider(SessionStoreMode storeMode) {
 		try {
 			Engine.logRedis.debug("(ConvertigoSessionManager) Building session provider for store=" + storeMode.name());
+			if (storeMode == SessionStoreMode.redis) {
+				Engine.logEngine.info("(ConvertigoSessionManager) Redis session store: "
+						+ RedisSessionConfiguration.fromProperties().describe());
+			}
 			return switch (storeMode) {
 				case tomcat -> new LegacySessionProvider();
 				case redis -> new RedisSessionProvider();
@@ -326,12 +332,26 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 
 	private void logSelectedMode() {
 		Engine.logEngine.info("(ConvertigoSessionManager) store=" + storeMode.name() + ", provider="
-				+ provider.getClass().getSimpleName());
+				+ provider.getClass().getSimpleName() + " (session.store.mode=" + storeModeProperty + ")");
+		if (storeMode == SessionStoreMode.redis && provider instanceof RedisSessionProvider) {
+			RedisHealth.success();
+		}
+	}
+
+	public String getProviderName() {
+		var current = provider;
+		return current != null ? current.getClass().getSimpleName() : "";
 	}
 
 	private void logStartupFailure(String mode, Exception e) {
 		Engine.logEngine.error("(ConvertigoSessionManager) Failed to initialize session store '" + mode
 				+ "'. Falling back to legacy mode.", e);
+		if (SessionStoreMode.redis.name().equals(mode)) {
+			RedisHealth.failure(e);
+			Engine.logEngine.warn("(ConvertigoSessionManager) Redis is unreachable at startup (" + RedisHealth.describe(e)
+					+ "): the HTTP sessions of this instance stay in its memory and are not shared with the other"
+					+ " instances. Restart this instance once Redis is reachable.");
+		}
 	}
 
 	@Override
