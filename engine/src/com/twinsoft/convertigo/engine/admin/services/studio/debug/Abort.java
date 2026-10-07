@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
  * <li>context: the name of the context of the execution, in the session of the Studio</li>
  * </ul>
  */
-@ServiceDefinition(name = "Abort", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Abort", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class Abort extends JSonService {
 
 	@Override

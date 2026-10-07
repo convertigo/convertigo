@@ -48,7 +48,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
  * <li>overwrite: true to replace an existing stub</li>
  * </ul>
  */
-@ServiceDefinition(name = "CreateStub", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "CreateStub", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class CreateStub extends JSonService {
 
 	@Override

@@ -45,7 +45,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
  * <li>xml: the XML response to extract the schema from, the definition of the transaction when missing</li>
  * </ul>
  */
-@ServiceDefinition(name = "UpdateSchema", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "UpdateSchema", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class UpdateSchema extends JSonService {
 
 	@Override

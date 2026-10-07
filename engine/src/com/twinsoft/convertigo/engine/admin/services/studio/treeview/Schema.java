@@ -49,7 +49,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
  * element, as the Schema view shows it: namespace and element</li>
  * </ul>
  */
-@ServiceDefinition(name = "Schema", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Schema", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class Schema extends JSonService {
 	private static final String XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
 

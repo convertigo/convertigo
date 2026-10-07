@@ -1728,6 +1728,30 @@ public class Engine {
 		return bStudioMode;
 	}
 
+	/**
+	 * @return whether the web Studio can edit projects: always in the Studio, else when allow_web_studio is set
+	 */
+	public static boolean isWebStudioAllowed() {
+		return isStudioMode() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ALLOW_WEB_STUDIO);
+	}
+
+	/**
+	 * @return whether the engine can build (nodejs, npm packages, mobile applications): always in the Studio and the
+	 *         CLI, else when allow_server_build is set
+	 */
+	public static boolean isServerBuildAllowed() {
+		return isStudioMode() || isCliMode() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ALLOW_SERVER_BUILD);
+	}
+
+	/**
+	 * @throws EngineException when the engine cannot build (see {@link #isServerBuildAllowed()})
+	 */
+	public static void checkServerBuildAllowed(String what) throws EngineException {
+		if (!isServerBuildAllowed()) {
+			throw new EngineException(what + ": this server does not allow builds (allow_server_build)");
+		}
+	}
+
 	public static boolean isCliMode() {
 		return bCliMode;
 	}

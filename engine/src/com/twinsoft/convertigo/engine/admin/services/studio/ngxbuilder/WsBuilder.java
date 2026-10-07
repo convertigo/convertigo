@@ -167,6 +167,7 @@ public class WsBuilder extends WebSocketService {
 			var mutex = new Object();
 			MobileBuilder mb = null;
 			try {
+				Engine.checkServerBuildAllowed("The build of " + projectName);
 				project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 				mb = project.getMobileBuilder();
 				// the libraries it uses generate their shared components first, which the application takes, as

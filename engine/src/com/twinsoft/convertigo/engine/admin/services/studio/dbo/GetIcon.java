@@ -41,7 +41,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 
 @ServiceDefinition(name = "GetIcon", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG,
-		Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+		Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class GetIcon extends DownloadService {
 	static final Pattern pIsImage = Pattern.compile("(?:(.*)_32x32\\.png|\\.(ico|gif|png|jpe?g|svg))$");
 

@@ -103,6 +103,9 @@ public class CheckAuthentication extends XmlService {
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "true", "authenticated", false);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "" + System.currentTimeMillis(), "ts", false);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), timezone, "tz", false);
+			// what the console offers: the web Studio and the builds
+			ServiceUtils.addMessage(document, document.getDocumentElement(), "" + Engine.isWebStudioAllowed(), "webStudio", false);
+			ServiceUtils.addMessage(document, document.getDocumentElement(), "" + Engine.isServerBuildAllowed(), "serverBuild", false);
 		} else {
 			Engine.logAdmin.info("Check authentication failed (no role defined)");
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "false", "authenticated", false);

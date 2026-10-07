@@ -260,6 +260,8 @@ public class Authenticate extends XmlService {
 				ServiceUtils.addMessage(document, document.getDocumentElement(),
 						"" + httpSession.getAttribute(SessionKey.ADMIN_USER.toString()), "user", false);
 				ServiceUtils.addRoleNodes(document.getDocumentElement(), roles);
+				ServiceUtils.addMessage(document, document.getDocumentElement(), "" + Engine.isWebStudioAllowed(), "webStudio", false);
+				ServiceUtils.addMessage(document, document.getDocumentElement(), "" + Engine.isServerBuildAllowed(), "serverBuild", false);
 				SessionAttribute.authenticatedUser.set(httpSession, "c8o:admin");
 
 				Engine.logAdmin.info("User '" + user + "' has been successfully authenticated");

@@ -59,7 +59,7 @@ import com.twinsoft.convertigo.engine.util.StepSources;
 import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-@ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class Get extends JSonService {
 
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {

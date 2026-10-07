@@ -397,6 +397,10 @@ public class EnginePropertiesManager {
 		HIDE_PRODUCT_VERSION_IN_API_SPECS ("hide_product_version_in_api_specs", "false", "Hide product version in generated API specifications", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		ALLOW_XML_PROJECT_LOADING ("allow_xml_project_loading", "false", "Allow loading projects stored in the legacy XML format; when disabled only the YAML project format (c8oProject.yaml) is accepted", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		ALLOW_WEB_STUDIO ("allow_web_studio", "false", "Allow the web Studio in the administration console, to edit projects on this server (always allowed in the Studio)", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		ALLOW_SERVER_BUILD ("allow_server_build", "false", "Allow this server to build: download nodejs, install npm packages and build mobile applications (always allowed in the Studio)", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		DOCUMENT_THREADING_USE_STOP_METHOD ("document.threading.use_stop_method", "false", "Use the Java Thread.stop() method in order to finish threads", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
@@ -970,6 +974,16 @@ public class EnginePropertiesManager {
 
 	public static boolean hasSystemPropertyOverride(PropertyName property) {
 		return System.getProperty(SYSTEM_PROP_PREFIX + property.getKey()) != null;
+	}
+
+	/**
+	 * @return whether the property is set by the server with -Dconvertigo.engine.&lt;key&gt; and cannot be changed by
+	 *         the administration console: the properties that allow the web Studio and the builds, which a server can
+	 *         impose
+	 */
+	public static boolean isLockedBySystemProperty(PropertyName property) {
+		return (property == PropertyName.ALLOW_WEB_STUDIO || property == PropertyName.ALLOW_SERVER_BUILD)
+				&& hasSystemPropertyOverride(property);
 	}
 
 	static <E extends ComboEnum> E getPropertyAsEnum(PropertyName property) {

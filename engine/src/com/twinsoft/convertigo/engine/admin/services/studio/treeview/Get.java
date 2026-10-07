@@ -63,7 +63,8 @@ import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 		name = "Get",
 		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW },
 		parameters = {},
-		returnValue = ""
+		returnValue = "",
+		available_without_web_studio = true
 		)
 public class Get extends JSonService {
 	private static final Pattern FLOW_PROJECT_CHILD = Pattern.compile("^  \\u2193(.+?) \\[([^\\]]+)\\]:.*$");

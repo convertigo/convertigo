@@ -119,6 +119,11 @@ public class AdminServlet extends HttpServlet {
 					}
 				}
 
+				if (serviceName.startsWith("studio.") && !serviceDefinition.available_without_web_studio()
+						&& !Engine.isWebStudioAllowed()) {
+					throw new EngineException("The service '" + serviceName + "' belongs to the web Studio, which this server does not allow (allow_web_studio).");
+				}
+
 				if (isAdmin.isEmpty() && serviceDefinition.admin()) {
 					throw new ClassNotFoundException();
 				}

@@ -87,7 +87,9 @@ const pageRules = [
 		id: '/studio/[[qname]]',
 		viewRoles: 'PROJECTS_VIEW',
 		configRoles: 'PROJECTS_CONFIG',
-		navigable: false
+		navigable: false,
+		// a server allows the web Studio with allow_web_studio
+		capability: 'webStudio'
 	},
 	{
 		page: '/(app)/admin/config',
@@ -124,9 +126,14 @@ const roleNames = (source = result) =>
 const hasAnyRole = (roles = [], expectedRoles = []) =>
 	expectedRoles.some((role) => roles.includes(role));
 
+/** @returns whether the engine offers a capability of the console: webStudio or serverBuild */
+const allows = (capability, source = result) =>
+	source?.[capability] === true || source?.[capability] == 'true';
+
 const canAccessRule = (roles = [], rule) =>
-	roles.includes('WEB_ADMIN') ||
-	hasAnyRole(roles, [...rule.viewRoles, ...rule.configRoles, ...rule.extraRoles]);
+	(rule.capability == null || allows(rule.capability)) &&
+	(roles.includes('WEB_ADMIN') ||
+		hasAnyRole(roles, [...rule.viewRoles, ...rule.configRoles, ...rule.extraRoles]));
 
 function matchAdminPage(routeId = '') {
 	for (const page of pageRules) {
@@ -147,7 +154,9 @@ function setResult(next) {
 	const fingerprint = JSON.stringify({
 		authenticated: result.authenticated ?? false,
 		user: result.user ?? '',
-		roles: roleNames(result).slice().sort()
+		roles: roleNames(result).slice().sort(),
+		webStudio: allows('webStudio'),
+		serverBuild: allows('serverBuild')
 	});
 	if (fingerprint !== lastFingerprint) {
 		lastFingerprint = fingerprint;
@@ -177,6 +186,14 @@ export default {
 	},
 	hasRole(role) {
 		return this.roles.includes(role);
+	},
+	/** whether the server allows the web Studio (allow_web_studio) */
+	get webStudio() {
+		return allows('webStudio');
+	},
+	/** whether the server allows the builds (allow_server_build) */
+	get serverBuild() {
+		return allows('serverBuild');
 	},
 	get canAccessAdmin() {
 		return pageRules.some((page) => canAccessRule(this.roles, page));

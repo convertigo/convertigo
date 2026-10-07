@@ -77,6 +77,10 @@ public class Update extends XmlService {
 					throw new AuthenticationException("Authentication failure: only WEB_ADMIN can update the admin password!");
 				}
 			}
+			if (EnginePropertiesManager.isLockedBySystemProperty(property)
+					&& !EnginePropertiesManager.getProperty(property).equalsIgnoreCase(((Element) nl.item(i)).getAttribute("value"))) {
+				throw new InvalidParameterException("'" + property.getDescription() + "' is set by the server (-Dconvertigo.engine." + property.getKey() + ") and cannot be changed here.");
+			}
 			if (property == PropertyName.SECURITY_FILTER) {
 				if (!SecurityFilter.isAccept(request)) {
 					throw new InvalidParameterException("Turn on '" + property.getDescription() + "' will block you current session, not allowed.");

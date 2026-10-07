@@ -44,7 +44,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
  * <li>project: the project</li>
  * </ul>
  */
-@ServiceDefinition(name = "Types", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Types", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class Types extends JSonService {
 	/** the size the definitions have at most */
 	private static final long MAX_SIZE = 16L * 1024 * 1024;

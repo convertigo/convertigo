@@ -46,7 +46,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
  * <li>action: watch to forget the last data and keep the next one, none to read it</li>
  * </ul>
  */
-@ServiceDefinition(name = "ConnectorData", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "ConnectorData", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class ConnectorData extends JSonService {
 	/** the text an HTTP response keeps, as the Eclipse Studio cuts it */
 	private static final int MAX_TEXT = 100000;

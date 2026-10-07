@@ -38,7 +38,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
  * <li>symbols: only these symbols, as a JSON array, as the Eclipse Studio creates the ones of a property</li>
  * </ul>
  */
-@ServiceDefinition(name = "DeclareSymbols", roles = { Role.WEB_ADMIN, Role.SYMBOLS_CONFIG }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "DeclareSymbols", roles = { Role.WEB_ADMIN, Role.SYMBOLS_CONFIG }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class DeclareSymbols extends JSonService {
 
 	@Override

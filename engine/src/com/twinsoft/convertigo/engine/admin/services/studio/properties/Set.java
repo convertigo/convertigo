@@ -57,7 +57,7 @@ import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.StepSources;
 
-@ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class Set extends JSonService {
 
 	@Override

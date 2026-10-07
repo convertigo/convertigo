@@ -10,7 +10,7 @@
 	/** @type {{ children?: import('svelte').Snippet }} */
 	let { children } = $props();
 
-	let authorized = $derived(Authentication.hasRole('WEB_ADMIN'));
+	let authorized = $derived(Authentication.hasRole('WEB_ADMIN') && Authentication.webStudio);
 
 	function fallbackUrl() {
 		if (!Authentication.authenticated) {

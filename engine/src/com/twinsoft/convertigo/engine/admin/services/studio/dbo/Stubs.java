@@ -44,7 +44,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
  * <li>id: the tree id of the sequence or the transaction</li>
  * </ul>
  */
-@ServiceDefinition(name = "Stubs", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Stubs", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class Stubs extends JSonService {
 
 	@Override

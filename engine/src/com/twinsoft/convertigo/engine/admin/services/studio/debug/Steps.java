@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
  * <li>json: true for the output document in JSON</li>
  * </ul>
  */
-@ServiceDefinition(name = "Steps", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Steps", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class Steps extends JSonService {
 
 	@Override
