@@ -233,7 +233,8 @@ public final class ProjectLibraries {
 					if (!entries.isEmpty()) {
 						snapshots = snapshots(name);
 						try {
-							snapshot = ClasspathSnapshot.prepare(name, entries, snapshots, fingerprint, mayCompile);
+							snapshot = ClasspathSnapshot.prepare(name, entries, snapshots, fingerprint,
+									ProjectSources.Compilation.of(mayCompile));
 						} catch (ProjectSources.CompilationException e) {
 							// not compiled again until the libraries change
 							stamp = newStamp;
@@ -243,7 +244,7 @@ public final class ProjectLibraries {
 							if (previous != null) {
 								return;
 							}
-							snapshot = ClasspathSnapshot.prepare(name, entries, snapshots, fingerprint, false);
+							snapshot = ClasspathSnapshot.prepare(name, entries, snapshots, fingerprint, ProjectSources.Compilation.FAILED);
 						}
 						generationFingerprint = snapshot.getName();
 					}

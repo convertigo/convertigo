@@ -194,19 +194,19 @@ final class ClasspathSnapshot {
 	}
 
 	/**
-	 * @param compile whether sources can be compiled; when not, they get only the classes of their build folder, if
+	 * @param compilation whether sources are compiled; when not, they get only the classes of their build folder, if
 	 *        compiled from the same sources
 	 * @return the completed copy of the libraries in the snapshots folder, made if needed
 	 * @throws IOException when the libraries change during the copy, or sources do not compile, among others
 	 */
-	static File prepare(String project, List<Entry> entries, File snapshots, String fingerprint, boolean compile)
-			throws IOException {
+	static File prepare(String project, List<Entry> entries, File snapshots, String fingerprint,
+			ProjectSources.Compilation compilation) throws IOException {
 		var snapshot = new File(snapshots, fingerprint);
 		if (isComplete(snapshot)) {
 			return snapshot;
 		}
 		var withoutSources = new File(snapshots, fingerprint + WITHOUT_SOURCES);
-		if (!compile && isComplete(withoutSources)) {
+		if (compilation != ProjectSources.Compilation.ALLOWED && isComplete(withoutSources)) {
 			return withoutSources;
 		}
 		Files.createDirectories(snapshots.toPath());
@@ -225,7 +225,7 @@ final class ClasspathSnapshot {
 			if (!fingerprint.equals(fingerprint(entries, staging.toFile()))) {
 				throw new IOException("Project classpath changed while its snapshot was being copied");
 			}
-			if (!ProjectSources.build(project, entries, staging.toFile(), compile)) {
+			if (!ProjectSources.build(project, entries, staging.toFile(), compilation)) {
 				snapshot = withoutSources;
 			}
 			Files.createFile(staging.resolve(COMPLETE_MARKER));

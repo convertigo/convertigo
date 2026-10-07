@@ -65,6 +65,20 @@ final class ProjectSources {
 
 	private static volatile List<File> engineClasspath;
 
+	/** Whether sources are compiled when a copy is prepared. */
+	enum Compilation {
+		/** compiled, unless the classes of their build folder are compiled from them */
+		ALLOWED,
+		/** only the classes of their build folder: the engine does not build (allow_server_build) */
+		NOT_ALLOWED,
+		/** only the classes of their build folder: they do not compile */
+		FAILED;
+
+		static Compilation of(boolean allowed) {
+			return allowed ? ALLOWED : NOT_ALLOWED;
+		}
+	}
+
 	/** Sources that do not compile, with the errors of the compiler. */
 	static final class CompilationException extends IOException {
 		private static final long serialVersionUID = 1L;
@@ -91,11 +105,11 @@ final class ProjectSources {
 	 * Gives their classes to the src folders of a copy being prepared, the last libs folders (those of the referenced
 	 * projects) first.
 	 *
-	 * @param compile whether sources can be compiled; when not, they get only the classes of their build folder
+	 * @param compilation whether sources are compiled; when not, they get only the classes of their build folder
 	 * @return whether every src folder got its classes
 	 * @throws CompilationException when sources do not compile
 	 */
-	static boolean build(String project, List<Entry> entries, File copy, boolean compile) throws IOException {
+	static boolean build(String project, List<Entry> entries, File copy, Compilation compilation) throws IOException {
 		var sources = entries.stream().filter(entry -> entry.kind() == Kind.SOURCES)
 				.sorted((left, right) -> Integer.compare(right.dir(), left.dir())).toList();
 		if (sources.isEmpty()) {
@@ -109,8 +123,11 @@ final class ProjectSources {
 			var origin = origin(entry.source());
 			if (takeBuild(entries, entry, copy, src, output)) {
 				info("Libraries of the project " + project + ": " + origin + " uses its classes compiled before");
-			} else if (!compile) {
+			} else if (compilation != Compilation.ALLOWED) {
 				all = false;
+				if (compilation == Compilation.FAILED) {
+					continue;
+				}
 				warn("Libraries of the project " + project + ": " + origin + " is not compiled, as this server does not"
 						+ " build (allow_server_build), and has no classes compiled from these sources: the project uses"
 						+ " its libraries without them");
@@ -271,6 +288,9 @@ final class ProjectSources {
 				return;
 			}
 			var location = new File(codeSource.getLocation().toURI());
+			if (addBundle(files, location)) {
+				return;
+			}
 			files.add(location);
 			if (siblings) {
 				// a jar among the libraries, or a classes folder next to a lib folder (WEB-INF, a Studio plugin)
@@ -284,6 +304,54 @@ final class ProjectSources {
 		} catch (Exception e) {
 			// not a file
 		}
+	}
+
+	/**
+	 * The Studio is an OSGi bundle: its classes are those of its Bundle-ClassPath, after the output folders an IDE
+	 * compiles into when it launches the Studio (osgi.dev).
+	 *
+	 * @return whether the location is the folder of a bundle
+	 */
+	static boolean addBundle(Set<File> files, File location) throws IOException {
+		var manifestFile = new File(location, "META-INF/MANIFEST.MF");
+		if (!location.isDirectory() || !manifestFile.isFile()) {
+			return false;
+		}
+		java.util.jar.Attributes attributes;
+		try (var input = Files.newInputStream(manifestFile.toPath())) {
+			attributes = new java.util.jar.Manifest(input).getMainAttributes();
+		}
+		var classpath = attributes.getValue("Bundle-ClassPath");
+		if (classpath == null) {
+			return false;
+		}
+		var name = attributes.getValue("Bundle-SymbolicName");
+		name = name == null ? "" : name.split(";")[0].trim();
+		var entries = new ArrayList<String>();
+		var dev = System.getProperty("osgi.dev");
+		if (dev != null && !dev.isBlank()) {
+			if (dev.contains(":/")) {
+				var properties = new java.util.Properties();
+				try (var input = new java.net.URI(dev.trim()).toURL().openStream()) {
+					properties.load(input);
+				} catch (Exception e) {
+					// not a readable file
+				}
+				dev = properties.getProperty(name, properties.getProperty("*", ""));
+			}
+			entries.addAll(Arrays.asList(dev.split(",")));
+		}
+		entries.addAll(Arrays.asList(classpath.split(",")));
+		for (var entry : entries) {
+			entry = entry.trim();
+			if (!entry.isEmpty() && !entry.equals(".")) {
+				var file = new File(location, entry);
+				if (file.exists()) {
+					files.add(file);
+				}
+			}
+		}
+		return true;
 	}
 
 	private static void info(String message) {

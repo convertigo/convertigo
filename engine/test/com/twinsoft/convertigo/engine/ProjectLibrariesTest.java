@@ -520,4 +520,34 @@ public class ProjectLibrariesTest {
 		assertEquals("util", call(generation.loadClass("app.User"), "use"));
 	}
 
+
+	@Test
+	public void theClassesOfTheStudioAreThoseOfItsBundleAfterTheFoldersOfTheIde() throws Exception {
+		var bundle = new File(base, "plugin");
+		new File(bundle, "META-INF").mkdirs();
+		new File(bundle, "bin/main").mkdirs();
+		new File(bundle, "lib").mkdirs();
+		Files.writeString(new File(bundle, "lib/engine.jar").toPath(), "");
+		Files.writeString(new File(bundle, "META-INF/MANIFEST.MF").toPath(), "Manifest-Version: 1.0\n"
+				+ "Bundle-SymbolicName: test.studio;singleton:=true\nBundle-ClassPath: bin/,icons/,lib/engine.jar\n");
+		var dev = new File(base, "dev.properties");
+		Files.writeString(dev.toPath(), "other=elsewhere\ntest.studio=bin/main,lib/engine.jar\n");
+		var previous = System.getProperty("osgi.dev");
+		try {
+			System.setProperty("osgi.dev", dev.toURI().toString());
+			var files = new java.util.LinkedHashSet<File>();
+			assertTrue(ProjectSources.addBundle(files, bundle));
+			assertEquals("the folders of the IDE first, then the existing entries of the bundle",
+					List.of(new File(bundle, "bin/main"), new File(bundle, "lib/engine.jar"), new File(bundle, "bin")),
+					new ArrayList<>(files));
+			assertFalse("a folder without manifest is not a bundle", ProjectSources.addBundle(files, libs));
+		} finally {
+			if (previous == null) {
+				System.clearProperty("osgi.dev");
+			} else {
+				System.setProperty("osgi.dev", previous);
+			}
+		}
+	}
+
 }
