@@ -229,6 +229,53 @@ public class EnginePropertiesManager {
 		}
 	}
 
+	/** The web Studio on a server (web_studio). */
+	public enum WebStudio implements ComboEnum {
+		disabled ("disabled"),
+		enabled ("enabled: edit the projects from the administration console");
+
+		final String display;
+
+		WebStudio(String display) {
+			this.display = display;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return name();
+		}
+	}
+
+	/** What a server builds (server_build), each level allowing those before it. */
+	public enum ServerBuild implements ComboEnum {
+		none ("nothing"),
+		sources ("the Java sources of the projects (libs/src)"),
+		studio ("the Java sources and the builds started from the web Studio"),
+		all ("all, also the applications deployed without their build");
+
+		final String display;
+
+		ServerBuild(String display) {
+			this.display = display;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return name();
+		}
+
+		/** @return whether this level allows what the given one allows */
+		public boolean allows(ServerBuild level) {
+			return compareTo(level) >= 0;
+		}
+	}
+
 	public enum ProxyMode implements ComboEnum {
 		off ("disabled"),
 		auto ("automatic"),
@@ -397,10 +444,10 @@ public class EnginePropertiesManager {
 		HIDE_PRODUCT_VERSION_IN_API_SPECS ("hide_product_version_in_api_specs", "false", "Hide product version in generated API specifications", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		ALLOW_XML_PROJECT_LOADING ("allow_xml_project_loading", "false", "Allow loading projects stored in the legacy XML format; when disabled only the YAML project format (c8oProject.yaml) is accepted", PropertyCategory.Main),
-		@PropertyOptions(propertyType = PropertyType.Boolean)
-		ALLOW_WEB_STUDIO ("allow_web_studio", "false", "Allow the web Studio in the administration console, to edit projects on this server (always allowed in the Studio)", PropertyCategory.Main),
-		@PropertyOptions(propertyType = PropertyType.Boolean)
-		ALLOW_SERVER_BUILD ("allow_server_build", "false", "Allow this server to build: download nodejs, install npm packages and build mobile applications (always allowed in the Studio)", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = WebStudio.class)
+		WEB_STUDIO ("web_studio", "disabled", "Web Studio in the administration console, to edit projects on this server (always enabled in the Studio)", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = ServerBuild.class)
+		SERVER_BUILD ("server_build", "none", "What this server builds: the Java sources of the projects, also the builds started from the web Studio (nodejs, npm), also the applications deployed without their build (always all in the Studio)", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		DOCUMENT_THREADING_USE_STOP_METHOD ("document.threading.use_stop_method", "false", "Use the Java Thread.stop() method in order to finish threads", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
@@ -982,7 +1029,7 @@ public class EnginePropertiesManager {
 	 *         impose
 	 */
 	public static boolean isLockedBySystemProperty(PropertyName property) {
-		return (property == PropertyName.ALLOW_WEB_STUDIO || property == PropertyName.ALLOW_SERVER_BUILD)
+		return (property == PropertyName.WEB_STUDIO || property == PropertyName.SERVER_BUILD)
 				&& hasSystemPropertyOverride(property);
 	}
 

@@ -35,7 +35,7 @@ public @interface ServiceDefinition {
     boolean admin() default true;
 
     /**
-     * For a service of the studio package: still available when the web Studio is not allowed (allow_web_studio), as
+     * For a service of the studio package: still available when the web Studio is not enabled (web_studio), as
      * the administration console or the dashboard also uses it.
      */
     boolean available_without_web_studio() default false;

@@ -88,7 +88,7 @@ const pageRules = [
 		viewRoles: 'PROJECTS_VIEW',
 		configRoles: 'PROJECTS_CONFIG',
 		navigable: false,
-		// a server allows the web Studio with allow_web_studio
+		// a server enables the web Studio with web_studio
 		capability: 'webStudio'
 	},
 	{
@@ -187,11 +187,11 @@ export default {
 	hasRole(role) {
 		return this.roles.includes(role);
 	},
-	/** whether the server allows the web Studio (allow_web_studio) */
+	/** whether the server enables the web Studio (web_studio enabled) */
 	get webStudio() {
 		return allows('webStudio');
 	},
-	/** whether the server allows the builds (allow_server_build) */
+	/** whether the server runs the builds started from the web Studio (server_build studio or all) */
 	get serverBuild() {
 		return allows('serverBuild');
 	},

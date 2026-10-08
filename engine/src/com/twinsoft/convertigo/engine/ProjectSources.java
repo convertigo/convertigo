@@ -48,7 +48,7 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
  * The Java sources of the projects (libs/src), compiled in the copy of their libraries (see {@link ClasspathSnapshot}),
  * the projects they reference first, against the libraries, those of the workspace and the engine. The classes of a
  * build folder compiled from the same sources, by the CI or the export of the project, are taken instead: a server that
- * does not build (allow_server_build) only takes them.
+ * does not compile (server_build none) only takes them.
  */
 final class ProjectSources {
 	/** The most errors told for a compilation. */
@@ -57,7 +57,7 @@ final class ProjectSources {
 	/** Whether the engine compiles: always in the Studio, else when allowed (overridden by the tests). */
 	static BooleanSupplier compileAllowed = () -> {
 		try {
-			return Engine.isServerBuildAllowed();
+			return Engine.serverBuild().allows(EnginePropertiesManager.ServerBuild.sources);
 		} catch (Exception e) {
 			return false;
 		}
@@ -69,7 +69,7 @@ final class ProjectSources {
 	enum Compilation {
 		/** compiled, unless the classes of their build folder are compiled from them */
 		ALLOWED,
-		/** only the classes of their build folder: the engine does not build (allow_server_build) */
+		/** only the classes of their build folder: the engine does not compile (server_build none) */
 		NOT_ALLOWED,
 		/** only the classes of their build folder: they do not compile */
 		FAILED;
@@ -129,7 +129,7 @@ final class ProjectSources {
 					continue;
 				}
 				warn("Libraries of the project " + project + ": " + origin + " is not compiled, as this server does not"
-						+ " build (allow_server_build), and has no classes compiled from these sources: the project uses"
+						+ " compile them (server_build none), and has no classes compiled from these sources: the project uses"
 						+ " its libraries without them");
 				continue;
 			} else {

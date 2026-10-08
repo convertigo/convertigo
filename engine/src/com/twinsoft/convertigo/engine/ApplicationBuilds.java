@@ -44,7 +44,7 @@ import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 /**
  * The production builds of the applications that a server loads without their build (DisplayObjects/mobile), when it
- * builds (allow_server_build): one at a time, in the background, never in the Studio. An application already built
+ * builds them (server_build all): one at a time, in the background, never in the Studio. An application already built
  * is kept as it is.
  * <p>
  * The instances sharing a workspace build an application once: the one that creates the lock file of the project
@@ -113,9 +113,9 @@ public final class ApplicationBuilds {
 		}
 	}
 
-	/** The builds are now allowed: the applications not built as they were not are built. */
+	/** The builds of the applications are now allowed: those not built as they were not are built. */
 	public static void buildsAllowed() {
-		if (!Engine.isServerBuildAllowed()) {
+		if (!Engine.serverBuild().allows(EnginePropertiesManager.ServerBuild.all)) {
 			return;
 		}
 		for (var entry : states.entrySet()) {
@@ -183,7 +183,7 @@ public final class ApplicationBuilds {
 			title = "Not built";
 			message = "The application was deployed without its build, and this server does not build applications."
 					+ " Deploy an archive that includes the build, or allow the builds in the configuration of the server"
-					+ " (allow_server_build).";
+					+ " (server_build all).";
 		}
 		}
 		return page().replace("%REFRESH%", progress ? "<meta http-equiv=\"refresh\" content=\"15\">\n" : "")
@@ -356,9 +356,9 @@ public final class ApplicationBuilds {
 			states.remove(name);
 			return;
 		}
-		if (!Engine.isServerBuildAllowed()) {
+		if (!Engine.serverBuild().allows(EnginePropertiesManager.ServerBuild.all)) {
 			states.put(name, State.notAllowed);
-			info("Application of the project " + name + ": not built, as this server does not build (allow_server_build)");
+			info("Application of the project " + name + ": not built, as this server does not build the applications deployed without their build (server_build all)");
 			return;
 		}
 		var displayObjects = new File(project.getDirPath(), "DisplayObjects");

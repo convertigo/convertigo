@@ -17,7 +17,7 @@
 
 {#key projectName}
 	{#if !Authentication.serverBuild}
-		<p class="p">This server does not allow builds (allow_server_build in the configuration).</p>
+		<p class="p">This server does not run the builds started from the web Studio (server_build studio or all in the configuration).</p>
 	{:else}
 		{#await result}
 			<p class="p">Connecting to the builder…</p>

@@ -87,7 +87,7 @@ public final class LocalBuild {
 	 */
 	public static String start(MobilePlatform platform, String option, boolean run, String target) {
 		if (!Engine.isServerBuildAllowed()) {
-			return "This server does not allow builds (allow_server_build).";
+			return "This server does not run the builds started from the web Studio (server_build studio or all).";
 		}
 		var qname = platform.getQName();
 		var current = BUILDS.get(qname);

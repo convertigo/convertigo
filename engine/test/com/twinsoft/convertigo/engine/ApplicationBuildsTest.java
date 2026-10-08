@@ -116,4 +116,20 @@ public class ApplicationBuildsTest {
 			ApplicationBuilds.setState("App", null);
 		}
 	}
+
+	@Test
+	public void eachServerBuildLevelAllowsThoseBeforeIt() {
+		var none = EnginePropertiesManager.ServerBuild.none;
+		var sources = EnginePropertiesManager.ServerBuild.sources;
+		var studio = EnginePropertiesManager.ServerBuild.studio;
+		var all = EnginePropertiesManager.ServerBuild.all;
+		assertFalse("none compiles nothing", none.allows(sources));
+		assertTrue("sources compiles the Java sources", sources.allows(sources));
+		assertFalse("sources runs no build of the web Studio", sources.allows(studio));
+		assertTrue("studio compiles too", studio.allows(sources));
+		assertFalse("studio does not build the applications deployed without their build", studio.allows(all));
+		assertTrue("all builds them", all.allows(all) && all.allows(studio) && all.allows(sources));
+		assertEquals("none", EnginePropertiesManager.PropertyName.SERVER_BUILD.getDefaultValue());
+		assertEquals("disabled", EnginePropertiesManager.PropertyName.WEB_STUDIO.getDefaultValue());
+	}
 }

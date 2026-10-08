@@ -1730,26 +1730,49 @@ public class Engine {
 	}
 
 	/**
-	 * @return whether the web Studio can edit projects: always in the Studio, else when allow_web_studio is set
+	 * @return whether the web Studio can edit projects: always in the Studio, else when web_studio is enabled
 	 */
 	public static boolean isWebStudioAllowed() {
-		return isStudioMode() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ALLOW_WEB_STUDIO);
+		if (isStudioMode()) {
+			return true;
+		}
+		try {
+			return EnginePropertiesManager.<EnginePropertiesManager.WebStudio> getPropertyAsEnum(PropertyName.WEB_STUDIO)
+					== EnginePropertiesManager.WebStudio.enabled;
+		} catch (Exception e) {
+			// an unknown value: the default
+			return false;
+		}
+	}
+
+	/** @return what the engine builds: all in the Studio and the CLI, else the server_build level */
+	public static EnginePropertiesManager.ServerBuild serverBuild() {
+		if (isStudioMode() || isCliMode()) {
+			return EnginePropertiesManager.ServerBuild.all;
+		}
+		try {
+			return EnginePropertiesManager.getPropertyAsEnum(PropertyName.SERVER_BUILD);
+		} catch (Exception e) {
+			// an unknown value: the default
+			return EnginePropertiesManager.ServerBuild.none;
+		}
 	}
 
 	/**
-	 * @return whether the engine can build (nodejs, npm packages, mobile applications): always in the Studio and the
-	 *         CLI, else when allow_server_build is set
+	 * @return whether the engine runs the builds started from the web Studio (nodejs, npm, mobile applications):
+	 *         server_build studio or all, as checked by the Flow engine since lib_flow_engine 0.1.21
 	 */
 	public static boolean isServerBuildAllowed() {
-		return isStudioMode() || isCliMode() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ALLOW_SERVER_BUILD);
+		return serverBuild().allows(EnginePropertiesManager.ServerBuild.studio);
 	}
 
 	/**
-	 * @throws EngineException when the engine cannot build (see {@link #isServerBuildAllowed()})
+	 * @throws EngineException when the engine cannot run a build started from the web Studio (see
+	 *         {@link #isServerBuildAllowed()})
 	 */
 	public static void checkServerBuildAllowed(String what) throws EngineException {
 		if (!isServerBuildAllowed()) {
-			throw new EngineException(what + ": this server does not allow builds (allow_server_build)");
+			throw new EngineException(what + ": this server does not run these builds (server_build studio or all)");
 		}
 	}
 
