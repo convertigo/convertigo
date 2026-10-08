@@ -1890,7 +1890,7 @@ public class FlowEngineBridge {
 	}
 
 	private static void storeMethodResponse(String key, EngineRef engineRef, String method, JSONObject request, JSONObject response) {
-		if (!isCacheableMethod(method, request) || response == null) {
+		if (!isCacheableResponse(method, request, response)) {
 			return;
 		}
 		if (methodResponseCache.size() >= METHOD_RESPONSE_CACHE_LIMIT) {
@@ -2137,6 +2137,15 @@ public class FlowEngineBridge {
 		} catch (Exception e) {
 			return Integer.toHexString(String.valueOf(text).hashCode());
 		}
+	}
+
+	/**
+	 * @return whether a response is kept: not when the Flow engine marks it "cacheable": false, as a tree showing a
+	 *         frontend model that could not be described (the toolchain may be installed since, which the dependency
+	 *         fingerprint does not see)
+	 */
+	static boolean isCacheableResponse(String method, JSONObject request, JSONObject response) {
+		return response != null && isCacheableMethod(method, request) && response.optBoolean("cacheable", true);
 	}
 
 	private static boolean isCacheableMethod(String method, JSONObject request) {

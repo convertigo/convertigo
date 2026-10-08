@@ -54,6 +54,16 @@ public class FlowEngineBridgeCacheTest {
 	}
 
 	@Test
+	public void keepsNoResponseTheFlowEngineMarksNotCacheable() throws Exception {
+		var request = new JSONObject().put("target", "engine");
+		assertTrue(FlowEngineBridge.isCacheableResponse("describeTree", request, new JSONObject().put("children", "[]")));
+		assertFalse("a tree with an invalid frontend model", FlowEngineBridge.isCacheableResponse("describeTree", request,
+				new JSONObject().put("cacheable", false)));
+		assertFalse(FlowEngineBridge.isCacheableResponse("describeTree", request, null));
+		assertFalse("a method never cached", FlowEngineBridge.isCacheableResponse("run", request, new JSONObject()));
+	}
+
+	@Test
 	public void distinguishesRuntimeSourcesFromAuthoringData() {
 		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow/Engine.js"));
 		assertTrue(FlowEngineBridge.requiresRuntimeCacheInvalidation("_flow/modules/runtime.js"));
