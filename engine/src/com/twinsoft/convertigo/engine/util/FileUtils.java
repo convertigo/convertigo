@@ -200,12 +200,23 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 				}
 
 				if (code != 0 || dir.exists()) {
+					// the entries of a read-only folder cannot be removed, as a folder copied from an archive or a
+					// package: the folders become writable first, else each attempt fails again on the whole tree
+					makeFoldersWritable(dir);
 					org.apache.commons.io.FileUtils.deleteDirectory(dir);
 				}
 				if (dir.exists()) {
 					org.apache.commons.io.FileUtils.forceDelete(dir);
 				}
 			}
+		}
+	}
+
+	private static void makeFoldersWritable(File dir) {
+		try (var paths = Files.walk(dir.toPath())) {
+			paths.filter(Files::isDirectory).forEach(path -> path.toFile().setWritable(true, true));
+		} catch (Exception e) {
+			// best effort: the deletion tells what remains
 		}
 	}
 
