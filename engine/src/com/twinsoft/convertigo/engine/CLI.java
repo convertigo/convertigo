@@ -61,6 +61,7 @@ import com.twinsoft.convertigo.engine.admin.services.mobiles.LaunchBuild;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
 import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally.Status;
@@ -292,6 +293,19 @@ public class CLI {
 			bm = MobileBuilderBuildMode.valueOf(mode);
 		} catch (Exception e) { }
 		mb.setAppBuildMode(bm);
+		List<Project> projects = importReferences(project);
+		Collections.reverse(projects);
+		for (Project p: projects) {
+			MobileBuilder.initBuilder(p, true);
+		}
+		Collections.reverse(projects);
+		for (Project p: projects) {
+			MobileBuilder.releaseBuilder(p, true);
+		}
+	}
+
+	/** @return the project, then the projects it references, imported when needed, each once */
+	private List<Project> importReferences(Project project) throws Exception {
 		List<Project> projects = new ArrayList<>();
 		projects.add(project);
 		int i = 0;
@@ -308,17 +322,58 @@ public class CLI {
 				}
 			}
 		} while (++i < projects.size());
-		Collections.reverse(projects);
-		for (Project p: projects) {
-			MobileBuilder.initBuilder(p, true);
+		return projects;
+	}
+
+	/**
+	 * Builds the applications of the frontends of a Flow project (the Svelte builder), as the server builds those
+	 * deployed without their build: the build command each builder gives.
+	 *
+	 * @return whether the project has Flow frontends to build
+	 */
+	private boolean compileFlowFrontends(Project project) throws Exception {
+		var flowEngine = project.getFlowEngine();
+		if (flowEngine == null) {
+			return false;
 		}
-		Collections.reverse(projects);
-		for (Project p: projects) {
-			MobileBuilder.releaseBuilder(p, true);
+		// the engine and the builders are projects it references
+		importReferences(project);
+		var builders = FlowStudioSupport.contextMenu(flowEngine).optJSONArray("builders");
+		var built = false;
+		for (int i = 0; builders != null && i < builders.length(); i++) {
+			var builder = builders.getJSONObject(i);
+			var commands = builder.optJSONObject("commands");
+			var command = commands == null ? null : commands.optJSONObject("build");
+			if (!builder.optBoolean("available", false) || command == null || !command.optBoolean("enabled", true)) {
+				continue;
+			}
+			var name = builder.optString("label", builder.optString("id", "frontend"));
+			Engine.logConvertigo.info("Building the " + name + " frontend of " + project.getName());
+			var result = FlowStudioSupport.contextAction(flowEngine, command);
+			var details = result.optJSONObject("details");
+			var steps = details == null ? null : details.optJSONArray("steps");
+			for (int j = 0; steps != null && j < steps.length(); j++) {
+				var step = steps.optJSONObject(j);
+				if (step != null) {
+					Engine.logConvertigo.info(step.optString("action") + " (" + step.optLong("durationMs") + " ms, exit "
+							+ step.optInt("exitCode") + ")" + (step.optBoolean("ok", true) ? "" : ":\n" + step.optString("stdout")));
+				}
+			}
+			if (!result.optBoolean("ok", false)) {
+				var error = result.optJSONObject("error");
+				throw new EngineException("The build of the " + name + " frontend of " + project.getName() + " failed: "
+						+ (error == null ? result.optString("message") : error.optString("message", error.toString())));
+			}
+			Engine.logConvertigo.info(result.optString("message", "The " + name + " frontend of " + project.getName() + " is built"));
+			built = true;
 		}
+		return built;
 	}
 
 	public void compileMobileBuilder(Project project, String mode) throws Exception {
+		if (compileFlowFrontends(project)) {
+			return;
+		}
 		File ionicDir = new File(project.getDirPath() + "/_private/ionic");
 		if (!ionicDir.exists()) {
 			Engine.logConvertigo.warn("Failed to perform NodeJS build, no folder: " + ionicDir);
