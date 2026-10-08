@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call } from '#lib/utils/service.js';
 	import { untrack } from 'svelte';
 	import {
 		initialSteps,

@@ -1,15 +1,15 @@
 <script>
-	import { building } from '$app/environment';
+	import { getAdminPageDocHref } from '#lib/admin/AdminDocumentation.svelte.js';
+	import ActionBar from '#lib/admin/components/ActionBar.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import ResponsiveButtons from '#lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '#lib/admin/components/TableAutoCard.svelte';
+	import InputGroup from '#lib/common/components/InputGroup.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { resolve } from '#lib/utils/route.js';
+	import { building } from '$app/env';
 	import { goto } from '$app/navigation';
-	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { resolve } from '$lib/utils/route';
 	import { onMount } from 'svelte';
 	import { fullSyncBaseUrl, getDatabaseInfo, listDatabases, removeDatabase } from './fullsync-api';
 	import { createFullSyncFeedback } from './fullsync-feedback';
@@ -371,9 +371,9 @@
 						aria-label="Previous page"
 						disabled={dbPageSafe <= 1}
 						onclick={() => (dbPage = dbPageSafe - 1)}
+						><Ico icon="mdi:arrow-left-bold-outline" /></button
 					>
-						<Ico icon="mdi:arrow-left-bold-outline" />
-					</button>
+
 					<span class="min-w-6 text-center font-medium">{dbPageSafe}</span>
 					<button
 						type="button"
@@ -382,9 +382,8 @@
 						aria-label="Next page"
 						disabled={dbPageSafe >= dbTotalPages}
 						onclick={() => (dbPage = dbPageSafe + 1)}
+						><Ico icon="mdi:arrow-right-bold-outline" /></button
 					>
-						<Ico icon="mdi:arrow-right-bold-outline" />
-					</button>
 				</ActionBar>
 			</div>
 		</fieldset>

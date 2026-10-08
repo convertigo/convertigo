@@ -1,15 +1,15 @@
 <script>
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
+	import ActionBar from '#lib/admin/components/ActionBar.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import InputGroup from '#lib/common/components/InputGroup.svelte';
+	import ModalDynamic from '#lib/common/components/ModalDynamic.svelte';
+	import LightSvelte from '#lib/common/Light.svelte.js';
+	import Editor from '#lib/studio/editor/Editor.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { goto } from '$app/navigation';
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import LightSvelte from '$lib/common/Light.svelte.js';
-	import Editor from '$lib/studio/editor/Editor.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import RightPart from '../RightPart.svelte';
 	import {

@@ -1,6 +1,6 @@
 <script>
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 	import Light from '../Light.svelte';
 
 	const icon = $derived.by(() => (Light.light ? 'mdi:weather-sunny' : 'mdi:moon-and-stars'));

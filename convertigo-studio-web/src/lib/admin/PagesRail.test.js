@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('$lib/admin/AdminDocumentation.svelte', () => ({
+vi.mock('#lib/admin/AdminDocumentation.svelte.js', () => ({
 	getAdminPageDocHref: () => '/docs/'
 }));
-vi.mock('$lib/common/Authentication.svelte', () => ({
+vi.mock('#lib/common/Authentication.svelte.js', () => ({
 	default: {
 		canAccessAdmin: true,
 		canAccessAdminRoute: () => true
 	}
 }));
-vi.mock('$lib/common/Status.svelte', () => ({ default: { cloud: false } }));
-vi.mock('$lib/utils/service', () => ({ getUrl: (path) => `/convertigo/${path}` }));
+vi.mock('#lib/common/Status.svelte.js', () => ({ default: { cloud: false } }));
+vi.mock('#lib/utils/service', () => ({ getUrl: (path) => `/convertigo/${path}` }));
 
 describe('Admin page rail', () => {
 	beforeEach(() => {

@@ -1,8 +1,8 @@
 <script>
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
-	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import AccordionGroup from '#lib/common/components/AccordionGroup.svelte';
+	import AccordionSection from '#lib/common/components/AccordionSection.svelte';
 
 	/**
 	 * @type {{

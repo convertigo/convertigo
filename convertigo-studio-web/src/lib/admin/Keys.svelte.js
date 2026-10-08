@@ -1,6 +1,6 @@
-import ServiceHelper from '$lib/common/ServiceHelper.svelte';
-import { call, checkArray } from '$lib/utils/service';
-import { formatDate } from '$lib/utils/time';
+import ServiceHelper from '#lib/common/ServiceHelper.svelte.js';
+import { call, checkArray } from '#lib/utils/service.js';
+import { formatDate } from '#lib/utils/time.js';
 
 const defValues = {
 	categories: Array(12).fill({

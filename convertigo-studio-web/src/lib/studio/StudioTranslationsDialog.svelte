@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call, toaster } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call, toaster } from '#lib/utils/service.js';
 
 	/**
 	 * Creates or updates the translations files of an NGX application, as the Eclipse Studio does: the

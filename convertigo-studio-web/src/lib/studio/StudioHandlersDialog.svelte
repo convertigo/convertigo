@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call } from '#lib/utils/service.js';
 
 	/**
 	 * @typedef {{ name: string, label: string, enabled: boolean, exists: boolean }} EventHandler

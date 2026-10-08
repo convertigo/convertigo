@@ -1,12 +1,12 @@
 <script>
 	import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
-	import { browser } from '$app/environment';
+	import PagesRailToggle from '#lib/admin/components/PagesRailToggle.svelte';
+	import Topbar from '#lib/admin/components/Topbar.svelte';
+	import partsAdmin from '#lib/admin/PagesRail.svelte.js';
+	import PagesRail from '#lib/common/components/PagesRail.svelte';
+	import partsDashboard from '#lib/dashboard/PagesRail.svelte.js';
+	import { browser } from '$app/env';
 	import { page } from '$app/state';
-	import PagesRailToggle from '$lib/admin/components/PagesRailToggle.svelte';
-	import Topbar from '$lib/admin/components/Topbar.svelte';
-	import partsAdmin from '$lib/admin/PagesRail.svelte';
-	import PagesRail from '$lib/common/components/PagesRail.svelte';
-	import partsDashboard from '$lib/dashboard/PagesRail.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import RightPart from './admin/RightPart.svelte';
 
@@ -31,6 +31,7 @@
 				class="h-full max-h-screen w-40 max-w-[85vw] -translate-x-full overflow-y-auto border-r border-color bg-surface-100-900 p-0 transition-transform duration-200 data-[state=open]:translate-x-0"
 			>
 				<PagesRailToggle bind:state={showDrawer} class="h-fit! w-fit! px-5 py-low" />
+
 				<PagesRail {parts} />
 			</Dialog.Content>
 		</Dialog.Positioner>

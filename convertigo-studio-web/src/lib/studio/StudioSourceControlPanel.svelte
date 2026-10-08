@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call, toaster } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call, toaster } from '#lib/utils/service.js';
 	import { untrack } from 'svelte';
 	import StudioCredentialsDialog from './StudioCredentialsDialog.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';

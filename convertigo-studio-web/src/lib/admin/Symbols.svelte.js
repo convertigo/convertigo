@@ -1,5 +1,5 @@
-import ServiceHelper from '$lib/common/ServiceHelper.svelte';
-import { call } from '$lib/utils/service';
+import ServiceHelper from '#lib/common/ServiceHelper.svelte.js';
+import { call } from '#lib/utils/service.js';
 
 const defValues = {
 	symbols: new Array(5)

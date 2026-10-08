@@ -1,7 +1,7 @@
-import { browser } from '$app/environment';
-import ServiceHelper from '$lib/common/ServiceHelper.svelte';
-import Time from '$lib/common/Time.svelte';
-import { call } from '$lib/utils/service';
+import ServiceHelper from '#lib/common/ServiceHelper.svelte.js';
+import Time from '#lib/common/Time.svelte.js';
+import { call } from '#lib/utils/service.js';
+import { browser } from '$app/env';
 
 const storageKey = 'admin.monitor.history';
 const storageVersion = 2;

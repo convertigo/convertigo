@@ -1,5 +1,5 @@
-import ServiceHelper from '$lib/common/ServiceHelper.svelte';
-import { call, checkArray } from '$lib/utils/service';
+import ServiceHelper from '#lib/common/ServiceHelper.svelte.js';
+import { call, checkArray } from '#lib/utils/service.js';
 
 const defValues = {
 	jobs: Array(5).fill({

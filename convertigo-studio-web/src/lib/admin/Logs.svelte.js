@@ -1,6 +1,6 @@
-import Instances from '$lib/admin/Instances.svelte';
-import { call, checkArray } from '$lib/utils/service';
-import { formatDate, formatTime } from '$lib/utils/time';
+import Instances from '#lib/admin/Instances.svelte.js';
+import { call, checkArray } from '#lib/utils/service.js';
+import { formatDate, formatTime } from '#lib/utils/time.js';
 
 let logs = $state([]);
 let startDate = $state('');

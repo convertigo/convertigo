@@ -1,4 +1,4 @@
-import { call } from '$lib/utils/service';
+import { call } from '#lib/utils/service.js';
 import { loadStepPalette } from './palette';
 import { SequenceFlowBuilder } from './SequenceFlowBuilder';
 

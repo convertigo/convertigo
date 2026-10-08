@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call, toaster } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call, toaster } from '#lib/utils/service.js';
 
 	/**
 	 * Imports a remote REST or SOAP web service into a project, as the web service reference wizards of

@@ -1,6 +1,6 @@
-import { browser } from '$app/environment';
-import Instances from '$lib/admin/Instances.svelte';
-import { getUrl } from '$lib/utils/service';
+import Instances from '#lib/admin/Instances.svelte.js';
+import { getUrl } from '#lib/utils/service.js';
+import { browser } from '$app/env';
 
 const FULLSYNC_BASE = getUrl('fullsync/');
 
@@ -113,6 +113,7 @@ function isExplicitFullSyncConfigError(error) {
 	const message = String(error?.message ?? '')
 		.trim()
 		.toLowerCase();
+
 	return (
 		error?.status === 401 ||
 		error?.status === 403 ||
@@ -314,6 +315,7 @@ export async function listDocumentIdSuggestions(dbName, { prefix = '', limit = 3
 		omitSkip: true
 	});
 	const rows = Array.isArray(response?.rows) ? response.rows : [];
+
 	return Array.from(
 		new Set(
 			rows.map((row) => (typeof row?.id == 'string' ? row.id : '')).filter((id) => id.length > 0)

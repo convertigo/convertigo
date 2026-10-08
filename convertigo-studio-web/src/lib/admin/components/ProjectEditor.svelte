@@ -1,12 +1,12 @@
 <script>
-	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
-	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
-	import TreeView from '$lib/common/components/TreeView.svelte';
-	import { createDatabaseObjectProperties } from '$lib/common/DatabaseObjectProperties.svelte.js';
-	import { createProjectTree } from '$lib/common/ProjectsTree.svelte.js';
-	import AutoSvg from '$lib/utils/AutoSvg.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { getUrl } from '$lib/utils/service';
+	import AccordionGroup from '#lib/common/components/AccordionGroup.svelte';
+	import AccordionSection from '#lib/common/components/AccordionSection.svelte';
+	import TreeView from '#lib/common/components/TreeView.svelte';
+	import { createDatabaseObjectProperties } from '#lib/common/DatabaseObjectProperties.svelte.js';
+	import { createProjectTree } from '#lib/common/ProjectsTree.svelte.js';
+	import AutoSvg from '#lib/utils/AutoSvg.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { getUrl } from '#lib/utils/service.js';
 	import { getContext, onMount, tick, untrack } from 'svelte';
 	import { fromAction } from 'svelte/attachments';
 	import Button from './Button.svelte';

@@ -1,10 +1,10 @@
 <script>
+	import Card from '#lib/admin/components/Card.svelte';
+	import Authentication from '#lib/common/Authentication.svelte.js';
+	import AuthenticationProgress from '#lib/common/components/AuthenticationProgress.svelte';
+	import InputGroup from '#lib/common/components/InputGroup.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { goto } from '$app/navigation';
-	import Card from '$lib/admin/components/Card.svelte';
-	import Authentication from '$lib/common/Authentication.svelte';
-	import AuthenticationProgress from '$lib/common/components/AuthenticationProgress.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 
 	/** @type {{data: import('./$types').PageData}} */
 	let { data } = $props();

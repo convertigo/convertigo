@@ -1,10 +1,10 @@
 <script>
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
-	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
-	import { createDatabaseObjectProperties } from '$lib/common/DatabaseObjectProperties.svelte.js';
-	import LightSvelte from '$lib/common/Light.svelte';
-	import Editor from '$lib/studio/editor/Editor.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import SaveCancelButtons from '#lib/admin/components/SaveCancelButtons.svelte';
+	import AccordionGroup from '#lib/common/components/AccordionGroup.svelte';
+	import { createDatabaseObjectProperties } from '#lib/common/DatabaseObjectProperties.svelte.js';
+	import LightSvelte from '#lib/common/Light.svelte.js';
+	import Editor from '#lib/studio/editor/Editor.svelte';
 	import {
 		asEditorValue,
 		canOpenCodeProperty,
@@ -17,9 +17,9 @@
 		isSemanticColorProperty,
 		isSmartSourceProperty,
 		SMART_TYPE_MODES
-	} from '$lib/studio/propertyEditors';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call } from '$lib/utils/service';
+	} from '#lib/studio/propertyEditors.js';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call } from '#lib/utils/service.js';
 	import { tick, untrack } from 'svelte';
 	import { flowTypeDisplayName } from './blockDefinition';
 	import { trackPropertyApply } from './propertyApply.svelte.js';

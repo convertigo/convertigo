@@ -1,6 +1,6 @@
 <script>
-	import Ico, { ico } from '$lib/utils/Ico.svelte';
-	import { checkArray } from '$lib/utils/service';
+	import Ico, { ico } from '#lib/utils/Ico.svelte';
+	import { checkArray } from '#lib/utils/service.js';
 
 	// import { clipboard } from '@skeletonlabs/skeleton';
 	// import { draw } from 'svelte/transition';

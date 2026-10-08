@@ -1,6 +1,6 @@
 <script>
-	import Button from '$lib/admin/components/Button.svelte';
-	import Editor from '$lib/studio/editor/Editor.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Editor from '#lib/studio/editor/Editor.svelte';
 	import { tick } from 'svelte';
 	import { fromAction } from 'svelte/attachments';
 

@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call } from '#lib/utils/service.js';
 
 	/**
 	 * Creates the steps building an XML structure in a sequence or a step, as the "Create steps structure

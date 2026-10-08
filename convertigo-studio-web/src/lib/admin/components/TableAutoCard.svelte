@@ -1,6 +1,6 @@
 <script>
 	import Icon from '@iconify/svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
 	import { fromAction } from 'svelte/attachments';
 
 	/** @type {{definition: any, data: any, showHeaders?: boolean, showNothing?: boolean, title?: string, comment?: string, class?: string, thClass?: string, trClass?: string, fnRowId?: function, animationProps?: any, children?: import('svelte').Snippet<[any]>, rowChildren?: import('svelte').Snippet<[any]>, thead?: import('svelte').Snippet<[any]>, cardBreakpoint?: number}} */

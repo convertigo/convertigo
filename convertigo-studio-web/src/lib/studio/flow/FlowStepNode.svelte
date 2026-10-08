@@ -1,10 +1,10 @@
 <script>
 	import { Handle, Position } from '@xyflow/svelte';
-	import { objectCanRename, objectRenameValue } from '$lib/studio/dnd';
-	import AutoSvg from '$lib/utils/AutoSvg.svelte';
-	import { draggedData } from '$lib/utils/dndStore';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { getUrl } from '$lib/utils/service';
+	import { objectCanRename, objectRenameValue } from '#lib/studio/dnd.js';
+	import AutoSvg from '#lib/utils/AutoSvg.svelte';
+	import { draggedData } from '#lib/utils/dndStore.js';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { getUrl } from '#lib/utils/service.js';
 	import {
 		branchLabel,
 		branchLabelForStep,

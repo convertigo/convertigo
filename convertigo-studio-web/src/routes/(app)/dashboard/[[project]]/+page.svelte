@@ -1,15 +1,15 @@
 <script>
 	import { Portal, SegmentedControl, Tooltip } from '@skeletonlabs/skeleton-svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import Authentication from '#lib/common/Authentication.svelte.js';
+	import InputGroup from '#lib/common/components/InputGroup.svelte';
+	import Projects from '#lib/common/Projects.svelte.js';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { resolve } from '#lib/utils/route.js';
+	import { getFrontendUrl, getThumbnailUrl } from '#lib/utils/service.js';
 	import { page } from '$app/state';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import Authentication from '$lib/common/Authentication.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import Projects from '$lib/common/Projects.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { resolve } from '$lib/utils/route';
-	import { getFrontendUrl, getThumbnailUrl } from '$lib/utils/service';
 	import { onDestroy } from 'svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
@@ -160,7 +160,7 @@
 													{:else if value == 0}
 														<span class="layout-x-none gap-1">
 															<span aria-hidden="true" class="text-base leading-none font-semibold"
-																>&harr;</span
+																>↔</span
 															>
 															<span class="sr-only">Both</span>
 														</span>
@@ -235,7 +235,7 @@
 													{:else if value == 0}
 														<span class="layout-x-none gap-1">
 															<span aria-hidden="true" class="text-base leading-none font-semibold"
-																>&harr;</span
+																>↔</span
 															>
 															<span class="sr-only">Both</span>
 														</span>

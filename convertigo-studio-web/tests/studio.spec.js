@@ -3553,6 +3553,8 @@ function responseForService(service, params, options = {}) {
 			return {
 				admin: {
 					authenticated: true,
+					webStudio: true,
+					serverBuild: true,
 					user: 'admin',
 					roles: { role: (options.roles ?? ['WEB_ADMIN']).map((name) => ({ name })) },
 					ts: Date.now(),

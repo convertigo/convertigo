@@ -1,0 +1,15 @@
+{
+	"extends": "./jsconfig.json",
+	"compilerOptions": {
+		"checkJs": false,
+		"strict": false
+	},
+	"include": ["src/**/*.svelte", "src/app.d.ts"],
+	"exclude": [
+		"src/lib/studio/**",
+		"src/routes/(app)/admin/certificates/**",
+		"src/routes/(app)/admin/projects/**",
+		"src/routes/(app)/admin/roles/**",
+		"src/routes/(app)/admin/symbols/**"
+	]
+}

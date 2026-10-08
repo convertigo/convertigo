@@ -1,7 +1,7 @@
-import { browser } from '$app/environment';
-import Instances from '$lib/admin/Instances.svelte';
-import Authentication from '$lib/common/Authentication.svelte';
-import { call, checkArray, getNestedProperty, setNestedProperty } from '$lib/utils/service';
+import Instances from '#lib/admin/Instances.svelte.js';
+import Authentication from '#lib/common/Authentication.svelte.js';
+import { call, checkArray, getNestedProperty, setNestedProperty } from '#lib/utils/service.js';
+import { browser } from '$app/env';
 import { untrack } from 'svelte';
 
 const getErrorText = (error) => {

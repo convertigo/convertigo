@@ -1,6 +1,6 @@
 <script>
 	import { Portal, Tooltip } from '@skeletonlabs/skeleton-svelte';
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 
 	/** @type {{ label?: string, icon?: string, size?: string, cls?: string, class?: string, disabled?: boolean, value?: string, hidden?: boolean, href?: string, type?: string } | any} */
 	let {

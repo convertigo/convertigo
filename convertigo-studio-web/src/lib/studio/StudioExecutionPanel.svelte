@@ -1,6 +1,6 @@
 <script>
-	import RequestableExecution from '$lib/admin/components/RequestableExecution.svelte';
-	import { checkArray } from '$lib/utils/service';
+	import RequestableExecution from '#lib/admin/components/RequestableExecution.svelte';
+	import { checkArray } from '#lib/utils/service.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
 	/**

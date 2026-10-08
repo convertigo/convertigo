@@ -1,7 +1,7 @@
 <script>
-	import LightSvelte from '$lib/common/Light.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call } from '$lib/utils/service';
+	import LightSvelte from '#lib/common/Light.svelte.js';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call } from '#lib/utils/service.js';
 	import Editor from './editor/Editor.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 

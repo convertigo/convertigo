@@ -1,9 +1,11 @@
 import js from '@eslint/js';
+import { loadConfig } from '@sveltejs/load-config';
 import tsParser from '@typescript-eslint/parser';
 import prettier from 'eslint-config-prettier';
 import svelte from 'eslint-plugin-svelte';
 import globals from 'globals';
-import svelteConfig from './svelte.config.js';
+
+const svelteConfig = (await loadConfig('./', { traverse: false }))?.config;
 
 function toFlatGlobals(source = {}) {
 	return Object.fromEntries(

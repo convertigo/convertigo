@@ -1,5 +1,5 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { resolveConflict } from './treeMerge.svelte.js';
 
 	/**

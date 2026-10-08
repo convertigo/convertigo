@@ -1,10 +1,10 @@
 <script>
-	import { browser } from '$app/environment';
+	import Authentication from '#lib/common/Authentication.svelte.js';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import { resolve } from '#lib/utils/route.js';
+	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import Authentication from '$lib/common/Authentication.svelte.js';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { resolve } from '$lib/utils/route';
 	import { onMount } from 'svelte';
 
 	/** @type {{ children?: import('svelte').Snippet }} */

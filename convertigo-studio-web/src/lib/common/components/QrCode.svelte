@@ -1,5 +1,5 @@
 <script>
-	import { getQuery, getUrl } from '$lib/utils/service';
+	import { getQuery, getUrl } from '#lib/utils/service.js';
 
 	/** @type {{href: any, contentType?: string, e?: string, s?: string, link?: boolean, target?: string, class?: string, label?: string, alt?: string}} */
 	let {

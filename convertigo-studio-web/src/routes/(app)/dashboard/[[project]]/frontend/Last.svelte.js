@@ -1,4 +1,4 @@
-import Bezels from '$lib/dashboard/Bezels';
+import Bezels from '#lib/dashboard/Bezels.js';
 
 let model = $state(Object.keys(Bezels)[0]);
 let orientation = $state('v');

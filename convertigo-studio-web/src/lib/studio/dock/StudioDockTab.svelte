@@ -1,5 +1,5 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 
 	/**
 	 * The tab of a view of the dock: its icon, its name, what it shows, what goes wrong in it and the button

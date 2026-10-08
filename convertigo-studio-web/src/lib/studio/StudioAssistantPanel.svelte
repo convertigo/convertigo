@@ -1,7 +1,7 @@
 <script>
-	import { browser } from '$app/environment';
-	import Light from '$lib/common/Light.svelte';
-	import { getFrontendUrl } from '$lib/utils/service';
+	import Light from '#lib/common/Light.svelte.js';
+	import { getFrontendUrl } from '#lib/utils/service.js';
+	import { browser } from '$app/env';
 	import { untrack } from 'svelte';
 
 	/** @type {{ projectName?: string, agentProfile?: string }} */

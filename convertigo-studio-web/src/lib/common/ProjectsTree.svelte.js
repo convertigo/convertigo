@@ -1,4 +1,4 @@
-import { call } from '$lib/utils/service';
+import { call } from '#lib/utils/service.js';
 
 /**
  * @typedef {{ equivalentIds?: (id: string | undefined) => string[], parameters?: () => Record<string, any> }} ProjectTreeOptions

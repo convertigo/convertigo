@@ -1,7 +1,7 @@
 <script>
-	import Button from '$lib/admin/components/Button.svelte';
-	import Light from '$lib/common/Light.svelte.js';
-	import { call, serverRetryDelay } from '$lib/utils/service';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Light from '#lib/common/Light.svelte.js';
+	import { call, serverRetryDelay } from '#lib/utils/service.js';
 	import { themeContextFromMessage } from './flowAuthoring';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 

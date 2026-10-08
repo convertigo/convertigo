@@ -1,7 +1,7 @@
 <script>
-	import AutoSvg from '$lib/utils/AutoSvg.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { getUrl } from '$lib/utils/service';
+	import AutoSvg from '#lib/utils/AutoSvg.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { getUrl } from '#lib/utils/service.js';
 
 	/**
 	 * @typedef {{ name: string, label: string, value: string, differs?: boolean }} TreeProperty

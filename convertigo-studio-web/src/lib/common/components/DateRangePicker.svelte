@@ -1,6 +1,6 @@
 <script>
 	import { Portal, Tooltip } from '@skeletonlabs/skeleton-svelte';
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { DateRangePicker } from 'bits-ui';
 
 	/** @type {{ start?: any, end?: any, live?: boolean}} */

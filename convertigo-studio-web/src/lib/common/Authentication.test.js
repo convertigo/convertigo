@@ -6,7 +6,7 @@ const authenticationFixture = vi.hoisted(() => ({
 	serverBuild: 'false'
 }));
 
-vi.mock('$lib/utils/service', () => ({
+vi.mock('#lib/utils/service.js', () => ({
 	abortPendingCalls: vi.fn(),
 	checkArray: (value) => (value == null ? [] : Array.isArray(value) ? value : [value]),
 	call: vi.fn(async () => ({

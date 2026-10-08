@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('$lib/utils/service', () => ({ call: vi.fn() }));
+vi.mock('#lib/utils/service.js', () => ({ call: vi.fn() }));
 
 const { indexTreeDiff, projectOfNode } = await import('./treeDiff.svelte.js');
 

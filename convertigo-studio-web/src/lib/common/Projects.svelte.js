@@ -1,5 +1,5 @@
-import Authentication from '$lib/common/Authentication.svelte';
-import { call, checkArray } from '$lib/utils/service';
+import Authentication from '#lib/common/Authentication.svelte.js';
+import { call, checkArray } from '#lib/utils/service.js';
 import { decode } from 'html-entities';
 import ServiceHelper from './ServiceHelper.svelte';
 

@@ -1,4 +1,4 @@
-import { call, toaster } from '$lib/utils/service';
+import { call, toaster } from '#lib/utils/service.js';
 import { SvelteSet } from 'svelte/reactivity';
 
 const _categories = ['Base properties', 'Properties', 'Expert', 'Information'];

@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call } from '#lib/utils/service.js';
 
 	/**
 	 * Imports the BAPIs of the SAP repository of an SAP JCo connector as its transactions, as the design of

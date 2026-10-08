@@ -1,9 +1,9 @@
 <script>
-	import { dropLabel, isIfStep } from '$lib/studio/flow/flowStepLabels';
-	import AutoSvg from '$lib/utils/AutoSvg.svelte';
-	import { draggedData } from '$lib/utils/dndStore';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call, getUrl, removeDbo, renameDbo } from '$lib/utils/service';
+	import { dropLabel, isIfStep } from '#lib/studio/flow/flowStepLabels.js';
+	import AutoSvg from '#lib/utils/AutoSvg.svelte';
+	import { draggedData } from '#lib/utils/dndStore.js';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call, getUrl, removeDbo, renameDbo } from '#lib/utils/service.js';
 	import { tick, untrack } from 'svelte';
 	import {
 		canDropDbo,

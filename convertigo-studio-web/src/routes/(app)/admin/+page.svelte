@@ -1,20 +1,20 @@
 <script>
 	import { SegmentedControl } from '@skeletonlabs/skeleton-svelte';
-	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
-	import ApexChartLineAdmin from '$lib/admin/components/ApexChartLineAdmin.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import EnvironmentVariables from '$lib/admin/EnvironmentVariables.svelte';
-	import Monitor from '$lib/admin/Monitor.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import Status from '$lib/common/Status.svelte';
-	import Time from '$lib/common/Time.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call } from '$lib/utils/service';
-	import { formatDuration } from '$lib/utils/time';
+	import { getAdminPageDocHref } from '#lib/admin/AdminDocumentation.svelte.js';
+	import ActionBar from '#lib/admin/components/ActionBar.svelte';
+	import ApexChartLineAdmin from '#lib/admin/components/ApexChartLineAdmin.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import TableAutoCard from '#lib/admin/components/TableAutoCard.svelte';
+	import EnvironmentVariables from '#lib/admin/EnvironmentVariables.svelte.js';
+	import Monitor from '#lib/admin/Monitor.svelte.js';
+	import ModalDynamic from '#lib/common/components/ModalDynamic.svelte';
+	import Status from '#lib/common/Status.svelte.js';
+	import Time from '#lib/common/Time.svelte.js';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call } from '#lib/utils/service.js';
+	import { formatDuration } from '#lib/utils/time.js';
 	import { onDestroy } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 

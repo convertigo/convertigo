@@ -30,5 +30,8 @@ export function ensureTrailingSlash(url = '') {
 }
 
 export function resolve(path, params) {
-	return ensureTrailingSlash(svelteResolve(path, params));
+	// Keep our absolute pathname API; Kit 3 reserves a leading slash for route IDs.
+	const destination =
+		path.startsWith('/') && !path.includes('[') && !path.includes('(') ? path.slice(1) : path;
+	return ensureTrailingSlash(svelteResolve(destination, params));
 }

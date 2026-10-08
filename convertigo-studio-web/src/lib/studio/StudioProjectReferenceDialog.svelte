@@ -1,5 +1,5 @@
 <script>
-	import Projects from '$lib/common/Projects.svelte.js';
+	import Projects from '#lib/common/Projects.svelte.js';
 	import { formatProjectReference, parseProjectReference } from './projectReference';
 
 	/**
@@ -63,7 +63,7 @@
 			<div class="studio-dialog__body">
 				<p class="studio-dialog__hint">
 					A project is referenced by its name, or by its remote URL:
-					<code>&lt;project name&gt;=&lt;git or http URL&gt;[:path=…][:branch=…]</code>
+					<code><project name>=<git or http URL>[:path=…][:branch=…]</git></project></code>
 				</p>
 				<label class="studio-dialog__field">
 					<span>Project remote URL</span>

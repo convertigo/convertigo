@@ -1,5 +1,5 @@
 <script>
-	import { call } from '$lib/utils/service';
+	import { call } from '#lib/utils/service.js';
 
 	/**
 	 * Chooses the font of an NGX application, as the font editor of the Eclipse Studio: a font of the

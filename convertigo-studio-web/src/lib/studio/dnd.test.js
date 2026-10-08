@@ -1,4 +1,4 @@
-import { acceptDbo, addDbo, moveDbo } from '$lib/utils/service';
+import { acceptDbo, addDbo, moveDbo } from '#lib/utils/service.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	affectedDboParentIds,
@@ -23,7 +23,7 @@ import {
 	treeRowDropPosition
 } from './dnd';
 
-vi.mock('$lib/utils/service', () => ({
+vi.mock('#lib/utils/service.js', () => ({
 	acceptDbo: vi.fn(),
 	addDbo: vi.fn(),
 	moveDbo: vi.fn()

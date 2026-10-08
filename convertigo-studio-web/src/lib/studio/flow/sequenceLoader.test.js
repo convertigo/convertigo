@@ -1,8 +1,8 @@
-import { call } from '$lib/utils/service';
+import { call } from '#lib/utils/service.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadSequenceFlow } from './sequenceLoader';
 
-vi.mock('$lib/utils/service', () => ({
+vi.mock('#lib/utils/service.js', () => ({
 	call: vi.fn()
 }));
 

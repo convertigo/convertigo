@@ -1,11 +1,11 @@
 <script>
-	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
+	import LightSwitch from '#lib/common/components/LightSwitch.svelte';
 
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();
 </script>
 
-<div class="h-screen">
+<div class="isolate h-screen">
 	<div class="fixed inset-0 z-[-1] bg-surface-50-950">
 		<div class="bg clipped h-full"></div>
 	</div>

@@ -1,5 +1,5 @@
 <script>
-	import Button from '$lib/admin/components/Button.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
 
 	/** @type {{ values: string[], labelFor: (value: string) => string, disabled?: boolean, ariaLabel?: string, onMove: (index: number, offset: number) => void, onRemove?: (index: number) => void }} */
 	let {

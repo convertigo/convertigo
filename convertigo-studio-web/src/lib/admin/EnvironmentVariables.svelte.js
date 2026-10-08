@@ -1,4 +1,4 @@
-import ServiceHelper from '$lib/common/ServiceHelper.svelte';
+import ServiceHelper from '#lib/common/ServiceHelper.svelte.js';
 
 const defValues = {
 	variables: Array(10).fill({ name: null, value: null })

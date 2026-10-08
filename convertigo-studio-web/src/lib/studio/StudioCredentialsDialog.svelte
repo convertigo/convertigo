@@ -1,5 +1,5 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 
 	/**
 	 * The credentials a remote asks to fetch, pull or push: a user and a password or a token, which the

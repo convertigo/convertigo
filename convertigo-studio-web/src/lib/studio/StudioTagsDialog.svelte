@@ -1,9 +1,9 @@
 <script>
 	import { Dialog } from '@skeletonlabs/skeleton-svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
-	import { call } from '$lib/utils/service';
+	import Button from '#lib/admin/components/Button.svelte';
+	import ModalDynamic from '#lib/common/components/ModalDynamic.svelte';
+	import ModalYesNo from '#lib/common/components/ModalYesNo.svelte';
+	import { call } from '#lib/utils/service.js';
 	import StudioOrderedList from './StudioOrderedList.svelte';
 	import StudioReferenceList from './StudioReferenceList.svelte';
 

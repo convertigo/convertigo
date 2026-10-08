@@ -1,7 +1,7 @@
 <script>
-	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { resolve } from '$lib/utils/route';
+	import LightSwitch from '#lib/common/components/LightSwitch.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { resolve } from '#lib/utils/route.js';
 	import StudioIconButton from './StudioIconButton.svelte';
 
 	/** @type {{

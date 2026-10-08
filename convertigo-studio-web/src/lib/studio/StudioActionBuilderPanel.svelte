@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { getStudioContextMenu, runStudioContextAction } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { getStudioContextMenu, runStudioContextAction } from '#lib/utils/service.js';
 	import { onDestroy } from 'svelte';
 	import { fromAction } from 'svelte/attachments';
 	import {

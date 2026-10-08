@@ -4,8 +4,8 @@
 
 <script>
 	import { Portal, SegmentedControl, Switch, Tooltip } from '@skeletonlabs/skeleton-svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { checkArray } from '$lib/utils/service';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import { checkArray } from '#lib/utils/service.js';
 	import Button from './Button.svelte';
 	import CheckState from './CheckState.svelte';
 
@@ -385,7 +385,7 @@
 								{#each item as option (option.value ?? option)}
 									{@const val = option.value ?? option}
 									{@const txt = option.text ?? option['#text'] ?? val}
-									<option class="ig-select" value={val}>{txt}</option>
+									<option class="c8o-select-option" value={val}>{txt}</option>
 								{/each}
 							</select>
 						</div>
@@ -421,9 +421,11 @@
 								{@const val = option.value ?? option}
 								{@const txt = option.text ?? option['#text'] ?? val}
 								{#if rest.multiple ?? true}
-									<option class="ig-select" value={val} onmousedown={handleMultiple}>{txt}</option>
+									<option class="c8o-select-option" value={val} onmousedown={handleMultiple}
+										>{txt}</option
+									>
 								{:else}
-									<option class="ig-select" value={val}>{txt}</option>
+									<option class="c8o-select-option" value={val}>{txt}</option>
 								{/if}
 							{/each}
 						</select>

@@ -18,7 +18,7 @@
 		"generate:thumbnails": "node scripts/generate-thumbnails.mjs",
 		"deps:update": "npx npm-check-updates && npx npm-check-updates --no-peer --reject '/^(?!(svelte|tailwindcss)$).*/' && npm install",
 		"deps:minor-update": "npx npm-check-updates --target minor && npx npm-check-updates --target minor --no-peer --reject '/^(?!(svelte|tailwindcss)$).*/' && npm install",
-		"check:admin": "svelte-check --no-tsconfig --ignore \"src/lib/studio/**,src/routes/(app)/admin/certificates/**,src/routes/(app)/admin/projects/**,src/routes/(app)/admin/roles/**,src/routes/(app)/admin/symbols/**\"",
+		"check:admin": "svelte-check --tsconfig ./jsconfig.admin.json",
 		"lint:admin": "eslint \"src/lib/admin/**/*.{js,svelte,ts}\" \"src/lib/common/**/*.{js,svelte,ts}\" \"src/lib/dashboard/**/*.{js,svelte,ts}\" \"src/lib/utils/**/*.{js,svelte,ts}\" \"src/routes/(app)/admin/**/*.{js,svelte,ts}\" \"src/routes/(app)/dashboard/**/*.{js,svelte,ts}\" \"src/routes/(root)/login/**/*.{js,svelte,ts}\" \"src/routes/+layout.svelte\" \"src/routes/(app)/+layout.svelte\" --ignore-pattern \"src/routes/(app)/admin/certificates/**\" --ignore-pattern \"src/routes/(app)/admin/projects/**\" --ignore-pattern \"src/routes/(app)/admin/roles/**\" --ignore-pattern \"src/routes/(app)/admin/symbols/**\""
 	},
 	"overrides": {
@@ -34,11 +34,12 @@
 		"@iconify-json/mdi": "^1.2.3",
 		"@iconify/svelte": "^5.2.2",
 		"@playwright/test": "^1.64.0",
-		"@skeletonlabs/skeleton": "^4.15.2",
-		"@skeletonlabs/skeleton-svelte": "^4.15.2",
-		"@sveltejs/adapter-auto": "^7.0.1",
-		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.70.3",
+		"@skeletonlabs/skeleton": "^5.0.1",
+		"@skeletonlabs/skeleton-svelte": "^5.0.1",
+		"@sveltejs/adapter-auto": "^8.0.0",
+		"@sveltejs/adapter-static": "^4.0.0",
+		"@sveltejs/kit": "^3.0.1",
+		"@sveltejs/load-config": "^0.2.3",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@tailwindcss/forms": "0.5.11",
 		"@tailwindcss/typography": "0.5.20",
@@ -59,7 +60,7 @@
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
 		"unplugin-icons": "^23.0.1",
-		"vite": "^8.3.3",
+		"vite": "^8.3.4",
 		"vitest": "^4.1.11"
 	},
 	"type": "module",
@@ -83,5 +84,9 @@
 		"svelte-persisted-state": "^1.4.1",
 		"svelte-persisted-store": "^0.12.0",
 		"svelte-tiny-virtual-list": "^3.0.1"
+	},
+	"imports": {
+		"#lib": "./src/lib/index.js",
+		"#lib/*": "./src/lib/*"
 	}
 }

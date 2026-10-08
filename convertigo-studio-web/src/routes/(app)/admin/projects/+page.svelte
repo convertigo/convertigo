@@ -1,21 +1,21 @@
 <script>
-	import { browser } from '$app/environment';
+	import { getAdminPageDocHref } from '#lib/admin/AdminDocumentation.svelte.js';
+	import ActionBar from '#lib/admin/components/ActionBar.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import CheckState from '#lib/admin/components/CheckState.svelte';
+	import FileUploadField from '#lib/admin/components/FileUploadField.svelte';
+	import ProjectEditor from '#lib/admin/components/ProjectEditor.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '#lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '#lib/admin/components/TableAutoCard.svelte';
+	import InputGroup from '#lib/common/components/InputGroup.svelte';
+	import ModalDynamic from '#lib/common/components/ModalDynamic.svelte';
+	import Projects from '#lib/common/Projects.svelte.js';
+	import { resolve } from '#lib/utils/route.js';
+	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import CheckState from '$lib/admin/components/CheckState.svelte';
-	import FileUploadField from '$lib/admin/components/FileUploadField.svelte';
-	import ProjectEditor from '$lib/admin/components/ProjectEditor.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import Projects from '$lib/common/Projects.svelte';
-	import { resolve } from '$lib/utils/route';
 	import { getContext, onDestroy, tick } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 
@@ -110,10 +110,9 @@
 		const currentUrl = `${page.url.pathname}${page.url.search}${page.url.hash}`;
 		if (nextUrl !== currentUrl) {
 			await goto(nextUrl, {
-				replaceState: true,
-				noScroll: true,
-				keepFocus: true,
-				invalidateAll: false
+				replace: true,
+				reset: false,
+				refreshAll: false
 			});
 		}
 		if (next) {
@@ -215,8 +214,11 @@
 			<fieldset disabled={waiting} class="layout-y-stretch">
 				<p>Import a project from url like:</p>
 				<p class="font-medium">
-					&lt;project name&gt;=&lt;git or http URL&gt;[:path=&lt;optional
-					subpath&gt;][:branch=&lt;optional branch&gt;]
+					<project name
+						>=<git or http URL
+							>[:path=<optional subpath>][:branch=<optional branch>]</optional></optional></git
+						></project
+					>
 				</p>
 				<p>Or a Convertigo Archive HTTP(S) URL.</p>
 				<PropertyType
@@ -226,6 +228,7 @@
 				/>
 				<ActionBar>
 					<Button label="Import" icon="mdi:import" type="submit" class="button-primary w-fit!" />
+
 					<Button
 						label="Cancel"
 						icon="mdi:close-circle-outline"

@@ -1,4 +1,4 @@
-import { ensureTrailingSlash, resolve } from '$lib/utils/route';
+import { ensureTrailingSlash, resolve } from '#lib/utils/route.js';
 
 export function decodeRouteParam(value = '') {
 	const normalize = (input) => (input == '_' ? '' : input);

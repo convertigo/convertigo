@@ -1,6 +1,6 @@
-import { browser } from '$app/environment';
-import Instances from '$lib/admin/Instances.svelte.js';
-import { getUrl } from '$lib/utils/service';
+import Instances from '#lib/admin/Instances.svelte.js';
+import { getUrl } from '#lib/utils/service.js';
+import { browser } from '$app/env';
 
 const DEFAULT_TOPICS = ['*'];
 
@@ -17,11 +17,11 @@ export function adminEventsUrl(topics = DEFAULT_TOPICS, options = {}) {
 	const baseUrl = options.baseUrl ?? `${getUrl()}events.Subscribe`;
 	const origin = options.origin ?? (browser ? window.location.origin : 'http://localhost');
 	const url = new URL(baseUrl, origin);
+
 	url.searchParams.set(
 		'topics',
 		(selectedTopics.length ? selectedTopics : DEFAULT_TOPICS).join(',')
 	);
-
 	const xsrfToken =
 		options.xsrfToken ?? (browser ? (localStorage.getItem('x-xsrf-token') ?? 'Fetch') : '');
 	if (xsrfToken) {

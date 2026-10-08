@@ -1,5 +1,5 @@
 <script>
-	import Light from '$lib/common/Light.svelte';
+	import Light from '#lib/common/Light.svelte.js';
 	import { onMount } from 'svelte';
 
 	/** @type {{categories: any, series: any, title: any}} */
@@ -215,17 +215,18 @@
 			styles.getPropertyValue('--color-warning-500').trim()
 		].filter(Boolean);
 		colors = { light: palette, dark: palette };
-		const baseFontSize = parseFloat(styles.getPropertyValue('--base-font-size')) || 14;
+		const baseFontSize = parseFloat(styles.getPropertyValue('--typo-base--font-size')) || 14;
 		const titleFontSize = Math.round(baseFontSize * 1.285);
 		chartTokens = {
-			fontFamily: styles.getPropertyValue('--base-font-family').trim() || 'IBM Plex Sans Variable',
+			fontFamily:
+				styles.getPropertyValue('--typo-base--font-family').trim() || 'IBM Plex Sans Variable',
 			baseFontSize: `${baseFontSize}px`,
 			labelFontSize: `${Math.max(baseFontSize - 2, 11)}px`,
 			titleFontSize: `${Math.max(titleFontSize, 16)}px`,
 			titleFontWeight: 500,
 			text: {
-				light: styles.getPropertyValue('--base-font-color').trim(),
-				dark: styles.getPropertyValue('--base-font-color-dark').trim()
+				light: styles.getPropertyValue('--typo-base--color-light').trim(),
+				dark: styles.getPropertyValue('--typo-base--color-dark').trim()
 			},
 			muted: {
 				light: styles.getPropertyValue('--convertigo-text-muted').trim(),

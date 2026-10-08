@@ -1,5 +1,5 @@
 <script>
-	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
+	import AccordionSection from '#lib/common/components/AccordionSection.svelte';
 
 	/** @type {{
 	 * class?: string;

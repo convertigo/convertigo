@@ -1,7 +1,7 @@
 <script>
 	import { getLocalTimeZone, now, toTime } from '@internationalized/date';
-	import LogViewer from '$lib/admin/components/LogViewer.svelte';
-	import Time from '$lib/common/Time.svelte';
+	import LogViewer from '#lib/admin/components/LogViewer.svelte';
+	import Time from '#lib/common/Time.svelte.js';
 	import { onMount, tick } from 'svelte';
 	import StudioLogLevelsDialog from './StudioLogLevelsDialog.svelte';
 

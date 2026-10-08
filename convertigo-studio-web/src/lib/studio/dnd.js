@@ -1,4 +1,4 @@
-import { acceptDbo, addDbo, moveDbo } from '$lib/utils/service';
+import { acceptDbo, addDbo, moveDbo } from '#lib/utils/service.js';
 import { FOLDER_TYPE_IDS } from './folderTypes.js';
 
 const SILENT_ERROR_OPTIONS = {

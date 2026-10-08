@@ -1,7 +1,7 @@
 <script>
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
+	import ActionBar from '#lib/admin/components/ActionBar.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
 	import ModalDynamic from './ModalDynamic.svelte';
 
 	let { title = '', message = '', class: cls = 'max-w-md' } = $props();

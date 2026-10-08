@@ -1,4 +1,4 @@
-import { call } from '$lib/utils/service';
+import { call } from '#lib/utils/service.js';
 
 export const SOURCE_PICKER_DND_TYPE = 'sourcePickerData';
 export const SOURCE_PICKER_DATA_TRANSFER = 'sourcepickerdata';

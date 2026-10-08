@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call, getUrl } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call, getUrl } from '#lib/utils/service.js';
 
 	/**
 	 * About Convertigo, as the About dialog and the Convertigo menu of the Eclipse Studio: the versions of

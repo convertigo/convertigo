@@ -1,10 +1,7 @@
 <script>
-	import { browser } from '$app/environment';
-	import { goto, replaceState } from '$app/navigation';
-	import { page } from '$app/state';
-	import { subscribeAdminEvents } from '$lib/admin/adminEvents';
-	import Projects from '$lib/common/Projects.svelte.js';
-	import TestPlatform from '$lib/common/TestPlatform.svelte';
+	import { subscribeAdminEvents } from '#lib/admin/adminEvents.js';
+	import Projects from '#lib/common/Projects.svelte.js';
+	import TestPlatform from '#lib/common/TestPlatform.svelte.js';
 	import {
 		blockDefinitionForInstance,
 		blockDefinitionSourceId,
@@ -14,99 +11,105 @@
 		objectPropertyValue,
 		propertyDocumentationFromDefinition,
 		propertyDocumentationFromProperties
-	} from '$lib/studio/blockDefinition';
-	import { isProjectClosed, setProjectsClosed } from '$lib/studio/closedProjects.svelte.js';
+	} from '#lib/studio/blockDefinition.js';
+	import { isProjectClosed, setProjectsClosed } from '#lib/studio/closedProjects.svelte.js';
 	import {
 		inferMovedObjectId,
 		parentObjectId,
 		performDboDrop,
 		shouldStartInlineRename
-	} from '$lib/studio/dnd';
-	import StudioDock from '$lib/studio/dock/StudioDock.svelte';
-	import FlowViewer from '$lib/studio/flow/FlowViewer.svelte';
-	import { contextAuthoringMutation, isFrontendAuthoringNodeId } from '$lib/studio/flowAuthoring';
-	import { loadPaletteContext, parentPaletteId } from '$lib/studio/paletteContext';
-	import { projectFileFolders } from '$lib/studio/projectFileFolders.js';
-	import { settlePropertyApply } from '$lib/studio/propertyApply.svelte.js';
+	} from '#lib/studio/dnd.js';
+	import StudioDock from '#lib/studio/dock/StudioDock.svelte';
+	import FlowViewer from '#lib/studio/flow/FlowViewer.svelte';
+	import {
+		contextAuthoringMutation,
+		isFrontendAuthoringNodeId
+	} from '#lib/studio/flowAuthoring.js';
+	import { loadPaletteContext, parentPaletteId } from '#lib/studio/paletteContext.js';
+	import { projectFileFolders } from '#lib/studio/projectFileFolders.js';
+	import { settlePropertyApply } from '#lib/studio/propertyApply.svelte.js';
 	import {
 		findPrimaryEditorProperty,
 		isCodeEditorProperty,
 		togglePropertyPickerTarget
-	} from '$lib/studio/propertyEditors';
+	} from '#lib/studio/propertyEditors.js';
 	import {
 		decodeStudioSelectionId,
 		studioSelectionIdFromUrl,
 		studioSelectionUrl
-	} from '$lib/studio/routeSelection';
-	import { applySourcePickerDrop, sourceDefinitionFromPayload } from '$lib/studio/sourcePickerDnd';
-	import StudioAboutDialog from '$lib/studio/StudioAboutDialog.svelte';
-	import StudioActivityBar from '$lib/studio/StudioActivityBar.svelte';
-	import StudioAddFileDialog from '$lib/studio/StudioAddFileDialog.svelte';
-	import StudioArchiveDialog from '$lib/studio/StudioArchiveDialog.svelte';
-	import StudioAssistantPanel from '$lib/studio/StudioAssistantPanel.svelte';
+	} from '#lib/studio/routeSelection.js';
+	import {
+		applySourcePickerDrop,
+		sourceDefinitionFromPayload
+	} from '#lib/studio/sourcePickerDnd.js';
+	import StudioAboutDialog from '#lib/studio/StudioAboutDialog.svelte';
+	import StudioActivityBar from '#lib/studio/StudioActivityBar.svelte';
+	import StudioAddFileDialog from '#lib/studio/StudioAddFileDialog.svelte';
+	import StudioArchiveDialog from '#lib/studio/StudioArchiveDialog.svelte';
+	import StudioAssistantPanel from '#lib/studio/StudioAssistantPanel.svelte';
 	import {
 		canReadSystemClipboard,
 		hasStudioClipboard,
 		pasteStudioClipboard,
 		putInStudioClipboard,
 		studioClipboardContent
-	} from '$lib/studio/studioClipboard.svelte.js';
-	import StudioCopybookDialog from '$lib/studio/StudioCopybookDialog.svelte';
-	import StudioCouchViewDialog from '$lib/studio/StudioCouchViewDialog.svelte';
-	import StudioDebugPanel from '$lib/studio/StudioDebugPanel.svelte';
-	import StudioDeployDialog from '$lib/studio/StudioDeployDialog.svelte';
-	import StudioDocPanel from '$lib/studio/StudioDocPanel.svelte';
-	import StudioEditorPanel from '$lib/studio/StudioEditorPanel.svelte';
-	import StudioEmptyState from '$lib/studio/StudioEmptyState.svelte';
-	import StudioExecutionPanel from '$lib/studio/StudioExecutionPanel.svelte';
-	import { flowBrowserPreview, flowSourceReveal } from '$lib/studio/studioFlowEvents';
-	import StudioHandlersDialog from '$lib/studio/StudioHandlersDialog.svelte';
-	import StudioIconButton from '$lib/studio/StudioIconButton.svelte';
-	import StudioLogsPanel from '$lib/studio/StudioLogsPanel.svelte';
-	import StudioMarketplace from '$lib/studio/StudioMarketplace.svelte';
-	import { createStudioMutationEventTracker } from '$lib/studio/studioMutationEvents';
-	import StudioNewProjectDialog from '$lib/studio/StudioNewProjectDialog.svelte';
-	import StudioPalettePanel from '$lib/studio/StudioPalettePanel.svelte';
+	} from '#lib/studio/studioClipboard.svelte.js';
+	import StudioCopybookDialog from '#lib/studio/StudioCopybookDialog.svelte';
+	import StudioCouchViewDialog from '#lib/studio/StudioCouchViewDialog.svelte';
+	import StudioDebugPanel from '#lib/studio/StudioDebugPanel.svelte';
+	import StudioDeployDialog from '#lib/studio/StudioDeployDialog.svelte';
+	import StudioDocPanel from '#lib/studio/StudioDocPanel.svelte';
+	import StudioEditorPanel from '#lib/studio/StudioEditorPanel.svelte';
+	import StudioEmptyState from '#lib/studio/StudioEmptyState.svelte';
+	import StudioExecutionPanel from '#lib/studio/StudioExecutionPanel.svelte';
+	import { flowBrowserPreview, flowSourceReveal } from '#lib/studio/studioFlowEvents.js';
+	import StudioHandlersDialog from '#lib/studio/StudioHandlersDialog.svelte';
+	import StudioIconButton from '#lib/studio/StudioIconButton.svelte';
+	import StudioLogsPanel from '#lib/studio/StudioLogsPanel.svelte';
+	import StudioMarketplace from '#lib/studio/StudioMarketplace.svelte';
+	import { createStudioMutationEventTracker } from '#lib/studio/studioMutationEvents.js';
+	import StudioNewProjectDialog from '#lib/studio/StudioNewProjectDialog.svelte';
+	import StudioPalettePanel from '#lib/studio/StudioPalettePanel.svelte';
 	import {
 		saveStudioPreferences,
 		studioPreferences
-	} from '$lib/studio/studioPreferences.svelte.js';
-	import StudioPreferencesDialog from '$lib/studio/StudioPreferencesDialog.svelte';
-	import StudioPreviewPanel from '$lib/studio/StudioPreviewPanel.svelte';
-	import StudioProjectBuilderPanel from '$lib/studio/StudioProjectBuilderPanel.svelte';
-	import { studioPrompt } from '$lib/studio/studioPrompt.svelte.js';
-	import StudioPromptDialog from '$lib/studio/StudioPromptDialog.svelte';
-	import StudioPropertiesPanel from '$lib/studio/StudioPropertiesPanel.svelte';
-	import StudioReferencesPanel from '$lib/studio/StudioReferencesPanel.svelte';
-	import StudioSapDesignDialog from '$lib/studio/StudioSapDesignDialog.svelte';
-	import StudioSchemaPanel from '$lib/studio/StudioSchemaPanel.svelte';
-	import StudioSearchPanel from '$lib/studio/StudioSearchPanel.svelte';
-	import StudioSharedComponentDialog from '$lib/studio/StudioSharedComponentDialog.svelte';
-	import StudioShell from '$lib/studio/StudioShell.svelte';
-	import StudioSourceControlPanel from '$lib/studio/StudioSourceControlPanel.svelte';
-	import StudioSqlDesignDialog from '$lib/studio/StudioSqlDesignDialog.svelte';
-	import StudioStatisticsDialog from '$lib/studio/StudioStatisticsDialog.svelte';
-	import StudioStepsFromXmlDialog from '$lib/studio/StudioStepsFromXmlDialog.svelte';
-	import StudioTopbar from '$lib/studio/StudioTopbar.svelte';
-	import StudioTranslationsDialog from '$lib/studio/StudioTranslationsDialog.svelte';
-	import StudioTreePanel from '$lib/studio/StudioTreePanel.svelte';
-	import StudioTutorials from '$lib/studio/StudioTutorials.svelte';
-	import StudioVariablesDialog from '$lib/studio/StudioVariablesDialog.svelte';
-	import StudioWsImportDialog from '$lib/studio/StudioWsImportDialog.svelte';
+	} from '#lib/studio/studioPreferences.svelte.js';
+	import StudioPreferencesDialog from '#lib/studio/StudioPreferencesDialog.svelte';
+	import StudioPreviewPanel from '#lib/studio/StudioPreviewPanel.svelte';
+	import StudioProjectBuilderPanel from '#lib/studio/StudioProjectBuilderPanel.svelte';
+	import { studioPrompt } from '#lib/studio/studioPrompt.svelte.js';
+	import StudioPromptDialog from '#lib/studio/StudioPromptDialog.svelte';
+	import StudioPropertiesPanel from '#lib/studio/StudioPropertiesPanel.svelte';
+	import StudioReferencesPanel from '#lib/studio/StudioReferencesPanel.svelte';
+	import StudioSapDesignDialog from '#lib/studio/StudioSapDesignDialog.svelte';
+	import StudioSchemaPanel from '#lib/studio/StudioSchemaPanel.svelte';
+	import StudioSearchPanel from '#lib/studio/StudioSearchPanel.svelte';
+	import StudioSharedComponentDialog from '#lib/studio/StudioSharedComponentDialog.svelte';
+	import StudioShell from '#lib/studio/StudioShell.svelte';
+	import StudioSourceControlPanel from '#lib/studio/StudioSourceControlPanel.svelte';
+	import StudioSqlDesignDialog from '#lib/studio/StudioSqlDesignDialog.svelte';
+	import StudioStatisticsDialog from '#lib/studio/StudioStatisticsDialog.svelte';
+	import StudioStepsFromXmlDialog from '#lib/studio/StudioStepsFromXmlDialog.svelte';
+	import StudioTopbar from '#lib/studio/StudioTopbar.svelte';
+	import StudioTranslationsDialog from '#lib/studio/StudioTranslationsDialog.svelte';
+	import StudioTreePanel from '#lib/studio/StudioTreePanel.svelte';
+	import StudioTutorials from '#lib/studio/StudioTutorials.svelte';
+	import StudioVariablesDialog from '#lib/studio/StudioVariablesDialog.svelte';
+	import StudioWsImportDialog from '#lib/studio/StudioWsImportDialog.svelte';
 	import {
 		scheduleTreeDiffRefresh,
 		setTreeDiffEnabled,
 		treeDiff
-	} from '$lib/studio/treeDiff.svelte.js';
-	import { scheduleTreeMergeRefresh } from '$lib/studio/treeMerge.svelte.js';
+	} from '#lib/studio/treeDiff.svelte.js';
+	import { scheduleTreeMergeRefresh } from '#lib/studio/treeMerge.svelte.js';
 	import {
 		clearTreeSelection,
 		treeSelection,
 		treeSelectionOf
-	} from '$lib/studio/treeSelection.svelte.js';
-	import { draggedData } from '$lib/utils/dndStore';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { resolve } from '$lib/utils/route';
+	} from '#lib/studio/treeSelection.svelte.js';
+	import { draggedData } from '#lib/utils/dndStore.js';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { resolve } from '#lib/utils/route.js';
 	import {
 		call,
 		checkArray,
@@ -116,7 +119,10 @@
 		runStudioContextAction,
 		saveDboProject,
 		toaster
-	} from '$lib/utils/service';
+	} from '#lib/utils/service.js';
+	import { browser } from '$app/env';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { onMount, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { get } from 'svelte/store';
@@ -164,7 +170,7 @@
 	 * The layout of the views of each profile before it is changed, as the perspectives of the Eclipse
 	 * Studio: the projects on the left, the work area in the middle, the tools on the right and the logs,
 	 * hidden at first, under them.
-	 * @type {Record<string, import('$lib/studio/dock/dockTypes.js').DockLayout>}
+	 * @type {Record<string, import('#lib/studio/dock/dockTypes.js').DockLayout>}
 	 */
 	const DOCK_LAYOUTS = {
 		backend: {
@@ -225,7 +231,7 @@
 	/**
 	 * @typedef {Object} SourceChoice
 	 * @property {string} targetId
-	 * @property {import('$lib/studio/sourcePickerDnd').SourcePickerDragPayload} payload
+	 * @property {import('#lib/studio/sourcePickerDnd.js').SourcePickerDragPayload} payload
 	 * @property {SourcePropertyCandidate[]} candidates
 	 * @property {boolean} busy
 	 * @property {string=} error
@@ -303,7 +309,7 @@
 			context: null
 		})
 	);
-	/** @type {import('$lib/studio/flowAuthoring').FlowAuthoringReference | null} */
+	/** @type {import('#lib/studio/flowAuthoring.js').FlowAuthoringReference | null} */
 	let frontendAuthoringReference = $state(null);
 	/** @type {'browse' | 'select'} */
 	let frontendAuthoringMode = $state('browse');
@@ -371,7 +377,7 @@
 	let paletteSelectionContext = initialSelectedId;
 	let mutationRefreshSerial = 0;
 	let studioMutationSerial = $state(0);
-	/** @type {import('$lib/studio/dnd').DboDropResult | null} */
+	/** @type {import('#lib/studio/dnd.js').DboDropResult | null} */
 	let lastStudioMutation = $state(null);
 	let projectActionBusy = $state('');
 	let dirtyProjectNames = $state.raw(new SvelteSet());
@@ -386,6 +392,7 @@
 	let projectHistoryBusy = $state(false);
 	const isMacPlatform =
 		typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+
 	/** @type {{ projectName: string, serial: number } | null} the project an undo or a redo replaced */
 	let historyReload = $state(null);
 	let executionFallbackKey = '';
@@ -420,6 +427,7 @@
 		selectedProject?.ref?.includes('lib_flow_engine') ? 'flow' : 'generalist'
 	);
 	let project = $derived.by(() => (selectedProjectName ? TestPlatform(selectedProjectName) : null));
+
 	let sequences = $derived.by(() => {
 		const list = project?.sequence?.filter((sequence) => sequence.name) ?? [];
 		const selectedSequence = selectedContext.sequenceName;
@@ -472,7 +480,12 @@
 	let showPalette = $derived(showStudioWork || profile === 'frontend');
 	let sideViews = $derived([
 		...(showPalette ? [{ id: 'palette', label: 'Palette', icon: 'mdi:palette-outline' }] : []),
-		{ id: 'properties', label: 'Properties', icon: 'mdi:tune-vertical-variant' }
+
+		{
+			id: 'properties',
+			label: 'Properties',
+			icon: 'mdi:tune-vertical-variant'
+		}
 	]);
 	// the view of the left column, and the view of the bottom panel, shown last
 	let leftView = $state(/** @type {'projects' | 'search' | 'git'} */ ('projects'));
@@ -542,10 +555,7 @@
 						active: Boolean(dockVisible.assistant)
 					}
 				]
-			: sideViews.map((item) => ({
-					...item,
-					active: Boolean(dockVisible[item.id])
-				})))
+			: sideViews.map((item) => ({ ...item, active: Boolean(dockVisible[item.id]) })))
 	]);
 	let activityFooterItems = $derived([
 		{
@@ -680,7 +690,7 @@
 			return;
 		}
 		pendingRouteSelectionId = nextId;
-		replaceState(selectionUrl(nextId), page.state);
+		goto(selectionUrl(nextId), { shallow: true, replace: true, state: page.state });
 		lastRouteSelectionId = nextId;
 		pendingRouteSelectionId = '';
 	});
@@ -744,11 +754,15 @@
 	 * @returns {string}
 	 */
 	function selectionUrl(id) {
-		return studioSelectionUrl(STUDIO_BASE, id, browser ? new URL(window.location.href) : page.url);
+		return studioSelectionUrl(
+			STUDIO_BASE,
+			id,
+			new URL(browser ? window.location.href : page.url.href)
+		);
 	}
 
 	/**
-	 * @param {ReturnType<typeof import('$lib/admin/adminEvents').parseAdminEvent>} event
+	 * @param {ReturnType<typeof import('#lib/admin/adminEvents.js').parseAdminEvent>} event
 	 */
 	function handleAdminEvent(event) {
 		if (!event) {
@@ -937,14 +951,15 @@
 		if (!context.sequenceName) {
 			return null;
 		}
+
 		const sequence = (project.sequence ?? []).find(
 			(item) => item?.name === context.sequenceName
-		) ?? {
-			name: context.sequenceName,
-			variable: [],
-			testcase: []
+		) ?? { name: context.sequenceName, variable: [], testcase: [] };
+
+		return {
+			kind: 'sequence',
+			requestable: normalizeRequestable(sequence)
 		};
-		return { kind: 'sequence', requestable: normalizeRequestable(sequence) };
 	}
 
 	/**
@@ -1106,9 +1121,8 @@
 			return;
 		}
 		void goto(selectionUrl(selectedId), {
-			replaceState: true,
-			noScroll: true,
-			keepFocus: true
+			replace: true,
+			reset: false
 		});
 	}
 
@@ -1175,7 +1189,7 @@
 	}
 
 	/**
-	 * @param {import('$lib/studio/flowAuthoring').FlowAuthoringReference} reference
+	 * @param {import('#lib/studio/flowAuthoring.js').FlowAuthoringReference} reference
 	 */
 	async function selectFrontendAuthoringReference(reference) {
 		const response = await call('studio.treeview.Authoring', {
@@ -1244,6 +1258,7 @@
 			/\.(pg|mn|sp):/.test(selectedId)
 				? selectedId
 				: '';
+
 		if (!id) {
 			ngxReference = null;
 			return;
@@ -1370,7 +1385,7 @@
 	/**
 	 * Route a palette drop from the same-origin development viewer through the
 	 * exact tree mutation contract already used by Studio DnD.
-	 * @param {{ reference: import('$lib/studio/flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: import('$lib/studio/dnd').DboDragPayload }} request
+	 * @param {{ reference: import('#lib/studio/flowAuthoring.js').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: import('#lib/studio/dnd.js').DboDragPayload }} request
 	 */
 	async function dropInFrontend(request) {
 		// the preview shows the application of applicationProjectName, whatever object is selected
@@ -1409,7 +1424,7 @@
 	/**
 	 * Move one source-backed frontend node through the same precise mutation
 	 * contract as tree DnD, after resolving both DOM references back to AST ids.
-	 * @param {{ source: import('$lib/studio/flowAuthoring').FlowAuthoringReference, reference: import('$lib/studio/flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }} request
+	 * @param {{ source: import('#lib/studio/flowAuthoring.js').FlowAuthoringReference, reference: import('#lib/studio/flowAuthoring.js').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }} request
 	 */
 	async function moveInFrontend(request) {
 		const [sourceMapping, targetMapping] = await Promise.all([
@@ -1452,7 +1467,7 @@
 
 	/**
 	 * The tree object of a node the preview shows, in the application it shows.
-	 * @param {import('$lib/studio/flowAuthoring').FlowAuthoringReference} reference
+	 * @param {import('#lib/studio/flowAuthoring.js').FlowAuthoringReference} reference
 	 */
 	async function frontendAuthoringObject(reference) {
 		const mapping = await call('studio.treeview.Authoring', {
@@ -1465,8 +1480,8 @@
 	/**
 	 * The actions the preview offers on the object it shows selected: those of its menu in the tree
 	 * that act on the object itself, as Disable or Enable, and its deletion.
-	 * @param {import('$lib/studio/flowAuthoring').FlowAuthoringReference} reference
-	 * @returns {Promise<import('$lib/studio/flowAuthoring').FlowAuthoringAction[]>}
+	 * @param {import('#lib/studio/flowAuthoring.js').FlowAuthoringReference} reference
+	 * @returns {Promise<import('#lib/studio/flowAuthoring.js').FlowAuthoringAction[]>}
 	 */
 	async function frontendAuthoringActions(reference) {
 		const id = await frontendAuthoringObject(reference);
@@ -1495,7 +1510,7 @@
 
 	/**
 	 * Runs an action of the chip of the preview as the menu of the tree runs it, with its confirmation.
-	 * @param {{ reference: import('$lib/studio/flowAuthoring').FlowAuthoringReference, action: string }} request
+	 * @param {{ reference: import('#lib/studio/flowAuthoring.js').FlowAuthoringReference, action: string }} request
 	 */
 	async function runFrontendAuthoringAction(request) {
 		const id = await frontendAuthoringObject(request.reference);
@@ -1785,7 +1800,7 @@
 	}
 
 	/**
-	 * @param {import('$lib/studio/dnd').DboDropResult} mutation
+	 * @param {import('#lib/studio/dnd.js').DboDropResult} mutation
 	 * @param {boolean} followSelection
 	 */
 	async function onStudioMutation(mutation, followSelection = true) {
@@ -1982,10 +1997,12 @@
 		const connector = (connectors?.children ?? []).find(
 			(/** @type {any} */ child) => child?.default === 'Default connector'
 		);
+
 		if (!connector) {
 			return '';
 		}
 		const transactions = await call('studio.treeview.Get', { id: `${connector.id}:tr` });
+
 		return String(
 			(transactions?.children ?? []).find(
 				(/** @type {any} */ child) => child?.default === 'Default transaction'
@@ -2217,7 +2234,7 @@
 
 	/**
 	 * @param {string} targetId
-	 * @param {import('$lib/studio/sourcePickerDnd').SourcePickerDragPayload} payload
+	 * @param {import('#lib/studio/sourcePickerDnd.js').SourcePickerDragPayload} payload
 	 * @param {string=} propertyName
 	 */
 	async function applySourceDrop(targetId, payload, propertyName = '') {
@@ -2539,6 +2556,7 @@
 		const key = String(event.key ?? '').toLowerCase();
 		const redo =
 			(key === 'z' && event.shiftKey) || (key === 'y' && event.ctrlKey && !event.metaKey);
+
 		if (!redo && !(key === 'z' && !event.shiftKey)) {
 			return;
 		}
@@ -2778,7 +2796,10 @@
 			}
 		} else if (action.startsWith('code.property:')) {
 			// a property edited as code, as the SQL query of a transaction or the script of a step
-			openPropertyEditor({ id: nodeId, propertyName: action.slice('code.property:'.length) });
+			openPropertyEditor({
+				id: nodeId,
+				propertyName: action.slice('code.property:'.length)
+			});
 		} else if (action === 'frontend.show') {
 			// an NGX component in the preview of its application, as the application editor of the Eclipse Studio
 			selectedId = nodeId;
@@ -3778,7 +3799,15 @@
 				toolbar: projectActions,
 				scroll: true
 			},
-			{ id: 'search', title: 'Search', icon: 'mdi:magnify', content: searchPane, lazy: true },
+
+			{
+				id: 'search',
+				title: 'Search',
+				icon: 'mdi:magnify',
+				content: searchPane,
+				lazy: true
+			},
+
 			{
 				id: 'git',
 				title: 'Source control',
@@ -3790,9 +3819,12 @@
 				id: view.id,
 				title: view.label,
 				icon: view.icon,
-				content: { execution: executionPane, code: codePane, flow: flowPane, doc: docPane }[
-					view.id
-				],
+				content: {
+					execution: executionPane,
+					code: codePane,
+					flow: flowPane,
+					doc: docPane
+				}[view.id],
 				lazy: view.id === 'flow',
 				scroll: view.id === 'execution',
 				main: true
@@ -3805,7 +3837,14 @@
 				detail: applicationProjectName,
 				main: true
 			},
-			{ id: 'palette', title: 'Palette', icon: 'mdi:palette-outline', content: palettePane },
+
+			{
+				id: 'palette',
+				title: 'Palette',
+				icon: 'mdi:palette-outline',
+				content: palettePane
+			},
+
 			{
 				id: 'properties',
 				title: 'Properties',

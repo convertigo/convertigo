@@ -1,5 +1,5 @@
 <script>
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import ResponsiveButtons from '#lib/admin/components/ResponsiveButtons.svelte';
 
 	/** @type {{
 		onSave?: (event?: any) => any,

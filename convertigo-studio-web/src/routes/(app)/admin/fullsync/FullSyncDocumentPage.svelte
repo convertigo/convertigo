@@ -1,14 +1,14 @@
 <script>
 	import { Popover, Portal } from '@skeletonlabs/skeleton-svelte';
+	import ActionBar from '#lib/admin/components/ActionBar.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import FileUploadField from '#lib/admin/components/FileUploadField.svelte';
+	import ModalDynamic from '#lib/common/components/ModalDynamic.svelte';
+	import LightSvelte from '#lib/common/Light.svelte.js';
+	import Editor from '#lib/studio/editor/Editor.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { goto } from '$app/navigation';
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import FileUploadField from '$lib/admin/components/FileUploadField.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import LightSvelte from '$lib/common/Light.svelte.js';
-	import Editor from '$lib/studio/editor/Editor.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { tick } from 'svelte';
 	import RightPart from '../RightPart.svelte';
 	import {

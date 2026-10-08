@@ -36,7 +36,7 @@
  * @property {(function(string): void)=} onDeleteObject
  */
 
-import { areEquivalentDboObjectIds } from '$lib/studio/dnd';
+import { areEquivalentDboObjectIds } from '#lib/studio/dnd.js';
 import { branchLabelForStep } from './flowStepLabels';
 
 const NODE_WIDTH = 150;

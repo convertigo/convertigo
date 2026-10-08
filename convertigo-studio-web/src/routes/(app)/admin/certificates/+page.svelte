@@ -1,16 +1,16 @@
 <script>
-	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
-	import Certificates from '$lib/admin/Certificates.svelte';
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import FileUploadField from '$lib/admin/components/FileUploadField.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import Projects from '$lib/common/Projects.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import { getAdminPageDocHref } from '#lib/admin/AdminDocumentation.svelte.js';
+	import Certificates from '#lib/admin/Certificates.svelte.js';
+	import ActionBar from '#lib/admin/components/ActionBar.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import FileUploadField from '#lib/admin/components/FileUploadField.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '#lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '#lib/admin/components/TableAutoCard.svelte';
+	import ModalDynamic from '#lib/common/components/ModalDynamic.svelte';
+	import Projects from '#lib/common/Projects.svelte.js';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
 	import { onDestroy } from 'svelte';
 
 	let {

@@ -1,14 +1,14 @@
 <script>
+	import { getAdminPageDocHref } from '#lib/admin/AdminDocumentation.svelte.js';
+	import ActionBar from '#lib/admin/components/ActionBar.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import ResponsiveButtons from '#lib/admin/components/ResponsiveButtons.svelte';
+	import TableAutoCard from '#lib/admin/components/TableAutoCard.svelte';
+	import Connections from '#lib/admin/Connections.svelte.js';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import Connections from '$lib/admin/Connections.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onMount } from 'svelte';
 
 	let {
@@ -125,11 +125,12 @@
 		if (!filter) return;
 		// persistedState('admin.logs.serverFilter', ...) stores plain JSON string
 		localStorage.setItem('admin.logs.serverFilter', JSON.stringify(filter));
-		goto(resolve('/admin/logs/view/'));
+		goto(resolve('admin/logs/view/'));
 	}
 
 	const isRunning = (row) =>
 		row?.running === true || row?.running === 'true' || row?.running === 1 || row?.running === '1';
+
 	const runningClass = (row, base = '') =>
 		[base, isRunning(row) ? 'border-l-2 border-success-500 pl-2' : ''].filter(Boolean).join(' ');
 

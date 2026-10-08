@@ -1,5 +1,5 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 
 	/**
 	 * The activity bar on the left edge of the Studio, as the one of Cursor or Visual Studio Code: each

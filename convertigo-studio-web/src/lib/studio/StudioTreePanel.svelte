@@ -1,9 +1,9 @@
 <script>
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
-	import Projects from '$lib/common/Projects.svelte.js';
-	import { createProjectTree, mergeProjectTreeMarks } from '$lib/common/ProjectsTree.svelte.js';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call, runStudioContextAction, toaster } from '$lib/utils/service';
+	import ModalYesNo from '#lib/common/components/ModalYesNo.svelte';
+	import Projects from '#lib/common/Projects.svelte.js';
+	import { createProjectTree, mergeProjectTreeMarks } from '#lib/common/ProjectsTree.svelte.js';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call, runStudioContextAction, toaster } from '#lib/utils/service.js';
 	import { onMount, tick, untrack } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 	import { SvelteSet } from 'svelte/reactivity';

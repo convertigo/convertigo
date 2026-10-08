@@ -521,7 +521,7 @@
 	<IconComponent class={`ico ${cls}`.trim()} style={iconStyle} {...props} />
 {:else}
 	<img
-		src={asset(`/${icon}`)}
+		src={asset(icon)}
 		class={cls}
 		style="width: calc(var(--spacing)*{resolvedSize});"
 		{...props}

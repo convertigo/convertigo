@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import ServiceHelper from './ServiceHelper.svelte';
 
 const defValues = {

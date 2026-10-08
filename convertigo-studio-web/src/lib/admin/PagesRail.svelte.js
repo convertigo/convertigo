@@ -1,7 +1,7 @@
-import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
-import Authentication from '$lib/common/Authentication.svelte';
-import Status from '$lib/common/Status.svelte';
-import { getUrl } from '$lib/utils/service';
+import { getAdminPageDocHref } from '#lib/admin/AdminDocumentation.svelte.js';
+import Authentication from '#lib/common/Authentication.svelte.js';
+import Status from '#lib/common/Status.svelte.js';
+import { getUrl } from '#lib/utils/service.js';
 
 const cloud = $derived(Authentication.canAccessAdmin ? Status.cloud : null);
 

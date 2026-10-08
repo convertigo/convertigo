@@ -1,6 +1,6 @@
 <script>
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 
 	let {
 		rows = [],

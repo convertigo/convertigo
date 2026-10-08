@@ -133,7 +133,7 @@ You can place runes in **`.svelte.js` / `.svelte.ts`** modules to share reactive
 
 ```ts
 // Anywhere
-import { count } from '$lib/counter.svelte';
+import { count } from '#lib/counter.svelte';
 
 // counter.svelte.ts
 export const count = $state(0);
@@ -639,7 +639,7 @@ Svelte lets you treat any binding as a controlled value by passing a pair of fun
 
 ```svelte
 <script>
-	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
+	import AccordionGroup from '#lib/common/components/AccordionGroup.svelte';
 
 	// persist the flag globally; anything truthy means "open"
 	let settings = persistedState('ui.advanced.open', false);
@@ -751,7 +751,7 @@ export const toggle = () => (theme = theme === 'light' ? 'dark' : 'light');
 
 ```svelte
 <script>
-	import { theme, toggle } from '$lib/theme.svelte';
+	import { theme, toggle } from '#lib/theme.svelte';
 </script>
 
 <button onclick={toggle}>Theme: {theme}</button>

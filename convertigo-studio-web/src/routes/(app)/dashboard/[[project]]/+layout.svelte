@@ -1,16 +1,16 @@
 <script>
-	import { browser } from '$app/environment';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import Authentication from '#lib/common/Authentication.svelte.js';
+	import Projects from '#lib/common/Projects.svelte.js';
+	import { stopTestPlatform } from '#lib/common/TestPlatform.svelte.js';
+	import PagesRail from '#lib/dashboard/PagesRail.svelte.js';
+	import Project from '#lib/dashboard/Project.svelte.js';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import { resolve } from '#lib/utils/route.js';
+	import { browser } from '$app/env';
 	import { beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import Authentication from '$lib/common/Authentication.svelte';
-	import Projects from '$lib/common/Projects.svelte';
-	import { stopTestPlatform } from '$lib/common/TestPlatform.svelte';
-	import PagesRail from '$lib/dashboard/PagesRail.svelte';
-	import Project from '$lib/dashboard/Project.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { resolve } from '$lib/utils/route';
 	import { onDestroy } from 'svelte';
 
 	let { children } = $props();
@@ -85,7 +85,10 @@
 		}
 		PagesRail.extras = extras;
 	});
-	beforeNavigate(({ to }) => {
+
+	beforeNavigate(({ to, shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		if (!to?.params?.project) {
 			PagesRail.extras = [];
 		}

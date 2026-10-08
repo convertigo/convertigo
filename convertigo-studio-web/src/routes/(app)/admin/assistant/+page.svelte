@@ -1,6 +1,6 @@
 <script>
-	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
-	import Light from '$lib/common/Light.svelte';
+	import MaxRectangle from '#lib/admin/components/MaxRectangle.svelte';
+	import Light from '#lib/common/Light.svelte.js';
 
 	const assistantBaseUrl = 'https://assistant.convertigo.com/';
 	const assistantUrl = $derived.by(() => {

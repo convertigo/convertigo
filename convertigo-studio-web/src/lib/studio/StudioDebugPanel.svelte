@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call } from '#lib/utils/service.js';
 	import { tick, untrack } from 'svelte';
 	import { debugSession, followDebugger, refreshDebugger } from './debugSession.svelte.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';

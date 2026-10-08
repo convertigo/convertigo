@@ -35,7 +35,7 @@
 
 ## Component Baseline (src/lib)
 
-- **Buttons**: use `$lib/admin/components/Button.svelte` for any clickable element that needs consistent spacing/ARIA. Pass `cls` with one of the `button-*` utilities. Use `ResponsiveButtons` when aligning multiple actions.
+- **Buttons**: use `#lib/admin/components/Button.svelte` for any clickable element that needs consistent spacing/ARIA. Pass `cls` with one of the `button-*` utilities. Use `ResponsiveButtons` when aligning multiple actions.
 - **Card**: wrap admin panels/forms in `Card` to inherit padding, border, shadow and optional title slot. Prefer `cornerOption` snippet for right-aligned header content.
 - **AccordionGroup/AccordionSection**: thin wrappers over Skeleton’s accordion to enforce Convertigo spacing, rounded surfaces and header layout. Pass snippets via `title`/`subtitle`/`meta`/`panel` rather than Svelte 4 slots and keep the default indicator so `data-state` driven rotations and animations continue to work.
 - **TableAutoCard**: default for tabular data. Supplies responsive card-mode automatically (`layout-grid-low-*`), placeholders via `AutoPlaceholder`, and custom cell snippets.

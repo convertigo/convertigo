@@ -1,18 +1,18 @@
 <script>
 	import { getLocalTimeZone, now, today, toTime } from '@internationalized/date';
-	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
-	import Button from '$lib/admin/components/Button.svelte';
-	import LogViewer from '$lib/admin/components/LogViewer.svelte';
-	import LogViewerConfiguration from '$lib/admin/components/LogViewerConfiguration.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
-	import Configuration from '$lib/admin/Configuration.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import LogViewer from '#lib/admin/components/LogViewer.svelte';
+	import LogViewerConfiguration from '#lib/admin/components/LogViewerConfiguration.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import SaveCancelButtons from '#lib/admin/components/SaveCancelButtons.svelte';
+	import Configuration from '#lib/admin/Configuration.svelte.js';
 	import {
 		maxLoadedLogLinesState,
 		normalizeMaxLoadedLogLines
-	} from '$lib/admin/LogViewerSettings.svelte.js';
-	import Time from '$lib/common/Time.svelte';
+	} from '#lib/admin/LogViewerSettings.svelte.js';
+	import Time from '#lib/common/Time.svelte.js';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { getContext, onMount, tick } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 	import { SvelteURL } from 'svelte/reactivity';
@@ -132,7 +132,7 @@
 		if (nextPanel == 'config') {
 			maxLoadedLogLines = normalizeMaxLoadedLogLines(maxLoadedLogLinesState.current);
 		}
-		const url = new SvelteURL(page.url);
+		const url = new SvelteURL(page.url.href);
 		if (nextPanel == 'config') {
 			url.searchParams.set('panel', 'config');
 		} else {
@@ -140,9 +140,8 @@
 		}
 		url.hash = '';
 		await goto(`${url.pathname}${url.search}`, {
-			keepFocus: true,
-			noScroll: true,
-			replaceState: true
+			reset: false,
+			replace: true
 		});
 		if (nextPanel == 'view') {
 			await refreshLogs();

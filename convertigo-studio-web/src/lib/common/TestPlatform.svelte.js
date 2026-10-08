@@ -1,4 +1,4 @@
-import { call, checkArray } from '$lib/utils/service';
+import { call, checkArray } from '#lib/utils/service.js';
 import ServiceHelper from './ServiceHelper.svelte';
 
 function checkRequestables(parent, key) {

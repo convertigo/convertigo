@@ -1,6 +1,6 @@
 <script>
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import Configuration from '$lib/admin/Configuration.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import Configuration from '#lib/admin/Configuration.svelte.js';
 
 	/**
 	 * The levels of the logs of the engine, as the "Configure Log level" of the engine log view of the

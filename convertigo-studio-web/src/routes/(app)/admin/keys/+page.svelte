@@ -1,12 +1,12 @@
 <script>
-	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import TableAutoCard from '$lib/admin/components/TableAutoCard.svelte';
-	import Keys from '$lib/admin/Keys.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { formatDate } from '$lib/utils/time';
+	import { getAdminPageDocHref } from '#lib/admin/AdminDocumentation.svelte.js';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import TableAutoCard from '#lib/admin/components/TableAutoCard.svelte';
+	import Keys from '#lib/admin/Keys.svelte.js';
+	import InputGroup from '#lib/common/components/InputGroup.svelte';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import { formatDate } from '#lib/utils/time.js';
 	import { getContext } from 'svelte';
 
 	let modalYesNo = getContext('modalYesNo');

@@ -1,5 +1,5 @@
 <script>
-	import { call } from '$lib/utils/service';
+	import { call } from '#lib/utils/service.js';
 
 	/**
 	 * Chooses the object a property names, as the named source selector of the Eclipse Studio: a

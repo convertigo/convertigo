@@ -10,16 +10,16 @@
 
 <script>
 	import { Popover } from '@skeletonlabs/skeleton-svelte';
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import RequestableTestCases from '$lib/admin/components/RequestableTestCases.svelte';
-	import RequestableVariables from '$lib/admin/components/RequestableVariables.svelte';
-	import LightSvelte from '$lib/common/Light.svelte';
-	import RequestableResponseEditor from '$lib/dashboard/RequestableResponseEditor.svelte';
-	import { settlePropertyApply } from '$lib/studio/propertyApply.svelte.js';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call, callRequestable, getUrl, toaster } from '$lib/utils/service';
+	import ActionBar from '#lib/admin/components/ActionBar.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import RequestableTestCases from '#lib/admin/components/RequestableTestCases.svelte';
+	import RequestableVariables from '#lib/admin/components/RequestableVariables.svelte';
+	import LightSvelte from '#lib/common/Light.svelte.js';
+	import RequestableResponseEditor from '#lib/dashboard/RequestableResponseEditor.svelte';
+	import { settlePropertyApply } from '#lib/studio/propertyApply.svelte.js';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call, callRequestable, getUrl, toaster } from '#lib/utils/service.js';
 	import { untrack } from 'svelte';
 	import { fly } from 'svelte/transition';
 

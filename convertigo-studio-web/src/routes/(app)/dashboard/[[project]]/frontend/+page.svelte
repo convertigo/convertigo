@@ -1,8 +1,8 @@
 <script>
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import { resolve } from '#lib/utils/route.js';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { resolve } from '$lib/utils/route';
 	import { onMount } from 'svelte';
 	import Last from './Last.svelte';
 
@@ -12,7 +12,7 @@
 				...page.params,
 				model: `${Last.model}_${Last.orientation}`
 			}),
-			{ replaceState: true }
+			{ replace: true }
 		);
 	});
 </script>

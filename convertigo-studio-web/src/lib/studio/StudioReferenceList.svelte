@@ -1,5 +1,5 @@
 <script>
-	import Button from '$lib/admin/components/Button.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
 	import StudioOrderedList from './StudioOrderedList.svelte';
 
 	/** @type {{ label: string, values: string[], choices: string[], disabled?: boolean, onChange: (values: string[]) => void }} */

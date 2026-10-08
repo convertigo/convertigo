@@ -4,7 +4,7 @@
 		MAX_MAX_LOADED_LOG_LINES,
 		MIN_MAX_LOADED_LOG_LINES,
 		normalizeMaxLoadedLogLines
-	} from '$lib/admin/LogViewerSettings.svelte.js';
+	} from '#lib/admin/LogViewerSettings.svelte.js';
 	import Button from './Button.svelte';
 	import PropertyType from './PropertyType.svelte';
 

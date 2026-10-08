@@ -1,6 +1,6 @@
 <script>
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { fade } from 'svelte/transition';
 
 	/** @type {{

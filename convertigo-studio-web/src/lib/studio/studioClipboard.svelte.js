@@ -1,4 +1,4 @@
-import { copyDbo, cutDbo, pasteDbo } from '$lib/utils/service';
+import { copyDbo, cutDbo, pasteDbo } from '#lib/utils/service.js';
 
 /**
  * The objects copied or cut in the Studio tree, as the XML the engine gives for them: a copy can be

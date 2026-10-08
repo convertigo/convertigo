@@ -1,15 +1,15 @@
 <script>
+	import { getAdminConfigDocHref } from '#lib/admin/AdminDocumentation.svelte.js';
+	import Card from '#lib/admin/components/Card.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import SaveCancelButtons from '#lib/admin/components/SaveCancelButtons.svelte';
+	import Configuration from '#lib/admin/Configuration.svelte.js';
+	import AccordionGroup from '#lib/common/components/AccordionGroup.svelte';
+	import AccordionSection from '#lib/common/components/AccordionSection.svelte';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { getAdminConfigDocHref } from '$lib/admin/AdminDocumentation.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
-	import Configuration from '$lib/admin/Configuration.svelte';
-	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
-	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { getContext, onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import RightPart from '../../RightPart.svelte';
@@ -41,6 +41,8 @@
 	});
 
 	beforeNavigate(async (nav) => {
+		if (nav.shallow && nav.type === 'goto') return;
+
 		if (nav.type == 'goto') {
 			return;
 		}

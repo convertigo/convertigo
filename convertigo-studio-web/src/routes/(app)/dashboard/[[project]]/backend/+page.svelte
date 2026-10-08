@@ -1,13 +1,13 @@
 <script lang="ts">
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import RequestableExecution from '$lib/admin/components/RequestableExecution.svelte';
-	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
-	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import TestPlatform from '$lib/common/TestPlatform.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import RequestableExecution from '#lib/admin/components/RequestableExecution.svelte';
+	import AccordionGroup from '#lib/common/components/AccordionGroup.svelte';
+	import AccordionSection from '#lib/common/components/AccordionSection.svelte';
+	import InputGroup from '#lib/common/components/InputGroup.svelte';
+	import TestPlatform from '#lib/common/TestPlatform.svelte.js';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { flip } from 'svelte/animate';
 	import { fly } from 'svelte/transition';
 	import type { PageProps } from './$types';

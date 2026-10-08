@@ -1,5 +1,5 @@
 /**
- * @param {ReturnType<typeof import('$lib/admin/adminEvents').parseAdminEvent>} event
+ * @param {ReturnType<typeof import('#lib/admin/adminEvents.js').parseAdminEvent>} event
  * @returns {{ projectName: string, url: string, mode: 'development' | 'production' } | null}
  */
 export function flowBrowserPreview(event) {
@@ -14,7 +14,7 @@ export function flowBrowserPreview(event) {
 }
 
 /**
- * @param {ReturnType<typeof import('$lib/admin/adminEvents').parseAdminEvent>} event
+ * @param {ReturnType<typeof import('#lib/admin/adminEvents.js').parseAdminEvent>} event
  * @returns {{ projectName: string, sourcePath: string } | null}
  */
 export function flowSourceReveal(event) {

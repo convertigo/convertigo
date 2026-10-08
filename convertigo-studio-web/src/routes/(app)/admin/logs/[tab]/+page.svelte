@@ -8,32 +8,32 @@
 		toTime
 	} from '@internationalized/date';
 	import { Popover, Slider } from '@skeletonlabs/skeleton-svelte';
-	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
-	import { page } from '$app/state';
-	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import LogViewer from '$lib/admin/components/LogViewer.svelte';
-	import LogViewerConfiguration from '$lib/admin/components/LogViewerConfiguration.svelte';
-	import MaxRectangle from '$lib/admin/components/MaxRectangle.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
-	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
-	import TimePicker from '$lib/admin/components/TimePicker.svelte';
-	import Configuration from '$lib/admin/Configuration.svelte';
-	import LogsPurge from '$lib/admin/LogsPurge.svelte';
+	import { getAdminPageDocHref } from '#lib/admin/AdminDocumentation.svelte.js';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import LogViewer from '#lib/admin/components/LogViewer.svelte';
+	import LogViewerConfiguration from '#lib/admin/components/LogViewerConfiguration.svelte';
+	import MaxRectangle from '#lib/admin/components/MaxRectangle.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '#lib/admin/components/ResponsiveButtons.svelte';
+	import SaveCancelButtons from '#lib/admin/components/SaveCancelButtons.svelte';
+	import TimePicker from '#lib/admin/components/TimePicker.svelte';
+	import Configuration from '#lib/admin/Configuration.svelte.js';
+	import LogsPurge from '#lib/admin/LogsPurge.svelte.js';
 	import {
 		maxLoadedLogLinesState,
 		normalizeMaxLoadedLogLines
-	} from '$lib/admin/LogViewerSettings.svelte.js';
-	import DateRangePicker from '$lib/common/components/DateRangePicker.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import Time from '$lib/common/Time.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { resolve } from '$lib/utils/route';
-	import { call } from '$lib/utils/service';
-	import { splitDateTime } from '$lib/utils/time';
+	} from '#lib/admin/LogViewerSettings.svelte.js';
+	import DateRangePicker from '#lib/common/components/DateRangePicker.svelte';
+	import InputGroup from '#lib/common/components/InputGroup.svelte';
+	import Time from '#lib/common/Time.svelte.js';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { resolve } from '#lib/utils/route.js';
+	import { call } from '#lib/utils/service.js';
+	import { splitDateTime } from '#lib/utils/time.js';
+	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { getContext, onMount } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 	import { slide } from 'svelte/transition';
@@ -67,6 +67,8 @@
 
 	let skip = false;
 	beforeNavigate(async (nav) => {
+		if (nav.shallow && nav.type === 'goto') return;
+
 		if (skip) {
 			skip = false;
 			return;
@@ -179,7 +181,10 @@
 	}
 
 	let timezone = $derived(Time.serverTimezone ? Time.serverTimezone : getLocalTimeZone());
-	afterNavigate(() => {
+
+	afterNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		Last.tab = tabSet;
 		if (tabSet != 'purge') {
 			LogsPurge.stop();
@@ -504,7 +509,7 @@
 									onkeyup={(e) => {
 										if (e?.key == 'Enter') refreshLogs();
 									}}
-								></InputGroup>
+								/>
 							{/if}
 						</div>
 					</div>

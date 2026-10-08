@@ -1,6 +1,6 @@
 <script>
 	import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { onDestroy } from 'svelte';
 
 	/** @type {{class?: string, children?: import('svelte').Snippet<[any]>}} */

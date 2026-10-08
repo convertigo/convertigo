@@ -1,5 +1,5 @@
 <script>
-	import Button from '$lib/admin/components/Button.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
 
 	/** @type {{
 	 * icon: string;

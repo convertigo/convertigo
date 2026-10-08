@@ -1,4 +1,4 @@
-import { call } from '$lib/utils/service';
+import { call } from '#lib/utils/service.js';
 
 /**
  * The projects closed in the workspace, as the Eclipse Studio closes one: they stay in the tree, without

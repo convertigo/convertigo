@@ -1,4 +1,4 @@
-import { call } from '$lib/utils/service';
+import { call } from '#lib/utils/service.js';
 import { FOLDER_TYPE_IDS } from './folderTypes.js';
 
 /**

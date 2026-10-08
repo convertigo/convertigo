@@ -1,5 +1,5 @@
 <script>
-	import { call } from '$lib/utils/service';
+	import { call } from '#lib/utils/service.js';
 
 	/**
 	 * Chooses a type or an element of the schemas of the project for a qualified name property, as the

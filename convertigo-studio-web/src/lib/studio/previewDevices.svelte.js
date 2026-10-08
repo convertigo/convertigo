@@ -1,4 +1,4 @@
-import Bezels from '$lib/dashboard/Bezels';
+import Bezels from '#lib/dashboard/Bezels.js';
 import { studioPrompt } from './studioPrompt.svelte.js';
 
 /**

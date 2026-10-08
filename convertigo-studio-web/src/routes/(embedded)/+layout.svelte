@@ -1,5 +1,5 @@
 <script>
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 
 	/** @type {{children?: import('svelte').Snippet}} */
 	let { children } = $props();

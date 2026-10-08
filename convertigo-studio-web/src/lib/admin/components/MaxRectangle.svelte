@@ -1,5 +1,5 @@
 <script>
-	import { debounce } from '$lib/utils/service';
+	import { debounce } from '#lib/utils/service.js';
 	import { onMount, tick } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 

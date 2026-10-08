@@ -1,6 +1,6 @@
 <script>
-	import { base } from '$app/paths';
-	import { call } from '$lib/utils/service';
+	import { call } from '#lib/utils/service.js';
+	import { asset } from '$app/paths';
 	import { fromAction } from 'svelte/attachments';
 	import { changesInZones, findZones, generatedRuns, zoneAt } from './editableZones.js';
 
@@ -66,7 +66,7 @@
 	}));
 
 	const monacoBase = (
-		import.meta.env.VITE_MONACO_BASE ?? `${base.replace(/\/$/, '')}/monaco/vs`
+		import.meta.env.VITE_MONACO_BASE ?? asset('monaco/vs/loader.js').replace(/\/loader\.js$/, '')
 	).replace(/\/$/, '');
 
 	/** @type {Promise<any> | null} */
@@ -342,6 +342,7 @@
 				runs.map((run) => new Monaco.Range(run.startLine, 1, run.endLine, 1)),
 				'c8o-zones'
 			);
+
 			editor.changeViewZones((/** @type {any} */ accessor) => {
 				for (const id of foldZoneIds) accessor.removeZone(id);
 				foldZoneIds = [];

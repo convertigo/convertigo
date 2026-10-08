@@ -1,6 +1,6 @@
 <script>
+	import Ico from '#lib/utils/Ico.svelte';
 	import { asset } from '$app/paths';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { createDockview } from 'dockview';
 	import 'dockview/dist/styles/dockview.css';
 	import { mount, onMount, unmount } from 'svelte';
@@ -45,7 +45,7 @@
 	const NARROW_SCREEN = '(max-width: 980px)';
 	const DEFAULT_SIZES = { left: 280, right: 340, bottom: 240 };
 	/** the page the views moved to a window of their own open in, as a second screen shows them */
-	const POPOUT_URL = asset('/studio-popout.html');
+	const POPOUT_URL = asset('studio-popout.html');
 	/** the desktop Studio, which opens again the windows of the views where they were */
 	const desktop =
 		typeof window !== 'undefined' && Boolean(/** @type {any} */ (window).convertigoStudio);
@@ -352,9 +352,11 @@
 		if (!Array.isArray(node.data) || node.data.length !== sized.data?.length) {
 			return null;
 		}
+
 		const data = node.data.map((/** @type {any} */ child, /** @type {number} */ index) =>
 			withSizes(child, sized.data[index])
 		);
+
 		return data.every(Boolean) ? { ...node, data, size: sized.size } : null;
 	}
 
@@ -502,6 +504,7 @@
 		if (desktop || !layout?.popoutGroups?.length) {
 			return layout;
 		}
+
 		const floating = layout.popoutGroups
 			.filter((/** @type {any} */ popout) => popout.data || popout.grid)
 			.map((/** @type {any} */ popout, /** @type {number} */ index) => ({
@@ -514,7 +517,11 @@
 				}
 			}));
 		const { popoutGroups: _popouts, ...rest } = layout;
-		return { ...rest, floatingGroups: [...(layout.floatingGroups ?? []), ...floating] };
+
+		return {
+			...rest,
+			floatingGroups: [...(layout.floatingGroups ?? []), ...floating]
+		};
 	}
 
 	/**
@@ -562,6 +569,7 @@
 			const size = narrow
 				? Math.round(height * (area === 'bottom' ? 0.3 : 0.28))
 				: (layout?.sizes?.[area] ?? DEFAULT_SIZES[area]);
+
 			first[area]?.group?.api.setSize(
 				narrow || area === 'bottom' ? { height: size } : { width: size }
 			);
@@ -746,6 +754,7 @@
 			areaViews(area, layout)
 				.map((other) => api?.getPanel(other))
 				.find(Boolean);
+
 		if (reference) {
 			options.position = { referencePanel: reference.id, direction: 'within' };
 		} else if (api.panels.length && (narrow || area !== 'center')) {
@@ -816,7 +825,12 @@
 					'closeOthers',
 					'separator',
 					...(panel.api.location?.type === 'popout'
-						? [{ label: 'Move back to the Studio', action: () => movePopoutBack(panel.group) }]
+						? [
+								{
+									label: 'Move back to the Studio',
+									action: () => movePopoutBack(panel.group)
+								}
+							]
 						: [
 								...(panel.api.location?.type === 'floating'
 									? []
@@ -827,7 +841,11 @@
 											},
 											'float'
 										]),
-								{ label: 'Move to a new window', action: () => void popoutGroup(panel) }
+
+								{
+									label: 'Move to a new window',
+									action: () => void popoutGroup(panel)
+								}
 							])
 				])
 		});

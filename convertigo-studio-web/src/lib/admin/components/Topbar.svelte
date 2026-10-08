@@ -1,13 +1,13 @@
 <script>
+	import Button from '#lib/admin/components/Button.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import Instances from '#lib/admin/Instances.svelte.js';
+	import Authentication from '#lib/common/Authentication.svelte.js';
+	import LightSwitch from '#lib/common/components/LightSwitch.svelte';
+	import Time from '#lib/common/Time.svelte.js';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import Button from '$lib/admin/components/Button.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import Instances from '$lib/admin/Instances.svelte';
-	import Authentication from '$lib/common/Authentication.svelte';
-	import LightSwitch from '$lib/common/components/LightSwitch.svelte';
-	import Time from '$lib/common/Time.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
 	import { onMount } from 'svelte';
 	import PagesRailToggle from './PagesRailToggle.svelte';
 
@@ -56,7 +56,7 @@
 	const isDashboardRoute = $derived(page.route.id?.includes('dashboard') ?? false);
 	const dashboardLoginHref = $derived.by(() => {
 		const redirect = encodeURIComponent(page.url.pathname + page.url.search + page.url.hash);
-		return `${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`;
+		return `${resolve('login/')}${redirect ? `?redirect=${redirect}` : ''}`;
 	});
 </script>
 

@@ -1,5 +1,5 @@
 <script>
-	import { checkArray } from '$lib/utils/service';
+	import { checkArray } from '#lib/utils/service.js';
 	import Button from './Button.svelte';
 	import PropertyType from './PropertyType.svelte';
 

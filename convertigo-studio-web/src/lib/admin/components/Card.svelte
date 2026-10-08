@@ -1,6 +1,6 @@
 <script>
-	import Button from '$lib/admin/components/Button.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
 
 	/**
 	 * @type {{

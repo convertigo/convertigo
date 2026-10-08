@@ -3,7 +3,7 @@
 </script>
 
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 
 	const join = (...classes) => classes.filter(Boolean).join(' ');
 	const baseGroup =
@@ -43,7 +43,7 @@
 </script>
 
 <div class={join(baseGroup, className)}>
-	<label for={inputId} class={join('ig-cell', baseLabel, labelClass)}>
+	<label for={inputId} class={join(baseLabel, labelClass)}>
 		{#if leading}
 			{@render leading({ id: inputId, value, setValue })}
 		{:else if icon}
@@ -56,12 +56,12 @@
 		{type}
 		{placeholder}
 		{disabled}
-		class={join('ig-input', baseInput, inputClass)}
+		class={join('input', baseInput, inputClass)}
 		bind:value
 		{...rest}
 	/>
 	{#if hasActions}
-		<span class={join('ig-actions', baseActions, actionsClass)}>
+		<span class={join('c8o-input-actions', baseActions, actionsClass)}>
 			{@render actions?.({ value, setValue, disabled })}
 			{#if rightIcon}
 				<Ico icon={rightIcon} size={rightIconSize} class={rightIconClass} />
@@ -86,10 +86,10 @@
 		box-shadow: none;
 	}
 
-	:global(.ig-actions:empty) {
+	:global(.c8o-input-actions:empty) {
 		display: none;
 	}
-	:global(.c8o-input-group .ig-actions) {
+	:global(.c8o-input-group .c8o-input-actions) {
 		border-left: 0 !important;
 	}
 	:global(.c8o-input-group input[type='search']::-webkit-search-cancel-button),
@@ -101,8 +101,10 @@
 	:global(.c8o-input-group input[type='search']::-ms-clear) {
 		display: none;
 	}
-	:global(.c8o-input-group .ig-input:focus-visible) {
-		outline: none;
+	:global(.c8o-input-group .input) {
 		box-shadow: none;
+	}
+	:global(.c8o-input-group .input:focus-visible) {
+		outline: none;
 	}
 </style>

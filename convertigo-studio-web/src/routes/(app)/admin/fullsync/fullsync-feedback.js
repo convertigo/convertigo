@@ -1,4 +1,4 @@
-import { toaster } from '$lib/utils/service';
+import { toaster } from '#lib/utils/service.js';
 
 export function fullSyncErrorMessage(error) {
 	if (typeof error == 'string') return error;

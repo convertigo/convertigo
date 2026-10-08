@@ -1,11 +1,11 @@
 <script>
-	import Button from '$lib/admin/components/Button.svelte';
-	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import AutoSvg from '$lib/utils/AutoSvg.svelte';
-	import { draggedData } from '$lib/utils/dndStore';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { getUrl, serverRetryDelay } from '$lib/utils/service';
+	import Button from '#lib/admin/components/Button.svelte';
+	import AccordionGroup from '#lib/common/components/AccordionGroup.svelte';
+	import InputGroup from '#lib/common/components/InputGroup.svelte';
+	import AutoSvg from '#lib/utils/AutoSvg.svelte';
+	import { draggedData } from '#lib/utils/dndStore.js';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { getUrl, serverRetryDelay } from '#lib/utils/service.js';
 	import { onDestroy, tick } from 'svelte';
 	import { loadPaletteContext, paletteContextLabel, paletteIconPath } from './paletteContext';
 	import {

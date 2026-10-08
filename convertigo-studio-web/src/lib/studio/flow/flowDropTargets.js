@@ -1,4 +1,8 @@
-import { areEquivalentDboObjectIds, isDescendantObjectId, objectNameFromId } from '$lib/studio/dnd';
+import {
+	areEquivalentDboObjectIds,
+	isDescendantObjectId,
+	objectNameFromId
+} from '#lib/studio/dnd.js';
 
 const DEFAULT_NODE_SIZE = { width: 150, height: 72 };
 

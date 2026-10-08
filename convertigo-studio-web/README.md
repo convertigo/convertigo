@@ -2,10 +2,15 @@
 
 ## Workflow
 
+SvelteKit 3 requires Node.js 22.17 or newer. Use Node.js 22 and its bundled npm 10 for dependency installation and lockfile maintenance, matching `studioWebNodeVersion` in the root Gradle build and CI. With nvm:
+
 ```bash
-npm install
-npm run dev
+nvm install 22
+nvm exec 22 npm ci
+nvm exec 22 npm run dev
 ```
+
+Run `npm install` and `npm audit fix` with the same toolchain when updating dependencies. Bits UI's Runed dependency still declares an optional SvelteKit 2 peer; the lockfile keeps separate Kit 2 copies for that peer, while the application and adapters use Kit 3. Do not override this peer range or force its resolution. npm 11.12.0 was observed to omit those copies during `npm ci`, producing an invalid peer tree. Check the tree after installation with `nvm exec 22 npm ls @sveltejs/kit` until Runed declares Kit 3 support.
 
 ## Device Frames
 

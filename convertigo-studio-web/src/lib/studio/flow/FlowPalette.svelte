@@ -1,7 +1,7 @@
 <script>
-	import InputGroup from '$lib/common/components/InputGroup.svelte';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
+	import InputGroup from '#lib/common/components/InputGroup.svelte';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
 	import { loadStepPaletteGroups } from './palette';
 
 	/** @type {{ parentId?: string }} */

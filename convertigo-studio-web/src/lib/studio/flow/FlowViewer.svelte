@@ -16,11 +16,11 @@
 		parentObjectId,
 		performDboDrop,
 		renameObjectId
-	} from '$lib/studio/dnd';
-	import { getSourcePickerDragPayload } from '$lib/studio/sourcePickerDnd';
-	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
-	import { draggedData } from '$lib/utils/dndStore';
-	import { removeDbo, renameDbo } from '$lib/utils/service';
+	} from '#lib/studio/dnd.js';
+	import { getSourcePickerDragPayload } from '#lib/studio/sourcePickerDnd.js';
+	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
+	import { draggedData } from '#lib/utils/dndStore.js';
+	import { removeDbo, renameDbo } from '#lib/utils/service.js';
 	import { untrack } from 'svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import FlowBranchEdge from './FlowBranchEdge.svelte';
@@ -33,7 +33,7 @@
 	import { loadSequenceFlow } from './sequenceLoader';
 	import { toXyFlow } from './xyflow';
 	import '@xyflow/svelte/dist/style.css';
-	import Button from '$lib/admin/components/Button.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
 
 	/**
 	 * @typedef {Object} SequenceLike
@@ -51,11 +51,11 @@
 	 *  autoSelectFirst?: boolean,
 	 *  selectedObjectId?: string,
 	 *  refreshSerial?: number,
-	 *  refreshMutation?: import('$lib/studio/dnd').DboDropResult | null,
+	 *  refreshMutation?: import('#lib/studio/dnd.js').DboDropResult | null,
 	 *  refreshMutationSerial?: number,
 	 *  onSelectNode?: (node: { id: string, data: import('./types').FlowStepNodeData }) => void,
-	 *  onMutation?: (mutation: import('$lib/studio/dnd').DboDropResult) => void | Promise<void>,
-	 *  onSourceDrop?: (targetId: string, payload: import('$lib/studio/sourcePickerDnd').SourcePickerDragPayload) => void | Promise<void>
+	 *  onMutation?: (mutation: import('#lib/studio/dnd.js').DboDropResult) => void | Promise<void>,
+	 *  onSourceDrop?: (targetId: string, payload: import('#lib/studio/sourcePickerDnd.js').SourcePickerDragPayload) => void | Promise<void>
 	 * }}
 	 */
 	let {
@@ -464,14 +464,14 @@
 	/**
 	 * @param {{
 	 *  target: string,
-	 *  position: import('$lib/studio/dnd').DropPosition,
+	 *  position: import('#lib/studio/dnd.js').DropPosition,
 	 *  fallbackTarget?: string,
-	 *  fallbackPosition?: import('$lib/studio/dnd').DropPosition,
+	 *  fallbackPosition?: import('#lib/studio/dnd.js').DropPosition,
 	 *  fallbackIndicator?: 'inside' | 'before' | 'after',
 	 *  fallbackTargetNodeId?: string
 	 * }} target
-	 * @param {import('$lib/studio/dnd').DboDragPayload} payload
-	 * @param {import('$lib/studio/dnd').DropAction} action
+	 * @param {import('#lib/studio/dnd.js').DboDragPayload} payload
+	 * @param {import('#lib/studio/dnd.js').DropAction} action
 	 * @returns {boolean}
 	 */
 	function shouldUseFlowFallback(target, payload, action) {
@@ -487,14 +487,14 @@
 
 	/**
 	 * @param {DragEvent} event
-	 * @param {import('$lib/studio/dnd').DboDragPayload | undefined} payload
+	 * @param {import('#lib/studio/dnd.js').DboDragPayload | undefined} payload
 	 * @returns {{
 	 *  target: string,
-	 *  position: import('$lib/studio/dnd').DropPosition,
+	 *  position: import('#lib/studio/dnd.js').DropPosition,
 	 *  indicator: 'inside' | 'before' | 'after',
 	 *  targetNodeId: string,
 	 *  fallbackTarget?: string,
-	 *  fallbackPosition?: import('$lib/studio/dnd').DropPosition,
+	 *  fallbackPosition?: import('#lib/studio/dnd.js').DropPosition,
 	 *  fallbackIndicator?: 'inside' | 'before' | 'after',
 	 *  fallbackTargetNodeId?: string,
 	 *  fallbackDropBranch?: string,
@@ -602,7 +602,7 @@
 	}
 
 	/**
-	 * @param {import('$lib/studio/dnd').DropPosition} position
+	 * @param {import('#lib/studio/dnd.js').DropPosition} position
 	 * @returns {'inside' | 'before' | 'after'}
 	 */
 	function flowIndicatorFromDropPosition(position) {
@@ -650,7 +650,7 @@
 
 	/**
 	 * @param {{ x: number, y: number }} point
-	 * @param {import('$lib/studio/dnd').DboDragPayload | undefined} payload
+	 * @param {import('#lib/studio/dnd.js').DboDragPayload | undefined} payload
 	 * @returns {{
 	 *  target: string,
 	 *  position: 'before' | 'after',
@@ -676,10 +676,10 @@
 
 	/**
 	 * @param {import('@xyflow/svelte').Edge} edge
-	 * @param {import('$lib/studio/dnd').DboDragPayload | undefined} payload
+	 * @param {import('#lib/studio/dnd.js').DboDragPayload | undefined} payload
 	 * @returns {{
 	 *  target: string,
-	 *  position: import('$lib/studio/dnd').DropPosition,
+	 *  position: import('#lib/studio/dnd.js').DropPosition,
 	 *  indicator: 'before' | 'after',
 	 *  targetNodeId: string,
 	 *  fallbackTarget?: string,
@@ -865,7 +865,7 @@
 
 	/**
 	 * @param {{ x: number, y: number }} point
-	 * @param {import('$lib/studio/dnd').DboDragPayload | undefined} payload
+	 * @param {import('#lib/studio/dnd.js').DboDragPayload | undefined} payload
 	 * @returns {import('@xyflow/svelte').Node | null}
 	 */
 	function findNearestFlowNode(point, payload = undefined) {
@@ -908,7 +908,7 @@
 	}
 
 	/**
-	 * @param {import('$lib/studio/dnd').DboDragPayload | undefined} payload
+	 * @param {import('#lib/studio/dnd.js').DboDragPayload | undefined} payload
 	 * @param {string} objectId
 	 * @returns {boolean}
 	 */
@@ -922,8 +922,8 @@
 	}
 
 	/**
-	 * @param {import('$lib/studio/dnd').DboDragPayload | undefined} payload
-	 * @param {{ target: string, position: import('$lib/studio/dnd').DropPosition } | null} target
+	 * @param {import('#lib/studio/dnd.js').DboDragPayload | undefined} payload
+	 * @param {{ target: string, position: import('#lib/studio/dnd.js').DropPosition } | null} target
 	 * @returns {boolean}
 	 */
 	function isNoopFlowMoveTarget(payload, target) {
@@ -1275,7 +1275,7 @@
 	}
 
 	/**
-	 * @param {import('$lib/studio/dnd').DboDropResult} mutation
+	 * @param {import('#lib/studio/dnd.js').DboDropResult} mutation
 	 */
 	function rememberExpandedParentsForMutation(mutation) {
 		const nextExpanded = new SvelteSet(pendingExpandedSubstepParents);

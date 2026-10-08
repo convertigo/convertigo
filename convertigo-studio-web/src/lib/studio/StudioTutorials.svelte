@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call, getUrl } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call, getUrl } from '#lib/utils/service.js';
 	import { onMount } from 'svelte';
 	import { studioActivity } from './studioActivity.svelte.js';
 

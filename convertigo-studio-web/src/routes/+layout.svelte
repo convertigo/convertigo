@@ -1,23 +1,23 @@
 <script>
 	import '../app.css';
 	import { Toast } from '@skeletonlabs/skeleton-svelte';
-	import { browser } from '$app/environment';
+	import ActionBar from '#lib/admin/components/ActionBar.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Card from '#lib/admin/components/Card.svelte';
+	import Instances from '#lib/admin/Instances.svelte.js';
+	import Authentication from '#lib/common/Authentication.svelte.js';
+	import AuthenticationProgress from '#lib/common/components/AuthenticationProgress.svelte';
+	import ModalDynamic from '#lib/common/components/ModalDynamic.svelte';
+	import ModalYesNo from '#lib/common/components/ModalYesNo.svelte';
+	import Light from '#lib/common/Light.svelte.js';
+	import ServerConnection from '#lib/common/ServerConnection.svelte.js';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { resolve } from '#lib/utils/route.js';
+	import { setModalAlert, toaster } from '#lib/utils/service.js';
+	import { browser } from '$app/env';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { asset } from '$app/paths';
 	import { page } from '$app/state';
-	import ActionBar from '$lib/admin/components/ActionBar.svelte';
-	import Button from '$lib/admin/components/Button.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import Instances from '$lib/admin/Instances.svelte';
-	import Authentication from '$lib/common/Authentication.svelte';
-	import AuthenticationProgress from '$lib/common/components/AuthenticationProgress.svelte';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import ModalYesNo from '$lib/common/components/ModalYesNo.svelte';
-	import Light from '$lib/common/Light.svelte';
-	import ServerConnection from '$lib/common/ServerConnection.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { resolve } from '$lib/utils/route';
-	import { setModalAlert, toaster } from '$lib/utils/service';
 	import { getContext, setContext } from 'svelte';
 	import { slide } from 'svelte/transition';
 
@@ -122,7 +122,9 @@
 		}
 	}
 
-	afterNavigate(() => {
+	afterNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		void syncAuthentication();
 	});
 
@@ -138,8 +140,9 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={asset('/favicon.png')} />
-	<link rel="manifest" href={asset('/manifest.webmanifest')} />
+	<link rel="icon" href={asset('favicon.png')} />
+
+	<link rel="manifest" href={asset('manifest.webmanifest')} />
 </svelte:head>
 
 {#if ServerConnection.unavailable}

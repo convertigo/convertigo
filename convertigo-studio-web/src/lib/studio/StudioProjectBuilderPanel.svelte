@@ -1,6 +1,6 @@
 <script>
-	import Authentication from '$lib/common/Authentication.svelte.js';
-	import { call, getStudioContextMenu } from '$lib/utils/service';
+	import Authentication from '#lib/common/Authentication.svelte.js';
+	import { call, getStudioContextMenu } from '#lib/utils/service.js';
 	import StudioActionBuilderPanel from './StudioActionBuilderPanel.svelte';
 	import { resolveStudioBuilder } from './studioBuilder';
 	import StudioBuilderPanel from './StudioBuilderPanel.svelte';
@@ -17,7 +17,10 @@
 
 {#key projectName}
 	{#if !Authentication.serverBuild}
-		<p class="p">This server does not run the builds started from the web Studio (server_build studio or all in the configuration).</p>
+		<p class="p">
+			This server does not run the builds started from the web Studio (server_build studio or all in
+			the configuration).
+		</p>
 	{:else}
 		{#await result}
 			<p class="p">Connecting to the builder…</p>

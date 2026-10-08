@@ -1,4 +1,4 @@
-import Projects from '$lib/common/Projects.svelte';
+import Projects from '#lib/common/Projects.svelte.js';
 
 /** @type {any} */
 let page = $state(null);

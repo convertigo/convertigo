@@ -1,9 +1,9 @@
 <script>
-	import { getAdminPageDocHref } from '$lib/admin/AdminDocumentation.svelte';
-	import Cache from '$lib/admin/Cache.svelte';
-	import Card from '$lib/admin/components/Card.svelte';
-	import PropertyType from '$lib/admin/components/PropertyType.svelte';
-	import ResponsiveButtons from '$lib/admin/components/ResponsiveButtons.svelte';
+	import { getAdminPageDocHref } from '#lib/admin/AdminDocumentation.svelte.js';
+	import Cache from '#lib/admin/Cache.svelte.js';
+	import Card from '#lib/admin/components/Card.svelte';
+	import PropertyType from '#lib/admin/components/PropertyType.svelte';
+	import ResponsiveButtons from '#lib/admin/components/ResponsiveButtons.svelte';
 	import { onDestroy } from 'svelte';
 	import { slide } from 'svelte/transition';
 

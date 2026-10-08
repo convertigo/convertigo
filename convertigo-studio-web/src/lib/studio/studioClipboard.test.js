@@ -5,7 +5,7 @@ const service = vi.hoisted(() => ({
 	cutDbo: vi.fn(),
 	pasteDbo: vi.fn()
 }));
-vi.mock('$lib/utils/service', () => service);
+vi.mock('#lib/utils/service.js', () => service);
 
 const {
 	clearStudioClipboard,

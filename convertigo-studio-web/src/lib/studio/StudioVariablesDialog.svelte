@@ -1,6 +1,6 @@
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { call, toaster } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { call, toaster } from '#lib/utils/service.js';
 
 	/**
 	 * @typedef {{ name: string, label: string, description: string, group: string, custom?: boolean, checked: boolean }} VariableOption

@@ -1,4 +1,4 @@
-import { abortPendingCalls, call, checkArray } from '$lib/utils/service';
+import { abortPendingCalls, call, checkArray } from '#lib/utils/service.js';
 import Time from './Time.svelte';
 
 /** @type {any} */

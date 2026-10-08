@@ -1,17 +1,17 @@
 <script>
 	import { Popover, Portal, Tooltip, useTooltip } from '@skeletonlabs/skeleton-svelte';
-	import { browser } from '$app/environment';
-	import DraggableValue from '$lib/admin/components/DraggableValue.svelte';
-	import MovableContent from '$lib/admin/components/MovableContent.svelte';
-	import Logs from '$lib/admin/Logs.svelte';
+	import DraggableValue from '#lib/admin/components/DraggableValue.svelte';
+	import MovableContent from '#lib/admin/components/MovableContent.svelte';
+	import Logs from '#lib/admin/Logs.svelte.js';
 	import {
 		maxLoadedLogLinesState,
 		normalizeMaxLoadedLogLines
-	} from '$lib/admin/LogViewerSettings.svelte.js';
-	import ModalDynamic from '$lib/common/components/ModalDynamic.svelte';
-	import Ico from '$lib/utils/Ico.svelte';
-	import { checkArray, debounce } from '$lib/utils/service';
-	import { formatDuration, joinDateTime, parseDateTimeMs, splitDateTime } from '$lib/utils/time';
+	} from '#lib/admin/LogViewerSettings.svelte.js';
+	import ModalDynamic from '#lib/common/components/ModalDynamic.svelte';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { checkArray, debounce } from '#lib/utils/service.js';
+	import { formatDuration, joinDateTime, parseDateTimeMs, splitDateTime } from '#lib/utils/time.js';
+	import { browser } from '$app/env';
 	import { getContext, onDestroy, tick } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 	import VirtualList from 'svelte-tiny-virtual-list';
@@ -465,6 +465,7 @@
 							}
 						);
 					});
+
 					if (matches) {
 						results.push(log);
 					}
@@ -1324,6 +1325,7 @@
 									class="cursor-cell"
 									onclick={(event) => addFilter({ event, category: name })}
 								/>
+
 								<Button {size} icon="mdi:dots-vertical" title="Drag column" class="cursor-grab" />
 							</div>
 						</MovableContent>

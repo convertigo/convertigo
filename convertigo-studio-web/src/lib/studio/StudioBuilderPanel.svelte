@@ -4,8 +4,8 @@
 </script>
 
 <script>
-	import Ico from '$lib/utils/Ico.svelte';
-	import { getUrl, toaster } from '$lib/utils/service';
+	import Ico from '#lib/utils/Ico.svelte';
+	import { getUrl, toaster } from '#lib/utils/service.js';
 	import { onDestroy, tick, untrack } from 'svelte';
 
 	/**
