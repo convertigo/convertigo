@@ -53,6 +53,7 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.StepSources;
@@ -62,7 +63,17 @@ public class Set extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
+		// profile=true: the durations of its phases in _profile, as studio.treeview.Get
+		var profileOwner = FlowStudioSupport.startPerformanceProfile(
+				Boolean.parseBoolean(request.getParameter("profile")), "studio.properties.Set");
+		try {
+			setProperties(request, response);
+		} finally {
+			FlowStudioSupport.finishPerformanceProfile(profileOwner, response);
+		}
+	}
 
+	private void setProperties(HttpServletRequest request, JSONObject response) throws Exception {
 		// id: the id of the target bean in tree
 		var id = request.getParameter("id");
 		if (id == null) {
@@ -239,8 +250,10 @@ public class Set extends JSonService {
 					}
 				}
 			}
+			FlowStudioSupport.performanceProfileMark("properties.set");
 			if (save != null && save.equals("true")) {
 				saveProject(dbo.getProject());
+				FlowStudioSupport.performanceProfileMark("properties.saveProject");
 			}
 		}
 

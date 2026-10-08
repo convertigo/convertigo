@@ -106,6 +106,12 @@ public class FlowEngineBridgeCacheTest {
 		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("applySourceMutation",
 				new JSONObject().put("target", "frontendSource").put("frontendSourceDrafts", new JSONObject())));
 
+		assertTrue(FlowEngineBridge.usesFrontendDocumentProvider("contextAction", new JSONObject()
+				.put("frontendSourceDrafts", new JSONObject()).put("action", new JSONObject().put("id", "frontbuilder.svelte.generate"))));
+		assertFalse("a production build runs out of the authoring lock", FlowEngineBridge.usesFrontendDocumentProvider(
+				"contextAction", new JSONObject().put("frontendSourceDrafts", new JSONObject())
+						.put("action", new JSONObject().put("id", "frontbuilder.svelte.build").put("authoring", false))));
+
 		assertFalse(FlowEngineBridge.usesFrontendDocumentProvider("authoringTree",
 				new JSONObject().put("surface", "backend")));
 		assertFalse(FlowEngineBridge.usesFrontendDocumentProvider("propertyEditor", new JSONObject()));

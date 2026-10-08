@@ -1717,6 +1717,15 @@ public class FlowEngineBridge {
 		if (request == null || !request.has("frontendSourceDrafts")) {
 			return false;
 		}
+		// a long action telling it needs no authoring state, as a production build: run out of the authoring lock, on
+		// another runtime, instead of holding the frontend authoring of every project until it ends (lib_flow_engine
+		// 0.1.29 and later guard its own work with server-wide locks)
+		if ("contextAction".equals(method)) {
+			var action = request.optJSONObject("action");
+			if (action != null && !action.optBoolean("authoring", true)) {
+				return false;
+			}
+		}
 		return switch (method) {
 		case "propertyEditor", "describeTree", "contextMenu", "contextAction", "applySourceMutation" -> true;
 		default -> false;
