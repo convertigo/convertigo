@@ -123,6 +123,13 @@ public class FlowEngine extends DatabaseObject {
 				+ getEngineSource() + "\n" + sourceChanges().hashCode();
 	}
 
+	/** @return the virtual children projected from the current sources and drafts, null when they are not */
+	private List<DatabaseObject> currentFlowVirtualChildren() {
+		return flowVirtualChildrenCache != null && flowVirtualChildrenCacheKey().equals(flowVirtualChildrenCacheKey)
+				? new ArrayList<>(flowVirtualChildrenCache)
+				: null;
+	}
+
 	/**
 	 * Captures the already projected virtual tree without causing a projection on a
 	 * cache miss. The snapshot can be restored after a source mutation when the
@@ -189,9 +196,19 @@ public class FlowEngine extends DatabaseObject {
 
 	/** Writes the Engine source, the working copies and the dependencies, as the save of the project. */
 	public void saveSources() throws EngineException {
+		// the tree projected from the sources being saved, which the written files repeat
+		var projected = currentFlowVirtualChildren();
 		writeEngineSourceFile();
 		writeSourceDraftFiles();
-		writeDependenciesFile();
+		if (writeDependenciesFile()) {
+			// the defaults of its sources may change with the versions of their definers
+			projected = null;
+		}
+		if (projected != null) {
+			// kept instead of projected again (seconds for a large frontend): only its models are no longer unsaved
+			FlowVirtualObject.markSourcesSaved(projected);
+			restoreFlowVirtualChildrenCache(projected);
+		}
 	}
 
 	public String getEngineQName() {
@@ -482,6 +499,10 @@ public class FlowEngine extends DatabaseObject {
 		if (file == null) {
 			return;
 		}
+		if (!engineSourceDirty && file.isFile() && file.lastModified() == engineSourceFileLastModified) {
+			// the file is the source read and not changed since: nothing to write
+			return;
+		}
 		try {
 			sourceLayout().ensureHttpIgnore(getProject().getDirFile());
 			file.getParentFile().mkdirs();
@@ -522,17 +543,18 @@ public class FlowEngine extends DatabaseObject {
 	 * (_flow/dependencies.json), so its sources keep the defaults they were written against.
 	 * Written only when its content changes; never blocks the save.
 	 */
-	private void writeDependenciesFile() {
+	/** @return whether the dependencies file changed */
+	private boolean writeDependenciesFile() {
 		var project = getProject();
 		// The Flow runtime answers only in a started engine (not in bare serialization tests).
 		if (project == null || !Engine.isStarted || Engine.logBeans == null) {
-			return;
+			return false;
 		}
 		try {
 			var response = new FlowEngineBridge().dependencies(this);
 			if (!response.optBoolean("ok", false)) {
 				Engine.logBeans.warn("(FlowEngine) Unable to compute Flow dependencies of " + project.getName() + ": " + response.opt("error"));
-				return;
+				return false;
 			}
 			var warnings = response.optJSONArray("warnings");
 			for (int i = 0; warnings != null && i < warnings.length(); i++) {
@@ -542,10 +564,12 @@ public class FlowEngine extends DatabaseObject {
 				var file = new File(project.getDirFile(), sourceLayout().path("dependencies.json"));
 				file.getParentFile().mkdirs();
 				FileUtils.writeStringToFile(file, response.optString("source"), StandardCharsets.UTF_8);
+				return true;
 			}
 		} catch (Exception e) {
 			Engine.logBeans.warn("(FlowEngine) Unable to write Flow dependencies of " + project.getName(), e);
 		}
+		return false;
 	}
 
 	static void projectUnloaded(Project project) {

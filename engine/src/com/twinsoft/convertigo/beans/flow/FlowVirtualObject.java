@@ -162,6 +162,33 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		}
 	}
 
+	/** The sources a tree was projected from are saved as they were: the models it shows are no longer unsaved. */
+	static void markSourcesSaved(List<DatabaseObject> objects) {
+		for (var object : objects) {
+			if (object instanceof FlowVirtualObject virtual) {
+				virtual.markSourceSaved();
+				markSourcesSaved(virtual.children);
+			}
+		}
+	}
+
+	private void markSourceSaved() {
+		if (!definition.contains("\"dirty\"")) {
+			return;
+		}
+		try {
+			var value = new JSONObject(definition);
+			if (value.optBoolean("dirty", false)) {
+				value.put("dirty", false);
+				definition = value.toString();
+				parsedDefinitionSource = null;
+				parsedDefinitionValue = null;
+			}
+		} catch (JSONException e) {
+			// not an object: nothing to mark
+		}
+	}
+
 	public String getVirtualInfo() {
 		return virtualInfo;
 	}
