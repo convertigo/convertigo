@@ -465,7 +465,6 @@
 							}
 						);
 					});
-
 					if (matches) {
 						results.push(log);
 					}
@@ -1325,7 +1324,6 @@
 									class="cursor-cell"
 									onclick={(event) => addFilter({ event, category: name })}
 								/>
-
 								<Button {size} icon="mdi:dots-vertical" title="Drag column" class="cursor-grab" />
 							</div>
 						</MovableContent>

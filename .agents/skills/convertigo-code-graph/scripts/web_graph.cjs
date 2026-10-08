@@ -35,7 +35,7 @@ function extract(root, dependencyRoot, names) {
   const fileId = (name) => `web:${name}`;
   const resolve = (name, specifier) => {
     let candidate;
-    if (specifier.startsWith("$lib/"))
+    if (specifier.startsWith("#lib/") || specifier.startsWith("$lib/"))
       candidate = `convertigo-studio-web/src/lib/${specifier.slice(5)}`;
     else if (specifier.startsWith("."))
       candidate = path.posix.normalize(
@@ -184,6 +184,7 @@ function extract(root, dependencyRoot, names) {
               );
             else if (
               (p.node.source.value.startsWith(".") ||
+                p.node.source.value.startsWith("#lib/") ||
                 p.node.source.value.startsWith("$lib/")) &&
               !p.node.source.value.endsWith(".css")
             ) {

@@ -6,7 +6,7 @@
 	import LightSwitch from '#lib/common/components/LightSwitch.svelte';
 	import Time from '#lib/common/Time.svelte.js';
 	import Ico from '#lib/utils/Ico.svelte';
-	import { resolve } from '$app/paths';
+	import { resolve } from '#lib/utils/route.js';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import PagesRailToggle from './PagesRailToggle.svelte';
@@ -56,7 +56,7 @@
 	const isDashboardRoute = $derived(page.route.id?.includes('dashboard') ?? false);
 	const dashboardLoginHref = $derived.by(() => {
 		const redirect = encodeURIComponent(page.url.pathname + page.url.search + page.url.hash);
-		return `${resolve('login/')}${redirect ? `?redirect=${redirect}` : ''}`;
+		return `${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`;
 	});
 </script>
 

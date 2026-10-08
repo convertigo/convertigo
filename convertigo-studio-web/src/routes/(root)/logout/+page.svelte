@@ -1,13 +1,13 @@
 <script>
 	import { Progress } from '@skeletonlabs/skeleton-svelte';
 	import Authentication from '#lib/common/Authentication.svelte.js';
+	import { resolve } from '#lib/utils/route.js';
 	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
 
 	if (browser) {
 		Authentication.logout().finally(() => {
-			goto(resolve('login/'));
+			goto(resolve('/login/'));
 		});
 	}
 </script>

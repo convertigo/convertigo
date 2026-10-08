@@ -392,7 +392,6 @@
 	let projectHistoryBusy = $state(false);
 	const isMacPlatform =
 		typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
-
 	/** @type {{ projectName: string, serial: number } | null} the project an undo or a redo replaced */
 	let historyReload = $state(null);
 	let executionFallbackKey = '';
@@ -427,7 +426,6 @@
 		selectedProject?.ref?.includes('lib_flow_engine') ? 'flow' : 'generalist'
 	);
 	let project = $derived.by(() => (selectedProjectName ? TestPlatform(selectedProjectName) : null));
-
 	let sequences = $derived.by(() => {
 		const list = project?.sequence?.filter((sequence) => sequence.name) ?? [];
 		const selectedSequence = selectedContext.sequenceName;
@@ -480,12 +478,7 @@
 	let showPalette = $derived(showStudioWork || profile === 'frontend');
 	let sideViews = $derived([
 		...(showPalette ? [{ id: 'palette', label: 'Palette', icon: 'mdi:palette-outline' }] : []),
-
-		{
-			id: 'properties',
-			label: 'Properties',
-			icon: 'mdi:tune-vertical-variant'
-		}
+		{ id: 'properties', label: 'Properties', icon: 'mdi:tune-vertical-variant' }
 	]);
 	// the view of the left column, and the view of the bottom panel, shown last
 	let leftView = $state(/** @type {'projects' | 'search' | 'git'} */ ('projects'));
@@ -555,7 +548,10 @@
 						active: Boolean(dockVisible.assistant)
 					}
 				]
-			: sideViews.map((item) => ({ ...item, active: Boolean(dockVisible[item.id]) })))
+			: sideViews.map((item) => ({
+					...item,
+					active: Boolean(dockVisible[item.id])
+				})))
 	]);
 	let activityFooterItems = $derived([
 		{
@@ -951,15 +947,14 @@
 		if (!context.sequenceName) {
 			return null;
 		}
-
 		const sequence = (project.sequence ?? []).find(
 			(item) => item?.name === context.sequenceName
-		) ?? { name: context.sequenceName, variable: [], testcase: [] };
-
-		return {
-			kind: 'sequence',
-			requestable: normalizeRequestable(sequence)
+		) ?? {
+			name: context.sequenceName,
+			variable: [],
+			testcase: []
 		};
+		return { kind: 'sequence', requestable: normalizeRequestable(sequence) };
 	}
 
 	/**
@@ -1258,7 +1253,6 @@
 			/\.(pg|mn|sp):/.test(selectedId)
 				? selectedId
 				: '';
-
 		if (!id) {
 			ngxReference = null;
 			return;
@@ -1997,12 +1991,10 @@
 		const connector = (connectors?.children ?? []).find(
 			(/** @type {any} */ child) => child?.default === 'Default connector'
 		);
-
 		if (!connector) {
 			return '';
 		}
 		const transactions = await call('studio.treeview.Get', { id: `${connector.id}:tr` });
-
 		return String(
 			(transactions?.children ?? []).find(
 				(/** @type {any} */ child) => child?.default === 'Default transaction'
@@ -2556,7 +2548,6 @@
 		const key = String(event.key ?? '').toLowerCase();
 		const redo =
 			(key === 'z' && event.shiftKey) || (key === 'y' && event.ctrlKey && !event.metaKey);
-
 		if (!redo && !(key === 'z' && !event.shiftKey)) {
 			return;
 		}
@@ -2796,10 +2787,7 @@
 			}
 		} else if (action.startsWith('code.property:')) {
 			// a property edited as code, as the SQL query of a transaction or the script of a step
-			openPropertyEditor({
-				id: nodeId,
-				propertyName: action.slice('code.property:'.length)
-			});
+			openPropertyEditor({ id: nodeId, propertyName: action.slice('code.property:'.length) });
 		} else if (action === 'frontend.show') {
 			// an NGX component in the preview of its application, as the application editor of the Eclipse Studio
 			selectedId = nodeId;
@@ -3799,15 +3787,7 @@
 				toolbar: projectActions,
 				scroll: true
 			},
-
-			{
-				id: 'search',
-				title: 'Search',
-				icon: 'mdi:magnify',
-				content: searchPane,
-				lazy: true
-			},
-
+			{ id: 'search', title: 'Search', icon: 'mdi:magnify', content: searchPane, lazy: true },
 			{
 				id: 'git',
 				title: 'Source control',
@@ -3819,12 +3799,9 @@
 				id: view.id,
 				title: view.label,
 				icon: view.icon,
-				content: {
-					execution: executionPane,
-					code: codePane,
-					flow: flowPane,
-					doc: docPane
-				}[view.id],
+				content: { execution: executionPane, code: codePane, flow: flowPane, doc: docPane }[
+					view.id
+				],
 				lazy: view.id === 'flow',
 				scroll: view.id === 'execution',
 				main: true
@@ -3837,14 +3814,7 @@
 				detail: applicationProjectName,
 				main: true
 			},
-
-			{
-				id: 'palette',
-				title: 'Palette',
-				icon: 'mdi:palette-outline',
-				content: palettePane
-			},
-
+			{ id: 'palette', title: 'Palette', icon: 'mdi:palette-outline', content: palettePane },
 			{
 				id: 'properties',
 				title: 'Properties',

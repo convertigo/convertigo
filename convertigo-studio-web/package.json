@@ -6,8 +6,9 @@
 		"dev": "vite dev",
 		"build": "vite build && node post-build.js",
 		"preview": "vite preview",
-		"check": "svelte-check --tsconfig ./jsconfig.json",
-		"check:watch": "svelte-check --tsconfig ./jsconfig.json --ignore \"src/lib/studio/**/*\" --watch",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --ignore \"src/lib/studio/**/*\" --watch",
 		"test": "npm run test:integration && npm run test:unit",
 		"lint": "prettier --plugin prettier-plugin-svelte --check . && eslint .",
 		"format": "prettier --write .",
@@ -18,7 +19,7 @@
 		"generate:thumbnails": "node scripts/generate-thumbnails.mjs",
 		"deps:update": "npx npm-check-updates && npx npm-check-updates --no-peer --reject '/^(?!(svelte|tailwindcss)$).*/' && npm install",
 		"deps:minor-update": "npx npm-check-updates --target minor && npx npm-check-updates --target minor --no-peer --reject '/^(?!(svelte|tailwindcss)$).*/' && npm install",
-		"check:admin": "svelte-check --tsconfig ./jsconfig.admin.json",
+		"check:admin": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.admin.json",
 		"lint:admin": "eslint \"src/lib/admin/**/*.{js,svelte,ts}\" \"src/lib/common/**/*.{js,svelte,ts}\" \"src/lib/dashboard/**/*.{js,svelte,ts}\" \"src/lib/utils/**/*.{js,svelte,ts}\" \"src/routes/(app)/admin/**/*.{js,svelte,ts}\" \"src/routes/(app)/dashboard/**/*.{js,svelte,ts}\" \"src/routes/(root)/login/**/*.{js,svelte,ts}\" \"src/routes/+layout.svelte\" \"src/routes/(app)/+layout.svelte\" --ignore-pattern \"src/routes/(app)/admin/certificates/**\" --ignore-pattern \"src/routes/(app)/admin/projects/**\" --ignore-pattern \"src/routes/(app)/admin/roles/**\" --ignore-pattern \"src/routes/(app)/admin/symbols/**\""
 	},
 	"overrides": {
@@ -36,20 +37,17 @@
 		"@playwright/test": "^1.64.0",
 		"@skeletonlabs/skeleton": "^5.0.1",
 		"@skeletonlabs/skeleton-svelte": "^5.0.1",
-		"@sveltejs/adapter-auto": "^8.0.0",
 		"@sveltejs/adapter-static": "^4.0.0",
 		"@sveltejs/kit": "^3.0.1",
 		"@sveltejs/load-config": "^0.2.3",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@tailwindcss/forms": "0.5.11",
-		"@tailwindcss/typography": "0.5.20",
 		"@types/node": "^26.6.4",
 		"@typescript-eslint/parser": "^8.71.1",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.23.0",
 		"globals": "^17.13.0",
-		"postcss-nesting": "^14.0.3",
 		"prettier": "^3.9.9",
 		"prettier-plugin-svelte": "^4.1.1",
 		"prettier-plugin-tailwindcss": "^0.8.1",
@@ -65,7 +63,6 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@flaticon/flaticon-uicons": "^3.3.1",
 		"@floating-ui/dom": "^1.8.0",
 		"@internationalized/date": "^3.12.4",
 		"@tailwindcss/vite": "^4.3.3",
@@ -73,8 +70,6 @@
 		"@zag-js/tree-view": "^1.45.0",
 		"apexcharts": "^5.16.0",
 		"bits-ui": "^2.19.5",
-		"caniuse-lite": "^1.0.30001815",
-		"chart.js": "^4.5.1",
 		"dockview": "^8.4.1",
 		"fast-xml-parser": "^5.11.2",
 		"fs-extra": "^11.4.1",
@@ -82,11 +77,9 @@
 		"marked": "^18.1.0",
 		"monaco-editor": "^0.57.0",
 		"svelte-persisted-state": "^1.4.1",
-		"svelte-persisted-store": "^0.12.0",
 		"svelte-tiny-virtual-list": "^3.0.1"
 	},
 	"imports": {
-		"#lib": "./src/lib/index.js",
 		"#lib/*": "./src/lib/*"
 	}
 }

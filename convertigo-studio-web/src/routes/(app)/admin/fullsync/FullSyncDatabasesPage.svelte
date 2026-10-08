@@ -371,9 +371,9 @@
 						aria-label="Previous page"
 						disabled={dbPageSafe <= 1}
 						onclick={() => (dbPage = dbPageSafe - 1)}
-						><Ico icon="mdi:arrow-left-bold-outline" /></button
 					>
-
+						<Ico icon="mdi:arrow-left-bold-outline" />
+					</button>
 					<span class="min-w-6 text-center font-medium">{dbPageSafe}</span>
 					<button
 						type="button"
@@ -382,8 +382,9 @@
 						aria-label="Next page"
 						disabled={dbPageSafe >= dbTotalPages}
 						onclick={() => (dbPage = dbPageSafe + 1)}
-						><Ico icon="mdi:arrow-right-bold-outline" /></button
 					>
+						<Ico icon="mdi:arrow-right-bold-outline" />
+					</button>
 				</ActionBar>
 			</div>
 		</fieldset>

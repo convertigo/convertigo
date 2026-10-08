@@ -1,9 +1,9 @@
 <script>
 	import AccordionGroup from '#lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '#lib/common/components/AccordionSection.svelte';
+	import { bezelThumbnail } from '#lib/dashboard/bezelAssets.js';
 	import Bezels from '#lib/dashboard/Bezels.js';
 	import Ico from '#lib/utils/Ico.svelte';
-	import { asset } from '$app/paths';
 	import {
 		addCustomDevice,
 		deviceById,
@@ -19,13 +19,7 @@
 			title: 'Apple iPhone',
 			match: (device) => device.id?.startsWith('iPhone-')
 		},
-
-		{
-			id: 'apple-ipad',
-			title: 'Apple iPad',
-			match: (device) => device.id?.startsWith('iPad-')
-		},
-
+		{ id: 'apple-ipad', title: 'Apple iPad', match: (device) => device.id?.startsWith('iPad-') },
 		{
 			id: 'apple-mac',
 			title: 'Apple Mac',
@@ -149,11 +143,7 @@
 		{:else}
 			<img
 				class="studio-device-panel__summary-thumb"
-				src={asset(
-					/** @type {import('$app/types').AssetPath} */ (
-						`bezels/thumbnails/${selectedDevice.id}.webp`
-					)
-				)}
+				src={bezelThumbnail(selectedDevice.id)}
 				alt=""
 				loading="lazy"
 			/>
@@ -232,11 +222,7 @@
 								{:else}
 									<img
 										class="studio-device-panel__device-thumb"
-										src={asset(
-											/** @type {import('$app/types').AssetPath} */ (
-												`bezels/thumbnails/${device.id}.webp`
-											)
-										)}
+										src={bezelThumbnail(device.id)}
 										alt=""
 										loading="lazy"
 									/>

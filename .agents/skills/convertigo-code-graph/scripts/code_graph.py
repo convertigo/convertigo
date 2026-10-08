@@ -195,7 +195,7 @@ def build(repo):
     if not code:
         raise ValueError('No tracked Java or Studio web code found')
     if ALIAS_CONFIG not in files:
-        print('NOTE: generated SvelteKit tsconfig absent; standard $lib resolution remains available.',
+        print('NOTE: generated SvelteKit tsconfig absent; standard #lib and $lib resolution remains available.',
               flush=True)
     state = {'schema_version': SCHEMA_VERSION, 'graphify_version': version,
              'commit': git(repo, 'rev-parse', 'HEAD').decode().strip(),

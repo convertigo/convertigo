@@ -17,11 +17,11 @@ export function adminEventsUrl(topics = DEFAULT_TOPICS, options = {}) {
 	const baseUrl = options.baseUrl ?? `${getUrl()}events.Subscribe`;
 	const origin = options.origin ?? (browser ? window.location.origin : 'http://localhost');
 	const url = new URL(baseUrl, origin);
-
 	url.searchParams.set(
 		'topics',
 		(selectedTopics.length ? selectedTopics : DEFAULT_TOPICS).join(',')
 	);
+
 	const xsrfToken =
 		options.xsrfToken ?? (browser ? (localStorage.getItem('x-xsrf-token') ?? 'Fetch') : '');
 	if (xsrfToken) {

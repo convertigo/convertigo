@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
-@plugin '@tailwindcss/typography';
 @import '@skeletonlabs/skeleton-svelte';
 @source './';
 @import '@fontsource-variable/ibm-plex-sans';

@@ -3,11 +3,11 @@
 	import MaxRectangle from '#lib/admin/components/MaxRectangle.svelte';
 	import AccordionGroup from '#lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '#lib/common/components/AccordionSection.svelte';
+	import { bezelImage, bezelThumbnail } from '#lib/dashboard/bezelAssets.js';
 	import Bezels from '#lib/dashboard/Bezels.js';
 	import Ico from '#lib/utils/Ico.svelte';
 	import { getFrontendUrl } from '#lib/utils/service.js';
 	import { goto } from '$app/navigation';
-	import { asset } from '$app/paths';
 	import { page } from '$app/state';
 	import { onDestroy, onMount } from 'svelte';
 	import { Spring } from 'svelte/motion';
@@ -21,13 +21,7 @@
 			title: 'Apple — iPhone',
 			match: (device) => device.id?.startsWith('iPhone-')
 		},
-
-		{
-			id: 'apple-ipad',
-			title: 'Apple — iPad',
-			match: (device) => device.id?.startsWith('iPad-')
-		},
-
+		{ id: 'apple-ipad', title: 'Apple — iPad', match: (device) => device.id?.startsWith('iPad-') },
 		{
 			id: 'apple-mac',
 			title: 'Apple — Mac',
@@ -415,20 +409,9 @@
 														class="z-10 layout-x-none h-12 w-12 shrink-0 justify-center overflow-hidden rounded-sm md:h-16 md:w-16"
 														aria-hidden="true"
 													>
-														<source
-															srcset={asset(
-																/** @type {import('$app/types').AssetPath} */ (
-																	`bezels/thumbnails/${id}.webp`
-																)
-															)}
-															type="image/webp"
-														/>
+														<source srcset={bezelThumbnail(id)} type="image/webp" />
 														<img
-															src={asset(
-																/** @type {import('$app/types').AssetPath} */ (
-																	`bezels/thumbnails/${id}.webp`
-																)
-															)}
+															src={bezelThumbnail(id)}
 															alt=""
 															class="max-h-full max-w-full"
 															loading="lazy"
@@ -511,7 +494,6 @@
 >
 	<div class="order-1 flex shrink-0 items-center gap-[1px]">
 		<Button icon="mdi:arrow-left" title="Go back" onclick={navigateBack} cls={iconButtonClasses} />
-
 		<Button
 			icon="mdi:arrow-right"
 			title="Go forward"
@@ -589,17 +571,10 @@
 				{#if selectedDevice.id != 'none'}
 					{#key `${selectedDevice.id}-${orientation}`}
 						<picture class="pointer-events-none absolute inset-0 select-none" aria-hidden="true">
-							<source
-								srcset={asset(
-									/** @type {import('$app/types').AssetPath} */ (`bezels/${selectedDevice.id}.webp`)
-								)}
-								type="image/webp"
-							/>
+							<source srcset={bezelImage(selectedDevice.id)} type="image/webp" />
 
 							<img
-								src={asset(
-									/** @type {import('$app/types').AssetPath} */ (`bezels/${selectedDevice.id}.webp`)
-								)}
+								src={bezelImage(selectedDevice.id)}
 								alt=""
 								class="min-h-full min-w-full"
 								loading="lazy"

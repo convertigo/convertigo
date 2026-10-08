@@ -4,9 +4,9 @@ import Authentication from '#lib/common/Authentication.svelte.js';
 import ServerConnection, {
 	isServerUnavailableStatus
 } from '#lib/common/ServerConnection.svelte.js';
+import { resolve } from '#lib/utils/route.js';
 import { browser, building, dev } from '$app/env';
 import { goto } from '$app/navigation';
-import { resolve } from '$app/paths';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 
 export const toaster = createToaster();
@@ -392,16 +392,15 @@ function handleStateMessage(res, service) {
 						return;
 					}
 					const isLoginRoute = location.pathname.includes('/login');
-					const isAdminRoute = location.pathname.startsWith(resolve('admin/'));
-					const isDashboardRoute = location.pathname.startsWith(resolve('dashboard/'));
+					const isAdminRoute = location.pathname.startsWith(resolve('/admin/'));
+					const isDashboardRoute = location.pathname.startsWith(resolve('/dashboard/'));
 					if (!Authentication.authenticated) {
 						if (!isLoginRoute) {
 							const redirect = encodeURIComponent(location.pathname + location.search);
-							goto(`${resolve('login/')}${redirect ? `?redirect=${redirect}` : ''}`);
+							goto(`${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`);
 						}
 						return;
 					}
-
 					const mustRedirectToLogin =
 						(!Authentication.canAccessDashboard && !Authentication.canAccessAdmin) ||
 						(isAdminRoute && !Authentication.canAccessAdmin) ||
@@ -409,7 +408,7 @@ function handleStateMessage(res, service) {
 
 					if (!isLoginRoute && mustRedirectToLogin) {
 						const redirect = encodeURIComponent(location.pathname + location.search);
-						goto(`${resolve('login/')}${redirect ? `?redirect=${redirect}` : ''}`);
+						goto(`${resolve('/login/')}${redirect ? `?redirect=${redirect}` : ''}`);
 						return;
 					}
 
@@ -488,7 +487,7 @@ function handleStateMessage(res, service) {
 }
 
 export function getUrl(path = 'admin/services/') {
-	let prefix = resolve('/(root)');
+	let prefix = resolve('/');
 	if (dev) {
 		prefix += 'convertigo/';
 	}
@@ -510,8 +509,6 @@ export function getThumbnailUrl(projectName) {
 	}
 	return `${getUrl()}projects.Thumbnail?projectName=${encodeURIComponent(projectName ?? '')}`;
 }
-
-// $lib/utils/xmlConverter.js
 
 export function toXml() {
 	let xml = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -572,7 +569,6 @@ export async function saveDboProject(projectName = '', id = '', options = {}) {
 	// readme: the save writes the readme.md file of the project again
 	const { readme, ...callOptions } = /** @type {Record<string, any>} */ (options);
 	options = callOptions;
-
 	let result = await call(
 		'studio.dbo.Save',
 		{ projectName, id, ...(readme ? { readme: 'true' } : {}) },

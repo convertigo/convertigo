@@ -31,7 +31,6 @@
 				class="h-full max-h-screen w-40 max-w-[85vw] -translate-x-full overflow-y-auto border-r border-color bg-surface-100-900 p-0 transition-transform duration-200 data-[state=open]:translate-x-0"
 			>
 				<PagesRailToggle bind:state={showDrawer} class="h-fit! w-fit! px-5 py-low" />
-
 				<PagesRail {parts} />
 			</Dialog.Content>
 		</Dialog.Positioner>

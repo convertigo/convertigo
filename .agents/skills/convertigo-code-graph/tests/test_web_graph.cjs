@@ -14,7 +14,7 @@ const sources = {
     `export async function call(service) {let url=getUrl()+service;return fetch(url)} export function getUrl(path='admin/services/') {return path}`,
   [base + "common/ServiceHelper.svelte.js"]:
     `import {call} from '../utils/service';export default function ({service}) {call(service)}`,
-  [base + "wrapper.js"]: `import {call as rpc} from '$lib/utils/service';
+  [base + "wrapper.js"]: `import {call as rpc} from '#lib/utils/service';
     function categories(){return rpc('studio.palette.Get')}
     export function palette(id, load=categories){return load(id)}
     export function rename(){return rpc('studio.dbo.Rename')}
@@ -27,7 +27,7 @@ const sources = {
   [base + "StateView.svelte"]:
     `<script>import State from './State.svelte.js';let {remove}=$derived(State);</script><button onclick={()=>State.add()}>Add</button><button onclick={()=>remove()}>Remove</button>`,
   [base + "Test.svelte"]: `<script lang="ts">
-    import {call as rpc, getUrl} from '$lib/utils/service';
+    import {call as rpc, getUrl} from '#lib/utils/service';
     import {palette, rename} from './wrapper';
     import Helper from './common/ServiceHelper.svelte.js';
     const endpoint: string = 'studio.dbo.ImportCopybook';
@@ -48,6 +48,7 @@ const sources = {
     `function local(){return 1};export {local as renamed};export default local;`,
   [base + "Alias.ts"]:
     `import {renamed as imported} from './Export'; export function use(){return imported()}`,
+  [base + "Missing.js"]: `import {nothing} from '#lib/utils/missing';`,
   [base + "Template.svelte"]:
     `<script>import {call} from '$lib/utils/service';</script>{call('studio.Template')}`,
 };
@@ -58,6 +59,12 @@ try {
   }
   const graph = extract(temporary, dependencyRoot, Object.keys(sources));
   assert.equal(graph.parse_errors, 1);
+  assert.deepEqual(
+    graph.warnings
+      .filter((w) => w.reason === "unresolved local import")
+      .map((w) => w.expression),
+    ["#lib/utils/missing"],
+  );
   const services = graph.requests.flatMap((r) => r.services ?? []);
   assert(services.includes("studio.dbo.ImportCopybook"));
   assert(services.includes("roles.List"));

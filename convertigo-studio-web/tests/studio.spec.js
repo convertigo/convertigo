@@ -890,6 +890,8 @@ async function openTreeMenu(page, nodeId) {
 		.first()
 		.click({ button: 'right' });
 	await expect(page.getByRole('menuitem', { name: 'Group by tags', exact: true })).toBeVisible();
+	// the menu takes the focus a moment after it shows: a key pressed before reaches the tree
+	await expect(page.getByRole('menu').first()).toBeFocused();
 }
 
 async function mockTagServices(page, options = {}) {

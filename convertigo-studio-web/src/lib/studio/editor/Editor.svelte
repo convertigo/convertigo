@@ -342,7 +342,6 @@
 				runs.map((run) => new Monaco.Range(run.startLine, 1, run.endLine, 1)),
 				'c8o-zones'
 			);
-
 			editor.changeViewZones((/** @type {any} */ accessor) => {
 				for (const id of foldZoneIds) accessor.removeZone(id);
 				foldZoneIds = [];

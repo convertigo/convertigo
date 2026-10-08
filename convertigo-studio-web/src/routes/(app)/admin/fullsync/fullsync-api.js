@@ -113,7 +113,6 @@ function isExplicitFullSyncConfigError(error) {
 	const message = String(error?.message ?? '')
 		.trim()
 		.toLowerCase();
-
 	return (
 		error?.status === 401 ||
 		error?.status === 403 ||
@@ -315,7 +314,6 @@ export async function listDocumentIdSuggestions(dbName, { prefix = '', limit = 3
 		omitSkip: true
 	});
 	const rows = Array.isArray(response?.rows) ? response.rows : [];
-
 	return Array.from(
 		new Set(
 			rows.map((row) => (typeof row?.id == 'string' ? row.id : '')).filter((id) => id.length > 0)

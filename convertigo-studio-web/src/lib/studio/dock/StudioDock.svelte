@@ -352,11 +352,9 @@
 		if (!Array.isArray(node.data) || node.data.length !== sized.data?.length) {
 			return null;
 		}
-
 		const data = node.data.map((/** @type {any} */ child, /** @type {number} */ index) =>
 			withSizes(child, sized.data[index])
 		);
-
 		return data.every(Boolean) ? { ...node, data, size: sized.size } : null;
 	}
 
@@ -504,7 +502,6 @@
 		if (desktop || !layout?.popoutGroups?.length) {
 			return layout;
 		}
-
 		const floating = layout.popoutGroups
 			.filter((/** @type {any} */ popout) => popout.data || popout.grid)
 			.map((/** @type {any} */ popout, /** @type {number} */ index) => ({
@@ -517,11 +514,7 @@
 				}
 			}));
 		const { popoutGroups: _popouts, ...rest } = layout;
-
-		return {
-			...rest,
-			floatingGroups: [...(layout.floatingGroups ?? []), ...floating]
-		};
+		return { ...rest, floatingGroups: [...(layout.floatingGroups ?? []), ...floating] };
 	}
 
 	/**
@@ -569,7 +562,6 @@
 			const size = narrow
 				? Math.round(height * (area === 'bottom' ? 0.3 : 0.28))
 				: (layout?.sizes?.[area] ?? DEFAULT_SIZES[area]);
-
 			first[area]?.group?.api.setSize(
 				narrow || area === 'bottom' ? { height: size } : { width: size }
 			);
@@ -754,7 +746,6 @@
 			areaViews(area, layout)
 				.map((other) => api?.getPanel(other))
 				.find(Boolean);
-
 		if (reference) {
 			options.position = { referencePanel: reference.id, direction: 'within' };
 		} else if (api.panels.length && (narrow || area !== 'center')) {
@@ -825,12 +816,7 @@
 					'closeOthers',
 					'separator',
 					...(panel.api.location?.type === 'popout'
-						? [
-								{
-									label: 'Move back to the Studio',
-									action: () => movePopoutBack(panel.group)
-								}
-							]
+						? [{ label: 'Move back to the Studio', action: () => movePopoutBack(panel.group) }]
 						: [
 								...(panel.api.location?.type === 'floating'
 									? []
@@ -841,11 +827,7 @@
 											},
 											'float'
 										]),
-
-								{
-									label: 'Move to a new window',
-									action: () => void popoutGroup(panel)
-								}
+								{ label: 'Move to a new window', action: () => void popoutGroup(panel) }
 							])
 				])
 		});

@@ -41,9 +41,10 @@ images, dependencies, and untracked source files. It never edits source files.
 
 Java uses Graphify's AST extractor. Svelte uses the real Svelte compiler parser,
 including templates; script and template expressions use Babel's lexical scopes.
-Relative imports and the repository's standard `$lib` alias are resolved against
-selected tracked files. Generated SvelteKit alias configuration is included in
-the freshness fingerprint when present, but is not required for `$lib` resolution.
+Relative imports, the repository's `#lib` subpath imports, and the older `$lib`
+alias are resolved against selected tracked files. Generated SvelteKit alias
+configuration is included in the freshness fingerprint when present, but is not
+required for `#lib` or `$lib` resolution.
 Other aliases, re-exports, dynamic imports, and arbitrary object dispatch are not
 fully resolved. Parser failures and unresolved local imports are recorded.
 

@@ -34,9 +34,6 @@ export default defineConfig(({ command }) => {
 			convertigo(),
 			tailwindcss(),
 			sveltekit({
-				extensions: ['.svelte'],
-				// Consult https://kit.svelte.dev/docs/integrations#preprocessors
-				// for more information about preprocessors
 				preprocess: [vitePreprocess()],
 				inspector: true,
 				onwarn: (warning, handler) => {
@@ -45,10 +42,6 @@ export default defineConfig(({ command }) => {
 					}
 					handler(warning);
 				},
-
-				// adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.
-				// If your environment is not supported or you settled on a specific environment, switch out the adapter.
-				// See https://kit.svelte.dev/docs/adapters for more information about adapters.
 				adapter: adapter({
 					pages: '../eclipse-plugin-studio/tomcat/webapps/convertigo/tmp',
 					strict: false
@@ -64,13 +57,10 @@ export default defineConfig(({ command }) => {
 			Icons({ compiler: 'svelte', autoInstall: true, defaultClass: 'ico' })
 		],
 		build: {
-			rollupOptions: {
+			rolldownOptions: {
 				output: {
-					manualChunks(id) {
-						if (id.includes('@xyflow/svelte')) {
-							return 'xyflow';
-						}
-					}
+					// SvelteKit 3 sets codeSplitting, which ignores manualChunks
+					codeSplitting: { groups: [{ name: 'xyflow', test: /@xyflow[\\/]svelte/ }] }
 				}
 			}
 		}

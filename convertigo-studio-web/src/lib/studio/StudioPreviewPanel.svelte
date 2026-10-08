@@ -2,10 +2,10 @@
 	import Button from '#lib/admin/components/Button.svelte';
 	import MaxRectangle from '#lib/admin/components/MaxRectangle.svelte';
 	import Projects from '#lib/common/Projects.svelte.js';
+	import { bezelImage, bezelThumbnail } from '#lib/dashboard/bezelAssets.js';
 	import Bezels from '#lib/dashboard/Bezels.js';
 	import Ico from '#lib/utils/Ico.svelte';
 	import { call, getFrontendUrl, toaster } from '#lib/utils/service.js';
-	import { asset } from '$app/paths';
 	import { tick, untrack } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { captureElement } from './elementCapture';
@@ -175,7 +175,6 @@
 				tone: failed ? 'failed' : 'success',
 				progress: -1
 			};
-
 			bannerTimer = setTimeout(
 				() => (banner = { label: '', tone: 'busy', progress: -1 }),
 				failed ? BANNER_FAILED_TIME : BANNER_RESULT_TIME
@@ -212,17 +211,14 @@
 	let projectPreview = $state(
 		/** @type {{ device?: string, landscape?: boolean, zoom?: number, zoomMode?: string, dataset?: string }} */ ({})
 	);
-
 	let zoom = $derived(
 		zoomOverride.base === previewUrl ? zoomOverride.value : (projectPreview.zoom ?? 1)
 	);
-
 	let zoomMode = $derived(
 		zoomModeOverride.base === previewUrl
 			? zoomModeOverride.value
 			: (projectPreview.zoomMode ?? 'fit')
 	);
-
 	let trimmedAddress = $derived(addressBar.trim());
 	/** an address typed and not loaded yet, which the ↵ button of the field loads as Enter */
 	let addressEdited = $derived(
@@ -232,7 +228,6 @@
 	/** the desktop Studio, which opens the developer tools of an application in a window of its own */
 	const desktopStudio =
 		typeof window !== 'undefined' && Boolean(/** @type {any} */ (window).convertigoStudio);
-
 	let barHeight = $state(0);
 	let deviceGroups = $derived.by(buildDeviceGroups);
 	let selectedDevice = $derived(deviceById(selectedDeviceId));
@@ -277,7 +272,6 @@
 	let zoomChoices = $derived(
 		[...new Set([...ZOOM_CHOICES, ...(zoomMode === 'fit' ? [] : [zoom])])].sort((a, b) => a - b)
 	);
-
 	let deviceChipLabel = $derived(
 		isResponsivePreview
 			? 'Responsive'
@@ -1376,11 +1370,7 @@
 							{:else}
 								<img
 									class="studio-preview__device-thumb"
-									src={asset(
-										/** @type {import('$app/types').AssetPath} */ (
-											`bezels/thumbnails/${selectedDevice.id}.webp`
-										)
-									)}
+									src={bezelThumbnail(selectedDevice.id)}
 									alt=""
 									loading="lazy"
 								/>
@@ -1559,24 +1549,9 @@
 						></iframe>
 						{#if isFramedDevice}
 							<picture class="studio-preview__bezel" aria-hidden="true">
-								<source
-									srcset={asset(
-										/** @type {import('$app/types').AssetPath} */ (
-											`bezels/${selectedDevice.id}.webp`
-										)
-									)}
-									type="image/webp"
-								/>
+								<source srcset={bezelImage(selectedDevice.id)} type="image/webp" />
 
-								<img
-									src={asset(
-										/** @type {import('$app/types').AssetPath} */ (
-											`bezels/${selectedDevice.id}.webp`
-										)
-									)}
-									alt=""
-									loading="lazy"
-								/>
+								<img src={bezelImage(selectedDevice.id)} alt="" loading="lazy" />
 							</picture>
 						{/if}
 					</div>

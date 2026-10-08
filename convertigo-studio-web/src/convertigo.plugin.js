@@ -181,7 +181,6 @@ let lastUtilitiesHash = '';
 let lastMonacoHash = '';
 
 export default function GenerateLayoutCssPlugin() {
-	let generate = true;
 	const cwd = process.cwd();
 
 	function ensureMonacoAssets() {
@@ -212,13 +211,8 @@ export default function GenerateLayoutCssPlugin() {
 
 	return {
 		name: 'convertigo-utilities-css-plugin',
-		configResolved(config) {
-			generate = config.build.ssr || config.env.DEV;
-		},
+		// every environment of SvelteKit 3 starts its build here: the hashes write the files once
 		buildStart() {
-			if (!generate) {
-				return;
-			}
 			const css = generateLayoutCss();
 			const outPath = path.resolve(process.cwd(), 'src/convertigo.utilities.css');
 			const hash = crypto.createHash('sha1').update(css).digest('hex');
