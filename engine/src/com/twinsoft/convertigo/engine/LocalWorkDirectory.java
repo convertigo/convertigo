@@ -27,11 +27,19 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
@@ -321,6 +329,15 @@ public final class LocalWorkDirectory {
 					warn("Local working directory: " + mirrored + " is not a link to " + entry + ", left as is", null);
 					continue;
 				}
+				var kept = keptFolders(entry, directory);
+				if (!kept.isEmpty()) {
+					// a folder of the project holding a folder kept here (its link, left in the project, outlives a restart
+					// that emptied this directory): linked, the link left in the project would lead back to itself
+					for (var target : kept) {
+						Files.createDirectories(target);
+					}
+					continue;
+				}
 				Files.createSymbolicLink(mirrored, entry);
 			}
 		}
@@ -331,6 +348,44 @@ public final class LocalWorkDirectory {
 				}
 			}
 		}
+	}
+
+	/** Where the kept folders are linked from (the private folder, the packages of a builder), not under the others. */
+	private static final int KEPT_FOLDERS_DEPTH = 4;
+	private static final Set<String> WITHOUT_KEPT_FOLDERS = Set.of("DisplayObjects", "node_modules", ".git");
+
+	/** @return the targets, in the directory of the project here, of the links to it left under a folder of the project */
+	private static List<Path> keptFolders(Path folder, Path directory) throws IOException {
+		var kept = new ArrayList<Path>();
+		if (!Files.isDirectory(folder, LinkOption.NOFOLLOW_LINKS)) {
+			return kept;
+		}
+		Files.walkFileTree(folder, EnumSet.noneOf(FileVisitOption.class), KEPT_FOLDERS_DEPTH,
+				new SimpleFileVisitor<Path>() {
+					@Override
+					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes) {
+						return !dir.equals(folder) && WITHOUT_KEPT_FOLDERS.contains(dir.getFileName().toString())
+								? FileVisitResult.SKIP_SUBTREE
+								: FileVisitResult.CONTINUE;
+					}
+
+					@Override
+					public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
+						if (attributes.isSymbolicLink()) {
+							var target = Files.readSymbolicLink(file);
+							if (target.startsWith(directory)) {
+								kept.add(target);
+							}
+						}
+						return FileVisitResult.CONTINUE;
+					}
+
+					@Override
+					public FileVisitResult visitFileFailed(Path file, IOException e) {
+						return FileVisitResult.CONTINUE;
+					}
+				});
+		return kept;
 	}
 
 	/** Relocated folders are symbolic links: without them (Windows without the privilege), nothing is relocated. */

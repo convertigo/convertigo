@@ -126,6 +126,27 @@ public class LocalWorkDirectoryTest {
 	}
 
 	@Test
+	public void aFolderHoldingAFolderKeptHereIsNotLinkedAfterARestart() throws Exception {
+		// the packages of a builder, kept here through a link left in the project, whose directory a restart emptied
+		var nodeModules = new File(project, "_flow/frontbuilder/svelte/node_modules");
+		nodeModules.getParentFile().mkdirs();
+		Files.writeString(new File(project, "_flow/frontbuilder/svelte/package.json").toPath(), "{}");
+		Files.createSymbolicLink(nodeModules.toPath(), local("_flow/frontbuilder/svelte/node_modules").toPath());
+		LocalWorkDirectory.use(open("v1"));
+
+		// another folder of the project kept here mirrors the project
+		LocalWorkDirectory.relocate("App", project, IONIC);
+		assertFalse("the folder holding the packages is not linked", Files.isSymbolicLink(local("_flow").toPath()));
+		assertEquals("the link left in the project leads here, not back to itself",
+				local("_flow/frontbuilder/svelte/node_modules").toPath().toRealPath(), nodeModules.toPath().toRealPath());
+		assertTrue("the other entries are mirrored", Files.isSymbolicLink(local("DisplayObjects").toPath()));
+
+		// the packages kept here again
+		LocalWorkDirectory.relocate("App", project, "_flow/frontbuilder/svelte/node_modules");
+		assertTrue(nodeModules.isDirectory());
+	}
+
+	@Test
 	public void theMirrorFollowsTheProject() throws Exception {
 		LocalWorkDirectory.use(open("v1"));
 		LocalWorkDirectory.relocate("App", project, IONIC);
