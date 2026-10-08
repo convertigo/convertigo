@@ -36,13 +36,15 @@ public class ProjectLoad extends ConvertigoTask {
 	private String projectVersion;
 	private String mobileApplicationEndpoint;
 	private File gitContainer;
+	// read at configuration: Gradle 10 refuses Task.project at execution
+	private final File projectDir = getProject().getProjectDir();
 
 	@Internal
 	synchronized Project getConvertigoProject() throws Exception {
 		if (convertigoProject == null) {
 			CLI cli = plugin.getCLI();
 			
-			convertigoProject = cli.loadProject(getProject().getProjectDir(), projectVersion, mobileApplicationEndpoint, gitContainer == null ? null : gitContainer.getAbsolutePath());
+			convertigoProject = cli.loadProject(projectDir, projectVersion, mobileApplicationEndpoint, gitContainer == null ? null : gitContainer.getAbsolutePath());
 		}
 		return convertigoProject;
 	}
