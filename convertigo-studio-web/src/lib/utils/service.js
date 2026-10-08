@@ -193,9 +193,11 @@ export async function call(service, data = {}, options = {}) {
 						maxTotalExpansions: Infinity,
 						maxExpandedLength: Infinity,
 						maxEntityCount: Infinity
-					}
+					},
+					// numeric references, as the &#10; of a multi-line description, that addEntity('#10', ...)
+					// no longer decodes in recent fast-xml-parser versions
+					htmlEntities: true
 				});
-				parser.addEntity('#10', '\n');
 				dataContent = parser.parse(await res.text());
 			} else {
 				dataContent = await res.json();

@@ -15,7 +15,7 @@
 - [#1213](https://github.com/convertigo/convertigo/issues/1213) [Engine] CAR archive deployments now perform fewer filesystem operations, improving deployment times on high-latency storage
 - [#1214](https://github.com/convertigo/convertigo/issues/1214) [Engine] The connector connection string override is now reserved to calls made inside the engine
 - [#1215](https://github.com/convertigo/convertigo/issues/1215) [FullSync] FullSync connectors can allow bidirectional client replication, allow pull only, or keep their database for server-side use only with the new Replication Access property; the most restrictive settings apply to a shared database, and clients can only update the documents they can read
-- [#1224](https://github.com/convertigo/convertigo/issues/1224) [Admin] The labels of the error display properties now say what each one shows, and that hiding all error information overrides them
+- [#1224](https://github.com/convertigo/convertigo/issues/1224) [Admin] The labels of the error display properties now say what each one shows, and that hiding all error information overrides them; the console shows the line breaks of multi-line labels, such as the CORS policy, instead of `&#10;`
 
 #### Bug Fixes:
 
