@@ -375,6 +375,15 @@ public class EnginePropertiesManager {
 		}
 	};
 
+	/**
+	 * The engine properties. The description of a property is its label in the Configuration page of the
+	 * Administration Console and in the preferences of the Studio.
+	 * <p>
+	 * When you add a property, or change its behavior, its default value or its description, update its
+	 * documentation in convertigo-doc (https://github.com/convertigo/convertigo-doc): the Configuration chapter of
+	 * operating-guide/using-convertigo-administration-console/index.md and, for a setting that matters on a
+	 * production server, operating-guide/production-deployment-recommendations/index.md.
+	 */
 	@PropertyOptions
 	public enum PropertyName {
 		/** MAIN */
@@ -412,23 +421,23 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		THROW_HTTP_500_SOAP_FAULT ("throw_http_500.soap_fault", "true", "Throw HTTP 500 in case of SOAP fault", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide all error information", PropertyCategory.Main),
+		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide all error information: errors are returned to clients without any detail and XML responses without the product comment; the 'Show error' properties are then ignored", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SHOW_ERROR_REQUESTABLE_INFORMATION ("show_error_requestable_information", "true", "Show error requestable information", PropertyCategory.Main),
+		SHOW_ERROR_REQUESTABLE_INFORMATION ("show_error_requestable_information", "true", "Show error requestable information: the project, connector, transaction and sequence names of the failed requestable", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SHOW_ERROR_CONTEXT_INFORMATION ("show_error_context_information", "false", "Show error context information", PropertyCategory.Main),
+		SHOW_ERROR_CONTEXT_INFORMATION ("show_error_context_information", "false", "Show error context information: the text values stored in the context of the failed request", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SHOW_ERROR_TYPE ("show_error_type", "true", "Show error type", PropertyCategory.Main),
+		SHOW_ERROR_TYPE ("show_error_type", "true", "Show error type: 'c8o' for an engine error, 'project' for an error raised by the project", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SHOW_ERROR_CODE ("show_error_code", "true", "Show error code", PropertyCategory.Main),
+		SHOW_ERROR_CODE ("show_error_code", "true", "Show error code: the code set by an Error structure step of the project, -1 otherwise", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SHOW_ERROR_MESSAGE ("show_error_message", "true", "Show error message", PropertyCategory.Main),
+		SHOW_ERROR_MESSAGE ("show_error_message", "true", "Show error message: the message of the error", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SHOW_ERROR_DETAIL ("show_error_detail", "true", "Show error detail", PropertyCategory.Main),
+		SHOW_ERROR_DETAIL ("show_error_detail", "true", "Show error detail: the details of the error, such as those set by an Error structure step", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SHOW_ERROR_EXCEPTION ("show_error_exception", "false", "Show error exception", PropertyCategory.Main),
+		SHOW_ERROR_EXCEPTION ("show_error_exception", "false", "Show error exception: the Java class of the exception", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SHOW_ERROR_STACKTRACE ("show_error_stacktrace", "false", "Show error stacktrace", PropertyCategory.Main),
+		SHOW_ERROR_STACKTRACE ("show_error_stacktrace", "false", "Show error stacktrace: the Java stack trace of the exception", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
 		UPDATE_STEPS ("update.steps", "false", "Update steps", PropertyCategory.Main),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
