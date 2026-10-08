@@ -96,5 +96,24 @@ public class ApplicationBuildsTest {
 	public void theStatusPageTellsTheStateOfTheBuildUntilItIsBuilt() throws Exception {
 		var projectDir = new File(base, "App");
 		assertNull("unknown: the files are served", ApplicationBuilds.statusPage("App", projectDir));
+		var mobile = new File(projectDir, "DisplayObjects/mobile");
+		Files.createDirectories(mobile.toPath());
+		Files.writeString(new File(mobile, "index.html").toPath(), "This is an unbuilt application");
+		try {
+			ApplicationBuilds.setState("App", ApplicationBuilds.State.pending);
+			assertNotNull("waiting, without build: the page", ApplicationBuilds.statusPage("App", projectDir));
+
+			Files.createDirectories(new File(mobile, "_app/immutable").toPath());
+			assertNull("a SvelteKit build is there: the application, never \"waiting\"", ApplicationBuilds.statusPage("App", projectDir));
+
+			FileUtils.deleteQuietly(new File(mobile, "_app"));
+			Files.writeString(new File(mobile, "env.json").toPath(), "{\"appGenerationTime\": 1791450000000}");
+			assertNull("an NGX build is there: the application", ApplicationBuilds.statusPage("App", projectDir));
+
+			ApplicationBuilds.setState("App", ApplicationBuilds.State.failed);
+			assertNotNull("a failed build is still told", ApplicationBuilds.statusPage("App", projectDir));
+		} finally {
+			ApplicationBuilds.setState("App", null);
+		}
 	}
 }

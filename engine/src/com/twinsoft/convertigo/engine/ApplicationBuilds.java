@@ -94,7 +94,12 @@ public final class ApplicationBuilds {
 		}
 		var name = project.getName();
 		if (queued.add(name)) {
-			states.put(name, State.pending);
+			// only an application known to have no build waits; the builders of a Flow project tell it in the background
+			if (ngxApplication(project) != null) {
+				states.put(name, State.pending);
+			} else {
+				states.remove(name);
+			}
 			executor().execute(() -> {
 				queued.remove(name);
 				Log4jHelper.mdcClear();
@@ -144,6 +149,10 @@ public final class ApplicationBuilds {
 		if (state == null || state == State.built) {
 			return null;
 		}
+		if ((state == State.pending || state == State.elsewhere) && looksBuilt(projectDir)) {
+			// an application is there, whatever the queue thinks
+			return null;
+		}
 		if (state == State.elsewhere && !new File(projectDir, "DisplayObjects/" + LOCK).exists()) {
 			// the other instance is done
 			states.remove(project, state);
@@ -180,6 +189,31 @@ public final class ApplicationBuilds {
 		return page().replace("%REFRESH%", progress ? "<meta http-equiv=\"refresh\" content=\"15\">\n" : "")
 				.replace("%STATE%", state.name()).replace("%TITLE%", title).replace("%MESSAGE%", message)
 				.replace("%PROJECT%", escape(project));
+	}
+
+	/**
+	 * @return whether DisplayObjects/mobile holds a build: the env.json an NGX production build writes, or the _app
+	 *         folder of a SvelteKit build, which the page of an unbuilt application delivered with a project has not
+	 */
+	static boolean looksBuilt(File projectDir) {
+		var mobile = new File(projectDir, "DisplayObjects/mobile");
+		if (new File(mobile, "_app").isDirectory()) {
+			return true;
+		}
+		try {
+			return Files.readString(new File(mobile, "env.json").toPath(), StandardCharsets.UTF_8).contains("\"appGenerationTime\"");
+		} catch (IOException e) {
+			return false;
+		}
+	}
+
+	/** For the tests: the state of the build of the application of a project. */
+	static void setState(String project, State state) {
+		if (state == null) {
+			states.remove(project);
+		} else {
+			states.put(project, state);
+		}
 	}
 
 	/** @return whether the page tells a build going on, which a client can wait for */
@@ -246,9 +280,11 @@ public final class ApplicationBuilds {
 	/** @return the application of the project when it has no build, else null */
 	private static Application application(Project project) {
 		var flow = flowApplication(project);
-		if (flow != null) {
-			return flow;
-		}
+		return flow != null ? flow : ngxApplication(project);
+	}
+
+	/** @return the NGX application of the project when it has no build, else null: cheap */
+	private static Application ngxApplication(Project project) {
 		try {
 			var mobileApplication = project.getMobileApplication();
 			if (mobileApplication != null && mobileApplication
