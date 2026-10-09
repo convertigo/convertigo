@@ -352,7 +352,7 @@ public class ProcessUtils {
 	public static File getNodeDir(String version, ProgressListener progress) throws Exception {
 		synchronized (defaultNodeVersion) {
 			File dir = getLocalNodeDir(version);
-			Engine.logEngine.info("getLocalNodeDir " + dir + (dir.exists() ? " exists" : " doesn't exist"));
+			Engine.logEngine.debug("getLocalNodeDir " + dir + (dir.exists() ? " exists" : " doesn't exist"));
 			if (dir.exists()) {
 				if (!Engine.isWindows() && !dir.getName().equals("bin")) {
 					dir = new File(dir, "bin");
