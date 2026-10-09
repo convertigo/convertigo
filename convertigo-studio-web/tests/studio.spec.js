@@ -1802,7 +1802,7 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 	await expect(assistantFrame.getByTestId('assistant-context')).toHaveText(
 		'AnotherFlowProject · studio'
 	);
-	await expect(assistantElement).toHaveAttribute('src', originalAssistantUrl);
+	await expect(assistantElement).toHaveAttribute('src', originalAssistantUrl ?? '');
 	await expect(assistantFrame.getByTestId('assistant-context')).toHaveAttribute(
 		'data-conversation-proof',
 		'keep-this-conversation'

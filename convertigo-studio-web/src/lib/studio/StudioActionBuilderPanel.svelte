@@ -73,7 +73,7 @@
 		} catch (error) {
 			if (!disposed) {
 				failed = true;
-				lines = [...lines.slice(-1999), error.message];
+				lines = [...lines.slice(-1999), error instanceof Error ? error.message : String(error)];
 				onFailedChange?.(true);
 				onActivity?.({ phase: '', progress: -1, result: 'failed', serial: ++serial });
 			}
