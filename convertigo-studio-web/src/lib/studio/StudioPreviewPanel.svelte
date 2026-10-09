@@ -41,6 +41,7 @@
 	import StudioDevicePanel from './StudioDevicePanel.svelte';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import { studioPrompt } from './studioPrompt.svelte.js';
+	import StudioShareQr from './StudioShareQr.svelte';
 
 	const familyDefinitions = [
 		{
@@ -1204,6 +1205,14 @@
 					title="Open the page of the application in a window of its own"
 					ariaLabel="Open frontend"
 					onclick={openCurrentPage}
+				/>
+				<StudioShareQr
+					resolveUrl={currentPageUrl}
+					available={Boolean(previewUrl)}
+					buttonClass={[iconButtonClasses, 'studio-preview__wide'].join(' ')}
+					title={previewMode === 'development'
+						? 'QR code of the page, to open it on a phone: it follows the edits (hot reload)'
+						: 'QR code of the page of the built application, to open it on a phone'}
 				/>
 				<div class="studio-preview__more studio-preview__narrow">
 					<Button

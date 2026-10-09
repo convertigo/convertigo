@@ -764,8 +764,14 @@ public class FlowStudioSupport {
 				? new FlowEngineBridge().contextAction(flow, request)
 				: new FlowEngineBridge().contextAction((FlowEngine) root, request);
 		var mutation = response.optJSONObject("mutation");
-		Engine.logBeans.info("Flow context action " + action.optString("id", "") + ": target=" + flowMoveTargetSummary(targetDbo)
-				+ " ok=" + response.optBoolean("ok", false) + " mutation=" + mutation);
+		var summary = "Flow context action " + action.optString("id", "") + ": target=" + flowMoveTargetSummary(targetDbo)
+				+ " ok=" + response.optBoolean("ok", false) + " mutation=" + mutation;
+		if ("frontbuilder.svelte.logs".equals(action.optString("id", ""))) {
+			// the Build panel reads the frontbuilder logs every second
+			Engine.logBeans.debug(summary);
+		} else {
+			Engine.logBeans.info(summary);
+		}
 		if (response.optBoolean("ok", false) && mutation != null) {
 			var mutationResult = applyMutation(root, targetDbo, mutation);
 			response.put("mutationResult", mutationResult);

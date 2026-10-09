@@ -8,6 +8,7 @@
 		runStudioBuilderCommand,
 		studioBuilderOperation
 	} from './studioBuilder';
+	import StudioShareQr from './StudioShareQr.svelte';
 
 	/** @type {Record<string, any>} */
 	let {
@@ -35,6 +36,10 @@
 	let failed = $state(false);
 	let lines = $state([]);
 	let serial = 0;
+	// the position reached in the log of the frontbuilder; false when the engine keeps no log (an older provider)
+	let logNext = $state(0);
+	let logsSupported = $state(true);
+	let logReading = false;
 	let disposed = false;
 	onDestroy(() => {
 		disposed = true;
@@ -58,10 +63,14 @@
 			}
 			const result = await runStudioBuilderCommand(current, operation, runStudioContextAction);
 			if (disposed) return;
+			await readLogs(selected.target);
 			lines = [...lines.slice(-1999), result.message || `${operation} complete`];
-			for (const step of result.details?.steps ?? []) {
-				if (step.stdout || step.output)
-					lines = [...lines.slice(-1999), String(step.stdout || step.output)];
+			// the output of the steps is in the log; an older provider only gives it in the result
+			if (!logsSupported) {
+				for (const step of result.details?.steps ?? []) {
+					if (step.stdout || step.output)
+						lines = [...lines.slice(-1999), String(step.stdout || step.output)];
+				}
 			}
 			builder = await refreshStudioBuilder(selected, getStudioContextMenu);
 			if (disposed) return;
@@ -80,6 +89,62 @@
 		} finally {
 			if (!disposed) busy = '';
 		}
+	}
+
+	/**
+	 * Appends the lines of the frontbuilder log not shown yet: the actions of the project (generation, installs,
+	 * builds) and the development server log there. Read out of the authoring lock, it follows a running build.
+	 * @param {string} target
+	 */
+	async function readLogs(target) {
+		if (!logsSupported || logReading || !target) return;
+		logReading = true;
+		try {
+			const result = await runStudioContextAction(
+				target,
+				{ id: 'frontbuilder.svelte.logs', authoring: false, payload: { since: logNext } },
+				{ silentError: () => true, silentStatuses: [401, 403, 404, 500, 502, 503] }
+			);
+			if (disposed) return;
+			if (!result || result.ok === false || !Array.isArray(result.lines)) {
+				logsSupported = false;
+				return;
+			}
+			const added = [
+				...(result.skipped > 0 ? [`… ${result.skipped} older lines are no longer kept`] : []),
+				...result.lines
+			];
+			if (added.length) lines = [...lines, ...added].slice(-2000);
+			logNext = Number(result.next) || logNext;
+		} catch {
+			// the next reading tries again
+		} finally {
+			logReading = false;
+		}
+	}
+
+	// the log is read on activation, then every second while an action runs or the development server serves
+	function followLogs(_node, value) {
+		/** @type {ReturnType<typeof setInterval> | undefined} */
+		let timer;
+		function follow(current) {
+			clearInterval(timer);
+			if (!current.active || !current.target) return;
+			void readLogs(current.target);
+			timer = setInterval(() => {
+				if (busy || currentBuilder?.state?.serving) void readLogs(current.target);
+			}, 1000);
+		}
+		follow(value);
+		return {
+			update: follow,
+			destroy: () => clearInterval(timer)
+		};
+	}
+
+	function shareUrl() {
+		const state = currentBuilder?.state;
+		return String((state?.serving ? state?.url : state?.productionUrl) ?? '');
 	}
 
 	// External imperative requests belong to the mounted panel's lifecycle,
@@ -131,6 +196,7 @@
 	{@attach fromAction(takeServeRequest, () => serveRequest)}
 	{@attach fromAction(takeBuildRequest, () => buildRequest)}
 	{@attach fromAction(refreshOnActivate, () => ({ active, selectedBuilder }))}
+	{@attach fromAction(followLogs, () => ({ active, target: currentBuilder?.target ?? '' }))}
 >
 	<div class="layout-x-wrap-low p-low">
 		{#if builders.length > 1}
@@ -169,6 +235,14 @@
 			disabled={Boolean(busy) || currentBuilder?.commands?.open?.enabled !== true}
 			onclick={() => void execute('open')}>Open</button
 		>
+		<StudioShareQr
+			resolveUrl={shareUrl}
+			available={Boolean(shareUrl())}
+			buttonClass="button-secondary"
+			title={currentBuilder?.state?.serving
+				? 'QR code of the development server, to open it on a phone: it follows the edits (hot reload)'
+				: 'QR code of the built application, to open it on a phone'}
+		/>
 		<span role="status"
 			>{projectName} — {busy
 				? `${busy}…`
