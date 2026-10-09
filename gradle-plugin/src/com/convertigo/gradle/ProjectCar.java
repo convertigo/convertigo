@@ -62,8 +62,13 @@ public class ProjectCar extends ConvertigoTask {
 		this.destinationFile = destinationFile;
 	}
 	
-	@Input @Optional
+	@Deprecated
 	public Boolean isIncludeTestCases() {
+		return getIncludeTestCases();
+	}
+
+	@Input @Optional
+	public Boolean getIncludeTestCases() {
 		return includeTestCases;
 	}
 
@@ -71,8 +76,13 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeTestCases = includeTestCases;
 	}
 	
-	@Input @Optional
+	@Deprecated
 	public Boolean isIncludeStubs() {
+		return getIncludeStubs();
+	}
+
+	@Input @Optional
+	public Boolean getIncludeStubs() {
 		return includeStubs;
 	}
 
@@ -80,8 +90,13 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeStubs = includeStubs;
 	}
 
-	@Input @Optional
+	@Deprecated
 	public Boolean isIncludeMobileApp() {
+		return getIncludeMobileApp();
+	}
+
+	@Input @Optional
+	public Boolean getIncludeMobileApp() {
 		return includeMobileApp;
 	}
 
@@ -89,8 +104,13 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeMobileApp = includeMobileApp;
 	}
 
-	@Input @Optional
+	@Deprecated
 	public Boolean isIncludeMobileAppAssets() {
+		return getIncludeMobileAppAssets();
+	}
+
+	@Input @Optional
+	public Boolean getIncludeMobileAppAssets() {
 		return includeMobileAppAssets;
 	}
 
@@ -98,8 +118,13 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeMobileAppAssets = includeMobileAppAssets;
 	}
 
-	@Input @Optional
+	@Deprecated
 	public Boolean isIncludeMobileDataset() {
+		return getIncludeMobileDataset();
+	}
+
+	@Input @Optional
+	public Boolean getIncludeMobileDataset() {
 		return includeMobileDataset;
 	}
 
@@ -107,8 +132,13 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeMobileDataset = includeMobileDataset;
 	}
 
-	@Input @Optional
+	@Deprecated
 	public Boolean isIncludeMobilePlatformsAssets() {
+		return getIncludeMobilePlatformsAssets();
+	}
+
+	@Input @Optional
+	public Boolean getIncludeMobilePlatformsAssets() {
 		return includeMobilePlatformsAssets;
 	}
 

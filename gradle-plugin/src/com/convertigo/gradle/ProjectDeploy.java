@@ -63,8 +63,13 @@ public class ProjectDeploy extends ConvertigoTask {
 		this.password = password;
 	}
 
-	@Input @Optional
+	@Deprecated
 	public Boolean isTrustAllCertificates() {
+		return getTrustAllCertificates();
+	}
+
+	@Input @Optional
+	public Boolean getTrustAllCertificates() {
 		return trustAllCertificates;
 	}
 
@@ -72,8 +77,13 @@ public class ProjectDeploy extends ConvertigoTask {
 		this.trustAllCertificates = trustAllCertificates;
 	}
 
-	@Input @Optional
+	@Deprecated
 	public Boolean isAssembleXsl() {
+		return getAssembleXsl();
+	}
+
+	@Input @Optional
+	public Boolean getAssembleXsl() {
 		return assembleXsl;
 	}
 
