@@ -58,10 +58,11 @@ def run_command(cmd: list[str], cwd: Path, execute: bool) -> None:
 
 
 def find_git_root(path: Path) -> Path | None:
-    output = run_capture(["git", "rev-parse", "--show-toplevel"], path)
-    if output and not output.startswith("fatal:"):
-        return Path(output).resolve()
-    return None
+    # the exit code, not the message: git localizes it ("fatal :" in French)
+    result = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=path, text=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    output = result.stdout.strip()
+    return Path(output).resolve() if result.returncode == 0 and output else None
 
 
 def read_build_versions(repo: Path) -> dict[str, str]:

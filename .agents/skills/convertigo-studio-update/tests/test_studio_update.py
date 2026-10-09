@@ -118,6 +118,13 @@ class ForcedVersionTests(unittest.TestCase):
         self.assertEqual(forced_versions.candidates("4.1.129.Final", versions, "develop"),
                          ["4.1.130.Final", "4.2.1.Final"])
 
+    def test_node_default_takes_the_latest_lts(self):
+        releases = [{"version": "v25.1.0", "lts": False}, {"version": "v24.21.0", "lts": "Krypton"},
+                    {"version": "v22.23.3", "lts": "Jod"}, {"version": "v22.16.0", "lts": "Jod"}]
+        self.assertEqual(forced_versions.node_candidate("v22.16.0", releases, "develop"), "v24.21.0")
+        self.assertEqual(forced_versions.node_candidate("v22.16.0", releases, "hotfix"), "v22.23.3")
+        self.assertIsNone(forced_versions.node_candidate("v24.21.0", releases, "develop"))
+
 
 if __name__ == "__main__":
     unittest.main()

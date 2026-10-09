@@ -65,7 +65,7 @@ Hotfix:
 
 - Branch: `hotfix`.
 - Gradle report: `./gradlew dependencyUpdatesPatch --console=plain`.
-- Version policy: update normal patch-line dependencies only; do not move Gradle or Java/JDK except a minor update explicitly accepted by the maintainer.
+- Version policy: update normal patch-line dependencies only; do not move Gradle or Java/JDK except a minor update explicitly accepted by the maintainer. The default Node.js stays on its major (latest LTS release of that major).
 - npm update: in `convertigo-studio-web`, run `npm run deps:minor-update`.
 - Gradle generation: after applying the selected Gradle dependency/version edits, run `./gradlew generateEclipseConfigurationWithManifest --console=plain` before npm work.
 - Validation: after npm work, run npm `format`, `lint`, `check:admin`, `build`; rerun Gradle checks such as `dependencyUpdatesPatch` and `:engine:war` when publishing.
@@ -78,6 +78,7 @@ Develop:
 - Gradle report: `./gradlew dependencyUpdates --console=plain`.
 - Version policy: develop may take broader updates, but risky libraries still need explicit review. Gradle wrapper updates may be applied only with the maintainer's explicit approval for that cycle, and must update `build.gradle`, `gradle/wrapper/gradle-wrapper.properties`, and any generated wrapper scripts from the wrapper task while preserving repo-specific wrapper settings. If unsure, skip the update and summarize why.
 - Eclipse/Tycho: check and apply stable Eclipse train/platform and Tycho updates under the standing authorization below; validate a changed toolchain with a fresh local Maven Studio build.
+- Node.js: the engine's default Node.js is the latest LTS release (maintainer decision, 2026-10-09), including a new LTS major; see Known Special Cases.
 - npm update: in `convertigo-studio-web`, run `npm run deps:update`.
 - Gradle generation: after applying the selected Gradle dependency/version edits, run `./gradlew generateEclipseConfigurationWithManifest --console=plain` before npm work.
 - Validation: same npm checks as hotfix; rerun `dependencyUpdates` and `:engine:war` when publishing.
@@ -103,7 +104,7 @@ rg --files --hidden -g AGENTS.md -g '!**/.git/**'
    python3 .agents/skills/convertigo-studio-update/scripts/check_forced_versions.py --repo <repo> --lane <hotfix|develop>
    ```
 
-   It reads the actual Netty/Neethi `useVersion` values and checks Maven Central independently of Gradle resolution. Hotfix candidates stay on the same major/minor line; `.Final` is stable, not a prerelease. It also inventories other override rules (`force`, `strictly`, `enforcedPlatform`, substitutions) for manual review. This is a targeted supplement, not a complete transitive-dependency or vulnerability scanner.
+   It reads the actual Netty/Neethi `useVersion` values and checks Maven Central independently of Gradle resolution. It also checks the engine's default Node.js (`defaultNodeVersion` in `engine/src/com/twinsoft/convertigo/engine/util/ProcessUtils.java`) against the official release index (`https://nodejs.org/dist/index.json`): develop takes the latest LTS release, hotfix the latest LTS release of its current major. Hotfix candidates stay on the same major/minor line; `.Final` is stable, not a prerelease. It also inventories other override rules (`force`, `strictly`, `enforcedPlatform`, substitutions) for manual review. This is a targeted supplement, not a complete transitive-dependency or vulnerability scanner.
 
    `UPDATE` is a review candidate, not permission to edit. `REVIEW` or `INCOMPLETE` (exit 2) means coverage is incomplete: inspect changed/unknown rules or retry metadata access before calling the update check complete. Explicitly report any unresolved check. Never describe a network failure as "up to date". Preserve intentional legacy/internal pins.
 
@@ -188,6 +189,7 @@ The Gradle report already filters unstable candidates and risky legacy lines. Pr
 - Keep `org.apache.axis2:axis2-saaj` on `1.8.x`.
 - Keep `org.apache.xmlbeans:xmlbeans` on the internal patched current version.
 - Keep `org.apache.ws.commons.axiom:*` on major `1`.
+- The engine's default Node.js (`ProcessUtils.defaultNodeVersion`) is the Node.js the engine downloads and runs when nothing else selects one: the Flow frontbuilder (its Svelte toolchain sets the minimum, e.g. SvelteKit 3 requires Node.js 22.17), the NGX builder and templates whose `version.json` has no `nodeJsVersion`, and local builds. Develop follows the latest LTS release, hotfix the latest LTS release of its major. A new major still needs a check of the Flow frontbuilder and an NGX build with the default Node. It is independent of `studioWebNodeVersion`, the Node.js that builds the Studio web (kept on the npm its lockfile needs).
 - Keep Tomcat constrained by branch: hotfix currently rejects candidates above major `9`, develop above major `11`.
 
 Review explicitly before changing Gradle wrapper, Eclipse/Tycho on hotfix, JxBrowser major, Tomcat major, Studio JDK, Svelte, or Tailwind. Develop Eclipse/Tycho updates use the standing authorization and validation above. The npm update scripts intentionally run a second `npm-check-updates` command that handles Svelte/Tailwind peer-related exceptions.
