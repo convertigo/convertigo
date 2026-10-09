@@ -23,6 +23,7 @@ import java.io.File;
 
 import org.gradle.api.Project;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
@@ -62,7 +63,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.destinationFile = destinationFile;
 	}
 	
-	@Deprecated
+	@Deprecated @Internal
 	public Boolean isIncludeTestCases() {
 		return getIncludeTestCases();
 	}
@@ -76,7 +77,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeTestCases = includeTestCases;
 	}
 	
-	@Deprecated
+	@Deprecated @Internal
 	public Boolean isIncludeStubs() {
 		return getIncludeStubs();
 	}
@@ -90,7 +91,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeStubs = includeStubs;
 	}
 
-	@Deprecated
+	@Deprecated @Internal
 	public Boolean isIncludeMobileApp() {
 		return getIncludeMobileApp();
 	}
@@ -104,7 +105,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeMobileApp = includeMobileApp;
 	}
 
-	@Deprecated
+	@Deprecated @Internal
 	public Boolean isIncludeMobileAppAssets() {
 		return getIncludeMobileAppAssets();
 	}
@@ -118,7 +119,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeMobileAppAssets = includeMobileAppAssets;
 	}
 
-	@Deprecated
+	@Deprecated @Internal
 	public Boolean isIncludeMobileDataset() {
 		return getIncludeMobileDataset();
 	}
@@ -132,7 +133,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeMobileDataset = includeMobileDataset;
 	}
 
-	@Deprecated
+	@Deprecated @Internal
 	public Boolean isIncludeMobilePlatformsAssets() {
 		return getIncludeMobilePlatformsAssets();
 	}
