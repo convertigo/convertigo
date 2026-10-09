@@ -1809,11 +1809,14 @@
 		color: var(--studio-text-idle, var(--color-surface-600-400));
 	}
 
-	.studio-tree-node__row--disabled {
+	/* a disabled or unreachable object keeps its color when selected and hovered, which tint only the background */
+	.studio-tree-node__row--disabled,
+	.studio-tree-node__row.studio-tree-node__row--disabled:hover {
 		color: var(--color-error-500, #dc2626);
 	}
 
-	.studio-tree-node__row--unreachable {
+	.studio-tree-node__row--unreachable,
+	.studio-tree-node__row.studio-tree-node__row--unreachable:hover {
 		color: var(--color-warning-500, #ff8c00);
 	}
 
