@@ -53,8 +53,9 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
  */
 @ServiceDefinition(name = "ContinuousIntegration", roles = { Role.WEB_ADMIN, Role.PROJECTS_CONFIG }, parameters = {}, returnValue = "")
 public class ContinuousIntegration extends JSonService {
+	// the maintained X.Y.x branch, as the Eclipse Studio (ProjectContinuousIntegrationGradle)
 	private static final String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/"
-			+ ProductVersion.productVersion + "/";
+			+ ProductVersion.majorProductVersion + "." + ProductVersion.minorProductVersion + ".x/";
 	private static final Set<String> TYPES = Set.of("gitlab", "circleci", "github-actions", "gradle", "httpignore");
 
 	@Override
