@@ -45,6 +45,17 @@ Two steps block the ones after them:
   reports `master` as an ancestor of `hotfix`, with no manual difference
   between them other than the release content.
 
+### Common resources (`convertigo-common-resources`)
+- The maintained `X.Y.x` branch exists and its `gradle/build.gradle` uses the
+  latest released `X.Y` Gradle plugin. A shared maintenance branch must not use
+  a `-SNAPSHOT` plugin because already released Studios also download it.
+- Review the Gradle wrapper, required Java version, CI action/plugin versions
+  and every file imported by the root JSON manifests according to that
+  repository's `MAINTENANCE.md`.
+- Check that the raw GitHub URLs used by Studio return the root JSON manifests
+  and all their imports from `X.Y.x`. Keep exact `X.Y.Z` compatibility branches
+  only for Studio versions released before the maintenance-branch convention.
+
 ### Docker
 - `docker/README.md` documents every environment variable and mount of the
   image. It is the source of both the Docker Hub description (published by the
@@ -68,6 +79,9 @@ Two steps block the ones after them:
   `convertigo/convertigo` image and creates a GitHub release draft
   (pre-release unless the tag is a plain `X.Y.Z`); the `master` pipeline
   publishes the `latest` image and its Docker Hub description.
+- Once the tag pipeline has published `com.convertigo:gradle-plugin:X.Y.Z`,
+  update the `convertigo-common-resources` `X.Y.x` branch to that stable plugin
+  version and verify its raw GitHub resources again.
 - Start the next beta: `release/start-next.sh X.Y.Z+1` on `hotfix` sets the
   next version with `convertigoTag = 'beta'`, regenerates the versioned files
   and commits `Starting Convertigo X.Y.Z+1 beta!`; push `hotfix`.

@@ -12,11 +12,13 @@ Release checklist for **X.Y.Z**. The full procedure is in [RELEASE.md](https://g
 - [ ] Every `tested` issue has a `Tested OK with <build id>` comment
 - [ ] `CHANGELOG.md` section `## X.Y.Z` reviewed (categories, `Fixed,`, ascending ticket order)
 - [ ] `convertigo-doc` `hotfix` covers the user-facing changes; `doc-flow.sh audit` is clean
+- [ ] `convertigo-common-resources` `X.Y.x` reviewed; latest stable X.Y Gradle plugin and raw GitHub resources verified
 - [ ] `docker/README.md` is final; `./gradlew checkDockerDocsOfficial` passes
 - [ ] Last `hotfix` pipeline green, `ext.convertigoVersion` = X.Y.Z
 
 ### Release
 - [ ] `release/tag-release.sh X.Y.Z` run (release commit, master, tag), tag and master pipelines green
+- [ ] `convertigo-common-resources` `X.Y.x` updated to the published stable X.Y.Z Gradle plugin
 - [ ] `release/start-next.sh X.Y.Z+1` run and `hotfix` pushed
 - [ ] GitHub release draft edited (previous text, counts, absolute changelog link), `convertigo-X.Y.Z.war` attached, release published
 - [ ] Documentation published (`doc-flow.sh release-minor` / `release-major`)
