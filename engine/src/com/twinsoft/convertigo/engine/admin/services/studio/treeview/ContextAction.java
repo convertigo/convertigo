@@ -34,6 +34,17 @@ public class ContextAction extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
+		// profile=true: the durations of its phases in _profile, as studio.treeview.Get
+		var profileOwner = FlowStudioSupport.startPerformanceProfile(
+				Boolean.parseBoolean(request.getParameter("profile")), "studio.treeview.ContextAction");
+		try {
+			runAction(request, response);
+		} finally {
+			FlowStudioSupport.finishPerformanceProfile(profileOwner, response);
+		}
+	}
+
+	private void runAction(HttpServletRequest request, JSONObject response) throws Exception {
 		var id = request.getParameter("id");
 		if (id == null || id.isBlank()) {
 			throw new ServiceException("missing id parameter");
