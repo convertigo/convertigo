@@ -66,8 +66,9 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 				'Eclipse-BundleShape': 'dir',
 				'Bundle-Activator': 'com.twinsoft.convertigo.eclipse.ConvertigoPlugin',
 				'Bundle-ActivationPolicy': 'lazy',
-				'Bundle-ClassPath': 'bin/,icons/,tomcat/webapps/convertigo/WEB-INF/classes,lib/convertigo-eclipse.jar,' +
+				'Bundle-ClassPath': 'bin/,icons/,tomcat/webapps/convertigo/WEB-INF/classes,lib/convertigo-eclipse.jar,lib/convertigo-provider-plugins.jar,' +
 					fileTree(dir: 'lib')
+					.findAll { it.name != 'convertigo-provider-plugins.jar' }
 					.collect { 'lib/' + it.name }
 					.toSorted {a, b -> a.startsWith('lib/convertigo') ? -1 : b.startsWith('lib/convertigo') ? 1 : a <=> b }
 					.join(','),
