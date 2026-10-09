@@ -260,6 +260,64 @@ public class FlowStudioSupportSelectionTest {
 	}
 
 	@Test
+	public void aMovedNodeIsSelectedByItsIdentityNotByItsFormerPaths() throws Exception {
+		var engine = new FlowEngine() {
+			@Override public List<DatabaseObject> getDatabaseObjectChildren() { return List.of(); }
+		};
+		var root = candidate("projected.page", "frontAst", "page");
+		var folder = new FlowVirtualObject() {
+			@Override public List<DatabaseObject> getDatabaseObjectChildren() { return List.of(root); }
+		};
+		folder.setName("arbitraryFolder");
+		folder.setVirtualPath("projected");
+		folder.setParent(engine);
+		root.setParent(folder);
+		var children = new org.codehaus.jettison.json.JSONArray()
+				.put(node("projected.page.layout", "layout", "frontAst.children[0]"))
+				.put(node("projected.page.moved", "moved", "frontAst.children[1]"))
+				.put(node("projected.page.title", "title", "frontAst.children[2]"));
+		var tree = new JSONObject().put("path", "projected.page").put("name", "page")
+				.put("info", root.getVirtualInfo()).put("children", children);
+		assertTrue(root.replaceProjectedTree(tree));
+		var moved = (FlowVirtualObject) root.getDatabaseObjectChildren().get(1);
+		var bridge = new FlowEngineBridge() {
+			@Override public JSONObject applySourceMutation(FlowEngine owner, String path, JSONObject mutation, String rootPath) {
+				assertEquals("move", mutation.optString("op"));
+				try {
+					// "moved" goes into "layout": its former path now addresses "title"
+					var layout = node("projected.page.layout", "layout", "frontAst.children[0]")
+							.put("children", new org.codehaus.jettison.json.JSONArray()
+									.put(node("projected.page.layout.moved", "moved", "frontAst.children[0].children[0]")));
+					var after = new JSONObject().put("path", "projected.page").put("name", "page")
+							.put("info", root.getVirtualInfo()).put("children", new org.codehaus.jettison.json.JSONArray()
+									.put(layout).put(node("projected.page.title", "title", "frontAst.children[1]")));
+					return new JSONObject().put("ok", true).put("authoringTree", new JSONObject().put("ok", true)
+							.put("children", new org.codehaus.jettison.json.JSONArray().put(after)));
+				} catch (Exception e) { throw new AssertionError(e); }
+			}
+		};
+		var previousLogger = com.twinsoft.convertigo.engine.Engine.logStudio;
+		JSONObject result;
+		try {
+			com.twinsoft.convertigo.engine.Engine.logStudio = org.apache.log4j.Logger.getLogger(getClass());
+			result = FlowStudioSupport.applyProjectedMutation(engine, moved, new JSONObject().put("op", "move")
+					.put("from", "frontAst.children[1]").put("fromId", "moved")
+					.put("path", "frontAst.children[0].children"), bridge);
+		} finally {
+			com.twinsoft.convertigo.engine.Engine.logStudio = previousLogger;
+		}
+		assertTrue(result.getBoolean("done"));
+		assertEquals("the moved node, not the one now at its former place", "projected.page.layout.moved",
+				result.getString("selectionVirtualPath"));
+	}
+
+	private static JSONObject node(String path, String id, String mutationPath) throws Exception {
+		return new JSONObject().put("path", path).put("name", id).put("definition", "{\"id\":\"" + id + "\"}")
+				.put("info", new JSONObject().put("sourcePath", SOURCE).put("sourceRelativePath", SOURCE)
+						.put("sourceWritable", true).put("sourceMutationPath", mutationPath).toString());
+	}
+
+	@Test
 	public void sourceRenameSelectsTheNewIdentityAfterTheOldProjectionIsReplaced() throws Exception {
 		assertSourceIdentityChangeSelection(true);
 	}

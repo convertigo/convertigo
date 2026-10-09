@@ -3389,6 +3389,13 @@ public class FlowStudioSupport {
 		if (response.optString("selectionVirtualPath").isBlank()
 				&& response.optString("selectionSourcePath").isBlank()
 				&& response.optString("selectionMutationPath").isBlank()
+				&& response.optString("selectionId").isBlank() && mutation != null
+				&& "move".equals(mutation.optString("op")) && !mutation.optString("fromId").isBlank()) {
+			// a moved node keeps its identity, not its paths: its former paths now address another node
+			response.put("selectionId", mutation.optString("fromId"));
+		} else if (response.optString("selectionVirtualPath").isBlank()
+				&& response.optString("selectionSourcePath").isBlank()
+				&& response.optString("selectionMutationPath").isBlank()
 				&& response.optString("selectionId").isBlank() && target instanceof FlowVirtualObject virtual) {
 			response.put("selectionVirtualPath", virtual.getVirtualPath());
 			// Display paths may depend on an edited identifier. The descriptor's
