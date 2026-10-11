@@ -68,6 +68,9 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
+import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
 import com.twinsoft.convertigo.engine.flow.FlowSourceLayout;
@@ -262,6 +265,7 @@ public class Flow extends Sequence {
 				var errorResponse = new JSONObject();
 				errorResponse.put("error", response.has("error") ? response.get("error") : response);
 				XMLUtils.jsonToXml(errorResponse, root);
+				applyErrorStatus(response.optJSONObject("error"));
 			}
 			var profile = response.optJSONObject("profile");
 			if (profile != null) {
@@ -274,6 +278,21 @@ public class Flow extends Sequence {
 		} catch (Exception e) {
 			throw new EngineException("Unable to run flow \"" + getName() + "\".", e);
 		}
+	}
+
+	/**
+	 * The HTTP status an error of the requested Flow carries (throw with a status, from 400 to 599), the body keeping the
+	 * error: neither for a Flow another one calls (the request is the one of its caller), nor over a status already set.
+	 */
+	private void applyErrorStatus(JSONObject error) {
+		var status = error == null ? 0 : error.optInt("status", 0);
+		var request = context == null ? null : context.httpServletRequest;
+		if (status < 400 || status > 599 || request == null || request instanceof InternalHttpServletRequest
+				|| !getName().equals(request.getParameter(Parameter.Sequence.getName()))
+				|| RequestAttribute.responseStatus.has(request)) {
+			return;
+		}
+		RequestAttribute.responseStatus.set(request, Map.of(status, ""));
 	}
 
 	private static double nanosToMillis(long nanos) {
