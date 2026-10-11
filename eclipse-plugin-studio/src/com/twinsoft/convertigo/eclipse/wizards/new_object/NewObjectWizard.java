@@ -444,6 +444,7 @@ public class NewObjectWizard extends Wizard {
 	public static void afterBeanAdded(DatabaseObject newBean, DatabaseObject parentObject, boolean hasChanged) throws Exception {
 		if (newBean instanceof Connector) {
 			Project project = (Project)parentObject;
+			// proposed as the default connector of a project without one, which a project may also not have
 			if (project.getDefaultConnector() == null)
 				project.setDefaultConnector((Connector)newBean);
 
@@ -472,13 +473,16 @@ public class NewObjectWizard extends Wizard {
 
 		if (newBean instanceof TransactionStep) {
 			Project project = newBean.getProject();
-			Connector connector = project.getDefaultConnector();
-			Transaction transaction = connector.getDefaultTransaction();
+			Connector connector = project.getImplicitConnector();
+			Transaction transaction = connector == null ? null : connector.getImplicitTransaction();
 
-			((TransactionStep) newBean).setSourceTransaction(
-					project.getName() + TransactionStep.SOURCE_SEPARATOR +
-					connector.getName() + TransactionStep.SOURCE_SEPARATOR +
-					transaction.getName());
+			// a project without default connector nor single connector leaves the source to choose
+			if (transaction != null) {
+				((TransactionStep) newBean).setSourceTransaction(
+						project.getName() + TransactionStep.SOURCE_SEPARATOR +
+						connector.getName() + TransactionStep.SOURCE_SEPARATOR +
+						transaction.getName());
+			}
 		}
 
 		if (newBean instanceof IThenElseContainer) {

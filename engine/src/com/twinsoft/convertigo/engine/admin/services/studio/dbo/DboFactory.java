@@ -26,7 +26,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -151,6 +150,8 @@ public class DboFactory {
 		Object object = DboUtils.read(node);
 		if (object instanceof DatabaseObject) {
 			DatabaseObject databaseObject = (DatabaseObject) object;
+			// the copy of a default connector or transaction is not the default one of its parent
+			DboUtils.dropDefault(databaseObject);
 
 			NodeList childNodes = node.getChildNodes();
 			int len = childNodes.getLength();
@@ -395,8 +396,6 @@ public class DboFactory {
 		
 		if (dbo instanceof Project) {
 			return false;
-		} else if (dbo instanceof Connector) {
-			return !((Connector)dbo).isDefault;
 		} else if (dbo instanceof ThenStep || dbo instanceof ElseStep) {
 			return false;
 		} else if (dbo instanceof IApplicationComponent) {

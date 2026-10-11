@@ -2821,19 +2821,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						IFolder xsdConnectorInternalFolder = null;
 						Collection<Connector> connectors = project.getConnectorsList();
 						if (connectors.size() != 0) {
-							// Set default connector if none
-							if (project.getDefaultConnector() == null) {
-								// Report from 4.5: fix #401
-								ConvertigoPlugin.logWarning(null, "Project \""+ project.getName() +"\" has no default connector. Try to set a default one.");
-								Connector defaultConnector = connectors.iterator().next();
-								try {
-									project.setDefaultConnector(defaultConnector);
-									defaultConnector.hasChanged = true;
-								} catch (Exception e) {
-									ConvertigoPlugin.logWarning(e, "Unable to set a default connector for project \""+ project.getName() +"\"");
-								}
-							}
-
 							// Refresh Traces folder
 							IFolder ifolder = ((ProjectTreeObject)parentTreeObject).getFolder("Traces");
 							if(ifolder.exists()) {

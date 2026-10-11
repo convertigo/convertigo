@@ -63,9 +63,10 @@ answers the sequences of a same session through the servlet and internal
 requesters without looking up a connector, the implicit choice of the default or
 the only connector and transaction (also for an empty transaction step source),
 the plain error of a request naming no requestable (it lists nothing of the
-project), the removal of the defaults, and
-the unchanged behavior of explicit defaults. It uses in-memory projects and does
-not start an engine.
+project), the removal of the defaults, the console moves and copies of a
+default connector or transaction (not default in their new parent), and the
+unchanged behavior of explicit defaults. It uses in-memory projects and does not
+start an engine.
 
 ## Session serialization
 

@@ -93,15 +93,10 @@ public class Remove extends JSonService {
 	}
 
 	/**
-	 * Refuses the deletions the Eclipse Studio refuses.
+	 * Refuses the deletions the Eclipse Studio refuses. The default connector and the default transaction
+	 * can be deleted: a project or a connector may have none.
 	 */
 	private static void refuse(DatabaseObject dbo) throws ServiceException {
-		if (dbo instanceof com.twinsoft.convertigo.beans.core.Connector connector && connector.isDefault) {
-			throw new ServiceException("Cannot delete the default connector!");
-		}
-		if (dbo instanceof com.twinsoft.convertigo.beans.core.Transaction transaction && transaction.isDefault) {
-			throw new ServiceException("Cannot delete the default transaction!");
-		}
 		if (dbo instanceof com.twinsoft.convertigo.beans.steps.ThenStep || dbo instanceof com.twinsoft.convertigo.beans.steps.ElseStep) {
 			throw new ServiceException("Cannot delete this step!");
 		}

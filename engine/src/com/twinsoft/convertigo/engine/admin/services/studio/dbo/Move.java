@@ -99,6 +99,8 @@ public class Move extends JSonService {
 							} else {
 								DatabaseObject previousParent = dbo.getParent();
 								DatabaseObject previousSibling = dbo.getPreviousSiblingInFolder();
+								// a default connector or transaction is not the default one of another parent
+								boolean wasDefault = !isOrdering && DboUtils.dropDefault(dbo);
 								try {
 									com.twinsoft.convertigo.engine.tags.TagManager.get().prepareStructuralChange(dbo, parentDbo.getProject());
 									dbo.delete();
@@ -125,6 +127,7 @@ public class Move extends JSonService {
 									done = false;
 									if (dbo.getParent() != previousParent && previousParent != null) {
 										if (dbo.getParent() != null) dbo.delete();
+										DboUtils.restoreDefault(dbo, wasDefault);
 										after = previousSibling == null ? 0L : previousSibling.priority;
 										if (previousParent instanceof IContainerOrdered) {
 											((IContainerOrdered) previousParent).add(dbo, after);

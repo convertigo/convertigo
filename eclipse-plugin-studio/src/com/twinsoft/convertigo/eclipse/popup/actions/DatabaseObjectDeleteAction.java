@@ -58,7 +58,6 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
@@ -359,10 +358,6 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 	private void delete(DatabaseObject databaseObject, boolean deleteProjectOnDisk) throws EngineException, CoreException {
 
 		if (databaseObject instanceof Connector) {
-			if (((Connector) databaseObject).isDefault) {
-				throw new EngineException("Cannot delete the default connector!");
-			}
-
 			String dirPath, projectName;
 			File dir;
 
@@ -402,11 +397,6 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 				}
 			}
 
-		}
-		else if (databaseObject instanceof Transaction) {
-			if (((Transaction) databaseObject).isDefault) {
-				throw new EngineException("Cannot delete the default transaction!");
-			}
 		}
 		else if (databaseObject instanceof ScreenClass) {
 			if ((databaseObject.getParent()) instanceof Project) {

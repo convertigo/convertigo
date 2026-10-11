@@ -80,9 +80,6 @@ public class UpdateSchema extends JSonService {
 		if (!connector.getName().equals(StringUtils.normalize(connector.getName(), true))) {
 			throw new ServiceException("The name of the connector should be normalized.");
 		}
-		if (connector.getDefaultTransaction() == null) {
-			throw new ServiceException("The connector must have a default transaction.");
-		}
 		var extract = document != null;
 		var write = true;
 		if (transaction instanceof XmlHttpTransaction xmlHttp) {

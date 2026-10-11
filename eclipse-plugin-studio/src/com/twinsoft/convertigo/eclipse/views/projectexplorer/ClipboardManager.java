@@ -1105,15 +1105,9 @@ public class ClipboardManager {
 						if (root) {
 							root = false;
 
-							if (databaseObject instanceof Project) {
-								if (object instanceof Connector && ((Connector) object).isDefault) {
-									throw new EngineException("You cannot cut the default connector to another project");
-								}
-							} else if (databaseObject instanceof Connector) {
+							if (databaseObject instanceof Connector) {
 								if (object instanceof ScreenClass) {
 									throw new EngineException("You cannot cut the default screen class to another connector");
-								} else if (object instanceof Transaction && ((Transaction) object).isDefault) {
-									throw new EngineException("You cannot cut the default transaction to another connector");
 								}
 							} else if (databaseObject instanceof ScreenClass) {
 								if (object instanceof Criteria && databaseObject.getParent() instanceof Connector) {
@@ -1167,6 +1161,14 @@ public class ClipboardManager {
 	 */
 	private synchronized void move(DatabaseObject object, DatabaseObject target) throws ConvertigoException {
 		if (object.getParent() != target) {
+			// A default connector or transaction is not the default one of its new parent, and its previous
+			// parent has no default anymore
+			if (object instanceof Connector) {
+				((Connector) object).isDefault = false;
+			} else if (object instanceof Transaction) {
+				((Transaction) object).isDefault = false;
+			}
+
 			// First, delete the object from its parent
 			object.delete();
 	

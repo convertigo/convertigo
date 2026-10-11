@@ -103,9 +103,6 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
 							throw new Exception("Connector name should be normalized");
 						}
 
-						if (connector.getDefaultTransaction() == null) {
-							throw new Exception("Connector must have a default transaction");
-						}
 						if (extract) {
 							ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
 							if (connectorEditor == null) {

@@ -150,7 +150,7 @@ public class Paste extends JSonService {
 							}
 							var receiver = receiver(targetDbo, node, null, position);
 							response.put("target", receiver.getFullQName());
-							object = DboUtils.xmlPaste(node, receiver);
+							object = DboUtils.xmlPaste(node, receiver, true);
 							if (object != null && object instanceof DatabaseObject) {
 								DatabaseObject dbo = (DatabaseObject)object;
 								if (dbo instanceof Project) {
@@ -176,6 +176,8 @@ public class Paste extends JSonService {
 									
 									} else {
 										DatabaseObject previousParent = dbo.getParent();
+										// a default connector or transaction is not the default one of another parent
+										boolean wasDefault = previousParent != receiver && DboUtils.dropDefault(dbo);
 										try {
 											dbo.delete();
 											receiver.add(dbo);
@@ -187,6 +189,7 @@ public class Paste extends JSonService {
 											BuilderUtils.dboMoved(previousParent, receiver, dbo);
 										} catch (Exception e) {
 											if (dbo.getParent() == null && previousParent != null) {
+												DboUtils.restoreDefault(dbo, wasDefault);
 												previousParent.add(dbo);
 											}
 											errors.put(e.getMessage());

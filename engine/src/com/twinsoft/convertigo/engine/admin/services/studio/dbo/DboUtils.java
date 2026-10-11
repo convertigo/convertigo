@@ -100,6 +100,35 @@ public class DboUtils {
 		return DboFactory.isCuttable(dbo);
 	}
 
+	/**
+	 * Makes a connector or a transaction that is pasted or moved to another parent a non default one: it is
+	 * not the default one of its new parent, and its previous parent has no default anymore.
+	 *
+	 * @return whether it was the default one, to restore it with {@link #restoreDefault} when the move fails
+	 */
+	static boolean dropDefault(DatabaseObject dbo) {
+		if (dbo instanceof Connector connector && connector.isDefault) {
+			connector.isDefault = false;
+			return true;
+		}
+		if (dbo instanceof Transaction transaction && transaction.isDefault) {
+			transaction.isDefault = false;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Gives back the default state {@link #dropDefault} removed, before the object goes back to its parent.
+	 */
+	static void restoreDefault(DatabaseObject dbo, boolean wasDefault) {
+		if (wasDefault && dbo instanceof Connector connector) {
+			connector.isDefault = true;
+		} else if (wasDefault && dbo instanceof Transaction transaction) {
+			transaction.isDefault = true;
+		}
+	}
+
 	static protected boolean acceptDbo(DatabaseObject targetDatabaseObject, DatabaseObject databaseObject,
 			boolean includeSpecials) {
 		if (targetDatabaseObject.getQName().startsWith(databaseObject.getQName())) {
@@ -137,6 +166,7 @@ public class DboUtils {
 	static void afterAdded(DatabaseObject dbo, DatabaseObject parent) throws Exception {
 		if (dbo instanceof com.twinsoft.convertigo.beans.core.Connector connector
 				&& parent instanceof com.twinsoft.convertigo.beans.core.Project project) {
+			// proposed as the default connector of a project without one, which a project may also not have
 			if (project.getDefaultConnector() == null) {
 				project.setDefaultConnector(connector);
 			}
@@ -160,8 +190,8 @@ public class DboUtils {
 			}
 		} else if (dbo instanceof com.twinsoft.convertigo.beans.steps.TransactionStep step) {
 			var project = dbo.getProject();
-			var connector = project.getDefaultConnector();
-			var transaction = connector == null ? null : connector.getDefaultTransaction();
+			var connector = project.getImplicitConnector();
+			var transaction = connector == null ? null : connector.getImplicitTransaction();
 			if (transaction != null) {
 				var separator = com.twinsoft.convertigo.beans.steps.TransactionStep.SOURCE_SEPARATOR;
 				step.setSourceTransaction(project.getName() + separator + connector.getName() + separator + transaction.getName());
@@ -290,10 +320,22 @@ public class DboUtils {
 	}
 
 	static protected Object xmlPaste(Node node, DatabaseObject parentDbo) throws Exception {
+		return xmlPaste(node, parentDbo, false);
+	}
+
+	/**
+	 * @param copy
+	 *            whether the object is the copy the user pastes, which is not the default connector or
+	 *            transaction of its new parent; the objects it holds keep their state
+	 */
+	static protected Object xmlPaste(Node node, DatabaseObject parentDbo, boolean copy) throws Exception {
 		Object object = read(node);
 		if (object instanceof DatabaseObject) {
 			DatabaseObject databaseObject = (DatabaseObject) object;
 			String dboName = databaseObject.getName();
+			if (copy) {
+				dropDefault(databaseObject);
+			}
 
 			// Special case of project
 			if (databaseObject instanceof Project) {
