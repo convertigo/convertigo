@@ -448,6 +448,10 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	public boolean hasSource(String sourcePath) throws EngineException {
+		if (isPlainFile(sourcePath)) {
+			// a plain file (a .md guide, a .java source...) has no working copy: the disk tells
+			return new File(sourcePath).isFile();
+		}
 		var key = canonicalSourcePath(sourcePath);
 		synchronized (sourceLock()) {
 			var draft = sourceDrafts.get(key);
@@ -460,6 +464,10 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	public boolean isSourceDirty(String sourcePath) throws EngineException {
+		if (isPlainFile(sourcePath)) {
+			// a plain file has no working copy, so never unsaved changes
+			return false;
+		}
 		synchronized (sourceLock()) { return sourceDrafts.containsKey(canonicalSourcePath(sourcePath)); }
 	}
 
@@ -664,19 +672,25 @@ public class FlowEngine extends DatabaseObject {
 		return canonicalSourcePath(sourcePath);
 	}
 
+	/** @return whether a file of this name can have a working copy (a Flow source), the others are plain files */
+	public static boolean isWorkingCopySource(String name) {
+		return name.endsWith(".flow.svelte") || name.endsWith(".flow.css")
+				|| name.endsWith(".block.js") || name.endsWith(".type.yaml")
+				|| name.endsWith(".schema.json") || name.endsWith(".yaml")
+				|| name.endsWith(".json") || name.endsWith(".js") || name.endsWith(".svelte");
+	}
+
+	private static boolean isPlainFile(String sourcePath) {
+		return sourcePath != null && !sourcePath.isBlank() && !isWorkingCopySource(new File(sourcePath).getName());
+	}
+
 	private String canonicalSourcePath(String sourcePath) throws EngineException {
 		try {
 			if (sourcePath == null || sourcePath.isBlank()) {
 				throw new EngineException("Flow source path is empty.");
 			}
 			var file = new File(sourcePath).getCanonicalFile();
-			var name = file.getName();
-			var supported = name.endsWith(".flow.svelte")
-					|| name.endsWith(".flow.css")
-					|| name.endsWith(".block.js") || name.endsWith(".type.yaml")
-					|| name.endsWith(".schema.json") || name.endsWith(".yaml")
-					|| name.endsWith(".json") || name.endsWith(".js") || name.endsWith(".svelte");
-			if (!supported) {
+			if (!isWorkingCopySource(file.getName())) {
 				throw new EngineException("Unsupported Flow source file: " + sourcePath);
 			}
 			var project = getProject();

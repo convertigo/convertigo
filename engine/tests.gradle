@@ -175,9 +175,9 @@ tasks.register('flowPackagesTest', JavaExec) {
 
 tasks.register('flowEngineSymbolsTest', JavaExec) {
 	group = 'verification'
-	description = 'Regression tests for the global symbols of the Flow Engine source: undefined ones mark the project, those with a default are listed.'
+	description = 'Regression tests of the Flow Engine: the global symbols of its source, and the state of plain files and Flow sources.'
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
-	args 'com.twinsoft.convertigo.beans.flow.FlowEngineSymbolsTest'
+	args 'com.twinsoft.convertigo.beans.flow.FlowEngineSymbolsTest', 'com.twinsoft.convertigo.beans.flow.FlowEngineSourceStateTest'
 }
