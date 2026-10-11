@@ -727,7 +727,8 @@
 		}
 		if (event.key === 'F5') {
 			// F5 runs the selected requestable or test case and else refreshes the tree, Ctrl+F5 runs the default
-			// transaction, as in the Eclipse Studio, instead of reloading the page
+			// or the only transaction of the selected connector, else of the project, as in the Eclipse Studio,
+			// instead of reloading the page
 			action = mod
 				? 'execution.default'
 				: /\.tc:[^.:]+$/.test(selectedId)

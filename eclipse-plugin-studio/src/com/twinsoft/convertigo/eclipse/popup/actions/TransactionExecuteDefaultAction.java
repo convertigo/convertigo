@@ -54,19 +54,28 @@ public class TransactionExecuteDefaultAction extends MyAbstractAction {
     			if (treeObject != null) {
     				ProjectTreeObject projectTreeObject = treeObject.getProjectTreeObject();
     				
+    				// the selected connector, else the default or the only connector of the project, and its
+    				// default or only transaction, as a request without parameters chooses them on a server
     				Connector connector = null;
     				if (treeObject instanceof ConnectorTreeObject) {
-    					ConnectorTreeObject connectorTreeObject = (ConnectorTreeObject)treeObject;
-    					connectorTreeObject.openConnectorEditor();
-    					connector = connectorTreeObject.getObject();
+    					connector = ((ConnectorTreeObject)treeObject).getObject();
     				}
     				else {
-    					connector = ((Project)projectTreeObject.getObject()).getDefaultConnector();
-    					ConnectorTreeObject connectorTreeObject = (ConnectorTreeObject)explorerView.findTreeObjectByUserObject(connector);
-    					if (connectorTreeObject != null)connectorTreeObject.openConnectorEditor();
+    					connector = ((Project)projectTreeObject.getObject()).getImplicitConnector();
+    				}
+    				Transaction transaction = connector == null ? null : connector.getImplicitTransaction();
+    				if (transaction == null) {
+    					ConvertigoPlugin.infoMessageBox(connector == null
+    							? "No default or single connector to run a transaction of."
+    							: "No default or single transaction to run in the connector \"" + connector.getName() + "\".");
+    					return;
     				}
     				
-    				Transaction transaction = connector.getDefaultTransaction();
+    				ConnectorTreeObject connectorTreeObject = treeObject instanceof ConnectorTreeObject
+    						? (ConnectorTreeObject)treeObject
+    						: (ConnectorTreeObject)explorerView.findTreeObjectByUserObject(connector);
+    				if (connectorTreeObject != null) connectorTreeObject.openConnectorEditor();
+    				
     				ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
     				if (connectorEditor != null) {
     					getActivePage().activate(connectorEditor);

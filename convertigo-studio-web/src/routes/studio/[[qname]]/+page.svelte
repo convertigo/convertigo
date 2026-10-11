@@ -13,6 +13,7 @@
 		propertyDocumentationFromProperties
 	} from '#lib/studio/blockDefinition.js';
 	import { isProjectClosed, setProjectsClosed } from '#lib/studio/closedProjects.svelte.js';
+	import { implicitTransactionId } from '#lib/studio/defaultTransaction.js';
 	import {
 		inferMovedObjectId,
 		parentObjectId,
@@ -1984,21 +1985,15 @@
 
 	/**
 	 * @param {string} projectName
-	 * @returns {Promise<string>} the default transaction of the default connector of the project, or none
+	 * @param {string} nodeId the selected object
+	 * @returns {Promise<string>} the transaction Ctrl+F5 runs, as a request without parameters chooses it on
+	 *          a server, or none
 	 */
-	async function defaultTransactionId(projectName) {
-		const connectors = await call('studio.treeview.Get', { id: `${projectName}:cn` });
-		const connector = (connectors?.children ?? []).find(
-			(/** @type {any} */ child) => child?.default === 'Default connector'
-		);
-		if (!connector) {
-			return '';
-		}
-		const transactions = await call('studio.treeview.Get', { id: `${connector.id}:tr` });
-		return String(
-			(transactions?.children ?? []).find(
-				(/** @type {any} */ child) => child?.default === 'Default transaction'
-			)?.id ?? ''
+	async function defaultTransactionId(projectName, nodeId) {
+		return implicitTransactionId(
+			projectName,
+			nodeId,
+			async (id) => (await call('studio.treeview.Get', { id }))?.children ?? []
 		);
 	}
 
@@ -2759,10 +2754,11 @@
 			await Projects.refresh();
 			refreshStudioViews();
 		} else if (action === 'execution.default') {
-			// Ctrl+F5 runs the default transaction of the default connector of the project
-			const transactionId = await defaultTransactionId(projectName);
+			// Ctrl+F5 runs the transaction of the selected connector, else of the default or the only connector
+			// of the project: its default transaction, else its only transaction
+			const transactionId = await defaultTransactionId(projectName, nodeId);
 			if (!transactionId) {
-				toaster.info({ description: `The project ${projectName} has no default transaction.` });
+				toaster.info({ description: 'No default or single transaction to run.' });
 			} else {
 				selectedId = transactionId;
 				if (profile === 'frontend') {
