@@ -129,7 +129,10 @@ public class ProxyServletRequester extends ServletRequester {
 					Engine.logEngine.debug("Loaded sequence: " + context.requestedObject.getName());
 				}
 				
-				// Loading connector
+				// Loading connector: the named one, else the default or the only one of the project
+				if (context.connectorName == null) {
+					context.connectorName = context.project.getRequestedConnector(null).getName();
+				}
 				context.loadConnector();
 				
 				if (context.requestedObject != null)

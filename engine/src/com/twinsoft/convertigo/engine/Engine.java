@@ -57,7 +57,6 @@ import com.twinsoft.api.SessionManager;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
-import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
@@ -1210,29 +1209,8 @@ public class Engine {
 
 				context.loadSequence();
 			} else {
-				// Loading connector
-				context.loadConnector();
-
-				// Loading transaction
-				// Load default transaction if no overridden transaction is
-				// provided
-				if (context.transactionName == null) {
-					context.requestedObject = context.getConnector().getDefaultTransaction();
-					context.transaction = (Transaction) context.requestedObject;
-					context.transactionName = context.requestedObject.getName();
-					Engine.logContext.debug("Default transaction loaded: " + context.transactionName);
-				}
-				// Try to load overriden transaction
-				else {
-					context.requestedObject = context.getConnector().getTransactionByName(
-							context.transactionName);
-					context.transaction = (Transaction) context.requestedObject;
-					if (context.requestedObject == null) {
-						throw new EngineException("Unknown transaction \"" + context.transactionName + "\"");
-					}
-					Engine.logContext.debug("Transaction loaded: " + context.requestedObject.getName());
-				}
-				context.transaction.checkSymbols();
+				// Loading the connector and the transaction: the named ones, else the default or the only ones
+				context.loadTransaction();
 
 				if (context.getConnector().isTasAuthenticationRequired()) {
 					if (context.tasSessionKey == null) {

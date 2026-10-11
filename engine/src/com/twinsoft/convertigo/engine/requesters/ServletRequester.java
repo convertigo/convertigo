@@ -232,15 +232,7 @@ public abstract class ServletRequester extends GenericRequester {
 		}
 		
 		if (!bConnectorGivenByUser) {
-			if (context.project != null && context.project.getName().equals(context.projectName)) {
-				var defaultConnector = context.project.getDefaultConnector();
-				if (defaultConnector != null) {
-					var defaultConnectorName = defaultConnector.getName();
-					if (!defaultConnectorName.equals(context.connectorName)) {
-						context.connectorName = defaultConnectorName;
-					}
-				}
-			}
+			nameImplicitConnector(context);
 		}
 
 		Engine.logContext.debug("Context initialized!");

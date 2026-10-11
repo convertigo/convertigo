@@ -196,7 +196,7 @@ public class WsReference {
 	}
 	
 	/**
-	 * @return whether the project has a default connector, without the exception of the Engine mode when it has none
+	 * @return whether the project has a default connector
 	 */
 	private static boolean hasDefaultConnector(Project project) {
 		try {

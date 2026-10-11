@@ -338,8 +338,8 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 			if (request.containsKey("__sequence")) {
 				tc = project.getSequenceByName(InternalRequester.getString(request, "__sequence")).getTestCaseByName(InternalRequester.getString(request, "__testcase"));
 			} else {
-				Connector connector = request.containsKey("__connector") ? project.getConnectorByName(InternalRequester.getString(request, "__connector")) : project.getDefaultConnector();
-				Transaction transaction = request.containsKey("__transaction") ? connector.getTransactionByName(InternalRequester.getString(request, "__transaction")) : connector.getDefaultTransaction();
+				Connector connector = request.containsKey("__connector") ? project.getConnectorByName(InternalRequester.getString(request, "__connector")) : project.getImplicitConnector();
+				Transaction transaction = connector == null ? null : request.containsKey("__transaction") ? connector.getTransactionByName(InternalRequester.getString(request, "__transaction")) : connector.getImplicitTransaction();
 				if (transaction instanceof TransactionWithVariables) {
 					tc = ((TransactionWithVariables) transaction).getTestCaseByName(InternalRequester.getString(request, "__testcase"));
 				}
@@ -356,8 +356,8 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 			if (request.getParameter("__sequence") != null) {
 				tc = project.getSequenceByName(request.getParameter("__sequence")).getTestCaseByName(request.getParameter("__testcase"));
 			} else {
-				Connector connector = request.getParameter("__connector") != null ? project.getConnectorByName(request.getParameter("__connector")) : project.getDefaultConnector();
-				Transaction transaction = request.getParameter("__transaction") != null ? connector.getTransactionByName(request.getParameter("__transaction")) : connector.getDefaultTransaction();
+				Connector connector = request.getParameter("__connector") != null ? project.getConnectorByName(request.getParameter("__connector")) : project.getImplicitConnector();
+				Transaction transaction = connector == null ? null : request.getParameter("__transaction") != null ? connector.getTransactionByName(request.getParameter("__transaction")) : connector.getImplicitTransaction();
 				if (transaction instanceof TransactionWithVariables) {
 					tc = ((TransactionWithVariables) transaction).getTestCaseByName(request.getParameter("__testcase"));
 				}

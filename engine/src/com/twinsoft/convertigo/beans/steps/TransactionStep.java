@@ -192,8 +192,9 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 	}
 
 	protected void prepareForRequestable(Context javascriptContext, Scriptable scope) throws MalformedURLException, EngineException {
-		Transaction targetTransaction = getTargetTransaction();
-		Connector targetConnector = targetTransaction.getConnector();
+		// the named connector and transaction, else the default or the only ones, else an error
+		Connector targetConnector = getTargetProject(projectName).getRequestedConnector(connectorName);
+		Transaction targetTransaction = targetConnector.getRequestedTransaction(transactionName);
 
 		String ctxName = getContextName(javascriptContext, scope);
 		boolean useSequenceJSession = sequence.useSameJSessionForSteps();
@@ -378,11 +379,18 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		}
 	}
 
+	/**
+	 * @return the called transaction: the named connector and transaction, else the default or the only
+	 *         ones, or null when none can be chosen
+	 */
 	public Transaction getTargetTransaction() throws EngineException {
 		Project p = getTargetProject(projectName);
-		Connector connector = (connectorName.equals("") ? p.getDefaultConnector() : p
+		Connector connector = (connectorName.equals("") ? p.getImplicitConnector() : p
 				.getConnectorByName(connectorName));
-		Transaction targetTransaction = (transactionName.equals("") ? connector.getDefaultTransaction() : connector
+		if (connector == null) {
+			return null;
+		}
+		Transaction targetTransaction = (transactionName.equals("") ? connector.getImplicitTransaction() : connector
 				.getTransactionByName(transactionName));
 		return targetTransaction;
 	}
@@ -596,7 +604,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 							label = "! broken project!";
 						} else {
 							// Check for connector
-							Connector connector = connectorName.equals("") ? p.getDefaultConnector() : null;
+							Connector connector = connectorName.equals("") ? p.getImplicitConnector() : null;
 							if (connector == null) {
 								try {
 									connector = p.getConnectorByName(connectorName);
@@ -609,7 +617,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 							} else {
 								// Check for transaction
 								Transaction transaction = (transactionName.equals("") ? connector
-										.getDefaultTransaction() : connector.getTransactionByName(transactionName));
+										.getImplicitTransaction() : connector.getTransactionByName(transactionName));
 								if (transaction == null) {
 									label = "! broken transaction !";
 								}

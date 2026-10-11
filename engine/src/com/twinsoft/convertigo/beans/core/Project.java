@@ -435,6 +435,9 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public void removeConnector(Connector connector) throws EngineException {
 		checkSubLoaded();
 		vConnectors.remove(connector);
+		if (connector == defaultConnector) {
+			defaultConnector = null;
+		}
 	}
 
 	public List<Connector> getConnectorsList() {
@@ -504,9 +507,14 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	}
 
 	/**
-	 * Retrieves the default connector.
+	 * Retrieves the default connector, or null when no connector of the project is marked as default: the
+	 * default connector is optional.
 	 */
 	public Connector getDefaultConnector() throws EngineException {
+		return findDefaultConnector();
+	}
+
+	private Connector findDefaultConnector() {
 		if (defaultConnector == null) {
 			checkSubLoaded();
 			for (Connector connector : vConnectors)
@@ -515,47 +523,71 @@ public class Project extends DatabaseObject implements IInfoProperty {
 					break;
 				}
 		}
-
-		// Report from 4.5: fix #401
-		if (defaultConnector == null) {
-			// Fire exception in Engine mode only!
-			if (Engine.isEngineMode()) {
-				throw new EngineException("There is no default connector defined for project \"" + getName() + "\".");
-			} else {
-				// In Studio mode we must be able to set a default connector!
-			}
-		}
-
 		return defaultConnector;
 	}
 
 	/**
-	 * Sets the default connector.
+	 * Sets the default connector, or removes the default connector of the project when null.
 	 */
 	public void setDefaultConnector(Connector connector) throws EngineException {
 		synchronized (mutex) {
-			if (connector == null)
-				throw new IllegalArgumentException("The value of argument 'transaction' is null");
 			checkSubLoaded();
-			if (vConnectors.contains(connector)) {
-				// the current default connector, without the exception of the Engine mode when there is none
-				if (defaultConnector == null) {
-					for (Connector current : vConnectors) {
-						if (current.isDefault) {
-							defaultConnector = current;
-							break;
-						}
-					}
-				}
-				if (defaultConnector != null)
-					defaultConnector.isDefault = false;
-				connector.isDefault = true;
-				defaultConnector = connector;
-			} else
+			if (connector != null && !vConnectors.contains(connector))
 				throw new IllegalArgumentException(
 						"The value of argument 'connector' is invalid: the connector does not belong to the project");
+			Connector current = findDefaultConnector();
+			if (current != null)
+				current.isDefault = false;
+			if (connector != null)
+				connector.isDefault = true;
+			defaultConnector = connector;
 		}
 	}
+
+	/**
+	 * Retrieves the connector a request that names neither a sequence nor a connector runs: the default
+	 * connector, else the only connector of the project, else null.
+	 */
+	public Connector getImplicitConnector() {
+		Connector connector = findDefaultConnector();
+		if (connector == null) {
+			checkSubLoaded();
+			for (Connector current : vConnectors) {
+				if (connector != null) {
+					// several connectors and none is the default one
+					return null;
+				}
+				connector = current;
+			}
+		}
+		return connector;
+	}
+
+	/**
+	 * Retrieves the connector a request names, else the connector it runs when it names neither a sequence
+	 * nor a connector: the default connector, else the only connector of the project.
+	 *
+	 * @param connectorName
+	 *            the name of the connector, null or empty when the request names none
+	 * @throws EngineException
+	 *             when the named connector does not exist, or when the request names none and none can be
+	 *             chosen: the message does not tell what the project holds, as the caller may be anyone
+	 */
+	public Connector getRequestedConnector(String connectorName) throws EngineException {
+		if (connectorName != null && !connectorName.isEmpty()) {
+			return getConnectorByName(connectorName);
+		}
+		Connector connector = getImplicitConnector();
+		if (connector == null) {
+			throw new EngineException(NO_REQUESTABLE);
+		}
+		return connector;
+	}
+
+	/**
+	 * The error of a request that names no requestable when none can be chosen.
+	 */
+	static final String NO_REQUESTABLE = "The request names no requestable.";
 
 	@Override
 	public Project clone() throws CloneNotSupportedException {

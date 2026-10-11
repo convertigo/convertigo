@@ -36,6 +36,7 @@ tasks.named('check') {
 	dependsOn 'applicationBuildsTest'
 	dependsOn 'flowPackagesTest'
 	dependsOn 'flowEngineSymbolsTest'
+	dependsOn 'optionalDefaultsTest'
 }
 
 tasks.register('stepSourceTest', JavaExec) {
@@ -180,4 +181,13 @@ tasks.register('flowEngineSymbolsTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.beans.flow.FlowEngineSymbolsTest', 'com.twinsoft.convertigo.beans.flow.FlowEngineSourceStateTest'
+}
+
+tasks.register('optionalDefaultsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the optional default connector and transaction: sequences never look up a connector, the implicit choice and its error.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.requesters.OptionalDefaultsTest'
 }

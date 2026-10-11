@@ -56,7 +56,6 @@ import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransac
 import com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
@@ -183,9 +182,14 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 	transient private Transaction defaultTransaction = null;
 
 	/**
-	 * Retrieves the default transaction.
+	 * Retrieves the default transaction, or null when no transaction of the connector is marked as default:
+	 * the default transaction is optional.
 	 */
 	public Transaction getDefaultTransaction() throws EngineException {
+		return findDefaultTransaction();
+	}
+
+	private Transaction findDefaultTransaction() {
 		if (defaultTransaction == null) {
 			checkSubLoaded();
 			for (Transaction transaction : vTransactions)
@@ -194,41 +198,64 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 					break;
 				}
 		}
-
-		// Report from 4.5: fix #401
-		if (defaultTransaction == null) {
-			// Fire exception in Engine mode only!
-			if (Engine.isEngineMode())
-				throw new EngineException("There is no default transaction defined for connector \"" + getName() + "\" in project \""+ getProject().getName()+"\".");
-			else {
-				//In Studio mode we must be able to set a default transaction!
-			}
-		}
-
 		return defaultTransaction;
 	}
 
 	/**
-	 * Sets the default transaction.
+	 * Sets the default transaction, or removes the default transaction of the connector when null.
 	 */
 	public synchronized void setDefaultTransaction(Transaction transaction) throws EngineException {
-		if (transaction == null)
-			throw new IllegalArgumentException("The value of argument 'transaction' is null");
 		checkSubLoaded();
-		if (vTransactions.contains(transaction)) {
-			// the current default transaction, without the exception of the Engine mode when there is none
-			if (defaultTransaction == null) {
-				for (Transaction current : vTransactions) {
-					if (current.isDefault) {
-						defaultTransaction = current;
-						break;
-					}
+		if (transaction != null && !vTransactions.contains(transaction))
+			throw new IllegalArgumentException("The value of argument 'transaction' is invalid: the transaction does not belong to the project");
+		Transaction current = findDefaultTransaction();
+		if (current != null) current.isDefault = false;
+		if (transaction != null) transaction.isDefault = true;
+		defaultTransaction = transaction;
+	}
+
+	/**
+	 * Retrieves the transaction a request that names no transaction of this connector runs: the default
+	 * transaction, else the only transaction of the connector, else null.
+	 */
+	public Transaction getImplicitTransaction() {
+		Transaction transaction = findDefaultTransaction();
+		if (transaction == null) {
+			checkSubLoaded();
+			for (Transaction current : vTransactions) {
+				if (transaction != null) {
+					// several transactions and none is the default one
+					return null;
 				}
+				transaction = current;
 			}
-			if (defaultTransaction != null) defaultTransaction.isDefault = false;
-			transaction.isDefault = true;
-			defaultTransaction = transaction;
-		} else throw new IllegalArgumentException("The value of argument 'transaction' is invalid: the transaction does not belong to the project");
+		}
+		return transaction;
+	}
+
+	/**
+	 * Retrieves the transaction of this connector a request names, else the transaction it runs when it
+	 * names none: the default transaction, else the only transaction of the connector.
+	 *
+	 * @param transactionName
+	 *            the name of the transaction, null or empty when the request names none
+	 * @throws EngineException
+	 *             when the named transaction does not exist, or when the request names none and none can be
+	 *             chosen: the message does not tell what the connector holds, as the caller may be anyone
+	 */
+	public Transaction getRequestedTransaction(String transactionName) throws EngineException {
+		if (transactionName != null && !transactionName.isEmpty()) {
+			Transaction transaction = getTransactionByName(transactionName);
+			if (transaction == null) {
+				throw new EngineException("Unknown transaction \"" + transactionName + "\"");
+			}
+			return transaction;
+		}
+		Transaction transaction = getImplicitTransaction();
+		if (transaction == null) {
+			throw new EngineException(Project.NO_REQUESTABLE);
+		}
+		return transaction;
 	}
 
 	/**
@@ -348,6 +375,9 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 	public void removeTransaction(Transaction transaction) throws EngineException {
 		checkSubLoaded();
 		vTransactions.remove(transaction);
+		if (transaction == defaultTransaction) {
+			defaultTransaction = null;
+		}
 	}
 
 	public Transaction getTransactionByName(String transactionName) {

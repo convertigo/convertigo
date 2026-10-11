@@ -420,6 +420,21 @@ public abstract class GenericRequester extends Requester {
 		}
 	}
 
+	/**
+	 * Names the connector of a request that names no connector, once the context knows the project: the
+	 * default connector, else the only connector of the project. A request that names a sequence never looks
+	 * up a connector, and a project without default connector nor single connector leaves the connector
+	 * unnamed.
+	 */
+	static void nameImplicitConnector(Context context) {
+		if (context.sequenceName == null && context.project != null && context.project.getName().equals(context.projectName)) {
+			var connector = context.project.getImplicitConnector();
+			if (connector != null) {
+				context.connectorName = connector.getName();
+			}
+		}
+	}
+
 	protected void handleParameter(Context context, String parameterName, String parameterValue) {
 		// This gives the required context name
 		if (parameterName.equals(Parameter.Context.getName())) {

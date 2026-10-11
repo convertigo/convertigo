@@ -492,13 +492,13 @@ public class Context extends AbstractContext implements Cloneable {
 
 	public void loadConnector() throws EngineException {
 		if (connectorName == null) {
-			var defaultConnector = project.getDefaultConnector();
-			if (defaultConnector == null) {
-				Engine.logContext.debug("No default connector for project: " + project.getName());
+			var implicitConnector = project.getImplicitConnector();
+			if (implicitConnector == null) {
+				Engine.logContext.debug("No default connector nor single connector for project: " + project.getName());
 				setConnector(null);
 				return;
 			}
-			connectorName = defaultConnector.getName();
+			connectorName = implicitConnector.getName();
 		}
 		String key = project.getName() + '\n' + connectorName;
 		var connector = used_connectors.get(key);
@@ -515,6 +515,28 @@ public class Context extends AbstractContext implements Cloneable {
 		}
 		setConnector(connector);
 		connector.checkSymbols();
+	}
+
+	/**
+	 * Loads the connector and the transaction of a request that names no sequence: the named ones, else the
+	 * default connector or the only connector of the project, and its default or only transaction. When
+	 * nothing can be chosen, the error only says the request names no requestable.
+	 */
+	public void loadTransaction() throws EngineException {
+		if (connectorName == null) {
+			connectorName = project.getRequestedConnector(null).getName();
+		}
+		loadConnector();
+
+		transaction = getConnector().getRequestedTransaction(transactionName);
+		requestedObject = transaction;
+		if (transactionName == null) {
+			transactionName = transaction.getName();
+			Engine.logContext.debug("Default transaction loaded: " + transactionName);
+		} else {
+			Engine.logContext.debug("Transaction loaded: " + transaction.getName());
+		}
+		transaction.checkSymbols();
 	}
 
 	public void loadSequence() throws EngineException {
