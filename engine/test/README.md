@@ -64,8 +64,10 @@ requesters without looking up a connector, the implicit choice of the default or
 the only connector and transaction (also for an empty transaction step source),
 the plain error of a request naming no requestable (it lists nothing of the
 project), the removal of the defaults, the console moves and copies of a
-default connector or transaction (not default in their new parent), and the
-unchanged behavior of explicit defaults. It uses in-memory projects and does not
+default connector or transaction (not default in their new parent), the sober
+errors of a private requestable or a missing secured connection, the error
+document that keeps only the names the caller gave, and the unchanged behavior
+of explicit defaults. It uses in-memory projects and does not
 start an engine.
 
 ## Session serialization

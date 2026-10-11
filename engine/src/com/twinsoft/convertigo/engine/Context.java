@@ -131,6 +131,13 @@ public class Context extends AbstractContext implements Cloneable {
 	public transient RequestableObject requestedObject;
 	public transient ISheetContainer lastDetectedObject;
 
+	/**
+	 * Whether the engine chose the connector or the transaction of the request, which the caller did not
+	 * name: an error answered to the caller does not tell their names.
+	 */
+	public transient boolean isImplicitConnector = false;
+	public transient boolean isImplicitTransaction = false;
+
 	public transient boolean removeNamespaces = false;
 
 	// compatibility with older versions
@@ -195,9 +202,11 @@ public class Context extends AbstractContext implements Cloneable {
 		cacheControl = null;
 
 		connectorName = null;
+		isImplicitConnector = false;
 
 		sequenceName = null;
 		transactionName = null;
+		isImplicitTransaction = false;
 
 		requestedObject = null;
 		lastDetectedObject = null;
@@ -499,6 +508,7 @@ public class Context extends AbstractContext implements Cloneable {
 				return;
 			}
 			connectorName = implicitConnector.getName();
+			isImplicitConnector = true;
 		}
 		String key = project.getName() + '\n' + connectorName;
 		var connector = used_connectors.get(key);
@@ -525,6 +535,7 @@ public class Context extends AbstractContext implements Cloneable {
 	public void loadTransaction() throws EngineException {
 		if (connectorName == null) {
 			connectorName = project.getRequestedConnector(null).getName();
+			isImplicitConnector = true;
 		}
 		loadConnector();
 
@@ -532,6 +543,7 @@ public class Context extends AbstractContext implements Cloneable {
 		requestedObject = transaction;
 		if (transactionName == null) {
 			transactionName = transaction.getName();
+			isImplicitTransaction = true;
 			Engine.logContext.debug("Default transaction loaded: " + transactionName);
 		} else {
 			Engine.logContext.debug("Transaction loaded: " + transaction.getName());

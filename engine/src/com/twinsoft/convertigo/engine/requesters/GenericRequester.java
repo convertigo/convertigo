@@ -431,6 +431,7 @@ public abstract class GenericRequester extends Requester {
 			var connector = context.project.getImplicitConnector();
 			if (connector != null) {
 				context.connectorName = connector.getName();
+				context.isImplicitConnector = true;
 			}
 		}
 	}

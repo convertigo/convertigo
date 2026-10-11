@@ -104,11 +104,12 @@ public class ConvertigoError {
 	
 			if (!bHide) {
 				if (context != null) {
+					// the connector and the transaction the engine chose are not told to the caller, who did not name them
 					if (context.projectName != null)
 						error.setAttributeNS("","project",context.projectName);
-					if (context.connectorName != null)
+					if (context.connectorName != null && !context.isImplicitConnector)
 						error.setAttributeNS("","connector", context.connectorName);
-					if (context.transactionName != null)
+					if (context.transactionName != null && !context.isImplicitTransaction)
 						error.setAttributeNS("","transaction",  context.transactionName);
 					if (context.sequenceName != null)
 						error.setAttributeNS("","sequence",  context.sequenceName);

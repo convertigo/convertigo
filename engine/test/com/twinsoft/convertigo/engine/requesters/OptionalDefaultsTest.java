@@ -19,29 +19,36 @@ import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 
 /**
  * The default connector of a project and the default transaction of a connector are optional (#1225): a
@@ -52,17 +59,19 @@ public class OptionalDefaultsTest {
 	private static final String NO_REQUESTABLE = "The request names no requestable.";
 	private static final Map<String, Project> projects = new HashMap<String, Project>();
 	private Engine previousEngine;
+	private AuthenticatedSessionManager previousSessionManager;
 
 	@BeforeClass
 	public static void initializeLogging() {
 		Engine.logBeans = Logger.getLogger("optional-defaults-test");
-		Engine.logEngine = Engine.logContext = Engine.logContextManager = Engine.logDatabaseObjectManager = Engine.logBeans;
+		Engine.logEngine = Engine.logContext = Engine.logContextManager = Engine.logDatabaseObjectManager = Engine.logAdmin = Engine.logBeans;
 	}
 
 	@Before
 	public void installEngine() throws Exception {
 		EnginePropertiesManager.initProperties();
 		previousEngine = Engine.theApp;
+		previousSessionManager = Engine.authenticatedSessionManager;
 		Engine.theApp = new Engine();
 		Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager() {
 			@Override
@@ -79,6 +88,7 @@ public class OptionalDefaultsTest {
 	@After
 	public void restoreEngine() {
 		Engine.theApp = previousEngine;
+		Engine.authenticatedSessionManager = previousSessionManager;
 		projects.clear();
 	}
 
@@ -275,6 +285,120 @@ public class OptionalDefaultsTest {
 		install(project);
 		assertNull(TestCase.getTestCase(parameters("__project", "Sequences", "__testcase", "missing"), "Sequences"));
 		assertNull(TestCase.getTestCase(request(Map.of("__testcase", "missing")), "Sequences"));
+	}
+
+	@Test
+	public void aPrivateRequestableAnswersASoberErrorToAnAnonymousCaller() throws Exception {
+		Engine.authenticatedSessionManager = new AuthenticatedSessionManager();
+		var project = project("Secrets", "Hidden");
+		var sequence = project.getSequenceByName("Hidden");
+		sequence.setAccessibility(Accessibility.Private);
+		var connector = connector(project, "Only", false, "alone");
+		var transaction = connector.getTransactionByName("alone");
+		transaction.setAccessibility(Accessibility.Private);
+
+		for (var requestable : List.<RequestableObject> of(sequence, transaction)) {
+			var context = sessionContext(project);
+			context.httpServletRequest = anonymousRequest();
+			context.requestedObject = requestable;
+			var requester = servletRequester(project);
+			requester.context = context;
+			var message = refusal(requester::checkAccessibility);
+			assertEquals("Unable to execute the requested requestable.", message);
+			assertFalse(message, message.contains(requestable.getName()));
+			assertFalse(message, message.contains("private"));
+
+			requestable.setAccessibility(Accessibility.Public);
+			requestable.setSecureConnectionRequired(true);
+			message = refusal(requester::checkSecuredConnection);
+			assertEquals("Unable to execute the requested requestable: a secured connection is needed.", message);
+			assertFalse(message, message.contains(requestable.getName()));
+		}
+	}
+
+	@Test
+	public void theErrorDocumentDoesNotTellTheConnectorAndTransactionTheEngineChose() throws Exception {
+		var project = project("Single", "Sequence");
+		connector(project, "Only", false, "alone");
+		var requester = servletRequester(project);
+
+		// the second request of a session: the requester names the connector, the context the transaction
+		var context = sessionContext(project);
+		requester.inputData = request(Map.of());
+		requester.initContext(context);
+		context.loadTransaction();
+		var error = errorElement(requester, context);
+		assertEquals("Single", error.getAttribute("project"));
+		assertFalse(error.hasAttribute("connector"));
+		assertFalse(error.hasAttribute("transaction"));
+
+		// the first request of a session, before the context knows the project
+		var first = new Context("first");
+		first.project = project;
+		first.projectName = project.getName();
+		first.loadTransaction();
+		error = errorElement(requester, first);
+		assertFalse(error.hasAttribute("connector"));
+		assertFalse(error.hasAttribute("transaction"));
+
+		// the names the caller gives are kept
+		requester.inputData = request(Map.of("__connector", "Only", "__transaction", "alone"));
+		requester.initContext(context);
+		context.loadTransaction();
+		error = errorElement(requester, context);
+		assertEquals("Only", error.getAttribute("connector"));
+		assertEquals("alone", error.getAttribute("transaction"));
+
+		requester.inputData = request(Map.of("__connector", "Only"));
+		requester.initContext(context);
+		context.loadTransaction();
+		error = errorElement(requester, context);
+		assertEquals("Only", error.getAttribute("connector"));
+		assertFalse(error.hasAttribute("transaction"));
+
+		requester.inputData = request(Map.of("__sequence", "Sequence"));
+		requester.initContext(context);
+		error = errorElement(requester, context);
+		assertEquals("Sequence", error.getAttribute("sequence"));
+	}
+
+	private interface Check {
+		void run() throws EngineException;
+	}
+
+	private static String refusal(Check check) {
+		try {
+			check.run();
+		} catch (EngineException e) {
+			return e.getMessage();
+		}
+		throw new AssertionError("the requestable is executed");
+	}
+
+	private static Element errorElement(Requester requester, Context context) throws Exception {
+		requester.context = context;
+		var document = ConvertigoError.get(new EngineException("failure")).buildErrorDocument(requester, context);
+		return (Element) document.getElementsByTagName("error").item(0);
+	}
+
+	/**
+	 * @return an HTTP request of a caller without role, over a connection that is not secured
+	 */
+	private static HttpServletRequest anonymousRequest() {
+		var session = (HttpSession) Proxy.newProxyInstance(OptionalDefaultsTest.class.getClassLoader(),
+				new Class<?>[] {HttpSession.class}, (proxy, method, args) -> switch (method.getName()) {
+					case "getId" -> "anonymous";
+					case "hashCode" -> System.identityHashCode(proxy);
+					case "equals" -> proxy == args[0];
+					default -> defaultValue(method.getReturnType());
+				});
+		return (HttpServletRequest) Proxy.newProxyInstance(OptionalDefaultsTest.class.getClassLoader(),
+				new Class<?>[] {HttpServletRequest.class}, (proxy, method, args) -> switch (method.getName()) {
+					case "getSession" -> session;
+					case "hashCode" -> System.identityHashCode(proxy);
+					case "equals" -> proxy == args[0];
+					default -> defaultValue(method.getReturnType());
+				});
 	}
 
 	/**

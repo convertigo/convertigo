@@ -58,8 +58,10 @@ public abstract class ServletRequester extends GenericRequester {
 	public void checkSecuredConnection() throws EngineException {
 		if (context.requestedObject.isSecureConnectionRequired()) {
 			if (!context.httpServletRequest.isSecure()) {
-				throw new EngineException("Unable to execute the requestable '" + context.requestedObject.getName()
+				// the caller does not learn the name of the requestable, which it may not have named
+				Engine.logContext.info("Unable to execute the requestable '" + context.requestedObject.getName()
 						+ "' because a secured connection is needed");
+				throw new EngineException(SECURED_CONNECTION_NEEDED);
 			}
 		}
 	}
@@ -78,10 +80,22 @@ public abstract class ServletRequester extends GenericRequester {
 				return;
 			}
 			
-			throw new EngineException("Unable to execute the requestable '" + context.requestedObject.getName()
+			// the caller does not learn the name of the requestable, nor that it exists and is private
+			Engine.logContext.info("Unable to execute the requestable '" + context.requestedObject.getName()
 					+ "' because it is private (check its accessibility property)");
+			throw new EngineException(NOT_EXECUTABLE);
 		}
 	}
+
+	/**
+	 * The error of a request whose requestable the caller may not execute.
+	 */
+	static final String NOT_EXECUTABLE = "Unable to execute the requested requestable.";
+
+	/**
+	 * The error of a request whose requestable needs a secured connection the caller does not use.
+	 */
+	static final String SECURED_CONNECTION_NEEDED = "Unable to execute the requested requestable: a secured connection is needed.";
 
 	private String subPath = null;
 
