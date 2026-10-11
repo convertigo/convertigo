@@ -67,6 +67,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
 import com.twinsoft.convertigo.engine.flow.FlowSourceLayout;
@@ -99,6 +100,8 @@ public class Flow extends Sequence {
 	private transient long flowSourceFileLastModified = -1;
 	private transient String flowInputSyncSource = null;
 	private transient boolean flowInputSyncing = false;
+	/** the accessibility declared by _flow.accessibility, which replaces the property while the source declares it */
+	private transient Accessibility declaredAccessibility = null;
 	private transient String flowVirtualChildrenCacheKey = "";
 	private transient List<DatabaseObject> flowVirtualChildrenCache = null;
 
@@ -310,6 +313,28 @@ public class Flow extends Sequence {
 		return super.hasDatabaseObjectChildren() || !getFlowVirtualChildren().isEmpty();
 	}
 
+	/** The accessibility the source declares (_flow.accessibility), else the property: requesters check it first. */
+	@Override
+	public Accessibility getAccessibility() {
+		synchronizeFlowInputs();
+		return declaredAccessibility != null ? declaredAccessibility : super.getAccessibility();
+	}
+
+	@Override
+	public boolean isPublicAccessibility() {
+		return getAccessibility() == Accessibility.Public;
+	}
+
+	@Override
+	public boolean isPrivateAccessibility() {
+		return getAccessibility() == Accessibility.Private;
+	}
+
+	@Override
+	public boolean isHiddenAccessibility() {
+		return getAccessibility() == Accessibility.Hidden;
+	}
+
 	@Override
 	public List<RequestableVariable> getVariablesList() {
 		synchronizeFlowInputs();
@@ -384,10 +409,12 @@ public class Flow extends Sequence {
 			return;
 		}
 		if (!source.contains("_flow")) {
+			declaredAccessibility = null;
 			flowInputSyncSource = source;
 			return;
 		}
 		if (Boolean.FALSE.equals(hasDeclaredFlowInputs(source))) {
+			declaredAccessibility = null;
 			flowInputSyncSource = source;
 			return;
 		}
@@ -400,6 +427,8 @@ public class Flow extends Sequence {
 				if (hasInputs) {
 					syncFlowInputDefinitions(inputDefinitions);
 				}
+				var accessibility = response.optString("accessibility", "");
+				declaredAccessibility = accessibility.isEmpty() || "null".equals(accessibility) ? null : Accessibility.valueOf(accessibility);
 				flowInputSyncSource = source;
 			} else {
 				var error = response.optJSONObject("error");
@@ -437,7 +466,7 @@ public class Flow extends Sequence {
 					var key = property.getKey();
 					var name = key instanceof Name identifier ? identifier.getIdentifier()
 							: key instanceof StringLiteral literal ? literal.getValue() : "";
-					if ("input".equals(name) || "inputs".equals(name)) {
+					if ("input".equals(name) || "inputs".equals(name) || "accessibility".equals(name)) {
 						result[0] = true;
 						return false;
 					}
