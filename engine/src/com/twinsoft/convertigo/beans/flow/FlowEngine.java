@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
 import com.twinsoft.convertigo.engine.flow.FlowSourceLayout;
@@ -153,6 +154,7 @@ public class FlowEngine extends DatabaseObject {
 		if (databaseObject == null || !isOriginal()) {
 			return;
 		}
+		checkEngineSourceSymbols();
 		ensureEngineProjectReference();
 		if (!ownsRuntime()) {
 			return;
@@ -161,6 +163,30 @@ public class FlowEngine extends DatabaseObject {
 			DatabaseObjectsManager.getProjectLoadingData().addAfterLoaded(this::preloadRuntime);
 		} else {
 			preloadRuntime();
+		}
+	}
+
+	/**
+	 * The global symbols of the Engine source, which a running Flow reads resolved (lib_flow_engine): those with a
+	 * default are listed among the default symbols of the project, an undefined one without default marks the
+	 * project, as the symbols of the properties do.
+	 */
+	@Override
+	public void updateSymbols() throws Exception {
+		super.updateSymbols();
+		checkEngineSourceSymbols();
+	}
+
+	private void checkEngineSourceSymbols() {
+		removeSymbolError("engineSource");
+		var source = getEngineSource();
+		if (source.indexOf("${") == -1 || Engine.theApp == null || Engine.theApp.databaseObjectsManager == null) {
+			return;
+		}
+		try {
+			Engine.theApp.databaseObjectsManager.getCompiledValue(source);
+		} catch (UndefinedSymbolsException e) {
+			addSymbolError("engineSource", e.undefinedSymbols());
 		}
 	}
 
@@ -240,6 +266,7 @@ public class FlowEngine extends DatabaseObject {
 			this.engineSource = engineSource;
 			engineSourceDirty = true;
 			clearFlowVirtualChildrenCache();
+			checkEngineSourceSymbols();
 			changed();
 		}
 	}
@@ -489,6 +516,7 @@ public class FlowEngine extends DatabaseObject {
 			engineSource = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
 			engineSourceFileLastModified = lastModified;
 			clearFlowVirtualChildrenCache();
+			checkEngineSourceSymbols();
 		} catch (Exception e) {
 			Engine.logBeans.warn("Unable to read FlowEngine source file \"" + file.getAbsolutePath() + "\".", e);
 		}

@@ -35,6 +35,7 @@ tasks.named('check') {
 	dependsOn 'projectLibrariesTest'
 	dependsOn 'applicationBuildsTest'
 	dependsOn 'flowPackagesTest'
+	dependsOn 'flowEngineSymbolsTest'
 }
 
 tasks.register('stepSourceTest', JavaExec) {
@@ -170,4 +171,13 @@ tasks.register('flowPackagesTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.flow.FlowPackagesTest'
+}
+
+tasks.register('flowEngineSymbolsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the global symbols of the Flow Engine source: undefined ones mark the project, those with a default are listed.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.flow.FlowEngineSymbolsTest'
 }

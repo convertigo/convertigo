@@ -1341,7 +1341,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
 	}
 
-	private void removeSymbolError(String propertyName) {
+	protected void removeSymbolError(String propertyName) {
 		synchronized (mutex) {
 			if (symbolsErrors != null) {
 				symbolsErrors.remove(propertyName);
