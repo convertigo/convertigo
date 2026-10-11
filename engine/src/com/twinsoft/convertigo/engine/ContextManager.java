@@ -2023,7 +2023,12 @@ public class ContextManager extends AbstractRunnableManager {
 		Engine.logContextManager.debug("   connectorName=" + connectorName);
 		Engine.logContextManager.debug("   poolName=" + poolName);
 
+		// an unknown project or connector has no pool: the request fails on it later, as any request
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		if (project == null) {
+			Engine.logContextManager.debug("No project '" + projectName + "'; aborting pool management");
+			return null;
+		}
 		Connector connector;
 		if (connectorName == null) {
 			connector = project.getImplicitConnector();
@@ -2032,7 +2037,14 @@ public class ContextManager extends AbstractRunnableManager {
 				return null;
 			}
 			connectorName = connector.getName();
-		} else connector = project.getConnectorByName(connectorName);
+		} else {
+			try {
+				connector = project.getConnectorByName(connectorName);
+			} catch (RequestableUnavailableException e) {
+				Engine.logContextManager.debug("No connector '" + connectorName + "'; aborting pool management");
+				return null;
+			}
+		}
 
 		// If we cannot find the pool, abort the process
 		Pool pool = connector.getPoolByName(poolName);

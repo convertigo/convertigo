@@ -42,13 +42,17 @@ import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.RequestableUnavailableException;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 /**
  * The default connector of a project and the default transaction of a connector are optional (#1225): a
@@ -302,11 +306,14 @@ public class OptionalDefaultsTest {
 			context.httpServletRequest = anonymousRequest();
 			context.requestedObject = requestable;
 			var requester = servletRequester(project);
+			requester.inputData = context.httpServletRequest;
 			requester.context = context;
-			var message = refusal(requester::checkAccessibility);
+			// the precise reason stays on the server, the caller gets the plain answer
+			var refusal = refusalOf(requester::checkAccessibility);
+			assertTrue(refusal instanceof RequestableUnavailableException);
+			assertTrue(refusal.getMessage(), refusal.getMessage().contains("'" + requestable.getName() + "' because it is private"));
+			var message = requester.getCallerError(refusal).getMessage();
 			assertEquals("Unable to execute the requested requestable.", message);
-			assertFalse(message, message.contains(requestable.getName()));
-			assertFalse(message, message.contains("private"));
 
 			requestable.setAccessibility(Accessibility.Public);
 			requestable.setSecureConnectionRequired(true);
@@ -362,17 +369,133 @@ public class OptionalDefaultsTest {
 		assertEquals("Sequence", error.getAttribute("sequence"));
 	}
 
+	@Test
+	public void aCallerWhoIsNotAnAdministratorGetsTheSameAnswerForAnUnknownOrARefusedRequestable() throws Exception {
+		Engine.authenticatedSessionManager = new AuthenticatedSessionManager();
+		var project = project("Secrets", "Hidden");
+		project.getSequenceByName("Hidden").setAccessibility(Accessibility.Private);
+		connector(project, "Only", false, "alone").getTransactionByName("alone").setAccessibility(Accessibility.Private);
+
+		var refused = answer(project, "Secrets", Map.of("__sequence", "Hidden"), false);
+		assertTrue(refused, refused.contains("<message>Unable to execute the requested requestable.</message>"));
+		assertFalse(refused, refused.contains("private"));
+		assertEquals(refused, answer(project, "Secrets", Map.of("__sequence", "Nope"), false).replace("Nope", "Hidden"));
+
+		// the names the caller gave, as it gave them, even when the engine found them in another case
+		refused = answer(project, "Secrets", Map.of("__connector", "ONLY", "__transaction", "ALONE"), false);
+		assertTrue(refused, refused.contains("connector=\"ONLY\"") && refused.contains("transaction=\"ALONE\""));
+		assertEquals(refused, answer(project, "Secrets", Map.of("__connector", "ONLY", "__transaction", "NONE"), false)
+				.replace("NONE", "ALONE"));
+		assertEquals(refused, answer(project, "Secrets", Map.of("__connector", "NOPE", "__transaction", "ALONE"), false)
+				.replace("NOPE", "ONLY"));
+
+		// a request naming nothing: a private implicit transaction, nothing to choose, an unknown project
+		refused = answer(project, "Secrets", Map.of(), false);
+		assertFalse(refused, refused.contains("connector=") || refused.contains("transaction="));
+		assertEquals(refused, answer(project("Empty"), "Empty", Map.of(), false).replace("Empty", "Secrets"));
+		assertEquals(refused, answer(null, "Missing", Map.of(), false).replace("Missing", "Secrets"));
+	}
+
+	@Test
+	public void theAdministratorsAndTheInternalRequestsKeepThePreciseErrors() throws Exception {
+		Engine.authenticatedSessionManager = new AuthenticatedSessionManager();
+		var project = project("Secrets", "Hidden");
+		project.getSequenceByName("Hidden").setAccessibility(Accessibility.Private);
+
+		var unknown = answer(project, "Secrets", Map.of("__sequence", "Nope"), true);
+		assertTrue(unknown, unknown.contains("There is no sequence named \"Nope\" found into the project \"Secrets\"."));
+		assertTrue(answer(null, "Missing", Map.of(), true).contains("There is no project named \"Missing\"."));
+
+		// an administrator executes the private requestables
+		var context = sessionContext(project);
+		var requester = servletRequester(project);
+		requester.inputData = callerRequest(Map.of("__sequence", "Hidden"), true);
+		requester.initContext(context);
+		requester.context = context;
+		context.loadSequence();
+		requester.checkAccessibility();
+
+		// a sequence step or a Flow calls through the internal requester, on the server
+		install(project);
+		var failure = new RequestableUnavailableException("There is no sequence named \"Nope\" found into the project \"Secrets\".");
+		assertSame(failure, internalRequester(project, parameters("__project", "Secrets", "__sequence", "Nope")).getCallerError(failure));
+	}
+
+	/**
+	 * @return the error document answered to the request, which the engine refuses, and its JSON as the
+	 *         .json requester answers it
+	 */
+	private static String answer(Project project, String projectName, Map<String, String> parameters, boolean administrator)
+			throws Exception {
+		var context = new Context("session_default");
+		context.project = project;
+		context.projectName = projectName;
+		var requester = new JsonServletRequester();
+		requester.projectName = projectName;
+		requester.inputData = callerRequest(parameters, administrator);
+		requester.initContext(context);
+		requester.context = context;
+		var failure = refusalOf(() -> {
+			if (context.project == null) {
+				// as Engine.getDocument for an unknown project
+				throw new RequestableUnavailableException("There is no project named \"" + projectName + "\".");
+			}
+			if (context.sequenceName != null) {
+				context.loadSequence();
+			} else {
+				context.loadTransaction();
+			}
+			requester.checkAccessibility();
+		});
+		var document = ConvertigoError.get(requester.getCallerError(failure)).buildErrorDocument(requester, context);
+		// the stack trace is the same in the engine, where the answers come from the same place
+		var stackTrace = document.getElementsByTagName("stacktrace").item(0);
+		assertFalse(stackTrace.getTextContent().contains("private"));
+		stackTrace.setTextContent("");
+		var xml = XMLUtils.prettyPrintDOM(document);
+		return xml + "\n" + requester.postGetDocument(document);
+	}
+
 	private interface Check {
 		void run() throws EngineException;
 	}
 
-	private static String refusal(Check check) {
+	private static EngineException refusalOf(Check check) {
 		try {
 			check.run();
 		} catch (EngineException e) {
-			return e.getMessage();
+			return e;
 		}
 		throw new AssertionError("the requestable is executed");
+	}
+
+	private static String refusal(Check check) {
+		return refusalOf(check).getMessage();
+	}
+
+	/**
+	 * @return an HTTP request carrying the parameters, of an administrator or of a caller without role
+	 */
+	private static HttpServletRequest callerRequest(Map<String, String> parameters, boolean administrator) {
+		var roles = administrator ? new Role[] {Role.WEB_ADMIN, Role.TEST_PLATFORM_PRIVATE} : null;
+		var session = (HttpSession) Proxy.newProxyInstance(OptionalDefaultsTest.class.getClassLoader(),
+				new Class<?>[] {HttpSession.class}, (proxy, method, args) -> switch (method.getName()) {
+					case "getId" -> administrator ? "administrator" : "anonymous";
+					case "getAttribute" -> SessionKey.ADMIN_ROLES.toString().equals(args[0]) ? roles : null;
+					case "hashCode" -> System.identityHashCode(proxy);
+					case "equals" -> proxy == args[0];
+					default -> defaultValue(method.getReturnType());
+				});
+		return (HttpServletRequest) Proxy.newProxyInstance(OptionalDefaultsTest.class.getClassLoader(),
+				new Class<?>[] {HttpServletRequest.class}, (proxy, method, args) -> switch (method.getName()) {
+					case "getSession" -> session;
+					case "getParameterNames" -> Collections.enumeration(parameters.keySet());
+					case "getParameter" -> parameters.get(args[0]);
+					case "getParameterValues" -> parameters.containsKey(args[0]) ? new String[] {parameters.get(args[0])} : null;
+					case "hashCode" -> System.identityHashCode(proxy);
+					case "equals" -> proxy == args[0];
+					default -> defaultValue(method.getReturnType());
+				});
 	}
 
 	private static Element errorElement(Requester requester, Context context) throws Exception {

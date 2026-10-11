@@ -556,7 +556,9 @@ public abstract class GenericServlet extends HttpServlet {
 			}
 		}
 
-		if (requester.context.requireEndOfContext || (isNew && context.isErrorDocument) || context.project == null) {
+		// an unknown project answered as an existing one keeps the session, as a refused request does
+		if (requester.context.requireEndOfContext || (isNew && context.isErrorDocument)
+				|| (context.project == null && !context.isDefaultProjectAnswer)) {
 			// request.setAttribute("convertigo.requireEndOfContext",
 			// requester);
 			request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);

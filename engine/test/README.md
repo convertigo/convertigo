@@ -66,8 +66,10 @@ the plain error of a request naming no requestable (it lists nothing of the
 project), the removal of the defaults, the console moves and copies of a
 default connector or transaction (not default in their new parent), the sober
 errors of a private requestable or a missing secured connection, the error
-document that keeps only the names the caller gave, and the unchanged behavior
-of explicit defaults. It uses in-memory projects and does not
+document that keeps only the names the caller gave, the identical answers to an
+unknown or a refused requestable for a caller who is not an administrator (the
+administrators and the internal requests keep the precise errors), and the
+unchanged behavior of explicit defaults. It uses in-memory projects and does not
 start an engine.
 
 ## Session serialization

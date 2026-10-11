@@ -24,6 +24,8 @@ import java.util.Enumeration;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
@@ -33,6 +35,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.RequestableUnavailableException;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
@@ -75,20 +78,57 @@ public abstract class ServletRequester extends GenericRequester {
 				return;
 			}
 			
-			if (Engine.authenticatedSessionManager.hasRole(context.httpServletRequest.getSession(), Role.TEST_PLATFORM_PRIVATE)) {
+			if (mayExecutePrivate()) {
 				// Only admin users can execute private requestables
 				return;
 			}
 			
-			// the caller does not learn the name of the requestable, nor that it exists and is private
-			Engine.logContext.info("Unable to execute the requestable '" + context.requestedObject.getName()
+			// the caller gets the answer of an unknown requestable, see getCallerError
+			throw new RequestableUnavailableException("Unable to execute the requestable '" + context.requestedObject.getName()
 					+ "' because it is private (check its accessibility property)");
-			throw new EngineException(NOT_EXECUTABLE);
 		}
 	}
 
 	/**
-	 * The error of a request whose requestable the caller may not execute.
+	 * @return whether the caller may execute the private requestables: an administrator
+	 */
+	private boolean mayExecutePrivate() {
+		return context.httpServletRequest != null
+				&& Engine.authenticatedSessionManager.hasRole(context.httpServletRequest.getSession(), Role.TEST_PLATFORM_PRIVATE);
+	}
+
+	/**
+	 * Gives the same plain answer to a request whose project, sequence, connector or transaction does not
+	 * exist, cannot be chosen or may not be executed, when the caller may not execute private requestables:
+	 * the answer does not tell which requestables exist. The server log keeps the reason, and the Studio and
+	 * the administrators get it.
+	 */
+	@Override
+	protected Throwable getCallerError(Throwable e) {
+		RequestableUnavailableException unavailable = null;
+		for (Throwable cause = e; cause != null && unavailable == null; cause = cause.getCause()) {
+			if (cause instanceof RequestableUnavailableException) {
+				unavailable = (RequestableUnavailableException) cause;
+			}
+		}
+		if (unavailable == null || Engine.isStudioMode() || mayExecutePrivate()) {
+			return e;
+		}
+		Engine.logContext.info(unavailable.getMessage());
+
+		// the error document only tells the names the caller gave, as it gave them
+		HttpServletRequest request = (HttpServletRequest) inputData;
+		context.sequenceName = StringUtils.defaultIfEmpty(request.getParameter(Parameter.Sequence.getName()), null);
+		context.connectorName = StringUtils.defaultIfEmpty(request.getParameter(Parameter.Connector.getName()), null);
+		context.transactionName = StringUtils.defaultIfEmpty(request.getParameter(Parameter.Transaction.getName()), null);
+		context.isImplicitConnector = false;
+		context.isImplicitTransaction = false;
+		context.isDefaultProjectAnswer = context.project == null;
+		return new EngineException(NOT_EXECUTABLE);
+	}
+
+	/**
+	 * The error of a request whose requestable does not exist or the caller may not execute.
 	 */
 	static final String NOT_EXECUTABLE = "Unable to execute the requested requestable.";
 

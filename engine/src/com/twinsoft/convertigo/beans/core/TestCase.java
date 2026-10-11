@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.beans.variables.TestCaseMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.RequestableUnavailableException;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
@@ -330,37 +331,59 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 		return rep;
 	}
 
+	/**
+	 * @return the test case a request names, or null when it names none or names a project, a sequence, a
+	 *         connector or a transaction that does not exist: the request then fails on this object
+	 */
 	public static TestCase getTestCase(Map<String, Object> request, String projectName) throws EngineException {
 		TestCase tc = null;
 		if (request.containsKey("__testcase")) {
 			projectName = InternalRequester.getString(request, "__project", projectName);
 			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, true);
-			if (request.containsKey("__sequence")) {
-				tc = project.getSequenceByName(InternalRequester.getString(request, "__sequence")).getTestCaseByName(InternalRequester.getString(request, "__testcase"));
-			} else {
-				Connector connector = request.containsKey("__connector") ? project.getConnectorByName(InternalRequester.getString(request, "__connector")) : project.getImplicitConnector();
-				Transaction transaction = connector == null ? null : request.containsKey("__transaction") ? connector.getTransactionByName(InternalRequester.getString(request, "__transaction")) : connector.getImplicitTransaction();
-				if (transaction instanceof TransactionWithVariables) {
-					tc = ((TransactionWithVariables) transaction).getTestCaseByName(InternalRequester.getString(request, "__testcase"));
+			if (project == null) {
+				return null;
+			}
+			try {
+				if (request.containsKey("__sequence")) {
+					tc = project.getSequenceByName(InternalRequester.getString(request, "__sequence")).getTestCaseByName(InternalRequester.getString(request, "__testcase"));
+				} else {
+					Connector connector = request.containsKey("__connector") ? project.getConnectorByName(InternalRequester.getString(request, "__connector")) : project.getImplicitConnector();
+					Transaction transaction = connector == null ? null : request.containsKey("__transaction") ? connector.getTransactionByName(InternalRequester.getString(request, "__transaction")) : connector.getImplicitTransaction();
+					if (transaction instanceof TransactionWithVariables) {
+						tc = ((TransactionWithVariables) transaction).getTestCaseByName(InternalRequester.getString(request, "__testcase"));
+					}
 				}
+			} catch (RequestableUnavailableException e) {
+				return null;
 			}
 		}
 		return tc;
 	}
 
+	/**
+	 * @return the test case a request names, or null when it names none or names a project, a sequence, a
+	 *         connector or a transaction that does not exist: the request then fails on this object
+	 */
 	public static TestCase getTestCase(HttpServletRequest request, String projectName) throws EngineException {
 		TestCase tc = null;
 		if (request.getParameter("__testcase") != null) {
 			projectName = request.getParameter("__project") != null ? request.getParameter("__project") : projectName;
 			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, true);
-			if (request.getParameter("__sequence") != null) {
-				tc = project.getSequenceByName(request.getParameter("__sequence")).getTestCaseByName(request.getParameter("__testcase"));
-			} else {
-				Connector connector = request.getParameter("__connector") != null ? project.getConnectorByName(request.getParameter("__connector")) : project.getImplicitConnector();
-				Transaction transaction = connector == null ? null : request.getParameter("__transaction") != null ? connector.getTransactionByName(request.getParameter("__transaction")) : connector.getImplicitTransaction();
-				if (transaction instanceof TransactionWithVariables) {
-					tc = ((TransactionWithVariables) transaction).getTestCaseByName(request.getParameter("__testcase"));
+			if (project == null) {
+				return null;
+			}
+			try {
+				if (request.getParameter("__sequence") != null) {
+					tc = project.getSequenceByName(request.getParameter("__sequence")).getTestCaseByName(request.getParameter("__testcase"));
+				} else {
+					Connector connector = request.getParameter("__connector") != null ? project.getConnectorByName(request.getParameter("__connector")) : project.getImplicitConnector();
+					Transaction transaction = connector == null ? null : request.getParameter("__transaction") != null ? connector.getTransactionByName(request.getParameter("__transaction")) : connector.getImplicitTransaction();
+					if (transaction instanceof TransactionWithVariables) {
+						tc = ((TransactionWithVariables) transaction).getTestCaseByName(request.getParameter("__testcase"));
+					}
 				}
+			} catch (RequestableUnavailableException e) {
+				return null;
 			}
 		}
 		return tc;

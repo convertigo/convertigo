@@ -51,6 +51,7 @@ import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.RequestableUnavailableException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
@@ -96,6 +97,9 @@ public class WebServiceTranslator implements Translator {
 				// for statefull transaction, don't replace the project
 				if(context.project==null || !context.project.getName().equals(context.projectName)) {
 					context.project = Engine.theApp.databaseObjectsManager.getProjectByName(context.projectName);
+					if (context.project == null) {
+						throw new RequestableUnavailableException("There is no project named \"" + context.projectName + "\".");
+					}
 				}
 
 				String connectorName = null;

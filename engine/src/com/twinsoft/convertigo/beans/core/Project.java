@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProjectLibraries;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.RequestableUnavailableException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
@@ -450,7 +451,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		for (Connector connector : vConnectors)
 			if (connector.getName().equalsIgnoreCase(connectorName))
 				return connector;
-		throw new EngineException("There is no connector named \"" + connectorName + "\" found into this project.");
+		throw new RequestableUnavailableException("There is no connector named \"" + connectorName + "\" found into this project.");
 	}
 
 	/**
@@ -479,7 +480,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		for (Sequence sequence : vSequences)
 			if (sequence.getName().equalsIgnoreCase(sequenceName))
 				return sequence;
-		throw new EngineException(
+		throw new RequestableUnavailableException(
 				"There is no sequence named \"" + sequenceName + "\" found into the project \"" + getName() + "\".");
 	}
 
@@ -579,7 +580,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		Connector connector = getImplicitConnector();
 		if (connector == null) {
-			throw new EngineException(NO_REQUESTABLE);
+			throw new RequestableUnavailableException(NO_REQUESTABLE);
 		}
 		return connector;
 	}

@@ -1188,8 +1188,11 @@ public class Engine {
 					Engine.logEngine.debug("New project requested: '" + context.projectName + "'");
 					context.project = Engine.theApp.databaseObjectsManager
 							.getProjectByName(context.projectName);
-					Engine.logContext.debug("Project loaded: " + context.project.getName());
+					Engine.logContext.debug("Project loaded: " + context.projectName);
 				}
+			}
+			if (context.project == null) {
+				throw new RequestableUnavailableException("There is no project named \"" + context.projectName + "\".");
 			}
 			context.project.checkSymbols();
 

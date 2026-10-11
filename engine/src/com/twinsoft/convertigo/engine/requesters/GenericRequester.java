@@ -421,6 +421,14 @@ public abstract class GenericRequester extends Requester {
 	}
 
 	/**
+	 * @return the error answered to the caller for the failure of its request: the failure itself, unless the
+	 *         requester hides its reason from its caller
+	 */
+	protected Throwable getCallerError(Throwable e) {
+		return e;
+	}
+
+	/**
 	 * Names the connector of a request that names no connector, once the context knows the project: the
 	 * default connector, else the only connector of the project. A request that names a sequence never looks
 	 * up a connector, and a project without default connector nor single connector leaves the connector
@@ -686,7 +694,7 @@ public abstract class GenericRequester extends Requester {
 			}
 			
 			try {
-				document = Engine.theApp.getErrorDocument(e, this, context);
+				document = Engine.theApp.getErrorDocument(getCallerError(e), this, context);
 				Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent(document, context.projectName, context.sequenceName, context.connectorName));
 				context.isErrorDocument = true;
 

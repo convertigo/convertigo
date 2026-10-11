@@ -138,6 +138,12 @@ public class Context extends AbstractContext implements Cloneable {
 	public transient boolean isImplicitConnector = false;
 	public transient boolean isImplicitTransaction = false;
 
+	/**
+	 * Whether the request of an unknown project is answered as for a project with the default settings, so
+	 * that the caller cannot tell it from an existing project.
+	 */
+	public transient boolean isDefaultProjectAnswer = false;
+
 	public transient boolean removeNamespaces = false;
 
 	// compatibility with older versions
@@ -207,6 +213,7 @@ public class Context extends AbstractContext implements Cloneable {
 		sequenceName = null;
 		transactionName = null;
 		isImplicitTransaction = false;
+		isDefaultProjectAnswer = false;
 
 		requestedObject = null;
 		lastDetectedObject = null;

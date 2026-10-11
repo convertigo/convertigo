@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransacti
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.RequestableUnavailableException;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
@@ -247,13 +248,13 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 		if (transactionName != null && !transactionName.isEmpty()) {
 			Transaction transaction = getTransactionByName(transactionName);
 			if (transaction == null) {
-				throw new EngineException("Unknown transaction \"" + transactionName + "\"");
+				throw new RequestableUnavailableException("Unknown transaction \"" + transactionName + "\"");
 			}
 			return transaction;
 		}
 		Transaction transaction = getImplicitTransaction();
 		if (transaction == null) {
-			throw new EngineException(Project.NO_REQUESTABLE);
+			throw new RequestableUnavailableException(Project.NO_REQUESTABLE);
 		}
 		return transaction;
 	}
