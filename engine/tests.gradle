@@ -152,7 +152,7 @@ tasks.register('projectLibrariesTest', JavaExec) {
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
-	args 'com.twinsoft.convertigo.engine.ProjectLibrariesTest'
+	args 'com.twinsoft.convertigo.engine.ProjectLibrariesTest', 'com.twinsoft.convertigo.engine.ProjectJarsTest'
 }
 
 tasks.register('applicationBuildsTest', JavaExec) {

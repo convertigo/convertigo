@@ -20,8 +20,10 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +116,25 @@ public final class ProjectLibraries {
 		var sources = new File(generation.getSnapshot(), "source-0/" + ClasspathSnapshot.SOURCES);
 		var classes = new File(sources.getPath() + ClasspathSnapshot.COMPILED_SUFFIX);
 		return sources.isDirectory() && classes.isDirectory() ? new File[] { classes, sources } : null;
+	}
+
+	/**
+	 * For the export of a project: the jars its own libs/jars.yaml declares, in the copy of its current generation.
+	 *
+	 * @return the jar files, empty when the project declares none or its generation lacks them
+	 */
+	public static List<File> declaredJars(Project project) {
+		if (ProjectJars.descriptor(new File(project.getDirPath(), "libs")) == null
+				|| !(classLoader(project) instanceof ProjectClassLoader generation) || generation.getSnapshot() == null) {
+			return List.of();
+		}
+		var jars = new File(generation.getSnapshot(), "source-0/" + ClasspathSnapshot.JARS)
+				.listFiles((dir, name) -> name.endsWith(".jar"));
+		if (jars == null) {
+			return List.of();
+		}
+		java.util.Arrays.sort(jars);
+		return List.of(jars);
 	}
 
 	/** @return the fingerprint of the content of a src folder, written next to the classes compiled from it */
@@ -212,14 +233,30 @@ public final class ProjectLibraries {
 			}
 			try {
 				var directories = dirs.get();
-				var entries = ClasspathSnapshot.entries(directories);
+				var entries = new ArrayList<>(ClasspathSnapshot.entries(directories));
+				IOException jarsFailure = null;
+				try {
+					entries.addAll(ClasspathSnapshot.jarEntries(directories));
+				} catch (IOException e) {
+					jarsFailure = e;
+				}
 				var newStamp = ClasspathSnapshot.stamp(directories, entries);
 				var mayCompile = ProjectSources.mayCompile();
 				if (newStamp.equals(stamp) && !(waitingForBuild && mayCompile)) {
 					return;
 				}
-				var fingerprint = ClasspathSnapshot.fingerprint(entries);
 				var previous = current;
+				if (jarsFailure != null) {
+					// as sources that do not compile: tried again once the descriptor changes (or later, a download)
+					stamp = newStamp;
+					error("Libraries of the project " + name + ": " + jarsFailure.getMessage() + (previous != null
+							? "\nThe project keeps its previous libraries."
+							: "\nThe project uses its libraries without the jars of " + ProjectJars.DESCRIPTOR + "."));
+					if (previous != null) {
+						return;
+					}
+				}
+				var fingerprint = ClasspathSnapshot.fingerprint(entries);
 				if (previous != null && (fingerprint.equals(previous.getFingerprint())
 						|| (fingerprint + ClasspathSnapshot.WITHOUT_SOURCES).equals(previous.getFingerprint()) && !mayCompile)) {
 					// files touched, same content

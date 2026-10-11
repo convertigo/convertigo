@@ -102,6 +102,7 @@ public class CarUtils {
 			FileUtils.deleteQuietly(file);
 			File f = ZipUtils.makeZip(file.getAbsolutePath(), dirPath, projectName, undeployedFiles);
 			addCompiledSources(f, project);
+			addDeclaredJars(f, project);
 			
 			if (skipTestCase != null) {
 				Map<String, String> zip_properties = new HashMap<>();
@@ -167,6 +168,27 @@ public class CarUtils {
 				}
 			}
 			Files.writeString(build.resolve("src.sha256"), ProjectLibraries.sourcesFingerprint(compiled[1]));
+		}
+	}
+
+	/**
+	 * Adds the jars the libs/jars.yaml of the project declares, as its current libraries resolved them, to the archive in
+	 * libs/build/lib: a server that does not download uses them.
+	 */
+	private static void addDeclaredJars(File archive, Project project) throws IOException {
+		var jars = ProjectLibraries.declaredJars(project);
+		if (jars.isEmpty()) {
+			return;
+		}
+		Map<String, String> zip_properties = new HashMap<>();
+		zip_properties.put("create", "false");
+		zip_properties.put("encoding", "UTF-8");
+		try (FileSystem zipfs = FileSystems.newFileSystem(URI.create("jar:" + archive.toURI()), zip_properties)) {
+			Path lib = zipfs.getPath(project.getName(), "libs", "build", "lib");
+			Files.createDirectories(lib);
+			for (var jar : jars) {
+				Files.copy(jar.toPath(), lib.resolve(jar.getName()), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+			}
 		}
 	}
 

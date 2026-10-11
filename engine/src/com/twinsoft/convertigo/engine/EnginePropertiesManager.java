@@ -252,7 +252,7 @@ public class EnginePropertiesManager {
 	/** What a server builds (server_build), each level allowing those before it. */
 	public enum ServerBuild implements ComboEnum {
 		none ("nothing"),
-		sources ("the Java sources of the projects (libs/src)"),
+		sources ("the Java sources of the projects (libs/src) and the jars they declare (libs/jars.yaml)"),
 		studio ("the Java sources and the builds started from the web Studio"),
 		all ("all, also the applications deployed without their build");
 
@@ -456,7 +456,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = WebStudio.class)
 		WEB_STUDIO ("web_studio", "disabled", "Web Studio in the administration console, to edit projects on this server (always enabled in the Studio)", PropertyCategory.Main),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ServerBuild.class)
-		SERVER_BUILD ("server_build", "none", "What this server builds: the Java sources of the projects, also the builds started from the web Studio (nodejs, npm), also the applications deployed without their build (always all in the Studio)", PropertyCategory.Main),
+		SERVER_BUILD ("server_build", "none", "What this server builds: the Java sources and declared jars of the projects, also the builds started from the web Studio (nodejs, npm), also the applications deployed without their build (always all in the Studio)", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		DOCUMENT_THREADING_USE_STOP_METHOD ("document.threading.use_stop_method", "false", "Use the Java Thread.stop() method in order to finish threads", PropertyCategory.Main),
 		@PropertyOptions(advance = true)

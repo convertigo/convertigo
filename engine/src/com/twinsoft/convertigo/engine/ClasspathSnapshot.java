@@ -55,6 +55,8 @@ final class ClasspathSnapshot {
 	static final String BUILD_CLASSES = "classes";
 	/** In the build folder: the fingerprint of the sources its classes are compiled from. */
 	static final String BUILD_FINGERPRINT = "src.sha256";
+	/** In a copy, where the jars a libs folder declares are. */
+	static final String JARS = "jars";
 	/** In a copy: the classes of the sources of a libs folder, next to them. */
 	static final String COMPILED_SUFFIX = ".classes";
 	/** The name of a copy in which sources did not get their classes ends with it. */
@@ -104,13 +106,31 @@ final class ClasspathSnapshot {
 	}
 
 	/**
-	 * @return a cheap stamp of the libraries: their folders, and the path, size and date of each file, including those
-	 *         in the sub-folders of a classes folder
+	 * @return the jars the libs folders declare (jars.yaml), as libraries after those of their folder
+	 * @throws IOException when a declared jar is not available
+	 */
+	static List<Entry> jarEntries(List<File> dirs) throws IOException {
+		var entries = new ArrayList<Entry>();
+		for (int dirIndex = 0; dirIndex < dirs.size(); dirIndex++) {
+			for (var jar : ProjectJars.resolve(dirs.get(dirIndex))) {
+				entries.add(new Entry(jar, "source-" + dirIndex + "/" + JARS + "/" + jar.getName(), Kind.LIBRARY, dirIndex));
+			}
+		}
+		return entries;
+	}
+
+	/**
+	 * @return a cheap stamp of the libraries: their folders and jar descriptors, and the path, size and date of each
+	 *         file, including those in the sub-folders of a classes folder
 	 */
 	static String stamp(List<File> dirs, List<Entry> entries) {
 		var stamp = new StringBuilder();
 		for (var dir : dirs) {
 			stamp.append(dir.getAbsolutePath()).append('|');
+			var descriptor = ProjectJars.descriptor(dir);
+			if (descriptor != null) {
+				appendStamp(stamp, descriptor);
+			}
 		}
 		for (var entry : entries) {
 			appendStamp(stamp, entry.source());

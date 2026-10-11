@@ -242,7 +242,7 @@ public class HttpUtils {
 			private synchronized CloseableHttpClient getHttpClient4() {
 				if (httpClient == null) {
 					HttpClientBuilder httpClientBuilder = HttpClients.custom();
-					if (Engine.theApp != null && Engine.theApp.proxyManager.proxyMode == ProxyMode.manual) {
+					if (Engine.theApp != null && Engine.theApp.proxyManager != null && Engine.theApp.proxyManager.proxyMode == ProxyMode.manual) {
 						HttpHost proxy = new HttpHost(Engine.theApp.proxyManager.getProxyServer(), Engine.theApp.proxyManager.getProxyPort());
 						httpClientBuilder.setProxy(proxy);
 						HttpRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy) {
