@@ -42,8 +42,9 @@
 		<DatePicker.Control
 			class="layout-x-none h-9 input-common items-center text-[13px] leading-none placeholder:text-[13px]"
 		>
+			<!-- in the flow of the bar: the Skeleton style places it over the end of a single input -->
 			<DatePicker.Trigger
-				class="rounded-base p-1 hover:bg-black/10"
+				class="static rounded-base p-1 hover:bg-black/10"
 				title="Open date range calendar"
 				aria-label="Open date range calendar"
 			>
@@ -52,14 +53,14 @@
 			<DatePicker.Input
 				index={0}
 				aria-label="Start date"
-				class="w-[6.6rem] rounded-base border-none bg-transparent px-1 py-1 text-[13px] hover:bg-black/30 focus:ring-0"
+				class="w-[6.6rem] rounded-base border-0! bg-transparent! px-1 py-1 text-[13px] shadow-none! ring-0! hover:bg-black/30!"
 			/>
 			{#if !live}
 				<div aria-hidden="true" class="px-1">⇒</div>
 				<DatePicker.Input
 					index={1}
 					aria-label="End date"
-					class="w-[6.6rem] rounded-base border-none bg-transparent px-1 py-1 text-[13px] hover:bg-black/30 focus:ring-0"
+					class="w-[6.6rem] rounded-base border-0! bg-transparent! px-1 py-1 text-[13px] shadow-none! ring-0! hover:bg-black/30!"
 				/>
 			{/if}
 			<Tooltip positioning={{ placement: 'top' }}>
