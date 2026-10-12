@@ -145,6 +145,7 @@
 	 * @property {string=} icon
 	 * @property {string=} instanceName
 	 * @property {string=} flowType
+	 * @property {string=} category
 	 * @property {string=} provider
 	 * @property {string=} sourceProject
 	 * @property {string=} sourceRelativePath
@@ -590,6 +591,7 @@
 	let selectedObjectIdentity = $derived(
 		objectIdentity(selectedTrail, selectedId, selectedTreeDocItem)
 	);
+	let selectedDocIdentity = $derived(docIdentity(selectedTreeDocItem, selectedObjectIdentity));
 
 	$effect(() => {
 		const id = selectedId;
@@ -1087,14 +1089,32 @@
 			(ownerIndex >= 0 ? blockName(ownerIndex) : '') ||
 			(className && !virtual ? flowTypeDisplayName(className) : '') ||
 			(docItem?.name !== 'Flow virtual object' ? String(docItem?.name ?? '') : '');
+		// the block of the palette is told with its category, where the palette shows it
+		const category = docItem?.isBlockDefinition ? String(docItem.category ?? '') : '';
 		return {
 			id,
 			name,
-			instanceName: kind && kind !== name ? kind : '',
+			instanceName: kind && kind !== name ? [kind, category].filter(Boolean).join(' · ') : '',
 			classname: virtual ? '' : classname,
 			iconUrl:
 				typeof node.icon === 'string' && node.icon.includes('?') ? `${getUrl()}${node.icon}` : '',
 			iconify: node.iconify ?? ''
+		};
+	}
+
+	/**
+	 * The documentation is the one of the block of the object: named as in the palette, under its category.
+	 * @param {PaletteItem | null} docItem
+	 * @param {any} identity
+	 */
+	function docIdentity(docItem, identity) {
+		if (!docItem?.isBlockDefinition || !identity) {
+			return identity;
+		}
+		return {
+			...identity,
+			name: docItem.name || identity.name,
+			instanceName: docItem.category || identity.name
 		};
 	}
 
@@ -1715,7 +1735,10 @@
 			return null;
 		}
 		const context = await loadPaletteContext(parentId);
-		return findBlockDefinition(context.categories, identity);
+		const item = findBlockDefinition(context.categories, identity);
+		// the item of the palette is under its category, which names where to find it
+		const category = item && context.categories.find((entry) => entry?.items?.includes(item))?.name;
+		return item && category && !item.category ? { ...item, category } : item;
 	}
 
 	/**
@@ -3761,7 +3784,7 @@
 {#snippet docPane()}
 	<StudioDocPanel
 		paletteItem={selectedDocItem}
-		identityItem={selectedPaletteItem ? null : selectedObjectIdentity}
+		identityItem={selectedPaletteItem ? null : selectedDocIdentity}
 		loading={selectedDocLoading}
 		error={selectedDocError}
 		emptyMessage="No documentation available for the current selection."
