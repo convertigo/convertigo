@@ -225,6 +225,10 @@ public class Get extends JSonService {
 		if (defaultOf != null) {
 			obj.put("default", defaultOf);
 		}
+		// the block of a Flow item, as a card of a page: the Studio names what is selected by it
+		if (dbo instanceof FlowVirtualObject virtual && !virtual.getVirtualType().isBlank()) {
+			obj.put("flowType", virtual.getVirtualType());
+		}
 		// the code of a Flow or of a block is its source, which the code editor shows when it is selected
 		if (com.twinsoft.convertigo.engine.admin.services.studio.source.Get.hasSourceDocument(dbo)) {
 			obj.put("source", true);

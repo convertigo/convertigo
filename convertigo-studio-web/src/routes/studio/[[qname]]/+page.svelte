@@ -263,7 +263,7 @@
 
 	let profile = $state('backend');
 	let selectedId = $state(initialSelectedId);
-	/** @type {{ id: string, label: string, icon?: string, iconify?: string, classname?: string, source?: boolean }[]} the nodes from the project to the selection, as the tree names them */
+	/** @type {{ id: string, label: string, icon?: string, iconify?: string, classname?: string, source?: boolean, flowType?: string }[]} the nodes from the project to the selection, as the tree names them */
 	let selectedTrail = $state([]);
 	/** the side view shown last, which the activity bar shows again */
 	let activeSidePanel = $state('properties');
@@ -583,9 +583,13 @@
 	let selectedDocLoading = $derived(!selectedPaletteItem && selectedTreeDocLoading);
 	let selectedDocError = $derived(!selectedPaletteItem ? selectedTreeDocError : '');
 	let codeEditorActive = $derived(Boolean(dockVisible.code));
-	let breadcrumbs = $derived(trailBreadcrumb(selectedTrail, selectedId) ?? buildBreadcrumb(selectedId));
+	let breadcrumbs = $derived(
+		trailBreadcrumb(selectedTrail, selectedId) ?? buildBreadcrumb(selectedId)
+	);
 	/** what the properties edit and the documentation describes: the selected object, by its name and its kind */
-	let selectedObjectIdentity = $derived(objectIdentity(selectedTrail, selectedId, selectedTreeDocItem));
+	let selectedObjectIdentity = $derived(
+		objectIdentity(selectedTrail, selectedId, selectedTreeDocItem)
+	);
 
 	$effect(() => {
 		const id = selectedId;
@@ -1050,7 +1054,7 @@
 	 * The selected object as the tree names it, a block of a catalog by its name in a Flow
 	 * ("baserow.get"), and what it is: the block an item of a Flow uses, its kind, or the block of a
 	 * catalog it is part of, as its implementation.
-	 * @param {{ id: string, label: string, icon?: string, iconify?: string, classname?: string }[]} trail
+	 * @param {{ id: string, label: string, icon?: string, iconify?: string, classname?: string, flowType?: string }[]} trail
 	 * @param {string} id
 	 * @param {any} docItem the documentation of the selection
 	 * @returns {any}
@@ -1079,7 +1083,7 @@
 		const kind =
 			(docItem?.isBlockDefinition && docItem?.name) ||
 			CATALOG_KINDS[catalogKind(last)] ||
-			flowTypeDisplayName(docItem?.flowType) ||
+			flowTypeDisplayName(docItem?.flowType || node.flowType) ||
 			(ownerIndex >= 0 ? blockName(ownerIndex) : '') ||
 			(className && !virtual ? flowTypeDisplayName(className) : '') ||
 			(docItem?.name !== 'Flow virtual object' ? String(docItem?.name ?? '') : '');
@@ -1088,7 +1092,8 @@
 			name,
 			instanceName: kind && kind !== name ? kind : '',
 			classname: virtual ? '' : classname,
-			iconUrl: typeof node.icon === 'string' && node.icon.includes('?') ? `${getUrl()}${node.icon}` : '',
+			iconUrl:
+				typeof node.icon === 'string' && node.icon.includes('?') ? `${getUrl()}${node.icon}` : '',
 			iconify: node.iconify ?? ''
 		};
 	}
@@ -1685,7 +1690,9 @@
 		if (isFrontendBlockDefinitionSourceId(id)) {
 			return selectedObjectDocFallback(id, properties);
 		}
-		const flowType = propertyValue(properties, 'Flow type', 'virtualType');
+		// the block of a Flow item, which its properties do not show
+		const flowType =
+			propertyValue(properties, 'Flow type', 'virtualType') || String(response?.flowType ?? '');
 		const javaClass = propertyValue(properties, 'Java class', 'P_JavaClass');
 		const type = propertyValue(properties, 'Type', 'P_Type');
 		if (flowType || javaClass) {
@@ -1694,7 +1701,7 @@
 				return blockDefinitionForInstance(paletteItem, id, properties);
 			}
 		}
-		return selectedObjectDocFallback(id, properties);
+		return selectedObjectDocFallback(id, properties, flowType);
 	}
 
 	/**
@@ -1716,8 +1723,8 @@
 	 * @param {Record<string, any>} properties
 	 * @returns {PaletteItem | null}
 	 */
-	function selectedObjectDocFallback(id, properties) {
-		const flowType = propertyValue(properties, 'Flow type', 'virtualType');
+	function selectedObjectDocFallback(id, properties, blockType = '') {
+		const flowType = propertyValue(properties, 'Flow type', 'virtualType') || blockType;
 		const name =
 			flowTypeDisplayName(flowType) ||
 			propertyValue(properties, 'Type') ||

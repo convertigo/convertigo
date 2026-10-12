@@ -98,6 +98,11 @@ public class Get extends JSonService {
 						addHandlersProperty(transaction, props);
 					}
 					addInfosProperties(dbo, props);
+					// the block of a Flow item, which its properties do not show: the Studio names it and
+					// finds it in the palette
+					if (dbo instanceof FlowVirtualObject virtual && !virtual.getVirtualType().isBlank()) {
+						response.put("flowType", virtual.getVirtualType());
+					}
 				}
 			}
 		}

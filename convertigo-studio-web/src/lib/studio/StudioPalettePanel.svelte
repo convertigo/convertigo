@@ -178,9 +178,12 @@
 		paletteCategoriesTouched = true;
 		void tick().then(() => {
 			const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(key) : key;
-			document
-				.querySelector(`[data-palette-item-key="${escaped}"]`)
-				?.scrollIntoView({ block: 'center', inline: 'nearest' });
+			// the item in its open category, focused, as the selection the palette shows
+			const element = /** @type {HTMLElement | null} */ (
+				document.querySelector(`[data-palette-item-key="${escaped}"]`)
+			);
+			element?.scrollIntoView({ block: 'center', inline: 'nearest' });
+			element?.focus({ preventScroll: true });
 		});
 	});
 
