@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Files;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.Rule;
 import org.junit.Test;
@@ -123,5 +124,17 @@ public class GetTest {
 		assertTrue(Get.hasSourceDocument(implementation));
 		assertFalse(Get.hasSourceDocument(item));
 		assertFalse(Get.hasSourceDocument(new Project()));
+	}
+
+	@Test
+	public void theDiagnosticsOfAFlowScriptGetTheLinesOfItsFile() throws Exception {
+		var content = "// c8o: header\nconst _flow = {\n  sourceVersion: 2,\n}\n\n// above\nfunction Seed({ input }) {\n  local.a = nope.missing({})\n}\n";
+		var diagnostics = new JSONArray()
+				.put(new JSONObject().put("line", 2).put("code", "UNKNOWN_BLOCK"))
+				.put(new JSONObject().put("code", "NO_LINE"));
+		Get.fileLines(diagnostics, content);
+		assertEquals(8, diagnostics.getJSONObject(0).getInt("line"));
+		assertEquals(2, diagnostics.getJSONObject(0).getInt("flowLine"));
+		assertFalse(diagnostics.getJSONObject(1).has("line"));
 	}
 }

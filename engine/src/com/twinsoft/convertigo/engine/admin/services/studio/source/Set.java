@@ -102,6 +102,8 @@ public class Set extends JSonService {
 			response.put("id", id);
 			response.put("revision", Get.sha256(source.flow().getFlowSource()));
 			response.put("dirty", source.flow().isFlowSourceDirty());
+			// kept as the working copy even when invalid, as the Flow MCP keeps it: the editor shows why
+			Get.putFlowCheck(response, source.flow(), source.flow().getFlowSource());
 			return;
 		}
 		var path = source.file().getPath();

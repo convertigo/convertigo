@@ -14,9 +14,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.regex.Pattern;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -24,10 +26,12 @@ import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
+import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -88,6 +92,33 @@ public class Get extends JSonService {
 		response.put("relativePath", source.relativePath());
 		response.put("language", language(source.file()));
 		response.put("readOnly", !source.writable());
+		if (source.flow() != null) {
+			putFlowCheck(response, source.flow(), source.content());
+		}
+	}
+
+	/**
+	 * Puts the check of the FlowScript of a Flow, as the code-check of the Flow MCP gives it: "valid", and the
+	 * "diagnostics" the code editor shows on their lines. A check that cannot run puts nothing.
+	 */
+	static void putFlowCheck(JSONObject response, Flow flow, String content) {
+		try {
+			var result = new FlowEngineBridge().flowCodeCheck(flow, content);
+			var error = result.optJSONObject("error");
+			var report = error != null ? error.optJSONObject("details") : result;
+			var diagnostics = report == null ? null : report.optJSONArray("diagnostics");
+			fileLines(diagnostics, content);
+			var check = new JSONObject()
+					.put("valid", result.optBoolean("ok", false))
+					.put("diagnostics", diagnostics == null ? new JSONArray() : diagnostics)
+					.put("diagnosticCount", report == null ? 0 : report.optInt("diagnosticCount", diagnostics == null ? 0 : diagnostics.length()));
+			if (error != null) {
+				check.put("message", error.optString("message", ""));
+			}
+			response.put("check", check);
+		} catch (Exception e) {
+			Engine.logStudio.debug("Unable to check the FlowScript of " + flow.getQName(), e);
+		}
 	}
 
 	static SourceDocument sourceDocument(DatabaseObject dbo) throws Exception {
@@ -142,6 +173,28 @@ public class Get extends JSonService {
 		return ("block".equals(kind) || "frontendBlock".equals(kind) || FlowStudioSupport.isCodeSourceObject(flowObject))
 				&& sourcePath != null && !sourcePath.isBlank() && isSupportedSource(new File(sourcePath));
 	}
+
+	/**
+	 * FlowScript diagnostics number the lines from the function of the Flow: gives them the lines of its file,
+	 * the editor shows, keeping theirs as "flowLine".
+	 */
+	static void fileLines(JSONArray diagnostics, String content) throws Exception {
+		var matcher = FLOW_FUNCTION.matcher(content == null ? "" : content);
+		if (diagnostics == null || !matcher.find()) {
+			return;
+		}
+		var functionLine = content.substring(0, matcher.start()).split("\n", -1).length;
+		for (int i = 0; i < diagnostics.length(); i++) {
+			var diagnostic = diagnostics.optJSONObject(i);
+			if (diagnostic != null && diagnostic.has("line")) {
+				var line = diagnostic.optInt("line", 0);
+				diagnostic.put("flowLine", line);
+				diagnostic.put("line", Math.max(1, functionLine + line - 1));
+			}
+		}
+	}
+
+	private static final Pattern FLOW_FUNCTION = Pattern.compile("^[ \\t]*(?:export\\s+)?(?:async\\s+)?function\\s", Pattern.MULTILINE);
 
 	static FlowEngine owningFlowEngine(FlowVirtualObject flowObject) {
 		var project = flowObject.getProject();

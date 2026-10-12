@@ -448,6 +448,28 @@ public class FlowEngineBridge {
 		}
 	}
 
+	/**
+	 * Checks a FlowScript of the Flow without running it, as the code-check of the Flow MCP does.
+	 * @param code the FlowScript to check, as its working copy
+	 */
+	public JSONObject flowCodeCheck(Flow flow, String code) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flow);
+			var project = flow.getProject();
+			var request = baseRequest(engineQName, code, flow.getQName(), null)
+					.put("qname", flow.getQName())
+					.put("name", flow.getName())
+					.put("flowName", flow.getName())
+					.put("code", code)
+					.put("maxDiagnostics", 25)
+					.put("project", project == null ? "" : project.getName())
+					.put("projectDir", project == null ? "" : project.getDirPath());
+			return invoke(engineQName, "flowCodeCheck", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build the FlowScript check request.", e);
+		}
+	}
+
 	public JSONObject catalog(Flow flow) throws EngineException {
 		return catalog(flow, false);
 	}

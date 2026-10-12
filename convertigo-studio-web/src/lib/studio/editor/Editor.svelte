@@ -1,4 +1,7 @@
 <script>
+	/**
+	 * @typedef {{ line?: number, message?: string, hint?: string, code?: string, severity?: string }} EditorMarker
+	 */
 	import { call } from '#lib/utils/service.js';
 	import { asset } from '$app/paths';
 	import { fromAction } from 'svelte/attachments';
@@ -12,7 +15,7 @@
 	 * editor of the Eclipse Studio knows the packages of the project; editableZones: the code is a
 	 * generated class whose zones between its Begin_c8o and End_c8o comments only are editable, and
 	 * zonesFocus folds its generated code; zoneReveal: a zone to show and write in, once for each serial
-	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, editableZones?: boolean, zonesFocus?: boolean, zoneReveal?: { name: string, serial: number }}}
+	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, editableZones?: boolean, zonesFocus?: boolean, zoneReveal?: { name: string, serial: number }, markers?: EditorMarker[]}}
 	 */
 	let {
 		content = $bindable('/* Loading... */'),
@@ -31,7 +34,8 @@
 		onSave = undefined,
 		editableZones = false,
 		zonesFocus = false,
-		zoneReveal = { name: '', serial: 0 }
+		zoneReveal = { name: '', serial: 0 },
+		markers = []
 	} = $props();
 
 	function onEditorContentChange(nextContent) {
@@ -61,6 +65,7 @@
 		editableZones,
 		zonesFocus,
 		zoneReveal,
+		markers,
 		onContentChange: onEditorContentChange,
 		onContentHeightChange: onEditorContentHeightChange
 	}));
@@ -159,6 +164,7 @@
 				name: String(value?.zoneReveal?.name ?? ''),
 				serial: Number(value?.zoneReveal?.serial) || 0
 			},
+			markers: Array.isArray(value?.markers) ? value.markers : [],
 			onContentChange:
 				typeof value?.onContentChange == 'function' ? value.onContentChange : undefined,
 			onContentHeightChange:
@@ -168,7 +174,7 @@
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, editableZones?: boolean, zonesFocus?: boolean, zoneReveal?: { name: string, serial: number }, onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, editableZones?: boolean, zonesFocus?: boolean, zoneReveal?: { name: string, serial: number }, markers?: EditorMarker[], onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
 	 */
 	function mountMonaco(node, value) {
 		/** @type {any} */
@@ -191,6 +197,8 @@
 		let currentLineDecorations;
 		let shownLine = 0;
 		let revealedSerial = 0;
+		/** the markers shown, by their model and content */
+		let shownMarkers = '';
 		/** @type {Set<any>} the models the editor made, disposed with it */
 		const ownModels = new Set();
 		let disposed = false;
@@ -581,6 +589,7 @@
 				);
 				editor.revealLineInCenter(line);
 			}
+			applyMarkers(model);
 			zoneReadOnly = pending.readOnly;
 			refreshZones(true);
 			if (pending.zoneReveal.name && pending.zoneReveal.serial !== revealedZoneSerial) {
@@ -588,6 +597,41 @@
 				revealZone(pending.zoneReveal.name);
 			}
 			scheduleLayout();
+		}
+
+		/**
+		 * Shows the problems of the code on their lines, as the diagnostics of a FlowScript: underlined, in
+		 * the hover and in the scrollbar.
+		 * @param {any} model
+		 */
+		function applyMarkers(model) {
+			const Monaco = globalThis.monaco;
+			if (!model || !Monaco) return;
+			const key = `${model.uri}:${JSON.stringify(pending.markers)}`;
+			if (key === shownMarkers) return;
+			shownMarkers = key;
+			const lineCount = model.getLineCount();
+			Monaco.editor.setModelMarkers(
+				model,
+				'studio',
+				pending.markers.map((marker) => {
+					const line = Math.min(Math.max(Number(marker.line) || 1, 1), lineCount);
+					return {
+						startLineNumber: line,
+						startColumn: model.getLineFirstNonWhitespaceColumn(line) || 1,
+						endLineNumber: line,
+						endColumn: model.getLineMaxColumn(line),
+						message: [marker.message, marker.hint].filter(Boolean).join('\n'),
+						code: marker.code || undefined,
+						severity:
+							marker.severity === 'error'
+								? Monaco.MarkerSeverity.Error
+								: marker.severity === 'warning'
+									? Monaco.MarkerSeverity.Warning
+									: Monaco.MarkerSeverity.Info
+					};
+				})
+			);
 		}
 
 		loadMonaco()

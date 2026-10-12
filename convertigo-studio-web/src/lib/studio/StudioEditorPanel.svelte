@@ -39,6 +39,11 @@
 	 * @property {number=} scriptOffset the lines the engine adds before the property
 	 * @property {number=} revealLine a line to show, as a line a search found
 	 * @property {number=} revealSerial when the line was asked, the editor shows it once for each
+	 * @property {SourceCheck | null=} check the check of a FlowScript, as it was opened or applied
+	 */
+
+	/**
+	 * @typedef {{ valid?: boolean, message?: string, diagnosticCount?: number, diagnostics?: { line?: number, severity?: string, code?: string, message?: string, hint?: string }[] }} SourceCheck
 	 */
 
 	/**
@@ -115,6 +120,15 @@
 	let zoneReveal = $state({ name: '', serial: 0 });
 	let zonesWithCode = $derived(zones.filter((zone) => !zone.empty).length);
 	let canSave = $derived(Boolean(activeTab && activeTabDirty && !loading && !saving));
+	/** the problems of the FlowScript of the tab, errors first */
+	let problems = $derived(
+		[...(activeTab?.check?.diagnostics ?? [])].sort(
+			(a, b) =>
+				Number(b.severity === 'error') - Number(a.severity === 'error') ||
+				(a.line ?? 0) - (b.line ?? 0)
+		)
+	);
+	let problemErrors = $derived(problems.filter((problem) => problem.severity === 'error').length);
 
 	$effect(() => {
 		const nextId = selectedId;
@@ -445,6 +459,7 @@
 				existing.originalValue = existing.content;
 				existing.revision = String(response?.revision ?? '');
 				existing.language = String(response?.language ?? 'text');
+				existing.check = response?.check ?? null;
 				if (line) {
 					existing.revealLine = line;
 					existing.revealSerial = Date.now();
@@ -464,6 +479,7 @@
 				readOnly: response?.readOnly !== false,
 				sourceDocument: true,
 				revision: String(response?.revision ?? ''),
+				check: response?.check ?? null,
 				focused: false,
 				...(line ? { revealLine: line, revealSerial: Date.now() } : {})
 			});
@@ -687,6 +703,10 @@
 			if (result?.done || flowSource) {
 				tab.originalValue = tab.content;
 				tab.revision = String(result.revision ?? '');
+				if (flowSource) {
+					// applied as the working copy of the Flow, even invalid: the check tells what to fix
+					tab.check = result.check ?? null;
+				}
 				if (result.changed || flowSource) {
 					// the class of a component keeps its code in the component, a Flow source in a working
 					// copy: their project changes
@@ -935,6 +955,39 @@
 				<span>{error}</span>
 			</p>
 		{/if}
+		{#if problems.length}
+			<!-- the check of the FlowScript: a click shows the line of a problem -->
+			<div
+				class="studio-editor__problems"
+				class:studio-editor__problems--error={problemErrors > 0}
+				role={problemErrors > 0 ? 'alert' : 'status'}
+			>
+				<Ico
+					icon={problemErrors > 0 ? 'mdi:alert-circle-outline' : 'mdi:alert-outline'}
+					size={3.4}
+				/>
+				<span class="studio-editor__problems-summary">
+					{problemErrors > 0
+						? `${problemErrors} FlowScript error${problemErrors > 1 ? 's' : ''}: the Flow keeps it as its working copy until fixed`
+						: `${problems.length} FlowScript warning${problems.length > 1 ? 's' : ''}`}
+				</span>
+				{#each problems.slice(0, 3) as problem, index (index)}
+					<button
+						type="button"
+						class="studio-editor__problem"
+						title={[problem.message, problem.hint].filter(Boolean).join('\n')}
+						onclick={() => {
+							if (activeTab && problem.line) {
+								activeTab.revealLine = problem.line;
+								activeTab.revealSerial = Date.now();
+							}
+						}}
+					>
+						{problem.line ? `line ${problem.line}: ` : ''}{problem.message}
+					</button>
+				{/each}
+			</div>
+		{/if}
 		<div class="studio-editor__monaco" onfocusin={markActiveTabFocused}>
 			<Editor
 				bind:content={activeTab.content}
@@ -952,6 +1005,7 @@
 				editableZones={zones.length > 0}
 				{zonesFocus}
 				{zoneReveal}
+				markers={activeTab.check?.diagnostics ?? []}
 			/>
 		</div>
 	{:else if loading}
@@ -1224,6 +1278,30 @@
 		padding: 0.3rem 0.75rem;
 		color: var(--color-error-600-400);
 		font-size: 0.75rem;
+	}
+
+	.studio-editor__problems {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.2rem 0.6rem;
+		margin: 0;
+		padding: 0.3rem 0.75rem;
+		color: var(--color-warning-700-300);
+		font-size: 0.75rem;
+	}
+
+	.studio-editor__problems--error {
+		color: var(--color-error-600-400);
+	}
+
+	.studio-editor__problem {
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		text-decoration: underline dotted;
+		cursor: pointer;
 	}
 
 	.studio-editor__readonly {
