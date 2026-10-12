@@ -1,33 +1,25 @@
 <script>
-	import { Portal, Tooltip } from '@skeletonlabs/skeleton-svelte';
+	import { DatePicker, Portal, Tooltip } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '#lib/utils/Ico.svelte';
-	import { DateRangePicker } from 'bits-ui';
 
 	/** @type {{ start?: any, end?: any, live?: boolean}} */
 	let { start = $bindable(), end = $bindable(), live = $bindable(false) } = $props();
 
-	/** @type {("start" | "end")[]} */
-	let dateTypes = $derived(live ? ['start'] : ['start', 'end']);
-
-	let value = $derived.by(() => ({ start, end: live ? start : end }));
+	// live, the end follows the start: one date is chosen
+	let value = $derived(live ? [start].filter(Boolean) : [start, end].filter(Boolean));
 	let liveTooltip = $derived(
 		live
 			? 'Live mode enabled: the end date automatically follows the start date.'
 			: 'Enable live mode: keep the end date synchronized with the start date.'
 	);
 
-	const handleValueChange = (next) => {
-		if (!next) return;
-		const startChanged = next.start && next.start !== start;
-		if (startChanged) {
-			start = next.start;
-		}
+	/** @param {{ value: any[] }} details */
+	const handleValueChange = ({ value: next }) => {
+		if (!next?.length) return;
+		start = next[0];
 		if (!live) {
-			if (next.end && next.end !== end) {
-				end = next.end;
-			} else if (startChanged && !next.end) {
-				end = undefined;
-			}
+			// a range chosen in the calendar has no end until its second date
+			end = next[1];
 		}
 	};
 
@@ -38,46 +30,38 @@
 	});
 </script>
 
-<DateRangePicker.Root
+<DatePicker
 	{value}
 	onValueChange={handleValueChange}
-	weekdayFormat="short"
-	weekStartsOn={1}
+	selectionMode={live ? 'single' : 'range'}
 	locale="fr-FR"
+	startOfWeek={1}
+	positioning={{ placement: 'bottom-start', gutter: 6 }}
 >
 	<div class="flex h-9 max-w-92 justify-center">
-		<div
+		<DatePicker.Control
 			class="layout-x-none h-9 input-common items-center text-[13px] leading-none placeholder:text-[13px]"
 		>
-			<DateRangePicker.Trigger
+			<DatePicker.Trigger
 				class="rounded-base p-1 hover:bg-black/10"
 				title="Open date range calendar"
 				aria-label="Open date range calendar"
 			>
 				<Ico size="6" icon="mdi:calendar-range" />
-			</DateRangePicker.Trigger>
-			{#each dateTypes as type (type)}
-				<DateRangePicker.Input {type}>
-					{#snippet children({ segments })}
-						{#each segments as { part, value }, i (part + i)}
-							<div class="inline-block select-none">
-								{#if part == 'literal'}
-									<DateRangePicker.Segment {part} class="p-0.5">
-										{value}
-									</DateRangePicker.Segment>
-								{:else}
-									<DateRangePicker.Segment {part} class="rounded-base px-1 py-1 hover:bg-black/30">
-										{value}
-									</DateRangePicker.Segment>
-								{/if}
-							</div>
-						{/each}
-					{/snippet}
-				</DateRangePicker.Input>
-				{#if type == 'start'}
-					<div aria-hidden="true" class="px-1">⇒</div>
-				{/if}
-			{/each}
+			</DatePicker.Trigger>
+			<DatePicker.Input
+				index={0}
+				aria-label="Start date"
+				class="w-[6.6rem] rounded-base border-none bg-transparent px-1 py-1 text-[13px] hover:bg-black/30 focus:ring-0"
+			/>
+			{#if !live}
+				<div aria-hidden="true" class="px-1">⇒</div>
+				<DatePicker.Input
+					index={1}
+					aria-label="End date"
+					class="w-[6.6rem] rounded-base border-none bg-transparent px-1 py-1 text-[13px] hover:bg-black/30 focus:ring-0"
+				/>
+			{/if}
 			<Tooltip positioning={{ placement: 'top' }}>
 				<Tooltip.Trigger>
 					{#snippet element(attributes)}
@@ -105,66 +89,66 @@
 					</Tooltip.Positioner>
 				</Portal>
 			</Tooltip>
-		</div>
+		</DatePicker.Control>
 	</div>
-	<DateRangePicker.Content sideOffset={6} class="z-50 select-none">
-		<DateRangePicker.Calendar
-			class="mt-6 inline-block card border border-surface-300-700 preset-filled-surface-50-950 p-4 shadow-xl"
-		>
-			{#snippet children({ months, weekdays })}
-				<DateRangePicker.Header class="layout-x-between">
-					<DateRangePicker.PrevButton
-						class="btn-icon preset-filled-primary-500"
-						title="Previous month"
-						aria-label="Previous month">❮</DateRangePicker.PrevButton
-					>
-					<DateRangePicker.Heading class="text-lg font-medium" />
-					<DateRangePicker.NextButton
-						class="btn-icon preset-filled-primary-500"
-						title="Next month"
-						aria-label="Next month">❯</DateRangePicker.NextButton
-					>
-				</DateRangePicker.Header>
-				<div class="layout-y-stretch pt-4 sm:layout-x-stretch">
-					{#each months as month (month.value)}
-						<DateRangePicker.Grid class="w-full select-none">
-							<DateRangePicker.GridHead>
-								<DateRangePicker.GridRow class="grid w-full grid-cols-7 gap-1">
-									{#each weekdays as day (day)}
-										<DateRangePicker.HeadCell
-											class="flex h-8 w-10 items-center justify-center text-xs font-normal! odd:preset-filled-primary-400-600 even:preset-filled-primary-500"
-										>
-											<div>{day.slice(0, 2)}</div>
-										</DateRangePicker.HeadCell>
-									{/each}
-								</DateRangePicker.GridRow>
-							</DateRangePicker.GridHead>
-							<DateRangePicker.GridBody>
-								{#each month.weeks as weekDates (weekDates)}
-									<DateRangePicker.GridRow class="grid w-full grid-cols-7 gap-1">
-										{#each weekDates as date (date)}
-											<DateRangePicker.Cell
-												{date}
-												month={month.value}
-												class="relative size-10 p-0! text-center text-sm"
+	<Portal>
+		<DatePicker.Positioner class="z-50">
+			<DatePicker.Content
+				class="inline-block card border border-surface-300-700 preset-filled-surface-50-950 p-4 shadow-xl select-none"
+			>
+				<DatePicker.View view="day">
+					<DatePicker.Context>
+						{#snippet children(datePicker)}
+							<DatePicker.ViewControl class="layout-x-between">
+								<DatePicker.PrevTrigger
+									class="btn-icon preset-filled-primary-500"
+									title="Previous month"
+									aria-label="Previous month">❮</DatePicker.PrevTrigger
+								>
+								<DatePicker.ViewTrigger class="text-lg font-medium">
+									<DatePicker.RangeText />
+								</DatePicker.ViewTrigger>
+								<DatePicker.NextTrigger
+									class="btn-icon preset-filled-primary-500"
+									title="Next month"
+									aria-label="Next month">❯</DatePicker.NextTrigger
+								>
+							</DatePicker.ViewControl>
+							<DatePicker.Table class="mt-4 w-full border-separate border-spacing-1 select-none">
+								<DatePicker.TableHead>
+									<DatePicker.TableRow>
+										{#each datePicker().weekDays as weekDay (weekDay.long)}
+											<DatePicker.TableHeader
+												class="h-8 w-10 text-xs font-normal! odd:preset-filled-primary-400-600 even:preset-filled-primary-500"
 											>
-												<DateRangePicker.Day
-													class="group relative inline-flex size-10 items-center justify-center p-0 text-sm font-normal whitespace-nowrap hover:preset-filled-surface-300-700 data-disabled:pointer-events-none data-disabled:text-surface-600-400 data-highlighted:preset-filled-primary-200-800 data-outside-month:pointer-events-none data-selected:preset-filled-primary-200-800 data-selected:font-medium data-selection-end:rounded-r-base data-selection-end:data-selected:preset-filled-primary-500 data-selection-start:rounded-l-base data-selection-start:data-selected:preset-filled-primary-500 data-unavailable:text-surface-600-400 data-unavailable:line-through"
-												>
-													<div
-														class="absolute top-[4px] hidden size-1 rounded-full bg-primary-500 group-data-selected:bg-surface-50-950 group-data-today:block"
-													></div>
-													{date.day}
-												</DateRangePicker.Day>
-											</DateRangePicker.Cell>
+												{weekDay.short.slice(0, 2)}
+											</DatePicker.TableHeader>
 										{/each}
-									</DateRangePicker.GridRow>
-								{/each}
-							</DateRangePicker.GridBody>
-						</DateRangePicker.Grid>
-					{/each}
-				</div>
-			{/snippet}
-		</DateRangePicker.Calendar>
-	</DateRangePicker.Content>
-</DateRangePicker.Root>
+									</DatePicker.TableRow>
+								</DatePicker.TableHead>
+								<DatePicker.TableBody>
+									{#each datePicker().weeks as week (week[0].toString())}
+										<DatePicker.TableRow>
+											{#each week as day (day.toString())}
+												<DatePicker.TableCell value={day} class="p-0! text-center">
+													<DatePicker.TableCellTrigger
+														class="group relative inline-flex size-10 items-center justify-center text-sm whitespace-nowrap hover:preset-filled-surface-300-700 data-disabled:pointer-events-none data-disabled:text-surface-600-400 data-in-range:preset-filled-primary-200-800 data-outside-range:pointer-events-none data-outside-range:opacity-40 data-range-end:rounded-r-base data-range-end:preset-filled-primary-500 data-range-start:rounded-l-base data-range-start:preset-filled-primary-500 data-selected:preset-filled-primary-500 data-selected:font-medium data-unavailable:text-surface-600-400 data-unavailable:line-through"
+													>
+														<div
+															class="absolute top-[4px] hidden size-1 rounded-full bg-primary-500 group-data-selected:bg-surface-50-950 group-data-today:block"
+														></div>
+														{day.day}
+													</DatePicker.TableCellTrigger>
+												</DatePicker.TableCell>
+											{/each}
+										</DatePicker.TableRow>
+									{/each}
+								</DatePicker.TableBody>
+							</DatePicker.Table>
+						{/snippet}
+					</DatePicker.Context>
+				</DatePicker.View>
+			</DatePicker.Content>
+		</DatePicker.Positioner>
+	</Portal>
+</DatePicker>
