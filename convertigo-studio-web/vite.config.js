@@ -63,7 +63,9 @@ export default defineConfig(({ command }) => {
 					codeSplitting: { groups: [{ name: 'xyflow', test: /@xyflow[\\/]svelte/ }] }
 				}
 			}
-		}
+		},
+		// the unit tests; tests/ holds the Playwright specs, run by playwright test
+		test: { include: ['src/**/*.{test,spec}.{js,ts}'] }
 	};
 	if (command === 'serve') {
 		conf.server = {
