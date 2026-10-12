@@ -13,3 +13,5 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /src/convertigo.utilities.css
 /assets/bezel-sources
+/test-results/
+/playwright-report/
