@@ -271,6 +271,20 @@ public class FlowEngine extends DatabaseObject {
 		}
 	}
 
+	/** Drop the working copy of the Engine source: the saved file is read again. */
+	public void discardEngineSource() {
+		if (!engineSourceDirty) {
+			return;
+		}
+		engineSourceDirty = false;
+		engineSourceFileLastModified = -1;
+		engineSource = DEFAULT_ENGINE_SOURCE;
+		loadEngineSourceFile();
+		clearFlowVirtualChildrenCache();
+		checkEngineSourceSymbols();
+		changed();
+	}
+
 	public Map<String, String> getFrontendSourceDrafts() {
 		return getSourceDrafts();
 	}

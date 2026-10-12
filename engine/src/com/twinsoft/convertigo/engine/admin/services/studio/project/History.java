@@ -64,9 +64,10 @@ public class History extends JSonService {
 	private static final Map<String, ProjectHistory> histories = new ConcurrentHashMap<>();
 
 	/**
+	 * @param xmlHash the hash of the XML alone: two states with the same one differ only by their Flow sources
 	 * @param flowSources the Flow sources changed and not saved, which are not in the XML of the project
 	 */
-	private record State(String hash, byte[] xml, Map<String, String> flowSources) {
+	private record State(String hash, String xmlHash, byte[] xml, Map<String, String> flowSources) {
 		private long size() {
 			long size = xml.length;
 			for (var entry : flowSources.entrySet()) {
@@ -159,8 +160,9 @@ public class History extends JSonService {
 					history.redo.clear();
 				}
 				if (history.undo.size() > 1) {
-					history.redo.push(history.undo.pop());
-					project = restore(project, history.undo.peek());
+					var current = history.undo.pop();
+					history.redo.push(current);
+					project = restore(project, current, history.undo.peek());
 					history.restored(project);
 					done = true;
 				}
@@ -169,9 +171,10 @@ public class History extends JSonService {
 				if (history.push(export(project))) {
 					history.redo.clear();
 				} else if (!history.redo.isEmpty()) {
+					var current = history.undo.peek();
 					var state = history.redo.pop();
 					history.undo.push(state);
-					project = restore(project, state);
+					project = restore(project, current, state);
 					history.restored(project);
 					done = true;
 				}
@@ -201,6 +204,7 @@ public class History extends JSonService {
 			transformer.setOutputProperty(OutputKeys.INDENT, "no");
 			transformer.transform(new DOMSource(document), new StreamResult(out));
 		}
+		var xmlHash = HexFormat.of().formatHex(((MessageDigest) digest.clone()).digest());
 		// a change of a Flow source not saved makes a state too
 		for (var entry : flowSources.entrySet()) {
 			digest.update(entry.getKey().getBytes(StandardCharsets.UTF_8));
@@ -208,14 +212,20 @@ public class History extends JSonService {
 			digest.update(entry.getValue().getBytes(StandardCharsets.UTF_8));
 			digest.update((byte) 0);
 		}
-		return new State(HexFormat.of().formatHex(digest.digest()), bytes.toByteArray(), flowSources);
+		return new State(HexFormat.of().formatHex(digest.digest()), xmlHash, bytes.toByteArray(), flowSources);
 	}
 
 	/**
-	 * Loads the project again in a state, with the Flow sources the state had not saved: the project
-	 * loaded again drops those of its previous objects.
+	 * Brings the project from a state to another one. When only their Flow sources differ, as after a change
+	 * of a frontend or of a Flow source, the project keeps its objects and their caches and takes the sources
+	 * of the state; otherwise it is loaded again in the state, with the Flow sources the state had not saved:
+	 * the project loaded again drops those of its previous objects.
 	 */
-	private static Project restore(Project current, State state) throws Exception {
+	private static Project restore(Project current, State from, State state) throws Exception {
+		if (from != null && from.xmlHash.equals(state.xmlHash)) {
+			FlowWorkingCopies.replace(current, state.flowSources);
+			return current;
+		}
 		Document document;
 		try (var in = new GZIPInputStream(new ByteArrayInputStream(state.xml))) {
 			document = XMLUtils.getDefaultDocumentBuilder().parse(in);

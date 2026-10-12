@@ -222,6 +222,66 @@ public class FlowWorkingCopiesTest {
 	}
 
 	@Test
+	public void historyBringsTheSameObjectsToTheSourcesOfAStateWithoutLoadingThemAgain() throws Exception {
+		var directory = saved();
+		var current = new Loaded(directory);
+		var engine = current.engine;
+		var flow = current.flow;
+		current.engine.setFrontendSource(page.toString(), "draft page");
+		current.engine.setEngineSource("draft engine");
+		current.flow.setFlowSource("draft flow");
+		var before = FlowWorkingCopies.of(current.project);
+
+		// undo of a change of the page alone: the Engine and Flow sources keep their copies
+		current.engine.setFrontendSource(page.toString(), "second page");
+		FlowWorkingCopies.replace(current.project, before);
+		assertTrue(engine == current.engine && flow == current.flow);
+		assertEquals(before, FlowWorkingCopies.of(current.project));
+		assertEquals("draft page", current.engine.getFrontendSource(page.toString()));
+
+		// back to the saved sources: every copy is dropped, nothing is written
+		FlowWorkingCopies.replace(current.project, Map.of());
+		assertEquals(Map.of(), FlowWorkingCopies.of(current.project));
+		assertFalse(current.engine.isSourceDirty(page.toString()));
+		assertFalse(current.engine.isEngineSourceDirty());
+		assertEquals("saved engine", current.engine.getEngineSource());
+		assertFalse(current.flow.isFlowSourceDirty());
+		assertEquals("saved flow", current.flow.getFlowSource());
+
+		// redo
+		FlowWorkingCopies.replace(current.project, before);
+		assertEquals(before, FlowWorkingCopies.of(current.project));
+		assertEquals("saved page", Files.readString(page));
+		assertEquals("saved engine", Files.readString(engineFile));
+		assertEquals("saved flow", Files.readString(flowFile));
+		Flow.projectUnloaded(current.project);
+		FlowEngine.takeDiscardedSourcePaths(current.project);
+	}
+
+	@Test
+	public void historyBringsBothSidesOfAMoveBackInPlace() throws Exception {
+		var directory = saved();
+		var target = directory.toPath().resolve("_flow/frontbuilder/moved.flow.svelte");
+		var current = new Loaded(directory);
+		current.engine.applySourceChanges(Map.of(target.toString(), "moved draft"), List.of(page.toString()));
+		var moved = FlowWorkingCopies.of(current.project);
+		FlowWorkingCopies.replace(current.project, Map.of());
+		assertEquals("saved page", current.engine.getSource(page.toString()));
+		assertFalse(current.engine.hasSource(target.toString()));
+		FlowWorkingCopies.replace(current.project, moved);
+		assertFalse(current.engine.hasSource(page.toString()));
+		assertEquals("moved draft", current.engine.getSource(target.toString()));
+		assertEquals(moved, FlowWorkingCopies.of(current.project));
+		// a copy equal to the saved source is not a change
+		FlowWorkingCopies.replace(current.project, Map.of("file:_flow/frontbuilder/page.flow.svelte", "saved page"));
+		assertEquals(Map.of(), FlowWorkingCopies.of(current.project));
+		assertEquals("saved page", Files.readString(page));
+		assertFalse(Files.exists(target));
+		Flow.projectUnloaded(current.project);
+		FlowEngine.takeDiscardedSourcePaths(current.project);
+	}
+
+	@Test
 	public void reloadOfSavedSourcesDoesNotNotifyDiscardedValues() throws Exception {
 		var directory = saved();
 		var current = new Loaded(directory);

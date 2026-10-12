@@ -153,6 +153,61 @@ public final class FlowWorkingCopies {
 		FlowStudioSupport.afterSourceMutations(flowEngine, changed);
 	}
 
+	/**
+	 * Brings the working copies of a project, not loaded again, to those of one of its states whose XML is
+	 * the one of the project: the objects and their caches stay, only the sources that differ change, and the
+	 * development viewer follows each frontend source that changes, as after a change of the web Studio.
+	 */
+	public static void replace(Project project, Map<String, String> copies) throws EngineException {
+		var current = of(project);
+		var flowEngine = project.getFlowEngine();
+		var files = new LinkedHashMap<String, String>();
+		var removals = new TreeSet<String>();
+		var changed = new TreeSet<String>();
+		if (flowEngine != null) {
+			var keys = new TreeSet<String>(current.keySet());
+			keys.addAll(copies.keySet());
+			for (var key : keys) {
+				if ((!key.startsWith(FILE) && !key.startsWith(REMOVED_FILE)) || Objects.equals(current.get(key), copies.get(key))) {
+					continue;
+				}
+				var path = file(project, key).getPath();
+				changed.add(path);
+				// back to the saved file first, so that a write and a removal of one path never conflict
+				flowEngine.discardSource(path);
+				if (key.startsWith(FILE) && copies.containsKey(key)) {
+					files.put(path, copies.get(key));
+				} else if (key.startsWith(REMOVED_FILE) && copies.containsKey(key)) {
+					removals.add(path);
+				}
+			}
+			if (!files.isEmpty() || !removals.isEmpty()) {
+				flowEngine.applySourceChanges(files, removals);
+			}
+			if (!Objects.equals(current.get(ENGINE), copies.get(ENGINE))) {
+				flowEngine.discardEngineSource();
+				if (copies.containsKey(ENGINE)) {
+					// the saved source is read first: a copy equal to it is not a change
+					flowEngine.getEngineSource();
+					flowEngine.setEngineSource(copies.get(ENGINE));
+				}
+			}
+		}
+		for (var sequence : project.getSequencesList()) {
+			if (sequence instanceof Flow flow) {
+				var key = FLOW + flow.getName();
+				if (copies.containsKey(key)) {
+					flow.setFlowSource(copies.get(key));
+				} else {
+					flow.discardFlowSource();
+				}
+			}
+		}
+		if (flowEngine != null && !changed.isEmpty()) {
+			FlowStudioSupport.afterSourceMutations(flowEngine, changed);
+		}
+	}
+
 	/** Called only after a saved project has finished loading, not before history restores its sources. */
 	public static void projectLoaded(Project project) {
 		var paths = FlowEngine.takeDiscardedSourcePaths(project);
