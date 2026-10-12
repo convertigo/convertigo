@@ -100,6 +100,15 @@
 	}
 </script>
 
+<!-- the chip of the default connector of the project and of the default transaction of a connector, beside its name -->
+{#snippet defaultChip(/** @type {string} */ title)}
+	<span class={defaultChipClass} {title}>Default</span>
+{/snippet}
+
+{#snippet defaultConnectorChip()}
+	{@render defaultChip(defaultTitles.connector)}
+{/snippet}
+
 <Card title={project?.name ?? null} cornerOptionClass="flex-1 min-w-[18rem] max-w-[72rem]">
 	{#snippet cornerOption()}
 		<InputGroup
@@ -157,9 +166,7 @@
 					title={name}
 					subtitle={comment}
 					count={requestables.length}
-					trailingText={isDefault ? 'Default' : undefined}
-					trailingTextClass={defaultChipClass}
-					trailingTitle={defaultTitles.connector}
+					titleAfter={isDefault ? defaultConnectorChip : undefined}
 					titleClass={selectableTitleClass}
 					subtitleClass={selectableSubtitleClass}
 					selectableHeaderText
@@ -201,9 +208,7 @@
 																{...selectableTextEvents}>{name}</span
 															>
 															{#if requestable.default == 'true'}
-																<span class={defaultChipClass} title={defaultTitles.transaction}
-																	>Default</span
-																>
+																{@render defaultChip(defaultTitles.transaction)}
 															{/if}
 														</span>
 														{#if comment?.length}

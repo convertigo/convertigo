@@ -28,7 +28,7 @@
 	metaClass?: string;
 	trailingText?: string;
 	trailingTextClass?: string;
-	trailingTitle?: string;
+	titleAfter?: import('svelte').Snippet;
 	indicatorSize?: number;
 	selectableHeaderText?: boolean;
 } & Record<string, any>} */
@@ -57,7 +57,7 @@
 		metaClass = 'text-xs text-surface-600-400',
 		trailingText,
 		trailingTextClass = 'text-xs text-muted',
-		trailingTitle,
+		titleAfter,
 		indicatorSize = 3,
 		selectableHeaderText = false,
 		...rest
@@ -138,21 +138,14 @@
 	<span aria-hidden="true" class={`mt-0.5 ${leadingIconClass}`}>{leadingIcon}</span>
 {/snippet}
 
-{#snippet defaultTrail({
-	count,
-	countText,
-	countClass,
-	trailingText,
-	trailingTextClass,
-	trailingTitle
-})}
+{#snippet defaultTrail({ count, countText, countClass, trailingText, trailingTextClass })}
 	{#if countText}
 		<span class={`${countClass} ${count === 0 ? 'border-dashed text-surface-600-400' : ''}`}
 			>{countText}</span
 		>
 	{/if}
 	{#if trailingText}
-		<span class={trailingTextClass} title={trailingTitle}>{trailingText}</span>
+		<span class={trailingTextClass}>{trailingText}</span>
 	{/if}
 {/snippet}
 
@@ -183,7 +176,15 @@
 						leadingIconClass
 					})}
 					<div class="layout-y-start-low min-w-0">
-						{#if title}
+						{#if title && titleAfter}
+							<!-- a mark beside the title, as the default connector of a project -->
+							<span class="layout-x-low min-w-0 items-center">
+								<span class={headerTitleClass} {...headerTextEvents}>
+									{title}
+								</span>
+								{@render titleAfter()}
+							</span>
+						{:else if title}
 							<span class={headerTitleClass} {...headerTextEvents}>
 								{title}
 							</span>
@@ -202,8 +203,7 @@
 						countText,
 						countClass,
 						trailingText,
-						trailingTextClass,
-						trailingTitle
+						trailingTextClass
 					})}
 					<span class="shrink-0 text-muted">
 						<Accordion.ItemIndicator element={indicator} />
