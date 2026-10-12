@@ -1,5 +1,6 @@
 <script>
 	import Authentication from '#lib/common/Authentication.svelte.js';
+	import { readProjectTreeChildren } from '#lib/common/ProjectsTree.svelte.js';
 	import { call, getStudioContextMenu } from '#lib/utils/service.js';
 	import StudioActionBuilderPanel from './StudioActionBuilderPanel.svelte';
 	import { resolveStudioBuilder } from './studioBuilder';
@@ -10,9 +11,18 @@
 	let result = $derived(
 		resolveStudioBuilder(projectName, {
 			menu: getStudioContextMenu,
-			children: (id) => call('studio.treeview.Get', { id })
+			children
 		})
 	);
+
+	/**
+	 * The objects of the project the tree read, as it does once the project is selected, else asked.
+	 * @param {string} id
+	 */
+	async function children(id) {
+		const read = await readProjectTreeChildren(id);
+		return read ? { children: read } : call('studio.treeview.Get', { id });
+	}
 </script>
 
 {#key projectName}

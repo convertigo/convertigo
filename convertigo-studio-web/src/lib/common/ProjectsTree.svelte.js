@@ -157,9 +157,44 @@ function projectTreeEquivalentIds(id, options) {
 }
 
 /**
+ * The children a tree read last, or is reading, by id, as the server answers them without grouping:
+ * a lookup, not reactive state.
+ * @type {Record<string, Promise<any[] | undefined>>}
+ */
+const readChildren = Object.create(null);
+
+/**
+ * The children of an object a tree read last, or is reading, which another view can take instead of
+ * asking for them again; none when no tree read them.
+ * @param {string} id
+ * @returns {Promise<any[] | undefined> | undefined}
+ */
+export function readProjectTreeChildren(id) {
+	return readChildren[id];
+}
+
+/**
  * @param {ProjectTreeOptions=} options
  */
 export function createProjectTree(options = {}) {
+	/**
+	 * Remembers the children of each id a request reads, when they are not grouped by tags.
+	 * @param {string[]} ids
+	 * @param {Promise<any>} request
+	 * @param {(response: any, id: string) => any} childrenOf
+	 */
+	function rememberChildren(ids, request, childrenOf) {
+		if (options.parameters?.()?.tagsGrouped) {
+			return;
+		}
+		for (const id of ids) {
+			readChildren[id] = request.then((response) => {
+				const children = childrenOf(response, id);
+				return Array.isArray(children) ? children : undefined;
+			});
+		}
+	}
+
 	/** @type {any} */
 	let rootNode = $state({
 		id: 'ROOT',
@@ -222,14 +257,18 @@ export function createProjectTree(options = {}) {
 		if (ids.length > 0) {
 			if (ids.length === 1) {
 				const id = ids[0];
-				const update = await call('studio.treeview.Get', { id, ...options.parameters?.() });
+				const request = call('studio.treeview.Get', { id, ...options.parameters?.() });
+				rememberChildren([id], request, (response) => response?.children);
+				const update = await request;
 				for (const node of toUpdate[id])
 					applyProjectTreeChildren(node, structuredClone(update?.children), options);
 			} else {
-				const updates = await call('studio.treeview.Get', {
+				const request = call('studio.treeview.Get', {
 					ids: JSON.stringify(ids),
 					...options.parameters?.()
 				});
+				rememberChildren(ids, request, (response, id) => response?.[id]);
+				const updates = await request;
 				for (let id in updates ?? {}) {
 					if (toUpdate[id]) {
 						for (const node of toUpdate[id])
@@ -248,10 +287,12 @@ export function createProjectTree(options = {}) {
 	 * @param {string[]} ids
 	 */
 	async function checkPath(node, ids) {
-		const updates = await call('studio.treeview.Get', {
+		const request = call('studio.treeview.Get', {
 			ids: JSON.stringify(ids),
 			...options.parameters?.()
 		});
+		rememberChildren(ids, request, (response, id) => response?.[id]);
+		const updates = await request;
 		let current = node;
 		for (const [index, id] of ids.entries()) {
 			if (current?.id !== id || !Array.isArray(updates?.[id])) {

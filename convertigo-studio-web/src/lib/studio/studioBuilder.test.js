@@ -25,13 +25,15 @@ describe('Studio builder discovery', () => {
 		expect(result.transport).toBe('ngx');
 		expect(children).not.toHaveBeenCalled();
 	});
-	it('discovers custom names on immediate objects without guessing an engine QName', async () => {
+	it('discovers custom names on immediate objects, not folders or files, without guessing an engine QName', async () => {
 		const menu = vi.fn(async (id) => ({
 			menu: { builders: id === 'Project.Owner' ? [builder] : [] }
 		}));
 		const result = await resolveStudioBuilder('Project', {
 			menu,
-			children: async () => ({ children: [{ id: 'Project:se' }, { id: 'Project.Owner' }] })
+			children: async () => ({
+				children: [{ id: 'Project:se' }, { id: 'Project/' }, { id: 'Project.Owner' }]
+			})
 		});
 		expect(result).toEqual({ transport: 'actions', builders: [builder] });
 		expect(menu.mock.calls).toEqual([['Project'], ['Project.Owner']]);

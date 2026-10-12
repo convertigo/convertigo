@@ -9,8 +9,10 @@ export async function resolveStudioBuilder(projectName, { menu, children }) {
 	let builders = definition?.builders ?? [];
 	if (!builders.length) {
 		const response = await children(projectName);
-		// Folder ids are not DatabaseObjects and cannot have context actions.
-		const objects = (response?.children ?? []).filter((node) => node.id && !node.id.includes(':'));
+		// Folder and file ids are not DatabaseObjects and cannot have context actions.
+		const objects = (response?.children ?? []).filter(
+			(node) => node.id && !node.id.includes(':') && !node.id.includes('/')
+		);
 		const menus = await Promise.all(objects.map((node) => menu(node.id)));
 		builders = menus.flatMap((response) => (response?.menu ?? response)?.builders ?? []);
 	}

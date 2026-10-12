@@ -1,6 +1,6 @@
 import { call } from '#lib/utils/service.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createProjectTree } from './ProjectsTree.svelte.js';
+import { createProjectTree, readProjectTreeChildren } from './ProjectsTree.svelte.js';
 
 vi.mock('#lib/utils/service.js', () => ({ call: vi.fn() }));
 
@@ -44,5 +44,22 @@ describe('checkPath', () => {
 
 		expect(call).toHaveBeenLastCalledWith('studio.treeview.Get', { id: 'P' });
 		expect(project.children.map((child) => child.id)).toEqual(['P.FlowEngine']);
+	});
+});
+
+describe('readProjectTreeChildren', () => {
+	it('gives the children a tree reads to another view, unless grouped by tags', async () => {
+		vi.mocked(call).mockResolvedValue({ children: [{ id: 'Q.FlowEngine', name: 'FlowEngine' }] });
+		await createProjectTree().checkChildren({ id: 'Q', name: 'Q', children: true });
+		expect(await readProjectTreeChildren('Q')).toEqual([
+			{ id: 'Q.FlowEngine', name: 'FlowEngine' }
+		]);
+
+		await createProjectTree({ parameters: () => ({ tagsGrouped: true }) }).checkChildren({
+			id: 'R',
+			name: 'R',
+			children: true
+		});
+		expect(readProjectTreeChildren('R')).toBeUndefined();
 	});
 });
