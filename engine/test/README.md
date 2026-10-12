@@ -74,6 +74,17 @@ that marks the explicit default connector and transaction only (never the only
 connector or transaction, never a default transaction the caller may not see).
 It uses in-memory projects and does not start an engine.
 
+## Request-scoped sessions
+
+`./gradlew :engine:requestScopedSessionTest` checks the ephemeral sessions used by
+terminating URL mapper operations and by requesters with `__removeSession` and
+no valid HTTP session. The requester tests start a disposable embedded Tomcat:
+they check cookies, session/context cleanup (including errors and end-hook
+failures), GET/form/PUT/multipart parameters, invalid cookies, the timeout of an
+existing session, independent concurrent calls and the session inherited by an
+internal requester. Requestable execution and the two-slot license are fixtures;
+no external server, session store or license file is used.
+
 ## Session serialization
 
 Run the standalone suite (also included in `:engine:check`):

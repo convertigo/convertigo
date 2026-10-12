@@ -26,6 +26,7 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSession;
 
 @SuppressWarnings("deprecation")
 class HttpSessionTwsWrapper implements HttpSession {
@@ -161,7 +162,8 @@ class HttpSessionTwsWrapper implements HttpSession {
 	}
 	
 	static HttpSession wrap(HttpSession session) {
-		if (session == null || session instanceof HttpSessionTwsWrapper) {
+		// Keep ephemeral sessions recognizable by the license and session-store code.
+		if (session == null || session instanceof HttpSessionTwsWrapper || session instanceof RequestScopedHttpSession) {
 			return session;
 		}
 		return new HttpSessionTwsWrapper(session);

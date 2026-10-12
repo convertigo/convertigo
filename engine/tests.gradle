@@ -88,12 +88,13 @@ tasks.register('mdcLifecycleTest', JavaExec) {
 
 tasks.register('requestScopedSessionTest', JavaExec) {
 	group = 'verification'
-	description = 'Regression tests for the ephemeral request-scoped session of terminating URL mapper operations.'
+	description = 'Regression tests for request-scoped sessions of terminating URL mapper operations and stateless requesters.'
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSessionTest',
-		'com.twinsoft.convertigo.engine.servlets.RestApiServletSessionModeTest'
+		'com.twinsoft.convertigo.engine.servlets.RestApiServletSessionModeTest',
+		'com.twinsoft.convertigo.engine.servlets.GenericServletSessionModeTest'
 }
 
 tasks.register('projectArchiveTest', JavaExec) {

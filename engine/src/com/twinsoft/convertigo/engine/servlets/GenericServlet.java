@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.JakartaServletFileUploadSupport;
+import com.twinsoft.convertigo.engine.util.RequestScopedHttpServletRequest;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -163,6 +164,7 @@ public abstract class GenericServlet extends HttpServlet {
 		if ((isProject = baseUrl.contains("/projects/") || baseUrl.contains("/system/")) || baseUrl.contains("/webclipper/")) {
 			long t0 = System.currentTimeMillis();
 			try {
+				prepareRequestSession(wrapped_request);
 				if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
 					HttpUtils.checkXSRF(request, response);
 				}
@@ -316,14 +318,30 @@ public abstract class GenericServlet extends HttpServlet {
 				processException(request, response, e);
 			}
 			finally {
-				long t1 = System.currentTimeMillis();
-				Engine.theApp.pluginsManager.fireHttpServletRequestEnd(request, t0, t1);
+				try {
+					long t1 = System.currentTimeMillis();
+					Engine.theApp.pluginsManager.fireHttpServletRequestEnd(request, t0, t1);
+				} finally {
+					if (wrapped_request.getRequest() instanceof RequestScopedHttpServletRequest scopedRequest) {
+						scopedRequest.close();
+					}
+				}
 			}
 		} else {
 			// Not a valid Convertigo invocation URL, use retrieve as static
 			// resource
 			handleStaticData(request, response);
 			return;
+		}
+	}
+
+	static void prepareRequestSession(HttpServletRequestTwsWrapper request) {
+		String removeSession = request.getParameter(Parameter.RemoveSession.getName());
+		if (removeSession != null && !"false".equals(removeSession)
+				&& !(request.getRequest() instanceof RequestScopedHttpServletRequest)
+				&& request.getSession(false) == null) {
+			// Keep the parameter wrapper outermost so multipart fields remain available.
+			request.setRequest(new RequestScopedHttpServletRequest((HttpServletRequest) request.getRequest()));
 		}
 	}
 
@@ -498,6 +516,11 @@ public abstract class GenericServlet extends HttpServlet {
 						twsRequest.addParameter(parameterName, parameterValue);
 					}
 				}
+			}
+
+			if (twsRequest != null) {
+				// A multipart body may carry __removeSession rather than the query string.
+				prepareRequestSession(twsRequest);
 			}
 
 			Requester requester = getRequester();
