@@ -41,7 +41,7 @@ ext.swaggerUiVersion = '5.33.1'
 ext.tomcatVersion = '11.0.26'
 ext.eclipseVersion = '2026-09'
 ext.eclipseBase = '4.41'
-ext.studioWebNodeVersion = '22'
+ext.studioWebNodeVersion = '24'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2026.09.17'
 ext.soapuiVersion = '5.9.1'
 ext.log4jVersion = '2.26.1'
@@ -512,7 +512,7 @@ task buildStudioWebNpmInstall(type: Exec, dependsOn: ':buildStudioWebNvmInstall'
 	
 	workingDir 'convertigo-studio-web'
 	commandLine 'sh'
-	args '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} npm ci --force"
+	args '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} npm ci"
 }
 
 task buildStudioWebBuild(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {

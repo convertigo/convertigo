@@ -251,7 +251,7 @@ jobs:
           export NODE_VERSION=$(cat .circleci/cache/webadmin.nodeversion)
           nvm install "$NODE_VERSION"
           cd convertigo-studio-web
-          nvm exec "$NODE_VERSION" npm ci --force
+          nvm exec "$NODE_VERSION" npm ci
           nvm exec "$NODE_VERSION" npm run build
 
     - save_cache:
