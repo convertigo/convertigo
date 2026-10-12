@@ -429,6 +429,7 @@
 		</perspectiveExtension>
 		<perspectiveExtension
 			targetID="com.twinsoft.convertigo.eclipse.ConvertigoPerspective">
+			<perspectiveShortcut id="com.twinsoft.convertigo.eclipse.TigoPerspective" />
 			<view
 				id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
 				ratio="0.20"
@@ -3884,6 +3885,11 @@
 			class="com.twinsoft.convertigo.eclipse.ConvertigoPerspective"
 			name="Convertigo"
 			id="com.twinsoft.convertigo.eclipse.ConvertigoPerspective" />
+		<perspective
+			icon="icons/tigo_16x16.png"
+			class="com.twinsoft.convertigo.eclipse.TigoPerspective"
+			name="Tigo"
+			id="com.twinsoft.convertigo.eclipse.TigoPerspective" />
 	</extension>
 	<extension
 		point="org.eclipse.ui.decorators">

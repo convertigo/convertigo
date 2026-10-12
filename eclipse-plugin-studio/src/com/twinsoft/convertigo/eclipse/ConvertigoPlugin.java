@@ -1045,10 +1045,13 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					partService.addPartListener(partListener);
 				}
 
-				// Opens Convertigo perspective
+				// Keep the Tigo perspective when it was restored with the workspace.
 				try {
-					studioLog.message("Opening Convertigo perspective.");
-					workbench.showPerspective(ConvertigoPlugin.PLUGIN_PERSPECTIVE_ID, window);
+					IWorkbenchPage page = window.getActivePage();
+					if (page == null || page.getPerspective() == null || !TigoPerspective.ID.equals(page.getPerspective().getId())) {
+						studioLog.message("Opening Convertigo perspective.");
+						workbench.showPerspective(ConvertigoPlugin.PLUGIN_PERSPECTIVE_ID, window);
+					}
 				} catch (WorkbenchException e) {
 					studioLog.error("Could not open Convertigo perspective.\n" + e.getMessage());
 				}
@@ -1468,8 +1471,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			else {
 				IWorkbench workbench = PlatformUI.getWorkbench();
 				try {
-					IWorkbenchPage page = workbench.showPerspective(ConvertigoPlugin.PLUGIN_PERSPECTIVE_ID, workbench.getActiveWorkbenchWindow());
-					viewPart =  page.findView("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView");
+					if (activePage.getPerspective() != null && TigoPerspective.ID.equals(activePage.getPerspective().getId())) {
+						viewPart = activePage.showView("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView");
+					} else {
+						IWorkbenchPage page = workbench.showPerspective(ConvertigoPlugin.PLUGIN_PERSPECTIVE_ID, workbench.getActiveWorkbenchWindow());
+						viewPart = page.findView("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView");
+					}
 					if (viewPart != null) {
 						projectExplorerView = (ProjectExplorerView)viewPart;
 					}
