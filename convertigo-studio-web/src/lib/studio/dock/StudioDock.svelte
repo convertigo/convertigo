@@ -988,6 +988,12 @@
 		display: none;
 	}
 
+	/* a view its group does not show stays hidden whole: dockview hides its overlay, which the nodes of
+	   a Flow graph would show through, as they set their own visibility */
+	:global(.dv-render-overlay[style*='visibility: hidden'] *) {
+		visibility: hidden !important;
+	}
+
 	/* the content of a panel fills it, a view scrolls in it */
 	:global(.studio-dock-panel),
 	.studio-dock-view {
