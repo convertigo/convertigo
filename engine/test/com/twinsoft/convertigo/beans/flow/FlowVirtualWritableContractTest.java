@@ -45,4 +45,30 @@ public class FlowVirtualWritableContractTest {
 		child.setVirtualInfo("{\"sourceWritable\":false}");
 		assertFalse(child.isDefinitionWritable());
 	}
+
+	@Test public void businessReadOnlySchemaDoesNotBecomeAnAuthoringFlag() {
+		var child = new FlowVirtualObject(new Flow(), "resource", "output", "object", "outputs.resource", "",
+				"{\"readOnly\":{\"type\":\"boolean\"},\"name\":{\"type\":\"string\"}}");
+		assertFalse("business fields never grant source ownership", child.isDefinitionWritable());
+		child.setVirtualInfo("{\"sourceWritable\":true}");
+		assertTrue("the schema named readOnly does not crash or deny an explicit owner", child.isDefinitionWritable());
+		child.setVirtualInfo("{\"sourceWritable\":true,\"readOnly\":true}");
+		assertFalse("a real authoring restriction still wins", child.isDefinitionWritable());
+	}
+
+	@Test public void nonBooleanCapabilitiesNeverGrantSourceWrites() {
+		for (var value : new String[] { "{}", "[]", "1", "null", "\"not-a-boolean\"" }) {
+			var child = projection(new FlowEngine(), "future.value", "{\"sourceWritable\":" + value + "}");
+			assertFalse(value, child.isDefinitionWritable());
+		}
+	}
+
+	@Test public void textualBooleanFlagsKeepTheirExistingMeaning() {
+		var child = projection(new FlowEngine(), "future.value", "{\"sourceWritable\":\"true\"}");
+		assertTrue(child.isDefinitionWritable());
+		child.setVirtualInfo("{\"sourceWritable\":\"true\",\"readOnly\":\"TRUE\"}");
+		assertFalse(child.isDefinitionWritable());
+		child.setVirtualInfo("{\"sourceWritable\":\"false\"}");
+		assertFalse(child.isDefinitionWritable());
+	}
 }

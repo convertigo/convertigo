@@ -948,7 +948,11 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 	}
 
 	private static boolean jsonFlag(JSONObject object, String key) {
-		return object != null && object.optBoolean(key, false);
+		// A projected definition can be a map of business fields, including a field
+		// named readOnly. Its schema object is not an authoring capability flag.
+		// Jettison optBoolean throws a RuntimeException for such non-boolean values.
+		var value = object == null ? null : object.opt(key);
+		return Boolean.TRUE.equals(value) || value instanceof String text && "true".equalsIgnoreCase(text);
 	}
 
 	private boolean hasDeclaredProperty(String key) {
