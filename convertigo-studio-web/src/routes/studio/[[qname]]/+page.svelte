@@ -23,6 +23,7 @@
 	} from '#lib/studio/dnd.js';
 	import StudioDock from '#lib/studio/dock/StudioDock.svelte';
 	import FlowViewer from '#lib/studio/flow/FlowViewer.svelte';
+	import { flowImplementationRoot } from '#lib/studio/flow/flowRoot.js';
 	import {
 		contextAuthoringMutation,
 		isFrontendAuthoringNodeId
@@ -454,8 +455,12 @@
 		}
 	});
 	let selectedFlowSequenceName = $derived(selectedContext.sequenceName || '');
+	/** the Flow implementation of a block holding the selection, whose graph the Flow view shows as a sequence */
+	let selectedFlowRoot = $derived(flowImplementationRoot(selectedTrail));
 	let flowReady = $derived(
-		Boolean(selectedProjectName && selectedFlowSequenceName && sequences.length)
+		Boolean(
+			selectedProjectName && (selectedFlowRoot || (selectedFlowSequenceName && sequences.length))
+		)
 	);
 	let showStudioWork = $derived(profile === 'backend');
 	let showVibe = $derived(profile === 'vibe');
@@ -3766,7 +3771,9 @@
 		<FlowViewer
 			projectName={selectedProjectName}
 			{sequences}
-			selectedSequenceName={selectedFlowSequenceName}
+			selectedSequenceName={selectedFlowRoot ? '' : selectedFlowSequenceName}
+			rootId={selectedFlowRoot?.id ?? ''}
+			rootName={selectedFlowRoot?.name ?? ''}
 			autoSelectFirst={false}
 			selectedObjectId={viewSelectedId}
 			refreshSerial={flowRefreshSerial}

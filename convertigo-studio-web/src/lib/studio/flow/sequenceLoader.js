@@ -18,10 +18,20 @@ const builder = new SequenceFlowBuilder();
  * @returns {Promise<Flow>}
  */
 async function loadSequenceFlow(projectName, sequenceName) {
-	const sequenceId = `${projectName}.sq:${sequenceName}`;
-	const palette = await loadStepPalette(sequenceId);
-	const children = await fetchSequenceChildren(sequenceId, new Set());
-	return builder.buildFlowFromTree(projectName, sequenceName, children, palette);
+	return loadFlowGraph(projectName, sequenceName, `${projectName}.sq:${sequenceName}`);
+}
+
+/**
+ * The graph of the steps or nodes an object holds: a sequence, or the Flow implementation of a block.
+ * @param {string} projectName
+ * @param {string} name
+ * @param {string} rootId
+ * @returns {Promise<Flow>}
+ */
+async function loadFlowGraph(projectName, name, rootId) {
+	const palette = await loadStepPalette(rootId);
+	const children = await fetchSequenceChildren(rootId, new Set());
+	return builder.buildFlowFromTree(projectName, name, children, palette, rootId);
 }
 
 /**
@@ -123,4 +133,4 @@ function shouldSkipTreeviewItem(item) {
 	}
 	return (item.id || '').includes(':tc');
 }
-export { getLoopStepIds, loadSequenceFlow };
+export { getLoopStepIds, loadFlowGraph, loadSequenceFlow };

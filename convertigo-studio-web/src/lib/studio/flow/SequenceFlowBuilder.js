@@ -52,11 +52,12 @@ class SequenceFlowBuilder {
 	 * @param {string} sequenceName Name of the sequence being reconstructed.
 	 * @param {SequenceTreeNode[]} children Tree nodes representing the sequence steps.
 	 * @param {Map<string, PaletteItem>} palette Palette lookup used to infer node styling and ports.
+	 * @param {string} [rootId] Object holding the steps, the sequence by default (the implementation of a block...).
 	 * @returns {Flow} Flow model containing nodes, links, and metadata.
 	 */
-	buildFlowFromTree(projectName, sequenceName, children, palette) {
+	buildFlowFromTree(projectName, sequenceName, children, palette, rootId = '') {
 		this.loopStepIds.clear();
-		const sequenceId = `${projectName}.sq:${sequenceName}`;
+		const sequenceId = rootId || `${projectName}.sq:${sequenceName}`;
 		const nodes = [];
 		const nodeMap = new Map();
 		const links = [];

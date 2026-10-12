@@ -1,6 +1,6 @@
 import { call } from '#lib/utils/service.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loadSequenceFlow } from './sequenceLoader';
+import { loadFlowGraph, loadSequenceFlow } from './sequenceLoader';
 
 vi.mock('#lib/utils/service.js', () => ({
 	call: vi.fn()
@@ -102,6 +102,27 @@ describe('loadSequenceFlow', () => {
  * @param {string} simpleType
  * @returns {{ name: string, classname: string }}
  */
+describe('loadFlowGraph', () => {
+	it('loads the graph an object holds, the Flow implementation of a block, from that object', async () => {
+		const rootId =
+			'Lib.FlowEngine.catalog.blocks.provider_Lib.namespace_codex.block_codex_setup.implementation';
+		vi.mocked(call).mockImplementation(async (service, params) => {
+			if (service === 'studio.palette.Get') {
+				return { categories: [] };
+			}
+			if (service === 'studio.treeview.Get' && params.id === rootId) {
+				return { children: [treeItem('FlowVirtualObject', `${rootId}.mcpUrl`, 'local.mcpUrl')] };
+			}
+			return { children: [] };
+		});
+		const flow = await loadFlowGraph('Lib', 'codex.setup', rootId);
+		expect(vi.mocked(call)).toHaveBeenCalledWith('studio.palette.Get', { id: rootId });
+		expect(vi.mocked(call)).toHaveBeenCalledWith('studio.treeview.Get', { id: rootId, flow: true });
+		const node = flow.nodes.find((candidate) => candidate.id === `${rootId}.mcpUrl`);
+		expect(node?.data?.parentId).toBe(rootId);
+	});
+});
+
 function paletteItem(simpleType) {
 	return {
 		name: simpleType,

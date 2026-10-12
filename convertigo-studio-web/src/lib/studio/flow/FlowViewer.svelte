@@ -30,7 +30,7 @@
 	import FlowLoopReturnEdge from './FlowLoopReturnEdge.svelte';
 	import FlowStepNode from './FlowStepNode.svelte';
 	import FlowTerminalReturnEdge from './FlowTerminalReturnEdge.svelte';
-	import { loadSequenceFlow } from './sequenceLoader';
+	import { loadFlowGraph, loadSequenceFlow } from './sequenceLoader';
 	import { toXyFlow } from './xyflow';
 	import '@xyflow/svelte/dist/style.css';
 	import Button from '#lib/admin/components/Button.svelte';
@@ -48,6 +48,8 @@
 	 *  projectName: string,
 	 *  sequences?: SequenceLike[],
 	 *  selectedSequenceName?: string,
+	 *  rootId?: string,
+	 *  rootName?: string,
 	 *  autoSelectFirst?: boolean,
 	 *  selectedObjectId?: string,
 	 *  refreshSerial?: number,
@@ -62,6 +64,9 @@
 		projectName,
 		sequences = [],
 		selectedSequenceName = $bindable(''),
+		// an object holding a graph instead of a sequence: the Flow implementation of a block...
+		rootId = '',
+		rootName = '',
 		autoSelectFirst = true,
 		selectedObjectId = '',
 		refreshSerial = 0,
@@ -121,7 +126,8 @@
 		(sequences ?? []).find((sequence) => sequence.name === selectedSequenceName) ?? null
 	);
 	let selectedSequenceId = $derived(
-		projectName && selectedSequenceName ? `${projectName}.sq:${selectedSequenceName}` : ''
+		rootId ||
+			(projectName && selectedSequenceName ? `${projectName}.sq:${selectedSequenceName}` : '')
 	);
 
 	$effect(() => {
@@ -140,9 +146,10 @@
 	});
 
 	$effect(() => {
-		const sequenceName = selectedSequenceName;
+		const sequenceName = rootId ? rootName : selectedSequenceName;
 		const project = projectName;
-		if (!project || !sequenceName) {
+		const root = rootId;
+		if (!project || !(root || sequenceName)) {
 			flow = null;
 			nodes = [];
 			edges = [];
@@ -150,7 +157,7 @@
 			collapsedSubstepParents = new SvelteSet();
 			return;
 		}
-		startLoadFlow(project, sequenceName);
+		startLoadFlow(project, sequenceName, root);
 	});
 
 	$effect(() => {
@@ -199,27 +206,31 @@
 	/**
 	 * @param {string} project
 	 * @param {string} sequenceName
+	 * @param {string} [root]
 	 */
-	function startLoadFlow(project, sequenceName) {
+	function startLoadFlow(project, sequenceName, root = '') {
 		untrack(() => {
-			void loadFlow(project, sequenceName);
+			void loadFlow(project, sequenceName, root);
 		});
 	}
 
 	/**
 	 * @param {string} project
 	 * @param {string} sequenceName
+	 * @param {string} [root] the object holding the graph, instead of the sequence
 	 */
-	async function loadFlow(project, sequenceName) {
+	async function loadFlow(project, sequenceName, root = '') {
 		const serial = ++loadSerial;
-		const flowKey = `${project}.sq:${sequenceName}`;
+		const flowKey = root || `${project}.sq:${sequenceName}`;
 		const previousFlow = flow;
 		const previousCollapsedSubstepParents = new SvelteSet(collapsedSubstepParents);
 		const shouldPreserveCollapseState = loadedFlowKey === flowKey;
 		loading = true;
 		error = '';
 		try {
-			const nextFlow = await loadSequenceFlow(project, sequenceName);
+			const nextFlow = root
+				? await loadFlowGraph(project, sequenceName, root)
+				: await loadSequenceFlow(project, sequenceName);
 			if (serial !== loadSerial) {
 				return;
 			}
@@ -265,9 +276,9 @@
 	}
 
 	function refresh() {
-		if (projectName && selectedSequenceName) {
+		if (projectName && (rootId || selectedSequenceName)) {
 			queueViewportFocusObject(selectedObjectId);
-			startLoadFlow(projectName, selectedSequenceName);
+			startLoadFlow(projectName, rootId ? rootName : selectedSequenceName, rootId);
 		}
 	}
 
@@ -1519,7 +1530,7 @@
 	<section class="flow-dashboard__viewer">
 		<div class="flow-dashboard__toolbar">
 			<div class="flow-dashboard__title">
-				<span>{selectedSequence?.name ?? 'Flow'}</span>
+				<span>{(rootId && rootName) || selectedSequence?.name || 'Flow'}</span>
 				{#if flow}
 					{@const steps = flow.nodes.filter((node) => !node.data?.placeholder).length}
 					<span class="flow-dashboard__metrics">
@@ -1535,7 +1546,7 @@
 				class="button-ico-secondary h-9! w-9! justify-center p-0!"
 				title="Refresh flow"
 				ariaLabel="Refresh flow"
-				disabled={loading || !selectedSequenceName}
+				disabled={loading || !selectedSequenceId}
 				onclick={refresh}
 			/>
 		</div>

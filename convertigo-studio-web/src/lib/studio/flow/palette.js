@@ -34,7 +34,9 @@ function loadPaletteModel(parentId) {
 			cacheKey,
 			call('studio.palette.Get', { id: parentId }).then((response) => {
 				if (response?.isError) {
-					throw new Error(serviceErrorMessage(response.error, 'Unable to load Convertigo step palette'));
+					throw new Error(
+						serviceErrorMessage(response.error, 'Unable to load Convertigo step palette')
+					);
 				}
 				return buildStepPalette(response?.categories);
 			})
