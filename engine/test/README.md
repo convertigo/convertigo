@@ -74,6 +74,13 @@ that marks the explicit default connector and transaction only (never the only
 connector or transaction, never a default transaction the caller may not see).
 It uses in-memory projects and does not start an engine.
 
+## Administration instance routing
+
+`./gradlew :engine:adminInstanceRoutingTest` checks opaque administration
+addresses, technical pod metadata and rejection of an address left by a pod
+restarted under the same name. Routing over Redis, HTTP forwarding and SSE
+require the Docker multi-instance validation.
+
 ## Request-scoped sessions
 
 `./gradlew :engine:requestScopedSessionTest` checks the ephemeral sessions used by

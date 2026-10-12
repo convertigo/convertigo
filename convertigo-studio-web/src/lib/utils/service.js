@@ -26,6 +26,7 @@ const adminInstance = browser
 /**
  * @typedef {{
  * 	adminInstance?: string,
+ * 	instance?: string,
  * 	silentStatuses?: number[],
  * 	silentNetworkAfterMs?: number,
  * 	silentError?: (error: string, response: any) => boolean,
@@ -125,7 +126,7 @@ export async function call(service, data = {}, options = {}) {
 			'Admin-Instance': options.adminInstance ?? adminInstance,
 			'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 		};
-		Instances.apply(headers);
+		const instanceRevision = Instances.apply(headers, options.instance);
 		if (data instanceof FormData) {
 			let files = new FormData();
 			for (const [entryKey, value] of [...data.entries()]) {
@@ -190,7 +191,7 @@ export async function call(service, data = {}, options = {}) {
 		if (xsrf != null) {
 			localStorage.setItem('x-xsrf-token', xsrf);
 		}
-		Instances.update(res);
+		if (options.instance === undefined) Instances.update(res, instanceRevision);
 
 		const disposition = /filename=("|')?(.*)\1/.exec(res.headers.get('content-disposition') ?? '');
 		if (disposition) {
@@ -284,7 +285,7 @@ export async function callRequestable(mode, project, data = {}) {
 		'Admin-Instance': adminInstance,
 		'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 	};
-	Instances.apply(headers);
+	const instanceRevision = Instances.apply(headers);
 	if (data instanceof FormData) {
 		let files = new FormData();
 		for (const [entryKey, value] of [...data.entries()]) {
@@ -320,7 +321,7 @@ export async function callRequestable(mode, project, data = {}) {
 	if (xsrf != null) {
 		localStorage.setItem('x-xsrf-token', xsrf);
 	}
-	Instances.update(res);
+	Instances.update(res, instanceRevision);
 
 	return res;
 }

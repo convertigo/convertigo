@@ -8,7 +8,7 @@
 	import Ico from '#lib/utils/Ico.svelte';
 	import { resolve } from '#lib/utils/route.js';
 	import { page } from '$app/state';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import PagesRailToggle from './PagesRailToggle.svelte';
 
 	let {
@@ -49,10 +49,12 @@
 		if (variant === 'studio' || !Authentication.authenticated) {
 			return;
 		}
-		Instances.refresh();
+		untrack(Instances.refresh);
 	});
 
-	const instanceOptions = $derived(Instances.instances.map(({ instanceId }) => instanceId));
+	const instanceOptions = $derived(
+		Instances.instances.map(({ instanceId, routingId }) => ({ value: routingId, text: instanceId }))
+	);
 	const isDashboardRoute = $derived(page.route.id?.includes('dashboard') ?? false);
 	const dashboardLoginHref = $derived.by(() => {
 		const redirect = encodeURIComponent(page.url.pathname + page.url.search + page.url.hash);
@@ -114,15 +116,27 @@
 			{#if Authentication.authenticated && Instances.storeMode === 'redis' && ((Instances.current ?? '').trim() || Instances.instances.length)}
 				<div class="layout-x-low max-md:hidden">
 					<span class="text-xs font-medium opacity-70">Instance</span>
-					<PropertyType
-						type="combo"
-						multiple={false}
-						fit
-						item={instanceOptions}
-						disabled={Instances.loading}
-						class="select h-fit! input-common w-100 px-2 py-none text-sm"
-						bind:value={Instances.current}
-					/>
+					<div class="layout-y-stretch-none">
+						<PropertyType
+							type="combo"
+							multiple={false}
+							fit
+							item={instanceOptions}
+							disabled={Instances.loading}
+							class="select h-fit! input-common w-48 px-2 py-none text-sm lg:w-64 xl:w-80 2xl:w-100"
+							bind:value={Instances.current}
+							aria-label="Target pod"
+						/>
+						{#if Instances.activeName}
+							<span
+								class="truncate text-xs"
+								title={`Current pod: ${Instances.activeName}`}
+								aria-live="polite"
+							>
+								Current: {Instances.activeName}
+							</span>
+						{/if}
+					</div>
 					<Button
 						icon="mdi:refresh"
 						full={false}

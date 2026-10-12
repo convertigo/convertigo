@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +57,8 @@ public final class RedisInstanceDiscovery {
 	private static final Object MUTEX = new Object();
 
 	private static final String INDEX_INSTANCES = "index:instances";
+	private static final String INDEX_ADMIN_ROUTES = "index:admin-routes";
+	private static final String localRoutingId = "route-" + UUID.randomUUID();
 	private static final int DEFAULT_PORT = 28080;
 	private static final int HEARTBEAT_SECONDS = 10;
 	private static final int TTL_SECONDS = 30;
@@ -71,16 +74,59 @@ public final class RedisInstanceDiscovery {
 
 	public static final class InstanceInfo {
 		public final String instanceId;
+		public final String routingId;
 		public final String baseUrl;
 		public final long startedAt;
 		public final long lastHeartbeat;
 
-		private InstanceInfo(String instanceId, String baseUrl, long startedAt, long lastHeartbeat) {
+		private InstanceInfo(String instanceId, String routingId, String baseUrl, long startedAt, long lastHeartbeat) {
 			this.instanceId = instanceId;
+			this.routingId = routingId;
 			this.baseUrl = baseUrl;
 			this.startedAt = startedAt;
 			this.lastHeartbeat = lastHeartbeat;
 		}
+	}
+
+	/** Public administration address; the technical identity remains available to administrators and internal users. */
+	public static String getLocalRoutingId() {
+		return localRoutingId;
+	}
+
+	/** Resolve opaque admin addresses without changing the identities used by locks, builds and gateway routes. */
+	public static InstanceInfo resolveAdminInstance(String routingId) {
+		if (routingId == null || routingId.isBlank()) return null;
+		try {
+			var instances = instancesMap();
+			if (instances == null) return null;
+			if (!routingId.startsWith("route-")) {
+				// Requests from older consoles can still name a technical identity during an upgrade.
+				return parseInfo(routingId, instances.get(routingId));
+			}
+			var routes = adminRoutesMap();
+			var raw = routes == null ? null : routes.get(routingId);
+			if (raw == null) return null;
+			var instanceId = JSON.readTree(raw).path("instanceId").asText(null);
+			return resolveRoutingInfo(routingId, raw, instanceId == null ? null : instances.get(instanceId));
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	static InstanceInfo resolveRoutingInfo(String routingId, String routeJson, String currentJson) {
+		try {
+			var id = JSON.readTree(routeJson).path("instanceId").asText(null);
+			var info = parseInfo(id, currentJson);
+			// A pod restarted under the same name must not inherit the previous engine's admin address.
+			return info != null && routingId.equals(info.routingId) ? info : null;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private static RMapCache<String, String> adminRoutesMap() {
+		var cfg = RedisClients.getConfiguration();
+		return RedisClients.getClient().getMapCache(cfg.getContextKeyPrefix() + INDEX_ADMIN_ROUTES, StringCodec.INSTANCE);
 	}
 
 	public static String getLocalInstanceId() {
@@ -527,12 +573,14 @@ public final class RedisInstanceDiscovery {
 			var now = System.currentTimeMillis();
 			var payload = new java.util.HashMap<String, Object>(8);
 			payload.put("instanceId", id);
+			payload.put("routingId", localRoutingId);
 			payload.put("baseUrl", url);
 			payload.put("startedAt", startedAt > 0 ? startedAt : now);
 			payload.put("lastHeartbeat", now);
 
 			String json = JSON.writeValueAsString(payload);
 			map.fastPut(id, json, TTL_SECONDS, TimeUnit.SECONDS);
+			adminRoutesMap().fastPut(localRoutingId, json, TTL_SECONDS, TimeUnit.SECONDS);
 			RedisHealth.success();
 		} catch (Exception e) {
 			RedisHealth.failure(e);
@@ -549,13 +597,14 @@ public final class RedisInstanceDiscovery {
 			var map = instancesMap();
 			if (map != null && localInstanceId != null) {
 				map.fastRemove(localInstanceId);
+				adminRoutesMap().fastRemove(localRoutingId);
 			}
 		} catch (Exception ignore) {
 			// ignore
 		}
 	}
 
-	private static InstanceInfo parseInfo(String instanceId, String rawJson) {
+	static InstanceInfo parseInfo(String instanceId, String rawJson) {
 		if (instanceId == null || instanceId.isBlank() || rawJson == null || rawJson.isBlank()) {
 			return null;
 		}
@@ -565,14 +614,15 @@ public final class RedisInstanceDiscovery {
 				return null;
 			}
 			var baseUrl = root.path("baseUrl").asText(null);
+			var routingId = trimToNull(root.path("routingId").asText(null));
 			var startedAt = root.path("startedAt").asLong(0L);
 			var lastHeartbeat = root.path("lastHeartbeat").asLong(0L);
 			if (baseUrl != null) {
 				baseUrl = normalizeUrl(baseUrl);
 			}
-			return new InstanceInfo(instanceId, baseUrl, startedAt, lastHeartbeat);
+			return new InstanceInfo(instanceId, routingId, baseUrl, startedAt, lastHeartbeat);
 		} catch (Exception ignore) {
-			return new InstanceInfo(instanceId, null, 0L, 0L);
+			return new InstanceInfo(instanceId, null, null, 0L, 0L);
 		}
 	}
 

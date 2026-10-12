@@ -132,7 +132,7 @@ public class AdminInstanceForwardFilter implements Filter {
 		}
 
 		RedisInstanceDiscovery.updateFromRequest(request);
-		var localInstance = RedisInstanceDiscovery.getLocalInstanceId();
+		var localInstance = RedisInstanceDiscovery.getLocalRoutingId();
 		if (localInstance != null && !localInstance.isBlank()) {
 			response.setHeader(HEADER_INSTANCE, localInstance);
 		}
@@ -149,20 +149,26 @@ public class AdminInstanceForwardFilter implements Filter {
 		}
 
 		var forwardedBy = trimToNull(request.getHeader(HEADER_FORWARDED_BY));
-		if (forwardedBy != null && containsForwardedId(forwardedBy, localInstance)) {
-			chain.doFilter(request, response);
+		if (forwardedBy != null && (containsForwardedId(forwardedBy, localInstance)
+				|| containsForwardedId(forwardedBy, RedisInstanceDiscovery.getLocalInstanceId()))) {
+			unavailableInstance(response);
 			return;
 		}
 
-		var baseUrl = RedisInstanceDiscovery.resolveBaseUrl(requestedInstance);
-		if (baseUrl == null || baseUrl.isBlank()) {
+		var target = RedisInstanceDiscovery.resolveAdminInstance(requestedInstance);
+		if (target != null && target.instanceId.equals(RedisInstanceDiscovery.getLocalInstanceId())) {
 			chain.doFilter(request, response);
+			return;
+		}
+		var baseUrl = target != null ? target.baseUrl : null;
+		if (baseUrl == null || baseUrl.isBlank()) {
+			unavailableInstance(response);
 			return;
 		}
 
 		var targetUrl = buildTargetUrl(baseUrl, request);
 		if (targetUrl == null) {
-			chain.doFilter(request, response);
+			unavailableInstance(response);
 			return;
 		}
 
@@ -174,32 +180,26 @@ public class AdminInstanceForwardFilter implements Filter {
 				proxyRequest = new CachedBodyRequestWrapper(request, cachedBody);
 			}
 
-			response.setHeader(HEADER_INSTANCE, requestedInstance);
+			response.setHeader(HEADER_INSTANCE, target.routingId != null ? target.routingId : target.instanceId);
 			proxy(proxyRequest, response, targetUrl, localInstance, forwardedBy);
 		} catch (IOException e) {
 			if (response.isCommitted()) {
 				throw e;
 			}
 			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug("(AdminInstanceForwardFilter) Forward failed, fallback to local instance", e);
+				Engine.logEngine.debug("(AdminInstanceForwardFilter) Target instance unavailable", e);
 			}
 			response.reset();
-			if (localInstance != null && !localInstance.isBlank()) {
-				response.setHeader(HEADER_INSTANCE, localInstance);
-			}
-			chain.doFilter(proxyRequest, response);
+			unavailableInstance(response);
 		} catch (Exception e) {
 			if (response.isCommitted()) {
 				throw e;
 			}
 			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug("(AdminInstanceForwardFilter) Unexpected forward error, fallback to local instance", e);
+				Engine.logEngine.debug("(AdminInstanceForwardFilter) Target instance forwarding failed", e);
 			}
 			response.reset();
-			if (localInstance != null && !localInstance.isBlank()) {
-				response.setHeader(HEADER_INSTANCE, localInstance);
-			}
-			chain.doFilter(proxyRequest, response);
+			unavailableInstance(response);
 		} finally {
 			if (cachedBody != null) {
 				cachedBody.close();
@@ -210,6 +210,13 @@ public class AdminInstanceForwardFilter implements Filter {
 	@Override
 	public void destroy() {
 		// no-op
+	}
+
+	private static void unavailableInstance(HttpServletResponse response) throws IOException {
+		response.setHeader(HEADER_INSTANCE, null);
+		response.setStatus(HttpServletResponse.SC_CONFLICT);
+		response.setContentType("application/json");
+		response.getWriter().write("{\"error\":\"Selected instance is unavailable. Refresh the instance list.\"}");
 	}
 
 	private static String resolveRequestedInstance(HttpServletRequest request) {

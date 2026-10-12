@@ -37,6 +37,16 @@ tasks.named('check') {
 	dependsOn 'flowPackagesTest'
 	dependsOn 'flowEngineSymbolsTest'
 	dependsOn 'optionalDefaultsTest'
+	dependsOn 'adminInstanceRoutingTest'
+}
+
+tasks.register('adminInstanceRoutingTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for opaque administration addresses and pod restart isolation.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.AdminInstanceRoutingTest'
 }
 
 tasks.register('stepSourceTest', JavaExec) {

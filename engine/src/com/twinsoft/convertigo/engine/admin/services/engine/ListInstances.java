@@ -51,6 +51,7 @@ public class ListInstances extends JSonService {
 		response.put("provider", ConvertigoHttpSessionManager.getInstance().getProviderName());
 		response.put("redis", new JSONObject(RedisHealth.toMap()));
 		response.put("localInstanceId", localId != null ? localId : "");
+		response.put("localRoutingId", RedisInstanceDiscovery.getLocalRoutingId());
 		response.put("localBaseUrl", localBaseUrl != null ? localBaseUrl : "");
 
 		var now = System.currentTimeMillis();
@@ -58,6 +59,8 @@ public class ListInstances extends JSonService {
 		for (var info : RedisInstanceDiscovery.listInstances()) {
 			var obj = new JSONObject();
 			obj.put("instanceId", info.instanceId != null ? info.instanceId : "");
+			// Old discovery records remain usable while the cluster is upgraded.
+			obj.put("routingId", info.routingId != null ? info.routingId : info.instanceId);
 			obj.put("baseUrl", info.baseUrl != null ? info.baseUrl : "");
 			obj.put("startedAt", info.startedAt);
 			obj.put("lastHeartbeat", info.lastHeartbeat);
