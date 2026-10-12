@@ -24,6 +24,8 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProvider;
 
+import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public class ViewLabelDecorator extends LabelProvider implements ILightweightLabelDecorator {
@@ -39,12 +41,29 @@ public class ViewLabelDecorator extends LabelProvider implements ILightweightLab
 
 	@Override
 	public void decorate(Object element, IDecoration decoration) {
-		if (element instanceof DatabaseObjectTreeObject) {
-			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) element;
-			if (!databaseObjectTreeObject.isInherited && databaseObjectTreeObject.isDefault) {
+		// in a tree grouped by tags, each row is an occurrence of a tree object and shows its marks
+		Object target = element instanceof TagTreeObject row && row.target != null ? row.target : element;
+		if (target instanceof DatabaseObjectTreeObject databaseObjectTreeObject) {
+			if (!databaseObjectTreeObject.isInherited && isDefault(databaseObjectTreeObject)) {
 				decoration.addOverlay(DEFAULT_IMAGE);
 			}
 		}
+	}
+
+	/**
+	 * @return whether the object is the default connector of its project or the default transaction of its
+	 *         connector, as the object tells it now (the web Studio of the same engine can change it), else
+	 *         whether its tree object was created for a default object, as the root page of an application
+	 */
+	static boolean isDefault(DatabaseObjectTreeObject treeObject) {
+		Object object = treeObject.getObject();
+		if (object instanceof Connector connector) {
+			return connector.isDefault;
+		}
+		if (object instanceof Transaction transaction) {
+			return transaction.isDefault;
+		}
+		return treeObject.isDefault;
 	}
 	
 }

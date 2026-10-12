@@ -3367,6 +3367,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void refreshTreeObject(TreeObject object) {
 		ISelection selection = viewer.getSelection();
 		refreshTreeObject(object, false);
+		// grouped by tags, the tree object shows through its occurrences, as the marks of a new default object
+		if (object != null) {
+			for (var row : viewContentProvider.tags.occurrencesOf(object)) viewer.refresh(row);
+		}
 		if(!selection.isEmpty()) viewer.setSelection(selection,true);
 	}
 

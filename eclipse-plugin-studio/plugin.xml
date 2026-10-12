@@ -3921,8 +3921,12 @@
 			state="true"
 			id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewLabelDecorator">
 			<enablement>
-				<objectClass
-					name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject" />
+				<or>
+					<objectClass
+						name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject" />
+					<objectClass
+						name="com.twinsoft.convertigo.eclipse.views.projectexplorer.TagTreeObject" />
+				</or>
 			</enablement>
 			<description>Decorates Convertigo Objects</description>
 		</decorator>
