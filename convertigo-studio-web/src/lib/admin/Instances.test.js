@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('#lib/utils/service.js', () => ({ call: vi.fn(), getUrl: () => '/convertigo/admin/services/' }));
+vi.mock('#lib/utils/service.js', () => ({
+	call: vi.fn(),
+	getUrl: () => '/convertigo/admin/services/'
+}));
 
 const pods = [
 	{ instanceId: 'convertigo-pod-a', routingId: 'route-a' },
@@ -12,7 +15,7 @@ let call;
 beforeEach(async () => {
 	vi.resetModules();
 	({ default: Instances } = await import('./Instances.svelte.js'));
-	({ call } = await import('#lib/utils/service.js'));
+	call = vi.mocked((await import('#lib/utils/service.js')).call);
 	call.mockReset();
 	call.mockResolvedValue({ storeMode: 'redis', instances: pods, localRoutingId: 'route-a' });
 });
