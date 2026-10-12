@@ -185,10 +185,11 @@ tasks.register('flowEngineSymbolsTest', JavaExec) {
 
 tasks.register('optionalDefaultsTest', JavaExec) {
 	group = 'verification'
-	description = 'Regression tests for the optional default connector and transaction: sequences never look up a connector, the implicit choice and its error, moves and copies of a default.'
+	description = 'Regression tests for the optional default connector and transaction: sequences never look up a connector, the implicit choice and its error, moves and copies of a default, the defaults the test platform tells.'
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.requesters.OptionalDefaultsTest',
-		'com.twinsoft.convertigo.engine.admin.services.studio.dbo.DefaultPasteTest'
+		'com.twinsoft.convertigo.engine.admin.services.studio.dbo.DefaultPasteTest',
+		'com.twinsoft.convertigo.engine.admin.services.projects.TestPlatformDefaultsTest'
 }

@@ -87,14 +87,17 @@ public class GetTestPlatform extends XmlService {
 		boolean bTpHiddenRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.TEST_PLATFORM_HIDDEN);
 		boolean bTpPrivateRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.TEST_PLATFORM_PRIVATE);
 		
-		for (Connector connector : project.getConnectorsList()) {			
-			Element e_connector = createDatabaseObjectElement(document, connector, lang);				
+		for (Connector connector : project.getConnectorsList()) {
+			Element e_connector = createDatabaseObjectElement(document, connector, lang);
+			markDefault(e_connector, connector.isDefault);
 			for (Transaction transaction : connector.getTransactionsList()) {
 				// WEB_ADMIN role is allowed to execute all requestables
 				if (transaction.isPublicAccessibility()
 						|| (transaction.isHiddenAccessibility() && bTpHiddenRole)
 						|| bTpPrivateRole) {
-					e_connector.appendChild(createRequestableElement(document, transaction, lang));				
+					Element e_transaction = createRequestableElement(document, transaction, lang);
+					markDefault(e_transaction, transaction.isDefault);
+					e_connector.appendChild(e_transaction);
 				}
 			}
 			e_project.appendChild(e_connector);
@@ -155,6 +158,16 @@ public class GetTestPlatform extends XmlService {
 		root.appendChild(e_project);
 	}
 	
+	/**
+	 * Marks the default connector of the project or the default transaction of its connector, the one a
+	 * request naming none runs; a project or a connector may have none, and nothing is marked then.
+	 */
+	private static void markDefault(Element element, boolean isDefault) {
+		if (isDefault) {
+			element.setAttribute("default", "true");
+		}
+	}
+
 	private Element createDatabaseObjectElement(Document document, DatabaseObject dbo, String lang) {
 		Element elt = document.createElement(dbo.getDatabaseType().toLowerCase());
 		elt.setAttribute("name", dbo.getName());

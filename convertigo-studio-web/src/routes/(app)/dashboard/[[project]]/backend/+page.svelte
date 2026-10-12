@@ -63,6 +63,8 @@
 			...(project.connector ?? []).map((connector) => ({
 				name: connector.name,
 				comment: connector.comment,
+				// the default connector of the project, which a project may not have
+				isDefault: connector.default == 'true',
 				requestables: connector.transaction ?? []
 			}))
 		];
@@ -79,6 +81,13 @@
 	});
 	let partsOpened = $state(['Sequences']);
 	const [duration, y] = [200, -50];
+	/** the chip of the default connector of the project and of the default transaction of a connector */
+	const defaultChipClass =
+		'shrink-0 rounded-full preset-filled-success-100-900 px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase text-success-700-300';
+	const defaultTitles = {
+		connector: 'Default connector: used when a request names none',
+		transaction: 'Default transaction: run when a request names none'
+	};
 	const selectableTitleClass = 'text-sm font-semibold text-strong';
 	const selectableSubtitleClass = 'text-xs text-surface-600-400';
 	const selectableTextEvents = {
@@ -138,7 +147,7 @@
 		}}
 	>
 		{#each parts as part, partIdx (part.name)}
-			{@const { name, requestables, comment } = part}
+			{@const { name, requestables, comment, isDefault } = part}
 			<div transition:fly={{ duration, y }}>
 				<AccordionSection
 					value={part.name}
@@ -148,6 +157,9 @@
 					title={name}
 					subtitle={comment}
 					count={requestables.length}
+					trailingText={isDefault ? 'Default' : undefined}
+					trailingTextClass={defaultChipClass}
+					trailingTitle={defaultTitles.connector}
 					titleClass={selectableTitleClass}
 					subtitleClass={selectableSubtitleClass}
 					selectableHeaderText
@@ -183,10 +195,17 @@
 														/>
 													</span>
 													<div class="layout-y-start-low min-w-0 flex-1 justify-center text-left">
-														<span
-															class="cursor-text text-sm leading-tight font-semibold text-strong select-text"
-															{...selectableTextEvents}>{name}</span
-														>
+														<span class="layout-x-low min-w-0 items-center">
+															<span
+																class="cursor-text text-sm leading-tight font-semibold text-strong select-text"
+																{...selectableTextEvents}>{name}</span
+															>
+															{#if requestable.default == 'true'}
+																<span class={defaultChipClass} title={defaultTitles.transaction}
+																	>Default</span
+																>
+															{/if}
+														</span>
 														{#if comment?.length}
 															<span
 																class="cursor-text truncate text-xs text-surface-600-400 transition-opacity duration-150 select-text group-data-[state=open]:opacity-70"

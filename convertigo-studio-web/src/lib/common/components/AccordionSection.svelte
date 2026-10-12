@@ -28,6 +28,7 @@
 	metaClass?: string;
 	trailingText?: string;
 	trailingTextClass?: string;
+	trailingTitle?: string;
 	indicatorSize?: number;
 	selectableHeaderText?: boolean;
 } & Record<string, any>} */
@@ -56,6 +57,7 @@
 		metaClass = 'text-xs text-surface-600-400',
 		trailingText,
 		trailingTextClass = 'text-xs text-muted',
+		trailingTitle,
 		indicatorSize = 3,
 		selectableHeaderText = false,
 		...rest
@@ -136,14 +138,21 @@
 	<span aria-hidden="true" class={`mt-0.5 ${leadingIconClass}`}>{leadingIcon}</span>
 {/snippet}
 
-{#snippet defaultTrail({ count, countText, countClass, trailingText, trailingTextClass })}
+{#snippet defaultTrail({
+	count,
+	countText,
+	countClass,
+	trailingText,
+	trailingTextClass,
+	trailingTitle
+})}
 	{#if countText}
 		<span class={`${countClass} ${count === 0 ? 'border-dashed text-surface-600-400' : ''}`}
 			>{countText}</span
 		>
 	{/if}
 	{#if trailingText}
-		<span class={trailingTextClass}>{trailingText}</span>
+		<span class={trailingTextClass} title={trailingTitle}>{trailingText}</span>
 	{/if}
 {/snippet}
 
@@ -193,7 +202,8 @@
 						countText,
 						countClass,
 						trailingText,
-						trailingTextClass
+						trailingTextClass,
+						trailingTitle
 					})}
 					<span class="shrink-0 text-muted">
 						<Accordion.ItemIndicator element={indicator} />
