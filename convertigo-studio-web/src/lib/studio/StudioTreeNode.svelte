@@ -1899,15 +1899,18 @@
 		color: var(--color-error-500);
 	}
 
+	/* the small green square of the Eclipse Studio, of its color, over the bottom right corner of the icon */
 	.studio-tree-node__default {
 		position: absolute;
-		right: -0.15rem;
-		bottom: -0.1rem;
-		width: 0.42rem;
-		height: 0.42rem;
+		right: -0.25rem;
+		bottom: -0.2rem;
+		box-sizing: content-box;
+		width: 0.45rem;
+		height: 0.45rem;
 		border: 1px solid var(--studio-chrome-bg, white);
-		border-radius: 999px;
-		background: var(--color-success-500);
+		border-radius: 1px;
+		background: #00bd00;
+		pointer-events: none;
 	}
 
 	.studio-tree-node__content {
