@@ -949,64 +949,67 @@
 				/>
 			</div>
 		</div>
-		{#if error}
-			<p class="studio-editor__error" role="alert">
-				<Ico icon="mdi:alert-circle-outline" size={3.4} />
-				<span>{error}</span>
-			</p>
-		{/if}
-		{#if problems.length}
-			<!-- the check of the FlowScript: a click shows the line of a problem -->
-			<div
-				class="studio-editor__problems"
-				class:studio-editor__problems--error={problemErrors > 0}
-				role={problemErrors > 0 ? 'alert' : 'status'}
-			>
-				<Ico
-					icon={problemErrors > 0 ? 'mdi:alert-circle-outline' : 'mdi:alert-outline'}
-					size={3.4}
+		<!-- the message, the problems of the code and the editor share the last row -->
+		<div class="studio-editor__body">
+			{#if error}
+				<p class="studio-editor__error" role="alert">
+					<Ico icon="mdi:alert-circle-outline" size={3.4} />
+					<span>{error}</span>
+				</p>
+			{/if}
+			{#if problems.length}
+				<!-- the check of the FlowScript: a click shows the line of a problem -->
+				<div
+					class="studio-editor__problems"
+					class:studio-editor__problems--error={problemErrors > 0}
+					role={problemErrors > 0 ? 'alert' : 'status'}
+				>
+					<Ico
+						icon={problemErrors > 0 ? 'mdi:alert-circle-outline' : 'mdi:alert-outline'}
+						size={3.4}
+					/>
+					<span class="studio-editor__problems-summary">
+						{problemErrors > 0
+							? `${problemErrors} FlowScript error${problemErrors > 1 ? 's' : ''}: the Flow keeps it as its working copy until fixed`
+							: `${problems.length} FlowScript warning${problems.length > 1 ? 's' : ''}`}
+					</span>
+					{#each problems.slice(0, 3) as problem, index (index)}
+						<button
+							type="button"
+							class="studio-editor__problem"
+							title={[problem.message, problem.hint].filter(Boolean).join('\n')}
+							onclick={() => {
+								if (activeTab && problem.line) {
+									activeTab.revealLine = problem.line;
+									activeTab.revealSerial = Date.now();
+								}
+							}}
+						>
+							{problem.line ? `line ${problem.line}: ` : ''}{problem.message}
+						</button>
+					{/each}
+				</div>
+			{/if}
+			<div class="studio-editor__monaco" onfocusin={markActiveTabFocused}>
+				<Editor
+					bind:content={activeTab.content}
+					language={activeTab.language}
+					{theme}
+					readOnly={activeTab.readOnly === true}
+					breakpoints={debuggable ? (activeTab.breakpoints ?? []) : null}
+					onBreakpointToggle={toggleBreakpoint}
+					currentLine={debuggable ? currentLine : 0}
+					revealLine={activeTab.revealLine ?? 0}
+					revealSerial={activeTab.revealSerial ?? 0}
+					path={typedPath(activeTab)}
+					onSave={() => void saveEditor()}
+					typesProject={typedPath(activeTab) ? activeTab.id.split(/[.:/]/)[0] : ''}
+					editableZones={zones.length > 0}
+					{zonesFocus}
+					{zoneReveal}
+					markers={activeTab.check?.diagnostics ?? []}
 				/>
-				<span class="studio-editor__problems-summary">
-					{problemErrors > 0
-						? `${problemErrors} FlowScript error${problemErrors > 1 ? 's' : ''}: the Flow keeps it as its working copy until fixed`
-						: `${problems.length} FlowScript warning${problems.length > 1 ? 's' : ''}`}
-				</span>
-				{#each problems.slice(0, 3) as problem, index (index)}
-					<button
-						type="button"
-						class="studio-editor__problem"
-						title={[problem.message, problem.hint].filter(Boolean).join('\n')}
-						onclick={() => {
-							if (activeTab && problem.line) {
-								activeTab.revealLine = problem.line;
-								activeTab.revealSerial = Date.now();
-							}
-						}}
-					>
-						{problem.line ? `line ${problem.line}: ` : ''}{problem.message}
-					</button>
-				{/each}
 			</div>
-		{/if}
-		<div class="studio-editor__monaco" onfocusin={markActiveTabFocused}>
-			<Editor
-				bind:content={activeTab.content}
-				language={activeTab.language}
-				{theme}
-				readOnly={activeTab.readOnly === true}
-				breakpoints={debuggable ? (activeTab.breakpoints ?? []) : null}
-				onBreakpointToggle={toggleBreakpoint}
-				currentLine={debuggable ? currentLine : 0}
-				revealLine={activeTab.revealLine ?? 0}
-				revealSerial={activeTab.revealSerial ?? 0}
-				path={typedPath(activeTab)}
-				onSave={() => void saveEditor()}
-				typesProject={typedPath(activeTab) ? activeTab.id.split(/[.:/]/)[0] : ''}
-				editableZones={zones.length > 0}
-				{zonesFocus}
-				{zoneReveal}
-				markers={activeTab.check?.diagnostics ?? []}
-			/>
 		</div>
 	{:else if loading}
 		<StudioEmptyState message="Loading" loading full class="studio-editor__empty" />
@@ -1325,7 +1328,14 @@
 		color: var(--studio-editor-text);
 	}
 
+	.studio-editor__body {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+
 	.studio-editor__monaco {
+		flex: 1 1 0;
 		min-height: 0;
 	}
 
