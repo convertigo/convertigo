@@ -65,12 +65,7 @@ public final class DboRemoval {
 		}
 		var sources = flowSources(dbo);
 		if (!sources.isEmpty()) {
-			var root = dbo.getProject().getDirFile().getCanonicalPath();
-			var paths = new JSONArray();
-			for (var path : sources) {
-				paths.put(path.substring(root.length() + 1).replace('\\', '/'));
-			}
-			response.put("sources", paths);
+			response.put("sources", relativePaths(dbo.getProject(), sources));
 		}
 		return response;
 	}
@@ -160,7 +155,14 @@ public final class DboRemoval {
 		if (source != null && source.isFile()) {
 			sources.add(source.getCanonicalPath());
 		}
-		var schemas = new File(new File(flow.getProject().getDirFile(), FlowSourceLayout.current().root()), "schemas/" + flow.getName());
+		sources.addAll(schemaSources(flow.getProject(), flow.getName()));
+		return sources;
+	}
+
+	/** @return the learned schemas of the Flow of this name */
+	private static List<String> schemaSources(Project project, String flowName) throws Exception {
+		var sources = new ArrayList<String>();
+		var schemas = new File(new File(project.getDirFile(), FlowSourceLayout.current().root()), "schemas/" + flowName);
 		if (schemas.isDirectory()) {
 			for (var file : FileUtils.listFiles(schemas, null, true)) {
 				if (FlowEngine.isWorkingCopySource(file.getName())) {
@@ -170,4 +172,73 @@ public final class DboRemoval {
 		}
 		return sources;
 	}
+
+	/**
+	 * @return the sources of a Flow the project does not have, as a Flow deleted by an older Studio left
+	 *         them: its FlowScript, saved or a working copy, and its learned schemas; none when the project
+	 *         has an object of this name or no FlowScript of it
+	 */
+	public static List<String> orphanFlowSources(Project project, String flowName) throws Exception {
+		var sources = new ArrayList<String>();
+		if (project == null || flowName == null || !FLOW_NAME.matcher(flowName).matches()) {
+			return sources;
+		}
+		for (var sequence : project.getSequencesList()) {
+			if (flowName.equals(sequence.getName())) {
+				return sources;
+			}
+		}
+		var source = new File(new File(project.getDirFile(), FlowSourceLayout.current().flows()), flowName + ".flow.js");
+		var flowEngine = project.getFlowEngine();
+		if (!source.isFile() && (flowEngine == null || !flowEngine.hasSource(source.getPath()))) {
+			return sources;
+		}
+		var path = source.getCanonicalPath();
+		// already removed, as a working copy the save of the project writes
+		if (flowEngine != null && flowEngine.getSourceChanges().removals().contains(path)) {
+			return sources;
+		}
+		sources.add(path);
+		sources.addAll(schemaSources(project, flowName));
+		return sources;
+	}
+
+	/**
+	 * @return what removing the sources of a Flow the project does not have removes, as {@link #check} tells
+	 *         it for an object, or null when the project has the Flow or no FlowScript of it
+	 */
+	public static JSONObject checkOrphanFlow(Project project, String flowName) throws Exception {
+		var sources = orphanFlowSources(project, flowName);
+		if (sources.isEmpty()) {
+			return null;
+		}
+		return new JSONObject().put("folders", new JSONArray()).put("sources", relativePaths(project, sources));
+	}
+
+	/**
+	 * Removes the sources of a Flow the project does not have, as the deletion of a Flow removes its own: a
+	 * working copy removal, which the save of the project writes and an undo gives back.
+	 */
+	public static JSONObject removeOrphanFlow(Project project, String flowName) throws Exception {
+		var response = new JSONObject();
+		var sources = orphanFlowSources(project, flowName);
+		var flowEngine = project == null ? null : project.getFlowEngine();
+		if (sources.isEmpty() || flowEngine == null) {
+			return response.put("done", false).put("error", "The project has no Flow source " + flowName + " without its Flow.");
+		}
+		flowEngine.applySourceChanges(Map.of(), sources);
+		project.hasChanged = true;
+		return response.put("done", true);
+	}
+
+	private static JSONArray relativePaths(Project project, List<String> sources) throws Exception {
+		var root = project.getDirFile().getCanonicalPath();
+		var paths = new JSONArray();
+		for (var path : sources) {
+			paths.put(path.substring(root.length() + 1).replace('\\', '/'));
+		}
+		return paths;
+	}
+
+	private static final java.util.regex.Pattern FLOW_NAME = java.util.regex.Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
 }

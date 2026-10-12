@@ -156,4 +156,39 @@ public class DboRemovalTest {
 			assertEquals("Cannot delete the root screen class!", e.getMessage());
 		}
 	}
+
+	@Test
+	public void theSourcesOfAFlowTheProjectNoLongerHasAreRemovedAtTheSaveOfTheProject() throws Exception {
+		var directory = folder.newFolder();
+		var source = directory.toPath().resolve("_flow/flows/SeedLab.flow.js");
+		var schema = directory.toPath().resolve("_flow/schemas/SeedLab/seed.out.schema.json");
+		var kept = directory.toPath().resolve("_flow/flows/Keep.flow.js");
+		Files.createDirectories(schema.getParent());
+		Files.createDirectories(source.getParent());
+		Files.writeString(source, "left by an older Studio");
+		Files.writeString(schema, "{}");
+		Files.writeString(kept, "saved keep");
+		var project = project(directory);
+		var keep = new Flow();
+		keep.setName("Keep");
+		project.add(keep);
+
+		var check = DboRemoval.checkOrphanFlow(project, "SeedLab");
+		assertEquals(Set.of("_flow/flows/SeedLab.flow.js", "_flow/schemas/SeedLab/seed.out.schema.json"),
+				Set.of(check.getJSONArray("sources").getString(0), check.getJSONArray("sources").getString(1)));
+		assertEquals("the Flow of the project is not an orphan", null, DboRemoval.checkOrphanFlow(project, "Keep"));
+		assertEquals("no FlowScript of this name", null, DboRemoval.checkOrphanFlow(project, "Missing"));
+		assertEquals("a name is not a path", null, DboRemoval.checkOrphanFlow(project, "../flows/SeedLab"));
+
+		assertTrue(DboRemoval.removeOrphanFlow(project, "SeedLab").getBoolean("done"));
+		assertTrue("a working copy removal until the save", Files.isRegularFile(source));
+		assertEquals("its removal is under way", null, DboRemoval.checkOrphanFlow(project, "SeedLab"));
+		assertEquals(Set.of(source.toFile().getCanonicalPath(), schema.toFile().getCanonicalPath()),
+				project.getFlowEngine().getSourceChanges().removals());
+		project.getFlowEngine().saveSources();
+		assertFalse(Files.exists(source));
+		assertFalse(Files.exists(schema));
+		assertEquals("saved keep", Files.readString(kept));
+		assertFalse("nothing left to remove", DboRemoval.removeOrphanFlow(project, "SeedLab").getBoolean("done"));
+	}
 }
