@@ -1,4 +1,5 @@
 import { call } from '#lib/utils/service.js';
+import { serviceErrorMessage } from '#lib/utils/serviceError.js';
 import { loadStepPalette } from './palette';
 import { SequenceFlowBuilder } from './SequenceFlowBuilder';
 
@@ -43,7 +44,7 @@ async function fetchSequenceChildren(id, visited) {
 	/** @type {TreeviewResponse & { isError?: boolean, error?: unknown }} */
 	const response = await call('studio.treeview.Get', { id, flow: true });
 	if (response?.isError) {
-		throw new Error(String(response.error ?? 'Unable to load flow tree'));
+		throw new Error(serviceErrorMessage(response.error, 'Unable to load flow tree'));
 	}
 	const children = normalizeTreeChildren(response?.children);
 	return hydrateChildren(children, visited);

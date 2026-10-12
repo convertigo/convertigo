@@ -7,7 +7,7 @@
 	import { onMount, tick, untrack } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { closedProjects, refreshClosedProjects } from './closedProjects.svelte.js';
+	import { closedProjects, loadTreeRoot, refreshClosedProjects } from './closedProjects.svelte.js';
 	import {
 		areEquivalentDboObjectIds,
 		equivalentDboObjectIds,
@@ -116,7 +116,7 @@
 	let tagsDisplayed = $derived(tagDisplayPreference.current);
 	let tagRoots = $state.raw(/** @type {any[]} */ ([]));
 	let tagsDialog;
-	const { checkChildren, checkNodes } = createProjectTree({
+	const { checkChildren, checkNodes, checkPath } = createProjectTree({
 		equivalentIds: equivalentDboObjectIds,
 		parameters: () => ({ tagsGrouped })
 	});
@@ -409,6 +409,8 @@
 		// the closed projects, which the list of the projects of the engine leaves out
 		void refreshSerial;
 		void Projects.projects?.length;
+		// the projects of the engine first: the list is asked once they are known, not before
+		if (!Projects.init) return;
 		untrack(() => void refreshClosedProjects());
 	});
 	let normalRootChildren = $derived.by(() => {
@@ -461,7 +463,7 @@
 	let tagsRootRequest = 0;
 	async function refreshTagRoots() {
 		const serial = ++tagsRootRequest;
-		const response = await call('studio.treeview.Get', { tagsGrouped });
+		const response = await loadTreeRoot(tagsGrouped);
 		if (serial !== tagsRootRequest || !Array.isArray(response?.children)) return;
 		// Loaded children belong to each displayed occurrence. The normal-tree cache can still be lazy.
 		// This request-local lookup is not reactive component state.
@@ -498,6 +500,7 @@
 		void tagsGrouped;
 		void Projects.projects?.length;
 		void closedProjects.names.length;
+		if (!Projects.init) return;
 		untrack(() => void refreshTagRoots());
 	});
 	function toggleTagDisplay() {
@@ -872,12 +875,42 @@
 	}
 
 	/**
+	 * The branches from the node down to the selection, when it is an item of a FlowEngine, as a block
+	 * of its catalog: its ancestors are the prefixes of its id, which one request opens together.
+	 * @param {any} node
+	 * @returns {string[]}
+	 */
+	function revealPath(node) {
+		const id = String(node?.id ?? '');
+		const target = String(selectedId ?? '');
+		if (
+			tagsGrouped ||
+			!id ||
+			Array.isArray(node?.children) ||
+			!/^[^.:/]+\.FlowEngine\.[^:/]+$/.test(target) ||
+			!target.startsWith(`${id}.`)
+		) {
+			return [];
+		}
+		const segments = target.slice(id.length + 1).split('.');
+		return [
+			id,
+			...segments.slice(0, -1).map((_, index) => `${id}.${segments.slice(0, index + 1).join('.')}`)
+		];
+	}
+
+	/**
 	 * @param {any} node
 	 * @param {boolean=} force
 	 */
 	async function loadChildren(node, force = false) {
 		if (node?.tagGroup) return;
-		await checkChildren(node, force);
+		const path = force ? [] : revealPath(node);
+		if (path.length > 1) {
+			await checkPath(node, path);
+		} else {
+			await checkChildren(node, force);
+		}
 		function updateOccurrences(nodes) {
 			for (const occurrence of nodes) {
 				if (occurrence !== node && occurrence.id === node.id) occurrence.children = node.children;

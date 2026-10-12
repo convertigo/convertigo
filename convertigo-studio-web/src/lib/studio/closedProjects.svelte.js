@@ -1,4 +1,5 @@
 import { call } from '#lib/utils/service.js';
+import { serviceErrorMessage } from '#lib/utils/serviceError.js';
 
 /**
  * The projects closed in the workspace, as the Eclipse Studio closes one: they stay in the tree, without
@@ -14,8 +15,29 @@ export function isProjectClosed(projectName) {
 	return Boolean(projectName) && closedProjects.names.includes(projectName);
 }
 
+/** the requests of the root of the tree just sent, by grouping, which the calls made with them share */
+const rootRequests = new Map();
+
+/**
+ * The projects of the workspace as the root of the tree lists them. The closed projects and the tree
+ * ask for it together, as when the projects are loaded: the calls made in the same turn share one
+ * request, a later call sends its own, which tells the changes made since.
+ * @param {boolean} [tagsGrouped]
+ * @returns {Promise<any>}
+ */
+export function loadTreeRoot(tagsGrouped = false) {
+	const key = Boolean(tagsGrouped);
+	let request = rootRequests.get(key);
+	if (!request) {
+		request = call('studio.treeview.Get', { tagsGrouped: key });
+		rootRequests.set(key, request);
+		setTimeout(() => rootRequests.delete(key));
+	}
+	return request;
+}
+
 export async function refreshClosedProjects() {
-	const result = await call('studio.treeview.Get', {});
+	const result = await loadTreeRoot();
 	// a failed request keeps the projects known closed
 	if (!Array.isArray(result?.children)) {
 		return;
@@ -44,6 +66,6 @@ export async function setProjectsClosed(projectNames, closed) {
 	return {
 		done: result?.done === true,
 		projects: Array.isArray(result?.projects) ? result.projects.map(String) : [],
-		error: result?.error ? String(result.error) : undefined
+		error: result?.error ? serviceErrorMessage(result.error) : undefined
 	};
 }

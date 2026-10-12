@@ -240,6 +240,31 @@ export function createProjectTree(options = {}) {
 		}
 	}
 
+	/**
+	 * Loads the children of a node and of the branches below it toward a descendant with one request,
+	 * instead of one request a level: the ids go from the node down, each a child of the previous one.
+	 * A level the answer does not give, or which is not found, stays loaded on demand.
+	 * @param {any} node
+	 * @param {string[]} ids
+	 */
+	async function checkPath(node, ids) {
+		const updates = await call('studio.treeview.Get', {
+			ids: JSON.stringify(ids),
+			...options.parameters?.()
+		});
+		let current = node;
+		for (const [index, id] of ids.entries()) {
+			if (current?.id !== id || !Array.isArray(updates?.[id])) {
+				break;
+			}
+			applyProjectTreeChildren(current, structuredClone(updates[id]), options);
+			current = current.children?.find((/** @type {any} */ child) => child?.id === ids[index + 1]);
+		}
+		if (!Array.isArray(node.children)) {
+			await checkChildren(node);
+		}
+	}
+
 	function onExpandedChange({ expandedNodes }) {
 		for (let node of expandedNodes) {
 			checkChildren(node);
@@ -254,6 +279,7 @@ export function createProjectTree(options = {}) {
 		addProject,
 		checkChildren,
 		checkNodes,
+		checkPath,
 		onExpandedChange
 	};
 }

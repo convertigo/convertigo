@@ -1,4 +1,5 @@
 import { copyDbo, cutDbo, pasteDbo } from '#lib/utils/service.js';
+import { serviceErrorMessage } from '#lib/utils/serviceError.js';
 
 /**
  * The objects copied or cut in the Studio tree, as the XML the engine gives for them: a copy can be
@@ -163,7 +164,7 @@ export async function pasteStudioClipboard(target, position = 'inside', content 
 		kind,
 		sourceIds: [...ids],
 		target: result?.target ? String(result.target) : target,
-		error: result?.error ? String(result.error) : undefined
+		error: result?.error ? serviceErrorMessage(result.error) : undefined
 	};
 }
 

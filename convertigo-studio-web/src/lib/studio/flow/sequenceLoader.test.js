@@ -78,6 +78,24 @@ describe('loadSequenceFlow', () => {
 			})
 		);
 	});
+
+	// after the test above, whose palette the loader keeps
+	it('tells the message of the error of the engine, not [object Object]', async () => {
+		vi.mocked(call).mockImplementation(async (service) =>
+			service === 'studio.palette.Get'
+				? { categories: [] }
+				: {
+						isError: true,
+						error: {
+							message: 'JSONObject["readOnly"] is not a Boolean.',
+							exception: 'org.codehaus.jettison.json.JSONException'
+						}
+					}
+		);
+		await expect(loadSequenceFlow('Project', 'Sequence')).rejects.toThrow(
+			'JSONObject["readOnly"] is not a Boolean.'
+		);
+	});
 });
 
 /**
