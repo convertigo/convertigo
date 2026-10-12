@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,7 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -50,19 +48,13 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 
-import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
-import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
-import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.MultipleDeletionDialog;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
@@ -79,9 +71,9 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
-import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.admin.services.studio.dbo.DboRemoval;
 import com.twinsoft.convertigo.engine.enums.DeleteProjectOption;
 
 public class DatabaseObjectDeleteAction extends MyAbstractAction {
@@ -356,77 +348,6 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 	}
 
 	private void delete(DatabaseObject databaseObject, boolean deleteProjectOnDisk) throws EngineException, CoreException {
-
-		if (databaseObject instanceof Connector) {
-			String dirPath, projectName;
-			File dir;
-
-			projectName = databaseObject.getParentName();
-
-			MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-			messageBox.setText("Also delete linked resources?");
-
-			// Delete soap templates for this connector
-			dirPath = Engine.projectDir(projectName) + "/soap-templates/" + databaseObject.getName();
-			dir = new File(dirPath);
-			if (dir.exists()) {
-				messageBox.setMessage("Some resources are linked to the deleted connector.\n\n" +
-						"Do you also want to delete folder:\n\n\""+dirPath+"\"");
-				if (messageBox.open() == SWT.YES) {
-					try {
-						DatabaseObjectsManager.deleteDir(dir);
-					} catch (IOException e) {
-						ConvertigoPlugin.logDebug("Unable to delete directory \""+ dirPath+"\"!");
-					}
-				}
-			}
-
-			// Delete directory corresponding to connector under Traces directory
-			dirPath = Engine.projectDir(projectName) + "/Traces/" + databaseObject.getName();
-			dir = new File(dirPath);
-			if (dir.exists()) {
-				messageBox.setMessage("Some resources are linked to the deleted connector.\n\n" +
-						"Do you also want to delete folder:\n\n\""+dirPath+"\"");
-
-				if (messageBox.open() == SWT.YES) {
-					try {
-						DatabaseObjectsManager.deleteDir(dir);
-					} catch (IOException e) {
-						ConvertigoPlugin.logDebug("Unable to delete directory \""+ dirPath+"\"!");
-					}
-				}
-			}
-
-		}
-		else if (databaseObject instanceof ScreenClass) {
-			if ((databaseObject.getParent()) instanceof Project) {
-				throw new EngineException("Cannot delete the root screen class!");
-			}
-		}
-		else if (databaseObject instanceof Step) {
-			if ((databaseObject instanceof ThenStep) ||
-					(databaseObject instanceof ElseStep)) {
-				throw new EngineException("Cannot delete this step!");
-			}
-		}
-		else if (databaseObject instanceof MobilePlatform) {
-			MobilePlatform mobilePlatform = (MobilePlatform) databaseObject;
-			File resourceFolder = mobilePlatform.getResourceFolder();
-			if (resourceFolder.exists()) {
-				MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-				messageBox.setMessage("Do you want to delete the whole resource folder \"" + mobilePlatform.getRelativeResourcePath() + "\"?");
-				messageBox.setText("Delete the \""+resourceFolder.getName()+"\" folder?");
-				if (messageBox.open() == SWT.YES) {
-					FileUtils.deleteQuietly(resourceFolder);
-				}
-			}
-		}
-		else if (databaseObject instanceof PageComponent) {
-			if (((PageComponent) databaseObject).isRoot) {
-				throw new EngineException("Cannot delete the root page!");
-			}
-		}
-
 		String dboQName = databaseObject.getQName();
 
 		if (databaseObject instanceof Project) {
@@ -439,40 +360,66 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			}
 			ConvertigoPlugin.getDefault().deleteProjectPluginResource(deleteProjectOnDisk, databaseObject.getName());
 		}
-		else {
-			if (databaseObject instanceof FlowVirtualObject && Display.getCurrent() != null) {
-				try {
-					new org.eclipse.jface.dialogs.ProgressMonitorDialog(getParentShell()).run(true, false, monitor -> {
-						monitor.beginTask("Deleting " + databaseObject.getName(), IProgressMonitor.UNKNOWN);
-						try {
-							databaseObject.delete();
-						} catch (Exception e) {
-							throw new java.lang.reflect.InvocationTargetException(e);
-						} finally {
-							monitor.done();
-						}
-					});
-				} catch (java.lang.reflect.InvocationTargetException e) {
-					throw new EngineException("Unable to delete projected object.", e.getCause());
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					throw new EngineException("Deletion interrupted.", e);
-				}
-			} else {
-				databaseObject.delete();
+		else if (databaseObject instanceof FlowVirtualObject && Display.getCurrent() != null) {
+			try {
+				new org.eclipse.jface.dialogs.ProgressMonitorDialog(getParentShell()).run(true, false, monitor -> {
+					monitor.beginTask("Deleting " + databaseObject.getName(), IProgressMonitor.UNKNOWN);
+					try {
+						databaseObject.delete();
+					} catch (Exception e) {
+						throw new java.lang.reflect.InvocationTargetException(e);
+					} finally {
+						monitor.done();
+					}
+				});
+			} catch (java.lang.reflect.InvocationTargetException e) {
+				throw new EngineException("Unable to delete projected object.", e.getCause());
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new EngineException("Deletion interrupted.", e);
 			}
 		}
-
-		if (databaseObject instanceof CouchDbConnector) {
-			CouchDbConnector couchDbConnector = (CouchDbConnector)databaseObject;
-			String db = couchDbConnector.getDatabaseName();
-			if (!db.isEmpty()) {
-				MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-				messageBox.setMessage("Do you want to delete the \""+db+"\" database from the CouchDb server?");
-				messageBox.setText("Delete the database?");
-				if (messageBox.open() == SWT.YES) {
-					couchDbConnector.getCouchClient().deleteDatabase(db);
+		else if (databaseObject instanceof FlowVirtualObject) {
+			databaseObject.delete();
+		}
+		else {
+			// the deletion the web Studio and the Flow MCP share: its refusals, the folders and the database
+			// it may remove too, the sources of a Flow, which the save of the project removes
+			try {
+				var check = DboRemoval.check(databaseObject);
+				var folders = new ArrayList<String>();
+				var linkedFolders = check.optJSONArray("folders");
+				for (int i = 0; linkedFolders != null && i < linkedFolders.length(); i++) {
+					var folder = linkedFolders.getString(i);
+					MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+					if (databaseObject instanceof MobilePlatform mobilePlatform) {
+						messageBox.setMessage("Do you want to delete the whole resource folder \"" + mobilePlatform.getRelativeResourcePath() + "\"?");
+						messageBox.setText("Delete the \"" + new File(folder).getName() + "\" folder?");
+					} else {
+						messageBox.setMessage("Some resources are linked to the deleted connector.\n\n" +
+								"Do you also want to delete folder:\n\n\"" + folder + "\"");
+						messageBox.setText("Also delete linked resources?");
+					}
+					if (messageBox.open() == SWT.YES) {
+						folders.add(folder);
+					}
 				}
+				var dropDatabase = false;
+				var database = check.optString("database", "");
+				if (!database.isEmpty()) {
+					MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+					messageBox.setMessage("Do you want to delete the \"" + database + "\" database from the CouchDb server?");
+					messageBox.setText("Delete the database?");
+					dropDatabase = messageBox.open() == SWT.YES;
+				}
+				var removed = DboRemoval.remove(databaseObject, folders, dropDatabase);
+				if (!removed.optBoolean("done", false)) {
+					throw new EngineException(removed.optString("error", "Unable to delete the object \"" + dboQName + "\"."));
+				}
+			} catch (EngineException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new EngineException(e.getMessage(), e);
 			}
 		}
 

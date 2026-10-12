@@ -142,5 +142,18 @@ public class DboRemovalTest {
 		} catch (ServiceException e) {
 			assertEquals("Cannot delete this step!", e.getMessage());
 		}
+		var project = project(folder.newFolder());
+		var root = new com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass() {
+			@Override
+			public com.twinsoft.convertigo.beans.core.DatabaseObject getParent() {
+				return project;
+			}
+		};
+		try {
+			DboRemoval.check(root);
+			fail("the root screen class is not deleted");
+		} catch (ServiceException e) {
+			assertEquals("Cannot delete the root screen class!", e.getMessage());
+		}
 	}
 }

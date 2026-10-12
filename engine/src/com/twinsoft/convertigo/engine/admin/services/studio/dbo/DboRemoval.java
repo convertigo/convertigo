@@ -94,7 +94,8 @@ public final class DboRemoval {
 		var parent = dbo.getParent();
 		var linked = linkedFolders(dbo);
 		var sources = flowSources(dbo);
-		parent.remove(dbo);
+		// as the Eclipse Studio deletes it: the tags of the object are checked before
+		dbo.delete();
 		if (!sources.isEmpty() && flowEngine != null) {
 			// a working copy removal: the save of the project deletes the files, an undo gives them back
 			flowEngine.applySourceChanges(Map.of(), sources);
@@ -117,6 +118,9 @@ public final class DboRemoval {
 	 * can be deleted: a project or a connector may have none.
 	 */
 	static void refuse(DatabaseObject dbo) throws ServiceException {
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.ScreenClass && dbo.getParent() instanceof Project) {
+			throw new ServiceException("Cannot delete the root screen class!");
+		}
 		if (dbo instanceof com.twinsoft.convertigo.beans.steps.ThenStep || dbo instanceof com.twinsoft.convertigo.beans.steps.ElseStep) {
 			throw new ServiceException("Cannot delete this step!");
 		}
