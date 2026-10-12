@@ -220,7 +220,8 @@
 		}
 	}
 
-	async function itemsUpdated({ detail }) {
+	/** @param {{ start: number, end: number }} detail */
+	async function itemsUpdated(detail) {
 		showedLines = detail;
 		if (detail.end >= logs.length - 1 && !Logs.calling) {
 			await list();
@@ -228,10 +229,11 @@
 		await doAutoScroll();
 	}
 
-	async function afterScroll({ detail }) {
+	/** @param {{ event: Event, offset: number }} detail */
+	async function afterScroll(detail) {
 		const offset = detail?.offset;
 		const isUserScroll = detail?.event?.isTrusted;
-		const target = detail?.event?.target;
+		const target = /** @type {HTMLElement | null} */ (detail?.event?.target);
 		if (typeof offset !== 'number') return;
 		const tolerance = Math.max(2, Math.round(lineHeight * 0.6));
 		if (autoScroll && isUserScroll && offset < lastScrollOffset - tolerance) {
@@ -1675,11 +1677,11 @@
 					{itemSize}
 					scrollToAlignment={autoScroll ? 'end' : 'center'}
 					scrollToBehaviour="instant"
-					on:itemsUpdated={itemsUpdated}
-					on:afterScroll={afterScroll}
+					onItemsUpdated={itemsUpdated}
+					onAfterScroll={afterScroll}
 					bind:this={virtualList}
 				>
-					<svelte:fragment slot="item" let:style let:index>
+					{#snippet item({ style, index })}
 						{@const log = logs[index]}
 						<div {style}>
 							<div
@@ -1736,7 +1738,7 @@
 								</div>
 							</div>
 						</div>
-					</svelte:fragment>
+					{/snippet}
 				</VirtualList>
 			</div>
 		</MaxRectangle>

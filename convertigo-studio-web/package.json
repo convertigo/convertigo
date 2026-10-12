@@ -22,12 +22,6 @@
 		"check:admin": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.admin.json",
 		"lint:admin": "eslint \"src/lib/admin/**/*.{js,svelte,ts}\" \"src/lib/common/**/*.{js,svelte,ts}\" \"src/lib/dashboard/**/*.{js,svelte,ts}\" \"src/lib/utils/**/*.{js,svelte,ts}\" \"src/routes/(app)/admin/**/*.{js,svelte,ts}\" \"src/routes/(app)/dashboard/**/*.{js,svelte,ts}\" \"src/routes/(root)/login/**/*.{js,svelte,ts}\" \"src/routes/+layout.svelte\" \"src/routes/(app)/+layout.svelte\" --ignore-pattern \"src/routes/(app)/admin/certificates/**\" --ignore-pattern \"src/routes/(app)/admin/projects/**\" --ignore-pattern \"src/routes/(app)/admin/roles/**\" --ignore-pattern \"src/routes/(app)/admin/symbols/**\""
 	},
-	"overrides": {
-		"svelte-tiny-virtual-list": {
-			"@types/svelte": "^5.0.0",
-			"svelte": "^5.57.2"
-		}
-	},
 	"devDependencies": {
 		"@eslint/js": "^9.39.2",
 		"@fontsource-variable/ibm-plex-sans": "^5.3.0",
@@ -77,7 +71,7 @@
 		"marked": "^18.1.0",
 		"monaco-editor": "^0.57.0",
 		"svelte-persisted-state": "^1.4.1",
-		"svelte-tiny-virtual-list": "^3.0.1"
+		"svelte-tiny-virtual-list": "^4.0.0"
 	},
 	"imports": {
 		"#lib/*": "./src/lib/*"
