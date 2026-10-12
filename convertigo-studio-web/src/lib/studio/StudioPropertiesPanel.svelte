@@ -258,7 +258,9 @@
 	}
 	let monacoTitle = $derived(monacoRow?.displayName ?? monacoRow?.name ?? 'Editor');
 	let monacoTheme = $derived(LightSvelte.light ? '' : 'vs-dark');
-	let displayedIdentity = $derived(identityItem ?? propertyIdentity(categories));
+	let displayedIdentity = $derived(
+		identityKind(identityItem, id === selectedId ? properties : []) ?? propertyIdentity(categories)
+	);
 	/** the other objects selected with the shown one, which get its changes when they are of its type */
 	let otherSelected = $derived(
 		treeSelectionOf(selectedId).filter((other) => other !== selectedId && /[.:]/.test(other))
@@ -271,6 +273,26 @@
 			shownOthers = otherSelected;
 		}
 	});
+
+	/**
+	 * The identity the page gives, with the type of the object its properties tell when the page has
+	 * none, as when its documentation is not shown: "Flow", "Request single-valued variable".
+	 * @param {any} identity
+	 * @param {any[]} rows the properties of the object of the identity
+	 * @returns {any}
+	 */
+	function identityKind(identity, rows) {
+		if (!identity || identity.instanceName) {
+			return identity;
+		}
+		const value = (/** @type {string} */ name) =>
+			String((rows ?? []).find((row) => row?.name === name)?.value ?? '').trim();
+		const flowType = value('virtualType');
+		const kind = flowType ? flowTypeDisplayName(flowType) : value('P_Type');
+		return kind && kind !== identity.name && kind !== 'Flow virtual object'
+			? { ...identity, instanceName: kind }
+			: identity;
+	}
 
 	function propertyIdentity(propertyCategories) {
 		const rows = (propertyCategories ?? []).flatMap((category) => category?.properties ?? []);
@@ -935,8 +957,14 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="studio-properties layout-y-stretch" onkeydown={handleSaveKey}>
 	<div class="studio-properties__actions studio-panel-toolbar">
+		{#if displayedIdentity && selectedId}
+			<!-- what the properties edit, beside the buttons that apply them -->
+			<div class="studio-properties__identity">
+				<StudioObjectIdentity item={displayedIdentity} compact inline />
+			</div>
+		{/if}
 		<SaveCancelButtons
-			class="w-full"
+			class={displayedIdentity && selectedId ? 'studio-properties__buttons' : 'w-full'}
 			saveLabel="Apply"
 			cancelLabel="Cancel"
 			onSave={saveChanges}
@@ -946,7 +974,6 @@
 			disabled={saving || !selectedId || properties.length == 0}
 		/>
 	</div>
-	<StudioObjectIdentity item={displayedIdentity} compact />
 	{#if otherSelected.length}
 		<p class="studio-properties__multi" role="status">
 			The changes apply as well to the {otherSelected.length} other selected object{otherSelected.length >
@@ -1623,6 +1650,21 @@
 	.studio-properties {
 		height: 100%;
 		min-height: 0;
+	}
+
+	.studio-properties__actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.studio-properties__identity {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.studio-properties__actions :global(.studio-properties__buttons) {
+		flex: 0 0 auto;
 	}
 
 	/* the conflicts of the object in a merge stopped on them */

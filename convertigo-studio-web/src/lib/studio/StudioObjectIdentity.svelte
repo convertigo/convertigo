@@ -5,15 +5,16 @@
 
 	/**
 	 * @type {{
-	 *  item?: { name?: string, classname?: string, id?: string, instanceName?: string, icon?: string } | null,
-	 *  compact?: boolean
+	 *  item?: { name?: string, classname?: string, id?: string, instanceName?: string, icon?: string, iconUrl?: string, iconify?: string } | null,
+	 *  compact?: boolean,
+	 *  inline?: boolean
 	 * }}
 	 */
-	let { item = null, compact = false } = $props();
+	let { item = null, compact = false, inline = false } = $props();
 
 	let title = $derived(item?.name || item?.classname || 'Component');
 	let subtitle = $derived(item?.instanceName || item?.classname || item?.id || '');
-	let iconUrl = $derived(iconSource(item?.icon));
+	let iconUrl = $derived(item?.iconUrl || iconSource(item?.icon));
 
 	function iconSource(icon) {
 		if (!icon) return '';
@@ -25,6 +26,8 @@
 	<header
 		class="studio-object-identity layout-x-low"
 		class:studio-object-identity--compact={compact}
+		class:studio-object-identity--inline={inline}
+		title={[title, subtitle].filter(Boolean).join(' · ')}
 	>
 		<span class="studio-object-identity__icon studio-icon-tile">
 			{#if iconUrl}
@@ -34,6 +37,8 @@
 					src={iconUrl}
 					alt=""
 				/>
+			{:else if item.iconify}
+				<Ico icon={item.iconify} size={compact ? 4 : 5} />
 			{:else}
 				<Ico icon="mdi:cube-outline" size={compact ? 4 : 5} />
 			{/if}
@@ -57,6 +62,13 @@
 
 	.studio-object-identity--compact {
 		padding: 0.52rem 0.65rem;
+	}
+
+	/* in a toolbar, beside its buttons */
+	.studio-object-identity--inline {
+		border-bottom: 0;
+		background: transparent;
+		padding: 0;
 	}
 
 	.studio-object-identity__icon {

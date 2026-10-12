@@ -24,6 +24,7 @@
 	/**
 	 * @type {{
 	 * 	paletteItem?: PaletteItem | null,
+	 * 	identityItem?: { name?: string, instanceName?: string, classname?: string, iconUrl?: string, iconify?: string } | null,
 	 * 	loading?: boolean,
 	 * 	error?: string,
 	 * 	emptyMessage?: string
@@ -31,6 +32,7 @@
 	 */
 	let {
 		paletteItem = null,
+		identityItem = null,
 		loading = false,
 		error = '',
 		emptyMessage = 'Select a palette component to display its documentation.'
@@ -206,7 +208,7 @@
 
 <section class="studio-doc">
 	{#if paletteItem}
-		<StudioObjectIdentity item={paletteItem} />
+		<StudioObjectIdentity item={identityItem ?? paletteItem} />
 
 		{#if blocks.length}
 			<article class="studio-doc__content">

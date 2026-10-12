@@ -10,7 +10,9 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.source;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Files;
 
@@ -79,5 +81,47 @@ public class GetTest {
 		assertThrows(ServiceException.class, () -> Get.sourceDocument(object));
 		assertEquals("saved source", Files.readString(source));
 		Flow.projectUnloaded(project);
+	}
+
+	@Test
+	public void theSourceOfAFlowIsItsFlowScriptWhoseWorkingCopyWins() throws Exception {
+		var directory = temporaryFolder.getRoot();
+		var file = directory.toPath().resolve("_flow/flows/Seed.flow.js");
+		Files.createDirectories(file.getParent());
+		Files.writeString(file, "saved flow");
+		var project = new Project() { @Override public java.io.File getDirFile() { return directory; } };
+		var flow = new Flow() { @Override public Project getProject() { return project; } };
+		flow.setName("Seed");
+		assertTrue(Get.hasSourceDocument(flow));
+		var document = Get.sourceDocument(flow);
+		assertEquals("_flow/flows/Seed.flow.js", document.relativePath());
+		assertEquals("saved flow", document.content());
+		assertTrue(document.writable());
+		flow.setFlowSource("edited flow");
+		assertEquals("the working copy until the project Save", "edited flow", Get.sourceDocument(flow).content());
+		assertEquals("saved flow", Files.readString(file));
+		Flow.projectUnloaded(project);
+	}
+
+	@Test
+	public void aBlockAndItsCodeImplementationHaveASourceButNotTheItemsOfAFlow() throws Exception {
+		var source = temporaryFolder.getRoot().toPath().resolve("attachments.block.js");
+		Files.writeString(source, "const _meta = {};\n");
+		var info = new JSONObject().put("sourcePath", source.toString()).toString();
+		var block = new FlowVirtualObject();
+		block.setVirtualKind("block");
+		block.setVirtualInfo(info);
+		var implementation = new FlowVirtualObject();
+		implementation.setVirtualKind("blockImplementation");
+		implementation.setVirtualType("rhino");
+		implementation.setVirtualInfo(info);
+		var item = new FlowVirtualObject();
+		item.setVirtualKind("node");
+		item.setVirtualInfo(info);
+
+		assertTrue(Get.hasSourceDocument(block));
+		assertTrue(Get.hasSourceDocument(implementation));
+		assertFalse(Get.hasSourceDocument(item));
+		assertFalse(Get.hasSourceDocument(new Project()));
 	}
 }

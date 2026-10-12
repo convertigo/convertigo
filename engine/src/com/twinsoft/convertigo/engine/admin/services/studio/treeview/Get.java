@@ -225,6 +225,10 @@ public class Get extends JSonService {
 		if (defaultOf != null) {
 			obj.put("default", defaultOf);
 		}
+		// the code of a Flow or of a block is its source, which the code editor shows when it is selected
+		if (com.twinsoft.convertigo.engine.admin.services.studio.source.Get.hasSourceDocument(dbo)) {
+			obj.put("source", true);
+		}
 		var comment = Comment.firstLine(dbo.getComment());
 		if (!comment.isBlank()) {
 			obj.put("comment", comment);

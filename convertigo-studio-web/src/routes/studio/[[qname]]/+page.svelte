@@ -15,6 +15,7 @@
 	import { isProjectClosed, setProjectsClosed } from '#lib/studio/closedProjects.svelte.js';
 	import { implicitTransactionId } from '#lib/studio/defaultTransaction.js';
 	import {
+		areEquivalentDboObjectIds,
 		inferMovedObjectId,
 		parentObjectId,
 		performDboDrop,
@@ -262,6 +263,8 @@
 
 	let profile = $state('backend');
 	let selectedId = $state(initialSelectedId);
+	/** @type {{ id: string, label: string, icon?: string, iconify?: string, classname?: string, source?: boolean }[]} the nodes from the project to the selection, as the tree names them */
+	let selectedTrail = $state([]);
 	/** the side view shown last, which the activity bar shows again */
 	let activeSidePanel = $state('properties');
 	/** @type {any} the dock, which lays out the views */
@@ -580,7 +583,9 @@
 	let selectedDocLoading = $derived(!selectedPaletteItem && selectedTreeDocLoading);
 	let selectedDocError = $derived(!selectedPaletteItem ? selectedTreeDocError : '');
 	let codeEditorActive = $derived(Boolean(dockVisible.code));
-	let breadcrumbs = $derived(buildBreadcrumb(selectedId));
+	let breadcrumbs = $derived(trailBreadcrumb(selectedTrail, selectedId) ?? buildBreadcrumb(selectedId));
+	/** what the properties edit and the documentation describes: the selected object, by its name and its kind */
+	let selectedObjectIdentity = $derived(objectIdentity(selectedTrail, selectedId, selectedTreeDocItem));
 
 	$effect(() => {
 		const id = selectedId;
@@ -1021,6 +1026,71 @@
 			connectorName,
 			transactionName
 		});
+	}
+
+	/**
+	 * The breadcrumb of the selection with the names the tree shows, as "Catalog > Blocks > baserow > get"
+	 * instead of the parts of its id; null until the tree has loaded the selected node.
+	 * @param {{ id: string, label: string }[]} trail
+	 * @param {string} id
+	 * @returns {{ id: string, label: string, title: string }[] | null}
+	 */
+	function trailBreadcrumb(trail, id) {
+		const last = trail?.at(-1);
+		if (!last || !id || !areEquivalentDboObjectIds(last.id, id)) {
+			return null;
+		}
+		return trail.map((node) => ({ id: node.id, label: node.label, title: node.label }));
+	}
+
+	/** the kinds of the Flow items of a catalog, by the prefix of their id */
+	const CATALOG_KINDS = { block: 'Block', namespace: 'Block namespace', provider: 'Block library' };
+
+	/**
+	 * The selected object as the tree names it, a block of a catalog by its name in a Flow
+	 * ("baserow.get"), and what it is: the block an item of a Flow uses, its kind, or the block of a
+	 * catalog it is part of, as its implementation.
+	 * @param {{ id: string, label: string, icon?: string, iconify?: string, classname?: string }[]} trail
+	 * @param {string} id
+	 * @param {any} docItem the documentation of the selection
+	 * @returns {any}
+	 */
+	function objectIdentity(trail, id, docItem) {
+		const node = trail?.at(-1);
+		if (!node || !id || !areEquivalentDboObjectIds(node.id, id)) {
+			return docItem;
+		}
+		const catalogKind = (index) =>
+			String(trail[index]?.id ?? '')
+				.split('.')
+				.at(-1)
+				?.match(/^(block|namespace|provider)_/)?.[1] ?? '';
+		// a block of a catalog is named as a Flow calls it, "namespace.block"
+		const blockName = (index) =>
+			catalogKind(index) === 'block' && catalogKind(index - 1) === 'namespace'
+				? `${trail[index - 1].label}.${trail[index].label}`
+				: '';
+		const last = trail.length - 1;
+		const name = blockName(last) || node.label;
+		const ownerIndex = trail.findLastIndex((_, index) => index < last && blockName(index));
+		const classname = String(node.classname ?? docItem?.classname ?? '');
+		const className = classname.split('.').at(-1) ?? '';
+		const virtual = className === 'FlowVirtualObject';
+		const kind =
+			(docItem?.isBlockDefinition && docItem?.name) ||
+			CATALOG_KINDS[catalogKind(last)] ||
+			flowTypeDisplayName(docItem?.flowType) ||
+			(ownerIndex >= 0 ? blockName(ownerIndex) : '') ||
+			(className && !virtual ? flowTypeDisplayName(className) : '') ||
+			(docItem?.name !== 'Flow virtual object' ? String(docItem?.name ?? '') : '');
+		return {
+			id,
+			name,
+			instanceName: kind && kind !== name ? kind : '',
+			classname: virtual ? '' : classname,
+			iconUrl: typeof node.icon === 'string' && node.icon.includes('?') ? `${getUrl()}${node.icon}` : '',
+			iconify: node.iconify ?? ''
+		};
 	}
 
 	/**
@@ -1749,6 +1819,26 @@
 				setFrontendResult('code');
 			} else {
 				setWorkPanel('code');
+			}
+		});
+	});
+
+	// the code of a Flow or of a block is its source: the code editor shows it once the object is
+	// selected, where a property edited as code may replace it until another object is selected
+	let sourceSelectionId = '';
+	$effect(() => {
+		const id = selectedId;
+		const node = selectedTrail.at(-1);
+		if (!id || !areEquivalentDboObjectIds(node?.id, id) || id === sourceSelectionId) {
+			return;
+		}
+		sourceSelectionId = id;
+		if (!node?.source || profile === 'vibe') {
+			return;
+		}
+		untrack(() => {
+			if (editorTarget?.id !== id || !editorTarget?.sourceDocument) {
+				editorTarget = { id, sourceDocument: true, serial: Date.now() };
 			}
 		});
 	});
@@ -3525,6 +3615,7 @@
 		}}
 		{hideLibs}
 		bind:selectedId
+		bind:selectedTrail
 		bind:renameTargetId
 		refreshSerial={treeRefreshSerial}
 		refreshMutation={lastStudioMutation}
@@ -3663,6 +3754,7 @@
 {#snippet docPane()}
 	<StudioDocPanel
 		paletteItem={selectedDocItem}
+		identityItem={selectedPaletteItem ? null : selectedObjectIdentity}
 		loading={selectedDocLoading}
 		error={selectedDocError}
 		emptyMessage="No documentation available for the current selection."
@@ -3692,7 +3784,7 @@
 		onOpenPropertyPicker={openPropertyPicker}
 		{pickerTarget}
 		{pickerRequest}
-		identityItem={selectedTreeDocItem}
+		identityItem={selectedObjectIdentity}
 		{frontendThemeContext}
 		onPickerApply={refreshAfterPickerApply}
 		onSaveProject={saveSelectedProject}

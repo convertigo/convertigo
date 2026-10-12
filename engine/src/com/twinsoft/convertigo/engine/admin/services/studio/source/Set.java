@@ -29,7 +29,8 @@ import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
  * read:
  * <ul>
  * <li>a text file of a project, whose id is "Project/relative/path";</li>
- * <li>an edited Flow source, stored as a working copy of its FlowEngine: the project Save writes it.</li>
+ * <li>an edited Flow source, stored as a working copy of its FlowEngine: the project Save writes it;</li>
+ * <li>the FlowScript of a Flow, stored as the working copy of the Flow: the project Save writes it.</li>
  * </ul>
  * Parameters: id, content, and revision, the one studio.source.Get gave when the source was read.
  */
@@ -91,6 +92,17 @@ public class Set extends JSonService {
 		}
 		if (revision != null && !revision.isBlank() && !revision.equals(source.revision())) {
 			throw new ServiceException("The source changed since it was opened; reopen it before saving.");
+		}
+		if (source.flow() != null) {
+			// the FlowScript of a Flow: its working copy, which its inputs and accessibility follow
+			if (!content.equals(source.content())) {
+				source.flow().setFlowSource(content);
+				FlowEngineBridge.invalidateDataCaches();
+			}
+			response.put("id", id);
+			response.put("revision", Get.sha256(source.flow().getFlowSource()));
+			response.put("dirty", source.flow().isFlowSourceDirty());
+			return;
 		}
 		var path = source.file().getPath();
 		if (!content.equals(source.content())) {

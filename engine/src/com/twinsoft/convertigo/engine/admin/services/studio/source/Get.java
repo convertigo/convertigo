@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -27,6 +28,7 @@ import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
+import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Get extends JSonService {
@@ -89,6 +91,18 @@ public class Get extends JSonService {
 	}
 
 	static SourceDocument sourceDocument(DatabaseObject dbo) throws Exception {
+		if (dbo instanceof Flow flow) {
+			// the FlowScript of a Flow, whose working copy the Flow keeps until the project Save
+			var file = flow.getFlowSourceFile();
+			if (file == null) {
+				throw new ServiceException("The selected Flow has no source file.");
+			}
+			var content = flow.getFlowSource();
+			var root = flow.getProject().getDirFile().getCanonicalPath();
+			var path = file.getCanonicalPath();
+			var relativePath = path.startsWith(root + File.separator) ? path.substring(root.length() + 1).replace('\\', '/') : file.getName();
+			return new SourceDocument(file, relativePath, content, sha256(content), null, flow);
+		}
 		if (!(dbo instanceof FlowVirtualObject flowObject)) {
 			throw new ServiceException("The selected object has no Flow source document.");
 		}
@@ -109,7 +123,24 @@ public class Get extends JSonService {
 		if (relativePath.isBlank()) {
 			relativePath = file.getName();
 		}
-		return new SourceDocument(file, relativePath, content, sha256(content), flowEngine);
+		return new SourceDocument(file, relativePath, content, sha256(content), flowEngine, null);
+	}
+
+	/**
+	 * @return whether the code of the object is a source document, which the Studio opens in its code editor
+	 *  instead of a property: the FlowScript of a Flow, the file of a block or of its implementation
+	 */
+	public static boolean hasSourceDocument(DatabaseObject dbo) {
+		if (dbo instanceof Flow flow) {
+			return flow.getFlowSourceFile() != null;
+		}
+		if (!(dbo instanceof FlowVirtualObject flowObject)) {
+			return false;
+		}
+		var kind = flowObject.getVirtualKind();
+		var sourcePath = flowObject.getSourcePath();
+		return ("block".equals(kind) || "frontendBlock".equals(kind) || FlowStudioSupport.isCodeSourceObject(flowObject))
+				&& sourcePath != null && !sourcePath.isBlank() && isSupportedSource(new File(sourcePath));
 	}
 
 	static FlowEngine owningFlowEngine(FlowVirtualObject flowObject) {
@@ -143,9 +174,13 @@ public class Get extends JSonService {
 				.digest(content.getBytes(StandardCharsets.UTF_8)));
 	}
 
-	static record SourceDocument(File file, String relativePath, String content, String revision, FlowEngine flowEngine) {
+	/**
+	 * @param flowEngine the FlowEngine keeping the working copy of a Flow item source
+	 * @param flow the Flow whose FlowScript it is, which keeps its own working copy
+	 */
+	static record SourceDocument(File file, String relativePath, String content, String revision, FlowEngine flowEngine, Flow flow) {
 		boolean writable() {
-			return flowEngine != null;
+			return flowEngine != null || flow != null;
 		}
 	}
 }

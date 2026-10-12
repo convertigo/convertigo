@@ -52,6 +52,7 @@
 	/**
 	 * @type {{
 	 *  selectedId?: string,
+	 *  selectedTrail?: { id: string, label: string, icon?: string, iconify?: string, classname?: string, source?: boolean }[],
 	 *  hideLibs?: boolean,
 	 *  renameTargetId?: string,
 	 *  autoSelectFirst?: boolean,
@@ -81,6 +82,7 @@
 	 */
 	let {
 		selectedId = $bindable(''),
+		selectedTrail = $bindable([]),
 		hideLibs = false,
 		renameTargetId = $bindable(''),
 		autoSelectFirst = true,
@@ -1067,6 +1069,52 @@
 	function treeContainerDepth(id) {
 		return String(id).split(/[.:/]/).length;
 	}
+
+	/**
+	 * The nodes from the project to the one of the id, as the tree names them; the tag groups, which
+	 * are not objects, are left out.
+	 * @param {string} id
+	 * @param {any[]} nodes
+	 * @param {{ id: string, label: string, icon?: string, iconify?: string, classname?: string, source?: boolean }[]} trail
+	 * @returns {{ id: string, label: string, icon?: string, iconify?: string, classname?: string, source?: boolean }[] | null}
+	 */
+	function trailTo(id, nodes, trail = []) {
+		for (const node of nodes ?? []) {
+			if (!node?.id) {
+				continue;
+			}
+			const next = node.tagGroup
+				? trail
+				: [
+						...trail,
+						{
+							id: node.id,
+							label: String(node.label ?? node.name ?? node.id),
+							icon: node.icon,
+							iconify: node.iconify,
+							classname: node.classname,
+							source: node.source === true
+						}
+					];
+			if (!node.tagGroup && areEquivalentDboObjectIds(node.id, id)) {
+				return next;
+			}
+			if (Array.isArray(node.children)) {
+				const found = trailTo(id, node.children, next);
+				if (found) {
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
+	$effect(() => {
+		// the names of the selection, which a breadcrumb and the identity of the edited object show
+		void dataSerial;
+		const id = selectedId;
+		selectedTrail = (id && trailTo(id, rootChildren)) || [];
+	});
 
 	/**
 	 * @param {string} id
