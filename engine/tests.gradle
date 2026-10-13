@@ -40,6 +40,19 @@ tasks.named('check') {
 	dependsOn 'workspaceLoadingTest'
 	dependsOn 'fullSyncReplicationPolicyTest'
 	dependsOn 'stepSourceTest'
+	dependsOn 'designDocumentReduceTest'
+}
+
+tasks.register('designDocumentReduceTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the FullSync count reduce template and legacy view detection.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.couchdb.DesignDocumentReduceTest'
+	if (project.hasProperty('couchDbReduceTestUrl')) {
+		systemProperty 'couchDbReduceTestUrl', project.property('couchDbReduceTestUrl')
+	}
 }
 
 tasks.register('stepSourceTest', JavaExec) {

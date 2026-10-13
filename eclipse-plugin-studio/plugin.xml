@@ -3147,6 +3147,13 @@
 		<objectContribution
 			id="convertigo.objectDesignDocumentView"
 			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject">
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.FixLegacyDesignDocumentReduceAction"
+				enablesFor="1"
+				id="convertigo.action.fixLegacyReduce"
+				label="Fix legacy count reduce"
+				menubarPath="main">
+			</action>
 			<menu
 				id="convertigo.menu.document.view.new"
 				label="New"

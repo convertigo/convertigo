@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.util.Iterator;
+
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -36,6 +38,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumen
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.ViewObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class DesignDocumentViewTreeObject extends TreeParent implements IClosableTreeObject, IDesignTreeObject, IActionFilter {
 
@@ -61,6 +64,31 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IClosabl
 	
 	public boolean hasReduce() {
 		return getObject().hasReduce();
+	}
+
+	public boolean hasLegacyReduce() {
+		return getObject().getJSONObject().opt(CouchKey.reduce.key()) instanceof String reduce
+				&& DesignDocument.isLegacyReduce(reduce);
+	}
+
+	public DesignDocumentFunctionTreeObject getReduceFunction() {
+		for (TreeObject child : getChildren()) {
+			if (child instanceof DesignDocumentFunctionTreeObject function && CouchKey.reduce.key().equals(function.getName())) {
+				return function;
+			}
+		}
+		return null;
+	}
+
+	public boolean fixLegacyReduce() {
+		DesignDocumentFunctionTreeObject function = getReduceFunction();
+		// Recheck after saving an open editor: never replace a customized function.
+		if (function == null || !DesignDocument.isLegacyReduce(function.getObject().getStringObject())) {
+			return false;
+		}
+		function.getObject().setStringObject(DesignDocument.DEFAULT_REDUCE);
+		hasBeenModified();
+		return true;
 	}
 
 	public String getDocViewName() {
@@ -115,6 +143,18 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IClosabl
 	@Override
 	public void hasBeenModified() {
 		JSONObject functions = new JSONObject();
+		// Repairing/editing a function must preserve view options such as collation.
+		JSONObject current = getObject().getJSONObject();
+		for (Iterator<String> keys = GenericUtils.cast(current.keys()); keys.hasNext();) {
+			String key = keys.next();
+			if (!CouchKey.map.key().equals(key) && !CouchKey.reduce.key().equals(key)) {
+				try {
+					functions.put(key, current.get(key));
+				} catch (JSONException e) {
+					ConvertigoPlugin.logException(e, "Unable to preserve view property '" + key + "'");
+				}
+			}
+		}
 		for (TreeObject to : getChildren()) {
 			DesignDocumentFunctionTreeObject ddfto = (DesignDocumentFunctionTreeObject)to;
 			FunctionObject fo = ddfto.getObject();
@@ -131,6 +171,7 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IClosabl
 		if (ddto != null) {
 			ddto.hasBeenModified();
 		}
+		((TreeViewer) getAdapter(TreeViewer.class)).update(this, null);
 	}
 
 	@Override

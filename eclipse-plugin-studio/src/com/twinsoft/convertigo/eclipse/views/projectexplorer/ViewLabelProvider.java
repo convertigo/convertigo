@@ -106,6 +106,9 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 
 	@Override
 	public String getText(Object obj) {
+		if (obj instanceof DesignDocumentViewTreeObject view && view.hasLegacyReduce()) {
+			return obj.toString() + " (! legacy reduce ignores rereduce !)";
+		}
 		if (obj instanceof DatabaseObjectTreeObject) {
 			DatabaseObject dbo = ((DatabaseObjectTreeObject) obj).getObject();
 			if (dbo.isSymbolError() || (dbo instanceof Project && ((Project) dbo).undefinedGlobalSymbols)) {

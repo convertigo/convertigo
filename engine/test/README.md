@@ -11,6 +11,22 @@ opt-in smoke test.
 sources, PDF step broken-source labels, updates after repairing a source, and
 empty or malformed definitions. It runs without starting an engine or Studio.
 
+## FullSync view reduce functions
+
+`./gradlew :engine:designDocumentReduceTest` checks the count template, including
+partial and nested partial counts, exact recognition of the old template despite
+formatting differences, preservation of custom functions and malformed view data.
+
+An optional integration case uses a disposable CouchDB server and creates/deletes
+only a uniquely named test database. Start a dedicated container with
+`COUCHDB_USER=admin` and `COUCHDB_PASSWORD=issue-1223-test`, then pass
+`-PcouchDbReduceTestUrl=http://127.0.0.1:<test-port>` to the task. The case compares
+the old template, the new template and `_count` on 6,000 documents, with and without
+grouping. Never point it at a production database server.
+
+The provider's own tests exercise the PouchDB patch separately, including
+unchanged built-in reducers and patch idempotence; see its `test/README.md`.
+
 ## FullSync replication access
 
 `./gradlew :engine:fullSyncReplicationPolicyTest` checks the public endpoint policy
