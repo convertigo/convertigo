@@ -446,8 +446,9 @@ public class Flow extends Sequence {
 				if (hasInputs) {
 					syncFlowInputDefinitions(inputDefinitions);
 				}
+				// jettison reads a JSON null as a null text
 				var accessibility = response.optString("accessibility", "");
-				declaredAccessibility = accessibility.isEmpty() || "null".equals(accessibility) ? null : Accessibility.valueOf(accessibility);
+				declaredAccessibility = accessibility == null || accessibility.isEmpty() || "null".equals(accessibility) ? null : Accessibility.valueOf(accessibility);
 				flowInputSyncSource = source;
 			} else {
 				var error = response.optJSONObject("error");
