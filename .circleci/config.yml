@@ -867,7 +867,7 @@ jobs:
           
   build_studio_mac:
     macos:
-      xcode: 26.2.0
+      xcode: 26.4.1
     resource_class: m4pro.medium
     steps:
     - run:
