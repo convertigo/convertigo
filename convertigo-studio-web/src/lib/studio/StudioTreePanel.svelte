@@ -52,7 +52,7 @@
 	/**
 	 * @type {{
 	 *  selectedId?: string,
-	 *  selectedTrail?: { id: string, label: string, icon?: string, iconify?: string, classname?: string, source?: boolean, flowType?: string }[],
+	 *  selectedTrail?: { id: string, label: string, objectName?: string, icon?: string, iconify?: string, classname?: string, source?: boolean, flowType?: string }[],
 	 *  hideLibs?: boolean,
 	 *  renameTargetId?: string,
 	 *  autoSelectFirst?: boolean,
@@ -1108,8 +1108,8 @@
 	 * are not objects, are left out.
 	 * @param {string} id
 	 * @param {any[]} nodes
-	 * @param {{ id: string, label: string, icon?: string, iconify?: string, classname?: string, source?: boolean, flowType?: string }[]} trail
-	 * @returns {{ id: string, label: string, icon?: string, iconify?: string, classname?: string, source?: boolean, flowType?: string }[] | null}
+	 * @param {{ id: string, label: string, objectName?: string, icon?: string, iconify?: string, classname?: string, source?: boolean, flowType?: string }[]} trail
+	 * @returns {{ id: string, label: string, objectName?: string, icon?: string, iconify?: string, classname?: string, source?: boolean, flowType?: string }[] | null}
 	 */
 	function trailTo(id, nodes, trail = []) {
 		for (const node of nodes ?? []) {
@@ -1123,6 +1123,7 @@
 						{
 							id: node.id,
 							label: String(node.label ?? node.name ?? node.id),
+							objectName: typeof node.objectName === 'string' ? node.objectName : undefined,
 							icon: node.icon,
 							iconify: node.iconify,
 							classname: node.classname,

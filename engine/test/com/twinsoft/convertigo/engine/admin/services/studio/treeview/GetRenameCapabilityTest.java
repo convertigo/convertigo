@@ -47,6 +47,27 @@ public class GetRenameCapabilityTest {
 		assertFalse(node.has("renameValue"));
 	}
 
+	@Test public void namesARenamableFlowItemByItsIdentityAndOthersByTheirSummary() throws Exception {
+		var item = projected(true);
+		item.setSummary("bronn = false");
+		item.setVirtualInfo(new JSONObject()
+				.put("renameMutation", new JSONObject().put("op", "provider.rename"))
+				.put("renameValue", "bronn").toString());
+		assertEquals("bronn = false", item.toString());
+		assertEquals("bronn", Get.objectName(item));
+
+		var folder = projected(false);
+		folder.setSummary("Variables");
+		folder.setVirtualInfo("{}");
+		assertEquals("Variables", Get.objectName(folder));
+	}
+
+	@Test public void namesANativeObjectByItsName() throws Exception {
+		var step = new SimpleStep();
+		step.setName("checkLogin");
+		assertEquals("checkLogin", Get.objectName(step));
+	}
+
 	@Test public void leavesNativeObjectsUnchanged() throws Exception {
 		var node = new JSONObject();
 		Get.putRenameCapability(new SimpleStep(), node);

@@ -265,7 +265,7 @@
 
 	let profile = $state('backend');
 	let selectedId = $state(initialSelectedId);
-	/** @type {{ id: string, label: string, icon?: string, iconify?: string, classname?: string, source?: boolean, flowType?: string }[]} the nodes from the project to the selection, as the tree names them */
+	/** @type {{ id: string, label: string, objectName?: string, icon?: string, iconify?: string, classname?: string, source?: boolean, flowType?: string }[]} the nodes from the project to the selection, as the tree names them */
 	let selectedTrail = $state([]);
 	/** the side view shown last, which the activity bar shows again */
 	let activeSidePanel = $state('properties');
@@ -1040,9 +1040,9 @@
 	}
 
 	/**
-	 * The breadcrumb of the selection with the names the tree shows, as "Catalog > Blocks > baserow > get"
+	 * The breadcrumb of the selection with the names of its objects, as "Catalog > Blocks > baserow > get"
 	 * instead of the parts of its id; null until the tree has loaded the selected node.
-	 * @param {{ id: string, label: string }[]} trail
+	 * @param {{ id: string, label: string, objectName?: string }[]} trail
 	 * @param {string} id
 	 * @returns {{ id: string, label: string, title: string }[] | null}
 	 */
@@ -1051,7 +1051,12 @@
 		if (!last || !id || !areEquivalentDboObjectIds(last.id, id)) {
 			return null;
 		}
-		return trail.map((node) => ({ id: node.id, label: node.label, title: node.label }));
+		// an object is named by its name, as in its qname; its summary, which the tree shows, is told on hover
+		return trail.map((node) => ({
+			id: node.id,
+			label: node.objectName || node.label,
+			title: node.label
+		}));
 	}
 
 	/** the kinds of the Flow items of a catalog, by the prefix of their id */
@@ -1061,7 +1066,7 @@
 	 * The selected object as the tree names it, a block of a catalog by its name in a Flow
 	 * ("baserow.get"), and what it is: the block an item of a Flow uses, its kind, or the block of a
 	 * catalog it is part of, as its implementation.
-	 * @param {{ id: string, label: string, icon?: string, iconify?: string, classname?: string, flowType?: string }[]} trail
+	 * @param {{ id: string, label: string, objectName?: string, icon?: string, iconify?: string, classname?: string, flowType?: string }[]} trail
 	 * @param {string} id
 	 * @param {any} docItem the documentation of the selection
 	 * @returns {any}
@@ -1082,7 +1087,7 @@
 				? `${trail[index - 1].label}.${trail[index].label}`
 				: '';
 		const last = trail.length - 1;
-		const name = blockName(last) || node.label;
+		const name = blockName(last) || node.objectName || node.label;
 		const ownerIndex = trail.findLastIndex((_, index) => index < last && blockName(index));
 		const classname = String(node.classname ?? docItem?.classname ?? '');
 		const className = classname.split('.').at(-1) ?? '';
@@ -1099,6 +1104,8 @@
 		return {
 			id,
 			name,
+			// the summary of the object, which the tree shows, when it is not its name
+			summary: node.label && node.label !== name ? node.label : '',
 			instanceName: kind && kind !== name ? [kind, category].filter(Boolean).join(' · ') : '',
 			classname: virtual ? '' : classname,
 			iconUrl:

@@ -5,7 +5,7 @@
 
 	/**
 	 * @type {{
-	 *  item?: { name?: string, classname?: string, id?: string, instanceName?: string, icon?: string, iconUrl?: string, iconify?: string } | null,
+	 *  item?: { name?: string, classname?: string, id?: string, instanceName?: string, summary?: string, icon?: string, iconUrl?: string, iconify?: string } | null,
 	 *  compact?: boolean,
 	 *  inline?: boolean
 	 * }}
@@ -27,7 +27,7 @@
 		class="studio-object-identity layout-x-low"
 		class:studio-object-identity--compact={compact}
 		class:studio-object-identity--inline={inline}
-		title={[title, subtitle].filter(Boolean).join(' · ')}
+		title={[title, subtitle, item.summary].filter(Boolean).join(' · ')}
 	>
 		<span class="studio-object-identity__icon studio-icon-tile">
 			{#if iconUrl}

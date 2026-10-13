@@ -198,6 +198,8 @@ public class Get extends JSonService {
 		var obj = new JSONObject();
 		obj.put("label", dbo.toString());
 		obj.put("name", dbo.toString());
+		// the label is the summary of the object, its toString(); its name, as its qname tells it, names it in a breadcrumb
+		obj.put("objectName", objectName(dbo));
 		var iconify = iconifyIcon(dbo);
 		if (!iconify.isBlank()) {
 			obj.put("iconify", iconify);
@@ -480,6 +482,17 @@ public class Get extends JSonService {
 		obj.put("isSourceContainer", false);
 		obj.put("children", true);
 		return obj;
+	}
+
+	/**
+	 * @return the name of the object, as its getName() in its qname: the identity of a Flow item ($$id), which it
+	 *  renames, else its summary; a catalog or a folder of Flow items is named by its label
+	 */
+	static String objectName(DatabaseObject dbo) {
+		if (dbo instanceof FlowVirtualObject virtual) {
+			return FlowStudioSupport.canRenameVirtualObject(virtual) ? FlowStudioSupport.virtualRenameValue(virtual) : virtual.toString();
+		}
+		return dbo.getName();
 	}
 
 	static void putRenameCapability(DatabaseObject dbo, JSONObject node) throws Exception {
