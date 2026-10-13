@@ -45,7 +45,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.SashForm;
@@ -110,6 +109,7 @@ import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.ClearableText;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TagTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -223,7 +223,11 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		}
 
 		private DatabaseObject databaseObject() {
-			return dbo == null ? dbo = newDatabaseObject() : dbo; 
+			return dbo == null ? dbo = newDatabaseObjectForFilter() : dbo;
+		}
+
+		DatabaseObject newDatabaseObjectForFilter() {
+			return newDatabaseObject();
 		}
 
 		PaletteSource newPaletteSource() {
@@ -686,8 +690,8 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					return;
 				}
 
-				TreeSelection selection = (TreeSelection) e.getSelection();
-				if (selection.getFirstElement() instanceof TreeObject to) {
+				TreeObject to = selectedTreeObject(e.getSelection());
+				if (to != null) {
 					while (to != null) {
 						Integer folderType = null;
 						DatabaseObject selected = null;
@@ -1573,6 +1577,67 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		}
 	}
 
+	Item ngxComponentItem(ComponentManager cm, Component comp) {
+		String id = "ngx [" + comp.getGroup() + "] " + comp.getName();
+		return new Item() {
+
+			@Override
+			public String category() {
+				return comp.getGroup();
+			}
+
+			@Override
+			public String name() {
+				return comp.getLabel();
+			}
+
+			@Override
+			String description() {
+				return comp.getDescription();
+			}
+
+			@Override
+			Image image() {
+				return getImage(comp.getImagePath());
+			}
+
+			@Override
+			DatabaseObject newDatabaseObject() {
+				DatabaseObject dbo = isCtrl ? cm.createBean(comp) : cm.createBeanFromHint(comp);
+				return dbo;
+			}
+
+			@Override
+			DatabaseObject newDatabaseObjectForFilter() {
+				// Filtering needs the component type, not its insertion hint and children.
+				return cm.createBean(comp);
+			}
+
+			@Override
+			boolean allowedIn(DatabaseObject parent) {
+				if (isType) {
+					return parent instanceof ApplicationComponent;
+				}
+				return comp.isAllowedIn(parent);
+			}
+
+			@Override
+			String propertiesDescription() {
+				return comp.getPropertiesDescription();
+			}
+
+			@Override
+			String id() {
+				return id;
+			}
+
+			@Override
+			protected boolean builtIn() {
+				return comp.isBuiltIn();
+			}
+		};
+	}
+
 	private void refresh(long threshold) {
 		if (!isVisible) {
 			pendingFlowPaletteKey = "";
@@ -1597,62 +1662,8 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 					all.putAll(commons);
 					loadedFlowPaletteKey = "";
 					for (Component comp: cm.getComponentsByGroup()) {
-						String id = "ngx [" + comp.getGroup() + "] " + comp.getName();
-						all.put(id, new Item() {
-
-							@Override
-							public String category() {
-								return comp.getGroup();
-							}
-
-							@Override
-							public String name() {
-								return comp.getLabel();
-							}
-
-							@Override
-							String description() {
-								return comp.getDescription();
-							}
-
-							@Override
-							Image image() {
-								return getImage(comp.getImagePath());
-							}
-
-							@Override
-							DatabaseObject newDatabaseObject() {
-								DatabaseObject dbo = isCtrl ? cm.createBean(comp) : cm.createBeanFromHint(comp);
-								return dbo;
-							}
-
-							@Override
-							boolean allowedIn(DatabaseObject parent) {
-								/*if (!cm.equals(ComponentManager.of(parent))) {
-								return false;
-							}*/
-
-								if (isType) {
-									return parent instanceof ApplicationComponent;
-								}
-								return comp.isAllowedIn(parent);
-							}
-
-							@Override
-							String propertiesDescription() {
-								return comp.getPropertiesDescription();
-							}
-
-							@Override
-							String id() {
-								return id;
-							}
-
-							@Override
-							protected boolean builtIn() {
-								return comp.isBuiltIn();
-							}
-						});
+						var item = ngxComponentItem(cm, comp);
+						all.put(item.id(), item);
 					}
 				}
 			}
@@ -1814,6 +1825,22 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 			latestComponentManager = null;
 			refresh();
 		}
+	}
+
+	/** Resolve occurrences and tag groups before following the real palette context. */
+	static TreeObject selectedTreeObject(ISelection selection) {
+		if (!(selection instanceof IStructuredSelection structured)
+				|| !(structured.getFirstElement() instanceof TreeObject tree)) {
+			return null;
+		}
+		while (tree != null) {
+			tree = tree.check();
+			if (!(tree instanceof TagTreeObject)) {
+				return tree;
+			}
+			tree = tree.getParent();
+		}
+		return null;
 	}
 
 	private void update() {
