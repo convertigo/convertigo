@@ -1,6 +1,7 @@
 <script>
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
+	import RichText from '$lib/common/components/RichText.svelte';
 	import { flip } from 'svelte/animate';
 	import { fly } from 'svelte/transition';
 	import Button from './Button.svelte';
@@ -222,23 +223,12 @@
 								{/if}
 							</div>
 						{:else if def.name == 'Comment'}
-							<button
-								type="button"
-								class="w-full cursor-pointer text-left"
-								title={row.commentExpanded ? 'Click to collapse' : 'Click to expand'}
-								aria-expanded={row.commentExpanded}
-								onclick={() => (row.commentExpanded = !row.commentExpanded)}
-							>
-								<div
-									class="overflow-hidden text-xs break-words whitespace-pre-wrap text-surface-600-400 transition-[max-height] duration-180 ease-out"
-									style:max-height={row.commentExpanded
-										? `${Math.max(row.commentElement?.scrollHeight ?? 0, 48)}px`
-										: '3rem'}
-									bind:this={row.commentElement}
-								>
-									{row.comment}
-								</div>
-							</button>
+							<RichText
+								source={row.comment}
+								collapsible
+								collapsedHeight={48}
+								class="text-xs text-surface-600-400"
+							/>
 						{/if}
 					{/snippet}
 				</TableAutoCard>

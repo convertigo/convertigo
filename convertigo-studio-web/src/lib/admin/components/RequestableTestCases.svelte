@@ -3,6 +3,7 @@
 	import Card from '$lib/admin/components/Card.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
+	import RichText from '$lib/common/components/RichText.svelte';
 
 	/**
 	 * @type {{
@@ -78,6 +79,9 @@
 									{/if}
 								</div>
 							{/snippet}
+							{#if testcase.comment}
+								<RichText source={testcase.comment} collapsible class="text-sm" />
+							{/if}
 							<AccordionGroup
 								collapsible
 								value={testcaseValuesOpen ? ['values'] : []}

@@ -5,6 +5,8 @@
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
 	import AccordionSection from '$lib/common/components/AccordionSection.svelte';
 	import InputGroup from '$lib/common/components/InputGroup.svelte';
+	import RichText from '$lib/common/components/RichText.svelte';
+	import { commentSummary } from '$lib/common/docBlocks.js';
 	import TestPlatform from '$lib/common/TestPlatform.svelte';
 	import AutoPlaceholder from '$lib/utils/AutoPlaceholder.svelte';
 	import Ico from '$lib/utils/Ico.svelte';
@@ -124,7 +126,7 @@
 		</InputGroup>
 	{/snippet}
 	<AutoPlaceholder loading={!project}>
-		<div class="whitespace-pre-wrap">{project?.comment}</div>
+		<RichText source={project?.comment} collapsible />
 	</AutoPlaceholder>
 
 	<AccordionGroup
@@ -146,7 +148,7 @@
 					triggerClass="accordion-trigger"
 					panelClass="accordion-panel"
 					title={name}
-					subtitle={comment}
+					subtitle={commentSummary(comment)}
 					count={requestables.length}
 					titleClass={selectableTitleClass}
 					subtitleClass={selectableSubtitleClass}
@@ -154,6 +156,9 @@
 				>
 					{#snippet panel()}
 						<div class="space-y-3">
+							{#if part.name !== 'Sequences' && comment}
+								<RichText source={comment} collapsible />
+							{/if}
 							<AccordionGroup multiple>
 								{#each requestables as requestable, requestableIdx (requestable.name)}
 									{@const { name, accessibility, comment } = requestable}
@@ -190,7 +195,7 @@
 														{#if comment?.length}
 															<span
 																class="cursor-text truncate text-xs text-surface-600-400 transition-opacity duration-150 select-text group-data-[state=open]:opacity-70"
-																{...selectableTextEvents}>{comment}</span
+																{...selectableTextEvents}>{commentSummary(comment)}</span
 															>
 														{/if}
 													</div>
