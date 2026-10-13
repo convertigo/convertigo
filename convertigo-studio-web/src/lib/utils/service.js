@@ -138,6 +138,17 @@ export async function call(service, data = {}, options = {}) {
 		});
 		responseStatus = res.status;
 		responseStatusText = res.statusText;
+		if (Instances.update(res)) {
+			// this server answered: only the instance chosen in the console is unreachable from it
+			markServerReachable();
+			return {
+				error: 'Instance unreachable',
+				instanceUnreachable: true,
+				status: res.status,
+				statusText: res.statusText,
+				elapsed: Date.now() - startedAt
+			};
+		}
 		if (options.silentStatuses?.includes(res.status)) {
 			if (!isServerUnavailableStatus(res.status)) {
 				markServerReachable();

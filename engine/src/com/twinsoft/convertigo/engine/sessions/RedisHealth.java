@@ -92,7 +92,7 @@ public final class RedisHealth {
 	 * Most telling cause, as "ExceptionClass: message": a network or TLS error from the chain when there is one
 	 * (refused, timeout, unknown host, handshake), otherwise the root cause, without Redisson command dumps.
 	 */
-	static String describe(Throwable t) {
+	public static String describe(Throwable t) {
 		if (t == null) {
 			return "unknown error";
 		}

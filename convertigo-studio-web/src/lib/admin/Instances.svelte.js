@@ -1,6 +1,9 @@
 import { call } from '$lib/utils/service';
 
 const INSTANCE_HEADER = 'x-c8o-instance';
+const UNREACHABLE_HEADER = 'x-c8o-instance-unreachable';
+const LOCAL_HEADER = 'x-c8o-instance-local';
+const ERROR_HEADER = 'x-c8o-instance-error';
 
 /** @typedef {{ instanceId: string } & Record<string, any>} InstanceInfo */
 
@@ -10,7 +13,9 @@ let state = $state({
 	instances: [],
 	loading: false,
 	current: '',
-	revision: 0
+	revision: 0,
+	/** @type {{ instance: string, local: string, cause: string } | null} */
+	unreachable: null
 });
 
 function normalizeInstance(value) {
@@ -24,6 +29,7 @@ function setCurrent(value) {
 	const current = normalizeInstance(value);
 	if (current === state.current) return;
 	state.current = current;
+	state.unreachable = null;
 	state.revision += 1;
 }
 
@@ -46,14 +52,33 @@ export default {
 	get revision() {
 		return state.revision;
 	},
+	/** Set when the instance chosen in the console cannot be reached from the instance that answered. */
+	get unreachable() {
+		return state.unreachable;
+	},
 
 	apply(headers) {
 		if (state.current) headers[INSTANCE_HEADER] = state.current;
 	},
+	/** @returns {boolean} true when the response reports that the chosen instance is unreachable */
 	update(response) {
-		const header = response?.headers?.get?.(INSTANCE_HEADER);
+		const headers = response?.headers;
+		const unreachable = normalizeInstance(headers?.get?.(UNREACHABLE_HEADER));
+		if (unreachable) {
+			state.unreachable = {
+				instance: unreachable,
+				local: normalizeInstance(headers.get(LOCAL_HEADER)),
+				cause: (headers.get(ERROR_HEADER) ?? '').trim()
+			};
+			return true;
+		}
+		const header = headers?.get?.(INSTANCE_HEADER);
 		const normalized = normalizeInstance(header);
 		if (normalized) setCurrent(normalized);
+		if (state.unreachable && (!normalized || normalized === state.unreachable.instance)) {
+			state.unreachable = null;
+		}
+		return false;
 	},
 	async refresh(force = false) {
 		if (state.loading) return;

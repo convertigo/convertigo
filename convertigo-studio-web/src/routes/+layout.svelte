@@ -25,6 +25,11 @@
 	let { children } = $props();
 
 	let modalYesNo = $state();
+
+	// last unreachable instance report: the banner keeps showing it while it slides out, after
+	// Instances.unreachable is cleared (reading a cleared report there would break the update)
+	let lastUnreachable = null;
+	let unreachable = $derived.by(() => (lastUnreachable = Instances.unreachable ?? lastUnreachable));
 	let authBootstrapped = $state(false);
 	let authRun = 0;
 
@@ -152,6 +157,34 @@
 		<Ico icon="mdi:alert-circle-outline" size={5} />
 		<strong>Server unavailable</strong>
 		<span>Retrying…</span>
+	</div>
+{/if}
+
+{#if Instances.unreachable && unreachable && !ServerConnection.unavailable}
+	<div
+		role="status"
+		aria-live="polite"
+		class="fixed inset-x-0 top-0 z-[200] layout-x-center-low preset-filled-warning-500 py-low px shadow-follow"
+		transition:slide={{ axis: 'y', duration: 150 }}
+	>
+		<Ico icon="mdi:alert-circle-outline" size={5} />
+		<strong>Instance {unreachable.instance} unreachable</strong>
+		<span
+			>{unreachable.local ? `from ${unreachable.local}` : ''}{unreachable.cause
+				? `: ${unreachable.cause}`
+				: ''}</span
+		>
+		{#if unreachable.local}
+			<Button
+				label="Use {unreachable.local}"
+				full={false}
+				class="button-primary"
+				onclick={() => {
+					const local = unreachable.local;
+					Instances.current = local;
+				}}
+			/>
+		{/if}
 	</div>
 {/if}
 

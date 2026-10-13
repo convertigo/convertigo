@@ -127,7 +127,8 @@ export default function ({
 			) {
 				return;
 			}
-			if (res?.offline) {
+			// no usable answer: keep the current values and keep polling
+			if (res?.offline || res?.instanceUnreachable) {
 				if (_needRefresh) {
 					values.delay = delay;
 					_needRefresh = false;
