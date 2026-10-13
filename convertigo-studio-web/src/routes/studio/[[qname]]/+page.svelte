@@ -22,8 +22,8 @@
 		shouldStartInlineRename
 	} from '#lib/studio/dnd.js';
 	import StudioDock from '#lib/studio/dock/StudioDock.svelte';
-	import FlowViewer from '#lib/studio/flow/FlowViewer.svelte';
 	import { flowImplementationRoot } from '#lib/studio/flow/flowRoot.js';
+	import FlowViewer from '#lib/studio/flow/FlowViewer.svelte';
 	import {
 		contextAuthoringMutation,
 		isFrontendAuthoringNodeId
