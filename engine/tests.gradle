@@ -38,6 +38,7 @@ tasks.named('check') {
 	dependsOn 'flowEngineSymbolsTest'
 	dependsOn 'optionalDefaultsTest'
 	dependsOn 'adminInstanceRoutingTest'
+	dependsOn 'designDocumentReduceTest'
 }
 
 tasks.register('adminInstanceRoutingTest', JavaExec) {
@@ -47,6 +48,18 @@ tasks.register('adminInstanceRoutingTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sessions.AdminInstanceRoutingTest'
+}
+
+tasks.register('designDocumentReduceTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the FullSync count reduce template and legacy view detection.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.couchdb.DesignDocumentReduceTest'
+	if (project.hasProperty('couchDbReduceTestUrl')) {
+		systemProperty 'couchDbReduceTestUrl', project.property('couchDbReduceTestUrl')
+	}
 }
 
 tasks.register('stepSourceTest', JavaExec) {

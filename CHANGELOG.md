@@ -1,5 +1,16 @@
 # Changelog
 
+## 8.4.7
+
+#### Improvements:
+
+- [#1229](https://github.com/convertigo/convertigo/issues/1229) [Dashboard] Editing a test case now expands the prefilled variables and collapses the test case list
+- [#1230](https://github.com/convertigo/convertigo/issues/1230) [Dashboard] Project, connector, requestable, test case and variable comments now display Markdown and HTML formatting while preserving multilingual comments
+
+#### Bug Fixes:
+
+- [#1223](https://github.com/convertigo/convertigo/issues/1223) [FullSync] Fixed, new view count functions now combine CouchDB partial results correctly; the Studio also exercises custom functions with `rereduce` and flags the old default template for explicit repair. Existing view functions are not migrated automatically and should be checked for `rereduce` support
+
 ## 8.4.6
 
 #### Improvements:

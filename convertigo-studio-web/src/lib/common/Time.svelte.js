@@ -1,31 +1,39 @@
-import { SvelteDate } from 'svelte/reactivity';
-
-let browser = new SvelteDate();
+// Plain $state and getters, without SvelteDate nor module-level $derived: those create derived
+// values owned by the first component that reads them, and they freeze ("derived_inert") once
+// that component is destroyed, as the login page is after signing in.
+let now = $state(Date.now());
 let serverDiff = $state(0);
 let serverTimezone = $state('');
-let server = $derived(new Date(browser.getTime() - serverDiff));
-let isSameTime = $derived(
-	!serverTimezone ||
-		browser.toLocaleTimeString() ==
-			server.toLocaleTimeString(undefined, { timeZone: serverTimezone })
-);
 
 setInterval(() => {
-	browser.setTime(Date.now());
+	now = Date.now();
 }, 1000);
+
+const serverDate = () => new Date(now - serverDiff);
+// same output as Date.toLocaleTimeString(undefined, options), from a timestamp
+const formatTime = (timestamp, options = {}) =>
+	new Intl.DateTimeFormat(undefined, {
+		hour: 'numeric',
+		minute: 'numeric',
+		second: 'numeric',
+		...options
+	}).format(timestamp);
 
 export default {
 	get isSameTime() {
-		return isSameTime;
+		return (
+			!serverTimezone ||
+			formatTime(now) == formatTime(now - serverDiff, { timeZone: serverTimezone })
+		);
 	},
 	get browserTime() {
-		return browser.toLocaleTimeString();
+		return formatTime(now);
 	},
 	get server() {
-		return server;
+		return serverDate();
 	},
 	get serverTime() {
-		return server.toLocaleTimeString(undefined, { timeZone: serverTimezone });
+		return formatTime(now - serverDiff, { timeZone: serverTimezone || undefined });
 	},
 	set serverTimestamp(timestamp) {
 		const diff = Date.now() - timestamp;

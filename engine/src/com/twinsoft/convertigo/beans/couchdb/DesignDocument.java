@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.JsonDocument;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -40,6 +41,13 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class DesignDocument extends JsonDocument {
 
 	private static final long serialVersionUID = -1523783503757936794L;
+
+	/** Shared with the Studio; custom reduces must combine partial results on CouchDB. */
+	public static final String DEFAULT_REDUCE = "function (keys, values, rereduce) {\r\n\tif (rereduce) {\r\n\t\treturn sum(values);\r\n\t}\r\n\treturn values.length;\r\n}";
+	private static final Pattern REDUCE_WHITESPACE = Pattern.compile("\\s+");
+	private static final String LEGACY_REDUCE = REDUCE_WHITESPACE.matcher(
+			"function (keys, values, rereduce) { try { return values.length; } catch (err) { log(err.message); } }").replaceAll("");
+	private transient List<String> warnedLegacyReduceViews = List.of();
 	
 	public static final Pattern splitFunctionName = Pattern.compile("(.+?)/(.+)");
 
@@ -51,9 +59,6 @@ public class DesignDocument extends JsonDocument {
 	public static final String DEFAULT_UPDATE = "function (doc, req) {\r\n\ttry {\r\n\t\tvar json = JSON.parse(req.body);\r\n\t\treturn [doc, {json: {result: 'nothing done'}}];\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}";
 	public static final String DEFAULT_VALIDATE = "function(newDoc, oldDoc, userCtx, secObj) {\r\n\t// check if newDoc respect the DB rules\r\n\t// if not, throw an exception like that:\r\n\t// throw({forbidden : 'type your error here'});\r\n\treturn true;\r\n}";
 
-	/** The reduce function added to a view, as the Eclipse Studio makes it */
-	public static final String DEFAULT_REDUCE = "function (keys, values, rereduce) {\r\n\ttry {\r\n\t\treturn values.length;\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}";
-	
 	public DesignDocument() {
 		super();
 	}
@@ -73,6 +78,45 @@ public class DesignDocument extends JsonDocument {
 	public void configure(Element element) throws Exception {
 		super.configure(element);
 		identify();
+		warnAboutLegacyReduceFunctions();
+	}
+
+	/** Recognize only the old, unmodified template, ignoring indentation and line endings. */
+	public static boolean isLegacyReduce(String function) {
+		return function != null && LEGACY_REDUCE.equals(REDUCE_WHITESPACE.matcher(function).replaceAll(""));
+	}
+
+	public List<String> getLegacyReduceViews() {
+		List<String> names = new ArrayList<>();
+		JSONObject json = getJSONObject();
+		JSONObject views = json == null ? null : json.optJSONObject(CouchKey.views.key());
+		if (views != null) {
+			for (Iterator<String> i = GenericUtils.cast(views.keys()); i.hasNext();) {
+				String name = i.next();
+				JSONObject view = views.optJSONObject(name);
+				if (view != null && view.opt(CouchKey.reduce.key()) instanceof String reduce && isLegacyReduce(reduce)) {
+					names.add(name);
+				}
+			}
+		}
+		names.sort(String::compareTo);
+		return names;
+	}
+
+	/** Warn on load/sync, without changing existing projects or repeating on every sync. */
+	public synchronized void warnAboutLegacyReduceFunctions() {
+		if (getParent() == null || Engine.logCouchDbManager == null) {
+			return;
+		}
+		List<String> names = getLegacyReduceViews();
+		for (String name : names) {
+			if (!warnedLegacyReduceViews.contains(name)) {
+				Engine.logCouchDbManager.warn("(DesignDocument) View '" + getQName() + "/" + name
+						+ "' uses the old default reduce function, which ignores rereduce and can return incorrect counts on CouchDB. "
+						+ "Use 'Fix legacy count reduce' in the Studio, or replace it with _count or a function that sums partial results.");
+			}
+		}
+		warnedLegacyReduceViews = List.copyOf(names);
 	}
 
 	@Override

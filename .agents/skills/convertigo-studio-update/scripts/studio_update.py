@@ -15,8 +15,8 @@ from pathlib import Path
 LANES = {
     "hotfix": {
         "branch": "hotfix",
-        "maintenance_version": "8.4.6",
-        "ticket": "#1170",
+        "maintenance_version": "8.4.7",
+        "ticket": "#1232",
         "gradle_task": "dependencyUpdatesPatch",
         "npm_update": "deps:minor-update",
     },

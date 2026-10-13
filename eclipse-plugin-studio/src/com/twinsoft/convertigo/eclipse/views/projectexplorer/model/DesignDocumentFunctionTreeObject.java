@@ -132,6 +132,19 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		}
 	}
 
+	/** Close only this function's editor, respecting a cancelled save. */
+	public boolean closeEditor(boolean save) throws PartInitException {
+		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		if (page != null) {
+			for (IEditorReference reference : page.getEditorReferences()) {
+				if (reference.getEditorInput() instanceof JScriptEditorInput input && input.getJScriptContainer() == this) {
+					return page.closeEditor(reference.getEditor(false), save);
+				}
+			}
+		}
+		return true;
+	}
+
 	@Override
 	public IDesignTreeObject add(Object object, boolean bChangeName) {
 		if (object instanceof JsonData) {

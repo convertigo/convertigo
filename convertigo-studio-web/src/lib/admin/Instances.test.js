@@ -20,7 +20,9 @@ beforeEach(async () => {
 	call.mockResolvedValue({ storeMode: 'redis', instances: pods, localRoutingId: 'route-a' });
 });
 
-const response = (routingId) => ({ headers: new Headers({ 'X-C8O-Instance': routingId }) });
+const response = (headers) => ({
+	headers: new Headers(typeof headers === 'string' ? { 'X-C8O-Instance': headers } : headers)
+});
 
 describe('Administration instance routing', () => {
 	it('keeps the pod names as metadata and sends only the routing address', async () => {
@@ -77,5 +79,52 @@ describe('Administration instance routing', () => {
 		const url = new URL(adminEventsUrl('*', { origin: 'http://localhost', xsrfToken: 'token' }));
 		expect(url.searchParams.get('__instance')).toBe('route-b');
 		expect(url.href).not.toContain('convertigo-pod');
+	});
+
+	it('keeps the chosen routing address when forwarding fails', async () => {
+		await Instances.refresh();
+		Instances.current = 'route-b';
+		expect(
+			Instances.update(
+				response({
+					'X-C8O-Instance': 'route-b',
+					'X-C8O-Instance-Unreachable': 'route-b',
+					'X-C8O-Instance-Local': 'route-a',
+					'X-C8O-Instance-Error': 'SocketTimeoutException: Connect timed out'
+				})
+			)
+		).toBe(true);
+		expect(Instances.current).toBe('route-b');
+		expect(Instances.activeName).toBe('convertigo-pod-a');
+		expect(Instances.unreachable).toEqual({
+			instance: 'route-b',
+			local: 'route-a',
+			cause: 'SocketTimeoutException: Connect timed out'
+		});
+	});
+
+	it('clears the report when the chosen instance answers again', () => {
+		Instances.current = 'route-b';
+		Instances.update(response({ 'X-C8O-Instance-Unreachable': 'route-b' }));
+		expect(Instances.update(response('route-b'))).toBe(false);
+		expect(Instances.unreachable).toBe(null);
+	});
+
+	it('clears the report when another instance is chosen', () => {
+		Instances.current = 'route-b';
+		Instances.update(response({ 'X-C8O-Instance-Unreachable': 'route-b' }));
+		Instances.current = 'route-a';
+		expect(Instances.unreachable).toBe(null);
+	});
+
+	it('ignores unreachable reports from requests sent before a selection change', async () => {
+		await Instances.refresh();
+		const revision = Instances.apply({});
+		Instances.current = 'route-b';
+		expect(Instances.update(response({ 'X-C8O-Instance-Unreachable': 'route-a' }), revision)).toBe(
+			false
+		);
+		expect(Instances.current).toBe('route-b');
+		expect(Instances.unreachable).toBe(null);
 	});
 });

@@ -1305,6 +1305,190 @@ test('studio opens a selected backend object with tree, execution and flow synch
 	);
 });
 
+test.describe('requestable preset editing', () => {
+	for (const executionView of ['studio', 'dashboard']) {
+		test(`${executionView} applies and executes requestable test cases from the execution panel`, async ({
+			page
+		}) => {
+			const executionRequests = [];
+			const state = createStudioState({
+				variables: [
+					{
+						name: 'input',
+						value: 'initial',
+						comment: 'Execution variable'
+					}
+				],
+				testcases: [
+					{
+						name: 'PresetInput',
+						variable: [{ name: 'input', value: 'from-testcase' }]
+					}
+				]
+			});
+			await mockStudioServices(page, { state, executionRequests });
+			if (executionView === 'studio') {
+				await page.goto('/studio/#flow');
+				await expandTreeNode(page, projectName);
+				await expandTreeNode(page, `${projectName}:sq`);
+				await selectTreeNode(page, sequenceId);
+				await page.getByRole('tab', { name: 'Execution', exact: true }).click();
+			} else {
+				await openDashboardBackend(page);
+				await ensureButtonExpanded(page, sequenceName);
+			}
+
+			await expect(page.getByText('Variables (1)')).toBeVisible();
+			await ensureButtonExpanded(page, /Variables \(1\)/);
+			await expect(page.locator('input[name="input"]')).toHaveValue('initial');
+			await page.getByRole('button', { name: /Variables \(1\)/ }).click();
+			await expect(page.getByRole('button', { name: /Variables \(1\)/ })).toHaveAttribute(
+				'aria-expanded',
+				'false'
+			);
+			await ensureButtonExpanded(page, /Test cases \(1\)/);
+			await page.getByRole('button', { name: 'Edit' }).click();
+			await expect(page.getByRole('button', { name: /Variables \(1\)/ })).toHaveAttribute(
+				'aria-expanded',
+				'true'
+			);
+			await expect(page.getByRole('button', { name: /Test cases \(1\)/ })).toHaveAttribute(
+				'aria-expanded',
+				'false'
+			);
+			await expect(page.locator('input[name="input"]')).toHaveValue('from-testcase');
+
+			await page
+				.locator('.requestable-execution__actions button')
+				.filter({ hasText: 'Execute' })
+				.click();
+			await expect.poll(() => executionRequests.length).toBe(1);
+			expect(executionRequests[0]).toContain('__sequence=TestSequence');
+			expect(executionRequests[0]).toContain('input=from-testcase');
+
+			await ensureButtonExpanded(page, /Test cases \(1\)/);
+			await page
+				.locator('.requestable-testcases__grid button')
+				.filter({ hasText: 'Execute' })
+				.click();
+			await expect.poll(() => executionRequests.length).toBe(2);
+			expect(executionRequests[1]).toContain('__sequence=TestSequence');
+			expect(executionRequests[1]).toContain('__testcase=PresetInput');
+			expect(executionRequests[1]).not.toContain('input=');
+		});
+	}
+});
+
+test.describe('dashboard rich comments', () => {
+	test.use({ locale: 'fr-FR' });
+	test('renders localized comments with Markdown, HTML, tables and safe links', async ({
+		page
+	}) => {
+		const state = createStudioState({
+			projectComment:
+				'Bibliothèque de **mails**\n\n## Fonctionnement\n\n| Symbole | Valeur |\n|---|---|\n| `imap.host` | localhost |',
+			sequenceComment:
+				'Renvoie une **liste de navires**\n\n<p>Avec <em>des détails</em> et <a href="https://example.com/help">la documentation</a>.</p>\n\n<script>window.commentExecuted=true</script><img src=x onerror="window.commentExecuted=true"><a href="javascript:alert(1)">Unsafe link</a>\n\n' +
+				'More information about these ships.\n'.repeat(8),
+			variables: [
+				{
+					name: 'input',
+					value: '',
+					comment:
+						'<b>Filtre des navires</b><br>' + 'Une longue explication du filtre.<br>'.repeat(8)
+				}
+			],
+			testcases: [{ name: 'PresetInput', comment: 'Un **cas de test**', variable: [] }]
+		});
+		let requestedLanguage;
+		page.on('request', (request) => {
+			if (serviceName(request.url()) === 'projects.GetTestPlatform') {
+				requestedLanguage = new URLSearchParams(request.postData() ?? '').get('lang');
+			}
+		});
+		await mockStudioServices(page, { state });
+		await openDashboardBackend(page);
+		await expect(page.getByRole('heading', { name: 'Fonctionnement' })).toBeVisible();
+		const projectComment = page.locator('.rich-text').first();
+		const projectClip = projectComment.locator('.rich-text__clip');
+		await expect(projectComment.getByRole('button', { name: 'Show more', exact: true })).toHaveText(
+			'…'
+		);
+		await expect(projectClip).toHaveCSS('max-height', '96px');
+		await projectComment.locator('p').first().click();
+		await expect(
+			projectComment.getByRole('button', { name: 'Show less', exact: true })
+		).toHaveAttribute('aria-expanded', 'true');
+		await expect.poll(() => projectClip.evaluate((node) => node.clientHeight)).toBeGreaterThan(96);
+		await projectComment.getByRole('button', { name: 'Show less', exact: true }).press('Enter');
+		await expect
+			.poll(() => projectClip.evaluate((node) => node.clientHeight))
+			.toBeLessThanOrEqual(96);
+		await projectComment.getByRole('button', { name: 'Show more', exact: true }).click();
+		await expect(page.getByRole('table').getByRole('cell', { name: 'localhost' })).toBeVisible();
+		await expect.poll(() => requestedLanguage).toBe('fr-FR');
+		const sequenceButton = page.getByRole('button', {
+			name: `${sequenceName} Renvoie une liste de navires`,
+			exact: true
+		});
+		await sequenceButton.click();
+		const sequenceComment = page.locator('.requestable-execution__comment');
+		await sequenceComment.getByRole('button', { name: 'Show more', exact: true }).click();
+		await expect(page.locator('.requestable-execution__comment strong')).toHaveText(
+			'liste de navires'
+		);
+		await expect(page.locator('.requestable-execution__comment em')).toHaveText('des détails');
+		const link = page.getByRole('link', { name: 'la documentation', exact: true });
+		await expect(link).toHaveAttribute('href', 'https://example.com/help');
+		await expect(link).toHaveAttribute('target', '_blank');
+		await link.dispatchEvent('pointerup', { button: 0, isPrimary: true });
+		await expect(
+			sequenceComment.getByRole('button', { name: 'Show less', exact: true })
+		).toHaveAttribute('aria-expanded', 'true');
+		await sequenceComment
+			.locator('p')
+			.first()
+			.evaluate((node) => {
+				const range = document.createRange();
+				range.selectNodeContents(node);
+				window.getSelection()?.removeAllRanges();
+				window.getSelection()?.addRange(range);
+			});
+		expect(await page.evaluate(() => window.getSelection()?.toString())).toContain('Renvoie une');
+		await sequenceComment
+			.locator('p')
+			.first()
+			.dispatchEvent('pointerup', { button: 0, isPrimary: true });
+		await expect(
+			sequenceComment.getByRole('button', { name: 'Show less', exact: true })
+		).toHaveAttribute('aria-expanded', 'true');
+		await page.evaluate(() => window.getSelection()?.removeAllRanges());
+		await sequenceComment.locator('p').first().click();
+		await expect(
+			sequenceComment.getByRole('button', { name: 'Show more', exact: true })
+		).toHaveAttribute('aria-expanded', 'false');
+		await expect(
+			page.locator('.rich-text script, .rich-text img, .rich-text a[href^="javascript:"]')
+		).toHaveCount(0);
+		await expect(page.getByRole('link', { name: 'Unsafe link' })).toHaveCount(0);
+		expect(await page.evaluate(() => window['commentExecuted'])).toBeUndefined();
+		const variableComment = page.locator('td .rich-text');
+		const more = variableComment.getByRole('button', { name: 'Show more', exact: true });
+		await expect(more).toHaveAttribute('aria-expanded', 'false');
+		await more.click();
+		await expect(
+			variableComment.getByRole('button', { name: 'Show less', exact: true })
+		).toHaveAttribute('aria-expanded', 'true');
+		await expect(sequenceButton).toHaveAttribute('aria-expanded', 'true');
+		await ensureButtonExpanded(page, /Test cases \(1\)/);
+		await expect(page.locator('.requestable-testcases__grid strong')).toHaveText('cas de test');
+		await page.screenshot({
+			path: test.info().outputPath('dashboard-comments.png'),
+			fullPage: true
+		});
+	});
+});
+
 test('studio applies and executes requestable test cases from the execution panel', async ({
 	page
 }) => {
@@ -1351,6 +1535,7 @@ test('studio applies and executes requestable test cases from the execution pane
 	expect(executionRequests[0]).toContain('__removeContext=true');
 	expect(executionRequests[0]).toContain('input=from-testcase');
 
+	await ensureButtonExpanded(page, /Test cases \(1\)/);
 	await page.locator('.requestable-testcases__grid button').filter({ hasText: 'Execute' }).click();
 	await expect.poll(() => executionRequests.length).toBe(2);
 	expect(executionRequests[1]).toContain('__sequence=TestSequence');
@@ -2879,6 +3064,11 @@ async function ensureTreeNodeExpanded(page, nodeId) {
  * @param {import('@playwright/test').Page} page
  * @param {string | RegExp} name
  */
+async function openDashboardBackend(page) {
+	await page.goto('/dashboard/');
+	await page.getByRole('link', { name: `Open ${projectName} backend`, exact: true }).click();
+}
+
 async function ensureButtonExpanded(page, name) {
 	const button = page.getByRole('button', { name }).first();
 	await expect(button).toBeVisible();
@@ -3935,16 +4125,20 @@ function createStudioState(overrides = {}) {
  * @param {ReturnType<typeof createStudioState>} state
  */
 function testPlatformResponse(state) {
-	const executionState = /** @type {{ variables?: any[], testcases?: any[] }} */ (state);
+	const executionState =
+		/** @type {{ variables?: any[], testcases?: any[], projectComment?: string, sequenceComment?: string }} */ (
+			state
+		);
 	return {
 		admin: {
 			project: {
 				name: projectName,
+				comment: executionState.projectComment ?? '',
 				connector: [],
 				sequence: [
 					{
 						name: sequenceName,
-						comment: 'Mocked Studio sequence',
+						comment: executionState.sequenceComment ?? 'Mocked Studio sequence',
 						accessibility: 'Public',
 						variable: executionState.variables ?? [
 							{

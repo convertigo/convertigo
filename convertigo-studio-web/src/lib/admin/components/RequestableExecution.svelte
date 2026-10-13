@@ -15,6 +15,8 @@
 	import PropertyType from '#lib/admin/components/PropertyType.svelte';
 	import RequestableTestCases from '#lib/admin/components/RequestableTestCases.svelte';
 	import RequestableVariables from '#lib/admin/components/RequestableVariables.svelte';
+	import RichText from '#lib/common/components/RichText.svelte';
+	import { commentSummary } from '#lib/common/docBlocks.js';
 	import LightSvelte from '#lib/common/Light.svelte.js';
 	import RequestableResponseEditor from '#lib/dashboard/RequestableResponseEditor.svelte';
 	import { settlePropertyApply } from '#lib/studio/propertyApply.svelte.js';
@@ -822,7 +824,7 @@ console.log(await response.text());`;
 				<div>
 					<strong>{requestable.name}</strong>
 					{#if requestable.comment}
-						<span>{requestable.comment}</span>
+						<span>{commentSummary(requestable.comment)}</span>
 					{/if}
 				</div>
 				<PropertyType type="segment" bind:value={mode} item={modes} fit={true} />
@@ -830,9 +832,7 @@ console.log(await response.text());`;
 		{/if}
 
 		{#if showComment && requestable.comment?.length}
-			<p class="requestable-execution__comment">
-				{requestable.comment}
-			</p>
+			<RichText source={requestable.comment} collapsible class="requestable-execution__comment" />
 		{/if}
 
 		{#if hasVariables}

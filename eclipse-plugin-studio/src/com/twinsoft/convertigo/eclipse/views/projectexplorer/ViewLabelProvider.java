@@ -121,6 +121,9 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 		} else if (tagsDisplayed && obj instanceof UnloadedProjectTreeObject target) {
 			for (var tag : com.twinsoft.convertigo.engine.tags.TagManager.get().projectBadges(target.getName()).path("tags")) if (!tag.path("id").asText().equals(currentTag)) tags += " [" + tag.path("label").asText() + "]";
 		}
+		if (obj instanceof DesignDocumentViewTreeObject view && view.hasLegacyReduce()) {
+			return obj.toString() + " (! legacy reduce ignores rereduce !)" + tags;
+		}
 		if (obj instanceof DatabaseObjectTreeObject) {
 			DatabaseObject dbo = ((DatabaseObjectTreeObject) obj).getObject();
 			if (dbo.isSymbolError() || (dbo instanceof Project && ((Project) dbo).undefinedGlobalSymbols)) {

@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
@@ -40,6 +41,7 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -64,6 +66,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sessions.RedisHealth;
 import com.twinsoft.convertigo.engine.sessions.RedisInstanceDiscovery;
 
 /**
@@ -72,12 +75,21 @@ import com.twinsoft.convertigo.engine.sessions.RedisInstanceDiscovery;
  * <p>
  * Target instance is selected via header {@code X-C8O-Instance} (preferred) or query param
  * {@code __instance}. Requests are proxied to the target instance base URL registered in Redis.
+ * <p>
+ * The forward is internal traffic between instances: it never goes through the engine HTTP proxy settings.
+ * When it fails, the response is an explicit error (HTTP 502 with the {@code X-C8O-Instance-Unreachable}
+ * header) so that the console can tell it, instead of a silent answer from the local instance.
  */
 public class AdminInstanceForwardFilter implements Filter {
 	private static final String HEADER_INSTANCE = "X-C8O-Instance";
 	private static final String PARAM_INSTANCE = "__instance";
 	private static final String HEADER_FORWARDED_BY = "X-C8O-Forwarded-By";
 	private static final String HEADER_X_FORWARDED_FOR = "X-Forwarded-For";
+	private static final String HEADER_INSTANCE_UNREACHABLE = "X-C8O-Instance-Unreachable";
+	private static final String HEADER_INSTANCE_LOCAL = "X-C8O-Instance-Local";
+	private static final String HEADER_INSTANCE_ERROR = "X-C8O-Instance-Error";
+	private static final long UNREACHABLE_WARN_INTERVAL_MS = 60_000L;
+	private static final Map<String, Long> lastUnreachableWarn = new ConcurrentHashMap<>();
 
 	private static final int CONNECT_TIMEOUT_MS = 5_000;
 	private static final int READ_TIMEOUT_MS = 0; // keep long polling & log streaming working
@@ -182,29 +194,54 @@ public class AdminInstanceForwardFilter implements Filter {
 
 			response.setHeader(HEADER_INSTANCE, target.routingId != null ? target.routingId : target.instanceId);
 			proxy(proxyRequest, response, targetUrl, localInstance, forwardedBy);
-		} catch (IOException e) {
-			if (response.isCommitted()) {
-				throw e;
-			}
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug("(AdminInstanceForwardFilter) Target instance unavailable", e);
-			}
-			response.reset();
-			unavailableInstance(response);
 		} catch (Exception e) {
 			if (response.isCommitted()) {
 				throw e;
 			}
-			if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
-				Engine.logEngine.debug("(AdminInstanceForwardFilter) Target instance forwarding failed", e);
-			}
-			response.reset();
-			unavailableInstance(response);
+			respondUnreachable(response, requestedInstance, localInstance, baseUrl, e);
 		} finally {
 			if (cachedBody != null) {
 				cachedBody.close();
 			}
 		}
+	}
+
+	private static void respondUnreachable(HttpServletResponse response, String requestedInstance, String localInstance,
+			String baseUrl, Exception e) throws IOException {
+		var cause = RedisHealth.describe(e);
+		long now = System.currentTimeMillis();
+		var last = lastUnreachableWarn.get(requestedInstance);
+		if (last == null || now - last >= UNREACHABLE_WARN_INTERVAL_MS) {
+			lastUnreachableWarn.put(requestedInstance, now);
+			Engine.logEngine.warn("(AdminInstanceForwardFilter) Instance " + requestedInstance + " (" + baseUrl
+					+ ") is unreachable from " + localInstance + ": " + cause);
+		}
+		if (Engine.logEngine.isDebugEnabled()) {
+			Engine.logEngine.debug("(AdminInstanceForwardFilter) Forward to " + requestedInstance + " failed", e);
+		}
+		response.reset();
+		response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+		response.setHeader(HEADER_INSTANCE, requestedInstance);
+		response.setHeader(HEADER_INSTANCE_UNREACHABLE, requestedInstance);
+		// printable ASCII only: header values cannot carry any character
+		var headerCause = cause.replaceAll("[^\\x20-\\x7E]", " ");
+		response.setHeader(HEADER_INSTANCE_ERROR, headerCause.length() > 300 ? headerCause.substring(0, 300) : headerCause);
+		if (localInstance != null && !localInstance.isBlank()) {
+			response.setHeader(HEADER_INSTANCE_LOCAL, localInstance);
+		}
+		response.setHeader("Cache-Control", "no-store");
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		var body = new org.codehaus.jettison.json.JSONObject();
+		try {
+			body.put("error", "Instance " + requestedInstance + " is unreachable from " + localInstance);
+			body.put("instance", requestedInstance);
+			body.put("localInstance", localInstance);
+			body.put("cause", cause);
+		} catch (Exception ignore) {
+			// the headers already carry the information
+		}
+		response.getWriter().write(body.toString());
 	}
 
 	@Override
@@ -260,7 +297,8 @@ public class AdminInstanceForwardFilter implements Filter {
 				throw new IOException("Invalid target URL scheme");
 			}
 			var url = uri.toURL();
-			conn = (HttpURLConnection) url.openConnection();
+			// instance to instance traffic stays inside the cluster: never through the engine HTTP proxy
+			conn = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
 			applyTrustAllSslIfRequested(conn);
 			conn.setInstanceFollowRedirects(false);
 			conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
@@ -287,7 +325,7 @@ public class AdminInstanceForwardFilter implements Filter {
 			}
 
 			var status = conn.getResponseCode();
-			if (status == 502 || status == 503 || status == 504) {
+			if (status == 407 || status == 502 || status == 503 || status == 504) {
 				throw new IOException("Proxy target responded with HTTP " + status);
 			}
 			response.setStatus(status);
