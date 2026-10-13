@@ -23,6 +23,8 @@
 		if (requestable) {
 			requestable = {
 				...requestable,
+				testCasesOpened: false,
+				variablesOpened: true,
 				tc: {
 					...testcase,
 					variable: testcase.variable?.map((variable) => ({ ...variable })) ?? []

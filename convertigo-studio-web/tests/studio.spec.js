@@ -61,54 +61,77 @@ test('studio opens a selected backend object with tree, execution and flow synch
 	);
 });
 
-test('studio applies and executes requestable test cases from the execution panel', async ({
-	page
-}) => {
-	const executionRequests = [];
-	const state = createStudioState({
-		variables: [
-			{
-				name: 'input',
-				value: 'initial',
-				comment: 'Execution variable'
-			}
-		],
-		testcases: [
-			{
-				name: 'PresetInput',
-				variable: [{ name: 'input', value: 'from-testcase' }]
-			}
-		]
+for (const executionView of ['studio', 'dashboard']) {
+	test(`${executionView} applies and executes requestable test cases from the execution panel`, async ({
+		page
+	}) => {
+		const executionRequests = [];
+		const state = createStudioState({
+			variables: [
+				{
+					name: 'input',
+					value: 'initial',
+					comment: 'Execution variable'
+				}
+			],
+			testcases: [
+				{
+					name: 'PresetInput',
+					variable: [{ name: 'input', value: 'from-testcase' }]
+				}
+			]
+		});
+		await mockStudioServices(page, { state, executionRequests });
+		if (executionView === 'studio') {
+			await page.goto('/studio/#flow');
+			await expandTreeNode(page, projectName);
+			await expandTreeNode(page, `${projectName}:sq`);
+			await selectTreeNode(page, sequenceId);
+			await page.getByRole('tab', { name: 'Execution', exact: true }).click();
+		} else {
+			await page.goto(`/dashboard/${projectName}/backend/`);
+			await ensureButtonExpanded(page, sequenceName);
+		}
+
+		await expect(page.getByText('Variables (1)')).toBeVisible();
+		await ensureButtonExpanded(page, /Variables \(1\)/);
+		await expect(page.locator('input[name="input"]')).toHaveValue('initial');
+		await page.getByRole('button', { name: /Variables \(1\)/ }).click();
+		await expect(page.getByRole('button', { name: /Variables \(1\)/ })).toHaveAttribute(
+			'aria-expanded',
+			'false'
+		);
+		await ensureButtonExpanded(page, /Test cases \(1\)/);
+		await page.getByRole('button', { name: 'Edit' }).click();
+		await expect(page.getByRole('button', { name: /Variables \(1\)/ })).toHaveAttribute(
+			'aria-expanded',
+			'true'
+		);
+		await expect(page.getByRole('button', { name: /Test cases \(1\)/ })).toHaveAttribute(
+			'aria-expanded',
+			'false'
+		);
+		await expect(page.locator('input[name="input"]')).toHaveValue('from-testcase');
+
+		await page
+			.locator('.requestable-execution__actions button')
+			.filter({ hasText: 'Execute' })
+			.click();
+		await expect.poll(() => executionRequests.length).toBe(1);
+		expect(executionRequests[0]).toContain('__sequence=TestSequence');
+		expect(executionRequests[0]).toContain('input=from-testcase');
+
+		await ensureButtonExpanded(page, /Test cases \(1\)/);
+		await page
+			.locator('.requestable-testcases__grid button')
+			.filter({ hasText: 'Execute' })
+			.click();
+		await expect.poll(() => executionRequests.length).toBe(2);
+		expect(executionRequests[1]).toContain('__sequence=TestSequence');
+		expect(executionRequests[1]).toContain('__testcase=PresetInput');
+		expect(executionRequests[1]).not.toContain('input=');
 	});
-	await mockStudioServices(page, { state, executionRequests });
-	await page.goto('/studio/#flow');
-
-	await expandTreeNode(page, projectName);
-	await expandTreeNode(page, `${projectName}:sq`);
-	await selectTreeNode(page, sequenceId);
-	await page.getByRole('button', { name: 'Execution', exact: true }).click();
-
-	await expect(page.getByText('Variables (1)')).toBeVisible();
-	await ensureButtonExpanded(page, /Variables \(1\)/);
-	await expect(page.locator('input[name="input"]')).toHaveValue('initial');
-	await ensureButtonExpanded(page, /Test cases \(1\)/);
-	await page.getByRole('button', { name: 'Edit' }).click();
-	await expect(page.locator('input[name="input"]')).toHaveValue('from-testcase');
-
-	await page
-		.locator('.requestable-execution__actions button')
-		.filter({ hasText: 'Execute' })
-		.click();
-	await expect.poll(() => executionRequests.length).toBe(1);
-	expect(executionRequests[0]).toContain('__sequence=TestSequence');
-	expect(executionRequests[0]).toContain('input=from-testcase');
-
-	await page.locator('.requestable-testcases__grid button').filter({ hasText: 'Execute' }).click();
-	await expect.poll(() => executionRequests.length).toBe(2);
-	expect(executionRequests[1]).toContain('__sequence=TestSequence');
-	expect(executionRequests[1]).toContain('__testcase=PresetInput');
-	expect(executionRequests[1]).not.toContain('input=');
-});
+}
 
 test('studio redirects authenticated users without the web admin role', async ({ page }) => {
 	await mockStudioServices(page, { roles: ['TEST_PLATFORM'] });
