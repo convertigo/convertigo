@@ -534,7 +534,7 @@ jobs:
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
           echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 8.3.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
+          git clone --depth 1 -b 8.4.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
           
     - run:
         name: Pull the docker aks image
@@ -544,7 +544,7 @@ jobs:
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
-          docker pull convertigo/qualif-jmeter:v1
+          docker pull convertigo/qualif-jmeter:v4
           
     - run:
         name: Run the qualif
