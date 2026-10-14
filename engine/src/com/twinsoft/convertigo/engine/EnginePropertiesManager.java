@@ -621,6 +621,10 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_GZIP ("net.gzip", "true", "Enable GZip response for most text responses (need the header Accept-Encoding: gzip)", PropertyCategory.Network),
 		NET_MAX_AGE ("net.max-age", "10", "Set the Cache-Control: max-age value in seconds, for static resources", PropertyCategory.Network),
+		NET_APP_STATIC_MAX_AGE ("net.app.static.max-age", "60", "Browser cache lifetime in seconds for non-fingerprinted production application assets", PropertyCategory.Network),
+		NET_APP_STATIC_SHARED_MAX_AGE ("net.app.static.shared-max-age", "300", "Shared HTTP cache lifetime in seconds for non-fingerprinted production application assets", PropertyCategory.Network),
+		NET_ADMIN_STATIC_MAX_AGE ("net.admin.static.max-age", "60", "Browser cache lifetime in seconds for non-fingerprinted Admin webapp assets", PropertyCategory.Network),
+		NET_ADMIN_STATIC_SHARED_MAX_AGE ("net.admin.static.shared-max-age", "300", "Shared HTTP cache lifetime in seconds for non-fingerprinted Admin webapp assets", PropertyCategory.Network),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
 		FILE_UPLOAD_MAX_REQUEST_SIZE ("net.upload.max_request_size", "-1", "Maximum allowed size of a complete multipart request (in bytes). Value -1 indicates no limit.", PropertyCategory.Network),

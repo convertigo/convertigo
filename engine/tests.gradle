@@ -42,6 +42,26 @@ tasks.named('check') {
 	dependsOn 'stepSourceTest'
 	dependsOn 'designDocumentReduceTest'
 	dependsOn 'redisSentinelConfigurationTest'
+	dependsOn 'staticCacheControlTest'
+	dependsOn 'adminCacheControlTest'
+}
+
+tasks.register('adminCacheControlTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for Admin static cache policies, fallback pages and error responses.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.servlets.CacheControlFilterTest'
+}
+
+tasks.register('staticCacheControlTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for production static cache policies, revalidation and file delivery.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.ServletUtilsCacheControlTest'
 }
 
 tasks.register('redisSentinelConfigurationTest', JavaExec) {

@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -60,6 +61,30 @@ public class ServletUtils {
 	private static final String ATTR_BASE_DEPTH = ServletUtils.class.getName() + ".baseDepth";
 	private static final Pattern RANGE_PATTERN = Pattern.compile("bytes\\s*=\\s*(.+)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern RANGE_ITEM_PATTERN = Pattern.compile("(\\d*)-(\\d*)");
+	private static final Pattern P_DISPLAY_OBJECTS_SPA = Pattern.compile("^/(?:system/)?projects/[^/]+/DisplayObjects/(?:mobile|pwas/[^/]+)(?:/.*)?$");
+	private static final String DISPLAY_OBJECTS_APP_ROOT = "^/(?:system/)?projects/[^/]+/DisplayObjects/(?:mobile|pwas/[^/]+)/";
+	private static final Pattern IMMUTABLE_DISPLAY_OBJECTS_PATH = Pattern.compile(
+			"^/(?:system/)?projects/[^/]+/DisplayObjects/(?:mobile|pwas/[^/]+)/_app/immutable/.+",
+			Pattern.CASE_INSENSITIVE);
+	// Legacy Angular/Webpack content hashes are hexadecimal. Modern Angular
+	// emits name-HASH bundles at the application root (including named lazy
+	// chunks and extra global bundles) and name-HASH media under media/.
+	// Keep that output layout and hash format distinct from copied assets.
+	private static final Pattern FINGERPRINTED_APP_FILE = Pattern.compile(
+			".+\\.[0-9a-fA-F]{8,64}\\.(?:css|m?js|png|apng|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf|eot|wasm)(?:\\.map)?$");
+	private static final Pattern FINGERPRINTED_ANGULAR_BUNDLE_PATH = Pattern.compile(
+			DISPLAY_OBJECTS_APP_ROOT + "[^/]+-[A-Z0-9]{8}\\.(?:css|m?js)(?:\\.map)?$");
+	private static final Pattern FINGERPRINTED_ANGULAR_MEDIA_PATH = Pattern.compile(
+			DISPLAY_OBJECTS_APP_ROOT + "media/(?:[^/]+/)*[^/]+-[A-Z0-9]{8}"
+			+ "\\.(?:png|apng|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf|eot|wasm)$");
+	private static final Pattern STATIC_APP_FILE = Pattern.compile(
+			".*\\.(?:css|m?js|map|json|webmanifest|png|apng|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf|eot|wasm)$",
+			Pattern.CASE_INSENSITIVE);
+	private static final String CACHE_CONTROL_IMMUTABLE = "public, max-age=31536000, immutable";
+	private static final String CACHE_CONTROL_REVALIDATE = "no-cache, must-revalidate";
+	private static final Set<String> REVALIDATED_APP_FILES = Set.of(
+			"env.json", "version.json", "manifest.json", "manifest.webmanifest", "asset-manifest.json",
+			"ngsw.json", "ngsw-worker.js", "service-worker.js", "safety-worker.js", "sw.js");
 	private static final Set<String> MOBILE_STATIC_EXTENSIONS = Set.of("js", "mjs", "css", "map", "json", "webmanifest", "png", "jpg", "jpeg", "gif", "svg", "ico", "webp", "avif", "woff", "woff2", "ttf", "eot", "otf", "wasm");
 	private static final Tika MIME_TYPE_DETECTOR = new Tika();
 	
@@ -67,6 +92,7 @@ public class ServletUtils {
 		if (file.exists()) {
 			Engine.logContext.debug("Static file");
 			HttpUtils.applyCorsHeaders(request, response);
+			applyStaticHeaders(file, request, response);
 
 			var normalizedPath = file.getPath().replace('\\', '/');
 			byte[] rewritten = null;
@@ -83,13 +109,12 @@ public class ServletUtils {
 			Engine.logContext.debug("If-Modified-Since: " + clientDate);
 			long fileDate = file.lastModified() / 1000;
 			Engine.logContext.debug("File date: " + fileDate);
-			if (clientDate == fileDate && fileDate > 0) {
+			var rangeHeader = HeaderName.Range.getHeader(request);
+			if ((rangeHeader == null || rangeHeader.isBlank()) && clientDate == fileDate && fileDate > 0) {
 				Engine.logContext.debug("Returned HTTP 304 Not Modified");
 				response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
 			}
 			else {
-				long maxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
-
 				// Serve static files if they exist in the projects repository.
 				if ("index.html".equalsIgnoreCase(file.getName()) && matcher.matches() && isBaseHrefRewriteSupported(file)) {
 					var depth = depthOverride != null ? depthOverride : computeDepth(request);
@@ -121,7 +146,6 @@ public class ServletUtils {
 				}
 				Engine.logContext.debug("Found MIME type: " + mimeType);
 				HeaderName.ContentType.setHeader(response, mimeType);
-				HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge	);
 				writeFile(request, response, file, rewritten, mimeType);
 			}
 		} else {
@@ -197,6 +221,46 @@ public class ServletUtils {
 				//response.setStatus(entry.getKey());
 			}
 		}
+	}
+
+	private static void applyStaticHeaders(File file, HttpServletRequest request, HttpServletResponse response) {
+		if (!HeaderName.CacheControl.has(response)) {
+			var uri = request.getRequestURI();
+			var contextPath = request.getContextPath();
+			var path = uri.startsWith(contextPath) ? uri.substring(contextPath.length()) : uri;
+			var cacheControl = getStaticCacheControl(path, file.getName(),
+					EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_APP_STATIC_MAX_AGE),
+					EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_APP_STATIC_SHARED_MAX_AGE));
+			if (cacheControl == null) {
+				cacheControl = "max-age=" + EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
+			}
+			HeaderName.CacheControl.setHeader(response, cacheControl);
+		}
+		if (!HeaderName.LastModified.has(response)) {
+			response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
+		}
+	}
+
+	static String getStaticCacheControl(String path, String fileName, long maxAge, long sharedMaxAge) {
+		if (!P_DISPLAY_OBJECTS_SPA.matcher(path).matches()) {
+			return null;
+		}
+		var normalizedName = fileName.toLowerCase(Locale.ROOT);
+		if (normalizedName.endsWith(".html") || normalizedName.endsWith(".htm")
+				|| REVALIDATED_APP_FILES.contains(normalizedName)) {
+			return CACHE_CONTROL_REVALIDATE;
+		}
+		if (IMMUTABLE_DISPLAY_OBJECTS_PATH.matcher(path).matches()
+				|| FINGERPRINTED_ANGULAR_BUNDLE_PATH.matcher(path).matches()
+				|| FINGERPRINTED_ANGULAR_MEDIA_PATH.matcher(path).matches()
+				|| FINGERPRINTED_APP_FILE.matcher(fileName).matches()) {
+			return CACHE_CONTROL_IMMUTABLE;
+		}
+		if (STATIC_APP_FILE.matcher(fileName).matches()) {
+			return "public, max-age=" + Math.max(0, maxAge) + ", s-maxage=" + Math.max(0, sharedMaxAge)
+					+ ", must-revalidate";
+		}
+		return null;
 	}
 
 	private static Integer computeDepth(HttpServletRequest request) {
@@ -284,6 +348,8 @@ public class ServletUtils {
 	}
 
 	private static void writeFile(HttpServletRequest request, HttpServletResponse response, File file, byte[] rewritten, String mimeType) throws IOException {
+		// Set validators and policy before returning a conditional 304 response.
+		applyStaticHeaders(file, request, response);
 		long fileLength = rewritten != null ? rewritten.length : file.length();
 
 		// Only honor If-Modified-Since when not a range request.
@@ -305,12 +371,14 @@ public class ServletUtils {
 		if (hasRange) {
 			if (fileLength <= 0) {
 				response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+				HeaderName.CacheControl.setHeader(response, "no-store");
 				HeaderName.ContentRange.setHeader(response, "bytes */" + fileLength);
 				return;
 			}
 			ranges = parseRanges(rangeHeader, fileLength);
 			if (ranges == null || ranges.isEmpty()) {
 				response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+				HeaderName.CacheControl.setHeader(response, "no-store");
 				HeaderName.ContentRange.setHeader(response, "bytes */" + fileLength);
 				return;
 			}
@@ -326,9 +394,6 @@ public class ServletUtils {
 		} else if (mimeType != null) {
 			HeaderName.ContentType.setHeader(response, mimeType);
 		}
-		long maxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
-		HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge);
-		response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
 		HeaderName.AcceptRanges.setHeader(response, "bytes");
 
 		if (singleRange != null) {

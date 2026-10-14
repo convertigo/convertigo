@@ -91,7 +91,7 @@
 							} else {
 								reject(new Error('Monaco failed to initialize'));
 							}
-						});
+						}, reject);
 					});
 				})
 				.catch((error) => {
@@ -236,7 +236,11 @@
 				// Trigger a few deferred layouts to stabilize height/width in dynamic containers.
 				scheduleLayout();
 			})
-			.catch(() => {});
+			.catch((error) => {
+				if (!disposed) {
+					void (/** @type {any} */ (globalThis).convertigoChunkRecovery?.report(error, true));
+				}
+			});
 
 		return {
 			update(next) {

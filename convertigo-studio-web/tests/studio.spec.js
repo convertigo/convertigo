@@ -133,6 +133,49 @@ for (const executionView of ['studio', 'dashboard']) {
 	});
 }
 
+test('dashboard recovers a missing Monaco chunk without replaying Execute', async ({ page }) => {
+	const executionRequests = [];
+	await mockStudioServices(page, { executionRequests });
+	await page.route('**/monaco/vs/editor-*.js', (route) =>
+		route.fulfill({
+			status: 404,
+			contentType: 'text/html',
+			body: '<html>Old chunk removed by deployment</html>'
+		})
+	);
+	await page.goto(`/dashboard/${projectName}/backend/?view=json#response`);
+	await ensureButtonExpanded(page, sequenceName);
+	await ensureButtonExpanded(page, /Variables \(1\)/);
+	await page.locator('input[name="input"]').fill('draft input');
+	await page
+		.locator('.requestable-execution__actions button')
+		.filter({ hasText: 'Execute' })
+		.click();
+	const notice = page.locator('#convertigo-chunk-recovery');
+	await expect(notice).toBeVisible();
+	expect(executionRequests).toHaveLength(1);
+	await expect(page.locator('input[name="input"]')).toHaveValue('draft input');
+	page.once('dialog', (dialog) => dialog.dismiss());
+	await notice.getByRole('button', { name: 'Reload', exact: true }).click();
+	await expect(page.locator('input[name="input"]')).toHaveValue('draft input');
+	await page.unroute('**/monaco/vs/editor-*.js');
+	page.once('dialog', (dialog) => dialog.accept());
+	await Promise.all([
+		page.waitForEvent('load'),
+		notice.getByRole('button', { name: 'Reload', exact: true }).click()
+	]);
+	await expect(page).toHaveURL(/view=json#response$/);
+	await ensureButtonExpanded(page, sequenceName);
+	expect(executionRequests).toHaveLength(1);
+	await page
+		.locator('.requestable-execution__actions button')
+		.filter({ hasText: 'Execute' })
+		.click();
+	await expect(responseEditor(page)).toBeVisible();
+	expect(executionRequests).toHaveLength(2);
+	await expect(notice).toHaveCount(0);
+});
+
 test.describe('dashboard rich comments', () => {
 	test.use({ locale: 'fr-FR' });
 	test('renders localized comments with Markdown, HTML, tables and safe links', async ({

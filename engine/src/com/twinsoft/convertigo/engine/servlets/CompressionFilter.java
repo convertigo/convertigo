@@ -64,25 +64,24 @@ public class CompressionFilter implements Filter {
 		
 		boolean doGZip = false;
 		try {
-			doGZip = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.NET_GZIP);
-			if (doGZip) {
+			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.NET_GZIP)) {
 				String acceptEncoding = HeaderName.AcceptEncoding.getHeader(request);
-				if (acceptEncoding != null && acceptEncoding.contains("gzip")) {
-					String uri = request.getRequestURI();
-					uri = uri.substring(request.getContextPath().length());
-					uri = uri.replaceFirst("^/(?:system/)?projects/[^/]+/\\.services(?:/|$)", "/services/");
-					uri = uri.replaceFirst("^/(?:system/)?projects/[^/]+/\\.fullsync(?:/|$)", "/fullsync/");
-					boolean isKO = pKO.matcher(uri).find();
-					boolean isOK = pOK.matcher(uri).find();
-					if (!isOK && isDisplayObjectsSpaRoute(uri)) {
-						isOK = true;
-					}
-					// the development server of an application answers through the gateway, forwarded from
-					// the projects filter: the end of the forward closes the response before the compression
-					// could write it
-					doGZip = !isKO && isOK && GatewayServlet.getDevPort(uri) < 1;
-				} else {
-					doGZip = false;
+				String uri = request.getRequestURI();
+				uri = uri.substring(request.getContextPath().length());
+				uri = uri.replaceFirst("^/(?:system/)?projects/[^/]+/\\.services(?:/|$)", "/services/");
+				uri = uri.replaceFirst("^/(?:system/)?projects/[^/]+/\\.fullsync(?:/|$)", "/fullsync/");
+				boolean isKO = pKO.matcher(uri).find();
+				boolean isOK = pOK.matcher(uri).find();
+				if (!isOK && isDisplayObjectsSpaRoute(uri)) {
+					isOK = true;
+				}
+				// the development server of an application answers through the gateway, forwarded from
+				// the projects filter: the end of the forward closes the response before the compression
+				// could write it
+				if (!isKO && isOK && GatewayServlet.getDevPort(uri) < 1) {
+					addVaryAcceptEncoding(response);
+					// Byte ranges describe the identity representation, not a new gzip stream.
+					doGZip = !HeaderName.Range.has(request) && acceptEncoding != null && acceptEncoding.contains("gzip");
 				}
 			}
 		} catch (Exception e) {
@@ -100,6 +99,17 @@ public class CompressionFilter implements Filter {
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
+	}
+
+	private static void addVaryAcceptEncoding(HttpServletResponse response) {
+		for (var value : response.getHeaders("Vary")) {
+			for (var token : value.split(",")) {
+				if ("*".equals(token.trim()) || "Accept-Encoding".equalsIgnoreCase(token.trim())) {
+					return;
+				}
+			}
+		}
+		response.addHeader("Vary", "Accept-Encoding");
 	}
 
 	private boolean isDisplayObjectsSpaRoute(String uri) {
