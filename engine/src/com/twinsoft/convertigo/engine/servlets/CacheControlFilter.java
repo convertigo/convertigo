@@ -23,8 +23,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 
 /** Cache policy for static files bundled with the Admin webapp, outside project workspaces. */
@@ -32,6 +30,7 @@ public class CacheControlFilter implements Filter {
 
 	private static final String IMMUTABLE = "public, max-age=31536000, immutable";
 	private static final String REVALIDATE = "no-cache, must-revalidate";
+	private static final String SHORT = "public, max-age=60, must-revalidate";
 	private static final Pattern ASSET_PATH = Pattern.compile("^/(?:[^/]+|(?:_app|fonts|icons|bezels|monaco/vs)/.+)$");
 	private static final String ASSET_EXTENSION = "(?:css|m?js|map|json|webmanifest|txt|png|apng|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf|eot|wasm)";
 	private static final Pattern STATIC_FILE = Pattern.compile(".+\\." + ASSET_EXTENSION + "$", Pattern.CASE_INSENSITIVE);
@@ -106,9 +105,7 @@ public class CacheControlFilter implements Filter {
 				if (path.startsWith("/monaco/vs/") && SCRIPT_FILE.matcher(name).matches()) {
 					return REVALIDATE;
 				}
-				return "public, max-age=" + Math.max(0, EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_ADMIN_STATIC_MAX_AGE))
-						+ ", s-maxage=" + Math.max(0, EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_ADMIN_STATIC_SHARED_MAX_AGE))
-						+ ", must-revalidate";
+				return SHORT;
 			}
 		} else if (resolvesToIndexHtml(path)) {
 			return REVALIDATE;

@@ -50,7 +50,7 @@ public class ServletUtilsCacheControlTest {
 	private static final String MOBILE = "/projects/demo/DisplayObjects/mobile/";
 	private static final String IMMUTABLE = "public, max-age=31536000, immutable";
 	private static final String REVALIDATE = "no-cache, must-revalidate";
-	private static final String SHORT = "public, max-age=60, s-maxage=300, must-revalidate";
+	private static final String SHORT = "public, max-age=60, must-revalidate";
 	private static final long MODIFIED = 1_700_000_000_000L;
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
@@ -60,10 +60,17 @@ public class ServletUtilsCacheControlTest {
 		Engine.isStarted = false;
 		Engine.logEngine = Engine.logContext = Logger.getLogger("static-cache-test");
 		EnginePropertiesManager.initProperties();
-		EnginePropertiesManager.setProperty(PropertyName.NET_MAX_AGE, "10");
-		EnginePropertiesManager.setProperty(PropertyName.NET_APP_STATIC_MAX_AGE, "60");
-		EnginePropertiesManager.setProperty(PropertyName.NET_APP_STATIC_SHARED_MAX_AGE, "300");
+		EnginePropertiesManager.setProperty(PropertyName.NET_MAX_AGE, "60");
 		EnginePropertiesManager.setProperty(PropertyName.NET_GZIP, "true");
+	}
+
+	@Test
+	public void keepsOneStaticLifetimePropertyWithASixtySecondDefault() {
+		assertEquals("60", PropertyName.NET_MAX_AGE.getDefaultValue());
+		for (var property : PropertyName.values()) {
+			assertTrue(property.getKey(), !property.getKey().startsWith("net.app.static.")
+					&& !property.getKey().startsWith("net.admin.static."));
+		}
 	}
 
 	@Test
@@ -94,7 +101,7 @@ public class ServletUtilsCacheControlTest {
 			assertEquals(name, IMMUTABLE, policy(name));
 			assertEquals(name, IMMUTABLE, ServletUtils.getStaticCacheControl(
 					"/projects/demo/DisplayObjects/pwas/sample/" + name,
-					name.substring(name.lastIndexOf('/') + 1), 60, 300));
+					name.substring(name.lastIndexOf('/') + 1), 60));
 		}
 	}
 
@@ -137,23 +144,23 @@ public class ServletUtilsCacheControlTest {
 		assertEquals(IMMUTABLE, policy("_app/immutable/entry/start.BYXUh3T7.js"));
 		assertEquals(REVALIDATE, policy("_app/version.json"));
 		assertEquals(IMMUTABLE, ServletUtils.getStaticCacheControl(
-				"/system/projects/demo/DisplayObjects/pwas/sample/main-GZ62CSQV.js", "main-GZ62CSQV.js", 60, 300));
+				"/system/projects/demo/DisplayObjects/pwas/sample/main-GZ62CSQV.js", "main-GZ62CSQV.js", 60));
 	}
 
 	@Test
 	public void leavesAdminApisAndDevelopmentPathsToTheirExistingPolicy() {
 		for (var path : List.of("/admin/index.html", "/api/main-GZ62CSQV.js", "/projects/demo/.json",
 				"/projects/demo/DisplayObjects/dev47447/main-GZ62CSQV.js")) {
-			assertNull(path, ServletUtils.getStaticCacheControl(path, "main-GZ62CSQV.js", 60, 300));
+			assertNull(path, ServletUtils.getStaticCacheControl(path, "main-GZ62CSQV.js", 60));
 		}
 	}
 
 	@Test
-	public void boundsConfiguredTtlsAtZeroAndAllowsIndependentLifetimes() {
-		assertEquals("public, max-age=20, s-maxage=120, must-revalidate",
-				ServletUtils.getStaticCacheControl(MOBILE + "logo.svg", "logo.svg", 20, 120));
-		assertEquals("public, max-age=0, s-maxage=0, must-revalidate",
-				ServletUtils.getStaticCacheControl(MOBILE + "logo.svg", "logo.svg", -1, -100));
+	public void boundsTheConfiguredLifetimeAtZero() {
+		assertEquals("public, max-age=20, must-revalidate",
+				ServletUtils.getStaticCacheControl(MOBILE + "logo.svg", "logo.svg", 20));
+		assertEquals("public, max-age=0, must-revalidate",
+				ServletUtils.getStaticCacheControl(MOBILE + "logo.svg", "logo.svg", -1));
 	}
 
 	@Test
@@ -168,12 +175,11 @@ public class ServletUtilsCacheControlTest {
 	}
 
 	@Test
-	public void appliesTheConfiguredShortTtlsWhenServingAnAsset() throws Exception {
-		EnginePropertiesManager.setProperty(PropertyName.NET_APP_STATIC_MAX_AGE, "20");
-		EnginePropertiesManager.setProperty(PropertyName.NET_APP_STATIC_SHARED_MAX_AGE, "120");
+	public void appliesTheLegacyPropertyToUnfingerprintedApplicationAssets() throws Exception {
+		EnginePropertiesManager.setProperty(PropertyName.NET_MAX_AGE, "20");
 		var file = file("logo.svg", "image-content");
 		var response = serve(file, request("GET", MOBILE + file.getName(), Map.of()));
-		assertEquals("public, max-age=20, s-maxage=120, must-revalidate", response.header("Cache-Control"));
+		assertEquals("public, max-age=20, must-revalidate", response.header("Cache-Control"));
 	}
 
 	@Test
@@ -212,7 +218,7 @@ public class ServletUtilsCacheControlTest {
 		response.headers.put("Cache-Control", "private, no-store");
 		ServletUtils.serveFile(file, request("GET", MOBILE + file.getName(), Map.of()), response.proxy(), "image/svg+xml");
 		assertEquals("private, no-store", response.header("Cache-Control"));
-		assertEquals("max-age=10", serve(file, request("GET", "/admin/logo.svg", Map.of())).header("Cache-Control"));
+		assertEquals("max-age=60", serve(file, request("GET", "/admin/logo.svg", Map.of())).header("Cache-Control"));
 	}
 
 	@Test
@@ -317,7 +323,7 @@ public class ServletUtilsCacheControlTest {
 	}
 
 	private static String policy(String name) {
-		return ServletUtils.getStaticCacheControl(MOBILE + name, name.substring(name.lastIndexOf('/') + 1), 60, 300);
+		return ServletUtils.getStaticCacheControl(MOBILE + name, name.substring(name.lastIndexOf('/') + 1), 60);
 	}
 
 	private File file(String name, String content) throws Exception {

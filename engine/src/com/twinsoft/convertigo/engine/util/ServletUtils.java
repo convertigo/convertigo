@@ -228,11 +228,10 @@ public class ServletUtils {
 			var uri = request.getRequestURI();
 			var contextPath = request.getContextPath();
 			var path = uri.startsWith(contextPath) ? uri.substring(contextPath.length()) : uri;
-			var cacheControl = getStaticCacheControl(path, file.getName(),
-					EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_APP_STATIC_MAX_AGE),
-					EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_APP_STATIC_SHARED_MAX_AGE));
+			var maxAge = Math.max(0, EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE));
+			var cacheControl = getStaticCacheControl(path, file.getName(), maxAge);
 			if (cacheControl == null) {
-				cacheControl = "max-age=" + EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
+				cacheControl = "max-age=" + maxAge;
 			}
 			HeaderName.CacheControl.setHeader(response, cacheControl);
 		}
@@ -241,7 +240,7 @@ public class ServletUtils {
 		}
 	}
 
-	static String getStaticCacheControl(String path, String fileName, long maxAge, long sharedMaxAge) {
+	static String getStaticCacheControl(String path, String fileName, long maxAge) {
 		if (!P_DISPLAY_OBJECTS_SPA.matcher(path).matches()) {
 			return null;
 		}
@@ -257,8 +256,7 @@ public class ServletUtils {
 			return CACHE_CONTROL_IMMUTABLE;
 		}
 		if (STATIC_APP_FILE.matcher(fileName).matches()) {
-			return "public, max-age=" + Math.max(0, maxAge) + ", s-maxage=" + Math.max(0, sharedMaxAge)
-					+ ", must-revalidate";
+			return "public, max-age=" + Math.max(0, maxAge) + ", must-revalidate";
 		}
 		return null;
 	}

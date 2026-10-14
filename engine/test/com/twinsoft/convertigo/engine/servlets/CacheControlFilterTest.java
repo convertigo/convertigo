@@ -42,7 +42,7 @@ import com.twinsoft.convertigo.engine.util.ServletUtils;
 
 public class CacheControlFilterTest {
 	private static final String IMMUTABLE = "public, max-age=31536000, immutable";
-	private static final String SHORT = "public, max-age=60, s-maxage=300, must-revalidate";
+	private static final String SHORT = "public, max-age=60, must-revalidate";
 	private static final String REVALIDATE = "no-cache, must-revalidate";
 	private static final long MODIFIED = 1_700_000_000_000L;
 	@Rule public TemporaryFolder folder = new TemporaryFolder();
@@ -54,8 +54,6 @@ public class CacheControlFilterTest {
 		Engine.isStarted = false;
 		Engine.logEngine = Engine.logContext = Logger.getLogger("admin-cache-test");
 		EnginePropertiesManager.initProperties();
-		EnginePropertiesManager.setProperty(PropertyName.NET_ADMIN_STATIC_MAX_AGE, "60");
-		EnginePropertiesManager.setProperty(PropertyName.NET_ADMIN_STATIC_SHARED_MAX_AGE, "300");
 		EnginePropertiesManager.setProperty(PropertyName.NET_GZIP, "true");
 	}
 
@@ -186,15 +184,12 @@ public class CacheControlFilterTest {
 		assertEquals("private, no-store", response.header("Cache-Control"));
 	}
 
-	@Test public void appliesIndependentConfigurableTtlsAndClampsNegativeValues() throws Exception {
+	@Test public void adminPolicyRemainsFixedIndependentlyOfTheProjectLifetime() throws Exception {
 		file("/fonts/SpaceGrotesk.ttf");
-		EnginePropertiesManager.setProperty(PropertyName.NET_APP_STATIC_MAX_AGE, "123");
-		EnginePropertiesManager.setProperty(PropertyName.NET_ADMIN_STATIC_MAX_AGE, "20");
-		EnginePropertiesManager.setProperty(PropertyName.NET_ADMIN_STATIC_SHARED_MAX_AGE, "120");
-		assertEquals("public, max-age=20, s-maxage=120, must-revalidate", policy("/fonts/SpaceGrotesk.ttf"));
-		EnginePropertiesManager.setProperty(PropertyName.NET_ADMIN_STATIC_MAX_AGE, "-1");
-		EnginePropertiesManager.setProperty(PropertyName.NET_ADMIN_STATIC_SHARED_MAX_AGE, "-2");
-		assertEquals("public, max-age=0, s-maxage=0, must-revalidate", policy("/fonts/SpaceGrotesk.ttf"));
+		EnginePropertiesManager.setProperty(PropertyName.NET_MAX_AGE, "20");
+		assertEquals(SHORT, policy("/fonts/SpaceGrotesk.ttf"));
+		EnginePropertiesManager.setProperty(PropertyName.NET_MAX_AGE, "-1");
+		assertEquals(SHORT, policy("/fonts/SpaceGrotesk.ttf"));
 	}
 
 	@Test public void missingFilesAndTraversalNeverAcquireImmutableHeaders() throws Exception {
