@@ -76,6 +76,42 @@ export function asEditorValue(value) {
 }
 
 /**
+ * The JSON object or array a text holds, indented for a reader.
+ * @param {string} text
+ * @returns {string} the indented JSON, or '' when the text is not a JSON object or array
+ */
+export function indentedJson(text) {
+	try {
+		const value = JSON.parse(String(text ?? ''));
+		return value && typeof value === 'object' ? JSON.stringify(value, null, 2) : '';
+	} catch {
+		return '';
+	}
+}
+
+/**
+ * The value a property editor opens with: a long JSON object or array kept on one line (the body of
+ * an HTTP request of a Flow, for instance) opens indented, when indenting changes nothing but spaces.
+ * @param {string} text
+ * @returns {string}
+ */
+export function readableEditorValue(text) {
+	const source = String(text ?? '');
+	if (source.length < 80 || source.includes('\n')) {
+		return source;
+	}
+	try {
+		const value = JSON.parse(source);
+		if (!value || typeof value !== 'object' || JSON.stringify(value) !== source.trim()) {
+			return source;
+		}
+		return JSON.stringify(value, null, 2);
+	} catch {
+		return source;
+	}
+}
+
+/**
  * Renders a Flow binding as the expression an author recognizes, without
  * exposing the persisted JSON contract.
  *

@@ -6,7 +6,9 @@
 	import {
 		asEditorValue,
 		findPrimaryEditorProperty,
-		getPropertyLanguage
+		getPropertyLanguage,
+		indentedJson,
+		readableEditorValue
 	} from '#lib/studio/propertyEditors.js';
 	import Ico from '#lib/utils/Ico.svelte';
 	import { call } from '#lib/utils/service.js';
@@ -120,6 +122,12 @@
 	let zoneReveal = $state({ name: '', serial: 0 });
 	let zonesWithCode = $derived(zones.filter((zone) => !zone.empty).length);
 	let canSave = $derived(Boolean(activeTab && activeTabDirty && !loading && !saving));
+	/** the JSON object or array of the tab, indented, when it is not already */
+	let formattedJson = $derived.by(() => {
+		if (!activeTab || activeTab.readOnly) return '';
+		const formatted = indentedJson(activeTab.content);
+		return formatted && formatted !== activeTab.content ? formatted : '';
+	});
 	/** the problems of the FlowScript of the tab, errors first */
 	let problems = $derived(
 		[...(activeTab?.check?.diagnostics ?? [])].sort(
@@ -392,14 +400,19 @@
 		}
 
 		const initialValue = getInitialEditorValue(property, target, objectId);
-		const content = asEditorValue(initialValue);
+		let content = asEditorValue(initialValue);
+		let originalValue = persisted ?? asEditorValue(property?.value);
+		// a property of a Flow node is parsed again when applied: its JSON opens indented, unchanged
+		if (/\.flow\./.test(objectId) && content === originalValue) {
+			content = originalValue = readableEditorValue(content);
+		}
 		editorTabs.push({
 			key,
 			id: objectId,
 			propertyName,
 			displayName,
 			content,
-			originalValue: persisted ?? asEditorValue(property?.value),
+			originalValue,
 			language: getPropertyLanguage({ ...property, value: content }, objectId),
 			focused: false
 		});
@@ -922,6 +935,17 @@
 						<span class="studio-editor__zones-label"
 							>{zonesFocus ? 'Show generated code' : 'Fold generated code'}</span
 						>
+					</button>
+				{/if}
+				{#if formattedJson}
+					<button
+						type="button"
+						class="studio-editor__zones-button"
+						title="Indent the JSON of this value"
+						onclick={() => activeTab && (activeTab.content = formattedJson)}
+					>
+						<Ico icon="mdi:code-json" size={3.4} />
+						<span class="studio-editor__zones-label">Format JSON</span>
 					</button>
 				{/if}
 				{#if activeTab.readOnly}
