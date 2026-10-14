@@ -93,7 +93,8 @@ public class Update extends XmlService {
 					AuthenticatedSessionManager.validatePassword(propValue);
 				}
 				EnginePropertiesManager.setProperty(property, propValue);
-				Engine.logAdmin.info("The engine property '" + propKey + "' has been updated to '" + propValue + "'");
+				Engine.logAdmin.info("The engine property '" + propKey + "' has been updated to '"
+						+ EnginePropertiesManager.getPropertyValueForLogging(property, propValue) + "'");
 			}
 		}
 

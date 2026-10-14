@@ -1,0 +1,62 @@
+# Disposable local topology; no host Redis ports and no production resources.
+x-redis: &redis
+  image: redis:7-alpine
+x-sentinel: &sentinel
+  <<: *redis
+  volumes:
+    - ./sentinel.conf:/etc/sentinel.conf:ro
+  command: [sh, -c, "cp /etc/sentinel.conf /data/sentinel.conf && exec redis-server /data/sentinel.conf --sentinel"]
+  depends_on: [redis-master]
+x-engine: &engine
+  image: convertigo/convertigo-ci:hotfix
+  environment:
+    CONVERTIGO_ADMIN_USER: admin
+    CONVERTIGO_ADMIN_PASSWORD: issue1233-test-only
+    JAVA_OPTS: >-
+      -Xmx512m
+      -Dconvertigo.engine.session.store.mode=redis
+      -Dconvertigo.engine.session.cookie.name=ISSUE1233SESSION
+      -Dconvertigo.engine.session.redis.topology=sentinel
+      -Dconvertigo.engine.session.redis.sentinel.master=c8o-test
+      -Dconvertigo.engine.session.redis.sentinel.nodes=sentinel-1:26379,sentinel-2:26379,sentinel-3:26379
+      -Dconvertigo.engine.session.redis.password=data-test-password
+      -Dconvertigo.engine.session.redis.sentinel.password=sentinel-test-password
+      -Dconvertigo.engine.session.redis.connection.pool.size=8
+      -Dconvertigo.engine.session.redis.connection.minimum.idle.size=2
+      -Dconvertigo.engine.session.redis.prefix=issue1233:session
+      -Dconvertigo.engine.fullsync.couch.url=http://127.0.0.1:15984
+  depends_on: [sentinel-1, sentinel-2, sentinel-3]
+services:
+  redis-master:
+    <<: *redis
+    command: [redis-server, --requirepass, data-test-password, --masterauth, data-test-password, --replica-announce-ip, redis-master]
+  redis-replica-1:
+    <<: *redis
+    command: [redis-server, --replicaof, redis-master, "6379", --masterauth, data-test-password, --requirepass, data-test-password, --replica-announce-ip, redis-replica-1]
+    depends_on: [redis-master]
+  redis-replica-2:
+    <<: *redis
+    command: [redis-server, --replicaof, redis-master, "6379", --masterauth, data-test-password, --requirepass, data-test-password, --replica-announce-ip, redis-replica-2]
+    depends_on: [redis-master]
+  sentinel-1:
+    <<: *sentinel
+  sentinel-2:
+    <<: *sentinel
+  sentinel-3:
+    <<: *sentinel
+  engine-a:
+    <<: *engine
+    ports: ["127.0.0.1:${C8O_SENTINEL_PORT_A:-29133}:28080"]
+    volumes:
+      - workspace-a:/workspace
+      - ${C8O_HOTFIX_ROOT:?Set C8O_HOTFIX_ROOT to the hotfix checkout}/engine/build/classes/java/main:/workspace/classes:ro
+      - ${C8O_HOTFIX_ROOT}/engine/build/classes/java/sessionTest:/test-classes:ro
+  engine-b:
+    <<: *engine
+    ports: ["127.0.0.1:${C8O_SENTINEL_PORT_B:-29134}:28080"]
+    volumes:
+      - workspace-b:/workspace
+      - ${C8O_HOTFIX_ROOT}/engine/build/classes/java/main:/workspace/classes:ro
+volumes:
+  workspace-a:
+  workspace-b:

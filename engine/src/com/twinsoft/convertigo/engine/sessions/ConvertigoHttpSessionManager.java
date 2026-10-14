@@ -370,6 +370,11 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			reload(targetMode);
 			break;
 		case SESSION_REDIS_HOST:
+		case SESSION_REDIS_TOPOLOGY:
+		case SESSION_REDIS_SENTINEL_MASTER:
+		case SESSION_REDIS_SENTINEL_NODES:
+		case SESSION_REDIS_SENTINEL_USERNAME:
+		case SESSION_REDIS_SENTINEL_PASSWORD:
 		case SESSION_REDIS_PORT:
 		case SESSION_REDIS_USERNAME:
 		case SESSION_REDIS_PASSWORD:

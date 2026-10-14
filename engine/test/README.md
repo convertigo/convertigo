@@ -64,6 +64,14 @@ extraction into shared directories, buffered binary output, and project referenc
 discovery without reading included sequence files. It uses temporary fixtures and
 does not start an engine.
 
+## Redis Sentinel
+
+`./gradlew :engine:redisSentinelConfigurationTest` checks the default single-server
+mode, Sentinel configuration validation, independent credentials, master-only
+reads/subscriptions, TLS settings, reload equality and secret-free diagnostics.
+It is offline and included in `:engine:check`. For opt-in Docker failover checks,
+see [the disposable Sentinel fixture](redis-sentinel/README.md).
+
 ## Session serialization
 
 Run the standalone suite (also included in `:engine:check`):

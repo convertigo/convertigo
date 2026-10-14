@@ -78,8 +78,8 @@ public final class RedisHealth {
 	}
 
 	public static Map<String, Object> toMap() {
+		var map = new LinkedHashMap<String, Object>(RedisClients.diagnostics());
 		synchronized (MUTEX) {
-			var map = new LinkedHashMap<String, Object>();
 			map.put("reachable", reachable == null ? "unknown" : reachable.toString());
 			map.put("since", since);
 			map.put("lastCheck", lastCheck);

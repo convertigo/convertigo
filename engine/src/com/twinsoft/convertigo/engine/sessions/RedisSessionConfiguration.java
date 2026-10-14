@@ -20,11 +20,19 @@
 package com.twinsoft.convertigo.engine.sessions;
 
 import java.util.Arrays;
+import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 
 public final class RedisSessionConfiguration {
+    private final RedisTopology topology;
+    private final String sentinelMaster;
+    private final String[] sentinelAddresses;
+    private final String sentinelUsername;
+    private final String sentinelPassword;
     private final String host;
     private final int port;
     private final String username;
@@ -49,7 +57,17 @@ public final class RedisSessionConfiguration {
     private RedisSessionConfiguration(String host, int port, String username, String password, int database, boolean ssl,
             String sslTruststore, String sslTruststorePassword, String sslKeystore, String sslKeystorePassword,
             String sslKeystoreType, String sslVerificationMode, String[] sslProtocols, int timeoutMillis,
-            int connectionPoolSize, int connectionMinimumIdleSize, String keyPrefix, int defaultTtlSeconds) {
+            int connectionPoolSize, int connectionMinimumIdleSize, String keyPrefix, int defaultTtlSeconds,
+            RedisTopology topology, String sentinelMaster, String[] sentinelNodes, String sentinelUsername,
+            String sentinelPassword) {
+        this.topology = topology;
+        this.sentinelMaster = blankToNull(sentinelMaster);
+        this.sentinelUsername = blankToNull(sentinelUsername);
+        this.sentinelPassword = sentinelPassword == null || sentinelPassword.isBlank() ? null : sentinelPassword;
+        this.sentinelAddresses = topology == RedisTopology.sentinel ? sentinelAddresses(sentinelNodes, ssl) : new String[0];
+        if (topology == RedisTopology.sentinel && (this.sentinelMaster == null || this.sentinelAddresses.length == 0)) {
+            throw new IllegalArgumentException("session.redis.sentinel.master and session.redis.sentinel.nodes are required in sentinel mode");
+        }
         this.host = host;
         this.port = port;
         this.username = username;
@@ -100,7 +118,30 @@ public final class RedisSessionConfiguration {
         var ttl = RedisSessionConfiguration.parseInt(EnginePropertiesManager.PropertyName.SESSION_REDIS_DEFAULT_TTL, 1800);
         return new RedisSessionConfiguration(host, port, username, password, database, ssl, sslTruststore,
                 sslTruststorePassword, sslKeystore, sslKeystorePassword, sslKeystoreType, sslVerificationMode,
-                sslProtocols, timeoutMillis, connectionPoolSize, connectionMinimumIdleSize, prefix, ttl);
+                sslProtocols, timeoutMillis, connectionPoolSize, connectionMinimumIdleSize, prefix, ttl,
+                RedisTopology.fromProperty(EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.SESSION_REDIS_TOPOLOGY)),
+                EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.SESSION_REDIS_SENTINEL_MASTER),
+                parseList(EnginePropertiesManager.PropertyName.SESSION_REDIS_SENTINEL_NODES),
+                EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.SESSION_REDIS_SENTINEL_USERNAME),
+                EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.SESSION_REDIS_SENTINEL_PASSWORD));
+    }
+
+    private static String[] sentinelAddresses(String[] nodes, boolean ssl) {
+        var scheme = ssl ? "rediss" : "redis";
+        return Arrays.stream(nodes).map(node -> {
+            try {
+                var uri = URI.create(node.contains("://") ? node : scheme + "://" + node);
+                if (!scheme.equals(uri.getScheme()) || uri.getHost() == null || uri.getPort() < 1
+                        || uri.getPort() > 65535 || uri.getUserInfo() != null || uri.getQuery() != null
+                        || uri.getFragment() != null || !uri.getRawPath().isEmpty()) {
+                    throw new IllegalArgumentException();
+                }
+                return uri.toString();
+            } catch (IllegalArgumentException e) {
+                // Do not echo malformed input: it may contain credentials.
+                throw new IllegalArgumentException("Invalid session.redis.sentinel.nodes: use host:port addresses without credentials, with a scheme matching session.redis.ssl");
+            }
+        }).distinct().toArray(String[]::new);
     }
 
     private static int parseInt(EnginePropertiesManager.PropertyName property, int defaultValue) {
@@ -130,8 +171,16 @@ public final class RedisSessionConfiguration {
     /** One-line summary of the effective settings for the logs, without any secret. */
     public String describe() {
         var sb = new StringBuilder();
-        sb.append("address=").append(getAddress())
-                .append(", database=").append(database)
+        sb.append("topology=").append(topology);
+        if (topology == RedisTopology.sentinel) {
+            sb.append(", master=").append(sentinelMaster)
+                    .append(", sentinels=").append(String.join(",", sentinelAddresses))
+                    .append(", sentinelUsername=").append(sentinelUsername != null ? sentinelUsername : "(none)")
+                    .append(", sentinelPassword=").append(sentinelPassword != null ? "(set)" : "(data password if required)");
+        } else {
+            sb.append(", address=").append(getAddress());
+        }
+        sb.append(", database=").append(database)
                 .append(", username=").append(getUsername() != null ? getUsername() : "(none)")
                 .append(", password=").append(getPassword() != null ? "(set)" : "(none)")
                 .append(", timeout=").append(timeoutMillis).append(" ms")
@@ -164,6 +213,40 @@ public final class RedisSessionConfiguration {
     String getAddress() {
         var protocol = this.ssl ? "rediss" : "redis";
         return protocol + "://" + this.host + ":" + this.port;
+    }
+
+    RedisTopology getTopology() {
+        return topology;
+    }
+
+    String getSentinelMaster() {
+        return sentinelMaster;
+    }
+
+    String[] getSentinelAddresses() {
+        return sentinelAddresses.clone();
+    }
+
+    String getSentinelUsername() {
+        return sentinelUsername;
+    }
+
+    String getSentinelPassword() {
+        return sentinelPassword;
+    }
+
+    /** Configured topology only; no connection attempt or secrets in diagnostics. */
+    Map<String, Object> diagnostics() {
+        var map = new LinkedHashMap<String, Object>();
+        map.put("topology", topology.name());
+        if (topology == RedisTopology.sentinel) {
+            map.put("masterName", sentinelMaster);
+            map.put("sentinelNodes", Arrays.asList(sentinelAddresses.clone()));
+        } else {
+            map.put("address", getAddress());
+        }
+        map.put("database", database);
+        return map;
     }
 
     String getUsername() {
@@ -255,6 +338,11 @@ public final class RedisSessionConfiguration {
             return false;
         }
         return port == other.port
+                && topology == other.topology
+                && Objects.equals(sentinelMaster, other.sentinelMaster)
+                && Arrays.equals(sentinelAddresses, other.sentinelAddresses)
+                && Objects.equals(sentinelUsername, other.sentinelUsername)
+                && Objects.equals(sentinelPassword, other.sentinelPassword)
                 && database == other.database
                 && ssl == other.ssl
                 && timeoutMillis == other.timeoutMillis
@@ -278,10 +366,12 @@ public final class RedisSessionConfiguration {
 
     @Override
     public int hashCode() {
-        var result = Objects.hash(host, port, username, password, database, ssl, sslTruststore,
+        var result = Objects.hash(topology, sentinelMaster, sentinelUsername, sentinelPassword,
+                host, port, username, password, database, ssl, sslTruststore,
                 sslTruststorePassword, sslKeystore, sslKeystorePassword, sslKeystoreType, sslVerificationMode,
                 timeoutMillis, connectionPoolSize, connectionMinimumIdleSize, keyPrefix, defaultTtlSeconds, cookieName,
                 contextKeyPrefix);
+        result = 31 * result + Arrays.hashCode(sentinelAddresses);
         return 31 * result + Arrays.hashCode(sslProtocols);
     }
 }

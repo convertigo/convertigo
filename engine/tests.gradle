@@ -41,6 +41,17 @@ tasks.named('check') {
 	dependsOn 'fullSyncReplicationPolicyTest'
 	dependsOn 'stepSourceTest'
 	dependsOn 'designDocumentReduceTest'
+	dependsOn 'redisSentinelConfigurationTest'
+}
+
+tasks.register('redisSentinelConfigurationTest', JavaExec) {
+	group = 'verification'
+	description = 'Redis topology, Sentinel validation, client settings and secret-free diagnostics (offline).'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisSentinelConfigurationTest',
+		'com.twinsoft.convertigo.engine.RedisPropertyLoggingTest'
 }
 
 tasks.register('designDocumentReduceTest', JavaExec) {
