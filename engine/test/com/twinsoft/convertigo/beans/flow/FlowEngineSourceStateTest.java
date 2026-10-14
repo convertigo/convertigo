@@ -83,4 +83,40 @@ public class FlowEngineSourceStateTest {
 		assertTrue("a Flow source has its working copy", engine.isSourceDirty(page.getPath()));
 		assertTrue(engine.hasSource(page.getPath()));
 	}
+
+	@Test
+	public void theLastDraftTakesTheChangeFlagItRaised() throws Exception {
+		var directory = folder.newFolder();
+		var engine = engine(directory);
+		var flow = new File(directory, "_flow/flows/Orders.flow.js");
+		var page = new File(directory, "_flow/frontbuilder/svelte/model/app/src/routes/+page.flow.svelte");
+		engine.setSource(flow.getPath(), "function Orders() {}");
+		engine.setSource(page.getPath(), "<FlowComponent />");
+		assertTrue("a draft marks the engine", engine.hasChanged);
+		engine.applySourceChanges(java.util.Map.of(), java.util.List.of(flow.getPath()));
+		assertTrue("another draft remains", engine.hasChanged);
+		engine.discardSource(page.getPath());
+		assertFalse("the last draft gone, nothing remains to save", engine.hasChanged);
+
+		engine.setSource(flow.getPath(), "function Orders() {}");
+		engine.discardSource(flow.getPath());
+		assertFalse("a discarded draft takes its flag too", engine.hasChanged);
+	}
+
+	@Test
+	public void anotherChangeKeepsTheFlagAfterTheDrafts() throws Exception {
+		var directory = folder.newFolder();
+		var engine = engine(directory);
+		var flow = new File(directory, "_flow/flows/Orders.flow.js");
+		engine.setSource(flow.getPath(), "function Orders() {}");
+		engine.changed();
+		engine.discardSource(flow.getPath());
+		assertTrue("a change besides the drafts is still to save", engine.hasChanged);
+
+		engine.hasChanged = false;
+		engine.changed();
+		engine.setSource(flow.getPath(), "function Orders() {}");
+		engine.discardSource(flow.getPath());
+		assertTrue("a change before the drafts is still to save", engine.hasChanged);
+	}
 }

@@ -72,6 +72,8 @@ public class FlowEngine extends DatabaseObject {
 	private String engineQName = FlowEngineBridge.DEFAULT_ENGINE_QNAME;
 	private String engineSource = DEFAULT_ENGINE_SOURCE;
 	private transient boolean engineSourceDirty = false;
+	/** The change flag only reflects source working copies: it goes with the last of them, saved or discarded. */
+	private transient boolean changedBySourceDraftsOnly = false;
 	private transient long engineSourceFileLastModified = -1;
 	private transient String flowVirtualChildrenCacheKey = "";
 	private transient List<DatabaseObject> flowVirtualChildrenCache = null;
@@ -392,7 +394,31 @@ public class FlowEngine extends DatabaseObject {
 				}
 			}
 			clearFlowVirtualChildrenCache();
-			if (modified) changed();
+			if (modified) sourceDraftsChanged();
+		}
+	}
+
+	@Override
+	public void changed() {
+		changedBySourceDraftsOnly = false;
+		super.changed();
+	}
+
+	/**
+	 * Marks the engine for its source working copies, or lowers the flag once none remains when they alone
+	 * raised it: a published or discarded draft leaves nothing to save, while the flag would make the Studio
+	 * mark the project at its next reload.
+	 */
+	private void sourceDraftsChanged() {
+		if (sourceChanges().isEmpty()) {
+			if (changedBySourceDraftsOnly && !engineSourceDirty) {
+				hasChanged = false;
+			}
+			changedBySourceDraftsOnly = false;
+		} else {
+			var draftsOnly = !hasChanged || changedBySourceDraftsOnly;
+			changed();
+			changedBySourceDraftsOnly = draftsOnly;
 		}
 	}
 
@@ -454,7 +480,10 @@ public class FlowEngine extends DatabaseObject {
 	/** Drop the working copy of a source (a created source not saved yet disappears). */
 	public boolean discardSource(String sourcePath) throws EngineException {
 		boolean removed;
-		synchronized (sourceLock()) { removed = sourceDrafts.remove(canonicalSourcePath(sourcePath)) != null; }
+		synchronized (sourceLock()) {
+			removed = sourceDrafts.remove(canonicalSourcePath(sourcePath)) != null;
+			if (removed && sourceChanges().isEmpty()) sourceDraftsChanged();
+		}
 		if (removed) {
 			clearFlowVirtualChildrenCache();
 		}
