@@ -538,9 +538,8 @@ public class Flow extends Sequence {
 				variable.setDescription("Flow input " + key);
 			}
 			if (definition.has("default")) {
-				variableChanged |= setValueIfChanged(variable.getValueOrNull(),
-						flowInputDefaultValue(definition.opt("default"), variable instanceof RequestableMultiValuedVariable),
-						variable::setValueOrNull);
+				variableChanged |= setDefaultIfChanged(variable,
+						flowInputDefaultValue(definition.opt("default"), variable instanceof RequestableMultiValuedVariable));
 			}
 			if (definition.has("required")) {
 				variableChanged |= setBooleanIfChanged(variable.isRequired(), definition.optBoolean("required"), variable::setRequired);
@@ -613,11 +612,19 @@ public class Flow extends Sequence {
 		return true;
 	}
 
-	private boolean setValueIfChanged(Object current, Object next, java.util.function.Consumer<Object> setter) {
-		if (sameValue(current, next)) {
+	// A default naming symbols (${name}) stays the source value of the variable, saved as is, and is used compiled,
+	// as the bean properties of the former sequences: compare with that source value, compile what is set.
+	private boolean setDefaultIfChanged(RequestableVariable variable, Object next) {
+		var source = variable.getCompilablePropertySourceValue("value");
+		if (sameValue(source != null ? source : variable.getValueOrNull(), next)) {
 			return false;
 		}
-		setter.accept(next);
+		if (next instanceof String) {
+			variable.setValueOrNull(variable.compileProperty("value", next));
+		} else {
+			variable.removeCompilablePropertySourceValue("value");
+			variable.setValueOrNull(next);
+		}
 		return true;
 	}
 
