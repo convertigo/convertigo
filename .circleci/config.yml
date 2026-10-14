@@ -544,7 +544,7 @@ jobs:
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
-          docker pull convertigo/qualif-jmeter:v1
+          docker pull convertigo/qualif-jmeter:v4
           
     - run:
         name: Run the qualif

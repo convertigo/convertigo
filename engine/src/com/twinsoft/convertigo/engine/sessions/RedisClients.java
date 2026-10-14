@@ -24,11 +24,15 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Locale;
+import java.util.Map;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
+import org.redisson.api.redisnode.RedisNodes;
 import org.redisson.config.Config;
+import org.redisson.config.ReadMode;
 import org.redisson.config.SslVerificationMode;
+import org.redisson.config.SubscriptionMode;
 
 import com.twinsoft.convertigo.engine.Engine;
 
@@ -65,9 +69,11 @@ public final class RedisClients {
 			if (newConfiguration.equals(configuration) && client != null) {
 				return;
 			}
+			// Keep the effective configuration/client if the replacement cannot initialize.
+			var newClient = createClient(newConfiguration);
 			var previousClient = client;
 			configuration = newConfiguration;
-			client = createClient(newConfiguration);
+			client = newClient;
 			registerShutdownHook();
 			shutdownQuietly(previousClient);
 		}
@@ -88,6 +94,10 @@ public final class RedisClients {
 	}
 
 	private static RedissonClient createClient(RedisSessionConfiguration cfg) {
+		return Redisson.create(createConfig(cfg));
+	}
+
+	static Config createConfig(RedisSessionConfiguration cfg) {
 		var config = new Config();
 		if (cfg.getUsername() != null) {
 			config.setUsername(cfg.getUsername());
@@ -95,14 +105,58 @@ public final class RedisClients {
 		if (cfg.getPassword() != null) {
 			config.setPassword(cfg.getPassword());
 		}
-		config.useSingleServer()
-				.setAddress(cfg.getAddress())
-				.setDatabase(cfg.getDatabase())
-				.setTimeout(cfg.getTimeoutMillis())
-				.setConnectionPoolSize(cfg.getConnectionPoolSize())
-				.setConnectionMinimumIdleSize(cfg.getConnectionMinimumIdleSize());
+		if (cfg.getTopology() == RedisTopology.sentinel) {
+			// Redisson 4.8.0 skips Sentinel AUTH probing when no data password is set,
+			// even if sentinelPassword is configured (SentinelConnectionManager.checkAuth).
+			// Fail explicitly instead of silently ignoring the supplied Sentinel credentials.
+			if (cfg.getSentinelPassword() != null && cfg.getPassword() == null) {
+				throw new IllegalArgumentException("Redis Sentinel authentication with no Redis data password is not supported by Redisson 4.8.0. Configure session.redis.password on the data nodes, or use Sentinel without password authentication.");
+			}
+			config.useSentinelServers()
+					.setMasterName(cfg.getSentinelMaster())
+					.addSentinelAddress(cfg.getSentinelAddresses())
+					.setSentinelUsername(cfg.getSentinelUsername())
+					.setSentinelPassword(cfg.getSentinelPassword())
+					.setReadMode(ReadMode.MASTER)
+					.setSubscriptionMode(SubscriptionMode.MASTER)
+					.setDatabase(cfg.getDatabase())
+					.setTimeout(cfg.getTimeoutMillis())
+					.setMasterConnectionPoolSize(cfg.getConnectionPoolSize())
+					.setMasterConnectionMinimumIdleSize(cfg.getConnectionMinimumIdleSize());
+		} else {
+			config.useSingleServer()
+					.setAddress(cfg.getAddress())
+					.setDatabase(cfg.getDatabase())
+					.setTimeout(cfg.getTimeoutMillis())
+					.setConnectionPoolSize(cfg.getConnectionPoolSize())
+					.setConnectionMinimumIdleSize(cfg.getConnectionMinimumIdleSize());
+		}
 		configureSsl(cfg, config);
-		return Redisson.create(config);
+		return config;
+	}
+
+	static Map<String, Object> diagnostics() {
+		try {
+			var cfg = configuration;
+			var map = (cfg != null ? cfg : RedisSessionConfiguration.fromProperties()).diagnostics();
+			var currentClient = client;
+			if (cfg != null && cfg.getTopology() == RedisTopology.sentinel && currentClient != null) {
+				try {
+					// In-memory Redisson topology: no Redis command or DNS lookup during an outage.
+					var master = currentClient.getRedisNodes(RedisNodes.SENTINEL_MASTER_SLAVE).getMaster();
+					if (master != null) {
+						var address = master.getAddr();
+						var host = address.getAddress().getHostAddress();
+						map.put("masterAddress", (host.contains(":") ? "[" + host + "]" : host) + ":" + address.getPort());
+					}
+				} catch (RuntimeException e) {
+					// The client may be shutting down/reloading; keep configured topology and health.
+				}
+			}
+			return map;
+		} catch (IllegalArgumentException e) {
+			return Map.of("configurationError", e.getMessage());
+		}
 	}
 
 	private static void configureSsl(RedisSessionConfiguration cfg, Config config) {

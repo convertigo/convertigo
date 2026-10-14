@@ -4,6 +4,7 @@
 
 #### Improvements:
 
+- [#1233](https://github.com/convertigo/convertigo/issues/1233) [Redis] Session stores now support external Redis Sentinel deployments for automatic master discovery and failover
 - [#1229](https://github.com/convertigo/convertigo/issues/1229) [Dashboard] Editing a test case now expands the prefilled variables and collapses the test case list
 - [#1230](https://github.com/convertigo/convertigo/issues/1230) [Dashboard] Project, connector, requestable, test case and variable comments now display Markdown and HTML formatting while preserving multilingual comments
 

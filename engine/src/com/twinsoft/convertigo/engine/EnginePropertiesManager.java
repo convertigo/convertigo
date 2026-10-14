@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
+import com.twinsoft.convertigo.engine.sessions.RedisTopology;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
@@ -619,10 +620,20 @@ public class EnginePropertiesManager {
 		SESSION_STORE_MODE("session.store.mode", SessionStoreMode.tomcat.name(), "Server-side store for session data (tomcat, redis)", PropertyCategory.Session),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		SESSION_SHARED_WORKSPACE_SYNC_ENABLED("session.shared_workspace.sync.enabled", "false", "Enable runtime synchronization between instances sharing the same workspace", PropertyCategory.Session),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = RedisTopology.class)
+		SESSION_REDIS_TOPOLOGY("session.redis.topology", RedisTopology.single.name(), "Redis topology for sessions and contexts (single, sentinel)", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
-		SESSION_REDIS_HOST("session.redis.host", "localhost", "Redis hostname used by the session manager", PropertyCategory.Session),
+		SESSION_REDIS_SENTINEL_MASTER("session.redis.sentinel.master", "", "Redis Sentinel monitored master name (required in sentinel mode)", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
-		SESSION_REDIS_PORT("session.redis.port", "6379", "Redis port used by the session manager", PropertyCategory.Session),
+		SESSION_REDIS_SENTINEL_NODES("session.redis.sentinel.nodes", "", "Redis Sentinel seed nodes: comma-separated host:port addresses (required in sentinel mode)", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
+		SESSION_REDIS_SENTINEL_USERNAME("session.redis.sentinel.username", "", "Redis Sentinel ACL username (optional, distinct from the Redis data username)", PropertyCategory.Session),
+		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
+		SESSION_REDIS_SENTINEL_PASSWORD("session.redis.sentinel.password", "", "Redis Sentinel password (optional; when empty, the Redis data password is used if Sentinel requires authentication)", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
+		SESSION_REDIS_HOST("session.redis.host", "localhost", "Redis hostname used by the session manager in single mode", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
+		SESSION_REDIS_PORT("session.redis.port", "6379", "Redis port used by the session manager in single mode", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
 		SESSION_REDIS_USERNAME("session.redis.username", "", "Redis username (optional)", PropertyCategory.Session),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
@@ -630,7 +641,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		SESSION_REDIS_DATABASE("session.redis.database", "0", "Redis logical database index", PropertyCategory.Session),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		SESSION_REDIS_SSL("session.redis.ssl", "false", "Enable SSL/TLS for the Redis connection", PropertyCategory.Session),
+		SESSION_REDIS_SSL("session.redis.ssl", "false", "Enable SSL/TLS for Redis data nodes and Sentinel connections", PropertyCategory.Session),
 		@PropertyOptions(advance = true)
 		SESSION_REDIS_SSL_TRUSTSTORE("session.redis.ssl.truststore", "", "Redis SSL server truststore path", PropertyCategory.Session),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
@@ -662,8 +673,7 @@ public class EnginePropertiesManager {
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_GZIP ("net.gzip", "true", "Enable negotiated HTTP compression for most text responses (gzip, br, zstd depending on Accept-Encoding)", PropertyCategory.Network),
-		NET_MAX_AGE ("net.max-age", "10", "Set the Cache-Control: max-age value in seconds, for static resources", PropertyCategory.Network),
-		NET_APP_STATIC_MAX_AGE ("net.app.static.max-age", "2592000", "Set the Cache-Control: max-age value in seconds, for non-fingerprinted production application resources", PropertyCategory.Network),
+		NET_MAX_AGE ("net.max-age", "60", "Browser and shared cache lifetime in seconds for non-fingerprinted static resources; application HTML and fingerprinted assets use automatic policies", PropertyCategory.Network),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
 		FILE_UPLOAD_MAX_REQUEST_SIZE ("net.upload.max_request_size", "-1", "Maximum allowed size of a complete multipart request (in bytes). Value -1 indicates no limit.", PropertyCategory.Network),
@@ -1307,9 +1317,18 @@ public class EnginePropertiesManager {
 			propertiesToGet = properties;
 		}
 
+		var logProperties = new java.util.HashMap<String, PropertyName>();
+		for (var property : PropertyName.values()) {
+			logProperties.put(property.getKey(), property);
+			logProperties.put(SYSTEM_PROP_PREFIX + property.getKey(), property);
+		}
 		List<String> vProperties = new ArrayList<String>(propertiesToGet.size());
 		for (Object propKey : propertiesToGet.keySet()) {
 			String propValue = propertiesToGet.getProperty((String) propKey);
+			var property = logProperties.get(propKey);
+			if (property != null) {
+				propValue = getPropertyValueForLogging(property, propValue);
+			}
 			vProperties.add(propKey + "=" + propValue);
 		}
 
@@ -1321,6 +1340,15 @@ public class EnginePropertiesManager {
 		}
 
 		return msg;
+	}
+
+	/** Never include configured passwords in startup dumps or configuration-update logs. */
+	public static String getPropertyValueForLogging(PropertyName property, String value) {
+		if (property.isCiphered() || property.getType() == PropertyType.PasswordPlain
+				|| property.getType() == PropertyType.PasswordHash) {
+			return value == null || value.isEmpty() ? "(empty)" : "(hidden)";
+		}
+		return value;
 	}
 
 	// Limit message size before appenders to avoid multi-megabyte log entries.

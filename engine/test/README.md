@@ -108,6 +108,14 @@ existing session, independent concurrent calls and the session inherited by an
 internal requester. Requestable execution and the two-slot license are fixtures;
 no external server, session store or license file is used.
 
+## Redis Sentinel
+
+`./gradlew :engine:redisSentinelConfigurationTest` checks the default single-server
+mode, Sentinel configuration validation, independent credentials, master-only
+reads/subscriptions, TLS settings, reload equality and secret-free diagnostics.
+It is offline and included in `:engine:check`. For opt-in Docker failover checks,
+see [the disposable Sentinel fixture](redis-sentinel/README.md).
+
 ## Session serialization
 
 Run the standalone suite (also included in `:engine:check`):

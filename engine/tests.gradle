@@ -39,6 +39,38 @@ tasks.named('check') {
 	dependsOn 'optionalDefaultsTest'
 	dependsOn 'adminInstanceRoutingTest'
 	dependsOn 'designDocumentReduceTest'
+	dependsOn 'redisSentinelConfigurationTest'
+	dependsOn 'staticCacheControlTest'
+	dependsOn 'adminCacheControlTest'
+}
+
+tasks.register('adminCacheControlTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for Admin static cache policies, fallback pages and error responses.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.servlets.CacheControlFilterTest',
+		'com.twinsoft.convertigo.engine.servlets.CompressionFilterTest'
+}
+
+tasks.register('staticCacheControlTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for production static cache policies, revalidation and file delivery.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.ServletUtilsCacheControlTest'
+}
+
+tasks.register('redisSentinelConfigurationTest', JavaExec) {
+	group = 'verification'
+	description = 'Redis topology, Sentinel validation, client settings and secret-free diagnostics (offline).'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisSentinelConfigurationTest',
+		'com.twinsoft.convertigo.engine.RedisPropertyLoggingTest'
 }
 
 tasks.register('adminInstanceRoutingTest', JavaExec) {
