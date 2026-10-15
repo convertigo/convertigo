@@ -1013,14 +1013,21 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return compileProperty(String.class, propertyName, propertyObjectValue);
 	}
 
+	/** Whether the ${symbol} of the property values are global symbols to compile. */
+	public boolean compilesGlobalSymbols() {
+		return true;
+	}
+
 	public Object compileProperty(Class<?> propertyType, String propertyName, Object propertyObjectValue) {
-		Object compiled;
-		try {
-			compiled = Engine.theApp.databaseObjectsManager.getCompiledValue(propertyObjectValue);
-			removeSymbolError(propertyName);
-		} catch (UndefinedSymbolsException e) {
-			addSymbolError(propertyName, e.undefinedSymbols());
-			compiled = e.incompletValue();
+		Object compiled = propertyObjectValue;
+		if (compilesGlobalSymbols()) {
+			try {
+				compiled = Engine.theApp.databaseObjectsManager.getCompiledValue(propertyObjectValue);
+				removeSymbolError(propertyName);
+			} catch (UndefinedSymbolsException e) {
+				addSymbolError(propertyName, e.undefinedSymbols());
+				compiled = e.incompletValue();
+			}
 		}
 
 		if (compiled != propertyObjectValue) {

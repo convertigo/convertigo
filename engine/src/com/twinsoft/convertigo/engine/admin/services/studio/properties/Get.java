@@ -268,7 +268,10 @@ public class Get extends JSonService {
 				addIonProperties(dbo, props, c.getAttribute("value"));
 			} else {
 				property.put("value", c.getAttribute("value"));
-				addCompiledValue(property, c.getAttribute("value"));
+				// a value of a Flow node writes its expressions as ${expression}, not global symbols
+				if (dbo.compilesGlobalSymbols()) {
+					addCompiledValue(property, c.getAttribute("value"));
+				}
 			}
 
 			Node next = fc.getNextSibling();

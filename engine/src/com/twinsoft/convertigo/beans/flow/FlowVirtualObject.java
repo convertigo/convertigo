@@ -115,6 +115,15 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 		super.remove(databaseObject);
 	}
 
+	/**
+	 * A Flow value writes its expressions as ${expression}: it is never compiled as global symbols, which Flow
+	 * reads in its configuration only.
+	 */
+	@Override
+	public boolean compilesGlobalSymbols() {
+		return false;
+	}
+
 	public String getVirtualKind() {
 		return virtualKind;
 	}
