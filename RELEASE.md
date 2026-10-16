@@ -117,11 +117,19 @@ Requires the WAR attached to the published GitHub release.
   commits `convertigo/content.md` on a `convertigo-<date>` branch, pushes it and
   opens the pull request. The docs do not depend on the image: `--force` opens
   the pull request while the official image one is still under review.
-- Helm chart (`convertigo-helm`): set `version` and `appVersion` to `X.Y.Z` in
-  `stable/convertigo/Chart.yaml`, update the README if needed, commit and push
-  `master`. The GitHub Action publishes the chart to ECR Public, the S3
-  repository and the AWS Marketplace ECR; check
-  https://artifacthub.io/packages/helm/convertigo/convertigo afterwards.
+- Helm chart (`convertigo-helm`): its branches follow this repository. Chart
+  changes for `X.Y.Z` are made on `hotfix`, those for the next major on
+  `develop`, and `master` is the published chart (the GitHub Action publishes on
+  every push to `master` only). On `hotfix`, set `version` and `appVersion` to
+  `X.Y.Z` in `stable/convertigo/Chart.yaml` and update the README if needed;
+  merge `hotfix` into `master` and push `master`. The action publishes the chart
+  to ECR Public, the S3 repository and the AWS Marketplace ECR; check
+  https://artifacthub.io/packages/helm/convertigo/convertigo afterwards. Then
+  merge `master` into `develop`.
+- Links to the Helm repository written during the release cycle point to its
+  `hotfix` branch (for example `tree/hotfix/examples/...` in `convertigo-doc`
+  and in the chart README): switch them to `master` once the chart is
+  published.
 - Check the Docker Hub description of `convertigo/convertigo` matches `docker/README.md`.
 - Check https://doc.convertigo.com lists the new version in the version selector.
 - Merge `hotfix` into `develop` for a minor release (once the work in progress
