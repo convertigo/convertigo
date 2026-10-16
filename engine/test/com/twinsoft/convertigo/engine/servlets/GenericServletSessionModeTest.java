@@ -34,7 +34,10 @@ import org.junit.Test;
 import com.twinsoft.api.Session;
 import com.twinsoft.api.SessionManager;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.BillingManager;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
@@ -43,6 +46,9 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EventManager;
 import com.twinsoft.convertigo.engine.PluginsManager;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.JsonOutput;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
@@ -83,10 +89,21 @@ public class GenericServletSessionModeTest {
 		Engine.theApp.pluginsManager = new PluginsManager();
 		var project = new Project();
 		project.setName("SessionTest");
+		for (String name : new String[] { "Echo", "Child" }) {
+			var sequence = new GenericSequence();
+			sequence.setName(name);
+			project.add(sequence);
+		}
+		var hidden = new GenericSequence();
+		hidden.setName("Hidden");
+		hidden.setAccessibility(Accessibility.Private);
+		project.add(hidden);
+		project.setJsonOutput(JsonOutput.useType);
+		project.setJsonRoot(JsonRoot.docNode);
 		Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager() {
 			@Override
 			public Project getOriginalProjectByName(String name, boolean checkOpenable) {
-				return project;
+				return project.getName().equals(name) ? project : null;
 			}
 		};
 		// Isolated fixture: a burst must work with only two concurrent session slots.
@@ -104,6 +121,10 @@ public class GenericServletSessionModeTest {
 		webapp = tomcat.addContext("", directory.toString());
 		Tomcat.addServlet(webapp, "requester", new FixtureServlet());
 		webapp.addServletMappingDecoded("/projects/*", "requester");
+		Tomcat.addServlet(webapp, "reject-xml", new XmlServlet());
+		webapp.addServletMappingDecoded("/projects/SessionTest/.reject.xml", "reject-xml");
+		Tomcat.addServlet(webapp, "reject-json", new JsonServlet());
+		webapp.addServletMappingDecoded("/projects/SessionTest/.reject.json", "reject-json");
 		tomcat.start();
 		base = "http://127.0.0.1:" + tomcat.getConnector().getLocalPort() + "/projects/SessionTest/";
 	}
@@ -128,6 +149,56 @@ public class GenericServletSessionModeTest {
 				FileUtils.deleteDirectory(directory.toFile());
 			}
 		}
+	}
+
+	@Test
+	public void unavailableTargetsHaveTheSameHttpErrorsWithoutCreatingSessions() throws Exception {
+		for (String extension : new String[] { "xml", "json" }) {
+			var hidden = send("reject." + extension + "?__sequence=Hidden", null);
+			assertTrue(hidden.body(), hidden.body().contains("Unable to execute the requested requestable."));
+			assertNoSession(hidden);
+			for (String query : new String[] { "__sequence=Missing", "__project=Missing&__sequence=Hidden" }) {
+				var missing = send("reject." + extension + "?" + query, null);
+				assertEquals(hidden.statusCode(), missing.statusCode());
+				assertEquals(hidden.headers().firstValue("Content-Type"), missing.headers().firstValue("Content-Type"));
+				String expected = hidden.body();
+				String actual = missing.body().replace("Missing", query.startsWith("__project") ? "SessionTest" : "Hidden");
+				assertEquals(expected, actual);
+				assertNoSession(missing);
+			}
+		}
+	}
+
+	@Test
+	public void rejectedHttpRequestsPreserveInheritedAuthenticationAndBusinessState() throws Exception {
+		var first = send("xml?__sequence=Echo", null);
+		String cookie = first.headers().firstValue("Set-Cookie").orElseThrow().split(";", 2)[0];
+		var session = webapp.getManager().findSessions()[0].getSession();
+		session.setMaxInactiveInterval(1800);
+		session.setAttribute("businessState", "keep");
+		var contexts = Engine.theApp.contextManager.getContexts(session);
+		assertEquals(1, contexts.size());
+		var context = contexts.get(0);
+		context.set("businessState", "keep");
+		for (String extension : new String[] { "xml", "json" }) {
+			var hidden = send("reject." + extension + "?__sequence=Hidden", cookie);
+			var missing = send("reject." + extension + "?__sequence=Missing", cookie);
+			assertEquals(hidden.body(), missing.body().replace("Missing", "Hidden"));
+			assertFalse(hidden.body(), hidden.body().contains("businessState"));
+			assertFalse(hidden.headers().firstValue("Set-Cookie").isPresent());
+			assertFalse(missing.headers().firstValue("Set-Cookie").isPresent());
+			assertEquals(1, webapp.getManager().getActiveSessions());
+			assertEquals(1800, session.getMaxInactiveInterval());
+			assertEquals("request-user", SessionAttribute.authenticatedUser.get(session));
+			assertEquals("keep", session.getAttribute("businessState"));
+			assertSame(context, Engine.theApp.contextManager.getContexts(session).get(0));
+			assertEquals("keep", context.get("businessState"));
+		}
+		session.setAttribute(SessionKey.ADMIN_ROLES.toString(), new Role[] { Role.TEST_PLATFORM_PRIVATE });
+		var admin = send("reject.xml?__sequence=Missing", cookie);
+		assertTrue(admin.body(), admin.body().contains("Missing"));
+		assertFalse(admin.body(), admin.body().contains("Unable to execute the requested requestable."));
+		assertEquals(1800, session.getMaxInactiveInterval());
 	}
 
 	@Test

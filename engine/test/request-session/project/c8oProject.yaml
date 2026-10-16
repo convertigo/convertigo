@@ -1,0 +1,33 @@
+↑convertigo: 8.4.0.m006
+↓SessionTest [core.Project]: 
+  version: test-only
+  ↓void [connectors.SqlConnector]: 
+    isDefault: true
+    ↓Default [transactions.SqlTransaction]: 
+      isDefault: true
+  ↓Login [sequences.GenericSequence]: 
+    ↓Authenticate [steps.SimpleStep-1700000000001]: 
+      expression: |
+        context.setAuthenticatedUser("session-test-user");
+        context.httpSession.setAttribute("businessState", "keep");
+    ↓user [steps.ElementStep-1700000000002]: 
+      expression: context.getAuthenticatedUser()
+      nodeName: user
+  ↓Anonymous [sequences.GenericSequence]: 
+    ↓Initialize [steps.SimpleStep-1700000000003]: 
+      expression: context.httpSession.setAttribute("businessState", "keep");
+    ↓state [steps.ElementStep-1700000000004]: 
+      expression: context.httpSession.getAttribute("businessState")
+      nodeName: state
+  ↓Check [sequences.GenericSequence]: 
+    authenticatedContextRequired: true
+    ↓user [steps.ElementStep-1700000000005]: 
+      expression: context.getAuthenticatedUser()
+      nodeName: user
+    ↓state [steps.ElementStep-1700000000006]: 
+      expression: context.httpSession.getAttribute("businessState")
+      nodeName: state
+  ↓State [sequences.GenericSequence]: 
+    ↓state [steps.ElementStep-1700000000007]: 
+      expression: context.httpSession.getAttribute("businessState")
+      nodeName: state

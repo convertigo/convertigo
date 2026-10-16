@@ -42,6 +42,16 @@ tasks.named('check') {
 	dependsOn 'redisSentinelConfigurationTest'
 	dependsOn 'staticCacheControlTest'
 	dependsOn 'adminCacheControlTest'
+	dependsOn 'invalidRequestSessionTest'
+}
+
+tasks.register('invalidRequestSessionTest', JavaExec) {
+	group = 'verification'
+	description = 'Reject missing requestable targets without creating sessions or destroying inherited application state.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.servlets.InvalidRequestSessionTest'
 }
 
 tasks.register('adminCacheControlTest', JavaExec) {

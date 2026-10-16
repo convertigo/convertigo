@@ -132,7 +132,7 @@ public class ConvertigoError {
 				error.appendChild(details);
 				
 				Element econtext = document.createElement("context");
-				if (context != null) {
+				if (context != null && !context.isDefaultProjectAnswer) {
 					for (String key : context.keys()) {
 						Object value = context.get(key);
 						if ((value != null) && (value instanceof String)) {

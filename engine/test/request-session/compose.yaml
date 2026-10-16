@@ -1,0 +1,40 @@
+# Isolated regression environment. Credentials are test-only; HTTP is loopback-only.
+x-engine: &engine
+  image: convertigo/convertigo-ci:hotfix
+  environment: &environment
+    CONVERTIGO_ADMIN_USER: admin
+    CONVERTIGO_ADMIN_PASSWORD: issue1235-test-only
+    JAVA_OPTS: >-
+      -Xmx512m
+      -Dconvertigo.engine.session.cookie.name=ISSUE1235SESSION
+      -Dconvertigo.engine.fullsync.couch.url=http://127.0.0.1:15984
+services:
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --requirepass, issue1235-test-only]
+  tomcat:
+    <<: *engine
+    ports: ["127.0.0.1:29135:28080"]
+    volumes:
+      - tomcat-workspace:/workspace
+      - ${C8O_HOTFIX_ROOT:?Set C8O_HOTFIX_ROOT}/engine/build/classes/java/main:/workspace/classes:ro
+  redis-engine:
+    <<: *engine
+    environment:
+      <<: *environment
+      JAVA_OPTS: >-
+        -Xmx512m
+        -Dconvertigo.engine.session.cookie.name=ISSUE1235SESSION
+        -Dconvertigo.engine.session.store.mode=redis
+        -Dconvertigo.engine.session.redis.host=redis
+        -Dconvertigo.engine.session.redis.password=issue1235-test-only
+        -Dconvertigo.engine.session.redis.prefix=issue1235:session
+        -Dconvertigo.engine.fullsync.couch.url=http://127.0.0.1:15984
+    depends_on: [redis]
+    ports: ["127.0.0.1:29136:28080"]
+    volumes:
+      - redis-workspace:/workspace
+      - ${C8O_HOTFIX_ROOT}/engine/build/classes/java/main:/workspace/classes:ro
+volumes:
+  tomcat-workspace:
+  redis-workspace:

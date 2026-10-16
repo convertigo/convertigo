@@ -1184,11 +1184,16 @@ public class Engine {
 				Engine.logContext.debug("Using project from Studio");
 				context.project = currentProject;
 			} else {
-				if ((context.project == null) || (context.isNewSession)) {
+				if (context.project == null || context.isNewSession
+						|| !context.project.getName().equalsIgnoreCase(context.projectName)) {
 					Engine.logEngine.debug("New project requested: '" + context.projectName + "'");
-					context.project = Engine.theApp.databaseObjectsManager
+					Project loadedProject = Engine.theApp.databaseObjectsManager
 							.getProjectByName(context.projectName);
-					Engine.logContext.debug("Project loaded: " + context.projectName);
+					if (loadedProject == null) {
+						throw new RequestableUnavailableException("There is no project named \"" + context.projectName + "\".");
+					}
+					context.project = loadedProject;
+					Engine.logContext.debug("Project loaded: " + context.project.getName());
 				}
 			}
 			if (context.project == null) {

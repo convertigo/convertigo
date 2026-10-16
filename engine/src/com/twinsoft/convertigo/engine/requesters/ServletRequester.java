@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -71,20 +72,24 @@ public abstract class ServletRequester extends GenericRequester {
 
     @Override
 	public void checkAccessibility() throws EngineException {
+		checkAccessibility(context.requestedObject, context.httpServletRequest);
+	}
+
+	private void checkAccessibility(RequestableObject target, HttpServletRequest request) throws EngineException {
 		// By default, requesters disallow private requestables from being executed
-		if (context.requestedObject.isPrivateAccessibility()) {
+		if (target.isPrivateAccessibility()) {
 			if (Engine.isStudioMode()) {
 				// In studio mode, all requestables can be executed
 				return;
 			}
 			
-			if (mayExecutePrivate()) {
+			if (mayExecutePrivate(request)) {
 				// Only admin users can execute private requestables
 				return;
 			}
 			
 			// the caller gets the answer of an unknown requestable, see getCallerError
-			throw new RequestableUnavailableException("Unable to execute the requestable '" + context.requestedObject.getName()
+			throw new RequestableUnavailableException("Unable to execute the requestable '" + target.getName()
 					+ "' because it is private (check its accessibility property)");
 		}
 	}
@@ -92,9 +97,9 @@ public abstract class ServletRequester extends GenericRequester {
 	/**
 	 * @return whether the caller may execute the private requestables: an administrator
 	 */
-	private boolean mayExecutePrivate() {
-		return context.httpServletRequest != null
-				&& Engine.authenticatedSessionManager.hasRole(context.httpServletRequest.getSession(), Role.TEST_PLATFORM_PRIVATE);
+	private boolean mayExecutePrivate(HttpServletRequest request) {
+		HttpSession session = request == null ? null : request.getSession(false);
+		return session != null && Engine.authenticatedSessionManager.hasRole(session, Role.TEST_PLATFORM_PRIVATE);
 	}
 
 	/**
@@ -104,27 +109,32 @@ public abstract class ServletRequester extends GenericRequester {
 	 * the administrators get it.
 	 */
 	@Override
-	protected Throwable getCallerError(Throwable e) {
+	public Throwable getCallerError(Throwable e) {
 		RequestableUnavailableException unavailable = null;
 		for (Throwable cause = e; cause != null && unavailable == null; cause = cause.getCause()) {
 			if (cause instanceof RequestableUnavailableException) {
 				unavailable = (RequestableUnavailableException) cause;
 			}
 		}
-		if (unavailable == null || Engine.isStudioMode() || mayExecutePrivate()) {
+		HttpServletRequest request = inputData instanceof HttpServletRequest httpRequest
+				? httpRequest : context == null ? null : context.httpServletRequest;
+		if (unavailable == null || Engine.isStudioMode() || mayExecutePrivate(request)) {
 			return e;
 		}
 		Engine.logContext.info(unavailable.getMessage());
 
 		// the error document only tells the names the caller gave, as it gave them
-		HttpServletRequest request = (HttpServletRequest) inputData;
+		context.projectName = projectName;
 		context.sequenceName = StringUtils.defaultIfEmpty(request.getParameter(Parameter.Sequence.getName()), null);
 		context.connectorName = StringUtils.defaultIfEmpty(request.getParameter(Parameter.Connector.getName()), null);
 		context.transactionName = StringUtils.defaultIfEmpty(request.getParameter(Parameter.Transaction.getName()), null);
 		context.isImplicitConnector = false;
 		context.isImplicitTransaction = false;
-		context.isDefaultProjectAnswer = context.project == null;
-		return new EngineException(NOT_EXECUTABLE);
+		context.isDefaultProjectAnswer = true;
+		var error = new EngineException(NOT_EXECUTABLE);
+		// The stack must not identify whether validation or execution rejected the target.
+		error.setStackTrace(new StackTraceElement[0]);
+		return error;
 	}
 
 	/**
@@ -194,13 +204,27 @@ public abstract class ServletRequester extends GenericRequester {
 		HttpServletRequest request = (HttpServletRequest) inputData;
 		
 		initInternalVariables();
+		HttpSession existingSession = request.getSession(false);
+		String contextName = getContextName();
+		newHttpSession = existingSession == null || Boolean.FALSE.equals(request.getAttribute("convertigo.session.initiallyPresent"));
+		try {
+			var target = validateRequestTarget(request, this::getTargetParameter, contextName,
+					existingSession == null ? null : existingSession.getId());
+			if (target != null) {
+				checkAccessibility(target, request);
+			}
+		} catch (EngineException e) {
+			if (newHttpSession && existingSession != null) {
+				request.setAttribute("convertigo.failedNewSession", Boolean.TRUE);
+				request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);
+			}
+			throw e;
+		}
 		
 		if ("true".equals(RequestAttribute.system.string(request))) {
 			return new Context("system");
 		}
 		
-		String contextName = getContextName();
-
 		Engine.logContext.debug("(ServletRequester) requested execution context: " + contextName);
 		
 		HttpSession httpSession = request.getSession();
@@ -210,6 +234,10 @@ public abstract class ServletRequester extends GenericRequester {
 		context = Engine.theApp.contextManager.get(this, contextName, sessionID, poolName, projectName, connectorName, sequenceName);
 
 		return context;
+	}
+
+	protected String getTargetParameter(String name) {
+		return ((HttpServletRequest) inputData).getParameter(name);
 	}
 
 	public String getContextName() throws Exception {

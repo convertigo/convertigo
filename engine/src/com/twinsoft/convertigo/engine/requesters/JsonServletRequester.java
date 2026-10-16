@@ -45,9 +45,9 @@ public class JsonServletRequester extends ServletRequester {
 	@Override
 	public String postGetDocument(Document document) throws Exception {
 		ConvertigoError.cleanDocument(context.getXpathApi(), document);
-		var useType = context.project != null ? context.project.getJsonOutput() == JsonOutput.useType : context.isDefaultProjectAnswer;
-		var jsonRoot = context.project != null ? context.project.getJsonRoot()
-				: context.isDefaultProjectAnswer ? JsonRoot.docChildNodes : JsonRoot.docNode;
+		var useType = context.isDefaultProjectAnswer || context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
+		var jsonRoot = context.isDefaultProjectAnswer ? JsonRoot.docChildNodes
+				: context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
 		return XMLUtils.XmlToJson(document.getDocumentElement(), true, useType, jsonRoot);
 	}
 	
