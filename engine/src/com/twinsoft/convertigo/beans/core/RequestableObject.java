@@ -36,10 +36,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import org.mozilla.javascript.ClassCache;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.FunctionObject;
 import org.mozilla.javascript.NativeJavaObject;
+import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -480,6 +483,21 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	return res;
 	}
     
+    private static final ClassCache sharedClassCache = new ClassCache();
+
+    /**
+     * The scope of a requestable. With javascript.shared_class_cache, its Java classes are described once for all
+     * the requests instead of being reflected again in each new scope (the context, the DOM, the log...).
+     */
+    private static Scriptable newScope(org.mozilla.javascript.Context javascriptContext) {
+    	if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.JAVASCRIPT_SHARED_CLASS_CACHE)) {
+    		ScriptableObject newScope = new NativeObject();
+    		sharedClassCache.associate(newScope);
+    		return javascriptContext.initStandardObjects(newScope);
+    	}
+    	return javascriptContext.initStandardObjects();
+    }
+
     protected void insertObjectsInScope() throws EngineException {
 		// Insert the DOM into the scripting context
 		Scriptable jsContext = org.mozilla.javascript.Context.toObject(context, scope);
@@ -913,8 +931,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             	
             	// Creating scripting context
     			javascriptContext = org.mozilla.javascript.Context.enter();
-    			scope = javascriptContext.initStandardObjects();
-    			
+    			scope = newScope(javascriptContext);
+
         		Engine.logContext.debug("Preparing for requestable...");
             	prepareForRequestable(context, javascriptContext, scope);
             	

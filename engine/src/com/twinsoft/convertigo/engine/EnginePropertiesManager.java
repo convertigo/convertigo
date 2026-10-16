@@ -451,6 +451,8 @@ public class EnginePropertiesManager {
 		DELEGATE_URL ("delegate.url", "", "Delegate URL for extra functionality", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		AUTO_GC ("auto.gc", "false", "Automatically GC on low usage (every 10 min)", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		JAVASCRIPT_SHARED_CLASS_CACHE ("javascript.shared_class_cache", "false", "Share between the requests the JavaScript description of the Java classes used by the scripts, instead of building it again for each requestable", PropertyCategory.Main),
 
 		/** ACCOUNTS */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
