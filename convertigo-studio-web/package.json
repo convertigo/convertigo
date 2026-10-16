@@ -33,7 +33,7 @@
 		"@ianvs/prettier-plugin-sort-imports": "^4.7.1",
 		"@iconify-json/mdi": "^1.2.3",
 		"@iconify/svelte": "^5.2.2",
-		"@playwright/test": "^1.64.0",
+		"@playwright/test": "^1.64.1",
 		"@skeletonlabs/skeleton": "^4.15.2",
 		"@skeletonlabs/skeleton-svelte": "^4.15.2",
 		"@sveltejs/adapter-auto": "^7.0.1",
@@ -60,7 +60,7 @@
 		"typescript": "^5.9.3",
 		"unplugin-icons": "^23.0.1",
 		"vite": "^7.3.7",
-		"vitest": "^4.1.11"
+		"vitest": "^4.1.12"
 	},
 	"type": "module",
 	"dependencies": {
