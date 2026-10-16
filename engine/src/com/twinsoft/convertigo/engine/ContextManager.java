@@ -1170,7 +1170,7 @@ public class ContextManager extends AbstractRunnableManager {
 	public List<Context> getContexts(HttpSession httpSession) {
 		try {
 			synchronized (httpSession) {
-				return GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
+				return GenericUtils.cast(SessionAttribute.contexts.get(httpSession, Collections.emptyList()));
 			}
 		}
 		catch (Exception e) {
@@ -1460,6 +1460,10 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 
 	public void remove(Context context) {
+		remove(context, null);
+	}
+
+	public void remove(Context context, HttpSession requestSession) {
 		if (context == null) {
 			// Silently ignore
 			Engine.logContextManager.warn("The context cannot be removed because it does not exist any more!");
@@ -1571,12 +1575,17 @@ public class ContextManager extends AbstractRunnableManager {
 					HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
 					httpSessions = httpSession != null ? List.of(httpSession) : List.of();
 				}
+				// Redis requests may use a different facade from the listener's cached session.
+				if (requestSession != null && httpSessions.stream().noneMatch(session -> session == requestSession)) {
+					var sessions = new ArrayList<>(httpSessions);
+					sessions.add(requestSession);
+					httpSessions = sessions;
+				}
 				for (HttpSession httpSession : httpSessions) {
 					synchronized (httpSession) {
 						try {
 							List<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
-							if ((contextList != null) && contextList.contains(context)) {
-								contextList.remove(context);
+							if (contextList != null && contextList.removeIf(ctx -> contextID.equals(ctx.contextID))) {
 								Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
 							}
 						}

@@ -28,6 +28,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.function.Function;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
@@ -57,6 +58,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.CustomController;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -66,6 +68,7 @@ import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -75,6 +78,40 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSLTUtils;
 
 public abstract class GenericRequester extends Requester {
+	protected boolean newHttpSession;
+
+	public boolean isNewHttpSession() {
+		return newHttpSession;
+	}
+
+	protected void validateRequestTarget(HttpServletRequest request, Function<String, String> parameters,
+			String contextName, String sessionId) throws EngineException {
+		// A status/abort request must still work if its running project's definition changes.
+		String contextId = contextName.startsWith(ContextManager.STUDIO_CONTEXT_PREFIX)
+				? contextName : sessionId == null ? null : sessionId + "_" + contextName;
+		if (!contextName.endsWith("*") && contextId != null && JobManager.jobExists(contextId)) {
+			return;
+		}
+		boolean system = "true".equals(RequestAttribute.system.string(request));
+		DatabaseObjectsManager manager = system ? Engine.theApp.getSystemDatabaseObjectsManager()
+				: Engine.theApp.databaseObjectsManager;
+		Project project = !system && Engine.isStudioMode() && Engine.objectsProvider != null
+				? Engine.objectsProvider.getProject(projectName) : manager.getOriginalProjectByName(projectName);
+		if (Engine.isStudioMode() && !system && !contextName.startsWith(ContextManager.STUDIO_CONTEXT_PREFIX)
+				&& !contextName.endsWith("*") && project != null) {
+			String type = sequenceName != null && !sequenceName.isEmpty()
+					? ContextManager.CONTEXT_TYPE_SEQUENCE : ContextManager.CONTEXT_TYPE_TRANSACTION;
+			String name = sequenceName != null && !sequenceName.isEmpty() ? sequenceName : connectorName;
+			if (name == null || name.isEmpty()) {
+				var connector = project.getDefaultConnector();
+				name = connector == null ? "" : connector.getName();
+			}
+			if (JobManager.jobExists(Engine.theApp.contextManager.computeStudioContextName(type, projectName, name))) {
+				return;
+			}
+		}
+		RequestableTarget.validate(project, projectName, parameters);
+	}
 	
     public GenericRequester() {
     }
@@ -220,6 +257,8 @@ public abstract class GenericRequester extends Requester {
 
 	/** Must run inside an MDC scope that also covers requester-specific cleanup. */
 	protected final Object processRequestWithContext(Object inputData) throws Exception {
+		// A rejected invocation must not leave a previously used requester's context attached.
+		context = null;
 		// Keep request-wide flags, but do not attribute setup to the calling project.
 		Log4jHelper.mdcSet(null);
 		if (Engine.theApp == null) throw new EngineException("Unable to process the request: the Convertigo engine is not started!");

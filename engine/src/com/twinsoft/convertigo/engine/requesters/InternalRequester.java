@@ -65,7 +65,11 @@ public class InternalRequester extends GenericRequester {
 		DatabaseObjectsManager dbom = "true".equals(RequestAttribute.system.string(httpServletRequest))
 				? Engine.theApp.getSystemDatabaseObjectsManager()
 				: Engine.theApp.databaseObjectsManager;
-    	bStrictMode = dbom.getOriginalProjectByName(projectName).isStrictMode();
+		var project = dbom.getOriginalProjectByName(projectName);
+		if (project == null) {
+			throw new EngineException("Unknown project \"" + projectName + "\".");
+		}
+		bStrictMode = project.isStrictMode();
     	inputData = request;
     	this.httpServletRequest = httpServletRequest == null ? new InternalHttpServletRequest() : httpServletRequest;
     	
@@ -80,8 +84,10 @@ public class InternalRequester extends GenericRequester {
 				return processRequestWithContext(inputData);
 			} finally {
 				Map<String, Object> request = GenericUtils.cast(inputData);
-				processRequestEnd(request);
-				onFinally(request);
+				if (context != null) {
+					processRequestEnd(request);
+					onFinally(request);
+				}
 			}
 		}
     }
@@ -95,7 +101,7 @@ public class InternalRequester extends GenericRequester {
 		}
 
 		boolean isNew = true;
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession session = httpServletRequest.getSession(false);
 		if (session != null) {
 			if (SessionAttribute.isNew.has(session)) {
 				isNew = false;
@@ -104,7 +110,8 @@ public class InternalRequester extends GenericRequester {
 			}
 		}
 
-		if (context.requireEndOfContext || (isNew && context.isErrorDocument) || context.project == null) {
+		if (context.requireEndOfContext || (newHttpSession && isNew && context.isErrorDocument
+				&& SessionAttribute.authenticatedUser.get(session) == null)) {
 			request.put("convertigo.requireEndOfContext", Boolean.TRUE);
 		}
 
@@ -157,7 +164,7 @@ public class InternalRequester extends GenericRequester {
 			if (context != null) {
 				Engine.logContext.debug(
 						"(InternalRequester) End of context " + context.contextID + " required => removing context");
-				Engine.theApp.contextManager.remove(context);
+				Engine.theApp.contextManager.remove(context, httpServletRequest.getSession(false));
 			}
 		}
 	}
@@ -199,18 +206,17 @@ public class InternalRequester extends GenericRequester {
 	}
 
 	public Context getContext() throws Exception {
+		Map<String, Object> request = GenericUtils.cast(inputData);
+		initInternalVariables();
+		String contextName = getContextName();
+		HttpSession existingSession = httpServletRequest.getSession(false);
+		String sessionID = getString(request, Parameter.SessionId.getName());
+		validateRequestTarget(httpServletRequest, name -> getString(request, name), contextName,
+				sessionID != null ? sessionID : existingSession == null ? null : existingSession.getId());
+		newHttpSession = sessionID == null && existingSession == null;
 		if ("true".equals(RequestAttribute.system.string(httpServletRequest))) {
-			initInternalVariables();
 			return new Context("system");
 		}
-
-		Map<String, Object> request = GenericUtils.cast(inputData);
-
-		String contextName = getContextName();
-
-		initInternalVariables();
-
-		String sessionID = getString(request, Parameter.SessionId.getName());
 		if (sessionID == null) {
 			sessionID = httpServletRequest.getSession().getId();
 		}

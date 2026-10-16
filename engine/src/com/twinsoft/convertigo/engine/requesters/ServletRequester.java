@@ -140,13 +140,24 @@ public abstract class ServletRequester extends GenericRequester {
 		HttpServletRequest request = (HttpServletRequest) inputData;
 		
 		initInternalVariables();
+		HttpSession existingSession = request.getSession(false);
+		String contextName = getContextName();
+		newHttpSession = existingSession == null || Boolean.FALSE.equals(request.getAttribute("convertigo.session.initiallyPresent"));
+		try {
+			validateRequestTarget(request, this::getTargetParameter, contextName,
+					existingSession == null ? null : existingSession.getId());
+		} catch (EngineException e) {
+			if (newHttpSession && existingSession != null) {
+				request.setAttribute("convertigo.failedNewSession", Boolean.TRUE);
+				request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);
+			}
+			throw e;
+		}
 		
 		if ("true".equals(RequestAttribute.system.string(request))) {
 			return new Context("system");
 		}
 		
-		String contextName = getContextName();
-
 		Engine.logContext.debug("(ServletRequester) requested execution context: " + contextName);
 		
 		HttpSession httpSession = request.getSession();
@@ -156,6 +167,10 @@ public abstract class ServletRequester extends GenericRequester {
 		context = Engine.theApp.contextManager.get(this, contextName, sessionID, poolName, projectName, connectorName, sequenceName);
 
 		return context;
+	}
+
+	protected String getTargetParameter(String name) {
+		return ((HttpServletRequest) inputData).getParameter(name);
 	}
 
 	public String getContextName() throws Exception {

@@ -161,6 +161,8 @@ public abstract class GenericServlet extends HttpServlet {
 
 		if ((isProject = baseUrl.contains("/projects/") || baseUrl.contains("/system/")) || baseUrl.contains("/webclipper/")) {
 			long t0 = System.currentTimeMillis();
+			// Some protocols (RSA/XSRF/MTOM) acquire a session before reaching the requester.
+			request.setAttribute("convertigo.session.initiallyPresent", request.getSession(false) != null);
 			try {
 				if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
 					HttpUtils.checkXSRF(request, response);
@@ -363,8 +365,13 @@ public abstract class GenericServlet extends HttpServlet {
 		// Note: case of context.requireEndOfContext has been set in
 		// scope
 		if (request.getAttribute("convertigo.requireEndOfContext") != null) {
-			removeContext(request);
-			removeSession(request, 1);
+			HttpSession session = request.getSession(false);
+			// Recheck after processing: another request may have authenticated this new session meanwhile.
+			if (!Boolean.TRUE.equals(request.getAttribute("convertigo.failedNewSession"))
+					|| SessionAttribute.authenticatedUser.get(session) == null) {
+				removeContext(request);
+				removeSession(request, 1);
+			}
 		}
 
 		// Removes context when finished
@@ -407,7 +414,7 @@ public abstract class GenericServlet extends HttpServlet {
 			if (context != null) {
 				Engine.logContext.debug("[GenericServlet] End of context " + context.contextID
 						+ " (" + context + ") required => removing context");
-				Engine.theApp.contextManager.remove(context);
+				Engine.theApp.contextManager.remove(context, request.getSession(false));
 			}
 		}
 		request.removeAttribute("convertigo.context");
@@ -417,7 +424,10 @@ public abstract class GenericServlet extends HttpServlet {
 		if (Engine.isEngineMode()) {
 			Engine.logContext.debug("[GenericServlet] End of session required => try to invalidate session");
 			try {
-				HttpSession httpSession = request.getSession();
+				HttpSession httpSession = request.getSession(false);
+				if (httpSession == null) {
+					return;
+				}
 				boolean isAdminSession = Engine.authenticatedSessionManager.isAuthenticated(httpSession);
 				if (!isAdminSession && Engine.theApp.contextManager.isSessionEmtpy(httpSession)) {
 					Engine.logContext
@@ -578,7 +588,13 @@ public abstract class GenericServlet extends HttpServlet {
 			}
 		}
 
-		if (requester.context.requireEndOfContext || (isNew && context.isErrorDocument) || context.project == null) {
+		// An error does not authorize ending a session/context inherited from an earlier request.
+		boolean failedNewSession = requester instanceof GenericRequester generic && generic.isNewHttpSession()
+				&& isNew && context.isErrorDocument && SessionAttribute.authenticatedUser.get(session) == null;
+		if (failedNewSession && !context.requireEndOfContext) {
+			request.setAttribute("convertigo.failedNewSession", Boolean.TRUE);
+		}
+		if (requester.context.requireEndOfContext || failedNewSession) {
 			// request.setAttribute("convertigo.requireEndOfContext",
 			// requester);
 			request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);

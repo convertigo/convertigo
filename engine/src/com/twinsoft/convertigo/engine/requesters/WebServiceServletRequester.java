@@ -42,6 +42,12 @@ import com.twinsoft.convertigo.engine.translators.WebServiceTranslator;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 
 public class WebServiceServletRequester extends ServletRequester {
+	private final java.util.Map<String, String> targetParameters = new java.util.HashMap<>();
+
+	@Override
+	protected String getTargetParameter(String name) {
+		return targetParameters.containsKey(name) ? targetParameters.get(name) : super.getTargetParameter(name);
+	}
 	
 	@Override
     public String getName() {
@@ -108,6 +114,7 @@ public class WebServiceServletRequester extends ServletRequester {
 	protected void initInternalVariables() throws EngineException {
 		
 		super.initInternalVariables();
+		targetParameters.clear();
 		
         HttpServletRequest request = (HttpServletRequest) inputData;
 
@@ -130,9 +137,23 @@ public class WebServiceServletRequester extends ServletRequester {
 					i = methodName.indexOf("__");
 					if (i == -1) {
 						sequenceName = methodName;
+						targetParameters.put(Parameter.Sequence.getName(), sequenceName);
 					}
 					else {
 						connectorName = methodName.substring(0, i);
+						targetParameters.put(Parameter.Sequence.getName(), null);
+						targetParameters.put(Parameter.Connector.getName(), connectorName);
+						targetParameters.put(Parameter.Transaction.getName(), methodName.substring(i + 2));
+					}
+					for (Iterator<?> parameters = method.getChildElements(); parameters.hasNext();) {
+						if (parameters.next() instanceof SOAPElement parameter) {
+							String name = parameter.getElementName().getLocalName();
+							String value = parameter.getValue();
+							if ((Parameter.Sequence.getName().equals(name) || Parameter.Connector.getName().equals(name)
+									|| Parameter.Transaction.getName().equals(name)) && value != null && !value.isEmpty()) {
+								targetParameters.put(name, value);
+							}
+						}
 					}
 				}
 			}
