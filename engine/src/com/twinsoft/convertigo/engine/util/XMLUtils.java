@@ -1699,6 +1699,14 @@ public class XMLUtils {
 			children = new JSONObject();
 		}
 		children.remove("attr");
+		boolean hasChildElement = false;
+		for (Node child = elt.getFirstChild(); child != null && !hasChildElement; child = child.getNextSibling()) {
+			hasChildElement = child.getNodeType() == Node.ELEMENT_NODE;
+		}
+		if (!hasChildElement) {
+			// the text handleElement gives a document holding only attributes, which a document with children has not
+			children.remove("text");
+		}
 		for (JsonNativeOutput nativeOutput : nativeOutputs) {
 			if (children.has(nativeOutput.getKey())) {
 				return null;
