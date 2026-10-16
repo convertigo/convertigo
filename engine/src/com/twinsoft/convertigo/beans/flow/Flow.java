@@ -251,10 +251,12 @@ public class Flow extends Sequence {
 	@Override
 	public void runCore() throws EngineException {
 		var runStarted = System.nanoTime();
+		// the context of this request: the field is reset when a request on this object ends, possibly during the run
+		var requestContext = context;
 		try {
-			var response = new FlowEngineBridge().run(this, context, null, null);
+			var response = new FlowEngineBridge().run(this, requestContext, null, null);
 			var bridgeFinished = System.nanoTime();
-			var root = context.outputDocument.getDocumentElement();
+			var root = requestContext.outputDocument.getDocumentElement();
 			if (response.optBoolean("ok", false)) {
 				var result = response.has("result") ? response.get("result") : new JSONObject();
 				if (JSONObject.NULL.equals(result)) {
@@ -265,7 +267,7 @@ public class Flow extends Sequence {
 				var errorResponse = new JSONObject();
 				errorResponse.put("error", response.has("error") ? response.get("error") : response);
 				XMLUtils.jsonToXml(errorResponse, root);
-				applyErrorStatus(response.optJSONObject("error"));
+				applyErrorStatus(requestContext, response.optJSONObject("error"));
 			}
 			var profile = response.optJSONObject("profile");
 			if (profile != null) {
@@ -284,9 +286,9 @@ public class Flow extends Sequence {
 	 * The HTTP status an error of the requested Flow carries (throw with a status, from 400 to 599), the body keeping the
 	 * error: neither for a Flow another one calls (the request is the one of its caller), nor over a status already set.
 	 */
-	private void applyErrorStatus(JSONObject error) {
+	private void applyErrorStatus(com.twinsoft.convertigo.engine.Context requestContext, JSONObject error) {
 		var status = error == null ? 0 : error.optInt("status", 0);
-		var request = context == null ? null : context.httpServletRequest;
+		var request = requestContext == null ? null : requestContext.httpServletRequest;
 		if (status < 400 || status > 599 || request == null || request instanceof InternalHttpServletRequest
 				|| !getName().equals(request.getParameter(Parameter.Sequence.getName()))
 				|| RequestAttribute.responseStatus.has(request)) {
