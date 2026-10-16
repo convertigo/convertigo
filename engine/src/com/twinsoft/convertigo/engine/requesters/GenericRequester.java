@@ -448,9 +448,13 @@ public abstract class GenericRequester extends Requester {
 					if (contextList == null)
 						contextList = new ArrayList<Context>();
 						SessionAttribute.contexts.set(context.httpSession, contextList);
-					if (!contextList.contains(context)) {
-						contextList.add(context);
-						Engine.logContext.debug("(ServletRequester) context " + context.contextID + " has been added to http session's context list");
+					// The session object can be a wrapper made for this request only (HttpServletRequestTwsWrapper),
+					// so the requests of a session lock the list itself
+					synchronized (contextList) {
+						if (!contextList.contains(context)) {
+							contextList.add(context);
+							Engine.logContext.debug("(ServletRequester) context " + context.contextID + " has been added to http session's context list");
+						}
 					}
 					context.contextListSession = context.httpSession;
 				}

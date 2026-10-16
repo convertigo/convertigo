@@ -1590,8 +1590,14 @@ public class ContextManager extends AbstractRunnableManager {
 					synchronized (httpSession) {
 						try {
 							List<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
-							if (contextList != null && contextList.removeIf(ctx -> contextID.equals(ctx.contextID))) {
-								Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
+							if (contextList != null) {
+								// Locked like in GenericRequester.initContext; a null left by an unlocked add would
+								// otherwise fail every later removal from this list
+								synchronized (contextList) {
+									if (contextList.removeIf(ctx -> ctx == null || contextID.equals(ctx.contextID))) {
+										Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
+									}
+								}
 							}
 						}
 						catch (Exception e) {
