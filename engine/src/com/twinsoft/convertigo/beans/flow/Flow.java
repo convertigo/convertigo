@@ -396,6 +396,21 @@ public class Flow extends Sequence {
 		return new ArrayList<>(children);
 	}
 
+	/**
+	 * A required input left empty is refused by the Flow engine (FLOW_INPUT_REQUIRED, status 400) as for any caller,
+	 * not by the native check of the sequence variables; the variable stays required for the API descriptions.
+	 */
+	@Override
+	public Object getVariableValue(String requestedVariableName) throws EngineException {
+		if (variables.get(requestedVariableName) == null) {
+			var variable = getVariable(requestedVariableName);
+			if (variable != null && Boolean.TRUE.equals(variable.isRequired()) && variable.getValueOrNull() == null) {
+				return null;
+			}
+		}
+		return super.getVariableValue(requestedVariableName);
+	}
+
 	public JSONObject getFlowInput() throws EngineException {
 		try {
 			synchronizeFlowInputs();
