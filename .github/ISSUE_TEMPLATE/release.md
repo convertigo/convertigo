@@ -29,7 +29,9 @@ Release checklist for **X.Y.Z**. The full procedure is in [RELEASE.md](https://g
 
 ### After the official image is available
 - [ ] `release/docker-docs-pr.sh X.Y.Z` run, pull request opened on docker-library/docs
-- [ ] Helm chart `version` / `appVersion` = X.Y.Z pushed on `master`, chart visible on Artifact Hub
+- [ ] Helm chart `version` / `appVersion` = X.Y.Z on `hotfix` of convertigo-helm, `hotfix` merged into `master` and pushed, chart visible on Artifact Hub
+- [ ] convertigo-helm `master` merged into `develop`
+- [ ] Links to `convertigo-helm/tree/hotfix/...` (convertigo-doc, chart README) switched to `master`
 - [ ] Docker Hub description matches `docker/README.md`
 - [ ] doc.convertigo.com lists the new version
 - [ ] `hotfix` merged into `develop`

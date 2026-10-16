@@ -49,6 +49,9 @@ public class ListInstances extends JSonService {
 
 		response.put("storeMode", ConvertigoHttpSessionManager.getInstance().getStoreMode().name());
 		response.put("provider", ConvertigoHttpSessionManager.getInstance().getProviderName());
+		var configured = ConvertigoHttpSessionManager.getInstance().getConfiguredStoreMode();
+		response.put("configuredStoreMode", configured != null ? configured.name() : "");
+		response.put("storeState", ConvertigoHttpSessionManager.getInstance().getStoreState().name());
 		response.put("redis", new JSONObject(RedisHealth.toMap()));
 		response.put("localInstanceId", localId != null ? localId : "");
 		response.put("localRoutingId", RedisInstanceDiscovery.getLocalRoutingId());

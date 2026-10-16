@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine.admin.services.engine;
 
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -84,6 +85,7 @@ public class Supervision extends TextService {
 		String result = "";
 		result += "convertigo.started="+ (isConvertigoStarted?"OK":"KO") + "\n";
 		result += "convertigo.database.cache="+ (bCacheDatabase?"OK":"KO") + "\n";
+		result += "convertigo.session.store=" + ConvertigoHttpSessionManager.getInstance().getSupervisionStatus() + "\n";
 		
 		return result;
 	}

@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sessions.SessionStoreUnavailableException;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestSessionWrapper;
 
 public class SessionSerializationFilter implements Filter {
@@ -58,6 +59,10 @@ public class SessionSerializationFilter implements Filter {
 						: new SessionCookieResponseWrapper(httpResponse, cookieName);
 				try {
 					chain.doFilter(effectiveRequest, responseWrapper);
+				} catch (IOException | ServletException | RuntimeException e) {
+					if (!SessionStoreUnavailableException.respond(httpResponse, e)) {
+						throw e;
+					}
 				} finally {
 					try {
 						ConvertigoHttpSessionManager.getInstance().flushBuffers();

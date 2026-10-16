@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.sessions.SessionStoreUnavailableException;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -136,6 +137,9 @@ public class ServiceUtils {
 	}
 	
 	public static void handleError(Throwable throwable, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
+		if (SessionStoreUnavailableException.respond(response, throwable)) {
+			return;
+		}
 		try {
 	        handleError(DOMUtils.handleError(throwable), request, response);
 		} catch (ParserConfigurationException e) {

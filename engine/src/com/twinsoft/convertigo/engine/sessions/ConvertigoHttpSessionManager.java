@@ -20,6 +20,9 @@
 package com.twinsoft.convertigo.engine.sessions;
 
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,8 +41,25 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 
 	private final Object mutex = new Object();
 	private volatile SessionProvider provider;
+	/** Effective store: tomcat while Redis is not operational yet or after a tomcat startup fallback. */
 	private volatile SessionStoreMode storeMode;
+	/** Store requested by session.store.mode. */
+	private volatile SessionStoreMode configuredMode;
+	private volatile StoreState storeState = StoreState.OK;
 	private volatile String storeModeProperty;
+	private ScheduledExecutorService redisRetry;
+	private int redisRetryAttempts;
+	private long redisWaitingSince;
+
+	/** State of the configured session store, as reported by the supervision. */
+	public enum StoreState {
+		/** The configured store is operational. */
+		OK,
+		/** Redis was unreachable at startup: retrying, sessions refused meanwhile (session.redis.startup.fallback=none). */
+		WAITING,
+		/** Redis was unreachable at startup: local sessions until restart (session.redis.startup.fallback=tomcat). */
+		DEGRADED
+	}
 
 	private ConvertigoHttpSessionManager() {
 	}
@@ -53,6 +73,44 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 
 	public SessionStoreMode getStoreMode() {
 		return storeMode;
+	}
+
+	public SessionStoreMode getConfiguredStoreMode() {
+		return configuredMode;
+	}
+
+	public StoreState getStoreState() {
+		return storeState;
+	}
+
+	/**
+	 * Value of convertigo.session.store in the supervision: OK, KO while Redis is not operational (at startup, or
+	 * unreachable for longer than session.redis.readiness.grace once connected), or DEGRADED after a tomcat
+	 * startup fallback.
+	 */
+	public String getSupervisionStatus() {
+		if (configuredMode != SessionStoreMode.redis) {
+			return "OK";
+		}
+		if (storeState == StoreState.WAITING) {
+			return "KO";
+		}
+		if (storeState == StoreState.DEGRADED) {
+			return "DEGRADED";
+		}
+		long since = RedisHealth.unreachableSince();
+		if (since > 0) {
+			long graceSeconds = 60;
+			try {
+				graceSeconds = Long.parseLong(EnginePropertiesManager.getProperty(PropertyName.SESSION_REDIS_READINESS_GRACE).trim());
+			} catch (Exception e) {
+				// keep the default
+			}
+			if (System.currentTimeMillis() - since > graceSeconds * 1000L) {
+				return "KO";
+			}
+		}
+		return "OK";
 	}
 
 	public static boolean isRedisMode() {
@@ -294,45 +352,133 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		return result;
 	}
 
-	private SessionProvider buildProvider(SessionStoreMode storeMode) {
-		try {
-			Engine.logRedis.debug("(ConvertigoSessionManager) Building session provider for store=" + storeMode.name());
-			if (storeMode == SessionStoreMode.redis) {
-				Engine.logEngine.info("(ConvertigoSessionManager) Redis session store: "
-						+ RedisSessionConfiguration.fromProperties().describe());
+	private void reload(SessionStoreMode mode) {
+		synchronized (mutex) {
+			Engine.logRedis.debug("(ConvertigoSessionManager) Reload requested with store=" + mode.name());
+			cancelRedisRetry();
+			configuredMode = mode;
+			if (mode == SessionStoreMode.redis) {
+				try {
+					Engine.logEngine.info("(ConvertigoSessionManager) Redis session store: "
+							+ RedisSessionConfiguration.fromProperties().describe());
+					provider = new RedisSessionProvider();
+					storeMode = SessionStoreMode.redis;
+					storeState = StoreState.OK;
+				} catch (Exception e) {
+					onRedisStartupFailure(e);
+				}
+			} else {
+				provider = new LegacySessionProvider();
+				storeMode = SessionStoreMode.tomcat;
+				storeState = StoreState.OK;
 			}
-			return switch (storeMode) {
-				case tomcat -> new LegacySessionProvider();
-				case redis -> new RedisSessionProvider();
-				default -> new LegacySessionProvider();
-			};
-		} catch (Exception e) {
-			logStartupFailure(storeMode.name(), e);
-			return new LegacySessionProvider();
+			logSelectedMode();
+			updateInstanceDiscovery();
+		}
+		notifyContextManager();
+	}
+
+	private void onRedisStartupFailure(Exception e) {
+		RedisHealth.failure(e);
+		var fallback = RedisStartupFallback.fromProperty(EnginePropertiesManager.getProperty(PropertyName.SESSION_REDIS_STARTUP_FALLBACK));
+		storeMode = SessionStoreMode.tomcat;
+		if (fallback == RedisStartupFallback.tomcat) {
+			Engine.logEngine.error("(ConvertigoSessionManager) Failed to initialize session store 'redis'. Falling back to legacy mode.", e);
+			Engine.logEngine.warn("(ConvertigoSessionManager) Redis is unreachable at startup (" + RedisHealth.describe(e)
+					+ ") and session.redis.startup.fallback=tomcat: the HTTP sessions of this instance stay in its memory"
+					+ " and are not shared with the other instances until it is restarted.");
+			provider = new LegacySessionProvider();
+			storeState = StoreState.DEGRADED;
+		} else {
+			Engine.logEngine.error("(ConvertigoSessionManager) Failed to initialize session store 'redis'. Retrying until Redis is reachable.", e);
+			Engine.logEngine.warn("(ConvertigoSessionManager) Redis is unreachable at startup (" + RedisHealth.describe(e)
+					+ "): until it is reachable, this instance reports convertigo.session.store=KO to the supervision and"
+					+ " answers 503 to the requests that need an HTTP session.");
+			provider = new UnavailableSessionProvider();
+			storeState = StoreState.WAITING;
+			redisRetryAttempts = 0;
+			redisWaitingSince = System.currentTimeMillis();
+			scheduleRedisRetry();
 		}
 	}
 
-	private void reload(SessionStoreMode storeMode) {
-		synchronized (mutex) {
-			Engine.logRedis.debug("(ConvertigoSessionManager) Reload requested with store=" + storeMode.name());
-			this.storeMode = storeMode;
-			provider = buildProvider(storeMode);
-			logSelectedMode();
-			try {
-				if (storeMode == SessionStoreMode.redis) {
-					RedisInstanceDiscovery.start();
-				} else {
-					RedisInstanceDiscovery.stop();
+	private void scheduleRedisRetry() {
+		if (redisRetry == null) {
+			redisRetry = Executors.newSingleThreadScheduledExecutor(r -> {
+				var thread = new Thread(r, "convertigo-redis-session-store-retry");
+				thread.setDaemon(true);
+				return thread;
+			});
+		}
+		// 1 s, 2 s, 4 s ... up to 30 s between the end of an attempt and the next one
+		long delay = Math.min(30_000L, 1000L << Math.min(redisRetryAttempts, 5));
+		redisRetry.schedule(this::retryRedis, delay, TimeUnit.MILLISECONDS);
+	}
+
+	private void cancelRedisRetry() {
+		if (redisRetry != null) {
+			redisRetry.shutdownNow();
+			redisRetry = null;
+		}
+	}
+
+	private void retryRedis() {
+		SessionProvider redisProvider;
+		try {
+			redisProvider = new RedisSessionProvider();
+		} catch (Exception e) {
+			RedisHealth.failure(e);
+			Engine.logRedis.debug("(ConvertigoSessionManager) Redis still unreachable: " + RedisHealth.describe(e));
+			synchronized (mutex) {
+				if (storeState == StoreState.WAITING && configuredMode == SessionStoreMode.redis) {
+					redisRetryAttempts++;
+					scheduleRedisRetry();
 				}
-			} catch (Exception ignore) {
-				// ignore discovery failures
 			}
+			return;
+		}
+		synchronized (mutex) {
+			if (storeState != StoreState.WAITING || configuredMode != SessionStoreMode.redis) {
+				return;
+			}
+			provider = redisProvider;
+			storeMode = SessionStoreMode.redis;
+			storeState = StoreState.OK;
+			cancelRedisRetry();
+			Engine.logEngine.info("(ConvertigoSessionManager) Redis is reachable: the session store is operational after "
+					+ (redisRetryAttempts + 1) + " attempt(s) and " + ((System.currentTimeMillis() - redisWaitingSince) / 1000L) + " s");
+			logSelectedMode();
+			updateInstanceDiscovery();
+		}
+		notifyContextManager();
+	}
+
+	private void updateInstanceDiscovery() {
+		try {
+			if (storeMode == SessionStoreMode.redis) {
+				RedisInstanceDiscovery.start();
+			} else {
+				RedisInstanceDiscovery.stop();
+			}
+		} catch (Exception ignore) {
+			// ignore discovery failures
+		}
+	}
+
+	private void notifyContextManager() {
+		try {
+			if (Engine.theApp != null && Engine.theApp.contextManager != null) {
+				Engine.theApp.contextManager.onSessionStoreChanged();
+			}
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ConvertigoSessionManager) Failed to reconfigure the context manager for the session store", e);
 		}
 	}
 
 	private void logSelectedMode() {
-		Engine.logEngine.info("(ConvertigoSessionManager) store=" + storeMode.name() + ", provider="
-				+ provider.getClass().getSimpleName() + " (session.store.mode=" + storeModeProperty + ")");
+		var mode = configuredMode != null ? configuredMode : storeMode;
+		Engine.logEngine.info("(ConvertigoSessionManager) store=" + mode.name() + ", provider="
+				+ provider.getClass().getSimpleName() + ", state=" + storeState.name() + " (session.store.mode=" + storeModeProperty + ")");
 		if (storeMode == SessionStoreMode.redis && provider instanceof RedisSessionProvider) {
 			RedisHealth.success();
 		}
@@ -341,17 +487,6 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 	public String getProviderName() {
 		var current = provider;
 		return current != null ? current.getClass().getSimpleName() : "";
-	}
-
-	private void logStartupFailure(String mode, Exception e) {
-		Engine.logEngine.error("(ConvertigoSessionManager) Failed to initialize session store '" + mode
-				+ "'. Falling back to legacy mode.", e);
-		if (SessionStoreMode.redis.name().equals(mode)) {
-			RedisHealth.failure(e);
-			Engine.logEngine.warn("(ConvertigoSessionManager) Redis is unreachable at startup (" + RedisHealth.describe(e)
-					+ "): the HTTP sessions of this instance stay in its memory and are not shared with the other"
-					+ " instances. Restart this instance once Redis is reachable.");
-		}
 	}
 
 	@Override
@@ -393,7 +528,7 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		case SESSION_REDIS_PREFIX:
 		case SESSION_REDIS_DEFAULT_TTL:
 		case SESSION_COOKIE_NAME:
-			if (storeMode == SessionStoreMode.redis) {
+			if (configuredMode == SessionStoreMode.redis) {
 				Engine.logRedis.debug("(ConvertigoSessionManager) Detected Redis session property change for "
 						+ event.getKey().name() + ", reloading Redis session provider");
 				RedisClients.reload();
@@ -432,6 +567,7 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			// ignore
 		}
 		synchronized (mutex) {
+			cancelRedisRetry();
 			provider = null;
 		}
 	}
