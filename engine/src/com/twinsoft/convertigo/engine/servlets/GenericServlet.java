@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
+import com.twinsoft.convertigo.engine.sessions.SessionStoreUnavailableException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -337,7 +338,9 @@ public abstract class GenericServlet extends HttpServlet {
 					onFinally(request);
 				}
 			} catch (Exception e) {
-				Engine.logContext.error("Unable to process the request!", e);
+				if (!SessionStoreUnavailableException.isCause(e)) {
+					Engine.logContext.error("Unable to process the request!", e);
+				}
 				processException(request, response, e);
 			}
 			finally {
@@ -443,6 +446,9 @@ public abstract class GenericServlet extends HttpServlet {
 
 	public void processException(HttpServletRequest request, HttpServletResponse response, Exception e)
 			throws ServletException {
+		if (SessionStoreUnavailableException.respond(response, e)) {
+			return;
+		}
 		boolean hide_error = EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "true" );
 		boolean bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
 				.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500));
@@ -541,6 +547,9 @@ public abstract class GenericServlet extends HttpServlet {
 
 			return result;
 		} catch (Exception e) {
+			if (SessionStoreUnavailableException.isCause(e)) {
+				throw e;
+			}
 			request.setAttribute("convertigo.isErrorDocument", true);
 			var requester = getRequester();
 			requester.context = new Context("");

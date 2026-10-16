@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.sessions.SessionStoreMode;
+import com.twinsoft.convertigo.engine.sessions.RedisStartupFallback;
 import com.twinsoft.convertigo.engine.sessions.RedisTopology;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -614,6 +615,10 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		SESSION_COOKIE_NAME("session.cookie.name", "JSESSIONID", "Name of the HTTP cookie carrying the session token", PropertyCategory.Session),
 		SESSION_REDIS_DEFAULT_TTL("session.redis.default.ttl", "1800", "Default session TTL in seconds when no timeout is specified", PropertyCategory.Session),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = RedisStartupFallback.class)
+		SESSION_REDIS_STARTUP_FALLBACK("session.redis.startup.fallback", RedisStartupFallback.none.name(), "When Redis is unreachable at startup: none (retry until reachable, not ready meanwhile) or tomcat (local sessions until restart)", PropertyCategory.Session),
+		@PropertyOptions(advance = true)
+		SESSION_REDIS_READINESS_GRACE("session.redis.readiness.grace", "60", "Seconds Redis can be unreachable, once connected, before the supervision reports the session store as KO", PropertyCategory.Session),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		SESSION_FORWARD_TRUST_ALL_SSL("session.forward.ssl.trust_all", "false", "Disable SSL certificate validation for internal admin forwarding", PropertyCategory.Session),
 
