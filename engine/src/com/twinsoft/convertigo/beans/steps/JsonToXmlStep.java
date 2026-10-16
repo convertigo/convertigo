@@ -165,18 +165,21 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	 * JSON as text for the response (JsonServletRequester) instead of building its XML. Only for a JS object,
 	 * whose text is valid JSON, and for the default JSON output of the project (types, document child nodes).
 	 */
-	private boolean keepJsonNative() throws EngineException {
+	private boolean isJsonNativeCandidate() {
 		if (!isOutput() || jsonObject.getMode() != Mode.JS || !(getParent() instanceof Sequence)
 				|| sequence == null || !sequence.isJsonNativeOutput() || sequence.context == null
-				|| !(sequence.getRequester() instanceof JsonServletRequester)
-				|| jsonSource == null || !(jsonSource.startsWith("{") || jsonSource.startsWith("["))) {
+				|| !(sequence.getRequester() instanceof JsonServletRequester)) {
+			return false;
+		}
+		Project project = sequence.context.project;
+		return project != null && project.getJsonOutput() == JsonOutput.useType && project.getJsonRoot() == JsonRoot.docChildNodes;
+	}
+
+	private boolean keepJsonNative() throws EngineException {
+		if (!isJsonNativeCandidate() || jsonSource == null || !(jsonSource.startsWith("{") || jsonSource.startsWith("["))) {
 			return false;
 		}
 		com.twinsoft.convertigo.engine.Context context = sequence.context;
-		Project project = context.project;
-		if (project == null || project.getJsonOutput() != JsonOutput.useType || project.getJsonRoot() != JsonRoot.docChildNodes) {
-			return false;
-		}
 		String keyName = key.getSingleString(this);
 		synchronized (context) {
 			if (context.jsonNativeOutputs == null) {
@@ -199,7 +202,9 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 			evaluate(javascriptContext, scope, "jsonObject", jsonObject);
 
 			if (jsonObject.getMode() == Mode.JS) {
-				jsonSource = RhinoUtils.jsonStringify(jsonObject.getEvaluated());
+				// the JSON kept as is for the response is written directly from the data
+				jsonSource = isJsonNativeCandidate() ? RhinoUtils.jsonStringifyData(jsonObject.getEvaluated())
+						: RhinoUtils.jsonStringify(jsonObject.getEvaluated());
 			} else {
 				jsonSource = jsonObject.getSingleString(this).trim();
 			}

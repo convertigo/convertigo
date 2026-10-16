@@ -1707,14 +1707,24 @@ public class XMLUtils {
 			// the text handleElement gives a document holding only attributes, which a document with children has not
 			children.remove("text");
 		}
+		int length = 0;
 		for (JsonNativeOutput nativeOutput : nativeOutputs) {
 			if (children.has(nativeOutput.getKey())) {
 				return null;
 			}
-			children.put(nativeOutput.getKey(), nativeOutput);
+			length += nativeOutput.toJSONString().length() + nativeOutput.getKey().length() + 8;
 		}
 		setEscapeForwardSlashAlways(children, false);
-		return children.toString(1);
+		// the kept JSON is appended as is after what the XML gives, without being copied through a JSONObject
+		String xmlPart = children.toString(1);
+		boolean empty = children.length() == 0;
+		StringBuilder sb = new StringBuilder(xmlPart.length() + length + 4);
+		sb.append(xmlPart, 0, xmlPart.length() - (empty ? 1 : 2));
+		for (JsonNativeOutput nativeOutput : nativeOutputs) {
+			sb.append(empty ? "\n " : ",\n ").append(JSONObject.quote(nativeOutput.getKey())).append(": ").append(nativeOutput.toJSONString());
+			empty = false;
+		}
+		return sb.append("\n}").toString();
 	}
 
 	public static void jsonToXml(Object object, Element element) throws JSONException {
