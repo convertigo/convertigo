@@ -1216,9 +1216,13 @@ public class HttpConnector extends Connector {
 			AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
 			
 			requestHeaders = method.getRequestHeaders();
-			if (Engine.logBeans.isTraceEnabled())
-				Engine.logBeans.trace("(HttpConnector) Request headers :\n"
-						+ Arrays.asList(requestHeaders).toString());
+			if (Engine.logBeans.isTraceEnabled()) {
+				List<String> printedHeaders = new ArrayList<String>(requestHeaders.length);
+				for (Header header : requestHeaders) {
+					printedHeaders.add(isCredentialHeader(header.getName()) ? header.getName() + ": " + Visibility.STRING_MASK + "\r\n" : header.toString());
+				}
+				Engine.logBeans.trace("(HttpConnector) Request headers :\n" + printedHeaders);
+			}
 			
 			statuscode = doExecuteMethod(method, context);
 
@@ -1395,7 +1399,8 @@ public class HttpConnector extends Connector {
 					for (int i = 0; i < headers.size(); i++){
 						Element elt = doc.createElement("header");
 						elt.setAttribute("name", headers.get(i).getName());
-						elt.setAttribute("value", headers.get(i).getValue());
+						// the credentials sent stay out of the output document, its logs and its cache
+						elt.setAttribute("value", isCredentialHeader(headers.get(i).getName()) ? Visibility.STRING_MASK : headers.get(i).getValue());
 						httpHeadersElement.appendChild(elt);
 					}				
 					httpInfoElement.appendChild(httpHeadersElement);
@@ -1967,5 +1972,9 @@ public class HttpConnector extends Connector {
 		if (!isOriginal()) {
 			authenticationPropertiesHasChanged = true;
 		}
+	}
+
+	private static boolean isCredentialHeader(String name) {
+		return "Authorization".equalsIgnoreCase(name) || "Proxy-Authorization".equalsIgnoreCase(name);
 	}
 }
