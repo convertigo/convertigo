@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -26,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -35,6 +37,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -86,6 +89,52 @@ import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.util.StringEx;
 
 public class XMLUtils {
+	static {
+		pinXmlImplementations();
+	}
+
+	/**
+	 * Each request runs in a new thread, so the per thread factories and document builders are created
+	 * again for every request, and each creation looks its implementation up in the META-INF/services of
+	 * every jar of the server and of the projects. The JAXP and Xerces lookups read a system property first:
+	 * it is set once here to the implementation the lookup resolves, unless an administrator already set it.
+	 * Not the Xalan DTMManager: once pinned, the documents of the XPath contexts are kept alive.
+	 */
+	private static void pinXmlImplementations() {
+		try {
+			pinXmlImplementation("javax.xml.parsers.DocumentBuilderFactory", DocumentBuilderFactory.newInstance().getClass().getName());
+			pinXmlImplementation("javax.xml.parsers.SAXParserFactory", SAXParserFactory.newInstance().getClass().getName());
+			pinXmlImplementation("javax.xml.transform.TransformerFactory", TransformerFactory.newInstance().getClass().getName());
+			pinXmlImplementation("org.apache.xerces.xni.parser.XMLParserConfiguration", serviceProvider(
+					"org.apache.xerces.xni.parser.XMLParserConfiguration", "org.apache.xerces.parsers.XIncludeAwareParserConfiguration"));
+		} catch (Throwable t) {
+			// the lookups keep working as before
+		}
+	}
+
+	private static void pinXmlImplementation(String name, String className) {
+		if (System.getProperty(name) == null) {
+			System.setProperty(name, className);
+		}
+	}
+
+	private static String serviceProvider(String name, String defaultClassName) {
+		try (InputStream is = XMLUtils.class.getClassLoader().getResourceAsStream("META-INF/services/" + name)) {
+			if (is != null) {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+				for (String line; (line = reader.readLine()) != null;) {
+					line = line.replaceFirst("#.*", "").trim();
+					if (!line.isEmpty()) {
+						return line;
+					}
+				}
+			}
+		} catch (Exception e) {
+			// the default implementation of the library
+		}
+		return defaultClassName;
+	}
+
 	private static ThreadLocal<DocumentBuilderFactory> defaultDocumentBuilderFactory = new ThreadLocal<DocumentBuilderFactory>() {
 		@Override
 		protected DocumentBuilderFactory initialValue() {
@@ -286,12 +335,71 @@ public class XMLUtils {
 			t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, omitXMLDeclaration ? "yes" : "no");
 			t.transform(new DOMSource(doc), result);
 		} catch (Exception e) {
-			Engine.logEngine.error("Unexpected exception while pretty print DOM", e);
+			if (!HeadWriter.isFull(result)) {
+				Engine.logEngine.error("Unexpected exception while pretty print DOM", e);
+			}
 		}
 	}
 
 	public static String prettyPrintDOM(Document doc) {
 		return prettyPrintDOMWithEncoding(doc, "ISO-8859-1");
+	}
+
+	/** The first maxLength characters of prettyPrintDOM(doc), without printing the rest of the document */
+	public static String prettyPrintDOMHead(Document doc, int maxLength) {
+		HeadWriter writer = new HeadWriter(maxLength);
+		prettyPrintDOMWithEncoding(doc, "ISO-8859-1", new StreamResult(writer));
+		return writer.toString();
+	}
+
+	/** Keeps the first characters written and stops the writing once it has them */
+	private static class HeadWriter extends Writer {
+		private static class HeadReached extends IOException {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public synchronized Throwable fillInStackTrace() {
+				return this;
+			}
+		}
+
+		private final StringBuilder head = new StringBuilder();
+		private final int maxLength;
+
+		private HeadWriter(int maxLength) {
+			this.maxLength = maxLength;
+		}
+
+		@Override
+		public void write(char[] cbuf, int off, int len) throws IOException {
+			int n = Math.min(len, maxLength - head.length());
+			head.append(cbuf, off, n);
+			if (head.length() >= maxLength) {
+				throw new HeadReached();
+			}
+		}
+
+		@Override
+		public void flush() {
+		}
+
+		@Override
+		public void close() {
+		}
+
+		@Override
+		public String toString() {
+			return head.toString();
+		}
+
+		/** true when the printing into result was stopped on purpose by a HeadWriter */
+		private static boolean isFull(Result result) {
+			if (result instanceof StreamResult && ((StreamResult) result).getWriter() instanceof HeadWriter) {
+				HeadWriter writer = (HeadWriter) ((StreamResult) result).getWriter();
+				return writer.head.length() >= writer.maxLength;
+			}
+			return false;
+		}
 	}
 
 	/** Same as prettyPrintDOM(doc), each level being indented by indentAmount spaces */
@@ -1158,8 +1266,11 @@ public class XMLUtils {
 
 	public static void logXml(Document document, Logger log, String message) {
 		if (document != null && log.isInfoEnabled()) {
-			String xml = prettyPrintDOM(document);
-			
+			// only the head of a big document is logged below TRACE: the document is printed up to that size,
+			// plus one character to know it is longer
+			String xml = log.isTraceEnabled() ? prettyPrintDOM(document) : prettyPrintDOMHead(document,
+					(log.isDebugEnabled() ? MAX_XML_SIZE_FOR_LOG_DEBUG : MAX_XML_SIZE_FOR_LOG_INFO) * 1000 + 1);
+
 			if (xml.length() > MAX_XML_SIZE_FOR_LOG_INFO * 1000) {
 				if (!log.isDebugEnabled()) {
 					log.info(message
