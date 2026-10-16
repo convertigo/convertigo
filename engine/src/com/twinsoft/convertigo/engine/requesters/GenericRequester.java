@@ -452,6 +452,7 @@ public abstract class GenericRequester extends Requester {
 						contextList.add(context);
 						Engine.logContext.debug("(ServletRequester) context " + context.contextID + " has been added to http session's context list");
 					}
+					context.contextListSession = context.httpSession;
 				}
 				catch (Exception e) {
 				}
