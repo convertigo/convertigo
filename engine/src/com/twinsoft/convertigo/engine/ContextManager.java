@@ -1576,17 +1576,28 @@ public class ContextManager extends AbstractRunnableManager {
 					httpSessions = httpSession != null ? List.of(httpSession) : List.of();
 				}
 				// Redis requests may use a different facade from the listener's cached session.
-				if (requestSession != null && httpSessions.stream().noneMatch(session -> session == requestSession)) {
-					var sessions = new ArrayList<>(httpSessions);
-					sessions.add(requestSession);
-					httpSessions = sessions;
+				// The session that listed the context may be missing from the listener's sessions
+				// (e.g. a session over the license limit): its list would keep the context forever.
+				for (HttpSession session : new HttpSession[] {requestSession, context.contextListSession}) {
+					if (session != null && httpSessions.stream().noneMatch(s -> s == session)) {
+						var sessions = new ArrayList<>(httpSessions);
+						sessions.add(session);
+						httpSessions = sessions;
+					}
 				}
+				context.contextListSession = null;
 				for (HttpSession httpSession : httpSessions) {
 					synchronized (httpSession) {
 						try {
 							List<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
-							if (contextList != null && contextList.removeIf(ctx -> contextID.equals(ctx.contextID))) {
-								Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
+							if (contextList != null) {
+								// Locked like in GenericRequester.initContext; a null left by an unlocked add would
+								// otherwise fail every later removal from this list
+								synchronized (contextList) {
+									if (contextList.removeIf(ctx -> ctx == null || contextID.equals(ctx.contextID))) {
+										Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
+									}
+								}
 							}
 						}
 						catch (Exception e) {
