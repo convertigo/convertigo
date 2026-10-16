@@ -39,6 +39,7 @@ import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -1685,7 +1686,29 @@ public class XMLUtils {
 		String jsonString = json != null ? json.toString(1) : value.toString();
 		return jsonString;
 	}
-	
+
+	/**
+	 * XmlToJson(elt, ignoreStepIds, true, JsonRoot.docChildNodes) with the JSON kept as text by Sequence.jsonNativeOutput
+	 * added as is under their keys, or null when one of these keys is also in the XML.
+	 */
+	public static String XmlToJson(Element elt, boolean ignoreStepIds, Collection<JsonNativeOutput> nativeOutputs) throws JSONException {
+		JSONObject json = new JSONObject();
+		handleElement(elt, json, ignoreStepIds, true);
+		JSONObject children = json.optJSONObject(elt.getTagName());
+		if (children == null) {
+			children = new JSONObject();
+		}
+		children.remove("attr");
+		for (JsonNativeOutput nativeOutput : nativeOutputs) {
+			if (children.has(nativeOutput.getKey())) {
+				return null;
+			}
+			children.put(nativeOutput.getKey(), nativeOutput);
+		}
+		setEscapeForwardSlashAlways(children, false);
+		return children.toString(1);
+	}
+
 	public static void jsonToXml(Object object, Element element) throws JSONException {
 		jsonToXml(object, null, element, true, true, false, "item");
 	}

@@ -20,12 +20,14 @@
 package com.twinsoft.convertigo.engine.requesters;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.util.JsonNativeOutput;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class JsonServletRequester extends ServletRequester {
@@ -47,6 +49,20 @@ public class JsonServletRequester extends ServletRequester {
 		ConvertigoError.cleanDocument(context.getXpathApi(), document);
 		boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
 		JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
+		Map<String, JsonNativeOutput> nativeOutputs = context.jsonNativeOutputs;
+		context.jsonNativeOutputs = null;
+		if (nativeOutputs != null && !nativeOutputs.isEmpty() && !context.isErrorDocument) {
+			if (useType && JsonRoot.docChildNodes.equals(jsonRoot)) {
+				String json = XMLUtils.XmlToJson(document.getDocumentElement(), true, nativeOutputs.values());
+				if (json != null) {
+					return json;
+				}
+			}
+			// a key is in both: the kept JSON goes back to XML, as without Sequence.jsonNativeOutput
+			for (JsonNativeOutput nativeOutput : nativeOutputs.values()) {
+				document.getDocumentElement().appendChild(nativeOutput.toElement(document));
+			}
+		}
 		return XMLUtils.XmlToJson(document.getDocumentElement(), true, useType, jsonRoot);
 	}
 	

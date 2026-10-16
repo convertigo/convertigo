@@ -30,7 +30,7 @@ public class SequenceBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/Sequence");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
             
             properties[0] = new PropertyDescriptor("includeResponseElement", beanClass, "isIncludeResponseElement", "setIncludeResponseElement");
             properties[0].setDisplayName(getExternalizedString("property.includeResponseElement.display_name"));
@@ -41,7 +41,12 @@ public class SequenceBeanInfo extends MySimpleBeanInfo {
             properties[1].setDisplayName(getExternalizedString("property.autoStart.display_name"));
             properties[1].setShortDescription(getExternalizedString("property.autoStart.short_description"));
             properties[1].setExpert(true);
-            
+
+            properties[2] = new PropertyDescriptor("jsonNativeOutput", beanClass, "isJsonNativeOutput", "setJsonNativeOutput");
+            properties[2].setDisplayName(getExternalizedString("property.jsonNativeOutput.display_name"));
+            properties[2].setShortDescription(getExternalizedString("property.jsonNativeOutput.short_description"));
+            properties[2].setExpert(true);
+
             PropertyDescriptor property = getPropertyDescriptor("sheetLocation");
 			property.setPropertyEditorClass(getEditorClass("SequenceSheetLocationEditor"));
 			

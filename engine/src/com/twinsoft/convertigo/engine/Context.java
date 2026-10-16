@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.JsonNativeOutput;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
@@ -97,6 +98,9 @@ public class Context extends AbstractContext implements Cloneable {
 
 	public transient boolean isDestroying = false;
 	public transient boolean isErrorDocument = false;
+
+	/** The JSON of the output steps of a sequence answered as JSON without their XML (Sequence.jsonNativeOutput), by key */
+	public transient Map<String, JsonNativeOutput> jsonNativeOutputs = null;
 
 	public transient boolean isXsltRequest = false;
 
@@ -182,6 +186,7 @@ public class Context extends AbstractContext implements Cloneable {
 	public void reset() {
 		isXsltRequest = false;
 		isErrorDocument = false;
+		jsonNativeOutputs = null;
 		isStubRequested = false;
 		isNewSession = false;
 

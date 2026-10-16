@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Set;
 
 import org.apache.ws.commons.schema.XmlSchema;
@@ -37,9 +38,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.JsonOutput;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.requesters.JsonServletRequester;
+import com.twinsoft.convertigo.engine.util.JsonNativeOutput;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -127,6 +134,9 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 
 	@Override
 	protected Node createStepNode() throws EngineException {
+		if (keepJsonNative()) {
+			return null;
+		}
 		Document doc = getOutputDocument();
 		Element elt = doc.createElement("e");
 
@@ -148,6 +158,38 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 		elt = (Element) elt.getFirstChild();
 		elt.setAttribute("originalKeyName", key.getSingleString(this));
 		return elt;
+	}
+
+	/**
+	 * With Sequence.jsonNativeOutput, an output step directly under a sequence requested as JSON keeps its
+	 * JSON as text for the response (JsonServletRequester) instead of building its XML. Only for a JS object,
+	 * whose text is valid JSON, and for the default JSON output of the project (types, document child nodes).
+	 */
+	private boolean keepJsonNative() throws EngineException {
+		if (!isOutput() || jsonObject.getMode() != Mode.JS || !(getParent() instanceof Sequence)
+				|| sequence == null || !sequence.isJsonNativeOutput() || sequence.context == null
+				|| !(sequence.getRequester() instanceof JsonServletRequester)
+				|| jsonSource == null || !(jsonSource.startsWith("{") || jsonSource.startsWith("["))) {
+			return false;
+		}
+		com.twinsoft.convertigo.engine.Context context = sequence.context;
+		Project project = context.project;
+		if (project == null || project.getJsonOutput() != JsonOutput.useType || project.getJsonRoot() != JsonRoot.docChildNodes) {
+			return false;
+		}
+		String keyName = key.getSingleString(this);
+		synchronized (context) {
+			if (context.jsonNativeOutputs == null) {
+				context.jsonNativeOutputs = new LinkedHashMap<String, JsonNativeOutput>();
+			}
+			if (keyName == null || context.jsonNativeOutputs.containsKey(keyName)) {
+				return false;
+			}
+			context.jsonNativeOutputs.put(keyName, new JsonNativeOutput(keyName, jsonSource, getStepNodeName(), arrayChildrenTag));
+			// the XML output lacks this JSON: it must not be cached
+			context.isCacheEnabled = false;
+		}
+		return true;
 	}
 
 	@Override
