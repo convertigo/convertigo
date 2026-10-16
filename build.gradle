@@ -37,7 +37,7 @@ ext.convertigoCode = 'At'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '9.5.3'
-ext.swaggerUiVersion = '5.33.2'
+ext.swaggerUiVersion = '5.33.3'
 ext.tomcatVersion = '11.0.27'
 ext.eclipseVersion = '2026-09'
 ext.eclipseBase = '4.41'
@@ -1046,5 +1046,5 @@ allprojects {
 wrapper {
 	group = 'convertigo'
 	
-	gradleVersion = '9.8.0'
+	gradleVersion = '9.8.1'
 }
