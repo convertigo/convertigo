@@ -97,15 +97,21 @@ public class XMLUtils {
 	/**
 	 * Each request runs in a new thread, so the per thread factories and document builders are created
 	 * again for every request, and each creation looks its implementation up in the META-INF/services of
-	 * every jar of the server and of the projects. The JAXP and Xerces lookups read a system property first:
-	 * it is set once here to the implementation the lookup resolves, unless an administrator already set it.
+	 * every jar of the server and of the projects. The JAXP implementations are looked up once here and the
+	 * factories are then created by class name (no system property: the other web applications of the
+	 * server cannot load these classes). Xerces reads its parser configuration from a system property first:
+	 * it is set to the one its lookup resolves, unless an administrator already set it.
 	 * Not the Xalan DTMManager: once pinned, the documents of the XPath contexts are kept alive.
 	 */
+	private static String documentBuilderFactoryClassName;
+	private static String saxParserFactoryClassName;
+	private static String transformerFactoryClassName;
+
 	private static void pinXmlImplementations() {
 		try {
-			pinXmlImplementation("javax.xml.parsers.DocumentBuilderFactory", DocumentBuilderFactory.newInstance().getClass().getName());
-			pinXmlImplementation("javax.xml.parsers.SAXParserFactory", SAXParserFactory.newInstance().getClass().getName());
-			pinXmlImplementation("javax.xml.transform.TransformerFactory", TransformerFactory.newInstance().getClass().getName());
+			documentBuilderFactoryClassName = DocumentBuilderFactory.newInstance().getClass().getName();
+			saxParserFactoryClassName = SAXParserFactory.newInstance().getClass().getName();
+			transformerFactoryClassName = TransformerFactory.newInstance().getClass().getName();
 			pinXmlImplementation("org.apache.xerces.xni.parser.XMLParserConfiguration", serviceProvider(
 					"org.apache.xerces.xni.parser.XMLParserConfiguration", "org.apache.xerces.parsers.XIncludeAwareParserConfiguration"));
 		} catch (Throwable t) {
@@ -117,6 +123,39 @@ public class XMLUtils {
 		if (System.getProperty(name) == null) {
 			System.setProperty(name, className);
 		}
+	}
+
+	private static DocumentBuilderFactory newDocumentBuilderFactory() {
+		if (documentBuilderFactoryClassName != null) {
+			try {
+				return DocumentBuilderFactory.newInstance(documentBuilderFactoryClassName, XMLUtils.class.getClassLoader());
+			} catch (Throwable t) {
+				// looked up as before
+			}
+		}
+		return DocumentBuilderFactory.newInstance();
+	}
+
+	private static SAXParserFactory newSAXParserFactory() {
+		if (saxParserFactoryClassName != null) {
+			try {
+				return SAXParserFactory.newInstance(saxParserFactoryClassName, XMLUtils.class.getClassLoader());
+			} catch (Throwable t) {
+				// looked up as before
+			}
+		}
+		return SAXParserFactory.newInstance();
+	}
+
+	private static TransformerFactory newTransformerFactory() {
+		if (transformerFactoryClassName != null) {
+			try {
+				return TransformerFactory.newInstance(transformerFactoryClassName, XMLUtils.class.getClassLoader());
+			} catch (Throwable t) {
+				// looked up as before
+			}
+		}
+		return TransformerFactory.newInstance();
 	}
 
 	private static String serviceProvider(String name, String defaultClassName) {
@@ -139,7 +178,7 @@ public class XMLUtils {
 	private static ThreadLocal<DocumentBuilderFactory> defaultDocumentBuilderFactory = new ThreadLocal<DocumentBuilderFactory>() {
 		@Override
 		protected DocumentBuilderFactory initialValue() {
-			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilderFactory documentBuilderFactory = newDocumentBuilderFactory();
 			// Disable external entity resolution and external DTD access. Internal
 			// DTD subsets (used by some shipped XSL) keep working; only external
 			// references are blocked.
@@ -191,7 +230,7 @@ public class XMLUtils {
 	private static ThreadLocal<TransformerFactory> defaultTransformerFactory = new ThreadLocal<TransformerFactory>() {
 		@Override
 		protected TransformerFactory initialValue() {
-			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			TransformerFactory transformerFactory = newTransformerFactory();
 			// No FEATURE_SECURE_PROCESSING here: Xalan then rejects every attribute of the
 			// literal result elements of a stylesheet (the SmtpStep XSL loses its href, src, style...).
 			// The transformed documents are DOM trees already parsed by the hardened builder.
@@ -218,7 +257,7 @@ public class XMLUtils {
 		@Override
 		protected SAXParser initialValue() {
 			try {
-				SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+				SAXParserFactory saxParserFactory = newSAXParserFactory();
 				// Disable external entity resolution and external DTD access while
 				// keeping internal DTD subsets working.
 				try {
@@ -1118,7 +1157,7 @@ public class XMLUtils {
 		@Override
 		protected DocumentBuilder initialValue() {
 			try {
-				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+				DocumentBuilderFactory factory = newDocumentBuilderFactory();
 				factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 				factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 				factory.setXIncludeAware(false);
