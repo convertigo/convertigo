@@ -62,7 +62,7 @@
 		"@xyflow/svelte": "^1.7.0",
 		"@zag-js/tree-view": "^1.46.0",
 		"apexcharts": "^5.16.0",
-		"dockview": "^8.5.1",
+		"dockview": "^8.6.0",
 		"fast-xml-parser": "^5.11.2",
 		"fs-extra": "^11.4.1",
 		"html-entities": "^2.6.0",

@@ -49,8 +49,8 @@ tasks.named('check') {
 tasks.register('ngxBuildSettingsTest', JavaExec) {
 	group = 'verification'
 	description = 'NGX application asset self-copy prevention and cross-project preservation.'
-	dependsOn sessionTestClasses
-	classpath = sourceSets.sessionTest.runtimeClasspath
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.mobile.NgxBuildSettingsTest'
 }
