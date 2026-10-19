@@ -54,13 +54,17 @@ describe('Administration instance routing', () => {
 		expect(Instances.activeName).toBe('convertigo-pod-b');
 	});
 
-	it('refreshes independently of a vanished target and explicitly selects the responding pod', async () => {
+	it('keeps a target whose discovery entry expired among the options instead of switching to the local pod', async () => {
 		await Instances.refresh();
 		Instances.current = 'route-b';
 		call.mockResolvedValue({ storeMode: 'redis', instances: [pods[0]], localRoutingId: 'route-a' });
 		await Instances.refresh(true);
-		expect(Instances.current).toBe('route-a');
-		expect(Instances.activeName).toBe('convertigo-pod-a');
+		expect(Instances.instances).toEqual([pods[0]]);
+		expect(Instances.current).toBe('route-b');
+		expect(Instances.options).toEqual([
+			{ value: 'route-a', text: 'convertigo-pod-a' },
+			{ value: 'route-b', text: 'route-b' }
+		]);
 	});
 
 	it('does not lose the selection when discovery fails', async () => {
@@ -125,6 +129,46 @@ describe('Administration instance routing', () => {
 			false
 		);
 		expect(Instances.current).toBe('route-b');
+		expect(Instances.unreachable).toBe(null);
+	});
+	it.each([
+		{ error: 'Instance unreachable' },
+		{ error: 'Server unreachable', offline: true },
+		{},
+		null
+	])('preserves the selector state when refreshing fails: %j', async (failure) => {
+		await Instances.refresh();
+		Instances.current = 'route-b';
+		Instances.update(
+			response({ 'X-C8O-Instance-Unreachable': 'route-b', 'X-C8O-Instance-Local': 'route-a' })
+		);
+		call.mockResolvedValue(failure);
+		await Instances.refresh(true);
+		expect(Instances.storeMode).toBe('redis');
+		expect(Instances.instances).toEqual(pods);
+		expect(Instances.current).toBe('route-b');
+		expect(Instances.unreachable?.instance).toBe('route-b');
+		expect(Instances.loading).toBe(false);
+	});
+
+	it('does not mistake a local or unidentified response for recovery of the chosen target', async () => {
+		await Instances.refresh();
+		Instances.current = 'route-b';
+		Instances.update(response({ 'X-C8O-Instance-Unreachable': 'route-b' }));
+		for (const headers of [{ 'X-C8O-Instance': 'route-a' }, {}]) {
+			expect(Instances.update(response(headers))).toBe(Boolean(headers['X-C8O-Instance']));
+			expect(Instances.current).toBe('route-b');
+			expect(Instances.unreachable?.instance).toBe('route-b');
+		}
+		expect(Instances.update(response('route-b'))).toBe(false);
+		expect(Instances.unreachable).toBe(null);
+	});
+
+	it('ignores a late outage response after the user explicitly selects the local instance', async () => {
+		await Instances.refresh();
+		Instances.current = 'route-a';
+		expect(Instances.update(response({ 'X-C8O-Instance-Unreachable': 'route-b' }))).toBe(true);
+		expect(Instances.current).toBe('route-a');
 		expect(Instances.unreachable).toBe(null);
 	});
 });

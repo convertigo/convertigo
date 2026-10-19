@@ -1,0 +1,36 @@
+# Disposable regression topology for administration forwarding after discovery expiry.
+x-engine: &engine
+  image: convertigo/convertigo-ci:hotfix
+  environment:
+    CONVERTIGO_ADMIN_USER: admin
+    CONVERTIGO_ADMIN_PASSWORD: issue1231-test-only
+    JAVA_OPTS: >-
+      -Xmx512m
+      -Dconvertigo.engine.session.store.mode=redis
+      -Dconvertigo.engine.session.redis.host=redis
+      -Dconvertigo.engine.session.redis.port=6379
+      -Dconvertigo.engine.session.redis.password=issue1231-redis-only
+      -Dconvertigo.engine.session.redis.prefix=issue1231:session
+      -Dconvertigo.engine.session.redis.connection.pool.size=4
+      -Dconvertigo.engine.session.redis.connection.minimum.idle.size=1
+      -Dconvertigo.engine.fullsync.couch.url=http://127.0.0.1:15984
+  depends_on:
+    redis:
+      condition: service_healthy
+  volumes:
+    - ${C8O_HOTFIX_ROOT:?Set C8O_HOTFIX_ROOT}/engine/build/classes/java/main:/workspace/classes:ro
+services:
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --requirepass, issue1231-redis-only]
+    healthcheck:
+      test: [CMD, redis-cli, -a, issue1231-redis-only, ping]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+  engine-a:
+    <<: *engine
+    ports: ["127.0.0.1:29141:28080"]
+  engine-b:
+    <<: *engine
+    ports: ["127.0.0.1:29142:28080"]

@@ -52,9 +52,7 @@
 		untrack(Instances.refresh);
 	});
 
-	const instanceOptions = $derived(
-		Instances.instances.map(({ instanceId, routingId }) => ({ value: routingId, text: instanceId }))
-	);
+	const instanceOptions = $derived(Instances.options);
 	const isDashboardRoute = $derived(page.route.id?.includes('dashboard') ?? false);
 	const dashboardLoginHref = $derived.by(() => {
 		const redirect = encodeURIComponent(page.url.pathname + page.url.search + page.url.hash);

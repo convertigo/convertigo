@@ -41,6 +41,17 @@ export default {
 	get instances() {
 		return state.instances;
 	},
+	/** The choices of the selector; a selection whose discovery entry expired stays among them. */
+	get options() {
+		const options = state.instances.map(({ instanceId, routingId }) => ({
+			value: routingId,
+			text: instanceId
+		}));
+		if (state.current && !options.some((option) => option.value === state.current)) {
+			options.push({ value: state.current, text: state.current });
+		}
+		return options;
+	},
 	get loading() {
 		return state.loading;
 	},
@@ -74,6 +85,8 @@ export default {
 		const headers = response?.headers;
 		const unreachable = normalizeInstance(headers?.get?.(UNREACHABLE_HEADER));
 		if (unreachable) {
+			// An in-flight request for the previous selection must not restore its banner.
+			if (state.current && unreachable !== state.current) return true;
 			state.unreachable = {
 				instance: unreachable,
 				local: normalizeInstance(headers.get(LOCAL_HEADER)),
@@ -83,11 +96,13 @@ export default {
 		}
 		const header = headers?.get?.(INSTANCE_HEADER);
 		const normalized = normalizeInstance(header);
+		// Only an answer from the selected target can clear its outage report.
+		if (state.unreachable && normalized && normalized !== state.unreachable.instance) return true;
 		if (normalized) {
 			state.active = normalized;
 			setCurrent(normalized);
 		}
-		if (state.unreachable && (!normalized || normalized === state.unreachable.instance)) {
+		if (state.unreachable && normalized === state.unreachable.instance) {
 			state.unreachable = null;
 		}
 		return false;
@@ -99,11 +114,15 @@ export default {
 		try {
 			// Discovery must remain reachable even after the selected pod has disappeared.
 			const res = await call('engine.ListInstances', {}, { instance: '' });
-			if (!Array.isArray(res?.instances)) return;
-			state.storeMode = res?.storeMode ?? '';
-			state.instances = Array.isArray(res?.instances) ? res.instances : [];
-			if (!state.current || !state.instances.some((info) => info.routingId === state.current)) {
-				setCurrent(res?.localRoutingId);
+			// A failed discovery keeps the selector as it was.
+			if (res?.error || typeof res?.storeMode !== 'string' || !Array.isArray(res?.instances))
+				return;
+			state.storeMode = res.storeMode;
+			state.instances = res.instances;
+			// A selection whose discovery entry expired is kept: requests to it report it unreachable
+			// instead of silently running on the local instance.
+			if (!state.current) {
+				setCurrent(res.localRoutingId);
 				state.active = state.current;
 			}
 		} finally {

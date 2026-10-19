@@ -2851,6 +2851,11 @@ public class NgxBuilder extends MobileBuilder {
 							}
 							try {
 								JSONObject jsonAsset = new JSONObject(asset);
+								if (isSelfCopyAsset(ionicWorkDir, jsonAsset, jsonOptions)) {
+									Engine.logEngine.warn("(" + builderType + ") Skipping redundant application asset in "
+											+ project.getName() + ": source and destination are identical: " + asset);
+									continue;
+								}
 								jsonArray.put(jsonAsset);
 							} catch (Exception e) {
 								e.printStackTrace();
@@ -2940,6 +2945,34 @@ public class NgxBuilder extends MobileBuilder {
 		} catch (Exception e) {
 			throw new EngineException("Unable to write angular json file",e);
 		}
+	}
+
+	/** Disk builds must not copy preserved project assets onto themselves. The dev server
+	 * serves assets in memory, so its separate asset list must keep these entries. */
+	static boolean isSelfCopyAsset(File workDir, JSONObject asset, JSONObject options) throws IOException {
+		String input = asset.optString("input", "");
+		if (input.isBlank() || !asset.has("output")) {
+			return false;
+		}
+		Object outputPath = options.opt("outputPath");
+		String outputRoot;
+		if (outputPath instanceof JSONObject outputOptions) {
+			String base = outputOptions.optString("base", "");
+			if (base.isBlank()) return false;
+			outputRoot = new File(base, outputOptions.optString("browser", "browser")).getPath();
+		} else if (outputPath instanceof String path && !path.isBlank()) {
+			outputRoot = path;
+		} else {
+			return false;
+		}
+		File source = workDir.toPath().resolve(input).toFile().getCanonicalFile();
+		File preservedAssets = new File(workDir, "../../DisplayObjects/mobile/assets").getCanonicalFile();
+		if (!source.toPath().startsWith(preservedAssets.toPath())) {
+			return false;
+		}
+		String output = asset.optString("output", "").replaceFirst("^[\\\\/]+", "");
+		File destination = workDir.toPath().resolve(outputRoot).resolve(output).toFile().getCanonicalFile();
+		return source.equals(destination);
 	}
 
 	static private boolean jsonArrayContains(JSONArray jsonArray, String jsonObToString) {

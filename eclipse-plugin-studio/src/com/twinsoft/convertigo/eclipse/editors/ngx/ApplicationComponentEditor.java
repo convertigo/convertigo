@@ -62,6 +62,8 @@ import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -1786,7 +1788,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private static boolean isStandaloneErrorStartLine(String normalizedLine, String lowerLine) {
 		return normalizedLine.startsWith("✘")
 				|| lowerLine.startsWith("x [error]")
-				|| lowerLine.contains("✘ [error]");
+				|| lowerLine.contains("✘ [error]")
+				|| lowerLine.startsWith("an unhandled exception occurred")
+				|| lowerLine.startsWith("npm error")
+				|| lowerLine.startsWith("npm err!");
 	}
 
 	private static boolean isStandaloneFailureDetailLine(String normalizedLine, String lowerLine) {
@@ -1802,6 +1807,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private static final class StandaloneBuildProgress {
 		private static enum CycleResult {
 			NONE,
+			BUNDLED,
 			SUCCESS,
 			FAILED
 		}
@@ -1821,6 +1827,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 
 		CycleResult onLine(String normalizedLine) {
+			return onLine(normalizedLine, true);
+		}
+
+		CycleResult onLine(String normalizedLine, boolean devServer) {
 			String lowerLine = normalizedLine.toLowerCase(Locale.ROOT);
 			boolean wasActive = active.get();
 			if (isBuildStartLine(lowerLine)) {
@@ -1832,11 +1842,14 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			if (isBuildHardEndLine(lowerLine)) {
 				startIfNeeded();
-				finish();
-				return isBuildFailureEndLine(lowerLine) ? CycleResult.FAILED : CycleResult.SUCCESS;
+				boolean failed = isBuildFailureEndLine(lowerLine);
+				// Angular logs bundle completion before writing files. Only the dev server
+				// can use it as a cycle boundary; disk builds still await the npm exit code.
+				finish(failed || devServer ? 100 : 99);
+				return failed ? CycleResult.FAILED : devServer ? CycleResult.SUCCESS : CycleResult.BUNDLED;
 			}
-			if (isBuildSoftEndLine(lowerLine) && wasActive) {
-				finish();
+			if (devServer && isBuildSoftEndLine(lowerLine) && wasActive) {
+				finish(100);
 				return CycleResult.SUCCESS;
 			}
 			return CycleResult.NONE;
@@ -1899,13 +1912,13 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 		}
 
-		private void finish() {
+		private void finish(int progress) {
 			active.set(false);
 			cycleToken.incrementAndGet();
 			stopTicker();
-			syntheticProgress.set(100);
-			stageProgress.set(100);
-			progressConsumer.accept(100);
+			syntheticProgress.set(progress);
+			stageProgress.set(progress);
+			progressConsumer.accept(progress);
 		}
 
 		private void stopTicker() {
@@ -1935,7 +1948,33 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 
 		private static boolean isBuildFailureEndLine(String lowerLine) {
-			return lowerLine.contains("bundle generation failed");
+			return lowerLine.contains("bundle generation failed")
+					|| lowerLine.startsWith("an unhandled exception occurred")
+					|| lowerLine.startsWith("npm error")
+					|| lowerLine.startsWith("npm err!");
+		}
+	}
+
+	/** Keep useful npm diagnostics without retaining an unbounded watch log. */
+	private static final class BuildOutputTail {
+		private static final int MAX_CHARS = 16 * 1024;
+		private final StringBuilder tail = new StringBuilder();
+
+		void append(String line) {
+			if (line.length() >= MAX_CHARS) {
+				tail.setLength(0);
+				line = line.substring(line.length() - MAX_CHARS + 1);
+			}
+			tail.append(line).append('\n');
+			if (tail.length() > MAX_CHARS) tail.delete(0, tail.length() - MAX_CHARS);
+		}
+
+		void clear() {
+			tail.setLength(0);
+		}
+
+		String failure(int exitCode) {
+			return "npm exited with code " + exitCode + ".\n" + tail.toString().strip();
 		}
 	}
 
@@ -2129,6 +2168,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		int lastWebpackProgress = 0;
 		long webpackStartTime = 0;
 		StandaloneBuildProgress standaloneProgress = null;
+		BuildOutputTail output = new BuildOutputTail();
 		try {
 			ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
 		} catch (CoreException ce) {}
@@ -2292,10 +2332,17 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							String lowerLine = normalizedLine.toLowerCase(Locale.ROOT);
 							Engine.logStudio.info(line);
 							if (isStandaloneRebuildStartLine(lowerLine)) {
+								output.clear();
 								standaloneFailedCycle = false;
 								error(null);
 							}
 							boolean errorStartLine = isStandaloneErrorStartLine(normalizedLine, lowerLine);
+							output.append(line);
+							if (lowerLine.startsWith("an unhandled exception occurred")) {
+								// Angular can leave its watcher alive after the builder itself has failed.
+								p.descendants().toList().forEach(ProcessHandle::destroy);
+								p.destroy();
+							}
 							if (errorStartLine) {
 								standaloneFailedCycle = true;
 							}
@@ -2351,12 +2398,18 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 
 			if (buildCount == this.buildCount) {
+				int exitCode = p.waitFor();
+				if (exitCode != 0) throw new IOException(output.failure(exitCode));
 				appendOutput("\\o/");
 			} else {
 				appendOutput("previous build canceled !");
 			}
 		} catch (Exception e) {
 			appendOutput(":( " + e);
+			if (buildCount == this.buildCount) {
+				Engine.logStudio.error("Mobile builder failed for " + project.getName() + ":\n" + output.tail, e);
+				error(output.tail.length() > 0 ? output.tail.toString() : e.getMessage());
+			}
 		} finally {
 			if (standaloneProgress != null) {
 				standaloneProgress.shutdown();
@@ -2683,7 +2736,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			return;
 		}
 		NgxBuilderBuildMode buildMode = this.buildMode;
-		boolean[] terminated = { false };
+		AtomicBoolean terminated = new AtomicBoolean(false);
 		MobileBuilder mb = project.getMobileBuilder();
 		if (buildMode.equals(NgxBuilderBuildMode.prod)) {
 			mb.setAppBuildMode(MobileBuilderBuildMode.production);
@@ -2702,6 +2755,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		String appName = applicationEditorInput.application.getParent().getComputedApplicationName();
 		prodJob = Job.create("Build in " + buildMode.label() + " mode for " + appName, monitor -> {
+			StandaloneBuildProgress standaloneProgress = null;
+			Process process = null;
+			BuildOutputTail output = new BuildOutputTail();
 			try {
 				Engine.logStudio.debug("Build in " + buildMode.label() + " mode requested for " + appName);
 				boolean isStandalone = applicationEditorInput.application.isTplStandalone();
@@ -2721,6 +2777,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 				}
 				monitor.worked(3);
+				if (isStandalone) lastProgress.set(5);
 
 				String path = nodeDir.getAbsolutePath();
 
@@ -2744,13 +2801,13 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
 				Process p = pb.start();
+				process = p;
 				processes.add(p);
 				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				String line;
 
 				Matcher matcher = Pattern.compile("(\\d+)% (.*)").matcher("");
 				Object progressMutex = new Object();
-				StandaloneBuildProgress standaloneProgress = null;
 				long webpackStartTime = 0;
 				if (isStandalone) {
 					standaloneProgress = new StandaloneBuildProgress(progressValue -> {
@@ -2761,38 +2818,60 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 								lastProgress.set(progressValue);
 							}
 						}
-					}, null);
+					}, () -> {
+						if (buildMode == NgxBuilderBuildMode.watch) {
+							synchronized (progressMutex) {
+								lastProgress.set(0);
+								monitor.beginTask("Standalone build in progress", 100);
+							}
+						}
+					});
 				}
 				Engine.execute(() -> {
-					while (!monitor.isCanceled() && !terminated[0]) {
+					while (!monitor.isCanceled() && !terminated.get()) {
 						try {
 							Thread.sleep(100);
 						} catch (InterruptedException e) {
-							e.printStackTrace();
+							Thread.currentThread().interrupt();
+							return;
 						}
 					}
-					if (!terminated[0]) {
-						terminateNode(true);
+					if (!terminated.get()) {
+						// Cancel this build only, including finite builds and npm post-build hooks.
+						p.descendants().toList().forEach(ProcessHandle::destroy);
+						p.destroy();
 					}
 				});
+				boolean fatalBuildError = false;
 				while (!monitor.isCanceled() && (line = br.readLine()) != null) {
 					line = pRemoveEchap.matcher(line).replaceAll("");
 					line = line.replaceAll("[\\p{Cntrl}&&[^\\t]]", "");
 					if (StringUtils.isNotBlank(line)) {
 						String normalizedLine = line.replace('\u00A0', ' ').replaceAll("\\s+", " ").trim();
+						if (isStandaloneRebuildStartLine(normalizedLine.toLowerCase(Locale.ROOT))) output.clear();
+						output.append(line);
 						if (isStandalone) {
-							StandaloneBuildProgress.CycleResult cycleResult = standaloneProgress.onLine(normalizedLine);
+							StandaloneBuildProgress.CycleResult cycleResult = standaloneProgress.onLine(normalizedLine, false);
 							Engine.logStudio.debug(line);
 							if (cycleResult != StandaloneBuildProgress.CycleResult.NONE) {
 								boolean failedCycle = cycleResult == StandaloneBuildProgress.CycleResult.FAILED;
 								Engine.logStudio.debug("(NgxBuilder) standalone cycle end detected in " + buildMode.label()
-										+ " build: " + (failedCycle ? "failed" : "success") + " line: " + normalizedLine);
+										+ " build: " + (failedCycle ? "failed" : "bundled, awaiting output") + " line: " + normalizedLine);
 								synchronized (progressMutex) {
 									if (buildMode == NgxBuilderBuildMode.watch) {
-										monitor.subTask((failedCycle ? "Build failed" : "Build finished")
+										monitor.subTask((failedCycle ? "Build failed" : "Bundles generated")
 												+ ", waiting for changes or build cancel");
 									} else {
-										monitor.subTask(failedCycle ? "Build failed" : "Build finished");
+										monitor.subTask(failedCycle ? "Build failed" : "Writing output and running post-build scripts");
+									}
+								}
+								if (failedCycle && buildMode == NgxBuilderBuildMode.watch) {
+									Engine.logStudio.error("Build failed for " + appName + ":\n" + output.tail);
+									if (normalizedLine.toLowerCase(Locale.ROOT).startsWith("an unhandled exception occurred")) {
+										fatalBuildError = true;
+										p.descendants().toList().forEach(ProcessHandle::destroy);
+										p.destroy();
+										break;
 									}
 								}
 							}
@@ -2839,21 +2918,51 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 					}
 				}
-				if (standaloneProgress != null) {
-					standaloneProgress.shutdown();
+				if (!monitor.isCanceled()) {
+					// EOF is not a successful build: npm must also finish its lifecycle hooks.
+					int exitCode = p.waitFor();
+					if (monitor.isCanceled()) return;
+					if (exitCode != 0 || fatalBuildError) {
+						String message = "Build in " + buildMode.label() + " mode failed for " + appName;
+						String diagnostic = message + ": " + output.failure(exitCode);
+						Engine.logStudio.error(diagnostic);
+						monitor.subTask("Build failed");
+						// Keep the dialog short; Eclipse exposes the bounded npm output in Details.
+						throw new CoreException(new Status(IStatus.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID,
+								message + " (npm exit code " + exitCode + ").",
+								new IOException(output.failure(exitCode))));
+					} else {
+						monitor.subTask(buildMode == NgxBuilderBuildMode.watch ? "Build stopped" : "Build finished");
+						Engine.logStudio.info("Build " + buildMode.label()
+								+ (buildMode == NgxBuilderBuildMode.watch ? " stopped for " : " finished for ") + appName);
+					}
+				}
+			} catch (Exception e) {
+				if (!monitor.isCanceled()) {
+					Engine.logStudio.error("Failed to process the build: " + e.getMessage(), e);
+					if (e instanceof InterruptedException) Thread.currentThread().interrupt();
+					// A failed Job is visible in Eclipse's progress/error UI, not just DEBUG logs.
+					throw e instanceof CoreException core ? core : new CoreException(
+							new Status(IStatus.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID,
+									"Failed to process the build for " + appName, e));
+				}
+			} finally {
+				terminated.set(true);
+				if (standaloneProgress != null) standaloneProgress.shutdown();
+				if (process != null) {
+					if (process.isAlive()) {
+						process.descendants().toList().forEach(ProcessHandle::destroy);
+						process.destroy();
+					}
+					processes.remove(process);
 				}
 				buildItem.getDisplay().asyncExec(() -> {
-					if (!buildItem.isDisposed()) {
-						buildItem.setSelection(false);
-					}
+					if (!buildItem.isDisposed()) buildItem.setSelection(false);
 				});
 				monitor.done();
-				terminateNode(true);
-			} catch (Exception e) {
-				Engine.logStudio.error("Failed to process the build: " + e.getMessage(), e);
 			}
-			terminated[0] = true;
 		});
+		prodJob.setUser(true);
 		prodJob.schedule();
 	}
 
