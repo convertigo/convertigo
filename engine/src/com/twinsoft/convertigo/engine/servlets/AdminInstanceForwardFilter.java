@@ -168,13 +168,15 @@ public class AdminInstanceForwardFilter implements Filter {
 
 		var baseUrl = RedisInstanceDiscovery.resolveBaseUrl(requestedInstance);
 		if (baseUrl == null || baseUrl.isBlank()) {
-			chain.doFilter(request, response);
+			respondUnreachable(response, requestedInstance, localInstance, baseUrl,
+					new IOException("Target instance is not registered in Redis (discovery entry expired or unavailable)"));
 			return;
 		}
 
 		var targetUrl = buildTargetUrl(baseUrl, request);
 		if (targetUrl == null) {
-			chain.doFilter(request, response);
+			respondUnreachable(response, requestedInstance, localInstance, baseUrl,
+					new IOException("Target instance has an invalid administration URL"));
 			return;
 		}
 

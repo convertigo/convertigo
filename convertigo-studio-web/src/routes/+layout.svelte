@@ -164,7 +164,7 @@
 	<div
 		role="status"
 		aria-live="polite"
-		class="fixed inset-x-0 top-0 z-[200] layout-x-center-low preset-filled-warning-500 py-low px shadow-follow"
+		class="fixed inset-x-0 bottom-0 z-[200] layout-x-center-low preset-filled-warning-500 py-low px shadow-follow"
 		transition:slide={{ axis: 'y', duration: 150 }}
 	>
 		<Ico icon="mdi:alert-circle-outline" size={5} />
