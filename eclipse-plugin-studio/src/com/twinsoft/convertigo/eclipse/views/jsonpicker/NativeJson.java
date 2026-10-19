@@ -196,7 +196,9 @@ public class NativeJson {
 					continue;
 				}
 				Step sourceStep = source.getStep();
-				if ((jsonPath ? isJsonProducer(sourceStep) : sourceStep instanceof JsonTransformStep) && !found.contains(sourceStep)) {
+				// a JSON path also reads the JSON text answered by a raw HTTP transaction (RequestableStep)
+				if ((jsonPath ? isJsonProducer(sourceStep) || sourceStep instanceof com.twinsoft.convertigo.beans.core.RequestableStep
+						: sourceStep instanceof JsonTransformStep) && !found.contains(sourceStep)) {
 					found.add(sourceStep);
 				}
 			}

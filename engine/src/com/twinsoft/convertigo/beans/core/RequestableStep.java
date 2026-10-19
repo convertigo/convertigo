@@ -68,9 +68,11 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.json.JsonPath;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -941,4 +943,37 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	}
 	
 	abstract protected String getRequestableName();
+
+	/**
+	 * a JSON path source ($...) on the call of a requestable whose document holds only a JSON text (a raw HTTP
+	 * transaction): the text is read in stream, only the value selected is built, as JSON.parse would build it
+	 */
+	@Override
+	public Object selectJson(JsonPath path) throws EngineException {
+		Node stepNode = getContextNode(0);
+		if (stepNode == null) {
+			return JsonPath.MISSING;
+		}
+		for (Node child = stepNode.getFirstChild(); child != null; child = child.getNextSibling()) {
+			if (child.getNodeType() == Node.ELEMENT_NODE && "document".equals(child.getNodeName())) {
+				for (Node n = child.getFirstChild(); n != null; n = n.getNextSibling()) {
+					if (n.getNodeType() == Node.ELEMENT_NODE) {
+						// an XML answer: no JSON text to read
+						return JsonPath.MISSING;
+					}
+				}
+				String text = child.getTextContent().trim();
+				if (!(text.startsWith("{") || text.startsWith("["))) {
+					return JsonPath.MISSING;
+				}
+				try {
+					String selected = path.selectText(text);
+					return selected == null ? JsonPath.MISSING : RhinoUtils.jsonParse(selected);
+				} catch (java.io.IOException e) {
+					throw new EngineException("The answer read by '" + getName() + "' is not JSON", e);
+				}
+			}
+		}
+		return JsonPath.MISSING;
+	}
 }
