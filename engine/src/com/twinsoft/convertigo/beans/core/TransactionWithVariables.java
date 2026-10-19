@@ -557,13 +557,17 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			if (value instanceof Object[]) {
 				for (Object item : (Object[]) value) {
 					if (item != null) {
-						values.add(item);
+						values.add(Sequence.nativeParameterValue(item));
 					}
 				}
 			} else if (value instanceof java.util.Collection) {
-				values.addAll((java.util.Collection<?>) value);
+				for (Object item : (java.util.Collection<?>) value) {
+					if (item != null) {
+						values.add(Sequence.nativeParameterValue(item));
+					}
+				}
 			} else {
-				values.add(value);
+				values.add(Sequence.nativeParameterValue(value));
 			}
 			RequestableVariable variable = (RequestableVariable) getVariable(name);
 			if (variable != null && variable.isMultiValued()) {
