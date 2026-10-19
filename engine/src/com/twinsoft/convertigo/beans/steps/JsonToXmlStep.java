@@ -60,7 +60,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	private SmartType jsonObject = new SmartType();
 	private String jsonSample = "";
 	private String arrayChildrenTag = "item";
-	transient private String jsonSource;
+	transient protected String jsonSource;
 
 	public JsonToXmlStep() {
 		super();
@@ -165,7 +165,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	 * JSON as text for the response (JsonServletRequester) instead of building its XML. Only for a JS object,
 	 * whose text is valid JSON, and for the default JSON output of the project (types, document child nodes).
 	 */
-	private boolean isJsonNativeCandidate() {
+	protected boolean isJsonNativeCandidate() {
 		if (!isOutput() || jsonObject.getMode() != Mode.JS || !(getParent() instanceof Sequence)
 				|| sequence == null || !sequence.isJsonNativeOutput() || sequence.context == null
 				|| !(sequence.getRequester() instanceof JsonServletRequester)) {
@@ -179,16 +179,21 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 		if (!isJsonNativeCandidate() || jsonSource == null || !(jsonSource.startsWith("{") || jsonSource.startsWith("["))) {
 			return false;
 		}
-		com.twinsoft.convertigo.engine.Context context = sequence.context;
 		String keyName = key.getSingleString(this);
+		return keyName != null && registerJsonNativeOutput(new JsonNativeOutput(keyName, jsonSource, getStepNodeName(), arrayChildrenTag));
+	}
+
+	/** puts a JSON kept as is in the response of the sequence, false when its key is already there */
+	protected boolean registerJsonNativeOutput(JsonNativeOutput nativeOutput) {
+		com.twinsoft.convertigo.engine.Context context = sequence.context;
 		synchronized (context) {
 			if (context.jsonNativeOutputs == null) {
 				context.jsonNativeOutputs = new LinkedHashMap<String, JsonNativeOutput>();
 			}
-			if (keyName == null || context.jsonNativeOutputs.containsKey(keyName)) {
+			if (context.jsonNativeOutputs.containsKey(nativeOutput.getKey())) {
 				return false;
 			}
-			context.jsonNativeOutputs.put(keyName, new JsonNativeOutput(keyName, jsonSource, getStepNodeName(), arrayChildrenTag));
+			context.jsonNativeOutputs.put(nativeOutput.getKey(), nativeOutput);
 			// the XML output lacks this JSON: it must not be cached
 			context.isCacheEnabled = false;
 		}

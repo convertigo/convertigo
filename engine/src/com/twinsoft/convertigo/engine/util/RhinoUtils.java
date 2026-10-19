@@ -135,6 +135,15 @@ public class RhinoUtils {
 		return value == Undefined.instance || value == Scriptable.NOT_FOUND || value instanceof Callable || value instanceof Symbol;
 	}
 
+	/** writes the JSON of plain JavaScript data, Java maps and lists, as jsonStringifyData */
+	public static void writeJsonData(StringBuilder sb, Object value) {
+		try {
+			writeJsonData(sb, value, 0);
+		} catch (NotJsonData e) {
+			sb.append(jsonStringify(value));
+		}
+	}
+
 	private static void writeJsonData(StringBuilder sb, Object value, int depth) {
 		if (depth > 256) {
 			throw NotJsonData.INSTANCE;
@@ -201,8 +210,9 @@ public class RhinoUtils {
 			// a map of the native JSON steps: an undefined value is skipped like in a JavaScript object
 			sb.append('{');
 			boolean first = true;
-			for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-				Object item = entry.getValue();
+			Map<?, ?> map = (Map<?, ?>) value;
+			for (Object key : keysInJsOrder(map)) {
+				Object item = map.get(key);
 				if (isSkipped(item)) {
 					continue;
 				}
@@ -210,7 +220,7 @@ public class RhinoUtils {
 					sb.append(',');
 				}
 				first = false;
-				writeJsonString(sb, String.valueOf(entry.getKey()));
+				writeJsonString(sb, String.valueOf(key));
 				sb.append(':');
 				writeJsonData(sb, item, depth + 1);
 			}
@@ -235,12 +245,26 @@ public class RhinoUtils {
 		}
 	}
 
+	/** the keys of a map in the order a JavaScript object would give them (index keys first) */
+	private static Iterable<?> keysInJsOrder(Map<?, ?> map) {
+		for (Object key : map.keySet()) {
+			if (com.twinsoft.convertigo.engine.json.JsonData.isIndexKey(String.valueOf(key))) {
+				return com.twinsoft.convertigo.engine.json.JsonData.keys(map);
+			}
+		}
+		return map.keySet();
+	}
+
 	private static final char[] HEX = "0123456789abcdef".toCharArray();
 
-	private static void writeJsonString(StringBuilder sb, String s) {
+	public static void writeJsonString(StringBuilder sb, String s) {
+		writeJsonString(sb, s, 0, s.length());
+	}
+
+	/** the JSON string of s[start, end) */
+	public static void writeJsonString(StringBuilder sb, CharSequence s, int start, int end) {
 		sb.append('"');
-		int length = s.length();
-		for (int i = 0; i < length; i++) {
+		for (int i = start; i < end; i++) {
 			char c = s.charAt(i);
 			switch (c) {
 			case '"': sb.append("\\\""); break;
@@ -251,8 +275,8 @@ public class RhinoUtils {
 			case '\r': sb.append("\\r"); break;
 			case '\t': sb.append("\\t"); break;
 			default:
-				boolean loneSurrogate = Character.isSurrogate(c) && !(Character.isHighSurrogate(c) && i + 1 < length
-						&& Character.isLowSurrogate(s.charAt(i + 1))) && !(Character.isLowSurrogate(c) && i > 0
+				boolean loneSurrogate = Character.isSurrogate(c) && !(Character.isHighSurrogate(c) && i + 1 < end
+						&& Character.isLowSurrogate(s.charAt(i + 1))) && !(Character.isLowSurrogate(c) && i > start
 						&& Character.isHighSurrogate(s.charAt(i - 1)));
 				if (c < 0x20 || loneSurrogate) {
 					sb.append("\\u").append(HEX[c >> 12 & 15]).append(HEX[c >> 8 & 15]).append(HEX[c >> 4 & 15]).append(HEX[c & 15]);

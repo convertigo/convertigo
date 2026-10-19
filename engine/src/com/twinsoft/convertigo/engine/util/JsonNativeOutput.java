@@ -37,6 +37,11 @@ public class JsonNativeOutput implements JSONString {
 	private final String nodeName;
 	private final String arrayChildrenTag;
 
+	/** for an output whose JSON is written later (JsonStreamOutput) */
+	protected JsonNativeOutput(String key, String nodeName, String arrayChildrenTag) {
+		this(key, null, nodeName, arrayChildrenTag);
+	}
+
 	public JsonNativeOutput(String key, String json, String nodeName, String arrayChildrenTag) {
 		this.key = key;
 		this.json = json;
@@ -56,6 +61,7 @@ public class JsonNativeOutput implements JSONString {
 	/** The element JsonToXmlStep.createStepNode builds for this JSON */
 	public Element toElement(Document doc) throws JSONException {
 		Element elt = doc.createElement("e");
+		String json = toJSONString();
 		Object o = json.startsWith("{") ? new JSONObject(json) : new JSONArray(json);
 		XMLUtils.jsonToXml(o, nodeName, elt, true, false, arrayChildrenTag);
 		elt = (Element) elt.getFirstChild();

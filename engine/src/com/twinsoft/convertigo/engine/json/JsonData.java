@@ -90,12 +90,42 @@ public final class JsonData {
 		}
 		if (obj instanceof Map) {
 			List<String> keys = new ArrayList<String>(((Map<?, ?>) obj).size());
+			boolean index = false;
 			for (Object key : ((Map<?, ?>) obj).keySet()) {
-				keys.add(key.toString());
+				String text = key.toString();
+				index |= isIndexKey(text);
+				keys.add(text);
 			}
-			return keys;
+			return index ? jsOrder(keys) : keys;
 		}
 		return Collections.emptyList();
+	}
+
+	/** a key that a JavaScript object keeps as an array index: a canonical integer from 0 to 2^31-1 */
+	public static boolean isIndexKey(String key) {
+		int length = key.length();
+		if (length == 0 || length > 10 || (length > 1 && key.charAt(0) == '0')) {
+			return false;
+		}
+		for (int i = 0; i < length; i++) {
+			char c = key.charAt(i);
+			if (c < '0' || c > '9') {
+				return false;
+			}
+		}
+		return length < 10 || Long.parseLong(key) <= Integer.MAX_VALUE;
+	}
+
+	/** the keys in the order of for (key in obj): the index keys first, in ascending order, then the others */
+	public static List<String> jsOrder(List<String> keys) {
+		List<String> indexes = new ArrayList<String>();
+		List<String> others = new ArrayList<String>(keys.size());
+		for (String key : keys) {
+			(isIndexKey(key) ? indexes : others).add(key);
+		}
+		indexes.sort((a, b) -> Long.compare(Long.parseLong(a), Long.parseLong(b)));
+		indexes.addAll(others);
+		return indexes;
 	}
 
 	public static boolean isArray(Object value) {
