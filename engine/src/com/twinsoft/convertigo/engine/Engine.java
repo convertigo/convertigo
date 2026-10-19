@@ -1411,7 +1411,11 @@ public class Engine {
 
 			context.statistics.stop(t);
 
-			if (context.requestedObject != null) {
+			// no ticket for an internal call (a step of a sequence, a native call): only the request that came in
+			boolean internalCall = context.parentContext != null
+					|| (requester instanceof com.twinsoft.convertigo.engine.requesters.GenericRequester
+							&& ((com.twinsoft.convertigo.engine.requesters.GenericRequester) requester).isNativeCall());
+			if (context.requestedObject != null && !internalCall) {
 				try {
 					Engine.theApp.billingManager.insertBilling(context);
 				} catch (Exception e) {

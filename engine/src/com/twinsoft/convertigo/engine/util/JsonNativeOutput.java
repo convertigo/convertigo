@@ -33,7 +33,7 @@ import org.w3c.dom.Element;
  */
 public class JsonNativeOutput implements JSONString {
 	private final String key;
-	private final String json;
+	private String json;
 	private final String nodeName;
 	private final String arrayChildrenTag;
 
@@ -52,6 +52,24 @@ public class JsonNativeOutput implements JSONString {
 	private boolean legacy;
 	private Object value = NO_VALUE;
 	private static final Object NO_VALUE = new Object();
+	/** the data the JSON is written from, when its text is not built yet (a native sequence) */
+	private Object data = NO_VALUE;
+
+	/** an output of a native sequence: its JSON is written from the data, its text built only when asked */
+	public static JsonNativeOutput ofData(String key, Object data, String nodeName, String arrayChildrenTag) {
+		JsonNativeOutput output = new JsonNativeOutput(key, null, nodeName, arrayChildrenTag);
+		output.data = data;
+		return output;
+	}
+
+	/** writes the JSON of the output; the data of a native sequence is written directly, by chunks */
+	public void writeTo(java.io.Writer writer) throws java.io.IOException {
+		if (json == null && data != NO_VALUE) {
+			RhinoUtils.writeJsonData(writer, data);
+		} else {
+			writer.write(toJSONString());
+		}
+	}
 
 	/** the value of the output for a native call: the data the JSON was written from, or its JSON parsed */
 	public JsonNativeOutput value(Object value) {
@@ -85,6 +103,9 @@ public class JsonNativeOutput implements JSONString {
 
 	@Override
 	public String toJSONString() {
+		if (json == null && data != NO_VALUE) {
+			json = RhinoUtils.jsonStringifyData(data);
+		}
 		return json;
 	}
 

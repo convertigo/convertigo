@@ -30,7 +30,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -724,6 +723,33 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	}
 
 	public byte[] readResult(InputStream in, HttpMethod method) throws IOException {
-		return IOUtils.toByteArray(in);
+		// one buffer of the announced length (Content-Length), grown only when the body is longer (a decompressed body)
+		long announced = -1;
+		org.apache.commons.httpclient.Header contentLength = method != null ? method.getResponseHeader("Content-Length") : null;
+		if (contentLength != null) {
+			try {
+				announced = Long.parseLong(contentLength.getValue().trim());
+			} catch (NumberFormatException e) {
+				announced = -1;
+			}
+		}
+		byte[] buffer = new byte[announced > 0 && announced < Integer.MAX_VALUE - 8 ? (int) announced : 8192];
+		int count = 0;
+		while (true) {
+			if (count == buffer.length) {
+				int next = in.read();
+				if (next < 0) {
+					return buffer;
+				}
+				buffer = java.util.Arrays.copyOf(buffer, Math.max(buffer.length * 2, 8192));
+				buffer[count++] = (byte) next;
+			}
+			int read = in.read(buffer, count, buffer.length - count);
+			if (read < 0) {
+				break;
+			}
+			count += read;
+		}
+		return count == buffer.length ? buffer : java.util.Arrays.copyOf(buffer, count);
 	}
 }

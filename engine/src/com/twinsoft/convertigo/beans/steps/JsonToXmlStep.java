@@ -66,6 +66,35 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	private String jsonSample = "";
 	private String arrayChildrenTag = "item";
 	transient protected String jsonSource;
+	/** in a native sequence, the evaluated data whose JSON text is built only when something asks for it */
+	transient private Object jsonData = NO_DATA;
+	private static final Object NO_DATA = new Object();
+
+	/** the JSON text of the step, built from the data the first time it is asked in a native sequence */
+	protected String jsonSource() {
+		if (jsonSource == null && jsonData != NO_DATA) {
+			jsonSource = RhinoUtils.jsonStringifyData(jsonData);
+		}
+		return jsonSource;
+	}
+
+	/** '{' or '[' for an object or an array, from the data without writing its JSON when it is plain data */
+	private char jsonKind() {
+		if (jsonSource == null && jsonData != NO_DATA) {
+			Object data = jsonData instanceof org.mozilla.javascript.NativeJavaObject ? ((org.mozilla.javascript.NativeJavaObject) jsonData).unwrap() : jsonData;
+			if (RhinoUtils.isJsonData(data)) {
+				if (data != null && (data.getClass() == org.mozilla.javascript.NativeObject.class || (data instanceof java.util.Map && !(data instanceof Scriptable)))) {
+					return '{';
+				}
+				if (data != null && (data.getClass() == org.mozilla.javascript.NativeArray.class || (data instanceof java.util.List && !(data instanceof Scriptable)))) {
+					return '[';
+				}
+				return ' ';
+			}
+		}
+		String source = jsonSource();
+		return source == null || source.isEmpty() ? ' ' : source.charAt(0);
+	}
 	transient private Object jsonValue;
 
 	public JsonToXmlStep() {
@@ -148,6 +177,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 
 		try {
 			Object o;
+			String jsonSource = jsonSource();
 			if (jsonSource.startsWith("{")) {
 				o = new JSONObject(jsonSource);
 			} else if (jsonSource.startsWith("[")) {
@@ -182,12 +212,16 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	}
 
 	private boolean keepJsonNative() throws EngineException {
-		if (sequence != null && sequence.context != null && sequence.context.nativeExecution && isOutput() && jsonSource != null) {
+		if (sequence != null && sequence.context != null && sequence.context.nativeExecution && isOutput() && (jsonSource != null || jsonData != NO_DATA)) {
 			// a native sequence builds no XML for its outputs: the ones that were XML (not directly under the sequence, a
 			// value that is not an object nor an array) keep their place and form in the answer (JsonNativeOutput.legacy)
 			String keyName = key.getSingleString(this);
-			boolean legacy = !isJsonNativeCandidate() || !(jsonSource.startsWith("{") || jsonSource.startsWith("["));
-			JsonNativeOutput nativeOutput = new JsonNativeOutput(keyName, jsonSource, getStepNodeName(), arrayChildrenTag).legacy(legacy);
+			char kind = jsonKind();
+			boolean legacy = !isJsonNativeCandidate() || !(kind == '{' || kind == '[');
+			// its JSON is written from the data in the answer, its text built only when asked (legacy, native call)
+			JsonNativeOutput nativeOutput = (jsonSource == null && jsonData != NO_DATA
+					? JsonNativeOutput.ofData(keyName, jsonData, getStepNodeName(), arrayChildrenTag)
+					: new JsonNativeOutput(keyName, jsonSource, getStepNodeName(), arrayChildrenTag)).legacy(legacy);
 			if (jsonObject.getMode() == Mode.JS) {
 				nativeOutput.value(jsonValue);
 			}
@@ -195,6 +229,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 				return true;
 			}
 		}
+		String jsonSource = jsonSource();
 		if (!isJsonNativeCandidate() || jsonSource == null || !(jsonSource.startsWith("{") || jsonSource.startsWith("["))) {
 			return false;
 		}
@@ -205,12 +240,12 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	/** the JSON path sources read the JSON of the step (also when it is kept native), read in stream from its text */
 	@Override
 	public Object selectJson(JsonPath path) throws EngineException {
+		String jsonSource = jsonSource();
 		if (jsonSource == null || !(jsonSource.startsWith("{") || jsonSource.startsWith("["))) {
 			return JsonPath.MISSING;
 		}
 		try {
-			String text = path.selectText(jsonSource);
-			return text == null ? JsonPath.MISSING : RhinoUtils.jsonParse(text);
+			return path.selectValue(jsonSource);
 		} catch (java.io.IOException e) {
 			throw new EngineException("Unable to read the JSON of the step '" + getName() + "' at " + path, e);
 		}
@@ -246,11 +281,19 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 
 			if (jsonObject.getMode() == Mode.JS) {
 				// the JSON kept as is for the response is written directly from the data
-				jsonSource = isJsonNativeCandidate() || (sequence.context != null && sequence.context.nativeExecution)
-						? RhinoUtils.jsonStringifyData(jsonObject.getEvaluated())
-						: RhinoUtils.jsonStringify(jsonObject.getEvaluated());
+				jsonData = NO_DATA;
+				if (sequence.context != null && sequence.context.nativeExecution) {
+					// a native sequence: the JSON is written from the data in the answer, its text built only if asked
+					jsonSource = null;
+					jsonData = jsonObject.getEvaluated();
+				} else {
+					jsonSource = isJsonNativeCandidate()
+							? RhinoUtils.jsonStringifyData(jsonObject.getEvaluated())
+							: RhinoUtils.jsonStringify(jsonObject.getEvaluated());
+				}
 				jsonValue = jsonObject.getEvaluated();
 			} else {
+				jsonData = NO_DATA;
 				jsonSource = jsonObject.getSingleString(this).trim();
 			}
 

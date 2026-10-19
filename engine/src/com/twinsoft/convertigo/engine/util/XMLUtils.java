@@ -1774,33 +1774,18 @@ public class XMLUtils {
 			}
 		}
 		nativeOutputs = appended;
-		int length = 0;
-		boolean stream = false;
 		for (JsonNativeOutput nativeOutput : nativeOutputs) {
 			if (children.has(nativeOutput.getKey())) {
 				return null;
 			}
-			if (nativeOutput instanceof com.twinsoft.convertigo.engine.json.JsonStreamOutput) {
-				stream = true;
-			} else {
-				length += nativeOutput.toJSONString().length() + nativeOutput.getKey().length() + 8;
-			}
 		}
 		setEscapeForwardSlashAlways(children, false);
-		// the kept JSON is appended as is after what the XML gives, without being copied through a JSONObject
+		// the kept JSON is written as is after what the XML gives, without being copied through a JSONObject: the
+		// answer is written in stream by the servlet, each output from its data, by chunks (its text is not held)
 		String xmlPart = children.toString(1);
 		boolean empty = children.length() == 0;
-		if (stream) {
-			return new com.twinsoft.convertigo.engine.json.JsonStreamedResponse(xmlPart.substring(0, xmlPart.length() - (empty ? 1 : 2)),
-					empty, nativeOutputs, charset);
-		}
-		StringBuilder sb = new StringBuilder(xmlPart.length() + length + 4);
-		sb.append(xmlPart, 0, xmlPart.length() - (empty ? 1 : 2));
-		for (JsonNativeOutput nativeOutput : nativeOutputs) {
-			sb.append(empty ? "\n " : ",\n ").append(JSONObject.quote(nativeOutput.getKey())).append(": ").append(nativeOutput.toJSONString());
-			empty = false;
-		}
-		return sb.append("\n}").toString();
+		return new com.twinsoft.convertigo.engine.json.JsonStreamedResponse(xmlPart.substring(0, xmlPart.length() - (empty ? 1 : 2)),
+				empty, nativeOutputs, charset);
 	}
 
 	/** the value the XML of a JSON to XML step gives back in the JSON answer */

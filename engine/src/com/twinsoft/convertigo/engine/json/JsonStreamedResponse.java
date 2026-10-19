@@ -85,6 +85,47 @@ public class JsonStreamedResponse {
 			copy(json);
 		}
 
+		/** the target as a writer: kept while nothing is committed, then written as is */
+		Writer asWriter() {
+			return new Writer() {
+				@Override
+				public void write(char[] cbuf, int off, int len) throws IOException {
+					if (committed) {
+						writer.write(cbuf, off, len);
+						return;
+					}
+					pending.append(cbuf, off, len);
+					if (pending.length() >= COMMIT) {
+						committed = true;
+						copy(pending);
+						pending = null;
+					}
+				}
+
+				@Override
+				public void write(String str, int off, int len) throws IOException {
+					if (committed) {
+						writer.write(str, off, len);
+						return;
+					}
+					pending.append(str, off, off + len);
+					if (pending.length() >= COMMIT) {
+						committed = true;
+						copy(pending);
+						pending = null;
+					}
+				}
+
+				@Override
+				public void flush() {
+				}
+
+				@Override
+				public void close() {
+				}
+			};
+		}
+
 		private void copy(StringBuilder json) throws IOException {
 			int length = json.length();
 			for (int start = 0; start < length; start += chunk.length) {
@@ -125,7 +166,9 @@ public class JsonStreamedResponse {
 					((JsonStreamOutput) output).discard();
 					out.append("null");
 				} else {
-					out.append(output.toJSONString());
+					// the JSON of the output written directly, by chunks, without holding its whole text
+					target.write(out);
+					output.writeTo(target.asWriter());
 				}
 			}
 			if (failure != null) {

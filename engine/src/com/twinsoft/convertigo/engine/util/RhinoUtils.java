@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.Writer;
+import java.io.UncheckedIOException;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +94,11 @@ public class RhinoUtils {
 		}
 	}
 
+	/** the scope of the objects that jsonParse builds (the one of JSON.parse here) */
+	static public Scriptable jsonScope() {
+		return ScriptableObject.getTopLevelScope(json);
+	}
+
 	static public Object jsonParse(String string) {
 		return ScriptableObject.callMethod(json, "parse", new Object[]{string});
 	}
@@ -144,7 +152,116 @@ public class RhinoUtils {
 		}
 	}
 
+	private static final int CHUNK = 8192;
+
+	/** the text written so far goes to the writer by chunks, so the JSON is never held whole */
+	private static final class ChunkFlusher {
+		final Writer writer;
+		final char[] chunk = new char[CHUNK];
+
+		ChunkFlusher(Writer writer) {
+			this.writer = writer;
+		}
+
+		void flush(StringBuilder sb) {
+			try {
+				int length = sb.length();
+				for (int start = 0; start < length; start += chunk.length) {
+					int end = Math.min(length, start + chunk.length);
+					sb.getChars(start, end, chunk, 0);
+					writer.write(chunk, 0, end - start);
+				}
+				sb.setLength(0);
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
+		}
+	}
+
+	/**
+	 * writes the JSON of a value to a writer, as jsonStringifyData would give it, without holding the whole text:
+	 * plain data is checked first (a value JSON.stringify must write is written from its text)
+	 */
+	public static void writeJsonData(Writer writer, Object value) throws IOException {
+		if (!isJsonData(value)) {
+			writer.write(jsonStringify(value));
+			return;
+		}
+		StringBuilder sb = new StringBuilder(CHUNK + 1024);
+		ChunkFlusher flusher = new ChunkFlusher(writer);
+		try {
+			writeJsonData(sb, value, 0, flusher);
+			flusher.flush(sb);
+		} catch (UncheckedIOException e) {
+			throw e.getCause();
+		}
+	}
+
+	/** true when jsonStringifyData writes the value itself (plain JavaScript data, Java maps and lists) */
+	public static boolean isJsonData(Object value) {
+		try {
+			checkJsonData(value, 0);
+			return true;
+		} catch (NotJsonData e) {
+			return false;
+		}
+	}
+
+	private static void checkJsonData(Object value, int depth) {
+		if (depth > 256) {
+			throw NotJsonData.INSTANCE;
+		}
+		if (value == null || value instanceof CharSequence || value instanceof Boolean
+				|| (value instanceof Number && !(value instanceof BigInteger))) {
+			return;
+		}
+		if (value.getClass() == NativeArray.class) {
+			NativeArray array = (NativeArray) value;
+			long length = array.getLength();
+			for (int i = 0; i < length; i++) {
+				Object item = array.get(i, array);
+				if (!isSkipped(item)) {
+					checkJsonData(item, depth + 1);
+				}
+			}
+		} else if (value.getClass() == NativeObject.class) {
+			NativeObject object = (NativeObject) value;
+			if (ScriptableObject.getProperty(object, "toJSON") instanceof Callable) {
+				throw NotJsonData.INSTANCE;
+			}
+			for (Object id : object.getIds()) {
+				Object item = id instanceof Integer ? object.get((Integer) id, object) : id instanceof String ? object.get((String) id, object) : null;
+				if (item != null && !isSkipped(item)) {
+					checkJsonData(item, depth + 1);
+				}
+			}
+		} else if (value instanceof NativeJavaObject) {
+			checkJsonData(((NativeJavaObject) value).unwrap(), depth);
+		} else if (value instanceof Map && !(value instanceof Scriptable)) {
+			for (Object item : ((Map<?, ?>) value).values()) {
+				if (!isSkipped(item)) {
+					checkJsonData(item, depth + 1);
+				}
+			}
+		} else if (value instanceof List && !(value instanceof Scriptable)) {
+			for (Object item : (List<?>) value) {
+				if (!isSkipped(item)) {
+					checkJsonData(item, depth + 1);
+				}
+			}
+		} else {
+			throw NotJsonData.INSTANCE;
+		}
+	}
+
 	private static void writeJsonData(StringBuilder sb, Object value, int depth) {
+		writeJsonData(sb, value, depth, null);
+	}
+
+	private static void writeJsonData(StringBuilder sb, Object value, int depth, ChunkFlusher flusher) {
+		if (flusher != null && sb.length() >= CHUNK) {
+			flusher.flush(sb);
+		}
 		if (depth > 256) {
 			throw NotJsonData.INSTANCE;
 		}
@@ -169,7 +286,7 @@ public class RhinoUtils {
 				if (isSkipped(item)) {
 					sb.append("null");
 				} else {
-					writeJsonData(sb, item, depth + 1);
+					writeJsonData(sb, item, depth + 1, flusher);
 				}
 			}
 			sb.append(']');
@@ -201,11 +318,11 @@ public class RhinoUtils {
 				first = false;
 				writeJsonString(sb, key);
 				sb.append(':');
-				writeJsonData(sb, item, depth + 1);
+				writeJsonData(sb, item, depth + 1, flusher);
 			}
 			sb.append('}');
 		} else if (value instanceof NativeJavaObject) {
-			writeJsonData(sb, ((NativeJavaObject) value).unwrap(), depth);
+			writeJsonData(sb, ((NativeJavaObject) value).unwrap(), depth, flusher);
 		} else if (value instanceof Map && !(value instanceof Scriptable)) {
 			// a map of the native JSON steps: an undefined value is skipped like in a JavaScript object
 			sb.append('{');
@@ -222,7 +339,7 @@ public class RhinoUtils {
 				first = false;
 				writeJsonString(sb, String.valueOf(key));
 				sb.append(':');
-				writeJsonData(sb, item, depth + 1);
+				writeJsonData(sb, item, depth + 1, flusher);
 			}
 			sb.append('}');
 		} else if (value instanceof List && !(value instanceof Scriptable)) {
@@ -236,7 +353,7 @@ public class RhinoUtils {
 				if (isSkipped(item)) {
 					sb.append("null");
 				} else {
-					writeJsonData(sb, item, depth + 1);
+					writeJsonData(sb, item, depth + 1, flusher);
 				}
 			}
 			sb.append(']');
