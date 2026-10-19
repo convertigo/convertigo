@@ -5,6 +5,39 @@ included by `engine/build.gradle`. Run `./gradlew :engine:check` for the regress
 suites, or select an individual task below. `:engine:soapuiSmokeTest` is a separate
 opt-in smoke test.
 
+## NGX application build output
+
+`./gradlew :engine:ngxBuildSettingsTest` checks that redundant asset self-copies
+inside the owning project's preserved `DisplayObjects/mobile/assets` are skipped.
+It covers normalized paths, shared assets copied into a different project,
+different output locations, old/new template output formats, and symbolic links.
+The separate dev-server asset list remains unchanged (assets are served in memory).
+
+Without compiling or launching Eclipse, these commands compile and exercise the
+production progress/parser classes and build Job, using real npm processes and
+stubbing only the Eclipse host:
+
+```sh
+node eclipse-plugin-studio/tests/ngx-build.test.cjs
+node eclipse-plugin-studio/tests/ngx-build-job.test.cjs
+```
+
+They cover failure after bundle generation, npm post-build failures, successful
+completion after lifecycle hooks, fatal watch errors that leave Node alive,
+cancellation, cleanup, and bounded diagnostic history.
+
+For an opt-in test with real Angular builds, pass an existing NGX `node_modules`:
+
+```sh
+node eclipse-plugin-studio/tests/ngx-angular-build.cjs /path/to/project/_private/ionic/node_modules
+```
+
+This creates and removes only a temporary fixture, linking existing dependencies
+read-only. It reproduces late self-copy failures, verifies fast/prod outputs,
+cross-project copies, and watch recovery after a compile error. The config uses
+the independently tested asset predicate's expected result; this does not launch
+the Studio GUI or exercise project generation end to end.
+
 ## Step sources
 
 `./gradlew :engine:stepSourceTest` checks aggregation of classic and SmartType

@@ -45,6 +45,16 @@ tasks.named('check') {
 	dependsOn 'staticCacheControlTest'
 	dependsOn 'adminCacheControlTest'
 	dependsOn 'invalidRequestSessionTest'
+	dependsOn 'ngxBuildSettingsTest'
+}
+
+tasks.register('ngxBuildSettingsTest', JavaExec) {
+	group = 'verification'
+	description = 'NGX application asset self-copy prevention and cross-project preservation.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.mobile.NgxBuildSettingsTest'
 }
 
 tasks.register('invalidRequestSessionTest', JavaExec) {
