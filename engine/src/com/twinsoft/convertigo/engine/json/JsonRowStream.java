@@ -97,6 +97,7 @@ public class JsonRowStream {
 	private final String baseUrl;
 	private final String authorization;
 	private final String failPage;
+	private String startUrl;
 
 	// state
 	private List<Object> firstRows;
@@ -124,7 +125,8 @@ public class JsonRowStream {
 
 	public JsonRowStream(BaserowCellFormat format, List<Object> schema, List<String> exposedColumns, Object hidden, boolean lean,
 			List<String> distinctColumns, List<String> firstColumns, List<String> outputColumns, List<String> columnsOrder,
-			int maxRows, List<Object> firstRows, String firstPage, String nextUrl, String baseUrl, String authorization, String failPage) {
+			int maxRows, List<Object> firstRows, String firstPage, String nextUrl, String baseUrl, String authorization, String failPage,
+			String restartPageSize) {
 		this.format = format;
 		this.hasSchema = schema != null;
 		if (schema != null) {
@@ -150,6 +152,16 @@ public class JsonRowStream {
 		this.baseUrl = baseUrl;
 		this.authorization = authorization;
 		this.failPage = failPage;
+		if (restartPageSize != null && nextUrl != null && firstPage != null) {
+			// the sequence read a first page of one row (its request, its errors, an empty table): the stream reads
+			// everything again from the first page, with the page size of the source
+			String url = pageUrl(nextUrl, firstPage);
+			if (url != null) {
+				startUrl = url.replaceFirst("([?&]page=)\\d+", "$1" + firstPage).replaceFirst("([?&]size=)\\d+", "$1" + restartPageSize);
+				this.firstRows = null;
+				this.nextUrl = null;
+			}
+		}
 	}
 
 	/** the options of the columns met with a value, with values only (lean_cells) */
@@ -170,6 +182,11 @@ public class JsonRowStream {
 				flush(out, sink);
 			}
 			firstRows = null;
+		}
+		if (startUrl != null) {
+			String url = startUrl;
+			startUrl = null;
+			readPage(url, fetchedPages.iterator().next(), out, sink);
 		}
 		while (nextUrl != null && rowsRead < maxRows) {
 			String page = nextPageNumber(nextUrl);

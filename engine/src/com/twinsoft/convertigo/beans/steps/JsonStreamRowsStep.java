@@ -63,6 +63,7 @@ public class JsonStreamRowsStep extends JsonToXmlStep {
 	private String outputColumns = "";
 	private String columnsOrder = "";
 	private String failPage = "";
+	private String restartPageSize = "";
 	private String fieldsVariableName = "";
 	private String errorVariableName = "";
 
@@ -109,7 +110,8 @@ public class JsonStreamRowsStep extends JsonToXmlStep {
 					text(javascriptContext, scope, nextUrl, "nextUrl"),
 					text(javascriptContext, scope, baseUrl, "baseUrl"),
 					text(javascriptContext, scope, authorization, "authorization"),
-					text(javascriptContext, scope, failPage, "failPage"));
+					text(javascriptContext, scope, failPage, "failPage"),
+					text(javascriptContext, scope, restartPageSize, "restartPageSize"));
 			evaluate(javascriptContext, scope, "key", getKey());
 			String keyName = getKey().getSingleString(this);
 			if (direct) {
@@ -182,6 +184,8 @@ public class JsonStreamRowsStep extends JsonToXmlStep {
 	public void setColumnsOrder(String columnsOrder) { this.columnsOrder = columnsOrder; }
 	public String getFailPage() { return failPage; }
 	public void setFailPage(String failPage) { this.failPage = failPage; }
+	public String getRestartPageSize() { return restartPageSize; }
+	public void setRestartPageSize(String restartPageSize) { this.restartPageSize = restartPageSize; }
 	public String getFieldsVariableName() { return fieldsVariableName; }
 	public void setFieldsVariableName(String fieldsVariableName) { this.fieldsVariableName = fieldsVariableName; }
 	public String getErrorVariableName() { return errorVariableName; }

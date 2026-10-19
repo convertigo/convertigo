@@ -39,7 +39,7 @@ public class JsonStreamRowsStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[19];
+			properties = new PropertyDescriptor[20];
 
 			properties[0] = new PropertyDescriptor("streamMode", beanClass, "getStreamMode", "setStreamMode");
 			properties[0].setDisplayName(getExternalizedString("property.streamMode.display_name"));
@@ -134,6 +134,11 @@ public class JsonStreamRowsStepBeanInfo extends MySimpleBeanInfo {
 			properties[18] = new PropertyDescriptor("errorVariableName", beanClass, "getErrorVariableName", "setErrorVariableName");
 			properties[18].setDisplayName(getExternalizedString("property.errorVariableName.display_name"));
 			properties[18].setShortDescription(getExternalizedString("property.errorVariableName.short_description"));
+
+			properties[19] = new PropertyDescriptor("restartPageSize", beanClass, "getRestartPageSize", "setRestartPageSize");
+			properties[19].setDisplayName(getExternalizedString("property.restartPageSize.display_name"));
+			properties[19].setShortDescription(getExternalizedString("property.restartPageSize.short_description"));
+			properties[19].setValue(SCRIPTABLE, Boolean.TRUE);
 
 		}
 		catch(Exception e) {
