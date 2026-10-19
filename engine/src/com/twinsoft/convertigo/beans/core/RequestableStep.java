@@ -1021,8 +1021,14 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			if (child.getNodeType() == Node.ELEMENT_NODE && "document".equals(child.getNodeName())) {
 				for (Node n = child.getFirstChild(); n != null; n = n.getNextSibling()) {
 					if (n.getNodeType() == Node.ELEMENT_NODE) {
-						// an XML answer: no JSON text to read
-						return JsonPath.MISSING;
+						// an XML answer (an XML callee, an error): the path reads the JSON it gives as a .json answer
+						try {
+							String json = XMLUtils.XmlToJson((org.w3c.dom.Element) child, true, true,
+									com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot.docChildNodes);
+							return path.select(RhinoUtils.jsonParse(json));
+						} catch (Exception e) {
+							throw new EngineException("Unable to read the answer of '" + getName() + "' as JSON", e);
+						}
 					}
 				}
 				String text = child.getTextContent().trim();
