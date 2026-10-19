@@ -163,7 +163,12 @@ public class SourcePickerHelper implements IStepSourceEditor {
 									xpath = onDisplayXhtml(xpath);
 									displayXhtml(doc);
 									xpathEvaluator.removeAnchor();
-									xpathEvaluator.displaySelectionXpathWithAnchor(twsDomTree, anchor, xpath);
+									boolean jsonPath = com.twinsoft.convertigo.engine.json.JsonPath.isJsonPath(xpath);
+									xpathEvaluator.displaySelectionXpathWithAnchor(twsDomTree, anchor, jsonPath ? "." : xpath);
+									if (jsonPath) {
+										// a JSON path source reads the JSON of the step, not this XML
+										xpathEvaluator.getXpath().setText(xpath);
+									}
 								}
 							}
 						}
