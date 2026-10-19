@@ -75,7 +75,10 @@ import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
@@ -1054,6 +1057,15 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 
 			viewer.update(this, null);
+			// the label of a JSON native sequence counts the steps that read its native steps by XPath
+			if (databaseObject instanceof Step && (propertyName.equals("sourceDefinition") || propertyName.equals("sourcesDefinition") || value instanceof SmartType)) {
+				for (DatabaseObjectTreeObject parent = getParentDatabaseObjectTreeObject(); parent != null; parent = parent.getParentDatabaseObjectTreeObject()) {
+					if (parent.getObject() instanceof Sequence) {
+						viewer.update(parent, null);
+						break;
+					}
+				}
+			}
 			// Fix #2528 #2533 : commented next line because of stack overflow on multiselection
 			//viewer.setSelection(viewer.getSelection(),true);
 
