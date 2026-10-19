@@ -489,6 +489,47 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
      * The scope of a requestable. With javascript.shared_class_cache, its Java classes are described once for all
      * the requests instead of being reflected again in each new scope (the context, the DOM, the log...).
      */
+    private static volatile ScriptableObject sharedStandardScope;
+
+    /**
+     * javascript.shared_scope: the standard objects built once, sealed, shared by the native sequences; each request
+     * gets a light scope whose prototype is this one (its variables, context, log... stay its own).
+     */
+    private static Scriptable newSharedScope(org.mozilla.javascript.Context javascriptContext) {
+    	ScriptableObject shared = sharedStandardScope;
+    	if (shared == null) {
+    		synchronized (RequestableObject.class) {
+    			shared = sharedStandardScope;
+    			if (shared == null) {
+    				shared = new NativeObject();
+    				sharedClassCache.associate(shared);
+    				javascriptContext.initStandardObjects(shared, true);
+    				// the standard objects loaded lazily are loaded now, before the scope is shared between threads
+    				for (Object id : shared.getAllIds()) {
+    					if (id instanceof String) {
+    						ScriptableObject.getProperty(shared, (String) id);
+    					}
+    				}
+    				shared.sealObject();
+    				sharedStandardScope = shared;
+    			}
+    		}
+    	}
+    	ScriptableObject scope = new NativeObject();
+    	scope.setPrototype(shared);
+    	scope.setParentScope(null);
+    	return scope;
+    }
+
+    private Scriptable newScope(org.mozilla.javascript.Context javascriptContext, RequestableObject requestable) {
+    	String sharedScope = EnginePropertiesManager.getProperty(PropertyName.JAVASCRIPT_SHARED_SCOPE);
+    	if ("all".equals(sharedScope) || ("native".equals(sharedScope)
+    			&& requestable instanceof Sequence && ((Sequence) requestable).isNativeExecution())) {
+    		return newSharedScope(javascriptContext);
+    	}
+    	return newScope(javascriptContext);
+    }
+
     private static Scriptable newScope(org.mozilla.javascript.Context javascriptContext) {
     	if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.JAVASCRIPT_SHARED_CLASS_CACHE)) {
     		ScriptableObject newScope = new NativeObject();
@@ -931,7 +972,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             	
             	// Creating scripting context
     			javascriptContext = org.mozilla.javascript.Context.enter();
-    			scope = newScope(javascriptContext);
+    			scope = newScope(javascriptContext, RequestableObject.this);
 
         		Engine.logContext.debug("Preparing for requestable...");
             	prepareForRequestable(context, javascriptContext, scope);

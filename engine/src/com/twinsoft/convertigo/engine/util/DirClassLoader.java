@@ -35,6 +35,11 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class DirClassLoader extends URLClassLoader {
 	private static final String COMPLETE_MARKER = ".complete";
@@ -271,15 +276,66 @@ public class DirClassLoader extends URLClassLoader {
 
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
-		Class<?> cls = null;
-		try {
-			cls = super.loadClass(name);
-		} catch (ClassNotFoundException e) {
-			if (parent != null) {
-				cls = parent.loadClass(name);
+		boolean cache = isLookupCache();
+		if (cache) {
+			Object known = lookups.get(name);
+			if (known instanceof Class) {
+				return (Class<?>) known;
+			}
+			if (known == MISSING) {
+				throw new MissingClassException(name);
 			}
 		}
+		Class<?> cls = null;
+		try {
+			try {
+				cls = super.loadClass(name);
+			} catch (ClassNotFoundException e) {
+				if (parent != null) {
+					cls = parent.loadClass(name);
+				}
+			}
+		} catch (ClassNotFoundException e) {
+			if (cache) {
+				lookups.put(name, MISSING);
+			}
+			throw e;
+		}
+		if (cache && cls != null) {
+			lookups.put(name, cls);
+		}
 		return cls;
+	}
+
+	/**
+	 * classloader.lookup_cache: the classes found or not found, by name, for the life of this loader (a new loader is
+	 * made when the jars of the project change). The scripts look up the same names in each request (Java packages
+	 * resolved by Rhino, classes of the engine looked for in the jars of the project first), each miss costing a
+	 * ClassNotFoundException with its stack trace.
+	 */
+	private final Map<String, Object> lookups = new ConcurrentHashMap<String, Object>();
+	private static final Object MISSING = new Object();
+
+	private static class MissingClassException extends ClassNotFoundException {
+		private static final long serialVersionUID = 1L;
+
+		MissingClassException(String name) {
+			super(name);
+		}
+
+		@Override
+		public synchronized Throwable fillInStackTrace() {
+			return this;
+		}
+	}
+
+	private static boolean isLookupCache() {
+		try {
+			return EnginePropertiesManager.getPropertyAsBoolean(PropertyName.CLASSLOADER_LOOKUP_CACHE);
+		} catch (Throwable t) {
+			// the properties are not loaded yet
+			return false;
+		}
 	}
 
 	@Override

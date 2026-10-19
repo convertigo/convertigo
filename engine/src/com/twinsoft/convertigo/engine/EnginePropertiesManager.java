@@ -453,6 +453,14 @@ public class EnginePropertiesManager {
 		AUTO_GC ("auto.gc", "false", "Automatically GC on low usage (every 10 min)", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		JAVASCRIPT_SHARED_CLASS_CACHE ("javascript.shared_class_cache", "false", "Share between the requests the JavaScript description of the Java classes used by the scripts, instead of building it again for each requestable", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		ENGINE_COPY_ON_DEMAND ("engine.copy_on_demand", "false", "Copy for a request only the sequence, connector and transaction it uses, instead of all the sequences and connectors of the project and all the transactions of the connector", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		CLASSLOADER_LOOKUP_CACHE ("classloader.lookup_cache", "false", "Remember the classes the class loaders of the projects found or did not find, instead of looking them up again in each request", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		XML_COUNT_DOCUMENTS ("xml.count_documents", "false", "Count the XML documents, document builders and factories each request creates and the documents it serializes, and log them at the end of the request (cems.Engine, WARN)", PropertyCategory.Main),
+		@PropertyOptions(advance = true)
+		JAVASCRIPT_SHARED_SCOPE ("javascript.shared_scope", "false", "native: the native sequences (Sequence.nativeExecution) run their JavaScript in a light scope over one sealed scope of the standard objects, instead of building the standard objects again for each request; all: every requestable does (its scripts then cannot change the standard objects); false: none", PropertyCategory.Main),
 
 		/** ACCOUNTS */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)

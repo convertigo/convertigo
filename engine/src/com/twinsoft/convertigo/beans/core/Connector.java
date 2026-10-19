@@ -333,6 +333,14 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 	}
 
 	public Transaction getTransactionByName(String transactionName) {
+		try {
+			Transaction onDemand = childOnDemand(() -> ((Connector) getOriginal()).getTransactionByName(transactionName));
+			if (onDemand != null) {
+				return onDemand;
+			}
+		} catch (EngineException e) {
+			// copied with all the others below
+		}
 		checkSubLoaded();
 		for (Transaction transaction : vTransactions) {
 			if (transaction.getName().equalsIgnoreCase(transactionName)) return transaction;
