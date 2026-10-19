@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.AttributeStep;
+import com.twinsoft.convertigo.beans.steps.JsonTransformStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -56,6 +57,9 @@ public class OutputStepAction extends MyAbstractAction {
 			Step step = ((StepTreeObject) treeObject).getObject();
 			if (step instanceof AttributeStep || step instanceof XMLAttributeStep) {
 				action.setText("Attribute always output true.");
+				action.setEnabled(false);
+			} else if (step instanceof JsonTransformStep) {
+				action.setText("No XML output (native JSON step)");
 				action.setEnabled(false);
 			} else {
 				output = !step.isOutput();
@@ -105,7 +109,7 @@ public class OutputStepAction extends MyAbstractAction {
 	}
 
 	private void output(Step step) {
-		if (step != null) {
+		if (step != null && !(step instanceof JsonTransformStep)) {
 			step.setOutput(output);
 			step.hasChanged = true;
 			if (recurse && (step instanceof StepWithExpressions)) {
