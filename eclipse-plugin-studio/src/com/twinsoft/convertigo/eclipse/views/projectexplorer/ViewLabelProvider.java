@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.beans.BeanInfo;
+import java.util.List;
 
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.IFontProvider;
@@ -41,7 +42,9 @@ import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.jsonpicker.NativeJson;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
@@ -123,7 +126,11 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 			if (dbo instanceof RequestableObject && !notShownSpecialChar ) {
 				return ( ((RequestableObject) dbo).getAccessibility() == Accessibility.Private ? "🔒 " : ( 
 						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "👓 " : (isMac ? "🚪 " : " 🚪  " ) ) ) + 
-						(dbo instanceof Sequence ? (((Sequence)dbo).isAutoStart() ? "💡 ":""):"") + obj.toString();
+						(dbo instanceof Sequence ? (((Sequence)dbo).isAutoStart() ? "💡 ":""):"") + obj.toString() + nativeJsonSuffix(dbo);
+			}
+			String suffix = nativeJsonSuffix(dbo);
+			if (!suffix.isEmpty()) {
+				return obj.toString() + suffix;
 			}
 		}
 		if (obj instanceof ResourceFolderTreeObject) {
@@ -135,6 +142,29 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 		return obj.toString();
 	}
 	
+	/** a JSON native sequence, with its XML bridges; an XML step that reads the XML view of a native step */
+	private static String nativeJsonSuffix(DatabaseObject dbo) {
+		try {
+			if (dbo instanceof Sequence sequence && NativeJson.isNativeSequence(sequence)) {
+				int bridges = NativeJson.getBridges(sequence).size();
+				return "  [JSON native" + (sequence.isNativeExecution() ? "" : " output") + (bridges > 0 ? ", XML bridge: " + bridges + " step" + (bridges > 1 ? "s" : "") : "") + "]";
+			}
+			if (dbo instanceof Step step) {
+				List<Step> bridged = NativeJson.getBridgedSources(step);
+				if (!bridged.isEmpty()) {
+					StringBuilder sb = new StringBuilder("  [XML view of ");
+					for (int i = 0; i < bridged.size(); i++) {
+						sb.append(i > 0 ? ", " : "").append(bridged.get(i).getName());
+					}
+					return sb.append(']').toString();
+				}
+			}
+		} catch (Exception e) {
+			// no decoration
+		}
+		return "";
+	}
+
 	@Override
 	public Image getImage(Object obj) {
 		try {

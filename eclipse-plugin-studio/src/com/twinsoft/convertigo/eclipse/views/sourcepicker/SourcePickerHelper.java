@@ -59,12 +59,14 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.IteratorStep;
+import com.twinsoft.convertigo.beans.steps.JsonTransformStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.StepSource;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
 import com.twinsoft.convertigo.eclipse.property_editors.IStepSourceEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.StepXpathEvaluatorComposite;
+import com.twinsoft.convertigo.eclipse.views.jsonpicker.NativeJsonXmlView;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.SchemaManager.Option;
@@ -109,6 +111,17 @@ public class SourcePickerHelper implements IStepSourceEditor {
 							Step targetStep = step;
 							while (targetStep instanceof IteratorStep) {
 								targetStep = getTargetStep(targetStep);
+							}
+
+							if (targetStep instanceof JsonTransformStep native_) {
+								// a native JSON step has no schema: the XML view its XPath sources read, from its last JSON
+								Document doc = native_.getSequence().createDOM();
+								doc.getDocumentElement().appendChild(NativeJsonXmlView.build(native_, doc));
+								needToClean = false;
+								displayXhtml(doc);
+								xpathEvaluator.removeAnchor();
+								xpathEvaluator.displaySelectionXpathWithAnchor(twsDomTree, "//document/" + native_.getStepNodeName(), xpath);
+								return;
 							}
 
 							if (targetStep != null) {

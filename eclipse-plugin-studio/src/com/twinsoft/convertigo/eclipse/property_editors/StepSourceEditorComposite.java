@@ -382,7 +382,8 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 			if (databaseObject instanceof Step) {
 				Step step = (Step) databaseObject;
 				
-				if (!step.isPickable()) {
+				// a native JSON step gives an XML view of its JSON to an XPath source
+				if (!step.isPickable() && !(step instanceof com.twinsoft.convertigo.beans.steps.JsonTransformStep && step.isEnabled())) {
 					tItem.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
 				}
 			}
