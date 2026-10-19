@@ -24,6 +24,7 @@ import java.io.IOException;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.json.JsonData;
 import com.twinsoft.convertigo.engine.json.JsonPath;
@@ -32,7 +33,8 @@ import com.twinsoft.convertigo.engine.util.RhinoUtils;
 /**
  * Reads a value at a JSON path in a JSON text (the raw answer of a transaction...) or in JSON data, in one execution.
  * A text is read in stream: only the value at the path is built, as JSON.parse would build it, and the rest of the
- * text is skipped (a path with a wildcard reads the whole text).
+ * text is skipped (a path with a wildcard reads the whole text). A text that is not JSON gives the default value and
+ * a warning, as a JSON.parse in a try.
  */
 public class JsonReadStep extends JsonTransformStep {
 	private static final long serialVersionUID = 1L;
@@ -65,7 +67,7 @@ public class JsonReadStep extends JsonTransformStep {
 		Object value = JsonPath.MISSING;
 		studioInput = null;
 		if (source instanceof CharSequence) {
-			if (com.twinsoft.convertigo.engine.Engine.isStudioMode()) {
+			if (Engine.isStudioMode()) {
 				studioInput = source.toString();
 			}
 			try {
@@ -74,7 +76,8 @@ public class JsonReadStep extends JsonTransformStep {
 					value = RhinoUtils.jsonParse(text);
 				}
 			} catch (IOException e) {
-				throw new EngineException("The text read by the step '" + getName() + "' is not JSON", e);
+				// as a JSON.parse in a try: the default value, and a warning
+				Engine.logBeans.warn("(JsonReadStep) '" + getName() + "' did not read JSON: " + e.getMessage());
 			}
 		} else if (!JsonData.isNullish(source)) {
 			value = jsonPath.select(source);
