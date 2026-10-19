@@ -305,7 +305,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 				}
 				continue;
 			}
-			if (name.startsWith("__") || value == null) {
+			// the parameters of the engine (__project, __context...) are not variables, unless one is declared (__body)
+			if ((name.startsWith("__") && getVariable(name) == null) || value == null) {
 				continue;
 			}
 			List<Object> values = new LinkedList<Object>();
