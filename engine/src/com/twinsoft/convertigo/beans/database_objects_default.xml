@@ -1,4 +1,210 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <step classname="com.twinsoft.convertigo.beans.steps.JsonSelectColumnsStep" priority="0" version="   8   4   7">
+        <property name="columns">
+            <java.lang.String value=""/>
+        </property>
+        <property name="columnsOrder">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="firstColumns">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="output">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="rows">
+            <java.lang.String value="rows"/>
+        </property>
+        <property name="schemaDataType">
+            <java.lang.String value="xsd:string"/>
+        </property>
+        <property name="variableName">
+            <java.lang.String value="selectedRows"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlSimpleTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
+            </xmlizable>
+        </property>
+    </step>
+    <step classname="com.twinsoft.convertigo.beans.steps.JsonGroupStep" priority="0" version="   8   4   7">
+        <property name="aggregations">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="errorVariableName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="format">
+            <java.lang.String value="baserow"/>
+        </property>
+        <property name="groupColumns">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="output">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="rows">
+            <java.lang.String value="rows"/>
+        </property>
+        <property name="schema">
+            <java.lang.String value=""/>
+        </property>
+        <property name="schemaDataType">
+            <java.lang.String value="xsd:string"/>
+        </property>
+        <property name="valueKey">
+            <java.lang.String value="value"/>
+        </property>
+        <property name="variableName">
+            <java.lang.String value="groups"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlSimpleTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
+            </xmlizable>
+        </property>
+    </step>
+    <step classname="com.twinsoft.convertigo.beans.steps.JsonFormatCellsStep" priority="0" version="   8   4   7">
+        <property name="columns">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="defaultTimezone">
+            <java.lang.String value="&quot;UTC&quot;"/>
+        </property>
+        <property name="fieldsVariableName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="format">
+            <java.lang.String value="baserow"/>
+        </property>
+        <property name="hiddenColumns">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="output">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="rows">
+            <java.lang.String value="rows"/>
+        </property>
+        <property name="schema">
+            <java.lang.String value=""/>
+        </property>
+        <property name="schemaDataType">
+            <java.lang.String value="xsd:string"/>
+        </property>
+        <property name="valuesOnly">
+            <java.lang.String value="false"/>
+        </property>
+        <property name="variableName">
+            <java.lang.String value="cells"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlSimpleTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
+            </xmlizable>
+        </property>
+    </step>
+    <step classname="com.twinsoft.convertigo.beans.steps.JsonDistinctStep" priority="0" version="   8   4   7">
+        <property name="columns">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="output">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="rows">
+            <java.lang.String value="rows"/>
+        </property>
+        <property name="schemaDataType">
+            <java.lang.String value="xsd:string"/>
+        </property>
+        <property name="valueKey">
+            <java.lang.String value="value"/>
+        </property>
+        <property name="variableName">
+            <java.lang.String value="distinctRows"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlSimpleTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
+            </xmlizable>
+        </property>
+    </step>
     <sequence classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" priority="0" version="   8   4   7">
         <property name="accessibility">
             <java.lang.String value="Public"/>

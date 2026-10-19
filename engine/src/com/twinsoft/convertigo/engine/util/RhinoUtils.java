@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,6 +29,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.ContextFactory.Listener;
 import org.mozilla.javascript.NativeArray;
+import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.NativeJSON;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Script;
@@ -94,6 +96,13 @@ public class RhinoUtils {
 	}
 
 	static public String jsonStringify(Object object) {
+		if (object instanceof NativeJavaObject) {
+			object = ((NativeJavaObject) object).unwrap();
+		}
+		// the Java maps and lists of the native JSON steps
+		if (!(object instanceof Scriptable) && (object instanceof Map || object instanceof List)) {
+			return jsonStringifyData(object);
+		}
 		return ScriptableObject.callMethod(json, "stringify", new Object[]{object}).toString();
 	}
 
@@ -186,6 +195,41 @@ public class RhinoUtils {
 				writeJsonData(sb, item, depth + 1);
 			}
 			sb.append('}');
+		} else if (value instanceof NativeJavaObject) {
+			writeJsonData(sb, ((NativeJavaObject) value).unwrap(), depth);
+		} else if (value instanceof Map && !(value instanceof Scriptable)) {
+			// a map of the native JSON steps: an undefined value is skipped like in a JavaScript object
+			sb.append('{');
+			boolean first = true;
+			for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+				Object item = entry.getValue();
+				if (isSkipped(item)) {
+					continue;
+				}
+				if (!first) {
+					sb.append(',');
+				}
+				first = false;
+				writeJsonString(sb, String.valueOf(entry.getKey()));
+				sb.append(':');
+				writeJsonData(sb, item, depth + 1);
+			}
+			sb.append('}');
+		} else if (value instanceof List && !(value instanceof Scriptable)) {
+			sb.append('[');
+			boolean first = true;
+			for (Object item : (List<?>) value) {
+				if (!first) {
+					sb.append(',');
+				}
+				first = false;
+				if (isSkipped(item)) {
+					sb.append("null");
+				} else {
+					writeJsonData(sb, item, depth + 1);
+				}
+			}
+			sb.append(']');
 		} else {
 			throw NotJsonData.INSTANCE;
 		}
