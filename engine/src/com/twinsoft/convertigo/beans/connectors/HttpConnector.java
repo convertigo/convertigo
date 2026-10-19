@@ -1171,17 +1171,20 @@ public class HttpConnector extends Connector {
 
 			Engine.logBeans.debug("(HttpConnector) Total read bytes: " + length);
 			
-			StringBuilder sb = new StringBuilder();
-			sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + length + "}\n\n");
-			
-			if (result != null && context.contentType != null
-					&& ( context.contentType.startsWith("text/")
-					|| context.contentType.startsWith("application/xml")
-					|| context.contentType.startsWith("application/json"))) {
-				sb.append(new String(result, "UTF-8"));
-			}
+			if (hasConnectorListeners()) {
+				// the whole response as text, only for a listener (the connector editor of the Studio)
+				StringBuilder sb = new StringBuilder();
+				sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + length + "}\n\n");
+				
+				if (result != null && context.contentType != null
+						&& ( context.contentType.startsWith("text/")
+						|| context.contentType.startsWith("application/xml")
+						|| context.contentType.startsWith("application/json"))) {
+					sb.append(new String(result, "UTF-8"));
+				}
 
-			fireDataChanged(new ConnectorEvent(this, sb.toString()));
+				fireDataChanged(new ConnectorEvent(this, sb.toString()));
+			}
 
 			return result;
 		} finally {

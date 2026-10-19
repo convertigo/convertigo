@@ -94,6 +94,11 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 		connectorListeners.remove(ConnectorListener.class, connectorListener);
 	}
 
+	/** true when someone listens to the data of this connector (the Studio): the data event is built only then */
+	public boolean hasConnectorListeners() {
+		return connectorListeners.getListenerCount(ConnectorListener.class) > 0;
+	}
+
 	public void fireDataChanged(ConnectorEvent connectorEvent) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = connectorListeners.getListenerList();

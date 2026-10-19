@@ -215,6 +215,63 @@ public final class JsonPath {
 		}
 	}
 
+	/**
+	 * the JavaScript value at the path in a JSON text, as JSON.parse of the selected text would give it, MISSING when
+	 * the path selects nothing. Without a wildcard it is read in one pass: the value selected is built from the
+	 * stream, the rest is skipped, no text is copied. As JSON.parse, the last of the keys of the same name wins.
+	 */
+	public Object selectValue(String json) throws IOException {
+		if (json == null) {
+			return MISSING;
+		}
+		if (wildcard) {
+			String text = selectText(json);
+			return text == null ? MISSING : RhinoUtilsBridge.parse(text);
+		}
+		try (JsonParser parser = factory.createParser(json)) {
+			if (parser.nextToken() == null) {
+				return MISSING;
+			}
+			return selectValue(parser, 0);
+		}
+	}
+
+	/** the parser is on the first token of a value; the value at the segments from depth, or MISSING */
+	private Object selectValue(JsonParser parser, int depth) throws IOException {
+		if (depth == segments.size()) {
+			return JsonToRhino.read(parser, RhinoUtilsBridge.scope());
+		}
+		Object segment = segments.get(depth);
+		JsonToken token = parser.currentToken();
+		if (segment instanceof Integer && token == JsonToken.START_ARRAY) {
+			int index = (Integer) segment;
+			Object found = MISSING;
+			for (int i = 0; parser.nextToken() != JsonToken.END_ARRAY; i++) {
+				if (i == index) {
+					found = selectValue(parser, depth + 1);
+				} else {
+					parser.skipChildren();
+				}
+			}
+			return found;
+		}
+		if (segment instanceof String && token == JsonToken.START_OBJECT) {
+			Object found = MISSING;
+			while (parser.nextToken() == JsonToken.FIELD_NAME) {
+				String name = parser.currentName();
+				parser.nextToken();
+				if (name.equals(segment)) {
+					found = selectValue(parser, depth + 1);
+				} else {
+					parser.skipChildren();
+				}
+			}
+			return found;
+		}
+		parser.skipChildren();
+		return MISSING;
+	}
+
 	/** the parser is on the first token of a value; the text of the value at the segments from depth */
 	private String selectText(JsonParser parser, int depth) throws IOException {
 		if (depth == segments.size()) {
@@ -262,6 +319,10 @@ public final class JsonPath {
 	private static final class RhinoUtilsBridge {
 		static Object parse(String json) {
 			return com.twinsoft.convertigo.engine.util.RhinoUtils.jsonParse(json);
+		}
+
+		static Scriptable scope() {
+			return com.twinsoft.convertigo.engine.util.RhinoUtils.jsonScope();
 		}
 
 		static String stringify(Object value) {

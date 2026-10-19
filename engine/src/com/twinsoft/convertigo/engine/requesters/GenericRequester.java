@@ -716,7 +716,7 @@ public abstract class GenericRequester extends Requester {
 	/** the parameter a native sequence adds to its internal calls: the result may be an object instead of a document */
 	public static final String NATIVE_CALL = "__nativeCall";
 
-	protected boolean isNativeCall() {
+	public boolean isNativeCall() {
 		if (!(inputData instanceof java.util.Map)) {
 			return false;
 		}

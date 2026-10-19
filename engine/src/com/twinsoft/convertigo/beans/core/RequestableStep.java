@@ -1004,8 +1004,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 				return JsonPath.MISSING;
 			}
 			try {
-				String selected = path.selectText(text);
-				return selected == null ? JsonPath.MISSING : RhinoUtils.jsonParse(selected);
+				return path.selectValue(text);
 			} catch (java.io.IOException e) {
 				throw new EngineException("The answer read by '" + getName() + "' is not JSON", e);
 			}
@@ -1036,8 +1035,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 					return JsonPath.MISSING;
 				}
 				try {
-					String selected = path.selectText(text);
-					return selected == null ? JsonPath.MISSING : RhinoUtils.jsonParse(selected);
+					return path.selectValue(text);
 				} catch (java.io.IOException e) {
 					throw new EngineException("The answer read by '" + getName() + "' is not JSON", e);
 				}

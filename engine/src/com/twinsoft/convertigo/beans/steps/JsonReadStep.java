@@ -28,7 +28,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.json.JsonData;
 import com.twinsoft.convertigo.engine.json.JsonPath;
-import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 /**
  * Reads a value at a JSON path in a JSON text (the raw answer of a transaction...) or in JSON data, in one execution.
@@ -71,10 +70,8 @@ public class JsonReadStep extends JsonTransformStep {
 				studioInput = source.toString();
 			}
 			try {
-				String text = jsonPath.selectText(source.toString());
-				if (text != null) {
-					value = RhinoUtils.jsonParse(text);
-				}
+				// in one pass: the value is built from the stream of the text, without a copy of its JSON
+				value = jsonPath.selectValue(source.toString());
 			} catch (IOException e) {
 				// as a JSON.parse in a try: the default value, and a warning
 				Engine.logBeans.warn("(JsonReadStep) '" + getName() + "' did not read JSON: " + e.getMessage());
