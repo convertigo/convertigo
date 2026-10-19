@@ -993,6 +993,10 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	 */
 	@Override
 	public Object selectJson(JsonPath path) throws EngineException {
+		if (nativeResult instanceof CharSequence && path.isRoot()) {
+			// the whole text of a transaction called natively, as the text() of its document gave it
+			return nativeResult.toString();
+		}
 		if (nativeResult instanceof CharSequence) {
 			// the text of a transaction called natively, read in stream
 			String text = nativeResult.toString().trim();
