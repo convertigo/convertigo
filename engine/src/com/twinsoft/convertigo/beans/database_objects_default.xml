@@ -73,6 +73,9 @@
         <property name="outputColumns">
             <java.lang.String value=""/>
         </property>
+        <property name="restartPageSize">
+            <java.lang.String value=""/>
+        </property>
         <property name="rows">
             <java.lang.String value="results"/>
         </property>
@@ -104,6 +107,7 @@
             </xmlizable>
         </property>
     </step>
+    
     <step classname="com.twinsoft.convertigo.beans.steps.JsonSelectColumnsStep" priority="0" version="   8   4   7">
         <property name="columns">
             <java.lang.String value=""/>
