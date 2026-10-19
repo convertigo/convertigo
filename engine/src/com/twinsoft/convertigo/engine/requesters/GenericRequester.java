@@ -729,10 +729,10 @@ public abstract class GenericRequester extends Requester {
 
 	/** the outputs of a native sequence as an object, by key, in the order of the answer */
 	public static Object nativeResult(Context context) {
-		if (context.nativeResult != null) {
-			// a transaction: the text of its answer
-			Object text = context.nativeResult;
-			context.nativeResult = null;
+		Object text = context.nativeResult;
+		context.nativeResult = null;
+		if (text != null && !(context.requestedObject instanceof com.twinsoft.convertigo.beans.core.Sequence)) {
+			// a transaction: the text of its answer (a sequence may share its context with the transactions it calls)
 			return text;
 		}
 		java.util.Map<String, Object> result = new java.util.LinkedHashMap<String, Object>();
@@ -755,11 +755,13 @@ public abstract class GenericRequester extends Requester {
 	/** the requested object is a sequence marked native (Sequence.nativeExecution) */
 	protected boolean isNativeSequenceRequest() {
 		try {
-			if (context.sequenceName == null || context.projectName == null) {
+			// the sequence of this request, not the one a reused context may keep from an earlier request
+			String sequence = InternalRequester.getString(nativeParameters().get(Parameter.Sequence.getName()));
+			if (sequence == null || context.projectName == null) {
 				return false;
 			}
 			com.twinsoft.convertigo.beans.core.Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(context.projectName);
-			return project != null && project.getSequenceByName(context.sequenceName).isNativeExecution();
+			return project != null && project.getSequenceByName(sequence).isNativeExecution();
 		} catch (Exception e) {
 			return false;
 		}
@@ -768,7 +770,9 @@ public abstract class GenericRequester extends Requester {
 	/** an HTTP transaction that a native sequence can call without document: its answer is a text, without HttpInfo */
 	protected boolean isNativeTransactionRequest() {
 		try {
-			if (context.sequenceName != null || context.projectName == null || context.transactionName == null) {
+			// the parameters of this request, not the names a reused context may keep from an earlier one
+			if (InternalRequester.getString(nativeParameters().get(Parameter.Sequence.getName())) != null
+					|| context.projectName == null || context.transactionName == null) {
 				return false;
 			}
 			com.twinsoft.convertigo.beans.core.Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(context.projectName);
@@ -815,6 +819,13 @@ public abstract class GenericRequester extends Requester {
             document = getDocument();
             if (document != null) {
             	Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent(document, context.projectName, context.sequenceName, context.connectorName));
+            }
+            if (document != null && context.nativeExecution && isNativeCall()
+            		&& context.requestedObject instanceof com.twinsoft.convertigo.beans.core.Sequence) {
+            	// a native sequence whose run built a document (an XML step, an error, a call answered in XML):
+            	// its JSON answer as a text, its native outputs included
+            	context.nativeResult = null;
+            	return JsonServletRequester.toJson(context, document).toString();
             }
             if (document == null && context.nativeExecution && isNativeCall()) {
             	// a native sequence called by a native sequence: its outputs as an object, without XML

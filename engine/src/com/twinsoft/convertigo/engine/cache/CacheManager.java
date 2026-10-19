@@ -252,6 +252,10 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 
 				if (response == null) {
 					response = context.requestedObject.run(requester, context);
+					if (response == null) {
+						// a native call answers without document: nothing to store in the cache
+						return null;
+					}
 					if (Engine.logCacheManager.isTraceEnabled())
 						Engine.logCacheManager.trace("Cache manager: document returned:\n" + XMLUtils.prettyPrintDOM(response));
 					response.getDocumentElement().setAttribute("fromcache", "false");
@@ -282,6 +286,11 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 			}
 		}
 		
+		if (response == null) {
+			// a native sequence or a native call answers without document
+			return null;
+		}
+
 		if (context.removeNamespaces) {
 			try {
 				Engine.logEngine.debug("Removing namespaces...");

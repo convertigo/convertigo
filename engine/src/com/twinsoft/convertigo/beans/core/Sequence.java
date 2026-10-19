@@ -273,6 +273,17 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	 * values an input document would hold (engine parameters starting with __ left out, the last value of a variable
 	 * that is not multivalued, all the values of a multivalued one, the variables of a test case).
 	 */
+	/** a scalar parameter as the input document gave it (the text of its value), a structured one as is */
+	static Object nativeParameterValue(Object value) {
+		if (value instanceof org.mozilla.javascript.NativeJavaObject) {
+			value = ((org.mozilla.javascript.NativeJavaObject) value).unwrap();
+		}
+		if (value instanceof CharSequence || value instanceof Boolean || value instanceof Number || value instanceof Character) {
+			return value.toString();
+		}
+		return value;
+	}
+
 	private void parseNativeParameters(Map<String, Object> parameters) throws EngineException {
 		variables.clear();
 		for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
@@ -301,13 +312,17 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			if (value instanceof Object[]) {
 				for (Object item : (Object[]) value) {
 					if (item != null) {
-						values.add(item);
+						values.add(nativeParameterValue(item));
 					}
 				}
 			} else if (value instanceof java.util.Collection) {
-				values.addAll((java.util.Collection<?>) value);
+				for (Object item : (java.util.Collection<?>) value) {
+					if (item != null) {
+						values.add(nativeParameterValue(item));
+					}
+				}
 			} else {
-				values.add(value);
+				values.add(nativeParameterValue(value));
 			}
 			RequestableVariable variable = (RequestableVariable) getVariable(name);
 			if (variable != null && variable.isMultiValued()) {
