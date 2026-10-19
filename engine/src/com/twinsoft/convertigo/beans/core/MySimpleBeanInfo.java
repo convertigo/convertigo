@@ -28,6 +28,9 @@ import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.PropertyResourceBundle;
@@ -319,6 +322,45 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     }
     
     protected ResourceBundle getResourceBundle(String path) throws IOException {
-    	return new PropertyResourceBundle(beanClass.getResourceAsStream(path + ".properties"));
+    	PropertyResourceBundle bundle = new PropertyResourceBundle(beanClass.getResourceAsStream(path + ".properties"));
+    	String language = getBeansLanguage();
+    	if (language != null) {
+    		try (InputStream is = beanClass.getResourceAsStream(path + "_" + language + ".properties")) {
+    			if (is != null) {
+    				return new LocalizedResourceBundle(is, bundle);
+    			}
+    		}
+    	}
+    	return bundle;
+    }
+
+    /**
+     * the language of the texts of the beans, English unless the Studio is started with convertigo.beans.language
+     * (the Studio is in English whatever the locale of the system); none out of the Studio
+     */
+    public static String getBeansLanguage() {
+    	if (!Engine.isStudioMode()) {
+    		return null;
+    	}
+    	String language = System.getProperty("convertigo.beans.language");
+    	return language == null || language.isEmpty() || "en".equals(language) ? null : language;
+    }
+
+    /** the texts of a language, the English ones for the keys it lacks */
+    private static class LocalizedResourceBundle extends PropertyResourceBundle {
+    	LocalizedResourceBundle(InputStream is, ResourceBundle parent) throws IOException {
+    		super(new InputStreamReader(is, StandardCharsets.UTF_8));
+    		setParent(parent);
+    	}
+    }
+
+    /** the editor of a property in the Studio (a class of its property_editors package) and its category */
+    protected void setStudioEditor(PropertyDescriptor property, String editor, String category) {
+    	if (editor != null) {
+    		property.setPropertyEditorClass(getEditorClass(editor));
+    	}
+    	if (category != null) {
+    		property.setValue(CATEGORY, category);
+    	}
     }
 }
