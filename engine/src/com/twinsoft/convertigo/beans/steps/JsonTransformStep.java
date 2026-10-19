@@ -22,22 +22,30 @@ package com.twinsoft.convertigo.beans.steps;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.json.JsonData;
+import com.twinsoft.convertigo.engine.util.JsonNativeOutput;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 /**
  * A native JSON step: it runs once on a whole array of the sequence (the rows of a table) and puts the array it
  * builds in a variable of the sequence. Its inputs are JavaScript expressions evaluated in the scope of the sequence;
  * the array it builds holds Java maps and lists, which the next native steps and the native JSON output of the
- * sequence read without converting them.
+ * sequence read without converting them. No XML is built for them, unless a step of the sequence reads one by an
+ * XPath source: that step only gets an XML view of the array, built on demand like a JSON to XML step would build it.
  */
 public abstract class JsonTransformStep extends Step {
 	private static final long serialVersionUID = 1L;
 
 	private String rows = "rows";
 	private String variableName = "rows";
+
+	transient private Object result;
+	transient private Node xmlView;
 
 	public JsonTransformStep() {
 		super();
@@ -80,12 +88,34 @@ public abstract class JsonTransformStep extends Step {
 		return JsonData.unwrap(evaluated);
 	}
 
+	/** the XML view of the array for an XPath source, built on the first read only */
+	@Override
+	public Node getContextNode(int loop) throws EngineException {
+		if (xmlView == null && result != null) {
+			try {
+				xmlView = new JsonNativeOutput(variableName, RhinoUtils.jsonStringifyData(result), getStepNodeName(), "item")
+						.toElement(getOutputDocument());
+				Engine.logBeans.debug("(JsonTransformStep) XML view of '" + getName() + "' built for an XPath source");
+			} catch (Exception e) {
+				throw new EngineException("Unable to build the XML view of the step '" + getName() + "'", e);
+			}
+		}
+		return xmlView;
+	}
+
+	@Override
+	public String getStepNodeName() {
+		return getName();
+	}
+
 	protected abstract Object transform(Context javascriptContext, Scriptable scope) throws EngineException;
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled() && super.stepExecute(javascriptContext, scope)) {
-			scope.put(variableName, scope, transform(javascriptContext, scope));
+			result = transform(javascriptContext, scope);
+			xmlView = null;
+			scope.put(variableName, scope, result);
 			return true;
 		}
 		return false;
