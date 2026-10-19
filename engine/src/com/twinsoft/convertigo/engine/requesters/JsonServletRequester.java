@@ -45,7 +45,7 @@ public class JsonServletRequester extends ServletRequester {
     }
 	
 	@Override
-	public String postGetDocument(Document document) throws Exception {
+	public Object postGetDocument(Document document) throws Exception {
 		ConvertigoError.cleanDocument(context.getXpathApi(), document);
 		boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
 		JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
@@ -53,7 +53,9 @@ public class JsonServletRequester extends ServletRequester {
 		context.jsonNativeOutputs = null;
 		if (nativeOutputs != null && !nativeOutputs.isEmpty() && !context.isErrorDocument) {
 			if (useType && JsonRoot.docChildNodes.equals(jsonRoot)) {
-				String json = XMLUtils.XmlToJson(document.getDocumentElement(), true, nativeOutputs.values());
+				// a String, or a response written in stream by the servlet (JsonStreamedResponse)
+				String charset = context.requestedObject != null ? context.requestedObject.getEncodingCharSet() : "UTF-8";
+				Object json = XMLUtils.XmlToJsonResponse(document.getDocumentElement(), true, nativeOutputs.values(), charset);
 				if (json != null) {
 					return json;
 				}

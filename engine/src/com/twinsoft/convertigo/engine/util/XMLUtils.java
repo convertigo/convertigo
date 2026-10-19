@@ -1731,6 +1731,15 @@ public class XMLUtils {
 	 * added as is under their keys, or null when one of these keys is also in the XML.
 	 */
 	public static String XmlToJson(Element elt, boolean ignoreStepIds, Collection<JsonNativeOutput> nativeOutputs) throws JSONException {
+		Object json = XmlToJsonResponse(elt, ignoreStepIds, nativeOutputs, "UTF-8");
+		return json instanceof com.twinsoft.convertigo.engine.json.JsonStreamedResponse ? json.toString() : (String) json;
+	}
+
+	/**
+	 * XmlToJson(elt, ignoreStepIds, nativeOutputs), or the response the servlet writes in stream when one of the
+	 * outputs is read and written in stream (JsonStreamOutput); null when a key is in both.
+	 */
+	public static Object XmlToJsonResponse(Element elt, boolean ignoreStepIds, Collection<JsonNativeOutput> nativeOutputs, String charset) throws JSONException {
 		JSONObject json = new JSONObject();
 		handleElement(elt, json, ignoreStepIds, true);
 		JSONObject children = json.optJSONObject(elt.getTagName());
@@ -1747,16 +1756,25 @@ public class XMLUtils {
 			children.remove("text");
 		}
 		int length = 0;
+		boolean stream = false;
 		for (JsonNativeOutput nativeOutput : nativeOutputs) {
 			if (children.has(nativeOutput.getKey())) {
 				return null;
 			}
-			length += nativeOutput.toJSONString().length() + nativeOutput.getKey().length() + 8;
+			if (nativeOutput instanceof com.twinsoft.convertigo.engine.json.JsonStreamOutput) {
+				stream = true;
+			} else {
+				length += nativeOutput.toJSONString().length() + nativeOutput.getKey().length() + 8;
+			}
 		}
 		setEscapeForwardSlashAlways(children, false);
 		// the kept JSON is appended as is after what the XML gives, without being copied through a JSONObject
 		String xmlPart = children.toString(1);
 		boolean empty = children.length() == 0;
+		if (stream) {
+			return new com.twinsoft.convertigo.engine.json.JsonStreamedResponse(xmlPart.substring(0, xmlPart.length() - (empty ? 1 : 2)),
+					empty, nativeOutputs, charset);
+		}
 		StringBuilder sb = new StringBuilder(xmlPart.length() + length + 4);
 		sb.append(xmlPart, 0, xmlPart.length() - (empty ? 1 : 2));
 		for (JsonNativeOutput nativeOutput : nativeOutputs) {

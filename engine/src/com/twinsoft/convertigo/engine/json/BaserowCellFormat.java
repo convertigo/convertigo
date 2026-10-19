@@ -85,12 +85,10 @@ public class BaserowCellFormat {
 	private static final String[] LEAN_OPTIONS = { "date_format", "date_time_format", "duration_format", "number_decimal_places", "date_include_time" };
 
 	private final String defaultTimezone;
-	private final Context cx;
-	private final Scriptable scope;
+	private Scriptable scope;
 
 	public BaserowCellFormat(String defaultTimezone, Context cx, Scriptable scope) {
 		this.defaultTimezone = defaultTimezone;
-		this.cx = cx;
 		this.scope = scope;
 	}
 
@@ -525,7 +523,12 @@ public class BaserowCellFormat {
 			parts = dateTimeParts(rawDate, field);
 		}
 		if (parts == null) {
-			// new Date(rawDate) of the JavaScript, in the time zone of the JVM
+			// new Date(rawDate) of the JavaScript, in the time zone of the JVM (the Rhino context of the thread, a scope of
+			// its own when the cells are written after the sequence)
+			Context cx = Context.getCurrentContext();
+			if (scope == null) {
+				scope = cx.initStandardObjects();
+			}
 			Scriptable date = cx.newObject(scope, "Date", new Object[] { rawDate });
 			double time = ScriptRuntime.toNumber(ScriptableObject.callMethod(cx, date, "getTime", new Object[0]));
 			if (Double.isNaN(time)) {

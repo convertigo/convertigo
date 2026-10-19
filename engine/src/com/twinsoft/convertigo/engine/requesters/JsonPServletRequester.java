@@ -47,7 +47,8 @@ public class JsonPServletRequester extends JsonServletRequester {
 	@Override
 	public String postGetDocument(Document document) throws Exception {
 		String callback = (String) context.get("jsonpCallback");
-		String json = super.postGetDocument(document);
+		// a JSONP answer is written as a text: a response in stream is read whole here
+		String json = super.postGetDocument(document).toString();
 		return (callback!=null)?
 			(callback+"("+json+");"):
 			json;

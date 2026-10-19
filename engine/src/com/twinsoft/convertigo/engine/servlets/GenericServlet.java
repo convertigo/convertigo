@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.engine.requesters.GenericRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
+import com.twinsoft.convertigo.engine.json.JsonStreamedResponse;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
@@ -293,6 +294,19 @@ public abstract class GenericServlet extends HttpServlet {
 							OutputStream out = response.getOutputStream();
 							out.write(data);
 							out.flush();
+						} else if (result instanceof JsonStreamedResponse) {
+							// a JSON answer written in stream: the same bytes as the byte[] of its text, without its length
+							JsonStreamedResponse streamed = (JsonStreamedResponse) result;
+							if (requested_content_type != null) {
+								response.setContentType(requested_content_type);
+							} else {
+								response.setContentType(getContentType(request));
+								response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
+							}
+							applyCustomHeaders(request, response);
+							Writer writer = new java.io.OutputStreamWriter(response.getOutputStream(), streamed.getCharset());
+							streamed.writeTo(writer);
+							writer.flush();
 						} else if (result instanceof byte[]) {
 							if (requested_content_type != null) {
 								response.setContentType(requested_content_type);
