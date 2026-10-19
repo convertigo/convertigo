@@ -87,6 +87,8 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.json.JsonPath;
+import com.twinsoft.convertigo.engine.json.JsonPathSource;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -414,6 +416,14 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return "";
 	}
 	
+	/**
+	 * the value at a JSON path in the JSON this step gives to the next steps (a native JSON step, a JSON to XML step),
+	 * for the sources whose path starts with $; JsonPath.MISSING for a step that gives no JSON
+	 */
+	public Object selectJson(JsonPath path) throws EngineException {
+		return JsonPath.MISSING;
+	}
+
 	public Node getContextNode(int loop) throws EngineException {
 		Element stepElement = sequence.findStepElement(this.executeTimeID);
 		return stepElement;
@@ -483,6 +493,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	protected synchronized NodeList getContextValues(String xpath, int loop) throws EngineException {
+		if (JsonPath.isJsonPath(xpath)) {
+			// the XML of the value selected in the JSON of this step only
+			return JsonPathSource.nodes(this, xpath, getOutputDocument());
+		}
 		NodeList list = null;
 		String contextXpath = null;
 		try {

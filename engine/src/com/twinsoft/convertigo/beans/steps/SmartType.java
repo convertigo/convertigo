@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.beans.common.XMLizable;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.json.JsonPathSource;
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
 
 public class SmartType implements XMLizable, Serializable, Cloneable {
@@ -117,7 +118,12 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 		if (isUseExpression() && evaluated != null) {
 			result = ParameterUtils.toString(evaluated);
 		} else if (isUseSource()) {
-			NodeList nodeList = new StepSource(owner, sourceDefinition).getContextValues();
+			StepSource source = new StepSource(owner, sourceDefinition);
+			if (source.isJsonPath()) {
+				// the text of the value at the JSON path, without XML
+				return JsonPathSource.text(source.getJsonValue());
+			}
+			NodeList nodeList = source.getContextValues();
 			if (nodeList != null && nodeList.getLength() > 0) {
 				Node node = nodeList.item(0);
 				result = node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue();

@@ -44,9 +44,10 @@ public class NativeStepOutput {
 	private final long durationMicros;
 	private final String contextID;
 	private final String note;
+	private final String input;
 
 	private NativeStepOutput(Step step, String executeTimeID, String variableName, String json, boolean truncated,
-			int count, long durationMicros, String contextID, String note) {
+			int count, long durationMicros, String contextID, String note, String input) {
 		this.step = step;
 		this.executeTimeID = executeTimeID;
 		this.variableName = variableName;
@@ -56,11 +57,18 @@ public class NativeStepOutput {
 		this.durationMicros = durationMicros;
 		this.contextID = contextID;
 		this.note = note;
+		this.input = input;
 	}
 
 	/** sends what the step produced to the Studio, original being its loaded copy; nothing out of the Studio */
 	public static void fire(Step step, Step original, String executeTimeID, String variableName, Object value,
 			long durationMicros, String contextID, String note) {
+		fire(step, original, executeTimeID, variableName, value, durationMicros, contextID, note, null);
+	}
+
+	/** with the JSON text the step read (Read JSON value), for the JSON path editor of the Studio */
+	public static void fire(Step step, Step original, String executeTimeID, String variableName, Object value,
+			long durationMicros, String contextID, String note, String input) {
 		if (!Engine.isStudioMode()) {
 			return;
 		}
@@ -78,7 +86,8 @@ public class NativeStepOutput {
 		int count = v instanceof List ? ((List<?>) v).size() : v instanceof Map ? ((Map<?, ?>) v).size() : -1;
 		Step projectStep = (Step) (original != null ? original : step).getOriginal();
 		NativeStepOutput output = new NativeStepOutput(projectStep, executeTimeID, variableName,
-				json, truncated, count, durationMicros, contextID, note);
+				json, truncated, count, durationMicros, contextID, note,
+				input == null || input.length() <= MAX_LENGTH ? input : null);
 		Engine.theApp.fireNativeStepExecuted(new EngineEvent(output));
 	}
 
@@ -115,6 +124,11 @@ public class NativeStepOutput {
 
 	public String getContextID() {
 		return contextID;
+	}
+
+	/** the JSON text the step read, or null (a text above MAX_LENGTH is not kept: cut, it would not be JSON) */
+	public String getInput() {
+		return input;
 	}
 
 	/** how the value is written, for a value that is not in a variable (an output written in stream) */
