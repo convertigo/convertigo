@@ -150,14 +150,18 @@ public class ViewLabelProvider extends LabelProvider implements IFontProvider, I
 				return "  [JSON native" + (sequence.isNativeExecution() ? "" : " output") + (bridges > 0 ? ", XML bridge: " + bridges + " step" + (bridges > 1 ? "s" : "") : "") + "]";
 			}
 			if (dbo instanceof Step step) {
-				List<Step> bridged = NativeJson.getBridgedSources(step);
-				if (!bridged.isEmpty()) {
-					StringBuilder sb = new StringBuilder("  [XML view of ");
-					for (int i = 0; i < bridged.size(); i++) {
-						sb.append(i > 0 ? ", " : "").append(bridged.get(i).getName());
+				String suffix = "";
+				for (boolean jsonPath : new boolean[] { false, true }) {
+					List<Step> steps = jsonPath ? NativeJson.getJsonPathSources(step) : NativeJson.getBridgedSources(step);
+					if (!steps.isEmpty()) {
+						StringBuilder sb = new StringBuilder(jsonPath ? "  [JSON of " : "  [XML view of ");
+						for (int i = 0; i < steps.size(); i++) {
+							sb.append(i > 0 ? ", " : "").append(steps.get(i).getName());
+						}
+						suffix += sb.append(']').toString();
 					}
-					return sb.append(']').toString();
 				}
+				return suffix;
 			}
 		} catch (Exception e) {
 			// no decoration

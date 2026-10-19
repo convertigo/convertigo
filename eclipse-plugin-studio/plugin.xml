@@ -2586,6 +2586,23 @@
 			</action>
 		</objectContribution>
 		<objectContribution
+			id="convertigo.stepJsonPathSourceContribution"
+			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
+			<visibility>
+				<objectState
+					name="workOnSource"
+					value="true">
+				</objectState>
+			</visibility>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ConvertSourceToJsonPathAction"
+				enablesFor="1"
+				id="convertigo.action.convertSourceToJsonPath"
+				label="Convert source to JSON path"
+				menubarPath="picker">
+			</action>
+		</objectContribution>
+		<objectContribution
 			id="convertigo.jsonStepContribution"
 			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
 			<visibility>

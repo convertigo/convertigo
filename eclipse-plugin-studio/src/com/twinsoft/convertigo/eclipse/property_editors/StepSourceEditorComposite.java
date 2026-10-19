@@ -39,7 +39,11 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.eclipse.views.jsonpicker.JsonTree;
+import com.twinsoft.convertigo.eclipse.views.jsonpicker.NativeJson;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerHelper;
+import com.twinsoft.convertigo.engine.json.JsonPath;
+import com.twinsoft.convertigo.engine.json.NativeStepOutput;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class StepSourceEditorComposite extends AbstractDialogComposite {
@@ -61,6 +65,9 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 	private static String noPreviousLabelText = "no previous step is available for source selection";
 	
 	private Step sourceStep = null;
+	private JsonTree jsonTree = null;
+	private Step jsonStep = null;
+	private boolean jsonTreeUpdating = false;
 	private String sourceXpath = null;
 	private boolean sourceChanged = false;
 	
@@ -312,7 +319,52 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 		treesSashForm.setLayoutData(gd);
 		createSequenceTree();
 		sourcePicker.createXhtmlTree(treesSashForm);
-		treesSashForm.setWeights(new int[]{40,60});
+		createJsonTree();
+		treesSashForm.setWeights(new int[]{30,35,35});
+		updateJsonTree(null);
+	}
+
+	/** the JSON of a native step (its last execution in the Studio): a value picked there is a JSON path source */
+	private void createJsonTree() {
+		jsonTree = new JsonTree(treesSashForm, SWT.NONE);
+		jsonTree.setSelectionListener(path -> {
+			if (!jsonTreeUpdating && jsonStep != null) {
+				sourcePicker.getXpathEvaluator().getXpath().setText(JsonTree.toJsonPath(null, path));
+			}
+		});
+	}
+
+	private void updateJsonTree(Step selected) {
+		jsonStep = selected != null && NativeJson.isJsonProducer(selected) ? selected : null;
+		if (jsonStep == null) {
+			treesSashForm.setMaximizedControl(null);
+			treesSashForm.setWeights(new int[]{40,60,0});
+			jsonTree.setJson("", null);
+			return;
+		}
+		treesSashForm.setWeights(new int[]{30,35,35});
+		NativeStepOutput sample = NativeJson.getSample(jsonStep);
+		jsonTreeUpdating = true;
+		try {
+			if (sample == null || sample.getJson().isEmpty()) {
+				jsonTree.setJson("", null);
+				noPreviousLabel.setText("Pick a JSON path ($...) in the JSON of '" + jsonStep.getName() + "': execute the sequence once in the Studio to see it");
+				noPreviousLabel.setVisible(true);
+			} else {
+				jsonTree.setJson("$", sample.getJson());
+				String xpath = sourcePicker.getSourceXPath();
+				if (JsonPath.isJsonPath(xpath)) {
+					try {
+						jsonTree.select(JsonPath.parse(xpath).getSegments());
+					} catch (IllegalArgumentException e) {
+						// a broken path: nothing selected
+					}
+				}
+			}
+		} finally {
+			jsonTreeUpdating = false;
+		}
+		layout(true, true);
 	}
 	
 	private void createXpathSashForm() {
@@ -351,6 +403,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 						if (databaseObject instanceof Step) {
 							setSourcePriority(databaseObject.priority);
 							sourcePicker.displayTargetWsdlDom(databaseObject);
+							updateJsonTree((Step) databaseObject);
 						}
 					}
 					lastSelectedItem = tItem;
