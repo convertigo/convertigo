@@ -54,6 +54,12 @@ public class StepVariable extends Variable implements IStepSourceContainer {
 		Object value = null;
 		if (sourceDefinition.size() != 0 && parent != null) {
 			StepSource source = new StepSource((Step)parent, sourceDefinition);
+			if (source.isJsonPath()) {
+				// a JSON path source: the value itself, as a text (JSON for an object or an array), without XML
+				Object jsonValue = source.getJsonValue();
+				return jsonValue == com.twinsoft.convertigo.engine.json.JsonPath.MISSING ? null
+						: com.twinsoft.convertigo.engine.json.JsonPathSource.text(jsonValue);
+			}
 			value = source.getContextOutputNodes();			
 		}
 		return value;
