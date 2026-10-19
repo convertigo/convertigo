@@ -177,21 +177,67 @@ public class NativeJson {
 
 	/** the native steps an XML step reads by an XPath source: each read builds an XML view of their JSON */
 	public static List<Step> getBridgedSources(Step step) {
-		List<Step> bridged = new ArrayList<>();
+		return getSourceSteps(step, false);
+	}
+
+	/** the JSON steps a step reads by a JSON path source ($...): no XML view of their JSON */
+	public static List<Step> getJsonPathSources(Step step) {
+		return getSourceSteps(step, true);
+	}
+
+	private static List<Step> getSourceSteps(Step step, boolean jsonPath) {
+		List<Step> found = new ArrayList<>();
 		if (step == null || isNativeStep(step)) {
-			return bridged;
+			return found;
 		}
 		try {
 			for (StepSource source : step.getSources()) {
+				if (source.isJsonPath() != jsonPath) {
+					continue;
+				}
 				Step sourceStep = source.getStep();
-				if (sourceStep instanceof JsonTransformStep && !bridged.contains(sourceStep)) {
-					bridged.add(sourceStep);
+				if ((jsonPath ? isJsonProducer(sourceStep) : sourceStep instanceof JsonTransformStep) && !found.contains(sourceStep)) {
+					found.add(sourceStep);
 				}
 			}
 		} catch (Exception e) {
-			// a broken source: nothing bridged
+			// a broken source: nothing found
 		}
-		return bridged;
+		return found;
+	}
+
+	/**
+	 * the JSON path that reads, on the value of a native step, what a simple XPath reads on its XML view:
+	 * <code>.</code>, <code>./key</code>, <code>./item[n]</code>, a last <code>text()</code>; null for another XPath
+	 * (axes, functions, predicates on values, attributes, several items)
+	 */
+	public static String toJsonPath(String xpath) {
+		if (xpath == null) {
+			return null;
+		}
+		String x = xpath.trim();
+		if (x.equals(".")) {
+			return "$";
+		}
+		if (!x.startsWith("./")) {
+			return null;
+		}
+		String[] segments = x.substring(2).split("/", -1);
+		StringBuilder path = new StringBuilder("$");
+		for (int i = 0; i < segments.length; i++) {
+			String segment = segments[i];
+			java.util.regex.Matcher item = java.util.regex.Pattern.compile("item\\[(\\d+)\\]").matcher(segment);
+			if (segment.equals("text()") && i == segments.length - 1 && i > 0) {
+				break;
+			} else if (item.matches() && Integer.parseInt(item.group(1)) > 0) {
+				path.append('[').append(Integer.parseInt(item.group(1)) - 1).append(']');
+			} else if (segment.matches("[A-Za-z_][A-Za-z0-9_\\-]*") && !segment.equals("item")) {
+				path.append('.').append(segment);
+			} else {
+				return null;
+			}
+		}
+		return path.toString();
 	}
 
 	/** the XML steps of a sequence that read a native step through its XML view, with the native steps they read */
