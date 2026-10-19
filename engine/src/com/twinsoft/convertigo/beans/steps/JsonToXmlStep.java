@@ -66,6 +66,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	private String jsonSample = "";
 	private String arrayChildrenTag = "item";
 	transient protected String jsonSource;
+	transient private Object jsonValue;
 
 	public JsonToXmlStep() {
 		super();
@@ -181,6 +182,19 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	}
 
 	private boolean keepJsonNative() throws EngineException {
+		if (sequence != null && sequence.context != null && sequence.context.nativeExecution && isOutput() && jsonSource != null) {
+			// a native sequence builds no XML for its outputs: the ones that were XML (not directly under the sequence, a
+			// value that is not an object nor an array) keep their place and form in the answer (JsonNativeOutput.legacy)
+			String keyName = key.getSingleString(this);
+			boolean legacy = !isJsonNativeCandidate() || !(jsonSource.startsWith("{") || jsonSource.startsWith("["));
+			JsonNativeOutput nativeOutput = new JsonNativeOutput(keyName, jsonSource, getStepNodeName(), arrayChildrenTag).legacy(legacy);
+			if (jsonObject.getMode() == Mode.JS) {
+				nativeOutput.value(jsonValue);
+			}
+			if (keyName != null && registerJsonNativeOutput(nativeOutput)) {
+				return true;
+			}
+		}
 		if (!isJsonNativeCandidate() || jsonSource == null || !(jsonSource.startsWith("{") || jsonSource.startsWith("["))) {
 			return false;
 		}
@@ -232,8 +246,10 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 
 			if (jsonObject.getMode() == Mode.JS) {
 				// the JSON kept as is for the response is written directly from the data
-				jsonSource = isJsonNativeCandidate() ? RhinoUtils.jsonStringifyData(jsonObject.getEvaluated())
+				jsonSource = isJsonNativeCandidate() || (sequence.context != null && sequence.context.nativeExecution)
+						? RhinoUtils.jsonStringifyData(jsonObject.getEvaluated())
 						: RhinoUtils.jsonStringify(jsonObject.getEvaluated());
+				jsonValue = jsonObject.getEvaluated();
 			} else {
 				jsonSource = jsonObject.getSingleString(this).trim();
 			}

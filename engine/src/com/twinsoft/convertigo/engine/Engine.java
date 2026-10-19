@@ -1333,25 +1333,28 @@ public class Engine {
 				onDocumentRetrieved(context, outputDom);
 			}
 
-			Element documentElement = outputDom.getDocumentElement();
-			documentElement.setAttribute("version", Version.fullProductVersion);
-			documentElement.setAttribute("context", context.name);
-			documentElement.setAttribute("contextId", context.contextID);
-
-			DatabaseObject lastDetectedObject = (DatabaseObject) context.lastDetectedObject;
-			if (lastDetectedObject != null) {
-				documentElement.setAttribute("screenclass", lastDetectedObject.getName());
-				// TODO :
-				// documentElement.setAttribute(lastDetectedObject.getClass().getName().toLowerCase(),
-				// lastDetectedObject.getName());
-			}
-
 			context.documentSignatureSent = System.currentTimeMillis();
-			documentElement.setAttribute("signature", Long.toString(context.documentSignatureSent));
+			// a native sequence may answer without document
+			if (outputDom != null) {
+				Element documentElement = outputDom.getDocumentElement();
+				documentElement.setAttribute("version", Version.fullProductVersion);
+				documentElement.setAttribute("context", context.name);
+				documentElement.setAttribute("contextId", context.contextID);
 
-			// Add the user reference if any
-			if (context.userReference != null) {
-				documentElement.setAttribute("userReference", context.userReference);
+				DatabaseObject lastDetectedObject = (DatabaseObject) context.lastDetectedObject;
+				if (lastDetectedObject != null) {
+					documentElement.setAttribute("screenclass", lastDetectedObject.getName());
+					// TODO :
+					// documentElement.setAttribute(lastDetectedObject.getClass().getName().toLowerCase(),
+					// lastDetectedObject.getName());
+				}
+
+				documentElement.setAttribute("signature", Long.toString(context.documentSignatureSent));
+
+				// Add the user reference if any
+				if (context.userReference != null) {
+					documentElement.setAttribute("userReference", context.userReference);
+				}
 			}
 		} catch (EngineException e) {
 			String message = "[Engine.getDocument()] Context ID#" + context.contextID
@@ -1385,7 +1388,9 @@ public class Engine {
 					// Fix regression for Teamlog's billing abortion!
 					// In case of exception thrown, outputDom is Null so use
 					// context.outputDocument!
-					if (context.outputDocument == null) {
+					if (context.outputDocument == null && context.nativeExecution) {
+						Engine.logContext.debug("No billing class for a native sequence without document");
+					} else if (context.outputDocument == null) {
 						Engine.logContext.warn("Billing aborted because the generated XML document is null");
 					} else {
 						String billingClassName = context.getConnector().getBillingClassName();

@@ -253,6 +253,22 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
      *
      * @return the resulting DOM of the transaction.
      */
+    /** the output document of the requestable, with its document root element */
+    protected void createOutputDocument(Context context) throws EngineException {
+        context.outputDocument = requester.createDOM(getEncodingCharSet());
+        
+		Element outputDocumentRootElement = context.outputDocument.createElement("document");
+		context.outputDocument.appendChild(outputDocumentRootElement);
+        
+		outputDocumentRootElement.setAttribute("project", context.projectName);
+		outputDocumentRootElement.setAttribute("sequence", context.sequenceName);
+		outputDocumentRootElement.setAttribute("connector", context.connectorName);
+		outputDocumentRootElement.setAttribute("transaction", context.transactionName);
+		if (context.lang != null && context.lang.length() != 0) {
+			outputDocumentRootElement.setAttribute("lang", context.lang);
+		}
+    }
+
     public Document run(Requester requester, Context context) throws EngineException {
         
     	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_STARTED);
@@ -265,18 +281,15 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             
             context.cacheControl = this.isClientCachable() ? "true":"false";
             
-            context.outputDocument = requester.createDOM(getEncodingCharSet());
-            
-			Element outputDocumentRootElement = context.outputDocument.createElement("document");
-			context.outputDocument.appendChild(outputDocumentRootElement);
-            
-			outputDocumentRootElement.setAttribute("project", context.projectName);
-			outputDocumentRootElement.setAttribute("sequence", context.sequenceName);
-			outputDocumentRootElement.setAttribute("connector", context.connectorName);
-			outputDocumentRootElement.setAttribute("transaction", context.transactionName);
-			if (context.lang != null && context.lang.length() != 0) {
-				outputDocumentRootElement.setAttribute("lang", context.lang);
-			}
+            // a native sequence makes its output document only if one of its steps needs it
+            // a native sequence, or a transaction called natively: no input document was made for them
+            context.nativeExecution = context.inputDocument == null && context.nativeParameters != null;
+            context.nativeResult = null;
+            if (context.nativeExecution) {
+            	context.outputDocument = null;
+            } else {
+            	createOutputDocument(context);
+            }
 			
             int maxNbCurrentWorkerThreads = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
             
@@ -368,7 +381,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
                     throw (EngineException) runningThread.exception;
                 else throw new EngineException("An unexpected error has occured while the execution of the requested object '" + getName() + "'.", runningThread.exception);
 
-			outputDocumentRootElement.setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
+			if (context.outputDocument != null) {
+				context.outputDocument.getDocumentElement().setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
+			}
 			
             Engine.logContext.debug("(RequestableObject) End of the thread for the requested object '" + getName() + "'");
             
@@ -553,7 +568,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		scope.put("steps", scope, jsSteps);
 
 		// Insert the DOM into the scripting context
-		Scriptable jsDOM = org.mozilla.javascript.Context.toObject(context.outputDocument, scope);
+		// a native sequence without output document has no dom
+		Scriptable jsDOM = context.outputDocument == null ? null : org.mozilla.javascript.Context.toObject(context.outputDocument, scope);
 		scope.put("dom", scope, jsDOM);
 		
 		try {
