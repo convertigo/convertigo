@@ -153,6 +153,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 
 	private boolean jsonNativeOutput = false;
 
+	private boolean nativeExecution = false;
+
 	public Sequence() {
         super();
 		orderedSteps = new XMLVector<XMLVector<Long>>();
@@ -1910,6 +1912,15 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 
 	public void setJsonNativeOutput(boolean jsonNativeOutput) {
 		this.jsonNativeOutput = jsonNativeOutput;
+	}
+
+	/** a native sequence: the opt-in fast paths of the engine apply to it (javascript.shared_scope) */
+	public boolean isNativeExecution() {
+		return nativeExecution;
+	}
+
+	public void setNativeExecution(boolean nativeExecution) {
+		this.nativeExecution = nativeExecution;
 	}
 
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {

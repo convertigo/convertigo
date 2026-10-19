@@ -126,6 +126,7 @@ public class XMLUtils {
 	}
 
 	private static DocumentBuilderFactory newDocumentBuilderFactory() {
+		XmlUseCounter.factory();
 		if (documentBuilderFactoryClassName != null) {
 			try {
 				return DocumentBuilderFactory.newInstance(documentBuilderFactoryClassName, XMLUtils.class.getClassLoader());
@@ -215,7 +216,8 @@ public class XMLUtils {
 		@Override
 		protected DocumentBuilder initialValue() {
 			try {
-				return defaultDocumentBuilderFactory.get().newDocumentBuilder();
+				XmlUseCounter.builder();
+				return XmlUseCounter.counting(defaultDocumentBuilderFactory.get().newDocumentBuilder());
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
 				return null;
@@ -382,6 +384,7 @@ public class XMLUtils {
 	}
 
 	public static String prettyPrintDOM(Document doc) {
+		XmlUseCounter.serialized();
 		return prettyPrintDOMWithEncoding(doc, "ISO-8859-1");
 	}
 
@@ -444,6 +447,7 @@ public class XMLUtils {
 
 	/** Same as prettyPrintDOM(doc), each level being indented by indentAmount spaces */
 	public static String prettyPrintDOM(Document doc, int indentAmount) {
+		XmlUseCounter.serialized();
 		StringWriter writer = new StringWriter();
 		prettyPrintDOMWithEncoding(doc, "ISO-8859-1", new StreamResult(writer), indentAmount);
 		return writer.getBuffer().toString();
@@ -1168,7 +1172,8 @@ public class XMLUtils {
 					factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 				} catch (Exception ignored) {
 				}
-				return factory.newDocumentBuilder();
+				XmlUseCounter.builder();
+				return XmlUseCounter.counting(factory.newDocumentBuilder());
 			} catch (ParserConfigurationException e) {
 				Engine.logEngine.error("Unable to create the secure XML document builder", e);
 				return null;
@@ -1306,6 +1311,7 @@ public class XMLUtils {
 
 	public static void logXml(Document document, Logger log, String message) {
 		if (document != null && log.isInfoEnabled()) {
+			XmlUseCounter.serialized();
 			// only the head of a big document is logged below TRACE: the document is printed up to that size,
 			// plus one character to know it is longer
 			String xml = log.isTraceEnabled() ? prettyPrintDOM(document) : prettyPrintDOMHead(document,
