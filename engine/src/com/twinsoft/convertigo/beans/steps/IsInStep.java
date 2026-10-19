@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +30,10 @@ import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.json.JsonPath;
+import com.twinsoft.convertigo.engine.json.JsonPathSource;
 
 public class IsInStep extends TestStep {
 
@@ -60,13 +66,32 @@ public class IsInStep extends TestStep {
 	}
 
 	protected boolean executeTest(Context javascriptContext, Scriptable scope) throws EngineException {
-		NodeList list = getSource().getContextValues();
-		if (list != null) {
-			int len = list.getLength();
+		StepSource source = getSource();
+		List<String> values = null;
+		if (source.isJsonPath()) {
+			// a JSON path source: the texts of the values, without XML
+			Object value = source.getJsonValue();
+			if (value != JsonPath.MISSING) {
+				values = new ArrayList<String>();
+				for (Object v : JsonPath.parse(source.getXpath()).hasWildcard() ? (List<?>) value : Collections.singletonList(value)) {
+					values.add(JsonPathSource.text(v));
+				}
+			}
+		} else {
+			NodeList list = source.getContextValues();
+			if (list != null) {
+				values = new ArrayList<String>(list.getLength());
+				for (int i = 0; i < list.getLength(); i++) {
+					values.add(getNodeValue(list.item(i)));
+				}
+			}
+		}
+		if (values != null) {
+			int len = values.size();
 			if (len != 0) {
 				boolean match = true;
 				for (int i=0; i<len; i++) {
-					String nodeValue = getNodeValue(list.item(i));
+					String nodeValue = values.get(i);
 					if (nodeValue == null)
 						nodeValue = "";
 					for (int j=0; j<testDefinition.size(); j++) {
