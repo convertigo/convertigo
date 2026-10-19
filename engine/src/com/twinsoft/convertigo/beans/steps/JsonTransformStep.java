@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.json.JsonData;
+import com.twinsoft.convertigo.engine.json.JsonPath;
 import com.twinsoft.convertigo.engine.json.NativeStepOutput;
 import com.twinsoft.convertigo.engine.util.JsonNativeOutput;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
@@ -105,12 +106,23 @@ public abstract class JsonTransformStep extends Step implements ITagsProperty {
 		return xmlView;
 	}
 
+	/** the JSON path sources read the array the step built, without its XML view */
+	@Override
+	public Object selectJson(JsonPath path) {
+		return result == null ? JsonPath.MISSING : path.select(result);
+	}
+
 	@Override
 	public String getStepNodeName() {
 		return getName();
 	}
 
 	protected abstract Object transform(Context javascriptContext, Scriptable scope) throws EngineException;
+
+	/** the JSON text the step read in its last execution, shown by the Studio; null for a step that reads data */
+	protected String getStudioInput() {
+		return null;
+	}
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
@@ -121,7 +133,7 @@ public abstract class JsonTransformStep extends Step implements ITagsProperty {
 			scope.put(variableName, scope, result);
 			if (Engine.isStudioMode()) {
 				NativeStepOutput.fire(this, sequence.loadedSteps.get(priority), executeTimeID, variableName, result,
-						(System.nanoTime() - start) / 1000, sequence.context != null ? sequence.context.contextID : null, null);
+						(System.nanoTime() - start) / 1000, sequence.context != null ? sequence.context.contextID : null, null, getStudioInput());
 			}
 			return true;
 		}

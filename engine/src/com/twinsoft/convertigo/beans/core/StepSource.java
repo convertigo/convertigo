@@ -27,6 +27,8 @@ import com.twinsoft.convertigo.beans.steps.IteratorStep;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.json.JsonPath;
+import com.twinsoft.convertigo.engine.json.JsonPathSource;
 
 public class StepSource {
 
@@ -131,6 +133,16 @@ public class StepSource {
 		return "//document";
 	}
 	
+	/** a source whose path is a JSON path ($...), read on the JSON of its step without XML */
+	public boolean isJsonPath() {
+		return JsonPath.isJsonPath(getXpath());
+	}
+
+	/** the value at the JSON path of the source: JsonPath.MISSING, a value, or a list with a wildcard */
+	public Object getJsonValue() throws EngineException {
+		return JsonPathSource.select(getStep(), getXpath());
+	}
+
 	public boolean isXml() throws EngineException {
 		if (definition.size() > 0)
 			return getStep().isXml();

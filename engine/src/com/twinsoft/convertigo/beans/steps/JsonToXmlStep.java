@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.json.JsonPath;
 import com.twinsoft.convertigo.engine.json.JsonStreamOutput;
 import com.twinsoft.convertigo.engine.json.NativeStepOutput;
 import com.twinsoft.convertigo.engine.requesters.InternalJsonRequester;
@@ -185,6 +186,20 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 		}
 		String keyName = key.getSingleString(this);
 		return keyName != null && registerJsonNativeOutput(new JsonNativeOutput(keyName, jsonSource, getStepNodeName(), arrayChildrenTag));
+	}
+
+	/** the JSON path sources read the JSON of the step (also when it is kept native), read in stream from its text */
+	@Override
+	public Object selectJson(JsonPath path) throws EngineException {
+		if (jsonSource == null || !(jsonSource.startsWith("{") || jsonSource.startsWith("["))) {
+			return JsonPath.MISSING;
+		}
+		try {
+			String text = path.selectText(jsonSource);
+			return text == null ? JsonPath.MISSING : RhinoUtils.jsonParse(text);
+		} catch (java.io.IOException e) {
+			throw new EngineException("Unable to read the JSON of the step '" + getName() + "' at " + path, e);
+		}
 	}
 
 	/** puts a JSON kept as is in the response of the sequence, false when its key is already there */

@@ -26,6 +26,7 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -36,6 +37,11 @@ public class SourceStep extends Step implements IStepSourceContainer {
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	
 	private String variableName = "myNodeList";
+
+	/** the value read by a JSON path source, for the steps that take it as is (NOT_JSON otherwise) */
+	transient protected Object jsonValue = NOT_JSON;
+
+	protected static final Object NOT_JSON = new Object();
 	
 	public SourceStep() {
 		super();
@@ -81,7 +87,14 @@ public class SourceStep extends Step implements IStepSourceContainer {
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope)) {
-				NodeList list = getSource().getContextValues();
+				StepSource source = getSource();
+				jsonValue = NOT_JSON;
+				if (readsJsonValue() && source.isJsonPath()) {
+					// no XML: the value at the JSON path of the source step
+					jsonValue = source.getJsonValue();
+					return true;
+				}
+				NodeList list = source.getContextValues();
 				if (list != null) {
 					scope.put(variableName, scope, list);
 					return true;
@@ -91,6 +104,11 @@ public class SourceStep extends Step implements IStepSourceContainer {
 		return false;
 	}
 	
+	/** true for a step that takes the value of a JSON path source as is, without its XML */
+	protected boolean readsJsonValue() {
+		return false;
+	}
+
 	public String toJsString() {
 		return "";
 	}

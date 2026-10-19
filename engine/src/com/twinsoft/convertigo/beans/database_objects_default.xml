@@ -1,4 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <step classname="com.twinsoft.convertigo.beans.steps.JsonReadStep" priority="0" version="   8   4   7">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="defaultValue">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="json">
+            <java.lang.String value="text"/>
+        </property>
+        <property name="name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="output">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="path">
+            <java.lang.String value="$"/>
+        </property>
+        <property name="schemaDataType">
+            <java.lang.String value="xsd:string"/>
+        </property>
+        <property name="variableName">
+            <java.lang.String value="value"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlSimpleTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
+            </xmlizable>
+        </property>
+    </step>
     <sequence classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" priority="0" version="   8   4   7">
         <property name="accessibility">
             <java.lang.String value="Public"/>
