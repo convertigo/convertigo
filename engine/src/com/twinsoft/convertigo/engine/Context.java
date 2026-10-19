@@ -102,6 +102,15 @@ public class Context extends AbstractContext implements Cloneable {
 	/** The JSON of the output steps of a sequence answered as JSON without their XML (Sequence.jsonNativeOutput), by key */
 	public transient Map<String, JsonNativeOutput> jsonNativeOutputs = null;
 
+	/** the requested sequence is native (Sequence.nativeExecution): no input nor output document unless a step needs one */
+	public transient boolean nativeExecution = false;
+
+	/** the answer of a transaction called natively (the text of an HTTP answer), instead of its document */
+	public transient Object nativeResult = null;
+
+	/** the parameters of a native sequence request, read instead of an input document */
+	public transient Map<String, Object> nativeParameters = null;
+
 	public transient boolean isXsltRequest = false;
 
 	public transient boolean isAsync;

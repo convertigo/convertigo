@@ -172,6 +172,11 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	
 	protected void makeDocument(Object result) throws Exception {
 		if (result == null) return;
+		if (context.outputDocument == null && context.nativeExecution) {
+			// a native call: the JSON of CouchDB as a text, without document (couchdb_output of the XML)
+			context.nativeResult = result.toString();
+			return;
+		}
 		Engine.logBeans.debug("(CouchDBTransaction) making document...");
 		Document doc = context.outputDocument;
 		Element root = doc.getDocumentElement();

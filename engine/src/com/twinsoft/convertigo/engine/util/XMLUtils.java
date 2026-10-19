@@ -1746,21 +1746,34 @@ public class XMLUtils {
 	 * outputs is read and written in stream (JsonStreamOutput); null when a key is in both.
 	 */
 	public static Object XmlToJsonResponse(Element elt, boolean ignoreStepIds, Collection<JsonNativeOutput> nativeOutputs, String charset) throws JSONException {
-		JSONObject json = new JSONObject();
-		handleElement(elt, json, ignoreStepIds, true);
-		JSONObject children = json.optJSONObject(elt.getTagName());
+		JSONObject children = null;
+		if (elt != null) {
+			JSONObject json = new JSONObject();
+			handleElement(elt, json, ignoreStepIds, true);
+			children = json.optJSONObject(elt.getTagName());
+		}
 		if (children == null) {
 			children = new JSONObject();
 		}
 		children.remove("attr");
 		boolean hasChildElement = false;
-		for (Node child = elt.getFirstChild(); child != null && !hasChildElement; child = child.getNextSibling()) {
+		for (Node child = elt == null ? null : elt.getFirstChild(); child != null && !hasChildElement; child = child.getNextSibling()) {
 			hasChildElement = child.getNodeType() == Node.ELEMENT_NODE;
 		}
 		if (!hasChildElement) {
 			// the text handleElement gives a document holding only attributes, which a document with children has not
 			children.remove("text");
 		}
+		// the outputs of a native sequence that were XML: in the XML part, in their order (a native sequence has no XML)
+		List<JsonNativeOutput> appended = new ArrayList<JsonNativeOutput>(nativeOutputs.size());
+		for (JsonNativeOutput nativeOutput : nativeOutputs) {
+			if (nativeOutput.isLegacy()) {
+				children.accumulate(nativeOutput.getKey(), legacyValue(nativeOutput.toJSONString()));
+			} else {
+				appended.add(nativeOutput);
+			}
+		}
+		nativeOutputs = appended;
 		int length = 0;
 		boolean stream = false;
 		for (JsonNativeOutput nativeOutput : nativeOutputs) {
@@ -1788,6 +1801,15 @@ public class XMLUtils {
 			empty = false;
 		}
 		return sb.append("\n}").toString();
+	}
+
+	/** the value the XML of a JSON to XML step gives back in the JSON answer */
+	private static Object legacyValue(String json) {
+		try {
+			return new org.codehaus.jettison.json.JSONTokener(json.trim()).nextValue();
+		} catch (JSONException e) {
+			return json;
+		}
 	}
 
 	public static void jsonToXml(Object object, Element element) throws JSONException {

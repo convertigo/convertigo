@@ -157,16 +157,20 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 				Engine.logCacheManager.debug("Cache not enabled explicitly");
 
 				response = context.requestedObject.run(requester, context);
-				response.getDocumentElement().setAttribute("fromcache", "false");
-				response.getDocumentElement().setAttribute("fromStub", "false");
+				if (response != null) { // a native sequence may answer without document
+					response.getDocumentElement().setAttribute("fromcache", "false");
+					response.getDocumentElement().setAttribute("fromStub", "false");
+				}
 			}
 			// Not cached transaction
 			else if (expiryDate <= 0) {
 				Engine.logCacheManager.trace("The response is not cachable");
 
 				response = context.requestedObject.run(requester, context);
-				response.getDocumentElement().setAttribute("fromcache", "false");
-				response.getDocumentElement().setAttribute("fromStub", "false");
+				if (response != null) { // a native sequence may answer without document
+					response.getDocumentElement().setAttribute("fromcache", "false");
+					response.getDocumentElement().setAttribute("fromStub", "false");
+				}
 			}
 			// Cached transaction
 			else {

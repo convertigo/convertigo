@@ -268,9 +268,81 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	public transient Map<String, Object> variables = new HashMap<String, Object>();
 
+	/**
+	 * The variables of a native sequence, from the parameters of its request instead of an input document: the
+	 * values an input document would hold (engine parameters starting with __ left out, the last value of a variable
+	 * that is not multivalued, all the values of a multivalued one, the variables of a test case).
+	 */
+	private void parseNativeParameters(Map<String, Object> parameters) throws EngineException {
+		variables.clear();
+		for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
+			String name = parameter.getKey();
+			Object value = parameter.getValue();
+			if (value instanceof org.mozilla.javascript.NativeJavaObject) {
+				value = ((org.mozilla.javascript.NativeJavaObject) value).unwrap();
+			}
+			if (name.indexOf(Parameter.Testcase.getName()) == 0) {
+				Object first = value instanceof Object[] ? (((Object[]) value).length > 0 ? ((Object[]) value)[0] : null) : value;
+				TestCase testcase = first == null ? null : getTestCaseByName(first.toString());
+				if (testcase != null) {
+					for (TestCaseVariable testCaseVariable: testcase.getVariables()) {
+						Object testCaseValue = testcase.getVariableValue(testCaseVariable.getName());
+						if (testCaseValue != null) {
+							variables.put(testCaseVariable.getName(), testCaseValue);
+						}
+					}
+				}
+				continue;
+			}
+			if (name.startsWith("__") || value == null) {
+				continue;
+			}
+			List<Object> values = new LinkedList<Object>();
+			if (value instanceof Object[]) {
+				for (Object item : (Object[]) value) {
+					if (item != null) {
+						values.add(item);
+					}
+				}
+			} else if (value instanceof java.util.Collection) {
+				values.addAll((java.util.Collection<?>) value);
+			} else {
+				values.add(value);
+			}
+			RequestableVariable variable = (RequestableVariable) getVariable(name);
+			if (variable != null && variable.isMultiValued()) {
+				List<Object> current = GenericUtils.cast(variables.get(name));
+				if (current == null) {
+					current = new LinkedList<Object>();
+					variables.put(name, current);
+				}
+				current.addAll(values);
+			} else if (!values.isEmpty()) {
+				variables.put(name, values.get(values.size() - 1));
+			}
+		}
+	}
+
+	/** the output document of the sequence, made on the first need for a native sequence */
+	public Document ensureOutputDocument() {
+		if (context.outputDocument == null) {
+			try {
+				createOutputDocument(context);
+			} catch (EngineException e) {
+				throw new IllegalStateException(e);
+			}
+		}
+		return context.outputDocument;
+	}
+
 	@Override
 	public void parseInputDocument(Context context) throws EngineException {
 		super.parseInputDocument(context);
+
+		if (context.inputDocument == null && context.nativeParameters != null) {
+			parseNativeParameters(context.nativeParameters);
+			return;
+		}
 
 		if (context.inputDocument != null && Engine.logContext.isInfoEnabled()) {
 			Document printDoc = (Document) Visibility.Logs.replaceVariables(getVariablesList(), context.inputDocument);
@@ -1263,10 +1335,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	        			break;
 	    		}
 	    		
-	    		// Finally modify sequence working dom to output dom
-	    		Element root = context.outputDocument.getDocumentElement();
-	    		OutputFilter outputFilter = new OutputFilter(OutputOption.VisibleOnly);
-	    		buildOutputDom(root, outputFilter);
+	    		// Finally modify sequence working dom to output dom (a native sequence may have none)
+	    		if (context.outputDocument != null) {
+	    			Element root = context.outputDocument.getDocumentElement();
+	    			OutputFilter outputFilter = new OutputFilter(OutputOption.VisibleOnly);
+	    			buildOutputDom(root, outputFilter);
+	    		}
 	    		
 	            Long t2 = System.currentTimeMillis();
 	    		if (Engine.logBeans.isDebugEnabled())
@@ -1727,12 +1801,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public synchronized void flushStepDocument(String executeTimeID , Document doc, boolean replaceStepElement) {
 		Element stepElement = findStepElement(executeTimeID);
 		if (stepElement == null) {
-			stepElement = context.outputDocument.getDocumentElement();
+			stepElement = ensureOutputDocument().getDocumentElement();
 		}
 		
 		boolean outputFalse = "false".equals(stepElement.getUserData(Step.NODE_USERDATA_OUTPUT));
 		
-		Element imported = (Element) context.outputDocument.importNode(doc.getDocumentElement(), true);
+		Element imported = (Element) ensureOutputDocument().importNode(doc.getDocumentElement(), true);
 		if (replaceStepElement) {
 			stepElement.getParentNode().replaceChild(imported, stepElement);
 			stepElement = imported;
@@ -1761,10 +1835,14 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		return getName() + "_";
 	}
 	
+	public boolean hasStepElement(String executeTimeID) {
+		return workerElementMap.containsKey(executeTimeID);
+	}
+
 	protected Element findStepElement(String executeTimeID) {
 		Element stepElement = (Element)workerElementMap.get(executeTimeID);
 		if (stepElement == null) {
-			stepElement = context.outputDocument.getDocumentElement();
+			stepElement = ensureOutputDocument().getDocumentElement();
 		}
 		return stepElement;
 	}
@@ -1778,7 +1856,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			
 		}
 		catch (ClassCastException e) {
-			return context.outputDocument.getDocumentElement();
+			return ensureOutputDocument().getDocumentElement();
 		}
 		
 		Element parentStepElement = (Element)workerElementMap.get(parentStep.executeTimeID);

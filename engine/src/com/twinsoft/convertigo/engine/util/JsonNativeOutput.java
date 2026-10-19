@@ -49,8 +49,38 @@ public class JsonNativeOutput implements JSONString {
 		this.arrayChildrenTag = arrayChildrenTag;
 	}
 
+	private boolean legacy;
+	private Object value = NO_VALUE;
+	private static final Object NO_VALUE = new Object();
+
+	/** the value of the output for a native call: the data the JSON was written from, or its JSON parsed */
+	public JsonNativeOutput value(Object value) {
+		this.value = value;
+		return this;
+	}
+
+	public Object getValue() {
+		if (value == NO_VALUE) {
+			value = RhinoUtils.jsonParse(toJSONString());
+		}
+		return value;
+	}
+
 	public String getKey() {
 		return key;
+	}
+
+	/**
+	 * an output of a native sequence that was XML before (not directly under the sequence, or a value that is not an
+	 * object nor an array): written first, in the form XmlToJson gives the XML part of the answer
+	 */
+	public JsonNativeOutput legacy(boolean legacy) {
+		this.legacy = legacy;
+		return this;
+	}
+
+	public boolean isLegacy() {
+		return legacy;
 	}
 
 	@Override
@@ -61,8 +91,9 @@ public class JsonNativeOutput implements JSONString {
 	/** The element JsonToXmlStep.createStepNode builds for this JSON */
 	public Element toElement(Document doc) throws JSONException {
 		Element elt = doc.createElement("e");
-		String json = toJSONString();
-		Object o = json.startsWith("{") ? new JSONObject(json) : new JSONArray(json);
+		String json = toJSONString().trim();
+		Object o = json.startsWith("{") ? new JSONObject(json) : json.startsWith("[") ? new JSONArray(json)
+				: new org.codehaus.jettison.json.JSONTokener(json).nextValue();
 		XMLUtils.jsonToXml(o, nodeName, elt, true, false, arrayChildrenTag);
 		elt = (Element) elt.getFirstChild();
 		elt.setAttribute("originalKeyName", key);

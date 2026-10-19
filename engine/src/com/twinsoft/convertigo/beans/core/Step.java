@@ -393,7 +393,15 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		//does nothing
 	}
 
+	/** in a native sequence, the node of this step is appended only when its XML is needed (a call) */
+	protected boolean isNodeDeferredInNativeSequence() {
+		return false;
+	}
+
 	public Document getOutputDocument() {
+		if (sequence.context.outputDocument == null && sequence.context.nativeExecution) {
+			return sequence.ensureOutputDocument();
+		}
 		return sequence.context.outputDocument;
 	}
 	
@@ -691,7 +699,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			// Adds step's reference to sequence copies
 			sequence.addCopy(executeTimeID, this);
 			sequence.setCurrentStep(this);
-			sequence.appendStepNode(this);
+			// a native sequence builds no node for a step that is not XML nor output, nor yet for a call
+			if (!sequence.context.nativeExecution || (isXmlOrOutput() && !isNodeDeferredInNativeSequence())) {
+				sequence.appendStepNode(this);
+			}
 
 			return true;
 		}

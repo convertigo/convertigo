@@ -90,6 +90,9 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	transient private List<StepVariable> vVariables = new LinkedList<StepVariable>();
 	transient private List<StepVariable> vAllVariables = null;
 	transient protected Document xmlHttpDocument = null;
+
+	/** the answer of a native callee: an object, without document (an XML view is built only for an XPath source) */
+	transient protected Object nativeResult = null;
 	transient protected PostMethod method = null;
 	transient protected HostConfiguration hostConfiguration = null;
 	transient protected String targetUrl = "";
@@ -853,10 +856,17 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	            	
 	            	if (bInternalInvoke) {
 	            		Engine.logBeans.debug("(RequestableStep) Internal invoke requested");
+	            		nativeResult = null;
+	            		if (sequence.context.nativeExecution) {
+	            			// a native sequence calls: a native callee answers an object instead of a document
+	            			request.put(com.twinsoft.convertigo.engine.requesters.GenericRequester.NATIVE_CALL, "true");
+	            		}
 		            	InternalRequester internalRequester = new InternalRequester(request, sequence.context.httpServletRequest);
 		        		Object result = internalRequester.processRequest();
 
-		            	if (result != null) {
+		            	if (result instanceof java.util.Map || result instanceof CharSequence) {
+		            		nativeResult = result;
+		            	} else if (result != null) {
 			            	xmlHttpDocument = (Document) result;
 //			            	if (Engine.isStudioMode()) {
 //			            		((Sequence)sequence.getOriginal()).fireDataChanged(new SequenceEvent(this, result));
@@ -899,7 +909,40 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		return false;
 	}
 	
+	/** an XPath source on the call of a native callee: its object becomes the document of the call, once */
+	@Override
+	public Node getContextNode(int loop) throws EngineException {
+		if (nativeResult != null && xmlHttpDocument == null) {
+			try {
+				Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+				Element root = doc.createElement("document");
+				doc.appendChild(root);
+				if (nativeResult instanceof CharSequence) {
+					root.appendChild(doc.createTextNode(nativeResult.toString()));
+				} else for (java.util.Map.Entry<?, ?> entry : ((java.util.Map<?, ?>) nativeResult).entrySet()) {
+					String json = RhinoUtils.jsonStringifyData(entry.getValue());
+					root.appendChild(new com.twinsoft.convertigo.engine.util.JsonNativeOutput(String.valueOf(entry.getKey()), json,
+							String.valueOf(entry.getKey()), "item").toElement(doc));
+				}
+				xmlHttpDocument = doc;
+				flushDocument();
+			} catch (Exception e) {
+				throw new EngineException("Unable to build the XML view of the answer of '" + getName() + "'", e);
+			}
+		}
+		return super.getContextNode(loop);
+	}
+
+	@Override
+	protected boolean isNodeDeferredInNativeSequence() {
+		return true;
+	}
+
 	private void flushDocument() throws EngineException {
+		if (sequence.context.nativeExecution && !sequence.hasStepElement(executeTimeID)) {
+			// the node deferred by the native sequence, now that the call has a document
+			sequence.appendStepNode(this);
+		}
 		if (sequence.runningThread.bContinue) {
 			sequence.flushStepDocument(executeTimeID, xmlHttpDocument);
 		}
@@ -950,6 +993,22 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	 */
 	@Override
 	public Object selectJson(JsonPath path) throws EngineException {
+		if (nativeResult instanceof CharSequence) {
+			// the text of a transaction called natively, read in stream
+			String text = nativeResult.toString().trim();
+			if (!(text.startsWith("{") || text.startsWith("["))) {
+				return JsonPath.MISSING;
+			}
+			try {
+				String selected = path.selectText(text);
+				return selected == null ? JsonPath.MISSING : RhinoUtils.jsonParse(selected);
+			} catch (java.io.IOException e) {
+				throw new EngineException("The answer read by '" + getName() + "' is not JSON", e);
+			}
+		}
+		if (nativeResult != null) {
+			return path.select(nativeResult);
+		}
 		Node stepNode = getContextNode(0);
 		if (stepNode == null) {
 			return JsonPath.MISSING;

@@ -52,6 +52,21 @@ public class JsonServletRequester extends ServletRequester {
 
 	/** the JSON answer of a document: the native JSON outputs of the sequence are written as is beside its XML */
 	public static Object toJson(Context context, Document document) throws Exception {
+		if (document == null) {
+			// a native sequence without XML: its outputs only
+			Map<String, JsonNativeOutput> nativeOutputs = context.jsonNativeOutputs;
+			context.jsonNativeOutputs = null;
+			if (nativeOutputs == null || nativeOutputs.isEmpty()) {
+				return "{}";
+			}
+			String charset = context.requestedObject != null ? context.requestedObject.getEncodingCharSet() : "UTF-8";
+			Object json = XMLUtils.XmlToJsonResponse(null, true, nativeOutputs.values(), charset);
+			if (json != null) {
+				return json;
+			}
+			context.jsonNativeOutputs = nativeOutputs;
+			document = GenericRequester.nativeOutputDocument(context);
+		}
 		ConvertigoError.cleanDocument(context.getXpathApi(), document);
 		boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
 		JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
