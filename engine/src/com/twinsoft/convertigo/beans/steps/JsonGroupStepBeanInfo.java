@@ -31,8 +31,8 @@ public class JsonGroupStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = JsonGroupStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jsonarray_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jsonarray_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jsongroup_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jsongroup_32x32.png";
 
 			resourceBundle = getResourceBundle("res/JsonGroupStep");
 
@@ -45,37 +45,45 @@ public class JsonGroupStepBeanInfo extends MySimpleBeanInfo {
 			properties[0].setDisplayName(getExternalizedString("property.rows.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.rows.short_description"));
 			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			setStudioEditor(properties[0], "JsonExpressionEditor", "Input");
 
 			properties[1] = new PropertyDescriptor("variableName", beanClass, "getVariableName", "setVariableName");
 			properties[1].setDisplayName(getExternalizedString("property.variableName.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.variableName.short_description"));
+			setStudioEditor(properties[1], null, "Output");
 
 			properties[2] = new PropertyDescriptor("format", beanClass, "getFormat", "setFormat");
 			properties[2].setDisplayName(getExternalizedString("property.format.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.format.short_description"));
+			setStudioEditor(properties[2], "StringComboBoxPropertyDescriptor", "Format");
 
 			properties[3] = new PropertyDescriptor("groupColumns", beanClass, "getGroupColumns", "setGroupColumns");
 			properties[3].setDisplayName(getExternalizedString("property.groupColumns.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.groupColumns.short_description"));
 			properties[3].setValue(SCRIPTABLE, Boolean.TRUE);
+			setStudioEditor(properties[3], "JsonColumnsEditor", "Columns");
 
 			properties[4] = new PropertyDescriptor("aggregations", beanClass, "getAggregations", "setAggregations");
 			properties[4].setDisplayName(getExternalizedString("property.aggregations.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.aggregations.short_description"));
 			properties[4].setValue(SCRIPTABLE, Boolean.TRUE);
+			setStudioEditor(properties[4], "JsonAggregationsEditor", "Columns");
 
 			properties[5] = new PropertyDescriptor("schema", beanClass, "getSchema", "setSchema");
 			properties[5].setDisplayName(getExternalizedString("property.schema.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.schema.short_description"));
 			properties[5].setValue(SCRIPTABLE, Boolean.TRUE);
+			setStudioEditor(properties[5], "JsonExpressionEditor", "Input");
 
 			properties[6] = new PropertyDescriptor("valueKey", beanClass, "getValueKey", "setValueKey");
 			properties[6].setDisplayName(getExternalizedString("property.valueKey.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.valueKey.short_description"));
+			setStudioEditor(properties[6], null, "Columns");
 
 			properties[7] = new PropertyDescriptor("errorVariableName", beanClass, "getErrorVariableName", "setErrorVariableName");
 			properties[7].setDisplayName(getExternalizedString("property.errorVariableName.display_name"));
 			properties[7].setShortDescription(getExternalizedString("property.errorVariableName.short_description"));
+			setStudioEditor(properties[7], null, "Output");
 
 		}
 		catch(Exception e) {

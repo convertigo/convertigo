@@ -31,8 +31,8 @@ public class JsonSelectColumnsStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = JsonSelectColumnsStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jsonfield_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jsonfield_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jsonselectcolumns_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jsonselectcolumns_32x32.png";
 
 			resourceBundle = getResourceBundle("res/JsonSelectColumnsStep");
 
@@ -45,25 +45,30 @@ public class JsonSelectColumnsStepBeanInfo extends MySimpleBeanInfo {
 			properties[0].setDisplayName(getExternalizedString("property.rows.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.rows.short_description"));
 			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			setStudioEditor(properties[0], "JsonExpressionEditor", "Input");
 
 			properties[1] = new PropertyDescriptor("variableName", beanClass, "getVariableName", "setVariableName");
 			properties[1].setDisplayName(getExternalizedString("property.variableName.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.variableName.short_description"));
+			setStudioEditor(properties[1], null, "Output");
 
 			properties[2] = new PropertyDescriptor("firstColumns", beanClass, "getFirstColumns", "setFirstColumns");
 			properties[2].setDisplayName(getExternalizedString("property.firstColumns.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.firstColumns.short_description"));
 			properties[2].setValue(SCRIPTABLE, Boolean.TRUE);
+			setStudioEditor(properties[2], "JsonColumnsEditor", "Columns");
 
 			properties[3] = new PropertyDescriptor("columns", beanClass, "getColumns", "setColumns");
 			properties[3].setDisplayName(getExternalizedString("property.columns.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.columns.short_description"));
 			properties[3].setValue(SCRIPTABLE, Boolean.TRUE);
+			setStudioEditor(properties[3], "JsonColumnsEditor", "Columns");
 
 			properties[4] = new PropertyDescriptor("columnsOrder", beanClass, "getColumnsOrder", "setColumnsOrder");
 			properties[4].setDisplayName(getExternalizedString("property.columnsOrder.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.columnsOrder.short_description"));
 			properties[4].setValue(SCRIPTABLE, Boolean.TRUE);
+			setStudioEditor(properties[4], "JsonColumnsEditor", "Columns");
 
 		}
 		catch(Exception e) {

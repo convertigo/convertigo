@@ -31,8 +31,8 @@ public class JsonDistinctStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = JsonDistinctStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jsonarray_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jsonarray_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jsondistinct_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jsondistinct_32x32.png";
 
 			resourceBundle = getResourceBundle("res/JsonDistinctStep");
 
@@ -45,19 +45,23 @@ public class JsonDistinctStepBeanInfo extends MySimpleBeanInfo {
 			properties[0].setDisplayName(getExternalizedString("property.rows.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.rows.short_description"));
 			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			setStudioEditor(properties[0], "JsonExpressionEditor", "Input");
 
 			properties[1] = new PropertyDescriptor("variableName", beanClass, "getVariableName", "setVariableName");
 			properties[1].setDisplayName(getExternalizedString("property.variableName.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.variableName.short_description"));
+			setStudioEditor(properties[1], null, "Output");
 
 			properties[2] = new PropertyDescriptor("columns", beanClass, "getColumns", "setColumns");
 			properties[2].setDisplayName(getExternalizedString("property.columns.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.columns.short_description"));
 			properties[2].setValue(SCRIPTABLE, Boolean.TRUE);
+			setStudioEditor(properties[2], "JsonColumnsEditor", "Columns");
 
 			properties[3] = new PropertyDescriptor("valueKey", beanClass, "getValueKey", "setValueKey");
 			properties[3].setDisplayName(getExternalizedString("property.valueKey.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.valueKey.short_description"));
+			setStudioEditor(properties[3], null, "Columns");
 
 		}
 		catch(Exception e) {
