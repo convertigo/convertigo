@@ -123,6 +123,20 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 		return (CacheManager) Class.forName(cacheManagerClassName).getConstructor().newInstance();
 	}
 	
+	/** the text answers of the cached transactions called natively, by request string */
+	private static final int NATIVE_CACHE_MAX_ENTRIES = 1000;
+	private static final java.util.Map<String, NativeCacheEntry> nativeCache = new java.util.concurrent.ConcurrentHashMap<String, NativeCacheEntry>();
+
+	private static final class NativeCacheEntry {
+		final long expiryDate;
+		final String text;
+
+		NativeCacheEntry(long expiryDate, String text) {
+			this.expiryDate = expiryDate;
+			this.text = text;
+		}
+	}
+
 	public Document getDocument(Requester requester, Context context) throws EngineException {
 		Document response = null;
 		CacheEntry cacheEntry;
@@ -173,6 +187,28 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 				}
 			}
 			// Cached transaction
+			else if (context.inputDocument == null && context.nativeParameters != null && context.transactionName != null) {
+				// a native call of a cached transaction: its text, kept apart from the XML cache, without document
+				String requestString = "native " + context.requestedObject.getRequestString(context);
+				NativeCacheEntry nativeEntry = context.noCache ? null : nativeCache.get(requestString);
+				if (nativeEntry != null && nativeEntry.expiryDate > System.currentTimeMillis()) {
+					Engine.logCacheManager.debug("Native response from cache for: " + requestString);
+					context.requestedObject.setStatisticsOfRequestFromCache();
+					context.nativeExecution = true;
+					context.nativeResult = nativeEntry.text;
+					return null;
+				}
+				response = context.requestedObject.run(requester, context);
+				if (response == null && context.nativeResult instanceof CharSequence && context.isCacheEnabled && supervision == null) {
+					if (nativeCache.size() > NATIVE_CACHE_MAX_ENTRIES) {
+						long now = System.currentTimeMillis();
+						nativeCache.values().removeIf(entry -> entry.expiryDate <= now);
+					}
+					if (nativeCache.size() <= NATIVE_CACHE_MAX_ENTRIES) {
+						nativeCache.put(requestString, new NativeCacheEntry(expiryDate, context.nativeResult.toString()));
+					}
+				}
+			}
 			else {
 				String requestString = context.requestedObject.getRequestString(context);
 

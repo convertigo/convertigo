@@ -550,7 +550,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			if (value instanceof org.mozilla.javascript.NativeJavaObject) {
 				value = ((org.mozilla.javascript.NativeJavaObject) value).unwrap();
 			}
-			if (name.startsWith("__") || value == null) {
+			// the parameters of the engine (__project, __context...) are not variables, unless one is declared (__body)
+			if ((name.startsWith("__") && getVariable(name) == null) || value == null) {
 				continue;
 			}
 			List<Object> values = new ArrayList<Object>();
