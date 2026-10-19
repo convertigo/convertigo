@@ -24,10 +24,12 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.json.JsonData;
+import com.twinsoft.convertigo.engine.json.NativeStepOutput;
 import com.twinsoft.convertigo.engine.util.JsonNativeOutput;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
@@ -38,7 +40,7 @@ import com.twinsoft.convertigo.engine.util.RhinoUtils;
  * sequence read without converting them. No XML is built for them, unless a step of the sequence reads one by an
  * XPath source: that step only gets an XML view of the array, built on demand like a JSON to XML step would build it.
  */
-public abstract class JsonTransformStep extends Step {
+public abstract class JsonTransformStep extends Step implements ITagsProperty {
 	private static final long serialVersionUID = 1L;
 
 	private String rows = "rows";
@@ -113,11 +115,26 @@ public abstract class JsonTransformStep extends Step {
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled() && super.stepExecute(javascriptContext, scope)) {
+			long start = System.nanoTime();
 			result = transform(javascriptContext, scope);
 			xmlView = null;
 			scope.put(variableName, scope, result);
+			if (Engine.isStudioMode()) {
+				NativeStepOutput.fire(this, sequence.loadedSteps.get(priority), executeTimeID, variableName, result,
+						(System.nanoTime() - start) / 1000, sequence.context != null ? sequence.context.contextID : null, null);
+			}
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		return JsonStepTags.get(propertyName);
+	}
+
+	/** for the Studio, which colors the JavaScript expressions */
+	public boolean isScriptableProperty(String propertyName) {
+		return JsonStepTags.isScriptable(propertyName);
 	}
 }

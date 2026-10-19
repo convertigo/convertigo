@@ -42,9 +42,13 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.json.JsonStreamOutput;
+import com.twinsoft.convertigo.engine.json.NativeStepOutput;
+import com.twinsoft.convertigo.engine.requesters.InternalJsonRequester;
 import com.twinsoft.convertigo.engine.requesters.JsonServletRequester;
 import com.twinsoft.convertigo.engine.util.JsonNativeOutput;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
@@ -168,7 +172,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	protected boolean isJsonNativeCandidate() {
 		if (!isOutput() || jsonObject.getMode() != Mode.JS || !(getParent() instanceof Sequence)
 				|| sequence == null || !sequence.isJsonNativeOutput() || sequence.context == null
-				|| !(sequence.getRequester() instanceof JsonServletRequester)) {
+				|| !(sequence.getRequester() instanceof JsonServletRequester || sequence.getRequester() instanceof InternalJsonRequester)) {
 			return false;
 		}
 		Project project = sequence.context.project;
@@ -196,6 +200,11 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 			context.jsonNativeOutputs.put(nativeOutput.getKey(), nativeOutput);
 			// the XML output lacks this JSON: it must not be cached
 			context.isCacheEnabled = false;
+		}
+		if (Engine.isStudioMode()) {
+			boolean stream = nativeOutput instanceof JsonStreamOutput;
+			NativeStepOutput.fire(this, sequence.loadedSteps.get(priority), executeTimeID, nativeOutput.getKey(),
+					stream ? null : nativeOutput.toJSONString(), 0, context.contextID, stream ? "stream" : "output");
 		}
 		return true;
 	}
