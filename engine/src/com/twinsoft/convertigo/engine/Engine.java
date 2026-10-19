@@ -1620,6 +1620,15 @@ public class Engine {
 		}
 	}
 
+	public void fireNativeStepExecuted(EngineEvent engineEvent) {
+		Object[] listeners = engineListeners.getListenerList();
+		for (int i = listeners.length - 2; i >= 0; i -= 2) {
+			if (listeners[i] == EngineListener.class) {
+				((EngineListener) listeners[i + 1]).nativeStepExecuted(engineEvent);
+			}
+		}
+	}
+
 	public void fireStepReached(EngineEvent engineEvent) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = engineListeners.getListenerList();

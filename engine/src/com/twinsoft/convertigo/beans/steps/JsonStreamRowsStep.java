@@ -27,6 +27,7 @@ import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.json.BaserowCellFormat;
 import com.twinsoft.convertigo.engine.json.JsonData;
@@ -43,7 +44,7 @@ import com.twinsoft.convertigo.engine.json.JsonStreamOutput;
  * - into a spool now, with values only, because the options of the columns (fields variable), known after the last
  * row, are answered before the rows; an error of Baserow then goes to the error variable and nothing is output.
  */
-public class JsonStreamRowsStep extends JsonToXmlStep {
+public class JsonStreamRowsStep extends JsonToXmlStep implements ITagsProperty {
 	private static final long serialVersionUID = 1L;
 
 	private String streamMode = "false";
@@ -190,4 +191,14 @@ public class JsonStreamRowsStep extends JsonToXmlStep {
 	public void setFieldsVariableName(String fieldsVariableName) { this.fieldsVariableName = fieldsVariableName; }
 	public String getErrorVariableName() { return errorVariableName; }
 	public void setErrorVariableName(String errorVariableName) { this.errorVariableName = errorVariableName; }
+
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		return JsonStepTags.get(propertyName);
+	}
+
+	/** for the Studio, which colors the JavaScript expressions */
+	public boolean isScriptableProperty(String propertyName) {
+		return JsonStepTags.isScriptable(propertyName);
+	}
 }

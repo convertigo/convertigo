@@ -38,4 +38,8 @@ public interface EngineListener extends java.util.EventListener {
     public void sequenceFinished(EngineEvent engineEvent);
     
     public void clearEditor(EngineEvent engineEvent);
+
+    /** a native JSON step ended, its source is a NativeStepOutput (Studio only) */
+    public default void nativeStepExecuted(EngineEvent engineEvent) {
+    }
 }

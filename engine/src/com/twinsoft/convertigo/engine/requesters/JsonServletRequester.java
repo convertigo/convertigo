@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
@@ -46,6 +47,11 @@ public class JsonServletRequester extends ServletRequester {
 	
 	@Override
 	public Object postGetDocument(Document document) throws Exception {
+		return toJson(context, document);
+	}
+
+	/** the JSON answer of a document: the native JSON outputs of the sequence are written as is beside its XML */
+	public static Object toJson(Context context, Document document) throws Exception {
 		ConvertigoError.cleanDocument(context.getXpathApi(), document);
 		boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
 		JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
