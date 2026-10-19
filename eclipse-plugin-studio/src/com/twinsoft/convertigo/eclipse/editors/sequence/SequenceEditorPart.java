@@ -703,11 +703,14 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			}
 			input = inputJSON;
 		} else {
-			if (lastGeneratedDocument == null) {
+			if (lastGeneratedDocument == null && nativeJsonResult == null) {
 				return;
 			}
-			str = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
-			if (nativeJsonResult != null) {
+			str = lastGeneratedDocument == null
+					// a JSON native sequence that built no document at all
+					? "<!-- JSON native sequence: no XML document was built, its answer is in the JSON view -->"
+					: XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
+			if (nativeJsonResult != null && lastGeneratedDocument != null) {
 				str = "<!-- JSON native sequence: the native JSON outputs are only in its JSON answer (JSON view), not in this XML -->\n" + str;
 			}
 			input = inputXML;
@@ -853,16 +856,21 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		});
 		
 		SequenceEditorInput input;
-		if (isJsonMode[0]) {
+		org.w3c.dom.Document outputDocument = context == null ? null : context.outputDocument;
+		if (outputDocument == null) {
+			// a JSON native sequence builds no output document: its native steps are in the native JSON panel
+			str = isJsonMode[0] ? "{}" : "<!-- no XML output document: the JSON of the native steps is in the panel below -->";
+			input = isJsonMode[0] ? inputJSON : inputXML;
+		} else if (isJsonMode[0]) {
 			try {
-				str =  XMLUtils.XmlToJson(context.outputDocument.getDocumentElement(), true, useType, jsonRoot);
+				str =  XMLUtils.XmlToJson(outputDocument.getDocumentElement(), true, useType, jsonRoot);
 				str = str.replaceAll("\n( +)", "\n$1$1");
 			} catch (JSONException e) {
 				str = e.getMessage();
 			}
 			input = inputJSON;
 		} else {
-			str = XMLUtils.prettyPrintDOMWithEncoding(context.outputDocument);
+			str = XMLUtils.prettyPrintDOMWithEncoding(outputDocument);
 			input = inputXML;
 		}
 		
