@@ -1,6 +1,28 @@
 ↑convertigo: 8.4.0.m006
 ↓AttachmentStreamingTest [core.Project]: 
   version: test-only
+  ↓UrlMapper [core.UrlMapper]: 
+    prefix: /attachment-streaming
+    ↓Local [rest.PathMapping]: 
+      path: /local
+      ↓Get [rest.GetOperation]: 
+        outputContent: toBinary
+        targetRequestable: AttachmentStreamingTest.Local
+    ↓Inline [rest.PathMapping]: 
+      path: /inline
+      ↓Get [rest.GetOperation]: 
+        outputContent: toBinary
+        targetRequestable: AttachmentStreamingTest.Base64
+    ↓Json [rest.PathMapping]: 
+      path: /json
+      ↓Get [rest.GetOperation]: 
+        outputContent: toJson
+        targetRequestable: AttachmentStreamingTest.Base64
+    ↓Xml [rest.PathMapping]: 
+      path: /xml
+      ↓Get [rest.GetOperation]: 
+        outputContent: toXml
+        targetRequestable: AttachmentStreamingTest.Base64
   ↓void [connectors.SqlConnector]: 
     isDefault: true
     ↓Default [transactions.SqlTransaction]: 
