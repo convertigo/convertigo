@@ -458,6 +458,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		CLASSLOADER_LOOKUP_CACHE ("classloader.lookup_cache", "false", "Remember the classes the class loaders of the projects found or did not find, instead of looking them up again in each request", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		NATIVE_INLINE_CALLS ("native.inline_calls", "false", "Run the native calls of a native sequence (sub-sequences and transactions called with __nativeCall) in the thread of the caller instead of a new requestable thread", PropertyCategory.Main),
 		TIMING_TRACE ("timing.trace", "false", "Log the start and the duration of each request, requestable, HTTP call and CouchDB transaction (cems.Engine, WARN), to break down the time of a request", PropertyCategory.Main),
 		XML_COUNT_DOCUMENTS ("xml.count_documents", "false", "Count the XML documents, document builders and factories each request creates and the documents it serializes, and log them at the end of the request (cems.Engine, WARN)", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
