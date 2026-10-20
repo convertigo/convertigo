@@ -271,11 +271,29 @@ final class ProjectSources {
 	}
 
 	private static void addFile(Set<File> files, java.net.URL url) {
-		if ("file".equals(url.getProtocol())) {
+		var file = toFile(url);
+		if (file != null) {
+			files.add(file);
+		}
+	}
+
+	/**
+	 * Equinox gives code source URLs with unencoded characters, such as the space of
+	 * "/Applications/Eclipse 2026-09.app": {@link java.net.URL#toURI()} rejects them.
+	 *
+	 * @return the file of a file: URL, or null
+	 */
+	static File toFile(java.net.URL url) {
+		if (url == null || !"file".equals(url.getProtocol())) {
+			return null;
+		}
+		try {
+			return new File(url.toURI()).toPath().normalize().toFile();
+		} catch (URISyntaxException | IllegalArgumentException e) {
 			try {
-				files.add(new File(url.toURI()));
-			} catch (URISyntaxException | IllegalArgumentException e) {
-				// not a file
+				return new File(new java.net.URI("file", null, url.getPath(), null)).toPath().normalize().toFile();
+			} catch (URISyntaxException | IllegalArgumentException e2) {
+				return null;
 			}
 		}
 	}
@@ -287,7 +305,10 @@ final class ProjectSources {
 			if (codeSource == null || codeSource.getLocation() == null) {
 				return;
 			}
-			var location = new File(codeSource.getLocation().toURI());
+			var location = toFile(codeSource.getLocation());
+			if (location == null) {
+				return;
+			}
 			if (addBundle(files, location)) {
 				return;
 			}

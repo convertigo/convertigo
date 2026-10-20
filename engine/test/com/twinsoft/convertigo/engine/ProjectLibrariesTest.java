@@ -552,6 +552,18 @@ public class ProjectLibrariesTest {
 
 
 	@Test
+	public void aCodeSourceWithASpaceIsStillAFile() throws Exception {
+		var dir = new File(base, "Eclipse 2026-09.app/plugins");
+		var jar = new File(dir, "dependencies.jar");
+		jar.getParentFile().mkdirs();
+		Files.writeString(jar.toPath(), "");
+		// Equinox gives this URL unencoded, with ".." segments: URL.toURI() rejects it
+		var url = new URL("file:" + new File(base, "Eclipse 2026-09.app").getPath() + "/../Eclipse 2026-09.app/plugins/dependencies.jar");
+		assertEquals(jar.getCanonicalFile(), ProjectSources.toFile(url).getCanonicalFile());
+		assertNull("not a file", ProjectSources.toFile(new URL("https://example.test/a.jar")));
+	}
+
+	@Test
 	public void theCliCopiesTheLibrariesInATemporaryFolderOfTheProcess() throws Exception {
 		LocalWorkDirectory.use(null);
 		var cli = Engine.bCliMode;
