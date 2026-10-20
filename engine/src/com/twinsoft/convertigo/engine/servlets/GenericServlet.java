@@ -201,6 +201,7 @@ public abstract class GenericServlet extends HttpServlet {
 				}
 
 				XmlUseCounter.Counts xmlCounts = XmlUseCounter.isEnabled() ? XmlUseCounter.begin() : null;
+				long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 				Object result = processRequest(request);
 
 				response.addHeader("Expires", "-1");
@@ -350,6 +351,7 @@ public abstract class GenericServlet extends HttpServlet {
 					.warn("[GenericServlet] The connection has probably been reset by peer (IOException): "
 							+ e.getMessage());
 				} finally {
+					com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "servlet", request.getParameter("__project") + "." + request.getParameter("__sequence"));
 					if (xmlCounts != null) {
 						Engine.logEngine.warn("(XmlUseCounter) " + request.getParameter("__project") + "." + request.getParameter("__sequence")
 								+ " " + xmlCounts);

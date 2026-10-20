@@ -458,6 +458,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		CLASSLOADER_LOOKUP_CACHE ("classloader.lookup_cache", "false", "Remember the classes the class loaders of the projects found or did not find, instead of looking them up again in each request", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		TIMING_TRACE ("timing.trace", "false", "Log the start and the duration of each request, requestable, HTTP call and CouchDB transaction (cems.Engine, WARN), to break down the time of a request", PropertyCategory.Main),
 		XML_COUNT_DOCUMENTS ("xml.count_documents", "false", "Count the XML documents, document builders and factories each request creates and the documents it serializes, and log them at the end of the request (cems.Engine, WARN)", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
 		JAVASCRIPT_SHARED_SCOPE ("javascript.shared_scope", "false", "native: the native sequences (Sequence.nativeExecution) run their JavaScript in a light scope over one sealed scope of the standard objects, instead of building the standard objects again for each request; all: every requestable does (its scripts then cannot change the standard objects); false: none", PropertyCategory.Main),

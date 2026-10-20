@@ -245,8 +245,10 @@ public class JsonRowStream {
 			request.header("Authorization", authorization);
 		}
 		HttpResponse<InputStream> response;
+		long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 		try {
 			response = HTTP.send(request.build(), HttpResponse.BodyHandlers.ofInputStream());
+			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "stream-send", "page" + page);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new StreamFailure("Baserow page " + page + " interrupted");

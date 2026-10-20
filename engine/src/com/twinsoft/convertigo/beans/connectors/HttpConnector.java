@@ -1157,7 +1157,9 @@ public class HttpConnector extends Connector {
 
 			// Getting the result
 			Engine.logBeans.debug("(HttpConnector) HttpClient: getting response body");
+			long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 			byte[] result = executeMethod(method, context);
+			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "http", context.transactionName);
 			
 			long length = result != null ? result.length : 0;
 			
