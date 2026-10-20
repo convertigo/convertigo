@@ -283,7 +283,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 			}
 
 			// Applying handler
-			executeHandler(EVENT_DATA_RETRIEVED, ((RequestableThread) Thread.currentThread()).javascriptContext);
+			executeHandler(EVENT_DATA_RETRIEVED, Thread.currentThread() instanceof RequestableThread ? ((RequestableThread) Thread.currentThread()).javascriptContext : org.mozilla.javascript.Context.getCurrentContext());
 
 			// Applying the underlying process
 			makeDocument(httpData);

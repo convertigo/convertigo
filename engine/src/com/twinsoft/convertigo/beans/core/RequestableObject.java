@@ -272,6 +272,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     public Document run(Requester requester, Context context) throws EngineException {
         
     	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_STARTED);
+        long traceStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
+        boolean inline = false;
         
         try {
             this.requester = requester;
@@ -296,6 +298,32 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             if (nbCurrentWorkerThreads >= maxNbCurrentWorkerThreads)
             	throw new EngineException("No more available worker thread (" + maxNbCurrentWorkerThreads + ")");
             
+            inline = context.nativeExecution && isInlineNativeCall(requester);
+            if (inline) {
+            	// a native call of a native sequence: in the thread of the caller, without a requestable thread
+            	Engine.logContext.debug("(RequestableObject) Inline run of the requested object '" + getName() + "' ("+context.contextID+")");
+            	workerThreadCreationStatistic = context.statistics.start(EngineStatistics.WORKER_THREAD_START);
+            	runningThread = new RequestableThread();
+            	Thread current = Thread.currentThread();
+            	ClassLoader callerLoader = current.getContextClassLoader();
+            	current.setContextClassLoader(context.project.getProjectClassLoader());
+            	Log4jHelper.MdcSnapshot callerLog = Log4jHelper.mdcSnapshot();
+            	try {
+            		runningThread.runInline();
+            	} finally {
+            		current.setContextClassLoader(callerLoader);
+            		Log4jHelper.mdcClear();
+            		callerLog.install();
+            	}
+            	if (runningThread.exception != null) {
+            		if (runningThread.exception instanceof EngineException) {
+            			throw (EngineException) runningThread.exception;
+            		}
+            		throw new EngineException("An unexpected error has occured while the execution of the requested object '" + getName() + "'.", runningThread.exception);
+            	}
+            	return context.outputDocument;
+            }
+
             Engine.logContext.debug("(RequestableObject) Start of the thread for the requested object '" + getName() + "' ("+context.contextID+")");
 
             workerThreadCreationStatistic = context.statistics.start(EngineStatistics.WORKER_THREAD_START);
@@ -409,6 +437,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             }
             */
         } finally {
+        	com.twinsoft.convertigo.engine.util.TimingTrace.end(traceStart, inline ? "run-inline" : "run-thread", getName());
         	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_FINISHED);
         	this.context = null;
         	this.requester = null;
@@ -906,6 +935,17 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         vSheets.remove(sheet);
     }
 	
+    /** native.inline_calls: a native call (__nativeCall) runs in the thread of its caller */
+    private static boolean isInlineNativeCall(Requester requester) {
+    	try {
+    		return requester instanceof com.twinsoft.convertigo.engine.requesters.InternalRequester
+    				&& ((com.twinsoft.convertigo.engine.requesters.InternalRequester) requester).isNativeCall()
+    				&& EnginePropertiesManager.getPropertyAsBoolean(PropertyName.NATIVE_INLINE_CALLS);
+    	} catch (Throwable t) {
+    		return false;
+    	}
+    }
+
     public void createRequestableThread(){
     	runningThread = new RequestableThread();
     }
@@ -938,6 +978,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 			} finally {
 				Log4jHelper.mdcClear();
 			}
+		}
+
+		/** the requestable in the thread of its caller (native.inline_calls), the log context of the caller kept */
+		void runInline() {
+			runWithMdc();
 		}
 
 		private void runWithMdc() {
