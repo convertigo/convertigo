@@ -566,16 +566,16 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
 
     private Scriptable newScope(org.mozilla.javascript.Context javascriptContext, RequestableObject requestable) {
-    	String sharedScope = EnginePropertiesManager.getProperty(PropertyName.JAVASCRIPT_SHARED_SCOPE);
-    	if ("all".equals(sharedScope) || ("native".equals(sharedScope)
-    			&& requestable instanceof Sequence && ((Sequence) requestable).isNativeExecution())) {
+    	// native: a native sequence, or a requestable a native sequence calls (no input document)
+    	boolean nativeRequestable = requestable.context != null && requestable.context.nativeExecution;
+    	if (EnginePropertiesManager.isOnFor(PropertyName.JAVASCRIPT_SHARED_SCOPE, nativeRequestable)) {
     		return newSharedScope(javascriptContext);
     	}
-    	return newScope(javascriptContext);
+    	return newScope(javascriptContext, EnginePropertiesManager.isOnFor(PropertyName.JAVASCRIPT_SHARED_CLASS_CACHE, nativeRequestable));
     }
 
-    private static Scriptable newScope(org.mozilla.javascript.Context javascriptContext) {
-    	if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.JAVASCRIPT_SHARED_CLASS_CACHE)) {
+    private static Scriptable newScope(org.mozilla.javascript.Context javascriptContext, boolean sharedClasses) {
+    	if (sharedClasses) {
     		ScriptableObject newScope = new NativeObject();
     		sharedClassCache.associate(newScope);
     		return javascriptContext.initStandardObjects(newScope);
@@ -974,7 +974,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         public void run() {
 			try {
 				logContext.install();
-				runWithMdc();
+				runMarked();
 			} finally {
 				Log4jHelper.mdcClear();
 			}
@@ -982,7 +982,17 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
 		/** the requestable in the thread of its caller (native.inline_calls), the log context of the caller kept */
 		void runInline() {
-			runWithMdc();
+			runMarked();
+		}
+
+		/** the thread marked as running a native requestable or not, for the optimizations whose property is native */
+		private void runMarked() {
+			Boolean previous = com.twinsoft.convertigo.engine.util.NativeRunning.enter(context.nativeExecution);
+			try {
+				runWithMdc();
+			} finally {
+				com.twinsoft.convertigo.engine.util.NativeRunning.restore(previous);
+			}
 		}
 
 		private void runWithMdc() {

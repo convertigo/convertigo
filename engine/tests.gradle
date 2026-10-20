@@ -176,3 +176,12 @@ tasks.register('soapuiSmokeTest', JavaExec) {
 	dependsOn tasks.named('classes')
 	dependsOn rootProject.tasks.named('publishSoapuiLightPublicationToMavenLocal')
 }
+
+tasks.register('nativeScopeOptionsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the optimizations limited to the native sequences and their calls.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.NativeScopeOptionsTest'
+}

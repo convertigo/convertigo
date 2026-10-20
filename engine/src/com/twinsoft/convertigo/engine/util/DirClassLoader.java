@@ -331,7 +331,7 @@ public class DirClassLoader extends URLClassLoader {
 
 	private static boolean isLookupCache() {
 		try {
-			return EnginePropertiesManager.getPropertyAsBoolean(PropertyName.CLASSLOADER_LOOKUP_CACHE);
+			return EnginePropertiesManager.isOnFor(PropertyName.CLASSLOADER_LOOKUP_CACHE, NativeRunning.isRunning());
 		} catch (Throwable t) {
 			// the properties are not loaded yet
 			return false;
