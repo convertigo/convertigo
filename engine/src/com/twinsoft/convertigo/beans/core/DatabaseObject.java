@@ -1228,7 +1228,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T extends DatabaseObject> T childOnDemand(ChildLookup<T> lookup) throws EngineException {
-		if (original == null || isSubLoaded || !EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ENGINE_COPY_ON_DEMAND)) {
+		if (original == null || isSubLoaded || !EnginePropertiesManager.isOnFor(PropertyName.ENGINE_COPY_ON_DEMAND, true)) {
 			return null;
 		}
 		synchronized (mutex) {
@@ -1237,6 +1237,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			}
 			T originalChild = lookup.find();
 			if (originalChild == null) {
+				return null;
+			}
+			// native: for a native sequence, and for what the thread of a native requestable looks up
+			boolean nativeChild = com.twinsoft.convertigo.engine.util.NativeRunning.isRunning()
+					|| (originalChild instanceof Sequence && ((Sequence) originalChild).isNativeExecution());
+			if (!EnginePropertiesManager.isOnFor(PropertyName.ENGINE_COPY_ON_DEMAND, nativeChild)) {
 				return null;
 			}
 			if (childrenOnDemand == null) {
