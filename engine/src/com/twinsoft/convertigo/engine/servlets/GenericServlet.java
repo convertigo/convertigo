@@ -276,24 +276,25 @@ public abstract class GenericServlet extends HttpServlet {
 
 						if (result instanceof AttachmentDetails) {
 							AttachmentDetails attachment = (AttachmentDetails) result;
-							byte[] data = attachment.getData();
-							String contentType = attachment.getContentType();
+							try (InputStream input = attachment.getInputStream()) {
+								String contentType = attachment.getContentType();
 
-							if (requested_content_type != null) {
-								contentType = requested_content_type;
+								if (requested_content_type != null) {
+									contentType = requested_content_type;
+								}
+
+								String name = attachment.getName();
+
+								HeaderName.ContentType.setHeader(response, contentType);
+								HeaderName.ContentLength.setHeader(response, Long.toString(attachment.getLength()));
+								HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + name + "\"");
+
+								applyCustomHeaders(request, response);
+
+								OutputStream out = response.getOutputStream();
+								input.transferTo(out);
+								out.flush();
 							}
-
-							String name = attachment.getName();
-
-							HeaderName.ContentType.setHeader(response, contentType);
-							HeaderName.ContentLength.setHeader(response, "" + data.length);
-							HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + name + "\"");
-
-							applyCustomHeaders(request, response);
-
-							OutputStream out = response.getOutputStream();
-							out.write(data);
-							out.flush();
 						} else if (result instanceof byte[]) {
 							if (requested_content_type != null) {
 								response.setContentType(requested_content_type);

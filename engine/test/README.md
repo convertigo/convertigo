@@ -5,6 +5,28 @@ included by `engine/build.gradle`. Run `./gradlew :engine:check` for the regress
 suites, or select an individual task below. `:engine:soapuiSmokeTest` is a separate
 opt-in smoke test.
 
+## Binary attachments
+
+`./gradlew :engine:attachmentStreamingTest` checks file-backed streaming through
+the real binary requester and servlet response path with a 128 MiB heap, including
+a 1 GiB sparse file and SHA-256 integrity. It also covers file lengths above 2 GiB,
+legacy `getData()` reads, reopening and closing streams, client disconnects,
+custom response metadata, base64 and SOAP compatibility. It is included in `check`.
+
+For end-to-end validation, copy `attachment-streaming/project` into a disposable
+Docker workspace as `projects/AttachmentStreamingTest`, inject the engine classes,
+and start a dedicated hotfix engine with `JXMX=256`. Then run:
+
+```sh
+python3 engine/test/attachment-streaming/probe.py http://localhost:29137/convertigo
+```
+
+The fixture creates a 1 GiB sparse file only in that test project's directory.
+The probe checks one download, three concurrent downloads, response metadata and
+an inline base64 attachment, using bounded buffers. Do not deploy the fixture on
+a production server. REST binary output and `UrlMapperRequester` exist only on
+develop, not on this hotfix branch; no new REST output mode is introduced here.
+
 ## NGX application build output
 
 `./gradlew :engine:ngxBuildSettingsTest` checks that redundant asset self-copies

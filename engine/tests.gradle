@@ -46,6 +46,18 @@ tasks.named('check') {
 	dependsOn 'adminCacheControlTest'
 	dependsOn 'invalidRequestSessionTest'
 	dependsOn 'ngxBuildSettingsTest'
+	dependsOn 'attachmentStreamingTest'
+}
+
+tasks.register('attachmentStreamingTest', JavaExec) {
+	group = 'verification'
+	description = 'Streaming binary attachments, long file sizes and base64/SOAP compatibility.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	maxHeapSize = '128m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.AttachmentManagerTest',
+		'com.twinsoft.convertigo.engine.servlets.BinaryAttachmentTest'
 }
 
 tasks.register('ngxBuildSettingsTest', JavaExec) {
