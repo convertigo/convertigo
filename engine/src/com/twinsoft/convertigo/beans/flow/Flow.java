@@ -262,7 +262,10 @@ public class Flow extends Sequence {
 				if (JSONObject.NULL.equals(result)) {
 					result = new JSONObject();
 				}
-				XMLUtils.jsonToXml(result, root);
+				// _flow.xml.arrayItem keeps the array elements legacy XPath consumers read, as "object"
+				var xml = response.optJSONObject("xml");
+				var arrayItem = xml == null ? "item" : xml.optString("arrayItem", "item");
+				XMLUtils.jsonToXml(result, null, root, true, true, false, arrayItem);
 			} else {
 				var errorResponse = new JSONObject();
 				errorResponse.put("error", response.has("error") ? response.get("error") : response);
