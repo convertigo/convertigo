@@ -460,17 +460,18 @@ public class RestApiServlet extends GenericServlet {
 
 		var requestedContentType = request.getParameter(Parameter.ContentType.getName());
 		if (content instanceof AttachmentDetails attachment) {
-			var data = attachment.getData();
-			var contentType = requestedContentType != null ? requestedContentType : attachment.getContentType();
-			if (contentType != null && !contentType.isBlank()) {
-				HeaderName.ContentType.setHeader(response, contentType);
-			}
-			HeaderName.ContentLength.setHeader(response, "" + data.length);
-			HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + attachment.getName() + "\"");
-			ServletUtils.applyCustomHeaders(request, response);
-			try (OutputStream out = response.getOutputStream()) {
-				out.write(data);
-				out.flush();
+			try (var input = attachment.getInputStream()) {
+				var contentType = requestedContentType != null ? requestedContentType : attachment.getContentType();
+				if (contentType != null && !contentType.isBlank()) {
+					HeaderName.ContentType.setHeader(response, contentType);
+				}
+				HeaderName.ContentLength.setHeader(response, Long.toString(attachment.getLength()));
+				HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + attachment.getName() + "\"");
+				ServletUtils.applyCustomHeaders(request, response);
+				try (OutputStream out = response.getOutputStream()) {
+					input.transferTo(out);
+					out.flush();
+				}
 			}
 			return;
 		}

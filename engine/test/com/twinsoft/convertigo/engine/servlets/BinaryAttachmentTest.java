@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,11 +35,15 @@ import org.junit.rules.TemporaryFolder;
 
 import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.AttachmentManagerTest;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.PluginsManager;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.requesters.BinaryServletRequester;
+import com.twinsoft.convertigo.engine.requesters.UrlMapperRequester;
+import com.twinsoft.convertigo.engine.requesters.UrlMapperRequester.ResponseMode;
 
 public class BinaryAttachmentTest {
 	@Rule public TemporaryFolder folder = new TemporaryFolder();
@@ -53,6 +58,33 @@ public class BinaryAttachmentTest {
 	}
 
 	@Test public void streamsOneGiBThroughTheBinaryRequesterAndServletWithA128MiBHeap() throws Exception {
+		var xml = largeFileAttachment();
+		var attachment = new BinaryServletRequester().postGetDocument(xml.getOwnerDocument());
+		var sink = new Response();
+		serve(attachment, sink, Map.of());
+		checkLargeResponse(xml, sink);
+		assertTrue(finalized);
+		assertTrue(sink.closed); // Preserve develop's response-stream lifecycle.
+	}
+
+	@Test public void streamsOneGiBThroughTheUrlMapperRequesterAndRestResponseWithA128MiBHeap() throws Exception {
+		var project = new Project();
+		project.setName("AttachmentTest");
+		Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager() {
+			@Override public Project getOriginalProjectByName(String name) { return project; }
+		};
+		var xml = largeFileAttachment();
+		var requester = new UrlMapperRequester(Map.of("__project", new String[] { "AttachmentTest" }),
+				request(Map.of()), ResponseMode.binary);
+		var attachment = requester.postGetDocument(xml.getOwnerDocument());
+		assertTrue(attachment instanceof AttachmentDetails);
+		var sink = new Response();
+		writeRestResponse(attachment, sink, Map.of());
+		checkLargeResponse(xml, sink);
+		assertTrue(sink.closed);
+	}
+
+	private org.w3c.dom.Element largeFileAttachment() throws Exception {
 		var path = folder.newFile().toPath();
 		long length = 1024L * 1024 * 1024;
 		try (var file = new RandomAccessFile(path.toFile(), "rw")) {
@@ -64,22 +96,22 @@ public class BinaryAttachmentTest {
 		var xml = AttachmentManagerTest.attachment();
 		xml.setAttribute("local-url", path.toString());
 		xml.setAttribute("content-length", "123");
-		var attachment = new BinaryServletRequester().postGetDocument(xml.getOwnerDocument());
-		var sink = new Response();
-		serve(attachment, sink, Map.of());
+		return xml;
+	}
+
+	private void checkLargeResponse(org.w3c.dom.Element xml, Response sink) throws Exception {
+		long length = 1024L * 1024 * 1024;
 		assertEquals(length, sink.count);
 		assertEquals(Long.toString(length), sink.headers.get("Content-Length"));
 		assertEquals("attachment; filename=\"file.bin\"", sink.headers.get("Content-Disposition"));
 		assertEquals("application/octet-stream", sink.headers.get("Content-Type"));
 		var expected = MessageDigest.getInstance("SHA-256");
-		try (var input = java.nio.file.Files.newInputStream(path)) {
+		try (var input = java.nio.file.Files.newInputStream(java.nio.file.Path.of(xml.getAttribute("local-url")))) {
 			var buffer = new byte[64 * 1024];
 			for (int n; (n = input.read(buffer)) != -1;) expected.update(buffer, 0, n);
 		}
 		assertArrayEquals(expected.digest(), sink.digest.digest());
-		assertTrue(finalized);
 		assertTrue(sink.flushed);
-		assertTrue(sink.closed); // Preserve develop's response-stream lifecycle.
 	}
 
 	@Test public void base64ResponseAndCustomHeadersStatusAndContentTypeArePreserved() throws Exception {
@@ -100,7 +132,9 @@ public class BinaryAttachmentTest {
 	}
 
 	@Test public void streamingNeverCallsGetDataAndClosesInputEvenWhenClientDisconnects() throws Exception {
-		for (boolean fail : new boolean[] { false, true }) {
+		for (int scenario = 0; scenario < 4; scenario++) {
+			boolean rest = scenario >= 2;
+			boolean fail = scenario % 2 == 1;
 			boolean[] closed = { false };
 			AttachmentDetails attachment = new AttachmentDetails() {
 				public byte[] getData() { throw new AssertionError("Streaming must not materialize the payload"); }
@@ -120,11 +154,44 @@ public class BinaryAttachmentTest {
 			};
 			var sink = new Response();
 			sink.fail = fail;
-			serve(attachment, sink, Map.of());
+			if (rest) {
+				if (fail) assertThrows(IOException.class, () -> writeRestResponse(attachment, sink, Map.of()));
+				else writeRestResponse(attachment, sink, Map.of());
+			} else {
+				serve(attachment, sink, Map.of());
+				assertTrue(finalized);
+			}
 			assertTrue(closed[0]);
-			assertTrue(finalized);
 			assertEquals("2147483656", sink.headers.get("Content-Length"));
 			if (!fail) assertEquals(20000, sink.count);
+		}
+	}
+
+	@Test public void restKeepsBase64ContentCustomHeadersAndContentTypeOverride() throws Exception {
+		var xml = AttachmentManagerTest.attachment();
+		xml.setAttribute("encoding", "base64");
+		xml.setTextContent("AAH/DQo=");
+		RequestAttribute.responseHeader.set(request(Map.of()), Map.of("X-Example", "kept"));
+		var sink = new Response();
+		writeRestResponse(com.twinsoft.convertigo.engine.AttachmentManager.getAttachment(xml), sink,
+				Map.of("__content_type", new String[] { "application/pdf" }));
+		assertEquals(5, sink.count);
+		assertEquals("5", sink.headers.get("Content-Length"));
+		assertEquals("application/pdf", sink.headers.get("Content-Type"));
+		assertEquals("kept", sink.headers.get("X-Example"));
+		assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(new byte[] { 0, 1, -1, 13, 10 }), sink.digest.digest());
+		assertTrue(sink.closed);
+	}
+
+	private void writeRestResponse(Object content, Response sink, Map<String, String[]> parameters) throws Exception {
+		var method = RestApiServlet.class.getDeclaredMethod("writeResponseContent", HttpServletRequest.class,
+				HttpServletResponse.class, Object.class);
+		method.setAccessible(true);
+		try {
+			method.invoke(new RestApiServlet(), request(parameters), sink.proxy(), content);
+		} catch (InvocationTargetException e) {
+			if (e.getCause() instanceof Exception cause) throw cause;
+			throw e;
 		}
 	}
 

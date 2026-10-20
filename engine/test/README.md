@@ -8,24 +8,25 @@ opt-in smoke test.
 ## Binary attachments
 
 `./gradlew :engine:attachmentStreamingTest` checks file-backed streaming through
-the real binary requester and servlet response path with a 128 MiB heap, including
+the real binary/URL mapper requesters and servlet response paths with a 128 MiB heap, including
 a 1 GiB sparse file and SHA-256 integrity. It also covers file lengths above 2 GiB,
 legacy `getData()` reads, reopening and closing streams, client disconnects,
 custom response metadata, base64 and SOAP compatibility. It is included in `check`.
 
 For end-to-end validation, copy `attachment-streaming/project` into a disposable
 Docker workspace as `projects/AttachmentStreamingTest`, inject the engine classes,
-and start a dedicated hotfix engine with `JXMX=256`. Then run:
+and start a dedicated develop engine with `JXMX=256`. Then run:
 
 ```sh
-python3 engine/test/attachment-streaming/probe.py http://localhost:29137/convertigo
+python3 engine/test/attachment-streaming/probe.py http://localhost:29138/convertigo --rest
 ```
 
 The fixture creates a 1 GiB sparse file only in that test project's directory.
 The probe checks one download, three concurrent downloads, response metadata and
-an inline base64 attachment, using bounded buffers. Do not deploy the fixture on
-a production server. REST binary output and `UrlMapperRequester` exist only on
-develop, not on this hotfix branch; no new REST output mode is introduced here.
+an inline base64 attachment, using bounded buffers. With `--rest`, it also checks
+binary downloads through both `/api` and `/openapi`, including concurrent downloads,
+inline base64 content and unchanged JSON/XML serialization of attachment documents.
+Do not deploy the fixture on a production server.
 
 ## NGX application build output
 
