@@ -1108,6 +1108,7 @@ public class Engine {
 	 */
 	public Document getDocument(Requester requester, Context context) throws EngineException {
 		Document outputDom = null;
+		long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 
 		String t = context.statistics.start(EngineStatistics.GET_DOCUMENT);
 
@@ -1424,6 +1425,8 @@ public class Engine {
 				}
 			}
 
+			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "requestable",
+					context.requestedObject == null ? "?" : context.projectName + "." + context.requestedObject.getName());
 			Engine.logContext.trace("Engine.getDocument: finished");
 		}
 
