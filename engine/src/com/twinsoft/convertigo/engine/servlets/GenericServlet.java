@@ -282,7 +282,7 @@ public abstract class GenericServlet extends HttpServlet {
 							response.setContentType(requested_content_type != null ? requested_content_type : getContentType(request));
 							response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
 							applyCustomHeaders(request, response);
-							try (Writer writer = new java.io.BufferedWriter(response.getWriter())) { json.writeTo(writer); }
+							json.writeToResponse(response.getWriter());
 						} else if (result instanceof byte[]) {
 							if (requested_content_type != null) {
 								response.setContentType(requested_content_type);

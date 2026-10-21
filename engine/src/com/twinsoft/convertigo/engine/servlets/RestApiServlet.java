@@ -502,7 +502,7 @@ public class RestApiServlet extends GenericServlet {
 
 		if (content instanceof com.twinsoft.convertigo.engine.requesters.JsonResponse json) {
 			ServletUtils.applyCustomHeaders(request, response);
-			try (Writer writer = new java.io.BufferedWriter(response.getWriter())) { json.writeTo(writer); }
+			json.writeToResponse(response.getWriter());
 			return;
 		}
 

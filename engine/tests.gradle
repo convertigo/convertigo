@@ -336,6 +336,16 @@ tasks.register('flowRuntimePoolTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'flowRuntimePoolTest' }
 
+tasks.register('detachedResultBoundaryTest', JavaExec) {
+	group = 'verification'
+	description = 'Detached JSON values, writer failures, lazy XML and runtime release.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.DetachedResultBoundaryTest'
+}
+tasks.named('check') { dependsOn 'detachedResultBoundaryTest' }
+
 tasks.register('requestScopedStudioContextTest', JavaExec) {
 	group = 'verification'
 	description = 'Stateless HTTP requests retain independent context locks in Studio mode.'

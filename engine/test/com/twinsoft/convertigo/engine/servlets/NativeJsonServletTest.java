@@ -27,6 +27,7 @@ public class NativeJsonServletTest {
 	private int status = 200;
 	private String encoding;
 	private boolean closed, finalized;
+	private boolean disconnected;
 	@Before public void setup() throws Exception {
 		Engine.logEngine = Engine.logContext = org.apache.log4j.Logger.getLogger("native-json-test");
 		EnginePropertiesManager.initProperties();
@@ -50,7 +51,12 @@ public class NativeJsonServletTest {
 		});
 	}
 	private HttpServletResponse response() {
-		var writer = new PrintWriter(body) { @Override public void close() { closed = true; super.close(); } };
+		var writer = new PrintWriter(body) {
+			@Override public void write(char[] chars, int offset, int length) {
+				if (disconnected) setError(); else super.write(chars, offset, length);
+			}
+			@Override public void close() { closed = true; super.close(); }
+		};
 		return (HttpServletResponse) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{HttpServletResponse.class},
 			(proxy, method, args) -> switch(method.getName()) {
 			case "getWriter" -> writer;
@@ -90,5 +96,22 @@ public class NativeJsonServletTest {
 		assertEquals(value.toString(),body.toString()); assertTrue(closed);
 		var jsonp = new StringWriter(); new JsonResponse(value,"receive").writeTo(jsonp);
 		assertEquals("receive("+value+");",jsonp.toString());
+	}
+	@Test public void disconnectStillFinalizesTheServletAndClosesItsWriter() throws Exception {
+		disconnected = true;
+		var failure = new Exception[1];
+		var value = new JSONObject("{rows:[1,2,3]}");
+		new JsonServlet() {
+			@Override public Object processRequest(HttpServletRequest req) {
+				req.setAttribute("convertigo.isErrorDocument",false);
+				req.setAttribute("convertigo.charset","UTF-8");
+				return new JsonResponse(value,null);
+			}
+			@Override void onFinally(HttpServletRequest req) { finalized=true; }
+			@Override public void processException(HttpServletRequest req,HttpServletResponse res,Exception e) { failure[0]=e; }
+		}.doRequest(request(),response());
+		assertNull("disconnect is handled without attempting another error response", failure[0]);
+		assertTrue(closed); assertTrue(finalized);
+		assertEquals("",body.toString());
 	}
 }

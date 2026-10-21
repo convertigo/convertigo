@@ -1902,15 +1902,49 @@ public class FlowEngineBridge {
 		}
 
 		var function = ScriptableObject.getProperty(engineObject, method);
+		// Optional execution-only protocol. Older providers and authoring methods
+		// keep their text contract. Detach while the runtime is still borrowed.
+		var objectResult = false;
+		if ("run".equals(method)) {
+			var objectFunction = ScriptableObject.getProperty(engineObject, "runObject");
+			if (objectFunction instanceof Function) {
+				function = objectFunction;
+				objectResult = true;
+			}
+		}
 		if (!(function instanceof Function)) {
 			throw new EngineException("Flow engine \"" + engineRef.qname + "\" does not expose method \"" + method + "\".");
 		}
 
-		var result = ((Function) function).call(cx, engineScope, engineObject, new Object[] { request.toString() });
+		var detacher = objectResult ? new ResultDetacher(engineScope) : null;
+		var arguments = objectResult ? new Object[] { request.toString(), detacher } : new Object[] { request.toString() };
+		var result = ((Function) function).call(cx, engineScope, engineObject, arguments);
 		FlowStudioSupport.performanceProfileMark("bridge." + method + ".engineCall");
-		var response = toJsonObject(result, engineRef.qname, method);
+		if (objectResult && (result == null || result != detacher.token)) {
+			throw new EngineException("Object execution must return the detached result token.");
+		}
+		var response = objectResult ? detacher.value : toJsonObject(result, engineRef.qname, method);
 		FlowStudioSupport.performanceProfileMark("bridge." + method + ".serialization");
 		return response;
+	}
+
+	/** Called inside the provider's error boundary, while its realm is borrowed. */
+	private static final class ResultDetacher extends org.mozilla.javascript.BaseFunction {
+		private static final long serialVersionUID = 1L;
+		private JSONObject value;
+		private Object token;
+		ResultDetacher(Scriptable scope) {
+			setParentScope(scope);
+			setPrototype(ScriptableObject.getFunctionPrototype(scope));
+		}
+		@Override public Object call(org.mozilla.javascript.Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+			try {
+				value = com.twinsoft.convertigo.engine.util.DetachedJson.object(args.length == 0 ? null : args[0], cx, scope);
+				return token = org.mozilla.javascript.Context.javaToJS(value, scope);
+			} catch (JSONException e) {
+				throw org.mozilla.javascript.Context.throwAsScriptRuntimeEx(e);
+			}
+		}
 	}
 
 	private static CachedMethodResponse cachedMethodResponse(String key) {
