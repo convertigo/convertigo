@@ -216,3 +216,12 @@ tasks.register('unknownBeanClassTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.beans.UnknownBeanClassTest'
 }
+
+tasks.register('billingInternalCallsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test for the billing tickets of the internal calls, classic and native.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.BillingInternalCallsTest'
+}

@@ -1106,6 +1106,14 @@ public class Engine {
 	 *
 	 * @return the generated XML document.
 	 */
+	/**
+	 * A billing ticket, and the POST of the ticket managers, for every requestable, as in origin/hotfix: the request
+	 * that came in and each internal call, the steps of a classic sequence as the calls of a native one.
+	 */
+	static boolean isBilled(Context context) {
+		return context.requestedObject != null;
+	}
+
 	public Document getDocument(Requester requester, Context context) throws EngineException {
 		Document outputDom = null;
 		long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
@@ -1412,11 +1420,7 @@ public class Engine {
 
 			context.statistics.stop(t);
 
-			// no ticket for an internal call (a step of a sequence, a native call): only the request that came in
-			boolean internalCall = context.parentContext != null
-					|| (requester instanceof com.twinsoft.convertigo.engine.requesters.GenericRequester
-							&& ((com.twinsoft.convertigo.engine.requesters.GenericRequester) requester).isNativeCall());
-			if (context.requestedObject != null && !internalCall) {
+			if (isBilled(context)) {
 				try {
 					Engine.theApp.billingManager.insertBilling(context);
 				} catch (Exception e) {
