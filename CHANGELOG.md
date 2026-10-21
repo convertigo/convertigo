@@ -4,13 +4,19 @@
 
 #### Improvements:
 
-- [#1233](https://github.com/convertigo/convertigo/issues/1233) [Redis] Session stores now support external Redis Sentinel deployments for automatic master discovery and failover
+- [#1033](https://github.com/convertigo/convertigo/issues/1033) [Engine] Production application and Admin static assets now use appropriate browser caching; Admin and Dashboard pages offer a controlled reload when an update removes a required UI file
 - [#1229](https://github.com/convertigo/convertigo/issues/1229) [Dashboard] Editing a test case now expands the prefilled variables and collapses the test case list
-- [#1230](https://github.com/convertigo/convertigo/issues/1230) [Dashboard] Project, connector, requestable, test case and variable comments now display Markdown and HTML formatting while preserving multilingual comments
+- [#1230](https://github.com/convertigo/convertigo/issues/1230) [Dashboard] Comments now support Markdown, HTML and multilingual content, with expandable previews for long descriptions
+- [#1233](https://github.com/convertigo/convertigo/issues/1233) [Redis] Session stores now support external Redis Sentinel deployments for automatic master discovery and failover
+- [#1237](https://github.com/convertigo/convertigo/issues/1237) [Engine] Binary downloads of local-file attachments now stream without loading the entire file into memory, supporting large files and concurrent downloads with bounded memory use
 
 #### Bug Fixes:
 
-- [#1223](https://github.com/convertigo/convertigo/issues/1223) [FullSync] Fixed, new view count functions now combine CouchDB partial results correctly; the Studio also exercises custom functions with `rereduce` and flags the old default template for explicit repair. Existing view functions are not migrated automatically and should be checked for `rereduce` support
+- [#1223](https://github.com/convertigo/convertigo/issues/1223) [FullSync] Fixed, new view count functions now combine CouchDB partial results correctly; the Studio exercises custom functions with `rereduce` and offers an explicit repair for old default count functions. Existing view functions are not migrated automatically and should be checked for `rereduce` support
+- [#1231](https://github.com/convertigo/convertigo/issues/1231) [Admin] Fixed, forwarding to another instance now bypasses the engine proxy and preserves the selected instance when it is unreachable, showing an explicit error instead of silently switching instances
+- [#1234](https://github.com/convertigo/convertigo/issues/1234) [Studio] Fixed, NGX build failures now display an error instead of being reported as successful, and redundant asset copies no longer leave incomplete applications
+- [#1235](https://github.com/convertigo/convertigo/issues/1235) [Engine] Fixed, calls to missing projects or requestables now preserve existing application sessions and authentication, and ordinary invalid calls no longer create unnecessary sessions
+- [#1236](https://github.com/convertigo/convertigo/issues/1236) [Redis] Fixed, Redis-backed instances now retry by default when Redis is unavailable at startup and recover without a restart; readiness reflects availability and session-dependent requests return HTTP 503 while waiting
 
 ## 8.4.6
 
