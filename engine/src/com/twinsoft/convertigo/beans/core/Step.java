@@ -650,6 +650,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	final public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
 		EngineStatistics stat = sequence.context.statistics;
 		String ts = stat.start(EngineStatistics.EXECUTE_SEQUENCE_STEPS);
+		long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 
 		try {
 			stepInit();
@@ -662,8 +663,11 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		}
 		finally {
 			stepDone();
-			
+
 			stat.stop(ts, sequence.getCurrentChildStep() != 0);
+			// timing.trace: the steps of 5 ms or more, a block step with the time of its children
+			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "step",
+					(sequence == null ? "" : sequence.getName() + "/") + getName(), 5);
 		}
 	}
 

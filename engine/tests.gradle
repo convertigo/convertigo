@@ -208,6 +208,15 @@ tasks.register('nativeScopeOptionsTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.util.NativeScopeOptionsTest'
 }
 
+tasks.register('timingTraceTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for timing.trace (written while the logs are off, steps above their threshold).'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.TimingTraceTest'
+}
+
 tasks.register('unknownBeanClassTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test for a project with a bean class this engine does not know.'

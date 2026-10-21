@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import org.apache.log4j.MDC;
+
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -45,11 +47,33 @@ public final class TimingTrace {
 	}
 
 	public static void end(long start, String kind, String name) {
+		end(start, kind, name, 0);
+	}
+
+	/**
+	 * Logs the section when it lasted at least minMs. The line holds only a kind, a name and durations, so it is
+	 * written even while the logs are off (MDC nolog, set around the calls that answer a token): without that, the
+	 * time of those calls is missing from the trace.
+	 */
+	public static void end(long start, String kind, String name, long minMs) {
 		if (start == 0) {
 			return;
 		}
 		long now = System.currentTimeMillis();
-		Engine.logEngine.warn("(Timing) kind=" + kind + " start=" + start + " ms=" + (now - start) + " thread="
-				+ Thread.currentThread().getName().replace(' ', '_') + " name=" + name);
+		if (now - start < minMs) {
+			return;
+		}
+		Object nolog = MDC.get("nolog");
+		if (nolog != null) {
+			MDC.remove("nolog");
+		}
+		try {
+			Engine.logEngine.warn("(Timing) kind=" + kind + " start=" + start + " ms=" + (now - start) + " thread="
+					+ Thread.currentThread().getName().replace(' ', '_') + " name=" + name);
+		} finally {
+			if (nolog != null) {
+				MDC.put("nolog", nolog);
+			}
+		}
 	}
 }
