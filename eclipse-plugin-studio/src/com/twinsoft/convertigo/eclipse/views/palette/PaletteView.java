@@ -94,6 +94,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.Component;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ExperimentalFeatures;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
@@ -708,6 +709,10 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 									@Override
 									boolean allowedIn(DatabaseObject parent) {
 										try {
+											// a native JSON step is offered only with the experimental features
+											if (ExperimentalFeatures.isHiddenBean(cn)) {
+												return false;
+											}
 											boolean force = false;
 											if (isType) {
 												String cls = b.getClassName();

@@ -2589,10 +2589,16 @@
 			id="convertigo.stepJsonPathSourceContribution"
 			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
 			<visibility>
-				<objectState
-					name="workOnSource"
-					value="true">
-				</objectState>
+				<and>
+					<objectState
+						name="workOnSource"
+						value="true">
+					</objectState>
+					<objectState
+						name="experimentalFeatures"
+						value="true">
+					</objectState>
+				</and>
 			</visibility>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ConvertSourceToJsonPathAction"
@@ -2606,10 +2612,16 @@
 			id="convertigo.jsonStepContribution"
 			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
 			<visibility>
-				<objectState
-					name="objectClassName"
-					value="com.twinsoft.convertigo.beans.steps.JsonFormatCellsStep;com.twinsoft.convertigo.beans.steps.JsonDistinctStep;com.twinsoft.convertigo.beans.steps.JsonGroupStep;com.twinsoft.convertigo.beans.steps.JsonSelectColumnsStep;com.twinsoft.convertigo.beans.steps.JsonStreamRowsStep;com.twinsoft.convertigo.beans.steps.JsonToXmlStep">
-				</objectState>
+				<and>
+					<objectState
+						name="objectClassName"
+						value="com.twinsoft.convertigo.beans.steps.JsonFormatCellsStep;com.twinsoft.convertigo.beans.steps.JsonDistinctStep;com.twinsoft.convertigo.beans.steps.JsonGroupStep;com.twinsoft.convertigo.beans.steps.JsonSelectColumnsStep;com.twinsoft.convertigo.beans.steps.JsonStreamRowsStep;com.twinsoft.convertigo.beans.steps.JsonReadStep;com.twinsoft.convertigo.beans.steps.JsonToXmlStep">
+					</objectState>
+					<objectState
+						name="experimentalFeatures"
+						value="true">
+					</objectState>
+				</and>
 			</visibility>
 			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ShowStepInJsonPickerAction"

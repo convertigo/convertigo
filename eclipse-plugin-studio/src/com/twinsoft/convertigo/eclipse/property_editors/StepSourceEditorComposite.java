@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.eclipse.ExperimentalFeatures;
 import com.twinsoft.convertigo.eclipse.views.jsonpicker.JsonTree;
 import com.twinsoft.convertigo.eclipse.views.jsonpicker.NativeJson;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerHelper;
@@ -335,7 +336,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 	}
 
 	private void updateJsonTree(Step selected) {
-		jsonStep = selected != null && NativeJson.isJsonProducer(selected) ? selected : null;
+		jsonStep = selected != null && ExperimentalFeatures.isShown() && NativeJson.isJsonProducer(selected) ? selected : null;
 		if (jsonStep == null) {
 			treesSashForm.setMaximizedControl(null);
 			treesSashForm.setWeights(new int[]{40,60,0});

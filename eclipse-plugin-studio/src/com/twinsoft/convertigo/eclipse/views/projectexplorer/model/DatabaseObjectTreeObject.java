@@ -80,6 +80,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ExperimentalFeatures;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.DataOrNullPropertyDescriptor;
@@ -239,6 +240,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public BeanInfo databaseObjectBeanInfo = null;
 
 	private IPropertyDescriptor[] propertyDescriptors = null;
+	/** the generation of the experimental features preference the descriptors were built for */
+	private int descriptorsGeneration = -1;
 	private BeanDescriptor databaseObjectBeanDescriptor = null;
 	private java.beans.PropertyDescriptor[] databaseObjectPropertyDescriptors;
 
@@ -270,9 +273,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	// Built on first use only: most objects of a project tree never have their properties displayed
 	protected void getDescriptors() {
-		if (propertyDescriptors != null) {
+		if (propertyDescriptors != null && descriptorsGeneration == ExperimentalFeatures.getGeneration()) {
 			return;
 		}
+		descriptorsGeneration = ExperimentalFeatures.getGeneration();
 
 		DatabaseObject databaseObject = getObject();
 		if ((!(databaseObject instanceof Project)) && (databaseObject.getParent() == null))
@@ -341,6 +345,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 
 			if (databaseObject.checkBlackListParentClass(databaseObjectPropertyDescriptor)) {
+				continue;
+			}
+
+			// the JSON native properties of a sequence that is not native, without the experimental features
+			if (ExperimentalFeatures.isHiddenProperty(databaseObject, databaseObjectPropertyDescriptor.getName())) {
 				continue;
 			}
 
@@ -1199,6 +1208,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public boolean testAttribute(Object target, String name, String value) {
 		if (getObject().testAttribute(name, value)) {
 			return true;
+		}
+		if (name.equals("experimentalFeatures")) {
+			return Boolean.valueOf(value) == ExperimentalFeatures.isShown();
 		}
 		if (name.equals("canPaste")) {
 			canPaste = ((ConvertigoPlugin.clipboardManagerSystem.isCopy) || (ConvertigoPlugin.clipboardManagerSystem.isCut));
