@@ -1312,6 +1312,9 @@ public class Engine {
 			}
 
 			try {
+				if (context.inputDocument == null && !com.twinsoft.convertigo.engine.flow.NativeJsonSupport.prepare(requester, context)) {
+					requester.makeInputDocument();
+				}
 				if (context.isAsync) {
 					outputDom = JobManager.addJob(cacheManager, requestedObject, requester, context);
 				} else {
@@ -1326,6 +1329,23 @@ public class Engine {
 				onDocumentRetrieved(context, outputDom);
 			}
 
+			// The normal authorization, execution, session lifecycle and per-requestable billing remain in force.
+			if (context.nativeJsonResponse != null) {
+				context.documentSignatureSent = System.currentTimeMillis();
+				context.nativeJsonAttributes = new org.codehaus.jettison.json.JSONObject()
+						.put("project", context.projectName == null ? "" : context.projectName)
+						.put("sequence", context.sequenceName == null ? "" : context.sequenceName)
+						.put("connector", context.connectorName == null ? "" : context.connectorName)
+						.put("transaction", context.transactionName == null ? "" : context.transactionName)
+						.put("type", "object").put("generated", context.get("nativeJsonGenerated"))
+						.put("fromcache", "false").put("fromStub", "false")
+						.put("version", Version.fullProductVersion).put("context", context.name)
+						.put("contextId", context.contextID).put("signature", Long.toString(context.documentSignatureSent));
+				context.remove("nativeJsonGenerated");
+				if (context.lang != null && !context.lang.isEmpty()) context.nativeJsonAttributes.put("lang", context.lang);
+				if (context.userReference != null) context.nativeJsonAttributes.put("userReference", context.userReference);
+				return null;
+			}
 			Element documentElement = outputDom.getDocumentElement();
 			documentElement.setAttribute("version", Version.fullProductVersion);
 			documentElement.setAttribute("context", context.name);

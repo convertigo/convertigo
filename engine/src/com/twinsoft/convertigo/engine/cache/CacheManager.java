@@ -157,6 +157,7 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 				Engine.logCacheManager.debug("Cache not enabled explicitly");
 
 				response = context.requestedObject.run(requester, context);
+				if (context.nativeJsonResponse != null) return null;
 				response.getDocumentElement().setAttribute("fromcache", "false");
 				response.getDocumentElement().setAttribute("fromStub", "false");
 			}
@@ -165,6 +166,7 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 				Engine.logCacheManager.trace("The response is not cachable");
 
 				response = context.requestedObject.run(requester, context);
+				if (context.nativeJsonResponse != null) return null;
 				response.getDocumentElement().setAttribute("fromcache", "false");
 				response.getDocumentElement().setAttribute("fromStub", "false");
 			}

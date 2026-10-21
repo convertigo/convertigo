@@ -192,7 +192,16 @@ public class Context extends AbstractContext implements Cloneable {
 		//		}
 	}
 
+	public transient boolean nativeJson;
+	public transient Map<String, Object> nativeInput;
+	public transient org.codehaus.jettison.json.JSONObject nativeJsonResponse;
+	public transient org.codehaus.jettison.json.JSONObject nativeJsonAttributes;
+
 	public void reset() {
+		nativeJson = false;
+		nativeInput = null;
+		nativeJsonResponse = null;
+		nativeJsonAttributes = null;
 		isXsltRequest = false;
 		isErrorDocument = false;
 		isStubRequested = false;

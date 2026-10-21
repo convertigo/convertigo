@@ -45,6 +45,11 @@ public class JsonPServletRequester extends JsonServletRequester {
 	}
     
 	@Override
+	public Object postGetNativeJson() throws Exception {
+		return new JsonResponse(context.nativeJsonResponse, (String) context.get("jsonpCallback"));
+	}
+
+	@Override
 	public String postGetDocument(Document document) throws Exception {
 		String callback = (String) context.get("jsonpCallback");
 		String json = super.postGetDocument(document);

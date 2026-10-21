@@ -1171,6 +1171,7 @@ public class HttpConnector extends Connector {
 
 			Engine.logBeans.debug("(HttpConnector) Total read bytes: " + length);
 			
+			if (hasDataListeners()) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + length + "}\n\n");
 			
@@ -1182,6 +1183,7 @@ public class HttpConnector extends Connector {
 			}
 
 			fireDataChanged(new ConnectorEvent(this, sb.toString()));
+			}
 
 			return result;
 		} finally {
@@ -1218,9 +1220,11 @@ public class HttpConnector extends Connector {
 			requestHeaders = method.getRequestHeaders();
 			if (Engine.logBeans.isTraceEnabled())
 				Engine.logBeans.trace("(HttpConnector) Request headers :\n"
-						+ Arrays.asList(requestHeaders).toString());
+						+ com.twinsoft.convertigo.engine.util.HttpHeaderSanitizer.describe(requestHeaders));
 			
-			statuscode = doExecuteMethod(method, context);
+			try (var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("http", context.requestedObject.getQName())) {
+				statuscode = doExecuteMethod(method, context);
+			}
 
 			Engine.logBeans.debug("(HttpConnector) Status: " + statuscode + " " + method.getStatusLine());
 
@@ -1395,7 +1399,7 @@ public class HttpConnector extends Connector {
 					for (int i = 0; i < headers.size(); i++){
 						Element elt = doc.createElement("header");
 						elt.setAttribute("name", headers.get(i).getName());
-						elt.setAttribute("value", headers.get(i).getValue());
+						elt.setAttribute("value", com.twinsoft.convertigo.engine.util.HttpHeaderSanitizer.value(headers.get(i).getName(), headers.get(i).getValue()));
 						httpHeadersElement.appendChild(elt);
 					}				
 					httpInfoElement.appendChild(httpHeadersElement);

@@ -207,6 +207,13 @@ public abstract class GenericRequester extends Requester {
     
 	public abstract void preGetDocument() throws Exception;
 
+	/** Called again after project/requestable resolution; unsupported options retain the XML boundary. */
+	public boolean acceptNativeJson() { return false; }
+
+	public Object postGetNativeJson() throws Exception {
+		throw new EngineException("This requester requires an XML result");
+	}
+
 	public boolean isInternal() {
 		return false;
 	}
@@ -257,6 +264,12 @@ public abstract class GenericRequester extends Requester {
 
 	/** Must run inside an MDC scope that also covers requester-specific cleanup. */
 	protected final Object processRequestWithContext(Object inputData) throws Exception {
+		try (var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("request", getName())) {
+			return processMeasuredRequest(inputData);
+		}
+	}
+
+	private Object processMeasuredRequest(Object inputData) throws Exception {
 		// A rejected invocation must not leave a previously used requester's context attached.
 		context = null;
 		// Keep request-wide flags, but do not attribute setup to the calling project.
@@ -442,19 +455,10 @@ public abstract class GenericRequester extends Requester {
 		// HTTP session maintain its own context list in order to
 		// improve context removal on session unbound process
 		if (context.httpSession != null) {
-			synchronized (context.httpSession) {
-				try {
-					ArrayList<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(context.httpSession));
-					if (contextList == null)
-						contextList = new ArrayList<Context>();
-						SessionAttribute.contexts.set(context.httpSession, contextList);
-					if (!contextList.contains(context)) {
-						contextList.add(context);
-						Engine.logContext.debug("(ServletRequester) context " + context.contextID + " has been added to http session's context list");
-					}
-				}
-				catch (Exception e) {
-				}
+			try {
+				com.twinsoft.convertigo.engine.util.SessionContexts.add(context.httpSession, context);
+			} catch (IllegalStateException e) {
+				// The HTTP session may already have been invalidated.
 			}
 		}
 	}
@@ -719,15 +723,22 @@ public abstract class GenericRequester extends Requester {
         	// fire event for plugins
         	Engine.theApp.pluginsManager.fireRequesterCoreProcessRequestStart(context, inputData);
         	
-            makeInputDocument();
+            context.inputDocument = null;
+            if (!acceptNativeJson()) makeInputDocument();
             if (context.transactionName != null) Engine.logContext.info("Starting transaction");
             if (context.sequenceName != null) Engine.logContext.info("Starting sequence");
             preGetDocument();
             document = getDocument();
-            Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent(document, context.projectName, context.sequenceName, context.connectorName));
-            result = postGetDocument(document);
+            if (context.nativeJsonResponse != null) {
+                result = postGetNativeJson();
+            } else {
+                Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent(document, context.projectName, context.sequenceName, context.connectorName));
+                result = postGetDocument(document);
+            }
 		}
 		catch(Throwable e) {
+			context.nativeJson = false;
+			context.nativeJsonResponse = null;
 			if (!(e instanceof EngineException)) {
 				Engine.logContext.error("An unexpected error has occured while trying to execute the transaction.", e);
 			}

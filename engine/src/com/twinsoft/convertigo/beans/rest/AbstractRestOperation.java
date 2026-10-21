@@ -193,6 +193,11 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		var responseMode = switch (outputContent) {
 			case toBinary -> ResponseMode.binary;
 			case toCxml -> ResponseMode.cxml;
+			case toJson -> getProject().getJsonOutput() == JsonOutput.useType
+					&& getProject().getJsonRoot() == com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot.docChildNodes
+					&& !"/openapi".equals(request.getServletPath())
+					&& getResponseList().stream().noneMatch(item -> item instanceof OperationResponse status && !status.getXpath().isEmpty())
+					? ResponseMode.json : ResponseMode.defaultContent;
 			default -> ResponseMode.defaultContent;
 		};
 		return new UrlMapperRequester(map, request, responseMode);
@@ -463,7 +468,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			var requester = createUrlMapperRequester(map, request, outputContent);
 			request.setAttribute("convertigo.requester", requester);
 	    		var result = requester.processRequest();
-	    		var xmlHttpDocument = requester.context != null ? requester.context.outputDocument : null;
+			var xmlHttpDocument = requester.getResponseDocument();
 	    		if (xmlHttpDocument != null) {
 	        		ConvertigoError.cleanDocument(requester.context.getXpathApi(), xmlHttpDocument);
 	        		var firstChild = xmlHttpDocument.getFirstChild();
@@ -502,6 +507,12 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 	    				case toJson:
 	    				case useHeader:
 	    				default:
+						if (outputContent == OutputContent.toJson && result instanceof com.twinsoft.convertigo.engine.requesters.JsonResponse) {
+							content = result;
+							responseContentType = MimeType.Json.value();
+							applyResponseStatus(request, response, null);
+							break;
+						}
 	    					if (xmlHttpDocument == null) {
 	    						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 	    						break;

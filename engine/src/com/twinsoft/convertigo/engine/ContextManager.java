@@ -1003,8 +1003,11 @@ public class ContextManager extends AbstractRunnableManager {
 
 		// If not found, try the legacy contexts
 
-		// Studio mode?
-		if (Engine.isStudioMode()) {
+		// Stateless HTTP requests keep their own context even in Studio mode.
+		// Reusing the editor context here serializes independent requests and lets
+		// one request's cleanup reset another request's response.
+		boolean requestScoped = isRequestScopedContextId(contextIdPrefix);
+		if (Engine.isStudioMode() && !requestScoped) {
 			// Execution from the Studio : do nothing
 			if ((contextName != null) && (contextName.startsWith(STUDIO_CONTEXT_PREFIX))) {
 				Engine.logContextManager.info("Using studio given context name : " + contextName);
@@ -1044,7 +1047,7 @@ public class ContextManager extends AbstractRunnableManager {
 			context = get(contextID, contextName, projectName);
 		}
 		// Studio context
-		else if (contextName.startsWith(STUDIO_CONTEXT_PREFIX)) {
+		else if (!requestScoped && contextName.startsWith(STUDIO_CONTEXT_PREFIX)) {
 			String contextID = contextName;
 			context = get(contextID, contextName, projectName);
 		}
@@ -1147,9 +1150,7 @@ public class ContextManager extends AbstractRunnableManager {
 
 	public List<Context> getContexts(HttpSession httpSession) {
 		try {
-			synchronized (httpSession) {
-				return GenericUtils.cast(SessionAttribute.contexts.get(httpSession, Collections.emptyList()));
-			}
+			return com.twinsoft.convertigo.engine.util.SessionContexts.snapshot(httpSession);
 		}
 		catch (Exception e) {
 		}
@@ -1559,19 +1560,20 @@ public class ContextManager extends AbstractRunnableManager {
 					sessions.add(requestSession);
 					httpSessions = sessions;
 				}
+				var retainedSession = context.contextListSession;
+				if (retainedSession != null && httpSessions.stream().noneMatch(session -> session == retainedSession)) {
+					var sessions = new ArrayList<>(httpSessions);
+					sessions.add(retainedSession);
+					httpSessions = sessions;
+				}
 				for (HttpSession httpSession : httpSessions) {
-					synchronized (httpSession) {
-						try {
-							List<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
-							if (contextList != null && contextList.removeIf(ctx -> contextID.equals(ctx.contextID))) {
-								Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
-							}
-						}
-						catch (Exception e) {
-							// Ignore: HTTP session may have already been invalidated
-						}
+					try {
+						com.twinsoft.convertigo.engine.util.SessionContexts.remove(httpSession, contextID);
+					} catch (IllegalStateException e) {
+						// The HTTP session may already have been invalidated.
 					}
 				}
+				context.contextListSession = null;
 
 				Engine.logContextManager.debug("Context " + contextID + " has been removed");
 				Engine.logContext.debug("[" + contextID + "] Context removed, project: " + projectName);

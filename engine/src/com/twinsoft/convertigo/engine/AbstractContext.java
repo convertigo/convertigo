@@ -67,6 +67,8 @@ public abstract class AbstractContext {
 	 * The HTTP session object.
 	 */
 	public transient HttpSession httpSession;
+	/** Retained until context removal, after clearRequest has released the active request. */
+	public transient HttpSession contextListSession;
 	
 	/**
 	 * The servlet path for the current request.

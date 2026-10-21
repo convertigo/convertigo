@@ -136,7 +136,9 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
             	getConnector().beforeTransactionInvoke();
             	
     			Engine.logBeans.debug("(CouchDBTransaction) Retrieving data...");
-    			result = invoke();
+				try (var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("couchdb", getQName())) {
+					result = invoke();
+				}
     			Engine.logBeans.debug("(CouchDBTransaction) Data retrieved!");			
             }
             finally {

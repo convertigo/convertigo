@@ -100,6 +100,10 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 	 */
 	public static volatile ConnectorListener dataWatcher = null;
 
+	protected boolean hasDataListeners() {
+		return dataWatcher != null || connectorListeners.getListenerCount(ConnectorListener.class) != 0;
+	}
+
 	public void fireDataChanged(ConnectorEvent connectorEvent) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = connectorListeners.getListenerList();

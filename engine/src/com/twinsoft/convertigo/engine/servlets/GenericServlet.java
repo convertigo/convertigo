@@ -154,6 +154,12 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	protected void doRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		try (var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("servlet", getClass().getSimpleName())) {
+			doRequestWithTiming(request, response);
+		}
+	}
+
+	private void doRequestWithTiming(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setAttribute("response", response);
 		HttpUtils.applyCorsHeaders(request, response);
 		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);
@@ -272,6 +278,11 @@ public abstract class GenericServlet extends HttpServlet {
 									out.flush();
 								}
 							}
+						} else if (result instanceof com.twinsoft.convertigo.engine.requesters.JsonResponse json) {
+							response.setContentType(requested_content_type != null ? requested_content_type : getContentType(request));
+							response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
+							applyCustomHeaders(request, response);
+							try (Writer writer = new java.io.BufferedWriter(response.getWriter())) { json.writeTo(writer); }
 						} else if (result instanceof byte[]) {
 							if (requested_content_type != null) {
 								response.setContentType(requested_content_type);

@@ -435,6 +435,14 @@ public class EnginePropertiesManager {
 	 */
 	@PropertyOptions
 	public enum PropertyName {
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		REQUESTABLE_INLINE_CALLS ("requestable.inline_calls", "false", "Execute native internal requestables without their own timeout in the caller thread", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		REQUESTABLE_NATIVE_JSON ("requestable.native_json", "true", "Return compatible JSON requestables without an intermediate XML document", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		JAVASCRIPT_SHARED_CLASS_CACHE ("javascript.shared_class_cache", "false", "Share Rhino Java reflection metadata between requests of the same project class loader", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		TIMING_TRACE ("timing.trace", "false", "Log request durations, allocated bytes and XML document counts (diagnostic)", PropertyCategory.Logs),
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:" + (Engine.isStudioMode() ? "1" : "2")+ "8080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),

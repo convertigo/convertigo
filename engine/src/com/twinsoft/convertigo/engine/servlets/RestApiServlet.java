@@ -143,7 +143,8 @@ public class RestApiServlet extends GenericServlet {
 
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		try (var logContext = Log4jHelper.mdcScope()) {
+		try (var trace = com.twinsoft.convertigo.engine.util.TimingTrace.open("servlet", "RestApiServlet");
+				var logContext = Log4jHelper.mdcScope()) {
 			serviceWithContext(request, response);
 		}
 	}
@@ -279,7 +280,7 @@ public class RestApiServlet extends GenericServlet {
 							while (headerNames.hasMoreElements()) {
 								String headerName = headerNames.nextElement();
 								String headerValue = request.getHeader(headerName);
-								buf.append(" " + headerName + "=" + headerValue + "\n");
+								buf.append(" " + headerName + "=" + com.twinsoft.convertigo.engine.util.HttpHeaderSanitizer.value(headerName, headerValue) + "\n");
 							}
 							Engine.logEngine.debug(buf.toString());
 
@@ -357,7 +358,7 @@ public class RestApiServlet extends GenericServlet {
 			    			Collection<String> headerNames = response.getHeaderNames();
 			    			for (String headerName: headerNames) {
 			    				String headerValue = response.getHeader(headerName);
-		    					buf.append(" " + headerName + "=" + headerValue + "\n");
+								buf.append(" " + headerName + "=" + com.twinsoft.convertigo.engine.util.HttpHeaderSanitizer.value(headerName, headerValue) + "\n");
 			    			}
 			    			Engine.logEngine.debug(buf.toString());
 						}
@@ -497,6 +498,12 @@ public class RestApiServlet extends GenericServlet {
 			prepareTextRequesterResponse(request, response);
 		} else if (requestedContentType != null) {
 			response.setContentType(requestedContentType);
+		}
+
+		if (content instanceof com.twinsoft.convertigo.engine.requesters.JsonResponse json) {
+			ServletUtils.applyCustomHeaders(request, response);
+			try (Writer writer = new java.io.BufferedWriter(response.getWriter())) { json.writeTo(writer); }
+			return;
 		}
 
 		var text = content instanceof Document ? XMLUtils.prettyPrintDOM((Document) content) : String.valueOf(content);

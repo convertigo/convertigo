@@ -236,6 +236,10 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     public abstract void runCore() throws EngineException;
     
 	public abstract void prepareForRequestable(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException;
+
+	/** Runtimes owning their own pooled scope can avoid the legacy scripting environment. */
+	protected boolean requiresJavascriptScope() { return true; }
+
     
 	public abstract void handleRequestableEvent(String eventType, org.mozilla.javascript.Context javascriptContext) throws EngineException;
 	
@@ -251,6 +255,26 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
      * @return the resulting DOM of the transaction.
      */
     public Document run(Requester requester, Context context) throws EngineException {
+		try (var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("requestable", getQName())) {
+			return runMeasured(requester, context);
+		}
+	}
+
+	protected Document ensureOutputDocument() throws EngineException {
+		if (context.outputDocument == null) {
+			context.outputDocument = requester.createDOM(getEncodingCharSet());
+			var root = context.outputDocument.createElement("document");
+			context.outputDocument.appendChild(root);
+			root.setAttribute("project", context.projectName);
+			root.setAttribute("sequence", context.sequenceName);
+			root.setAttribute("connector", context.connectorName);
+			root.setAttribute("transaction", context.transactionName);
+			if (context.lang != null && !context.lang.isEmpty()) root.setAttribute("lang", context.lang);
+		}
+		return context.outputDocument;
+	}
+
+	private Document runMeasured(Requester requester, Context context) throws EngineException {
         
     	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_STARTED);
         
@@ -262,19 +286,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             
             context.cacheControl = this.isClientCachable() ? "true":"false";
             
-            context.outputDocument = requester.createDOM(getEncodingCharSet());
-            
-			Element outputDocumentRootElement = context.outputDocument.createElement("document");
-			context.outputDocument.appendChild(outputDocumentRootElement);
-            
-			outputDocumentRootElement.setAttribute("project", context.projectName);
-			outputDocumentRootElement.setAttribute("sequence", context.sequenceName);
-			outputDocumentRootElement.setAttribute("connector", context.connectorName);
-			outputDocumentRootElement.setAttribute("transaction", context.transactionName);
-			if (context.lang != null && context.lang.length() != 0) {
-				outputDocumentRootElement.setAttribute("lang", context.lang);
-			}
-			
+			context.outputDocument = null;
+			if (!context.nativeJson) ensureOutputDocument();
+
             int maxNbCurrentWorkerThreads = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
             
             if (nbCurrentWorkerThreads >= maxNbCurrentWorkerThreads)
@@ -285,6 +299,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             workerThreadCreationStatistic = context.statistics.start(EngineStatistics.WORKER_THREAD_START);
             
             runningThread = new RequestableThread();
+			if (context.nativeJson && requester instanceof com.twinsoft.convertigo.engine.requesters.NativeJsonRequester
+					&& !requiresJavascriptScope() && getResponseTimeout() <= 0
+					&& EnginePropertiesManager.getPropertyAsBoolean(PropertyName.REQUESTABLE_INLINE_CALLS)) {
+				runningThread.runInline();
+			} else {
             runningThread.start();
             
             try {
@@ -359,13 +378,16 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             	}
             }
 
+			}
+
             // An exception has been thrown ?
             if (runningThread.exception != null)
                 if (runningThread.exception instanceof EngineException)
                     throw (EngineException) runningThread.exception;
                 else throw new EngineException("An unexpected error has occured while the execution of the requested object '" + getName() + "'.", runningThread.exception);
 
-			outputDocumentRootElement.setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
+			if (context.outputDocument != null) context.outputDocument.getDocumentElement().setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
+			else context.set("nativeJsonGenerated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
 			
             Engine.logContext.debug("(RequestableObject) End of the thread for the requested object '" + getName() + "'");
             
@@ -866,7 +888,20 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 			}
 		}
 
+		private void runInline() {
+			var caller = Thread.currentThread();
+			var loader = caller.getContextClassLoader();
+			try (var previousMdc = Log4jHelper.mdcScope()) {
+				caller.setContextClassLoader(getContextClassLoader());
+				logContext.install();
+				runWithMdc();
+			} finally {
+				caller.setContextClassLoader(loader);
+			}
+		}
+
 		private void runWithMdc() {
+			var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("worker", getQName());
         	context.statistics.stop(workerThreadCreationStatistic);
         	
 			context.steps = new ArrayList<String>(8);
@@ -913,8 +948,10 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     			}
             	
             	// Creating scripting context
-    			javascriptContext = org.mozilla.javascript.Context.enter();
-    			scope = javascriptContext.initStandardObjects();
+				if (requiresJavascriptScope()) {
+					javascriptContext = org.mozilla.javascript.Context.enter();
+					scope = com.twinsoft.convertigo.engine.util.RhinoClassCache.newScope(javascriptContext);
+				}
     			
         		Engine.logContext.debug("Preparing for requestable...");
             	prepareForRequestable(context, javascriptContext, scope);
@@ -960,6 +997,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 				}
 				
 				Engine.logContext.debug("(RequestableObject) End of requested object thread");
+				// Publish child-thread counters before waking the request's waiting thread.
+				if (timing != null) timing.close();
 
                 synchronized(this) {
                 	if (runningThread == null) {

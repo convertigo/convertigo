@@ -1,5 +1,14 @@
 // Engine test source set and verification tasks.
 
+tasks.register('timingTraceTest', JavaExec) {
+	group = 'verification'
+	description = 'Request timing, nested thread allocations and actual XML construction diagnostics.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.TimingTraceTest'
+}
+
 sourceSets {
 	test {
 		java.srcDirs = ['test']
@@ -20,6 +29,7 @@ tasks.register('sessionSerializationTest', JavaExec) {
 }
 
 tasks.named('check') {
+	dependsOn 'timingTraceTest'
 	dependsOn 'sessionSerializationTest'
 	dependsOn 'requestScopedSessionTest'
 	dependsOn 'componentRefManagerTest'
@@ -290,3 +300,48 @@ tasks.register('optionalDefaultsTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.admin.services.studio.dbo.DefaultPasteTest',
 		'com.twinsoft.convertigo.engine.admin.services.projects.TestPlatformDefaultsTest'
 }
+
+
+tasks.register('requestDiagnosticsTest', JavaExec) {
+	group = 'verification'
+	description = 'Secret-free HTTP diagnostics, bounded profiles and concurrent session context lists.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.HttpHeaderSanitizerTest',
+		'com.twinsoft.convertigo.engine.util.SessionContextsTest',
+		'com.twinsoft.convertigo.engine.flow.FlowProfileSummaryTest'
+}
+tasks.named('check') { dependsOn 'requestDiagnosticsTest' }
+
+
+tasks.register('nativeJsonBoundaryTest', JavaExec) {
+	group = 'verification'
+	description = 'Native JSON parity, XML fallbacks, billing, scopes and inline thread restoration.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.NativeJsonBoundaryTest', 'com.twinsoft.convertigo.engine.util.RhinoClassCacheTest',
+		'com.twinsoft.convertigo.engine.servlets.NativeJsonServletTest'
+}
+tasks.named('check') { dependsOn 'nativeJsonBoundaryTest' }
+
+tasks.register('flowRuntimePoolTest', JavaExec) {
+	group = 'verification'
+	description = 'Nested runtime reuse, active scope isolation and bounded retention.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowRuntimePoolTest'
+}
+tasks.named('check') { dependsOn 'flowRuntimePoolTest' }
+
+tasks.register('requestScopedStudioContextTest', JavaExec) {
+	group = 'verification'
+	description = 'Stateless HTTP requests retain independent context locks in Studio mode.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.RequestScopedStudioContextTest'
+}
+tasks.named('check') { dependsOn 'requestScopedStudioContextTest' }

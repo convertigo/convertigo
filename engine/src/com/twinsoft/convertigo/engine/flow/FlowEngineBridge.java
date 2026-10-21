@@ -81,7 +81,10 @@ public class FlowEngineBridge {
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
 	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
-	private static final int ENGINE_RUNTIME_POOL_LIMIT = 2;
+	// Keep room for the Studio authoring scope and nested requestables. With two
+	// slots, an active caller can force every callee to rebuild its execution plans.
+	// Overflow still executes in an isolated scope and is discarded on return.
+	private static final int ENGINE_RUNTIME_POOL_LIMIT = 8;
 	private static final int FRONTEND_AUTHORING_SINGLE_FLIGHT_LIMIT = 32;
 	private static final Map<String, CompletableFuture<String>> frontendAuthoringFlights = new ConcurrentHashMap<>();
 	private static final Object frontendAuthoringFlightsLock = new Object();
@@ -387,7 +390,8 @@ public class FlowEngineBridge {
 			var requestFinished = System.nanoTime();
 			request.put("input", flow.getFlowInput());
 			var inputFinished = System.nanoTime();
-			var profileEnabled = convertigoContext != null && convertigoContext.httpServletRequest != null
+			var profileEnabled = com.twinsoft.convertigo.engine.util.TimingTrace.isEnabled()
+					|| convertigoContext != null && convertigoContext.httpServletRequest != null
 					&& "true".equals(convertigoContext.httpServletRequest.getParameter("__flowProfile"));
 			if (profileEnabled) {
 				request.put("profile", true);
@@ -2346,9 +2350,11 @@ public class FlowEngineBridge {
 					}
 				}
 			}
-			return pool.available.pollFirst();
+			return pool.available.pollLast();
 		}
-		for (var iterator = pool.available.iterator(); iterator.hasNext();) {
+		// Reuse the most recently released scope: FIFO cycles cold plans through
+		// every retained scope even for a sequential caller.
+		for (var iterator = pool.available.descendingIterator(); iterator.hasNext();) {
 			var runtime = iterator.next();
 			if (runtime.scope() != pool.frontendAuthoringScope) {
 				iterator.remove();

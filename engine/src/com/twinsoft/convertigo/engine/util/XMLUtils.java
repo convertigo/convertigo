@@ -126,7 +126,7 @@ public class XMLUtils {
 		@Override
 		protected DocumentBuilder initialValue() {
 			try {
-				return defaultDocumentBuilderFactory.get().newDocumentBuilder();
+				return new CountingDocumentBuilder(defaultDocumentBuilderFactory.get().newDocumentBuilder());
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
 				return null;
