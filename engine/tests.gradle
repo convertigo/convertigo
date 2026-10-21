@@ -185,3 +185,12 @@ tasks.register('nativeScopeOptionsTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.NativeScopeOptionsTest'
 }
+
+tasks.register('unknownBeanClassTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test for a project with a bean class this engine does not know.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.UnknownBeanClassTest'
+}

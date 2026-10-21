@@ -587,6 +587,13 @@ public class BeansDefaultValues {
 
 		String templateProjectName = null;
 		JSONObject templateProjectIonObjects = null;
+
+		/** where the beans are read, for the warning of a bean whose class this engine does not know */
+		String projectName = null;
+		String sequenceName = null;
+		Element sequenceBean = null;
+		/** the warnings of the beans left out, kept on the unshrunk document as its SKIPPED_BEANS user data */
+		List<String> skippedWarnings = new ArrayList<String>();
 		/** for each ion objects, the unshrunk text of each beanData already unshrunk with them */
 		Map<JSONObject, Map<String, String>> unshrunkBeanData = new IdentityHashMap<JSONObject, Map<String, String>>();
 		
@@ -639,8 +646,31 @@ public class BeansDefaultValues {
 			if (isMigrating) {
 				nProjectDoc.setUserData("isMigrating", "true", null);
 			}
+			if (!skippedWarnings.isEmpty()) {
+				nProjectDoc.setUserData(SKIPPED_BEANS, skippedWarnings, null);
+			}
 
 			return nProjectDoc;
+		}
+
+		void skipUnknownBean(String classname, String beanName) {
+			String where = "project \"" + projectName + "\"" + (sequenceName != null ? ", sequence \"" + sequenceName + "\"" : "");
+			String message = "(BeansDefaultValues) The class " + classname + " is unknown to this engine: the bean \"" + beanName
+					+ "\" of the " + where + " and its children are ignored"
+					+ (sequenceBean != null ? "; the sequence answers an error until the project runs on an engine that knows it" : "")
+					+ ". Do not save this project with this engine: the bean would be lost.";
+			skippedWarnings.add(message);
+			if (Engine.logBeans != null) {
+				Engine.logBeans.warn(message);
+			} else {
+				System.err.println(message);
+			}
+			if (sequenceBean != null) {
+				String skipped = sequenceBean.getAttribute(SKIPPED_BEANS);
+				if (!(", " + skipped + ",").contains(", " + classname + ",")) {
+					sequenceBean.setAttribute(SKIPPED_BEANS, skipped.isEmpty() ? classname : skipped + ", " + classname);
+				}
+			}
 		}
 
 		void unshrinkChildren(Element element, Element nParent) throws Exception {
@@ -660,8 +690,21 @@ public class BeansDefaultValues {
 				String pPriority = matcherBeanName.group(3);
 
 				Element dBean = getBeanForVersion(beans, classname, nVersion);
+				if (dBean == null) {
+					// a class of this engine whose default values are all newer than the project: its first ones
+					dBean = getAnyBean(beans, classname);
+				}
+				if (dBean == null) {
+					// a class this engine does not know (a project made with a newer engine): the bean and its
+					// children are left out, the rest of the project loads, its sequence answers an error
+					skipUnknownBean(classname, pName);
+					continue;
+				}
 				if (!isMigrating && "true".equals(dBean.getUserData("isMigrating"))) {
 					isMigrating = true;
+				}
+				if (classname.equals("com.twinsoft.convertigo.beans.core.Project")) {
+					projectName = pName;
 				}
 
 				boolean isNgxApplicationComponent = classname.equals("com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent");
@@ -836,7 +879,19 @@ public class BeansDefaultValues {
 					}
 				}
 
-				unshrinkChildren(pBean, nBean);
+				boolean isSequence = classname.startsWith("com.twinsoft.convertigo.beans.sequences.");
+				String outerSequenceName = sequenceName;
+				Element outerSequenceBean = sequenceBean;
+				if (isSequence) {
+					sequenceName = pName;
+					sequenceBean = nBean;
+				}
+				try {
+					unshrinkChildren(pBean, nBean);
+				} finally {
+					sequenceName = outerSequenceName;
+					sequenceBean = outerSequenceBean;
+				}
 				
 				if (isNgxApplicationComponent) {
 					templateProjectName = null;
@@ -847,6 +902,18 @@ public class BeansDefaultValues {
 
 	public static Document unshrinkProject(Document project) throws Exception {
 		return new UnshrinkProject().unshrinkProject(project);
+	}
+
+	/** the attribute of a sequence that lost beans of unknown classes when it was read: their classes, comma separated */
+	public static final String SKIPPED_BEANS = "skipped_beans";
+
+	private static Element getAnyBean(Element beans, String classname) {
+		for (Element e: childElements(beans)) {
+			if (classname.equals(e.getAttribute("classname"))) {
+				return e;
+			}
+		}
+		return null;
 	}
 
 	private static Element getBeanForVersion(Element beans, String classname, String version) {
