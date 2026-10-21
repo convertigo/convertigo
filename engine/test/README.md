@@ -5,6 +5,61 @@ included by `engine/build.gradle`. Run `./gradlew :engine:check` for the regress
 suites, or select an individual task below. `:engine:soapuiSmokeTest` is a separate
 opt-in smoke test.
 
+## Binary attachments
+
+`./gradlew :engine:attachmentStreamingTest` checks file-backed streaming through
+the real binary requester and servlet response path with a 128 MiB heap, including
+a 1 GiB sparse file and SHA-256 integrity. It also covers file lengths above 2 GiB,
+legacy `getData()` reads, reopening and closing streams, client disconnects,
+custom response metadata, base64 and SOAP compatibility. It is included in `check`.
+
+For end-to-end validation, copy `attachment-streaming/project` into a disposable
+Docker workspace as `projects/AttachmentStreamingTest`, inject the engine classes,
+and start a dedicated hotfix engine with `JXMX=256`. Then run:
+
+```sh
+python3 engine/test/attachment-streaming/probe.py http://localhost:29137/convertigo
+```
+
+The fixture creates a 1 GiB sparse file only in that test project's directory.
+The probe checks one download, three concurrent downloads, response metadata and
+an inline base64 attachment, using bounded buffers. Do not deploy the fixture on
+a production server. REST binary output and `UrlMapperRequester` exist only on
+develop, not on this hotfix branch; no new REST output mode is introduced here.
+
+## NGX application build output
+
+`./gradlew :engine:ngxBuildSettingsTest` checks that redundant asset self-copies
+inside the owning project's preserved `DisplayObjects/mobile/assets` are skipped.
+It covers normalized paths, shared assets copied into a different project,
+different output locations, old/new template output formats, and symbolic links.
+The separate dev-server asset list remains unchanged (assets are served in memory).
+
+Without compiling or launching Eclipse, these commands compile and exercise the
+production progress/parser classes and build Job, using real npm processes and
+stubbing only the Eclipse host:
+
+```sh
+node eclipse-plugin-studio/tests/ngx-build.test.cjs
+node eclipse-plugin-studio/tests/ngx-build-job.test.cjs
+```
+
+They cover failure after bundle generation, npm post-build failures, successful
+completion after lifecycle hooks, fatal watch errors that leave Node alive,
+cancellation, cleanup, and bounded diagnostic history.
+
+For an opt-in test with real Angular builds, pass an existing NGX `node_modules`:
+
+```sh
+node eclipse-plugin-studio/tests/ngx-angular-build.cjs /path/to/project/_private/ionic/node_modules
+```
+
+This creates and removes only a temporary fixture, linking existing dependencies
+read-only. It reproduces late self-copy failures, verifies fast/prod outputs,
+cross-project copies, and watch recovery after a compile error. The config uses
+the independently tested asset predicate's expected result; this does not launch
+the Studio GUI or exercise project generation end to end.
+
 ## Step sources
 
 `./gradlew :engine:stepSourceTest` checks aggregation of classic and SmartType

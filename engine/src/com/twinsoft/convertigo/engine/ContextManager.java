@@ -90,12 +90,8 @@ public class ContextManager extends AbstractRunnableManager {
 		public void onEvent(PropertyChangeEvent event) {
 			if (event.getKey() == PropertyName.POOL_MANAGER_TIMEOUT) {
 				loadParameters();
-			} else if (event.getKey() == PropertyName.SESSION_STORE_MODE) {
-				reconfigureRedisRuntime(SessionStoreMode.fromProperty(EnginePropertiesManager.getProperty(PropertyName.SESSION_STORE_MODE)));
-			} else if (isRedisRuntimeProperty(event.getKey()) && ConvertigoHttpSessionManager.isRedisMode()) {
-				RedisClients.reload();
-				reconfigureRedisRuntime(SessionStoreMode.redis);
 			}
+			// session store changes reach onSessionStoreChanged() from ConvertigoHttpSessionManager, once applied
 		}
 	};
 	private MyPropertyChangeEventListener myPropertyChangeEventListener;
@@ -321,33 +317,12 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 	}
 
-	private static boolean isRedisRuntimeProperty(PropertyName propertyName) {
-		if (propertyName == null) {
-			return false;
-		}
-		switch (propertyName) {
-		case SESSION_REDIS_HOST:
-		case SESSION_REDIS_PORT:
-		case SESSION_REDIS_USERNAME:
-		case SESSION_REDIS_PASSWORD:
-		case SESSION_REDIS_DATABASE:
-		case SESSION_REDIS_SSL:
-		case SESSION_REDIS_SSL_TRUSTSTORE:
-		case SESSION_REDIS_SSL_TRUSTSTORE_PASSWORD:
-		case SESSION_REDIS_SSL_KEYSTORE:
-		case SESSION_REDIS_SSL_KEYSTORE_PASSWORD:
-		case SESSION_REDIS_SSL_KEYSTORE_TYPE:
-		case SESSION_REDIS_SSL_VERIFICATION_MODE:
-		case SESSION_REDIS_SSL_PROTOCOLS:
-		case SESSION_REDIS_TIMEOUT:
-		case SESSION_REDIS_CONNECTION_POOL_SIZE:
-		case SESSION_REDIS_CONNECTION_MINIMUM_IDLE_SIZE:
-		case SESSION_REDIS_PREFIX:
-		case SESSION_REDIS_DEFAULT_TTL:
-			return true;
-		default:
-			return false;
-		}
+	/**
+	 * Called by ConvertigoHttpSessionManager when the effective session store changes: configuration change, or
+	 * Redis reachable after a startup spent waiting for it.
+	 */
+	public void onSessionStoreChanged() {
+		reconfigureRedisRuntime(ConvertigoHttpSessionManager.isRedisMode() ? SessionStoreMode.redis : SessionStoreMode.tomcat);
 	}
 
 	private synchronized void reconfigureRedisRuntime(SessionStoreMode targetMode) {
