@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine.admin;
 
+import com.twinsoft.convertigo.engine.sessions.SessionStoreUnavailableException;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -176,6 +177,9 @@ public class AdminServlet extends HttpServlet {
 				}
 			}
 			catch (Exception e) {
+				if (SessionStoreUnavailableException.respond(response, e)) {
+					return;
+				}
 				Engine.logAdmin.error("Unable to execute the service '"
 						+ serviceName + "'", e);
 				if (show_error) {

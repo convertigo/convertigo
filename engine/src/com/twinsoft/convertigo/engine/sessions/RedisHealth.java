@@ -77,6 +77,13 @@ public final class RedisHealth {
 		}
 	}
 
+	/** Time at which Redis became unreachable, or 0 when it is reachable or not checked yet. */
+	public static long unreachableSince() {
+		synchronized (MUTEX) {
+			return Boolean.FALSE.equals(reachable) ? since : 0L;
+		}
+	}
+
 	public static Map<String, Object> toMap() {
 		var map = new LinkedHashMap<String, Object>(RedisClients.diagnostics());
 		synchronized (MUTEX) {

@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
+import com.twinsoft.convertigo.engine.sessions.SessionStoreUnavailableException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -279,24 +280,25 @@ public abstract class GenericServlet extends HttpServlet {
 
 						if (result instanceof AttachmentDetails) {
 							AttachmentDetails attachment = (AttachmentDetails) result;
-							byte[] data = attachment.getData();
-							String contentType = attachment.getContentType();
+							try (InputStream input = attachment.getInputStream()) {
+								String contentType = attachment.getContentType();
 
-							if (requested_content_type != null) {
-								contentType = requested_content_type;
+								if (requested_content_type != null) {
+									contentType = requested_content_type;
+								}
+
+								String name = attachment.getName();
+
+								HeaderName.ContentType.setHeader(response, contentType);
+								HeaderName.ContentLength.setHeader(response, Long.toString(attachment.getLength()));
+								HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + name + "\"");
+
+								applyCustomHeaders(request, response);
+
+								OutputStream out = response.getOutputStream();
+								input.transferTo(out);
+								out.flush();
 							}
-
-							String name = attachment.getName();
-
-							HeaderName.ContentType.setHeader(response, contentType);
-							HeaderName.ContentLength.setHeader(response, "" + data.length);
-							HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + name + "\"");
-
-							applyCustomHeaders(request, response);
-
-							OutputStream out = response.getOutputStream();
-							out.write(data);
-							out.flush();
 						} else if (result instanceof JsonStreamedResponse) {
 							// a JSON answer written in stream: the same bytes as the byte[] of its text, without its length
 							JsonStreamedResponse streamed = (JsonStreamedResponse) result;
@@ -360,7 +362,9 @@ public abstract class GenericServlet extends HttpServlet {
 					onFinally(request);
 				}
 			} catch (Exception e) {
-				Engine.logContext.error("Unable to process the request!", e);
+				if (!SessionStoreUnavailableException.isCause(e)) {
+					Engine.logContext.error("Unable to process the request!", e);
+				}
 				processException(request, response, e);
 			}
 			finally {
@@ -466,6 +470,9 @@ public abstract class GenericServlet extends HttpServlet {
 
 	public void processException(HttpServletRequest request, HttpServletResponse response, Exception e)
 			throws ServletException {
+		if (SessionStoreUnavailableException.respond(response, e)) {
+			return;
+		}
 		boolean hide_error = EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "true" );
 		boolean bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
 				.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500));
@@ -564,6 +571,9 @@ public abstract class GenericServlet extends HttpServlet {
 
 			return result;
 		} catch (Exception e) {
+			if (SessionStoreUnavailableException.isCause(e)) {
+				throw e;
+			}
 			request.setAttribute("convertigo.isErrorDocument", true);
 			var requester = getRequester();
 			requester.context = new Context("");

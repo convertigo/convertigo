@@ -40,6 +40,11 @@ export default {
 	get instances() {
 		return state.instances;
 	},
+	get options() {
+		const options = state.instances.map(({ instanceId }) => instanceId);
+		if (state.current && !options.includes(state.current)) options.push(state.current);
+		return options;
+	},
 	get loading() {
 		return state.loading;
 	},
@@ -65,6 +70,8 @@ export default {
 		const headers = response?.headers;
 		const unreachable = normalizeInstance(headers?.get?.(UNREACHABLE_HEADER));
 		if (unreachable) {
+			// An in-flight request for the previous selection must not restore its banner.
+			if (state.current && unreachable !== state.current) return true;
 			state.unreachable = {
 				instance: unreachable,
 				local: normalizeInstance(headers.get(LOCAL_HEADER)),
@@ -74,8 +81,10 @@ export default {
 		}
 		const header = headers?.get?.(INSTANCE_HEADER);
 		const normalized = normalizeInstance(header);
+		// Only an answer from the selected target can clear its outage report.
+		if (state.unreachable && normalized && normalized !== state.unreachable.instance) return true;
 		if (normalized) setCurrent(normalized);
-		if (state.unreachable && (!normalized || normalized === state.unreachable.instance)) {
+		if (state.unreachable && normalized === state.unreachable.instance) {
 			state.unreachable = null;
 		}
 		return false;
@@ -86,8 +95,10 @@ export default {
 		state.loading = true;
 		try {
 			const res = await call('engine.ListInstances');
-			state.storeMode = res?.storeMode ?? '';
-			state.instances = Array.isArray(res?.instances) ? res.instances : [];
+			if (res?.error || typeof res?.storeMode !== 'string' || !Array.isArray(res?.instances))
+				return;
+			state.storeMode = res.storeMode;
+			state.instances = res.instances;
 		} finally {
 			state.loading = false;
 		}
