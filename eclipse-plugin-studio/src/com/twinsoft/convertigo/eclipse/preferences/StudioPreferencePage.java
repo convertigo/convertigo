@@ -35,6 +35,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ExperimentalFeatures;
 import com.twinsoft.convertigo.eclipse.views.assistant.AssistantView;
 import com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView;
 import com.twinsoft.convertigo.engine.Engine;
@@ -51,6 +52,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbAutoCreateProjectGitRepository = null;
 	private BooleanFieldEditor cbAutoUpdateReadme = null;
 	private BooleanFieldEditor cbBrowserOffscreen = null;
+	private BooleanFieldEditor cbExperimentalFeatures = null;
 //	private BooleanFieldEditor cbUseSystemFlowViewer = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
@@ -147,6 +149,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoUpdateReadme.setPage(this);
 		cbAutoUpdateReadme.setPreferenceStore(getPreferenceStore());
 		cbAutoUpdateReadme.load();
+
+		cbExperimentalFeatures = new BooleanFieldEditor(
+				ConvertigoPlugin.PREFERENCE_EXPERIMENTAL_FEATURES,
+				"Show new experimental features (native JSON sequences, native JSON steps, JSON path sources)", groupGeneral);
+		cbExperimentalFeatures.setPage(this);
+		cbExperimentalFeatures.setPreferenceStore(getPreferenceStore());
+		cbExperimentalFeatures.load();
 		
 		// Diagnostics
 		Group groupDiagnostics = new Group(top, SWT.SHADOW_IN);
@@ -295,6 +304,11 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoUpdateReadme.store();
 		cbAutoCreateProjectGitRepository.store();
 		cbBrowserOffscreen.store();
+		boolean experimentalChanged = cbExperimentalFeatures.getBooleanValue() != ExperimentalFeatures.isShown();
+		cbExperimentalFeatures.store();
+		if (experimentalChanged) {
+			ExperimentalFeatures.changed();
+		}
 		localBuildAdditionalPath.store();
 		localBuildFolder.store();
 		assistantUrl.store();

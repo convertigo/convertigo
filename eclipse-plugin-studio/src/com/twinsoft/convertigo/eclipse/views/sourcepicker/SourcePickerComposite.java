@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ExperimentalFeatures;
 import com.twinsoft.convertigo.eclipse.dnd.StepSourceTransfer;
 import com.twinsoft.convertigo.eclipse.property_editors.StepSourceXpathEvaluatorComposite;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
@@ -177,7 +178,7 @@ class SourcePickerComposite extends Composite {
 	/** shows the JSON of a step of a JSON native sequence that gives JSON to the next steps, with a JSON path selected */
 	private void updateJson(DatabaseObject dbo, String xpath) {
 		Step step = dbo instanceof Step s ? s : null;
-		boolean show = step != null && NativeJson.isJsonProducer(step) && NativeJson.isNativeSequence(step.getSequence());
+		boolean show = step != null && ExperimentalFeatures.isShown() && NativeJson.isJsonProducer(step) && NativeJson.isNativeSequence(step.getSequence());
 		jsonStep = show ? step : null;
 		showJsonTab(show);
 		if (!show) {
