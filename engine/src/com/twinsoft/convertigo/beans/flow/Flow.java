@@ -461,6 +461,7 @@ public class Flow extends Sequence {
 		try {
 			var response = new FlowEngineBridge().syncInputs(this);
 			if (response.optBoolean("ok", false)) {
+				validateFlowInputResponseMetadata(response);
 				var inputDefinitions = response.optJSONObject("inputDefinitions");
 				var hasInputs = inputDefinitions != null && inputDefinitions.length() > 0;
 				if (hasInputs) {
@@ -506,7 +507,8 @@ public class Flow extends Sequence {
 					var key = property.getKey();
 					var name = key instanceof Name identifier ? identifier.getIdentifier()
 							: key instanceof StringLiteral literal ? literal.getValue() : "";
-					if ("input".equals(name) || "inputs".equals(name) || "accessibility".equals(name)) {
+					if ("input".equals(name) || "inputs".equals(name) || "accessibility".equals(name)
+							|| "authenticatedContextRequired".equals(name)) {
 						result[0] = true;
 						return false;
 					}
@@ -520,11 +522,14 @@ public class Flow extends Sequence {
 	}
 
 	private void syncFlowInputDefinitions(JSONObject inputDefinitions) throws EngineException, JSONException {
+		// Complete validation precedes removals too: a bad later input must leave
+		// every previously loaded variable and property untouched.
+		validateFlowInputDefinitions(inputDefinitions);
 		var changed = false;
 		var declaredNames = new HashSet<String>();
 		for (var keys = inputDefinitions.keys(); keys.hasNext();) {
 			var key = String.valueOf(keys.next());
-			if (key.matches("[A-Za-z_$][\\w$]*") && !key.startsWith("__")) {
+			if (key.matches("[A-Za-z_][A-Za-z0-9_]*") && !key.startsWith("__")) {
 				declaredNames.add(key);
 			}
 		}
@@ -536,14 +541,11 @@ public class Flow extends Sequence {
 		}
 		for (var keys = inputDefinitions.keys(); keys.hasNext();) {
 			var key = String.valueOf(keys.next());
-			if (!key.matches("[A-Za-z_$][\\w$]*") || key.startsWith("__")) {
+			if (!key.matches("[A-Za-z_][A-Za-z0-9_]*") || key.startsWith("__")) {
 				continue;
 			}
-			var definition = inputDefinitions.optJSONObject(key);
-			if (definition == null) {
-				definition = new JSONObject();
-			}
-			var type = definition.optString("type", definition.optString("kind", "string")).toLowerCase();
+			var definition = inputDefinitions.getJSONObject(key);
+			var type = flowInputType(definition, "_flow.inputs." + key);
 			var existing = super.getVariable(key);
 			var variable = existing instanceof RequestableVariable requestable ? requestable : null;
 			var variableChanged = false;
@@ -552,8 +554,8 @@ public class Flow extends Sequence {
 				variable.setName(key);
 				variableChanged = true;
 			}
-			if (definition.has("description") && !definition.optString("description").isBlank()) {
-				variableChanged |= setStringIfChanged(variable.getDescription(), definition.optString("description"), variable::setDescription);
+			if (definition.has("description")) {
+				variableChanged |= setStringIfChanged(variable.getDescription(), definition.getString("description"), variable::setDescription);
 			} else if (existing == null) {
 				variable.setDescription("Flow input " + key);
 			}
@@ -562,7 +564,17 @@ public class Flow extends Sequence {
 						flowInputDefaultValue(definition.opt("default"), variable instanceof RequestableMultiValuedVariable));
 			}
 			if (definition.has("required")) {
-				variableChanged |= setBooleanIfChanged(variable.isRequired(), definition.optBoolean("required"), variable::setRequired);
+				variableChanged |= setBooleanIfChanged(variable.isRequired(), (Boolean) definition.get("required"), variable::setRequired);
+			}
+			if (definition.has("isFileUpload")) {
+				variableChanged |= setBooleanIfChanged(variable.getIsFileUpload(), (Boolean) definition.get("isFileUpload"), variable::setIsFileUpload);
+			}
+			if (definition.has("visibility")) {
+				var visibility = ((Number) definition.get("visibility")).intValue();
+				if (variable.getVisibility() != visibility) {
+					variable.setVisibility(visibility);
+					variableChanged = true;
+				}
 			}
 			variableChanged |= setStringIfChanged(variable.getSchemaType(), flowInputSchemaType(type), variable::setSchemaType);
 			if (existing == null) {
@@ -603,17 +615,113 @@ public class Flow extends Sequence {
 		return rows;
 	}
 
-	private boolean isFlowInputMultiValued(String type, JSONObject definition) {
-		return "array".equals(type) || definition.optBoolean("multi", false) || definition.optBoolean("multiValued", false);
+	private boolean isFlowInputMultiValued(String type, JSONObject definition) throws JSONException {
+		return "array".equals(type) || definition.has("multi") && (Boolean) definition.get("multi")
+				|| definition.has("multiValued") && (Boolean) definition.get("multiValued");
 	}
 
-	private String flowInputSchemaType(String type) {
-		return switch (type == null ? "" : type.toLowerCase()) {
-		case "boolean", "bool" -> "xsd:boolean";
-		case "integer", "int" -> "xsd:integer";
-		case "number", "double", "float" -> "xsd:double";
-		default -> "xsd:string";
+	private String flowInputSchemaType(String type) throws EngineException {
+		return switch (type) {
+		case "boolean" -> "xsd:boolean";
+		case "integer" -> "xsd:integer";
+		case "number" -> "xsd:double";
+		case "string", "array", "object", "any", "unknown", "null" -> "xsd:string";
+		default -> throw invalidFlowProperty("_flow.inputs.type", type, "a canonical JSON type");
 		};
+	}
+
+	// The JS contract owns safe spelling normalization, source lines and typed
+	// default conversion. Java only replays its canonical response, never coerces it.
+	static void validateFlowInputResponseMetadata(JSONObject response) throws EngineException, JSONException {
+		if (response.has("inputDefinitions")) {
+			if (!(response.get("inputDefinitions") instanceof JSONObject definitions)) {
+				throw invalidFlowProperty("inputDefinitions", response.get("inputDefinitions"), "an object of input schemas");
+			}
+			validateFlowInputDefinitions(definitions);
+		}
+		if (response.has("accessibility")) {
+			var value = response.get("accessibility");
+			if (!(value instanceof String name) || !List.of("Public", "Hidden", "Private").contains(name)) {
+				throw invalidFlowProperty("_flow.accessibility", value, "one of Public, Hidden, Private");
+			}
+		}
+		if (response.has("flowMetadata")) {
+			if (!(response.get("flowMetadata") instanceof JSONObject metadata)) {
+				throw invalidFlowProperty("flowMetadata", response.get("flowMetadata"), "an object");
+			}
+			requireFlowBoolean(metadata, "authenticatedContextRequired", "_flow");
+		}
+	}
+
+	static void validateFlowInputDefinitions(JSONObject definitions) throws EngineException, JSONException {
+		for (var keys = definitions.keys(); keys.hasNext();) {
+			var name = String.valueOf(keys.next());
+			var path = "_flow.inputs." + name;
+			if (!name.matches("[A-Za-z_][A-Za-z0-9_]*") || name.startsWith("__")) {
+				throw invalidFlowProperty(path, name, "a native input name matching [A-Za-z_][A-Za-z0-9_]* without the reserved __ prefix");
+			}
+			if (!(definitions.get(name) instanceof JSONObject definition)) {
+				throw invalidFlowProperty(path, definitions.get(name), "an input schema object");
+			}
+			flowInputType(definition, path);
+			for (var property : List.of("required", "multi", "multiValued", "isFileUpload", "nullable")) {
+				requireFlowBoolean(definition, property, path);
+			}
+			if (definition.has("description") && !(definition.get("description") instanceof String)) {
+				throw invalidFlowProperty(path + ".description", definition.get("description"), "text");
+			}
+			if (definition.has("visibility")) {
+				var value = definition.get("visibility");
+				if (!(value instanceof Number number) || !Double.isFinite(number.doubleValue())
+						|| number.doubleValue() != Math.rint(number.doubleValue())
+						|| number.doubleValue() < -1 || number.doubleValue() > 15) {
+					throw invalidFlowProperty(path + ".visibility", value, "-1 or an integer bitmask from 0 to 15");
+				}
+			}
+			if (definition.has("default")) {
+				validateFlowDefault(definition.get("default"), path + ".default");
+			}
+		}
+	}
+
+	private static String flowInputType(JSONObject schema, String path) throws EngineException, JSONException {
+		var value = schema.has("type") ? schema.get("type") : schema.has("kind") ? schema.get("kind") : "string";
+		if (value instanceof JSONArray types) {
+			if (types.length() == 0) throw invalidFlowProperty(path + ".type", value, "at least one JSON type");
+			for (int i = 0; i < types.length(); i++) requireFlowType(types.get(i), path + ".type");
+			return types.length() == 1 ? (String) types.get(0) : "any";
+		}
+		return requireFlowType(value, path + ".type");
+	}
+
+	private static String requireFlowType(Object value, String path) throws EngineException {
+		if (value instanceof String type && List.of("string", "integer", "number", "boolean", "array", "object", "any", "unknown", "null").contains(type)) return type;
+		throw invalidFlowProperty(path, value, "one of string, integer, number, boolean, array, object, any, unknown, null");
+	}
+
+	private static void requireFlowBoolean(JSONObject object, String property, String path) throws EngineException, JSONException {
+		if (object.has(property) && !(object.get(property) instanceof Boolean)) {
+			throw invalidFlowProperty(path + "." + property, object.get(property), "true or false (canonical boolean)");
+		}
+	}
+
+	private static void validateFlowDefault(Object value, String path) throws EngineException, JSONException {
+		if (value == null || value == JSONObject.NULL || value instanceof String || value instanceof Boolean) return;
+		if (value instanceof Number number && Double.isFinite(number.doubleValue())) return;
+		if (value instanceof JSONObject object) {
+			for (var keys = object.keys(); keys.hasNext();) { var key = String.valueOf(keys.next()); validateFlowDefault(object.get(key), path + "." + key); }
+			return;
+		}
+		if (value instanceof JSONArray array) {
+			for (int i = 0; i < array.length(); i++) validateFlowDefault(array.get(i), path + "[" + i + "]");
+			return;
+		}
+		throw invalidFlowProperty(path, value, "JSON literal data (finite numbers); typed default compatibility is checked by the JS contract");
+	}
+
+	private static EngineException invalidFlowProperty(String path, Object value, String expected) {
+		var given = value instanceof String text ? JSONObject.quote(text) : String.valueOf(value);
+		return new EngineException("FLOW_NATIVE_PROPERTY_INVALID: " + path + " takes " + expected + ", not " + given + ".");
 	}
 
 	private boolean setStringIfChanged(String current, String next, java.util.function.Consumer<String> setter) {
