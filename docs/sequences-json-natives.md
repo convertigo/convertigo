@@ -248,7 +248,7 @@ Ce qu'une séquence JSON native permet de supprimer :
 
 ## 7. Mesures de la maquette
 
-Banc bench-acoss (Convertigo 8.4.6 et Baserow 1.34.5 dans Docker, 46 appels de sources capturés sur 6 pages).
+Banc de mesure (Convertigo 8.4.6 et Baserow 1.34.5 dans Docker, 46 appels de sources capturés sur 6 pages).
 Moteur `perf/json-native-steps` + `javascript.shared_class_cache=true` + `cems.Context` à WARN ; lib
 `perf/aggregate-plugin` (raw_json, colonnes utiles), Baserow sans plugin (les groupes sont calculés par la séquence,
 donc par l'étape Regrouper). Seule la séquence appelée change : `formssource_GetTableData` (JavaScript),
