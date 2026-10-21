@@ -166,6 +166,13 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		databaseType = DatabaseObjectTypes.Sequence.name();
 	}
 
+    /** the classes of the beans left out when the sequence was read, unknown to this engine: the sequence does not run */
+    transient private String skippedBeans = null;
+
+    public String skippedBeans() {
+    	return skippedBeans;
+    }
+
 	@Override
     public Sequence clone() throws CloneNotSupportedException {
     	Sequence clonedObject = (Sequence) super.clone();
@@ -1095,6 +1102,11 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 
 	@Override
 	public void prepareForRequestable(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
+		if (skippedBeans != null) {
+			throw new EngineException("The sequence \"" + getName() + "\"" + (getProject() == null ? "" : " of the project \""
+					+ getProject().getName() + "\"") + " cannot run on this engine: it contains beans of classes this engine does not know (" + skippedBeans
+					+ "), ignored when the project was loaded. Run the project on an engine that knows them.");
+		}
 		currentChildStep = 0;
 		xpathApi = new TwsCachedXPathAPI(getProject());
 		copies = new HashMap<String, Step>(100);
@@ -1940,6 +1952,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     @Override
 	public void preconfigure(Element element) throws Exception {
 		super.preconfigure(element);
+
+		String skipped = element.getAttribute(com.twinsoft.convertigo.beans.BeansDefaultValues.SKIPPED_BEANS);
+		skippedBeans = skipped.isEmpty() ? null : skipped;
 		
 		String version = element.getAttribute("version");
 		
