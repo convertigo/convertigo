@@ -96,6 +96,8 @@ configurations.compileFlat {
 jar {
 	archiveBaseName = 'convertigo-engine'
 	include 'com/twinsoft/**'
+	// Rhino extension compiled in Rhino's package to reach its package-private API
+	include 'org/mozilla/javascript/MaterializedObject*.class'
 	exclude 'com/twinsoft/beans/**/*.svg'
 }
 
