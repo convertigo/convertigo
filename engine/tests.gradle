@@ -226,6 +226,15 @@ tasks.register('unknownBeanClassTest', JavaExec) {
 	args 'com.twinsoft.convertigo.beans.UnknownBeanClassTest'
 }
 
+tasks.register('sharedJavaScriptCachesTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: the shared class descriptions and the class lookups start again empty when a project is reloaded or removed.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.SharedJavaScriptCachesTest'
+}
+
 tasks.register('jsonRowStreamPageFailureTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: a Baserow page read in stream that cannot be read fails the stream instead of ending the rows.'
