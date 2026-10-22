@@ -235,6 +235,15 @@ tasks.register('sharedJavaScriptCachesTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.util.SharedJavaScriptCachesTest'
 }
 
+tasks.register('jsonGroupStepDateTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: the min and max of a date column, grouped by JsonGroupStep, follow the time order and not the year only.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.steps.JsonGroupStepDateTest'
+}
+
 tasks.register('jsonRowStreamPageFailureTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: a Baserow page read in stream that cannot be read fails the stream instead of ending the rows.'
