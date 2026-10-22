@@ -527,13 +527,25 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	return res;
 	}
     
-    private static final ClassCache sharedClassCache = new ClassCache();
+    private static volatile ClassCache sharedClassCache = new ClassCache();
 
     /**
      * The scope of a requestable. With javascript.shared_class_cache, its Java classes are described once for all
      * the requests instead of being reflected again in each new scope (the context, the DOM, the log...).
      */
     private static volatile ScriptableObject sharedStandardScope;
+
+    /**
+     * A project reloaded or removed: the shared descriptions of the Java classes (and the sealed standard scope tied to
+     * them) start again empty, so they no longer hold the classes of its former class loader, which can then be freed.
+     * The requests running keep the caches they started with.
+     */
+    public static void resetSharedJavaScriptCaches() {
+    	synchronized (RequestableObject.class) {
+    		sharedClassCache = new ClassCache();
+    		sharedStandardScope = null;
+    	}
+    }
 
     /**
      * javascript.shared_scope: the standard objects built once, sealed, shared by the native sequences; each request

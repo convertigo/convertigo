@@ -104,6 +104,7 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -557,6 +558,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 		RestApiManager.getInstance().removeUrlMapper(projectName);
 		MobileBuilder.releaseBuilder(project);
 		RequestableObject.clearUseCache(project);
+		// javascript.shared_class_cache and classloader.lookup_cache: nothing kept for the classes of this version
+		RequestableObject.resetSharedJavaScriptCaches();
+		if (Engine.getEngineClassLoader() instanceof DirClassLoader) {
+			((DirClassLoader) Engine.getEngineClassLoader()).clearLookups();
+		}
 		if (Engine.theApp.schemaManager != null) {
 			Engine.theApp.schemaManager.clearCache(projectName);
 		}

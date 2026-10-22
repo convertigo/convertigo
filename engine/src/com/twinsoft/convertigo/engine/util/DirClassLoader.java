@@ -316,6 +316,16 @@ public class DirClassLoader extends URLClassLoader {
 	private final Map<String, Object> lookups = new ConcurrentHashMap<String, Object>();
 	private static final Object MISSING = new Object();
 
+	/** forgets the classes found or not found: a project reloaded or removed may bring or take away classes */
+	public void clearLookups() {
+		lookups.clear();
+	}
+
+	/** for the tests: the number of names remembered */
+	int lookupCount() {
+		return lookups.size();
+	}
+
 	private static class MissingClassException extends ClassNotFoundException {
 		private static final long serialVersionUID = 1L;
 
