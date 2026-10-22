@@ -228,7 +228,8 @@ public class HttpUtils {
 		return httpClient;
 	}
 	
-	public static interface HttpClientInterface {
+	public static interface HttpClientInterface extends java.io.Closeable {
+		@Override default void close() throws IOException { }
 
 		CloseableHttpResponse execute(HttpUriRequest request) throws ClientProtocolException, IOException;
 		
@@ -239,6 +240,10 @@ public class HttpUtils {
 		return new HttpClientInterface() {
 			private CloseableHttpClient httpClient = null;
 			
+			@Override public synchronized void close() throws IOException {
+				if (httpClient != null) { var current = httpClient; httpClient = null; current.close(); }
+			}
+
 			private synchronized CloseableHttpClient getHttpClient4() {
 				if (httpClient == null) {
 					HttpClientBuilder httpClientBuilder = HttpClients.custom();

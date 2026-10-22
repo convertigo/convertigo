@@ -49,7 +49,7 @@ public class JsonServletRequester extends ServletRequester {
 	}
 
 	@Override
-	public Object postGetNativeJson() throws Exception { return new JsonResponse(context.nativeJsonResponse, null); }
+	public Object postGetNativeJson() throws Exception { return new JsonResponse(context.nativeJsonResponse, null, context.takeNativeRows()); }
 
 	@Override
 	public String postGetDocument(Document document) throws Exception {

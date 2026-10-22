@@ -30,29 +30,8 @@ public class NativeJsonRequester extends InternalRequester {
 			result = processRequest();
 		}
 		try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "caller-conversion", "")) {
-			return toScriptable(result, ScriptableObject.getTopLevelScope(scope));
+			return com.twinsoft.convertigo.engine.util.DetachedJson.toScriptable(result, ScriptableObject.getTopLevelScope(scope));
 		}
-	}
-	private static Object toScriptable(Object value, Scriptable scope) throws Exception {
-		var javascript = org.mozilla.javascript.Context.getCurrentContext();
-		if (value instanceof JSONObject object) {
-			var result = javascript.newObject(scope);
-			for (var keys = object.keys(); keys.hasNext();) {
-				var key = (String) keys.next();
-				// Define an own data property: __proto__ is JSON data, never a prototype setter.
-				ScriptableObject.defineProperty(result, key, toScriptable(object.get(key), scope), ScriptableObject.EMPTY);
-			}
-			return result;
-		}
-		if (value instanceof JSONArray array) {
-			var items = new Object[array.length()];
-			for (int i = 0; i < items.length; i++) items[i] = toScriptable(array.get(i), scope);
-			return javascript.newArray(scope, items);
-		}
-		if (value == null || value == JSONObject.NULL || value == JSONObject.EXPLICIT_NULL) return null;
-		if (value instanceof Number number) return number.doubleValue();
-		if (value instanceof String || value instanceof Boolean) return value;
-		throw new IllegalArgumentException("Expected a JSON result, received " + value.getClass().getName());
 	}
 	@Override public boolean acceptNativeJson() { return true; }
 	@Override public Object postGetNativeJson() throws Exception {

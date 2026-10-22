@@ -1844,7 +1844,7 @@ public class FlowEngineBridge {
 		var generation = callGeneration(request, convertigoContext);
 		FlowPackages.bind(cx, engineScope, generation);
 		try {
-			return invokeBound(engineRef, engineSource, method, request, cx, engineScope, engineObject, runtimeLookup);
+			return invokeBound(engineRef, engineSource, method, request, cx, engineScope, engineObject, runtimeLookup, generation);
 		} finally {
 			FlowPackages.restore(engineScope, generation);
 		}
@@ -1873,7 +1873,7 @@ public class FlowEngineBridge {
 
 	private JSONObject invokeBound(EngineRef engineRef, CachedEngineSource engineSource, String method, JSONObject request,
 			org.mozilla.javascript.Context cx, Scriptable engineScope, Scriptable engineObject,
-			CachedEngineRuntimeLookup runtimeLookup) throws EngineException {
+			CachedEngineRuntimeLookup runtimeLookup, ClassLoader generation) throws EngineException {
 		var projectDir = request.optString("projectDir", "");
 		engineScope.put("__flowProjectDir", engineScope, projectDir);
 		engineScope.put("__flowBridgeClassSource", engineScope, bridgeClassSource());
@@ -1918,7 +1918,7 @@ public class FlowEngineBridge {
 			throw new EngineException("Flow engine \"" + engineRef.qname + "\" does not expose method \"" + method + "\".");
 		}
 
-		var detacher = objectResult ? new ResultDetacher(engineScope) : null;
+		var detacher = objectResult ? new ResultDetacher(engineScope, generation) : null;
 		String inputJson;
 		try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "input-encode", method)) {
 			inputJson = request.toString();
@@ -1942,7 +1942,8 @@ public class FlowEngineBridge {
 		private static final long serialVersionUID = 1L;
 		private JSONObject value;
 		private Object token;
-		ResultDetacher(Scriptable scope) {
+		ResultDetacher(Scriptable scope) { this(scope, null); }
+		ResultDetacher(Scriptable scope, ClassLoader generation) {
 			setParentScope(scope);
 			setPrototype(ScriptableObject.getFunctionPrototype(scope));
 			var sanitized = new org.mozilla.javascript.BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
@@ -1960,6 +1961,31 @@ public class FlowEngineBridge {
 				}
 			};
 			defineProperty("sanitize", sanitized, ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
+			var rows = new org.mozilla.javascript.BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
+				private static final long serialVersionUID = 1L;
+				@Override public Object call(org.mozilla.javascript.Context cx, Scriptable callScope, Scriptable thisObj, Object[] args) {
+					if (args.length != 3 || !(args[2] instanceof org.mozilla.javascript.Callable policy))
+						throw org.mozilla.javascript.Context.reportRuntimeError("A registered row plan is required");
+					com.twinsoft.convertigo.engine.flow.rows.ResultDocument document = null;
+					try {
+						var envelope = com.twinsoft.convertigo.engine.util.SanitizedJson.object(args[0], cx, callScope, policy);
+						var plan = com.twinsoft.convertigo.engine.util.SanitizedJson.object(args[1], cx, callScope, policy);
+						document = com.twinsoft.convertigo.engine.flow.rows.RowPlanFactory.create(plan, generation);
+						value = new com.twinsoft.convertigo.engine.flow.rows.StreamResult(envelope, document);
+						return token = org.mozilla.javascript.Context.javaToJS(value, callScope);
+					} catch (Exception error) {
+						if (document != null) try { document.close(); } catch (Exception ignored) { }
+						// A plan can contain credentials. Do not retain an exception with that plan or URL.
+						var failure = cx.newObject(callScope);
+						ScriptableObject.putProperty(failure,"code","ROW_STREAM_PLAN");
+						ScriptableObject.putProperty(failure,"message","Unable to prepare bounded row result");
+						ScriptableObject.putProperty(failure,"status",error instanceof com.twinsoft.convertigo.engine.flow.rows.RowStreamException bounded ? bounded.status() : 400);
+						throw new org.mozilla.javascript.JavaScriptException(failure,"row-result",0);
+					}
+				}
+			};
+			defineProperty("rows", rows, ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
+
 		}
 		@Override public Object call(org.mozilla.javascript.Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
 			try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "detach", "")) {

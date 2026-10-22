@@ -144,6 +144,21 @@ public class Flow extends Sequence {
 		try {
 			var response = new FlowEngineBridge().run(this, requestContext, null, null);
 			var bridgeFinished = System.nanoTime();
+			if (response instanceof com.twinsoft.convertigo.engine.flow.rows.StreamResult streamed) {
+				var document = streamed.take();
+				if (requestContext.nativeJson && requester instanceof com.twinsoft.convertigo.engine.requesters.JsonServletRequester) {
+					requestContext.nativeRows = document;
+				} else {
+					// Decide the adapter before the first pull: XML, internal calls, REST
+					// options, cache and billable paths consume once under explicit bounds.
+					try (document) { response.put("result", document.collect()); }
+					catch (com.twinsoft.convertigo.engine.flow.rows.RowStreamException error) {
+						if (error.status() == 200) response.put("result", error.response());
+						else response = new JSONObject().put("ok", false).put("error", error.error());
+					}
+				}
+			}
+
 
 			if (response.optBoolean("ok", false)) {
 				var result = response.has("result") ? response.get("result") : new JSONObject();
@@ -160,6 +175,9 @@ public class Flow extends Sequence {
 				if (nativeResult != null) {
 					requestContext.nativeJsonResponse = nativeResult;
 				} else {
+					if (requestContext.nativeRows != null) {
+						try (var document = requestContext.takeNativeRows()) { result = document.collect(); }
+					}
 					XMLUtils.jsonToXml(result, null, ensureOutputDocument().getDocumentElement(), true, true, false, arrayItem);
 				}
 			} else {
@@ -180,6 +198,8 @@ public class Flow extends Sequence {
 				Engine.logBeans.info("(Flow) Profile for " + getQName() + ": " + com.twinsoft.convertigo.engine.flow.FlowProfileSummary.summarize(profile));
 			}
 		} catch (Exception e) {
+			var rows = requestContext.takeNativeRows();
+			if (rows != null) try { rows.close(); } catch (Exception ignored) { }
 			throw new EngineException("Unable to run flow \"" + getName() + "\".", e);
 		}
 	}

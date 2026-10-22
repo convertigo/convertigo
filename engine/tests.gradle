@@ -356,6 +356,19 @@ tasks.register('sanitizedResultBoundaryTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'sanitizedResultBoundaryTest' }
 
+tasks.register('rowStreamingTest', JavaExec) {
+	group = 'verification'
+	description = 'Bounded row response ownership, precommit errors, partial failures and cancellation.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.ResultDocumentTest',
+		'com.twinsoft.convertigo.engine.flow.PagedJsonRowsTest',
+		'com.twinsoft.convertigo.engine.flow.RowProducerRuntimeTest',
+		'com.twinsoft.convertigo.engine.flow.RowResponseLifecycleTest'
+}
+tasks.named('check') { dependsOn 'rowStreamingTest' }
+
 tasks.register('requestScopedStudioContextTest', JavaExec) {
 	group = 'verification'
 	description = 'Stateless HTTP requests retain independent context locks in Studio mode.'

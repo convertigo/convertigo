@@ -196,8 +196,16 @@ public class Context extends AbstractContext implements Cloneable {
 	public transient Map<String, Object> nativeInput;
 	public transient org.codehaus.jettison.json.JSONObject nativeJsonResponse;
 	public transient org.codehaus.jettison.json.JSONObject nativeJsonAttributes;
+	public transient com.twinsoft.convertigo.engine.flow.rows.ResultDocument nativeRows;
+	public com.twinsoft.convertigo.engine.flow.rows.ResultDocument takeNativeRows() {
+		var value = nativeRows; nativeRows = null; return value;
+	}
+
 
 	public void reset() {
+		var rows = takeNativeRows();
+		if (rows != null) try { rows.close(); } catch (java.io.IOException ignored) { }
+
 		nativeJson = false;
 		nativeInput = null;
 		nativeJsonResponse = null;
