@@ -226,6 +226,15 @@ tasks.register('unknownBeanClassTest', JavaExec) {
 	args 'com.twinsoft.convertigo.beans.UnknownBeanClassTest'
 }
 
+tasks.register('oldProjectNoMigrationTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a project of an older engine with sequences loads without migration and saves the same file.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.OldProjectNoMigrationTest'
+}
+
 tasks.register('billingInternalCallsTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test for the billing tickets of the internal calls, classic and native.'
