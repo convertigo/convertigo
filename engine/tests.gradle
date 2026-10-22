@@ -418,3 +418,14 @@ tasks.register('flowMetadataCacheTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.flow.FlowMetadataCacheTest', 'com.twinsoft.convertigo.engine.flow.FlowEngineBridgeCacheTest'
 }
 tasks.named('check') { dependsOn 'flowMetadataCacheTest' }
+
+
+tasks.register('flowServerCacheTest', JavaExec) {
+    group = 'verification'
+    description = 'Shared compiled modules, isolated exports and bounded source revision caches.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'org.junit.runner.JUnitCore'
+    args 'com.twinsoft.convertigo.engine.flow.FlowServerCacheTest'
+}
+tasks.named('check') { dependsOn 'flowServerCacheTest' }

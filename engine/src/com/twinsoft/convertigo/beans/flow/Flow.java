@@ -87,6 +87,7 @@ public class Flow extends Sequence {
 	private boolean includeTrace = false;
 	private transient String flowSourceDraft = null;
 	private transient long flowSourceFileLastModified = -1;
+	private transient String serverSourceFingerprint;
 	private transient String flowInputSyncSource = null;
 	private transient boolean flowInputSyncing = false;
 	/** the accessibility declared by _flow.accessibility, which replaces the property while the source declares it */
@@ -265,6 +266,12 @@ public class Flow extends Sequence {
 	}
 
 	@Override
+	public boolean getAuthenticatedContextRequired() {
+		synchronizeFlowInputs();
+		return super.getAuthenticatedContextRequired();
+	}
+
+	@Override
 	public boolean isPublicAccessibility() {
 		return getAccessibility() == Accessibility.Public;
 	}
@@ -372,7 +379,7 @@ public class Flow extends Sequence {
 			flowInputSyncSource = source;
 			return;
 		}
-		if (Boolean.FALSE.equals(hasDeclaredFlowInputs(source))) {
+		if (Engine.isStudioMode() && Boolean.FALSE.equals(hasDeclaredFlowInputs(source))) {
 			declaredAccessibility = null;
 			flowInputSyncSource = source;
 			return;
@@ -382,6 +389,10 @@ public class Flow extends Sequence {
 			var response = new FlowEngineBridge().syncInputs(this);
 			if (response.optBoolean("ok", false)) {
 				validateFlowInputResponseMetadata(response);
+				var metadata = response.optJSONObject("flowMetadata");
+				if (metadata != null && metadata.has("authenticatedContextRequired")) {
+					setAuthenticatedContextRequired(metadata.getBoolean("authenticatedContextRequired"));
+				}
 				var inputDefinitions = response.optJSONObject("inputDefinitions");
 				var hasInputs = inputDefinitions != null && inputDefinitions.length() > 0;
 				if (hasInputs) {
@@ -767,6 +778,16 @@ public class Flow extends Sequence {
 
 	private void loadFlowSourceFile() {
 		var file = getFlowSourceFile();
+		if (file != null && Engine.theApp != null && !Engine.isStudioMode()) {
+			try {
+				var fingerprint = FlowEngineBridge.serverFileFingerprint(file);
+				if (fingerprint.startsWith("missing:") || fingerprint.equals(serverSourceFingerprint)) return;
+				flowSource = FlowEngineBridge.readSourceFile(file);
+				serverSourceFingerprint = fingerprint;
+				clearFlowVirtualChildrenCache();
+			} catch (Exception e) { Engine.logBeans.warn("Unable to read requestable source file.", e); }
+			return;
+		}
 		if (file == null || !file.isFile()) {
 			return;
 		}
@@ -796,6 +817,8 @@ public class Flow extends Sequence {
 			flowSource = source;
 			flowSourceDraft = null;
 			flowSourceFileLastModified = file.lastModified();
+			FlowEngineBridge.invalidateProjectDataCaches(getProject().getDirPath());
+			serverSourceFingerprint = null;
 			clearFlowVirtualChildrenCache();
 			var legacyFile = new File(file.getParentFile(), getName() + ".flow.yaml");
 			if (legacyFile != null && legacyFile.isFile()) {

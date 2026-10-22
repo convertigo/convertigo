@@ -78,6 +78,8 @@ public class FlowEngineBridge {
 	private static final AtomicLong cacheGeneration = new AtomicLong();
 	private static final AtomicLong dataGeneration = new AtomicLong();
 	private static final Map<String, AtomicLong> sourceRevisions = new ConcurrentHashMap<>();
+	private static final FlowCompiledScriptCache compiledModules = new FlowCompiledScriptCache(256);
+	private static final FlowSourceCache serverSources = new FlowSourceCache(2048, 60_000);
 	private static final FlowMetadataCache sharedMetadata = new FlowMetadataCache(1024, 16 * 1024 * 1024);
 	private static final LongAdder methodResponseCacheHits = new LongAdder();
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
@@ -243,6 +245,8 @@ public class FlowEngineBridge {
 	}
 
 	public static void clearCaches() {
+		compiledModules.clear();
+		serverSources.clear();
 		sharedMetadata.clear();
 		var runtimes = new ArrayList<CachedEngineRuntime>();
 		synchronized (engineRuntimeCacheLock) {
@@ -276,6 +280,7 @@ public class FlowEngineBridge {
 	}
 
 	private static void advanceDataGeneration() {
+		serverSources.clear();
 		dataGeneration.incrementAndGet();
 		rootFingerprints.clear();
 		clearMethodResponseCache();
@@ -286,7 +291,24 @@ public class FlowEngineBridge {
 		return sharedMetadata.get(key, cacheGeneration.get() + ":" + revision, builder);
 	}
 
-	public static void clearSharedMetadata() { sharedMetadata.clear(); }
+	/** Compile once across overflow runtimes; evaluating the script still creates caller-owned exports. */
+	public static Object evalSharedModule(org.mozilla.javascript.Context cx, Scriptable scope, String source, String name) {
+		if (RhinoUtils.debugMode) return RhinoUtils.evalInterpretedJavascript(cx, scope, source, name, 1, null);
+		var interpreted = cx.isInterpretedMode();
+		try { cx.setInterpretedMode(false); return compiledModules.get(cx, source, name).exec(cx, scope); }
+		finally { cx.setInterpretedMode(interpreted); }
+	}
+	public static String serverFileFingerprint(File file) throws java.io.IOException {
+		return Engine.theApp == null || Engine.isStudioMode() ? null : serverSources.fingerprint(file);
+	}
+	public static String readSourceFile(File file) throws java.io.IOException {
+		return Engine.theApp == null || Engine.isStudioMode() ? FileUtils.readFileToString(file, java.nio.charset.StandardCharsets.UTF_8) : serverSources.text(file);
+	}
+	public static String serverDirectoryFingerprint(File file, java.util.function.Supplier<String> compute) {
+		return Engine.theApp == null || Engine.isStudioMode() ? compute.get() : serverSources.directory(file, compute);
+	}
+
+	public static void clearSharedMetadata() { sharedMetadata.clear(); serverSources.clear(); }
 
 	public static long cacheGeneration() {
 		return cacheGeneration.get();
@@ -475,9 +497,14 @@ public class FlowEngineBridge {
 			var request = baseRequest(engineQName, flow == null ? "" : flow.getFlowSource(), flow == null ? "" : flow.getQName(), null)
 					.put("flowName", flow == null ? "" : flow.getName())
 					.put("project", flow == null || flow.getProject() == null ? "" : flow.getProject().getName())
-					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath());
-			return invoke(engineQName, "syncInputs", request, null, null, null);
-		} catch (JSONException e) {
+					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath())
+					.put("metadataOnly", !Engine.isStudioMode());
+			if (Engine.isStudioMode()) return invoke(engineQName, "syncInputs", request, null, null, null);
+			var revision = org.apache.commons.codec.digest.DigestUtils.sha256Hex(request.toString()) + ":" + dataGeneration.get();
+			var result = sharedMetadata("input-contract\n" + engineQName + "\n" + request.optString("projectDir") + "\n" + request.optString("flowName"), revision,
+					() -> invoke(engineQName, "syncInputs", request, null, null, null).toString());
+			return new JSONObject(result);
+		} catch (Exception e) {
 			throw new EngineException("Unable to build Flow input synchronization request.", e);
 		}
 	}
