@@ -226,6 +226,15 @@ tasks.register('unknownBeanClassTest', JavaExec) {
 	args 'com.twinsoft.convertigo.beans.UnknownBeanClassTest'
 }
 
+tasks.register('jsonRowStreamPageFailureTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a Baserow page read in stream that cannot be read fails the stream instead of ending the rows.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.json.JsonRowStreamPageFailureTest'
+}
+
 tasks.register('oldProjectNoMigrationTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: a project of an older engine with sequences loads without migration and saves the same file.'

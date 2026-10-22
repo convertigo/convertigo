@@ -255,15 +255,19 @@ public class JsonRowStream {
 		} catch (IOException e) {
 			throw new StreamFailure("Baserow page " + page + " could not be read: " + e.getMessage());
 		}
+		// a page that was asked is read, or the stream fails: an HTTP error, an empty or not JSON answer, a page without
+		// rows must not end the rows silently with the ones read so far
+		int status = response.statusCode();
+		boolean results = false;
 		try (InputStream body = response.body(); JsonParser parser = JSON_FACTORY.createParser(body)) {
 			if (parser.nextToken() != JsonToken.START_OBJECT) {
-				// not an object: no rows and no next page, like a JSON.parse that gives no results
-				return;
+				throw new StreamFailure("Baserow page " + page + " could not be read" + (status >= 400 ? " (HTTP " + status + ")" : ""));
 			}
 			while (parser.nextToken() == JsonToken.FIELD_NAME) {
 				String name = parser.getCurrentName();
 				JsonToken token = parser.nextToken();
-				if (name.equals("results") && token == JsonToken.START_ARRAY) {
+				if (name.equals("results") && token == JsonToken.START_ARRAY && status < 400) {
+					results = true;
 					while (parser.nextToken() != JsonToken.END_ARRAY) {
 						if (rowsRead >= maxRows || parser.currentToken() != JsonToken.START_OBJECT) {
 							parser.skipChildren();
@@ -280,6 +284,9 @@ public class JsonRowStream {
 				} else {
 					parser.skipChildren();
 				}
+			}
+			if (!results) {
+				throw new StreamFailure("Baserow page " + page + " could not be read" + (status >= 400 ? " (HTTP " + status + ")" : ""));
 			}
 		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
 			// an unreadable page: formssource_GetTableData would read no row of it and stop
