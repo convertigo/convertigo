@@ -32,11 +32,14 @@ import org.mozilla.javascript.xml.XMLObject;
  * The provider must apply its result/handle policy before this boundary.
  */
 public final class DetachedJson {
+	/** Containers constructed by the result boundary, with ordinary JSON options. */
+	public static final class ObjectValue extends JSONObject { }
+	public static final class ArrayValue extends JSONArray { }
 	private final Context cx;
 	private final Scriptable scope;
 	private final IdentityHashMap<Object, Boolean> ancestors = new IdentityHashMap<>();
 
-	private DetachedJson(Context cx, Scriptable scope) { this.cx = cx; this.scope = scope; }
+	DetachedJson(Context cx, Scriptable scope) { this.cx = cx; this.scope = scope; }
 
 	public static JSONObject object(Object value, Context cx, Scriptable scope) throws JSONException {
 		var detached = new DetachedJson(cx, scope).copy(value, "");
@@ -44,7 +47,7 @@ public final class DetachedJson {
 		throw new JSONException("Execution result must be a JSON object");
 	}
 
-	private Object copy(Object value, String key) throws JSONException {
+	Object copy(Object value, String key) throws JSONException {
 		if (value instanceof Scriptable scriptable) {
 			var toJson = ScriptableObject.getProperty(scriptable, "toJSON");
 			if (toJson instanceof Callable callable) value = callable.call(cx, scope, scriptable, new Object[] {key});
@@ -95,7 +98,7 @@ public final class DetachedJson {
 		enter(scriptable);
 		try {
 			if (scriptable instanceof NativeArray array) {
-				var out = new JSONArray();
+				var out = new ArrayValue();
 				long length = array.getLength();
 				for (long i = 0; i < length; i++) {
 					var item = i <= Integer.MAX_VALUE ? ScriptableObject.getProperty(array, (int) i)
@@ -109,7 +112,7 @@ public final class DetachedJson {
 	}
 
 	private JSONObject copyProperties(Scriptable value) throws JSONException {
-		var out = new JSONObject();
+		var out = new ObjectValue();
 		for (var id : value.getIds()) {
 			if (id instanceof Symbol) continue;
 			var name = id.toString();
@@ -137,7 +140,7 @@ public final class DetachedJson {
 				return copyProperties(object);
 			}
 			if (value instanceof Collection<?> || value.getClass().isArray()) {
-				var out = new JSONArray();
+				var out = new ArrayValue();
 				if (value instanceof Collection<?> collection) {
 					int i = 0;
 					for (var item : collection) out.put(arrayValue(copy(Context.javaToJS(item, scope), Integer.toString(i++))));

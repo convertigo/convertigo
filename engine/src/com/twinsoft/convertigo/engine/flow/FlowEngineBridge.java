@@ -1945,6 +1945,21 @@ public class FlowEngineBridge {
 		ResultDetacher(Scriptable scope) {
 			setParentScope(scope);
 			setPrototype(ScriptableObject.getFunctionPrototype(scope));
+			var sanitized = new org.mozilla.javascript.BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
+				private static final long serialVersionUID = 1L;
+				@Override public Object call(org.mozilla.javascript.Context cx, Scriptable callScope, Scriptable thisObj, Object[] args) {
+					if (args.length != 2 || !(args[1] instanceof org.mozilla.javascript.Callable policy)) {
+						throw org.mozilla.javascript.Context.reportRuntimeError("A result sanitization policy is required");
+					}
+					try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "sanitize-detach", "")) {
+						value = com.twinsoft.convertigo.engine.util.SanitizedJson.object(args[0], cx, callScope, policy);
+						return token = org.mozilla.javascript.Context.javaToJS(value, callScope);
+					} catch (JSONException e) {
+						throw org.mozilla.javascript.Context.throwAsScriptRuntimeEx(e);
+					}
+				}
+			};
+			defineProperty("sanitize", sanitized, ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
 		}
 		@Override public Object call(org.mozilla.javascript.Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
 			try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "detach", "")) {

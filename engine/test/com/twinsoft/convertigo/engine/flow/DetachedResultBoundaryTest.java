@@ -121,6 +121,20 @@ public class DetachedResultBoundaryTest {
 		catch (IOException expected) { assertTrue(expected.getCause() instanceof org.codehaus.jettison.json.JSONException); }
 		assertTrue(closed[0]);
 	}
+	@Test public void directWriterMatchesEstablishedEscapingAndContainerOptions() throws Exception {
+		var text = new StringBuilder();
+		for (int c = 0; c <= Character.MAX_VALUE; c++) text.append((char) c);
+		var object = new DetachedJson.ObjectValue();
+		var array = new DetachedJson.ArrayValue();
+		object.put("key/\"\\\u2028", array);
+		array.put(text.toString()).put(JSONObject.EXPLICIT_NULL).put(false).put(1.5).put(1000000000000000100L);
+		for (boolean slash : new boolean[] {true, false}) {
+			object.setEscapeForwardSlashAlways(slash); array.setEscapeForwardSlashAlways(slash);
+			var legacy = new StringWriter(); object.write(legacy);
+			var direct = new StringWriter(); new JsonResponse(object, null).writeTo(direct);
+			assertEquals(legacy.toString(), direct.toString());
+		}
+	}
 
 	@Test public void bridgeReturnsScopesOnSuccessDetachmentFailureAndEngineFailure() throws Exception {
 		Engine.logEngine = Engine.logBeans = Engine.logContext = org.apache.log4j.Logger.getLogger("detached-test");

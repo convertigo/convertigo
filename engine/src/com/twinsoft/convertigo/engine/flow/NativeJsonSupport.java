@@ -63,7 +63,8 @@ public final class NativeJsonSupport {
 		if (value instanceof JSONObject object && object.length() > 0) {
 			if (!object.has("attr")) return object;
 			// XmlToJson removes the document's attr field, even when a result supplied one.
-			var projected = new JSONObject();
+			var projected = value instanceof com.twinsoft.convertigo.engine.util.DetachedJson.ObjectValue
+					? new com.twinsoft.convertigo.engine.util.DetachedJson.ObjectValue() : new JSONObject();
 			for (var keys = object.keys(); keys.hasNext();) {
 				var key = (String) keys.next(); if (!"attr".equals(key)) projected.put(key, object.get(key));
 			}

@@ -346,6 +346,16 @@ tasks.register('detachedResultBoundaryTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'detachedResultBoundaryTest' }
 
+tasks.register('sanitizedResultBoundaryTest', JavaExec) {
+	group = 'verification'
+	description = 'Fused result policy, exotic fallbacks and owning-realm isolation.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.SanitizedResultBoundaryTest'
+}
+tasks.named('check') { dependsOn 'sanitizedResultBoundaryTest' }
+
 tasks.register('requestScopedStudioContextTest', JavaExec) {
 	group = 'verification'
 	description = 'Stateless HTTP requests retain independent context locks in Studio mode.'

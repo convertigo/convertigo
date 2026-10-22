@@ -27,7 +27,7 @@ public final class JsonResponse {
 	public void writeTo(Writer writer) throws IOException {
 		try {
 			if (callback != null) { writer.write(callback); writer.write('('); }
-			value.write(writer);
+			com.twinsoft.convertigo.engine.util.DetachedJsonWriter.write(value, writer);
 			if (callback != null) writer.write(");");
 		} catch (JSONException e) { throw new IOException("Unable to serialize JSON response", e); }
 	}
