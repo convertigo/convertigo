@@ -20,11 +20,16 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -54,15 +59,22 @@ public class JsonGroupStep extends JsonTransformStep {
 		setVariableName("groups");
 	}
 
+	private static final Pattern DATE = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+	private static final Pattern DATE_TIME = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})[T ](\\d{2}:\\d{2})(?::(\\d{2}))?(?:\\.(\\d{1,9}))?(Z|[+-]\\d{2}:?\\d{2})?");
+	private static final DateTimeFormatter UTC_KEY = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS'Z'");
+
 	private static final class Spec {
 		String type;
 		Object column, key, label, field;
 		String keyText, columnText;
+		/** a min or max of a date column, compared in time order */
+		boolean date;
 	}
 
 	private static final class State {
 		Object value;
 		Double numericValue;
+		String dateKey;
 		double sum;
 		int count;
 	}
@@ -118,6 +130,42 @@ public class JsonGroupStep extends JsonTransformStep {
 		return null;
 	}
 
+	/**
+	 * getDateSortKey: a date of Baserow ("2024-03-05", "2024-03-05T08:07:00.123456Z") as a text that sorts in time
+	 * order, the seconds and their fraction completed, the time in UTC; null for any other value.
+	 */
+	static String dateSortKey(Object value) {
+		String text = JsonData.toStr(value);
+		if (DATE.matcher(text).matches()) {
+			return text;
+		}
+		Matcher m = DATE_TIME.matcher(text);
+		if (!m.matches()) {
+			return null;
+		}
+		String seconds = m.group(3) != null ? m.group(3) : "00";
+		String fraction = ((m.group(4) != null ? m.group(4) : "") + "000000000").substring(0, 9);
+		String zone = m.group(5);
+		if (zone == null || zone.equals("Z") || zone.matches("[+-]00:?00")) {
+			return m.group(1) + "T" + m.group(2) + ":" + seconds + "." + fraction + "Z";
+		}
+		try {
+			String offset = zone.length() == 5 ? zone.substring(0, 3) + ":" + zone.substring(3) : zone;
+			OffsetDateTime time = OffsetDateTime.parse(m.group(1) + "T" + m.group(2) + ":" + seconds + "." + fraction + offset);
+			return time.withOffsetSameInstant(ZoneOffset.UTC).format(UTC_KEY);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	/** getAggregationFieldKind == "date": a date, created on, last modified or date formula column */
+	private static boolean isDateField(Object field) {
+		Object type = JsonData.get(field, "type");
+		String kind = JsonData.looseEq(type, "formula") || JsonData.looseEq(type, "lookup") ?
+				JsonData.toStr(JsonData.get(field, "formula_type")) : JsonData.toStr(type);
+		return kind.equals("date") || kind.equals("created_on") || kind.equals("last_modified");
+	}
+
 	/** updateAggregationState */
 	private void update(State state, Spec spec, Object cell) {
 		if (spec.type.equals("count")) {
@@ -136,6 +184,15 @@ public class JsonGroupStep extends JsonTransformStep {
 			state.sum += number;
 			state.count++;
 			state.value = spec.type.equals("sum") ? state.sum : state.sum / state.count;
+			return;
+		}
+		// a date in time order (as a number it was its year only: parseFloat("2024-03-05") is 2024)
+		String dateKey = spec.date ? dateSortKey(value) : null;
+		if (dateKey != null) {
+			if (state.dateKey == null || (spec.type.equals("min") ? dateKey.compareTo(state.dateKey) < 0 : dateKey.compareTo(state.dateKey) > 0)) {
+				state.value = value;
+				state.dateKey = dateKey;
+			}
 			return;
 		}
 		Double number = numeric(value);
@@ -173,6 +230,7 @@ public class JsonGroupStep extends JsonTransformStep {
 			}
 			Object field = fieldsByName.get(spec.columnText);
 			spec.field = field;
+			spec.date = (spec.type.equals("min") || spec.type.equals("max")) && isDateField(field);
 			Object fieldType = JsonData.get(field, "type");
 			boolean formula = false;
 			for (String t : new String[] { "formula", "count", "rollup", "lookup" }) {
@@ -197,6 +255,16 @@ public class JsonGroupStep extends JsonTransformStep {
 		List<String> columns = JsonData.strings(eval(javascriptContext, scope, groupColumns, "groupColumns"));
 		List<Object> aggregationList = JsonData.list(eval(javascriptContext, scope, aggregations, "aggregations"));
 		List<Object> fields = JsonData.list(eval(javascriptContext, scope, schema, "schema"));
+		String[] error = new String[1];
+		List<Object> result = group(rows, columns, aggregationList, fields, error);
+		if (columns != null && rows != null && errorVariableName != null && !errorVariableName.isEmpty()) {
+			scope.put(errorVariableName, scope, error[0]);
+		}
+		return result;
+	}
+
+	/** the groups of the rows, error[0] the message of an invalid aggregation (then no rows) */
+	List<Object> group(List<Object> rows, List<String> columns, List<Object> aggregationList, List<Object> fields, String[] error) {
 		if (columns == null || rows == null) {
 			return rows;
 		}
@@ -213,11 +281,8 @@ public class JsonGroupStep extends JsonTransformStep {
 				specs.add(spec);
 			}
 		}
-		String error = fields != null ? check(specs, fields) : null;
-		if (errorVariableName != null && !errorVariableName.isEmpty()) {
-			scope.put(errorVariableName, scope, error);
-		}
-		if (error != null) {
+		error[0] = fields != null ? check(specs, fields) : null;
+		if (error[0] != null) {
 			return new ArrayList<Object>(0);
 		}
 		Map<String, Group> groups = new LinkedHashMap<String, Group>();
