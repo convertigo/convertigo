@@ -154,7 +154,8 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	protected void doRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		try (var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("servlet", getClass().getSimpleName())) {
+		try (var attribution = com.twinsoft.convertigo.engine.util.AllocationTrace.beginRequest();
+				var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("servlet", getClass().getSimpleName())) {
 			doRequestWithTiming(request, response);
 		}
 	}

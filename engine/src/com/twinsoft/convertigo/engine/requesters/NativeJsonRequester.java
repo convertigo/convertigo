@@ -25,7 +25,13 @@ public class NativeJsonRequester extends InternalRequester {
 	@Override public String getName() { return "NativeJsonRequester"; }
 	/** Copy JSON values into the caller's realm without serializing and parsing them again. */
 	public Object processRequestAsObject(Scriptable scope) throws Exception {
-		return toScriptable(processRequest(), ScriptableObject.getTopLevelScope(scope));
+		Object result;
+		try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "internal-call", "")) {
+			result = processRequest();
+		}
+		try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "caller-conversion", "")) {
+			return toScriptable(result, ScriptableObject.getTopLevelScope(scope));
+		}
 	}
 	private static Object toScriptable(Object value, Scriptable scope) throws Exception {
 		var javascript = org.mozilla.javascript.Context.getCurrentContext();

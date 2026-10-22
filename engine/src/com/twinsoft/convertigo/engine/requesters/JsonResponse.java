@@ -17,7 +17,8 @@ public final class JsonResponse {
 	public JsonResponse(JSONObject value, String callback) { this.value = value; this.callback = callback; }
 	/** Own the servlet writer and detect errors swallowed by PrintWriter. */
 	public void writeToResponse(PrintWriter output) throws IOException {
-		try (Writer writer = new BufferedWriter(output)) {
+		try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "write", "");
+				Writer writer = new BufferedWriter(output)) {
 			writeTo(writer);
 			writer.flush();
 			if (output.checkError()) throw new IOException("JSON response connection failed");

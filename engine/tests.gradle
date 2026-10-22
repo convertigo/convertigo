@@ -355,3 +355,13 @@ tasks.register('requestScopedStudioContextTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.RequestScopedStudioContextTest'
 }
 tasks.named('check') { dependsOn 'requestScopedStudioContextTest' }
+
+tasks.register('allocationAttributionTest', JavaExec) {
+	group = 'verification'
+	description = 'Optional allocation attribution, exclusive spans, concurrent workers and cleanup.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.AllocationTraceTest'
+}
+tasks.named('check') { dependsOn 'allocationAttributionTest' }

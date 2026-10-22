@@ -143,7 +143,8 @@ public class RestApiServlet extends GenericServlet {
 
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		try (var trace = com.twinsoft.convertigo.engine.util.TimingTrace.open("servlet", "RestApiServlet");
+		try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.beginRequest();
+				var trace = com.twinsoft.convertigo.engine.util.TimingTrace.open("servlet", "RestApiServlet");
 				var logContext = Log4jHelper.mdcScope()) {
 			serviceWithContext(request, response);
 		}

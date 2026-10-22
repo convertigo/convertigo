@@ -901,6 +901,12 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		}
 
 		private void runWithMdc() {
+			try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "worker", getQName())) {
+				runWithDiagnostics();
+			}
+		}
+
+		private void runWithDiagnostics() {
 			var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("worker", getQName());
         	context.statistics.stop(workerThreadCreationStatistic);
         	

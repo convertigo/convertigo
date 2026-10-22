@@ -442,6 +442,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		JAVASCRIPT_SHARED_CLASS_CACHE ("javascript.shared_class_cache", "false", "Share Rhino Java reflection metadata between requests of the same project class loader", PropertyCategory.Main),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
+		TIMING_TRACE_ALLOCATIONS ("timing.trace.allocations", "false", "Attribute allocations by node and boundary (diagnostic)", PropertyCategory.Logs),
 		TIMING_TRACE ("timing.trace", "false", "Log request durations, allocated bytes and XML document counts (diagnostic)", PropertyCategory.Logs),
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
@@ -933,6 +934,19 @@ public class EnginePropertiesManager {
 		}
 	}
 
+	private static volatile boolean allocationTraceEnabled;
+
+	/** A diagnostic request guard must not resolve properties or allocate on each call. */
+	public static boolean isAllocationTraceEnabled() { return allocationTraceEnabled; }
+
+	private static void refreshAllocationTraceEnabled() {
+		try {
+			allocationTraceEnabled = properties != null && getPropertyAsBoolean(PropertyName.TIMING_TRACE_ALLOCATIONS);
+		} catch (RuntimeException e) {
+			allocationTraceEnabled = false;
+		}
+	}
+
 	public static boolean getPropertyAsBoolean(PropertyName property) {
 		return "true".equals(getProperty(property, true));
 	}
@@ -1038,6 +1052,7 @@ public class EnginePropertiesManager {
 			}
 			exvalue = (String) properties.put(property.getKey(), value);
 		}
+		refreshAllocationTraceEnabled();
 		if (!value.equals(exvalue) && Engine.isStarted) {
 			if (property == PropertyName.CONVERTIGO_PRODUCT_VERSION_CHECK) {
 				if ("false".equals(value)) {
@@ -1096,6 +1111,7 @@ public class EnginePropertiesManager {
 
 	public static synchronized void initProperties() throws EngineException {
 		properties = new Properties();
+		refreshAllocationTraceEnabled();
 	}
 
 	public static synchronized void loadProperties() throws EngineException {
@@ -1163,6 +1179,7 @@ public class EnginePropertiesManager {
 			properties.put("convertigo.webapp_path", webappPath);
 			System.out.println("  Adding webapp path: " + webappPath);
 
+			refreshAllocationTraceEnabled();
 			System.out.println("Properties loaded!");
 
 			if (configureLog4J) {
@@ -1171,6 +1188,7 @@ public class EnginePropertiesManager {
 		}
 		catch(IOException e) {
 			properties = null;
+			allocationTraceEnabled = false;
 			throw new EngineException("Unable to load the Convertigo engine configuration file '" + PROPERTIES_FILE_NAME + "'.", e);
 		}
 	}
@@ -1297,6 +1315,7 @@ public class EnginePropertiesManager {
 		}
 		String defaultValue = property.getDefaultValue();
 		String exvalue = (String) properties.remove(property.getKey());
+		refreshAllocationTraceEnabled();
 		boolean changed = exvalue != null && !defaultValue.equals(exvalue);
 		if (changed && Engine.isStarted) {
 			Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, defaultValue), PropertyChangeEventListener.class);
@@ -1639,6 +1658,7 @@ public class EnginePropertiesManager {
 
 	public static void unload() {
 		properties = null;
+		allocationTraceEnabled = false;
 	}
 
 	private static String encodeValue(PropertyType propertyType, String value) {

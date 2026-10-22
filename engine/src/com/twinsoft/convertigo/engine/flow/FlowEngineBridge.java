@@ -388,7 +388,9 @@ public class FlowEngineBridge {
 					.put("projectDir", flow.getProject() == null ? "" : flow.getProject().getDirPath())
 					.put("includeTrace", flow.isIncludeTrace());
 			var requestFinished = System.nanoTime();
-			request.put("input", flow.getFlowInput());
+			try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "inputs", flow.getQName())) {
+				request.put("input", flow.getFlowInput());
+			}
 			var inputFinished = System.nanoTime();
 			var profileEnabled = com.twinsoft.convertigo.engine.util.TimingTrace.isEnabled()
 					|| convertigoContext != null && convertigoContext.httpServletRequest != null
@@ -1917,7 +1919,14 @@ public class FlowEngineBridge {
 		}
 
 		var detacher = objectResult ? new ResultDetacher(engineScope) : null;
-		var arguments = objectResult ? new Object[] { request.toString(), detacher } : new Object[] { request.toString() };
+		String inputJson;
+		try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "input-encode", method)) {
+			inputJson = request.toString();
+		}
+		var arguments = objectResult ? com.twinsoft.convertigo.engine.util.AllocationTrace.isActive()
+				? new Object[] { inputJson, detacher, new org.mozilla.javascript.NativeJavaClass(engineScope,
+						com.twinsoft.convertigo.engine.util.AllocationTrace.class) }
+				: new Object[] { inputJson, detacher } : new Object[] { inputJson };
 		var result = ((Function) function).call(cx, engineScope, engineObject, arguments);
 		FlowStudioSupport.performanceProfileMark("bridge." + method + ".engineCall");
 		if (objectResult && (result == null || result != detacher.token)) {
@@ -1938,7 +1947,7 @@ public class FlowEngineBridge {
 			setPrototype(ScriptableObject.getFunctionPrototype(scope));
 		}
 		@Override public Object call(org.mozilla.javascript.Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
-			try {
+			try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "detach", "")) {
 				value = com.twinsoft.convertigo.engine.util.DetachedJson.object(args.length == 0 ? null : args[0], cx, scope);
 				return token = org.mozilla.javascript.Context.javaToJS(value, scope);
 			} catch (JSONException e) {
