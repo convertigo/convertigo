@@ -100,8 +100,10 @@ public final class RowProducerRuntime implements RowSource {
 				if (!permits.tryAcquire()) throw new RowStreamException("ROW_STREAM_POOL_BUSY", 503);
 				borrowed = true;
 				scope = FlowPackages.createScope(cx);
+				// This realm belongs exclusively to this producer and its captured
+				// generation. Keep its packages and class descriptions until close.
+				FlowPackages.bind(cx, scope, generation);
 			}
-			FlowPackages.bind(cx, scope, generation);
 			if (producer == null) {
 				var blocks = cx.newObject(scope);
 				for (var entry : plan.blocks.entrySet()) {
@@ -118,7 +120,6 @@ public final class RowProducerRuntime implements RowSource {
 		} catch (Exception error) {
 			throw RowStreamException.safe(error);
 		} finally {
-			if (scope != null) FlowPackages.restore(scope, generation);
 			cx.setLanguageVersion(previousLanguage); Context.exit(); thread.setContextClassLoader(previousLoader); mdc.install();
 		}
 	}
@@ -144,7 +145,7 @@ public final class RowProducerRuntime implements RowSource {
 				if (closed) throw new RowStreamException("ROW_STREAM_CANCELLED",499);
 				if (owner != null && owner != Thread.currentThread()) throw new RowStreamException("ROW_STREAM_OWNER",409);
 				var row = input.next(); if (row == null) return null;
-				var value = inRealm(cx -> call(cx, "next", DetachedJson.toScriptable(row, scope)));
+				var value = inRealm(cx -> call(cx, "next", com.twinsoft.convertigo.engine.util.JsonData.wrap(row, scope)));
 				if (value.optBoolean("skip", false)) continue;
 				var item = value.optJSONObject("row");
 				if (item == null) throw new RowStreamException("ROW_STREAM_TRANSFORM", 502);
@@ -163,7 +164,7 @@ public final class RowProducerRuntime implements RowSource {
 				if (bytes > collectBytes) throw new RowStreamException("ROW_STREAM_COLLECT_BYTES",413);
 				values.put(row);
 			}
-			var result = inRealm(cx -> call(cx,"batch",DetachedJson.toScriptable(values,scope)));
+			var result = inRealm(cx -> call(cx,"batch",com.twinsoft.convertigo.engine.util.JsonData.wrap(values,scope)));
 			com.twinsoft.convertigo.engine.flow.rows.ResultDocument.encodedBytes(result,collectBytes);
 			if (result.has("failure")) throw RowStreamException.response(result.getJSONObject("failure"),result.optInt("status",400));
 			batchRows = result.getJSONArray("rows"); batchMetadata = result.getJSONObject("metadata");
@@ -176,8 +177,12 @@ public final class RowProducerRuntime implements RowSource {
 	@Override public JSONObject metadata() throws IOException { return collect ? batchMetadata : inRealm(cx -> call(cx, "finish")); }
 	private void releaseRealm() {
 		synchronized (realmLock) {
-			producer = scope = null; plan = null; generation = null;
-			if (borrowed) { borrowed = false; permits.release(); }
+			try {
+				if (scope != null) FlowPackages.restore(scope, generation);
+			} finally {
+				producer = scope = null; plan = null; generation = null;
+				if (borrowed) { borrowed = false; permits.release(); }
+			}
 		}
 	}
 	@Override public void close() throws IOException {
@@ -187,7 +192,7 @@ public final class RowProducerRuntime implements RowSource {
 			synchronized (input) { if (!inputClosed) { inputClosed = true; input.close(); } }
 		} finally {
 			// Discard all functions, operator state and project generation references.
-			releaseRealm(); batchRows=null; batchMetadata=null; owner=null;
+			try { releaseRealm(); } finally { batchRows=null; batchMetadata=null; owner=null; }
 		}
 	}
 }

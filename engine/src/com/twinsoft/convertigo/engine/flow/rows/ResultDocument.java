@@ -6,7 +6,6 @@ package com.twinsoft.convertigo.engine.flow.rows;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import org.codehaus.jettison.json.JSONArray;
@@ -164,15 +163,30 @@ public final class ResultDocument implements AutoCloseable {
 		return value;
 	}
 	public static int encodedBytes(Object value, int limit) throws IOException { return utf8(encode(value, limit)); }
-	private static int utf8(String text) { return text.getBytes(StandardCharsets.UTF_8).length; }
+	private static int utf8(String text) {
+		// Match the UTF-8 encoder, including its one-byte replacement for an
+		// unpaired surrogate. Counting must not allocate a byte[] for every row.
+		long bytes=0;
+		for(int i=0;i<text.length();i++){
+			char c=text.charAt(i);
+			if(c<0x80)bytes++;
+			else if(c<0x800)bytes+=2;
+			else if(Character.isHighSurrogate(c)&&i+1<text.length()&&Character.isLowSurrogate(text.charAt(i+1))){bytes+=4;i++;}
+			else bytes+=Character.isSurrogate(c)?1:3;
+		}
+		return (int)Math.min(bytes,Integer.MAX_VALUE);
+	}
 	private static String encode(Object value, int limit) throws IOException {
 		var target = new StringWriter();
 		var bounded = new Writer() {
 			private int length;
-			@Override public void write(char[] data, int off, int len) throws IOException {
-				if ((long) length + len > limit) throw new RowStreamException("ROW_STREAM_ROW_BYTES", 413);
-				length += len; target.write(data, off, len);
+			private void count(int len)throws IOException{
+				if((long)length+len>limit)throw new RowStreamException("ROW_STREAM_ROW_BYTES",413);
+				length+=len;
 			}
+			@Override public void write(char[] data,int off,int len)throws IOException{count(len);target.write(data,off,len);}
+			@Override public void write(String data,int off,int len)throws IOException{count(len);target.write(data,off,len);}
+			@Override public void write(int value)throws IOException{count(1);target.write(value);}
 			@Override public void flush() { }
 			@Override public void close() { }
 		};

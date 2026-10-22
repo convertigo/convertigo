@@ -17,6 +17,19 @@ import com.twinsoft.convertigo.engine.util.DetachedJson;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ResultDocumentTest {
+	@Test public void utf8BudgetsMatchTheWriterWithoutEncodingTemporaryArrays()throws Exception{
+		var random=new java.util.Random(37);
+		for(int sample=0;sample<100;sample++){
+			var text=new StringBuilder("é😀\u2028\uD800\uDC00\uD800x\uDC00");
+			for(int i=0;i<50;i++)text.append((char)random.nextInt(65536));
+			var value=text.toString();var encoded=new java.io.StringWriter();
+			com.twinsoft.convertigo.engine.util.DetachedJsonWriter.write(value,encoded);
+			int bytes=encoded.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+			assertEquals(bytes,ResultDocument.encodedBytes(value,bytes));
+			try{ResultDocument.encodedBytes(value,bytes-1);fail("byte limit");}catch(java.io.IOException expected){}
+		}
+	}
+
 	@org.junit.Before public void logs() { com.twinsoft.convertigo.engine.Engine.logBeans = org.apache.log4j.Logger.getLogger("row-test"); }
 	static class Source implements RowSource {
 		int pulls, closed, size = 20, failAt = -1; boolean failClose, badMetadata;

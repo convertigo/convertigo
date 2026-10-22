@@ -44,12 +44,19 @@ public final class SanitizedJson {
 				|| !(arrayPrototype instanceof NativeArray) || arrayPrototype.getPrototype() != objectPrototype) throw new UsePolicy("prototype");
 		checkAccessor((ScriptableObject) arrayPrototype, "map");
 		checkArraySpecies(cx, scope);
+		if(!ordinaryMap(ScriptableObject.getProperty(arrayPrototype,"map")))throw new UsePolicy("array-map");
 		for (var prototype : new Scriptable[] {objectPrototype, arrayPrototype}) {
 			for (var name : new String[] {"toJSON", "getClass", "__flowHandle"}) {
 				if (ScriptableObject.hasProperty(prototype, name)) throw new UsePolicy("prototype-hook");
 			}
 			if (ScriptableObject.hasProperty(prototype, SymbolKey.TO_STRING_TAG)) throw new UsePolicy("prototype-tag");
 		}
+	}
+
+	/** Speculative bulk operators may proceed only with the ordinary JSON intrinsics. */
+	public static boolean ordinaryRealm(Context cx, Scriptable scope) {
+		try { new SanitizedJson(cx,scope); return true; }
+		catch (UsePolicy unsupported) { return false; }
 	}
 
 	public static JSONObject object(Object value, Context cx, Scriptable scope, Callable policy) throws JSONException {
@@ -68,13 +75,17 @@ public final class SanitizedJson {
 			if (value instanceof BigInteger) throw new UsePolicy("bigint"); // BigInt.prototype.toJSON can run code.
 			return detacher.copy(value, key);
 		}
-		if (!(s.getClass() == NativeObject.class && s.getPrototype() == objectPrototype)
+		if (JsonData.isView(s)) {
+			var json=JsonData.peek(s);
+			if(json!=Scriptable.NOT_FOUND)return copyJava(json,objects.size()+arrays.size());
+		}
+		if (!((s.getClass() == NativeObject.class || JsonData.isView(s)) && s.getPrototype() == objectPrototype)
 				&& !(s.getClass() == NativeArray.class && s.getPrototype() == arrayPrototype)) throw new UsePolicy("exotic-container");
 		if (ScriptableObject.hasProperty(s, "getClass") || ScriptableObject.hasProperty(s, "__flowHandle")
 				|| ScriptableObject.hasProperty(s, SymbolKey.TO_STRING_TAG)) throw new UsePolicy("handle-or-tag");
 		if (objects.containsKey(s)) return "[Circular]";
 		if (objects.size() + arrays.size() >= JSONObject.getGlobalRecursionDepthLimit()) throw new JSONException("JSON result exceeds recursion depth limit");
-		if (s.getClass() == NativeObject.class && s.getPrototype() == objectPrototype) {
+		if ((s.getClass() == NativeObject.class || JsonData.isView(s)) && s.getPrototype() == objectPrototype) {
 			objects.put(s, Boolean.TRUE);
 			try {
 				var out = new DetachedJson.ObjectValue();
@@ -109,6 +120,28 @@ public final class SanitizedJson {
 		}
 		throw new UsePolicy("array-map");
 	}
+	private Object copyJava(Object value,int depth) throws JSONException {
+		if((value instanceof JSONObject || value instanceof JSONArray) && depth>=JSONObject.getGlobalRecursionDepthLimit())throw new JSONException("JSON result exceeds recursion depth limit");
+		if(value instanceof JSONObject object){
+			var out=new DetachedJson.ObjectValue();
+			for(var name:JsonData.keys(object)){
+				if(name.equals("toJSON")||name.equals("getClass")||name.equals("__flowHandle")||!name.equals("__proto__")&&ScriptableObject.hasProperty(objectPrototype,name))throw new UsePolicy("data-special-key");
+				out.put(name,copyJava(object.get(name),depth+1));
+			}
+			return out;
+		}
+		if(value instanceof JSONArray array){
+			if(!ordinaryMap(ScriptableObject.getProperty(arrayPrototype,"map")))throw new UsePolicy("data-array-map");
+			var out=new DetachedJson.ArrayValue();
+			for(int i=0;i<array.length();i++){
+				if(ScriptableObject.hasProperty(arrayPrototype,i))throw new UsePolicy("data-array-index");
+				out.put(copyJava(array.get(i),depth+1));
+			}
+			return out;
+		}
+		return value instanceof Number?detacher.copy(value, ""):value;
+	}
+
 	@SuppressWarnings("deprecation")
 	private static void checkAccessor(ScriptableObject value, Object id) {
 		var getter = id instanceof Number n ? value.getGetterOrSetter(null, n.intValue(), false)
@@ -123,20 +156,12 @@ public final class SanitizedJson {
 		checkAccessor((ScriptableObject) arrayPrototype, "constructor");
 		var constructor = ScriptableObject.getProperty(arrayPrototype, "constructor");
 		if (!(constructor instanceof org.mozilla.javascript.BaseFunction array) || !nativeFunction(array, "Array")) throw new UsePolicy("array-constructor");
-		// Inspect the species descriptor with the intrinsic, without calling a
-		// user-supplied species getter. A customized constructor uses the policy.
-		scope = ScriptableObject.getTopLevelScope(scope);
-		if (!(scope instanceof ScriptableObject global)) throw new UsePolicy("global-scope");
-		checkAccessor(global, "Object");
-		var object = ScriptableObject.getProperty(scope, "Object");
-		if (!(object instanceof org.mozilla.javascript.BaseFunction objectCtor) || !nativeFunction(objectCtor, "Object")) throw new UsePolicy("object-constructor");
-		checkAccessor(objectCtor, "getOwnPropertyDescriptor");
-		var descriptorFunction = ScriptableObject.getProperty(objectCtor, "getOwnPropertyDescriptor");
-		if (!(descriptorFunction instanceof org.mozilla.javascript.BaseFunction descriptor) || !nativeFunction(descriptor, "getOwnPropertyDescriptor")) throw new UsePolicy("descriptor-intrinsic");
-		var description = descriptor.call(cx, scope, objectCtor, new Object[] {array, SymbolKey.SPECIES});
-		if (!(description instanceof Scriptable d)
-				|| !(ScriptableObject.getProperty(d, "get") instanceof LambdaFunction getter)
-				|| !getter.getFunctionName().equals("get [Symbol.species]")) throw new UsePolicy("array-species");
+		// Rhino exposes the accessor descriptor without running its getter. Avoid
+		// constructing a JS descriptor object for each row in a private producer.
+		var descriptor=org.mozilla.javascript.MaterializedObject.descriptor(cx,array,SymbolKey.SPECIES);
+		var getter=descriptor==null?null:descriptor.getter;
+		if(!(getter instanceof LambdaFunction function)||!function.getFunctionName().equals("get [Symbol.species]"))throw new UsePolicy("array-species");
+
 	}
 	private static boolean nativeFunction(org.mozilla.javascript.BaseFunction value, String name) {
 		return (value instanceof IdFunctionObject || value instanceof LambdaFunction) && value.getFunctionName().equals(name);

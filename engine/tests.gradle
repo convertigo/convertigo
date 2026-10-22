@@ -388,3 +388,13 @@ tasks.register('allocationAttributionTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.util.AllocationTraceTest'
 }
 tasks.named('check') { dependsOn 'allocationAttributionTest' }
+
+tasks.register('jsonDataTest', JavaExec) {
+ group = 'verification'
+ description = 'Java JSON row views preserve JS mutation, reflection and result security.'
+ dependsOn testClasses
+ classpath = sourceSets.test.runtimeClasspath
+ mainClass = 'org.junit.runner.JUnitCore'
+ args 'com.twinsoft.convertigo.engine.flow.JsonDataTest'
+}
+tasks.named('check') { dependsOn 'jsonDataTest' }

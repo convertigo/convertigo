@@ -115,4 +115,50 @@ public class RowProducerRuntimeTest {
 		assertEquals(0,RowProducerRuntime.activeLeases());
 	}
 
+	@Test public void privateProducerKeepsPackagesWithoutLeakingThreadOrRealmState() throws Exception {
+		var previous=Thread.currentThread().getContextClassLoader();
+		try(var loader=new java.net.URLClassLoader(new java.net.URL[0],getClass().getClassLoader());
+			var runtime=new RowProducerRuntime(new ResultDocumentTest.Source(),new RowProducerRuntime.Plan(bootstrap(),
+				Map.of("transform","({run:function(c,n){var old=c.rowState.packages;c.rowState.packages=Packages;return {same:!old||old===Packages,loader:java.lang.Thread.currentThread().getContextClassLoader()===Packages.java.lang.Thread.currentThread().getContextClassLoader()};}})"),
+				new JSONObject(),"transform",""),loader)) {
+			MDC.put("row-test","outer");
+			var cx=org.mozilla.javascript.Context.enter();
+			cx.setLanguageVersion(org.mozilla.javascript.Context.VERSION_1_8);
+			try {
+				for(int i=0;i<20;i++) {
+					assertTrue(runtime.next().getBoolean("same"));
+					assertSame(previous,Thread.currentThread().getContextClassLoader());
+					assertEquals("outer",MDC.get("row-test"));
+					assertSame(cx,org.mozilla.javascript.Context.getCurrentContext());
+					assertEquals(org.mozilla.javascript.Context.VERSION_1_8,cx.getLanguageVersion());
+				}
+			} finally { org.mozilla.javascript.Context.exit(); MDC.remove("row-test"); }
+		}
+		assertEquals(0,RowProducerRuntime.activeLeases());
+	}
+
+	@Test public void failedPackageRestorationCannotRetainProducerLease() throws Exception {
+		var source = new ResultDocumentTest.Source();
+		var runtime = runtime("({run:function(c,n){return n.props.row;}})", new JSONObject(), source);
+		runtime.next();
+		var field = RowProducerRuntime.class.getDeclaredField("scope"); field.setAccessible(true);
+		var original = (org.mozilla.javascript.Scriptable) field.get(runtime);
+		var reject = new boolean[] {false};
+		var failing = new org.mozilla.javascript.NativeObject() {
+			@Override public void put(String name, org.mozilla.javascript.Scriptable start, Object value) {
+				if (reject[0]) throw new IllegalStateException("synthetic restore failure");
+				super.put(name, start, value);
+			}
+		};
+		failing.defineProperty("__flowEnginePackages", org.mozilla.javascript.ScriptableObject.getProperty(original, "__flowEnginePackages"), 0);
+		reject[0] = true; field.set(runtime, failing);
+		try { runtime.close(); fail("restore failure"); }
+		catch (IllegalStateException expected) { }
+		assertNull(field.get(runtime));
+		assertEquals(0, RowProducerRuntime.activeLeases());
+		assertEquals(1, source.closed);
+		runtime.close(); // Idempotent even after a failing restoration.
+		assertEquals(1, source.closed);
+	}
+
 }
