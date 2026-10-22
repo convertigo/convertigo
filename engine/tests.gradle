@@ -408,3 +408,13 @@ tasks.register('flowRequestableCatalogTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.flow.FlowRequestableCatalogTest'
 }
 tasks.named('check') { dependsOn 'flowRequestableCatalogTest' }
+
+tasks.register('flowMetadataCacheTest', JavaExec) {
+	group = 'verification'
+	description = 'Immutable metadata snapshots, cold concurrency, generation changes and interrupted waiters.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowMetadataCacheTest', 'com.twinsoft.convertigo.engine.flow.FlowEngineBridgeCacheTest'
+}
+tasks.named('check') { dependsOn 'flowMetadataCacheTest' }

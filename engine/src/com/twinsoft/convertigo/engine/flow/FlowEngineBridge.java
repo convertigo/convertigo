@@ -77,6 +77,8 @@ public class FlowEngineBridge {
 	private static final Map<String, InvocationStats> invocationStats = new ConcurrentHashMap<>();
 	private static final AtomicLong cacheGeneration = new AtomicLong();
 	private static final AtomicLong dataGeneration = new AtomicLong();
+	private static final Map<String, AtomicLong> sourceRevisions = new ConcurrentHashMap<>();
+	private static final FlowMetadataCache sharedMetadata = new FlowMetadataCache(1024, 16 * 1024 * 1024);
 	private static final LongAdder methodResponseCacheHits = new LongAdder();
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
@@ -241,6 +243,7 @@ public class FlowEngineBridge {
 	}
 
 	public static void clearCaches() {
+		sharedMetadata.clear();
 		var runtimes = new ArrayList<CachedEngineRuntime>();
 		synchronized (engineRuntimeCacheLock) {
 			cacheGeneration.incrementAndGet();
@@ -256,10 +259,34 @@ public class FlowEngineBridge {
 	}
 
 	public static void invalidateDataCaches() {
+		sharedMetadata.clear();
+		advanceDataGeneration();
+	}
+
+	public static void invalidateProjectDataCaches(String directory) {
+		if (directory == null || directory.isBlank()) { invalidateDataCaches(); return; }
+		sourceRevisions.computeIfAbsent(canonicalPath(new File(directory)), ignored -> new AtomicLong()).incrementAndGet();
+		advanceDataGeneration();
+	}
+
+	public static long metadataSourceRevision(String directory) {
+		if (directory == null || directory.isBlank()) return 0;
+		var revision = sourceRevisions.get(canonicalPath(new File(directory)));
+		return revision == null ? 0 : revision.get();
+	}
+
+	private static void advanceDataGeneration() {
 		dataGeneration.incrementAndGet();
 		rootFingerprints.clear();
 		clearMethodResponseCache();
 	}
+
+	/** Only immutable metadata text crosses scopes. Caller revisions include source and dependency fingerprints. */
+	public static String sharedMetadata(String key, String revision, java.util.concurrent.Callable<String> builder) throws Exception {
+		return sharedMetadata.get(key, cacheGeneration.get() + ":" + revision, builder);
+	}
+
+	public static void clearSharedMetadata() { sharedMetadata.clear(); }
 
 	public static long cacheGeneration() {
 		return cacheGeneration.get();
@@ -290,7 +317,8 @@ public class FlowEngineBridge {
 	}
 
 	public static void notifySourceMutation(String projectDir, String sourcePath, boolean reveal) {
-		invalidateDataCaches();
+		if (projectDir == null || projectDir.isBlank()) invalidateDataCaches();
+		else invalidateProjectDataCaches(projectDir);
 		var projectName = projectNameForDir(projectDir);
 		try {
 			var payload = new JSONObject()
@@ -1444,30 +1472,49 @@ public class FlowEngineBridge {
 		}
 	}
 
-	private static JSONObject requestableProject(Project project, boolean current) throws JSONException {
-		var children = new JSONArray();
+	private record RequestableEntry(String connector, String name, String kind) { }
+
+	private static JSONObject requestableProject(Project project, boolean current) throws Exception {
+		return new JSONObject(requestableProjectText(project, current));
+	}
+
+	/** Metadata only; callers still resolve and authorize actual executions normally. */
+	public static String requestableProjectCatalog(String name) throws Exception {
+		return requestableProjectText(Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, false), true);
+	}
+
+	private static String requestableProjectText(Project project, boolean current) throws Exception {
+		var name = project.getName();
+		var snapshot = new ArrayList<RequestableEntry>();
 		for (Sequence sequence : project.getSequencesList()) {
-			children.put(requestableLeaf(project.getName(), "", sequence.getName(), sequence instanceof Flow ? "flow" : "sequence"));
+			snapshot.add(new RequestableEntry("", sequence.getName(), sequence instanceof Flow ? "flow" : "sequence"));
 		}
 		for (Connector connector : project.getConnectorsList()) {
-			var transactions = new JSONArray();
 			for (Transaction transaction : connector.getTransactionsList()) {
-				transactions.put(requestableLeaf(project.getName(), connector.getName(), transaction.getName(), "transaction"));
-			}
-			if (transactions.length() > 0) {
-				children.put(new JSONObject()
-						.put("kind", "connector")
-						.put("name", connector.getName())
-						.put("qname", project.getName() + "." + connector.getName())
-						.put("children", transactions));
+				snapshot.add(new RequestableEntry(connector.getName(), transaction.getName(), "transaction"));
 			}
 		}
-		return new JSONObject()
-				.put("kind", "project")
-				.put("name", project.getName())
-				.put("qname", project.getName())
-				.put("current", current)
-				.put("children", children);
+		// Inspect only names/types to detect unsaved DBO edits as well as reloads.
+		// The fingerprint and the builder consume the same captured membership.
+		var revision = new StringBuilder();
+		for (var entry : snapshot) for (var part : List.of(entry.connector(), entry.name(), entry.kind())) {
+			revision.append(part.length()).append(':').append(part);
+		}
+		return sharedMetadata("requestables\n" + name + "\n" + current, sha256Hex(revision.toString()), () -> {
+			var children = new JSONArray();
+			var connectors = new LinkedHashMap<String, JSONArray>();
+			for (var entry : snapshot) {
+				var leaf = requestableLeaf(name, entry.connector(), entry.name(), entry.kind());
+				if (entry.connector().isEmpty()) children.put(leaf);
+				else connectors.computeIfAbsent(entry.connector(), ignored -> new JSONArray()).put(leaf);
+			}
+			for (var entry : connectors.entrySet()) {
+				children.put(new JSONObject().put("kind", "connector").put("name", entry.getKey())
+						.put("qname", name + "." + entry.getKey()).put("children", entry.getValue()));
+			}
+			return new JSONObject().put("kind", "project").put("name", name).put("qname", name)
+					.put("current", current).put("children", children).toString();
+		});
 	}
 
 	private static JSONObject requestableLeaf(String project, String connector, String name, String kind) throws JSONException {
@@ -1816,6 +1863,9 @@ public class FlowEngineBridge {
 				.put("pooledRuntimeCount", pooledRuntimeCount)
 				.put("availableRuntimeCount", availableRuntimeCount)
 				.put("methodResponseCacheSize", methodResponseCache.size())
+				.put("sharedMetadata", new JSONObject().put("entries", sharedMetadata.size())
+						.put("characters", sharedMetadata.characters()).put("builds", sharedMetadata.builds())
+						.put("hits", sharedMetadata.hits()).put("joins", sharedMetadata.joins()))
 				.put("methodResponseCacheHits", methodResponseCacheHits.sum())
 				.put("methodResponseCacheMisses", methodResponseCacheMisses.sum())
 				.put("methodResponseCacheInvalidations", methodResponseCacheInvalidations.sum())
