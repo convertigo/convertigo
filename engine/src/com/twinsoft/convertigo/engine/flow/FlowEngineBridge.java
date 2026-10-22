@@ -869,21 +869,29 @@ public class FlowEngineBridge {
 
 	private static Iterable<String> requestableProjectNames(String currentProjectName) {
 		var projectNames = new java.util.TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-		if (Engine.isStudioMode()) {
-			projectNames.addAll(Engine.theApp.databaseObjectsManager.getStudioProjects().getProjects(true).keySet());
-			if (currentProjectName != null && !currentProjectName.isBlank()) {
-				projectNames.add(currentProjectName);
-			}
-		} else {
-			projectNames.addAll(Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false));
-		}
-
-		var orderedProjectNames = new java.util.ArrayList<String>(projectNames.size());
-		if (currentProjectName != null && !currentProjectName.isBlank() && projectNames.remove(currentProjectName)) {
+		appendRequestableProjectNames(currentProjectName, projectNames);
+		var orderedProjectNames = new ArrayList<String>(projectNames.size());
+		if (currentProjectName != null && projectNames.remove(currentProjectName)) {
 			orderedProjectNames.add(currentProjectName);
 		}
 		orderedProjectNames.addAll(projectNames);
 		return orderedProjectNames;
+	}
+
+	private static void appendRequestableProjectNames(String name, Set<String> visited) {
+		if (name == null || name.isBlank() || !visited.add(name)) {
+			return;
+		}
+		try {
+			var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, true);
+			for (var reference : project.getReferenceList()) {
+				if (reference instanceof ProjectSchemaReference projectReference) {
+					appendRequestableProjectNames(projectReference.getParser().getProjectName(), visited);
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.debug("(FlowEngineBridge) Unable to list references for project \"" + name + "\".", e);
+		}
 	}
 
 	public JSONObject describeTree(FlowEngine flowEngine) throws EngineException {

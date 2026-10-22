@@ -398,3 +398,13 @@ tasks.register('jsonDataTest', JavaExec) {
  args 'com.twinsoft.convertigo.engine.flow.JsonDataTest'
 }
 tasks.named('check') { dependsOn 'jsonDataTest' }
+
+tasks.register('flowRequestableCatalogTest', JavaExec) {
+	group = 'verification'
+	description = 'Server requestable catalogues stay within project references and observe reloads.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowRequestableCatalogTest'
+}
+tasks.named('check') { dependsOn 'flowRequestableCatalogTest' }
