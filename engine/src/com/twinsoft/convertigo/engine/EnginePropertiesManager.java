@@ -861,10 +861,22 @@ public class EnginePropertiesManager {
 			return getOptions().combo().getEnumConstants();
 		}
 
-		/** hidden in every mode: not listed, nor written as a commented default, only set by engine.properties or -D */
+		/** hidden in every mode: not listed, only set by engine.properties or -D */
 		public boolean isHidden() {
 			PropertyOptions propertyOptions = GenericUtils.getAnnotation(PropertyOptions.class, this);
 			return propertyOptions != null && propertyOptions.visibility() == Visibility.HIDDEN;
+		}
+
+		/**
+		 * the hidden properties of the native fast paths and of the traces are not written as commented defaults
+		 * either; the other properties keep their commented default line, so an existing engine.properties is
+		 * written as before
+		 */
+		public boolean isWithoutCommentedDefault() {
+			// no switch: its synthetic map would call values() while this enum may still be initializing
+			return this == JAVASCRIPT_SHARED_CLASS_CACHE || this == ENGINE_COPY_ON_DEMAND || this == CLASSLOADER_LOOKUP_CACHE
+					|| this == NATIVE_INLINE_CALLS || this == JAVASCRIPT_SHARED_SCOPE || this == TIMING_TRACE
+					|| this == XML_COUNT_DOCUMENTS;
 		}
 
 		public boolean isVisible() {
@@ -1298,7 +1310,7 @@ public class EnginePropertiesManager {
 				}
 				modifiedProperties.put(property.getKey(), propertyValue);
 			} else {
-				if (!property.isCiphered() && !property.getKey().contains(".pass") && !property.isHidden()) {
+				if (!property.isCiphered() && !property.getKey().contains(".pass") && !property.isWithoutCommentedDefault()) {
 					outputStream.write(("#" + property.getKey() + "=" + property.getDefaultValue() + "\r\n").getBytes("UTF-8"));
 				}
 			}
