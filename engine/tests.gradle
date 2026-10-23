@@ -40,6 +40,8 @@ tasks.named('check') {
 	dependsOn 'workspaceLoadingTest'
 	dependsOn 'fullSyncReplicationPolicyTest'
 	dependsOn 'stepSourceTest'
+	dependsOn 'requestableStepCloneTest'
+	dependsOn 'requestableObjectCloneTest'
 	dependsOn 'designDocumentReduceTest'
 	dependsOn 'redisSentinelConfigurationTest'
 	dependsOn 'staticCacheControlTest'
@@ -125,6 +127,24 @@ tasks.register('stepSourceTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.beans.core.StepSourceTest'
+}
+
+tasks.register('requestableStepCloneTest', JavaExec) {
+	group = 'verification'
+	description = 'A clone of a requestable step orders its own variables, also under concurrent runs.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.core.RequestableStepCloneTest'
+}
+
+tasks.register('requestableObjectCloneTest', JavaExec) {
+	group = 'verification'
+	description = 'A clone of a sequence or a transaction orders its own steps and variables, also under concurrent runs.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.core.RequestableObjectCloneTest'
 }
 
 tasks.register('fullSyncReplicationPolicyTest', JavaExec) {

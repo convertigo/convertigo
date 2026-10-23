@@ -87,6 +87,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		clonedObject.vVariables = new ArrayList<RequestableVariable>();
 		clonedObject.vTestCases = new ArrayList<TestCase>();
 		clonedObject.vAllVariables = null;
+		// A clone orders its own variables: __POST_ and __GET_ parameters add variables to the transaction of each run.
+		clonedObject.orderedVariables = new XMLVector<XMLVector<Long>>(orderedVariables);
 		clonedObject.originalVariables = null;
 		clonedObject.needRestoreVariables = false;
 		return clonedObject;

@@ -181,6 +181,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	clonedObject.vVariables = new ArrayList<RequestableVariable>();
     	clonedObject.vTestCases = new ArrayList<TestCase>();
     	clonedObject.vAllVariables = null;
+    	// A clone orders its own variables and steps, as in RequestableStep.clone().
+    	clonedObject.orderedVariables = new XMLVector<XMLVector<Long>>(orderedVariables);
     	clonedObject.nbAsyncThreadRunning = 0;
     	clonedObject.xpathApi = null;
     	clonedObject.stepHttpState = null;
@@ -192,6 +194,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	clonedObject.workerElementMap = null;
     	clonedObject.vSteps = new ArrayList<Step>();
         clonedObject.vAllSteps = null;
+        clonedObject.orderedSteps = new XMLVector<XMLVector<Long>>(orderedSteps);
         clonedObject.currentStep = null;
         clonedObject.currentChildStep = 0;
         clonedObject.stepContextNames = new ArrayList<String>();
