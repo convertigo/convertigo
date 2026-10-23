@@ -549,10 +549,12 @@ task generateDockerfile {
 		file('docker/default/Dockerfile').text = generatedDockerfileHeader + generatedBase.replace('%BEGIN%', '')
 		file('docker/default/docker-entrypoint.sh').text = generatedEntryPoint('')
 		file('docker/default/root-index.html').text = file('docker/root-index.html').text
+		file('docker/default/c8o-agent-sandbox.c').text = file('docker/c8o-agent-sandbox.c').text
 		
 		file('docker/aks/Dockerfile').text = generatedDockerfileHeader + generatedBase.replace('%BEGIN%', file('docker/aks-Dockerfile.tpl').text)
 		file('docker/aks/docker-entrypoint.sh').text = generatedEntryPoint(file('docker/aks-entrypoint.tpl').text)
 		file('docker/aks/root-index.html').text = file('docker/root-index.html').text
+		file('docker/aks/c8o-agent-sandbox.c').text = file('docker/c8o-agent-sandbox.c').text
 	}
 }
 

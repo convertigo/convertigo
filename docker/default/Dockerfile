@@ -14,6 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
+## build the helper that confines the AI agents of the engine (agents.tool_policy=sandboxed-shell, engine.util.AgentSandbox)
+
+FROM ubuntu:noble AS agent-sandbox
+
+COPY ./c8o-agent-sandbox.c /src/
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends gcc libc6-dev \
+  && gcc -O2 -Wall -Wextra -Werror -static -o /c8o-agent-sandbox /src/c8o-agent-sandbox.c
+
 FROM tomcat:9-jdk25-temurin-noble
 
 ## force SWT to use GTK2 instead of GTK3 (no Xulrunner support)
@@ -109,6 +118,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 COPY ./root-index.html webapps/ROOT/index.html
 COPY ./docker-entrypoint.sh /
+COPY --from=agent-sandbox /c8o-agent-sandbox /usr/local/bin/c8o-agent-sandbox
 
 
 WORKDIR /workspace
