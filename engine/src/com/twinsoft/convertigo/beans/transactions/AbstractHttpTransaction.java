@@ -723,7 +723,6 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	}
 
 	public byte[] readResult(InputStream in, HttpMethod method) throws IOException {
-		// one buffer of the announced length (Content-Length), grown only when the body is longer (a decompressed body)
 		long announced = -1;
 		org.apache.commons.httpclient.Header contentLength = method != null ? method.getResponseHeader("Content-Length") : null;
 		if (contentLength != null) {
@@ -733,7 +732,21 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 				announced = -1;
 			}
 		}
-		byte[] buffer = new byte[announced > 0 && announced < Integer.MAX_VALUE - 8 ? (int) announced : 8192];
+		return readBody(in, announced);
+	}
+
+	/** the first buffer of readBody holds at most this, whatever the Content-Length announces */
+	static final int MAX_FIRST_BUFFER = 8 * 1024 * 1024;
+
+	private static final int MAX_BUFFER = Integer.MAX_VALUE - 8;
+
+	/**
+	 * reads the whole body: one buffer of the announced length (Content-Length, at most MAX_FIRST_BUFFER, 8192 when
+	 * unknown), grown only when the body is longer (a decompressed body, or a length announced beyond the cap). A
+	 * server announcing a huge length no longer gets a buffer of that length before sending anything.
+	 */
+	static byte[] readBody(InputStream in, long announced) throws IOException {
+		byte[] buffer = new byte[announced > 0 ? (int) Math.min(announced, MAX_FIRST_BUFFER) : 8192];
 		int count = 0;
 		while (true) {
 			if (count == buffer.length) {
@@ -741,7 +754,11 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 				if (next < 0) {
 					return buffer;
 				}
-				buffer = java.util.Arrays.copyOf(buffer, Math.max(buffer.length * 2, 8192));
+				if (buffer.length >= MAX_BUFFER) {
+					throw new IOException("The HTTP body is longer than " + MAX_BUFFER + " bytes");
+				}
+				int grown = buffer.length > MAX_BUFFER / 2 ? MAX_BUFFER : Math.max(buffer.length * 2, 8192);
+				buffer = java.util.Arrays.copyOf(buffer, grown);
 				buffer[count++] = (byte) next;
 			}
 			int read = in.read(buffer, count, buffer.length - count);

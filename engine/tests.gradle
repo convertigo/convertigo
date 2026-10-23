@@ -279,3 +279,13 @@ tasks.register('jsonStringifyFallbackTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.JsonStringifyFallbackTest'
 }
+
+tasks.register('httpBodyReadTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: the HTTP body is read in a first buffer capped whatever the Content-Length announced.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	maxHeapSize = '256m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.transactions.HttpBodyReadTest'
+}
