@@ -94,8 +94,21 @@ public class BinaryAttachmentTest {
 				Map.of("__content_type", new String[] { "application/pdf" }));
 		assertEquals(bytes.length, sink.count);
 		assertEquals(201, sink.status);
-		assertEquals("application/pdf", sink.headers.get("Content-Type"));
+		// A caller-provided content type outside the whitelist is ignored: the declared type is served.
+		assertEquals("application/octet-stream", sink.headers.get("Content-Type"));
 		assertEquals("kept", sink.headers.get("X-Example"));
+		assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(bytes), sink.digest.digest());
+	}
+
+	@Test public void whitelistedCallerContentTypeOverridesTheDeclaredOne() throws Exception {
+		var bytes = new byte[] { 0, 1, -1, 13, 10 };
+		var xml = AttachmentManagerTest.attachment();
+		xml.setAttribute("encoding", "base64");
+		xml.setTextContent(Base64.encodeBase64String(bytes));
+		var sink = new Response();
+		serve(new BinaryServletRequester().postGetDocument(xml.getOwnerDocument()), sink,
+				Map.of("__content_type", new String[] { "text/plain" }));
+		assertEquals("text/plain", sink.headers.get("Content-Type"));
 		assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(bytes), sink.digest.digest());
 	}
 

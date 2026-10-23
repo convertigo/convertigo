@@ -28,6 +28,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -69,6 +70,10 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public abstract class GenericServlet extends HttpServlet {
 
 	private static final long serialVersionUID = -6386155197912471410L;
+
+	/** Content types a caller may request through the __content_type parameter. */
+	private static final List<String> CALLER_CONTENT_TYPE_WHITELIST = List.of(
+			MimeType.Plain.value(), MimeType.Json.value(), MimeType.OctetStream.value());
 
 	public GenericServlet() {
 	}
@@ -231,6 +236,11 @@ public abstract class GenericServlet extends HttpServlet {
 				}
 
 				String requested_content_type = request.getParameter(Parameter.ContentType.getName());
+				if (requested_content_type != null
+						&& !CALLER_CONTENT_TYPE_WHITELIST.contains(requested_content_type.trim().toLowerCase(Locale.ROOT))) {
+					Engine.logEngine.debug("(GenericServlet) Ignored caller Content-Type override: " + requested_content_type);
+					requested_content_type = null;
+				}
 				String content_type = getContentType(request);
 				if (requested_content_type != null && !requested_content_type.equals(content_type)) {
 					Engine.logEngine.debug("(GenericServlet) Override Content-Type requested to change : " + content_type + " to " + requested_content_type);
