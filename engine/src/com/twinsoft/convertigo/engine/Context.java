@@ -196,6 +196,11 @@ public class Context extends AbstractContext implements Cloneable {
 		isXsltRequest = false;
 		isErrorDocument = false;
 		jsonNativeOutputs = null;
+		// a classic request answered from the cache after a native one must not stay native: run() and the native
+		// cache of CacheManager set them again for the request, after this reset
+		nativeExecution = false;
+		nativeResult = null;
+		nativeParameters = null;
 		isStubRequested = false;
 		isNewSession = false;
 
