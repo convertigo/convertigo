@@ -316,3 +316,12 @@ tasks.register('hiddenEnginePropertiesTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.HiddenEnginePropertiesTest'
 }
+
+tasks.register('agentSandboxTest', JavaExec) {
+	group = 'verification'
+	description = 'agents.tool_policy: auto is full in a Studio and files on a server, a sandboxed shell runs through the Landlock helper and is files where it cannot be confined.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.AgentSandboxTest'
+}

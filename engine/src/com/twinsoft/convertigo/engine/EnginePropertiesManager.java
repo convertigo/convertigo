@@ -187,6 +187,30 @@ public class EnginePropertiesManager {
 		}
 	}
 
+	private enum AgentToolPolicies implements ComboEnum {
+		auto ("auto", "auto: files"),
+		mcp_only ("mcp-only", "mcp-only: the Convertigo MCP tools only"),
+		files ("files", "files: the MCP tools and files in the session's own folder, no shell"),
+		sandboxed_shell ("sandboxed-shell", "sandboxed-shell: files, and a shell confined by Landlock to the session's folders"),
+		full ("full", "full: every tool of the agent, as the engine's user");
+
+		final String display;
+		final String value;
+
+		AgentToolPolicies(String value, String display) {
+			this.display = display;
+			this.value = value;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+
 	private enum XsltEngine implements ComboEnum {
 		xalan_xslt ("xalan/xslt", "Java Xalan"),
 		xalan_xsltc ("xalan/xsltc", "Java Xalan (XSLTC)");
@@ -503,6 +527,8 @@ public class EnginePropertiesManager {
 		USER_PASSWORD_REGEX ("user.password.regexp", "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[\\w~@#$%^&*+=`|{}:;!.?\\\"()\\[\\]-]{8,20}$", "RegularExpression used to validate password change for Admin accounts.", PropertyCategory.Account),
 		@PropertyOptions(advance = true)
 		USER_PASSWORD_INSTRUCTION ("user.password.instruction", "must respect at least 1 lowercase, 1 uppercase, 1 digit and between 8-20 characters.", "Instruction in case of RegularExpression failure for password change.", PropertyCategory.Account),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = AgentToolPolicies.class, visibility = Visibility.HIDDEN_CLOUD)
+		AGENTS_TOOL_POLICY ("agents.tool_policy", "auto", "Tools the No Code agents of this engine (Tigo in the No Code Studio) may use besides the Convertigo MCP: they run as the engine's user, which reads every project, account and secret of the engine. The agent of the Studio's developer is not limited (see engine.util.AgentSandbox)", PropertyCategory.Account),
 
 		/** LOGS */
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
