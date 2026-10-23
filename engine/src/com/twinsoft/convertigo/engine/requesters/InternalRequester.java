@@ -177,6 +177,19 @@ public class InternalRequester extends GenericRequester {
 		return true;
 	}
 
+	@Override
+	public void checkSecuredConnection() throws EngineException {
+		// The requestable's "secure connection required" property only applies to
+		// calls entering the engine from a real HTTP request (REST URL mapping,
+		// basic authentication): the requester registered as the current handler of
+		// the HTTP request. Internal invocations (sequence steps, scheduler jobs,
+		// auto-start sequences, CouchDB listeners) are not concerned and keep
+		// working whatever the connection security is.
+		if (httpServletRequest.getAttribute("convertigo.requester") == this) {
+			ServletRequester.checkSecuredConnection(context);
+		}
+	}
+
 	protected void initInternalVariables() throws EngineException {
 		Map<String, Object> request = GenericUtils.cast(inputData);
 

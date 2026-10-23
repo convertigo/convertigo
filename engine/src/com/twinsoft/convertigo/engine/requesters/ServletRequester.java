@@ -56,6 +56,10 @@ public abstract class ServletRequester extends GenericRequester {
     
     @Override
 	public void checkSecuredConnection() throws EngineException {
+		checkSecuredConnection(context);
+	}
+
+	public static void checkSecuredConnection(Context context) throws EngineException {
 		if (context.requestedObject.isSecureConnectionRequired()) {
 			if (!context.httpServletRequest.isSecure()) {
 				throw new EngineException("Unable to execute the requestable '" + context.requestedObject.getName()
@@ -66,6 +70,10 @@ public abstract class ServletRequester extends GenericRequester {
 
     @Override
 	public void checkAccessibility() throws EngineException {
+		checkAccessibility(context);
+	}
+
+	public static void checkAccessibility(Context context) throws EngineException {
 		// By default, requesters disallow private requestables from being executed
 		if (context.requestedObject.isPrivateAccessibility()) {
 			if (Engine.isStudioMode()) {
