@@ -117,6 +117,9 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		RequestableStep clonedObject = (RequestableStep) super.clone();
 		clonedObject.vVariables = new LinkedList<StepVariable>();
 		clonedObject.vAllVariables = null;
+		// A clone orders its own variables: shared, a variable added to a clone at run time landed in the order of the
+		// original and of every other clone, which grew with each run and broke under concurrent runs.
+		clonedObject.orderedVariables = new XMLVector<XMLVector<Long>>(orderedVariables);
 		clonedObject.xmlHttpDocument = null;
 		clonedObject.hostConfiguration = new HostConfiguration();
 		clonedObject.targetUrl = null;
