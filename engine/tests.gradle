@@ -289,3 +289,12 @@ tasks.register('httpBodyReadTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.beans.transactions.HttpBodyReadTest'
 }
+
+tasks.register('contextResetTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: the reset of a context at the start of a request forgets the native state of the request before.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.ContextResetTest'
+}
