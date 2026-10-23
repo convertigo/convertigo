@@ -743,6 +743,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		
 		getPreferenceStore().setDefault(PREFERENCE_AUTO_CREATE_PROJECT_GIT_REPOSITORY, true);
 
+		// the Web Studio, the reference documentation and the MCP library of this Studio follow its preference
+		ExperimentalFeatures.syncEngine();
+
 		// In STUDIO, the Convertigo User Workspace is in the current Eclipse Workspace/.metadata/.plugins/com.twinsoft.convertigo.studio
 		Engine.USER_WORKSPACE_PATH = getDefault().getStateLocation().toFile().getCanonicalPath();
 
