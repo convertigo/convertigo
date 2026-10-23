@@ -270,3 +270,12 @@ tasks.register('billingInternalCallsTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.BillingInternalCallsTest'
 }
+
+tasks.register('jsonStringifyFallbackTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a Java map or list the JSON writer refuses (date, Java array, character, deep nesting) is written by JSON.stringify of Rhino, without looping.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.JsonStringifyFallbackTest'
+}

@@ -109,7 +109,27 @@ public class RhinoUtils {
 		}
 		// the Java maps and lists of the native JSON steps
 		if (!(object instanceof Scriptable) && (object instanceof Map || object instanceof List)) {
-			return jsonStringifyData(object);
+			StringBuilder sb = new StringBuilder(4096);
+			try {
+				writeJsonData(sb, object, 0);
+				return sb.toString();
+			} catch (NotJsonData e) {
+				return rhinoStringify(object);
+			}
+		}
+		return rhinoStringify(object);
+	}
+
+	/**
+	 * JSON.stringify of Rhino, never our writer: a value our writer refuses comes here. A Java map or list is wrapped
+	 * for JavaScript first (Rhino writes a raw one as undefined).
+	 */
+	private static String rhinoStringify(Object object) {
+		if (object instanceof NativeJavaObject) {
+			object = ((NativeJavaObject) object).unwrap();
+		}
+		if (!(object instanceof Scriptable) && (object instanceof Map || object instanceof List)) {
+			object = Context.javaToJS(object, jsonScope());
 		}
 		return ScriptableObject.callMethod(json, "stringify", new Object[]{object}).toString();
 	}
@@ -125,7 +145,7 @@ public class RhinoUtils {
 			writeJsonData(sb, object, 0);
 			return sb.toString();
 		} catch (NotJsonData e) {
-			return jsonStringify(object);
+			return rhinoStringify(object);
 		}
 	}
 
@@ -145,10 +165,13 @@ public class RhinoUtils {
 
 	/** writes the JSON of plain JavaScript data, Java maps and lists, as jsonStringifyData */
 	public static void writeJsonData(StringBuilder sb, Object value) {
+		int start = sb.length();
 		try {
 			writeJsonData(sb, value, 0);
 		} catch (NotJsonData e) {
-			sb.append(jsonStringify(value));
+			// the text written before the refused value is dropped
+			sb.setLength(start);
+			sb.append(rhinoStringify(value));
 		}
 	}
 
@@ -184,7 +207,7 @@ public class RhinoUtils {
 	 */
 	public static void writeJsonData(Writer writer, Object value) throws IOException {
 		if (!isJsonData(value)) {
-			writer.write(jsonStringify(value));
+			writer.write(rhinoStringify(value));
 			return;
 		}
 		StringBuilder sb = new StringBuilder(CHUNK + 1024);
