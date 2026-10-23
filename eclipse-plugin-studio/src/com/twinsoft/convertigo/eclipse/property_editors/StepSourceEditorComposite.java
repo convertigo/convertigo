@@ -339,10 +339,13 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 		jsonStep = selected != null && ExperimentalFeatures.isShown() && NativeJson.isJsonProducer(selected) ? selected : null;
 		if (jsonStep == null) {
 			treesSashForm.setMaximizedControl(null);
+			// hidden, not of weight 0: the SashForm leaves neither its pane nor its sash
+			jsonTree.setVisible(false);
 			treesSashForm.setWeights(new int[]{40,60,0});
 			jsonTree.setJson("", null);
 			return;
 		}
+		jsonTree.setVisible(true);
 		treesSashForm.setWeights(new int[]{30,35,35});
 		NativeStepOutput sample = NativeJson.getSample(jsonStep);
 		jsonTreeUpdating = true;
