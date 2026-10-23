@@ -307,3 +307,12 @@ tasks.register('experimentalFeaturesTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.ExperimentalFeaturesTest'
 }
+
+tasks.register('hiddenEnginePropertiesTest', JavaExec) {
+	group = 'verification'
+	description = 'The engine properties of the native fast paths and of the traces are not listed nor written as commented defaults, and still read and written when changed.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.HiddenEnginePropertiesTest'
+}
