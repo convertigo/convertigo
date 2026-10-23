@@ -128,11 +128,14 @@ public abstract class GenericRequester extends Requester {
 	
 	@Override
 	public void checkAuthenticatedContext() throws EngineException {
+		boolean trustedStub = context.isStubRequested && (Engine.isStudioMode()
+				|| (context.httpSession != null && Engine.authenticatedSessionManager.hasRole(context.httpSession,
+						com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role.TEST_PLATFORM_PRIVATE)));
 		
 		if (context.httpSession != null) {
 			Object controller = context.httpSession.getAttribute("customController");
 			if (controller != null && controller instanceof CustomController) {
-				if (!context.isStubRequested) {
+				if (!trustedStub) {
 					((CustomController)controller).checkAuthenticatedContext(context);
 				}
 			}
@@ -142,7 +145,7 @@ public abstract class GenericRequester extends Requester {
 			Engine.logContext.debug("The context is authenticated via the HTTP session");
 		} else if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");
-			if(!context.isStubRequested)
+			if (!trustedStub)
 				throw new EngineException("Authentication required");
 		} 
 	}

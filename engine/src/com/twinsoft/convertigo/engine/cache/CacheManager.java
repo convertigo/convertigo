@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.cache;
 
 import java.lang.ref.WeakReference;
+import java.nio.file.Path;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -131,13 +132,17 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 		if (context.isStubRequested) {
 			String stubFileName = (String) context.get(Parameter.StubFilename.getName());
 			
-			String stubFilePath = context.requestedObject.getProject().getDirPath() + "/stubs/" 
-								+ (stubFileName == null ? context.requestedObject.getDefaultStubFileName() : stubFileName);
 			try {
-				response = XMLUtils.parseDOM(stubFilePath);
+				Path stubDirectory = Path.of(context.requestedObject.getProject().getDirPath(), "stubs").toRealPath();
+				Path stubFile = stubDirectory.resolve(stubFileName == null
+						? context.requestedObject.getDefaultStubFileName() : stubFileName).toRealPath();
+				if (!stubFile.startsWith(stubDirectory) || stubFile.equals(stubDirectory)) {
+					throw new EngineException("Stub file must remain inside the project's stubs directory");
+				}
+				response = XMLUtils.parseDOM(stubFile.toFile());
 				response.getDocumentElement().setAttribute("fromStub", "true");
 			} catch (Exception e) {
-				Engine.logCacheManager.error("Error while parsing " + stubFilePath + " file");
+				Engine.logCacheManager.error("Unable to load the requested stub file", e);
 				throw new EngineException("Unable to load response from Stub", e);
 			}
 		} else {
