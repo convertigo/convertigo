@@ -73,6 +73,9 @@ public class HiddenEnginePropertiesTest {
 			assertFalse(saved, saved.contains("#" + property.getKey() + "="));
 		}
 		assertTrue(saved, saved.contains("#" + PropertyName.ZIP_BACKUP_OLD_PROJECT.getKey() + "=false"));
+		// a property hidden before keeps its commented default: an existing engine.properties is written as before
+		assertTrue(PropertyName.UPDATE_STEPS.isHidden());
+		assertTrue(saved, saved.contains("#" + PropertyName.UPDATE_STEPS.getKey() + "=false"));
 	}
 
 	@Test
