@@ -153,7 +153,9 @@ public class DboExplorerManager {
 			EmulatorTechnologies.add(emulatorTechnology);
 		}
 
-		DboBean bean = new DboBean(className, bEnable, documentedMode, bDefault, parents, EmulatorTechnologies);
+		boolean bExperimental = "true".equals(elementBean.getAttribute("experimental"));
+
+		DboBean bean = new DboBean(className, bEnable, documentedMode, bDefault, bExperimental, parents, EmulatorTechnologies);
 		return bean;
 	}
 

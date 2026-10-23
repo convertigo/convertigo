@@ -349,7 +349,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 
 			// the JSON native properties of a sequence that is not native, without the experimental features
-			if (ExperimentalFeatures.isHiddenProperty(databaseObject, databaseObjectPropertyDescriptor.getName())) {
+			if (ExperimentalFeatures.isHiddenProperty(databaseObject, databaseObjectPropertyDescriptor)) {
 				continue;
 			}
 

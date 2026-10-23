@@ -19,7 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse;
 
-import java.util.Set;
+import java.beans.PropertyDescriptor;
 
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
@@ -27,8 +27,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.views.properties.PropertySheet;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.eclipse.views.palette.PaletteView;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 
 /**
  * The Studio preference that shows the new experimental features (JSON native sequences, their native steps, the
@@ -36,18 +36,12 @@ import com.twinsoft.convertigo.eclipse.views.palette.PaletteView;
  * are not in the palette nor in the creation wizards, the JSON native properties of a sequence are hidden while they
  * are off, and the JSON pickers and their menus are hidden. What a project already holds is always shown and
  * editable: a native step, a native sequence, a JSON path source.
+ * <p>
+ * The preference drives the switch of the engine (com.twinsoft.convertigo.engine.util.ExperimentalFeatures), set at
+ * startup and at each change: the Web Studio, the reference documentation and the Convertigo MCP library of this
+ * Studio follow it. The experimental beans and properties are the ones the engine marks.
  */
 public class ExperimentalFeatures {
-	private static final Set<String> NEW_BEANS = Set.of(
-			"com.twinsoft.convertigo.beans.steps.JsonFormatCellsStep",
-			"com.twinsoft.convertigo.beans.steps.JsonDistinctStep",
-			"com.twinsoft.convertigo.beans.steps.JsonGroupStep",
-			"com.twinsoft.convertigo.beans.steps.JsonSelectColumnsStep",
-			"com.twinsoft.convertigo.beans.steps.JsonStreamRowsStep",
-			"com.twinsoft.convertigo.beans.steps.JsonReadStep");
-
-	private static final Set<String> NEW_SEQUENCE_PROPERTIES = Set.of("jsonNativeOutput", "nativeExecution");
-
 	/** changes at each change of the preference: the cached property descriptors are built again */
 	private static volatile int generation = 0;
 
@@ -59,27 +53,35 @@ public class ExperimentalFeatures {
 		return "true".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_EXPERIMENTAL_FEATURES));
 	}
 
+	/** gives the preference to the switch of the engine */
+	public static void syncEngine() {
+		com.twinsoft.convertigo.engine.util.ExperimentalFeatures.setShown(isShown());
+	}
+
 	public static int getGeneration() {
 		return generation;
 	}
 
 	/** a bean the palette and the creation wizards do not offer while the preference is unchecked */
-	public static boolean isHiddenBean(String className) {
-		return !isShown() && NEW_BEANS.contains(className);
+	public static boolean isHiddenBean(DboBean bean) {
+		return com.twinsoft.convertigo.engine.util.ExperimentalFeatures.isHiddenBean(bean, isShown());
 	}
 
-	/** a new property of a sequence, hidden while the preference is unchecked and the property is off */
-	public static boolean isHiddenProperty(DatabaseObject databaseObject, String propertyName) {
-		if (isShown() || !(databaseObject instanceof Sequence sequence) || !NEW_SEQUENCE_PROPERTIES.contains(propertyName)) {
-			return false;
-		}
+	/** an experimental property, not described in the palette while the preference is unchecked */
+	public static boolean isHiddenProperty(PropertyDescriptor propertyDescriptor) {
+		return !isShown() && com.twinsoft.convertigo.engine.util.ExperimentalFeatures.isExperimental(propertyDescriptor);
+	}
+
+	/** an experimental property of an object, hidden while the preference is unchecked and the property is off */
+	public static boolean isHiddenProperty(DatabaseObject databaseObject, PropertyDescriptor propertyDescriptor) {
 		// a sequence that is already native keeps the properties that make it native
-		return !("jsonNativeOutput".equals(propertyName) ? sequence.isJsonNativeOutput() : sequence.isNativeExecution());
+		return com.twinsoft.convertigo.engine.util.ExperimentalFeatures.isHiddenProperty(databaseObject, propertyDescriptor, isShown());
 	}
 
-	/** after a change of the preference: the palette and the Properties view show it at once */
+	/** after a change of the preference: the engine, the palette and the Properties view show it at once */
 	public static void changed() {
 		generation++;
+		syncEngine();
 		ConvertigoPlugin.asyncExec(() -> {
 			try {
 				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();

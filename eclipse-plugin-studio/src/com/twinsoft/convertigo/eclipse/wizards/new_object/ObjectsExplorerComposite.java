@@ -134,7 +134,7 @@ public class ObjectsExplorerComposite extends Composite {
 
 								String className = bean.getClassName();
 								// a native JSON step is offered only with the experimental features
-								if (ExperimentalFeatures.isHiddenBean(className)) continue;
+								if (ExperimentalFeatures.isHiddenBean(bean)) continue;
 								if (bean.isDefault()) {
 									defaultDboList.add(className);
 								}

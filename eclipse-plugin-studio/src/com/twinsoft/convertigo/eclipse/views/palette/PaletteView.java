@@ -710,7 +710,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 									boolean allowedIn(DatabaseObject parent) {
 										try {
 											// a native JSON step is offered only with the experimental features
-											if (ExperimentalFeatures.isHiddenBean(cn)) {
+											if (ExperimentalFeatures.isHiddenBean(b)) {
 												return false;
 											}
 											boolean force = false;
@@ -748,7 +748,8 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 
 										String propertiesDescription = "";
 										for (PropertyDescriptor dbopd : propertyDescriptors) {
-											if (!dbopd.isHidden()) {
+											// nor the properties of the experimental features while they are not shown
+											if (!dbopd.isHidden() && !ExperimentalFeatures.isHiddenProperty(dbopd)) {
 												String doc = DocumentationHelper.fullDescription(dbopd.getShortDescription(), true);
 												propertiesDescription += "<li><i>" + dbopd.getDisplayName() + "</i>";
 												if (StringUtils.isNotBlank(doc)) {

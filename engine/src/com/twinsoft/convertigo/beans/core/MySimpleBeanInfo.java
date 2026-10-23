@@ -52,6 +52,8 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	public static final String SCRIPTABLE = "scriptable";
 	public static final String MULTILINE = "multiline";
 	public static final String HIDDEN_PROPERTY = "hiddenProperty";
+	/** a property of the new experimental features (ExperimentalFeatures): Boolean.TRUE */
+	public static final String EXPERIMENTAL = "experimental";
 	
 	protected Class<? extends DatabaseObject> beanClass = null;
 	protected Class<? extends DatabaseObject> additionalBeanClass = null;

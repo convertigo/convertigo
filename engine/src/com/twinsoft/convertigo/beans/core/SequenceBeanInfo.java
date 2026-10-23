@@ -46,11 +46,13 @@ public class SequenceBeanInfo extends MySimpleBeanInfo {
             properties[2].setDisplayName(getExternalizedString("property.jsonNativeOutput.display_name"));
             properties[2].setShortDescription(getExternalizedString("property.jsonNativeOutput.short_description"));
             properties[2].setValue(CATEGORY, "JSON native");
+            properties[2].setValue(EXPERIMENTAL, Boolean.TRUE);
 
             properties[3] = new PropertyDescriptor("nativeExecution", beanClass, "isNativeExecution", "setNativeExecution");
             properties[3].setDisplayName(getExternalizedString("property.nativeExecution.display_name"));
             properties[3].setShortDescription(getExternalizedString("property.nativeExecution.short_description"));
             properties[3].setValue(CATEGORY, "JSON native");
+            properties[3].setValue(EXPERIMENTAL, Boolean.TRUE);
 
             PropertyDescriptor property = getPropertyDescriptor("sheetLocation");
 			property.setPropertyEditorClass(getEditorClass("SequenceSheetLocationEditor"));

@@ -2104,7 +2104,7 @@
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.steps.JsonArrayStep" />
 				</bean>
-				<bean enable="true" documented="true"
+				<bean enable="true" documented="true" experimental="true"
 					classname="com.twinsoft.convertigo.beans.steps.JsonFormatCellsStep">
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" />
@@ -2119,7 +2119,7 @@
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.steps.ThenStep" />
 				</bean>
-				<bean enable="true" documented="true"
+				<bean enable="true" documented="true" experimental="true"
 					classname="com.twinsoft.convertigo.beans.steps.JsonDistinctStep">
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" />
@@ -2134,7 +2134,7 @@
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.steps.ThenStep" />
 				</bean>
-				<bean enable="true" documented="true"
+				<bean enable="true" documented="true" experimental="true"
 					classname="com.twinsoft.convertigo.beans.steps.JsonSelectColumnsStep">
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" />
@@ -2149,7 +2149,7 @@
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.steps.ThenStep" />
 				</bean>
-				<bean enable="true" documented="true"
+				<bean enable="true" documented="true" experimental="true"
 					classname="com.twinsoft.convertigo.beans.steps.JsonGroupStep">
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" />
@@ -2164,7 +2164,7 @@
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.steps.ThenStep" />
 				</bean>
-				<bean enable="true" documented="true"
+				<bean enable="true" documented="true" experimental="true"
 					classname="com.twinsoft.convertigo.beans.steps.JsonStreamRowsStep">
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" />
@@ -2179,7 +2179,7 @@
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.steps.ThenStep" />
 				</bean>
-				<bean enable="true" documented="true"
+				<bean enable="true" documented="true" experimental="true"
 					classname="com.twinsoft.convertigo.beans.steps.JsonReadStep">
 					<parent allowInheritance="true"
 						classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" />
