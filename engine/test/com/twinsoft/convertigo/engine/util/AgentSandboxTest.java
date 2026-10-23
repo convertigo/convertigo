@@ -147,6 +147,9 @@ public class AgentSandboxTest {
 		assertEquals("a path given twice is passed once", 1, options.stream().filter("/workspace/agents/vibe/homes/u1"::equals).count());
 		assertEquals(1, options.stream().filter("/usr/bin"::equals).count());
 		assertFalse("not Tomcat nor the engine", options.contains("/usr/local") || options.contains("/usr"));
+		// of /proc, its own entries and the system-wide files: not the command lines of the other processes
+		assertFalse(options.contains("/proc"));
+		assertEquals("--ro", options.get(options.indexOf("/proc/self") - 1));
 		assertFalse(options.contains("/workspace"));
 	}
 

@@ -56,17 +56,25 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
  * <li>full: every tool, as the engine's user;</li>
  * <li>auto, the default: files.</li>
  * </ul>
- * Landlock limits the file system only: a confined process still reaches the network.
+ * Landlock limits the file system only: a confined process still reaches the network. It sees no other process: of
+ * /proc it reads its own entries and the system-wide files only.
  */
 public final class AgentSandbox {
 	/** the path of the helper that confines a command (the system property, else {@value #DEFAULT_HELPER}) */
 	public static final String HELPER_SYSTEM_PROPERTY = "convertigo.agent.sandbox.helper";
 	public static final String DEFAULT_HELPER = "/usr/local/bin/c8o-agent-sandbox";
 
-	/** what every confined process reads and runs: the system, neither /usr/local (Tomcat, the engine) nor /workspace */
+	/**
+	 * what every confined process reads and runs: the system, neither /usr/local (Tomcat, the engine) nor /workspace.
+	 * Of /proc, the confined command's own entries (/proc/self, resolved by the helper to its pid, which the command
+	 * keeps) and the system-wide files only: with the whole of /proc, a confined shell read the command line of the
+	 * engine and the passwords it holds (test-nocode). The processes it starts cannot read their own entries. A process
+	 * space of its own is not an option there: the container refuses to mount another /proc.
+	 */
 	static final List<String> SYSTEM_READ_ONLY = List.of("/bin", "/sbin", "/lib", "/lib32", "/lib64", "/usr/bin",
-			"/usr/sbin", "/usr/lib", "/usr/lib32", "/usr/lib64", "/usr/libexec", "/usr/share", "/etc", "/proc", "/sys",
-			"/dev");
+			"/usr/sbin", "/usr/lib", "/usr/lib32", "/usr/lib64", "/usr/libexec", "/usr/share", "/etc", "/sys", "/dev",
+			"/proc/self", "/proc/thread-self", "/proc/cpuinfo", "/proc/meminfo", "/proc/stat", "/proc/loadavg",
+			"/proc/uptime", "/proc/version", "/proc/filesystems", "/proc/sys");
 	/** what every confined process writes besides its folders */
 	static final List<String> SYSTEM_READ_WRITE = List.of("/dev/null");
 
