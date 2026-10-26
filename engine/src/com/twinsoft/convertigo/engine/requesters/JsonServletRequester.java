@@ -20,12 +20,15 @@
 package com.twinsoft.convertigo.engine.requesters;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.util.JsonNativeOutput;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class JsonServletRequester extends ServletRequester {
@@ -43,11 +46,47 @@ public class JsonServletRequester extends ServletRequester {
     }
 	
 	@Override
-	public String postGetDocument(Document document) throws Exception {
+	public Object postGetDocument(Document document) throws Exception {
+		return toJson(context, document);
+	}
+
+	/** the JSON answer of a document: the native JSON outputs of the sequence are written as is beside its XML */
+	public static Object toJson(Context context, Document document) throws Exception {
+		if (document == null) {
+			// a native sequence without XML: its outputs only
+			Map<String, JsonNativeOutput> nativeOutputs = context.jsonNativeOutputs;
+			context.jsonNativeOutputs = null;
+			if (nativeOutputs == null || nativeOutputs.isEmpty()) {
+				return "{}";
+			}
+			String charset = context.requestedObject != null ? context.requestedObject.getEncodingCharSet() : "UTF-8";
+			Object json = XMLUtils.XmlToJsonResponse(null, true, nativeOutputs.values(), charset);
+			if (json != null) {
+				return json;
+			}
+			context.jsonNativeOutputs = nativeOutputs;
+			document = GenericRequester.nativeOutputDocument(context);
+		}
 		ConvertigoError.cleanDocument(context.getXpathApi(), document);
 		var useType = context.isDefaultProjectAnswer || context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
 		var jsonRoot = context.isDefaultProjectAnswer ? JsonRoot.docChildNodes
 				: context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
+		Map<String, JsonNativeOutput> nativeOutputs = context.jsonNativeOutputs;
+		context.jsonNativeOutputs = null;
+		if (nativeOutputs != null && !nativeOutputs.isEmpty() && !context.isErrorDocument) {
+			if (useType && JsonRoot.docChildNodes.equals(jsonRoot)) {
+				// a String, or a response written in stream by the servlet (JsonStreamedResponse)
+				String charset = context.requestedObject != null ? context.requestedObject.getEncodingCharSet() : "UTF-8";
+				Object json = XMLUtils.XmlToJsonResponse(document.getDocumentElement(), true, nativeOutputs.values(), charset);
+				if (json != null) {
+					return json;
+				}
+			}
+			// a key is in both: the kept JSON goes back to XML, as without Sequence.jsonNativeOutput
+			for (JsonNativeOutput nativeOutput : nativeOutputs.values()) {
+				document.getDocumentElement().appendChild(nativeOutput.toElement(document));
+			}
+		}
 		return XMLUtils.XmlToJson(document.getDocumentElement(), true, useType, jsonRoot);
 	}
 	

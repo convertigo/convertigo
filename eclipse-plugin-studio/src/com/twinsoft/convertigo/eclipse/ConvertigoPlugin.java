@@ -155,6 +155,7 @@ import com.twinsoft.convertigo.engine.events.StudioEvent;
 import com.twinsoft.convertigo.engine.events.StudioEventListener;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
+import com.twinsoft.convertigo.engine.requesters.InternalJsonRequester;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
@@ -205,6 +206,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_BROWSER_OFFSCREEN = "browser.offscreen";
 	public static final String PREFERENCE_ASSISTANT_URL = "assistant.url";
 	public static final String PREFERENCE_MARKETPLACE_URL = "marketplace.url";
+	public static final String PREFERENCE_EXPERIMENTAL_FEATURES = "experimental.features";
 	
 	private static final QualifiedName qnInit = new QualifiedName(PLUGIN_UNIQUE_ID + ".init", "done");
 	
@@ -773,6 +775,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		
 		getPreferenceStore().setDefault(PREFERENCE_AUTO_CREATE_PROJECT_GIT_REPOSITORY, true);
 
+		// the Web Studio, the reference documentation and the MCP library of this Studio follow its preference
+		ExperimentalFeatures.syncEngine();
+
 		// In STUDIO, the Convertigo User Workspace is in the current Eclipse Workspace/.metadata/.plugins/com.twinsoft.convertigo.studio
 		Engine.USER_WORKSPACE_PATH = getDefault().getStateLocation().toFile().getCanonicalPath();
 
@@ -854,6 +859,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 							// The console threads must be started AFTER the engine
 							consolePipes.startConsoleThreads();
+
+							// the JSON of the native steps, for the JSON picker and the sequence editors
+							com.twinsoft.convertigo.eclipse.views.jsonpicker.NativeJson.register();
 
 							try {
 								deploymentConfigurationManager.doMigration();
@@ -1853,6 +1861,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	public void runRequestable(final String projectName, final Map<String, String[]> parameters) {
+		runRequestable(projectName, parameters, false, null);
+	}
+
+	/**
+	 * runs a requestable as a .json request does when json is true (InternalJsonRequester: the native JSON outputs
+	 * of a sequence are kept), and gives its result (a Document, a JSON text or a JSON answer written in stream).
+	 */
+	public void runRequestable(final String projectName, final Map<String, String[]> parameters, final boolean json, final java.util.function.Consumer<Object> onResult) {
 		if (!Engine.isStartFailed && Engine.isStarted) {
 			parameters.put(Parameter.Project.getName(), new String[] {projectName});
 			new Thread(new Runnable() {
@@ -1868,11 +1884,19 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 							request = new InternalHttpServletRequest(session);
 						}
 
-						InternalRequester requester = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request);
+						InternalRequester requester = json
+								? new InternalJsonRequester(GenericUtils.<Map<String, Object>>cast(parameters), request)
+								: new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request);
 						HttpSessionListener.checkSession(requester.getHttpServletRequest());
-						requester.processRequest();
+						Object result = requester.processRequest();
+						if (onResult != null) {
+							onResult.accept(result);
+						}
 					} catch (Exception e) {
 						logException(e, "Failed to run the requestable of project " + projectName);
+						if (onResult != null) {
+							onResult.accept(e);
+						}
 					}
 				}
 

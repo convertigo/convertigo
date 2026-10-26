@@ -30,7 +30,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -54,6 +53,7 @@ import com.twinsoft.convertigo.engine.AttachmentManager;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.DynamicHttpVariable;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
@@ -115,7 +115,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 
 	private boolean followRedirect = true;
 
-	/** Controls how the request-supplied __uri parameter may change the target URL. */
+	/** Controls how the request-supplied __uri parameter and followed redirects may change the target URL. */
 	private HttpUriOverridePolicy allowedUriOverride = HttpUriOverridePolicy.deny;
 
 	public HttpUriOverridePolicy getAllowedUriOverride() {
@@ -283,7 +283,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 			}
 
 			// Applying handler
-			executeHandler(EVENT_DATA_RETRIEVED, ((RequestableThread) Thread.currentThread()).javascriptContext);
+			executeHandler(EVENT_DATA_RETRIEVED, Thread.currentThread() instanceof RequestableThread ? ((RequestableThread) Thread.currentThread()).javascriptContext : org.mozilla.javascript.Context.getCurrentContext());
 
 			// Applying the underlying process
 			makeDocument(httpData);
@@ -406,10 +406,18 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		}
 
 		// Overrides uri using given __uri request parameter
-		NodeList uriNodes = context.inputDocument.getElementsByTagName("uri");
-		if (uriNodes.getLength() == 1) {
-			Element uriNode = (Element) uriNodes.item(0);
-			uri  = uriNode.getAttribute("value");
+		if (context.inputDocument == null && context.nativeParameters != null) {
+			// a native call: the parameters themselves
+			String nativeUri = nativeParameter(context.nativeParameters.get(Parameter.HttpUri.getName()));
+			if (nativeUri != null) {
+				uri = nativeUri;
+			}
+		} else {
+			NodeList uriNodes = context.inputDocument.getElementsByTagName("uri");
+			if (uriNodes.getLength() == 1) {
+				Element uriNode = (Element) uriNodes.item(0);
+				uri  = uriNode.getAttribute("value");
+			}
 		}
 		
 		if (StringUtils.isNotBlank(uri)) {
@@ -436,14 +444,29 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		}
 		
 		// Overrides static HTTP headers using __header_ request parameters 
-		NodeList headerNodes = context.inputDocument.getElementsByTagName("header");
-		int len = headerNodes.getLength();
+		List<String[]> headerOverrides = new ArrayList<String[]>();
+		if (context.inputDocument == null && context.nativeParameters != null) {
+			for (Map.Entry<String, Object> parameter : context.nativeParameters.entrySet()) {
+				if (parameter.getKey().startsWith(Parameter.HttpHeader.getName())) {
+					String value = nativeParameter(parameter.getValue());
+					if (value != null) {
+						headerOverrides.add(new String[] { parameter.getKey().substring(Parameter.HttpHeader.getName().length()), value });
+					}
+				}
+			}
+		} else {
+			NodeList headerNodes = context.inputDocument.getElementsByTagName("header");
+			for (int i = 0; i < headerNodes.getLength(); i++) {
+				Element headerNode = (Element) headerNodes.item(i);
+				headerOverrides.add(new String[] { headerNode.getAttribute("name"), headerNode.getAttribute("value") });
+			}
+		}
+		int len = headerOverrides.size();
 		if (len > 0 || map.size() > 0) {
 			XMLVector<XMLVector<String>> headers = getCurrentHttpParameters();
 			for (int i=0; i<len; i++) {
-				Element headerNode = (Element) headerNodes.item(i);
 				XMLVector<String> header = new XMLVector<String>();
-				String name = headerNode.getAttribute("name");
+				String name = headerOverrides.get(i)[0];
 				// On externally reachable transactions (Public or Hidden), a header
 				// supplied through a request-level __header_ parameter is honored only
 				// when the transaction declares a matching variable or when undeclared
@@ -460,7 +483,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 					name = nvp.getName();
 				}
 				header.add(name);
-				header.add(headerNode.getAttribute("value"));
+				header.add(headerOverrides.get(i)[1]);
 				headers.add(header);
 			}
 			
@@ -480,6 +503,17 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	}
 
 	public abstract void makeDocument(byte[] httpData) throws Exception;
+
+	/** the first value of a parameter of a native call, as a text */
+	static String nativeParameter(Object value) {
+		if (value instanceof Object[]) {
+			value = ((Object[]) value).length > 0 ? ((Object[]) value)[0] : null;
+		}
+		if (value instanceof org.mozilla.javascript.NativeJavaObject) {
+			value = ((org.mozilla.javascript.NativeJavaObject) value).unwrap();
+		}
+		return value == null ? null : value.toString();
+	}
 
 	public AttachmentManager getAttachmentManager(){
 		if(attachmentManager==null) attachmentManager = new AttachmentManager(this);
@@ -689,6 +723,50 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	}
 
 	public byte[] readResult(InputStream in, HttpMethod method) throws IOException {
-		return IOUtils.toByteArray(in);
+		long announced = -1;
+		org.apache.commons.httpclient.Header contentLength = method != null ? method.getResponseHeader("Content-Length") : null;
+		if (contentLength != null) {
+			try {
+				announced = Long.parseLong(contentLength.getValue().trim());
+			} catch (NumberFormatException e) {
+				announced = -1;
+			}
+		}
+		return readBody(in, announced);
+	}
+
+	/** the first buffer of readBody holds at most this, whatever the Content-Length announces */
+	static final int MAX_FIRST_BUFFER = 8 * 1024 * 1024;
+
+	private static final int MAX_BUFFER = Integer.MAX_VALUE - 8;
+
+	/**
+	 * reads the whole body: one buffer of the announced length (Content-Length, at most MAX_FIRST_BUFFER, 8192 when
+	 * unknown), grown only when the body is longer (a decompressed body, or a length announced beyond the cap). A
+	 * server announcing a huge length no longer gets a buffer of that length before sending anything.
+	 */
+	static byte[] readBody(InputStream in, long announced) throws IOException {
+		byte[] buffer = new byte[announced > 0 ? (int) Math.min(announced, MAX_FIRST_BUFFER) : 8192];
+		int count = 0;
+		while (true) {
+			if (count == buffer.length) {
+				int next = in.read();
+				if (next < 0) {
+					return buffer;
+				}
+				if (buffer.length >= MAX_BUFFER) {
+					throw new IOException("The HTTP body is longer than " + MAX_BUFFER + " bytes");
+				}
+				int grown = buffer.length > MAX_BUFFER / 2 ? MAX_BUFFER : Math.max(buffer.length * 2, 8192);
+				buffer = java.util.Arrays.copyOf(buffer, grown);
+				buffer[count++] = (byte) next;
+			}
+			int read = in.read(buffer, count, buffer.length - count);
+			if (read < 0) {
+				break;
+			}
+			count += read;
+		}
+		return count == buffer.length ? buffer : java.util.Arrays.copyOf(buffer, count);
 	}
 }

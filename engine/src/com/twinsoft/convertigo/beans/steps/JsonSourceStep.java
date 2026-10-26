@@ -28,6 +28,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.json.JsonPathSource;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -45,6 +46,11 @@ public class JsonSourceStep extends SourceStep {
 		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				String variableName = getVariableName();
+				if (jsonValue != NOT_JSON) {
+					// a JSON path source: the value as JSON.parse would give it, without XML
+					scope.put(variableName, scope, JsonPathSource.toJavaScript(jsonValue));
+					return true;
+				}
 				NodeList list = (NodeList) scope.get(variableName, scope);
 				if (list.getLength() == 0) {
 					scope.put(variableName, scope, null);
@@ -80,6 +86,11 @@ public class JsonSourceStep extends SourceStep {
 		return false;
 	}
 	
+	@Override
+	protected boolean readsJsonValue() {
+		return true;
+	}
+
 	@Override
 	protected String defaultBeanName(String displayName) {
 		return "myVariable";

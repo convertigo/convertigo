@@ -447,6 +447,10 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	}
 
 	public Connector getConnectorByName(String connectorName) throws EngineException {
+		Connector onDemand = childOnDemand(() -> ((Project) getOriginal()).getConnectorByName(connectorName));
+		if (onDemand != null) {
+			return onDemand;
+		}
 		checkSubLoaded();
 		for (Connector connector : vConnectors)
 			if (connector.getName().equalsIgnoreCase(connectorName))
@@ -476,6 +480,10 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	}
 
 	public Sequence getSequenceByName(String sequenceName) throws EngineException {
+		Sequence onDemand = childOnDemand(() -> ((Project) getOriginal()).getSequenceByName(sequenceName));
+		if (onDemand != null) {
+			return onDemand;
+		}
 		checkSubLoaded();
 		for (Sequence sequence : vSequences)
 			if (sequence.getName().equalsIgnoreCase(sequenceName))

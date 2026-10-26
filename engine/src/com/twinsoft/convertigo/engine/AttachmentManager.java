@@ -19,10 +19,14 @@
 
 package com.twinsoft.convertigo.engine;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Element;
@@ -31,9 +35,20 @@ import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 
 public class AttachmentManager {
 	public interface AttachmentDetails {
+		/** Materializes the entire payload for legacy callers; prefer getInputStream() for downloads. */
 		byte[] getData();
 		String getName();
 		String getContentType();
+
+		/** Opens a new stream. The caller must close it after use. */
+		default InputStream getInputStream() throws IOException {
+			return new ByteArrayInputStream(getData());
+		}
+
+		/** Returns the binary size, independently of any XML content-length attribute. */
+		default long getLength() throws IOException {
+			return getData().length;
+		}
 	}
 	
     public enum Policy {
@@ -130,25 +145,47 @@ public class AttachmentManager {
 				String attr; 
 				final String name = eAttachment.getAttribute("name");
 				final String contentType = eAttachment.getAttribute("content-type");
-				final byte[][] data = new byte[1][];
 				if ((attr = eAttachment.getAttribute("local-url")) != null && attr.length() > 0) {
-					FileInputStream fis = null;
-					try {
-						fis = new FileInputStream(attr);
-						fis.read(data[0] = new byte[fis.available()]);
-					} finally {
-						if (fis != null) fis.close();
+					final Path path = Path.of(attr);
+					if (!Files.isRegularFile(path) || !Files.isReadable(path)) {
+						throw new IOException("Attachment file is not readable: " + path);
 					}
-					
-				} else if ((attr = eAttachment.getAttribute("encoding")) != null && attr.length() > 0) {
-					if ("base64".equals(attr)) {
-						data[0] = Base64.decodeBase64(eAttachment.getTextContent());
-					}
+					return new AttachmentDetails() {
+						private byte[] data;
+
+						public synchronized byte[] getData() {
+							if (data == null) {
+								try {
+									data = Files.readAllBytes(path);
+								} catch (IOException e) {
+									throw new UncheckedIOException("Unable to read attachment file: " + path, e);
+								}
+							}
+							return data;
+						}
+
+						public InputStream getInputStream() throws IOException {
+							return Files.newInputStream(path);
+						}
+
+						public long getLength() throws IOException {
+							return Files.size(path);
+						}
+
+						public String getName() {
+							return name;
+						}
+
+						public String getContentType() {
+							return contentType;
+						}
+					};
 				}
-				if (data[0] != null) {
+				if ("base64".equals(eAttachment.getAttribute("encoding"))) {
+					final byte[] data = Base64.decodeBase64(eAttachment.getTextContent());
 					return new AttachmentDetails() {
 						public byte[] getData() {
-							return data[0];
+							return data;
 						}
 						public String getName() {
 							return name;

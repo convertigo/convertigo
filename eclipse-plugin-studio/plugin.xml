@@ -2596,6 +2596,53 @@
 			</action>
 		</objectContribution>
 		<objectContribution
+			id="convertigo.stepJsonPathSourceContribution"
+			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
+			<visibility>
+				<and>
+					<objectState
+						name="workOnSource"
+						value="true">
+					</objectState>
+					<objectState
+						name="experimentalFeatures"
+						value="true">
+					</objectState>
+				</and>
+			</visibility>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ConvertSourceToJsonPathAction"
+				enablesFor="1"
+				id="convertigo.action.convertSourceToJsonPath"
+				label="Convert source to JSON path"
+				menubarPath="picker">
+			</action>
+		</objectContribution>
+		<objectContribution
+			id="convertigo.jsonStepContribution"
+			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
+			<visibility>
+				<and>
+					<objectState
+						name="objectClassName"
+						value="com.twinsoft.convertigo.beans.steps.JsonFormatCellsStep;com.twinsoft.convertigo.beans.steps.JsonDistinctStep;com.twinsoft.convertigo.beans.steps.JsonGroupStep;com.twinsoft.convertigo.beans.steps.JsonSelectColumnsStep;com.twinsoft.convertigo.beans.steps.JsonStreamRowsStep;com.twinsoft.convertigo.beans.steps.JsonReadStep;com.twinsoft.convertigo.beans.steps.JsonToXmlStep">
+					</objectState>
+					<objectState
+						name="experimentalFeatures"
+						value="true">
+					</objectState>
+				</and>
+			</visibility>
+			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ShowStepInJsonPickerAction"
+				enablesFor="1"
+				icon="icons/studio/beans/steps/jsonarray_16x16.png"
+				id="convertigo.action.showInJsonPicker"
+				label="Show in JSON Picker"
+				menubarPath="picker">
+			</action>
+		</objectContribution>
+		<objectContribution
 			id="convertigo.stepWEContribution"
 			objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
 			<visibility>

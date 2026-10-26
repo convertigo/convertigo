@@ -69,6 +69,12 @@ public abstract class AbstractContext {
 	public transient HttpSession httpSession;
 	
 	/**
+	 * The HTTP session whose context list holds this context. Unlike httpSession, it is kept
+	 * between the requests so that the removal of the context finds that list.
+	 */
+	public transient HttpSession contextListSession;
+	
+	/**
 	 * The servlet path for the current request.
 	 */
 	public transient String servletPath;

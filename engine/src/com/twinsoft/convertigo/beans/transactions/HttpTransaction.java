@@ -150,6 +150,11 @@ public class HttpTransaction extends AbstractHttpTransaction {
 				throw new IllegalArgumentException("Unknown data encoding: " + dataEncoding);
 			}
 
+			if (context.outputDocument == null && context.nativeExecution) {
+				// a native call: the text of the answer, without document
+				context.nativeResult = stringData;
+				return;
+			}
 			Node child = responseInCDATA ?
 				context.outputDocument.createCDATASection(stringData) // remove TextCodec.UTF8Encode for #453
 				: context.outputDocument.createTextNode(stringData);

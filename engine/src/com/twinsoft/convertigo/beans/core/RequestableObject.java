@@ -36,10 +36,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import org.mozilla.javascript.ClassCache;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.FunctionObject;
 import org.mozilla.javascript.NativeJavaObject;
+import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -250,9 +253,27 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
      *
      * @return the resulting DOM of the transaction.
      */
+    /** the output document of the requestable, with its document root element */
+    protected void createOutputDocument(Context context) throws EngineException {
+        context.outputDocument = requester.createDOM(getEncodingCharSet());
+        
+		Element outputDocumentRootElement = context.outputDocument.createElement("document");
+		context.outputDocument.appendChild(outputDocumentRootElement);
+        
+		outputDocumentRootElement.setAttribute("project", context.projectName);
+		outputDocumentRootElement.setAttribute("sequence", context.sequenceName);
+		outputDocumentRootElement.setAttribute("connector", context.connectorName);
+		outputDocumentRootElement.setAttribute("transaction", context.transactionName);
+		if (context.lang != null && context.lang.length() != 0) {
+			outputDocumentRootElement.setAttribute("lang", context.lang);
+		}
+    }
+
     public Document run(Requester requester, Context context) throws EngineException {
         
     	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_STARTED);
+        long traceStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
+        boolean inline = false;
         
         try {
             this.requester = requester;
@@ -262,24 +283,47 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             
             context.cacheControl = this.isClientCachable() ? "true":"false";
             
-            context.outputDocument = requester.createDOM(getEncodingCharSet());
-            
-			Element outputDocumentRootElement = context.outputDocument.createElement("document");
-			context.outputDocument.appendChild(outputDocumentRootElement);
-            
-			outputDocumentRootElement.setAttribute("project", context.projectName);
-			outputDocumentRootElement.setAttribute("sequence", context.sequenceName);
-			outputDocumentRootElement.setAttribute("connector", context.connectorName);
-			outputDocumentRootElement.setAttribute("transaction", context.transactionName);
-			if (context.lang != null && context.lang.length() != 0) {
-				outputDocumentRootElement.setAttribute("lang", context.lang);
-			}
+            // a native sequence makes its output document only if one of its steps needs it
+            // a native sequence, or a transaction called natively: no input document was made for them
+            context.nativeExecution = context.inputDocument == null && context.nativeParameters != null;
+            context.nativeResult = null;
+            if (context.nativeExecution) {
+            	context.outputDocument = null;
+            } else {
+            	createOutputDocument(context);
+            }
 			
             int maxNbCurrentWorkerThreads = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
             
             if (nbCurrentWorkerThreads >= maxNbCurrentWorkerThreads)
             	throw new EngineException("No more available worker thread (" + maxNbCurrentWorkerThreads + ")");
             
+            inline = context.nativeExecution && isInlineNativeCall(requester);
+            if (inline) {
+            	// a native call of a native sequence: in the thread of the caller, without a requestable thread
+            	Engine.logContext.debug("(RequestableObject) Inline run of the requested object '" + getName() + "' ("+context.contextID+")");
+            	workerThreadCreationStatistic = context.statistics.start(EngineStatistics.WORKER_THREAD_START);
+            	runningThread = new RequestableThread();
+            	Thread current = Thread.currentThread();
+            	ClassLoader callerLoader = current.getContextClassLoader();
+            	current.setContextClassLoader(context.project.getProjectClassLoader());
+            	Log4jHelper.MdcSnapshot callerLog = Log4jHelper.mdcSnapshot();
+            	try {
+            		runningThread.runInline();
+            	} finally {
+            		current.setContextClassLoader(callerLoader);
+            		Log4jHelper.mdcClear();
+            		callerLog.install();
+            	}
+            	if (runningThread.exception != null) {
+            		if (runningThread.exception instanceof EngineException) {
+            			throw (EngineException) runningThread.exception;
+            		}
+            		throw new EngineException("An unexpected error has occured while the execution of the requested object '" + getName() + "'.", runningThread.exception);
+            	}
+            	return context.outputDocument;
+            }
+
             Engine.logContext.debug("(RequestableObject) Start of the thread for the requested object '" + getName() + "' ("+context.contextID+")");
 
             workerThreadCreationStatistic = context.statistics.start(EngineStatistics.WORKER_THREAD_START);
@@ -365,7 +409,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
                     throw (EngineException) runningThread.exception;
                 else throw new EngineException("An unexpected error has occured while the execution of the requested object '" + getName() + "'.", runningThread.exception);
 
-			outputDocumentRootElement.setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
+			if (context.outputDocument != null) {
+				context.outputDocument.getDocumentElement().setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
+			}
 			
             Engine.logContext.debug("(RequestableObject) End of the thread for the requested object '" + getName() + "'");
             
@@ -391,6 +437,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             }
             */
         } finally {
+        	com.twinsoft.convertigo.engine.util.TimingTrace.end(traceStart, inline ? "run-inline" : "run-thread", getName());
         	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_FINISHED);
         	this.context = null;
         	this.requester = null;
@@ -480,6 +527,74 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	return res;
 	}
     
+    private static volatile ClassCache sharedClassCache = new ClassCache();
+
+    /**
+     * The scope of a requestable. With javascript.shared_class_cache, its Java classes are described once for all
+     * the requests instead of being reflected again in each new scope (the context, the DOM, the log...).
+     */
+    private static volatile ScriptableObject sharedStandardScope;
+
+    /**
+     * A project reloaded or removed: the shared descriptions of the Java classes (and the sealed standard scope tied to
+     * them) start again empty, so they no longer hold the classes of its former class loader, which can then be freed.
+     * The requests running keep the caches they started with.
+     */
+    public static void resetSharedJavaScriptCaches() {
+    	synchronized (RequestableObject.class) {
+    		sharedClassCache = new ClassCache();
+    		sharedStandardScope = null;
+    	}
+    }
+
+    /**
+     * javascript.shared_scope: the standard objects built once, sealed, shared by the native sequences; each request
+     * gets a light scope whose prototype is this one (its variables, context, log... stay its own).
+     */
+    private static Scriptable newSharedScope(org.mozilla.javascript.Context javascriptContext) {
+    	ScriptableObject shared = sharedStandardScope;
+    	if (shared == null) {
+    		synchronized (RequestableObject.class) {
+    			shared = sharedStandardScope;
+    			if (shared == null) {
+    				shared = new NativeObject();
+    				sharedClassCache.associate(shared);
+    				javascriptContext.initStandardObjects(shared, true);
+    				// the standard objects loaded lazily are loaded now, before the scope is shared between threads
+    				for (Object id : shared.getAllIds()) {
+    					if (id instanceof String) {
+    						ScriptableObject.getProperty(shared, (String) id);
+    					}
+    				}
+    				shared.sealObject();
+    				sharedStandardScope = shared;
+    			}
+    		}
+    	}
+    	ScriptableObject scope = new NativeObject();
+    	scope.setPrototype(shared);
+    	scope.setParentScope(null);
+    	return scope;
+    }
+
+    private Scriptable newScope(org.mozilla.javascript.Context javascriptContext, RequestableObject requestable) {
+    	// native: a native sequence, or a requestable a native sequence calls (no input document)
+    	boolean nativeRequestable = requestable.context != null && requestable.context.nativeExecution;
+    	if (EnginePropertiesManager.isOnFor(PropertyName.JAVASCRIPT_SHARED_SCOPE, nativeRequestable)) {
+    		return newSharedScope(javascriptContext);
+    	}
+    	return newScope(javascriptContext, EnginePropertiesManager.isOnFor(PropertyName.JAVASCRIPT_SHARED_CLASS_CACHE, nativeRequestable));
+    }
+
+    private static Scriptable newScope(org.mozilla.javascript.Context javascriptContext, boolean sharedClasses) {
+    	if (sharedClasses) {
+    		ScriptableObject newScope = new NativeObject();
+    		sharedClassCache.associate(newScope);
+    		return javascriptContext.initStandardObjects(newScope);
+    	}
+    	return javascriptContext.initStandardObjects();
+    }
+
     protected void insertObjectsInScope() throws EngineException {
 		// Insert the DOM into the scripting context
 		Scriptable jsContext = org.mozilla.javascript.Context.toObject(context, scope);
@@ -494,7 +609,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		scope.put("steps", scope, jsSteps);
 
 		// Insert the DOM into the scripting context
-		Scriptable jsDOM = org.mozilla.javascript.Context.toObject(context.outputDocument, scope);
+		// a native sequence without output document has no dom
+		Scriptable jsDOM = context.outputDocument == null ? null : org.mozilla.javascript.Context.toObject(context.outputDocument, scope);
 		scope.put("dom", scope, jsDOM);
 		
 		try {
@@ -831,6 +947,17 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         vSheets.remove(sheet);
     }
 	
+    /** native.inline_calls: a native call (__nativeCall) runs in the thread of its caller */
+    private static boolean isInlineNativeCall(Requester requester) {
+    	try {
+    		return requester instanceof com.twinsoft.convertigo.engine.requesters.InternalRequester
+    				&& ((com.twinsoft.convertigo.engine.requesters.InternalRequester) requester).isNativeCall()
+    				&& EnginePropertiesManager.getPropertyAsBoolean(PropertyName.NATIVE_INLINE_CALLS);
+    	} catch (Throwable t) {
+    		return false;
+    	}
+    }
+
     public void createRequestableThread(){
     	runningThread = new RequestableThread();
     }
@@ -860,9 +987,24 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         public void run() {
 			try {
 				logContext.install();
-				runWithMdc();
+				runMarked();
 			} finally {
 				Log4jHelper.mdcClear();
+			}
+		}
+
+		/** the requestable in the thread of its caller (native.inline_calls), the log context of the caller kept */
+		void runInline() {
+			runMarked();
+		}
+
+		/** the thread marked as running a native requestable or not, for the optimizations whose property is native */
+		private void runMarked() {
+			Boolean previous = com.twinsoft.convertigo.engine.util.NativeRunning.enter(context.nativeExecution);
+			try {
+				runWithMdc();
+			} finally {
+				com.twinsoft.convertigo.engine.util.NativeRunning.restore(previous);
 			}
 		}
 
@@ -914,8 +1056,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             	
             	// Creating scripting context
     			javascriptContext = org.mozilla.javascript.Context.enter();
-    			scope = javascriptContext.initStandardObjects();
-    			
+    			scope = newScope(javascriptContext, RequestableObject.this);
+
         		Engine.logContext.debug("Preparing for requestable...");
             	prepareForRequestable(context, javascriptContext, scope);
             	

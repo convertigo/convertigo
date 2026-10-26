@@ -1,0 +1,39 @@
+↑convertigo: 8.4.0.m006
+↓AttachmentStreamingTest [core.Project]: 
+  version: test-only
+  ↓void [connectors.SqlConnector]: 
+    isDefault: true
+    ↓Default [transactions.SqlTransaction]: 
+      isDefault: true
+  ↓Local [sequences.GenericSequence]: 
+    ↓Attachment [steps.SimpleStep-1700001237001]: 
+      expression: |
+        var file = new java.io.File(context.getProjectDirectory(), "payload.bin");
+        if (!file.exists()) {
+          var out = new java.io.RandomAccessFile(file, "rw");
+          try {
+            out.setLength(1073741824);
+            out.write([1, 2, 3, 4]);
+            out.seek(1073741820);
+            out.write([5, 6, 7, 8]);
+          } finally {
+            out.close();
+          }
+        }
+        var attachment = context.outputDocument.createElement("attachment");
+        attachment.setAttribute("type", "attachment");
+        attachment.setAttribute("name", "payload.bin");
+        attachment.setAttribute("content-type", "application/octet-stream");
+        attachment.setAttribute("content-length", "123");
+        attachment.setAttribute("local-url", file.getAbsolutePath());
+        context.outputDocument.getDocumentElement().appendChild(attachment);
+  ↓Base64 [sequences.GenericSequence]: 
+    ↓Attachment [steps.SimpleStep-1700001237002]: 
+      expression: |
+        var attachment = context.outputDocument.createElement("attachment");
+        attachment.setAttribute("type", "attachment");
+        attachment.setAttribute("name", "inline.bin");
+        attachment.setAttribute("content-type", "application/octet-stream");
+        attachment.setAttribute("encoding", "base64");
+        attachment.setTextContent("AAH/DQo=");
+        context.outputDocument.getDocumentElement().appendChild(attachment);

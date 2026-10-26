@@ -111,6 +111,7 @@ import com.twinsoft.convertigo.engine.enums.DynamicHttpVariable;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.enums.HttpUriOverridePolicy;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -1157,7 +1158,9 @@ public class HttpConnector extends Connector {
 
 			// Getting the result
 			Engine.logBeans.debug("(HttpConnector) HttpClient: getting response body");
+			long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 			byte[] result = executeMethod(method, context);
+			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "http", context.transactionName);
 			
 			long length = result != null ? result.length : 0;
 			
@@ -1171,17 +1174,20 @@ public class HttpConnector extends Connector {
 
 			Engine.logBeans.debug("(HttpConnector) Total read bytes: " + length);
 			
-			StringBuilder sb = new StringBuilder();
-			sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + length + "}\n\n");
-			
-			if (result != null && context.contentType != null
-					&& ( context.contentType.startsWith("text/")
-					|| context.contentType.startsWith("application/xml")
-					|| context.contentType.startsWith("application/json"))) {
-				sb.append(new String(result, "UTF-8"));
-			}
+			if (hasConnectorListeners()) {
+				// the whole response as text, only for a listener (the connector editor of the Studio)
+				StringBuilder sb = new StringBuilder();
+				sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + length + "}\n\n");
+				
+				if (result != null && context.contentType != null
+						&& ( context.contentType.startsWith("text/")
+						|| context.contentType.startsWith("application/xml")
+						|| context.contentType.startsWith("application/json"))) {
+					sb.append(new String(result, "UTF-8"));
+				}
 
-			fireDataChanged(new ConnectorEvent(this, sb.toString()));
+				fireDataChanged(new ConnectorEvent(this, sb.toString()));
+			}
 
 			return result;
 		} finally {
@@ -1216,9 +1222,13 @@ public class HttpConnector extends Connector {
 			AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
 			
 			requestHeaders = method.getRequestHeaders();
-			if (Engine.logBeans.isTraceEnabled())
-				Engine.logBeans.trace("(HttpConnector) Request headers :\n"
-						+ Arrays.asList(requestHeaders).toString());
+			if (Engine.logBeans.isTraceEnabled()) {
+				List<String> printedHeaders = new ArrayList<String>(requestHeaders.length);
+				for (Header header : requestHeaders) {
+					printedHeaders.add(isCredentialHeader(header.getName()) ? header.getName() + ": " + Visibility.STRING_MASK + "\r\n" : header.toString());
+				}
+				Engine.logBeans.trace("(HttpConnector) Request headers :\n" + printedHeaders);
+			}
 			
 			statuscode = doExecuteMethod(method, context);
 
@@ -1357,6 +1367,7 @@ public class HttpConnector extends Connector {
 							newuri = newuri.substring(0, split);
 						}
 
+						checkRedirectDestination(transaction, method.getURI().getEscapedURI(), newuri);
 						redirectUrl = getAbsoluteUrl(method, newuri);
 						Engine.logBeans.debug("(HttpConnector) Redirecting to : " + redirectUrl);
 						result = getData(context, redirectUrl, statuscode < HttpStatus.SC_TEMPORARY_REDIRECT);
@@ -1395,7 +1406,8 @@ public class HttpConnector extends Connector {
 					for (int i = 0; i < headers.size(); i++){
 						Element elt = doc.createElement("header");
 						elt.setAttribute("name", headers.get(i).getName());
-						elt.setAttribute("value", headers.get(i).getValue());
+						// the credentials sent stay out of the output document, its logs and its cache
+						elt.setAttribute("value", isCredentialHeader(headers.get(i).getName()) ? Visibility.STRING_MASK : headers.get(i).getValue());
 						httpHeadersElement.appendChild(elt);
 					}				
 					httpInfoElement.appendChild(httpHeadersElement);
@@ -1527,6 +1539,34 @@ public class HttpConnector extends Connector {
 						hf.add(StringUtils.join(split, "-"), value, entry.getValue());
 					}
 		}
+	}
+
+	/** Applies the transaction's destination policy before a redirect can change the connector host. */
+	private static void checkRedirectDestination(AbstractHttpTransaction transaction, String source, String location)
+			throws EngineException {
+		try {
+			java.net.URI origin = java.net.URI.create(source);
+			java.net.URI target = origin.resolve(location);
+			String scheme = target.getScheme();
+			if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+					|| target.getHost() == null || target.getUserInfo() != null) {
+				throw new EngineException("Invalid HTTP redirect destination");
+			}
+			boolean sameOrigin = origin.getScheme().equalsIgnoreCase(scheme)
+					&& origin.getHost().equalsIgnoreCase(target.getHost())
+					&& effectivePort(origin) == effectivePort(target);
+			if (!sameOrigin && !transaction.isPrivateAccessibility()
+					&& transaction.getAllowedUriOverride() != HttpUriOverridePolicy.absolute) {
+				throw new EngineException(
+						"HTTP redirect to another origin is not allowed by the transaction's destination policy");
+			}
+		} catch (IllegalArgumentException e) {
+			throw new EngineException("Invalid HTTP redirect destination", e);
+		}
+	}
+
+	private static int effectivePort(java.net.URI uri) {
+		return uri.getPort() == -1 ? ("https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80) : uri.getPort();
 	}
 
 	private String getAbsoluteUrl(HttpMethod method, String givenUrl) throws URIException,
@@ -1967,5 +2007,9 @@ public class HttpConnector extends Connector {
 		if (!isOriginal()) {
 			authenticationPropertiesHasChanged = true;
 		}
+	}
+
+	private static boolean isCredentialHeader(String name) {
+		return "Authorization".equalsIgnoreCase(name) || "Proxy-Authorization".equalsIgnoreCase(name);
 	}
 }

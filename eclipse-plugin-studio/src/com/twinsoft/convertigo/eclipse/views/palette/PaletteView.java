@@ -103,6 +103,7 @@ import com.twinsoft.convertigo.beans.ngx.components.dynamic.Component;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ExperimentalFeatures;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
@@ -1042,6 +1043,10 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 									@Override
 									boolean allowedIn(DatabaseObject parent) {
 										try {
+											// a native JSON step is offered only with the experimental features
+											if (ExperimentalFeatures.isHiddenBean(b)) {
+												return false;
+											}
 											boolean force = false;
 											if (isType) {
 												String cls = b.getClassName();
@@ -1077,7 +1082,8 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 
 										String propertiesDescription = "";
 										for (PropertyDescriptor dbopd : propertyDescriptors) {
-											if (!dbopd.isHidden()) {
+											// nor the properties of the experimental features while they are not shown
+											if (!dbopd.isHidden() && !ExperimentalFeatures.isHiddenProperty(dbopd)) {
 												String doc = DocumentationHelper.fullDescription(dbopd.getShortDescription(), true);
 												propertiesDescription += "<li><i>" + dbopd.getDisplayName() + "</i>";
 												if (StringUtils.isNotBlank(doc)) {

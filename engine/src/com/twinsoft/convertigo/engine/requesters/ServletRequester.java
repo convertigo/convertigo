@@ -60,6 +60,10 @@ public abstract class ServletRequester extends GenericRequester {
     
     @Override
 	public void checkSecuredConnection() throws EngineException {
+		checkSecuredConnection(context);
+	}
+
+	public static void checkSecuredConnection(Context context) throws EngineException {
 		if (context.requestedObject.isSecureConnectionRequired()) {
 			if (!context.httpServletRequest.isSecure()) {
 				// the caller does not learn the name of the requestable, which it may not have named

@@ -164,6 +164,29 @@ public class EnginePropertiesManager {
 		}
 	}
 
+	/** the scope of an optimization: the native sequences and their calls, every requestable, or none */
+	private enum NativeScope implements ComboEnum {
+		native_ ("native", "native: the native sequences and their calls"),
+		all ("all", "all: every requestable"),
+		off ("false", "false: none, as before");
+
+		final String display;
+		final String value;
+
+		NativeScope(String value, String display) {
+			this.display = display;
+			this.value = value;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+
 	private enum XsltEngine implements ComboEnum {
 		xalan_xslt ("xalan/xslt", "Java Xalan"),
 		xalan_xsltc ("xalan/xsltc", "Java Xalan (XSLTC)");
@@ -505,6 +528,20 @@ public class EnginePropertiesManager {
 		AUTO_GC ("auto.gc", "false", "Automatically GC on low usage (every 10 min)", PropertyCategory.Main),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
 		LOCAL_WORK_DIRECTORY ("local_work.directory", "", "Local working directory: fast storage, not shared between instances, content reused when still valid (empty: project folders); engine restart required", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = NativeScope.class, visibility = Visibility.HIDDEN)
+		JAVASCRIPT_SHARED_CLASS_CACHE ("javascript.shared_class_cache", "native", "Share between the requests the JavaScript description of the Java classes used by the scripts, instead of building it again for each requestable. native: for the native sequences and their calls; all (or true): for every requestable; false: built for each requestable, as before", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = NativeScope.class, visibility = Visibility.HIDDEN)
+		ENGINE_COPY_ON_DEMAND ("engine.copy_on_demand", "native", "Copy for a request only the sequence, connector and transaction it uses, instead of all the sequences and connectors of the project and all the transactions of the connector. native: for the native sequences and their calls; all (or true): for every request; false: all of them, as before", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = NativeScope.class, visibility = Visibility.HIDDEN)
+		CLASSLOADER_LOOKUP_CACHE ("classloader.lookup_cache", "native", "Remember the classes the class loaders of the projects found or did not find, instead of looking them up again in each request. native: for the lookups of the native sequences and their calls; all (or true): for every lookup; false: looked up each time, as before", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
+		NATIVE_INLINE_CALLS ("native.inline_calls", "true", "Run the native calls of a native sequence (sub-sequences and transactions called with __nativeCall) in the thread of the caller instead of a new requestable thread (false: a requestable thread for each call, as before)", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
+		TIMING_TRACE ("timing.trace", "false", "Log the start and the duration of each request, requestable, HTTP call and CouchDB transaction (cems.Engine, WARN), to break down the time of a request", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
+		XML_COUNT_DOCUMENTS ("xml.count_documents", "false", "Count the XML documents, document builders and factories each request creates and the documents it serializes, and log them at the end of the request (cems.Engine, WARN)", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = NativeScope.class, visibility = Visibility.HIDDEN)
+		JAVASCRIPT_SHARED_SCOPE ("javascript.shared_scope", "native", "native: the native sequences (Sequence.nativeExecution) and their calls run their JavaScript in a light scope over one sealed scope of the standard objects, instead of building the standard objects again for each request; all: every requestable does (its scripts then cannot change the standard objects); false: none", PropertyCategory.Main),
 
 		/** ACCOUNTS */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
@@ -877,6 +914,24 @@ public class EnginePropertiesManager {
 			return getOptions().combo().getEnumConstants();
 		}
 
+		/** hidden in every mode: not listed, only set by engine.properties or -D */
+		public boolean isHidden() {
+			PropertyOptions propertyOptions = GenericUtils.getAnnotation(PropertyOptions.class, this);
+			return propertyOptions != null && propertyOptions.visibility() == Visibility.HIDDEN;
+		}
+
+		/**
+		 * the hidden properties of the native fast paths and of the traces are not written as commented defaults
+		 * either; the other properties keep their commented default line, so an existing engine.properties is
+		 * written as before
+		 */
+		public boolean isWithoutCommentedDefault() {
+			// no switch: its synthetic map would call values() while this enum may still be initializing
+			return this == JAVASCRIPT_SHARED_CLASS_CACHE || this == ENGINE_COPY_ON_DEMAND || this == CLASSLOADER_LOOKUP_CACHE
+					|| this == NATIVE_INLINE_CALLS || this == JAVASCRIPT_SHARED_SCOPE || this == TIMING_TRACE
+					|| this == XML_COUNT_DOCUMENTS;
+		}
+
 		public boolean isVisible() {
 			PropertyOptions propertyOptions = GenericUtils.getAnnotation(PropertyOptions.class, this);
 			if (propertyOptions != null) {
@@ -894,6 +949,18 @@ public class EnginePropertiesManager {
 
 	private static Properties properties;
 	private static Properties system_properties = null;
+
+	/**
+	 * A property of the optimizations (javascript.shared_class_cache, engine.copy_on_demand, classloader.lookup_cache,
+	 * javascript.shared_scope): native applies it to the native requestables only, all or true to all of them.
+	 */
+	public static boolean isOnFor(PropertyName propertyName, boolean nativeRequestable) {
+		String value = getProperty(propertyName);
+		if ("native".equals(value)) {
+			return nativeRequestable;
+		}
+		return "all".equals(value) || "true".equals(value);
+	}
 
 	public static String getProperty(PropertyName property) {
 		return getProperty(property, true);
@@ -1306,7 +1373,7 @@ public class EnginePropertiesManager {
 				}
 				modifiedProperties.put(property.getKey(), propertyValue);
 			} else {
-				if (!property.isCiphered() && !property.getKey().contains(".pass")) {
+				if (!property.isCiphered() && !property.getKey().contains(".pass") && !property.isWithoutCommentedDefault()) {
 					outputStream.write(("#" + property.getKey() + "=" + property.getDefaultValue() + "\r\n").getBytes("UTF-8"));
 				}
 			}

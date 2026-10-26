@@ -23,8 +23,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.apache.commons.fileupload.FileItem;
@@ -233,6 +235,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		try {
 			
 			Map<String, Object> map = new HashMap<String, Object>();
+			Map<String, String> varMap = ((UrlMapping)getParent()).getPathVariableValues(request);
 			String responseContentType = null;
 			String encoding = "UTF-8";
 			Object content = null;
@@ -240,7 +243,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			try {
 				
 				// Check multipart request
-				if (JakartaServletFileUploadSupport.isMultipartContent(request)) {
+				boolean multipart = JakartaServletFileUploadSupport.isMultipartContent(request);
+				if (multipart) {
 					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" Multipart resquest");
 		
 					// Create a factory for disk-based file items
@@ -267,6 +271,16 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					List<FileItem> items = JakartaServletFileUploadSupport.parseRequest(upload, request);
 					for (FileItem fileItem : items) {
 						String parameterName = fileItem.getFieldName();
+						UrlMappingParameter param = null;
+						try {
+							param = getParameterByName(parameterName);
+						} catch (EngineException e) {
+							// Undeclared multipart fields follow the ordinary form parameter contract.
+						}
+						if (param == null || param.getType() != Type.Form) {
+							fileItem.delete();
+							continue;
+						}
 						String parameterValue;
 						if (fileItem.isFormField()) {
 							parameterValue = fileItem.getString();
@@ -288,19 +302,9 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 						}
 		
 						if (parameterValue != null && !parameterValue.isEmpty()) {
-							UrlMappingParameter param = null;
-							try {
-								param = getParameterByName(parameterName);
-							} catch (Exception e) {}
-							if (param != null) {
-								String variableName = param.getMappedVariableName();
-								if (!variableName.isEmpty()) {
-									parameterName = variableName;
-								}
-							} else if (Parameter.ConnectorConnectionString.getName().equals(parameterName)) {
-								// not a declared parameter: engine reserved, never taken from the HTTP request
-								Engine.logBeans.warn("(AbstractRestOperation) \""+ getName() +"\" ignored the '" + parameterName + "' field");
-								continue;
+							String variableName = param.getMappedVariableName();
+							if (!variableName.isEmpty()) {
+								parameterName = variableName;
 							}
 							
 							Object mapValue = map.get(parameterName);
@@ -321,23 +325,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					}
 				}
 				
-				String contextName = request.getParameter(Parameter.Context.getName());
-				
-		    	map.put(Parameter.Context.getName(), new String[] { contextName });
-
-		    	map.put(Parameter.Project.getName(), new String[] { projectName });
-				if (sequenceName.isEmpty()) {
-					map.put(Parameter.Connector.getName(), new String[] { connectorName });
-					map.put(Parameter.Transaction.getName(), new String[] { transactionName });
-				}
-				else {
-					map.put(Parameter.Sequence.getName(), new String[] { sequenceName });
-					map.put(Parameter.RemoveContext.getName(), new String[] { "" });
-					map.put(Parameter.RemoveSession.getName(), new String[] { "" });
-				}
-				
 				// Add path variables parameters
-				Map<String, String> varMap = ((UrlMapping)getParent()).getPathVariableValues(request);
 				for (String varName: varMap.keySet()) {
 					String varValue = varMap.get(varName);
 					map.put(varName, varValue);
@@ -351,6 +339,9 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					Object paramValue = null;
 					if (param.getType() == Type.Header) {
 						paramValue = request.getHeader(paramName);
+					}
+					else if (param.getType() == Type.Form && multipart) {
+						paramValue = map.get(variableName.isEmpty() ? paramName : variableName);
 					}
 					else if ((param.getType() == Type.Query || param.getType() == Type.Form)) {
 						String[] pvalues = request.getParameterValues(paramName);
@@ -456,6 +447,40 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 				Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : invalid body", ioe);
 				throw ioe;
 			}
+			
+			// Routing parameters are set last so that no declared REST parameter can
+			// override the target requestable chosen by the URL mapping.
+			map.put(Parameter.Project.getName(), new String[] { projectName });
+			if (sequenceName.isEmpty()) {
+				map.put(Parameter.Connector.getName(), new String[] { connectorName });
+				map.put(Parameter.Transaction.getName(), new String[] { transactionName });
+			}
+			else {
+				map.put(Parameter.Sequence.getName(), new String[] { sequenceName });
+				map.put(Parameter.RemoveContext.getName(), new String[] { "" });
+				map.put(Parameter.RemoveSession.getName(), new String[] { "" });
+			}
+			
+			// Defense-in-depth: reject any engine-reserved __* parameter that the caller
+			// did not explicitly declare as a REST operation parameter. A __* value may
+			// only enter the map through a declared parameter (name or mapped variable
+			// name), a path variable, or the routing parameters set above.
+			Set<String> allowedEngineParams = new HashSet<>();
+			allowedEngineParams.add(Parameter.Project.getName());
+			allowedEngineParams.add(Parameter.Sequence.getName());
+			allowedEngineParams.add(Parameter.Connector.getName());
+			allowedEngineParams.add(Parameter.Transaction.getName());
+			allowedEngineParams.add(Parameter.RemoveContext.getName());
+			allowedEngineParams.add(Parameter.RemoveSession.getName());
+			for (UrlMappingParameter param : getParameterList()) {
+				allowedEngineParams.add(param.getName());
+				String mapped = param.getMappedVariableName();
+				if (!mapped.isEmpty()) {
+					allowedEngineParams.add(mapped);
+				}
+			}
+			allowedEngineParams.addAll(varMap.keySet());
+			map.keySet().removeIf(key -> key.startsWith("__") && !allowedEngineParams.contains(key));
 			
 			// Execute requestable
 			Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" executing requestable \""+ targetRequestableQName +"\"");

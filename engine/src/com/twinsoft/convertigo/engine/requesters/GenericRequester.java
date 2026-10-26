@@ -128,11 +128,14 @@ public abstract class GenericRequester extends Requester {
 	
 	@Override
 	public void checkAuthenticatedContext() throws EngineException {
+		boolean trustedStub = context.isStubRequested && (Engine.isStudioMode()
+				|| (context.httpSession != null && Engine.authenticatedSessionManager.hasRole(context.httpSession,
+						com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role.TEST_PLATFORM_PRIVATE)));
 		
 		if (context.httpSession != null) {
 			Object controller = context.httpSession.getAttribute("customController");
 			if (controller != null && controller instanceof CustomController) {
-				if (!context.isStubRequested) {
+				if (!trustedStub) {
 					((CustomController)controller).checkAuthenticatedContext(context);
 				}
 			}
@@ -142,7 +145,7 @@ public abstract class GenericRequester extends Requester {
 			Engine.logContext.debug("The context is authenticated via the HTTP session");
 		} else if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");
-			if(!context.isStubRequested)
+			if (!trustedStub)
 				throw new EngineException("Authentication required");
 		} 
 	}
@@ -448,10 +451,15 @@ public abstract class GenericRequester extends Requester {
 					if (contextList == null)
 						contextList = new ArrayList<Context>();
 						SessionAttribute.contexts.set(context.httpSession, contextList);
-					if (!contextList.contains(context)) {
-						contextList.add(context);
-						Engine.logContext.debug("(ServletRequester) context " + context.contextID + " has been added to http session's context list");
+					// The session object can be a wrapper made for this request only (HttpServletRequestTwsWrapper),
+					// so the requests of a session lock the list itself
+					synchronized (contextList) {
+						if (!contextList.contains(context)) {
+							contextList.add(context);
+							Engine.logContext.debug("(ServletRequester) context " + context.contextID + " has been added to http session's context list");
+						}
 					}
+					context.contextListSession = context.httpSession;
 				}
 				catch (Exception e) {
 				}
@@ -706,10 +714,122 @@ public abstract class GenericRequester extends Requester {
 
 	@Override
 	public void makeInputDocument() throws Exception {
+		if (isNativeSequenceRequest() || (isNativeCall() && isNativeTransactionRequest())) {
+			// a native sequence reads its variables from the request itself (Sequence.parseInputDocument)
+			context.inputDocument = null;
+			context.nativeParameters = nativeParameters();
+			return;
+		}
+		context.nativeParameters = null;
 		context.inputDocument = createDOM("UTF-8");
     	getTranslator().buildInputDocument(context, inputData);
 	}
 	
+	/** the output document of a native sequence that has none, with its native outputs as XML */
+	public static Document nativeOutputDocument(Context context) throws Exception {
+		Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		Element root = doc.createElement("document");
+		doc.appendChild(root);
+		if (context.jsonNativeOutputs != null) {
+			for (com.twinsoft.convertigo.engine.util.JsonNativeOutput nativeOutput : context.jsonNativeOutputs.values()) {
+				root.appendChild(nativeOutput.toElement(doc));
+			}
+			context.jsonNativeOutputs = null;
+		}
+		context.outputDocument = doc;
+		return doc;
+	}
+
+	/** the parameter a native sequence adds to its internal calls: the result may be an object instead of a document */
+	public static final String NATIVE_CALL = "__nativeCall";
+
+	public boolean isNativeCall() {
+		if (!(inputData instanceof java.util.Map)) {
+			return false;
+		}
+		Object flag = ((java.util.Map<?, ?>) inputData).get(NATIVE_CALL);
+		if (flag instanceof Object[]) {
+			flag = ((Object[]) flag).length > 0 ? ((Object[]) flag)[0] : null;
+		}
+		return "true".equals(String.valueOf(flag));
+	}
+
+	/** the outputs of a native sequence as an object, by key, in the order of the answer */
+	public static Object nativeResult(Context context) {
+		Object text = context.nativeResult;
+		context.nativeResult = null;
+		if (text != null && !(context.requestedObject instanceof com.twinsoft.convertigo.beans.core.Sequence)) {
+			// a transaction: the text of its answer (a sequence may share its context with the transactions it calls)
+			return text;
+		}
+		java.util.Map<String, Object> result = new java.util.LinkedHashMap<String, Object>();
+		if (context.jsonNativeOutputs != null) {
+			for (com.twinsoft.convertigo.engine.util.JsonNativeOutput nativeOutput : context.jsonNativeOutputs.values()) {
+				if (nativeOutput.isLegacy()) {
+					result.put(nativeOutput.getKey(), nativeOutput.getValue());
+				}
+			}
+			for (com.twinsoft.convertigo.engine.util.JsonNativeOutput nativeOutput : context.jsonNativeOutputs.values()) {
+				if (!nativeOutput.isLegacy()) {
+					result.put(nativeOutput.getKey(), nativeOutput.getValue());
+				}
+			}
+			context.jsonNativeOutputs = null;
+		}
+		return result;
+	}
+
+	/** the requested object is a sequence marked native (Sequence.nativeExecution) */
+	protected boolean isNativeSequenceRequest() {
+		try {
+			// the sequence of this request, not the one a reused context may keep from an earlier request
+			String sequence = InternalRequester.getString(nativeParameters().get(Parameter.Sequence.getName()));
+			if (sequence == null || context.projectName == null) {
+				return false;
+			}
+			com.twinsoft.convertigo.beans.core.Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(context.projectName);
+			return project != null && project.getSequenceByName(sequence).isNativeExecution();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	/** an HTTP transaction that a native sequence can call without document: its answer is a text, without HttpInfo */
+	protected boolean isNativeTransactionRequest() {
+		try {
+			// the parameters of this request, not the names a reused context may keep from an earlier one
+			if (InternalRequester.getString(nativeParameters().get(Parameter.Sequence.getName())) != null
+					|| context.projectName == null || context.transactionName == null) {
+				return false;
+			}
+			com.twinsoft.convertigo.beans.core.Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(context.projectName);
+			com.twinsoft.convertigo.beans.core.Connector connector = context.connectorName == null ? project.getDefaultConnector()
+					: project.getConnectorByName(context.connectorName);
+			com.twinsoft.convertigo.beans.core.Transaction transaction = connector.getTransactionByName(context.transactionName);
+			if (transaction instanceof com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction) {
+				// a CouchDB transaction: its JSON as a text
+				return true;
+			}
+			return transaction != null && transaction.getClass() == com.twinsoft.convertigo.beans.transactions.HttpTransaction.class
+					&& !((com.twinsoft.convertigo.beans.transactions.HttpTransaction) transaction).getHttpInfo()
+					&& !((com.twinsoft.convertigo.beans.transactions.HttpTransaction) transaction).getAllowDownloadAttachment();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	/** the parameters of the request as a map: the parameters of an HTTP request, or the map of an internal request */
+	@SuppressWarnings("unchecked")
+	protected java.util.Map<String, Object> nativeParameters() {
+		if (inputData instanceof HttpServletRequest) {
+			return new java.util.LinkedHashMap<String, Object>(((HttpServletRequest) inputData).getParameterMap());
+		}
+		if (inputData instanceof java.util.Map) {
+			return (java.util.Map<String, Object>) inputData;
+		}
+		return new java.util.HashMap<String, Object>();
+	}
+
     protected Object coreProcessRequest() throws Exception {
 		Object result;
 		
@@ -724,7 +844,24 @@ public abstract class GenericRequester extends Requester {
             if (context.sequenceName != null) Engine.logContext.info("Starting sequence");
             preGetDocument();
             document = getDocument();
-            Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent(document, context.projectName, context.sequenceName, context.connectorName));
+            if (document != null) {
+            	Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent(document, context.projectName, context.sequenceName, context.connectorName));
+            }
+            if (document != null && context.nativeExecution && isNativeCall()
+            		&& context.requestedObject instanceof com.twinsoft.convertigo.beans.core.Sequence) {
+            	// a native sequence whose run built a document (an XML step, an error, a call answered in XML):
+            	// its JSON answer as a text, its native outputs included
+            	context.nativeResult = null;
+            	return JsonServletRequester.toJson(context, document).toString();
+            }
+            if (document == null && context.nativeExecution && isNativeCall()) {
+            	// a native sequence called by a native sequence: its outputs as an object, without XML
+            	return nativeResult(context);
+            }
+            if (document == null && context.nativeExecution && !(this instanceof JsonServletRequester)) {
+            	// an answer that is not JSON for a native sequence: its outputs as XML, as before
+            	document = nativeOutputDocument(context);
+            }
             result = postGetDocument(document);
 		}
 		catch(Throwable e) {

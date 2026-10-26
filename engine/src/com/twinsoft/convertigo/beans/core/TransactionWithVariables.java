@@ -87,6 +87,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		clonedObject.vVariables = new ArrayList<RequestableVariable>();
 		clonedObject.vTestCases = new ArrayList<TestCase>();
 		clonedObject.vAllVariables = null;
+		// A clone orders its own variables: __POST_ and __GET_ parameters add variables to the transaction of each run.
+		clonedObject.orderedVariables = new XMLVector<XMLVector<Long>>(orderedVariables);
 		clonedObject.originalVariables = null;
 		clonedObject.needRestoreVariables = false;
 		return clonedObject;
@@ -541,12 +543,60 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 
 	protected transient boolean needRestoreVariables = false;
 
+	/** the variables of a native call, from its parameters instead of an input document (see Sequence) */
+	private void parseNativeParameters(Map<String, Object> parameters) throws EngineException {
+		variables.clear();
+		for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
+			String name = parameter.getKey();
+			Object value = parameter.getValue();
+			if (value instanceof org.mozilla.javascript.NativeJavaObject) {
+				value = ((org.mozilla.javascript.NativeJavaObject) value).unwrap();
+			}
+			// the parameters of the engine (__project, __context...) are not variables, unless one is declared (__body)
+			if ((name.startsWith("__") && getVariable(name) == null) || value == null) {
+				continue;
+			}
+			List<Object> values = new ArrayList<Object>();
+			if (value instanceof Object[]) {
+				for (Object item : (Object[]) value) {
+					if (item != null) {
+						values.add(Sequence.nativeParameterValue(item));
+					}
+				}
+			} else if (value instanceof java.util.Collection) {
+				for (Object item : (java.util.Collection<?>) value) {
+					if (item != null) {
+						values.add(Sequence.nativeParameterValue(item));
+					}
+				}
+			} else {
+				values.add(Sequence.nativeParameterValue(value));
+			}
+			RequestableVariable variable = (RequestableVariable) getVariable(name);
+			if (variable != null && variable.isMultiValued()) {
+				List<Object> current = GenericUtils.cast(variables.get(name));
+				if (current == null) {
+					current = new ArrayList<Object>();
+					variables.put(name, current);
+				}
+				current.addAll(values);
+			} else if (!values.isEmpty()) {
+				variables.put(name, values.get(values.size() - 1));
+			}
+		}
+	}
+
 	@Override
 	public void parseInputDocument(Context context) throws EngineException {
 		super.parseInputDocument(context);
 		if (context.inputDocument != null && Engine.logContext.isInfoEnabled()) {
 			Document printDoc = (Document) Visibility.Logs.replaceVariables(getVariablesList(), context.inputDocument);
 			XMLUtils.logXml(printDoc, Engine.logContext, "Input document");
+		}
+
+		if (context.inputDocument == null && context.nativeParameters != null) {
+			parseNativeParameters(context.nativeParameters);
+			return;
 		}
 
 		NodeList variableNodes = context.inputDocument.getElementsByTagName("variable");

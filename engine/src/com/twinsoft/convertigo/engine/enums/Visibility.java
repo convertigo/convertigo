@@ -33,7 +33,6 @@ import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 
-import org.apache.xpath.XPathAPI;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.NativeJavaObject;
@@ -212,19 +211,43 @@ public enum Visibility {
 			if (object instanceof Document) {
 				Document toPrint = XMLUtils.createDom("java");
 				toPrint.appendChild(toPrint.importNode(((Document)object).getDocumentElement(), true));
-				NodeList variableNodeList = XPathAPI.selectNodeList(toPrint, ".//*[@name]");
+
+				boolean anyMasked = false;
+				for (Variable variable: variableList) {
+					anyMasked |= variable != null && isMasked(variable.getVisibility());
+				}
+				if (!anyMasked) {
+					return toPrint;
+				}
+
+				// the elements with a name attribute, in document order (.//*[@name]), copied before the masking
+				// changes the tree; DOM walks instead of XPath, which builds a new XPath context for each call
+				List<Element> variableNodeList = new ArrayList<Element>();
+				NodeList allElements = toPrint.getElementsByTagName("*");
+				for (int i = 0; i < allElements.getLength(); i++) {
+					Element element = (Element) allElements.item(i);
+					if (element.hasAttribute("name")) {
+						variableNodeList.add(element);
+					}
+				}
 
 				Element variableElement;
 				NodeList valueNodeList;
 				Attr valueAttrNode;
 				String variableName;
 				Node node;
-				//Permit to identify if we have an input document or a XSL requestTemplate
+				//Permit to identify if we have an input document or a XSL requestTemplate (/input/transaction-variables)
 
-				boolean isInputDoc = XPathAPI.selectSingleNode(toPrint, "/input/transaction-variables") != null;
+				boolean isInputDoc = false;
+				Element root = toPrint.getDocumentElement();
+				if (root != null && root.getNodeName().equals("input")) {
+					for (Node child = root.getFirstChild(); child != null && !isInputDoc; child = child.getNextSibling()) {
+						isInputDoc = child.getNodeType() == Node.ELEMENT_NODE && child.getNodeName().equals("transaction-variables");
+					}
+				}
 
-				for (int i=0; i<variableNodeList.getLength(); i++) {
-					variableElement = (Element) variableNodeList.item(i);
+				for (int i=0; i<variableNodeList.size(); i++) {
+					variableElement = variableNodeList.get(i);
 					variableName = variableElement.getAttribute("name");
 					if (variableElement.getParentNode().getNodeName().equals("transaction-headers")) {
 						variableName = "__header_" + variableName;

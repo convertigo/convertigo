@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StepSources;
+import com.twinsoft.convertigo.engine.util.ExperimentalFeatures;
 import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -442,6 +443,10 @@ public class Get extends JSonService {
 		property.put("kind", "dbo");
 
 		boolean shouldAdd = !property.has("isHidden") || "false".equals(property.getString("isHidden"));
+		// a property of the experimental features that is off, while they are not shown (an existing native one stays)
+		if (shouldAdd && ExperimentalFeatures.isHiddenProperty(dbo, elt.getAttribute("name"))) {
+			shouldAdd = false;
+		}
 		if (shouldAdd) {
 			props.put(displayName, property);
 		}

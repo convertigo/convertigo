@@ -19,12 +19,16 @@
 
 package com.twinsoft.convertigo.engine.requesters;
 
+import java.util.regex.Pattern;
+
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 
 public class JsonPServletRequester extends JsonServletRequester {
+	private static final Pattern CALLBACK = Pattern.compile("[$A-Za-z_][$0-9A-Za-z_]*(\\.[$A-Za-z_][$0-9A-Za-z_]*)*");
 
     public JsonPServletRequester() {
     }
@@ -47,7 +51,12 @@ public class JsonPServletRequester extends JsonServletRequester {
 	@Override
 	public String postGetDocument(Document document) throws Exception {
 		String callback = (String) context.get("jsonpCallback");
-		String json = super.postGetDocument(document);
+		if (callback != null && !CALLBACK.matcher(callback).matches()) {
+			Engine.logContext.warn("(JsonPServletRequester) Ignoring an invalid JSONP callback");
+			callback = null;
+		}
+		// a JSONP answer is written as a text: a response in stream is read whole here
+		String json = super.postGetDocument(document).toString();
 		return (callback!=null)?
 			(callback+"("+json+");"):
 			json;
