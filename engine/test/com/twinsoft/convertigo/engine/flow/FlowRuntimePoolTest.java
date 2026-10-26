@@ -32,6 +32,7 @@ public class FlowRuntimePoolTest {
 		Engine.logEngine = org.apache.log4j.Logger.getLogger("pool-test");
 		Engine.logBeans = Engine.logEngine;
 		EnginePropertiesManager.initProperties();
+		EnginePropertiesManager.setProperty(EnginePropertiesManager.PropertyName.JAVASCRIPT_RUNTIME_POOL_SIZE, "8");
 		var bridge = FlowEngineBridge.class;
 		var referenceClass = Class.forName(bridge.getName() + "$EngineRef");
 		var sourceClass = Class.forName(bridge.getName() + "$CachedEngineSource");
@@ -78,6 +79,37 @@ public class FlowRuntimePoolTest {
 		}
 	}
 	public static final java.util.concurrent.CountDownLatch interruptedCallStarted = new java.util.concurrent.CountDownLatch(1);
+
+	@Test public void retentionCanShrinkAndExpireWithoutEvictingALeasedScope() throws Exception {
+		Engine.logEngine = Engine.logBeans = org.apache.log4j.Logger.getLogger("pool-test");
+		EnginePropertiesManager.initProperties();
+		var bridge = FlowEngineBridge.class;
+		var referenceClass = Class.forName(bridge.getName() + "$EngineRef");
+		var sourceClass = Class.forName(bridge.getName() + "$CachedEngineSource");
+		var lookupClass = Class.forName(bridge.getName() + "$CachedEngineRuntimeLookup");
+		var reference = method(referenceClass, "parse", String.class).invoke(null, "Retention.Engine");
+		var constructor = sourceClass.getDeclaredConstructor(File.class, String.class, long.class, long.class); constructor.setAccessible(true);
+		var file = new File("retention/Engine.js").getAbsoluteFile(); String script="({cacheClear:function(){return '{}';}})";
+		var source = constructor.newInstance(file,script,1L,(long)script.length());
+		var borrow = method(bridge,"cachedEngineRuntime",referenceClass,File.class,sourceClass,Context.class,boolean.class);
+		var release = method(bridge,"releaseEngineRuntime",lookupClass);
+		var info = method(bridge,"bridgeCacheInfo",String.class);
+		var held = new ArrayList<Object>();
+		try (var cx = Context.enter()) {
+			FlowEngineBridge.clearCaches();
+			assertEquals(Engine.isStudioMode()?8:128, ((org.codehaus.jettison.json.JSONObject)info.invoke(null,"Retention.Engine")).getInt("runtimePoolLimit"));
+			EnginePropertiesManager.setProperty(EnginePropertiesManager.PropertyName.JAVASCRIPT_RUNTIME_POOL_SIZE,"6");
+			for(int i=0;i<6;i++)held.add(borrow.invoke(null,reference,file,source,cx,false));
+			EnginePropertiesManager.setProperty(EnginePropertiesManager.PropertyName.JAVASCRIPT_RUNTIME_POOL_SIZE,"2");
+			while(held.size()>1)release.invoke(null,held.remove(held.size()-1));
+			var scope=(Scriptable)field(field(held.get(0),"runtime"),"scope");scope.put("owner",scope,"active");
+			EnginePropertiesManager.setProperty(EnginePropertiesManager.PropertyName.JAVASCRIPT_RUNTIME_IDLE_SECONDS,"0");
+			var next=borrow.invoke(null,reference,file,source,cx,false);
+			assertNotSame(scope,field(field(next,"runtime"),"scope")); assertEquals("active",scope.get("owner",scope));
+			release.invoke(null,next); release.invoke(null,held.remove(0));
+			assertEquals(0,((org.codehaus.jettison.json.JSONObject)info.invoke(null,"Retention.Engine")).getInt("pooledRuntimeCount"));
+		} finally { FlowEngineBridge.clearCaches(); EnginePropertiesManager.initProperties(); }
+	}
 
 	@Test public void bridgeReturnsRuntimeAfterScriptFailureAndThreadInterruption() throws Exception {
 		Engine.logEngine = org.apache.log4j.Logger.getLogger("pool-test"); Engine.logBeans = Engine.logEngine;

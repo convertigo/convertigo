@@ -36,6 +36,7 @@ public class PluginsManager {
 	private Properties properties;
 	
 	private Map<String, Plugin> plugins = new HashMap<String, Plugin>();
+	public synchronized boolean hasPlugins() { return !plugins.isEmpty(); }
 	
     public void init() {
     	properties = new Properties();

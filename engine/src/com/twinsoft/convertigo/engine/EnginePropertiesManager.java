@@ -460,6 +460,12 @@ public class EnginePropertiesManager {
 	public enum PropertyName {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
 		TIMING_TRACE_ALLOCATIONS ("timing.trace.allocations", "false", "Attribute allocations by node and boundary (diagnostic)", PropertyCategory.Main),
+		@PropertyOptions
+		JAVASCRIPT_RUNTIME_POOL_SIZE ("javascript.runtime_pool_size", "0", "Maximum retained isolated runtimes per provider (0: 8 in Studio, 128 on server; maximum 256)", PropertyCategory.Main),
+		@PropertyOptions
+		JAVASCRIPT_RUNTIME_IDLE_SECONDS ("javascript.runtime_idle_seconds", "300", "Discard idle execution runtimes on subsequent pool access after this delay (seconds)", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		JAVASCRIPT_RUNTIME_REENTRANT ("javascript.runtime_reentrant", "true", "Reuse a compatible caller runtime for nested execution on the same thread and project generation", PropertyCategory.Main),
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:" + (Engine.isStudioMode() ? "1" : "2")+ "8080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),

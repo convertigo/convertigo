@@ -1001,6 +1001,20 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 						<= java.util.concurrent.TimeUnit.SECONDS.toNanos(getResponseTimeout());
 	}
     
+    /** A lightweight child inherits the same cancellation owner and outer waiter. */
+    public static final class InvocationGuard {
+        private final RequestableThread owner;
+        private InvocationGuard(RequestableThread owner) { this.owner = owner; }
+        public boolean isRunning() { return owner != null && owner.ownerIsRunning() && System.nanoTime() < owner.deadlineNanos; }
+        public long deadlineNanos() { return owner == null ? Long.MAX_VALUE : owner.deadlineNanos; }
+        public boolean coversTimeout(long seconds) {
+            return owner != null && (seconds <= 0 || deadlineNanos() != Long.MAX_VALUE
+                    && deadlineNanos() - System.nanoTime() <= java.util.concurrent.TimeUnit.SECONDS.toNanos(seconds));
+        }
+    }
+
+    public static InvocationGuard currentInvocationGuard() { return new InvocationGuard(currentExecution.get()); }
+
     public class RequestableThread extends Thread {
 		private final Log4jHelper.MdcSnapshot logContext = Log4jHelper.mdcSnapshot();
         protected Throwable exception = null;

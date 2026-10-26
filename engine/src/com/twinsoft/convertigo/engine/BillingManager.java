@@ -128,7 +128,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		return !isDestroying && !managers.isEmpty();
 	}
 
-	void insertBilling(Context context) throws EngineException {
+	public void insertBilling(Context context) throws EngineException {
 		insertBilling(context, null, null);
 	}
 
@@ -152,31 +152,14 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			username = username == null ? context.tasUserName : username;
 			username = username == null ? "user" : username;
 
-			Ticket ticket = new Ticket();
-			ticket.setCreationDate(System.currentTimeMillis());
-			ticket.setClientIp(context.remoteAddr);
-			ticket.setCustomerName(customer_name);
-			ticket.setUserName(username);
-			ticket.setProjectName(context.projectName);
-			ticket.setConnectorName(context.connectorName == null ? "" : context.connectorName);
-			ticket.setConnectorType(context.connector == null ? "" : context.connector.getClass().getSimpleName());
-			ticket.setRequestableName(context.requestedObject.getName());
-			ticket.setRequestableType(context.requestedObject.getClass().getSimpleName());
-			ticket.setResponseTime(
-					responseTime == null ? context.statistics.getLatestDuration(EngineStatistics.GET_DOCUMENT)
-							: responseTime);
-			ticket.setScore(score == null ? context.requestedObject.getScore() : score);
-			ticket.setSessionID(context.httpSession.getId());
-			ticket.setUserAgent(context.userAgent);
-
-			String uiid = (String) context.httpSession.getAttribute(Parameter.UIid.name());
-			String deviceUUID = (String) context.httpSession.getAttribute(Parameter.DeviceUUID.name());
-			if (uiid != null) {
-				ticket.setUiID(uiid);
-			}
-			if (deviceUUID != null) {
-				ticket.setDeviceUUID(deviceUUID);
-			}
+			var ticket = createTicket(new com.twinsoft.convertigo.engine.requesters.RequestableInvocation.Billing(
+                context.remoteAddr, username, context.projectName, context.connectorName == null ? "" : context.connectorName,
+                context.connector == null ? "" : context.connector.getClass().getSimpleName(),
+                context.requestedObject.getName(), context.requestedObject.getClass().getSimpleName(),
+                responseTime == null ? context.statistics.getLatestDuration(EngineStatistics.GET_DOCUMENT) : responseTime,
+                score == null ? context.requestedObject.getScore() : score, context.httpSession.getId(), context.userAgent,
+                (String) context.httpSession.getAttribute(Parameter.UIid.name()),
+                (String) context.httpSession.getAttribute(Parameter.DeviceUUID.name())));
 
 			if (context.nativeRows != null) {
 				// Capture only a ticket. The request Context/session may be reset before
@@ -187,6 +170,34 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			throw new EngineException("Ticket create failed", e);
 		}
 	}
+
+    /** Lightweight invocations use the same ticket construction and queue as managed requesters. */
+    public synchronized void insertBilling(com.twinsoft.convertigo.engine.requesters.RequestableInvocation.Billing value)
+            throws EngineException {
+        if (isDestroying || managers.isEmpty() || value == null) return;
+        try { enqueueTicket(createTicket(value)); }
+        catch (Exception e) { throw new EngineException("Ticket create failed", e); }
+    }
+
+    protected Ticket createTicket(com.twinsoft.convertigo.engine.requesters.RequestableInvocation.Billing value) {
+        var ticket = new Ticket();
+        ticket.setCreationDate(System.currentTimeMillis());
+        ticket.setCustomerName(customer_name);
+        ticket.setClientIp(value.clientIp());
+        ticket.setUserName(value.userName());
+        ticket.setProjectName(value.projectName());
+        ticket.setConnectorName(value.connectorName());
+        ticket.setConnectorType(value.connectorType());
+        ticket.setRequestableName(value.requestableName());
+        ticket.setRequestableType(value.requestableType());
+        ticket.setResponseTime(value.responseTime());
+        ticket.setScore(value.score());
+        ticket.setSessionID(value.sessionId());
+        ticket.setUserAgent(value.userAgent());
+        if (value.uiId() != null) ticket.setUiID(value.uiId());
+        if (value.deviceUuid() != null) ticket.setDeviceUUID(value.deviceUuid());
+        return ticket;
+    }
 
 	private void enqueueTicket(Ticket ticket) {
 		if (isDestroying) return;

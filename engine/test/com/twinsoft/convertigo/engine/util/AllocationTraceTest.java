@@ -19,6 +19,8 @@ public class AllocationTraceTest {
         for (int i = 0; i < entries.length(); i++) {
             var row = entries.getJSONObject(i);
             assertTrue(row.getLong("inclusive") >= row.getLong("exclusive"));
+            assertTrue(row.getLong("inclusiveNanos") >= row.getLong("exclusiveNanos"));
+            assertTrue(row.getLong("exclusiveNanos") >= 0);
             sum += row.getLong("exclusive");
         }
         assertEquals(report.getLong("allocatedBytes"), sum);
@@ -43,6 +45,15 @@ public class AllocationTraceTest {
         }
         root.close();
         verify(root.snapshot(), 0);
+        var entries = root.snapshot().getJSONArray("entries");
+        long elapsed = 0, rootElapsed = 0;
+        for (int i = 0; i < entries.length(); i++) {
+            var entry = entries.getJSONObject(i);
+            elapsed += entry.getLong("exclusiveNanos");
+            if (entry.getString("id").equals("servlet")) rootElapsed = entry.getLong("inclusiveNanos");
+        }
+        assertEquals(rootElapsed, elapsed);
+        assertTrue(rootElapsed > 0);
         assertFalse(AllocationTrace.isActive());
     }
     @Test public void concurrentRequestsIncludeNestedWorkersWithoutDoubleCounting() throws Exception {

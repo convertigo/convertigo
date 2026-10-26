@@ -1299,16 +1299,7 @@ public class Engine {
 
 			}
 
-			// Check requestable accessibility
-			requester.checkAccessibility();
-
-			// Check requestable access policy
-			requester.checkSecuredConnection();
-
-			// Check authenticated context requirement
-			requester.checkAuthenticatedContext();
-
-			requester.checkParentContext();
+			com.twinsoft.convertigo.engine.requesters.RequestableInvocation.authorize(requester);
 
 			RequestableObject requestedObject = context.requestedObject;
 
@@ -1432,14 +1423,7 @@ public class Engine {
 
 			context.statistics.stop(t);
 
-			if (isBilled(context)) {
-				try {
-					Engine.theApp.billingManager.insertBilling(context);
-				} catch (Exception e) {
-					Engine.logContext.warn("Unable to insert billing ticket (the billing is thus ignored): ["
-							+ e.getClass().getName() + "] " + e.getMessage());
-				}
-			}
+			if (isBilled(context)) com.twinsoft.convertigo.engine.requesters.RequestableInvocation.bill(context);
 
 			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "requestable",
 					context.requestedObject == null ? "?" : context.projectName + "." + context.requestedObject.getName());
@@ -1603,6 +1587,7 @@ public class Engine {
 	}
 
 	private EventListenerList engineListeners = new EventListenerList();
+	public boolean hasRequestableListeners() { return engineListeners.getListenerCount() != 0; }
 
 	public void addEngineListener(EngineListener engineListener) {
 		engineListeners.add(EngineListener.class, engineListener);

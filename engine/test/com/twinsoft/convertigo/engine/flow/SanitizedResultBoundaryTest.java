@@ -144,4 +144,28 @@ public class SanitizedResultBoundaryTest {
 		}
 	}
 
+    @Test public void canonicalChildResultsRetainIdentityAndExoticsRetainBoundarySemantics() throws Exception {
+        try(var cx=Context.enter()) {
+            var scope=scope(cx);var policy=(Callable)ScriptableObject.getProperty(scope,"policy");
+            var plain=cx.evaluateString(scope,"({rows:[{a:1},null],ok:true})","data",1,null);
+            assertTrue(SanitizedJson.canonicalReference(plain,cx,scope));
+            assertSame(plain,SanitizedJson.reference(plain,cx,scope,policy));
+            for(var source:List.of("({n:NaN,u:undefined,a:[,undefined,1],date:new Date(0)})",
+                    "(function(){var x={};x.self=x;return x;})()",
+                    "(function(){var x={};Object.defineProperty(x,'v',{enumerable:true,get:function(){reads++;return 3;}});return x;})()",
+                    "({n:new java.lang.Integer(7)})",
+                    "(function(){var x={n:1};Object.defineProperty(x,'hidden',{value:'fixture-only'});return x;})()",
+                    "(function(){var x=[1,2];x.extra='fixture-only';return x;})()",
+                    "({n:-0})")) {
+                var value=cx.evaluateString(scope,source,"exotic",1,null);
+                assertFalse(SanitizedJson.canonicalReference(value,cx,scope));
+                var reference=SanitizedJson.reference(value,cx,scope,policy);
+                var envelope=cx.newObject(scope);envelope.put("value",envelope,value);
+                var expected=SanitizedJson.object(envelope,cx,scope,policy).get("value");
+                var actual=cx.newObject(scope);actual.put("value",actual,reference);
+                assertEquals(expected.toString(),DetachedJson.object(actual,cx,scope).get("value").toString());
+            }
+        }
+    }
+
 }

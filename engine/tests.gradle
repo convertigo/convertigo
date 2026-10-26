@@ -471,6 +471,16 @@ tasks.register('flowRuntimePoolTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'flowRuntimePoolTest' }
 
+tasks.register('flowNestedRuntimeTest', JavaExec) {
+	group = 'verification'
+	description = 'Reentrant execution, request isolation, generation guards and independent concurrent roots.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowNestedRuntimeTest'
+}
+tasks.named('check') { dependsOn 'flowNestedRuntimeTest' }
+
 tasks.register('detachedResultBoundaryTest', JavaExec) {
 	group = 'verification'
 	description = 'Detached JSON values, writer failures, lazy XML and runtime release.'
@@ -577,3 +587,22 @@ tasks.register('flowServerCacheTest', JavaExec) {
     args 'com.twinsoft.convertigo.engine.flow.FlowServerCacheTest'
 }
 tasks.named('check') { dependsOn 'flowServerCacheTest' }
+tasks.register('flowStatelessRuntimeTest', JavaExec) {
+	group = 'verification'
+	description = 'Revision publication, concurrent lexical bindings and request frame isolation.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowStatelessRuntimeTest', 'com.twinsoft.convertigo.engine.flow.FlowStatelessProviderTest'
+}
+tasks.named('check') { dependsOn 'flowStatelessRuntimeTest' }
+
+tasks.register('childInvocationTest', JavaExec) {
+    group = 'verification'
+    description = 'Internal invocation policy, inherited cancellation, session isolation and real billing tickets.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'org.junit.runner.JUnitCore'
+    args 'com.twinsoft.convertigo.engine.flow.ChildInvocationTest'
+}
+tasks.named('check') { dependsOn 'childInvocationTest' }

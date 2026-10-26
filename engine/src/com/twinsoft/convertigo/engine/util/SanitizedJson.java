@@ -67,6 +67,55 @@ public final class SanitizedJson {
 		catch (UsePolicy unsupported) { return false; }
 	}
 
+    /** Reuse canonical, accessor-free data inside one realm. Exotic values still
+     * cross exactly the existing sanitization/detachment boundary once. */
+    public static Object reference(Object value, Context cx, Scriptable scope, Callable policy) throws JSONException {
+        if (canonicalReference(value, cx, scope)) return value;
+        var envelope = cx.newObject(scope);
+        ScriptableObject.putProperty(envelope, "value", value);
+        return DetachedJson.toScriptable(map(envelope, cx, scope, policy).get("value"), scope);
+    }
+
+    public static boolean canonicalReference(Object value, Context cx, Scriptable scope) {
+        try { new SanitizedJson(cx, scope).canonical(value, 0); return true; }
+        catch (UsePolicy unsupported) { return false; }
+    }
+
+    private void canonical(Object value, int depth) {
+        if (value == null || value instanceof String || value instanceof org.mozilla.javascript.ConsString || value instanceof Boolean) return;
+        if (value instanceof Number n && !(value instanceof BigInteger) && Double.isFinite(n.doubleValue())
+                && Double.doubleToRawLongBits(n.doubleValue()) != Double.doubleToRawLongBits(-0.0d)) return;
+        if (depth > 128 || !(value instanceof ScriptableObject s)) throw new UsePolicy("non-json-value");
+        boolean array = s.getClass() == NativeArray.class && s.getPrototype() == arrayPrototype;
+        if (!array && !(s.getClass() == NativeObject.class && s.getPrototype() == objectPrototype)) throw new UsePolicy("container");
+        for (var name : new String[] {"toJSON", "getClass", "__flowHandle"})
+            if (ScriptableObject.hasProperty(s, name)) throw new UsePolicy("hook");
+        if (ScriptableObject.hasProperty(s, SymbolKey.TO_STRING_TAG) || objects.put(s, true) != null) throw new UsePolicy("cycle-or-tag");
+        try {
+            if (array) {
+                // JSON arrays expose only their dense indexed elements and length.
+                if (s.getIds().length != ((NativeArray)s).getLength()
+                        || s.getAllIds().length != ((NativeArray)s).getLength() + 1) throw new UsePolicy("array-extra-property");
+                if (s.has("map", s) || s.has("constructor", s)) throw new UsePolicy("array-hook");
+                for (long i = 0, n = ((NativeArray) s).getLength(); i < n; i++) {
+                    if (i > Integer.MAX_VALUE || !s.has((int)i, s) || ScriptableObject.hasProperty(arrayPrototype, (int)i)) throw new UsePolicy("array-index");
+                    checkAccessor(s, (int)i);
+                    canonical(s.get((int)i, s), depth + 1);
+                }
+            } else {
+              var ids = s.getIds();
+              if (ids.length != s.getAllIds().length) throw new UsePolicy("hidden-property");
+              for (var id : ids) {
+                if (id instanceof Symbol) throw new UsePolicy("symbol");
+                var name = id.toString();
+                if (!name.equals("__proto__") && ScriptableObject.hasProperty(objectPrototype, name)) throw new UsePolicy("special-key");
+                checkAccessor(s, id);
+                canonical(id instanceof Number n ? s.get(n.intValue(), s) : s.get(name, s), depth + 1);
+              }
+            }
+        } finally { objects.remove(s); }
+    }
+
 	public static JSONObject object(Object value, Context cx, Scriptable scope, Callable policy) throws JSONException {
 		return (JSONObject) JsonValues.toLegacy(map(value, cx, scope, policy));
 	}

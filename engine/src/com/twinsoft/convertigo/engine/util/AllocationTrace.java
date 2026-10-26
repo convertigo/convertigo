@@ -52,7 +52,7 @@ public final class AllocationTrace {
         return value == null ? "" : value.length() <= limit ? value : value.substring(0, limit);
     }
     private record Key(String kind, String id, String type) { }
-    private static final class Counter { long count, inclusive, exclusive; }
+    private static final class Counter { long count, inclusive, exclusive, inclusiveNanos, exclusiveNanos; }
     private static final class Trace {
         final long id = ids.incrementAndGet();
         final Trace previous;
@@ -63,10 +63,11 @@ public final class AllocationTrace {
         volatile boolean finished;
         Trace(Trace previous) { this.previous = previous; }
         synchronized void enterThread(boolean root) { threads++; if (!root) workers++; }
-        synchronized void record(Key key, long inclusive, long exclusive) {
+        synchronized void record(Key key, long inclusive, long exclusive, long inclusiveNanos, long exclusiveNanos) {
             if (counters.size() >= 4096 && !counters.containsKey(key)) key = new Key("overflow", "", "");
             var c = counters.computeIfAbsent(key, ignored -> new Counter());
             c.count++; c.inclusive += inclusive; c.exclusive += exclusive;
+            c.inclusiveNanos += inclusiveNanos; c.exclusiveNanos += exclusiveNanos;
         }
         synchronized void leaveThread(long allocated, boolean root) {
             total += allocated;
@@ -102,7 +103,8 @@ public final class AllocationTrace {
                 for (var entry : counters.entrySet()) {
                     var k = entry.getKey(); var c = entry.getValue();
                     rows.put(new JSONObject().put("kind", k.kind).put("id", k.id).put("type", k.type)
-                            .put("count", c.count).put("inclusive", c.inclusive).put("exclusive", c.exclusive));
+                            .put("count", c.count).put("inclusive", c.inclusive).put("exclusive", c.exclusive)
+                            .put("inclusiveNanos", c.inclusiveNanos).put("exclusiveNanos", c.exclusiveNanos));
                 }
                 return new JSONObject().put("id", id).put("workers", workers).put("allocatedBytes", total)
                         .put("complete", finished).put("entries", rows);
@@ -117,7 +119,8 @@ public final class AllocationTrace {
         private final boolean root;
         private final long owner = Thread.currentThread().getId();
         private final long start;
-        private long children;
+        private final long startNanos;
+        private long children, childrenNanos;
         private boolean closed;
         private Span(Trace trace, String kind, String id, String type, boolean root) {
             this.trace = trace; this.root = root;
@@ -126,17 +129,20 @@ public final class AllocationTrace {
             if (parent == null) trace.enterThread(root);
             stack.set(this);
             start = bytes();
+            startNanos = System.nanoTime();
         }
         public JSONObject snapshot() { return trace.snapshot(); }
         @Override public void close() {
             if (closed) return;
             if (owner != Thread.currentThread().getId() || stack.get() != this)
                 throw new IllegalStateException("Allocation spans must close in order on their owning thread");
+            long inclusiveNanos = Math.max(0, System.nanoTime() - startNanos);
             long inclusive = Math.max(0, bytes() - start);
             closed = true;
-            trace.record(key, inclusive, Math.max(0, inclusive - children));
+            trace.record(key, inclusive, Math.max(0, inclusive - children),
+                    inclusiveNanos, Math.max(0, inclusiveNanos - childrenNanos));
             stack.set(previous);
-            if (parent != null) parent.children += inclusive;
+            if (parent != null) { parent.children += inclusive; parent.childrenNanos += inclusiveNanos; }
             else trace.leaveThread(inclusive, root);
             if (root) {
                 if (trace.previous == null) request.remove(); else request.set(trace.previous);

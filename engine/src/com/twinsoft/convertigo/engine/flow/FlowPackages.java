@@ -74,6 +74,19 @@ final class FlowPackages {
 		}
 	}
 
+	static void initializeEngineScope(Context cx, ScriptableObject scope) {
+		withEngineLoader(() -> {
+			cx.initStandardObjects(scope, true);
+			captureEngineRoots(scope);
+			return scope;
+		});
+	}
+	static void initializeChildScope(Scriptable scope, Scriptable shared) {
+		var roots = engineRoots(shared);
+		if (roots != null && scope instanceof ScriptableObject object)
+			object.defineProperty(ENGINE_ROOTS, roots, ScriptableObject.DONTENUM | ScriptableObject.READONLY);
+	}
+
 	/** Keeps the packages of the engine of a new runtime, given back after each call. */
 	private static void captureEngineRoots(Scriptable scope) {
 		var roots = new Object[ROOTS.length];

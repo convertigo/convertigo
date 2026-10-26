@@ -145,8 +145,7 @@ public abstract class GenericRequester extends Requester {
 			Engine.logContext.debug("The context is authenticated via the HTTP session");
 		} else if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");
-			if (!trustedStub)
-				throw new EngineException("Authentication required");
+			RequestableInvocation.authentication(context.requestedObject, context.httpSession, trustedStub);
 		} 
 	}
 
@@ -1151,8 +1150,7 @@ public abstract class GenericRequester extends Requester {
     }
 	
 	public void checkParentContext() throws EngineException {
-    	if (context.parentContext != null && context.parentContext.requestedObject != null && !((Sequence) context.parentContext.requestedObject).isRunning()) {
-    		throw new EngineException("Parent context stopped");
-    	}
+		if (context.parentContext != null && context.parentContext.requestedObject != null)
+			RequestableInvocation.parent(((Sequence) context.parentContext.requestedObject).isRunning());
 	}
 }

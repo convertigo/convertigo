@@ -71,6 +71,28 @@ public class FlowPackagesTest {
 	}
 
 	@Test
+	public void sharedRevisionRoutesProjectPackagesThroughTheCallingFrame() throws Exception {
+		try (var a = generation("SharedA"); var b = generation("SharedB"); var cx = Context.enter()) {
+			var api = new FlowRuntimeApi(cx);
+			var function = (org.mozilla.javascript.Function) cx.evaluateString(api.sharedScope(),
+					"(function() { return String(Packages.probe.V.v()); })", "shared-packages", 1, null);
+			api.sharedScope().sealObject();
+			try (var parent = api.enter(cx)) {
+				FlowPackages.initializeChildScope(parent.scope, api.sharedScope());
+				FlowPackages.bind(cx, parent.scope, a);
+				assertEquals("SharedA", function.call(cx, parent.scope, parent.scope, new Object[0]));
+				try (var child = api.enter(cx)) {
+					FlowPackages.initializeChildScope(child.scope, api.sharedScope());
+					FlowPackages.bind(cx, child.scope, b);
+					assertEquals("SharedB", function.call(cx, child.scope, child.scope, new Object[0]));
+				}
+				assertEquals("SharedA", function.call(cx, parent.scope, parent.scope, new Object[0]));
+			}
+			assertEquals("false", eval(cx, api.sharedScope(), "typeof Packages.probe.V.v == 'function'"));
+		}
+	}
+
+	@Test
 	public void aCallUsesTheGenerationOfItsProjectAndGivesBackTheEngineOnes() throws Exception {
 		var a = generation("A");
 		var b = generation("B");
@@ -104,6 +126,27 @@ public class FlowPackagesTest {
 			Context.exit();
 			thread.setContextClassLoader(previous);
 		}
+	}
+
+	private WeakReference<ClassLoader> releasedSharedRevision() throws Exception {
+		try (var loader = generation("Retired"); var cx = Context.enter()) {
+			var api = new FlowRuntimeApi(cx);
+			try (var frame = api.enter(cx)) {
+				FlowPackages.initializeChildScope(frame.scope, api.sharedScope());
+				FlowPackages.bind(cx, frame.scope, loader);
+				assertEquals("Retired", eval(cx, frame.scope, "String(Packages.probe.V.v())"));
+			}
+			return new WeakReference<>(loader);
+		}
+	}
+
+	@Test
+	public void retiredSharedRevisionReleasesItsProjectGeneration() throws Exception {
+		var reference = releasedSharedRevision();
+		for (int i = 0; i < 50 && reference.get() != null; i++) {
+			System.gc(); Thread.sleep(20);
+		}
+		assertNull("Retired shared metadata must not retain its project generation", reference.get());
 	}
 
 	@Test

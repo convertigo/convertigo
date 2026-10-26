@@ -60,6 +60,8 @@ import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.events.AdminEventBus;
 import com.twinsoft.convertigo.engine.events.StudioEvent;
 import com.twinsoft.convertigo.engine.events.StudioEventListener;
@@ -86,10 +88,12 @@ public class FlowEngineBridge {
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
 	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
-	// Keep room for the Studio authoring scope and nested requestables. With two
-	// slots, an active caller can force every callee to rebuild its execution plans.
-	// Overflow still executes in an isolated scope and is discarded on return.
-	private static final int ENGINE_RUNTIME_POOL_LIMIT = 8;
+	private record SharedRuntimeKey(String provider, String source, String project, ClassLoader loader, long codeRevision, long dataRevision) { }
+	private static final Map<SharedRuntimeKey, CachedEngineRuntime> sharedRuntimes = new ConcurrentHashMap<>();
+	private static final ThreadLocal<RuntimeInvocation> currentRuntime = new ThreadLocal<>();
+	private static final String[] INVOCATION_BINDINGS = { "context", "__flowProjectDir", "__flowBridgeClassSource",
+			"__flowBridgeClassResource", "__flowBridgeInfo", "__flowBridgeRuntimeCacheEnabled", "__flowBridgeRuntimeCacheHit",
+			"__flowBridgeRuntimeCacheKey", "__flowBridgeRuntimeCacheGeneration", "__flowBridgeRuntimeCacheSize" };
 	private static final int FRONTEND_AUTHORING_SINGLE_FLIGHT_LIMIT = 32;
 	private static final Map<String, CompletableFuture<String>> frontendAuthoringFlights = new ConcurrentHashMap<>();
 	private static final Object frontendAuthoringFlightsLock = new Object();
@@ -109,13 +113,15 @@ public class FlowEngineBridge {
 	}
 
 	private record CachedEngineRuntime(String sourceName, long generation, long dataGeneration, Scriptable scope,
-			Scriptable engineObject) {
+			Scriptable engineObject, FlowRuntimeApi api) {
 	}
+	private record IdleEngineRuntime(CachedEngineRuntime runtime, long since) { }
+	private record RuntimeInvocation(CachedEngineRuntimeLookup lookup, ClassLoader projectGeneration, boolean execution) { }
 
 	private static final class CachedEngineRuntimePool {
 		private final String sourceName;
 		private final long generation;
-		private final ArrayDeque<CachedEngineRuntime> available = new ArrayDeque<>();
+		private final ArrayDeque<IdleEngineRuntime> available = new ArrayDeque<>();
 		private Scriptable frontendAuthoringScope;
 		private int cachedCount;
 
@@ -126,7 +132,7 @@ public class FlowEngineBridge {
 	}
 
 	private record CachedEngineRuntimeLookup(CachedEngineRuntime runtime, CachedEngineRuntimePool pool, boolean hit,
-			boolean pooled, String key, long generation, int size) {
+			boolean pooled, String key, long generation, int size, boolean nested) {
 	}
 
 	private record CachedMethodResponse(String response, long generation, long dataGeneration) {
@@ -250,8 +256,11 @@ public class FlowEngineBridge {
 		serverSources.clear();
 		sharedMetadata.clear();
 		var runtimes = new ArrayList<CachedEngineRuntime>();
-		synchronized (engineRuntimeCacheLock) {
+		synchronized (sharedRuntimes) {
 			cacheGeneration.incrementAndGet();
+			sharedRuntimes.clear();
+		}
+		synchronized (engineRuntimeCacheLock) {
 			engineRuntimeCache.values().forEach(pool -> runtimes.addAll(drainAvailableRuntimes(pool)));
 			engineRuntimeCache.clear();
 		}
@@ -281,8 +290,11 @@ public class FlowEngineBridge {
 	}
 
 	private static void advanceDataGeneration() {
-		serverSources.clear();
-		dataGeneration.incrementAndGet();
+		synchronized (sharedRuntimes) {
+			serverSources.clear();
+			dataGeneration.incrementAndGet();
+			sharedRuntimes.clear();
+		}
 		rootFingerprints.clear();
 		clearMethodResponseCache();
 	}
@@ -1688,7 +1700,12 @@ public class FlowEngineBridge {
 				cx = org.mozilla.javascript.Context.enter();
 				entered = true;
 				if (useThreadRuntime) {
-					runtimeLookup = cachedEngineRuntime(engineRef, engineFile, engineSource, cx, frontendAuthoring);
+					runtimeLookup = reusableCallerRuntime(engineRef, engineSource, method, request, convertigoContext);
+					if (runtimeLookup == null && ("run".equals(method)
+							|| "syncInputs".equals(method) && request.optBoolean("metadataOnly")) && !frontendAuthoring
+							&& Boolean.getBoolean("convertigo.javascript.stateless") && !Engine.isStudioMode())
+						runtimeLookup = sharedEngineRuntime(engineRef, engineFile, engineSource, cx, request, convertigoContext);
+					if (runtimeLookup == null) runtimeLookup = cachedEngineRuntime(engineRef, engineFile, engineSource, cx, frontendAuthoring);
 					engineScope = runtimeLookup.runtime().scope();
 					engineObject = runtimeLookup.runtime().engineObject();
 				} else {
@@ -1885,9 +1902,12 @@ public class FlowEngineBridge {
 		return new JSONObject()
 				.put("generation", cacheGeneration.get())
 				.put("dataGeneration", dataGeneration.get())
+				.put("sharedRuntimeCount", sharedRuntimes.size())
+				.put("childInvocations", new JSONObject(com.twinsoft.convertigo.engine.requesters.RequestableInvocation.statistics()))
 				.put("sourceCacheSize", engineSourceCache.size())
 				.put("runtimeCacheSize", engineRuntimeCache.size())
-				.put("runtimePoolLimit", ENGINE_RUNTIME_POOL_LIMIT)
+				.put("runtimePoolLimit", runtimePoolLimit())
+				.put("runtimeIdleSeconds", runtimeIdleSeconds())
 				.put("pooledRuntimeCount", pooledRuntimeCount)
 				.put("availableRuntimeCount", availableRuntimeCount)
 				.put("methodResponseCacheSize", methodResponseCache.size())
@@ -1918,22 +1938,55 @@ public class FlowEngineBridge {
 	private Object invokePrepared(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
 			JSONObject request, Context convertigoContext, org.mozilla.javascript.Context cx, Scriptable engineScope,
 			Scriptable engineObject, CachedEngineRuntimeLookup runtimeLookup) throws EngineException {
-		if (convertigoContext != null) {
-			var jsContext = org.mozilla.javascript.Context.toObject(convertigoContext, engineScope);
-			engineScope.put("context", engineScope, jsContext);
-		} else {
-			engineScope.delete("context");
+		var api = runtimeLookup == null ? null : runtimeLookup.runtime().api();
+		try (var frame = api == null ? null : api.enter(cx)) {
+		if (frame != null) {
+			engineScope = frame.scope;
+			FlowPackages.initializeChildScope(engineScope, api.sharedScope());
 		}
-
-		initializeSourceScope(engineScope, engineFile);
-		// Packages, java... of the generation of the class path of the project of the call, until it returns
+		var previous = currentRuntime.get();
+		var nested = runtimeLookup != null && runtimeLookup.nested() && api == null;
+		var saved = nested ? new Object[INVOCATION_BINDINGS.length] : null;
+		if (nested) for (int i = 0; i < saved.length; i++) saved[i] = engineScope.get(INVOCATION_BINDINGS[i], engineScope);
 		var generation = callGeneration(request, convertigoContext);
-		FlowPackages.bind(cx, engineScope, generation);
+		currentRuntime.set(new RuntimeInvocation(runtimeLookup, generation, "run".equals(method)));
 		try {
+			if (convertigoContext != null) {
+				engineScope.put("context", engineScope, org.mozilla.javascript.Context.toObject(convertigoContext, engineScope));
+			} else engineScope.delete("context");
+			initializeSourceScope(engineScope, engineFile);
+			// Nested execution already has the same project packages. Do not purge or
+			// replace them while the caller's JavaScript stack is still active.
+			if (!nested) FlowPackages.bind(cx, engineScope, generation);
 			return invokeBound(engineRef, engineSource, method, request, cx, engineScope, engineObject, runtimeLookup, generation);
 		} finally {
-			FlowPackages.restore(engineScope, generation);
+			try {
+				try { if (!nested && api == null) FlowPackages.restore(engineScope, generation); }
+				finally {
+					if (runtimeLookup != null) for (int i = 0; i < INVOCATION_BINDINGS.length; i++) {
+						if (nested && saved[i] != Scriptable.NOT_FOUND) engineScope.put(INVOCATION_BINDINGS[i], engineScope, saved[i]);
+						else engineScope.delete(INVOCATION_BINDINGS[i]);
+					}
+				}
+			} finally {
+				if (previous == null) currentRuntime.remove(); else currentRuntime.set(previous);
+			}
 		}
+		}
+	}
+
+	private static CachedEngineRuntimeLookup reusableCallerRuntime(EngineRef ref, CachedEngineSource source,
+			String method, JSONObject request, Context context) {
+		var frame = currentRuntime.get();
+		if (!"run".equals(method) || frame == null || !frame.execution() || frame.lookup() == null
+				|| !EnginePropertiesManager.getPropertyAsBoolean(PropertyName.JAVASCRIPT_RUNTIME_REENTRANT)) return null;
+		var parent = frame.lookup();
+		var runtime = parent.runtime();
+		if (runtime.generation() != cacheGeneration.get() || runtime.dataGeneration() != dataGeneration.get()
+				|| !parent.key().equals(ref.qname + "|" + source.sourceName() + "|pool")
+				|| frame.projectGeneration() != callGeneration(request, context)
+				|| !Boolean.TRUE.equals(ScriptableObject.getProperty(runtime.engineObject(), "supportsNestedExecution"))) return null;
+		return new CachedEngineRuntimeLookup(runtime, parent.pool(), true, false, parent.key(), parent.generation(), parent.size(), true);
 	}
 
 	/**
@@ -2451,6 +2504,35 @@ public class FlowEngineBridge {
 		}
 	}
 
+	private static int runtimeOption(PropertyName name, int fallback, int maximum) {
+		try { return Math.max(0, Math.min(maximum, Integer.parseInt(EnginePropertiesManager.getProperty(name).trim()))); }
+		catch (RuntimeException e) { return fallback; }
+	}
+
+	private static int runtimePoolLimit() {
+		var configured = runtimeOption(PropertyName.JAVASCRIPT_RUNTIME_POOL_SIZE, 0, 256);
+		return configured == 0 ? Engine.isStudioMode() ? 8 : 128 : configured;
+	}
+
+	private static int runtimeIdleSeconds() {
+		return runtimeOption(PropertyName.JAVASCRIPT_RUNTIME_IDLE_SECONDS, 300, 86400);
+	}
+
+	/** Caller owns the pool monitor. Never evict a leased scope or the authoring service's scope. */
+	private static List<CachedEngineRuntime> expiredRuntimes(CachedEngineRuntimePool pool, long now) {
+		var expired = new ArrayList<CachedEngineRuntime>();
+		long ttl = java.util.concurrent.TimeUnit.SECONDS.toNanos(runtimeIdleSeconds());
+		int limit = runtimePoolLimit();
+		for (var iterator = pool.available.iterator(); iterator.hasNext();) {
+			var idle = iterator.next();
+			if (idle.runtime().scope() != pool.frontendAuthoringScope
+					&& (now - idle.since() >= ttl || pool.cachedCount > limit)) {
+				iterator.remove(); pool.cachedCount--; expired.add(idle.runtime());
+			}
+		}
+		return expired;
+	}
+
 	private static CachedEngineRuntimeLookup cachedEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
 			org.mozilla.javascript.Context cx, boolean frontendAuthoring) throws EngineException {
 		var baseKey = engineRef.qname + "|" + engineSource.sourceName();
@@ -2471,6 +2553,10 @@ public class FlowEngineBridge {
 					ignored -> new CachedEngineRuntimePool(engineSource.sourceName(), generation));
 		}
 		disposeEngineRuntimes(staleRuntimes, cx);
+		List<CachedEngineRuntime> idleRuntimes;
+		synchronized (pool) { idleRuntimes = expiredRuntimes(pool, System.nanoTime()); }
+		disposeEngineRuntimes(idleRuntimes, cx);
+		boolean pooled = false;
 		try {
 			synchronized (pool) {
 				var cached = takeAvailableRuntime(pool, frontendAuthoring);
@@ -2481,7 +2567,7 @@ public class FlowEngineBridge {
 							pool.frontendAuthoringScope = cached.scope();
 						}
 						return new CachedEngineRuntimeLookup(cached, pool, true, true, key, generation,
-								engineRuntimeCache.size());
+								engineRuntimeCache.size(), false);
 					} catch (Exception e) {
 						if (cached.scope() == pool.frontendAuthoringScope) {
 							pool.frontendAuthoringScope = null;
@@ -2492,19 +2578,19 @@ public class FlowEngineBridge {
 						Engine.logEngine.warn("(FlowEngineBridge) Unable to refresh a cached engine runtime; replacing it.", e);
 					}
 				}
-				var fresh = createEngineRuntime(engineRef, engineFile, engineSource, cx, generation);
-				var pooled = pool.cachedCount < ENGINE_RUNTIME_POOL_LIMIT;
-				if (pooled) {
-					pool.cachedCount++;
-					if (frontendAuthoring) {
-						pool.frontendAuthoringScope = fresh.scope();
-					}
-				}
-				return new CachedEngineRuntimeLookup(fresh, pool, false, pooled, key, generation, engineRuntimeCache.size());
+				pooled = pool.cachedCount < runtimePoolLimit();
+				if (pooled) pool.cachedCount++;
 			}
+			// Reserve under the monitor, initialize outside it: a cold execution must
+			// not serialize every other caller behind JavaScript initialization.
+			var fresh = createEngineRuntime(engineRef, engineFile, engineSource, cx, generation);
+			if (pooled && frontendAuthoring) synchronized (pool) { pool.frontendAuthoringScope = fresh.scope(); }
+			return new CachedEngineRuntimeLookup(fresh, pool, false, pooled, key, generation, engineRuntimeCache.size(), false);
 		} catch (EngineException e) {
+			if (pooled) synchronized (pool) { pool.cachedCount--; }
 			throw e;
 		} catch (Exception e) {
+			if (pooled) synchronized (pool) { pool.cachedCount--; }
 			throw new EngineException("Unable to initialize Flow engine runtime \"" + engineRef.qname + "\".", e);
 		}
 	}
@@ -2513,19 +2599,20 @@ public class FlowEngineBridge {
 		if (frontendAuthoring) {
 			if (pool.frontendAuthoringScope != null) {
 				for (var iterator = pool.available.iterator(); iterator.hasNext();) {
-					var runtime = iterator.next();
+					var runtime = iterator.next().runtime();
 					if (runtime.scope() == pool.frontendAuthoringScope) {
 						iterator.remove();
 						return runtime;
 					}
 				}
 			}
-			return pool.available.pollLast();
+			var idle = pool.available.pollLast();
+			return idle == null ? null : idle.runtime();
 		}
 		// Reuse the most recently released scope: FIFO cycles cold plans through
 		// every retained scope even for a sequential caller.
 		for (var iterator = pool.available.descendingIterator(); iterator.hasNext();) {
-			var runtime = iterator.next();
+			var runtime = iterator.next().runtime();
 			if (runtime.scope() != pool.frontendAuthoringScope) {
 				iterator.remove();
 				return runtime;
@@ -2538,6 +2625,51 @@ public class FlowEngineBridge {
 		scope.put("__flowEngineDir", scope, engineFile.getParentFile().getAbsolutePath());
 		// Bootstrap-owned, never accepted from an authoring/runtime request.
 		scope.put("__flowSourceLayout", scope, FlowSourceLayout.current().key());
+	}
+
+	private static CachedEngineRuntimeLookup sharedEngineRuntime(EngineRef ref, File file, CachedEngineSource source,
+			org.mozilla.javascript.Context cx, JSONObject request, Context context) throws EngineException {
+		// An older provider may have initialization side effects. Never evaluate it
+		// speculatively in a sealed realm and then evaluate it a second time on fallback.
+		if (!source.source().startsWith("// @convertigo-runtime: stateless-v1\n")) return null;
+		// Working copies are request-owned and must never enter a revision registry.
+		for (var name : List.of("sourceDrafts", "frontendSourceDrafts", "drafts", "sourceRemovals")) {
+            var value = request.opt(name);
+            if (value == null || value == JSONObject.NULL) continue;
+            if (value instanceof JSONObject object && object.length() == 0) continue;
+            if (value instanceof JSONArray array && array.length() == 0) continue;
+            return null;
+        }
+		var key = new SharedRuntimeKey(ref.qname, source.sourceName(), request.optString("projectDir", ""),
+				callGeneration(request, context), cacheGeneration.get(), dataGeneration.get());
+		var runtime = sharedRuntimes.get(key);
+		if (runtime != null && !runtime.api().revisionMatches(() -> methodResponseDependencyFingerprint(file, request))) {
+			sharedRuntimes.remove(key, runtime);
+			serverSources.clear();
+			runtime = null;
+		}
+		boolean hit = runtime != null;
+		if (runtime == null) synchronized (sharedRuntimes) {
+			runtime = sharedRuntimes.get(key);
+			if (runtime == null) {
+				var api = new FlowRuntimeApi(cx);
+				api.revisionMatches(() -> methodResponseDependencyFingerprint(file, request));
+				var scope = api.sharedScope();
+				initializeSourceScope(scope, file);
+				scope.defineProperty("__flowRuntimeApi", org.mozilla.javascript.Context.javaToJS(api, scope),
+						ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
+				var value = RhinoUtils.evalCachedJavascript(cx, scope, source.source(), source.sourceName(), 1, null);
+				if (!(value instanceof Scriptable engine) || !Boolean.TRUE.equals(ScriptableObject.getProperty(engine, "supportsStatelessExecution")))
+					throw new EngineException("The provider advertised a shared runtime without implementing its protocol.");
+				scope.sealObject();
+				runtime = new CachedEngineRuntime(source.sourceName(), key.codeRevision(), key.dataRevision(), scope, engine, api);
+				if (sharedRuntimes.size() >= 256) sharedRuntimes.clear();
+				if (key.codeRevision() == cacheGeneration.get() && key.dataRevision() == dataGeneration.get())
+					sharedRuntimes.put(key, runtime);
+			}
+		}
+		return new CachedEngineRuntimeLookup(runtime, null, hit, false, ref.qname + "|" + source.sourceName() + "|shared",
+				key.codeRevision(), sharedRuntimes.size(), false);
 	}
 
 	private static CachedEngineRuntime createEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
@@ -2553,7 +2685,7 @@ public class FlowEngineBridge {
 			if (!(engine instanceof Scriptable engineObject)) {
 				throw new EngineException("Flow engine \"" + engineRef.qname + "\" must evaluate to a JavaScript object.");
 			}
-			return new CachedEngineRuntime(engineSource.sourceName(), generation, dataGeneration.get(), scope, engineObject);
+			return new CachedEngineRuntime(engineSource.sourceName(), generation, dataGeneration.get(), scope, engineObject, null);
 		} catch (EngineException e) {
 			throw e;
 		} catch (Exception e) {
@@ -2562,9 +2694,10 @@ public class FlowEngineBridge {
 	}
 
 	private static void releaseEngineRuntime(CachedEngineRuntimeLookup lookup) {
-		if (lookup == null) {
+		if (lookup == null || lookup.nested()) {
 			return;
 		}
+		if (lookup.runtime().api() != null) return;
 		if (!lookup.pooled()) {
 			disposeEngineRuntime(lookup.runtime(), org.mozilla.javascript.Context.getCurrentContext());
 			return;
@@ -2586,15 +2719,18 @@ public class FlowEngineBridge {
 			return;
 		}
 		var released = false;
+		List<CachedEngineRuntime> expired;
 		synchronized (pool) {
 			if (engineRuntimeCache.get(lookup.key()) == pool && pool.generation == lookup.generation()
-					&& pool.sourceName.equals(runtime.sourceName())) {
-				pool.available.addLast(runtime);
+					&& pool.sourceName.equals(runtime.sourceName()) && pool.cachedCount <= runtimePoolLimit()) {
+				pool.available.addLast(new IdleEngineRuntime(runtime, System.nanoTime()));
 				released = true;
 			} else if (pool.cachedCount > 0) {
 				pool.cachedCount--;
 			}
+			expired = expiredRuntimes(pool, System.nanoTime());
 		}
+		disposeEngineRuntimes(expired, org.mozilla.javascript.Context.getCurrentContext());
 		if (!released) {
 			disposeEngineRuntime(runtime, org.mozilla.javascript.Context.getCurrentContext());
 		}
@@ -2608,14 +2744,14 @@ public class FlowEngineBridge {
 		}
 		clearEngineRuntimeDataCaches(runtime, cx);
 		return new CachedEngineRuntime(runtime.sourceName(), runtime.generation(), generation, runtime.scope(),
-				runtime.engineObject());
+				runtime.engineObject(), runtime.api());
 	}
 
 	private static List<CachedEngineRuntime> drainAvailableRuntimes(CachedEngineRuntimePool pool) {
 		var runtimes = new ArrayList<CachedEngineRuntime>();
 		synchronized (pool) {
 			while (!pool.available.isEmpty()) {
-				runtimes.add(pool.available.removeFirst());
+				runtimes.add(pool.available.removeFirst().runtime());
 			}
 			pool.frontendAuthoringScope = null;
 			pool.cachedCount = Math.max(0, pool.cachedCount - runtimes.size());
@@ -2793,6 +2929,7 @@ public class FlowEngineBridge {
 		private final LongAdder count = new LongAdder();
 		private final LongAdder errors = new LongAdder();
 		private final LongAdder runtimeHits = new LongAdder();
+		private final LongAdder runtimeNestedReuses = new LongAdder();
 		private final LongAdder runtimeMisses = new LongAdder();
 		private final LongAdder runtimeDisabled = new LongAdder();
 		private final LongAdder methodCacheHits = new LongAdder();
@@ -2829,6 +2966,7 @@ public class FlowEngineBridge {
 				runtimeDisabled.increment();
 			} else if (runtimeLookup.hit()) {
 				runtimeHits.increment();
+				if (runtimeLookup.nested()) runtimeNestedReuses.increment();
 			} else {
 				runtimeMisses.increment();
 			}
@@ -2866,6 +3004,7 @@ public class FlowEngineBridge {
 					.put("calls", calls)
 					.put("errors", errors.sum())
 					.put("runtimeHits", runtimeHits.sum())
+					.put("runtimeNestedReuses", runtimeNestedReuses.sum())
 					.put("runtimeMisses", runtimeMisses.sum())
 					.put("runtimeDisabled", runtimeDisabled.sum())
 					.put("methodCacheHits", methodCacheHits.sum())

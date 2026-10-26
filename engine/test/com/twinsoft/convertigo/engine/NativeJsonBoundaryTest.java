@@ -54,7 +54,7 @@ public class NativeJsonBoundaryTest {
 		Engine.logEngine = Engine.logBeans = Engine.logContext = Engine.logCacheManager = Engine.logDatabaseObjectManager = Logger.getLogger("native-test");
 		EnginePropertiesManager.initProperties();
 		previous = Engine.theApp; Engine.theApp = new Engine();
-		Engine.theApp.billingManager = new BillingManager() { @Override void insertBilling(Context context) { tickets++; } };
+		Engine.theApp.billingManager = new BillingManager() { @Override public void insertBilling(Context context) { tickets++; } };
 		Engine.theApp.cacheManager = new FileCacheManager();
 		project = new Project() { @Override public ClassLoader getProjectClassLoader() { return NativeJsonBoundaryTest.class.getClassLoader(); } };
 		project.setName("Test"); project.setJsonOutput(JsonOutput.useType); project.setJsonRoot(JsonRoot.docChildNodes);
@@ -97,6 +97,19 @@ public class NativeJsonBoundaryTest {
 		} finally { span.close(); com.twinsoft.convertigo.engine.util.XmlUseCounter.end(); EnginePropertiesManager.setProperty(PropertyName.TIMING_TRACE_ALLOCATIONS, "false"); EnginePropertiesManager.setProperty(PropertyName.XML_COUNT_DOCUMENTS, "false"); }
 		assertEquals(0, span.documents());
 	}
+
+	@Test public void anUntrustedServerStubStillRequiresAuthentication() throws Exception {
+        assertFalse(Engine.isStudioMode());
+        var sequence = new com.twinsoft.convertigo.beans.sequences.GenericSequence();
+        sequence.setAuthenticatedContextRequired(true);
+        context.requestedObject = sequence;
+        context.isStubRequested = true;
+        var requester = new JsonServletRequester();
+        requester.context = context;
+        assertThrows(EngineException.class, requester::checkAuthenticatedContext);
+        context.isStubRequested = false;
+        assertThrows(EngineException.class, requester::checkAuthenticatedContext);
+    }
 
 	@Test public void ordinaryMultivaluesAndBodyMatchTheXmlInputPath() throws Exception {
 		var multi = new RequestableMultiValuedVariable(); multi.setName("values"); flow.addVariable(multi);
