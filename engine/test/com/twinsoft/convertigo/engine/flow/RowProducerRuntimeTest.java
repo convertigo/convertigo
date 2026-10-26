@@ -18,7 +18,9 @@ import com.twinsoft.convertigo.engine.flow.rows.RowSource;
 import com.twinsoft.convertigo.engine.flow.rows.RowStreamException;
 
 public class RowProducerRuntimeTest {
-	@org.junit.Before public void logs() {
+	@org.junit.Before public void logs() throws Exception {
+		// Retained producer realms use the same configured class cache as requestables.
+		com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
 		com.twinsoft.convertigo.engine.Engine.logEngine = org.apache.log4j.Logger.getLogger("row-test");
 		com.twinsoft.convertigo.engine.Engine.logBeans = com.twinsoft.convertigo.engine.Engine.logEngine;
 	}

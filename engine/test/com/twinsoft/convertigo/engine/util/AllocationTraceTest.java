@@ -26,6 +26,56 @@ public class AllocationTraceTest {
         assertEquals(report.getLong("allocatedBytes"), sum);
         assertTrue(sum > 16384L * (workers + 1));
     }
+    private static final class AllocatingStep extends com.twinsoft.convertigo.beans.core.Step {
+        AllocatingStep child;
+        boolean failCleanup;
+        @Override public String toJsString() { return ""; }
+        @Override protected void stepInit() { }
+        @Override protected boolean stepExecute(org.mozilla.javascript.Context cx, org.mozilla.javascript.Scriptable scope)
+                throws com.twinsoft.convertigo.engine.EngineException {
+            allocate();
+            if (child != null) child.execute(cx, scope);
+            return true;
+        }
+        @Override protected void stepDone() {
+            allocate();
+            if (failCleanup) throw new IllegalStateException("fixture cleanup");
+        }
+    }
+    private void executeSteps(boolean fail) throws Exception {
+        com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
+        var previousApp = com.twinsoft.convertigo.engine.Engine.theApp;
+        var previousLog = com.twinsoft.convertigo.engine.Engine.logEngine;
+        com.twinsoft.convertigo.engine.Engine.logEngine = org.apache.log4j.Logger.getLogger("step-allocation-test");
+        com.twinsoft.convertigo.engine.Engine.theApp = new com.twinsoft.convertigo.engine.Engine();
+        try {
+        var sequence = new com.twinsoft.convertigo.beans.sequences.GenericSequence();
+        sequence.context = new com.twinsoft.convertigo.engine.Context("allocation-test");
+        var outer = new AllocatingStep(); outer.setName("outer"); outer.setSequence(sequence);
+        var inner = new AllocatingStep(); inner.setName("inner"); inner.setSequence(sequence); inner.failCleanup = fail;
+        outer.child = inner;
+        var root = AllocationTrace.startRequest();
+        try (root) {
+            try { assertTrue(outer.execute(null, null)); assertFalse(fail); }
+            catch (com.twinsoft.convertigo.engine.EngineException expected) { assertTrue(fail); }
+        }
+        verify(root.snapshot(), 0);
+        var entries = root.snapshot().getJSONArray("entries"); int steps = 0;
+        for (int i=0;i<entries.length();i++) {
+            var entry = entries.getJSONObject(i);
+            if (entry.getString("kind").equals("step")) {
+                steps++; assertEquals("AllocatingStep", entry.getString("type"));
+                assertTrue(entry.getLong("exclusive") >= 32768);
+            }
+        }
+        assertEquals(2, steps); assertFalse(AllocationTrace.isActive());
+        } finally {
+            com.twinsoft.convertigo.engine.Engine.theApp = previousApp;
+            com.twinsoft.convertigo.engine.Engine.logEngine = previousLog;
+        }
+    }
+    @Test public void actualStepsPartitionNestedExecutionAndCleanup() throws Exception { executeSteps(false); }
+    @Test public void failingStepCleanupStillClosesItsDiagnosticSpan() throws Exception { executeSteps(true); }
     @Test public void disabledDoesNotCreateSpans() {
         assertNull(AllocationTrace.beginRequest());
         assertFalse(AllocationTrace.isActive());

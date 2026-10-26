@@ -652,6 +652,9 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		EngineStatistics stat = sequence.context.statistics;
 		String ts = stat.start(EngineStatistics.EXECUTE_SEQUENCE_STEPS);
 		long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
+		var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.isActive()
+				? com.twinsoft.convertigo.engine.util.AllocationTrace.open("step",
+						(sequence == null ? "" : sequence.getQName() + ":") + priority + ":" + getName(), getClass().getSimpleName()) : null;
 
 		try {
 			stepInit();
@@ -663,12 +666,16 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			throw new EngineException("An exception occured while executing step",e);
 		}
 		finally {
-			stepDone();
+			try {
+				stepDone();
 
-			stat.stop(ts, sequence.getCurrentChildStep() != 0);
-			// timing.trace: the steps of 5 ms or more, a block step with the time of its children
-			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "step",
-					(sequence == null ? "" : sequence.getName() + "/") + getName(), 5);
+				stat.stop(ts, sequence.getCurrentChildStep() != 0);
+				// timing.trace: the steps of 5 ms or more, a block step with the time of its children
+				com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "step",
+						(sequence == null ? "" : sequence.getName() + "/") + getName(), 5);
+			} finally {
+				if (allocation != null) allocation.close();
+			}
 		}
 	}
 
