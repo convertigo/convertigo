@@ -49,6 +49,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
@@ -291,6 +292,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 	 */
 	protected Properties symbolsProperties;
 	private Object symbolsMutex = new Object();
+
+	/** changes each time the global symbols are loaded or changed: what is compiled from them stays valid until then */
+	private final AtomicLong symbolsGeneration = new AtomicLong();
 
 	// private static String XSL_NAMESPACE_URI =
 	// "http://www.w3.org/1999/XSL/Transform";
@@ -2091,6 +2095,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	protected void symbolsInit() {
 		synchronized (symbolsMutex) {
 			symbolsProperties = new Properties();
+			symbolsGeneration.incrementAndGet();
 
 			if (Engine.isCliMode()) {
 				return;
@@ -2154,6 +2159,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				Engine.logEngine.info("Don't add invalid symbol '" + propertyName + "'", e);
 			}
 		}
+		symbolsGeneration.incrementAndGet();
 		if (needUpdate) {
 			if (store) {
 				symbolsUpdated();
@@ -2269,6 +2275,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to store symbols!", e);
 			}
+			symbolsGeneration.incrementAndGet();
 			symbolsCheck();
 		}
 	}
@@ -2322,6 +2329,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 			symbolsUpdated();
 		}
+	}
+
+	public long getSymbolsGeneration() {
+		return symbolsGeneration.get();
 	}
 
 	public String symbolsGetValue(String symbolName) {

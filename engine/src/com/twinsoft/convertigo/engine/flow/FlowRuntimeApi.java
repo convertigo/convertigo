@@ -132,6 +132,12 @@ public final class FlowRuntimeApi {
         return null;
     }
 
+    /** The values compiled from the global symbols stay valid while this generation does not change. */
+    public long symbolsGeneration() {
+        var app = com.twinsoft.convertigo.engine.Engine.theApp;
+        return app == null || app.databaseObjectsManager == null ? 0 : app.databaseObjectsManager.getSymbolsGeneration();
+    }
+
     /** Typed dispatch avoids Rhino's lazily mutated explicit-overload member table. */
     public String compileSymbols(String text) throws com.twinsoft.convertigo.engine.UndefinedSymbolsException {
         var app = com.twinsoft.convertigo.engine.Engine.theApp;
