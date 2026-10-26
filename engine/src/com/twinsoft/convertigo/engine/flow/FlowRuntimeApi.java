@@ -113,7 +113,8 @@ public final class FlowRuntimeApi {
         } else if (parent instanceof ChildInvocation child) {
             project = child.project; session = child.httpSession; request = child.httpServletRequest;
         } else return "no-invocation";
-        if (project == null || target.getProject() != project) return "project-generation";
+        // a request runs on its copy of the project: the target must belong to the project loaded when it was copied
+        if (project == null || target.getProject() != project.getOriginal()) return "project-generation";
         if (session == null || request == null || request.getSession(false) != session) return "session";
         if (com.twinsoft.convertigo.engine.Engine.theApp.hasRequestableListeners()) return "lifecycle-listeners";
         var plugins = com.twinsoft.convertigo.engine.Engine.theApp.pluginsManager;

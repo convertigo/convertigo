@@ -165,6 +165,7 @@ public class ChildInvocationTest {
                     child.setResponseTimeout(1);assertEquals("independent-deadline",api.childEligibility(child,input));child.setResponseTimeout(60);
                     parent.httpSession.setAttribute("customController",new Object());assertEquals("custom-controller",api.childEligibility(child,input));parent.httpSession.removeAttribute("customController");
                     var other=new Project();other.setName("Other");child.setParent(other);assertEquals("project-generation",api.childEligibility(child,input));child.setParent(project);
+                    var requestCopy=parent.project;parent.project=(Project)project.clone();assertNull(api.childEligibility(child,input));parent.project=requestCopy;
                     child.setIncludeTrace(true);assertEquals("trace",api.childEligibility(child,input));child.setIncludeTrace(false);
                     parent.isStubRequested=true;assertEquals("parent-mode",api.childEligibility(child,input));parent.isStubRequested=false;
                     Engine.theApp.pluginsManager=new PluginsManager(){@Override public synchronized boolean hasPlugins(){return true;}};
