@@ -115,7 +115,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 
 	private boolean followRedirect = true;
 
-	/** Controls how the request-supplied __uri parameter may change the target URL. */
+	/** Controls how the request-supplied __uri parameter and followed redirects may change the target URL. */
 	private HttpUriOverridePolicy allowedUriOverride = HttpUriOverridePolicy.deny;
 
 	public HttpUriOverridePolicy getAllowedUriOverride() {

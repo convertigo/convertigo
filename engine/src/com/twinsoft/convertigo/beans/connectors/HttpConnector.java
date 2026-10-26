@@ -111,6 +111,7 @@ import com.twinsoft.convertigo.engine.enums.DynamicHttpVariable;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.enums.HttpUriOverridePolicy;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -1357,6 +1358,7 @@ public class HttpConnector extends Connector {
 							newuri = newuri.substring(0, split);
 						}
 
+						checkRedirectDestination(transaction, method.getURI().getEscapedURI(), newuri);
 						redirectUrl = getAbsoluteUrl(method, newuri);
 						Engine.logBeans.debug("(HttpConnector) Redirecting to : " + redirectUrl);
 						result = getData(context, redirectUrl, statuscode < HttpStatus.SC_TEMPORARY_REDIRECT);
@@ -1527,6 +1529,34 @@ public class HttpConnector extends Connector {
 						hf.add(StringUtils.join(split, "-"), value, entry.getValue());
 					}
 		}
+	}
+
+	/** Applies the transaction's destination policy before a redirect can change the connector host. */
+	private static void checkRedirectDestination(AbstractHttpTransaction transaction, String source, String location)
+			throws EngineException {
+		try {
+			java.net.URI origin = java.net.URI.create(source);
+			java.net.URI target = origin.resolve(location);
+			String scheme = target.getScheme();
+			if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+					|| target.getHost() == null || target.getUserInfo() != null) {
+				throw new EngineException("Invalid HTTP redirect destination");
+			}
+			boolean sameOrigin = origin.getScheme().equalsIgnoreCase(scheme)
+					&& origin.getHost().equalsIgnoreCase(target.getHost())
+					&& effectivePort(origin) == effectivePort(target);
+			if (!sameOrigin && !transaction.isPrivateAccessibility()
+					&& transaction.getAllowedUriOverride() != HttpUriOverridePolicy.absolute) {
+				throw new EngineException(
+						"HTTP redirect to another origin is not allowed by the transaction's destination policy");
+			}
+		} catch (IllegalArgumentException e) {
+			throw new EngineException("Invalid HTTP redirect destination", e);
+		}
+	}
+
+	private static int effectivePort(java.net.URI uri) {
+		return uri.getPort() == -1 ? ("https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80) : uri.getPort();
 	}
 
 	private String getAbsoluteUrl(HttpMethod method, String givenUrl) throws URIException,
