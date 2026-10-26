@@ -1003,8 +1003,9 @@ public class ContextManager extends AbstractRunnableManager {
 
 		// If not found, try the legacy contexts
 
-		// Studio mode?
-		if (Engine.isStudioMode()) {
+		// Stateless HTTP requests must not reuse the Studio editor context.
+		boolean requestScoped = isRequestScopedContextId(contextIdPrefix);
+		if (Engine.isStudioMode() && !requestScoped) {
 			// Execution from the Studio : do nothing
 			if ((contextName != null) && (contextName.startsWith(STUDIO_CONTEXT_PREFIX))) {
 				Engine.logContextManager.info("Using studio given context name : " + contextName);
@@ -1044,7 +1045,7 @@ public class ContextManager extends AbstractRunnableManager {
 			context = get(contextID, contextName, projectName);
 		}
 		// Studio context
-		else if (contextName.startsWith(STUDIO_CONTEXT_PREFIX)) {
+		else if (!requestScoped && contextName.startsWith(STUDIO_CONTEXT_PREFIX)) {
 			String contextID = contextName;
 			context = get(contextID, contextName, projectName);
 		}

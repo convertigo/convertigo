@@ -54,6 +54,13 @@ public class Ticket {
 	@Transient
 	protected String userAgent			= "";
 
+	private int completionStatus = 200;
+	private boolean responseComplete = true;
+	@Transient public int getCompletionStatus() { return completionStatus; }
+	public void setCompletionStatus(int value) { completionStatus = value; }
+	@Transient public boolean isResponseComplete() { return responseComplete; }
+	public void setResponseComplete(boolean value) { responseComplete = value; }
+
 	public Ticket() {
 	}
 

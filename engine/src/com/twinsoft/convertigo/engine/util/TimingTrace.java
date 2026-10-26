@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.lang.management.ManagementFactory;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.log4j.MDC;
 
 import com.twinsoft.convertigo.engine.Engine;
@@ -30,6 +33,18 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
  * CouchDB transaction, logged on cems.Engine at WARN to break down the time of a request.
  */
 public final class TimingTrace {
+	private static final InheritableThreadLocal<Span> current = new InheritableThreadLocal<>();
+	private static final AtomicLong ids = new AtomicLong();
+	private static final com.sun.management.ThreadMXBean allocations = allocationBean();
+
+
+	private static com.sun.management.ThreadMXBean allocationBean() {
+		var bean = ManagementFactory.getThreadMXBean();
+		return bean instanceof com.sun.management.ThreadMXBean supported
+				&& supported.isThreadAllocatedMemorySupported() ? supported : null;
+	}
+
+
 	private TimingTrace() {
 	}
 
@@ -73,6 +88,73 @@ public final class TimingTrace {
 		} finally {
 			if (nolog != null) {
 				MDC.put("nolog", nolog);
+			}
+		}
+	}
+	public static Span open(String kind, String name) {
+		return EnginePropertiesManager.isAllocationTraceEnabled() ? new Span(kind, name) : null;
+	}
+
+	private static long allocated() {
+		try {
+			if (allocations == null) return -1;
+			if (!allocations.isThreadAllocatedMemoryEnabled()) allocations.setThreadAllocatedMemoryEnabled(true);
+			return allocations.getThreadAllocatedBytes(Thread.currentThread().getId());
+		} catch (RuntimeException e) {
+			return -1;
+		}
+	}
+
+	public static final class Span implements AutoCloseable {
+		private final Span parent = current.get();
+		private final long id = ids.incrementAndGet();
+		private final long threadId = Thread.currentThread().getId();
+		private final long start = System.nanoTime();
+		private final long startEpochMs = System.currentTimeMillis();
+		private final long allocationStart = allocated();
+		private final AtomicLong otherThreadBytes = new AtomicLong();
+		private final XmlUseCounter.Counts xmlCounts = XmlUseCounter.currentCounts();
+		private final int documentsStart = xmlCounts == null ? 0 : xmlCounts.documents.get();
+		private final String kind, name;
+		private boolean closed;
+		private long closedDocuments;
+		private long allocatedBytes = -1;
+
+		private Span(String kind, String name) {
+			this.kind = kind;
+			this.name = name;
+			current.set(this);
+		}
+
+		public long allocatedBytes() { return allocatedBytes; }
+		/** -1 means the XML diagnostic was not active when this span opened. */
+		public long documents() { return closed ? closedDocuments : xmlCounts == null ? -1 : xmlCounts.documents.get() - documentsStart; }
+
+		@Override
+		public void close() {
+			if (closed) return;
+			closedDocuments = documents();
+			closed = true;
+			long end = allocated();
+			allocatedBytes = allocationStart < 0 || end < 0 ? -1 : end - allocationStart + otherThreadBytes.get();
+			// A same-thread parent's counter already includes this span's own bytes.
+			// Only child-thread work is forwarded; do not sum inclusive parent/child records.
+			if (parent != null) {
+				parent.otherThreadBytes.addAndGet(threadId == parent.threadId
+						? otherThreadBytes.get() : Math.max(0, allocatedBytes));
+			}
+			current.set(parent);
+			var nolog = MDC.get("nolog");
+			try {
+				MDC.remove("nolog");
+				if (Engine.logEngine != null) Engine.logEngine.warn("(Timing) id=" + id
+						+ " parent=" + (parent == null ? 0 : parent.id) + " kind=" + kind
+						+ " name=" + name + " start=" + startEpochMs
+						+ " ms=" + ((System.nanoTime() - start) / 1_000_000d)
+						+ " allocatedBytes=" + allocatedBytes + " xmlDocuments=" + documents()
+						+ " thread=" + threadId);
+			} finally {
+				if (nolog != null) MDC.put("nolog", nolog);
 			}
 		}
 	}

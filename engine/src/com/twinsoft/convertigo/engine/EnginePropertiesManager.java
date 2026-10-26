@@ -458,6 +458,8 @@ public class EnginePropertiesManager {
 	 */
 	@PropertyOptions
 	public enum PropertyName {
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
+		TIMING_TRACE_ALLOCATIONS ("timing.trace.allocations", "false", "Attribute allocations by node and boundary (diagnostic)", PropertyCategory.Main),
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:" + (Engine.isStudioMode() ? "1" : "2")+ "8080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),
@@ -534,6 +536,8 @@ public class EnginePropertiesManager {
 		ENGINE_COPY_ON_DEMAND ("engine.copy_on_demand", "native", "Copy for a request only the sequence, connector and transaction it uses, instead of all the sequences and connectors of the project and all the transactions of the connector. native: for the native sequences and their calls; all (or true): for every request; false: all of them, as before", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = NativeScope.class, visibility = Visibility.HIDDEN)
 		CLASSLOADER_LOOKUP_CACHE ("classloader.lookup_cache", "native", "Remember the classes the class loaders of the projects found or did not find, instead of looking them up again in each request. native: for the lookups of the native sequences and their calls; all (or true): for every lookup; false: looked up each time, as before", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
+		REQUESTABLE_NATIVE_JSON ("requestable.native_json", "true", "Enable native JSON requestable results", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
 		NATIVE_INLINE_CALLS ("native.inline_calls", "true", "Run the native calls of a native sequence (sub-sequences and transactions called with __nativeCall) in the thread of the caller instead of a new requestable thread (false: a requestable thread for each call, as before)", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
@@ -928,7 +932,7 @@ public class EnginePropertiesManager {
 		public boolean isWithoutCommentedDefault() {
 			// no switch: its synthetic map would call values() while this enum may still be initializing
 			return this == JAVASCRIPT_SHARED_CLASS_CACHE || this == ENGINE_COPY_ON_DEMAND || this == CLASSLOADER_LOOKUP_CACHE
-					|| this == NATIVE_INLINE_CALLS || this == JAVASCRIPT_SHARED_SCOPE || this == TIMING_TRACE
+					|| this == TIMING_TRACE_ALLOCATIONS || this == REQUESTABLE_NATIVE_JSON || this == NATIVE_INLINE_CALLS || this == JAVASCRIPT_SHARED_SCOPE || this == TIMING_TRACE
 					|| this == XML_COUNT_DOCUMENTS;
 		}
 
@@ -989,6 +993,19 @@ public class EnginePropertiesManager {
 			return Integer.parseInt(getProperty(property, true));
 		} catch (Exception e) {
 			return Integer.parseInt(property.getDefaultValue());
+		}
+	}
+
+	private static volatile boolean allocationTraceEnabled;
+
+	/** A diagnostic request guard must not resolve properties or allocate on each call. */
+	public static boolean isAllocationTraceEnabled() { return allocationTraceEnabled; }
+
+	private static void refreshAllocationTraceEnabled() {
+		try {
+			allocationTraceEnabled = properties != null && getPropertyAsBoolean(PropertyName.TIMING_TRACE_ALLOCATIONS);
+		} catch (RuntimeException e) {
+			allocationTraceEnabled = false;
 		}
 	}
 
@@ -1097,6 +1114,7 @@ public class EnginePropertiesManager {
 			}
 			exvalue = (String) properties.put(property.getKey(), value);
 		}
+		refreshAllocationTraceEnabled();
 		if (!value.equals(exvalue) && Engine.isStarted) {
 			if (property == PropertyName.CONVERTIGO_PRODUCT_VERSION_CHECK) {
 				if ("false".equals(value)) {
@@ -1155,6 +1173,7 @@ public class EnginePropertiesManager {
 
 	public static synchronized void initProperties() throws EngineException {
 		properties = new Properties();
+		refreshAllocationTraceEnabled();
 	}
 
 	public static synchronized void loadProperties() throws EngineException {
@@ -1222,6 +1241,7 @@ public class EnginePropertiesManager {
 			properties.put("convertigo.webapp_path", webappPath);
 			System.out.println("  Adding webapp path: " + webappPath);
 
+			refreshAllocationTraceEnabled();
 			System.out.println("Properties loaded!");
 
 			if (configureLog4J) {
@@ -1230,6 +1250,7 @@ public class EnginePropertiesManager {
 		}
 		catch(IOException e) {
 			properties = null;
+			allocationTraceEnabled = false;
 			throw new EngineException("Unable to load the Convertigo engine configuration file '" + PROPERTIES_FILE_NAME + "'.", e);
 		}
 	}
@@ -1356,6 +1377,7 @@ public class EnginePropertiesManager {
 		}
 		String defaultValue = property.getDefaultValue();
 		String exvalue = (String) properties.remove(property.getKey());
+		refreshAllocationTraceEnabled();
 		boolean changed = exvalue != null && !defaultValue.equals(exvalue);
 		if (changed && Engine.isStarted) {
 			Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, defaultValue), PropertyChangeEventListener.class);
@@ -1698,6 +1720,7 @@ public class EnginePropertiesManager {
 
 	public static void unload() {
 		properties = null;
+		allocationTraceEnabled = false;
 	}
 
 	private static String encodeValue(PropertyType propertyType, String value) {

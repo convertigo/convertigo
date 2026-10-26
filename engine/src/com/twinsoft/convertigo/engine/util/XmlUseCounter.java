@@ -74,6 +74,9 @@ public final class XmlUseCounter {
 		return counts;
 	}
 
+	/** Existing request counters, shared with allocation spans without a second XML counter. */
+	static Counts currentCounts() { return current.get(); }
+
 	public static void end() {
 		current.remove();
 	}

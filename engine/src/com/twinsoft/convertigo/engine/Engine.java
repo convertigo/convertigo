@@ -1321,6 +1321,9 @@ public class Engine {
 			}
 
 			try {
+				if (context.inputDocument == null && context.nativeParameters == null && !com.twinsoft.convertigo.engine.flow.NativeJsonSupport.prepare(requester, context)) {
+					requester.makeInputDocument();
+				}
 				if (context.isAsync) {
 					outputDom = JobManager.addJob(cacheManager, requestedObject, requester, context);
 				} else {
@@ -1335,6 +1338,22 @@ public class Engine {
 				onDocumentRetrieved(context, outputDom);
 			}
 
+			// The normal authorization, execution, session lifecycle and per-requestable billing remain in force.
+			if (context.nativeJsonResponse != null) {
+				context.documentSignatureSent = System.currentTimeMillis();
+				context.nativeJsonAttributes = com.twinsoft.convertigo.engine.util.JsonValues.object("project", context.projectName == null ? "" : context.projectName,
+						"sequence", context.sequenceName == null ? "" : context.sequenceName,
+						"connector", context.connectorName == null ? "" : context.connectorName,
+						"transaction", context.transactionName == null ? "" : context.transactionName,
+						"type", "object", "generated", context.get("nativeJsonGenerated"),
+						"fromcache", "false", "fromStub", "false",
+						"version", Version.fullProductVersion, "context", context.name,
+						"contextId", context.contextID, "signature", Long.toString(context.documentSignatureSent));
+				context.remove("nativeJsonGenerated");
+				if (context.lang != null && !context.lang.isEmpty()) context.nativeJsonAttributes.put("lang", context.lang);
+				if (context.userReference != null) context.nativeJsonAttributes.put("userReference", context.userReference);
+				return null;
+			}
 			context.documentSignatureSent = System.currentTimeMillis();
 			// a native sequence may answer without document
 			if (outputDom != null) {

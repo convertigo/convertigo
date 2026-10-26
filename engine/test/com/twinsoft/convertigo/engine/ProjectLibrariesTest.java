@@ -583,4 +583,35 @@ public class ProjectLibrariesTest {
 		}
 	}
 
+	@Test
+	public void repeatedMissingClassesDoNotSearchAgainAndNewGenerationsCanResolveThem() throws Exception {
+		var attempts = new java.util.concurrent.atomic.AtomicInteger();
+		var parent = new ClassLoader(getClass().getClassLoader()) {
+			@Override public Class<?> loadClass(String name) throws ClassNotFoundException {
+				if (name.startsWith("missing.")) { attempts.incrementAndGet(); throw new ClassNotFoundException(name); }
+				return super.loadClass(name);
+			}
+		};
+		try (var generation = new ProjectClassLoader(new URL[0],parent,"test","1","test",null,List.of())) {
+			for(int i=0;i<20;i++) {
+				try { generation.loadClass("missing.Value"); fail("missing"); }
+				catch (ClassNotFoundException expected) {
+					assertEquals("missing.Value",expected.getMessage());
+					assertEquals(i==0,expected.getStackTrace().length>0);
+				}
+			}
+			assertEquals(1,attempts.get());
+			assertSame(String.class,generation.loadClass("java.lang.String"));
+			for(int i=0;i<4100;i++)try { generation.loadClass("missing.Name"+i); }catch(ClassNotFoundException expected){}
+			int before=attempts.get();
+			try { generation.loadClass("missing.Value"); }catch(ClassNotFoundException expected){}
+			assertEquals("bounded cache evicts oldest miss",before+1,attempts.get());
+		}
+		var directory = new File(base,"new-generation");directory.mkdirs();
+		compile(Map.of("missing.Value","package missing; public class Value {}"),directory);
+		try(var next=new ProjectClassLoader(new URL[]{directory.toURI().toURL()},parent,"test","2","new",null,List.of())) {
+			assertSame(next,next.loadClass("missing.Value").getClassLoader());
+		}
+	}
+
 }

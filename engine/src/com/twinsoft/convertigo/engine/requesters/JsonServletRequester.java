@@ -46,6 +46,15 @@ public class JsonServletRequester extends ServletRequester {
     }
 	
 	@Override
+	public boolean acceptNativeJson() {
+		return context.project == null || context.project.getJsonOutput() == JsonOutput.useType
+				&& context.project.getJsonRoot() == JsonRoot.docChildNodes;
+	}
+
+	@Override
+	public Object postGetNativeJson() throws Exception { return new JsonResponse(context.nativeJsonResponse, null, context.takeNativeRows()); }
+
+	@Override
 	public Object postGetDocument(Document document) throws Exception {
 		return toJson(context, document);
 	}

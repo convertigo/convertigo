@@ -43,6 +43,7 @@ import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import com.twinsoft.convertigo.engine.util.JsonValues;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -81,7 +82,10 @@ public class FlowEngineBridge {
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
 	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
-	private static final int ENGINE_RUNTIME_POOL_LIMIT = 2;
+	// Keep room for the Studio authoring scope and nested requestables. With two
+	// slots, an active caller can force every callee to rebuild its execution plans.
+	// Overflow still executes in an isolated scope and is discarded on return.
+	private static final int ENGINE_RUNTIME_POOL_LIMIT = 8;
 	private static final int FRONTEND_AUTHORING_SINGLE_FLIGHT_LIMIT = 32;
 	private static final Map<String, CompletableFuture<String>> frontendAuthoringFlights = new ConcurrentHashMap<>();
 	private static final Object frontendAuthoringFlightsLock = new Object();
@@ -374,7 +378,7 @@ public class FlowEngineBridge {
 		}
 	}
 
-	public JSONObject run(Flow flow, Context convertigoContext, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
+	public Map<String, Object> run(Flow flow, Context convertigoContext, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		var started = System.nanoTime();
 		try {
 			var engineQName = effectiveEngineQName(flow);
@@ -385,26 +389,24 @@ public class FlowEngineBridge {
 					.put("projectDir", flow.getProject() == null ? "" : flow.getProject().getDirPath())
 					.put("includeTrace", flow.isIncludeTrace());
 			var requestFinished = System.nanoTime();
-			request.put("input", flow.getFlowInput());
+			try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "inputs", flow.getQName())) {
+				request.put("input", flow.getFlowInput());
+			}
 			var inputFinished = System.nanoTime();
-			var profileEnabled = convertigoContext != null && convertigoContext.httpServletRequest != null
+			var profileEnabled = com.twinsoft.convertigo.engine.util.TimingTrace.isEnabled()
+					|| convertigoContext != null && convertigoContext.httpServletRequest != null
 					&& "true".equals(convertigoContext.httpServletRequest.getParameter("__flowProfile"));
 			if (profileEnabled) {
 				request.put("profile", true);
 			}
-			var response = invoke(engineQName, "run", request, convertigoContext, javascriptContext, scope);
+			var response = JsonValues.map(JsonValues.fromLegacy(invokeValue(engineQName, "run", request, convertigoContext, javascriptContext, scope)));
 			if (profileEnabled) {
-				var profile = response.optJSONObject("profile");
+				var profile = response.get("profile") instanceof Map<?, ?> ? JsonValues.map(response.get("profile")) : null;
 				if (profile == null) {
-					profile = new JSONObject();
+					profile = JsonValues.object();
 					response.put("profile", profile);
 				}
-				profile.put("javaBridge", new JSONObject()
-						.put("sourceMs", nanosToMillis(sourceFinished - started))
-						.put("requestMs", nanosToMillis(requestFinished - sourceFinished))
-						.put("inputMs", nanosToMillis(inputFinished - requestFinished))
-						.put("invokeMs", nanosToMillis(System.nanoTime() - inputFinished))
-						.put("totalMs", nanosToMillis(System.nanoTime() - started)));
+				profile.put("javaBridge", JsonValues.object("sourceMs", nanosToMillis(sourceFinished - started), "requestMs", nanosToMillis(requestFinished - sourceFinished), "inputMs", nanosToMillis(inputFinished - requestFinished), "invokeMs", nanosToMillis(System.nanoTime() - inputFinished), "totalMs", nanosToMillis(System.nanoTime() - started)));
 			}
 			return response;
 		} catch (JSONException e) {
@@ -1484,6 +1486,11 @@ public class FlowEngineBridge {
 
 	JSONObject invoke(String engineQName, String method, JSONObject request, Context convertigoContext,
 			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
+		try { return (JSONObject) JsonValues.toLegacy(invokeValue(engineQName, method, request, convertigoContext, javascriptContext, scope)); }
+		catch (JSONException e) { throw new EngineException("Unable to adapt authoring response", e); }
+	}
+	Object invokeValue(String engineQName, String method, JSONObject request, Context convertigoContext,
+			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		prepareProjectRequest(request);
 		var engineRef = EngineRef.parse(normalizeEngineQName(engineQName));
 		var frontendAuthoring = usesFrontendDocumentProvider(method, request);
@@ -1621,14 +1628,14 @@ public class FlowEngineBridge {
 			}
 			var stableAuthoringRead = !frontendAuthoring || frontendAuthoringMutation
 					|| frontendAuthoringMutationGate.canServe(optimisticReadStamp);
-			if (stableAuthoringRead) {
-				storeMethodResponse(methodCacheKey, engineRef, method, request, response);
+			if (stableAuthoringRead && response instanceof JSONObject legacyResponse) {
+				storeMethodResponse(methodCacheKey, engineRef, method, request, legacyResponse);
 			} else {
 				FlowStudioSupport.performanceProfileMark("bridge." + method + ".staleSnapshotSkipped");
 			}
 			FlowStudioSupport.performanceProfileMark("bridge." + method + ".store");
 			if (frontendAuthoringFlight != null && frontendAuthoringFlight.leader()) {
-				frontendAuthoringFlight.complete(response);
+				frontendAuthoringFlight.complete((JSONObject) response);
 			}
 			return response;
 		} catch (EngineException e) {
@@ -1823,7 +1830,7 @@ public class FlowEngineBridge {
 		}
 	}
 
-	private JSONObject invokePrepared(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
+	private Object invokePrepared(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
 			JSONObject request, Context convertigoContext, org.mozilla.javascript.Context cx, Scriptable engineScope,
 			Scriptable engineObject, CachedEngineRuntimeLookup runtimeLookup) throws EngineException {
 		if (convertigoContext != null) {
@@ -1838,7 +1845,7 @@ public class FlowEngineBridge {
 		var generation = callGeneration(request, convertigoContext);
 		FlowPackages.bind(cx, engineScope, generation);
 		try {
-			return invokeBound(engineRef, engineSource, method, request, cx, engineScope, engineObject, runtimeLookup);
+			return invokeBound(engineRef, engineSource, method, request, cx, engineScope, engineObject, runtimeLookup, generation);
 		} finally {
 			FlowPackages.restore(engineScope, generation);
 		}
@@ -1865,9 +1872,9 @@ public class FlowEngineBridge {
 		}
 	}
 
-	private JSONObject invokeBound(EngineRef engineRef, CachedEngineSource engineSource, String method, JSONObject request,
+	private Object invokeBound(EngineRef engineRef, CachedEngineSource engineSource, String method, JSONObject request,
 			org.mozilla.javascript.Context cx, Scriptable engineScope, Scriptable engineObject,
-			CachedEngineRuntimeLookup runtimeLookup) throws EngineException {
+			CachedEngineRuntimeLookup runtimeLookup, ClassLoader generation) throws EngineException {
 		var projectDir = request.optString("projectDir", "");
 		engineScope.put("__flowProjectDir", engineScope, projectDir);
 		engineScope.put("__flowBridgeClassSource", engineScope, bridgeClassSource());
@@ -1898,15 +1905,97 @@ public class FlowEngineBridge {
 		}
 
 		var function = ScriptableObject.getProperty(engineObject, method);
+		// Optional execution-only protocol. Older providers and authoring methods
+		// keep their text contract. Detach while the runtime is still borrowed.
+		var objectResult = false;
+		if ("run".equals(method)) {
+			var objectFunction = ScriptableObject.getProperty(engineObject, "runObject");
+			if (objectFunction instanceof Function) {
+				function = objectFunction;
+				objectResult = true;
+			}
+		}
 		if (!(function instanceof Function)) {
 			throw new EngineException("Flow engine \"" + engineRef.qname + "\" does not expose method \"" + method + "\".");
 		}
 
-		var result = ((Function) function).call(cx, engineScope, engineObject, new Object[] { request.toString() });
+		var detacher = objectResult ? new ResultDetacher(engineScope, generation) : null;
+		String inputJson;
+		try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "input-encode", method)) {
+			inputJson = request.toString();
+		}
+		var arguments = objectResult ? com.twinsoft.convertigo.engine.util.AllocationTrace.isActive()
+				? new Object[] { inputJson, detacher, new org.mozilla.javascript.NativeJavaClass(engineScope,
+						com.twinsoft.convertigo.engine.util.AllocationTrace.class) }
+				: new Object[] { inputJson, detacher } : new Object[] { inputJson };
+		var result = ((Function) function).call(cx, engineScope, engineObject, arguments);
 		FlowStudioSupport.performanceProfileMark("bridge." + method + ".engineCall");
-		var response = toJsonObject(result, engineRef.qname, method);
+		if (objectResult && (result == null || result != detacher.token)) {
+			throw new EngineException("Object execution must return the detached result token.");
+		}
+		var response = objectResult ? detacher.value : toJsonObject(result, engineRef.qname, method);
 		FlowStudioSupport.performanceProfileMark("bridge." + method + ".serialization");
 		return response;
+	}
+
+	/** Called inside the provider's error boundary, while its realm is borrowed. */
+	private static final class ResultDetacher extends org.mozilla.javascript.BaseFunction {
+		private static final long serialVersionUID = 1L;
+		private Map<String, Object> value;
+		private Object token;
+		ResultDetacher(Scriptable scope) { this(scope, null); }
+		ResultDetacher(Scriptable scope, ClassLoader generation) {
+			setParentScope(scope);
+			setPrototype(ScriptableObject.getFunctionPrototype(scope));
+			var sanitized = new org.mozilla.javascript.BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
+				private static final long serialVersionUID = 1L;
+				@Override public Object call(org.mozilla.javascript.Context cx, Scriptable callScope, Scriptable thisObj, Object[] args) {
+					if (args.length != 2 || !(args[1] instanceof org.mozilla.javascript.Callable policy)) {
+						throw org.mozilla.javascript.Context.reportRuntimeError("A result sanitization policy is required");
+					}
+					try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "sanitize-detach", "")) {
+						value = com.twinsoft.convertigo.engine.util.SanitizedJson.map(args[0], cx, callScope, policy);
+						return token = org.mozilla.javascript.Context.javaToJS(value, callScope);
+					} catch (JSONException e) {
+						throw org.mozilla.javascript.Context.throwAsScriptRuntimeEx(e);
+					}
+				}
+			};
+			defineProperty("sanitize", sanitized, ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
+			var rows = new org.mozilla.javascript.BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
+				private static final long serialVersionUID = 1L;
+				@Override public Object call(org.mozilla.javascript.Context cx, Scriptable callScope, Scriptable thisObj, Object[] args) {
+					if (args.length != 3 || !(args[2] instanceof org.mozilla.javascript.Callable policy))
+						throw org.mozilla.javascript.Context.reportRuntimeError("A registered row plan is required");
+					com.twinsoft.convertigo.engine.flow.rows.ResultDocument document = null;
+					try {
+						var envelope = com.twinsoft.convertigo.engine.util.SanitizedJson.map(args[0], cx, callScope, policy);
+						var plan = com.twinsoft.convertigo.engine.util.SanitizedJson.map(args[1], cx, callScope, policy);
+						document = com.twinsoft.convertigo.engine.flow.rows.RowPlanFactory.create(plan, generation);
+						value = new com.twinsoft.convertigo.engine.flow.rows.StreamResult(envelope, document);
+						return token = org.mozilla.javascript.Context.javaToJS(value, callScope);
+					} catch (Exception error) {
+						if (document != null) try { document.close(); } catch (Exception ignored) { }
+						// A plan can contain credentials. Do not retain an exception with that plan or URL.
+						var failure = cx.newObject(callScope);
+						ScriptableObject.putProperty(failure,"code","ROW_STREAM_PLAN");
+						ScriptableObject.putProperty(failure,"message","Unable to prepare bounded row result");
+						ScriptableObject.putProperty(failure,"status",error instanceof com.twinsoft.convertigo.engine.flow.rows.RowStreamException bounded ? bounded.status() : 400);
+						throw new org.mozilla.javascript.JavaScriptException(failure,"row-result",0);
+					}
+				}
+			};
+			defineProperty("rows", rows, ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
+
+		}
+		@Override public Object call(org.mozilla.javascript.Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+			try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "detach", "")) {
+				value = com.twinsoft.convertigo.engine.util.DetachedJson.map(args.length == 0 ? null : args[0], cx, scope);
+				return token = org.mozilla.javascript.Context.javaToJS(value, scope);
+			} catch (JSONException e) {
+				throw org.mozilla.javascript.Context.throwAsScriptRuntimeEx(e);
+			}
+		}
 	}
 
 	private static CachedMethodResponse cachedMethodResponse(String key) {
@@ -2346,9 +2435,11 @@ public class FlowEngineBridge {
 					}
 				}
 			}
-			return pool.available.pollFirst();
+			return pool.available.pollLast();
 		}
-		for (var iterator = pool.available.iterator(); iterator.hasNext();) {
+		// Reuse the most recently released scope: FIFO cycles cold plans through
+		// every retained scope even for a sequential caller.
+		for (var iterator = pool.available.descendingIterator(); iterator.hasNext();) {
 			var runtime = iterator.next();
 			if (runtime.scope() != pool.frontendAuthoringScope) {
 				iterator.remove();

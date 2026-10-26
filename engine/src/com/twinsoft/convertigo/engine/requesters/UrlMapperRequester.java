@@ -33,16 +33,30 @@ public class UrlMapperRequester extends InternalRequester {
 
 	public enum ResponseMode {
 		defaultContent,
+		json,
 		binary,
 		cxml
 	}
 
 	private final ResponseMode responseMode;
+	private Document responseDocument;
 
 	public UrlMapperRequester(Map<String, Object> request, HttpServletRequest httpServletRequest, ResponseMode responseMode) throws EngineException {
 		super(request, httpServletRequest);
 		this.responseMode = responseMode;
 	}
+
+	@Override
+	public boolean acceptNativeJson() { return responseMode == ResponseMode.json; }
+
+	@Override
+	public Object postGetNativeJson() {
+		responseDocument = null;
+		return new JsonResponse(context.nativeJsonResponse, null);
+	}
+
+	/** Captured while the request still owns its context lock. */
+	public Document getResponseDocument() { return responseDocument; }
 
 	@Override
 	public String getName() {
@@ -68,6 +82,7 @@ public class UrlMapperRequester extends InternalRequester {
 
 	@Override
 	public Object postGetDocument(Document document) throws Exception {
+		responseDocument = document;
 		if (responseMode == ResponseMode.binary) {
 			var attachments = document.getDocumentElement().getElementsByTagName("attachment");
 			if (attachments != null) {

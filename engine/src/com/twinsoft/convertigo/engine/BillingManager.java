@@ -178,13 +178,19 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 				ticket.setDeviceUUID(deviceUUID);
 			}
 
-			synchronized (tickets) {
-				tickets.add(ticket);
-				tickets.notify();
-			}
+			if (context.nativeRows != null) {
+				// Capture only a ticket. The request Context/session may be reset before
+				// the servlet consumes its response; late work still belongs to this ticket.
+				com.twinsoft.convertigo.engine.billing.RowBilling.defer(context.nativeRows, ticket, this::enqueueTicket);
+			} else enqueueTicket(ticket);
 		} catch (Exception e) {
 			throw new EngineException("Ticket create failed", e);
 		}
+	}
+
+	private void enqueueTicket(Ticket ticket) {
+		if (isDestroying) return;
+		synchronized (tickets) { tickets.add(ticket); tickets.notify(); }
 	}
 
 	public void insertBilling(HttpSessionListener sessionListener, String operation)

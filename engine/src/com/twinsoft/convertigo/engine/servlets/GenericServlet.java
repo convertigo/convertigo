@@ -161,6 +161,13 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	protected void doRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		try (var attribution = com.twinsoft.convertigo.engine.util.AllocationTrace.beginRequest();
+				var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("servlet", getClass().getSimpleName())) {
+			doRequestWithTiming(request, response);
+		}
+	}
+
+	private void doRequestWithTiming(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setAttribute("response", response);
 		HttpUtils.applyCorsHeaders(request, response);
 		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);
@@ -171,6 +178,7 @@ public abstract class GenericServlet extends HttpServlet {
 
 		if ((isProject = baseUrl.contains("/projects/") || baseUrl.contains("/system/")) || baseUrl.contains("/webclipper/")) {
 			long t0 = System.currentTimeMillis();
+			com.twinsoft.convertigo.engine.requesters.JsonResponse ownedJson = null;
 			// Some protocols (RSA/XSRF/MTOM) acquire a session before reaching the requester.
 			request.setAttribute("convertigo.session.initiallyPresent", request.getSession(false) != null);
 			try {
@@ -212,6 +220,7 @@ public abstract class GenericServlet extends HttpServlet {
 				XmlUseCounter.Counts xmlCounts = XmlUseCounter.isEnabled() ? XmlUseCounter.begin() : null;
 				long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 				Object result = processRequest(request);
+				if (result instanceof com.twinsoft.convertigo.engine.requesters.JsonResponse json) ownedJson = json;
 
 				HttpUtils.applyCorsHeaders(request, response);
 
@@ -294,6 +303,15 @@ public abstract class GenericServlet extends HttpServlet {
 							Writer writer = new java.io.OutputStreamWriter(response.getOutputStream(), streamed.getCharset());
 							streamed.writeTo(writer);
 							writer.flush();
+						} else if (result instanceof com.twinsoft.convertigo.engine.requesters.JsonResponse json) {
+							try (json) {
+								response.setContentType(requested_content_type != null ? requested_content_type : getContentType(request));
+								response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
+								applyCustomHeaders(request, response);
+								int status = json.prepare();
+								if (status != 0) response.setStatus(status);
+								json.writeToResponse(response.getWriter());
+							}
 						} else if (result instanceof byte[]) {
 							if (requested_content_type != null) {
 								response.setContentType(requested_content_type);
@@ -352,6 +370,7 @@ public abstract class GenericServlet extends HttpServlet {
 				processException(request, response, e);
 			}
 			finally {
+				if (ownedJson != null) try { ownedJson.close(); } catch (IOException ignored) { }
 				try {
 					long t1 = System.currentTimeMillis();
 					Engine.theApp.pluginsManager.fireHttpServletRequestEnd(request, t0, t1);

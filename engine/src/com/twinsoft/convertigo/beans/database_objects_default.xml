@@ -33,8 +33,14 @@
         <property name="includeTrace">
             <java.lang.Boolean value="false"/>
         </property>
+        <property name="jsonNativeOutput">
+            <java.lang.Boolean value="false"/>
+        </property>
         <property name="name">
             <java.lang.String value=""/>
+        </property>
+        <property name="nativeExecution">
+            <java.lang.Boolean value="false"/>
         </property>
         <property name="responseExpiryDate">
             <java.lang.String value=""/>
@@ -50,6 +56,7 @@
         </property>
         <wsdltype/>
     </sequence>
+
     <flowengine classname="com.twinsoft.convertigo.beans.flow.FlowEngine" priority="0" version="   8   5   0">
         <property name="comment">
             <java.lang.String value=""/>

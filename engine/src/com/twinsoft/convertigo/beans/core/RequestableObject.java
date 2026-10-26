@@ -239,6 +239,10 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     public abstract void runCore() throws EngineException;
     
 	public abstract void prepareForRequestable(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException;
+
+	/** Runtimes owning their own pooled scope can avoid the legacy scripting environment. */
+	protected boolean requiresJavascriptScope() { return true; }
+
     
 	public abstract void handleRequestableEvent(String eventType, org.mozilla.javascript.Context javascriptContext) throws EngineException;
 	
@@ -270,6 +274,17 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
 
     public Document run(Requester requester, Context context) throws EngineException {
+		try (var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("requestable", getQName())) {
+			return runMeasured(requester, context);
+		}
+	}
+
+	protected Document ensureOutputDocument() throws EngineException {
+		if (context.outputDocument == null) createOutputDocument(context);
+		return context.outputDocument;
+	}
+
+	private Document runMeasured(Requester requester, Context context) throws EngineException {
         
     	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_STARTED);
         long traceStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
@@ -287,7 +302,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             // a native sequence, or a transaction called natively: no input document was made for them
             context.nativeExecution = context.inputDocument == null && context.nativeParameters != null;
             context.nativeResult = null;
-            if (context.nativeExecution) {
+            if (context.nativeExecution || context.nativeJson) {
             	context.outputDocument = null;
             } else {
             	createOutputDocument(context);
@@ -298,7 +313,10 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             if (nbCurrentWorkerThreads >= maxNbCurrentWorkerThreads)
             	throw new EngineException("No more available worker thread (" + maxNbCurrentWorkerThreads + ")");
             
-            inline = context.nativeExecution && isInlineNativeCall(requester);
+            inline = (context.nativeExecution && isInlineNativeCall(requester))
+					|| (context.nativeJson && requester instanceof com.twinsoft.convertigo.engine.requesters.NativeJsonRequester
+							&& !requiresJavascriptScope() && getResponseTimeout() <= 0
+							&& EnginePropertiesManager.getPropertyAsBoolean(PropertyName.NATIVE_INLINE_CALLS));
             if (inline) {
             	// a native call of a native sequence: in the thread of the caller, without a requestable thread
             	Engine.logContext.debug("(RequestableObject) Inline run of the requested object '" + getName() + "' ("+context.contextID+")");
@@ -409,9 +427,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
                     throw (EngineException) runningThread.exception;
                 else throw new EngineException("An unexpected error has occured while the execution of the requested object '" + getName() + "'.", runningThread.exception);
 
-			if (context.outputDocument != null) {
-				context.outputDocument.getDocumentElement().setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
-			}
+			if (context.outputDocument != null) context.outputDocument.getDocumentElement().setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
+			else context.set("nativeJsonGenerated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
 			
             Engine.logContext.debug("(RequestableObject) End of the thread for the requested object '" + getName() + "'");
             
@@ -1000,7 +1017,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
 		/** the thread marked as running a native requestable or not, for the optimizations whose property is native */
 		private void runMarked() {
-			Boolean previous = com.twinsoft.convertigo.engine.util.NativeRunning.enter(context.nativeExecution);
+			Boolean previous = com.twinsoft.convertigo.engine.util.NativeRunning.enter(context.nativeExecution || context.nativeJson);
 			try {
 				runWithMdc();
 			} finally {
@@ -1009,6 +1026,13 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		}
 
 		private void runWithMdc() {
+			try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "worker", getQName())) {
+				runWithDiagnostics();
+			}
+		}
+
+		private void runWithDiagnostics() {
+			var timing = com.twinsoft.convertigo.engine.util.TimingTrace.open("worker", getQName());
         	context.statistics.stop(workerThreadCreationStatistic);
         	
 			context.steps = new ArrayList<String>(8);
@@ -1055,9 +1079,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     			}
             	
             	// Creating scripting context
-    			javascriptContext = org.mozilla.javascript.Context.enter();
-    			scope = newScope(javascriptContext, RequestableObject.this);
-
+				if (requiresJavascriptScope()) {
+					javascriptContext = org.mozilla.javascript.Context.enter();
+					scope = newScope(javascriptContext, RequestableObject.this);
+				}
+    			
         		Engine.logContext.debug("Preparing for requestable...");
             	prepareForRequestable(context, javascriptContext, scope);
             	
@@ -1102,6 +1128,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 				}
 				
 				Engine.logContext.debug("(RequestableObject) End of requested object thread");
+				// Publish child-thread counters before waking the request's waiting thread.
+				if (timing != null) timing.close();
 
                 synchronized(this) {
                 	if (runningThread == null) {
