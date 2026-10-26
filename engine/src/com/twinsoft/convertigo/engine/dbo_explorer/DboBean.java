@@ -33,12 +33,19 @@ public class DboBean {
 	private final boolean bEnable;
 	private final DocumentedMode documentedMode;
 	private final boolean bDefault;
+	private final boolean bExperimental;
 	private final Collection<DboParent> parents;
 	private final Collection<String> emulatorTechnologies;
 
 	DboBean(String className, boolean bEnable, DocumentedMode documentedMode, boolean bDefault,
 			Collection<DboParent> parents, Collection<String> emulatorTechnologies) {
+		this(className, bEnable, documentedMode, bDefault, false, parents, emulatorTechnologies);
+	}
+
+	DboBean(String className, boolean bEnable, DocumentedMode documentedMode, boolean bDefault, boolean bExperimental,
+			Collection<DboParent> parents, Collection<String> emulatorTechnologies) {
 		this.className = className;
+		this.bExperimental = bExperimental;
 		this.bEnable = bEnable;
 		this.documentedMode = documentedMode;
 		this.bDefault = bDefault;
@@ -64,6 +71,11 @@ public class DboBean {
 	
 	public boolean isDefault() {
 		return bDefault;
+	}
+
+	/** a bean of the new experimental features (experimental="true"): see ExperimentalFeatures */
+	public boolean isExperimental() {
+		return bExperimental;
 	}
 
 	public Collection<DboParent> getParents() {

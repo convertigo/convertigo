@@ -1158,7 +1158,9 @@ public class HttpConnector extends Connector {
 
 			// Getting the result
 			Engine.logBeans.debug("(HttpConnector) HttpClient: getting response body");
+			long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 			byte[] result = executeMethod(method, context);
+			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "http", context.transactionName);
 			
 			long length = result != null ? result.length : 0;
 			
@@ -1172,17 +1174,20 @@ public class HttpConnector extends Connector {
 
 			Engine.logBeans.debug("(HttpConnector) Total read bytes: " + length);
 			
-			StringBuilder sb = new StringBuilder();
-			sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + length + "}\n\n");
-			
-			if (result != null && context.contentType != null
-					&& ( context.contentType.startsWith("text/")
-					|| context.contentType.startsWith("application/xml")
-					|| context.contentType.startsWith("application/json"))) {
-				sb.append(new String(result, "UTF-8"));
-			}
+			if (hasConnectorListeners()) {
+				// the whole response as text, only for a listener (the connector editor of the Studio)
+				StringBuilder sb = new StringBuilder();
+				sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + length + "}\n\n");
+				
+				if (result != null && context.contentType != null
+						&& ( context.contentType.startsWith("text/")
+						|| context.contentType.startsWith("application/xml")
+						|| context.contentType.startsWith("application/json"))) {
+					sb.append(new String(result, "UTF-8"));
+				}
 
-			fireDataChanged(new ConnectorEvent(this, sb.toString()));
+				fireDataChanged(new ConnectorEvent(this, sb.toString()));
+			}
 
 			return result;
 		} finally {
@@ -1217,9 +1222,13 @@ public class HttpConnector extends Connector {
 			AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
 			
 			requestHeaders = method.getRequestHeaders();
-			if (Engine.logBeans.isTraceEnabled())
-				Engine.logBeans.trace("(HttpConnector) Request headers :\n"
-						+ Arrays.asList(requestHeaders).toString());
+			if (Engine.logBeans.isTraceEnabled()) {
+				List<String> printedHeaders = new ArrayList<String>(requestHeaders.length);
+				for (Header header : requestHeaders) {
+					printedHeaders.add(isCredentialHeader(header.getName()) ? header.getName() + ": " + Visibility.STRING_MASK + "\r\n" : header.toString());
+				}
+				Engine.logBeans.trace("(HttpConnector) Request headers :\n" + printedHeaders);
+			}
 			
 			statuscode = doExecuteMethod(method, context);
 
@@ -1397,7 +1406,8 @@ public class HttpConnector extends Connector {
 					for (int i = 0; i < headers.size(); i++){
 						Element elt = doc.createElement("header");
 						elt.setAttribute("name", headers.get(i).getName());
-						elt.setAttribute("value", headers.get(i).getValue());
+						// the credentials sent stay out of the output document, its logs and its cache
+						elt.setAttribute("value", isCredentialHeader(headers.get(i).getName()) ? Visibility.STRING_MASK : headers.get(i).getValue());
 						httpHeadersElement.appendChild(elt);
 					}				
 					httpInfoElement.appendChild(httpHeadersElement);
@@ -1997,5 +2007,9 @@ public class HttpConnector extends Connector {
 		if (!isOriginal()) {
 			authenticationPropertiesHasChanged = true;
 		}
+	}
+
+	private static boolean isCredentialHeader(String name) {
+		return "Authorization".equalsIgnoreCase(name) || "Proxy-Authorization".equalsIgnoreCase(name);
 	}
 }

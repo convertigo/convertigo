@@ -1106,8 +1106,17 @@ public class Engine {
 	 *
 	 * @return the generated XML document.
 	 */
+	/**
+	 * A billing ticket, and the POST of the ticket managers, for every requestable, as in origin/hotfix: the request
+	 * that came in and each internal call, the steps of a classic sequence as the calls of a native one.
+	 */
+	static boolean isBilled(Context context) {
+		return context.requestedObject != null;
+	}
+
 	public Document getDocument(Requester requester, Context context) throws EngineException {
 		Document outputDom = null;
+		long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 
 		String t = context.statistics.start(EngineStatistics.GET_DOCUMENT);
 
@@ -1333,25 +1342,28 @@ public class Engine {
 				onDocumentRetrieved(context, outputDom);
 			}
 
-			Element documentElement = outputDom.getDocumentElement();
-			documentElement.setAttribute("version", Version.fullProductVersion);
-			documentElement.setAttribute("context", context.name);
-			documentElement.setAttribute("contextId", context.contextID);
-
-			DatabaseObject lastDetectedObject = (DatabaseObject) context.lastDetectedObject;
-			if (lastDetectedObject != null) {
-				documentElement.setAttribute("screenclass", lastDetectedObject.getName());
-				// TODO :
-				// documentElement.setAttribute(lastDetectedObject.getClass().getName().toLowerCase(),
-				// lastDetectedObject.getName());
-			}
-
 			context.documentSignatureSent = System.currentTimeMillis();
-			documentElement.setAttribute("signature", Long.toString(context.documentSignatureSent));
+			// a native sequence may answer without document
+			if (outputDom != null) {
+				Element documentElement = outputDom.getDocumentElement();
+				documentElement.setAttribute("version", Version.fullProductVersion);
+				documentElement.setAttribute("context", context.name);
+				documentElement.setAttribute("contextId", context.contextID);
 
-			// Add the user reference if any
-			if (context.userReference != null) {
-				documentElement.setAttribute("userReference", context.userReference);
+				DatabaseObject lastDetectedObject = (DatabaseObject) context.lastDetectedObject;
+				if (lastDetectedObject != null) {
+					documentElement.setAttribute("screenclass", lastDetectedObject.getName());
+					// TODO :
+					// documentElement.setAttribute(lastDetectedObject.getClass().getName().toLowerCase(),
+					// lastDetectedObject.getName());
+				}
+
+				documentElement.setAttribute("signature", Long.toString(context.documentSignatureSent));
+
+				// Add the user reference if any
+				if (context.userReference != null) {
+					documentElement.setAttribute("userReference", context.userReference);
+				}
 			}
 		} catch (EngineException e) {
 			String message = "[Engine.getDocument()] Context ID#" + context.contextID
@@ -1385,7 +1397,9 @@ public class Engine {
 					// Fix regression for Teamlog's billing abortion!
 					// In case of exception thrown, outputDom is Null so use
 					// context.outputDocument!
-					if (context.outputDocument == null) {
+					if (context.outputDocument == null && context.nativeExecution) {
+						Engine.logContext.debug("No billing class for a native sequence without document");
+					} else if (context.outputDocument == null) {
 						Engine.logContext.warn("Billing aborted because the generated XML document is null");
 					} else {
 						String billingClassName = context.getConnector().getBillingClassName();
@@ -1406,7 +1420,7 @@ public class Engine {
 
 			context.statistics.stop(t);
 
-			if (context.requestedObject != null) {
+			if (isBilled(context)) {
 				try {
 					Engine.theApp.billingManager.insertBilling(context);
 				} catch (Exception e) {
@@ -1415,6 +1429,8 @@ public class Engine {
 				}
 			}
 
+			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "requestable",
+					context.requestedObject == null ? "?" : context.projectName + "." + context.requestedObject.getName());
 			Engine.logContext.trace("Engine.getDocument: finished");
 		}
 
@@ -1616,6 +1632,15 @@ public class Engine {
 		for (int i = listeners.length - 2; i >= 0; i -= 2) {
 			if (listeners[i] == EngineListener.class) {
 				((EngineListener) listeners[i + 1]).documentGenerated(engineEvent);
+			}
+		}
+	}
+
+	public void fireNativeStepExecuted(EngineEvent engineEvent) {
+		Object[] listeners = engineListeners.getListenerList();
+		for (int i = listeners.length - 2; i >= 0; i -= 2) {
+			if (listeners[i] == EngineListener.class) {
+				((EngineListener) listeners[i + 1]).nativeStepExecuted(engineEvent);
 			}
 		}
 	}

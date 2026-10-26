@@ -136,7 +136,9 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
             	getConnector().beforeTransactionInvoke();
             	
     			Engine.logBeans.debug("(CouchDBTransaction) Retrieving data...");
+    			long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
     			result = invoke();
+    			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "couch", getName());
     			Engine.logBeans.debug("(CouchDBTransaction) Data retrieved!");			
             }
             finally {
@@ -172,6 +174,11 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	
 	protected void makeDocument(Object result) throws Exception {
 		if (result == null) return;
+		if (context.outputDocument == null && context.nativeExecution) {
+			// a native call: the JSON of CouchDB as a text, without document (couchdb_output of the XML)
+			context.nativeResult = result.toString();
+			return;
+		}
 		Engine.logBeans.debug("(CouchDBTransaction) making document...");
 		Document doc = context.outputDocument;
 		Element root = doc.getDocumentElement();

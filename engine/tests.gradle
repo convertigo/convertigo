@@ -218,3 +218,121 @@ tasks.register('soapuiSmokeTest', JavaExec) {
 	dependsOn tasks.named('classes')
 	dependsOn rootProject.tasks.named('publishSoapuiLightPublicationToMavenLocal')
 }
+
+tasks.register('nativeScopeOptionsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the optimizations limited to the native sequences and their calls.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.NativeScopeOptionsTest'
+}
+
+tasks.register('timingTraceTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for timing.trace (written while the logs are off, steps above their threshold).'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.TimingTraceTest'
+}
+
+tasks.register('unknownBeanClassTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test for a project with a bean class this engine does not know.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.UnknownBeanClassTest'
+}
+
+tasks.register('sharedJavaScriptCachesTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: the shared class descriptions and the class lookups start again empty when a project is reloaded or removed.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.SharedJavaScriptCachesTest'
+}
+
+tasks.register('jsonGroupStepDateTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: the min and max of a date column, grouped by JsonGroupStep, follow the time order and not the year only.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.steps.JsonGroupStepDateTest'
+}
+
+tasks.register('jsonRowStreamPageFailureTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a Baserow page read in stream that cannot be read fails the stream instead of ending the rows.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.json.JsonRowStreamPageFailureTest'
+}
+
+tasks.register('oldProjectNoMigrationTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a project of an older engine with sequences loads without migration and saves the same file.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.OldProjectNoMigrationTest'
+}
+
+tasks.register('billingInternalCallsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test for the billing tickets of the internal calls, classic and native.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.BillingInternalCallsTest'
+}
+
+tasks.register('jsonStringifyFallbackTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a Java map or list the JSON writer refuses (date, Java array, character, deep nesting) is written by JSON.stringify of Rhino, without looping.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.JsonStringifyFallbackTest'
+}
+
+tasks.register('httpBodyReadTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: the HTTP body is read in a first buffer capped whatever the Content-Length announced.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	maxHeapSize = '256m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.transactions.HttpBodyReadTest'
+}
+
+tasks.register('contextResetTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: the reset of a context at the start of a request forgets the native state of the request before.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.ContextResetTest'
+}
+
+tasks.register('experimentalFeaturesTest', JavaExec) {
+	group = 'verification'
+	description = 'The experimental features (native steps, JSON native properties of a sequence) are hidden from the reference documentation and the Web Studio unless convertigo.experimental.features is true; a native sequence keeps its properties.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.ExperimentalFeaturesTest'
+}
+
+tasks.register('hiddenEnginePropertiesTest', JavaExec) {
+	group = 'verification'
+	description = 'The engine properties of the native fast paths and of the traces are not listed nor written as commented defaults, and still read and written when changed.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.HiddenEnginePropertiesTest'
+}

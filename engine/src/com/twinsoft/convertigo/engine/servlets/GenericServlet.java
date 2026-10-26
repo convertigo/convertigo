@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.engine.requesters.GenericRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
+import com.twinsoft.convertigo.engine.json.JsonStreamedResponse;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
@@ -66,6 +67,7 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlUseCounter;
 
 public abstract class GenericServlet extends HttpServlet {
 
@@ -204,6 +206,8 @@ public abstract class GenericServlet extends HttpServlet {
 					return;
 				}
 
+				XmlUseCounter.Counts xmlCounts = XmlUseCounter.isEnabled() ? XmlUseCounter.begin() : null;
+				long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 				Object result = processRequest(request);
 
 				response.addHeader("Expires", "-1");
@@ -305,6 +309,19 @@ public abstract class GenericServlet extends HttpServlet {
 								input.transferTo(out);
 								out.flush();
 							}
+						} else if (result instanceof JsonStreamedResponse) {
+							// a JSON answer written in stream: the same bytes as the byte[] of its text, without its length
+							JsonStreamedResponse streamed = (JsonStreamedResponse) result;
+							if (requested_content_type != null) {
+								response.setContentType(requested_content_type);
+							} else {
+								response.setContentType(getContentType(request));
+								response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
+							}
+							applyCustomHeaders(request, response);
+							Writer writer = new java.io.OutputStreamWriter(response.getOutputStream(), streamed.getCharset());
+							streamed.writeTo(writer);
+							writer.flush();
 						} else if (result instanceof byte[]) {
 							if (requested_content_type != null) {
 								response.setContentType(requested_content_type);
@@ -346,6 +363,12 @@ public abstract class GenericServlet extends HttpServlet {
 					.warn("[GenericServlet] The connection has probably been reset by peer (IOException): "
 							+ e.getMessage());
 				} finally {
+					com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "servlet", request.getParameter("__project") + "." + request.getParameter("__sequence"));
+					if (xmlCounts != null) {
+						Engine.logEngine.warn("(XmlUseCounter) " + request.getParameter("__project") + "." + request.getParameter("__sequence")
+								+ " " + xmlCounts);
+						XmlUseCounter.end();
+					}
 					onFinally(request);
 				}
 			} catch (Exception e) {

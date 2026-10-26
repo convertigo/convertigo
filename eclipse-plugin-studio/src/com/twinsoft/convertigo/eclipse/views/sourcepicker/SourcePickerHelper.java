@@ -59,12 +59,14 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.IteratorStep;
+import com.twinsoft.convertigo.beans.steps.JsonTransformStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.StepSource;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
 import com.twinsoft.convertigo.eclipse.property_editors.IStepSourceEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.StepXpathEvaluatorComposite;
+import com.twinsoft.convertigo.eclipse.views.jsonpicker.NativeJsonXmlView;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.SchemaManager.Option;
@@ -111,6 +113,22 @@ public class SourcePickerHelper implements IStepSourceEditor {
 								targetStep = getTargetStep(targetStep);
 							}
 
+							if (targetStep instanceof JsonTransformStep native_) {
+								// a native JSON step has no schema: the XML view its XPath sources read, from its last JSON
+								Document doc = native_.getSequence().createDOM();
+								doc.getDocumentElement().appendChild(NativeJsonXmlView.build(native_, doc));
+								needToClean = false;
+								displayXhtml(doc);
+								xpathEvaluator.removeAnchor();
+								boolean jsonPath = com.twinsoft.convertigo.engine.json.JsonPath.isJsonPath(xpath);
+								xpathEvaluator.displaySelectionXpathWithAnchor(twsDomTree, "//document/" + native_.getStepNodeName(), jsonPath ? "." : xpath);
+								if (jsonPath) {
+									// a JSON path source reads the JSON of the step, not this view
+									xpathEvaluator.getXpath().setText(xpath);
+								}
+								return;
+							}
+
 							if (targetStep != null) {
 								Project project = step.getProject();
 								String projectName = project.getName();
@@ -145,7 +163,12 @@ public class SourcePickerHelper implements IStepSourceEditor {
 									xpath = onDisplayXhtml(xpath);
 									displayXhtml(doc);
 									xpathEvaluator.removeAnchor();
-									xpathEvaluator.displaySelectionXpathWithAnchor(twsDomTree, anchor, xpath);
+									boolean jsonPath = com.twinsoft.convertigo.engine.json.JsonPath.isJsonPath(xpath);
+									xpathEvaluator.displaySelectionXpathWithAnchor(twsDomTree, anchor, jsonPath ? "." : xpath);
+									if (jsonPath) {
+										// a JSON path source reads the JSON of the step, not this XML
+										xpathEvaluator.getXpath().setText(xpath);
+									}
 								}
 							}
 						}

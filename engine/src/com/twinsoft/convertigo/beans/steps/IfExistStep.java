@@ -19,12 +19,16 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.util.List;
+
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.json.JsonPath;
 
 public class IfExistStep extends TestStep {
 
@@ -49,7 +53,13 @@ public class IfExistStep extends TestStep {
 	}
 	
 	protected boolean executeTest(Context javascriptContext, Scriptable scope) throws EngineException {
-		NodeList list = getSource().getContextValues();
+		StepSource source = getSource();
+		if (source.isJsonPath()) {
+			// a JSON path source: the value exists, without XML (a wildcard: at least one value)
+			Object value = source.getJsonValue();
+			return value != JsonPath.MISSING && !(JsonPath.parse(source.getXpath()).hasWildcard() && ((List<?>) value).isEmpty());
+		}
+		NodeList list = source.getContextValues();
 		if (list != null) {
 			return list.getLength() > 0;
 		}

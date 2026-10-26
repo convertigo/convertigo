@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.util.DocumentationHelper;
+import com.twinsoft.convertigo.engine.util.ExperimentalFeatures;
 
 @ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Get extends JSonService {
@@ -83,6 +84,10 @@ public class Get extends JSonService {
 
 					for (DboBean b : bs.getBeans()) {
 						String cn = b.getClassName();
+						// the steps of the experimental features are offered only while they are shown
+						if (ExperimentalFeatures.isHiddenBean(b)) {
+							continue;
+						}
 						if ((cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")
 								|| cn.startsWith("com.twinsoft.convertigo.beans.mobile.components."))
 								&& !cn.endsWith("PageComponent")) {
@@ -215,7 +220,8 @@ public class Get extends JSonService {
 
 		StringBuilder propertiesDescription = new StringBuilder();
 		for (PropertyDescriptor dbopd : propertyDescriptors) {
-			if (!dbopd.isHidden() && !Boolean.TRUE.equals(dbopd.getValue(MySimpleBeanInfo.DISABLE))) {
+			if (!dbopd.isHidden() && !Boolean.TRUE.equals(dbopd.getValue(MySimpleBeanInfo.DISABLE))
+					&& !ExperimentalFeatures.isHiddenProperty(dbopd)) {
 				String doc = DocumentationHelper.fullDescription(dbopd.getShortDescription(), true);
 				propertiesDescription.append("<li><i>")
 						.append(StringEscapeUtils.escapeHtml4(dbopd.getDisplayName()))

@@ -55,7 +55,8 @@ public class JsonPServletRequester extends JsonServletRequester {
 			Engine.logContext.warn("(JsonPServletRequester) Ignoring an invalid JSONP callback");
 			callback = null;
 		}
-		String json = super.postGetDocument(document);
+		// a JSONP answer is written as a text: a response in stream is read whole here
+		String json = super.postGetDocument(document).toString();
 		return (callback!=null)?
 			(callback+"("+json+");"):
 			json;

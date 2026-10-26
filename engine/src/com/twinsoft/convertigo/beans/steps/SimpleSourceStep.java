@@ -26,6 +26,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.json.JsonPathSource;
 
 public class SimpleSourceStep extends SourceStep {
 
@@ -41,6 +42,11 @@ public class SimpleSourceStep extends SourceStep {
 		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				String variableName = getVariableName();
+				if (jsonValue != NOT_JSON) {
+					// a JSON path source: the text of the value, without XML
+					scope.put(variableName, scope, JsonPathSource.text(jsonValue));
+					return true;
+				}
 				NodeList list = (NodeList) scope.get(variableName, scope);
 				
 				Object string = null;
@@ -60,6 +66,11 @@ public class SimpleSourceStep extends SourceStep {
 		return false;
 	}
 	
+	@Override
+	protected boolean readsJsonValue() {
+		return true;
+	}
+
 	@Override
 	protected String defaultBeanName(String displayName) {
 		return "myVariable";

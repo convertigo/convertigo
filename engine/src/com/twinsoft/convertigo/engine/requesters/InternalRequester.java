@@ -311,7 +311,8 @@ public class InternalRequester extends GenericRequester {
 		}
 
 		if (!bConnectorGivenByUser) {
-			if (context.project != null && context.project.getName().equals(context.projectName)) {
+			// a project of sequences only has no connector
+			if (context.project != null && context.project.getName().equals(context.projectName) && context.project.getDefaultConnector() != null) {
 				String defaultConnectorName = context.project.getDefaultConnector().getName();
 				if (!defaultConnectorName.equals(context.connectorName)) {
 					context.connectorName = defaultConnectorName;

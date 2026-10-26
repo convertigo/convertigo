@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.codehaus.jettison.json.JSONException;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -41,7 +42,9 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.jsonpicker.NativeJson;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
@@ -53,6 +56,8 @@ import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
+import com.twinsoft.convertigo.engine.json.JsonStreamedResponse;
+import com.twinsoft.convertigo.engine.json.NativeStepOutput;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SequenceEditorPart extends Composite implements EngineListener{
@@ -96,6 +101,12 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	
 	private boolean useType;
 	private JsonRoot jsonRoot;
+
+	/** the JSON of the native steps; the last execution ran as a .json request (JSON native sequence) */
+	private NativeJsonPanel nativePanel;
+	private SashForm sashOutput;
+	private volatile boolean nativeRun = false;
+	private volatile String nativeJsonResult = null;
 
 	public SequenceEditorPart(SequenceEditor editor, Sequence sequence, Composite parent, int style) {
 		super(parent, style);
@@ -385,7 +396,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				toolItemRenderJson.setEnabled(false);
 				toolItemRenderXml.setEnabled(false);
 				if (lastParameters != null) {
-					ConvertigoPlugin.getDefault().runRequestable(projectName, lastParameters);
+					run(lastParameters);
 				} else {
 					getDocument(null, null, null, false);
 				}
@@ -509,16 +520,87 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	 *
 	 */
 	private void createCompositeXml(Composite parent) {
-		compositeXml = new Composite(parent, SWT.NONE);
+		sashOutput = new SashForm(parent, SWT.VERTICAL);
 		GridData gd = new org.eclipse.swt.layout.GridData();
 		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
 		gd.grabExcessHorizontalSpace = true;
 		gd.grabExcessVerticalSpace = true;
 		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		compositeXml.setLayoutData(gd);
+		sashOutput.setLayoutData(gd);
+
+		compositeXml = new Composite(sashOutput, SWT.NONE);
 		compositeXml.setLayout(new FillLayout());
 
 		editor.createEditorControl(compositeXml);
+
+		nativePanel = new NativeJsonPanel(sashOutput, sequence);
+		sashOutput.setWeights(new int[] { 55, 45 });
+		updateNativePanel();
+	}
+
+	/** the native panel is shown for a JSON native sequence, or a sequence with native steps */
+	private void updateNativePanel() {
+		boolean show = NativeJson.isNativeSequence(sequence) || hasNativeSteps(sequence.getSteps()) || nativePanel.hasOutputs();
+		sashOutput.setMaximizedControl(show ? null : compositeXml);
+		if (show) {
+			nativePanel.updateBridges();
+		}
+		toolItemRenderJson.setToolTipText(NativeJson.isNativeSequence(sequence)
+				? "JSON Requester: the JSON answer of the native sequence, as the .json clients receive it"
+				: "JSON Requester");
+	}
+
+	private static boolean hasNativeSteps(java.util.List<Step> steps) {
+		for (Step step : steps) {
+			if (NativeJson.isNativeStep(step) || (step instanceof StepWithExpressions block && hasNativeSteps(block.getSteps()))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public void nativeStepExecuted(EngineEvent engineEvent) {
+		if (isDisposed() || !(engineEvent.getSource() instanceof NativeStepOutput output)) {
+			return;
+		}
+		Step step = output.getStep();
+		try {
+			if (!step.getSequence().getName().equals(sequence.getName()) || !step.getProject().getName().equals(sequence.getProject().getName())) {
+				return;
+			}
+		} catch (Exception e) {
+			return;
+		}
+		getDisplay().syncExec(() -> {
+			if (!nativePanel.isDisposed()) {
+				sashOutput.setMaximizedControl(null);
+				nativePanel.add(output);
+			}
+		});
+	}
+
+	/** the answer of a JSON native sequence: the text the .json clients receive */
+	private void nativeResult(Object result) {
+		String json;
+		if (result instanceof JsonStreamedResponse streamed) {
+			json = streamed.toString();
+		} else if (result instanceof Throwable t) {
+			json = "{\"error\": " + org.codehaus.jettison.json.JSONObject.quote(String.valueOf(t.getMessage())) + "}";
+		} else if (result instanceof byte[] bytes) {
+			json = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+		} else if (result instanceof org.w3c.dom.Document doc) {
+			json = XMLUtils.prettyPrintDOMWithEncoding(doc);
+		} else {
+			json = String.valueOf(result);
+		}
+		nativeJsonResult = json;
+		shortResultJSON = fullResultJSON = null;
+		getDisplay().syncExec(() -> {
+			toolItemRenderJson.setSelection(true);
+			toolItemRenderXml.setSelection(false);
+		});
+		renderDocument();
 	}
 
 	public void getDocument(String sequenceName, String testcaseName, String stubFileName, boolean isStubRequested) {
@@ -547,7 +629,13 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			parameters.put(Parameter.Stub.getName(), new String[]{"true"});
 		}
 		
-		ConvertigoPlugin.getDefault().runRequestable(projectName, parameters);
+		run(parameters);
+	}
+
+	private void run(Map<String, String[]> parameters) {
+		nativeRun = NativeJson.isNativeSequence(sequence);
+		nativeJsonResult = null;
+		ConvertigoPlugin.getDefault().runRequestable(projectName, parameters, nativeRun, nativeRun ? this::nativeResult : null);
 	}
 
 	public void blocksChanged(EngineEvent engineEvent) {
@@ -565,6 +653,10 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		
 		lastGeneratedDocument = (org.w3c.dom.Document) engineEvent.getSource();
 		shortResultJSON = shortResultXML = fullResultJSON = fullResultXML = null;
+		if (nativeRun && nativeJsonResult == null) {
+			// the JSON answer comes with the result of the request
+			return;
+		}
 		renderDocument();
 	}
 	
@@ -595,7 +687,14 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		}
 		
 		SequenceEditorInput input = getInput();
-		if (isJsonMode[0]) {
+		if (isJsonMode[0] && nativeJsonResult != null) {
+			// the answer of the JSON native sequence, as it is: no conversion of its XML
+			str = nativeJsonResult;
+			input = inputJSON;
+		} else if (isJsonMode[0]) {
+			if (lastGeneratedDocument == null) {
+				return;
+			}
 			try {
 				str =  XMLUtils.XmlToJson(lastGeneratedDocument.getDocumentElement(), true, useType, jsonRoot);
 				str = str.replaceAll("\n( +)", "\n$1$1");
@@ -604,7 +703,16 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			}
 			input = inputJSON;
 		} else {
-			str = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
+			if (lastGeneratedDocument == null && nativeJsonResult == null) {
+				return;
+			}
+			str = lastGeneratedDocument == null
+					// a JSON native sequence that built no document at all
+					? "<!-- JSON native sequence: no XML document was built, its answer is in the JSON view -->"
+					: XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
+			if (nativeJsonResult != null && lastGeneratedDocument != null) {
+				str = "<!-- JSON native sequence: the native JSON outputs are only in its JSON answer (JSON view), not in this XML -->\n" + str;
+			}
 			input = inputXML;
 		}
 		
@@ -658,6 +766,12 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			return;
 		
 		clearEditor(engineEvent);
+		getDisplay().syncExec(() -> {
+			if (!nativePanel.isDisposed()) {
+				nativePanel.clear();
+				updateNativePanel();
+			}
+		});
 		if (engineEvent.getSource() instanceof Sequence seq) {
 			RequestAttribute.debug.set(seq.context.httpServletRequest, bDebug);
 			context = seq.context;
@@ -742,16 +856,21 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		});
 		
 		SequenceEditorInput input;
-		if (isJsonMode[0]) {
+		org.w3c.dom.Document outputDocument = context == null ? null : context.outputDocument;
+		if (outputDocument == null) {
+			// a JSON native sequence builds no output document: its native steps are in the native JSON panel
+			str = isJsonMode[0] ? "{}" : "<!-- no XML output document: the JSON of the native steps is in the panel below -->";
+			input = isJsonMode[0] ? inputJSON : inputXML;
+		} else if (isJsonMode[0]) {
 			try {
-				str =  XMLUtils.XmlToJson(context.outputDocument.getDocumentElement(), true, useType, jsonRoot);
+				str =  XMLUtils.XmlToJson(outputDocument.getDocumentElement(), true, useType, jsonRoot);
 				str = str.replaceAll("\n( +)", "\n$1$1");
 			} catch (JSONException e) {
 				str = e.getMessage();
 			}
 			input = inputJSON;
 		} else {
-			str = XMLUtils.prettyPrintDOMWithEncoding(context.outputDocument);
+			str = XMLUtils.prettyPrintDOMWithEncoding(outputDocument);
 			input = inputXML;
 		}
 		
@@ -766,6 +885,13 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		
 		synchronized(debugDatabaseObject) {
 			debugDatabaseObject = (DatabaseObject) source;
+		}
+		if (source instanceof Step step) {
+			getDisplay().syncExec(() -> {
+				if (!nativePanel.isDisposed()) {
+					nativePanel.setPausedBefore(step);
+				}
+			});
 		}
 
 		try {

@@ -67,6 +67,8 @@ import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
 import com.twinsoft.convertigo.engine.VersionException;
@@ -148,7 +150,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			if (subDatabaseObject.original != null) {
 				super.walk(subDatabaseObject.original);
 			} else {
-				databaseObject.add(subDatabaseObject.clone());
+				// a child already copied on demand keeps its copy
+				DatabaseObject copy = databaseObject.childrenOnDemand != null ? databaseObject.childrenOnDemand.remove(subDatabaseObject) : null;
+				databaseObject.add(copy != null ? copy : subDatabaseObject.clone());
 			}
 		}
 
@@ -251,6 +255,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				clone.bNew = false;
 				clone.isImporting = false;
 				clone.isSubLoaded = false; // Engine.isEngineMode() ? isSubLoaded : false;
+				clone.childrenOnDemand = null;
 				clone.hasChanged = false; // Engine.isEngineMode() ? false : hasChanged;// Studio
 				// case
 				// of
@@ -1207,6 +1212,54 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 */
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+
+	/** the children copied one by one (engine.copy_on_demand) before all of them are, by original child */
+	transient private Map<DatabaseObject, DatabaseObject> childrenOnDemand;
+
+	protected interface ChildLookup<T extends DatabaseObject> {
+		T find() throws EngineException;
+	}
+
+	/**
+	 * With engine.copy_on_demand, the copy of one child of this copy, found by lookup among the children of its
+	 * original, made alone instead of copying all the children; null when the children are already copied or the
+	 * property is off (the caller then copies them all, as before).
+	 */
+	@SuppressWarnings("unchecked")
+	protected <T extends DatabaseObject> T childOnDemand(ChildLookup<T> lookup) throws EngineException {
+		if (original == null || isSubLoaded || !EnginePropertiesManager.isOnFor(PropertyName.ENGINE_COPY_ON_DEMAND, true)) {
+			return null;
+		}
+		synchronized (mutex) {
+			if (isSubLoaded) {
+				return null;
+			}
+			T originalChild = lookup.find();
+			if (originalChild == null) {
+				return null;
+			}
+			// native: for a native sequence, and for what the thread of a native requestable looks up
+			boolean nativeChild = com.twinsoft.convertigo.engine.util.NativeRunning.isRunning()
+					|| (originalChild instanceof Sequence && ((Sequence) originalChild).isNativeExecution());
+			if (!EnginePropertiesManager.isOnFor(PropertyName.ENGINE_COPY_ON_DEMAND, nativeChild)) {
+				return null;
+			}
+			if (childrenOnDemand == null) {
+				childrenOnDemand = new IdentityHashMap<DatabaseObject, DatabaseObject>();
+			}
+			T copy = (T) childrenOnDemand.get(originalChild);
+			if (copy == null) {
+				try {
+					copy = (T) originalChild.clone();
+				} catch (CloneNotSupportedException e) {
+					throw new EngineException("Unable to copy " + originalChild.getName(), e);
+				}
+				copy.setParent(this);
+				childrenOnDemand.put(originalChild, copy);
+			}
+			return copy;
+		}
 	}
 
 	public void checkSubLoaded() {

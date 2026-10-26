@@ -179,7 +179,8 @@ public class DefaultInternalTranslator implements Translator {
 	}
 
 	public Object buildOutputData(Context context, Object convertigoResponse) throws Exception {
-		if (convertigoResponse instanceof String) {
+		if (convertigoResponse instanceof String && !context.nativeExecution) {
+			// a native call keeps the text of its answer, read by the JSON path sources of its caller
 			String encodingCharSet = "UTF-8";
 			if (context.requestedObject != null) {
 				encodingCharSet = context.requestedObject.getEncodingCharSet();

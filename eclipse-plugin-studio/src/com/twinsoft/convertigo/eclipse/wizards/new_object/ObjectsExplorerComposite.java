@@ -57,6 +57,7 @@ import org.eclipse.swt.widgets.ExpandItem;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ExperimentalFeatures;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -132,6 +133,8 @@ public class ObjectsExplorerComposite extends Composite {
 								if (!bean.isEnable()) continue;
 
 								String className = bean.getClassName();
+								// a native JSON step is offered only with the experimental features
+								if (ExperimentalFeatures.isHiddenBean(bean)) continue;
 								if (bean.isDefault()) {
 									defaultDboList.add(className);
 								}

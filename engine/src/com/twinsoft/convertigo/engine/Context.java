@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.JsonNativeOutput;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
@@ -97,6 +98,18 @@ public class Context extends AbstractContext implements Cloneable {
 
 	public transient boolean isDestroying = false;
 	public transient boolean isErrorDocument = false;
+
+	/** The JSON of the output steps of a sequence answered as JSON without their XML (Sequence.jsonNativeOutput), by key */
+	public transient Map<String, JsonNativeOutput> jsonNativeOutputs = null;
+
+	/** the requested sequence is native (Sequence.nativeExecution): no input nor output document unless a step needs one */
+	public transient boolean nativeExecution = false;
+
+	/** the answer of a transaction called natively (the text of an HTTP answer), instead of its document */
+	public transient Object nativeResult = null;
+
+	/** the parameters of a native sequence request, read instead of an input document */
+	public transient Map<String, Object> nativeParameters = null;
 
 	public transient boolean isXsltRequest = false;
 
@@ -182,6 +195,12 @@ public class Context extends AbstractContext implements Cloneable {
 	public void reset() {
 		isXsltRequest = false;
 		isErrorDocument = false;
+		jsonNativeOutputs = null;
+		// a classic request answered from the cache after a native one must not stay native: run() and the native
+		// cache of CacheManager set them again for the request, after this reset
+		nativeExecution = false;
+		nativeResult = null;
+		nativeParameters = null;
 		isStubRequested = false;
 		isNewSession = false;
 

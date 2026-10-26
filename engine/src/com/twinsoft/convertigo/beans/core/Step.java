@@ -87,6 +87,8 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.json.JsonPath;
+import com.twinsoft.convertigo.engine.json.JsonPathSource;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -391,7 +393,15 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		//does nothing
 	}
 
+	/** in a native sequence, the node of this step is appended only when its XML is needed (a call) */
+	protected boolean isNodeDeferredInNativeSequence() {
+		return false;
+	}
+
 	public Document getOutputDocument() {
+		if (sequence.context.outputDocument == null && sequence.context.nativeExecution) {
+			return sequence.ensureOutputDocument();
+		}
 		return sequence.context.outputDocument;
 	}
 	
@@ -414,6 +424,14 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return "";
 	}
 	
+	/**
+	 * the value at a JSON path in the JSON this step gives to the next steps (a native JSON step, a JSON to XML step),
+	 * for the sources whose path starts with $; JsonPath.MISSING for a step that gives no JSON
+	 */
+	public Object selectJson(JsonPath path) throws EngineException {
+		return JsonPath.MISSING;
+	}
+
 	public Node getContextNode(int loop) throws EngineException {
 		Element stepElement = sequence.findStepElement(this.executeTimeID);
 		return stepElement;
@@ -483,6 +501,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	protected synchronized NodeList getContextValues(String xpath, int loop) throws EngineException {
+		if (JsonPath.isJsonPath(xpath)) {
+			// the XML of the value selected in the JSON of this step only
+			return JsonPathSource.nodes(this, xpath, getOutputDocument());
+		}
 		NodeList list = null;
 		String contextXpath = null;
 		try {
@@ -628,6 +650,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	final public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
 		EngineStatistics stat = sequence.context.statistics;
 		String ts = stat.start(EngineStatistics.EXECUTE_SEQUENCE_STEPS);
+		long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
 
 		try {
 			stepInit();
@@ -640,8 +663,11 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		}
 		finally {
 			stepDone();
-			
+
 			stat.stop(ts, sequence.getCurrentChildStep() != 0);
+			// timing.trace: the steps of 5 ms or more, a block step with the time of its children
+			com.twinsoft.convertigo.engine.util.TimingTrace.end(timingStart, "step",
+					(sequence == null ? "" : sequence.getName() + "/") + getName(), 5);
 		}
 	}
 
@@ -677,7 +703,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			// Adds step's reference to sequence copies
 			sequence.addCopy(executeTimeID, this);
 			sequence.setCurrentStep(this);
-			sequence.appendStepNode(this);
+			// a native sequence builds no node for a step that is not XML nor output, nor yet for a call
+			if (!sequence.context.nativeExecution || (isXmlOrOutput() && !isNodeDeferredInNativeSequence())) {
+				sequence.appendStepNode(this);
+			}
 
 			return true;
 		}
