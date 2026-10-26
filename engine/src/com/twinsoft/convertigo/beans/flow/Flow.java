@@ -166,7 +166,7 @@ public class Flow extends Sequence {
 			if (JsonValues.bool(response, "ok", false)) {
 				var result = response.containsKey("result") ? response.get("result") : JsonValues.object();
 				var rawResult = result;
-				if (result == null) {
+				if (isJsonNull(result)) {
 					result = JsonValues.object();
 				}
 				// _flow.xml.arrayItem keeps the array elements legacy XPath consumers read, as "object"
@@ -523,7 +523,7 @@ public class Flow extends Sequence {
 	// stored as a serialized Java object that the deserialization filter rejects on
 	// the next project load. Rows become scalars, nested structures become JSON text.
 	static Object flowInputDefaultValue(Object value, boolean multiValued) {
-		if (value == null || JSONObject.NULL.equals(value)) {
+		if (isJsonNull(value)) {
 			return null;
 		}
 		if (!multiValued) {
@@ -533,7 +533,7 @@ public class Flow extends Sequence {
 		if (value instanceof JSONArray array) {
 			for (int i = 0; i < array.length(); i++) {
 				var item = array.opt(i);
-				if (item == null || JSONObject.NULL.equals(item)) {
+				if (isJsonNull(item)) {
 					continue;
 				}
 				rows.add(item instanceof JSONObject || item instanceof JSONArray ? item.toString() : item);
@@ -635,7 +635,7 @@ public class Flow extends Sequence {
 	}
 
 	private static void validateFlowDefault(Object value, String path) throws EngineException, JSONException {
-		if (value == null || value == JSONObject.NULL || value instanceof String || value instanceof Boolean) return;
+		if (isJsonNull(value) || value instanceof String || value instanceof Boolean) return;
 		if (value instanceof Number number && Double.isFinite(number.doubleValue())) return;
 		if (value instanceof JSONObject object) {
 			for (var keys = object.keys(); keys.hasNext();) { var key = String.valueOf(keys.next()); validateFlowDefault(object.get(key), path + "." + key); }
@@ -646,6 +646,11 @@ public class Flow extends Sequence {
 			return;
 		}
 		throw invalidFlowProperty(path, value, "JSON literal data (finite numbers); typed default compatibility is checked by the JS contract");
+	}
+
+	// jettison 1.5 reads a JSON null as a new JSONObject.Null that JSONObject.NULL does not equal
+	static boolean isJsonNull(Object value) {
+		return value == null || JSONObject.NULL.equals(value) || value.getClass() == JSONObject.NULL.getClass();
 	}
 
 	private static EngineException invalidFlowProperty(String path, Object value, String expected) {
@@ -944,7 +949,7 @@ public class Flow extends Sequence {
 		}
 
 		var flowSchema = response.opt("schema");
-		if (flowSchema == null || JSONObject.NULL.equals(flowSchema)) {
+		if (isJsonNull(flowSchema)) {
 			return;
 		}
 		addSchemaChildren(schema, sequence, flowSchema);
@@ -1042,7 +1047,7 @@ public class Flow extends Sequence {
 	}
 
 	private static Object normalizeSchema(Object flowSchema) throws JSONException {
-		if (flowSchema == null || JSONObject.NULL.equals(flowSchema)) {
+		if (isJsonNull(flowSchema)) {
 			return new JSONObject().put("type", "unknown");
 		}
 		if (flowSchema instanceof String type) {

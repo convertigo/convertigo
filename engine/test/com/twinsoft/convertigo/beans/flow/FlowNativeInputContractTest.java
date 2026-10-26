@@ -128,6 +128,22 @@ public class FlowNativeInputContractTest {
 		assertEquals(0, flow.getVariable("records").getVisibility()); assertTrue(flow.getVariable("records").isRequired()); assertFalse(flow.getVariable("upload").getIsFileUpload());
 	}
 
+	// JSON null is literal data: in an object, in an array or as the whole default, as the JS contract answers it
+	@Test public void acceptsNullInsideJsonDefaults() throws Throwable {
+		var definitions = new JSONObject("{\"filter\":{\"type\":\"object\",\"default\":{\"field\":null,\"values\":[null,1]}},"
+				+ "\"from\":{\"type\":\"string\",\"default\":null},\"ids\":{\"type\":\"array\",\"default\":[null]}}");
+		Flow.validateFlowInputDefinitions(definitions);
+		var flow = new Flow();
+		sync(flow, definitions);
+		assertEquals("{\"field\":null,\"values\":[null,1]}", flow.getVariable("filter").getValueOrNull());
+		assertNull(flow.getVariable("from").getValueOrNull());
+		assertNull(Flow.flowInputDefaultValue(definitions.getJSONObject("from").get("default"), false));
+		assertEquals(java.util.List.of(), Flow.flowInputDefaultValue(definitions.getJSONObject("ids").get("default"), true));
+		var detached = new JSONObject().put("filter", new JSONObject().put("type", "object")
+				.put("default", new JSONObject().put("field", JSONObject.NULL).put("values", new JSONArray().put(JSONObject.NULL))));
+		Flow.validateFlowInputDefinitions(detached);
+	}
+
 	@Test public void rejectsNonJsonDefaultsBeforePersistence() throws Exception {
 		var definitions = new JSONObject().put("options", new JSONObject().put("type", "object").put("default", new java.util.Date()));
 		try { Flow.validateFlowInputDefinitions(definitions); fail("A Java object must not become a serialized native variable default"); }
