@@ -45,6 +45,7 @@ public class FlowPackagesTest {
 	@Before
 	public void setUp() throws Exception {
 		base = Files.createTempDirectory("flow-packages-test").toFile();
+		com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
 	}
 
 	@After
@@ -128,5 +129,35 @@ public class FlowPackagesTest {
 		} finally {
 			Context.exit();
 		}
+	}
+
+	@Test
+	public void nativeDefaultSharesOnlyReflectionAcrossConcurrentProjectGenerations() throws Exception {
+		var a = generation("A");
+		var b = generation("B");
+		var workers = java.util.concurrent.Executors.newFixedThreadPool(2);
+		var barrier = new java.util.concurrent.CyclicBarrier(2);
+		var caches = new java.util.concurrent.ConcurrentLinkedQueue<org.mozilla.javascript.ClassCache>();
+		try {
+			var futures = new java.util.ArrayList<java.util.concurrent.Future<?>>();
+			for (var loader : List.of(a, b)) futures.add(workers.submit(() -> {
+				try (var cx = Context.enter()) {
+					var scope = FlowPackages.createScope(cx);
+					caches.add(org.mozilla.javascript.ClassCache.get(scope));
+					FlowPackages.bind(cx, scope, loader);
+					String expected = loader == a ? "A" : "B";
+					eval(cx, scope, "var privateValue = '" + expected + "'; Array.prototype.privateValue = privateValue;");
+					barrier.await();
+					for (int i = 0; i < 50; i++) {
+						assertEquals(expected, eval(cx, scope, "String(Packages.probe.V.v())"));
+						assertEquals(expected, eval(cx, scope, "[].privateValue"));
+					}
+					FlowPackages.restore(scope, loader);
+					assertEquals("false", eval(cx, scope, "typeof Packages.probe.V.v == 'function'"));
+				} catch (Exception e) { throw new AssertionError(e); }
+			}));
+			for (var future : futures) future.get(30, java.util.concurrent.TimeUnit.SECONDS);
+			var iterator = caches.iterator(); assertSame(iterator.next(), iterator.next());
+		} finally { workers.shutdownNow(); a.close(); b.close(); }
 	}
 }

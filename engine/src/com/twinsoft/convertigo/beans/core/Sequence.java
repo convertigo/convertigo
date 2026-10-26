@@ -132,7 +132,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	transient private int cloneNumber = 0;
 	
-	transient private boolean arborting = false;
+	transient private volatile boolean arborting = false;
 	
 	transient private boolean skipSteps = false;
 	
@@ -1255,7 +1255,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	public boolean isRunning() {
 		try {
-			return !arborting && runningThread != null && runningThread.bContinue;
+			return !arborting && runningThread != null && runningThread.isContinuing();
 		} catch (Exception e) {
 			return false;
 		}

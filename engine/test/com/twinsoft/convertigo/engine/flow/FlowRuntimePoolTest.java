@@ -77,4 +77,52 @@ public class FlowRuntimePoolTest {
 			Context.exit();
 		}
 	}
+	public static final java.util.concurrent.CountDownLatch interruptedCallStarted = new java.util.concurrent.CountDownLatch(1);
+
+	@Test public void bridgeReturnsRuntimeAfterScriptFailureAndThreadInterruption() throws Exception {
+		Engine.logEngine = org.apache.log4j.Logger.getLogger("pool-test"); Engine.logBeans = Engine.logEngine;
+		EnginePropertiesManager.initProperties();
+		var previous = Engine.theApp;
+		var directory = java.nio.file.Files.createTempDirectory("pool-failure-");
+		var script = directory.resolve("_flow/Engine.js"); java.nio.file.Files.createDirectories(script.getParent());
+		java.nio.file.Files.writeString(script, """
+			(function(){ var count=0; return {
+			  cacheClear:function(){return '{}';},
+			  run:function(text){count++;var request=JSON.parse(text);
+			    if(request.fail)throw new Error('fixture failure');
+			    if(request.interrupt){Packages.com.twinsoft.convertigo.engine.flow.FlowRuntimePoolTest.interruptedCallStarted.countDown();java.lang.Thread.sleep(60000);}
+			    return JSON.stringify({ok:true,count:count,hit:__flowBridgeRuntimeCacheHit});
+			  }
+			};})()
+			""");
+		var project = new com.twinsoft.convertigo.beans.core.Project() {
+			@Override public String getDirPath() { return directory.toString(); }
+		};
+		project.setName("FailureEngine");
+		var worker = java.util.concurrent.Executors.newSingleThreadExecutor();
+		try {
+			Engine.theApp = new Engine();
+			Engine.theApp.databaseObjectsManager = new com.twinsoft.convertigo.engine.DatabaseObjectsManager() {
+				@Override public com.twinsoft.convertigo.beans.core.Project getLoadedProjectByName(String name) { return null; }
+				@Override public com.twinsoft.convertigo.beans.core.Project getOriginalProjectByName(String name, boolean openable) { return project; }
+			};
+			FlowEngineBridge.clearCaches(); var bridge = new FlowEngineBridge();
+			assertEquals(1, bridge.invoke("FailureEngine.Engine", "run", new org.codehaus.jettison.json.JSONObject(), null, null, null).getInt("count"));
+			try { bridge.invoke("FailureEngine.Engine", "run", new org.codehaus.jettison.json.JSONObject().put("fail", true), null, null, null); fail(); }
+			catch (com.twinsoft.convertigo.engine.EngineException expected) { }
+			var afterError = bridge.invoke("FailureEngine.Engine", "run", new org.codehaus.jettison.json.JSONObject(), null, null, null);
+			assertEquals(3, afterError.getInt("count")); assertTrue(afterError.getBoolean("hit"));
+			var interrupted = worker.submit(() -> bridge.invoke("FailureEngine.Engine", "run",
+					new org.codehaus.jettison.json.JSONObject().put("interrupt", true), null, null, null));
+			assertTrue(interruptedCallStarted.await(5, java.util.concurrent.TimeUnit.SECONDS));
+			interrupted.cancel(true); worker.shutdown(); assertTrue(worker.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS));
+			var afterInterrupt = bridge.invoke("FailureEngine.Engine", "run", new org.codehaus.jettison.json.JSONObject(), null, null, null);
+			assertEquals(5, afterInterrupt.getInt("count")); assertTrue(afterInterrupt.getBoolean("hit"));
+			assertNull("No Rhino context leaked on the caller", Context.getCurrentContext());
+		} finally {
+			worker.shutdownNow(); FlowEngineBridge.clearCaches(); Engine.theApp = previous;
+			org.apache.commons.io.FileUtils.deleteDirectory(directory.toFile());
+		}
+	}
+
 }

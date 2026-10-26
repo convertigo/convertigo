@@ -97,7 +97,7 @@ public class Set extends JSonService {
 			// the FlowScript of a Flow: its working copy, which its inputs and accessibility follow
 			if (!content.equals(source.content())) {
 				source.flow().setFlowSource(content);
-				FlowEngineBridge.invalidateDataCaches();
+				FlowEngineBridge.invalidateProjectDataCaches(source.flow().getProject().getDirPath());
 			}
 			response.put("id", id);
 			response.put("revision", Get.sha256(source.flow().getFlowSource()));
@@ -109,7 +109,7 @@ public class Set extends JSonService {
 		var path = source.file().getPath();
 		if (!content.equals(source.content())) {
 			source.flowEngine().setSource(path, content);
-			FlowEngineBridge.invalidateDataCaches();
+			FlowEngineBridge.invalidateProjectDataCaches(source.flowEngine().getProject().getDirPath());
 			FlowStudioSupport.clearCatalogCache(source.flowEngine());
 			FlowStudioSupport.afterSourceMutation(source.flowEngine(), path);
 		}

@@ -191,6 +191,125 @@ public class NativeJsonBoundaryTest {
 		flow.fail = false; flow.setResponseTimeout(60);
 		flow.run(requester, context); assertNotEquals(thread.getId(), flow.thread);
 	}
+	@Test public void nestedInlineKeepsAnEarlierCallerDeadlineAndCancellation() throws Exception {
+		EnginePropertiesManager.setProperty(PropertyName.NATIVE_INLINE_CALLS, "true");
+		var child = new Probe(); child.setName("Child"); child.setResponseTimeout(60);
+		var childContext = new Context("child"); childContext.project = project;
+		childContext.nativeJson = true; childContext.nativeInput = Map.of();
+		var childRequester = new NativeJsonRequester(Map.of(), null); childRequester.context = childContext;
+		var parent = new Probe() {
+			@Override public void runCore() throws EngineException {
+				long caller = Thread.currentThread().getId();
+				var loader = Thread.currentThread().getContextClassLoader();
+				MDC.put("test-marker", "parent");
+				child.run(childRequester, childContext);
+				assertEquals(caller, child.thread);
+				child.fail = true;
+				try { child.run(childRequester, childContext); fail("Expected failure"); }
+				catch (EngineException expected) { assertEquals("synthetic failure", expected.getMessage()); }
+				assertSame(loader, Thread.currentThread().getContextClassLoader());
+				assertEquals("parent", MDC.get("test-marker"));
+				child.fail = false; child.setResponseTimeout(1);
+				child.run(childRequester, childContext);
+				assertNotEquals("shorter child timeout keeps its waiter", caller, child.thread);
+				var owner = this;
+				var cancelled = new Probe() {
+					@Override public void runCore() {
+						assertTrue(isRunning());
+						owner.runningThread.bContinue = false;
+						assertFalse("caller timeout cancels inline child", isRunning());
+					}
+				};
+				cancelled.setName("Cancelled"); cancelled.setResponseTimeout(60);
+				try { cancelled.run(childRequester, childContext); } finally { owner.runningThread.bContinue = true; }
+			}
+		};
+		parent.setName("Parent"); parent.setResponseTimeout(60);
+		context.requestedObject = parent;
+		parent.run(requester(Map.of()), context);
+		assertNull(org.mozilla.javascript.Context.getCurrentContext());
+		// Outside a running parent, an independent timeout still requires a worker.
+		child.setResponseTimeout(60); child.run(childRequester, childContext);
+		assertNotEquals(Thread.currentThread().getId(), child.thread);
+	}
+
+	@Test public void callerTimeoutStillStopsAnInlineChildCooperatively() throws Exception {
+		EnginePropertiesManager.setProperty(PropertyName.NATIVE_INLINE_CALLS, "true");
+		EnginePropertiesManager.setProperty(PropertyName.DOCUMENT_THREADING_USE_STOP_METHOD, "false");
+		Engine.theApp.pluginsManager = new PluginsManager();
+		var finished = new java.util.concurrent.CountDownLatch(1);
+		var child = new Probe() {
+			@Override public void runCore() throws EngineException {
+				long limit = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(5);
+				try {
+					while (isRunning() && System.nanoTime() < limit) Thread.sleep(5);
+					assertFalse("parent deadline must propagate", isRunning());
+				} catch (InterruptedException e) { throw new EngineException("interrupted", e); }
+			}
+		};
+		child.setName("SlowChild"); child.setResponseTimeout(60);
+		var childContext = new Context("child"); childContext.project = project;
+		childContext.nativeJson = true; childContext.nativeInput = Map.of();
+		var childRequester = new NativeJsonRequester(Map.of(), null); childRequester.context = childContext;
+		var parent = new Probe() {
+			@Override public void runCore() throws EngineException {
+				try { child.run(childRequester, childContext); } finally { finished.countDown(); }
+			}
+		};
+		parent.setName("TimedParent"); parent.setResponseTimeout(1);
+		assertThrows(com.twinsoft.convertigo.beans.core.TransactionTimeoutException.class,
+				() -> parent.run(requester(Map.of()), context));
+		assertTrue("worker exits after the waiter times out", finished.await(3, java.util.concurrent.TimeUnit.SECONDS));
+	}
+
+	@Test(timeout = 5000) public void explicitCallerAbortCancelsItsInlineChildAndWakesTheWaiter() throws Exception {
+		EnginePropertiesManager.setProperty(PropertyName.NATIVE_INLINE_CALLS, "true");
+		var parent = new Probe() {
+			@Override public void runCore() throws EngineException {
+				var owner = this;
+				var child = new Probe() {
+					@Override public void runCore() {
+						assertTrue(isRunning()); owner.abort();
+						assertFalse(isRunning());
+					}
+				};
+				child.setName("Child"); child.setResponseTimeout(60);
+				var childContext = new Context("child"); childContext.project = project;
+				childContext.nativeJson = true; childContext.nativeInput = Map.of();
+				var childRequester = new NativeJsonRequester(Map.of(), null); childRequester.context = childContext;
+				child.run(childRequester, childContext);
+			}
+		};
+		parent.setName("Parent"); parent.setResponseTimeout(60);
+		parent.run(requester(Map.of()), context);
+	}
+
+	@Test public void inlineNestedExecutionStillChecksAndBillsBothRequestables() throws Exception {
+		EnginePropertiesManager.setProperty(PropertyName.NATIVE_INLINE_CALLS, "true");
+		var child = new Probe(); child.setName("Child"); child.setResponseTimeout(60);
+		var childContext = new Context("child") { @Override public void loadSequence() { requestedObject = child; } };
+		childContext.project = project; childContext.projectName = "Test";
+		childContext.sequenceName = "Child"; childContext.name = "child";
+		var childRequester = new NativeJsonRequester(Map.of(), null) {
+			@Override public void checkAccessibility() { checks++; }
+			@Override public void checkSecuredConnection() { checks++; }
+			@Override public void checkAuthenticatedContext() { checks++; }
+			@Override public void checkParentContext() { checks++; }
+		};
+		childRequester.context = childContext;
+		flow = new Probe() {
+			@Override public void runCore() throws EngineException {
+				Engine.theApp.getDocument(childRequester, childContext);
+				assertEquals(Thread.currentThread().getId(), child.thread);
+				super.runCore();
+			}
+		};
+		flow.setName("Parent"); flow.setResponseTimeout(60);
+		Engine.theApp.getDocument(requester(Map.of()), context);
+		assertEquals(8, checks); assertEquals(2, tickets);
+		assertNull(childContext.inputDocument); assertNull(childContext.outputDocument);
+	}
+
 	@Test public void jsonpAndRestUseTheSameStreamedValue() throws Exception {
 		context.nativeJsonResponse = JsonValues.map(JsonValues.fromLegacy(new JSONObject("{text:'é<&',items:[true,null,1]}")));
 		var jsonp = new JsonPServletRequester(); jsonp.context = context; context.set("jsonpCallback", "receive");

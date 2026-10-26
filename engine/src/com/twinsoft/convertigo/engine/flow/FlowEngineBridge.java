@@ -78,6 +78,10 @@ public class FlowEngineBridge {
 	private static final Map<String, InvocationStats> invocationStats = new ConcurrentHashMap<>();
 	private static final AtomicLong cacheGeneration = new AtomicLong();
 	private static final AtomicLong dataGeneration = new AtomicLong();
+	private static final Map<String, AtomicLong> sourceRevisions = new ConcurrentHashMap<>();
+	private static final FlowCompiledScriptCache compiledModules = new FlowCompiledScriptCache(256);
+	private static final FlowSourceCache serverSources = new FlowSourceCache(2048, 60_000);
+	private static final FlowMetadataCache sharedMetadata = new FlowMetadataCache(1024, 16 * 1024 * 1024);
 	private static final LongAdder methodResponseCacheHits = new LongAdder();
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
@@ -242,6 +246,9 @@ public class FlowEngineBridge {
 	}
 
 	public static void clearCaches() {
+		compiledModules.clear();
+		serverSources.clear();
+		sharedMetadata.clear();
 		var runtimes = new ArrayList<CachedEngineRuntime>();
 		synchronized (engineRuntimeCacheLock) {
 			cacheGeneration.incrementAndGet();
@@ -257,10 +264,52 @@ public class FlowEngineBridge {
 	}
 
 	public static void invalidateDataCaches() {
+		sharedMetadata.clear();
+		advanceDataGeneration();
+	}
+
+	public static void invalidateProjectDataCaches(String directory) {
+		if (directory == null || directory.isBlank()) { invalidateDataCaches(); return; }
+		sourceRevisions.computeIfAbsent(canonicalPath(new File(directory)), ignored -> new AtomicLong()).incrementAndGet();
+		advanceDataGeneration();
+	}
+
+	public static long metadataSourceRevision(String directory) {
+		if (directory == null || directory.isBlank()) return 0;
+		var revision = sourceRevisions.get(canonicalPath(new File(directory)));
+		return revision == null ? 0 : revision.get();
+	}
+
+	private static void advanceDataGeneration() {
+		serverSources.clear();
 		dataGeneration.incrementAndGet();
 		rootFingerprints.clear();
 		clearMethodResponseCache();
 	}
+
+	/** Only immutable metadata text crosses scopes. Caller revisions include source and dependency fingerprints. */
+	public static String sharedMetadata(String key, String revision, java.util.concurrent.Callable<String> builder) throws Exception {
+		return sharedMetadata.get(key, cacheGeneration.get() + ":" + revision, builder);
+	}
+
+	/** Compile once across overflow runtimes; evaluating the script still creates caller-owned exports. */
+	public static Object evalSharedModule(org.mozilla.javascript.Context cx, Scriptable scope, String source, String name) {
+		if (RhinoUtils.debugMode) return RhinoUtils.evalInterpretedJavascript(cx, scope, source, name, 1, null);
+		var interpreted = cx.isInterpretedMode();
+		try { cx.setInterpretedMode(false); return compiledModules.get(cx, source, name).exec(cx, scope); }
+		finally { cx.setInterpretedMode(interpreted); }
+	}
+	public static String serverFileFingerprint(File file) throws java.io.IOException {
+		return Engine.theApp == null || Engine.isStudioMode() ? null : serverSources.fingerprint(file);
+	}
+	public static String readSourceFile(File file) throws java.io.IOException {
+		return Engine.theApp == null || Engine.isStudioMode() ? FileUtils.readFileToString(file, java.nio.charset.StandardCharsets.UTF_8) : serverSources.text(file);
+	}
+	public static String serverDirectoryFingerprint(File file, java.util.function.Supplier<String> compute) {
+		return Engine.theApp == null || Engine.isStudioMode() ? compute.get() : serverSources.directory(file, compute);
+	}
+
+	public static void clearSharedMetadata() { sharedMetadata.clear(); serverSources.clear(); }
 
 	public static long cacheGeneration() {
 		return cacheGeneration.get();
@@ -291,7 +340,8 @@ public class FlowEngineBridge {
 	}
 
 	public static void notifySourceMutation(String projectDir, String sourcePath, boolean reveal) {
-		invalidateDataCaches();
+		if (projectDir == null || projectDir.isBlank()) invalidateDataCaches();
+		else invalidateProjectDataCaches(projectDir);
 		var projectName = projectNameForDir(projectDir);
 		try {
 			var payload = new JSONObject()
@@ -443,9 +493,14 @@ public class FlowEngineBridge {
 			var request = baseRequest(engineQName, flow == null ? "" : flow.getFlowSource(), flow == null ? "" : flow.getQName(), null)
 					.put("flowName", flow == null ? "" : flow.getName())
 					.put("project", flow == null || flow.getProject() == null ? "" : flow.getProject().getName())
-					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath());
-			return invoke(engineQName, "syncInputs", request, null, null, null);
-		} catch (JSONException e) {
+					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath())
+					.put("metadataOnly", !Engine.isStudioMode());
+			if (Engine.isStudioMode()) return invoke(engineQName, "syncInputs", request, null, null, null);
+			var revision = org.apache.commons.codec.digest.DigestUtils.sha256Hex(request.toString()) + ":" + dataGeneration.get();
+			var result = sharedMetadata("input-contract\n" + engineQName + "\n" + request.optString("projectDir") + "\n" + request.optString("flowName"), revision,
+					() -> invoke(engineQName, "syncInputs", request, null, null, null).toString());
+			return new JSONObject(result);
+		} catch (Exception e) {
 			throw new EngineException("Unable to build Flow input synchronization request.", e);
 		}
 	}
@@ -865,21 +920,29 @@ public class FlowEngineBridge {
 
 	private static Iterable<String> requestableProjectNames(String currentProjectName) {
 		var projectNames = new java.util.TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-		if (Engine.isStudioMode()) {
-			projectNames.addAll(Engine.theApp.databaseObjectsManager.getStudioProjects().getProjects(true).keySet());
-			if (currentProjectName != null && !currentProjectName.isBlank()) {
-				projectNames.add(currentProjectName);
-			}
-		} else {
-			projectNames.addAll(Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false));
-		}
-
-		var orderedProjectNames = new java.util.ArrayList<String>(projectNames.size());
-		if (currentProjectName != null && !currentProjectName.isBlank() && projectNames.remove(currentProjectName)) {
+		appendRequestableProjectNames(currentProjectName, projectNames);
+		var orderedProjectNames = new ArrayList<String>(projectNames.size());
+		if (currentProjectName != null && projectNames.remove(currentProjectName)) {
 			orderedProjectNames.add(currentProjectName);
 		}
 		orderedProjectNames.addAll(projectNames);
 		return orderedProjectNames;
+	}
+
+	private static void appendRequestableProjectNames(String name, Set<String> visited) {
+		if (name == null || name.isBlank() || !visited.add(name)) {
+			return;
+		}
+		try {
+			var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, true);
+			for (var reference : project.getReferenceList()) {
+				if (reference instanceof ProjectSchemaReference projectReference) {
+					appendRequestableProjectNames(projectReference.getParser().getProjectName(), visited);
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.debug("(FlowEngineBridge) Unable to list references for project \"" + name + "\".", e);
+		}
 	}
 
 	public JSONObject describeTree(FlowEngine flowEngine) throws EngineException {
@@ -1432,30 +1495,49 @@ public class FlowEngineBridge {
 		}
 	}
 
-	private static JSONObject requestableProject(Project project, boolean current) throws JSONException {
-		var children = new JSONArray();
+	private record RequestableEntry(String connector, String name, String kind) { }
+
+	private static JSONObject requestableProject(Project project, boolean current) throws Exception {
+		return new JSONObject(requestableProjectText(project, current));
+	}
+
+	/** Metadata only; callers still resolve and authorize actual executions normally. */
+	public static String requestableProjectCatalog(String name) throws Exception {
+		return requestableProjectText(Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, false), true);
+	}
+
+	private static String requestableProjectText(Project project, boolean current) throws Exception {
+		var name = project.getName();
+		var snapshot = new ArrayList<RequestableEntry>();
 		for (Sequence sequence : project.getSequencesList()) {
-			children.put(requestableLeaf(project.getName(), "", sequence.getName(), sequence instanceof Flow ? "flow" : "sequence"));
+			snapshot.add(new RequestableEntry("", sequence.getName(), sequence instanceof Flow ? "flow" : "sequence"));
 		}
 		for (Connector connector : project.getConnectorsList()) {
-			var transactions = new JSONArray();
 			for (Transaction transaction : connector.getTransactionsList()) {
-				transactions.put(requestableLeaf(project.getName(), connector.getName(), transaction.getName(), "transaction"));
-			}
-			if (transactions.length() > 0) {
-				children.put(new JSONObject()
-						.put("kind", "connector")
-						.put("name", connector.getName())
-						.put("qname", project.getName() + "." + connector.getName())
-						.put("children", transactions));
+				snapshot.add(new RequestableEntry(connector.getName(), transaction.getName(), "transaction"));
 			}
 		}
-		return new JSONObject()
-				.put("kind", "project")
-				.put("name", project.getName())
-				.put("qname", project.getName())
-				.put("current", current)
-				.put("children", children);
+		// Inspect only names/types to detect unsaved DBO edits as well as reloads.
+		// The fingerprint and the builder consume the same captured membership.
+		var revision = new StringBuilder();
+		for (var entry : snapshot) for (var part : List.of(entry.connector(), entry.name(), entry.kind())) {
+			revision.append(part.length()).append(':').append(part);
+		}
+		return sharedMetadata("requestables\n" + name + "\n" + current, sha256Hex(revision.toString()), () -> {
+			var children = new JSONArray();
+			var connectors = new LinkedHashMap<String, JSONArray>();
+			for (var entry : snapshot) {
+				var leaf = requestableLeaf(name, entry.connector(), entry.name(), entry.kind());
+				if (entry.connector().isEmpty()) children.put(leaf);
+				else connectors.computeIfAbsent(entry.connector(), ignored -> new JSONArray()).put(leaf);
+			}
+			for (var entry : connectors.entrySet()) {
+				children.put(new JSONObject().put("kind", "connector").put("name", entry.getKey())
+						.put("qname", name + "." + entry.getKey()).put("children", entry.getValue()));
+			}
+			return new JSONObject().put("kind", "project").put("name", name).put("qname", name)
+					.put("current", current).put("children", children).toString();
+		});
 	}
 
 	private static JSONObject requestableLeaf(String project, String connector, String name, String kind) throws JSONException {
@@ -1809,6 +1891,9 @@ public class FlowEngineBridge {
 				.put("pooledRuntimeCount", pooledRuntimeCount)
 				.put("availableRuntimeCount", availableRuntimeCount)
 				.put("methodResponseCacheSize", methodResponseCache.size())
+				.put("sharedMetadata", new JSONObject().put("entries", sharedMetadata.size())
+						.put("characters", sharedMetadata.characters()).put("builds", sharedMetadata.builds())
+						.put("hits", sharedMetadata.hits()).put("joins", sharedMetadata.joins()))
 				.put("methodResponseCacheHits", methodResponseCacheHits.sum())
 				.put("methodResponseCacheMisses", methodResponseCacheMisses.sum())
 				.put("methodResponseCacheInvalidations", methodResponseCacheInvalidations.sum())

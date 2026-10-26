@@ -105,6 +105,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     transient public Scriptable scope = null;
     
     transient public RequestableThread runningThread;
+	private static final ThreadLocal<RequestableThread> currentExecution = new ThreadLocal<>();
 	
     transient protected long score = 0;
     
@@ -315,7 +316,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             
             inline = (context.nativeExecution && isInlineNativeCall(requester))
 					|| (context.nativeJson && requester instanceof com.twinsoft.convertigo.engine.requesters.NativeJsonRequester
-							&& !requiresJavascriptScope() && getResponseTimeout() <= 0
+							&& !requiresJavascriptScope() && canRunInCaller()
 							&& EnginePropertiesManager.getPropertyAsBoolean(PropertyName.NATIVE_INLINE_CALLS));
             if (inline) {
             	// a native call of a native sequence: in the thread of the caller, without a requestable thread
@@ -610,6 +611,17 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     		return javascriptContext.initStandardObjects(newScope);
     	}
     	return javascriptContext.initStandardObjects();
+    }
+
+    /** Isolated globals for a retained runtime, using the same reflection cache and option as requestables. */
+    public static ScriptableObject newRetainedScope(org.mozilla.javascript.Context javascriptContext, boolean nativeRuntime) {
+        ScriptableObject scope = new NativeObject();
+        // Type factories must be associated before Rhino initializes the standard objects.
+        new org.mozilla.javascript.lc.type.impl.factory.WeakReferenceFactory().associate(scope);
+        if (EnginePropertiesManager.isOnFor(PropertyName.JAVASCRIPT_SHARED_CLASS_CACHE, nativeRuntime)) {
+            sharedClassCache.associate(scope);
+        }
+        return (ScriptableObject) javascriptContext.initStandardObjects(scope);
     }
 
     protected void insertObjectsInScope() throws EngineException {
@@ -978,6 +990,16 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     public void createRequestableThread(){
     	runningThread = new RequestableThread();
     }
+
+	private boolean canRunInCaller() {
+		if (getResponseTimeout() <= 0) return true;
+		var parent = currentExecution.get();
+		// Preserve an independently shorter timeout by keeping its worker. The outer
+		// waiter already bounds this call when its deadline is earlier than ours.
+		return parent != null && parent.ownerIsRunning() && parent.deadlineNanos != Long.MAX_VALUE
+				&& parent.deadlineNanos - System.nanoTime()
+						<= java.util.concurrent.TimeUnit.SECONDS.toNanos(getResponseTimeout());
+	}
     
     public class RequestableThread extends Thread {
 		private final Log4jHelper.MdcSnapshot logContext = Log4jHelper.mdcSnapshot();
@@ -985,6 +1007,17 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         protected Thread callingThread;
         // Written by the calling thread (timeout, abort), read by this thread before each step.
         public volatile boolean bContinue = true;
+		private RequestableThread inlineParent;
+		private long deadlineNanos = Long.MAX_VALUE;
+
+		/** Includes cancellation of an enclosing request when this execution is inline. */
+		public boolean isContinuing() {
+			return bContinue && (inlineParent == null || inlineParent.ownerIsRunning());
+		}
+
+		private boolean ownerIsRunning() {
+			return RequestableObject.this instanceof Sequence sequence ? sequence.isRunning() : isContinuing();
+		}
 
         private long engineId;
         
@@ -1012,6 +1045,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
 		/** the requestable in the thread of its caller (native.inline_calls), the log context of the caller kept */
 		void runInline() {
+			if (context.nativeJson) inlineParent = currentExecution.get();
 			runMarked();
 		}
 
@@ -1026,8 +1060,17 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		}
 
 		private void runWithMdc() {
+			var previous = currentExecution.get();
+			if (!Engine.isStudioMode() && getResponseTimeout() > 0) {
+				deadlineNanos = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(getResponseTimeout());
+			}
+			if (inlineParent != null) deadlineNanos = Math.min(deadlineNanos, inlineParent.deadlineNanos);
+			currentExecution.set(this);
 			try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "worker", getQName())) {
 				runWithDiagnostics();
+			} finally {
+				if (previous == null) currentExecution.remove(); else currentExecution.set(previous);
+				inlineParent = null;
 			}
 		}
 
@@ -1083,11 +1126,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 					javascriptContext = org.mozilla.javascript.Context.enter();
 					scope = newScope(javascriptContext, RequestableObject.this);
 				}
-    			
+
         		Engine.logContext.debug("Preparing for requestable...");
             	prepareForRequestable(context, javascriptContext, scope);
             	
-        		if (!runningThread.bContinue)
+				if (!isContinuing())
         			return;
 
         		Engine.logContext.debug("Handling requestable started event...");
@@ -1098,7 +1141,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             		runCore();
             	}
 
-                if (!runningThread.bContinue) {
+                if (!isContinuing()) {
                 	return;
                 }
 

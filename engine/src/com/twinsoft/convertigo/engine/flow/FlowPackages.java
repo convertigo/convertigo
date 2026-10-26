@@ -24,10 +24,8 @@ import java.util.function.Supplier;
 import org.mozilla.javascript.ClassCache;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
-import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.lc.type.impl.factory.WeakReferenceFactory;
 
 import com.twinsoft.convertigo.engine.ProjectClassLoader;
 
@@ -57,10 +55,7 @@ final class FlowPackages {
 	 */
 	static ScriptableObject createScope(Context cx) {
 		return withEngineLoader(() -> {
-			var scope = new NativeObject();
-			// before the standard objects, which keep it: the type information of a class does not keep it
-			new WeakReferenceFactory().associate(scope);
-			cx.initStandardObjects(scope);
+			var scope = com.twinsoft.convertigo.beans.core.RequestableObject.newRetainedScope(cx, true);
 			captureEngineRoots(scope);
 			return scope;
 		});
