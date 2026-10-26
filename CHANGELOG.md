@@ -9,6 +9,10 @@
 - [#1230](https://github.com/convertigo/convertigo/issues/1230) [Dashboard] Comments now support Markdown, HTML and multilingual content, with expandable previews for long descriptions
 - [#1233](https://github.com/convertigo/convertigo/issues/1233) [Redis] Session stores now support external Redis Sentinel deployments for automatic master discovery and failover
 - [#1237](https://github.com/convertigo/convertigo/issues/1237) [Engine] Binary downloads of local-file attachments now stream without loading the entire file into memory, supporting large files and concurrent downloads with bounded memory use
+- [#1238](https://github.com/convertigo/convertigo/issues/1238) [Engine] REST operations now forward only their declared parameters, path variables and routing parameters to the engine, multipart fields included, and apply the "secure connection required" property of their target
+- [#1240](https://github.com/convertigo/convertigo/issues/1240) [Engine] Stub responses are always read from the project's `stubs` directory and, outside the Studio, follow the authentication rules of the requestable they stand for
+- [#1242](https://github.com/convertigo/convertigo/issues/1242) [Engine] The `__content_type` parameter now accepts `text/plain`, `application/json` and `application/octet-stream`, and JSONP callback names must be JavaScript identifiers
+- [#1243](https://github.com/convertigo/convertigo/issues/1243) [Engine] HTTP transactions now apply their destination policy to the redirects they follow: redirects to another origin require a Private transaction or `allowedUriOverride=absolute`
 
 #### Bug Fixes:
 
