@@ -187,6 +187,29 @@ public class EnginePropertiesManager {
 		}
 	}
 
+	/** the disk cache of the classes generated for the JavaScript code of the files of projects */
+	private enum BytecodeCache implements ComboEnum {
+		auto ("auto", "auto: in a running engine, as long as loading the classes saves at least half of compiling them"),
+		on ("on", "on: always"),
+		off ("off", "off: never, compiled at each start as before");
+
+		final String display;
+		final String value;
+
+		BytecodeCache(String value, String display) {
+			this.display = display;
+			this.value = value;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+
 	private enum XsltEngine implements ComboEnum {
 		xalan_xslt ("xalan/xslt", "Java Xalan"),
 		xalan_xsltc ("xalan/xsltc", "Java Xalan (XSLTC)");
@@ -552,6 +575,8 @@ public class EnginePropertiesManager {
 		XML_COUNT_DOCUMENTS ("xml.count_documents", "false", "Count the XML documents, document builders and factories each request creates and the documents it serializes, and log them at the end of the request (cems.Engine, WARN)", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = NativeScope.class, visibility = Visibility.HIDDEN)
 		JAVASCRIPT_SHARED_SCOPE ("javascript.shared_scope", "native", "native: the native sequences (Sequence.nativeExecution) and their calls run their JavaScript in a light scope over one sealed scope of the standard objects, instead of building the standard objects again for each request; all: every requestable does (its scripts then cannot change the standard objects); false: none", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = BytecodeCache.class)
+		JAVASCRIPT_BYTECODE_CACHE ("javascript.bytecode_cache", "auto", "Keep on disk the classes generated for the JavaScript code of the files of projects, in their _private folder (moved to the local working directory when configured), to load them at the next start instead of compiling them again. auto: in a running engine, turned off for the run when loading does not save at least half of the compilation; on: always; off: never", PropertyCategory.Main),
 
 		/** ACCOUNTS */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)

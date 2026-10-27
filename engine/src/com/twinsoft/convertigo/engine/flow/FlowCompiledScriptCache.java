@@ -10,6 +10,8 @@ import java.util.concurrent.atomic.LongAdder;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Script;
 
+import com.twinsoft.convertigo.engine.util.RhinoBytecodeCache;
+
 /** Shared code only: evaluated exports and scopes never enter this cache. */
 public final class FlowCompiledScriptCache {
 	private static final int CHARACTER_LIMIT = 16 * 1024 * 1024;
@@ -57,7 +59,8 @@ public final class FlowCompiledScriptCache {
 		if (leader) {
 			try {
 				compilations.increment();
-				pending.complete(cx.compileString(source, name, 1, null));
+				// a module named by its file is also kept compiled on disk, in the private folder of its project
+				pending.complete(RhinoBytecodeCache.compile(cx, source, name, RhinoBytecodeCache.originOf(name)));
 			} catch (Throwable failure) {
 				pending.completeExceptionally(failure);
 				synchronized (entries) {

@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.events.AdminEventBus;
 import com.twinsoft.convertigo.engine.events.StudioEvent;
 import com.twinsoft.convertigo.engine.events.StudioEventListener;
+import com.twinsoft.convertigo.engine.util.RhinoBytecodeCache;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 public class FlowEngineBridge {
@@ -310,6 +311,15 @@ public class FlowEngineBridge {
 		var interpreted = cx.isInterpretedMode();
 		try { cx.setInterpretedMode(false); return compiledModules.get(cx, source, name).exec(cx, scope); }
 		finally { cx.setInterpretedMode(interpreted); }
+	}
+	/**
+	 * Compiles shared code of a provider as cx.compileString(source, name, 1, null), also kept compiled on disk in the
+	 * private folder of the project of its file (RhinoBytecodeCache).
+	 *
+	 * @param origin the path of the file of the code; null or empty for code of no file (a draft): memory only
+	 */
+	public static org.mozilla.javascript.Script compileScript(org.mozilla.javascript.Context cx, String source, String name, String origin) {
+		return RhinoBytecodeCache.compile(cx, source, name, origin == null || origin.isBlank() ? null : new File(origin));
 	}
 	public static String serverFileFingerprint(File file) throws java.io.IOException {
 		return Engine.theApp == null || Engine.isStudioMode() ? null : serverSources.fingerprint(file);
@@ -2032,7 +2042,7 @@ public class FlowEngineBridge {
 			engineScope.put("__flowBridgeRuntimeCacheSize", engineScope, runtimeLookup.size());
 		}
 		if (engineObject == null) {
-			var engine = RhinoUtils.evalCachedJavascript(cx, engineScope, engineSource.source(), engineSource.sourceName(), 1, null);
+			var engine = RhinoUtils.evalCachedJavascript(cx, engineScope, engineSource.source(), engineSource.sourceName(), engineSource.file());
 			if (engine == null || Undefined.isUndefined(engine)) {
 				engine = ScriptableObject.getProperty(engineScope, engineRef.objectName);
 			}
@@ -2697,7 +2707,7 @@ public class FlowEngineBridge {
 				initializeSourceScope(scope, file);
 				scope.defineProperty("__flowRuntimeApi", org.mozilla.javascript.Context.javaToJS(api, scope),
 						ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
-				var value = RhinoUtils.evalCachedJavascript(cx, scope, source.source(), source.sourceName(), 1, null);
+				var value = RhinoUtils.evalCachedJavascript(cx, scope, source.source(), source.sourceName(), source.file());
 				if (!(value instanceof Scriptable engine) || !Boolean.TRUE.equals(ScriptableObject.getProperty(engine, "supportsStatelessExecution")))
 					throw new EngineException("The provider advertised a shared runtime without implementing its protocol.");
 				scope.sealObject();
@@ -2717,7 +2727,7 @@ public class FlowEngineBridge {
 			// shared by all the projects: the packages of the engine, a call binds those of its project
 			var scope = FlowPackages.createScope(cx);
 			initializeSourceScope(scope, engineFile);
-			var engine = RhinoUtils.evalCachedJavascript(cx, scope, engineSource.source(), engineSource.sourceName(), 1, null);
+			var engine = RhinoUtils.evalCachedJavascript(cx, scope, engineSource.source(), engineSource.sourceName(), engineSource.file());
 			if (engine == null || Undefined.isUndefined(engine)) {
 				engine = ScriptableObject.getProperty(scope, engineRef.objectName);
 			}

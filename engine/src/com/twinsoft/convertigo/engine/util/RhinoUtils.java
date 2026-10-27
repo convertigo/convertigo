@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.File;
 import java.io.Writer;
 import java.io.UncheckedIOException;
 import java.io.IOException;
@@ -67,6 +68,20 @@ public class RhinoUtils {
 	}
 
 	static public Object evalCachedJavascript(DatabaseObject dbo, Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
+		return evalCachedJavascript(dbo, cx, scope, source, sourceName, lineno, securityDomain, null);
+	}
+
+	/**
+	 * As {@link #evalCachedJavascript(Context, Scriptable, String, String, int, Object)}, for the code of a file of a
+	 * project: also kept compiled on disk across restarts, by {@link RhinoBytecodeCache}.
+	 *
+	 * @param origin the file of the source
+	 */
+	static public Object evalCachedJavascript(Context cx, Scriptable scope, String source, String sourceName, File origin) {
+		return evalCachedJavascript(null, cx, scope, source, sourceName, 1, null, origin);
+	}
+
+	static private Object evalCachedJavascript(DatabaseObject dbo, Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain, File origin) {
 		source = CopilotHelper.addInstruction(dbo, source);
 		if (debugMode) {
 			if (dbo != null) {
@@ -77,7 +92,9 @@ public class RhinoUtils {
 		Script script = compiledScript.get(source);
 		if (script == null) {
 			cx.setInterpretedMode(false);
-			script = cx.compileString(source, sourceName, lineno, securityDomain);
+			script = origin != null && lineno == 1 && securityDomain == null
+					? RhinoBytecodeCache.compile(cx, source, sourceName, origin)
+					: cx.compileString(source, sourceName, lineno, securityDomain);
 			compiledScript.put(source, script);
 		}
 		Object result = script.exec(cx, scope, scope);

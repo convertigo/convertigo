@@ -440,6 +440,16 @@ tasks.register('rhinoClassCompilerTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'rhinoClassCompilerTest' }
 
+tasks.register('rhinoBytecodeCacheTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: the disk cache of the JavaScript bytecode gives the scripts compileString gives, rejects damaged or foreign entries, is shared by threads and JVMs, stays bounded and writes nothing when it does not apply.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.RhinoBytecodeCacheTest'
+}
+tasks.named('check') { dependsOn 'rhinoBytecodeCacheTest' }
+
 tasks.register('jsonGroupStepDateTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: the min and max of a date column, grouped by JsonGroupStep, follow the time order and not the year only.'
