@@ -50,7 +50,7 @@ public class JsonPServletRequester extends JsonServletRequester {
     
 	@Override
 	public Object postGetNativeJson() throws Exception {
-		return new JsonResponse(context.nativeJsonResponse, (String) context.get("jsonpCallback"), context.takeNativeRows());
+		return JsonResponse.of(context, (String) context.get("jsonpCallback"));
 	}
 
 	@Override

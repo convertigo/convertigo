@@ -55,6 +55,8 @@ public final class ResultDocument implements AutoCloseable {
 		if (fields.containsKey(field) || fields.containsKey("error") || fields.containsKey("complete")) throw new IllegalArgumentException("Reserved row result field");
 		encode(fields, limits.precommitBytes()); // Reject unbounded metadata before ownership is published.
 	}
+	/** true once the rows and the other keys are written, without error */
+	public boolean isComplete() { return complete; }
 	public synchronized void onClose(Consumer<Completion> callback) {
 		if (completionRegistered) throw new IllegalStateException("Completion already registered");
 		completionRegistered = true;

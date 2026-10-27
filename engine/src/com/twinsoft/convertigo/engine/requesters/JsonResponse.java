@@ -18,8 +18,23 @@ public final class JsonResponse implements AutoCloseable {
 	private final String callback;
 	private ResultDocument rows;
 	private boolean prepared;
+	// a text found in the cache, or the cache entry this answer fills once written complete
+	private String text;
+	private com.twinsoft.convertigo.engine.cache.NativeJsonCache.Pending cache;
+	private int status;
+	private boolean complete = true;
 	public JsonResponse(Object value, String callback) { this(value, callback, null); }
 	public JsonResponse(Object value, String callback, ResultDocument rows) { this.value=value; this.callback=callback; this.rows=rows; }
+	/** The native JSON answer of a request: its cached text, or its value and rows, kept in the cache when it should. */
+	public static JsonResponse of(com.twinsoft.convertigo.engine.Context context, String callback) {
+		var response = new JsonResponse(context.nativeJsonResponse, callback, context.takeNativeRows());
+		response.text = context.nativeJsonCached;
+		// a JSONP answer carries its callback: the cache keeps JSON answers only
+		if (callback == null && context.isCacheEnabled) response.cache = context.nativeJsonCache;
+		context.nativeJsonCached = null;
+		context.nativeJsonCache = null;
+		return response;
+	}
 	/** Before getWriter/JSONP prefix: preserve the historical early error/status. */
 	public int prepare() throws IOException {
 		if (prepared) return 0;
@@ -29,7 +44,7 @@ public final class JsonResponse implements AutoCloseable {
 			catch (RowStreamException error) {
 				rows = null;
 				value = error.response();
-				return error.status();
+				return status = error.status();
 			}
 		}
 		return 0;
@@ -47,13 +62,25 @@ public final class JsonResponse implements AutoCloseable {
 			writeTo(writer); writer.flush();
 		} finally { close(); }
 	}
-	public void writeTo(Writer writer) throws IOException {
+	public void writeTo(Writer output) throws IOException {
 		prepare();
+		var tee = cache == null || text != null ? null : new com.twinsoft.convertigo.engine.cache.NativeJsonCache.Tee(output, cache);
+		var writer = tee == null ? output : tee;
 		try {
 			if (callback != null) { writer.write(callback); writer.write('('); }
-			if (rows == null) com.twinsoft.convertigo.engine.util.DetachedJsonWriter.write(value, writer);
-			else rows.writeTo(writer, callback == null ? "" : ");");
+			if (text != null) writer.write(text);
+			else if (rows == null) {
+				com.twinsoft.convertigo.engine.util.DetachedJsonWriter.write(value, writer);
+				complete = !(value instanceof java.util.Map<?, ?> map && map.containsKey("error"));
+			} else {
+				rows.writeTo(writer, callback == null ? "" : ");");
+				complete = rows.isComplete();
+			}
 			if (rows == null && callback != null) writer.write(");");
+			if (tee != null) {
+				if (complete && status == 0) tee.store();
+				else tee.discard();
+			}
 		} catch (JSONException e) { throw new IOException("Unable to serialize JSON response", e); }
 		finally { close(); }
 	}

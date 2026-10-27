@@ -140,7 +140,16 @@ public class NativeJsonBoundaryTest {
 		assertFalse(NativeJsonSupport.prepare(requester, context)); project.setJsonOutput(JsonOutput.useType);
 		context.isAsync = true; assertFalse(NativeJsonSupport.prepare(requester, context)); context.isAsync = false;
 		context.isStubRequested = true; assertFalse(NativeJsonSupport.prepare(requester, context)); context.isStubRequested = false;
-		flow.setResponseExpiryDate("absolute,9999999999999"); assertFalse(NativeJsonSupport.prepare(requester, context)); flow.setResponseExpiryDate("");
+		// a cached Flow answers a JSON request in native JSON, kept by the native JSON cache; the other requesters
+		// keep the XML path and its cache
+		flow.setResponseExpiryDate("absolute,9999999999999");
+		requester.inputData = Map.of("value", "x"); assertTrue(NativeJsonSupport.prepare(requester, context));
+		context.nativeInput = null; context.nativeJson = false;
+		var mapper = new com.twinsoft.convertigo.engine.requesters.UrlMapperRequester(Map.of(), null,
+				com.twinsoft.convertigo.engine.requesters.UrlMapperRequester.ResponseMode.json);
+		mapper.context = context; mapper.inputData = Map.of("value", "x");
+		assertFalse(NativeJsonSupport.prepare(mapper, context));
+		flow.setResponseExpiryDate("");
 		flow.setBillable(true); assertFalse(NativeJsonSupport.prepare(requester, context)); flow.setBillable(false);
 		EnginePropertiesManager.setProperty(PropertyName.REQUESTABLE_NATIVE_JSON, "false"); assertFalse(NativeJsonSupport.prepare(requester, context));
 	}

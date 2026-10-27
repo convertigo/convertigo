@@ -216,6 +216,10 @@ public class Context extends AbstractContext implements Cloneable {
 	public transient volatile long rowStreamProgress;
 	/** the relay of the rows a run writes in stream to its response, until its end */
 	public transient com.twinsoft.convertigo.engine.flow.rows.EmitSpool rowStream;
+	/** the native JSON answer of this request to keep in the cache once written, set by the cache manager */
+	public transient com.twinsoft.convertigo.engine.cache.NativeJsonCache.Pending nativeJsonCache;
+	/** the native JSON answer of this request found in the cache */
+	public transient String nativeJsonCached;
 	public com.twinsoft.convertigo.engine.flow.rows.ResultDocument takeNativeRows() {
 		var value = nativeRows; nativeRows = null; return value;
 	}

@@ -174,6 +174,7 @@ public final class EmitSpool implements ResultDocument.RawRowSource {
 	private void write() throws IOException {
 		response.append(memory);
 		memory.setLength(0);
+		response.flush();
 		progress();
 	}
 
@@ -199,7 +200,11 @@ public final class EmitSpool implements ResultDocument.RawRowSource {
 		}
 		memory.append(",\"complete\":true}");
 		write();
-		response.flush();
+		if (response instanceof com.twinsoft.convertigo.engine.cache.NativeJsonCache.Tee tee) {
+			if (context == null || context.isCacheEnabled) tee.store();
+			else tee.discard();
+			if (context != null) context.nativeJsonCache = null;
+		}
 		close();
 	}
 
@@ -214,8 +219,11 @@ public final class EmitSpool implements ResultDocument.RawRowSource {
 			memory.append("{\"code\":\"ROW_STREAM_FAILED\",\"status\":500}");
 		}
 		memory.append(",\"complete\":false}");
+		if (response instanceof com.twinsoft.convertigo.engine.cache.NativeJsonCache.Tee tee) {
+			tee.discard();
+			if (context != null) context.nativeJsonCache = null;
+		}
 		write();
-		response.flush();
 		close();
 	}
 

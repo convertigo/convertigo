@@ -26,7 +26,8 @@ public final class NativeJsonSupport {
 				|| !EnginePropertiesManager.getPropertyAsBoolean(PropertyName.REQUESTABLE_NATIVE_JSON)
 				|| !(context.requestedObject instanceof Flow flow) || context.isAsync || context.isStubRequested
 				|| context.isXsltRequest || context.removeNamespaces || flow.isBillable()
-				|| !flow.getResponseExpiryDate().isEmpty()
+				// a cached Flow answers in native JSON to a JSON request only (CacheManager, NativeJsonCache)
+				|| !flow.getResponseExpiryDate().isEmpty() && !(requester instanceof com.twinsoft.convertigo.engine.requesters.JsonServletRequester)
 				|| context.httpSession != null && context.httpSession.getAttribute("customController") != null) return false;
 		Map<?, ?> parameters = requester.inputData instanceof HttpServletRequest request ? request.getParameterMap()
 				: requester.inputData instanceof Map<?, ?> map ? map : null;

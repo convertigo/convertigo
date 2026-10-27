@@ -509,6 +509,7 @@ tasks.register('rowStreamingTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.flow.ResultDocumentTest',
 		'com.twinsoft.convertigo.engine.flow.EmitSpoolTest',
+		'com.twinsoft.convertigo.engine.cache.NativeJsonCacheTest',
 		'com.twinsoft.convertigo.engine.flow.PagedJsonRowsTest',
 		'com.twinsoft.convertigo.engine.flow.RowProducerRuntimeTest',
 		'com.twinsoft.convertigo.engine.flow.RowResponseLifecycleTest'

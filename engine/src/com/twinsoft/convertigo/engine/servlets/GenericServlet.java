@@ -779,7 +779,19 @@ public abstract class GenericServlet extends HttpServlet {
 			response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
 			applyCustomHeaders(request, response);
 			committed = true;
-			return response.getWriter();
+			// a PrintWriter keeps its errors: a gone client fails the next flush of the run
+			var output = response.getWriter();
+			java.io.Writer writer = new java.io.Writer() {
+				@Override public void write(char[] buffer, int offset, int length) { output.write(buffer, offset, length); }
+				@Override public void write(String text, int offset, int length) { output.write(text, offset, length); }
+				@Override public void flush() throws IOException {
+					output.flush();
+					if (output.checkError()) throw new IOException("JSON response connection failed");
+				}
+				@Override public void close() { output.close(); }
+			};
+			// the cache keeps the text of the answer when it ends complete
+			return context.nativeJsonCache == null ? writer : new com.twinsoft.convertigo.engine.cache.NativeJsonCache.Tee(writer, context.nativeJsonCache);
 		}
 
 		@Override public boolean committed() {

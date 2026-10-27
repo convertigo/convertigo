@@ -138,10 +138,29 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 		}
 	}
 
+	/** the text kept for a native request, or null once expired */
+	static String cachedNativeText(String requestString) {
+		NativeCacheEntry entry = nativeCache.get(requestString);
+		return entry != null && entry.expiryDate > System.currentTimeMillis() ? entry.text : null;
+	}
+
+	static void storeNativeText(String requestString, long expiryDate, String text) {
+		if (nativeCache.size() > NATIVE_CACHE_MAX_ENTRIES) {
+			long now = System.currentTimeMillis();
+			nativeCache.values().removeIf(entry -> entry.expiryDate <= now);
+		}
+		if (nativeCache.size() <= NATIVE_CACHE_MAX_ENTRIES) {
+			nativeCache.put(requestString, new NativeCacheEntry(expiryDate, text));
+		}
+	}
+
 	public Document getDocument(Requester requester, Context context) throws EngineException {
 		Document response = null;
 		CacheEntry cacheEntry;
 		String	supervision = null;
+		// set again by this request only: a context outlives its requests
+		context.nativeJsonCache = null;
+		context.nativeJsonCached = null;
 
 		if (context.isStubRequested) {
 			String stubFileName = (String) context.get(Parameter.StubFilename.getName());
@@ -205,14 +224,26 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 				}
 				response = context.requestedObject.run(requester, context);
 				if (response == null && context.nativeResult instanceof CharSequence && context.isCacheEnabled && supervision == null) {
-					if (nativeCache.size() > NATIVE_CACHE_MAX_ENTRIES) {
-						long now = System.currentTimeMillis();
-						nativeCache.values().removeIf(entry -> entry.expiryDate <= now);
-					}
-					if (nativeCache.size() <= NATIVE_CACHE_MAX_ENTRIES) {
-						nativeCache.put(requestString, new NativeCacheEntry(expiryDate, context.nativeResult.toString()));
-					}
+					storeNativeText(requestString, expiryDate, context.nativeResult.toString());
 				}
+			}
+			// Cached Flow answering a JSON request in native JSON: its text, kept apart from the XML cache, written
+			// by the response itself (NativeJsonCache), in stream or not
+			else if (context.nativeJson && context.requestedObject instanceof com.twinsoft.convertigo.beans.flow.Flow
+					&& requester instanceof com.twinsoft.convertigo.engine.requesters.JsonServletRequester) {
+				String requestString = "native json " + context.requestedObject.getRequestString(context);
+				String cached = context.noCache ? null : cachedNativeText(requestString);
+				if (cached != null) {
+					Engine.logCacheManager.debug("Native JSON response from cache for: " + requestString);
+					context.requestedObject.setStatisticsOfRequestFromCache();
+					context.nativeJsonCached = cached;
+					context.nativeJsonResponse = new java.util.LinkedHashMap<String, Object>();
+					return null;
+				}
+				if (context.isCacheEnabled && supervision == null) {
+					context.nativeJsonCache = new NativeJsonCache.Pending(requestString, expiryDate);
+				}
+				response = context.requestedObject.run(requester, context);
 			}
 			else {
 				String requestString = context.requestedObject.getRequestString(context);

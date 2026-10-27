@@ -139,6 +139,25 @@ public class Flow extends Sequence {
 		// The bridge owns its pooled scope. Sequence step maps, XPath and legacy globals are unused.
 	}
 
+	/** The cache key of a native JSON request: the cached-key variables of its native input, as the variables of an XML one. */
+	@Override
+	public String getRequestString(com.twinsoft.convertigo.engine.Context context) {
+		if (context.nativeInput == null) {
+			return super.getRequestString(context);
+		}
+		var keys = new ArrayList<String>();
+		if (isAuthenticatedUserAsCacheKey()) {
+			keys.add("userID=" + context.getAuthenticatedUser());
+		}
+		for (var entry : context.nativeInput.entrySet()) {
+			if (includeVariableIntoRequestString(entry.getKey())) {
+				keys.add(entry.getKey() + "=" + entry.getValue());
+			}
+		}
+		java.util.Collections.sort(keys);
+		return context.projectName + " " + context.sequenceName + " " + keys;
+	}
+
 	@Override
 	public void runCore() throws EngineException {
 		var runStarted = System.nanoTime();
