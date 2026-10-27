@@ -28,7 +28,19 @@ public class TimingAllocationSpanTest {
 
 	@org.junit.After public void cleanup() { XmlUseCounter.end(); EnginePropertiesManager.unload(); }
 
-	@Test public void countsDocumentsAndChildThreadAllocationWithoutDoubleCounting() throws Exception {
+	@Test public void countsDocumentsAndChildThreadAllocationWithoutDoubleCounting() throws Throwable {
+		// a fresh thread: the document builder of a thread counts only if it was created with the counter on, and an
+		// earlier test of this JVM may have created the one of the test thread
+		var failure = new AtomicReference<Throwable>();
+		var root = new Thread(() -> {
+			try { countsDocumentsAndChildThreadAllocation(); } catch (Throwable e) { failure.set(e); }
+		});
+		root.start();
+		root.join();
+		if (failure.get() != null) throw failure.get();
+	}
+
+	private void countsDocumentsAndChildThreadAllocation() throws Exception {
 		var child = new AtomicReference<TimingTrace.Span>();
 		var root = TimingTrace.open("test", "root");
 		try (root) {
