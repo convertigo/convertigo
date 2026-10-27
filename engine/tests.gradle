@@ -430,6 +430,16 @@ tasks.register('redisSessionWrittenBeforeResponseTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionWrittenBeforeResponseTest'
 }
 
+tasks.register('rhinoClassCompilerTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: the patched ClassCompiler of Rhino generates class files that the JVM loads for any script, sources above 64 KB included, with the descriptors of the in-memory compilation.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.RhinoClassCompilerPatchTest'
+}
+tasks.named('check') { dependsOn 'rhinoClassCompilerTest' }
+
 tasks.register('jsonGroupStepDateTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: the min and max of a date column, grouped by JsonGroupStep, follow the time order and not the year only.'

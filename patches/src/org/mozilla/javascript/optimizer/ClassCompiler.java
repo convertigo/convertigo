@@ -1,0 +1,561 @@
+/* -*- Mode: java; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+package org.mozilla.javascript.optimizer;
+
+import static org.mozilla.classfile.ClassFileWriter.ACC_PUBLIC;
+import static org.mozilla.classfile.ClassFileWriter.ACC_STATIC;
+
+import java.lang.invoke.MethodType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.mozilla.classfile.ByteCode;
+import org.mozilla.classfile.ClassFileWriter;
+import org.mozilla.javascript.CompilerEnvirons;
+import org.mozilla.javascript.IRFactory;
+import org.mozilla.javascript.JSCode;
+import org.mozilla.javascript.JSDescriptor;
+import org.mozilla.javascript.JavaAdapter;
+import org.mozilla.javascript.Parser;
+import org.mozilla.javascript.ScriptRuntime;
+import org.mozilla.javascript.ast.AstRoot;
+import org.mozilla.javascript.ast.FunctionNode;
+import org.mozilla.javascript.ast.ScriptNode;
+
+/**
+ * Generates class files from script sources.
+ *
+ * <p>since 1.5 Release 5
+ *
+ * <p>Convertigo patch of Rhino 1.9.1 ({@link #C8O_PATCH}), for class files loaded from a disk cache:
+ *
+ * <ul>
+ *   <li>the {@code init} methods of the descriptors use the local variable 2, but declared two
+ *       local variables: their class failed verification (VerifyError: Local variable table
+ *       overflow) as soon as a function had a parameter, a variable or a nested function;
+ *   <li>each descriptor loaded the whole source as a class file constant, limited to 65535 bytes of
+ *       UTF-8: a source above 64 KB failed (Too big string). A string beyond that limit is now
+ *       rebuilt from parts by a static accessor, once per class, and shared by the descriptors as
+ *       the in-memory compilation shares it;
+ *   <li>the class initialization built each descriptor once for itself and once more for each of
+ *       its parents: the descriptors are now built once, from the top-level one, and listed in the
+ *       order of their index, so that a nested function is the same object in its parent and in
+ *       the descriptors of the class, as with the in-memory compilation.
+ * </ul>
+ *
+ * @author Igor Bukanov
+ */
+public class ClassCompiler {
+    /**
+     * Version of the Convertigo patch: part of the key of the disk cache of class files, to change
+     * with any change of the generated classes.
+     */
+    public static final String C8O_PATCH = "c8o-1";
+
+    /**
+     * Construct ClassCompiler that uses the specified compiler environment when generating classes.
+     */
+    public ClassCompiler(CompilerEnvirons compilerEnv) {
+        if (compilerEnv == null) throw new IllegalArgumentException();
+        this.compilerEnv = compilerEnv;
+        this.mainMethodClassName = Codegen.DEFAULT_MAIN_METHOD_CLASS;
+    }
+
+    /**
+     * Set the class name to use for main method implementation. The class must have a method
+     * matching {@code public static void main(Script sc, String[] args)}, it will be called when
+     * {@code main(String[] args)} is called in the generated class. The class name should be fully
+     * qualified name and include the package name like in {@code org.foo.Bar}.
+     */
+    public void setMainMethodClass(String className) {
+        // XXX Should this check for a valid class name?
+        mainMethodClassName = className;
+    }
+
+    /**
+     * Get the name of the class for main method implementation.
+     *
+     * @see #setMainMethodClass(String)
+     */
+    public String getMainMethodClass() {
+        return mainMethodClassName;
+    }
+
+    /** Get the compiler environment the compiler uses. */
+    public CompilerEnvirons getCompilerEnv() {
+        return compilerEnv;
+    }
+
+    /** Get the class that the generated target will extend. */
+    public Class<?> getTargetExtends() {
+        return targetExtends;
+    }
+
+    /**
+     * Set the class that the generated target will extend.
+     *
+     * @param extendsClass the class it extends
+     */
+    public void setTargetExtends(Class<?> extendsClass) {
+        targetExtends = extendsClass;
+    }
+
+    /** Get the interfaces that the generated target will implement. */
+    public Class<?>[] getTargetImplements() {
+        return targetImplements == null ? null : targetImplements.clone();
+    }
+
+    /**
+     * Set the interfaces that the generated target will implement.
+     *
+     * @param implementsClasses an array of Class objects, one for each interface the target will
+     *     extend
+     */
+    public void setTargetImplements(Class<?>[] implementsClasses) {
+        targetImplements = implementsClasses == null ? null : implementsClasses.clone();
+    }
+
+    /**
+     * Build class name for an auxiliary class generated by compiler. If the compiler needs to
+     * generate extra classes beyond the main class, it will call this function to build the
+     * auxiliary class name. The default implementation simply appends auxMarker to mainClassName
+     * but this can be overridden.
+     */
+    protected String makeAuxiliaryClassName(String mainClassName, String auxMarker) {
+        return mainClassName + auxMarker;
+    }
+
+    /**
+     * Compile JavaScript source into one or more Java class files. The first compiled class will
+     * have name mainClassName. If the results of {@link #getTargetExtends()} or {@link
+     * #getTargetImplements()} are not null, then the first compiled class will extend the specified
+     * super class and implement specified interfaces.
+     *
+     * @return array where elements with even indexes specifies class name and the following odd
+     *     index gives class file body as byte[] array. The initial element of the array always
+     *     holds mainClassName and array[1] holds its byte code.
+     */
+    public Object[] compileToClassFiles(
+            String source, String sourceLocation, int lineno, String mainClassName) {
+        Parser p = new Parser(compilerEnv);
+        AstRoot ast = p.parse(source, sourceLocation, lineno);
+        IRFactory irf = new IRFactory(compilerEnv, source);
+        ScriptNode tree = irf.transformTree(ast);
+
+        if (compilerEnv.isGeneratingSource()) {
+            tree.setRawSource(source);
+            tree.setRawSourceBounds(0, source.length());
+        }
+
+        // release reference to original parse tree & parser
+        irf = null;
+        ast = null;
+        p = null;
+
+        Class<?> superClass = getTargetExtends();
+        Class<?>[] interfaces = getTargetImplements();
+        String scriptClassName;
+        boolean isPrimary = (interfaces == null && superClass == null);
+        if (isPrimary) {
+            scriptClassName = mainClassName;
+        } else {
+            scriptClassName = makeAuxiliaryClassName(mainClassName, "1");
+        }
+
+        Codegen codegen = new Codegen();
+        codegen.setMainMethodClass(mainMethodClassName);
+        JSDescriptor.Builder builder = new JSDescriptor.Builder();
+        OptJSCode.BuilderEnv builderEnv = new OptJSCode.BuilderEnv(scriptClassName);
+        byte[] scriptClassBytes =
+                codegen.compileToClassFile(
+                        compilerEnv, builder, builderEnv, scriptClassName, tree, source, false);
+        Object[] auxilaryClasses = buildDescriptorsAndMain(scriptClassName, builder);
+        if (isPrimary) {
+            var result = new Object[auxilaryClasses.length + 2];
+            System.arraycopy(auxilaryClasses, 0, result, 2, auxilaryClasses.length);
+            result[0] = scriptClassName;
+            result[1] = scriptClassBytes;
+            return result;
+        }
+        int functionCount = tree.getFunctionCount();
+        HashMap<String, Integer> functionNames = new HashMap<>();
+        for (int i = 0; i != functionCount; ++i) {
+            FunctionNode ofn = tree.getFunctionNode(i);
+            String name = ofn.getName();
+            if (name != null && name.length() != 0) {
+                functionNames.put(name, ofn.getParamCount());
+            }
+        }
+        if (superClass == null) {
+            superClass = ScriptRuntime.ObjectClass;
+        }
+        byte[] mainClassBytes =
+                JavaAdapter.createAdapterCode(
+                        functionNames, mainClassName, superClass, interfaces, scriptClassName);
+
+        var result = new Object[auxilaryClasses.length + 4];
+        System.arraycopy(auxilaryClasses, 0, result, 4, auxilaryClasses.length);
+        result[0] = mainClassName;
+        result[1] = mainClassBytes;
+        result[2] = scriptClassName;
+        result[3] = scriptClassBytes;
+        return result;
+    }
+
+    /**
+     * Build script class initialisation method and main method. The init method will create all the
+     * class descriptors, and the main method will create a {@link JSDescriptor} object based on the
+     * first descriptor and pass that to the main method in the runtime.
+     */
+    private Object[] buildDescriptorsAndMain(String mainClassName, JSDescriptor.Builder builder) {
+        var classes = new HashMap<String, byte[]>();
+        var mainName = mainClassName + "Main";
+
+        var cfw = new ClassFileWriter(mainName, "java.lang.Object", "");
+        var builders = new ArrayList<JSDescriptor.Builder<?>>();
+        largeStrings = new HashMap<>();
+        buildDescriptor(cfw, builder, classes, builders);
+        cfw.startMethod("<clinit>", "()V", ACC_STATIC);
+        if (inIndexOrder(builders)) {
+            // Convertigo patch: the top-level descriptor builds the nested ones, listed by index
+            cfw.add(ByteCode.ACONST_NULL);
+            cfw.addInvoke(
+                    ByteCode.INVOKESTATIC,
+                    cfw.getClassName(),
+                    "init" + functionId(builder),
+                    "(Lorg/mozilla/javascript/JSDescriptor;)Lorg/mozilla/javascript/JSDescriptor;");
+            cfw.addLoadConstant(builders.size());
+            cfw.addInvoke(
+                    ByteCode.INVOKESTATIC,
+                    "org/mozilla/javascript/optimizer/ClassCompiler",
+                    "c8oDescriptors",
+                    "(Lorg/mozilla/javascript/JSDescriptor;I)[Lorg/mozilla/javascript/JSDescriptor;");
+        } else {
+            cfw.addLoadConstant(builders.size());
+            cfw.add(ByteCode.ANEWARRAY, "org/mozilla/javascript/JSDescriptor");
+            for (var b : builders) {
+                int index = ((OptJSCode.Builder) b.code).index;
+                int parent = b.parent == null ? 0 : ((OptJSCode.Builder) b.parent.code).index;
+                populateDescriptorEntry(cfw, index, parent);
+            }
+        }
+        cfw.add(
+                ByteCode.PUTSTATIC,
+                mainClassName,
+                Codegen.DESCRIPTORS_FIELD_NAME,
+                Codegen.DESCRIPTORS_FIELD_SIGNATURE);
+        cfw.add(ByteCode.RETURN);
+        cfw.stopMethod(0);
+
+        cfw.startMethod("main", "([Ljava/lang/String;)V", (short) (ACC_STATIC | ACC_PUBLIC));
+        cfw.add(ByteCode.NEW, "org.mozilla.javascript.JSScript");
+        cfw.add(ByteCode.DUP);
+        cfw.add(
+                ByteCode.GETSTATIC,
+                mainClassName,
+                Codegen.DESCRIPTORS_FIELD_NAME,
+                Codegen.DESCRIPTORS_FIELD_SIGNATURE);
+        cfw.addLoadConstant(0);
+        cfw.add(ByteCode.AALOAD);
+        cfw.add(ByteCode.ACONST_NULL);
+        cfw.addInvoke(
+                ByteCode.INVOKESPECIAL,
+                "org/mozilla/javascript/JSScript",
+                "<init>",
+                "(Lorg/mozilla/javascript/JSDescriptor;Lorg/mozilla/javascript/Scriptable;)V");
+        cfw.add(ByteCode.ALOAD_0);
+        // Call mainMethodClass.main(Script script, String[] args)
+        cfw.addInvoke(
+                ByteCode.INVOKESTATIC,
+                mainMethodClassName,
+                "main",
+                "(Lorg/mozilla/javascript/Script;[Ljava/lang/String;)V");
+        cfw.add(ByteCode.RETURN);
+        cfw.stopMethod(1);
+        addLargeStringAccessors(cfw);
+
+        var result = new Object[classes.size() * 2 + 2];
+        int count = 0;
+        result[count++] = mainName;
+        result[count++] = cfw.toByteArray();
+        for (var e : classes.entrySet()) {
+            result[count++] = e.getKey();
+            result[count++] = e.getValue();
+        }
+        return result;
+    }
+
+    /**
+     * Generates a byte code for a method to create a {@link JSDescriptor}. It might be more
+     * efficient in future to use a const dynamic for this, when our bytecode generation and
+     * supported platforms can all handle it.
+     */
+    private void buildDescriptor(
+            ClassFileWriter cfw,
+            JSDescriptor.Builder builder,
+            Map<String, byte[]> classes,
+            List<JSDescriptor.Builder<?>> builders) {
+        builders.add(builder);
+        cfw.startMethod(
+                "init" + functionId(builder),
+                "(Lorg/mozilla/javascript/JSDescriptor;)Lorg/mozilla/javascript/JSDescriptor;",
+                ACC_STATIC);
+
+        cfw.add(ByteCode.NEW, "org.mozilla.javascript.JSDescriptor");
+        cfw.add(ByteCode.DUP);
+        buildCode(cfw, builder.code, classes);
+        buildCode(cfw, builder.constructor, classes);
+        cfw.addALoad(0);
+        cfw.addLoadConstant(builder.paramAndVarNames.length);
+        cfw.add(ByteCode.ANEWARRAY, "java/lang/String");
+        if (builder.paramAndVarNames.length > 0) {
+            cfw.addLoadConstant(0);
+            cfw.addIStore(2);
+            for (int p = 0; p < builder.paramAndVarNames.length; p++) {
+                cfw.add(ByteCode.DUP);
+                cfw.addILoad(2);
+                loadString(cfw, builder.paramAndVarNames[p]);
+                cfw.add(ByteCode.AASTORE);
+                cfw.add(ByteCode.IINC, 2, 1);
+            }
+        }
+        cfw.addLoadConstant(builder.paramIsConst.length);
+        cfw.add(ByteCode.NEWARRAY, ByteCode.T_BOOLEAN);
+        if (builder.paramIsConst.length > 0) {
+            cfw.addLoadConstant(0);
+            cfw.addIStore(2);
+            for (int p = 0; p < builder.paramAndVarNames.length; p++) {
+                cfw.add(ByteCode.DUP);
+                cfw.addILoad(2);
+                cfw.add(builder.paramIsConst[p] ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+                cfw.add(ByteCode.BASTORE);
+                cfw.add(ByteCode.IINC, 2, 1);
+            }
+        }
+        cfw.add(builder.isStrict ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.isScript ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.isTopLevel ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.isES6Generator ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.isShorthand ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.hasPrototype ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.hasLexicalThis ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.isEvalFunction ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.hasRestArg ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        loadString(cfw, builder.sourceFile);
+        loadString(cfw, builder.rawSource);
+        cfw.addLoadConstant(builder.rawSourceStart);
+        cfw.addLoadConstant(builder.rawSourceEnd);
+        if (builder.name == null) {
+            cfw.add(ByteCode.ACONST_NULL);
+        } else {
+            loadString(cfw, builder.name);
+        }
+        cfw.addLoadConstant(builder.languageVersion);
+        cfw.addLoadConstant(builder.paramAndVarCount);
+        cfw.addLoadConstant(builder.paramCount);
+        cfw.addLoadConstant(builder.arity);
+        cfw.add(builder.hasDefaultParameters ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.requiresActivationFrame ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.requiresArgumentObject ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(builder.declaredAsFunctionExpression ? ByteCode.ICONST_1 : ByteCode.ICONST_0);
+        cfw.add(ByteCode.ACONST_NULL);
+        cfw.add(ByteCode.ACONST_NULL);
+        cfw.addLoadConstant(builder.functionType);
+        // Call the constructor
+        var type =
+                MethodType.methodType(
+                                void.class,
+                                JSDescriptor.class.getConstructors()[0].getParameterTypes())
+                        .toMethodDescriptorString();
+        cfw.addInvoke(
+                ByteCode.INVOKESPECIAL, "org.mozilla.javascript.JSDescriptor", "<init>", type);
+        cfw.addAStore(1);
+        cfw.addALoad(1);
+        cfw.add(ByteCode.DUP);
+        cfw.addLoadConstant(builder.nestedFunctions.size());
+        cfw.add(ByteCode.ANEWARRAY, "org/mozilla/javascript/JSDescriptor");
+        if (builder.nestedFunctions.size() > 0) {
+            cfw.addLoadConstant(0);
+            cfw.addIStore(2);
+            // Loop over the nested functions adding them to the list
+            for (var child : builder.nestedFunctions) {
+                cfw.add(ByteCode.DUP);
+                cfw.addILoad(2);
+                cfw.addALoad(1);
+                cfw.addInvoke(
+                        ByteCode.INVOKESTATIC,
+                        cfw.getClassName(),
+                        "init" + functionId((JSDescriptor.Builder) child),
+                        "(Lorg/mozilla/javascript/JSDescriptor;)Lorg/mozilla/javascript/JSDescriptor;");
+                cfw.add(ByteCode.AASTORE);
+                cfw.add(ByteCode.IINC, 2, 1);
+            }
+        }
+        cfw.addInvoke(
+                ByteCode.INVOKESTATIC,
+                "org.mozilla.javascript.optimizer.OptRuntime",
+                "listOf",
+                "([Ljava/lang/Object;)Ljava/util/List;");
+        cfw.add(
+                ByteCode.PUTFIELD,
+                "org.mozilla.javascript.JSDescriptor",
+                "nestedFunctions",
+                "Ljava/util/List;");
+
+        cfw.add(ByteCode.ARETURN);
+        // Convertigo patch: the loops above use the local variable 2, three local variables
+        cfw.stopMethod(3);
+        for (var child : builder.nestedFunctions) {
+            buildDescriptor(cfw, (JSDescriptor.Builder) child, classes, builders);
+        }
+    }
+
+    /**
+     * Generates a subclass of {@link OptJSCode} to invoke a compiled method, and the code to
+     * instantiate that class.
+     */
+    private void buildCode(
+            ClassFileWriter cfw, JSCode.Builder builder, Map<String, byte[]> classes) {
+        if (builder instanceof JSCode.NullBuilder<?>) {
+            cfw.add(ByteCode.ACONST_NULL);
+        } else {
+            var code = (OptJSCode.Builder<?>) builder;
+            code.buildByteCode(cfw);
+            classes.put(code.getClassName(), code.getClassBytes());
+        }
+    }
+
+    private void populateDescriptorEntry(ClassFileWriter cfw, int index, int parent) {
+        // Start with the array on top.
+        cfw.add(ByteCode.DUP); // array, array.
+        cfw.add(ByteCode.DUP); // array, array, array.
+        cfw.addLoadConstant(parent); // array, array, array, index.
+        cfw.add(ByteCode.AALOAD); // array, array, parent.
+        cfw.addInvoke(
+                ByteCode.INVOKESTATIC,
+                cfw.getClassName(),
+                "init" + index,
+                "(Lorg/mozilla/javascript/JSDescriptor;)Lorg/mozilla/javascript/JSDescriptor;"); // array, array, entry.
+        cfw.addLoadConstant(index); // array, array, entry, index.
+        cfw.add(ByteCode.SWAP); // array, array, index, entry.
+        cfw.add(ByteCode.AASTORE);
+    }
+
+    private int functionId(JSDescriptor.Builder builder) {
+        var code = (OptJSCode.Builder) builder.code;
+        return code.index;
+    }
+
+    /** Convertigo patch: the strings above the class file limit, by accessor method name. */
+    private Map<String, String> largeStrings;
+
+    private static final int LARGE_STRING_PART = 16000;
+
+    /**
+     * Convertigo patch: loads a string constant. The UTF-8 form of a class file constant is limited
+     * to 65535 bytes: a string above 16000 characters (a source, which may exceed 64 KB) is returned
+     * by a static accessor of the class, which builds it once from parts of 16000 characters (at
+     * most 48000 bytes each). Its length is enough to choose, without encoding it again for each
+     * descriptor.
+     */
+    private void loadString(ClassFileWriter cfw, String value) {
+        if (value == null || value.length() <= LARGE_STRING_PART) {
+            cfw.addLoadConstant(value);
+            return;
+        }
+        var accessor = largeStrings.get(value);
+        if (accessor == null) {
+            accessor = "c8oString" + largeStrings.size();
+            largeStrings.put(value, accessor);
+        }
+        cfw.addInvoke(ByteCode.INVOKESTATIC, cfw.getClassName(), accessor, "()Ljava/lang/String;");
+    }
+
+    private void addLargeStringAccessors(ClassFileWriter cfw) {
+        for (var entry : largeStrings.entrySet()) {
+            var value = entry.getKey();
+            var accessor = entry.getValue();
+            cfw.addField(
+                    accessor, "Ljava/lang/String;", (short) (ClassFileWriter.ACC_PRIVATE | ACC_STATIC));
+            cfw.startMethod(accessor, "()Ljava/lang/String;", ACC_STATIC);
+            int ready = cfw.acquireLabel();
+            cfw.add(ByteCode.GETSTATIC, cfw.getClassName(), accessor, "Ljava/lang/String;");
+            cfw.add(ByteCode.DUP);
+            cfw.add(ByteCode.IFNONNULL, ready);
+            cfw.add(ByteCode.POP);
+            cfw.add(ByteCode.NEW, "java/lang/StringBuilder");
+            cfw.add(ByteCode.DUP);
+            cfw.addLoadConstant(value.length());
+            cfw.addInvoke(ByteCode.INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "(I)V");
+            for (int start = 0; start < value.length(); start += LARGE_STRING_PART) {
+                cfw.addLoadConstant(
+                        value.substring(start, Math.min(value.length(), start + LARGE_STRING_PART)));
+                cfw.addInvoke(
+                        ByteCode.INVOKEVIRTUAL,
+                        "java/lang/StringBuilder",
+                        "append",
+                        "(Ljava/lang/String;)Ljava/lang/StringBuilder;");
+            }
+            cfw.addInvoke(
+                    ByteCode.INVOKEVIRTUAL,
+                    "java/lang/StringBuilder",
+                    "toString",
+                    "()Ljava/lang/String;");
+            cfw.add(ByteCode.DUP);
+            cfw.add(ByteCode.PUTSTATIC, cfw.getClassName(), accessor, "Ljava/lang/String;");
+            cfw.markLabel(ready, (short) 1);
+            cfw.add(ByteCode.ARETURN);
+            cfw.stopMethod(0);
+        }
+        largeStrings = null;
+    }
+
+    /**
+     * Convertigo patch: whether the builders, listed depth first, have the indexes 0, 1, 2... in
+     * that order, as the descriptors listed by {@link #c8oDescriptors(JSDescriptor, int)}.
+     */
+    private boolean inIndexOrder(List<JSDescriptor.Builder<?>> builders) {
+        for (int i = 0; i < builders.size(); i++) {
+            if (((OptJSCode.Builder) builders.get(i).code).index != i) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Convertigo patch, called by the generated classes: the descriptors of a class, from the
+     * top-level one and its nested functions listed depth first, in the order of their index.
+     */
+    public static JSDescriptor<?>[] c8oDescriptors(JSDescriptor<?> top, int count) {
+        var descriptors = new JSDescriptor<?>[count];
+        var pending = new java.util.ArrayDeque<JSDescriptor<?>>();
+        pending.push(top);
+        int next = 0;
+        while (!pending.isEmpty()) {
+            var descriptor = pending.pop();
+            if (next == count) {
+                throw new IllegalStateException("More descriptors than the " + count + " expected");
+            }
+            descriptors[next++] = descriptor;
+            var nested = descriptor.nestedFunctions;
+            for (int i = nested == null ? -1 : nested.size() - 1; i >= 0; i--) {
+                pending.push(nested.get(i));
+            }
+        }
+        if (next != count) {
+            throw new IllegalStateException(next + " descriptors instead of " + count);
+        }
+        return descriptors;
+    }
+
+    private String mainMethodClassName;
+    private CompilerEnvirons compilerEnv;
+    private Class<?> targetExtends;
+    private Class<?>[] targetImplements;
+}
