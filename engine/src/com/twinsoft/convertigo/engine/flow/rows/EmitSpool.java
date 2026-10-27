@@ -7,10 +7,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -30,14 +30,26 @@ import com.twinsoft.convertigo.engine.util.JsonValues;
  */
 public final class EmitSpool implements ResultDocument.RawRowSource {
 	private static final int MEMORY = 4 * 1024 * 1024;
+	private static final int FLUSH = 64 * 1024;
 	private final long maxRows;
 	private final long maxChars;
+	// the encoded rows, one per line: all of them until the spill, then the part not yet flushed to the file
 	private final StringBuilder memory = new StringBuilder(64 * 1024);
-	private final StringWriter row = new StringWriter(1024);
+	// rows are encoded straight into memory: one producer, no lock per character
+	private final Writer encoder = new Writer() {
+		@Override public void write(int c) { memory.append((char) c); }
+		@Override public void write(char[] buffer, int offset, int length) { memory.append(buffer, offset, length); }
+		@Override public void write(String text, int offset, int length) { memory.append(text, offset, offset + length); }
+		@Override public Writer append(CharSequence text) { memory.append(text); return this; }
+		@Override public void flush() { }
+		@Override public void close() { }
+	};
+	// the end of each row kept in memory, before the spill
+	private int[] ends = new int[1024];
+	private int memoryRows, memoryRead;
 	private File file;
 	private Writer fileWriter;
 	private BufferedReader reader;
-	private int memoryRead;
 	private long rows, chars;
 	private boolean reading, closed;
 
@@ -64,14 +76,20 @@ public final class EmitSpool implements ResultDocument.RawRowSource {
 	private void appendRow(Object value, Context cx, Scriptable scope) throws IOException, JSONException {
 		if (++rows > maxRows) throw new RowStreamException("ROW_STREAM_ROW_LIMIT", 413);
 		Object json = value instanceof Map<?, ?> ? value : DetachedJson.map(value, cx, scope);
-		row.getBuffer().setLength(0);
-		DetachedJsonWriter.write(json, row);
-		var text = row.getBuffer();
-		chars += text.length() + 1;
+		int start = memory.length();
+		DetachedJsonWriter.write(json, encoder);
+		int end = memory.length();
+		chars += end - start + 1;
 		if (chars > maxChars) throw new RowStreamException("ROW_STREAM_BYTE_LIMIT", 413);
-		if (fileWriter == null && memory.length() + text.length() + 1 > MEMORY) spill();
-		if (fileWriter != null) { fileWriter.append(text).append('\n'); }
-		else { memory.append(text).append('\n'); }
+		memory.append('\n');
+		if (fileWriter == null) {
+			if (memoryRows == ends.length) ends = Arrays.copyOf(ends, ends.length * 2);
+			ends[memoryRows++] = end;
+			if (memory.length() > MEMORY) spill();
+		} else if (memory.length() >= FLUSH) {
+			fileWriter.append(memory);
+			memory.setLength(0);
+		}
 	}
 
 	private void spill() throws IOException {
@@ -79,6 +97,10 @@ public final class EmitSpool implements ResultDocument.RawRowSource {
 		file = directory == null ? File.createTempFile("c8o-emit-", ".jsonl") : File.createTempFile("emit-", ".jsonl", directory);
 		file.deleteOnExit();
 		fileWriter = new BufferedWriter(Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8), 64 * 1024);
+		fileWriter.append(memory);
+		memory.setLength(0);
+		memoryRows = 0;
+		ends = new int[0];
 	}
 
 	public long rows() { return rows; }
@@ -87,15 +109,19 @@ public final class EmitSpool implements ResultDocument.RawRowSource {
 		if (closed) throw new RowStreamException("ROW_STREAM_CANCELLED", 499);
 		if (!reading) {
 			reading = true;
-			if (fileWriter != null) { fileWriter.close(); fileWriter = null; }
+			if (fileWriter != null) {
+				fileWriter.append(memory);
+				memory.setLength(0);
+				fileWriter.close();
+				fileWriter = null;
+			}
 		}
-		if (memoryRead < memory.length()) {
-			int end = memory.indexOf("\n", memoryRead);
-			target.append(memory, memoryRead, end);
-			memoryRead = end + 1;
+		if (memoryRead < memoryRows) {
+			target.append(memory, memoryRead == 0 ? 0 : ends[memoryRead - 1] + 1, ends[memoryRead]);
+			memoryRead++;
 			return true;
 		}
-		if (memory.length() > 0) { memory.setLength(0); memory.trimToSize(); memoryRead = 0; }
+		if (memory.capacity() > 64 * 1024) { memory.setLength(0); memory.trimToSize(); }
 		if (file == null) return false;
 		if (reader == null) reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
 		var line = reader.readLine();
