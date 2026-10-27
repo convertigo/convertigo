@@ -219,6 +219,8 @@ public abstract class GenericServlet extends HttpServlet {
 
 				XmlUseCounter.Counts xmlCounts = XmlUseCounter.isEnabled() ? XmlUseCounter.begin() : null;
 				long timingStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
+				var stream = streamsRows() ? new StreamCommit(request, response) : null;
+				if (stream != null) request.setAttribute(com.twinsoft.convertigo.engine.flow.rows.RowStreamCommit.ATTRIBUTE, stream);
 				Object result = processRequest(request);
 				if (result instanceof com.twinsoft.convertigo.engine.requesters.JsonResponse json) ownedJson = json;
 
@@ -243,7 +245,10 @@ public abstract class GenericServlet extends HttpServlet {
 
 				try {
 
-					if (result != null) {
+					if (stream != null && stream.committed()) {
+						// the run has written the response in stream
+						response.flushBuffer();
+					} else if (result != null) {
 
 						Boolean b = (Boolean) request.getAttribute("convertigo.isErrorDocument");
 						if (b.booleanValue()) {
@@ -367,7 +372,9 @@ public abstract class GenericServlet extends HttpServlet {
 				if (!SessionStoreUnavailableException.isCause(e)) {
 					Engine.logContext.error("Unable to process the request!", e);
 				}
-				processException(request, response, e);
+				if (!(request.getAttribute(com.twinsoft.convertigo.engine.flow.rows.RowStreamCommit.ATTRIBUTE) instanceof StreamCommit stream && stream.committed())) {
+					processException(request, response, e);
+				}
 			}
 			finally {
 				if (ownedJson != null) try { ownedJson.close(); } catch (IOException ignored) { }
@@ -737,6 +744,47 @@ public abstract class GenericServlet extends HttpServlet {
 		}
 
 		return requestedContentType;
+	}
+
+	/** true for a servlet whose JSON response a run may write in stream, before its end */
+	protected boolean streamsRows() {
+		return false;
+	}
+
+	/** The response committed from the thread of a run that streams its rows, as the JSON response of this servlet. */
+	private final class StreamCommit implements com.twinsoft.convertigo.engine.flow.rows.RowStreamCommit {
+		private final HttpServletRequest request;
+		private final HttpServletResponse response;
+		private volatile boolean committed;
+
+		StreamCommit(HttpServletRequest request, HttpServletResponse response) {
+			this.request = request;
+			this.response = response;
+		}
+
+		@Override public java.io.Writer commit(Context context) throws IOException {
+			// the attributes processRequestEnd sets after the run, from the context of the run
+			request.setAttribute("convertigo.cacheControl", context.cacheControl);
+			if (request.getAttribute("convertigo.charset") == null) {
+				request.setAttribute("convertigo.charset", "UTF-8");
+			}
+			String trSessionId = context.getSequenceTransactionSessionId();
+			if (trSessionId != null) {
+				request.setAttribute("sequence.transaction.sessionid", trSessionId);
+			}
+			HttpUtils.applyCorsHeaders(request, response);
+			String requestedContentType = prepareTextRequesterResponse(request, response);
+			applyCustomStatus(request, response);
+			response.setContentType(requestedContentType != null ? requestedContentType : getContentType(request));
+			response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
+			applyCustomHeaders(request, response);
+			committed = true;
+			return response.getWriter();
+		}
+
+		@Override public boolean committed() {
+			return committed;
+		}
 	}
 
 	private void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {

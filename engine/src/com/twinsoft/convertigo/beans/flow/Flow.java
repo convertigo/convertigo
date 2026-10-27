@@ -203,6 +203,12 @@ public class Flow extends Sequence {
 		} catch (Exception e) {
 			var rows = requestContext.takeNativeRows();
 			if (rows != null) try { rows.close(); } catch (Exception ignored) { }
+			// a response committed in stream ends with an error, the servlet writes nothing more
+			var stream = requestContext.rowStream;
+			if (stream != null) try {
+				stream.fail(JsonValues.object("code", "FLOW_ERROR", "message", "The streamed result could not complete.", "status", 500));
+				stream.close();
+			} catch (Exception ignored) { }
 			throw new EngineException("Unable to run flow \"" + getName() + "\".", e);
 		} finally {
 			requestContext.rowStreamAccepted = acceptedBefore;

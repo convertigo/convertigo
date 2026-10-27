@@ -110,6 +110,71 @@ public class EmitSpoolTest {
 		}
 	}
 
+	static final class Commit implements com.twinsoft.convertigo.engine.flow.rows.RowStreamCommit {
+		final StringWriter out = new StringWriter();
+		int commits;
+		@Override public java.io.Writer commit(com.twinsoft.convertigo.engine.Context context) { commits++; return out; }
+		// a context needs a started engine: the relay follows its progress only when it has one
+		@Override public boolean committed() { return commits > 0; }
+	}
+
+	private static List<Object> rows(int from, int to) throws Exception {
+		var rows = new java.util.ArrayList<Object>();
+		for (int i = from; i < to; i++) rows.add(JsonValues.object("id", i, "text", "é<&/ " + "x".repeat(80)));
+		return rows;
+	}
+
+	@Test public void aSmallEmissionDoesNotCommitTheResponse() throws Exception {
+		var commit = new Commit();
+		var spool = EmitSpool.relay(commit, null, "data", 100_000, 256L * 1024 * 1024);
+		spool.append(rows(0, 50), null, null);
+		assertFalse(spool.committed());
+		assertEquals(0, commit.commits);
+		var out = new StringWriter();
+		try (var doc = document(spool)) { doc.writeTo(out); }
+		assertEquals(50, new JSONObject(out.toString()).getJSONArray("data").length());
+	}
+
+	@Test public void aLargeEmissionIsWrittenToTheResponseAsItComes() throws Exception {
+		var commit = new Commit();
+		var spool = EmitSpool.relay(commit, null, "data", 100_000, 256L * 1024 * 1024);
+		spool.append(rows(0, 800), null, null);
+		assertTrue("past the precommit buffer, the response is committed", spool.committed());
+		int written = commit.out.getBuffer().length();
+		assertTrue("the rows kept so far are written at the commit", written > 64 * 1024);
+		spool.append(rows(800, 2000), null, null);
+		assertTrue("the next rows follow, by bounded blocks", commit.out.getBuffer().length() > written + 100_000);
+		var fields = new java.util.LinkedHashMap<String, Object>();
+		fields.put("colDef", null);
+		fields.put("count", 2000);
+		spool.finish(fields);
+		assertEquals(1, commit.commits);
+		var text = commit.out.toString();
+		var json = new JSONObject(text);
+		var data = json.getJSONArray("data");
+		assertEquals(2000, data.length());
+		for (int i = 0; i < 2000; i += 97) assertEquals(i, data.getJSONObject(i).getInt("id"));
+		assertEquals("é<&/ " + "x".repeat(80), data.getJSONObject(1999).getString("text"));
+		assertTrue(json.isNull("colDef"));
+		assertEquals(2000, json.getInt("count"));
+		assertTrue(json.getBoolean("complete"));
+		assertTrue("the field first, the other keys after the rows: " + text.substring(0, 20), text.startsWith("{\"data\":[{") && text.indexOf("\"colDef\"") > text.lastIndexOf("\"id\""));
+	}
+
+	@Test public void anErrorAfterTheCommitEndsTheResponseIncomplete() throws Exception {
+		var commit = new Commit();
+		var spool = EmitSpool.relay(commit, null, "rows", 100_000, 256L * 1024 * 1024);
+		spool.append(rows(0, 1000), null, null);
+		assertTrue(spool.committed());
+		spool.fail(JsonValues.object("code", "SOURCE_DOWN", "message", "The source failed.", "status", 502));
+		var json = new JSONObject(commit.out.toString());
+		assertEquals(1000, json.getJSONArray("rows").length());
+		assertEquals("SOURCE_DOWN", json.getJSONObject("error").getString("code"));
+		assertFalse(json.getBoolean("complete"));
+		spool.fail(JsonValues.object("code", "TWICE"));
+		assertEquals("a second end writes nothing", json.toString(), new JSONObject(commit.out.toString()).toString());
+	}
+
 	@Test public void limitsAndConsumptionAreEnforced() throws Exception {
 		var spool = new EmitSpool(2, 1_000_000);
 		spool.append(List.of(JsonValues.object("id", 1), JsonValues.object("id", 2)), null, null);

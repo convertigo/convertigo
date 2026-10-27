@@ -212,6 +212,10 @@ public class Context extends AbstractContext implements Cloneable {
 	public transient com.twinsoft.convertigo.engine.flow.rows.ResultDocument nativeRows;
 	/** true while a Flow runs for a requester that writes its emitted rows in stream (set by the Flow, before its run) */
 	public transient boolean rowStreamAccepted;
+	/** the time of the last rows a run wrote in stream to its response: the timeout of the run counts from it */
+	public transient volatile long rowStreamProgress;
+	/** the relay of the rows a run writes in stream to its response, until its end */
+	public transient com.twinsoft.convertigo.engine.flow.rows.EmitSpool rowStream;
 	public com.twinsoft.convertigo.engine.flow.rows.ResultDocument takeNativeRows() {
 		var value = nativeRows; nativeRows = null; return value;
 	}

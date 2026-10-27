@@ -2139,6 +2139,14 @@ public class FlowEngineBridge {
 						// attr is not written by a JSON response (NativeJsonSupport.projectResult)
 						result.remove(field);
 						result.remove("attr");
+						if (spool.committed()) {
+							// the rows are in the response already: the other keys end it, the servlet writes nothing more
+							spool.finish(result);
+							var written = new java.util.LinkedHashMap<String, Object>(envelope);
+							written.put("result", com.twinsoft.convertigo.engine.util.JsonValues.object());
+							value = written;
+							return token = org.mozilla.javascript.Context.javaToJS(value, callScope);
+						}
 						document = new com.twinsoft.convertigo.engine.flow.rows.ResultDocument(spool, field, result,
 								new com.twinsoft.convertigo.engine.flow.rows.ResultDocument.Limits(1_000_000, 256L * 1024 * 1024, 256 * 1024, 2, 512 * 1024));
 						value = new com.twinsoft.convertigo.engine.flow.rows.StreamResult(envelope, document);

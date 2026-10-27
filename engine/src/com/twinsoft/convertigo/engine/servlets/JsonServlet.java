@@ -41,6 +41,11 @@ public class JsonServlet extends GenericServlet {
     }
     
     @Override
+    protected boolean streamsRows() {
+    	return true;
+    }
+
+    @Override
     public String getDefaultContentType() {
     	return MimeType.Json.value();
     }
