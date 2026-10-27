@@ -20,17 +20,13 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.InvalidKeySpecException;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -41,11 +37,22 @@ import com.twinsoft.util.DESKey;
 
 public class Crypto2 {
 
-	private Cipher ecipher;
-	private Cipher dcipher;
+	private static final String TRANSFORMATION = "AES/CBC/PKCS5Padding";
+	private static final int POOLED_CIPHERS = 16;
 
-	private Crypto2(String passPhrase) throws InvalidKeySpecException, NoSuchAlgorithmException,
-			NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, UnsupportedEncodingException {
+	/** The key and IV derived from the last passphrase used (immutable), with ciphers ready for them. */
+	private static volatile Crypto2 last;
+
+	private final String passPhrase;
+	private final SecretKeySpec key;
+	private final IvParameterSpec iv;
+	// A Cipher is not thread-safe: each one is used by a single caller at a time, taken from and given back to these pools
+	private final ConcurrentLinkedQueue<Cipher> encrypters = new ConcurrentLinkedQueue<>();
+	private final ConcurrentLinkedQueue<Cipher> decrypters = new ConcurrentLinkedQueue<>();
+	private final AtomicInteger pooledEncrypters = new AtomicInteger();
+	private final AtomicInteger pooledDecrypters = new AtomicInteger();
+
+	private Crypto2(String passPhrase) throws NoSuchAlgorithmException, UnsupportedEncodingException {
 		/* Ciphering options:
 			Mode = CipherMode.CBC,-( Cipher-block chaining)
 			Padding = PaddingMode.PKCS7 or PKCS5,
@@ -59,25 +66,49 @@ public class Crypto2 {
 		byte[] bytesOfMessage = passPhrase.getBytes("UTF-8");
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		byte[] bytesPassphrase = md.digest(bytesOfMessage);
-		SecretKeySpec key = new SecretKeySpec(bytesPassphrase, "AES");
+		this.passPhrase = passPhrase;
+		key = new SecretKeySpec(bytesPassphrase, "AES");
 		
 	    // Parameter specific algorithm
-	    AlgorithmParameterSpec paramSpec = new IvParameterSpec(bytesPassphrase); 
-
-		ecipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-		ecipher.init(Cipher.ENCRYPT_MODE, key, paramSpec);
-		dcipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-		dcipher.init(Cipher.DECRYPT_MODE, key, paramSpec);
+		iv = new IvParameterSpec(bytesPassphrase);
 	}
 
-	private byte[] encrypt(byte[] data) throws IllegalBlockSizeException, BadPaddingException {
-		byte[] ciphered = ecipher.doFinal(data);
-		return ciphered;
+	private static Crypto2 forPassPhrase(String passPhrase) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+		Crypto2 crypto = last;
+		if (crypto == null || !crypto.passPhrase.equals(passPhrase)) {
+			crypto = new Crypto2(passPhrase);
+			last = crypto;
+		}
+		return crypto;
 	}
 
-	private byte[] decrypt(byte[] data) throws IllegalBlockSizeException, BadPaddingException {
-		byte[] result = dcipher.doFinal(data);
+	private byte[] run(int mode, byte[] data) throws GeneralSecurityException {
+		boolean encrypt = mode == Cipher.ENCRYPT_MODE;
+		ConcurrentLinkedQueue<Cipher> pool = encrypt ? encrypters : decrypters;
+		AtomicInteger pooled = encrypt ? pooledEncrypters : pooledDecrypters;
+		Cipher cipher = pool.poll();
+		if (cipher != null) {
+			pooled.decrementAndGet();
+		} else {
+			cipher = Cipher.getInstance(TRANSFORMATION);
+			cipher.init(mode, key, iv);
+		}
+		// doFinal resets the cipher to its initialized state when it succeeds; a failed one is dropped
+		byte[] result = cipher.doFinal(data);
+		if (pooled.incrementAndGet() <= POOLED_CIPHERS) {
+			pool.offer(cipher);
+		} else {
+			pooled.decrementAndGet();
+		}
 		return result;
+	}
+
+	private byte[] encrypt(byte[] data) throws GeneralSecurityException {
+		return run(Cipher.ENCRYPT_MODE, data);
+	}
+
+	private byte[] decrypt(byte[] data) throws GeneralSecurityException {
+		return run(Cipher.DECRYPT_MODE, data);
 	}
 
 	// Marker for crypto v2 lib (this character is outside the set of
@@ -108,7 +139,7 @@ public class Crypto2 {
 	 */
 	public static String encodeToHexString(String passphrase, String sData) {
 		try {
-			Crypto2 crypto = new Crypto2(passphrase);
+			Crypto2 crypto = forPassPhrase(passphrase);
 			byte[] data = sData.getBytes("UTF-8");
 			byte[] ciphered = crypto.encrypt(data);
 			String sCiphered = CRYPTO_V2_MARKER + HexUtils.toHexString(ciphered);
@@ -138,7 +169,7 @@ public class Crypto2 {
 	 */
 	public static byte[] encodeToByteArray(String passphrase, byte[] data) {
 		try {
-			Crypto2 crypto = new Crypto2(passphrase);
+			Crypto2 crypto = forPassPhrase(passphrase);
 			byte[] ciphered = crypto.encrypt(data);
 			return ciphered;
 		} catch (Exception e) {
@@ -164,7 +195,7 @@ public class Crypto2 {
 	 */
 	public static String decodeFromHexString(String passphrase, String ciphered) {
 		try {
-			Crypto2 crypto = new Crypto2(passphrase);
+			Crypto2 crypto = forPassPhrase(passphrase);
 			// Remove the new crypto marker before getting the ciphered data
 			String cipheredOnlyData = ciphered.substring(1);
 			byte[] data = HexUtils.fromHexString(cipheredOnlyData);
@@ -195,7 +226,7 @@ public class Crypto2 {
 	 */
 	public static byte[] decodeFromByteArray(String passphrase, byte[] ciphered) {
 		try {
-			Crypto2 crypto = new Crypto2(passphrase);
+			Crypto2 crypto = forPassPhrase(passphrase);
 			byte[] deciphered = crypto.decrypt(ciphered);
 			return deciphered;
 		} catch (Exception e) {

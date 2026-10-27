@@ -51,6 +51,7 @@ tasks.named('check') {
 	dependsOn 'attachmentStreamingTest'
 	dependsOn 'rhinoConsStringTest'
 	dependsOn 'statisticsTest'
+	dependsOn 'crypto2Test'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -273,6 +274,15 @@ tasks.register('statisticsTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.StatisticsTest'
+}
+
+tasks.register('crypto2Test', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: Crypto2 gives the same bytes as when it built its key and ciphers at each call, also from concurrent threads.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.Crypto2Test'
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {
