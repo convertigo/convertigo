@@ -52,6 +52,7 @@ tasks.named('check') {
 	dependsOn 'rhinoConsStringTest'
 	dependsOn 'statisticsTest'
 	dependsOn 'crypto2Test'
+	dependsOn 'redisSessionRewriteTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -283,6 +284,15 @@ tasks.register('crypto2Test', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.Crypto2Test'
+}
+
+tasks.register('redisSessionRewriteTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a Redis session does not write again an attribute whose serialized form is unchanged, and writes one modified in place.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionRewriteTest'
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {
