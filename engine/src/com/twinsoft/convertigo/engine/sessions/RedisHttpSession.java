@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 import jakarta.servlet.ServletContext;
@@ -39,6 +40,9 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	private static final long serialVersionUID = 1L;
 	private static final Object NULL = new Object();
 	private static final LocalAttributeStore LOCAL_STORE = new LocalAttributeStore();
+	// Attributes whose write also updates an index of the store (see RedisSessionStore.writeDelta): written each time they
+	// are set, even unchanged, so that the counted sessions index keeps the session as before.
+	private static final Set<String> ALWAYS_WRITTEN = Set.of(SessionAttribute.countedSession.value());
 
 	private final transient SessionStore store;
 	private final transient RedisSessionConfiguration configuration;
@@ -60,6 +64,13 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	private final Map<String, Object> cache = new HashMap<>();
 	private final Set<String> dirtyAttributes = new HashSet<>();
 	private final Set<String> removedAttributes = new HashSet<>();
+	// The serialized form Redis holds for an attribute, as this session knows it: read by getAttribute or written by
+	// flush. A dirty attribute that serializes to the same form is not written again; one modified in place serializes
+	// differently and is written.
+	private final Map<String, String> storedForms = new HashMap<>();
+	// Serialized forms read with the metadata of the session (null for an attribute not stored), used by the first
+	// getAttribute of each one instead of a read of its own
+	private final Map<String, String> prefetched = new HashMap<>();
 
 	private RedisHttpSession(SessionStore store, RedisSessionConfiguration configuration, ServletContext servletContext, String id,
 			long creationTime, long lastAccessedTime, int maxInactiveInterval, boolean isNew) {
@@ -86,8 +97,12 @@ final class RedisHttpSession implements HttpSession, Serializable {
 
 	static RedisHttpSession fromMeta(SessionStore store, ServletContext servletContext, RedisSessionConfiguration configuration,
 			String id, SessionStoreMeta meta) {
-		return new RedisHttpSession(store, configuration, servletContext, id, meta.creationTime(), meta.lastAccessedTime(),
+		var session = new RedisHttpSession(store, configuration, servletContext, id, meta.creationTime(), meta.lastAccessedTime(),
 				meta.maxInactiveInterval(), false);
+		if (meta.attributes() != null) {
+			session.prefetched.putAll(meta.attributes());
+		}
+		return session;
 	}
 
 	void markAccessed() {
@@ -118,7 +133,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			}
 
 			for (var name : removedAttributes) {
-				if (name != null) {
+				if (name != null && !SessionAttributeFilter.isNeverStored(name)) {
 					hdel.add(name);
 				}
 			}
@@ -134,12 +149,18 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				value = value == NULL ? null : value;
 				value = SessionAttributeFilter.sanitizeValue(this, name, value);
 				if (value == null) {
-					hdel.add(name);
+					if (!SessionAttributeFilter.isNeverStored(name)) {
+						hdel.add(name);
+					}
 					cache.put(name, NULL);
 					continue;
 				}
 				try {
-					hset.put(name, codec.serialize(name, value));
+					var serialized = codec.serialize(name, value);
+					if (serialized != null && serialized.equals(storedForms.get(name)) && !ALWAYS_WRITTEN.contains(name)) {
+						continue;
+					}
+					hset.put(name, serialized);
 				} catch (Exception e) {
 					Engine.logRedis.warn("(RedisHttpSession) Skip attribute '" + name + "' serialization failure", e);
 					hdel.add(name);
@@ -155,6 +176,14 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			var ttlMillis = ttlSeconds > 0 ? ttlSeconds * 1000L : 0L;
 			if (!hset.isEmpty() || !hdel.isEmpty() || ttlMillis > 0) {
 				store.writeDelta(id, hset, hdel, ttlMillis);
+			}
+			for (var entry : hset.entrySet()) {
+				if (!entry.getKey().startsWith(SessionStoreKeys.META_PREFIX) && entry.getValue() != null) {
+					storedForms.put(entry.getKey(), entry.getValue());
+				}
+			}
+			for (var name : hdel) {
+				storedForms.remove(name);
 			}
 
 			dirtyCreation = false;
@@ -228,14 +257,21 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				var v = cache.get(name);
 				return v == NULL ? null : v;
 			}
-			var raw = store.readAttribute(id, name);
+			if (SessionAttributeFilter.isNeverStored(name)) {
+				// flush never writes it: no need to read it
+				cache.put(name, NULL);
+				return null;
+			}
+			var raw = prefetched.containsKey(name) ? prefetched.remove(name) : store.readAttribute(id, name);
 			if (raw == null) {
 				cache.put(name, NULL);
+				storedForms.remove(name);
 				return null;
 			}
 			try {
 				var value = codec.deserialize(name, raw);
 				cache.put(name, value != null ? value : NULL);
+				storedForms.put(name, raw);
 				return value;
 			} catch (Exception e) {
 				Engine.logRedis.warn("(RedisHttpSession) Failed to deserialize attribute '" + name + "'", e);
@@ -314,6 +350,8 @@ final class RedisHttpSession implements HttpSession, Serializable {
 					cache.clear();
 					dirtyAttributes.clear();
 					removedAttributes.clear();
+					storedForms.clear();
+					prefetched.clear();
 				}
 			}
 		}

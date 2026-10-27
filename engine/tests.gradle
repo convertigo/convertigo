@@ -57,6 +57,12 @@ tasks.named('check') {
 	dependsOn 'invalidRequestSessionTest'
 	dependsOn 'ngxBuildSettingsTest'
 	dependsOn 'attachmentStreamingTest'
+	dependsOn 'rhinoConsStringTest'
+	dependsOn 'statisticsTest'
+	dependsOn 'crypto2Test'
+	dependsOn 'redisSessionRewriteTest'
+	dependsOn 'redisSessionReadTest'
+	dependsOn 'redisSessionStoreLiveTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -355,6 +361,63 @@ tasks.register('sharedJavaScriptCachesTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.SharedJavaScriptCachesTest'
+}
+
+tasks.register('rhinoConsStringTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a concatenated string of Rhino shared between threads gives the same text to all of them (patched ConsString).'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.RhinoConsStringTest'
+}
+
+tasks.register('statisticsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: concurrent requests, each with its own statistics, keep exact shared totals.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.StatisticsTest'
+}
+
+tasks.register('crypto2Test', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: Crypto2 gives the same bytes as when it built its key and ciphers at each call, also from concurrent threads.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.Crypto2Test'
+}
+
+tasks.register('redisSessionRewriteTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a Redis session does not write again an attribute whose serialized form is unchanged, and writes one modified in place.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionRewriteTest'
+}
+
+tasks.register('redisSessionReadTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a Redis session reads the attributes needed at each request with its metadata, and never reads nor deletes in Redis the attributes it never stores there.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionReadTest'
+}
+
+tasks.register('redisSessionStoreLiveTest', JavaExec) {
+	group = 'verification'
+	description = 'Redis session store against a disposable Redis, skipped without -PredisSessionTestHost=host:port: metadata and engine attributes read in one command, sessions indexes kept by the write script, counted sessions checked in batches.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionStoreLiveTest'
+	if (project.hasProperty('redisSessionTestHost')) {
+		systemProperty 'redisSessionTestHost', project.property('redisSessionTestHost')
+	}
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {

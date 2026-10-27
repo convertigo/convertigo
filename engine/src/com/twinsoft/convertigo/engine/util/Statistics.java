@@ -32,6 +32,7 @@ public class Statistics {
     
     private Map<String, Long> latestDuration = new HashMap<String, Long>(32);
     
+    // Shared by all the instances: only used under the lock of the class.
     private static Map<String, String> tasks = new HashMap<String, String>(BUFFER_SIZE);
     
     private static Map<String, Long> sums = new HashMap<String, Long>(BUFFER_SIZE);
@@ -40,7 +41,7 @@ public class Statistics {
     
     private static long id = 0;
     
-    public void clearLatestDurations() {
+    public synchronized void clearLatestDurations() {
     	latestDuration.clear();
     }
     
@@ -94,7 +95,10 @@ public class Statistics {
     public synchronized String start(String taskID) {
         long t0 = System.currentTimeMillis();
         String statID = getNextId() + "/" + t0;
-        String currentTaskID = tasks.put(statID, taskID);
+        String currentTaskID;
+        synchronized (Statistics.class) {
+            currentTaskID = tasks.put(statID, taskID);
+        }
         
         if (currentTaskID != null) {
         	Engine.logEngine.warn("(Statistics) Duplicate statistics ID: " + statID);
@@ -130,8 +134,9 @@ public class Statistics {
         try {
             long t1 = System.currentTimeMillis();
             long t0 = Long.parseLong(statID.substring(statID.indexOf("/") + 1));
-            taskID = tasks.get(statID);
-            tasks.remove(statID);
+            synchronized (Statistics.class) {
+                taskID = tasks.remove(statID);
+            }
             
             long thisDuration = Math.max(t1 - t0, 0);
             
@@ -142,24 +147,7 @@ public class Statistics {
                 }
             }
 
-            try {
-                l = dividers.get(taskID);
-                l++;
-            }
-            catch(Exception e){
-            	l = 1;
-            }
-            dividers.put(taskID, l);
-            
-            // Computes average time for this task.
-            try {
-                long sum = sums.get(taskID);
-                sum += thisDuration;
-                sums.put(taskID, sum);
-            }
-            catch(Exception e){
-                sums.put(taskID, thisDuration);
-            }
+            l = accumulate(taskID, thisDuration);
                 
 			latestDuration.put(taskID, thisDuration);
             
@@ -170,33 +158,18 @@ public class Statistics {
         	Engine.logEngine.warn("   statID=" + statID);
         	Engine.logEngine.warn("   taskID=" + taskID);
         	Engine.logEngine.warn("   l=" + l);
-        	Engine.logEngine.warn("   dividers=" + dividers);
+        	String dividersText;
+        	synchronized (Statistics.class) {
+        		dividersText = String.valueOf(dividers);
+        	}
+        	Engine.logEngine.warn("   dividers=" + dividersText);
             return -1;
         }
     }
     
     public synchronized void add(String taskID, long duration) {
         try {
-        	long l = 0;
-            try {
-                l = dividers.getOrDefault(taskID, 0L);
-                l++;
-            }
-            catch(Exception e){
-            	l = 1;
-            }
-
-            dividers.put(taskID, l);
-            
-            // Computes average time for this task.
-            try {
-                long al = sums.get(taskID);
-                al += duration;
-                sums.put(taskID, al);
-            }
-            catch(Exception e){
-                sums.put(taskID, duration);
-            }
+            accumulate(taskID, duration);
 
             latestDuration.put(taskID, Long.valueOf(duration));
         }
@@ -225,6 +198,18 @@ public class Statistics {
     public static synchronized void reset(String taskID) {
         sums.remove(taskID);
         dividers.remove(taskID);
+    }
+    
+    /**
+     * Adds a duration to the totals of a task, used to compute its average.
+     *
+     * @return the number of durations of the task.
+     */
+    private static synchronized long accumulate(String taskID, long duration) {
+        long l = dividers.getOrDefault(taskID, 0L) + 1;
+        dividers.put(taskID, l);
+        sums.put(taskID, sums.getOrDefault(taskID, 0L) + duration);
+        return l;
     }
     
     /**

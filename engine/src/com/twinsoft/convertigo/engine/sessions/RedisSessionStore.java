@@ -21,13 +21,17 @@ package com.twinsoft.convertigo.engine.sessions;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import jakarta.servlet.http.HttpSession;
 
+import org.redisson.api.BatchOptions;
 import org.redisson.api.RBucket;
+import org.redisson.api.RFuture;
 import org.redisson.api.RMap;
 import org.redisson.api.RScript;
 import org.redisson.api.RSet;
@@ -36,6 +40,7 @@ import org.redisson.client.codec.StringCodec;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 final class RedisSessionStore implements SessionStore {
@@ -44,6 +49,24 @@ final class RedisSessionStore implements SessionStore {
 	private static final String INDEX_LEGACY_LICENSED_SESSIONS = "index:licensedSessions";
 	private static final String INDEX_COUNTED_SESSIONS_BILLING = "index:countedSessionsBilling";
 	private static final String TOMBSTONE_SESSION_PREFIX = "tombstone:session:";
+	private static final Set<String> META_FIELDS = Set.of(SessionStoreKeys.META_CREATION, SessionStoreKeys.META_LAST_ACCESS,
+			SessionStoreKeys.META_MAX_INACTIVE);
+	/**
+	 * Attributes the engine reads at each request of a stored session: read with its metadata, in the same command,
+	 * instead of one command each. Reading one that is not stored costs nothing more.
+	 */
+	static final Set<String> PREFETCHED_ATTRIBUTES = Set.of(SessionAttribute.authenticatedUser.value(),
+			SessionAttribute.countedSession.value(), SessionAttribute.exception.value(), "customController",
+			"convertigo.session.timeout", Parameter.UIid.name(), Parameter.DeviceUUID.name());
+	private static final Set<String> META_AND_PREFETCHED_FIELDS;
+	static {
+		var fields = new HashSet<String>(META_FIELDS);
+		fields.addAll(PREFETCHED_ATTRIBUTES);
+		META_AND_PREFETCHED_FIELDS = Set.copyOf(fields);
+	}
+	// Writes the delta of a session, unless it was invalidated, and keeps the sessions indexes in the same call:
+	// KEYS = session hash, tombstone, sessions index, counted sessions index, legacy licensed sessions index;
+	// ARGV = ttl, set count, fields and values, delete count, fields, session id, counted mode (1 keep, 2 drop, 0 none).
 	private static final String LUA_HSET_DEL_AND_TOUCH = ""
 			+ "local key=KEYS[1]; local tomb=KEYS[2];\n"
 			+ "if redis.call('EXISTS', tomb) == 1 then return 0 end\n"
@@ -51,9 +74,17 @@ final class RedisSessionStore implements SessionStore {
 			+ "local idx=3;\n"
 			+ "if setCount>0 then redis.call('HSET', key, unpack(ARGV, idx, idx + setCount*2 - 1)); idx = idx + setCount*2; end\n"
 			+ "local delCount=tonumber(ARGV[idx]); idx = idx + 1;\n"
-			+ "if delCount>0 then redis.call('HDEL', key, unpack(ARGV, idx, idx + delCount - 1)); end\n"
+			+ "if delCount>0 then redis.call('HDEL', key, unpack(ARGV, idx, idx + delCount - 1)); idx = idx + delCount; end\n"
 			+ "if ttl and ttl>0 then redis.call('PEXPIRE', key, ttl) end\n"
+			+ "local id=ARGV[idx]; local counted=tonumber(ARGV[idx + 1]);\n"
+			+ "redis.call('SADD', KEYS[3], id)\n"
+			+ "if counted == 1 then redis.call('SADD', KEYS[4], id); redis.call('SREM', KEYS[5], id)\n"
+			+ "elseif counted == 2 then redis.call('SREM', KEYS[4], id); redis.call('SREM', KEYS[5], id) end\n"
 			+ "return 1\n";
+	private static final int COUNTED_NONE = 0;
+	private static final int COUNTED_KEEP = 1;
+	private static final int COUNTED_DROP = 2;
+	private static final int STORED_CHECK_BATCH = 1000;
 
 	private final RedissonClient client;
 	private final RedisSessionConfiguration configuration;
@@ -102,15 +133,26 @@ final class RedisSessionStore implements SessionStore {
 	private Set<String> collectCountedSessionIds() {
 		var staleSessionIds = new ArrayList<String>();
 		var validSessionIds = new HashSet<String>();
+		var sessionIds = new ArrayList<String>();
 		for (var sessionId : readCountedSessionIdsIndex()) {
-			if (sessionId == null || sessionId.isBlank()) {
+			if (sessionId != null && !sessionId.isBlank()) {
+				sessionIds.add(sessionId);
+			}
+		}
+		for (int from = 0; from < sessionIds.size(); from += STORED_CHECK_BATCH) {
+			var chunk = sessionIds.subList(from, Math.min(from + STORED_CHECK_BATCH, sessionIds.size()));
+			List<Boolean> stored;
+			try {
+				stored = areStored(chunk);
+			} catch (Exception e) {
+				// not known: still counted, checked again at the next count
+				Engine.logRedis.debug("(RedisSessionStore) Failed to check counted sessions: " + e.getMessage());
+				validSessionIds.addAll(chunk);
 				continue;
 			}
-			if (readMeta(sessionId) == null) {
-				staleSessionIds.add(sessionId);
-				continue;
+			for (int i = 0; i < chunk.size(); i++) {
+				(stored.get(i) ? validSessionIds : staleSessionIds).add(chunk.get(i));
 			}
-			validSessionIds.add(sessionId);
 		}
 		if (!staleSessionIds.isEmpty()) {
 			int score = validSessionIds.size() + staleSessionIds.size();
@@ -125,6 +167,25 @@ final class RedisSessionStore implements SessionStore {
 			}
 		}
 		return validSessionIds;
+	}
+
+	/**
+	 * For each session, whether its metadata is stored (as {@link #readMeta} finds it), read for all of them in one
+	 * pipelined call instead of two commands per session.
+	 */
+	private List<Boolean> areStored(List<String> sessionIds) {
+		var batch = client.createBatch(BatchOptions.defaults());
+		var replies = new ArrayList<RFuture<Map<String, String>>>(sessionIds.size());
+		for (var sessionId : sessionIds) {
+			replies.add(batch.<String, String>getMap(configuration.key(sessionId), StringCodec.INSTANCE).getAllAsync(META_FIELDS));
+		}
+		batch.execute();
+		var stored = new ArrayList<Boolean>(sessionIds.size());
+		for (var reply : replies) {
+			var meta = reply.toCompletableFuture().join();
+			stored.add(meta != null && !meta.isEmpty());
+		}
+		return stored;
 	}
 
 	boolean upsertCountedSessionBillingSnapshot(HttpSession session) {
@@ -224,23 +285,23 @@ final class RedisSessionStore implements SessionStore {
 	@Override
 	public SessionStoreMeta readMeta(String sessionId) {
 		try {
-			var rmap = map(sessionId);
-			if (!rmap.isExists()) {
+			// a single HMGET: the metadata, absent when the session is not stored, and the attributes read by every request
+			var meta = map(sessionId).getAll(META_AND_PREFETCHED_FIELDS);
+			if (meta == null || !(meta.containsKey(SessionStoreKeys.META_CREATION) || meta.containsKey(SessionStoreKeys.META_LAST_ACCESS)
+					|| meta.containsKey(SessionStoreKeys.META_MAX_INACTIVE))) {
 				Engine.logRedis.debug("(RedisSessionStore) MISS " + sessionId);
-				return null;
-			}
-			var meta = rmap.getAll(Set.of(SessionStoreKeys.META_CREATION, SessionStoreKeys.META_LAST_ACCESS,
-					SessionStoreKeys.META_MAX_INACTIVE));
-			if (meta == null || meta.isEmpty()) {
-				Engine.logRedis.debug("(RedisSessionStore) MISS(meta) " + sessionId);
 				return null;
 			}
 			var now = System.currentTimeMillis();
 			var creationTime = parseLong(meta.get(SessionStoreKeys.META_CREATION), now);
 			var lastAccessedTime = parseLong(meta.get(SessionStoreKeys.META_LAST_ACCESS), creationTime);
 			var maxInactive = parseInt(meta.get(SessionStoreKeys.META_MAX_INACTIVE), configuration.getDefaultTtlSeconds());
+			var attributes = new HashMap<String, String>();
+			for (var name : PREFETCHED_ATTRIBUTES) {
+				attributes.put(name, meta.get(name));
+			}
 			Engine.logRedis.debug("(RedisSessionStore) HIT(meta) " + sessionId);
-			return new SessionStoreMeta(creationTime, lastAccessedTime, maxInactive);
+			return new SessionStoreMeta(creationTime, lastAccessedTime, maxInactive, attributes);
 		} catch (Exception e) {
 			Engine.logRedis.warn("(RedisSessionStore) Failed to read session meta " + sessionId, e);
 			return null;
@@ -289,7 +350,7 @@ final class RedisSessionStore implements SessionStore {
 							|| hdel.contains(SessionAttribute.legacyLicensedSession.value()));
 			var setCount = hset != null ? hset.size() : 0;
 			var delCount = hdel != null ? hdel.size() : 0;
-			var args = new ArrayList<Object>(2 + setCount * 2 + 1 + delCount);
+			var args = new ArrayList<Object>(2 + setCount * 2 + 1 + delCount + 2);
 			args.add(ttlMillis);
 			args.add(setCount);
 			if (setCount > 0) {
@@ -302,28 +363,16 @@ final class RedisSessionStore implements SessionStore {
 			if (delCount > 0) {
 				args.addAll(hdel);
 			}
+			args.add(sessionId);
+			args.add(keepCountedSession ? COUNTED_KEEP : dropCountedSession ? COUNTED_DROP : COUNTED_NONE);
 
 			String key = configuration.key(sessionId);
 			String tombstone = configuration.getContextKeyPrefix() + TOMBSTONE_SESSION_PREFIX + sessionId;
 			Number written = client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH,
-					RScript.ReturnType.LONG, java.util.List.of(key, tombstone), args.toArray());
-			try {
-				if (written != null && written.longValue() == 1L) {
-					sessionsIndex.add(sessionId);
-					if (keepCountedSession) {
-						countedSessionsIndex.add(sessionId);
-						legacyLicensedSessionsIndex.remove(sessionId);
-					} else if (dropCountedSession) {
-						countedSessionsIndex.remove(sessionId);
-						legacyLicensedSessionsIndex.remove(sessionId);
-					}
-				}
-			} catch (Exception e) {
-				Engine.logRedis.debug("(RedisSessionStore) Failed to update sessions index for " + sessionId + ": "
-						+ e.getMessage());
-			}
+					RScript.ReturnType.LONG, java.util.List.of(key, tombstone, sessionsIndex.getName(),
+							countedSessionsIndex.getName(), legacyLicensedSessionsIndex.getName()), args.toArray());
 			Engine.logRedis.debug("(RedisSessionStore) FLUSH " + sessionId + " set=" + setCount + " del="
-					+ delCount + " ttlMillis=" + ttlMillis);
+					+ delCount + " ttlMillis=" + ttlMillis + (written != null && written.longValue() == 1L ? "" : " (invalidated)"));
 		} catch (Exception e) {
 			Engine.logRedis.warn("(RedisSessionStore) Failed to flush delta for session " + sessionId, e);
 		}
