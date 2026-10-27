@@ -4,6 +4,7 @@
 package com.twinsoft.convertigo.engine.flow.rows;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import org.codehaus.jettison.json.JSONException;
 import org.mozilla.javascript.BaseFunction;
@@ -16,16 +17,19 @@ import com.twinsoft.convertigo.engine.util.DetachedJson;
 /**
  * A chunk of detached rows, shown to scripts as a read-only array: a row becomes a script object only when it is
  * read. The row kernels and emit take its Java rows as they are, without converting them.
+ * <p>
+ * A chunk kept in the scope of a parallel loop is read by several lanes: a row view is published once, safely, and
+ * every thread reads the same one.
  */
 public final class RowChunk extends ScriptableObject {
 	private static final long serialVersionUID = 1L;
 	private final transient List<Object> rows;
-	private final transient Object[] views;
-	private transient BaseFunction toJson;
+	private final transient AtomicReferenceArray<Object> views;
+	private transient volatile BaseFunction toJson;
 
 	public RowChunk(List<Object> rows, Scriptable scope) {
 		this.rows = rows;
-		this.views = new Object[rows.size()];
+		this.views = new AtomicReferenceArray<>(rows.size());
 		var top = ScriptableObject.getTopLevelScope(scope);
 		setParentScope(top);
 		setPrototype(ScriptableObject.getArrayPrototype(top));
@@ -41,11 +45,12 @@ public final class RowChunk extends ScriptableObject {
 	}
 
 	@Override public Object get(int index, Scriptable start) {
-		if (index < 0 || index >= views.length) return NOT_FOUND;
-		var view = views[index];
+		if (index < 0 || index >= views.length()) return NOT_FOUND;
+		var view = views.get(index);
 		if (view == null && rows.get(index) != null) {
 			try {
-				view = views[index] = DetachedJson.toScriptable(rows.get(index), getParentScope());
+				var created = DetachedJson.toScriptable(rows.get(index), getParentScope());
+				view = views.compareAndSet(index, null, created) ? created : views.get(index);
 			} catch (JSONException e) {
 				throw Context.throwAsScriptRuntimeEx(e);
 			}
@@ -54,11 +59,11 @@ public final class RowChunk extends ScriptableObject {
 	}
 
 	@Override public boolean has(int index, Scriptable start) {
-		return index >= 0 && index < views.length;
+		return index >= 0 && index < views.length();
 	}
 
 	@Override public Object get(String name, Scriptable start) {
-		if ("length".equals(name)) return (double) views.length;
+		if ("length".equals(name)) return (double) views.length();
 		if ("toJSON".equals(name)) return toJson();
 		return super.get(name, start);
 	}
@@ -70,7 +75,7 @@ public final class RowChunk extends ScriptableObject {
 			toJson = new BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
 				private static final long serialVersionUID = 1L;
 				@Override public Object call(Context cx, Scriptable callScope, Scriptable thisObj, Object[] args) {
-					var items = new Object[views.length];
+					var items = new Object[views.length()];
 					for (int i = 0; i < items.length; i++) items[i] = RowChunk.this.get(i, RowChunk.this);
 					return cx.newArray(scope, items);
 				}
@@ -100,7 +105,7 @@ public final class RowChunk extends ScriptableObject {
 	}
 
 	@Override public Object[] getIds() {
-		var ids = new Object[views.length];
+		var ids = new Object[views.length()];
 		for (int i = 0; i < ids.length; i++) ids[i] = i;
 		return ids;
 	}
