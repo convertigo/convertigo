@@ -692,6 +692,16 @@ tasks.register('flowStatelessRuntimeTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'flowStatelessRuntimeTest' }
 
+tasks.register('flowParallelChunksTest', JavaExec) {
+	group = 'verification'
+	description = 'Parallel chunk lanes: real threads, sequential results, run state owned by one thread, read-only caller scopes, cancellation.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowParallelChunksTest'
+}
+tasks.named('check') { dependsOn 'flowParallelChunksTest' }
+
 tasks.register('childInvocationTest', JavaExec) {
     group = 'verification'
     description = 'Internal invocation policy, inherited cancellation, session isolation and real billing tickets.'

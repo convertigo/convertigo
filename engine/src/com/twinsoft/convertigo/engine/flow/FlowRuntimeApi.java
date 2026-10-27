@@ -98,6 +98,53 @@ public final class FlowRuntimeApi {
         } catch (Exception error) { child.close(); throw error; }
     }
 
+    /** Up to requested lanes running body(lanes, index) on threads of the shared pool (see ParallelLanes). A lane has
+     * its own Rhino context and frame: the bindings of the calling frame, its project packages and the project directory
+     * of its state, but no Convertigo context, which belongs to the calling thread. Null outside a frame or when no
+     * thread is free: the caller then runs the tasks itself. */
+    public ParallelLanes openLanes(int requested, org.mozilla.javascript.Function body) {
+        var frame = current.get();
+        if (frame == null || requested < 1 || body == null) return null;
+        var cx = Context.getCurrentContext();
+        var bindings = new java.util.LinkedHashMap<String, Object>();
+        for (Object id : frame.scope.getIds()) {
+            if (id instanceof String name && name.startsWith("__flow") && !name.equals("__flowExecutionState"))
+                bindings.put(name, frame.scope.get(name, frame.scope));
+        }
+        var inherited = new java.util.LinkedHashMap<String, Object>();
+        if (frame.state != null) for (var name : new String[] { "projectDirOverride", "activeRequestFallback" }) {
+            var value = ScriptableObject.getProperty(frame.state, name);
+            if (value != Scriptable.NOT_FOUND && value != null && !org.mozilla.javascript.Undefined.isUndefined(value)) inherited.put(name, value);
+        }
+        var generation = FlowEngineBridge.currentProjectGeneration();
+        int languageVersion = cx.getLanguageVersion();
+        boolean interpreted = cx.isInterpretedMode();
+        var wrapFactory = cx.getWrapFactory();
+        var applicationLoader = cx.getApplicationClassLoader();
+        var threadLoader = Thread.currentThread().getContextClassLoader();
+        return ParallelLanes.open(Math.min(requested, 64), (lanes, index) -> {
+            var thread = Thread.currentThread();
+            var previousLoader = thread.getContextClassLoader();
+            thread.setContextClassLoader(threadLoader);
+            try (var laneCx = Context.enter()) {
+                laneCx.setLanguageVersion(languageVersion);
+                laneCx.setInterpretedMode(interpreted);
+                if (wrapFactory != null) laneCx.setWrapFactory(wrapFactory);
+                if (applicationLoader != null) laneCx.setApplicationClassLoader(applicationLoader);
+                try (var lane = enter(laneCx)) {
+                    bindings.forEach((name, value) -> lane.scope.put(name, lane.scope, value));
+                    FlowPackages.initializeChildScope(lane.scope, shared);
+                    FlowPackages.bind(laneCx, lane.scope, generation);
+                    var state = state();
+                    inherited.forEach((name, value) -> state.put(name, state, value));
+                    body.call(laneCx, lane.scope, lane.scope, new Object[] { Context.javaToJS(lanes, lane.scope), index });
+                }
+            } finally {
+                thread.setContextClassLoader(previousLoader);
+            }
+        });
+    }
+
     private String childFallback(com.twinsoft.convertigo.beans.core.RequestableObject target, Scriptable input, Object parent) {
         if (com.twinsoft.convertigo.engine.Engine.isStudioMode() || !Boolean.getBoolean("convertigo.javascript.stateless")
                 || "false".equals(System.getProperty("convertigo.javascript.direct_calls"))) return "disabled";

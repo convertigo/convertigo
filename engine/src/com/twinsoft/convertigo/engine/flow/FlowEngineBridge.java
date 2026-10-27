@@ -1999,6 +1999,12 @@ public class FlowEngineBridge {
 		return new CachedEngineRuntimeLookup(runtime, parent.pool(), true, false, parent.key(), parent.generation(), parent.size(), true);
 	}
 
+	/** @return the class path generation of the call running on this thread, null for none (the engine) */
+	static ClassLoader currentProjectGeneration() {
+		var frame = currentRuntime.get();
+		return frame == null ? null : frame.projectGeneration();
+	}
+
 	/**
 	 * @return the generation of the class path of the project of a call: the one of the Convertigo context running a
 	 *         Flow, else the one of the project the request names; null for none
