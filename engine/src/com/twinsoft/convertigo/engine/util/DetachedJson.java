@@ -54,6 +54,8 @@ public final class DetachedJson {
 	}
 
 	Object copy(Object value, String key) throws JSONException {
+		// the rows of a chunk are already detached
+		if (value instanceof com.twinsoft.convertigo.engine.flow.rows.RowChunk chunk) return new ArrayList<Object>(chunk.rows());
 		if (value instanceof Scriptable scriptable) {
 			var toJson = ScriptableObject.getProperty(scriptable, "toJSON");
 			if (toJson instanceof Callable callable) value = callable.call(cx, scope, scriptable, new Object[] {key});

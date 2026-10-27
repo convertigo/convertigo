@@ -46,10 +46,12 @@ public final class EmitSpool implements ResultDocument.RawRowSource {
 		this.maxChars = maxBytes;
 	}
 
-	/** Appends emitted rows: a script array or list of rows, or one row object. */
+	/** Appends emitted rows: a chunk, a script array or list of rows, or one row object. */
 	public void append(Object value, Context cx, Scriptable scope) throws IOException, JSONException {
 		if (reading || closed) throw new RowStreamException("ROW_STREAM_CONSUMED", 409);
-		if (value instanceof List<?> list) {
+		if (value instanceof RowChunk chunk) {
+			for (var item : chunk.rows()) appendRow(item, cx, scope);
+		} else if (value instanceof List<?> list) {
 			for (var item : list) appendRow(item, cx, scope);
 		} else if (value instanceof Scriptable array && cx != null && "Array".equals(array.getClassName())) {
 			var length = (int) org.mozilla.javascript.ScriptRuntime.toUint32(array.get("length", array));

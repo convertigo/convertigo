@@ -86,6 +86,30 @@ public class EmitSpoolTest {
 		}
 	}
 
+	@Test public void chunksAreAppendedWithoutConversion() throws Exception {
+		var cx = org.mozilla.javascript.Context.enter();
+		try {
+			var scope = cx.initStandardObjects();
+			List<Object> rows = List.of(JsonValues.object("id", 1, "tags", List.of("a")), JsonValues.object("id", 2));
+			var chunk = new com.twinsoft.convertigo.engine.flow.rows.RowChunk(rows, scope);
+			org.mozilla.javascript.ScriptableObject.putProperty(scope, "chunk", chunk);
+			assertEquals(2.0, cx.evaluateString(scope, "chunk.length", "length", 1, null));
+			assertEquals(Boolean.TRUE, cx.evaluateString(scope, "Array.isArray(chunk) && chunk[0].tags[0] === 'a'", "read", 1, null));
+			assertEquals("[{\"id\":1,\"tags\":[\"a\"]},{\"id\":2}]", cx.evaluateString(scope, "JSON.stringify(chunk)", "json", 1, null));
+			try { cx.evaluateString(scope, "chunk[0] = {}", "write", 1, null); fail("read-only chunk"); }
+			catch (org.mozilla.javascript.EvaluatorException expected) { assertTrue(expected.getMessage().contains("read-only")); }
+			var spool = new EmitSpool(100, 1_000_000);
+			spool.append(chunk, cx, scope);
+			assertEquals(2, spool.rows());
+			assertEquals(List.of("a"), JsonValues.list(spool.next().get("tags")));
+			assertEquals(2, ((Number) spool.next().get("id")).intValue());
+			spool.close();
+			assertEquals(rows, com.twinsoft.convertigo.engine.util.DetachedJson.map(cx.evaluateString(scope, "({rows: chunk})", "detach", 1, null), cx, scope).get("rows"));
+		} finally {
+			org.mozilla.javascript.Context.exit();
+		}
+	}
+
 	@Test public void limitsAndConsumptionAreEnforced() throws Exception {
 		var spool = new EmitSpool(2, 1_000_000);
 		spool.append(List.of(JsonValues.object("id", 1), JsonValues.object("id", 2)), null, null);

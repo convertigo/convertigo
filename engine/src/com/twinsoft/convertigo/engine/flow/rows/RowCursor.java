@@ -14,7 +14,6 @@ import java.util.Map;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.util.DetachedJson;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.JsonValues;
 
@@ -58,10 +57,10 @@ public final class RowCursor implements AutoCloseable {
 		}
 	}
 
-	/** The next rows, at most size, as a script array; null after the last row. */
+	/** The next rows, at most size, as a chunk read by scripts as an array; null after the last row. */
 	public Object next(int size, Scriptable scope) throws Exception {
 		var rows = nextRows(size);
-		return rows == null ? null : DetachedJson.toScriptable(rows, scope);
+		return rows == null ? null : new RowChunk(rows, scope);
 	}
 
 	/** The next rows, at most size, as detached Java rows; null after the last row. */
