@@ -361,6 +361,17 @@ The default `ENABLE_JDWP_DEBUG` value is **false** and can be defined this way:
 
 Do not expose port 8000 outside a trusted development network.
 
+## `AOT_CACHE` Environment variable
+
+The JVM of the image (JDK 25) can start with an ahead-of-time cache ([JEP 483](https://openjdk.org/jeps/483), [JEP 514](https://openjdk.org/jeps/514), [JEP 515](https://openjdk.org/jeps/515)): the classes loaded and linked and the method profiles of a training run are reused by the next starts, which shortens the start-up and the first requests. This is disabled by default.
+
+- `AOT_CACHE=deploy`: the first start trains a cache with the deployed projects. The cache is written in `AOT_CACHE_DIR` (default `/workspace/aot`, about 80 MB) `AOT_CACHE_TRAINING` seconds (default `120`) after the engine start, and the next starts use it. A new cache is trained when the image, the JDK, the server libraries or the JVM options change; older caches are removed after a day.
+- `AOT_CACHE=image`: uses the cache trained without project when the image was built with `--build-arg AOT_CACHE_IMAGE=true`.
+
+The cache is not used with `ENABLE_JDWP_DEBUG=true` or when `JAVA_OPTS` contains AOT or CDS options. When a cache does not match the JVM, for example after adding an `--add-opens` option to `JAVA_OPTS`, the JVM logs `[aot]` errors and starts normally without it. Writing a cache uses about 350 MB of additional memory for a few seconds.
+
+    docker run -d --name C8O -e AOT_CACHE=deploy -p 28080:28080 convertigo
+
 ## Pre configurated `docker compose` stack
 
 You can use this [README](https://github.com/convertigo/docker/tree/compose) to run a complete Convertigo Low Code server.
