@@ -55,6 +55,7 @@ tasks.named('check') {
 	dependsOn 'redisSessionRewriteTest'
 	dependsOn 'redisSessionReadTest'
 	dependsOn 'redisSessionStoreLiveTest'
+	dependsOn 'redisSessionWrittenBeforeResponseTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -316,6 +317,15 @@ tasks.register('redisSessionStoreLiveTest', JavaExec) {
 	if (project.hasProperty('redisSessionTestHost')) {
 		systemProperty 'redisSessionTestHost', project.property('redisSessionTestHost')
 	}
+}
+
+tasks.register('redisSessionWrittenBeforeResponseTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: with the Redis session store, what a request changed in its session is stored before its response can reach the client, and the end of the request writes only what changed after.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionWrittenBeforeResponseTest'
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {

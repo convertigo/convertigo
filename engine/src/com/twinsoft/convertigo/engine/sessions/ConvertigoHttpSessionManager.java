@@ -264,6 +264,22 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 		}
 	}
 
+	/**
+	 * Writes now, in the session store, what the session of this request changed so far: called before the context lock
+	 * of the request is released and before its response is sent, so that the next requests find it. The end of the
+	 * request ({@link #flushBuffers()}) writes what changes after. No-op without a buffered session.
+	 */
+	public void flushRequestSession(HttpServletRequest request) {
+		try {
+			var current = provider;
+			if (current != null) {
+				current.flushRequestSession(request);
+			}
+		} catch (Exception e) {
+			Engine.logRedis.debug("(ConvertigoSessionManager) flushRequestSession failed: " + e.getMessage());
+		}
+	}
+
 	public int estimateCountedSessions() {
 		try {
 			return provider != null ? provider.estimateCountedSessions() : 0;

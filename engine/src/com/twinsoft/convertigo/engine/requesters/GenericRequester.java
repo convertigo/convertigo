@@ -78,6 +78,10 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSLTUtils;
 
 public abstract class GenericRequester extends Requester {
+	// Requests being processed by the requesters of a thread: 1 for the request of a client, more while it runs other
+	// requests in the same thread (a sequence calling another one)
+	private static final ThreadLocal<int[]> processingDepth = ThreadLocal.withInitial(() -> new int[1]);
+
 	protected boolean newHttpSession;
 
 	public boolean isNewHttpSession() {
@@ -269,6 +273,8 @@ public abstract class GenericRequester extends Requester {
 		Object result = null;
 		boolean needRetry;
 		boolean addStatistics = false;
+		var depth = processingDepth.get();
+		boolean outermost = ++depth[0] == 1;
 
 		try {
 			do {
@@ -311,6 +317,7 @@ public abstract class GenericRequester extends Requester {
 							+ " requests(s) pending) [" + context.hashCode() + "]");
 
 					boolean shouldEvictFromCache = false;
+					HttpServletRequest sessionRequest = null;
 					try {
 						// Update log4j context infos
 						Log4jHelper.mdcInit(context);
@@ -371,6 +378,7 @@ public abstract class GenericRequester extends Requester {
 								if (ConvertigoHttpSessionManager.isRedisMode()) {
 									shouldEvictFromCache = !context.willRemoveContext() && !isContainerContext && !requestCacheActive;
 								}
+								sessionRequest = context.httpServletRequest;
 								context.clearRequest();
 							}
 						}
@@ -381,10 +389,16 @@ public abstract class GenericRequester extends Requester {
 						if (shouldEvictFromCache) {
 							Engine.theApp.contextManager.evictFromCache(context);
 						}
+						if (outermost && sessionRequest != null && ConvertigoHttpSessionManager.isRedisMode()) {
+							// the next request of this context, here or on another instance, waits for this lock: it
+							// must find in the session store what this request changed in its session
+							ConvertigoHttpSessionManager.getInstance().flushRequestSession(sessionRequest);
+						}
 					}
 				}
 			} while (needRetry);
 		} finally {
+			depth[0]--;
 			if (context != null) {
 				String stats = null;
 
