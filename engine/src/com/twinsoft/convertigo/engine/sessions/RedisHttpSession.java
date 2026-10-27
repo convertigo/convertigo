@@ -70,6 +70,9 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	// flush. A dirty attribute that serializes to the same form is not written again; one modified in place serializes
 	// differently and is written.
 	private final Map<String, String> storedForms = new HashMap<>();
+	// Serialized forms read with the metadata of the session (null for an attribute not stored), used by the first
+	// getAttribute of each one instead of a read of its own
+	private final Map<String, String> prefetched = new HashMap<>();
 
 	private RedisHttpSession(SessionStore store, RedisSessionConfiguration configuration, ServletContext servletContext, String id,
 			long creationTime, long lastAccessedTime, int maxInactiveInterval, boolean isNew) {
@@ -96,8 +99,12 @@ final class RedisHttpSession implements HttpSession, Serializable {
 
 	static RedisHttpSession fromMeta(SessionStore store, ServletContext servletContext, RedisSessionConfiguration configuration,
 			String id, SessionStoreMeta meta) {
-		return new RedisHttpSession(store, configuration, servletContext, id, meta.creationTime(), meta.lastAccessedTime(),
+		var session = new RedisHttpSession(store, configuration, servletContext, id, meta.creationTime(), meta.lastAccessedTime(),
 				meta.maxInactiveInterval(), false);
+		if (meta.attributes() != null) {
+			session.prefetched.putAll(meta.attributes());
+		}
+		return session;
 	}
 
 	void markAccessed() {
@@ -128,7 +135,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			}
 
 			for (var name : removedAttributes) {
-				if (name != null) {
+				if (name != null && !SessionAttributeFilter.isNeverStored(name)) {
 					hdel.add(name);
 				}
 			}
@@ -144,7 +151,9 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				value = value == NULL ? null : value;
 				value = SessionAttributeFilter.sanitizeValue(this, name, value);
 				if (value == null) {
-					hdel.add(name);
+					if (!SessionAttributeFilter.isNeverStored(name)) {
+						hdel.add(name);
+					}
 					cache.put(name, NULL);
 					continue;
 				}
@@ -255,7 +264,12 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				var v = cache.get(name);
 				return v == NULL ? null : v;
 			}
-			var raw = store.readAttribute(id, name);
+			if (SessionAttributeFilter.isNeverStored(name)) {
+				// flush never writes it: no need to read it
+				cache.put(name, NULL);
+				return null;
+			}
+			var raw = prefetched.containsKey(name) ? prefetched.remove(name) : store.readAttribute(id, name);
 			if (raw == null) {
 				cache.put(name, NULL);
 				storedForms.remove(name);
@@ -364,6 +378,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 					dirtyAttributes.clear();
 					removedAttributes.clear();
 					storedForms.clear();
+					prefetched.clear();
 				}
 			}
 		}

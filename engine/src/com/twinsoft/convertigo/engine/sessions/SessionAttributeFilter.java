@@ -109,6 +109,14 @@ final class SessionAttributeFilter {
 		return sessionTtl > 0 ? sessionTtl : projectContextTtl;
 	}
 
+	/**
+	 * True for an attribute that {@link #sanitizeValue} never lets go to the store, whatever its value: it is neither read
+	 * from nor deleted in the store.
+	 */
+	static boolean isNeverStored(String name) {
+		return name != null && (isTechnicalAttribute(name) || !shouldKeep(name));
+	}
+
 	static boolean isTechnicalAttribute(String name) {
 		if (name == null) {
 			return false;

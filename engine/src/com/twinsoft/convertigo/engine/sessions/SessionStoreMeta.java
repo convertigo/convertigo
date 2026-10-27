@@ -19,6 +19,15 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
-public record SessionStoreMeta(long creationTime, long lastAccessedTime, int maxInactiveInterval) {
+import java.util.Map;
+
+/**
+ * Metadata of a stored session, with the serialized forms of the attributes read in the same command, by name (a null
+ * form for an attribute that is not stored).
+ */
+public record SessionStoreMeta(long creationTime, long lastAccessedTime, int maxInactiveInterval, Map<String, String> attributes) {
+	public SessionStoreMeta(long creationTime, long lastAccessedTime, int maxInactiveInterval) {
+		this(creationTime, lastAccessedTime, maxInactiveInterval, Map.of());
+	}
 }
 

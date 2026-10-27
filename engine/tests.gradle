@@ -53,6 +53,7 @@ tasks.named('check') {
 	dependsOn 'statisticsTest'
 	dependsOn 'crypto2Test'
 	dependsOn 'redisSessionRewriteTest'
+	dependsOn 'redisSessionReadTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -293,6 +294,15 @@ tasks.register('redisSessionRewriteTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionRewriteTest'
+}
+
+tasks.register('redisSessionReadTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a Redis session reads the attributes needed at each request with its metadata, and never reads nor deletes in Redis the attributes it never stores there.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionReadTest'
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {

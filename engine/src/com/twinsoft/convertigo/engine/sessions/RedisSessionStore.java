@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.sessions;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +37,7 @@ import org.redisson.client.codec.StringCodec;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 final class RedisSessionStore implements SessionStore {
@@ -44,6 +46,21 @@ final class RedisSessionStore implements SessionStore {
 	private static final String INDEX_LEGACY_LICENSED_SESSIONS = "index:licensedSessions";
 	private static final String INDEX_COUNTED_SESSIONS_BILLING = "index:countedSessionsBilling";
 	private static final String TOMBSTONE_SESSION_PREFIX = "tombstone:session:";
+	private static final Set<String> META_FIELDS = Set.of(SessionStoreKeys.META_CREATION, SessionStoreKeys.META_LAST_ACCESS,
+			SessionStoreKeys.META_MAX_INACTIVE);
+	/**
+	 * Attributes the engine reads at each request of a stored session: read with its metadata, in the same command,
+	 * instead of one command each. Reading one that is not stored costs nothing more.
+	 */
+	static final Set<String> PREFETCHED_ATTRIBUTES = Set.of(SessionAttribute.authenticatedUser.value(),
+			SessionAttribute.countedSession.value(), SessionAttribute.exception.value(), "customController",
+			"convertigo.session.timeout", Parameter.UIid.name(), Parameter.DeviceUUID.name());
+	private static final Set<String> META_AND_PREFETCHED_FIELDS;
+	static {
+		var fields = new HashSet<String>(META_FIELDS);
+		fields.addAll(PREFETCHED_ATTRIBUTES);
+		META_AND_PREFETCHED_FIELDS = Set.copyOf(fields);
+	}
 	private static final String LUA_HSET_DEL_AND_TOUCH = ""
 			+ "local key=KEYS[1]; local tomb=KEYS[2];\n"
 			+ "if redis.call('EXISTS', tomb) == 1 then return 0 end\n"
@@ -224,23 +241,23 @@ final class RedisSessionStore implements SessionStore {
 	@Override
 	public SessionStoreMeta readMeta(String sessionId) {
 		try {
-			var rmap = map(sessionId);
-			if (!rmap.isExists()) {
+			// a single HMGET: the metadata, absent when the session is not stored, and the attributes read by every request
+			var meta = map(sessionId).getAll(META_AND_PREFETCHED_FIELDS);
+			if (meta == null || !(meta.containsKey(SessionStoreKeys.META_CREATION) || meta.containsKey(SessionStoreKeys.META_LAST_ACCESS)
+					|| meta.containsKey(SessionStoreKeys.META_MAX_INACTIVE))) {
 				Engine.logRedis.debug("(RedisSessionStore) MISS " + sessionId);
-				return null;
-			}
-			var meta = rmap.getAll(Set.of(SessionStoreKeys.META_CREATION, SessionStoreKeys.META_LAST_ACCESS,
-					SessionStoreKeys.META_MAX_INACTIVE));
-			if (meta == null || meta.isEmpty()) {
-				Engine.logRedis.debug("(RedisSessionStore) MISS(meta) " + sessionId);
 				return null;
 			}
 			var now = System.currentTimeMillis();
 			var creationTime = parseLong(meta.get(SessionStoreKeys.META_CREATION), now);
 			var lastAccessedTime = parseLong(meta.get(SessionStoreKeys.META_LAST_ACCESS), creationTime);
 			var maxInactive = parseInt(meta.get(SessionStoreKeys.META_MAX_INACTIVE), configuration.getDefaultTtlSeconds());
+			var attributes = new HashMap<String, String>();
+			for (var name : PREFETCHED_ATTRIBUTES) {
+				attributes.put(name, meta.get(name));
+			}
 			Engine.logRedis.debug("(RedisSessionStore) HIT(meta) " + sessionId);
-			return new SessionStoreMeta(creationTime, lastAccessedTime, maxInactive);
+			return new SessionStoreMeta(creationTime, lastAccessedTime, maxInactive, attributes);
 		} catch (Exception e) {
 			Engine.logRedis.warn("(RedisSessionStore) Failed to read session meta " + sessionId, e);
 			return null;
