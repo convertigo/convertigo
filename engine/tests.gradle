@@ -54,6 +54,7 @@ tasks.named('check') {
 	dependsOn 'crypto2Test'
 	dependsOn 'redisSessionRewriteTest'
 	dependsOn 'redisSessionReadTest'
+	dependsOn 'redisSessionStoreLiveTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -303,6 +304,18 @@ tasks.register('redisSessionReadTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionReadTest'
+}
+
+tasks.register('redisSessionStoreLiveTest', JavaExec) {
+	group = 'verification'
+	description = 'Redis session store against a disposable Redis, skipped without -PredisSessionTestHost=host:port: metadata and engine attributes read in one command, sessions indexes kept by the write script, counted sessions checked in batches.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionStoreLiveTest'
+	if (project.hasProperty('redisSessionTestHost')) {
+		systemProperty 'redisSessionTestHost', project.property('redisSessionTestHost')
+	}
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {
