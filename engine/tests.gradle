@@ -49,6 +49,7 @@ tasks.named('check') {
 	dependsOn 'invalidRequestSessionTest'
 	dependsOn 'ngxBuildSettingsTest'
 	dependsOn 'attachmentStreamingTest'
+	dependsOn 'rhinoConsStringTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -253,6 +254,15 @@ tasks.register('sharedJavaScriptCachesTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.SharedJavaScriptCachesTest'
+}
+
+tasks.register('rhinoConsStringTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a concatenated string of Rhino shared between threads gives the same text to all of them (patched ConsString).'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.RhinoConsStringTest'
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {
