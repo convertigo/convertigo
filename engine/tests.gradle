@@ -50,6 +50,7 @@ tasks.named('check') {
 	dependsOn 'ngxBuildSettingsTest'
 	dependsOn 'attachmentStreamingTest'
 	dependsOn 'rhinoConsStringTest'
+	dependsOn 'statisticsTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -263,6 +264,15 @@ tasks.register('rhinoConsStringTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.RhinoConsStringTest'
+}
+
+tasks.register('statisticsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: concurrent requests, each with its own statistics, keep exact shared totals.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.StatisticsTest'
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {
