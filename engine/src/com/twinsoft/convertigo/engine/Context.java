@@ -210,6 +210,8 @@ public class Context extends AbstractContext implements Cloneable {
 	public transient java.util.Map<String, Object> nativeJsonResponse;
 	public transient java.util.Map<String, Object> nativeJsonAttributes;
 	public transient com.twinsoft.convertigo.engine.flow.rows.ResultDocument nativeRows;
+	/** true while a Flow runs for a requester that writes its emitted rows in stream (set by the Flow, before its run) */
+	public transient boolean rowStreamAccepted;
 	public com.twinsoft.convertigo.engine.flow.rows.ResultDocument takeNativeRows() {
 		var value = nativeRows; nativeRows = null; return value;
 	}

@@ -144,12 +144,15 @@ public class Flow extends Sequence {
 		var runStarted = System.nanoTime();
 		// the context of this request: the field is reset when a request on this object ends, possibly during the run
 		var requestContext = context;
+		var streamRows = requestContext.nativeJson && requester instanceof com.twinsoft.convertigo.engine.requesters.JsonServletRequester;
+		var acceptedBefore = requestContext.rowStreamAccepted;
 		try {
+			requestContext.rowStreamAccepted = streamRows;
 			var response = new FlowEngineBridge().run(this, requestContext, null, null);
 			var bridgeFinished = System.nanoTime();
 			if (response instanceof com.twinsoft.convertigo.engine.flow.rows.StreamResult streamed) {
 				var document = streamed.take();
-				if (requestContext.nativeJson && requester instanceof com.twinsoft.convertigo.engine.requesters.JsonServletRequester) {
+				if (streamRows) {
 					requestContext.nativeRows = document;
 				} else {
 					// Decide the adapter before the first pull: XML, internal calls, REST
@@ -201,6 +204,8 @@ public class Flow extends Sequence {
 			var rows = requestContext.takeNativeRows();
 			if (rows != null) try { rows.close(); } catch (Exception ignored) { }
 			throw new EngineException("Unable to run flow \"" + getName() + "\".", e);
+		} finally {
+			requestContext.rowStreamAccepted = acceptedBefore;
 		}
 	}
 

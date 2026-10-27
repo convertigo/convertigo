@@ -26,6 +26,11 @@ public final class ResultDocument implements AutoCloseable {
 		}
 	}
 	public record Completion(boolean complete, boolean committed, long rows, long bytes, long elapsedMillis, int status) { }
+	/** A source whose rows are already encoded JSON objects, appended as they are to the response. */
+	public interface RawRowSource extends RowSource {
+		/** Appends the next encoded row to target, or returns false at the end. */
+		boolean nextRaw(StringBuilder target) throws IOException;
+	}
 	private enum State { NEW, PREPARING, PREPARED, WRITING, COLLECTING, CLOSED }
 	private final RowSource source;
 	private final String field;
@@ -83,11 +88,22 @@ public final class ResultDocument implements AutoCloseable {
 	private boolean pullIntoBuffer() throws IOException {
 		if (state == State.CLOSED) throw new RowStreamException("ROW_STREAM_CANCELLED",499);
 		if (ended) return false;
-		var row = source.next();
-		if (state == State.CLOSED) throw new RowStreamException("ROW_STREAM_CANCELLED",499);
-		if (row == null) { ended = true; return false; }
-		if (++rows > limits.rows()) throw new RowStreamException("ROW_STREAM_ROW_LIMIT", 413);
-		bytes += encodeRow(row, limits.rowBytes()) + (rows > 1 ? 1 : 0);
+		int length;
+		if (source instanceof RawRowSource raw) {
+			rowBuffer.setLength(0);
+			if (!raw.nextRaw(rowBuffer)) { ended = true; return false; }
+			if (state == State.CLOSED) throw new RowStreamException("ROW_STREAM_CANCELLED",499);
+			if (++rows > limits.rows()) throw new RowStreamException("ROW_STREAM_ROW_LIMIT", 413);
+			length = utf8(rowBuffer);
+			if (length > limits.rowBytes()) throw new RowStreamException("ROW_STREAM_ROW_BYTES", 413);
+		} else {
+			var row = source.next();
+			if (state == State.CLOSED) throw new RowStreamException("ROW_STREAM_CANCELLED",499);
+			if (row == null) { ended = true; return false; }
+			if (++rows > limits.rows()) throw new RowStreamException("ROW_STREAM_ROW_LIMIT", 413);
+			length = encodeRow(row, limits.rowBytes());
+		}
+		bytes += length + (rows > 1 ? 1 : 0);
 		if (bytes > limits.bytes()) throw new RowStreamException("ROW_STREAM_BYTE_LIMIT", 413);
 		return true;
 	}

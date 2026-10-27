@@ -2124,6 +2124,37 @@ public class FlowEngineBridge {
 				}
 			};
 			defineProperty("rows", rows, ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
+			// a result whose field was emitted in stream: its emitted rows come from the spool, its other keys follow them
+			var emitted = new org.mozilla.javascript.BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
+				private static final long serialVersionUID = 1L;
+				@Override public Object call(org.mozilla.javascript.Context cx, Scriptable callScope, Scriptable thisObj, Object[] args) {
+					if (args.length != 4 || !(args[3] instanceof org.mozilla.javascript.Callable policy)
+							|| !(org.mozilla.javascript.Context.jsToJava(args[2], Object.class) instanceof com.twinsoft.convertigo.engine.flow.rows.EmitSpool spool))
+						throw org.mozilla.javascript.Context.reportRuntimeError("A registered emitted field is required");
+					com.twinsoft.convertigo.engine.flow.rows.ResultDocument document = null;
+					try {
+						var envelope = com.twinsoft.convertigo.engine.util.SanitizedJson.map(args[0], cx, callScope, policy);
+						var field = org.mozilla.javascript.Context.toString(args[1]);
+						var result = envelope.get("result") instanceof java.util.Map<?, ?> map ? new java.util.LinkedHashMap<String, Object>(com.twinsoft.convertigo.engine.util.JsonValues.map(map)) : new java.util.LinkedHashMap<String, Object>();
+						// attr is not written by a JSON response (NativeJsonSupport.projectResult)
+						result.remove(field);
+						result.remove("attr");
+						document = new com.twinsoft.convertigo.engine.flow.rows.ResultDocument(spool, field, result,
+								new com.twinsoft.convertigo.engine.flow.rows.ResultDocument.Limits(1_000_000, 256L * 1024 * 1024, 256 * 1024, 2, 512 * 1024));
+						value = new com.twinsoft.convertigo.engine.flow.rows.StreamResult(envelope, document);
+						return token = org.mozilla.javascript.Context.javaToJS(value, callScope);
+					} catch (Exception error) {
+						if (document != null) try { document.close(); } catch (Exception ignored) { }
+						else try { spool.close(); } catch (Exception ignored) { }
+						var failure = cx.newObject(callScope);
+						ScriptableObject.putProperty(failure,"code","ROW_STREAM_EMIT");
+						ScriptableObject.putProperty(failure,"message","Unable to prepare the emitted result");
+						ScriptableObject.putProperty(failure,"status",error instanceof com.twinsoft.convertigo.engine.flow.rows.RowStreamException bounded ? bounded.status() : 500);
+						throw new org.mozilla.javascript.JavaScriptException(failure,"emitted-result",0);
+					}
+				}
+			};
+			defineProperty("emitted", emitted, ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
 
 		}
 		@Override public Object call(org.mozilla.javascript.Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
