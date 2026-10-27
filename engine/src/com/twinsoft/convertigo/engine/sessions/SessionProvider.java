@@ -35,6 +35,14 @@ public interface SessionProvider {
 	}
 
 	/**
+	 * Optional hook for providers that buffer session writes: writes now what the session of this request changed so
+	 * far, the request going on. Default is no-op.
+	 */
+	default void flushRequestSession(HttpServletRequest request) {
+		// no-op
+	}
+
+	/**
 	 * Optional hook to terminate a session by id (admin tools).
 	 */
 	default boolean terminateSession(String sessionId) {

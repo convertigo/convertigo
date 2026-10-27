@@ -35,7 +35,7 @@ public enum SessionAttribute {
     contexts(List.class, KeepMode.NEVER),
     deviceUUID(String.class),
     exception(Throwable.class),
-    fullSyncRequests(HashSet.class),
+    fullSyncRequests(HashSet.class, KeepMode.NEVER),
     isNew(Boolean.class, KeepMode.NEVER),
     countedSession(Boolean.class),
     legacyLicensedSession("__c8o:licensedSession__", Boolean.class),

@@ -43,6 +43,8 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	// Attributes whose write also updates an index of the store (see RedisSessionStore.writeDelta): written each time they
 	// are set, even unchanged, so that the counted sessions index keeps the session as before.
 	private static final Set<String> ALWAYS_WRITTEN = Set.of(SessionAttribute.countedSession.value());
+	// A request that ends this long after its first write refreshes the TTL of its session again
+	private static final long TTL_REFRESH_AFTER_MILLIS = 1000L;
 
 	private final transient SessionStore store;
 	private final transient RedisSessionConfiguration configuration;
@@ -71,6 +73,12 @@ final class RedisHttpSession implements HttpSession, Serializable {
 	// Serialized forms read with the metadata of the session (null for an attribute not stored), used by the first
 	// getAttribute of each one instead of a read of its own
 	private final Map<String, String> prefetched = new HashMap<>();
+	// Attributes handled by a write made before the end of the request (flushChanges) whose value can still be modified
+	// in place: the last write of the request serializes them again and writes those that changed since
+	private final Set<String> mutableWrittenEarly = new HashSet<>();
+	// A write was done by this session object, at writtenAt: the next ones only send what changed since
+	private boolean written;
+	private long writtenAt;
 
 	private RedisHttpSession(SessionStore store, RedisSessionConfiguration configuration, ServletContext servletContext, String id,
 			long creationTime, long lastAccessedTime, int maxInactiveInterval, boolean isNew) {
@@ -114,7 +122,25 @@ final class RedisHttpSession implements HttpSession, Serializable {
 		}
 	}
 
+	/**
+	 * Last write of the request, at its end: what changed since an earlier write of the request (all of it without
+	 * one), and the attributes that an earlier write sent and that were modified in place since.
+	 */
 	void flush() {
+		flush(true);
+	}
+
+	/**
+	 * Writes the changes made so far, before the context lock is released or the response is sent, so that the next
+	 * requests of the session find them. Nothing is sent when nothing changed since an earlier write of the request,
+	 * apart from the last access time. The request keeps its view of the session; the attributes never stored
+	 * (contexts, request objects...) are left to the last write.
+	 */
+	void flushChanges() {
+		flush(false);
+	}
+
+	private void flush(boolean last) {
 		synchronized (mutex) {
 			if (invalidated.get()) {
 				return;
@@ -124,9 +150,6 @@ final class RedisHttpSession implements HttpSession, Serializable {
 
 			if (dirtyCreation) {
 				hset.put(SessionStoreKeys.META_CREATION, Long.toString(creationTime));
-			}
-			if (dirtyLastAccess) {
-				hset.put(SessionStoreKeys.META_LAST_ACCESS, Long.toString(lastAccessedTime));
 			}
 			if (dirtyMaxInactive) {
 				hset.put(SessionStoreKeys.META_MAX_INACTIVE, Integer.toString(maxInactiveInterval));
@@ -138,6 +161,8 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				}
 			}
 
+			var handled = new HashSet<String>();
+			var mutable = new HashSet<String>();
 			for (var name : dirtyAttributes) {
 				if (name == null) {
 					continue;
@@ -145,6 +170,11 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				if (removedAttributes.contains(name)) {
 					continue;
 				}
+				if (!last && SessionAttributeFilter.isNeverStored(name)) {
+					// nothing to write, and the contexts are persisted at the end of the request
+					continue;
+				}
+				handled.add(name);
 				var value = cache.get(name);
 				value = value == NULL ? null : value;
 				value = SessionAttributeFilter.sanitizeValue(this, name, value);
@@ -152,11 +182,16 @@ final class RedisHttpSession implements HttpSession, Serializable {
 					if (!SessionAttributeFilter.isNeverStored(name)) {
 						hdel.add(name);
 					}
-					cache.put(name, NULL);
+					if (last) {
+						cache.put(name, NULL);
+					}
 					continue;
 				}
 				try {
 					var serialized = codec.serialize(name, value);
+					if (!last && isMutable(value)) {
+						mutable.add(name);
+					}
 					if (serialized != null && serialized.equals(storedForms.get(name)) && !ALWAYS_WRITTEN.contains(name)) {
 						continue;
 					}
@@ -164,7 +199,30 @@ final class RedisHttpSession implements HttpSession, Serializable {
 				} catch (Exception e) {
 					Engine.logRedis.warn("(RedisHttpSession) Skip attribute '" + name + "' serialization failure", e);
 					hdel.add(name);
-					cache.put(name, NULL);
+					if (last) {
+						cache.put(name, NULL);
+					}
+				}
+			}
+
+			if (last) {
+				for (var name : mutableWrittenEarly) {
+					if (handled.contains(name) || removedAttributes.contains(name) || hdel.contains(name)) {
+						continue;
+					}
+					var value = cache.get(name);
+					if (value == null || value == NULL) {
+						continue;
+					}
+					try {
+						var serialized = codec.serialize(name, value);
+						if (serialized != null && !serialized.equals(storedForms.get(name))) {
+							hset.put(name, serialized);
+						}
+					} catch (Exception e) {
+						Engine.logRedis.warn("(RedisHttpSession) Skip attribute '" + name + "' serialization failure", e);
+						hdel.add(name);
+					}
 				}
 			}
 
@@ -174,8 +232,22 @@ final class RedisHttpSession implements HttpSession, Serializable {
 
 			var ttlSeconds = maxInactiveInterval > 0 ? maxInactiveInterval : configuration.getDefaultTtlSeconds();
 			var ttlMillis = ttlSeconds > 0 ? ttlSeconds * 1000L : 0L;
-			if (!hset.isEmpty() || !hdel.isEmpty() || ttlMillis > 0) {
-				store.writeDelta(id, hset, hdel, ttlMillis);
+			// The first write of the request refreshes the TTL as before. The next ones are needed for a change only
+			// (the last access time alone moves by a few milliseconds), or at the end of a request that went on long
+			// after its first write, so that the session still expires counting from the end of the request.
+			var now = System.currentTimeMillis();
+			var send = !written || !hset.isEmpty() || !hdel.isEmpty()
+					|| (last && ttlMillis > 0 && now - writtenAt > TTL_REFRESH_AFTER_MILLIS);
+			if (send) {
+				if (dirtyLastAccess) {
+					hset.put(SessionStoreKeys.META_LAST_ACCESS, Long.toString(lastAccessedTime));
+				}
+				if (!hset.isEmpty() || !hdel.isEmpty() || ttlMillis > 0) {
+					store.writeDelta(id, hset, hdel, ttlMillis);
+				}
+				written = true;
+				writtenAt = now;
+				dirtyLastAccess = false;
 			}
 			for (var entry : hset.entrySet()) {
 				if (!entry.getKey().startsWith(SessionStoreKeys.META_PREFIX) && entry.getValue() != null) {
@@ -187,12 +259,27 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			}
 
 			dirtyCreation = false;
-			dirtyLastAccess = false;
 			dirtyMaxInactive = false;
-			dirtyAttributes.clear();
 			removedAttributes.clear();
-			isNew = false;
+			if (last) {
+				dirtyAttributes.clear();
+				mutableWrittenEarly.clear();
+				isNew = false;
+			} else {
+				dirtyAttributes.removeAll(handled);
+				mutableWrittenEarly.removeAll(handled);
+				mutableWrittenEarly.removeAll(hdel);
+				mutableWrittenEarly.addAll(mutable);
+			}
 		}
+	}
+
+	/** False for the values that cannot change once set, which need no new serialization at the end of the request. */
+	private static boolean isMutable(Object value) {
+		return !(value instanceof String || value instanceof Boolean || value instanceof Character || value instanceof Integer
+				|| value instanceof Long || value instanceof Double || value instanceof Float || value instanceof Short
+				|| value instanceof Byte || value instanceof java.math.BigInteger || value instanceof java.math.BigDecimal
+				|| value instanceof Enum<?>);
 	}
 
 	@Override

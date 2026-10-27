@@ -36,8 +36,17 @@ final class RedisSessionProvider implements SessionProvider {
 	private final ThreadLocal<HashMap<String, RedisHttpSession>> threadSessions = ThreadLocal.withInitial(HashMap::new);
 
 	RedisSessionProvider() {
-		configuration = RedisClients.getConfiguration();
-		store = new RedisSessionStore(configuration);
+		this(RedisClients.getConfiguration());
+	}
+
+	private RedisSessionProvider(RedisSessionConfiguration configuration) {
+		this(new RedisSessionStore(configuration), configuration);
+	}
+
+	/** A provider on the given store (tests). */
+	RedisSessionProvider(SessionStore store, RedisSessionConfiguration configuration) {
+		this.configuration = configuration;
+		this.store = store;
 	}
 
 	public HttpSession getSession(HttpServletRequest request, boolean create) {
@@ -100,6 +109,27 @@ final class RedisSessionProvider implements SessionProvider {
 			}
 		} finally {
 			sessions.clear();
+		}
+	}
+
+	@Override
+	public void flushRequestSession(HttpServletRequest request) {
+		if (request == null) {
+			return;
+		}
+		Object session;
+		try {
+			session = request.getAttribute(REQUEST_SESSION_OBJECT_ATTR);
+		} catch (Exception e) {
+			// request no longer usable
+			return;
+		}
+		if (session instanceof RedisHttpSession redisSession) {
+			try {
+				redisSession.flushChanges();
+			} catch (Exception e) {
+				Engine.logRedis.debug("(RedisSessionProvider) flush session changes failed: " + e.getMessage());
+			}
 		}
 	}
 

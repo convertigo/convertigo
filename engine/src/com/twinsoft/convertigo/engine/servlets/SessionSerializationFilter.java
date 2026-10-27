@@ -49,14 +49,20 @@ public class SessionSerializationFilter implements Filter {
 			var effectiveRequest = httpRequest instanceof HttpServletRequestSessionWrapper
 					? httpRequest
 					: new HttpServletRequestSessionWrapper(httpRequest);
-			if (ConvertigoHttpSessionManager.isRedisMode()) {
+			var redisMode = ConvertigoHttpSessionManager.isRedisMode();
+			if (redisMode) {
 				ContextManager.initRequestContextCache(effectiveRequest);
 			}
 			if (response instanceof HttpServletResponse httpResponse) {
 				var cookieName = EnginePropertiesManager.getProperty(PropertyName.SESSION_COOKIE_NAME);
-				var responseWrapper = (cookieName == null || cookieName.isEmpty())
+				// Redis: the session changes are written before the response can reach the client, the end of the
+				// request writes only what changes after
+				Runnable beforeOutput = redisMode
+						? () -> ConvertigoHttpSessionManager.getInstance().flushRequestSession(effectiveRequest)
+						: null;
+				var responseWrapper = (cookieName == null || cookieName.isEmpty()) && beforeOutput == null
 						? httpResponse
-						: new SessionCookieResponseWrapper(httpResponse, cookieName);
+						: new SessionCookieResponseWrapper(httpResponse, cookieName, beforeOutput);
 				try {
 					chain.doFilter(effectiveRequest, responseWrapper);
 				} catch (IOException | ServletException | RuntimeException e) {

@@ -124,9 +124,10 @@ public class RedisSessionRewriteTest {
 		writer.setAttribute("entry", value);
 		writer.flush();
 		assertEquals(Set.of("entry"), fresh.lastWritten());
+		var writes = fresh.written.size();
 		writer.setAttribute("entry", value);
 		writer.flush();
-		assertTrue("unchanged since it was written", fresh.lastWritten().isEmpty());
+		assertEquals("unchanged since it was written: the same session object sends nothing", writes, fresh.written.size());
 		value.put("count", 3);
 		writer.setAttribute("entry", value);
 		writer.flush();
