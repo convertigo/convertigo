@@ -17,6 +17,24 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 /** Constructed only by the registered result boundary, from an owned detached plan. */
 public final class RowPlanFactory {
 	private RowPlanFactory() { }
+
+	private static final class EmptyRows implements RowSource {
+		@Override public Map<String, Object> next() { return null; }
+		@Override public void close() { }
+	}
+
+	/** The pure row kernels of the Flow engine library, in Java, when its helpers are available to the caller. */
+	@SuppressWarnings("unchecked")
+	private static java.util.function.Function<Object, Object> javaPipeline(Object java, ClassLoader generation) {
+		if (!(java instanceof Map<?, ?> spec) || generation == null) return null;
+		try {
+			var rows = Class.forName("com.convertigo.libflowengine.Rows", true, generation);
+			if (!Boolean.TRUE.equals(rows.getMethod("available").invoke(null))) return null;
+			return (java.util.function.Function<Object, Object>) rows.getMethod("javaPipeline", Object.class).invoke(null, spec.get("steps"));
+		} catch (ReflectiveOperationException | LinkageError | ClassCastException unavailable) {
+			return null;
+		}
+	}
 	public static ResultDocument create(Map<String, Object> plan, ClassLoader generation) throws Exception {
 		var limit = JsonValues.map(plan.get("limits"));
 		var output = new ResultDocument.Limits(((Number) limit.get("rows")).longValue(), ((Number) limit.get("bytes")).longValue(),
@@ -48,9 +66,17 @@ public final class RowPlanFactory {
 		try {
 			source = new PagedJsonRows(client, ownClient, uri, headers, ((String) http.get("items")), ((String) http.get("next")), bounds,
 					JsonValues.number(plan, "take",0), ((Number) http.get("connectTimeout")).intValue(), ((Number) http.get("readTimeout")).intValue(), redactions, dropKeys, JsonValues.text(http, "pageParameter",""));
-			source = new RowProducerRuntime(source, new RowProducerRuntime.Plan(((String) transform.get("bootstrap")), sources,
+			var producerPlan = new RowProducerRuntime.Plan(((String) transform.get("bootstrap")), sources,
 					JsonValues.map(transform.get("input")), ((String) transform.get("entry")), JsonValues.text(transform, "finish",""),
-					JsonValues.bool(plan, "collect",false),output.rows(),(int)output.bytes()), generation);
+					JsonValues.bool(plan, "collect",false),output.rows(),(int)output.bytes());
+			var java = javaPipeline(transform.get("java"), generation);
+			if (java != null) {
+				// the JavaScript producer only gives the metadata of an empty result
+				source = new JavaRowTransform(source, java, JsonValues.map(JsonValues.map(transform.get("java")).get("metadata")),
+						() -> new RowProducerRuntime(new EmptyRows(), producerPlan, generation));
+			} else {
+				source = new RowProducerRuntime(source, producerPlan, generation);
+			}
 			return new ResultDocument(source, ((String) plan.get("field")), JsonValues.map(plan.get("fields")), output);
 		} catch (Exception error) {
 			if (source != null) { try { source.close(); } catch (Exception ignored) { } }

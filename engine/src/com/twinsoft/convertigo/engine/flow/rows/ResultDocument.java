@@ -38,6 +38,10 @@ public final class ResultDocument implements AutoCloseable {
 	private int status = 200;
 	private String preparedMetadata;
 	private Consumer<Completion> completion;
+	// The rows are encoded one at a time by the owner of the document: one buffer, reused, instead of a growing
+	// writer per row; the streaming loop writes the buffer itself.
+	private final StringBuilder rowBuffer = new StringBuilder(4096);
+	private char[] rowChars = new char[4096];
 
 	public ResultDocument(RowSource source, String field, Map<String, Object> fields, Limits limits) throws IOException {
 		if (source == null || field == null || field.isBlank() || field.length() > 160
@@ -73,16 +77,44 @@ public final class ResultDocument implements AutoCloseable {
 		} catch (Exception e) { failed = true; status = RowStreamException.safe(e).status(); closeQuietly(); throw RowStreamException.safe(e); }
 	}
 	private String pull() throws IOException {
+		return pullIntoBuffer() ? rowBuffer.toString() : null;
+	}
+	/** The next row, encoded in rowBuffer, or false at the end. */
+	private boolean pullIntoBuffer() throws IOException {
 		if (state == State.CLOSED) throw new RowStreamException("ROW_STREAM_CANCELLED",499);
-		if (ended) return null;
+		if (ended) return false;
 		var row = source.next();
 		if (state == State.CLOSED) throw new RowStreamException("ROW_STREAM_CANCELLED",499);
-		if (row == null) { ended = true; return null; }
+		if (row == null) { ended = true; return false; }
 		if (++rows > limits.rows()) throw new RowStreamException("ROW_STREAM_ROW_LIMIT", 413);
-		var encoded = encode(row, limits.rowBytes());
-		bytes += utf8(encoded) + (rows > 1 ? 1 : 0);
+		bytes += encodeRow(row, limits.rowBytes()) + (rows > 1 ? 1 : 0);
 		if (bytes > limits.bytes()) throw new RowStreamException("ROW_STREAM_BYTE_LIMIT", 413);
-		return encoded;
+		return true;
+	}
+	/** Encodes a row in rowBuffer and returns its UTF-8 length. */
+	private int encodeRow(Object value, int limit) throws IOException {
+		rowBuffer.setLength(0);
+		var bounded = new Writer() {
+			private void count(int len) throws IOException {
+				if ((long) rowBuffer.length() + len > limit) throw new RowStreamException("ROW_STREAM_ROW_BYTES", 413);
+			}
+			@Override public void write(char[] data, int off, int len) throws IOException { count(len); rowBuffer.append(data, off, len); }
+			@Override public void write(String data, int off, int len) throws IOException { count(len); rowBuffer.append(data, off, off + len); }
+			@Override public void write(int value) throws IOException { count(1); rowBuffer.append((char) value); }
+			@Override public void flush() { }
+			@Override public void close() { }
+		};
+		try { DetachedJsonWriter.write(value, bounded); } catch (JSONException e) { throw new RowStreamException("ROW_STREAM_INVALID_VALUE", 502); }
+		int length = utf8(rowBuffer);
+		if (length > limit) throw new RowStreamException("ROW_STREAM_ROW_BYTES", 413);
+		return length;
+	}
+	private void writeRowBuffer(Writer output) throws IOException {
+		int length = rowBuffer.length();
+		if (rowChars.length < length) rowChars = new char[Math.max(length, rowChars.length * 2)];
+		rowBuffer.getChars(0, length, rowChars, 0);
+		output.write(rowChars, 0, length);
+		if (rowBuffer.capacity() > 1 << 20) { rowBuffer.setLength(0); rowBuffer.trimToSize(); rowChars = new char[4096]; }
 	}
 	/** The caller distinguishes a precommit exception from a completed partial-error document. */
 	public void writeTo(Writer output) throws IOException { writeTo(output, ""); }
@@ -99,16 +131,19 @@ public final class ResultDocument implements AutoCloseable {
 			String metadata = null;
 			while (true) {
 				String row;
+				boolean buffered = false;
 				if (state == State.CLOSED) throw new IOException("Row response cancelled");
-				try { row = staged.pollFirst(); if (row == null) row = pull(); }
+				try { row = staged.pollFirst(); if (row == null) buffered = pullIntoBuffer(); }
 				catch (Exception e) {
 					if (state == State.CLOSED) throw new IOException("Row response cancelled");
 					failure = RowStreamException.safe(e); break;
 				}
 				if (state == State.CLOSED) throw new IOException("Row response cancelled");
-				if (row == null) break;
+				if (row == null && !buffered) break;
 				// I/O failures are deliberately outside the recoverable producer catch.
-				if (separator) output.write(','); output.write(row); separator = true;
+				if (separator) output.write(',');
+				if (row != null) output.write(row); else writeRowBuffer(output);
+				separator = true;
 				output.flush(); // backpressure and prompt PrintWriter/disconnect detection
 			}
 			if (failure == null) {
@@ -136,7 +171,7 @@ public final class ResultDocument implements AutoCloseable {
 			while (true) {
 				var row = source.next(); if (row == null) break;
 				if (++rows > limits.rows()) throw new RowStreamException("ROW_STREAM_ROW_LIMIT", 413);
-				bytes += utf8(encode(row, limits.rowBytes())) + (rows > 1 ? 1 : 0);
+				bytes += encodeRow(row, limits.rowBytes()) + (rows > 1 ? 1 : 0);
 				if (bytes > limits.bytes()) throw new RowStreamException("ROW_STREAM_BYTE_LIMIT", 413);
 				values.add(row);
 			}
@@ -165,7 +200,7 @@ public final class ResultDocument implements AutoCloseable {
 		return value;
 	}
 	public static int encodedBytes(Object value, int limit) throws IOException { return utf8(encode(value, limit)); }
-	private static int utf8(String text) {
+	private static int utf8(CharSequence text) {
 		// Match the UTF-8 encoder, including its one-byte replacement for an
 		// unpaired surrogate. Counting must not allocate a byte[] for every row.
 		long bytes=0;
