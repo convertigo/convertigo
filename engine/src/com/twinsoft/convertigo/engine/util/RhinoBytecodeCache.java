@@ -128,7 +128,8 @@ public final class RhinoBytecodeCache {
 	/** Size of a cache folder above which the entries read least recently are removed. */
 	static final long DEFAULT_MAX_BYTES = 128L << 20;
 
-	static final int FORMAT = 1;
+	/** 2: the compilation time of an entry is the processor time of the first compilation of its source */
+	static final int FORMAT = 2;
 	private static final byte[] MAGIC = { 'C', '8', 'O', 'R', 'B', 'C', '\n', FORMAT };
 	private static final String SUFFIX = ".rbc";
 	private static final String TEMPORARY = ".tmp";
@@ -913,6 +914,12 @@ public final class RhinoBytecodeCache {
 							Files.deleteIfExists(file);
 						}
 					} else if (name.endsWith(SUFFIX) && attributes.isRegularFile()) {
+						if (outdated(file)) {
+							// another Rhino, patch or format: never read again
+							Files.deleteIfExists(file);
+							statistics.evictions.incrementAndGet();
+							continue;
+						}
 						entries.add(new Object[] { file, attributes.size(), modified });
 						total += attributes.size();
 					}
@@ -939,6 +946,19 @@ public final class RhinoBytecodeCache {
 			} catch (IOException e) {
 				// next one
 			}
+		}
+	}
+
+	/** @return whether the header of an entry names another environment (Rhino, patch, format) than this one */
+	static boolean outdated(Path file) {
+		try (var in = new DataInputStream(new java.io.BufferedInputStream(Files.newInputStream(file), 1024))) {
+			var magic = in.readNBytes(MAGIC.length);
+			if (magic.length < MAGIC.length || !java.util.Arrays.equals(magic, 0, MAGIC.length - 1, MAGIC, 0, MAGIC.length - 1)) {
+				return false;
+			}
+			return magic[MAGIC.length - 1] != FORMAT || !ENVIRONMENT.equals(in.readUTF());
+		} catch (IOException e) {
+			return false;
 		}
 	}
 

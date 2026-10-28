@@ -108,6 +108,7 @@ public class RhinoBytecodeCacheTest {
 		var environment = RhinoBytecodeCache.environmentForTests();
 		assertNotNull("the patched ClassCompiler is on the class path", environment);
 		assertTrue(environment, environment.contains(";patch=c8o-1;format=" + RhinoBytecodeCache.FORMAT));
+		assertEquals(2, RhinoBytecodeCache.FORMAT);
 	}
 
 	@Test public void keyDependsOnSourceNameAndOptions() throws Exception {
@@ -382,6 +383,31 @@ public class RhinoBytecodeCacheTest {
 		assertFalse(Files.exists(stale));
 		assertTrue(Files.exists(recent));
 		assertTrue(RhinoBytecodeCache.statistics.evictions.get() > 0);
+	}
+
+	/** The entries of another Rhino, patch or format are never read again: the first scan removes them. */
+	@Test public void entriesOfAnotherEnvironmentAreRemoved() throws Exception {
+		cache().get(cx, source(11), "kept.js", null);
+		RhinoBytecodeCache.flush();
+		var kept = entryOf(source(11), "kept.js");
+		var older = Files.readAllBytes(kept);
+		older[7] = 1;
+		var formerFormat = folder.resolve("former-format.rbc");
+		Files.write(formerFormat, older);
+		var otherRhino = folder.resolve("other-rhino.rbc");
+		var other = new java.io.ByteArrayOutputStream();
+		var out = new java.io.DataOutputStream(other);
+		out.write(java.util.Arrays.copyOf(Files.readAllBytes(kept), 8));
+		out.writeUTF("rhino=2.0;classes=0;patch=c8o-9;format=" + RhinoBytecodeCache.FORMAT);
+		out.flush();
+		Files.write(otherRhino, other.toByteArray());
+		var foreign = folder.resolve("not-ours.rbc");
+		Files.writeString(foreign, "something else");
+		cache().evict(folder);
+		assertTrue(Files.exists(kept));
+		assertFalse(Files.exists(formerFormat));
+		assertFalse(Files.exists(otherRhino));
+		assertTrue("only the entries of this cache are recognized", Files.exists(foreign));
 	}
 
 	private File project(String name) throws Exception {
