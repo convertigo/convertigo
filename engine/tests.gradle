@@ -51,6 +51,7 @@ tasks.named('check') {
 	dependsOn 'attachmentStreamingTest'
 	dependsOn 'rhinoConsStringTest'
 	dependsOn 'rhinoSessionValuesTest'
+	dependsOn 'rhinoCachedScriptScopeTest'
 	dependsOn 'statisticsTest'
 	dependsOn 'crypto2Test'
 	dependsOn 'redisSessionRewriteTest'
@@ -283,6 +284,15 @@ tasks.register('rhinoSessionValuesTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sessions.RhinoSessionValuesTest'
+}
+
+tasks.register('rhinoCachedScriptScopeTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a script compiled once and cached, reading one of its top-level const, does not keep the scopes of the requests it ran in.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.RhinoCachedScriptScopeTest'
 }
 
 tasks.register('statisticsTest', JavaExec) {
