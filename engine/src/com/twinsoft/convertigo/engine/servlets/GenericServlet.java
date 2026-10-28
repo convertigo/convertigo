@@ -419,13 +419,14 @@ public abstract class GenericServlet extends HttpServlet {
 			Boolean removeContextAttr = (Boolean) request
 					.getAttribute("convertigo.context.removalRequired");
 			if ((removeContextAttr != null) && removeContextAttr.booleanValue()) {
-				removeContext(request);
+				removeContext(request, false);
 			}
 		} else {
 			// other cases (remove context if exist __removeContext
 			// or __removeContext=true/false)
 			if (!("false".equals(removeContextParam))) {
-				removeContext(request);
+				// the response is complete only once this returns: another request of the context removes it at its end
+				removeContext(request, false);
 			}
 		}
 
@@ -446,12 +447,21 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	private void removeContext(HttpServletRequest request) {
+		removeContext(request, true);
+	}
+
+	/** @param wait false: the removal is left to another request holding the context, if any, at its end */
+	private void removeContext(HttpServletRequest request, boolean wait) {
 		if (Engine.isEngineMode()) {
 			Context context = (Context) request.getAttribute("convertigo.context");
 			if (context != null) {
 				Engine.logContext.debug("[GenericServlet] End of context " + context.contextID
 						+ " (" + context + ") required => removing context");
-				Engine.theApp.contextManager.remove(context, request.getSession(false));
+				if (wait) {
+					Engine.theApp.contextManager.remove(context, request.getSession(false));
+				} else {
+					Engine.theApp.contextManager.removeAtEndOfRequest(context, request.getSession(false));
+				}
 			}
 		}
 		request.removeAttribute("convertigo.context");

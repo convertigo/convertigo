@@ -19,7 +19,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * The contexts of a session asked for with a dynamic name (__context=*) by concurrent requests.
+ * The contexts of a session asked for with a dynamic name (__context=*) by concurrent requests, and their removal at
+ * the end of a request (__removeContext) while another request holds them.
  */
 public class DynamicContextTest {
 	private Engine previousEngine;
@@ -74,4 +75,36 @@ public class DynamicContextTest {
 		}
 	}
 
+	@Test
+	public void theEndOfARequestDoesNotWaitForAnotherRequestHoldingItsContext() throws Exception {
+		var context = manager.get(null, "default*", "session", null, "Test", null, "Execute");
+		var holder = Executors.newSingleThreadExecutor();
+		var held = new java.util.concurrent.CountDownLatch(1);
+		var release = new java.util.concurrent.CountDownLatch(1);
+		try {
+			var holding = holder.submit(() -> {
+				try (var lock = manager.lockContext(context)) {
+					held.countDown();
+					release.await(10, TimeUnit.SECONDS);
+				}
+				return null;
+			});
+			assertTrue(held.await(5, TimeUnit.SECONDS));
+			long start = System.nanoTime();
+			assertFalse(manager.removeAtEndOfRequest(context, null));
+			assertTrue("no wait", System.nanoTime() - start < TimeUnit.SECONDS.toNanos(1));
+			assertTrue("left to the request holding it", context.removalRequired());
+			assertSame(context, contexts.get(context.contextID));
+			release.countDown();
+			holding.get(5, TimeUnit.SECONDS);
+			// the holder (or the next request taking it) removes it; free, it is removed at once
+			assertTrue(manager.removeAtEndOfRequest(context, null));
+			assertNull(contexts.get(context.contextID));
+			assertTrue(context.isDestroying);
+			assertNotSame(context, manager.get(null, context.name, "session", null, "Test", null, "Execute"));
+		} finally {
+			release.countDown();
+			holder.shutdownNow();
+		}
+	}
 }

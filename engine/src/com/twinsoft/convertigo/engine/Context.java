@@ -169,7 +169,7 @@ public class Context extends AbstractContext implements Cloneable {
 	private transient Map<String, Connector> used_connectors = new HashMap<String, Connector>();
 	private transient Set<Connector> opened_connectors = new HashSet<Connector>();
 
-	private transient boolean requireRemoval = false;
+	private transient volatile boolean requireRemoval = false;
 
 	private transient Map<String, List<String>> requestHeaders = null;
 

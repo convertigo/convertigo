@@ -454,7 +454,7 @@ tasks.register('multipartUploadFolderTest', JavaExec) {
 
 tasks.register('dynamicContextTest', JavaExec) {
 	group = 'verification'
-	description = 'Regression test: concurrent requests of a session asking for a dynamic context (__context=*) each get their own context.'
+	description = 'Regression test: concurrent requests of a session asking for a dynamic context (__context=*) each get their own context, and the end of a request does not wait for another request holding its context to remove it.'
 	dependsOn sessionTestClasses
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'

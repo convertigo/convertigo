@@ -1500,6 +1500,36 @@ public class ContextManager extends AbstractRunnableManager {
 		remove(context, null);
 	}
 
+	/**
+	 * Removes the context of a request at its end (__removeContext), without waiting for another request that holds
+	 * it: the response of this request is complete only once this returns. The context is then marked, and removed by
+	 * the request holding it at its end, or by the next request that takes it (which then gets a new context).
+	 *
+	 * @return false when the removal is left to the request holding the context
+	 */
+	public boolean removeAtEndOfRequest(Context context, HttpSession requestSession) {
+		if (context == null) {
+			remove(context, requestSession);
+			return true;
+		}
+		AutoCloseable lock = tryLockContext(context, 0);
+		if (lock == null) {
+			context.requireRemoval(true);
+			// the holder may have released the context meanwhile, before seeing the mark
+			lock = tryLockContext(context, 0);
+			if (lock == null) {
+				Engine.logContextManager.debug("Context " + context.contextID + " is used by another request: removed at its end");
+				return false;
+			}
+		}
+		try (var held = lock) {
+			remove(context, requestSession);
+		} catch (Exception e) {
+			Engine.logContextManager.warn("Failed to remove the context " + context.contextID, e);
+		}
+		return true;
+	}
+
 	public void remove(Context context, HttpSession requestSession) {
 		if (context == null) {
 			// Silently ignore
