@@ -23,6 +23,16 @@ import com.twinsoft.convertigo.engine.Context;
 
 public interface ContextStore {
     Context read(String contextId);
+
+    /**
+     * The last access time of the stored state of a context, or null if the context is not stored: a request compares it
+     * with the context it holds to know whether another request changed the context since.
+     */
+    default Long readLastAccessTime(String contextId) {
+        var stored = read(contextId);
+        return stored == null ? null : stored.lastAccessTime;
+    }
+
     void save(Context context, int ttlSeconds);
     void delete(String contextId);
     void deleteBySessionPrefix(String sessionIdPrefix);

@@ -97,6 +97,12 @@ public class Context extends AbstractContext implements Cloneable {
 	public transient boolean noCache = false;
 
 	public transient boolean isDestroying = false;
+
+	/**
+	 * Shared session store: the last access time of the stored state this context was read from, or saved as; 0 for a
+	 * context created here and not stored yet. The store holds another state when its last access time differs.
+	 */
+	public transient long storedAccessTime = 0;
 	public transient boolean isErrorDocument = false;
 
 	/** The JSON of the output steps of a sequence answered as JSON without their XML (Sequence.jsonNativeOutput), by key */

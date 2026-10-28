@@ -317,6 +317,7 @@ public abstract class GenericRequester extends Requester {
 							+ " requests(s) pending) [" + context.hashCode() + "]");
 
 					boolean shouldEvictFromCache = false;
+					boolean shouldSaveBeforeUnlock = false;
 					HttpServletRequest sessionRequest = null;
 					try {
 						// Update log4j context infos
@@ -376,7 +377,9 @@ public abstract class GenericRequester extends Requester {
 									addStatistics = context.requestedObject.getAddStatistics();
 								}
 								if (ConvertigoHttpSessionManager.isRedisMode()) {
-									shouldEvictFromCache = !context.willRemoveContext() && !isContainerContext && !requestCacheActive;
+									boolean kept = !willRemoveContextAtEnd() && !isContainerContext;
+									shouldEvictFromCache = kept && !requestCacheActive;
+									shouldSaveBeforeUnlock = kept && requestCacheActive;
 								}
 								sessionRequest = context.httpServletRequest;
 								context.clearRequest();
@@ -388,6 +391,15 @@ public abstract class GenericRequester extends Requester {
 								+ " request(s) pending) [" + context.hashCode() + "]");
 						if (shouldEvictFromCache) {
 							Engine.theApp.contextManager.evictFromCache(context);
+						} else if (shouldSaveBeforeUnlock
+								&& Engine.theApp.contextManager.isLastHoldOfContextLock(context.contextID)) {
+							// the next request of this context, here or on another instance, waits for this lock: it must
+							// find in the context store what this request changed; the end of the request only evicts it
+							try {
+								Engine.theApp.contextManager.saveBeforeUnlock(cacheRequest, context);
+							} catch (Exception e) {
+								Engine.logContext.warn("[" + getName() + "] Failed to save the context " + context.contextID, e);
+							}
 						}
 						if (outermost && sessionRequest != null && ConvertigoHttpSessionManager.isRedisMode()) {
 							// the next request of this context, here or on another instance, waits for this lock: it
@@ -424,6 +436,11 @@ public abstract class GenericRequester extends Requester {
 		return result;
 	}
 	
+	/** True if the context of this request is removed at its end (sequence default context, __removeContext...). */
+	protected boolean willRemoveContextAtEnd() {
+		return context.willRemoveContext();
+	}
+
 	abstract protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException;
 
 	abstract protected Object addStatisticsAsData(Object result);
@@ -444,6 +461,11 @@ public abstract class GenericRequester extends Requester {
 		context.reset();
 
 		long lastAccessTime = Calendar.getInstance().getTime().getTime();
+		if (ConvertigoHttpSessionManager.isRedisMode() && lastAccessTime <= context.lastAccessTime) {
+			// The last access time tells the requests of a stored context whether it changed since they read it: each
+			// state saved has its own, even within the same millisecond or behind the clock of another instance
+			lastAccessTime = context.lastAccessTime + 1;
+		}
 		Engine.logContext.trace("(ContextManager) updating the last access time for context " + context.contextID + ": " + lastAccessTime);
 		context.lastAccessTime = lastAccessTime;
 

@@ -56,6 +56,7 @@ tasks.named('check') {
 	dependsOn 'redisSessionReadTest'
 	dependsOn 'redisSessionStoreLiveTest'
 	dependsOn 'redisSessionWrittenBeforeResponseTest'
+	dependsOn 'redisContextSavedBeforeUnlockTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -326,6 +327,15 @@ tasks.register('redisSessionWrittenBeforeResponseTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionWrittenBeforeResponseTest'
+}
+
+tasks.register('redisContextSavedBeforeUnlockTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: with the Redis session store, a context changed by a request is in the context store before its lock is released, and the end of the request does not save it again.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisContextSavedBeforeUnlockTest'
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {

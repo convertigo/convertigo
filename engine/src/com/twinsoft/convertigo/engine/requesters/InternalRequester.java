@@ -159,6 +159,13 @@ public class InternalRequester extends GenericRequester {
 		}
 	}
 
+	@Override
+	protected boolean willRemoveContextAtEnd() {
+		// as onFinally decides it: from the parameters of this request, not from those of the HTTP request
+		Map<String, Object> request = GenericUtils.cast(inputData);
+		return context.willRemoveContext(getString(request, Parameter.RemoveContext.getName()));
+	}
+
 	private void removeContext() {
 		if (Engine.isEngineMode()) {
 			if (context != null) {

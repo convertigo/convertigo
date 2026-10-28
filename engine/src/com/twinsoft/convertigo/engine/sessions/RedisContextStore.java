@@ -159,6 +159,23 @@ public final class RedisContextStore implements ContextStore {
 		}
 	}
 	
+	@Override
+	public Long readLastAccessTime(String contextId) {
+		var raw = map(contextId).get("lastAccessTime");
+		if (raw == null) {
+			return null;
+		}
+		raw = raw.trim();
+		if (raw.length() >= 2 && raw.charAt(0) == '"' && raw.charAt(raw.length() - 1) == '"') {
+			raw = raw.substring(1, raw.length() - 1);
+		}
+		try {
+			return Long.parseLong(raw);
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public void save(Context context, int ttlSeconds) {
