@@ -62,10 +62,14 @@ public final class RedisContextStore implements ContextStore {
 			+ "else redis.call('PERSIST', sessionIndex) end\n"
 			+ "end\n";
 
-	// KEYS = context hash, contexts by expiry, index of the session (if any);
+	// KEYS = context hash, contexts by expiry, index of the session and tombstone of the session (if any);
 	// ARGV = ttl, set count, fields and values, delete count, fields, context id, expiry score.
+	// The context of an invalidated session is deleted and dropped from the indexes instead (0): a request that held it
+	// during the invalidation, here or on another instance, saves it at its end.
 	private static final String LUA_HSET_DEL_AND_TOUCH = LUA_INDEX_SESSION
 			+ "local key=KEYS[1]; local ttl=tonumber(ARGV[1]); local setCount=tonumber(ARGV[2]);\n"
+			+ "if KEYS[4] and redis.call('EXISTS', KEYS[4])==1 then local id=ARGV[#ARGV - 1]\n"
+			+ "redis.call('DEL', key); redis.call('ZREM', KEYS[2], id); redis.call('SREM', KEYS[3], id); return 0 end\n"
 			+ "local idx=3;\n"
 			+ "if setCount>0 then redis.call('HSET', key, unpack(ARGV, idx, idx + setCount*2 - 1)); idx = idx + setCount*2; end\n"
 			+ "local delCount=tonumber(ARGV[idx]); idx = idx + 1;\n"
@@ -73,7 +77,7 @@ public final class RedisContextStore implements ContextStore {
 			+ "if ttl and ttl>0 then redis.call('PEXPIRE', key, ttl) end\n"
 			+ "local id=ARGV[idx]; redis.call('ZADD', KEYS[2], ARGV[idx + 1], id)\n"
 			+ "if KEYS[3] then indexSession(KEYS[3], id, ttl or 0) end\n"
-			+ "return true\n";
+			+ "return 1\n";
 
 	// KEYS = contexts by expiry, index of the session (if any), context hashes; ARGV = context ids.
 	private static final String LUA_DELETE = ""
@@ -339,15 +343,20 @@ public final class RedisContextStore implements ContextStore {
 			args.add(context.contextID);
 			args.add(ttlMillis > 0 ? Long.toString(System.currentTimeMillis() + ttlMillis) : "+inf");
 
-			var keys = new ArrayList<Object>(3);
+			var keys = new ArrayList<Object>(4);
 			keys.add(configuration.contextKey(context.contextID));
 			keys.add(contextsByExpiry.getName());
 			var sessionId = sessionIdOf(context.contextID);
 			if (sessionId != null) {
 				keys.add(sessionContextsKey(sessionId));
+				keys.add(RedisSessionStore.tombstoneKey(configuration, sessionId));
 			}
-			client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH, RScript.ReturnType.VALUE,
-					keys, args.toArray());
+			Number saved = client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH,
+					RScript.ReturnType.LONG, keys, args.toArray());
+			if (saved != null && saved.longValue() == 0L) {
+				Engine.logRedis.debug("(RedisContextStore) Context " + context.contextID
+						+ " of an invalidated session deleted instead of saved");
+			}
 		} catch (Exception e) {
 			Engine.logRedis.warn("(RedisContextStore) Failed to save context " + context.contextID, e);
 		}
