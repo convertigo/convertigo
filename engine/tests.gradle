@@ -745,7 +745,7 @@ tasks.register('flowStatelessRuntimeTest', JavaExec) {
 tasks.named('check') { dependsOn 'flowStatelessRuntimeTest' }
 tasks.register('flowRuntimeWarmupTest', JavaExec) {
 	group = 'verification'
-	description = 'Preparation of the runtimes of the projects in the background: when, in which order, stop, failures, and with the actual provider the plan the first run finds prepared.'
+	description = 'Preparation of the runtimes of the projects in the background: when, in which order, stop, failures, deployments, and with the actual provider the plan the first run finds prepared.'
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
@@ -754,7 +754,7 @@ tasks.register('flowRuntimeWarmupTest', JavaExec) {
 tasks.named('check') { dependsOn 'flowRuntimeWarmupTest' }
 tasks.register('flowRuntimeInvalidationTest', JavaExec) {
 	group = 'verification'
-	description = 'A project unloaded prepares again the shared runtimes of it and of the projects using it, not those of the other projects, nor their method responses and file snapshots; preparations by key, at the same time for different keys, never kept for a revision invalidated meanwhile.'
+	description = 'A project unloaded, or imported again after the start, prepares again the shared runtimes of it and of the projects using it, not those of the other projects, nor their method responses and file snapshots; preparations by key, at the same time for different keys, never kept for a revision invalidated meanwhile.'
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'

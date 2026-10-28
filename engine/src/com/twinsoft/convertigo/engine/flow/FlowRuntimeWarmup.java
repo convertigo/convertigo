@@ -65,7 +65,9 @@ import com.twinsoft.convertigo.engine.util.Log4jHelper;
  * another plan prepares it at the same time ({@link FlowRuntimeApi#prepare}). A project requested while waiting for
  * its preparation is prepared next, the project in progress giving way to it after its current Flow
  * ({@link #requested}): its other Flows are prepared while its first requests prepare theirs. The preparation of a project replaced
- * meanwhile stops, as its new version is prepared next; a project whose runtime changed during its preparation (a
+ * meanwhile stops, as its new version is prepared next; a project being deployed ({@link #projectDeploying}), whose files are
+ * replaced until its import, is not prepared, nor the projects using it, until that import, nor their failures meanwhile logged
+ * as warnings; a project whose runtime changed during its preparation (a
  * new generation of its libraries, a project loaded again) is prepared again once. Stopped with the engine, between two
  * Flows. A Flow that cannot be prepared is logged and skipped, its first request reports the error as before.
  * <p>
@@ -102,6 +104,8 @@ public final class FlowRuntimeWarmup {
 	private static final Set<String> retried = new HashSet<>();
 	/** The loaded projects seen with Flows: those a project loaded again may concern. */
 	private static final Set<String> known = new LinkedHashSet<>();
+	/** The projects being deployed, their files replaced until their import: neither they nor those using them are prepared. */
+	private static final Set<String> deploying = new HashSet<>();
 	private static ExecutorService executor;
 	/** The projects of a server are prepared once all of them are loaded at the start. */
 	private static boolean released;
@@ -142,11 +146,17 @@ public final class FlowRuntimeWarmup {
 	 * loaded projects using it. At the start of a server, nothing is prepared before all the projects are loaded.
 	 */
 	public static void projectLoaded(Project project) {
-		if (project == null || !enabled()) {
+		if (project == null) {
 			return;
 		}
 		var name = project.getName();
+		var enabled = enabled();
 		synchronized (lock) {
+			// imported: its deployment ended
+			deploying.remove(name);
+			if (!enabled) {
+				return;
+			}
 			if (Engine.isStudioMode()) {
 				// no loading of all the projects at the start: each one opens on its own
 				released = true;
@@ -156,6 +166,42 @@ public final class FlowRuntimeWarmup {
 			pending.merge(name, released, Boolean::logicalOr);
 			waiting = true;
 			schedule();
+		}
+	}
+
+	/**
+	 * A project is being deployed: until its import its files are removed then written again, so neither it nor the
+	 * loaded projects whose runtime uses it are prepared meanwhile, nor their failures logged as warnings. Its import
+	 * ({@link #projectLoaded}) prepares them as after any load.
+	 */
+	public static void projectDeploying(String name) {
+		synchronized (lock) {
+			deploying.add(name);
+		}
+	}
+
+	/**
+	 * The deployment of a project ended. Imported, it is prepared already ({@link #projectLoaded}); else, the deployment
+	 * failed, the loaded projects using it, put off meanwhile, are prepared.
+	 */
+	public static void projectDeployed(String name) {
+		var enabled = enabled();
+		synchronized (lock) {
+			if (deploying.remove(name) && enabled) {
+				pending.merge(name, released, Boolean::logicalOr);
+				waiting = true;
+				schedule();
+			}
+		}
+	}
+
+	/**
+	 * @return whether the projects of the start are loaded: on a server once {@link #projectsLoaded}, always in the
+	 *         Studio, where each project opens on its own
+	 */
+	static boolean started() {
+		synchronized (lock) {
+			return released || Engine.isStudioMode();
 		}
 	}
 
@@ -216,6 +262,7 @@ public final class FlowRuntimeWarmup {
 			giveWay = false;
 			retried.clear();
 			known.clear();
+			deploying.clear();
 			released = false;
 			draining = false;
 			current = null;
@@ -306,6 +353,12 @@ public final class FlowRuntimeWarmup {
 					next.remove();
 					name = entry.getKey();
 					withDependents = entry.getValue();
+					if (!withDependents && deploying.contains(name)) {
+						// prepared after its import, which loads it again
+						debug("(FlowRuntimeWarmup) Project " + name + " being deployed: prepared after its import", null);
+						waiting = !pending.isEmpty();
+						continue;
+					}
 					if (!withDependents) {
 						current = name;
 						giveWay = false;
@@ -340,7 +393,7 @@ public final class FlowRuntimeWarmup {
 				try {
 					again = pass.prepare(name, cancellation);
 				} catch (Throwable t) {
-					if (!cancellation.cancelled()) {
+					if (!cancellation.cancelled() && !deploying(name)) {
 						warn("(FlowRuntimeWarmup) Unable to prepare the runtime of the project " + name, t);
 					}
 				}
@@ -432,6 +485,11 @@ public final class FlowRuntimeWarmup {
 		if (flows.isEmpty()) {
 			return false;
 		}
+		if (deploying(project, manager)) {
+			// its import, or that of the project it uses, prepares it
+			debug("(FlowRuntimeWarmup) Project " + name + " put off: it or a project it uses is being deployed", null);
+			return false;
+		}
 		var started = System.nanoTime();
 		ClassLoader generation = null;
 		try {
@@ -456,6 +514,10 @@ public final class FlowRuntimeWarmup {
 			if (manager.getLoadedProjectByName(name) != project) {
 				// replaced: its new version is prepared next
 				debug("(FlowRuntimeWarmup) Project " + name + " replaced during its preparation", null);
+				return false;
+			}
+			if (deploying(project, manager)) {
+				debug("(FlowRuntimeWarmup) Preparation of the project " + name + " stopped: it or a project it uses is being deployed", null);
 				return false;
 			}
 			var errors = new ArrayList<String>();
@@ -486,6 +548,11 @@ public final class FlowRuntimeWarmup {
 			if (cancellation.cancelled()) {
 				return false;
 			}
+			if (!errors.isEmpty() && (manager.getLoadedProjectByName(name) != project || deploying(project, manager))) {
+				// its files, or those of a project it uses, replaced meanwhile: prepared again after the import
+				debug("(FlowRuntimeWarmup) Flow " + flow.getQName() + " not prepared during a deployment: " + String.join("; ", errors), null);
+				return false;
+			}
 			if (errors.isEmpty()) {
 				prepared++;
 			} else {
@@ -507,6 +574,30 @@ public final class FlowRuntimeWarmup {
 				+ (failures.isEmpty() ? "" : ", not prepared: " + String.join(", ", failures)));
 		return codeRevision != FlowEngineBridge.cacheGeneration() || dataRevision != FlowEngineBridge.dataRevision(root)
 				|| generation != null && generation != project.getProjectClassLoader();
+	}
+
+	/** @return whether a project is being deployed */
+	private static boolean deploying(String name) {
+		synchronized (lock) {
+			return deploying.contains(name);
+		}
+	}
+
+	/** @return whether a project, or a project its runtime uses, is being deployed: their files are being replaced */
+	private static boolean deploying(Project project, DatabaseObjectsManager manager) {
+		List<String> names;
+		synchronized (lock) {
+			if (deploying.isEmpty()) {
+				return false;
+			}
+			names = new ArrayList<>(deploying);
+		}
+		for (var name : names) {
+			if (name.equals(project.getName()) || uses(project, name, manager, new HashSet<>())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** @return the Flows of a project, in their order */

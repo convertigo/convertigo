@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 /**
  * The shared runtimes of a stateless server when a project is unloaded (deployed, reloaded, imported): those of the
@@ -162,6 +163,8 @@ public class FlowRuntimeInvalidationTest {
 			held.countDown();
 		}
 		pool.shutdownNow();
+		FlowRuntimeWarmup.stop();
+		EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_RUNTIME_WARMUP, PropertyName.JAVASCRIPT_RUNTIME_WARMUP.getDefaultValue());
 		FlowEngineBridge.clearCaches();
 		Engine.theApp = previous;
 		if (workspace != null) {
@@ -527,5 +530,36 @@ public class FlowRuntimeInvalidationTest {
 		}
 		assertTrue(failures.toString(), failures.isEmpty());
 		assertTrue("Runtimes prepared again: " + preparations.get(), preparations.get() > 1);
+	}
+
+	@Test
+	public void aRuntimePreparedBetweenTheUnloadAndTheImportOfALibraryIsNotServedAfterTheImport() throws Exception {
+		var library = project("Library");
+		var application = project("Application", "Library");
+		var unrelated = project("Unrelated");
+		var other = runtime(unrelated);
+		// the projects of the start are loaded, no preparation in the background
+		EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_RUNTIME_WARMUP, "off");
+		FlowRuntimeWarmup.projectsLoaded();
+		// deployed: unloaded, its files replaced, then imported
+		loaded.remove("Library");
+		Flow.projectUnloaded(library);
+		var window = runtime(application);
+		assertSame("Prepared from the files being replaced and kept", window, runtime(application));
+		loaded.put("Library", library);
+		FlowEngineBridge.projectLoaded(library);
+		assertNotSame("Prepared again after the import", window, runtime(application));
+		assertSame(other, runtime(unrelated));
+	}
+
+	@Test
+	public void theLoadsOfTheStartInvalidateNothing() throws Exception {
+		var library = project("Library");
+		var application = project("Application", "Library");
+		var runtime = runtime(application);
+		var revision = FlowEngineBridge.metadataSourceRevision(application.getDirPath());
+		FlowEngineBridge.projectLoaded(library);
+		assertSame(runtime, runtime(application));
+		assertEquals(revision, FlowEngineBridge.metadataSourceRevision(application.getDirPath()));
 	}
 }

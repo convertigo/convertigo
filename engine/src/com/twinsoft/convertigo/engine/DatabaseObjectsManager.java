@@ -1108,6 +1108,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			try {
 				if (existingProject.exists()) {
 					if (bForce) {
+						// its files are replaced until its import: the runtimes are not prepared from them meanwhile
+						com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmup.projectDeploying(targetProjectName);
 						// Deleting existing project if any
 						deleteProject(targetProjectName, DeleteProjectOption.createBackup,
 								DeleteProjectOption.preserveEclipse, DeleteProjectOption.preserveVCS);
@@ -1131,6 +1133,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Engine.logDatabaseObjectManager.debug("Analyzing the archive entries: " + projectArchiveFilename);
 			ZipUtils.expandZip(projectArchiveFilename, projectDirPath, archiveProjectName);
 		} catch (Exception e) {
+			if (targetProjectName != null) {
+				com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmup.projectDeployed(targetProjectName);
+			}
 			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\".",
 					e);
 		}
@@ -1196,6 +1201,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			String reason = e.getMessage();
 			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\""
 					+ (reason == null || reason.isBlank() ? "." : ": " + reason), e);
+		} finally {
+			// imported, its deployment ended already; else the projects using it are prepared
+			com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmup.projectDeployed(targetProjectName);
 		}
 	}
 
@@ -1603,6 +1611,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			// the replacement project and its referenced runtime are ready.
 			com.twinsoft.convertigo.beans.flow.FlowWorkingCopies.projectLoaded(project);
 			ApplicationBuilds.projectLoaded(project);
+			// loaded again after the start: what was prepared from its files while they were replaced is prepared again
+			com.twinsoft.convertigo.engine.flow.FlowEngineBridge.projectLoaded(project);
 			// in the background, once the projects of a starting server are loaded: its first requests find it prepared
 			com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmup.projectLoaded(project);
 			Engine.logDatabaseObjectManager

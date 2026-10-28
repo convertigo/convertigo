@@ -326,6 +326,17 @@ public class FlowEngineBridge {
 		invalidateProjectDataCaches(project.getDirPath(), project.getName());
 	}
 
+	/**
+	 * A project is loaded again after the start (deployed, imported, reloaded): as at its unload, the data caches of it
+	 * and of the projects using it are invalidated, a runtime prepared from its files while they were replaced being
+	 * prepared again. Not for the loads of a server start, whose files are not being replaced.
+	 */
+	public static void projectLoaded(Project project) {
+		if (FlowRuntimeWarmup.started()) {
+			invalidateProjectDataCaches(project.getDirPath(), project.getName());
+		}
+	}
+
 	/** @param name the name of the project, null to find it from its directory */
 	private static void invalidateProjectDataCaches(String directory, String name) {
 		if (directory == null || directory.isBlank()) { invalidateDataCaches(); return; }

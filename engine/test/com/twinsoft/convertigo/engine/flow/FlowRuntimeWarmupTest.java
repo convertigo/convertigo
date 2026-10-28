@@ -316,4 +316,142 @@ public class FlowRuntimeWarmupTest {
 		assertNull("A provider before plan preloads answers without plans",
 				FlowRuntimeWarmup.planOutcome(new JSONObject("{ok:true,blockCount:12}")));
 	}
+
+	@Test
+	public void aProjectBeingDeployedIsPreparedAfterItsImportOnly() throws Exception {
+		FlowRuntimeWarmup.projectsLoaded();
+		using.put("lib", List.of("app", "deployed"));
+		FlowRuntimeWarmup.projectDeploying("deployed");
+		FlowRuntimeWarmup.projectLoaded(project("lib"));
+		idle();
+		assertEquals("Not prepared while its files are replaced", List.of("lib", "app"), prepared);
+		FlowRuntimeWarmup.projectLoaded(project("deployed"));
+		idle();
+		assertEquals("Prepared after its import", List.of("lib", "app", "deployed"), prepared);
+		// its deployment ended with its import
+		FlowRuntimeWarmup.projectDeployed("deployed");
+		idle();
+		assertEquals(List.of("lib", "app", "deployed"), prepared);
+	}
+
+	@Test
+	public void theProjectsUsingAProjectWhoseDeploymentFailedArePrepared() throws Exception {
+		FlowRuntimeWarmup.projectsLoaded();
+		using.put("broken", List.of("app"));
+		FlowRuntimeWarmup.projectDeploying("broken");
+		FlowRuntimeWarmup.projectDeployed("broken");
+		idle();
+		assertEquals(List.of("broken", "app"), prepared);
+	}
+
+	/** A loaded project of the actual pass, with these Flows, referencing these projects. */
+	private static Project loadedProject(Map<String, Project> loaded, java.io.File directory, String name, List<String> references,
+			java.util.function.Supplier<String> source) throws Exception {
+		var list = new ArrayList<com.twinsoft.convertigo.beans.core.Reference>();
+		for (var referenced : references) {
+			var reference = new com.twinsoft.convertigo.beans.references.ProjectSchemaReference();
+			reference.setProjectName(referenced);
+			list.add(reference);
+		}
+		var loader = new ClassLoader(FlowRuntimeWarmupTest.class.getClassLoader()) { };
+		var holder = new AtomicReference<Project>();
+		var flows = new ArrayList<com.twinsoft.convertigo.beans.core.Sequence>();
+		var project = new Project() {
+			@Override public String getDirPath() { return directory.getAbsolutePath(); }
+			@Override public java.io.File getDirFile() { return directory; }
+			@Override public ClassLoader getProjectClassLoader() { return loader; }
+			@Override public List<java.io.File> getLibrariesDirectories() { return List.of(); }
+			@Override public List<com.twinsoft.convertigo.beans.core.Reference> getReferenceList() { return list; }
+			@Override public List<com.twinsoft.convertigo.beans.core.Sequence> getSequencesList() { return flows; }
+		};
+		project.setName(name);
+		holder.set(project);
+		if (source != null) {
+			var flow = new com.twinsoft.convertigo.beans.flow.Flow() {
+				@Override public Project getProject() { return holder.get(); }
+				@Override public String getQName() { return name + ".Check"; }
+				@Override public String getFlowSource() { return source.get(); }
+			};
+			flow.setName("Check");
+			flows.add(flow);
+		}
+		loaded.put(name, project);
+		return project;
+	}
+
+	@Test
+	public void theActualPassPutsOffAProjectWhileItOrAProjectItUsesIsDeployedWithoutWarnings() throws Exception {
+		var warnings = Collections.synchronizedList(new ArrayList<String>());
+		var appender = new org.apache.log4j.AppenderSkeleton() {
+			@Override protected void append(org.apache.log4j.spi.LoggingEvent event) {
+				if (event.getLevel().isGreaterOrEqual(org.apache.log4j.Level.WARN)) warnings.add(String.valueOf(event.getMessage()));
+			}
+			@Override public void close() { }
+			@Override public boolean requiresLayout() { return false; }
+		};
+		var previousApp = Engine.theApp;
+		var workspace = java.nio.file.Files.createTempDirectory("runtime-warmup-deploy-");
+		var loaded = new ConcurrentHashMap<String, Project>();
+		var reads = new java.util.concurrent.atomic.AtomicInteger();
+		var deployedDuringRead = new AtomicReference<String>();
+		var actual = new AtomicBoolean(true);
+		var real = previousPass;
+		var level = Engine.logEngine.getLevel();
+		Engine.logEngine.setLevel(org.apache.log4j.Level.WARN);
+		Engine.logEngine.addAppender(appender);
+		try {
+			Engine.theApp = new Engine();
+			Engine.theApp.databaseObjectsManager = new com.twinsoft.convertigo.engine.DatabaseObjectsManager() {
+				@Override public Project getLoadedProjectByName(String name) { return name == null ? null : loaded.get(name); }
+			};
+			FlowRuntimeWarmup.pass = (name, cancellation) -> {
+				prepared.add(name);
+				return actual.get() && real.prepare(name, cancellation);
+			};
+			loadedProject(loaded, java.nio.file.Files.createDirectories(workspace.resolve("lib")).toFile(), "lib", List.of(), null);
+			var app = loadedProject(loaded, java.nio.file.Files.createDirectories(workspace.resolve("app")).toFile(), "app", List.of("lib"), () -> {
+				reads.incrementAndGet();
+				var deployed = deployedDuringRead.get();
+				if (deployed != null) {
+					// its deployment starts: its files are removed
+					FlowRuntimeWarmup.projectDeploying(deployed);
+				}
+				throw new java.io.UncheckedIOException(new java.nio.file.NoSuchFileException("app/_flow/blocks/native/sourceRequest.block.js"));
+			});
+			FlowRuntimeWarmup.projectsLoaded();
+			// outside a deployment, a Flow that cannot be prepared is a warning
+			FlowRuntimeWarmup.projectLoaded(app);
+			idle();
+			assertTrue("Its Flow was read", reads.get() > 0);
+			assertTrue(warnings.toString(), !warnings.isEmpty() && warnings.get(0).contains("Unable to prepare the Flow app.Check"));
+			warnings.clear();
+			// the library it uses is being deployed: put off, none of its Flows read
+			reads.set(0);
+			FlowRuntimeWarmup.projectDeploying("lib");
+			FlowRuntimeWarmup.projectLoaded(app);
+			idle();
+			assertEquals(0, reads.get());
+			assertTrue(warnings.toString(), warnings.isEmpty());
+			// the library imported, the project is prepared again, its own deployment starting meanwhile: no warning
+			using.put("lib", List.of("app"));
+			deployedDuringRead.set("app");
+			prepared.clear();
+			FlowRuntimeWarmup.projectLoaded(loaded.get("lib"));
+			idle();
+			assertEquals(List.of("lib", "app"), prepared);
+			assertTrue(reads.get() > 0);
+			assertTrue(warnings.toString(), warnings.isEmpty());
+			// imported, it is prepared again
+			actual.set(false);
+			prepared.clear();
+			FlowRuntimeWarmup.projectLoaded(app);
+			idle();
+			assertEquals(List.of("app"), prepared);
+		} finally {
+			Engine.logEngine.removeAppender(appender);
+			Engine.logEngine.setLevel(level);
+			Engine.theApp = previousApp;
+			org.apache.commons.io.FileUtils.deleteDirectory(workspace.toFile());
+		}
+	}
 }
