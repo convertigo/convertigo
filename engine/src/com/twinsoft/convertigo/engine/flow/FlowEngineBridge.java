@@ -1199,10 +1199,17 @@ public class FlowEngineBridge {
 			if (referencedProjectName == null || referencedProjectName.isBlank()) {
 				continue;
 			}
-			Project referencedProject;
+			var databaseObjectsManager = Engine.theApp.databaseObjectsManager;
+			Project referencedProject = databaseObjectsManager.getLoadedProjectByName(referencedProjectName);
+			// a referenced project that is neither loaded nor deployed has no draft: no lookup, which fails with an
+			// exception at each call
+			if (referencedProject == null && !databaseObjectsManager.existsProject(referencedProjectName)) {
+				continue;
+			}
 			try {
-				referencedProject = Engine.theApp.databaseObjectsManager
-						.getOriginalProjectByName(referencedProjectName, true);
+				if (referencedProject == null) {
+					referencedProject = databaseObjectsManager.getOriginalProjectByName(referencedProjectName, true);
+				}
 			} catch (Exception e) {
 				Engine.logEngine.debug("(FlowEngineBridge) Unable to collect Flow drafts from referenced project \""
 						+ referencedProjectName + "\".", e);
