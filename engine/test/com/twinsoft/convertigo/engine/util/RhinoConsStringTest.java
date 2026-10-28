@@ -10,8 +10,16 @@ package com.twinsoft.convertigo.engine.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -27,10 +35,10 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 /**
- * The patched ConsString of Rhino 1.9.1 (patches project): a concatenated string read by several threads at the same
+ * The patched ConsString of Rhino 1.9.2 (patches project): a concatenated string read by several threads at the same
  * time, as a value of a shared sealed scope or of a cache of a shared runtime, gives the same text to all of them.
- * Rhino 1.9.1 read its flat flag without synchronization: another thread could fail on a ClassCastException or copy a
- * wrong text.
+ * Rhino reads its flat flag without synchronization: another thread could fail on a ClassCastException or copy a wrong
+ * text. The patch keeps the Java serialization of Rhino 1.9.2: written as a String, never read back as a ConsString.
  */
 public class RhinoConsStringTest {
 
@@ -38,7 +46,67 @@ public class RhinoConsStringTest {
 	@Test public void patchMatchesTheRhinoVersion() throws Exception {
 		assertNotNull("the patched ConsString must come before the one of Rhino", ConsString.class.getDeclaredField("flat"));
 		var version = Context.class.getPackage().getImplementationVersion();
-		assertTrue("ConsString patch written for Rhino 1.9.1, found " + version, version == null || version.equals("1.9.1"));
+		assertTrue("ConsString patch written for Rhino 1.9.2, found " + version, version == null || version.equals("1.9.2"));
+	}
+
+	// a concatenated string set by a script as an attribute of a session that Tomcat persists: Rhino 1.9.2 disables the
+	// Java serialization of its objects, not this one, written as the String it stands for
+	@Test public void serializedAsTheString() throws Exception {
+		CharSequence tree = new ConsString(new ConsString("Bearer ", "abc"), "def");
+		var bytes = new ByteArrayOutputStream();
+		try (var out = new ObjectOutputStream(bytes)) {
+			out.writeObject(tree);
+		}
+		try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+			var read = in.readObject();
+			assertEquals(String.class, read.getClass());
+			assertEquals("Bearer abcdef", read);
+		}
+	}
+
+	// as in Rhino 1.9.2, a stream claiming to hold a ConsString (never written by Rhino) is refused
+	@Test public void streamOfAConsStringIsRefused() throws Exception {
+		var bytes = new ByteArrayOutputStream();
+		try (var out = new ObjectOutputStream(bytes)) {
+			out.writeObject(new ConsStringStandIn());
+		}
+		var stream = replaceClassName(bytes.toByteArray(), ConsStringStandIn.class.getName(), ConsString.class.getName());
+		try (var in = new ObjectInputStream(new ByteArrayInputStream(stream))) {
+			assertThrows(InvalidObjectException.class, in::readObject);
+		}
+	}
+
+	/** the fields and serialVersionUID of the patched ConsString, under another name */
+	@SuppressWarnings("unused")
+	private static final class ConsStringStandIn implements Serializable {
+		private static final long serialVersionUID = -8432806714471372570L;
+		private CharSequence left = "a", right = "b";
+		private final int length = 2;
+		private volatile String flat = null;
+	}
+
+	private static byte[] replaceClassName(byte[] stream, String from, String to) {
+		byte[] fromUtf = utf(from), toUtf = utf(to);
+		for (int i = 0; i + fromUtf.length <= stream.length; i++) {
+			if (java.util.Arrays.equals(stream, i, i + fromUtf.length, fromUtf, 0, fromUtf.length)) {
+				var out = new ByteArrayOutputStream();
+				out.write(stream, 0, i);
+				out.write(toUtf, 0, toUtf.length);
+				out.write(stream, i + fromUtf.length, stream.length - i - fromUtf.length);
+				return out.toByteArray();
+			}
+		}
+		throw new AssertionError(from + " not found in the stream");
+	}
+
+	/** a class name as written in a stream: its length on two bytes, then its UTF-8 bytes */
+	private static byte[] utf(String name) {
+		var text = name.getBytes(StandardCharsets.UTF_8);
+		var utf = new byte[text.length + 2];
+		utf[0] = (byte) (text.length >> 8);
+		utf[1] = (byte) text.length;
+		System.arraycopy(text, 0, utf, 2, text.length);
+		return utf;
 	}
 
 	@Test public void sharedTreesGiveTheSameTextToConcurrentReaders() throws Exception {

@@ -50,6 +50,7 @@ tasks.named('check') {
 	dependsOn 'ngxBuildSettingsTest'
 	dependsOn 'attachmentStreamingTest'
 	dependsOn 'rhinoConsStringTest'
+	dependsOn 'rhinoSessionValuesTest'
 	dependsOn 'statisticsTest'
 	dependsOn 'crypto2Test'
 	dependsOn 'redisSessionRewriteTest'
@@ -273,6 +274,15 @@ tasks.register('rhinoConsStringTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.RhinoConsStringTest'
+}
+
+tasks.register('rhinoSessionValuesTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: values made by scripts are kept by the Redis stores of sessions and contexts as JSON, without the Java serialization of Rhino (off since Rhino 1.9.2).'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RhinoSessionValuesTest'
 }
 
 tasks.register('statisticsTest', JavaExec) {

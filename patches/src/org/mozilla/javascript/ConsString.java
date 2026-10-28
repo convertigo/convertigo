@@ -6,6 +6,8 @@
 
 package org.mozilla.javascript;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 
@@ -18,11 +20,12 @@ import java.util.ArrayDeque;
  * original components and only converts them to a String if either toString() is called or a
  * certain depth level is reached.
  *
- * <p>Convertigo patch of Rhino 1.9.1: a ConsString shared between threads (a sealed shared scope, a
+ * <p>Convertigo patch of Rhino 1.9.2: a ConsString shared between threads (a sealed shared scope, a
  * cache of a shared runtime) stays consistent. The flat string is published through a volatile field
  * before the components are dropped, and the components of another ConsString are only read under
- * its lock. Rhino 1.9.1 read {@code isFlat} without synchronization: another thread could see it set
- * before the flat string, and fail on a ClassCastException or copy a wrong text.
+ * its lock. Rhino (up to 1.9.2) reads {@code isFlat} without synchronization: another thread could
+ * see it set before the flat string, and fail on a ClassCastException or copy a wrong text. As in
+ * Rhino 1.9.2, a ConsString is serialized as a String and a stream claiming to hold one is refused.
  *
  * <p>Both the name and the concept are borrowed from V8.
  */
@@ -50,6 +53,14 @@ public class ConsString implements CharSequence, Serializable {
     // Replace with string representation when serializing
     private Object writeReplace() {
         return this.toString();
+    }
+
+    private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+        throw new InvalidObjectException("ConsString must be serialized as a String");
+    }
+
+    private void readObjectNoData() throws InvalidObjectException {
+        throw new InvalidObjectException("ConsString must be serialized as a String");
     }
 
     @Override
