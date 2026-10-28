@@ -584,6 +584,28 @@ public class ProjectLibrariesTest {
 	}
 
 	@Test
+	public void classesOfTheEngineAreSearchedOnceInTheLibrariesOfAGeneration() throws Exception {
+		var attempts = new java.util.concurrent.atomic.AtomicInteger();
+		var parent = new ClassLoader(getClass().getClassLoader()) {
+			@Override public Class<?> loadClass(String name) throws ClassNotFoundException {
+				if (name.equals(ProjectLibrariesTest.class.getName())) attempts.incrementAndGet();
+				return super.loadClass(name);
+			}
+		};
+		try (var generation = new ProjectClassLoader(new URL[0],parent,"test","1","test",null,List.of())) {
+			var threads = java.util.concurrent.Executors.newFixedThreadPool(8);
+			try {
+				var lookups = new ArrayList<java.util.concurrent.Future<Class<?>>>();
+				for (int i=0;i<200;i++) lookups.add(threads.submit(() -> generation.loadClass(ProjectLibrariesTest.class.getName())));
+				for (var lookup : lookups) assertSame(ProjectLibrariesTest.class, lookup.get());
+			} finally { threads.shutdownNow(); }
+			assertEquals("the engine is asked once, the libraries are not searched again",1,attempts.get());
+			assertSame(String.class,generation.loadClass("java.lang.String"));
+			assertSame(String.class,generation.loadClass("java.lang.String"));
+		}
+	}
+
+	@Test
 	public void repeatedMissingClassesDoNotSearchAgainAndNewGenerationsCanResolveThem() throws Exception {
 		var attempts = new java.util.concurrent.atomic.AtomicInteger();
 		var parent = new ClassLoader(getClass().getClassLoader()) {

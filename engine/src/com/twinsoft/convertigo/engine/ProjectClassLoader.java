@@ -50,7 +50,15 @@ public final class ProjectClassLoader extends URLClassLoader {
 	// A generation is immutable. Rhino probes package names as class names;
 	// repeated misses must not repeat filesystem/OSGi searches or stack capture.
 	private static final int MISSING_LIMIT = 4096;
-	private final java.util.Set<String> missing = new java.util.LinkedHashSet<>();
+	private final java.util.Set<String> missing = java.util.concurrent.ConcurrentHashMap.newKeySet();
+	/** the misses in their order, the oldest forgotten first */
+	private final java.util.Queue<String> missingOrder = new java.util.concurrent.ConcurrentLinkedQueue<>();
+	/**
+	 * The classes this generation takes from the JDK or the engine, known once: the JavaScript Packages of a call ask
+	 * for them again at each call, and each search of the libraries of the generation would fail again, with the
+	 * stack of a ClassNotFoundException and the class loading lock of the name held by concurrent calls.
+	 */
+	private final java.util.concurrent.ConcurrentHashMap<String, Class<?>> delegated = new java.util.concurrent.ConcurrentHashMap<>();
 	private static final class MissingClass extends ClassNotFoundException {
 		private static final long serialVersionUID = 1L;
 		MissingClass(String name) { super(name); }
@@ -114,35 +122,66 @@ public final class ProjectClassLoader extends URLClassLoader {
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		// the answers known for this generation, without the class loading lock of the name
+		Class<?> cls = delegated.get(name);
+		if (cls == null) {
+			if (missing.contains(name)) {
+				throw new MissingClass(name);
+			}
+			cls = findLoadedClass(name);
+			if (cls == null) {
+				cls = search(name);
+			}
+		}
+		if (resolve) {
+			resolveClass(cls);
+		}
+		return cls;
+	}
+
+	private Class<?> search(String name) throws ClassNotFoundException {
 		synchronized (getClassLoadingLock(name)) {
 			Class<?> cls = findLoadedClass(name);
 			if (cls == null) {
-				synchronized (missing) { if (missing.contains(name)) throw new MissingClass(name); }
-				try {
-					if (isProtected(name)) {
-						try {
-							cls = engine.loadClass(name);
-						} catch (ClassNotFoundException e) {
-							cls = super.loadClass(name, false);
-						}
-					} else {
-						try {
-							// the JDK, then the libraries of the project
-							cls = super.loadClass(name, false);
-						} catch (ClassNotFoundException e) {
-							cls = engine.loadClass(name);
-						}
-					}
-				} catch (ClassNotFoundException absent) {
-					synchronized (missing) {
-						if (missing.size() == MISSING_LIMIT) missing.remove(missing.iterator().next());
-						missing.add(name);
-					}
-					throw absent; // The first failure retains its diagnostic stack.
-				}
+				// known meanwhile, by the call this one waited for
+				cls = delegated.get(name);
 			}
-			if (resolve) {
-				resolveClass(cls);
+			if (cls != null) {
+				return cls;
+			}
+			if (missing.contains(name)) {
+				throw new MissingClass(name);
+			}
+			try {
+				if (isProtected(name)) {
+					try {
+						cls = engine.loadClass(name);
+					} catch (ClassNotFoundException e) {
+						cls = super.loadClass(name, false);
+					}
+				} else {
+					try {
+						// the JDK, then the libraries of the project
+						cls = super.loadClass(name, false);
+					} catch (ClassNotFoundException e) {
+						cls = engine.loadClass(name);
+					}
+				}
+			} catch (ClassNotFoundException absent) {
+				if (missing.add(name)) {
+					missingOrder.add(name);
+					while (missing.size() > MISSING_LIMIT) {
+						var oldest = missingOrder.poll();
+						if (oldest == null) {
+							break;
+						}
+						missing.remove(oldest);
+					}
+				}
+				throw absent; // The first failure retains its diagnostic stack.
+			}
+			if (cls.getClassLoader() != this) {
+				delegated.put(name, cls);
 			}
 			return cls;
 		}
@@ -155,6 +194,9 @@ public final class ProjectClassLoader extends URLClassLoader {
 	Class<?> defineEngineClass(Class<?> engineClass) throws IOException {
 		var name = engineClass.getName();
 		synchronized (getClassLoadingLock(name)) {
+			// from now on, the copy of this generation
+			delegated.remove(name);
+			missing.remove(name);
 			var defined = findLoadedClass(name);
 			if (defined != null && defined.getClassLoader() == this) {
 				return defined;
