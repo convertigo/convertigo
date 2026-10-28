@@ -20,42 +20,116 @@
 package com.twinsoft.convertigo.engine.sessions;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
 import org.redisson.api.RMap;
+import org.redisson.api.RScoredSortedSet;
 import org.redisson.api.RScript;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
-import org.redisson.api.options.KeysScanOptions;
 import org.redisson.client.codec.StringCodec;
 
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 
+/**
+ * Contexts stored in Redis hashes, with two indexes kept by the scripts that write and delete them: the contexts of each
+ * session (a set that lives at least as long as the session and as its contexts), and all the contexts scored by their
+ * expiry time (a sorted set: the live ones are read by score, the expired ones purged by score). The former set of all
+ * the contexts, which kept the expired ones, is moved to these indexes and removed.
+ */
 public final class RedisContextStore implements ContextStore {
-	private static final String INDEX_CONTEXTS = "index:contexts";
+	private static final String INDEX_CONTEXTS_FORMER = "index:contexts";
+	private static final String INDEX_CONTEXTS_BY_EXPIRY = "index:contextsByExpiry";
+	private static final String INDEX_SESSION_CONTEXTS = "index:sessionContexts:";
 	private static final String DATA_PREFIX = "__data:";
+	private static final int FORMER_INDEX_BATCH = 500;
+	private static final long PURGE_EVERY_MILLIS = 60_000L;
+	private static final long FORMER_INDEX_CHECK_EVERY_MILLIS = 300_000L;
 
-	private static final String LUA_HSET_DEL_AND_TOUCH = ""
+	// Adds a context to the index of its session, which lives at least as long as each of its contexts (ttl in
+	// milliseconds, 0 for a context that never expires)
+	private static final String LUA_INDEX_SESSION = ""
+			+ "local function indexSession(sessionIndex, id, ttl)\n"
+			+ "local current=redis.call('PTTL', sessionIndex); redis.call('SADD', sessionIndex, id)\n"
+			+ "if ttl>0 then if current==-2 or (current>=0 and current<ttl) then redis.call('PEXPIRE', sessionIndex, ttl) end\n"
+			+ "else redis.call('PERSIST', sessionIndex) end\n"
+			+ "end\n";
+
+	// KEYS = context hash, contexts by expiry, index of the session (if any);
+	// ARGV = ttl, set count, fields and values, delete count, fields, context id, expiry score.
+	private static final String LUA_HSET_DEL_AND_TOUCH = LUA_INDEX_SESSION
 			+ "local key=KEYS[1]; local ttl=tonumber(ARGV[1]); local setCount=tonumber(ARGV[2]);\n"
 			+ "local idx=3;\n"
 			+ "if setCount>0 then redis.call('HSET', key, unpack(ARGV, idx, idx + setCount*2 - 1)); idx = idx + setCount*2; end\n"
 			+ "local delCount=tonumber(ARGV[idx]); idx = idx + 1;\n"
-			+ "if delCount>0 then redis.call('HDEL', key, unpack(ARGV, idx, idx + delCount - 1)); end\n"
+			+ "if delCount>0 then redis.call('HDEL', key, unpack(ARGV, idx, idx + delCount - 1)); idx = idx + delCount; end\n"
 			+ "if ttl and ttl>0 then redis.call('PEXPIRE', key, ttl) end\n"
+			+ "local id=ARGV[idx]; redis.call('ZADD', KEYS[2], ARGV[idx + 1], id)\n"
+			+ "if KEYS[3] then indexSession(KEYS[3], id, ttl or 0) end\n"
 			+ "return true\n";
+
+	// KEYS = contexts by expiry, index of the session (if any), context hashes; ARGV = context ids.
+	private static final String LUA_DELETE = ""
+			+ "local first=#KEYS - #ARGV + 1\n"
+			+ "for i=1,#ARGV do redis.call('DEL', KEYS[first + i - 1]) end\n"
+			+ "redis.call('ZREM', KEYS[1], unpack(ARGV))\n"
+			+ "if first==3 then redis.call('SREM', KEYS[2], unpack(ARGV)) end\n"
+			+ "return #ARGV\n";
+
+	// KEYS = contexts by expiry, then for each context its hash and the index of its session (its hash again without
+	// session); ARGV = now, then for each context its id and 1 if it has a session. The ones still stored are indexed.
+	private static final String LUA_INDEX_FORMER = LUA_INDEX_SESSION
+			+ "local now=tonumber(ARGV[1]); local moved=0\n"
+			+ "for i=1,(#ARGV - 1) / 2 do\n"
+			+ "local id=ARGV[2*i]; local pttl=redis.call('PTTL', KEYS[2*i])\n"
+			+ "if pttl~=-2 then moved=moved + 1\n"
+			+ "if pttl>0 then redis.call('ZADD', KEYS[1], string.format('%.0f', now + pttl), id) else redis.call('ZADD', KEYS[1], '+inf', id) end\n"
+			+ "if ARGV[2*i + 1]=='1' then indexSession(KEYS[2*i + 1], id, pttl>0 and pttl or 0) end\n"
+			+ "end\n"
+			+ "end\n"
+			+ "return moved\n";
 
 	private final RedissonClient client;
 	private final RedisSessionConfiguration configuration;
 	private final StoreSerializer serializer = new StoreSerializer();
-	private final RSet<String> contextsIndex;
+	private final RScoredSortedSet<String> contextsByExpiry;
+	private volatile long nextPurge = 0L;
+	private volatile long nextFormerIndexCheck = 0L;
 
 	public RedisContextStore(RedisSessionConfiguration configuration) {
 		this.configuration = configuration;
 		this.client = RedisClients.getClient(configuration);
-		this.contextsIndex = this.client.getSet(configuration.getContextKeyPrefix() + INDEX_CONTEXTS, StringCodec.INSTANCE);
+		this.contextsByExpiry = this.client.getScoredSortedSet(configuration.getContextKeyPrefix() + INDEX_CONTEXTS_BY_EXPIRY,
+				StringCodec.INSTANCE);
+	}
+
+	/**
+	 * The session of a stored context: the start of its id, before the first '_'. None for the contexts of the pools and
+	 * of the Studio.
+	 */
+	static String sessionIdOf(String contextId) {
+		if (contextId == null || contextId.startsWith(ContextManager.POOL_CONTEXT_ID_PREFIX)
+				|| contextId.startsWith(ContextManager.STUDIO_CONTEXT_PREFIX)) {
+			return null;
+		}
+		int idx = contextId.indexOf('_');
+		return idx > 0 ? contextId.substring(0, idx) : null;
+	}
+
+	/** Key of the index of the stored contexts of a session. */
+	static String sessionContextsKey(RedisSessionConfiguration configuration, String sessionId) {
+		return configuration.getContextKeyPrefix() + INDEX_SESSION_CONTEXTS + sessionId;
+	}
+
+	private String sessionContextsKey(String sessionId) {
+		return sessionContextsKey(configuration, sessionId);
 	}
 
 	private RMap<String, String> map(String contextId) {
@@ -262,14 +336,18 @@ public final class RedisContextStore implements ContextStore {
 			args.add(delCount);
 			args.addAll(toRemove);
 
-			String ctxKey = configuration.contextKey(context.contextID);
-			client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH, RScript.ReturnType.VALUE,
-					java.util.Collections.singletonList(ctxKey), args.toArray());
-			try {
-				contextsIndex.add(context.contextID);
-			} catch (Exception e) {
-				Engine.logRedis.debug("(RedisContextStore) Failed to update contexts index for " + context.contextID, e);
+			args.add(context.contextID);
+			args.add(ttlMillis > 0 ? Long.toString(System.currentTimeMillis() + ttlMillis) : "+inf");
+
+			var keys = new ArrayList<Object>(3);
+			keys.add(configuration.contextKey(context.contextID));
+			keys.add(contextsByExpiry.getName());
+			var sessionId = sessionIdOf(context.contextID);
+			if (sessionId != null) {
+				keys.add(sessionContextsKey(sessionId));
 			}
+			client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH, RScript.ReturnType.VALUE,
+					keys, args.toArray());
 		} catch (Exception e) {
 			Engine.logRedis.warn("(RedisContextStore) Failed to save context " + context.contextID, e);
 		}
@@ -277,37 +355,141 @@ public final class RedisContextStore implements ContextStore {
 
 	@Override
 	public void delete(String contextId) {
+		if (contextId == null) {
+			return;
+		}
 		try {
-			map(contextId).delete();
-			try {
-				contextsIndex.remove(contextId);
-			} catch (Exception e) {
-				Engine.logRedis.debug("(RedisContextStore) Failed to remove " + contextId + " from contexts index", e);
-			}
+			delete(sessionIdOf(contextId), List.of(contextId));
 		} catch (Exception e) {
 			Engine.logRedis.warn("(RedisContextStore) Failed to delete context " + contextId, e);
 		}
 	}
 
+	/** Deletes contexts of one session (null for none) and drops them from the indexes, in one call. */
+	private void delete(String sessionId, Collection<String> contextIds) {
+		if (contextIds.isEmpty()) {
+			return;
+		}
+		var keys = new ArrayList<Object>(contextIds.size() + 2);
+		keys.add(contextsByExpiry.getName());
+		if (sessionId != null) {
+			keys.add(sessionContextsKey(sessionId));
+		}
+		for (var contextId : contextIds) {
+			keys.add(configuration.contextKey(contextId));
+		}
+		client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_DELETE, RScript.ReturnType.LONG, keys,
+				contextIds.toArray());
+	}
+
+	/**
+	 * Deletes the stored contexts of a session ("&lt;session id&gt;_") from the index of the session, or the contexts of
+	 * a pool from the live contexts: never a scan of the keys.
+	 */
 	@Override
 	public void deleteBySessionPrefix(String sessionIdPrefix) {
+		if (sessionIdPrefix == null || sessionIdPrefix.isEmpty()) {
+			return;
+		}
 		try {
-			var prefix = this.configuration.getContextKeyPrefix() + "context:" + sessionIdPrefix;
-			var options = KeysScanOptions.defaults().pattern(prefix + "*");
-			var ctxKeyPrefix = this.configuration.getContextKeyPrefix() + "context:";
-			for (var key : this.client.getKeys().getKeys(options)) {
-				this.client.getMap(key, StringCodec.INSTANCE).delete();
-				try {
-					if (key != null && key.startsWith(ctxKeyPrefix)) {
-						contextsIndex.remove(key.substring(ctxKeyPrefix.length()));
+			var sessionId = sessionIdPrefix.endsWith("_") ? sessionIdOf(sessionIdPrefix) : null;
+			if (sessionId != null && sessionIdPrefix.length() == sessionId.length() + 1) {
+				delete(sessionId, readSessionContextIds(sessionId));
+			} else {
+				var contextIds = new ArrayList<String>();
+				for (var contextId : readLiveContextIds()) {
+					if (contextId.startsWith(sessionIdPrefix)) {
+						contextIds.add(contextId);
 					}
-				} catch (Exception e) {
-					// ignore index cleanup failures
+				}
+				for (var contextId : contextIds) {
+					delete(contextId);
 				}
 			}
 		} catch (Exception e) {
 			Engine.logRedis.warn("(RedisContextStore) Failed to delete contexts by prefix " + sessionIdPrefix, e);
 		}
+	}
+
+	@Override
+	public Set<String> readSessionContextIds(String sessionId) {
+		if (sessionId == null || sessionId.isBlank()) {
+			return Set.of();
+		}
+		RSet<String> sessionContexts = client.getSet(sessionContextsKey(sessionId), StringCodec.INSTANCE);
+		return sessionContexts.readAll();
+	}
+
+	@Override
+	public Set<String> readLiveContextIds() {
+		return new HashSet<>(contextsByExpiry.valueRange(System.currentTimeMillis(), false, Double.POSITIVE_INFINITY, true));
+	}
+
+	@Override
+	public void forget(Collection<String> contextIds) {
+		if (contextIds != null && !contextIds.isEmpty()) {
+			contextsByExpiry.removeAll(contextIds);
+		}
+	}
+
+	/**
+	 * Called by the vulture of each instance: purges the expired contexts from the index by expiry, and moves the former
+	 * index of all the contexts to the new ones at the first call, then again if an instance of a former version wrote it
+	 * meanwhile (rolling update).
+	 */
+	@Override
+	public void maintain() {
+		long now = System.currentTimeMillis();
+		if (now >= nextFormerIndexCheck) {
+			nextFormerIndexCheck = now + FORMER_INDEX_CHECK_EVERY_MILLIS;
+			try {
+				moveFormerIndex();
+			} catch (Exception e) {
+				Engine.logRedis.warn("(RedisContextStore) Failed to move the former index of the contexts", e);
+			}
+		}
+		if (now >= nextPurge) {
+			nextPurge = now + PURGE_EVERY_MILLIS;
+			try {
+				int purged = contextsByExpiry.removeRangeByScore(Double.NEGATIVE_INFINITY, true, now, true);
+				if (purged > 0) {
+					Engine.logRedis.debug("(RedisContextStore) " + purged + " expired contexts purged from the index");
+				}
+			} catch (Exception e) {
+				Engine.logRedis.debug("(RedisContextStore) Failed to purge the expired contexts from the index", e);
+			}
+		}
+	}
+
+	/** Moves the contexts of the former index that are still stored to the new indexes, and removes it. */
+	int moveFormerIndex() {
+		RSet<String> former = client.getSet(configuration.getContextKeyPrefix() + INDEX_CONTEXTS_FORMER, StringCodec.INSTANCE);
+		int read = 0;
+		int moved = 0;
+		Set<String> batch;
+		while (!(batch = former.removeRandom(FORMER_INDEX_BATCH)).isEmpty()) {
+			read += batch.size();
+			var keys = new ArrayList<Object>(1 + batch.size() * 2);
+			var args = new ArrayList<Object>(1 + batch.size() * 2);
+			keys.add(contextsByExpiry.getName());
+			args.add(Long.toString(System.currentTimeMillis()));
+			for (var contextId : batch) {
+				var contextKey = configuration.contextKey(contextId);
+				var sessionId = sessionIdOf(contextId);
+				keys.add(contextKey);
+				keys.add(sessionId != null ? sessionContextsKey(sessionId) : contextKey);
+				args.add(contextId);
+				args.add(sessionId != null ? "1" : "0");
+			}
+			Number count = client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_INDEX_FORMER,
+					RScript.ReturnType.LONG, keys, args.toArray());
+			moved += count == null ? 0 : count.intValue();
+		}
+		if (read > 0) {
+			Engine.logRedis.info("(RedisContextStore) Former index of the contexts removed: " + read + " entries read, "
+					+ moved + " contexts still stored moved to the new indexes");
+		}
+		return moved;
 	}
 
 	@Override

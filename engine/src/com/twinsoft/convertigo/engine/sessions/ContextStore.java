@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
+import java.util.Collection;
+import java.util.Set;
+
 import com.twinsoft.convertigo.engine.Context;
 
 public interface ContextStore {
@@ -37,4 +40,22 @@ public interface ContextStore {
     void delete(String contextId);
     void deleteBySessionPrefix(String sessionIdPrefix);
     void shutdown();
+
+    /** The ids of the stored contexts of a session, read without the contexts of the other sessions. */
+    default Set<String> readSessionContextIds(String sessionId) {
+        return Set.of();
+    }
+
+    /** The ids of the stored contexts that are not expired. */
+    default Set<String> readLiveContextIds() {
+        return Set.of();
+    }
+
+    /** Drops from the indexes contexts found no longer stored. */
+    default void forget(Collection<String> contextIds) {
+    }
+
+    /** Housekeeping of the indexes, called regularly by the vulture of each instance. */
+    default void maintain() {
+    }
 }

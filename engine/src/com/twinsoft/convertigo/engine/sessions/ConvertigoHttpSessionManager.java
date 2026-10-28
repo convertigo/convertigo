@@ -163,14 +163,11 @@ public final class ConvertigoHttpSessionManager implements PropertyChangeEventLi
 			}
 			var cfg = RedisClients.getConfiguration();
 			var client = RedisClients.getClient();
-			var contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-			org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey,
-					org.redisson.client.codec.StringCodec.INSTANCE);
 
 			var sessionsToSkip = new java.util.HashSet<String>();
 			try {
 				if (Engine.theApp != null && Engine.theApp.contextManager != null) {
-					var allContextIds = new java.util.HashSet<String>(contextsIndex.readAll());
+					var allContextIds = new java.util.HashSet<String>(new RedisContextStore(cfg).readLiveContextIds());
 					try {
 						var inflightKey = cfg.getContextKeyPrefix() + "inflight:contexts";
 						org.redisson.api.RMapCache<String, String> inflightContexts = client.getMapCache(inflightKey,

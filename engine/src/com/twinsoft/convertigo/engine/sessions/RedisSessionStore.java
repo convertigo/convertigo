@@ -64,8 +64,10 @@ final class RedisSessionStore implements SessionStore {
 		fields.addAll(PREFETCHED_ATTRIBUTES);
 		META_AND_PREFETCHED_FIELDS = Set.copyOf(fields);
 	}
-	// Writes the delta of a session, unless it was invalidated, and keeps the sessions indexes in the same call:
-	// KEYS = session hash, tombstone, sessions index, counted sessions index, legacy licensed sessions index;
+	// Writes the delta of a session, unless it was invalidated, and keeps the sessions indexes in the same call, with the
+	// index of the contexts of the session that lives at least as long as the session:
+	// KEYS = session hash, tombstone, sessions index, counted sessions index, legacy licensed sessions index, index of
+	// the contexts of the session;
 	// ARGV = ttl, set count, fields and values, delete count, fields, session id, counted mode (1 keep, 2 drop, 0 none).
 	private static final String LUA_HSET_DEL_AND_TOUCH = ""
 			+ "local key=KEYS[1]; local tomb=KEYS[2];\n"
@@ -75,7 +77,8 @@ final class RedisSessionStore implements SessionStore {
 			+ "if setCount>0 then redis.call('HSET', key, unpack(ARGV, idx, idx + setCount*2 - 1)); idx = idx + setCount*2; end\n"
 			+ "local delCount=tonumber(ARGV[idx]); idx = idx + 1;\n"
 			+ "if delCount>0 then redis.call('HDEL', key, unpack(ARGV, idx, idx + delCount - 1)); idx = idx + delCount; end\n"
-			+ "if ttl and ttl>0 then redis.call('PEXPIRE', key, ttl) end\n"
+			+ "if ttl and ttl>0 then redis.call('PEXPIRE', key, ttl)\n"
+			+ "local contexts=redis.call('PTTL', KEYS[6]); if contexts>=0 and contexts<ttl then redis.call('PEXPIRE', KEYS[6], ttl) end end\n"
 			+ "local id=ARGV[idx]; local counted=tonumber(ARGV[idx + 1]);\n"
 			+ "redis.call('SADD', KEYS[3], id)\n"
 			+ "if counted == 1 then redis.call('SADD', KEYS[4], id); redis.call('SREM', KEYS[5], id)\n"
@@ -370,7 +373,8 @@ final class RedisSessionStore implements SessionStore {
 			String tombstone = configuration.getContextKeyPrefix() + TOMBSTONE_SESSION_PREFIX + sessionId;
 			Number written = client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH,
 					RScript.ReturnType.LONG, java.util.List.of(key, tombstone, sessionsIndex.getName(),
-							countedSessionsIndex.getName(), legacyLicensedSessionsIndex.getName()), args.toArray());
+							countedSessionsIndex.getName(), legacyLicensedSessionsIndex.getName(),
+							RedisContextStore.sessionContextsKey(configuration, sessionId)), args.toArray());
 			Engine.logRedis.debug("(RedisSessionStore) FLUSH " + sessionId + " set=" + setCount + " del="
 					+ delCount + " ttlMillis=" + ttlMillis + (written != null && written.longValue() == 1L ? "" : " (invalidated)"));
 		} catch (Exception e) {

@@ -58,6 +58,7 @@ tasks.named('check') {
 	dependsOn 'redisSessionWrittenBeforeResponseTest'
 	dependsOn 'redisContextSavedBeforeUnlockTest'
 	dependsOn 'redisContextExpiredCopyTest'
+	dependsOn 'redisContextIndexTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -346,6 +347,15 @@ tasks.register('redisContextExpiredCopyTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sessions.RedisContextExpiredCopyTest'
+}
+
+tasks.register('redisContextIndexTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: with the Redis session store, the contexts of a session are read from the index of the session (end of the session, abort, logout, invalidation, which removes them), and removing all the contexts reads the live ones.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisContextIndexTest'
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {

@@ -459,6 +459,7 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			} catch (Exception e) {
 				Engine.logRedis.warn("(RedisHttpSession) Failed to invalidate session", e);
 			} finally {
+				removeContexts();
 				LOCAL_STORE.invalidate(id);
 				synchronized (mutex) {
 					cache.clear();
@@ -468,6 +469,18 @@ final class RedisHttpSession implements HttpSession, Serializable {
 					prefetched.clear();
 				}
 			}
+		}
+	}
+
+	/** The contexts of an invalidated session are removed with it, as with the in-memory store. */
+	private void removeContexts() {
+		try {
+			var contextManager = Engine.theApp != null ? Engine.theApp.contextManager : null;
+			if (contextManager != null) {
+				contextManager.removeAll(id);
+			}
+		} catch (Exception e) {
+			Engine.logRedis.warn("(RedisHttpSession) Failed to remove the contexts of the invalidated session " + id, e);
 		}
 	}
 

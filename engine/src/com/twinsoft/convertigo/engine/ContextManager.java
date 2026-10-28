@@ -605,6 +605,32 @@ public class ContextManager extends AbstractRunnableManager {
 		return false;
 	}
 
+	/**
+	 * The stored contexts of a session, from the index of the session; for the contexts of a pool, the live stored
+	 * contexts of the pool.
+	 */
+	private Set<String> storedContextIds(String sessionID, String prefix) {
+		var store = contextStore;
+		if (store == null) {
+			return Set.of();
+		}
+		try {
+			if (sessionID.startsWith(POOL_CONTEXT_ID_PREFIX)) {
+				var contextIds = new HashSet<String>();
+				for (String cid : store.readLiveContextIds()) {
+					if (cid != null && cid.startsWith(prefix)) {
+						contextIds.add(cid);
+					}
+				}
+				return contextIds;
+			}
+			return store.readSessionContextIds(sessionID);
+		} catch (Exception e) {
+			Engine.logContextManager.debug("(ContextManager) Failed to read the stored contexts of " + sessionID, e);
+			return Set.of();
+		}
+	}
+
 	public boolean requestAbortAll(String sessionID) {
 		if (sessionID == null || sessionID.isBlank() || contexts == null) {
 			return false;
@@ -627,19 +653,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 
 		if (isSharedSessionId(sessionID)) {
-			try {
-				var cfg = RedisClients.getConfiguration();
-				var client = RedisClients.getClient();
-				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
-				for (String cid : contextsIndex.readAll()) {
-					if (cid != null && cid.startsWith(prefix)) {
-						contextIds.add(cid);
-					}
-				}
-			} catch (Exception ignore) {
-				// ignore
-			}
+			contextIds.addAll(storedContextIds(sessionID, prefix));
 			try {
 				var inflight = inflightContexts();
 				if (inflight != null) {
@@ -1373,19 +1387,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 
 		if (isSharedSessionId(sessionID)) {
-			try {
-				var cfg = RedisClients.getConfiguration();
-				var client = RedisClients.getClient();
-				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
-				for (String cid : contextsIndex.readAll()) {
-					if (cid != null && cid.startsWith(prefix)) {
-						contextIds.add(cid);
-					}
-				}
-			} catch (Exception ignore) {
-				// ignore
-			}
+			contextIds.addAll(storedContextIds(sessionID, prefix));
 			try {
 				var inflight = inflightContexts();
 				if (inflight != null) {
@@ -1458,19 +1460,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 
 		if (isSharedSessionId(sessionID)) {
-			try {
-				var cfg = RedisClients.getConfiguration();
-				var client = RedisClients.getClient();
-				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
-				for (String cid : contextsIndex.readAll()) {
-					if (cid != null && cid.startsWith(prefix)) {
-						contextIds.add(cid);
-					}
-				}
-			} catch (Exception ignore) {
-				// ignore
-			}
+			contextIds.addAll(storedContextIds(sessionID, prefix));
 			try {
 				var inflight = inflightContexts();
 				if (inflight != null) {
@@ -1728,13 +1718,10 @@ public class ContextManager extends AbstractRunnableManager {
 		} catch (NullPointerException e) {
 			// Nothing to do: the Engine object has yet been deleted
 		}
-		if (ConvertigoHttpSessionManager.isRedisMode()) {
+		var store = contextStore;
+		if (ConvertigoHttpSessionManager.isRedisMode() && store != null) {
 			try {
-				var cfg = RedisClients.getConfiguration();
-				var client = RedisClients.getClient();
-				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
-				for (String cid : new java.util.HashSet<String>(contextsIndex.readAll())) {
+				for (String cid : store.readLiveContextIds()) {
 					if (cid == null || cid.isBlank()) {
 						continue;
 					}
@@ -1820,6 +1807,10 @@ public class ContextManager extends AbstractRunnableManager {
 					verifyKeyExpiration();
 				}
 				removeExpiredContexts();
+				var store = contextStore;
+				if (store != null) {
+					store.maintain();
+				}
 				managePoolContexts();
 				clearOldLogs();
 

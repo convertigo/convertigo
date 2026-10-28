@@ -15,6 +15,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.AfterClass;
@@ -186,5 +187,83 @@ public class RedisSessionStoreLiveTest {
 		assertEquals(41, ((Number) read.get("n")).intValue());
 		contexts.delete(id);
 		assertNull(contexts.readLastAccessTime(id));
+	}
+
+	private static void saveContext(RedisContextStore contexts, String id, int ttlSeconds) {
+		if (Engine.theApp == null) {
+			Engine.theApp = new Engine();
+		}
+		var context = new com.twinsoft.convertigo.engine.Context(id);
+		context.name = id.substring(id.indexOf('_') + 1);
+		context.lastAccessTime = System.currentTimeMillis();
+		contexts.save(context, ttlSeconds);
+	}
+
+	@Test public void theContextsAreIndexedBySessionAndByExpiry() throws Exception {
+		var contexts = new RedisContextStore(configuration);
+		var byExpiry = client.<String>getScoredSortedSet(prefix + "index:contextsByExpiry", StringCodec.INSTANCE);
+		var s1 = newId();
+		var s2 = newId();
+		saveContext(contexts, s1 + "_a", 60);
+		saveContext(contexts, s1 + "_b", 1);
+		saveContext(contexts, s2 + "_c", 60);
+		var s1Index = client.getSet(prefix + "index:sessionContexts:" + s1, StringCodec.INSTANCE);
+
+		assertEquals(Set.of(s1 + "_a", s1 + "_b"), contexts.readSessionContextIds(s1));
+		assertEquals(Set.of(s2 + "_c"), contexts.readSessionContextIds(s2));
+		assertTrue("the index of a session lives as long as its contexts", s1Index.remainTimeToLive() > 55_000);
+		assertTrue(contexts.readLiveContextIds().containsAll(Set.of(s1 + "_a", s1 + "_b", s2 + "_c")));
+
+		Thread.sleep(1_200);
+		var live = contexts.readLiveContextIds();
+		assertFalse("expired", live.contains(s1 + "_b"));
+		assertTrue(live.contains(s1 + "_a"));
+		contexts.maintain();
+		assertNull("purged by score", byExpiry.getScore(s1 + "_b"));
+		assertNotNull(byExpiry.getScore(s1 + "_a"));
+
+		// a write of the session keeps the index of its contexts as long as the session
+		var session = RedisHttpSession.newSession(store, null, configuration, s1);
+		session.flush();
+		assertTrue(s1Index.remainTimeToLive() > (configuration.getDefaultTtlSeconds() - 5) * 1000L);
+
+		contexts.delete(s1 + "_a");
+		assertNull(byExpiry.getScore(s1 + "_a"));
+		assertFalse(s1Index.contains(s1 + "_a"));
+		assertFalse(client.getMap(configuration.contextKey(s1 + "_a"), StringCodec.INSTANCE).isExists());
+
+		contexts.deleteBySessionPrefix(s2 + "_");
+		assertFalse(client.getMap(configuration.contextKey(s2 + "_c"), StringCodec.INSTANCE).isExists());
+		assertNull(byExpiry.getScore(s2 + "_c"));
+		assertFalse(client.getSet(prefix + "index:sessionContexts:" + s2, StringCodec.INSTANCE).isExists());
+		assertFalse("never indexed again", client.getSet(prefix + "index:contexts", StringCodec.INSTANCE).isExists());
+	}
+
+	@Test public void theFormerIndexOfTheContextsIsMovedThenRemoved() throws Exception {
+		var contexts = new RedisContextStore(configuration);
+		var byExpiry = client.<String>getScoredSortedSet(prefix + "index:contextsByExpiry", StringCodec.INSTANCE);
+		var former = client.<String>getSet(prefix + "index:contexts", StringCodec.INSTANCE);
+		var session = newId();
+		var live = session + "_live";
+		var gone = session + "_gone";
+		saveContext(contexts, live, 60);
+		// as saved by a former version: in the former index only
+		byExpiry.remove(live);
+		client.getSet(prefix + "index:sessionContexts:" + session, StringCodec.INSTANCE).delete();
+		former.addAll(Set.of(live, gone));
+
+		assertEquals(1, contexts.moveFormerIndex());
+		assertFalse("removed", former.isExists());
+		assertNotNull(byExpiry.getScore(live));
+		assertNull("not stored any more", byExpiry.getScore(gone));
+		assertEquals(Set.of(live), contexts.readSessionContextIds(session));
+		assertTrue(client.getSet(prefix + "index:sessionContexts:" + session, StringCodec.INSTANCE).remainTimeToLive() > 0);
+
+		// an instance of a former version writes it again during a rolling update
+		former.add(live);
+		assertEquals(1, contexts.moveFormerIndex());
+		assertFalse(former.isExists());
+		assertEquals(Set.of(live), contexts.readSessionContextIds(session));
+		contexts.delete(live);
 	}
 }

@@ -33,7 +33,6 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RMap;
 import org.redisson.api.RMapCache;
-import org.redisson.api.RSet;
 import org.redisson.client.codec.StringCodec;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -54,6 +53,7 @@ import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.sessions.RedisClients;
+import com.twinsoft.convertigo.engine.sessions.RedisContextStore;
 import com.twinsoft.tas.KeyManager;
 
 @ServiceDefinition(
@@ -64,7 +64,6 @@ import com.twinsoft.tas.KeyManager;
 	)
 public class List extends XmlService{
 	private static final ObjectMapper JSON = new ObjectMapper();
-	private static final String INDEX_CONTEXTS = "index:contexts";
 	private static final String INFLIGHT_CONTEXTS = "inflight:contexts";
 	private static final String SESSION_META_CREATION = "__meta:creationTime";
 	private static final String SESSION_META_LAST_ACCESS = "__meta:lastAccessedTime";
@@ -260,11 +259,10 @@ public class List extends XmlService{
 			var cfg = RedisClients.getConfiguration();
 			var client = RedisClients.getClient();
 
-			String contextsIndexKey = cfg.getContextKeyPrefix() + INDEX_CONTEXTS;
-			RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
+			var contextStore = new RedisContextStore(cfg);
 
 			var persistedSessionIds = new HashSet<>(ConvertigoHttpSessionManager.getInstance().readCountedSessionIds());
-			var persistedContextIds = new HashSet<>(contextsIndex.readAll());
+			var persistedContextIds = contextStore.readLiveContextIds();
 			var sessionIds = new HashSet<>(persistedSessionIds);
 			var contextIds = new HashSet<>(persistedContextIds);
 
@@ -474,7 +472,7 @@ public class List extends XmlService{
 
 			if (!staleContexts.isEmpty()) {
 				try {
-					contextsIndex.removeAll(staleContexts);
+					contextStore.forget(staleContexts);
 					for (var ctxId : staleContexts) {
 						contextIds.remove(ctxId);
 					}
