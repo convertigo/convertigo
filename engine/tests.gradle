@@ -59,6 +59,7 @@ tasks.named('check') {
 	dependsOn 'redisContextSavedBeforeUnlockTest'
 	dependsOn 'redisContextExpiredCopyTest'
 	dependsOn 'redisContextIndexTest'
+	dependsOn 'multipartUploadFolderTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -438,4 +439,14 @@ tasks.register('hiddenEnginePropertiesTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.HiddenEnginePropertiesTest'
+}
+
+tasks.register('multipartUploadFolderTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a multipart request only creates its upload folder for the items written to disk, and a small folder is removed in Java without starting a process, a large one still by the external command.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.FileUtilsDeleteDirectoryTest',
+		'com.twinsoft.convertigo.engine.servlets.GenericServletMultipartTest'
 }

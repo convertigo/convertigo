@@ -35,9 +35,14 @@ import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -57,6 +62,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	public static final boolean isCaseSensitive = !Engine.isWindows();
 	private static final int ASYNC_DELETE_RETRY_DELAY = 2000;
 	private static final int ASYNC_DELETE_MAX_RETRIES = 5;
+	// a tree of at most this number of entries is removed in Java, faster than by starting a process
+	private static final int DELETE_IN_JAVA_MAX_ENTRIES = 1000;
 	private static final Object asyncDeleteMutex = new Object();
 	private static final Queue<File> asyncDeleteQueue = new ConcurrentLinkedQueue<>();
 	private static Thread asyncDeleteThread;
@@ -178,6 +185,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	public static void deleteDirectory(File dir) throws IOException {
 		if (dir.exists()) {
 			if (dir.isDirectory()) {
+				// the external command is kept for large trees, as the node_modules of a build
+				if (deleteSmallDirectory(dir, DELETE_IN_JAVA_MAX_ENTRIES)) {
+					return;
+				}
 				int code = -1;
 				ProcessBuilder pb;
 				try {
@@ -218,6 +229,67 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			}
 		}
 		return org.apache.commons.io.FileUtils.deleteQuietly(f);
+	}
+
+	/**
+	 * Removes in Java a tree of at most maxEntries entries, as the upload folder of a request. Returns false when the
+	 * tree is larger, cannot be listed, holds a folder that is not a plain one (a junction), or an entry cannot be
+	 * removed: nothing is removed in the first cases, and the caller removes what remains another way.
+	 */
+	static boolean deleteSmallDirectory(File dir, int maxEntries) {
+		// the entries of a folder are listed before it, in their removal order; links are not followed
+		var entries = new ArrayList<Path>();
+		try {
+			// the canonical path, as the external command
+			var root = dir.getCanonicalFile().toPath();
+			Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes attrs) throws IOException {
+					if (attrs.isOther()) {
+						throw new IOException("Not a plain folder: " + path);
+					}
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+					return add(path);
+				}
+
+				@Override
+				public FileVisitResult postVisitDirectory(Path path, IOException e) throws IOException {
+					if (e != null) {
+						throw e;
+					}
+					return add(path);
+				}
+
+				private FileVisitResult add(Path path) throws IOException {
+					if (entries.size() >= maxEntries) {
+						throw new IOException("More than " + maxEntries + " entries: " + root);
+					}
+					entries.add(path);
+					return FileVisitResult.CONTINUE;
+				}
+			});
+			for (var path : entries) {
+				try {
+					Files.deleteIfExists(path);
+				} catch (AccessDeniedException e) {
+					// a read-only entry (Windows) or an entry of a read-only folder of the tree: made writable first
+					if (!path.equals(root)) {
+						path.getParent().toFile().setWritable(true, true);
+					}
+					if (!Files.isSymbolicLink(path)) {
+						path.toFile().setWritable(true, true);
+					}
+					Files.deleteIfExists(path);
+				}
+			}
+			return true;
+		} catch (IOException e) {
+			return false;
+		}
 	}
 
 	public static void deleteAsync(File file) {

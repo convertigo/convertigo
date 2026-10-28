@@ -529,7 +529,7 @@ public abstract class GenericServlet extends HttpServlet {
 				temporaryFile = File.createTempFile("c8o-multipart-files", ".tmp");
 				int cptFile = 0;
 				temporaryFile.delete();
-				temporaryFile.mkdirs();
+				// the folder is only created to write an item: by the factory over the size threshold, or an uploaded file
 				factory.setRepository(temporaryFile);
 				Engine.logContext.debug("(ServletRequester.initContext) Temporary folder for upload is : " + temporaryFile.getAbsolutePath());
 
@@ -600,7 +600,7 @@ public abstract class GenericServlet extends HttpServlet {
 			}
 			return response;
 		} finally {
-			if (temporaryFile != null) {
+			if (temporaryFile != null && temporaryFile.exists()) {
 				try {
 					Engine.logEngine.debug("(GenericServlet) Removing the temporary file : " + temporaryFile.getAbsolutePath());
 					FileUtils.deleteDirectory(temporaryFile);
