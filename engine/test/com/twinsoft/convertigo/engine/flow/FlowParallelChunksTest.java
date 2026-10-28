@@ -365,6 +365,24 @@ public class FlowParallelChunksTest {
 	}
 
 	@Test
+	public void aliasesOfTheSharedScopesStayReadOnlyOnTheLanes() throws Exception {
+		try (var h = new Harness()) {
+			rendezvous = new CountDownLatch(0);
+			var flow = "const _flow={sourceVersion:2,inputs:{items:{type:\"array\"}}}\nfunction A({input,result}){\nlocal.o={k:0}\nlocal.list=[]\n"
+					+ "local.n=forEachChunk({source:input.items,size:3,parallel:4,$$each:function({chunk}){\nlocal.thread=proof.probe({index:chunk.index})\n%s\nreturn 1\n"
+					+ "},$$reduce:function({acc,value}){\nreturn acc===null?value:acc+value\n}})\nresult.o=local.o\nresult.list=local.list\nresult.n=local.n\n}";
+			for (var statement : List.of("local.a=parent.o\nlocal.a.k=chunk.index", "local.l=parent.list\njson.push({path:\"local.l\",value:chunk.index})",
+					"local.r=chunk.rows[0]\nlocal.r.seen=true")) {
+				assertEquals(statement, "PARALLEL_SCOPE_READ_ONLY", errorCode(h.run(String.format(flow, statement), items(30))));
+			}
+			var own = result(h.run(String.format(flow, "local.mine={a:{}}\nlocal.mine.a.b=chunk.index\nlocal.l=[]\njson.push({path:\"local.l\",value:1})"), items(30)));
+			assertEquals(10, ((Number) own.get("n")).intValue());
+			assertEquals(0, ((Number) ((Map<?, ?>) own.get("o")).get("k")).intValue());
+			assertEquals(0, ((List<?>) own.get("list")).size());
+		}
+	}
+
+	@Test
 	public void theLanesGiveTheirTraceAndLearnedSchemasInChunkOrderWithTheLogContextOfTheCaller() throws Exception {
 		var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
 		server.createContext("/echo/", exchange -> {
