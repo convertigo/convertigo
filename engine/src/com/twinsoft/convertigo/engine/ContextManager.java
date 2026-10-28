@@ -341,7 +341,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 
 		// remove all contexts
-		removeAll();
+		removeContextsOfThisInstance();
 		contexts = null;
 
 		// remove all devicePools
@@ -1746,6 +1746,28 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 	}
 
+	/**
+	 * At the stop of this instance. With a shared context store, the stored contexts stay for the other instances: only
+	 * the copies kept by this instance are dropped, and the contexts that only exist here are removed.
+	 */
+	private void removeContextsOfThisInstance() {
+		if (contextStore == null) {
+			removeAll();
+			return;
+		}
+		try {
+			for (String contextID : contexts.keySet()) {
+				if (isLocalOnlyContextId(contextID) || contextID.startsWith(POOL_CONTEXT_ID_PREFIX)) {
+					remove(contextID);
+				} else {
+					contexts.remove(contextID);
+				}
+			}
+		} catch (NullPointerException e) {
+			// Nothing to do: the Engine object has yet been deleted
+		}
+	}
+
 	private void removeDevicePools() {
 		Engine.logContextManager.debug("Removing all devicePools...");
 		try {
@@ -1852,13 +1874,34 @@ public class ContextManager extends AbstractRunnableManager {
 
 					long rightNow = Calendar.getInstance().getTime().getTime();
 					if (rightNow > expirationTime) {
-						Engine.logContextManager.info("The context " + contextID + " has expired!");
-						remove(contextID);
+						// a pool context belongs to this instance: removed as before
+						if (contextStore != null && !isLocalOnlyContextId(contextID)
+								&& !contextID.startsWith(POOL_CONTEXT_ID_PREFIX)) {
+							evictExpiredCopy(contextID, context);
+						} else {
+							Engine.logContextManager.info("The context " + contextID + " has expired!");
+							remove(contextID);
+						}
 					}
 				}
 			} catch(Exception e) {
 				Engine.logContextManager.error("An unexpected error has occured in the ContextManager vulture while analyzing the context \"" + contextID + "\".", e);
 			}
+		}
+	}
+
+	/**
+	 * A stored context may still be used by other instances: its copy kept in this JVM only knows the requests of this
+	 * instance. Its expiry here only drops this copy, unless a request of this instance uses it; the stored context
+	 * expires by its own time to live, and is deleted from the store only when it is removed.
+	 */
+	private void evictExpiredCopy(String contextID, Context context) {
+		if (contextLocks.containsKey(contextID) || context.httpSession != null) {
+			return;
+		}
+		if (contexts.remove(contextID, context)) {
+			Engine.logContextManager.debug("The copy of the context " + contextID
+					+ " kept by this instance has expired: dropped, the context store keeps the context");
 		}
 	}
 

@@ -57,6 +57,7 @@ tasks.named('check') {
 	dependsOn 'redisSessionStoreLiveTest'
 	dependsOn 'redisSessionWrittenBeforeResponseTest'
 	dependsOn 'redisContextSavedBeforeUnlockTest'
+	dependsOn 'redisContextExpiredCopyTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -336,6 +337,15 @@ tasks.register('redisContextSavedBeforeUnlockTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sessions.RedisContextSavedBeforeUnlockTest'
+}
+
+tasks.register('redisContextExpiredCopyTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: with a shared context store, the expiry check and the stop of an instance drop its copies of the stored contexts and never delete them from the store.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisContextExpiredCopyTest'
 }
 
 tasks.register('jsonGroupStepDateTest', JavaExec) {
