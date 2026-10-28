@@ -35,6 +35,7 @@ public class FlowRuntimeWarmupTest {
 	private final Map<String, FlowRuntimeWarmup.ProjectPass> behaviours = new ConcurrentHashMap<>();
 	private FlowRuntimeWarmup.ProjectPass previousPass;
 	private Function<String, Collection<String>> previousDependents;
+	private Function<List<String>, List<String>> previousOrdering;
 
 	@Before
 	public void install() throws Exception {
@@ -44,6 +45,8 @@ public class FlowRuntimeWarmupTest {
 		FlowRuntimeWarmup.stop();
 		previousPass = FlowRuntimeWarmup.pass;
 		previousDependents = FlowRuntimeWarmup.dependents;
+		previousOrdering = FlowRuntimeWarmup.ordering;
+		FlowRuntimeWarmup.ordering = names -> names;
 		FlowRuntimeWarmup.pass = (name, cancellation) -> {
 			var behaviour = behaviours.get(name);
 			try {
@@ -63,6 +66,7 @@ public class FlowRuntimeWarmupTest {
 		FlowRuntimeWarmup.stop();
 		FlowRuntimeWarmup.pass = previousPass;
 		FlowRuntimeWarmup.dependents = previousDependents;
+		FlowRuntimeWarmup.ordering = previousOrdering;
 		EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_RUNTIME_WARMUP,
 				PropertyName.JAVASCRIPT_RUNTIME_WARMUP.getDefaultValue());
 	}
@@ -102,6 +106,29 @@ public class FlowRuntimeWarmupTest {
 	}
 
 	@Test
+	public void theProjectsReferencedByTheFewestComeFirstAtTheStartAndAfterALoad() throws Exception {
+		var referencing = Map.of("provider", 3, "lib", 1);
+		FlowRuntimeWarmup.ordering = names -> {
+			var ordered = new ArrayList<>(names);
+			ordered.sort(java.util.Comparator.comparingInt(name -> referencing.getOrDefault(name, 0)));
+			return ordered;
+		};
+		FlowRuntimeWarmup.projectLoaded(project("provider"));
+		FlowRuntimeWarmup.projectLoaded(project("lib"));
+		FlowRuntimeWarmup.projectLoaded(project("app"));
+		FlowRuntimeWarmup.projectLoaded(project("other"));
+		FlowRuntimeWarmup.projectsLoaded();
+		idle();
+		assertEquals(List.of("app", "other", "lib", "provider"), prepared);
+		prepared.clear();
+		using.put("provider", List.of("lib", "app"));
+		FlowRuntimeWarmup.projectLoaded(project("provider"));
+		idle();
+		assertEquals("The provider loaded again: the projects using it first, itself last", List.of("app", "lib", "provider"), prepared);
+		assertEquals(List.of("provider"), asked);
+	}
+
+	@Test
 	public void aProjectLoadedSeveralTimesWhilePendingIsPreparedOnce() throws Exception {
 		FlowRuntimeWarmup.projectsLoaded();
 		var started = new CountDownLatch(1);
@@ -116,6 +143,53 @@ public class FlowRuntimeWarmupTest {
 		release.countDown();
 		idle();
 		assertEquals(List.of("slow", "app"), prepared);
+	}
+
+	@Test
+	public void aProjectRequestedBeforeItsPreparationIsPreparedFirst() throws Exception {
+		FlowRuntimeWarmup.projectLoaded(project("a"));
+		FlowRuntimeWarmup.projectLoaded(project("b"));
+		FlowRuntimeWarmup.projectLoaded(project("c"));
+		FlowRuntimeWarmup.requested(project("c"));
+		FlowRuntimeWarmup.requested(project("notLoaded"));
+		FlowRuntimeWarmup.projectsLoaded();
+		idle();
+		assertEquals(List.of("c", "a", "b"), prepared);
+	}
+
+	@Test
+	public void theProjectInProgressGivesWayToAProjectRequestedThenGoesOn() throws Exception {
+		var started = new CountDownLatch(1);
+		var passes = new java.util.concurrent.atomic.AtomicInteger();
+		var firstPassFlows = new java.util.concurrent.atomic.AtomicInteger();
+		behaviours.put("long", (name, cancellation) -> {
+			var pass = passes.incrementAndGet();
+			started.countDown();
+			for (int flow = 1; flow <= 200; flow++) {
+				Thread.sleep(5);
+				if (pass == 1) {
+					firstPassFlows.set(flow);
+				}
+				if (cancellation.givingWay()) {
+					return false;
+				}
+			}
+			return false;
+		});
+		FlowRuntimeWarmup.projectLoaded(project("long"));
+		FlowRuntimeWarmup.projectLoaded(project("other"));
+		FlowRuntimeWarmup.projectLoaded(project("requested"));
+		FlowRuntimeWarmup.projectsLoaded();
+		assertTrue(started.await(10, TimeUnit.SECONDS));
+		// the project in progress, or a project not waiting: nothing changes
+		FlowRuntimeWarmup.requested(project("long"));
+		FlowRuntimeWarmup.requested(project("notLoaded"));
+		Thread.sleep(50);
+		FlowRuntimeWarmup.requested(project("requested"));
+		idle();
+		assertEquals(List.of("long", "requested", "long", "other"), prepared);
+		assertTrue("The project in progress did not give way after its current Flow: " + firstPassFlows, firstPassFlows.get() < 200);
+		assertEquals(2, passes.get());
 	}
 
 	@Test

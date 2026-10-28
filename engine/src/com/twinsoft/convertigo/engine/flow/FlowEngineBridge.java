@@ -452,6 +452,8 @@ public class FlowEngineBridge {
 
 	public Map<String, Object> run(Flow flow, Context convertigoContext, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		var started = System.nanoTime();
+		// a project waiting for the preparation of its runtime in the background is prepared next
+		FlowRuntimeWarmup.requested(flow.getProject());
 		try {
 			var engineQName = effectiveEngineQName(flow);
 			var flowSource = flow.getFlowSource();
