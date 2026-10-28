@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.proxy.translated.ParameterShuttle;
 import com.twinsoft.convertigo.engine.proxy.translated.ProxyServletRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.util.JakartaServletFileUploadSupport;
 
 public class ProxyServlet extends GenericServlet {
 
@@ -132,6 +133,9 @@ public class ProxyServlet extends GenericServlet {
     		request.getSession().setAttribute("proxy_exception", e);
     		RequestDispatcher rd = request.getRequestDispatcher("error.jsp");
     		rd.forward(request, response);
+    	} finally {
+    		// the response is written: the files uploaded by a multipart request are no longer used
+    		JakartaServletFileUploadSupport.removeUploadFolder(request);
     	}
     }
 

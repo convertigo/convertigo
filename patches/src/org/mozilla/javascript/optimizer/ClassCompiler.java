@@ -32,12 +32,13 @@ import org.mozilla.javascript.ast.ScriptNode;
  *
  * <p>since 1.5 Release 5
  *
- * <p>Convertigo patch of Rhino 1.9.1 ({@link #C8O_PATCH}), for class files loaded from a disk cache:
+ * <p>Convertigo patch of Rhino 1.9.2 ({@link #C8O_PATCH}), for class files loaded from a disk cache:
  *
  * <ul>
- *   <li>the {@code init} methods of the descriptors use the local variable 2, but declared two
- *       local variables: their class failed verification (VerifyError: Local variable table
- *       overflow) as soon as a function had a parameter, a variable or a nested function;
+ *   <li>the {@code init} methods of the descriptors use the local variable 2, but Rhino 1.9.1
+ *       declared two local variables: their class failed verification (VerifyError: Local variable
+ *       table overflow) as soon as a function had a parameter, a variable or a nested function
+ *       (fixed the same way by Rhino 1.9.2);
  *   <li>each descriptor loaded the whole source as a class file constant, limited to 65535 bytes of
  *       UTF-8: a source above 64 KB failed (Too big string). A string beyond that limit is now
  *       rebuilt from parts by a static accessor, once per class, and shared by the descriptors as
@@ -408,7 +409,7 @@ public class ClassCompiler {
                 "Ljava/util/List;");
 
         cfw.add(ByteCode.ARETURN);
-        // Convertigo patch: the loops above use the local variable 2, three local variables
+        // the loops above use the local variable 2, three local variables (as Rhino 1.9.2)
         cfw.stopMethod(3);
         for (var child : builder.nestedFunctions) {
             buildDescriptor(cfw, (JSDescriptor.Builder) child, classes, builders);

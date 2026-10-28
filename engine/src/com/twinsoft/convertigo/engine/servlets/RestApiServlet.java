@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.UrlMapperRequester;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.JakartaServletFileUploadSupport;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.convertigo.engine.util.OpenApiUtils;
@@ -376,6 +377,8 @@ public class RestApiServlet extends GenericServlet {
 			} catch (Exception e) {
     			throw new ServletException(e);
     		} finally {
+				// the response is written: the files uploaded by a multipart request are no longer used
+				JakartaServletFileUploadSupport.removeUploadFolder(request);
 				if (scopedRequest != null) {
 					request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);
 				}

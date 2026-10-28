@@ -55,7 +55,6 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.json.JsonStreamedResponse;
-import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.JakartaServletFileUploadSupport;
@@ -378,6 +377,8 @@ public abstract class GenericServlet extends HttpServlet {
 			}
 			finally {
 				if (ownedJson != null) try { ownedJson.close(); } catch (IOException ignored) { }
+				// the response is written: the uploaded files are no longer used
+				JakartaServletFileUploadSupport.removeUploadFolder(request);
 				try {
 					long t1 = System.currentTimeMillis();
 					Engine.theApp.pluginsManager.fireHttpServletRequestEnd(request, t0, t1);
@@ -435,13 +436,14 @@ public abstract class GenericServlet extends HttpServlet {
 			Boolean removeContextAttr = (Boolean) request
 					.getAttribute("convertigo.context.removalRequired");
 			if ((removeContextAttr != null) && removeContextAttr.booleanValue()) {
-				removeContext(request);
+				removeContext(request, false);
 			}
 		} else {
 			// other cases (remove context if exist __removeContext
 			// or __removeContext=true/false)
 			if (!("false".equals(removeContextParam))) {
-				removeContext(request);
+				// the response is complete only once this returns: another request of the context removes it at its end
+				removeContext(request, false);
 			}
 		}
 
@@ -462,12 +464,21 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	private void removeContext(HttpServletRequest request) {
+		removeContext(request, true);
+	}
+
+	/** @param wait false: the removal is left to another request holding the context, if any, at its end */
+	private void removeContext(HttpServletRequest request, boolean wait) {
 		if (Engine.isEngineMode()) {
 			Context context = (Context) request.getAttribute("convertigo.context");
 			if (context != null) {
 				Engine.logContext.debug("[GenericServlet] End of context " + context.contextID
 						+ " (" + context + ") required => removing context");
-				Engine.theApp.contextManager.remove(context, request.getSession(false));
+				if (wait) {
+					Engine.theApp.contextManager.remove(context, request.getSession(false));
+				} else {
+					Engine.theApp.contextManager.removeAtEndOfRequest(context, request.getSession(false));
+				}
 			}
 		}
 		request.removeAttribute("convertigo.context");
@@ -530,7 +541,6 @@ public abstract class GenericServlet extends HttpServlet {
 
 	public Object processRequest(HttpServletRequest request) throws Exception {
 		HttpServletRequestTwsWrapper twsRequest = request instanceof HttpServletRequestTwsWrapper ? (HttpServletRequestTwsWrapper) request : null;
-		File temporaryFile = null;
 
 		try {
 			// Check multipart request
@@ -543,10 +553,10 @@ public abstract class GenericServlet extends HttpServlet {
 				// Set factory constraints
 				factory.setSizeThreshold(1000);
 
-				temporaryFile = File.createTempFile("c8o-multipart-files", ".tmp");
+				// removed with the uploaded files once the response, which can stream one of them, is written
+				File temporaryFile = JakartaServletFileUploadSupport.newUploadFolder(request);
 				int cptFile = 0;
-				temporaryFile.delete();
-				temporaryFile.mkdirs();
+				// the folder is only created to write an item: by the factory over the size threshold, or an uploaded file
 				factory.setRepository(temporaryFile);
 				Engine.logContext.debug("(ServletRequester.initContext) Temporary folder for upload is : " + temporaryFile.getAbsolutePath());
 
@@ -624,15 +634,6 @@ public abstract class GenericServlet extends HttpServlet {
 				response = grec.postGetDocument(error);
 			}
 			return response;
-		} finally {
-			if (temporaryFile != null) {
-				try {
-					Engine.logEngine.debug("(GenericServlet) Removing the temporary file : " + temporaryFile.getAbsolutePath());
-					FileUtils.deleteDirectory(temporaryFile);
-				} catch (IOException e) {
-					Engine.logEngine.warn("(GenericServlet) Failed to delete: " + temporaryFile + " [" + e.getMessage() + "]");
-				}
-			}
 		}
 	}
 

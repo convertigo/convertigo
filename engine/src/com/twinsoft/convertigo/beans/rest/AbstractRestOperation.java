@@ -191,7 +191,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		setRequestAttributeIfAbsent(request, "sequence.transaction.sessionid", GenericUtils.cast(map.get("sequence.transaction.sessionid")));
 	}
 
-	private UrlMapperRequester createUrlMapperRequester(Map<String, Object> map, HttpServletRequest request, OutputContent outputContent) throws EngineException {
+	UrlMapperRequester createUrlMapperRequester(Map<String, Object> map, HttpServletRequest request, OutputContent outputContent) throws EngineException {
 		var responseMode = switch (outputContent) {
 			case toBinary -> ResponseMode.binary;
 			case toCxml -> ResponseMode.cxml;
@@ -258,10 +258,10 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					// Set factory constraints
 					factory.setSizeThreshold(1000);
 		
-					File temporaryFile = File.createTempFile("c8o-multipart-files", ".tmp");
+					// removed with the uploaded files once the response, which can stream one of them, is written
+					File temporaryFile = JakartaServletFileUploadSupport.newUploadFolder(request);
 					int cptFile = 0;
-					temporaryFile.delete();
-					temporaryFile.mkdirs();
+					// the folder is only created to write an item: by the factory over the size threshold, or an uploaded file
 					factory.setRepository(temporaryFile);
 					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" Temporary folder for upload is : " + temporaryFile.getAbsolutePath());
 		

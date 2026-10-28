@@ -30,10 +30,10 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.optimizer.ClassCompiler;
 
 /**
- * The patched ClassCompiler of Rhino 1.9.1 (patches project), whose class files the disk cache of the JavaScript
+ * The patched ClassCompiler of Rhino 1.9.2 (patches project), whose class files the disk cache of the JavaScript
  * bytecode loads. Rhino 1.9.1 generated classes that the JVM refused (VerifyError: Local variable table overflow, as
- * soon as a function had a parameter or a nested function) and failed on a source above 64 KB (Too big string); it
- * built each nested descriptor again for each of its parents.
+ * soon as a function had a parameter or a nested function, fixed by Rhino 1.9.2); Rhino 1.9.2 still fails on a source
+ * above 64 KB (Too big string) and builds each nested descriptor again for each of its parents.
  */
 public class RhinoClassCompilerPatchTest {
 	private Context cx;
@@ -52,7 +52,7 @@ public class RhinoClassCompilerPatchTest {
 	@Test public void patchMatchesTheRhinoVersion() throws Exception {
 		assertNotNull("the patched ClassCompiler must come before the one of Rhino", ClassCompiler.class.getField("C8O_PATCH").get(null));
 		var version = Context.class.getPackage().getImplementationVersion();
-		assertTrue("ClassCompiler patch written for Rhino 1.9.1, found " + version, version == null || version.equals("1.9.1"));
+		assertTrue("ClassCompiler patch written for Rhino 1.9.2, found " + version, version == null || version.equals("1.9.2"));
 	}
 
 	/** Rhino 1.9.1: VerifyError (Local variable table overflow) on the class of the descriptors. */
@@ -61,7 +61,7 @@ public class RhinoClassCompilerPatchTest {
 		assertEquals("6:1,4,9", run(load(source, "verify.js")));
 	}
 
-	/** Rhino 1.9.1: Too big string, the source being a class file constant of each descriptor. */
+	/** Rhino 1.9.2: Too big string, the source being a class file constant of each descriptor. */
 	@Test public void sourcesAbove64KBCompileAndKeepTheirText() throws Exception {
 		var big = new StringBuilder("var text = '");
 		// multi-byte characters, a surrogate pair across a part boundary of 16000 characters

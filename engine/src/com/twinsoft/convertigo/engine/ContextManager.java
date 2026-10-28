@@ -1077,14 +1077,19 @@ public class ContextManager extends AbstractRunnableManager {
 		if (contextName.endsWith("*")) {
 			String contextID;
 			String prefix = contextName.substring(0, contextName.length() - 1);
-			int i = 1;
-			do {
-				contextName = prefix + i;
-				contextID = (contextIdPrefix == null ? "" : contextIdPrefix  + "_") + contextName;
-				i++;
-			} while ((context = get(contextID)) != null);
+			// The free name is looked for and its context added under the creation lock: concurrent requests of a
+			// session asking for a dynamic context must not take the same name, and then wait for each other on the
+			// lock of this context, the first one also waiting at its end for the second one to remove it.
+			synchronized (contextCreationMutex) {
+				int i = 1;
+				do {
+					contextName = prefix + i;
+					contextID = (contextIdPrefix == null ? "" : contextIdPrefix  + "_") + contextName;
+					i++;
+				} while (get(contextID) != null);
+				context = get(contextID, contextName, projectName);
+			}
 			Engine.logContextManager.info("Dynamic context name computed: " + contextName);
-			context = get(contextID, contextName, projectName);
 		}
 		// Studio context
 		else if (!requestScoped && contextName.startsWith(STUDIO_CONTEXT_PREFIX)) {
@@ -1497,6 +1502,36 @@ public class ContextManager extends AbstractRunnableManager {
 
 	public void remove(Context context) {
 		remove(context, null);
+	}
+
+	/**
+	 * Removes the context of a request at its end (__removeContext), without waiting for another request that holds
+	 * it: the response of this request is complete only once this returns. The context is then marked, and removed by
+	 * the request holding it at its end, or by the next request that takes it (which then gets a new context).
+	 *
+	 * @return false when the removal is left to the request holding the context
+	 */
+	public boolean removeAtEndOfRequest(Context context, HttpSession requestSession) {
+		if (context == null) {
+			remove(context, requestSession);
+			return true;
+		}
+		AutoCloseable lock = tryLockContext(context, 0);
+		if (lock == null) {
+			context.requireRemoval(true);
+			// the holder may have released the context meanwhile, before seeing the mark
+			lock = tryLockContext(context, 0);
+			if (lock == null) {
+				Engine.logContextManager.debug("Context " + context.contextID + " is used by another request: removed at its end");
+				return false;
+			}
+		}
+		try (var held = lock) {
+			remove(context, requestSession);
+		} catch (Exception e) {
+			Engine.logContextManager.warn("Failed to remove the context " + context.contextID, e);
+		}
+		return true;
 	}
 
 	public void remove(Context context, HttpSession requestSession) {

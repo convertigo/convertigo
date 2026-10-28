@@ -58,6 +58,8 @@ tasks.named('check') {
 	dependsOn 'ngxBuildSettingsTest'
 	dependsOn 'attachmentStreamingTest'
 	dependsOn 'rhinoConsStringTest'
+	dependsOn 'rhinoSessionValuesTest'
+	dependsOn 'rhinoCachedScriptScopeTest'
 	dependsOn 'statisticsTest'
 	dependsOn 'crypto2Test'
 	dependsOn 'redisSessionRewriteTest'
@@ -67,6 +69,7 @@ tasks.named('check') {
 	dependsOn 'redisContextSavedBeforeUnlockTest'
 	dependsOn 'redisContextExpiredCopyTest'
 	dependsOn 'redisContextIndexTest'
+	dependsOn 'multipartUploadFolderTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -374,6 +377,24 @@ tasks.register('rhinoConsStringTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.RhinoConsStringTest'
+}
+
+tasks.register('rhinoSessionValuesTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: values made by scripts are kept by the Redis stores of sessions and contexts as JSON, without the Java serialization of Rhino (off since Rhino 1.9.2).'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RhinoSessionValuesTest'
+}
+
+tasks.register('rhinoCachedScriptScopeTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a script compiled once and cached, reading one of its top-level const, does not keep the scopes of the requests it ran in.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.RhinoCachedScriptScopeTest'
 }
 
 tasks.register('statisticsTest', JavaExec) {
@@ -741,3 +762,24 @@ tasks.register('childInvocationTest', JavaExec) {
     args 'com.twinsoft.convertigo.engine.flow.ChildInvocationTest'
 }
 tasks.named('check') { dependsOn 'childInvocationTest' }
+
+tasks.register('multipartUploadFolderTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a multipart request, to a requestable or to a REST operation, only creates its upload folder for the items written to disk and removes it once its response, which can stream an uploaded file, is written, and a small folder is removed in Java without starting a process, a large one still by the external command.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.FileUtilsDeleteDirectoryTest',
+		'com.twinsoft.convertigo.engine.servlets.GenericServletMultipartTest',
+		'com.twinsoft.convertigo.beans.rest.RestOperationMultipartTest'
+}
+
+tasks.register('dynamicContextTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: concurrent requests of a session asking for a dynamic context (__context=*) each get their own context, and the end of a request does not wait for another request holding its context to remove it.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.DynamicContextTest'
+}
+tasks.named('check') { dependsOn 'dynamicContextTest' }

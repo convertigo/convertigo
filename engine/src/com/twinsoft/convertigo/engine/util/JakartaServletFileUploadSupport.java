@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -30,9 +31,39 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.UploadContext;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
+import com.twinsoft.convertigo.engine.Engine;
+
 public class JakartaServletFileUploadSupport {
+	private static final String UPLOAD_FOLDER = "convertigo.multipart.folder";
 
 	private JakartaServletFileUploadSupport() {
+	}
+
+	/**
+	 * A new temporary folder for the items of a multipart request, kept by the request. The folder is only created to
+	 * write an item, by the factory over its size threshold or for an uploaded file. The response can stream one of
+	 * the uploaded files, as a binary attachment: {@link #removeUploadFolder} removes them once the response is written.
+	 */
+	public static File newUploadFolder(HttpServletRequest request) throws IOException {
+		var folder = File.createTempFile("c8o-multipart-files", ".tmp");
+		folder.delete();
+		request.setAttribute(UPLOAD_FOLDER, folder);
+		return folder;
+	}
+
+	/** Removes the upload folder of the request with its files, if it was created, once the response is written. */
+	public static void removeUploadFolder(HttpServletRequest request) {
+		if (request.getAttribute(UPLOAD_FOLDER) instanceof File folder) {
+			request.removeAttribute(UPLOAD_FOLDER);
+			if (folder.exists()) {
+				try {
+					Engine.logEngine.debug("(JakartaServletFileUploadSupport) Removing the temporary upload folder : " + folder.getAbsolutePath());
+					FileUtils.deleteDirectory(folder);
+				} catch (IOException | RuntimeException e) {
+					Engine.logEngine.warn("(JakartaServletFileUploadSupport) Failed to delete: " + folder + " [" + e.getMessage() + "]");
+				}
+			}
+		}
 	}
 
 	public static boolean isMultipartContent(HttpServletRequest request) {
