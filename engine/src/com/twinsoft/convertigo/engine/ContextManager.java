@@ -341,7 +341,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 
 		// remove all contexts
-		removeAll();
+		removeContextsOfThisInstance();
 		contexts = null;
 
 		// remove all devicePools
@@ -605,6 +605,32 @@ public class ContextManager extends AbstractRunnableManager {
 		return false;
 	}
 
+	/**
+	 * The stored contexts of a session, from the index of the session; for the contexts of a pool, the live stored
+	 * contexts of the pool.
+	 */
+	private Set<String> storedContextIds(String sessionID, String prefix) {
+		var store = contextStore;
+		if (store == null) {
+			return Set.of();
+		}
+		try {
+			if (sessionID.startsWith(POOL_CONTEXT_ID_PREFIX)) {
+				var contextIds = new HashSet<String>();
+				for (String cid : store.readLiveContextIds()) {
+					if (cid != null && cid.startsWith(prefix)) {
+						contextIds.add(cid);
+					}
+				}
+				return contextIds;
+			}
+			return store.readSessionContextIds(sessionID);
+		} catch (Exception e) {
+			Engine.logContextManager.debug("(ContextManager) Failed to read the stored contexts of " + sessionID, e);
+			return Set.of();
+		}
+	}
+
 	public boolean requestAbortAll(String sessionID) {
 		if (sessionID == null || sessionID.isBlank() || contexts == null) {
 			return false;
@@ -627,19 +653,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 
 		if (isSharedSessionId(sessionID)) {
-			try {
-				var cfg = RedisClients.getConfiguration();
-				var client = RedisClients.getClient();
-				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
-				for (String cid : contextsIndex.readAll()) {
-					if (cid != null && cid.startsWith(prefix)) {
-						contextIds.add(cid);
-					}
-				}
-			} catch (Exception ignore) {
-				// ignore
-			}
+			contextIds.addAll(storedContextIds(sessionID, prefix));
 			try {
 				var inflight = inflightContexts();
 				if (inflight != null) {
@@ -1377,19 +1391,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 
 		if (isSharedSessionId(sessionID)) {
-			try {
-				var cfg = RedisClients.getConfiguration();
-				var client = RedisClients.getClient();
-				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
-				for (String cid : contextsIndex.readAll()) {
-					if (cid != null && cid.startsWith(prefix)) {
-						contextIds.add(cid);
-					}
-				}
-			} catch (Exception ignore) {
-				// ignore
-			}
+			contextIds.addAll(storedContextIds(sessionID, prefix));
 			try {
 				var inflight = inflightContexts();
 				if (inflight != null) {
@@ -1462,19 +1464,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 
 		if (isSharedSessionId(sessionID)) {
-			try {
-				var cfg = RedisClients.getConfiguration();
-				var client = RedisClients.getClient();
-				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
-				for (String cid : contextsIndex.readAll()) {
-					if (cid != null && cid.startsWith(prefix)) {
-						contextIds.add(cid);
-					}
-				}
-			} catch (Exception ignore) {
-				// ignore
-			}
+			contextIds.addAll(storedContextIds(sessionID, prefix));
 			try {
 				var inflight = inflightContexts();
 				if (inflight != null) {
@@ -1732,13 +1722,10 @@ public class ContextManager extends AbstractRunnableManager {
 		} catch (NullPointerException e) {
 			// Nothing to do: the Engine object has yet been deleted
 		}
-		if (ConvertigoHttpSessionManager.isRedisMode()) {
+		var store = contextStore;
+		if (ConvertigoHttpSessionManager.isRedisMode() && store != null) {
 			try {
-				var cfg = RedisClients.getConfiguration();
-				var client = RedisClients.getClient();
-				String contextsIndexKey = cfg.getContextKeyPrefix() + "index:contexts";
-				org.redisson.api.RSet<String> contextsIndex = client.getSet(contextsIndexKey, StringCodec.INSTANCE);
-				for (String cid : new java.util.HashSet<String>(contextsIndex.readAll())) {
+				for (String cid : store.readLiveContextIds()) {
 					if (cid == null || cid.isBlank()) {
 						continue;
 					}
@@ -1747,6 +1734,28 @@ public class ContextManager extends AbstractRunnableManager {
 			} catch (Exception e) {
 				Engine.logContextManager.debug("Failed to cleanup global context store", e);
 			}
+		}
+	}
+
+	/**
+	 * At the stop of this instance. With a shared context store, the stored contexts stay for the other instances: only
+	 * the copies kept by this instance are dropped, and the contexts that only exist here are removed.
+	 */
+	private void removeContextsOfThisInstance() {
+		if (contextStore == null) {
+			removeAll();
+			return;
+		}
+		try {
+			for (String contextID : contexts.keySet()) {
+				if (isLocalOnlyContextId(contextID) || contextID.startsWith(POOL_CONTEXT_ID_PREFIX)) {
+					remove(contextID);
+				} else {
+					contexts.remove(contextID);
+				}
+			}
+		} catch (NullPointerException e) {
+			// Nothing to do: the Engine object has yet been deleted
 		}
 	}
 
@@ -1802,6 +1811,10 @@ public class ContextManager extends AbstractRunnableManager {
 					verifyKeyExpiration();
 				}
 				removeExpiredContexts();
+				var store = contextStore;
+				if (store != null) {
+					store.maintain();
+				}
 				managePoolContexts();
 				clearOldLogs();
 
@@ -1856,13 +1869,34 @@ public class ContextManager extends AbstractRunnableManager {
 
 					long rightNow = Calendar.getInstance().getTime().getTime();
 					if (rightNow > expirationTime) {
-						Engine.logContextManager.info("The context " + contextID + " has expired!");
-						remove(contextID);
+						// a pool context belongs to this instance: removed as before
+						if (contextStore != null && !isLocalOnlyContextId(contextID)
+								&& !contextID.startsWith(POOL_CONTEXT_ID_PREFIX)) {
+							evictExpiredCopy(contextID, context);
+						} else {
+							Engine.logContextManager.info("The context " + contextID + " has expired!");
+							remove(contextID);
+						}
 					}
 				}
 			} catch(Exception e) {
 				Engine.logContextManager.error("An unexpected error has occured in the ContextManager vulture while analyzing the context \"" + contextID + "\".", e);
 			}
+		}
+	}
+
+	/**
+	 * A stored context may still be used by other instances: its copy kept in this JVM only knows the requests of this
+	 * instance. Its expiry here only drops this copy, unless a request of this instance uses it; the stored context
+	 * expires by its own time to live, and is deleted from the store only when it is removed.
+	 */
+	private void evictExpiredCopy(String contextID, Context context) {
+		if (contextLocks.containsKey(contextID) || context.httpSession != null) {
+			return;
+		}
+		if (contexts.remove(contextID, context)) {
+			Engine.logContextManager.debug("The copy of the context " + contextID
+					+ " kept by this instance has expired: dropped, the context store keeps the context");
 		}
 	}
 
