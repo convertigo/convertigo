@@ -326,17 +326,24 @@ if [ "$1" = "convertigo" ]; then
     for i in $(set | grep "_SERVICE_\|_PORT" | cut -f1 -d=); do unset $i; done
     
     
-    ## optional AOT cache of the JVM (JDK 25): classes and method profiles recorded by a training
-    ## run, reused by the next starts. AOT_CACHE=image uses the cache trained when the image was built
-    ## (without project), AOT_CACHE=deploy trains one with the deployed projects in AOT_CACHE_DIR
-    ## (default /workspace/aot) and uses it from the next start. A cache that does not match the JDK,
-    ## the JVM options or the classpath is ignored by the JVM, which starts without it.
+    ## AOT cache of the JVM (JDK 25): classes and method profiles recorded by a training run, reused
+    ## by the next starts. By default, the cache trained when the image was built (without project) is
+    ## used when the image has one; AOT_CACHE=off disables it, AOT_CACHE=deploy trains one with the
+    ## deployed projects in AOT_CACHE_DIR (default /workspace/aot) and uses it from the next start. A
+    ## cache that does not match the JDK, the JVM options or the classpath is ignored by the JVM, which
+    ## starts without it.
 
+    if [ -z "$AOT_CACHE" ] && [ -f $CATALINA_HOME/aot/convertigo.aot ]; then
+        AOT_CACHE=image
+        AOT_DEFAULT=true
+    fi
     case "$AOT_CACHE:$JAVA_OPTS" in
     :*|off:*|false:*)
         ;;
     *jdwp*|*-XX:AOT*|*-XX:SharedArchiveFile*|*-Xshare*)
-        echo "Ignore AOT_CACHE=$AOT_CACHE: not compatible with JDWP or the AOT/CDS options of JAVA_OPTS"
+        if [ "$AOT_DEFAULT" != "true" ]; then
+            echo "Ignore AOT_CACHE=$AOT_CACHE: not compatible with JDWP or the AOT/CDS options of JAVA_OPTS"
+        fi
         ;;
     *)
         ## adapters are machine code that depends on the CPU features: keep them out of the cache
@@ -392,7 +399,7 @@ if [ "$1" = "convertigo" ]; then
         esac
         ;;
     esac
-    unset AOT_CACHE AOT_CACHE_DIR AOT_FILES
+    unset AOT_CACHE AOT_CACHE_DIR AOT_FILES AOT_DEFAULT
 
     ## custom certificate authorities: delegate to the Eclipse Temurin entrypoint shipped in the
     ## base image (opt-in with USE_SYSTEM_CA_CERTS, certificates mounted in /certificates/*.crt)
