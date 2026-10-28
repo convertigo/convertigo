@@ -4,7 +4,10 @@
 package com.twinsoft.convertigo.engine.flow;
 
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -18,6 +21,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Rhino context and execution frame. The calling thread submits the tasks, reads their outcomes and cancels; a lane only
  * takes tasks and gives outcomes through this object. The pool never queues: a lane without a free thread is not started,
  * so nested or saturated loops never wait for a thread.
+ * <p>
+ * A task whose outcome is dropped (the tasks after a failed one, or every task once the lanes are cancelled) is stopped
+ * at its next block, and its lane is interrupted at once: a blocking call of that task (an HTTP request, a wait) ends
+ * instead of running to its timeout. The interruption only reaches a lane while it runs such a task, never between
+ * tasks. The caller can then ask which tasks after a failed one had started.
  * <p>
  * Every method has a single signature: scripts call them without Rhino's lazily filled overload table.
  */
@@ -48,6 +56,9 @@ public final class ParallelLanes implements AutoCloseable {
 	private final LinkedBlockingQueue<Object> outcomes = new LinkedBlockingQueue<>();
 	private final List<Thread> threads = new ArrayList<>();
 	private final Object lock = new Object();
+	// under lock: the task each lane thread runs, and the tasks started
+	private final Map<Thread, Long> runningTasks = new IdentityHashMap<>();
+	private final BitSet startedTasks = new BitSet();
 	private int started, running;
 	private volatile boolean finished;
 	private volatile String cancelled;
@@ -97,6 +108,7 @@ public final class ParallelLanes implements AutoCloseable {
 		} finally {
 			synchronized (lock) {
 				threads.remove(thread);
+				runningTasks.remove(thread);
 				running--;
 				lock.notifyAll();
 			}
@@ -143,15 +155,38 @@ public final class ParallelLanes implements AutoCloseable {
 		return outcome;
 	}
 
-	/** Caller: the tasks after index are useless (a failed task): lanes skip them and cancel them cooperatively. */
+	/**
+	 * Caller: the tasks after index are useless (a failed task): lanes skip them, and the running ones stop at their
+	 * next block, their lanes interrupted.
+	 */
 	public void stopAfter(double index) {
 		var value = (long) index;
-		if (value < stopAfter) stopAfter = value;
+		synchronized (lock) {
+			if (value < stopAfter) stopAfter = value;
+			interruptTasksAfter(stopAfter);
+		}
 	}
 
-	/** Caller: stops every lane at its next block. */
+	/** Caller: stops every lane at its next block, the running tasks interrupted. */
 	public void cancel(String reason) {
-		if (cancelled == null) cancelled = reason == null || reason.isEmpty() ? "cancelled" : reason;
+		synchronized (lock) {
+			if (cancelled == null) cancelled = reason == null || reason.isEmpty() ? "cancelled" : reason;
+			interruptTasksAfter(-1);
+		}
+	}
+
+	private void interruptTasksAfter(long index) {
+		for (var entry : runningTasks.entrySet()) {
+			if (entry.getValue() > index) entry.getKey().interrupt();
+		}
+	}
+
+	/** Caller, once the lanes are closed: the tasks after index that a lane started, in order. */
+	public int[] startedAfter(double index) {
+		synchronized (lock) {
+			var from = (int) Math.max(0, Math.min(Integer.MAX_VALUE - 1L, (long) index + 1));
+			return startedTasks.stream().filter(task -> task >= from).toArray();
+		}
 	}
 
 	/** The reason of a cancellation, null while the lanes may go on. */
@@ -165,7 +200,12 @@ public final class ParallelLanes implements AutoCloseable {
 			var task = tasks.poll(50, TimeUnit.MILLISECONDS);
 			if (task == END) return null;
 			if (task != null) {
-				if (task.index() > stopAfter) continue;
+				synchronized (lock) {
+					// checked with the interruptions: a task given after stopAfter is never one it drops
+					if (task.index() > stopAfter || cancelled != null) continue;
+					runningTasks.put(Thread.currentThread(), task.index());
+					if (task.index() <= Integer.MAX_VALUE) startedTasks.set((int) task.index());
+				}
 				return task.value();
 			}
 			if (finished && tasks.isEmpty()) return null;
@@ -178,8 +218,12 @@ public final class ParallelLanes implements AutoCloseable {
 		return cancelled == null && (long) index <= stopAfter;
 	}
 
-	/** Lane: the outcome of a task, read by the caller. */
+	/** Lane: the outcome of a task, read by the caller; an interruption meant for this task ends with it. */
 	public void complete(Object outcome) {
+		synchronized (lock) {
+			runningTasks.remove(Thread.currentThread());
+			Thread.interrupted();
+		}
 		outcomes.add(outcome);
 	}
 

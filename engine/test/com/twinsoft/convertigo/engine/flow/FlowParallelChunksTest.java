@@ -361,6 +361,75 @@ public class FlowParallelChunksTest {
 	}
 
 	@Test
+	public void theChunksAfterAFailedOneAreInterruptedListedAndNeverSentTwice() throws Exception {
+		var hits = new java.util.concurrent.ConcurrentHashMap<String, AtomicInteger>();
+		var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+		server.createContext("/fast/", exchange -> {
+			exchange.getRequestBody().readAllBytes();
+			exchange.sendResponseHeaders(200, 2);
+			try (var out = exchange.getResponseBody()) {
+				out.write("{}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+			}
+		});
+		server.createContext("/slow/", exchange -> {
+			hits.computeIfAbsent(String.valueOf(exchange.getRequestURI().getRawQuery()), key -> new AtomicInteger()).incrementAndGet();
+			exchange.getRequestBody().readAllBytes();
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			var body = "{}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+			try {
+				exchange.sendResponseHeaders(200, body.length);
+				try (var out = exchange.getResponseBody()) {
+					out.write(body);
+				}
+			} catch (java.io.IOException gone) {
+				// the client of an interrupted chunk closed its connection
+			}
+		});
+		server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
+		server.start();
+		try (var h = new Harness()) {
+			rendezvous = new CountDownLatch(0);
+			var flow = "const _flow={sourceVersion:2,inputs:{items:{type:\"array\"},url:{type:\"string\"},fail:{type:\"integer\"}}}\nfunction D({input,result}){\n"
+					+ "local.out=forEachChunk({source:input.items,size:1,parallel:4,$$each:function({chunk}){\n"
+					+ "if({condition:chunk.index===input.fail,$$then:function(){local.w=flow.wait({delayMs:300})\nthrow({code:\"FIRST\",message:\"first\"})}})\n"
+					+ "if({condition:chunk.index>1,$$then:function(){local.r=http.post({url:\"{{ input.url }}?chunk={{ chunk.index }}\",body:chunk.rows})}})\n"
+					+ "return 1\n},$$reduce:function({acc,value}){\nreturn acc===null?value:acc+value\n}})\nresult.out=local.out\n}";
+			var root = "http://127.0.0.1:" + server.getAddress().getPort();
+			// warms the plan and the HTTP client up: the timing below is the one of the failure only
+			assertEquals(20, ((Number) result(h.run(flow, items(20).put("url", root + "/fast/").put("fail", -1))).get("out")).intValue());
+			var input = items(20).put("url", root + "/slow/").put("fail", 1);
+			var started = System.nanoTime();
+			var failed = h.run(flow, input);
+			var elapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+			assertEquals("FIRST", errorCode(failed));
+			System.out.println("failed chunk with requests of 3 s running: " + elapsed + " ms, requests " + hits);
+			// below the grace delay of the lanes (500 ms here) past the failure at 300 ms: not waited for, interrupted
+			assertTrue("The requests of the chunks after the failed one are interrupted: " + elapsed + " ms", elapsed < 750);
+			var details = (Map<?, ?>) ((Map<?, ?>) failed.get("error")).get("details");
+			assertNotNull("The error lists the dropped chunks that had started", details);
+			var discarded = (List<?>) details.get("discardedChunks");
+			assertFalse(discarded.isEmpty());
+			for (var index : discarded) {
+				var value = ((Number) index).intValue();
+				assertTrue("A dropped chunk comes after the failed one, within the window: " + discarded, value > 1 && value < 1 + 2 * 4);
+			}
+			// the interrupted requests are not sent again by another client, and no chunk after the window is sent
+			Thread.sleep(500);
+			for (var entry : hits.entrySet()) {
+				assertEquals("Chunk " + entry.getKey() + " is sent once", 1, entry.getValue().get());
+				var index = Integer.parseInt(entry.getKey().replace("chunk=", ""));
+				assertTrue("Chunk " + index + " is a dropped chunk that had started: " + discarded, discarded.contains((double) index) || discarded.contains(index) || discarded.contains((long) index));
+			}
+		} finally {
+			server.stop(0);
+		}
+	}
+
+	@Test
 	public void cancelledLanesStopAndCloseWaitsForThem() throws Exception {
 		var ended = new AtomicInteger();
 		var lanes = ParallelLanes.open(3, (self, index) -> {
