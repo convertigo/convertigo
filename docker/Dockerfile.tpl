@@ -110,21 +110,6 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 COPY ./root-index.html webapps/ROOT/index.html
 COPY ./docker-entrypoint.sh /
 
-## AOT cache of the JVM, trained without project when the image is built (native platforms only,
-## not emulated ones; --build-arg AOT_CACHE_IMAGE=false skips it) and used by default by the
-## containers, unless started with AOT_CACHE=off
-
-ARG AOT_CACHE_IMAGE=true
-ARG BUILDPLATFORM
-ARG TARGETPLATFORM
-RUN if [ "$AOT_CACHE_IMAGE" = "true" ]; then \
-        if [ "$TARGETPLATFORM" = "$BUILDPLATFORM" ]; then \
-            /docker-entrypoint.sh aot-train; \
-        else \
-            echo "AOT training skipped: $TARGETPLATFORM is emulated on $BUILDPLATFORM"; \
-        fi; \
-    fi
-
 
 WORKDIR /workspace
 VOLUME ["/workspace"]
