@@ -488,11 +488,94 @@ public class RhinoBytecodeCacheTest {
 			good.loaded(35 * ms, 100 * ms);
 		}
 		assertFalse("loading costs 35% of compiling", good.isOff());
+		var shared = new RhinoBytecodeCache.Measure();
+		for (int i = 0; i < 64; i++) {
+			shared.loaded(70 * ms, 100 * ms);
+		}
+		assertFalse("loading costs 70% of compiling (a shared folder of a container)", shared.isOff());
 		var edge = new RhinoBytecodeCache.Measure();
 		for (int i = 0; i < 64; i++) {
-			edge.loaded(51 * ms, 100 * ms);
+			edge.loaded(76 * ms, 100 * ms);
 		}
-		assertTrue("loading costs 51% of compiling", edge.isOff());
+		assertTrue("loading costs 76% of compiling", edge.isOff());
+	}
+
+	/** In-memory caches cleared before the entry is written: one entry, with the time of the first compilation. */
+	@Test public void compiledAgainBeforeWrittenKeepsTheFirstCompilationTime() throws Exception {
+		var source = source(10);
+		cache().get(cx, source, "again.js", null);
+		cache().get(cx, source, "again.js", null);
+		assertEquals(2, RhinoBytecodeCache.statistics.misses.get());
+		RhinoBytecodeCache.flush();
+		assertEquals(1, RhinoBytecodeCache.statistics.writes.get());
+		var key = keyOf(source, "again.js");
+		var entry = RhinoBytecodeCache.decode(Files.readAllBytes(entryOf(source, "again.js")), key,
+				RhinoBytecodeCache.mainClassName("again.js", key), KEY);
+		assertTrue("the longest of both compilations", entry.compileNanos() * 2 >= RhinoBytecodeCache.statistics.compileNanos.get());
+	}
+
+	/**
+	 * An engine restarted: the entries written by a JVM, which compiled its sources again several times (in-memory caches
+	 * cleared, warm JIT), are loaded by the next one in auto, which keeps the cache.
+	 */
+	@Test public void aRestartedEngineLoadsTheEntriesOfThePreviousRun() throws Exception {
+		var project = project("restarted");
+		var configuration = folder.resolve("configuration");
+		Files.createDirectories(configuration);
+		var java = Path.of(System.getProperty("java.home"), "bin", "java").toString();
+		var outputs = new ArrayList<String>();
+		for (var phase : new String[] { "first", "restart" }) {
+			var process = new ProcessBuilder(java, "-cp", System.getProperty("java.class.path"), Restart.class.getName(), phase,
+					project.getPath(), configuration.toString()).redirectErrorStream(true).start();
+			var output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+			assertTrue(process.waitFor(180, TimeUnit.SECONDS));
+			assertEquals(output, 0, process.exitValue());
+			outputs.add(output);
+		}
+		assertTrue(outputs.get(0), outputs.get(0).contains("hits=0,"));
+		assertTrue("no key of the installation", Files.size(configuration.resolve("rhino-bytecode.key")) == 32);
+		var restart = outputs.get(1);
+		assertTrue(restart, restart.contains("hits=" + Restart.SOURCES + ",") && restart.contains("misses=0,"));
+		assertTrue(restart, restart.contains("off=false"));
+		assertTrue("a verdict was reached: " + restart, restart.contains("verdict=true"));
+	}
+
+	public static final class Restart {
+		static final int SOURCES = 24;
+
+		static String big(int i) {
+			var text = new StringBuilder("var m" + i + " = (function () {\n");
+			for (int f = 0; f < 120; f++) {
+				text.append("function f").append(f).append("(a, b) { var r = [a, b, ").append(f).append("].map(function (v) { return v * ")
+						.append(f).append(" + ").append(i).append("; }); return r.join('-') + /x(\\d+)/.exec('x' + a); }\n");
+			}
+			return text.append("return { run: f7 }; })();\nm").append(i).append(".run(1, 2)").toString();
+		}
+
+		public static void main(String[] args) throws Exception {
+			RhinoBytecodeCache.runningEngineForTests = true;
+			com.twinsoft.convertigo.engine.Engine.CONFIGURATION_PATH = args[2];
+			System.setProperty(MODE_PROPERTY, "auto");
+			var project = new File(args[1]);
+			var cx = enter();
+			try {
+				var rounds = args[0].equals("first") ? 3 : 1;
+				for (int round = 0; round < rounds; round++) {
+					for (int i = 0; i < SOURCES; i++) {
+						var module = new File(project, "_flow/modules/m" + i + ".js");
+						var script = RhinoBytecodeCache.compile(cx, big(i), module.getPath(), module);
+						run(cx, script);
+					}
+					// the in-memory caches of the engine are cleared between rounds: compiled again, warmer
+				}
+				RhinoBytecodeCache.flush();
+				var measure = RhinoBytecodeCache.measure();
+				System.out.println(RhinoBytecodeCache.statistics + ", " + measure.state() + ", verdict=" + measure.verdict());
+				System.exit(0);
+			} finally {
+				Context.exit();
+			}
+		}
 	}
 
 	@Test public void autoOffStopsReadingAndWriting() throws Exception {

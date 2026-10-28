@@ -100,22 +100,26 @@ import com.twinsoft.convertigo.engine.LocalWorkDirectory;
  * <p>
  * <b>Activation</b>: engine property javascript.bytecode_cache. {@code off}: never; {@code on}: always, even outside
  * a running engine (tests, measures); {@code auto} (default): in a running engine, and as long as it pays off. In auto,
- * the JVM compares, for the scripts it loads from here, the time to load them (key, read, check, classes defined, script
- * ready) to the time Context.compileString took to compile them (kept in their entry when written): once
+ * the JVM compares, for the scripts it loads from here, the cost of loading them (key, read, check, classes defined,
+ * script ready) to the cost of compiling them with Context.compileString (kept in their entry when written: the first
+ * compilation of the source in the JVM that wrote it, the one a restart saves, not a later one after in-memory caches
+ * were cleared, with a warm JIT). Both are the processor time of the thread, which the other threads of a startup do
+ * not inflate, except the read of the entry, counted in elapsed time since a slow storage costs in waits. Once
  * {@value #AUTO_MIN_SAMPLES} scripts and {@value #AUTO_MIN_COMPILE_MILLIS} ms of compilation are measured, if loading
  * costs more than {@value #AUTO_MAX_LOAD_PERCENT}% of compiling, the cache is turned off, reading and writing, for the
- * rest of the life of the JVM. Both are measured when they happen, without extra work. Loading takes about a third of
- * compiling on a local disk, whatever the processor, and more than compiling on a network file system: the threshold
- * keeps the cache where it saves at least half of the compilation, which repays the second compilation of the
- * background after two starts. The verdict depends on the machine and on the storage, so it stays in memory: it is
- * never written in the project, which other instances may share.
+ * rest of the life of the JVM. Both are measured when they happen, without extra work. Loading takes about a third
+ * of compiling on a local disk whatever the processor, up to a half on a shared folder of a container, and about twice
+ * compiling on a network file system: the threshold keeps the cache where it saves at least a quarter of the
+ * compilation at startup, which repays the second compilation of the background after four starts. The verdict
+ * depends on the machine and on the storage, so it stays in memory: it is never written in the project, which other
+ * instances may share.
  */
 public final class RhinoBytecodeCache {
 	/** The folder of the cache in its project, relocated with the local working directory. */
 	public static final String FOLDER = "_private/rhino-bytecode";
 
 	/** auto: the cache goes off when loading costs more than this share of compiling. */
-	static final int AUTO_MAX_LOAD_PERCENT = 50;
+	static final int AUTO_MAX_LOAD_PERCENT = 75;
 	/** auto: scripts loaded before a verdict. */
 	static final int AUTO_MIN_SAMPLES = 16;
 	/** auto: compilation time those scripts must represent before a verdict, in milliseconds. */
@@ -186,8 +190,8 @@ public final class RhinoBytecodeCache {
 			}
 			if (this.loadNanos * 100 > this.compileNanos * AUTO_MAX_LOAD_PERCENT) {
 				off = true;
-				info("JavaScript bytecode cache: turned off for this run, loading takes " + summary() + " (auto keeps it below "
-						+ AUTO_MAX_LOAD_PERCENT + "%)");
+				warn("JavaScript bytecode cache: turned off for this run, loading takes " + summary() + " (auto keeps it below "
+						+ AUTO_MAX_LOAD_PERCENT + "%): the projects may be on a slow storage, see the local_work.directory engine property");
 			} else if (!reported) {
 				reported = true;
 				info("JavaScript bytecode cache: kept, loading takes " + summary());
@@ -203,6 +207,11 @@ public final class RhinoBytecodeCache {
 			return "samples=" + samples + ", loadMs=" + TimeUnit.NANOSECONDS.toMillis(loadNanos) + ", compileMs="
 					+ TimeUnit.NANOSECONDS.toMillis(compileNanos) + ", off=" + off;
 		}
+
+		/** @return whether enough scripts were measured for a verdict */
+		synchronized boolean verdict() {
+			return samples >= AUTO_MIN_SAMPLES && compileNanos >= TimeUnit.MILLISECONDS.toNanos(AUTO_MIN_COMPILE_MILLIS);
+		}
 	}
 
 	/** Counters of this JVM, whatever the mode, for diagnostics and tests. */
@@ -211,17 +220,31 @@ public final class RhinoBytecodeCache {
 				writes = new AtomicLong(), evictions = new AtomicLong(), bypasses = new AtomicLong();
 		/** time to load the scripts found here, time their entries say they took to compile, time to compile the others */
 		final AtomicLong loadNanos = new AtomicLong(), loadedCompileNanos = new AtomicLong(), compileNanos = new AtomicLong();
+		/** what auto compares to the compilation: processor time, and the time of the reads */
+		final AtomicLong loadCostNanos = new AtomicLong();
+		/** parts of the loading time: the key of the source, reading the entry, checking it, defining its classes */
+		final AtomicLong keyNanos = new AtomicLong(), readNanos = new AtomicLong(), checkNanos = new AtomicLong(), defineNanos = new AtomicLong();
 
 		@Override
 		public String toString() {
 			return "hits=" + hits + ", misses=" + misses + ", invalid=" + invalid + ", writes=" + writes + ", evictions="
-					+ evictions + ", bypasses=" + bypasses + ", loadMs=" + loadNanos.get() / 1_000_000 + ", loadedCompileMs="
-					+ loadedCompileNanos.get() / 1_000_000 + ", compileMs=" + compileNanos.get() / 1_000_000;
+					+ evictions + ", bypasses=" + bypasses + ", loadMs=" + loadNanos.get() / 1_000_000 + " (key "
+					+ keyNanos.get() / 1_000_000 + ", read " + readNanos.get() / 1_000_000 + ", check " + checkNanos.get() / 1_000_000
+					+ ", define " + defineNanos.get() / 1_000_000 + "), loadCostMs=" + loadCostNanos.get() / 1_000_000
+					+ ", loadedCompileMs=" + loadedCompileNanos.get() / 1_000_000 + ", compileMs=" + compileNanos.get() / 1_000_000;
 		}
 	}
 
 	private static final String ENVIRONMENT = environment();
 	private static final ConcurrentHashMap<String, RhinoBytecodeCache> caches = new ConcurrentHashMap<>();
+	/**
+	 * The compilation time of the entries waiting to be written, by key: a source compiled again before its entry is
+	 * written (in-memory caches cleared during the startup) keeps the time of its first compilation, the one a restart
+	 * saves, and is written once.
+	 */
+	private static final ConcurrentHashMap<String, AtomicLong> pending = new ConcurrentHashMap<>();
+	/** For the tests: behaves as in a running engine. */
+	static volatile boolean runningEngineForTests;
 	private static final Measure measure = new Measure();
 	static final Statistics statistics = new Statistics();
 	private static final AtomicInteger temporaryCounter = new AtomicInteger();
@@ -315,7 +338,7 @@ public final class RhinoBytecodeCache {
 		if (ENVIRONMENT == null || cx.isInterpretedMode() || cx.getDebugger() != null) {
 			return null;
 		}
-		if (mode == Mode.off || mode == Mode.auto && (Engine.theApp == null || measure.isOff())) {
+		if (mode == Mode.off || mode == Mode.auto && (!inRunningEngine() || measure.isOff())) {
 			return null;
 		}
 		var root = projectRootAbove(origin);
@@ -331,6 +354,10 @@ public final class RhinoBytecodeCache {
 			cache = caches.computeIfAbsent(root.getPath(), path -> new RhinoBytecodeCache(root, projectName(root), key));
 		}
 		return cache;
+	}
+
+	private static boolean inRunningEngine() {
+		return Engine.theApp != null || runningEngineForTests;
 	}
 
 	/** The nearest folder with a c8oProject.yaml above the file, as the frontend builds find their project. */
@@ -407,6 +434,7 @@ public final class RhinoBytecodeCache {
 	 */
 	Script get(Context cx, String source, String sourceName, Measure measure) {
 		var started = System.nanoTime();
+		var startedCpu = cpuTime();
 		var env = new CompilerEnvirons();
 		env.initFromContext(cx);
 		var options = ENVIRONMENT == null ? null : options(cx, env);
@@ -417,6 +445,7 @@ public final class RhinoBytecodeCache {
 		var key = key(options, sourceName, source);
 		var mainClassName = mainClassName(sourceName, key);
 		var file = entryFile(key);
+		var keyed = System.nanoTime();
 		Entry entry = null;
 		if (file != null) {
 			try {
@@ -433,13 +462,23 @@ public final class RhinoBytecodeCache {
 		}
 		if (entry != null) {
 			try {
+				var defining = System.nanoTime();
 				var script = instantiate(cx, mainClassName, entry.classes);
-				var loadNanos = System.nanoTime() - started;
+				var loaded = System.nanoTime();
+				var loadNanos = loaded - started;
+				// what loading costs: the processor time of the thread, but the time the entry took to be read, a slow
+				// storage costs in waits
+				var loadCost = cpuTime() - startedCpu - entry.readCpuNanos + entry.readNanos;
+				statistics.keyNanos.addAndGet(keyed - started);
+				statistics.readNanos.addAndGet(entry.readNanos);
+				statistics.checkNanos.addAndGet(defining - keyed - entry.readNanos);
+				statistics.defineNanos.addAndGet(loaded - defining);
 				statistics.hits.incrementAndGet();
 				statistics.loadNanos.addAndGet(loadNanos);
+				statistics.loadCostNanos.addAndGet(loadCost);
 				statistics.loadedCompileNanos.addAndGet(entry.compileNanos);
 				if (measure != null) {
-					measure.loaded(loadNanos, entry.compileNanos);
+					measure.loaded(loadCost, entry.compileNanos);
 				}
 				touch(file, entry.lastModified);
 				return script;
@@ -454,11 +493,12 @@ public final class RhinoBytecodeCache {
 			}
 		}
 		statistics.misses.incrementAndGet();
-		var compiling = System.nanoTime();
-		lastCompiled = compiling;
+		lastCompiled = System.nanoTime();
+		var compilingCpu = cpuTime();
 		// as before, with its errors; or its interpreter beyond the class file limits
 		var script = cx.compileString(source, sourceName, 1, null);
-		var compileNanos = System.nanoTime() - compiling;
+		// the processor time of the compilation: what a restart saves, whatever the other threads of a startup do
+		var compileNanos = cpuTime() - compilingCpu;
 		statistics.compileNanos.addAndGet(compileNanos);
 		schedule(key, mainClassName, KIND_CLASSES, compileNanos, env, source, sourceName,
 				cx.hasFeature(Context.FEATURE_ENHANCED_JAVA_ACCESS), measure);
@@ -509,12 +549,30 @@ public final class RhinoBytecodeCache {
 		}
 	}
 
-	private record Entry(byte kind, long compileNanos, Map<String, byte[]> classes, long lastModified) { }
+	private record Entry(byte kind, long compileNanos, Map<String, byte[]> classes, long lastModified, long readNanos, long readCpuNanos) { }
+
+	private static final java.lang.management.ThreadMXBean THREADS = java.lang.management.ManagementFactory.getThreadMXBean();
+	private static final boolean THREAD_CPU_TIME = cpuTimeSupported();
+
+	private static boolean cpuTimeSupported() {
+		try {
+			return THREADS.isCurrentThreadCpuTimeSupported() && THREADS.isThreadCpuTimeEnabled();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	/** The processor time of the current thread, the elapsed time where the JVM cannot tell it. */
+	private static long cpuTime() {
+		return THREAD_CPU_TIME ? THREADS.getCurrentThreadCpuTime() : System.nanoTime();
+	}
 
 	/** @return the entry of the key, null when missing; InvalidEntry when it cannot be used */
 	private Entry read(Path file, String key, String mainClassName) throws InvalidEntry {
 		byte[] data;
 		long lastModified;
+		var reading = System.nanoTime();
+		var readingCpu = cpuTime();
 		try {
 			var attributes = Files.readAttributes(file, java.nio.file.attribute.BasicFileAttributes.class);
 			if (!attributes.isRegularFile() || attributes.size() > MAX_ENTRY_BYTES) {
@@ -527,11 +585,13 @@ public final class RhinoBytecodeCache {
 		} catch (IOException e) {
 			throw new InvalidEntry("unreadable: " + e);
 		}
+		var readNanos = System.nanoTime() - reading;
+		var readCpuNanos = cpuTime() - readingCpu;
 		var decoded = decode(data, key, mainClassName, macKey);
-		return new Entry(decoded.kind, decoded.compileNanos, decoded.classes, lastModified);
+		return new Entry(decoded.kind, decoded.compileNanos, decoded.classes, lastModified, readNanos, readCpuNanos);
 	}
 
-	private record Decoded(byte kind, long compileNanos, Map<String, byte[]> classes) { }
+	record Decoded(byte kind, long compileNanos, Map<String, byte[]> classes) { }
 
 	static byte[] encode(String key, String mainClassName, byte kind, long compileNanos, Object[] compiled, byte[] macKey) {
 		try {
@@ -705,7 +765,7 @@ public final class RhinoBytecodeCache {
 	 */
 	private void schedule(String key, String mainClassName, byte kind, long compileNanos, CompilerEnvirons env, String source,
 			String sourceName, boolean enhancedJavaAccess, Measure measure) {
-		if (!flushOnExit && Engine.theApp == null) {
+		if (!flushOnExit && !inRunningEngine()) {
 			// outside an engine (tests, tools), the JVM may end right after: the pending entries are written first
 			synchronized (keyLock) {
 				if (!flushOnExit) {
@@ -714,24 +774,35 @@ public final class RhinoBytecodeCache {
 				}
 			}
 		}
+		var time = new AtomicLong(compileNanos);
+		var previous = pending.putIfAbsent(key, time);
+		if (previous != null) {
+			// compiled again before written: one entry, with the longest time (the first, colder, compilation)
+			previous.accumulateAndGet(compileNanos, Math::max);
+			return;
+		}
 		var queued = System.nanoTime();
 		writer.execute(() -> {
-			if (measure != null && measure.isOff()) {
-				return;
-			}
-			var written = kind;
-			Object[] compiled = null;
-			if (kind == KIND_CLASSES) {
-				awaitQuiet(queued);
+			try {
 				if (measure != null && measure.isOff()) {
 					return;
 				}
-				compiled = generate(env, source, sourceName, mainClassName, enhancedJavaAccess);
-				if (compiled == null) {
-					written = KIND_NOT_CACHEABLE;
+				var written = kind;
+				Object[] compiled = null;
+				if (kind == KIND_CLASSES) {
+					awaitQuiet(queued);
+					if (measure != null && measure.isOff()) {
+						return;
+					}
+					compiled = generate(env, source, sourceName, mainClassName, enhancedJavaAccess);
+					if (compiled == null) {
+						written = KIND_NOT_CACHEABLE;
+					}
 				}
+				write(key, encode(key, mainClassName, written, time.get(), compiled, macKey));
+			} finally {
+				pending.remove(key, time);
 			}
-			write(key, encode(key, mainClassName, written, compileNanos, compiled, macKey));
 		});
 	}
 
@@ -937,8 +1008,15 @@ public final class RhinoBytecodeCache {
 		statistics.evictions.set(0);
 		statistics.bypasses.set(0);
 		statistics.loadNanos.set(0);
+		statistics.loadCostNanos.set(0);
 		statistics.loadedCompileNanos.set(0);
 		statistics.compileNanos.set(0);
+		statistics.keyNanos.set(0);
+		statistics.readNanos.set(0);
+		statistics.checkNanos.set(0);
+		statistics.defineNanos.set(0);
+		pending.clear();
+		runningEngineForTests = false;
 	}
 
 	static Measure measure() {
@@ -998,7 +1076,7 @@ public final class RhinoBytecodeCache {
 				return installationKey;
 			}
 			var configuration = Engine.CONFIGURATION_PATH;
-			if (Engine.theApp == null || configuration == null || configuration.isEmpty() || !new File(configuration).isDirectory()) {
+			if (!inRunningEngine() || configuration == null || configuration.isEmpty() || !new File(configuration).isDirectory()) {
 				installationKey = "convertigo-rhino-bytecode-outside-engine".getBytes(StandardCharsets.UTF_8);
 				return installationKey;
 			}
