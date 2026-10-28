@@ -443,10 +443,11 @@ tasks.register('hiddenEnginePropertiesTest', JavaExec) {
 
 tasks.register('multipartUploadFolderTest', JavaExec) {
 	group = 'verification'
-	description = 'Regression test: a multipart request only creates its upload folder for the items written to disk, and a small folder is removed in Java without starting a process, a large one still by the external command.'
+	description = 'Regression test: a multipart request, to a requestable or to a REST operation, only creates its upload folder for the items written to disk and removes it at its end, and a small folder is removed in Java without starting a process, a large one still by the external command.'
 	dependsOn sessionTestClasses
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.FileUtilsDeleteDirectoryTest',
-		'com.twinsoft.convertigo.engine.servlets.GenericServletMultipartTest'
+		'com.twinsoft.convertigo.engine.servlets.GenericServletMultipartTest',
+		'com.twinsoft.convertigo.beans.rest.RestOperationMultipartTest'
 }

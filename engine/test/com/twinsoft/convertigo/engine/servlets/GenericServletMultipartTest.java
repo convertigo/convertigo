@@ -44,9 +44,7 @@ import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 
 /** A multipart request only creates its upload folder for the items written to disk, and starts no process (#1253). */
 public class GenericServletMultipartTest {
-	private static final String BOUNDARY = "c8o-multipart-test";
 	private static final File TMP = new File(System.getProperty("java.io.tmpdir"));
-	private final ByteArrayOutputStream body = new ByteArrayOutputStream();
 
 	@Before public void setup() throws Exception {
 		Engine.logEngine = Engine.logContext = Logger.getLogger("generic-servlet-multipart-test");
@@ -54,10 +52,9 @@ public class GenericServletMultipartTest {
 	}
 
 	@Test public void fieldsAndAnEmptyFileInputCreateNoFolderNorProcess() throws Throwable {
-		field("name", "value");
-		file("file", "", new byte[0]);
+		var multipart = new Multipart().field("name", "value").file("file", "", new byte[0]);
 		var before = uploadFolders();
-		var starts = processStarts(() -> assertEquals("done", post(request -> {
+		var starts = processStarts(() -> assertEquals("done", post(multipart, request -> {
 			assertEquals("value", request.getParameter("name"));
 			assertEquals("", request.getParameter("file"));
 			assertEquals(before, uploadFolders());
@@ -71,40 +68,43 @@ public class GenericServletMultipartTest {
 		var small = "small".getBytes(StandardCharsets.UTF_8);
 		var big = new byte[2 * 1024 * 1024];
 		Arrays.fill(big, (byte) 7);
-		field("large", large);
-		file("files", "small.txt", small);
-		file("files", "C:\\path\\big.bin", big);
+		var multipart = new Multipart().field("large", large).file("files", "small.txt", small)
+				.file("files", "C:\\path\\big.bin", big);
 		var before = uploadFolders();
-		var paths = new String[2];
-		var starts = processStarts(() -> assertEquals("done", post(request -> {
+		var folder = new File[1];
+		var starts = processStarts(() -> assertEquals("done", post(multipart, request -> {
 			assertEquals(large, request.getParameter("large"));
 			var files = request.getParameterValues("files");
 			assertEquals(2, files.length);
-			var smallFile = new File(files[0]);
-			var bigFile = new File(files[1]);
-			assertEquals("small.txt", smallFile.getName());
-			assertEquals("1", smallFile.getParentFile().getName());
-			assertEquals("big.bin", bigFile.getName());
-			assertEquals("2", bigFile.getParentFile().getName());
-			var folder = smallFile.getParentFile().getParentFile();
-			assertEquals(folder, bigFile.getParentFile().getParentFile());
-			assertTrue(folder.getName().startsWith("c8o-multipart-files"));
-			try {
-				assertArrayEquals(small, Files.readAllBytes(smallFile.toPath()));
-				assertArrayEquals(big, Files.readAllBytes(bigFile.toPath()));
-			} catch (IOException e) {
-				throw new AssertionError(e);
-			}
-			paths[0] = files[0];
-			paths[1] = folder.getPath();
+			folder[0] = checkUploadedFile(files[0], 1, "small.txt", small);
+			assertEquals(folder[0], checkUploadedFile(files[1], 2, "big.bin", big));
 		})));
 		assertEquals(List.of(), starts);
-		assertFalse(new File(paths[0]).exists());
-		assertFalse(new File(paths[1]).exists());
+		assertFalse(folder[0].exists());
 		assertEquals(before, uploadFolders());
 	}
 
-	private Object post(Consumer<HttpServletRequest> check) throws Exception {
+	/** Checks an uploaded file given to the requestable, and returns the upload folder of the request. */
+	public static File checkUploadedFile(String path, int number, String name, byte[] content) {
+		var file = new File(path);
+		assertEquals(name, file.getName());
+		assertEquals(Integer.toString(number), file.getParentFile().getName());
+		try {
+			assertArrayEquals(content, Files.readAllBytes(file.toPath()));
+		} catch (IOException e) {
+			throw new AssertionError(e);
+		}
+		var folder = file.getParentFile().getParentFile();
+		assertTrue(folder.getName().startsWith("c8o-multipart-files"));
+		return folder;
+	}
+
+	/** The upload folders in the temporary directory. */
+	public static Set<String> uploadFolders() {
+		return Arrays.stream(TMP.list()).filter(name -> name.startsWith("c8o-multipart-files")).collect(Collectors.toSet());
+	}
+
+	private Object post(Multipart multipart, Consumer<HttpServletRequest> check) throws Exception {
 		var requester = new UploadRequester(check);
 		var servlet = new GenericServlet() {
 			private static final long serialVersionUID = 1L;
@@ -112,54 +112,58 @@ public class GenericServletMultipartTest {
 			@Override public String getDocumentExtension() { return ".xml"; }
 			@Override void processRequestEnd(HttpServletRequest request, Requester requester) { }
 		};
-		return servlet.processRequest(new HttpServletRequestTwsWrapper(request()));
+		return servlet.processRequest(new HttpServletRequestTwsWrapper(multipart.request("/")));
 	}
 
-	private void field(String name, String value) throws IOException {
-		part("form-data; name=\"" + name + "\"", null, value.getBytes(StandardCharsets.UTF_8));
-	}
+	/** A multipart/form-data POST request, as a browser sends it. */
+	public static class Multipart {
+		private static final String BOUNDARY = "c8o-multipart-test";
+		private final ByteArrayOutputStream body = new ByteArrayOutputStream();
 
-	private void file(String name, String filename, byte[] content) throws IOException {
-		part("form-data; name=\"" + name + "\"; filename=\"" + filename + "\"", "application/octet-stream", content);
-	}
+		public Multipart field(String name, String value) throws IOException {
+			return part("form-data; name=\"" + name + "\"", null, value.getBytes(StandardCharsets.UTF_8));
+		}
 
-	private void part(String disposition, String contentType, byte[] content) throws IOException {
-		var headers = "--" + BOUNDARY + "\r\nContent-Disposition: " + disposition + "\r\n"
-				+ (contentType == null ? "" : "Content-Type: " + contentType + "\r\n") + "\r\n";
-		body.write(headers.getBytes(StandardCharsets.UTF_8));
-		body.write(content);
-		body.write("\r\n".getBytes(StandardCharsets.UTF_8));
-	}
+		public Multipart file(String name, String filename, byte[] content) throws IOException {
+			return part("form-data; name=\"" + name + "\"; filename=\"" + filename + "\"", "application/octet-stream", content);
+		}
 
-	private HttpServletRequest request() throws IOException {
-		body.write(("--" + BOUNDARY + "--\r\n").getBytes(StandardCharsets.UTF_8));
-		var bytes = body.toByteArray();
-		var input = new ServletInputStream() {
-			private final ByteArrayInputStream delegate = new ByteArrayInputStream(bytes);
-			@Override public int read() { return delegate.read(); }
-			@Override public int read(byte[] b, int off, int len) { return delegate.read(b, off, len); }
-			@Override public boolean isFinished() { return delegate.available() == 0; }
-			@Override public boolean isReady() { return true; }
-			@Override public void setReadListener(ReadListener listener) { }
-		};
-		var attributes = new HashMap<String, Object>();
-		return (HttpServletRequest) Proxy.newProxyInstance(getClass().getClassLoader(),
-				new Class<?>[] { HttpServletRequest.class }, (proxy, method, args) -> switch (method.getName()) {
-			case "getMethod" -> "POST";
-			case "getContentType" -> "multipart/form-data; boundary=" + BOUNDARY;
-			case "getContentLength" -> bytes.length;
-			case "getContentLengthLong" -> (long) bytes.length;
-			case "getCharacterEncoding" -> "UTF-8";
-			case "getInputStream" -> input;
-			case "getParameterMap" -> Map.of();
-			case "getAttribute" -> attributes.get(args[0]);
-			case "setAttribute" -> { attributes.put((String) args[0], args[1]); yield null; }
-			default -> null;
-		});
-	}
+		private Multipart part(String disposition, String contentType, byte[] content) throws IOException {
+			var headers = "--" + BOUNDARY + "\r\nContent-Disposition: " + disposition + "\r\n"
+					+ (contentType == null ? "" : "Content-Type: " + contentType + "\r\n") + "\r\n";
+			body.write(headers.getBytes(StandardCharsets.UTF_8));
+			body.write(content);
+			body.write("\r\n".getBytes(StandardCharsets.UTF_8));
+			return this;
+		}
 
-	private static Set<String> uploadFolders() {
-		return Arrays.stream(TMP.list()).filter(name -> name.startsWith("c8o-multipart-files")).collect(Collectors.toSet());
+		public HttpServletRequest request(String pathInfo) throws IOException {
+			body.write(("--" + BOUNDARY + "--\r\n").getBytes(StandardCharsets.UTF_8));
+			var bytes = body.toByteArray();
+			var input = new ServletInputStream() {
+				private final ByteArrayInputStream delegate = new ByteArrayInputStream(bytes);
+				@Override public int read() { return delegate.read(); }
+				@Override public int read(byte[] b, int off, int len) { return delegate.read(b, off, len); }
+				@Override public boolean isFinished() { return delegate.available() == 0; }
+				@Override public boolean isReady() { return true; }
+				@Override public void setReadListener(ReadListener listener) { }
+			};
+			var attributes = new HashMap<String, Object>();
+			return (HttpServletRequest) Proxy.newProxyInstance(Multipart.class.getClassLoader(),
+					new Class<?>[] { HttpServletRequest.class }, (proxy, method, args) -> switch (method.getName()) {
+				case "getMethod" -> "POST";
+				case "getPathInfo" -> pathInfo;
+				case "getContentType" -> "multipart/form-data; boundary=" + BOUNDARY;
+				case "getContentLength" -> bytes.length;
+				case "getContentLengthLong" -> (long) bytes.length;
+				case "getCharacterEncoding" -> "UTF-8";
+				case "getInputStream" -> input;
+				case "getParameterMap" -> Map.of();
+				case "getAttribute" -> attributes.get(args[0]);
+				case "setAttribute" -> { attributes.put((String) args[0], args[1]); yield null; }
+				default -> null;
+			});
+		}
 	}
 
 	/** Checks the parameters and the files of the request, as a requestable would use them. */

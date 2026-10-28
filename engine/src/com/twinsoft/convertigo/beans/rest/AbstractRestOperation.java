@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -159,6 +160,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		String sequenceName = count == 2 ? st.nextToken():"";
 		String connectorName = count == 3 ? st.nextToken():"";
 		String transactionName = count == 3 ? st.nextToken():"";
+		File temporaryFile = null;
 		
 		try {
 			
@@ -180,10 +182,10 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					// Set factory constraints
 					factory.setSizeThreshold(1000);
 		
-					File temporaryFile = File.createTempFile("c8o-multipart-files", ".tmp");
+					temporaryFile = File.createTempFile("c8o-multipart-files", ".tmp");
 					int cptFile = 0;
 					temporaryFile.delete();
-					temporaryFile.mkdirs();
+					// the folder is only created to write an item: by the factory over the size threshold, or an uploaded file
 					factory.setRepository(temporaryFile);
 					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" Temporary folder for upload is : " + temporaryFile.getAbsolutePath());
 		
@@ -411,7 +413,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			
 			// Execute requestable
 			Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" executing requestable \""+ targetRequestableQName +"\"");
-			InternalRequester internalRequester = new InternalRequester(map, request);
+			InternalRequester internalRequester = newInternalRequester(map, request);
 			request.setAttribute("convertigo.requester", internalRequester);
     		Object result = internalRequester.processRequest();
     		String encoding = "UTF-8";
@@ -512,7 +514,20 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			if (terminateSession) {
 				request.setAttribute("convertigo.requireEndOfContext", true);
 			}
+			// the requestable has ended and its response is built: the uploaded files are no longer used
+			if (temporaryFile != null && temporaryFile.exists()) {
+				try {
+					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" Removing the temporary folder : " + temporaryFile.getAbsolutePath());
+					FileUtils.deleteDirectory(temporaryFile);
+				} catch (IOException e) {
+					Engine.logBeans.warn("(AbstractRestOperation) \""+ getName() +"\" Failed to delete: " + temporaryFile + " [" + e.getMessage() + "]");
+				}
+			}
 		}
+	}
+
+	InternalRequester newInternalRequester(Map<String, Object> map, HttpServletRequest request) throws EngineException {
+		return new InternalRequester(map, request);
 	}
 
 	public boolean isTerminateSession() {
