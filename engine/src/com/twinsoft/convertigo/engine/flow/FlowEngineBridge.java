@@ -99,7 +99,11 @@ public class FlowEngineBridge {
 	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
 	/** @param project the canonical directory of the project, empty for none; dataRevision the revision of its data */
 	private record SharedRuntimeKey(String provider, String source, String project, ClassLoader loader, long codeRevision, long dataRevision) { }
+	/** Its monitor orders their publication and the invalidations of data caches, never held while one is prepared. */
 	private static final Map<SharedRuntimeKey, CachedEngineRuntime> sharedRuntimes = new ConcurrentHashMap<>();
+	/** The preparations of shared runtimes in progress, by key: removed once published or failed, so a failure is never kept. */
+	private static final Map<SharedRuntimeKey, SharedRuntimeFlight> sharedRuntimeFlights = new ConcurrentHashMap<>();
+	private static final AtomicInteger sharedRuntimeWaiters = new AtomicInteger();
 	private static final ThreadLocal<RuntimeInvocation> currentRuntime = new ThreadLocal<>();
 	private static final String[] INVOCATION_BINDINGS = { "context", "__flowProjectDir", "__flowBridgeClassSource",
 			"__flowBridgeClassResource", "__flowBridgeInfo", "__flowBridgeRuntimeCacheEnabled", "__flowBridgeRuntimeCacheHit",
@@ -126,6 +130,14 @@ public class FlowEngineBridge {
 	private record CachedEngineRuntime(String sourceName, long generation, long dataGeneration, Scriptable scope,
 			Scriptable engineObject, FlowRuntimeApi api) {
 	}
+
+	/** A preparation of a shared runtime in progress: the thread preparing it, then its runtime for the callers waiting for it. */
+	private static final class SharedRuntimeFlight {
+		private final Thread owner = Thread.currentThread();
+		/** Completed with null when the thread preparing it is interrupted: a caller waiting for it prepares it again. */
+		private final CompletableFuture<CachedEngineRuntime> outcome = new CompletableFuture<>();
+	}
+
 	private record IdleEngineRuntime(CachedEngineRuntime runtime, long since) { }
 	private record RuntimeInvocation(CachedEngineRuntimeLookup lookup, ClassLoader projectGeneration, boolean execution) { }
 
@@ -331,7 +343,7 @@ public class FlowEngineBridge {
 		}
 		roots.add(root);
 		synchronized (sharedRuntimes) {
-			// a runtime being prepared for their previous revision is not published (sharedEngineRuntime)
+			// a runtime being prepared for their previous revision is not published (publishSharedRuntime)
 			var revision = dataGeneration.incrementAndGet();
 			for (var each : roots) {
 				sourceRevisions.computeIfAbsent(each, ignored -> new AtomicLong()).accumulateAndGet(revision, Math::max);
@@ -2080,6 +2092,8 @@ public class FlowEngineBridge {
 				.put("generation", cacheGeneration.get())
 				.put("dataGeneration", dataGeneration.get())
 				.put("sharedRuntimeCount", sharedRuntimes.size())
+				.put("sharedRuntimePreparing", sharedRuntimeFlights.size())
+				.put("sharedRuntimeWaiting", sharedRuntimeWaiters.get())
 				.put("childInvocations", new JSONObject(com.twinsoft.convertigo.engine.requesters.RequestableInvocation.statistics()))
 				.put("sourceCacheSize", engineSourceCache.size())
 				.put("runtimeCacheSize", engineRuntimeCache.size())
@@ -2893,27 +2907,97 @@ public class FlowEngineBridge {
 			runtime = null;
 		}
 		boolean hit = runtime != null;
-		if (runtime == null) synchronized (sharedRuntimes) {
-			runtime = sharedRuntimes.get(key);
-			if (runtime == null) {
-				var api = new FlowRuntimeApi(cx, root, key.codeRevision(), key.dataRevision());
-				api.revisionMatches(() -> methodResponseDependencyFingerprint(file, request));
-				var scope = api.sharedScope();
-				initializeSourceScope(scope, file);
-				scope.defineProperty("__flowRuntimeApi", org.mozilla.javascript.Context.javaToJS(api, scope),
-						ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
-				var value = RhinoUtils.evalCachedJavascript(cx, scope, source.source(), source.sourceName(), source.file());
-				if (!(value instanceof Scriptable engine) || !Boolean.TRUE.equals(ScriptableObject.getProperty(engine, "supportsStatelessExecution")))
-					throw new EngineException("The provider advertised a shared runtime without implementing its protocol.");
-				scope.sealObject();
-				runtime = new CachedEngineRuntime(source.sourceName(), key.codeRevision(), key.dataRevision(), scope, engine, api);
-				if (sharedRuntimes.size() >= 256) sharedRuntimes.clear();
-				if (key.codeRevision() == cacheGeneration.get() && key.dataRevision() == dataRevision(root))
-					sharedRuntimes.put(key, runtime);
-			}
-		}
+		if (runtime == null) runtime = preparedSharedRuntime(key, file, source, cx, request);
 		return new CachedEngineRuntimeLookup(runtime, null, hit, false, ref.qname + "|" + source.sourceName() + "|shared",
 				key.codeRevision(), sharedRuntimes.size(), false);
+	}
+
+	/**
+	 * Single flight for each key: its first caller prepares the runtime, on its thread, and publishes it; the other
+	 * callers of that key wait for it (they see its failure, never kept, the next caller preparing it again), while the
+	 * runtimes of the other keys are prepared at the same time. A preparation needing its own key again on its thread
+	 * prepares one for itself without publishing it, as a nested call did under a single lock; one stopped by the
+	 * interruption of its thread is prepared again by a caller waiting for it, and an interrupted caller stops waiting.
+	 */
+	private static CachedEngineRuntime preparedSharedRuntime(SharedRuntimeKey key, File file, CachedEngineSource source,
+			org.mozilla.javascript.Context cx, JSONObject request) throws EngineException {
+		for (;;) {
+			var runtime = sharedRuntimes.get(key);
+			if (runtime != null) return runtime;
+			var flight = sharedRuntimeFlights.get(key);
+			if (flight == null) {
+				var created = new SharedRuntimeFlight();
+				flight = sharedRuntimeFlights.putIfAbsent(key, created);
+				if (flight == null) return leadSharedRuntime(key, created, file, source, cx, request);
+			}
+			if (flight.owner == Thread.currentThread()) return createSharedRuntime(key, file, source, cx, request);
+			runtime = awaitSharedRuntime(flight);
+			if (runtime != null) return runtime;
+		}
+	}
+
+	private static CachedEngineRuntime leadSharedRuntime(SharedRuntimeKey key, SharedRuntimeFlight flight, File file,
+			CachedEngineSource source, org.mozilla.javascript.Context cx, JSONObject request) throws EngineException {
+		// published by the previous preparation of the key after this caller missed it
+		var runtime = sharedRuntimes.get(key);
+		if (runtime == null) {
+			try {
+				runtime = createSharedRuntime(key, file, source, cx, request);
+			} catch (Throwable failure) {
+				sharedRuntimeFlights.remove(key, flight);
+				if (FlowRuntimeApi.interruption(failure)) flight.outcome.complete(null);
+				else flight.outcome.completeExceptionally(failure);
+				throw failure;
+			}
+			// published before the flight ends: a caller missing the flight finds it
+			publishSharedRuntime(key, runtime);
+		}
+		sharedRuntimeFlights.remove(key, flight);
+		flight.outcome.complete(runtime);
+		return runtime;
+	}
+
+	private static CachedEngineRuntime createSharedRuntime(SharedRuntimeKey key, File file, CachedEngineSource source,
+			org.mozilla.javascript.Context cx, JSONObject request) throws EngineException {
+		var api = new FlowRuntimeApi(cx, key.project(), key.codeRevision(), key.dataRevision());
+		api.revisionMatches(() -> methodResponseDependencyFingerprint(file, request));
+		var scope = api.sharedScope();
+		initializeSourceScope(scope, file);
+		scope.defineProperty("__flowRuntimeApi", org.mozilla.javascript.Context.javaToJS(api, scope),
+				ScriptableObject.READONLY | ScriptableObject.PERMANENT | ScriptableObject.DONTENUM);
+		var value = RhinoUtils.evalCachedJavascript(cx, scope, source.source(), source.sourceName(), source.file());
+		if (!(value instanceof Scriptable engine) || !Boolean.TRUE.equals(ScriptableObject.getProperty(engine, "supportsStatelessExecution")))
+			throw new EngineException("The provider advertised a shared runtime without implementing its protocol.");
+		scope.sealObject();
+		return new CachedEngineRuntime(source.sourceName(), key.codeRevision(), key.dataRevision(), scope, engine, api);
+	}
+
+	/** Kept while the revisions of its key are still those of its project: else it only serves the callers of its preparation. */
+	private static void publishSharedRuntime(SharedRuntimeKey key, CachedEngineRuntime runtime) {
+		synchronized (sharedRuntimes) {
+			if (key.codeRevision() != cacheGeneration.get() || key.dataRevision() != dataRevision(key.project())) return;
+			if (sharedRuntimes.size() >= 256) sharedRuntimes.clear();
+			sharedRuntimes.put(key, runtime);
+		}
+	}
+
+	/** @return the runtime of a preparation in progress, null when its thread was interrupted: it is prepared again */
+	private static CachedEngineRuntime awaitSharedRuntime(SharedRuntimeFlight flight) throws EngineException {
+		sharedRuntimeWaiters.incrementAndGet();
+		try {
+			return flight.outcome.get();
+		} catch (java.util.concurrent.ExecutionException failure) {
+			var cause = failure.getCause();
+			if (cause instanceof EngineException engineException) throw engineException;
+			if (cause instanceof RuntimeException runtimeException) throw runtimeException;
+			if (cause instanceof Error error) throw error;
+			throw new EngineException("Unable to prepare a shared runtime.", cause);
+		} catch (InterruptedException interrupted) {
+			Thread.currentThread().interrupt();
+			throw new EngineException("Interrupted while waiting for the preparation of a shared runtime.", interrupted);
+		} finally {
+			sharedRuntimeWaiters.decrementAndGet();
+		}
 	}
 
 	private static CachedEngineRuntime createEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,

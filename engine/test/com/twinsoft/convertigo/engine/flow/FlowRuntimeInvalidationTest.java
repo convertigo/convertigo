@@ -13,7 +13,17 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.After;
@@ -35,14 +45,48 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 /**
  * The shared runtimes of a stateless server when a project is unloaded (deployed, reloaded, imported): those of the
  * project and of the loaded projects using it (referencing it, directly or not, or provided by it) are prepared again,
- * the other projects keep theirs, as their method responses and the snapshots of their files.
+ * the other projects keep theirs, as their method responses and the snapshots of their files. Each key is prepared once
+ * for its concurrent callers, different keys at the same time, and a runtime prepared while its project is invalidated
+ * is never kept for its previous revision.
  */
 public class FlowRuntimeInvalidationTest {
 	private static final AtomicInteger preparations = new AtomicInteger();
+	/** The preparations wait for each other on it while set. */
+	private static volatile CyclicBarrier together;
+	/** The next preparation waits for it, then fails when failing is set. */
+	private static final AtomicReference<CountDownLatch> gate = new AtomicReference<>();
+	private static final AtomicInteger atGate = new AtomicInteger();
+	private static volatile boolean failing;
+	/** Called once by the next preparation, on its thread. */
+	private static volatile Callable<?> reentry;
+	/** The invalidations started when a preparation started, by its number. */
+	private static final Map<Integer, Integer> startedAfter = new ConcurrentHashMap<>();
+	private static final AtomicInteger invalidationsStarted = new AtomicInteger();
 
 	/** Called by each evaluation of the provider, the preparation of a shared runtime: its number. */
-	public static int preparing() {
-		return preparations.incrementAndGet();
+	public static int preparing() throws Exception {
+		var id = preparations.incrementAndGet();
+		startedAfter.put(id, invalidationsStarted.get());
+		var barrier = together;
+		if (barrier != null) {
+			barrier.await(10, TimeUnit.SECONDS);
+		}
+		var held = gate.getAndSet(null);
+		if (held != null) {
+			atGate.incrementAndGet();
+			if (!held.await(10, TimeUnit.SECONDS)) {
+				throw new IllegalStateException("The gate of the preparation stayed closed");
+			}
+			if (failing) {
+				throw new IllegalArgumentException("broken provider");
+			}
+		}
+		var again = reentry;
+		reentry = null;
+		if (again != null) {
+			again.call();
+		}
+		return id;
 	}
 
 	private static Method method(Class<?> c, String name, Class<?>... types) throws Exception {
@@ -69,11 +113,21 @@ public class FlowRuntimeInvalidationTest {
 	private Object reference, source;
 	private Method acquire;
 
+	private ExecutorService pool;
+
 	@Before
 	public void create() throws Exception {
 		Engine.logEngine = Engine.logBeans = Engine.logContext = org.apache.log4j.Logger.getLogger("runtime-invalidation-test");
 		EnginePropertiesManager.initProperties();
 		preparations.set(0);
+		together = null;
+		gate.set(null);
+		atGate.set(0);
+		failing = false;
+		reentry = null;
+		startedAfter.clear();
+		invalidationsStarted.set(0);
+		pool = Executors.newCachedThreadPool();
 		workspace = Files.createTempDirectory("runtime-invalidation-");
 		var provider = project("Provider");
 		engineFile = provider.getDirFile().toPath().resolve("_flow/Engine.js").toFile();
@@ -102,6 +156,12 @@ public class FlowRuntimeInvalidationTest {
 
 	@After
 	public void release() throws Exception {
+		together = null;
+		var held = gate.getAndSet(null);
+		if (held != null) {
+			held.countDown();
+		}
+		pool.shutdownNow();
 		FlowEngineBridge.clearCaches();
 		Engine.theApp = previous;
 		if (workspace != null) {
@@ -261,5 +321,211 @@ public class FlowRuntimeInvalidationTest {
 		var keys = ((Map<?, ?>) entries.get(staticField("serverSources"))).keySet().toString();
 		assertTrue(keys, keys.contains(files.get(application).toPath().toAbsolutePath().normalize().toString()));
 		assertFalse(keys, keys.contains(files.get(library).getParentFile().getParentFile().getParent()));
+	}
+
+	/** @return the gate the next preparation waits for */
+	private static CountDownLatch hold() {
+		atGate.set(0);
+		var held = new CountDownLatch(1);
+		gate.set(held);
+		return held;
+	}
+
+	private static int waiters() throws Exception {
+		return ((AtomicInteger) staticField("sharedRuntimeWaiters")).get();
+	}
+
+	/** Until the next preparation holds at the gate and count callers wait for preparations in progress. */
+	private static void awaitHeld(int count) throws Exception {
+		for (long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10); atGate.get() == 0 || waiters() < count;) {
+			assertTrue("Expected a preparation held and " + count + " waiting callers, got " + atGate.get() + " and " + waiters(),
+					System.nanoTime() < deadline);
+			Thread.sleep(5);
+		}
+	}
+
+	private Future<Object> later(Project project) {
+		return pool.submit(() -> runtime(project));
+	}
+
+	private static Throwable cause(Future<?> future) throws Exception {
+		try {
+			future.get(20, TimeUnit.SECONDS);
+		} catch (ExecutionException e) {
+			var cause = e.getCause();
+			while (cause instanceof java.lang.reflect.InvocationTargetException || cause instanceof org.mozilla.javascript.WrappedException) {
+				cause = cause instanceof org.mozilla.javascript.WrappedException wrapped ? wrapped.getWrappedException() : cause.getCause();
+			}
+			return cause;
+		}
+		fail("Expected a failure");
+		return null;
+	}
+
+	private static boolean kept(Object runtime) throws Exception {
+		return ((Map<?, ?>) staticField("sharedRuntimes")).containsValue(runtime);
+	}
+
+	@Test
+	public void theRuntimesOfDifferentProjectsArePreparedAtTheSameTime() throws Exception {
+		int count = 4;
+		// each preparation waits for all the others: a lock shared by the keys would time this barrier out
+		together = new CyclicBarrier(count);
+		var results = new ArrayList<Future<Object>>();
+		for (int i = 0; i < count; i++) {
+			results.add(later(project("Application" + i)));
+		}
+		var seen = new java.util.HashSet<Object>();
+		for (var result : results) {
+			assertTrue(seen.add(result.get(20, TimeUnit.SECONDS)));
+		}
+		assertEquals(count, preparations.get());
+	}
+
+	@Test
+	public void theCallersOfAProjectWaitForItsSinglePreparationWhileAnotherIsPrepared() throws Exception {
+		var application = project("Application");
+		var other = project("Other");
+		int count = 6;
+		var held = hold();
+		var results = new ArrayList<Future<Object>>();
+		for (int i = 0; i < count; i++) {
+			results.add(later(application));
+		}
+		awaitHeld(count - 1);
+		assertNotNull("Another project is prepared meanwhile", later(other).get(5, TimeUnit.SECONDS));
+		held.countDown();
+		var first = results.get(0).get(20, TimeUnit.SECONDS);
+		for (var result : results) {
+			assertSame(first, result.get(20, TimeUnit.SECONDS));
+		}
+		assertEquals("One preparation for the project, one for the other", 2, preparations.get());
+		assertSame(first, runtime(application));
+		assertEquals(0, waiters());
+		assertEquals(0, ((Map<?, ?>) staticField("sharedRuntimeFlights")).size());
+	}
+
+	@Test
+	public void theCallersOfAFailedPreparationSeeItsFailureWhichIsNotKept() throws Exception {
+		var application = project("Application");
+		var held = hold();
+		failing = true;
+		var results = new ArrayList<Future<Object>>();
+		for (int i = 0; i < 4; i++) {
+			results.add(later(application));
+		}
+		awaitHeld(3);
+		held.countDown();
+		for (var result : results) {
+			var failure = cause(result);
+			assertTrue(String.valueOf(failure), failure instanceof IllegalArgumentException && "broken provider".equals(failure.getMessage()));
+		}
+		assertEquals("The callers waiting did not prepare it again", 1, preparations.get());
+		failing = false;
+		assertEquals(2, id(runtime(application)));
+	}
+
+	@Test
+	public void aPreparationInterruptedIsPreparedAgainByACallerWaitingForIt() throws Exception {
+		var application = project("Application");
+		hold();
+		var owner = new AtomicReference<Thread>();
+		var first = pool.submit(() -> {
+			owner.set(Thread.currentThread());
+			return runtime(application);
+		});
+		awaitHeld(0);
+		var waiting = later(application);
+		awaitHeld(1);
+		owner.get().interrupt();
+		assertTrue(cause(first) instanceof InterruptedException);
+		var runtime = waiting.get(20, TimeUnit.SECONDS);
+		assertEquals("The caller waiting prepared it again", 2, id(runtime));
+		assertSame(runtime, runtime(application));
+	}
+
+	@Test
+	public void aPreparationNeedingItsOwnRuntimeOnItsThreadPreparesOneForItself() throws Exception {
+		var application = project("Application");
+		var nested = new AtomicReference<Object>();
+		reentry = () -> {
+			nested.set(runtime(application));
+			return null;
+		};
+		var runtime = pool.submit(() -> runtime(application)).get(20, TimeUnit.SECONDS);
+		assertNotSame(runtime, nested.get());
+		assertSame("The outer preparation is published", runtime, runtime(application));
+		assertFalse(kept(nested.get()));
+	}
+
+	@Test
+	public void aRuntimePreparedWhileItsProjectIsInvalidatedIsNotKept() throws Exception {
+		var library = project("Library");
+		var application = project("Application", "Library");
+		var unrelated = project("Unrelated");
+		var held = hold();
+		var preparing = later(application);
+		awaitHeld(0);
+		// the invalidation does not wait for the preparation
+		pool.submit(() -> { reload(library); return null; }).get(5, TimeUnit.SECONDS);
+		held.countDown();
+		var stale = preparing.get(20, TimeUnit.SECONDS);
+		assertFalse("Prepared for the previous revision of its project", kept(stale));
+		var fresh = runtime(application);
+		assertNotSame(stale, fresh);
+		// the invalidation of another project during a preparation does not concern it
+		var other = project("Other");
+		held = hold();
+		preparing = later(other);
+		awaitHeld(0);
+		pool.submit(() -> { reload(unrelated); return null; }).get(5, TimeUnit.SECONDS);
+		held.countDown();
+		var runtime = preparing.get(20, TimeUnit.SECONDS);
+		assertTrue(kept(runtime));
+		assertSame(runtime, runtime(other));
+		assertSame(fresh, runtime(application));
+	}
+
+	@Test
+	public void noCallAfterAnInvalidationGetsARuntimePreparedBeforeIt() throws Exception {
+		project("Library");
+		var application = project("Application", "Library");
+		var library = loaded.get("Library");
+		var completed = new AtomicInteger();
+		var stop = new java.util.concurrent.atomic.AtomicBoolean();
+		var failures = new java.util.concurrent.CopyOnWriteArrayList<String>();
+		var callers = new ArrayList<Future<?>>();
+		for (int i = 0; i < 4; i++) {
+			callers.add(pool.submit(() -> {
+				while (!stop.get()) {
+					var before = completed.get();
+					var id = id(runtime(application));
+					// prepared after the start of every invalidation completed before this call
+					if (startedAfter.get(id) < before) {
+						failures.add("runtime " + id + " prepared after " + startedAfter.get(id) + " invalidations served after " + before);
+					}
+				}
+				return null;
+			}));
+		}
+		var invalidations = pool.submit(() -> {
+			for (long end = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(1500); System.nanoTime() < end;) {
+				invalidationsStarted.incrementAndGet();
+				FlowEngineBridge.invalidateProjectDataCaches(library.getDirPath());
+				completed.incrementAndGet();
+				Thread.sleep(1);
+			}
+			return null;
+		});
+		try {
+			invalidations.get(30, TimeUnit.SECONDS);
+		} finally {
+			stop.set(true);
+		}
+		for (var caller : callers) {
+			caller.get(30, TimeUnit.SECONDS);
+		}
+		assertTrue(failures.toString(), failures.isEmpty());
+		assertTrue("Runtimes prepared again: " + preparations.get(), preparations.get() > 1);
 	}
 }

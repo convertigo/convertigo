@@ -315,7 +315,8 @@ public final class FlowRuntimeApi {
         }
     }
 
-    private static boolean interruption(Throwable failure) {
+    /** @return whether a failure comes from the interruption of the current thread: not a failure of what it prepared */
+    static boolean interruption(Throwable failure) {
         if (Thread.currentThread().isInterrupted()) return true;
         for (int depth = 0; failure != null && depth < 32; failure = failure.getCause(), depth++) {
             if (failure instanceof InterruptedException || failure instanceof java.io.InterruptedIOException
