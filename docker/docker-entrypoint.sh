@@ -1,75 +1,6 @@
 #!/bin/sh
 # Source file for docker/*/docker-entrypoint.sh, regenerated with ./gradlew generateDockerfile.
 
-## train the AOT cache of the image when it is built (AOT_CACHE_IMAGE), used by default by its
-## containers: start the server once on an empty workspace with a small sample project, call it,
-## stop it (the JVM writes the cache when it exits), then remove everything else this run wrote.
-
-if [ "$1" = "aot-train" ]; then
-    touch /tmp/aot-train.start
-    AOT_DIR=$CATALINA_HOME/aot
-    mkdir -p $AOT_DIR /workspace/projects/AotTraining
-    ## bean declarations end with ': ' in the project YAML format
-    sed 's/\]:$/]: /' > /workspace/projects/AotTraining/c8oProject.yaml <<'EOF'
-↑convertigo: 8.4.0.m006
-↓AotTraining [core.Project]:
-  ↓void [connectors.SqlConnector]:
-    isDefault: true
-    ↓Default [transactions.SqlTransaction]:
-      isDefault: true
-  ↓Hello [sequences.GenericSequence]:
-    ↓Compute [steps.SimpleStep-1700002470001]:
-      expression: |
-        var words = [];
-        for (var i = 0; i < 50; i++) {
-          words.push("w" + (i * 7 % 13));
-        }
-        words.sort();
-        var summary = words.join(",");
-    ↓summary [steps.ElementStep-1700002470002]:
-      expression: summary
-      nodeName: summary
-EOF
-    chown -R convertigo:convertigo $AOT_DIR /workspace
-    AOT_CACHE=record ENABLE_JDWP_DEBUG=false JXMX=1024 "$0" convertigo &
-    AOT_PID=$!
-    AOT_URL=http://127.0.0.1:28080/convertigo
-    i=0
-    until curl -fs -o /dev/null --max-time 30 $AOT_URL/admin/services/engine.CheckAuthentication; do
-        i=$((i + 1))
-        if [ $i -gt 600 ] || ! kill -0 $AOT_PID 2>/dev/null; then
-            echo "AOT training: the server did not start"
-            break
-        fi
-        sleep 1
-    done
-    ## a single session (cookie jar): the server has no license key here
-    AOT_CURL="curl -s -b /tmp/aot-train.cookies -c /tmp/aot-train.cookies"
-    AOT_CALLS=0
-    for i in $(seq 1 20); do
-        $AOT_CURL "$AOT_URL/projects/AotTraining/.json?__sequence=Hello" | grep -q summary && AOT_CALLS=$((AOT_CALLS + 1))
-        $AOT_CURL "$AOT_URL/projects/AotTraining/.xml?__sequence=Hello" | grep -q summary && AOT_CALLS=$((AOT_CALLS + 1))
-    done
-    echo "AOT training: $AOT_CALLS/40 calls of the sample project"
-    $AOT_CURL -o /dev/null $AOT_URL/admin/services/engine.Supervision
-    $AOT_CURL -o /dev/null "$AOT_URL/projects/AotTrainingMissing/.json?__sequence=Missing"
-    $AOT_CURL -o /dev/null $AOT_URL/
-    kill -TERM $AOT_PID 2>/dev/null
-    wait $AOT_PID
-    find /workspace $CATALINA_HOME/logs $CATALINA_HOME/temp $CATALINA_HOME/work /home/convertigo /tmp \
-        -mindepth 1 -maxdepth 1 -newer /tmp/aot-train.start -exec rm -rf {} +
-    rm -rf /tmp/aot-train.start $CATALINA_HOME/conf/Catalina
-    if [ -s $AOT_DIR/convertigo.aot ]; then
-        chown -R root:root $AOT_DIR
-        chmod -R a+rX,go-w $AOT_DIR
-        echo "AOT training: $(du -h $AOT_DIR/convertigo.aot | cut -f1) cache in $AOT_DIR"
-    else
-        rm -rf $AOT_DIR
-        echo "AOT training: no cache created, the containers will start without AOT cache"
-    fi
-    exit 0
-fi
-
 if [ "$1" = "convertigo" ]; then
     
     WEB_INF=$CATALINA_HOME/webapps/convertigo/WEB-INF
@@ -283,48 +214,6 @@ if [ "$1" = "convertigo" ]; then
     
     %ON_LAUNCH%
     
-    ## AOT cache of the JVM (JDK 25): the classes and method profiles recorded when the image was
-    ## built are used by default when the image has a cache and nothing prevents it (JDWP, AOT or CDS
-    ## options in JAVA_OPTS); AOT_CACHE=off starts without it. A cache that does not match the JDK,
-    ## the JVM options or the classpath is ignored by the JVM, which starts without it.
-
-    if [ -z "$AOT_CACHE" ] && [ -f $CATALINA_HOME/aot/convertigo.aot ]; then
-        AOT_CACHE=image
-        AOT_DEFAULT=true
-    fi
-    case "$AOT_CACHE:$JAVA_OPTS" in
-    :*|off:*|false:*)
-        ;;
-    *jdwp*|*-XX:AOT*|*-XX:SharedArchiveFile*|*-Xshare*)
-        if [ "$AOT_DEFAULT" != "true" ]; then
-            echo "Ignore AOT_CACHE=$AOT_CACHE: not compatible with JDWP or the AOT/CDS options of JAVA_OPTS"
-        fi
-        ;;
-    *)
-        ## adapters are machine code that depends on the CPU features: keep them out of the cache. Any
-        ## -Dcom.sun.management.* option (JMX remote agent) makes the JVM add jdk.management.agent to the
-        ## modules, and a cache trained with other modules is refused: always add it with the cache
-        AOT_OPTS="-XX:+UnlockDiagnosticVMOptions -XX:-AOTAdapterCaching --add-modules=jdk.management.agent"
-        case "$AOT_CACHE" in
-        image)
-            if [ -f $CATALINA_HOME/aot/convertigo.aot ]; then
-                export JAVA_OPTS="$JAVA_OPTS $AOT_OPTS -XX:AOTCache=$CATALINA_HOME/aot/convertigo.aot"
-                echo "Use the AOT cache of the image"
-            else
-                echo "Ignore AOT_CACHE=image: this image has no AOT cache"
-            fi
-            ;;
-        record)
-            export JAVA_OPTS="$JAVA_OPTS $AOT_OPTS -Xlog:aot=error -XX:AOTCacheOutput=$CATALINA_HOME/aot/convertigo.aot"
-            ;;
-        *)
-            echo "Ignore AOT_CACHE=$AOT_CACHE: use off, or image (the default)"
-            ;;
-        esac
-        ;;
-    esac
-    unset AOT_CACHE AOT_DEFAULT
-
     ## custom certificate authorities: delegate to the Eclipse Temurin entrypoint shipped in the
     ## base image (opt-in with USE_SYSTEM_CA_CERTS, certificates mounted in /certificates/*.crt)
     

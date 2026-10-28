@@ -414,7 +414,7 @@ tasks.register('redisSessionReadTest', JavaExec) {
 
 tasks.register('redisSessionStoreLiveTest', JavaExec) {
 	group = 'verification'
-	description = 'Redis session store against a disposable Redis, skipped without -PredisSessionTestHost=host:port: metadata and engine attributes read in one command, sessions indexes kept by the write script, counted sessions checked in batches.'
+	description = 'Redis session store against a disposable Redis, skipped without -PredisSessionTestHost=host:port: metadata and engine attributes read in one command, sessions indexes kept by the write script, counted sessions checked in batches, contexts indexed by session and by expiry, and never saved again once their session is invalidated.'
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'

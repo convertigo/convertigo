@@ -109,6 +109,11 @@ final class RedisSessionStore implements SessionStore {
 				.getMap(configuration.getContextKeyPrefix() + INDEX_COUNTED_SESSIONS_BILLING, StringCodec.INSTANCE);
 	}
 
+	/** Key set when a session is invalidated: the session and its contexts are not written again while it exists. */
+	static String tombstoneKey(RedisSessionConfiguration configuration, String sessionId) {
+		return configuration.getContextKeyPrefix() + TOMBSTONE_SESSION_PREFIX + sessionId;
+	}
+
 	private RMap<String, String> map(String sessionId) {
 		return this.client.getMap(this.configuration.key(sessionId), StringCodec.INSTANCE);
 	}
@@ -370,7 +375,7 @@ final class RedisSessionStore implements SessionStore {
 			args.add(keepCountedSession ? COUNTED_KEEP : dropCountedSession ? COUNTED_DROP : COUNTED_NONE);
 
 			String key = configuration.key(sessionId);
-			String tombstone = configuration.getContextKeyPrefix() + TOMBSTONE_SESSION_PREFIX + sessionId;
+			String tombstone = tombstoneKey(configuration, sessionId);
 			Number written = client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_HSET_DEL_AND_TOUCH,
 					RScript.ReturnType.LONG, java.util.List.of(key, tombstone, sessionsIndex.getName(),
 							countedSessionsIndex.getName(), legacyLicensedSessionsIndex.getName(),
@@ -412,8 +417,7 @@ final class RedisSessionStore implements SessionStore {
 					// ignore
 				}
 				ttlSeconds = Math.max(ttlSeconds, 60);
-				String tombstoneKey = configuration.getContextKeyPrefix() + TOMBSTONE_SESSION_PREFIX + sessionId;
-				RBucket<String> bucket = client.getBucket(tombstoneKey, StringCodec.INSTANCE);
+				RBucket<String> bucket = client.getBucket(tombstoneKey(configuration, sessionId), StringCodec.INSTANCE);
 				bucket.set("1", Duration.ofSeconds(ttlSeconds));
 			} catch (Exception ignore) {
 				// ignore tombstone failures

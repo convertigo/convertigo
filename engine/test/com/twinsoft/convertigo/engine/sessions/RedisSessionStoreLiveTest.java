@@ -14,17 +14,27 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+
+import jakarta.servlet.http.HttpSession;
 
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.redisson.api.RMapCache;
 import org.redisson.api.RedissonClient;
+import org.redisson.api.options.KeysScanOptions;
 import org.redisson.client.codec.StringCodec;
 
+import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -237,6 +247,139 @@ public class RedisSessionStoreLiveTest {
 		assertNull(byExpiry.getScore(s2 + "_c"));
 		assertFalse(client.getSet(prefix + "index:sessionContexts:" + s2, StringCodec.INSTANCE).isExists());
 		assertFalse("never indexed again", client.getSet(prefix + "index:contexts", StringCodec.INSTANCE).isExists());
+	}
+
+	private static boolean isStoredOrIndexed(String contextId) {
+		var sessionId = contextId.substring(0, contextId.indexOf('_'));
+		return client.getMap(configuration.contextKey(contextId), StringCodec.INSTANCE).isExists()
+				|| client.getScoredSortedSet(prefix + "index:contextsByExpiry", StringCodec.INSTANCE).getScore(contextId) != null
+				|| client.getSet(prefix + "index:sessionContexts:" + sessionId, StringCodec.INSTANCE).contains(contextId);
+	}
+
+	@Test public void aContextOfAnInvalidatedSessionIsDeletedInsteadOfSaved() throws Exception {
+		var contexts = new RedisContextStore(configuration);
+		var invalidated = newId();
+		var live = newId();
+		saveContext(contexts, invalidated + "_a", 60);
+		store.delete(invalidated);
+
+		// saved again by a request that ended after the invalidation, here or on another instance
+		saveContext(contexts, invalidated + "_a", 60);
+		saveContext(new RedisContextStore(configuration), invalidated + "_b", 60);
+		assertFalse(isStoredOrIndexed(invalidated + "_a"));
+		assertFalse(isStoredOrIndexed(invalidated + "_b"));
+		assertFalse(client.getSet(prefix + "index:sessionContexts:" + invalidated, StringCodec.INSTANCE).isExists());
+
+		saveContext(contexts, live + "_c", 60);
+		assertTrue("the contexts of the other sessions are saved", isStoredOrIndexed(live + "_c"));
+		assertEquals(Set.of(live + "_c"), contexts.readSessionContextIds(live));
+		contexts.delete(live + "_c");
+	}
+
+	/**
+	 * A sequence invalidates the session of its request, which holds a named context: the context is gone with the
+	 * other contexts of the session when the request ends, and is not indexed again (it was stored again for one second).
+	 */
+	@Test public void theContextOfTheRequestThatInvalidatesItsSessionIsGoneAtTheEndOfTheRequest() throws Exception {
+		var contexts = new RedisContextStore(configuration);
+		var manager = new LiveContextManager(contexts);
+		var logger = Engine.logRedis;
+		Engine.logContextManager = Engine.logContext = Engine.logUsageMonitor = logger;
+		if (Engine.theApp == null) {
+			Engine.theApp = new Engine();
+		}
+		var previousManager = Engine.theApp.contextManager;
+		var storeMode = ConvertigoHttpSessionManager.class.getDeclaredField("storeMode");
+		storeMode.setAccessible(true);
+		var previousMode = storeMode.get(ConvertigoHttpSessionManager.getInstance());
+		Engine.theApp.contextManager = manager;
+		storeMode.set(ConvertigoHttpSessionManager.getInstance(), SessionStoreMode.redis);
+		try {
+			for (var stored : new boolean[] { true, false }) {
+				var sessionId = newId();
+				var session = RedisHttpSession.newSession(store, null, configuration, sessionId);
+				session.flush();
+				saveContext(contexts, sessionId + "_a", 60);
+				saveContext(contexts, sessionId + "_b", 60);
+
+				var context = new Context(sessionId + "_request");
+				context.name = "request";
+				context.lastAccessTime = System.currentTimeMillis();
+				context.set("n", 1);
+				if (stored) {
+					contexts.save(context, 60);
+				}
+				manager.add(context);
+				// the session of the request, which answers 1 second once invalidated
+				var wrap = Class.forName("com.twinsoft.convertigo.engine.util.HttpSessionTwsWrapper")
+						.getDeclaredMethod("wrap", HttpSession.class);
+				wrap.setAccessible(true);
+				context.httpSession = (HttpSession) wrap.invoke(null, session);
+
+				// the request holds the lock of its context, and its sequence, run by another thread, invalidates the
+				// session
+				var requestLock = manager.lockContext(context);
+				var sequence = new Thread(() -> context.httpSession.invalidate());
+				sequence.start();
+				sequence.join();
+				assertFalse(isStoredOrIndexed(sessionId + "_a"));
+				assertFalse(isStoredOrIndexed(sessionId + "_b"));
+
+				// end of the request, which keeps its context (__removeContext=false): saved before its lock is released,
+				// or when this instance drops its copy without the request cache
+				manager.saveBeforeUnlock(null, context);
+				requestLock.close();
+				manager.evictFromCache(context);
+
+				assertFalse("stored: " + stored, isStoredOrIndexed(sessionId + "_request"));
+				assertFalse(client.getKeys().getKeys(KeysScanOptions.defaults().pattern(configuration.contextKey(sessionId + "_*")))
+						.iterator().hasNext());
+				assertFalse(client.getSet(prefix + "index:sessionContexts:" + sessionId, StringCodec.INSTANCE).isExists());
+				assertFalse(client.getMap(configuration.key(sessionId), StringCodec.INSTANCE).isExists());
+			}
+		} finally {
+			storeMode.set(ConvertigoHttpSessionManager.getInstance(), previousMode);
+			Engine.theApp.contextManager = previousManager;
+		}
+	}
+
+	/** The real context manager on the Redis context store, with local locks only, which another thread cannot take. */
+	private static final class LiveContextManager extends ContextManager {
+		final Map<String, ReentrantLock> locks = new ConcurrentHashMap<>();
+
+		LiveContextManager(ContextStore store) throws Exception {
+			set("contexts", new ConcurrentHashMap<String, Context>());
+			set("contextStore", store);
+			set("inflightContexts", Proxy.newProxyInstance(getClass().getClassLoader(),
+					new Class<?>[] { RMapCache.class },
+					(proxy, method, args) -> "readAllKeySet".equals(method.getName()) ? Set.of() : null));
+		}
+
+		private void set(String name, Object value) throws Exception {
+			var field = ContextManager.class.getDeclaredField(name);
+			field.setAccessible(true);
+			field.set(this, value);
+		}
+
+		private ReentrantLock lockOf(String contextID) {
+			return locks.computeIfAbsent(contextID, id -> new ReentrantLock());
+		}
+
+		@Override public AutoCloseable lockContext(Context context) {
+			return lockContext(context.contextID);
+		}
+		@Override public AutoCloseable lockContext(String contextID) {
+			var lock = lockOf(contextID);
+			lock.lock();
+			return lock::unlock;
+		}
+		@Override public AutoCloseable tryLockContext(Context context, long timeoutMillis) {
+			return tryLockContext(context.contextID, timeoutMillis);
+		}
+		@Override public AutoCloseable tryLockContext(String contextID, long timeoutMillis) {
+			var lock = lockOf(contextID);
+			return lock.tryLock() ? lock::unlock : null;
+		}
 	}
 
 	@Test public void theFormerIndexOfTheContextsIsMovedThenRemoved() throws Exception {
