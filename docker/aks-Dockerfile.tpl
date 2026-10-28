@@ -1,4 +1,4 @@
-ENV ENABLE_JDWP_DEBUG="true"
+ENV ENABLE_JDWP_DEBUG="false"
 
 RUN KUBECTL_MINOR="$(curl -fsSL --retry 5 --retry-delay 2 --retry-connrefused --retry-all-errors https://dl.k8s.io/release/stable.txt | tr -d '\n' | cut -d. -f1,2)" \
   && case "$KUBECTL_MINOR" in v[0-9]*.[0-9]*) ;; *) echo "Unexpected kubectl minor: $KUBECTL_MINOR" >&2; exit 1 ;; esac \
