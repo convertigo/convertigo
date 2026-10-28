@@ -187,6 +187,29 @@ public class EnginePropertiesManager {
 		}
 	}
 
+	/** the preparation in the background of the runtimes of the projects, before their first requests */
+	private enum RuntimeWarmup implements ComboEnum {
+		auto ("auto", "auto: on a server, not in the Studio"),
+		on ("on", "on: also in the Studio"),
+		off ("off", "off: never, prepared by their first requests as before");
+
+		final String display;
+		final String value;
+
+		RuntimeWarmup(String value, String display) {
+			this.display = display;
+			this.value = value;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+
 	/** the disk cache of the classes generated for the JavaScript code of the files of projects */
 	private enum BytecodeCache implements ComboEnum {
 		auto ("auto", "auto: in a running engine, as long as loading the classes saves at least a quarter of compiling them"),
@@ -489,6 +512,8 @@ public class EnginePropertiesManager {
 		JAVASCRIPT_RUNTIME_IDLE_SECONDS ("javascript.runtime_idle_seconds", "300", "Discard idle execution runtimes on subsequent pool access after this delay (seconds)", PropertyCategory.Main),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		JAVASCRIPT_RUNTIME_REENTRANT ("javascript.runtime_reentrant", "true", "Reuse a compatible caller runtime for nested execution on the same thread and project generation", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = RuntimeWarmup.class)
+		JAVASCRIPT_RUNTIME_WARMUP ("javascript.runtime_warmup", "auto", "Prepare in the background, once the projects are loaded at the start of the engine and when a project is loaded again (deployed, imported, reloaded) for it and the projects referencing it, the runtimes of their requestables run by a runtime provider: blocks, modules and the execution plan of each requestable, compiled as their first requests would, so that these requests do not wait for them. Nothing is executed. One thread of low priority, stopped with the engine. auto: on a server, not in the Studio; on: also in the Studio; off: never", PropertyCategory.Main),
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:" + (Engine.isStudioMode() ? "1" : "2")+ "8080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),

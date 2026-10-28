@@ -743,6 +743,15 @@ tasks.register('flowStatelessRuntimeTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.flow.FlowStatelessProviderTest'
 }
 tasks.named('check') { dependsOn 'flowStatelessRuntimeTest' }
+tasks.register('flowRuntimeWarmupTest', JavaExec) {
+	group = 'verification'
+	description = 'Preparation of the runtimes of the projects in the background: when, in which order, stop, failures, and with the actual provider the plan the first run finds prepared.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmupTest', 'com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmupProviderTest'
+}
+tasks.named('check') { dependsOn 'flowRuntimeWarmupTest' }
 
 tasks.register('flowParallelChunksTest', JavaExec) {
 	group = 'verification'

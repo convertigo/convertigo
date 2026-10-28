@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.events.StudioEvent;
 import com.twinsoft.convertigo.engine.events.StudioEventListener;
+import com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmup;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
@@ -774,6 +775,9 @@ public class Engine {
 							for (String name: names) {
 								Project.executeAutoStartSequences(name);
 							}
+
+							// as the beans above, the runtimes of the Flows: in the background, without delaying the start
+							FlowRuntimeWarmup.projectsLoaded();
 						}
 					});
 				}
@@ -853,6 +857,7 @@ public class Engine {
 					Engine.logEngine.info("Removing the SQL connections manager");
 					Engine.theApp.sqlConnectionManager.destroy();
 				}
+				FlowRuntimeWarmup.stop();
 				ProjectLibraries.stop();
 				ApplicationBuilds.stop();
 

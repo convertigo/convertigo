@@ -670,6 +670,31 @@ public class FlowEngineBridge {
 		}
 	}
 
+	/**
+	 * Prepares the run plan of a Flow as its first run prepares it, in the runtime its runs use (the shared runtime of
+	 * its project on a stateless server), without running it: the request of a run without its input and context.
+	 *
+	 * @return the answer of the provider: plans holds the outcome for the Flow, absent when the provider prepares no
+	 *         plan in advance (before lib_flow_engine 0.1.119: only its catalog and its compiler are prepared)
+	 */
+	public JSONObject preloadPlan(Flow flow) throws EngineException {
+		try {
+			var engineQName = effectiveEngineQName(flow);
+			var project = flow.getProject();
+			var request = baseRequest(engineQName, "", flow.getQName(), null)
+					.put("flowName", flow.getName())
+					.put("project", project == null ? "" : project.getName())
+					.put("projectDir", project == null ? "" : project.getDirPath())
+					.put("flows", new JSONArray().put(new JSONObject()
+							.put("flowQName", flow.getQName())
+							.put("flowName", flow.getName())
+							.put("flowSource", flow.getFlowSource())));
+			return invoke(engineQName, "preload", request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build Flow plan preload request.", e);
+		}
+	}
+
 	public JSONObject propertyEditor(Flow flow) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flow);
@@ -1718,8 +1743,7 @@ public class FlowEngineBridge {
 				entered = true;
 				if (useThreadRuntime) {
 					runtimeLookup = reusableCallerRuntime(engineRef, engineSource, method, request, convertigoContext);
-					if (runtimeLookup == null && ("run".equals(method)
-							|| "syncInputs".equals(method) && request.optBoolean("metadataOnly")) && !frontendAuthoring
+					if (runtimeLookup == null && sharesRuntime(method, request) && !frontendAuthoring
 							&& Boolean.getBoolean("convertigo.javascript.stateless") && !Engine.isStudioMode())
 						runtimeLookup = sharedEngineRuntime(engineRef, engineFile, engineSource, cx, request, convertigoContext);
 					if (runtimeLookup == null) runtimeLookup = cachedEngineRuntime(engineRef, engineFile, engineSource, cx, frontendAuthoring);
@@ -2687,6 +2711,19 @@ public class FlowEngineBridge {
 		scope.put("__flowEngineDir", scope, engineFile.getParentFile().getAbsolutePath());
 		// Bootstrap-owned, never accepted from an authoring/runtime request.
 		scope.put("__flowSourceLayout", scope, FlowSourceLayout.current().key());
+	}
+
+	/**
+	 * @return whether a call runs in the shared runtime of its project on a stateless server: a run, the read of an
+	 *         input contract, and a preload of run plans, which prepares them where the runs of the project find them
+	 */
+	static boolean sharesRuntime(String method, JSONObject request) {
+		return switch (method) {
+		case "run" -> true;
+		case "syncInputs" -> request.optBoolean("metadataOnly");
+		case "preload" -> request.has("flows");
+		default -> false;
+		};
 	}
 
 	private static CachedEngineRuntimeLookup sharedEngineRuntime(EngineRef ref, File file, CachedEngineSource source,

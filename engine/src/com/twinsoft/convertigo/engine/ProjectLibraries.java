@@ -96,6 +96,18 @@ public final class ProjectLibraries {
 	}
 
 	/**
+	 * For a preparation in the background, which must see the generation the next requests of the project use: its
+	 * libraries are checked now, on the calling thread, a new generation being built before answering when they changed
+	 * (as a library of a referenced project deployed again). A check already running elsewhere is not waited for.
+	 *
+	 * @return the current generation of the class path of a project
+	 */
+	public static ClassLoader checkedClassLoader(Project project) {
+		checkAtNextUse(project.getName());
+		return classLoader(project.getName(), project::getLibrariesDirectories, project.getVersion(), true);
+	}
+
+	/**
 	 * @param dirs the libs folders of the project and of those it references
 	 * @param synchronous to build a new generation before answering, instead of in the background
 	 */

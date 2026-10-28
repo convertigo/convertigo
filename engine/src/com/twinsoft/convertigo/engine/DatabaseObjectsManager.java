@@ -1592,6 +1592,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			// the replacement project and its referenced runtime are ready.
 			com.twinsoft.convertigo.beans.flow.FlowWorkingCopies.projectLoaded(project);
 			ApplicationBuilds.projectLoaded(project);
+			// in the background, once the projects of a starting server are loaded: its first requests find it prepared
+			com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmup.projectLoaded(project);
 			Engine.logDatabaseObjectManager
 			.info("[importProject] End initializing: " + Project.formatNameWithHash(project));
 
