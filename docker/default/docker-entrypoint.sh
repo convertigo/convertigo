@@ -329,8 +329,10 @@ if [ "$1" = "convertigo" ]; then
         fi
         ;;
     *)
-        ## adapters are machine code that depends on the CPU features: keep them out of the cache
-        AOT_OPTS="-XX:+UnlockDiagnosticVMOptions -XX:-AOTAdapterCaching"
+        ## adapters are machine code that depends on the CPU features: keep them out of the cache. Any
+        ## -Dcom.sun.management.* option (JMX remote agent) makes the JVM add jdk.management.agent to the
+        ## modules, and a cache trained with other modules is refused: always add it with the cache
+        AOT_OPTS="-XX:+UnlockDiagnosticVMOptions -XX:-AOTAdapterCaching --add-modules=jdk.management.agent"
         case "$AOT_CACHE" in
         image)
             if [ -f $CATALINA_HOME/aot/convertigo.aot ]; then
@@ -345,7 +347,7 @@ if [ "$1" = "convertigo" ]; then
             ;;
         deploy)
             AOT_DIR=${AOT_CACHE_DIR:-/workspace/aot}
-            AOT_KEY=$( { cat $JAVA_HOME/release; uname -m; echo "$AOT_FILES"; echo "$JAVA_OPTS" | tr ' ' '\n' | grep -v -e '^-D' -e '^$'; } | sha256sum | cut -c1-16)
+            AOT_KEY=$( { cat $JAVA_HOME/release; uname -m; echo "$AOT_FILES"; echo "$JAVA_OPTS $AOT_OPTS" | tr ' ' '\n' | grep -v -e '^-D' -e '^$'; } | sha256sum | cut -c1-16)
             AOT_FILE=$AOT_DIR/convertigo-$AOT_KEY.aot
             AOT_TMP=$AOT_FILE.$(hostname).tmp
             AOT_RUN_AS=""
