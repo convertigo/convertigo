@@ -71,6 +71,18 @@ public class ZipUtilsTest {
 	}
 
 	@Test
+	public void prefersTheRootDescriptorToTheOnesOfInnerFolders() throws Exception {
+		// a project shipping a sample project, listed before its own descriptor (as '_' sorts before 'c')
+		checkArchive("MyLib", "MyLib/_flow/resources/samples/Sample/c8oProject.yaml", "MyLib/_flow/engine.yaml",
+				"MyLib/c8oProject.yaml", "MyLib/resources/Other/Other.xml");
+	}
+
+	@Test
+	public void keepsAnInnerDescriptorWhenItIsTheOnlyOne() throws Exception {
+		checkArchive("repo/projects/Inner", "repo/readme.md", "repo/projects/Inner/c8oProject.yaml");
+	}
+
+	@Test
 	public void ignoresArchiveFilenameAndAcceptsUnicodeProjectNames() throws Exception {
 		checkArchive("Démo", "Démo/c8oProject.yaml");
 	}
