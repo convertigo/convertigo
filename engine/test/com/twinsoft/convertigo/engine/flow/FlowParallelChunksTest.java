@@ -119,8 +119,12 @@ public class FlowParallelChunksTest {
 		}
 
 		Map<?, ?> run(String flowSource, JSONObject input) throws Exception {
+			return run(flowSource, input, false);
+		}
+
+		Map<?, ?> run(String flowSource, JSONObject input, boolean trace) throws Exception {
 			var request = new JSONObject().put("flowQName", "Fixture.Parallel").put("flowSource", flowSource)
-					.put("input", input).put("projectDir", project.toString()).put("includeTrace", false);
+					.put("input", input).put("projectDir", project.toString()).put("includeTrace", trace);
 			try (var cx = Context.enter()) {
 				cx.setLanguageVersion(Context.VERSION_ES6);
 				var lookup = acquire.invoke(null, reference, file, source, cx, request, null);
@@ -358,6 +362,74 @@ public class FlowParallelChunksTest {
 		} finally {
 			server.stop(0);
 		}
+	}
+
+	@Test
+	public void theLanesGiveTheirTraceAndLearnedSchemasInChunkOrderWithTheLogContextOfTheCaller() throws Exception {
+		var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+		server.createContext("/echo/", exchange -> {
+			var body = ("{\"query\":\"" + exchange.getRequestURI().getRawQuery() + "\",\"ok\":true}").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+			exchange.getResponseHeaders().add("Content-Type", "application/json");
+			exchange.sendResponseHeaders(200, body.length);
+			try (var out = exchange.getResponseBody()) {
+				out.write(body);
+			}
+		});
+		server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
+		server.start();
+		try (var h = new Harness()) {
+			Files.writeString(h.project.resolve("_flow/blocks/proof/logged.block.js"),
+					"const _meta={sourceVersion:2,runtime:'rhino',properties:{},outputs:{out:{type:'any'}}};\n"
+					+ "(function(){return {run:function(ctx,node){return String(Packages.org.apache.log4j.MDC.get('parallelProbe'));}};})()");
+			var flow = "const _flow={sourceVersion:2,inputs:{items:{type:\"array\"},url:{type:\"string\"}}}\nfunction T({input,result}){\n"
+					+ "local.n=forEachChunk({source:input.items,size:5,parallel:%d,$$each:function({chunk}){\nlocal.thread=proof.probe({index:chunk.index})\n"
+					+ "local.logged=proof.logged({})\nlocal.answer=http.get({url:\"{{ input.url }}?chunk={{ chunk.index }}\"})\ndebug.probe({value:local.logged,label:\"chunk {{ chunk.index }}\"})\n"
+					+ "return chunk.rows.length\n},$$reduce:function({acc,value}){\nlocal.s=acc===null?value:acc+value\nreturn local.s\n}})\nresult.n=local.n\n}";
+			var input = items(40).put("url", "http://127.0.0.1:" + server.getAddress().getPort() + "/echo/");
+			var schemas = h.project.resolve("_flow/schemas").toFile();
+			org.apache.log4j.MDC.put("parallelProbe", "caller");
+			Map<?, ?> sequential, parallel;
+			try {
+				rendezvous = new CountDownLatch(0);
+				sequential = h.run(String.format(flow, 1), input, true);
+				assertEquals(Boolean.TRUE, sequential.get("ok"));
+				org.apache.commons.io.FileUtils.deleteDirectory(schemas);
+				reset();
+				parallel = h.run(String.format(flow, 4), input, true);
+				assertEquals("The parallel run succeeds: " + parallel.get("error"), Boolean.TRUE, parallel.get("ok"));
+			} finally {
+				org.apache.log4j.MDC.remove("parallelProbe");
+			}
+			assertTrue("The chunks ran on several lanes at the same time", overlap.get() >= 2);
+			assertEquals("The trace of the lanes is the sequential one", traceShape(sequential), traceShape(parallel));
+			var probes = (List<?>) ((Map<?, ?>) parallel.get("trace")).get("probes");
+			assertEquals(8, probes.size());
+			for (var probe : probes) assertEquals("Each lane logs with the log context of the caller: " + probe, "caller", ((Map<?, ?>) probe).get("value"));
+			assertEquals("The output schema learned in a lane is recorded once, by the caller", String.valueOf(sequential.get("schemaUpdates")),
+					String.valueOf(parallel.get("schemaUpdates")));
+			assertEquals(1, ((List<?>) parallel.get("schemaUpdates")).size());
+			// a pooled lane thread starts its next lane without the log context of the last one
+			var leftover = new java.util.concurrent.atomic.AtomicReference<Object>("unset");
+			var lanes = ParallelLanes.open(8, (self, index) -> leftover.compareAndSet("unset", String.valueOf(org.apache.log4j.MDC.get("parallelProbe"))));
+			lanes.finish();
+			lanes.close();
+			assertEquals("null", leftover.get());
+		} finally {
+			server.stop(0);
+		}
+	}
+
+	// the trace nodes without the thread names returned by the probe nor the HTTP answers (their Date header)
+	private static String traceShape(Map<?, ?> response) {
+		var shape = new StringBuilder();
+		var trace = (Map<?, ?>) response.get("trace");
+		for (var node : (List<?>) trace.get("nodes")) {
+			var entry = (Map<?, ?>) node;
+			shape.append(entry.get("id")).append(' ').append(entry.get("block")).append(' ')
+					.append("proof.probe".equals(entry.get("block")) || String.valueOf(entry.get("block")).startsWith("http.") ? "" : String.valueOf(entry.get("result")))
+					.append('\n');
+		}
+		return shape.toString();
 	}
 
 	@Test

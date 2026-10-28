@@ -100,8 +100,8 @@ public final class FlowRuntimeApi {
 
     /** Up to requested lanes running body(lanes, index) on threads of the shared pool (see ParallelLanes). A lane has
      * its own Rhino context and frame: the bindings of the calling frame, its project packages and the project directory
-     * of its state, but no Convertigo context, which belongs to the calling thread. Null outside a frame or when no
-     * thread is free: the caller then runs the tasks itself. */
+     * of its state, but no Convertigo context, which belongs to the calling thread. Its logs carry the log context of
+     * the calling thread. Null outside a frame or when no thread is free: the caller then runs the tasks itself. */
     public ParallelLanes openLanes(int requested, org.mozilla.javascript.Function body) {
         var frame = current.get();
         if (frame == null || requested < 1 || body == null) return null;
@@ -122,10 +122,12 @@ public final class FlowRuntimeApi {
         var wrapFactory = cx.getWrapFactory();
         var applicationLoader = cx.getApplicationClassLoader();
         var threadLoader = Thread.currentThread().getContextClassLoader();
+        var logContext = com.twinsoft.convertigo.engine.util.Log4jHelper.mdcSnapshot();
         return ParallelLanes.open(Math.min(requested, 64), (lanes, index) -> {
             var thread = Thread.currentThread();
             var previousLoader = thread.getContextClassLoader();
             thread.setContextClassLoader(threadLoader);
+            logContext.install();
             try (var laneCx = Context.enter()) {
                 laneCx.setLanguageVersion(languageVersion);
                 laneCx.setInterpretedMode(interpreted);
@@ -140,6 +142,8 @@ public final class FlowRuntimeApi {
                     body.call(laneCx, lane.scope, lane.scope, new Object[] { Context.javaToJS(lanes, lane.scope), index });
                 }
             } finally {
+                // a pooled thread starts its next lane without the log context of this one
+                com.twinsoft.convertigo.engine.util.Log4jHelper.mdcClear();
                 thread.setContextClassLoader(previousLoader);
             }
         });
