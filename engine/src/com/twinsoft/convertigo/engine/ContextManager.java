@@ -48,7 +48,6 @@ import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
 import org.redisson.api.RLock;
-import org.redisson.api.RMap;
 import org.redisson.api.RMapCache;
 import org.redisson.api.RTopic;
 import org.redisson.client.codec.StringCodec;
@@ -193,12 +192,14 @@ public class ContextManager extends AbstractRunnableManager {
 		return ConvertigoHttpSessionManager.isRedisMode() && !RequestScopedHttpSession.isRequestScopedId(sessionID);
 	}
 
-	private static Set<String> requestContextCache(HttpServletRequest request) {
+	// The contexts used by a request, kept in this JVM until its end: true once the context was saved before its lock was
+	// released, and not used again by the request since
+	private static Map<String, Boolean> requestContextCache(HttpServletRequest request) {
 		if (request == null) {
 			return null;
 		}
 		Object value = request.getAttribute(REQUEST_CONTEXT_CACHE_ATTRIBUTE);
-		if (value instanceof Set) {
+		if (value instanceof Map) {
 			return GenericUtils.cast(value);
 		}
 		return null;
@@ -209,7 +210,7 @@ public class ContextManager extends AbstractRunnableManager {
 			return;
 		}
 		if (requestContextCache(request) == null) {
-			request.setAttribute(REQUEST_CONTEXT_CACHE_ATTRIBUTE, ConcurrentHashMap.newKeySet());
+			request.setAttribute(REQUEST_CONTEXT_CACHE_ATTRIBUTE, new ConcurrentHashMap<String, Boolean>());
 		}
 	}
 
@@ -217,6 +218,11 @@ public class ContextManager extends AbstractRunnableManager {
 		return requestContextCache(request) != null;
 	}
 
+	/**
+	 * Registers a context whose lock the request has just taken. True if the request holds it since an earlier
+	 * registration: no need to read it again from the store. False the first time, and after its lock was released
+	 * (another request, here or on another instance, may have changed it meanwhile).
+	 */
 	public static boolean registerRequestContext(HttpServletRequest request, Context context) {
 		if (request == null || context == null || isContainerContextName(context.name)
 				|| isRequestScopedContextId(context.contextID)) {
@@ -226,7 +232,37 @@ public class ContextManager extends AbstractRunnableManager {
 		if (cache == null) {
 			return false;
 		}
-		return !cache.add(context.contextID);
+		return Boolean.FALSE.equals(cache.put(context.contextID, Boolean.FALSE));
+	}
+
+	/**
+	 * Redis: saves a context of the request before its lock is released, so that the next request of the context, here
+	 * or on another instance, finds what this one changed. The end of the request then only evicts it.
+	 */
+	public void saveBeforeUnlock(HttpServletRequest request, Context context) {
+		if (context == null || context.isDestroying || contextStore == null || isContainerContextName(context.name)
+				|| isLocalOnlyContextId(context.contextID)) {
+			return;
+		}
+		store(context, storeTtlSeconds(context));
+		var cache = requestContextCache(request);
+		if (cache != null) {
+			cache.replace(context.contextID, Boolean.TRUE);
+		}
+	}
+
+	/**
+	 * True when the current thread holds the lock of this context once: releasing it lets another request take the
+	 * context.
+	 */
+	public boolean isLastHoldOfContextLock(String contextID) {
+		var entry = contextID == null ? null : contextLocks.get(contextID);
+		return entry == null || entry.lock.getHoldCount() <= 1;
+	}
+
+	/** True if the context is the one this manager holds for its id. */
+	public boolean isHeld(Context context) {
+		return context != null && contexts != null && contexts.get(context.contextID) == context;
 	}
 
 	public static void flushRequestContextCache(HttpServletRequest request) {
@@ -239,17 +275,26 @@ public class ContextManager extends AbstractRunnableManager {
 			if (manager == null) {
 				return;
 			}
-			for (String contextId : cache) {
+			for (var entry : cache.entrySet()) {
+				String contextId = entry.getKey();
 				if (contextId == null || contextId.isBlank()) {
 					continue;
 				}
 				Context ctx = manager.get(contextId);
-				if (ctx == null || isContainerContextName(ctx.name) || isRequestScopedContextId(ctx.contextID)
-						|| ctx.isMarkedForRemoval()) {
+				if (ctx == null || isContainerContextName(ctx.name) || isRequestScopedContextId(ctx.contextID)) {
 					continue;
 				}
-				boolean save = ctx.httpSession == null;
-				manager.evictFromCache(ctx, save);
+				// saved before its lock was released: what the store holds may already be newer, from the request
+				// that took the lock after this one
+				boolean saved = Boolean.TRUE.equals(entry.getValue());
+				if (ctx.isDestroying || (!saved && ctx.isMarkedForRemoval())) {
+					continue;
+				}
+				if (ctx.httpSession != null) {
+					// in use by another request of the context, which evicts it: it must keep finding it meanwhile
+					continue;
+				}
+				manager.evictFromCache(ctx, !saved);
 			}
 		} finally {
 			try {
@@ -887,6 +932,7 @@ public class ContextManager extends AbstractRunnableManager {
 			}
 			copyStoreFields(context, stored);
 			copyContextTable(context, stored);
+			context.storedAccessTime = stored.lastAccessTime;
 		} catch (Exception e) {
 			Engine.logContextManager.debug("(ContextManager) Failed to refresh context " + context.contextID, e);
 		}
@@ -898,35 +944,17 @@ public class ContextManager extends AbstractRunnableManager {
 			return;
 		}
 		try {
-			long expectedLastAccess = context.lastAccessTime;
-			var cfg = RedisClients.getConfiguration();
-			RMap<String, String> map = RedisClients.getClient().getMap(cfg.contextKey(context.contextID), StringCodec.INSTANCE);
-			long storedLastAccess = parseJsonLong(map.get("lastAccessTime"), -1L);
-			if (storedLastAccess > 0 && storedLastAccess == expectedLastAccess) {
+			// the state this context was read from or saved as, if the store still holds it (never for a context
+			// created here, which another request may have stored meanwhile)
+			long expectedLastAccess = context.storedAccessTime;
+			Long storedLastAccess = contextStore.readLastAccessTime(context.contextID);
+			if (storedLastAccess != null && storedLastAccess > 0 && storedLastAccess == expectedLastAccess) {
 				return;
 			}
 		} catch (Exception ignore) {
 			// fallback to full refresh
 		}
 		refreshContextFromStore(context);
-	}
-
-	private static long parseJsonLong(String raw, long defaultValue) {
-		if (raw == null) {
-			return defaultValue;
-		}
-		raw = raw.trim();
-		if (raw.isEmpty()) {
-			return defaultValue;
-		}
-		if (raw.length() >= 2 && raw.charAt(0) == '"' && raw.charAt(raw.length() - 1) == '"') {
-			raw = raw.substring(1, raw.length() - 1);
-		}
-		try {
-			return Long.parseLong(raw);
-		} catch (Exception ignore) {
-			return defaultValue;
-		}
 	}
 
 	private static void copyStoreFields(Context target, Context source) {
@@ -1066,6 +1094,7 @@ public class ContextManager extends AbstractRunnableManager {
 				if (context == null) {
 					context = contextStore.read(contextID);
 					if (context != null) {
+						context.storedAccessTime = context.lastAccessTime;
 						contexts.put(contextID, context);
 						return context;
 					}
@@ -1187,9 +1216,47 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 		contexts.remove(context.contextID, context);
 		if (save && contextStore != null && !isRequestScopedContextId(context.contextID)) {
-			int ttl = context.httpSession != null ? context.httpSession.getMaxInactiveInterval() : -1;
-			contextStore.save(context, ttl);
+			store(context, storeTtlSeconds(context));
 		}
+	}
+
+	private void store(Context context, int ttlSeconds) {
+		long lastAccessTime = context.lastAccessTime;
+		contextStore.save(context, ttlSeconds);
+		context.storedAccessTime = lastAccessTime;
+	}
+
+	/**
+	 * Time to live of a stored context: the context timeout of its project, within the timeout of its session; the
+	 * default of the store without session.
+	 */
+	int storeTtlSeconds(Context context) {
+		int sessionTtl = 0;
+		var session = context.httpSession != null ? context.httpSession : context.contextListSession;
+		try {
+			if (session != null) {
+				sessionTtl = session.getMaxInactiveInterval();
+			}
+		} catch (Exception e) {
+			// invalidated session
+		}
+		if (sessionTtl <= 0) {
+			return -1;
+		}
+		int projectTtl = 0;
+		try {
+			if (context.project != null) {
+				projectTtl = context.project.getContextTimeout();
+			} else if (context.projectName != null && Engine.theApp != null && Engine.theApp.databaseObjectsManager != null) {
+				var project = Engine.theApp.databaseObjectsManager.getProjectByName(context.projectName);
+				if (project != null) {
+					projectTtl = project.getContextTimeout();
+				}
+			}
+		} catch (Exception e) {
+			Engine.logContextManager.debug("Failed to resolve project for context TTL, using the session one", e);
+		}
+		return projectTtl > 0 ? Math.min(sessionTtl, projectTtl) : sessionTtl;
 	}
 
 	public int getNumberOfContexts() {
@@ -1241,7 +1308,7 @@ public class ContextManager extends AbstractRunnableManager {
 					continue;
 				}
 				try {
-					contextStore.save(c, ttl);
+					store(c, ttl);
 				} catch (Exception e) {
 					Engine.logContextManager.warn("Failed to save context " + c.contextID, e);
 				}

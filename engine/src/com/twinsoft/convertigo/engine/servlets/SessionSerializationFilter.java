@@ -70,13 +70,19 @@ public class SessionSerializationFilter implements Filter {
 						throw e;
 					}
 				} finally {
+					// Redis: the contexts of the request were saved before their lock was released, they are only
+					// evicted here, before the last write of the session, which saves the contexts still held only
+					if (ConvertigoHttpSessionManager.isRedisMode()) {
+						try {
+							ContextManager.flushRequestContextCache(effectiveRequest);
+						} catch (Exception ignored) {
+							// ignore
+						}
+					}
 					try {
 						ConvertigoHttpSessionManager.getInstance().flushBuffers();
 					} catch (Exception ignored) {
 						// ignore
-					}
-					if (ConvertigoHttpSessionManager.isRedisMode()) {
-						ContextManager.flushRequestContextCache(effectiveRequest);
 					}
 					if (responseWrapper instanceof SessionCookieResponseWrapper wrapper) {
 						wrapper.flushSessionCookie();

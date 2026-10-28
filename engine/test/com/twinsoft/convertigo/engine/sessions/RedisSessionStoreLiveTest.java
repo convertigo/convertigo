@@ -167,4 +167,24 @@ public class RedisSessionStoreLiveTest {
 		}
 		counted.delete();
 	}
+
+	@Test public void theLastAccessTimeOfAStoredContextIsReadAlone() throws Exception {
+		if (Engine.theApp == null) {
+			Engine.theApp = new Engine();
+		}
+		var contexts = new RedisContextStore(configuration);
+		var id = newId() + "_ctx";
+		assertNull("a context not stored", contexts.readLastAccessTime(id));
+		var context = new com.twinsoft.convertigo.engine.Context(id);
+		context.name = "ctx";
+		context.lastAccessTime = 1793125894586L;
+		context.set("n", 41);
+		contexts.save(context, 60);
+		assertEquals(Long.valueOf(1793125894586L), contexts.readLastAccessTime(id));
+		var read = contexts.read(id);
+		assertEquals(1793125894586L, read.lastAccessTime);
+		assertEquals(41, ((Number) read.get("n")).intValue());
+		contexts.delete(id);
+		assertNull(contexts.readLastAccessTime(id));
+	}
 }

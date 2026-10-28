@@ -69,6 +69,11 @@ final class SessionAttributeFilter {
 						if (ContextManager.isContainerContextName(ctx.name)) {
 							continue;
 						}
+						// A context released by the request was saved before its lock was released, then evicted:
+						// saving it again now could overwrite what the request that took the lock after saved
+						if (!Engine.theApp.contextManager.isHeld(ctx)) {
+							continue;
+						}
 						contexts.add(ctx);
 					}
 				}
