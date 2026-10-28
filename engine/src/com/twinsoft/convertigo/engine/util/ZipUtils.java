@@ -192,21 +192,35 @@ public class ZipUtils {
     
     
 	/**
-	 * Returns the name of the first project descriptor in the archive's entry index.
+	 * Returns the name of the project of the archive: the folder of its project descriptor closest to the root, the
+	 * descriptors of inner folders being files of that project (a sample shipped by the project for instance).
 	 * @param path the archive path
 	 * @return the project name
 	 * @throws IOException if the archive cannot be read or contains no project descriptor
 	 */
 	public static String getProjectName(String path) throws IOException {
 		Engine.logEngine.trace("PATH: " + path);
-		// Only entry names are needed: don't inflate the files preceding the descriptor.
+		// Only entry names are needed: don't inflate any file.
 		try (ZipFile zip = new ZipFile(path)) {
 			Matcher matcher = reProjectFromCAR.matcher("");
+			String projectName = null;
+			int depth = Integer.MAX_VALUE;
 			var entries = zip.entries();
 			while (entries.hasMoreElements()) {
 				if (matcher.reset(entries.nextElement().getName()).matches()) {
-					return matcher.group(1);
+					String folder = matcher.group(1);
+					int folderDepth = (int) folder.chars().filter(c -> c == '/').count();
+					if (folderDepth < depth) {
+						projectName = folder;
+						depth = folderDepth;
+						if (depth == 0) {
+							break;
+						}
+					}
 				}
+			}
+			if (projectName != null) {
+				return projectName;
 			}
 		}
 		throw new IOException("No project descriptor found in archive: " + path);
