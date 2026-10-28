@@ -104,6 +104,39 @@ public class FlowStatelessProviderTest {
             } finally { pool.shutdownNow(); }
         }
     }
+    @Test public void coldPlansOfDistinctFlowsArePreparedTogether() throws Exception {
+        try (var h = new Harness()) {
+            int threads = 8;
+            var pool = Executors.newFixedThreadPool(threads);
+            try {
+                for (int round = 0; round < 5; round++) {
+                    // a new revision: every plan, block, library and module of the runtime is prepared again
+                    FlowEngineBridge.clearCaches();
+                    var start = new java.util.concurrent.CyclicBarrier(threads);
+                    var jobs = new ArrayList<java.util.concurrent.Future<?>>();
+                    for (int i = 0; i < threads; i++) {
+                        var index = i;
+                        jobs.add(pool.submit(() -> {
+                            start.await(30, TimeUnit.SECONDS);
+                            var source = h.run(new JSONObject().put("flowQName", "Fixture.Cold" + index)
+                                    .put("flowSource", "function Cold" + index + "() { return " + index + "; }"));
+                            assertEquals(Boolean.TRUE, source.get("ok"));
+                            assertEquals(index, ((Number) source.get("result")).intValue());
+                            var request = new JSONObject().put("flowQName", "Fixture.ColdProof" + index)
+                                    .put("definition", new JSONObject("{version:1,nodes:[{block:'proof." + (index % 2 == 0 ? "count" : "shared")
+                                            + "',out:'result.proof'}]}"))
+                                    .put("input", new JSONObject().put("owner", "cold-" + index));
+                            var response = h.run(request);
+                            assertEquals(Boolean.TRUE, response.get("ok"));
+                            assertEquals("cold-" + index, ((Map<?,?>) ((Map<?,?>) response.get("result")).get("proof")).get("owner"));
+                            return null;
+                        }));
+                    }
+                    for (var job : jobs) job.get(120, TimeUnit.SECONDS);
+                }
+            } finally { pool.shutdownNow(); }
+        }
+    }
     @Test public void differentDefinitionsWithSameNameAndInvalidationCannotReuseAnOldPlan() throws Exception {
         try(var h=new Harness()) {
             for(int value=1;value<=3;value++) {

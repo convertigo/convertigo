@@ -20,9 +20,13 @@ import org.mozilla.javascript.ScriptableObject;
 public final class FlowRuntimeApi {
     private final ConcurrentHashMap<String, Object> prepared = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Object> dynamic = new ConcurrentHashMap<>();
-    private final Object preparation = new Object();
+    /** The preparations in progress, by key: removed once published or failed, so a failure is never kept. */
+    private final ConcurrentHashMap<String, Flight> flights = new ConcurrentHashMap<>();
+    /** The preparation each thread waits for (guarded by itself), to never wait for a preparation waiting for this one. */
+    private final java.util.HashMap<Thread, Flight> waiting = new java.util.HashMap<>();
+    private final Object sourceProbe = new Object();
     private final ThreadLocal<Frame> current = new ThreadLocal<>();
-    private final LongAdder hits = new LongAdder(), builds = new LongAdder(), calls = new LongAdder();
+    private final LongAdder hits = new LongAdder(), builds = new LongAdder(), joins = new LongAdder(), calls = new LongAdder();
     private final RoutingScope shared;
     private final long codeRevision = FlowEngineBridge.cacheGeneration(), dataRevision = FlowEngineBridge.dataGeneration();
     private final Object objectConstructor, arrayConstructor;
@@ -200,7 +204,7 @@ public final class FlowRuntimeApi {
     boolean revisionMatches(java.util.function.Supplier<String> fingerprint) {
         long now = System.nanoTime();
         if (now < nextSourceProbe) return true;
-        synchronized (preparation) {
+        synchronized (sourceProbe) {
             if (now < nextSourceProbe) return true;
             String revision = fingerprint.get();
             if (sourceRevision != null && !sourceRevision.equals(revision)) return false;
@@ -210,24 +214,111 @@ public final class FlowRuntimeApi {
         }
     }
 
-    /** Single-flight compilation, reentrant for module/contract dependencies. Never locks execution. */
+    /** A preparation in progress: the thread running its builder, then its outcome for the callers waiting for it. */
+    private static final class Flight {
+        final Thread owner = Thread.currentThread();
+        final java.util.concurrent.CompletableFuture<Object> outcome = new java.util.concurrent.CompletableFuture<>();
+    }
+    /** The outcome of a preparation whose thread was interrupted: it did not fail for the callers waiting for it. */
+    private static final Object ABANDONED = new Object();
+
+    /**
+     * Single-flight compilation for each key: the first caller of a key builds its value, on its thread, and publishes
+     * it; the other callers of that key wait for it (they see its failure, never kept, the next caller building it
+     * again), while the keys of the other callers are prepared at the same time. A builder may prepare other keys.
+     * A caller never waits for its own preparation, directly or through the threads it waits for: it then builds the
+     * value for itself without publishing it, as a nested call did when a single lock served every key. A preparation
+     * stopped by the interruption of its thread is prepared again by a caller waiting for it. Never locks execution.
+     */
     public Object prepare(String key, Callable<Object> builder) throws Exception {
         // Eviction of a dynamic plan must never recreate a module or its environment
         // while existing plans still refer to the original revision's services.
         var registry = key.startsWith("plan:") || key.startsWith("script:") ? dynamic : prepared;
+        for (;;) {
+            Object value = registry.get(key);
+            if (value != null) { hits.increment(); return value; }
+            var flight = flights.get(key);
+            if (flight == null) {
+                var created = new Flight();
+                flight = flights.putIfAbsent(key, created);
+                if (flight == null) return lead(key, registry, created, builder);
+            }
+            if (flight.owner == Thread.currentThread()) return build(builder);
+            value = join(flight);
+            if (value == null) return build(builder);
+            if (value != ABANDONED) { joins.increment(); return value; }
+        }
+    }
+
+    private Object lead(String key, ConcurrentHashMap<String, Object> registry, Flight flight, Callable<Object> builder) throws Exception {
         Object value = registry.get(key);
-        if (value != null) { hits.increment(); return value; }
-        synchronized (preparation) {
-            value = registry.get(key);
-            if (value == null) {
-                value = builder.call();
-                if (value == null) throw new IllegalStateException("A prepared value must be non-null");
-                // Bound dynamic expressions without invalidating objects held by active plans.
-                if (registry == dynamic && dynamic.size() >= 8192) dynamic.clear();
-                registry.put(key, value); builds.increment();
-            } else hits.increment();
+        if (value != null) {
+            // published by the previous preparation of the key after this caller missed it
+            flights.remove(key, flight);
+            flight.outcome.complete(value);
+            hits.increment();
             return value;
         }
+        try {
+            value = builder.call();
+            if (value == null) throw new IllegalStateException("A prepared value must be non-null");
+        } catch (Throwable failure) {
+            flights.remove(key, flight);
+            if (interruption(failure)) flight.outcome.complete(ABANDONED);
+            else flight.outcome.completeExceptionally(failure);
+            return rethrow(failure);
+        }
+        // Bound dynamic expressions without invalidating objects held by active plans.
+        if (registry == dynamic && dynamic.size() >= 8192) dynamic.clear();
+        // published before the flight ends: a caller missing the flight finds the value
+        registry.put(key, value); builds.increment();
+        flights.remove(key, flight);
+        flight.outcome.complete(value);
+        return value;
+    }
+
+    private Object build(Callable<Object> builder) throws Exception {
+        Object value = builder.call();
+        if (value == null) throw new IllegalStateException("A prepared value must be non-null");
+        builds.increment();
+        return value;
+    }
+
+    /** @return the value of the flight, ABANDONED to prepare it again, null when waiting for it would never end */
+    private Object join(Flight flight) throws Exception {
+        var thread = Thread.currentThread();
+        if (!flight.outcome.isDone()) synchronized (waiting) {
+            // the threads waiting form chains, never a cycle: each one is checked here before it waits
+            for (var next = flight; next != null && !next.outcome.isDone(); next = waiting.get(next.owner)) {
+                if (next.owner == thread) return null;
+            }
+            waiting.put(thread, flight);
+        }
+        try {
+            return flight.outcome.get();
+        } catch (java.util.concurrent.ExecutionException failure) {
+            return rethrow(failure.getCause());
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            throw interrupted;
+        } finally {
+            synchronized (waiting) { waiting.remove(thread, flight); }
+        }
+    }
+
+    private static boolean interruption(Throwable failure) {
+        if (Thread.currentThread().isInterrupted()) return true;
+        for (int depth = 0; failure != null && depth < 32; failure = failure.getCause(), depth++) {
+            if (failure instanceof InterruptedException || failure instanceof java.io.InterruptedIOException
+                    || failure instanceof java.nio.channels.ClosedByInterruptException) return true;
+        }
+        return false;
+    }
+
+    private static Object rethrow(Throwable failure) throws Exception {
+        if (failure instanceof Exception exception) throw exception;
+        if (failure instanceof Error error) throw error;
+        throw new IllegalStateException(failure);
     }
     /** Independent bounded memo table for compiled expressions and metadata. Values never contain request data. */
     public Cache newCache(int limit) { return new Cache(Math.max(1, limit)); }
@@ -260,7 +351,8 @@ public final class FlowRuntimeApi {
         return key.startsWith("plan:") || key.startsWith("script:") ? dynamic.get(key) : prepared.get(key);
     }
     public Map<String, Object> statistics() {
-        return Map.of("prepared", prepared.size(), "dynamic", dynamic.size(), "hits", hits.sum(), "builds", builds.sum(), "calls", calls.sum());
+        return Map.of("prepared", prepared.size(), "dynamic", dynamic.size(), "hits", hits.sum(), "builds", builds.sum(),
+                "joins", joins.sum(), "preparing", flights.size(), "calls", calls.sum());
     }
     public Scriptable state() {
         var frame = current.get();

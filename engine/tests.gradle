@@ -735,11 +735,12 @@ tasks.register('flowServerCacheTest', JavaExec) {
 tasks.named('check') { dependsOn 'flowServerCacheTest' }
 tasks.register('flowStatelessRuntimeTest', JavaExec) {
 	group = 'verification'
-	description = 'Revision publication, concurrent lexical bindings and request frame isolation.'
+	description = 'Revision publication, preparations by key, concurrent lexical bindings and request frame isolation.'
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
-	args 'com.twinsoft.convertigo.engine.flow.FlowStatelessRuntimeTest', 'com.twinsoft.convertigo.engine.flow.FlowStatelessProviderTest'
+	args 'com.twinsoft.convertigo.engine.flow.FlowStatelessRuntimeTest', 'com.twinsoft.convertigo.engine.flow.FlowRuntimePreparationTest',
+		'com.twinsoft.convertigo.engine.flow.FlowStatelessProviderTest'
 }
 tasks.named('check') { dependsOn 'flowStatelessRuntimeTest' }
 
