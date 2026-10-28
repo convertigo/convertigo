@@ -1073,14 +1073,19 @@ public class ContextManager extends AbstractRunnableManager {
 		if (contextName.endsWith("*")) {
 			String contextID;
 			String prefix = contextName.substring(0, contextName.length() - 1);
-			int i = 1;
-			do {
-				contextName = prefix + i;
-				contextID = (contextIdPrefix == null ? "" : contextIdPrefix  + "_") + contextName;
-				i++;
-			} while ((context = get(contextID)) != null);
+			// The free name is looked for and its context added under the creation lock: concurrent requests of a
+			// session asking for a dynamic context must not take the same name, and then wait for each other on the
+			// lock of this context, the first one also waiting at its end for the second one to remove it.
+			synchronized (contextCreationMutex) {
+				int i = 1;
+				do {
+					contextName = prefix + i;
+					contextID = (contextIdPrefix == null ? "" : contextIdPrefix  + "_") + contextName;
+					i++;
+				} while (get(contextID) != null);
+				context = get(contextID, contextName, projectName);
+			}
 			Engine.logContextManager.info("Dynamic context name computed: " + contextName);
-			context = get(contextID, contextName, projectName);
 		}
 		// Studio context
 		else if (contextName.startsWith(STUDIO_CONTEXT_PREFIX)) {

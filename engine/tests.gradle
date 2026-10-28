@@ -451,3 +451,13 @@ tasks.register('multipartUploadFolderTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.servlets.GenericServletMultipartTest',
 		'com.twinsoft.convertigo.beans.rest.RestOperationMultipartTest'
 }
+
+tasks.register('dynamicContextTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: concurrent requests of a session asking for a dynamic context (__context=*) each get their own context.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.DynamicContextTest'
+}
+tasks.named('check') { dependsOn 'dynamicContextTest' }
