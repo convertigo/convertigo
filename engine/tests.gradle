@@ -752,6 +752,15 @@ tasks.register('flowRuntimeWarmupTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmupTest', 'com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmupProviderTest'
 }
 tasks.named('check') { dependsOn 'flowRuntimeWarmupTest' }
+tasks.register('flowRuntimeInvalidationTest', JavaExec) {
+	group = 'verification'
+	description = 'A project unloaded prepares again the shared runtimes of it and of the projects using it, not those of the other projects, nor their method responses and file snapshots.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowRuntimeInvalidationTest'
+}
+tasks.named('check') { dependsOn 'flowRuntimeInvalidationTest' }
 
 tasks.register('flowParallelChunksTest', JavaExec) {
 	group = 'verification'

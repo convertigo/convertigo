@@ -679,6 +679,17 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return getCachedProject(projectName);
 	}
 
+	/** @return the projects loaded, in no order: a copy, empty when the manager is not initialized */
+	public List<Project> getLoadedProjects() {
+		var loaded = projects;
+		if (loaded == null) {
+			return List.of();
+		}
+		synchronized (loaded) {
+			return new ArrayList<>(loaded.values());
+		}
+	}
+
 	/** True while the current thread is importing this project, including the check of its references. */
 	public boolean isImportingByCurrentThread(String projectName) {
 		var lock = importLocks.get(projectName);

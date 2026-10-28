@@ -104,7 +104,7 @@ public class Flow extends Sequence {
 	public static void projectUnloaded(Project project) {
 		if (project != null) {
 			FlowEngine.projectUnloaded(project);
-			FlowEngineBridge.invalidateProjectDataCaches(project.getDirPath());
+			FlowEngineBridge.projectUnloaded(project);
 		}
 	}
 

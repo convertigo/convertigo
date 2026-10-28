@@ -28,13 +28,22 @@ public final class FlowRuntimeApi {
     private final ThreadLocal<Frame> current = new ThreadLocal<>();
     private final LongAdder hits = new LongAdder(), builds = new LongAdder(), joins = new LongAdder(), calls = new LongAdder();
     private final RoutingScope shared;
-    private final long codeRevision = FlowEngineBridge.cacheGeneration(), dataRevision = FlowEngineBridge.dataGeneration();
+    /** The canonical directory of the project of this revision, empty for none, and the revisions of its code and data. */
+    private final String root;
+    private final long codeRevision, dataRevision;
     private final Object objectConstructor, arrayConstructor;
     private volatile long nextSourceProbe;
     private String sourceRevision;
 
 
     public FlowRuntimeApi(Context cx) {
+        this(cx, "", FlowEngineBridge.cacheGeneration(), FlowEngineBridge.dataRevision(""));
+    }
+    /** The revision of the shared runtime of a project: a child call needs its project to keep these revisions. */
+    FlowRuntimeApi(Context cx, String root, long codeRevision, long dataRevision) {
+        this.root = root;
+        this.codeRevision = codeRevision;
+        this.dataRevision = dataRevision;
         shared = new RoutingScope();
         new org.mozilla.javascript.lc.type.impl.factory.WeakReferenceFactory().associate(shared);
         FlowPackages.initializeEngineScope(cx, shared);
@@ -156,7 +165,7 @@ public final class FlowRuntimeApi {
     private String childFallback(com.twinsoft.convertigo.beans.core.RequestableObject target, Scriptable input, Object parent) {
         if (com.twinsoft.convertigo.engine.Engine.isStudioMode() || !Boolean.getBoolean("convertigo.javascript.stateless")
                 || "false".equals(System.getProperty("convertigo.javascript.direct_calls"))) return "disabled";
-        if (codeRevision != FlowEngineBridge.cacheGeneration() || dataRevision != FlowEngineBridge.dataGeneration()) return "revision";
+        if (codeRevision != FlowEngineBridge.cacheGeneration() || dataRevision != FlowEngineBridge.dataRevision(root)) return "revision";
         if (target == null || target.getClass() != com.twinsoft.convertigo.beans.flow.Flow.class) return "requestable-kind";
         com.twinsoft.convertigo.beans.core.Project project;
         jakarta.servlet.http.HttpSession session;

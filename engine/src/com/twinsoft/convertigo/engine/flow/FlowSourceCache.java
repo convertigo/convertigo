@@ -82,4 +82,36 @@ public final class FlowSourceCache {
 		entries.clear();
 		characters = 0;
 	}
+
+	/** Forgets the snapshots of the files of a directory and of its subdirectories, by their path or their canonical path. */
+	public synchronized void clear(File directory) {
+		var prefixes = new String[] { path(directory), canonicalPath(directory) };
+		for (var iterator = entries.entrySet().iterator(); iterator.hasNext();) {
+			var entry = iterator.next();
+			var key = entry.getKey();
+			var stamp = entry.getValue().stamp;
+			// a file snapshot names its canonical path in its stamp: "<path>#<date>:<length>" or "missing:<path>"
+			var canonical = stamp.startsWith("missing:") ? stamp.substring(8)
+					: stamp.lastIndexOf('#') > 0 ? stamp.substring(0, stamp.lastIndexOf('#')) : "";
+			for (var prefix : prefixes) {
+				if (under(key.substring(key.indexOf(':') + 1), prefix) || under(canonical, prefix)) {
+					characters -= length(entry.getValue());
+					iterator.remove();
+					break;
+				}
+			}
+		}
+	}
+
+	private static boolean under(String path, String directory) {
+		return !directory.isEmpty() && (path.equals(directory) || path.startsWith(directory.endsWith(File.separator) ? directory : directory + File.separator));
+	}
+
+	private static String canonicalPath(File file) {
+		try {
+			return file.getCanonicalPath();
+		} catch (IOException e) {
+			return "";
+		}
+	}
 }

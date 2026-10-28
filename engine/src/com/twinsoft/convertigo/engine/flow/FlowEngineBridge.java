@@ -25,6 +25,7 @@ import java.security.MessageDigest;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -80,7 +81,14 @@ public class FlowEngineBridge {
 	private static final Map<String, String> methodResponseAliases = new ConcurrentHashMap<>();
 	private static final Map<String, InvocationStats> invocationStats = new ConcurrentHashMap<>();
 	private static final AtomicLong cacheGeneration = new AtomicLong();
+	/** Advanced by each invalidation of data caches, of every project or of some of them: the revision it gives them. */
 	private static final AtomicLong dataGeneration = new AtomicLong();
+	/** The revision given to every project by the last invalidation of the data caches of all of them. */
+	private static final AtomicLong commonDataRevision = new AtomicLong();
+	/**
+	 * The revision given to a project, by canonical directory, by the last invalidation of its data caches or of those
+	 * of a project its runtime uses.
+	 */
 	private static final Map<String, AtomicLong> sourceRevisions = new ConcurrentHashMap<>();
 	private static final FlowCompiledScriptCache compiledModules = new FlowCompiledScriptCache(256);
 	private static final FlowSourceCache serverSources = new FlowSourceCache(2048, 60_000);
@@ -89,6 +97,7 @@ public class FlowEngineBridge {
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
 	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
+	/** @param project the canonical directory of the project, empty for none; dataRevision the revision of its data */
 	private record SharedRuntimeKey(String provider, String source, String project, ClassLoader loader, long codeRevision, long dataRevision) { }
 	private static final Map<SharedRuntimeKey, CachedEngineRuntime> sharedRuntimes = new ConcurrentHashMap<>();
 	private static final ThreadLocal<RuntimeInvocation> currentRuntime = new ThreadLocal<>();
@@ -113,6 +122,7 @@ public class FlowEngineBridge {
 		}
 	}
 
+	/** @param dataGeneration the data generation of a pooled runtime, the data revision of its project for a shared one */
 	private record CachedEngineRuntime(String sourceName, long generation, long dataGeneration, Scriptable scope,
 			Scriptable engineObject, FlowRuntimeApi api) {
 	}
@@ -136,7 +146,11 @@ public class FlowEngineBridge {
 			boolean pooled, String key, long generation, int size, boolean nested) {
 	}
 
-	private record CachedMethodResponse(String response, long generation, long dataGeneration) {
+	/** @param root the canonical directory of the project of its request, empty for none; dataRevision the revision of its data */
+	private record CachedMethodResponse(String response, long generation, long dataRevision, String root) {
+		boolean current() {
+			return generation == cacheGeneration.get() && dataRevision == FlowEngineBridge.dataRevision(root);
+		}
 	}
 
 	private static final class FrontendAuthoringLockState {
@@ -273,15 +287,124 @@ public class FlowEngineBridge {
 		RhinoUtils.clearCachedJavascript();
 	}
 
+	/** The data caches of every project: their shared runtimes, their method responses, the sources and fingerprints read. */
 	public static void invalidateDataCaches() {
 		sharedMetadata.clear();
-		advanceDataGeneration();
+		synchronized (sharedRuntimes) {
+			serverSources.clear();
+			commonDataRevision.accumulateAndGet(dataGeneration.incrementAndGet(), Math::max);
+			sharedRuntimes.clear();
+		}
+		rootFingerprints.clear();
+		clearMethodResponseCache();
 	}
 
+	/** The data caches of the project of a directory and of the projects using it, as {@link #projectUnloaded} does. */
 	public static void invalidateProjectDataCaches(String directory) {
+		invalidateProjectDataCaches(directory, null);
+	}
+
+	/**
+	 * A project is unloaded (deployed, imported, reloaded or removed): the data caches of the project and of the loaded
+	 * projects whose runtime uses it are invalidated, those referencing it, directly or through other projects, and those
+	 * whose runtime it provides: their shared runtimes and their method responses, then the sources and fingerprints read
+	 * from its own files. The other projects keep their prepared runtimes.
+	 */
+	public static void projectUnloaded(Project project) {
+		invalidateProjectDataCaches(project.getDirPath(), project.getName());
+	}
+
+	/** @param name the name of the project, null to find it from its directory */
+	private static void invalidateProjectDataCaches(String directory, String name) {
 		if (directory == null || directory.isBlank()) { invalidateDataCaches(); return; }
-		sourceRevisions.computeIfAbsent(canonicalPath(new File(directory)), ignored -> new AtomicLong()).incrementAndGet();
-		advanceDataGeneration();
+		var root = canonicalPath(new File(directory));
+		Set<String> roots;
+		try {
+			roots = loadedDependents(root, name);
+		} catch (RuntimeException e) {
+			// without the projects using it, the data caches of every project
+			if (Engine.logEngine != null) {
+				Engine.logEngine.warn("(FlowEngineBridge) Unable to find the projects using the project of " + root + ".", e);
+			}
+			invalidateDataCaches();
+			return;
+		}
+		roots.add(root);
+		synchronized (sharedRuntimes) {
+			// a runtime being prepared for their previous revision is not published (sharedEngineRuntime)
+			var revision = dataGeneration.incrementAndGet();
+			for (var each : roots) {
+				sourceRevisions.computeIfAbsent(each, ignored -> new AtomicLong()).accumulateAndGet(revision, Math::max);
+			}
+			sharedRuntimes.keySet().removeIf(key -> roots.contains(key.project()));
+			// the snapshots of the other projects are of their own files
+			serverSources.clear(new File(directory));
+		}
+		rootFingerprints.remove("engine:" + root);
+		rootFingerprints.remove("project:" + root);
+		clearMethodResponseCache(roots);
+	}
+
+	/**
+	 * @param name the name of the project, null to find it from its directory
+	 * @return the canonical directories of the loaded projects whose runtime uses a project: they reference it, directly
+	 *         or through other projects, or it provides their runtime; a project referencing one that is not loaded may use
+	 *         it through that one
+	 */
+	private static Set<String> loadedDependents(String root, String name) {
+		var dependents = new HashSet<String>();
+		var app = Engine.theApp;
+		if (app == null || app.databaseObjectsManager == null) {
+			return dependents;
+		}
+		var loaded = new HashSet<String>();
+		var users = new HashMap<String, List<Project>>();
+		for (var project : app.databaseObjectsManager.getLoadedProjects()) {
+			loaded.add(project.getName());
+			if (name == null && root.equals(canonicalPath(project.getDirFile()))) {
+				name = project.getName();
+			}
+			for (var used : usedProjectNames(project)) {
+				users.computeIfAbsent(used, ignored -> new ArrayList<>()).add(project);
+			}
+		}
+		var pending = new ArrayDeque<String>();
+		pending.add(name == null ? projectNameForDir(root) : name);
+		for (var used : users.keySet()) {
+			if (!loaded.contains(used)) {
+				pending.add(used);
+			}
+		}
+		var seen = new HashSet<String>(pending);
+		while (!pending.isEmpty()) {
+			for (var user : users.getOrDefault(pending.poll(), List.of())) {
+				if (seen.add(user.getName())) {
+					dependents.add(canonicalPath(user.getDirFile()));
+					pending.add(user.getName());
+				}
+			}
+		}
+		return dependents;
+	}
+
+	/** @return the names of the projects the runtime of a project uses: those it references and the provider of its runtime */
+	private static Set<String> usedProjectNames(Project project) {
+		var names = new HashSet<String>();
+		var flowEngine = project.getFlowEngine();
+		var provider = normalizeEngineQName(flowEngine == null ? null : flowEngine.getEngineQName());
+		if (provider.indexOf('.') > 0) {
+			names.add(provider.substring(0, provider.indexOf('.')));
+		}
+		for (var reference : project.getReferenceList()) {
+			if (reference instanceof ProjectSchemaReference schemaReference) {
+				var referenced = schemaReference.getParser().getProjectName();
+				if (referenced != null && !referenced.isBlank()) {
+					names.add(referenced);
+				}
+			}
+		}
+		names.remove(project.getName());
+		return names;
 	}
 
 	public static long metadataSourceRevision(String directory) {
@@ -290,14 +413,20 @@ public class FlowEngineBridge {
 		return revision == null ? 0 : revision.get();
 	}
 
-	private static void advanceDataGeneration() {
-		synchronized (sharedRuntimes) {
-			serverSources.clear();
-			dataGeneration.incrementAndGet();
-			sharedRuntimes.clear();
-		}
-		rootFingerprints.clear();
-		clearMethodResponseCache();
+	/** @return the canonical directory of a project, empty for none */
+	static String projectRoot(String directory) {
+		return directory == null || directory.isBlank() ? "" : canonicalPath(new File(directory));
+	}
+
+	/**
+	 * @return the revision of the data caches of the project of a canonical directory: it changes when they are
+	 *         invalidated, with those of every project or of a project its runtime uses; for none (empty), at each
+	 *         invalidation, as a call of no project may depend on any of them
+	 */
+	static long dataRevision(String root) {
+		if (root.isEmpty()) return dataGeneration.get();
+		var own = sourceRevisions.get(root);
+		return Math.max(commonDataRevision.get(), own == null ? 0 : own.get());
 	}
 
 	/** Only immutable metadata text crosses scopes. Caller revisions include source and dependency fingerprints. */
@@ -337,6 +466,10 @@ public class FlowEngineBridge {
 		return cacheGeneration.get();
 	}
 
+	/**
+	 * @return the generation of the data caches of every project, changed by each invalidation, of all of them or of
+	 *         some: that of the pooled runtimes, which serve every project (see {@link #dataRevision} for one project)
+	 */
 	public static long dataGeneration() {
 		return dataGeneration.get();
 	}
@@ -520,7 +653,8 @@ public class FlowEngineBridge {
 					.put("projectDir", flow == null || flow.getProject() == null ? "" : flow.getProject().getDirPath())
 					.put("metadataOnly", !Engine.isStudioMode());
 			if (Engine.isStudioMode()) return invoke(engineQName, "syncInputs", request, null, null, null);
-			var revision = org.apache.commons.codec.digest.DigestUtils.sha256Hex(request.toString()) + ":" + dataGeneration.get();
+			var revision = org.apache.commons.codec.digest.DigestUtils.sha256Hex(request.toString()) + ":"
+					+ dataRevision(projectRoot(request.optString("projectDir", "")));
 			var result = sharedMetadata("input-contract\n" + engineQName + "\n" + request.optString("projectDir") + "\n" + request.optString("flowName"), revision,
 					() -> invoke(engineQName, "syncInputs", request, null, null, null).toString());
 			return new JSONObject(result);
@@ -2226,8 +2360,7 @@ public class FlowEngineBridge {
 
 	private static CachedMethodResponse cachedMethodResponse(String key) {
 		var cached = methodResponseCache.get(key);
-		if (cached != null && cached.generation() == cacheGeneration.get()
-				&& cached.dataGeneration() == dataGeneration.get()) {
+		if (cached != null && cached.current()) {
 			methodResponseCacheHits.increment();
 			return cached;
 		}
@@ -2244,8 +2377,9 @@ public class FlowEngineBridge {
 			methodResponseAliases.clear();
 			methodResponseCacheInvalidations.increment();
 		}
+		var root = projectRoot(request == null ? "" : request.optString("projectDir", ""));
 		methodResponseCache.put(key,
-				new CachedMethodResponse(serializedResponse(response), cacheGeneration.get(), dataGeneration.get()));
+				new CachedMethodResponse(serializedResponse(response), cacheGeneration.get(), dataRevision(root), root));
 		methodResponseAliases.put(methodResponseAliasKey(engineRef, method, request), key);
 	}
 
@@ -2262,8 +2396,7 @@ public class FlowEngineBridge {
 			return null;
 		}
 		var cached = methodResponseCache.get(key);
-		return cached != null && cached.generation() == cacheGeneration.get()
-				&& cached.dataGeneration() == dataGeneration.get() ? cached : null;
+		return cached != null && cached.current() ? cached : null;
 	}
 
 	private static void attachDescribeTreeSnapshot(EngineRef engineRef, String method, JSONObject request) throws JSONException {
@@ -2287,7 +2420,7 @@ public class FlowEngineBridge {
 			JSONObject request) {
 		return engineRef.qname + "|" + engineSource.sourceName() + "|"
 				+ methodResponseDependencyFingerprint(engineFile, request) + "|" + cacheGeneration.get() + "|"
-				+ dataGeneration.get() + "|" + method + "|"
+				+ dataRevision(projectRoot(request.optString("projectDir", ""))) + "|" + method + "|"
 				+ request.toString();
 	}
 
@@ -2592,6 +2725,14 @@ public class FlowEngineBridge {
 		}
 	}
 
+	/** Removes the responses of these projects (canonical directories) and those of no project, which may use any of them. */
+	private static void clearMethodResponseCache(Set<String> roots) {
+		if (methodResponseCache.values().removeIf(cached -> cached.root().isEmpty() || roots.contains(cached.root()))) {
+			methodResponseAliases.values().removeIf(key -> !methodResponseCache.containsKey(key));
+			methodResponseCacheInvalidations.increment();
+		}
+	}
+
 	private static int runtimeOption(PropertyName name, int fallback, int maximum) {
 		try { return Math.max(0, Math.min(maximum, Integer.parseInt(EnginePropertiesManager.getProperty(name).trim()))); }
 		catch (RuntimeException e) { return fallback; }
@@ -2741,8 +2882,10 @@ public class FlowEngineBridge {
             if (value instanceof JSONArray array && array.length() == 0) continue;
             return null;
         }
-		var key = new SharedRuntimeKey(ref.qname, source.sourceName(), request.optString("projectDir", ""),
-				callGeneration(request, context), cacheGeneration.get(), dataGeneration.get());
+		// the revision of the data of its project only: another project changing keeps this runtime
+		var root = projectRoot(request.optString("projectDir", ""));
+		var key = new SharedRuntimeKey(ref.qname, source.sourceName(), root, callGeneration(request, context),
+				cacheGeneration.get(), dataRevision(root));
 		var runtime = sharedRuntimes.get(key);
 		if (runtime != null && !runtime.api().revisionMatches(() -> methodResponseDependencyFingerprint(file, request))) {
 			sharedRuntimes.remove(key, runtime);
@@ -2753,7 +2896,7 @@ public class FlowEngineBridge {
 		if (runtime == null) synchronized (sharedRuntimes) {
 			runtime = sharedRuntimes.get(key);
 			if (runtime == null) {
-				var api = new FlowRuntimeApi(cx);
+				var api = new FlowRuntimeApi(cx, root, key.codeRevision(), key.dataRevision());
 				api.revisionMatches(() -> methodResponseDependencyFingerprint(file, request));
 				var scope = api.sharedScope();
 				initializeSourceScope(scope, file);
@@ -2765,7 +2908,7 @@ public class FlowEngineBridge {
 				scope.sealObject();
 				runtime = new CachedEngineRuntime(source.sourceName(), key.codeRevision(), key.dataRevision(), scope, engine, api);
 				if (sharedRuntimes.size() >= 256) sharedRuntimes.clear();
-				if (key.codeRevision() == cacheGeneration.get() && key.dataRevision() == dataGeneration.get())
+				if (key.codeRevision() == cacheGeneration.get() && key.dataRevision() == dataRevision(root))
 					sharedRuntimes.put(key, runtime);
 			}
 		}

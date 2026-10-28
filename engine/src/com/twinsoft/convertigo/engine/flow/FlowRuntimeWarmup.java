@@ -441,7 +441,9 @@ public final class FlowRuntimeWarmup {
 			debug("(FlowRuntimeWarmup) Libraries of the project " + name + " not checked", e);
 		}
 		var codeRevision = FlowEngineBridge.cacheGeneration();
-		var dataRevision = FlowEngineBridge.dataGeneration();
+		// the revision of the data of this project, changed with it or with a project its runtime uses
+		var root = FlowEngineBridge.projectRoot(project.getDirPath());
+		var dataRevision = FlowEngineBridge.dataRevision(root);
 		var bridge = new FlowEngineBridge();
 		var failures = new ArrayList<String>();
 		var prepared = 0;
@@ -503,7 +505,7 @@ public final class FlowRuntimeWarmup {
 		info("(FlowRuntimeWarmup) Project " + name + ": " + (plans ? prepared + "/" + flows.size() + " Flows prepared"
 				: "catalog prepared, its provider prepares no Flow plan in advance") + " in " + ms + " ms"
 				+ (failures.isEmpty() ? "" : ", not prepared: " + String.join(", ", failures)));
-		return codeRevision != FlowEngineBridge.cacheGeneration() || dataRevision != FlowEngineBridge.dataGeneration()
+		return codeRevision != FlowEngineBridge.cacheGeneration() || dataRevision != FlowEngineBridge.dataRevision(root)
 				|| generation != null && generation != project.getProjectClassLoader();
 	}
 
