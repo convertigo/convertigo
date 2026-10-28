@@ -132,6 +132,9 @@ public class ProxyServlet extends GenericServlet {
     		request.getSession().setAttribute("proxy_exception", e);
     		RequestDispatcher rd = request.getRequestDispatcher("error.jsp");
     		rd.forward(request, response);
+    	} finally {
+    		// the response is written: the files uploaded by a multipart request are no longer used
+    		removeUploadFolder(request);
     	}
     }
 

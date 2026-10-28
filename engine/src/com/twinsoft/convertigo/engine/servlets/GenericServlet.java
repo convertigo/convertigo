@@ -77,7 +77,37 @@ public abstract class GenericServlet extends HttpServlet {
 	private static final List<String> CALLER_CONTENT_TYPE_WHITELIST = List.of(
 			MimeType.Plain.value(), MimeType.Json.value(), MimeType.OctetStream.value());
 
+	/** The request attribute keeping the upload folder of a multipart request until its response is written. */
+	private static final String UPLOAD_FOLDER = "convertigo.multipart.folder";
+
 	public GenericServlet() {
+	}
+
+	/**
+	 * A new temporary folder for the items of a multipart request, kept by the request. The folder is only created to
+	 * write an item, by the factory over its size threshold or for an uploaded file. The response can stream one of
+	 * the uploaded files, as a binary attachment: {@link #removeUploadFolder} removes them once the response is written.
+	 */
+	static File newUploadFolder(HttpServletRequest request) throws IOException {
+		var folder = File.createTempFile("c8o-multipart-files", ".tmp");
+		folder.delete();
+		request.setAttribute(UPLOAD_FOLDER, folder);
+		return folder;
+	}
+
+	/** Removes the upload folder of the request with its files, if it was created, once the response is written. */
+	protected static void removeUploadFolder(HttpServletRequest request) {
+		if (request.getAttribute(UPLOAD_FOLDER) instanceof File folder) {
+			request.removeAttribute(UPLOAD_FOLDER);
+			if (folder.exists()) {
+				try {
+					Engine.logEngine.debug("(GenericServlet) Removing the temporary upload folder : " + folder.getAbsolutePath());
+					FileUtils.deleteDirectory(folder);
+				} catch (IOException | RuntimeException e) {
+					Engine.logEngine.warn("(GenericServlet) Failed to delete: " + folder + " [" + e.getMessage() + "]");
+				}
+			}
+		}
 	}
 
 	private void handleStaticData(HttpServletRequest request, HttpServletResponse response) {
@@ -378,6 +408,8 @@ public abstract class GenericServlet extends HttpServlet {
 				processException(request, response, e);
 			}
 			finally {
+				// the response is written: the uploaded files are no longer used
+				removeUploadFolder(request);
 				long t1 = System.currentTimeMillis();
 				Engine.theApp.pluginsManager.fireHttpServletRequestEnd(request, t0, t1);
 			}
@@ -523,7 +555,6 @@ public abstract class GenericServlet extends HttpServlet {
 
 	public Object processRequest(HttpServletRequest request) throws Exception {
 		HttpServletRequestTwsWrapper twsRequest = request instanceof HttpServletRequestTwsWrapper ? (HttpServletRequestTwsWrapper) request : null;
-		File temporaryFile = null;
 
 		try {
 			// Check multipart request
@@ -536,9 +567,9 @@ public abstract class GenericServlet extends HttpServlet {
 				// Set factory constraints
 				factory.setSizeThreshold(1000);
 
-				temporaryFile = File.createTempFile("c8o-multipart-files", ".tmp");
+				// removed with the uploaded files once the response, which can stream one of them, is written
+				File temporaryFile = newUploadFolder(request);
 				int cptFile = 0;
-				temporaryFile.delete();
 				// the folder is only created to write an item: by the factory over the size threshold, or an uploaded file
 				factory.setRepository(temporaryFile);
 				Engine.logContext.debug("(ServletRequester.initContext) Temporary folder for upload is : " + temporaryFile.getAbsolutePath());
@@ -609,15 +640,6 @@ public abstract class GenericServlet extends HttpServlet {
 				response = grec.postGetDocument(error);
 			}
 			return response;
-		} finally {
-			if (temporaryFile != null && temporaryFile.exists()) {
-				try {
-					Engine.logEngine.debug("(GenericServlet) Removing the temporary file : " + temporaryFile.getAbsolutePath());
-					FileUtils.deleteDirectory(temporaryFile);
-				} catch (IOException e) {
-					Engine.logEngine.warn("(GenericServlet) Failed to delete: " + temporaryFile + " [" + e.getMessage() + "]");
-				}
-			}
 		}
 	}
 
