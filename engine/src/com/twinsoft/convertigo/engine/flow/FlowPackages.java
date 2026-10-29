@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.engine.flow;
 
-import java.util.function.Supplier;
-
 import org.mozilla.javascript.ClassCache;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
@@ -28,6 +26,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 import com.twinsoft.convertigo.engine.ProjectClassLoader;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 /**
  * The Java packages of a Flow call: the runtimes of the Flow engine are shared by all the projects, and Rhino binds
@@ -54,28 +53,15 @@ final class FlowPackages {
 	 *         creates them at their first use, with the class loader of the thread at that time
 	 */
 	static ScriptableObject createScope(Context cx) {
-		return withEngineLoader(() -> {
+		return RhinoUtils.withEngineClassLoader(cx, () -> {
 			var scope = com.twinsoft.convertigo.beans.core.RequestableObject.newRetainedScope(cx, true);
 			captureEngineRoots(scope);
 			return scope;
 		});
 	}
 
-	private static <T> T withEngineLoader(Supplier<T> creation) {
-		var thread = Thread.currentThread();
-		var previous = thread.getContextClassLoader();
-		// the libraries of the workspace, then the engine
-		var engine = com.twinsoft.convertigo.engine.Engine.getEngineClassLoader();
-		thread.setContextClassLoader(engine != null ? engine : FlowPackages.class.getClassLoader());
-		try {
-			return creation.get();
-		} finally {
-			thread.setContextClassLoader(previous);
-		}
-	}
-
 	static void initializeEngineScope(Context cx, ScriptableObject scope) {
-		withEngineLoader(() -> {
+		RhinoUtils.withEngineClassLoader(cx, () -> {
 			cx.initStandardObjects(scope, true);
 			captureEngineRoots(scope);
 			return scope;

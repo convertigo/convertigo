@@ -42,6 +42,7 @@ public class ProjectLibrariesTest {
 	private File base;
 	private File libs;
 	private File local;
+	private Object idleRuntimeScope;
 
 	@BeforeClass
 	public static void logs() {
@@ -636,4 +637,65 @@ public class ProjectLibrariesTest {
 		}
 	}
 
+
+	private WeakReference<ClassLoader> replaceNativeJavaLibrary(boolean keepRuntime) throws Exception {
+		EnginePropertiesManager.initProperties();
+		com.twinsoft.convertigo.beans.core.RequestableObject.resetSharedJavaScriptCaches();
+		var jar = jar(new File(libs, "native.jar"), hello("native-one"));
+		var old = load();
+		var scopeFactory = com.twinsoft.convertigo.beans.core.RequestableObject.class.getDeclaredMethod(
+				"newSharedScope", org.mozilla.javascript.Context.class);
+		scopeFactory.setAccessible(true);
+		var thread = Thread.currentThread();
+		var previous = thread.getContextClassLoader();
+		try {
+			thread.setContextClassLoader(old);
+			try (var cx = org.mozilla.javascript.Context.enter()) {
+				cx.setApplicationClassLoader(old);
+				if (keepRuntime) {
+					idleRuntimeScope = com.twinsoft.convertigo.engine.util.RhinoUtils.withEngineClassLoader(cx, () -> {
+						var kept = com.twinsoft.convertigo.beans.core.RequestableObject.newRetainedScope(cx, true);
+						for (var root : new String[] {"Packages", "java", "javax", "org", "com", "edu", "net"})
+							org.mozilla.javascript.ScriptableObject.getProperty(kept, root);
+						return kept;
+					});
+				}
+				var scope = (org.mozilla.javascript.Scriptable) scopeFactory.invoke(null, cx);
+				assertEquals("native-one", org.mozilla.javascript.Context.toString(cx.evaluateString(scope,
+						"String(Packages.lib.Hello.version())", "native-first", 1, null)));
+			}
+			jar(jar, hello("native-two-longer"));
+			var next = load();
+			ProjectLibraries.sweep();
+			thread.setContextClassLoader(next);
+			try (var cx = org.mozilla.javascript.Context.enter()) {
+				cx.setApplicationClassLoader(next);
+				var scope = (org.mozilla.javascript.Scriptable) scopeFactory.invoke(null, cx);
+				assertEquals("native-two-longer", org.mozilla.javascript.Context.toString(cx.evaluateString(scope,
+						"String(Packages.lib.Hello.version())", "native-next", 1, null)));
+			}
+			return new WeakReference<ClassLoader>(old);
+		} finally {
+			thread.setContextClassLoader(previous);
+		}
+	}
+
+	@Test
+	public void nativeReflectionAndSharedStandardsReleaseARedeployedJavaLibrary() throws Exception {
+		var reference = replaceNativeJavaLibrary(false);
+		for (int i = 0; i < 50 && reference.get() != null; i++) {
+			System.gc(); Thread.sleep(20);
+		}
+		assertNull("The shared reflection and package caches must not retain the former project classes", reference.get());
+	}
+
+	@Test
+	public void anIdleRetainedRuntimeCannotKeepNativeProjectClassesAfterRedeployment() throws Exception {
+		var reference = replaceNativeJavaLibrary(true);
+		for (int i = 0; i < 50 && reference.get() != null; i++) {
+			System.gc(); Thread.sleep(20);
+		}
+		assertNotNull("An unrelated idle runtime still holds its reflection cache", idleRuntimeScope);
+		assertNull("Native requests must not populate the reflection cache of retained runtimes", reference.get());
+	}
 }

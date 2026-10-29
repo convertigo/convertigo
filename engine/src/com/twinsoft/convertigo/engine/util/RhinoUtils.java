@@ -27,11 +27,13 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 import org.mozilla.javascript.Callable;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.ContextFactory.Listener;
+import org.mozilla.javascript.Function;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.NativeJSON;
@@ -44,6 +46,7 @@ import org.mozilla.javascript.Symbol;
 import org.mozilla.javascript.Undefined;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class RhinoUtils {
 	static public boolean debugMode = false;
@@ -54,6 +57,36 @@ public class RhinoUtils {
 		ScriptableObject scope = Context.enter().initStandardObjects();
 		json = (NativeJSON) scope.get("JSON", scope);
 		Context.exit();
+	}
+
+	/** Creates shared JavaScript objects without capturing the project loader of the creating invocation. */
+	public static <T> T withEngineClassLoader(Context cx, Supplier<T> creation) {
+		var thread = Thread.currentThread();
+		var previous = thread.getContextClassLoader();
+		var application = cx.getApplicationClassLoader();
+		var engine = Engine.getEngineClassLoader();
+		if (engine == null) engine = RhinoUtils.class.getClassLoader();
+		thread.setContextClassLoader(engine);
+		try {
+			// Rhino may already have memoized the project loader in this Context.
+			cx.setApplicationClassLoader(engine);
+			return creation.get();
+		} finally {
+			cx.setApplicationClassLoader(application);
+			thread.setContextClassLoader(previous);
+		}
+	}
+
+	/** Binds the Java package aliases of a private invocation scope to its project generation. */
+	public static void bindJavaPackages(Context cx, Scriptable scope, ClassLoader generation) {
+		if (generation != null && ScriptableObject.getProperty(scope, "Packages") instanceof Function packages) {
+			var top = packages.construct(cx, scope, new Object[] { Context.javaToJS(generation, scope) });
+			// Define own properties: the inherited standard scope is sealed.
+			ScriptableObject.defineProperty(scope, "Packages", top, ScriptableObject.DONTENUM);
+			for (var name : new String[] { "java", "javax", "org", "com", "edu", "net" }) {
+				ScriptableObject.defineProperty(scope, name, ScriptableObject.getProperty(top, name), ScriptableObject.DONTENUM);
+			}
+		}
 	}
 
 	static public Scriptable copyScope(Context context, Scriptable scope) {

@@ -52,6 +52,8 @@ import org.xml.sax.InputSource;
 
 import com.twinsoft.convertigo.beans.steps.StepException;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ProjectClassLoader;
+import com.twinsoft.convertigo.engine.ProjectLibraries;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -549,6 +551,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	}
     
     private static volatile ClassCache sharedClassCache = new ClassCache();
+    // Idle runtimes must not keep project classes reflected by unrelated native requests.
+    private static volatile ClassCache retainedClassCache = new ClassCache();
 
     /**
      * The scope of a requestable. With javascript.shared_class_cache, its Java classes are described once for all
@@ -556,14 +560,28 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
      */
     private static volatile ScriptableObject sharedStandardScope;
 
+    private static final ProjectLibraries.Holder sharedJavaClasses =
+            new ProjectLibraries.Holder() {
+        @Override public boolean inUse(ProjectClassLoader generation) { return false; }
+        @Override public void release(ProjectClassLoader generation) {
+            // Running requests keep their own scope; subsequent ones learn the Java members again.
+            resetSharedJavaScriptCaches();
+        }
+    };
+    static {
+        ProjectLibraries.addHolder(sharedJavaClasses);
+    }
+
     /**
-     * A project reloaded or removed: the shared descriptions of the Java classes (and the sealed standard scope tied to
-     * them) start again empty, so they no longer hold the classes of its former class loader, which can then be freed.
+     * A project reloaded, removed, or its generation released: the shared descriptions of the Java classes and their
+     * sealed standard scope start again empty, so they no longer hold the classes of its former loader.
      * The requests running keep the caches they started with.
      */
     public static void resetSharedJavaScriptCaches() {
+        ProjectLibraries.addHolder(sharedJavaClasses);
     	synchronized (RequestableObject.class) {
     		sharedClassCache = new ClassCache();
+            retainedClassCache = new ClassCache();
     		sharedStandardScope = null;
     	}
     }
@@ -578,16 +596,18 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     		synchronized (RequestableObject.class) {
     			shared = sharedStandardScope;
     			if (shared == null) {
-    				shared = new NativeObject();
-    				sharedClassCache.associate(shared);
-    				javascriptContext.initStandardObjects(shared, true);
-    				// the standard objects loaded lazily are loaded now, before the scope is shared between threads
-    				for (Object id : shared.getAllIds()) {
-    					if (id instanceof String) {
-    						ScriptableObject.getProperty(shared, (String) id);
-    					}
-    				}
-    				shared.sealObject();
+                shared = RhinoUtils.withEngineClassLoader(javascriptContext, () -> {
+                    var standard = new NativeObject();
+                    new org.mozilla.javascript.lc.type.impl.factory.WeakReferenceFactory().associate(standard);
+                    sharedClassCache.associate(standard);
+                    javascriptContext.initStandardObjects(standard, true);
+                    // Resolve lazy packages while both the thread and the Rhino Context use the engine loader.
+                    for (Object id : standard.getAllIds()) {
+                        if (id instanceof String name) ScriptableObject.getProperty(standard, name);
+                    }
+                    standard.sealObject();
+                    return standard;
+                });
     				sharedStandardScope = shared;
     			}
     		}
@@ -595,6 +615,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	ScriptableObject scope = new NativeObject();
     	scope.setPrototype(shared);
     	scope.setParentScope(null);
+        new org.mozilla.javascript.lc.type.impl.factory.WeakReferenceFactory().associate(scope);
+        RhinoUtils.bindJavaPackages(javascriptContext, scope, Thread.currentThread().getContextClassLoader());
     	return scope;
     }
 
@@ -616,13 +638,13 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	return javascriptContext.initStandardObjects();
     }
 
-    /** Isolated globals for a retained runtime, using the same reflection cache and option as requestables. */
+    /** Isolated globals for a retained runtime, sharing reflection with other retained runtimes only. */
     public static ScriptableObject newRetainedScope(org.mozilla.javascript.Context javascriptContext, boolean nativeRuntime) {
         ScriptableObject scope = new NativeObject();
         // Type factories must be associated before Rhino initializes the standard objects.
         new org.mozilla.javascript.lc.type.impl.factory.WeakReferenceFactory().associate(scope);
         if (EnginePropertiesManager.isOnFor(PropertyName.JAVASCRIPT_SHARED_CLASS_CACHE, nativeRuntime)) {
-            sharedClassCache.associate(scope);
+            retainedClassCache.associate(scope);
         }
         return (ScriptableObject) javascriptContext.initStandardObjects(scope);
     }

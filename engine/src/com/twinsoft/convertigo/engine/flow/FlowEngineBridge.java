@@ -59,6 +59,8 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ProjectClassLoader;
+import com.twinsoft.convertigo.engine.ProjectLibraries;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -278,7 +280,24 @@ public class FlowEngineBridge {
 		}
 	}
 
+	private static final ProjectLibraries.Holder runtimeGenerations =
+			new ProjectLibraries.Holder() {
+		@Override public boolean inUse(ProjectClassLoader generation) {
+			// Removing a cache entry does not dispose the runtime a running caller already holds.
+			return false;
+		}
+		@Override public void release(ProjectClassLoader generation) {
+			synchronized (sharedRuntimes) {
+				sharedRuntimes.keySet().removeIf(key -> key.loader() == generation);
+			}
+		}
+	};
+	static {
+		ProjectLibraries.addHolder(runtimeGenerations);
+	}
+
 	public static void clearCaches() {
+		ProjectLibraries.addHolder(runtimeGenerations);
 		compiledModules.clear();
 		serverSources.clear();
 		sharedMetadata.clear();
@@ -3041,7 +3060,8 @@ public class FlowEngineBridge {
 	/** Kept while the revisions of its key are still those of its project: else it only serves the callers of its preparation. */
 	private static void publishSharedRuntime(SharedRuntimeKey key, CachedEngineRuntime runtime) {
 		synchronized (sharedRuntimes) {
-			if (key.codeRevision() != cacheGeneration.get() || key.dataRevision() != dataRevision(key.project())) return;
+			if (key.codeRevision() != cacheGeneration.get() || key.dataRevision() != dataRevision(key.project())
+					|| key.loader() instanceof ProjectClassLoader generation && generation.isRetired()) return;
 			if (sharedRuntimes.size() >= 256) sharedRuntimes.clear();
 			sharedRuntimes.put(key, runtime);
 		}

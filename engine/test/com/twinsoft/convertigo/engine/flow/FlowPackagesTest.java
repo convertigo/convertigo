@@ -44,12 +44,14 @@ public class FlowPackagesTest {
 
 	@Before
 	public void setUp() throws Exception {
+		com.twinsoft.convertigo.beans.core.RequestableObject.resetSharedJavaScriptCaches();
 		base = Files.createTempDirectory("flow-packages-test").toFile();
 		com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
 	}
 
 	@After
 	public void tearDown() {
+		com.twinsoft.convertigo.beans.core.RequestableObject.resetSharedJavaScriptCaches();
 		FileUtils.deleteQuietly(base);
 	}
 
@@ -202,5 +204,89 @@ public class FlowPackagesTest {
 			for (var future : futures) future.get(30, java.util.concurrent.TimeUnit.SECONDS);
 			var iterator = caches.iterator(); assertSame(iterator.next(), iterator.next());
 		} finally { workers.shutdownNow(); a.close(); b.close(); }
+	}
+
+	private Scriptable nativeScope(Context cx) throws Exception {
+		var method = com.twinsoft.convertigo.beans.core.RequestableObject.class
+				.getDeclaredMethod("newSharedScope", Context.class);
+		method.setAccessible(true);
+		return (Scriptable) method.invoke(null, cx);
+	}
+
+	@Test
+	public void nativeSharedStandardsUseThePackagesOfEachInvocation() throws Exception {
+		var thread = Thread.currentThread();
+		var previous = thread.getContextClassLoader();
+		try (var a = generation("NativeA"); var b = generation("NativeB"); var cx = Context.enter()) {
+			thread.setContextClassLoader(a);
+			cx.setApplicationClassLoader(a);
+			var first = nativeScope(cx);
+			assertSame(a, cx.getApplicationClassLoader());
+			assertEquals("NativeA", eval(cx, first, "String(Packages.probe.V.v())"));
+			thread.setContextClassLoader(b);
+			cx.setApplicationClassLoader(b);
+			var second = nativeScope(cx);
+			assertEquals("NativeB", eval(cx, second, "String(Packages.probe.V.v())"));
+			assertEquals("NativeA", eval(cx, first, "String(Packages.probe.V.v())"));
+			assertEquals("x", eval(cx, second, "String(new java.lang.String('x'))"));
+		} finally {
+			thread.setContextClassLoader(previous);
+		}
+	}
+
+	private WeakReference<ClassLoader> createNativeStandardsOnProjectThread() throws Exception {
+		var thread = Thread.currentThread();
+		var previous = thread.getContextClassLoader();
+		try (var loader = generation("NativeRetired"); var cx = Context.enter()) {
+			thread.setContextClassLoader(loader);
+			cx.setApplicationClassLoader(loader);
+			nativeScope(cx);
+			return new WeakReference<>(loader);
+		} finally {
+			thread.setContextClassLoader(previous);
+		}
+	}
+
+	@Test
+	public void nativeSharedStandardsDoNotRetainTheirCreatingProjectLoader() throws Exception {
+		var reference = createNativeStandardsOnProjectThread();
+		for (int i = 0; i < 50 && reference.get() != null; i++) {
+			System.gc(); Thread.sleep(20);
+		}
+		assertNull("The sealed global scope must contain only the engine packages", reference.get());
+	}
+
+	@Test
+	public void runtimeCreationRestoresAnExplicitRhinoApplicationLoader() throws Exception {
+		try (var loader = generation("Primed"); var cx = Context.enter()) {
+			cx.setApplicationClassLoader(loader);
+			var scope = FlowPackages.createScope(cx);
+			assertSame(loader, cx.getApplicationClassLoader());
+			assertEquals("false", eval(cx, scope, "typeof Packages.probe.V.v == 'function'"));
+		}
+	}
+
+	@Test
+	public void sharedScopeInitializationRestoresBothLoadersWhenCreationFails() throws Exception {
+		var thread = Thread.currentThread();
+		var previous = thread.getContextClassLoader();
+		try (var loader = generation("FailedInitialization"); var cx = Context.enter()) {
+			thread.setContextClassLoader(loader);
+			cx.setApplicationClassLoader(loader);
+			try {
+				com.twinsoft.convertigo.engine.util.RhinoUtils.withEngineClassLoader(cx, () -> {
+					assertNotSame(loader, cx.getApplicationClassLoader());
+					assertNotSame(loader, thread.getContextClassLoader());
+					throw new IllegalArgumentException("expected initialization failure");
+				});
+				fail("The initialization must fail");
+			} catch (IllegalArgumentException expected) {
+				assertEquals("expected initialization failure", expected.getMessage());
+			}
+			assertSame(loader, cx.getApplicationClassLoader());
+			assertSame(loader, thread.getContextClassLoader());
+		} finally {
+			thread.setContextClassLoader(previous);
+		}
 	}
 }

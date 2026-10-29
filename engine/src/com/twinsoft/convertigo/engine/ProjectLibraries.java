@@ -83,7 +83,7 @@ public final class ProjectLibraries {
 	private static final Map<String, Classpath> classpaths = new ConcurrentHashMap<>();
 	private static final Map<String, Object> locks = new ConcurrentHashMap<>();
 	private static final List<Retired> retired = new CopyOnWriteArrayList<>();
-	private static final List<Holder> holders = new CopyOnWriteArrayList<>();
+	private static final CopyOnWriteArrayList<Holder> holders = new CopyOnWriteArrayList<>();
 	private static ScheduledExecutorService executor;
 	private static ScheduledFuture<?> sweeper;
 
@@ -172,7 +172,7 @@ public final class ProjectLibraries {
 	}
 
 	public static void addHolder(Holder holder) {
-		holders.add(holder);
+		holders.addIfAbsent(holder);
 	}
 
 	public static void removeHolder(Holder holder) {
@@ -353,6 +353,7 @@ public final class ProjectLibraries {
 	}
 
 	private static void retire(ProjectClassLoader generation) {
+		generation.retire();
 		retired.add(new Retired(generation));
 		ensureSweeper();
 	}

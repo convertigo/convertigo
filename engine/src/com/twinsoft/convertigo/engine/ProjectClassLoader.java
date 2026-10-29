@@ -71,6 +71,7 @@ public final class ProjectClassLoader extends URLClassLoader {
 	private final String fingerprint;
 	private final File snapshot;
 	private final String id;
+	private volatile boolean retired;
 
 	ProjectClassLoader(URL[] urls, ClassLoader engine, String project, String version, String fingerprint, File snapshot) {
 		this(urls, engine, project, version, fingerprint, snapshot, PROTECTED_PACKAGES);
@@ -91,6 +92,15 @@ public final class ProjectClassLoader extends URLClassLoader {
 	/** @return the identifier of this generation, unique in the JVM */
 	public String getId() {
 		return id;
+	}
+
+	/** Retired generations still serve their running requests, but must no longer enter engine caches. */
+	public boolean isRetired() {
+		return retired;
+	}
+
+	void retire() {
+		retired = true;
 	}
 
 	public String getProject() {

@@ -109,6 +109,7 @@ public class FlowRuntimeInvalidationTest {
 	private Engine previous;
 	private Path workspace;
 	private final Map<String, Project> loaded = new LinkedHashMap<>();
+	private final Map<String, ClassLoader> projectGenerations = new ConcurrentHashMap<>();
 	private final ClassLoader generation = new ClassLoader(getClass().getClassLoader()) { };
 	private File engineFile;
 	private Object reference, source;
@@ -166,6 +167,8 @@ public class FlowRuntimeInvalidationTest {
 		FlowRuntimeWarmup.stop();
 		EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_RUNTIME_WARMUP, PropertyName.JAVASCRIPT_RUNTIME_WARMUP.getDefaultValue());
 		FlowEngineBridge.clearCaches();
+		projectGenerations.clear();
+		com.twinsoft.convertigo.engine.ProjectLibraries.stop();
 		Engine.theApp = previous;
 		if (workspace != null) {
 			org.apache.commons.io.FileUtils.deleteDirectory(workspace.toFile());
@@ -187,7 +190,8 @@ public class FlowRuntimeInvalidationTest {
 			};
 			@Override public String getDirPath() { return directory.getAbsolutePath(); }
 			@Override public File getDirFile() { return directory; }
-			@Override public ClassLoader getProjectClassLoader() { return generation; }
+			@Override public ClassLoader getProjectClassLoader() { return projectGenerations.getOrDefault(name, generation); }
+			@Override public List<File> getLibrariesDirectories() { return List.of(new File(directory, "libs")); }
 			@Override public List<Reference> getReferenceList() { return list; }
 			@Override public FlowEngine getFlowEngine() { return flowEngine; }
 		};
@@ -642,5 +646,78 @@ public class FlowRuntimeInvalidationTest {
 		assertTrue(((Map<?, ?>) staticField("rootFingerprints")).containsKey(key));
 		FlowEngineBridge.invalidateProjectDataCaches(application.getDirPath());
 		assertFalse("The hashes go with the fingerprint of the root", ((Map<?, ?>) staticField("rootFingerprints")).containsKey(key));
+	}
+
+	/** A real immutable generation, with a Java library changed independently of project invalidation. */
+	private com.twinsoft.convertigo.engine.ProjectClassLoader replaceLibrary(Project project, String version) throws Exception {
+		var classes = Files.createDirectories(project.getDirFile().toPath().resolve("libs/classes"));
+		var source = project.getDirFile().toPath().resolve("Version.java");
+		Files.writeString(source, "package probe; public class Version { public static String value() { return \"" + version + "\"; } }");
+		assertEquals(0, javax.tools.ToolProvider.getSystemJavaCompiler().run(null, null, null,
+				"-d", classes.toString(), source.toString()));
+		var loader = (com.twinsoft.convertigo.engine.ProjectClassLoader)
+				com.twinsoft.convertigo.engine.ProjectLibraries.checkedClassLoader(project);
+		projectGenerations.put(project.getName(), loader);
+		return loader;
+	}
+
+	private void releaseRetiredLibraries() throws Exception {
+		var libraries = com.twinsoft.convertigo.engine.ProjectLibraries.class;
+		var grace = libraries.getDeclaredField("releaseGrace");
+		grace.setAccessible(true);
+		long previous = grace.getLong(null);
+		try {
+			grace.setLong(null, 0);
+			method(libraries, "sweep").invoke(null);
+		} finally {
+			grace.setLong(null, previous);
+		}
+	}
+
+	private java.lang.ref.WeakReference<ClassLoader> replaceCachedGeneration() throws Exception {
+		var application = project("ReloadedApplication");
+		var old = replaceLibrary(application, "one");
+		var active = runtime(application);
+		var reference = new java.lang.ref.WeakReference<ClassLoader>(old);
+		assertEquals("one", old.loadClass("probe.Version").getMethod("value").invoke(null));
+		var next = replaceLibrary(application, "two");
+		assertNotSame(old, next);
+		var fresh = runtime(application);
+		releaseRetiredLibraries();
+		assertFalse("An asynchronous classpath swap evicts the old runtime even without a project reload", kept(active));
+		assertTrue("The new generation stays cached", kept(fresh));
+		assertTrue("An in-flight caller can finish using its runtime", id(active) > 0);
+		assertEquals("one", old.loadClass("probe.Version").getMethod("value").invoke(null));
+		assertEquals("two", next.loadClass("probe.Version").getMethod("value").invoke(null));
+		return reference;
+	}
+
+	@Test
+	public void aReplacedJavaLibraryIsCollectedWhileTheNewRuntimeStaysCached() throws Exception {
+		var reference = replaceCachedGeneration();
+		for (int i = 0; i < 50 && reference.get() != null; i++) {
+			System.gc(); Thread.sleep(20);
+		}
+		assertNull("The runtime registry must not keep the retired loader", reference.get());
+	}
+
+	@Test
+	public void aPreparationFinishingAfterItsGenerationWasReleasedIsNotPublished() throws Exception {
+		var application = project("DelayedApplication");
+		var old = replaceLibrary(application, "one");
+		var held = hold();
+		var preparing = later(application);
+		awaitHeld(0);
+		try {
+			replaceLibrary(application, "two");
+			releaseRetiredLibraries();
+		} finally {
+			held.countDown();
+		}
+		var stale = preparing.get(20, TimeUnit.SECONDS);
+		assertFalse("The preparation can serve its waiting caller but cannot resurrect the retired key", kept(stale));
+		assertTrue(id(stale) > 0);
+		assertEquals("one", old.loadClass("probe.Version").getMethod("value").invoke(null));
+		assertTrue(kept(runtime(application)));
 	}
 }
