@@ -228,6 +228,23 @@ public class StandardYamlConverterTest {
 		}
 	}
 
+	@Test public void deleteCharacterIsWrittenAsAnEscape() throws Exception {
+		Document expected = project();
+		Element bean = (Element) expected.getDocumentElement().getFirstChild();
+		var values = List.of("a\u007fb", "a\u007fb\nc", "one\ntwo");
+		for (int i = 0; i < values.size(); i++) {
+			Element property = expected.createElement("delete" + i); property.setTextContent(values.get(i)); bean.appendChild(property);
+		}
+		File yaml = write(expected);
+		String text = Files.readString(yaml.toPath());
+		assertFalse(text.contains("\u007f"));
+		assertTrue(text.contains("\\x7f"));
+		same(expected, YamlConverter.readYaml(yaml));
+		// snakeyaml-engine writes DEL as is, which YAML does not allow: only the rewrite by Jackson is read back
+		rewrite(yaml.toPath().getParent(), true, false);
+		same(expected, YamlConverter.readYaml(yaml));
+	}
+
 	@Test public void scalarReferencesAndEmptyBeansAreUnambiguous() throws Exception {
 		File yaml = folder.newFile("references.yaml");
 		Path sources = yaml.toPath().getParent().resolve("_c8oProject"); Files.createDirectories(sources);

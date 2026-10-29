@@ -467,9 +467,10 @@ final class StandardYamlConverter {
 						scalar.getImplicit(), token, ScalarStyle.PLAIN));
 			}
 		}
-		// These separators only occur in double-quoted scalars: escape them for YAML 1.1 tools too.
+		// These characters only occur in double-quoted scalars: escape the separators for YAML 1.1 tools too,
+		// and DEL, which the emitter writes as is although YAML does not allow it in a stream.
 		String yaml = new Present(DUMP).emitToString(events.iterator())
-				.replace("\u2028", "\\u2028").replace("\u2029", "\\u2029");
+				.replace("\u2028", "\\u2028").replace("\u2029", "\\u2029").replace("\u007f", "\\x7f");
 		if (hasSequence(node)) yaml = indentXmlSequences(yaml);
 		if (!literals.isEmpty()) yaml = insertLiterals(yaml, literals);
 		return !lastLiteralEndsWithBreak(node) && yaml.endsWith("\n") ? yaml.substring(0, yaml.length() - 1) : yaml;
