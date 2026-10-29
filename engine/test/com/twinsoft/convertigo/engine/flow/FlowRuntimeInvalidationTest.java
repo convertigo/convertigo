@@ -562,4 +562,29 @@ public class FlowRuntimeInvalidationTest {
 		assertSame(runtime, runtime(application));
 		assertEquals(revision, FlowEngineBridge.metadataSourceRevision(application.getDirPath()));
 	}
+
+	@Test
+	public void savingAFlowForgetsTheSnapshotOfItsSourceFile() throws Exception {
+		// the files of a project are under its directory file, as the source files of its Flows
+		var directory = Files.createDirectories(workspace.resolve("Saved")).toFile();
+		var project = new Project() {
+			@Override public File getDirFile() { return directory; }
+		};
+		project.setName("Saved");
+		var flow = flow(project);
+		Files.createDirectories(flow.getFlowSourceFile().getParentFile().toPath());
+		Files.writeString(flow.getFlowSourceFile().toPath(), "official");
+		assertEquals("Read through the snapshots of a server", "official", flow.getFlowSource());
+		flow.setFlowSource("saved");
+		flow.saveFlowSourceFile();
+		assertEquals("saved", flow(project).getFlowSource());
+	}
+
+	private static Flow flow(Project project) throws Exception {
+		var flow = new Flow() {
+			@Override public Project getProject() { return project; }
+		};
+		flow.setName("Proof");
+		return flow;
+	}
 }

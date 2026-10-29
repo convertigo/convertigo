@@ -850,7 +850,8 @@ public class Flow extends Sequence {
 			flowSource = source;
 			flowSourceDraft = null;
 			flowSourceFileLastModified = file.lastModified();
-			FlowEngineBridge.invalidateProjectDataCaches(getProject().getDirPath());
+			// the directory its source file is resolved from: the snapshot of the file is forgotten with those of its project
+			FlowEngineBridge.invalidateProjectDataCaches(getProject().getDirFile().getPath());
 			serverSourceFingerprint = null;
 			clearFlowVirtualChildrenCache();
 			var legacyFile = new File(file.getParentFile(), getName() + ".flow.yaml");

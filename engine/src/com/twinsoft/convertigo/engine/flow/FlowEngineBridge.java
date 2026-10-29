@@ -311,7 +311,10 @@ public class FlowEngineBridge {
 		clearMethodResponseCache();
 	}
 
-	/** The data caches of the project of a directory and of the projects using it, as {@link #projectUnloaded} does. */
+	/**
+	 * The data caches of the project of a directory and of the projects using it, as {@link #projectUnloaded} does: the
+	 * directory its files are read from (Project.getDirFile), whose snapshots are forgotten.
+	 */
 	public static void invalidateProjectDataCaches(String directory) {
 		invalidateProjectDataCaches(directory, null);
 	}
@@ -323,7 +326,7 @@ public class FlowEngineBridge {
 	 * from its own files. The other projects keep their prepared runtimes.
 	 */
 	public static void projectUnloaded(Project project) {
-		invalidateProjectDataCaches(project.getDirPath(), project.getName());
+		invalidateProjectDataCaches(project.getDirFile().getPath(), project.getName());
 	}
 
 	/**
@@ -333,7 +336,7 @@ public class FlowEngineBridge {
 	 */
 	public static void projectLoaded(Project project) {
 		if (FlowRuntimeWarmup.started()) {
-			invalidateProjectDataCaches(project.getDirPath(), project.getName());
+			invalidateProjectDataCaches(project.getDirFile().getPath(), project.getName());
 		}
 	}
 
