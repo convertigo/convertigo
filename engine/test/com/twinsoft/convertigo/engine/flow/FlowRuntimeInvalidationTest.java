@@ -615,7 +615,8 @@ public class FlowRuntimeInvalidationTest {
 		constructor.setAccessible(true);
 		for (var entry : fingerprints.entrySet()) {
 			var value = entry.getValue();
-			entry.setValue(constructor.newInstance(field(value, "stamp"), field(value, "value"), 0L, field(value, "files")));
+			entry.setValue(constructor.newInstance(field(value, "stamp"), field(value, "value"), 0L, field(value, "files"),
+					field(value, "newest")));
 		}
 	}
 

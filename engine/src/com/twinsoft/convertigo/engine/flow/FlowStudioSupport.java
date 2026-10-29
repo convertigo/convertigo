@@ -758,6 +758,7 @@ public class FlowStudioSupport {
 		}
 		if ("flow.cache.clear".equals(action.optString("id", ""))) {
 			FlowEngineBridge.clearCaches();
+			FlowEngineBridge.clearPersistedResponses();
 		}
 		var request = contextRequest(root, targetDbo).put("action", action);
 		var response = root instanceof Flow flow
@@ -965,7 +966,8 @@ public class FlowStudioSupport {
 			}
 		}
 		var categories = computePaletteCategories(targetDbo);
-		if (!cacheKey.isBlank()) {
+		// a probe of the disk cache answered without the palette (FlowEngineBridge.probing): nothing to keep
+		if (!cacheKey.isBlank() && !FlowEngineBridge.probeAnswered()) {
 			paletteCategoriesCache.put(cacheKey, categories.toString());
 		}
 		return categories;

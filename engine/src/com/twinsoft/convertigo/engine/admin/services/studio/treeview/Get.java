@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.flow.FlowAuthoringWarmup;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 
 @ServiceDefinition(
@@ -97,6 +98,12 @@ public class Get extends JSonService {
 		var children = getChildren(id, flow);
 		response.put("children", groupedTags ? com.twinsoft.convertigo.engine.admin.services.studio.tags.TreeProjection.apply(id, children) : children);
 		response.put("id", id);
+		// the Studio opens: the authoring responses it asks first are prepared in the background, those of an opened project first
+		if (id == null) {
+			FlowAuthoringWarmup.studioOpened();
+		} else if (flow && isProjectQName(id)) {
+			FlowAuthoringWarmup.projectOpened(id);
+		}
 		} finally {
 			FlowStudioSupport.finishPerformanceProfile(profileOwner, response);
 		}

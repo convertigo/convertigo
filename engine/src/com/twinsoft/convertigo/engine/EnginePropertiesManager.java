@@ -233,6 +233,52 @@ public class EnginePropertiesManager {
 		}
 	}
 
+	/** the disk cache of the authoring responses of the runtime providers */
+	private enum AuthoringCache implements ComboEnum {
+		auto ("auto", "auto: in a running engine"),
+		on ("on", "on: always"),
+		off ("off", "off: never, computed again after each start as before");
+
+		final String display;
+		final String value;
+
+		AuthoringCache(String value, String display) {
+			this.display = display;
+			this.value = value;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+
+	/** the preparation in the background of the authoring responses of the runtime providers */
+	private enum AuthoringWarmup implements ComboEnum {
+		auto ("auto", "auto: on a server with the web Studio enabled, not in the Studio"),
+		on ("on", "on: also in the Studio"),
+		off ("off", "off: never, computed by the first calls of the Studio as before");
+
+		final String display;
+		final String value;
+
+		AuthoringWarmup(String value, String display) {
+			this.display = display;
+			this.value = value;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+
 	private enum XsltEngine implements ComboEnum {
 		xalan_xslt ("xalan/xslt", "Java Xalan"),
 		xalan_xsltc ("xalan/xsltc", "Java Xalan (XSLTC)");
@@ -602,6 +648,10 @@ public class EnginePropertiesManager {
 		JAVASCRIPT_SHARED_SCOPE ("javascript.shared_scope", "native", "native: the native sequences (Sequence.nativeExecution) and their calls run their JavaScript in a light scope over one sealed scope of the standard objects, instead of building the standard objects again for each request; all: every requestable does (its scripts then cannot change the standard objects); false: none", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = BytecodeCache.class)
 		JAVASCRIPT_BYTECODE_CACHE ("javascript.bytecode_cache", "auto", "Keep on disk the classes generated for the JavaScript code of the files of projects, in their _private folder (moved to the local working directory when configured), to load them at the next start instead of compiling them again. auto: in a running engine, turned off for the run when loading does not save at least a quarter of the compilation; on: always; off: never", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = AuthoringCache.class)
+		JAVASCRIPT_AUTHORING_CACHE ("javascript.authoring_cache", "auto", "Keep on disk, in the local working directory when configured (else in the workspace), the authoring responses of the runtime providers that the Studio asks first (project trees, palettes, catalogs), keyed by the version of the engine, the provider, the request and the state of the files of the project and of the projects it uses, so that they are not computed again after a restart. Bounded to 256 MB, the entries read least recently removed first; a response showing the value of a secret global symbol is never written. auto: in a running engine; on: always; off: never", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = AuthoringWarmup.class)
+		JAVASCRIPT_AUTHORING_WARMUP ("javascript.authoring_warmup", "auto", "Prepare in the background, from the first call of the web Studio after a start, the authoring responses of the runtime providers missing from the disk cache (javascript.authoring_cache): the tree of each loaded project, then the palettes of the projects opened in the Studio. One thread of low priority, waiting for the Studio calls in progress, stopped with the engine. auto: on a server with the web Studio enabled, not in the Studio; on: also in the Studio; off: never", PropertyCategory.Main),
 
 		/** ACCOUNTS */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)

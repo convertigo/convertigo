@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.engine.admin.services.Service;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.flow.FlowAuthoringWarmup;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 /**
@@ -158,7 +159,18 @@ public class AdminServlet extends HttpServlet {
 						Engine.logAdmin.warn("Cannot retrieve properties for XSRF, Engine probably stopped.");
 					}
 				}
-				service.run(serviceName, request, response);
+				// the background preparations of the authoring responses wait for the calls of the web Studio
+				var studioCall = serviceName.startsWith("studio.");
+				if (studioCall) {
+					FlowAuthoringWarmup.studioCall(true);
+				}
+				try {
+					service.run(serviceName, request, response);
+				} finally {
+					if (studioCall) {
+						FlowAuthoringWarmup.studioCall(false);
+					}
+				}
 			}
 			catch (ClassNotFoundException e) {
 				String message = "Unknown " + isAdmin + "service '" + serviceName + "'";

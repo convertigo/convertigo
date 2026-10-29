@@ -362,6 +362,7 @@ public class FlowEngineBridge {
 	public static void projectLoaded(Project project) {
 		if (FlowRuntimeWarmup.started()) {
 			invalidateProjectDataCaches(project.getDirFile().getPath(), project.getName());
+			FlowAuthoringWarmup.projectLoaded(project.getName());
 		}
 	}
 
@@ -391,7 +392,7 @@ public class FlowEngineBridge {
 			// the snapshots of the other projects are of their own files
 			serverSources.clear(new File(directory));
 		}
-		forgetRootFingerprints("engine:" + root, "project:" + root);
+		forgetRootFingerprints("engine:" + root, "project:" + root, "authoring:" + root);
 		clearMethodResponseCache(roots);
 	}
 
@@ -1028,6 +1029,7 @@ public class FlowEngineBridge {
 			var request = baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null)
 					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
 			clearCaches();
+			clearPersistedResponses();
 			return invoke(engineQName, "cacheClear", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build FlowEngine cache clear request.", e);
@@ -1856,6 +1858,16 @@ public class FlowEngineBridge {
 		var mutationRegistered = false;
 		var optimisticReadStamp = -1L;
 		FrontendAuthoringFlight frontendAuthoringFlight = null;
+		// the responses kept on disk across restarts (see persistentResponseKey)
+		var diskCache = useThreadRuntime && isPersistedMethod(method, request) ? FlowAuthoringDiskCache.get() : null;
+		String diskKey = null;
+		// keyed for the current read stamp, and read from disk with that key
+		var diskKeyed = false;
+		var diskRead = false;
+		var foreground = background.get() == null;
+		if (foreground) {
+			foregroundCalls.incrementAndGet();
+		}
 
 		try {
 			if (frontendAuthoringMutation) {
@@ -1868,7 +1880,12 @@ public class FlowEngineBridge {
 					engineFile = resolveEngineFile(engineRef);
 					engineSource = cachedEngineSource(engineFile);
 					var fingerprintStarted = System.nanoTime();
-					methodCacheKey = methodResponseCacheKey(engineRef, engineFile, engineSource, method, request);
+					if (diskCache != null) {
+						diskKey = persistentResponseKey(engineRef.qname, engineFile, method, request);
+						diskKeyed = true;
+						FlowStudioSupport.performanceProfileMark("bridge." + method + ".diskKey");
+					}
+					methodCacheKey = responseCacheKey(engineRef, engineFile, engineSource, method, request, diskKey);
 					methodFingerprintNanos = System.nanoTime() - fingerprintStarted;
 					var cacheLookupStarted = System.nanoTime();
 					var cachedResponse = cachedMethodResponse(methodCacheKey);
@@ -1878,10 +1895,25 @@ public class FlowEngineBridge {
 						methodCacheHit = true;
 						return new JSONObject(cachedResponse.response());
 					}
+					if (diskCache != null && probed(method, diskCache, diskKey)) {
+						return probeAnswer();
+					}
 					frontendAuthoringFlight = acquireFrontendAuthoringFlight(methodCacheKey);
 					if (frontendAuthoringFlight != null && !frontendAuthoringFlight.leader()) {
 						FlowStudioSupport.performanceProfileMark("bridge." + method + ".singleFlightFollower");
 						return frontendAuthoringFlight.await();
+					}
+					// before the authoring lock, which a long action of another project may hold
+					var persisted = persistedResponse(diskCache, diskKey, method);
+					diskRead = true;
+					FlowStudioSupport.performanceProfileMark("bridge." + method + ".diskCacheBeforeLock");
+					if (persisted != null && frontendAuthoringMutationGate.canServe(optimisticReadStamp)) {
+						methodCacheHit = true;
+						storeMethodResponse(methodCacheKey, engineRef, method, request, persisted);
+						if (frontendAuthoringFlight != null) {
+							frontendAuthoringFlight.complete(persisted);
+						}
+						return persisted;
 					}
 				}
 			}
@@ -1903,6 +1935,8 @@ public class FlowEngineBridge {
 					if (currentReadStamp >= 0) {
 						optimisticReadStamp = currentReadStamp;
 						methodCacheKey = "";
+						diskKeyed = false;
+						diskRead = false;
 					}
 				}
 			}
@@ -1918,7 +1952,11 @@ public class FlowEngineBridge {
 				if (isCacheableMethod(method, request)) {
 					var fingerprintStarted = System.nanoTime();
 					if (methodCacheKey.isEmpty()) {
-						methodCacheKey = methodResponseCacheKey(engineRef, engineFile, engineSource, method, request);
+						if (diskCache != null && !diskKeyed) {
+							diskKey = persistentResponseKey(engineRef.qname, engineFile, method, request);
+							diskKeyed = true;
+						}
+						methodCacheKey = responseCacheKey(engineRef, engineFile, engineSource, method, request, diskKey);
 						methodFingerprintNanos += System.nanoTime() - fingerprintStarted;
 					}
 					var cacheLookupStarted = System.nanoTime();
@@ -1932,10 +1970,36 @@ public class FlowEngineBridge {
 						}
 						return new JSONObject(cachedResponse.response());
 					}
+					if (diskCache != null && !diskRead) {
+						diskRead = true;
+						if (frontendAuthoringFlight == null && probed(method, diskCache, diskKey)) {
+							return probeAnswer();
+						}
+						var persisted = persistedResponse(diskCache, diskKey, method);
+						FlowStudioSupport.performanceProfileMark("bridge." + method + ".diskCache");
+						if (persisted != null && (!frontendAuthoring || frontendAuthoringMutationGate.canServe(optimisticReadStamp))) {
+							methodCacheHit = true;
+							storeMethodResponse(methodCacheKey, engineRef, method, request, persisted);
+							if (frontendAuthoringFlight != null && frontendAuthoringFlight.leader()) {
+								frontendAuthoringFlight.complete(persisted);
+							}
+							return persisted;
+						}
+						// the same response asked meanwhile (the Studio and a background preparation) is computed once; a call
+						// nested in another one of this thread never waits for it
+						if (!frontendAuthoring && frontendAuthoringFlight == null && currentRuntime.get() == null) {
+							frontendAuthoringFlight = acquireFrontendAuthoringFlight(methodCacheKey);
+							if (frontendAuthoringFlight != null && !frontendAuthoringFlight.leader()) {
+								FlowStudioSupport.performanceProfileMark("bridge." + method + ".singleFlightFollower");
+								return frontendAuthoringFlight.await();
+							}
+						}
+					}
 				} else if (invalidatesMethodResponseCache(method, request)) {
 					clearMethodResponseCache();
 				}
 			}
+			var computeStarted = System.nanoTime();
 			if (cx == null) {
 				cx = org.mozilla.javascript.Context.enter();
 				entered = true;
@@ -1961,13 +2025,17 @@ public class FlowEngineBridge {
 			FlowStudioSupport.performanceProfileMark("bridge." + method + ".invoke");
 			if (isCacheableMethod(method, request) && methodCacheKey.isEmpty()) {
 				var fingerprintStarted = System.nanoTime();
-				methodCacheKey = methodResponseCacheKey(engineRef, engineFile, engineSource, method, request);
+				methodCacheKey = responseCacheKey(engineRef, engineFile, engineSource, method, request, diskKey);
 				methodFingerprintNanos += System.nanoTime() - fingerprintStarted;
 			}
 			var stableAuthoringRead = !frontendAuthoring || frontendAuthoringMutation
 					|| frontendAuthoringMutationGate.canServe(optimisticReadStamp);
 			if (stableAuthoringRead && response instanceof JSONObject legacyResponse) {
 				storeMethodResponse(methodCacheKey, engineRef, method, request, legacyResponse);
+				if (diskCache != null && diskKey != null && isCacheableResponse(method, request, legacyResponse)) {
+					var text = serializedResponse(legacyResponse);
+					diskCache.write(diskKey, () -> persistedParts(text), System.nanoTime() - computeStarted);
+				}
 			} else {
 				FlowStudioSupport.performanceProfileMark("bridge." + method + ".staleSnapshotSkipped");
 			}
@@ -2005,6 +2073,10 @@ public class FlowEngineBridge {
 				}
 				if (mutationRegistered) {
 					frontendAuthoringMutationGate.endMutation();
+				}
+				if (foreground) {
+					lastForegroundCall = System.nanoTime();
+					foregroundCalls.decrementAndGet();
 				}
 				recordInvocation(engineRef, method, System.nanoTime() - started, runtimeLookup, failed, methodCacheHit,
 						lockAcquired, lockContended, lockWaitNanos, lockHeldNanos,
@@ -2483,6 +2555,19 @@ public class FlowEngineBridge {
 		}
 	}
 
+	/**
+	 * @return the key of a response in memory: from its key on disk when it has one, which walks every file the
+	 *         dependency fingerprint walks and more (one walk instead of two), else from the dependency fingerprint
+	 */
+	private static String responseCacheKey(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
+			JSONObject request, String diskKey) {
+		if (diskKey == null) {
+			return methodResponseCacheKey(engineRef, engineFile, engineSource, method, request);
+		}
+		return engineRef.qname + "|" + engineSource.sourceName() + "|disk:" + diskKey + "|" + cacheGeneration.get() + "|"
+				+ dataRevision(projectRoot(request.optString("projectDir", ""))) + "|" + method;
+	}
+
 	private static String methodResponseCacheKey(EngineRef engineRef, File engineFile, CachedEngineSource engineSource, String method,
 			JSONObject request) {
 		return engineRef.qname + "|" + engineSource.sourceName() + "|"
@@ -2500,14 +2585,18 @@ public class FlowEngineBridge {
 	/** Its monitor orders the publications and the removals, never held while a root is walked. */
 	private static final Map<String, RootFingerprint> rootFingerprints = new ConcurrentHashMap<>();
 	/** The walks in progress, by root: removed once published or failed, so a failure is never kept. */
-	private static final Map<String, CompletableFuture<String>> rootFingerprintWalks = new ConcurrentHashMap<>();
+	private static final Map<String, CompletableFuture<RootFingerprint>> rootFingerprintWalks = new ConcurrentHashMap<>();
 	/** Advanced by each removal of fingerprints, under the monitor of the map: a walk started before it is not kept. */
 	private static volatile long rootFingerprintRemovals;
 	/** The entries of a source root ({@link FlowSourceLayout#root}) the runtimes read, relative to it. */
 	private static final String[] FLOW_ROOT_ENTRIES = { "Engine.js", "engine.yaml", "modules", "blocks", "types", "lib", "resources", "schemas" };
 
-	/** @param files the state of its files, the hashes of those read: kept with this entry only */
-	private record RootFingerprint(String stamp, String value, long computedAt, Map<String, FlowSourceFingerprint.FileState> files) {
+	/**
+	 * @param files the state of its files, the hashes of those read: kept with this entry only
+	 * @param newest the most recent date of its files, Long.MIN_VALUE for none
+	 */
+	record RootFingerprint(String stamp, String value, long computedAt, Map<String, FlowSourceFingerprint.FileState> files,
+			long newest) {
 	}
 
 	/**
@@ -2516,6 +2605,12 @@ public class FlowEngineBridge {
 	 * @param base the folder walk names its entries from
 	 */
 	static String cachedRootFingerprint(String kind, File root, File flowRoot, File base,
+			java.util.function.Consumer<FlowSourceFingerprint> walk) {
+		return cachedRoot(kind, root, flowRoot, base, walk).value();
+	}
+
+	/** {@link #cachedRootFingerprint}, with the date of the walk and that of its most recent file. */
+	static RootFingerprint cachedRoot(String kind, File root, File flowRoot, File base,
 			java.util.function.Consumer<FlowSourceFingerprint> walk) {
 		var key = kind + ":" + canonicalPath(root);
 		var stamp = new StringBuilder();
@@ -2534,11 +2629,11 @@ public class FlowEngineBridge {
 			var cached = rootFingerprints.get(key);
 			var same = cached != null && cached.stamp().equals(stamp.toString());
 			if (same && System.currentTimeMillis() - cached.computedAt() < ROOT_FINGERPRINT_TTL_MS) {
-				return cached.value();
+				return cached;
 			}
 			var walking = rootFingerprintWalks.get(key);
 			if (walking == null) {
-				var created = new CompletableFuture<String>();
+				var created = new CompletableFuture<RootFingerprint>();
 				walking = rootFingerprintWalks.putIfAbsent(key, created);
 				if (walking == null) {
 					return walkRoot(key, created, stamp.toString(), cached, base, walk);
@@ -2546,7 +2641,7 @@ public class FlowEngineBridge {
 			}
 			if (same) {
 				// expired only: its value of a few seconds ago, while another caller walks it again
-				return cached.value();
+				return cached;
 			}
 			try {
 				var value = walking.get();
@@ -2564,17 +2659,16 @@ public class FlowEngineBridge {
 		}
 	}
 
-	private static String walkRoot(String key, CompletableFuture<String> walking, String stamp, RootFingerprint cached, File base,
-			java.util.function.Consumer<FlowSourceFingerprint> walk) {
+	private static RootFingerprint walkRoot(String key, CompletableFuture<RootFingerprint> walking, String stamp,
+			RootFingerprint cached, File base, java.util.function.Consumer<FlowSourceFingerprint> walk) {
 		var started = rootFingerprintRemovals;
 		var now = System.currentTimeMillis();
-		String value;
-		FlowSourceFingerprint fingerprint;
+		RootFingerprint value;
 		try {
 			// a file rewritten with the same content keeps showing as the walk before showed it
-			fingerprint = new FlowSourceFingerprint(base, cached == null ? null : cached.files());
+			var fingerprint = new FlowSourceFingerprint(base, cached == null ? null : cached.files());
 			walk.accept(fingerprint);
-			value = fingerprint.text();
+			value = new RootFingerprint(stamp, fingerprint.text(), now, fingerprint.files(), fingerprint.newest());
 		} catch (Throwable failure) {
 			rootFingerprintWalks.remove(key, walking);
 			// the interruption of this caller is not a failure of the walk: a caller waiting for it walks again
@@ -2585,7 +2679,7 @@ public class FlowEngineBridge {
 		synchronized (rootFingerprints) {
 			// forgotten since the walk started: it may be older than the change
 			if (rootFingerprintRemovals == started) {
-				rootFingerprints.put(key, new RootFingerprint(stamp, value, now, fingerprint.files()));
+				rootFingerprints.put(key, value);
 			}
 		}
 		rootFingerprintWalks.remove(key, walking);
@@ -2606,6 +2700,453 @@ public class FlowEngineBridge {
 				}
 			}
 		}
+	}
+
+	/** Changed when the persistent key no longer tells everything a response depends on: every entry is computed again. */
+	private static final String PERSISTENT_KEY_FORMAT = "authoring-response-1";
+	/**
+	 * A file modified less than this before the walk that saw it could still change without its date changing (the
+	 * resolution of the dates of some file systems): the responses of such a state are not kept on disk, as git does
+	 * not trust such an entry of its index.
+	 */
+	static final long RECENT_FILE_MS = 3000;
+	/** The projects a frontend builder of a project resolves by their name, besides its references. */
+	private static final String[] FRONTEND_BUILDER_PROJECTS = { "lib_flow_frontbuilder_svelte" };
+	/** The calls of the background preparations, which give way to the others. */
+	private static final ThreadLocal<Boolean> background = new ThreadLocal<>();
+	/** The calls in progress of other threads than the background preparations, and when the last one ended. */
+	private static final AtomicInteger foregroundCalls = new AtomicInteger();
+	private static volatile long lastForegroundCall = System.nanoTime();
+	/** The method whose calls only tell, in a probe, whether their response is on disk. */
+	private static final ThreadLocal<String> probedMethod = new ThreadLocal<>();
+	private static final ThreadLocal<Boolean> probeAnswered = new ThreadLocal<>();
+	private static volatile String engineStamp;
+
+	/** Removes the responses kept on disk, as asked by the cache clear action of the Studio: they are computed again. */
+	public static void clearPersistedResponses() {
+		var diskCache = FlowAuthoringDiskCache.get();
+		if (diskCache != null) {
+			diskCache.clear();
+		}
+	}
+
+	/** Runs an action of a background preparation: its calls do not count as calls of the Studio or of requests. */
+	static <T> T inBackground(java.util.concurrent.Callable<T> action) throws Exception {
+		var previous = background.get();
+		background.set(Boolean.TRUE);
+		try {
+			return action.call();
+		} finally {
+			if (previous == null) background.remove(); else background.set(previous);
+		}
+	}
+
+	/** @return the calls of other threads than the background preparations in progress */
+	static int foregroundCalls() {
+		return foregroundCalls.get();
+	}
+
+	/** @return the time ({@link System#nanoTime}) the last call of another thread than the background preparations ended */
+	static long lastForegroundCall() {
+		return lastForegroundCall;
+	}
+
+	/**
+	 * Runs an action whose calls of a cacheable method answer {"ok": true, "persisted": true} without computing nor
+	 * reading their response when it is on disk ({@link #probeAnswered}); the other calls run as usual.
+	 */
+	static <T> T probing(String method, java.util.concurrent.Callable<T> action) throws Exception {
+		var previous = probedMethod.get();
+		probedMethod.set(method);
+		probeAnswered.remove();
+		try {
+			return action.call();
+		} finally {
+			if (previous == null) probedMethod.remove(); else probedMethod.set(previous);
+		}
+	}
+
+	/** @return whether a call of the probe of this thread answered that its response is on disk */
+	public static boolean probeAnswered() {
+		return Boolean.TRUE.equals(probeAnswered.get());
+	}
+
+	private static boolean probed(String method, FlowAuthoringDiskCache diskCache, String diskKey) {
+		if (diskKey == null || !method.equals(probedMethod.get()) || !diskCache.contains(diskKey)) {
+			return false;
+		}
+		probeAnswered.set(Boolean.TRUE);
+		return true;
+	}
+
+	private static JSONObject probeAnswer() throws JSONException {
+		return new JSONObject().put("ok", true).put("persisted", true);
+	}
+
+	/** The part of an entry on disk holding the response. */
+	private static final String RESPONSE_PART = "response";
+	/**
+	 * The part of an entry on disk holding the shared definitions its response references: the provider publishes the
+	 * definitions of the nodes of a tree once in the server map (FlowVirtualObject.resolveSharedDefinitions) and the
+	 * nodes only carry their reference, a hash of their content.
+	 */
+	private static final String DEFINITIONS_PART = "virtualDefinitions";
+	private static final String SHARED_DEFINITIONS_KEY = "flow.virtualDefinitions";
+	private static final Pattern DEFINITION_REF = Pattern.compile("vd-[0-9a-f]{32}");
+	/** The icon files a response shows by their path (rendered by the provider in the workspace), escaped or not. */
+	private static final Pattern ICON_FILE = Pattern.compile("iconFile(?:16|32)?\\\\*\"\\s*:\\s*\\\\*\"(/[^\"\\\\]+)");
+
+	/**
+	 * @return the response of a key read from disk, null when it is not there; the shared definitions it references
+	 *         published first, as its computation published them
+	 */
+	static JSONObject persistedResponse(FlowAuthoringDiskCache diskCache, String diskKey, String method) {
+		if (diskCache == null || diskKey == null) {
+			return null;
+		}
+		var parts = diskCache.read(diskKey);
+		var text = parts == null ? null : parts.get(RESPONSE_PART);
+		if (text == null) {
+			return null;
+		}
+		try {
+			var definitions = parts.get(DEFINITIONS_PART);
+			if (!iconFilesExist(text) || definitions != null && !iconFilesExist(definitions)) {
+				// rendered when it was computed, removed since: computed again, which renders them
+				return null;
+			}
+			var response = new EngineJSONObject(text);
+			if (definitions != null && !definitions.isEmpty()) {
+				var registry = sharedDefinitions(true);
+				if (registry == null) {
+					return null;
+				}
+				var entries = new JSONObject(definitions);
+				for (var keys = entries.keys(); keys.hasNext();) {
+					var ref = String.valueOf(keys.next());
+					registry.putIfAbsent(ref, entries.getString(ref));
+				}
+			}
+			return response;
+		} catch (JSONException e) {
+			// signed but not JSON: computed again and replaced
+			Engine.logEngine.debug("(FlowEngineBridge) Unreadable " + method + " response on disk, computed again.", e);
+			return null;
+		}
+	}
+
+	/** @return whether the icon files a response shows by their path exist */
+	static boolean iconFilesExist(String text) {
+		var seen = new HashSet<String>();
+		for (var matcher = ICON_FILE.matcher(text); matcher.find() && seen.size() < 1024;) {
+			var path = matcher.group(1);
+			if (seen.add(path) && !new File(path).isFile()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * @return the parts of the entry on disk of a response: its text and the shared definitions it references; null when
+	 *         one of them is no longer published (the response could not be shown as computed)
+	 */
+	static Map<String, String> persistedParts(String text) {
+		var parts = new LinkedHashMap<String, String>();
+		parts.put(RESPONSE_PART, text);
+		var matcher = DEFINITION_REF.matcher(text);
+		if (!matcher.find()) {
+			return parts;
+		}
+		var registry = sharedDefinitions(false);
+		if (registry == null) {
+			return null;
+		}
+		var definitions = new JSONObject();
+		try {
+			do {
+				var ref = matcher.group();
+				if (!definitions.has(ref)) {
+					if (!(registry.get(ref) instanceof CharSequence entry)) {
+						return null;
+					}
+					definitions.put(ref, entry.toString());
+				}
+			} while (matcher.find());
+		} catch (JSONException e) {
+			return null;
+		}
+		parts.put(DEFINITIONS_PART, definitions.toString());
+		return parts;
+	}
+
+	/** @return the shared definitions published in the server map, created when asked, null without engine */
+	@SuppressWarnings("unchecked")
+	private static Map<Object, Object> sharedDefinitions(boolean create) {
+		var app = Engine.theApp;
+		var shared = app == null ? null : app.getShareServerMap();
+		if (shared == null) {
+			return null;
+		}
+		// the monitor the provider creates it under (sharedServerJavaMap)
+		synchronized (shared) {
+			var registry = shared.get(SHARED_DEFINITIONS_KEY);
+			if (registry == null && create) {
+				registry = new ConcurrentHashMap<Object, Object>();
+				shared.set(SHARED_DEFINITIONS_KEY, registry);
+			}
+			return registry instanceof Map<?, ?> map ? (Map<Object, Object>) map : null;
+		}
+	}
+
+	/**
+	 * The key of the response of a cacheable call on disk ({@link FlowAuthoringDiskCache}), valid across restarts: the
+	 * format of the key, the version and the code of the engine, the settings the providers read, the provider, the
+	 * method, its request (the tag revision of this run left out), the files it names, and the state of the files of
+	 * the provider, of the project of the request and of the projects it uses: those it references, directly or not,
+	 * and those its frontend builder resolves by their name. Each of them by a walk of its descriptor, of its _c8oProject folder, of
+	 * its source root and of its libs folder, the installed packages shown by their lock file (see
+	 * {@link FlowSourceFingerprint}).
+	 *
+	 * @return null when the response is not kept on disk: a request carrying working copies (drafts), or files modified
+	 *         too recently ({@link #RECENT_FILE_MS}) for their dates to tell their next change
+	 */
+	static String persistentResponseKey(String engineQName, File engineFile, String method, JSONObject request) {
+		try {
+			if (hasWorkingCopies(request)) {
+				return null;
+			}
+			var key = new StringBuilder(64 * 1024).append(PERSISTENT_KEY_FORMAT).append('\n').append(engineStamp()).append('\n')
+					.append(environmentStamp()).append('\n').append(engineQName).append('\n').append(method).append('\n');
+			for (var root : persistentDependencyRoots(engineFile, request)) {
+				if (!new File(root, "c8oProject.yaml").isFile()) {
+					key.append("missing:").append(canonicalPath(root)).append('\n');
+					continue;
+				}
+				var walked = cachedRoot("authoring", root, new File(root, ENGINE_BASE_PATH), root, FlowEngineBridge::authoringWalk);
+				if (walked.newest() != Long.MIN_VALUE && walked.computedAt() - walked.newest() < RECENT_FILE_MS) {
+					return null;
+				}
+				key.append(walked.value());
+			}
+			appendRequestFileFingerprint(key, "sourceFile", request.optString("sourceFile", ""));
+			appendRequestFileFingerprint(key, "sourcePath", request.optString("sourcePath", ""));
+			key.append(canonicalJson(persistentRequest(request)));
+			return sha256Hex(key.toString());
+		} catch (Exception e) {
+			Engine.logEngine.debug("(FlowEngineBridge) No persistent key for a " + method + " request.", e);
+			return null;
+		}
+	}
+
+	/** The files of a project an authoring response may depend on: its descriptor, its beans, its source root, its Java libraries. */
+	private static void authoringWalk(FlowSourceFingerprint walk) {
+		walk.summarizing("node_modules", ".package-lock.json").header("authoring").entry("c8oProject.yaml").entry("_c8oProject")
+				.entry(FlowSourceLayout.current().root()).entry("libs");
+	}
+
+	/** @return whether a request carries working copies: its response is not that of the files */
+	static boolean hasWorkingCopies(JSONObject request) {
+		if (request == null) {
+			return false;
+		}
+		for (var name : List.of("sourceDrafts", "frontendSourceDrafts", "drafts", "sourceRemovals")) {
+			var value = request.opt(name);
+			if (value == null || value == JSONObject.NULL || value instanceof JSONObject object && object.length() == 0
+					|| value instanceof JSONArray array && array.length() == 0) {
+				continue;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/** @return the request as its persistent key shows it: without what only this run tells */
+	static JSONObject persistentRequest(JSONObject request) throws JSONException {
+		var copy = new JSONObject(request.toString());
+		copy.remove("__flowBridgeDescribeTreeSnapshot");
+		var tags = copy.optJSONObject("tagContext");
+		if (tags != null && tags.has("revision")) {
+			// fingerprint:generation, the generation counting the changes of this run: the fingerprint tells the content
+			var revision = tags.optString("revision", "");
+			var colon = revision.lastIndexOf(':');
+			tags.put("revision", colon < 0 ? revision : revision.substring(0, colon));
+		}
+		return copy;
+	}
+
+	/** @return the JSON text of a value with the keys of its objects sorted: the same for the same content */
+	static String canonicalJson(Object value) throws JSONException {
+		var out = new StringBuilder();
+		canonicalJson(value, out);
+		return out.toString();
+	}
+
+	private static void canonicalJson(Object value, StringBuilder out) throws JSONException {
+		if (value instanceof JSONObject object) {
+			var keys = new ArrayList<String>();
+			for (var iterator = object.keys(); iterator.hasNext();) {
+				keys.add(String.valueOf(iterator.next()));
+			}
+			java.util.Collections.sort(keys);
+			out.append('{');
+			for (var i = 0; i < keys.size(); i++) {
+				if (i > 0) out.append(',');
+				out.append(JSONObject.quote(keys.get(i))).append(':');
+				canonicalJson(object.opt(keys.get(i)), out);
+			}
+			out.append('}');
+		} else if (value instanceof JSONArray array) {
+			out.append('[');
+			for (var i = 0; i < array.length(); i++) {
+				if (i > 0) out.append(',');
+				canonicalJson(array.opt(i), out);
+			}
+			out.append(']');
+		} else if (value == null || value == JSONObject.NULL) {
+			out.append("null");
+		} else if (value instanceof String text) {
+			out.append(JSONObject.quote(text));
+		} else {
+			out.append(value);
+		}
+	}
+
+	/**
+	 * @return the projects a response of a request may depend on, by their folders, in a stable order: the provider of
+	 *         the runtime, the project of the request, the projects it references (directly or through other projects)
+	 *         and the projects a frontend builder resolves by their name (or its folder given by the environment)
+	 */
+	static List<File> persistentDependencyRoots(File engineFile, JSONObject request) {
+		var roots = new java.util.TreeMap<String, File>();
+		var engineRoot = engineFile == null ? null : engineFile.getParentFile();
+		if (engineRoot != null && engineRoot.getParentFile() != null) {
+			var provider = engineRoot.getParentFile();
+			roots.put(canonicalPath(provider), provider);
+		}
+		var projectDir = request == null ? "" : request.optString("projectDir", "");
+		if (projectDir == null || projectDir.isBlank()) {
+			return new ArrayList<>(roots.values());
+		}
+		var pending = new ArrayDeque<File>();
+		pending.add(new File(projectDir));
+		var seen = new HashSet<String>();
+		var frontendBuilder = false;
+		while (!pending.isEmpty() && roots.size() < 128) {
+			var root = pending.poll();
+			var path = canonicalPath(root);
+			if (!seen.add(path)) {
+				continue;
+			}
+			roots.put(path, root);
+			var descriptor = new File(root, "c8oProject.yaml");
+			if (!descriptor.isFile()) {
+				continue;
+			}
+			try {
+				var matcher = Pattern.compile("projectName:\\s*([A-Za-z0-9_.-]+)").matcher(FileUtils.readFileToString(descriptor, "UTF-8"));
+				while (matcher.find()) {
+					var referenced = projectRootByName(matcher.group(1), root.getParentFile());
+					if (referenced != null) {
+						pending.add(referenced);
+					}
+				}
+				var engineYaml = new File(root, ENGINE_BASE_PATH + "engine.yaml");
+				frontendBuilder = frontendBuilder || engineYaml.isFile() && FileUtils.readFileToString(engineYaml, "UTF-8").contains("frontbuilder");
+			} catch (Exception e) {
+				roots.put(path + "#unreadable", new File(path + "#unreadable"));
+			}
+		}
+		if (frontendBuilder || request.optString("engineSource", "").contains("frontbuilder")) {
+			for (var name : FRONTEND_BUILDER_PROJECTS) {
+				var builder = projectRootByName(name, new File(projectDir).getParentFile());
+				if (builder != null) {
+					roots.putIfAbsent(canonicalPath(builder), builder);
+				}
+			}
+			var configured = System.getenv("FLOW_FRONTBUILDER_RESOURCE_ROOT");
+			for (var folder = configured == null || configured.isBlank() ? null : new File(configured.trim()); folder != null; folder = folder.getParentFile()) {
+				if (new File(folder, "c8oProject.yaml").isFile()) {
+					roots.putIfAbsent(canonicalPath(folder), folder);
+					break;
+				}
+			}
+		}
+		return new ArrayList<>(roots.values());
+	}
+
+	/** @return the folder of a project by its name: the loaded one, else the one the engine knows, else a sibling folder */
+	private static File projectRootByName(String name, File parent) {
+		if (name == null || name.isBlank()) {
+			return null;
+		}
+		try {
+			var app = Engine.theApp;
+			var loaded = app == null || app.databaseObjectsManager == null ? null : app.databaseObjectsManager.getLoadedProjectByName(name);
+			if (loaded != null) {
+				return loaded.getDirFile();
+			}
+			if (app != null) {
+				var yaml = Engine.projectYamlFile(name);
+				if (yaml != null && yaml.isFile()) {
+					return yaml.getParentFile();
+				}
+			}
+		} catch (Exception | LinkageError e) {
+			// a sibling folder
+		}
+		var sibling = referencedProjectRoot(parent, name);
+		// unknown: shown as missing, its arrival changes the key
+		return sibling != null ? sibling : parent == null ? null : new File(parent, name);
+	}
+
+	/**
+	 * @return the version of the engine and the code of the classes the authoring calls go through, read once per
+	 *         JVM: a build of the engine changing them computes the responses again
+	 */
+	static String engineStamp() {
+		var stamp = engineStamp;
+		if (stamp != null) {
+			return stamp;
+		}
+		try {
+			var digest = MessageDigest.getInstance("SHA-256");
+			digest.update(com.twinsoft.convertigo.engine.ProductVersion.fullProductVersionID.getBytes(StandardCharsets.UTF_8));
+			for (var type : new Class<?>[] { FlowEngineBridge.class, FlowStudioSupport.class, FlowSourceLayout.class,
+					FlowSourceFingerprint.class, FlowPackages.class, FlowRuntimeApi.class, JsonValues.class, RhinoUtils.class,
+					com.twinsoft.convertigo.beans.flow.FlowEngine.class, com.twinsoft.convertigo.beans.flow.Flow.class,
+					com.twinsoft.convertigo.beans.flow.FlowWorkingCopies.class, com.twinsoft.convertigo.engine.tags.TagManager.class }) {
+				try (var in = type.getResourceAsStream(type.getSimpleName() + ".class")) {
+					digest.update(type.getName().getBytes(StandardCharsets.UTF_8));
+					if (in != null) {
+						digest.update(in.readAllBytes());
+					}
+				}
+			}
+			stamp = com.twinsoft.convertigo.engine.ProductVersion.fullProductVersionID + ":"
+					+ java.util.HexFormat.of().formatHex(digest.digest()).substring(0, 32);
+		} catch (Exception e) {
+			stamp = com.twinsoft.convertigo.engine.ProductVersion.fullProductVersionID + ":" + System.nanoTime();
+		}
+		return engineStamp = stamp;
+	}
+
+	/** @return the settings of the engine the authoring responses of the providers depend on */
+	static String environmentStamp() {
+		String url;
+		try {
+			url = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+		} catch (Exception notInitialized) {
+			url = "";
+		}
+		String build;
+		try {
+			build = String.valueOf(Engine.serverBuild());
+		} catch (Exception | LinkageError notInitialized) {
+			build = "";
+		}
+		return "studio=" + Engine.isStudioMode() + ";build=" + build + ";url=" + url + ";layout=" + FlowSourceLayout.current().key()
+				+ ";frontbuilder=" + System.getenv("FLOW_FRONTBUILDER_RESOURCE_ROOT");
 	}
 
 	static String methodResponseDependencyFingerprint(File engineFile, JSONObject request) {
@@ -2745,6 +3286,18 @@ public class FlowEngineBridge {
 	 */
 	static boolean isCacheableResponse(String method, JSONObject request, JSONObject response) {
 		return response != null && isCacheableMethod(method, request) && response.optBoolean("cacheable", true);
+	}
+
+	/**
+	 * @return whether the responses of a method are also kept on disk ({@link FlowAuthoringDiskCache}): the cacheable
+	 *         methods the Studio asks first whose computation takes seconds after a start, the trees, the palettes, the
+	 *         catalogs and the property editors; not the small metadata a server prepares at its start (syncInputs)
+	 */
+	static boolean isPersistedMethod(String method, JSONObject request) {
+		return switch (method) {
+		case "describeTree", "authoringTree", "authoringPalette", "catalog", "propertyEditor" -> isCacheableMethod(method, request);
+		default -> false;
+		};
 	}
 
 	private static boolean isCacheableMethod(String method, JSONObject request) {

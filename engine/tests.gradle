@@ -762,6 +762,16 @@ tasks.register('flowSourceMemoTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.flow.FlowSourceMemoProviderTest'
 }
 tasks.named('check') { dependsOn 'flowSourceMemoTest' }
+tasks.register('flowAuthoringCacheTest', JavaExec) {
+	group = 'verification'
+	description = 'Authoring responses kept on disk across restarts: entries read back as written, damaged or foreign entries missed and removed, a bounded folder, no secret written, a key changing with every file and setting a response depends on, served without a runtime with the shared definitions it references, and prepared in the background once the Studio is quiet (with the actual provider, FLOW_ENGINE_RESOURCE_ROOT).'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowAuthoringDiskCacheTest', 'com.twinsoft.convertigo.engine.flow.FlowAuthoringKeyTest',
+		'com.twinsoft.convertigo.engine.flow.FlowAuthoringDiskCacheBridgeTest', 'com.twinsoft.convertigo.engine.flow.FlowAuthoringWarmupTest'
+}
+tasks.named('check') { dependsOn 'flowAuthoringCacheTest' }
 tasks.register('flowRuntimeInvalidationTest', JavaExec) {
 	group = 'verification'
 	description = 'A project unloaded, or imported again after the start, prepares again the shared runtimes of it and of the projects using it, not those of the other projects, nor their method responses and file snapshots; preparations by key, at the same time for different keys, never kept for a revision invalidated meanwhile.'

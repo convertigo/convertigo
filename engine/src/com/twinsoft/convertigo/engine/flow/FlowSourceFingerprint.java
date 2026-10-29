@@ -62,7 +62,10 @@ final class FlowSourceFingerprint {
 	private final StringBuilder text = new StringBuilder();
 	/** The directories of the current path of the walk, against the cycles of links. */
 	private final Set<Object> directories = new HashSet<>();
+	/** By the name of a directory: the only file of it the walk shows, for a directory written by a tool, as packages. */
+	private final Map<String, String> summarized = new HashMap<>();
 	private int reads;
+	private long newest = Long.MIN_VALUE;
 
 	FlowSourceFingerprint(File root) {
 		this(root, null);
@@ -92,6 +95,20 @@ final class FlowSourceFingerprint {
 	/** @return the files this walk read */
 	int reads() {
 		return reads;
+	}
+
+	/** @return the most recent date of the files of this walk, Long.MIN_VALUE for none */
+	long newest() {
+		return newest;
+	}
+
+	/**
+	 * A directory of this name, wherever it is, shows as one of its files only, the one its tool rewrites at each change
+	 * of its content (the lock file of the installed packages): its other files are not walked.
+	 */
+	FlowSourceFingerprint summarizing(String directory, String file) {
+		summarized.put(directory, file);
+		return this;
 	}
 
 	/** The line naming the root: another folder behind the same path (a link moved) changes the fingerprint. */
@@ -147,6 +164,11 @@ final class FlowSourceFingerprint {
 		}
 		try {
 			text.append("d:").append(relative).append('\n');
+			var summary = summarized.get(path.getFileName() == null ? "" : path.getFileName().toString());
+			if (summary != null) {
+				visit(relative.isEmpty() ? summary : relative + "/" + summary, path.resolve(summary));
+				return;
+			}
 			var names = new ArrayList<String>();
 			try (var children = Files.newDirectoryStream(path)) {
 				for (var child : children) {
@@ -168,6 +190,7 @@ final class FlowSourceFingerprint {
 
 	private void file(String relative, Path path, BasicFileAttributes attributes) {
 		long modified = attributes.lastModifiedTime().toMillis(), size = attributes.size();
+		newest = Math.max(newest, modified);
 		var before = previous.get(relative);
 		FileState state;
 		if (before != null && before.size() == size && before.modified() == modified) {

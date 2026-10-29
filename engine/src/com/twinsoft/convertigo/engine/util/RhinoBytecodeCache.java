@@ -1109,7 +1109,11 @@ public final class RhinoBytecodeCache {
 		}
 	}
 
-	static byte[] readOrCreateKey(Path file) throws IOException {
+	/**
+	 * @return the secret of 32 bytes kept in a file, created at random when missing or damaged: instances sharing the
+	 *         file read the same one, its first writer winning (also used by the other disk caches of the engine)
+	 */
+	public static byte[] readOrCreateKey(Path file) throws IOException {
 		for (int attempt = 0; attempt < 5; attempt++) {
 			try {
 				var key = Files.readAllBytes(file);

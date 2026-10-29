@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.events.StudioEvent;
 import com.twinsoft.convertigo.engine.events.StudioEventListener;
+import com.twinsoft.convertigo.engine.flow.FlowAuthoringWarmup;
 import com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmup;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
@@ -858,6 +859,7 @@ public class Engine {
 					Engine.theApp.sqlConnectionManager.destroy();
 				}
 				FlowRuntimeWarmup.stop();
+				FlowAuthoringWarmup.stop();
 				ProjectLibraries.stop();
 				ApplicationBuilds.stop();
 
