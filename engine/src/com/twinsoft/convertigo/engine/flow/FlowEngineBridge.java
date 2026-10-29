@@ -95,6 +95,11 @@ public class FlowEngineBridge {
 	private static final FlowCompiledScriptCache compiledModules = new FlowCompiledScriptCache(256);
 	private static final FlowSourceCache serverSources = new FlowSourceCache(2048, 60_000);
 	private static final FlowMetadataCache sharedMetadata = new FlowMetadataCache(1024, 16 * 1024 * 1024);
+	/**
+	 * What providers compute from the content of their sources (a parse, a compiled descriptor), as text: kept across
+	 * the invalidations of the data caches, as its keys name the content and the revisions they depend on.
+	 */
+	private static final FlowMetadataCache sourceMemo = new FlowMetadataCache(8192, 32 * 1024 * 1024);
 	private static final LongAdder methodResponseCacheHits = new LongAdder();
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
@@ -301,6 +306,7 @@ public class FlowEngineBridge {
 		compiledModules.clear();
 		serverSources.clear();
 		sharedMetadata.clear();
+		sourceMemo.clear();
 		var runtimes = new ArrayList<CachedEngineRuntime>();
 		synchronized (sharedRuntimes) {
 			cacheGeneration.incrementAndGet();
@@ -478,6 +484,18 @@ public class FlowEngineBridge {
 		return sharedMetadata.get(key, cacheGeneration.get() + ":" + revision, builder);
 	}
 
+	/**
+	 * A value computed from the content of sources, shared by every runtime: only its text crosses them, each caller
+	 * parsing its own copy. A builder nested in a build of the same key, or joining a build failing on another thread,
+	 * builds again without keeping its value.
+	 *
+	 * @param key what the value is computed from, its content included
+	 * @param revision the revisions of what else it depends on
+	 */
+	public static String sharedSourceMemo(String key, String revision, java.util.concurrent.Callable<String> builder) throws Exception {
+		return sourceMemo.memo(key, cacheGeneration.get() + ":" + revision, builder);
+	}
+
 	/** Compile once across overflow runtimes; evaluating the script still creates caller-owned exports. */
 	public static Object evalSharedModule(org.mozilla.javascript.Context cx, Scriptable scope, String source, String name) {
 		if (RhinoUtils.debugMode) return RhinoUtils.evalInterpretedJavascript(cx, scope, source, name, 1, null);
@@ -504,7 +522,7 @@ public class FlowEngineBridge {
 		return Engine.theApp == null || Engine.isStudioMode() ? compute.get() : serverSources.directory(file, compute);
 	}
 
-	public static void clearSharedMetadata() { sharedMetadata.clear(); serverSources.clear(); }
+	public static void clearSharedMetadata() { sharedMetadata.clear(); sourceMemo.clear(); serverSources.clear(); }
 
 	public static long cacheGeneration() {
 		return cacheGeneration.get();
@@ -2137,6 +2155,9 @@ public class FlowEngineBridge {
 				.put("sharedMetadata", new JSONObject().put("entries", sharedMetadata.size())
 						.put("characters", sharedMetadata.characters()).put("builds", sharedMetadata.builds())
 						.put("hits", sharedMetadata.hits()).put("joins", sharedMetadata.joins()))
+				.put("sourceMemo", new JSONObject().put("entries", sourceMemo.size())
+						.put("characters", sourceMemo.characters()).put("builds", sourceMemo.builds())
+						.put("hits", sourceMemo.hits()).put("joins", sourceMemo.joins()))
 				.put("methodResponseCacheHits", methodResponseCacheHits.sum())
 				.put("methodResponseCacheMisses", methodResponseCacheMisses.sum())
 				.put("methodResponseCacheInvalidations", methodResponseCacheInvalidations.sum())

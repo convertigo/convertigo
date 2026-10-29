@@ -753,6 +753,15 @@ tasks.register('flowRuntimeWarmupTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmupTest', 'com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmupProviderTest'
 }
 tasks.named('check') { dependsOn 'flowRuntimeWarmupTest' }
+tasks.register('flowSourceMemoTest', JavaExec) {
+	group = 'verification'
+	description = 'What the actual provider computes from the content of the sources of a project is computed once for the runtimes of their own scopes, the shared runtime included, which answer alike.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.flow.FlowSourceMemoProviderTest'
+}
+tasks.named('check') { dependsOn 'flowSourceMemoTest' }
 tasks.register('flowRuntimeInvalidationTest', JavaExec) {
 	group = 'verification'
 	description = 'A project unloaded, or imported again after the start, prepares again the shared runtimes of it and of the projects using it, not those of the other projects, nor their method responses and file snapshots; preparations by key, at the same time for different keys, never kept for a revision invalidated meanwhile.'

@@ -35,6 +35,24 @@ public class FlowEngineBridgeCacheTest {
 	}
 
 	@Test
+	public void keepsTheSourceMemoAcrossDataInvalidationsUntilTheCachesAreCleared() throws Exception {
+		FlowEngineBridge.clearCaches();
+		var builds = new java.util.concurrent.atomic.AtomicInteger();
+		java.util.concurrent.Callable<String> builder = () -> "{\"parsed\":" + builds.incrementAndGet() + "}";
+		assertEquals("{\"parsed\":1}", FlowEngineBridge.sharedSourceMemo("memo-test\nsource", "1", builder));
+		assertEquals("{\"parsed\":1}", FlowEngineBridge.sharedSourceMemo("memo-test\nsource", "1", builder));
+		FlowEngineBridge.invalidateDataCaches();
+		assertEquals("Its keys name what it depends on: a data invalidation keeps it", "{\"parsed\":1}",
+				FlowEngineBridge.sharedSourceMemo("memo-test\nsource", "1", builder));
+		assertEquals("{\"parsed\":2}", FlowEngineBridge.sharedSourceMemo("memo-test\nsource", "2", builder));
+		FlowEngineBridge.clearSharedMetadata();
+		assertEquals("{\"parsed\":3}", FlowEngineBridge.sharedSourceMemo("memo-test\nsource", "2", builder));
+		FlowEngineBridge.clearCaches();
+		assertEquals("{\"parsed\":4}", FlowEngineBridge.sharedSourceMemo("memo-test\nsource", "2", builder));
+		FlowEngineBridge.clearCaches();
+	}
+
+	@Test
 	public void exposesAnUnambiguousRhinoRevealEntryPoint() throws Exception {
 		assertEquals(void.class, FlowEngineBridge.class
 				.getMethod("notifySourceMutationWithReveal", String.class, String.class, boolean.class)

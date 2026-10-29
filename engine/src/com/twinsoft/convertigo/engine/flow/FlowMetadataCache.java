@@ -3,6 +3,7 @@
  */
 package com.twinsoft.convertigo.engine.flow;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -20,6 +21,8 @@ public final class FlowMetadataCache {
 		Entry(String revision) { this.revision = revision; }
 	}
 	private final LinkedHashMap<String, Entry> entries = new LinkedHashMap<>(16, .75f, true);
+	/** The entry each thread waits for, in memo mode. Guarded by entries. */
+	private final HashMap<Thread, Entry> waiting = new HashMap<>();
 	private final int entryLimit, characterLimit;
 	private long characters;
 	private final LongAdder builds = new LongAdder(), hits = new LongAdder(), joins = new LongAdder();
@@ -31,6 +34,20 @@ public final class FlowMetadataCache {
 	}
 
 	public String get(String key, String revision, Callable<String> builder) throws Exception {
+		return get(key, revision, builder, false);
+	}
+
+	/**
+	 * As {@link #get}, for values its builder can always compute again: the value is computed without being kept,
+	 * instead of failing or waiting, when its build runs on the calling thread (a nested call), when the thread building
+	 * it waits, directly or through other builds, for a build of the calling thread (builders depending on each other's
+	 * values), or when that build fails.
+	 */
+	public String memo(String key, String revision, Callable<String> builder) throws Exception {
+		return get(key, revision, builder, true);
+	}
+
+	private String get(String key, String revision, Callable<String> builder, boolean memo) throws Exception {
 		Objects.requireNonNull(key); Objects.requireNonNull(revision); Objects.requireNonNull(builder);
 		Entry entry;
 		boolean leader = false;
@@ -45,14 +62,27 @@ public final class FlowMetadataCache {
 				} else entry = null; // All slots build: bounded admission, no nested-call deadlock.
 				leader = true;
 			} else if (!entry.value.isDone()) {
-				if (entry.owner == Thread.currentThread()) throw new IllegalStateException("Recursive metadata construction");
-				joins.increment();
+				if (memo && waitsForCurrentThread(entry)) {
+					entry = null;
+					leader = true;
+				} else if (entry.owner == Thread.currentThread()) throw new IllegalStateException("Recursive metadata construction");
+				else {
+					joins.increment();
+					if (memo) waiting.put(Thread.currentThread(), entry);
+				}
 			} else hits.increment();
 		}
 		if (!leader) {
 			try { return entry.value.get(); }
 			catch (InterruptedException error) { Thread.currentThread().interrupt(); throw error; }
-			catch (ExecutionException error) { return rethrow(error.getCause()); }
+			catch (ExecutionException error) {
+				if (!memo) return rethrow(error.getCause());
+				// the failure of another caller is not ours to throw: built again, and not kept
+				builds.increment();
+				return Objects.requireNonNull(builder.call(), "Missing metadata snapshot");
+			} finally {
+				if (memo) synchronized (entries) { waiting.remove(Thread.currentThread()); }
+			}
 		}
 		builds.increment();
 		try {
@@ -84,6 +114,21 @@ public final class FlowMetadataCache {
 		if (error instanceof Exception exception) throw exception;
 		if (error instanceof Error fatal) throw fatal;
 		throw new IllegalStateException(error);
+	}
+
+	/**
+	 * Must hold entries: whether the build of an entry runs on the calling thread, or its thread waits, through the
+	 * threads of the builds it waits for, for a build of the calling thread.
+	 */
+	private boolean waitsForCurrentThread(Entry entry) {
+		var current = Thread.currentThread();
+		var owner = entry.owner;
+		for (int steps = waiting.size() + 1; owner != null && steps >= 0; steps--) {
+			if (owner == current) return true;
+			var awaited = waiting.get(owner);
+			owner = awaited == null ? null : awaited.owner;
+		}
+		return false;
 	}
 
 	/** Must hold entries. In-flight builders stay present until completion. */

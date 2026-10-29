@@ -59,6 +59,60 @@ public class FlowMetadataCacheTest {
 		assertEquals("retry", cache.get("b", "1", () -> "retry"));
 	}
 
+	@Test public void memoBuildsANestedCallOfItsKeyWithoutKeepingIt() throws Exception {
+		var cache = new FlowMetadataCache(4, 4096);
+		assertEquals("outer:inner", cache.memo("a", "1", () -> "outer:" + cache.memo("a", "1", () -> "inner")));
+		assertEquals("outer:inner", cache.memo("a", "1", () -> { fail("Hot builder"); return ""; }));
+		assertEquals(1, cache.size());
+		assertEquals(2, cache.builds());
+	}
+
+	@Test public void memoBuildersDependingOnEachOtherDoNotWaitForEachOther() throws Exception {
+		var cache = new FlowMetadataCache(8, 4096);
+		var bothLead = new CyclicBarrier(2);
+		var workers = Executors.newFixedThreadPool(2);
+		try {
+			// a needs b and b needs a, built at the same time by two threads in opposite orders
+			var first = workers.submit(() -> cache.memo("a", "1", () -> {
+				bothLead.await(5, TimeUnit.SECONDS);
+				return "a(" + cache.memo("b", "1", () -> "b(a)") + ")";
+			}));
+			var second = workers.submit(() -> cache.memo("b", "1", () -> {
+				bothLead.await(5, TimeUnit.SECONDS);
+				return "b(" + cache.memo("a", "1", () -> "a(b)") + ")";
+			}));
+			var a = first.get(10, TimeUnit.SECONDS);
+			var b = second.get(10, TimeUnit.SECONDS);
+			assertTrue(a, a.equals("a(b(a))") || a.equals("a(b(a(b)))"));
+			assertTrue(b, b.equals("b(a(b))") || b.equals("b(a(b(a)))"));
+			assertEquals("Each leader keeps its own value", a, cache.memo("a", "1", () -> { fail("Hot builder"); return ""; }));
+			assertEquals(b, cache.memo("b", "1", () -> { fail("Hot builder"); return ""; }));
+		} finally { workers.shutdownNow(); }
+	}
+
+	@Test public void memoFollowerBuildsAgainWhenTheLeaderFails() throws Exception {
+		var cache = new FlowMetadataCache(4, 4096);
+		var started = new CountDownLatch(1); var release = new CountDownLatch(1);
+		var workers = Executors.newFixedThreadPool(2);
+		try {
+			var leader = workers.submit(() -> cache.memo("a", "1", () -> {
+				started.countDown(); release.await(); throw new IllegalArgumentException("fixture failure");
+			}));
+			assertTrue(started.await(5, TimeUnit.SECONDS));
+			var follower = workers.submit(() -> cache.memo("a", "1", () -> "own"));
+			long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+			while (cache.joins() == 0 && System.nanoTime() < until) Thread.sleep(1);
+			assertEquals(1, cache.joins());
+			release.countDown();
+			try { leader.get(5, TimeUnit.SECONDS); fail(); }
+			catch (ExecutionException expected) { assertTrue(expected.getCause() instanceof IllegalArgumentException); }
+			assertEquals("The failure of the leader reached its follower", "own", follower.get(5, TimeUnit.SECONDS));
+			assertEquals("A value built by a follower is not kept", 0, cache.size());
+			assertEquals("kept", cache.memo("a", "1", () -> "kept"));
+			assertEquals(1, cache.size());
+		} finally { release.countDown(); workers.shutdownNow(); }
+	}
+
 	@Test public void interruptedFollowerDoesNotCancelOwnerOrLeakItsSlot() throws Exception {
 		var cache = new FlowMetadataCache(4, 4096);
 		var started = new CountDownLatch(1); var release = new CountDownLatch(1);
