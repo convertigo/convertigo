@@ -190,6 +190,8 @@ public final class DetachedJson {
 		if (value == null || value == JSONObject.NULL || value == JSONObject.EXPLICIT_NULL) return null;
 		if (value instanceof Number number) return number.doubleValue();
 		if (value instanceof String || value instanceof Boolean) return value;
+		// the outputs of a native sequence keep the strings of its script: a concatenation is a ConsString
+		if (value instanceof CharSequence text) return text.toString();
 		throw new IllegalArgumentException("Expected a JSON result, received " + value.getClass().getName());
 	}
 
