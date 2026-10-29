@@ -1148,8 +1148,10 @@ public class FlowStudioSupport {
 				.put("detail", "compact")
 				.put("applyFallback", false);
 		var bridge = new FlowEngineBridge();
+		var started = System.nanoTime();
 		var response = root instanceof Flow flow ? bridge.authoringPalette(flow, options)
 				: bridge.authoringPalette((FlowEngine) root, options);
+		performanceProfileAdd("palette.provider.virtual", System.nanoTime() - started);
 		if (!response.optBoolean("ok", false)) {
 			if (root instanceof Flow) throw new EngineException("Unable to compute authoring palette: " + response.opt("error"));
 			return categories;
@@ -1220,12 +1222,14 @@ public class FlowStudioSupport {
 		if (!(root instanceof FlowEngine flowEngine)) {
 			return categories;
 		}
+		var started = System.nanoTime();
 		var palette = new FlowEngineBridge().authoringPalette(flowEngine, new JSONObject()
 				.put("surface", "frontend")
 				.put("focusPath", frontendFocusPath(targetDbo))
 				.put("position", "inside")
 				.put("detail", "compact")
 				.put("applyFallback", true));
+		performanceProfileAdd("palette.provider.frontend", System.nanoTime() - started);
 		if (!palette.optBoolean("ok", false)) {
 			var error = palette.optJSONObject("error");
 			if (targetDbo instanceof FlowEngine && error != null

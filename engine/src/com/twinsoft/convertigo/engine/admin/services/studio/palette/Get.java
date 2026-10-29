@@ -55,9 +55,16 @@ public class Get extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
-		var id = request.getParameter("id");
-		response.put("id", id);
-		response.put("categories", getPalette(id));
+		// profile=true: the durations of its phases in _profile, as studio.treeview.Get
+		var profileOwner = FlowStudioSupport.startPerformanceProfile(
+				Boolean.parseBoolean(request.getParameter("profile")), "studio.palette.Get");
+		try {
+			var id = request.getParameter("id");
+			response.put("id", id);
+			response.put("categories", getPalette(id));
+		} finally {
+			FlowStudioSupport.finishPerformanceProfile(profileOwner, response);
+		}
 	}
 
 	private JSONArray getPalette(String id) throws Exception {
@@ -67,6 +74,7 @@ public class Get extends JSonService {
 
 		var parentDbo = Utils.getDbo(id);
 		var folderType = Utils.getFolderType(id);
+		FlowStudioSupport.performanceProfileMark("palette.target");
 
 		JSONArray categories = new JSONArray();
 		if (folderType == null && FlowStudioSupport.isFlowPaletteTarget(parentDbo)) {
