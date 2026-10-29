@@ -1123,14 +1123,56 @@ public class FlowEngineBridge {
 	public JSONObject authoringPalette(FlowEngine flowEngine, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
-			var request = sourceRequest(baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
-					.put("target", "engine")
-					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+			var request = engineRequest(engineQName, flowEngine);
 			merge(request, options);
 			return invoke(engineQName, "authoringPalette", request, null, null, null);
 		} catch (JSONException e) {
 			throw new EngineException("Unable to build FlowEngine authoring palette request.", e);
+		}
+	}
+
+	/** The request of the project of a Flow engine, as its authoring calls send it, before their options. */
+	private JSONObject engineRequest(String engineQName, FlowEngine flowEngine) throws JSONException, EngineException {
+		return sourceRequest(baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
+				.put("target", "engine")
+				.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
+				.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+	}
+
+	/**
+	 * Asks the runtime provider of a project its warm-up plan for a stage ({@link FlowAuthoringWarmup}).
+	 *
+	 * @param stage {@value FlowAuthoringWarmup#STUDIO} or {@value FlowAuthoringWarmup#PROJECT}
+	 */
+	JSONObject authoringWarmupPlan(FlowEngine flowEngine, String stage) throws EngineException {
+		try {
+			return planned(flowEngine, null, FlowAuthoringWarmup.PLAN_METHOD, new JSONObject()
+					.put("stage", stage)
+					.put("studioMode", Engine.isStudioMode()));
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build FlowEngine warm-up plan request.", e);
+		}
+	}
+
+	/**
+	 * Sends a request of a warm-up plan ({@link FlowAuthoringWarmup}): its options over the request the authoring calls
+	 * of the Studio send, of the project of a Flow engine, or of one of its Flows; the same options give the same
+	 * request, whose response the Studio then finds.
+	 *
+	 * @param flow the Flow of the request, null for the project
+	 */
+	JSONObject planned(FlowEngine flowEngine, Flow flow, String method, JSONObject options) throws EngineException {
+		try {
+			if (flow != null) {
+				var engineQName = effectiveEngineQName(flow);
+				return invoke(engineQName, method, flowAuthoringRequest(engineQName, flow, options), null, null, null);
+			}
+			var engineQName = effectiveEngineQName(flowEngine);
+			var request = engineRequest(engineQName, flowEngine);
+			merge(request, options);
+			return invoke(engineQName, method, request, null, null, null);
+		} catch (JSONException e) {
+			throw new EngineException("Unable to build a " + method + " request of a warm-up plan.", e);
 		}
 	}
 
@@ -1210,10 +1252,7 @@ public class FlowEngineBridge {
 	public JSONObject authoringTree(FlowEngine flowEngine, JSONObject options) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
-			var request = sourceRequest(baseRequest(engineQName, "", flowEngine == null ? "" : flowEngine.getQName(), null), flowEngine)
-					.put("target", "engine")
-					.put("engineSource", flowEngine == null ? "" : flowEngine.getEngineSource())
-					.put("projectDir", flowEngine == null || flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath());
+			var request = engineRequest(engineQName, flowEngine);
 			merge(request, options);
 			return invoke(engineQName, "authoringTree", request, null, null, null);
 		} catch (JSONException e) {
@@ -1251,10 +1290,7 @@ public class FlowEngineBridge {
 	public JSONObject describeTree(FlowEngine flowEngine) throws EngineException {
 		try {
 			var engineQName = effectiveEngineQName(flowEngine);
-			var request = sourceRequest(baseRequest(engineQName, "", flowEngine.getQName(), null), flowEngine)
-					.put("target", "engine")
-					.put("engineSource", flowEngine.getEngineSource())
-					.put("projectDir", flowEngine.getProject() == null ? "" : flowEngine.getProject().getDirPath())
+			var request = engineRequest(engineQName, flowEngine)
 					.put("includeFlowCatalog", true)
 					.put("flowCatalogOrigin", "project")
 					.put("includeCatalogLibraries", false)
@@ -2097,7 +2133,10 @@ public class FlowEngineBridge {
 				storeMethodResponse(methodCacheKey, engineRef, method, request, legacyResponse);
 				if (diskCache != null && diskKey != null && isCacheableResponse(method, request, legacyResponse)) {
 					var text = serializedResponse(legacyResponse);
-					diskCache.write(diskKey, () -> persistedParts(text), System.nanoTime() - computeStarted);
+					// a response a warm-up plan prepares is kept whatever its duration: computed quickly in a runtime it
+					// found ready (a palette after the tree it is computed on), it takes seconds after a restart
+					diskCache.write(diskKey, () -> persistedParts(text),
+							background.get() != null ? Long.MAX_VALUE : System.nanoTime() - computeStarted);
 				}
 			} else {
 				FlowStudioSupport.performanceProfileMark("bridge." + method + ".staleSnapshotSkipped");
@@ -2951,7 +2990,10 @@ public class FlowEngineBridge {
 		}
 	}
 
-	/** Runs an action of a background preparation: its calls do not count as calls of the Studio or of requests. */
+	/**
+	 * Runs an action of a background preparation: its calls do not count as calls of the Studio or of requests, and,
+	 * read-only by contract, never invalidate a cache, whatever their method.
+	 */
 	static <T> T inBackground(java.util.concurrent.Callable<T> action) throws Exception {
 		var previous = background.get();
 		background.set(Boolean.TRUE);
@@ -3508,7 +3550,8 @@ public class FlowEngineBridge {
 	/**
 	 * @return whether the responses of a method are also kept on disk ({@link FlowAuthoringDiskCache}): the cacheable
 	 *         methods the Studio asks first whose computation takes seconds after a start, the trees, the palettes, the
-	 *         catalogs and the property editors; not the small metadata a server prepares at its start (syncInputs)
+	 *         catalogs and the property editors; not the small metadata a server prepares at its start (syncInputs), nor
+	 *         the warm-up plans, whose computation prepares what their items need
 	 */
 	static boolean isPersistedMethod(String method, JSONObject request) {
 		return switch (method) {
@@ -3528,7 +3571,8 @@ public class FlowEngineBridge {
 			return false;
 		}
 		return switch (method) {
-		case "describeTree", "catalog", "context", "contextMenu", "propertyEditor", "authoringPalette", "authoringTree", "icons", "syncInputs", "blockGet", "typeGet" -> true;
+		case "describeTree", "catalog", "context", "contextMenu", "propertyEditor", "authoringPalette", "authoringTree", "icons", "syncInputs", "blockGet", "typeGet",
+				FlowAuthoringWarmup.PLAN_METHOD -> true;
 		default -> false;
 		};
 	}
@@ -3547,7 +3591,8 @@ public class FlowEngineBridge {
 	}
 
 	private static boolean invalidatesMethodResponseCache(String method, JSONObject request) {
-		if ("cacheInfo".equals(method)) {
+		// a background preparation (a warm-up plan) prepares, it changes nothing: whatever its method
+		if ("cacheInfo".equals(method) || background.get() != null) {
 			return false;
 		}
 		if (isCacheableMethod(method, request) || isReadOnlyMethod(method, request)) {
