@@ -38,7 +38,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -140,8 +139,8 @@ public class Set extends XmlService {
 				} catch(IllegalArgumentException e){}
 			}
 			
+			// the other instances of a shared workspace reload it (DatabaseObjectsManager.exportProject)
 			Engine.theApp.databaseObjectsManager.exportProject(object.getProject());
-			SharedWorkspaceSyncManager.markProjectReload(object.getProject().getName());
 			response.setAttribute("state", "success");
 			response.setAttribute("message", "Project have been successfully updated!");
 		} catch(Exception e){

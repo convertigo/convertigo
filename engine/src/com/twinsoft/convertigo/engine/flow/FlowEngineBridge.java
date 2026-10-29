@@ -68,6 +68,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.events.AdminEventBus;
 import com.twinsoft.convertigo.engine.events.StudioEvent;
 import com.twinsoft.convertigo.engine.events.StudioEventListener;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.RhinoBytecodeCache;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
@@ -561,6 +562,12 @@ public class FlowEngineBridge {
 		if (projectDir == null || projectDir.isBlank()) invalidateDataCaches();
 		else invalidateProjectDataCaches(projectDir);
 		var projectName = projectNameForDir(projectDir);
+		// a file written by the provider itself: the other instances of a shared workspace are told; a working copy is
+		// of this instance only, its save of the project tells them
+		var shared = SharedWorkspaceSyncManager.isEnabled() ? loadedProjectOfDir(projectDir) : null;
+		if (shared != null && !hasWorkingCopy(shared, sourcePath)) {
+			SharedWorkspaceSyncManager.markProjectFilesChanged(shared.getName());
+		}
 		try {
 			var payload = new JSONObject()
 					.put("project", projectName)
@@ -600,6 +607,55 @@ public class FlowEngineBridge {
 		} catch (Exception e) {
 			Engine.logEngine.warn("(FlowEngineBridge) Unable to notify a Flow source mutation.", e);
 		}
+	}
+
+	/**
+	 * @return whether a source of a loaded project has a working copy: its engine definition, a source of its engine, the
+	 *         source of one of its Flows; false when it cannot be told (no path, a project not loaded)
+	 */
+	private static boolean hasWorkingCopy(Project project, String sourcePath) {
+		if (sourcePath == null || sourcePath.isBlank()) {
+			return false;
+		}
+		try {
+			var flowEngine = project.getFlowEngine();
+			if (flowEngine == null) {
+				return false;
+			}
+			var file = new File(sourcePath);
+			if (!file.isAbsolute()) {
+				file = new File(project.getDirFile(), sourcePath);
+			}
+			if (file.equals(new File(project.getDirFile(), ENGINE_BASE_PATH + "engine.yaml"))) {
+				return flowEngine.isEngineSourceDirty();
+			}
+			if (flowEngine.isSourceDirty(file.getPath())) {
+				return true;
+			}
+			for (var sequence : project.getSequencesList()) {
+				if (sequence instanceof Flow flow && flow.isFlowSourceDirty() && file.equals(flow.getFlowSourceFile())) {
+					return true;
+				}
+			}
+		} catch (Exception | LinkageError e) {
+			// told: the other instances invalidate their caches once more
+		}
+		return false;
+	}
+
+	/** @return the loaded project of a folder, null for none */
+	private static Project loadedProjectOfDir(String directory) {
+		var app = Engine.theApp;
+		if (directory == null || directory.isBlank() || app == null || app.databaseObjectsManager == null) {
+			return null;
+		}
+		var root = canonicalPath(new File(directory));
+		for (var project : app.databaseObjectsManager.getLoadedProjects()) {
+			if (root.equals(canonicalPath(project.getDirFile()))) {
+				return project;
+			}
+		}
+		return null;
 	}
 
 	public static void notifyStudioBrowser(String browserJson) {
@@ -1683,6 +1739,8 @@ public class FlowEngineBridge {
 					  <input data-flow-value type="text" />
 					</template>
 					""", "UTF-8");
+			// written after the call of the provider: its next keys walk the project again
+			forgetAuthoringWalk(projectRoot(projectDir));
 		} catch (Exception e) {
 			throw new EngineException("Unable to create Flow type editor file for " + typeName + ".", e);
 		}
@@ -1864,6 +1922,8 @@ public class FlowEngineBridge {
 		// keyed for the current read stamp, and read from disk with that key
 		var diskKeyed = false;
 		var diskRead = false;
+		// a call that may write files of the project of its request (block code, schemas, resources)
+		var writing = false;
 		var foreground = background.get() == null;
 		if (foreground) {
 			foregroundCalls.incrementAndGet();
@@ -1999,6 +2059,7 @@ public class FlowEngineBridge {
 					}
 				} else if (invalidatesMethodResponseCache(method, request)) {
 					clearMethodResponseCache();
+					writing = true;
 				}
 			}
 			var computeStarted = System.nanoTime();
@@ -2067,6 +2128,14 @@ public class FlowEngineBridge {
 					org.mozilla.javascript.Context.exit();
 				}
 			} finally {
+				if (writing) {
+					// the provider wrote them itself: the next keys walk its project again, a walk made meanwhile not kept
+					try {
+						forgetAuthoringWalk(projectRoot(request.optString("projectDir", "")));
+					} catch (RuntimeException e) {
+						forgetRootFingerprints();
+					}
+				}
 				releaseFrontendAuthoringFlight(frontendAuthoringFlight);
 				if (lockAcquired) {
 					lockHeldNanos = lockAcquiredNanos == 0 ? 0 : System.nanoTime() - lockAcquiredNanos;
@@ -2785,7 +2854,72 @@ public class FlowEngineBridge {
 	 */
 	public static void projectFilesWritten(File directory) {
 		if (directory != null) {
-			forgetRootFingerprints(AUTHORING_ROOT + canonicalPath(directory));
+			forgetAuthoringWalk(canonicalPath(directory));
+		}
+	}
+
+	/** @param root the canonical folder of a project, empty for none */
+	private static void forgetAuthoringWalk(String root) {
+		if (!root.isEmpty()) {
+			forgetRootFingerprints(AUTHORING_ROOT + root);
+		}
+	}
+
+	/**
+	 * Source files of a project were written by this instance outside a save of the project (added, replaced or removed
+	 * from the Studio): its data caches and those of the projects using it are invalidated, here and on the other
+	 * instances of a shared workspace, which a marker tells ({@link SharedWorkspaceSyncManager#markProjectFilesChanged}).
+	 */
+	public static void sourceFilesWritten(Project project) {
+		if (project == null) {
+			return;
+		}
+		invalidateProjectDataCaches(project.getDirFile().getPath(), project.getName());
+		SharedWorkspaceSyncManager.markProjectFilesChanged(project.getName());
+	}
+
+	/**
+	 * Files of a project were added, replaced, renamed or removed by this instance outside a save of the project (the
+	 * files of the project in the Studio): as {@link #sourceFilesWritten(Project)} when one of them is read by its authoring keys
+	 * or its runtimes (its descriptor, its beans, its source root, its Java libraries), else nothing.
+	 *
+	 * @param files the files written or removed, inside its folder
+	 */
+	public static void sourceFilesWritten(Project project, java.util.Collection<File> files) {
+		if (project == null || files == null) {
+			return;
+		}
+		try {
+			var root = project.getDirFile().getCanonicalFile().toPath();
+			for (var file : files) {
+				var relative = root.relativize(file.getCanonicalFile().toPath());
+				var first = relative.getNameCount() == 0 ? "" : relative.getName(0).toString();
+				if (first.isEmpty() || first.equals(FlowSourceLayout.current().root()) || first.equals("_c8oProject")
+						|| first.equals("libs") || first.equals("c8oProject.yaml")) {
+					sourceFilesWritten(project);
+					return;
+				}
+			}
+		} catch (java.io.IOException | IllegalArgumentException e) {
+			sourceFilesWritten(project);
+		}
+	}
+
+	/**
+	 * Files of a project were written by another instance of a shared workspace without a reload of its beans (its
+	 * marker of changed files): the data caches of the project and of the projects using it are invalidated, its
+	 * authoring caches cleared, as where they were written.
+	 */
+	public static void projectFilesChangedElsewhere(String projectName) {
+		if (projectName == null || projectName.isBlank()) {
+			return;
+		}
+		var app = Engine.theApp;
+		var project = app == null || app.databaseObjectsManager == null ? null : app.databaseObjectsManager.getLoadedProjectByName(projectName);
+		var directory = project != null ? project.getDirFile().getPath() : Engine.projectDir(projectName);
+		invalidateProjectDataCaches(directory, projectName);
+		if (project != null && project.getFlowEngine() != null) {
+			FlowStudioSupport.clearCatalogCache(project.getFlowEngine());
 		}
 	}
 

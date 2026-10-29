@@ -199,6 +199,25 @@ public class FlowAuthoringDiskCacheBridgeTest {
 	}
 
 	@Test
+	public void aCallOfTheProviderThatMayWriteFilesWalksItsProjectAgain() throws Exception {
+		provider();
+		var before = key();
+		Assume.assumeNotNull("files of the provider modified in the last seconds: not kept on disk", before);
+		// written by the provider itself (block code, schemas, resources), not through a working copy
+		var block = project.resolve("_flow/blocks/proof/written.block.js");
+		Files.writeString(block, "written by the provider");
+		Files.setLastModifiedTime(block, FileTime.fromMillis(System.currentTimeMillis() - 30_000));
+		assertEquals("not seen yet: within the delay of the changes made outside the engine", before, key());
+		try {
+			new FlowEngineBridge().invoke("lib_flow_engine.Engine", "proofWrite", new JSONObject().put("projectDir", project.toString()),
+					null, null, null);
+		} catch (com.twinsoft.convertigo.engine.EngineException unknown) {
+			// a method the provider does not know: a call that may write all the same
+		}
+		assertNotEquals("its project walked again", before, key());
+	}
+
+	@Test
 	public void theSharedDefinitionsOfAResponseTravelWithIt() throws Exception {
 		var shared = Engine.theApp.getShareServerMap();
 		var registry = new java.util.concurrent.ConcurrentHashMap<Object, Object>();

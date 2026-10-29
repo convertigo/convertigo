@@ -54,7 +54,6 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
-import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.StepSources;
 
@@ -297,8 +296,8 @@ public class Set extends JSonService {
 	}
 
 	protected void saveProject(Project project) throws Exception {
+		// the other instances of a shared workspace reload it (DatabaseObjectsManager.exportProject)
 		Engine.theApp.databaseObjectsManager.exportProject(project);
-		SharedWorkspaceSyncManager.markProjectReload(project.getName());
 	}
 
 	private static SmartType makeSmartType(String mode, Object rawValue, String pvalue) throws Exception {

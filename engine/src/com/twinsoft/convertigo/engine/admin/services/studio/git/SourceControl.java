@@ -990,6 +990,8 @@ public class SourceControl extends JSonService {
 		Engine.theApp.schemaManager.clearCache(projectName);
 		manager.clearCache(projectName);
 		manager.importProject(Engine.projectYamlFile(projectName), true);
+		// its files changed under the other instances of a shared workspace too
+		com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager.markProjectReload(projectName);
 	}
 
 	/**

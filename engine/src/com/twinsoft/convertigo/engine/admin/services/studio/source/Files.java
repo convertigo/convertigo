@@ -64,6 +64,7 @@ public class Files extends JSonService {
 		var projectDir = project.getDirFile().getCanonicalFile();
 		// the root of the files is the folder of the project
 		var target = split[1].replace("/", "").isEmpty() ? projectDir : ProjectFiles.resolve(id);
+		var written = new java.util.ArrayList<File>();
 		switch (action) {
 		case "newFile", "newFolder" -> {
 			if (!target.isDirectory()) {
@@ -78,6 +79,7 @@ public class Files extends JSonService {
 			} else {
 				file.createNewFile();
 			}
+			written.add(file);
 			response.put("id", idOf(id, projectDir, file));
 		}
 		case "upload" -> {
@@ -97,6 +99,7 @@ public class Files extends JSonService {
 				// the browsers of Windows can give the full path of the file
 				var file = child(target, new File(item.getName().replace('\\', '/')).getName());
 				item.write(file);
+				written.add(file);
 				last = idOf(id, projectDir, file);
 			}
 			if (last == null) {
@@ -115,6 +118,8 @@ public class Files extends JSonService {
 			if (!target.renameTo(renamed)) {
 				throw new ServiceException("The file " + id + " cannot be renamed.");
 			}
+			written.add(target);
+			written.add(renamed);
 			response.put("id", idOf(id, projectDir, renamed));
 		}
 		case "delete" -> {
@@ -122,11 +127,12 @@ public class Files extends JSonService {
 				throw new ServiceException("The file " + id + " cannot be deleted.");
 			}
 			FileUtils.forceDelete(target);
+			written.add(target);
 		}
 		default -> throw new ServiceException("Unknown action " + action);
 		}
-		// files of the project written: the authoring keys walk it again
-		com.twinsoft.convertigo.engine.flow.FlowEngineBridge.projectFilesWritten(projectDir);
+		// sources of the project written: its caches here and on the other instances of a shared workspace
+		com.twinsoft.convertigo.engine.flow.FlowEngineBridge.sourceFilesWritten(project, written);
 		response.put("done", true);
 	}
 

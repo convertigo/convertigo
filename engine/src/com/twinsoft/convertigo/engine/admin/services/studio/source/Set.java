@@ -81,6 +81,9 @@ public class Set extends JSonService {
 				throw new ServiceException("The file " + file.getName() + " changed since it was opened: open it again before saving.");
 			}
 			Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
+			// a source of the project written: its caches here and on the other instances of a shared workspace
+			FlowEngineBridge.sourceFilesWritten(com.twinsoft.convertigo.engine.Engine.theApp.databaseObjectsManager.getOriginalProjectByName(id.split("/", 2)[0]),
+					java.util.List.of(file));
 			response.put("done", true);
 			response.put("id", id);
 			response.put("revision", Get.sha256(content));

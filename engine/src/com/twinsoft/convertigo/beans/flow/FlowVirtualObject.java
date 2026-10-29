@@ -897,7 +897,8 @@ public class FlowVirtualObject extends DatabaseObject implements IDynamicPropert
 				flowEngine.discardSource(style);
 				FileUtils.deleteQuietly(new File(style));
 			}
-			FlowEngineBridge.invalidateProjectDataCaches(flowEngine.getProject().getDirFile().getPath());
+			// removed at once, not by a save: the other instances of a shared workspace are told as well
+			FlowEngineBridge.sourceFilesWritten(flowEngine.getProject());
 			FlowStudioSupport.clearCatalogCache(flowEngine);
 			FlowStudioSupport.afterSourceMutation(flowEngine, sourcePath);
 		} catch (EngineException e) {

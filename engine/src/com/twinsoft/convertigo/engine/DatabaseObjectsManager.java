@@ -106,6 +106,7 @@ import com.twinsoft.convertigo.engine.migration.Migration001;
 import com.twinsoft.convertigo.engine.migration.Migration8_0_0;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
+import com.twinsoft.convertigo.engine.sync.SharedWorkspaceSyncManager;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.DirClassLoader;
@@ -1009,7 +1010,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
+	/**
+	 * Saves a project to its files. On a shared workspace, the other instances reload it
+	 * (SharedWorkspaceSyncManager.markProjectReload).
+	 */
 	public void exportProject(Project project) throws EngineException {
+		exportProject(project, true);
+	}
+
+	/** @param announce whether the other instances of a shared workspace reload it: not for a migration at its load */
+	private void exportProject(Project project, boolean announce) throws EngineException {
 		String projectName = project.getName();
 
 		// Export project
@@ -1030,6 +1040,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			AdminEventBus.publishProjectChanged(projectName, projectName, "project", "project.exported");
 		} catch (Exception e) {
 			Engine.logDatabaseObjectManager.warn("Unable to publish the project change for \"" + projectName + "\"", e);
+		}
+		if (announce) {
+			SharedWorkspaceSyncManager.markProjectReload(projectName);
 		}
 	}
 
@@ -1634,7 +1647,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				// TODO: Migration to 4.0.1 (parent bean handles children order
 				// (priorities))!!
 				if (VersionUtils.compare(version[0], "4.0.1") >= 0) {
-					exportProject(project);
+					// each instance loading it migrates it the same way: none is told
+					exportProject(project, false);
 				} else {
 					Engine.logDatabaseObjectManager.error("Project \"" + projectName
 							+ "\" has been partially migrated. It may not work properly. Please import it trought the Studio and export/upload it again.");

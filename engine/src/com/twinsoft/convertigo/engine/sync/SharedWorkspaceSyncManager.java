@@ -34,7 +34,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import com.twinsoft.convertigo.beans.core.Project;
@@ -44,6 +49,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
+import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
 import com.twinsoft.convertigo.engine.util.InstanceIdentity;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
@@ -57,7 +63,12 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 		keys("keys", "keys.marker"),
 		cacheConfig("cache-config", "cache-config.marker"),
 		cacheClear("cache-clear", "cache-clear.marker"),
-		project("project", null);
+		project("project", null),
+		/**
+		 * Files of a project written without a reload of its beans: its data caches are invalidated, in a marker of its
+		 * own so that it never replaces a reload; an instance not knowing this kind reloads the project instead.
+		 */
+		projectFiles("project-files", null);
 
 		private final String kind;
 		private final String fileName;
@@ -102,6 +113,9 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 	}
 
 	private static final long POLL_INTERVAL_MS = 5000L;
+	/** The changes of the files of a project told within this delay are told by one marker. */
+	private static final long FILES_MARKER_DELAY_MS = 100L;
+	private static final String FILES_MARKER_SUFFIX = ".files";
 	private static final String MARKER_DIRECTORY = "cluster-sync";
 	private static final String PROJECT_MARKER_DIRECTORY = "projects";
 	private static final String MARKER_EXTENSION = ".marker";
@@ -110,11 +124,29 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 	private static final String INSTANCE_ID = InstanceIdentity.getLocalInstanceId();
 
 	private final Map<String, String> markerStates = new HashMap<>();
+	/** The projects whose marker of changed files is about to be written. */
+	private static final Set<String> pendingFilesMarkers = ConcurrentHashMap.newKeySet();
+	/** Writes them, its thread ending once idle. */
+	private static final ScheduledThreadPoolExecutor filesMarkerWriter = new ScheduledThreadPoolExecutor(1, runnable -> {
+		var thread = new Thread(runnable, "SharedWorkspaceSyncMarkers");
+		thread.setDaemon(true);
+		return thread;
+	});
+
+	static {
+		filesMarkerWriter.setKeepAliveTime(5, TimeUnit.SECONDS);
+		filesMarkerWriter.allowCoreThreadTimeOut(true);
+	}
 
 	public static boolean isEnabled() {
-		return Engine.isEngineMode()
-				&& !Engine.isCliMode()
-				&& EnginePropertiesManager.getPropertyAsBoolean(PropertyName.SESSION_SHARED_WORKSPACE_SYNC_ENABLED);
+		try {
+			return Engine.isEngineMode()
+					&& !Engine.isCliMode()
+					&& EnginePropertiesManager.getPropertyAsBoolean(PropertyName.SESSION_SHARED_WORKSPACE_SYNC_ENABLED);
+		} catch (IllegalStateException notInitialized) {
+			// no engine properties yet: nothing is shared
+			return false;
+		}
 	}
 
 	public static void markProjectReload(String projectName) {
@@ -123,6 +155,26 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 
 	public static void markProjectDelete(String projectName) {
 		writeMarker(MarkerKind.project, projectName, OPERATION_DELETE);
+	}
+
+	/**
+	 * Files of a project were written by this instance without a save of the project (its sources written by the
+	 * Studio or by a provider): the other instances invalidate its data caches, without reloading it. The changes told
+	 * within {@link #FILES_MARKER_DELAY_MS} are told by one marker, written after them.
+	 */
+	public static void markProjectFilesChanged(String projectName) {
+		if (projectName == null || projectName.isBlank() || !isEnabled() || !pendingFilesMarkers.add(projectName)) {
+			return;
+		}
+		try {
+			filesMarkerWriter.schedule(() -> {
+				pendingFilesMarkers.remove(projectName);
+				writeMarker(MarkerKind.projectFiles, projectName, null);
+			}, FILES_MARKER_DELAY_MS, TimeUnit.MILLISECONDS);
+		} catch (RejectedExecutionException e) {
+			pendingFilesMarkers.remove(projectName);
+			writeMarker(MarkerKind.projectFiles, projectName, null);
+		}
 	}
 
 	public static void markPropertiesChanged() {
@@ -261,6 +313,10 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 		case project:
 			applyProjectMarker(marker);
 			break;
+		case projectFiles:
+			FlowEngineBridge.projectFilesChangedElsewhere(marker.target);
+			Engine.logEngine.info("Shared workspace sync invalidated the data caches of the project \"" + marker.target + "\"");
+			break;
 		default:
 			break;
 		}
@@ -346,9 +402,12 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 		}
 
 		var target = properties.getProperty("target");
-		if (kind == MarkerKind.project && (target == null || target.isBlank())) {
+		if ((kind == MarkerKind.project || kind == MarkerKind.projectFiles) && (target == null || target.isBlank())) {
 			var filename = path.getFileName().toString();
 			target = filename.endsWith(MARKER_EXTENSION) ? filename.substring(0, filename.length() - MARKER_EXTENSION.length()) : filename;
+			if (kind == MarkerKind.projectFiles && target.endsWith(FILES_MARKER_SUFFIX)) {
+				target = target.substring(0, target.length() - FILES_MARKER_SUFFIX.length());
+			}
 		}
 
 		var operation = properties.getProperty("operation", kind == MarkerKind.project ? OPERATION_RELOAD : "");
@@ -403,6 +462,9 @@ public class SharedWorkspaceSyncManager extends AbstractRunnableManager {
 	private static Path markerPath(MarkerKind kind, String target) {
 		if (kind == MarkerKind.project) {
 			return projectsMarkerDirectory().resolve(target + MARKER_EXTENSION);
+		}
+		if (kind == MarkerKind.projectFiles) {
+			return projectsMarkerDirectory().resolve(target + FILES_MARKER_SUFFIX + MARKER_EXTENSION);
 		}
 		return rootDirectory().resolve(kind.fileName);
 	}
