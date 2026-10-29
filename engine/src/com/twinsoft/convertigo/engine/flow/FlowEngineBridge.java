@@ -2691,6 +2691,14 @@ public class FlowEngineBridge {
 				var created = new CompletableFuture<RootFingerprint>();
 				walking = rootFingerprintWalks.putIfAbsent(key, created);
 				if (walking == null) {
+					// published by a walk that ended since this caller looked (published before its flight is removed):
+					// served, not walked a second time
+					var published = rootFingerprints.get(key);
+					if (published != null && published != cached && published.stamp().equals(stamp) && fresh.test(published)) {
+						rootFingerprintWalks.remove(key, created);
+						created.complete(published);
+						return published;
+					}
 					return walkRoot(key, created, stamp, cached, base, walk);
 				}
 			}
