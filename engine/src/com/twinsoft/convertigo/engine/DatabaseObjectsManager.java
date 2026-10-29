@@ -1016,6 +1016,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		String exportedProjectFileName = Engine.projectFile(projectName).getAbsolutePath();
 		Engine.logDatabaseObjectManager.info("Saving project \"" + projectName + "\" to: " + exportedProjectFileName);
 		CarUtils.exportProject(project, exportedProjectFileName);
+		// its descriptor and beans written: the authoring keys walk the project again
+		com.twinsoft.convertigo.engine.flow.FlowEngineBridge.projectFilesWritten(project.getDirFile());
 		if (exportedProjectFileName.endsWith(".xml")) {
 			File yaml = new File(new File(exportedProjectFileName).getParentFile(), "c8oProject.yaml");
 			Engine.logDatabaseObjectManager

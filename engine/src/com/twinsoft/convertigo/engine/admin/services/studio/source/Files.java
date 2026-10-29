@@ -125,6 +125,8 @@ public class Files extends JSonService {
 		}
 		default -> throw new ServiceException("Unknown action " + action);
 		}
+		// files of the project written: the authoring keys walk it again
+		com.twinsoft.convertigo.engine.flow.FlowEngineBridge.projectFilesWritten(projectDir);
 		response.put("done", true);
 	}
 

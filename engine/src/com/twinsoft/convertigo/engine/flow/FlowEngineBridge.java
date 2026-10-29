@@ -1881,6 +1881,8 @@ public class FlowEngineBridge {
 					engineSource = cachedEngineSource(engineFile);
 					var fingerprintStarted = System.nanoTime();
 					if (diskCache != null) {
+						// the capture of the request and the source of the provider, apart from the key
+						FlowStudioSupport.performanceProfileMark("bridge." + method + ".prepare");
 						diskKey = persistentResponseKey(engineRef.qname, engineFile, method, request);
 						diskKeyed = true;
 						FlowStudioSupport.performanceProfileMark("bridge." + method + ".diskKey");
@@ -2624,11 +2626,64 @@ public class FlowEngineBridge {
 			}
 			stamp.append(';');
 		}
+		// expired only (the same stamp): its value of a few seconds ago, while another caller walks it again
+		return rootFingerprint(key, stamp.toString(), base, walk,
+				cached -> System.currentTimeMillis() - cached.computedAt() < ROOT_FINGERPRINT_TTL_MS, true);
+	}
+
+	/** The kind of the walks of the persistent keys ({@link FlowAuthoringKeys}), the key of a root being this prefix and its canonical path. */
+	static final String AUTHORING_ROOT = "authoring:";
+
+	/**
+	 * The walk of the files of a project an authoring response may depend on ({@link #authoringWalk}), without reading
+	 * any attribute when its last walk is recent enough: the changes made through the engine forget it at once
+	 * ({@link #forgetRootFingerprints}), those made outside are seen by the next walk, which {@link FlowAuthoringKeys}
+	 * does in the background before this age is reached. A walk older than this age is never served: its callers wait
+	 * for the walk of the root, one for all of them.
+	 *
+	 * @param key {@link #AUTHORING_ROOT} and the canonical path of the folder
+	 * @param maxAge the age of a walk from which it is walked again
+	 * @param settle whether a walk showing a recent file ({@link #RECENT_FILE_MS}) is walked again once its file is no
+	 *        longer recent, so that it can give a key
+	 */
+	static RootFingerprint authoringRoot(String key, File root, long maxAge, boolean settle) {
+		return rootFingerprint(key, "", root, FlowEngineBridge::authoringWalk, cached -> {
+			if (System.currentTimeMillis() - cached.computedAt() >= maxAge) {
+				return false;
+			}
+			return !settle || !unsettled(cached) || System.currentTimeMillis() < cached.newest() + RECENT_FILE_MS;
+		}, false);
+	}
+
+	/** @return whether a walk showed a file modified too recently for its date to tell its next change ({@link #RECENT_FILE_MS}) */
+	static boolean unsettled(RootFingerprint walked) {
+		return walked.newest() != Long.MIN_VALUE && walked.computedAt() - walked.newest() < RECENT_FILE_MS;
+	}
+
+	/** @return the number of removals of fingerprints so far: a value computed from walks before another one may be outdated */
+	static long rootFingerprintRemovals() {
+		return rootFingerprintRemovals;
+	}
+
+	/** @return the walk of a root kept in memory, null for none: no file read */
+	static RootFingerprint knownRoot(String key) {
+		return rootFingerprints.get(key);
+	}
+
+	/**
+	 * @param stamp what tells, without walking it, that the root is the same: a walk of another stamp is not served
+	 * @param fresh whether a walk of the same stamp is served without walking the root again
+	 * @param servedWhileWalked whether a walk of the same stamp that is not fresh is served while another caller walks
+	 *        the root again, else its callers wait for that walk
+	 */
+	private static RootFingerprint rootFingerprint(String key, String stamp, File base,
+			java.util.function.Consumer<FlowSourceFingerprint> walk, java.util.function.Predicate<RootFingerprint> fresh,
+			boolean servedWhileWalked) {
 		// single flight for each root: one caller walks it, the others wait for that walk, other roots walked meanwhile
 		for (;;) {
 			var cached = rootFingerprints.get(key);
-			var same = cached != null && cached.stamp().equals(stamp.toString());
-			if (same && System.currentTimeMillis() - cached.computedAt() < ROOT_FINGERPRINT_TTL_MS) {
+			var same = cached != null && cached.stamp().equals(stamp);
+			if (same && fresh.test(cached)) {
 				return cached;
 			}
 			var walking = rootFingerprintWalks.get(key);
@@ -2636,11 +2691,10 @@ public class FlowEngineBridge {
 				var created = new CompletableFuture<RootFingerprint>();
 				walking = rootFingerprintWalks.putIfAbsent(key, created);
 				if (walking == null) {
-					return walkRoot(key, created, stamp.toString(), cached, base, walk);
+					return walkRoot(key, created, stamp, cached, base, walk);
 				}
 			}
-			if (same) {
-				// expired only: its value of a few seconds ago, while another caller walks it again
+			if (same && servedWhileWalked) {
 				return cached;
 			}
 			try {
@@ -2664,11 +2718,19 @@ public class FlowEngineBridge {
 		var started = rootFingerprintRemovals;
 		var now = System.currentTimeMillis();
 		RootFingerprint value;
+		if (key.startsWith(AUTHORING_ROOT)) {
+			FlowAuthoringKeys.statistics.walks.increment();
+		}
 		try {
 			// a file rewritten with the same content keeps showing as the walk before showed it
 			var fingerprint = new FlowSourceFingerprint(base, cached == null ? null : cached.files());
 			walk.accept(fingerprint);
-			value = new RootFingerprint(stamp, fingerprint.text(), now, fingerprint.files(), fingerprint.newest());
+			var text = fingerprint.text();
+			// unchanged: the same instance, which its users compare first
+			if (cached != null && cached.value().equals(text)) {
+				text = cached.value();
+			}
+			value = new RootFingerprint(stamp, text, now, fingerprint.files(), fingerprint.newest());
 		} catch (Throwable failure) {
 			rootFingerprintWalks.remove(key, walking);
 			// the interruption of this caller is not a failure of the walk: a caller waiting for it walks again
@@ -2687,7 +2749,10 @@ public class FlowEngineBridge {
 		return value;
 	}
 
-	/** Forgets the fingerprints of these roots, of all of them without any: no walk started before is kept or joined. */
+	/**
+	 * Forgets the fingerprints of these roots, of all of them without any: no walk started before is kept or joined,
+	 * and the persistent keys walk them again at their next use ({@link FlowAuthoringKeys#forgotten}).
+	 */
 	private static void forgetRootFingerprints(String... keys) {
 		synchronized (rootFingerprints) {
 			rootFingerprintRemovals++;
@@ -2700,10 +2765,24 @@ public class FlowEngineBridge {
 				}
 			}
 		}
+		FlowAuthoringKeys.forgotten(keys.length == 0);
+	}
+
+	/**
+	 * Files of a project were written by the engine without a notification of what they hold (its beans saved, files
+	 * added from the Studio): the persistent keys of the authoring responses walk the project again at their next use,
+	 * instead of seeing the change within the delay of the changes made outside the engine.
+	 *
+	 * @param directory the folder of the project
+	 */
+	public static void projectFilesWritten(File directory) {
+		if (directory != null) {
+			forgetRootFingerprints(AUTHORING_ROOT + canonicalPath(directory));
+		}
 	}
 
 	/** Changed when the persistent key no longer tells everything a response depends on: every entry is computed again. */
-	private static final String PERSISTENT_KEY_FORMAT = "authoring-response-1";
+	static final String PERSISTENT_KEY_FORMAT = "authoring-response-1";
 	/**
 	 * A file modified less than this before the walk that saw it could still change without its date changing (the
 	 * resolution of the dates of some file systems): the responses of such a state are not kept on disk, as git does
@@ -2908,6 +2987,10 @@ public class FlowEngineBridge {
 	 * its source root and of its libs folder, the installed packages shown by their lock file (see
 	 * {@link FlowSourceFingerprint}).
 	 *
+	 * The walks and the other reads of files a key shows are kept in memory and verified again in the background
+	 * ({@link FlowAuthoringKeys}): a change made through the engine changes the key at once, a change made outside it
+	 * within a bounded delay, and a key computed from them is the key computed from the files.
+	 *
 	 * @return null when the response is not kept on disk: a request carrying working copies (drafts), or files modified
 	 *         too recently ({@link #RECENT_FILE_MS}) for their dates to tell their next change
 	 */
@@ -2916,27 +2999,19 @@ public class FlowEngineBridge {
 			if (hasWorkingCopies(request)) {
 				return null;
 			}
-			var key = new StringBuilder(64 * 1024).append(PERSISTENT_KEY_FORMAT).append('\n').append(engineStamp()).append('\n')
-					.append(environmentStamp()).append('\n').append(engineQName).append('\n').append(method).append('\n');
-			for (var root : persistentDependencyRoots(engineFile, request)) {
-				if (!new File(root, "c8oProject.yaml").isFile()) {
-					key.append("missing:").append(canonicalPath(root)).append('\n');
-					continue;
-				}
-				var walked = cachedRoot("authoring", root, new File(root, ENGINE_BASE_PATH), root, FlowEngineBridge::authoringWalk);
-				if (walked.newest() != Long.MIN_VALUE && walked.computedAt() - walked.newest() < RECENT_FILE_MS) {
-					return null;
-				}
-				key.append(walked.value());
-			}
-			appendRequestFileFingerprint(key, "sourceFile", request.optString("sourceFile", ""));
-			appendRequestFileFingerprint(key, "sourcePath", request.optString("sourcePath", ""));
-			key.append(canonicalJson(persistentRequest(request)));
-			return sha256Hex(key.toString());
+			var prefix = PERSISTENT_KEY_FORMAT + '\n' + engineStamp() + '\n' + environmentStamp() + '\n' + engineQName + '\n' + method + '\n';
+			return FlowAuthoringKeys.key(prefix, engineFile, request);
 		} catch (Exception e) {
 			Engine.logEngine.debug("(FlowEngineBridge) No persistent key for a " + method + " request.", e);
 			return null;
 		}
+	}
+
+	/** @return the line of a file in a key: its canonical path, its date and size, or that it is missing */
+	static String fileFingerprintLine(File file) {
+		var line = new StringBuilder();
+		appendFileFingerprint(line, file);
+		return line.toString();
 	}
 
 	/** The files of a project an authoring response may depend on: its descriptor, its beans, its source root, its Java libraries. */
@@ -3113,7 +3188,7 @@ public class FlowEngineBridge {
 			var digest = MessageDigest.getInstance("SHA-256");
 			digest.update(com.twinsoft.convertigo.engine.ProductVersion.fullProductVersionID.getBytes(StandardCharsets.UTF_8));
 			for (var type : new Class<?>[] { FlowEngineBridge.class, FlowStudioSupport.class, FlowSourceLayout.class,
-					FlowSourceFingerprint.class, FlowPackages.class, FlowRuntimeApi.class, JsonValues.class, RhinoUtils.class,
+					FlowSourceFingerprint.class, FlowAuthoringKeys.class, FlowPackages.class, FlowRuntimeApi.class, JsonValues.class, RhinoUtils.class,
 					com.twinsoft.convertigo.beans.flow.FlowEngine.class, com.twinsoft.convertigo.beans.flow.Flow.class,
 					com.twinsoft.convertigo.beans.flow.FlowWorkingCopies.class, com.twinsoft.convertigo.engine.tags.TagManager.class }) {
 				try (var in = type.getResourceAsStream(type.getSimpleName() + ".class")) {
@@ -3255,7 +3330,7 @@ public class FlowEngineBridge {
 		source.append("\n");
 	}
 
-	private static String canonicalPath(File file) {
+	static String canonicalPath(File file) {
 		if (file == null) {
 			return "";
 		}

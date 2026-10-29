@@ -764,11 +764,12 @@ tasks.register('flowSourceMemoTest', JavaExec) {
 tasks.named('check') { dependsOn 'flowSourceMemoTest' }
 tasks.register('flowAuthoringCacheTest', JavaExec) {
 	group = 'verification'
-	description = 'Authoring responses kept on disk across restarts: entries read back as written, damaged or foreign entries missed and removed, a bounded folder, no secret written, a key changing with every file and setting a response depends on, served without a runtime with the shared definitions it references, and prepared in the background once the Studio is quiet (with the actual provider, FLOW_ENGINE_RESOURCE_ROOT).'
+	description = 'Authoring responses kept on disk across restarts: entries read back as written, damaged or foreign entries missed and removed, a bounded folder, no secret written, a key changing with every file and setting a response depends on, kept in memory between verifications (each project walked once for every key and concurrent caller, a change through the engine seen at once, a change outside it on demand without waiting), served without a runtime with the shared definitions it references, and prepared in the background once the Studio is quiet (with the actual provider, FLOW_ENGINE_RESOURCE_ROOT).'
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.flow.FlowAuthoringDiskCacheTest', 'com.twinsoft.convertigo.engine.flow.FlowAuthoringKeyTest',
+		'com.twinsoft.convertigo.engine.flow.FlowAuthoringKeyReuseTest',
 		'com.twinsoft.convertigo.engine.flow.FlowAuthoringDiskCacheBridgeTest', 'com.twinsoft.convertigo.engine.flow.FlowAuthoringWarmupTest'
 }
 tasks.named('check') { dependsOn 'flowAuthoringCacheTest' }
