@@ -24,7 +24,8 @@ public final class FlowRuntimeApi {
     private final ConcurrentHashMap<String, Flight> flights = new ConcurrentHashMap<>();
     /** The preparation each thread waits for (guarded by itself), to never wait for a preparation waiting for this one. */
     private final java.util.HashMap<Thread, Flight> waiting = new java.util.HashMap<>();
-    private final Object sourceProbe = new Object();
+    /** Taken by the caller probing the source revision: the others go on meanwhile, as if the probe had not expired. */
+    private final java.util.concurrent.atomic.AtomicBoolean sourceProbe = new java.util.concurrent.atomic.AtomicBoolean();
     private final ThreadLocal<Frame> current = new ThreadLocal<>();
     private final LongAdder hits = new LongAdder(), builds = new LongAdder(), joins = new LongAdder(), calls = new LongAdder();
     private final RoutingScope shared;
@@ -33,7 +34,9 @@ public final class FlowRuntimeApi {
     private final long codeRevision, dataRevision;
     private final Object objectConstructor, arrayConstructor;
     private volatile long nextSourceProbe;
-    private String sourceRevision;
+    private volatile String sourceRevision;
+    /** A probe found another source revision: this revision is replaced at the next lookups. */
+    private volatile boolean sourceChanged;
 
 
     public FlowRuntimeApi(Context cx) {
@@ -209,17 +212,31 @@ public final class FlowRuntimeApi {
         return app == null || app.databaseObjectsManager == null ? text : app.databaseObjectsManager.getCompiledValue(text);
     }
 
-    /** Notifications invalidate immediately; this is the fallback for external file edits. */
+    /**
+     * Notifications invalidate immediately; this is the fallback for external file edits, probed at most once a minute.
+     * One caller computes the fingerprint (file walks, slow on a network file system) while the others go on with this
+     * revision, as if the probe had not expired: the staleness accepted for external edits. Once the fingerprint
+     * differs, every lookup sees it and the revision is prepared again. A fingerprint that cannot be computed fails its
+     * caller only: the next caller probes again.
+     */
     boolean revisionMatches(java.util.function.Supplier<String> fingerprint) {
+        if (sourceChanged) return false;
         long now = System.nanoTime();
         if (now < nextSourceProbe) return true;
-        synchronized (sourceProbe) {
-            if (now < nextSourceProbe) return true;
+        if (!sourceProbe.compareAndSet(false, true)) return true;
+        try {
+            // probed by another caller meanwhile
+            if (System.nanoTime() < nextSourceProbe) return !sourceChanged;
             String revision = fingerprint.get();
-            if (sourceRevision != null && !sourceRevision.equals(revision)) return false;
+            if (sourceRevision != null && !sourceRevision.equals(revision)) {
+                sourceChanged = true;
+                return false;
+            }
             sourceRevision = revision;
             nextSourceProbe = now + java.util.concurrent.TimeUnit.SECONDS.toNanos(60);
             return true;
+        } finally {
+            sourceProbe.set(false);
         }
     }
 

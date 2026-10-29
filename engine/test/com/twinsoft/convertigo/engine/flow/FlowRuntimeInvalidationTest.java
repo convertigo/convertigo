@@ -587,4 +587,60 @@ public class FlowRuntimeInvalidationTest {
 		flow.setName("Proof");
 		return flow;
 	}
+
+	@Test
+	public void aFileChangedOutsideTheEngineIsSeenByTheNextProbeOfTheRuntime() throws Exception {
+		var application = project("Application");
+		var runtime = runtime(application);
+		// written by another tool: no notification
+		Files.writeString(new File(application.getDirFile(), "c8oProject.yaml").toPath(), "convertigo: 8.5.0\n");
+		assertSame("Not probed again within a minute", runtime, runtime(application));
+		var next = FlowRuntimeApi.class.getDeclaredField("nextSourceProbe");
+		next.setAccessible(true);
+		next.setLong(field(runtime, "api"), 0);
+		var replaced = runtime(application);
+		assertNotSame("The next probe sees the change", runtime, replaced);
+		assertSame(replaced, runtime(application));
+	}
+
+	/** The fingerprints of the roots expire, as five seconds after their walk. */
+	@SuppressWarnings("unchecked")
+	private static void expireRootFingerprints() throws Exception {
+		var fingerprints = (Map<Object, Object>) staticField("rootFingerprints");
+		var constructor = Class.forName(FlowEngineBridge.class.getName() + "$RootFingerprint").getDeclaredConstructors()[0];
+		constructor.setAccessible(true);
+		for (var entry : fingerprints.entrySet()) {
+			var value = entry.getValue();
+			entry.setValue(constructor.newInstance(field(value, "stamp"), field(value, "value"), 0L, field(value, "files")));
+		}
+	}
+
+	private static void expireProbe(Object runtime) throws Exception {
+		var next = FlowRuntimeApi.class.getDeclaredField("nextSourceProbe");
+		next.setAccessible(true);
+		next.setLong(field(runtime, "api"), 0);
+	}
+
+	@Test
+	public void aRuntimeIsKeptWhenAFileIsRewrittenWithTheContentItWasPreparedFrom() throws Exception {
+		var application = project("Application");
+		var module = application.getDirFile().toPath().resolve("_flow/modules/m.js");
+		Files.createDirectories(module.getParent());
+		Files.writeString(module, "var m = 1;\n");
+		var runtime = runtime(application);
+		// copied again outside the engine: another date, the same content
+		Files.setLastModifiedTime(module, java.nio.file.attribute.FileTime.fromMillis(Files.getLastModifiedTime(module).toMillis() + 2000));
+		expireRootFingerprints();
+		expireProbe(runtime);
+		var replaced = runtime(application);
+		assertNotSame("Its content not known yet: prepared again", runtime, replaced);
+		Files.setLastModifiedTime(module, java.nio.file.attribute.FileTime.fromMillis(Files.getLastModifiedTime(module).toMillis() + 2000));
+		expireRootFingerprints();
+		expireProbe(replaced);
+		assertSame("The content it was prepared from: kept", replaced, runtime(application));
+		var key = "project:" + application.getDirFile().getCanonicalPath();
+		assertTrue(((Map<?, ?>) staticField("rootFingerprints")).containsKey(key));
+		FlowEngineBridge.invalidateProjectDataCaches(application.getDirPath());
+		assertFalse("The hashes go with the fingerprint of the root", ((Map<?, ?>) staticField("rootFingerprints")).containsKey(key));
+	}
 }

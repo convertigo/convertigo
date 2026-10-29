@@ -726,21 +726,21 @@ tasks.named('check') { dependsOn 'flowMetadataCacheTest' }
 
 tasks.register('flowServerCacheTest', JavaExec) {
     group = 'verification'
-    description = 'Shared compiled modules, isolated exports and bounded source revision caches.'
+    description = 'Shared compiled modules, isolated exports, bounded source revision caches and the walk of the source fingerprints.'
     dependsOn testClasses
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'org.junit.runner.JUnitCore'
-    args 'com.twinsoft.convertigo.engine.flow.FlowServerCacheTest'
+    args 'com.twinsoft.convertigo.engine.flow.FlowServerCacheTest', 'com.twinsoft.convertigo.engine.flow.FlowSourceFingerprintTest'
 }
 tasks.named('check') { dependsOn 'flowServerCacheTest' }
 tasks.register('flowStatelessRuntimeTest', JavaExec) {
 	group = 'verification'
-	description = 'Revision publication, preparations by key, concurrent lexical bindings and request frame isolation.'
+	description = 'Revision publication, preparations by key, probes of the source revision without waiting, concurrent lexical bindings and request frame isolation.'
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.flow.FlowStatelessRuntimeTest', 'com.twinsoft.convertigo.engine.flow.FlowRuntimePreparationTest',
-		'com.twinsoft.convertigo.engine.flow.FlowStatelessProviderTest'
+		'com.twinsoft.convertigo.engine.flow.FlowRuntimeRevisionProbeTest', 'com.twinsoft.convertigo.engine.flow.FlowStatelessProviderTest'
 }
 tasks.named('check') { dependsOn 'flowStatelessRuntimeTest' }
 tasks.register('flowRuntimeWarmupTest', JavaExec) {

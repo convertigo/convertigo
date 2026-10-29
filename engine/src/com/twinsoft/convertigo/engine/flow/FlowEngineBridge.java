@@ -2453,42 +2453,64 @@ public class FlowEngineBridge {
 	}
 
 	// The dependency fingerprint walks every source file of the engine, the project and its
-	// references: about a thousand metadata calls, seconds on a network file system, on each
-	// cacheable call. Writes made through Convertigo already bump the cache generations
-	// (part of the key) and clear these entries; files changed outside Convertigo (git,
-	// shell, deployment) are seen through a cheap per-root stamp, or after a few seconds.
+	// references: about a thousand entries, each one read of its attributes, still seconds on a
+	// network file system, on each cacheable call. Writes made through Convertigo already bump the
+	// cache generations (part of the key) and clear these entries; files changed outside Convertigo
+	// (git, shell, deployment) are seen through a cheap per-root stamp, or after a few seconds.
 	private static final long ROOT_FINGERPRINT_TTL_MS = 5000;
 	private static final Map<String, RootFingerprint> rootFingerprints = new ConcurrentHashMap<>();
+	/** The entries of a source root ({@link FlowSourceLayout#root}) the runtimes read, relative to it. */
+	private static final String[] FLOW_ROOT_ENTRIES = { "Engine.js", "engine.yaml", "modules", "blocks", "types", "lib", "resources", "schemas" };
 
-	private record RootFingerprint(String stamp, String value, long computedAt) {
+	/** @param files the state of its files, the hashes of those read: kept with this entry only */
+	private record RootFingerprint(String stamp, String value, long computedAt, Map<String, FlowSourceFingerprint.FileState> files) {
 	}
 
-	private static String cachedRootFingerprint(String kind, File root, File flowRoot, java.util.function.Consumer<StringBuilder> walk) {
+	/**
+	 * @param root the folder of the project, its key
+	 * @param flowRoot its source root
+	 * @param base the folder walk names its entries from
+	 */
+	private static String cachedRootFingerprint(String kind, File root, File flowRoot, File base,
+			java.util.function.Consumer<FlowSourceFingerprint> walk) {
 		var key = kind + ":" + canonicalPath(root);
 		var stamp = new StringBuilder();
 		for (var file : new File[] { root, flowRoot, new File(root, "c8oProject.yaml"), new File(root, "flow-deploy.json"),
 				new File(flowRoot, "Engine.js"), new File(flowRoot, "engine.yaml") }) {
-			stamp.append(file.lastModified()).append(':').append(file.length()).append(';');
+			try {
+				var attributes = java.nio.file.Files.readAttributes(file.toPath(), java.nio.file.attribute.BasicFileAttributes.class);
+				stamp.append(attributes.lastModifiedTime().toMillis()).append(':').append(attributes.isRegularFile() ? attributes.size() : 0);
+			} catch (java.io.IOException | RuntimeException e) {
+				stamp.append("0:0");
+			}
+			stamp.append(';');
 		}
 		var now = System.currentTimeMillis();
 		var cached = rootFingerprints.get(key);
 		if (cached != null && cached.stamp().equals(stamp.toString()) && now - cached.computedAt() < ROOT_FINGERPRINT_TTL_MS) {
 			return cached.value();
 		}
-		var value = new StringBuilder();
-		walk.accept(value);
-		rootFingerprints.put(key, new RootFingerprint(stamp.toString(), value.toString(), now));
-		return value.toString();
+		// a file rewritten with the same content keeps showing as the walk before showed it
+		var fingerprint = new FlowSourceFingerprint(base, cached == null ? null : cached.files());
+		walk.accept(fingerprint);
+		var value = fingerprint.text();
+		rootFingerprints.put(key, new RootFingerprint(stamp.toString(), value, now, fingerprint.files()));
+		return value;
 	}
 
-	private static String methodResponseDependencyFingerprint(File engineFile, JSONObject request) {
+	static String methodResponseDependencyFingerprint(File engineFile, JSONObject request) {
 		var source = new StringBuilder();
 		var engineRoot = engineFile == null ? null : engineFile.getParentFile();
 		if (engineRoot == null) {
-			appendFlowRootFingerprint(source, "engine", null);
+			source.append("engine:null\n");
 		} else {
-			source.append(cachedRootFingerprint("engine", engineRoot.getParentFile() == null ? engineRoot : engineRoot.getParentFile(),
-					engineRoot, walk -> appendFlowRootFingerprint(walk, "engine", engineRoot)));
+			var root = engineRoot.getParentFile() == null ? engineRoot : engineRoot.getParentFile();
+			source.append(cachedRootFingerprint("engine", root, engineRoot, engineRoot, walk -> {
+				walk.header("engine");
+				for (var entry : FLOW_ROOT_ENTRIES) {
+					walk.entry(entry);
+				}
+			}));
 		}
 		var projectDir = request == null ? "" : request.optString("projectDir", "");
 		if (projectDir != null && !projectDir.isBlank()) {
@@ -2507,16 +2529,13 @@ public class FlowEngineBridge {
 			return;
 		}
 		source.append(label).append(":").append(canonicalPath(projectRoot)).append("\n");
-		source.append(cachedRootFingerprint("project", projectRoot, new File(projectRoot, ENGINE_BASE_PATH),
-				walk -> appendProjectTreeFingerprint(walk, projectRoot)));
-	}
-
-	private static void appendProjectTreeFingerprint(StringBuilder source, File projectRoot) {
-		var label = "project";
-		appendFileFingerprint(source, new File(projectRoot, "c8oProject.yaml"));
-		var flowRoot = new File(projectRoot, ENGINE_BASE_PATH);
-		appendFlowRootFingerprint(source, label + ".flow", flowRoot);
-		appendDirectoryFingerprint(source, new File(projectRoot, FlowSourceLayout.current().flows()));
+		source.append(cachedRootFingerprint("project", projectRoot, new File(projectRoot, ENGINE_BASE_PATH), projectRoot, walk -> {
+			walk.header("project").entry("c8oProject.yaml");
+			for (var entry : FLOW_ROOT_ENTRIES) {
+				walk.entry(ENGINE_BASE_PATH + entry);
+			}
+			walk.entry(FlowSourceLayout.current().flows());
+		}));
 	}
 
 	private static void appendReferencedProjectFingerprints(StringBuilder source, File projectRoot) {
@@ -2563,18 +2582,6 @@ public class FlowEngineBridge {
 		return null;
 	}
 
-	private static void appendFlowRootFingerprint(StringBuilder source, String label, File flowRoot) {
-		source.append(label).append(":").append(canonicalPath(flowRoot)).append("\n");
-		appendFileFingerprint(source, new File(flowRoot, "Engine.js"));
-		appendFileFingerprint(source, new File(flowRoot, "engine.yaml"));
-		appendDirectoryFingerprint(source, new File(flowRoot, "modules"));
-		appendDirectoryFingerprint(source, new File(flowRoot, "blocks"));
-		appendDirectoryFingerprint(source, new File(flowRoot, "types"));
-		appendDirectoryFingerprint(source, new File(flowRoot, "lib"));
-		appendDirectoryFingerprint(source, new File(flowRoot, "resources"));
-		appendDirectoryFingerprint(source, new File(flowRoot, "schemas"));
-	}
-
 	private static void appendRequestFileFingerprint(StringBuilder source, String label, String path) {
 		if (path == null || path.isBlank()) {
 			return;
@@ -2595,31 +2602,6 @@ public class FlowEngineBridge {
 			source.append(":missing");
 		}
 		source.append("\n");
-	}
-
-	private static void appendDirectoryFingerprint(StringBuilder source, File dir) {
-		if (dir == null) {
-			source.append("d:null\n");
-			return;
-		}
-		source.append("d:").append(canonicalPath(dir));
-		if (!dir.isDirectory()) {
-			source.append(":missing\n");
-			return;
-		}
-		source.append(":").append(dir.lastModified()).append("\n");
-		var files = dir.listFiles();
-		if (files == null) {
-			return;
-		}
-		Arrays.sort(files, (a, b) -> a.getName().compareTo(b.getName()));
-		for (var file : files) {
-			if (file.isDirectory()) {
-				appendDirectoryFingerprint(source, file);
-			} else {
-				appendFileFingerprint(source, file);
-			}
-		}
 	}
 
 	private static String canonicalPath(File file) {
