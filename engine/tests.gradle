@@ -726,11 +726,12 @@ tasks.named('check') { dependsOn 'flowMetadataCacheTest' }
 
 tasks.register('flowServerCacheTest', JavaExec) {
     group = 'verification'
-    description = 'Shared compiled modules, isolated exports, bounded source revision caches and the walk of the source fingerprints.'
+    description = 'Shared compiled modules, isolated exports, bounded source snapshots loaded once per key without a shared lock, and the walk of the source fingerprints.'
     dependsOn testClasses
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'org.junit.runner.JUnitCore'
-    args 'com.twinsoft.convertigo.engine.flow.FlowServerCacheTest', 'com.twinsoft.convertigo.engine.flow.FlowSourceFingerprintTest'
+    args 'com.twinsoft.convertigo.engine.flow.FlowServerCacheTest', 'com.twinsoft.convertigo.engine.flow.FlowSourceCacheTest',
+        'com.twinsoft.convertigo.engine.flow.FlowSourceFingerprintTest'
 }
 tasks.named('check') { dependsOn 'flowServerCacheTest' }
 tasks.register('flowStatelessRuntimeTest', JavaExec) {

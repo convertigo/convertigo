@@ -292,7 +292,7 @@ public class FlowEngineBridge {
 			engineRuntimeCache.clear();
 		}
 		engineSourceCache.clear();
-		rootFingerprints.clear();
+		forgetRootFingerprints();
 		disposeEngineRuntimes(runtimes, null);
 		methodResponseCache.clear();
 		methodResponseCacheInvalidations.increment();
@@ -307,7 +307,7 @@ public class FlowEngineBridge {
 			commonDataRevision.accumulateAndGet(dataGeneration.incrementAndGet(), Math::max);
 			sharedRuntimes.clear();
 		}
-		rootFingerprints.clear();
+		forgetRootFingerprints();
 		clearMethodResponseCache();
 	}
 
@@ -366,8 +366,7 @@ public class FlowEngineBridge {
 			// the snapshots of the other projects are of their own files
 			serverSources.clear(new File(directory));
 		}
-		rootFingerprints.remove("engine:" + root);
-		rootFingerprints.remove("project:" + root);
+		forgetRootFingerprints("engine:" + root, "project:" + root);
 		clearMethodResponseCache(roots);
 	}
 
@@ -2458,7 +2457,12 @@ public class FlowEngineBridge {
 	// cache generations (part of the key) and clear these entries; files changed outside Convertigo
 	// (git, shell, deployment) are seen through a cheap per-root stamp, or after a few seconds.
 	private static final long ROOT_FINGERPRINT_TTL_MS = 5000;
+	/** Its monitor orders the publications and the removals, never held while a root is walked. */
 	private static final Map<String, RootFingerprint> rootFingerprints = new ConcurrentHashMap<>();
+	/** The walks in progress, by root: removed once published or failed, so a failure is never kept. */
+	private static final Map<String, CompletableFuture<String>> rootFingerprintWalks = new ConcurrentHashMap<>();
+	/** Advanced by each removal of fingerprints, under the monitor of the map: a walk started before it is not kept. */
+	private static volatile long rootFingerprintRemovals;
 	/** The entries of a source root ({@link FlowSourceLayout#root}) the runtimes read, relative to it. */
 	private static final String[] FLOW_ROOT_ENTRIES = { "Engine.js", "engine.yaml", "modules", "blocks", "types", "lib", "resources", "schemas" };
 
@@ -2471,7 +2475,7 @@ public class FlowEngineBridge {
 	 * @param flowRoot its source root
 	 * @param base the folder walk names its entries from
 	 */
-	private static String cachedRootFingerprint(String kind, File root, File flowRoot, File base,
+	static String cachedRootFingerprint(String kind, File root, File flowRoot, File base,
 			java.util.function.Consumer<FlowSourceFingerprint> walk) {
 		var key = kind + ":" + canonicalPath(root);
 		var stamp = new StringBuilder();
@@ -2485,17 +2489,83 @@ public class FlowEngineBridge {
 			}
 			stamp.append(';');
 		}
-		var now = System.currentTimeMillis();
-		var cached = rootFingerprints.get(key);
-		if (cached != null && cached.stamp().equals(stamp.toString()) && now - cached.computedAt() < ROOT_FINGERPRINT_TTL_MS) {
-			return cached.value();
+		// single flight for each root: one caller walks it, the others wait for that walk, other roots walked meanwhile
+		for (;;) {
+			var cached = rootFingerprints.get(key);
+			var same = cached != null && cached.stamp().equals(stamp.toString());
+			if (same && System.currentTimeMillis() - cached.computedAt() < ROOT_FINGERPRINT_TTL_MS) {
+				return cached.value();
+			}
+			var walking = rootFingerprintWalks.get(key);
+			if (walking == null) {
+				var created = new CompletableFuture<String>();
+				walking = rootFingerprintWalks.putIfAbsent(key, created);
+				if (walking == null) {
+					return walkRoot(key, created, stamp.toString(), cached, base, walk);
+				}
+			}
+			if (same) {
+				// expired only: its value of a few seconds ago, while another caller walks it again
+				return cached.value();
+			}
+			try {
+				var value = walking.get();
+				if (value != null) {
+					return value;
+				}
+			} catch (java.util.concurrent.ExecutionException failure) {
+				if (failure.getCause() instanceof RuntimeException runtime) throw runtime;
+				if (failure.getCause() instanceof Error error) throw error;
+				throw new IllegalStateException(failure.getCause());
+			} catch (InterruptedException interrupted) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException("Interrupted while waiting for the walk of " + key, interrupted);
+			}
 		}
-		// a file rewritten with the same content keeps showing as the walk before showed it
-		var fingerprint = new FlowSourceFingerprint(base, cached == null ? null : cached.files());
-		walk.accept(fingerprint);
-		var value = fingerprint.text();
-		rootFingerprints.put(key, new RootFingerprint(stamp.toString(), value, now, fingerprint.files()));
+	}
+
+	private static String walkRoot(String key, CompletableFuture<String> walking, String stamp, RootFingerprint cached, File base,
+			java.util.function.Consumer<FlowSourceFingerprint> walk) {
+		var started = rootFingerprintRemovals;
+		var now = System.currentTimeMillis();
+		String value;
+		FlowSourceFingerprint fingerprint;
+		try {
+			// a file rewritten with the same content keeps showing as the walk before showed it
+			fingerprint = new FlowSourceFingerprint(base, cached == null ? null : cached.files());
+			walk.accept(fingerprint);
+			value = fingerprint.text();
+		} catch (Throwable failure) {
+			rootFingerprintWalks.remove(key, walking);
+			// the interruption of this caller is not a failure of the walk: a caller waiting for it walks again
+			if (FlowRuntimeApi.interruption(failure)) walking.complete(null);
+			else walking.completeExceptionally(failure);
+			throw failure;
+		}
+		synchronized (rootFingerprints) {
+			// forgotten since the walk started: it may be older than the change
+			if (rootFingerprintRemovals == started) {
+				rootFingerprints.put(key, new RootFingerprint(stamp, value, now, fingerprint.files()));
+			}
+		}
+		rootFingerprintWalks.remove(key, walking);
+		walking.complete(value);
 		return value;
+	}
+
+	/** Forgets the fingerprints of these roots, of all of them without any: no walk started before is kept or joined. */
+	private static void forgetRootFingerprints(String... keys) {
+		synchronized (rootFingerprints) {
+			rootFingerprintRemovals++;
+			rootFingerprintWalks.clear();
+			if (keys.length == 0) {
+				rootFingerprints.clear();
+			} else {
+				for (var key : keys) {
+					rootFingerprints.remove(key);
+				}
+			}
+		}
 	}
 
 	static String methodResponseDependencyFingerprint(File engineFile, JSONObject request) {
