@@ -1121,6 +1121,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 
 	private void clean() {
+		// A context keeps its sequence between requests, but not the evaluated values of its last step.
+		currentStep = null;
     	cleanCopies();
 
 		Enumeration<Long> e = Collections.enumeration(loadedSteps.keySet());

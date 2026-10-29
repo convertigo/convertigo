@@ -34,6 +34,7 @@
 - [#1252](https://github.com/convertigo/convertigo/issues/1252) [Redis] Fixed, an instance now only drops its own copies of the stored contexts when they expire or when it stops, and no longer deletes from Redis a context that other instances may still use
 - [#1254](https://github.com/convertigo/convertigo/issues/1254) [Engine] Fixed, concurrent requests of a session asking for a dynamic context (`__context=*`) now each get their own context instead of sometimes sharing one and waiting for each other, and a request removing its context no longer holds its response until another request of that context ends
 - [#1255](https://github.com/convertigo/convertigo/issues/1255) [Engine] Fixed, a compiled script reading one of its top-level `const` no longer keeps in memory the scopes of its first runs, with everything they reach, for the life of the engine: Rhino is updated to 1.9.2, whose default refusal of the Java serialization of its objects does not concern the engine
+- [#1260](https://github.com/convertigo/convertigo/issues/1260) [Engine] Fixed, an idle context no longer keeps in memory the values evaluated by the last step of its sequence, such as its JSON or XML data and the JavaScript scopes they reach
 
 ## 8.4.6
 
