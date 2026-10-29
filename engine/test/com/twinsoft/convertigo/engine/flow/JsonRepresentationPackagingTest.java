@@ -6,14 +6,20 @@ import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.jar.JarFile;
+import org.junit.Assume;
 import org.junit.Test;
 
 /** Load only the distributable artifacts: build/classes must not hide packaging errors. */
 public class JsonRepresentationPackagingTest {
 	@Test
 	public void packagedEngineNeedsOnlyPublicRhinoClasses() throws Exception {
-		var engine = Path.of(System.getProperty("representation.engineJar"));
-		var dependencies = Path.of(System.getProperty("representation.dependenciesJar"));
+		var engineJar = System.getProperty("representation.engineJar");
+		var dependenciesJar = System.getProperty("representation.dependenciesJar");
+		// the task jsonRepresentationPackagingTest builds the artifacts and names them; the unit test task has none
+		Assume.assumeTrue("Run by the task jsonRepresentationPackagingTest, which gives the packaged artifacts",
+				engineJar != null && dependenciesJar != null);
+		var engine = Path.of(engineJar);
+		var dependencies = Path.of(dependenciesJar);
 		try (var jar = new JarFile(engine.toFile())) {
 			assertFalse("Engine classes must not extend Rhino internals from its package",
 					jar.stream().anyMatch(entry -> entry.getName().startsWith("org/mozilla/")));
