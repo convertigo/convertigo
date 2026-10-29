@@ -1,8 +1,42 @@
 # Project YAML formats
 
-A project keeps the format it was opened with. New projects, including copies created
-from downloaded legacy templates by either Studio, use standard YAML. Importing,
-opening or building an existing project does not convert it.
+New projects, including copies created from downloaded legacy templates by either
+Studio, use standard YAML, and a project read in standard YAML stays in it. A project
+read in the legacy format keeps it while older engines can run its beans: once they
+require engine 8.5.0 or later, for example because it contains a bean introduced in
+8.5, its next save or export writes standard YAML, since no older engine opens it
+anyway. Opening, importing or reloading a project never changes its files; only an
+explicit save or export does. Below 8.5.0, conversion is an explicit choice.
+
+## Format written by a save
+
+| Read as | Minimum required by the beans | Written by a save or an export |
+| --- | --- | --- |
+| New project | any | standard, minimum `max(beans, 8.5.0)` |
+| Standard | any | standard, minimum `max(beans, 8.5.0)` |
+| Legacy | 8.5.0 or later | **standard**, minimum of the beans |
+| Legacy | below 8.5.0 | legacy, minimum of the beans |
+
+The minimum is the one the shrink computes from the default values of the beans the
+project contains, with its migration suffix (`8.5.0.m006`). The format changes when
+the project is written by:
+
+- a save from either Studio, including saving properties and renaming the project;
+- the explicit conversion (below), whatever the minimum;
+- an export: the CLI `car` and `deploy` commands save the project before building its
+  archive, and an archive exported without its test cases is built from a copy written
+  for it (standard YAML in the archive, while the project's own files keep their
+  format until it is saved). An archive with its test cases holds the files as saved.
+
+Loading writes nothing, except the migration of a project from an older engine as
+it loads; that write keeps the format the project was read with. The project takes
+the new format once its sources are written: the Studio tree tooltip and
+`studio.treeview.Get` (`yamlFormat`) then report `standard`, the conversion action is
+no longer offered, and the other instances of a shared workspace reload the project.
+If the standard sources cannot be written, the previous files are restored, the
+project keeps its legacy format and minimum version in memory, and no XML recovery
+file is written. Java code uses `YamlConverter.savedFormat(format, minVersion)` for
+the rule and `CarUtils.ExportFormat` to choose a write's format.
 
 ## Identification and compatibility
 
@@ -110,8 +144,10 @@ YAML 1.2 parser (the underlying syntax reader retains YAML 1.1 line-break rules)
 ## Explicit conversion
 
 Both Studios offer **Convert to standard YAML…** in a legacy project's context
-menu. The confirmation explains that current changes are saved, the minimum
-engine version becomes 8.5, and older engines can no longer open the project.
+menu, for a project older engines can still run (a project whose beans require
+8.5.0 is converted by its next save anyway). The confirmation explains that current
+changes are saved, the minimum engine version becomes 8.5, and older engines can no
+longer open the project.
 The web Studio also shows the format in the project label's tooltip. After
 conversion, the web action disappears and the Eclipse action is disabled.
 
@@ -126,7 +162,8 @@ of a shared workspace to reload it. `CarUtils.convertToStandardYaml(project)` on
 writes the files.
 
 Conversion uses the loaded beans and the regular shrink calculation, not a direct
-replacement of the old header: default values must retain their meaning. A failure before committing the sources restores the in-memory format; a failure
+replacement of the old header: default values must retain their meaning. The project takes the standard format only once its sources are
+committed: a failure before leaves its format and minimum version unchanged, a failure
 while subsequently saving sidecars retains the committed standard format. The
 standard writer renders and checks file paths before replacement, compares UTF-8
 bytes with existing sources, and only replaces changed files. Unchanged sources retain
@@ -145,11 +182,14 @@ and Eclipse wizard definitions. The archives live in external `c8oprj-template-*
 repositories, not in this repository. `studio.project.Create` and
 `NewProjectWizard.createFromBlankProject` select standard YAML when saving their new
 local copy. Existing downloaded template releases remain usable. Creating a Java
-`Project` also defaults to standard YAML. The CLI loads existing projects and retains
-their format; it has no separate template-creation command.
+`Project` also defaults to standard YAML. The CLI loads existing projects in their
+format; its `car` and `deploy` commands save them first, so a legacy project whose
+beans require 8.5.0 is written in standard YAML in the checkout it builds. It has
+no separate template-creation command.
 
 Run `:engine:standardYamlTest` for the focused suite and `:engine:test :engine:check`
 for all engine checks. The regression corpus includes every project descriptor in
 the repository outside generated directories, exact legacy byte compatibility,
-DOM node/scalar preservation, included files, malformed inputs, conversion and
-creation from a legacy template.
+DOM node/scalar preservation, included files, malformed inputs, conversion,
+creation from a legacy template, and the save of a legacy project whose beans
+require 8.5.0 (legacy while it loads, standard once saved).

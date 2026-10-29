@@ -18,13 +18,20 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.beans.BeansDefaultValues;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.engine.admin.services.projects.ConvertYaml;
 import com.twinsoft.convertigo.engine.admin.services.studio.project.Create;
 import com.twinsoft.convertigo.engine.util.CarUtils;
+import com.twinsoft.convertigo.engine.util.CarUtils.ExportFormat;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
 import com.twinsoft.convertigo.engine.util.YamlConverter.Format;
@@ -70,6 +77,94 @@ public class StandardYamlLifecycleTest {
 					case "getParameter" -> parameters.get(args[0]);
 					default -> null;
 				});
+	}
+
+	/** the project of its files, read as DatabaseObjectsManager.importProject reads them, without writing them */
+	private Project load(Path yaml) throws Exception {
+		var document = BeansDefaultValues.unshrinkProject(YamlConverter.readYaml(yaml.toFile()));
+		var root = document.getDocumentElement();
+		var element = (Element) XMLUtils.findChildNode(root, Node.ELEMENT_NODE);
+		element.setAttribute("version", root.getAttribute("beans"));
+		var importer = DatabaseObjectsManager.class.getDeclaredMethod("importDatabaseObject", Node.class, DatabaseObject.class);
+		importer.setAccessible(true);
+		var project = (Project) importer.invoke(Engine.theApp.databaseObjectsManager, element, null);
+		projects.put(project.getName(), project);
+		return project;
+	}
+	/** the format studio.treeview.Get reports for a project, loaded or not */
+	private static String treeFormat(String projectName, boolean loaded) throws Exception {
+		var service = new com.twinsoft.convertigo.engine.admin.services.studio.treeview.Get();
+		var method = service.getClass().getDeclaredMethod("getProjectNode", String.class, boolean.class);
+		method.setAccessible(true);
+		return ((JSONObject) method.invoke(service, projectName, loaded)).getString("yamlFormat");
+	}
+
+	/**
+	 * A bean introduced in 8.5 makes the project require engine 8.5.0, which no older engine opens: read from legacy
+	 * files, the project stays legacy while it loads, as its migration at load writes it, and its next save writes
+	 * standard YAML, which the Studio and the services report from then on.
+	 */
+	@Test public void legacyProjectWhoseBeansRequire85IsSavedInStandardYaml() throws Exception {
+		Project earlier = project("Recent", Format.LEGACY);
+		var flow = new Flow(); flow.setName("Answer"); flow.isSubLoaded = true; earlier.add(flow);
+		// the legacy files an engine without the rule wrote
+		CarUtils.exportProject(earlier, yaml(earlier).toString(), ExportFormat.KEPT);
+		assertEquals(Format.LEGACY, YamlConverter.getFormat(yaml(earlier).toFile()));
+		assertTrue(Files.readString(yaml(earlier)).startsWith("↑convertigo: 8.5.0.m006\n"));
+		byte[] legacy = Files.readAllBytes(yaml(earlier));
+		var beansBefore = BeansDefaultValues.unshrinkProject(YamlConverter.readYaml(yaml(earlier).toFile()));
+
+		Project project = load(yaml(earlier));
+		assertNotSame(earlier, project);
+		assertEquals("read from legacy files", Format.LEGACY, project.getYamlFormat());
+		assertEquals("8.5.0.m006", project.getMinVersion());
+		assertEquals("legacy", treeFormat("Recent", true));
+		// its migration as it loads is not a save
+		CarUtils.exportProject(project, yaml(project).toString(), ExportFormat.KEPT);
+		assertEquals(Format.LEGACY, project.getYamlFormat());
+		assertArrayEquals(legacy, Files.readAllBytes(yaml(project)));
+
+		// an export elsewhere (an archive without its test cases) is written in standard YAML; the project keeps its files
+		Path copy = folder.newFolder("export").toPath().resolve("c8oProject.yaml");
+		CarUtils.exportProject(project, copy.toString());
+		assertEquals(Format.STANDARD, YamlConverter.getFormat(copy.toFile()));
+		assertEquals(Format.LEGACY, project.getYamlFormat());
+		assertArrayEquals(legacy, Files.readAllBytes(yaml(project)));
+
+		// the save
+		Engine.theApp.databaseObjectsManager.exportProject(project);
+		assertEquals(Format.STANDARD, project.getYamlFormat());
+		assertEquals("the minimum of its beans", "8.5.0.m006", project.getMinVersion());
+		assertEquals(Format.STANDARD, YamlConverter.getFormat(yaml(project).toFile()));
+		assertTrue(Files.readString(yaml(project)).startsWith("convertigo: 8.5.0.m006\n"));
+		assertEquals("Recent", DatabaseObjectsManager.getProjectName(yaml(project).toFile()));
+		assertEquals("8.5.0.m006", DatabaseObjectsManager.getProjectVersion(yaml(project).toFile()));
+		var beansAfter = BeansDefaultValues.unshrinkProject(YamlConverter.readYaml(yaml(project).toFile()));
+		assertTrue("the same beans and values", beansBefore.getDocumentElement().getFirstChild()
+				.isEqualNode(beansAfter.getDocumentElement().getFirstChild()));
+		assertEquals("standard", treeFormat("Recent", true));
+		projects.remove("Recent");
+		assertEquals("standard", treeFormat("Recent", false));
+
+		// read again, it stays standard and its next save writes the same files
+		byte[] standard = Files.readAllBytes(yaml(project));
+		Project reloaded = load(yaml(project));
+		assertEquals(Format.STANDARD, reloaded.getYamlFormat());
+		Engine.theApp.databaseObjectsManager.exportProject(reloaded);
+		assertArrayEquals(standard, Files.readAllBytes(yaml(reloaded)));
+	}
+
+	@Test public void legacyProjectBelow85KeepsItsFormatAndStandardKeepsTheFloor() throws Exception {
+		Project legacy = project("Older", Format.LEGACY);
+		Engine.theApp.databaseObjectsManager.exportProject(legacy);
+		assertEquals(Format.LEGACY, legacy.getYamlFormat());
+		assertEquals(Format.LEGACY, YamlConverter.getFormat(yaml(legacy).toFile()));
+		assertTrue("the minimum of its beans", VersionUtils.compare((String) legacy.getMinVersion(), YamlConverter.STANDARD_MIN_VERSION) < 0);
+		Project standard = project("Newer", Format.STANDARD);
+		Engine.theApp.databaseObjectsManager.exportProject(standard);
+		assertEquals(Format.STANDARD, standard.getYamlFormat());
+		assertEquals("max(beans, 8.5.0)", "8.5.0.m006", standard.getMinVersion());
+		assertEquals(Format.STANDARD, YamlConverter.getFormat(yaml(standard).toFile()));
 	}
 
 	@Test public void loadedLegacyStaysLegacyAndExplicitServiceConversionIsDurable() throws Exception {

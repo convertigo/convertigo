@@ -65,6 +65,18 @@ public class YamlConverter {
 		setFormat(target, getFormat(source));
 	}
 
+	/**
+	 * The format a save or an export writes: standard for a project read in it, or whose beans require engine
+	 * {@value #STANDARD_MIN_VERSION} or later (no older engine opens it anyway); else the legacy format it was read with.
+	 *
+	 * @param format the format the project was read with
+	 * @param minVersion the minimum version its beans require, as the shrink computes it
+	 */
+	public static Format savedFormat(Format format, String minVersion) {
+		return format == Format.STANDARD || VersionUtils.compare(minVersion, STANDARD_MIN_VERSION) >= 0
+				? Format.STANDARD : Format.LEGACY;
+	}
+
 	/** Keep the migration suffix while imposing the file format's compatibility floor. */
 	public static String minimumVersion(String version, Format format) {
 		if (format == Format.STANDARD && VersionUtils.compare(version, STANDARD_MIN_VERSION) < 0) {

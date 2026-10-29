@@ -251,6 +251,16 @@ public class StandardYamlConverterTest {
 		}
 	}
 
+	@Test public void aSaveWritesStandardOnceTheBeansRequire85() {
+		assertEquals(Format.LEGACY, YamlConverter.savedFormat(Format.LEGACY, "7.9.0.m006"));
+		assertEquals(Format.LEGACY, YamlConverter.savedFormat(Format.LEGACY, "8.4.7.m006"));
+		assertEquals(Format.STANDARD, YamlConverter.savedFormat(Format.LEGACY, "8.5.0.m006"));
+		assertEquals(Format.STANDARD, YamlConverter.savedFormat(Format.LEGACY, "8.5.0"));
+		assertEquals(Format.STANDARD, YamlConverter.savedFormat(Format.LEGACY, "8.10.0.m007"));
+		assertEquals(Format.STANDARD, YamlConverter.savedFormat(Format.LEGACY, "10.0.0.m006"));
+		assertEquals("a standard project stays standard", Format.STANDARD, YamlConverter.savedFormat(Format.STANDARD, "7.9.0.m006"));
+	}
+
 	@Test public void minimumVersionAndFormatSurviveShrinkCloneUnshrinkAndProjectExport() throws Exception {
 		assertEquals(Format.STANDARD, new Project().getYamlFormat());
 		assertEquals("8.5.0.m006", YamlConverter.minimumVersion("7.9.0.m006", Format.STANDARD));

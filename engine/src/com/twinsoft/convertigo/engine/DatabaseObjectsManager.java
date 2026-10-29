@@ -1011,11 +1011,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	/**
-	 * Saves a project to its files. On a shared workspace, the other instances reload it
+	 * Saves a project to its files, in standard YAML once its beans require engine 8.5.0 even if it was read in the
+	 * legacy format (CarUtils.ExportFormat.SAVED). On a shared workspace, the other instances reload it
 	 * (SharedWorkspaceSyncManager.markProjectReload).
 	 */
 	public void exportProject(Project project) throws EngineException {
-		exportProject(project, true, false);
+		exportProject(project, true, CarUtils.ExportFormat.SAVED);
 	}
 
 	/**
@@ -1023,24 +1024,26 @@ public class DatabaseObjectsManager implements AbstractManager {
 	 * other instances of a shared workspace reload it, in its new format.
 	 */
 	public void convertProjectToStandardYaml(Project project) throws EngineException {
-		exportProject(project, true, true);
+		exportProject(project, true, CarUtils.ExportFormat.STANDARD);
 	}
 
 	/**
 	 * @param announce whether the other instances of a shared workspace reload it: not for a migration at its load
-	 * @param standard whether the project is converted to standard YAML
+	 * @param format the format of its files: the one it was read with for a migration at its load, which is not a save
 	 */
-	private void exportProject(Project project, boolean announce, boolean standard) throws EngineException {
+	private void exportProject(Project project, boolean announce, CarUtils.ExportFormat format) throws EngineException {
 		String projectName = project.getName();
 
 		// Export project
 		String exportedProjectFileName = Engine.projectFile(projectName).getAbsolutePath();
-		Engine.logDatabaseObjectManager.info((standard ? "Converting project \"" + projectName + "\" to standard YAML, saving it to: "
+		Engine.logDatabaseObjectManager.info((format == CarUtils.ExportFormat.STANDARD
+				? "Converting project \"" + projectName + "\" to standard YAML, saving it to: "
 				: "Saving project \"" + projectName + "\" to: ") + exportedProjectFileName);
-		if (standard) {
-			CarUtils.convertToStandardYaml(project, exportedProjectFileName);
-		} else {
-			CarUtils.exportProject(project, exportedProjectFileName);
+		var readFormat = project.getYamlFormat();
+		CarUtils.exportProject(project, exportedProjectFileName, format);
+		if (format == CarUtils.ExportFormat.SAVED && readFormat != project.getYamlFormat()) {
+			Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" requires engine " + project.getMinVersion()
+					+ ": saved in standard YAML instead of the legacy format it was read with");
 		}
 		// its descriptor and beans written: the authoring keys walk the project again
 		com.twinsoft.convertigo.engine.flow.FlowEngineBridge.projectFilesWritten(project.getDirFile());
@@ -1673,8 +1676,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 				// TODO: Migration to 4.0.1 (parent bean handles children order
 				// (priorities))!!
 				if (VersionUtils.compare(version[0], "4.0.1") >= 0) {
-					// each instance loading it migrates it the same way: none is told
-					exportProject(project, false, false);
+					// each instance loading it migrates it the same way: none is told; loading it is not a save, its
+					// format stays the one it was read with
+					exportProject(project, false, CarUtils.ExportFormat.KEPT);
 				} else {
 					Engine.logDatabaseObjectManager.error("Project \"" + projectName
 							+ "\" has been partially migrated. It may not work properly. Please import it trought the Studio and export/upload it again.");

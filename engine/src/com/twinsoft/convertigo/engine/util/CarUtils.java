@@ -230,24 +230,55 @@ public class CarUtils {
 		return undeployedFiles;
 	}
 
-	public static void exportProject(Project project, String fileName) throws EngineException {
-		exportProject(project, fileName, true);
-	}
-	
-	private static void exportProject(Project project, String fileName, boolean includeTestCases) throws EngineException {
-		exportProject(project, fileName, includeTestCases, null);
+	/** The YAML format a write of the files of a project gives them. */
+	public enum ExportFormat {
+		/** the format the project was read with: its migration as it loads, which is not a save */
+		KEPT,
+		/**
+		 * standard YAML for a project read in it or whose beans require engine {@value YamlConverter#STANDARD_MIN_VERSION}
+		 * or later, else the format the project was read with ({@link YamlConverter#savedFormat}): a save or an export
+		 */
+		SAVED,
+		/** standard YAML: the explicit conversion */
+		STANDARD
 	}
 
-	private static void exportProject(Project project, String fileName, boolean includeTestCases, Runnable sourceWritten) throws EngineException {
+	/** Saves or exports a project; it switches to standard YAML once its beans require engine 8.5.0. */
+	public static void exportProject(Project project, String fileName) throws EngineException {
+		exportProject(project, fileName, ExportFormat.SAVED);
+	}
+
+	/**
+	 * @param format the format of the files written; the project takes it when they are its own files, only once they
+	 *        are written: a failed write leaves its format and minimum version as they were
+	 */
+	public static void exportProject(Project project, String fileName, ExportFormat format) throws EngineException {
+		exportProject(project, fileName, true, format);
+	}
+
+	private static void exportProject(Project project, String fileName, boolean includeTestCases) throws EngineException {
+		exportProject(project, fileName, includeTestCases, ExportFormat.SAVED);
+	}
+
+	private static void exportProject(Project project, String fileName, boolean includeTestCases, ExportFormat format) throws EngineException {
 		boolean projectSave = new File(fileName).getParentFile().equals(project.getDirFile());
+		// its own files, whatever the path names them: the project takes the format written, an export elsewhere not
+		boolean projectFiles = projectSave || isProjectDirectory(project, new File(fileName).getParentFile());
 		com.twinsoft.convertigo.engine.tags.TagManager.ProjectWriter writer = () -> {
 			persistFlowSources(project);
 			Document document = exportProject(project, includeTestCases, false);
+			if (format == ExportFormat.STANDARD) {
+				YamlConverter.setFormat(document, YamlConverter.Format.STANDARD);
+			}
 			try {
-				exportYAMLProject(project, fileName, document);
-				if (sourceWritten != null) sourceWritten.run();
+				exportYAMLProject(project, fileName, document, format != ExportFormat.KEPT);
+				// the sources written: their format is the project's, even if a later sidecar save fails
+				if (projectFiles) {
+					project.setYamlFormat(YamlConverter.getFormat(document));
+				}
 			} catch (Exception e) {
-				if (project.getYamlFormat() == YamlConverter.Format.STANDARD) {
+				// the format the write chose: a standard write restores the previous files, without an XML fallback
+				if (YamlConverter.getFormat(document) == YamlConverter.Format.STANDARD) {
 					throw new EngineException("Unable to save the standard YAML project", e);
 				}
 				var xmlFilename = project.getName() + ".xml";
@@ -278,6 +309,14 @@ public class CarUtils {
 		}
 	}
 
+	private static boolean isProjectDirectory(Project project, File directory) {
+		try {
+			return directory != null && directory.getCanonicalFile().equals(project.getDirFile().getCanonicalFile());
+		} catch (IOException e) {
+			return false;
+		}
+	}
+
 	/**
 	 * Explicit opt-in; a failed save must not silently switch the in-memory format. Engine callers convert through
 	 * DatabaseObjectsManager.convertProjectToStandardYaml, which tells the rest of the engine as a save does.
@@ -288,23 +327,7 @@ public class CarUtils {
 
 	/** @param fileName the project file, as {@link #exportProject(Project, String)} saves it */
 	public static void convertToStandardYaml(Project project, String fileName) throws EngineException {
-		// Match the normal save lock order: tag domain, then individual beans.
-		synchronized (com.twinsoft.convertigo.engine.tags.TagManager.get()) {
-			var previousFormat = project.getYamlFormat();
-			var previousVersion = (String) project.getMinVersion();
-			project.setYamlFormat(YamlConverter.Format.STANDARD);
-			boolean[] sourceWritten = { false };
-			try {
-				exportProject(project, fileName, true, () -> sourceWritten[0] = true);
-			} catch (EngineException e) {
-				// A later sidecar-save failure must not turn already committed standard sources back into legacy.
-				if (!sourceWritten[0]) {
-					project.setYamlFormat(previousFormat);
-					project.setMinVersion(previousVersion);
-				}
-				throw e;
-			}
-		}
+		exportProject(project, fileName, ExportFormat.STANDARD);
 	}
 
 	private static void persistFlowSources(Project project) throws EngineException {
@@ -319,12 +342,23 @@ public class CarUtils {
 		}
 	}
 	
-	private static void exportYAMLProject(Project project, String fileName, Document document) throws Exception {
+	/**
+	 * @param savedFormat whether the format follows the rule of a save ({@link YamlConverter#savedFormat}) instead of
+	 *        staying the document's; the format chosen is set on the document before the files are written
+	 */
+	private static void exportYAMLProject(Project project, String fileName, Document document, boolean savedFormat) throws Exception {
 		Document shrink = BeansDefaultValues.shrinkProject(document);
+		NodeList nl = shrink.getDocumentElement().getElementsByTagName("bean");
+		String minVersion = ((Element) nl.item(0)).getTextContent();
+		if (savedFormat) {
+			// the minimum the beans require: the standard floor of 8.5.0 changes nothing once they require it
+			var format = YamlConverter.savedFormat(YamlConverter.getFormat(shrink), minVersion);
+			YamlConverter.setFormat(shrink, format);
+			YamlConverter.setFormat(document, format);
+		}
 		File projectDir = new File(fileName).getParentFile();
 		YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
-		NodeList nl = shrink.getDocumentElement().getElementsByTagName("bean");
-		project.setMinVersion(((Element) nl.item(0)).getTextContent());
+		project.setMinVersion(minVersion);
 		if (fileName.endsWith(".xml")) {
 			new File(fileName).delete();
 		}

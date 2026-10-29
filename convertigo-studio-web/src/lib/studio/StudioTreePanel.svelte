@@ -500,6 +500,8 @@
 		void tagsGrouped;
 		void Projects.projects?.length;
 		void closedProjects.names.length;
+		// a save, even of a project without changes, can change its marks, as its YAML format
+		void refreshSerial;
 		if (!Projects.init) return;
 		untrack(() => void refreshTagRoots());
 	});
