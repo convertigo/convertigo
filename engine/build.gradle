@@ -325,6 +325,8 @@ dependencies {
 	compileFlat    'commons-httpclient:commons-httpclient:3.1'
 	compileFlat    'commons-io:commons-io:' + commonsIo
 	compileFlat    'commons-jxpath:commons-jxpath:1.4.0'
+	compileFlat    'org.snakeyaml:snakeyaml-engine:3.2'
+	compileFlat    'org.yaml:snakeyaml:2.6'
 	compileFlat    'io.swagger:swagger-models:1.6.16'
 	compileFlat    'io.swagger:swagger-parser:1.0.76'
 	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.55'

@@ -92,6 +92,7 @@ public class Create extends JSonService {
 
 		try {
 			project.setVersion("");
+			project.setYamlFormat(com.twinsoft.convertigo.engine.util.YamlConverter.Format.STANDARD);
 			var connector = project.getDefaultConnector();
 			var oldConnectorName = connector == null ? "" : connector.getName();
 			var connectorName = settings.optString("connectorName", "").trim();

@@ -50,3 +50,13 @@ describe('Studio tree tag presentation', () => {
 		expect(body).not.toContain('color: #16a34a');
 	});
 });
+
+
+describe('project YAML format', () => {
+	it.each(['legacy', 'standard'])('shows %s in the project tooltip', (yamlFormat) => {
+		const { body } = render(StudioTreeNode, {
+			props: { node: { id: 'Demo', label: 'Demo', yamlFormat }, onTreeAction: () => {} }
+		});
+		expect(body).toContain(`YAML format: ${yamlFormat}`);
+	});
+});

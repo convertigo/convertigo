@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.util.JsonUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.YamlConverter;
 
 public class BeansDefaultValues {
 
@@ -561,6 +562,7 @@ public class BeansDefaultValues {
 			Element eProject = project.getDocumentElement();
 
 			Document nProjectDoc = XMLUtils.createDom();
+			YamlConverter.copyFormat(project, nProjectDoc);
 			Element nProject = (Element) nProjectDoc.appendChild(nProjectDoc.createElement("root"));
 
 			Element eAttr = (Element) nProject.appendChild(nProjectDoc.createElement("bean"));
@@ -571,7 +573,7 @@ public class BeansDefaultValues {
 
 			String mod = eAttr.getTextContent().replaceFirst(".*(\\.m.*)", "$1");
 			String minVersion = hVersion.replaceFirst(".*?(\\d+).*?(\\d+).*?(\\d+)", "$1.$2.$3" + mod);
-			eAttr.setTextContent(minVersion);
+			eAttr.setTextContent(YamlConverter.minimumVersion(minVersion, YamlConverter.getFormat(project)));
 			return nProjectDoc;
 		}
 	}
@@ -629,6 +631,7 @@ public class BeansDefaultValues {
 		
 		Document unshrinkProject(Document project) throws Exception {
 			Document nProjectDoc = XMLUtils.createDom();
+			YamlConverter.copyFormat(project, nProjectDoc);
 			Element eProject = project.getDocumentElement();
 
 			String beansVersion = eProject.getAttribute(eProject.hasAttribute("beans") ? "beans" : "convertigo");

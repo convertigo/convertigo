@@ -163,28 +163,32 @@ public class ProjectUtils {
 				return newFile;
 			}
 
-			replacements.add(new Replacement("↓" + oldName + " \\[core\\.Project\\]:", "↓" + newName + " [core.Project]:"));
+			if (YamlConverter.getFormat(oldYaml) == YamlConverter.Format.STANDARD) {
+				renameStandardYaml(oldYaml, oldName, newName, keepOldReferences);
+			} else {
+				replacements.add(new Replacement("↓" + oldName + " \\[core\\.Project\\]:", "↓" + newName + " [core.Project]:"));
 
-			makeReplacementsInFile(replacements, newFile, "UTF-8");
-
-			// replace project's name references
-			if (!keepOldReferences) {
-				replacements.clear();
-				replacements.add(new Replacement(": " + oldName + "\\.", ": " + newName + "."));
-				replacements.add(new Replacement(":" + oldName + "\\.", ":" + newName + "."));
-				replacements.add(new Replacement("\"" + oldName + "\"", "\"" + newName + "\""));
-				replacements.add(new Replacement("\\\\\"" + oldName + "\\\\\"", "\\\\\"" + newName + "\\\\\""));
-				replacements.add(new Replacement("\'" + oldName + "\\.", "\'" + newName + "."));
 				makeReplacementsInFile(replacements, newFile, "UTF-8");
-				File sub = new File(newFile.getParentFile(), "_c8oProject");
-				if (sub.exists()) {
-					List<File> files = new ArrayList<File>(Arrays.asList(sub.listFiles()));
-					while (!files.isEmpty()) {
-						File f = files.remove(0);
-						if (f.isDirectory()) {
-							files.addAll(Arrays.asList(f.listFiles()));
-						} else if (f.getName().endsWith(".yaml")) {
-							makeReplacementsInFile(replacements, f, "UTF-8");
+
+				// replace project's name references
+				if (!keepOldReferences) {
+					replacements.clear();
+					replacements.add(new Replacement(": " + oldName + "\\.", ": " + newName + "."));
+					replacements.add(new Replacement(":" + oldName + "\\.", ":" + newName + "."));
+					replacements.add(new Replacement("\"" + oldName + "\"", "\"" + newName + "\""));
+					replacements.add(new Replacement("\\\\\"" + oldName + "\\\\\"", "\\\\\"" + newName + "\\\\\""));
+					replacements.add(new Replacement("\'" + oldName + "\\.", "\'" + newName + "."));
+					makeReplacementsInFile(replacements, newFile, "UTF-8");
+					File sub = new File(newFile.getParentFile(), "_c8oProject");
+					if (sub.exists()) {
+						List<File> files = new ArrayList<File>(Arrays.asList(sub.listFiles()));
+						while (!files.isEmpty()) {
+							File f = files.remove(0);
+							if (f.isDirectory()) {
+								files.addAll(Arrays.asList(f.listFiles()));
+							} else if (f.getName().endsWith(".yaml")) {
+								makeReplacementsInFile(replacements, f, "UTF-8");
+							}
 						}
 					}
 				}
@@ -994,4 +998,34 @@ public class ProjectUtils {
         return text;
     }
 	
+	private static void renameStandardYaml(File yaml, String oldName, String newName, boolean keepOldReferences) throws Exception {
+		var document = YamlConverter.readYaml(yaml);
+		var beans = document.getDocumentElement().getElementsByTagName("bean");
+		for (int i = 0; i < beans.getLength(); i++) {
+			var bean = (org.w3c.dom.Element) beans.item(i);
+			if (bean.getAttribute("yaml_key").equals(oldName + " [core.Project]")) {
+				bean.setAttribute("yaml_key", newName + " [core.Project]");
+				break;
+			}
+		}
+		if (!keepOldReferences) renameYamlValues(document.getDocumentElement(), oldName, newName);
+		YamlConverter.writeYaml(document, yaml, new File(yaml.getParentFile(), "_c8oProject"));
+	}
+
+	private static void renameYamlValues(org.w3c.dom.Node node, String oldName, String newName) {
+		if (node instanceof org.w3c.dom.Element element) {
+			for (int i = 0; i < element.getAttributes().getLength(); i++) {
+				var attribute = element.getAttributes().item(i);
+				if (!attribute.getNodeName().startsWith("yaml_")) renameYamlValues(attribute, oldName, newName);
+			}
+		} else if (node.getNodeValue() != null) {
+			String value = node.getNodeValue().replaceAll("(^|[:'\"])" + java.util.regex.Pattern.quote(oldName) + "\\.",
+					"$1" + java.util.regex.Matcher.quoteReplacement(newName) + ".");
+			value = value.replace("\"" + oldName + "\"", "\"" + newName + "\"")
+					.replace("\\\"" + oldName + "\\\"", "\\\"" + newName + "\\\"");
+			node.setNodeValue(value);
+		}
+		for (var child = node.getFirstChild(); child != null; child = child.getNextSibling()) renameYamlValues(child, oldName, newName);
+	}
+
 }

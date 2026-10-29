@@ -1015,17 +1015,33 @@ public class DatabaseObjectsManager implements AbstractManager {
 	 * (SharedWorkspaceSyncManager.markProjectReload).
 	 */
 	public void exportProject(Project project) throws EngineException {
-		exportProject(project, true);
+		exportProject(project, true, false);
 	}
 
-	/** @param announce whether the other instances of a shared workspace reload it: not for a migration at its load */
-	private void exportProject(Project project, boolean announce) throws EngineException {
+	/**
+	 * Saves a project in standard YAML, its explicit conversion (CarUtils.convertToStandardYaml). As any save, the
+	 * other instances of a shared workspace reload it, in its new format.
+	 */
+	public void convertProjectToStandardYaml(Project project) throws EngineException {
+		exportProject(project, true, true);
+	}
+
+	/**
+	 * @param announce whether the other instances of a shared workspace reload it: not for a migration at its load
+	 * @param standard whether the project is converted to standard YAML
+	 */
+	private void exportProject(Project project, boolean announce, boolean standard) throws EngineException {
 		String projectName = project.getName();
 
 		// Export project
 		String exportedProjectFileName = Engine.projectFile(projectName).getAbsolutePath();
-		Engine.logDatabaseObjectManager.info("Saving project \"" + projectName + "\" to: " + exportedProjectFileName);
-		CarUtils.exportProject(project, exportedProjectFileName);
+		Engine.logDatabaseObjectManager.info((standard ? "Converting project \"" + projectName + "\" to standard YAML, saving it to: "
+				: "Saving project \"" + projectName + "\" to: ") + exportedProjectFileName);
+		if (standard) {
+			CarUtils.convertToStandardYaml(project, exportedProjectFileName);
+		} else {
+			CarUtils.exportProject(project, exportedProjectFileName);
+		}
 		// its descriptor and beans written: the authoring keys walk the project again
 		com.twinsoft.convertigo.engine.flow.FlowEngineBridge.projectFilesWritten(project.getDirFile());
 		if (exportedProjectFileName.endsWith(".xml")) {
@@ -1323,7 +1339,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 				} else {
 					String filename = projectFile.getName();
 					if (filename.equals("c8oProject.yaml")) {
-						try (BufferedReader br = new BufferedReader(
+						try {
+							if (YamlConverter.getFormat(projectFile) == YamlConverter.Format.STANDARD) {
+								projectName = YamlConverter.projectName(YamlConverter.readYaml(projectFile, true));
+							}
+						} catch (Exception e) { throw new EngineException("Unable to read standard YAML project metadata", e); }
+						if (projectName == null) try (BufferedReader br = new BufferedReader(
 								new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
 							String line = br.readLine();
 							Matcher m = pYamlProjectName.matcher("");
@@ -1364,6 +1385,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 		final String[] version = { null };
 		if (projectFile.exists()) {
 			if (projectFile.getName().equals("c8oProject.yaml")) {
+				try {
+					if (YamlConverter.getFormat(projectFile) == YamlConverter.Format.STANDARD) {
+						return YamlConverter.readYaml(projectFile, true).getDocumentElement().getAttribute("convertigo");
+					}
+				} catch (Exception e) { throw new EngineException("Unable to read standard YAML project metadata", e); }
 				try (BufferedReader br = new BufferedReader(
 						new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
 					String line = br.readLine();
@@ -1648,7 +1674,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				// (priorities))!!
 				if (VersionUtils.compare(version[0], "4.0.1") >= 0) {
 					// each instance loading it migrates it the same way: none is told
-					exportProject(project, false);
+					exportProject(project, false, false);
 				} else {
 					Engine.logDatabaseObjectManager.error("Project \"" + projectName
 							+ "\" has been partially migrated. It may not work properly. Please import it trought the Studio and export/upload it again.");

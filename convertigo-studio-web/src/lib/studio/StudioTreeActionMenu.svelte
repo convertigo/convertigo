@@ -37,6 +37,7 @@
 	 *  canCopy?: boolean,
 	 *  canPaste?: boolean,
 	 *  isProject?: boolean,
+	 *  yamlFormat?: string,
 	 *  closed?: boolean,
 	 *  contextRequest?: { x: number, y: number, serial: number } | null,
 	 *  fileKind?: '' | 'root' | 'folder' | 'file',
@@ -74,6 +75,7 @@
 		canCopy = false,
 		canPaste = false,
 		isProject = false,
+		yamlFormat = '',
 		closed = false,
 		contextRequest = null,
 		fileKind = '',
@@ -550,6 +552,9 @@
 						<Menu.ItemGroupLabel>Project</Menu.ItemGroupLabel>
 						{@render treeItem('project.save', 'mdi:content-save-outline', 'Save')}
 						{@render treeItem('project.reload', 'mdi:reload', 'Reload from disk')}
+						{#if yamlFormat === 'legacy'}
+							{@render treeItem('project.convertYaml', 'mdi:file-code-outline', 'Convert to standard YAML…')}
+						{/if}
 						{@render treeItem('project.rename', 'mdi:pencil-outline', 'Rename…')}
 						{@render treeItem('project.close', 'mdi:folder-lock-outline', 'Close')}
 						{@render treeItem('project.export', 'mdi:export', 'Export as .car')}

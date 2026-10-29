@@ -1,4 +1,5 @@
 <script>
+	import { convertProjectYaml } from '#lib/studio/projectYaml.js';
 	import { subscribeAdminEvents } from '#lib/admin/adminEvents.js';
 	import Projects from '#lib/common/Projects.svelte.js';
 	import TestPlatform from '#lib/common/TestPlatform.svelte.js';
@@ -2841,6 +2842,20 @@
 			await saveSelectedProject();
 		} else if (action === 'project.reload') {
 			await reloadSelectedProject();
+		} else if (action === 'project.convertYaml') {
+			await settlePropertyApply();
+			if (!projectName || projectActionBusy) return;
+			projectActionBusy = 'convertYaml';
+			try {
+				if (await convertProjectYaml(projectName, (message) => window.confirm(message))) {
+					clearProjectDirty(projectName);
+					await refreshStudioProject(projectName);
+					propertiesRefreshSerial += 1;
+					refreshStudioViews();
+				}
+			} finally {
+				projectActionBusy = '';
+			}
 		} else if (action === 'project.close' || action === 'project.open') {
 			await setProjectClosed(projectName, action === 'project.close');
 		} else if (action === 'dialog.variables') {

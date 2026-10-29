@@ -60,6 +60,7 @@ import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.YamlConverter;
 
 /**
  * This class manages a Convertigo Project.
@@ -174,6 +175,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 
 	transient private String minVersion;
+	private YamlConverter.Format yamlFormat = YamlConverter.Format.STANDARD;
 	
 	transient private String remoteReadmeUrl = null;
 	
@@ -618,6 +620,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 		String version = element.getAttribute("version");
 		minVersion = version;
+		yamlFormat = YamlConverter.getFormat(element.getOwnerDocument());
 
 		if (VersionUtils.compare(version, "7.5.0") < 0) {
 			NodeList properties = element.getElementsByTagName("property");
@@ -1140,6 +1143,15 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 	public Object get(String key) {
 		return Engine.theApp.getShareProjectMap(this).get(key);
+	}
+
+	/** File format is independent of the minimum bean version and is not a bean property. */
+	public YamlConverter.Format getYamlFormat() {
+		return yamlFormat == null ? YamlConverter.Format.LEGACY : yamlFormat;
+	}
+
+	public void setYamlFormat(YamlConverter.Format format) {
+		yamlFormat = java.util.Objects.requireNonNull(format);
 	}
 
 	public Object getMinVersion() {

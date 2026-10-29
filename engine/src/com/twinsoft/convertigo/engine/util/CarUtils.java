@@ -235,13 +235,21 @@ public class CarUtils {
 	}
 	
 	private static void exportProject(Project project, String fileName, boolean includeTestCases) throws EngineException {
+		exportProject(project, fileName, includeTestCases, null);
+	}
+
+	private static void exportProject(Project project, String fileName, boolean includeTestCases, Runnable sourceWritten) throws EngineException {
 		boolean projectSave = new File(fileName).getParentFile().equals(project.getDirFile());
 		com.twinsoft.convertigo.engine.tags.TagManager.ProjectWriter writer = () -> {
 			persistFlowSources(project);
 			Document document = exportProject(project, includeTestCases, false);
 			try {
 				exportYAMLProject(project, fileName, document);
+				if (sourceWritten != null) sourceWritten.run();
 			} catch (Exception e) {
+				if (project.getYamlFormat() == YamlConverter.Format.STANDARD) {
+					throw new EngineException("Unable to save the standard YAML project", e);
+				}
 				var xmlFilename = project.getName() + ".xml";
 				Engine.theApp.showErrorMessage("Failed to fully export the project as YAML to '" + fileName + "'.\nExporting in the XML '" + xmlFilename + "' instead.\nXML can be imported after fixing errors below.\n" + e.getMessage());
 				Engine.logEngine.error("(CarUtils) Failed to fully export the project as YAML to '" + fileName + "', exporting in the XML '" + xmlFilename + "' instead. XML can be imported after fixing errors below.", e);
@@ -270,6 +278,35 @@ public class CarUtils {
 		}
 	}
 
+	/**
+	 * Explicit opt-in; a failed save must not silently switch the in-memory format. Engine callers convert through
+	 * DatabaseObjectsManager.convertProjectToStandardYaml, which tells the rest of the engine as a save does.
+	 */
+	public static void convertToStandardYaml(Project project) throws EngineException {
+		convertToStandardYaml(project, new File(project.getDirFile(), "c8oProject.yaml").getAbsolutePath());
+	}
+
+	/** @param fileName the project file, as {@link #exportProject(Project, String)} saves it */
+	public static void convertToStandardYaml(Project project, String fileName) throws EngineException {
+		// Match the normal save lock order: tag domain, then individual beans.
+		synchronized (com.twinsoft.convertigo.engine.tags.TagManager.get()) {
+			var previousFormat = project.getYamlFormat();
+			var previousVersion = (String) project.getMinVersion();
+			project.setYamlFormat(YamlConverter.Format.STANDARD);
+			boolean[] sourceWritten = { false };
+			try {
+				exportProject(project, fileName, true, () -> sourceWritten[0] = true);
+			} catch (EngineException e) {
+				// A later sidecar-save failure must not turn already committed standard sources back into legacy.
+				if (!sourceWritten[0]) {
+					project.setYamlFormat(previousFormat);
+					project.setMinVersion(previousVersion);
+				}
+				throw e;
+			}
+		}
+	}
+
 	private static void persistFlowSources(Project project) throws EngineException {
 		for (var sequence : project.getSequencesList()) {
 			if (sequence instanceof Flow flow) {
@@ -284,13 +321,10 @@ public class CarUtils {
 	
 	private static void exportYAMLProject(Project project, String fileName, Document document) throws Exception {
 		Document shrink = BeansDefaultValues.shrinkProject(document);
-		try {
-			NodeList nl = shrink.getDocumentElement().getElementsByTagName("bean");
-			String minVersion = ((Element) nl.item(0)).getTextContent();
-			project.setMinVersion(minVersion);
-		} catch (Exception e) {}
 		File projectDir = new File(fileName).getParentFile();
 		YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
+		NodeList nl = shrink.getDocumentElement().getElementsByTagName("bean");
+		project.setMinVersion(((Element) nl.item(0)).getTextContent());
 		if (fileName.endsWith(".xml")) {
 			new File(fileName).delete();
 		}
@@ -342,6 +376,7 @@ public class CarUtils {
 			throws EngineException {
 		try {
 			final Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+			YamlConverter.setFormat(document, project.getYamlFormat());
 			//            ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"");
 			//            document.appendChild(pi);
 			final Element rootElement = document.createElement("convertigo");

@@ -1590,6 +1590,12 @@
 				label="Close"
 				menubarPath="save" />
 			<action
+				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectConvertYamlAction"
+				enablesFor="1"
+				id="convertigo.action.convertProjectYaml"
+				label="Convert to standard YAML..."
+				menubarPath="convert" />
+			<action
 				class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectSaveAction"
 				enablesFor="1"
 				icon="icons/studio/project_save.svg"

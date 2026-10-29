@@ -1461,7 +1461,7 @@
 						class:studio-tree-node__label--modified={marks.modified}
 						class:studio-tree-node__label--error={marks.symbolError}
 						style:color={node.tagGroup ? node.presentation?.color : undefined}
-						title={marks.modified ? `${label} — Modified, not saved` : undefined}>{label}</span
+						title={[marks.modified ? `${label} — Modified, not saved` : '', projectNode && node.yamlFormat ? `YAML format: ${node.yamlFormat}` : ''].filter(Boolean).join(' · ') || undefined}>{label}</span
 					>
 					{#if node.tagGroup}
 						<span class="text-xs opacity-70">({tagGroupCount})</span>
@@ -1580,6 +1580,7 @@
 						canCopy={Boolean(onTreeAction && draggableNode)}
 						canPaste={Boolean(onTreeAction && !closedProject && canPasteInto?.(node.id))}
 						isProject={Boolean(onTreeAction && projectNode)}
+						yamlFormat={node.yamlFormat}
 						closed={closedProject}
 						contextRequest={contextMenuRequest}
 						fileKind={!onTreeAction || !node.id.includes('/')

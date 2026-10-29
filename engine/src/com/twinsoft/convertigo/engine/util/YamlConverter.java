@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2026 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -19,411 +19,97 @@
 
 package com.twinsoft.convertigo.engine.util;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.apache.commons.lang3.StringUtils;
-import org.w3c.dom.Attr;
-import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.UserDataHandler;
 
+/** Project format dispatch. Legacy parsing and rendering remain deliberately isolated. */
 public class YamlConverter {
-	private static final String inc = "  ";
-	private static final String sep = ": ";
-	
-	private static final String endLine = System.getProperty("line.separator");
-	
-	private static final String quotedAtLineStart = "-?:,[]{}#&*!|>'\"%@`";
-	
-	private final Matcher parse = Pattern.compile("( *)(- )?(↑)?(→)?(↓)?(.*?): (🗏 )?(.*)").matcher("");
-	private static final int P_INDENT = 1;
-	private static final int P_ARRAY  = 2;
-	private static final int P_ATTR   = 3;
-	private static final int P_TXT    = 4;
-	private static final int P_CHILD  = 5;
-	private static final int P_KEY    = 6;
-	private static final int P_FILE   = 7;
-	private static final int P_VALUE  = 8;
-	private final String[] groups = new String[P_VALUE + 1];
-
-	private StringBuilder sb;
-	private BufferedReader br;
-	private Document doc;
-	private String line = "";
-	private String lastLine = null;
-	private File subdir = null;
-	private StringBuilder errors = new StringBuilder();
-	
-	private YamlConverter() {
-		
-	}
-	
-	/**
-	 * Same as the regex (?:^(?:-|\\?|:|,|\\[|\\]|\\{|\\}|#|&|\\*|\\!|\\||>|'|"|%|@|`|\\\\s))|(?:: ) in MULTILINE mode,
-	 * without its cost on long texts: an indicator (or a backslash followed by s) at the start of a line, or ": " anywhere.
-	 */
-	static boolean needsQuote(String txt) {
-		int length = txt.length();
-		boolean lineStart = true;
-		for (int i = 0; i < length; i++) {
-			char c = txt.charAt(i);
-			boolean hasNext = i + 1 < length;
-			if (lineStart && (quotedAtLineStart.indexOf(c) != -1 || (c == '\\' && hasNext && txt.charAt(i + 1) == 's'))) {
-				return true;
-			}
-			if (c == ':' && hasNext && txt.charAt(i + 1) == ' ') {
-				return true;
-			}
-			lineStart = c == '\n' || c == '\r' || c == '\u0085' || c == '\u2028' || c == '\u2029';
+	public enum Format { LEGACY, STANDARD }
+	public static final String STANDARD_MIN_VERSION = "8.5.0";
+	private static final String FORMAT_DATA = "convertigo.yaml.format";
+	private static final UserDataHandler COPY_FORMAT = new UserDataHandler() {
+		@Override public void handle(short operation, String key, Object data, Node source, Node destination) {
+			if (destination != null) destination.setUserData(key, data, this);
 		}
-		return false;
+	};
+
+	private YamlConverter() { }
+
+	public static Format getFormat(File yaml) throws IOException {
+		try (var reader = Files.newBufferedReader(yaml.toPath(), StandardCharsets.UTF_8)) {
+			String first = reader.readLine();
+			// Standard tools may insert a document start, comments, quotes or flow style.
+			// No such first line is a valid legacy project header.
+			return first != null && (first.startsWith("↑") || first.startsWith("↓"))
+					? Format.LEGACY : Format.STANDARD;
+		}
 	}
 
-	private void writeYamlText(String indent, String txt) {
-		txt = txt.replace("\r", "");
-		if (txt.isEmpty()) {
-			txt = "''";
-		} else if (needsQuote(txt)) {
-			txt = '\'' + txt.replace("'", "''") + '\'';
-		}
-		
-		int end = txt.indexOf('\n');
-		if (end != -1) {
-			int start = 0;
-			sb.append("|");
-			do {
-				sb.append(endLine).append(indent).append(txt, start, end);
-				start = end + 1;
-			} while ((end = txt.indexOf('\n', start)) != -1);
-			sb.append(endLine).append(indent).append(txt, start, txt.length());
-		} else {
-			sb.append(txt);
-		}
-	}
-	
-	private void writeYamlElement(String indent, Element element, boolean inArray, Set<File> existingFiles) throws IOException {
-		String nextIndent = indent + inc;
-		String txtIndent = nextIndent;
-		StringBuilder sbSaved = this.sb;
-		
-		boolean isBean = (element.hasAttribute("yaml_key") || element.hasAttribute("yaml_attr")) && element.getTagName().equals("bean");
-		
-		String key = isBean ?
-				(element.hasAttribute("yaml_key") ?
-				'↓' + element.getAttribute("yaml_key") :
-				'↑' + element.getAttribute("yaml_attr")
-			):element.getTagName();
-		sb.append(indent).append(inArray ? "- " : "").append(key).append(sep);
-
-		String yamlFile = element.getAttribute("yaml_file");
-		File subfile = null;
-		if (subdir != null && StringUtils.isNotBlank(yamlFile)) {
-			subfile = new File(subdir, yamlFile);
-			subfile.getParentFile().mkdirs();
-			this.sb = new StringBuilder();
-			nextIndent = txtIndent = "";
-		}
-		
-		int len = sb.length();
-		
-		if (inArray) {
-			txtIndent += inc;
-		}
-		
-		NamedNodeMap attributes = element.getAttributes();
-		int attributesLength = attributes.getLength();
-		for (int i = 0; i < attributesLength; i++) {
-			Attr attr = (Attr) attributes.item(i);
-			String name = attr.getName();
-			if (!name.startsWith("yaml_")) {
-				sb.append(endLine).append(nextIndent);
-				if (!isBean) {
-					sb.append("- ");
-					inArray = true;
-				}
-				sb.append('↑').append(name).append(sep);
-				writeYamlText(txtIndent, attr.getValue());
-			}
-		}
-		
-		Node child = element.getFirstChild();
-		boolean asChild = false;
-		while (child != null) {
-			if (child instanceof Element) {
-				Element eChild = (Element) child;
-				sb.append(endLine);
-				asChild = true;
-				writeYamlElement(nextIndent, eChild, !isBean, existingFiles);
-			} else if (child instanceof CDATASection) {
-				CDATASection cdata = (CDATASection) child;
-				String txt = cdata.getData();
-				sb.append(endLine).append(nextIndent).append('→').append(sep);
-				asChild = true;
-				writeYamlText(nextIndent + inc, txt);
-			} else if (child.getNodeType() == Node.TEXT_NODE && child.getNextSibling() == null) {
-				String txt = child.getNodeValue();
-				if (len != sb.length() && inArray) {
-					sb.append(endLine).append(nextIndent).append("- ").append("→→").append(sep);
-					asChild = true;
-				}
-				writeYamlText(txtIndent, txt);
-			}
-			child = child.getNextSibling();
-		}
-		
-		if (subfile != null) {
-			String content = asChild ? sb.substring(endLine.length()) : sb.toString();
-			try {
-				FileUtils.writeFile(subfile, content, StandardCharsets.UTF_8);
-			} catch (Exception e) {
-				errors.append(yamlFile + ": " +  e.getClass().getName() + "\n");
-			}
-			if (existingFiles != null) {
-				existingFiles.remove(subfile);
-			}
-			sb = sbSaved;
-			sb.append("🗏 " + yamlFile);
-		}
-	}
-	
-	private void readYamlArray(Node parent, String indent, boolean isBean) throws Exception {
-		while(checkLine()) {
-			if (!parseLine()) {
-				throw new Exception("no match: " + line);
-			}
-			if (groups[P_INDENT].length() == indent.length()) {
-				String tagName = groups[P_KEY];
-				Element elt = doc.createElement(tagName);
-				parent.appendChild(elt);
-				String value = groups[P_VALUE]; 
-				if (!value.isEmpty()) {
-					value = readYalmText(value, indent);
-					elt.setTextContent(value);
-				} else {
-					readYamlArray(elt, indent + inc + inc, isBean);
-				}
-			} else {
-				restoreLine();
-				return;
-			}
-		}
-	}
-	
-	private void readYamlElement(Element elt, String indent, boolean isBean) throws Exception {
-		while(checkLine()) {
-			if (!parseLine()) {
-				throw new Exception("no match: " + line);
-			}
-			if (groups[P_INDENT].length() != indent.length()) {
-				restoreLine();
-				return;
-			}
-			if (groups[P_ATTR] != null) {
-				String name = groups[P_KEY];
-				String value = groups[P_VALUE];
-				value = readYalmText(value, indent);
-				elt.setAttribute(name, value);
-			} else if (groups[P_TXT] != null) {
-				String key = groups[P_KEY];
-				String value = groups[P_VALUE];
-				value = readYalmText(value, indent);
-				if (key.equals("→")) {
-					elt.appendChild(doc.createTextNode(value));
-				} else {
-					elt.appendChild(doc.createCDATASection(value));
-				}
-			} else if (groups[P_CHILD] != null) {
-				if (isBean) {
-					Element nElt = doc.createElement("bean");
-					elt.appendChild(nElt);
-					nElt.setAttribute("yaml_key", groups[P_KEY]);
-					if (groups[P_FILE] != null && subdir != null) {
-						String value = groups[P_VALUE];
-						File subfile = new File(subdir, value);
-						BufferedReader brSaved = br;
-						String lineSaved = line;
-						try (BufferedReader brSub = new BufferedReader(new InputStreamReader(new FileInputStream(subfile), "UTF-8"))) {
-							br = brSub;
-							readYamlElement(nElt, "", isBean);
-						} finally {
-							br = brSaved;
-							line = lineSaved;
-						}
-					} else {
-						readYamlElement(nElt, indent + inc, isBean);
-					}
-				} else {
-					readYamlArray(elt, indent, isBean);
-				}
-			} else {
-				String key = groups[P_KEY];
-				String value = groups[P_VALUE];
-				String textIndent = groups[P_ARRAY] == null ? indent : (indent + inc);
-				value = readYalmText(value, textIndent);
-				Element nElt = doc.createElement(key);
-				elt.appendChild(nElt);
-				nElt.setTextContent(value);
-				readYamlElement(nElt, indent + inc, false);
-			}
-		}
-	}
-	
-	private String readYalmText(String value, String indent) throws IOException {
-		if (value.equals("|")) {
-			indent += inc;
-			StringBuilder sb = new StringBuilder();
-			while (checkLine()) {
-				if (line.startsWith(indent)) {
-					if (sb.length() != 0) {
-						sb.append(endLine);
-					}
-					sb.append(line.substring(indent.length()));
-				} else {
-					restoreLine();
-					break;
-				}
-			}
-			value = sb.toString();
-		}
-		if (value.startsWith("'")) {
-			value = value.substring(1, value.length() - 1).replace("''", "'");
-		}
-		return value;
-	}
-	
-	/** Splits the line into the groups of the parse pattern, without running it when "." matches every character of the line */
-	private boolean parseLine() {
-		int n = line.length();
-		for (int i = 0; i < n; i++) {
-			char c = line.charAt(i);
-			if (c == '\u0085' || c == '\u2028' || c == '\u2029' || c == '\n' || c == '\r') {
-				parse.reset(line);
-				if (!parse.matches()) {
-					return false;
-				}
-				for (int g = P_INDENT; g <= P_VALUE; g++) {
-					groups[g] = parse.group(g);
-				}
-				return true;
-			}
-		}
-		int i = 0;
-		while (i < n && line.charAt(i) == ' ') {
-			i++;
-		}
-		groups[P_INDENT] = line.substring(0, i);
-		i = optional(i, P_ARRAY, "- ");
-		i = optional(i, P_ATTR, "↑");
-		i = optional(i, P_TXT, "→");
-		i = optional(i, P_CHILD, "↓");
-		int keyEnd = line.indexOf(sep, i);
-		if (keyEnd == -1) {
-			return false;
-		}
-		groups[P_KEY] = line.substring(i, keyEnd);
-		i = optional(keyEnd + sep.length(), P_FILE, "🗏 ");
-		groups[P_VALUE] = line.substring(i);
-		return true;
+	public static Format getFormat(Document document) {
+		return document.getUserData(FORMAT_DATA) instanceof Format format ? format : Format.LEGACY;
 	}
 
-	/** Sets the optional group if the line has its prefix at i, and returns the index after it */
-	private int optional(int i, int group, String prefix) {
-		groups[group] = line.startsWith(prefix, i) ? prefix : null;
-		return groups[group] == null ? i : i + prefix.length();
+	public static void setFormat(Document document, Format format) {
+		document.setUserData(FORMAT_DATA, format, COPY_FORMAT);
 	}
 
-	private void restoreLine() {
-		lastLine = line;
+	public static void copyFormat(Document source, Document target) {
+		setFormat(target, getFormat(source));
 	}
-	
-	private boolean checkLine() throws IOException {
-		if (lastLine != null) {
-			line = lastLine;
-			lastLine = null;
-			return true;
+
+	/** Keep the migration suffix while imposing the file format's compatibility floor. */
+	public static String minimumVersion(String version, Format format) {
+		if (format == Format.STANDARD && VersionUtils.compare(version, STANDARD_MIN_VERSION) < 0) {
+			int suffix = version.indexOf(".m");
+			return STANDARD_MIN_VERSION + (suffix < 0 ? ".m006" : version.substring(suffix));
 		}
-		return line != null && (line = br.readLine()) != null;
+		return version;
 	}
-	
-	public static Document readYaml(File yaml) throws Exception {
-		return readYaml(yaml, false);
-	}
-	
+
+	public static Document readYaml(File yaml) throws Exception { return readYaml(yaml, false); }
+
 	public static Document readYaml(File yaml, boolean onlyRoot) throws Exception {
-		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(yaml), "UTF-8"))) {
-			YamlConverter y = new YamlConverter();
-			y.subdir = onlyRoot ? null : new File(yaml.getParentFile(), "_c8oProject");
-			y.doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-			y.doc.appendChild(y.doc.createElement("convertigo"));
-			y.br = br;
-			y.readYamlElement(y.doc.getDocumentElement(), "", true);
-			y.br.close();
-			return y.doc;
-		}
+		Format format = getFormat(yaml);
+		Document document = format == Format.LEGACY ? LegacyYamlConverter.readYaml(yaml, onlyRoot)
+				: StandardYamlConverter.readYaml(yaml, onlyRoot);
+		setFormat(document, format);
+		return document;
 	}
-	
+
 	public static void writeYaml(Document document, File yaml) throws IOException {
 		writeYaml(document, yaml, null);
 	}
-	
+
 	public static void writeYaml(Document document, File yaml, File subdir) throws IOException {
-		YamlConverter y = new YamlConverter();
-		y.sb = new StringBuilder();
-		y.subdir = subdir;
-		var existingFiles = FileUtils.indexExistingFiles(subdir);
-		// This writer owns YAML sources only; independent project documents survive an export.
-		existingFiles.removeIf(file -> !file.getName().endsWith(".yaml"));
-		Node node = document.getDocumentElement().getFirstChild();
-		while (node != null) {
-			if (node instanceof Element) {
-				if (node.getPreviousSibling() != null) {
-					y.sb.append(endLine);
-				}
-				y.writeYamlElement("", (Element) node, false, existingFiles);
+		if (getFormat(document) == Format.STANDARD) {
+			StandardYamlConverter.writeYaml(document, yaml, subdir);
+		} else {
+			LegacyYamlConverter.writeYaml(document, yaml, subdir);
+		}
+	}
+
+	/** Search snippets are not project documents and retain their compact legacy notation. */
+	public static String toYaml(Element element) throws IOException { return LegacyYamlConverter.toYaml(element); }
+	public static String toYaml(Element element, Set<File> files) throws IOException {
+		return LegacyYamlConverter.toYaml(element, files);
+	}
+	static boolean needsQuote(String text) { return LegacyYamlConverter.needsQuote(text); }
+
+	public static String projectName(Document document) throws IOException {
+		for (Node node = document.getDocumentElement().getFirstChild(); node != null; node = node.getNextSibling()) {
+			if (node instanceof Element element && element.getTagName().equals("bean")) {
+				String key = element.getAttribute("yaml_key");
+				if (key.endsWith(" [core.Project]")) return key.substring(0, key.length() - " [core.Project]".length());
 			}
-			node = node.getNextSibling();
 		}
-		try {
-			FileUtils.writeFile(yaml, y.sb.toString(), StandardCharsets.UTF_8);
-		} catch (Exception e) {
-			y.errors.append(yaml.getName() + ": " + e.getClass().getName() + "\n");
-		}
-		if (!y.errors.isEmpty()) {
-			throw new IOException("Failed to write some files:\n" + y.errors.toString());
-		}
-		existingFiles.remove(yaml);
-		FileUtils.deleteFiles(existingFiles);
-	}
-	
-	public static String toYaml(Element element, Set<File> existingFiles) throws IOException {
-		if (element != null) {
-			YamlConverter y = new YamlConverter();
-			y.sb = new StringBuilder();
-			y.writeYamlElement("", element, false, existingFiles);
-			return y.sb.toString();
-		}
-		return null;
-	}
-	
-	public static String toYaml(Element element) throws IOException {
-		if (element != null) {
-			YamlConverter y = new YamlConverter();
-			y.sb = new StringBuilder();
-			y.writeYamlElement("", element, false, null);
-			return y.sb.toString();
-		}
-		return null;
+		throw new IOException("Missing project bean in YAML document");
 	}
 }

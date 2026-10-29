@@ -465,6 +465,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			monitor.setTaskName("Saving updated project");
 			monitor.worked(1);
 			
+			newProject.setYamlFormat(com.twinsoft.convertigo.engine.util.YamlConverter.Format.STANDARD);
 			Engine.theApp.databaseObjectsManager.exportProject(newProject);
 
 			monitor.setTaskName("New project saved");

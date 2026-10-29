@@ -834,3 +834,23 @@ tasks.register('sequenceCleanupTest', JavaExec) {
 	args 'com.twinsoft.convertigo.beans.core.SequenceCleanupTest'
 }
 tasks.named('check') { dependsOn 'sequenceCleanupTest' }
+
+tasks.register('standardYamlTest', JavaExec) {
+	group = 'verification'
+	description = 'Standard YAML interoperability, exact DOM round trips, format retention and legacy byte compatibility.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.StandardYamlConverterTest',
+		'com.twinsoft.convertigo.engine.StandardYamlLifecycleTest',
+		'com.twinsoft.convertigo.engine.util.YamlConverterTest',
+		'com.twinsoft.convertigo.beans.OldProjectNoMigrationTest'
+	systemProperty 'yaml.repository', rootProject.projectDir.absolutePath
+	if (project.hasProperty('yamlTemplateCorpus')) {
+		systemProperty 'yaml.templateCorpus', project.property('yamlTemplateCorpus')
+	}
+	if (project.hasProperty('yamlSampleCorpus')) {
+		systemProperty 'yaml.sampleCorpus', project.property('yamlSampleCorpus')
+	}
+}
+tasks.named('check') { dependsOn 'standardYamlTest' }

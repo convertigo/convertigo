@@ -190,6 +190,11 @@ public class Get extends JSonService {
 		obj.put("tags", new JSONObject(com.twinsoft.convertigo.engine.tags.TagManager.get().projectBadges(projectName).toString()).getJSONArray("tags"));
 		var loaded = Engine.theApp.databaseObjectsManager.getLoadedProjectByName(projectName);
 		if (loaded != null && loaded.hasChanged) obj.put("modified", true);
+		var yamlFile = Engine.projectYamlFile(projectName);
+		if (loaded != null || yamlFile.isFile()) {
+			obj.put("yamlFormat", (loaded != null ? loaded.getYamlFormat()
+					: com.twinsoft.convertigo.engine.util.YamlConverter.getFormat(yamlFile)).name().toLowerCase(java.util.Locale.ROOT));
+		}
 		obj.put("children", true);
 		if (flow) {
 			obj.put("classname", Project.class.getSimpleName());
@@ -207,6 +212,9 @@ public class Get extends JSonService {
 		obj.put("name", dbo.toString());
 		// the label is the summary of the object, its toString(); its name, as its qname tells it, names it in a breadcrumb
 		obj.put("objectName", objectName(dbo));
+		if (dbo instanceof Project project) {
+			obj.put("yamlFormat", project.getYamlFormat().name().toLowerCase(java.util.Locale.ROOT));
+		}
 		var iconify = iconifyIcon(dbo);
 		if (!iconify.isBlank()) {
 			obj.put("iconify", iconify);
