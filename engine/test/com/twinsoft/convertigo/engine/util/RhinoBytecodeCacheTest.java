@@ -41,6 +41,9 @@ import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.LocalWorkDirectory;
 
 /**
@@ -54,8 +57,15 @@ public class RhinoBytecodeCacheTest {
 
 	private Path folder;
 	private Context cx;
+	/** The engine an earlier test class may leave: these tests run outside a running engine, unless they say so. */
+	private Engine previousEngine;
+	/** The mode of the engine properties an earlier test class may have loaded, restored after each test. */
+	private String previousMode;
 
 	@Before public void setUp() throws Exception {
+		previousEngine = Engine.theApp;
+		Engine.theApp = null;
+		previousMode = engineMode();
 		folder = Files.createTempDirectory("rhino-bytecode-test");
 		RhinoBytecodeCache.reset();
 		cx = enter();
@@ -65,7 +75,31 @@ public class RhinoBytecodeCacheTest {
 		Context.exit();
 		RhinoBytecodeCache.reset();
 		System.clearProperty(MODE_PROPERTY);
+		if (previousMode != null) {
+			EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_BYTECODE_CACHE, previousMode);
+		}
 		FileUtils.deleteQuietly(folder.toFile());
+		Engine.theApp = previousEngine;
+	}
+
+	/** @return the mode of the loaded engine properties, null when none are loaded */
+	private static String engineMode() {
+		try {
+			return EnginePropertiesManager.getProperty(PropertyName.JAVASCRIPT_BYTECODE_CACHE);
+		} catch (IllegalStateException notInitialized) {
+			return null;
+		}
+	}
+
+	/**
+	 * The mode of the cache: its system property, read while the engine properties are not loaded, and the engine
+	 * property once an earlier test class loaded them (it is read instead of the system property then).
+	 */
+	private void mode(String value) {
+		System.setProperty(MODE_PROPERTY, value);
+		if (previousMode != null) {
+			EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_BYTECODE_CACHE, value);
+		}
 	}
 
 	private static Context enter() {
@@ -428,7 +462,7 @@ public class RhinoBytecodeCacheTest {
 	}
 
 	@Test public void cacheGoesInThePrivateFolderOfTheProjectOfTheSource() throws Exception {
-		System.setProperty(MODE_PROPERTY, "on");
+		mode("on");
 		var project = project("prj");
 		var module = new File(project, "_flow/modules/m.js");
 		assertEquals(expected(source(5), module.getPath()), run(cx, RhinoBytecodeCache.compile(cx, source(5), module.getPath(), module)));
@@ -444,7 +478,7 @@ public class RhinoBytecodeCacheTest {
 	}
 
 	@Test public void cacheFollowsTheLocalWorkingDirectory() throws Exception {
-		System.setProperty(MODE_PROPERTY, "on");
+		mode("on");
 		var project = project("relocated");
 		var root = folder.resolve("local").toFile();
 		var open = LocalWorkDirectory.class.getDeclaredMethod("open", File.class, String.class, Predicate.class);
@@ -473,12 +507,12 @@ public class RhinoBytecodeCacheTest {
 		var project = project("off");
 		var module = new File(project, "_flow/modules/m.js");
 		// off
-		System.setProperty(MODE_PROPERTY, "off");
+		mode("off");
 		assertEquals(expected(source(7), module.getPath()), run(cx, RhinoBytecodeCache.compile(cx, source(7), module.getPath(), module)));
 		// auto outside a running engine
-		System.setProperty(MODE_PROPERTY, "auto");
+		mode("auto");
 		RhinoBytecodeCache.compile(cx, source(7), module.getPath(), module);
-		System.setProperty(MODE_PROPERTY, "on");
+		mode("on");
 		// no origin (a draft), no project above the origin
 		RhinoBytecodeCache.compile(cx, source(7), "draft", (File) null);
 		var outside = folder.resolve("no-project/m.js").toFile();
@@ -581,6 +615,7 @@ public class RhinoBytecodeCacheTest {
 		public static void main(String[] args) throws Exception {
 			RhinoBytecodeCache.runningEngineForTests = true;
 			com.twinsoft.convertigo.engine.Engine.CONFIGURATION_PATH = args[2];
+			// a JVM of its own, without engine properties: the system property gives the mode
 			System.setProperty(MODE_PROPERTY, "auto");
 			var project = new File(args[1]);
 			var cx = enter();
