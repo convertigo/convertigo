@@ -481,3 +481,13 @@ tasks.register('dynamicContextTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.DynamicContextTest'
 }
 tasks.named('check') { dependsOn 'dynamicContextTest' }
+
+tasks.register('sequenceCleanupTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: an idle sequence no longer retains the last executed step.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.core.SequenceCleanupTest'
+}
+tasks.named('check') { dependsOn 'sequenceCleanupTest' }
