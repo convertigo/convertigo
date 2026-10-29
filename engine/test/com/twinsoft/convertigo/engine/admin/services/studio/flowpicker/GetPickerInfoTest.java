@@ -30,6 +30,28 @@ public class GetPickerInfoTest {
 	}
 
 	@Test
+	public void omitsOnlyAnEditorThePageAlreadyHolds() {
+		assertTrue(Get.knownRevision("a1, b2", "b2"));
+		assertFalse(Get.knownRevision("a1,b2", "c3"));
+		assertFalse(Get.knownRevision("", "a1"));
+		assertFalse(Get.knownRevision(null, "a1"));
+		assertFalse(Get.knownRevision("a1", ""));
+	}
+
+	@Test
+	public void answersABindingSourceRequestWithTheSourcesOfTheProperty() throws Exception {
+		var sources = new org.codehaus.jettison.json.JSONArray()
+				.put(new JSONObject().put("id", "copy").put("pathsDeferred", true));
+		var info = new JSONObject().put("propertyDefinitions", new JSONObject()
+				.put("text", new JSONObject().put("kind", "binding").put("bindingSources", sources)));
+
+		assertEquals(1, Get.bindingSources(info, "text").length());
+		assertEquals("copy", Get.bindingSources(info, "text").getJSONObject(0).getString("id"));
+		assertEquals(0, Get.bindingSources(info, "label").length());
+		assertEquals(0, Get.bindingSources(null, "text").length());
+	}
+
+	@Test
 	public void projectsTheFrontendTreeOnlyForContextualProperties() throws Exception {
 		var info = new JSONObject().put("propertyDefinitions", new JSONObject()
 				.put("size", new JSONObject().put("kind", "size"))

@@ -3,6 +3,7 @@
 	import Light from '#lib/common/Light.svelte.js';
 	import { call, serverRetryDelay } from '#lib/utils/service.js';
 	import { themeContextFromMessage } from './flowAuthoring';
+	import { editorPage, knownEditorRevisions, pickerRequest } from './flowPickerRequests';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 
 	const FLOW_PICKER_RETRY_DELAY_MS = 160;
@@ -45,6 +46,10 @@
 				event.data?.channel !== 'convertigo-flow-picker' ||
 				event.data?.bridgeId !== bridgeId
 			) {
+				return;
+			}
+			if (event.data.request) {
+				void answer(String(event.data.request), String(event.data.message ?? ''));
 				return;
 			}
 			void receive(String(event.data.message ?? ''));
@@ -155,7 +160,9 @@
 				{
 					id: target.id,
 					propertyName: target.propertyName,
-					value: editorValue(target.value)
+					value: editorValue(target.value),
+					// a retry asks the page again, whatever this session holds
+					htmlRevisions: attempt === 0 ? knownEditorRevisions() : ''
 				},
 				// the first failure is retried silently, the second one shows its cause once
 				{ silentError: () => attempt === 0 }
@@ -163,7 +170,8 @@
 			if (serial !== loadSerial) {
 				return;
 			}
-			if (!response?.html || !response?.state) {
+			const html = editorPage(response);
+			if (!html || !response?.state) {
 				throw new Error(
 					response?.error?.message || response?.message || 'Flow picker is not available'
 				);
@@ -171,6 +179,7 @@
 			bridgeId = crypto.randomUUID();
 			payload = {
 				...response,
+				html,
 				state: {
 					...response.state,
 					mode: 'property',
@@ -222,6 +231,38 @@
 	}
 
 	/**
+	 * Answers a request an editor sent asynchronously (flowEditor.requestAsync).
+	 *
+	 * @param {string} requestId
+	 * @param {string} message
+	 */
+	async function answer(requestId, message) {
+		const targetFrame = frame;
+		const id = bridgeId;
+		let response;
+		try {
+			response = await pickerRequest(pickerTarget, JSON.parse(message || '{}'), (service, data) =>
+				call(service, data, { silentError: () => true })
+			);
+		} catch (err) {
+			response = { ok: false, error: String(err instanceof Error ? err.message : err) };
+		}
+		if (targetFrame !== frame || id !== bridgeId || !targetFrame?.contentWindow) {
+			return;
+		}
+		targetFrame.contentWindow.postMessage(
+			{
+				channel: 'convertigo-flow-picker',
+				bridgeId: id,
+				type: 'response',
+				request: requestId,
+				response: JSON.stringify(response)
+			},
+			'*'
+		);
+	}
+
+	/**
 	 * @param {string} message
 	 */
 	async function receive(message) {
@@ -269,11 +310,17 @@
 		});
 		const bootstrap = `<script>(function () {
 			var data = ${data};
+			var pending = {}, requests = 0;
 			function reply(message) {
 				window.parent.postMessage({ channel: 'convertigo-flow-picker', bridgeId: data.bridgeId, message: message }, '*');
 			}
 			window.flowEditor = {
 				receive: reply,
+				requestAsync: function (message, callback) {
+					var id = String(++requests);
+					pending[id] = callback;
+					window.parent.postMessage({ channel: 'convertigo-flow-picker', bridgeId: data.bridgeId, request: id, message: message }, '*');
+				},
 				request: function (message) {
 					try {
 						var request = JSON.parse(message || '{}');
@@ -300,6 +347,10 @@
 				} else if (message.type === 'context') {
 					data.state.themeContext = message.context;
 					if (typeof window.flowSetContext === 'function') window.flowSetContext(message.context);
+				} else if (message.type === 'response') {
+					var callback = pending[message.request];
+					delete pending[message.request];
+					if (callback) callback(String(message.response || '{}'));
 				}
 			});
 			if (typeof window.receiveFromJava === 'function') window.receiveFromJava(data.state);

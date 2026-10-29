@@ -14,6 +14,7 @@ import java.nio.file.Path;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -62,6 +63,16 @@ public class Get extends JSonService {
 		FlowStudioSupport.performanceProfileMark("picker.resolveTarget");
 
 		var bridge = new FlowEngineBridge();
+		var bindingSource = request.getParameter("bindingSource");
+		if (bindingSource != null && !bindingSource.isBlank()) {
+			// A source listed with pathsDeferred: its paths, asked when the user chooses it.
+			var detail = pickerInfo(bridge, target, object, property, new JSONObject()
+					.put("bindingDetail", "lazy")
+					.put("bindingDetailSources", new JSONArray().put(new JSONObject(bindingSource))));
+			FlowStudioSupport.performanceProfileMark("picker.bindingSource");
+			response.put("bindingSources", bindingSources(detail, property));
+			return;
+		}
 		var editor = target.flow() == null
 				? bridge.propertyEditor(target.flowEngine())
 				: bridge.propertyEditor(target.flow());
@@ -69,9 +80,17 @@ public class Get extends JSonService {
 		if (html.isBlank()) {
 			throw new ServiceException("Flow property editor is not available");
 		}
+		var htmlRevision = DigestUtils.sha256Hex(html);
 		FlowStudioSupport.performanceProfileMark("picker.propertyEditor");
 
-		var info = pickerInfo(bridge, target, object, property);
+		if (value == null) {
+			var current = object.getDefinitionProperty(property);
+			value = current == null ? "" : String.valueOf(current);
+		}
+		// The first screen lists the sources and the paths of those the value reads.
+		var info = pickerInfo(bridge, target, object, property, new JSONObject()
+				.put("bindingDetail", "lazy")
+				.put("bindingValue", value));
 		FlowStudioSupport.performanceProfileMark("picker.info");
 		var definitions = info.optJSONObject("propertyDefinitions");
 		var propertyDefinition = definitions == null ? new JSONObject() : definitions.optJSONObject(property);
@@ -80,10 +99,6 @@ public class Get extends JSonService {
 		}
 		var pickerDefinitions = new JSONObject().put(property, propertyDefinition);
 		var pickerInfo = pickerInfoForProperty(info, property, pickerDefinitions);
-		if (value == null) {
-			var current = object.getDefinitionProperty(property);
-			value = current == null ? "" : String.valueOf(current);
-		}
 		var pickerDefinition = new JSONObject().put(property,
 				valueOrNull(object.getDefinitionProperty(property)));
 
@@ -125,7 +140,11 @@ public class Get extends JSonService {
 		}
 		FlowStudioSupport.performanceProfileMark("picker.icons");
 
-		response.put("html", html);
+		// The page keeps the editors it received: an unchanged one is not sent again.
+		if (!knownRevision(request.getParameter("htmlRevisions"), htmlRevision)) {
+			response.put("html", html);
+		}
+		response.put("htmlRevision", htmlRevision);
 		response.put("state", state);
 		response.put("requests", requests);
 		} finally {
@@ -140,14 +159,33 @@ public class Get extends JSonService {
 		return filtered;
 	}
 
+	static boolean knownRevision(String revisions, String revision) {
+		if (revisions == null || revisions.isBlank() || revision == null || revision.isBlank()) {
+			return false;
+		}
+		for (var known : revisions.split(",")) {
+			if (revision.equals(known.trim())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	static JSONArray bindingSources(JSONObject info, String property) {
+		var definitions = info == null ? null : info.optJSONObject("propertyDefinitions");
+		var definition = definitions == null ? null : definitions.optJSONObject(property);
+		var sources = definition == null ? null : definition.optJSONArray("bindingSources");
+		return sources == null ? new JSONArray() : sources;
+	}
+
 	private static JSONObject pickerInfo(FlowEngineBridge bridge, PickerTarget target, FlowVirtualObject object,
-			String property) throws Exception {
+			String property, JSONObject bindingOptions) throws Exception {
 		var info = valueOrObject(object.getVirtualInfoObject());
 		if (!isFrontendSource(object) || !requiresFrontendProjection(info, property)) {
 			return info;
 		}
 		var virtualPath = object.getVirtualPath();
-		var tree = bridge.authoringTree(target.flowEngine(), new JSONObject()
+		var options = new JSONObject()
 				.put("surface", "frontend")
 				.put("builder", frontendBuilder(virtualPath))
 				.put("focusPath", virtualPath)
@@ -156,7 +194,12 @@ public class Get extends JSonService {
 				.put("property", property)
 				.put("includeBindings", true)
 				.put("includeFrontendCatalog", false)
-				.put("includeFlowCatalog", false));
+				.put("includeFlowCatalog", false);
+		for (var keys = bindingOptions.keys(); keys.hasNext();) {
+			var key = String.valueOf(keys.next());
+			options.put(key, bindingOptions.get(key));
+		}
+		var tree = bridge.authoringTree(target.flowEngine(), options);
 		var focused = findNode(tree.optJSONArray("children"), virtualPath);
 		var enriched = focused == null ? null : objectValue(focused.opt("info"));
 		return enriched == null || enriched.length() == 0 ? info : enriched;
