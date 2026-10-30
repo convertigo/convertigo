@@ -16,6 +16,7 @@
 - [#1246](https://github.com/convertigo/convertigo/issues/1246) [Redis] Session stores now make fewer Redis round trips and writes per request: an attribute set again unchanged is no longer written, a session is read with one command, its indexes are updated in the same call and counted sessions are checked in batches; `Crypto2` reuses its key and ciphers. An attribute that a request sets again unchanged no longer overwrites a value written meanwhile by another request
 - [#1248](https://github.com/convertigo/convertigo/issues/1248) [Docker] The `aks` image now starts with a JVM ahead-of-time cache trained when the image is built, which `AOT_CACHE=off` disables, and without remote debugging by default; the public image is unchanged
 - [#1253](https://github.com/convertigo/convertigo/issues/1253) [Engine] Multipart requests no longer start an external process to remove their temporary upload folder, now only created when a file or a large field is written, and REST operations remove it at the end of the request instead of leaving the uploaded files in the temporary directory
+- [#1266](https://github.com/convertigo/convertigo/issues/1266) [Docker] Tomcat no longer logs the JVM arguments at startup, as `JAVA_OPTS` can carry passwords
 
 #### Bug Fixes:
 
