@@ -605,9 +605,9 @@ public class MobileResourceHelper {
 
 			long[] latest = {0};
 
-			Files.walk(resourcePath).filter(p ->
-				!p.endsWith("md5.json"))
-			.forEach(p -> {
+			try (var paths = Files.walk(resourcePath)) {
+				paths.filter(p -> !p.endsWith("md5.json"))
+				.forEach(p -> {
 				if (Files.isDirectory(p)) {
 					return;
 				}
@@ -637,15 +637,18 @@ public class MobileResourceHelper {
 				if (!f.getName().equals("service-worker.js")) {
 					latest[0] = Math.max(latest[0], f.lastModified());
 				}
-			});
+				});
+			}
 
 			if (latest[0] > 0) {
-				Files.walk(resourcePath).forEach(p -> {
-					File f = p.toFile();
-					if (f.lastModified() > latest[0]) {
-						f.setLastModified(latest[0]);
-					}
-				});
+				try (var paths = Files.walk(resourcePath)) {
+					paths.forEach(p -> {
+						File f = p.toFile();
+						if (f.lastModified() > latest[0]) {
+							f.setLastModified(latest[0]);
+						}
+					});
+				}
 			}
 
 			FileUtils.write(pathMD5.toFile(), jsonMD5[0].toString(2), StandardCharsets.UTF_8);
