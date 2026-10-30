@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.MigrationManager;
 import com.twinsoft.convertigo.engine.admin.services.TextService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.cache.DatabaseCacheManager;
@@ -86,6 +87,8 @@ public class Supervision extends TextService {
 		result += "convertigo.started="+ (isConvertigoStarted?"OK":"KO") + "\n";
 		result += "convertigo.database.cache="+ (bCacheDatabase?"OK":"KO") + "\n";
 		result += "convertigo.session.store=" + ConvertigoHttpSessionManager.getInstance().getSupervisionStatus() + "\n";
+		// KO while the projects of the workspace are still being loaded at startup: their requests would fail meanwhile.
+		result += "convertigo.projects=" + (MigrationManager.areProjectsLoaded() ? "OK" : "KO") + "\n";
 		
 		return result;
 	}

@@ -22,14 +22,15 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MigrationManager {
-	private static Map<String, MigrationJob> jobs = new HashMap<String, MigrationJob>();
-	private static boolean jobsAdded = false;
+	// Read by the supervision of probe threads while the migration thread fills it.
+	private static Map<String, MigrationJob> jobs = new ConcurrentHashMap<String, MigrationJob>();
+	private static volatile boolean jobsAdded = false;
 	
 	protected static void performProjectsMigration() {
 		final File projectsDirFile = new File(Engine.PROJECTS_PATH);
@@ -82,6 +83,9 @@ public class MigrationManager {
 						//Added by julienda
 						targetProjectArchive = (new File(projectsDirFile, projectArchive)).getPath();
 						String projectName = ZipUtils.getProjectName(targetProjectArchive);
+						if (projectName == null) {
+							continue; // not a project archive (the job map takes no null key)
+						}
 						
 						MigrationJob job = new MigrationJob(projectName);
 						if (!jobs.containsKey(projectName)) {
@@ -108,6 +112,8 @@ public class MigrationManager {
 					Engine.logEngine.error("An error occured while performing migration.", t);
 				}
 				finally {
+					// A failure must not leave the projects reported as loading forever.
+					jobsAdded = true;
 					long t1 = Calendar.getInstance().getTime().getTime();
 					Engine.logEngine.trace("Migration took (" + (t1 - t0) + "ms).");
 					Engine.logEngine.info("Migration finished");
@@ -127,6 +133,14 @@ public class MigrationManager {
 		return jobsAdded;
 	}
 	
+	/**
+	 * Whether every project of the workspace is loaded: false from the start of the engine until the jobs that load
+	 * them are all added and finished (before they are added, the empty job map alone would tell finished).
+	 */
+	public static boolean areProjectsLoaded() {
+		return jobsAdded && isMigrationFinished();
+	}
+
 	static boolean isMigrationFinished() {
 		for (MigrationJob job: jobs.values()) {
 			if (!job.isFinished) return false;
