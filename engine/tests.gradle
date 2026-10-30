@@ -415,6 +415,18 @@ tasks.register('billingInternalCallsTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.BillingInternalCallsTest'
 }
 
+tasks.register('billingBench', JavaExec) {
+	group = 'verification'
+	description = 'Micro benchmark of the billing tickets, from the request threads to the ticket managers (not a test): -PbillingBenchArgs="request threads=1,5,20 manager=sink", "drain manager=db|ga|sink", "shutdown".'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.BillingBench'
+	jvmArgs '-Xms1g', '-Xmx1g'
+	if (project.hasProperty('billingBenchArgs')) {
+		args project.property('billingBenchArgs').toString().split(' ')
+	}
+}
+
 tasks.register('jsonStringifyFallbackTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: a Java map or list the JSON writer refuses (date, Java array, character, deep nesting) is written by JSON.stringify of Rhino, without looping.'
