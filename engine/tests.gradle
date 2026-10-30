@@ -51,6 +51,7 @@ tasks.named('check') {
 	dependsOn 'attachmentStreamingTest'
 	dependsOn 'rhinoConsStringTest'
 	dependsOn 'billingManagerTest'
+	dependsOn 'billingPersistenceTest'
 	dependsOn 'rhinoSessionValuesTest'
 	dependsOn 'rhinoCachedScriptScopeTest'
 	dependsOn 'statisticsTest'
@@ -423,6 +424,15 @@ tasks.register('billingManagerTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.BillingManagerTest'
+}
+
+tasks.register('billingPersistenceTest', JavaExec) {
+	group = 'verification'
+	description = 'The JDBC billing ticket manager on an in-memory database: the tickets handed together written in one transaction, all or none, and only a ticket the database refuses lost.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.BillingPersistenceTest'
 }
 
 tasks.register('billingBench', JavaExec) {
