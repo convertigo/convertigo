@@ -80,6 +80,7 @@ public class InternalRequester extends GenericRequester {
     
     public Object processRequest() throws Exception {
 		try (var logContext = Log4jHelper.mdcScope()) {
+			applyNoLog(inputData);
 			try {
 				return processRequestWithContext(inputData);
 			} finally {
@@ -92,6 +93,16 @@ public class InternalRequester extends GenericRequester {
 		}
     }
     
+    /**
+     * __nolog=true among the parameters mutes the logs of this internal request and of what it runs; the scope of
+     * processRequest restores the caller's logging context afterwards. (An HTTP request is muted by MdcFilter.)
+     */
+    public static void applyNoLog(Object request) {
+    	if (request instanceof Map<?, ?> parameters && "true".equals(getString(parameters.get("__nolog")))) {
+    		org.apache.log4j.MDC.put("nolog", true);
+    	}
+    }
+
     private void processRequestEnd(Map<String, Object> request) {
 		request.put("convertigo.cookies", context.getCookieStrings());
 

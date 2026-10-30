@@ -16,6 +16,7 @@
 - [#1246](https://github.com/convertigo/convertigo/issues/1246) [Redis] Session stores now make fewer Redis round trips and writes per request: an attribute set again unchanged is no longer written, a session is read with one command, its indexes are updated in the same call and counted sessions are checked in batches; `Crypto2` reuses its key and ciphers. An attribute that a request sets again unchanged no longer overwrites a value written meanwhile by another request
 - [#1248](https://github.com/convertigo/convertigo/issues/1248) [Docker] The `aks` image now starts with a JVM ahead-of-time cache trained when the image is built, which `AOT_CACHE=off` disables, and without remote debugging by default; the public image is unchanged
 - [#1253](https://github.com/convertigo/convertigo/issues/1253) [Engine] Multipart requests no longer start an external process to remove their temporary upload folder, now only created when a file or a large field is written, and REST operations remove it at the end of the request instead of leaving the uploaded files in the temporary directory
+- [#1266](https://github.com/convertigo/convertigo/issues/1266) [Docker] Tomcat no longer logs the JVM arguments at startup, as `JAVA_OPTS` can carry passwords
 
 #### Bug Fixes:
 
@@ -35,7 +36,10 @@
 - [#1254](https://github.com/convertigo/convertigo/issues/1254) [Engine] Fixed, concurrent requests of a session asking for a dynamic context (`__context=*`) now each get their own context instead of sometimes sharing one and waiting for each other, and a request removing its context no longer holds its response until another request of that context ends
 - [#1255](https://github.com/convertigo/convertigo/issues/1255) [Engine] Fixed, a compiled script reading one of its top-level `const` no longer keeps in memory the scopes of its first runs, with everything they reach, for the life of the engine: Rhino is updated to 1.9.2, whose default refusal of the Java serialization of its objects does not concern the engine
 - [#1260](https://github.com/convertigo/convertigo/issues/1260) [Engine] Fixed, an idle context no longer keeps in memory the values evaluated by the last step of its sequence, such as its JSON or XML data and the JavaScript scopes they reach
+- [#1262](https://github.com/convertigo/convertigo/issues/1262) [Studio] Fixed, repeated FullSync synchronization errors no longer stack duplicate modal dialogs; notifications are shown one at a time with their correct severity
 - [#1263](https://github.com/convertigo/convertigo/issues/1263) [Engine] Fixed, an instance is no longer reported ready before the projects of its workspace are loaded: `engine.Supervision` reports `convertigo.projects=KO` meanwhile, and the readiness probe of the Helm chart waits for `OK`
+- [#1265](https://github.com/convertigo/convertigo/issues/1265) [Engine] Fixed, an internal request created with `__nolog=true` among its parameters is no longer logged, nor what it runs, and its caller logs again once it ends
+- [#1267](https://github.com/convertigo/convertigo/issues/1267) [Engine] Fixed, the export of a project without its test cases and the timestamps of mobile builds no longer leave directories open when walking them is interrupted by an error
 
 ## 8.4.6
 

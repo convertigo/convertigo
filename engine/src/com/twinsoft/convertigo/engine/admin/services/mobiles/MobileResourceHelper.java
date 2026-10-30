@@ -605,47 +605,51 @@ public class MobileResourceHelper {
 
 			long[] latest = {0};
 
-			Files.walk(resourcePath).filter(p ->
-				!p.endsWith("md5.json"))
-			.forEach(p -> {
-				if (Files.isDirectory(p)) {
-					return;
-				}
-				File f = p.toFile();
-				String key = resourcePath.relativize(p).toString().replace('\\', '/');
-				try {
-					JSONObject entryMD5 = jsonMD5[0].has(key) ? jsonMD5[0].getJSONObject(key) : null;
-					if (entryMD5 == null || FileUtils.isFileNewer(f, entryMD5.getLong("ts"))) {
-						try (FileInputStream fis = new FileInputStream(f)) {
-							String md5 = DigestUtils.md5Hex(fis);
-							String lastMD5 = entryMD5 == null ? null : entryMD5.getString("md5");
-							if (md5.equals(lastMD5)) {
-								Engine.logEngine.trace("(MobileResourceHelper) restore " + f.getName() + " " + md5 + " from " + f.lastModified() + " to " + entryMD5.getLong("ts"));
-								f.setLastModified(entryMD5.getLong("ts"));
-							} else {
-								Engine.logEngine.trace("(MobileResourceHelper) changed " + f.getName() + " " + md5 + " != " + lastMD5 + " from " + (entryMD5 == null ? null : entryMD5.getLong("ts")) + " to "+ f.lastModified());
-								entryMD5 = new JSONObject();
-								entryMD5.put("md5", md5);
-								entryMD5.put("ts", f.lastModified());
-								jsonMD5[0].put(key, entryMD5);
+			try (var walk = Files.walk(resourcePath)) {
+				walk.filter(p ->
+					!p.endsWith("md5.json"))
+				.forEach(p -> {
+					if (Files.isDirectory(p)) {
+						return;
+					}
+					File f = p.toFile();
+					String key = resourcePath.relativize(p).toString().replace('\\', '/');
+					try {
+						JSONObject entryMD5 = jsonMD5[0].has(key) ? jsonMD5[0].getJSONObject(key) : null;
+						if (entryMD5 == null || FileUtils.isFileNewer(f, entryMD5.getLong("ts"))) {
+							try (FileInputStream fis = new FileInputStream(f)) {
+								String md5 = DigestUtils.md5Hex(fis);
+								String lastMD5 = entryMD5 == null ? null : entryMD5.getString("md5");
+								if (md5.equals(lastMD5)) {
+									Engine.logEngine.trace("(MobileResourceHelper) restore " + f.getName() + " " + md5 + " from " + f.lastModified() + " to " + entryMD5.getLong("ts"));
+									f.setLastModified(entryMD5.getLong("ts"));
+								} else {
+									Engine.logEngine.trace("(MobileResourceHelper) changed " + f.getName() + " " + md5 + " != " + lastMD5 + " from " + (entryMD5 == null ? null : entryMD5.getLong("ts")) + " to "+ f.lastModified());
+									entryMD5 = new JSONObject();
+									entryMD5.put("md5", md5);
+									entryMD5.put("ts", f.lastModified());
+									jsonMD5[0].put(key, entryMD5);
+								}
 							}
 						}
+					} catch (Exception e) {
+						Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed to handle '" + f + "' : " + e, e);
 					}
-				} catch (Exception e) {
-					Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed to handle '" + f + "' : " + e, e);
-				}
-				if (!f.getName().equals("service-worker.js")) {
-					latest[0] = Math.max(latest[0], f.lastModified());
-				}
-			});
-
-			if (latest[0] > 0) {
-				Files.walk(resourcePath).forEach(p -> {
-					File f = p.toFile();
-					if (f.lastModified() > latest[0]) {
-						f.setLastModified(latest[0]);
+					if (!f.getName().equals("service-worker.js")) {
+						latest[0] = Math.max(latest[0], f.lastModified());
 					}
 				});
+			}
+
+			if (latest[0] > 0) {
+				try (var walk = Files.walk(resourcePath)) {
+					walk.forEach(p -> {
+						File f = p.toFile();
+						if (f.lastModified() > latest[0]) {
+							f.setLastModified(latest[0]);
+						}
+					});
+				}
 			}
 
 			FileUtils.write(pathMD5.toFile(), jsonMD5[0].toString(2), StandardCharsets.UTF_8);

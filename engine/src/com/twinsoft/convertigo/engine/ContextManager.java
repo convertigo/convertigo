@@ -1205,9 +1205,23 @@ public class ContextManager extends AbstractRunnableManager {
 		return Collections.emptyList();
 	}
 
-	public boolean isSessionEmtpy(HttpSession httpSession) {
+	public boolean isSessionEmpty(HttpSession httpSession) {
 		int size = getContexts(httpSession).size();
-		Engine.logContextManager.debug("(ContextManager) Contexts from the session " + httpSession.getId() + ": "+ size);
+		String sessionID = httpSession.getId();
+		if (size <= 0 && contextStore != null && !RequestScopedHttpSession.isRequestScopedId(sessionID)) {
+			// The contexts of a stored session are not kept with it: the list only holds the contexts of this request
+			for (String contextID : storedContextIds(sessionID, sessionID + "_")) {
+				try {
+					if (contextStore.readLastAccessTime(contextID) != null) {
+						size++;
+						break;
+					}
+				} catch (Exception e) {
+					Engine.logContextManager.debug("(ContextManager) Failed to read the stored context " + contextID, e);
+				}
+			}
+		}
+		Engine.logContextManager.debug("(ContextManager) Contexts from the session " + sessionID + ": "+ size);
 		return size <= 0;
 	}
 

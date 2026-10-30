@@ -76,6 +76,7 @@ RUN groupmod -n convertigo ubuntu \
 RUN sed -i.bak \
         -e '/protocol="AJP/d' \
         -e '/JasperListener/d' \
+        -e 's,VersionLoggerListener" />,VersionLoggerListener" logArgs="false" />,' \
         -e 's/port="8080"/port="28080" maxThreads="64000" relaxedQueryChars="{}[]|" relaxedPathChars="[]"/' \
         -e 's,</Host>,  <Valve className="org.apache.catalina.valves.RemoteIpValve" />\n\
         <Valve className="org.apache.catalina.valves.ErrorReportValve" \

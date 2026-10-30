@@ -551,18 +551,72 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		ConvertigoPlugin.messageBoxWithoutReturnCode(message, SWT.OK | SWT.ICON_INFORMATION);
 	}
 
-	private static void messageBoxWithoutReturnCode(final String message, int options) {
-		final Display display = getDisplay();
+	/** A modal SWT box pumps UI events: scheduling each notification separately nests boxes. */
+	private static final class MessageBoxQueue {
+		private record Message(String text, int options) { }
+		private final LinkedList<Message> pending = new LinkedList<>();
+		private final Set<Message> outstanding = new HashSet<>();
+		private final java.util.function.Consumer<Runnable> dispatch;
+		private final java.util.function.BiConsumer<String, Integer> show;
+		private boolean scheduled;
 
-		Runnable runnable = () -> {
-			messageBox(null, message, SWT.OK | SWT.ICON_INFORMATION);
-		};
-
-		if (display.getThread() != Thread.currentThread()) {
-			asyncExec(runnable);
-		} else {
-			syncExec(runnable);
+		MessageBoxQueue(java.util.function.Consumer<Runnable> dispatch,
+				java.util.function.BiConsumer<String, Integer> show) {
+			this.dispatch = dispatch;
+			this.show = show;
 		}
+
+		void add(String text, int options) {
+			boolean start;
+			synchronized (this) {
+				var message = new Message(text == null ? "(null message)" : text, options);
+				if (!outstanding.add(message)) return;
+				pending.add(message);
+				start = !scheduled;
+				scheduled = true;
+			}
+			if (start) dispatchNext();
+		}
+
+		private void dispatchNext() {
+			try {
+				dispatch.accept(this::showNext);
+			} catch (RuntimeException e) {
+				// A disposed Display cannot accept callbacks. Do not retain queued messages.
+				synchronized (this) {
+					pending.clear();
+					outstanding.clear();
+					scheduled = false;
+				}
+				throw e;
+			}
+		}
+
+		private void showNext() {
+			Message message;
+			synchronized (this) {
+				message = pending.pollFirst();
+			}
+			if (message == null) return;
+			try {
+				show.accept(message.text(), message.options());
+			} finally {
+				boolean next;
+				synchronized (this) {
+					outstanding.remove(message);
+					next = !pending.isEmpty();
+					if (!next) scheduled = false;
+				}
+				if (next) dispatchNext();
+			}
+		}
+	}
+
+	private static final MessageBoxQueue messageBoxes = new MessageBoxQueue(ConvertigoPlugin::asyncExec,
+			(message, options) -> messageBox(null, message, options));
+
+	private static void messageBoxWithoutReturnCode(final String message, int options) {
+		messageBoxes.add(message, options);
 	}
 
 	private static int messageBox(Shell shell, String message, int options) {

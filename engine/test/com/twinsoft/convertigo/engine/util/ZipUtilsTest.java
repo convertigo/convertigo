@@ -2,7 +2,9 @@ package com.twinsoft.convertigo.engine.util;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -58,6 +60,48 @@ public class ZipUtilsTest {
 			assertEquals("b.txt", Files.readString(target.resolve("nested/b.txt")));
 			Files.writeString(target.resolve("nested/a.txt"), "old content");
 		}
+	}
+
+	@Test
+	public void skipsEntriesThatClimbOutOfTheTargetDirectory() throws Exception {
+		var target = folder.newFolder("climb", "target").toPath();
+		expand(target, "Demo/kept.txt", "Demo/../escaped.txt", "Demo/nested/../../../escaped-deep.txt");
+		assertEquals("Demo/kept.txt", Files.readString(target.resolve("kept.txt")));
+		assertFalse(Files.exists(target.resolveSibling("escaped.txt")));
+		assertFalse(Files.exists(target.getParent().resolveSibling("escaped-deep.txt")));
+	}
+
+	@Test
+	public void keepsAnAbsoluteEntryNameInsideTheTargetDirectory() throws Exception {
+		var outside = folder.newFolder("absolute-outside").toPath().resolve("absolute.txt");
+		var target = folder.newFolder("absolute-target").toPath();
+		expand(target, "Demo/kept.txt", "Demo/" + outside);
+		assertEquals("Demo/kept.txt", Files.readString(target.resolve("kept.txt")));
+		assertFalse(Files.exists(outside));
+		assertTrue(Files.isRegularFile(Path.of(target + "/" + outside)));
+	}
+
+	@Test
+	public void skipsEntriesWrittenThroughALinkToAnOutsideDirectory() throws Exception {
+		var outside = folder.newFolder("link-outside").toPath();
+		var target = folder.newFolder("link-target").toPath();
+		Files.createSymbolicLink(target.resolve("linked"), outside);
+		expand(target, "Demo/kept.txt", "Demo/linked/escaped.txt");
+		assertEquals("Demo/kept.txt", Files.readString(target.resolve("kept.txt")));
+		assertFalse(Files.exists(outside.resolve("escaped.txt")));
+	}
+
+	private void expand(Path target, String... entries) throws Exception {
+		Engine.logEngine = Logger.getLogger("zip-test");
+		var archive = Files.createTempFile(folder.getRoot().toPath(), "traversal-", ".car");
+		try (var zip = new ZipOutputStream(Files.newOutputStream(archive))) {
+			for (String entry : entries) {
+				zip.putNextEntry(new ZipEntry(entry));
+				zip.write(entry.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+				zip.closeEntry();
+			}
+		}
+		ZipUtils.expandZip(archive.toString(), target.toString(), "Demo");
 	}
 
 	@Test
