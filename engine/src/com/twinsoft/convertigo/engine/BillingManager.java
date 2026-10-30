@@ -19,22 +19,18 @@
 
 package com.twinsoft.convertigo.engine;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.spi.NOPLogger;
-import org.hibernate.exception.JDBCConnectionException;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.billing.BillingException;
 import com.twinsoft.convertigo.engine.billing.GoogleAnalyticsTicketManager;
 import com.twinsoft.convertigo.engine.billing.HibernateTicketManager;
 import com.twinsoft.convertigo.engine.billing.ITicketManager;
 import com.twinsoft.convertigo.engine.billing.Ticket;
+import com.twinsoft.convertigo.engine.billing.TicketQueue;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
@@ -42,7 +38,6 @@ import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSession;
 import com.twinsoft.convertigo.engine.util.Crypto2;
-import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public class BillingManager implements AbstractManager, PropertyChangeEventListener {
 
@@ -52,17 +47,13 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			.split(":");
 	static private final String dkey = Crypto2.decodeFromHexString("xffd37e28952823f1be24b330ad153a72");
 
-	// the requests bill without a lock: they only read this state, changed by init, destroy and renewManager
-
-	private volatile boolean isDestroying = true;
-
 	private volatile String customer_name = "";
 
-	private volatile BlockingQueue<Ticket> tickets;
-
-	private final List<ITicketManager> managers = new CopyOnWriteArrayList<ITicketManager>();
-
-	private volatile Thread consumer;
+	/**
+	 * One queue and one writer per ticket manager, replaced as a whole by renewManager: the requests bill without a lock,
+	 * only reading it. Empty when no ticket manager is active.
+	 */
+	private volatile List<TicketQueue> queues = List.of();
 
 	private boolean serverMonitor = false;
 
@@ -77,54 +68,64 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_PERSISTENCE_ENABLED)
 				|| EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)
 				|| serverMonitor) {
-			var queue = new LinkedBlockingQueue<Ticket>();
-			tickets = queue;
-			isDestroying = false;
-			consumer = new Thread(new Runnable() {
-				public void run() {
-					Log4jHelper.mdcClear();
-					// ends at most a second after destroy, instead of waiting forever for a ticket
-					while (!isDestroying && consumer == Thread.currentThread()) {
-						Ticket ticket = null;
-						try {
-							ticket = queue.poll(1, TimeUnit.SECONDS);
-							if (ticket != null) {
-								for (ITicketManager manager : managers) {
-									manager.addTicket(ticket);
-								}
-							}
-						} catch (InterruptedException e) {
-							break;
-						} catch (JDBCConnectionException e) {
-							Throwable cause = e.getCause();
-							Engine.logBillers.info("JDBCConnectionException on ticket insertion"
-									+ (cause == null ? "" : " (cause by " + cause.getClass().getSimpleName() + ")")
-									+ ": " + ticket);
-						} catch (Throwable e) {
-							Engine.logBillers.error("Something failed in ticket insertion : " + ticket + "\n[" + e.getClass().getName() + "] " + e.getMessage());
-						}
-					}
-				}
-			});
-
 			renewManager(false);
-			consumer.setName("BillingManager consumer");
-			consumer.setDaemon(true);
-			consumer.start();
 		}
 	}
 
+	/** Stops the billing: the tickets already made are written first, for a few seconds at most. */
 	public void destroy() throws EngineException {
-		Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
+		stop(true);
+	}
 
-		isDestroying = true;
-		tickets = null;
-		consumer = null;
-		renewManager(true);
+	private void stop(boolean wait) throws EngineException {
+		Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
+		renewManager(true, wait);
 	}
 
 	public boolean hasActiveManagers() {
-		return !isDestroying && !managers.isEmpty();
+		return !queues.isEmpty();
+	}
+
+	/** tickets made and not written yet by all the ticket managers */
+	int pendingTickets() {
+		int pending = 0;
+		for (TicketQueue queue : queues) {
+			pending += queue.size();
+		}
+		return pending;
+	}
+
+	/** Uses these ticket managers instead of the configured ones (tests and benchmarks). */
+	synchronized void useTicketManagers(List<? extends ITicketManager> managers) {
+		var previous = queues;
+		queues = startQueues(managers);
+		close(previous, false);
+	}
+
+	private static List<TicketQueue> startQueues(List<? extends ITicketManager> managers) {
+		int capacity;
+		try {
+			capacity = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_QUEUE_CAPACITY).trim());
+		} catch (Exception e) {
+			capacity = Integer.parseInt(PropertyName.ANALYTICS_QUEUE_CAPACITY.getDefaultValue());
+		}
+		var queues = new ArrayList<TicketQueue>(managers.size());
+		for (ITicketManager manager : managers) {
+			queues.add(new TicketQueue(manager, capacity, Engine.logBillers));
+		}
+		return List.copyOf(queues);
+	}
+
+	private static void close(List<TicketQueue> queues, boolean wait) {
+		// all of them stop taking tickets and write their last ones at the same time
+		for (TicketQueue queue : queues) {
+			queue.close(false);
+		}
+		if (wait) {
+			for (TicketQueue queue : queues) {
+				queue.close(true);
+			}
+		}
 	}
 
 	void insertBilling(Context context) throws EngineException {
@@ -182,8 +183,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 
 	/** Hands a ticket to the ticket managers. */
 	protected void enqueueTicket(Ticket ticket) {
-		var queue = tickets;
-		if (!isDestroying && queue != null) {
+		for (TicketQueue queue : queues) {
 			queue.offer(ticket);
 		}
 	}
@@ -234,46 +234,57 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		}
 	}
 
-	private synchronized void renewManager(boolean justDestroy) throws EngineException {
-		for (ITicketManager manager : managers) {
+	private void renewManager(boolean justDestroy) throws EngineException {
+		renewManager(justDestroy, false);
+	}
+
+	/**
+	 * The new ticket managers take the next tickets, then the previous ones write the tickets they have and are
+	 * destroyed, waiting for them with {@code wait} and in the background otherwise.
+	 */
+	private synchronized void renewManager(boolean justDestroy, boolean wait) throws EngineException {
+		var managers = new ArrayList<ITicketManager>(2);
+		try {
+			if (!justDestroy) {
+				addManagers(managers);
+			}
+		} finally {
+			// the ones created before a failure are used, as before
+			var previous = queues;
+			queues = startQueues(managers);
+			close(previous, wait);
+		}
+	}
+
+	private void addManagers(List<ITicketManager> managers) throws EngineException {
+		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_PERSISTENCE_ENABLED)) {
 			try {
-				manager.destroy();
-			} catch (BillingException e) {
-				throw new EngineException("TicketManager failed to destroy", e);
+				managers.add(new HibernateTicketManager(Engine.logBillers));
+			} catch (Throwable t) {
+				throw new EngineException("TicketManager instanciation failed", t);
 			}
 		}
-		managers.clear();
 
-		if (!justDestroy) {
-			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_PERSISTENCE_ENABLED)) {
+		if (serverMonitor) {
+			try {
+				managers.add(new GoogleAnalyticsTicketManager(keys[0], keys[1], new NOPLogger(null, "void")));
+			} catch (Throwable t) {
+			}
+		}
+
+		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)) {
+			var id = EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID);
+			if (StringUtils.isEmpty(id) && StringUtils.isNoneEmpty(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_OLD_GOOGLE_ID)) ) {
+				Engine.logBillers.error("Your Google Analytics ID is deprecated, please configure your Measurement ID and API Secret. Google Analytics is disabled.");
+			} else if ((!keys[0].equals(id))
+					|| !serverMonitor) {
 				try {
-					managers.add(new HibernateTicketManager(Engine.logBillers));
+					managers.add(new GoogleAnalyticsTicketManager(
+							id,
+							EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_SECRET),
+							Engine.logBillers));
 				} catch (Throwable t) {
 					throw new EngineException("TicketManager instanciation failed", t);
-				}
-			}
-
-			if (serverMonitor) {
-				try {
-					managers.add(new GoogleAnalyticsTicketManager(keys[0], keys[1], new NOPLogger(null, "void")));
-				} catch (Throwable t) {
-				}
-			}
-
-			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)) {
-				var id = EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID);
-				if (StringUtils.isEmpty(id) && StringUtils.isNoneEmpty(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_OLD_GOOGLE_ID)) ) {
-					Engine.logBillers.error("Your Google Analytics ID is deprecated, please configure your Measurement ID and API Secret. Google Analytics is disabled.");
-				} else if ((!keys[0].equals(id))
-						|| !serverMonitor) {
-					try {
-						managers.add(new GoogleAnalyticsTicketManager(
-								id,
-								EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_SECRET),
-								Engine.logBillers));
-					} catch (Throwable t) {
-						throw new EngineException("TicketManager instanciation failed", t);
-					}
 				}
 			}
 		}
@@ -285,7 +296,8 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		case ANALYTICS_PERSISTENCE_ENABLED:
 		case ANALYTICS_GOOGLE_ENABLED:
 			try {
-				destroy();
+				// the previous ticket managers write their last tickets in the background
+				stop(false);
 			} catch (EngineException e) {
 				Engine.logBillers.error("Error on BillingManager.destroy: [" + e.getClass().getName() + "] " + e.getMessage());
 			}

@@ -142,7 +142,7 @@ public class BillingBench {
 	}
 
 	@SuppressWarnings("unchecked")
-	static void useTicketManagers(BillingManager billing, List<ITicketManager> managers) throws Exception {
+	public static void useTicketManagers(BillingManager billing, List<ITicketManager> managers) throws Exception {
 		try {
 			Method method = BillingManager.class.getDeclaredMethod("useTicketManagers", List.class);
 			method.setAccessible(true);

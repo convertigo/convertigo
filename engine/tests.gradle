@@ -418,7 +418,7 @@ tasks.register('billingInternalCallsTest', JavaExec) {
 
 tasks.register('billingManagerTest', JavaExec) {
 	group = 'verification'
-	description = 'The billing tickets of concurrent requests, each written once by every ticket manager, and the billing threads ended with it.'
+	description = 'The billing tickets of concurrent requests, each written once by every ticket manager, and the billing threads ended with it; a bounded queue per ticket manager, its tickets handed together, written when the billing stops.'
 	dependsOn sessionTestClasses
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
