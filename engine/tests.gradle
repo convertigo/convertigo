@@ -52,6 +52,7 @@ tasks.named('check') {
 	dependsOn 'rhinoConsStringTest'
 	dependsOn 'billingManagerTest'
 	dependsOn 'billingPersistenceTest'
+	dependsOn 'billingAnalyticsTest'
 	dependsOn 'rhinoSessionValuesTest'
 	dependsOn 'rhinoCachedScriptScopeTest'
 	dependsOn 'statisticsTest'
@@ -433,6 +434,15 @@ tasks.register('billingPersistenceTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.BillingPersistenceTest'
+}
+
+tasks.register('billingAnalyticsTest', JavaExec) {
+	group = 'verification'
+	description = 'The HTTP billing ticket manager against a local collector: the tickets handed together posted 25 events at most per request, by user, the same events as one request each.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.BillingAnalyticsTest'
 }
 
 tasks.register('billingBench', JavaExec) {
