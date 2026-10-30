@@ -181,8 +181,17 @@ public class ChildInvocationTest {
         catch(com.twinsoft.convertigo.beans.core.TransactionTimeoutException expected) { }
         assertTrue(ended.await(3,TimeUnit.SECONDS));
     }
+    @Test public void noChildTicketIsBuiltWithoutTicketManager() throws Exception {
+        var built=new AtomicInteger();
+        Engine.theApp.billingManager=new BillingManager(){@Override public boolean hasActiveManagers(){return false;}};
+        RequestableInvocation.billChild(()->{built.incrementAndGet();return null;});
+        assertEquals(0,built.get());
+        Engine.theApp.billingManager=new BillingManager(){@Override public boolean hasActiveManagers(){return true;}@Override public void insertBilling(RequestableInvocation.Billing value){}};
+        RequestableInvocation.billChild(()->{built.incrementAndGet();return null;});
+        assertEquals(1,built.get());
+    }
     @Test public void billingFailureCannotReplaceBusinessFailure() throws Exception {
-        Engine.theApp.billingManager=new BillingManager(){@Override public void insertBilling(RequestableInvocation.Billing value)throws EngineException{throw new EngineException("fixture billing failure");}};
+        Engine.theApp.billingManager=new BillingManager(){@Override public boolean hasActiveManagers(){return true;}@Override public void insertBilling(RequestableInvocation.Billing value)throws EngineException{throw new EngineException("fixture billing failure");}};
         root(60, owner -> {try(var c=new ChildInvocation(child,parent,Flow.currentInvocationGuard())){throw new IllegalArgumentException("business");}catch(IllegalArgumentException e){assertEquals("business",e.getMessage());}});
     }
     static String cacheInfo() {try {var m=FlowEngineBridge.class.getDeclaredMethod("bridgeCacheInfo",String.class);m.setAccessible(true);return m.invoke(null,"lib_flow_engine.Engine").toString();}catch(Exception e){return e.getClass().getName();}}

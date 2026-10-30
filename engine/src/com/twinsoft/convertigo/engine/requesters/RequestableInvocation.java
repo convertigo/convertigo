@@ -70,8 +70,11 @@ public final class RequestableInvocation {
         catch (Exception e) { billingFailure(e); }
     }
 
+    /** The values of the ticket are read only when a ticket manager writes it. */
     public static void billChild(java.util.concurrent.Callable<Billing> value) {
-        try { Engine.theApp.billingManager.insertBilling(value.call()); }
+        var billing = Engine.theApp.billingManager;
+        if (billing == null || !billing.hasActiveManagers()) return;
+        try { billing.insertBilling(value.call()); }
         catch (Exception e) { billingFailure(e); }
     }
 
