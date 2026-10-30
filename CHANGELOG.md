@@ -39,6 +39,7 @@
 - [#1262](https://github.com/convertigo/convertigo/issues/1262) [Studio] Fixed, repeated FullSync synchronization errors no longer stack duplicate modal dialogs; notifications are shown one at a time with their correct severity
 - [#1263](https://github.com/convertigo/convertigo/issues/1263) [Engine] Fixed, an instance is no longer reported ready before the projects of its workspace are loaded: `engine.Supervision` reports `convertigo.projects=KO` meanwhile, and the readiness probe of the Helm chart waits for `OK`
 - [#1265](https://github.com/convertigo/convertigo/issues/1265) [Engine] Fixed, an internal request created with `__nolog=true` among its parameters is no longer logged, nor what it runs, and its caller logs again once it ends
+- [#1267](https://github.com/convertigo/convertigo/issues/1267) [Engine] Fixed, the export of a project without its test cases and the timestamps of mobile builds no longer leave directories open when walking them is interrupted by an error
 
 ## 8.4.6
 
