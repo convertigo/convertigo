@@ -82,6 +82,10 @@ configurations {
 
 configurations.compileFlat {
 	resolutionStrategy.eachDependency { details ->
+		if (details.requested.group == 'org.codehaus.groovy') {
+			// SoapUI's Groovy parser must understand Java 25 class files.
+			details.useVersion groovyVersion
+		}
 		if (details.requested.group == 'org.apache.neethi' && details.requested.name == 'neethi') {
 			// Force Axis2 transitive dependency to the security-fixed Neethi version.
 			details.useVersion '3.2.4'
@@ -342,6 +346,8 @@ dependencies {
 	compileFlat    'org.apache.axis2:axis2-saaj:1.8.2', { exclude module: 'servlet-api'}
 	compileFlat    'org.dom4j:dom4j:2.2.0'
 	compileFlat    'org.freemarker:freemarker:2.3.35'
+	// The legacy Reflections dependency otherwise selects a pre-invokedynamic parser.
+	compileFlat    'org.javassist:javassist:3.31.0-GA'
 	compileFlat    'org.apache.commons:commons-lang3:' + commonsLang3
 	compileFlat    'org.apache.httpcomponents:httpclient:4.5.14'
 	compileFlat    'org.apache.james:apache-mime4j-core:0.8.15'

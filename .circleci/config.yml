@@ -7,7 +7,7 @@ defaults: &defaults
   - MAVEN_OPTS: -Xmx2800m
   
   docker:
-  - image: cimg/openjdk:21.0
+  - image: cimg/openjdk:25.0
   
 version: 2.1
 

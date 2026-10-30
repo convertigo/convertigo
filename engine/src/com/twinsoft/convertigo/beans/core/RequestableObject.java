@@ -65,7 +65,6 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
-import com.twinsoft.convertigo.engine.util.ThreadUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
@@ -397,14 +396,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     			        				// Cleans up before stopping
     			                		cleanup();
     			                		
-    			                		// Stops thread
-    				                	if (EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_USE_STOP_METHOD).equalsIgnoreCase("true")) {
-    				                		ThreadUtils.stopThread(runningThread);
-    					                    Engine.logContext.error("(RequestableObject) Stopping the thread for the requested object '" + getName() + "' because of timeout expiration");
-    				                	} else {
-    				                		runningThread.bContinue = false;
-    					                    Engine.logContext.error("(RequestableObject) Request for stopping the thread for the requested object '" + getName() + "' because of timeout expiration");
-    				                	}
+                                        // Publish cancellation before waking blocking code. Thread.stop()
+                                        // is unsupported on modern JDKs and could leave shared state corrupt.
+                                        runningThread.bContinue = false;
+                                        runningThread.interrupt();
+                                        Engine.logContext.error("(RequestableObject) Request for stopping the thread for the requested object '" + getName() + "' because of timeout expiration");
     		
     				                    TransactionTimeoutException e = new TransactionTimeoutException("The requested object '" + getName() + "' has been interrupted because it did not terminate quickly enough.");
     				                    throw e;
@@ -462,15 +458,30 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         } finally {
         	com.twinsoft.convertigo.engine.util.TimingTrace.end(traceStart, inline ? "run-inline" : "run-thread", getName());
         	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_FINISHED);
-        	this.context = null;
-        	this.requester = null;
-        	this.runningThread = null;
-        	this.scope = null;
+            var worker = this.runningThread;
+            if (worker == null) {
+                clearExecutionReferences();
+            } else {
+                synchronized (worker) {
+                    if (worker.isAlive() && !worker.completed) {
+                        worker.clearOnCompletion = true;
+                    } else {
+                        clearExecutionReferences();
+                    }
+                }
+            }
         }
         
         return context.outputDocument;
     }
     
+    private void clearExecutionReferences() {
+        this.context = null;
+        this.requester = null;
+        this.runningThread = null;
+        this.scope = null;
+    }
+
     /*
      * Cleans up
      */
@@ -687,6 +698,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
     
     protected void removeObjectsFromScope() {
+        // The caller can release its reference while a cancelled worker finishes.
+        Scriptable scope = this.scope;
     	if (scope != null) {
 	    	for(Object id : scope.getIds()) {
 	    		scope.delete((String)id);
@@ -1042,6 +1055,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
     public class RequestableThread extends Thread {
 		private final Log4jHelper.MdcSnapshot logContext = Log4jHelper.mdcSnapshot();
+        private final String requestContextId = context.contextID;
         protected Throwable exception = null;
         protected Thread callingThread;
         // Written by the calling thread (timeout, abort), read by this thread before each step.
@@ -1059,6 +1073,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		}
 
         private long engineId;
+        // Guarded by this thread's monitor: cancellation must let the worker unwind first.
+        private boolean completed;
+        private boolean clearOnCompletion;
         
         public org.mozilla.javascript.Context javascriptContext = null;
         
@@ -1079,6 +1096,12 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 				runMarked();
 			} finally {
 				Log4jHelper.mdcClear();
+				synchronized (this) {
+					completed = true;
+					if (clearOnCompletion && RequestableObject.this.runningThread == this) {
+						clearExecutionReferences();
+					}
+				}
 			}
 		}
 
@@ -1214,16 +1237,14 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 				if (timing != null) timing.close();
 
                 synchronized(this) {
-                	if (runningThread == null) {
-                		return;
-                	}
-	            	if (runningThread.bContinue) {
+                    // Use worker-owned state: the caller may already have cleared its fields.
+                    if (bContinue) {
 	    				Engine.logContext.debug("(RequestableObject) Notifying the calling thread '" + callingThread.getName() + "' because of normal request termination");
-	    				runningThread.bContinue = false;
+                        bContinue = false;
     					notify();
 	    				Engine.logContext.debug("(RequestableObject) The calling thread has been notified!");
 	            	} else {
-	        			Engine.logContext.warn("(RequestableObject) Requested object \"" + RequestableObject.this.getName() + "\" aborted because of session or requestable timeout on context " + context.contextID);
+                        Engine.logContext.warn("(RequestableObject) Requested object \"" + RequestableObject.this.getName() + "\" aborted because of session or requestable timeout on context " + requestContextId);
 	    				Engine.logContext.debug("(RequestableObject) Requested object thread: nothing to notify");
 	            	}
                 }

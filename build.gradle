@@ -44,6 +44,7 @@ ext.eclipseBase = '4.41'
 ext.studioWebNodeVersion = '24'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2026.09.17'
 ext.soapuiVersion = '5.9.1'
+ext.groovyVersion = '3.0.25'
 ext.log4jVersion = '2.26.1'
 ext.commonsIo = '2.22.0'
 ext.commonsLang3 = '3.21.0'
@@ -182,10 +183,12 @@ allprojects {
 	}
 	
 	plugins.withId('java') {
-		compileJava.options.encoding = 'UTF-8'
 		java {
-			sourceCompatibility = JavaVersion.VERSION_17
-			targetCompatibility = JavaVersion.VERSION_17
+			toolchain.languageVersion = JavaLanguageVersion.of(25)
+		}
+		tasks.withType(JavaCompile).configureEach {
+			options.encoding = 'UTF-8'
+			options.release = 25
 		}
 		
 		task cleanBin(type: Delete) {
@@ -313,7 +316,7 @@ publishing {
 				dependency = dependencies.appendNode('dependency')
 				dependency.appendNode('groupId', 'org.codehaus.groovy')
 				dependency.appendNode('artifactId', 'groovy-all')
-				dependency.appendNode('version', '3.0.19')
+				dependency.appendNode('version', groovyVersion)
 				exclusions = dependency.appendNode('exclusions')
 				exclusion = exclusions.appendNode('exclusion')
 				exclusion.appendNode('groupId', 'jline')
@@ -390,7 +393,7 @@ afterEvaluate {
 			'Bundle-ManifestVersion': '2',
 			'Bundle-Vendor': 'Convertigo',
 			'Bundle-Version': "${convertigoVersion}.qualifier",
-			'Bundle-RequiredExecutionEnvironment': 'JavaSE-21',
+			'Bundle-RequiredExecutionEnvironment': 'JavaSE-25',
 		)
 	}
 }

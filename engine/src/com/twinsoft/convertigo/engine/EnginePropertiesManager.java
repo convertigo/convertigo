@@ -584,8 +584,9 @@ public class EnginePropertiesManager {
 		WEB_STUDIO ("web_studio", "disabled", "Web Studio in the administration console, to edit projects on this server (always enabled in the Studio)", PropertyCategory.Main),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ServerBuild.class)
 		SERVER_BUILD ("server_build", "none", "What this server builds: the Java sources and declared jars of the projects, also the builds started from the web Studio (nodejs, npm), also the applications deployed without their build (always all in the Studio)", PropertyCategory.Main),
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		DOCUMENT_THREADING_USE_STOP_METHOD ("document.threading.use_stop_method", "false", "Use the Java Thread.stop() method in order to finish threads", PropertyCategory.Main),
+		// Retained to read existing configurations; timeouts always cancel cooperatively.
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
+		DOCUMENT_THREADING_USE_STOP_METHOD ("document.threading.use_stop_method", "false", "Obsolete: request timeouts use cooperative interruption", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
 		POOL_MANAGER_TIMEOUT ("pool.manager.timeout", "-1", "Time allowed for pool management task in seconds (-1 for disable)", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)

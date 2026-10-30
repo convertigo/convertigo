@@ -29,6 +29,8 @@ tasks.register('sessionSerializationTest', JavaExec) {
 }
 
 tasks.named('check') {
+	dependsOn 'runtimeBytecodeTest'
+	dependsOn 'requestableTimeoutTest'
 	dependsOn 'timingAllocationSpanTest'
 	dependsOn 'sessionSerializationTest'
 	dependsOn 'requestScopedSessionTest'
@@ -74,6 +76,24 @@ tasks.named('check') {
 	dependsOn 'redisContextExpiredCopyTest'
 	dependsOn 'redisContextIndexTest'
 	dependsOn 'multipartUploadFolderTest'
+}
+
+tasks.register('runtimeBytecodeTest', JavaExec) {
+	group = 'verification'
+	description = 'Compile Groovy scripts, parse class files and generate bytecode against the running JDK.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.RuntimeBytecodeTest'
+}
+
+tasks.register('requestableTimeoutTest', JavaExec) {
+	group = 'verification'
+	description = 'Cooperative timeout cancellation, blocking interruption and streaming idle deadlines.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.core.RequestableTimeoutTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {

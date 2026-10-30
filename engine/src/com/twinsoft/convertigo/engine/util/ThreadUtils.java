@@ -21,9 +21,14 @@ package com.twinsoft.convertigo.engine.util;
 
 public class ThreadUtils {
 
-	@SuppressWarnings({ "removal" })
+	/**
+	 * Requests cooperative interruption. The caller must also publish its cancellation
+	 * flag; Java no longer supports forcibly stopping another thread.
+	 * @deprecated Call {@link Thread#interrupt()} and use the operation's cancellation contract.
+	 */
+	@Deprecated
 	public static void stopThread(Thread thread) {
-		thread.stop();
+		thread.interrupt();
 	}
 
 	public static void sleep(long millis) {
