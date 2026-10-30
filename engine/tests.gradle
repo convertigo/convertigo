@@ -565,6 +565,17 @@ tasks.register('contextResetTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.ContextResetTest'
 }
 
+tasks.register('migrationManagerReadinessTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test (#1263): the supervision reports the projects as loading until the jobs that load them are all added and finished, and the jobs can be read while they are added.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.MigrationManagerReadinessTest'
+}
+
+tasks.named('check') { dependsOn 'migrationManagerReadinessTest' }
+
 tasks.register('experimentalFeaturesTest', JavaExec) {
 	group = 'verification'
 	description = 'The experimental features (native steps, JSON native properties of a sequence) are hidden from the reference documentation and the Web Studio unless convertigo.experimental.features is true; a native sequence keeps its properties.'

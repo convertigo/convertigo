@@ -25,7 +25,7 @@ import java.util.Calendar;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 class MigrationJob extends Thread {
-	protected boolean isFinished;
+	protected volatile boolean isFinished;
 
 	private String projectName;
 	
