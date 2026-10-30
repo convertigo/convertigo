@@ -346,6 +346,32 @@ public class FlowEngineBridge {
 	}
 
 	/**
+	 * A source of a frontend builder of the project of a directory was written (a page, a layout, a component, a
+	 * stylesheet, a UI block): the authoring answers of the project and of the projects using it, its walks and the
+	 * snapshots of its files are dropped. Its data revision stays: what reads such a source is keyed by its content and
+	 * its working copies (provider documents, catalogs, trees), and no Flow runtime reads it. Bumped, the revision
+	 * refreshed every pooled runtime and the block catalog of the project at each page an agent wrote, and the Flows
+	 * checked or promoted meanwhile started cold.
+	 */
+	public static void invalidateProjectFrontendCaches(String directory) {
+		if (directory == null || directory.isBlank()) { invalidateDataCaches(); return; }
+		var root = canonicalPath(new File(directory));
+		Set<String> roots;
+		try {
+			roots = loadedDependents(root, null);
+		} catch (RuntimeException e) {
+			invalidateProjectDataCaches(directory);
+			return;
+		}
+		roots.add(root);
+		synchronized (sharedRuntimes) {
+			serverSources.clear(new File(directory));
+		}
+		forgetRootFingerprints("engine:" + root, "project:" + root, "authoring:" + root);
+		clearMethodResponseCache(roots);
+	}
+
+	/**
 	 * A project is unloaded (deployed, imported, reloaded or removed): the data caches of the project and of the loaded
 	 * projects whose runtime uses it are invalidated, those referencing it, directly or through other projects, and those
 	 * whose runtime it provides: their shared runtimes and their method responses, then the sources and fingerprints read
@@ -560,6 +586,7 @@ public class FlowEngineBridge {
 
 	public static void notifySourceMutation(String projectDir, String sourcePath, boolean reveal) {
 		if (projectDir == null || projectDir.isBlank()) invalidateDataCaches();
+		else if (FlowSourceLayout.current().isFrontendDocument(sourcePath)) invalidateProjectFrontendCaches(projectDir);
 		else invalidateProjectDataCaches(projectDir);
 		var projectName = projectNameForDir(projectDir);
 		// a file written by the provider itself: the other instances of a shared workspace are told; a working copy is
