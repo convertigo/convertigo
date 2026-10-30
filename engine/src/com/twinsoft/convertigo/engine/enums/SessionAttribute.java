@@ -31,6 +31,7 @@ public enum SessionAttribute {
     authenticatedUser(String.class),
     authenticatedUserGrp(FullSyncAuthentication.class),
     authenticatedUserGrpCheck(String.class),
+    billingUser(String.class),
     clientIP(String.class, KeepMode.NEVER),
     contexts(List.class, KeepMode.NEVER),
     deviceUUID(String.class),

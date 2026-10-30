@@ -60,6 +60,7 @@ tasks.named('check') {
 	dependsOn 'redisSessionRewriteTest'
 	dependsOn 'redisSessionReadTest'
 	dependsOn 'redisSessionStoreLiveTest'
+	dependsOn 'redisBillingSnapshotLiveTest'
 	dependsOn 'redisSessionWrittenBeforeResponseTest'
 	dependsOn 'redisContextSavedBeforeUnlockTest'
 	dependsOn 'redisContextExpiredCopyTest'
@@ -341,6 +342,18 @@ tasks.register('redisSessionStoreLiveTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sessions.RedisSessionStoreLiveTest'
+	if (project.hasProperty('redisSessionTestHost')) {
+		systemProperty 'redisSessionTestHost', project.property('redisSessionTestHost')
+	}
+}
+
+tasks.register('redisBillingSnapshotLiveTest', JavaExec) {
+	group = 'verification'
+	description = 'Billing snapshot of a counted Redis session against a disposable Redis, skipped without -PredisSessionTestHost=host:port: read at a request only when the authenticated user changed since the snapshot got it.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisBillingSnapshotLiveTest'
 	if (project.hasProperty('redisSessionTestHost')) {
 		systemProperty 'redisSessionTestHost', project.property('redisSessionTestHost')
 	}

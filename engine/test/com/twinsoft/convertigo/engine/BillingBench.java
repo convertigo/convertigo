@@ -89,7 +89,7 @@ public class BillingBench {
 		System.exit(0);
 	}
 
-	static void setUpEngine() throws Exception {
+	public static void setUpEngine() throws Exception {
 		BasicConfigurator.configure();
 		Logger.getRootLogger().setLevel(Level.WARN);
 		Engine.logBillers = Logger.getLogger("cems.Billers");
@@ -130,7 +130,7 @@ public class BillingBench {
 	}
 
 	/** The billing started as the engine does, then with the given ticket managers instead of the configured ones. */
-	static BillingManager start(List<ITicketManager> managers) throws Exception {
+	public static BillingManager start(List<ITicketManager> managers) throws Exception {
 		EnginePropertiesManager.setProperty(PropertyName.ANALYTICS_PERSISTENCE_ENABLED, managers.isEmpty() ? "false" : "true");
 		var billing = new BillingManager();
 		billing.init(); // the JDBC ticket manager it creates connects only at its first ticket: replaced before
