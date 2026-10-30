@@ -9,6 +9,7 @@
 package com.twinsoft.convertigo.engine.sessions;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Proxy;
@@ -198,6 +199,16 @@ public class RedisContextIndexTest {
 
 		assertEquals(Set.of(), store.stored());
 		assertEquals(1, store.liveReads.get());
+	}
+
+	@Test public void aSessionWithStoredContextsIsNotEmpty() throws Exception {
+		var sessions = new RedisContextIndexTest.Sessions();
+
+		assertFalse("the contexts of another request are stored, not kept with the session",
+				manager.isSessionEmpty(RedisHttpSession.newSession(sessions, null, configuration, "S1")));
+		assertTrue(manager.isSessionEmpty(RedisHttpSession.newSession(sessions, null, configuration, "S3")));
+		assertEquals(List.of("S1", "S3"), store.sessionReads);
+		assertEquals(0, store.liveReads.get());
 	}
 
 	/** A session store that only records the deletions. */
