@@ -36,6 +36,7 @@
 - [#1255](https://github.com/convertigo/convertigo/issues/1255) [Engine] Fixed, a compiled script reading one of its top-level `const` no longer keeps in memory the scopes of its first runs, with everything they reach, for the life of the engine: Rhino is updated to 1.9.2, whose default refusal of the Java serialization of its objects does not concern the engine
 - [#1260](https://github.com/convertigo/convertigo/issues/1260) [Engine] Fixed, an idle context no longer keeps in memory the values evaluated by the last step of its sequence, such as its JSON or XML data and the JavaScript scopes they reach
 - [#1263](https://github.com/convertigo/convertigo/issues/1263) [Engine] Fixed, an instance is no longer reported ready before the projects of its workspace are loaded: `engine.Supervision` reports `convertigo.projects=KO` meanwhile, and the readiness probe of the Helm chart waits for `OK`
+- [#1265](https://github.com/convertigo/convertigo/issues/1265) [Engine] Fixed, an internal request created with `__nolog=true` among its parameters is no longer logged, nor what it runs, and its caller logs again once it ends
 
 ## 8.4.6
 

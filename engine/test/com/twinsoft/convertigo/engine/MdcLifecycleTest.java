@@ -356,6 +356,24 @@ public class MdcLifecycleTest {
 		return context;
 	}
 
+	@Test
+	public void anInternalRequestWithNoLogIsMutedAndItsCallerLogsAgainAfterIt() {
+		request("Caller");
+		try (var scope = Log4jHelper.mdcScope()) {
+			// the parameters of an internal request hold a string or the values of an HTTP parameter
+			com.twinsoft.convertigo.engine.requesters.InternalRequester.applyNoLog(Map.of("__nolog", new String[] { "true" }));
+			int size = appender.lines.size();
+			logger.info("muted");
+			assertEquals("The internal request is muted", size, appender.lines.size());
+		}
+		assertNull(MDC.get("nolog"));
+		assertTrue(log("visible").contains("visible"));
+		try (var scope = Log4jHelper.mdcScope()) {
+			com.twinsoft.convertigo.engine.requesters.InternalRequester.applyNoLog(Map.of("__nolog", "false"));
+			assertTrue(log("logged").contains("logged"));
+		}
+	}
+
 	private static String log(String message) {
 		synchronized (appender.lines) {
 			int size = appender.lines.size();
