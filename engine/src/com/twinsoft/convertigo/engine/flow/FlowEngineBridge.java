@@ -590,7 +590,9 @@ public class FlowEngineBridge {
 			var project = projectName.isBlank() ? null
 					: Engine.theApp.databaseObjectsManager.getLoadedProjectByName(projectName);
 			if (project != null && project.getFlowEngine() != null) {
-				FlowStudioSupport.afterSourceMutation(project.getFlowEngine(), sourcePath);
+				// the development viewer follows after the answer of the write: its synchronization waits for the frontend
+				// authoring lock, which the Studio holds while it describes its tree
+				FlowStudioSupport.afterSourceMutationInBackground(project.getFlowEngine(), sourcePath);
 			}
 		} catch (Exception e) {
 			Engine.logEngine.warn("(FlowEngineBridge) Unable to synchronize a mutated Flow frontend source.", e);

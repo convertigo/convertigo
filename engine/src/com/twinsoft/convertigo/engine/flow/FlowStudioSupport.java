@@ -3745,34 +3745,65 @@ public class FlowStudioSupport {
 		if (flowEngine == null || sourcePaths.stream().noneMatch(FlowStudioSupport::isFrontendSourcePath)) {
 			return;
 		}
-		var sourcePath = sourcePaths.iterator().next();
 		for (var target : frontendDevSyncTargets(flowEngine)) {
 			clearCatalogCache(target, !projectionApplied);
 			performanceProfileMark("sourceMutation.resolveDevTarget");
-			try {
-				var response = new FlowEngineBridge().contextAction(target, FlowEngineBridge.sourceWorkingCopies(target, flowEngine)
-						.put("sourcePath", sourcePath)
-						.put("sourcePaths", new JSONArray(sourcePaths))
-						.put("action", new JSONObject()
-								.put("id", "frontbuilder.svelte.dev.sync")
-								.put("payload", new JSONObject()
-										.put("sourcePath", sourcePath))));
-				performanceProfileMark("sourceMutation.devSync");
-				var browser = response.optJSONObject("browser");
-				if (browser != null) {
-					FlowEngineBridge.notifyStudioBrowser(browser.toString());
+			syncFrontendDevSource(flowEngine, target, sourcePaths);
+		}
+	}
+
+	/**
+	 * After a source written by a provider (FlowEngineBridge.notifySourceMutation: the Flow MCP, a block): the catalogs
+	 * follow at once, the development viewers of the frontend on a background thread. Their synchronization takes the
+	 * frontend authoring lock of the server, which the Studio holds while it describes its tree: on the thread of the
+	 * write, a code-set of a page with reveal waited more than 300 s for its answer while the Studio was busy.
+	 */
+	public static void afterSourceMutationInBackground(FlowEngine flowEngine, String sourcePath) {
+		if (sourcePath == null) return;
+		clearCatalogCache(flowEngine, true);
+		if (flowEngine == null || !isFrontendSourcePath(sourcePath)) {
+			return;
+		}
+		for (var target : frontendDevSyncTargets(flowEngine)) {
+			clearCatalogCache(target, true);
+		}
+		frontendDevSyncs.submit(flowEngine, sourcePath);
+	}
+
+	private static final FrontendDevSyncQueue<FlowEngine> frontendDevSyncs = new FrontendDevSyncQueue<>(
+			"Flow frontend dev sync",
+			(flowEngine, sourcePaths) -> {
+				for (var target : frontendDevSyncTargets(flowEngine)) {
+					syncFrontendDevSource(flowEngine, target, sourcePaths);
 				}
-				var project = target.getProject() == null ? "" : target.getProject().getName();
-				if (response.optBoolean("generated", false)) {
-					flowStudioInfo("Flow frontend dev source regenerated after mutation: project=" + project
-							+ " sourcePath=" + sourcePath + " details=" + response.opt("details"));
-				} else if (!response.optBoolean("ok", true)) {
-					flowStudioWarn("Flow frontend dev source regeneration failed after mutation: project=" + project
-							+ " sourcePath=" + sourcePath + " response=" + response);
-				}
-			} catch (Exception e) {
-				flowStudioWarn("Unable to update Flow frontend dev source after mutation: " + e.getMessage());
+			},
+			(flowEngine, e) -> flowStudioWarn("Unable to update Flow frontend dev source after mutation.", e));
+
+	private static void syncFrontendDevSource(FlowEngine flowEngine, FlowEngine target, Collection<String> sourcePaths) {
+		var sourcePath = sourcePaths.iterator().next();
+		try {
+			var response = new FlowEngineBridge().contextAction(target, FlowEngineBridge.sourceWorkingCopies(target, flowEngine)
+					.put("sourcePath", sourcePath)
+					.put("sourcePaths", new JSONArray(sourcePaths))
+					.put("action", new JSONObject()
+							.put("id", "frontbuilder.svelte.dev.sync")
+							.put("payload", new JSONObject()
+									.put("sourcePath", sourcePath))));
+			performanceProfileMark("sourceMutation.devSync");
+			var browser = response.optJSONObject("browser");
+			if (browser != null) {
+				FlowEngineBridge.notifyStudioBrowser(browser.toString());
 			}
+			var project = target.getProject() == null ? "" : target.getProject().getName();
+			if (response.optBoolean("generated", false)) {
+				flowStudioInfo("Flow frontend dev source regenerated after mutation: project=" + project
+						+ " sourcePath=" + sourcePath + " details=" + response.opt("details"));
+			} else if (!response.optBoolean("ok", true)) {
+				flowStudioWarn("Flow frontend dev source regeneration failed after mutation: project=" + project
+						+ " sourcePath=" + sourcePath + " response=" + response);
+			}
+		} catch (Exception e) {
+			flowStudioWarn("Unable to update Flow frontend dev source after mutation: " + e.getMessage());
 		}
 	}
 
