@@ -111,16 +111,18 @@ public class CarUtils {
 				URI zip_disk = URI.create("jar:" + f.toURI());
 				try (FileSystem zipfs = FileSystems.newFileSystem(zip_disk, zip_properties)) {
 					Path addNewFile = skipTestCase.getParentFile().toPath();
-					Files.walk(addNewFile).forEach(p -> {
-						try {
-							String relat = addNewFile.relativize(p).toString();
-							if (!relat.isEmpty()) {
-								Files.copy(p, zipfs.getPath(projectName, relat));
+					try (var paths = Files.walk(addNewFile)) {
+						paths.forEach(p -> {
+							try {
+								String relat = addNewFile.relativize(p).toString();
+								if (!relat.isEmpty()) {
+									Files.copy(p, zipfs.getPath(projectName, relat));
+								}
+							} catch (IOException e) {
+								Engine.logEngine.debug("(CarUtils) failed to copy project without TestCase: " + e);
 							}
-						} catch (IOException e) {
-							Engine.logEngine.debug("(CarUtils) failed to copy project without TestCase: " + e);
-						}
-					});
+						});
+					}
 				}
 			}
 			return f;
