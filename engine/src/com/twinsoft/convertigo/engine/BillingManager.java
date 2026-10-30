@@ -19,10 +19,11 @@
 
 package com.twinsoft.convertigo.engine;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.spi.NOPLogger;
@@ -51,15 +52,17 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			.split(":");
 	static private final String dkey = Crypto2.decodeFromHexString("xffd37e28952823f1be24b330ad153a72");
 
-	private boolean isDestroying = true;
+	// the requests bill without a lock: they only read this state, changed by init, destroy and renewManager
 
-	private String customer_name = "";
+	private volatile boolean isDestroying = true;
 
-	private Collection<Ticket> tickets;
+	private volatile String customer_name = "";
 
-	private Collection<ITicketManager> managers = new ArrayList<ITicketManager>(2);
+	private volatile BlockingQueue<Ticket> tickets;
 
-	private Thread consumer;
+	private final List<ITicketManager> managers = new CopyOnWriteArrayList<ITicketManager>();
+
+	private volatile Thread consumer;
 
 	private boolean serverMonitor = false;
 
@@ -74,28 +77,24 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_PERSISTENCE_ENABLED)
 				|| EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)
 				|| serverMonitor) {
+			var queue = new LinkedBlockingQueue<Ticket>();
+			tickets = queue;
 			isDestroying = false;
-			tickets = new LinkedList<Ticket>();
 			consumer = new Thread(new Runnable() {
 				public void run() {
 					Log4jHelper.mdcClear();
+					// ends at most a second after destroy, instead of waiting forever for a ticket
 					while (!isDestroying && consumer == Thread.currentThread()) {
 						Ticket ticket = null;
 						try {
-							synchronized (tickets) {
-								if (tickets.isEmpty()) {
-									tickets.wait();
-								} else {
-									Iterator<Ticket> iTicketData = tickets.iterator();
-									ticket = iTicketData.next();
-									iTicketData.remove();
-								}
-							}
+							ticket = queue.poll(1, TimeUnit.SECONDS);
 							if (ticket != null) {
 								for (ITicketManager manager : managers) {
 									manager.addTicket(ticket);
 								}
 							}
+						} catch (InterruptedException e) {
+							break;
 						} catch (JDBCConnectionException e) {
 							Throwable cause = e.getCause();
 							Engine.logBillers.info("JDBCConnectionException on ticket insertion"
@@ -132,11 +131,8 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		insertBilling(context, null, null);
 	}
 
-	public synchronized void insertBilling(Context context, Long responseTime, Long score) throws EngineException {
-		if (isDestroying) {
-			return;
-		}
-		if (managers.isEmpty()) {
+	public void insertBilling(Context context, Long responseTime, Long score) throws EngineException {
+		if (!hasActiveManagers()) {
 			return;
 		}
 		if (context == null) {
@@ -178,12 +174,17 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 				ticket.setDeviceUUID(deviceUUID);
 			}
 
-			synchronized (tickets) {
-				tickets.add(ticket);
-				tickets.notify();
-			}
+			enqueueTicket(ticket);
 		} catch (Exception e) {
 			throw new EngineException("Ticket create failed", e);
+		}
+	}
+
+	/** Hands a ticket to the ticket managers. */
+	protected void enqueueTicket(Ticket ticket) {
+		var queue = tickets;
+		if (!isDestroying && queue != null) {
+			queue.offer(ticket);
 		}
 	}
 
@@ -205,12 +206,9 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 				sessionListener.getUuid(), score);
 	}
 
-	public synchronized void insertBillingSession(String operation, long creationTime, String sessionId, String clientIp,
+	public void insertBillingSession(String operation, long creationTime, String sessionId, String clientIp,
 			String userAgent, String authenticatedUser, String deviceUUID, int score) throws EngineException {
-		if (isDestroying) {
-			return;
-		}
-		if (managers.isEmpty()) {
+		if (!hasActiveManagers()) {
 			return;
 		}
 
@@ -230,10 +228,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			ticket.setUserAgent(userAgent);
 			ticket.setDeviceUUID(deviceUUID);
 
-			synchronized (tickets) {
-				tickets.add(ticket);
-				tickets.notify();
-			}
+			enqueueTicket(ticket);
 		} catch (Exception e) {
 			throw new EngineException("Ticket create failed", e);
 		}

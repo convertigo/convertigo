@@ -50,6 +50,7 @@ tasks.named('check') {
 	dependsOn 'ngxBuildSettingsTest'
 	dependsOn 'attachmentStreamingTest'
 	dependsOn 'rhinoConsStringTest'
+	dependsOn 'billingManagerTest'
 	dependsOn 'rhinoSessionValuesTest'
 	dependsOn 'rhinoCachedScriptScopeTest'
 	dependsOn 'statisticsTest'
@@ -413,6 +414,15 @@ tasks.register('billingInternalCallsTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.BillingInternalCallsTest'
+}
+
+tasks.register('billingManagerTest', JavaExec) {
+	group = 'verification'
+	description = 'The billing tickets of concurrent requests, each written once by every ticket manager, and the billing threads ended with it.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.BillingManagerTest'
 }
 
 tasks.register('billingBench', JavaExec) {
