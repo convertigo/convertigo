@@ -17,6 +17,12 @@ import jakarta.servlet.http.HttpServletRequest;
 
 /** Internal JSON boundary retaining all regular requestable checks, context cleanup and billing. */
 public class NativeJsonRequester extends InternalRequester {
+	/**
+	 * The key that tells, beside the answer (result or document), whether the requestable failed: true when it answered
+	 * an error instead of its result (a Flow whose run ended in error, an error document), false otherwise. A result may
+	 * hold an error property: the caller reads this key rather than the shape of the answer.
+	 */
+	public static final String FAILED = "failed";
 	private boolean rawResult;
 	public void setRawResult(boolean rawResult) { this.rawResult = rawResult; }
 	public boolean isRawResult() { return rawResult; }
@@ -35,15 +41,23 @@ public class NativeJsonRequester extends InternalRequester {
 		}
 	}
 	@Override public boolean acceptNativeJson() { return true; }
+	/** true when the request answered an error instead of the result of its requestable */
+	private boolean failed() { return context.runFailed || context.isErrorDocument; }
 	@Override public Object postGetNativeJson() throws Exception {
-		if (rawResult) return context.nativeJsonResponse;
+		if (rawResult) {
+			var value = new java.util.LinkedHashMap<String, Object>(context.nativeJsonResponse);
+			value.put(FAILED, failed());
+			return value;
+		}
 		var value = new java.util.LinkedHashMap<String, Object>(context.nativeJsonResponse);
 		value.put("attr", JsonValues.fromLegacy(context.nativeJsonAttributes));
-		return JsonValues.object("document", value);
+		return JsonValues.object("document", value, FAILED, failed());
 	}
 	@Override public Object postGetDocument(Document document) throws Exception {
 		// Legacy sequences and connectors still own their XML model. Convert only at this boundary.
 		super.postGetDocument(document);
-		return JsonValues.parse(XMLUtils.XmlToJson(document.getDocumentElement(), true, true, JsonRoot.docNode));
+		var value = JsonValues.parse(XMLUtils.XmlToJson(document.getDocumentElement(), true, true, JsonRoot.docNode));
+		if (value instanceof Map<?, ?>) JsonValues.map(value).put(FAILED, failed());
+		return value;
 	}
 }

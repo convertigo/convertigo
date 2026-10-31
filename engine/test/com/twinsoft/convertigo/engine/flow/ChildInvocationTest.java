@@ -253,11 +253,27 @@ public class ChildInvocationTest {
         child.setFlowSource("const _flow={sourceVersion:2,invocation:'direct-v1'};\nfunction Child(){local.value=proof.failure({});return local.value;}");
         for(var direct:List.of("true","false")) {
             System.setProperty("convertigo.javascript.direct_calls",direct);
+            // the failure of the called Flow makes the call fail (onError raise by default)
             var response=execute("function Root(){local.value=requestable.call({requestable:'.Child',input:{}});return local.value;}");
-            assertEquals(response.toString(),Boolean.TRUE,response.get("ok"));
+            assertEquals(direct+" "+response,Boolean.FALSE,response.get("ok"));
+            assertEquals(direct+" "+response,"FIXTURE_FAILURE",((Map<?,?>)response.get("error")).get("code"));
+            // onError return gives it as the value of the call
+            response=execute("function Root(){local.value=requestable.call({requestable:'.Child',input:{},onError:'return'});return local.value;}");
+            assertEquals(direct+" "+response,Boolean.TRUE,response.get("ok"));
             var result=(Map<?,?>)response.get("result");assertEquals(result.toString(),"FIXTURE_FAILURE",((Map<?,?>)result.get("error")).get("code"));
         }
-        assertEquals(2,handlesClosed.get());assertEquals(2,tickets.size());
+        assertEquals(4,handlesClosed.get());assertEquals(4,tickets.size());
+    }
+    @Test public void actualChildResultShapedAsAFailureStaysAResultInBothPaths() throws Exception {
+        provider();allowManagedCalls();
+        child.setFlowSource("const _flow={sourceVersion:2,invocation:'direct-v1',inputs:{payload:{type:'object'}}};\nfunction Child({input}){return input.payload;}");
+        for(var direct:List.of("true","false")) {
+            System.setProperty("convertigo.javascript.direct_calls",direct);
+            // a result holding what an engine failure holds is data: the regular requester marks its answers
+            var response=execute("function Root(){local.value=requestable.call({requestable:'.Child',input:{payload:{error:{code:'SHAPED',operation:'run',path:'p',message:'data',hint:''}}}});return local.value;}");
+            assertEquals(direct+" "+response,Boolean.TRUE,response.get("ok"));
+            var result=(Map<?,?>)response.get("result");assertEquals(result.toString(),"SHAPED",((Map<?,?>)result.get("error")).get("code"));
+        }
     }
     @Test public void actualAuthenticationRefusalsBillInBothPathsBeforeAnyBlock() throws Exception {
         provider();allowManagedCalls();handlesClosed.set(0);

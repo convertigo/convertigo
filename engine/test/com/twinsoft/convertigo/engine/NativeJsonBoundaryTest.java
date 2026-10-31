@@ -392,6 +392,67 @@ public class NativeJsonBoundaryTest {
 		assertEquals(0, flow.thread); assertNull(context.nativeJsonResponse); assertFalse(context.nativeJson);
 	}
 
+	/** A Flow answering what its engine answers, without engine */
+	static class Answering extends Flow {
+		Map<String, Object> answer;
+		@Override public void fireRequestableEvent(String event) { }
+		@Override protected Map<String, Object> runFlowEngine(Context requestContext) { return answer; }
+	}
+
+	/** The answer of a checked internal JSON call of the Flow, as a caller gets it, and whether it may be cached */
+	private Map<String, Object> callAnswer(Answering called, boolean raw, boolean nativeJson, boolean[] cacheEnabled) throws Exception {
+		EnginePropertiesManager.setProperty(PropertyName.REQUESTABLE_NATIVE_JSON, Boolean.toString(nativeJson));
+		var callContext = new Context("call_context") { @Override public void loadSequence() { requestedObject = called; } };
+		callContext.project = project; callContext.projectName = "Test"; callContext.sequenceName = "Echo"; callContext.name = "call";
+		callContext.requestedObject = called;
+		var requester = new NativeJsonRequester(new java.util.HashMap<String, Object>(Map.of("value", "x")), null) {
+			@Override public void checkAccessibility() { }
+			@Override public void checkSecuredConnection() { }
+			@Override public void checkAuthenticatedContext() { }
+			@Override public void checkParentContext() { }
+		};
+		requester.context = callContext; requester.setRawResult(raw);
+		var document = Engine.theApp.getDocument(requester, callContext);
+		assertEquals(nativeJson, document == null);
+		cacheEnabled[0] = callContext.isCacheEnabled;
+		return JsonValues.map(document == null ? requester.postGetNativeJson() : requester.postGetDocument(document));
+	}
+
+	@Test public void aFailedRunIsMarkedBesideItsAnswerAndNotCached() throws Exception {
+		var called = new Answering(); called.setName("Echo");
+		var failure = JsonValues.object("code", "DENIED", "operation", "run", "path", "Check.throw", "message", "Denied", "hint", "", "status", 403);
+		var cacheEnabled = new boolean[1];
+		try {
+			for (var nativeJson : List.of(true, false)) for (var raw : nativeJson ? List.of(true, false) : List.of(false)) {
+				var mode = (nativeJson ? "native" : "xml") + (raw ? " raw" : "");
+				called.answer = JsonValues.object("ok", false, "error", failure);
+				var answer = callAnswer(called, raw, nativeJson, cacheEnabled);
+				assertEquals(mode + " " + answer, Boolean.TRUE, answer.get(NativeJsonRequester.FAILED));
+				var error = JsonValues.map(JsonValues.map(answer.get(raw ? "result" : "document")).get("error"));
+				assertEquals(mode + " " + answer, "DENIED", error.get("code"));
+				assertFalse(mode + ": a failed run was kept in the cache", cacheEnabled[0]);
+				// a result holding an error property stays a result
+				called.answer = JsonValues.object("ok", true, "result", JsonValues.object("error", JsonValues.object("message", "business data"), "count", 0));
+				answer = callAnswer(called, raw, nativeJson, cacheEnabled);
+				assertEquals(mode + " " + answer, Boolean.FALSE, answer.get(NativeJsonRequester.FAILED));
+				var result = JsonValues.map(answer.get(raw ? "result" : "document"));
+				assertEquals(mode + " " + answer, "business data", JsonValues.map(result.get("error")).get("message"));
+				assertTrue(mode, cacheEnabled[0]);
+			}
+		} finally {
+			EnginePropertiesManager.setProperty(PropertyName.REQUESTABLE_NATIVE_JSON, "true");
+		}
+		// a request that failed before or around the run answers an error document, marked as well
+		var document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		var root = document.createElement("document"); document.appendChild(root);
+		root.appendChild(document.createElement("error")).setTextContent("denied");
+		var requester = new NativeJsonRequester(Map.of("__project", "Test"), null); requester.context = context;
+		context.isErrorDocument = true;
+		assertEquals(Boolean.TRUE, JsonValues.map(requester.postGetDocument(document)).get(NativeJsonRequester.FAILED));
+		context.reset(); assertFalse(context.runFailed); assertFalse(context.isErrorDocument);
+		assertEquals(Boolean.FALSE, JsonValues.map(requester.postGetDocument(document)).get(NativeJsonRequester.FAILED));
+	}
+
 	@Test public void restSelectionPreservesSchemaAndXpathConsumers() throws Exception {
 		var operation = new com.twinsoft.convertigo.beans.rest.GetOperation() {
 			@Override public Project getProject() { return project; }

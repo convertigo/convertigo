@@ -167,7 +167,7 @@ public class Flow extends Sequence {
 		var acceptedBefore = requestContext.rowStreamAccepted;
 		try {
 			requestContext.rowStreamAccepted = streamRows;
-			var response = new FlowEngineBridge().run(this, requestContext, null, null);
+			var response = runFlowEngine(requestContext);
 			var bridgeFinished = System.nanoTime();
 			if (response instanceof com.twinsoft.convertigo.engine.flow.rows.StreamResult streamed) {
 				var document = streamed.take();
@@ -206,6 +206,9 @@ public class Flow extends Sequence {
 					XMLUtils.jsonToXml(JsonValues.toLegacy(result), null, ensureOutputDocument().getDocumentElement(), true, true, false, arrayItem);
 				}
 			} else {
+				// the failure is answered as the result: marked for the caller (NativeJsonRequester), never cached
+				requestContext.runFailed = true;
+				requestContext.isCacheEnabled = false;
 				var errorResponse = JsonValues.object();
 				errorResponse.put("error", response.containsKey("error") ? response.get("error") : response);
 				if (requestContext.nativeJson) requestContext.nativeJsonResponse =
@@ -232,6 +235,11 @@ public class Flow extends Sequence {
 		} finally {
 			requestContext.rowStreamAccepted = acceptedBefore;
 		}
+	}
+
+	/** The answer of the Flow engine for this run: { ok, result } or { ok: false, error }. */
+	protected Map<String, Object> runFlowEngine(com.twinsoft.convertigo.engine.Context requestContext) throws EngineException {
+		return new FlowEngineBridge().run(this, requestContext, null, null);
 	}
 
 	/**

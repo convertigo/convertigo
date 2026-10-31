@@ -104,6 +104,11 @@ public class Context extends AbstractContext implements Cloneable {
 	 */
 	public transient long storedAccessTime = 0;
 	public transient boolean isErrorDocument = false;
+	/**
+	 * true when the requested object answered its failure as its result, without error document: a Flow whose run
+	 * ended in error. NativeJsonRequester tells it to its caller beside the answer.
+	 */
+	public transient boolean runFailed = false;
 
 	/** The JSON of the output steps of a sequence answered as JSON without their XML (Sequence.jsonNativeOutput), by key */
 	public transient Map<String, JsonNativeOutput> jsonNativeOutputs = null;
@@ -241,6 +246,7 @@ public class Context extends AbstractContext implements Cloneable {
 		nativeJsonAttributes = null;
 		isXsltRequest = false;
 		isErrorDocument = false;
+		runFailed = false;
 		jsonNativeOutputs = null;
 		// a classic request answered from the cache after a native one must not stay native: run() and the native
 		// cache of CacheManager set them again for the request, after this reset
