@@ -93,8 +93,8 @@ public class Flow extends Sequence {
 	private transient boolean flowInputSyncing = false;
 	/** the accessibility declared by _flow.accessibility, which replaces the property while the source declares it */
 	private transient Accessibility declaredAccessibility = null;
-	private transient String flowVirtualChildrenCacheKey = "";
-	private transient List<DatabaseObject> flowVirtualChildrenCache = null;
+	// One immutable value: the projection may now be computed off the UI thread (ProjectTreeObject) while the UI reads it.
+	private transient volatile FlowVirtualChildren flowVirtualChildrenCache = null;
 
 	public Flow() {
 		super();
@@ -347,12 +347,12 @@ public class Flow extends Sequence {
 	public List<DatabaseObject> getFlowVirtualChildren() {
 		var source = getFlowSource();
 		var key = FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + source;
-		if (flowVirtualChildrenCache != null && key.equals(flowVirtualChildrenCacheKey)) {
-			return new ArrayList<>(flowVirtualChildrenCache);
+		var cached = flowVirtualChildrenCache;
+		if (cached != null && key.equals(cached.key())) {
+			return new ArrayList<>(cached.children());
 		}
 		var children = FlowVirtualProjector.childrenOf(this);
-		flowVirtualChildrenCacheKey = key;
-		flowVirtualChildrenCache = children;
+		flowVirtualChildrenCache = new FlowVirtualChildren(key, children);
 		return new ArrayList<>(children);
 	}
 
@@ -864,7 +864,6 @@ public class Flow extends Sequence {
 	}
 
 	private void clearFlowVirtualChildrenCache() {
-		flowVirtualChildrenCacheKey = "";
 		flowVirtualChildrenCache = null;
 	}
 

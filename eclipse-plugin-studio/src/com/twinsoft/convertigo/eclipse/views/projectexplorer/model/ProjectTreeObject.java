@@ -70,6 +70,7 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.couchdb.JsonIndex;
 import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.flow.FlowEngine;
+import com.twinsoft.convertigo.beans.flow.FlowTreeRefreshQueue;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
@@ -105,6 +106,8 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject, IResourceChangeListener {
 	private IProject iProject = null;
+	// One refresh of the Flow virtual tree at a time per project, the source changes received meanwhile merged
+	private final FlowTreeRefreshQueue flowTreeRefreshQueue = new FlowTreeRefreshQueue(Engine::execute, this::refreshFlowVirtualTreePass);
 	private boolean isCheckMissingProjects = false;
 
 	public ProjectTreeObject(Viewer viewer, Project object) {
@@ -440,59 +443,79 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 
 	private void refreshFlowVirtualTree(Set<String> flowSourceNames, boolean flowRuntimeSourceChanged,
 			boolean flowCatalogSourceChanged, boolean flowFrontendSourceChanged, String revealSourcePath) {
-		if (!flowRuntimeSourceChanged && !flowCatalogSourceChanged && !flowFrontendSourceChanged
-				&& flowSourceNames.isEmpty()) {
-			return;
-		}
-		Engine.execute(() -> {
-			try {
-				var project = getObject();
-				if (flowRuntimeSourceChanged) {
-					FlowEngineBridge.clearCaches();
-				} else if (flowCatalogSourceChanged || !flowSourceNames.isEmpty()) {
-					FlowEngineBridge.invalidateDataCaches();
-				} else {
-					// pages, layouts, components: the authoring answers of the project, read by their content, not the
-					// data of every project, refreshed for each page an agent writes
-					FlowEngineBridge.invalidateProjectFrontendCaches(project.getDirPath());
-				}
-				FlowStudioSupport.clearCatalogCache(project);
-				ConvertigoPlugin.asyncExec(() -> {
-					try {
-						var explorerView = getProjectExplorerView();
-						if (flowRuntimeSourceChanged || flowCatalogSourceChanged || flowFrontendSourceChanged) {
-							FlowEngine flowEngine = project.getFlowEngine();
-							if (flowEngine != null) {
-								var treeObject = explorerView.findTreeObjectByUserObject(flowEngine);
-								if (treeObject != null) {
-									explorerView.reloadTreeObject(treeObject);
-								}
-							}
-						}
-						for (var flowName : flowSourceNames) {
-							try {
-								var sequence = project.getSequenceByName(flowName);
-								if (sequence instanceof Flow flow) {
-									FlowStudioSupport.clearCatalogCache(flow);
-									var treeObject = explorerView.findTreeObjectByUserObject(flow);
-									if (treeObject != null) {
-										explorerView.reloadTreeObject(treeObject);
-									}
-								}
-							} catch (Exception e) {
-							}
-						}
-						if (!revealSourcePath.isBlank()) {
-							explorerView.selectFlowAuthoringSource(getName(), revealSourcePath);
-						}
-					} catch (Exception e) {
-						ConvertigoPlugin.logException(e, "Unable to refresh Flow virtual tree for project \"" + getName() + "\".");
-					}
-				});
-			} catch (Exception e) {
-				ConvertigoPlugin.logException(e, "Unable to invalidate Flow runtime caches for project \"" + getName() + "\".");
+		flowTreeRefreshQueue.submit(new FlowTreeRefreshQueue.Changes(flowSourceNames, flowRuntimeSourceChanged,
+				flowCatalogSourceChanged, flowFrontendSourceChanged, revealSourcePath));
+	}
+
+	/**
+	 * One pass of the queue: the caches are invalidated and the trees projected here, off the UI thread; the UI
+	 * thread then only compares and updates its tree, the Flow engine and the Flows answering their projection from
+	 * their caches. The next pass starts once the UI part is over.
+	 */
+	private void refreshFlowVirtualTreePass(FlowTreeRefreshQueue.Changes changes, Runnable done) {
+		var handedToUi = false;
+		try {
+			var project = getObject();
+			if (changes.runtime()) {
+				FlowEngineBridge.clearCaches();
+			} else if (changes.catalog() || !changes.flowNames().isEmpty()) {
+				FlowEngineBridge.invalidateDataCaches();
+			} else {
+				// pages, layouts, components: the authoring answers of the project, read by their content, not the
+				// data of every project, refreshed for each page an agent writes
+				FlowEngineBridge.invalidateProjectFrontendCaches(project.getDirPath());
 			}
-		});
+			FlowStudioSupport.clearCatalogCache(project);
+			var flowEngine = changes.engineTree() ? project.getFlowEngine() : null;
+			if (flowEngine != null) {
+				flowEngine.getFlowVirtualChildren();
+			}
+			var flows = new ArrayList<Flow>();
+			for (var flowName : changes.flowNames()) {
+				try {
+					if (project.getSequenceByName(flowName) instanceof Flow flow) {
+						FlowStudioSupport.clearCatalogCache(flow);
+						flow.getFlowVirtualChildren();
+						flows.add(flow);
+					}
+				} catch (Exception e) {
+				}
+			}
+			ConvertigoPlugin.asyncExec(() -> {
+				try {
+					var explorerView = getProjectExplorerView();
+					if (flowEngine != null) {
+						var treeObject = explorerView.findTreeObjectByUserObject(flowEngine);
+						if (treeObject != null) {
+							explorerView.reloadTreeObject(treeObject);
+						}
+					}
+					for (var flow : flows) {
+						try {
+							var treeObject = explorerView.findTreeObjectByUserObject(flow);
+							if (treeObject != null) {
+								explorerView.reloadTreeObject(treeObject);
+							}
+						} catch (Exception e) {
+						}
+					}
+					if (!changes.revealSourcePath().isBlank()) {
+						explorerView.selectFlowAuthoringSource(getName(), changes.revealSourcePath());
+					}
+				} catch (Exception e) {
+					ConvertigoPlugin.logException(e, "Unable to refresh Flow virtual tree for project \"" + getName() + "\".");
+				} finally {
+					done.run();
+				}
+			});
+			handedToUi = true;
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to invalidate Flow runtime caches for project \"" + getName() + "\".");
+		} finally {
+			if (!handedToUi) {
+				done.run();
+			}
+		}
 	}
 
 	public void refreshFlowVirtualTree(String sourcePath) {

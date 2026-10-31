@@ -75,8 +75,8 @@ public class FlowEngine extends DatabaseObject {
 	/** The change flag only reflects source working copies: it goes with the last of them, saved or discarded. */
 	private transient boolean changedBySourceDraftsOnly = false;
 	private transient long engineSourceFileLastModified = -1;
-	private transient String flowVirtualChildrenCacheKey = "";
-	private transient List<DatabaseObject> flowVirtualChildrenCache = null;
+	// One immutable value: the projection may now be computed off the UI thread (ProjectTreeObject) while the UI reads it.
+	private transient volatile FlowVirtualChildren flowVirtualChildrenCache = null;
 
 	public FlowEngine() {
 		super();
@@ -112,12 +112,12 @@ public class FlowEngine extends DatabaseObject {
 
 	public List<DatabaseObject> getFlowVirtualChildren() {
 		var key = flowVirtualChildrenCacheKey();
-		if (flowVirtualChildrenCache != null && key.equals(flowVirtualChildrenCacheKey)) {
-			return new ArrayList<>(flowVirtualChildrenCache);
+		var cached = flowVirtualChildrenCache;
+		if (cached != null && key.equals(cached.key())) {
+			return new ArrayList<>(cached.children());
 		}
 		var children = FlowVirtualProjector.childrenOf(this);
-		flowVirtualChildrenCacheKey = key;
-		flowVirtualChildrenCache = children;
+		flowVirtualChildrenCache = new FlowVirtualChildren(key, children);
 		return new ArrayList<>(children);
 	}
 
@@ -128,8 +128,9 @@ public class FlowEngine extends DatabaseObject {
 
 	/** @return the virtual children projected from the current sources and drafts, null when they are not */
 	private List<DatabaseObject> currentFlowVirtualChildren() {
-		return flowVirtualChildrenCache != null && flowVirtualChildrenCacheKey().equals(flowVirtualChildrenCacheKey)
-				? new ArrayList<>(flowVirtualChildrenCache)
+		var cached = flowVirtualChildrenCache;
+		return cached != null && flowVirtualChildrenCacheKey().equals(cached.key())
+				? new ArrayList<>(cached.children())
 				: null;
 	}
 
@@ -139,15 +140,15 @@ public class FlowEngine extends DatabaseObject {
 	 * provider returned and applied a fresh replacement for the affected subtree.
 	 */
 	public List<DatabaseObject> snapshotFlowVirtualChildrenCache() {
-		return flowVirtualChildrenCache == null ? null : new ArrayList<>(flowVirtualChildrenCache);
+		var cached = flowVirtualChildrenCache;
+		return cached == null ? null : new ArrayList<>(cached.children());
 	}
 
 	public void restoreFlowVirtualChildrenCache(List<DatabaseObject> snapshot) {
 		if (snapshot == null) {
 			return;
 		}
-		flowVirtualChildrenCacheKey = flowVirtualChildrenCacheKey();
-		flowVirtualChildrenCache = new ArrayList<>(snapshot);
+		flowVirtualChildrenCache = new FlowVirtualChildren(flowVirtualChildrenCacheKey(), snapshot);
 	}
 
 	@Override
@@ -752,7 +753,6 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	public void clearFlowVirtualChildrenCache() {
-		flowVirtualChildrenCacheKey = "";
 		flowVirtualChildrenCache = null;
 	}
 
