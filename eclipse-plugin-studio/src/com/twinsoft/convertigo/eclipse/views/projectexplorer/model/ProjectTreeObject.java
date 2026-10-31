@@ -25,8 +25,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -448,56 +450,139 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 
 	/**
-	 * One pass of the queue: the caches are invalidated and the trees projected here, off the UI thread; the UI
-	 * thread then only compares and updates its tree, the Flow engine and the Flows answering their projection from
-	 * their caches. The next pass starts once the UI part is over.
+	 * Reloads the tree of an object of the project that a writer saved outside the Project Explorer (a Flow added or
+	 * updated, its inputs synchronized, sources written or removed), as ProjectExplorerView.reloadDatabaseObject did
+	 * on the UI thread, but through the queue of the refreshes of the project: the projections the reload reads are
+	 * made off the UI thread, the writes received meanwhile are merged into one pass, and the UI thread only updates
+	 * its tree.
+	 *
+	 * @param written the object saved: the project when objects were added (its whole tree is reloaded), one of its
+	 *        Flows, or null when only sources were written
+	 * @param engineSources the kind of the sources written that the tree of the Flow engine shows, which is then
+	 *        reloaded, as FlowSourceLayout.ChangeKind names it: "frontend" (pages, layouts, components: the caches of
+	 *        the project frontend are invalidated), "catalog" (the data caches of every project), "runtime" (every
+	 *        cache); null or empty for none
+	 * @param refreshResources whether the resources of the project are refreshed first, off the UI thread (files
+	 *        written outside the workspace)
+	 * @param aroundReload given the reload, runs it on the UI thread (a writer noting the changed flag the reload
+	 *        raises); the reload runs once, and still runs if the hook fails; null runs it as is
+	 * @return whether the reload is queued; false for an object of another kind or of another project, for another
+	 *         kind of sources, or for nothing to reload, which the caller handles itself
+	 */
+	public boolean reloadWrittenObject(DatabaseObject written, String engineSources, boolean refreshResources,
+			Consumer<Runnable> aroundReload) {
+		var runtime = false;
+		var catalog = false;
+		var frontend = false;
+		switch (engineSources == null ? "" : engineSources.trim().toLowerCase(Locale.ROOT)) {
+		case "" -> {
+		}
+		case "runtime" -> runtime = true;
+		case "catalog" -> catalog = true;
+		case "frontend" -> frontend = true;
+		default -> {
+			return false;
+		}
+		}
+		Set<String> writtenFlowNames = Set.of();
+		var writtenProject = false;
+		if (written instanceof Project project) {
+			if (!getName().equals(project.getName())) {
+				return false;
+			}
+			writtenProject = true;
+		} else if (written instanceof Flow flow) {
+			var flowProject = flow.getProject();
+			if (flowProject == null || !getName().equals(flowProject.getName())) {
+				return false;
+			}
+			writtenFlowNames = Set.of(flow.getName());
+		} else if (written != null) {
+			return false;
+		}
+		var changes = new FlowTreeRefreshQueue.Changes(Set.of(), runtime, catalog, frontend, "", writtenFlowNames,
+				writtenProject, refreshResources, aroundReload);
+		if (changes.isEmpty()) {
+			return false;
+		}
+		flowTreeRefreshQueue.submit(changes);
+		return true;
+	}
+
+	/**
+	 * One pass of the queue: the resources are refreshed, the caches invalidated and the trees projected here, off
+	 * the UI thread; the UI thread then only compares and updates its tree, the Flow engine and the Flows answering
+	 * their projection from their caches. The next pass starts once the UI part is over.
 	 */
 	private void refreshFlowVirtualTreePass(FlowTreeRefreshQueue.Changes changes, Runnable done) {
 		var handedToUi = false;
 		try {
 			var project = getObject();
-			if (changes.runtime()) {
-				FlowEngineBridge.clearCaches();
-			} else if (changes.catalog() || !changes.flowNames().isEmpty()) {
-				FlowEngineBridge.invalidateDataCaches();
-			} else {
-				// pages, layouts, components: the authoring answers of the project, read by their content, not the
-				// data of every project, refreshed for each page an agent writes
-				FlowEngineBridge.invalidateProjectFrontendCaches(project.getDirPath());
+			if (changes.resources()) {
+				// the changes of the resources come back through resourceChanged, as the next pass
+				refreshResources();
 			}
-			FlowStudioSupport.clearCatalogCache(project);
-			var flowEngine = changes.engineTree() ? project.getFlowEngine() : null;
-			if (flowEngine != null) {
-				flowEngine.getFlowVirtualChildren();
+			if (changes.sourcesChanged()) {
+				if (changes.runtime()) {
+					FlowEngineBridge.clearCaches();
+				} else if (changes.catalog() || !changes.flowNames().isEmpty()) {
+					FlowEngineBridge.invalidateDataCaches();
+				} else {
+					// pages, layouts, components: the authoring answers of the project, read by their content, not the
+					// data of every project, refreshed for each page an agent writes
+					FlowEngineBridge.invalidateProjectFrontendCaches(project.getDirPath());
+				}
+				FlowStudioSupport.clearCatalogCache(project);
 			}
+			// every cache is cleared before the first projection: clearing the catalog of a Flow also drops the
+			// projection of the Flow engine, which the UI thread would then make again in its reload
 			var flows = new ArrayList<Flow>();
 			for (var flowName : changes.flowNames()) {
 				try {
 					if (project.getSequenceByName(flowName) instanceof Flow flow) {
 						FlowStudioSupport.clearCatalogCache(flow);
-						flow.getFlowVirtualChildren();
 						flows.add(flow);
 					}
+				} catch (Exception e) {
+				}
+			}
+			var writtenFlows = new ArrayList<Flow>();
+			for (var flowName : changes.writtenFlowNames()) {
+				try {
+					if (project.getSequenceByName(flowName) instanceof Flow flow) {
+						writtenFlows.add(flow);
+					}
+				} catch (Exception e) {
+				}
+			}
+			var flowEngine = changes.engineTree() || changes.writtenProject() ? project.getFlowEngine() : null;
+			if (flowEngine != null) {
+				flowEngine.getFlowVirtualChildren();
+			}
+			var projected = new ArrayList<Flow>(flows);
+			projected.addAll(writtenFlows);
+			if (changes.writtenProject()) {
+				// the reload of the whole project reads the tree of each of its Flows
+				for (var sequence : project.getSequencesList()) {
+					if (sequence instanceof Flow flow) {
+						projected.add(flow);
+					}
+				}
+			}
+			for (var flow : projected) {
+				try {
+					flow.getFlowVirtualChildren();
 				} catch (Exception e) {
 				}
 			}
 			ConvertigoPlugin.asyncExec(() -> {
 				try {
 					var explorerView = getProjectExplorerView();
-					if (flowEngine != null) {
-						var treeObject = explorerView.findTreeObjectByUserObject(flowEngine);
-						if (treeObject != null) {
-							explorerView.reloadTreeObject(treeObject);
-						}
-					}
-					for (var flow : flows) {
-						try {
-							var treeObject = explorerView.findTreeObjectByUserObject(flow);
-							if (treeObject != null) {
-								explorerView.reloadTreeObject(treeObject);
-							}
-						} catch (Exception e) {
-						}
+					var failure = FlowTreeRefreshQueue.reloadAround(changes.aroundReload(),
+							() -> reloadFlowTrees(explorerView, project, flowEngine, flows, writtenFlows,
+									changes.writtenProject()));
+					if (failure != null) {
+						ConvertigoPlugin.logException(failure, "Unable to refresh the tree of project \"" + getName() + "\".", false);
 					}
 					if (!changes.revealSourcePath().isBlank()) {
 						explorerView.selectFlowAuthoringSource(getName(), changes.revealSourcePath());
@@ -515,6 +600,72 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			if (!handedToUi) {
 				done.run();
 			}
+		}
+	}
+
+	/**
+	 * The UI part of a pass, its projections read from the caches the pass filled. A written object is reloaded as
+	 * ProjectExplorerView.reloadDatabaseObject does, its changed flag first, then refreshed; the whole project when
+	 * objects were added or removed (a written Flow without a tree object yet), its reload holding the others.
+	 */
+	private void reloadFlowTrees(ProjectExplorerView explorerView, Project project, FlowEngine flowEngine,
+			List<Flow> flows, List<Flow> writtenFlows, boolean writtenProject) {
+		var projectTree = writtenProject;
+		for (var flow : writtenFlows) {
+			projectTree |= !(explorerView.findTreeObjectByUserObject(flow) instanceof DatabaseObjectTreeObject);
+		}
+		if (projectTree) {
+			reloadObjectTree(explorerView, project);
+			return;
+		}
+		if (flowEngine != null) {
+			try {
+				var treeObject = explorerView.findTreeObjectByUserObject(flowEngine);
+				if (treeObject != null) {
+					explorerView.reloadTreeObject(treeObject);
+				}
+			} catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Unable to refresh Flow virtual tree for project \"" + getName() + "\".");
+			}
+		}
+		for (var flow : flows) {
+			if (writtenFlows.contains(flow)) {
+				continue;
+			}
+			try {
+				var treeObject = explorerView.findTreeObjectByUserObject(flow);
+				if (treeObject != null) {
+					explorerView.reloadTreeObject(treeObject);
+				}
+			} catch (Exception e) {
+			}
+		}
+		for (var flow : writtenFlows) {
+			reloadObjectTree(explorerView, flow);
+		}
+	}
+
+	private void reloadObjectTree(ProjectExplorerView explorerView, DatabaseObject databaseObject) {
+		try {
+			if (explorerView.findTreeObjectByUserObject(databaseObject) instanceof DatabaseObjectTreeObject treeObject) {
+				treeObject.hasBeenModified(databaseObject.hasChanged);
+				explorerView.reloadTreeObject(treeObject);
+				explorerView.refreshTreeObject(treeObject);
+			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to refresh the tree of \"" + databaseObject.getQName() + "\".", false);
+		}
+	}
+
+	/** The files of the project written outside the workspace become its resources. */
+	private void refreshResources() {
+		try {
+			var iProject = getIProject();
+			if (iProject != null) {
+				iProject.refreshLocal(IResource.DEPTH_INFINITE, null);
+			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to refresh the resources of project \"" + getName() + "\".", false);
 		}
 	}
 
