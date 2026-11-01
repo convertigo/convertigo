@@ -504,11 +504,12 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	Project project = (Project) ((NativeJavaObject) ctx.get("project", ctx)).unwrap();
     	// a request works on a copy of the project: its results belong to the version loaded it copies
     	Project version = (Project) project.getOriginal();
-    	Object res = project.get(mapkey) instanceof UseResult use && use.project() == version ? use.value() : null;
+	boolean debugging = cx.getDebugger() instanceof com.twinsoft.convertigo.engine.debug.JavascriptDebugSession;
+	Object res = !debugging && project.get(mapkey) instanceof UseResult use && use.project() == version ? use.value() : null;
     	if (res == null) {
     		try {
-    			res = RhinoUtils.evalCachedJavascript(cx, thisObj, key, "use", 1, null);
-    			project.set(mapkey, new UseResult(version, res));
+			res = RhinoUtils.evalCachedJavascript(cx, thisObj, key, debugging ? project.getName() + "/use/" + org.apache.commons.codec.digest.DigestUtils.sha256Hex(key) : "use", 1, null);
+			if (!debugging) project.set(mapkey, new UseResult(version, res));
     		} catch (Exception e) {
     			e.printStackTrace();
     		}
@@ -538,7 +539,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	File js = new File(project.getDirPath(), path);
     	if (js.exists()) {
     		try {
-    			res = RhinoUtils.evalCachedJavascript(cx, thisObj, FileUtils.readFileToString(js, "UTF-8"), path, 1, null);
+			res = RhinoUtils.evalCachedJavascript(cx, thisObj, FileUtils.readFileToString(js, "UTF-8"), cx.getDebugger() instanceof com.twinsoft.convertigo.engine.debug.JavascriptDebugSession ? project.getName() + "/" + path : path, 1, null);
 			} catch (IOException e) {
 				Engine.logBeans.warn("Cannot include '" + js + "' because of a read failure!", e);
 			}
@@ -1142,7 +1143,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         	
 			context.steps = new ArrayList<String>(8);
         	
+			AutoCloseable javascriptDebug = null;
             try {
+				if (com.twinsoft.convertigo.engine.debug.JavascriptDebugger.active()) {
+					javascriptDebug = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.bind(context.httpServletRequest);
+				}
     			// Set HTTP session timeout using front project defined value
             	// - the front project is the project for which the session has been created at first request
             	// - the timeout is set before requestable execution in case of inner requestable calls
@@ -1232,6 +1237,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 					scope = null;
 				}
 				
+				if (javascriptDebug != null) {
+					try { javascriptDebug.close(); } catch (Exception ignored) { /* No debugger data in logs. */ }
+				}
 				Engine.logContext.debug("(RequestableObject) End of requested object thread");
 				// Publish child-thread counters before waking the request's waiting thread.
 				if (timing != null) timing.close();

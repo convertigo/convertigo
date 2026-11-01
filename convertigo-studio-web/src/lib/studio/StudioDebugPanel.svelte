@@ -1,620 +1,270 @@
 <script>
-	import Ico from '#lib/utils/Ico.svelte';
-	import { call } from '#lib/utils/service.js';
-	import { tick, untrack } from 'svelte';
-	import { debugSession, followDebugger, refreshDebugger } from './debugSession.svelte.js';
-	import StudioEmptyState from './StudioEmptyState.svelte';
+	import Button from '#lib/admin/components/Button.svelte';
+	import Editor from '#lib/studio/editor/Editor.svelte';
+	import { callRequestable } from '#lib/utils/service.js';
+	import { onMount } from 'svelte';
+	import {
+		debugCommand,
+		debugSession,
+		inspectFrame,
+		invalidateInspection,
+		variablePreviews,
+		watchDebugger
+	} from './debugSession.svelte.js';
+	import DebugVariables from './DebugVariables.svelte';
 
-	/**
-	 * @typedef {import('./debugSession.svelte.js').DebugState} DebugState
-	 */
-
-	/**
-	 * @typedef {{ url: string, source: string, breakpoints: number[], breakable: number[] }} DebugSource
-	 */
-
-	/**
-	 * @typedef {{ name: string, value: string }} DebugVariable
-	 */
-
-	/**
-	 * The JavaScript debugger of the Studio, as the Rhino debugger of the Eclipse Studio: the scripts of
-	 * the objects run since it started, their breakpoints, and the frames, variables and expressions of a
-	 * stopped script.
-	 *
-	 * @type {{ active?: boolean, onStopped?: () => void }}
-	 */
-	let { active = false, onStopped } = $props();
-
+	/** @type {{active?: boolean, standalone?: boolean, onStopped?: () => void}} */
+	let { active = false, standalone = false, onStopped } = $props();
 	let debugState = $derived(debugSession.state);
 	let sourceUrl = $state('');
-	let source = $state(/** @type {DebugSource | null} */ (null));
+	let source = $state(/** @type {any} */ (null));
 	let frameIndex = $state(0);
-	let variables = $state(
-		/** @type {{ scope: DebugVariable[], this: DebugVariable[] } | null} */ (null)
-	);
+	let variables = $state(/** @type {any} */ (null));
 	let expression = $state('');
-	/** @type {{ expression: string, result: string }[]} */
-	let evaluations = $state([]);
-	let busy = $state('');
+	let evaluations = $state(/** @type {{expression: string, result: string}[]} */ ([]));
+	let busy = $state(false);
 	let error = $state('');
-	/** @type {HTMLElement | undefined} */
-	let sourceElement = $state();
-
-	let stoppedFrame = $derived(debugState?.stopped ? debugState.frames?.[frameIndex] : undefined);
-	let lines = $derived(source ? source.source.split('\n') : []);
-	let breakpoints = $derived(new Set(source?.breakpoints ?? []));
-	let breakable = $derived(new Set(source?.breakable ?? []));
-	let lastSerial = -1;
-	let wasStopped = false;
-	let stoppedFrames = '';
-
-	$effect(() => {
-		if (active) {
-			untrack(() => void refreshDebugger());
+	let project = $state('');
+	let sequence = $state('');
+	let requestRunning = $state(false);
+	let requestResult = $state('');
+	let frame = $derived(debugState?.stopped ? debugState.frames?.[frameIndex] : null);
+	let debugValues = $derived(
+		debugState?.stopped && frame?.url === sourceUrl ? variablePreviews(variables) : null
+	);
+	let lastPause = '';
+	onMount(() => watchDebugger(applyState));
+	function applyState(next) {
+		const pause = next?.stopped ? `${next.sessionId}:${next.pauseId}` : '';
+		if (pause && pause !== lastPause) {
+			frameIndex = 0;
+			onStopped?.();
+			void selectFrame(0);
 		}
-	});
-
-	$effect(() => {
-		// the state the debugger service returned, here or from the code editor
-		const next = debugSession.state;
-		if (next) {
-			untrack(() => void apply(next));
+		lastPause = pause;
+		if (!pause) variables = null;
+		if (!next?.attached) {
+			source = null;
+			sourceUrl = '';
+			evaluations = [];
 		}
-	});
+	}
 
-	/**
-	 * @param {string} action
-	 * @param {Record<string, string>} [parameters]
-	 */
-	async function run(action, parameters = {}) {
-		busy = action;
+	async function command(action, parameters = {}) {
+		busy = true;
 		error = '';
 		try {
-			const result = await call('studio.debug.Debugger', { action, ...parameters });
-			if (result?.state) {
-				followDebugger(result.state);
-			} else if (result?.error) {
-				error = String(result.error.message ?? result.error);
-			}
+			const result = await debugCommand(action, parameters);
+			if (result?.error) error = String(result.error.message ?? result.error);
 			return result;
 		} finally {
-			busy = '';
+			busy = false;
 		}
 	}
-
-	/**
-	 * @param {DebugState} next
-	 */
-	async function apply(next) {
-		const changed = next.serial !== lastSerial;
-		lastSerial = next.serial;
-		if (!changed) {
-			return;
-		}
-		// a state also changes when a script loads: a stop is new when its frames are
-		const frames = JSON.stringify(next.frames ?? []);
-		const stoppedAgain = next.stopped && wasStopped && frames !== stoppedFrames;
-		stoppedFrames = next.stopped ? frames : '';
-		if (next.stopped && (!wasStopped || stoppedAgain)) {
-			// a script stopped, or stopped again after a step: its source and variables show, as the
-			// Eclipse Studio shows them
-			if (!wasStopped) {
-				onStopped?.();
-			}
-			frameIndex = 0;
-			const frame = next.frames?.[0];
-			if (frame && (!wasStopped || frame.url !== sourceUrl)) {
-				await openSource(frame.url);
-			}
-			await loadVariables();
-		} else if (!next.stopped) {
-			variables = null;
-		}
-		wasStopped = next.stopped;
-		if (!sourceUrl && next.sources.length) {
-			await openSource(next.sources[next.sources.length - 1]);
-		}
-	}
-
-	/**
-	 * @param {string} url
-	 */
 	async function openSource(url) {
 		sourceUrl = url;
-		const result = await call('studio.debug.Debugger', { action: 'source', url });
-		if (sourceUrl === url) {
-			source = result?.source ?? null;
-			await tick();
-			sourceElement
-				?.querySelector('.studio-debug__line--current')
-				?.scrollIntoView({ block: 'center' });
-		}
+		const result = await debugCommand('source', { url });
+		if (sourceUrl === url) source = result?.source ?? null;
 	}
-
-	async function loadVariables() {
-		const result = await call('studio.debug.Debugger', {
-			action: 'variables',
-			frame: String(frameIndex)
-		});
-		variables = result?.variables ?? null;
-	}
-
-	/**
-	 * @param {number} index
-	 */
 	async function selectFrame(index) {
 		frameIndex = index;
-		const frame = debugState?.frames?.[index];
-		if (frame) {
-			await openSource(frame.url);
-		}
-		await loadVariables();
+		variables = null;
+		const snapshot = debugState;
+		const selected = snapshot?.frames?.[index];
+		if (selected) await openSource(selected.url);
+		const result = await inspectFrame(index);
+		if (
+			debugState?.stopped &&
+			debugState.pauseId === snapshot?.pauseId &&
+			debugState.sessionId === snapshot?.sessionId &&
+			frameIndex === index
+		)
+			variables = result;
 	}
-
-	/**
-	 * @param {number} line
-	 */
 	async function toggleBreakpoint(line) {
-		if (!source || !breakable.has(line)) {
-			return;
-		}
-		const set = !breakpoints.has(line);
-		const result = await run('breakpoint', {
-			url: source.url,
+		if (!source) return;
+		const url = source.url;
+		const result = await command('breakpoint', {
+			url,
 			line: String(line),
-			set: String(set)
+			set: String(!source.breakpoints.includes(line))
 		});
-		if (result?.accepted) {
-			source.breakpoints = set
-				? [...source.breakpoints, line]
-				: source.breakpoints.filter((other) => other !== line);
-		}
+		if (result?.accepted && source?.url === url) source.breakpoints = result.breakpoints;
+		else if (result?.accepted === false) error = `No executable code at line ${line}.`;
 	}
-
-	async function evaluate(/** @type {SubmitEvent} */ event) {
+	async function evaluate(event) {
 		event.preventDefault();
 		const text = expression.trim();
-		if (!text) {
-			return;
-		}
-		const result = await run('eval', { expression: text });
+		if (!text) return;
+		const result = await command('eval', { frame: String(frameIndex), expression: text });
 		if (result && 'result' in result) {
 			evaluations = [...evaluations, { expression: text, result: String(result.result) }].slice(
 				-20
 			);
 			expression = '';
-			await loadVariables();
+			invalidateInspection();
+			await selectFrame(frameIndex);
 		}
 	}
-
-	/**
-	 * @param {string} url
-	 * @returns {string} the object and the part of an object a script comes from
-	 */
-	function sourceLabel(url) {
-		// the url is the short name of the object, then the name of the script, as Sequence_JS-expression
-		const script = url.slice(url.indexOf('-') + 1);
-		const index = script.lastIndexOf('-');
-		return index > 0 ? `${script.slice(0, index)} › ${script.slice(index + 1)}` : script;
+	async function runRequest(event) {
+		event.preventDefault();
+		requestRunning = true;
+		requestResult = '';
+		try {
+			const response = await callRequestable('json', project, {
+				__sequence: sequence,
+				__context: '*'
+			});
+			requestResult = response.ok ? 'Request finished.' : `Request failed (${response.status}).`;
+		} catch {
+			requestResult = 'Request failed.';
+		} finally {
+			requestRunning = false;
+		}
 	}
 </script>
 
-<div class="studio-debug">
-	<div class="studio-debug__toolbar">
+<section
+	class="layout-y-stretch h-full min-h-0 gap-low text-sm"
+	aria-label="JavaScript debugger"
+	data-active={active}
+>
+	<div class="layout-x-wrap-low shrink-0">
+		<Button
+			label={debugState?.attached ? 'Stop debugger' : 'Start debugger'}
+			cls="button-secondary h-fit!"
+			full={false}
+			disabled={busy || debugState?.enabled === false}
+			onclick={() => command(debugState?.attached ? 'stop' : 'start')}
+		/>
 		{#if debugState?.attached}
-			<button
-				type="button"
-				class="studio-debug__tool"
-				title="Stop the debugger"
-				disabled={Boolean(busy)}
-				onclick={() => run('stop')}
-			>
-				<Ico icon="mdi:stop" size={4} /> Stop
-			</button>
-			<span class="studio-debug__separator"></span>
-			<button
-				type="button"
-				class="studio-debug__icon"
-				title="Continue"
-				aria-label="Continue"
-				disabled={!debugState.stopped}
-				onclick={() => run('go')}><Ico icon="mdi:play" size={4} /></button
-			>
-			<button
-				type="button"
-				class="studio-debug__icon"
-				title="Step over"
-				aria-label="Step over"
-				disabled={!debugState.stopped}
-				onclick={() => run('stepOver')}><Ico icon="mdi:debug-step-over" size={4} /></button
-			>
-			<button
-				type="button"
-				class="studio-debug__icon"
-				title="Step into"
-				aria-label="Step into"
-				disabled={!debugState.stopped}
-				onclick={() => run('stepInto')}><Ico icon="mdi:debug-step-into" size={4} /></button
-			>
-			<button
-				type="button"
-				class="studio-debug__icon"
-				title="Step out"
-				aria-label="Step out"
-				disabled={!debugState.stopped}
-				onclick={() => run('stepOut')}><Ico icon="mdi:debug-step-out" size={4} /></button
-			>
-			<button
-				type="button"
-				class="studio-debug__icon"
-				title="Break at the next script"
-				aria-label="Break"
-				disabled={debugState.stopped}
-				onclick={() => run('pause')}><Ico icon="mdi:pause" size={4} /></button
-			>
-			<label class="studio-debug__check">
-				<input
+			{#each [['go', 'Continue'], ['stepInto', 'Step into'], ['stepOver', 'Step over'], ['stepOut', 'Step out']] as [action, label] (action)}
+				<Button
+					{label}
+					cls="button-secondary h-fit!"
+					full={false}
+					disabled={!debugState.stopped || busy}
+					onclick={() => command(action)}
+				/>
+			{/each}
+			<Button
+				label="Pause next"
+				cls="button-secondary h-fit!"
+				full={false}
+				disabled={debugState.stopped || busy}
+				onclick={() => command('pause')}
+			/>
+			<label class="layout-x-low"
+				><input
 					type="checkbox"
 					checked={debugState.breakOnExceptions}
 					onchange={(event) =>
-						run('breakOnExceptions', { value: String(event.currentTarget.checked) })}
-				/> Break on exceptions
-			</label>
-			<span class="studio-debug__status">
-				{#if debugState.stopped}
-					<Ico icon="mdi:pause-circle-outline" size={4} /> Stopped{debugState.alert
-						? `: ${debugState.alert}`
-						: ''}
-				{:else}
-					Running the scripts interpreted
-				{/if}
-			</span>
-		{:else}
-			<button
-				type="button"
-				class="studio-debug__start button-primary"
-				disabled={Boolean(busy)}
-				onclick={() => run('start')}
+						command('breakOnExceptions', { value: String(event.currentTarget.checked) })}
+				/>Break on exceptions</label
 			>
-				<Ico icon="mdi:bug-outline" size={4} /> Start the debugger
-			</button>
-			<span class="studio-debug__status">
-				The scripts of the objects run interpreted while the debugger runs, then stop on its
-				breakpoints.
-			</span>
 		{/if}
+		<span role="status"
+			>{debugState?.enabled === false
+				? 'JavaScript debugging is disabled on this server.'
+				: debugState?.stopped
+					? 'Paused'
+					: debugState?.running
+						? 'Running'
+						: debugState?.attached
+							? 'Ready — Studio requests join this session.'
+							: 'Debugger detached'}</span
+		>
 	</div>
-	{#if error}
-		<p class="studio-debug__error">{error}</p>
+	{#if standalone && debugState?.attached}
+		<form class="layout-x-wrap-low shrink-0" onsubmit={runRequest}>
+			<input
+				class="input-common w-52!"
+				aria-label="Project"
+				placeholder="Project"
+				required
+				bind:value={project}
+			/>
+			<input
+				class="input-common w-52!"
+				aria-label="Sequence"
+				placeholder="Sequence"
+				required
+				bind:value={sequence}
+			/>
+			<Button
+				label="Run sequence"
+				type="submit"
+				cls="button-primary h-fit!"
+				full={false}
+				disabled={requestRunning || debugState.running}
+			/>
+			<span role="status">{requestResult}</span>
+		</form>
 	{/if}
+	{#if error}<p role="alert">{error}</p>{/if}
+	{#if debugState?.notice}<p role="status">{debugState.notice}</p>{/if}
 	{#if debugState?.attached}
-		<div class="studio-debug__body">
-			<div class="studio-debug__sources" aria-label="Scripts">
-				{#each [...debugState.sources].reverse() as url (url)}
-					<button
-						type="button"
-						class={['studio-debug__source', url === sourceUrl && 'studio-debug__source--active']}
-						title={url}
-						onclick={() => openSource(url)}>{sourceLabel(url)}</button
-					>
-				{:else}
-					<p class="studio-debug__hint">Run a sequence or a transaction: its scripts show here.</p>
-				{/each}
-			</div>
-			<div class="studio-debug__code" bind:this={sourceElement}>
+		<div class="layout-x-stretch min-h-0 grow gap-low">
+			<nav class="layout-y-start-low w-48 shrink-0 overflow-auto" aria-label="Sources">
+				{#each debugState.sources as url (url)}
+					<Button
+						label={url}
+						cls={url === sourceUrl ? 'button-primary h-fit!' : 'button-secondary h-fit!'}
+						onclick={() => openSource(url)}
+					/>
+				{:else}<p>
+						Run a sequence or transaction to load its scripts. Use Pause next to inspect the first
+						line.
+					</p>{/each}
+			</nav>
+			<div class="min-h-64 min-w-0 grow" aria-label="Source editor">
 				{#if source}
-					{#each lines as text, index (index)}
-						{@const line = index + 1}
-						<div
-							class={[
-								'studio-debug__line',
-								stoppedFrame?.url === source.url &&
-									stoppedFrame.line === line &&
-									'studio-debug__line--current'
-							]}
-						>
-							<button
-								type="button"
-								class={[
-									'studio-debug__gutter',
-									breakpoints.has(line) && 'studio-debug__gutter--breakpoint',
-									breakable.has(line) && 'studio-debug__gutter--breakable'
-								]}
-								title={breakable.has(line)
-									? breakpoints.has(line)
-										? 'Remove the breakpoint'
-										: 'Add a breakpoint'
-									: ''}
-								disabled={!breakable.has(line)}
-								onclick={() => toggleBreakpoint(line)}>{line}</button
-							>
-							<code>{text || ' '}</code>
-						</div>
-					{/each}
-				{:else}
-					<StudioEmptyState message="Choose a script to set its breakpoints" small />
+					<Editor
+						content={source.source}
+						language="javascript"
+						readOnly
+						breakpoints={source.breakpoints}
+						onBreakpointToggle={toggleBreakpoint}
+						currentLine={frame?.url === source.url ? (frame?.line ?? 0) : 0}
+						{debugValues}
+					/>
 				{/if}
 			</div>
-			<div class="studio-debug__inspect">
+			<aside class="layout-y-stretch w-72 shrink-0 gap-low overflow-auto" aria-label="Inspection">
 				{#if debugState.stopped}
-					<div class="studio-debug__heading">Frames</div>
-					{#each debugState.frames ?? [] as frame, index (index)}
-						<button
-							type="button"
-							class={['studio-debug__frame', index === frameIndex && 'studio-debug__frame--active']}
+					<strong>Call stack</strong>
+					{#each debugState.frames ?? [] as item, index (index)}
+						<Button
+							label={`${item.function || item.url}:${item.line}`}
+							cls={index === frameIndex ? 'button-primary h-fit!' : 'button-secondary h-fit!'}
 							onclick={() => selectFrame(index)}
-						>
-							<span>{frame.function || sourceLabel(frame.url)}</span>
-							<small>:{frame.line}</small>
-						</button>
+						/>
 					{/each}
-					<div class="studio-debug__heading">Variables</div>
-					{#each variables?.scope ?? [] as variable (variable.name)}
-						<div class="studio-debug__variable" title={variable.value}>
-							<span>{variable.name}</span>
-							<code>{variable.value}</code>
-						</div>
+					{#each variables?.scopes ?? [] as scope (scope.name)}
+						<details open>
+							<summary>{scope.name}</summary>
+							<DebugVariables variables={scope.variables} />
+						</details>
 					{/each}
-					<form class="studio-debug__eval" onsubmit={evaluate}>
-						{#each evaluations as evaluation, index (index)}
-							<div class="studio-debug__variable">
-								<span>{evaluation.expression}</span>
-								<code>{evaluation.result}</code>
-							</div>
-						{/each}
+					<details>
+						<summary>this</summary><DebugVariables variables={variables?.this ?? []} />
+					</details>
+					<form class="layout-y-stretch gap-low" onsubmit={evaluate}>
+						<label for="debug-expression">Evaluate an expression</label>
 						<input
+							id="debug-expression"
 							class="input-common"
-							placeholder="Evaluate an expression"
-							aria-label="Expression"
+							maxlength="4096"
 							bind:value={expression}
 						/>
+						<Button label="Evaluate" type="submit" cls="button-secondary h-fit!" disabled={busy} />
 					</form>
-				{:else}
-					<p class="studio-debug__hint">The frames and variables of a stopped script show here.</p>
-				{/if}
-			</div>
+					{#each evaluations as evaluation, index (index)}<div>
+							<code>{evaluation.expression}</code>
+							<pre class="whitespace-pre-wrap">{evaluation.result}</pre>
+						</div>{/each}
+				{:else}<p>Pause a script to inspect its stack and scopes.</p>{/if}
+			</aside>
 		</div>
 	{/if}
-</div>
-
-<style>
-	.studio-debug {
-		display: grid;
-		height: 100%;
-		min-height: 0;
-		grid-template-rows: auto auto minmax(0, 1fr);
-		font-size: 0.75rem;
-	}
-
-	.studio-debug__toolbar {
-		display: flex;
-		min-width: 0;
-		align-items: center;
-		gap: 0.2rem;
-		border-bottom: 1px solid var(--studio-line);
-		padding: 0.25rem 0.6rem;
-	}
-
-	.studio-debug__tool,
-	.studio-debug__icon {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		border: 0;
-		border-radius: 0.25rem;
-		background: transparent;
-		color: var(--studio-text);
-		padding: 0.2rem 0.4rem;
-	}
-
-	.studio-debug__icon {
-		width: 1.6rem;
-		height: 1.6rem;
-		justify-content: center;
-		padding: 0;
-	}
-
-	.studio-debug__tool:hover:not(:disabled),
-	.studio-debug__icon:hover:not(:disabled) {
-		background: var(--studio-hover-bg);
-	}
-
-	.studio-debug__icon:disabled {
-		opacity: 0.35;
-	}
-
-	.studio-debug__start {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-	}
-
-	.studio-debug__separator {
-		width: 1px;
-		height: 1rem;
-		margin: 0 0.3rem;
-		background: var(--studio-line);
-	}
-
-	.studio-debug__check {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		margin-left: 0.5rem;
-		white-space: nowrap;
-	}
-
-	.studio-debug__status {
-		display: inline-flex;
-		min-width: 0;
-		align-items: center;
-		gap: 0.3rem;
-		margin-left: auto;
-		overflow: hidden;
-		color: var(--studio-text-idle);
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.studio-debug__error {
-		margin: 0;
-		color: var(--color-error-600-400);
-		padding: 0.25rem 0.6rem;
-	}
-
-	.studio-debug__body {
-		display: grid;
-		min-height: 0;
-		grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr) minmax(12rem, 18rem);
-	}
-
-	.studio-debug__sources,
-	.studio-debug__code,
-	.studio-debug__inspect {
-		min-height: 0;
-		overflow: auto;
-	}
-
-	.studio-debug__sources {
-		border-right: 1px solid var(--studio-line);
-		padding: 0.25rem 0;
-	}
-
-	.studio-debug__source,
-	.studio-debug__frame {
-		display: flex;
-		width: 100%;
-		align-items: baseline;
-		gap: 0.25rem;
-		overflow: hidden;
-		border: 0;
-		background: transparent;
-		color: var(--studio-text);
-		padding: 0.15rem 0.6rem;
-		text-align: left;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.studio-debug__source:hover,
-	.studio-debug__frame:hover {
-		background: var(--studio-hover-bg);
-	}
-
-	.studio-debug__source--active,
-	.studio-debug__frame--active {
-		background: var(--studio-selection-bg);
-		color: var(--studio-text-strong);
-	}
-
-	.studio-debug__frame small {
-		color: var(--studio-text-idle);
-	}
-
-	.studio-debug__code {
-		font-family: var(--font-mono, ui-monospace, monospace);
-		font-size: 0.72rem;
-		line-height: 1.5;
-	}
-
-	.studio-debug__line {
-		display: flex;
-		min-width: max-content;
-	}
-
-	.studio-debug__line--current {
-		background: color-mix(in oklab, var(--color-warning-500) 22%, transparent);
-	}
-
-	.studio-debug__gutter {
-		position: relative;
-		width: 3.2rem;
-		flex: none;
-		border: 0;
-		background: transparent;
-		color: var(--studio-text-idle);
-		padding: 0 0.6rem 0 1rem;
-		font: inherit;
-		text-align: right;
-	}
-
-	.studio-debug__gutter--breakable {
-		cursor: pointer;
-	}
-
-	.studio-debug__gutter--breakable:hover::before,
-	.studio-debug__gutter--breakpoint::before {
-		position: absolute;
-		top: 50%;
-		left: 0.3rem;
-		width: 0.55rem;
-		height: 0.55rem;
-		border-radius: 999px;
-		background: var(--color-error-500);
-		content: '';
-		transform: translateY(-50%);
-	}
-
-	.studio-debug__gutter--breakable:hover:not(.studio-debug__gutter--breakpoint)::before {
-		opacity: 0.35;
-	}
-
-	.studio-debug__line code {
-		white-space: pre;
-	}
-
-	.studio-debug__inspect {
-		border-left: 1px solid var(--studio-line);
-		padding-bottom: 0.4rem;
-	}
-
-	.studio-debug__heading {
-		color: var(--studio-text-idle);
-		padding: 0.35rem 0.6rem 0.15rem;
-		font-size: 0.68rem;
-		font-weight: 600;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-	}
-
-	.studio-debug__variable {
-		display: flex;
-		gap: 0.5rem;
-		overflow: hidden;
-		padding: 0.1rem 0.6rem;
-		white-space: nowrap;
-	}
-
-	.studio-debug__variable span {
-		flex: none;
-		color: var(--studio-text-strong);
-	}
-
-	.studio-debug__variable code {
-		min-width: 0;
-		overflow: hidden;
-		color: var(--studio-text-idle);
-		text-overflow: ellipsis;
-	}
-
-	.studio-debug__eval {
-		display: grid;
-		gap: 0.2rem;
-		padding-top: 0.35rem;
-	}
-
-	.studio-debug__eval input {
-		height: 1.7rem;
-		margin: 0 0.6rem;
-		padding-block: 0;
-		padding-inline: 0.5rem;
-		font-size: 0.72rem;
-	}
-
-	.studio-debug__hint {
-		margin: 0;
-		color: var(--studio-text-idle);
-		padding: 0.4rem 0.6rem;
-	}
-</style>
+</section>

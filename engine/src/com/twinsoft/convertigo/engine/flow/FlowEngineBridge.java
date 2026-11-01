@@ -526,6 +526,7 @@ public class FlowEngineBridge {
 
 	/** Compile once across overflow runtimes; evaluating the script still creates caller-owned exports. */
 	public static Object evalSharedModule(org.mozilla.javascript.Context cx, Scriptable scope, String source, String name) {
+		com.twinsoft.convertigo.engine.debug.JavascriptDebugger.requireUnsharedRuntime(cx);
 		if (RhinoUtils.debugMode) return RhinoUtils.evalInterpretedJavascript(cx, scope, source, name, 1, null);
 		var interpreted = cx.isInterpretedMode();
 		try { cx.setInterpretedMode(false); return compiledModules.get(cx, source, name).exec(cx, scope); }
@@ -538,6 +539,7 @@ public class FlowEngineBridge {
 	 * @param origin the path of the file of the code; null or empty for code of no file (a draft): memory only
 	 */
 	public static org.mozilla.javascript.Script compileScript(org.mozilla.javascript.Context cx, String source, String name, String origin) {
+		com.twinsoft.convertigo.engine.debug.JavascriptDebugger.requireUnsharedRuntime(cx);
 		return RhinoBytecodeCache.compile(cx, source, name, origin == null || origin.isBlank() ? null : new File(origin));
 	}
 	public static String serverFileFingerprint(File file) throws java.io.IOException {
@@ -1950,6 +1952,7 @@ public class FlowEngineBridge {
 	}
 	Object invokeValue(String engineQName, String method, JSONObject request, Context convertigoContext,
 			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
+		com.twinsoft.convertigo.engine.debug.JavascriptDebugger.requireUnsharedRuntime(org.mozilla.javascript.Context.getCurrentContext());
 		prepareProjectRequest(request);
 		var engineRef = EngineRef.parse(normalizeEngineQName(engineQName));
 		var frontendAuthoring = usesFrontendDocumentProvider(method, request);

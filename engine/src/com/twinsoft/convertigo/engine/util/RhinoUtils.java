@@ -116,7 +116,7 @@ public class RhinoUtils {
 
 	static private Object evalCachedJavascript(DatabaseObject dbo, Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain, File origin) {
 		source = CopilotHelper.addInstruction(dbo, source);
-		if (debugMode) {
+		if (debugMode || cx.getDebugger() instanceof com.twinsoft.convertigo.engine.debug.JavascriptDebugSession) {
 			if (dbo != null) {
 				sourceName = dbo.getShortQName() + "-" + sourceName;
 			}

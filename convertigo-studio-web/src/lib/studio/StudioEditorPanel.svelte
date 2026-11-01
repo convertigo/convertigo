@@ -13,7 +13,12 @@
 	import Ico from '#lib/utils/Ico.svelte';
 	import { call } from '#lib/utils/service.js';
 	import { untrack } from 'svelte';
-	import { debugSession, followDebugger } from './debugSession.svelte.js';
+	import {
+		debugCommand,
+		debugSession,
+		inspectFrame,
+		variablePreviews
+	} from './debugSession.svelte.js';
 	import { findZones } from './editor/editableZones.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
@@ -106,7 +111,24 @@
 	);
 	let theme = $derived(LightSvelte.light ? '' : 'vs-dark');
 	let debuggable = $derived(Boolean(activeTab && isDebuggable(activeTab)));
-	let debuggerAttached = $derived(debugSession.state?.attached !== false);
+	let debuggerAttached = $derived(debugSession.state?.attached === true);
+	let debugValues = $state(/** @type {Record<string, string> | null} */ (null));
+	$effect(() => {
+		const state = debugSession.state;
+		const url = activeTab?.scriptUrl;
+		let disposed = false;
+		debugValues = null;
+		const index = state?.stopped
+			? (state.frames?.findIndex((frame) => frame.url === url) ?? -1)
+			: -1;
+		if (index >= 0)
+			void inspectFrame(index)?.then((values) => {
+				if (!disposed) debugValues = variablePreviews(values);
+			});
+		return () => {
+			disposed = true;
+		};
+	});
 	let currentLine = $derived.by(() => {
 		// the line where the debugger stopped in the script of the tab
 		const frame = debugSession.state?.stopped
@@ -187,14 +209,16 @@
 		}
 	});
 
+	let breakpointKey = $derived(
+		`${active ? activeTab?.key : ''}:${debugSession.state?.sessionId}:${debugSession.state?.serial}`
+	);
 	$effect(() => {
-		// the breakpoints of the script, which the debug panel may have changed
-		const tab = active && activeTab && isDebuggable(activeTab) ? activeTab : null;
-		const key = tab?.key;
-		breakpointNotice = '';
-		if (tab && key) {
-			untrack(() => void loadBreakpoints(tab));
-		}
+		const key = breakpointKey;
+		untrack(() => {
+			const tab = active && activeTab && isDebuggable(activeTab) ? activeTab : null;
+			breakpointNotice = '';
+			if (tab && key) void loadBreakpoints(tab);
+		});
 	});
 
 	/**
@@ -223,7 +247,7 @@
 	 * @param {Record<string, string>} [params]
 	 */
 	async function callDebugger(tab, params = { action: 'breakpoints' }) {
-		const result = await call('studio.debug.Debugger', {
+		const result = await debugCommand(params.action, {
 			...params,
 			id: tab.id,
 			property: tab.propertyName
@@ -235,7 +259,6 @@
 			tab.scriptUrl = String(result.url);
 			tab.scriptOffset = Number(result.offset) || 0;
 		}
-		followDebugger(result?.state);
 		return result;
 	}
 
@@ -1020,7 +1043,8 @@
 					language={activeTab.language}
 					{theme}
 					readOnly={activeTab.readOnly === true}
-					breakpoints={debuggable ? (activeTab.breakpoints ?? []) : null}
+					breakpoints={debuggable && debuggerAttached ? (activeTab.breakpoints ?? []) : null}
+					{debugValues}
 					onBreakpointToggle={toggleBreakpoint}
 					currentLine={debuggable ? currentLine : 0}
 					revealLine={activeTab.revealLine ?? 0}

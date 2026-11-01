@@ -122,6 +122,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		if (httpSession == null) {
 			return;
 		}
+		com.twinsoft.convertigo.engine.debug.JavascriptDebugger.stop(httpSession.getId());
 		for (SessionKey key : SessionKey.values()) {
 			httpSession.removeAttribute(key.toString());
 		}

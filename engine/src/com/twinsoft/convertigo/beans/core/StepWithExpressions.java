@@ -533,6 +533,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 	
 	class AsynchronousStepThread extends Thread {
+		private final com.twinsoft.convertigo.engine.debug.JavascriptDebugSession debugSession = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.currentSession();
 		private final Log4jHelper.MdcSnapshot logContext = Log4jHelper.mdcSnapshot();
 		private org.mozilla.javascript.Context javascriptContext = null;
         private Scriptable scope = null;
@@ -560,8 +561,10 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		}
 
 		private void runWithMdc() {
+			AutoCloseable debugLease = null;
             bContinue = true;
             try {
+                if (debugSession != null) debugLease = debugSession.enterChild();
                 javascriptContext = org.mozilla.javascript.Context.enter();
             	if (step != null) {
             		if (Engine.logBeans.isDebugEnabled())
@@ -586,7 +589,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
                 Engine.logBeans.error("An error occured while invoking connection step \""+ AsynchronousStepThread.this.getName() +"\"", e);
             } finally {
                 bContinue = false;
-				org.mozilla.javascript.Context.exit();
+				if (javascriptContext != null) org.mozilla.javascript.Context.exit();
+				if (debugLease != null) try { debugLease.close(); } catch (Exception e) { Engine.logBeans.warn("Unable to release JavaScript debug worker"); }
 				javascriptContext = null;
                	decreaseAsyncThreadRunning();
                	if (step.xpathApi != null) {

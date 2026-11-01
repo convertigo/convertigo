@@ -580,6 +580,9 @@ public class EnginePropertiesManager {
 		HIDE_PRODUCT_VERSION_IN_API_SPECS ("hide_product_version_in_api_specs", "false", "Hide product version in generated API specifications", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		ALLOW_XML_PROJECT_LOADING ("allow_xml_project_loading", "false", "Allow loading projects stored in the legacy XML format; when disabled only the YAML project format (c8oProject.yaml) is accepted", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		JAVASCRIPT_DEBUGGER_PAUSE_TIMEOUT ("javascript.debugger.pause_timeout", "120", "Maximum JavaScript debugger pause in seconds (1 to 3600)", PropertyCategory.Main),
+		JAVASCRIPT_DEBUGGER ("javascript.debugger", "false", "Allow administrator JavaScript debug sessions on this server", PropertyCategory.Main),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = WebStudio.class)
 		WEB_STUDIO ("web_studio", "disabled", "Web Studio in the administration console, to edit projects on this server (always enabled in the Studio)", PropertyCategory.Main),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ServerBuild.class)

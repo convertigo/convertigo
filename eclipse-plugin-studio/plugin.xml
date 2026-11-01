@@ -3931,6 +3931,11 @@
 			name="Backend Debug"
 			restorable="true">
 		</view>
+		<view category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.rhino.JavascriptDebugView"
+            icon="icons/studio/debug.svg"
+            id="com.twinsoft.convertigo.eclipse.views.rhino.JavascriptDebugView"
+            name="JavaScript Debug (Web)" restorable="true" />
 		<!--view
             category="convertigo"
             class="com.twinsoft.convertigo.eclipse.views.propertysheet.PropertySheetView"

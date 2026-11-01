@@ -161,6 +161,12 @@ public abstract class CacheManager extends AbstractRunnableManager implements Pr
 		// set again by this request only: a context outlives its requests
 		context.nativeJsonCache = null;
 		context.nativeJsonCached = null;
+		if (com.twinsoft.convertigo.engine.debug.JavascriptDebugger.active()
+				&& com.twinsoft.convertigo.engine.debug.JavascriptDebugger.selects(context.httpServletRequest)) {
+			// A selected execution must neither read nor replace an ordinary cached response.
+			context.noCache = true;
+			context.isCacheEnabled = false;
+		}
 
 		if (context.isStubRequested) {
 			String stubFileName = (String) context.get(Parameter.StubFilename.getName());

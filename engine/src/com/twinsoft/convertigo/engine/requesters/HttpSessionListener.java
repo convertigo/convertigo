@@ -104,6 +104,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 
 	@Override
 	public void valueUnbound(HttpSessionBindingEvent event) {
+		com.twinsoft.convertigo.engine.debug.JavascriptDebugger.stop(event.getSession().getId());
 		try {
 			Engine.logContext.debug("HTTP session stopping...");
 			HttpSession httpSession = event.getSession();

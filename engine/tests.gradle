@@ -952,3 +952,13 @@ tasks.register('staticFileDeliveryTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.util.ServletUtilsCacheControlTest'
 }
 tasks.named('check') { dependsOn 'staticFileDeliveryTest' }
+
+tasks.register('javascriptDebuggerTest', JavaExec) {
+	group = 'verification'
+	description = 'Request-isolated JavaScript debugging, stepping, inspection and evaluation deadlines.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.debug.JavascriptDebugSessionTest', 'com.twinsoft.convertigo.engine.debug.JavascriptDebuggerTest', 'com.twinsoft.convertigo.engine.debug.JavascriptDebugExtendedTest'
+}
+tasks.named('check') { dependsOn 'javascriptDebuggerTest' }

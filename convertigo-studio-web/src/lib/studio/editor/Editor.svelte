@@ -5,6 +5,7 @@
 	import { call } from '#lib/utils/service.js';
 	import { asset } from '$app/paths';
 	import { fromAction } from 'svelte/attachments';
+	import { debugHover } from './debugHover.js';
 	import { changesInZones, findZones, generatedRuns, zoneAt } from './editableZones.js';
 
 	/**
@@ -15,7 +16,7 @@
 	 * editor of the Eclipse Studio knows the packages of the project; editableZones: the code is a
 	 * generated class whose zones between its Begin_c8o and End_c8o comments only are editable, and
 	 * zonesFocus folds its generated code; zoneReveal: a zone to show and write in, once for each serial
-	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, editableZones?: boolean, zonesFocus?: boolean, zoneReveal?: { name: string, serial: number }, markers?: EditorMarker[]}}
+	 * @type {{content?: string, language?: string, theme?: string, readOnly?: boolean, contentHeight?: number, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, debugValues?: Record<string, string> | null, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, editableZones?: boolean, zonesFocus?: boolean, zoneReveal?: { name: string, serial: number }, markers?: EditorMarker[]}}
 	 */
 	let {
 		content = $bindable('/* Loading... */'),
@@ -27,6 +28,7 @@
 		breakpoints = null,
 		onBreakpointToggle,
 		currentLine = 0,
+		debugValues = null,
 		revealLine = 0,
 		revealSerial = 0,
 		path = '',
@@ -57,6 +59,7 @@
 		breakpoints,
 		onBreakpointToggle,
 		currentLine,
+		debugValues,
 		revealLine,
 		revealSerial,
 		path,
@@ -153,6 +156,7 @@
 			onBreakpointToggle:
 				typeof value?.onBreakpointToggle == 'function' ? value.onBreakpointToggle : undefined,
 			currentLine: Number(value?.currentLine) || 0,
+			debugValues: value?.debugValues ?? null,
 			revealLine: Number(value?.revealLine) || 0,
 			revealSerial: Number(value?.revealSerial) || 0,
 			path: String(value?.path ?? ''),
@@ -174,7 +178,7 @@
 
 	/**
 	 * @param {HTMLDivElement} node
-	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, editableZones?: boolean, zonesFocus?: boolean, zoneReveal?: { name: string, serial: number }, markers?: EditorMarker[], onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
+	 * @param {{content?: string, language?: string, theme?: string, readOnly?: boolean, scrollBeyondLastLine?: boolean, breakpoints?: number[] | null, onBreakpointToggle?: (line: number) => void, debugValues?: Record<string, string> | null, currentLine?: number, revealLine?: number, revealSerial?: number, path?: string, typesProject?: string, onSave?: () => void, editableZones?: boolean, zonesFocus?: boolean, zoneReveal?: { name: string, serial: number }, markers?: EditorMarker[], onContentChange?: (nextContent: string) => void, onContentHeightChange?: (nextContentHeight: number) => void}} value
 	 */
 	function mountMonaco(node, value) {
 		/** @type {any} */
@@ -679,6 +683,15 @@
 				});
 				// Ctrl or ⌘ with S saves the file, as in the editors of the Eclipse Studio
 				editor.addCommand(Monaco.KeyMod.CtrlCmd | Monaco.KeyCode.KeyS, () => pending.onSave?.());
+				zoneSubscriptions.push(
+					Monaco.languages.registerHoverProvider(
+						'javascript',
+						debugHover(
+							() => editor.getModel(),
+							() => pending.debugValues
+						)
+					)
+				);
 				breakpointDecorations = editor.createDecorationsCollection();
 				currentLineDecorations = editor.createDecorationsCollection();
 				zoneDecorations = editor.createDecorationsCollection();

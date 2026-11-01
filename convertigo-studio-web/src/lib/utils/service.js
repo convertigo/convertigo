@@ -4,6 +4,7 @@ import Authentication from '#lib/common/Authentication.svelte.js';
 import ServerConnection, {
 	isServerUnavailableStatus
 } from '#lib/common/ServerConnection.svelte.js';
+import { javascriptDebugParameters } from '#lib/studio/javascriptDebugRequest.js';
 import { resolve } from '#lib/utils/route.js';
 import { browser, building, dev } from '$app/env';
 import { goto } from '$app/navigation';
@@ -290,6 +291,15 @@ export async function call(service, data = {}, options = {}) {
 }
 
 export async function callRequestable(mode, project, data = {}) {
+	const debug = javascriptDebugParameters();
+	if (data instanceof FormData && Object.keys(debug).length) {
+		const copy = new FormData();
+		for (const [key, value] of data.entries()) copy.append(key, value);
+		data = copy;
+		for (const [key, value] of Object.entries(debug)) data.set(key, value);
+	} else if (!(data instanceof FormData)) {
+		data = { ...data, ...debug };
+	}
 	let url = getUrl(`projects/${project}/.${mode.toLowerCase()}`);
 	let body;
 	let headers = {
