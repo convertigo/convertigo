@@ -60,14 +60,19 @@ public class ConvertigoTypeScriptDefinition {
 
 		if (classes.add(cls)) {
 			handleCls(cls.getSuperclass());
-			for (Field field: cls.getDeclaredFields()) {
-				handleCls(field.getType());
-			}
-			for (Method method: cls.getDeclaredMethods()) {
-				handleCls(method.getReturnType());
-				for (Class<?> type: method.getParameterTypes()) {
-					handleCls(type);
+			try {
+				for (Field field: cls.getDeclaredFields()) {
+					handleCls(field.getType());
 				}
+				for (Method method: cls.getDeclaredMethods()) {
+					handleCls(method.getReturnType());
+					for (Class<?> type: method.getParameterTypes()) {
+						handleCls(type);
+					}
+				}
+			} catch (LinkageError e) {
+				// a member uses a type missing from the running JDK, like java.applet.Applet removed in Java 26
+				classes.remove(cls);
 			}
 		}
 	}
@@ -93,6 +98,15 @@ public class ConvertigoTypeScriptDefinition {
 	}
 
 	private String getCode(String prepend, Class<?> cls) {
+		try {
+			return getMembersCode(prepend, cls);
+		} catch (LinkageError e) {
+			// an inherited member uses a type missing from the running JDK
+			return "";
+		}
+	}
+
+	private String getMembersCode(String prepend, Class<?> cls) {
 		String nPrepend = prepend + "  ";
 		StringBuilder sb = new StringBuilder();
 		for (Field field: cls.getFields()) {
