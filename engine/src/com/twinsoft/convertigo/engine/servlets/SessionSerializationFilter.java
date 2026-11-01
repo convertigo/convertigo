@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.servlets;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -27,6 +28,7 @@ import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.ServletResponseWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -38,6 +40,26 @@ import com.twinsoft.convertigo.engine.sessions.SessionStoreUnavailableException;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestSessionWrapper;
 
 public class SessionSerializationFilter implements Filter {
+	/**
+	 * Prepares the known session wrappers for a connector-owned response body.
+	 * Unknown wrappers may transform that body and must keep the ordinary output path.
+	 */
+	public static boolean prepareFileTransfer(HttpServletResponse response) {
+		var sessions = new ArrayList<SessionCookieResponseWrapper>();
+		ServletResponse current = response;
+		while (current instanceof SessionCookieResponseWrapper wrapper) {
+			sessions.add(wrapper);
+			current = wrapper.getResponse();
+		}
+		if (current instanceof ServletResponseWrapper) {
+			return false;
+		}
+		for (var wrapper : sessions) {
+			wrapper.prepareFileTransfer();
+		}
+		return true;
+	}
+
 	@Override
 	public void init(FilterConfig filterConfig) {
 		// no-op

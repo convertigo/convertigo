@@ -940,3 +940,15 @@ tasks.register('standardYamlTest', JavaExec) {
 	}
 }
 tasks.named('check') { dependsOn 'standardYamlTest' }
+
+// Connector handoff and synchronous fallbacks for persistent static resources.
+tasks.register('staticFileDeliveryTest', JavaExec) {
+	group = 'verification'
+	description = 'Static sendfile handoff, session hooks, compression and synchronous download fallbacks.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.servlets.ServletUtilsSendfileTest',
+		'com.twinsoft.convertigo.engine.util.ServletUtilsCacheControlTest'
+}
+tasks.named('check') { dependsOn 'staticFileDeliveryTest' }

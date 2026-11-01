@@ -60,6 +60,11 @@ final class SessionCookieResponseWrapper extends HttpServletResponseWrapper {
 		super.addCookie(cookie);
 	}
 
+	void prepareFileTransfer() {
+		beforeOutput();
+		commitSessionCookie();
+	}
+
 	void flushSessionCookie() {
 		commitSessionCookie();
 	}

@@ -20,12 +20,13 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -53,8 +54,11 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.servlets.SessionSerializationFilter;
 
 public class ServletUtils {
+	private static final String SENDFILE_PREFIX = "org.apache.tomcat.sendfile.";
+	private static final long MIN_SENDFILE_SIZE = 64 * 1024;
 	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/(?:mobile|pwas/.*?)/)(.*)");
 	private static final Pattern p_base = Pattern.compile("(<base\\s+[^>]*href\\s*=\\s*)(['\"])([^'\"]*)(\\2)([^>]*>)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern APP_TEMPLATE_VERSION_PATTERN = Pattern.compile("\\s*(\\d+)(?:\\.(\\d+))?.*");
@@ -92,7 +96,7 @@ public class ServletUtils {
 		if (file.exists()) {
 			Engine.logContext.debug("Static file");
 			HttpUtils.applyCorsHeaders(request, response);
-			applyStaticHeaders(file, request, response);
+			applyStaticHeaders(file.toPath(), request, response, file.lastModified());
 
 			var normalizedPath = file.getPath().replace('\\', '/');
 			byte[] rewritten = null;
@@ -146,7 +150,7 @@ public class ServletUtils {
 				}
 				Engine.logContext.debug("Found MIME type: " + mimeType);
 				HeaderName.ContentType.setHeader(response, mimeType);
-				writeFile(request, response, file, rewritten, mimeType);
+				writeFile(request, response, file.toPath(), rewritten, mimeType, true);
 			}
 		} else {
 			Matcher m = p_mobile.matcher(file.getPath().replace('\\', '/'));
@@ -186,12 +190,17 @@ public class ServletUtils {
 	 * Serve a static file with optional rewritten content. Supports Range (single range) and 304.
 	 */
 	public static void serveFile(File file, HttpServletRequest request, HttpServletResponse response, String mimeType) throws IOException {
-		if (file == null || !file.exists()) {
+		servePath(file == null ? null : file.toPath(), request, response, mimeType);
+	}
+
+	/** Path entry point; generic downloads retain synchronous ownership of their files. */
+	public static void servePath(Path file, HttpServletRequest request, HttpServletResponse response, String mimeType) throws IOException {
+		if (file == null || !Files.exists(file)) {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			return;
 		}
 		HttpUtils.applyCorsHeaders(request, response);
-		writeFile(request, response, file, null, mimeType);
+		writeFile(request, response, file, null, mimeType, false);
 	}
 
 	public static void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {
@@ -237,20 +246,20 @@ public class ServletUtils {
 		}
 	}
 
-	private static void applyStaticHeaders(File file, HttpServletRequest request, HttpServletResponse response) {
+	private static void applyStaticHeaders(Path file, HttpServletRequest request, HttpServletResponse response, long lastModified) {
 		if (!HeaderName.CacheControl.has(response)) {
 			var uri = request.getRequestURI();
 			var contextPath = request.getContextPath();
 			var path = uri.startsWith(contextPath) ? uri.substring(contextPath.length()) : uri;
 			var maxAge = Math.max(0, EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE));
-			var cacheControl = getStaticCacheControl(path, file.getName(), maxAge);
+			var cacheControl = getStaticCacheControl(path, file.getFileName() == null ? "" : file.getFileName().toString(), maxAge);
 			if (cacheControl == null) {
 				cacheControl = "max-age=" + maxAge;
 			}
 			HeaderName.CacheControl.setHeader(response, cacheControl);
 		}
 		if (!HeaderName.LastModified.has(response)) {
-			response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
+			response.setDateHeader(HeaderName.LastModified.value(), lastModified);
 		}
 	}
 
@@ -395,10 +404,12 @@ public class ServletUtils {
 		}
 	}
 
-	private static void writeFile(HttpServletRequest request, HttpServletResponse response, File file, byte[] rewritten, String mimeType) throws IOException {
+	private static void writeFile(HttpServletRequest request, HttpServletResponse response, Path file, byte[] rewritten, String mimeType, boolean staticResource) throws IOException {
+		var attributes = staticFileAttributes(file);
+		long lastModified = attributes == null ? 0 : attributes.lastModifiedTime().toMillis();
 		// Set validators and policy before returning a conditional 304 response.
-		applyStaticHeaders(file, request, response);
-		long fileLength = rewritten != null ? rewritten.length : file.length();
+		applyStaticHeaders(file, request, response, lastModified);
+		long fileLength = rewritten != null ? rewritten.length : attributes == null ? 0 : attributes.size();
 
 		// Only honor If-Modified-Since when not a range request.
 		var rangeHeader = HeaderName.Range.getHeader(request);
@@ -409,7 +420,7 @@ public class ServletUtils {
 
 		if (!hasRange) {
 			long clientDate = request.getDateHeader("If-Modified-Since") / 1000;
-			long fileDate = file.lastModified() / 1000;
+			long fileDate = lastModified / 1000;
 			if (clientDate == fileDate && fileDate > 0) {
 				response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
 				return;
@@ -457,6 +468,22 @@ public class ServletUtils {
 			HeaderName.ContentLength.setHeader(response, Long.toString(fileLength));
 		}
 
+		if (staticResource && rewritten == null && !hasRange && attributes != null && attributes.isRegularFile()
+				&& fileLength >= MIN_SENDFILE_SIZE && "GET".equals(request.getMethod())
+				&& Boolean.TRUE.equals(request.getAttribute(SENDFILE_PREFIX + "support"))
+				&& !response.isCommitted() && response.getStatus() == HttpServletResponse.SC_OK
+				&& !HeaderName.ContentEncoding.has(response) && isImmutableStaticResource(file, request)
+				&& CACHE_CONTROL_IMMUTABLE.equals(HeaderName.CacheControl.getHeader(response))) {
+			String canonicalPath = file.toRealPath().toString();
+			if (SessionSerializationFilter.prepareFileTransfer(response)) {
+				// The connector owns delivery after the filter chain returns; do not obtain the body.
+				request.setAttribute(SENDFILE_PREFIX + "start", Long.valueOf(0));
+				request.setAttribute(SENDFILE_PREFIX + "end", Long.valueOf(fileLength));
+				request.setAttribute(SENDFILE_PREFIX + "filename", canonicalPath);
+				return;
+			}
+		}
+
 		OutputStream output = response.getOutputStream();
 		if (multipartBoundary != null) {
 			writeMultipartBody(output, file, rewritten, ranges, multipartBoundary, mimeType, fileLength);
@@ -474,7 +501,7 @@ public class ServletUtils {
 			return;
 		}
 
-		try (var fis = new FileInputStream(file)) {
+		try (var fis = Files.newInputStream(file)) {
 			if (singleRange != null && singleRange.start > 0) {
 				long skipped = 0;
 				while (skipped < singleRange.start) {
@@ -492,6 +519,22 @@ public class ServletUtils {
 				output.write(buffer, 0, read);
 				remaining -= read;
 			}
+		}
+	}
+
+	private static boolean isImmutableStaticResource(Path file, HttpServletRequest request) {
+		String uri = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String path = uri.startsWith(contextPath) ? uri.substring(contextPath.length()) : uri;
+		return CACHE_CONTROL_IMMUTABLE.equals(getStaticCacheControl(path, file.getFileName().toString(), 0));
+	}
+
+	private static BasicFileAttributes staticFileAttributes(Path file) {
+		try {
+			return Files.readAttributes(file, BasicFileAttributes.class);
+		} catch (IOException e) {
+			// File.length/lastModified historically returned zero when attributes were unavailable.
+			return null;
 		}
 	}
 
@@ -572,9 +615,9 @@ public class ServletUtils {
 		return total;
 	}
 
-	private static void writeMultipartBody(OutputStream output, File file, byte[] rewritten, List<ByteRange> ranges, String boundary, String mimeType, long fileLength) throws IOException {
+	private static void writeMultipartBody(OutputStream output, Path file, byte[] rewritten, List<ByteRange> ranges, String boundary, String mimeType, long fileLength) throws IOException {
 		byte[] buffer = new byte[8192];
-		try (var raf = rewritten == null ? new RandomAccessFile(file, "r") : null) {
+		try (var raf = rewritten == null ? Files.newByteChannel(file) : null) {
 			for (var range: ranges) {
 				output.write(boundaryLine(boundary).getBytes(StandardCharsets.ISO_8859_1));
 				if (mimeType != null) {
@@ -586,10 +629,10 @@ public class ServletUtils {
 				if (rewritten != null) {
 					output.write(rewritten, (int) range.start, (int) range.length());
 				} else if (raf != null) {
-					raf.seek(range.start);
+					raf.position(range.start);
 					long remaining = range.length();
 					while (remaining > 0) {
-						int read = raf.read(buffer, 0, (int) Math.min(buffer.length, remaining));
+						int read = raf.read(ByteBuffer.wrap(buffer, 0, (int) Math.min(buffer.length, remaining)));
 						if (read == -1) {
 							break;
 						}
