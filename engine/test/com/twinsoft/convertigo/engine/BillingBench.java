@@ -89,7 +89,19 @@ public class BillingBench {
 		System.exit(0);
 	}
 
+	// what setUpEngine changes, given back by tearDownEngine to the tests run after the billing tests in the same JVM
+	private static boolean studioModeBeforeSetUp;
+	private static Engine engineBeforeSetUp;
+	private static java.util.Hashtable<?, ?> keysBeforeSetUp;
+	private static Level rootLevelBeforeSetUp;
+	private static Logger[] loggersBeforeSetUp;
+
 	public static void setUpEngine() throws Exception {
+		studioModeBeforeSetUp = Engine.isStudioMode();
+		engineBeforeSetUp = Engine.theApp;
+		keysBeforeSetUp = com.twinsoft.tas.KeyManager.keys;
+		rootLevelBeforeSetUp = Logger.getRootLogger().getLevel();
+		loggersBeforeSetUp = new Logger[] { Engine.logBillers, Engine.logEngine, Engine.logContext };
 		BasicConfigurator.configure();
 		Logger.getRootLogger().setLevel(Level.WARN);
 		Engine.logBillers = Logger.getLogger("cems.Billers");
@@ -110,6 +122,28 @@ public class BillingBench {
 		if (com.twinsoft.tas.KeyManager.keys == null) {
 			// no license key: the HTTP ticket manager posts no license
 			com.twinsoft.tas.KeyManager.keys = new java.util.Hashtable<Object, Object>();
+		}
+	}
+
+	public static void tearDownEngine() throws Exception {
+		Field studio = Engine.class.getDeclaredField("bStudioMode");
+		studio.setAccessible(true);
+		studio.set(null, studioModeBeforeSetUp);
+		Engine.theApp = engineBeforeSetUp;
+		com.twinsoft.tas.KeyManager.keys = keysBeforeSetUp;
+		Logger.getRootLogger().setLevel(rootLevelBeforeSetUp);
+		Engine.logBillers = loggersBeforeSetUp[0];
+		Engine.logEngine = loggersBeforeSetUp[1];
+		Engine.logContext = loggersBeforeSetUp[2];
+		EnginePropertiesManager.setProperty(PropertyName.ANALYTICS_GOOGLE_ENABLED, PropertyName.ANALYTICS_GOOGLE_ENABLED.getDefaultValue());
+		EnginePropertiesManager.setProperty(PropertyName.ANALYTICS_PERSISTENCE_ENABLED, PropertyName.ANALYTICS_PERSISTENCE_ENABLED.getDefaultValue());
+
+		// the beans made with the engine of setUpEngine fall back to the plain introspection, kept in these caches
+		java.beans.Introspector.flushCaches();
+		for (String cache : new String[] { "cacheBeanInfo", "cacheProperties" }) {
+			Field field = com.twinsoft.convertigo.engine.util.CachedIntrospector.class.getDeclaredField(cache);
+			field.setAccessible(true);
+			((Map<?, ?>) field.get(null)).clear();
 		}
 	}
 

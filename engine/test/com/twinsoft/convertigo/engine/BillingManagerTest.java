@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -44,6 +45,11 @@ public class BillingManagerTest {
 	@BeforeClass
 	public static void setUp() throws Exception {
 		BillingBench.setUpEngine();
+	}
+
+	@AfterClass
+	public static void tearDownEngine() throws Exception {
+		BillingBench.tearDownEngine();
 	}
 
 	@After

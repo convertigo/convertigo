@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -40,6 +41,11 @@ public class BillingPersistenceTest {
 	@BeforeClass
 	public static void setUpEngine() throws Exception {
 		BillingBench.setUpEngine();
+	}
+
+	@AfterClass
+	public static void tearDownEngine() throws Exception {
+		BillingBench.tearDownEngine();
 	}
 
 	@Before

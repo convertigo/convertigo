@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -46,6 +47,12 @@ public class BillingAnalyticsTest {
 		// as in the cloud: the ticket manager makes no request of its own
 		System.setProperty("convertigo.cloud.customer_name", "billing-analytics-test");
 		BillingBench.setUpEngine();
+	}
+
+	@AfterClass
+	public static void tearDownEngine() throws Exception {
+		System.clearProperty("convertigo.cloud.customer_name");
+		BillingBench.tearDownEngine();
 	}
 
 	@Before
