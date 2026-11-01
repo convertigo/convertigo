@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import javax.xml.namespace.QName;
 
@@ -95,6 +96,10 @@ public class Flow extends Sequence {
 	private transient Accessibility declaredAccessibility = null;
 	// One immutable value: the projection may now be computed off the UI thread (ProjectTreeObject) while the UI reads it.
 	private transient volatile FlowVirtualChildren flowVirtualChildrenCache = null;
+	// counts the clears of the cache and is part of its key: a projection that ran across a clear is not served
+	private transient volatile long flowVirtualChildrenClears = 0;
+	private static final AtomicLongFieldUpdater<Flow> flowVirtualChildrenClearsUpdater =
+			AtomicLongFieldUpdater.newUpdater(Flow.class, "flowVirtualChildrenClears");
 
 	public Flow() {
 		super();
@@ -354,7 +359,7 @@ public class Flow extends Sequence {
 
 	public List<DatabaseObject> getFlowVirtualChildren() {
 		var source = getFlowSource();
-		var key = FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + source;
+		var key = FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + source + "\n" + flowVirtualChildrenClears;
 		var cached = flowVirtualChildrenCache;
 		if (cached != null && key.equals(cached.key())) {
 			return new ArrayList<>(cached.children());
@@ -872,6 +877,7 @@ public class Flow extends Sequence {
 	}
 
 	private void clearFlowVirtualChildrenCache() {
+		flowVirtualChildrenClearsUpdater.incrementAndGet(this);
 		flowVirtualChildrenCache = null;
 	}
 

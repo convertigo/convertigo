@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
@@ -77,6 +78,10 @@ public class FlowEngine extends DatabaseObject {
 	private transient long engineSourceFileLastModified = -1;
 	// One immutable value: the projection may now be computed off the UI thread (ProjectTreeObject) while the UI reads it.
 	private transient volatile FlowVirtualChildren flowVirtualChildrenCache = null;
+	// counts the clears of the cache and is part of its key: a projection that ran across a clear is not served
+	private transient volatile long flowVirtualChildrenClears = 0;
+	private static final AtomicLongFieldUpdater<FlowEngine> flowVirtualChildrenClearsUpdater =
+			AtomicLongFieldUpdater.newUpdater(FlowEngine.class, "flowVirtualChildrenClears");
 
 	public FlowEngine() {
 		super();
@@ -123,7 +128,7 @@ public class FlowEngine extends DatabaseObject {
 
 	private String flowVirtualChildrenCacheKey() {
 		return FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + engineQName + "\n"
-				+ getEngineSource() + "\n" + sourceChanges().hashCode();
+				+ getEngineSource() + "\n" + sourceChanges().hashCode() + "\n" + flowVirtualChildrenClears;
 	}
 
 	/** @return the virtual children projected from the current sources and drafts, null when they are not */
@@ -753,6 +758,7 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	public void clearFlowVirtualChildrenCache() {
+		flowVirtualChildrenClearsUpdater.incrementAndGet(this);
 		flowVirtualChildrenCache = null;
 	}
 
