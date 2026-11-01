@@ -48,6 +48,19 @@ describe('Authentication routes', () => {
 		expect(Authentication.canAccessAdminRoute('/studio/[[qname]]')).toBe(true);
 	});
 
+	it('opens the embedded JavaScript debugger to administrators only', async () => {
+		const Authentication = (await import('./Authentication.svelte.js')).default;
+		const route = '/(embedded)/admin/eclipse/javascript-debugger';
+
+		authenticationFixture.roles = ['WEB_ADMIN'];
+		await Authentication.checkAuthentication();
+		expect(Authentication.canAccessAdminRoute(route)).toBe(true);
+
+		authenticationFixture.roles = ['LOGS_VIEW', 'PROJECTS_VIEW'];
+		await Authentication.checkAuthentication();
+		expect(Authentication.canAccessAdminRoute(route)).toBe(false);
+	});
+
 	it('tells whether the server allows the builds', async () => {
 		const Authentication = (await import('./Authentication.svelte.js')).default;
 

@@ -37,6 +37,11 @@ const pageRules = [
 		navigable: false
 	},
 	{
+		// the view of the Eclipse Studio; the debugger service needs WEB_ADMIN
+		page: '/(embedded)/admin/eclipse/javascript-debugger',
+		navigable: false
+	},
+	{
 		page: '/(app)/admin/cache',
 		viewRoles: 'CACHE_VIEW',
 		configRoles: 'CACHE_CONFIG'

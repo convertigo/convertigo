@@ -21,7 +21,7 @@ public class JavascriptDebugView extends ViewPart {
         browser = new C8oBrowser(parent, SWT.NONE);
         browser.setUseExternalBrowser(false);
         authentication = new AuthenticatedBrowser(browser,
-                () -> AdminView.getStudioAuthenticatedUrl("/javascript-debugger"));
+                () -> AdminView.getStudioAuthenticatedUrl("/admin/eclipse/javascript-debugger"));
         authentication.load();
         parent.layout(true, true);
     }
