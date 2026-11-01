@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.util.Date;
@@ -816,6 +817,11 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			dirPath = Engine.projectDir(getName());
 		}
 		return dirPath;
+	}
+
+	/** Path accessor with a distinct name for JavaScript callers. */
+	public Path getDirectoryPath() {
+		return Path.of(getDirPath());
 	}
 
 	public File getDirFile() {

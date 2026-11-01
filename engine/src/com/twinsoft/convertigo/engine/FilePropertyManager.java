@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,6 +68,11 @@ public class FilePropertyManager implements AbstractManager {
 		return filepath;
 	}
 	
+	/** Resolves a file property as a Path, preserving the existing property syntax. */
+	public Path getPathFromProperty(String filepath, String projectName) {
+		return Path.of(getFilepathFromProperty(filepath, projectName));
+	}
+
 	public File getFileFromProperty(String filepath, String projectName) {
 		return new File(getFilepathFromProperty(filepath, projectName)); 
 	}

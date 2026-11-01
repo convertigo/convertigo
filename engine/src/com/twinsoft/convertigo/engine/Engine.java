@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
@@ -1885,6 +1886,11 @@ public class Engine {
 		}
 	}
 
+	/** Path counterpart of projectFile; the File signature remains available to scripts. */
+	public static Path projectPath(String projectName) {
+		return projectFile(projectName).toPath();
+	}
+
 	public static File projectFile(String projectName) {
 		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
 		if (file == null) {
@@ -1904,6 +1910,11 @@ public class Engine {
 			file = new File(file.getParentFile(), "c8oProject.yaml");
 		}
 		return file;
+	}
+
+	/** Keeps the same project registry and external project resolution as projectYamlFile. */
+	public static Path projectYamlPath(String projectName) {
+		return projectYamlFile(projectName).toPath();
 	}
 
 	public static File projectYamlFile(String projectName) {
@@ -1942,6 +1953,11 @@ public class Engine {
 			path = file.getAbsolutePath();
 		}
 		return path;
+	}
+
+	/** Resolves a default-filesystem Path without adding an ambiguous script overload. */
+	public static Path resolveProjectNioPath(Path path) {
+		return resolveProjectPath(path.toFile()).toPath();
 	}
 
 	public static File resolveProjectPath(File file) {
