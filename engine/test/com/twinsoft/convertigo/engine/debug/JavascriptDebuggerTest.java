@@ -279,4 +279,33 @@ public class JavascriptDebuggerTest {
         } finally { JavascriptDebugger.stop("paused-eclipse"); mode.setBoolean(null, previous); }
     }
 
+    @Test(timeout = 5000) public void legacyDriverStillPausesInspectsEvaluatesStepsAndContinues() throws Exception {
+        EnginePropertiesManager.initProperties();
+        var dim = new org.mozilla.javascript.tools.debugger.Dim();
+        var lines = new java.util.ArrayList<Integer>();
+        boolean previous = RhinoUtils.debugMode;
+        try {
+            JavascriptDebugger.attachLegacyDebugger();
+            dim.setGuiCallback(new org.mozilla.javascript.tools.debugger.GuiCallback() {
+                @Override public boolean isGuiEventThread() { return true; }
+                @Override public void dispatchNextGuiEvent() { throw new AssertionError("No GUI event pump is required by this probe"); }
+                @Override public void updateSourceText(org.mozilla.javascript.tools.debugger.Dim.SourceInfo source) { source.breakpoint(2, true); }
+                @Override public void enterInterrupt(org.mozilla.javascript.tools.debugger.Dim.StackFrame frame, String thread, String alert) {
+                    lines.add(frame.getLineNumber());
+                    assertEquals(1, frame.contextData().frameCount());
+                    dim.contextSwitch(0);
+                    assertEquals(lines.size() == 1 ? "41" : "42", dim.eval("legacyValue"));
+                    assertEquals(lines.size() == 1 ? "42" : "43", dim.eval("legacyValue + 1"));
+                    assertTrue(java.util.Arrays.asList(dim.getObjectIds(frame.scope())).contains("legacyValue"));
+                    dim.setReturnValue(lines.size() == 1 ? org.mozilla.javascript.tools.debugger.Dim.STEP_OVER : org.mozilla.javascript.tools.debugger.Dim.GO);
+                }
+            });
+            dim.attachTo(org.mozilla.javascript.ContextFactory.getGlobal());
+            try (var cx = Context.enter()) {
+                assertEquals(42, ((Number)RhinoUtils.evalCachedJavascript(cx, cx.initStandardObjects(), "var legacyValue=41;\nlegacyValue++;\nlegacyValue;", "legacy-driver", 1, null)).intValue());
+            }
+            assertEquals(java.util.List.of(2, 3), lines);
+        } finally { dim.dispose(); RhinoUtils.debugMode = previous; }
+    }
+
 }

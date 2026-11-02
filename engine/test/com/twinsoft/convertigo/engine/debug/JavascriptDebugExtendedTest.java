@@ -109,6 +109,7 @@ public class JavascriptDebugExtendedTest {
                 }
             }
             assertNotNull(lexical); assertEquals("8", lexical.getString("value"));
+            assertEquals("8", find(variables.getJSONArray("scope"), "lexical").getString("value"));
             assertNotNull(object); assertFalse(object.has("children"));
             var children = session.properties(pause, object.getString("ref"), 0).getJSONArray("variables");
             assertTrue(find(children, "self").getBoolean("expandable"));

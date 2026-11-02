@@ -332,7 +332,10 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			}
 			// Rhino's top-level lexical and global bindings live in adjacent scopes. Keep both visible.
 			if (!frame.script.isFunction() && scopes.length() > 1) {
-				local = scopes.optJSONObject(1);
+				var bindings = new LexicalScope(frame.scope, frame.scope.getParentScope());
+				var page = inspection.page(bindings, 0);
+				local = json("variables", page.optJSONArray("variables"), "ref", inspection.reference(bindings),
+						"nextOffset", page.optInt("nextOffset", -1));
 			}
 			var receiver = inspection.page(frame.thisObject, 0);
 			return json("scope", local.optJSONArray("variables"), "scopeRef", local.optString("ref"),
@@ -354,6 +357,9 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			return json("value", text.substring(0, Math.min(text.length(), 65_536)), "truncated", text.length() > 65_536);
 		});
 	}
+
+	private record LexicalScope(Scriptable lexical, Scriptable global) { }
+	private record Binding(Scriptable owner, Object id) { }
 
 	/** Shallow pages only. References are opaque and valid only during the current pause. */
 	private static final class Inspection {
@@ -389,7 +395,19 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		synchronized JSONObject page(Object object, int offset) {
 			var result = new JSONArray(); object = unwrap(object);
 			int count = 0;
-			if (object != null && object.getClass().isArray()) {
+			if (object instanceof LexicalScope scope) {
+				var bindings = new LinkedHashMap<String, Binding>();
+				for (var owner : new Scriptable[] { scope.lexical, scope.global }) {
+					if (!ordinary(owner)) continue;
+					for (var id : owner.getIds()) if (id instanceof String || id instanceof Number)
+						bindings.put(String.valueOf(id), new Binding(owner, id));
+				}
+				count = bindings.size(); int index = 0;
+				for (var binding : bindings.values()) {
+					if (index >= offset + 100) break;
+					if (index++ >= offset) result.put(property(binding.owner, binding.id));
+				}
+			} else if (object != null && object.getClass().isArray()) {
 				count = java.lang.reflect.Array.getLength(object);
 				for (int i = offset; i < count && i < offset + 100; i++) result.put(node(Integer.toString(i), java.lang.reflect.Array.get(object, i)));
 			} else if (object instanceof NativeArray array) {
@@ -420,17 +438,18 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 				var getter = nativeObject.getGetterOrSetter(name, index, false);
 				var setter = nativeObject.getGetterOrSetter(name, index, true);
 				if (getter != null && getter != Undefined.instance || setter != null && setter != Undefined.instance)
-					return json("name", String.valueOf(id), "value", "<accessor>", "type", "accessor", "expandable", false);
+					return json("name", boundedName(String.valueOf(id)), "value", "<accessor>", "type", "accessor", "expandable", false);
 			}
 			return node(String.valueOf(id), numeric ? object.get(index, object) : object.get(name, object));
 		}
 		private JSONObject node(String name, Object value) {
 			boolean expand = expandable(value), full = primitive(value) && String.valueOf(value).length() > 500;
 			String ref = expand || full ? reference(value) : "";
-			return json("name", name, "value", preview(value), "type", type(value), "ref", ref,
+			return json("name", boundedName(name), "value", preview(value), "type", type(value), "ref", ref,
 					"expandable", expand && !ref.isEmpty(), "fullValue", full && !ref.isEmpty(), "limited", (expand || full) && ref.isEmpty());
 		}
 	}
+	private static String boundedName(String name) { return name.length() > 500 ? name.substring(0, 500) + "…" : name; }
 	private static String type(Object value) {
 		if (value == null) return "null";
 		if (value == Undefined.instance || value == Scriptable.NOT_FOUND) return "undefined";
