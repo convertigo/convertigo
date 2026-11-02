@@ -76,13 +76,10 @@ public abstract class ServletRequester extends GenericRequester {
 	public static void checkAccessibility(Context context) throws EngineException {
 		// By default, requesters disallow private requestables from being executed
 		if (context.requestedObject.isPrivateAccessibility()) {
-			if (Engine.isStudioMode()) {
-				// In studio mode, all requestables can be executed
-				return;
-			}
-			
+			// Only admin users can execute private requestables over HTTP, in studio mode too: the studio runs its
+			// requestables through internal requesters, and its web tools (test platform, admin views) carry an
+			// admin session
 			if (Engine.authenticatedSessionManager.hasRole(context.httpServletRequest.getSession(), Role.TEST_PLATFORM_PRIVATE)) {
-				// Only admin users can execute private requestables
 				return;
 			}
 			

@@ -31,6 +31,8 @@ import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
@@ -38,8 +40,10 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.JobManager;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.XmlServletRequester;
 import com.twinsoft.convertigo.engine.sessions.RequestScopedHttpSession;
 
@@ -52,7 +56,7 @@ public class InvalidRequestSessionTest {
 	@Before public void setup() throws Exception {
 		Engine.isEngineMode();
 		Engine.logEngine = Engine.logContext = Engine.logContextManager = Engine.logBeans
-				= Engine.logStatistics = Logger.getLogger("invalid-request-session-test");
+				= Engine.logStatistics = Engine.logAdmin = Logger.getLogger("invalid-request-session-test");
 		EnginePropertiesManager.initProperties();
 		project = new Project();
 		project.setName("SessionTest");
@@ -250,6 +254,36 @@ public class InvalidRequestSessionTest {
 		// An explicit target overrides testcase defaults.
 		request = new Request(Map.of("__transaction", "Select", "__testcase", "Broken"), null);
 		requester.validate(request.proxy());
+	}
+
+	@Test public void privateTargetsAreRejectedInStudioModeUnlessTheCallerIsAnAdmin() throws Exception {
+		var mode = Engine.class.getDeclaredField("bStudioMode");
+		mode.setAccessible(true);
+		var previous = mode.getBoolean(null);
+		mode.setBoolean(null, true);
+		try {
+			sequence.setAccessibility(Accessibility.Private);
+			// anonymous, then authenticated by the application without the admin role
+			for (var session : new HttpSession[] { null, session(true) }) {
+				var context = new Context("refused");
+				context.requestedObject = sequence;
+				context.httpServletRequest = new Request(Map.of("__sequence", "Check"), session).proxy();
+				var refusal = assertThrows(EngineException.class, () -> ServletRequester.checkAccessibility(context));
+				assertTrue(refusal.getMessage().contains("because it is private"));
+			}
+			// the admin session of the Studio tools (test platform, admin views)
+			var session = session(false);
+			session.setAttribute(SessionKey.ADMIN_ROLES.toString(), new Role[] { Role.WEB_ADMIN, Role.TEST_PLATFORM_PRIVATE });
+			var context = new Context("admin");
+			context.requestedObject = sequence;
+			context.httpServletRequest = new Request(Map.of("__sequence", "Check"), session).proxy();
+			ServletRequester.checkAccessibility(context);
+			// the internal requesters of the Studio, the scheduler and the steps do not check the accessibility
+			new InternalRequester(new HashMap<>(Map.of("__project", "SessionTest", "__sequence", "Check")),
+					new Request(Map.of(), null).proxy()).checkAccessibility();
+		} finally {
+			mode.setBoolean(null, previous);
+		}
 	}
 
 	@Test public void internalRequesterRejectsMissingProjectWithoutAnNpeOrSession() {
