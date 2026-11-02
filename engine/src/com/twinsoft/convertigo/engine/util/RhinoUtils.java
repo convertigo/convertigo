@@ -118,6 +118,7 @@ public class RhinoUtils {
 		source = CopilotHelper.addInstruction(dbo, source);
 		if (debugMode || cx.getDebugger() instanceof com.twinsoft.convertigo.engine.debug.JavascriptDebugSession) {
 			if (dbo != null) {
+				if (cx.getDebugger() instanceof com.twinsoft.convertigo.engine.debug.JavascriptDebugSession session) session.registerSource(dbo, sourceName);
 				sourceName = dbo.getShortQName() + "-" + sourceName;
 			}
 			return evalInterpretedJavascript(cx, scope, source, sourceName, lineno, securityDomain);

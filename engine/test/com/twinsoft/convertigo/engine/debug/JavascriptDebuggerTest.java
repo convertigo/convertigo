@@ -210,4 +210,73 @@ public class JavascriptDebuggerTest {
         }
     }
 
+    @Test public void sourceLocationsExposeProjectSequenceStepAndProperty() throws Exception {
+        EnginePropertiesManager.initProperties();
+        var project = new com.twinsoft.convertigo.beans.core.Project(); project.setName("ReadableProject");
+        var sequence = new com.twinsoft.convertigo.beans.sequences.GenericSequence(); sequence.setName("Probe"); project.add(sequence);
+        var step = new com.twinsoft.convertigo.beans.steps.SimpleStep(); step.setName("Script"); sequence.add(step);
+        try (var session = new JavascriptDebugSession(); var lease = session.enter()) {
+            var cx = Context.getCurrentContext();
+            RhinoUtils.evalCachedJavascript(step, cx, cx.initStandardObjects(), "42;", "expression", 1, null);
+            String url = step.getShortQName() + "-expression";
+            var location = session.source(url).getJSONObject("location");
+            assertEquals("ReadableProject › Probe › Script › expression", location.getString("label"));
+            assertEquals(step.getFullQName(), location.getString("id"));
+            assertEquals("expression", location.getString("property"));
+            assertEquals(location.toString(), session.state().getJSONObject("sourceLocations").getJSONObject(url).toString());
+        }
+    }
+    @Test public void legacyAndWebDebuggerAttachmentsAreMutuallyExclusiveAndRecover() throws Exception {
+        EnginePropertiesManager.initProperties(); Engine.logAdmin = Logger.getLogger("debugger-test");
+        EnginePropertiesManager.setProperty(PropertyName.WEB_STUDIO, "enabled");
+        EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER, "true");
+        boolean previous = RhinoUtils.debugMode;
+        try {
+            var web = JavascriptDebugger.session("exclusion", true);
+            assertThrows(IllegalStateException.class, JavascriptDebugger::attachLegacyDebugger);
+            assertFalse(RhinoUtils.debugMode); assertTrue(web.state().getBoolean("attached"));
+            JavascriptDebugger.stop("exclusion");
+            JavascriptDebugger.attachLegacyDebugger(); assertTrue(RhinoUtils.debugMode);
+            assertThrows(IllegalStateException.class, () -> JavascriptDebugger.session("exclusion", true));
+            try (var cx = Context.enter()) {
+                assertEquals(42, ((Number)RhinoUtils.evalCachedJavascript(cx, cx.initStandardObjects(), "40+2", "legacy", 1, null)).intValue());
+            }
+            RhinoUtils.debugMode = false;
+            assertNotNull(JavascriptDebugger.session("exclusion", true));
+        } finally {
+            JavascriptDebugger.stop("exclusion"); RhinoUtils.debugMode = previous;
+            EnginePropertiesManager.setProperty(PropertyName.WEB_STUDIO, PropertyName.WEB_STUDIO.getDefaultValue());
+            EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER, "false");
+        }
+    }
+    @Test public void eclipsePauseRejectsSecondLaunchAndDetachLetsTheFirstFinish() throws Exception {
+        EnginePropertiesManager.initProperties(); Engine.logAdmin = Logger.getLogger("debugger-test");
+        var mode = Engine.class.getDeclaredField("bStudioMode"); mode.setAccessible(true);
+        boolean previous = mode.getBoolean(null); mode.setBoolean(null, true);
+        try (var pool = java.util.concurrent.Executors.newCachedThreadPool()) {
+            var session = JavascriptDebugger.session("paused-eclipse", true);
+            JavascriptDebugger.studioRequests("paused-eclipse", true);
+            session.requestPause();
+            var first = pool.submit(() -> {
+                var request = new com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest();
+                JavascriptDebugger.selectStudioRequest(request);
+                try (var lease = JavascriptDebugger.bind(request)) {
+                    var cx = Context.getCurrentContext(); return cx.evaluateString(cx.initStandardObjects(), "42;", "eclipse", 1, null);
+                }
+            });
+            long until = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(3);
+            while (!session.state().getBoolean("stopped") && System.nanoTime() < until) Thread.sleep(5);
+            assertTrue(session.state().getBoolean("stopped"));
+            var next = new com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest(); JavascriptDebugger.selectStudioRequest(next);
+            assertTrue(assertThrows(IllegalStateException.class, () -> JavascriptDebugger.bind(next)).getMessage().contains("already has a running request"));
+            assertTrue(session.state().getString("notice").contains("refused")); assertFalse(first.isDone());
+            JavascriptDebugger.studioRequests("paused-eclipse", false);
+            var ordinary = new com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest(); JavascriptDebugger.selectStudioRequest(ordinary);
+            assertNull(JavascriptDebugger.bind(ordinary)); assertNull(Context.getCurrentContext());
+            JavascriptDebugger.stop("paused-eclipse");
+            assertEquals(42, ((Number)first.get(2, java.util.concurrent.TimeUnit.SECONDS)).intValue());
+            assertFalse(session.state().getBoolean("attached")); assertNull(JavascriptDebugger.studioSession());
+        } finally { JavascriptDebugger.stop("paused-eclipse"); mode.setBoolean(null, previous); }
+    }
+
 }

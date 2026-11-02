@@ -109,10 +109,14 @@ public class JavascriptDebugExtendedTest {
                 }
             }
             assertNotNull(lexical); assertEquals("8", lexical.getString("value"));
-            assertNotNull(object); assertTrue(find(object.getJSONArray("children"), "self").getBoolean("limited"));
-            assertEquals("<accessor>", find(object.getJSONArray("children"), "bad").getString("value"));
-            assertEquals("[Array]", find(object.getJSONArray("children"), "items").getString("value"));
-            assertNotNull(java); assertEquals("42", find(java.getJSONArray("children"), "answer").getString("value"));
+            assertNotNull(object); assertFalse(object.has("children"));
+            var children = session.properties(pause, object.getString("ref"), 0).getJSONArray("variables");
+            assertTrue(find(children, "self").getBoolean("expandable"));
+            assertEquals(object.getString("ref"), find(children, "self").getString("ref"));
+            assertEquals("<accessor>", find(children, "bad").getString("value"));
+            assertEquals("[Array]", find(children, "items").getString("value"));
+            assertNotNull(java);
+            assertEquals("42", find(session.properties(pause, java.getString("ref"), 0).getJSONArray("variables"), "answer").getString("value"));
             assertTrue(variables.toString().length() < 100_000);
             session.resume("go", pause); future.get(2, TimeUnit.SECONDS);
         }
@@ -125,4 +129,29 @@ public class JavascriptDebugExtendedTest {
             assertEquals(JavascriptDebugSession.UNSUPPORTED_RUNTIME, session.state().getString("notice"));
         }
     }
+    @Test public void propertyPagesLongValuesAndErrorsBelongToTheirPause() throws Exception {
+        try (var pool = Executors.newCachedThreadPool(); var session = new JavascriptDebugSession()) {
+            session.breakpoint("edited", 2, true);
+            var future = run(pool, session, "var many={}; for(var i=0;i<230;i++)many['item'+i]=i; var text='x'.repeat(1200);\nmany;\ntext;");
+            long pause = paused(session, 0).getLong("pauseId");
+            var variables = session.variables(0, pause);
+            var many = find(variables.getJSONArray("scope"), "many");
+            var page = session.properties(pause, many.getString("ref"), 0);
+            assertEquals(100, page.getJSONArray("variables").length()); assertEquals(100, page.getInt("nextOffset"));
+            page = session.properties(pause, many.getString("ref"), 200);
+            assertEquals(30, page.getJSONArray("variables").length()); assertEquals(-1, page.getInt("nextOffset"));
+            assertEquals("229", find(page.getJSONArray("variables"), "item229").getString("value"));
+            var text = find(variables.getJSONArray("scope"), "text");
+            assertTrue(text.getBoolean("fullValue"));
+            assertEquals(1200, session.value(pause, text.getString("ref")).getString("value").length());
+            assertEquals("ReferenceError: \"missingVariable\" is not defined.", session.evaluate(0, pause, "missingVariable").getString("result"));
+            String ref = many.getString("ref");
+            session.resume("stepOver", pause);
+            long next = paused(session, pause).getLong("pauseId");
+            assertThrows(IllegalStateException.class, () -> session.properties(pause, ref, 0));
+            assertThrows(java.util.concurrent.ExecutionException.class, () -> session.properties(next, ref, 0));
+            session.close(); assertNotNull(future.get(2, TimeUnit.SECONDS));
+        }
+    }
+
 }

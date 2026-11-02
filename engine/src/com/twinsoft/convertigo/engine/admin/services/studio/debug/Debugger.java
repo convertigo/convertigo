@@ -130,6 +130,8 @@ public class Debugger extends JSonService {
 		case "variables" -> {
 			response.put("variables", debugger.variables(Integer.parseInt(request.getParameter("frame")), pauseId));
 		}
+		case "properties" -> response.put("properties", debugger.properties(pauseId, request.getParameter("ref"), Integer.parseInt(request.getParameter("offset"))));
+		case "value" -> response.put("value", debugger.value(pauseId, request.getParameter("ref")));
 		case "eval" -> {
 			// Audit the capability use only: no source, expression, result or session token.
 			com.twinsoft.convertigo.engine.Engine.logAudit.info("JavaScript debugger administrator evaluation requested");

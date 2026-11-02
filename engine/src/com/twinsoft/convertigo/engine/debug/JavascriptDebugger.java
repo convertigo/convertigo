@@ -31,6 +31,11 @@ public final class JavascriptDebugger {
 				&& EnginePropertiesManager.getPropertyAsBoolean(PropertyName.JAVASCRIPT_DEBUGGER);
 	}
 	public static boolean active() { return active; }
+	/** Serialize both attachment directions; a refusal never changes the running debugger. */
+	public static synchronized void attachLegacyDebugger() {
+		if (active) throw new IllegalStateException("Stop JavaScript Debug (Web) before opening Backend Debug. Close and reopen this view after stopping it.");
+		RhinoUtils.debugMode = true;
+	}
 	public static long pauseTimeoutMillis() {
 		try {
 			long seconds = Long.parseLong(EnginePropertiesManager.getProperty(PropertyName.JAVASCRIPT_DEBUGGER_PAUSE_TIMEOUT));

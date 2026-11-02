@@ -33,6 +33,8 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	private final String id = UUID.randomUUID().toString();
 	private final Object lock = new Object();
 	private final Map<String, Source> sources = new LinkedHashMap<>();
+	private final Map<String, JSONObject> locations = new LinkedHashMap<>();
+	private final Inspection inspection = new Inspection();
 	private final Map<String, Set<Integer>> breakpoints = new LinkedHashMap<>();
 	private final Map<Thread, Worker> workers = new LinkedHashMap<>();
 	private List<Frame> frames = List.of();
@@ -120,7 +122,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	@Override public void close() {
 		synchronized (lock) {
 			closed = true; paused = false; breakNext = false;
-			failJob(); frames = List.of(); pausedWorker = null; stepWorker = null; sources.clear(); breakpoints.clear(); sourceChars = 0;
+			failJob(); frames = List.of(); pausedWorker = null; stepWorker = null; sources.clear(); locations.clear(); inspection.clear(); breakpoints.clear(); sourceChars = 0;
 			event("detached"); lock.notifyAll();
 		}
 	}
@@ -233,16 +235,17 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			if (closed || paused) return;
 			pausedWorker = (Worker) cx.getDebuggerContextData(); frames = pausedWorker.frames;
 			pauseDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(pauseTimeoutMillis);
+			inspection.clear();
 			paused = true; breakNext = false; stopDepth = -1; pauseId++; event(reason);
 		}
 		while (true) {
 			Job pending;
 			synchronized (lock) {
-				if (!paused || closed) return;
+				if (!paused || closed) { inspection.clear(); return; }
 				if (System.nanoTime() >= pauseDeadline) {
 					paused = false; breakNext = false; stepWorker = null; failJob();
 					notice = "The maximum pause duration was reached. The request resumed automatically.";
-					event("autoResumed"); lock.notifyAll(); return;
+					inspection.clear(); event("autoResumed"); lock.notifyAll(); return;
 				}
 				if (System.currentTimeMillis() - seen >= IDLE_MILLIS) { close(); return; }
 				if (job == null) {
@@ -266,7 +269,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			if (job != null || inspecting) throw new IllegalStateException("An inspection is pending.");
 			stopDepth = switch (action) { case "stepOver" -> frames.size(); case "stepOut" -> frames.size() - 1; default -> -1; };
 			stepWorker = "go".equals(action) ? null : pausedWorker;
-			breakNext = !"go".equals(action); paused = false; event("resumed"); lock.notifyAll();
+			inspection.clear(); breakNext = !"go".equals(action); paused = false; event("resumed"); lock.notifyAll();
 		}
 	}
 	public void requestPause() { synchronized (lock) { breakNext = true; stepWorker = null; stopDepth = -1; event("breakRequested"); } }
@@ -307,6 +310,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 				var script = cx.compileString(expression, "<debug-expression>", 1, null);
 				return json("result", preview(script.exec(cx, scope, frame.thisObject)));
 			} catch (EvaluationTimeout e) { return json("result", "Evaluation timed out.", "evaluationError", true); }
+			catch (org.mozilla.javascript.RhinoException e) { return json("result", e.details(), "evaluationError", true); }
 			catch (RuntimeException e) { return json("result", "Evaluation failed: " + e.getClass().getSimpleName(), "evaluationError", true); }
 			finally {
 				((Worker) data).evaluationDeadline = 0; cx.setDebugger(debugger, data); cx.setInterpretedMode(interpreted); cx.setGeneratingDebug(generating);
@@ -317,83 +321,131 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	public JSONObject variables(int index, long expected) throws Exception {
 		return inspect(expected, cx -> {
 			var frame = frame(index); var scopes = new JSONArray(); var scope = frame.scope;
-			var tree = new Inspection();
-			if (!frame.script.isFunction() && scope != null && scope.getParentScope() != null) {
-				var lexical = tree.properties(scope, 0);
-				var global = tree.properties(scope.getParentScope(), 0);
-				var actualNames = new java.util.HashSet<String>();
-				for (int i = 0; i < global.length(); i++) actualNames.add(global.optJSONObject(i).optString("name"));
-				var bindings = new JSONArray();
-				for (int i = 0; i < lexical.length(); i++) {
-					var value = lexical.optJSONObject(i);
-					if (!actualNames.contains(value.optString("name"))) bindings.put(value);
-				}
-				for (int i = 0; i < global.length(); i++) bindings.put(global.optJSONObject(i));
-				scopes.put(json("name", "Local", "variables", bindings));
-				return json("scope", bindings, "scopes", scopes, "this", tree.properties(frame.thisObject, 0));
-			}
 			var visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Scriptable, Boolean>());
-			JSONArray locals = new JSONArray();
+			JSONObject local = json("variables", new JSONArray());
 			for (int level = 0; scope != null && level < 8 && visited.add(scope); level++, scope = scope.getParentScope()) {
-				var variables = tree.properties(scope, 0); if (level == 0) locals = variables;
-				scopes.put(json("name", level == 0 ? "Local" : "Parent " + level, "variables", variables));
+				var page = inspection.page(scope, 0);
+				page = json("name", level == 0 ? "Local" : "Parent " + level, "ref", inspection.reference(scope),
+						"variables", page.optJSONArray("variables"), "nextOffset", page.optInt("nextOffset", -1));
+				if (level == 0) local = page;
+				scopes.put(page);
 			}
-			return json("scope", locals, "scopes", scopes, "this", tree.properties(frame.thisObject, 0));
+			// Rhino's top-level lexical and global bindings live in adjacent scopes. Keep both visible.
+			if (!frame.script.isFunction() && scopes.length() > 1) {
+				local = scopes.optJSONObject(1);
+			}
+			var receiver = inspection.page(frame.thisObject, 0);
+			return json("scope", local.optJSONArray("variables"), "scopeRef", local.optString("ref"),
+					"scopeNextOffset", local.optInt("nextOffset", -1), "scopes", scopes,
+					"this", receiver.optJSONArray("variables"), "thisRef", inspection.reference(frame.thisObject),
+					"thisNextOffset", receiver.optInt("nextOffset", -1));
 		});
 	}
 
-	/** Bounded snapshots, with no user getters, methods, proxies or Java string conversion. */
+	public JSONObject properties(long expected, String reference, int offset) throws Exception {
+		if (offset < 0 || offset > 1_000_000) throw new IllegalArgumentException("Invalid property page.");
+		return inspect(expected, cx -> inspection.page(inspection.value(reference), offset));
+	}
+	public JSONObject value(long expected, String reference) throws Exception {
+		return inspect(expected, cx -> {
+			var value = inspection.value(reference);
+			if (!primitive(value)) throw new IllegalArgumentException("Not a primitive value.");
+			var text = String.valueOf(value);
+			return json("value", text.substring(0, Math.min(text.length(), 65_536)), "truncated", text.length() > 65_536);
+		});
+	}
+
+	/** Shallow pages only. References are opaque and valid only during the current pause. */
 	private static final class Inspection {
-		private int remaining = 1000;
-		private final Set<Object> path = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+		private final Map<String, Object> values = new LinkedHashMap<>();
+		private final Map<Object, String> references = new java.util.IdentityHashMap<>();
+		private long serial;
+		synchronized void clear() { values.clear(); references.clear(); }
+		synchronized String reference(Object value) {
+			if (value == null) return "";
+			var existing = references.get(value);
+			if (existing != null) return existing;
+			if (values.size() >= 4096) return "";
+			var ref = Long.toString(++serial);
+			values.put(ref, value); references.put(value, ref); return ref;
+		}
+		synchronized Object value(String reference) {
+			if (!values.containsKey(reference)) throw new IllegalArgumentException("The variable reference has expired. Refresh the variables.");
+			return values.get(reference);
+		}
 		private static boolean ordinary(Scriptable value) {
 			return value.getClass() == NativeObject.class || value instanceof NativeCall
 					|| value.getClass().getName().equals("org.mozilla.javascript.Interpreter$DebugScope");
 		}
-		JSONArray properties(Object object, int depth) {
-			var result = new JSONArray();
-			if (object == null || depth > 3 || remaining <= 0 || !path.add(object)) return result;
-			Object identity = object;
-			try {
-				if (object instanceof org.mozilla.javascript.NativeJavaObject host) object = host.unwrap();
-				if (object != null && object.getClass().isArray()) {
-					int count = java.lang.reflect.Array.getLength(object);
-					for (int i = 0; i < count && i < 100 && remaining > 0; i++) result.put(node(Integer.toString(i), java.lang.reflect.Array.get(object, i), depth));
-				} else if (object instanceof NativeArray array) {
-					for (int i = 0; i < array.getLength() && i < 100 && remaining > 0; i++) result.put(property(array, i, depth));
-				} else if (object instanceof Scriptable scope && ordinary(scope)) {
-					for (var id : scope.getIds()) {
-						if (result.length() >= 100 || remaining <= 0) break;
-						if (id instanceof String || id instanceof Number) result.put(property(scope, id, depth));
-					}
-				} else if (object != null && !(object instanceof Scriptable) && !primitive(object)) {
-					for (var field : object.getClass().getFields()) {
-						if (result.length() >= 100 || remaining <= 0) break;
-						if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
-						try { result.put(node(field.getName(), field.get(object), depth)); }
-						catch (IllegalAccessException | RuntimeException e) { result.put(node(field.getName(), "<inaccessible>", depth)); }
-					}
-				}
-			} finally { path.remove(identity); }
-			return result;
+		private static Object unwrap(Object value) {
+			return value instanceof org.mozilla.javascript.NativeJavaObject host ? host.unwrap() : value;
 		}
-		private JSONObject property(Scriptable object, Object id, int depth) {
+		private static boolean expandable(Object value) {
+			value = unwrap(value);
+			return value != null && (value.getClass().isArray() || value instanceof NativeArray
+					|| value instanceof Scriptable script && ordinary(script)
+					|| !(value instanceof Scriptable) && !primitive(value) && value.getClass().getFields().length > 0);
+		}
+		synchronized JSONObject page(Object object, int offset) {
+			var result = new JSONArray(); object = unwrap(object);
+			int count = 0;
+			if (object != null && object.getClass().isArray()) {
+				count = java.lang.reflect.Array.getLength(object);
+				for (int i = offset; i < count && i < offset + 100; i++) result.put(node(Integer.toString(i), java.lang.reflect.Array.get(object, i)));
+			} else if (object instanceof NativeArray array) {
+				count = (int)Math.min(array.getLength(), 1_000_000);
+				for (int i = offset; i < count && i < offset + 100; i++) result.put(property(array, i));
+			} else if (object instanceof Scriptable scope && ordinary(scope)) {
+				var ids = scope.getIds(); count = ids.length;
+				for (int i = offset; i < count && i < offset + 100; i++) {
+					var id = ids[i];
+					if (id instanceof String || id instanceof Number) result.put(property(scope, id));
+				}
+			} else if (object != null && !(object instanceof Scriptable) && !primitive(object)) {
+				var fields = java.util.Arrays.stream(object.getClass().getFields())
+						.filter(field -> !java.lang.reflect.Modifier.isStatic(field.getModifiers())).toList();
+				count = fields.size();
+				for (int i = offset; i < count && i < offset + 100; i++) {
+					var field = fields.get(i);
+					try { result.put(node(field.getName(), field.get(object))); }
+					catch (IllegalAccessException | RuntimeException e) { result.put(node(field.getName(), "<inaccessible>")); }
+				}
+			}
+			return json("variables", result, "nextOffset", offset + 100 < count ? offset + 100 : -1);
+		}
+		private JSONObject property(Scriptable object, Object id) {
 			boolean numeric = id instanceof Number; int index = numeric ? ((Number) id).intValue() : 0;
 			String name = numeric ? null : (String) id;
 			if (object instanceof ScriptableObject nativeObject) {
 				var getter = nativeObject.getGetterOrSetter(name, index, false);
-				if (getter != null && getter != Undefined.instance) return node(String.valueOf(id), "<accessor>", depth);
+				var setter = nativeObject.getGetterOrSetter(name, index, true);
+				if (getter != null && getter != Undefined.instance || setter != null && setter != Undefined.instance)
+					return json("name", String.valueOf(id), "value", "<accessor>", "type", "accessor", "expandable", false);
 			}
-			return node(String.valueOf(id), numeric ? object.get(index, object) : object.get(name, object), depth);
+			return node(String.valueOf(id), numeric ? object.get(index, object) : object.get(name, object));
 		}
-		private JSONObject node(String name, Object value, int depth) {
-			remaining--;
-			boolean cycle = path.contains(value);
-			var children = !cycle && depth < 3 && remaining > 0 ? properties(value, depth + 1) : new JSONArray();
-			return json("name", name.length() > 500 ? name.substring(0, 500) : name, "value", preview(value),
-					"children", children, "limited", cycle || depth >= 3 || remaining <= 0 || children.length() >= 100);
+		private JSONObject node(String name, Object value) {
+			boolean expand = expandable(value), full = primitive(value) && String.valueOf(value).length() > 500;
+			String ref = expand || full ? reference(value) : "";
+			return json("name", name, "value", preview(value), "type", type(value), "ref", ref,
+					"expandable", expand && !ref.isEmpty(), "fullValue", full && !ref.isEmpty(), "limited", (expand || full) && ref.isEmpty());
 		}
 	}
+	private static String type(Object value) {
+		if (value == null) return "null";
+		if (value == Undefined.instance || value == Scriptable.NOT_FOUND) return "undefined";
+		if (value instanceof org.mozilla.javascript.NativeJavaObject host) {
+			var java = host.unwrap(); return java == null ? "null" : java.getClass().getName();
+		}
+		if (value instanceof NativeArray || value.getClass().isArray()) return "array";
+		if (value instanceof org.mozilla.javascript.Function) return "function";
+		if (value instanceof Number) return "number";
+		if (value instanceof Boolean) return "boolean";
+		if (primitive(value)) return "string";
+		if (value instanceof Scriptable) return "object";
+		return value.getClass().getName();
+	}
+
 	private static boolean primitive(Object value) {
 		return value instanceof String || value instanceof org.mozilla.javascript.ConsString || value instanceof Boolean
 				|| value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long
@@ -416,6 +468,26 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		return "[Host object]";
 	}
 
+	public void registerSource(com.twinsoft.convertigo.beans.core.DatabaseObject dbo, String scriptName) {
+		String url = dbo.getShortQName() + "-" + scriptName;
+		String property = scriptName.endsWith("-smartType") ? scriptName.substring(0, scriptName.length() - 10) : scriptName;
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.Transaction && scriptName.equals(dbo.getName())) property = "handlers";
+		else if (dbo instanceof com.twinsoft.convertigo.beans.steps.LogStep && scriptName.equals("LogStep")
+				|| dbo instanceof com.twinsoft.convertigo.beans.steps.ExceptionStep && scriptName.equals("message")) property = "expression";
+		else if (scriptName.equals("ctxName")) property = "contextName";
+		int offset = com.twinsoft.convertigo.engine.util.CopilotHelper.addInstruction(dbo, "").split("\n", -1).length - 1;
+		synchronized (lock) {
+			if (closed) return;
+			if (locations.size() >= MAX_SOURCES && !locations.containsKey(url)) locations.remove(locations.keySet().iterator().next());
+			locations.put(url, json("id", dbo.getFullQName(), "property", property, "offset", offset,
+					"label", dbo.getQName().replace(".", " › ") + " › " + property));
+		}
+	}
+	private JSONObject location(String url) {
+		var known = locations.get(url);
+		if (known != null) return known;
+		return url.contains("/") ? json("label", url.replaceFirst("/", " › "), "id", url, "file", true, "offset", com.twinsoft.convertigo.engine.util.CopilotHelper.addInstruction(null, "").split("\n", -1).length - 1) : json("label", url);
+	}
 	public boolean breakpoint(String url, int line, boolean set) {
 		if (url == null || url.length() > 1024 || line < 1 || line > 1_000_000) throw new IllegalArgumentException("Invalid breakpoint.");
 		synchronized (lock) {
@@ -434,21 +506,27 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	public JSONObject source(String url) {
 		synchronized (lock) {
 			var source = sources.get(url); if (source == null) throw new IllegalArgumentException("Source unavailable. Run the debug request first.");
-			return json("url", url, "source", source.text, "breakable", array(source.lines), "breakpoints", breakpoints(url));
+			return json("url", url, "source", source.text, "breakable", array(source.lines), "breakpoints", breakpoints(url), "location", location(url));
 		}
 	}
 	public JSONObject state() {
 		synchronized (lock) {
 			var stack = new JSONArray();
 			if (paused) for (int i = frames.size() - 1; i >= 0; i--) {
-				var frame = frames.get(i); stack.put(json("url", frame.url(), "line", frame.line, "function", frame.script.getFunctionName()));
+				var frame = frames.get(i); stack.put(json("url", frame.url(), "line", frame.line, "function", frame.script.getFunctionName(), "location", location(frame.url())));
 			}
 			return json("attached", !closed, "sessionId", id, "serial", serial, "pauseId", pauseId,
 					"running", !workers.isEmpty(), "workers", workers.size(), "notice", notice, "pauseTimeoutMillis", pauseTimeoutMillis, "stopped", paused, "breakOnExceptions", breakOnExceptions,
 					"breakOnEnter", breakOnEnter, "breakOnReturn", breakOnReturn,
 					"studioRequests", JavascriptDebugger.studioSession() == this,
-					"sources", array(sources.keySet()), "frames", stack, "events", array(events));
+					"sources", array(sources.keySet()), "sourceLocations", sourceLocations(), "frames", stack, "events", array(events));
 		}
+	}
+	private JSONObject sourceLocations() {
+		var result = new JSONObject();
+		try { for (var url : sources.keySet()) result.put(url, location(url)); }
+		catch (Exception e) { throw new IllegalStateException("Cannot describe debugger sources."); }
+		return result;
 	}
 	private static JSONArray array(Iterable<?> values) {
 		var result = new JSONArray(); for (var value : values) result.put(value); return result;
