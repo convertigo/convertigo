@@ -17,6 +17,8 @@
 - [#1248](https://github.com/convertigo/convertigo/issues/1248) [Docker] The `aks` image now starts with a JVM ahead-of-time cache trained when the image is built, which `AOT_CACHE=off` disables, and without remote debugging by default; the public image is unchanged
 - [#1253](https://github.com/convertigo/convertigo/issues/1253) [Engine] Multipart requests no longer start an external process to remove their temporary upload folder, now only created when a file or a large field is written, and REST operations remove it at the end of the request instead of leaving the uploaded files in the temporary directory
 - [#1266](https://github.com/convertigo/convertigo/issues/1266) [Docker] Tomcat no longer logs the JVM arguments at startup, as `JAVA_OPTS` can carry passwords
+- [#1270](https://github.com/convertigo/convertigo/issues/1270) [Engine] Billing no longer holds a global lock on the requests: each ticket manager has its own writer and a queue bounded by `billing.queue.capacity`, the database manager writes the tickets handed together in one transaction, the HTTP manager posts them by 25 events, and the queued tickets are written when the engine stops. Beyond the capacity, a ticket is dropped and counted instead of the memory growing
+- [#1271](https://github.com/convertigo/convertigo/issues/1271) [Studio] Private requestables called over HTTP now need the administrator role in the Studio too, as on a server; the editors and web tools of the Studio are not affected
 
 #### Bug Fixes:
 
