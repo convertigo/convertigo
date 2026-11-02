@@ -43,6 +43,7 @@
 - [#1263](https://github.com/convertigo/convertigo/issues/1263) [Engine] Fixed, an instance is no longer reported ready before the projects of its workspace are loaded: `engine.Supervision` reports `convertigo.projects=KO` meanwhile, and the readiness probe of the Helm chart waits for `OK`
 - [#1265](https://github.com/convertigo/convertigo/issues/1265) [Engine] Fixed, an internal request created with `__nolog=true` among its parameters is no longer logged, nor what it runs, and its caller logs again once it ends
 - [#1267](https://github.com/convertigo/convertigo/issues/1267) [Engine] Fixed, the export of a project without its test cases and the timestamps of mobile builds no longer leave directories open when walking them is interrupted by an error
+- [#1273](https://github.com/convertigo/convertigo/issues/1273) [Studio] Fixed, the embedded Log viewer now reconnects by itself when its session is invalidated, instead of staying in error until it is reopened; the failed call is not replayed
 
 ## 8.4.6
 

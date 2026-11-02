@@ -6,6 +6,10 @@ import Instances from '$lib/admin/Instances.svelte';
 import Authentication from '$lib/common/Authentication.svelte';
 import ServerConnection, { isServerUnavailableStatus } from '$lib/common/ServerConnection.svelte';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
+import {
+	isInvalidatedSessionError,
+	requestStudioSessionRecovery
+} from './studioSessionRecovery.js';
 
 export const toaster = createToaster();
 
@@ -361,6 +365,14 @@ function handleStateMessage(res, service) {
 			}
 			res.isError = true;
 			const errorText = stringilight(error);
+			if (
+				browser &&
+				!Authentication.loggingOut &&
+				(isInvalidatedSessionError(error) || /authentication failure/i.test(errorText)) &&
+				requestStudioSessionRecovery(window)
+			) {
+				return;
+			}
 			if (/authentication failure/i.test(errorText)) {
 				if (Authentication.loggingOut) {
 					return;
