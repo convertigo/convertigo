@@ -47,11 +47,12 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		final List<Frame> frames = new ArrayList<>();
 		volatile long evaluationDeadline;
 		Scriptable providerBoundary;
+		final Map<String, Scriptable> privateBoundaries = new LinkedHashMap<>();
 	}
 	public JavascriptDebugSession() { this(JavascriptDebugger.pauseTimeoutMillis()); }
 	JavascriptDebugSession(long pauseTimeoutMillis) { this.pauseTimeoutMillis = pauseTimeoutMillis; }
 	public void flowWithoutDebugging() { synchronized (lock) { notice = "Flow orchestration runs without line debugging; no private block implementation has executed yet."; event("flowWithoutDebugging"); } }
-	void providerDebuggable() { synchronized (lock) { notice = "Rhino block implementations are debuggable; Flow orchestration and shared libraries/modules run compiled."; } }
+	void providerDebuggable() { synchronized (lock) { notice = "Private block implementations, libraries and their module dependencies are debuggable; orchestration stays detached."; } }
 	void registerProviderSource(String url) {
 		synchronized (lock) {
 			if (closed) return;
@@ -59,6 +60,9 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			locations.put(url, json("id", url, "file", true, "label", url,
 					"offset", com.twinsoft.convertigo.engine.util.CopilotHelper.addInstruction(null, "").split("\n", -1).length - 1));
 		}
+	}
+	void privateBoundary(Object data, String url, Scriptable boundary) {
+		((Worker) data).privateBoundaries.put(url, boundary);
 	}
 	JavascriptDebugger.DebugSuspension providerScopes(Object data, Scriptable boundary) {
 		var worker = (Worker) data;
@@ -202,7 +206,13 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	}
 
 	@Override public DebugFrame getFrame(Context cx, DebuggableScript script) {
-		synchronized (lock) { return closed ? null : new Frame(script, (Worker) cx.getDebuggerContextData()); }
+		synchronized (lock) {
+			var worker = (Worker) cx.getDebuggerContextData();
+			// Provider orchestration is never an inspectable frame, even if Rhino invokes
+			// an engine callback while an interpreted private function is attached.
+			if (closed || worker.providerBoundary != null && !worker.privateBoundaries.containsKey(script.getSourceName())) return null;
+			return new Frame(script, worker);
+		}
 	}
 
 	private final class Frame implements DebugFrame {
@@ -211,7 +221,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		final Scriptable providerBoundary;
 		Scriptable scope, thisObject;
 		int line;
-		Frame(DebuggableScript script, Worker worker) { this.script = script; this.worker = worker; this.providerBoundary = worker.providerBoundary; }
+		Frame(DebuggableScript script, Worker worker) { this.script = script; this.worker = worker; this.providerBoundary = worker.privateBoundaries.getOrDefault(script.getSourceName(), worker.providerBoundary); }
 		String url() { return script.getSourceName() == null ? "<script>" : script.getSourceName(); }
 		@Override public void onEnter(Context cx, Scriptable scope, Scriptable self, Object[] args) {
 			synchronized (lock) { this.scope = scope; thisObject = self; worker.frames.add(this); }

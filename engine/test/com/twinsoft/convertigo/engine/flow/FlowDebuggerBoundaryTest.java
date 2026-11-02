@@ -102,7 +102,11 @@ public class FlowDebuggerBoundaryTest {
             ({runObject:function(text,detach){
               var D=Packages.com.twinsoft.convertigo.engine.debug.JavascriptDebugger;
               if(org.mozilla.javascript.Context.getCurrentContext().getDebugger()!=null) throw new Error('attached engine');
-              if (!D.providerDebugging()) return detach({ok:true,result:42});
+              if (!D.providerDebugging()) {
+                if (typeof __providerPrivateDebug !== 'undefined') throw new Error('private realm reused');
+                return detach({ok:true,result:42});
+              }
+              if (__providerPrivateDebug !== true) throw new Error('selected execution borrowed a cached realm');
               var cx=org.mozilla.javascript.Context.getCurrentContext();
               var boundary=cx.newObject(this);
               boundary.engineGlobalSentinel='hidden';

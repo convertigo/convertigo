@@ -98,6 +98,7 @@ public final class JavascriptDebugger {
 			cx.setInterpretedMode(true); cx.setGeneratingDebug(true);
 			cx.setDebugger(binding.session, binding.worker);
 			binding.session.registerProviderSource(url);
+			binding.session.privateBoundary(binding.worker, url, scope);
 			var script = cx.compileString(com.twinsoft.convertigo.engine.util.CopilotHelper.addInstruction(null, source), url, 1, null);
 			cx.setDebugger(null, null);
 			try (var construction = providerConstruction()) {

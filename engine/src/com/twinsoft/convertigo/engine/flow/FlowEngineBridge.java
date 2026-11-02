@@ -2139,7 +2139,12 @@ public class FlowEngineBridge {
 			if (cx == null) {
 				cx = org.mozilla.javascript.Context.enter();
 				entered = true;
-				if (useThreadRuntime) {
+				if (useThreadRuntime && com.twinsoft.convertigo.engine.debug.JavascriptDebugger.providerDebugging()) {
+					// Selected executions own their realm and dependency graph; never borrow or publish a runtime.
+					var privateRuntime = createEngineRuntime(engineRef, engineFile, engineSource, cx, cacheGeneration.get(), true);
+					engineScope = privateRuntime.scope();
+					engineObject = privateRuntime.engineObject();
+				} else if (useThreadRuntime) {
 					runtimeLookup = reusableCallerRuntime(engineRef, engineSource, method, request, convertigoContext);
 					if (runtimeLookup == null && sharesRuntime(method, request) && !frontendAuthoring
 							&& Boolean.getBoolean("convertigo.javascript.stateless") && !Engine.isStudioMode())
@@ -3961,10 +3966,16 @@ public class FlowEngineBridge {
 
 	private static CachedEngineRuntime createEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
 			org.mozilla.javascript.Context cx, long generation) throws EngineException {
+		return createEngineRuntime(engineRef, engineFile, engineSource, cx, generation, false);
+	}
+
+	private static CachedEngineRuntime createEngineRuntime(EngineRef engineRef, File engineFile, CachedEngineSource engineSource,
+			org.mozilla.javascript.Context cx, long generation, boolean privateDebug) throws EngineException {
 		try {
 			// shared by all the projects: the packages of the engine, a call binds those of its project
 			var scope = FlowPackages.createScope(cx);
 			initializeSourceScope(scope, engineFile);
+			if (privateDebug) scope.put("__providerPrivateDebug", scope, true);
 			var engine = RhinoUtils.evalCachedJavascript(cx, scope, engineSource.source(), engineSource.sourceName(), engineSource.file());
 			if (engine == null || Undefined.isUndefined(engine)) {
 				engine = ScriptableObject.getProperty(scope, engineRef.objectName);
