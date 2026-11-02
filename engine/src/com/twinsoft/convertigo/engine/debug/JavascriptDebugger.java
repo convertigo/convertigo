@@ -42,6 +42,26 @@ public final class JavascriptDebugger {
 			return Math.max(1, Math.min(3600, seconds)) * 1000;
 		} catch (RuntimeException e) { return 120_000; }
 	}
+	/** A scoped suspension leaves the request worker and its legacy frames intact. */
+	public interface DebugSuspension extends AutoCloseable {
+		@Override void close();
+	}
+	public static DebugSuspension suspendForFlow() {
+		var cx = org.mozilla.javascript.Context.getCurrentContext();
+		if (cx == null || !(cx.getDebugger() instanceof JavascriptDebugSession session)) return null;
+		var data = cx.getDebuggerContextData();
+		var interpreted = cx.isInterpretedMode();
+		var generating = cx.isGeneratingDebug();
+		session.flowWithoutDebugging();
+		cx.setDebugger(null, null);
+		cx.setGeneratingDebug(false);
+		cx.setInterpretedMode(false);
+		return () -> {
+			cx.setInterpretedMode(interpreted);
+			cx.setGeneratingDebug(generating);
+			cx.setDebugger(session, data);
+		};
+	}
 	/** Refuse shared/prepared code before accessing caches; expose a value-free reason to the UI. */
 	public static void requireUnsharedRuntime(org.mozilla.javascript.Context cx) {
 		if (cx != null && cx.getDebugger() instanceof JavascriptDebugSession session) {

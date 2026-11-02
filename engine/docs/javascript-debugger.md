@@ -53,7 +53,7 @@ Other limits: 16 sessions, 64 sources, 262144 characters per source, 2097152 sou
 
 JavaScript steps, step expressions, transaction handlers, `include()` and `use()` execute interpreted code for selected requests. Included files are named by project/path. `use()` evaluates private functions for debugging without reading or publishing shared cached functions; ordinary cache identity is preserved.
 
-Prepared provider runtimes and shared compiled modules are explicitly refused before accessing their caches. Their entry points publish a value-free `unsupportedRuntime` notice displayed in the same component in both Studios. Detach the debugger to execute such a request. Native Java code is not line-debuggable.
+Flow provider calls run with the request debugger temporarily detached before accessing prepared runtimes or shared compiled modules. The panel displays the value-free notice `Flow code runs without debugging`. The debugger and its context settings are restored when the call returns or throws, so legacy Rhino breakpoints and stepping continue before and after Flow. Flow sources are not collected by the debugger. Direct shared-compilation entry points outside the Flow call boundary remain guarded against debug cache reuse. Native Java code is not line-debuggable.
 
 No debugger payload is written to generic administration response logs. Sources and values stay in memory, not local storage. Tabs sharing an HTTP session share its debugger; isolation is by administrator HTTP session, not browser tab. Business request timeouts remain effective while paused.
 

@@ -976,7 +976,7 @@ tasks.register('javascriptDebuggerTest', JavaExec) {
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
-	args 'com.twinsoft.convertigo.engine.debug.JavascriptDebugSessionTest', 'com.twinsoft.convertigo.engine.debug.JavascriptDebuggerTest', 'com.twinsoft.convertigo.engine.debug.JavascriptDebugExtendedTest'
+	args 'com.twinsoft.convertigo.engine.debug.JavascriptDebugSessionTest', 'com.twinsoft.convertigo.engine.debug.JavascriptDebuggerTest', 'com.twinsoft.convertigo.engine.debug.JavascriptDebugExtendedTest', 'com.twinsoft.convertigo.engine.flow.FlowDebuggerBoundaryTest'
 }
 tasks.named('check') { dependsOn 'javascriptDebuggerTest' }
 

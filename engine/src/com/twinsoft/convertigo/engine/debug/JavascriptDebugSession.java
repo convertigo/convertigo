@@ -49,6 +49,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	}
 	public JavascriptDebugSession() { this(JavascriptDebugger.pauseTimeoutMillis()); }
 	JavascriptDebugSession(long pauseTimeoutMillis) { this.pauseTimeoutMillis = pauseTimeoutMillis; }
+	public void flowWithoutDebugging() { synchronized (lock) { notice = "Flow code runs without debugging"; event("flowWithoutDebugging"); } }
 	public void unsupportedRuntime() { synchronized (lock) { notice = UNSUPPORTED_RUNTIME; event("unsupportedRuntime"); } }
 	private final List<JSONObject> events = new ArrayList<>();
 	private long serial, pauseId, seen = System.currentTimeMillis();

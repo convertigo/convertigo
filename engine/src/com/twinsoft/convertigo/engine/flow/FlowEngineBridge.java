@@ -1952,7 +1952,12 @@ public class FlowEngineBridge {
 	}
 	Object invokeValue(String engineQName, String method, JSONObject request, Context convertigoContext,
 			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
-		com.twinsoft.convertigo.engine.debug.JavascriptDebugger.requireUnsharedRuntime(org.mozilla.javascript.Context.getCurrentContext());
+		try (var suspension = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.suspendForFlow()) {
+			return invokeWithoutDebugger(engineQName, method, request, convertigoContext, javascriptContext, scope);
+		}
+	}
+	private Object invokeWithoutDebugger(String engineQName, String method, JSONObject request, Context convertigoContext,
+			org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		prepareProjectRequest(request);
 		var engineRef = EngineRef.parse(normalizeEngineQName(engineQName));
 		var frontendAuthoring = usesFrontendDocumentProvider(method, request);
