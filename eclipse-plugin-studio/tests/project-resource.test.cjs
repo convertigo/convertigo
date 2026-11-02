@@ -42,7 +42,8 @@ const jars = Object.entries(target).map(([name, version]) => {
   return jar;
 });
 const java = name => process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', name) : name;
-const root = fs.mkdtempSync(path.join(os.tmpdir(), 'project-resource-test-'));
+// Real path: after a restart Eclipse reports canonical project locations, and macOS links /var to /private/var.
+const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'project-resource-test-')));
 try {
   fs.mkdirSync(path.join(root, 'src/repair'), { recursive: true });
   fs.mkdirSync(path.join(root, 'classes'));
