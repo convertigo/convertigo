@@ -26,6 +26,7 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,6 +70,9 @@ public class JdbcConnectionManager implements AbstractManager, ProjectLibraries.
 	private static Method dataSourceGetMaxActive = null;
 	private static Method dataSourceGetNumIdle = null;
 	private static Method dataSourceGetMaxIdle = null;
+	private static Method dataSourceGetUrl = null;
+	private static Method dataSourceGetUsername = null;
+	private static Method dataSourceGetPassword = null;
 	/** Pools by connector and generation of the class path of its project. */
 	private Map<String, Object> databasePools;
 	/** Drivers of the engine, registered once. */
@@ -112,6 +116,9 @@ public class JdbcConnectionManager implements AbstractManager, ProjectLibraries.
 			dataSourceGetNumActive = dataSourceCls.getMethod("getNumActive");
 			dataSourceGetNumIdle = dataSourceCls.getMethod("getNumIdle");
 			dataSourceGetMaxIdle = dataSourceCls.getMethod("getMaxIdle");
+			dataSourceGetUrl = dataSourceCls.getMethod("getUrl");
+			dataSourceGetUsername = dataSourceCls.getMethod("getUsername");
+			dataSourceGetPassword = dataSourceCls.getMethod("getPassword");
 			Engine.logEngine.info("(JdbcConnectionManager) Init done"); 
 		} catch (Exception e) {
 			Engine.logEngine.error("(JdbcConnectionManager) Init failed", e); 
@@ -133,6 +140,7 @@ public class JdbcConnectionManager implements AbstractManager, ProjectLibraries.
 
 	private void closePool(String poolKey) {
 		Engine.logEngine.debug("[SqlConnectionManager] Closing datasource '" + poolKey + "'...");
+		shutdownHsqldbFile(poolKey, databasePools.get(poolKey));
 		try {
 			dataSourceClose.invoke(databasePools.get(poolKey));
 			Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' closed.");
@@ -140,6 +148,40 @@ public class JdbcConnectionManager implements AbstractManager, ProjectLibraries.
 			Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' close failure ! ");
 		}
 		databasePools.remove(poolKey);
+	}
+
+	/**
+	 * Shuts down the HSQLDB file database of a pool being closed: SqlConnector leaves a pooled one open between
+	 * transactions, and its files must be released before a new version of the project replaces them.
+	 * ifexists: a database whose files are already gone is not created again. A driver of the libraries of the
+	 * project is used when the generation of the pool has one, since the database was opened by its classes.
+	 */
+	private void shutdownHsqldbFile(String poolKey, Object pool) {
+		try {
+			String jdbcURL = (String) dataSourceGetUrl.invoke(pool);
+			if (jdbcURL == null || !jdbcURL.startsWith("jdbc:hsqldb:file:")) {
+				return;
+			}
+			String url = jdbcURL + ";ifexists=true";
+			Driver projectDriver = null;
+			var drivers = projectDrivers.get(poolKey.substring(poolKey.indexOf('\n') + 1));
+			if (drivers != null) {
+				for (var driver : drivers.values()) {
+					if (driver.acceptsURL(url)) {
+						projectDriver = driver;
+						break;
+					}
+				}
+			}
+			String user = (String) dataSourceGetUsername.invoke(pool);
+			try (Connection connection = connectWithoutPool(projectDriver, url, user == null ? "" : user, (String) dataSourceGetPassword.invoke(pool));
+					Statement statement = connection.createStatement()) {
+				statement.execute("SHUTDOWN");
+			}
+			Engine.logEngine.debug("[SqlConnectionManager] HSQLDB database of '" + poolKey + "' shut down.");
+		} catch (Exception e) {
+			Engine.logEngine.debug("[SqlConnectionManager] HSQLDB database of '" + poolKey + "' not shut down: " + e.getMessage());
+		}
 	}
 
 	/** Closes the pools of a connector, whatever the generation of the class path of its project. */

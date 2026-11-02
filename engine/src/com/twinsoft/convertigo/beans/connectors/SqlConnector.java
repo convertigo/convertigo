@@ -288,7 +288,10 @@ public class SqlConnector extends Connector {
 	public synchronized void close() {
 		try {
 			if (connection != null) {
-				if (realJdbcURL.startsWith("jdbc:hsqldb:file:")) {
+				// A pooled HSQLDB file database stays open between transactions: shutting it down here closed it under
+				// the other requests of the pool, and a request arriving while it closed failed. Its pool shuts it down
+				// when it is removed (JdbcConnectionManager).
+				if (realJdbcURL.startsWith("jdbc:hsqldb:file:") && !getConnectionPool()) {
 					Statement statement = connection.createStatement();
 					statement.executeQuery("SHUTDOWN");
 					statement.close();

@@ -101,8 +101,21 @@ public class AuthenticatedBrowser {
 			showWaitingPage();
 			return;
 		}
-		if (waiting || isDisconnectedUrl(browser.getURL())) {
+		if (waiting || isDisconnectedUrl(browser.getURL()) || isSessionExpired()) {
 			reconnect();
+		}
+	}
+
+	private boolean isSessionExpired() {
+		try {
+			// A service can lose its session while the page itself stays on its normal URL.
+			// The shared web transport flags this case, including long-running log requests.
+			return browser.getBrowser().mainFrame()
+					.map(frame -> Boolean.TRUE.equals(frame.executeJavaScript("window.__c8oSessionExpired === true")))
+					.orElse(false);
+		} catch (Exception e) {
+			// A navigation or browser restart can dispose the frame during this check.
+			return false;
 		}
 	}
 

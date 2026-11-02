@@ -29,6 +29,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1777,6 +1778,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 			resourceProject = myWorkspaceRoot.getProject(projectName);
+			IPath requestedLocation = projectDir == null ? null : new Path(projectDir).makeAbsolute();
+			if (restoreMissingProjectDescription(resourceProject, requestedLocation, monitor)) {
+				openProject(resourceProject, monitor);
+				return resourceProject;
+			}
 			
 			String existingProjectName;
 			try {
@@ -1817,9 +1823,48 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return resourceProject;
 	}
 	
+	private boolean restoreMissingProjectDescription(IProject project, IPath requestedLocation, IProgressMonitor monitor) throws CoreException {
+		IPath location = project.getLocation();
+		if (location == null) {
+			location = requestedLocation;
+		}
+		if (!project.exists() || location == null || !Files.isDirectory(location.toFile().toPath())) {
+			return false;
+		}
+		var descriptionFile = location.append(IProjectDescription.DESCRIPTION_FILE_NAME).toFile().toPath();
+		if (!Files.notExists(descriptionFile) || Files.isSymbolicLink(descriptionFile)) {
+			return false;
+		}
+		IWorkspace workspace = project.getWorkspace();
+		IPath projectLocation = location;
+		boolean[] restored = {false};
+		workspace.run(progress -> {
+			// Recheck under the workspace rule: another declaration may have repaired it meanwhile.
+			if (!project.exists() || !Files.notExists(descriptionFile) || Files.isSymbolicLink(descriptionFile)) {
+				return;
+			}
+			IProjectDescription description;
+			try {
+				// Keep the natures and build settings when Eclipse still has a cached description.
+				description = project.getDescription();
+			} catch (CoreException e) {
+				description = workspace.newProjectDescription(project.getName());
+			}
+			description.setName(project.getName());
+			IPath defaultLocation = workspace.getRoot().getLocation().append(project.getName());
+			description.setLocation(defaultLocation.equals(projectLocation) ? null : projectLocation);
+			// Remove only the workspace registration, never the project's files or linked contents.
+			project.delete(false, true, progress);
+			project.create(description, progress);
+			restored[0] = true;
+		}, workspace.getRoot(), IWorkspace.AVOID_UPDATE, monitor);
+		return restored[0];
+	}
+
 	private static final String symLinkFilter = "1.0-isSymLink-equals-false-false-true";
 
 	private void openProject(IProject iproject, IProgressMonitor monitor) throws CoreException {
+		restoreMissingProjectDescription(iproject, iproject.getLocation(), monitor);
 		boolean doInit = !iproject.isOpen() || iproject.getSessionProperty(qnInit) == null;
 		if (doInit) {
 			if (iproject.getFilters().length == 0) {
@@ -1862,20 +1907,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (project == null) {
 			return null;
 		}
-		IProject resourceProject = createProjectPluginResource(projectName, project.getDirPath());
+		IProject resourceProject = createProjectPluginResource(projectName, project.getDirPath(), monitor);
 		if (resourceProject.exists()) {
-			try {
-				openProject(resourceProject, monitor);
-			} catch (CoreException e) {
-				// case of missing .project on existing project
-				IPath projectPath = resourceProject.getLocation();
-				IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
-				IProjectDescription description = myWorkspace.newProjectDescription(projectName);
-				description.setLocation(projectPath);
-				resourceProject.delete(false, false, monitor);
-				resourceProject.create(description, monitor);
-				openProject(resourceProject, monitor);
-			}
+			openProject(resourceProject, monitor);
 		}
 		return resourceProject;
 	}

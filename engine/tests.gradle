@@ -911,6 +911,16 @@ tasks.register('dynamicContextTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'dynamicContextTest' }
 
+tasks.register('hsqldbPoolShutdownTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a pooled HSQLDB file database stays open between transactions and is shut down when its pool is removed or the engine stops.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.HsqldbPoolShutdownTest'
+}
+tasks.named('check') { dependsOn 'hsqldbPoolShutdownTest' }
+
 tasks.register('sequenceCleanupTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: an idle sequence no longer retains the last executed step.'
@@ -962,3 +972,14 @@ tasks.register('javascriptDebuggerTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.debug.JavascriptDebugSessionTest', 'com.twinsoft.convertigo.engine.debug.JavascriptDebuggerTest', 'com.twinsoft.convertigo.engine.debug.JavascriptDebugExtendedTest'
 }
 tasks.named('check') { dependsOn 'javascriptDebuggerTest' }
+
+tasks.register('projectMetadataTest', JavaExec) {
+	group = 'verification'
+	description = 'Eclipse metadata stays local: archive exclusion, legacy imports and HTTP 404.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.EclipseProjectArchiveTest',
+		'com.twinsoft.convertigo.engine.servlets.ProjectHttpIgnoreTest'
+}
+tasks.named('check') { dependsOn 'projectMetadataTest' }
