@@ -44,13 +44,22 @@ public class RhinoDebugView extends ViewPart implements IPartListener2 {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		rhinoDebug = new RhinoDebug(parent, SWT.NONE);
+		try {
+			com.twinsoft.convertigo.engine.debug.JavascriptDebugger.attachLegacyDebugger();
+		} catch (IllegalStateException e) {
+			parent.setLayout(new org.eclipse.swt.layout.FillLayout());
+			var label = new org.eclipse.swt.widgets.Label(parent, SWT.WRAP);
+			label.setText(e.getMessage());
+			return;
+		}
+		try { rhinoDebug = new RhinoDebug(parent, SWT.NONE); }
+		catch (RuntimeException | Error e) { com.twinsoft.convertigo.engine.util.RhinoUtils.debugMode = false; throw e; }
 		getSite().getPage().addPartListener(this);
 	}
 
 	@Override
 	public void setFocus() {
-		rhinoDebug.setFocus();
+		if (rhinoDebug != null) rhinoDebug.setFocus();
 	}
 	
 	public boolean onActivated(IWorkbenchPart part) {

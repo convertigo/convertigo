@@ -128,9 +128,22 @@ public class JavascriptDebugView extends ViewPart {
         clearAnnotation();
         var file = files.get(url);
         if (file == null && url.contains("/")) {
+            if (url.startsWith("/") || java.util.Arrays.asList(url.split("/")).contains("..")) return;
             int slash = url.indexOf('/');
             var project = ResourcesPlugin.getWorkspace().getRoot().getProject(url.substring(0, slash));
             if (project.exists()) file = project.getFile(url.substring(slash + 1));
+        }
+        if (file == null) {
+            var session = JavascriptDebugger.studioSession();
+            var location = session == null ? null : session.source(url).optJSONObject("location");
+            if (location != null && location.has("property")) {
+                var dbo = com.twinsoft.convertigo.engine.admin.services.studio.Utils.getDbo(location.getString("id"));
+                var tree = com.twinsoft.convertigo.eclipse.ConvertigoPlugin.getDefault().getProjectExplorerView().findTreeObjectByUserObject(dbo);
+                if (tree instanceof com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject objectTree) {
+                    var part = JScriptEditorInput.openJScriptEditor(objectTree, location.getString("property"));
+                    if (part.getEditorInput() instanceof IFileEditorInput input) file = input.getFile();
+                }
+            }
         }
         if (file == null || !file.exists()) return;
         var page = getSite().getPage();
@@ -157,7 +170,22 @@ public class JavascriptDebugView extends ViewPart {
         parent.setLayout(new FillLayout());
         browser = new C8oBrowser(parent, SWT.NONE);
         browser.setUseExternalBrowser(false);
-        new C8oBrowserPostMessageHelper(browser);
+        var bridge = new C8oBrowserPostMessageHelper(browser);
+        bridge.onMainFrameMessage((message, frame) -> {
+            if (!browser.getBrowser().url().contains("/admin/eclipse/javascript-debugger")) return;
+            if (!"debugger.frame".equals(message.optString("type"))) return;
+            browser.getDisplay().asyncExec(() -> {
+                if (browser == null || browser.isDisposed()) return;
+                var session = JavascriptDebugger.studioSession();
+                if (session == null || !session.id().equals(message.optString("sessionId"))) return;
+                try {
+                    var state = session.state();
+                    if (!state.getBoolean("stopped") || state.getLong("pauseId") != message.optLong("pauseId", -1)) return;
+                    var selected = state.getJSONArray("frames").optJSONObject(message.optInt("frame", -1));
+                    if (selected != null) showStopLine(selected.getString("url"), selected.getInt("line"));
+                } catch (Exception ignored) { /* Never log source, values or bridge payloads. */ }
+            });
+        });
         authentication = new AuthenticatedBrowser(browser,
                 () -> AdminView.getStudioAuthenticatedUrl("/admin/eclipse/javascript-debugger"));
         authentication.load();
