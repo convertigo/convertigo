@@ -45,7 +45,8 @@ final class ProjectHttpIgnore {
 		if (relativePath.isEmpty()) {
 			return false;
 		}
-		if (isHttpIgnorePath(relativePath)) {
+		if (isHiddenPath(relativePath, FILENAME) || isHiddenPath(relativePath, ".project")
+				|| isHiddenPath(relativePath, ".settings")) {
 			return true;
 		}
 
@@ -96,11 +97,11 @@ final class ProjectHttpIgnore {
 		return relativePath.replace('\\', '/');
 	}
 
-	private static boolean isHttpIgnorePath(String relativePath) {
-		return relativePath.equals(FILENAME)
-				|| relativePath.startsWith(FILENAME + "/")
-				|| relativePath.endsWith("/" + FILENAME)
-				|| relativePath.contains("/" + FILENAME + "/");
+	private static boolean isHiddenPath(String relativePath, String filename) {
+		return relativePath.equals(filename)
+				|| relativePath.startsWith(filename + "/")
+				|| relativePath.endsWith("/" + filename)
+				|| relativePath.contains("/" + filename + "/");
 	}
 
 	private static String getParentPath(String path) {

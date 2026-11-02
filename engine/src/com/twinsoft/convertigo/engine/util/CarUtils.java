@@ -155,7 +155,8 @@ public class CarUtils {
 			@Override
 			public void walk(File file) {
 				String filename = file.getName(); 
-				if (filename.equals(".svn") || filename.equals(".git") || filename.equals(".gradle") || filename.equals("CVS") || filename.equals("node_modules")) {
+				// Eclipse metadata belongs to the local workspace, including nested projects.
+				if (filename.equals(".project") || filename.equals(".settings") || filename.equals(".svn") || filename.equals(".git") || filename.equals(".gradle") || filename.equals("CVS") || filename.equals("node_modules")) {
 					undeployedFiles.add(file);
 				} else {
 					super.walk(file);
