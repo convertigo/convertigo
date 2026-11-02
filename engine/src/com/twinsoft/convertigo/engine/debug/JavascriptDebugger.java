@@ -125,6 +125,13 @@ public final class JavascriptDebugger {
 			cx.setDebugger(debugger, data); cx.setInterpretedMode(interpreted); cx.setGeneratingDebug(generating);
 		}
 	}
+	/** Register an invocation-owned plugin. The transport knows no provider model or values. */
+	public static JavascriptDebugSession.Participant participant(String kind, org.mozilla.javascript.Function inspect) {
+		var cx = org.mozilla.javascript.Context.getCurrentContext();
+		if (!providerDebugging()) return null;
+		var binding = (ProviderBinding) cx.getThreadLocal(PROVIDER_BINDING);
+		return binding.session.participant(kind, binding.worker, inspect);
+	}
 	/** Refuse shared/prepared code before accessing caches; expose a value-free reason to the UI. */
 	public static void requireUnsharedRuntime(org.mozilla.javascript.Context cx) {
 		if (cx != null && cx.getDebugger() instanceof JavascriptDebugSession session) {

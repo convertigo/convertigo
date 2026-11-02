@@ -215,14 +215,99 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		}
 	}
 
+	/** Opaque participant frames share the authenticated session, pause queue and stepping depth. */
+	public final class Participant {
+		private final String kind;
+		private final Worker worker;
+		private final org.mozilla.javascript.Function inspect;
+		private Participant(String kind, Worker worker, org.mozilla.javascript.Function inspect) {
+			this.kind = kind; this.worker = worker; this.inspect = inspect;
+		}
+		private void owner() {
+			synchronized (lock) {
+				if (workers.get(Thread.currentThread()) != worker) throw new IllegalStateException("Participant used by another worker.");
+			}
+		}
+		public void enter(String frameId, String descriptor) throws Exception {
+			owner();
+			if (frameId == null || frameId.length() > 128 || descriptor.length() > MAX_SOURCE_CHARS) throw new IllegalArgumentException("Participant frame limit.");
+			var info = new JSONObject(descriptor);
+			var url = info.getString("url"); var line = info.getInt("line");
+			if (url.length() > 1024 || line < 1 || line > 1_000_000) throw new IllegalArgumentException("Invalid participant location.");
+			synchronized (lock) {
+				if (closed) return;
+				if (worker.frames.size() >= 128) throw new IllegalStateException("Participant stack limit.");
+				worker.frames.add(new Frame(this, frameId, info, worker));
+				var text = info.optString("source", "");
+				if (!text.isEmpty() && text.length() <= MAX_SOURCE_CHARS) {
+					var previous = sources.remove(url); if (previous != null) sourceChars -= previous.text.length();
+					while (!sources.isEmpty() && (sources.size() >= MAX_SOURCES || sourceChars + text.length() > MAX_TOTAL_CHARS)) {
+						var first = sources.keySet().iterator().next(); sourceChars -= sources.remove(first).text.length();
+					}
+					sources.put(url, new Source(text, Set.of(line))); sourceChars += text.length();
+				}
+				if (info.optJSONObject("location") != null) {
+					if (locations.size() >= MAX_SOURCES && !locations.containsKey(url)) locations.remove(locations.keySet().iterator().next());
+					locations.put(url, info.getJSONObject("location"));
+				}
+			}
+		}
+		private Frame top(String frameId) {
+			owner();
+			if (worker.frames.isEmpty()) return null;
+			var frame = worker.frames.get(worker.frames.size() - 1);
+			if (frame.participant != this || !frame.frameId.equals(frameId)) throw new IllegalStateException("Participant frames must be nested.");
+			return frame;
+		}
+		public void at(String frameId, String phase) {
+			boolean stop;
+			synchronized (lock) {
+				if (closed) return;
+				var frame = top(frameId); if (frame == null) return;
+				frame.phase = phase;
+				stop = !inspecting && !paused && ("before".equals(phase) && breakpoints.getOrDefault(frame.url(), Set.of()).contains(frame.line)
+					|| breakNext && (stepWorker == null || stepWorker == worker) && (stopDepth < 0 || worker.frames.size() <= stopDepth));
+			}
+			if (stop) pause(Context.getCurrentContext(), "participant", worker);
+		}
+		public void leave(String frameId) {
+			synchronized (lock) { if (closed) return; var frame = top(frameId); if (frame != null) worker.frames.remove(frame); }
+		}
+		private JSONObject inspection(Context cx, Frame frame, String action, String expression) {
+			var debugger = cx.getDebugger(); var data = cx.getDebuggerContextData();
+			cx.setDebugger(null, null); worker.evaluationDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(500);
+			try {
+				var scope = inspect.getParentScope();
+				var value = inspect.call(cx, scope, scope, new Object[] { frame.frameId, action, expression });
+				var text = Context.toString(value);
+				if (text.length() > MAX_SOURCE_CHARS) throw new IllegalArgumentException("Participant inspection limit.");
+				return new JSONObject(text);
+			} catch (EvaluationTimeout e) { return json("result", "Evaluation timed out.", "evaluationError", true); }
+			catch (Exception e) { throw new IllegalStateException("Participant inspection failed."); }
+			finally { worker.evaluationDeadline = 0; cx.setDebugger(debugger, data); }
+		}
+	}
+	Participant participant(String kind, Object data, org.mozilla.javascript.Function inspect) {
+		if (kind == null || !kind.matches("[a-zA-Z][a-zA-Z0-9.-]{0,63}") || inspect == null) throw new IllegalArgumentException("Invalid participant.");
+		return new Participant(kind, (Worker) data, inspect);
+	}
+
 	private final class Frame implements DebugFrame {
 		final DebuggableScript script;
+		final Participant participant;
+		final String frameId;
+		final JSONObject descriptor;
+		String phase = "";
 		final Worker worker;
 		final Scriptable providerBoundary;
 		Scriptable scope, thisObject;
 		int line;
-		Frame(DebuggableScript script, Worker worker) { this.script = script; this.worker = worker; this.providerBoundary = worker.privateBoundaries.getOrDefault(script.getSourceName(), worker.providerBoundary); }
-		String url() { return script.getSourceName() == null ? "<script>" : script.getSourceName(); }
+		Frame(DebuggableScript script, Worker worker) { this.participant = null; this.frameId = ""; this.descriptor = null; this.script = script; this.worker = worker; this.providerBoundary = worker.privateBoundaries.getOrDefault(script.getSourceName(), worker.providerBoundary); }
+		Frame(Participant participant, String frameId, JSONObject descriptor, Worker worker) {
+			this.participant = participant; this.frameId = frameId; this.descriptor = descriptor;
+			this.worker = worker; this.script = null; this.providerBoundary = null; this.line = descriptor.optInt("line", 1);
+		}
+		String url() { if (participant != null) return descriptor.optString("url"); return script.getSourceName() == null ? "<script>" : script.getSourceName(); }
 		@Override public void onEnter(Context cx, Scriptable scope, Scriptable self, Object[] args) {
 			synchronized (lock) { this.scope = scope; thisObject = self; worker.frames.add(this); }
 			if (script.isFunction()) {
@@ -258,10 +343,11 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	}
 
 	/** The worker services commands while paused. No monitor is held during user evaluation. */
-	private void pause(Context cx, String reason) {
+	private void pause(Context cx, String reason) { pause(cx, reason, (Worker) cx.getDebuggerContextData()); }
+	private void pause(Context cx, String reason, Worker worker) {
 		synchronized (lock) {
 			if (closed || paused) return;
-			pausedWorker = (Worker) cx.getDebuggerContextData(); frames = pausedWorker.frames;
+			pausedWorker = worker; frames = pausedWorker.frames;
 			pauseDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(pauseTimeoutMillis);
 			inspection.clear();
 			paused = true; breakNext = false; stopDepth = -1; pauseId++; event(reason);
@@ -327,7 +413,9 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	public JSONObject evaluate(int index, long expected, String expression) throws Exception {
 		if (expression == null || expression.length() > 4096) throw new IllegalArgumentException("Expression limit: 4096 characters.");
 		return inspect(expected, cx -> {
-			var frame = frame(index); var debugger = cx.getDebugger(); var data = cx.getDebuggerContextData();
+			var frame = frame(index);
+			if (frame.participant != null) return frame.participant.inspection(cx, frame, "evaluate", expression);
+			var debugger = cx.getDebugger(); var data = cx.getDebuggerContextData();
 			boolean interpreted = cx.isInterpretedMode(), generating = cx.isGeneratingDebug();
 			cx.setDebugger(null, null); cx.setInterpretedMode(true); cx.setGeneratingDebug(false);
 			((Worker) data).evaluationDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(500);
@@ -348,7 +436,9 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 
 	public JSONObject variables(int index, long expected) throws Exception {
 		return inspect(expected, cx -> {
-			var frame = frame(index); var scopes = new JSONArray(); var scope = frame.scope;
+			var frame = frame(index);
+			if (frame.participant != null) return frame.participant.inspection(cx, frame, "variables", "");
+			var scopes = new JSONArray(); var scope = frame.scope;
 			var visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Scriptable, Boolean>());
 			JSONObject local = json("variables", new JSONArray());
 			for (int level = 0; scope != null && scope != frame.providerBoundary && level < 8 && visited.add(scope); level++, scope = scope.getParentScope()) {
@@ -572,7 +662,12 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		synchronized (lock) {
 			var stack = new JSONArray();
 			if (paused) for (int i = frames.size() - 1; i >= 0; i--) {
-				var frame = frames.get(i); stack.put(json("url", frame.url(), "line", frame.line, "function", frame.script.getFunctionName(), "location", location(frame.url())));
+				var frame = frames.get(i);
+				stack.put(json("url", frame.url(), "line", frame.line,
+					"kind", frame.participant == null ? "rhino" : frame.participant.kind,
+					"frameId", frame.frameId, "phase", frame.phase,
+					"function", frame.participant == null ? frame.script.getFunctionName() : frame.descriptor.optString("label", frame.participant.kind),
+					"location", location(frame.url())));
 			}
 			return json("attached", !closed, "sessionId", id, "serial", serial, "pauseId", pauseId,
 					"running", !workers.isEmpty(), "workers", workers.size(), "notice", notice, "pauseTimeoutMillis", pauseTimeoutMillis, "stopped", paused, "breakOnExceptions", breakOnExceptions,
