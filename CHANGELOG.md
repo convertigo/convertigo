@@ -19,7 +19,7 @@
 - [#1266](https://github.com/convertigo/convertigo/issues/1266) [Docker] Tomcat no longer logs the JVM arguments at startup, as `JAVA_OPTS` can carry passwords
 - [#1270](https://github.com/convertigo/convertigo/issues/1270) [Engine] Billing no longer holds a global lock on the requests: each ticket manager has its own writer and a queue bounded by `billing.queue.capacity`, the database manager writes the tickets handed together in one transaction, the HTTP manager posts them by 25 events, and the queued tickets are written when the engine stops. Beyond the capacity, a ticket is dropped and counted instead of the memory growing
 - [#1271](https://github.com/convertigo/convertigo/issues/1271) [Studio] Private requestables called over HTTP now need the administrator role in the Studio too, as on a server; the editors and web tools of the Studio are not affected
-- [#1272](https://github.com/convertigo/convertigo/issues/1272) [Engine] Eclipse `.project` and `.settings` metadata are now excluded from project archives and hidden from HTTP by default
+- [#1272](https://github.com/convertigo/convertigo/issues/1272) [Engine] Eclipse `.project` and `.settings` metadata are now excluded from project archives and hidden from HTTP by default; the Studio restores a missing project description when declaring or opening an existing project
 
 #### Bug Fixes:
 
