@@ -13,8 +13,8 @@
 	} from './debugSession.svelte.js';
 	import DebugVariables from './DebugVariables.svelte';
 
-	/** @type {{active?: boolean, standalone?: boolean, onStopped?: () => void}} */
-	let { active = false, standalone = false, onStopped } = $props();
+	/** @type {{active?: boolean, standalone?: boolean, eclipse?: boolean, onStopped?: () => void}} */
+	let { active = false, standalone = false, eclipse = false, onStopped } = $props();
 	let debugState = $derived(debugSession.state);
 	let sourceUrl = $state('');
 	let source = $state(/** @type {any} */ (null));
@@ -33,6 +33,19 @@
 		debugState?.stopped && frame?.url === sourceUrl ? variablePreviews(variables) : null
 	);
 	let lastPause = '';
+	let selectionRevision = 0;
+	let eclipseRequests = $state(true);
+	let inspectionTab = $state('Locals');
+	let watchExpression = $state('');
+	let watches = $state(/** @type {{id: number, expression: string, result: string}[]} */ ([]));
+	let nextWatch = 0;
+	let allVariables = $derived.by(() => {
+		const nearest = Object.create(null);
+		for (const scope of variables?.scopes ?? [])
+			for (const variable of scope.variables ?? [])
+				if (!Object.hasOwn(nearest, variable.name)) nearest[variable.name] = variable;
+		return Object.values(nearest);
+	});
 	onMount(() => watchDebugger(applyState));
 	function applyState(next) {
 		const pause = next?.stopped ? `${next.sessionId}:${next.pauseId}` : '';
@@ -42,11 +55,16 @@
 			void selectFrame(0);
 		}
 		lastPause = pause;
-		if (!pause) variables = null;
+		if (!pause) {
+			selectionRevision++;
+			variables = null;
+			watches = watches.map((watch) => ({ ...watch, result: 'Waiting for pause' }));
+		}
 		if (!next?.attached) {
 			source = null;
 			sourceUrl = '';
 			evaluations = [];
+			watches = [];
 		}
 	}
 
@@ -54,7 +72,9 @@
 		busy = true;
 		error = '';
 		try {
-			const result = await debugCommand(action, parameters);
+			let result = await debugCommand(action, parameters);
+			if (action === 'start' && eclipse && eclipseRequests && result?.state?.attached)
+				result = await debugCommand('studioRequests', { value: 'true' });
 			if (result?.error) error = String(result.error.message ?? result.error);
 			return result;
 		} finally {
@@ -63,10 +83,13 @@
 	}
 	async function openSource(url) {
 		sourceUrl = url;
+		const sessionId = debugState?.sessionId;
 		const result = await debugCommand('source', { url });
-		if (sourceUrl === url) source = result?.source ?? null;
+		if (sourceUrl === url && debugState?.attached && debugState.sessionId === sessionId)
+			source = result?.source ?? null;
 	}
 	async function selectFrame(index) {
+		const revision = ++selectionRevision;
 		frameIndex = index;
 		variables = null;
 		const snapshot = debugState;
@@ -77,10 +100,58 @@
 			debugState?.stopped &&
 			debugState.pauseId === snapshot?.pauseId &&
 			debugState.sessionId === snapshot?.sessionId &&
-			frameIndex === index
-		)
+			frameIndex === index &&
+			selectionRevision === revision
+		) {
 			variables = result;
+			await refreshWatches(snapshot, index, revision);
+		}
 	}
+	async function refreshWatches(
+		snapshot = debugState,
+		index = frameIndex,
+		revision = selectionRevision
+	) {
+		for (const watch of [...watches]) {
+			if (
+				!snapshot?.stopped ||
+				!debugState?.stopped ||
+				debugState.sessionId !== snapshot.sessionId ||
+				debugState.pauseId !== snapshot.pauseId ||
+				selectionRevision !== revision
+			)
+				return;
+			const result = await debugCommand('eval', {
+				frame: String(index),
+				pauseId: String(snapshot.pauseId),
+				expression: watch.expression
+			});
+			if (
+				!debugState?.stopped ||
+				debugState.sessionId !== snapshot.sessionId ||
+				debugState.pauseId !== snapshot.pauseId ||
+				selectionRevision !== revision
+			)
+				return;
+			watches = watches.map((item) =>
+				item.id === watch.id
+					? {
+							...item,
+							result: String(result?.result ?? result?.error?.message ?? 'Evaluation failed')
+						}
+					: item
+			);
+		}
+	}
+	async function addWatch(event) {
+		event.preventDefault();
+		const text = watchExpression.trim();
+		if (!text || watches.length >= 20) return;
+		watches = [...watches, { id: nextWatch++, expression: text, result: 'Waiting for pause' }];
+		watchExpression = '';
+		await refreshWatches();
+	}
+
 	async function toggleBreakpoint(line) {
 		if (!source) return;
 		const url = source.url;
@@ -162,6 +233,28 @@
 						command('breakOnExceptions', { value: String(event.currentTarget.checked) })}
 				/>Break on exceptions</label
 			>
+			{#each [['breakOnEnter', 'Break on function entry'], ['breakOnReturn', 'Break on function return']] as [action, label] (action)}
+				<label class="layout-x-low"
+					><input
+						type="checkbox"
+						checked={debugState[action]}
+						onchange={(event) => command(action, { value: String(event.currentTarget.checked) })}
+					/>{label}</label
+				>
+			{/each}
+		{/if}
+		{#if eclipse}
+			<label class="layout-x-low"
+				><input
+					type="checkbox"
+					checked={debugState?.attached ? debugState.studioRequests : eclipseRequests}
+					onchange={(event) => {
+						eclipseRequests = event.currentTarget.checked;
+						if (debugState?.attached)
+							void command('studioRequests', { value: String(eclipseRequests) });
+					}}
+				/>Debug Eclipse launches</label
+			>
 		{/if}
 		<span role="status"
 			>{debugState?.enabled === false
@@ -171,35 +264,48 @@
 					: debugState?.running
 						? 'Running'
 						: debugState?.attached
-							? 'Ready — Studio requests join this session.'
+							? eclipse
+								? debugState.studioRequests
+									? 'Ready — Eclipse launches join this session.'
+									: 'Ready — Eclipse launches are not selected.'
+								: 'Ready — Web Studio requests join this session.'
 							: 'Debugger detached'}</span
 		>
 	</div>
+	{#if eclipse && debugState?.attached}
+		<p>
+			Launch from the sequence, connector or test case editor. A second request is refused while
+			this session is running; continue it or stop the debugger first.
+		</p>
+	{/if}
 	{#if standalone && debugState?.attached}
-		<form class="layout-x-wrap-low shrink-0" onsubmit={runRequest}>
-			<input
-				class="input-common w-52!"
-				aria-label="Project"
-				placeholder="Project"
-				required
-				bind:value={project}
-			/>
-			<input
-				class="input-common w-52!"
-				aria-label="Sequence"
-				placeholder="Sequence"
-				required
-				bind:value={sequence}
-			/>
-			<Button
-				label="Run sequence"
-				type="submit"
-				cls="button-primary h-fit!"
-				full={false}
-				disabled={requestRunning || debugState.running}
-			/>
-			<span role="status">{requestResult}</span>
-		</form>
+		<details open={!eclipse}>
+			<summary>Run a sequence from this view (optional)</summary>
+			<form class="layout-x-wrap-low shrink-0" onsubmit={runRequest}>
+				<input
+					class="input-common w-52!"
+					aria-label="Project"
+					placeholder="Project"
+					required
+					bind:value={project}
+				/>
+				<input
+					class="input-common w-52!"
+					aria-label="Sequence"
+					placeholder="Sequence"
+					required
+					bind:value={sequence}
+				/>
+				<Button
+					label="Run sequence"
+					type="submit"
+					cls="button-primary h-fit!"
+					full={false}
+					disabled={requestRunning || debugState.running}
+				/>
+				<span role="status">{requestResult}</span>
+			</form>
+		</details>
 	{/if}
 	{#if error}<p role="alert">{error}</p>{/if}
 	{#if debugState?.notice}<p role="status">{debugState.notice}</p>{/if}
@@ -240,15 +346,24 @@
 							onclick={() => selectFrame(index)}
 						/>
 					{/each}
-					{#each variables?.scopes ?? [] as scope (scope.name)}
-						<details open>
-							<summary>{scope.name}</summary>
-							<DebugVariables variables={scope.variables} />
-						</details>
-					{/each}
-					<details>
-						<summary>this</summary><DebugVariables variables={variables?.this ?? []} />
-					</details>
+					<div role="tablist" aria-label="Variable scopes" class="layout-x-low">
+						{#each ['this', 'Locals', 'Alls'] as tab (tab)}
+							<button
+								role="tab"
+								aria-selected={inspectionTab === tab}
+								onclick={() => (inspectionTab = tab)}>{tab}</button
+							>
+						{/each}
+					</div>
+					<div role="tabpanel" aria-label={inspectionTab}>
+						<DebugVariables
+							variables={inspectionTab === 'this'
+								? (variables?.this ?? [])
+								: inspectionTab === 'Locals'
+									? (variables?.scope ?? [])
+									: allVariables}
+						/>
+					</div>
 					<form class="layout-y-stretch gap-low" onsubmit={evaluate}>
 						<label for="debug-expression">Evaluate an expression</label>
 						<input
@@ -264,6 +379,33 @@
 							<pre class="whitespace-pre-wrap">{evaluation.result}</pre>
 						</div>{/each}
 				{:else}<p>Pause a script to inspect its stack and scopes.</p>{/if}
+				<form class="layout-y-stretch gap-low" onsubmit={addWatch}>
+					<label for="debug-watch">Watch expression</label>
+					<input
+						id="debug-watch"
+						class="input-common"
+						maxlength="4096"
+						bind:value={watchExpression}
+					/>
+					<Button
+						label="Add watch"
+						type="submit"
+						cls="button-secondary h-fit!"
+						disabled={watches.length >= 20}
+					/>
+				</form>
+				<p>Watched expressions execute on each pause and frame change and may have side effects.</p>
+				{#each watches as watch (watch.id)}
+					<div>
+						<code>{watch.expression}</code>
+						<pre class="whitespace-pre-wrap">{watch.result}</pre>
+						<Button
+							label={`Remove watch ${watch.expression}`}
+							cls="button-secondary h-fit!"
+							onclick={() => (watches = watches.filter((item) => item.id !== watch.id))}
+						/>
+					</div>
+				{/each}
 			</aside>
 		</div>
 	{/if}

@@ -56,6 +56,34 @@ describe('JavaScript debugger component and session', () => {
 			expect(html).toContain(label);
 		expect(html).not.toContain('studio-debug__gutter');
 	});
+	it('offers inspection parity and distinguishes Eclipse launches from Web Studio requests', () => {
+		const paused = render(StudioDebugPanel, { props: { eclipse: true, standalone: true } }).body;
+		for (const label of [
+			'this',
+			'Locals',
+			'Alls',
+			'Watch expression',
+			'Add watch',
+			'Break on function entry',
+			'Break on function return',
+			'Debug Eclipse launches',
+			'A second request is refused',
+			'Run a sequence from this view (optional)'
+		])
+			expect(paused).toContain(label);
+		followDebugger(state({ stopped: false, studioRequests: true, serial: 2 }));
+		expect(render(StudioDebugPanel, { props: { eclipse: true } }).body).toContain(
+			'Ready — Eclipse launches join this session.'
+		);
+		expect(render(StudioDebugPanel).body).toContain(
+			'Ready — Web Studio requests join this session.'
+		);
+		followDebugger(state({ stopped: false, studioRequests: false, serial: 3 }));
+		expect(render(StudioDebugPanel, { props: { eclipse: true } }).body).toContain(
+			'Ready — Eclipse launches are not selected.'
+		);
+	});
+
 	it('shows a disabled server gate', () => {
 		followDebugger(state({ enabled: false, attached: false, stopped: false, serial: 2 }));
 		expect(render(StudioDebugPanel).body).toContain('JavaScript debugging is disabled');

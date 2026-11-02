@@ -1,0 +1,17 @@
+convertigo: 8.5.0.m006
+↓JavascriptDebuggerTest [core.Project]:
+  version: test-only
+  ↓Probe [sequences.GenericSequence]:
+    ↓Script [steps.SimpleStep-1700001261001]:
+      expression: |
+        var globalValue = 40;
+        function add(value) {
+          var local = value + 1;
+          local += 1;
+          return local;
+        }
+        var result = add.call({label: "probe"}, globalValue);
+        include("scripts/helper.js");
+    ↓result [steps.ElementStep-1700001261002]:
+      expression: result
+      nodeName: result

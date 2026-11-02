@@ -2,7 +2,7 @@ import { call } from '#lib/utils/service.js';
 import { setJavascriptDebugSession } from './javascriptDebugRequest.js';
 
 /** @typedef {{ url: string, line: number, function: string }} DebugFrame */
-/** @typedef {{ notice?: string, pauseTimeoutMillis?: number, enabled?: boolean, attached: boolean, sessionId?: string, pauseId?: number, running?: boolean, breakOnExceptions: boolean, serial: number, sources: string[], stopped: boolean, frames?: DebugFrame[], events?: {type: string, serial: number}[] }} DebugState */
+/** @typedef {{ notice?: string, pauseTimeoutMillis?: number, enabled?: boolean, attached: boolean, sessionId?: string, pauseId?: number, running?: boolean, breakOnExceptions: boolean, breakOnEnter?: boolean, breakOnReturn?: boolean, studioRequests?: boolean, serial: number, sources: string[], stopped: boolean, frames?: DebugFrame[], events?: {type: string, serial: number}[] }} DebugState */
 export const debugSession = $state({ state: /** @type {DebugState | null} */ (null) });
 /** @type {ReturnType<typeof setTimeout> | undefined} */
 let timer;
