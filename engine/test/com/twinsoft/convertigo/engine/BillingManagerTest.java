@@ -335,6 +335,10 @@ public class BillingManagerTest {
 		}
 		billing.destroy();
 		billing = null;
+		// the replaced queues were closed without waiting for their writers
+		for (var queue : replaced) {
+			queue.close(true);
+		}
 		long written = 0;
 		for (var recorder : recorders) {
 			written += recorder.tickets.size();

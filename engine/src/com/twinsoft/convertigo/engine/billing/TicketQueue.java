@@ -60,6 +60,7 @@ public final class TicketQueue {
 	private final Thread writer;
 	private volatile boolean closed;
 	private volatile boolean finished;
+	private volatile long graceEnd;
 	private volatile long deadline;
 	private long droppedLogged;
 	private long nextDropLog;
@@ -80,7 +81,7 @@ public final class TicketQueue {
 	/**
 	 * Adds a ticket to write, unless the queue is full or its writer ended: then it is counted as dropped. A queue
 	 * closed but still writing its last tickets takes it, for a request that read the queues just before they were
-	 * replaced.
+	 * replaced: its writer waits {@link #LINGER} after the close for such tickets.
 	 */
 	public boolean offer(Ticket ticket) {
 		if (finished) {
@@ -118,7 +119,9 @@ public final class TicketQueue {
 	 */
 	public void close(boolean wait) {
 		if (!closed) {
-			deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(FLUSH_TIMEOUT);
+			long now = System.nanoTime();
+			graceEnd = now + LINGER;
+			deadline = now + TimeUnit.MILLISECONDS.toNanos(FLUSH_TIMEOUT);
 			closed = true;
 			LockSupport.unpark(writer);
 		}
@@ -146,7 +149,7 @@ public final class TicketQueue {
 					logDropped(false);
 					continue;
 				}
-				if (stopping) {
+				if (stopping && System.nanoTime() - graceEnd > 0) {
 					break;
 				}
 				LockSupport.parkNanos(this, LINGER);
