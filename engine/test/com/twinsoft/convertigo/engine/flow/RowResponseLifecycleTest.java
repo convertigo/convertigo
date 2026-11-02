@@ -55,6 +55,7 @@ public class RowResponseLifecycleTest {
 	@Test public void contextResetDiscardsAnUnselectedResponseWithoutOpeningIt() throws Exception {
 		com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
 		com.twinsoft.convertigo.engine.Engine.logContext=org.apache.log4j.Logger.getLogger("row-test");
+		com.twinsoft.convertigo.engine.Engine.logEngine=org.apache.log4j.Logger.getLogger("row-test");
 		var previous=com.twinsoft.convertigo.engine.Engine.theApp;
 		com.twinsoft.convertigo.engine.Engine.theApp=new com.twinsoft.convertigo.engine.Engine();
 		var source=new ResultDocumentTest.Source();var context=new com.twinsoft.convertigo.engine.Context("row-test");

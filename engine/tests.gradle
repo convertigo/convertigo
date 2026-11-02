@@ -20,6 +20,13 @@ dependencies {
 	testImplementation 'junit:junit:4.13.2'
 }
 
+// Fixtures replace global Engine, Rhino and session state. Give each class its own JVM,
+// as the dedicated JavaExec verification tasks already do, including debugger mode tests.
+tasks.named('test', Test) {
+	forkEvery = 1
+	maxParallelForks = 2
+}
+
 tasks.register('sessionSerializationTest', JavaExec) {
 	group = 'verification'
 	description = 'Round-trip regression tests for Redis session values (no Redis server required).'
