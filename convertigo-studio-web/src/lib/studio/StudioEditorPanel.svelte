@@ -526,6 +526,8 @@
 		selectObject(objectId);
 	}
 
+	// Pending loads coordinate callers and are deliberately independent from rendered state.
+	const sourceLoads = Object.create(null);
 	/**
 	 * Opens a source document: a file of a project, the code of an NGX component or the source resolved by
 	 * the Engine from a Flow virtual object. The browser never receives or submits an arbitrary path.
@@ -533,6 +535,20 @@
 	 * @param {number} [line] a line to show, as a line a search found
 	 */
 	async function openSourceDocument(objectId, line = 0) {
+		// Selection and a stopped debugger frame may request the same file in the same flush.
+		// Share its load so neither caller falls back to a second runtime-snapshot tab.
+		const pending = sourceLoads[objectId];
+		if (pending) return pending;
+		const load = loadSourceDocument(objectId, line);
+		sourceLoads[objectId] = load;
+		try {
+			return await load;
+		} finally {
+			delete sourceLoads[objectId];
+		}
+	}
+	/** @param {string} objectId @param {number} line */
+	async function loadSourceDocument(objectId, line = 0) {
 		// a tab with changes not applied shows as it is: reading the source again would lose them
 		const changed = editorTabs.find(
 			(tab) => tab.sourceDocument && tab.id === objectId && tab.content !== tab.originalValue
