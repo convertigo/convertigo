@@ -22,6 +22,8 @@ public final class JavascriptDebugger {
 	private static final Map<String, JavascriptDebugSession> sessions = new HashMap<>();
 	private static ScheduledExecutorService expiry;
 	private static volatile boolean active;
+	private static final String STUDIO_REQUEST = CLAIM + ".studio";
+	private static volatile JavascriptDebugSession studioSession;
 	private JavascriptDebugger() { }
 
 	public static boolean enabled() {
@@ -73,10 +75,39 @@ public final class JavascriptDebugger {
 		stopWhenEmpty();
 	}
 	private static void stopWhenEmpty() {
+		if (studioSession != null && !sessions.containsValue(studioSession)) studioSession = null;
 		if (active && sessions.isEmpty()) {
 			active = false;
 			if (expiry != null) { expiry.shutdown(); expiry = null; }
 		}
+	}
+
+	/** One administrator explicitly owns the local Eclipse launch bridge. Never available on servers. */
+	public static synchronized void studioRequests(String owner, boolean value) {
+		if (!Engine.isStudioMode()) throw new IllegalStateException("Eclipse request debugging requires Studio mode.");
+		var session = session(owner, false);
+		if (session == null) throw new IllegalStateException("Start the debugger first.");
+		if (value && studioSession != null && studioSession != session)
+			throw new IllegalStateException("Another administrator is already debugging Eclipse requests.");
+		if (value) studioSession = session;
+		else if (studioSession == session) studioSession = null;
+		session.settingsChanged();
+	}
+	public static JavascriptDebugSession studioSession() {
+		return Engine.isStudioMode() ? studioSession : null;
+	}
+	public static synchronized void stopStudioSession() {
+		var session = studioSession();
+		if (session != null) {
+			sessions.values().removeIf(candidate -> candidate == session);
+			session.close();
+			stopWhenEmpty();
+		}
+	}
+	/** Called only by Eclipse's launch boundary, not by InternalRequester or an HTTP parameter. */
+	public static void selectStudioRequest(com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest request) {
+		var session = studioSession();
+		if (session != null) request.setAttribute(STUDIO_REQUEST, session);
 	}
 
 	/** Capture only at explicit child scheduling boundaries, never by inheritable thread state. */
@@ -89,6 +120,9 @@ public final class JavascriptDebugger {
 	public static boolean selects(HttpServletRequest request) { return selectedSession(request) != null; }
 	private static JavascriptDebugSession selectedSession(HttpServletRequest request) {
 		if (!active || request == null || !enabled()) return null;
+		var studio = studioSession();
+		if (studio != null && request instanceof com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest
+				&& request.getAttribute(STUDIO_REQUEST) == studio) return studio;
 		var httpSession = request.getSession(false);
 		if (httpSession == null || !Engine.authenticatedSessionManager.hasRole(httpSession, Role.WEB_ADMIN)) return null;
 		String id = request.getParameter(PARAMETER);

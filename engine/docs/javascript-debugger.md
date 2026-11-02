@@ -1,6 +1,6 @@
 # JavaScript debugging
 
-The web Studio and Eclipse `JavaScript Debug (Web)` view use the same administrator API and Monaco component. The existing Eclipse Swing debugger remains available separately. Do not attach both debuggers simultaneously. In Eclipse, run the selected sequence from the web view's Project / Sequence fields; conventional launch buttons do not automatically select requests for this debugger.
+The web Studio and Eclipse `JavaScript Debug (Web)` view use the same administrator API and Monaco component. The existing Eclipse Swing debugger remains available separately. Do not attach both debuggers simultaneously. In Eclipse, **Debug Eclipse launches** is checked by default when starting the debugger. Run from the sequence, connector, test case or Execute commands as usual. The Project / Sequence form is optional, under **Run a sequence from this view**.
 
 ## Enable and authorize
 
@@ -15,6 +15,8 @@ POST form parameters to `admin/services/studio.debug.Debugger`. Responses contai
 | action | additional parameters | response |
 |---|---|---|
 | `start`, `state`, `stop`, `pause` | none | state |
+| `studioRequests` | `value=true/false`, Studio mode only; one administrator owns the Eclipse launch bridge | state |
+| `breakOnEnter`, `breakOnReturn` | `value=true/false`; JavaScript functions only | state |
 | `breakOnExceptions` | `value=true/false` | state |
 | `breakpoint` | `url`, `line` (one-based), `set=true/false` | accepted, breakpoints |
 | `breakpoints` | `url` | breakpoints |
@@ -50,3 +52,13 @@ JavaScript steps, step expressions, transaction handlers, `include()` and `use()
 Prepared provider runtimes and shared compiled modules are explicitly refused before accessing their caches. Their entry points publish a value-free `unsupportedRuntime` notice displayed in the same component in both Studios. Detach the debugger to execute such a request. Native Java code is not line-debuggable.
 
 No debugger payload is written to generic administration response logs. Sources and values stay in memory, not local storage. Tabs sharing an HTTP session share its debugger; isolation is by administrator HTTP session, not browser tab. Business request timeouts remain effective while paused.
+
+## Eclipse launch bridge and editor markers
+
+Only `ConvertigoPlugin.runRequestable` marks local `InternalHttpServletRequest` instances with an in-process session object. The administrator API action `studioRequests` explicitly enables the bridge for the owning session, and refuses servers and competing owners. InternalRequester alone, a session named "studio", and an HTTP request without the administrator's existing marker cannot select it. Disabling the checkbox, stopping, expiry and logout remove the bridge; disposing the Eclipse view releases the bound session. An already selected business request continues when detached. A second root request is refused with a visible `requestRejected` notice; nested workers keep the existing root lease.
+
+Before a conventional Eclipse launch, the view copies enabled line breakpoints from Eclipse's breakpoint manager (including its global enable switch). A 250 ms SWT timer follows edits, removals and pause state without evaluating code or touching session lifetime. The exact engine URL is stored on each property editor file: short qualified object name plus the API's property script name (`expression`, `LogStep`, `message`, transaction name for `handlers`, `ctxName`, etc.). Property editors use separate backing files for separate properties. They already contain the generated helper prefix, so marker and frame lines map directly. Ordinary project `.js` files map to `project/relative/path.js` and account for the optional generated helper prefix. Files outside the project and generated private files without source metadata are ignored. Synchronization from Monaco back to Eclipse markers is not implemented.
+
+At a new pause the native view opens or reveals the matching Eclipse file, annotates the stopped line with the standard current instruction pointer, and clears the annotation on resume, detach or disposal. Only the innermost frame drives this native annotation; frame selection in the shared panel still selects its own source and inspection scope.
+
+The shared panel provides **this**, **Locals**, **Alls** (nearest binding wins across parent scopes), a selectable call stack, evaluation history and up to 20 watched expressions. Watches are reevaluated on every pause and frame selection, and cleared on detach. Results from stale pauses or frame selections are discarded. Watches execute administrator code through the existing bounded evaluation API, with the same fixed audit message and possible side effects; values and expressions remain in memory. Function entry and normal return pauses keep the function frame inspectable. Throwing exits use the exception setting instead.

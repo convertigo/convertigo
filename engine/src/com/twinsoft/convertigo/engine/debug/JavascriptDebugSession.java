@@ -51,7 +51,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	private final List<JSONObject> events = new ArrayList<>();
 	private long serial, pauseId, seen = System.currentTimeMillis();
 	private int sourceChars, stopDepth = -1;
-	private boolean paused, breakNext, breakOnExceptions, closed, inspecting;
+	private boolean paused, breakNext, breakOnExceptions, breakOnEnter, breakOnReturn, closed, inspecting;
 
 	private Throwable lastException;
 	private Job job;
@@ -74,7 +74,11 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		var worker = new Worker();
 		synchronized (lock) {
 			if (closed) { if (child) return null; throw new IllegalStateException("The debug session has ended."); }
-			if (!child && !workers.isEmpty()) throw new IllegalStateException("This debug session already has a running request.");
+			if (!child && !workers.isEmpty()) {
+				notice = "Another Eclipse or web request was refused: this debug session already has a running request. Continue it or stop the debugger before running again.";
+				event("requestRejected");
+				throw new IllegalStateException(notice);
+			}
 			if (child && workers.isEmpty()) return null;
 			if (workers.size() >= 64) throw new IllegalStateException("Too many debug workers.");
 			if (Context.getCurrentContext() != null) throw new IllegalStateException("A JavaScript context is already active.");
@@ -191,6 +195,12 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		String url() { return script.getSourceName() == null ? "<script>" : script.getSourceName(); }
 		@Override public void onEnter(Context cx, Scriptable scope, Scriptable self, Object[] args) {
 			synchronized (lock) { this.scope = scope; thisObject = self; worker.frames.add(this); }
+			if (script.isFunction()) {
+				synchronized (lock) { if (!breakOnEnter || closed || inspecting) return; }
+				var lines = script.getLineNumbers();
+				line = lines.length == 0 ? 1 : java.util.Arrays.stream(lines).min().orElse(1);
+				pause(cx, "functionEnter");
+			}
 		}
 		@Override public void onLineChange(Context cx, int number) {
 			synchronized (lock) {
@@ -209,6 +219,9 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			pause(cx, "exception");
 		}
 		@Override public void onExit(Context cx, boolean byThrow, Object result) {
+			boolean stop;
+			synchronized (lock) { stop = script.isFunction() && !byThrow && breakOnReturn && !closed && !inspecting; }
+			if (stop) pause(cx, "functionReturn");
 			synchronized (lock) { worker.frames.remove(this); scope = null; thisObject = null; }
 		}
 		@Override public void onDebuggerStatement(Context cx) { pause(cx, "pause"); }
@@ -258,6 +271,9 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	}
 	public void requestPause() { synchronized (lock) { breakNext = true; stepWorker = null; stopDepth = -1; event("breakRequested"); } }
 	public void breakOnExceptions(boolean value) { synchronized (lock) { breakOnExceptions = value; event("settings"); } }
+	public void breakOnEnter(boolean value) { synchronized (lock) { breakOnEnter = value; event("settings"); } }
+	public void breakOnReturn(boolean value) { synchronized (lock) { breakOnReturn = value; event("settings"); } }
+	void settingsChanged() { synchronized (lock) { event("settings"); } }
 
 	private void checkPause(long expected) {
 		if (!paused || closed || expected != pauseId) throw new IllegalStateException("The pause has changed. Refresh the debugger.");
@@ -429,6 +445,8 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			}
 			return json("attached", !closed, "sessionId", id, "serial", serial, "pauseId", pauseId,
 					"running", !workers.isEmpty(), "workers", workers.size(), "notice", notice, "pauseTimeoutMillis", pauseTimeoutMillis, "stopped", paused, "breakOnExceptions", breakOnExceptions,
+					"breakOnEnter", breakOnEnter, "breakOnReturn", breakOnReturn,
+					"studioRequests", JavascriptDebugger.studioSession() == this,
 					"sources", array(sources.keySet()), "frames", stack, "events", array(events));
 		}
 	}

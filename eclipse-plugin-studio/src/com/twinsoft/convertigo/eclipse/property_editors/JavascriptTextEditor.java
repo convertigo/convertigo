@@ -40,7 +40,7 @@ public class JavascriptTextEditor extends AbstractDialogCellEditor implements IJ
 	@Override
 	protected Object openDialogBox(Control cellEditorWindow) {
 		try {
-			JScriptEditorInput.openJScriptEditor(databaseObjectTreeObject, this);
+			JScriptEditorInput.openJScriptEditor(databaseObjectTreeObject, propertyDescriptor.getId().toString());
 		} catch (PartInitException e) {
 			Engine.logStudio.error("failed to open editor", e);
 		}

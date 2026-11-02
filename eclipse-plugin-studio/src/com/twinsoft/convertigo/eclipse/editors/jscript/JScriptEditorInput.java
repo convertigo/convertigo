@@ -97,7 +97,12 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 	}
 	
 	static public IEditorPart openJScriptEditor(DatabaseObjectTreeObject dboTree, String propertyName) throws PartInitException {
-		return openJScriptEditor(dboTree, new IJScriptContainer() {
+		var editor = openJScriptEditor(dboTree, new IJScriptContainer() {
+			@Override
+			public String getFullName() {
+				return dboTree.getObject().getShortQName() + "-"
+						+ com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(dboTree.getObject(), propertyName);
+			}
 			
 			@Override
 			public void setExpression(String expression) {
@@ -120,15 +125,37 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 				return o instanceof String ? (String) o : "" + o;
 			}
 		});
+		if (editor.getEditorInput() instanceof JScriptEditorInput input) {
+			input.debugProperty = propertyName;
+			input.storeDebugSource();
+		}
+		return editor;
 	}
 	
 	private DatabaseObjectTreeObject dboTree;
 	private IJScriptContainer jsContainer;
+	private String debugProperty = "expression";
+	public static final org.eclipse.core.runtime.QualifiedName DEBUG_SOURCE =
+			new org.eclipse.core.runtime.QualifiedName("com.twinsoft.convertigo.studio", "javascriptDebugSource");
+
+	private void storeDebugSource() {
+		try { getFile().setPersistentProperty(DEBUG_SOURCE, getDebugSourceUrl()); }
+		catch (org.eclipse.core.runtime.CoreException e) { /* Marker sync can retry when reopened. */ }
+	}
+
+	/** The editor contains the same generated prefix as the executed property: no line offset here. */
+	public String getDebugSourceUrl() {
+		var dbo = getDatabaseObject();
+		return dbo.getShortQName() + "-"
+				+ com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(dbo, debugProperty);
+	}
 		
 	private JScriptEditorInput(DatabaseObjectTreeObject dboTree, IJScriptContainer jsContainer) {
 		super(makeFile(jsContainer, dboTree.getProjectTreeObject().getIProject()));
 		this.dboTree = dboTree;
 		this.jsContainer = jsContainer;
+		if (jsContainer instanceof com.twinsoft.convertigo.beans.core.Transaction) debugProperty = "handlers";
+		storeDebugSource();
 	}
 
 	public IJScriptContainer getJScriptContainer() {

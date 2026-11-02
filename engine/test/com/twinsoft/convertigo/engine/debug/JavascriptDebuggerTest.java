@@ -18,6 +18,55 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 public class JavascriptDebuggerTest {
+    @Test public void onlyExplicitEclipseLaunchesJoinInStudioAndBusyRootsAreRefused() throws Exception {
+        EnginePropertiesManager.initProperties();
+        Engine.logAdmin = Logger.getLogger("debugger-test");
+        var mode = Engine.class.getDeclaredField("bStudioMode"); mode.setAccessible(true);
+        boolean previous = mode.getBoolean(null);
+        var request = new com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest();
+        try {
+            mode.setBoolean(null, false);
+            assertThrows(IllegalStateException.class, () -> JavascriptDebugger.studioRequests("eclipse", true));
+            mode.setBoolean(null, true);
+            var session = JavascriptDebugger.session("eclipse", true);
+            JavascriptDebugger.selectStudioRequest(request);
+            assertFalse(JavascriptDebugger.selects(request));
+            JavascriptDebugger.studioRequests("eclipse", true);
+            var other = JavascriptDebugger.session("other-eclipse", true);
+            assertThrows(IllegalStateException.class, () -> JavascriptDebugger.studioRequests("other-eclipse", true));
+            assertFalse(JavascriptDebugger.selects(request("eclipse", null, true)));
+            assertFalse(JavascriptDebugger.selects(request));
+            JavascriptDebugger.selectStudioRequest(request);
+            assertTrue(JavascriptDebugger.selects(request));
+            assertTrue(session.state().getBoolean("studioRequests"));
+            try (var pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+                 var binding = JavascriptDebugger.bind(request)) {
+                assertSame(session, Context.getCurrentContext().getDebugger());
+                assertNull(JavascriptDebugger.bind(request));
+                var rejected = pool.submit(() -> {
+                    var next = new com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest();
+                    JavascriptDebugger.selectStudioRequest(next);
+                    return assertThrows(IllegalStateException.class, () -> JavascriptDebugger.bind(next)).getMessage();
+                });
+                assertTrue(rejected.get(2, java.util.concurrent.TimeUnit.SECONDS).contains("already has a running request"));
+                assertTrue(session.state().getString("notice").contains("refused"));
+            }
+            JavascriptDebugger.studioRequests("eclipse", false);
+            assertFalse(JavascriptDebugger.selects(request));
+            JavascriptDebugger.studioRequests("eclipse", true);
+            mode.setBoolean(null, false);
+            assertNull(JavascriptDebugger.studioSession());
+            assertFalse(JavascriptDebugger.selects(request));
+            mode.setBoolean(null, true);
+            JavascriptDebugger.stop("eclipse");
+            assertNull(JavascriptDebugger.studioSession());
+            assertFalse(JavascriptDebugger.selects(request));
+            assertNotNull(other);
+        } finally {
+            JavascriptDebugger.stop("eclipse"); JavascriptDebugger.stop("other-eclipse");
+            mode.setBoolean(null, previous);
+        }
+    }
     private HttpServletRequest request(String owner, String marker, boolean admin) {
         Map<String, Object> sessionAttributes = new HashMap<>(), attributes = new HashMap<>();
         if (admin) sessionAttributes.put(SessionKey.ADMIN_ROLES.toString(), new Role[] { Role.WEB_ADMIN });

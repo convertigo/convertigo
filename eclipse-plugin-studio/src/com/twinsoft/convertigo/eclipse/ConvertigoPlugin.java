@@ -1972,6 +1972,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 							request = new InternalHttpServletRequest(session);
 						}
 
+						com.twinsoft.convertigo.eclipse.views.rhino.JavascriptDebugView.prepareRequest(request);
 						InternalRequester requester = json
 								? new InternalJsonRequester(GenericUtils.<Map<String, Object>>cast(parameters), request)
 								: new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request);

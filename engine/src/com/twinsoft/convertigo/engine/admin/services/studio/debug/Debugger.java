@@ -113,6 +113,9 @@ public class Debugger extends JSonService {
 		case "go", "stepInto", "stepOver", "stepOut" -> debugger.resume(action, pauseId);
 		case "pause" -> debugger.requestPause();
 		case "breakOnExceptions" -> debugger.breakOnExceptions("true".equals(request.getParameter("value")));
+		case "breakOnEnter" -> debugger.breakOnEnter("true".equals(request.getParameter("value")));
+		case "breakOnReturn" -> debugger.breakOnReturn("true".equals(request.getParameter("value")));
+		case "studioRequests" -> JavascriptDebugger.studioRequests(owner, "true".equals(request.getParameter("value")));
 		case "source" -> {
 			response.put("source", debugger.source(url));
 		}
@@ -143,7 +146,7 @@ public class Debugger extends JSonService {
 	 * @return the name the engine gives the script of a property when it runs it, the name of the
 	 * property but for a few objects
 	 */
-	private static String scriptName(DatabaseObject dbo, String property) {
+	public static String scriptName(DatabaseObject dbo, String property) {
 		if (dbo instanceof Transaction && "handlers".equals(property)) {
 			return dbo.getName();
 		}

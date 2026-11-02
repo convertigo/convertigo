@@ -7,6 +7,27 @@ import org.mozilla.javascript.Context;
 import org.codehaus.jettison.json.JSONObject;
 
 public class JavascriptDebugSessionTest {
+    @Test public void functionEntryAndReturnKeepFramesInspectableAndDoNotBreakOnEvaluation() throws Exception {
+        try (var session = new JavascriptDebugSession(); var pool = Executors.newCachedThreadPool()) {
+            session.breakOnEnter(true); session.breakOnReturn(true);
+            var task = execute(pool, session, "function probe(value) {\n var local = value + 1;\n return local;\n}\nprobe.call({tag: 8}, 4);");
+            var state = paused(session, 0);
+            long pause = state.getLong("pauseId");
+            assertTrue(state.getBoolean("breakOnEnter")); assertTrue(state.getBoolean("breakOnReturn"));
+            assertEquals(2, state.getJSONArray("frames").length());
+            assertEquals("4", session.evaluate(0, pause, "value").getString("result"));
+            assertEquals("9", session.evaluate(0, pause, "(function () { return 9; })()").getString("result"));
+            assertTrue(session.variables(0, pause).getJSONArray("this").toString().contains("tag"));
+            session.breakOnEnter(false);
+            session.resume("go", pause);
+            state = paused(session, pause); pause = state.getLong("pauseId");
+            assertEquals("5", session.evaluate(0, pause, "local").getString("result"));
+            assertEquals(2, state.getJSONArray("frames").length());
+            session.breakOnReturn(false);
+            session.resume("go", pause);
+            assertEquals(5, ((Number) task.get(5, TimeUnit.SECONDS)).intValue());
+        }
+    }
     private static final String SCRIPT = """
         function add(value) {
           var local = value + 1;
