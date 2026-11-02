@@ -567,3 +567,14 @@ tasks.register('sequenceCleanupTest', JavaExec) {
 	args 'com.twinsoft.convertigo.beans.core.SequenceCleanupTest'
 }
 tasks.named('check') { dependsOn 'sequenceCleanupTest' }
+
+tasks.register('projectMetadataTest', JavaExec) {
+	group = 'verification'
+	description = 'Eclipse metadata stays local: archive exclusion, legacy imports and HTTP 404.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.EclipseProjectArchiveTest',
+		'com.twinsoft.convertigo.engine.servlets.ProjectHttpIgnoreTest'
+}
+tasks.named('check') { dependsOn 'projectMetadataTest' }
