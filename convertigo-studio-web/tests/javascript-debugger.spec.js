@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 // Opt-in live-engine recipe. Install engine/test/javascript-debugger/project as JavascriptDebuggerTest
 // in a private runtime with web_studio=enabled and javascript.debugger=true, then set this URL.
 const runtime = process.env.C8O_DEBUGGER_TEST_URL;
+const frontend = process.env.C8O_DEBUGGER_TEST_FRONTEND ?? runtime;
 test.skip(!runtime, 'Requires the private JavaScript debugger test runtime');
 test.setTimeout(60_000);
 
@@ -77,7 +78,7 @@ async function login(page, destination) {
 	const token = response.headers()['x-xsrf-token'];
 	if (token)
 		await page.addInitScript((token) => localStorage.setItem('x-xsrf-token', token), token);
-	await page.goto(`${runtime}/${destination}`);
+	await page.goto(`${frontend}/${destination}`);
 	await api(page, 'stop');
 }
 
@@ -130,14 +131,6 @@ for (const embedded of [true, false]) {
 	test(`${embedded ? 'embedded page' : 'Web Studio panel'}: breakpoint, scopes, watches, steps and detach`, async ({
 		page
 	}) => {
-		if (embedded)
-			await page.addInitScript(() => {
-				/** @type {any} */ (window).__debugFrames = [];
-				/** @type {any} */ (window).java = {
-					receiveFromJS: (message) =>
-						/** @type {any} */ (window).__debugFrames.push(JSON.parse(message))
-				};
-			});
 		await login(page, embedded ? 'admin/eclipse/javascript-debugger/' : 'studio/');
 		if (!embedded) {
 			await page
@@ -147,14 +140,28 @@ for (const embedded of [true, false]) {
 		}
 		const panel = page.getByRole('region', { name: 'JavaScript debugger', exact: true });
 		await panel.getByRole('button', { name: 'Start debugger', exact: true }).waitFor();
-		if (embedded) {
-			await panel.getByText('Debug Eclipse launches', { exact: true }).click();
-			await expect(
-				panel.getByRole('checkbox', { name: 'Debug Eclipse launches', exact: true })
-			).not.toBeChecked();
-		}
 		await panel.getByRole('button', { name: 'Start debugger', exact: true }).click();
 		await panel.getByRole('button', { name: 'Stop debugger', exact: true }).waitFor();
+		if (embedded)
+			await page.evaluate(() => {
+				/** @type {any} */ (window).__debugFrames = [];
+				/** @type {any} */ (window).java = {
+					receiveFromJS: (message) =>
+						/** @type {any} */ (window).__debugFrames.push(JSON.parse(message))
+				};
+			});
+		for (const [action, name] of [
+			['breakOnExceptions', 'Break on exceptions'],
+			['breakOnEnter', 'Break on function entry'],
+			['breakOnReturn', 'Break on function return']
+		]) {
+			const toggle = panel.getByRole('button', { name, exact: true });
+			await toggle.click();
+			await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+			expect((await api(page, 'state')).data.state[action]).toBe(true);
+			await toggle.click();
+			await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+		}
 		const breakpoint = await api(page, 'breakpoint', {
 			id: 'JavascriptDebuggerTest.sq:Probe.st:Script',
 			property: 'expression',
@@ -172,19 +179,24 @@ for (const embedded of [true, false]) {
 					`Fixture did not pause: ${reply.document?.error?.message ?? 'Request finished without debugger source'}`
 				);
 			});
-		await expect(panel.getByRole('tabpanel', { name: 'Locals', exact: true })).toContainText('41');
-		await panel.getByRole('tab', { name: 'this', exact: true }).click();
-		await expect(panel.getByRole('tabpanel', { name: 'this', exact: true })).toContainText('probe');
-		await panel.getByRole('tab', { name: 'All scopes', exact: true }).click();
-		await panel.getByRole('button', { name: 'Expand Parent 1', exact: true }).click();
-		await expect(panel.getByRole('tabpanel', { name: 'All scopes', exact: true })).toContainText(
+		await expect(panel.getByRole('group', { name: 'Local', exact: true })).toContainText('41');
+		await expect(panel.getByRole('group', { name: 'this', exact: true })).toContainText('probe');
+		await panel.getByRole('group', { name: 'Parent 1', exact: true }).locator('summary').click();
+		await expect(panel.getByRole('region', { name: 'Scope', exact: true })).toContainText(
 			'globalValue'
 		);
-		await panel.getByRole('textbox', { name: 'Watch expression', exact: true }).fill('local');
+		await panel.getByRole('group', { name: 'Parent 1', exact: true }).locator('summary').click();
 		await panel.getByRole('button', { name: 'Add watch', exact: true }).click();
+		await expect(
+			panel.getByRole('textbox', { name: 'Watch expression', exact: true })
+		).toBeFocused();
+		await panel.getByRole('textbox', { name: 'Watch expression', exact: true }).fill('local');
+		await panel.getByRole('button', { name: 'Save watch', exact: true }).click();
 		await expect(panel.locator('pre')).toHaveText(['41']);
 		await panel.getByRole('button', { name: 'Script:7', exact: true }).click();
-		await expect(panel.locator('pre')).toHaveText(['ReferenceError: \"local\" is not defined.']);
+		await expect(panel.locator('pre')).toHaveText([
+			/^ReferenceError: "local" (?:is not defined\.|n'est pas défini)$/
+		]);
 		if (!embedded)
 			await expect.poll(() => editorState(page)).toMatchObject({ line: 7, readOnly: false });
 		await panel.getByRole('button', { name: 'add:4', exact: true }).click();
@@ -194,7 +206,6 @@ for (const embedded of [true, false]) {
 			expect(messages.at(-1)).toMatchObject({ type: 'debugger.frame', frame: 0 });
 			expect(messages.some((message) => message.frame === 1)).toBe(true);
 		}
-		await panel.getByRole('tab', { name: 'this', exact: true }).click();
 		await expect(panel.getByLabel('Call stack')).toContainText(
 			'JavascriptDebuggerTest › Probe › Script › expression'
 		);
@@ -242,6 +253,19 @@ for (const embedded of [true, false]) {
 			await page.mouse.move(sash.x + sash.width / 2, 450, { steps: 8 });
 			await page.mouse.up();
 		}
+		if (!embedded) {
+			// The same vertical panel can share the right-hand group with Properties.
+			await page
+				.getByRole('tab', { name: 'Debug', exact: true })
+				.dragTo(page.getByRole('tab', { name: 'Properties', exact: true }));
+			await page.getByRole('button', { name: 'Hide the panel', exact: true }).click();
+			await expect
+				.poll(async () => {
+					const bounds = await panel.boundingBox();
+					return bounds ? bounds.width < 500 && bounds.height > 400 : false;
+				})
+				.toBe(true);
+		}
 		const overflow = await panel.evaluate(
 			(element) => element.scrollWidth > element.clientWidth + 1
 		);
@@ -261,13 +285,17 @@ for (const embedded of [true, false]) {
 			}
 		}
 
-		const ordinary = await launch(page, false);
-		expect(await completed(page, ordinary)).toContain('42');
-		const second = await launch(page);
-		expect(await completed(page, second)).toContain('already has a running request');
-		await expect(
-			panel.getByRole('status').filter({ hasText: 'Another Eclipse or web request was refused' })
-		).toBeVisible();
+		// On the developer Studio, parallel HTTP requests can wait behind the paused script.
+		// Keep the private-runtime concurrency recipe enabled by default.
+		if (process.env.C8O_DEBUGGER_TEST_CONCURRENT !== 'false') {
+			const ordinary = await launch(page, false);
+			expect(await completed(page, ordinary)).toContain('42');
+			const second = await launch(page);
+			expect(await completed(page, second)).toContain('already has a running request');
+			await expect(
+				panel.getByRole('status').filter({ hasText: 'Another Eclipse or web request was refused' })
+			).toBeVisible();
+		}
 		await panel.getByRole('button', { name: 'Step over', exact: true }).click();
 		await panel.getByRole('button', { name: 'add:5', exact: true }).waitFor();
 		await expect(panel.locator('pre')).toHaveText(['42']);
@@ -276,6 +304,17 @@ for (const embedded of [true, false]) {
 			.fill('local + 1');
 		await panel.getByRole('button', { name: 'Evaluate', exact: true }).click();
 		await expect(panel.locator('pre')).toContainText(['42', '43']);
+		await panel
+			.getByRole('textbox', { name: 'Evaluate an expression', exact: true })
+			.fill('missingDebuggerVariable');
+		await panel
+			.getByRole('textbox', { name: 'Evaluate an expression', exact: true })
+			.press('Enter');
+		await expect(panel.locator('.evaluation-error')).toContainText('ReferenceError');
+		await expect(panel.locator('.evaluation-error')).toContainText('missingDebuggerVariable');
+		await panel.getByRole('button', { name: 'Clear console', exact: true }).click();
+		await expect(panel.locator('.debug-evaluation')).toHaveCount(0);
+
 		await panel.getByRole('button', { name: 'Step out', exact: true }).click();
 		await expect(panel.locator('.debug-evaluation')).toHaveCount(0);
 		await expect(panel.getByRole('button', { name: 'Step into', exact: true })).toBeEnabled();
@@ -327,10 +366,6 @@ test('embedded variables: lazy objects, arrays, Java fields, pagination and comp
 	await login(page, 'admin/eclipse/javascript-debugger/');
 	await page.setViewportSize({ width: 700, height: 1050 });
 	const panel = page.getByRole('region', { name: 'JavaScript debugger', exact: true });
-	await panel.getByText('Debug Eclipse launches', { exact: true }).click();
-	await expect(
-		panel.getByRole('checkbox', { name: 'Debug Eclipse launches', exact: true })
-	).not.toBeChecked();
 	await panel.getByRole('button', { name: 'Start debugger', exact: true }).click();
 	await api(page, 'breakpoint', {
 		id: 'JavascriptDebuggerTest.sq:Probe.st:Script',
@@ -347,8 +382,7 @@ test('embedded variables: lazy objects, arrays, Java fields, pagination and comp
 		);
 	await panel.getByRole('button', { name: 'Evaluate', exact: true }).click();
 	await expect(panel.locator('.debug-evaluation')).toContainText('[Object]');
-	await panel.getByRole('tab', { name: 'this', exact: true }).click();
-	const variables = panel.getByRole('tabpanel', { name: 'this', exact: true });
+	const variables = panel.getByRole('group', { name: 'this', exact: true });
 	await expect(variables.getByRole('button', { name: 'Expand tree', exact: true })).toBeVisible();
 	const propertyCalls = [];
 	page.on('request', (request) => {
@@ -362,11 +396,13 @@ test('embedded variables: lazy objects, arrays, Java fields, pagination and comp
 	await variables.getByRole('button', { name: 'Expand tree', exact: true }).click();
 	await variables.getByRole('button', { name: 'Expand items', exact: true }).click();
 	await variables.getByRole('button', { name: 'Expand 1', exact: true }).click();
-	await expect(variables.getByRole('row').filter({ hasText: 'answer' })).toContainText('42');
+	await expect(variables.locator('.variable-row').filter({ hasText: 'answer' })).toContainText(
+		'42'
+	);
 	await variables.getByRole('button', { name: 'Expand javaData', exact: true }).click();
 	await expect(
 		variables
-			.getByRole('row')
+			.locator('.variable-row')
 			.filter({ has: page.getByRole('button', { name: 'Show value of x', exact: true }) })
 	).toContainText('2');
 	await variables.getByRole('button', { name: 'Expand many', exact: true }).click();
@@ -425,4 +461,66 @@ test('standalone request status and evaluations are cleared when a new run pause
 	await expect(panel.locator('.debug-evaluation')).toHaveCount(0);
 	await expect(panel.getByRole('status').filter({ hasText: 'Request finished.' })).toHaveCount(0);
 	await panel.getByRole('button', { name: 'Stop debugger', exact: true }).click();
+});
+
+test('Java strings display their contents in watches, scopes and the console', async ({ page }) => {
+	await login(page, 'admin/eclipse/javascript-debugger/');
+	const panel = page.getByRole('region', { name: 'JavaScript debugger', exact: true });
+	await panel.getByRole('button', { name: 'Start debugger', exact: true }).click();
+	await api(page, 'breakpoint', {
+		id: 'JavascriptDebuggerTest.sq:Probe.st:Script',
+		property: 'expression',
+		line: '4',
+		set: 'true'
+	});
+	const run = await launch(page);
+	await panel.getByRole('button', { name: 'add:4', exact: true }).waitFor();
+	const {
+		data: { state: pausedState }
+	} = await api(page, 'state');
+	const pauseId = String(pausedState.pauseId);
+	const control = await api(page, 'eval', { frame: '0', pauseId, expression: 'context.name + ""' });
+	expect(control.status).toBe(200);
+	const expected = control.data.result;
+	expect(expected).toBeTruthy();
+	expect(expected).not.toContain('[Java ');
+	const direct = await api(page, 'eval', { frame: '0', pauseId, expression: 'context.name' });
+	expect(direct.data.result).toBe(expected);
+
+	await panel.getByRole('button', { name: 'Add watch', exact: true }).click();
+	await panel.getByRole('textbox', { name: 'Watch expression', exact: true }).fill('context.name');
+	await panel.getByRole('button', { name: 'Save watch', exact: true }).click();
+	await expect(panel.locator('.debug-watch pre')).toHaveText(expected);
+	const input = panel.getByRole('textbox', { name: 'Evaluate an expression', exact: true });
+	await input.fill('context.name');
+	await input.press('Enter');
+	await expect(panel.locator('.debug-evaluation pre')).toHaveText(expected);
+
+	await input.fill(
+		'this.javaText=new java.lang.String("hello Java"); this.javaLongText=new java.lang.String("x".repeat(1200)); this'
+	);
+	await input.press('Enter');
+	const receiver = panel.getByRole('group', { name: 'this', exact: true });
+	await expect(
+		receiver.getByRole('button', { name: 'Show value of javaText', exact: true })
+	).toHaveText('hello Java');
+	await expect(
+		receiver.locator('.variable-row').filter({
+			has: page.getByRole('button', { name: 'Show value of javaText', exact: true })
+		})
+	).toContainText('java.lang.String');
+	await receiver.getByRole('button', { name: 'Show value of javaLongText', exact: true }).click();
+	await expect(
+		receiver.getByRole('region', { name: 'Value of javaLongText', exact: true }).locator('pre')
+	).toHaveText('x'.repeat(1200));
+	await receiver.getByRole('button', { name: 'Close full value', exact: true }).click();
+	await panel.getByRole('button', { name: 'Step over', exact: true }).click();
+	await panel.getByRole('button', { name: 'add:5', exact: true }).waitFor();
+	await expect(panel.locator('.debug-watch pre')).toHaveText(expected);
+	if (process.env.C8O_DEBUGGER_SCREENSHOT_DIR)
+		await page.screenshot({
+			path: `${process.env.C8O_DEBUGGER_SCREENSHOT_DIR}/java-string-values.png`
+		});
+	await panel.getByRole('button', { name: 'Stop debugger', exact: true }).click();
+	expect(await completed(page, run)).toContain('42');
 });

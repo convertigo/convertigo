@@ -56,44 +56,30 @@ describe('JavaScript debugger component and session', () => {
 			expect(html).toContain(label);
 		expect(html).not.toContain('studio-debug__gutter');
 	});
-	it('offers inspection parity and distinguishes Eclipse launches from Web Studio requests', () => {
-		const paused = render(StudioDebugPanel, { props: { eclipse: true, standalone: true } }).body;
-		for (const label of [
-			'this',
-			'Locals',
-			'All scopes',
-			'Watch expression',
-			'Add watch',
-			'Break on function entry',
-			'Break on function return',
-			'Debug Eclipse launches',
-			'A second request is refused'
-		])
-			expect(paused).toContain(label);
-		followDebugger(state({ stopped: false, studioRequests: true, serial: 2 }));
-		expect(render(StudioDebugPanel, { props: { eclipse: true } }).body).toContain(
-			'Ready — Eclipse launches join this session.'
-		);
-		expect(render(StudioDebugPanel).body).toContain(
-			'Ready — Web Studio requests join this session.'
-		);
-		followDebugger(state({ stopped: false, studioRequests: false, serial: 3 }));
-		expect(render(StudioDebugPanel, { props: { eclipse: true } }).body).toContain(
-			'Ready — Eclipse launches are not selected.'
-		);
-	});
-
-	it('keeps code and launch form out of Eclipse and the dock, with admin switches and a selected scope tab', () => {
+	it('keeps native launches implicit and presents inspection in a vertical sequence', () => {
 		for (const props of [{ eclipse: true, standalone: true }, {}]) {
 			const html = render(StudioDebugPanel, { props }).body;
+			for (const label of [
+				'Scope',
+				'Call stack',
+				'Console',
+				'Add watch',
+				'Break on function entry',
+				'Break on function return'
+			])
+				expect(html).toContain(label);
+			expect(html).not.toContain('Debug Eclipse launches');
 			expect(html).not.toContain('Source editor');
 			expect(html).not.toContain('Choose a script');
 			expect(html).not.toContain('Run a sequence from this view');
-			expect(html).toContain('c8o-switch');
-			expect(html).toContain('aria-selected="true"');
-			expect(html).toContain('debug-badge');
+			expect(html).not.toContain('c8o-switch');
+			expect(html).toContain('role="toolbar"');
+			expect(html).toContain('aria-pressed="false"');
+			const headings = [...html.matchAll(/<h3[^>]*>([^<]+)<\/h3>/g)].map((match) => match[1]);
+			expect(headings).toEqual(['Watch', 'Scope', 'Call Stack', 'Console']);
 		}
 	});
+
 	it('shows a running state between pauses with a persistent inspection shell', () => {
 		followDebugger(state({ stopped: false, running: true, frames: [], serial: 2 }));
 		const html = render(StudioDebugPanel).body;
@@ -105,7 +91,9 @@ describe('JavaScript debugger component and session', () => {
 	it('shows a disabled server gate', () => {
 		followDebugger(state({ enabled: false, attached: false, stopped: false, serial: 2 }));
 		expect(render(StudioDebugPanel).body).toContain('JavaScript debugging is disabled');
-		expect(render(StudioDebugPanel).body).not.toContain('Step into');
+		expect(render(StudioDebugPanel).body).toMatch(
+			/<button[^>]*disabled[^>]*aria-label="Step into"/
+		);
 	});
 	it('sends the pause generation and explicit frame, and marks Studio requests', async () => {
 		await debugCommand('eval', { frame: '1', expression: 'value' });

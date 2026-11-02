@@ -68,12 +68,12 @@
 </script>
 
 {#snippet tree(items, depth = 0, path = '')}
-	{#each items as variable, index (`${path}/${index}`)}
-		{@const key = `${path}/${index}`}
-		{@const row = rows[key]}
-		<tr>
-			<td title={variable.name}>
-				<div class="variable-name" style:padding-left={`${Math.min(depth, 8) * 0.8}rem`}>
+	<ul class="variable-branch">
+		{#each items as variable, index (`${path}/${index}`)}
+			{@const key = `${path}/${index}`}
+			{@const row = rows[key]}
+			<li class="variable-item">
+				<div class="variable-row" style:padding-left={`${Math.min(depth, 8) * 0.8}rem`}>
 					{#if variable.expandable && depth < 32}
 						<button
 							class="expand"
@@ -83,55 +83,44 @@
 							><Ico icon={row?.open ? 'mdi:chevron-down' : 'mdi:chevron-right'} /></button
 						>
 					{:else}<span class="spacer"></span>{/if}
-					<span class="truncate">{variable.name}</span>
+					<span class="variable-name" title={variable.name}>{variable.name}</span><span
+						class="colon">:</span
+					>
+					<button
+						class="value"
+						data-type={variable.type}
+						title={`${variable.type ?? ''}: ${variable.value}`}
+						aria-label={`Show value of ${variable.name}`}
+						onclick={() => showValue(variable)}>{variable.value}</button
+					>
+					<span class="type">{variable.type ?? ''}</span>
 				</div>
-			</td>
-			<td
-				><button
-					class="value"
-					title={variable.value}
-					aria-label={`Show value of ${variable.name}`}
-					onclick={() => showValue(variable)}>{variable.value}</button
-				></td
-			>
-			<td class="type" title={variable.type}>{variable.type ?? ''}</td>
-		</tr>
-		{#if variable.limited}<tr
-				><td colspan="3">Variable reference capacity reached. Resume to start a new inspection.</td
-				></tr
-			>{/if}
-		{#if row?.open}
-			{@render tree(row.children, depth + 1, key)}
-			{#if row.loading}<tr><td colspan="3">Loading properties…</td></tr>{/if}
-			{#if row.error}<tr
-					><td colspan="3"
-						><span role="alert">{row.error}</span><button
-							onclick={() => fetchPage(variable.ref, key, row.children.length)}>Retry</button
-						></td
-					></tr
-				>{/if}
-			{#if row.next >= 0}<tr
-					><td colspan="3"
-						><button
+				{#if variable.limited}<p class="variable-message">
+						Variable reference capacity reached. Resume to start a new inspection.
+					</p>{/if}
+				{#if row?.open}
+					{@render tree(row.children, depth + 1, key)}
+					{#if row.loading}<p class="variable-message">Loading properties…</p>{/if}
+					{#if row.error}<div class="variable-message">
+							<span role="alert">{row.error}</span>
+							<button class="more" onclick={() => fetchPage(variable.ref, key, row.children.length)}
+								>Retry</button
+							>
+						</div>{/if}
+					{#if row.next >= 0}<button
 							class="more"
 							disabled={row.loading}
 							onclick={() => fetchPage(variable.ref, key, row.next)}
 							>Load next 100 properties of {variable.name}</button
-						></td
-					></tr
-				>{/if}
-		{/if}
-	{/each}
+						>{/if}
+				{/if}
+			</li>
+		{/each}
+	</ul>
 {/snippet}
 
-<div class="variables">
-	<table aria-label="Variables">
-		<colgroup><col style="width:38%" /><col style="width:42%" /><col style="width:20%" /></colgroup>
-		<thead
-			><tr><th scope="col">Name</th><th scope="col">Value</th><th scope="col">Type</th></tr></thead
-		>
-		<tbody>{@render tree([...variables, ...extra])}</tbody>
-	</table>
+<div class="variables" aria-label="Variables">
+	{@render tree([...variables, ...extra])}
 	{#if !variables.length && !extra.length}<p class="empty">No variables in this scope.</p>{/if}
 	{#if more >= 0}<button class="more" disabled={rootLoading} onclick={loadMore}
 			>Load next 100 properties</button
@@ -151,67 +140,84 @@
 </div>
 
 <style>
-	.variables {
+	.variables,
+	.variable-item {
 		min-width: 0;
 	}
-	table {
-		width: 100%;
-		table-layout: fixed;
-		border-collapse: collapse;
-		font-size: 0.78rem;
+	.variable-branch {
+		list-style: none;
+		margin: 0;
+		padding: 0;
 	}
-	th {
-		text-align: left;
-		color: var(--color-surface-600-400);
-		font-weight: 500;
-		background: var(--color-surface-100-900);
-	}
-	th,
-	td {
-		padding: 0.3rem 0.4rem;
-		border-bottom: 1px solid var(--color-surface-200-800);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.variable-name {
+	.variable-row {
 		display: flex;
 		align-items: center;
+		gap: 0.25rem;
 		min-width: 0;
-		gap: 0.15rem;
+		min-height: 1.65rem;
+		font: 0.76rem/1.5 monospace;
+	}
+	.variable-row:hover {
+		background: color-mix(in oklab, var(--color-surface-300-700) 25%, transparent);
 	}
 	.expand,
 	.spacer {
 		display: inline-flex;
-		flex: none;
-		width: 1rem;
-		height: 1rem;
-	}
-	.expand {
 		align-items: center;
 		justify-content: center;
+		flex: none;
+		width: 1rem;
+		height: 1.3rem;
 	}
-	.value {
-		display: block;
-		max-width: 100%;
+	.variable-name {
+		flex: 0 1 auto;
+		max-width: 45%;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		font-family: monospace;
+		white-space: nowrap;
+		color: var(--color-primary-600-400);
+	}
+	.colon {
+		flex: none;
+		color: var(--color-surface-500);
+	}
+	.value {
+		min-width: 0;
+		flex: 1;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 		text-align: left;
 		cursor: zoom-in;
 	}
-	.type,
-	.empty {
+	.value[data-type='string'] {
+		color: var(--color-success-700-300);
+	}
+	.value[data-type='number'],
+	.value[data-type='boolean'] {
+		color: var(--color-primary-600-400);
+	}
+	.type {
+		flex: none;
+		font: 0.65rem/1.5 sans-serif;
 		color: var(--color-surface-600-400);
+		padding-right: 0.35rem;
+	}
+	.empty,
+	.variable-message {
+		color: var(--color-surface-600-400);
+		font-size: 0.75rem;
+		padding: 0.35rem 1.25rem;
 	}
 	.more {
-		padding: 0.4rem;
+		padding: 0.35rem 1.25rem;
 		color: var(--color-primary-600-400);
 		text-align: left;
 		white-space: normal;
+		font-size: 0.75rem;
 	}
 	.full-value {
-		margin-top: 0.5rem;
+		margin: 0.4rem;
 		padding: 0.5rem;
 		border: 1px solid var(--color-primary-500);
 		border-radius: 0.35rem;
@@ -231,6 +237,6 @@
 	}
 	button:focus-visible {
 		outline: 2px solid var(--color-primary-500);
-		outline-offset: 1px;
+		outline-offset: -1px;
 	}
 </style>

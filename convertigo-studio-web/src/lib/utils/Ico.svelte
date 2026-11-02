@@ -3,12 +3,15 @@
 	import MdiAccountOutline from '~icons/mdi/account-outline';
 	import MdiAccountSupervisorCircleOutline from '~icons/mdi/account-supervisor-circle-outline';
 	import MdiAlertCircleOutline from '~icons/mdi/alert-circle-outline';
+	import MdiAlertOctagonOutline from '~icons/mdi/alert-octagon-outline';
 	import MdiApi from '~icons/mdi/api';
 	import MdiApplicationBracesOutline from '~icons/mdi/application-braces-outline';
 	import MdiApplicationOutline from '~icons/mdi/application-outline';
 	import MdiArchiveArrowDownOutline from '~icons/mdi/archive-arrow-down-outline';
 	import MdiArchiveArrowUpOutline from '~icons/mdi/archive-arrow-up-outline';
 	import MdiArchiveOutline from '~icons/mdi/archive-outline';
+	import MdiArrowCollapseDown from '~icons/mdi/arrow-collapse-down';
+	import MdiArrowCollapseUp from '~icons/mdi/arrow-collapse-up';
 	import MdiArrowDown from '~icons/mdi/arrow-down';
 	import MdiArrowDownBoldOutline from '~icons/mdi/arrow-down-bold-outline';
 	import MdiArrowLeft from '~icons/mdi/arrow-left';
@@ -27,6 +30,7 @@
 	import MdiBriefcaseUploadOutline from '~icons/mdi/briefcase-upload-outline';
 	import MdiBroom from '~icons/mdi/broom';
 	import MdiBugOutline from '~icons/mdi/bug-outline';
+	import MdiBugPlayOutline from '~icons/mdi/bug-play-outline';
 	import MdiCached from '~icons/mdi/cached';
 	import MdiCalendarClock from '~icons/mdi/calendar-clock';
 	import MdiCalendarRange from '~icons/mdi/calendar-range';
@@ -75,6 +79,7 @@
 	import MdiDebugStepOut from '~icons/mdi/debug-step-out';
 	import MdiDebugStepOver from '~icons/mdi/debug-step-over';
 	import MdiDeleteOutline from '~icons/mdi/delete-outline';
+	import MdiDeleteSweepOutline from '~icons/mdi/delete-sweep-outline';
 	import MdiDevices from '~icons/mdi/devices';
 	import MdiDockBottom from '~icons/mdi/dock-bottom';
 	import MdiDockWindow from '~icons/mdi/dock-window';
@@ -236,6 +241,11 @@
 		'mdi:account-outline': MdiAccountOutline,
 		'mdi:account-supervisor-circle-outline': MdiAccountSupervisorCircleOutline,
 		'mdi:alert-circle-outline': MdiAlertCircleOutline,
+		'mdi:delete-sweep-outline': MdiDeleteSweepOutline,
+		'mdi:bug-play-outline': MdiBugPlayOutline,
+		'mdi:arrow-collapse-up': MdiArrowCollapseUp,
+		'mdi:arrow-collapse-down': MdiArrowCollapseDown,
+		'mdi:alert-octagon-outline': MdiAlertOctagonOutline,
 		'mdi:api': MdiApi,
 		'mdi:application-outline': MdiApplicationOutline,
 		'mdi:application-braces-outline': MdiApplicationBracesOutline,

@@ -20,9 +20,9 @@ it('renders shallow property rows, escaped values, type and an accessible expans
 		}
 	}).body;
 	for (const text of [
-		'Name',
-		'Value',
-		'Type',
+		'variable-branch',
+		'object',
+		'data-type="string"',
 		'Expand object',
 		'aria-expanded="false"',
 		'Show value of',

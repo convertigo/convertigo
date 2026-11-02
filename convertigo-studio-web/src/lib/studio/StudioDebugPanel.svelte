@@ -1,6 +1,5 @@
 <script>
 	import Button from '#lib/admin/components/Button.svelte';
-	import CheckState from '#lib/admin/components/CheckState.svelte';
 	import Editor from '#lib/studio/editor/Editor.svelte';
 	import { callRequestable } from '#lib/utils/service.js';
 	import { onMount } from 'svelte';
@@ -25,7 +24,9 @@
 	let frameIndex = $state(0);
 	let variables = $state(/** @type {any} */ (null));
 	let expression = $state('');
-	let evaluations = $state(/** @type {{expression: string, result: string}[]} */ ([]));
+	let evaluations = $state(
+		/** @type {{expression: string, result: string, error: boolean, context: string}[]} */ ([])
+	);
 	let busy = $state(false);
 	let error = $state('');
 	let project = $state('');
@@ -38,19 +39,28 @@
 	);
 	let lastPause = '';
 	let selectionRevision = 0;
-	let eclipseRequests = $state(true);
-	let inspectionTab = $state('Locals');
+	let addingWatch = $state(false);
 	let watchExpression = $state('');
 	let watches = $state(/** @type {{id: number, expression: string, result: string}[]} */ ([]));
 	let nextWatch = 0;
-	let allVariables = $derived(
-		(variables?.scopes ?? []).map((scope) => ({
-			name: scope.name,
-			value: '[Scope]',
-			type: 'scope',
-			ref: scope.ref,
-			expandable: true
-		}))
+	let scopeGroups = $derived(
+		variables
+			? [
+					{
+						name: 'Local',
+						variables: variables.scope ?? [],
+						ref: variables.scopeRef,
+						nextOffset: variables.scopeNextOffset ?? -1
+					},
+					{
+						name: 'this',
+						variables: variables.this ?? [],
+						ref: variables.thisRef,
+						nextOffset: variables.thisNextOffset ?? -1
+					},
+					...(variables.scopes ?? []).slice(1)
+				]
+			: []
 	);
 	let stateLabel = $derived(
 		debugState?.stopped
@@ -96,7 +106,12 @@
 			detachedNotice = 'Debugger detached. The paused request resumes and finishes.';
 		try {
 			let result = await debugCommand(action, parameters);
-			if (action === 'start' && eclipse && eclipseRequests && result?.state?.attached)
+			if (
+				action === 'start' &&
+				eclipse &&
+				typeof (/** @type {any} */ (window).java?.receiveFromJS) === 'function' &&
+				result?.state?.attached
+			)
 				result = await debugCommand('studioRequests', { value: 'true' });
 			if (result?.error) error = String(result.error.message ?? result.error);
 			return result;
@@ -193,6 +208,7 @@
 		if (!text || watches.length >= 20) return;
 		watches = [...watches, { id: nextWatch++, expression: text, result: 'Waiting for pause' }];
 		watchExpression = '';
+		addingWatch = false;
 		await refreshWatches();
 	}
 
@@ -243,26 +259,38 @@
 		const text = expression.trim(),
 			snapshot = debugState,
 			revision = selectionRevision;
-		if (!text) return;
-		const result = await command('eval', {
-			frame: String(frameIndex),
-			expression: text,
-			pauseId: String(snapshot?.pauseId)
-		});
-		if (
-			revision !== selectionRevision ||
-			!debugState?.stopped ||
-			snapshot?.pauseId !== debugState.pauseId ||
-			snapshot?.sessionId !== debugState.sessionId
-		)
-			return;
-		if (result && 'result' in result) {
-			evaluations = [...evaluations, { expression: text, result: String(result.result) }].slice(
-				-20
-			);
+		if (!text || !snapshot?.stopped || busy) return;
+		busy = true;
+		try {
+			const result = await debugCommand('eval', {
+				frame: String(frameIndex),
+				expression: text,
+				pauseId: String(snapshot.pauseId)
+			});
+			if (
+				revision !== selectionRevision ||
+				!debugState?.stopped ||
+				snapshot.pauseId !== debugState.pauseId ||
+				snapshot.sessionId !== debugState.sessionId
+			)
+				return;
+			const failed = Boolean(result?.error || result?.evaluationError);
+			evaluations = [
+				...evaluations,
+				{
+					expression: text,
+					result: String(result?.result ?? result?.error?.message ?? 'Evaluation failed'),
+					error: failed,
+					context: `${frame?.function || 'Script'}:${frame?.line ?? '?'}`
+				}
+			].slice(-20);
 			expression = '';
-			invalidateInspection();
-			await selectFrame(frameIndex);
+			if (!failed) {
+				invalidateInspection();
+				await selectFrame(frameIndex);
+			}
+		} finally {
+			busy = false;
 		}
 	}
 	async function runRequest(event) {
@@ -286,96 +314,75 @@
 </script>
 
 <section class="debug-panel" aria-label="JavaScript debugger" data-active={active}>
-	<div class="debug-toolbar">
+	<div class="debug-toolbar" role="toolbar" aria-label="Debugger controls">
 		<div class="debug-actions" role="group" aria-label="Debugger session">
-			<Button
-				label={debugState?.attached ? 'Stop debugger' : 'Start debugger'}
+			<StudioIconButton
 				icon={debugState?.attached ? 'mdi:stop' : 'mdi:bug-play-outline'}
-				cls="button-secondary h-fit!"
-				full={false}
+				title={debugState?.attached ? 'Stop debugger' : 'Start debugger'}
+				active={debugState?.attached}
 				disabled={busy || debugState?.enabled === false}
 				onclick={() => command(debugState?.attached ? 'stop' : 'start')}
 			/>
 		</div>
-		{#if debugState?.attached}
-			<div class="debug-actions" role="group" aria-label="Execution">
-				<StudioIconButton
-					icon="mdi:play"
-					title="Continue"
-					size="md"
-					disabled={!debugState.stopped || busy}
-					onclick={() => command('go')}
-				/>
-				<StudioIconButton
-					icon="mdi:pause"
-					title="Pause next"
-					size="md"
-					disabled={debugState.stopped || busy}
-					onclick={() => command('pause')}
-				/>
-			</div>
-			<div class="debug-actions" role="group" aria-label="Step">
-				{#each [['stepInto', 'Step into', 'mdi:debug-step-into'], ['stepOver', 'Step over', 'mdi:debug-step-over'], ['stepOut', 'Step out', 'mdi:debug-step-out']] as [action, label, icon] (action)}
-					<StudioIconButton
-						{icon}
-						title={label}
-						size="md"
-						disabled={!debugState.stopped || busy}
-						onclick={() => command(action)}
-					/>
-				{/each}
-			</div>
-		{/if}
-		<span
-			role="status"
-			class="debug-badge"
-			class:paused={debugState?.stopped}
-			class:running={debugState?.running && !debugState?.stopped}
-			><span class="status-dot"></span>{stateLabel}</span
-		>
-	</div>
-	{#if debugState?.enabled === false}<p role="status">
-			JavaScript debugging is disabled on this server.
-		</p>{/if}
-	{#if eclipse}
-		<div class="debug-options">
-			<CheckState
-				value={String(debugState?.attached ? debugState.studioRequests : eclipseRequests)}
-				disabled={busy}
-				ariaLabel="Debug Eclipse launches"
-				onCheckedChange={(event) => {
-					eclipseRequests = event.checked;
-					if (debugState?.attached)
-						void command('studioRequests', { value: String(eclipseRequests) });
-				}}>Debug Eclipse launches</CheckState
-			>
+		<div class="debug-actions" role="group" aria-label="Execution">
+			<StudioIconButton
+				icon="mdi:play"
+				title="Continue"
+				disabled={!debugState?.stopped || busy}
+				onclick={() => command('go')}
+			/>
+			<StudioIconButton
+				icon="mdi:pause"
+				title="Pause next"
+				disabled={!debugState?.attached || debugState?.stopped || busy}
+				onclick={() => command('pause')}
+			/>
 		</div>
-	{/if}
-	{#if debugState?.attached}
-		<div class="debug-options" role="group" aria-label="Pause conditions">
-			{#each [['breakOnExceptions', 'Break on exceptions'], ['breakOnEnter', 'Break on function entry'], ['breakOnReturn', 'Break on function return']] as [action, label] (action)}
-				<CheckState
-					value={String(debugState[action] ?? false)}
-					disabled={busy}
-					ariaLabel={label}
-					onCheckedChange={(event) => command(action, { value: String(event.checked) })}
-					>{label}</CheckState
-				>
+		<div class="debug-actions" role="group" aria-label="Step">
+			{#each [['stepOver', 'Step over', 'mdi:debug-step-over'], ['stepInto', 'Step into', 'mdi:debug-step-into'], ['stepOut', 'Step out', 'mdi:debug-step-out']] as [action, label, icon] (action)}
+				<StudioIconButton
+					{icon}
+					title={label}
+					disabled={!debugState?.stopped || busy}
+					onclick={() => command(action)}
+				/>
 			{/each}
 		</div>
-		<p class="debug-help">
+		<div class="debug-actions debug-modes" role="group" aria-label="Pause conditions">
+			{#each [['breakOnExceptions', 'Break on exceptions', 'mdi:alert-octagon-outline'], ['breakOnEnter', 'Break on function entry', 'mdi:arrow-collapse-down'], ['breakOnReturn', 'Break on function return', 'mdi:arrow-collapse-up']] as [action, label, icon] (action)}
+				<StudioIconButton
+					{icon}
+					title={label}
+					active={debugState?.[action] ?? false}
+					aria-pressed={debugState?.[action] ?? false}
+					disabled={!debugState?.attached || busy}
+					onclick={() => command(action, { value: String(!debugState?.[action]) })}
+				/>
+			{/each}
+		</div>
+	</div>
+	<div
+		role="status"
+		class={[
+			'debug-status',
+			{ paused: debugState?.stopped, running: debugState?.running && !debugState?.stopped }
+		]}
+	>
+		<span class="status-dot"></span><strong>{stateLabel}</strong>
+		{#if frame}<span class="truncate">{frame.function || 'Script'}:{frame.line}</span>{/if}
+	</div>
+	{#if debugState?.enabled === false}<p class="debug-notice" role="status">
+			JavaScript debugging is disabled on this server.
+		</p>{/if}
+	{#if debugState?.attached && !debugState.running && !debugState.stopped}
+		<p class="debug-help debug-ready">
 			{eclipse
-				? debugState.studioRequests
-					? 'Ready — Eclipse launches join this session.'
-					: 'Ready — Eclipse launches are not selected.'
-				: 'Ready — Web Studio requests join this session.'}
-			{eclipse
-				? 'Launch from the sequence, connector or test case editor. A second request is refused while this session is running.'
-				: ''}
+				? 'Run a sequence, transaction or test case from its editor.'
+				: 'Run a request from the Studio to debug it.'}
 		</p>
 	{/if}
 	{#if standalone && !eclipse && debugState?.attached}
-		<details>
+		<details class="debug-run">
 			<summary>Run a sequence from this view (optional)</summary>
 			<form class="debug-form" onsubmit={runRequest}>
 				<input
@@ -405,154 +412,206 @@
 	{/if}
 	{#if error}<p class="debug-notice" role="alert">{error}</p>{/if}
 	{#if debugState?.notice}<p class="debug-notice" role="status">{debugState.notice}</p>{/if}
-	{#if !debugState?.attached && detachedNotice}<p role="status">{detachedNotice}</p>{/if}
-	{#if debugState?.attached}
-		<div class="debug-content" class:with-source={standalone && !eclipse}>
-			{#if standalone && !eclipse}
-				<div class="debug-source">
-					<select
-						class="input-common"
-						aria-label="Sources"
-						value={sourceUrl}
-						onchange={(event) => openSource(event.currentTarget.value)}
-					>
-						<option value="" disabled>Choose a script</option>
-						{#each debugState.sources as url (url)}<option value={url}
-								>{debugState.sourceLocations?.[url]?.label ?? url}</option
-							>{/each}
-					</select>
-					<div class="min-h-64 min-w-0 grow" aria-label="Source editor">
-						{#if source}<Editor
-								content={source.source}
-								language="javascript"
-								readOnly
-								breakpoints={source.breakpoints}
-								onBreakpointToggle={toggleBreakpoint}
-								currentLine={frame?.url === source.url ? (frame?.line ?? 0) : 0}
-								{debugValues}
-							/>{/if}
+	{#if !debugState?.attached && detachedNotice}<p class="debug-notice" role="status">
+			{detachedNotice}
+		</p>{/if}
+	<div class={['debug-content', { 'with-source': standalone && !eclipse && debugState?.attached }]}>
+		{#if standalone && !eclipse && debugState?.attached}
+			<div class="debug-source">
+				<select
+					class="input-common"
+					aria-label="Sources"
+					value={sourceUrl}
+					onchange={(event) => openSource(event.currentTarget.value)}
+				>
+					<option value="" disabled>Choose a script</option>
+					{#each debugState.sources as url (url)}<option value={url}
+							>{debugState.sourceLocations?.[url]?.label ?? url}</option
+						>{/each}
+				</select>
+				<div class="min-h-64 min-w-0 grow" aria-label="Source editor">
+					{#if source}<Editor
+							content={source.source}
+							language="javascript"
+							readOnly
+							breakpoints={source.breakpoints}
+							onBreakpointToggle={toggleBreakpoint}
+							currentLine={frame?.url === source.url ? (frame?.line ?? 0) : 0}
+							{debugValues}
+						/>{/if}
+				</div>
+			</div>
+		{/if}
+		<div class="debug-inspection">
+			<section class="debug-section" aria-label="Watch">
+				<div class="debug-section-heading">
+					<h3>Watch</h3>
+					<div class="layout-x gap-none">
+						<StudioIconButton
+							icon="mdi:plus"
+							title="Add watch"
+							size="xs"
+							disabled={watches.length >= 20}
+							onclick={() => (addingWatch = !addingWatch)}
+							aria-expanded={addingWatch}
+						/>
+						<StudioIconButton
+							icon="mdi:refresh"
+							title="Refresh watches"
+							size="xs"
+							disabled={!debugState?.stopped || !watches.length || busy}
+							onclick={() => refreshWatches()}
+						/>
 					</div>
 				</div>
-			{/if}
-			<div class="debug-inspection">
-				<div class="debug-stack" aria-label="Call stack">
-					<h3>Call stack</h3>
-					{#if debugState.stopped}
-						{#each debugState.frames ?? [] as item, index (index)}
-							<button
-								class="debug-frame"
-								class:selected={index === frameIndex}
-								aria-pressed={index === frameIndex}
-								aria-label={`${item.function || 'Script'}:${item.line}`}
-								title={`${item.location?.label ?? item.url}:${item.line}`}
-								onclick={() => selectFrame(index)}
-							>
-								<strong
-									>{item.function || 'Script'}<span class="frame-line">:{item.line}</span></strong
-								><span>{item.location?.label ?? item.url}</span>
-							</button>
-						{/each}
-					{:else}<p class="debug-help">
-							{debugState.running
-								? 'Running — waiting for the next pause…'
-								: 'Pause a script to inspect its stack and scopes.'}
-						</p>{/if}
-				</div>
-				<div class="debug-properties">
-					<div role="tablist" aria-label="Variable scopes" class="debug-tabs">
-						{#each ['this', 'Locals', 'All scopes'] as tab (tab)}
-							<button
-								role="tab"
-								aria-selected={inspectionTab === tab}
-								class:selected={inspectionTab === tab}
-								onclick={() => (inspectionTab = tab)}>{tab}</button
-							>
-						{/each}
-					</div>
-					<div role="tabpanel" aria-label={inspectionTab}>
-						{#if debugState.stopped}
-							{#key variables}
-								{#key inspectionTab}
-									<DebugVariables
-										variables={inspectionTab === 'this'
-											? (variables?.this ?? [])
-											: inspectionTab === 'Locals'
-												? (variables?.scope ?? [])
-												: allVariables}
-										reference={inspectionTab === 'this' ? variables?.thisRef : variables?.scopeRef}
-										nextOffset={inspectionTab === 'this'
-											? (variables?.thisNextOffset ?? -1)
-											: inspectionTab === 'Locals'
-												? (variables?.scopeNextOffset ?? -1)
-												: -1}
-										load={loadProperties}
-										{loadValue}
-									/>
-								{/key}
-							{/key}
-						{:else}<p class="debug-help">Variables will appear at the next pause.</p>{/if}
-					</div>
-				</div>
-				<div class="debug-expressions">
-					<h3>Expressions</h3>
+				{#if addingWatch}
 					<form class="debug-form" onsubmit={addWatch}>
 						<input
 							aria-label="Watch expression"
 							class="input-common"
-							placeholder="Watch expression"
+							placeholder="Expression to watch"
 							maxlength="4096"
 							bind:value={watchExpression}
+							{@attach (input) => {
+								input.focus();
+							}}
+							onkeydown={(event) => {
+								if (event.key === 'Escape') {
+									addingWatch = false;
+									watchExpression = '';
+								}
+							}}
 						/>
-						<Button
-							label="Add watch"
+						<StudioIconButton
+							icon="mdi:check"
+							title="Save watch"
 							type="submit"
-							cls="button-secondary h-fit!"
-							full={false}
-							disabled={watches.length >= 20}
+							disabled={!watchExpression.trim()}
+						/>
+						<StudioIconButton
+							icon="mdi:close"
+							title="Cancel watch"
+							onclick={() => {
+								addingWatch = false;
+								watchExpression = '';
+							}}
 						/>
 					</form>
-					{#each watches as watch (watch.id)}
-						<div class="debug-watch">
-							<div>
-								<code>{watch.expression}</code>
-								<pre>{watch.result}</pre>
-							</div>
-							<StudioIconButton
-								icon="mdi:close"
-								title={`Remove watch ${watch.expression}`}
-								onclick={() => (watches = watches.filter((item) => item.id !== watch.id))}
-							/>
+				{/if}
+				{#each watches as watch (watch.id)}
+					<div class="debug-watch">
+						<div>
+							<code>{watch.expression}</code><span class="watch-separator">: </span>
+							<pre>{watch.result}</pre>
 						</div>
+						<StudioIconButton
+							icon="mdi:close"
+							title={`Remove watch ${watch.expression}`}
+							size="xs"
+							onclick={() => (watches = watches.filter((item) => item.id !== watch.id))}
+						/>
+					</div>
+				{:else}<p class="debug-help debug-empty">No watch expressions. Add one with +.</p>{/each}
+			</section>
+			<section class="debug-section debug-scopes" aria-label="Scope">
+				<div class="debug-section-heading"><h3>Scope</h3></div>
+				{#if debugState?.stopped}
+					{#if variables}
+						{#key variables}
+							{#each scopeGroups as scope, index (index)}
+								<details class="debug-scope" aria-label={scope.name} open={index < 2}>
+									<summary>{scope.name}</summary>
+									<DebugVariables
+										variables={scope.variables ?? []}
+										reference={scope.ref}
+										nextOffset={scope.nextOffset ?? -1}
+										load={loadProperties}
+										{loadValue}
+									/>
+								</details>
+							{/each}
+						{/key}
+					{:else}<p class="debug-help debug-empty">Loading scopes…</p>{/if}
+				{:else}<p class="debug-help debug-empty">Variables will appear at the next pause.</p>{/if}
+			</section>
+			<section class="debug-section debug-stack" aria-label="Call stack">
+				<div class="debug-section-heading"><h3>Call Stack</h3></div>
+				{#if debugState?.stopped}
+					{#each debugState.frames ?? [] as item, index (index)}
+						<button
+							class={['debug-frame', { selected: index === frameIndex }]}
+							aria-pressed={index === frameIndex}
+							aria-label={`${item.function || 'Script'}:${item.line}`}
+							title={`${item.location?.label ?? item.url}:${item.line}`}
+							onclick={() => selectFrame(index)}
+						>
+							<strong>{item.function || 'Script'}</strong><span class="frame-source"
+								>{item.location?.label ?? item.url}</span
+							><span class="frame-line">:{item.line}</span>
+						</button>
 					{/each}
-					<p class="debug-help">
-						Watched expressions execute on each pause and frame change and may have side effects.
-					</p>
-					{#if debugState.stopped}
-						<form class="debug-form" onsubmit={evaluate}>
-							<input
-								aria-label="Evaluate an expression"
-								class="input-common"
-								placeholder="Evaluate an expression"
-								maxlength="4096"
-								bind:value={expression}
-							/>
-							<Button
-								label="Evaluate"
-								type="submit"
-								cls="button-secondary h-fit!"
-								full={false}
-								disabled={busy}
-							/>
-						</form>
-						{#each evaluations as evaluation, index (index)}<div class="debug-evaluation">
-								<code>{evaluation.expression}</code>
-								<pre>{evaluation.result}</pre>
-							</div>{/each}
-					{/if}
+				{:else}<p class="debug-help debug-empty">
+						{debugState?.running
+							? 'Running — waiting for the next pause…'
+							: 'Pause a script to inspect its stack.'}
+					</p>{/if}
+			</section>
+			<section class="debug-section debug-console" aria-label="Console">
+				<div class="debug-section-heading">
+					<h3>Console</h3>
+					<StudioIconButton
+						icon="mdi:delete-sweep-outline"
+						title="Clear console"
+						size="xs"
+						disabled={!evaluations.length}
+						onclick={() => (evaluations = [])}
+					/>
 				</div>
-			</div>
+				<div
+					class="debug-console-output"
+					role="log"
+					aria-label="Evaluation results"
+					aria-live="polite"
+				>
+					{#each evaluations as evaluation, index (index)}
+						<div class={['debug-evaluation', { 'evaluation-error': evaluation.error }]}>
+							<div class="evaluation-input">
+								<span aria-hidden="true">›</span><code>{evaluation.expression}</code><span
+									class="evaluation-context">{evaluation.context}</span
+								>
+							</div>
+							<div class="evaluation-output">
+								<span aria-hidden="true">‹</span>
+								<pre>{evaluation.result}</pre>
+							</div>
+						</div>
+					{:else}<p class="debug-help debug-empty">
+							{debugState?.stopped
+								? 'Evaluate JavaScript in the selected frame.'
+								: 'Pause a script to evaluate JavaScript.'}
+						</p>{/each}
+				</div>
+				<form class="debug-console-input" onsubmit={evaluate}>
+					<span aria-hidden="true">›</span><input
+						aria-label="Evaluate an expression"
+						placeholder={debugState?.stopped ? 'JavaScript expression' : 'Waiting for a pause…'}
+						maxlength="4096"
+						autocomplete="off"
+						spellcheck="false"
+						disabled={!debugState?.stopped || busy}
+						bind:value={expression}
+					/>
+					<StudioIconButton
+						icon="mdi:keyboard-return"
+						title="Evaluate"
+						type="submit"
+						size="xs"
+						disabled={!debugState?.stopped || busy || !expression.trim()}
+					/>
+				</form>
+			</section>
 		</div>
-	{/if}
+	</div>
 </section>
 
 <style>
@@ -562,171 +621,231 @@
 		height: 100%;
 		min-height: 0;
 		min-width: 0;
-		gap: 0.6rem;
-		padding: 0.25rem;
-		font-size: 0.82rem;
 		overflow: auto;
 		color: var(--color-surface-950-50);
+		font-size: 0.78rem;
 	}
 	.debug-toolbar {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.25rem;
+		padding: 0.2rem 0.35rem;
 		flex: none;
+		position: sticky;
+		top: 0;
+		z-index: 2;
+		background: var(--studio-panel-bg, var(--color-surface-50-950));
+		border-bottom: 1px solid var(--color-surface-200-800);
 	}
 	.debug-actions {
 		display: flex;
 		align-items: center;
-		gap: 0.2rem;
+		gap: 0.1rem;
 		border-right: 1px solid var(--color-surface-300-700);
-		padding-right: 0.5rem;
+		padding-right: 0.25rem;
 	}
-	.debug-badge {
-		display: inline-flex;
+	.debug-modes {
+		border: 0;
+	}
+	.debug-status {
+		display: flex;
 		align-items: center;
 		gap: 0.4rem;
-		border-radius: 999px;
-		background: var(--color-surface-200-800);
-		padding: 0.25rem 0.65rem;
-		font-weight: 600;
+		padding: 0.35rem 0.65rem;
+		flex: none;
+		background: var(--color-surface-100-900);
+		color: var(--color-surface-600-400);
+		font-size: 0.75rem;
 	}
-	.debug-badge.paused {
+	.debug-status.paused {
 		background: color-mix(in oklab, var(--color-warning-500) 20%, transparent);
 		color: var(--color-warning-800-200);
 	}
-	.debug-badge.running {
-		background: color-mix(in oklab, var(--color-primary-500) 16%, transparent);
-		color: var(--color-primary-700-300);
+	.debug-status.running {
+		color: var(--color-primary-600-400);
 	}
 	.status-dot {
-		width: 0.45rem;
-		height: 0.45rem;
+		flex: none;
+		width: 0.4rem;
+		height: 0.4rem;
 		border-radius: 50%;
 		background: currentColor;
 	}
-	.debug-options {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.6rem 1.2rem;
-	}
 	.debug-help {
 		color: var(--color-surface-600-400);
-		font-size: 0.75rem;
+		font-size: 0.74rem;
 		overflow-wrap: anywhere;
+	}
+	.debug-ready,
+	.debug-notice {
+		padding: 0.4rem 0.65rem;
 	}
 	.debug-notice {
 		border-left: 3px solid var(--color-warning-500);
 		background: color-mix(in oklab, var(--color-warning-500) 8%, transparent);
-		padding: 0.5rem;
 		overflow-wrap: anywhere;
 	}
-	.debug-content {
-		min-height: 0;
-		min-width: 0;
-		flex: 1;
-	}
+	.debug-content,
 	.debug-inspection {
-		display: grid;
-		grid-template-columns: minmax(10rem, 0.8fr) minmax(12rem, 1.4fr);
-		gap: 0.75rem;
-		align-items: start;
-	}
-	.debug-stack,
-	.debug-properties,
-	.debug-expressions {
-		min-width: 0;
-		border: 1px solid var(--color-surface-200-800);
-		border-radius: 0.35rem;
-		overflow: hidden;
-	}
-	h3 {
-		margin: 0;
-		padding: 0.4rem 0.5rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		background: var(--color-surface-100-900);
-	}
-	.debug-stack > p,
-	.debug-properties p {
-		padding: 0.5rem;
-	}
-	.debug-frame {
 		display: flex;
 		flex-direction: column;
-		text-align: left;
-		gap: 0.1rem;
-		width: 100%;
-		padding: 0.45rem 0.5rem;
-		border-left: 3px solid transparent;
-		overflow-wrap: anywhere;
+		min-width: 0;
 	}
-	.debug-frame > span {
-		font-size: 0.72rem;
+	.debug-section {
+		min-width: 0;
+		border-bottom: 1px solid var(--color-surface-200-800);
+	}
+	.debug-section-heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		min-height: 1.9rem;
+		padding: 0.15rem 0.55rem;
+		background: var(--color-surface-100-900);
+	}
+	h3 {
+		font-weight: 600;
+		font-size: 0.75rem;
+	}
+	.debug-empty {
+		padding: 0.5rem 0.65rem;
+	}
+	.debug-scope summary {
+		padding: 0.3rem 0.65rem;
+		font-weight: 500;
+		cursor: pointer;
+	}
+	.debug-scope :global(.variables) {
+		padding: 0 0.55rem 0.25rem 0.9rem;
+	}
+	.debug-frame {
+		display: grid;
+		grid-template-columns: minmax(4rem, 0.7fr) minmax(0, 1.8fr) auto;
+		align-items: baseline;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0.35rem 0.65rem;
+		border-left: 3px solid transparent;
+		text-align: left;
+	}
+	.debug-frame strong,
+	.frame-source {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.debug-frame strong {
+		font-weight: 500;
+	}
+	.frame-source {
 		color: var(--color-surface-600-400);
+		font-size: 0.7rem;
+		text-align: right;
 	}
 	.debug-frame.selected {
 		background: color-mix(in oklab, var(--color-primary-500) 13%, transparent);
 		border-left-color: var(--color-primary-500);
 	}
 	.frame-line {
-		margin-left: 0.2rem;
+		font-family: monospace;
 		color: var(--color-primary-600-400);
-	}
-	.debug-tabs {
-		display: flex;
-		background: var(--color-surface-100-900);
-		border-bottom: 1px solid var(--color-surface-200-800);
-	}
-	.debug-tabs button {
-		padding: 0.4rem 0.65rem;
-		border-bottom: 2px solid transparent;
-		color: var(--color-surface-600-400);
-	}
-	.debug-tabs button.selected {
-		border-bottom-color: var(--color-primary-500);
-		color: var(--color-primary-600-400);
-		font-weight: 600;
-		background: color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-	}
-	.debug-expressions {
-		grid-column: 1 / -1;
-	}
-	.debug-expressions > p {
-		padding: 0.4rem 0.5rem;
 	}
 	.debug-form {
 		display: flex;
-		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.4rem;
-		padding: 0.5rem;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		padding: 0.4rem 0.55rem;
 		min-width: 0;
 	}
 	.debug-form input {
-		flex: 1 1 10rem;
+		flex: 1 1 8rem;
 		min-width: 0;
 		width: 100%;
+		font-family: monospace;
+		font-size: 0.78rem;
 	}
 	.debug-watch {
 		display: flex;
-		justify-content: space-between;
 		align-items: start;
+		justify-content: space-between;
 		gap: 0.4rem;
-		padding: 0.4rem 0.5rem;
-		border-top: 1px solid var(--color-surface-200-800);
+		padding: 0.3rem 0.55rem;
 	}
 	.debug-watch > div {
 		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+	.debug-watch pre {
+		display: inline;
+	}
+	.watch-separator {
+		color: var(--color-surface-500);
+	}
+	.debug-console-output {
+		max-height: 16rem;
+		overflow: auto;
 	}
 	.debug-evaluation {
-		padding: 0.4rem 0.5rem;
+		padding: 0.35rem 0.55rem;
+		border-bottom: 1px solid var(--color-surface-200-800);
+	}
+	.evaluation-input,
+	.evaluation-output {
+		display: flex;
+		align-items: baseline;
+		gap: 0.45rem;
+		min-width: 0;
+	}
+	.evaluation-input > span:first-child,
+	.evaluation-output > span:first-child {
+		flex: none;
+		color: var(--color-primary-600-400);
+	}
+	.evaluation-input code {
+		flex: 1;
+	}
+	.evaluation-context {
+		flex: none;
+		font-size: 0.65rem;
+		color: var(--color-surface-600-400);
+	}
+	.evaluation-error .evaluation-output {
+		color: var(--color-error-600-400);
+	}
+	.debug-console-input {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		min-width: 0;
+		padding: 0.3rem 0.55rem;
+		border-top: 1px solid var(--color-surface-200-800);
+		color: var(--color-primary-600-400);
+	}
+	.debug-console-input input {
+		width: 100%;
+		min-width: 0;
+		flex: 1;
+		padding: 0.25rem 0;
+		border: 0;
+		outline: none;
+		background: transparent;
+		font: 0.78rem/1.5 monospace;
+		color: var(--color-surface-950-50);
+	}
+	.debug-console-input:focus-within {
+		box-shadow: inset 0 -2px var(--color-primary-500);
+	}
+	.debug-console-input input:disabled {
+		color: var(--color-surface-600-400);
 	}
 	code,
 	pre {
 		white-space: pre-wrap;
 		overflow-wrap: anywhere;
-		font-size: 0.78rem;
+		font-size: 0.76rem;
 	}
 	.debug-source {
 		display: flex;
@@ -739,25 +858,18 @@
 		grid-template-columns: minmax(18rem, 1.4fr) minmax(18rem, 1fr);
 		gap: 0.75rem;
 	}
-	.with-source .debug-inspection {
-		display: flex;
-		flex-direction: column;
+	.debug-run {
+		padding: 0.4rem 0.65rem;
 	}
-	.with-source .debug-inspection > div {
-		width: 100%;
-	}
-	button:focus-visible {
+	button:focus-visible,
+	summary:focus-visible {
 		outline: 2px solid var(--color-primary-500);
 		outline-offset: -2px;
 	}
 	@media (max-width: 540px) {
-		.debug-inspection,
 		.with-source {
 			display: flex;
 			flex-direction: column;
-		}
-		.debug-inspection > div {
-			width: 100%;
 		}
 	}
 </style>
