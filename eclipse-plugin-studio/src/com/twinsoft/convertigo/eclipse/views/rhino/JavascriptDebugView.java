@@ -6,6 +6,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.C8oBrowserPostMessageHelper;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.admin.AdminView;
 import com.twinsoft.convertigo.eclipse.views.admin.AuthenticatedBrowser;
@@ -20,6 +21,7 @@ public class JavascriptDebugView extends ViewPart {
         parent.setLayout(new FillLayout());
         browser = new C8oBrowser(parent, SWT.NONE);
         browser.setUseExternalBrowser(false);
+        new C8oBrowserPostMessageHelper(browser);
         authentication = new AuthenticatedBrowser(browser,
                 () -> AdminView.getStudioAuthenticatedUrl("/admin/eclipse/javascript-debugger"));
         authentication.load();

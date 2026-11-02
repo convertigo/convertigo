@@ -61,7 +61,12 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('embedded Studio session recovery through the service transport', () => {
-	it.each(['logs.Get', 'engine.CheckAuthentication', 'engine.Authenticate'])(
+	it.each([
+		'logs.Get',
+		'engine.CheckAuthentication',
+		'engine.Authenticate',
+		'studio.debug.Debugger'
+	])(
 		'asks Eclipse to reconnect after a stale session in %s without replaying the request',
 		async (service) => {
 			const response = await call(service);
