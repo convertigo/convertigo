@@ -351,7 +351,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	}
 	public JSONObject value(long expected, String reference) throws Exception {
 		return inspect(expected, cx -> {
-			var value = inspection.value(reference);
+			var value = scalarValue(inspection.value(reference));
 			if (!primitive(value)) throw new IllegalArgumentException("Not a primitive value.");
 			var text = String.valueOf(value);
 			return json("value", text.substring(0, Math.min(text.length(), 65_536)), "truncated", text.length() > 65_536);
@@ -443,8 +443,9 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			return node(String.valueOf(id), numeric ? object.get(index, object) : object.get(name, object));
 		}
 		private JSONObject node(String name, Object value) {
-			boolean expand = expandable(value), full = primitive(value) && String.valueOf(value).length() > 500;
-			String ref = expand || full ? reference(value) : "";
+			var scalar = scalarValue(value);
+			boolean expand = expandable(value), full = primitive(scalar) && String.valueOf(scalar).length() > 500;
+			String ref = expand || full ? reference(full ? scalar : value) : "";
 			return json("name", boundedName(name), "value", preview(value), "type", type(value), "ref", ref,
 					"expandable", expand && !ref.isEmpty(), "fullValue", full && !ref.isEmpty(), "limited", (expand || full) && ref.isEmpty());
 		}
@@ -468,10 +469,20 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	private static boolean primitive(Object value) {
 		return value instanceof String || value instanceof org.mozilla.javascript.ConsString || value instanceof Boolean
 				|| value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long
-				|| value instanceof Float || value instanceof Double || value instanceof java.math.BigInteger || value instanceof java.math.BigDecimal
+				|| value instanceof Float || value instanceof Double
+				|| value != null && (value.getClass() == java.math.BigInteger.class || value.getClass() == java.math.BigDecimal.class)
 				|| value instanceof Character;
 	}
+	/** Unwrap only trusted scalar values; never call an arbitrary Java object's toString. */
+	private static Object scalarValue(Object value) {
+		if (value instanceof org.mozilla.javascript.NativeJavaObject host) {
+			var java = host.unwrap();
+			if (java == null || primitive(java)) return java;
+		}
+		return value;
+	}
 	private static String preview(Object value) {
+		value = scalarValue(value);
 		if (value == null) return "null";
 		if (value == Undefined.instance || value == Scriptable.NOT_FOUND) return "undefined";
 		if (value instanceof Double || value instanceof Float) return org.mozilla.javascript.ScriptRuntime.numberToString(((Number) value).doubleValue(), 10);

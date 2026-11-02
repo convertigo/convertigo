@@ -155,4 +155,71 @@ public class JavascriptDebugExtendedTest {
         }
     }
 
+    public static class HostileDecimal extends java.math.BigDecimal {
+        private static final long serialVersionUID = 1L;
+        public HostileDecimal() { super("3"); }
+        @Override public String toString() { throw new AssertionError("Must not stringify user subclasses"); }
+    }
+    @Test public void wrappedJavaScalarsShowTheirValuesInScopesPropertiesAndEvaluation() throws Exception {
+        try (var pool = Executors.newCachedThreadPool(); var session = new JavascriptDebugSession()) {
+            session.breakpoint("java-scalars", 2, true);
+            var future = pool.submit(() -> {
+                try (var lease = session.enter()) {
+                    var cx = Context.getCurrentContext(); var scope = cx.initStandardObjects();
+                    var values = new Object[][] {
+                        {"javaText", "studio_JavascriptDebuggerTest:S:Probe"}, {"javaLong", 42L},
+                        {"javaDouble", 42.0}, {"javaBoolean", true}, {"javaCharacter", 'Z'},
+                        {"javaInteger", new java.math.BigInteger("12345678901234567890")},
+                        {"javaDecimal", new java.math.BigDecimal("1.50")},
+                        {"javaHostile", new HostileDecimal()}
+                    };
+                    for (var item : values) scope.put((String)item[0], scope,
+                        new org.mozilla.javascript.NativeJavaObject(scope, item[1], org.mozilla.javascript.lc.type.TypeInfoFactory.GLOBAL.create(item[1].getClass())));
+                    return cx.evaluateString(scope, "var nested={name:javaText};\njavaText;", "java-scalars", 1, null);
+                }
+            });
+            long pause = paused(session, 0).getLong("pauseId");
+            var values = session.variables(0, pause).getJSONArray("scope");
+            var expected = new String[][] {
+                {"javaText", "studio_JavascriptDebuggerTest:S:Probe"}, {"javaLong", "42"},
+                {"javaDouble", "42"}, {"javaBoolean", "true"}, {"javaCharacter", "Z"},
+                {"javaInteger", "12345678901234567890"}, {"javaDecimal", "1.50"}
+            };
+            for (var item : expected) {
+                var variable = find(values, item[0]);
+                assertEquals(item[0], item[1], variable.getString("value"));
+                assertFalse(item[0], variable.getBoolean("expandable"));
+                assertEquals(item[0], item[1], session.evaluate(0, pause, item[0]).getString("result"));
+            }
+            assertEquals("java.lang.String", find(values, "javaText").getString("type"));
+            var nested = find(values, "nested");
+            assertEquals("studio_JavascriptDebuggerTest:S:Probe", find(
+                session.properties(pause, nested.getString("ref"), 0).getJSONArray("variables"), "name").getString("value"));
+            assertTrue(find(values, "javaHostile").getString("value").startsWith("[Java "));
+            assertTrue(session.evaluate(0, pause, "javaHostile").getString("result").startsWith("[Java "));
+            session.resume("go", pause); future.get(2, TimeUnit.SECONDS);
+        }
+    }
+    @Test public void wrappedJavaStringsKeepPreviewAndFullValueLimits() throws Exception {
+        try (var pool = Executors.newCachedThreadPool(); var session = new JavascriptDebugSession()) {
+            session.breakpoint("java-long-string", 2, true);
+            var future = pool.submit(() -> {
+                try (var lease = session.enter()) {
+                    var cx = Context.getCurrentContext(); var scope = cx.initStandardObjects();
+                    scope.put("javaText", scope, new org.mozilla.javascript.NativeJavaObject(scope, "x".repeat(70000), org.mozilla.javascript.lc.type.TypeInfo.STRING));
+                    return cx.evaluateString(scope, "var holder={value:javaText};\njavaText;", "java-long-string", 1, null);
+                }
+            });
+            long pause = paused(session, 0).getLong("pauseId");
+            var text = find(session.variables(0, pause).getJSONArray("scope"), "javaText");
+            assertEquals("x".repeat(500) + "…", text.getString("value"));
+            assertTrue(text.getBoolean("fullValue"));
+            var full = session.value(pause, text.getString("ref"));
+            assertEquals(65536, full.getString("value").length());
+            assertTrue(full.getBoolean("truncated"));
+            assertEquals("x".repeat(500) + "…", session.evaluate(0, pause, "javaText").getString("result"));
+            session.resume("go", pause); future.get(2, TimeUnit.SECONDS);
+        }
+    }
+
 }
