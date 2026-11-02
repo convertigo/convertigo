@@ -38,6 +38,8 @@
 	 * @property {string} originalValue
 	 * @property {string} language
 	 * @property {boolean=} readOnly
+	 * @property {string=} debugLabel
+	 * @property {boolean=} debugSource
 	 * @property {boolean=} sourceDocument
 	 * @property {string=} revision
 	 * @property {boolean=} focused
@@ -61,6 +63,7 @@
 	 *  onSave?: (id: string, result?: any) => void | Promise<void>,
 	 *  onMutationBusyChange?: (busy: boolean, handled?: boolean) => void,
 	 *  onSelectObject?: (id: string) => void,
+	 *  debugTarget?: { source: any, frame: any, serial: number } | null,
 	 *  reloadProject?: { projectName: string, serial: number } | null
 	 * }}
 	 */
@@ -71,7 +74,8 @@
 		onSave,
 		onMutationBusyChange = () => {},
 		onSelectObject = () => {},
-		reloadProject = null
+		reloadProject = null,
+		debugTarget = null
 	} = $props();
 
 	let { properties, onSelectionChange, save, cancel } = $derived(createDatabaseObjectProperties());
@@ -118,9 +122,10 @@
 		const url = activeTab?.scriptUrl;
 		let disposed = false;
 		debugValues = null;
-		const index = state?.stopped
-			? (state.frames?.findIndex((frame) => frame.url === url) ?? -1)
-			: -1;
+		const index =
+			state?.stopped && state.frames?.[debugSession.frameIndex]?.url === url
+				? debugSession.frameIndex
+				: -1;
 		if (index >= 0)
 			void inspectFrame(index)?.then((values) => {
 				if (!disposed) debugValues = variablePreviews(values);
@@ -131,9 +136,10 @@
 	});
 	let currentLine = $derived.by(() => {
 		// the line where the debugger stopped in the script of the tab
-		const frame = debugSession.state?.stopped
-			? debugSession.state.frames?.find((frame) => frame.url === activeTab?.scriptUrl)
+		const selected = debugSession.state?.stopped
+			? debugSession.state.frames?.[debugSession.frameIndex]
 			: undefined;
+		const frame = selected?.url === activeTab?.scriptUrl ? selected : undefined;
 		return frame ? frame.line - (activeTab?.scriptOffset ?? 0) : 0;
 	});
 	let breakpointNotice = $state('');
@@ -221,6 +227,74 @@
 		});
 	});
 
+	let lastDebugTarget = 0;
+	$effect(() => {
+		const target = debugTarget;
+		if (target && target.serial !== lastDebugTarget) {
+			lastDebugTarget = target.serial;
+			untrack(() => void openDebugSource(target));
+		}
+	});
+	async function openDebugSource(target) {
+		const { source, frame } = target;
+		const location = source.location ?? {};
+		let tab = editorTabs.find(
+			(tab) =>
+				tab.scriptUrl === source.url ||
+				(location.id &&
+					tab.id === location.id &&
+					(location.file ? tab.sourceDocument : tab.propertyName === location.property))
+		);
+		if (!tab && location.id) {
+			if (location.file) await openSourceDocument(location.id);
+			else {
+				const response = await call(
+					'studio.properties.Get',
+					{ id: location.id },
+					{ silentError: () => true }
+				);
+				if (debugTarget?.serial !== target.serial) return;
+				const property = Object.entries(response?.properties ?? {})
+					.map(([displayName, value]) => ({ displayName, ...value }))
+					.find((property) => property.name === location.property);
+				if (property) openEditorTab(location.id, property, null);
+			}
+			tab = editorTabs.find(
+				(tab) =>
+					tab.id === location.id &&
+					(location.file ? tab.sourceDocument : tab.propertyName === location.property)
+			);
+		}
+		if (debugTarget?.serial !== target.serial) return;
+		if (!tab) {
+			// A runtime-created script has no editable property: keep its snapshot in the main editor.
+			const key = `debug:${source.url}`;
+			tab = {
+				key,
+				id: source.url,
+				propertyName: '',
+				displayName: location.label ?? source.url,
+				content: source.source,
+				originalValue: source.source,
+				language: 'javascript',
+				readOnly: true,
+				debugSource: true
+			};
+			editorTabs.push(tab);
+			tab = editorTabs.find((item) => item.key === key);
+		}
+		if (!tab) return;
+		const offset = Number(location.offset) || 0;
+		tab.debugLabel = location.label;
+		tab.scriptUrl = source.url;
+		tab.scriptOffset = offset;
+		tab.breakpoints = source.breakpoints.map((line) => line - offset).filter((line) => line > 0);
+		tab.revealLine = frame.line - offset;
+		tab.revealSerial = target.serial;
+		tab.focused = true;
+		activeTabKey = tab.key;
+	}
+
 	/**
 	 * @param {any} target
 	 * @param {string} id
@@ -234,12 +308,17 @@
 	}
 
 	/**
-	 * The JavaScript properties of the objects the engine runs, sequences and connectors, can hold
+	 * JavaScript properties and project files can hold
 	 * breakpoints of the debugger.
 	 * @param {EditorTab} tab
 	 */
 	function isDebuggable(tab) {
-		return !tab.sourceDocument && tab.language === 'javascript' && /\.(sq|cn):/.test(tab.id);
+		return (
+			tab.language === 'javascript' &&
+			(tab.debugSource ||
+				(tab.sourceDocument && tab.id.includes('/')) ||
+				(!tab.sourceDocument && /\.(sq|cn):/.test(tab.id)))
+		);
 	}
 
 	/**
@@ -249,11 +328,15 @@
 	async function callDebugger(tab, params = { action: 'breakpoints' }) {
 		const result = await debugCommand(params.action, {
 			...params,
-			id: tab.id,
-			property: tab.propertyName
+			...(tab.sourceDocument || tab.debugSource
+				? { url: tab.scriptUrl ?? tab.id }
+				: { id: tab.id, property: tab.propertyName })
 		});
 		if (Array.isArray(result?.breakpoints)) {
-			tab.breakpoints = result.breakpoints.map(Number);
+			tab.breakpoints = result.breakpoints.map(
+				(line) =>
+					Number(line) - (tab.sourceDocument || tab.debugSource ? (tab.scriptOffset ?? 0) : 0)
+			);
 		}
 		if (result?.url) {
 			tab.scriptUrl = String(result.url);
@@ -284,7 +367,7 @@
 		}
 		const result = await callDebugger(tab, {
 			action: 'breakpoint',
-			line: String(line),
+			line: String(line + (tab.sourceDocument || tab.debugSource ? (tab.scriptOffset ?? 0) : 0)),
 			set: String(!(tab.breakpoints ?? []).includes(line))
 		});
 		breakpointNotice = result?.accepted === false ? `No breakpoint can stop at line ${line}` : '';
@@ -838,7 +921,7 @@
 						role="tab"
 						aria-selected={tab.key === activeTabKey}
 						class="studio-editor__tab-main"
-						title={`${tab.displayName} - ${tab.id}`}
+						title={tab.debugLabel ?? `${tab.displayName} - ${tab.id}`}
 						onclick={() => selectEditorTab(tab)}
 					>
 						<span class="studio-editor__tab-dirty"
@@ -865,11 +948,13 @@
 	{#if activeTab}
 		<div class="studio-editor__toolbar layout-x-between-low">
 			<div class="studio-editor__title">
-				<strong class="studio-ellipsis">{activeTab.displayName}</strong>
+				<strong class="studio-ellipsis" title={activeTab.debugLabel}
+					>{activeTab.debugLabel ?? activeTab.displayName}</strong
+				>
 				<span class="studio-ellipsis"
 					>{activeTab.sourceDocument
 						? activeTab.propertyName.replace(/^source:/, '')
-						: activeTab.id}</span
+						: (activeTab.debugLabel ?? activeTab.id)}</span
 				>
 			</div>
 			<div class="studio-editor__actions layout-x-low">

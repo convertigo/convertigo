@@ -1,5 +1,4 @@
 <script>
-	import { convertProjectYaml } from '#lib/studio/projectYaml.js';
 	import { subscribeAdminEvents } from '#lib/admin/adminEvents.js';
 	import Projects from '#lib/common/Projects.svelte.js';
 	import TestPlatform from '#lib/common/TestPlatform.svelte.js';
@@ -31,6 +30,7 @@
 	} from '#lib/studio/flowAuthoring.js';
 	import { loadPaletteContext, parentPaletteId } from '#lib/studio/paletteContext.js';
 	import { projectFileFolders } from '#lib/studio/projectFileFolders.js';
+	import { convertProjectYaml } from '#lib/studio/projectYaml.js';
 	import { settlePropertyApply } from '#lib/studio/propertyApply.svelte.js';
 	import {
 		findPrimaryEditorProperty,
@@ -325,6 +325,7 @@
 	let logsPanelOpen = $derived(DOCK_BOTTOM_VIEWS.some((id) => dockVisible[id]));
 	/** @type {EditorTarget | null} */
 	let editorTarget = $state(null);
+	let debugTarget = $state(/** @type {{source: any, frame: any, serial: number} | null} */ (null));
 	/** @type {EditorTarget | null} */
 	let pickerTarget = $state(null);
 	/** @type {{ id: string, propertyName: string, serial: number } | null} */
@@ -3780,6 +3781,7 @@
 	<StudioEditorPanel
 		selectedId={viewSelectedId}
 		{editorTarget}
+		{debugTarget}
 		active={codeEditorActive}
 		onSave={refreshAfterPropertySave}
 		onMutationBusyChange={onStudioMutationBusyChange}
@@ -3910,6 +3912,23 @@
 {#snippet debugPane()}
 	<StudioDebugPanel
 		active={Boolean(dockVisible.debug)}
+		onOpenSource={(source, frame) => {
+			const location = source.location;
+			if (location?.id) {
+				editorTarget = {
+					id: location.id,
+					propertyName: location.property,
+					sourceDocument: location.file === true,
+					line: frame.line - (location.offset ?? 0),
+					serial: Date.now()
+				};
+				selectedId = location.id;
+			}
+			debugTarget = { source, frame, serial: Date.now() };
+			if (profile === 'frontend') setFrontendResult('code');
+			else setWorkPanel('code');
+			dock?.show('editor');
+		}}
 		onStopped={() => {
 			// a script stopped on a breakpoint: the debugger shows, as the Eclipse Studio shows it
 			dock?.show('debug');

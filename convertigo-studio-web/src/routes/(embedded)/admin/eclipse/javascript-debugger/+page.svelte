@@ -7,5 +7,5 @@
 </svelte:head>
 
 <div class="h-full min-h-0 w-full overflow-hidden p-low">
-	<StudioDebugPanel active standalone eclipse />
+	<StudioDebugPanel active eclipse />
 </div>

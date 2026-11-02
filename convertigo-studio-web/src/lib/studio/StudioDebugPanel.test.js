@@ -61,14 +61,13 @@ describe('JavaScript debugger component and session', () => {
 		for (const label of [
 			'this',
 			'Locals',
-			'Alls',
+			'All scopes',
 			'Watch expression',
 			'Add watch',
 			'Break on function entry',
 			'Break on function return',
 			'Debug Eclipse launches',
-			'A second request is refused',
-			'Run a sequence from this view (optional)'
+			'A second request is refused'
 		])
 			expect(paused).toContain(label);
 		followDebugger(state({ stopped: false, studioRequests: true, serial: 2 }));
@@ -82,6 +81,25 @@ describe('JavaScript debugger component and session', () => {
 		expect(render(StudioDebugPanel, { props: { eclipse: true } }).body).toContain(
 			'Ready — Eclipse launches are not selected.'
 		);
+	});
+
+	it('keeps code and launch form out of Eclipse and the dock, with admin switches and a selected scope tab', () => {
+		for (const props of [{ eclipse: true, standalone: true }, {}]) {
+			const html = render(StudioDebugPanel, { props }).body;
+			expect(html).not.toContain('Source editor');
+			expect(html).not.toContain('Choose a script');
+			expect(html).not.toContain('Run a sequence from this view');
+			expect(html).toContain('c8o-switch');
+			expect(html).toContain('aria-selected="true"');
+			expect(html).toContain('debug-badge');
+		}
+	});
+	it('shows a running state between pauses with a persistent inspection shell', () => {
+		followDebugger(state({ stopped: false, running: true, frames: [], serial: 2 }));
+		const html = render(StudioDebugPanel).body;
+		expect(html).toContain('Running — waiting for the next pause');
+		expect(html).toContain('Variables will appear at the next pause');
+		expect(html).toContain('Call stack');
 	});
 
 	it('shows a disabled server gate', () => {

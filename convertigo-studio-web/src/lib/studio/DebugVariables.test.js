@@ -1,27 +1,45 @@
 import { render } from 'svelte/server';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import DebugVariables from './DebugVariables.svelte';
 
-it('renders nested snapshots and limits while escaping names and values', () => {
+it('renders shallow property rows, escaped values, type and an accessible expansion control', () => {
+	const load = vi.fn();
 	const html = render(DebugVariables, {
 		props: {
+			load,
 			variables: [
+				{ name: 'object', value: '[Object]', type: 'object', ref: '1', expandable: true },
 				{
-					name: 'obj',
-					value: '[Object]',
-					children: [
-						{
-							name: 'items',
-							value: '[Array]',
-							children: [{ name: '0', value: '<script>private</script>', limited: true }]
-						}
-					]
+					name: '<name>',
+					value: '<script>private</script>',
+					type: 'string',
+					fullValue: true,
+					ref: '2'
 				}
 			]
 		}
 	}).body;
-	expect(html.match(/<details/g)).toHaveLength(2);
-	expect(html).toContain('Inspection limit reached');
-	expect(html).toContain('&lt;script');
+	for (const text of [
+		'Name',
+		'Value',
+		'Type',
+		'Expand object',
+		'aria-expanded="false"',
+		'Show value of',
+		'&lt;script'
+	])
+		expect(html).toContain(text);
 	expect(html).not.toContain('<script>private');
+	expect(html).not.toContain('Inspection limit reached');
+	expect(load).not.toHaveBeenCalled();
+});
+it('offers the next page of a large scope instead of losing its remaining bindings', () => {
+	const html = render(DebugVariables, {
+		props: {
+			variables: [{ name: 'item99', value: '99', type: 'number' }],
+			reference: 'scope',
+			nextOffset: 100
+		}
+	}).body;
+	expect(html).toContain('Load next 100 properties');
 });
