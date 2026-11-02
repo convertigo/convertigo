@@ -46,10 +46,26 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	private static final class Worker {
 		final List<Frame> frames = new ArrayList<>();
 		volatile long evaluationDeadline;
+		Scriptable providerBoundary;
 	}
 	public JavascriptDebugSession() { this(JavascriptDebugger.pauseTimeoutMillis()); }
 	JavascriptDebugSession(long pauseTimeoutMillis) { this.pauseTimeoutMillis = pauseTimeoutMillis; }
-	public void flowWithoutDebugging() { synchronized (lock) { notice = "Flow code runs without debugging"; event("flowWithoutDebugging"); } }
+	public void flowWithoutDebugging() { synchronized (lock) { notice = "Flow orchestration runs without line debugging; no private block implementation has executed yet."; event("flowWithoutDebugging"); } }
+	void providerDebuggable() { synchronized (lock) { notice = "Rhino block implementations are debuggable; Flow orchestration and shared libraries/modules run compiled."; } }
+	void registerProviderSource(String url) {
+		synchronized (lock) {
+			if (closed) return;
+			if (locations.size() >= MAX_SOURCES && !locations.containsKey(url)) locations.remove(locations.keySet().iterator().next());
+			locations.put(url, json("id", url, "file", true, "label", url,
+					"offset", com.twinsoft.convertigo.engine.util.CopilotHelper.addInstruction(null, "").split("\n", -1).length - 1));
+		}
+	}
+	JavascriptDebugger.DebugSuspension providerScopes(Object data, Scriptable boundary) {
+		var worker = (Worker) data;
+		var previous = worker.providerBoundary;
+		worker.providerBoundary = boundary;
+		return () -> worker.providerBoundary = previous;
+	}
 	public void unsupportedRuntime() { synchronized (lock) { notice = UNSUPPORTED_RUNTIME; event("unsupportedRuntime"); } }
 	private final List<JSONObject> events = new ArrayList<>();
 	private long serial, pauseId, seen = System.currentTimeMillis();
@@ -192,9 +208,10 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	private final class Frame implements DebugFrame {
 		final DebuggableScript script;
 		final Worker worker;
+		final Scriptable providerBoundary;
 		Scriptable scope, thisObject;
 		int line;
-		Frame(DebuggableScript script, Worker worker) { this.script = script; this.worker = worker; }
+		Frame(DebuggableScript script, Worker worker) { this.script = script; this.worker = worker; this.providerBoundary = worker.providerBoundary; }
 		String url() { return script.getSourceName() == null ? "<script>" : script.getSourceName(); }
 		@Override public void onEnter(Context cx, Scriptable scope, Scriptable self, Object[] args) {
 			synchronized (lock) { this.scope = scope; thisObject = self; worker.frames.add(this); }
@@ -324,7 +341,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			var frame = frame(index); var scopes = new JSONArray(); var scope = frame.scope;
 			var visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Scriptable, Boolean>());
 			JSONObject local = json("variables", new JSONArray());
-			for (int level = 0; scope != null && level < 8 && visited.add(scope); level++, scope = scope.getParentScope()) {
+			for (int level = 0; scope != null && scope != frame.providerBoundary && level < 8 && visited.add(scope); level++, scope = scope.getParentScope()) {
 				var page = inspection.page(scope, 0);
 				page = json("name", level == 0 ? "Local" : "Parent " + level, "ref", inspection.reference(scope),
 						"variables", page.optJSONArray("variables"), "nextOffset", page.optInt("nextOffset", -1));
@@ -338,10 +355,11 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 				local = json("variables", page.optJSONArray("variables"), "ref", inspection.reference(bindings),
 						"nextOffset", page.optInt("nextOffset", -1));
 			}
-			var receiver = inspection.page(frame.thisObject, 0);
+			var receiverObject = frame.thisObject == frame.providerBoundary ? null : frame.thisObject;
+			var receiver = inspection.page(receiverObject, 0);
 			return json("scope", local.optJSONArray("variables"), "scopeRef", local.optString("ref"),
 					"scopeNextOffset", local.optInt("nextOffset", -1), "scopes", scopes,
-					"this", receiver.optJSONArray("variables"), "thisRef", inspection.reference(frame.thisObject),
+					"this", receiver.optJSONArray("variables"), "thisRef", inspection.reference(receiverObject),
 					"thisNextOffset", receiver.optInt("nextOffset", -1));
 		});
 	}

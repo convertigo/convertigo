@@ -46,21 +46,83 @@ public final class JavascriptDebugger {
 	public interface DebugSuspension extends AutoCloseable {
 		@Override void close();
 	}
+	private static final Object PROVIDER_BINDING = new Object();
+	private static final Object PROVIDER_CONSTRUCTION = new Object();
+	private record ProviderBinding(JavascriptDebugSession session, Object worker) { }
 	public static DebugSuspension suspendForFlow() {
 		var cx = org.mozilla.javascript.Context.getCurrentContext();
 		if (cx == null || !(cx.getDebugger() instanceof JavascriptDebugSession session)) return null;
 		var data = cx.getDebuggerContextData();
+		var previous = cx.getThreadLocal(PROVIDER_BINDING);
 		var interpreted = cx.isInterpretedMode();
 		var generating = cx.isGeneratingDebug();
-		session.flowWithoutDebugging();
+		if (previous == null) session.flowWithoutDebugging();
+		cx.putThreadLocal(PROVIDER_BINDING, new ProviderBinding(session, data));
 		cx.setDebugger(null, null);
 		cx.setGeneratingDebug(false);
 		cx.setInterpretedMode(false);
 		return () -> {
+			if (previous == null) cx.removeThreadLocal(PROVIDER_BINDING); else cx.putThreadLocal(PROVIDER_BINDING, previous);
 			cx.setInterpretedMode(interpreted);
 			cx.setGeneratingDebug(generating);
 			cx.setDebugger(session, data);
 		};
+	}
+	/** Shared builders cannot attach a private implementation, even through nested callbacks. */
+	public static DebugSuspension providerConstruction() {
+		var cx = org.mozilla.javascript.Context.getCurrentContext();
+		if (cx == null || cx.getThreadLocal(PROVIDER_BINDING) == null) return null;
+		var previous = cx.getThreadLocal(PROVIDER_CONSTRUCTION);
+		var suspension = suspendForFlow();
+		cx.putThreadLocal(PROVIDER_CONSTRUCTION, Boolean.TRUE);
+		return () -> {
+			if (previous == null) cx.removeThreadLocal(PROVIDER_CONSTRUCTION); else cx.putThreadLocal(PROVIDER_CONSTRUCTION, previous);
+			if (suspension != null) suspension.close();
+		};
+	}
+	public static boolean providerDebugging() {
+		var cx = org.mozilla.javascript.Context.getCurrentContext();
+		return cx != null && cx.getThreadLocal(PROVIDER_BINDING) instanceof ProviderBinding binding
+				&& cx.getThreadLocal(PROVIDER_CONSTRUCTION) == null && !binding.session.expired(System.currentTimeMillis());
+	}
+	/** Compile and initialize invocation-owned code, never a cache entry. Initializers cannot pause. */
+	public static org.mozilla.javascript.Scriptable compileProviderImplementation(String source, String url,
+			org.mozilla.javascript.Scriptable scope) {
+		var cx = org.mozilla.javascript.Context.getCurrentContext();
+		var binding = cx == null ? null : (ProviderBinding) cx.getThreadLocal(PROVIDER_BINDING);
+		if (binding == null || cx.getThreadLocal(PROVIDER_CONSTRUCTION) != null)
+			throw new IllegalStateException("Private code cannot be compiled during shared preparation.");
+		var debugger = cx.getDebugger(); var data = cx.getDebuggerContextData();
+		boolean interpreted = cx.isInterpretedMode(), generating = cx.isGeneratingDebug();
+		try {
+			cx.setInterpretedMode(true); cx.setGeneratingDebug(true);
+			cx.setDebugger(binding.session, binding.worker);
+			binding.session.registerProviderSource(url);
+			var script = cx.compileString(com.twinsoft.convertigo.engine.util.CopilotHelper.addInstruction(null, source), url, 1, null);
+			cx.setDebugger(null, null);
+			try (var construction = providerConstruction()) {
+				return (org.mozilla.javascript.Scriptable) script.exec(cx, scope);
+			}
+		} finally {
+			cx.setDebugger(debugger, data); cx.setInterpretedMode(interpreted); cx.setGeneratingDebug(generating);
+		}
+	}
+	/** Reattach only around a private function; parent provider globals stay outside inspected scopes. */
+	public static Object callProviderFunction(org.mozilla.javascript.Function function, org.mozilla.javascript.Scriptable self,
+			Object[] args, org.mozilla.javascript.Scriptable boundary) {
+		var cx = org.mozilla.javascript.Context.getCurrentContext();
+		var binding = (ProviderBinding) cx.getThreadLocal(PROVIDER_BINDING);
+		if (binding == null || cx.getThreadLocal(PROVIDER_CONSTRUCTION) != null)
+			throw new IllegalStateException("Private code cannot execute during shared preparation.");
+		var debugger = cx.getDebugger(); var data = cx.getDebuggerContextData();
+		boolean interpreted = cx.isInterpretedMode(), generating = cx.isGeneratingDebug();
+		try (var scopes = binding.session.providerScopes(binding.worker, boundary)) {
+			cx.setInterpretedMode(true); cx.setGeneratingDebug(true); cx.setDebugger(binding.session, binding.worker);
+			binding.session.providerDebuggable();
+			return function.call(cx, boundary, self == null ? boundary : self, args);
+		} finally {
+			cx.setDebugger(debugger, data); cx.setInterpretedMode(interpreted); cx.setGeneratingDebug(generating);
+		}
 	}
 	/** Refuse shared/prepared code before accessing caches; expose a value-free reason to the UI. */
 	public static void requireUnsharedRuntime(org.mozilla.javascript.Context cx) {

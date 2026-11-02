@@ -285,7 +285,7 @@ public final class FlowRuntimeApi {
             hits.increment();
             return value;
         }
-        try {
+        try (var construction = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.providerConstruction()) {
             value = builder.call();
             if (value == null) throw new IllegalStateException("A prepared value must be non-null");
         } catch (Throwable failure) {
@@ -304,7 +304,10 @@ public final class FlowRuntimeApi {
     }
 
     private Object build(Callable<Object> builder) throws Exception {
-        Object value = builder.call();
+        Object value;
+        try (var construction = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.providerConstruction()) {
+            value = builder.call();
+        }
         if (value == null) throw new IllegalStateException("A prepared value must be non-null");
         builds.increment();
         return value;
