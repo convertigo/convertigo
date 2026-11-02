@@ -57,7 +57,8 @@ final class RedisSessionStore implements SessionStore {
 	 */
 	static final Set<String> PREFETCHED_ATTRIBUTES = Set.of(SessionAttribute.authenticatedUser.value(),
 			SessionAttribute.countedSession.value(), SessionAttribute.exception.value(), "customController",
-			"convertigo.session.timeout", Parameter.UIid.name(), Parameter.DeviceUUID.name());
+			"convertigo.session.timeout", Parameter.UIid.name(), Parameter.DeviceUUID.name(),
+			SessionAttribute.billingUser.value());
 	private static final Set<String> META_AND_PREFETCHED_FIELDS;
 	static {
 		var fields = new HashSet<String>(META_FIELDS);
@@ -206,6 +207,7 @@ final class RedisSessionStore implements SessionStore {
 		try {
 			String raw = buildBillingSnapshot(session);
 			String previous = countedSessionsBillingIndex.putIfAbsent(session.getId(), raw);
+			markBillingUser(session);
 			if (previous == null) {
 				return true;
 			}
@@ -229,18 +231,31 @@ final class RedisSessionStore implements SessionStore {
 			if (authenticatedUser == null || authenticatedUser.isBlank()) {
 				return;
 			}
-			String raw = countedSessionsBillingIndex.get(session.getId());
-			if (raw == null || raw.isBlank()) {
+			if (authenticatedUser.equals(SessionAttribute.billingUser.get(session))) {
+				// a previous request of the session already gave this user to its snapshot: nothing to read
 				return;
 			}
-			var json = new JSONObject(raw);
-			if (!authenticatedUser.equals(json.optString("authenticatedUser"))) {
-				json.put("authenticatedUser", authenticatedUser);
-				countedSessionsBillingIndex.fastPut(session.getId(), json.toString());
+			String raw = countedSessionsBillingIndex.get(session.getId());
+			if (raw != null && !raw.isBlank()) {
+				var json = new JSONObject(raw);
+				if (!authenticatedUser.equals(json.optString("authenticatedUser"))) {
+					json.put("authenticatedUser", authenticatedUser);
+					countedSessionsBillingIndex.fastPut(session.getId(), json.toString());
+				}
 			}
+			// without snapshot, none is made for the session later on: no need to read it again either
+			SessionAttribute.billingUser.set(session, authenticatedUser);
 		} catch (Exception e) {
 			Engine.logRedis.debug("(RedisSessionStore) Failed to sync counted session billing authenticated user for "
 					+ session.getId() + ": " + e.getMessage());
+		}
+	}
+
+	/** The user the billing snapshot of the session has, kept in the session, read with its metadata. */
+	private static void markBillingUser(HttpSession session) {
+		String authenticatedUser = SessionAttribute.authenticatedUser.get(session, "");
+		if (authenticatedUser != null && !authenticatedUser.isBlank()) {
+			SessionAttribute.billingUser.set(session, authenticatedUser);
 		}
 	}
 

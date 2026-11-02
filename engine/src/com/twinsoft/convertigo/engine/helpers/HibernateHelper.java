@@ -19,10 +19,13 @@
 
 package com.twinsoft.convertigo.engine.helpers;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.exception.JDBCConnectionException;
@@ -74,6 +77,30 @@ public class HibernateHelper {
 		});
 	}
 	
+	/** Inserts the objects in a single transaction: all of them, or none of them when it throws. */
+	public void insertAll(final List<?> objects) {
+		retry(() -> {
+			try (StatelessSession session = getSession()) {
+				Transaction transaction = session.beginTransaction();
+				try {
+					for (Object obj : objects) {
+						session.insert(obj);
+					}
+					transaction.commit();
+				} catch (RuntimeException e) {
+					try {
+						if (transaction.isActive()) {
+							transaction.rollback();
+						}
+					} catch (RuntimeException rollback) {
+						e.addSuppressed(rollback);
+					}
+					throw e;
+				}
+			}
+		});
+	}
+
 	public void delete(final Object obj) {
 		retry(() -> {
 			try (StatelessSession session = getSession()) {
@@ -91,7 +118,8 @@ public class HibernateHelper {
 				retry = -1;
 			} catch (JDBCConnectionException e) {
 				clearSessionFactory();
-				if (retry > 0) {							
+				// the last attempt is logged: its write is lost
+				if (retry > 1) {							
 					log.debug("(SecurityTokenManager) JDBCConnectionException for removeExpired, retry left: " + retry);
 					ThreadUtils.sleep(200);
 				} else {

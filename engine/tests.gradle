@@ -58,6 +58,9 @@ tasks.named('check') {
 	dependsOn 'ngxBuildSettingsTest'
 	dependsOn 'attachmentStreamingTest'
 	dependsOn 'rhinoConsStringTest'
+	dependsOn 'billingManagerTest'
+	dependsOn 'billingPersistenceTest'
+	dependsOn 'billingAnalyticsTest'
 	dependsOn 'rhinoSessionValuesTest'
 	dependsOn 'rhinoCachedScriptScopeTest'
 	dependsOn 'statisticsTest'
@@ -65,6 +68,7 @@ tasks.named('check') {
 	dependsOn 'redisSessionRewriteTest'
 	dependsOn 'redisSessionReadTest'
 	dependsOn 'redisSessionStoreLiveTest'
+	dependsOn 'redisBillingSnapshotLiveTest'
 	dependsOn 'redisSessionWrittenBeforeResponseTest'
 	dependsOn 'redisContextSavedBeforeUnlockTest'
 	dependsOn 'redisContextExpiredCopyTest'
@@ -445,6 +449,18 @@ tasks.register('redisSessionStoreLiveTest', JavaExec) {
 	}
 }
 
+tasks.register('redisBillingSnapshotLiveTest', JavaExec) {
+	group = 'verification'
+	description = 'Billing snapshot of a counted Redis session against a disposable Redis, skipped without -PredisSessionTestHost=host:port: read at a request only when the authenticated user changed since the snapshot got it.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sessions.RedisBillingSnapshotLiveTest'
+	if (project.hasProperty('redisSessionTestHost')) {
+		systemProperty 'redisSessionTestHost', project.property('redisSessionTestHost')
+	}
+}
+
 tasks.register('redisSessionWrittenBeforeResponseTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: with the Redis session store, what a request changed in its session is stored before its response can reach the client, and the end of the request writes only what changed after.'
@@ -535,6 +551,45 @@ tasks.register('billingInternalCallsTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.BillingInternalCallsTest'
+}
+
+tasks.register('billingManagerTest', JavaExec) {
+	group = 'verification'
+	description = 'The billing tickets of concurrent requests, each written once by every ticket manager, and the billing threads ended with it; a bounded queue per ticket manager, its tickets handed together, written when the billing stops.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.BillingManagerTest'
+}
+
+tasks.register('billingPersistenceTest', JavaExec) {
+	group = 'verification'
+	description = 'The JDBC billing ticket manager on an in-memory database: the tickets handed together written in one transaction, all or none, and only a ticket the database refuses lost.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.BillingPersistenceTest'
+}
+
+tasks.register('billingAnalyticsTest', JavaExec) {
+	group = 'verification'
+	description = 'The HTTP billing ticket manager against a local collector: the tickets handed together posted 25 events at most per request, by user, the same events as one request each.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.BillingAnalyticsTest'
+}
+
+tasks.register('billingBench', JavaExec) {
+	group = 'verification'
+	description = 'Micro benchmark of the billing tickets, from the request threads to the ticket managers (not a test): -PbillingBenchArgs="request threads=1,5,20 manager=sink", "drain manager=db|ga|sink", "shutdown".'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.BillingBench'
+	jvmArgs '-Xms1g', '-Xmx1g'
+	if (project.hasProperty('billingBenchArgs')) {
+		args project.property('billingBenchArgs').toString().split(' ')
+	}
 }
 
 tasks.register('jsonStringifyFallbackTest', JavaExec) {

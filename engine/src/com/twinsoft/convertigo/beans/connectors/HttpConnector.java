@@ -1367,7 +1367,11 @@ public class HttpConnector extends Connector {
 							newuri = newuri.substring(0, split);
 						}
 
-						checkRedirectDestination(transaction, method.getURI().getEscapedURI(), newuri);
+						// For https the method only holds the path, the origin is in the host configuration
+						String source = method.getURI().isAbsoluteURI() ? method.getURI().getEscapedURI()
+								: hostConfiguration.getProtocol().getScheme() + "://" + hostConfiguration.getHost()
+										+ ":" + hostConfiguration.getPort() + method.getURI().getEscapedURI();
+						checkRedirectDestination(transaction, source, newuri);
 						redirectUrl = getAbsoluteUrl(method, newuri);
 						Engine.logBeans.debug("(HttpConnector) Redirecting to : " + redirectUrl);
 						result = getData(context, redirectUrl, statuscode < HttpStatus.SC_TEMPORARY_REDIRECT);

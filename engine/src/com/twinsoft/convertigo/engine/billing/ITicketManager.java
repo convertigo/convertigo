@@ -19,10 +19,19 @@
 
 package com.twinsoft.convertigo.engine.billing;
 
+import java.util.List;
 
 public interface ITicketManager {
 
 	public void addTicket(Ticket ticket) throws BillingException;
+
+	/**
+	 * Writes tickets handed together, at once: all of them, or none of them when it throws. Returns false when the
+	 * manager does not write tickets together: they are then handed one by one to {@link #addTicket(Ticket)}.
+	 */
+	public default boolean addTickets(List<Ticket> tickets) throws BillingException {
+		return false;
+	}
 
 	public void removeTicket(Ticket ticket) throws BillingException;
 	

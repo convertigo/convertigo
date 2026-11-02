@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.engine.billing;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
 import com.twinsoft.convertigo.engine.EngineException;
@@ -57,6 +59,24 @@ public class HibernateTicketManager implements ITicketManager {
 			log.debug("(HibernateTicketManager) addTicket " + ticket);
 		}
 		hibernateHelper.insert(ticket);
+	}
+
+	/** The tickets in a single transaction: one commit for all of them instead of one each. */
+	@Override
+	public synchronized boolean addTickets(List<Ticket> tickets) throws BillingException {
+		if (log.isDebugEnabled()) {
+			log.debug("(HibernateTicketManager) addTickets " + tickets.size());
+		}
+		try {
+			hibernateHelper.insertAll(tickets);
+		} catch (RuntimeException e) {
+			// rolled back: written again one by one, with the identifiers the database gives them then
+			for (Ticket ticket : tickets) {
+				ticket.setId(0);
+			}
+			throw e;
+		}
+		return true;
 	}
 
 	public synchronized void removeTicket(Ticket ticket) throws BillingException {

@@ -914,6 +914,8 @@ public class EnginePropertiesManager {
 		ANALYTICS_GOOGLE_SECRET ("billing.google.analytics.api_secret", "", "Google Analytics API Secret", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		ANALYTICS_OLD_GOOGLE_ID ("billing.google.analytics.id", "", "Google Old Analytics ID", PropertyCategory.Analytics),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
+		ANALYTICS_QUEUE_CAPACITY ("billing.queue.capacity", "100000", "Maximum number of analytics tickets waiting for each ticket manager: beyond, a ticket is dropped and counted", PropertyCategory.Analytics),
 
 
 		/** NOTIFICATIONS */

@@ -26,9 +26,6 @@ public class ChildInvocationTest {
     Context parent;
     List<Ticket> tickets;
     final Map<String,String> properties = new HashMap<>();
-    static void field(Object target, String name, Object value) throws Exception {
-        var f = BillingManager.class.getDeclaredField(name); f.setAccessible(true); f.set(target, value);
-    }
     @Before public void setup() throws Exception {
         for (var key : List.of("convertigo.javascript.stateless", "convertigo.javascript.direct_calls")) properties.put(key, System.getProperty(key));
         System.setProperty("convertigo.javascript.stateless", "true"); System.clearProperty("convertigo.javascript.direct_calls");
@@ -37,11 +34,12 @@ public class ChildInvocationTest {
             f.set(null, org.apache.log4j.Logger.getLogger("child-invocation-test"));
         previous = Engine.theApp; Engine.theApp = new Engine();
         Engine.theApp.pluginsManager = new PluginsManager();
-        Engine.theApp.billingManager = new BillingManager();
         tickets = new CopyOnWriteArrayList<>();
-        field(Engine.theApp.billingManager, "isDestroying", false);
-        field(Engine.theApp.billingManager, "tickets", tickets);
-        field(Engine.theApp.billingManager, "managers", Collections.singletonList(null));
+        // the tickets as the ticket managers receive them, kept at once
+        Engine.theApp.billingManager = new BillingManager() {
+            @Override public boolean hasActiveManagers() { return true; }
+            @Override protected void enqueueTicket(Ticket ticket) { tickets.add(ticket); }
+        };
         directory = java.nio.file.Files.createTempDirectory("child-invocation-");
         project = new Project() { @Override public String getDirPath() { return directory.toString(); } @Override public java.io.File getDirFile() { return directory.toFile(); } @Override public ClassLoader getProjectClassLoader() { return getClass().getClassLoader(); } };
         project.setName("Fixture");

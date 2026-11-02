@@ -82,13 +82,10 @@ public abstract class ServletRequester extends GenericRequester {
 	private void checkAccessibility(RequestableObject target, HttpServletRequest request) throws EngineException {
 		// By default, requesters disallow private requestables from being executed
 		if (target.isPrivateAccessibility()) {
-			if (Engine.isStudioMode()) {
-				// In studio mode, all requestables can be executed
-				return;
-			}
-			
+			// Only admin users can execute private requestables over HTTP, in studio mode too: the studio runs its
+			// requestables through internal requesters, and its web tools (test platform, admin views) carry an
+			// admin session
 			if (mayExecutePrivate(request)) {
-				// Only admin users can execute private requestables
 				return;
 			}
 			
@@ -109,8 +106,8 @@ public abstract class ServletRequester extends GenericRequester {
 	/**
 	 * Gives the same plain answer to a request whose project, sequence, connector or transaction does not
 	 * exist, cannot be chosen or may not be executed, when the caller may not execute private requestables:
-	 * the answer does not tell which requestables exist. The server log keeps the reason, and the Studio and
-	 * the administrators get it.
+	 * the answer does not tell which requestables exist. The server log keeps the reason, and the administrators
+	 * get it.
 	 */
 	@Override
 	public Throwable getCallerError(Throwable e) {
@@ -122,7 +119,7 @@ public abstract class ServletRequester extends GenericRequester {
 		}
 		HttpServletRequest request = inputData instanceof HttpServletRequest httpRequest
 				? httpRequest : context == null ? null : context.httpServletRequest;
-		if (unavailable == null || Engine.isStudioMode() || mayExecutePrivate(request)) {
+		if (unavailable == null || mayExecutePrivate(request)) {
 			return e;
 		}
 		Engine.logContext.info(unavailable.getMessage());

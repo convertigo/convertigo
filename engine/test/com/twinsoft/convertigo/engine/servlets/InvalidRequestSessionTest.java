@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.JobManager;
+import com.twinsoft.convertigo.engine.RequestableUnavailableException;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
@@ -137,6 +138,47 @@ public class InvalidRequestSessionTest {
 		requester.inputData = request.proxy();
 		assertSame(expected, requester.getContext());
 		assertEquals(0, request.creations);
+	}
+
+	@Test public void privateTargetsAreRejectedInStudioModeUnlessTheCallerIsAnAdmin() throws Exception {
+		var mode = Engine.class.getDeclaredField("bStudioMode");
+		mode.setAccessible(true);
+		var previous = mode.getBoolean(null);
+		mode.setBoolean(null, true);
+		try {
+			sequence.setAccessibility(Accessibility.Private);
+			// anonymous, then authenticated by the application without the admin role
+			for (var session : new HttpSession[] { null, session(true) }) {
+				var request = new Request(Map.of("__sequence", "Check"), session);
+				var requester = new TestRequester(false);
+				requester.inputData = request.proxy();
+				var refusal = assertThrows(RequestableUnavailableException.class, requester::getContext);
+				assertEquals(0, request.creations);
+				assertNull(requester.context);
+				// the caller gets the answer of an unknown requestable
+				requester.context = new Context("refused");
+				assertEquals("Unable to execute the requested requestable.", requester.getCallerError(refusal).getMessage());
+			}
+			// the admin session of the Studio tools (test platform, admin views)
+			var session = session(false);
+			session.setAttribute(SessionKey.ADMIN_ROLES.toString(), new Role[] { Role.WEB_ADMIN, Role.TEST_PLATFORM_PRIVATE });
+			var expected = new Context("test_default");
+			Engine.theApp.contextManager = new ContextManager() {
+				@Override public Context get(com.twinsoft.convertigo.engine.requesters.Requester requester,
+						String name, String prefix, String pool, String project, String connector, String sequence) {
+					return expected;
+				}
+			};
+			var request = new Request(Map.of("__sequence", "Check"), session);
+			var requester = new TestRequester(false);
+			requester.inputData = request.proxy();
+			assertSame(expected, requester.getContext());
+			// the internal requesters of the Studio, the scheduler and the steps do not check the accessibility
+			var internal = new InternalRequester(new HashMap<>(Map.of("__project", "SessionTest", "__sequence", "Check")), new Request(Map.of(), null).proxy());
+			internal.checkAccessibility();
+		} finally {
+			mode.setBoolean(null, previous);
+		}
 	}
 
 	@Test public void missingTargetLeavesAnAuthenticatedOrAnonymousContextUntouched() throws Exception {

@@ -23,7 +23,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.httpclient.HttpException;
@@ -35,6 +38,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
@@ -46,6 +50,9 @@ import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
 
 public class GoogleAnalyticsTicketManager implements ITicketManager {
+	/** the most events in a request */
+	static final int MAX_EVENTS = 25;
+
 	private Logger log;
 	private HttpClientInterface http;
 	private URI url;
@@ -100,55 +107,67 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 	}
 
 	public synchronized void addTicket(Ticket ticket) throws BillingException {
+		post(userId(ticket), List.of(ticket));
+	}
+
+	/**
+	 * The tickets of a same user in a single request, {@link #MAX_EVENTS} at most, the most the collector takes: the
+	 * same events as one request each.
+	 */
+	@Override
+	public synchronized boolean addTickets(List<Ticket> tickets) throws BillingException {
+		var byUser = new LinkedHashMap<String, List<Ticket>>();
+		for (Ticket ticket : tickets) {
+			byUser.computeIfAbsent(userId(ticket), user -> new ArrayList<>()).add(ticket);
+		}
+		for (var entry : byUser.entrySet()) {
+			var userTickets = entry.getValue();
+			for (int i = 0; i < userTickets.size(); i += MAX_EVENTS) {
+				post(entry.getKey(), userTickets.subList(i, Math.min(userTickets.size(), i + MAX_EVENTS)));
+			}
+		}
+		return true;
+	}
+
+	private static String userId(Ticket ticket) {
+		var user = ticket.getUserName();
+		return !"user".equals(user) && StringUtils.isNotBlank(user) ? user : null;
+	}
+
+	private void post(String user, List<Ticket> tickets) {
 		try {
 			var post = new HttpPost(url);
 			post.setConfig(REQUEST_CONFIG);
 			var json = new JSONObject();
 			json.put("client_id", serverHash);
-			var user = ticket.getUserName();
-			if (!"user".equals(user) && StringUtils.isNotBlank(user)) {
+			if (user != null) {
 				json.put("user_id", user);
 			}
 			var events = new JSONArray();
 			json.put("events", events);
-			var event = new JSONObject();
-			events.put(event);
-			var params = new JSONObject();
-			// params.put("debug_mode", 1);
-			params.put("session_id", ticket.getSessionID());
-			params.put("engagement_time_msec", ticket.getResponseTime());
-			if ("session".equals(ticket.getConnectorType())) {
-				event.put("name", "session");
-				params.put("operation", ticket.getConnectorName());
-				params.put("sessions", ticket.getScore());
-			} else {
-				event.put("name", "requestable");
-				params.put("project", ticket.getProjectName());
-				params.put("type", ticket.getRequestableType());
-				if (StringUtils.isBlank(ticket.getConnectorName())) {
-					params.put("requestable", ticket.getRequestableName());
-				} else {
-					params.put("requestable", ticket.getConnectorName() + "." + ticket.getRequestableName());
-					params.put("connector", ticket.getConnectorType());
+			for (Ticket ticket : tickets) {
+				try {
+					events.put(event(ticket));
+				} catch (Exception e) {
+					// only this one is lost, as when sent alone
+					log.error("(GoogleAnalyticsTicketManager) unexpected error: [" + e.getClass().getName() + "] " + e.getMessage());
 				}
 			}
-			params.put("duration", ticket.getResponseTime());
-			params.put("ip_hash", DigestUtils.md5Hex(ticket.getClientIp()));
-			params.put("server_id", serverHash);
-			params.put("device_uuid", ticket.getDeviceUUID());
-			params.put("user_agent", ticket.getUserAgent());
-			var licence_id = getLicenceId();
-			if (licence_id != null) {
-				params.put("licence_id", licence_id);
+			if (events.length() == 0) {
+				return;
 			}
-			event.put("params", params);
 
-			log.info(json.toString());
+			var body = json.toString();
+			if (log.isInfoEnabled()) {
+				log.info(body);
+			}
 
-			post.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
+			post.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
 
 			try (var response = http.execute(post)) {
 				log.debug("[" + response.getStatusLine().getStatusCode() + "]");
+				// read to its end, the connection is kept for the next request
+				EntityUtils.consumeQuietly(response.getEntity());
 			} catch (MalformedURLException e) {
 				log.error("(GoogleAnalyticsTicketManager) error creating GAanalytics HttpClient, bad url: " + e.getClass().getName() + "] " + e.getMessage());
 			} catch (HttpException e) {
@@ -159,6 +178,40 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 		} catch (Exception e) {
 			log.error("(GoogleAnalyticsTicketManager) unexpected error: [" + e.getClass().getName() + "] " + e.getMessage());
 		}
+	}
+
+	private JSONObject event(Ticket ticket) throws Exception {
+		var event = new JSONObject();
+		var params = new JSONObject();
+		// params.put("debug_mode", 1);
+		params.put("session_id", ticket.getSessionID());
+		params.put("engagement_time_msec", ticket.getResponseTime());
+		if ("session".equals(ticket.getConnectorType())) {
+			event.put("name", "session");
+			params.put("operation", ticket.getConnectorName());
+			params.put("sessions", ticket.getScore());
+		} else {
+			event.put("name", "requestable");
+			params.put("project", ticket.getProjectName());
+			params.put("type", ticket.getRequestableType());
+			if (StringUtils.isBlank(ticket.getConnectorName())) {
+				params.put("requestable", ticket.getRequestableName());
+			} else {
+				params.put("requestable", ticket.getConnectorName() + "." + ticket.getRequestableName());
+				params.put("connector", ticket.getConnectorType());
+			}
+		}
+		params.put("duration", ticket.getResponseTime());
+		params.put("ip_hash", DigestUtils.md5Hex(ticket.getClientIp()));
+		params.put("server_id", serverHash);
+		params.put("device_uuid", ticket.getDeviceUUID());
+		params.put("user_agent", ticket.getUserAgent());
+		var licence_id = getLicenceId();
+		if (licence_id != null) {
+			params.put("licence_id", licence_id);
+		}
+		event.put("params", params);
+		return event;
 	}
 
 	public synchronized void removeTicket(Ticket ticket) throws BillingException {
