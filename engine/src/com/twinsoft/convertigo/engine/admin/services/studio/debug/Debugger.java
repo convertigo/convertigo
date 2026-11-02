@@ -147,6 +147,12 @@ public class Debugger extends JSonService {
 	 * property but for a few objects
 	 */
 	public static String scriptName(DatabaseObject dbo, String property) {
+		if (property == null || property.isEmpty()) throw new IllegalArgumentException("Script property required.");
+		try {
+			var getter = dbo.getClass().getMethod("get" + Character.toUpperCase(property.charAt(0)) + property.substring(1));
+			if (getter.getReturnType() == com.twinsoft.convertigo.beans.steps.SmartType.class) return property + "-smartType";
+		} catch (NoSuchMethodException e) { /* Ordinary expression names need no SmartType suffix. */ }
+
 		if (dbo instanceof Transaction && "handlers".equals(property)) {
 			return dbo.getName();
 		}

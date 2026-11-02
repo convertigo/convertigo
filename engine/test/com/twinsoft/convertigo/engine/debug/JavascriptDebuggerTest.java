@@ -18,9 +18,28 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 public class JavascriptDebuggerTest {
+    @Test public void editorPropertyNamesMatchEngineSourcesIncludingSmartTypes() throws Exception {
+        assertEquals("expression", com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(
+                new com.twinsoft.convertigo.beans.steps.SimpleStep(), "expression"));
+        assertEquals("LogStep", com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(
+                new com.twinsoft.convertigo.beans.steps.LogStep(), "expression"));
+        assertEquals("message", com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(
+                new com.twinsoft.convertigo.beans.steps.ExceptionStep(), "expression"));
+        assertEquals("ctxName", com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(
+                new com.twinsoft.convertigo.beans.steps.SequenceStep(), "contextName"));
+        assertEquals("value-smartType", com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(
+                new com.twinsoft.convertigo.beans.steps.JsonFieldStep(), "value"));
+        var transaction = new com.twinsoft.convertigo.beans.transactions.SqlTransaction(); transaction.setName("Handlers");
+        assertEquals("Handlers", com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(transaction, "handlers"));
+    }
+
     @Test public void onlyExplicitEclipseLaunchesJoinInStudioAndBusyRootsAreRefused() throws Exception {
         EnginePropertiesManager.initProperties();
         Engine.logAdmin = Logger.getLogger("debugger-test");
+        String webStudio = EnginePropertiesManager.getProperty(PropertyName.WEB_STUDIO);
+        String debuggerEnabled = EnginePropertiesManager.getProperty(PropertyName.JAVASCRIPT_DEBUGGER);
+        EnginePropertiesManager.setProperty(PropertyName.WEB_STUDIO, "enabled");
+        EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER, "true");
         var mode = Engine.class.getDeclaredField("bStudioMode"); mode.setAccessible(true);
         boolean previous = mode.getBoolean(null);
         var request = new com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest();
@@ -65,6 +84,8 @@ public class JavascriptDebuggerTest {
         } finally {
             JavascriptDebugger.stop("eclipse"); JavascriptDebugger.stop("other-eclipse");
             mode.setBoolean(null, previous);
+            EnginePropertiesManager.setProperty(PropertyName.WEB_STUDIO, webStudio);
+            EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER, debuggerEnabled);
         }
     }
     private HttpServletRequest request(String owner, String marker, boolean admin) {

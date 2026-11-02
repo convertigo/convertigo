@@ -40,7 +40,7 @@ public class JavascriptTextEditor extends AbstractDialogCellEditor implements IJ
 	@Override
 	protected Object openDialogBox(Control cellEditorWindow) {
 		try {
-			JScriptEditorInput.openJScriptEditor(databaseObjectTreeObject, propertyDescriptor.getId().toString());
+			JScriptEditorInput.openJScriptEditor(databaseObjectTreeObject, this);
 		} catch (PartInitException e) {
 			Engine.logStudio.error("failed to open editor", e);
 		}
@@ -65,5 +65,16 @@ public class JavascriptTextEditor extends AbstractDialogCellEditor implements IJ
 	@Override
 	public DatabaseObject getDatabaseObject() {
 		return databaseObjectTreeObject.getObject();
+	}
+
+	public String getDebugPropertyName() {
+		return propertyDescriptor.getId().toString();
+	}
+
+	@Override
+	public String getFullName() {
+		var dbo = getDatabaseObject();
+		return dbo.getShortQName() + "-"
+				+ com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(dbo, getDebugPropertyName());
 	}
 }

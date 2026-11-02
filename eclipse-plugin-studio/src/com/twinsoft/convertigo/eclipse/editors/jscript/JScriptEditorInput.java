@@ -155,6 +155,8 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 		this.dboTree = dboTree;
 		this.jsContainer = jsContainer;
 		if (jsContainer instanceof com.twinsoft.convertigo.beans.core.Transaction) debugProperty = "handlers";
+		else if (jsContainer instanceof com.twinsoft.convertigo.eclipse.property_editors.JavascriptTextEditor editor)
+			debugProperty = editor.getDebugPropertyName();
 		storeDebugSource();
 	}
 

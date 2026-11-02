@@ -225,6 +225,19 @@ public class TextGenericCellEditor extends TextCellEditor {
 				value = CopilotHelper.addInstruction(dbo, value);
 			}
 			SwtUtils.fillFile(input.getFile(), value);
+			if ("js".equals(ext)) {
+				var dbo = databaseObjectTreeObject.getObject();
+				var url = dbo.getShortQName() + "-"
+						+ com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(dbo, propertyDescriptor.getName());
+				try {
+					input.getFile().setPersistentProperty(
+							com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput.DEBUG_SOURCE, url);
+				} catch (org.eclipse.core.runtime.CoreException e) {
+					// Keep source text and property contents out of the generic Studio logs.
+					com.twinsoft.convertigo.eclipse.ConvertigoPlugin.logWarning(null,
+							"Unable to store JavaScript editor breakpoint mapping.", false);
+				}
+			}
 			setEditable(false);
 			
 			if ("md".equals(ext)) {
