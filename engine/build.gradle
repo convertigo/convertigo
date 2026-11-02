@@ -330,7 +330,7 @@ dependencies {
 	compileFlat    'commons-io:commons-io:' + commonsIo
 	compileFlat    'commons-jxpath:commons-jxpath:1.4.0'
 	compileFlat    'org.snakeyaml:snakeyaml-engine:3.2'
-	compileFlat    'org.yaml:snakeyaml:2.6'
+	compileFlat    'org.yaml:snakeyaml:2.7'
 	compileFlat    'io.swagger:swagger-models:1.6.16'
 	compileFlat    'io.swagger:swagger-parser:1.0.76'
 	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.55'
@@ -347,7 +347,7 @@ dependencies {
 	compileFlat    'org.dom4j:dom4j:2.2.0'
 	compileFlat    'org.freemarker:freemarker:2.3.35'
 	// The legacy Reflections dependency otherwise selects a pre-invokedynamic parser.
-	compileFlat    'org.javassist:javassist:3.31.0-GA'
+	compileFlat    'org.javassist:javassist:3.33.0-GA'
 	compileFlat    'org.apache.commons:commons-lang3:' + commonsLang3
 	compileFlat    'org.apache.httpcomponents:httpclient:4.5.14'
 	compileFlat    'org.apache.james:apache-mime4j-core:0.8.15'
@@ -359,7 +359,7 @@ dependencies {
 	compileFlat    'org.apache.ws.commons.schema:XmlSchema:' + xmlSchemaVersion
 	compileFlat    'org.bouncycastle:bcprov-jdk18on:1.86'
 	compileFlat    'org.apache.xmlbeans:xmlbeans:3.1.1-sb-fixed'
-	compileFlat    'org.apache.xmlgraphics:fop:2.11', { exclude module: 'batik-js'}
+	compileFlat    'org.apache.xmlgraphics:fop:2.12', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:1.5.7'
 	compileFlat    'org.codehaus.woodstox:stax2-api:4.3.2'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:7.8.0.202609011348-r'

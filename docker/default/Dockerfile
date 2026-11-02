@@ -29,6 +29,7 @@ RUN apt-get update -y \
     curl \
     dirmngr \
     gnupg \
+    libatomic1 \
     sudo \
     tini \
     unzip \

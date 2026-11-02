@@ -14,7 +14,7 @@ buildscript {
 //}
 
 plugins {
-  id 'io.github.ben-manes.versions' version '0.66.0'
+  id 'io.github.ben-manes.versions' version '0.67.0'
   id 'org.owasp.dependencycheck' version '12.2.2'
 }
 
@@ -37,11 +37,11 @@ ext.convertigoCode = 'At'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '9.5.5'
-ext.swaggerUiVersion = '5.34.0'
+ext.swaggerUiVersion = '5.34.1'
 ext.tomcatVersion = '11.0.27'
 ext.eclipseVersion = '2026-09'
 ext.eclipseBase = '4.41'
-ext.studioWebNodeVersion = '24'
+ext.studioWebNodeVersion = '26'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2026.09.17'
 ext.soapuiVersion = '5.9.1'
 ext.groovyVersion = '3.0.25'

@@ -1461,7 +1461,12 @@
 						class:studio-tree-node__label--modified={marks.modified}
 						class:studio-tree-node__label--error={marks.symbolError}
 						style:color={node.tagGroup ? node.presentation?.color : undefined}
-						title={[marks.modified ? `${label} — Modified, not saved` : '', projectNode && node.yamlFormat ? `YAML format: ${node.yamlFormat}` : ''].filter(Boolean).join(' · ') || undefined}>{label}</span
+						title={[
+							marks.modified ? `${label} — Modified, not saved` : '',
+							projectNode && node.yamlFormat ? `YAML format: ${node.yamlFormat}` : ''
+						]
+							.filter(Boolean)
+							.join(' · ') || undefined}>{label}</span
 					>
 					{#if node.tagGroup}
 						<span class="text-xs opacity-70">({tagGroupCount})</span>

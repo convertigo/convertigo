@@ -15,7 +15,12 @@ describe('project YAML conversion', () => {
 		expect(await convertProjectYaml('Demo', () => true, request)).toBe(true);
 		expect(request).toHaveBeenCalledWith('projects.ConvertYaml', { projectName: 'Demo' });
 	});
-	it.each([{ isError: true }, {}, { admin: { error: 'Cannot save' } }])('does not report a failed conversion as saved (%j)', async (result) => {
-		expect(await convertProjectYaml('Demo', () => true, vi.fn().mockResolvedValue(result))).toBe(false);
-	});
+	it.each([{ isError: true }, {}, { admin: { error: 'Cannot save' } }])(
+		'does not report a failed conversion as saved (%j)',
+		async (result) => {
+			expect(await convertProjectYaml('Demo', () => true, vi.fn().mockResolvedValue(result))).toBe(
+				false
+			);
+		}
+	);
 });

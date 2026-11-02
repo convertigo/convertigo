@@ -51,7 +51,6 @@ describe('Studio tree tag presentation', () => {
 	});
 });
 
-
 describe('project YAML format', () => {
 	it.each(['legacy', 'standard'])('shows %s in the project tooltip', (yamlFormat) => {
 		const { body } = render(StudioTreeNode, {
