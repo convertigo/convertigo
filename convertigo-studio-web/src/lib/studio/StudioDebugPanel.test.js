@@ -5,6 +5,7 @@ import {
 	debugCommand,
 	debugSession,
 	followDebugger,
+	frameScopeGroups,
 	inspectFrame,
 	variablePreviews,
 	watchDebugger
@@ -40,6 +41,24 @@ afterEach(() => {
 	vi.useRealTimers();
 });
 describe('JavaScript debugger component and session', () => {
+	it('preserves participant input and output groups and the legacy Rhino receiver', () => {
+		const variables = {
+			scope: [{ name: 'value', value: '41' }],
+			this: [],
+			scopes: [
+				{ name: 'Inputs', variables: [{ name: 'value', value: '42' }] },
+				{ name: 'Output', variables: [{ name: 'value', value: '42' }] }
+			]
+		};
+		expect(frameScopeGroups(variables, 'example.plugin')).toBe(variables.scopes);
+		expect(frameScopeGroups(variables, 'rhino').map((group) => group.name)).toEqual([
+			'Local',
+			'this',
+			'Output'
+		]);
+		expect(frameScopeGroups(variables, undefined)[0].variables[0].value).toBe('41');
+	});
+
 	it('renders controls, stack and the shared editor container when paused', () => {
 		const html = render(StudioDebugPanel, { props: { active: true, standalone: true } }).body;
 		for (const label of [

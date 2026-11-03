@@ -1,7 +1,7 @@
 import { call } from '#lib/utils/service.js';
 import { setJavascriptDebugSession } from './javascriptDebugRequest.js';
 
-/** @typedef {{ url: string, line: number, function: string, location?: {label: string, id?: string, property?: string, offset?: number} }} DebugFrame */
+/** @typedef {{ url: string, line: number, function: string, kind?: string, location?: {label: string, id?: string, property?: string, offset?: number} }} DebugFrame */
 /** @typedef {{ notice?: string, pauseTimeoutMillis?: number, enabled?: boolean, attached: boolean, sessionId?: string, pauseId?: number, running?: boolean, breakOnExceptions: boolean, breakOnEnter?: boolean, breakOnReturn?: boolean, studioRequests?: boolean, serial: number, sources: string[], sourceLocations?: Record<string, {label: string}>, stopped: boolean, frames?: DebugFrame[], events?: {type: string, serial: number}[] }} DebugState */
 export const debugSession = $state({
 	state: /** @type {DebugState | null} */ (null),
@@ -99,4 +99,27 @@ export function variablePreviews(variables) {
 		}
 	}
 	return values;
+}
+
+/** Participant scope groups are opaque; Rhino keeps its local/receiver presentation.
+ * @param {any} variables @param {string | undefined} kind
+ */
+export function frameScopeGroups(variables, kind) {
+	if (!variables) return [];
+	if (kind && kind !== 'rhino') return variables.scopes ?? [];
+	return [
+		{
+			name: 'Local',
+			variables: variables.scope ?? [],
+			ref: variables.scopeRef,
+			nextOffset: variables.scopeNextOffset ?? -1
+		},
+		{
+			name: 'this',
+			variables: variables.this ?? [],
+			ref: variables.thisRef,
+			nextOffset: variables.thisNextOffset ?? -1
+		},
+		...(variables.scopes ?? []).slice(1)
+	];
 }

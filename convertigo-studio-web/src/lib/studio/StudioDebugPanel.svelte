@@ -6,6 +6,7 @@
 	import {
 		debugCommand,
 		debugSession,
+		frameScopeGroups,
 		inspectFrame,
 		invalidateInspection,
 		variablePreviews,
@@ -43,25 +44,7 @@
 	let watchExpression = $state('');
 	let watches = $state(/** @type {{id: number, expression: string, result: string}[]} */ ([]));
 	let nextWatch = 0;
-	let scopeGroups = $derived(
-		variables
-			? [
-					{
-						name: 'Local',
-						variables: variables.scope ?? [],
-						ref: variables.scopeRef,
-						nextOffset: variables.scopeNextOffset ?? -1
-					},
-					{
-						name: 'this',
-						variables: variables.this ?? [],
-						ref: variables.thisRef,
-						nextOffset: variables.thisNextOffset ?? -1
-					},
-					...(variables.scopes ?? []).slice(1)
-				]
-			: []
-	);
+	let scopeGroups = $derived(frameScopeGroups(variables, frame?.kind));
 	let stateLabel = $derived(
 		debugState?.stopped
 			? 'Paused'

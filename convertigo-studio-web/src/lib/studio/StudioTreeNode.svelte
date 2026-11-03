@@ -25,6 +25,7 @@
 	import { projectFileFolders } from './projectFileFolders.js';
 	import { getSourcePickerDragPayload } from './sourcePickerDnd';
 	import StudioTreeActionMenu from './StudioTreeActionMenu.svelte';
+	import StudioTreeDebugTarget from './StudioTreeDebugTarget.svelte';
 	import { applyProjectedTreeMutation, removeProjectedTreeNode } from './studioTreeMutation';
 	import StudioTreeNode from './StudioTreeNode.svelte';
 	import { nodeDiff, treeDiff } from './treeDiff.svelte.js';
@@ -1372,6 +1373,9 @@
 					</button>
 				{/if}
 			</span>
+			{#if node?.debugTarget}
+				{#key node.debugTarget.url}<StudioTreeDebugTarget target={node.debugTarget} />{/key}
+			{/if}
 			{#if renaming}
 				<form
 					data-node-id={node?.id}

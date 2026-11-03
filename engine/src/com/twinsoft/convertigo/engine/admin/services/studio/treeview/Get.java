@@ -512,6 +512,9 @@ public class Get extends JSonService {
 
 	static void putRenameCapability(DatabaseObject dbo, JSONObject node) throws Exception {
 		if (dbo instanceof FlowVirtualObject virtual) {
+			// Forward an opaque provider target; the debugger owns only its transport.
+			var info = virtual.getVirtualInfoObject();
+			if (info != null && info.optJSONObject("debugTarget") != null) node.put("debugTarget", info.getJSONObject("debugTarget"));
 			var canRename = FlowStudioSupport.canRenameVirtualObject(virtual);
 			node.put("canRename", canRename);
 			if (canRename) {
