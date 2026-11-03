@@ -33,6 +33,10 @@ public class JavascriptDebugParticipantTest {
                         assertNull(JavascriptDebugger.participant("refused", inspect));
                     }
                     plugin.enter("first", "{\"url\":\"fake:revision/node\",\"line\":2,\"label\":\"Fake node\",\"source\":\"fake source\\nnode\\n\"}");
+                    try (var construction = JavascriptDebugger.providerConstruction()) {
+                        plugin.at("first", "before");
+                        assertFalse(session.state().getBoolean("stopped"));
+                    }
                     plugin.at("first", "before");
                     var value = JavascriptDebugger.compileProviderImplementation("({run:function(){\nvar value=41;\nvalue++;\nreturn value;\n}})", "Fake/project.js", scope);
                     var answer = JavascriptDebugger.callProviderFunction((Function)value.get("run",value), value, new Object[0], scope);
@@ -57,6 +61,12 @@ public class JavascriptDebugParticipantTest {
             assertEquals(42,(int)future.get(5,TimeUnit.SECONDS));
             try { session.variables(0,id); fail("Stale inspection accepted"); } catch (IllegalStateException expected) { }
         }
+    }
+    @Test public void pluginPreviewsNeverInvokeArbitraryHostCode() {
+        assertEquals("42",JavascriptDebugger.preview(42));
+        assertEquals("[Host object]",JavascriptDebugger.preview(new Object() {
+            @Override public String toString() { throw new AssertionError("Host toString invoked"); }
+        }));
     }
     @Test public void stopAndMaximumPauseReleaseThePluginWorker() throws Exception {
         for (boolean stop : new boolean[]{true,false}) {

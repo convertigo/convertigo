@@ -260,6 +260,8 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			return frame;
 		}
 		public void at(String frameId, String phase) {
+			// A previously registered token cannot bypass a shared-construction barrier.
+			if (!JavascriptDebugger.providerDebugging()) return;
 			boolean stop;
 			synchronized (lock) {
 				if (closed) return;
@@ -600,7 +602,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		}
 		return value;
 	}
-	private static String preview(Object value) {
+	static String preview(Object value) {
 		value = scalarValue(value);
 		if (value == null) return "null";
 		if (value == Undefined.instance || value == Scriptable.NOT_FOUND) return "undefined";

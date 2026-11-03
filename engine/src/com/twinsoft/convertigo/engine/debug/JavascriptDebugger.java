@@ -125,6 +125,8 @@ public final class JavascriptDebugger {
 			cx.setDebugger(debugger, data); cx.setInterpretedMode(interpreted); cx.setGeneratingDebug(generating);
 		}
 	}
+	/** Bounded scalar display for plugin inspections, without invoking arbitrary host toString methods. */
+	public static String preview(Object value) { return JavascriptDebugSession.preview(value); }
 	/** Register an invocation-owned plugin. The transport knows no provider model or values. */
 	public static JavascriptDebugSession.Participant participant(String kind, org.mozilla.javascript.Function inspect) {
 		var cx = org.mozilla.javascript.Context.getCurrentContext();
