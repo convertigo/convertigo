@@ -193,4 +193,85 @@ public class RequestableTimeoutTest {
 		assertEquals(0, probe.cleanups);
 		assertNull(probe.failure.get());
 	}
+    private static void pauseBudget() throws Exception {
+        var guard = RequestableObject.currentInvocationGuard();
+        Thread.sleep(100);
+        try (var pause = RequestableObject.pauseCurrentRequestable()) {
+            Thread.sleep(1300);
+            assertTrue("The invocation guard retains its execution budget while paused", guard.isRunning());
+        }
+        Thread.sleep(100);
+        try (var pause = RequestableObject.pauseCurrentRequestable()) { Thread.sleep(800); }
+        assertTrue("Repeated pauses are excluded cumulatively", guard.isRunning());
+    }
+
+    private Probe pausingProbe(boolean exceedBudget) {
+        return new Probe(Work.COMPLETE) {
+            @Override public void runCore() {
+                probe.worker = runningThread;
+                try {
+                    pauseBudget();
+                    if (exceedBudget) Thread.sleep(5000);
+                } catch (InterruptedException e) { probe.interrupted = true; }
+                catch (Exception e) { throw new AssertionError(e); }
+                finally { probe.cancelled = !runningThread.bContinue; }
+            }
+        };
+    }
+
+    @Test public void repeatedDebuggerPausesDoNotConsumeSequenceTimeout() throws Exception {
+        probe = pausingProbe(false); probe.setName("PausedSequence"); probe.setResponseTimeout(1);
+        probe.run(new JsonServletRequester(), context);
+        assertFalse(probe.cancelled); assertFalse(probe.interrupted);
+    }
+
+    @Test public void remainingExecutionBudgetStillExpiresAfterResume() throws Exception {
+        probe = pausingProbe(true); probe.setName("PausedThenBusy"); probe.setResponseTimeout(1);
+        long started = System.nanoTime();
+        assertThrows(TransactionTimeoutException.class, () -> probe.run(new JsonServletRequester(), context));
+        long elapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+        assertTrue("Only the 2100ms pause is added to the original 1000ms budget: " + elapsed, elapsed >= 2900 && elapsed < 4200);
+        probe.worker.join(1000); assertTrue(probe.interrupted);
+    }
+
+    @Test public void debuggerPausesAlsoSuspendTransactionTimeout() throws Exception {
+        var transaction = new com.twinsoft.convertigo.beans.transactions.HttpTransaction() {
+            @Override protected boolean requiresJavascriptScope() { return false; }
+            @Override public void prepareForRequestable(Context c, org.mozilla.javascript.Context js, Scriptable scope) { }
+            @Override public void handleRequestableEvent(String event, org.mozilla.javascript.Context js) { }
+            @Override public void fireRequestableEvent(String event) { }
+            @Override protected void cleanup() { }
+            @Override public boolean hasToRunCore() { return true; }
+            @Override public void runCore() {
+                try { pauseBudget(); } catch (Exception e) { throw new AssertionError(e); }
+            }
+        };
+        transaction.setName("PausedTransaction"); transaction.setResponseTimeout(1);
+        transaction.run(new JsonServletRequester(), context);
+    }
+
+    @Test public void childPauseSuspendsTheWaitingCallerBudget() throws Exception { pausedChild(false); }
+    @Test public void inlineChildPauseSuspendsTheCallerBudget() throws Exception { pausedChild(true); }
+    private void pausedChild(boolean inline) throws Exception {
+        EnginePropertiesManager.setProperty(PropertyName.NATIVE_INLINE_CALLS, Boolean.toString(inline));
+        Engine.theApp.databaseObjectsManager = new com.twinsoft.convertigo.engine.DatabaseObjectsManager() {
+            @Override public Project getOriginalProjectByName(String name, boolean openable) { return context.project; }
+        };
+        probe = new Probe(Work.COMPLETE) {
+            @Override public void runCore() {
+                probe.worker = runningThread;
+                var child = pausingProbe(false);
+                try { child.setName("Child"); } catch (Exception e) { throw new AssertionError(e); }
+                child.setResponseTimeout(1);
+                var childContext = new Context("paused_child"); childContext.project = context.project;
+                childContext.projectName = context.projectName; childContext.nativeJson = true;
+                try { child.run(new com.twinsoft.convertigo.engine.requesters.NativeJsonRequester(java.util.Map.of("__project", context.projectName), null), childContext); }
+                catch (Exception e) { throw new AssertionError(e); }
+                assertTrue(RequestableObject.currentInvocationGuard().isRunning());
+            }
+        };
+        probe.setName("Parent"); probe.setResponseTimeout(1);
+        probe.run(new JsonServletRequester(), context);
+    }
+
 }

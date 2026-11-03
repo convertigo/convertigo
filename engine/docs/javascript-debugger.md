@@ -70,7 +70,7 @@ Late attachment cannot convert already running compiled code to interpreted code
 
 Participant scope groups currently contain bounded scalar previews and safe scope-path inspection. Their expandable opaque references/pagination are not implemented yet, unlike ordinary Rhino scope inspection. Compiled plugin callbacks are trusted and have no interpreted instruction watchdog; providers must bound their work, avoid accessors and arbitrary evaluation, and not mistake the JSON response-size bound for an execution-time bound. Child/parallel participant propagation and the complete logical stepping semantics remain prototype work.
 
-No debugger payload is written to generic administration response logs. Sources and values stay in memory, not local storage. Tabs sharing an HTTP session share its debugger; isolation is by administrator HTTP session, not browser tab. Business request timeouts remain effective while paused.
+No debugger payload is written to generic administration response logs. Sources and values stay in memory, not local storage. Tabs sharing an HTTP session share its debugger; isolation is by administrator HTTP session, not browser tab. Business request timeouts count execution time only. A debugger pause suspends the existing requestable deadline, for sequences and transactions and their waiting callers. On resume, the unspent execution budget remains; actual execution can still time out. The separate maximum pause duration is wall-clock time and remains effective, even while polling.
 
 ## Eclipse launch bridge and editor markers
 

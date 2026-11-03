@@ -375,34 +375,36 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	/** The worker services commands while paused. No monitor is held during user evaluation. */
 	private void pause(Context cx, String reason) { pause(cx, reason, (Worker) cx.getDebuggerContextData()); }
 	private void pause(Context cx, String reason, Worker worker) {
-		synchronized (lock) {
-			if (closed || paused) return;
-			pausedWorker = worker; frames = pausedWorker.frames;
-			pauseDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(pauseTimeoutMillis);
-			inspection.clear();
-			paused = true; breakNext = false; stopDepth = -1; pauseId++; event(reason);
-		}
-		while (true) {
-			Job pending;
+		try (var requestPause = com.twinsoft.convertigo.beans.core.RequestableObject.pauseCurrentRequestable()) {
 			synchronized (lock) {
-				if (!paused || closed) { inspection.clear(); return; }
-				if (System.nanoTime() >= pauseDeadline) {
-					paused = false; breakNext = false; stepWorker = null; failJob();
-					notice = "The maximum pause duration was reached. The request resumed automatically.";
-					inspection.clear(); event("autoResumed"); lock.notifyAll(); return;
-				}
-				if (System.currentTimeMillis() - seen >= IDLE_MILLIS) { close(); return; }
-				if (job == null) {
-					try { lock.wait(250); } catch (InterruptedException e) { Thread.currentThread().interrupt(); close(); }
-					continue;
-				}
-				pending = job; job = null; inspecting = true;
+				if (closed || paused) return;
+				pausedWorker = worker; frames = pausedWorker.frames;
+				pauseDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(pauseTimeoutMillis);
+				inspection.clear();
+				paused = true; breakNext = false; stopDepth = -1; pauseId++; event(reason);
 			}
-			JSONObject result = null; Throwable failure = null;
-			try { result = pending.operation.apply(cx); }
-			catch (RuntimeException | Error e) { failure = new IllegalStateException("Inspection failed."); }
-			finally { synchronized (lock) { inspecting = false; lock.notifyAll(); } }
-			if (failure == null) pending.result.complete(result); else pending.result.completeExceptionally(failure);
+			while (true) {
+				Job pending;
+				synchronized (lock) {
+					if (!paused || closed) { inspection.clear(); return; }
+					if (System.nanoTime() >= pauseDeadline) {
+						paused = false; breakNext = false; stepWorker = null; failJob();
+						notice = "The maximum pause duration was reached. The request resumed automatically.";
+						inspection.clear(); event("autoResumed"); lock.notifyAll(); return;
+					}
+					if (System.currentTimeMillis() - seen >= IDLE_MILLIS) { close(); return; }
+					if (job == null) {
+						try { lock.wait(250); } catch (InterruptedException e) { Thread.currentThread().interrupt(); close(); }
+						continue;
+					}
+					pending = job; job = null; inspecting = true;
+				}
+				JSONObject result = null; Throwable failure = null;
+				try { result = pending.operation.apply(cx); }
+				catch (RuntimeException | Error e) { failure = new IllegalStateException("Inspection failed."); }
+				finally { synchronized (lock) { inspecting = false; lock.notifyAll(); } }
+				if (failure == null) pending.result.complete(result); else pending.result.completeExceptionally(failure);
+			}
 		}
 	}
 

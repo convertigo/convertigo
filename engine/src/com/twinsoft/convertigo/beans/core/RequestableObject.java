@@ -363,51 +363,40 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
                 do {
     	            try {
-    	            	synchronized(runningThread) {
-    	            		long lTime = System.currentTimeMillis();
-    	            		long haveToWait;
-    	            		
-    	            		while (runningThread.bContinue) {
-    			                if (getResponseTimeout() <= 0) {
-    			                	Engine.logContext.trace("(RequestableObject) Waiting for requested object response during 60s...");
-    			                	haveToWait = 60000;
-    			                	runningThread.wait(60000);
-    			                } else if (Engine.isStudioMode()) {
-    			                	// Studio context => ~infinite responseTimeout
-    			                	Engine.logContext.trace("(RequestableObject) Waiting for requested object response during infinite timeout (24 hours) because of Studio context execution...");
-    			                	haveToWait = 1000*60*60*24;
-    			                	runningThread.wait(1000*60*60*24);
-    			                } else {
-    			                	Engine.logContext.trace("(RequestableObject) Waiting for requested object response during " + getResponseTimeout() + "s");
-    			                	haveToWait = getResponseTimeout() * 1000;
-    			                	runningThread.wait(getResponseTimeout() * 1000);
-    			                }
-    	
-    			                Engine.logContext.trace("(RequestableObject) End of wait(), runningThread.bContinue=" + runningThread.bContinue);
-    			                
-    			                if (runningThread.bContinue) {
-    			                	if (context.rowStreamProgress > lTime) {
-    			                		// a response written in stream progresses: its timeout counts from its last rows
-    			                		lTime = context.rowStreamProgress;
-    			                	} else if (System.currentTimeMillis() - lTime >= haveToWait) {
-    			        				long t1 = System.currentTimeMillis();
-    			        				Engine.theApp.pluginsManager.fireRequestableTimeoutException(context, t1);
-
-    			        				// Cleans up before stopping
-    			                		cleanup();
-    			                		
-                                        // Publish cancellation before waking blocking code. Thread.stop()
-                                        // is unsupported on modern JDKs and could leave shared state corrupt.
-                                        runningThread.bContinue = false;
-                                        runningThread.interrupt();
-                                        Engine.logContext.error("(RequestableObject) Request for stopping the thread for the requested object '" + getName() + "' because of timeout expiration");
-    		
-    				                    TransactionTimeoutException e = new TransactionTimeoutException("The requested object '" + getName() + "' has been interrupted because it did not terminate quickly enough.");
-    				                    throw e;
-    			                	} else Engine.logContext.trace("(RequestableObject) Spurious wakup , keep waiting" );
-    			                }
-    	            		}
-    	            	}
+                    synchronized (runningThread) {
+                        long legacyStart = System.currentTimeMillis();
+                        while (runningThread.bContinue) {
+                            boolean timed = getResponseTimeout() > 0 && !Engine.isStudioMode();
+                            long waitMillis;
+                            if (timed) {
+                                runningThread.refreshStreamingDeadline();
+                                waitMillis = Math.max(1, java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(
+                                        runningThread.deadlineNanos() - System.nanoTime()) + 1);
+                            } else {
+                                // Preserve the legacy no-timeout and native Studio waiting policies.
+                                waitMillis = getResponseTimeout() <= 0 ? 60_000 : 86_400_000;
+                            }
+                            runningThread.wait(waitMillis);
+                            if (!runningThread.bContinue) continue;
+                            if (timed) {
+                                runningThread.refreshStreamingDeadline();
+                                if (System.nanoTime() < runningThread.deadlineNanos()) continue;
+                            } else {
+                                if (context.rowStreamProgress > legacyStart) {
+                                    legacyStart = context.rowStreamProgress;
+                                    continue;
+                                }
+                                if (System.currentTimeMillis() - legacyStart < waitMillis) continue;
+                            }
+                            Engine.theApp.pluginsManager.fireRequestableTimeoutException(context, System.currentTimeMillis());
+                            cleanup();
+                            // Publish cancellation before waking blocking code. Thread.stop() is unsafe/unsupported.
+                            runningThread.bContinue = false;
+                            runningThread.interrupt();
+                            Engine.logContext.error("(RequestableObject) Request for stopping the thread for the requested object '" + getName() + "' because of timeout expiration");
+                            throw new TransactionTimeoutException("The requested object '" + getName() + "' has been interrupted because it did not terminate quickly enough.");
+                        }
+                    }
     	            } catch(InterruptedException e) {
     	                Engine.logContext.warn("(RequestableObject) InterruptedException while waiting for requested object response; retrying wait()");
     	                hasBeenInterrupted = true;
@@ -1035,8 +1024,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		var parent = currentExecution.get();
 		// Preserve an independently shorter timeout by keeping its worker. The outer
 		// waiter already bounds this call when its deadline is earlier than ours.
-		return parent != null && parent.ownerIsRunning() && parent.deadlineNanos != Long.MAX_VALUE
-				&& parent.deadlineNanos - System.nanoTime()
+		return parent != null && parent.ownerIsRunning() && parent.deadlineNanos() != Long.MAX_VALUE
+				&& parent.deadlineNanos() - System.nanoTime()
 						<= java.util.concurrent.TimeUnit.SECONDS.toNanos(getResponseTimeout());
 	}
     
@@ -1044,8 +1033,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     public static final class InvocationGuard {
         private final RequestableThread owner;
         private InvocationGuard(RequestableThread owner) { this.owner = owner; }
-        public boolean isRunning() { return owner != null && owner.ownerIsRunning() && System.nanoTime() < owner.deadlineNanos; }
-        public long deadlineNanos() { return owner == null ? Long.MAX_VALUE : owner.deadlineNanos; }
+        public boolean isRunning() { return owner != null && owner.ownerIsRunning() && System.nanoTime() < owner.deadlineNanos(); }
+        public long deadlineNanos() { return owner == null ? Long.MAX_VALUE : owner.deadlineNanos(); }
         public boolean coversTimeout(long seconds) {
             return owner != null && (seconds <= 0 || deadlineNanos() != Long.MAX_VALUE
                     && deadlineNanos() - System.nanoTime() <= java.util.concurrent.TimeUnit.SECONDS.toNanos(seconds));
@@ -1053,6 +1042,21 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
 
     public static InvocationGuard currentInvocationGuard() { return new InvocationGuard(currentExecution.get()); }
+
+    /** A debugger pause suspends the existing budgets of this call and its waiting callers. */
+    public static com.twinsoft.convertigo.engine.debug.JavascriptDebugger.DebugSuspension pauseCurrentRequestable() {
+        var worker = currentExecution.get();
+        if (worker == null) return null;
+        var callers = new java.util.ArrayList<RequestableThread>();
+        for (; worker != null; worker = worker.invocationParent) {
+            worker.beginDebuggerPause();
+            callers.add(worker);
+        }
+        return () -> {
+            for (var caller : callers) caller.endDebuggerPause();
+        };
+    }
+
 
     public class RequestableThread extends Thread {
 		private final Log4jHelper.MdcSnapshot logContext = Log4jHelper.mdcSnapshot();
@@ -1062,7 +1066,45 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         // Written by the calling thread (timeout, abort), read by this thread before each step.
         public volatile boolean bContinue = true;
 		private RequestableThread inlineParent;
-		private long deadlineNanos = Long.MAX_VALUE;
+		private volatile long deadlineNanos = Long.MAX_VALUE;
+        private volatile long debuggerPauseStarted;
+        private int debuggerPauseDepth;
+        private long observedStreamProgress;
+        private final RequestableThread invocationParent = currentExecution.get();
+
+        /** The requestable's existing deadline advances only while its worker is paused. */
+        private long deadlineNanos() {
+            long started = debuggerPauseStarted;
+            return deadlineNanos == Long.MAX_VALUE ? Long.MAX_VALUE
+                    : deadlineNanos + (started == 0 ? 0 : System.nanoTime() - started);
+        }
+
+        // Called under this worker's monitor, including before entering a debug pause.
+        private void refreshStreamingDeadline() {
+            if (debuggerPauseDepth != 0 || context == null || context.rowStreamProgress <= observedStreamProgress) return;
+            observedStreamProgress = context.rowStreamProgress;
+            if (deadlineNanos != Long.MAX_VALUE) deadlineNanos = System.nanoTime()
+                    + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(
+                            getResponseTimeout() * 1000L - Math.max(0, System.currentTimeMillis() - observedStreamProgress));
+        }
+
+        private synchronized void beginDebuggerPause() {
+            if (debuggerPauseDepth == 0) {
+                // Account for the latest rows before freezing this worker's budget.
+                refreshStreamingDeadline();
+                debuggerPauseStarted = System.nanoTime();
+            }
+            debuggerPauseDepth++;
+            notifyAll();
+        }
+
+        private synchronized void endDebuggerPause() {
+            if (--debuggerPauseDepth == 0) {
+                if (deadlineNanos != Long.MAX_VALUE) deadlineNanos += System.nanoTime() - debuggerPauseStarted;
+                debuggerPauseStarted = 0;
+            }
+            notifyAll();
+        }
 
 		/** Includes cancellation of an enclosing request when this execution is inline. */
 		public boolean isContinuing() {
@@ -1088,6 +1130,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         	setContextClassLoader(context.project.getProjectClassLoader());
 
         	engineId = Engine.startStopDate;
+            if (!Engine.isStudioMode() && getResponseTimeout() > 0)
+                deadlineNanos = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(getResponseTimeout());
         }
 
 		@Override
@@ -1124,10 +1168,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
 		private void runWithMdc() {
 			var previous = currentExecution.get();
-			if (!Engine.isStudioMode() && getResponseTimeout() > 0) {
-				deadlineNanos = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(getResponseTimeout());
-			}
-			if (inlineParent != null) deadlineNanos = Math.min(deadlineNanos, inlineParent.deadlineNanos);
+			if (inlineParent != null) deadlineNanos = Math.min(deadlineNanos, inlineParent.deadlineNanos());
 			currentExecution.set(this);
 			try (var allocation = com.twinsoft.convertigo.engine.util.AllocationTrace.open("boundary", "worker", getQName())) {
 				runWithDiagnostics();
