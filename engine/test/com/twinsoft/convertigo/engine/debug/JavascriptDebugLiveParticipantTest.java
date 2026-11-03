@@ -74,6 +74,18 @@ public class JavascriptDebugLiveParticipantTest {
             EnginePropertiesManager.setProperty(PropertyName.WEB_STUDIO, studio);
         }
     }
+    @Test public void liveSignalIsAReadOnlyScriptObjectWithoutReflectedFieldAccess() {
+        var signal=JavascriptDebugger.signal;boolean previous=signal.active;
+        try(var cx=Context.enter()) {
+            var scope=cx.initStandardObjects();
+            scope.put("signal",scope,Context.javaToJS(signal,scope));
+            assertTrue(signal instanceof org.mozilla.javascript.Scriptable);
+            signal.active=false;assertEquals(Boolean.FALSE,cx.evaluateString(scope,"signal.active","signal",1,null));
+            signal.active=true;assertEquals(Boolean.TRUE,cx.evaluateString(scope,"signal.active","signal",1,null));
+            assertThrows(org.mozilla.javascript.EvaluatorException.class,()->cx.evaluateString(scope,"signal.active=false;","signal-write",1,null));
+            assertTrue(signal.active);
+        } finally {signal.active=previous;}
+    }
     @Test public void emptyStudioSelectionDoesNotEnterRhinoOrChangeTheCompilationMode() throws Exception {
         EnginePropertiesManager.initProperties();
         com.twinsoft.convertigo.engine.Engine.logAdmin = org.apache.log4j.Logger.getLogger("debugger-live-test");

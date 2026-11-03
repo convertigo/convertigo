@@ -23,7 +23,17 @@ public final class JavascriptDebugger {
 	private static ScheduledExecutorService expiry;
 	private static volatile boolean active;
 	/** Cached by compiled providers: the detached block path reads this field only. */
-	public static final class Signal { public volatile boolean active; private Signal() { } }
+	public static final class Signal extends org.mozilla.javascript.ScriptableObject {
+		private static final long serialVersionUID = 1L;
+		public volatile boolean active;
+		private Signal() { sealObject(); }
+		@Override public String getClassName() { return "DebuggerSignal"; }
+		@Override public Object get(String name, org.mozilla.javascript.Scriptable start) {
+			return "active".equals(name) ? active : NOT_FOUND;
+		}
+		@Override public boolean has(String name, org.mozilla.javascript.Scriptable start) { return "active".equals(name); }
+		@Override public Object[] getIds() { return new Object[] { "active" }; }
+	}
 	public static final Signal signal = new Signal();
 	private static final Map<String, Execution> executions = new java.util.LinkedHashMap<>();
 	private static final ThreadLocal<Execution> execution = new ThreadLocal<>();
