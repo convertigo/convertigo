@@ -16,6 +16,7 @@
 		try {
 			const result = await debugCommand('breakpoint', {
 				url: target.url,
+				kind: 'participant',
 				line: String(target.line),
 				set: String(!enabled)
 			});

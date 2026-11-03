@@ -36,6 +36,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	private final Map<String, JSONObject> locations = new LinkedHashMap<>();
 	private final Inspection inspection = new Inspection();
 	private final Map<String, Set<Integer>> breakpoints = new LinkedHashMap<>();
+	private final Set<String> rhinoSources = new java.util.HashSet<>();
 	private final Map<Thread, Worker> workers = new LinkedHashMap<>();
 	private List<Frame> frames = List.of();
 	private Worker pausedWorker, stepWorker;
@@ -93,6 +94,19 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	/** Enter before the requestable creates its ordinary context; nested Context.enter calls reuse this one. */
 	public AutoCloseable enter() { return enter(false); }
 	public AutoCloseable enterChild() { return enter(true); }
+	/** Join the existing compiled context. No factory, debugger or compilation mode is changed. */
+	Object joinParticipantWorker() { return joinParticipantWorker(Thread.currentThread()); }
+	Object joinParticipantWorker(Thread owner) {
+		synchronized (lock) {
+			if (closed) throw new IllegalStateException("The debug session has ended.");
+			var worker = workers.get(owner);
+			if (worker != null) return worker;
+			if (!workers.isEmpty()) throw new IllegalStateException("Another request is already running in this debug session.");
+			worker = new Worker(); workers.put(owner, worker); event("started");
+			return worker;
+		}
+	}
+	void finishParticipantWorker() { finish(); }
 	private AutoCloseable enter(boolean child) {
 		var worker = new Worker();
 		synchronized (lock) {
@@ -143,7 +157,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	@Override public void close() {
 		synchronized (lock) {
 			closed = true; paused = false; breakNext = false;
-			failJob(); frames = List.of(); pausedWorker = null; stepWorker = null; sources.clear(); locations.clear(); inspection.clear(); breakpoints.clear(); sourceChars = 0;
+			failJob(); frames = List.of(); pausedWorker = null; stepWorker = null; sources.clear(); locations.clear(); inspection.clear(); breakpoints.clear(); rhinoSources.clear(); sourceChars = 0;
 			event("detached"); lock.notifyAll();
 		}
 	}
@@ -261,7 +275,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		}
 		public void at(String frameId, String phase) {
 			// A previously registered token cannot bypass a shared-construction barrier.
-			if (!JavascriptDebugger.providerDebugging()) return;
+			if (!JavascriptDebugger.participantAllowed()) return;
 			boolean stop;
 			synchronized (lock) {
 				if (closed) return;
@@ -640,6 +654,10 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		return url.contains("/") ? json("label", url.replaceFirst("/", " › "), "id", url, "file", true, "offset", com.twinsoft.convertigo.engine.util.CopilotHelper.addInstruction(null, "").split("\n", -1).length - 1) : json("label", url);
 	}
 	public boolean breakpoint(String url, int line, boolean set) {
+		return breakpoint(url, line, set, true);
+	}
+	public boolean hasRhinoBreakpoints() { synchronized (lock) { return !rhinoSources.isEmpty(); } }
+	public boolean breakpoint(String url, int line, boolean set, boolean rhino) {
 		if (url == null || url.length() > 1024 || line < 1 || line > 1_000_000) throw new IllegalArgumentException("Invalid breakpoint.");
 		synchronized (lock) {
 			var source = sources.get(url);
@@ -650,6 +668,8 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 				if (lines.size() >= 256) throw new IllegalArgumentException("Too many breakpoints.");
 				lines.add(line);
 			} else if (breakpoints.containsKey(url)) { breakpoints.get(url).remove(line); if (breakpoints.get(url).isEmpty()) breakpoints.remove(url); }
+			if (!breakpoints.containsKey(url)) rhinoSources.remove(url);
+			else if (rhino) rhinoSources.add(url);
 			event("breakpoints"); return true;
 		}
 	}

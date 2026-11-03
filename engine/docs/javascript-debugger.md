@@ -4,7 +4,7 @@ The web Studio and Eclipse `JavaScript Debug (Web)` view use the same administra
 
 ## Enable and authorize
 
-On a server, enable `web_studio=enabled` and `javascript.debugger=true` explicitly, in the administrator configuration or with `-Dconvertigo.engine.javascript.debugger=true`. Debugging defaults to false on a server. Studio mode permits it. All debugger operations require the `WEB_ADMIN` role, administrator authentication and normal XSRF controls. No ordinary request is selected implicitly.
+On a server, enable `javascript.debugger=true` explicitly, in the administrator configuration or with `-Dconvertigo.engine.javascript.debugger=true`. Debugging defaults to false on a server. Studio mode permits it. Generic participant debugging is available without the web Studio. Interpreted JavaScript source debugging additionally requires an editing-enabled Studio (`web_studio=enabled` for the web Studio); it is not offered on a production server without that Studio. All debugger operations require the `WEB_ADMIN` role, administrator authentication and normal XSRF controls. No ordinary request is selected implicitly.
 
 Expression evaluation executes administrator code in the paused request and can have side effects. Each evaluation attempt writes a fixed message to the audit logger, without the expression, result, source or session token. Hovers only display inspected bindings: they do not evaluate expressions or invoke getters.
 
@@ -15,10 +15,11 @@ POST form parameters to `admin/services/studio.debug.Debugger`. Responses contai
 | action | additional parameters | response |
 |---|---|---|
 | `start`, `state`, `stop`, `pause` | none | state |
+| `attach` | opaque `target` from state.targets; same administrator HTTP session, no source breakpoints | state |
 | `studioRequests` | `value=true/false`, Studio mode only; one administrator owns the Eclipse launch bridge | state |
 | `breakOnEnter`, `breakOnReturn` | `value=true/false`; JavaScript functions only | state |
 | `breakOnExceptions` | `value=true/false` | state |
-| `breakpoint` | `url`, `line` (one-based), `set=true/false` | accepted, breakpoints |
+| `breakpoint` | `url`, `line` (one-based), `set=true/false`, `kind=participant` for logical locations (default: Rhino source) | accepted, breakpoints |
 | `breakpoints` | `url` | breakpoints |
 | `source` | `url` | source: url, source text, breakable lines, breakpoints, location |
 | `go`, `stepInto`, `stepOver`, `stepOut` | current `pauseId` | state |
@@ -33,11 +34,11 @@ Pass `__javascriptDebug=<sessionId>` in the **body** of a requestable request, u
 
 ## Workers and lifetime
 
-Nested requestables retain their root binding. Subsequences on separate workers and parallel steps join through explicit scheduling boundaries; no inheritable thread state is installed. Each worker has its own stack and interpreted context. At most one worker of a root request pauses at a time; siblings continue. Step commands follow the selected worker. A session retains at most 64 workers.
+Nested requestables retain their root binding. Subsequences on separate workers and parallel steps join through explicit scheduling boundaries; no inheritable thread state is installed. Each worker has its own stack. Source-debugging workers use an interpreted context; participant-only workers keep their ordinary compiled context. At most one worker of a root request pauses at a time; siblings continue. Step commands follow the selected worker. A session retains at most 64 workers.
 
 `javascript.debugger.pause_timeout` sets the maximum duration of a pause in seconds: default 120, bounded to 1..3600, captured when the session starts. Polling does not extend this deadline. A pause automatically resumes with an `autoResumed` event and visible notice. A session also expires after 60 seconds without an administrator operation. Stopping, disabling, logging out, or destroying the HTTP session releases pauses and clears ownership. Detaching does not cancel the business request; pending child work continues without debugging.
 
-Only selected requests enter private Rhino factories. No global listener or cache invalidation is installed. Ordinary requests retain their compiled scripts, including when another request is paused.
+Only selected requests with source breakpoints in an editing-enabled Studio enter private Rhino factories. No global listener or cache invalidation is installed. Ordinary requests retain their compiled scripts, including when another request is paused.
 
 ## Inspection and source changes
 
@@ -55,7 +56,19 @@ JavaScript steps, step expressions, transaction handlers, `include()` and `use()
 
 Provider calls run with the request debugger temporarily detached before accessing prepared runtimes or shared compiled modules. Providers can opt into private block implementations with `JavascriptDebugger.providerDebugging()`, `compileProviderImplementation(source, projectRelativeUrl, scope)` and `callProviderFunction(function, receiver, arguments, scope)`. A selected request gets interpreted implementations with debug information, compiled directly without consulting or publishing shared script/bytecode caches. Initialization runs without pauses. Only calls of these private functions reattach the request debugger; inspection stops before the supplied provider scope. Providers must create and retain these instances in invocation-owned state, after shared preparation has completed. Prepared-runtime builders suppress attachment, including nested callbacks.
 
-With lib_flow_engine 0.2.19, the invocation gets a private execution plan whose Rhino block adapters bypass shared implementations and prepared runners, including stateless ones. Implementations use the real project/file source URL, preserve original file line numbers, and share the editor helper-prefix convention with included files. All explicitly selected requests take this path, even before a breakpoint is set, so Pause next and breakpoints set during execution work. Unselected requests retain their original plans, compiled runners and cache identity. Flow orchestration, libraries and engine modules remain compiled and do not produce debugger frames. The panel explains whether a private block implementation has been reached. Legacy Rhino frames, context settings and stepping are restored when the provider returns or throws. Stopping the debugger releases a pause and lets the business request continue. Direct shared-compilation entry points outside the suspension boundary remain guarded against debug cache reuse. Native Java code is not line-debuggable.
+With lib_flow_engine 0.2.19 on the prototype branch, pure block debugging checks a live indicator inside ordinary prepared runners. A selected block-only request retains the compiled runtime, shared plan, prepared implementations, caches and library state. Rhino blocks are crossed as blocks, without source-line stepping. The detached boundary reads only the cached live signal; no debugger callback or frame is constructed. The administrative request registry is separate, bounded per request, and enables attachment after work has started.
+
+Source breakpoints select the second level, only in an editing-enabled Studio. Invocation-owned Rhino adapters compile lazily, with real source URLs and line numbers. The current prototype still creates a complete private provider realm for every level-two invocation, including local block source breakpoints; libraries and dependent modules are reevaluated with fresh state. The panel warns about this state change. Reducing isolation for local block sources to their private adapters remains provider work. Orchestration stays compiled/detached, shared construction cannot pause, and private interpreted code is never published in shared caches. Legacy frames and context settings are restored on return or failure.
+
+## Generic participants and late attachment
+
+`JavascriptDebugger.signal` is a cached object whose volatile `active` field is read by ordinary runners. When active, the provider can call `participantSelected()` at an execution boundary, then `participant(kind, inspect)`. Participants own opaque frame descriptors and inspection callbacks. `enter(frameId, descriptorJson)`, `at(frameId, phase)` and `leave(frameId)` share the existing pause queue, stepping depth and pause generation. A participant-only worker uses the existing compiled context: no interpreted factory or Rhino debugger attachment. The construction barrier applies even without a Rhino binding, including to previously registered participants.
+
+`state` additionally exposes `rhinoAvailable`, `rhinoRequested`, and `targets` containing opaque request IDs, requestable labels and selection status. When the debugger capability is enabled, requests in an authenticated WEB_ADMIN HTTP session are registered even before Start. The owning administrator can attach to one already running request; the next safe block boundary observes the selection. Attachment reserves its worker without executing code on the administrator thread. Requests belonging to another HTTP session, completed targets, concurrent selections and sessions with source breakpoints are refused. This is not a general discovery facility for production business sessions. No request values or cookies are included in the target list.
+
+Late attachment cannot convert already running compiled code to interpreted code. A source breakpoint added during a level-one request affects a subsequent execution. On a server without an editing-enabled Studio, source breakpoint installation and Rhino pause settings are refused by the administrator service; only participant stepping is available.
+
+Participant scope groups currently contain bounded scalar previews and safe scope-path inspection. Their expandable opaque references/pagination are not implemented yet, unlike ordinary Rhino scope inspection. Compiled plugin callbacks are trusted and have no interpreted instruction watchdog; providers must bound their work, avoid accessors and arbitrary evaluation, and not mistake the JSON response-size bound for an execution-time bound. Child/parallel participant propagation and the complete logical stepping semantics remain prototype work.
 
 No debugger payload is written to generic administration response logs. Sources and values stay in memory, not local storage. Tabs sharing an HTTP session share its debugger; isolation is by administrator HTTP session, not browser tab. Business request timeouts remain effective while paused.
 

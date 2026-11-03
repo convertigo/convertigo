@@ -1145,9 +1145,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         	
 			AutoCloseable javascriptDebug = null;
             try {
-				if (com.twinsoft.convertigo.engine.debug.JavascriptDebugger.active()) {
-					javascriptDebug = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.bind(context.httpServletRequest);
-				}
+				javascriptDebug = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.bind(context.httpServletRequest, getQName());
     			// Set HTTP session timeout using front project defined value
             	// - the front project is the project for which the session has been created at first request
             	// - the timeout is set before requestable execution in case of inner requestable calls

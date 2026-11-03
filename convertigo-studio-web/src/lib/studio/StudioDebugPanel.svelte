@@ -199,6 +199,7 @@
 		if (!source) return;
 		const url = source.url;
 		const result = await command('breakpoint', {
+			kind: frame?.kind && frame.kind !== 'rhino' ? 'participant' : 'rhino',
 			url,
 			line: String(line),
 			set: String(!source.breakpoints.includes(line))
@@ -331,18 +332,20 @@
 				/>
 			{/each}
 		</div>
-		<div class="debug-actions debug-modes" role="group" aria-label="Pause conditions">
-			{#each [['breakOnExceptions', 'Break on exceptions', 'mdi:alert-octagon-outline'], ['breakOnEnter', 'Break on function entry', 'mdi:arrow-collapse-down'], ['breakOnReturn', 'Break on function return', 'mdi:arrow-collapse-up']] as [action, label, icon] (action)}
-				<StudioIconButton
-					{icon}
-					title={label}
-					active={debugState?.[action] ?? false}
-					aria-pressed={debugState?.[action] ?? false}
-					disabled={!debugState?.attached || busy}
-					onclick={() => command(action, { value: String(!debugState?.[action]) })}
-				/>
-			{/each}
-		</div>
+		{#if debugState?.rhinoAvailable !== false}
+			<div class="debug-actions debug-modes" role="group" aria-label="Pause conditions">
+				{#each [['breakOnExceptions', 'Break on exceptions', 'mdi:alert-octagon-outline'], ['breakOnEnter', 'Break on function entry', 'mdi:arrow-collapse-down'], ['breakOnReturn', 'Break on function return', 'mdi:arrow-collapse-up']] as [action, label, icon] (action)}
+					<StudioIconButton
+						{icon}
+						title={label}
+						active={debugState?.[action] ?? false}
+						aria-pressed={debugState?.[action] ?? false}
+						disabled={!debugState?.attached || busy}
+						onclick={() => command(action, { value: String(!debugState?.[action]) })}
+					/>
+				{/each}
+			</div>
+		{/if}
 	</div>
 	<div
 		role="status"
@@ -357,6 +360,24 @@
 	{#if debugState?.enabled === false}<p class="debug-notice" role="status">
 			JavaScript debugging is disabled on this server.
 		</p>{/if}
+	{#if debugState?.attached}
+		<p class="debug-help">
+			{debugState.rhinoRequested && debugState.rhinoAvailable
+				? 'Rhino source debugging: selected requests use private code and fresh library state.'
+				: 'Block debugging: compiled code, prepared runners and library state stay shared.'}
+		</p>
+		{#each debugState.targets ?? [] as target (target.id)}
+			{#if !target.selected}
+				<button
+					type="button"
+					class="debug-help"
+					disabled={busy || debugState.running || debugState.rhinoRequested}
+					onclick={() => command('attach', { target: target.id })}
+					>Attach to running request: {target.label}</button
+				>
+			{/if}
+		{/each}
+	{/if}
 	{#if debugState?.attached && !debugState.running && !debugState.stopped}
 		<p class="debug-help debug-ready">
 			{eclipse

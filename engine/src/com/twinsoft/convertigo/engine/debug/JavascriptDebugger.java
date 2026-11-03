@@ -22,14 +22,30 @@ public final class JavascriptDebugger {
 	private static final Map<String, JavascriptDebugSession> sessions = new HashMap<>();
 	private static ScheduledExecutorService expiry;
 	private static volatile boolean active;
+	/** Cached by compiled providers: the detached block path reads this field only. */
+	public static final class Signal { public volatile boolean active; private Signal() { } }
+	public static final Signal signal = new Signal();
+	private static final Map<String, Execution> executions = new java.util.LinkedHashMap<>();
+	private static final ThreadLocal<Execution> execution = new ThreadLocal<>();
+	private static final class Execution {
+		final String id = java.util.UUID.randomUUID().toString(), owner, label;
+		final Thread thread = Thread.currentThread();
+		volatile JavascriptDebugSession session;
+		Object worker;
+		AutoCloseable lease;
+		Execution(String owner, String label, JavascriptDebugSession session) {
+			this.owner = owner; this.label = label; this.session = session;
+		}
+	}
 	private static final String STUDIO_REQUEST = CLAIM + ".studio";
 	private static volatile JavascriptDebugSession studioSession;
 	private JavascriptDebugger() { }
 
 	public static boolean enabled() {
-		return Engine.isStudioMode() || Engine.isWebStudioAllowed()
-				&& EnginePropertiesManager.getPropertyAsBoolean(PropertyName.JAVASCRIPT_DEBUGGER);
+		return Engine.isStudioMode() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.JAVASCRIPT_DEBUGGER);
 	}
+	/** Editing-capable Studios only; production servers can expose participants without Rhino. */
+	public static boolean rhinoEnabled() { return enabled() && Engine.isWebStudioAllowed(); }
 	public static boolean active() { return active; }
 	/** Serialize both attachment directions; a refusal never changes the running debugger. */
 	public static synchronized void attachLegacyDebugger() {
@@ -71,7 +87,7 @@ public final class JavascriptDebugger {
 	/** Shared builders cannot attach a private implementation, even through nested callbacks. */
 	public static DebugSuspension providerConstruction() {
 		var cx = org.mozilla.javascript.Context.getCurrentContext();
-		if (cx == null || cx.getThreadLocal(PROVIDER_BINDING) == null) return null;
+		if (cx == null) return null;
 		var previous = cx.getThreadLocal(PROVIDER_CONSTRUCTION);
 		var suspension = suspendForFlow();
 		cx.putThreadLocal(PROVIDER_CONSTRUCTION, Boolean.TRUE);
@@ -130,9 +146,28 @@ public final class JavascriptDebugger {
 	/** Register an invocation-owned plugin. The transport knows no provider model or values. */
 	public static JavascriptDebugSession.Participant participant(String kind, org.mozilla.javascript.Function inspect) {
 		var cx = org.mozilla.javascript.Context.getCurrentContext();
-		if (!providerDebugging()) return null;
-		var binding = (ProviderBinding) cx.getThreadLocal(PROVIDER_BINDING);
-		return binding.session.participant(kind, binding.worker, inspect);
+		if (cx == null || cx.getThreadLocal(PROVIDER_CONSTRUCTION) != null) return null;
+		if (cx.getThreadLocal(PROVIDER_BINDING) instanceof ProviderBinding binding)
+			return binding.session.expired(System.currentTimeMillis()) ? null : binding.session.participant(kind, binding.worker, inspect);
+		var current = execution.get();
+		if (current == null || current.session == null || current.session.expired(System.currentTimeMillis())) return null;
+		if (current.lease == null) {
+			current.worker = current.session.joinParticipantWorker();
+			current.lease = current.session::finishParticipantWorker;
+		}
+		return current.session.participant(kind, current.worker, inspect);
+	}
+	static boolean participantAllowed() {
+		var cx = org.mozilla.javascript.Context.getCurrentContext();
+		return cx != null && cx.getThreadLocal(PROVIDER_CONSTRUCTION) == null;
+	}
+	public static boolean participantSelected() {
+		if (!participantAllowed()) return false;
+		var cx = org.mozilla.javascript.Context.getCurrentContext();
+		var binding = cx.getThreadLocal(PROVIDER_BINDING);
+		if (binding instanceof ProviderBinding selected) return !selected.session.expired(System.currentTimeMillis());
+		var current = execution.get();
+		return current != null && current.session != null && !current.session.expired(System.currentTimeMillis());
 	}
 	/** Refuse shared/prepared code before accessing caches; expose a value-free reason to the UI. */
 	public static void requireUnsharedRuntime(org.mozilla.javascript.Context cx) {
@@ -150,7 +185,7 @@ public final class JavascriptDebugger {
 			if (!active && RhinoUtils.debugMode) throw new IllegalStateException("Another JavaScript debugger is already attached.");
 			if (sessions.size() >= 16) throw new IllegalStateException("Too many debug sessions.");
 			session = new JavascriptDebugSession(); sessions.put(owner, session);
-			active = true;
+			active = signal.active = true;
 			if (expiry == null) {
 				expiry = Executors.newSingleThreadScheduledExecutor(runnable -> {
 					var thread = new Thread(runnable, "JavascriptDebugger-expiry");
@@ -174,7 +209,7 @@ public final class JavascriptDebugger {
 	private static void stopWhenEmpty() {
 		if (studioSession != null && !sessions.containsValue(studioSession)) studioSession = null;
 		if (active && sessions.isEmpty()) {
-			active = false;
+			active = signal.active = false;
 			if (expiry != null) { expiry.shutdown(); expiry = null; }
 		}
 	}
@@ -228,9 +263,57 @@ public final class JavascriptDebugger {
 		if (session == null || !session.id().equals(id)) throw new IllegalArgumentException("Unknown debug session for this administrator.");
 		return session;
 	}
-	public static AutoCloseable bind(HttpServletRequest request) {
+	public static AutoCloseable bind(HttpServletRequest request) { return bind(request, "Request"); }
+	/** Register administrator-owned work even before Start, so attachment can happen at a later boundary. */
+	public static AutoCloseable bind(HttpServletRequest request, String label) {
+		if (request == null || !enabled()) return null;
 		var session = selectedSession(request);
-		if (session == null) return null;
+		var parent = execution.get();
+		if (parent != null) return null;
+		var httpSession = request.getSession(false);
+		boolean administrator = httpSession != null && Engine.authenticatedSessionManager.hasRole(httpSession, Role.WEB_ADMIN);
+		if (session == null && !administrator) return null;
+		var current = new Execution(administrator ? httpSession.getId() : "", label, session);
+		synchronized (JavascriptDebugger.class) {
+			if (executions.size() >= 128) {
+				if (session != null) throw new IllegalStateException("Too many debugger request targets.");
+				return null;
+			}
+			executions.put(current.id, current);
+		}
+		execution.set(current);
+		try {
+			if (session != null && rhinoEnabled() && session.hasRhinoBreakpoints()) current.lease = bindRhino(request, session);
+			else if (session != null) { current.worker = session.joinParticipantWorker(); current.lease = session::finishParticipantWorker; }
+		} catch (RuntimeException | Error e) { execution.remove(); synchronized (JavascriptDebugger.class) { executions.remove(current.id); } throw e; }
+		return () -> {
+			// Remove under the same monitor as attach before reading the lease: finishing cannot race a reservation.
+			synchronized (JavascriptDebugger.class) { executions.remove(current.id); }
+			try { if (current.lease != null) current.lease.close(); }
+			finally { execution.remove(); }
+		};
+	}
+	public static synchronized org.codehaus.jettison.json.JSONArray targets(String owner) {
+		var result = new org.codehaus.jettison.json.JSONArray();
+		for (var current : executions.values()) if (current.owner.equals(owner))
+			result.put(JavascriptDebugSession.json("id", current.id, "label", current.label, "selected", current.session != null));
+		return result;
+	}
+	public static synchronized void attach(String owner, String target) {
+		var session = session(owner, false);
+		if (session == null) throw new IllegalStateException("Start the debugger first.");
+		var current = executions.get(target);
+		if (current == null || !current.owner.equals(owner)) throw new IllegalArgumentException("Request target unavailable.");
+		if (current.session != null) throw new IllegalStateException("This request is already selected.");
+		// Interpreted compilation cannot be retrofitted into running code. Late attachment is participant-only.
+		if (session.hasRhinoBreakpoints()) throw new IllegalStateException("Remove script breakpoints before attaching to a running request.");
+		for (var other : executions.values()) if (other.session == session) throw new IllegalStateException("Another request is already selected.");
+		current.worker = session.joinParticipantWorker(current.thread);
+		current.lease = session::finishParticipantWorker;
+		current.session = session;
+		session.settingsChanged();
+	}
+	private static AutoCloseable bindRhino(HttpServletRequest request, JavascriptDebugSession session) {
 		synchronized (request) {
 			if (request.getAttribute(CLAIM) == session) {
 				var cx = org.mozilla.javascript.Context.getCurrentContext();

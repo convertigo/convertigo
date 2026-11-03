@@ -51,7 +51,7 @@ import com.twinsoft.convertigo.engine.util.CopilotHelper;
  * are then the lines of the property</li>
  * </ul>
  */
-@ServiceDefinition(name = "Debugger", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Debugger", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "", available_without_web_studio = true)
 public class Debugger extends JSonService {
 
 	/** Debugger sources and values must never enter the generic JSON response/error logs. */
@@ -79,6 +79,9 @@ public class Debugger extends JSonService {
 			throw new IllegalArgumentException("Administrator session required.");
 		String owner = httpSession.getId();
 		var action = request.getParameter("action") == null ? "state" : request.getParameter("action");
+		boolean rhino = JavascriptDebugger.rhinoEnabled();
+		if (!rhino && java.util.Set.of("breakOnExceptions", "breakOnEnter", "breakOnReturn", "studioRequests").contains(action))
+			throw new IllegalStateException("Script debugging requires an editing-enabled Studio.");
 		if (!JavascriptDebugger.enabled()) {
 			JavascriptDebugger.stop(owner);
 			if (!"state".equals(action)) throw new IllegalStateException("JavaScript debugging is disabled on this server.");
@@ -87,7 +90,7 @@ public class Debugger extends JSonService {
 		var debugger = JavascriptDebugger.session(owner, "start".equals(action));
 		if (debugger == null) {
 			if (!java.util.Set.of("state", "stop", "breakpoints").contains(action)) throw new IllegalStateException("Start the debugger first.");
-			response.put("state", new JSONObject().put("enabled", JavascriptDebugger.enabled()).put("attached", false)
+			response.put("state", new JSONObject().put("enabled", JavascriptDebugger.enabled()).put("rhinoAvailable", rhino).put("attached", false)
 					.put("stopped", false).put("sources", new JSONArray()).put("serial", 0));
 			response.put("breakpoints", new JSONArray());
 			return;
@@ -110,6 +113,7 @@ public class Debugger extends JSonService {
 		case "state" -> {
 		}
 		case "start", "stop" -> { }
+		case "attach" -> JavascriptDebugger.attach(owner, request.getParameter("target"));
 		case "go", "stepInto", "stepOver", "stepOut" -> debugger.resume(action, pauseId);
 		case "pause" -> debugger.requestPause();
 		case "breakOnExceptions" -> debugger.breakOnExceptions("true".equals(request.getParameter("value")));
@@ -120,8 +124,11 @@ public class Debugger extends JSonService {
 			response.put("source", debugger.source(url));
 		}
 		case "breakpoint" -> {
+			boolean script = !"participant".equals(request.getParameter("kind"));
+			if (script && !rhino && !"false".equals(request.getParameter("set")))
+				throw new IllegalStateException("Script breakpoints require an editing-enabled Studio.");
 			var line = Integer.parseInt(request.getParameter("line")) + offset;
-			response.put("accepted", debugger.breakpoint(url, line, !"false".equals(request.getParameter("set"))));
+			response.put("accepted", debugger.breakpoint(url, line, !"false".equals(request.getParameter("set")), script));
 			response.put("breakpoints", lines(debugger.breakpoints(url), offset));
 		}
 		case "breakpoints" -> {
@@ -141,7 +148,8 @@ public class Debugger extends JSonService {
 		}
 		default -> throw new ServiceException("Unknown action " + action);
 		}
-		response.put("state", debugger.state().put("enabled", true));
+		response.put("state", debugger.state().put("enabled", true).put("rhinoAvailable", rhino)
+				.put("rhinoRequested", debugger.hasRhinoBreakpoints()).put("targets", JavascriptDebugger.targets(owner)));
 	}
 
 	/**

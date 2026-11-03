@@ -48,6 +48,7 @@ public class JavascriptDebuggerTest {
             assertThrows(IllegalStateException.class, () -> JavascriptDebugger.studioRequests("eclipse", true));
             mode.setBoolean(null, true);
             var session = JavascriptDebugger.session("eclipse", true);
+            session.breakpoint("eclipse", 1, true);
             JavascriptDebugger.selectStudioRequest(request);
             assertFalse(JavascriptDebugger.selects(request));
             JavascriptDebugger.studioRequests("eclipse", true);
@@ -88,7 +89,7 @@ public class JavascriptDebuggerTest {
             EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER, debuggerEnabled);
         }
     }
-    private HttpServletRequest request(String owner, String marker, boolean admin) {
+    HttpServletRequest request(String owner, String marker, boolean admin) {
         Map<String, Object> sessionAttributes = new HashMap<>(), attributes = new HashMap<>();
         if (admin) sessionAttributes.put(SessionKey.ADMIN_ROLES.toString(), new Role[] { Role.WEB_ADMIN });
         var session = (HttpSession) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{ HttpSession.class }, (p,m,a) -> switch (m.getName()) {
@@ -116,9 +117,10 @@ public class JavascriptDebuggerTest {
             assertNull(JavascriptDebugger.bind(request("one", "unused", true)));
             EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER, "true");
             var first = JavascriptDebugger.session("one", true);
+            first.breakpoint("marked", 1, true);
             var second = JavascriptDebugger.session("two", true);
             assertNotEquals(first.id(), second.id()); assertFalse(RhinoUtils.debugMode);
-            assertNull(JavascriptDebugger.bind(request("one", null, true)));
+            try (var registration = JavascriptDebugger.bind(request("one", null, true))) { assertNotNull(registration); assertNull(Context.getCurrentContext()); }
             assertNull(JavascriptDebugger.bind(request("one", first.id(), false)));
             assertThrows(IllegalArgumentException.class, () -> JavascriptDebugger.bind(request("two", first.id(), true)));
             var marked = request("one", first.id(), true);
@@ -163,6 +165,7 @@ public class JavascriptDebuggerTest {
         EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER, "true");
         try (var pool = java.util.concurrent.Executors.newCachedThreadPool()) {
             var session = JavascriptDebugger.session("logout", true);
+            session.breakpoint("logout", 1, true);
             var marked = request("logout", session.id(), true);
             session.requestPause();
             var task = pool.submit(() -> { try (var lease = JavascriptDebugger.bind(marked)) {
@@ -255,6 +258,7 @@ public class JavascriptDebuggerTest {
         boolean previous = mode.getBoolean(null); mode.setBoolean(null, true);
         try (var pool = java.util.concurrent.Executors.newCachedThreadPool()) {
             var session = JavascriptDebugger.session("paused-eclipse", true);
+            session.breakpoint("eclipse", 1, true);
             JavascriptDebugger.studioRequests("paused-eclipse", true);
             session.requestPause();
             var first = pool.submit(() -> {

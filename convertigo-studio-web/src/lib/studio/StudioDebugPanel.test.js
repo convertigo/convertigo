@@ -107,6 +107,28 @@ describe('JavaScript debugger component and session', () => {
 		expect(html).toContain('Call stack');
 	});
 
+	it('offers late attachment and hides Rhino controls on a production server', () => {
+		followDebugger(
+			state({
+				rhinoAvailable: false,
+				rhinoRequested: false,
+				stopped: false,
+				running: false,
+				targets: [{ id: 'opaque-request', label: 'Probe', selected: false }],
+				serial: 2
+			})
+		);
+		const html = render(StudioDebugPanel).body;
+		expect(html).toContain('Attach to running request: Probe');
+		expect(html).toContain('library state stay shared');
+		expect(html).not.toContain('Break on function entry');
+		expect(html).not.toContain('Break on exceptions');
+	});
+	it('warns about fresh library state when source breakpoints select Rhino', () => {
+		followDebugger(state({ rhinoAvailable: true, rhinoRequested: true, serial: 2 }));
+		expect(render(StudioDebugPanel).body).toContain('fresh library state');
+	});
+
 	it('shows a disabled server gate', () => {
 		followDebugger(state({ enabled: false, attached: false, stopped: false, serial: 2 }));
 		expect(render(StudioDebugPanel).body).toContain('JavaScript debugging is disabled');
