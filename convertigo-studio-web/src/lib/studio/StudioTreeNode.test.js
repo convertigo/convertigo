@@ -1,5 +1,6 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
+import { debugSession } from './debugSession.svelte.js';
 import StudioTreeNode from './StudioTreeNode.svelte';
 
 describe('Studio tree rename capability', () => {
@@ -57,5 +58,38 @@ describe('project YAML format', () => {
 			props: { node: { id: 'Demo', label: 'Demo', yamlFormat }, onTreeAction: () => {} }
 		});
 		expect(body).toContain(`YAML format: ${yamlFormat}`);
+	});
+});
+
+describe('logical pause marker', () => {
+	it('uses the frame target without changing the tree selection and clears on resume', () => {
+		const node = {
+			id: 'Project.sq:Run.flow.first',
+			label: 'first',
+			debugTarget: { url: 'flow-block:opaque#/nodes/0' }
+		};
+		const state = {
+			attached: true,
+			stopped: true,
+			serial: 1,
+			breakOnExceptions: false,
+			sources: [],
+			frames: [{ url: node.debugTarget.url, line: 3, function: 'first', kind: 'flow' }]
+		};
+		try {
+			debugSession.state = state;
+			debugSession.frameIndex = 0;
+			const paused = render(StudioTreeNode, { props: { node, selectedId: 'Project.sq:Run' } }).body;
+			expect(paused).toContain('data-debug-paused="true"');
+			expect(paused).toContain('title="Paused block"');
+			expect(paused).not.toMatch(/class="[^"]*studio-tree-node__row--selected/);
+			debugSession.state = { ...state, stopped: false };
+			expect(render(StudioTreeNode, { props: { node } }).body).not.toContain(
+				'data-debug-paused="true"'
+			);
+		} finally {
+			debugSession.state = null;
+			debugSession.frameIndex = 0;
+		}
 	});
 });

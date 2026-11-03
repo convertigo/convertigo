@@ -8,6 +8,7 @@
 	import { persistedState } from 'svelte-persisted-state';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { closedProjects, loadTreeRoot, refreshClosedProjects } from './closedProjects.svelte.js';
+	import { debugSession } from './debugSession.svelte.js';
 	import {
 		areEquivalentDboObjectIds,
 		equivalentDboObjectIds,
@@ -1152,6 +1153,70 @@
 		const id = selectedId;
 		selectedTrail = (id && trailTo(id, rootChildren)) || [];
 	});
+
+	// Reveal the selected logical frame by the very same opaque target as the breakpoint.
+	// Selection stays independent; no debugger-to-tree registry is kept.
+	let debugTreeKey = $derived(
+		debugSession.state?.stopped
+			? `${debugSession.state.sessionId}:${debugSession.state.pauseId}:${debugSession.frameIndex}`
+			: ''
+	);
+	$effect(() => {
+		if (!debugTreeKey) return;
+		const frame = untrack(() => debugSession.state?.frames?.[debugSession.frameIndex]);
+		if (frame?.kind !== 'flow') return;
+		const source = frame.location?.id?.match(/^([^/]+)\/.+\/([^/]+)\.flow\.js$/);
+		if (!source) return;
+		let cancelled = false;
+		untrack(
+			() =>
+				void revealDebugFrame(frame.url, source[1], source[2], () => cancelled).catch(() => {
+					/* A stale or removed tree target must not interrupt debugging. */
+				})
+		);
+		return () => {
+			cancelled = true;
+		};
+	});
+
+	/** @param {string} url @param {string} project @param {string} flow @param {() => boolean} cancelled */
+	async function revealDebugFrame(url, project, flow, cancelled) {
+		const rootId = `${project}.sq:${flow}.flow`;
+		const ancestors = [project, `${project}:sq`, `${project}.sq:${flow}`, rootId];
+		for (const id of ancestors) {
+			if (cancelled()) return;
+			const node = findNodeById(id);
+			if (!node) return;
+			keepExpanded((trailTo(id, rootChildren) ?? []).map((item) => item.id));
+			if (node.children && !Array.isArray(node.children)) await loadChildren(node);
+		}
+		let budget = 128;
+		/** @param {any} node @param {string[]} path @returns {Promise<string[] | null>} */
+		async function locate(node, path) {
+			if (!node || cancelled()) return null;
+			const target = node.debugTarget?.url;
+			if (target === url) return [...path, node.id];
+			// Only descendants of the frame's JSON Pointer can contain this activation.
+			if (target && !url.startsWith(`${target}/`)) return null;
+			if (node.children && !Array.isArray(node.children)) {
+				if (--budget < 0) return null;
+				await loadChildren(node);
+			}
+			for (const child of node.children || []) {
+				const found = await locate(child, [...path, node.id]);
+				if (found) return found;
+			}
+			return null;
+		}
+		const path = await locate(findNodeById(rootId), []);
+		if (!path || cancelled()) return;
+		keepExpanded(path.slice(0, -1));
+		await tick();
+		if (!cancelled())
+			document
+				.querySelector(`[data-row-id="${CSS.escape(path.at(-1))}"]`)
+				?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+	}
 
 	/**
 	 * @param {string} id

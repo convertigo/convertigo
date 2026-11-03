@@ -5,6 +5,7 @@
 	import Ico from '#lib/utils/Ico.svelte';
 	import { call, getUrl, removeDbo, renameDbo } from '#lib/utils/service.js';
 	import { tick, untrack } from 'svelte';
+	import { debugSession } from './debugSession.svelte.js';
 	import {
 		canDropDbo,
 		canUseDboDropFallback,
@@ -225,6 +226,13 @@
 		return node?.count ?? children.length;
 	});
 	let selected = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, selectedId)));
+	let debugPaused = $derived(
+		Boolean(
+			debugSession.state?.stopped &&
+			node?.debugTarget?.url &&
+			debugSession.state.frames?.[debugSession.frameIndex]?.url === node.debugTarget.url
+		)
+	);
 	let label = $derived.by(() => {
 		dataSerial;
 		revision;
@@ -1338,6 +1346,8 @@
 			ondragover={checkDrop}
 			ondragleave={resetDrop}
 			ondrop={handleDrop}
+			data-debug-paused={debugPaused ? 'true' : undefined}
+			class:studio-tree-node__row--paused={debugPaused}
 			class:studio-tree-node__row--selected={selected}
 			class:studio-tree-node__row--multi={Boolean(node?.id && treeSelection.ids.includes(node.id))}
 			class:studio-tree-node__row--drop={dropOver && dropAllowed}
@@ -1458,6 +1468,11 @@
 							<span class="studio-tree-node__default" aria-label={defaultOf}></span>
 						{/if}
 					</span>
+					{#if debugPaused}<span
+							class="studio-tree-node__pause"
+							title="Paused block"
+							aria-hidden="true">▶</span
+						>{/if}
 					<span
 						class="studio-tree-node__label"
 						class:studio-tree-node__label--added={change?.status === 'added'}
@@ -1744,6 +1759,18 @@
 {/if}
 
 <style>
+	.studio-tree-node__row--paused {
+		box-shadow: inset 3px 0 #d97706;
+	}
+	.studio-tree-node__row--paused:not(.studio-tree-node__row--selected) {
+		background: rgb(245 158 11 / 16%);
+	}
+	.studio-tree-node__pause {
+		color: #d97706;
+		font-size: 12px;
+		flex-shrink: 0;
+	}
+
 	.studio-tree-tag {
 		border: 1px solid;
 		border-left-width: 4px;
