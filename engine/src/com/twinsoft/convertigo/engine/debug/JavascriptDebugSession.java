@@ -289,6 +289,17 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		public void leave(String frameId) {
 			synchronized (lock) { if (closed) return; var frame = top(frameId); if (frame != null) worker.frames.remove(frame); }
 		}
+		/** Reuse the ordinary opaque references and pages; only the paused worker can export a scope. */
+		public String scope(String name, Object value) throws Exception {
+			owner();
+			synchronized (lock) {
+				if (!paused || pausedWorker != worker || !inspecting || closed)
+					throw new IllegalStateException("Scopes can only be described during participant inspection.");
+			}
+			if (name == null || name.length() > 500) throw new IllegalArgumentException("Invalid scope name.");
+			var registry = JavascriptDebugSession.this.inspection;
+			return registry.page(value, 0, 20).put("name", name).put("ref", registry.reference(value)).toString();
+		}
 		private JSONObject inspection(Context cx, Frame frame, String action, String expression) {
 			var debugger = cx.getDebugger(); var data = cx.getDebuggerContextData();
 			cx.setDebugger(null, null); worker.evaluationDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(500);
@@ -527,7 +538,8 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 					|| value instanceof Scriptable script && ordinary(script)
 					|| !(value instanceof Scriptable) && !primitive(value) && value.getClass().getFields().length > 0);
 		}
-		synchronized JSONObject page(Object object, int offset) {
+		synchronized JSONObject page(Object object, int offset) { return page(object, offset, 100); }
+		synchronized JSONObject page(Object object, int offset, int limit) {
 			var result = new JSONArray(); object = unwrap(object);
 			int count = 0;
 			if (object instanceof LexicalScope scope) {
@@ -539,18 +551,18 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 				}
 				count = bindings.size(); int index = 0;
 				for (var binding : bindings.values()) {
-					if (index >= offset + 100) break;
+					if (index >= offset + limit) break;
 					if (index++ >= offset) result.put(property(binding.owner, binding.id));
 				}
 			} else if (object != null && object.getClass().isArray()) {
 				count = java.lang.reflect.Array.getLength(object);
-				for (int i = offset; i < count && i < offset + 100; i++) result.put(node(Integer.toString(i), java.lang.reflect.Array.get(object, i)));
+				for (int i = offset; i < count && i < offset + limit; i++) result.put(node(Integer.toString(i), java.lang.reflect.Array.get(object, i)));
 			} else if (object instanceof NativeArray array) {
 				count = (int)Math.min(array.getLength(), 1_000_000);
-				for (int i = offset; i < count && i < offset + 100; i++) result.put(property(array, i));
+				for (int i = offset; i < count && i < offset + limit; i++) result.put(property(array, i));
 			} else if (object instanceof Scriptable scope && ordinary(scope)) {
 				var ids = scope.getIds(); count = ids.length;
-				for (int i = offset; i < count && i < offset + 100; i++) {
+				for (int i = offset; i < count && i < offset + limit; i++) {
 					var id = ids[i];
 					if (id instanceof String || id instanceof Number) result.put(property(scope, id));
 				}
@@ -558,13 +570,13 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 				var fields = java.util.Arrays.stream(object.getClass().getFields())
 						.filter(field -> !java.lang.reflect.Modifier.isStatic(field.getModifiers())).toList();
 				count = fields.size();
-				for (int i = offset; i < count && i < offset + 100; i++) {
+				for (int i = offset; i < count && i < offset + limit; i++) {
 					var field = fields.get(i);
 					try { result.put(node(field.getName(), field.get(object))); }
 					catch (IllegalAccessException | RuntimeException e) { result.put(node(field.getName(), "<inaccessible>")); }
 				}
 			}
-			return json("variables", result, "nextOffset", offset + 100 < count ? offset + 100 : -1);
+			return json("variables", result, "nextOffset", offset + limit < count ? offset + limit : -1);
 		}
 		private JSONObject property(Scriptable object, Object id) {
 			boolean numeric = id instanceof Number; int index = numeric ? ((Number) id).intValue() : 0;

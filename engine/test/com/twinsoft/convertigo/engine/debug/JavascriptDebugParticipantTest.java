@@ -62,6 +62,38 @@ public class JavascriptDebugParticipantTest {
             try { session.variables(0,id); fail("Stale inspection accepted"); } catch (IllegalStateException expected) { }
         }
     }
+    @Test public void participantScopesReuseOpaqueReferencesAndBoundedPages() throws Exception {
+        try (var session = new JavascriptDebugSession(); var pool = Executors.newSingleThreadExecutor()) {
+            session.breakpoint("fake:objects", 1, true, false);
+            var future = pool.submit(() -> {
+                try (var lease = session.enter(); var suspended = JavascriptDebugger.suspendForFlow()) {
+                    var cx = Context.getCurrentContext(); var scope = cx.initStandardObjects();
+                    cx.evaluateString(scope, "var data={items:Array.from({length:250},function(_,i){return i;}),nested:{value:42}};data.again=data.nested;data.self=data;Object.defineProperty(data,'guard',{enumerable:true,get:function(){throw Error('getter invoked');}});for(var i=0;i<250;i++)data['key'+i]=i;", "data", 1, null);
+                    var inspect = (Function) cx.evaluateString(scope,
+                        "(function(){return JSON.stringify({scopes:[JSON.parse(String(plugin.scope('Arguments',data)))]});})", "inspect", 1, null);
+                    var plugin = JavascriptDebugger.participant("fake", inspect);
+                    scope.put("plugin", scope, Context.javaToJS(plugin, scope));
+                    assertThrows(IllegalStateException.class, () -> plugin.scope("outside", scope));
+                    plugin.enter("node", "{\"url\":\"fake:objects\",\"line\":1}");
+                    plugin.at("node", "before"); plugin.leave("node"); return true;
+                }
+            });
+            var state = paused(session,0); long id=state.getLong("pauseId");
+            var root=session.variables(0,id).getJSONArray("scopes").getJSONObject(0);
+            assertEquals(20,root.getJSONArray("variables").length());assertEquals(20,root.getInt("nextOffset"));
+            var rows=root.getJSONArray("variables");
+            assertEquals(rows.getJSONObject(1).getString("ref"),rows.getJSONObject(2).getString("ref"));
+            assertEquals(root.getString("ref"),rows.getJSONObject(3).getString("ref"));
+            assertEquals("<accessor>",rows.getJSONObject(4).getString("value"));
+            var arrayRef=rows.getJSONObject(0).getString("ref");
+            var first=session.properties(id,arrayRef,0);assertEquals(100,first.getJSONArray("variables").length());
+            assertEquals(100,first.getInt("nextOffset"));
+            var last=session.properties(id,arrayRef,200);assertEquals(50,last.getJSONArray("variables").length());assertEquals(-1,last.getInt("nextOffset"));
+            assertEquals(100,session.properties(id,root.getString("ref"),20).getJSONArray("variables").length());
+            session.resume("go",id);assertTrue(future.get(5,TimeUnit.SECONDS));
+            assertThrows(IllegalStateException.class,()->session.properties(id,arrayRef,0));
+        }
+    }
     @Test public void pluginPreviewsNeverInvokeArbitraryHostCode() {
         assertEquals("42",JavascriptDebugger.preview(42));
         assertEquals("[Host object]",JavascriptDebugger.preview(new Object() {
