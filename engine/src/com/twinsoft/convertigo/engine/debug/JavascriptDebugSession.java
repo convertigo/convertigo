@@ -75,7 +75,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	private final List<JSONObject> events = new ArrayList<>();
 	private long serial, pauseId, seen = System.currentTimeMillis();
 	private int sourceChars, stopDepth = -1;
-	private boolean paused, breakNext, breakOnExceptions, breakOnEnter, breakOnReturn, closed, inspecting;
+	private boolean paused, breakNext, breakOnExceptions, breakOnEnter, breakOnReturn, closed, inspecting, stepAfterAllowed;
 
 	private Throwable lastException;
 	private Job job;
@@ -276,13 +276,16 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 		public void at(String frameId, String phase) {
 			// A previously registered token cannot bypass a shared-construction barrier.
 			if (!JavascriptDebugger.participantAllowed()) return;
+			if (!Set.of("before", "after", "error").contains(phase)) throw new IllegalArgumentException("Invalid participant phase.");
 			boolean stop;
 			synchronized (lock) {
 				if (closed) return;
 				var frame = top(frameId); if (frame == null) return;
 				frame.phase = phase;
-				stop = !inspecting && !paused && ("before".equals(phase) && breakpoints.getOrDefault(frame.url(), Set.of()).contains(frame.line)
-					|| breakNext && (stepWorker == null || stepWorker == worker) && (stopDepth < 0 || worker.frames.size() <= stopDepth));
+				stop = !inspecting && !paused && ("error".equals(phase)
+					|| "before".equals(phase) && breakpoints.getOrDefault(frame.url(), Set.of()).contains(frame.line)
+					|| breakNext && ("before".equals(phase) || stepAfterAllowed && "after".equals(phase))
+						&& (stepWorker == null || stepWorker == worker) && (stopDepth < 0 || worker.frames.size() <= stopDepth));
 			}
 			if (stop) pause(Context.getCurrentContext(), "participant", worker);
 		}
@@ -409,6 +412,8 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			checkPause(expectedPause);
 			if (job != null || inspecting) throw new IllegalStateException("An inspection is pending.");
 			stopDepth = switch (action) { case "stepOver" -> frames.size(); case "stepOut" -> frames.size() - 1; default -> -1; };
+			// Into follows a child first, or exposes a leaf's output. Over/out skip logical return boundaries.
+			stepAfterAllowed = "stepInto".equals(action) || !frames.isEmpty() && frames.get(frames.size() - 1).participant == null;
 			stepWorker = "go".equals(action) ? null : pausedWorker;
 			inspection.clear(); breakNext = !"go".equals(action); paused = false; event("resumed"); lock.notifyAll();
 		}

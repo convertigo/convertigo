@@ -62,6 +62,31 @@ public class JavascriptDebugParticipantTest {
             try { session.variables(0,id); fail("Stale inspection accepted"); } catch (IllegalStateException expected) { }
         }
     }
+    @Test public void logicalStepOverStopsBeforeTheNextSiblingAndErrorFramesRemainInspectable() throws Exception {
+        try (var session = new JavascriptDebugSession(); var pool = Executors.newSingleThreadExecutor()) {
+            session.breakpoint("fake:steps",1,true,false);
+            var task=pool.submit(()->{
+                try(var lease=session.enter();var suspension=JavascriptDebugger.suspendForFlow()) {
+                    var cx=Context.getCurrentContext();var scope=cx.initStandardObjects();
+                    var inspect=(Function)cx.evaluateString(scope,"(function(){return '{\"scopes\":[]}';})","inspect",1,null);
+                    var plugin=JavascriptDebugger.participant("fake",inspect);
+                    plugin.enter("first","{\"url\":\"fake:steps\",\"line\":1}");plugin.at("first","before");
+                    plugin.enter("child","{\"url\":\"fake:child\",\"line\":1}");plugin.at("child","before");plugin.at("child","after");plugin.leave("child");
+                    plugin.at("first","after");plugin.leave("first");
+                    plugin.enter("next","{\"url\":\"fake:steps\",\"line\":2}");plugin.at("next","before");plugin.at("next","error");plugin.leave("next");return 42;
+                }
+            });
+            var first=paused(session,0);session.resume("stepOver",first.getLong("pauseId"));
+            var next=paused(session,first.getLong("pauseId"));
+            assertEquals("next",next.getJSONArray("frames").getJSONObject(0).getString("frameId"));
+            assertEquals("before",next.getJSONArray("frames").getJSONObject(0).getString("phase"));
+            session.resume("go",next.getLong("pauseId"));
+            var error=paused(session,next.getLong("pauseId"));
+            assertEquals("error",error.getJSONArray("frames").getJSONObject(0).getString("phase"));
+            assertNotNull(session.variables(0,error.getLong("pauseId")));
+            session.resume("go",error.getLong("pauseId"));assertEquals(42,(int)task.get(5,TimeUnit.SECONDS));
+        }
+    }
     @Test public void participantScopesReuseOpaqueReferencesAndBoundedPages() throws Exception {
         try (var session = new JavascriptDebugSession(); var pool = Executors.newSingleThreadExecutor()) {
             session.breakpoint("fake:objects", 1, true, false);
