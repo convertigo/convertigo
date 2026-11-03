@@ -161,11 +161,11 @@ public class MdcLifecycleTest {
 				// Deliberately contaminate a reusable worker before submitting the real task.
 				request("CheckSite");
 				MDC.put("nolog", true);
-				return Thread.currentThread().threadId();
+				return Thread.currentThread().getId();
 			}).get(5, TimeUnit.SECONDS);
 			request("SendMail");
 			Runnable task = Log4jHelper.withMdc(() -> {
-				assertEquals(thread, Thread.currentThread().threadId());
+				assertEquals(thread, Thread.currentThread().getId());
 				assertTrue(log("SMTP").contains("$project=SendMail"));
 				MDC.put("nolog", true);
 				throw new IllegalArgumentException("SMTP failure");

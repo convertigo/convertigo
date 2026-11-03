@@ -49,36 +49,35 @@ public class DesignDocumentReduceTest {
 		String url = System.getProperty("couchDbReduceTestUrl");
 		assumeNotNull(url);
 		String database = "c8o_reduce_1223_" + UUID.randomUUID().toString().replace("-", "");
-		try (HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()) {
-			request(client, url, "PUT", database, "{}", 201);
-			try {
-				var views = new JSONObject();
-				String map = "function(doc) { if (doc.group) emit(doc.group, 1); }";
-				views.put("correct", new JSONObject().put("map", map).put("reduce", DesignDocument.DEFAULT_REDUCE));
-				views.put("legacy", new JSONObject().put("map", map).put("reduce", OLD));
-				views.put("count", new JSONObject().put("map", map).put("reduce", "_count"));
-				request(client, url, "PUT", database + "/_design/test", new JSONObject().put("views", views).toString(), 201);
-				var docs = new JSONArray();
-				for (int i = 0; i < 6000; i++) {
-					docs.put(new JSONObject().put("_id", "doc" + i).put("group", i < 3000 ? "a" : "b"));
-				}
-				request(client, url, "POST", database + "/_bulk_docs", new JSONObject().put("docs", docs).toString(), 201);
-				for (String name : List.of("correct", "count")) {
-					var result = new JSONObject(request(client, url, "GET", database + "/_design/test/_view/" + name, null, 200));
-					assertEquals(6000, result.getJSONArray("rows").getJSONObject(0).getInt("value"));
-					var grouped = new JSONObject(request(client, url, "GET", database + "/_design/test/_view/" + name + "?group=true", null, 200));
-					assertEquals(2, grouped.getJSONArray("rows").length());
-					for (int i = 0; i < 2; i++) {
-						assertEquals(3000, grouped.getJSONArray("rows").getJSONObject(i).getInt("value"));
-					}
-				}
-				var legacy = new JSONObject(request(client, url, "GET", database + "/_design/test/_view/legacy", null, 200));
-				assertTrue(legacy.getJSONArray("rows").getJSONObject(0).getInt("value") < 6000);
-				var rows = new JSONObject(request(client, url, "GET", database + "/_design/test/_view/correct?reduce=false", null, 200));
-				assertEquals(6000, rows.getJSONArray("rows").length());
-			} finally {
-				request(client, url, "DELETE", database, null, 200);
+		HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+		request(client, url, "PUT", database, "{}", 201);
+		try {
+			var views = new JSONObject();
+			String map = "function(doc) { if (doc.group) emit(doc.group, 1); }";
+			views.put("correct", new JSONObject().put("map", map).put("reduce", DesignDocument.DEFAULT_REDUCE));
+			views.put("legacy", new JSONObject().put("map", map).put("reduce", OLD));
+			views.put("count", new JSONObject().put("map", map).put("reduce", "_count"));
+			request(client, url, "PUT", database + "/_design/test", new JSONObject().put("views", views).toString(), 201);
+			var docs = new JSONArray();
+			for (int i = 0; i < 6000; i++) {
+				docs.put(new JSONObject().put("_id", "doc" + i).put("group", i < 3000 ? "a" : "b"));
 			}
+			request(client, url, "POST", database + "/_bulk_docs", new JSONObject().put("docs", docs).toString(), 201);
+			for (String name : List.of("correct", "count")) {
+				var result = new JSONObject(request(client, url, "GET", database + "/_design/test/_view/" + name, null, 200));
+				assertEquals(6000, result.getJSONArray("rows").getJSONObject(0).getInt("value"));
+				var grouped = new JSONObject(request(client, url, "GET", database + "/_design/test/_view/" + name + "?group=true", null, 200));
+				assertEquals(2, grouped.getJSONArray("rows").length());
+				for (int i = 0; i < 2; i++) {
+					assertEquals(3000, grouped.getJSONArray("rows").getJSONObject(i).getInt("value"));
+				}
+			}
+			var legacy = new JSONObject(request(client, url, "GET", database + "/_design/test/_view/legacy", null, 200));
+			assertTrue(legacy.getJSONArray("rows").getJSONObject(0).getInt("value") < 6000);
+			var rows = new JSONObject(request(client, url, "GET", database + "/_design/test/_view/correct?reduce=false", null, 200));
+			assertEquals(6000, rows.getJSONArray("rows").length());
+		} finally {
+			request(client, url, "DELETE", database, null, 200);
 		}
 	}
 

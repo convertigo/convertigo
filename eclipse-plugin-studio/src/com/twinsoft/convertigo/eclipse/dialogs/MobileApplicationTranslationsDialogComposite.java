@@ -124,17 +124,17 @@ class MobileApplicationTranslationsDialogComposite extends MyAbstractDialogCompo
 	}
 
 	private String getLanguage(Combo cb) {
-		Locale locale = Locale.of(cb.getText());
+		Locale locale = new Locale(cb.getText());
 		return locale.getDisplayLanguage();
 	}
 
 	@Override
 	public Object getValue(String name) {
 		if ("from".equals(name)) {
-			return Locale.of(cbFrom.getText());
+			return new Locale(cbFrom.getText());
 		}
 		if ("to".equals(name)) {
-			return Locale.of(cbTo.getText());
+			return new Locale(cbTo.getText());
 		}
 		if ("auto".equals(name)) {
 			return btnAuto.getSelection();
