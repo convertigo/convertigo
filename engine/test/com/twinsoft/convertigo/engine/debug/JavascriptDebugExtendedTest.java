@@ -145,7 +145,8 @@ public class JavascriptDebugExtendedTest {
             var text = find(variables.getJSONArray("scope"), "text");
             assertTrue(text.getBoolean("fullValue"));
             assertEquals(1200, session.value(pause, text.getString("ref")).getString("value").length());
-            assertEquals("ReferenceError: \"missingVariable\" is not defined.", session.evaluate(0, pause, "missingVariable").getString("result"));
+            // Rhino localizes the rest of the message with the JVM locale.
+            assertTrue(session.evaluate(0, pause, "missingVariable").getString("result").startsWith("ReferenceError: \"missingVariable\""));
             String ref = many.getString("ref");
             session.resume("stepOver", pause);
             long next = paused(session, pause).getLong("pauseId");
