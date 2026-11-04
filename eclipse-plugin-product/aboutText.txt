@@ -2,21 +2,28 @@ Convertigo Studio
 
 Version @CEMS_VERSION@
 
-Copyright (c) 2001-@CURRENT_YEAR@ Convertigo.  All rights reserved.
-Visit https://www.convertigo.com
+Copyright (c) 2001-@CURRENT_YEAR@ Convertigo SA. All rights reserved.
+https://www.convertigo.com
 
-Convertigo Community Edition available under Affero GPL V3 License is the core Convertigo Low Code Platform which allows to develop Web & Mobile business applications. 
+Convertigo Studio is the development environment for the Convertigo Low Code platform. It enables developers to build web and mobile business applications and includes a local Convertigo Server for project testing.
 
-It includes as well references to third party open source components and to Convertigo Enterprise Edition components such as Legacy RPA connectors and FullSync which are available under the "Convertigo S.A SOFTWARE LICENSE AGREEMENT" which is included in this document.
+Convertigo Server executes deployed Convertigo projects.
 
-Details about third party open source or Convertigo Enterprise Edition components licenses are available at 
+LICENSING
 
+Convertigo includes software distributed under the GNU Affero General Public License, version 3 or later (AGPL), together with software covered by other applicable licences.
+
+AGPL-licensed source code and licence information are available at:
+https://github.com/convertigo/convertigo
+
+Commercial licensing arrangements, subscriptions and associated services are governed by the Convertigo Platform Licence Agreement and the applicable agreement with Convertigo.
+
+Third-party software remains governed by its respective licence terms.
+
+Please refer to the licence agreement and component notices supplied with your distribution for the applicable terms. This notice does not replace those terms or restrict rights granted under applicable open source licences.
+
+Licensing information:
 https://c8ocloud.convertigo.net/convertigo/licenses/index.html
 
-"Convertigo Studio" is for Convertigo project low code developments purpose and includes a local single user server for project testing purposes.
-
-"Convertigo Server" is for production and deployment purposes and executes Convertigo low code projects developed and edited within Convertigo Studio. 
-
-Both Convertigo Studio and Server installers are copying Convertigo Community Edition, third party components as well as Convertigo Enterprise Edition components which one are pre activated for a 30 days trial.
- 
-Details about Convertigo components architecture is available at : https://www.convertigo.com/product-page/low-code-platform
+Documentation:
+https://doc.convertigo.com
