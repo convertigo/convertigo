@@ -31,6 +31,7 @@ tasks.register('sessionSerializationTest', JavaExec) {
 }
 
 tasks.named('check') {
+	dependsOn 'xsltCacheTest'
 	dependsOn 'sessionSerializationTest'
 	dependsOn 'requestScopedSessionTest'
 	dependsOn 'componentRefManagerTest'
@@ -66,6 +67,16 @@ tasks.named('check') {
 	dependsOn 'redisContextExpiredCopyTest'
 	dependsOn 'redisContextIndexTest'
 	dependsOn 'multipartUploadFolderTest'
+}
+
+tasks.register('xsltCacheTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for per-project XSLT caches, dependency recompilation and concurrent requests.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.XSLTUtilsTest',
+		'com.twinsoft.convertigo.engine.XSLTProjectLifecycleTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
