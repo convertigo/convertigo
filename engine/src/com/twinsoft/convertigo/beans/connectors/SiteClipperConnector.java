@@ -81,6 +81,7 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IDomainsFilterContainer;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.extractionrules.siteclipper.IRequestRule;
@@ -89,6 +90,7 @@ import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -112,6 +114,7 @@ import com.twinsoft.convertigo.engine.util.RegexpUtils;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.StreamUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.util.UrlParser;
 import com.twinsoft.convertigo.engine.util.UrlParser.UrlFields;
 
@@ -224,8 +227,16 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				String contextName = getRequest(QueryKey.context);
 				Engine.logSiteClipper.debug("(SiteClipperConnector) find contextName : " + contextName);
 
-				try {
+				try (var lock = Engine.theApp.contextManager.lockContext(sessionID + "_" + contextName)) {
 					context = Engine.theApp.contextManager.get(null, contextName, sessionID, null, projectName, connectorName, null);
+					boolean redisMode = ConvertigoHttpSessionManager.isRedisMode();
+					if (redisMode) {
+						boolean cachedAlready = ContextManager.registerRequestContext(request, context);
+						if (!cachedAlready) {
+							Engine.theApp.contextManager.refreshContextFromStoreIfNeeded(context);
+						}
+						restoreStoredProject(context, projectName, name -> Engine.theApp.databaseObjectsManager.getProjectByName(name));
+					}
 					Engine.logSiteClipper.trace("(SiteClipperConnector) context id retrieved : " + context.contextID);
 					contextName = context.name;
 
@@ -269,6 +280,9 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 						} finally {
 							siteClipperConnector.siteClipperRequestObjectsPerThread.remove(Thread.currentThread());
 							context.lastAccessTime = System.currentTimeMillis();
+							if (redisMode && Engine.theApp.contextManager.isLastHoldOfContextLock(context.contextID)) {
+								Engine.theApp.contextManager.saveBeforeUnlock(request, context);
+							}
 						}
 					} else {
 						throw new ServletException("(SiteClipperConnector) this isn't a SiteClipperConnector : " + connectorName);
@@ -282,6 +296,18 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				logContext.close();
 				request = null;
 				response = null;
+			}
+		}
+
+		@FunctionalInterface
+		interface ProjectLoader {
+			Project load(String name) throws EngineException;
+		}
+
+		static void restoreStoredProject(Context context, String projectName, ProjectLoader projectLoader) throws EngineException {
+			if (context.project == null && context.storedAccessTime > 0) {
+				context.projectName = projectName;
+				context.project = projectLoader.load(context.projectName);
 			}
 		}
 

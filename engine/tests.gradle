@@ -66,6 +66,7 @@ tasks.named('check') {
 	dependsOn 'redisContextSavedBeforeUnlockTest'
 	dependsOn 'redisContextExpiredCopyTest'
 	dependsOn 'redisContextIndexTest'
+	dependsOn 'siteClipperStoredContextTest'
 	dependsOn 'multipartUploadFolderTest'
 }
 
@@ -589,3 +590,13 @@ tasks.register('projectMetadataTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.servlets.ProjectHttpIgnoreTest'
 }
 tasks.named('check') { dependsOn 'projectMetadataTest' }
+
+
+tasks.register('siteClipperStoredContextTest', JavaExec) {
+	group = 'verification'
+	description = 'SiteClipper project restoration for stored contexts.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.connectors.SiteClipperStoredContextTest'
+}
