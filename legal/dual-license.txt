@@ -188,13 +188,12 @@ in the corresponding purchase order.
 
 Subject to the terms of this Agreement and subject to the payment of the appropriate license fees by the 
 Organization, Convertigo hereby grants You a limited, non-exclusive, non-transferable, non-sub licensable, 
-revocable right to download, install and use the Software in machine readable, object code form only for 
-Starter Edition components and Enterprise Edition components, solely for your internal business operations and only 
+revocable right to download, install and use the Software, solely for your internal business operations and only 
 as authorized by this Agreement for the limited duration specified in your agreement with Convertigo.
 
 You agree to be bound by the following limitations:
 
--	if the license is "per Session ", You will not deploy more than the number of Sessions for which You have 
+-	if the license is "per Session hours", You will not deploy more than the number of Sessions hours for which You have 
     been licensed.
 -	if the license is "per User", You will not deploy more than the number of Devices for which You have 
     been licensed.
@@ -224,15 +223,14 @@ Convertigo.
 
 Except as otherwise expressly provided in this Agreement, the following rights and limitations apply:
 
-4.4.1	You may make one (1) copy the Software into any machine readable or printed form for backup purposes 
+4.4.1	You may make one (1) copy the Software for backup purposes 
 only in support of your use of the Software.
 
 4.4.2	You may use the Software in accordance with any documentation accompanying the Software.
 
 4.4.3	You may transfer the Software from one Authorized User to another within your Organization if the other 
 individual agrees to accept the terms and conditions of this Agreement. If You transfer the Software You must at 
-the same time either transfer all copies whether in printed or machine readable form to the same party or destroy 
-any copies not transferred.
+the same time either transfer all copies to the same party or destroy any copies not transferred.
 
 4.4.4	You may not rent, lease or otherwise transfer rights to the Software or remove any proprietary notices, 
 labels or marks. 
@@ -388,8 +386,7 @@ penalties both civil and criminal for intellectual property infringement.
 You acknowledge and agree that the Software was developed at considerable time and expense by Convertigo and 
 is confidential to and contains trade secrets of Convertigo. You agree to maintain the Software in strict confidence 
 and not to disclose or provide access thereto to any person except to your employees or contractors with a need 
-for access to exercise the license rights conferred hereby. You do not have the right to obtain or use any source 
-code for the Software, and may not translate, reverse engineer, decompile or disassemble, or otherwise attempt to 
+for access to exercise the license rights conferred hereby. You do not have the right to attempt to 
 derive the source code of the Software and agree not to authorize, allow or enable any other person to do so.
 
 =====================
