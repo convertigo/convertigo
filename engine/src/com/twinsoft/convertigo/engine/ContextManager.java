@@ -1574,6 +1574,7 @@ public class ContextManager extends AbstractRunnableManager {
 				if (contextStore != null && !isLocalOnlyContextId(contextID)) {
 					contextStore.delete(contextID);
 				}
+				ContextHttpPools.release(contextID);
 
 				if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
 					Engine.logContextManager.debug("Stopping requestable thread for context " + contextID);

@@ -609,3 +609,12 @@ tasks.register('siteClipperReadOnlyContextTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.beans.connectors.SiteClipperReadOnlyContextTest'
 }
+
+tasks.register('redisHttpPoolsTest', JavaExec) {
+	group = 'verification'
+	description = 'Context and session HTTP pools kept by the engine with the Redis session store.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.ContextHttpPoolsTest', 'com.twinsoft.convertigo.engine.sessions.RedisHttpClientAttributesTest'
+}

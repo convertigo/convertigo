@@ -76,6 +76,8 @@ import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
+import com.twinsoft.convertigo.engine.sessions.StatefulSessionAttributes;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -704,6 +706,9 @@ public class Context extends AbstractContext implements Cloneable {
 		case no:
 			return HttpUtils.makeHttpClient3(false);
 		case context:
+			if (ConvertigoHttpSessionManager.isRedisMode()) {
+				return ContextHttpPools.httpClient3(contextID, httpPoolIdleMillis());
+			}
 			synchronized (used_connectors) {
 				if (httpClient3 == null) {
 					Engine.logContext.debug("Create a new context HTTP pool.");
@@ -716,11 +721,11 @@ public class Context extends AbstractContext implements Cloneable {
 			HttpClient httpClient;
 
 			synchronized (used_connectors) {
-				httpClient = SessionAttribute.httpClient3.get(httpSession);
+				httpClient = (HttpClient) StatefulSessionAttributes.getStatefulAttribute(httpSession, SessionAttribute.httpClient3.value());
 				if (httpClient == null) {
 					Engine.logContext.debug("Create a new session HTTP pool.");
 					httpClient = HttpUtils.makeHttpClient3(true);
-					SessionAttribute.httpClient3.set(httpSession, httpClient);
+					StatefulSessionAttributes.setStatefulAttribute(httpSession, SessionAttribute.httpClient3.value(), httpClient);
 				}
 			}
 
@@ -731,22 +736,32 @@ public class Context extends AbstractContext implements Cloneable {
 		return null;
 	}
 
+	private long httpPoolIdleMillis() {
+		var manager = Engine.theApp != null ? Engine.theApp.contextManager : null;
+		return manager == null ? 0L : manager.storeTtlSeconds(this) * 1000L;
+	}
+
 	public HttpClientInterface getHttpClient(HttpPool httpPool) {
 		switch (httpPool) {
 		case no:
 			return HttpUtils.makeHttpClient(false);
 		case context:
+			if (ConvertigoHttpSessionManager.isRedisMode()) {
+				return ContextHttpPools.httpClient4(contextID, httpPoolIdleMillis());
+			}
 			if (httpClient == null) {
 				httpClient = HttpUtils.makeHttpClient(true);
 			}
 			return httpClient;
 		case session:
-			HttpClientInterface httpClient = SessionAttribute.httpClient4.get(httpSession);
-			if (httpClient == null) {
-				httpClient = HttpUtils.makeHttpClient(true);
-				SessionAttribute.httpClient4.set(httpSession, httpClient);
+			synchronized (used_connectors) {
+				HttpClientInterface httpClient = (HttpClientInterface) StatefulSessionAttributes.getStatefulAttribute(httpSession, SessionAttribute.httpClient4.value());
+				if (httpClient == null) {
+					httpClient = HttpUtils.makeHttpClient(true);
+					StatefulSessionAttributes.setStatefulAttribute(httpSession, SessionAttribute.httpClient4.value(), httpClient);
+				}
+				return httpClient;
 			}
-			return httpClient;
 		case global:
 			return Engine.theApp.httpClient4;
 		}
