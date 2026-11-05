@@ -94,6 +94,7 @@ import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.sessions.ContextStore;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
@@ -191,6 +192,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		}
 
 		private Context context = null;
+		private SiteClipperCookieState cookiesBefore;
 
 		public Context getContext() {
 			return context;
@@ -227,24 +229,29 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				String contextName = getRequest(QueryKey.context);
 				Engine.logSiteClipper.debug("(SiteClipperConnector) find contextName : " + contextName);
 
-				try (var lock = Engine.theApp.contextManager.lockContext(sessionID + "_" + contextName)) {
-					context = Engine.theApp.contextManager.get(null, contextName, sessionID, null, projectName, connectorName, null);
+				try {
 					boolean redisMode = ConvertigoHttpSessionManager.isRedisMode();
+					ContextManager manager = Engine.theApp.contextManager;
+					ContextStore store = redisMode ? manager.siteClipperContextStore() : null;
+					String contextID = sessionID + "_" + contextName;
 					if (redisMode) {
-						boolean cachedAlready = ContextManager.registerRequestContext(request, context);
-						if (!cachedAlready) {
-							Engine.theApp.contextManager.refreshContextFromStoreIfNeeded(context);
-						}
+						context = readRedisContext(manager, store, contextID, contextName);
 						restoreStoredProject(context, projectName, name -> Engine.theApp.databaseObjectsManager.getProjectByName(name));
+					} else {
+						context = manager.get(null, contextName, sessionID, null, projectName, connectorName, null);
 					}
 					Engine.logSiteClipper.trace("(SiteClipperConnector) context id retrieved : " + context.contextID);
 					contextName = context.name;
 
 					if (context.project == null) {
-						Engine.theApp.contextManager.remove(context);
+						if (!redisMode) manager.remove(context);
 						throw new ServletException("(SiteClipperConnector) the context " + context.name + " isn't initialized (no project loaded or expired)");
 					}
 					context.lastAccessTime = System.currentTimeMillis();
+					if (redisMode) {
+						context.httpSession = request.getSession();
+						store.touch(context.contextID, manager.siteClipperStoreTtlSeconds(context));
+					}
 					Log4jHelper.mdcPut(Log4jHelper.mdcKeys.ContextID, context.contextID);
 					Log4jHelper.mdcPut(Log4jHelper.mdcKeys.Project, context.projectName);
 
@@ -276,13 +283,15 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 						siteClipperConnector.siteClipperRequestObjectsPerThread.put(Thread.currentThread(), this);
 						try {
 							defaultResponseCharset = siteClipperConnector.getDefaultResponseCharset();
-							siteClipperConnector.processRequest(this);
+							cookiesBefore = redisMode ? new SiteClipperCookieState(context.httpState) : null;
+							try {
+								siteClipperConnector.processRequest(this);
+							} finally {
+								persistCookieDelta();
+							}
 						} finally {
 							siteClipperConnector.siteClipperRequestObjectsPerThread.remove(Thread.currentThread());
 							context.lastAccessTime = System.currentTimeMillis();
-							if (redisMode && Engine.theApp.contextManager.isLastHoldOfContextLock(context.contextID)) {
-								Engine.theApp.contextManager.saveBeforeUnlock(request, context);
-							}
 						}
 					} else {
 						throw new ServletException("(SiteClipperConnector) this isn't a SiteClipperConnector : " + connectorName);
@@ -296,6 +305,56 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				logContext.close();
 				request = null;
 				response = null;
+			}
+		}
+
+		static Context readRedisContext(ContextManager manager, ContextStore store, String contextID, String contextName) throws ServletException {
+			if (contextName == null || contextName.endsWith("*")) {
+				throw new ServletException("(SiteClipperConnector) the context " + contextName + " isn't initialized");
+			}
+			Context context = manager.get(contextID);
+			if (context != null && store != null) {
+				Long storedTime = store.readLastAccessTime(contextID);
+				if (storedTime != null && storedTime > context.storedAccessTime) {
+					Context stored = store.read(contextID);
+					if (stored != null) {
+						context.httpState = stored.httpState;
+						context.storedAccessTime = stored.lastAccessTime;
+					}
+				}
+			}
+			if (context == null && store != null) {
+				context = store.read(contextID);
+				if (context != null) context.storedAccessTime = context.lastAccessTime;
+			}
+			if (context == null) {
+				throw new ServletException("(SiteClipperConnector) the context " + contextName + " isn't initialized");
+			}
+			return context;
+		}
+
+		private void persistCookieDelta() throws EngineException {
+			if (cookiesBefore == null) return;
+			try {
+				mergeHttpState(Engine.theApp.contextManager, Engine.theApp.contextManager.siteClipperContextStore(),
+						context, cookiesBefore.delta(context.httpState));
+				cookiesBefore = null;
+			} catch (Exception e) {
+				throw new EngineException("Failed to merge SiteClipper cookies", e);
+			}
+		}
+
+		static void mergeHttpState(ContextManager manager, ContextStore store, Context local, SiteClipperCookieState.Delta delta) throws Exception {
+			if (delta.isEmpty() || store == null) return;
+			try (var lock = manager.lockContext(local.contextID)) {
+				Context stored = store.read(local.contextID);
+				if (stored == null) return;
+				stored.httpState = delta.apply(stored.httpState);
+				stored.httpSession = local.httpSession;
+				stored.lastAccessTime = Math.max(System.currentTimeMillis(), stored.lastAccessTime + 1);
+				store.saveHttpState(stored, manager.siteClipperStoreTtlSeconds(stored));
+				local.httpState = stored.httpState;
+				local.storedAccessTime = stored.lastAccessTime;
 			}
 		}
 
@@ -711,6 +770,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	}
 
 	private void doProcessRequest(Shuttle shuttle) throws IOException, ServletException, EngineException {
+		Context context = shuttle.context;
 		shuttle.statisticsTaskID = context.statistics.start(EngineStatistics.GET_DOCUMENT);
 		try {
 			shuttle.sharedScope = context.getSharedScope();
@@ -845,6 +905,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			HttpClient httpClient = context.getHttpClient3(shuttle.getHttpPool());
 			HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, shuttle.getHttpPool());
 			httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
+			shuttle.persistCookieDelta();
 
 			int status = httpMethod.getStatusCode();
 
@@ -1005,6 +1066,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	}
 
 	private synchronized void getHttpState(Shuttle shuttle) {
+		Context context = shuttle.context;
 		if (authenticationPropertiesHasChanged) {
 			context.httpState = null;
 			authenticationPropertiesHasChanged = false;
@@ -1030,6 +1092,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	}
 
 	private synchronized HostConfiguration getHostConfiguration(Shuttle shuttle) throws EngineException, MalformedURLException {
+		Context context = shuttle.context;
 		if (hostConfiguration != null) {
 			String host = hostConfiguration.getHost();
 			if (isCompatibleConfiguration(host != null && host.equals(shuttle.getRequest(QueryPart.host)))) {

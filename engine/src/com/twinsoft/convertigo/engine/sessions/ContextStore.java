@@ -37,6 +37,10 @@ public interface ContextStore {
     }
 
     void save(Context context, int ttlSeconds);
+    /** Extend an existing context without changing its fields. */
+    default void touch(String contextId, int ttlSeconds) {}
+    /** Update only the HTTP cookie state and access time of an existing context. */
+    default void saveHttpState(Context context, int ttlSeconds) {}
     void delete(String contextId);
     void deleteBySessionPrefix(String sessionIdPrefix);
     void shutdown();

@@ -116,6 +116,15 @@ public class ContextManager extends AbstractRunnableManager {
 	private long manage_poll_timeout = -1;
 
 	private ContextStore contextStore;
+
+	/** Store access for SiteClipper's read-only context path. */
+	public ContextStore siteClipperContextStore() {
+		return contextStore;
+	}
+
+	public int siteClipperStoreTtlSeconds(Context context) {
+		return storeTtlSeconds(context);
+	}
 	private final Object contextCreationMutex = new Object();
 	private final ConcurrentHashMap<String, ContextLockEntry> contextLocks = new ConcurrentHashMap<>();
 	private transient RTopic abortTopic;

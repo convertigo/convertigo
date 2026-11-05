@@ -600,3 +600,12 @@ tasks.register('siteClipperStoredContextTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.beans.connectors.SiteClipperStoredContextTest'
 }
+
+tasks.register('siteClipperReadOnlyContextTest', JavaExec) {
+	group = 'verification'
+	description = 'SiteClipper read-only context and cookie delta regression tests.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.connectors.SiteClipperReadOnlyContextTest'
+}
