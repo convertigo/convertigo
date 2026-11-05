@@ -1129,17 +1129,7 @@ public class EnginePropertiesManager {
 
 				// Ciphered property?
 				if (property.isCiphered() && properties.containsKey(key)) {
-					String value = properties.getProperty(key);
-
-					String decipheredValue = Crypto2.decodeFromHexString3(value);
-					if (decipheredValue == null) {
-						String message = "Unable to decode value for property '" + key + "'";
-						if (Engine.logEngine != null) Engine.logEngine.warn(message);
-						else System.out.println(message);
-						continue;
-					}
-
-					properties.setProperty(key, decipheredValue);
+					properties.setProperty(key, decipherPropertyValue(key, properties.getProperty(key)));
 				}
 			}
 
@@ -1275,16 +1265,40 @@ public class EnginePropertiesManager {
 		return changedProperties;
 	}
 
+	private static final java.util.regex.Pattern CIPHERED_VALUE = java.util.regex.Pattern.compile("[xyz]?[0-9a-fA-F]+");
+
+	/**
+	 * Deciphers the stored value of a ciphered property. A value that cannot be deciphered (written as plain text by
+	 * hand, by a deployment tool, or by a version where the property was not ciphered yet) is used as plain text.
+	 */
+	static String decipherPropertyValue(String key, String value) {
+		if (value == null || value.isEmpty()) {
+			return value;
+		}
+		// a ciphered value is hexadecimal, optionally after a marker: anything else is not passed to the decoder,
+		// which logs the values it gets
+		if (CIPHERED_VALUE.matcher(value).matches()) {
+			try {
+				String decipheredValue = Crypto2.decodeFromHexString3(value);
+				if (decipheredValue != null) {
+					return decipheredValue;
+				}
+			} catch (Exception e) {
+				// the message of the exception contains the value: never log it
+			}
+		}
+		String message = "The value of the property '" + key + "' is not ciphered: it is used as plain text. "
+				+ "Save the configuration from the administration console to store it ciphered.";
+		if (Engine.logEngine != null) Engine.logEngine.warn(message);
+		else System.out.println(message);
+		return value;
+	}
+
 	private static void decodeCipheredProperties(Properties reloadedProperties) throws IOException {
 		for (PropertyName property : PropertyName.values()) {
 			String key = property.getKey();
 			if (property.isCiphered() && reloadedProperties.containsKey(key)) {
-				String value = reloadedProperties.getProperty(key);
-				String decipheredValue = Crypto2.decodeFromHexString3(value);
-				if (decipheredValue == null) {
-					throw new IOException("Unable to decode value for property '" + key + "'");
-				}
-				reloadedProperties.setProperty(key, decipheredValue);
+				reloadedProperties.setProperty(key, decipherPropertyValue(key, reloadedProperties.getProperty(key)));
 			}
 		}
 	}

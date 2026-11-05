@@ -618,3 +618,12 @@ tasks.register('redisHttpPoolsTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.ContextHttpPoolsTest', 'com.twinsoft.convertigo.engine.sessions.RedisHttpClientAttributesTest'
 }
+
+tasks.register('cipheredPropertyPlainTextTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a plain-text value in a ciphered engine property is used as plain text with a warning, instead of stopping the engine.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.CipheredPropertyPlainTextTest'
+}
