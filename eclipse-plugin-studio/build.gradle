@@ -17,13 +17,16 @@ eclipse {
 		linkedResource name: 'patch/org', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/org'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/engine'
 		linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/beans'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
+		// providers linked as sources only on demand (c8o.localProviders in gradle.properties)
+		rootProject.localProviders.each {
+			linkedResource name: it.path, type: '2', location: it.sources.path
+		}
 	}
 
 	classpath {
 		file {
 			withXml {
+				rootProject.applyLocalProvidersToClasspath(it)
 				def node = it.asNode()
 				node.classpathentry.findAll { it.@path.contains('lib/dependencies') }.each { depJar ->
 					depJar.@sourcepath = project(':engine').tasks.findByName('dependenciesSourceJar').archiveFile.get().asFile.path
@@ -114,6 +117,7 @@ task copyLicense(type: Copy, dependsOn: [':checkLicenseDate']) {
 
 project(':engine').afterEvaluate {
 	syncLib {
-		inputs.property('engine-dependency', '' + project(':engine').configurations.runtimeClasspath.getAllDependencies())
+		// the coordinates, not the toString of the dependency objects, which changes on each build
+		inputs.property('engine-dependency', project(':engine').configurations.runtimeClasspath.allDependencies.collect { "${it.group}:${it.name}:${it.version}" }.sort().join(','))
 	}
 }

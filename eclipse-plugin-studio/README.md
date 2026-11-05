@@ -30,9 +30,13 @@ The wizard will automatically import projects, configure a new working set named
 
 It may propose you to install org.eclipse.swt.common.modulecore.ModuleCoreNature : CANCEL all stacked dialogs !
 
-In the Gradle Tasks view, execute convertigo > convertigo > generateEclipseConfigurationWithManifest.
+In the Gradle Tasks view, execute convertigo > convertigo > setupStudioDev (Eclipse configuration, manifests and admin web build).
 
 Refresh the convertigo project.
+
+Afterwards, for instance after a dependency update, the External Tools menu offers **setupStudioDev (macOS, Linux)** and **setupStudioDev (Windows)**: they run the same task with the JDK of the JavaSE-17 execution environment, then refresh the convertigo project.
+
+The providers (couchdb, sap, plugins) are used as jars. To debug one from its local checkout, see `c8o.localProviders` in gradle.properties.
 
 When the dialog for ModuleCoreNature comes again, click the **Show Solution** and Install Eclipse Java Enterprise Developer Tools.
 

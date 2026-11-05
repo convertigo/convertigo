@@ -56,6 +56,70 @@ ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
 ext.convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
 ext.currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)
 
+// Dev Studio in Eclipse: the providers are used as jars, unless c8o.localProviders links their
+// local checkouts as sources (see gradle.properties). -P wins over local.properties (per checkout,
+// ignored by git), which wins over the gradle.properties files.
+def localProperties = new Properties()
+if (file('local.properties').exists()) {
+	file('local.properties').withInputStream { localProperties.load(it) }
+}
+def devProperty = { String key ->
+	def cli = gradle.startParameter.projectProperties
+	cli.containsKey(key) ? cli[key] : localProperties.containsKey(key) ? localProperties.getProperty(key) : findProperty(key)
+}
+def eclipseProviderSources = [
+	couchdb: 'src/com/twinsoft/convertigo/engine/providers/couchdb',
+	sap: 'src/com/twinsoft/convertigo/engine/providers/sapjco',
+	plugins: 'src/com/twinsoft/convertigo/engine/plugins'
+]
+def localProvidersValue = (devProperty('c8o.localProviders') ?: '').toString().trim()
+def localProviderNames = localProvidersValue == 'all' ? eclipseProviderSources.keySet().toList() : localProvidersValue.tokenize(', ').unique()
+def unknownLocalProviders = localProviderNames - eclipseProviderSources.keySet()
+def localProvidersDirValue = (devProperty('c8o.localProvidersDir') ?: '').toString().trim()
+def localProvidersDir = localProvidersDirValue ? file(localProvidersDirValue.replaceFirst('^~(?=/|$)', System.getProperty('user.home'))) : rootDir.parentFile
+ext.localProviders = (localProviderNames - unknownLocalProviders).collect { name ->
+	def checkout = new File(localProvidersDir, "convertigo-provider-${name}")
+	[name: name, path: eclipseProviderSources[name], checkout: checkout, sources: new File(checkout, eclipseProviderSources[name])]
+}
+ext.localProvidersDescription = localProviders ? "local sources of ${localProviders*.name.join(', ')} from ${localProvidersDir}" : 'jars'
+
+// checked before any Eclipse task runs, so that cleanEclipse does not remove the current files
+gradle.taskGraph.whenReady { graph ->
+	if (!graph.allTasks.any { it.name == 'eclipseProject' }) {
+		return
+	}
+	if (unknownLocalProviders) {
+		throw new GradleException("Unknown c8o.localProviders ${unknownLocalProviders}: use 'all' or a list of ${eclipseProviderSources.keySet().join(', ')}")
+	}
+	def missing = localProviders*.sources.findAll { !it.directory }
+	if (missing) {
+		throw new GradleException("c8o.localProviders: missing provider sources ${missing.join(', ')}; clone the providers there or set c8o.localProvidersDir")
+	}
+}
+
+// the source sets exclude the plugins package, which comes from the provider: when it is linked as
+// sources, Eclipse compiles it with the excludes of the provider build
+ext.applyLocalProvidersToClasspath = { XmlProvider xml ->
+	def plugins = localProviders.find { it.name == 'plugins' }
+	if (plugins == null) {
+		return
+	}
+	def providerBuild = new File(plugins.checkout, 'build.gradle')
+	def providerExcludes = providerBuild.exists() ? (providerBuild.text =~ /exclude\s+['"](com\/twinsoft\/convertigo\/engine\/plugins\/[^'"]+)['"]/).collect { it[1] } : []
+	def nl = xml.asElement().getElementsByTagName('classpathentry')
+	for (def i = 0; i < nl.length; i++) {
+		def entry = nl.item(i)
+		if (entry.getAttribute('kind') == 'src' && entry.getAttribute('path') == 'src') {
+			def patterns = entry.getAttribute('excluding').tokenize('|').findAll { it != 'com/twinsoft/convertigo/engine/plugins/**' } + providerExcludes
+			if (patterns) {
+				entry.setAttribute('excluding', patterns.join('|'))
+			} else {
+				entry.removeAttribute('excluding')
+			}
+		}
+	}
+}
+
 apply from: 'headers.gradle'
 apply from: 'changelog.gradle'
 apply from: 'installers/windows.gradle'
@@ -178,6 +242,16 @@ allprojects {
 			from configurations.toSync
 			
 			rename 'sapjco3.*jar', 'sapjco3.jar'
+			
+			// optional provider jar, copied by hand (see the Bundle-ClassPath of the studio plugin)
+			preserve {
+				include 'convertigo-provider-plugins.jar'
+			}
+		}
+		
+		// the .classpath lists the jars of lib: write it once syncLib has updated them
+		tasks.named('eclipseClasspath') {
+			mustRunAfter syncLib
 		}
 	}
 	
@@ -493,14 +567,76 @@ task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', tru
 
 task generateEclipseConfigurationWithManifest(dependsOn: ['writeManifest', 'generateEclipseConfiguration']) {
 	group = 'convertigo'
+	finalizedBy 'checkEclipseConfiguration'
+}
+
+task checkEclipseConfiguration {
+	group = 'convertigo'
+	description = 'Checks that the Eclipse .classpath and .project files only reference existing files.'
+	
+	doLast {
+		def errors = []
+		allprojects.findAll { it.name == 'engine' || it.name.startsWith('eclipse-plugin') }.each { p ->
+			def classpathFile = p.file('.classpath')
+			if (classpathFile.exists()) {
+				def libs = new XmlSlurper().parse(classpathFile).classpathentry.findAll { it.@kind == 'lib' }.collect { it.@path.text() }
+				libs.findAll { !(new File(it).absolute ? new File(it) : p.file(it)).exists() }.each {
+					errors << "${p.name}/.classpath: missing library ${it}"
+				}
+				// projects whose .classpath mirrors lib (implementation fileTree(dir: 'lib'))
+				if (p.configurations.findByName('implementation')?.dependencies?.any { it instanceof FileCollectionDependency }) {
+					p.fileTree(dir: 'lib', include: '*.jar').each {
+						if (!libs.contains('lib/' + it.name)) {
+							errors << "${p.name}/.classpath: lib/${it.name} is not listed"
+						}
+					}
+				}
+			}
+			def projectFile = p.file('.project')
+			if (projectFile.exists()) {
+				new XmlSlurper().parse(projectFile).linkedResources.link.each { link ->
+					def location = link.location.text()
+					def uri = link.locationURI.text()
+					def target = location ? new File(location) : null
+					def parent = uri =~ /^PARENT-(\d+)-PROJECT_LOC\/(.*)$/
+					if (parent.matches()) {
+						target = p.projectDir
+						parent.group(1).toInteger().times { target = target.parentFile }
+						target = new File(target, parent.group(2))
+					} else if (uri.startsWith('file:')) {
+						target = new File(new URI(uri))
+					}
+					if (target != null && !target.exists()) {
+						errors << "${p.name}/.project: missing linked resource ${link.name.text()} -> ${target}"
+					}
+				}
+			}
+		}
+		if (errors) {
+			throw new GradleException("Eclipse configuration is inconsistent:\n  " + errors.join('\n  '))
+		}
+		logger.lifecycle "Eclipse configuration checked, providers: ${localProvidersDescription}"
+	}
+}
+
+task setupStudioDev(dependsOn: ['generateEclipseConfigurationWithManifest', 'buildStudioWebNpmInstall', 'buildStudioWebBuild']) {
+	group = 'convertigo'
+	description = 'Prepares the dev Studio: Eclipse configuration, manifests and admin web build.'
 }
 
 task makeSplash(dependsOn: 'convertigo-splash:run') {
 	group = 'convertigo'
 }
 
+// the admin web builds with the Node of nvm on macOS and Linux, and with the Node of the PATH on Windows
+def studioWebOnWindows = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
+def studioWebCommand = { String command ->
+	studioWebOnWindows ? ['cmd', '/c', command] : ['sh', '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} ${command}"]
+}
+
 task buildStudioWebNvmInstall(type: Exec) {
 	group = 'convertigo'
+	onlyIf { !studioWebOnWindows }
 	
 	workingDir 'convertigo-studio-web'
 	commandLine 'sh'
@@ -510,18 +646,38 @@ task buildStudioWebNvmInstall(type: Exec) {
 task buildStudioWebNpmInstall(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
 	group = 'convertigo'
 	
+	// up-to-date while the lock file is unchanged and node_modules holds its installation
+	inputs.property('studioWebNodeVersion', studioWebNodeVersion)
+	inputs.files('convertigo-studio-web/package.json', 'convertigo-studio-web/package-lock.json')
+	outputs.file('convertigo-studio-web/node_modules/.package-lock.json')
+	
 	workingDir 'convertigo-studio-web'
-	commandLine 'sh'
-	args '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} npm ci --force"
+	commandLine studioWebCommand('npm ci --force')
 }
 
 task buildStudioWebBuild(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
 	group = 'convertigo'
 	mustRunAfter ':buildStudioWebNpmInstall'
 	
+	// up-to-date while the admin web sources are unchanged and its output is in the studio webapp
+	// (post-build.js copies it among other files, so a stamp stands for it)
+	def webapp = file('eclipse-plugin-studio/tomcat/webapps/convertigo')
+	def stamp = layout.buildDirectory.file('tmp/buildStudioWebBuild/stamp')
+	inputs.property('studioWebNodeVersion', studioWebNodeVersion)
+	inputs.files(fileTree('convertigo-studio-web') {
+		// generated or local files, see convertigo-studio-web/.gitignore
+		exclude 'node_modules/', 'build/', '.svelte-kit/', '.cache/', 'package/', '.vite/', 'static/monaco/'
+		exclude 'src/convertigo.utilities.css', 'assets/bezel-sources/', 'vite.config.*.timestamp-*', '.env*', '**/.DS_Store'
+		exclude 'tests/', 'test-results/', 'playwright-report/'
+	}).withPropertyName('studioWebSources')
+	outputs.file(stamp)
+	outputs.upToDateWhen { ['index.html', '_app', 'admin'].every { new File(webapp, it).exists() } }
+	doLast {
+		stamp.get().asFile.text = 'built\n'
+	}
+	
 	workingDir 'convertigo-studio-web'
-	commandLine 'sh'
-	args '-c', ". ~/.nvm/nvm.sh && nvm exec ${studioWebNodeVersion} npm run build"
+	commandLine studioWebCommand('npm run build')
 }
 
 task ciFirstStep(dependsOn: [':engine:jar', ':gradle-plugin:publish', ':buildStudioWebNpmInstall', ':buildStudioWebBuild']) {
