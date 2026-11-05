@@ -40,8 +40,8 @@ public enum SessionAttribute {
     isNew(Boolean.class, KeepMode.NEVER),
     countedSession(Boolean.class),
     legacyLicensedSession("__c8o:licensedSession__", Boolean.class),
-    httpClient3("__httpClient3__", null),
-    httpClient4("__httpClient4__", null),
+    httpClient3("__httpClient3__", null, KeepMode.NEVER),
+    httpClient4("__httpClient4__", null, KeepMode.NEVER),
     sessionListener(HttpSessionListener.class, KeepMode.NEVER),
     xsrfToken(String.class),
     userAgent(String.class, KeepMode.NEVER);

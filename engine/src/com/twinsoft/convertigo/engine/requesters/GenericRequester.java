@@ -1165,7 +1165,7 @@ public abstract class GenericRequester extends Requester {
             
     		try {
 	    		Engine.logContext.debug("XSLT engine: xalan/xslt");
-	            Templates templates = XSLTUtils.getTemplates(new File(context.absoluteSheetUrl).getCanonicalPath());
+	            Templates templates = XSLTUtils.getTemplates(context.projectName, context.absoluteSheetUrl);
 	            Transformer transformer = templates.newTransformer();    		
 	    		
 	            StringWriter sw = new StringWriter();

@@ -1,0 +1,73 @@
+name: eph-f4e5d644
+x-engine: &engine
+  image: convertigo/convertigo-ci:hotfix
+  labels: {pilotage.owner: eph-f4e5d644}
+  environment: &environment
+    CONVERTIGO_ADMIN_USER: admin
+    CONVERTIGO_ADMIN_PASSWORD: siteclipper-test-only
+    JAVA_OPTS: >-
+      -Xmx512m
+      -Dconvertigo.engine.session.cookie.name=SITECLIPPERTESTSESSION
+  volumes:
+    - ${C8O_CLASSES_DIR:?Set C8O_CLASSES_DIR}:/workspace/classes:ro
+services:
+  target:
+    image: python:3.12-alpine
+    labels: {pilotage.owner: eph-f4e5d644}
+    command: [python, /srv/target.py]
+    volumes:
+      - ./target:/srv:ro
+    networks: [siteclipper]
+  redis:
+    image: redis:7-alpine
+    labels: {pilotage.owner: eph-f4e5d644}
+    command: [redis-server, --requirepass, siteclipper-test-only]
+    volumes:
+      - redis-data:/data
+    networks: [siteclipper]
+  tomcat:
+    <<: *engine
+    ports: ['127.0.0.1:29591:28080']
+    volumes:
+      - tomcat-workspace:/workspace
+      - ${C8O_CLASSES_DIR}:/workspace/classes:ro
+    networks: [siteclipper]
+  redis-engine:
+    <<: *engine
+    environment: &redis-environment
+      <<: *environment
+      JAVA_OPTS: >-
+        -Xmx512m
+        -Dconvertigo.engine.session.cookie.name=SITECLIPPERTESTSESSION
+        -Dconvertigo.engine.session.store.mode=redis
+        -Dconvertigo.engine.session.redis.host=redis
+        -Dconvertigo.engine.session.redis.password=siteclipper-test-only
+        -Dconvertigo.engine.session.redis.prefix=eph-f4e5d644:session
+    depends_on: [redis]
+    ports: ['127.0.0.1:29592:28080']
+    volumes:
+      - redis-one-workspace:/workspace
+      - ${C8O_CLASSES_DIR}:/workspace/classes:ro
+    networks: [siteclipper]
+  redis-second:
+    <<: *engine
+    environment:
+      <<: *redis-environment
+    depends_on: [redis]
+    ports: ['127.0.0.1:29593:28080']
+    volumes:
+      - redis-two-workspace:/workspace
+      - ${C8O_CLASSES_DIR}:/workspace/classes:ro
+    networks: [siteclipper]
+volumes:
+  tomcat-workspace:
+    labels: {pilotage.owner: eph-f4e5d644}
+  redis-one-workspace:
+    labels: {pilotage.owner: eph-f4e5d644}
+  redis-two-workspace:
+    labels: {pilotage.owner: eph-f4e5d644}
+  redis-data:
+    labels: {pilotage.owner: eph-f4e5d644}
+networks:
+  siteclipper:
+    labels: {pilotage.owner: eph-f4e5d644}

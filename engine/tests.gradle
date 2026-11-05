@@ -39,6 +39,7 @@ tasks.named('check') {
 	dependsOn 'runtimeBytecodeTest'
 	dependsOn 'requestableTimeoutTest'
 	dependsOn 'timingAllocationSpanTest'
+	dependsOn 'xsltCacheTest'
 	dependsOn 'sessionSerializationTest'
 	dependsOn 'requestScopedSessionTest'
 	dependsOn 'componentRefManagerTest'
@@ -82,6 +83,7 @@ tasks.named('check') {
 	dependsOn 'redisContextSavedBeforeUnlockTest'
 	dependsOn 'redisContextExpiredCopyTest'
 	dependsOn 'redisContextIndexTest'
+	dependsOn 'siteClipperStoredContextTest'
 	dependsOn 'multipartUploadFolderTest'
 }
 
@@ -101,6 +103,16 @@ tasks.register('requestableTimeoutTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.beans.core.RequestableTimeoutTest'
+}
+
+tasks.register('xsltCacheTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for per-project XSLT caches, dependency recompilation and concurrent requests.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.XSLTUtilsTest',
+		'com.twinsoft.convertigo.engine.XSLTProjectLifecycleTest'
 }
 
 tasks.register('attachmentStreamingTest', JavaExec) {
@@ -990,3 +1002,40 @@ tasks.register('projectMetadataTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.servlets.ProjectHttpIgnoreTest'
 }
 tasks.named('check') { dependsOn 'projectMetadataTest' }
+
+
+tasks.register('siteClipperStoredContextTest', JavaExec) {
+	group = 'verification'
+	description = 'SiteClipper project restoration for stored contexts.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.connectors.SiteClipperStoredContextTest'
+}
+
+tasks.register('siteClipperReadOnlyContextTest', JavaExec) {
+	group = 'verification'
+	description = 'SiteClipper read-only context and cookie delta regression tests.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.connectors.SiteClipperReadOnlyContextTest'
+}
+
+tasks.register('redisHttpPoolsTest', JavaExec) {
+	group = 'verification'
+	description = 'Context and session HTTP pools kept by the engine with the Redis session store.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.ContextHttpPoolsTest', 'com.twinsoft.convertigo.engine.sessions.RedisHttpClientAttributesTest'
+}
+
+tasks.register('cipheredPropertyPlainTextTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a plain-text value in a ciphered engine property is used as plain text with a warning, instead of stopping the engine.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.CipheredPropertyPlainTextTest'
+}

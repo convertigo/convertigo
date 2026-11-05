@@ -81,6 +81,7 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IDomainsFilterContainer;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.extractionrules.siteclipper.IRequestRule;
@@ -89,9 +90,11 @@ import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.sessions.ContextStore;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
@@ -112,6 +115,7 @@ import com.twinsoft.convertigo.engine.util.RegexpUtils;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.StreamUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
+import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.util.UrlParser;
 import com.twinsoft.convertigo.engine.util.UrlParser.UrlFields;
 
@@ -188,6 +192,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		}
 
 		private Context context = null;
+		private SiteClipperCookieState cookiesBefore;
 
 		public Context getContext() {
 			return context;
@@ -225,15 +230,28 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				Engine.logSiteClipper.debug("(SiteClipperConnector) find contextName : " + contextName);
 
 				try {
-					context = Engine.theApp.contextManager.get(null, contextName, sessionID, null, projectName, connectorName, null);
+					boolean redisMode = ConvertigoHttpSessionManager.isRedisMode();
+					ContextManager manager = Engine.theApp.contextManager;
+					ContextStore store = redisMode ? manager.siteClipperContextStore() : null;
+					String contextID = sessionID + "_" + contextName;
+					if (redisMode) {
+						context = readRedisContext(manager, store, contextID, contextName);
+						restoreStoredProject(context, projectName, name -> Engine.theApp.databaseObjectsManager.getProjectByName(name));
+					} else {
+						context = manager.get(null, contextName, sessionID, null, projectName, connectorName, null);
+					}
 					Engine.logSiteClipper.trace("(SiteClipperConnector) context id retrieved : " + context.contextID);
 					contextName = context.name;
 
 					if (context.project == null) {
-						Engine.theApp.contextManager.remove(context);
+						if (!redisMode) manager.remove(context);
 						throw new ServletException("(SiteClipperConnector) the context " + context.name + " isn't initialized (no project loaded or expired)");
 					}
 					context.lastAccessTime = System.currentTimeMillis();
+					if (redisMode) {
+						context.httpSession = request.getSession();
+						store.touch(context.contextID, manager.siteClipperStoreTtlSeconds(context));
+					}
 					Log4jHelper.mdcPut(Log4jHelper.mdcKeys.ContextID, context.contextID);
 					Log4jHelper.mdcPut(Log4jHelper.mdcKeys.Project, context.projectName);
 
@@ -265,7 +283,12 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 						siteClipperConnector.siteClipperRequestObjectsPerThread.put(Thread.currentThread(), this);
 						try {
 							defaultResponseCharset = siteClipperConnector.getDefaultResponseCharset();
-							siteClipperConnector.processRequest(this);
+							cookiesBefore = redisMode ? new SiteClipperCookieState(context.httpState) : null;
+							try {
+								siteClipperConnector.processRequest(this);
+							} finally {
+								persistCookieDelta();
+							}
 						} finally {
 							siteClipperConnector.siteClipperRequestObjectsPerThread.remove(Thread.currentThread());
 							context.lastAccessTime = System.currentTimeMillis();
@@ -282,6 +305,68 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				logContext.close();
 				request = null;
 				response = null;
+			}
+		}
+
+		static Context readRedisContext(ContextManager manager, ContextStore store, String contextID, String contextName) throws ServletException {
+			if (contextName == null || contextName.endsWith("*")) {
+				throw new ServletException("(SiteClipperConnector) the context " + contextName + " isn't initialized");
+			}
+			Context context = manager.get(contextID);
+			if (context != null && store != null) {
+				Long storedTime = store.readLastAccessTime(contextID);
+				if (storedTime != null && storedTime > context.storedAccessTime) {
+					Context stored = store.read(contextID);
+					if (stored != null) {
+						context.httpState = stored.httpState;
+						context.storedAccessTime = stored.lastAccessTime;
+					}
+				}
+			}
+			if (context == null && store != null) {
+				context = store.read(contextID);
+				if (context != null) context.storedAccessTime = context.lastAccessTime;
+			}
+			if (context == null) {
+				throw new ServletException("(SiteClipperConnector) the context " + contextName + " isn't initialized");
+			}
+			return context;
+		}
+
+		private void persistCookieDelta() throws EngineException {
+			if (cookiesBefore == null) return;
+			try {
+				mergeHttpState(Engine.theApp.contextManager, Engine.theApp.contextManager.siteClipperContextStore(),
+						context, cookiesBefore.delta(context.httpState));
+				cookiesBefore = null;
+			} catch (Exception e) {
+				throw new EngineException("Failed to merge SiteClipper cookies", e);
+			}
+		}
+
+		static void mergeHttpState(ContextManager manager, ContextStore store, Context local, SiteClipperCookieState.Delta delta) throws Exception {
+			if (delta.isEmpty() || store == null) return;
+			try (var lock = manager.lockContext(local.contextID)) {
+				Context stored = store.read(local.contextID);
+				if (stored == null) return;
+				stored.httpState = delta.apply(stored.httpState);
+				stored.httpSession = local.httpSession;
+				stored.lastAccessTime = Math.max(System.currentTimeMillis(), stored.lastAccessTime + 1);
+				store.saveHttpState(stored, manager.siteClipperStoreTtlSeconds(stored));
+				local.httpState = stored.httpState;
+				local.storedAccessTime = stored.lastAccessTime;
+			}
+		}
+
+		@FunctionalInterface
+		interface ProjectLoader {
+			Project load(String name) throws EngineException;
+		}
+
+		static void restoreStoredProject(Context context, String projectName, ProjectLoader projectLoader) throws EngineException {
+			if (context.project == null && context.storedAccessTime > 0) {
+				context.projectName = projectName;
+				context.project = projectLoader.load(context.projectName);
 			}
 		}
 
@@ -685,6 +770,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	}
 
 	private void doProcessRequest(Shuttle shuttle) throws IOException, ServletException, EngineException {
+		Context context = shuttle.context;
 		shuttle.statisticsTaskID = context.statistics.start(EngineStatistics.GET_DOCUMENT);
 		try {
 			shuttle.sharedScope = context.getSharedScope();
@@ -819,6 +905,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			HttpClient httpClient = context.getHttpClient3(shuttle.getHttpPool());
 			HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, shuttle.getHttpPool());
 			httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
+			shuttle.persistCookieDelta();
 
 			int status = httpMethod.getStatusCode();
 
@@ -979,6 +1066,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	}
 
 	private synchronized void getHttpState(Shuttle shuttle) {
+		Context context = shuttle.context;
 		if (authenticationPropertiesHasChanged) {
 			context.httpState = null;
 			authenticationPropertiesHasChanged = false;
@@ -1004,6 +1092,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	}
 
 	private synchronized HostConfiguration getHostConfiguration(Shuttle shuttle) throws EngineException, MalformedURLException {
+		Context context = shuttle.context;
 		if (hostConfiguration != null) {
 			String host = hostConfiguration.getHost();
 			if (isCompatibleConfiguration(host != null && host.equals(shuttle.getRequest(QueryPart.host)))) {

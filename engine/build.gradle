@@ -38,8 +38,10 @@ eclipse {
 		natures 'org.eclipse.buildship.core.gradleprojectnature'
 		buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
 		linkedResource name: 'convertigo', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/eclipse-plugin-studio/tomcat/webapps/convertigo'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
-		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
+		// providers linked as sources only on demand (c8o.localProviders in gradle.properties)
+		rootProject.localProviders.each {
+			linkedResource name: it.path, type: '2', location: it.sources.path
+		}
 	}
 
 	wtp {
@@ -58,6 +60,10 @@ eclipse {
 				}
 			}
 		}
+	}
+	
+	classpath.file.withXml {
+		rootProject.applyLocalProvidersToClasspath(it)
 	}
 	
 	classpath.file.withXml {

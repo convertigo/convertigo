@@ -79,6 +79,16 @@ public final class RedisContextStore implements ContextStore {
 			+ "if KEYS[3] then indexSession(KEYS[3], id, ttl or 0) end\n"
 			+ "return 1\n";
 
+	// Patch an existing context only; never recreate it or remove unrelated fields.
+	private static final String LUA_PATCH_AND_TOUCH = LUA_INDEX_SESSION
+			+ "local key=KEYS[1]; if redis.call('EXISTS', key)==0 or (KEYS[4] and redis.call('EXISTS', KEYS[4])==1) then return 0 end\n"
+			+ "local ttl=tonumber(ARGV[1]); local count=tonumber(ARGV[2]); local idx=3\n"
+			+ "if count>0 then redis.call('HSET', key, unpack(ARGV, idx, idx+count*2-1)); idx=idx+count*2 end\n"
+			+ "if ttl>0 then redis.call('PEXPIRE', key, ttl) end\n"
+			+ "local id=ARGV[idx]; redis.call('ZADD', KEYS[2], ARGV[idx+1], id)\n"
+			+ "if KEYS[3] then indexSession(KEYS[3], id, ttl) end\n"
+			+ "return 1\n";
+
 	// KEYS = contexts by expiry, index of the session (if any), context hashes; ARGV = context ids.
 	private static final String LUA_DELETE = ""
 			+ "local first=#KEYS - #ARGV + 1\n"
@@ -140,6 +150,187 @@ public final class RedisContextStore implements ContextStore {
 		return this.client.getMap(this.configuration.contextKey(contextId), StringCodec.INSTANCE);
 	}
 
+	@Override public void touch(String contextId, int ttlSeconds) {
+		patchAndTouch(contextId, ttlSeconds, java.util.Map.of());
+	}
+
+	@Override public void saveHttpState(Context context, int ttlSeconds) {
+		if (context == null) return;
+		try {
+			var fields = new java.util.HashMap<String, String>();
+			var encoded = serializeHttpState(context.httpState, context.contextID);
+			fields.put("__meta:httpState", encoded == null ? "{}" : encoded);
+			fields.put("lastAccessTime", Long.toString(context.lastAccessTime));
+			patchAndTouch(context.contextID, ttlSeconds, fields);
+		} catch (Exception e) {
+			Engine.logRedis.warn("(RedisContextStore) Failed to patch httpState for context " + context.contextID, e);
+		}
+	}
+
+	private boolean patchAndTouch(String contextId, int ttlSeconds, java.util.Map<String, String> fields) {
+		try {
+			int ttl = ttlSeconds > 0 ? ttlSeconds : configuration.getDefaultTtlSeconds();
+			long ttlMillis = ttl > 0 ? ttl * 1000L : 0L;
+			var args = new ArrayList<Object>();
+			args.add(ttlMillis);
+			args.add(fields.size());
+			fields.forEach((key, value) -> { args.add(key); args.add(value); });
+			args.add(contextId);
+			args.add(ttlMillis > 0 ? Long.toString(System.currentTimeMillis() + ttlMillis) : "+inf");
+			var keys = new ArrayList<Object>();
+			keys.add(configuration.contextKey(contextId));
+			keys.add(contextsByExpiry.getName());
+			var sessionId = sessionIdOf(contextId);
+			if (sessionId != null) {
+				keys.add(sessionContextsKey(sessionId));
+				keys.add(RedisSessionStore.tombstoneKey(configuration, sessionId));
+			}
+			Number patched = client.getScript(StringCodec.INSTANCE).eval(RScript.Mode.READ_WRITE, LUA_PATCH_AND_TOUCH,
+					RScript.ReturnType.LONG, keys, args.toArray());
+			return patched != null && patched.longValue() == 1L;
+		} catch (Exception e) {
+			Engine.logRedis.warn("(RedisContextStore) Failed to touch context " + contextId, e);
+			return false;
+		}
+	}
+
+	private HttpState deserializeHttpState(String rawHttpState, String contextId) {
+		if (rawHttpState != null && !rawHttpState.isBlank()) {
+			try {
+				var root = JsonCodec.MAPPER.readTree(rawHttpState);
+
+				Integer cookiePolicy = null;
+				var cookiePolicyNode = root.get("cookiePolicy");
+				if (cookiePolicyNode != null && cookiePolicyNode.isNumber()) {
+					cookiePolicy = cookiePolicyNode.intValue();
+				}
+				if (cookiePolicy != null && cookiePolicy < 0) {
+					cookiePolicy = null;
+				}
+
+				var cookies = new ArrayList<Cookie>();
+				var cookiesNode = root.get("cookies");
+				if (cookiesNode != null && cookiesNode.isArray()) {
+					for (var cookieNode : cookiesNode) {
+						var domain = cookieNode.path("domain").asText(null);
+						var name = cookieNode.path("name").asText(null);
+						var value = cookieNode.path("value").asText(null);
+						if (name == null || domain == null) {
+							continue;
+						}
+
+						try {
+							var cookie = new Cookie(domain, name, value);
+
+							var path = cookieNode.path("path").asText(null);
+							if (path != null) {
+								cookie.setPath(path);
+							}
+
+							var expiryNode = cookieNode.get("expiry");
+							if (expiryNode != null && expiryNode.isNumber()) {
+								cookie.setExpiryDate(new java.util.Date(expiryNode.longValue()));
+							}
+
+							var secureNode = cookieNode.get("secure");
+							if (secureNode != null && secureNode.isBoolean()) {
+								cookie.setSecure(secureNode.booleanValue());
+							}
+
+							var versionNode = cookieNode.get("version");
+							if (versionNode != null && versionNode.isNumber()) {
+								cookie.setVersion(versionNode.intValue());
+							}
+
+							var comment = cookieNode.path("comment").asText(null);
+							if (comment != null) {
+								cookie.setComment(comment);
+							}
+
+							cookies.add(cookie);
+						} catch (Exception e) {
+							// ignore invalid cookie
+						}
+					}
+				}
+
+				if (!cookies.isEmpty() || cookiePolicy != null) {
+					var httpState = new HttpState();
+					if (cookiePolicy != null) {
+						try {
+							httpState.setCookiePolicy(cookiePolicy);
+						} catch (Exception e) {
+							// ignore
+						}
+					}
+					for (var cookie : cookies) {
+						httpState.addCookie(cookie);
+					}
+					return httpState;
+				}
+			} catch (Exception e) {
+				Engine.logRedis.debug("(RedisContextStore) Failed to restore httpState for context " + contextId, e);
+			}
+		}
+		return null;
+	}
+
+	private String serializeHttpState(HttpState httpState, String contextId) {
+		if (httpState != null) {
+			try {
+				var cookies = new ArrayList<java.util.Map<String, Object>>();
+				for (Cookie cookie : httpState.getCookies()) {
+					var cookieMap = new java.util.LinkedHashMap<String, Object>();
+					cookieMap.put("name", cookie.getName());
+					cookieMap.put("value", cookie.getValue());
+					cookieMap.put("domain", cookie.getDomain());
+					var path = cookie.getPath();
+					if (path != null) {
+						cookieMap.put("path", path);
+					}
+					var expiryDate = cookie.getExpiryDate();
+					if (expiryDate != null) {
+						cookieMap.put("expiry", expiryDate.getTime());
+					}
+					if (cookie.getSecure()) {
+						cookieMap.put("secure", true);
+					}
+					if (cookie.getVersion() != 0) {
+						cookieMap.put("version", cookie.getVersion());
+					}
+					if (cookie.getComment() != null) {
+						cookieMap.put("comment", cookie.getComment());
+					}
+					cookies.add(cookieMap);
+				}
+
+				Integer cookiePolicy = null;
+				try {
+					cookiePolicy = httpState.getCookiePolicy();
+				} catch (Exception e) {
+					// ignore
+				}
+				if (cookiePolicy != null && cookiePolicy < 0) {
+					cookiePolicy = null;
+				}
+
+				if (!cookies.isEmpty() || cookiePolicy != null) {
+					var stateMap = new java.util.LinkedHashMap<String, Object>();
+					if (cookiePolicy != null) {
+						stateMap.put("cookiePolicy", cookiePolicy);
+					}
+					if (!cookies.isEmpty()) {
+						stateMap.put("cookies", cookies);
+					}
+					return JsonCodec.MAPPER.writeValueAsString(stateMap);
+				}
+			} catch (Exception e) {
+				Engine.logRedis.debug("(RedisContextStore) Failed to serialize httpState for context " + contextId, e);
+			}
+		}
+		return null;
+	}
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public Context read(String contextId) {
@@ -152,91 +343,14 @@ public final class RedisContextStore implements ContextStore {
 			var ctx = new Context(contextId);
 			serializer.populate(ctx, snapshot);
 			restoreContextData(ctx, snapshot);
-			var rawHttpState = snapshot.get("__meta:httpState");
-			if (rawHttpState != null && !rawHttpState.isBlank()) {
-				try {
-					var root = JsonCodec.MAPPER.readTree(rawHttpState);
-
-					Integer cookiePolicy = null;
-					var cookiePolicyNode = root.get("cookiePolicy");
-					if (cookiePolicyNode != null && cookiePolicyNode.isNumber()) {
-						cookiePolicy = cookiePolicyNode.intValue();
-					}
-					if (cookiePolicy != null && cookiePolicy < 0) {
-						cookiePolicy = null;
-					}
-
-					var cookies = new ArrayList<Cookie>();
-					var cookiesNode = root.get("cookies");
-					if (cookiesNode != null && cookiesNode.isArray()) {
-						for (var cookieNode : cookiesNode) {
-							var domain = cookieNode.path("domain").asText(null);
-							var name = cookieNode.path("name").asText(null);
-							var value = cookieNode.path("value").asText(null);
-							if (name == null || domain == null) {
-								continue;
-							}
-
-							try {
-								var cookie = new Cookie(domain, name, value);
-
-								var path = cookieNode.path("path").asText(null);
-								if (path != null) {
-									cookie.setPath(path);
-								}
-
-								var expiryNode = cookieNode.get("expiry");
-								if (expiryNode != null && expiryNode.isNumber()) {
-									cookie.setExpiryDate(new java.util.Date(expiryNode.longValue()));
-								}
-
-								var secureNode = cookieNode.get("secure");
-								if (secureNode != null && secureNode.isBoolean()) {
-									cookie.setSecure(secureNode.booleanValue());
-								}
-
-								var versionNode = cookieNode.get("version");
-								if (versionNode != null && versionNode.isNumber()) {
-									cookie.setVersion(versionNode.intValue());
-								}
-
-								var comment = cookieNode.path("comment").asText(null);
-								if (comment != null) {
-									cookie.setComment(comment);
-								}
-
-								cookies.add(cookie);
-							} catch (Exception e) {
-								// ignore invalid cookie
-							}
-						}
-					}
-
-					if (!cookies.isEmpty() || cookiePolicy != null) {
-						var httpState = new HttpState();
-						if (cookiePolicy != null) {
-							try {
-								httpState.setCookiePolicy(cookiePolicy);
-							} catch (Exception e) {
-								// ignore
-							}
-						}
-						for (var cookie : cookies) {
-							httpState.addCookie(cookie);
-						}
-						ctx.httpState = httpState;
-					}
-				} catch (Exception e) {
-					Engine.logRedis.debug("(RedisContextStore) Failed to restore httpState for context " + contextId, e);
-				}
-			}
+			ctx.httpState = deserializeHttpState(snapshot.get("__meta:httpState"), contextId);
 			return ctx;
 		} catch (Exception e) {
 			Engine.logRedis.warn("(RedisContextStore) Failed to read context " + contextId, e);
 			return null;
 		}
 	}
-	
+
 	@Override
 	public Long readLastAccessTime(String contextId) {
 		var raw = map(contextId).get("lastAccessTime");
@@ -264,59 +378,8 @@ public final class RedisContextStore implements ContextStore {
 			var snapshot = serializer.serialize(context);
 			addAdminMeta(context, snapshot);
 			persistContextData(context, snapshot);
-			var httpState = context.httpState;
-			if (httpState != null) {
-				try {
-					var cookies = new ArrayList<java.util.Map<String, Object>>();
-					for (Cookie cookie : httpState.getCookies()) {
-						var cookieMap = new java.util.LinkedHashMap<String, Object>();
-						cookieMap.put("name", cookie.getName());
-						cookieMap.put("value", cookie.getValue());
-						cookieMap.put("domain", cookie.getDomain());
-						var path = cookie.getPath();
-						if (path != null) {
-							cookieMap.put("path", path);
-						}
-						var expiryDate = cookie.getExpiryDate();
-						if (expiryDate != null) {
-							cookieMap.put("expiry", expiryDate.getTime());
-						}
-						if (cookie.getSecure()) {
-							cookieMap.put("secure", true);
-						}
-						if (cookie.getVersion() != 0) {
-							cookieMap.put("version", cookie.getVersion());
-						}
-						if (cookie.getComment() != null) {
-							cookieMap.put("comment", cookie.getComment());
-						}
-						cookies.add(cookieMap);
-					}
-
-					Integer cookiePolicy = null;
-					try {
-						cookiePolicy = httpState.getCookiePolicy();
-					} catch (Exception e) {
-						// ignore
-					}
-					if (cookiePolicy != null && cookiePolicy < 0) {
-						cookiePolicy = null;
-					}
-
-					if (!cookies.isEmpty() || cookiePolicy != null) {
-						var stateMap = new java.util.LinkedHashMap<String, Object>();
-						if (cookiePolicy != null) {
-							stateMap.put("cookiePolicy", cookiePolicy);
-						}
-						if (!cookies.isEmpty()) {
-							stateMap.put("cookies", cookies);
-						}
-						snapshot.put("__meta:httpState", JsonCodec.MAPPER.writeValueAsString(stateMap));
-					}
-				} catch (Exception e) {
-					Engine.logRedis.debug("(RedisContextStore) Failed to serialize httpState for context " + context.contextID, e);
-				}
-			}
+			var encoded = serializeHttpState(context.httpState, context.contextID);
+			if (encoded != null) snapshot.put("__meta:httpState", encoded);
 			var rmap = map(context.contextID);
 			var existingKeys = new HashSet<>(rmap.readAllKeySet());
 			var toRemove = new ArrayList<String>();

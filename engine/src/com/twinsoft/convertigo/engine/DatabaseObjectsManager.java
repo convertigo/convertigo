@@ -118,6 +118,7 @@ import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XSLTUtils;
 import com.twinsoft.convertigo.engine.util.YamlConverter;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
@@ -598,6 +599,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (!condition.getAsBoolean()) {
 				return null;
 			}
+			XSLTUtils.clearProjectCache(projectName);
 			Project prj = null;
 			synchronized (projects) {
 				prj = projects.remove(projectName);
@@ -626,6 +628,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				if (projects.containsKey(projectName) && symbolsProjectCheckUndefined(projectName)) {
 					prj = projects.remove(projectName);
 					if (prj != null) {
+						XSLTUtils.clearProjectCache(projectName);
 						Engine.logDatabaseObjectManager.info("[clearCacheIfSymbolError] project removed from cache: "
 								+ Project.formatNameWithHash(prj));
 					}
@@ -1621,6 +1624,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				prj.undefinedGlobalSymbols = loadingData[0].undefinedGlobalSymbol;
 
 				synchronized (projects) {
+					XSLTUtils.clearProjectCache(prj.getName());
 					projects.put(prj.getName(), prj);
 				}
 				Engine.logDatabaseObjectManager

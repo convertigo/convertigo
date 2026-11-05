@@ -1,0 +1,18 @@
+↑convertigo: 8.4.0.m006
+↓SiteClipperStoreTest [core.Project]: 
+  version: test-only
+  ↓void [connectors.SqlConnector]: 
+    ↓Default [transactions.SqlTransaction]: 
+      isDefault: true
+  ↓Clip [connectors.SiteClipperConnector]: 
+    isDefault: true
+    ↓Default [screenclasses.SiteClipperScreenClass]: 
+  ↓Initialize [sequences.GenericSequence]: 
+    ↓url [steps.ElementStep-1700000000010]: 
+      expression: |
+        "http://" + context.httpServletRequest.getServerName() + ":" + context.httpServletRequest.getServerPort() + "/convertigo/projects/SiteClipperStoreTest/connector=Clip,context=clip.siteclipper/http/target,8080/index.html"
+      nodeName: url
+  ↓State [sequences.GenericSequence]: 
+    ↓state [steps.ElementStep-1700000000011]: 
+      expression: context.httpState == null ? "none" : String(context.httpState.getCookies().length)
+      nodeName: state

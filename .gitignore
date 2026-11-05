@@ -8,6 +8,7 @@ META-INF
 !**/.settings/org.eclipse.core.resources.prefs
 !**/.settings/org.eclipse.jst.jsp.core.prefs
 !**/.settings/org.eclipse.wst.validation.prefs
+!/.settings/setupStudioDev*.launch
 
 /*/bin
 /*/build
@@ -19,6 +20,7 @@ META-INF
 /build
 # Local code graphs, extraction caches, and query logs.
 graphify-out/
+/local.properties
 /convertigo-splash/splash.bmp
 /convertigo-templates/*/*.gradle
 !/convertigo-templates/common/*.gradle
