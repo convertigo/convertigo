@@ -82,6 +82,7 @@ Develop:
 - Gradle report: `./gradlew dependencyUpdates -x :engine:publish --console=plain`.
 - Version policy: develop may take broader updates, but risky libraries still need explicit review. Gradle wrapper updates may be applied only with the maintainer's explicit approval for that cycle, and must update `build.gradle`, `gradle/wrapper/gradle-wrapper.properties`, and any generated wrapper scripts from the wrapper task while preserving repo-specific wrapper settings. If unsure, skip the update and summarize why.
 - Eclipse/Tycho: check and apply stable Eclipse train/platform and Tycho updates under the standing authorization below; validate a changed toolchain with a fresh local Maven Studio build.
+- JxBrowser: follow the latest stable version published and resolvable from its official artifact repository (maintainer decision, 2026-11-06). Missing release notes alone do not block an available patch; record their absence and validate with a targeted Studio startup when feasible, otherwise report the untested GUI/runtime surface. Review major API migrations explicitly.
 - Node.js: the engine's default Node.js is the latest LTS release (maintainer decision, 2026-10-09), including a new LTS major; see Known Special Cases.
 - Java compilation: keep the Java 25 toolchain and `--release 25`, including after a hotfix merge.
 - npm update: in `convertigo-studio-web`, run `npm run deps:update`.
