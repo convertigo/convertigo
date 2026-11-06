@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.engine.sessions;
 
 import javax.servlet.http.HttpSession;
 
+import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
+
 public final class StatefulSessionAttributes {
 	private StatefulSessionAttributes() {
 	}
@@ -29,7 +31,7 @@ public final class StatefulSessionAttributes {
 		if (session == null || name == null) {
 			return null;
 		}
-		if (session instanceof RedisHttpSession redisSession) {
+		if (HttpServletRequestTwsWrapper.unwrapSession(session) instanceof RedisHttpSession redisSession) {
 			return redisSession.getStatefulAttribute(name);
 		}
 		return session.getAttribute(name);
@@ -39,7 +41,7 @@ public final class StatefulSessionAttributes {
 		if (session == null || name == null) {
 			return;
 		}
-		if (session instanceof RedisHttpSession redisSession) {
+		if (HttpServletRequestTwsWrapper.unwrapSession(session) instanceof RedisHttpSession redisSession) {
 			redisSession.setStatefulAttribute(name, value);
 			return;
 		}
@@ -54,7 +56,7 @@ public final class StatefulSessionAttributes {
 		if (session == null || name == null) {
 			return;
 		}
-		if (session instanceof RedisHttpSession redisSession) {
+		if (HttpServletRequestTwsWrapper.unwrapSession(session) instanceof RedisHttpSession redisSession) {
 			redisSession.removeStatefulAttribute(name);
 			return;
 		}
