@@ -189,10 +189,64 @@ public class ServletUtilsSendfileTest {
 		assertArrayEquals(response.body.toByteArray(), second.body.toByteArray());
 	}
 
+	@Test public void mimeFallbackKeepsCommonStaticFilesAndContentSignaturesStable() throws Exception {
+		var corpus = new LinkedHashMap<String, byte[]>();
+		corpus.put("sample.html", "<!DOCTYPE html><html><body>mime probe</body></html>".getBytes(StandardCharsets.UTF_8));
+		corpus.put("sample.js", "export const answer = 42;\n".getBytes(StandardCharsets.UTF_8));
+		corpus.put("sample.css", "body { color: #123456; }\n".getBytes(StandardCharsets.UTF_8));
+		corpus.put("sample.json", "{\"answer\":42}".getBytes(StandardCharsets.UTF_8));
+		corpus.put("sample.svg", "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1\" height=\"1\"><path d=\"M0 0h1v1H0z\"/></svg>".getBytes(StandardCharsets.UTF_8));
+		corpus.put("sample.png", Base64.getDecoder().decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4V8AAAAASUVORK5CYII="));
+		try (var pdf = new org.apache.pdfbox.pdmodel.PDDocument(); var output = new ByteArrayOutputStream()) {
+			pdf.addPage(new org.apache.pdfbox.pdmodel.PDPage());
+			pdf.save(output);
+			corpus.put("sample.pdf", output.toByteArray());
+		}
+		try (var font = getClass().getResourceAsStream("/mime/ibm-plex-sans-latin.woff2")) {
+			assertNotNull("The licensed WOFF2 test fixture must be present", font);
+			corpus.put("sample.woff2", font.readAllBytes());
+		}
+		corpus.put("sample.unknown", new byte[] {0, (byte) 255, 0, (byte) 254, 16, 17});
+		var expected = Map.of("sample.html", "text/html", "sample.js", "text/javascript",
+				"sample.css", "text/css", "sample.json", "application/json", "sample.svg", "image/svg+xml",
+				"sample.png", "image/png", "sample.pdf", "application/pdf", "sample.woff2", "application/octet-stream",
+				"sample.unknown", "application/octet-stream");
+		for (var entry : corpus.entrySet()) {
+			assertMimeFallback(entry.getKey(), entry.getValue(), expected.get(entry.getKey()));
+		}
+		for (String name : List.of("sample.png", "sample.pdf", "sample.svg", "sample.woff2")) {
+			assertMimeFallback(name + ".unknown", corpus.get(name), expected.get(name));
+		}
+	}
+
+	private void assertMimeFallback(String name, byte[] content, String expected) throws Exception {
+		var file = folder.getRoot().toPath().resolve(name);
+		Files.write(file, content);
+		var response = new Response();
+		ServletUtils.handleFileFilter(file.toFile(), request("GET", "/fixtures/" + name, Map.of()),
+				response.proxy(), config(ignored -> null), (req, res) -> { throw new AssertionError(); });
+		System.out.println("MIME " + name + " " + response.header("Content-Type"));
+		assertEquals(name, expected, response.header("Content-Type"));
+		assertEquals(200, response.status);
+		assertArrayEquals(name, content, response.body.toByteArray());
+	}
+
+	@Test public void servletMimeMappingStillTakesPrecedenceOverDetection() throws Exception {
+		var response = new Response();
+		ServletUtils.handleFileFilter(asset.toFile(), request("GET", "/fixtures/sample.js", Map.of()),
+				response.proxy(), config(ignored -> "application/x-servlet-defined"),
+				(req, res) -> { throw new AssertionError(); });
+		assertEquals("application/x-servlet-defined", response.header("Content-Type"));
+	}
+
 	private static FilterConfig config() {
+		return config(name -> name.endsWith(".html") ? "text/html" : "text/javascript");
+	}
+
+	private static FilterConfig config(java.util.function.Function<String, String> mimeType) {
 		var context = (ServletContext) Proxy.newProxyInstance(ServletContext.class.getClassLoader(),
 				new Class<?>[] { ServletContext.class }, (proxy, method, args) -> switch (method.getName()) {
-					case "getMimeType" -> args[0].toString().endsWith(".html") ? "text/html" : "text/javascript";
+					case "getMimeType" -> mimeType.apply(args[0].toString());
 					default -> throw new UnsupportedOperationException(method.getName());
 				});
 		return (FilterConfig) Proxy.newProxyInstance(FilterConfig.class.getClassLoader(), new Class<?>[] { FilterConfig.class },
