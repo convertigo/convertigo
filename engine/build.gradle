@@ -327,7 +327,6 @@ dependencies {
 	}
 	compileFlat    'junit:junit:4.13.2'
 	compileFlat    'com.opencsv:opencsv:5.12.0'
-	compileFlat    'com.sun.xml.bind:jaxb-xjc:2.2.11'
 	compileFlat    'commons-beanutils:commons-beanutils:1.11.0'
 	compileFlat    'commons-collections:commons-collections:3.2.2'
 	compileFlat    'commons-cli:commons-cli:1.11.0'

@@ -1,5 +1,15 @@
 // Engine test source set and verification tasks.
 
+tasks.register('xmlRuntimeCompatibilityTest', JavaExec) {
+	group = 'verification'
+	description = 'XML, StAX, JAXB, local WSDL/SOAP and Hibernate runtime compatibility.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.XmlRuntimeCompatibilityTest'
+	maxHeapSize = '768m'
+}
+
 tasks.register('jdbcUrlDefaultsTest', JavaExec) {
 	group = 'verification'
 	description = 'JDBC URL compatibility defaults preserve explicit TLS options and driver aliases.'
@@ -47,6 +57,7 @@ tasks.register('sessionSerializationTest', JavaExec) {
 }
 
 tasks.named('check') {
+	dependsOn 'xmlRuntimeCompatibilityTest'
 	dependsOn 'jdbcUrlDefaultsTest'
 	dependsOn 'runtimeBytecodeTest'
 	dependsOn 'requestableTimeoutTest'
