@@ -161,6 +161,10 @@ class HttpSessionTwsWrapper implements HttpSession {
 		}
 	}
 	
+	static HttpSession unwrap(HttpSession session) {
+		return session instanceof HttpSessionTwsWrapper wrapper ? wrapper.session : session;
+	}
+
 	static HttpSession wrap(HttpSession session) {
 		// Keep ephemeral sessions recognizable by the license and session-store code.
 		if (session == null || session instanceof HttpSessionTwsWrapper || session instanceof RequestScopedHttpSession) {

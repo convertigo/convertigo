@@ -19,7 +19,11 @@
 
 package com.twinsoft.convertigo.engine.sessions;
 
+import java.util.function.Supplier;
+
 import jakarta.servlet.http.HttpSession;
+
+import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 
 public final class StatefulSessionAttributes {
 	private StatefulSessionAttributes() {
@@ -29,17 +33,48 @@ public final class StatefulSessionAttributes {
 		if (session == null || name == null) {
 			return null;
 		}
-		if (session instanceof RedisHttpSession redisSession) {
+		if (HttpServletRequestTwsWrapper.unwrapSession(session) instanceof RedisHttpSession redisSession) {
 			return redisSession.getStatefulAttribute(name);
 		}
 		return session.getAttribute(name);
+	}
+
+	/**
+	 * The stateful attribute of the session, created by the factory once for all the requests of the session on this
+	 * engine. Without a session, or with an invalidated session seen through the request wrapper (which ignores it),
+	 * the factory value is returned without being kept.
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T computeStatefulAttributeIfAbsent(HttpSession session, String name, Supplier<T> factory) {
+		if (session == null || name == null) {
+			return factory.get();
+		}
+		var unwrapped = HttpServletRequestTwsWrapper.unwrapSession(session);
+		if (unwrapped instanceof RedisHttpSession redisSession) {
+			try {
+				return (T) redisSession.computeStatefulAttributeIfAbsent(name, factory);
+			} catch (IllegalStateException e) {
+				if (unwrapped == session) {
+					throw e;
+				}
+				return factory.get();
+			}
+		}
+		synchronized (unwrapped) {
+			var value = (T) session.getAttribute(name);
+			if (value == null) {
+				value = factory.get();
+				session.setAttribute(name, value);
+			}
+			return value;
+		}
 	}
 
 	public static void setStatefulAttribute(HttpSession session, String name, Object value) {
 		if (session == null || name == null) {
 			return;
 		}
-		if (session instanceof RedisHttpSession redisSession) {
+		if (HttpServletRequestTwsWrapper.unwrapSession(session) instanceof RedisHttpSession redisSession) {
 			redisSession.setStatefulAttribute(name, value);
 			return;
 		}
@@ -54,7 +89,7 @@ public final class StatefulSessionAttributes {
 		if (session == null || name == null) {
 			return;
 		}
-		if (session instanceof RedisHttpSession redisSession) {
+		if (HttpServletRequestTwsWrapper.unwrapSession(session) instanceof RedisHttpSession redisSession) {
 			redisSession.removeStatefulAttribute(name);
 			return;
 		}

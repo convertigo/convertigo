@@ -229,10 +229,20 @@ public class HttpUtils {
 	}
 	
 	public static interface HttpClientInterface extends java.io.Closeable {
-		@Override default void close() throws IOException { }
 
 		CloseableHttpResponse execute(HttpUriRequest request) throws ClientProtocolException, IOException;
-		
+
+		/** Releases the connections of the client. */
+		@Override
+		default void close() throws IOException {
+		}
+	}
+
+	/** Releases the connections of a pooled HttpClient 3. */
+	public static void closeHttpClient3(org.apache.commons.httpclient.HttpClient httpClient) {
+		if (httpClient != null && httpClient.getHttpConnectionManager() instanceof MultiThreadedHttpConnectionManager manager) {
+			manager.shutdown();
+		}
 	}
 	
 	public static HttpClientInterface makeHttpClient(boolean usePool) {
@@ -327,7 +337,6 @@ public class HttpUtils {
 					return getHttpClient4().execute(request);
 				}
 			}
-			
 		};
 	}
 	

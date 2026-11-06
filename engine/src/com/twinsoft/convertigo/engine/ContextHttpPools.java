@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
@@ -129,8 +128,9 @@ final class ContextHttpPools {
 
 	private static void shutdown(Entry e) {
 		try {
-			if (e.httpClient3 != null && e.httpClient3.getHttpConnectionManager() instanceof MultiThreadedHttpConnectionManager manager) {
-				manager.shutdown();
+			HttpUtils.closeHttpClient3(e.httpClient3);
+			if (e.httpClient4 != null) {
+				e.httpClient4.close();
 			}
 		} catch (Exception ex) {
 			if (Engine.logContext != null) {

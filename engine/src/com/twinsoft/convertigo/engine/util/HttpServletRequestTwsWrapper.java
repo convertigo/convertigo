@@ -119,6 +119,11 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 		return query != null ? query : super.getQueryString();
 	}
 
+	/** The session wrapped by a request of this class, or the given session. */
+	public static HttpSession unwrapSession(HttpSession session) {
+		return HttpSessionTwsWrapper.unwrap(session);
+	}
+
 	@Override
 	public HttpSession getSession() {
 		if (session == null) {
