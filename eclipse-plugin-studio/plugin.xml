@@ -486,7 +486,7 @@
 				relative="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView">
 			</view>
 			<view
-				id="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
+				id="com.twinsoft.convertigo.eclipse.views.rhino.JavascriptDebugView"
 				minimized="false"
 				relationship="stack"
 				relative="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView">
@@ -3921,14 +3921,6 @@
 			icon="icons/studio/debug.svg"
 			id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
 			name="FrontEnd Debug"
-			restorable="true">
-		</view>
-		<view
-			category="convertigo"
-			class="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
-			icon="icons/studio/debug.svg"
-			id="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
-			name="Backend Debug"
 			restorable="true">
 		</view>
 		<view category="convertigo"

@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.admin.AdminView;
 import com.twinsoft.convertigo.eclipse.views.admin.AuthenticatedBrowser;
 
-/** Embedded administrator web debugger. The existing Swing debugger remains available separately. */
+/** Administrator web debugger embedded in the Studio browser. */
 public class JavascriptDebugView extends ViewPart {
     private static JavascriptDebugView instance;
     private C8oBrowser browser;

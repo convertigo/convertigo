@@ -1,6 +1,6 @@
 # JavaScript debugging
 
-The web Studio and Eclipse `JavaScript Debug (Web)` view use the same administrator API and Monaco component. The existing Eclipse Swing debugger remains available separately. Do not attach both debuggers simultaneously. In Eclipse, **Debug Eclipse launches** is checked by default when starting the debugger. Run from the sequence, connector, test case or Execute commands as usual. The Project / Sequence form is optional, under **Run a sequence from this view**.
+The web Studio and Eclipse `JavaScript Debug (Web)` view use the same administrator API and Monaco component. This view replaces the Eclipse Swing `Backend Debug` view. An existing workspace may retain a missing legacy view tab; close that tab and open `JavaScript Debug (Web)`, or reset the perspective. In Eclipse, **Debug Eclipse launches** is checked by default when starting the debugger. Run from the sequence, connector, test case or Execute commands as usual. The Project / Sequence form is optional, under **Run a sequence from this view**.
 
 ## Enable and authorize
 
@@ -89,4 +89,4 @@ The Eclipse view contains controls, stack, property table, evaluation and watche
 
 In the Web Studio dock, selecting a paused frame opens the existing property or project-file tab in `StudioEditorPanel`. That Monaco shows the selected frame line, debugger breakpoint margin and safe binding previews. Existing unsaved content is preserved. Scripts without a resolvable editable object use a read-only runtime snapshot in the same central editor. The independent `/javascript-debugger` administration page retains its source selector/editor and optional request form for use outside either Studio.
 
-Evaluation history and request-form status are reset at each new pause. Late evaluation, watch, source and property-page responses cannot replace a newer pause/frame selection. Stopping explicitly detaches and lets the paused business request finish. Legacy Backend Debug attachment and the web debugger attachment refuse one another in both directions; a refused legacy view can be closed and reopened after the web debugger is stopped.
+Evaluation history and request-form status are reset at each new pause. Late evaluation, watch, source and property-page responses cannot replace a newer pause/frame selection. Stopping explicitly detaches and lets the paused business request finish. The engine still prevents simultaneous attachment of its legacy Rhino debugging API and the web debugger; the legacy Swing view is no longer shipped by the Studio.
