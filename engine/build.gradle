@@ -87,6 +87,8 @@ configurations {
 }
 
 configurations.compileFlat {
+	// Axiom also brings this parser transitively; use the default StAX providers instead.
+	exclude group: 'com.fasterxml.woodstox', module: 'woodstox-core'
 	resolutionStrategy.eachDependency { details ->
 		if (details.requested.group == 'org.codehaus.groovy') {
 			// SoapUI's Groovy parser must understand Java 25 class files.
@@ -321,7 +323,6 @@ dependencies {
 	compileFlat    'com.convertigo.twinsoft:ui:2009.06.15'
 	implementation 'com.convertigo.twinsoft:util:2017.12.29'
 	compileFlat    'com.fasterxml.jackson.core:jackson-core:' + jacksonVersion
-	compileFlat    'com.fasterxml.woodstox:woodstox-core:6.7.0'
 	compileFlat    ('com.google.gcm:gcm-server:1.0.0') {
 		exclude group: 'junit', module: 'junit'
 	}
