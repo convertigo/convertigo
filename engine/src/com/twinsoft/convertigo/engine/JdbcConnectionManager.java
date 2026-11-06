@@ -36,6 +36,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import javax.naming.NamingException;
 
@@ -50,6 +51,53 @@ import com.twinsoft.convertigo.beans.core.Project;
  * reached through DriverManager.
  */
 public class JdbcConnectionManager implements AbstractManager, ProjectLibraries.Holder {
+
+	private static final Pattern MARIADB_HOST_SSL_MODE = Pattern.compile("\\(sslMode=", Pattern.CASE_INSENSITIVE);
+
+	/** Applies driver compatibility defaults without changing explicit connection options. */
+	public static String prepareJdbcUrl(String jdbcUrl, String driverClassName) {
+		String parameter;
+		String value;
+		String[] explicitOptions;
+		if ("org.mariadb.jdbc.Driver".equals(driverClassName)) {
+			if (jdbcUrl.startsWith("jdbc:mysql:")) {
+				jdbcUrl = "jdbc:mariadb:" + jdbcUrl.substring("jdbc:mysql:".length());
+			}
+			if (!jdbcUrl.startsWith("jdbc:mariadb:")) {
+				return jdbcUrl;
+			}
+			parameter = "sslMode";
+			value = "disable";
+			explicitOptions = new String[] {parameter, "useSsl", "trustServerCertificate",
+					"disableSslHostnameVerification", "serverSslCert", "trustStore", "keyStore"};
+			int query = jdbcUrl.indexOf('?');
+			String hosts = query < 0 ? jdbcUrl : jdbcUrl.substring(0, query);
+			if (MARIADB_HOST_SSL_MODE.matcher(hosts).find()) {
+				return jdbcUrl;
+			}
+		} else if ("org.postgresql.Driver".equals(driverClassName)) {
+			parameter = "stringtype";
+			value = "unspecified";
+			explicitOptions = new String[] {parameter};
+		} else {
+			return jdbcUrl;
+		}
+
+		int query = jdbcUrl.indexOf('?');
+		if (query >= 0) {
+			// JDBC query keys are not URL-decoded by MariaDB; keep keys and values untouched.
+			for (String option : jdbcUrl.substring(query + 1).split("&")) {
+				String key = option.split("=", 2)[0];
+				for (String explicit : explicitOptions) {
+					if (explicit.equalsIgnoreCase(key)) {
+						return jdbcUrl;
+					}
+				}
+			}
+		}
+		String separator = jdbcUrl.endsWith("?") || jdbcUrl.endsWith("&") ? "" : query >= 0 ? "&" : "?";
+		return jdbcUrl + separator + parameter + "=" + value;
+	}
 
 	private static Class<?> dataSourceCls = null;
 	private static Method dataSourceClose = null;

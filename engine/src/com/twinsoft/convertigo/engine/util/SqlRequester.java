@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.JdbcConnectionManager;
 
 public class SqlRequester {
 
@@ -92,9 +93,8 @@ public class SqlRequester {
 		String jdbcUserName = getProperty(SqlRequester.PROPERTIES_JDBC_USER_NAME);
 		String jdbcUserPassword = Crypto2.decodeFromHexString(getProperty(SqlRequester.PROPERTIES_JDBC_USER_PASSWORD));
 
-		// MariaDB Java 3.x migration
-		if (jdbcURL.startsWith("jdbc:mysql:") && "org.mariadb.jdbc.Driver".equals(jdbcClassName)) {
-			jdbcURL = "jdbc:mariadb:" + jdbcURL.substring(11);
+		if ("org.mariadb.jdbc.Driver".equals(jdbcClassName)) {
+			jdbcURL = JdbcConnectionManager.prepareJdbcUrl(jdbcURL, jdbcClassName);
 		}
 
 		Engine.logEngine.debug("[SqlRequester] JDBC URL: " + jdbcURL);

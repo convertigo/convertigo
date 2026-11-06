@@ -1,5 +1,16 @@
 // Engine test source set and verification tasks.
 
+tasks.register('jdbcUrlDefaultsTest', JavaExec) {
+	group = 'verification'
+	description = 'JDBC URL compatibility defaults preserve explicit TLS options and driver aliases.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.JdbcUrlDefaultsTest'
+	args 'com.twinsoft.convertigo.beans.connectors.SqlConnectorJdbcUrlTest'
+	maxHeapSize = '256m'
+}
+
 tasks.register('timingAllocationSpanTest', JavaExec) {
 	group = 'verification'
 	description = 'Request timing, nested thread allocations and actual XML construction diagnostics.'
@@ -36,6 +47,7 @@ tasks.register('sessionSerializationTest', JavaExec) {
 }
 
 tasks.named('check') {
+	dependsOn 'jdbcUrlDefaultsTest'
 	dependsOn 'runtimeBytecodeTest'
 	dependsOn 'requestableTimeoutTest'
 	dependsOn 'timingAllocationSpanTest'

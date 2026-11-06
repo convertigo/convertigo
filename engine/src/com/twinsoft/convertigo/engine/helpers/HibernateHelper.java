@@ -32,6 +32,7 @@ import org.hibernate.exception.JDBCConnectionException;
 import org.hibernate.service.ServiceRegistry;
 
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.JdbcConnectionManager;
 import com.twinsoft.convertigo.engine.util.ThreadUtils;
 
 public class HibernateHelper {
@@ -45,9 +46,8 @@ public class HibernateHelper {
 		this.log = log;
 		this.retry = retry + 1;
 		
-		// MariaDB Java 3.x migration
-		if (url.startsWith("jdbc:mysql:") && "org.mariadb.jdbc.Driver".equals(driver_class)) {
-			url = "jdbc:mariadb:" + url.substring(11);
+		if ("org.mariadb.jdbc.Driver".equals(driver_class)) {
+			url = JdbcConnectionManager.prepareJdbcUrl(url, driver_class);
 		}
 		
 		if ("org.hibernate.dialect.MySQL5InnoDBDialect".equals(dialect)) {

@@ -34,6 +34,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -64,6 +65,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.JdbcConnectionManager;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -226,17 +228,12 @@ public class SqlConnector extends Connector {
 
 		String currentJdbcURL = getConnectionJdbcURL();
 
-		realJdbcURL = currentJdbcURL;
+		realJdbcURL = JdbcConnectionManager.prepareJdbcUrl(currentJdbcURL, getJdbcDriverClassName());
 
 		if (currentJdbcURL.startsWith("jdbc:hsqldb:file:")){ // make relativ path for hsqldb driver
 			String fileURL = currentJdbcURL.substring("jdbc:hsqldb:file:".length());
 			fileURL = Engine.theApp.filePropertyManager.getFilepathFromProperty(fileURL, getProject().getName());
 			realJdbcURL = "jdbc:hsqldb:file:"+fileURL;
-		} else if (currentJdbcURL.startsWith("jdbc:mysql:") && "org.mariadb.jdbc.Driver".equals(getJdbcDriverClassName())) {
-			// MariaDB Java 3.x migration
-			realJdbcURL = "jdbc:mariadb:" + currentJdbcURL.substring(11);
-		} else if ("org.postgresql.Driver".equals(getJdbcDriverClassName()) && !currentJdbcURL.contains("stringtype")) {
-			realJdbcURL = currentJdbcURL + (currentJdbcURL.contains("?") ? "&" : "?") + "stringtype=unspecified"; 
 		}
 
 		// Now attempt to create a database connection
@@ -513,7 +510,10 @@ public class SqlConnector extends Connector {
 		if (overJdbcUrl != null && !overJdbcUrl.isBlank()) {
 			int index = overJdbcUrl.indexOf('?');
 			if (index != -1) {
-				return overJdbcUrl.substring(0, index);
+				String options = Arrays.stream(overJdbcUrl.substring(index + 1).split("&"))
+						.filter(option -> !option.startsWith("user=") && !option.startsWith("password="))
+						.collect(Collectors.joining("&"));
+				return overJdbcUrl.substring(0, index) + (options.isEmpty() ? "" : "?" + options);
 			} else {
 				return overJdbcUrl;
 			}
