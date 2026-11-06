@@ -228,10 +228,21 @@ public class HttpUtils {
 		return httpClient;
 	}
 	
-	public static interface HttpClientInterface {
+	public static interface HttpClientInterface extends AutoCloseable {
 
 		CloseableHttpResponse execute(HttpUriRequest request) throws ClientProtocolException, IOException;
-		
+
+		/** Releases the connections of the client. */
+		@Override
+		default void close() {
+		}
+	}
+
+	/** Releases the connections of a pooled HttpClient 3. */
+	public static void closeHttpClient3(org.apache.commons.httpclient.HttpClient httpClient) {
+		if (httpClient != null && httpClient.getHttpConnectionManager() instanceof MultiThreadedHttpConnectionManager manager) {
+			manager.shutdown();
+		}
 	}
 	
 	public static HttpClientInterface makeHttpClient(boolean usePool) {
@@ -322,7 +333,18 @@ public class HttpUtils {
 					return getHttpClient4().execute(request);
 				}
 			}
-			
+
+			@Override
+			public synchronized void close() {
+				if (httpClient != null) {
+					try {
+						httpClient.close();
+					} catch (IOException e) {
+						Engine.logEngine.debug("(HttpUtils) Failed to close an HttpClient4: " + e.getMessage());
+					}
+					httpClient = null;
+				}
+			}
 		};
 	}
 	

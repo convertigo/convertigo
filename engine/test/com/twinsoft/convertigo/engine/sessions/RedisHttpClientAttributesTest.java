@@ -21,6 +21,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class RedisHttpClientAttributesTest {
 	private static RedisSessionConfiguration configuration;
@@ -52,7 +53,10 @@ public class RedisHttpClientAttributesTest {
 	/** The session of one request, as a requester sees it: read from the store and wrapped by the servlet request. */
 	private static HttpSession request(MemoryStore store, String sessionId) {
 		var now = System.currentTimeMillis();
-		var session = RedisHttpSession.fromMeta(store, null, configuration, sessionId, new SessionStoreMeta(now, now, 1800, Map.of()));
+		return wrap(RedisHttpSession.fromMeta(store, null, configuration, sessionId, new SessionStoreMeta(now, now, 1800, Map.of())));
+	}
+
+	private static HttpSession wrap(RedisHttpSession session) {
 		var request = (HttpServletRequest) Proxy.newProxyInstance(HttpServletRequest.class.getClassLoader(),
 				new Class<?>[] { HttpServletRequest.class }, (proxy, method, args) -> switch (method.getName()) {
 					case "getSession" -> session;
@@ -72,14 +76,61 @@ public class RedisHttpClientAttributesTest {
 	@Test public void sessionHttpPoolIsKeptAcrossRequestsOfAWrappedSession() {
 		var store = new MemoryStore();
 		var context = new Context("pool-test");
-		context.httpSession = request(store, "pool-session-1");
+		var now = System.currentTimeMillis();
+		var first = RedisHttpSession.fromMeta(store, null, configuration, "pool-session-1", new SessionStoreMeta(now, now, 1800, Map.of()));
+		context.httpSession = wrap(first);
 		var first3 = context.getHttpClient3(HttpPool.session);
 		var first4 = context.getHttpClient(HttpPool.session);
+		first.flush();
 		context.httpSession = request(store, "pool-session-1");
 		assertSame(first3, context.getHttpClient3(HttpPool.session));
 		assertSame(first4, context.getHttpClient(HttpPool.session));
 		context.httpSession = request(store, "pool-session-2");
 		assertNotSame(first3, context.getHttpClient3(HttpPool.session));
+		assertFalse(store.fields.isEmpty());
 		assertTrue(store.fields.keySet().stream().noneMatch(name -> name.contains("httpClient")));
+	}
+
+	private static boolean isShutdown(org.apache.commons.httpclient.HttpClient client) throws Exception {
+		var field = org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.class.getDeclaredField("shutdown");
+		field.setAccessible(true);
+		return (Boolean) field.get(client.getHttpConnectionManager());
+	}
+
+	private static final class CountingClient implements HttpUtils.HttpClientInterface {
+		int closed;
+		@Override public org.apache.http.client.methods.CloseableHttpResponse execute(org.apache.http.client.methods.HttpUriRequest request) { return null; }
+		@Override public void close() { closed++; }
+	}
+
+	@Test public void sessionHttpPoolsAreClosedWhenTheSessionIsInvalidated() throws Exception {
+		var store = new MemoryStore();
+		var now = System.currentTimeMillis();
+		var session = RedisHttpSession.fromMeta(store, null, configuration, "pool-session-close", new SessionStoreMeta(now, now, 1800, Map.of()));
+		var context = new Context("pool-close-test");
+		context.httpSession = wrap(session);
+		var pool3 = context.getHttpClient3(HttpPool.session);
+		var pool4 = new CountingClient();
+		StatefulSessionAttributes.setStatefulAttribute(context.httpSession, SessionAttribute.httpClient4.value(), pool4);
+		assertFalse(isShutdown(pool3));
+		session.invalidate();
+		assertTrue(isShutdown(pool3));
+		assertEquals(1, pool4.closed);
+	}
+
+	@Test public void sessionHttpPoolIsClosedWhenRemoved() throws Exception {
+		var store = new MemoryStore();
+		var session = request(store, "pool-session-remove");
+		var context = new Context("pool-remove-test");
+		context.httpSession = session;
+		var pool3 = context.getHttpClient3(HttpPool.session);
+		StatefulSessionAttributes.removeStatefulAttribute(session, SessionAttribute.httpClient3.value());
+		assertTrue(isShutdown(pool3));
+	}
+
+	@Test public void httpClient4IsClosable() throws Exception {
+		var client = HttpUtils.makeHttpClient(true);
+		client.close();
+		client.close();
 	}
 }

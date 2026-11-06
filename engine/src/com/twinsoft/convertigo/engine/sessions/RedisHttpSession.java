@@ -35,6 +35,7 @@ import javax.servlet.http.HttpSessionContext;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 @SuppressWarnings("deprecation")
@@ -704,7 +705,9 @@ final class RedisHttpSession implements HttpSession, Serializable {
 		}
 
 		private void closeValue(Object value) {
-			if (value instanceof AutoCloseable closeable) {
+			if (value instanceof org.apache.commons.httpclient.HttpClient httpClient) {
+				HttpUtils.closeHttpClient3(httpClient);
+			} else if (value instanceof AutoCloseable closeable) {
 				try {
 					closeable.close();
 				} catch (Exception e) {
