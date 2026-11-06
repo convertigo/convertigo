@@ -38,23 +38,26 @@ Phases:
 - `preflight`: inspect branch, remotes, version values, npm scripts, and git status. This phase is read-only and runs immediately.
 - `gradle-report`: run `./gradlew dependencyUpdatesPatch` on hotfix or `./gradlew dependencyUpdates` on develop, then the independent forced-version check below.
 - `eclipse-config`: run `./gradlew generateEclipseConfigurationWithManifest` only after the selected Gradle dependency/version edits have been applied.
-- `npm-update`: run `npm run deps:minor-update` on hotfix or `npm run deps:update` on develop.
+- `npm-update`: run the patch-only npm-check-updates sequence below on hotfix or `npm run deps:update` on develop.
 - `npm-audit-fix`: run `npm audit fix` in `convertigo-studio-web` without `--force`.
 - `npm-verify`: run `npm run format`, `npm run lint`, `npm run check:admin`, then `npm run build`.
 - `status`: print git status.
 - `all`: run all executable phases except `plan`.
 
-The helper does not select or apply dependency versions. Its develop plan includes the manual Eclipse/Tycho review and conditional Studio build; `all` does not perform those steps automatically and is not a substitute for the review/edit/build sequence below.
+The helper does not select or apply Gradle/Maven dependency versions. Its develop plan includes the manual Eclipse/Tycho review and conditional Studio build; `all` does not perform those steps automatically and is not a substitute for the review/edit/build sequence below.
 
 ## Safety Rules
 
 - Start with `git status --short --branch`, `git remote -v`, and `git branch --show-current`.
 - Do not discard, reset, or overwrite user changes. Work around unrelated dirty files.
 - Treat Gradle and npm update reports as inputs for review, not as permission to update every version.
+- On hotfix, preserve functional behavior: take patch updates by default, not minor updates merely because upstream compatibility is expected. Every minor dependency update needs explicit maintainer approval for that dependency and cycle, a bounded rationale, and proportionate validation. The minor batch in `0b7c6565d` was accepted as an exception for that cycle, not as standing approval. This applies to Gradle dependencies, npm manifests, and lockfile changes, including those produced by `npm audit fix`.
 - In hotfix, keep Gradle and Java/JDK versions pinned unless the user explicitly approves a minor update. Do not apply "Gradle current updates" or `JDK_RELEASE` changes automatically.
 - In develop, leave uncertain or risky library candidates unchanged by default. List them as "needs maintainer review" instead of guessing. Gradle wrapper updates are allowed only when the maintainer explicitly approves them for the current develop cycle; once approved, update `gradleVersion`, run the wrapper task, and review generated wrapper file changes. Preserve local wrapper settings such as `networkTimeout`, `retries`, and `retryBackOffMs` unless the maintainer explicitly asks to change them.
 - The develop maintenance policy permits updating the Eclipse release train, its matching platform/core version, and stable Tycho releases. Check them each cycle using the procedure below; do not ask for this approval again. This does not authorize Eclipse/Tycho changes on hotfix, prereleases, unrelated JDK changes, or publication.
 - Run `npm audit fix` without `--force` after the Studio web npm update. Never run `npm audit fix --force` unless the maintainer explicitly approves the breaking changes or downgrades it proposes.
+- Exclude `:engine:publish` from every Gradle validation command, including manual commands: `:gradle-plugin:compileJava` depends on it and can publish remote Maven snapshots even during a local check. Use `-x :engine:publish`; inspect `--dry-run` when validating an unfamiliar task graph and stop if remote publication tasks remain. An explicit request to commit, push Git, or validate does not authorize Maven publication. `publishToMavenLocal` is separate and may be an expected local prerequisite.
+- Preserve the lane's Java API target, not just its bytecode target: hotfix uses `options.release = 17`, develop uses `options.release = 25`, for all `JavaCompile` tasks. A newer Gradle launcher JDK does not change that policy. See Java Release Validation below.
 - Do not commit, merge, or push unless the user explicitly asks for that step.
 - After commands that can write files, inspect `git status` and `git diff` before continuing.
 - Keep ticket references in commits: hotfix `8.4.7` uses `#1232`, develop `8.5.0` uses `#1039`. Verify the maintenance ticket again when the Convertigo version changes. Historical hotfix `8.4.6` uses `#1170`, with `#1216` as its closed duplicate; preserve existing commit references and use `#1232` for new hotfix updates.
@@ -64,10 +67,11 @@ The helper does not select or apply dependency versions. Its develop plan includ
 Hotfix:
 
 - Branch: `hotfix`.
-- Gradle report: `./gradlew dependencyUpdatesPatch --console=plain`.
-- Version policy: update normal patch-line dependencies only; do not move Gradle or Java/JDK except a minor update explicitly accepted by the maintainer. The default Node.js stays on its major (latest LTS release of that major).
-- npm update: in `convertigo-studio-web`, run `npm run deps:minor-update`.
-- Gradle generation: after applying the selected Gradle dependency/version edits, run `./gradlew generateEclipseConfigurationWithManifest --console=plain` before npm work.
+- Gradle report: `./gradlew dependencyUpdatesPatch -x :engine:publish --console=plain`.
+- Version policy: patch updates only by default; minor updates require dependency-specific approval and justification for the current cycle. Keep Gradle and Java/JDK pinned without explicit approval. The engine's default Node.js follows the latest LTS release of its current major, as the specific Node policy below permits.
+- npm update: use the patch-only sequence in step 5, not the existing `deps:minor-update` script. An approved exception must select only the approved dependencies, not upgrade every minor candidate.
+- Java compilation: `--release 17`, including tests and ancillary Gradle modules; do not confuse this with the bundled Studio JDK or Eclipse's execution environment.
+- Gradle generation: after applying the selected Gradle dependency/version edits, run `./gradlew generateEclipseConfigurationWithManifest -x :engine:publish --console=plain` before npm work.
 - Validation: after npm work, run npm `format`, `lint`, `check:admin`, `build`; rerun Gradle checks such as `dependencyUpdatesPatch` and `:engine:war` when publishing.
 - Commit message pattern: `ref #1232 - Update Studio dependencies`.
 - Push target when requested: verify remotes first, then push hotfix to both configured `origin` and `upstream` if that matches the current repository setup.
@@ -75,12 +79,13 @@ Hotfix:
 Develop:
 
 - Branch: `develop`.
-- Gradle report: `./gradlew dependencyUpdates --console=plain`.
+- Gradle report: `./gradlew dependencyUpdates -x :engine:publish --console=plain`.
 - Version policy: develop may take broader updates, but risky libraries still need explicit review. Gradle wrapper updates may be applied only with the maintainer's explicit approval for that cycle, and must update `build.gradle`, `gradle/wrapper/gradle-wrapper.properties`, and any generated wrapper scripts from the wrapper task while preserving repo-specific wrapper settings. If unsure, skip the update and summarize why.
 - Eclipse/Tycho: check and apply stable Eclipse train/platform and Tycho updates under the standing authorization below; validate a changed toolchain with a fresh local Maven Studio build.
 - Node.js: the engine's default Node.js is the latest LTS release (maintainer decision, 2026-10-09), including a new LTS major; see Known Special Cases.
+- Java compilation: keep the Java 25 toolchain and `--release 25`, including after a hotfix merge.
 - npm update: in `convertigo-studio-web`, run `npm run deps:update`.
-- Gradle generation: after applying the selected Gradle dependency/version edits, run `./gradlew generateEclipseConfigurationWithManifest --console=plain` before npm work.
+- Gradle generation: after applying the selected Gradle dependency/version edits, run `./gradlew generateEclipseConfigurationWithManifest -x :engine:publish --console=plain` before npm work.
 - Validation: same npm checks as hotfix; rerun `dependencyUpdates` and `:engine:war` when publishing.
 - Commit message pattern: `ref #1039 - Update Studio dependencies`.
 - Push target when requested: verify remotes first, then push develop to the configured GitHub remote, usually `origin`.
@@ -96,7 +101,7 @@ git branch --show-current
 rg --files --hidden -g AGENTS.md -g '!**/.git/**'
 ```
 
-2. Run the lane's Gradle dependency report. Review "later release versions", "exceed the version found", and "Gradle current updates". The root report finalizes `checkStudioJdkUpToDate` and `checkSwaggerUiUpToDate` (swagger-ui is downloaded from GitHub by `:engine:unzipSwaggerUI`, not resolved from Maven, so `swaggerUiVersion` in `build.gradle` is checked against the latest swagger-ui GitHub release); include both results in the summary. A swagger-ui patch-line update can be applied like other patch updates: bump `swaggerUiVersion`, run `./gradlew :engine:unzipSwaggerUI`, and check that `eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/patch/swagger-initializer.js` still matches the upstream initializer. On hotfix, treat Gradle and JDK update messages as informational unless the user approved a minor update.
+2. Run the lane's Gradle dependency report. Review "later release versions", "exceed the version found", and "Gradle current updates". The root report finalizes `checkStudioJdkUpToDate` and `checkSwaggerUiUpToDate` (swagger-ui is downloaded from GitHub by `:engine:unzipSwaggerUI`, not resolved from Maven, so `swaggerUiVersion` in `build.gradle` is checked against the latest swagger-ui GitHub release); include both results in the summary. A swagger-ui patch-line update can be applied like other patch updates: bump `swaggerUiVersion`, run `./gradlew :engine:unzipSwaggerUI -x :engine:publish`, and check that `eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/patch/swagger-initializer.js` still matches the upstream initializer. On hotfix, treat Gradle and JDK update messages as informational unless the user approved a minor update.
 
    **Do not conclude that dependencies are current from the Gradle report alone.** Transitive dependencies pinned through resolution rules can be missing or constrained in that report. Always run this read-only supplementary check, including when running Gradle manually rather than through the helper:
 
@@ -117,17 +122,20 @@ rg --files --hidden -g AGENTS.md -g '!**/.git/**'
 4. After applying the selected Gradle dependency/version edits, run:
 
 ```bash
-./gradlew generateEclipseConfigurationWithManifest --console=plain
+./gradlew generateEclipseConfigurationWithManifest -x :engine:publish --console=plain
 ```
 
 Inspect generated tracked files and fix Gradle/Eclipse fallout before npm work. Do not run this step before the selected dependency and toolchain version edits, otherwise generated manifests/default values can be based on stale dependencies. If Eclipse or Tycho changed on develop, perform the fresh Studio build below after generation.
 
-5. In `convertigo-studio-web`, run the lane's npm update command:
+5. In `convertigo-studio-web`, use patch candidates only on hotfix (both passes keep the patch target, including the Svelte/Tailwind peer exception):
 
 ```bash
-npm run deps:minor-update   # hotfix
-npm run deps:update         # develop
+npx npm-check-updates --target patch
+npx npm-check-updates --target patch --no-peer --reject '/^(?!(svelte|tailwindcss)$).*/'
+npm install
 ```
+
+On develop, run `npm run deps:update`. On hotfix, do not use `deps:minor-update` as the default or as a blanket exception. Review an approved minor dependency separately, pin its approved version, and inspect the resulting manifest and lockfile; approval for one dependency does not extend to its unrelated peers or other minor candidates.
 
 6. Still in `convertigo-studio-web`, run:
 
@@ -135,7 +143,7 @@ npm run deps:update         # develop
 npm audit fix
 ```
 
-Review whether the audit fix reduces vulnerabilities and whether it changes only expected package metadata or lockfile entries. If `npm audit fix` exits non-zero because only `--force` fixes remain, keep the non-forced changes only after validation passes and summarize the remaining vulnerabilities. Do not run `--force` without explicit approval.
+Review whether the audit fix reduces vulnerabilities and whether it changes only expected package metadata or lockfile entries. On hotfix, non-forced does not mean patch-only: minor or major resolutions still need dependency-specific approval before being retained. If `npm audit fix` exits non-zero because only `--force` fixes remain, keep the authorized non-forced changes only after validation passes and summarize the remaining vulnerabilities. Do not run `--force` without explicit approval.
 
 7. Validate Studio web:
 
@@ -150,6 +158,12 @@ npm run build
 
 9. If the user requested publication, commit and push only after checks pass. Use the ticket-specific commit message pattern and report only actions that actually succeeded.
 
+## Java Release Validation
+
+- Inspect the root `plugins.withId('java')` configuration and any task-level overrides before and after an update or merge. All Gradle `JavaCompile` tasks must use `options.release = 17` on hotfix and `25` on develop, including test source sets and helper modules. `sourceCompatibility` and `targetCompatibility` alone permit accidental use of APIs from the newer launcher JDK.
+- Compile the engine and run the relevant tests with publication excluded, for example `./gradlew :engine:check :engine:war :gradle-plugin:check -x :engine:publish --console=plain`. Verify rebuilt engine classes are major `61` on hotfix or `69` on develop. A matching class version alone does not prove API or runtime compatibility; review the new dependencies' minimum Java requirements too.
+- On hotfix, distinguish a successful `--release 17` compilation under a newer JDK from tests actually executed on Java 17. Report which JVM ran the tests; do not claim Java 17 runtime validation from a JDK 25 test run. Eclipse/Tycho execution environments and the bundled Studio JVM have separate requirements: do not downgrade them to Java 17 merely to enforce the engine API target.
+
 ## Develop Eclipse And Tycho
 
 Check these versions on every develop update cycle, including when the Gradle report finds nothing:
@@ -162,8 +176,8 @@ After generation, if Eclipse or Tycho changed, validate with the existing Gradle
 
 ```bash
 mvn -version
-./gradlew buildStudioClean --console=plain
-./gradlew buildStudio --console=plain
+./gradlew buildStudioClean -x :engine:publish --console=plain
+./gradlew buildStudio -x :engine:publish --console=plain
 ```
 
 Run the clean and build as separate sequential invocations. `buildStudio` invokes `mvn install` but skips execution while `eclipse-repository/target/products` already exists; a skipped task is not build validation. `buildStudioClean` deletes generated products, so preserve any needed local test edits there before cleaning. Do not delete user Eclipse workspaces or modify shipped JVM configuration just to launch a local test.
@@ -177,6 +191,7 @@ After hotfix is green and pushed, merge the hotfix work into the develop checkou
 - Confirm the hotfix commit/ref to merge with `git branch --contains <sha>` and `git branch -r --contains <sha>`.
 - Merge the ref that actually contains the hotfix update.
 - When conflicts occur in develop, package and dependency versions generally prefer develop's side. Resolve intentionally, then run the develop dependency update flow because develop performs its own broader updates.
+- Preserve hotfix's API guard without importing its target: after merging a hotfix `options.release = 17` change, develop must still configure all `JavaCompile` tasks with `options.release = 25` and its Java 25 toolchain. Verify the resolved configuration and bytecode using Java Release Validation; a textually clean merge is not sufficient.
 - Do not use a blanket checkout to resolve conflicts. Inspect conflicting files and preserve non-version changes from the hotfix when they still apply.
 
 ## Known Special Cases

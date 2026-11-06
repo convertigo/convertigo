@@ -73,17 +73,68 @@ class CheckoutTests(unittest.TestCase):
         self.assertIn("confirm maintenance issue", studio_update.maintenance_ticket(self.repo, cfg))
 
     def test_plan_includes_conditional_studio_build_only_on_develop(self):
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
+        with patch.object(studio_update, "print_command") as commands, contextlib.redirect_stdout(io.StringIO()):
             studio_update.phase_plan(self.repo, "develop", studio_update.LANES["develop"])
-        plan = output.getvalue()
-        self.assertLess(plan.index("<tycho-version>"), plan.index("generateEclipseConfigurationWithManifest"))
-        self.assertLess(plan.index("generateEclipseConfigurationWithManifest"), plan.index("buildStudioClean"))
-        self.assertLess(plan.index("buildStudioClean"), plan.index("buildStudio --console=plain"))
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
+        plan = [call.args[0] for call in commands.call_args_list]
+        generation = studio_update.gradle_validation_command("generateEclipseConfigurationWithManifest")
+        clean = studio_update.gradle_validation_command("buildStudioClean")
+        build = studio_update.gradle_validation_command("buildStudio")
+        self.assertLess(plan.index(generation), plan.index(clean))
+        self.assertLess(plan.index(clean), plan.index(build))
+        with patch.object(studio_update, "print_command") as commands, contextlib.redirect_stdout(io.StringIO()):
             studio_update.phase_plan(self.repo, "hotfix", studio_update.LANES["hotfix"])
-        self.assertNotIn("buildStudioClean", output.getvalue())
+        plan = [call.args[0] for call in commands.call_args_list]
+        self.assertNotIn(clean, plan)
+        self.assertNotIn(build, plan)
+
+    def test_plans_exclude_remote_publication_in_every_gradle_command(self):
+        for lane, cfg in studio_update.LANES.items():
+            with self.subTest(lane=lane), patch.object(studio_update, "print_command") as commands:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    studio_update.phase_plan(self.repo, lane, cfg)
+                gradle_commands = [call.args[0] for call in commands.call_args_list
+                                   if call.args[0][0] == "./gradlew"]
+                self.assertTrue(gradle_commands)
+                for command in gradle_commands:
+                    index = command.index(":engine:publish")
+                    self.assertEqual(command[index - 1], "-x")
+
+    def test_gradle_phases_exclude_remote_publication_when_executed(self):
+        with patch.object(studio_update, "run_command") as run:
+            studio_update.phase_gradle_report(self.repo, "develop", studio_update.LANES["develop"], True)
+            studio_update.phase_eclipse_config(self.repo, True)
+        commands = [call.args[0] for call in run.call_args_list if call.args[0][0] == "./gradlew"]
+        self.assertEqual(commands, [
+            ["./gradlew", "dependencyUpdates", "-x", ":engine:publish", "--console=plain"],
+            ["./gradlew", "generateEclipseConfigurationWithManifest", "-x", ":engine:publish", "--console=plain"],
+        ])
+        self.assertTrue(all(call.args[2] for call in run.call_args_list))
+
+    def test_hotfix_npm_update_uses_only_patch_candidates_in_both_passes(self):
+        with patch.object(studio_update, "run_command") as run:
+            studio_update.phase_npm_update(self.repo, studio_update.LANES["hotfix"], True)
+        self.assertEqual([call.args for call in run.call_args_list], [
+            (["npx", "npm-check-updates", "--target", "patch"], self.studio, True),
+            (["npx", "npm-check-updates", "--target", "patch", "--no-peer",
+              "--reject", "/^(?!(svelte|tailwindcss)$).*/"], self.studio, True),
+            (["npm", "install"], self.studio, True),
+        ])
+
+    def test_hotfix_npm_plan_matches_update_execution(self):
+        cfg = studio_update.LANES["hotfix"]
+        with patch.object(studio_update, "print_command") as commands, contextlib.redirect_stdout(io.StringIO()):
+            studio_update.phase_plan(self.repo, "hotfix", cfg)
+        plan = [call.args[0] for call in commands.call_args_list]
+        expected = studio_update.npm_update_commands(cfg)
+        first = plan.index(expected[0])
+        self.assertEqual(plan[first:first + len(expected)], expected)
+        self.assertNotIn(["npm", "run", "deps:minor-update"], plan)
+
+    def test_hotfix_preflight_does_not_require_minor_update_script(self):
+        with patch.object(studio_update, "package_scripts", return_value={}) as scripts:
+            with contextlib.redirect_stdout(io.StringIO()):
+                studio_update.phase_preflight(self.repo, "hotfix", studio_update.LANES["hotfix"])
+        scripts.assert_called_once_with(self.repo)
 
     def test_execute_refuses_wrong_branch_before_commands(self):
         argv = ["studio_update.py", "--repo", str(self.repo), "--lane", "hotfix",

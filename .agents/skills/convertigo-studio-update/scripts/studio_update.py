@@ -18,7 +18,7 @@ LANES = {
         "maintenance_version": "8.4.7",
         "ticket": "#1232",
         "gradle_task": "dependencyUpdatesPatch",
-        "npm_update": "deps:minor-update",
+        "npm_target": "patch",
     },
     "develop": {
         "branch": "develop",
@@ -30,6 +30,7 @@ LANES = {
 }
 
 NPM_VERIFY_SCRIPTS = ["format", "lint", "check:admin", "build"]
+GRADLE_VALIDATION_OPTIONS = ["-x", ":engine:publish", "--console=plain"]
 EXECUTABLE_PHASES = [
     "preflight",
     "gradle-report",
@@ -157,32 +158,56 @@ def maintenance_ticket(repo: Path, cfg: dict[str, str]) -> str:
     return f"confirm maintenance issue for {version or 'unknown version'}"
 
 
+def gradle_validation_command(*tasks: str) -> list[str]:
+    return ["./gradlew", *tasks, *GRADLE_VALIDATION_OPTIONS]
+
+
+def npm_update_commands(cfg: dict[str, str]) -> list[list[str]]:
+    if "npm_target" in cfg:
+        return [
+            ["npx", "npm-check-updates", "--target", cfg["npm_target"]],
+            ["npx", "npm-check-updates", "--target", cfg["npm_target"], "--no-peer",
+             "--reject", "/^(?!(svelte|tailwindcss)$).*/"],
+            ["npm", "install"],
+        ]
+    return [["npm", "run", cfg["npm_update"]]]
+
+
+def print_guardrails(lane: str) -> None:
+    if lane == "hotfix":
+        print("Guardrail: patch updates only; each minor update needs explicit maintainer approval and justification.")
+        print("Guardrail: keep Gradle and Java/JDK pinned unless an update is explicitly approved.")
+        print("Guardrail: all JavaCompile tasks must keep options.release = 17, regardless of the Gradle launcher JDK.")
+    else:
+        print("Guardrail: put risky or uncertain library candidates in a review bucket instead of updating blindly.")
+        print("Guardrail: all JavaCompile tasks must keep options.release = 25; do not inherit hotfix's release 17.")
+    print("Guardrail: exclude :engine:publish during validation; local Gradle plugin compilation can publish remotely.")
+
+
 def phase_plan(repo: Path, lane: str, cfg: dict[str, str]) -> None:
     studio = repo / "convertigo-studio-web"
     print(f"Lane: {lane} ({maintenance_ticket(repo, cfg)})")
     print(f"Repository: {repo}")
     print(f"Expected branch: {cfg['branch']}")
-    if lane == "hotfix":
-        print("Guardrail: keep Gradle and Java/JDK pinned unless a minor update is explicitly approved.")
-    else:
-        print("Guardrail: put risky or uncertain library candidates in a review bucket instead of updating blindly.")
+    print_guardrails(lane)
     print("")
     print_command(["git", "status", "--short", "--branch"], repo)
     print_command(["git", "remote", "-v"], repo)
-    print_command(["./gradlew", cfg["gradle_task"], "--console=plain"], repo)
+    print_command(gradle_validation_command(cfg["gradle_task"]), repo)
     print_command(forced_versions_command(repo, lane), repo)
     if lane == "develop":
         print("# Check released Eclipse train/platform and stable Tycho independently; standing approval on develop.")
     print("# Review the dependency report and edit build.gradle files manually.")
     if lane == "develop":
         print("# Apply selected Eclipse versions in build.gradle and <tycho-version> in pom.xml before generation.")
-    print_command(["./gradlew", "generateEclipseConfigurationWithManifest", "--console=plain"], repo)
+    print_command(gradle_validation_command("generateEclipseConfigurationWithManifest"), repo)
     if lane == "develop":
         print("# Only if Eclipse or Tycho changed: preserve local product test edits, then run these sequentially.")
         print_command(["mvn", "-version"], repo)
-        print_command(["./gradlew", "buildStudioClean", "--console=plain"], repo)
-        print_command(["./gradlew", "buildStudio", "--console=plain"], repo)
-    print_command(["npm", "run", cfg["npm_update"]], studio)
+        print_command(gradle_validation_command("buildStudioClean"), repo)
+        print_command(gradle_validation_command("buildStudio"), repo)
+    for cmd in npm_update_commands(cfg):
+        print_command(cmd, studio)
     print_command(["npm", "audit", "fix"], studio)
     for script in NPM_VERIFY_SCRIPTS:
         print_command(["npm", "run", script], studio)
@@ -193,10 +218,7 @@ def phase_preflight(repo: Path, lane: str, cfg: dict[str, str]) -> None:
     print(f"Lane: {lane} ({maintenance_ticket(repo, cfg)})")
     print(f"Repository: {repo}")
     print(f"Expected branch: {cfg['branch']}")
-    if lane == "hotfix":
-        print("Guardrail: keep Gradle and Java/JDK pinned unless a minor update is explicitly approved.")
-    else:
-        print("Guardrail: put risky or uncertain library candidates in a review bucket instead of updating blindly.")
+    print_guardrails(lane)
     print("")
     for cmd in [
         ["git", "status", "--short", "--branch"],
@@ -214,8 +236,10 @@ def phase_preflight(repo: Path, lane: str, cfg: dict[str, str]) -> None:
     print("")
 
     scripts = package_scripts(repo)
-    required_scripts = [cfg["npm_update"], *NPM_VERIFY_SCRIPTS]
+    required_scripts = ([cfg["npm_update"]] if "npm_update" in cfg else []) + NPM_VERIFY_SCRIPTS
     print("npm scripts:")
+    if "npm_target" in cfg:
+        print(f"  update: npm-check-updates --target {cfg['npm_target']} (no minor-update script)")
     for script in required_scripts:
         marker = "ok" if script in scripts else "missing"
         print(f"  {script}: {marker}")
@@ -227,16 +251,17 @@ def forced_versions_command(repo: Path, lane: str) -> list[str]:
 
 
 def phase_gradle_report(repo: Path, lane: str, cfg: dict[str, str], execute: bool) -> None:
-    run_command(["./gradlew", cfg["gradle_task"], "--console=plain"], repo, execute)
+    run_command(gradle_validation_command(cfg["gradle_task"]), repo, execute)
     run_command(forced_versions_command(repo, lane), repo, execute)
 
 
 def phase_eclipse_config(repo: Path, execute: bool) -> None:
-    run_command(["./gradlew", "generateEclipseConfigurationWithManifest", "--console=plain"], repo, execute)
+    run_command(gradle_validation_command("generateEclipseConfigurationWithManifest"), repo, execute)
 
 
 def phase_npm_update(repo: Path, cfg: dict[str, str], execute: bool) -> None:
-    run_command(["npm", "run", cfg["npm_update"]], repo / "convertigo-studio-web", execute)
+    for cmd in npm_update_commands(cfg):
+        run_command(cmd, repo / "convertigo-studio-web", execute)
 
 
 def phase_npm_audit_fix(repo: Path, execute: bool) -> None:
