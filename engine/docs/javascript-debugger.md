@@ -1,6 +1,6 @@
 # JavaScript debugging
 
-The web Studio and Eclipse `JavaScript Debug (Web)` view use the same administrator API and Monaco component. This view replaces the Eclipse Swing `Backend Debug` view. An existing workspace may retain a missing legacy view tab; close that tab and open `JavaScript Debug (Web)`, or reset the perspective. In Eclipse, **Debug Eclipse launches** is checked by default when starting the debugger. Run from the sequence, connector, test case or Execute commands as usual. The Project / Sequence form is optional, under **Run a sequence from this view**.
+The web Studio and Eclipse `JavaScript Debug (Web)` view use the same administrator API and Monaco component. This view replaces the Eclipse Swing `Backend Debug` view and keeps its historical ID (`com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView`) so saved layouts reopen the web implementation in the same slot. Workspaces that used the temporary web-view ID (`com.twinsoft.convertigo.eclipse.views.rhino.JavascriptDebugView`) in develop may retain a missing view tab; close that tab and open `JavaScript Debug (Web)`, or reset the perspective. In Eclipse, **Debug Eclipse launches** is checked by default when starting the debugger. Run from the sequence, connector, test case or Execute commands as usual. The Project / Sequence form is optional, under **Run a sequence from this view**.
 
 ## Enable and authorize
 

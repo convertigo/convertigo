@@ -486,7 +486,7 @@
 				relative="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView">
 			</view>
 			<view
-				id="com.twinsoft.convertigo.eclipse.views.rhino.JavascriptDebugView"
+				id="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
 				minimized="false"
 				relationship="stack"
 				relative="com.twinsoft.convertigo.eclipse.views.assistant.AssistantView">
@@ -3923,11 +3923,12 @@
 			name="FrontEnd Debug"
 			restorable="true">
 		</view>
+		<!-- Preserve the historical ID so saved perspectives reopen the web debugger. -->
 		<view category="convertigo"
             class="com.twinsoft.convertigo.eclipse.views.rhino.JavascriptDebugView"
             icon="icons/studio/debug.svg"
-            id="com.twinsoft.convertigo.eclipse.views.rhino.JavascriptDebugView"
-            name="JavaScript Debug (Web)" restorable="true" />
+            id="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
+            name="JavaScript Debug (Web)" restorable="true" allowMultiple="false" />
 		<!--view
             category="convertigo"
             class="com.twinsoft.convertigo.eclipse.views.propertysheet.PropertySheetView"
