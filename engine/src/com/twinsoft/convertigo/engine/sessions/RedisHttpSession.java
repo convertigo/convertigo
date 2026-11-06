@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.ServletContext;
@@ -511,6 +512,20 @@ final class RedisHttpSession implements HttpSession, Serializable {
 		}
 	}
 
+	/** The engine-local attribute of this session, created once for all the requests of the session on this engine. */
+	Object computeStatefulAttributeIfAbsent(String name, Supplier<?> factory) {
+		synchronized (mutex) {
+			ensureValid();
+			var value = LOCAL_STORE.computeIfAbsent(id, name, factory, resolveLocalTtlSeconds());
+			cache.put(name, NULL);
+			removedAttributes.add(name);
+			dirtyAttributes.remove(name);
+			lastAccessedTime = System.currentTimeMillis();
+			dirtyLastAccess = true;
+			return value;
+		}
+	}
+
 	void setStatefulAttribute(String name, Object value) {
 		synchronized (mutex) {
 			ensureValid();
@@ -593,6 +608,10 @@ final class RedisHttpSession implements HttpSession, Serializable {
 			if (previous != null && previous != value) {
 				closeValue(previous);
 			}
+		}
+
+		Object computeIfAbsent(String sessionId, String name, Supplier<?> factory, int ttlSeconds) {
+			return getOrCreateSession(sessionId, ttlSeconds).attributes.computeIfAbsent(name, key -> factory.get());
 		}
 
 		void removeAttribute(String sessionId, String name, int ttlSeconds) {

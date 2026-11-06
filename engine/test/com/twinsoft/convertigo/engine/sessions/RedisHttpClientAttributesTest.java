@@ -128,6 +128,43 @@ public class RedisHttpClientAttributesTest {
 		assertTrue(isShutdown(pool3));
 	}
 
+	@Test public void concurrentContextsOfASessionShareOnePool() throws Exception {
+		var store = new MemoryStore();
+		int split = 0;
+		for (int round = 0; round < 200; round++) {
+			var sessionId = "pool-session-race-" + round;
+			var a = new Context("race-a-" + round);
+			var b = new Context("race-b-" + round);
+			a.httpSession = request(store, sessionId);
+			b.httpSession = request(store, sessionId);
+			var start = new java.util.concurrent.CountDownLatch(1);
+			var pools = new java.util.concurrent.ConcurrentLinkedQueue<Object>();
+			var threads = new Thread[] {
+				new Thread(() -> { try { start.await(); pools.add(a.getHttpClient3(HttpPool.session)); pools.add(a.getHttpClient(HttpPool.session)); } catch (InterruptedException e) {} }),
+				new Thread(() -> { try { start.await(); pools.add(b.getHttpClient3(HttpPool.session)); pools.add(b.getHttpClient(HttpPool.session)); } catch (InterruptedException e) {} })
+			};
+			for (var t : threads) t.start();
+			start.countDown();
+			for (var t : threads) t.join();
+			var distinct = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Object, Boolean>());
+			distinct.addAll(pools);
+			if (distinct.size() != 2) split++;
+		}
+		assertEquals("rounds where the two contexts got different pools", 0, split);
+	}
+
+	@Test public void invalidatedWrappedSessionGivesAnUnsharedPool() {
+		var store = new MemoryStore();
+		var now = System.currentTimeMillis();
+		var session = RedisHttpSession.fromMeta(store, null, configuration, "pool-session-invalid", new SessionStoreMeta(now, now, 1800, Map.of()));
+		var context = new Context("pool-invalid-test");
+		context.httpSession = wrap(session);
+		session.invalidate();
+		var first = context.getHttpClient3(HttpPool.session);
+		assertNotNull(first);
+		assertNotSame(first, context.getHttpClient3(HttpPool.session));
+	}
+
 	@Test public void httpClient4IsClosable() throws Exception {
 		var client = HttpUtils.makeHttpClient(true);
 		client.close();

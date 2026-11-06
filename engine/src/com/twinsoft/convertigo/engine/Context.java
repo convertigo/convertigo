@@ -718,18 +718,10 @@ public class Context extends AbstractContext implements Cloneable {
 
 			return httpClient3;
 		case session:
-			HttpClient httpClient;
-
-			synchronized (used_connectors) {
-				httpClient = (HttpClient) StatefulSessionAttributes.getStatefulAttribute(httpSession, SessionAttribute.httpClient3.value());
-				if (httpClient == null) {
-					Engine.logContext.debug("Create a new session HTTP pool.");
-					httpClient = HttpUtils.makeHttpClient3(true);
-					StatefulSessionAttributes.setStatefulAttribute(httpSession, SessionAttribute.httpClient3.value(), httpClient);
-				}
-			}
-
-			return httpClient;
+			return StatefulSessionAttributes.computeStatefulAttributeIfAbsent(httpSession, SessionAttribute.httpClient3.value(), () -> {
+				Engine.logContext.debug("Create a new session HTTP pool.");
+				return HttpUtils.makeHttpClient3(true);
+			});
 		case global:
 			return Engine.theApp.httpClient;
 		}
@@ -754,14 +746,7 @@ public class Context extends AbstractContext implements Cloneable {
 			}
 			return httpClient;
 		case session:
-			synchronized (used_connectors) {
-				HttpClientInterface httpClient = (HttpClientInterface) StatefulSessionAttributes.getStatefulAttribute(httpSession, SessionAttribute.httpClient4.value());
-				if (httpClient == null) {
-					httpClient = HttpUtils.makeHttpClient(true);
-					StatefulSessionAttributes.setStatefulAttribute(httpSession, SessionAttribute.httpClient4.value(), httpClient);
-				}
-				return httpClient;
-			}
+			return StatefulSessionAttributes.computeStatefulAttributeIfAbsent(httpSession, SessionAttribute.httpClient4.value(), () -> HttpUtils.makeHttpClient(true));
 		case global:
 			return Engine.theApp.httpClient4;
 		}
