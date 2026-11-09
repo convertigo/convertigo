@@ -46,6 +46,7 @@
 - [#1274](https://github.com/convertigo/convertigo/issues/1274) [Engine] Fixed, reloading or redeploying a project now refreshes its cached XSLT stylesheets, including imported and included files; stylesheet changes on disk require a project reload or deployment
 - [#1275](https://github.com/convertigo/convertigo/issues/1275) [Redis] Fixed, SiteClipper now restores its context and preserves target site cookies across instances sharing the Redis session store
 - [#1276](https://github.com/convertigo/convertigo/issues/1276) [Engine] Fixed, plain-text or empty values in encrypted engine properties no longer prevent startup or configuration reload; saving the configuration stores these values encrypted
+- [#1278](https://github.com/convertigo/convertigo/issues/1278) [Dashboard] Fixed, while a requestable is running, its test cases can no longer be executed again and the response area keeps its loading indicator until the response arrives; Enter in a variable field now executes the requestable with the entered values instead of the first test case
 
 ## 8.4.6
 

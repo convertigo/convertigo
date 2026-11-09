@@ -404,7 +404,7 @@ console.log(await response.text());`;
 	 */
 	async function run(event) {
 		event.preventDefault();
-		if (!requestable || !projectName || disabled) {
+		if (!requestable || !projectName || disabled || responseView.loading) {
 			return;
 		}
 		const submitter = /** @type {HTMLButtonElement | null} */ (event.submitter);
@@ -503,6 +503,14 @@ console.log(await response.text());`;
 		{:else}
 			<input type="hidden" name="__sequence" value={requestable.name} />
 		{/if}
+		<!-- First submit button of the form: Enter in a field runs the requestable, never a test case -->
+		<button
+			type="submit"
+			class="sr-only"
+			tabindex="-1"
+			aria-hidden="true"
+			disabled={disabled || responseView.loading}>Execute</button
+		>
 
 		{#if showIntro}
 			<div class="requestable-execution__intro">
@@ -525,7 +533,12 @@ console.log(await response.text());`;
 		{/if}
 
 		{#if hasTestcases}
-			<RequestableTestCases bind:requestable value={testcaseValue} showEdit={showTestcaseEdit}>
+			<RequestableTestCases
+				bind:requestable
+				value={testcaseValue}
+				showEdit={showTestcaseEdit}
+				disabled={disabled || responseView.loading}
+			>
 				{#snippet copyAs(testcase)}
 					{@render copyAsButton(`testcase:${testcase.name}`)}
 				{/snippet}
@@ -559,7 +572,7 @@ console.log(await response.text());`;
 						value="__clear"
 						class="button-secondary"
 						icon="mdi:broom"
-						{disabled}
+						disabled={disabled || responseView.loading}
 					/>
 				{/if}
 			</ActionBar>
