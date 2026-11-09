@@ -310,6 +310,7 @@ dependencies {
 	implementation 'com.convertigo.twinsoft:util:2017.12.29'
 	compileFlat    'com.fasterxml.jackson.core:jackson-core:' + jacksonVersion
 	compileFlat    'com.fasterxml.woodstox:woodstox-core:6.7.0'
+	compileFlat    'com.google.guava:guava:33.7.2-jre'
 	compileFlat    ('com.google.gcm:gcm-server:1.0.0') {
 		exclude group: 'junit', module: 'junit'
 	}
