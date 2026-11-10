@@ -642,3 +642,13 @@ tasks.register('cipheredPropertyPlainTextTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.CipheredPropertyPlainTextTest'
 }
+
+tasks.register('xmlProjectLibrariesTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a requestable of a project shipping its own Xerces in its libs gets working XML parsers and transformers.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.XMLUtilsProjectLibrariesTest'
+}
+tasks.named('check') { dependsOn 'xmlProjectLibrariesTest' }
