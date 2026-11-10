@@ -629,9 +629,6 @@ console.log(await response.text());`;
 		}
 	}
 
-	/**
-	 * @param {SubmitEvent & { currentTarget: HTMLFormElement }} event
-	 */
 	/** @type {HTMLFormElement | undefined} */
 	let form = $state();
 
@@ -653,8 +650,14 @@ console.log(await response.text());`;
 		});
 	});
 
+	/**
+	 * @param {SubmitEvent & { currentTarget: HTMLFormElement }} event
+	 */
 	async function run(event) {
 		event.preventDefault();
+		if (!requestable || !projectName || disabled || responseView.loading) {
+			return;
+		}
 		const submitter = /** @type {HTMLButtonElement | null} */ (event.submitter);
 		if (submitter?.value === '__clear') {
 			updateResponse({ content: '', loading: false });
@@ -668,11 +671,14 @@ console.log(await response.text());`;
 	 * @param {string} testcase the test case whose variables the requestable runs with, or none
 	 */
 	async function execute(target, testcase) {
-		if (!requestable || !projectName || disabled) {
+		if (!requestable || !projectName || disabled || responseView.loading) {
 			return;
 		}
 		// a property of the Studio committed as the button takes the focus is applied before the run
 		await settlePropertyApply();
+		if (responseView.loading) {
+			return;
+		}
 		const fd = new FormData(target);
 		if (testcase) {
 			fd.append('__testcase', testcase);
@@ -818,6 +824,14 @@ console.log(await response.text());`;
 			<input type="hidden" name="__context" value="studio-web-execution-*" />
 			<input type="hidden" name="__removeContext" value="true" />
 		{/if}
+		<!-- First submit button of the form: Enter in a field runs the requestable, never a test case -->
+		<button
+			type="submit"
+			class="sr-only"
+			tabindex="-1"
+			aria-hidden="true"
+			disabled={disabled || responseView.loading}>Execute</button
+		>
 
 		{#if showIntro}
 			<div class="requestable-execution__intro">
@@ -840,7 +854,12 @@ console.log(await response.text());`;
 		{/if}
 
 		{#if hasTestcases}
-			<RequestableTestCases bind:requestable value={testcaseValue} showEdit={showTestcaseEdit}>
+			<RequestableTestCases
+				bind:requestable
+				value={testcaseValue}
+				showEdit={showTestcaseEdit}
+				disabled={disabled || responseView.loading}
+			>
 				{#snippet copyAs(testcase)}
 					{@render copyAsButton(`testcase:${testcase.name}`)}
 				{/snippet}
@@ -960,7 +979,7 @@ console.log(await response.text());`;
 						value="__clear"
 						class="button-secondary"
 						icon="mdi:broom"
-						{disabled}
+						disabled={disabled || responseView.loading}
 					/>
 				{/if}
 			</ActionBar>

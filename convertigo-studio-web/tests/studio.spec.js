@@ -1379,6 +1379,90 @@ test.describe('requestable preset editing', () => {
 	}
 });
 
+for (const executionView of ['studio', 'dashboard']) {
+	test(`${executionView} runs current values on Enter and prevents concurrent executions`, async ({
+		page
+	}) => {
+		const executionRequests = [];
+		const state = createStudioState({
+			variables: [{ name: 'input', value: 'initial' }],
+			testcases: [{ name: 'PresetInput', variable: [{ name: 'input', value: 'preset' }] }]
+		});
+		await mockStudioServices(page, { state, executionRequests });
+		let finishResponse;
+		const responseReady = new Promise((resolve) => {
+			finishResponse = resolve;
+		});
+		await page.route(`**/projects/${projectName}/.json`, async (route) => {
+			executionRequests.push(route.request().postData() ?? '');
+			await responseReady;
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: '{"result":"completed"}'
+			});
+		});
+		if (executionView === 'studio') {
+			await page.goto('/studio/#flow');
+			await expandTreeNode(page, projectName);
+			await expandTreeNode(page, `${projectName}:sq`);
+			await selectTreeNode(page, sequenceId);
+			await page.getByRole('tab', { name: 'Execution', exact: true }).click();
+		} else {
+			await openDashboardBackend(page);
+			await ensureButtonExpanded(page, sequenceName);
+		}
+		await ensureButtonExpanded(page, /Variables \(1\)/);
+		await ensureButtonExpanded(page, /Test cases \(1\)/);
+		const input = page.locator('input[name="input"]');
+		const execute = page
+			.locator('.requestable-execution__actions button')
+			.filter({ hasText: 'Execute' });
+		const testcase = page
+			.locator('.requestable-testcases__grid button')
+			.filter({ hasText: 'Execute' });
+		await input.fill('entered-value');
+		await input.press('Enter');
+		await expect.poll(() => executionRequests.length).toBe(1);
+		expect(executionRequests[0]).toContain('input=entered-value');
+		expect(executionRequests[0]).not.toContain('__testcase=');
+		await expect(execute).toBeDisabled();
+		await expect(testcase).toBeDisabled();
+		await expect(
+			page.locator('.requestable-execution__actions button').filter({ hasText: 'Clear' })
+		).toBeDisabled();
+		if (executionView === 'studio') {
+			await page
+				.locator(`button.studio-tree-node__content[data-node-id="${sequenceId}"]`)
+				.press('F5');
+		}
+		await input.press('Enter');
+		await expect(execute).toBeDisabled();
+		expect(executionRequests).toHaveLength(1);
+		finishResponse();
+		await expect(execute).toBeEnabled();
+		await expect(testcase).toBeEnabled();
+		if (executionView === 'studio') {
+			await page
+				.locator(`button.studio-tree-node__content[data-node-id="${sequenceId}"]`)
+				.press('F5');
+			await expect.poll(() => executionRequests.length).toBe(2);
+			expect(executionRequests[1]).toContain('input=entered-value');
+			expect(executionRequests[1]).not.toContain('__testcase=');
+			await expect(testcase).toBeEnabled();
+		}
+		await testcase.click();
+		await expect.poll(() => executionRequests.length).toBe(executionView === 'studio' ? 3 : 2);
+		expect(executionRequests.at(-1)).toContain('__testcase=PresetInput');
+		expect(executionRequests.at(-1)).not.toContain('input=');
+		if (executionView === 'studio') {
+			expect(executionRequests[0]).toContain('__nocache=true');
+			expect(executionRequests[0]).toMatch(/__context=studio-web-execution-[0-9a-f-]{36}&/);
+			expect(executionRequests[0]).toContain('__removeContext=true');
+		}
+	});
+}
+
 test('dashboard recovers a missing Monaco chunk without replaying Execute', async ({ page }) => {
 	const executionRequests = [];
 	await mockStudioServices(page, { executionRequests });

@@ -10,10 +10,17 @@
 	 *  requestable?: any,
 	 *  value?: string,
 	 *  showEdit?: boolean,
+	 *  disabled?: boolean,
 	 *  copyAs?: import('svelte').Snippet<[any]>
 	 * }}
 	 */
-	let { requestable = $bindable(), value = 'testcases', showEdit = true, copyAs } = $props();
+	let {
+		requestable = $bindable(),
+		value = 'testcases',
+		showEdit = true,
+		disabled = false,
+		copyAs
+	} = $props();
 
 	let testcases = $derived(requestable?.testcase ?? []);
 
@@ -65,6 +72,7 @@
 										value={testcase.name}
 										class="button-primary"
 										icon="mdi:play-circle-outline"
+										{disabled}
 										full={false}
 									/>
 									{@render copyAs?.(testcase)}
