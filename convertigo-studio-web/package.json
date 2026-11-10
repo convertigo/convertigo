@@ -22,6 +22,15 @@
 		"lint:admin": "eslint \"src/lib/admin/**/*.{js,svelte,ts}\" \"src/lib/common/**/*.{js,svelte,ts}\" \"src/lib/dashboard/**/*.{js,svelte,ts}\" \"src/lib/utils/**/*.{js,svelte,ts}\" \"src/routes/(app)/admin/**/*.{js,svelte,ts}\" \"src/routes/(app)/dashboard/**/*.{js,svelte,ts}\" \"src/routes/(root)/login/**/*.{js,svelte,ts}\" \"src/routes/+layout.svelte\" \"src/routes/(app)/+layout.svelte\" --ignore-pattern \"src/routes/(app)/admin/certificates/**\" --ignore-pattern \"src/routes/(app)/admin/projects/**\" --ignore-pattern \"src/routes/(app)/admin/roles/**\" --ignore-pattern \"src/routes/(app)/admin/symbols/**\""
 	},
 	"overrides": {
+		"@tailwindcss/typography": {
+			"postcss-selector-parser": "6.1.6"
+		},
+		"@typescript-eslint/typescript-estree": {
+			"minimatch": "11.0.5"
+		},
+		"@sveltejs/kit": {
+			"cookie": "0.7.2"
+		},
 		"postcss-nesting": {
 			"postcss-selector-parser": "7.1.8"
 		},
