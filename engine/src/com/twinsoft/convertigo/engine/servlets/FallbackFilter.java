@@ -48,12 +48,18 @@ public class FallbackFilter implements Filter {
 			"/testplatform.html", "/dashboard/"
 	);
 
+	/** The former administration console, replaced by /admin/: all its pages lead there */
+	private static final String LEGACY_ADMIN = "/admin_";
+
 	private static boolean redirectLegacyPath(HttpServletRequest request, HttpServletResponse response, String servletPath) throws IOException {
 		if (!("GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod()))) {
 			return false;
 		}
 
 		var targetPath = LEGACY_REDIRECTS.get(servletPath);
+		if (targetPath == null && (servletPath.equals(LEGACY_ADMIN) || servletPath.startsWith(LEGACY_ADMIN + "/"))) {
+			targetPath = "/admin/";
+		}
 		if (targetPath == null) {
 			return false;
 		}

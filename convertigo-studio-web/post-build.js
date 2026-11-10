@@ -16,7 +16,6 @@ const PRESERVE = new Set([
 	'xsl',
 	'xsd',
 	'oas',
-	'admin_',
 	'containers',
 	'templates',
 	'images',

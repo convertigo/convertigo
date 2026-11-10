@@ -43,13 +43,23 @@ public class FallbackFilterTest {
 		assertEquals("/convertigo/dashboard/?a=b", redirect("GET", "/testplatform.html", "a=b"));
 	}
 
+	@Test public void redirectsTheLegacyAdministrationConsoleToTheAdmin() throws Exception {
+		for (var path : List.of("/admin_", "/admin_/", "/admin_/index.html", "/admin_/main.html",
+				"/admin_/_utils/", "/admin_/js/jquery/jquery.min.js")) {
+			assertEquals(path, "/convertigo/admin/", redirect("GET", path, null));
+		}
+		assertNull(redirect("GET", "/admin_x/index.html", null));
+		assertNull(redirect("POST", "/admin_/main.html", null));
+	}
+
 	@Test public void keepsTheExistingLegacyRedirects() throws Exception {
 		assertEquals("/convertigo/login/", redirect("GET", "/admin/main.html", null));
 		assertEquals("/convertigo/dashboard/", redirect("GET", "/projects/", null));
 	}
 
 	@Test public void leavesOtherPathsAndMethodsUntouched() throws Exception {
-		for (var path : List.of("/project.html", "/testplatform.html.bak", "/scripts/weblib.js", "/admin/services/engine.GetStatus")) {
+		for (var path : List.of("/project.html", "/testplatform.html.bak", "/scripts/weblib.js", "/admin/",
+				"/admin/services/engine.GetStatus")) {
 			assertNull(path, redirect("GET", path, null));
 		}
 		assertNull(redirect("POST", "/testplatform.html", null));

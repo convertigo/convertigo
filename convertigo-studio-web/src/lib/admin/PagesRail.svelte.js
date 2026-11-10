@@ -97,12 +97,6 @@ const parts = $derived([
 			external: true
 		},
 		{
-			title: 'Old Admin',
-			icon: 'mdi:home-alert-outline',
-			url: getUrl('admin_/'),
-			external: true
-		},
-		{
 			title: 'Convertigo',
 			icon: 'convertigo:logo',
 			url: 'https://www.convertigo.com',

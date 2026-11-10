@@ -40,7 +40,6 @@ graphify-out/
 /eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/swt/UCDetectorHelperGenerated.java
 /eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/wizards/setup/license.txt
 /eclipse-plugin-studio/tomcat/webapps/convertigo/**
-!/eclipse-plugin-studio/tomcat/webapps/convertigo/admin_/
 !/eclipse-plugin-studio/tomcat/webapps/convertigo/axis2-web/
 !/eclipse-plugin-studio/tomcat/webapps/convertigo/css/
 !/eclipse-plugin-studio/tomcat/webapps/convertigo/dtd/
