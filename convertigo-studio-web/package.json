@@ -22,6 +22,12 @@
 		"lint:admin": "eslint \"src/lib/admin/**/*.{js,svelte,ts}\" \"src/lib/common/**/*.{js,svelte,ts}\" \"src/lib/dashboard/**/*.{js,svelte,ts}\" \"src/lib/utils/**/*.{js,svelte,ts}\" \"src/routes/(app)/admin/**/*.{js,svelte,ts}\" \"src/routes/(app)/dashboard/**/*.{js,svelte,ts}\" \"src/routes/(root)/login/**/*.{js,svelte,ts}\" \"src/routes/+layout.svelte\" \"src/routes/(app)/+layout.svelte\" --ignore-pattern \"src/routes/(app)/admin/certificates/**\" --ignore-pattern \"src/routes/(app)/admin/projects/**\" --ignore-pattern \"src/routes/(app)/admin/roles/**\" --ignore-pattern \"src/routes/(app)/admin/symbols/**\""
 	},
 	"overrides": {
+		"postcss-nesting": {
+			"postcss-selector-parser": "7.1.8"
+		},
+		"svelte-eslint-parser": {
+			"postcss-selector-parser": "7.1.8"
+		},
 		"svelte-tiny-virtual-list": {
 			"@types/svelte": "^5.0.0",
 			"svelte": "^5.57.3"
@@ -43,10 +49,10 @@
 		"@tailwindcss/forms": "0.5.11",
 		"@tailwindcss/typography": "0.5.20",
 		"@types/node": "^25.9.9",
-		"@typescript-eslint/parser": "^8.72.1",
+		"@typescript-eslint/parser": "^8.72.2",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
-		"eslint-plugin-svelte": "^3.24.0",
+		"eslint-plugin-svelte": "^3.24.1",
 		"globals": "^17.14.0",
 		"postcss-nesting": "^14.0.3",
 		"prettier": "^3.9.10",
@@ -56,10 +62,10 @@
 		"svelte": "^5.57.3",
 		"svelte-check": "^4.7.8",
 		"svelte-eslint-parser": "^1.10.1",
-		"tailwindcss": "^4.3.4",
+		"tailwindcss": "^4.3.5",
 		"typescript": "^5.9.3",
 		"unplugin-icons": "^23.0.1",
-		"vite": "^7.3.7",
+		"vite": "^7.3.8",
 		"vitest": "^4.1.12"
 	},
 	"type": "module",
@@ -67,12 +73,12 @@
 		"@flaticon/flaticon-uicons": "^3.3.1",
 		"@floating-ui/dom": "^1.8.0",
 		"@internationalized/date": "^3.12.4",
-		"@tailwindcss/vite": "^4.3.4",
+		"@tailwindcss/vite": "^4.3.5",
 		"@xyflow/svelte": "^1.7.1",
 		"@zag-js/tree-view": "^1.47.0",
 		"apexcharts": "^5.16.0",
 		"bits-ui": "^2.20.6",
-		"caniuse-lite": "^1.0.30001822",
+		"caniuse-lite": "^1.0.30001823",
 		"chart.js": "^4.6.1",
 		"fast-xml-parser": "^5.12.0",
 		"fs-extra": "^11.4.1",
