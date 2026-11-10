@@ -44,7 +44,8 @@ public class FallbackFilter implements Filter {
 			"/admin/login.html", "/login/",
 			"/admin/main.html", "/login/",
 			"/projects", "/dashboard/",
-			"/projects/", "/dashboard/"
+			"/projects/", "/dashboard/",
+			"/testplatform.html", "/dashboard/"
 	);
 
 	private static boolean redirectLegacyPath(HttpServletRequest request, HttpServletResponse response, String servletPath) throws IOException {

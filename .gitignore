@@ -59,7 +59,6 @@ graphify-out/
 !/eclipse-plugin-studio/tomcat/webapps/convertigo/favicon.ico
 !/eclipse-plugin-studio/tomcat/webapps/convertigo/noproject.html
 !/eclipse-plugin-studio/tomcat/webapps/convertigo/project.html
-!/eclipse-plugin-studio/tomcat/webapps/convertigo/testplatform.html
 /eclipse-plugin-studio/tomcat/work
 /eclipse-repository/category.xml
 /eclipse-repository/Convertigo.product

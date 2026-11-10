@@ -97,12 +97,6 @@ const parts = $derived([
 			external: true
 		},
 		{
-			title: 'Test Platform',
-			icon: 'mdi:home-alert-outline',
-			url: getUrl('testplatform.html'),
-			external: true
-		},
-		{
 			title: 'Old Admin',
 			icon: 'mdi:home-alert-outline',
 			url: getUrl('admin_/'),
