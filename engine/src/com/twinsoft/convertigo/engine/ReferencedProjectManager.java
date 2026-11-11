@@ -226,7 +226,9 @@ public class ReferencedProjectManager {
 			}
 		}
 		if (dir != null) {
-			if (!cloneDone && (force || (parser.isAutoPull() && !Engine.isStudioMode()))) {
+			// a Studio, the Eclipse one or an engine that allows the web Studio, never pulls its referenced projects by
+			// itself: the reset to their remote branch would lose the changes made there; the user updates them
+			if (!cloneDone && (force || (parser.isAutoPull() && !Engine.isWebStudioAllowed()))) {
 				synchronized (getLock(dir)) {
 					var lf = lastFetch.get(parser.getProjectName());
 					var now = System.currentTimeMillis();
