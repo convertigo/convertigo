@@ -30,6 +30,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.steps.JsonTransformStep;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
@@ -64,6 +65,11 @@ public class Steps extends JSonService {
 		response.put("steps", steps);
 	}
 
+	/** a step whose XML can be read, or an enabled native JSON step, read by its XML view or its JSON */
+	private static boolean isPickable(Step step) {
+		return step.isPickable() || (step instanceof JsonTransformStep && step.isEnabled());
+	}
+
 	private static void add(JSONArray steps, List<Step> children, int depth, Step owner, Set<Long> xmlParents,
 			boolean[] found) throws Exception {
 		for (var step : children) {
@@ -74,7 +80,7 @@ public class Steps extends JSonService {
 					.put("label", step.toString())
 					.put("depth", depth)
 					.put("owner", isOwner)
-					.put("pickable", !found[0] && step.isPickable() && !xmlParents.contains(step.priority)));
+					.put("pickable", !found[0] && isPickable(step) && !xmlParents.contains(step.priority)));
 			if (step instanceof StepWithExpressions container) {
 				add(steps, container.getSteps(), depth + 1, owner, xmlParents, found);
 			}

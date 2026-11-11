@@ -4,6 +4,8 @@
 	import { call } from '#lib/utils/service.js';
 	import { untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { experimentalFeatures } from './experimentalFeatures.svelte.js';
+	import { parseJsonPath, parseSample, toJsonPath } from './nativeJson.js';
 	import {
 		applySourcePickerDrop,
 		setSourcePickerDragData,
@@ -13,6 +15,7 @@
 	import StudioEmptyState from './StudioEmptyState.svelte';
 	import StudioFlowPickerFrame from './StudioFlowPickerFrame.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
+	import StudioJsonTree from './StudioJsonTree.svelte';
 
 	/**
 	 * @typedef {{
@@ -53,7 +56,9 @@
 	 *  tree?: SourceNode,
 	 *  result?: SourceNode,
 	 *  jsonTree?: SourceNode,
-	 *  jsonResult?: SourceNode
+	 *  jsonResult?: SourceNode,
+	 *  nativeJson?: boolean,
+	 *  jsonPath?: boolean
 	 * }} SourceModel
 	 */
 	/**
@@ -133,6 +138,14 @@
 	let relativeXPath = $state('.');
 	let selectedTreeXPath = $state('');
 	let showJsonPreview = $state(false);
+	/**
+	 * The JSON of a step giving JSON in a JSON native sequence, as the JSON tab of the Source Picker of the
+	 * Eclipse Studio: its value picked there gives the JSON path ($...) of the source.
+	 */
+	let sourceTab = $state(/** @type {'json' | 'xml'} */ ('xml'));
+	let jsonPathInput = $state('$');
+	let jsonSample = $state(/** @type {any} */ (null));
+	let jsonSampleId = '';
 	let collapsedNodes = $state.raw(new SvelteSet());
 	let ngxLoading = $state(false);
 	let ngxRefreshing = $state(false);
@@ -153,12 +166,39 @@
 	let flowPicker = $derived(isFlowPickerTarget(pickerTarget));
 	let ngxPicker = $derived(isNgxPickerTarget(pickerTarget));
 	let ngxDirectFilter = $derived(ngxFilter === 'Icon' || ngxFilter === 'Asset');
+	let jsonTabAvailable = $derived(
+		Boolean(model?.available && model?.nativeJson && experimentalFeatures.shown)
+	);
+	let jsonTabActive = $derived(jsonTabAvailable && sourceTab === 'json');
+	let jsonParsed = $derived(
+		jsonSample?.found && jsonSample.json ? parseSample(jsonSample.json) : null
+	);
+	let jsonSelected = $derived.by(() => {
+		const segments = parseJsonPath(jsonPathInput);
+		return segments && !segments.includes(null)
+			? /** @type {(string | number)[]} */ (segments)
+			: null;
+	});
+	let jsonInfo = $derived.by(() => {
+		const name = model?.sourceName ?? '';
+		if (!jsonSample) {
+			return '';
+		}
+		if (jsonSample.stream || (jsonSample.note === 'stream' && !jsonSample.json)) {
+			return `'${name}' writes its rows in stream into the response: they are in the JSON output of the sequence.`;
+		}
+		if (!jsonSample.found) {
+			return `Pick a JSON path ($...) in the JSON of '${name}': execute the sequence once in the Studio to see it.`;
+		}
+		return `JSON of '${name}' in '${jsonSample.variable}' at its last execution${jsonSample.truncated ? ' (cut at 4194304 characters)' : ''}. Pick a value: its JSON path ($...) is the source.`;
+	});
 	let canApply = $derived(
 		Boolean(
 			!ngxPicker &&
 			pickerTarget?.id &&
 			pickerTarget?.propertyName &&
 			model?.available &&
+			(!jsonTabActive || parseJsonPath(jsonPathInput)) &&
 			// a cell takes a source among the steps before its step
 			(!onPick ||
 				sourceSteps.some((step) => step.pickable && step.priority === model?.sourcePriority))
@@ -193,6 +233,26 @@
 		}
 		const serial = ++loadSerial;
 		void loadSource(request, serial);
+	});
+
+	$effect(() => {
+		// the last JSON of the step, for its JSON tab
+		const id = jsonTabAvailable ? (model?.sourceId ?? '') : '';
+		if (!id) {
+			jsonSample = null;
+			jsonSampleId = '';
+			return;
+		}
+		if (id === jsonSampleId) {
+			return;
+		}
+		jsonSampleId = id;
+		jsonSample = null;
+		void call('studio.debug.NativeJson', { action: 'sample', id }).then((result) => {
+			if (jsonSampleId === id) {
+				jsonSample = result ?? { found: false };
+			}
+		});
 	});
 
 	$effect(() => {
@@ -300,6 +360,10 @@
 			relativeXPath = model.xpath || '.';
 			selectedTreeXPath = '';
 			collapsedNodes = new SvelteSet();
+			// the JSON of a step of a native sequence first, as the JSON tab of the Eclipse Source Picker
+			sourceTab = model.nativeJson ? 'json' : 'xml';
+			jsonPathInput = model.jsonPath ? String(model.xpath ?? '$') : '$';
+			jsonSampleId = '';
 		} catch (err) {
 			if (serial === loadSerial) {
 				error = String(err instanceof Error ? err.message : err);
@@ -632,16 +696,39 @@
 		}
 	}
 
+	/**
+	 * @returns {import('./sourcePickerDnd').SourcePickerDragPayload}
+	 */
+	function chosenSourcePayload() {
+		if (jsonTabActive) {
+			// a JSON path reads the JSON of the step, without its XML view
+			const jsonPath = jsonPathInput.trim() || '$';
+			return makeSourcePayload(jsonPath, jsonPath);
+		}
+		return makeSourcePayload(model?.displayXpath || fullXPathInput(), relativeXPath || '.');
+	}
+
+	/**
+	 * @param {DragEvent} event
+	 * @param {(string | number)[]=} path
+	 */
+	function handleJsonDragStart(event, path) {
+		if (!model?.sourcePriority) {
+			return;
+		}
+		const jsonPath = path ? toJsonPath('', path) : jsonPathInput.trim() || '$';
+		const payload = makeSourcePayload(jsonPath, jsonPath);
+		setSourcePickerDragData(event, payload);
+		$draggedData = payload;
+	}
+
 	async function applySource() {
 		if (!canApply || !pickerTarget?.propertyName || !model?.sourcePriority) {
 			return;
 		}
 		if (onPick) {
 			// the source goes to its editor, as a cell of a table, which saves it with the other changes
-			const payload = makeSourcePayload(
-				model.displayXpath || fullXPathInput(),
-				relativeXPath || '.'
-			);
+			const payload = chosenSourcePayload();
 			onPick(
 				sourceDefinitionFromPayload(payload),
 				payload.data.displayXpath || payload.data.sourceName || ''
@@ -651,10 +738,7 @@
 		applying = true;
 		error = '';
 		try {
-			const payload = makeSourcePayload(
-				model.displayXpath || fullXPathInput(),
-				relativeXPath || '.'
-			);
+			const payload = chosenSourcePayload();
 			const response = await applySourcePickerDrop(
 				pickerTarget.id,
 				payload,
@@ -1273,83 +1357,179 @@
 				icon="mdi:file-tree-outline"
 			/>
 		{:else}
-			<section class="studio-source-picker__tree">
-				<header class="layout-x-between-low">
-					<span class="studio-label">{showJsonPreview ? 'DOM as JSON' : 'DOM'}</span>
-					<span class="studio-pill">{domCount}</span>
-				</header>
-				<div class="studio-source-picker__tree-scroll">
-					<ul>
-						{#if domTree}
-							{@render treeNode(
-								domTree,
-								showJsonPreview ? 'dom-json' : 'dom',
-								'0',
-								showJsonPreview
-							)}
-						{/if}
-					</ul>
-				</div>
-			</section>
-
-			<section class="studio-source-picker__xpath layout-y-stretch-low">
-				<div class="studio-source-picker__xpath-row layout-x-none">
+			{#if jsonTabAvailable}
+				<div class="studio-source-picker__tabs" role="tablist" aria-label="View of the source">
 					<button
 						type="button"
-						class="studio-source-picker__xpath-drag"
-						draggable={Boolean(model?.sourcePriority)}
-						title="Drag XPath source"
-						aria-label="Drag XPath source"
-						ondragstart={(event) => handleSourceDragStart(event)}
-						ondragend={handleSourceDragEnd}
+						role="tab"
+						aria-selected={sourceTab === 'json'}
+						class:studio-source-picker__tab--active={sourceTab === 'json'}
+						onclick={() => (sourceTab = 'json')}>JSON</button
 					>
-						xPath
-					</button>
-					<span class="studio-source-picker__xpath-anchor studio-ellipsis" title={anchor}>
-						{anchor}
-					</span>
-					<input
-						class="input"
-						value={xpathSuffixInput}
-						aria-label="XPath suffix"
-						oninput={(event) => (xpathSuffixInput = event.currentTarget.value)}
-						onkeydown={onXPathKeydown}
-					/>
-					<StudioIconButton
-						icon="mdi:play"
-						size="xs"
-						title="Evaluate XPath"
-						disabled={evaluating}
-						onclick={evaluateXPath}
-					/>
+					<button
+						type="button"
+						role="tab"
+						aria-selected={sourceTab === 'xml'}
+						class:studio-source-picker__tab--active={sourceTab === 'xml'}
+						onclick={() => (sourceTab = 'xml')}>XML</button
+					>
 				</div>
-			</section>
-
-			<section class="studio-source-picker__result">
-				<header class="layout-x-between-low">
-					<span class="studio-label">{showJsonPreview ? 'Result as JSON' : 'Result'}</span>
-					<span class="studio-pill">{resultCount}</span>
-				</header>
-				<div class="studio-source-picker__tree-scroll studio-source-picker__tree-scroll--result">
-					{#if resultTree}
-						<ul>
-							{@render treeNode(
-								resultTree,
-								showJsonPreview ? 'result-json' : 'result',
-								'0',
-								showJsonPreview
-							)}
-						</ul>
-					{:else}
-						<StudioEmptyState message="No result" small />
+			{/if}
+			{#if jsonTabActive}
+				<section class="studio-source-picker__tree">
+					<header class="layout-x-between-low">
+						<span class="studio-label">JSON</span>
+					</header>
+					{#if jsonInfo}
+						<p class="studio-source-picker__json-info">{jsonInfo}</p>
 					{/if}
-				</div>
-			</section>
+					<div class="studio-source-picker__tree-scroll">
+						{#if jsonParsed?.ok}
+							<StudioJsonTree
+								value={jsonParsed.value}
+								rootLabel="$"
+								selected={jsonSelected}
+								label={`JSON of ${model?.sourceName ?? 'the step'}`}
+								onSelect={(path) => (jsonPathInput = toJsonPath('', path))}
+								onDragStart={(event, path) => handleJsonDragStart(event, path)}
+							/>
+						{:else if jsonParsed}
+							<pre>{jsonParsed.text}</pre>
+						{/if}
+					</div>
+				</section>
+				<section class="studio-source-picker__xpath layout-y-stretch-low">
+					<div class="studio-source-picker__xpath-row layout-x-none">
+						<button
+							type="button"
+							class="studio-source-picker__xpath-drag"
+							draggable={Boolean(model?.sourcePriority)}
+							title="Drag JSON values or the JSON path ($...) and drop on Steps"
+							aria-label="Drag the JSON path source"
+							ondragstart={(event) => handleJsonDragStart(event)}
+							ondragend={handleSourceDragEnd}
+						>
+							JSON path
+						</button>
+						<input
+							class="input"
+							value={jsonPathInput}
+							aria-label="JSON path"
+							spellcheck="false"
+							oninput={(event) => (jsonPathInput = event.currentTarget.value)}
+						/>
+					</div>
+					{#if !parseJsonPath(jsonPathInput)}
+						<p class="studio-source-picker__json-info">Invalid JSON path: {jsonPathInput}</p>
+					{/if}
+				</section>
+			{:else}
+				<section class="studio-source-picker__tree">
+					<header class="layout-x-between-low">
+						<span class="studio-label">{showJsonPreview ? 'DOM as JSON' : 'DOM'}</span>
+						<span class="studio-pill">{domCount}</span>
+					</header>
+					<div class="studio-source-picker__tree-scroll">
+						<ul>
+							{#if domTree}
+								{@render treeNode(
+									domTree,
+									showJsonPreview ? 'dom-json' : 'dom',
+									'0',
+									showJsonPreview
+								)}
+							{/if}
+						</ul>
+					</div>
+				</section>
+
+				<section class="studio-source-picker__xpath layout-y-stretch-low">
+					<div class="studio-source-picker__xpath-row layout-x-none">
+						<button
+							type="button"
+							class="studio-source-picker__xpath-drag"
+							draggable={Boolean(model?.sourcePriority)}
+							title="Drag XPath source"
+							aria-label="Drag XPath source"
+							ondragstart={(event) => handleSourceDragStart(event)}
+							ondragend={handleSourceDragEnd}
+						>
+							xPath
+						</button>
+						<span class="studio-source-picker__xpath-anchor studio-ellipsis" title={anchor}>
+							{anchor}
+						</span>
+						<input
+							class="input"
+							value={xpathSuffixInput}
+							aria-label="XPath suffix"
+							oninput={(event) => (xpathSuffixInput = event.currentTarget.value)}
+							onkeydown={onXPathKeydown}
+						/>
+						<StudioIconButton
+							icon="mdi:play"
+							size="xs"
+							title="Evaluate XPath"
+							disabled={evaluating}
+							onclick={evaluateXPath}
+						/>
+					</div>
+				</section>
+
+				<section class="studio-source-picker__result">
+					<header class="layout-x-between-low">
+						<span class="studio-label">{showJsonPreview ? 'Result as JSON' : 'Result'}</span>
+						<span class="studio-pill">{resultCount}</span>
+					</header>
+					<div class="studio-source-picker__tree-scroll studio-source-picker__tree-scroll--result">
+						{#if resultTree}
+							<ul>
+								{@render treeNode(
+									resultTree,
+									showJsonPreview ? 'result-json' : 'result',
+									'0',
+									showJsonPreview
+								)}
+							</ul>
+						{:else}
+							<StudioEmptyState message="No result" small />
+						{/if}
+					</div>
+				</section>
+			{/if}
 		{/if}
 	</div>
 </div>
 
 <style>
+	.studio-source-picker__tabs {
+		display: flex;
+		gap: 0.25rem;
+		padding: 0.2rem 0.38rem 0;
+	}
+
+	.studio-source-picker__tabs button {
+		border: 1px solid transparent;
+		border-radius: 0.35rem;
+		background: none;
+		padding: 0.12rem 0.55rem;
+		color: var(--studio-text-idle, var(--color-surface-600-400));
+		font: inherit;
+		font-size: 0.74rem;
+		cursor: pointer;
+	}
+
+	.studio-source-picker__tabs button.studio-source-picker__tab--active {
+		border-color: var(--studio-line, var(--color-surface-200-800));
+		color: var(--studio-text-strong, inherit);
+	}
+
+	.studio-source-picker__json-info {
+		margin: 0.2rem 0;
+		color: var(--studio-text-idle, var(--color-surface-600-400));
+		font-size: 0.72rem;
+	}
+
 	.studio-source-picker {
 		height: 100%;
 		min-height: 0;

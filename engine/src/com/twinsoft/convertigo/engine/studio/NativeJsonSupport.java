@@ -57,6 +57,8 @@ public final class NativeJsonSupport {
 
 	private static final int MAX_RUNS = 16;
 	private static final int MAX_ROWS = 2000;
+	/** the items of an array kept in the XML view of the source picker: its structure, not its volume */
+	private static final int XML_VIEW_ITEMS = 50;
 	/** above this total, the JSON of the next rows of a run is not kept (the rows are) */
 	private static final long MAX_RUN_CHARS = 64L * 1024 * 1024;
 	private static final Pattern ITEM = Pattern.compile("item\\[(\\d+)\\]");
@@ -369,6 +371,43 @@ public final class NativeJsonSupport {
 			}
 		}
 		return new ArrayList<>(names);
+	}
+
+	/**
+	 * the XML view a native step gives to the XPath sources of the next steps (JsonTransformStep.getContextNode), built
+	 * from its last JSON in the web Studio for the source picker, as the NativeJsonXmlView of the Eclipse Studio: the
+	 * first 50 items of an array, a comment when it has no sample yet
+	 */
+	public static org.w3c.dom.Element xmlView(JsonTransformStep step, org.w3c.dom.Document doc) {
+		var sample = getSample(step);
+		var nodeName = step.getStepNodeName();
+		if (sample == null || sample.getJson().isEmpty()) {
+			var element = doc.createElement(nodeName);
+			element.appendChild(doc.createComment(" no sample: execute the sequence in the Studio to see the XML view of '" + step.getName() + "' "));
+			return element;
+		}
+		var json = sample.getJson();
+		try {
+			var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+			var node = mapper.readTree(json);
+			var cut = node.isArray() && node.size() > XML_VIEW_ITEMS;
+			if (cut) {
+				var first = mapper.createArrayNode();
+				for (int i = 0; i < XML_VIEW_ITEMS; i++) {
+					first.add(node.get(i));
+				}
+				json = mapper.writeValueAsString(first);
+			}
+			var element = new com.twinsoft.convertigo.engine.util.JsonNativeOutput(step.getVariableName(), json, nodeName, "item").toElement(doc);
+			if (cut) {
+				element.insertBefore(doc.createComment(" the first " + XML_VIEW_ITEMS + " items of " + node.size() + " "), element.getFirstChild());
+			}
+			return element;
+		} catch (Exception e) {
+			var element = doc.createElement(nodeName);
+			element.appendChild(doc.createComment(" " + e.getMessage() + " "));
+			return element;
+		}
 	}
 
 	/**

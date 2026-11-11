@@ -36,12 +36,14 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.IteratorStep;
+import com.twinsoft.convertigo.beans.steps.JsonTransformStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.SchemaManager.Option;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.json.JsonPath;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -67,6 +69,10 @@ public class SourcePickerModel {
 		public NodeModel result = null;
 		public NodeModel jsonTree = null;
 		public NodeModel jsonResult = null;
+		/** a step that gives JSON in a JSON native sequence: its JSON can be picked by a JSON path */
+		public boolean nativeJson = false;
+		/** the source reads the JSON of its step by a JSON path ($...) */
+		public boolean jsonPath = false;
 	}
 
 	public static class NodeModel {
@@ -135,6 +141,9 @@ public class SourcePickerModel {
 		}
 		model.schemaSourceId = schemaStep.getFullQName();
 		model.schemaSourceName = schemaStep.getName();
+		model.nativeJson = NativeJsonSupport.isJsonProducer(sourceStep)
+				&& NativeJsonSupport.isNativeSequence(sourceStep.getSequence());
+		model.jsonPath = JsonPath.isJsonPath(model.xpath);
 
 		Document dom = buildDom(sourceStep, schemaStep);
 		if (dom == null) {
@@ -142,10 +151,16 @@ public class SourcePickerModel {
 			return model;
 		}
 
-		model.anchor = sourceStep.getAnchor();
-		model.displayXpath = toDisplayXPath(model.anchor, model.xpath);
-		model.xpath = toRelativeXPath(dom, model.anchor, model.displayXpath);
-		model.displayXpath = toDisplayXPath(model.anchor, model.xpath);
+		model.anchor = schemaStep instanceof JsonTransformStep ? "//document/" + schemaStep.getStepNodeName()
+				: sourceStep.getAnchor();
+		if (model.jsonPath) {
+			// a JSON path reads the JSON of the step, not its XML: the view shows the whole step
+			model.displayXpath = model.xpath;
+		} else {
+			model.displayXpath = toDisplayXPath(model.anchor, model.xpath);
+			model.xpath = toRelativeXPath(dom, model.anchor, model.displayXpath);
+			model.displayXpath = toDisplayXPath(model.anchor, model.xpath);
+		}
 		model.available = true;
 		model.tree = toNodeModel(dom.getDocumentElement(), model.anchor);
 		model.jsonTree = toJsonNodeModel(dom.getDocumentElement());
@@ -277,6 +292,12 @@ public class SourcePickerModel {
 	}
 
 	private static Document buildDom(Step sourceStep, Step schemaStep) throws Exception {
+		if (schemaStep instanceof JsonTransformStep nativeStep) {
+			// a native JSON step has no schema: the XML view its XPath sources read, from its last JSON
+			Document doc = nativeStep.getSequence().createDOM();
+			doc.getDocumentElement().appendChild(NativeJsonSupport.xmlView(nativeStep, doc));
+			return doc;
+		}
 		XmlSchemaObject xso = getSchemaObject(sourceStep.getProject(), schemaStep);
 		if (xso == null) {
 			return null;
@@ -333,6 +354,16 @@ public class SourcePickerModel {
 	}
 
 	private static void evaluate(SourceModel model, String xpath) throws Exception {
+		if (JsonPath.isJsonPath(xpath)) {
+			// the value of a JSON path is shown by the JSON of the step, in the web Studio
+			model.jsonPath = true;
+			model.xpath = xpath.trim();
+			model.displayXpath = model.xpath;
+			model.result = null;
+			model.jsonResult = null;
+			return;
+		}
+		model.jsonPath = false;
 		Document dom = buildDom(findSourceStep(findOwnerStep(model.ownerId), model.sourcePriority),
 				findSchemaStep(model.ownerId, model.sourcePriority));
 		if (dom == null) {

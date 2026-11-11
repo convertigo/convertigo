@@ -50,6 +50,8 @@ public class Get extends JSonService {
 		response.put("result", toJson(model.result));
 		response.put("jsonTree", toJson(model.jsonTree));
 		response.put("jsonResult", toJson(model.jsonResult));
+		response.put("nativeJson", model.nativeJson);
+		response.put("jsonPath", model.jsonPath);
 	}
 
 	static JSONObject toJson(NodeModel node) throws Exception {
