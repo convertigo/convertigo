@@ -6,6 +6,8 @@
 	 * @type {SvelteMap<string, { content: string, language: string }>}
 	 */
 	const lastResults = new SvelteMap();
+	/** the native JSON steps of the last run of each sequence of the Studio: its token and its rows */
+	const lastNativeRuns = new SvelteMap();
 </script>
 
 <script>
@@ -20,6 +22,7 @@
 	import LightSvelte from '#lib/common/Light.svelte.js';
 	import RequestableResponseEditor from '#lib/dashboard/RequestableResponseEditor.svelte';
 	import { settlePropertyApply } from '#lib/studio/propertyApply.svelte.js';
+	import StudioNativeJsonPanel from '#lib/studio/StudioNativeJsonPanel.svelte';
 	import Ico from '#lib/utils/Ico.svelte';
 	import { call, callRequestable, getUrl, toaster } from '#lib/utils/service.js';
 	import { untrack } from 'svelte';
@@ -142,6 +145,24 @@
 	/** @type {{ active?: boolean, running?: boolean, paused?: boolean, stepByStep?: boolean, step?: { id: string, name: string } } | null} */
 	let debugState = $state(null);
 	let debuggable = $derived(stubbable && kind === 'sequence');
+	/**
+	 * The native JSON steps of the sequence, as the Native JSON steps panel of the sequence editor of the Eclipse
+	 * Studio: the kind of the sequence and its XML bridges, then the JSON of each native step of a run.
+	 */
+	let nativeInfo = $state(
+		/** @type {{ native?: boolean, nativeExecution?: boolean, nativeSteps?: boolean, bridges?: any[] } | null} */ (
+			null
+		)
+	);
+	let nativeInfoId = '';
+	let nativeTracked = $derived(stubbable && kind === 'sequence');
+	let nativeRun = $derived(
+		/** @type {{ token: string, rows: any[] } | undefined} */ (lastNativeRuns.get(requestableKey))
+	);
+	let showNative = $derived(
+		nativeTracked &&
+			Boolean(nativeInfo?.native || nativeInfo?.nativeSteps || nativeRun?.rows?.length)
+	);
 	/** the context of the running execution, which Stop aborts */
 	let runningContext = $state('');
 	/** the stubs recorded for the requestable, the default one first */
@@ -155,6 +176,76 @@
 				? `${projectName}.cn:${connectorName}.tr:${requestable.name}`
 				: `${projectName}.sq:${requestable.name}`
 	);
+
+	$effect(() => {
+		// a JSON native sequence runs as JSON, as the clients request it, as in the Eclipse Studio
+		const id = nativeTracked ? requestableId : '';
+		if (id === nativeInfoId) {
+			return;
+		}
+		nativeInfoId = id;
+		nativeInfo = null;
+		if (id) {
+			void loadNativeInfo(id, true);
+		}
+	});
+
+	/**
+	 * @param {string} id
+	 * @param {boolean} selectJson
+	 */
+	async function loadNativeInfo(id, selectJson) {
+		const result = await call('studio.debug.NativeJson', { action: 'list', id });
+		if (id !== nativeInfoId) {
+			return;
+		}
+		nativeInfo = {
+			native: result?.native === true,
+			nativeExecution: result?.nativeExecution === true,
+			nativeSteps: result?.nativeSteps === true,
+			bridges: Array.isArray(result?.bridges) ? result.bridges : []
+		};
+		if (
+			selectJson &&
+			nativeInfo.native &&
+			mode.toUpperCase() !== 'JSON' &&
+			modes.includes('JSON')
+		) {
+			mode = 'JSON';
+		}
+	}
+
+	/**
+	 * Follows the JSON of the native steps of a run, while it runs and once it ends.
+	 * @param {string} key the requestable
+	 * @param {string} token
+	 * @param {() => boolean} running
+	 */
+	async function followNative(key, token, running) {
+		let done = false;
+		while (!done) {
+			done = !running();
+			const run = lastNativeRuns.get(key);
+			if (run?.token !== token) {
+				return;
+			}
+			const result = await call('studio.debug.NativeJson', {
+				action: 'list',
+				token,
+				from: String(run.rows.length)
+			});
+			const current = lastNativeRuns.get(key);
+			if (current?.token !== token) {
+				return;
+			}
+			if (Array.isArray(result?.rows) && result.rows.length) {
+				lastNativeRuns.set(key, { token, rows: [...current.rows, ...result.rows] });
+			}
+			if (!done) {
+				await new Promise((resolve) => setTimeout(resolve, 500));
+			}
+		}
+	}
 
 	$effect(() => {
 		// the stub files to execute from, as the "Execute from stub" menu of Eclipse
@@ -717,6 +808,18 @@ console.log(await response.text());`;
 			fd.set('__context', context);
 			runningContext = context;
 		}
+		let nativeToken = '';
+		let nativeRunning = true;
+		if (nativeTracked && requestableKey) {
+			// the engine keeps the JSON of the native steps of this run for this token
+			nativeToken = crypto.randomUUID();
+			fd.set('__native', nativeToken);
+			lastNativeRuns.set(requestableKey, { token: nativeToken, rows: [] });
+			void followNative(requestableKey, nativeToken, () => nativeRunning);
+			if (nativeInfoId) {
+				void loadNativeInfo(nativeInfoId, false);
+			}
+		}
 		let token = '';
 		if (debug && debuggable) {
 			token = crypto.randomUUID();
@@ -734,11 +837,20 @@ console.log(await response.text());`;
 				if (context && runningContext === context) {
 					runningContext = '';
 				}
+				nativeRunning = false;
 			});
-			updateResponse({
-				content: await data.text(),
-				language: data.headers.get('Content-Type')?.includes('json') ? 'json' : 'xml'
-			});
+			const language = data.headers.get('Content-Type')?.includes('json') ? 'json' : 'xml';
+			let content = await data.text();
+			if (nativeTracked && nativeInfo?.native && language === 'xml') {
+				// the native outputs of a JSON native sequence are only in its JSON answer, said after the declaration
+				const note =
+					'<!-- JSON native sequence: the native JSON outputs are only in its JSON answer (JSON view), not in this XML -->';
+				const declaration = /^\s*<\?xml[^>]*\?>/.exec(content);
+				content = declaration
+					? `${declaration[0]}\n${note}${content.slice(declaration[0].length)}`
+					: `${note}\n${content}`;
+			}
+			updateResponse({ content, language });
 			if (stubbable && autoValidate && xmlResponse && responseView.language === 'xml') {
 				await validateResponse();
 			}
@@ -1052,6 +1164,15 @@ console.log(await response.text());`;
 					/>
 				{/key}
 			</div>
+		{/if}
+		{#if showNative}
+			<StudioNativeJsonPanel
+				token={nativeRun?.token ?? ''}
+				rows={nativeRun?.rows ?? []}
+				info={nativeInfo}
+				pausedStep={debugState?.paused ? (debugState?.step?.name ?? '') : ''}
+				onSelectStep={onDebugStep}
+			/>
 		{/if}
 		{#if rawData && !responseView.loading}
 			<details class="requestable-execution__raw">

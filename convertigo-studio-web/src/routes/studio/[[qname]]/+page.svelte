@@ -385,6 +385,8 @@
 	let treeRefreshSerial = $state(0);
 	let flowRefreshSerial = $state(0);
 	let propertiesRefreshSerial = $state(0);
+	/** the step the execution view selects (paused step, native step): the code view does not replace it */
+	let executionSelectedId = '';
 	let renameTargetId = $state('');
 	let paletteSelectionContext = initialSelectedId;
 	let mutationRefreshSerial = 0;
@@ -612,6 +614,11 @@
 			return;
 		}
 		if (!isStepSelection(id)) {
+			return;
+		}
+		if (id === executionSelectedId) {
+			// a step the execution selects, as the paused step of a debugged sequence, keeps the execution shown
+			executionSelectedId = '';
 			return;
 		}
 		void loadSelectionEditorMeta(id, serial);
@@ -3757,7 +3764,10 @@
 		runTestcase={executionRunTestcase}
 		onRunTestcaseTaken={() => (executionRunTestcase = '')}
 		onChanged={markProjectDirty}
-		onDebugStep={(id) => (selectedId = id)}
+		onDebugStep={(id) => {
+			executionSelectedId = id;
+			selectedId = id;
+		}}
 	/>
 {/snippet}
 

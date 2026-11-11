@@ -137,7 +137,11 @@ public class StepDebugger extends EngineListenerHelper {
 		if (!session.stepByStep || !session.followed()) {
 			return;
 		}
-		session.output = XMLUtils.prettyPrintDOMWithEncoding(session.context.outputDocument);
+		// a JSON native sequence may build no output document: its JSON is in the Native JSON steps of the run
+		var document = session.context.outputDocument;
+		session.output = document == null
+				? "<!-- no XML output document: the JSON of the native steps is in the panel below -->"
+				: XMLUtils.prettyPrintDOMWithEncoding(document);
 		synchronized (session.lock) {
 			session.paused = true;
 			try {
@@ -234,6 +238,10 @@ public class StepDebugger extends EngineListenerHelper {
 		var project = session.context.project;
 		var useType = project != null && project.getJsonOutput() == JsonOutput.useType;
 		var jsonRoot = project != null ? project.getJsonRoot() : JsonRoot.docNode;
-		return XMLUtils.XmlToJson(session.context.outputDocument.getDocumentElement(), true, useType, jsonRoot);
+		var document = session.context.outputDocument;
+		if (document == null || document.getDocumentElement() == null) {
+			return "{}";
+		}
+		return XMLUtils.XmlToJson(document.getDocumentElement(), true, useType, jsonRoot);
 	}
 }
