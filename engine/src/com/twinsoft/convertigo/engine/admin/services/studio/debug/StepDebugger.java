@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -142,16 +143,20 @@ public class StepDebugger extends EngineListenerHelper {
 		session.output = document == null
 				? "<!-- no XML output document: the JSON of the native steps is in the panel below -->"
 				: XMLUtils.prettyPrintDOMWithEncoding(document);
-		synchronized (session.lock) {
-			session.paused = true;
-			try {
-				while (session.paused && session.followed()) {
-					session.lock.wait(1000);
+		// the pause suspends the response timeout of the sequence and of its callers, as the JavaScript debugger does:
+		// outside the Eclipse Studio the timeout applies, and a pause longer than it ended the sequence
+		try (var requestPause = RequestableObject.pauseCurrentRequestable()) {
+			synchronized (session.lock) {
+				session.paused = true;
+				try {
+					while (session.paused && session.followed()) {
+						session.lock.wait(1000);
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				} finally {
+					session.paused = false;
 				}
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			} finally {
-				session.paused = false;
 			}
 		}
 	}
