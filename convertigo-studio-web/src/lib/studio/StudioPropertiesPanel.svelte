@@ -28,6 +28,9 @@
 	import StudioEndpointDialog from './StudioEndpointDialog.svelte';
 	import StudioFontDialog from './StudioFontDialog.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
+	import StudioJsonListDialog from './StudioJsonListDialog.svelte';
+	import StudioJsonPathDialog from './StudioJsonPathDialog.svelte';
+	import StudioJsonPickerDialog from './StudioJsonPickerDialog.svelte';
 	import StudioLifetimeDialog from './StudioLifetimeDialog.svelte';
 	import StudioMergeTrees from './StudioMergeTrees.svelte';
 	import StudioMergeVersions from './StudioMergeVersions.svelte';
@@ -552,6 +555,8 @@
 	let namedSourceRow = $state(/** @type {any} */ (null));
 	/** the response lifetime the lifetime dialog builds */
 	let lifetimeRow = $state(/** @type {any} */ (null));
+	/** a property of a native JSON step edited by its editor of the Eclipse Studio */
+	let jsonEditorRow = $state(/** @type {any} */ (null));
 	/** the project reference the reference dialog edits */
 	let referenceRow = $state(/** @type {any} */ (null));
 	let endpointRow = $state(/** @type {any} */ (null));
@@ -693,6 +698,36 @@
 				title: 'Edit the project reference',
 				onclick: () => (referenceRow = row)
 			});
+		}
+		switch (row?.kind === 'dbo' ? String(row?.editorClass ?? '') : '') {
+			case 'JsonExpressionEditor':
+				buttons.push({
+					icon: 'mdi:code-json',
+					title: 'Pick a value in the JSON of the steps before (JSON picker)',
+					onclick: () => (jsonEditorRow = row)
+				});
+				break;
+			case 'JsonColumnsEditor':
+				buttons.push({
+					icon: 'mdi:table-column',
+					title: 'Edit the list of columns',
+					onclick: () => (jsonEditorRow = row)
+				});
+				break;
+			case 'JsonAggregationsEditor':
+				buttons.push({
+					icon: 'mdi:sigma',
+					title: 'Edit the aggregations',
+					onclick: () => (jsonEditorRow = row)
+				});
+				break;
+			case 'JsonPathEditor':
+				buttons.push({
+					icon: 'mdi:code-json',
+					title: 'Pick the path in the JSON text read',
+					onclick: () => (jsonEditorRow = row)
+				});
+				break;
 		}
 		if (row?.kind === 'dbo' && row?.name === 'responseExpiryDate') {
 			buttons.push({
@@ -1553,6 +1588,42 @@
 				referenceRow = null;
 			}}
 			onClose={() => (referenceRow = null)}
+		/>
+	{/if}
+
+	{#if jsonEditorRow?.editorClass === 'JsonExpressionEditor'}
+		<StudioJsonPickerDialog
+			stepId={selectedId}
+			expression={String(jsonEditorRow.value ?? '')}
+			purpose={jsonEditorRow.displayName ?? jsonEditorRow.name}
+			onApply={(next) => {
+				jsonEditorRow.value = next;
+				jsonEditorRow = null;
+			}}
+			onClose={() => (jsonEditorRow = null)}
+		/>
+	{:else if jsonEditorRow?.editorClass === 'JsonColumnsEditor' || jsonEditorRow?.editorClass === 'JsonAggregationsEditor'}
+		<StudioJsonListDialog
+			stepId={selectedId}
+			label={jsonEditorRow.displayName ?? jsonEditorRow.name}
+			value={String(jsonEditorRow.value ?? '')}
+			kind={jsonEditorRow.editorClass === 'JsonAggregationsEditor' ? 'aggregations' : 'columns'}
+			onApply={(next) => {
+				jsonEditorRow.value = next;
+				jsonEditorRow = null;
+			}}
+			onClose={() => (jsonEditorRow = null)}
+		/>
+	{:else if jsonEditorRow?.editorClass === 'JsonPathEditor'}
+		<StudioJsonPathDialog
+			stepId={selectedId}
+			label={jsonEditorRow.displayName ?? jsonEditorRow.name}
+			value={String(jsonEditorRow.value ?? '')}
+			onApply={(next) => {
+				jsonEditorRow.value = next;
+				jsonEditorRow = null;
+			}}
+			onClose={() => (jsonEditorRow = null)}
 		/>
 	{/if}
 

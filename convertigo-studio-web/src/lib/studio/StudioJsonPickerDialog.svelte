@@ -8,6 +8,7 @@
 		toJavaScript,
 		toJsonPath
 	} from './nativeJson.js';
+	import { portal } from './portal.js';
 	import StudioJsonTree from './StudioJsonTree.svelte';
 
 	/**
@@ -160,7 +161,7 @@
 	}
 </script>
 
-<div class="studio-json-picker" role="presentation" onclick={() => onClose?.()}>
+<div class="studio-json-picker" role="presentation" use:portal onclick={() => onClose?.()}>
 	<div
 		class="studio-json-picker__box"
 		role="dialog"

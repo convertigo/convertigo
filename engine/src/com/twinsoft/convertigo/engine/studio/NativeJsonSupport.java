@@ -321,6 +321,57 @@ public final class NativeJsonSupport {
 	}
 
 	/**
+	 * the column names known for the rows of a step, as the list editors of the Eclipse Studio propose them, in the last
+	 * samples of the steps its rows and its schema read: the keys of the rows, the names of the fields of a schema
+	 */
+	public static List<String> getColumnNames(Step step) {
+		var names = new java.util.LinkedHashSet<String>();
+		var rows = new ArrayList<String>();
+		var schemas = new ArrayList<String>();
+		if (step instanceof JsonTransformStep transform) {
+			rows.add(transform.getRows());
+		}
+		if (step instanceof JsonStreamRowsStep stream) {
+			rows.add(stream.getRows());
+			schemas.add(stream.getSchema());
+		}
+		try {
+			schemas.add((String) step.getClass().getMethod("getSchema").invoke(step));
+		} catch (Exception e) {
+			// no schema
+		}
+		for (var previous : getPreviousJsonSteps(step)) {
+			var variable = getVariableName(previous);
+			var schema = schemas.contains(variable);
+			if (!schema && !rows.contains(variable)) {
+				continue;
+			}
+			var sample = getSample(previous);
+			if (sample == null || sample.getJson().isEmpty()) {
+				continue;
+			}
+			try {
+				var node = new com.fasterxml.jackson.databind.ObjectMapper().readTree(sample.getJson());
+				if (node.isArray()) {
+					for (int i = 0; i < Math.min(node.size(), 20); i++) {
+						var item = node.get(i);
+						if (schema && item.isObject() && item.has("name") && item.get("name").isTextual() && item.size() > 1
+								&& !item.has("id")) {
+							// a field of a schema
+							names.add(item.get("name").asText());
+						} else if (item.isObject()) {
+							item.fieldNames().forEachRemaining(names::add);
+						}
+					}
+				}
+			} catch (Exception e) {
+				// not JSON
+			}
+		}
+		return new ArrayList<>(names);
+	}
+
+	/**
 	 * the mark of the tree of the Eclipse Studio, without its brackets: a JSON native sequence with its XML bridges
 	 * ("JSON native output, XML bridge: 2 steps"), an XML step that reads the XML view of native steps ("XML view of
 	 * A, B"), a step that reads the JSON of steps ("JSON of C"); empty for another object

@@ -54,6 +54,8 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	public static final String HIDDEN_PROPERTY = "hiddenProperty";
 	/** a property of the new experimental features (ExperimentalFeatures): Boolean.TRUE */
 	public static final String EXPERIMENTAL = "experimental";
+	/** the name of the editor of the Eclipse Studio (setStudioEditor), kept for the web Studio when its class is absent */
+	public static final String STUDIO_EDITOR = "studioEditor";
 	
 	protected Class<? extends DatabaseObject> beanClass = null;
 	protected Class<? extends DatabaseObject> additionalBeanClass = null;
@@ -360,6 +362,7 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     protected void setStudioEditor(PropertyDescriptor property, String editor, String category) {
     	if (editor != null) {
     		property.setPropertyEditorClass(getEditorClass(editor));
+    		property.setValue(STUDIO_EDITOR, editor);
     	}
     	if (category != null) {
     		property.setValue(CATEGORY, category);

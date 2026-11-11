@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.engine.studio.NativeJsonSupport;
  * <li>action=json, token, index: the JSON of one execution</li>
  * <li>action=sample, id (a step): the JSON the step produced at its last execution in the web Studio</li>
  * <li>action=steps, id (a step), includeStep: the steps before it that give JSON, with their last samples</li>
+ * <li>action=columns, id (a step): the column names of its rows and of its schema in the last samples</li>
  * </ul>
  */
 @ServiceDefinition(name = "NativeJson", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
@@ -64,6 +65,7 @@ public class NativeJson extends JSonService {
 			case "json" -> json(request, response);
 			case "sample" -> sample(request, response);
 			case "steps" -> steps(request, response);
+			case "columns" -> columns(request, response);
 			default -> throw new ServiceException("unknown action " + action);
 		}
 	}
@@ -172,6 +174,10 @@ public class NativeJson extends JSonService {
 			steps.put(json);
 		}
 		response.put("steps", steps);
+	}
+
+	private static void columns(HttpServletRequest request, JSONObject response) throws Exception {
+		response.put("columns", new JSONArray(NativeJsonSupport.getColumnNames(step(request.getParameter("id")))));
 	}
 
 	private static void putOutput(JSONObject response, NativeStepOutput output, boolean kept) throws Exception {

@@ -747,6 +747,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				String message = "";
 				if (pec != null) {
 					message = propertyDescriptor.getPropertyEditorClass().toString().replaceFirst("(.)*\\.", "");
+				} else if (propertyDescriptor.getValue(MySimpleBeanInfo.STUDIO_EDITOR) instanceof String editor) {
+					// the editor of the Eclipse Studio, named for the web Studio of an engine without it
+					message = editor;
 				} else {
 					message = "null";
 				}

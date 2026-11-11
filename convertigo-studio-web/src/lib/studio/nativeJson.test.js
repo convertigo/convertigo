@@ -72,3 +72,39 @@ describe('nativeJson', () => {
 		expect(rowItems({ count: -1, note: 'stream', size: 0 })).toBe('stream');
 	});
 });
+
+describe('nativeJson lists and paths', () => {
+	it('reads and writes the columns and the aggregations as the Eclipse list editors', async () => {
+		const { parseJsonList, jsonListValue } = await import('./nativeJson.js');
+		expect(parseJsonList('["name", "city"]', 'columns')).toEqual({
+			mode: 'list',
+			rows: [{ column: 'name' }, { column: 'city' }]
+		});
+		expect(parseJsonList('', 'columns')).toEqual({ mode: 'list', rows: [] });
+		expect(parseJsonList('null', 'columns').mode).toBe('null');
+		expect(parseJsonList('rows.map(r => r.k)', 'columns').mode).toBe('expression');
+		expect(parseJsonList('[{type: "sum"}]', 'aggregations').mode).toBe('expression');
+		expect(parseJsonList('[{"type": "sum", "other": 1}]', 'aggregations').mode).toBe('expression');
+		expect(parseJsonList('[{"type": "sum", "column": "amount"}]', 'aggregations')).toEqual({
+			mode: 'list',
+			rows: [{ type: 'sum', column: 'amount' }]
+		});
+		expect(jsonListValue([{ column: 'a' }, { column: '' }, { column: 'b "c"' }], 'columns')).toBe(
+			'["a", "b \\"c\\""]'
+		);
+		expect(
+			jsonListValue([{ type: 'sum', column: 'x', key: '', label: 'Total' }], 'aggregations')
+		).toBe('[{"type": "sum", "column": "x", "label": "Total"}]');
+	});
+
+	it('previews what a JSON path reads', async () => {
+		const { jsonPathPreview } = await import('./nativeJson.js');
+		const value = { results: [{ id: 1 }, { id: 2 }] };
+		expect(jsonPathPreview(value, '$.results')).toBe('Value: array of 2');
+		expect(jsonPathPreview(value, '$.results[0]')).toBe('Value: object of 1');
+		expect(jsonPathPreview(value, '$.results[1].id')).toBe('Value: 2');
+		expect(jsonPathPreview(value, '$.results[*].id')).toBe('Value: array of 2');
+		expect(jsonPathPreview(value, '$.missing')).toBe('Value: nothing (the default value)');
+		expect(jsonPathPreview(value, 'results')).toBe('Invalid JSON path: results');
+	});
+});

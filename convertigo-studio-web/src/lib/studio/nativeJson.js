@@ -281,3 +281,149 @@ export function parseSample(json) {
 		return { ok: false, text: String(json ?? '') };
 	}
 }
+
+/** the functions of an aggregation of Group and aggregate */
+export const AGGREGATION_TYPES = ['count', 'sum', 'avg', 'min', 'max'];
+
+/**
+ * The fields of a row of a JSON list editor: a column name, or the type, column, key and label of an
+ * aggregation.
+ * @param {'columns' | 'aggregations'} kind
+ */
+export function jsonListFields(kind) {
+	return kind === 'aggregations'
+		? [
+				{ key: 'type', label: 'Type', choices: AGGREGATION_TYPES },
+				{ key: 'column', label: 'Column' },
+				{ key: 'key', label: 'Key' },
+				{ key: 'label', label: 'Label' }
+			]
+		: [{ key: 'column', label: 'Column' }];
+}
+
+/**
+ * Reads a value of a JSON list property: a JSON array of names (or of flat objects of known keys), null, or
+ * any other JavaScript expression.
+ * @param {string} value
+ * @param {'columns' | 'aggregations'} kind
+ * @returns {{ mode: 'list' | 'null' | 'expression', rows: Record<string, string>[] }}
+ */
+export function parseJsonList(value, kind) {
+	const fields = jsonListFields(kind);
+	const text = String(value ?? '').trim();
+	if (text === 'null') {
+		return { mode: 'null', rows: [] };
+	}
+	let parsed;
+	try {
+		parsed = text ? JSON.parse(text) : [];
+	} catch {
+		return { mode: 'expression', rows: [] };
+	}
+	if (!Array.isArray(parsed)) {
+		return { mode: 'expression', rows: [] };
+	}
+	/** @type {Record<string, string>[]} */
+	const rows = [];
+	for (const item of parsed) {
+		if (fields.length === 1 && typeof item === 'string') {
+			rows.push({ [fields[0].key]: item });
+		} else if (fields.length > 1 && item && typeof item === 'object' && !Array.isArray(item)) {
+			/** @type {Record<string, string>} */
+			const row = {};
+			for (const [key, cell] of Object.entries(item)) {
+				if (
+					(cell !== null && typeof cell === 'object') ||
+					!fields.some((field) => field.key === key)
+				) {
+					return { mode: 'expression', rows: [] };
+				}
+				row[key] = String(cell);
+			}
+			rows.push(row);
+		} else {
+			return { mode: 'expression', rows: [] };
+		}
+	}
+	return { mode: 'list', rows };
+}
+
+/**
+ * Writes the rows of a JSON list editor: ["a", "b"], [{"type": "sum", "column": "x"}], the empty rows and
+ * cells left out.
+ * @param {Record<string, string>[]} rows
+ * @param {'columns' | 'aggregations'} kind
+ */
+export function jsonListValue(rows, kind) {
+	const fields = jsonListFields(kind);
+	const items = [];
+	for (const row of rows) {
+		if (fields.every((field) => !row[field.key])) {
+			continue;
+		}
+		if (fields.length === 1) {
+			items.push(JSON.stringify(row[fields[0].key] ?? ''));
+		} else {
+			const cells = fields
+				.filter((field) => row[field.key])
+				.map((field) => `${JSON.stringify(field.key)}: ${JSON.stringify(row[field.key])}`);
+			items.push(`{${cells.join(', ')}}`);
+		}
+	}
+	return `[${items.join(', ')}]`;
+}
+
+/**
+ * The values a JSON path selects in a JSON value: one for a path without wildcard, all the matches else.
+ * @param {any} value
+ * @param {JsonSegment[]} path
+ * @returns {{ wildcard: boolean, matches: any[] }}
+ */
+export function selectJsonPath(value, path) {
+	let current = [value];
+	let wildcard = false;
+	for (const segment of path) {
+		/** @type {any[]} */
+		const next = [];
+		for (const node of current) {
+			if (node === null || typeof node !== 'object') {
+				continue;
+			}
+			if (segment === null) {
+				wildcard = true;
+				next.push(...(Array.isArray(node) ? node : Object.values(node)));
+			} else if (Array.isArray(node) ? typeof segment === 'number' : typeof segment === 'string') {
+				if (segment in node) {
+					next.push(node[segment]);
+				}
+			}
+		}
+		current = next;
+	}
+	return { wildcard, matches: current };
+}
+
+/**
+ * What a JSON path reads in a JSON value, as the JSON path editor of the Eclipse Studio says it.
+ * @param {any} value
+ * @param {string} jsonPath
+ */
+export function jsonPathPreview(value, jsonPath) {
+	const path = parseJsonPath(jsonPath);
+	if (!path) {
+		return `Invalid JSON path: ${jsonPath}`;
+	}
+	const { wildcard, matches } = selectJsonPath(value, path);
+	const selected = wildcard ? matches : matches[0];
+	if (!wildcard && matches.length === 0) {
+		return 'Value: nothing (the default value)';
+	}
+	if (Array.isArray(selected)) {
+		return `Value: array of ${selected.length}`;
+	}
+	if (selected !== null && typeof selected === 'object') {
+		return `Value: object of ${Object.keys(selected).length}`;
+	}
+	const text = JSON.stringify(selected);
+	return `Value: ${text.length > MAX_TEXT ? `${text.slice(0, MAX_TEXT)}…` : text}`;
+}
