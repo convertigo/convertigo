@@ -7,6 +7,7 @@
 	import Ico from '#lib/utils/Ico.svelte';
 	import { getUrl, serverRetryDelay } from '#lib/utils/service.js';
 	import { onDestroy, tick } from 'svelte';
+	import { experimentalFeatures } from './experimentalFeatures.svelte.js';
 	import { loadPaletteContext, paletteContextLabel, paletteIconPath } from './paletteContext';
 	import {
 		paletteMemory,
@@ -80,6 +81,7 @@
 	);
 	let paletteRequestId = $state('');
 	let paletteLoadSerial = 0;
+	let paletteExperimentalSerial = 0;
 	/** @type {AbortController | null} */
 	let paletteRequestController = null;
 	let openedCategories = $state(/** @type {string[]} */ ([]));
@@ -135,15 +137,18 @@
 
 	$effect(() => {
 		const nextId = active ? revealRequest?.contextId || selectedId : '';
+		// the palette offers the experimental steps or not, as the preference changes
+		const experimentalSerial = experimentalFeatures.serial;
 		if (!active) {
 			cancelPaletteRequest();
 			paletteRequestId = '';
 			paletteLoading = false;
 			return;
 		}
-		if (nextId === paletteRequestId) {
+		if (nextId === paletteRequestId && experimentalSerial === paletteExperimentalSerial) {
 			return;
 		}
+		paletteExperimentalSerial = experimentalSerial;
 		cancelPaletteRequest();
 		paletteRequestId = nextId;
 		const serial = ++paletteLoadSerial;

@@ -22,6 +22,10 @@
 		shouldStartInlineRename
 	} from '#lib/studio/dnd.js';
 	import StudioDock from '#lib/studio/dock/StudioDock.svelte';
+	import {
+		experimentalFeatures,
+		syncExperimentalFeatures
+	} from '#lib/studio/experimentalFeatures.svelte.js';
 	import { flowImplementationRoot } from '#lib/studio/flow/flowRoot.js';
 	import FlowViewer from '#lib/studio/flow/FlowViewer.svelte';
 	import {
@@ -637,6 +641,8 @@
 
 	onMount(() => {
 		restoreStudioLayoutPreferences();
+		// the experimental features of the preference, for the calls of this session
+		void syncExperimentalFeatures();
 		studioReady = true;
 		urlSyncReady = true;
 		clearStudioRouteHash();
@@ -649,6 +655,15 @@
 			clearTimeout(projectChangeRefreshTimer);
 			localMutationEvents.clear();
 		};
+	});
+
+	$effect(() => {
+		// the properties show the experimental ones or not, as the preference changes
+		if (experimentalFeatures.serial > 0) {
+			untrack(() => {
+				propertiesRefreshSerial += 1;
+			});
+		}
 	});
 
 	$effect(() => {

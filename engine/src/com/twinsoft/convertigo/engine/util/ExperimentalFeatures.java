@@ -31,7 +31,9 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
  * The switch of the new experimental features (JSON native sequences and their native steps), for everything that
  * lists the objects and their properties: the reference documentation, the palettes and property sheets of the Studios,
  * the catalog of the Convertigo MCP library. Off by default, so a server never shows them; the Eclipse Studio turns it
- * on with its preference "Show new experimental features" (the system property {@value #SYSTEM_PROPERTY}).
+ * on with its preference "Show new experimental features" (the system property {@value #SYSTEM_PROPERTY}); the web
+ * Studio turns it on for the session of its user (the session attribute {@value #SESSION_ATTRIBUTE}), during each of
+ * the calls of this session to the services of the Studio ({@link #setShownForCall(boolean)}).
  * <p>
  * The marker: a bean of database_objects.xml with experimental="true" ({@link DboBean#isExperimental()}), a property
  * descriptor with the value {@link MySimpleBeanInfo#EXPERIMENTAL} true.
@@ -42,13 +44,36 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
  */
 public final class ExperimentalFeatures {
 	public static final String SYSTEM_PROPERTY = "convertigo.experimental.features";
+	public static final String SESSION_ATTRIBUTE = "convertigo.studio.experimental.features";
+
+	/** the preference of the web Studio user whose call runs in this thread */
+	private static final ThreadLocal<Boolean> shownForCall = new ThreadLocal<>();
 
 	private ExperimentalFeatures() {
 	}
 
-	/** the experimental features are shown (false by default) */
+	/** the experimental features are shown (false by default), for the whole engine or for the call of the web Studio */
 	public static boolean isShown() {
+		return Boolean.TRUE.equals(shownForCall.get()) || Boolean.parseBoolean(System.getProperty(SYSTEM_PROPERTY));
+	}
+
+	/** the experimental features are shown for the whole engine (the preference of the Eclipse Studio) */
+	public static boolean isShownByEngine() {
 		return Boolean.parseBoolean(System.getProperty(SYSTEM_PROPERTY));
+	}
+
+	/** the web Studio user of the session shows the experimental features */
+	public static boolean isShownInSession(Object sessionAttribute) {
+		return Boolean.TRUE.equals(sessionAttribute);
+	}
+
+	/** shows the experimental features during the call of a service of the web Studio, false at its end */
+	public static void setShownForCall(boolean shown) {
+		if (shown) {
+			shownForCall.set(Boolean.TRUE);
+		} else {
+			shownForCall.remove();
+		}
 	}
 
 	/** shows or hides the experimental features (the preference of the Eclipse Studio) */

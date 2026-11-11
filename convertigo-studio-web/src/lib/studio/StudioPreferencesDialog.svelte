@@ -1,4 +1,5 @@
 <script>
+	import { setExperimentalFeatures } from './experimentalFeatures.svelte.js';
 	import {
 		DEFAULT_MARKETPLACE_URL,
 		saveStudioPreferences,
@@ -16,6 +17,7 @@
 	let readmeOnSave = $state(studioPreferences.readmeOnSave);
 	let marketplaceUrl = $state(studioPreferences.marketplaceUrl);
 	let projectReferences = $state(studioPreferences.projectReferences);
+	let experimentalFeatures = $state(studioPreferences.experimentalFeatures === true);
 
 	function submit(/** @type {SubmitEvent} */ event) {
 		event.preventDefault();
@@ -25,6 +27,9 @@
 			marketplaceUrl: marketplaceUrl.trim() || DEFAULT_MARKETPLACE_URL,
 			projectReferences
 		});
+		if (experimentalFeatures !== (studioPreferences.experimentalFeatures === true)) {
+			void setExperimentalFeatures(experimentalFeatures);
+		}
 		onClose?.();
 	}
 </script>
@@ -61,6 +66,16 @@
 					<span>
 						Update the readme.md file on save
 						<small>The project.md file is always written again.</small>
+					</span>
+				</label>
+				<label class="studio-dialog__check">
+					<input type="checkbox" bind:checked={experimentalFeatures} />
+					<span>
+						Show new experimental features
+						<small
+							>Native JSON sequences, native JSON steps and JSON path sources, in the palette, the
+							properties and the pickers.</small
+						>
 					</span>
 				</label>
 				<label class="studio-dialog__field">

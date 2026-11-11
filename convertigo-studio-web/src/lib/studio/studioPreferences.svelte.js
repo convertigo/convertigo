@@ -15,7 +15,9 @@ const defaults = {
 	/** the site of the Convertigo Marketplace */
 	marketplaceUrl: DEFAULT_MARKETPLACE_URL,
 	/** @type {'ask' | 'always' | 'never'} the references of the used projects a save adds */
-	projectReferences: 'ask'
+	projectReferences: 'ask',
+	/** the new experimental features: native JSON sequences, native JSON steps, JSON path sources */
+	experimentalFeatures: false
 };
 
 /**

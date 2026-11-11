@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.flow.FlowAuthoringWarmup;
+import com.twinsoft.convertigo.engine.util.ExperimentalFeatures;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 /**
@@ -163,12 +164,17 @@ public class AdminServlet extends HttpServlet {
 				var studioCall = serviceName.startsWith("studio.");
 				if (studioCall) {
 					FlowAuthoringWarmup.studioCall(true);
+					// the experimental features the web Studio user shows (palette, properties, menus)
+					var session = request.getSession(false);
+					ExperimentalFeatures.setShownForCall(session != null
+							&& ExperimentalFeatures.isShownInSession(session.getAttribute(ExperimentalFeatures.SESSION_ATTRIBUTE)));
 				}
 				try {
 					service.run(serviceName, request, response);
 				} finally {
 					if (studioCall) {
 						FlowAuthoringWarmup.studioCall(false);
+						ExperimentalFeatures.setShownForCall(false);
 					}
 				}
 			}
