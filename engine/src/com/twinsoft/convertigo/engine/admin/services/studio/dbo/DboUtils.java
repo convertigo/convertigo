@@ -261,6 +261,35 @@ public class DboUtils {
 		return dbo;
 	}
 
+	/**
+	 * whether a drop of the tree updates its target instead of adding an object to it, as the Eclipse Studio does: a
+	 * sequence dropped on an NGX form fills it, a requestable dropped on an operation of a URL mapper becomes its target
+	 */
+	static boolean updatesFromTree(JSONObject jsonData, DatabaseObject parentDbo) throws Exception {
+		if (!"treeData".equals(jsonData.optString("type")) || parentDbo == null) {
+			return false;
+		}
+		var dbo = findDbo(jsonData.getJSONObject("data").getString("id"));
+		return dbo != null && DboFactory.updatesInPlace(parentDbo, dbo);
+	}
+
+	/**
+	 * the objects a drop of the tree changed by updating its target (updatesFromTree): the objects added to it, or the
+	 * target itself
+	 */
+	static List<DatabaseObject> updateFromTree(JSONObject jsonData, DatabaseObject parentDbo) throws Exception {
+		var dbo = findDbo(jsonData.getJSONObject("data").getString("id"));
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.Sequence sequence
+				&& parentDbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIForm uiForm) {
+			return DboFactory.fillNgxUIForm(uiForm, sequence);
+		}
+		if (DboFactory.createDbo(parentDbo, dbo) != null) {
+			parentDbo.hasChanged = true;
+			return List.of(parentDbo);
+		}
+		return List.of();
+	}
+
 	static private DatabaseObject createDboFromTree(JSONObject jsonData, DatabaseObject parentDbo) throws Exception {
 		JSONObject jsonItem = jsonData.getJSONObject("data");
 		var dboId = jsonItem.getString("id");

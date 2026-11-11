@@ -76,6 +76,11 @@ public class Accept extends JSonService {
 		if (type.equals("paletteData")) {
 			dbo = DboUtils.createDbo(jsonData, targetDbo);
 		} else if (type.equals("treeData")) {
+			if (!action.equals("move") && position.equals("inside") && DboUtils.updatesFromTree(jsonData, targetDbo)) {
+				// a drop that updates its target, checked without updating it (as a sequence dropped on an NGX form)
+				response.put("accept", true);
+				return;
+			}
 			if (action.equals("move")) {
 				JSONObject jsonItem = jsonData.getJSONObject("data");
 				dbo = DboUtils.findDbo(jsonItem.getString("id"));

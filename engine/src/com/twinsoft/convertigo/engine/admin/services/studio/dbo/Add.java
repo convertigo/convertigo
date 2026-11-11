@@ -75,6 +75,25 @@ public class Add extends JSonService {
 				after = getAfter(targetDbo, position);
 			}
 			if (parentDbo != null) {
+				if (position.equals("inside") && DboUtils.updatesFromTree(jsonData, parentDbo)) {
+					// a drop that updates its target, as a sequence dropped on an NGX form fills it
+					var changed = DboUtils.updateFromTree(jsonData, parentDbo);
+					if (!changed.isEmpty()) {
+						done = true;
+						response.put("id", changed.get(0).getFullQName());
+						response.put("parentId", changed.get(0) == parentDbo && parentDbo.getParent() != null
+								? parentDbo.getParent().getFullQName() : parentDbo.getFullQName());
+						for (var child : changed) {
+							if (child == parentDbo) {
+								BuilderUtils.dboUpdated(child);
+							} else {
+								BuilderUtils.dboAdded(child);
+							}
+						}
+					}
+					response.put("done", done);
+					return;
+				}
 				DatabaseObject dbo = DboUtils.createDbo(jsonData, parentDbo);
 				if (dbo != null && !dbo.equals(parentDbo)) {
 					if (parentDbo instanceof IContainerOrdered) {

@@ -234,9 +234,95 @@ public class DboFactory {
 		return null;
 	}
 
+	/** a drop that updates its target instead of adding an object to it (see DboUtils.updateFromTree) */
+	static boolean updatesInPlace(DatabaseObject targetDbo, DatabaseObject dbo) {
+		return (targetDbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIForm && dbo instanceof Sequence)
+				|| (targetDbo instanceof UrlMappingOperation && dbo instanceof RequestableObject);
+	}
+
+	/**
+	 * a sequence dropped on a form fills the form itself (fillNgxUIForm, when the drop is done): the form is given back
+	 * as is, so that an acceptance check changes nothing
+	 */
 	static private DatabaseObject updateNgxUIForm(com.twinsoft.convertigo.beans.ngx.components.UIForm uiForm, Sequence sequence) throws Exception {
-		// TODO
 		return uiForm;
+	}
+
+	/**
+	 * Fills a form with the inputs of a sequence, as a drop of a sequence on a form in the Eclipse Studio: an onSubmit
+	 * event calling the sequence, a list with an input for each of its variables, and a submit and a reset button.
+	 *
+	 * @return the objects added to the form
+	 */
+	static List<DatabaseObject> fillNgxUIForm(com.twinsoft.convertigo.beans.ngx.components.UIForm uiForm, Sequence sequence) throws Exception {
+		var cm = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.of(uiForm);
+
+		// an onSubmit event with a call of the sequence
+		var event = new com.twinsoft.convertigo.beans.ngx.components.UIControlEvent();
+		event.setEventName(com.twinsoft.convertigo.beans.ngx.components.UIControlEvent.AttrEvent.onSubmit.name());
+		event.bNew = true;
+		event.hasChanged = true;
+
+		DatabaseObject call = cm.createBean(cm.getComponentByName("CallSequenceAction"));
+		if (call instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction dynAction) {
+			var ionBean = dynAction.getIonBean();
+			if (ionBean != null && ionBean.hasProperty("requestable")) {
+				ionBean.setPropertyValue("requestable", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(
+						sequence.getProject().getName() + "." + sequence.getName()));
+			}
+		}
+		call.bNew = true;
+		call.hasChanged = true;
+		event.add(call);
+
+		// a list of items with an input labelled by each variable
+		DatabaseObject dboList = cm.createBean(cm.getComponentByName("List"));
+		for (RequestableVariable variable : sequence.getVariables()) {
+			DatabaseObject dboItem = cm.createBean(cm.getComponentByName("ListItem"));
+			dboList.add(dboItem);
+
+			DatabaseObject dboInput = cm.createBean(cm.getComponentByName("Input"));
+			if (dboInput instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement dynElem) {
+				var ionBean = dynElem.getIonBean();
+				if (ionBean != null && ionBean.hasProperty("ControlName")) {
+					ionBean.setPropertyValue("ControlName", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()));
+				}
+				if (ionBean != null) {
+					if (ionBean.hasProperty("Label")) {
+						// since TPL 8.3.0.0
+						ionBean.setPropertyValue("Label", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()));
+					} else {
+						// legacy templates: a label beside the input
+						DatabaseObject dboLabel = cm.createBean(cm.getComponentByName("Label"));
+						dboItem.add(dboLabel);
+						dboLabel.add(text(variable.getName() + ":"));
+					}
+				}
+				dboItem.add(dboInput);
+			}
+		}
+
+		// a button set with a submit and a reset button
+		DatabaseObject dboBtnSet = cm.createBean(cm.getComponentByName("ButtonSet"));
+		DatabaseObject dboSubmit = cm.createBean(cm.getComponentByName("SubmitButton"));
+		dboBtnSet.add(dboSubmit);
+		dboSubmit.add(text("Submit"));
+		DatabaseObject dboReset = cm.createBean(cm.getComponentByName("ResetButton"));
+		dboBtnSet.add(dboReset);
+		dboReset.add(text("Reset"));
+
+		uiForm.add(event);
+		uiForm.add(dboList);
+		uiForm.add(dboBtnSet);
+		return List.of(event, dboList, dboBtnSet);
+	}
+
+	private static com.twinsoft.convertigo.beans.ngx.components.UIText text(String value) {
+		var uiText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
+		uiText.bNew = true;
+		uiText.hasChanged = true;
+		uiText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(value));
+		return uiText;
 	}
 	
 	static private DatabaseObject createNgxUseShared(com.twinsoft.convertigo.beans.ngx.components.UISharedComponent sharedComp) throws Exception {
