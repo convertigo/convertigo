@@ -1473,6 +1473,7 @@ test('dashboard recovers a missing Monaco chunk without replaying Execute', asyn
 			body: '<html>Old chunk removed by deployment</html>'
 		})
 	);
+	await servePlaceholderPages(page);
 	await page.goto(`/dashboard/${projectName}/backend/?view=json#response`);
 	await ensureButtonExpanded(page, sequenceName);
 	await ensureButtonExpanded(page, /Variables \(1\)/);
@@ -1770,9 +1771,9 @@ test('studio frontend profile documents Flow properties from their authoring con
 	await page.getByRole('radio', { name: 'Frontend' }).click();
 	await page.getByRole('tab', { name: 'Doc', exact: true }).click();
 
-	// the Doc view, laid out by the dock among the other views of the Studio
+	// the Doc view, laid out by the dock among the other views of the Studio, names the object by its name
 	await expect(
-		page.locator('[data-dock-view="doc"]').getByRole('heading', { name: 'Svelte builder' })
+		page.locator('[data-dock-view="doc"]').getByRole('heading', { name: 'Svelte frontend' })
 	).toBeVisible();
 	await expect(page.getByText('Visible text rendered by the component.')).toBeVisible();
 });
@@ -3191,6 +3192,26 @@ async function ensureTreeNodeExpanded(page, nodeId) {
  * @param {import('@playwright/test').Page} page
  * @param {string | RegExp} name
  */
+/**
+ * Serves a page of a project, as /dashboard/<project>/backend/, by its prerendered page /dashboard/_/backend/, as the
+ * FallbackFilter of the engine does: the preview server of the tests only has the prerendered pages, so a reload of
+ * such a page is not a 404.
+ * @param {import('@playwright/test').Page} page
+ */
+async function servePlaceholderPages(page) {
+	await page.route(
+		/\/dashboard\/(?!_\/)[^/?#]+\/(backend|frontend|platforms)\/(\?[^#]*)?$/,
+		(route) => {
+			if (route.request().resourceType() !== 'document') {
+				return route.continue();
+			}
+			const url = new URL(route.request().url());
+			url.pathname = url.pathname.replace(/\/dashboard\/[^/]+\//, '/dashboard/_/');
+			return route.continue({ url: url.toString() });
+		}
+	);
+}
+
 async function openDashboardBackend(page) {
 	await page.goto('/dashboard/');
 	await page.getByRole('link', { name: `Open ${projectName} backend`, exact: true }).click();
