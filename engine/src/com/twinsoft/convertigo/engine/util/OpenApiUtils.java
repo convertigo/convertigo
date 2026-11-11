@@ -138,6 +138,15 @@ public class OpenApiUtils {
 
 	public static String servletMappingPath = "openapi";
 	public static String jsonSchemaDirectory = "oas3";
+
+	/**
+	 * the definitions and models generated in the project (oas2, oas3) are written again at each request in a Studio,
+	 * whose projects change: the Eclipse Studio, or an engine that allows the web Studio (web_studio); a server only
+	 * writes the missing ones, the export of a project removing them
+	 */
+	static boolean regeneratesDefinitions() {
+		return Engine.isStudioMode() || Engine.isWebStudioAllowed();
+	}
 	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?" + servletMappingPath + ")");
 
 	private static List<String> getProduces(AbstractRestOperation aro) {
@@ -316,7 +325,7 @@ public class OpenApiUtils {
 		// Generated models from XmlSchema
 		File targetDir = new File(Engine.projectDir(projectName) + "/" + jsonSchemaDirectory);
 		File yamlFile = new File(targetDir, projectName + ".yaml");
-		boolean doIt = Engine.isStudioMode() || !yamlFile.exists();
+		boolean doIt = regeneratesDefinitions() || !yamlFile.exists();
 
 		if (doIt) {
 			try {
@@ -544,7 +553,7 @@ public class OpenApiUtils {
 		File yamlFile = new File(targetDir, projectName + ".yaml");
 
 		// generate yaml file if needed
-		if (Engine.isStudioMode() || !yamlFile.exists()) {
+		if (regeneratesDefinitions() || !yamlFile.exists()) {
 			try {
 				writeOpenApiToFile(requestUrl, urlMapper, yamlFile, useExternalRef);
 			} catch (Exception e) {
@@ -572,7 +581,7 @@ public class OpenApiUtils {
 			boolean useExternalRef) throws Exception {
 		synchronized (lockObject) {
 
-			if (yamlFile.exists() && Engine.isEngineMode())
+			if (yamlFile.exists() && !regeneratesDefinitions())
 				return;
 
 			Long t0 = System.currentTimeMillis();

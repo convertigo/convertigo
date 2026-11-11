@@ -252,7 +252,7 @@ public class SwaggerUtils {
 
 		// Generated models from XSD
 		File targetDir = new File(Engine.projectDir(projectName) + "/" + jsonSchemaDirectory);
-		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
+		boolean doIt = OpenApiUtils.regeneratesDefinitions() || !targetDir.exists();
 		if (doIt) {
 			try {
 				File xsdFile = new File(targetDir, "xsd.jsonschema");
