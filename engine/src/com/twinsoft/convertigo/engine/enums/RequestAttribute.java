@@ -26,7 +26,9 @@ public enum RequestAttribute {
 	corsOrigin,
 	responseHeader,
 	responseStatus,
-	system;
+	system,
+	/** the token of an execution of the web Studio that follows its native JSON steps, empty when none */
+	studioNativeJson;
 	
 	private RequestAttribute() {
 		value = "convertigo." + name();

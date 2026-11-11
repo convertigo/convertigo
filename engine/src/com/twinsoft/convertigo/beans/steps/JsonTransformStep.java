@@ -131,7 +131,7 @@ public abstract class JsonTransformStep extends Step implements ITagsProperty {
 			result = transform(javascriptContext, scope);
 			xmlView = null;
 			scope.put(variableName, scope, result);
-			if (Engine.isStudioMode()) {
+			if (NativeStepOutput.isFollowed(this)) {
 				NativeStepOutput.fire(this, sequence.loadedSteps.get(priority), executeTimeID, variableName, result,
 						(System.nanoTime() - start) / 1000, sequence.context != null ? sequence.context.contextID : null, null, getStudioInput());
 			}

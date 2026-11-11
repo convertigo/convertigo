@@ -25,6 +25,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.json.NativeStepOutput;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.json.JsonData;
 import com.twinsoft.convertigo.engine.json.JsonPath;
@@ -66,7 +67,7 @@ public class JsonReadStep extends JsonTransformStep {
 		Object value = JsonPath.MISSING;
 		studioInput = null;
 		if (source instanceof CharSequence) {
-			if (Engine.isStudioMode()) {
+			if (NativeStepOutput.isFollowed(this)) {
 				studioInput = source.toString();
 			}
 			try {

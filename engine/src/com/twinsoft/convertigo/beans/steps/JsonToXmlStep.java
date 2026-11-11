@@ -265,7 +265,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 			// the XML output lacks this JSON: it must not be cached
 			context.isCacheEnabled = false;
 		}
-		if (Engine.isStudioMode()) {
+		if (NativeStepOutput.isFollowed(this)) {
 			boolean stream = nativeOutput instanceof JsonStreamOutput;
 			NativeStepOutput.fire(this, sequence.loadedSteps.get(priority), executeTimeID, nativeOutput.getKey(),
 					stream ? null : nativeOutput.toJSONString(), 0, context.contextID, stream ? "stream" : "output");

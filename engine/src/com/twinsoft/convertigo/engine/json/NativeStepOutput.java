@@ -25,6 +25,7 @@ import java.util.Map;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
+import com.twinsoft.convertigo.engine.studio.NativeJsonSupport;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 /**
@@ -60,7 +61,12 @@ public class NativeStepOutput {
 		this.input = input;
 	}
 
-	/** sends what the step produced to the Studio, original being its loaded copy; nothing out of the Studio */
+	/** the Eclipse Studio, or the execution of the web Studio the step runs in, sees what the native steps produce */
+	public static boolean isFollowed(Step step) {
+		return Engine.isStudioMode() || NativeJsonSupport.studioToken(step) != null;
+	}
+
+	/** sends what the step produced to the Studio, original being its loaded copy; nothing out of the Studios */
 	public static void fire(Step step, Step original, String executeTimeID, String variableName, Object value,
 			long durationMicros, String contextID, String note) {
 		fire(step, original, executeTimeID, variableName, value, durationMicros, contextID, note, null);
@@ -69,7 +75,9 @@ public class NativeStepOutput {
 	/** with the JSON text the step read (Read JSON value), for the JSON path editor of the Studio */
 	public static void fire(Step step, Step original, String executeTimeID, String variableName, Object value,
 			long durationMicros, String contextID, String note, String input) {
-		if (!Engine.isStudioMode()) {
+		// the Eclipse Studio, or an execution of the web Studio that follows its native steps
+		String studioToken = Engine.isStudioMode() ? null : NativeJsonSupport.studioToken(step);
+		if (!Engine.isStudioMode() && studioToken == null) {
 			return;
 		}
 		String json;
@@ -88,6 +96,9 @@ public class NativeStepOutput {
 		NativeStepOutput output = new NativeStepOutput(projectStep, executeTimeID, variableName,
 				json, truncated, count, durationMicros, contextID, note,
 				input == null || input.length() <= MAX_LENGTH ? input : null);
+		if (studioToken != null) {
+			NativeJsonSupport.record(studioToken, output);
+		}
 		Engine.theApp.fireNativeStepExecuted(new EngineEvent(output));
 	}
 
