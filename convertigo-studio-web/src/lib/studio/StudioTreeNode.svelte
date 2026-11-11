@@ -569,6 +569,12 @@
 		revision;
 		return typeof node?.comment === 'string' ? node.comment : '';
 	});
+	/** a JSON native sequence and its XML bridges, a step reading a native step, as the Eclipse tree marks them */
+	let nativeJsonMarks = $derived.by(() => {
+		dataSerial;
+		revision;
+		return Array.isArray(node?.nativeJson) ? node.nativeJson.map(String) : [];
+	});
 	/** the marks of the tree of the Eclipse Studio: accessibility, auto start, undefined symbol, modified */
 	let marks = $derived.by(() => {
 		dataSerial;
@@ -1566,6 +1572,16 @@
 						<span class="studio-tree-node__diff-dot" title="Holds changes since {treeDiff.ref}"
 						></span>
 					{/if}
+					{#each nativeJsonMarks as mark (mark)}
+						<span
+							class="studio-tree-node__native"
+							title={mark.startsWith('JSON native')
+								? 'A JSON native sequence: it runs as JSON and its native steps build no XML'
+								: mark.startsWith('XML view')
+									? 'Reads the XML view of native steps, built at its first read'
+									: 'Reads the JSON of steps by a JSON path, without XML'}>[{mark}]</span
+						>
+					{/each}
 					{#if comment}
 						<span class="studio-tree-node__comment" title={comment}>// {comment}</span>
 					{/if}
@@ -2084,6 +2100,14 @@
 	.studio-tree-node__ghost-type {
 		color: var(--studio-text-idle);
 		font-size: 0.7rem;
+	}
+
+	/* the JSON native marks of the Eclipse tree, beside the name */
+	.studio-tree-node__native {
+		margin-left: 0.4rem;
+		color: var(--studio-text-idle);
+		font-size: 0.7rem;
+		white-space: nowrap;
 	}
 
 	/* the comments in the green of the comments of the code, aligned by the tree */

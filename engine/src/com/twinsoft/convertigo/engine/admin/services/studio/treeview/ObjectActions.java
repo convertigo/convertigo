@@ -68,6 +68,12 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.beans.core.StepSource;
+import com.twinsoft.convertigo.beans.steps.JsonTransformStep;
+import com.twinsoft.convertigo.beans.steps.SimpleSourceStep;
+import com.twinsoft.convertigo.engine.json.JsonPath;
+import com.twinsoft.convertigo.engine.studio.NativeJsonSupport;
+import com.twinsoft.convertigo.engine.util.ExperimentalFeatures;
 import com.twinsoft.convertigo.engine.util.StepUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.admin.services.studio.dbo.CreateStub;
@@ -200,7 +206,12 @@ public class ObjectActions {
 			add(items, "object.importVariables", "Import the variables of the requestable",
 					"Add the variables of the sequence or transaction to this test case.", true, "mdi:import");
 		}
-		if (dbo instanceof Step step && !(dbo instanceof AttributeStep) && !(dbo instanceof XMLAttributeStep)) {
+		if (dbo instanceof JsonTransformStep) {
+			// a native step builds no XML, as the Output action of the Eclipse Studio says
+			add(items, "object.output", "No XML output (native JSON step)",
+					"A native JSON step gives its value to a variable of the sequence, without XML.", false,
+					"mdi:eye-off-outline");
+		} else if (dbo instanceof Step step && !(dbo instanceof AttributeStep) && !(dbo instanceof XMLAttributeStep)) {
 			var output = !step.isOutput();
 			add(items, "object.output", "Output " + output, "Set the output of this step to " + output + ".", true,
 					output ? "mdi:eye-outline" : "mdi:eye-off-outline");
@@ -209,6 +220,19 @@ public class ObjectActions {
 						"Set the output of this step and of all its steps to " + output + ".", true,
 						output ? "mdi:eye-outline" : "mdi:eye-off-outline");
 			}
+		}
+		if (ExperimentalFeatures.isShown() && dbo instanceof Step step && step.workOnSource()
+				&& dbo instanceof IStepSourceContainer container) {
+			// the XPath source on a native step read by the JSON path of the same value, without its XML view
+			var conversion = jsonPathConversion(step, container);
+			add(items, "object.convertSourceToJsonPath", conversion[0],
+					"Read the value of the native step by a JSON path, without building its XML view.",
+					conversion[1] != null, "mdi:code-json");
+		}
+		if (ExperimentalFeatures.isShown() && dbo instanceof Step jsonStep && NativeJsonSupport.isJsonProducer(jsonStep)) {
+			add(items, "object.showInJsonPicker", "Show in JSON Picker",
+					"Pick a value in the JSON of this step and of the steps before it, as a JavaScript expression.",
+					true, "mdi:code-json").put("clientAction", "dialog.jsonPicker");
 		}
 		if (dbo instanceof DesignDocument designDocument) {
 			add(items, "object.createView", "Create a view", "Add a view with a map function to this design document.",
@@ -517,9 +541,24 @@ public class ObjectActions {
 				return result(true, "The operation already has a parameter for each variable.").put("changed", false);
 			}
 		}
+		case "object.convertSourceToJsonPath" -> {
+			if (!(dbo instanceof Step step) || !(dbo instanceof IStepSourceContainer container)) {
+				return result(false, "This object is not a step with a source.");
+			}
+			var conversion = jsonPathConversion(step, container);
+			if (conversion[1] == null) {
+				return result(false, conversion[0]);
+			}
+			var definition = container.getSourceDefinition();
+			definition.set(1, conversion[1]);
+			container.setSourceDefinition(definition);
+			step.hasChanged = true;
+			return result(true, "Source of '" + step.getName() + "' read by the JSON path " + conversion[1] + ".")
+					.put("changed", true).put("refresh", true);
+		}
 		case "object.output", "object.outputRecursively" -> {
-			if (!(dbo instanceof Step step)) {
-				return result(false, "This object is not a step.");
+			if (!(dbo instanceof Step step) || dbo instanceof JsonTransformStep) {
+				return result(false, "This object is not a step with an XML output.");
 			}
 			output(step, !step.isOutput(), "object.outputRecursively".equals(actionId));
 		}
@@ -658,8 +697,52 @@ public class ObjectActions {
 		step.hasChanged = true;
 		if (recursively && step instanceof StepWithExpressions container) {
 			for (var child : container.getSteps()) {
-				output(child, output, true);
+				// a native step has no XML output
+				if (!(child instanceof JsonTransformStep)) {
+					output(child, output, true);
+				}
 			}
+		}
+	}
+
+	/**
+	 * the label of the action that converts the XPath source of a step on a native step into a JSON path, and the
+	 * JSON path, or null when it cannot (the label says why), as the Eclipse Studio
+	 */
+	static String[] jsonPathConversion(Step step, IStepSourceContainer container) {
+		var text = "Convert source to JSON path";
+		try {
+			var source = new StepSource(step, container.getSourceDefinition());
+			String jsonPath = null;
+			if (source.isEmpty() || !(source.getStep() instanceof JsonTransformStep)) {
+				text += " (only for a source on a native JSON step)";
+			} else if (source.isJsonPath()) {
+				text += " (already " + source.getXpath() + ")";
+			} else if ((jsonPath = NativeJsonSupport.toJsonPath(source.getXpath())) == null) {
+				text += " (XPath " + source.getXpath() + " has no exact JSON path)";
+			} else if (step instanceof SimpleSourceStep && !isScalar(source.getStep(), jsonPath)) {
+				// the text of an element and the JSON of an object differ: only for a value read as text
+				text += " (execute the sequence first: the value must be a text, a number or a boolean)";
+				jsonPath = null;
+			} else {
+				text += ": " + source.getXpath() + " → " + jsonPath;
+			}
+			return new String[] { text, jsonPath };
+		} catch (Exception e) {
+			return new String[] { text + " (broken source)", null };
+		}
+	}
+
+	private static boolean isScalar(Step nativeStep, String path) {
+		var sample = NativeJsonSupport.getSample(nativeStep);
+		if (sample == null || sample.getJson().isEmpty()) {
+			return false;
+		}
+		try {
+			var text = JsonPath.parse(path).selectText(sample.getJson());
+			return text != null && !text.startsWith("{") && !text.startsWith("[");
+		} catch (Exception e) {
+			return false;
 		}
 	}
 

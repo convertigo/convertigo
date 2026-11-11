@@ -321,6 +321,36 @@ public final class NativeJsonSupport {
 	}
 
 	/**
+	 * the mark of the tree of the Eclipse Studio, without its brackets: a JSON native sequence with its XML bridges
+	 * ("JSON native output, XML bridge: 2 steps"), an XML step that reads the XML view of native steps ("XML view of
+	 * A, B"), a step that reads the JSON of steps ("JSON of C"); empty for another object
+	 */
+	public static List<String> treeMarks(Object dbo) {
+		var marks = new ArrayList<String>();
+		try {
+			if (dbo instanceof Sequence sequence && isNativeSequence(sequence)) {
+				int bridges = getBridges(sequence).size();
+				marks.add("JSON native" + (sequence.isNativeExecution() ? "" : " output")
+						+ (bridges > 0 ? ", XML bridge: " + bridges + " step" + (bridges > 1 ? "s" : "") : ""));
+			} else if (dbo instanceof Step step) {
+				for (boolean jsonPath : new boolean[] { false, true }) {
+					var steps = jsonPath ? getJsonPathSources(step) : getBridgedSources(step);
+					if (!steps.isEmpty()) {
+						var names = new ArrayList<String>();
+						for (var source : steps) {
+							names.add(source.getName());
+						}
+						marks.add((jsonPath ? "JSON of " : "XML view of ") + String.join(", ", names));
+					}
+				}
+			}
+		} catch (Exception e) {
+			// no mark
+		}
+		return marks;
+	}
+
+	/**
 	 * the JSON path that reads, on the value of a native step, what a simple XPath reads on its XML view:
 	 * <code>.</code>, <code>./key</code>, <code>./item[n]</code>, a last <code>text()</code>; null for another XPath
 	 * (axes, functions, predicates on values, attributes, several items)

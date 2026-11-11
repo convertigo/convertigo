@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.engine.admin.services.studio.Utils;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.flow.FlowAuthoringWarmup;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
+import com.twinsoft.convertigo.engine.studio.NativeJsonSupport;
 
 @ServiceDefinition(
 		name = "Get",
@@ -267,6 +268,11 @@ public class Get extends JSonService {
 		}
 		if (dbo.hasChanged) {
 			obj.put("modified", true);
+		}
+		// a JSON native sequence and its XML bridges, a step reading a native step, as the Eclipse tree marks them
+		var nativeMarks = NativeJsonSupport.treeMarks(dbo);
+		if (!nativeMarks.isEmpty()) {
+			obj.put("nativeJson", new JSONArray(nativeMarks));
 		}
 		if (flow) {
 			obj.put("classname", dbo.getClass().getSimpleName());

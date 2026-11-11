@@ -73,6 +73,7 @@
 	import { flowBrowserPreview, flowSourceReveal } from '#lib/studio/studioFlowEvents.js';
 	import StudioHandlersDialog from '#lib/studio/StudioHandlersDialog.svelte';
 	import StudioIconButton from '#lib/studio/StudioIconButton.svelte';
+	import StudioJsonPickerDialog from '#lib/studio/StudioJsonPickerDialog.svelte';
 	import StudioLogsPanel from '#lib/studio/StudioLogsPanel.svelte';
 	import StudioMarketplace from '#lib/studio/StudioMarketplace.svelte';
 	import { createStudioMutationEventTracker } from '#lib/studio/studioMutationEvents.js';
@@ -356,6 +357,8 @@
 	/** The NGX component the shared component dialog extracts */
 	let sharedComponentTargetId = $state('');
 	let handlersTargetId = $state('');
+	/** the JSON step whose JSON picker shows, as Show in JSON Picker of the Eclipse Studio */
+	let jsonPickerTargetId = $state('');
 	let copybookTargetId = $state('');
 	let sqlDesignTargetId = $state('');
 	let sapDesignTargetId = $state('');
@@ -2979,6 +2982,8 @@
 			executionRunTestcase = nodeId.replace(/^.*[.:]tc:/, '');
 		} else if (action === 'dialog.handlers') {
 			handlersTargetId = nodeId;
+		} else if (action === 'dialog.jsonPicker') {
+			jsonPickerTargetId = nodeId;
 		} else if (action === 'dialog.copybook') {
 			copybookTargetId = nodeId;
 		} else if (action === 'dialog.sqlDesign') {
@@ -4142,6 +4147,13 @@
 	<StudioStatisticsDialog
 		projectName={statisticsProjectName}
 		onClose={() => (statisticsProjectName = '')}
+	/>
+{/if}
+{#if jsonPickerTargetId}
+	<StudioJsonPickerDialog
+		stepId={jsonPickerTargetId}
+		includeStep={true}
+		onClose={() => (jsonPickerTargetId = '')}
 	/>
 {/if}
 {#if handlersTargetId}
