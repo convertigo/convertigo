@@ -723,7 +723,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_STATISTICS ("log4j.logger.cems.Statistics", LogLevels.INFO.getValue(), "Statistics logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class, visibility = Visibility.HIDDEN_SERVER)
-		LOG4J_LOGGER_CEMS_STUDIO ("log4j.logger.cems.Studio", LogLevels.WARN.getValue(), "Studio logger", PropertyCategory.Logs),
+		// INFO in the Electron Studio, whose Studio log keeps the output of the builds the agents of the Assistant read
+		LOG4J_LOGGER_CEMS_STUDIO ("log4j.logger.cems.Studio", Engine.isDesktopStudio() && !Engine.isStudioMode() ? LogLevels.INFO.getValue() : LogLevels.WARN.getValue(), "Studio logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_TRACEPLAYERMANAGER ("log4j.logger.cems.TracePlayerManager", LogLevels.WARN.getValue(), "Trace player manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)

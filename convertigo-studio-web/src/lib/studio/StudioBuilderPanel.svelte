@@ -20,6 +20,7 @@
 	 *  onLoad?: (url: string) => void,
 	 *  onBuilt?: () => void,
 	 *  onServerStop?: () => void,
+	 *  onServeStart?: () => void,
 	 *  onFailedChange?: (failed: boolean) => void,
 	 *  onActivity?: (activity: { phase: string, progress: number, result: string, serial: number }) => void,
 	 *  serveRequest?: number | { at: number, install?: string, attach?: boolean },
@@ -34,6 +35,7 @@
 		onLoad,
 		onBuilt,
 		onServerStop,
+		onServeStart,
 		onFailedChange,
 		onActivity,
 		serveRequest = 0,
@@ -65,6 +67,8 @@
 	let devState = $state('idle');
 	/** whether the builder told the state of the project since the socket opened */
 	let attached = false;
+	/** whether the application has a production build, as the builder tells it, null until it does */
+	let productionBuilt = /** @type {boolean | null} */ (null);
 	let localState = $state('idle');
 	/** whether the builder writes the sources of the application while it is edited */
 	let autoBuild = $state(true);
@@ -200,6 +204,10 @@
 			} else if (devState === 'serving') {
 				// its address comes with the state
 				serveAsked = true;
+			} else if (devState === 'idle' && productionBuilt === false) {
+				// an application without its production build is served, as the Eclipse Studio opens its
+				// application editor: its preview shows it rather than a page telling it is not built
+				send('build_dev');
 			}
 		} else if (pendingInstall) {
 			// the builder replaces a running server with one whose packages are updated
@@ -263,6 +271,7 @@
 		devPhase = '';
 		localPhase = '';
 		attached = false;
+		productionBuilt = null;
 		const address = new URL(`${getUrl()}studio.ngxbuilder.WsBuilder`, location.href);
 		address.protocol = address.protocol === 'https:' ? 'wss:' : 'ws:';
 		// a browser sends no header with a websocket handshake: the XSRF token of the session goes as a parameter
@@ -354,6 +363,9 @@
 					if (value === 'success' && !pendingBuild) {
 						onBuilt?.();
 					}
+				} else if (type === 'production') {
+					// none only for an NGX application without its production build
+					productionBuilt = value !== 'none';
 				} else if (type === 'load') {
 					url = String(value);
 					void append('log', `The application is served on ${url}`);
@@ -384,6 +396,8 @@
 		}
 		if (action === 'build_dev') {
 			serveAsked = true;
+			// the preview shows the application served, from now on: the Dev mode, then the application once served
+			onServeStart?.();
 		}
 		socket.send(
 			JSON.stringify({

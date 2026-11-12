@@ -1712,6 +1712,72 @@ test('studio frontend profile exposes preview devices from a navigation drawer',
 	await expect(page.getByText('iPhone 17 Pro · 874×402')).toBeVisible();
 });
 
+for (const [production, served] of /** @type {const} */ ([
+	['none', true],
+	['built', false]
+])) {
+	test(`studio frontend ${served ? 'serves' : 'shows'} an NGX application whose production build is ${production}`, async ({
+		page
+	}) => {
+		await mockStudioServices(page);
+		// the project has an NGX application: its menu executes it
+		await page.route('**/admin/services/studio.treeview.ContextMenu**', async (route) => {
+			const params = new URLSearchParams(route.request().postData() ?? '');
+			if (params.get('id') !== projectName) {
+				await route.fallback();
+				return;
+			}
+			await route.fulfill({ json: { menu: { items: [{ id: 'frontend.execute', label: 'Execute' }] } } });
+		});
+		/** @type {string[]} */
+		const actions = [];
+		/** @type {import('@playwright/test').WebSocketRoute | undefined} */
+		let builder;
+		await page.routeWebSocket(/studio\.ngxbuilder\.WsBuilder/, (ws) => {
+			builder = ws;
+			ws.onMessage((message) => {
+				const { action } = JSON.parse(String(message));
+				actions.push(action);
+				if (action === 'attach') {
+					// the builder tells whether the application is built, before the state of its development server
+					for (const [type, value] of [
+						['state', 'auto:none'],
+						['production', production],
+						['state', 'dev:idle'],
+						['state', 'local:idle']
+					]) {
+						ws.send(JSON.stringify({ type, value }));
+					}
+				}
+			});
+		});
+		await page.goto('/studio/');
+		await selectTreeNode(page, projectName);
+		await page.getByRole('radio', { name: 'Frontend' }).click();
+		await expect.poll(() => actions.includes('attach')).toBe(true);
+		const dev = page.getByRole('radio', { name: 'Dev' });
+		if (served) {
+			// as the Eclipse Studio opens its application editor: the switch shows Dev at once, the application
+			// once served
+			await expect.poll(() => actions.includes('build_dev')).toBe(true);
+			await expect(dev).toHaveAttribute('aria-checked', 'true');
+			await expect(page.getByText(`The development server of ${projectName} starts…`)).toBeVisible();
+			await expect(page.getByRole('textbox', { name: 'Address of the page' })).toHaveValue('');
+			const url = `/convertigo/projects/${projectName}/DisplayObjects/dev40000/`;
+			builder?.send(JSON.stringify({ type: 'state', value: 'dev:serving' }));
+			builder?.send(JSON.stringify({ type: 'load', value: url }));
+			await expect(page.locator(`iframe[title="${projectName} frontend"]`)).toHaveAttribute(
+				'src',
+				new RegExp(`dev40000`)
+			);
+			await expect(dev).toHaveAttribute('aria-checked', 'true');
+		} else {
+			await page.waitForTimeout(1500);
+			expect(actions).not.toContain('build_dev');
+		}
+	});
+}
+
 test('studio tree shows a project an agent creates through the MCP', async ({ page }) => {
 	const projects = [projectName];
 	await mockStudioServices(page, { projects });

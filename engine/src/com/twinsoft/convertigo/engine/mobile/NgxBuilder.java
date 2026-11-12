@@ -4234,7 +4234,8 @@ public class NgxBuilder extends MobileBuilder {
 
 	@Override
 	protected void writeWorker(File file, boolean bForce) throws IOException {
-		if (initDone && buildMutex == null && Engine.isStudioMode()) {
+		// the generation time of the application, which tells whether a build is up to date, in the web Studio too
+		if (initDone && buildMutex == null && Engine.isWebStudioAllowed()) {
 			updateEnvFile();
 		}
 	}

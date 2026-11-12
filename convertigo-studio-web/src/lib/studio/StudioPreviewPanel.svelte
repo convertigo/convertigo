@@ -201,11 +201,14 @@
 		!previewUrlOverride &&
 			Projects.projects.find((project) => project?.name === projectName)?.hasFrontend === 'false'
 	);
+	/** the development server asked and not served yet: the preview tells it, rather than show the built application */
+	let devStarting = $derived(previewMode === 'development' && !previewUrlOverride);
 	let previewUrl = $derived(
 		previewUrlOverride || (projectName && !noFrontend ? getFrontendUrl(projectName) : '')
 	);
 	let addressBar = $derived(
-		addressOverride.base === previewUrl ? addressOverride.value : previewUrl
+		// no address yet while the development server starts
+		devStarting ? '' : addressOverride.base === previewUrl ? addressOverride.value : previewUrl
 	);
 	let iframeUrl = $derived(iframeOverride.base === previewUrl ? iframeOverride.value : previewUrl);
 	/** what the preview of each project keeps, as the application editor of the Eclipse Studio */
@@ -1535,6 +1538,13 @@
 					{/if}
 				</div>
 			{/if}
+			{#if devStarting}
+				<StudioEmptyState
+					message={`The development server of ${projectName} starts…`}
+					icon="mdi:sync"
+					class="studio-preview__empty"
+				/>
+			{:else}
 			<div class="studio-preview__center">
 				<div
 					class={[
@@ -1566,6 +1576,7 @@
 					</div>
 				</div>
 			</div>
+			{/if}
 		</MaxRectangle>
 	{:else if noFrontend}
 		<StudioEmptyState

@@ -283,6 +283,11 @@ public final class ApplicationBuilds {
 		return flow != null ? flow : ngxApplication(project);
 	}
 
+	/** @return whether the project has an NGX application without its production build, as the Studio asks: cheap */
+	public static boolean ngxApplicationNotBuilt(Project project) {
+		return ngxApplication(project) != null;
+	}
+
 	/** @return the NGX application of the project when it has no build, else null: cheap */
 	private static Application ngxApplication(Project project) {
 		try {

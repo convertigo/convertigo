@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
@@ -94,15 +95,15 @@ public class WsBuilder extends WebSocketService {
 		String install;
 		Project project;
 		Thread thread;
-		int portNode;
-		String baseUrl;
+		volatile int portNode;
+		volatile String baseUrl;
 		/** the URLs of the development server on the network, for a mobile device */
 		String networkUrls;
 		/** the result of the last compilation of the development server, success or failed */
-		String compiled;
+		volatile String compiled;
 		/** what the build does, installing the packages, building the application, or nothing */
-		String phase = "";
-		String state = "idle";
+		volatile String phase = "";
+		volatile String state = "idle";
 		volatile Process process;
 		/** whether the build was stopped, which does not fail */
 		volatile boolean stopped;
@@ -123,7 +124,12 @@ public class WsBuilder extends WebSocketService {
 			if (thread != null) {
 				return;
 			}
-			thread = new Thread(this);
+			thread = new Thread(() -> {
+				// the thread inherits the log context of the request that starts it: the MCP of the Assistant asks
+				// without log, which would hide the output of the build from the Studio log
+				Log4jHelper.mdcClear();
+				run();
+			});
 			thread.setName("Build of " + projectName);
 			thread.setDaemon(true);
 			thread.start();
@@ -858,6 +864,17 @@ public class WsBuilder extends WebSocketService {
 
 	private void onAttach() throws Exception {
 		send("state", autoState(builder(project)));
+		// none for an NGX application without its production build, which the Studio serves rather than show a page
+		// telling it is not built, as the Eclipse Studio opens its application editor; told before the state of the
+		// development server
+		Project loaded = null;
+		try {
+			loaded = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project, false);
+		} catch (Exception e) {
+			// not loaded
+		}
+		send("production", loaded != null && com.twinsoft.convertigo.engine.ApplicationBuilds.ngxApplicationNotBuilt(loaded)
+				? "none" : "built");
 		for (var dev : new boolean[] { true, false }) {
 			Build current;
 			synchronized (builds) {
@@ -911,6 +928,61 @@ public class WsBuilder extends WebSocketService {
 		}
 		build.run();
 		return "success".equals(build.result);
+	}
+
+	/**
+	 * Starts the development build of an application, as the Build view of the Studio starts it, without a client of
+	 * its own: the Build views of the project follow it. For the agents of the Assistant, through its MCP.
+	 *
+	 * @param endpoint the URL of the engine the application calls, the local URL of the engine when empty
+	 * @param restart whether a development build already serving the application starts again
+	 * @return whether a build was started, false when one already serves the application
+	 */
+	public static boolean startDevBuild(String projectName, String endpoint, boolean restart) throws Exception {
+		Engine.checkServerBuildAllowed("The build of " + projectName);
+		Build running;
+		synchronized (builds) {
+			running = builds.get(key(projectName, true));
+		}
+		if (running != null && !running.stopped && running.result == null && !restart) {
+			return false;
+		}
+		var url = endpoint == null || endpoint.isBlank()
+				? com.twinsoft.convertigo.engine.EnginePropertiesManager.getProperty(
+						com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL)
+				: endpoint;
+		launch(new Build(projectName, url.replaceFirst("/+$", ""), "dev", ""));
+		return true;
+	}
+
+	/**
+	 * The state of the development build of an application, as its Build view shows it, for the agents of the
+	 * Assistant through its MCP: they read it rather than the output of the build in the Studio log.
+	 *
+	 * @return null when no development build runs; else a JSON object: state (serving, idle), phase (installing or
+	 *         building while it works, else empty), compiled (success or failed, the last compilation of the
+	 *         development server, empty before the first one), port (of the development server), url (the path of
+	 *         the application on the development server and on the engine, empty until it is served) and localUrl
+	 *         (the application on the development server); the application is ready once compiled is success and
+	 *         phase empty
+	 */
+	public static String devBuildState(String projectName) {
+		Build build;
+		synchronized (builds) {
+			build = builds.get(key(projectName, true));
+		}
+		if (build == null || build.stopped) {
+			return null;
+		}
+		var port = build.portNode;
+		var url = StringUtils.defaultString(build.baseUrl);
+		try {
+			return new JSONObject().put("state", build.state).put("phase", StringUtils.defaultString(build.phase))
+					.put("compiled", StringUtils.defaultString(build.compiled)).put("port", port).put("url", url)
+					.put("localUrl", port > 0 && !url.isEmpty() ? "http://localhost:" + port + url : "").toString();
+		} catch (JSONException e) {
+			return null;
+		}
 	}
 
 	/** Stops the build of the server of a project, if any. */

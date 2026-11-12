@@ -647,6 +647,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
+	/**
+	 * The projects whose application builder the web Studio initialized when they left the cache: an engine without
+	 * the Eclipse Studio neither releases nor initializes it with the project, the next version gets it again.
+	 */
+	private final java.util.Set<String> webStudioBuilders = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
 	/** Releases what the engine keeps for a version of a project removed from the cache. */
 	private void releaseProject(Project project) {
 		String projectName = project.getName();
@@ -655,7 +661,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 		com.twinsoft.convertigo.engine.tags.TagManager.get().projectClosed(project);
 		Flow.projectUnloaded(project);
 		RestApiManager.getInstance().removeUrlMapper(projectName);
-		MobileBuilder.releaseBuilder(project);
+		if (!Engine.isStudioMode() && project.isMobileBuilderInitialized()) {
+			// reloaded by a pull, a checkout, a reset or the update of a reference: built again once loaded
+			webStudioBuilders.add(projectName);
+			MobileBuilder.releaseBuilder(project, true);
+		} else {
+			MobileBuilder.releaseBuilder(project);
+		}
 		RequestableObject.clearUseCache(project);
 		// javascript.shared_class_cache and classloader.lookup_cache: nothing kept for the classes of this version
 		RequestableObject.resetSharedJavaScriptCaches();
@@ -1649,7 +1661,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Engine.logDatabaseObjectManager
 			.info("[importProject] Start initializing: " + Project.formatNameWithHash(project));
 			RestApiManager.getInstance().putUrlMapper(project);
-			MobileBuilder.initBuilder(project);
+			MobileBuilder.initBuilder(project, webStudioBuilders.remove(project.getName()));
 			if (loadingData[0].afterLoaded != null) {
 				for (var run: loadingData[0].afterLoaded) {
 					run.run();

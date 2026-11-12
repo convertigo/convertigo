@@ -1513,19 +1513,56 @@
 		let handled = false;
 		onStudioMutationBusyChange(true);
 		try {
-			const result = await performDboDrop({
+			let result = await performDboDrop({
 				payload,
 				target,
 				position: request.position,
 				dropAction: payload.type === 'paletteData' ? 'copy' : 'move'
 			});
+			if (!result.done && !result.handled && payload?.type === 'paletteData') {
+				// as the application editor of the Eclipse Studio: an action dropped on a component goes in its
+				// event, the component refusing it
+				const event = await ngxControlEvent(target);
+				if (event) {
+					result = await performDboDrop({
+						payload,
+						target: event,
+						position: 'inside',
+						dropAction: 'copy'
+					});
+				}
+			}
 			if (result.done) {
 				handled = true;
 				await onStudioMutation({ ...result, source: 'preview' });
+			} else if (payload?.type === 'paletteData' && !result.handled) {
+				toaster.info({ description: 'This component does not take the object dropped on it.' });
 			}
 		} finally {
 			onStudioMutationBusyChange(false, handled);
 		}
+	}
+
+	/**
+	 * @param {string} id a component of an NGX application
+	 * @returns {Promise<string>} its first event, as the one the Eclipse Studio drops an action in, or ''
+	 */
+	async function ngxControlEvent(id) {
+		// with the classes of the objects, which the tree gives for the Flow view
+		const result = await call(
+			'studio.treeview.Get',
+			{ id, flow: 'true' },
+			{ silentError: () => true }
+		);
+		/** @param {any[]} nodes @returns {any[]} */
+		const flat = (nodes) =>
+			nodes.flatMap((node) =>
+				node?.icon === 'folder' ? flat(Array.isArray(node.children) ? node.children : []) : [node]
+			);
+		const event = flat(Array.isArray(result?.children) ? result.children : []).find(
+			(node) => node?.classname === 'UIControlEvent'
+		);
+		return String(event?.id ?? '');
 	}
 
 	/**
@@ -4076,6 +4113,13 @@
 		onServeRequestTaken={() => (builderServeRequest = 0)}
 		buildRequest={builderBuildRequest}
 		onBuildRequestTaken={() => (builderBuildRequest = 0)}
+		onServeStart={() => {
+			// the switch of the preview shows Dev as soon as the development server is asked, as the Eclipse Studio
+			// opens its application editor, then the application once it is served
+			if (applicationProjectName) {
+				frontendPreview = { projectName: applicationProjectName, url: '', mode: 'development' };
+			}
+		}}
 		onServerStop={() => {
 			// the development server stopped: the preview shows the built application again
 			if (frontendPreviewMode === 'development') {
