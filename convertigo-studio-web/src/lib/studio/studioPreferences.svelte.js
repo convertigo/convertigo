@@ -17,7 +17,12 @@ const defaults = {
 	/** @type {'ask' | 'always' | 'never'} the references of the used projects a save adds */
 	projectReferences: 'ask',
 	/** the new experimental features: native JSON sequences, native JSON steps, JSON path sources */
-	experimentalFeatures: false
+	experimentalFeatures: false,
+	/**
+	 * the page of the Assistant panel; empty: the local Assistant once its agent stack is installed, else the
+	 * Assistant hosted on assistant.convertigo.com
+	 */
+	assistantUrl: ''
 };
 
 /**

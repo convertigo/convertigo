@@ -2143,6 +2143,66 @@ test('studio vibe profile opens the Agent route without requiring a selected pro
 	await expect(assistantContext).toHaveAttribute('data-query-project', 'No project');
 });
 
+test('studio vibe profile opens the hosted Assistant until the local agent stack is activated', async ({
+	page
+}) => {
+	const assistantStack = { state: 'missing', projects: {}, installs: [] };
+	await mockStudioServices(page, { assistant: true, noProjects: true, assistantStack });
+	// the Assistant hosted on assistant.convertigo.com asks to activate the local agent, as its onboarding does
+	await page.route('https://assistant.convertigo.com/**', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'text/html',
+			body: `<!doctype html>
+			<html><body>
+				<main data-testid="hosted-assistant">Hosted Assistant</main>
+				<script>
+					const output = document.querySelector('[data-testid="hosted-assistant"]');
+					let asked = false;
+					window.addEventListener('message', (event) => {
+						const message = event.data || {};
+						if (message.type === 'lib_ConvertigoAssistant.context') {
+							const context = message.payload || {};
+							output.dataset.runtime = context.assistantRuntime || '';
+							output.dataset.canActivate = String(context.canActivateLocalAgent);
+							if (context.canActivateLocalAgent && !asked) {
+								asked = true;
+								const repo = (name) => name + '=https://github.com/convertigo/' + name + '.git';
+								parent.postMessage({
+									type: 'lib_ConvertigoAssistant.activateLocalAgent',
+									payload: { projects: ['lib_ConvertigoAssistant', 'lib_ConvertigoMCP', 'lib_ConvertigoAgentBridge', 'other']
+										.map((name) => ({ name, importUrl: repo(name) })) }
+								}, '*');
+							}
+						}
+						if (message.type === 'lib_ConvertigoAssistant.activateLocalAgent.status') {
+							output.dataset.status = (message.payload || {}).status || '';
+						}
+					});
+				</script>
+			</body></html>`
+		})
+	);
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+
+	const assistant = page.locator('iframe[title="Convertigo Assistant"]');
+	await expect(assistant).toHaveAttribute(
+		'src',
+		/^https:\/\/assistant\.convertigo\.com\/\?dark-theme=/
+	);
+	// the stack imported, the local Assistant replaces the hosted one
+	await expect(assistant).toHaveAttribute(
+		'src',
+		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?.*serverAgent=1/
+	);
+	expect(assistantStack.installs).toEqual([
+		'lib_ConvertigoAssistant',
+		'lib_ConvertigoMCP',
+		'lib_ConvertigoAgentBridge'
+	]);
+});
+
 test('studio vibe profile remains usable on touch with the optional tree hidden', async ({
 	page
 }) => {
@@ -3685,6 +3745,7 @@ function responseEditor(page) {
  *  referenceProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
+ *  assistantStack?: any,
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
@@ -3874,6 +3935,7 @@ function serviceName(url) {
  *  referenceProperty?: boolean,
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
+ *  assistantStack?: any,
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
@@ -3889,6 +3951,19 @@ function serviceName(url) {
 function responseForService(service, params, options = {}) {
 	const state = options.state ?? createStudioState();
 	switch (service) {
+		case 'studio.assistant.Stack': {
+			const stack = options.assistantStack;
+			if (!stack) {
+				return {};
+			}
+			if (params.get('action') === 'install') {
+				stack.installs.push(params.get('name'));
+				stack.projects[params.get('name') ?? ''] = { installed: true, version: '1.0' };
+				const names = ['lib_ConvertigoAssistant', 'lib_ConvertigoMCP', 'lib_ConvertigoAgentBridge'];
+				stack.state = names.every((name) => stack.projects[name]?.installed) ? 'ready' : 'missing';
+			}
+			return { projects: stack.projects, state: stack.state, updateAllowed: true };
+		}
 		case 'engine.CheckAuthentication':
 			return {
 				admin: {

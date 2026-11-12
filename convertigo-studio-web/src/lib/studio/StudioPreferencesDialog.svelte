@@ -18,6 +18,7 @@
 	let marketplaceUrl = $state(studioPreferences.marketplaceUrl);
 	let projectReferences = $state(studioPreferences.projectReferences);
 	let experimentalFeatures = $state(studioPreferences.experimentalFeatures === true);
+	let assistantUrl = $state(String(studioPreferences.assistantUrl ?? ''));
 
 	function submit(/** @type {SubmitEvent} */ event) {
 		event.preventDefault();
@@ -25,7 +26,8 @@
 			gitRepositoryForNewProjects,
 			readmeOnSave,
 			marketplaceUrl: marketplaceUrl.trim() || DEFAULT_MARKETPLACE_URL,
-			projectReferences
+			projectReferences,
+			assistantUrl: assistantUrl.trim()
 		});
 		if (experimentalFeatures !== (studioPreferences.experimentalFeatures === true)) {
 			void setExperimentalFeatures(experimentalFeatures);
@@ -92,6 +94,14 @@
 						class="input-common"
 						bind:value={marketplaceUrl}
 						placeholder={DEFAULT_MARKETPLACE_URL}
+					/>
+				</label>
+				<label class="studio-dialog__field">
+					<span>Assistant URL</span>
+					<input
+						class="input-common"
+						bind:value={assistantUrl}
+						placeholder="Automatic: the local Assistant once installed, else assistant.convertigo.com"
 					/>
 				</label>
 				<p class="studio-dialog__hint">These preferences are kept in this browser.</p>
