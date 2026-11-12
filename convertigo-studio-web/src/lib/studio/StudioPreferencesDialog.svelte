@@ -19,6 +19,9 @@
 	let projectReferences = $state(studioPreferences.projectReferences);
 	let experimentalFeatures = $state(studioPreferences.experimentalFeatures === true);
 	let assistantUrl = $state(String(studioPreferences.assistantUrl ?? ''));
+	let assistantChannel = $state(
+		studioPreferences.assistantChannel === 'preview' ? 'preview' : 'stable'
+	);
 
 	function submit(/** @type {SubmitEvent} */ event) {
 		event.preventDefault();
@@ -27,7 +30,8 @@
 			readmeOnSave,
 			marketplaceUrl: marketplaceUrl.trim() || DEFAULT_MARKETPLACE_URL,
 			projectReferences,
-			assistantUrl: assistantUrl.trim()
+			assistantUrl: assistantUrl.trim(),
+			assistantChannel: assistantChannel === 'preview' ? 'preview' : 'stable'
 		});
 		if (experimentalFeatures !== (studioPreferences.experimentalFeatures === true)) {
 			void setExperimentalFeatures(experimentalFeatures);
@@ -95,6 +99,13 @@
 						bind:value={marketplaceUrl}
 						placeholder={DEFAULT_MARKETPLACE_URL}
 					/>
+				</label>
+				<label class="studio-dialog__field">
+					<span>Releases of the local Assistant</span>
+					<select class="input-common" bind:value={assistantChannel}>
+						<option value="stable">Stable</option>
+						<option value="preview">Preview (pre-releases)</option>
+					</select>
 				</label>
 				<label class="studio-dialog__field">
 					<span>Assistant URL</span>

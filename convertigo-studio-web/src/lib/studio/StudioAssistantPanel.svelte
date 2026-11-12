@@ -145,6 +145,18 @@
 		});
 	});
 
+	$effect(() => {
+		// the channel chosen in the Studio preferences, as in the bar: the releases it offers are read again
+		const preferred = studioPreferences.assistantChannel === 'preview' ? 'preview' : 'stable';
+		if (preferred !== untrack(() => channel)) {
+			channel = preferred;
+			installError = '';
+			if (untrack(() => stack) !== null) {
+				void loadManifest();
+			}
+		}
+	});
+
 	/**
 	 * @param {string} next
 	 */
