@@ -161,6 +161,8 @@ function engineAnswers(port) {
 
 function startEngine(port) {
 	fs.mkdirSync(workspaceDir, { recursive: true });
+	// the PouchDB server an engine that stopped abruptly left running
+	stopWorkspacePouchDB();
 	if (!fs.existsSync(path.join(tomcatDir, 'conf'))) {
 		fs.cpSync(path.join(engineDir, 'base', 'conf'), path.join(tomcatDir, 'conf'), { recursive: true });
 	}
@@ -180,6 +182,9 @@ function startEngine(port) {
 			// a desktop Studio also debugs its JavaScript, and serves its one user as the Eclipse Studio
 			// (Engine.isDesktopStudio: its PSC, the local agent of the Assistant)
 			'-Dconvertigo.studio.desktop=true',
+			// the URL the engine gives of itself (local agents, MCP, NGX applications, HTTP steps), on the port it
+			// listens to, as the Eclipse Studio sets it: 28080 may be another Convertigo
+			`-Dconvertigo.engine.application_server.convertigo.url=http://localhost:${port}/convertigo`,
 			'-Dconvertigo.engine.web_studio=enabled',
 			'-Dconvertigo.engine.server_build=studio',
 			'-Dconvertigo.engine.javascript.debugger=true',
@@ -339,6 +344,19 @@ async function openStudio(window) {
  * Stops the engine, saving its sessions, and the node processes of its NGX builds.
  * @returns {Promise<void>}
  */
+/**
+ * Stops the PouchDB server of FullSync the engine started with the Node.js of the workspace: the engine starts it
+ * again while it stops on a signal, and a server left running keeps the lock of the databases of the workspace,
+ * which the next one then cannot open.
+ */
+function stopWorkspacePouchDB() {
+	if (process.platform === 'win32') {
+		return;
+	}
+	const nodes = `${path.join(workspaceDir, 'nodes')}${path.sep}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	spawnSync('pkill', ['-f', `^${nodes}[^/]+/bin/node node_modules/pouchdb-server/`]);
+}
+
 function stopEngine() {
 	const running = engine;
 	if (!running) {
@@ -353,6 +371,7 @@ function stopEngine() {
 				const projects = `${path.join(workspaceDir, 'projects')}${path.sep}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 				spawnSync('pkill', ['-f', `^(node|npm|ng) .*${projects}`]);
 			}
+			stopWorkspacePouchDB();
 			resolve();
 		});
 		running.kill('SIGTERM');

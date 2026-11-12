@@ -963,7 +963,8 @@ public class EnginePropertiesManager {
 
 		/** FULL SYNC */
 		@PropertyOptions(propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
-		FULLSYNC_USE_POUCHDB ("fullsync.pouchdb", Engine.isStudioMode() ? "true" : " false", "Use PouchDB for FullSync (prefer CouchDB for production)", PropertyCategory.FullSync),
+		// PouchDB in a desktop Studio, Eclipse or Electron, as long as its configuration does not choose a CouchDB
+		FULLSYNC_USE_POUCHDB ("fullsync.pouchdb", Engine.isDesktopStudio() ? "true" : " false", "Use PouchDB for FullSync (prefer CouchDB for production)", PropertyCategory.FullSync),
 		FULLSYNC_COUCH_URL ("fullsync.couch.url", "http://127.0.0.1:5984", "Couch DB URL for FullSync", PropertyCategory.FullSync),
 		FULLSYNC_COUCH_USERNAME ("fullsync.couch.username", "", "Couch DB username for FullSync", PropertyCategory.FullSync),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)

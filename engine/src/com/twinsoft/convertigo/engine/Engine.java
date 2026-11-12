@@ -754,6 +754,18 @@ public class Engine {
 
 				Engine.logEngine.info("Convertigo engine started");
 
+				if (isDesktopStudio() && !isStudioMode()) {
+					// the FullSync client of a desktop Studio starts with it, as the Eclipse Studio starts it (its
+					// PouchDB server by default)
+					Engine.execute(() -> {
+						try {
+							Engine.theApp.couchDbManager.getFullSyncClient();
+						} catch (Exception e) {
+							Engine.logEngine.warn("Unable to start the FullSync client of the Studio: " + e.getMessage());
+						}
+					});
+				}
+
 				if (Engine.isEngineMode()) {
 					theApp.addMigrationListener(new MigrationListener() {
 
