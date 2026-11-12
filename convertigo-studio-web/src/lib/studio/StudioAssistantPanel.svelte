@@ -8,6 +8,7 @@
 		activationProjects,
 		chooseAssistantUrl,
 		externalUrl,
+		localAgentContext,
 		remoteAgentContext,
 		stackChanges
 	} from './assistantHost.js';
@@ -207,22 +208,24 @@
 			currentUrl: browser ? window.location.href : '',
 			currentRoute: browser ? window.location.pathname : ''
 		};
+		const urls = {
+			assistantUrl: absolute(assistant?.url ?? ''),
+			localConvertigoUrl: localConvertigoUrl(),
+			localAssistantUrl: absolute(localAssistantUrl())
+		};
+		if (assistant?.local && desktop) {
+			// the context of the Eclipse Studio, with its version: the Assistant offers its agent from 8.4.4
+			return { ...common, ...localAgentContext(stack, urls) };
+		}
 		if (assistant?.local) {
 			return {
 				...common,
-				assistantRuntime: desktop ? 'local' : 'server',
+				assistantRuntime: 'server',
 				agentBridgeAvailable: true,
-				localAgentBridgeAvailable: desktop
+				localAgentBridgeAvailable: false
 			};
 		}
-		return {
-			...common,
-			...remoteAgentContext(stack, {
-				assistantUrl: assistant?.url ?? '',
-				localConvertigoUrl: localConvertigoUrl(),
-				localAssistantUrl: absolute(localAssistantUrl())
-			})
-		};
+		return { ...common, ...remoteAgentContext(stack, urls) };
 	});
 
 	function assistantOrigin() {

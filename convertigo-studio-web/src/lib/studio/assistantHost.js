@@ -40,23 +40,27 @@ export function chooseAssistantUrl({
 }
 
 /**
- * What the Studio tells a remote Assistant about the local agent stack, as the context of the Eclipse Studio.
- * @param {{ state?: string, updateAllowed?: boolean, projects?: Record<string, { installed?: boolean, version?: string }> } | null} stack
- * @param {{ assistantUrl: string, localConvertigoUrl: string, localAssistantUrl: string, studioVersion?: string }} urls
+ * @typedef {{ state?: string, updateAllowed?: boolean, studioVersion?: string, projects?: Record<string, { installed?: boolean, version?: string }> } | null} AgentStack
+ * @typedef {{ assistantUrl: string, localConvertigoUrl: string, localAssistantUrl: string }} AgentUrls
  */
-export function remoteAgentContext(stack, urls) {
+
+/**
+ * What the Studio tells an Assistant about the local agent stack, as the context of the Eclipse Studio.
+ * @param {AgentStack} stack
+ * @param {AgentUrls} urls
+ */
+function stackContext(stack, urls) {
 	const projects = stack?.projects ?? {};
 	const installed = (/** @type {string} */ name) => projects[name]?.installed === true;
 	const version = (/** @type {string} */ name) => projects[name]?.version ?? '';
-	const available = stack?.state === 'ready';
 	return {
-		assistantRuntime: 'remote',
 		assistantUrl: urls.assistantUrl,
 		localConvertigoUrl: urls.localConvertigoUrl,
 		localAssistantUrl: urls.localAssistantUrl,
 		downloadUrl: AGENT_DOWNLOAD_URL,
 		agentOnboardingFeatureVersion: AGENT_ONBOARDING_FEATURE_VERSION,
-		studioVersion: urls.studioVersion ?? '',
+		// the Assistant offers its agent to a Studio from 8.4.4
+		studioVersion: stack?.studioVersion ?? '',
 		canActivateLocalAgent: true,
 		localAssistantInstalled: installed('lib_ConvertigoAssistant'),
 		localMcpInstalled: installed('lib_ConvertigoMCP'),
@@ -65,12 +69,40 @@ export function remoteAgentContext(stack, urls) {
 		localMcpVersion: version('lib_ConvertigoMCP'),
 		localAgentBridgeVersion: version('lib_ConvertigoAgentBridge'),
 		localAgentStackUpdateAllowed: stack?.updateAllowed !== false,
-		localAgentStackAvailable: available,
+		localAgentStackAvailable: stack?.state === 'ready',
 		localAgentStackState: stack?.state ?? 'missing',
-		localAgentStackLoading: stack?.state === 'loading',
+		localAgentStackLoading: stack?.state === 'loading'
+	};
+}
+
+/**
+ * What the Studio tells a remote Assistant about the local agent stack, as the context of the Eclipse Studio.
+ * @param {AgentStack} stack
+ * @param {AgentUrls} urls
+ */
+export function remoteAgentContext(stack, urls) {
+	return {
+		assistantRuntime: 'remote',
+		...stackContext(stack, urls),
 		// the remote Assistant does not reach the agent of the Studio: it offers to activate it
 		localAgentBridgeAvailable: false,
 		agentBridgeAvailable: false
+	};
+}
+
+/**
+ * What a desktop Studio tells its local Assistant, as the Eclipse Studio: the local runtime, whose agent is
+ * offered once the stack is ready.
+ * @param {AgentStack} stack
+ * @param {AgentUrls} urls
+ */
+export function localAgentContext(stack, urls) {
+	const available = stack?.state === 'ready';
+	return {
+		assistantRuntime: 'local',
+		...stackContext(stack, urls),
+		localAgentBridgeAvailable: available,
+		agentBridgeAvailable: available
 	};
 }
 

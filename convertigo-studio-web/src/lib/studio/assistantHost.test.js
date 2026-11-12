@@ -4,6 +4,7 @@ import {
 	chooseAssistantUrl,
 	externalUrl,
 	HOSTED_ASSISTANT_URL,
+	localAgentContext,
 	remoteAgentContext
 } from './assistantHost.js';
 
@@ -43,6 +44,32 @@ describe('assistantHost', () => {
 		expect(context.localMcpInstalled).toBe(false);
 		expect(context.localAgentStackAvailable).toBe(false);
 		expect(context.agentBridgeAvailable).toBe(false);
+	});
+
+	it('tells the local Assistant of a desktop Studio its version and stack, as the Eclipse Studio', () => {
+		const installed = { installed: true, version: '1.6.0' };
+		const urls = { assistantUrl: 'a', localConvertigoUrl: 'b', localAssistantUrl: 'c' };
+		const ready = localAgentContext(
+			{
+				state: 'ready',
+				studioVersion: '8.5.0.m001',
+				projects: {
+					lib_ConvertigoAssistant: installed,
+					lib_ConvertigoMCP: installed,
+					lib_ConvertigoAgentBridge: installed
+				}
+			},
+			urls
+		);
+		// the Assistant offers its agent to a local Studio from 8.4.4 with its stack available
+		expect(ready.assistantRuntime).toBe('local');
+		expect(ready.studioVersion).toBe('8.5.0.m001');
+		expect(ready.localAgentStackAvailable).toBe(true);
+		expect(ready.localAgentBridgeAvailable).toBe(true);
+		expect(ready.agentBridgeAvailable).toBe(true);
+		const loading = localAgentContext({ state: 'loading', projects: {} }, urls);
+		expect(loading.localAgentStackAvailable).toBe(false);
+		expect(loading.agentBridgeAvailable).toBe(false);
 	});
 
 	it('imports only the projects of the agent stack', () => {
