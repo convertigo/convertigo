@@ -86,7 +86,7 @@ Signing is driven by environment variables and skipped without them:
 | Variable | Use |
 | --- | --- |
 | `APPLE_SIGN_IDENTITY` | the Developer ID Application identity, in the keychain, that signs the macOS application with the hardened runtime (the Java runtime with `installers/entitlements.plist`, as the Eclipse Studio); the macOS native libraries inside the engine jars are signed too. Without it, the application is signed ad hoc and macOS asks to confirm its first launch. |
-| `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` | notarize and staple the signed macOS application |
+| `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` | submit the archive of the signed macOS application to the notarization, without waiting for its result nor stapling it, as the Eclipse Studio: Gatekeeper checks it online at the first launch |
 | `WINDOWS_PFX`, `WINDOWS_PFX_PASSWORD` | sign `Convertigo Studio.exe` (signtool on Windows, osslsigncode elsewhere) |
 | `WINDOWS_TIMESTAMP_URL` | the timestamp server, `http://timestamp.digicert.com` by default |
 
@@ -102,6 +102,7 @@ The Linux archive is not signed. Electron's `chrome-sandbox` needs either user n
   Eclipse Studio when `PFX_AES` and `PFX_PWD` are set), uploads them to S3 next to the war, and hands
   the macOS resources to the next job.
 - `build_studio_electron_mac` (macOS) packages both macOS targets, signed with the Developer ID of the
-  Eclipse Studio (`APPLE_CERT_DEV_ID_APP_BASE64`, `APPLE_CERT_PASSWORD`, `APPLE_TEAM_ID`) and notarized
-  (`APPLE_ID`, `APPLE_PASSWORD`) when they are set, ad hoc otherwise, smoke tests the arm64 one and
+  Eclipse Studio (`APPLE_CERT_DEV_ID_APP_BASE64`, `APPLE_CERT_PASSWORD`, `APPLE_TEAM_ID`) and submitted
+  to the notarization without waiting for it (`APPLE_ID`, `APPLE_PASSWORD`), as `build_studio_mac`, when
+  they are set, ad hoc otherwise, smoke tests the arm64 one and
   uploads them to S3. The smoke test logs and screenshot are in the job artifacts.

@@ -1,7 +1,8 @@
 // Packages the Electron Studio for a target with @electron/packager, from resources/engine and
 // resources/<target>/jre, then writes its archive in dist:
-// - macOS: signed with the Developer ID of APPLE_SIGN_IDENTITY, then notarized and stapled when
-//   APPLE_ID, APPLE_PASSWORD and APPLE_TEAM_ID are set; signed ad hoc otherwise. macOS only.
+// - macOS: signed with the Developer ID of APPLE_SIGN_IDENTITY, then its archive submitted to the
+//   notarization when APPLE_ID, APPLE_PASSWORD and APPLE_TEAM_ID are set, without waiting for it nor
+//   stapling, as the Eclipse Studio; signed ad hoc otherwise. macOS only.
 // - Windows: its executable signed with the certificate of WINDOWS_PFX (WINDOWS_PFX_PASSWORD) when set.
 // - Linux: not signed.
 //
@@ -75,9 +76,7 @@ function macSigning(target) {
 		console.log(`${target}: no APPLE_SIGN_IDENTITY, the application is signed ad hoc and not notarized`);
 		return {};
 	}
-	const { APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID } = process.env;
-	const notarize = Boolean(APPLE_ID && APPLE_PASSWORD && APPLE_TEAM_ID);
-	if (!notarize) {
+	if (!notarizes()) {
 		console.log(`${target}: no APPLE_ID, APPLE_PASSWORD or APPLE_TEAM_ID, the application is not notarized`);
 	}
 	return {
@@ -91,11 +90,24 @@ function macSigning(target) {
 				file.includes(`${path.sep}Contents${path.sep}Resources${path.sep}jre${path.sep}`)
 					? { hardenedRuntime: true, entitlements: JAVA_ENTITLEMENTS }
 					: {}
-		},
-		...(notarize
-			? { osxNotarize: { appleId: APPLE_ID, appleIdPassword: APPLE_PASSWORD, teamId: APPLE_TEAM_ID } }
-			: {})
+		}
 	};
+}
+
+/** @returns {boolean} whether the signed macOS archives are submitted to the notarization */
+function notarizes() {
+	const { APPLE_SIGN_IDENTITY, APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID } = process.env;
+	return Boolean(APPLE_SIGN_IDENTITY && APPLE_ID && APPLE_PASSWORD && APPLE_TEAM_ID);
+}
+
+/**
+ * Submits a signed macOS archive to the notarization, without waiting for its result nor stapling it, as
+ * the Eclipse Studio: Gatekeeper checks the notarization online at the first launch.
+ * @param {string} archive
+ */
+function submitNotarization(archive) {
+	const { APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID } = process.env;
+	run('xcrun', ['notarytool', 'submit', archive, '--apple-id', APPLE_ID, '--password', APPLE_PASSWORD, '--team-id', APPLE_TEAM_ID]);
 }
 
 /**
@@ -179,6 +191,9 @@ async function packageTarget(target) {
 		}
 		run('codesign', ['--verify', '--deep', '--strict', bundle]);
 		run('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', bundle, archive]);
+		if (notarizes()) {
+			submitNotarization(archive);
+		}
 	} else if (platform === 'win32') {
 		if (process.env.WINDOWS_PFX) {
 			signWindows(path.join(appPath, `${NAME}.exe`));

@@ -1030,8 +1030,8 @@ jobs:
             --acl public-read
 
   # The Electron Studio for macOS, from the resources of build_studio_electron: signed with the Developer ID
-  # of the Eclipse Studio and notarized when the project has them, signed ad hoc otherwise, then started
-  # once to check that the Studio opens.
+  # of the Eclipse Studio and submitted to the notarization without waiting for it, as build_studio_mac, when
+  # the project has them, signed ad hoc otherwise, then started once to check that the Studio opens.
   build_studio_electron_mac:
     macos:
       xcode: 26.4.1
@@ -1078,7 +1078,7 @@ jobs:
             rm -f DevIdApplication.p12
             security set-key-partition-list -S apple-tool:,apple: -s -k '' ~/Library/Keychains/MyKeychain.keychain
             security find-identity -p codesigning
-            # notarized too when APPLE_ID and APPLE_PASSWORD are set
+            # submitted to the notarization too when APPLE_ID and APPLE_PASSWORD are set, without waiting for it
             export APPLE_SIGN_IDENTITY="Developer ID Application: Convertigo (${APPLE_TEAM_ID})"
           fi
           export NVM_DIR="$HOME/.nvm"
