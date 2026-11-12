@@ -22,7 +22,9 @@ const defaults = {
 	 * the page of the Assistant panel; empty: the local Assistant once its agent stack is installed, else the
 	 * Assistant hosted on assistant.convertigo.com
 	 */
-	assistantUrl: ''
+	assistantUrl: '',
+	/** @type {'stable' | 'preview'} the releases of the local Assistant the Studio installs */
+	assistantChannel: 'stable'
 };
 
 /**

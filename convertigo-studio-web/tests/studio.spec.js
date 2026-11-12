@@ -2203,6 +2203,47 @@ test('studio vibe profile opens the hosted Assistant until the local agent stack
 	]);
 });
 
+test('studio vibe profile installs the local Assistant from the built releases of its manifest', async ({
+	page
+}) => {
+	const release = (/** @type {string} */ name, /** @type {string} */ version) => ({
+		name,
+		version,
+		importUrl: `${name}=https://github.com/convertigo/${name}/releases/download/v${version}/${name}.car`
+	});
+	const assistantStack = {
+		state: 'missing',
+		projects: {},
+		installs: [],
+		manifest: [
+			release('lib_ConvertigoMCP', '0.3.0-beta.1'),
+			release('lib_ConvertigoAgentBridge', '0.5.0-beta.3'),
+			release('lib_ConvertigoAssistant', '1.6.0-beta.5')
+		]
+	};
+	await mockStudioServices(page, { assistant: true, noProjects: true, assistantStack });
+	await page.route('https://assistant.convertigo.com/**', (route) =>
+		route.fulfill({ status: 200, contentType: 'text/html', body: '<main>Hosted Assistant</main>' })
+	);
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+
+	const bar = page.getByRole('region', { name: 'Local Assistant' });
+	await expect(bar.getByRole('status')).toHaveText(/not installed: stable release 1\.6\.0-beta\.5/);
+	await bar.getByRole('button', { name: 'Install' }).click();
+	const assistant = page.locator('iframe[title="Convertigo Assistant"]');
+	await expect(assistant).toHaveAttribute(
+		'src',
+		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?.*serverAgent=1/
+	);
+	await expect(bar).toBeHidden();
+	expect(assistantStack.installs).toEqual([
+		'lib_ConvertigoMCP',
+		'lib_ConvertigoAgentBridge',
+		'lib_ConvertigoAssistant'
+	]);
+});
+
 test('studio vibe profile remains usable on touch with the optional tree hidden', async ({
 	page
 }) => {
@@ -3956,9 +3997,21 @@ function responseForService(service, params, options = {}) {
 			if (!stack) {
 				return {};
 			}
+			if (params.get('action') === 'manifest') {
+				return {
+					manifest: { channel: params.get('channel'), projects: stack.manifest ?? [] },
+					projects: stack.projects,
+					state: stack.state,
+					updateAllowed: true
+				};
+			}
 			if (params.get('action') === 'install') {
 				stack.installs.push(params.get('name'));
-				stack.projects[params.get('name') ?? ''] = { installed: true, version: '1.0' };
+				const name = params.get('name') ?? '';
+				const released = (stack.manifest ?? []).find(
+					(/** @type {any} */ project) => project.name === name
+				);
+				stack.projects[name] = { installed: true, version: released?.version ?? '1.0' };
 				const names = ['lib_ConvertigoAssistant', 'lib_ConvertigoMCP', 'lib_ConvertigoAgentBridge'];
 				stack.state = names.every((name) => stack.projects[name]?.installed) ? 'ready' : 'missing';
 			}

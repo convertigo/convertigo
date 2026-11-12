@@ -74,3 +74,40 @@ describe('assistantHost', () => {
 		expect(externalUrl({ url: 'javascript:alert(1)' })).toBe('');
 	});
 });
+
+describe('assistantHost releases', () => {
+	it('orders the versions of the stack', async () => {
+		const { compareVersions } = await import('./assistantHost.js');
+		expect(compareVersions('1.5.9', '1.6.0-beta.5')).toBeLessThan(0);
+		expect(compareVersions('1.6.0', '1.6.0-beta.5')).toBeGreaterThan(0);
+		expect(compareVersions('1.6.0-beta.10', '1.6.0-beta.5')).toBeGreaterThan(0);
+		expect(compareVersions('v0.2.29', '0.2.29')).toBe(0);
+	});
+
+	it('installs the missing projects and updates the older releases', async () => {
+		const { stackChanges } = await import('./assistantHost.js');
+		const manifest = {
+			projects: [
+				{ name: 'lib_ConvertigoMCP', version: '0.3.0-beta.1', importUrl: 'm' },
+				{ name: 'lib_ConvertigoAgentBridge', version: '0.4.31', importUrl: 'b' },
+				{ name: 'lib_ConvertigoAssistant', version: '1.6.0-beta.5', importUrl: 'a' }
+			]
+		};
+		const stack = {
+			updateAllowed: true,
+			projects: {
+				lib_ConvertigoMCP: { installed: true, version: '0.2.29' },
+				lib_ConvertigoAgentBridge: { installed: true, version: '0.5.0-beta.3' }
+			}
+		};
+		expect(
+			stackChanges(stack, manifest).map((change) => [change.name, change.forceUpdate])
+		).toEqual([
+			['lib_ConvertigoMCP', true],
+			['lib_ConvertigoAssistant', false]
+		]);
+		expect(
+			stackChanges({ ...stack, updateAllowed: false }, manifest).map((change) => change.name)
+		).toEqual(['lib_ConvertigoAssistant']);
+	});
+});

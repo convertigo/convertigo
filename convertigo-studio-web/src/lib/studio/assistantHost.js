@@ -104,3 +104,83 @@ export function externalUrl(message) {
 	const url = String(message?.url ?? message?.payload?.url ?? '').trim();
 	return /^https?:\/\//i.test(url) ? url : '';
 }
+
+/**
+ * Compares two versions of the stack, as 1.6.0-beta.5: by their numbers, then a release above its pre-releases,
+ * then the pre-releases by their numbers.
+ * @param {string} left
+ * @param {string} right
+ * @returns {number} negative when left is older
+ */
+export function compareVersions(left, right) {
+	const parse = (/** @type {string} */ version) => {
+		const [main, pre = ''] = String(version ?? '')
+			.trim()
+			.replace(/^v/, '')
+			.split('-', 2);
+		return { main: main.split('.').map((part) => Number.parseInt(part, 10) || 0), pre };
+	};
+	const a = parse(left);
+	const b = parse(right);
+	for (let i = 0; i < Math.max(a.main.length, b.main.length); i++) {
+		const diff = (a.main[i] ?? 0) - (b.main[i] ?? 0);
+		if (diff) {
+			return diff;
+		}
+	}
+	if (a.pre === b.pre) {
+		return 0;
+	}
+	if (!a.pre || !b.pre) {
+		return a.pre ? -1 : 1;
+	}
+	const aParts = a.pre.split('.');
+	const bParts = b.pre.split('.');
+	for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+		const x = aParts[i] ?? '';
+		const y = bParts[i] ?? '';
+		const diff = /^\d+$/.test(x) && /^\d+$/.test(y) ? Number(x) - Number(y) : x.localeCompare(y);
+		if (diff) {
+			return diff;
+		}
+	}
+	return 0;
+}
+
+/**
+ * The projects of a manifest to install or to update: the missing ones, and the ones the manifest has in a
+ * newer version when the stack is a set of releases (not clones the user updates).
+ * @param {any} stack the state of studio.assistant.Stack
+ * @param {{ projects?: { name: string, version: string, importUrl: string }[] } | null} manifest
+ * @returns {{ name: string, importUrl: string, forceUpdate: boolean, from: string, to: string }[]}
+ */
+export function stackChanges(stack, manifest) {
+	const changes = [];
+	for (const project of manifest?.projects ?? []) {
+		if (!AGENT_STACK_PROJECTS.includes(project.name)) {
+			continue;
+		}
+		const installed = stack?.projects?.[project.name];
+		if (!installed?.installed) {
+			changes.push({
+				name: project.name,
+				importUrl: project.importUrl,
+				forceUpdate: false,
+				from: '',
+				to: project.version
+			});
+		} else if (
+			stack?.updateAllowed !== false &&
+			compareVersions(installed.version, project.version) < 0
+		) {
+			changes.push({
+				name: project.name,
+				importUrl: project.importUrl,
+				forceUpdate: true,
+				from: installed.version,
+				to: project.version
+			});
+		}
+	}
+	return changes;
+}

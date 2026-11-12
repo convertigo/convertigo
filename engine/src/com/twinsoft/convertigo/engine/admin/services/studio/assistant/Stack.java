@@ -42,7 +42,10 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
  * <ul>
  * <li>action=state (default): installed, version of each project, state (ready, loading, missing), updateAllowed</li>
  * <li>action=install, name, importUrl, forceUpdate: imports one of these projects from its URL (a project URL of
- * the Studio, as name=https://github.com/...), unless it is already installed; only these three names</li>
+ * the Studio, as name=https://github.com/...), unless it is already installed; only these three names, from the
+ * repositories of convertigo on GitHub: a built release (.car) or a clone</li>
+ * <li>action=manifest, channel (stable or preview): the built releases of the stack the published manifest of this
+ * channel lists, as the Assistant reads it, with their import URLs</li>
  * </ul>
  */
 @ServiceDefinition(name = "Stack", roles = { Role.WEB_ADMIN, Role.PROJECTS_CONFIG }, parameters = {}, returnValue = "")
@@ -55,10 +58,65 @@ public class Stack extends JSonService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		var action = request.getParameter("action");
-		if ("install".equals(action)) {
+		if ("manifest".equals(action)) {
+			manifest(request, response);
+		} else if ("install".equals(action)) {
 			install(request, response);
 		}
 		putState(response);
+	}
+
+	/** the manifests of the built releases of the stack, published with the Assistant */
+	static final String MANIFEST_URL = "https://raw.githubusercontent.com/convertigo/c8oprj-lib-convertigo-assistant/refs/heads/master/stack-release-%s.json";
+
+	private static void manifest(HttpServletRequest request, JSONObject response) throws Exception {
+		var channel = "preview".equals(request.getParameter("channel")) ? "preview" : "stable";
+		var get = new org.apache.http.client.methods.HttpGet(String.format(MANIFEST_URL, channel));
+		String text;
+		try (var answer = Engine.theApp.httpClient4.execute(get)) {
+			var code = answer.getStatusLine().getStatusCode();
+			if (code < 200 || code >= 300) {
+				throw new ServiceException("The " + channel + " manifest of the Assistant cannot be read (HTTP " + code + ")");
+			}
+			text = org.apache.http.util.EntityUtils.toString(answer.getEntity(), java.nio.charset.StandardCharsets.UTF_8);
+		}
+		var manifest = new JSONObject(text);
+		var projects = new org.codehaus.jettison.json.JSONArray();
+		var listed = manifest.optJSONArray("projects");
+		for (int i = 0; listed != null && i < listed.length(); i++) {
+			var item = listed.optJSONObject(i);
+			if (item == null) {
+				continue;
+			}
+			var name = item.optString("name");
+			var importUrl = item.optString("importUrl");
+			// only the projects of the stack, from the repositories of convertigo
+			if (PROJECTS.contains(name) && fromConvertigo(name, importUrl)) {
+				projects.put(new JSONObject().put("name", name).put("version", item.optString("version"))
+						.put("tag", item.optString("tag")).put("importUrl", importUrl));
+			}
+		}
+		response.put("manifest", new JSONObject().put("channel", channel).put("projects", projects));
+	}
+
+	/** a project URL of the project from a repository of convertigo on GitHub, its built release or its clone */
+	static boolean fromConvertigo(String name, String importUrl) {
+		try {
+			var parser = new ProjectUrlParser(importUrl);
+			if (!parser.isValid() || !name.equals(parser.getProjectName()) || parser.getGitUrl() == null) {
+				return false;
+			}
+			var url = parser.getGitUrl();
+			if (url.startsWith("git@github.com:convertigo/")) {
+				return true;
+			}
+			var uri = new java.net.URI(url);
+			return "https".equals(uri.getScheme()) && "github.com".equalsIgnoreCase(uri.getHost()) && uri.getRawUserInfo() == null
+					&& uri.getPort() < 0 && uri.getRawPath() != null && uri.getRawPath().startsWith("/convertigo/")
+					&& !uri.getRawPath().contains("..");
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	private static void install(HttpServletRequest request, JSONObject response) throws Exception {
@@ -71,8 +129,9 @@ public class Stack extends JSonService {
 			throw new ServiceException("missing importUrl parameter");
 		}
 		var parser = new ProjectUrlParser(importUrl);
-		if (!parser.isValid() || !name.equals(parser.getProjectName())) {
-			throw new ServiceException("The import URL of " + name + " is not a project URL of " + name + ": " + importUrl);
+		if (!fromConvertigo(name, importUrl)) {
+			throw new ServiceException("The import URL of " + name + " is not a release or a repository of " + name
+					+ " from convertigo on GitHub: " + importUrl);
 		}
 		if (installed(name) != null && !Boolean.parseBoolean(request.getParameter("forceUpdate"))) {
 			response.put("skipped", true);
