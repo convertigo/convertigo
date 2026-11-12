@@ -1753,6 +1753,14 @@ public class Engine {
 	}
 
 	/**
+	 * @return whether the engine serves a desktop Studio to its one local user: the Eclipse Studio, or the Electron
+	 *         Studio, whose launcher sets the convertigo.studio.desktop system property
+	 */
+	public static boolean isDesktopStudio() {
+		return isStudioMode() || Boolean.getBoolean("convertigo.studio.desktop");
+	}
+
+	/**
 	 * @return whether the web Studio can edit projects: always in the Studio, else when web_studio is enabled
 	 */
 	public static boolean isWebStudioAllowed() {

@@ -40,7 +40,8 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
  * lib_ConvertigoAgentBridge), as the Assistant view of the Eclipse Studio sees and installs it: the Assistant hosted
  * on assistant.convertigo.com asks the Studio to activate the local agent, which imports these projects.
  * <ul>
- * <li>action=state (default): installed, version of each project, state (ready, loading, missing), updateAllowed</li>
+ * <li>action=state (default): installed, version of each project, state (ready, loading, missing), updateAllowed,
+ * desktop (whether the engine serves a desktop Studio)</li>
  * <li>action=install, name, importUrl, forceUpdate: imports one of these projects from its URL (a project URL of
  * the Studio, as name=https://github.com/...), unless it is already installed; only these three names, from the
  * repositories of convertigo on GitHub: a built release (.car) or a clone</li>
@@ -174,5 +175,7 @@ public class Stack extends JSonService {
 		response.put("state", all && versions ? "ready" : loading ? "loading" : "missing");
 		response.put("updateAllowed", updateAllowed);
 		response.put("localAssistantPath", LOCAL_ASSISTANT_PATH);
+		// a desktop Studio, Eclipse or Electron, opens its local Assistant with the local agent of its one user
+		response.put("desktop", Engine.isDesktopStudio());
 	}
 }

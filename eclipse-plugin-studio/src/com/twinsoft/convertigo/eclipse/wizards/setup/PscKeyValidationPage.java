@@ -39,9 +39,9 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
-import com.twinsoft.convertigo.eclipse.DeploymentKey;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
+import com.twinsoft.convertigo.engine.studio.StudioPsc.DeploymentKey;
 
 class PscKeyValidationPage extends WizardPage implements SummaryGenerator {
 	

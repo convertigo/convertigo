@@ -24,11 +24,8 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,7 +42,6 @@ import java.util.function.Consumer;
 
 import jakarta.servlet.http.HttpSession;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.FileInfoMatcherDescription;
@@ -158,13 +154,12 @@ import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalJsonRequester;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.engine.studio.StudioPsc;
+import com.twinsoft.convertigo.engine.studio.StudioPsc.DeploymentKey;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
-import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
-import com.twinsoft.convertigo.engine.util.PropertiesUtils;
-import com.twinsoft.convertigo.engine.util.SimpleCipher;
 import com.twinsoft.util.Log;
 
 /**
@@ -1999,116 +1994,26 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return embeddedTomcat;
 	}
 
+	/** @return the PSC of the workspace, read by the engine (see {@link StudioPsc#decode()}) */
 	static public Properties decodePsc() throws PscException {
-		return decodePscFromWorkspace(Engine.USER_WORKSPACE_PATH);
-	}
-
-	static private Properties decodePscFromWorkspace(String convertigoWorkspace) throws PscException {
-		File pscFile = new File(convertigoWorkspace, "studio/psc.txt");
-		if (pscFile.exists()) {
-			try {
-				String psc = FileUtils.readFileToString(pscFile, StandardCharsets.UTF_8);
-				return decodePsc(psc);
-			} catch (IOException e) {
-				throw new PscException("Invalid PSC (failed to read the file '" + pscFile.getAbsolutePath() + "' because of a '" + e.getClass().getSimpleName() + " : " + e.getMessage() +"')!");
-			}
-		} else {
-			throw new PscException("Invalid PSC (the file '" + pscFile.getAbsolutePath() + "' doesn't exist)!");
+		try {
+			return StudioPsc.decode();
+		} catch (StudioPsc.PscException e) {
+			throw new PscException(e.getMessage());
 		}
 	}
 
-	static public Properties decodePsc(String psc)  throws PscException {
-		if (psc.length() == 0) {
-			throw new PscException("Invalid PSC (empty)!");
-		} else {
-			Properties properties = new Properties();
-			try {
-				String decipheredPSC = Crypto2.decodeFromHexString("registration", psc);
-
-				if (decipheredPSC == null) {
-					throw new PscException("Invalid PSC (unable to decipher)!");
-				} else if (!decipheredPSC.startsWith("# PSC file")) {
-					throw new PscException("Invalid PSC (wrong format)!");
-				} else {
-
-					try {
-						properties.load(new StringReader(decipheredPSC));
-					} catch (IOException e) {
-						throw new PscException("Invalid PSC (cannot load properties)!");
-					}
-				}
-			} catch (PscException e) {
-				try {
-					String decipheredPSC = SimpleCipher.decode(psc);
-
-					properties.load(new StringReader(decipheredPSC));
-
-					String server = properties.getProperty("server");
-					String user = properties.getProperty("admin.user");
-					String password = properties.getProperty("admin.password");
-
-					if (server == null && user == null && password == null) {
-						throw e;
-					}
-
-					if (server == null || user == null || password == null) {
-						throw new PscException("Invalid PSC (incomplete data)!");
-					}
-
-					if (!user.equals(SimpleCipher.decode(password))) {
-						throw new PscException("Invalid PSC (altered data)");
-					}
-
-					boolean bHttps = Boolean.parseBoolean(properties.getProperty("https"));
-
-					properties.clear();
-
-					DeploymentKey.adminUser.setValue(properties, 1, user);
-					DeploymentKey.adminPassword.setValue(properties, 1, password);
-					DeploymentKey.server.setValue(properties, 1, server);
-					DeploymentKey.sslHttps.setValue(properties, 1, Boolean.toString(bHttps));
-				} catch (PscException ex) {
-					throw ex;
-				} catch (Exception ex) {
-					throw e;
-				}
-			}
-
-			int i = 0;
-			while (++i > 0) {
-				if (i > 1 && !properties.containsKey(DeploymentKey.adminUser.key(i))) {
-					i = -1;
-				} else {
-					for (DeploymentKey key : DeploymentKey.values()) {
-						if (!properties.containsKey(key.key(i))) {
-							if (!key.hasDefault()) {
-								throw new PscException("Invalid PSC (altered data)");
-							}
-							key.setValue(properties, i);
-						}
-					}
-				}
-			}
-
-			return properties;
+	/** @return the properties of a PSC, decoded by the engine (see {@link StudioPsc#decode(String)}) */
+	static public Properties decodePsc(String psc) throws PscException {
+		try {
+			return StudioPsc.decode(psc);
+		} catch (StudioPsc.PscException e) {
+			throw new PscException(e.getMessage());
 		}
 	}
 
 	static public String makeAnonymousPsc() throws IOException {
-		Properties properties = new Properties();
-		String anonEmail = Long.toString(System.currentTimeMillis(), Character.MAX_RADIX) +
-				Long.toString(Math.round(Math.random()) % Character.MAX_RADIX, Character.MAX_RADIX) +
-				"@anonym.ous";
-
-		DeploymentKey.adminUser.setValue(properties, 1, anonEmail);
-		DeploymentKey.adminPassword.setValue(properties, 1, "");
-		DeploymentKey.server.setValue(properties, 1, "");
-		String psc;
-		try (StringWriter sw = new StringWriter()) {
-			PropertiesUtils.store(properties, sw, " PSC file");
-			psc = Crypto2.encodeToHexString("registration", sw.toString());
-		}
-		return psc;
+		return StudioPsc.makeAnonymous();
 	}
 
 	static public void runAtStartup(Runnable runnable) {
