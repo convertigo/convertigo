@@ -1200,6 +1200,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				try {
 					connector.connection.commit();
 				} catch(SQLException excep) {
+					inError = true;
 					Element sql_output = parseResults(excep.getMessage(), excep);
 					if (sql_output != null) {
 						Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
@@ -1218,9 +1219,16 @@ public class SqlTransaction extends TransactionWithVariables {
 				}
 			}
 
+			// A failed transaction gives its connection back to the pool, which checks it before handing it out again:
+			// a connection left inside a failed database transaction (by a BEGIN in the query, for example) no longer
+			// makes the next transactions of the context fail.
+			if (inError) {
+				connector.close();
+			}
 		}
 		catch (Exception e) {
 			connector.setData(null,null);
+			connector.close();
 			throw new EngineException("An unexpected error occured while executing transaction. Could not execute the SQL query.",e);
 		}
 		finally {

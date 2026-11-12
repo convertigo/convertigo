@@ -36,7 +36,8 @@ import com.twinsoft.convertigo.engine.JdbcConnectionManager;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 /**
- * A query that fails inside a database transaction reports its own error, not the refusal of a retry.
+ * A query that fails inside a database transaction reports its own error, and a failed transaction does not leave its
+ * connection inside the failed database transaction for the next transactions of the context.
  * <p>
  * PostgreSQL refuses every statement of a transaction after an error ("current transaction is aborted, commands ignored
  * until end of transaction block") until it ends. The test runs on an in-memory HSQLDB database behind a driver that
@@ -103,6 +104,15 @@ public class SqlTransactionAbortedTransactionTest {
 			assertEquals("the transaction is rolled back and the next one works (auto-commit " + autoCommit + ")",
 					List.of("1:one"), list(autoCommit));
 		}
+	}
+
+	@Test
+	public void aConnectionLeftInAFailedTransactionIsNotReused() throws Exception {
+		String error = error(run("BEGIN;INSERT INTO items VALUES (1, 'duplicate');COMMIT", SqlTransaction.AUTOCOMMIT_EACH));
+		assertNotNull("the duplicate key fails", error);
+		assertFalse("the error of the query is reported: " + error, error.contains(ABORTED));
+		assertEquals("the next transaction of the context works", List.of("1:one"), list(SqlTransaction.AUTOCOMMIT_EACH));
+		assertEquals(List.of("1:one"), list(SqlTransaction.AUTOCOMMIT_END));
 	}
 
 	@Test

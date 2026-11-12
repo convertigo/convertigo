@@ -572,7 +572,7 @@ tasks.named('check') { dependsOn 'hsqldbPoolShutdownTest' }
 
 tasks.register('sqlAbortedTransactionTest', JavaExec) {
 	group = 'verification'
-	description = 'Regression test: a query failing inside a database transaction reports its own error (PostgreSQL rule; -Dconvertigo.test.postgresql.url runs it on a real server).'
+	description = 'Regression test: a query failing inside a database transaction reports its own error, and a failed transaction does not leave its connection in the failed database transaction (PostgreSQL rule; -Dconvertigo.test.postgresql.url runs it on a real server).'
 	dependsOn sessionTestClasses
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
