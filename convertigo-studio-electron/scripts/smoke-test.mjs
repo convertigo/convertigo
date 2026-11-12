@@ -1,4 +1,4 @@
-// Starts a packaged desktop Studio with Playwright, on scratch data and workspace folders that leave
+// Starts a packaged Electron Studio with Playwright, on scratch data and workspace folders that leave
 // the user's alone, and checks that the Studio opens, authenticated, and that its engine logged no
 // error but the known one of the JSP servlet, which the embedded Tomcat has not.
 //
@@ -9,7 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { _electron as electron } from 'playwright-core';
 
-import { desktopDir, hostTarget, parseTarget, TARGETS } from './common.mjs';
+import { electronDir, hostTarget, parseTarget, TARGETS } from './common.mjs';
 
 const NAME = 'Convertigo Studio';
 // an engine without Jasper does not find the JspServlet of the default web.xml of Tomcat
@@ -24,7 +24,7 @@ const KNOWN_ERRORS = [
  */
 function executableOf(target) {
 	const { platform, arch } = parseTarget(target);
-	const appPath = path.join(desktopDir, 'dist', `${NAME}-${platform}-${arch}`);
+	const appPath = path.join(electronDir, 'dist', `${NAME}-${platform}-${arch}`);
 	return {
 		darwin: path.join(appPath, `${NAME}.app`, 'Contents', 'MacOS', NAME),
 		win32: path.join(appPath, `${NAME}.exe`),

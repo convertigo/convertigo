@@ -1,6 +1,6 @@
-# Convertigo Studio desktop
+# Convertigo Studio Electron
 
-The desktop Convertigo Studio: an Electron window on the web Studio (`convertigo-studio-web`, under
+The Electron Convertigo Studio: a desktop window on the web Studio (`convertigo-studio-web`, under
 `/convertigo/studio/`), served by a Convertigo engine that the application starts with its own Java
 runtime and stops when it quits.
 
@@ -30,7 +30,7 @@ From the root of the repository:
 ```bash
 (cd convertigo-studio-web && npm ci && npm run build)   # writes eclipse-plugin-studio/tomcat/webapps/convertigo
 ./gradlew :engine:war                                   # writes engine/build/libs/convertigo-<version>.war
-cd convertigo-studio-desktop
+cd convertigo-studio-electron
 npm ci
 npm run engine                  # resources/engine: the war exploded, Tomcat, DevEngine, the Tomcat conf
 npm run jre -- darwin-arm64     # resources/darwin-arm64/jre: the Java runtime of a target
@@ -50,7 +50,7 @@ and no target means the one of the machine. `scripts/engine.mjs --war <file>` ta
 - The Electron version is the one of `package.json`.
 
 The archives are named as those of the Eclipse Studio:
-`convertigo-studio-desktop-<version>-{macosx-arm64.zip,macosx-x86_64.zip,win64.zip,linux64.tar.gz}`.
+`convertigo-studio-electron-<version>-{macosx-arm64.zip,macosx-x86_64.zip,win64.zip,linux64.tar.gz}`.
 
 ## Run
 
@@ -97,11 +97,11 @@ The Linux archive is not signed. Electron's `chrome-sandbox` needs either user n
 
 `.circleci/config.yml` builds it after `build_engine_war`, on the `develop` branch only for now:
 
-- `build_studio_desktop` (Linux) downloads the war of the build from S3, prepares the engine, links
+- `build_studio_electron` (Linux) downloads the war of the build from S3, prepares the engine, links
   the four runtimes, packages Windows and Linux (the executable signed with the certificate of the
   Eclipse Studio when `PFX_AES` and `PFX_PWD` are set), uploads them to S3 next to the war, and hands
   the macOS resources to the next job.
-- `build_studio_desktop_mac` (macOS) packages both macOS targets, signed with the Developer ID of the
+- `build_studio_electron_mac` (macOS) packages both macOS targets, signed with the Developer ID of the
   Eclipse Studio (`APPLE_CERT_DEV_ID_APP_BASE64`, `APPLE_CERT_PASSWORD`, `APPLE_TEAM_ID`) and notarized
   (`APPLE_ID`, `APPLE_PASSWORD`) when they are set, ad hoc otherwise, smoke tests the arm64 one and
   uploads them to S3. The smoke test logs and screenshot are in the job artifacts.

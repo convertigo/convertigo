@@ -1,4 +1,4 @@
-// Packages the desktop Studio for a target with @electron/packager, from resources/engine and
+// Packages the Electron Studio for a target with @electron/packager, from resources/engine and
 // resources/<target>/jre, then writes its archive in dist:
 // - macOS: signed with the Developer ID of APPLE_SIGN_IDENTITY, then notarized and stapled when
 //   APPLE_ID, APPLE_PASSWORD and APPLE_TEAM_ID are set; signed ad hoc otherwise. macOS only.
@@ -12,11 +12,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { convertigoVersion, desktopDir, filesOf, hasCommand, isMachO, parseTarget, repoDir, resourcesDir, run, targetsOf } from './common.mjs';
+import { convertigoVersion, electronDir, filesOf, hasCommand, isMachO, parseTarget, repoDir, resourcesDir, run, targetsOf } from './common.mjs';
 
 const NAME = 'Convertigo Studio';
 const version = convertigoVersion();
-const distDir = path.join(desktopDir, 'dist');
+const distDir = path.join(electronDir, 'dist');
 // the entitlements of the Java runtime of the Eclipse Studio: its JIT, and the native libraries the
 // engine extracts from its jars, signed by others
 const JAVA_ENTITLEMENTS = path.join(repoDir, 'installers', 'entitlements.plist');
@@ -24,10 +24,10 @@ const TIMESTAMP_URL = process.env.WINDOWS_TIMESTAMP_URL || 'http://timestamp.dig
 
 /** @type {Record<string, string>} the archive of each target, as the Eclipse Studio names them */
 const ARCHIVES = {
-	'darwin-arm64': `convertigo-studio-desktop-${version.full}-macosx-arm64.zip`,
-	'darwin-x64': `convertigo-studio-desktop-${version.full}-macosx-x86_64.zip`,
-	'win32-x64': `convertigo-studio-desktop-${version.full}-win64.zip`,
-	'linux-x64': `convertigo-studio-desktop-${version.full}-linux64.tar.gz`
+	'darwin-arm64': `convertigo-studio-electron-${version.full}-macosx-arm64.zip`,
+	'darwin-x64': `convertigo-studio-electron-${version.full}-macosx-x86_64.zip`,
+	'win32-x64': `convertigo-studio-electron-${version.full}-win64.zip`,
+	'linux-x64': `convertigo-studio-electron-${version.full}-linux64.tar.gz`
 };
 
 /**
@@ -142,7 +142,7 @@ async function packageTarget(target) {
 	const staging = path.join(distDir, '.packaging');
 	fs.rmSync(staging, { recursive: true, force: true });
 	const [stagedPath] = await packager({
-		dir: desktopDir,
+		dir: electronDir,
 		name: NAME,
 		platform,
 		arch,

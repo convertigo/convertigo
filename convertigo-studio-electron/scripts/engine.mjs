@@ -1,4 +1,4 @@
-// Prepares resources/engine, the Convertigo engine of the desktop Studio, the same for every target:
+// Prepares resources/engine, the Convertigo engine of the Electron Studio, the same for every target:
 // the war of the engine exploded, the embedded Tomcat of build.gradle's tomcatVersion, its launcher
 // DevEngine compiled, and the Tomcat configuration of the Eclipse Studio. Also copies the icon.
 //
@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 
-import { cacheDir, download, extract, gradleProperty, repoDir, resourcesDir, run, desktopDir } from './common.mjs';
+import { cacheDir, download, extract, gradleProperty, repoDir, resourcesDir, run, electronDir } from './common.mjs';
 
 const { values } = parseArgs({ options: { war: { type: 'string' } } });
 
@@ -65,7 +65,7 @@ run(javac, [
 	classpath,
 	'-d',
 	path.join(engineDir, 'classes'),
-	path.join(desktopDir, 'engine', 'DevEngine.java')
+	path.join(electronDir, 'engine', 'DevEngine.java')
 ]);
 
 // the configuration of the Tomcat of the Eclipse Studio: its context.xml and default web.xml

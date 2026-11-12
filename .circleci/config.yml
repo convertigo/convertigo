@@ -403,10 +403,10 @@ jobs:
           source /tmp/build.env
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
           
-  # The desktop Studio (convertigo-studio-desktop): the engine WAR of build_engine_war with its embedded
+  # The Electron Studio (convertigo-studio-electron): the engine WAR of build_engine_war with its embedded
   # Tomcat and a Java runtime per target, packaged with Electron. Windows and Linux are packaged here,
-  # the macOS resources are handed to build_studio_desktop_mac to be packaged and signed there.
-  build_studio_desktop:
+  # the macOS resources are handed to build_studio_electron_mac to be packaged and signed there.
+  build_studio_electron:
     <<: *defaults
 
     steps:
@@ -421,7 +421,7 @@ jobs:
         command: cp build.env /tmp/build.env
 
     - run:
-        name: Generate desktop Studio fingerprints
+        name: Generate Electron Studio fingerprints
         command: |
           mkdir -p .circleci/cache
           sed -n "s/^ext.studioWebNodeVersion = '\\(.*\\)'$/\\1/p" build.gradle > .circleci/cache/webadmin.nodeversion
@@ -433,12 +433,12 @@ jobs:
 
     - restore_cache:
         keys:
-        - v1-studio-desktop-npm-{{ checksum "convertigo-studio-desktop/package-lock.json" }}
-        - v1-studio-desktop-npm-
+        - v1-studio-electron-npm-{{ checksum "convertigo-studio-electron/package-lock.json" }}
+        - v1-studio-electron-npm-
 
     - restore_cache:
         keys:
-        - v1-studio-desktop-temurin-{{ checksum "installers/nsis/download-jdk.sh" }}
+        - v1-studio-electron-temurin-{{ checksum "installers/nsis/download-jdk.sh" }}
 
     - run:
         name: Download the engine WAR
@@ -448,7 +448,7 @@ jobs:
           aws s3 cp s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/convertigo-$CONVERTIGO_VERSION.war engine/build/libs/
 
     - run:
-        name: Build the desktop Studio for Windows and Linux
+        name: Build the Electron Studio for Windows and Linux
         command: |
           source /tmp/build.env
           if ! command -v zip >/dev/null || ! command -v unzip >/dev/null ; then
@@ -461,7 +461,7 @@ jobs:
           fi
           . "$NVM_DIR/nvm.sh"
           nvm install "$(cat .circleci/cache/webadmin.nodeversion)"
-          cd convertigo-studio-desktop
+          cd convertigo-studio-electron
           ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci
           node scripts/engine.mjs
           node scripts/jre.mjs all
@@ -474,21 +474,21 @@ jobs:
           node scripts/package.mjs win32-x64 linux-x64
           rm -f /tmp/convertigo.pfx
           mkdir -p $CONVERTIGO_DIST
-          mv dist/convertigo-studio-desktop-* $CONVERTIGO_DIST/
+          mv dist/convertigo-studio-electron-* $CONVERTIGO_DIST/
 
     - save_cache:
         paths:
         - ~/.npm
         - ~/.cache/electron
-        key: v1-studio-desktop-npm-{{ checksum "convertigo-studio-desktop/package-lock.json" }}
+        key: v1-studio-electron-npm-{{ checksum "convertigo-studio-electron/package-lock.json" }}
 
     - save_cache:
         paths:
-        - convertigo-studio-desktop/.cache/temurin
-        key: v1-studio-desktop-temurin-{{ checksum "installers/nsis/download-jdk.sh" }}
+        - convertigo-studio-electron/.cache/temurin
+        key: v1-studio-electron-temurin-{{ checksum "installers/nsis/download-jdk.sh" }}
 
     - run:
-        name: Sync the desktop Studio to S3
+        name: Sync the Electron Studio to S3
         command: |
           source /tmp/build.env
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
@@ -496,10 +496,10 @@ jobs:
     - persist_to_workspace:
         root: .
         paths:
-        - convertigo-studio-desktop/resources/engine
-        - convertigo-studio-desktop/resources/icon.png
-        - convertigo-studio-desktop/resources/darwin-arm64
-        - convertigo-studio-desktop/resources/darwin-x64
+        - convertigo-studio-electron/resources/engine
+        - convertigo-studio-electron/resources/icon.png
+        - convertigo-studio-electron/resources/darwin-arm64
+        - convertigo-studio-electron/resources/darwin-x64
 
   build_docker_default:
     <<: *defaults
@@ -1029,10 +1029,10 @@ jobs:
             --storage-class REDUCED_REDUNDANCY \
             --acl public-read
 
-  # The desktop Studio for macOS, from the resources of build_studio_desktop: signed with the Developer ID
+  # The Electron Studio for macOS, from the resources of build_studio_electron: signed with the Developer ID
   # of the Eclipse Studio and notarized when the project has them, signed ad hoc otherwise, then started
   # once to check that the Studio opens.
-  build_studio_desktop_mac:
+  build_studio_electron_mac:
     macos:
       xcode: 26.4.1
     resource_class: m4pro.medium
@@ -1052,20 +1052,20 @@ jobs:
     - attach_workspace:
         at: .
     - run:
-        name: Generate desktop Studio fingerprints
+        name: Generate Electron Studio fingerprints
         command: |
           mkdir -p .circleci/cache
-          sed -n "s/^ext.studioWebNodeVersion = '\\(.*\\)'$/\\1/p" build.gradle > .circleci/cache/desktop.nodeversion
-          test -s .circleci/cache/desktop.nodeversion
+          sed -n "s/^ext.studioWebNodeVersion = '\\(.*\\)'$/\\1/p" build.gradle > .circleci/cache/electron.nodeversion
+          test -s .circleci/cache/electron.nodeversion
     - restore_cache:
         keys:
-        - v1-studio-desktop-mac-nvm-{{ checksum ".circleci/cache/desktop.nodeversion" }}
+        - v1-studio-electron-mac-nvm-{{ checksum ".circleci/cache/electron.nodeversion" }}
     - restore_cache:
         keys:
-        - v1-studio-desktop-mac-npm-{{ checksum "convertigo-studio-desktop/package-lock.json" }}
-        - v1-studio-desktop-mac-npm-
+        - v1-studio-electron-mac-npm-{{ checksum "convertigo-studio-electron/package-lock.json" }}
+        - v1-studio-electron-mac-npm-
     - run:
-        name: Package and sign the desktop Studio for macOS
+        name: Package and sign the Electron Studio for macOS
         command: |
           source build.env
           if [ -n "${APPLE_CERT_DEV_ID_APP_BASE64:-}" ] && [ -n "${APPLE_TEAM_ID:-}" ] ; then
@@ -1086,34 +1086,34 @@ jobs:
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
           fi
           . "$NVM_DIR/nvm.sh"
-          nvm install "$(cat .circleci/cache/desktop.nodeversion)"
-          cd convertigo-studio-desktop
+          nvm install "$(cat .circleci/cache/electron.nodeversion)"
+          cd convertigo-studio-electron
           ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci
           node scripts/package.mjs darwin-arm64 darwin-x64
     - save_cache:
         paths:
         - ~/.nvm
-        key: v1-studio-desktop-mac-nvm-{{ checksum ".circleci/cache/desktop.nodeversion" }}
+        key: v1-studio-electron-mac-nvm-{{ checksum ".circleci/cache/electron.nodeversion" }}
     - save_cache:
         paths:
         - ~/.npm
         - ~/Library/Caches/electron
-        key: v1-studio-desktop-mac-npm-{{ checksum "convertigo-studio-desktop/package-lock.json" }}
+        key: v1-studio-electron-mac-npm-{{ checksum "convertigo-studio-electron/package-lock.json" }}
     - run:
-        name: Smoke test the desktop Studio
+        name: Smoke test the Electron Studio
         command: |
           . "$HOME/.nvm/nvm.sh"
-          nvm use "$(cat .circleci/cache/desktop.nodeversion)"
-          cd convertigo-studio-desktop
+          nvm use "$(cat .circleci/cache/electron.nodeversion)"
+          cd convertigo-studio-electron
           SMOKE_TEST_DIR=/tmp/smoke-test node scripts/smoke-test.mjs darwin-arm64
     - store_artifacts:
         path: /tmp/smoke-test
         destination: smoke-test
     - run:
-        name: Upload the desktop Studio to S3
+        name: Upload the Electron Studio to S3
         command: |
           source build.env
-          for archive in convertigo-studio-desktop/dist/convertigo-studio-desktop-*.zip ; do
+          for archive in convertigo-studio-electron/dist/convertigo-studio-electron-*.zip ; do
             aws s3api put-object --bucket convertigo-ci \
               --key "convertigo-${CONVERTIGO_BUILD_NAME}/$(basename "$archive")" \
               --body "$archive" \
@@ -1270,16 +1270,16 @@ workflows:
         filters:
           tags:
             only: /^\d+\..*$/
-    # the desktop Studio is built on develop only for now (about 1.4 GB of archives per build)
-    - build_studio_desktop:
+    # the Electron Studio is built on develop only for now (about 1.4 GB of archives per build)
+    - build_studio_electron:
         requires:
         - build_engine_war
         filters:
           branches:
             only: develop
-    - build_studio_desktop_mac:
+    - build_studio_electron_mac:
         requires:
-        - build_studio_desktop
+        - build_studio_electron
         filters:
           branches:
             only: develop

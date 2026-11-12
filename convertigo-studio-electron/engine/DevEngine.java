@@ -5,7 +5,7 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 
 /**
- * Serves an exploded Convertigo war on a port, in an embedded Tomcat: the engine of the desktop
+ * Serves an exploded Convertigo war on a port, in an embedded Tomcat: the engine of the Electron
  * Studio, which main.js starts with the Java runtime of the application.
  * Usage: DevEngine <port> <exploded war dir> <tomcat base dir>
  */

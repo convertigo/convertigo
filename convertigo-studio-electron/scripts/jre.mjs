@@ -1,4 +1,4 @@
-// Links resources/<target>/jre, the Java runtime of the desktop Studio for a target, with the jlink
+// Links resources/<target>/jre, the Java runtime of the Electron Studio for a target, with the jlink
 // of a Temurin JDK and the jmods of the target: one machine links the runtimes of every target. The
 // Temurin release is the one of the Eclipse Studio (installers/nsis/download-jdk.sh); jlink needs
 // the JDK and the jmods of the same release.

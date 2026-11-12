@@ -1,18 +1,18 @@
-// Shared helpers of the build scripts of the desktop Studio: the versions the repository pins, the
+// Shared helpers of the build scripts of the Electron Studio: the versions the repository pins, the
 // targets, downloads checked against their published checksums, archives and commands.
 import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
-/** the folder of the desktop Studio */
-export const desktopDir = path.resolve(import.meta.dirname, '..');
+/** the folder of the Electron Studio */
+export const electronDir = path.resolve(import.meta.dirname, '..');
 /** the root of the Convertigo repository */
-export const repoDir = path.resolve(desktopDir, '..');
+export const repoDir = path.resolve(electronDir, '..');
 /** the resources the application packages: the engine, a Java runtime per target and the icon */
-export const resourcesDir = path.join(desktopDir, 'resources');
+export const resourcesDir = path.join(electronDir, 'resources');
 /** the downloads, kept between builds */
-export const cacheDir = process.env.CONVERTIGO_STUDIO_DESKTOP_CACHE || path.join(desktopDir, '.cache');
+export const cacheDir = process.env.CONVERTIGO_STUDIO_ELECTRON_CACHE || path.join(electronDir, '.cache');
 
 /** the targets the application is packaged for, as `<platform>-<arch>` of Node.js and Electron */
 export const TARGETS = ['darwin-arm64', 'darwin-x64', 'win32-x64', 'linux-x64'];
